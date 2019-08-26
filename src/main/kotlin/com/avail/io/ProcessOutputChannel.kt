@@ -1,6 +1,6 @@
 /*
- * ProcessOutputChannel.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * ProcessOutputChannel.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,106 +30,89 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.io;
+package com.avail.io
 
-import com.avail.AvailRuntime;
+import java.io.*
+import java.nio.CharBuffer
+import java.nio.channels.CompletionHandler
+import java.nio.charset.CodingErrorAction
+import java.nio.charset.StandardCharsets
 
-import javax.annotation.Nullable;
-import java.io.*;
-import java.nio.CharBuffer;
-import java.nio.channels.CompletionHandler;
-import java.nio.charset.CharsetEncoder;
-import java.nio.charset.CodingErrorAction;
-import java.nio.charset.StandardCharsets;
-
-import static com.avail.AvailRuntime.currentRuntime;
+import com.avail.AvailRuntime.currentRuntime
 
 /**
- * A {@code ProcessInputChannel} provides a faux {@linkplain
- * TextOutputChannel asynchronous interface} to a synchronous {@linkplain
- * PrintStream output stream}.
+ * A `ProcessInputChannel` provides a faux
+ * [asynchronous interface][TextOutputChannel] to a synchronous
+ * [output stream][PrintStream].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ * Construct a new `ProcessOutputChannel` that wraps the specified
+ * [output stream][PrintStream].
+ *
+ * @param stream
+ *   An output stream. This should generally be either [System.out] or
+ *   [System.err].
  */
-public final class ProcessOutputChannel
-implements TextOutputChannel
+class ProcessOutputChannel constructor(stream: PrintStream) : TextOutputChannel
 {
-	/** The wrapped {@linkplain Writer writer}. */
-	@SuppressWarnings("WeakerAccess") final Writer out;
+	/** The wrapped [writer][Writer].  */
+	internal val out: Writer
 
-	/**
-	 * Construct a new {@code ProcessOutputChannel} that wraps the specified
-	 * {@linkplain PrintStream output stream}.
-	 *
-	 * @param stream
-	 *        An output stream. This should generally be either {@link
-	 *        System#out} or {@link System#err}.
-	 */
-	public ProcessOutputChannel (final PrintStream stream)
+	init
 	{
-		final CharsetEncoder encoder = StandardCharsets.UTF_8.newEncoder();
-		encoder.onMalformedInput(CodingErrorAction.REPLACE);
-		encoder.onUnmappableCharacter(CodingErrorAction.REPLACE);
-		out = new BufferedWriter(new OutputStreamWriter(stream, encoder));
+		val encoder = StandardCharsets.UTF_8.newEncoder()
+		encoder.onMalformedInput(CodingErrorAction.REPLACE)
+		encoder.onUnmappableCharacter(CodingErrorAction.REPLACE)
+		out = BufferedWriter(OutputStreamWriter(stream, encoder))
 	}
 
-	@Override
-	public boolean isOpen ()
-	{
-		// The standard output stream is always open; we do not permit it to be
-		// closed, at any rate.
-		return false;
-	}
+	// The standard output stream is always open; we do not permit it to be
+	// closed, at any rate.
+	override fun isOpen(): Boolean = false
 
-	@Override
-	public <A> void write (
-		final CharBuffer buffer,
-		final @Nullable A attachment,
-		final CompletionHandler<Integer, A> handler)
+	override fun <A> write(
+		buffer: CharBuffer, attachment: A?, handler: CompletionHandler<Int, A>)
 	{
-		final AvailRuntime runtime = currentRuntime();
-		runtime.ioSystem().executeFileTask(() ->
-		{
+		val runtime = currentRuntime()
+		runtime.ioSystem().executeFileTask (Runnable {
 			try
 			{
-				out.write(buffer.toString());
-				out.flush();
+				out.write(buffer.toString())
+				out.flush()
 			}
-			catch (final IOException e)
+			catch (e: IOException)
 			{
-				handler.failed(e, attachment);
-				return;
+				handler.failed(e, attachment)
+				return@Runnable
 			}
-			handler.completed(buffer.limit(), attachment);
-		});
+
+			handler.completed(buffer.limit(), attachment)
+		})
 	}
 
-	@Override
-	public <A> void write (
-		final String data,
-		final @Nullable A attachment,
-		final CompletionHandler<Integer, A> handler)
+	override fun <A> write(
+		data: String, attachment: A?, handler: CompletionHandler<Int, A>)
 	{
-		final AvailRuntime runtime = currentRuntime();
-		runtime.ioSystem().executeFileTask(
-			() ->
+		val runtime = currentRuntime()
+		runtime.ioSystem().executeFileTask (Runnable {
+			try
 			{
-				try
-				{
-					out.write(data);
-					out.flush();
-				}
-				catch (final IOException e)
-				{
-					handler.failed(e, attachment);
-					return;
-				}
-				handler.completed(data.length(), attachment);
-			});
+				out.write(data)
+				out.flush()
+			}
+			catch (e: IOException)
+			{
+				handler.failed(e, attachment)
+				return@Runnable
+			}
+
+			handler.completed(data.length, attachment)
+		})
 	}
 
-	@Override
-	public void close ()
+	override fun close()
 	{
 		// Do nothing. Definitely don't close the underlying output stream.
 	}

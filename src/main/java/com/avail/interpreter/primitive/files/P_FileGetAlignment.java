@@ -82,7 +82,7 @@ extends Primitive
 			return interpreter.primitiveFailure(E_INVALID_HANDLE);
 		}
 		final FileHandle handle = pojo.javaObjectNotNull();
-		return interpreter.primitiveSuccess(fromInt(handle.alignment));
+		return interpreter.primitiveSuccess(fromInt(handle.getAlignment()));
 	}
 
 	@Override

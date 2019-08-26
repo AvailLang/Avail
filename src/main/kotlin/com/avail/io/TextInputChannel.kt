@@ -1,6 +1,6 @@
 /*
- * TextInputChannel.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * TextInputChannel.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,92 +30,96 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.io;
+package com.avail.io
 
-import javax.annotation.Nullable;
-import java.io.IOException;
-import java.nio.CharBuffer;
-import java.nio.channels.AsynchronousChannel;
-import java.nio.channels.CompletionHandler;
+import java.io.IOException
+import java.nio.CharBuffer
+import java.nio.channels.AsynchronousChannel
+import java.nio.channels.CompletionHandler
 
 /**
- * {@code TextInputChannel} provides a wrapper for a synchronous input reader
- * that is <em>as asynchronous as possible</em>.
+ * `TextInputChannel` provides a wrapper for a synchronous input reader that is
+ * *as asynchronous as possible*.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public interface TextInputChannel
-extends AsynchronousChannel
+interface TextInputChannel : AsynchronousChannel
 {
 	/**
-	 * Reads a sequence of characters from this {@linkplain TextInputChannel
-	 * reader} into the given {@linkplain CharBuffer buffer}.
+	 * Reads a sequence of characters from this [reader][TextInputChannel] into
+	 * the given [buffer][CharBuffer].
 	 *
-	 * <p>This method initiates an asynchronous read operation to read a
-	 * sequence of channels from this channel into the given buffer. The
-	 * supplied {@link CompletionHandler} is invoked when the read operation
-	 * completes (or fails). The result passed to the completion handler is the
-	 * number of characters read or {@code -1} if no characters could be read
-	 * because the channel has reached end-of-stream.</p>
 	 *
-	 * <p>The read operation may read up to {@code r} bytes from the channel,
-	 * where r is the {@linkplain CharBuffer#remaining() number of characters
-	 * remaining} in the buffer at the time that the read is attempted.
-	 * If {@code r} is {@code 0}, then the read operation completes immediately
-	 * with a result of {@code 0} without initiating an I/O operation.</p>
+	 * This method initiates an asynchronous read operation to read a sequence
+	 * of channels from this channel into the given buffer. The supplied
+	 * [CompletionHandler] is invoked when the read operation completes (or
+	 * fails). The result passed to the completion handler is the number of
+	 * characters read or `-1` if no characters could be read because the
+	 * channel has reached end-of-stream.
 	 *
-	 * <p>Suppose that a character sequence of length {@code n} is read, where
-	 * {@code 0 < n ≤ r}. This character sequence will be transferred into the
-	 * buffer so that the first byte in the sequence is at index {@code p} and
-	 * the last byte is at index {@code p + n - 1}, where {@code p} is the
-	 * buffer's {@linkplain CharBuffer#position() position} at the moment that
-	 * the read is performed. Upon completion, the buffer's position will be
-	 * equal to {@code p + n}; its {@linkplain CharBuffer#limit() limit} will
-	 * not have changed.</p>
 	 *
-	 * <p>Buffers are not safe for use by multiple concurrent {@linkplain Thread
-	 * threads}, so care should be taken to avoid accessing the buffer until the
-	 * asynchronous read operation has completed.</p>
+	 * The read operation may read up to `r` bytes from the channel, where r is
+	 * the [number of characters][CharBuffer.remaining] in the buffer at the
+	 * time that the read is attempted. If `r` is `0`, then the read operation
+	 * completes immediately with a result of `0` without initiating an I/O
+	 * operation.
 	 *
-	 * <p>This method may be invoked at any time.</p>
 	 *
-	 * @param <A>
-	 *        The type of attachment accepted by the {@code CompletionHandler}.
+	 * Suppose that a character sequence of length `n` is read, where `0 < n ≤
+	 * r`. This character sequence will be transferred into the buffer so that
+	 * the first byte in the sequence is at index `p` and the last byte is at
+	 * index `p + n - 1`, where `p` is the buffer's
+	 * [position][CharBuffer.position] at the moment that the read is performed.
+	 * Upon completion, the buffer's position will be equal to `p + n`; its
+	 * [limit][CharBuffer.limit] will not have changed.
+	 *
+	 *
+	 * Buffers are not safe for use by multiple concurrent [ threads][Thread],
+	 * so care should be taken to avoid accessing the buffer until the
+	 * asynchronous read operation has completed.
+	 *
+	 *
+	 * This method may be invoked at any time.
+	 *
+	 * @param A
+	 *   The type of attachment accepted by the `CompletionHandler`.
 	 * @param buffer
-	 *        The buffer into which characters should be read.
+	 *   The buffer into which characters should be read.
 	 * @param attachment
-	 *        An arbitrary value that should be made available to the {@code
-	 *        CompletionHandler}, irrespective of success.
+	 *   An arbitrary value that should be made available to the
+	 *   `CompletionHandler`, irrespective of success.
 	 * @param handler
-	 *        What to do when the I/O operation {@linkplain
-	 *        CompletionHandler#completed(Object, Object) succeeds} or
-	 *        {@linkplain CompletionHandler#failed(Throwable, Object) fails}.
+	 *   What to do when the I/O operation
+	 *   [succeeds][CompletionHandler.completed] or
+	 *   [fails][CompletionHandler.failed].
 	 */
-	<A> void read (
-		CharBuffer buffer,
-		@Nullable A attachment,
-		CompletionHandler<Integer, A> handler);
+	fun <A> read(
+		buffer: CharBuffer,
+		attachment: A?,
+		handler: CompletionHandler<Int, A>)
 
 	/**
-	 * Mark the current position in the {@linkplain TextInputChannel channel}.
-	 * Subsequent calls to {@link #reset()} will attempt to reset this position.
+	 * Mark the current position in the [channel][TextInputChannel]. Subsequent
+	 * calls to [reset] will attempt to reset this position.
 	 *
 	 * @param readAhead
-	 *        The number of characters to preserve without invalidating the
-	 *        mark. If more than this limit are read, then a subsequent call to
-	 *        {@code reset()} will fail.
+	 *   The number of characters to preserve without invalidating the mark. If
+	 *   more than this limit are read, then a subsequent call to `reset()` will
+	 *   fail.
 	 * @throws IOException
-	 *         If the mark could not be set for any reason.
+	 *   If the mark could not be set for any reason.
 	 */
-	void mark (final int readAhead) throws IOException;
+	@Throws(IOException::class)
+	fun mark(readAhead: Int)
 
 	/**
-	 * Attempt to reposition the {@linkplain TextInputChannel channel} to the
-	 * most recently saved {@linkplain #mark(int) mark}.
+	 * Attempt to reposition the [channel][TextInputChannel] to the most
+	 * recently saved [mark][mark].
 	 *
 	 * @throws IOException
-	 *         If the channel has not been marked, or if the mark has been
-	 *         invalidated.
+	 *   If the channel has not been marked, or if the mark has been
+	 *   invalidated.
 	 */
-	void reset () throws IOException;
+	@Throws(IOException::class)
+	fun reset()
 }

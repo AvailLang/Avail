@@ -63,7 +63,7 @@ import static java.util.Collections.singletonList;
 
 /**
  * <strong>Primitive:</strong> Force all system buffers associated with the
- * {@linkplain FileHandle#canWrite writable} {@linkplain AsynchronousFileChannel
+ * {@linkplain FileHandle#getCanWrite()}  writable} {@linkplain AsynchronousFileChannel
  * file channel} associated with the {@linkplain AtomDescriptor handle} to
  * synchronize with the underlying device.
  *
@@ -107,7 +107,7 @@ extends Primitive
 				atom.isAtomSpecial() ? E_SPECIAL_ATOM : E_INVALID_HANDLE);
 		}
 		final FileHandle handle = pojo.javaObjectNotNull();
-		if (!handle.canWrite)
+		if (!handle.getCanWrite())
 		{
 			return interpreter.primitiveFailure(E_NOT_OPEN_FOR_WRITE);
 		}
@@ -123,7 +123,8 @@ extends Primitive
 		final A_Fiber newFiber = newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
 			priorityInt,
-			() -> formatString("Asynchronous file sync, %s", handle.filename));
+			() -> formatString("Asynchronous file sync, %s",
+				handle.getFilename()));
 		newFiber.availLoader(current.availLoader());
 		newFiber.heritableFiberGlobals(
 			current.heritableFiberGlobals().makeShared());
@@ -137,7 +138,7 @@ extends Primitive
 		{
 			try
 			{
-				handle.channel.force(true);
+				handle.getChannel().force(true);
 			}
 			catch (final IOException e)
 			{

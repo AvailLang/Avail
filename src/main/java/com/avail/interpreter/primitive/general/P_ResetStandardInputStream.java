@@ -74,7 +74,7 @@ extends Primitive
 	{
 		interpreter.checkArgumentCount(0);
 		final TextInputChannel channel =
-			interpreter.fiber().textInterface().inputChannel();
+			interpreter.fiber().textInterface().getInputChannel();
 		try
 		{
 			channel.reset();

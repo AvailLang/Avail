@@ -79,7 +79,7 @@ extends Primitive
 	{
 		interpreter.checkArgumentCount(1);
 		final A_Tuple tuple = interpreter.argument(0);
-		final FileSystem fileSystem = IOSystem.fileSystem();
+		final FileSystem fileSystem = IOSystem.Companion.getFileSystem();
 		@Nullable Path path = null;
 		try
 		{

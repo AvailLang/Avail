@@ -77,7 +77,7 @@ extends Primitive
 			(toSucceed, toFail) ->
 			{
 				final CharBuffer buffer = CharBuffer.allocate(1);
-				fiber.textInterface().inputChannel().read(
+				fiber.textInterface().getInputChannel().read(
 					buffer,
 					fiber,
 					new SimpleCompletionHandler<>(

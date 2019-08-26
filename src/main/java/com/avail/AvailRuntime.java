@@ -481,7 +481,7 @@ public final class AvailRuntime
 	 * The {@linkplain AvailRuntime runtime}'s default {@linkplain
 	 * TextInterface text interface}.
 	 */
-	private TextInterface textInterface = TextInterface.system();
+	private TextInterface textInterface = TextInterface.Companion.system();
 
 	/**
 	 * A {@linkplain RawPojoDescriptor raw pojo} wrapping the {@linkplain

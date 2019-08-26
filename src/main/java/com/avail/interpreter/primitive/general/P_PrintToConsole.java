@@ -97,7 +97,7 @@ extends Primitive
 		final List<AvailObject> copiedArgs =
 			new ArrayList<>(interpreter.argsBuffer);
 		interpreter.postExitContinuation(
-			() -> textInterface.outputChannel().write(
+			() -> textInterface.getOutputChannel().write(
 				string.asNativeString(),
 				fiber,
 				new SimpleCompletionHandler<>(

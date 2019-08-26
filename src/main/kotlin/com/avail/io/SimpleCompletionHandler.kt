@@ -1,5 +1,5 @@
 /*
- * SimpleCompletionHandler.java
+ * SimpleCompletionHandler.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,42 +30,43 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.io;
+package com.avail.io
 
-import com.avail.utility.evaluation.Continuation3NotNullNullNotNull;
+import com.avail.utility.evaluation.Continuation3NotNullNullNotNull
 
-import java.nio.channels.CompletionHandler;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
+import java.nio.channels.CompletionHandler
+import java.util.function.BiConsumer
+import java.util.function.Consumer
 
 /**
- * A convenient {@link CompletionHandler} implementation that takes two lambdas
- * at construction, avoiding the hideous inner class notation.
+ * A convenient [CompletionHandler] implementation that takes two lambdas at
+ * construction, avoiding the hideous inner class notation.
  *
- * @param <V> The kind of values produced on success.
- * @param <A> A memento to pass back on success or failure.
+ * @param V
+ *   The kind of values produced on success.
+ * @param A
+ *   A memento to pass back on success or failure.
  */
-public final class SimpleCompletionHandler<V, A>
-implements CompletionHandler<V, A>
+class SimpleCompletionHandler<V, A> : CompletionHandler<V, A>
 {
-	/** What to do on successful completion. */
-	private final BiConsumer<V, A> completed;
+	/** What to do on successful completion.  */
+	private val completed: BiConsumer<V, A>
 
-	/** What to do upon failure. */
-	private final BiConsumer<Throwable, A> failed;
+	/** What to do upon failure.  */
+	private val failed: BiConsumer<Throwable, A>
 
 	/**
 	 * Create a completion handler with the given completed and failed lambdas.
 	 *
-	 * @param completed What to do upon success.
-	 * @param failed What to do upon failure.
+	 * @param completed
+	 *   What to do upon success.
+	 * @param
+	 *   failed What to do upon failure.
 	 */
-	public SimpleCompletionHandler(
-		final BiConsumer<V, A> completed,
-		final BiConsumer<Throwable, A> failed)
+	constructor(completed: BiConsumer<V, A>, failed: BiConsumer<Throwable, A>)
 	{
-		this.completed = completed;
-		this.failed = failed;
+		this.completed = completed
+		this.failed = failed
 	}
 
 	/**
@@ -73,15 +74,15 @@ implements CompletionHandler<V, A>
 	 * These lambdas take single arguments, for the common case that the
 	 * "attachment" value can be ignored.
 	 *
-	 * @param completed What to do upon success.
-	 * @param failed What to do upon failure.
+	 * @param completed
+	 *   What to do upon success.
+	 * @param failed
+	 *   What to do upon failure.
 	 */
-	public SimpleCompletionHandler(
-		final Consumer<V> completed,
-		final Consumer<Throwable> failed)
+	constructor(completed: Consumer<V>, failed: Consumer<Throwable>)
 	{
-		this.completed = (v, a) -> completed.accept(v);
-		this.failed = (t, a) -> failed.accept(t);
+		this.completed = BiConsumer { v, _ -> completed.accept(v) }
+		this.failed = BiConsumer{ t, _ -> failed.accept(t) }
 	}
 
 	/**
@@ -89,28 +90,26 @@ implements CompletionHandler<V, A>
 	 * These lambdas take three arguments, for the common case that the handler
 	 * itself is needed inside one of the lambdas.
 	 *
-	 * @param completed What to do upon success.
-	 * @param failed What to do upon failure.
+	 * @param completed
+	 *   What to do upon success.
+	 * @param failed
+	 *   What to do upon failure.
 	 */
-	public SimpleCompletionHandler(
-		final Continuation3NotNullNullNotNull
-			<V, A, SimpleCompletionHandler<V, A>> completed,
-		final Continuation3NotNullNullNotNull
-			<Throwable, A, SimpleCompletionHandler<V, A>> failed)
+	constructor(
+		completed: Continuation3NotNullNullNotNull<V, A, SimpleCompletionHandler<V, A>>,
+		failed: Continuation3NotNullNullNotNull<Throwable, A, SimpleCompletionHandler<V, A>>)
 	{
-		this.completed = (v, a) -> completed.value(v, a, this);
-		this.failed = (t, a) -> failed.value(t, a, this);
+		this.completed = BiConsumer{ v, a -> completed.value(v, a, this) }
+		this.failed = BiConsumer{ t, a -> failed.value(t, a, this) }
 	}
 
-	@Override
-	public void completed (final V result, final A attachment)
+	override fun completed(result: V, attachment: A)
 	{
-		completed.accept(result, attachment);
+		completed.accept(result, attachment)
 	}
 
-	@Override
-	public void failed (final Throwable exc, final A attachment)
+	override fun failed(exc: Throwable, attachment: A)
 	{
-		failed.accept(exc, attachment);
+		failed.accept(exc, attachment)
 	}
 }

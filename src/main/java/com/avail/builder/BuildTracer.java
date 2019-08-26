@@ -410,7 +410,7 @@ final class BuildTracer
 		}
 		if (availBuilder.shouldStopBuild())
 		{
-			availBuilder.textInterface.errorChannel().write(
+			availBuilder.textInterface.getErrorChannel().write(
 				"Load failed.\n",
 				null,
 				new SimpleCompletionHandler<Integer, Void>(

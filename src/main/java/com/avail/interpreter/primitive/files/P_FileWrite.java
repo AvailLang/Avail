@@ -132,16 +132,16 @@ extends Primitive
 				atom.isAtomSpecial() ? E_SPECIAL_ATOM : E_INVALID_HANDLE);
 		}
 		final FileHandle handle = pojo.javaObjectNotNull();
-		if (!handle.canWrite)
+		if (!handle.getCanWrite())
 		{
 			return interpreter.primitiveFailure(E_NOT_OPEN_FOR_WRITE);
 		}
-		final AsynchronousFileChannel fileChannel = handle.channel;
+		final AsynchronousFileChannel fileChannel = handle.getChannel();
 		if (!positionObject.isLong())
 		{
 			return interpreter.primitiveFailure(E_EXCEEDS_VM_LIMIT);
 		}
-		final int alignment = handle.alignment;
+		final int alignment = handle.getAlignment();
 		final AvailRuntime runtime = currentRuntime();
 		final IOSystem ioSystem = runtime.ioSystem();
 		final long oneBasedPositionLong = positionObject.extractLong();
@@ -153,7 +153,8 @@ extends Primitive
 		final A_Fiber newFiber = newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
 			priority.extractInt(),
-			() -> formatString("Asynchronous file write, %s", handle.filename));
+			() -> formatString("Asynchronous file write, %s",
+				handle.getFilename()));
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
 		newFiber.availLoader(current.availLoader());
@@ -284,7 +285,7 @@ extends Primitive
 							// opportunity to re-encounter problems like
 							// read faults and whatnot.
 							for (final BufferKey key : new ArrayList<>(
-								handle.bufferKeys.keySet()))
+								handle.getBufferKeys().keySet()))
 							{
 								ioSystem.discardBuffer(key);
 							}
@@ -307,7 +308,7 @@ extends Primitive
 				int offsetInBuffer =
 					(int) (oneBasedPositionLong - startOfBuffer + 1);
 				// Skip this if the file isn't also open for read access.
-				if (!handle.canRead)
+				if (!handle.getCanRead())
 				{
 					subscriptInTuple = totalBytes + 1;
 				}

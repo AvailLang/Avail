@@ -1,6 +1,6 @@
 /*
- * TextInterface.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * TextInterface.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,98 +30,62 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.io;
+package com.avail.io
 
-import com.avail.builder.AvailBuilder;
-import com.avail.descriptor.A_Fiber;
+import com.avail.builder.AvailBuilder
+import com.avail.descriptor.A_Fiber
 
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.StandardCharsets
 
 /**
- * A {@code TextInterface} represents an interface between an external process,
- * device, or user and an Avail agent (e.g., an {@link AvailBuilder} or
- * {@linkplain A_Fiber fiber}). As such, it combines {@linkplain
- * TextInputChannel input}, {@linkplain TextOutputChannel output}, and
+ * A `TextInterface` represents an interface between an external process,
+ * device, or user and an Avail agent (e.g., an [AvailBuilder] or
+ * [fiber][A_Fiber]). As such, it combines [ ], [output][TextOutputChannel], and
  * error channels, corresponding to the usual notions of standard input, output,
  * and error, respectively. These channels are each text-oriented, and
- * constrained to operate on {@linkplain StandardCharsets#UTF_8 UTF-8} encoded
+ * constrained to operate on [UTF-8][StandardCharsets.UTF_8] encoded
  * character data.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @property inputChannel
+ *   The [standard input channel][TextInputChannel].
+ * @property outputChannel
+ *   The [standard output channel][TextOutputChannel].
+ * @property errorChannel
+ *   The [standard error channel][TextOutputChannel].
+ *
+ * @constructor
+ * Construct a new `TextInterface`.
+ *
+ * @param inputChannel
+ * The [standard input channel][TextInputChannel].
+ * @param outputChannel
+ * The [standard output channel][TextOutputChannel].
+ * @param errorChannel
+ * The standard error channel.
  */
-public final class TextInterface
+class TextInterface constructor(
+	val inputChannel: TextInputChannel,
+	val outputChannel: TextOutputChannel,
+	val errorChannel: TextOutputChannel)
 {
-	/** The {@linkplain TextInputChannel standard input channel}. */
-	private final TextInputChannel inputChannel;
-
-	/**
-	 * Answer the {@linkplain TextInputChannel standard input channel}.
-	 *
-	 * @return The standard input channel.
-	 */
-	public TextInputChannel inputChannel ()
+	companion object
 	{
-		return inputChannel;
-	}
 
-	/** The {@linkplain TextOutputChannel standard output channel}. */
-	private final TextOutputChannel outputChannel;
-
-	/**
-	 * Answer the {@linkplain TextOutputChannel standard output channel}.
-	 *
-	 * @return The standard output channel.
-	 */
-	public TextOutputChannel outputChannel ()
-	{
-		return outputChannel;
-	}
-
-	/** The {@linkplain TextOutputChannel standard error channel}. */
-	private final TextOutputChannel errorChannel;
-
-	/**
-	 * Answer the {@linkplain TextOutputChannel standard output channel}.
-	 *
-	 * @return The standard output channel.
-	 */
-	public TextOutputChannel errorChannel ()
-	{
-		return errorChannel;
-	}
-
-	/**
-	 * Construct a new {@code TextInterface}.
-	 *
-	 * @param inputChannel
-	 *        The {@linkplain TextInputChannel standard input channel}.
-	 * @param outputChannel
-	 *        The {@linkplain TextOutputChannel standard output channel}.
-	 * @param errorChannel
-	 *        The standard error channel.
-	 */
-	public TextInterface (
-		final TextInputChannel inputChannel,
-		final TextOutputChannel outputChannel,
-		final TextOutputChannel errorChannel)
-	{
-		this.inputChannel = inputChannel;
-		this.outputChannel = outputChannel;
-		this.errorChannel = errorChannel;
-	}
-
-	/**
-	 * Answer a {@code TextInterface} bound to the {@linkplain System}
-	 * {@linkplain System#in input}, {@linkplain System#out output}, and
-	 * {@linkplain System#err error} channels.
-	 *
-	 * @return A text interface suitable for managing the system streams.
-	 */
-	public static TextInterface system ()
-	{
-		return new TextInterface(
-			new ConsoleInputChannel(System.in),
-			new ConsoleOutputChannel(System.out),
-			new ConsoleOutputChannel(System.err));
+		/**
+		 * Answer a `TextInterface` bound to the [System] [input][System. in],
+		 * [output][System.out], and [error][System.err] channels.
+		 *
+		 * @return
+		 *   A text interface suitable for managing the system streams.
+		 */
+		fun system(): TextInterface
+		{
+			return TextInterface(
+				ConsoleInputChannel(System.`in`),
+				ConsoleOutputChannel(System.out),
+				ConsoleOutputChannel(System.err))
+		}
 	}
 }

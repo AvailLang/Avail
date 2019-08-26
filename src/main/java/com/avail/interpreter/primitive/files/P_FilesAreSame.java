@@ -84,7 +84,7 @@ extends Primitive
 		final Path secondPath;
 		try
 		{
-			final FileSystem fileSystem = IOSystem.fileSystem();
+			final FileSystem fileSystem = IOSystem.Companion.getFileSystem();
 			firstPath = fileSystem.getPath(first.asNativeString());
 			secondPath = fileSystem.getPath(second.asNativeString());
 		}

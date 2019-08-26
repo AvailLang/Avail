@@ -85,18 +85,18 @@ extends Primitive
 		final A_String filename = interpreter.argument(0);
 		final A_String userName = interpreter.argument(1);
 		final A_Atom followSymlinks = interpreter.argument(2);
-		final FileSystem fileSystem = IOSystem.fileSystem();
+		final FileSystem fileSystem = IOSystem.Companion.getFileSystem();
 		final Path path;
 		try
 		{
-			path = IOSystem.fileSystem().getPath(
+			path = IOSystem.Companion.getFileSystem().getPath(
 				filename.asNativeString());
 		}
 		catch (final InvalidPathException e)
 		{
 			return interpreter.primitiveFailure(E_INVALID_PATH);
 		}
-		final LinkOption[] options = IOSystem.followSymlinks(
+		final LinkOption[] options = IOSystem.Companion.followSymlinks(
 			followSymlinks.extractBoolean());
 		final FileOwnerAttributeView view = Files.getFileAttributeView(
 			path, FileOwnerAttributeView.class, options);

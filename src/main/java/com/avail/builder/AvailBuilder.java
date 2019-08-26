@@ -1237,7 +1237,7 @@ public final class AvailBuilder
 						final Problem problem,
 						final Continuation1NotNull<Boolean> decider)
 					{
-						textInterface.errorChannel().write(
+						textInterface.getErrorChannel().write(
 							problem.toString(),
 							null,
 							new SimpleCompletionHandler<>(
@@ -1251,7 +1251,7 @@ public final class AvailBuilder
 						final Continuation1NotNull<Boolean> decider)
 					{
 						// Same as handleInternal (2015.04.24)
-						textInterface.errorChannel().write(
+						textInterface.getErrorChannel().write(
 							problem.toString(),
 							null,
 							new SimpleCompletionHandler<>(

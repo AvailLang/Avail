@@ -97,7 +97,7 @@ class BuilderProblemHandler implements ProblemHandler
 			problem.moduleName,
 			problem.lineNumber,
 			problem.toString());
-		availBuilder.textInterface.errorChannel().write(
+		availBuilder.textInterface.getErrorChannel().write(
 			formatted,
 			null,
 			new SimpleCompletionHandler<Integer, Void>(

@@ -60,7 +60,7 @@ import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 
 /**
  * <strong>Primitive:</strong> Force all system buffers associated with the
- * {@linkplain FileHandle#canRead readable} {@linkplain AsynchronousFileChannel
+ * {@linkplain FileHandle#getCanRead() readable} {@linkplain AsynchronousFileChannel
  * file channel} associated with the {@linkplain AtomDescriptor handle} to
  * be discarded from the cache.
  *
@@ -92,12 +92,12 @@ extends Primitive
 				atom.isAtomSpecial() ? E_SPECIAL_ATOM : E_INVALID_HANDLE);
 		}
 		final FileHandle handle = pojo.javaObjectNotNull();
-		if (!handle.canRead)
+		if (!handle.getCanRead())
 		{
 			return interpreter.primitiveFailure(E_NOT_OPEN_FOR_READ);
 		}
 		final AvailRuntime runtime = currentRuntime();
-		for (final BufferKey key : new ArrayList<>(handle.bufferKeys.keySet()))
+		for (final BufferKey key : new ArrayList<>(handle.getBufferKeys().keySet()))
 		{
 			runtime.ioSystem().discardBuffer(key);
 		}

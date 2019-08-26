@@ -1,6 +1,6 @@
 /*
- * ProcessInputChannel.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * ProcessInputChannel.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,98 +30,84 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.io;
+package com.avail.io
 
-import com.avail.AvailRuntime;
+import java.io.*
+import java.nio.CharBuffer
+import java.nio.channels.CompletionHandler
+import java.nio.charset.CodingErrorAction
+import java.nio.charset.StandardCharsets
 
-import javax.annotation.Nullable;
-import java.io.*;
-import java.nio.CharBuffer;
-import java.nio.channels.CompletionHandler;
-import java.nio.charset.CharsetDecoder;
-import java.nio.charset.CodingErrorAction;
-import java.nio.charset.StandardCharsets;
-
-import static com.avail.AvailRuntime.currentRuntime;
+import com.avail.AvailRuntime.currentRuntime
 
 /**
- * A {@code ProcessInputChannel} provides a faux {@linkplain
- * TextInputChannel asynchronous interface} to a synchronous {@linkplain Process
- * process} {@linkplain InputStream input stream}. The reader must supply
- * {@linkplain StandardCharsets#UTF_8 UTF-8} encoded characters.
+ * A `ProcessInputChannel` provides a faux
+ * [asynchronous interface][TextInputChannel] to a synchronous
+ * [process][Process] [input stream][InputStream]. The reader must supply
+ * [UTF-8][StandardCharsets.UTF_8] encoded characters.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ * Construct a new `ProcessInputChannel` that wraps the specified
+ * [stream][InputStream].
+ *
+ * @param stream
+ *   An input stream. This should generally be [System.in].
  */
-public final class ProcessInputChannel
-implements TextInputChannel
+class ProcessInputChannel constructor(stream: InputStream) : TextInputChannel
 {
-	/** The wrapped {@linkplain Reader reader}. */
-	@SuppressWarnings("WeakerAccess") final Reader in;
+	/** The wrapped [reader][Reader].  */
+	internal val `in`: Reader
 
-	/**
-	 * Construct a new {@code ProcessInputChannel} that wraps the specified
-	 * {@linkplain InputStream stream}.
-	 *
-	 * @param stream
-	 *        An input stream. This should generally be {@link System#in}.
-	 */
-	public ProcessInputChannel (final InputStream stream)
+	init
 	{
-		final CharsetDecoder decoder = StandardCharsets.UTF_8.newDecoder();
-		decoder.onMalformedInput(CodingErrorAction.REPLACE);
-		decoder.onUnmappableCharacter(CodingErrorAction.REPLACE);
-		in = new BufferedReader(new InputStreamReader(stream, decoder));
+		val decoder = StandardCharsets.UTF_8.newDecoder()
+		decoder.onMalformedInput(CodingErrorAction.REPLACE)
+		decoder.onUnmappableCharacter(CodingErrorAction.REPLACE)
+		`in` = BufferedReader(InputStreamReader(stream, decoder))
 	}
 
-	@Override
-	public boolean isOpen ()
-	{
-		// The standard input stream is always open; we do not permit it to be
-		// closed, at any rate.
-		return true;
-	}
+	// The standard input stream is always open; we do not permit it to be
+	// closed, at any rate.
+	override fun isOpen(): Boolean = true
 
-	@Override
-	public <A> void read (
-		final CharBuffer buffer,
-		final @Nullable A attachment,
-		final CompletionHandler<Integer, A> handler)
+	override fun <A> read(
+		buffer: CharBuffer, attachment: A?, handler: CompletionHandler<Int, A>)
 	{
-		final AvailRuntime runtime = currentRuntime();
-		runtime.ioSystem().executeFileTask(() ->
-		{
-			final int charsRead;
+		val runtime = currentRuntime()
+		runtime.ioSystem().executeFileTask (Runnable {
+			val charsRead: Int
 			try
 			{
-				charsRead = in.read(buffer);
+				charsRead = `in`.read(buffer)
 				if (charsRead == -1)
 				{
-					throw new IOException("end of stream");
+					throw IOException("end of stream")
 				}
 			}
-			catch (final IOException e)
+			catch (e: IOException)
 			{
-				handler.failed(e, attachment);
-				return;
+				handler.failed(e, attachment)
+				return@Runnable
 			}
-			handler.completed(charsRead, attachment);
-		});
+			handler.completed(charsRead, attachment)
+		})
 	}
 
-	@Override
-	public void mark (final int readAhead) throws IOException
+	@Throws(IOException::class)
+	override fun mark(readAhead: Int)
 	{
-		in.mark(readAhead);
+		`in`.mark(readAhead)
 	}
 
-	@Override
-	public void reset () throws IOException
+	@Throws(IOException::class)
+	override fun reset()
 	{
-		in.reset();
+		`in`.reset()
 	}
 
-	@Override
-	public void close ()
+	override fun close()
 	{
 		// Do nothing. Definitely don't close the underlying input stream.
 	}

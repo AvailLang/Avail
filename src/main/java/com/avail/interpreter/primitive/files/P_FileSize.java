@@ -90,7 +90,7 @@ extends Primitive
 		final long fileSize;
 		try
 		{
-			fileSize = handle.channel.size();
+			fileSize = handle.getChannel().size();
 		}
 		catch (final IOException e)
 		{

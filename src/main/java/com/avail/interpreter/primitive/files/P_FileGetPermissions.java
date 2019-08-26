@@ -62,9 +62,9 @@ import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 
 /**
  * <strong>Primitive:</strong> Answer the {@linkplain IntegerDescriptor
- * ordinals} (into {@link IOSystem#posixPermissions()}) of the {@linkplain
- * PosixFilePermission POSIX file permissions} that describe the access rights
- * granted by the file named by specified {@linkplain Path path}.
+ * ordinals} (into {@link IOSystem.Companion#posixPermissions}) of the
+ * {@linkplain PosixFilePermission POSIX file permissions} that describe the
+ * access rights granted by the file named by specified {@linkplain Path path}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -91,7 +91,7 @@ extends Primitive
 	// necessary.
 	static
 	{
-		final PosixFilePermission[] permissions = IOSystem.posixPermissions();
+		final PosixFilePermission[] permissions = IOSystem.Companion.posixPermissions();
 		for (int i = 0; i < permissions.length; i++)
 		{
 			permissionMap.put(permissions[i], fromInt(i + 1));
@@ -131,13 +131,13 @@ extends Primitive
 		final Path path;
 		try
 		{
-			path = IOSystem.fileSystem().getPath(filename.asNativeString());
+			path = IOSystem.Companion.getFileSystem().getPath(filename.asNativeString());
 		}
 		catch (final InvalidPathException e)
 		{
 			return interpreter.primitiveFailure(E_INVALID_PATH);
 		}
-		final LinkOption[] options = IOSystem.followSymlinks(
+		final LinkOption[] options = IOSystem.Companion.followSymlinks(
 			followSymlinks.extractBoolean());
 		final Set<PosixFilePermission> permissions;
 		try

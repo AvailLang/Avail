@@ -128,11 +128,11 @@ extends Primitive
 	 */
 	private static FileAttribute<?>[] permissionsFor (final A_Set optionInts)
 	{
-		if (IOSystem.fileSystem().supportedFileAttributeViews().contains(
+		if (IOSystem.Companion.getFileSystem().supportedFileAttributeViews().contains(
 			"posix"))
 		{
 			final PosixFilePermission[] allPermissions =
-				IOSystem.posixPermissions();
+				IOSystem.Companion.posixPermissions();
 			final Set<PosixFilePermission> permissions = EnumSet.noneOf(
 				PosixFilePermission.class);
 			for (final A_Number optionInt : optionInts)
@@ -180,7 +180,7 @@ extends Primitive
 		final Path path;
 		try
 		{
-			path = IOSystem.fileSystem().getPath(filename.asNativeString());
+			path = IOSystem.Companion.getFileSystem().getPath(filename.asNativeString());
 		}
 		catch (final InvalidPathException e)
 		{

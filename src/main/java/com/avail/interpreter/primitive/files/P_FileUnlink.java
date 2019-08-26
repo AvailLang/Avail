@@ -87,7 +87,7 @@ extends Primitive
 		final Path path;
 		try
 		{
-			path = IOSystem.fileSystem().getPath(filename.asNativeString());
+			path = IOSystem.Companion.getFileSystem().getPath(filename.asNativeString());
 		}
 		catch (final InvalidPathException e)
 		{

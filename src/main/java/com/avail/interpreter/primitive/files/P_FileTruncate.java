@@ -65,7 +65,7 @@ import static java.util.Collections.singletonList;
 
 /**
  * <strong>Primitive:</strong> If the specified size is less than the size
- * of the indicated {@linkplain FileHandle#canWrite writable} {@linkplain
+ * of the indicated {@linkplain FileHandle#getCanWrite() writable} {@linkplain
  * AsynchronousFileChannel file channel} associated with the {@linkplain
  * AtomDescriptor handle}, then reduce its size as indicated, discarding any
  * data beyond the new file size.
@@ -102,11 +102,11 @@ extends Primitive
 				atom.isAtomSpecial() ? E_SPECIAL_ATOM : E_INVALID_HANDLE);
 		}
 		final FileHandle handle = pojo.javaObjectNotNull();
-		if (!handle.canWrite)
+		if (!handle.getCanWrite())
 		{
 			return interpreter.primitiveFailure(E_NOT_OPEN_FOR_WRITE);
 		}
-		final AsynchronousFileChannel fileChannel = handle.channel;
+		final AsynchronousFileChannel fileChannel = handle.getChannel();
 		// Truncating to something beyond the file size has no effect, so use
 		// Long.MAX_VALUE if the newSize is bigger than that.
 		final long size = sizeObject.isLong()
@@ -121,7 +121,8 @@ extends Primitive
 		final A_Fiber newFiber = newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
 			priorityInt,
-			() -> formatString("Asynchronous truncate, %s", handle.filename));
+			() -> formatString("Asynchronous truncate, %s",
+				handle.getFilename()));
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
 		newFiber.availLoader(current.availLoader());

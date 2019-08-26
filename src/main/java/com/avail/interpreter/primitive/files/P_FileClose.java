@@ -86,7 +86,7 @@ extends Primitive
 		final FileHandle handle = pojo.javaObjectNotNull();
 		try
 		{
-			handle.channel.close();
+			handle.getChannel().close();
 		}
 		catch (final IOException e)
 		{

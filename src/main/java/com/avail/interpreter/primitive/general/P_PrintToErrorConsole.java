@@ -100,7 +100,7 @@ extends Primitive
 		final List<AvailObject> copiedArgs =
 			new ArrayList<>(interpreter.argsBuffer);
 		interpreter.postExitContinuation(
-			() -> textInterface.errorChannel().write(
+			() -> textInterface.getErrorChannel().write(
 				string.asNativeString(),
 				fiber,
 				new SimpleCompletionHandler<>(

@@ -79,7 +79,7 @@ extends Primitive
 		final A_Number readAhead = interpreter.argument(0);
 		final int readAheadInt = readAhead.extractInt();
 		final TextInputChannel channel =
-			interpreter.fiber().textInterface().inputChannel();
+			interpreter.fiber().textInterface().getInputChannel();
 		try
 		{
 			channel.mark(readAheadInt);

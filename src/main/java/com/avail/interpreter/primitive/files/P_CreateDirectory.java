@@ -96,7 +96,7 @@ extends Primitive
 		final A_Set ordinals)
 	{
 		final PosixFilePermission[] allPermissions =
-			IOSystem.posixPermissions();
+			IOSystem.Companion.posixPermissions();
 		final Set<PosixFilePermission> permissions =
 			EnumSet.noneOf(PosixFilePermission.class);
 		for (final A_Number ordinal : ordinals)
@@ -118,7 +118,7 @@ extends Primitive
 		final A_Number priority = interpreter.argument(4);
 
 		final AvailRuntime runtime = interpreter.runtime();
-		final FileSystem fileSystem = IOSystem.fileSystem();
+		final FileSystem fileSystem = IOSystem.Companion.getFileSystem();
 		final Path path;
 		try
 		{

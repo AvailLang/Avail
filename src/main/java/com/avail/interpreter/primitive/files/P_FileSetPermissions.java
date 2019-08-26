@@ -89,7 +89,7 @@ extends Primitive
 		final A_Set ordinals)
 	{
 		final PosixFilePermission[] allPermissions =
-			IOSystem.posixPermissions();
+			IOSystem.Companion.posixPermissions();
 		final Set<PosixFilePermission> permissions =
 			EnumSet.noneOf(PosixFilePermission.class);
 		for (final A_Number ordinal : ordinals)
@@ -110,14 +110,14 @@ extends Primitive
 		final Path path;
 		try
 		{
-			path = IOSystem.fileSystem().getPath(filename.asNativeString());
+			path = IOSystem.Companion.getFileSystem().getPath(filename.asNativeString());
 		}
 		catch (final InvalidPathException e)
 		{
 			return interpreter.primitiveFailure(E_INVALID_PATH);
 		}
 		final Set<PosixFilePermission> permissions = permissionsFor(ordinals);
-		final LinkOption[] options = IOSystem.followSymlinks(
+		final LinkOption[] options = IOSystem.Companion.followSymlinks(
 			followSymlinks.extractBoolean());
 		final PosixFileAttributeView view = Files.getFileAttributeView(
 			path, PosixFileAttributeView.class, options);

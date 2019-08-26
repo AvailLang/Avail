@@ -140,11 +140,11 @@ extends Primitive
 				atom.isAtomSpecial() ? E_SPECIAL_ATOM : E_INVALID_HANDLE);
 		}
 		final FileHandle handle = pojo.javaObjectNotNull();
-		if (!handle.canRead)
+		if (!handle.getCanRead())
 		{
 			return interpreter.primitiveFailure(E_NOT_OPEN_FOR_READ);
 		}
-		final AsynchronousFileChannel fileChannel = handle.channel;
+		final AsynchronousFileChannel fileChannel = handle.getChannel();
 		if (!positionObject.isLong())
 		{
 			return interpreter.primitiveFailure(E_EXCEEDS_VM_LIMIT);
@@ -189,7 +189,7 @@ extends Primitive
 		}
 		//noinspection ConstantConditions
 		assert 0 < size && size <= MAX_READ_SIZE;
-		final int alignment = handle.alignment;
+		final int alignment = handle.getAlignment();
 		final long augmentedStart = (oneBasedPositionLong - 1)
 			/ alignment * alignment + 1;
 		final long augmentedEnd = (oneBasedPositionLong + size + alignment - 2)
@@ -246,7 +246,8 @@ extends Primitive
 		final A_Fiber newFiber = newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
 			priority.extractInt(),
-			() -> formatString("Asynchronous file read, %s", handle.filename));
+			() -> formatString("Asynchronous file read, %s",
+				handle.getFilename()));
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
 		newFiber.availLoader(current.availLoader());

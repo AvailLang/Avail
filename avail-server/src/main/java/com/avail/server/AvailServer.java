@@ -470,7 +470,7 @@ public final class AvailServer
 			case IO:
 			{
 				final ServerInputChannel input = (ServerInputChannel)
-					channel.textInterface().inputChannel();
+					channel.textInterface().getInputChannel();
 				input.receiveMessageThen(message, receiveNext);
 				break;
 			}

@@ -149,10 +149,10 @@ public class AvailRuntimeTestHelper
 		final AvailBuilder b = new AvailBuilder(runtime);
 		@SuppressWarnings("IOResourceOpenedButNotSafelyClosed")
 		final TestErrorChannel errorChannel = new TestErrorChannel(
-			b.textInterface.errorChannel());
+			b.textInterface.getErrorChannel());
 		b.setTextInterface(new TextInterface(
-			b.textInterface.inputChannel(),
-			b.textInterface.outputChannel(),
+			b.textInterface.getInputChannel(),
+			b.textInterface.getOutputChannel(),
 			errorChannel));
 		return b;
 	}
@@ -263,7 +263,7 @@ public class AvailRuntimeTestHelper
 	public void clearError ()
 	{
 		final TestErrorChannel channel =
-			cast(builder.textInterface.errorChannel());
+			cast(builder.textInterface.getErrorChannel());
 		channel.errorDetected = false;
 	}
 
@@ -283,7 +283,7 @@ public class AvailRuntimeTestHelper
 	public boolean errorDetected ()
 	{
 		final TestErrorChannel channel =
-			cast(builder.textInterface.errorChannel());
+			cast(builder.textInterface.getErrorChannel());
 		return channel.errorDetected;
 	}
 
