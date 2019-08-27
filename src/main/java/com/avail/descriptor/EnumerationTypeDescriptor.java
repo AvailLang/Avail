@@ -149,6 +149,10 @@ extends AbstractEnumerationTypeDescriptor
 			for (final A_BasicObject instance : getInstances(object))
 			{
 				cached = cached.typeUnion(instance.kind());
+				if (cached.equals(ANY.o()))
+				{
+					break;
+				}
 			}
 			if (isShared())
 			{

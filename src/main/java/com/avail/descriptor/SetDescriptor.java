@@ -43,7 +43,10 @@ import com.avail.utility.json.JSONWriter;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
+import java.util.Iterator;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
@@ -53,7 +56,9 @@ import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom
 import static com.avail.descriptor.SetDescriptor.ObjectSlots.ROOT_BIN;
 import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
 import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
+import static java.lang.String.format;
 
 /**
  * An Avail {@linkplain SetDescriptor set} refers to the root of a Bagwell Ideal
@@ -126,24 +131,120 @@ extends Descriptor
 		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
-		final A_Tuple tuple = object.asTuple();
-		if (tuple.tupleSize() == 0)
+		if (object.setSize() == 0)
 		{
 			aStream.append('∅');
 		}
+		else if (object.setElementsAreAllInstancesOfKind(CHARACTER.o()))
+		{
+			aStream.append("¢[");
+			final SortedSet<Integer> codePointsSet = new TreeSet<>();
+			for (final A_Character character : object)
+			{
+				codePointsSet.add(character.codePoint());
+			}
+			final Iterator<Integer> iterator = codePointsSet.iterator();
+			int runStart = iterator.next();
+			do
+			{
+				int runEnd = runStart;
+				int next = -1;
+				while (iterator.hasNext())
+				{
+					next = iterator.next();
+					if (next != runEnd + 1)
+					{
+						break;
+					}
+					runEnd++;
+					next = -1;
+				}
+				writeRangeElement(aStream, runStart);
+				if (runEnd != runStart)
+				{
+					// Skip the dash if the start and end are consecutive.
+					if (runEnd != runStart + 1)
+					{
+						aStream.appendCodePoint('-');
+					}
+					writeRangeElement(aStream, runEnd);
+				}
+				runStart = next;
+			}
+			while (runStart != -1);
+			aStream.append("]");
+		}
 		else
 		{
+			final A_Tuple tuple = object.asTuple();
 			aStream.append('{');
-			for (int i = 1, limit = tuple.tupleSize(); i <= limit; i++)
+			boolean first = true;
+			for (final AvailObject element : tuple)
 			{
-				if (i != 1)
+				if (!first)
 				{
 					aStream.append(", ");
 				}
-				tuple.tupleAt(i).printOnAvoidingIndent(
+				element.printOnAvoidingIndent(
 					aStream, recursionMap, indent + 1);
+				first = false;
 			}
 			aStream.append('}');
+		}
+	}
+
+	/**
+	 * Write a code point that's either the start or end of a range, or a single
+	 * value.
+	 *
+	 * @param builder Where to write the possibly encoded code point.
+	 * @param codePoint The code point ({@code int}) to write.
+	 */
+	private static void writeRangeElement (
+		final StringBuilder builder,
+		final int codePoint)
+	{
+		int escaped = -1;
+		switch (codePoint)
+		{
+			case ' ': // Show Unicode space (U+0020) as itself.
+				builder.appendCodePoint(' '); return;
+			case '-': // Special - used to show ranges.
+			case '[': // Special - start of character set.
+			case ']': // Special - end of character set.
+				builder.append(format("\\(%x)", codePoint)); return;
+			case '\n': escaped = 'n'; break;
+			case '\r': escaped = 'r'; break;
+			case '\t': escaped = 't'; break;
+			case '\\': escaped = '\\'; break;
+			case '"': escaped = '"'; break;
+		}
+		if (escaped != -1)
+		{
+			builder.appendCodePoint('\\');
+			builder.appendCodePoint(escaped);
+			return;
+		}
+		switch (Character.getType(codePoint))
+		{
+			case Character.COMBINING_SPACING_MARK:
+			case Character.CONTROL:
+			case Character.ENCLOSING_MARK:
+			case Character.FORMAT:
+			case Character.NON_SPACING_MARK:
+			case Character.PARAGRAPH_SEPARATOR:
+			case Character.PRIVATE_USE:
+			case Character.SPACE_SEPARATOR:
+			case Character.SURROGATE:
+			case Character.UNASSIGNED:
+			{
+				builder.append(format("\\(%X)", codePoint));
+				return;
+			}
+			default:
+			{
+				builder.appendCodePoint(codePoint);
+			}
 		}
 	}
 
@@ -640,6 +741,7 @@ extends Descriptor
 	 * @param set
 	 *        An Avail set.
 	 * @return The corresponding Java {@link Set} of objects.
+	 * @param <X> The type of elements in the resulting {@link Set}.
 	 */
 	@SuppressWarnings("unchecked")
 	public static <X extends A_BasicObject> Set<X> toSet (
