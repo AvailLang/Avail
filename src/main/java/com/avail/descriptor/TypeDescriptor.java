@@ -540,6 +540,14 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override @AvailMethod
+	A_Type o_FieldTypeAt (
+		final AvailObject object,
+		final A_Atom field)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override @AvailMethod
 	A_Map o_FieldTypeMap (
 		final AvailObject object)
 	{

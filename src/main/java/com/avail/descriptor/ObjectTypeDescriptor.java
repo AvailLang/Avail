@@ -203,6 +203,20 @@ extends TypeDescriptor
 	}
 
 	/**
+	 * Extract the field type at the specified slot index.
+	 *
+	 * @param object An object type, fully traversed.
+	 * @param slotIndex The non-zero slot index.
+	 * @return The type of the field at the specified slot index.
+	 */
+	public static AvailObject getFieldType (
+		final AvailObject object,
+		final int slotIndex)
+	{
+		return object.slot(FIELD_TYPES_, slotIndex);
+	}
+
+	/**
 	 * {@inheritDoc}
 	 *
 	 * Show the fields nicely.
@@ -310,6 +324,18 @@ extends TypeDescriptor
 			anObjectType.becomeIndirectionTo(object);
 		}
 		return true;
+	}
+
+	@Override @AvailMethod
+	AvailObject o_FieldTypeAt (final AvailObject object, final A_Atom field)
+	{
+		// Fails with NullPointerException if key is not found.
+		final int slotIndex = variant.fieldToSlotIndex.get(field);
+		if (slotIndex == 0)
+		{
+			return instanceType(field);
+		}
+		return object.slot(FIELD_TYPES_, slotIndex);
 	}
 
 	@Override @AvailMethod
@@ -1059,10 +1085,12 @@ extends TypeDescriptor
 	public final ObjectLayoutVariant variant;
 
 	/**
-	 * Construct a new {@link ObjectDescriptor}.
+	 * Construct a new {@code ObjectTypeDescriptor}.
 	 *
 	 * @param mutability
-	 *        The {@linkplain Mutability mutability} of the new descriptor.
+	 *        The {@link Mutability} of the new descriptor.
+	 * @param variant
+	 *        The {@link ObjectLayoutVariant} for the new descriptor.
 	 */
 	ObjectTypeDescriptor (
 		final Mutability mutability,

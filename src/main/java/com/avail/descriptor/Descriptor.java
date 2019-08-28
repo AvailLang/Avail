@@ -4773,6 +4773,13 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	A_Type o_FieldTypeAt (
+		final AvailObject object, final A_Atom field)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
 	A_DefinitionParsingPlan o_ParsingPlan (final AvailObject object)
 	{
 		throw unsupportedOperationException();

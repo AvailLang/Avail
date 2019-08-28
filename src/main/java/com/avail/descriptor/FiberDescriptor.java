@@ -1218,14 +1218,11 @@ extends Descriptor
 				}
 				case RUNNING:
 				{
-					final A_BasicObject pojo =
-						identityPojo(whenReified);
+					final A_BasicObject pojo = identityPojo(whenReified);
 					final A_Set oldSet = object.slot(REIFICATION_WAITERS);
 					final A_Set newSet =
 						oldSet.setWithElementCanDestroy(pojo, true);
-					object.setSlot(
-						REIFICATION_WAITERS,
-						newSet.makeShared());
+					object.setSlot(REIFICATION_WAITERS, newSet.makeShared());
 					object.setInterruptRequestFlag(REIFICATION_REQUESTED);
 					break;
 				}

@@ -6651,6 +6651,15 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
+	 * @param field
+	 * @return
+	 */
+	abstract A_Type o_FieldTypeAt (
+		final AvailObject object,
+		final A_Atom field);
+
+	/**
+	 * @param object
 	 * @return
 	 */
 	abstract A_DefinitionParsingPlan o_ParsingPlan (final AvailObject object);

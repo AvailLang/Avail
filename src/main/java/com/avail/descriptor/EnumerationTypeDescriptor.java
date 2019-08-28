@@ -441,6 +441,12 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
+	A_Type o_FieldTypeAt (final AvailObject object, final A_Atom field)
+	{
+		return getSuperkind(object).fieldTypeAt(field);
+	}
+
+	@Override @AvailMethod
 	A_Tuple o_FieldTypeTuple (final AvailObject object)
 	{
 		return getSuperkind(object).fieldTypeTuple();

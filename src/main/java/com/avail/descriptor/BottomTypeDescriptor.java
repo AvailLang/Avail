@@ -263,6 +263,14 @@ extends AbstractEnumerationTypeDescriptor
 		return object;
 	}
 
+	@Override
+	A_Type o_FieldTypeAt (final AvailObject object, final A_Atom field)
+	{
+		// All fields would be present for this type, but they would have type
+		// bottom.
+		return object;
+	}
+
 	@Override @AvailMethod
 	A_Map o_FieldTypeMap (final AvailObject object)
 	{

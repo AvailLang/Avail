@@ -939,6 +939,31 @@ public final class Interpreter
 				Continuation1NotNull<AvailErrorCode>>
 			action)
 	{
+		return suspendAndDoWithFailureObject(
+			(toSucceed, toFail) ->
+				action.value(
+					toSucceed,
+					errorCode -> toFail.value(errorCode.numericCode())));
+	}
+
+	/**
+	 * Suspend the current fiber, evaluating the provided action.  The action is
+	 * passed two additional actions, one indicating how to resume from the
+	 * suspension in the future (taking the result of the primitive), and the
+	 * other indicating how to cause the primitive to fail (taking an {@link
+	 * A_BasicObject} that will be the primitive failure value.
+	 *
+	 * @param action
+	 *        The action supplied by the client that itself takes two actions
+	 *        for succeeding and failing the primitive at a later time.
+	 * @return The value FIBER_SUSPENDED.
+	 */
+	public Result suspendAndDoWithFailureObject (
+		final Continuation2NotNull<
+				Continuation1NotNull<A_BasicObject>,
+				Continuation1NotNull<A_BasicObject>>
+			action)
+	{
 		final List<AvailObject> copiedArgs = new ArrayList<>(argsBuffer);
 		final AvailRuntime theRuntime = currentRuntime();
 		final A_Function primitiveFunction = stripNull(function);
@@ -957,13 +982,13 @@ public final class Interpreter
 						prim,
 						result);
 				},
-				failureCode ->
+				failureValue ->
 				{
 					assert !once.getAndSet(true);
 					resumeFromFailedPrimitive(
 						theRuntime,
 						currentFiber,
-						failureCode.numericCode(),
+						failureValue,
 						primitiveFunction,
 						copiedArgs);
 				}));
