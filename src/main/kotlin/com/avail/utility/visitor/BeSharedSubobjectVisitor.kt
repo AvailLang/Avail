@@ -1,6 +1,6 @@
 /*
- * BeSharedSubobjectVisitor.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * BeSharedSubobjectVisitor.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,9 +30,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.utility.visitor;
+package com.avail.utility.visitor
 
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.AvailObject
 
 /**
  * Provide the ability to iterate over an object's fields, marking each child
@@ -42,23 +42,8 @@ import com.avail.descriptor.AvailObject;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class BeSharedSubobjectVisitor
-implements AvailSubobjectVisitor
+object BeSharedSubobjectVisitor : AvailSubobjectVisitor
 {
-	/** The sole instance of this visitor. */
-	public static final BeSharedSubobjectVisitor instance =
-		new BeSharedSubobjectVisitor();
-
-	/** Construct a new {@link BeSharedSubobjectVisitor}. */
-	private BeSharedSubobjectVisitor ()
-	{
-		// Do nothing
-	}
-
-	@Override
-	public AvailObject invoke (
-		final AvailObject childObject)
-	{
-		return childObject.makeShared();
-	}
+	override fun invoke(childObject: AvailObject): AvailObject =
+		childObject.makeShared()
 }

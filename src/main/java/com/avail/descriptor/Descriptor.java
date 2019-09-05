@@ -2505,7 +2505,7 @@ extends AbstractDescriptor
 	@Override
 	final AvailObject o_MakeSubobjectsImmutable (final AvailObject object)
 	{
-		object.scanSubobjects(BeImmutableSubobjectVisitor.instance);
+		object.scanSubobjects(BeImmutableSubobjectVisitor.INSTANCE);
 		return object;
 	}
 
@@ -2521,7 +2521,7 @@ extends AbstractDescriptor
 	@Override
 	final void o_MakeSubobjectsShared (final AvailObject object)
 	{
-		object.scanSubobjects(BeSharedSubobjectVisitor.instance);
+		object.scanSubobjects(BeSharedSubobjectVisitor.INSTANCE);
 	}
 
 	@Override

@@ -1,6 +1,6 @@
 /*
- * AvailSubobjectVisitor.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * AvailSubobjectVisitor.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,28 +30,28 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.utility.visitor;
+package com.avail.utility.visitor
 
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.AvailObject
 
 /**
- * I provide an {@link #invoke(AvailObject)} operation which
- * supports the ability to visit the object fields of AvailObjects.
+ * I provide an [invoke] operation which supports the ability to visit the
+ * object fields of AvailObjects.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @FunctionalInterface
-public interface AvailSubobjectVisitor
+interface AvailSubobjectVisitor
 {
 	/**
 	 * This is a visitor call from a subobject iterator running on some object.
 	 * The subobject has already been extracted from the parent.
 	 *
 	 * @param childObject
-	 *        An object referred to by the {@code parentObject}.
+	 *    An object referred to by the `parentObject`.
 	 * @return A replacement object for the childObject.  Subclasses may use
-	 *         this to eliminate indirections, or for other purposes.
+	 * this to eliminate indirections, or for other purposes.
 	 */
-	AvailObject invoke (
-		final AvailObject childObject);
+	operator fun invoke(
+		childObject: AvailObject): AvailObject
 }

@@ -1,6 +1,6 @@
 /*
- * BeImmutableSubobjectVisitor.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * BeImmutableSubobjectVisitor.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,35 +30,20 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.utility.visitor;
+package com.avail.utility.visitor
 
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.AvailObject
 
 /**
  * Provide the ability to iterate over an object's fields, marking each child
  * object as immutable. Note that marking a child immutable may involve
- * creating another visitor of this class and visiting the child's children
- * in this mutually recursive way.
+ * creating another visitor of this class and visiting the child's children in
+ * this mutually recursive way.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class BeImmutableSubobjectVisitor
-implements AvailSubobjectVisitor
+object BeImmutableSubobjectVisitor : AvailSubobjectVisitor
 {
-	/** The sole instance of this visitor. */
-	public static final BeImmutableSubobjectVisitor instance =
-		new BeImmutableSubobjectVisitor();
-
-	/** Construct a new {@link BeImmutableSubobjectVisitor}. */
-	private BeImmutableSubobjectVisitor ()
-	{
-		// Do nothing
-	}
-
-	@Override
-	public AvailObject invoke (
-		final AvailObject childObject)
-	{
-		return childObject.makeImmutable();
-	}
+	override fun invoke(childObject: AvailObject): AvailObject =
+		childObject.makeImmutable()
 }
