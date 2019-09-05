@@ -44,14 +44,17 @@ import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousFileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.String.format;
+import static java.lang.String.join;
 import static java.util.Collections.singleton;
 
 /**
@@ -102,9 +105,10 @@ final class GraphTracer
 		{
 			final Graph<ResolvedModuleName> ancestry =
 				availBuilder.moduleGraph.ancestryOfAll(singleton(targetModule));
+			final Graph<ResolvedModuleName> dag = ancestry.spanningDag();
 			final Graph<ResolvedModuleName> reduced =
-				ancestry.dagWithoutRedundantEdges();
-			renderGraph(reduced);
+				ancestry.withoutRedundantEdges(dag);
+			renderGraph(reduced, dag);
 		}
 		availBuilder.trimGraphToLoadedModules();
 	}
@@ -198,18 +202,24 @@ final class GraphTracer
 	}
 
 	/**
-	 * Write the given (reduced) module dependency graph as a .gv
-	 * (<strong>dot</strong>) file suitable for layout via Graphviz.
+	 * Write the given (reduced) module dependency graph as a
+	 * <strong>dot</strong> file suitable for layout via Graphviz.
 	 *
-	 * @param ancestry The graph of fully qualified module names.
+	 * @param reducedGraph
+	 *        The graph of fully qualified module names.
+	 * @param spanningDag
+	 *        The reduced spanning dag used to control the layout.
 	 */
-	private void renderGraph (final Graph<ResolvedModuleName> ancestry)
+	private void renderGraph (
+		final Graph<ResolvedModuleName> reducedGraph,
+		final Graph<ResolvedModuleName> spanningDag)
 	{
+		assert reducedGraph.vertexCount() == spanningDag.vertexCount();
 		final Map<String, ModuleTree> trees = new HashMap<>();
 		final ModuleTree root =
 			new ModuleTree("root_", "Module Dependencies", null);
 		trees.put("", root);
-		for (final ResolvedModuleName moduleName : ancestry.vertices())
+		for (final ResolvedModuleName moduleName : reducedGraph.vertices())
 		{
 			String string = moduleName.qualifiedName();
 			ModuleTree node = new ModuleTree(
@@ -254,6 +264,8 @@ final class GraphTracer
 					out.append("\n");
 					tab.value(depth);
 					out.append("{\n");
+					tab.value(depth + 1);
+					out.append("remincross = true;\n");
 					tab.value(depth + 1);
 					out.append("compound = true;\n");
 					tab.value(depth + 1);
@@ -307,7 +319,7 @@ final class GraphTracer
 					out.append("\n");
 					// Output *all* the edges.
 					for (final ResolvedModuleName from :
-						ancestry.vertices())
+						reducedGraph.vertices())
 					{
 						final String qualified = from.qualifiedName();
 						final ModuleTree fromNode = trees.get(qualified);
@@ -315,24 +327,36 @@ final class GraphTracer
 						final boolean fromPackage =
 							parts[parts.length - 2].equals(
 								parts[parts.length - 1]);
-						final String fromName = fromNode.node;
 						for (final ResolvedModuleName to :
-							ancestry.successorsOf(from))
+							reducedGraph.successorsOf(from))
 						{
 							final String toName =
 								asNodeName(to.qualifiedName());
 							tab.value(depth + 1);
-							out.append(fromName);
+							out.append(fromNode.node);
 							out.append(" -> ");
 							out.append(toName);
+							final List<String> edgeStrings = new ArrayList<>();
 							if (fromPackage)
 							{
 								final ModuleTree parent =
 									stripNull(fromNode.parent());
 								final String parentName =
 									"cluster_" + parent.node;
-								out.append("[ltail=");
-								out.append(parentName);
+								edgeStrings.add("ltail=" + parentName);
+							}
+							if (!spanningDag.includesEdge(from, to))
+							{
+								// This is a back-edge.
+								edgeStrings.add("constraint=false");
+								edgeStrings.add("color=crimson");
+								edgeStrings.add("penwidth=3.0");
+								edgeStrings.add("style=dashed");
+							}
+							if (!edgeStrings.isEmpty())
+							{
+								out.append("[");
+								out.append(join(", ", edgeStrings));
 								out.append("]");
 							}
 							out.append(";\n");

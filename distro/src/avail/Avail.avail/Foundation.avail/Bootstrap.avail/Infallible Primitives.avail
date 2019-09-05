@@ -66,6 +66,7 @@ Uses
 		"_'s⁇atom",
 		"_'s⁇bindings",
 		"_'s⁇caller",
+		"_'s⁇character type number",
 		"_'s⁇code point",
 		"_'s⁇declaration",
 		"_'s⁇declared exceptions",
@@ -301,6 +302,25 @@ Primitive "_→character" is
 |
 	Primitive CharacterFromCodePoint;
 ] : character;
+
+/**
+ * Answer the character type of the given character.  The character type is an
+ * integer in the range [0..31], corresponding to
+ * {@code "java.lang.Character.getType(int)"}.
+ *
+ * @category "Primitives"
+ * @method "_'s⁇character type number"
+ * @param "aCharacter" "character"
+ *        The character to categorize.
+ * @returns "[0..31]"
+ *    The type of character that was provided, encoded as a value in [0..31].
+ */
+Primitive "_'s⁇character type number" is
+[
+	aCharacter : character
+|
+	Primitive CharacterType;
+] : character type number;
 
 /**
  * Construct and answer a variable that holds the caller of the specified

@@ -91,24 +91,15 @@ extends Expression
 	@Override
 	boolean isLowerCase ()
 	{
-		for (final Expression expression : alternatives)
-		{
-			if (!expression.isLowerCase())
-			{
-				return false;
-			}
-		}
-		return true;
+		return alternatives.stream().allMatch(Expression::isLowerCase);
 	}
 
 	@Override
 	void extractSectionCheckpointsInto (
 		final List<SectionCheckpoint> sectionCheckpoints)
 	{
-		for (final Expression alternative : alternatives)
-		{
-			alternative.extractSectionCheckpointsInto(sectionCheckpoints);
-		}
+		alternatives.forEach(alternative ->
+			alternative.extractSectionCheckpointsInto(sectionCheckpoints));
 	}
 
 	@Override
@@ -137,12 +128,8 @@ extends Expression
 		 * check progress and update saved position, or abort.
 		 * pop the parse position.
 		 */
-		boolean needsProgressCheck = false;
-		for (final Expression alternative : alternatives)
-		{
-			needsProgressCheck |= alternative.mightBeEmpty(
-				bottom());
-		}
+		final boolean needsProgressCheck = alternatives.stream()
+			.anyMatch(alternative -> alternative.mightBeEmpty(bottom()));
 		generator.flushDelayed();
 		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION);
 		final Label $after = new Label();
@@ -237,13 +224,7 @@ extends Expression
 	boolean mightBeEmpty (
 		final A_Type phraseType)
 	{
-		for (final Expression alternative : alternatives)
-		{
-			if (alternative.mightBeEmpty(bottom()))
-			{
-				return true;
-			}
-		}
-		return false;
+		return alternatives.stream()
+			.anyMatch(alternative -> alternative.mightBeEmpty(bottom()));
 	}
 }

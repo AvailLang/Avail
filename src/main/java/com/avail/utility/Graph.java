@@ -36,19 +36,14 @@ import com.avail.annotations.InnerAccess;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation2NotNull;
 
-import java.util.ArrayDeque;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.avail.utility.evaluation.Combinator.recurse;
+import static java.util.Collections.emptySet;
 import static java.util.Collections.unmodifiableSet;
 
 /**
@@ -540,6 +535,62 @@ public class Graph<Vertex>
 	}
 
 	/**
+	 * Find a cycle in this cyclic graph.  Return it as a {@link List} of
+	 * {@linkplain Vertex vertices} in the order they occur in the cycle.
+	 *
+	 * <p>This is currently written with recursion, but pathologically deep
+	 * module dependency graphs could overflow the Java stack.</p>
+	 *
+	 * @return A {@link List} of each {@link Vertex} in some cycle.
+	 */
+	public List<Vertex> findCycle ()
+	{
+		assert isCyclic();  // Potentially expensive.
+		final LinkedHashSet<Vertex> stack = new LinkedHashSet<>();
+		final Set<Vertex> reached = new HashSet<>();
+		final MutableOrNull<List<Vertex>> solution =
+			new MutableOrNull<>();
+		for (final Vertex start : outEdges.keySet())
+		{
+			assert stack.isEmpty();
+			recurse(
+				start,
+				(vertex, body) ->
+				{
+					if (solution.value != null)
+					{
+						return;
+					}
+					if (stack.contains(vertex))
+					{
+						// Found a cycle.
+						final ArrayList<Vertex> list = new ArrayList<>(stack);
+						// Include this vertex twice.
+						list.add(vertex);
+						solution.value = list.subList(
+							list.indexOf(vertex), list.size());
+						return;
+					}
+					if (!reached.contains(vertex))
+					{
+						reached.add(vertex);
+						stack.add(vertex);
+						for (final Vertex successor : outEdges.get(vertex))
+						{
+							body.value(successor);
+						}
+						stack.remove(vertex);
+					};
+				});
+			if (solution.value != null)
+			{
+				break;
+			}
+		}
+		return solution.value();
+	}
+
+	/**
 	 * Create a copy of this {@code Graph} with the same vertices, but with
 	 * every edge having the reverse direction.
 	 *
@@ -597,6 +648,7 @@ public class Graph<Vertex>
 	public void parallelVisit (
 		final Continuation2NotNull<Vertex, Continuation0> visitAction)
 	{
+		assert !isCyclic();
 		final Semaphore semaphore = new Semaphore(0);
 		final AtomicBoolean safetyCheck = new AtomicBoolean(false);
 		parallelVisitThen(
@@ -666,7 +718,12 @@ public class Graph<Vertex>
 		/**
 		 * Construct a new {@code ParallelVisitor}.
 		 *
-		 * @param visitAction What to perform for each vertex being visited.
+		 * @param visitAction
+		 *        What to perform for each vertex being visited.  The second
+		 *        argument to this action is a {@link Continuation0} to invoke
+		 *        when the {@link Vertex} has been fully processed.
+		 * @param afterTraversal
+		 *        What to perform after the entire traversal has completed.
 		 */
 		@InnerAccess ParallelVisitor (
 			final Continuation2NotNull<Vertex, Continuation0> visitAction,
@@ -804,27 +861,95 @@ public class Graph<Vertex>
 	 * Create a subgraph containing each of the provided vertices and all of
 	 * their ancestors.
 	 *
+	 * <p>Note: Don't use {@link #parallelVisitThen(Continuation2NotNull,
+	 * Continuation0)}, because the graph may contain cycles that we're
+	 * interested in rendering (i.e., to determine how to break them).</p>
+	 *
 	 * @param seeds The vertices whose ancestors to include.
 	 * @return The specified subgraph of the receiver.
 	 */
 	public Graph<Vertex> ancestryOfAll (final Collection<Vertex> seeds)
 	{
-		final Graph<Vertex> ancestry = new Graph<>();
-		ancestry.addVertices(seeds);
-		reverse().parallelVisit(
-			(vertex, completionAction) ->
+		final Set<Vertex> ancestrySet = new HashSet<>(seeds);
+		Set<Vertex> newAncestors = new HashSet<>(seeds);
+		while (!newAncestors.isEmpty())
+		{
+			final Set<Vertex> previousAncestors = newAncestors;
+			newAncestors = new HashSet<>();
+			for (final Vertex vertex : previousAncestors)
 			{
-				for (final Vertex successor : successorsOf(vertex))
+				newAncestors.addAll(predecessorsOf(vertex));
+			}
+			newAncestors.removeAll(ancestrySet);
+			ancestrySet.addAll(newAncestors);
+		}
+		final Graph<Vertex> ancestryGraph = new Graph<>(this);
+		for (final Vertex vertex :
+			new ArrayList<>(ancestryGraph.outEdges.keySet()))
+		{
+			if (!ancestrySet.contains(vertex))
+			{
+				ancestryGraph.exciseVertex(vertex);
+			}
+		}
+		return ancestryGraph;
+	}
+
+	/**
+	 * Answer an acyclic subgraph of the receiver, containing all vertices, and
+	 * a locally maximal subset of the edges (i.e., no additional edge of the
+	 * original graph can be added without making the resulting graph acyclic).
+	 *
+	 * <p>Multiple solutions are possible, depending on which edges are included
+	 * first.</p>
+	 *
+	 * @return An acyclic subgraph containing a locally maximal subset of edges.
+	 */
+	public Graph<Vertex> spanningDag ()
+	{
+		final Graph<Vertex> spanningDag = new Graph<>();
+		spanningDag.addVertices(vertices());
+		final Set<Vertex> stackSet = new HashSet<>();
+		final List<Vertex> stackList = new ArrayList<>();
+		final List<Vertex> scanned = new ArrayList<>();
+		outEdges.entrySet().stream()
+			.sorted(
+				Comparator.<Entry<Vertex, Set<Vertex>>>comparingInt(
+					e1 -> e1.getValue().size())
+						.thenComparing(e2 -> e2.getKey().toString()))
+			.map(Entry::getKey)
+			.forEach(
+				startVertex ->
 				{
-					if (ancestry.includesVertex(successor))
-					{
-						ancestry.includeVertex(vertex);
-						ancestry.addEdge(vertex, successor);
-					}
-				}
-				completionAction.value();
-			});
-		return ancestry;
+					assert stackSet.isEmpty() && stackList.isEmpty();
+					recurse(
+						startVertex,
+						(vertex, body) ->
+						{
+							if (!stackSet.contains(vertex))
+							{
+								// The edge is part of a dag formed by a
+								// depth-first traversal.  Include it.
+								if (!stackList.isEmpty())
+								{
+									spanningDag.addEdge(
+										stackList.get(stackList.size() - 1),
+										vertex);
+								}
+								if (!scanned.contains(vertex))
+								{
+									scanned.add(vertex);
+									stackSet.add(vertex);
+									stackList.add(vertex);
+									outEdges.get(vertex).forEach(body::value);
+									stackSet.remove(vertex);
+									stackList.remove(vertex);
+								}
+							}
+							;
+						});
+				});
+		return spanningDag;
 	}
 
 	/**
@@ -843,7 +968,7 @@ public class Graph<Vertex>
 			final Set<Vertex> predecessors = predecessorsOf(vertex);
 			if (predecessors.size() == 0)
 			{
-				ancestorSet = Collections.emptySet();
+				ancestorSet = emptySet();
 			}
 			else if (predecessors.size() == 1)
 			{
@@ -896,5 +1021,38 @@ public class Graph<Vertex>
 			}
 		}
 		return result;
+	}
+
+	/**
+	 * Given an acyclic graph, produce a subgraph that excludes any edges for
+	 * which there is another path connecting those edges in the original graph.
+	 *
+	 * @param spanningDag
+	 *        The spanning directed acyclic graph to structure.
+	 * @return A reduced copy of this graph.
+	 */
+	public Graph<Vertex> withoutRedundantEdges (
+		final Graph<Vertex> spanningDag)
+	{
+		final Graph<Vertex> reduced = spanningDag.dagWithoutRedundantEdges();
+		// Add in all back-edges from the original graph, even though they may
+		// appear redundant.  That's to ensure that cycles appear clearly.
+		for (final Entry<Vertex, Set<Vertex>> entry : outEdges.entrySet())
+		{
+			final Vertex vertex = entry.getKey();
+			final Set<Vertex> originalSuccessors = entry.getValue();
+			final Set<Vertex> dagSuccessors = spanningDag.successorsOf(vertex);
+			if (dagSuccessors.size() < originalSuccessors.size())
+			{
+				for (final Vertex successor : originalSuccessors)
+				{
+					if (!dagSuccessors.contains(successor))
+					{
+						reduced.addEdge(vertex, successor);
+					}
+				}
+			}
+		}
+		return reduced;
 	}
 }

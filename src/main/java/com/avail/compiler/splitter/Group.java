@@ -175,7 +175,7 @@ extends Expression
 	}
 
 	@Override
-	boolean isArgumentOrGroup ()
+	boolean yieldsValue ()
 	{
 		return true;
 	}
@@ -218,8 +218,8 @@ extends Expression
 	 */
 	boolean needsDoubleWrapping ()
 	{
-		return beforeDagger.arguments.size() != 1
-			|| afterDagger.arguments.size() != 0;
+		return beforeDagger.yielders.size() != 1
+			|| afterDagger.yielders.size() != 0;
 	}
 
 	@Override
@@ -274,8 +274,8 @@ extends Expression
 			// size ranges from the number of arguments left of the dagger
 			// up to that plus the number of arguments right of the dagger.
 			assert argumentType.isTupleType();
-			final int argsBeforeDagger = beforeDagger.arguments.size();
-			final int argsAfterDagger = afterDagger.arguments.size();
+			final int argsBeforeDagger = beforeDagger.yielders.size();
+			final int argsAfterDagger = afterDagger.yielders.size();
 			final A_Number expectedLower = fromInt(argsBeforeDagger);
 			final A_Number expectedUpper = fromInt(
 				argsBeforeDagger + argsAfterDagger);
@@ -311,12 +311,12 @@ extends Expression
 					throwSignatureException(E_INCORRECT_TYPE_FOR_COMPLEX_GROUP);
 				}
 				int j = 1;
-				for (final Expression e : beforeDagger.arguments)
+				for (final Expression e : beforeDagger.yielders)
 				{
 					e.checkType(solutionType.typeAtIndex(j), sectionNumber);
 					j++;
 				}
-				for (final Expression e : afterDagger.arguments)
+				for (final Expression e : afterDagger.yielders)
 				{
 					e.checkType(solutionType.typeAtIndex(j), sectionNumber);
 					j++;
@@ -390,8 +390,8 @@ extends Expression
 			 * $skip:
 			 */
 			generator.partialListsCount++;
-			assert beforeDagger.arguments.size() == 1;
-			assert afterDagger.arguments.size() == 0;
+			assert beforeDagger.yielders.size() == 1;
+			assert afterDagger.yielders.size() == 0;
 			boolean hasWrapped = false;
 			final Label $skip = new Label();
 			if (minSize == 0)
@@ -679,12 +679,12 @@ extends Expression
 				ungroupedArgCount = 0;
 				listIsPushed = true;
 			}
-			if (expression.isArgumentOrGroup())
+			if (expression.yieldsValue())
 			{
 				argIndex++;
 				final int realTypeIndex =
-					beforeDagger.argumentsAreReordered == Boolean.TRUE
-						? beforeDagger.permutedArguments.get(argIndex - 1)
+					beforeDagger.yieldersAreReordered == Boolean.TRUE
+						? beforeDagger.permutedYielders.get(argIndex - 1)
 						: argIndex;
 				final A_Type entryType =
 					subexpressionsTupleType.typeAtIndex(realTypeIndex);
@@ -700,14 +700,14 @@ extends Expression
 					SHOULD_NOT_HAVE_ARGUMENTS);
 			}
 		}
-		assert argIndex == beforeDagger.arguments.size();
+		assert argIndex == beforeDagger.yielders.size();
 		tidyPushedList(generator, ungroupedArgCount, listIsPushed);
 		generator.partialListsCount -= 2;
-		if (beforeDagger.argumentsAreReordered == Boolean.TRUE)
+		if (beforeDagger.yieldersAreReordered == Boolean.TRUE)
 		{
 			// Permute the list on top of stack.
 			final A_Tuple permutationTuple =
-				tupleFromIntegerList(beforeDagger.permutedArguments);
+				tupleFromIntegerList(beforeDagger.permutedYielders);
 			final int permutationIndex = indexForPermutation(permutationTuple);
 			generator.flushDelayed();
 			generator.emit(this, PERMUTE_LIST, permutationIndex);
@@ -732,7 +732,7 @@ extends Expression
 		final A_Type subexpressionsTupleType =
 			phraseType.subexpressionsTupleType();
 		generator.partialListsCount += 2;
-		int argIndex = beforeDagger.arguments.size();
+		int argIndex = beforeDagger.yielders.size();
 		int ungroupedArgCount = 0;
 		for (final Expression expression : afterDagger.expressions)
 		{
@@ -741,12 +741,12 @@ extends Expression
 				tidyPushedList(generator, ungroupedArgCount, true);
 				ungroupedArgCount = 0;
 			}
-			if (expression.isArgumentOrGroup())
+			if (expression.yieldsValue())
 			{
 				argIndex++;
 				final int realTypeIndex =
-					afterDagger.argumentsAreReordered == Boolean.TRUE
-						? afterDagger.permutedArguments.get(argIndex - 1)
+					afterDagger.yieldersAreReordered == Boolean.TRUE
+						? afterDagger.permutedYielders.get(argIndex - 1)
 						: argIndex;
 				final A_Type entryType =
 					subexpressionsTupleType.typeAtIndex(realTypeIndex);
@@ -764,13 +764,13 @@ extends Expression
 		}
 		tidyPushedList(generator, ungroupedArgCount, true);
 		generator.partialListsCount -= 2;
-		if (afterDagger.argumentsAreReordered == Boolean.TRUE)
+		if (afterDagger.yieldersAreReordered == Boolean.TRUE)
 		{
 			// Permute just the right portion of the list on top of
 			// stack.  The left portion was already adjusted in case it
 			// was the last iteration and didn't have a right side.
-			final int leftArgCount = beforeDagger.arguments.size();
-			final int rightArgCount = afterDagger.arguments.size();
+			final int leftArgCount = beforeDagger.yielders.size();
+			final int rightArgCount = afterDagger.yielders.size();
 			final int adjustedPermutationSize =
 				leftArgCount + rightArgCount;
 			final ArrayList<Integer> adjustedPermutationList =
@@ -786,7 +786,7 @@ extends Expression
 				// Adjust the right permutation indices by the size of the left
 				// part.
 				adjustedPermutationList.add(
-					afterDagger.arguments.get(i).explicitOrdinal()
+					afterDagger.yielders.get(i).explicitOrdinal()
 						+ leftArgCount);
 			}
 			final A_Tuple permutationTuple =

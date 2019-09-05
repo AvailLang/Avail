@@ -87,13 +87,13 @@ extends Expression
 	Counter (final int positionInName, final Group group)
 	{
 		super(positionInName);
+		assert group.beforeDagger.yielders.isEmpty();
+		assert group.afterDagger.yielders.isEmpty();
 		this.group = group;
-		explicitOrdinal(group.explicitOrdinal());
-		group.explicitOrdinal(-1);
 	}
 
 	@Override
-	boolean isArgumentOrGroup ()
+	boolean yieldsValue ()
 	{
 		return true;
 	}
@@ -172,7 +172,7 @@ extends Expression
 		final int oldPartialListsCount = generator.partialListsCount;
 		for (final Expression expression : group.beforeDagger.expressions)
 		{
-			assert !expression.isArgumentOrGroup();
+			assert !expression.yieldsValue();
 			generator.partialListsCount = Integer.MIN_VALUE;
 			expression.emitOn(
 				emptyListPhraseType(),
@@ -185,7 +185,7 @@ extends Expression
 		generator.emitBranchForward(this, $loopExit);
 		for (final Expression expression : group.afterDagger.expressions)
 		{
-			assert !expression.isArgumentOrGroup();
+			assert !expression.yieldsValue();
 			expression.emitOn(
 				emptyListPhraseType(),
 				generator,
@@ -229,7 +229,7 @@ extends Expression
 				Collections.emptyIterator(),
 				builder,
 				indent,
-				isArgumentOrGroup());
+				yieldsValue());
 		}
 		builder.append('#');
 	}

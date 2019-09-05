@@ -157,6 +157,9 @@ public class AvailTest
 		{
 			"/experimental/builder tests/MutuallyRecursive1",
 			"/experimental/builder tests/MutuallyRecursive2",
+			"/experimental/builder tests/MutuallyRecursive3",
+			"/experimental/builder tests/UsesMutuallyRecursive1",
+			"/experimental/builder tests/UsesUsesMutuallyRecursive1",
 			"/experimental/builder tests/ShouldFailCompilation",
 			"/experimental/builder tests/ShouldFailDuplicateImportVersion",
 			"/experimental/builder tests/ShouldFailDuplicateName",

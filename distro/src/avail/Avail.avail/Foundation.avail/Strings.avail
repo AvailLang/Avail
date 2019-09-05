@@ -995,6 +995,95 @@ Public stable method "_(base_)" is
 ] : extended integer;
 
 /**
+ * Convert the specified integer to a string in the requested radix.  Allow up
+ * radix 36, using upper-case ASCII letters for digits ten or higher.  Negative
+ * numbers are preceded by a "-".  Only the value zero (0) can start with a zero
+ * digit ("0").
+ *
+ * @method "_(base_)"
+ * @param "n" "integer"
+ *        The integer to convert to a string.
+ * @param "base" "[2..36]"
+ *        The base for the output string. This determines which characters may
+ *        occur as digits in the output.
+ * @returns "string"
+ *          A string representation of the given integer n, in the given radix.
+ * @category "Numbers" "Integers" "Conversions" "Stringification"
+ */
+Public stable method "_(base_)" is
+[
+	n : integer,
+	base : [2..36]
+|
+	if n = 0 then
+	[
+		"0"
+	]
+	else
+	[
+		out : string := "";
+		residue : whole number := |n|;
+		While residue > 0 do
+		[
+			out := <baseAlphabetTuple[residue mod base + 1]> ++ eject out;
+			/* Note: truncating division */
+			residue := residue ÷ base;
+		];
+		if n < 0 then ["-" ++ out] else [out]
+	]
+] : string;
+
+Semantic restriction "_(base_)" is
+[
+	n : integer's type,
+	base : [2..36]'s type
+|
+	alphabet ::= (baseAlphabetTuple[1..⎡base⎤] → set)'s type's element type;
+	if (⎣n⎦ ≠ -∞ ∧ ⎡n⎤ ≠ ∞) then
+	[
+		/* The magnitudes have known bounds.  Bound the string length. */
+		values : {extended integer|} := ∅;
+		hasNeg ::= ⎣n⎦ < 0;
+		If hasNeg then
+		[
+			values := values ∪ {⎣n ∩ (-∞..-1]⎦, ⎡n ∩ (-∞..-1]⎤};
+		];
+		hasPos ::= ⎡n⎤ ≥ 0;
+		If hasPos then
+		[
+			values := values ∪ {⎣n ∩ [0..∞)⎦, ⎡n ∩ [0..∞)⎤};
+		];
+		strings : {string|} := ∅;
+		For each value in values do
+		[
+			cast value into [v : integer |
+				strings := strings ∪ {v(base ⎣base⎦), v(base ⎡base⎤)};];
+		];
+		stringType ::= strings' type's element type;
+		sizeRange ::= ||stringType||;
+		firstChar : character's type := ⊥;
+		If hasNeg then [firstChar := firstChar ∪ {¢-}ᵀ;];
+		If hasPos then [firstChar := firstChar ∪ alphabet;];
+		<firstChar, alphabet…|⎣sizeRange⎦..⎡sizeRange⎤>
+	]
+	else if n ⊆ [0..∞) then
+	[
+		/* Unbounded, but all positive. */
+		alphabet+
+	]
+	else if n ⊆ (-∞..-1] then
+	[
+		/* Unbounded, but all negative. */
+		<{¢-}ᵀ, alphabet…|1..>
+	]
+	else
+	[
+		/* Unbounded, positive and negative. */
+		<alphabet ∪ {¢-}ᵀ, alphabet… |1..>
+	]
+];
+
+/**
  * Convert the specified string to an integer.
  *
  * @method "_→_"
@@ -1215,6 +1304,49 @@ Public method "“_”«else_»(as simple list)" is
 ] : string;
 
 /**
+ * Describe a code point that's either the start or end of a range, or a single
+ * value.
+ *
+ * @param c The ({@code character}) to describe.
+ */
+Private method "range element string for_" is
+[
+	c : character
+|
+	m ::= {
+		¢" " → " ",
+		¢"-" → "\\(2D)",
+		¢"[" → "\\(5B)",
+		¢"]" → "\\(5D)",
+		¢"\n" → "\\n",
+		¢"\r" → "\\r",
+		¢"\t" → "\\t",
+		¢"\\" → "\\\\",
+		¢"\"" → "\\\""
+	};
+	m[c] else [
+		if (c's character type name ∈ {
+			"combining spacing mark",
+			"control",
+			"enclosing mark",
+			"format",
+			"non-spacing mark",
+			"paragraph separator",
+			"private use",
+			"space separator",
+			"surrogate",
+			"unassigned"}) then
+		[
+			"\\(" ++ c's code point (base 16) ++ ")"
+		]
+		else
+		[
+			<c>
+		]
+	]
+];
+
+/**
  * Stringify the argument.
  *
  * @method "“_”"
@@ -1227,61 +1359,44 @@ Method "“_”" is
 	aSet : set
 |
 	if aSet is empty then ["∅"]
-/*	else if aSet ∈ {character|} then
+	else if aSet ∈ {character|} then
 	[
 		chars ::= cast aSet into [x : {character|} | x];
 		index : natural number := 1;
 		out : string := "¢[";
 		unorderedString ::= map aSet → tuple through [c : any |
-			cast c into [cc:character | cc's code point]];
+			cast c into [cc: character | cc's code point]];
 		sorted ::= quicksort unorderedString;
-		size ::= ||sorted||;
-		position : integer := 1;
-		While [position ≤ size] do
+		size ::= |sorted|;
+		position : natural number := 1;
+		Do
 		[
-
-		]
-
-
-//			aStream.append("¢[");
-//			final SortedSet<Integer> codePointsSet = new TreeSet<>();
-//			for (final A_Character character : object)
-//			{
-//				codePointsSet.add(character.codePoint());
-//			}
-//			final Iterator<Integer> iterator = codePointsSet.iterator();
-//			int runStart = iterator.next();
-//			do
-//			{
-//				int runEnd = runStart;
-//				int next = -1;
-//				while (iterator.hasNext())
-//				{
-//					next = iterator.next();
-//					if (next != runEnd + 1)
-//					{
-//						break;
-//					}
-//					runEnd++;
-//					next = -1;
-//				}
-//				writeRangeElement(aStream, runStart);
-//				if (runEnd != runStart)
-//				{
-//					// Skip the dash if the start and end are consecutive.
-//					if (runEnd != runStart + 1)
-//					{
-//						aStream.appendCodePoint('-');
-//					}
-//					writeRangeElement(aStream, runEnd);
-//				}
-//				runStart = next;
-//			}
-//			while (runStart != -1);
-//			aStream.append("]");
-
-//	]
-*/
+			runStart ::= sorted[((↑position)++)];
+			runEnd : code point := runStart;
+			While
+			[
+				position ≤ size ∧
+				[
+					sorted[((↑position)++)] = runEnd + 1
+				]
+			]
+			do
+			[
+				runEnd++;
+			];
+			out ++= range element string for runStart → character;
+			If runEnd ≠ runStart then
+			[
+				/* Skip the dash if the start and end are consecutive. */
+				If (runEnd ≠ runStart + 1) then
+				[
+					out ++= "-";
+				];
+				out ++= range element string for runEnd → character;
+			];
+		] while position ≤ size;
+		out ++ "]"
+	]
 	else
 	[
 		Assert: ¬aSet is empty;

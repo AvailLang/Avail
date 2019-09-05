@@ -93,13 +93,13 @@ abstract class Expression
 	}
 
 	/**
-	 * Answer whether or not this an {@linkplain Argument argument} or
-	 * {@linkplain Group group}.
+	 * Answer whether this expression is expected to produce a value to be
+	 * consumed by a method or macro definition.  Not applicable to {@link
+	 * Sequence}s.
 	 *
-	 * @return {@code true} if and only if this is an argument or group,
-	 *         {@code false} otherwise.
+	 * @return A {@code boolean}.
 	 */
-	boolean isArgumentOrGroup ()
+	boolean yieldsValue ()
 	{
 		return false;
 	}
@@ -276,7 +276,7 @@ abstract class Expression
 	 */
 	final boolean canBeReordered ()
 	{
-		return isArgumentOrGroup();
+		return yieldsValue();
 	}
 
 	/**

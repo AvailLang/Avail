@@ -508,7 +508,7 @@ public final class MessageSplitter
 	/**
 	 * The number of {@link SectionCheckpoint}s encountered so far.
 	 */
-	public int numberOfSectionCheckpoints;
+	public int numberOfSectionCheckpoints = 0;
 
 	/** The top-most {@linkplain Sequence sequence}. */
 	final Sequence rootSequence;
@@ -1338,7 +1338,7 @@ public final class MessageSplitter
 	throws MalformedMessageException
 	{
 		throwMalformedIf(
-			expression.isArgumentOrGroup()
+			expression.yieldsValue()
 				|| expression.underscoreCount() > 0,
 			E_ALTERNATIVE_MUST_NOT_CONTAIN_ARGUMENTS,
 			"Alternatives must not contain arguments");
@@ -1615,7 +1615,7 @@ public final class MessageSplitter
 			"A question mark (?) may only follow a simple "
 			+ "group (optional) or a group with arguments "
 			+ "(0 or 1 occurrences), but not one with a "
-			+ "double-dagger (‡), since that implies "
+			+ "double-dagger (‡), since that suggests "
 			+ "multiple occurrences to be separated"))
 		{
 			if (group.underscoreCount() > 0)
@@ -1747,7 +1747,7 @@ public final class MessageSplitter
 	 */
 	public int numberOfArguments ()
 	{
-		return rootSequence.arguments.size();
+		return rootSequence.yielders.size();
 	}
 
 	/**

@@ -55,6 +55,7 @@ import static com.avail.descriptor.ListPhraseTypeDescriptor.emptyListPhraseType;
 import static com.avail.descriptor.TupleDescriptor.tupleFromIntegerList;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
 
 /**
  * A {@code Sequence} is the juxtaposition of any number of other {@link
@@ -73,14 +74,14 @@ extends Expression
 	 * Which of my {@link #expressions} is an argument, ellipsis, or group?
 	 * These are in the order they occur in the {@code expressions} list.
 	 */
-	final List<Expression> arguments = new ArrayList<>();
+	final List<Expression> yielders = new ArrayList<>();
 
 	/**
 	 * My one-based permutation that takes argument expressions from the
 	 * order in which they occur to the order in which they are bound to
 	 * arguments at a call site.
 	 */
-	final List<Integer> permutedArguments = new ArrayList<>();
+	final List<Integer> permutedYielders = new ArrayList<>();
 
 	/**
 	 * A three-state indicator of whether my argument components should be
@@ -92,7 +93,7 @@ extends Expression
 	 * {@link Boolean#FALSE}, then no arguments so far have specified
 	 * reordering.
 	 */
-	@Nullable Boolean argumentsAreReordered = null;
+	@Nullable Boolean yieldersAreReordered = null;
 
 	/**
 	 * Create a {@code Sequence} with no elements.
@@ -121,14 +122,14 @@ extends Expression
 	throws MalformedMessageException
 	{
 		expressions.add(e);
-		if (e.isArgumentOrGroup())
+		if (e.yieldsValue())
 		{
-			arguments.add(e);
+			yielders.add(e);
 		}
 		if (e.canBeReordered())
 		{
-			if (argumentsAreReordered != null
-				&& argumentsAreReordered == (e.explicitOrdinal() == -1))
+			if (yieldersAreReordered != null
+				&& yieldersAreReordered == (e.explicitOrdinal() == -1))
 			{
 				throwMalformedMessageException(
 					E_INCONSISTENT_ARGUMENT_REORDERING,
@@ -137,42 +138,36 @@ extends Expression
 					+ "or none of its arguments or direct subgroups numbered "
 					+ "for reordering");
 			}
-			argumentsAreReordered = e.explicitOrdinal() != -1;
+			yieldersAreReordered = e.explicitOrdinal() != -1;
 		}
+	}
+
+	@Deprecated
+	@Override
+	boolean yieldsValue ()
+	{
+		assert false : "Should not ask Sequence if it yields a value";
+		return false;
 	}
 
 	@Override
 	int underscoreCount ()
 	{
-		int count = 0;
-		for (final Expression expr : expressions)
-		{
-			count += expr.underscoreCount();
-		}
-		return count;
+		return expressions.stream().mapToInt(Expression::underscoreCount).sum();
 	}
 
 	@Override
 	boolean isLowerCase ()
 	{
-		for (final Expression expression : expressions)
-		{
-			if (!expression.isLowerCase())
-			{
-				return false;
-			}
-		}
-		return true;
+		return expressions.stream().allMatch(Expression::isLowerCase);
 	}
 
 	@Override
 	void extractSectionCheckpointsInto (
 		final List<SectionCheckpoint> sectionCheckpoints)
 	{
-		for (final Expression expression : expressions)
-		{
-			expression.extractSectionCheckpointsInto(sectionCheckpoints);
-		}
+		expressions.forEach(
+			e -> e.extractSectionCheckpointsInto(sectionCheckpoints));
 	}
 
 	/**
@@ -250,20 +245,20 @@ extends Expression
 		// Make sure the tuple of argument types are suitable for the
 		// argument positions that I comprise.  Take the argument reordering
 		// permutation into account if present.
-		final int expected = arguments.size();
+		final int expected = yielders.size();
 		final A_Type sizes = argumentType.sizeRange();
 		if (!sizes.lowerBound().equalsInt(expected)
 			|| !sizes.upperBound().equalsInt(expected))
 		{
 			throwSignatureException(errorCode);
 		}
-		if (argumentsAreReordered == Boolean.TRUE)
+		if (yieldersAreReordered == Boolean.TRUE)
 		{
 			for (int i = 1; i <= expected; i++)
 			{
-				final Expression argumentOrGroup = arguments.get(i - 1);
+				final Expression argumentOrGroup = yielders.get(i - 1);
 				final A_Type providedType =
-					argumentType.typeAtIndex(permutedArguments.get(i - 1));
+					argumentType.typeAtIndex(permutedYielders.get(i - 1));
 				assert !providedType.isBottom();
 				argumentOrGroup.checkType(providedType, sectionNumber);
 			}
@@ -272,7 +267,7 @@ extends Expression
 		{
 			for (int i = 1; i <= expected; i++)
 			{
-				final Expression argumentOrGroup = arguments.get(i - 1);
+				final Expression argumentOrGroup = yielders.get(i - 1);
 				final A_Type providedType = argumentType.typeAtIndex(i);
 				assert !providedType.isBottom();
 				argumentOrGroup.checkType(providedType, sectionNumber);
@@ -325,14 +320,14 @@ extends Expression
 					singletonList(
 						new Pair<>(
 							expression,
-							expression.isArgumentOrGroup() ? ++typeIndex : 0)));
+							expression.yieldsValue() ? ++typeIndex : 0)));
 			}
 			else
 			{
 				currentRun.add(
 					new Pair<>(
 						expression,
-						expression.isArgumentOrGroup() ? ++typeIndex : 0));
+						expression.yieldsValue() ? ++typeIndex : 0));
 				if (!(expression instanceof Optional))
 				{
 					result.add(new ArrayList<>(currentRun));
@@ -378,8 +373,8 @@ extends Expression
 		final Expression expression = pair.first();
 		final int typeIndex = pair.second();
 		final int realTypeIndex =
-			typeIndex != 0 && argumentsAreReordered == Boolean.TRUE
-				? permutedArguments.get(typeIndex - 1)
+			typeIndex != 0 && yieldersAreReordered == Boolean.TRUE
+				? permutedYielders.get(typeIndex - 1)
 				: typeIndex;
 		final A_Type subexpressionType = typeIndex == 0
 			? emptyListPhraseType()
@@ -404,7 +399,7 @@ extends Expression
 			{
 				// Do the argument reversal at the outermost recursion.
 				final boolean lastElementPushed =
-					run.get(runSize - 1).first().isArgumentOrGroup();
+					run.get(runSize - 1).first().yieldsValue();
 				final int permutationSize =
 					runSize + (lastElementPushed ? 0 : -1);
 				if (permutationSize > 1)
@@ -464,7 +459,7 @@ extends Expression
 				}
 			}
 			emitRunOn(run, 0, generator, subexpressionsTupleType);
-			final int argsInRun = lastInRun.isArgumentOrGroup()
+			final int argsInRun = lastInRun.yieldsValue()
 				? runSize : runSize - 1;
 			ungroupedArguments += argsInRun;
 			argIndex += argsInRun;
@@ -490,16 +485,16 @@ extends Expression
 		assert listIsPushed
 			|| wrapState == SHOULD_NOT_PUSH_LIST
 			|| wrapState == SHOULD_NOT_HAVE_ARGUMENTS;
-		assert arguments.size() == argIndex;
+		assert yielders.size() == argIndex;
 		assert subexpressionsTupleType.sizeRange().lowerBound().equalsInt(
 			argIndex);
 		assert subexpressionsTupleType.sizeRange().upperBound().equalsInt(
 			argIndex);
-		if (argumentsAreReordered == Boolean.TRUE)
+		if (yieldersAreReordered == Boolean.TRUE)
 		{
 			assert listIsPushed;
 			final A_Tuple permutationTuple =
-				tupleFromIntegerList(permutedArguments);
+				tupleFromIntegerList(permutedYielders);
 			final int permutationIndex = indexForPermutation(permutationTuple);
 			// This sequence was already collected into a list phrase as the
 			// arguments/groups were parsed.  Permute the list.
@@ -583,18 +578,14 @@ extends Expression
 	void checkForConsistentOrdinals ()
 	throws MalformedMessageException
 	{
-		if (argumentsAreReordered != Boolean.TRUE)
+		if (yieldersAreReordered != Boolean.TRUE)
 		{
 			return;
 		}
-		final List<Integer> usedOrdinalsList = new ArrayList<>();
-		for (final Expression e : expressions)
-		{
-			if (e.canBeReordered())
-			{
-				usedOrdinalsList.add(e.explicitOrdinal());
-			}
-		}
+		final List<Integer> usedOrdinalsList = expressions.stream()
+			.filter(Expression::canBeReordered)
+			.map(Expression::explicitOrdinal)
+			.collect(toList());
 		final int size = usedOrdinalsList.size();
 		final List<Integer> sortedOrdinalsList =
 			new ArrayList<>(usedOrdinalsList);
@@ -617,8 +608,8 @@ extends Expression
 				+ "to the number of arguments/groups, but must not be "
 				+ "in ascending order (got " + usedOrdinalsList + ')');
 		}
-		assert permutedArguments.isEmpty();
-		permutedArguments.addAll(usedOrdinalsList);
+		assert permutedYielders.isEmpty();
+		permutedYielders.addAll(usedOrdinalsList);
 	}
 
 	@Override
@@ -630,12 +621,12 @@ extends Expression
 		int index = 0;
 		for (final Expression expression : expressions)
 		{
-			if (expression.isArgumentOrGroup())
+			if (expression.yieldsValue())
 			{
 				index++;
 				final int realTypeIndex =
-					argumentsAreReordered == Boolean.TRUE
-						? permutedArguments.get(index - 1)
+					yieldersAreReordered == Boolean.TRUE
+						? permutedYielders.get(index - 1)
 						: index;
 				final A_Type entryType =
 					subexpressionsTupleType.typeAtIndex(realTypeIndex);

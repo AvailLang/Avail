@@ -34,17 +34,14 @@ import com.avail.compiler.splitter.InstructionGenerator.Label;
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter;
 import com.avail.descriptor.A_Phrase;
 import com.avail.descriptor.A_Type;
-import com.avail.exceptions.MalformedMessageException;
 
 import javax.annotation.Nullable;
 import java.util.Iterator;
 import java.util.List;
 
 import static com.avail.compiler.ParsingOperation.*;
-import static com.avail.compiler.splitter.MessageSplitter.throwMalformedMessageException;
 import static com.avail.descriptor.ListPhraseTypeDescriptor.emptyListPhraseType;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.exceptions.AvailErrorCode.E_INCONSISTENT_ARGUMENT_REORDERING;
 
 /**
  * A {@code CompletelyOptional} is a special {@linkplain Expression
@@ -73,24 +70,14 @@ extends Expression
 	 *        The position of the start of this phrase in the message name.
 	 * @param sequence
 	 *        The governed {@linkplain Sequence sequence}.
-	 * @throws MalformedMessageException
-	 *         If the inner expression has an {@link #explicitOrdinal()}.
 	 */
 	CompletelyOptional (
 		final int positionInName,
 		final Sequence sequence)
-	throws MalformedMessageException
 	{
 		super(positionInName);
 		this.sequence = sequence;
-		if (sequence.canBeReordered()
-			&& sequence.explicitOrdinal() != -1)
-		{
-			throwMalformedMessageException(
-				E_INCONSISTENT_ARGUMENT_REORDERING,
-				"Completely optional phrase should not have a circled "
-				+ "number to indicate reordering");
-		}
+		assert sequence.yielders.isEmpty();
 	}
 
 	@Override
@@ -141,7 +128,6 @@ extends Expression
 		final Label $expressionSkip = new Label();
 		generator.emitBranchForward(this, $expressionSkip);
 		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION);
-		assert !sequence.isArgumentOrGroup();
 		// The partialListsCount stays the same, in case there's a
 		// section checkpoint marker within this completely optional
 		// region.  That's a reasonable way to indicate that a prefix

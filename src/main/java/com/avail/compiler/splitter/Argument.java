@@ -80,15 +80,15 @@ extends Expression
 	}
 
 	@Override
-	boolean isArgumentOrGroup ()
-	{
-		return true;
-	}
-
-	@Override
 	int underscoreCount ()
 	{
 		return 1;
+	}
+
+	@Override
+	boolean yieldsValue ()
+	{
+		return true;
 	}
 
 	/**

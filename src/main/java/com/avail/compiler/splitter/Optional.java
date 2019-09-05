@@ -85,15 +85,10 @@ extends Expression
 	{
 		super(positionInName);
 		this.sequence = sequence;
-		if (sequence.canBeReordered())
-		{
-			explicitOrdinal(sequence.explicitOrdinal());
-			sequence.explicitOrdinal(-1);
-		}
 	}
 
 	@Override
-	boolean isArgumentOrGroup ()
+	boolean yieldsValue ()
 	{
 		return true;
 	}
@@ -154,7 +149,7 @@ extends Expression
 		final Label $absent = new Label();
 		generator.emitBranchForward(this, $absent);
 		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION);
-		assert sequence.argumentsAreReordered != Boolean.TRUE;
+		assert sequence.yieldersAreReordered != Boolean.TRUE;
 		sequence.emitOn(
 			emptyListPhraseType(), generator, SHOULD_NOT_HAVE_ARGUMENTS);
 		generator.flushDelayed();
@@ -203,7 +198,7 @@ extends Expression
 		final Label $absent = new Label();
 		generator.emitBranchForward(this, $absent);
 		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION);
-		assert sequence.argumentsAreReordered != Boolean.TRUE;
+		assert sequence.yieldersAreReordered != Boolean.TRUE;
 		sequence.emitOn(
 			emptyListPhraseType(), generator, SHOULD_NOT_HAVE_ARGUMENTS);
 		generator.flushDelayed();

@@ -77,9 +77,9 @@ extends Expression
 	}
 
 	@Override
-	boolean isArgumentOrGroup ()
+	boolean yieldsValue ()
 	{
-		return expression.isArgumentOrGroup();
+		return expression.yieldsValue();
 	}
 
 	@Override

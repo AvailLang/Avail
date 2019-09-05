@@ -136,7 +136,7 @@ final class BuildTracer
 						availBuilder.runtime.moduleNameResolver().resolve(
 							qualifiedName, resolvedSuccessor);
 				}
-				catch (final Exception e)
+				catch (final Throwable e)
 				{
 					AvailBuilder.log(
 						Level.WARNING,
@@ -420,15 +420,17 @@ final class BuildTracer
 		else
 		{
 			final int graphSize;
+			final int completions;
 			synchronized (this)
 			{
 				graphSize = availBuilder.moduleGraph.size();
+				completions = traceCompletions;
 			}
 			AvailBuilder.log(
 				Level.FINER,
 				"Traced or kept %d modules (%d edges)",
 				graphSize,
-				traceCompletions);
+				completions);
 		}
 		afterAll.value();
 	}

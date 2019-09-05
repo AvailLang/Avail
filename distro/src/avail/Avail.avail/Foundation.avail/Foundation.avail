@@ -313,6 +313,7 @@ Extends
 		"_'s⁇atom",
 		"_'s⁇bindings",
 		"_'s⁇caller",
+		"_'s⁇character type number",
 		"_'s⁇code point",
 		"_'s⁇declaration",
 		"_'s⁇declared exceptions",
@@ -542,6 +543,7 @@ Extends
 		"_is line terminator",
 		"_is punctuation start",
 		"_is punctuation end",
+		"_'s⁇character type name",
 		"punctuation end for_",
 		"punctuation start for_"
 	),

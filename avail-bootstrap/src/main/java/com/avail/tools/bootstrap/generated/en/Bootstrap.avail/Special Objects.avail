@@ -61,6 +61,7 @@ Names
 	/*   2 */ "boolean",
 	/* 129 */ "byte",
 	/*   3 */ "character",
+	/* 169 */ "character type number",
 	/*  38 */ "code point",
 	/* 164 */ "comment",
 	/*   9 */ "continuation",
@@ -2215,4 +2216,14 @@ Special object "source line number" is special object 167;
  * @alias "parse rejection level"
  */
 Special object "parse rejection level" is special object 168;
+
+/**
+ * An integer indicating the nature of some Unicode code point.  For details,
+ * see {@code "java.lang.Character.getType(int)"}.
+ *
+ * @category "Primitives" "Types"
+ * @type "[0..31]"
+ * @alias "character type number"
+ */
+Special object "character type number" is special object 169;
 

@@ -94,7 +94,7 @@ extends Expression
 	}
 
 	@Override
-	boolean isArgumentOrGroup ()
+	boolean yieldsValue ()
 	{
 		return true;
 	}
