@@ -34,8 +34,6 @@ package com.avail.interpreter.primitive.pojos;
 import com.avail.AvailRuntime;
 import com.avail.CallbackSystem;
 import com.avail.CallbackSystem.Callback;
-import com.avail.CallbackSystem.CallbackCompletion;
-import com.avail.CallbackSystem.CallbackFailure;
 import com.avail.descriptor.*;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
@@ -46,7 +44,6 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
@@ -97,44 +94,16 @@ public final class P_InvokeCallback extends Primitive
 		final List<AvailObject> copiedArgs =
 			new ArrayList<>(interpreter.argsBuffer);
 		final A_Tuple argumentsTuple = tupleFromList(copiedArgs).makeShared();
-		final A_Fiber fiber = interpreter.fiber();
-		final Callback callback = callbackPojo.javaObjectNotNull();
-		final AtomicBoolean ranCompletion = new AtomicBoolean(false);
-		final CallbackCompletion completion = result ->
-		{
-			final boolean alreadyCompleted = ranCompletion.getAndSet(true);
-			// TODO - Report this situation a better way within Java.
-			// For now, just ignore calls after the first one.
-			if (!alreadyCompleted)
-			{
-				Interpreter.resumeFromSuccessfulPrimitive(
-					runtime,
-					fiber,
-					P_InvokeCallback.this,
-					result.makeShared());
-			}
-		};
-		final CallbackFailure failure = throwable ->
-		{
-			final boolean alreadyCompleted = ranCompletion.getAndSet(true);
-			// TODO - Report this situation a better way within Java.
-			// For now, just ignore calls after the first one.
-			if (!alreadyCompleted)
-			{
-				Interpreter.resumeFromFailedPrimitive(
-					runtime,
-					fiber,
+		return interpreter.suspendAndDoWithFailureObject((toSucceed, toFail) ->
+			runtime.callbackSystem().executeCallbackTask(
+				callbackPojo.javaObjectNotNull(),
+				argumentsTuple,
+				result -> toSucceed.value(result.makeShared()),
+				throwable -> toFail.value(
 					newPojo(
 						identityPojo(throwable),
 						pojoTypeForClass(throwable.getClass())
-					).makeShared(),
-					primitiveFunction,
-					copiedArgs);
-			}
-		};
-		runtime.callbackSystem().executeCallbackTask(
-			callback, argumentsTuple, completion, failure);
-		return interpreter.primitiveSuspend(primitiveFunction);
+					).makeShared())));
 	}
 
 	@Override

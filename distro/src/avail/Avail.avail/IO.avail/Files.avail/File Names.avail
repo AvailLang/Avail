@@ -591,6 +591,7 @@ Public method "temporary directory" is
 	/* Unix. */
 	./${TMPDIR}
 		/* Windows. */
-		else [${TEMP} else [${TMP}
-			else [Raise a no-file exception]]]
+		else [${TEMP}
+		    else [${TMP}
+			    else [Raise a no-file exception]]]
 ] : file name;

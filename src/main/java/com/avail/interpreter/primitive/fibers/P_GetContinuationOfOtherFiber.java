@@ -33,17 +33,11 @@
 package com.avail.interpreter.primitive.fibers;
 
 import com.avail.descriptor.A_Fiber;
-import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.ContinuationTypeDescriptor.mostGeneralContinuationType;
 import static com.avail.descriptor.FiberTypeDescriptor.mostGeneralFiberType;
@@ -53,7 +47,6 @@ import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.exceptions.AvailErrorCode.E_FIBER_IS_TERMINATED;
 import static com.avail.interpreter.Primitive.Flag.CanSuspend;
 import static com.avail.interpreter.Primitive.Flag.Unknown;
-import static com.avail.utility.Nulls.stripNull;
 
 /**
  * <strong>Primitive:</strong> Ask another fiber what it's doing.  Fail if
@@ -79,41 +72,25 @@ extends Primitive
 		interpreter.checkArgumentCount(1);
 		final A_Fiber otherFiber = interpreter.argument(0);
 
-		final A_Fiber thisFiber = interpreter.fiber();
-		final A_Function primitiveFunction = stripNull(interpreter.function);
-		assert primitiveFunction.code().primitive() == this;
-		final List<AvailObject> copiedArgs =
-			new ArrayList<>(interpreter.argsBuffer);
-		interpreter.postExitContinuation(
-			() -> otherFiber.whenContinuationIsAvailableDo(
+		return interpreter.suspendAndDo((toSucceed, toFail) ->
+			otherFiber.whenContinuationIsAvailableDo(
 				theContinuation ->
 				{
 					if (!theContinuation.equalsNil())
 					{
-						Interpreter.resumeFromSuccessfulPrimitive(
-							currentRuntime(),
-							thisFiber,
-							this,
-							theContinuation);
+						toSucceed.value(theContinuation);
 					}
 					else
 					{
-						Interpreter.resumeFromFailedPrimitive(
-							currentRuntime(),
-							thisFiber,
-							E_FIBER_IS_TERMINATED.numericCode(),
-							primitiveFunction,
-							copiedArgs);
+						toFail.value(E_FIBER_IS_TERMINATED);
 					}
 				}));
-		return interpreter.primitiveSuspend(primitiveFunction);
 	}
 
 	@Override
 	protected A_Type privateFailureVariableType ()
 	{
-		return
-			enumerationWith(set(E_FIBER_IS_TERMINATED));
+		return enumerationWith(set(E_FIBER_IS_TERMINATED));
 	}
 
 	@Override

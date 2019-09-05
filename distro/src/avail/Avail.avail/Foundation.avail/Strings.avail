@@ -1227,6 +1227,61 @@ Method "“_”" is
 	aSet : set
 |
 	if aSet is empty then ["∅"]
+/*	else if aSet ∈ {character|} then
+	[
+		chars ::= cast aSet into [x : {character|} | x];
+		index : natural number := 1;
+		out : string := "¢[";
+		unorderedString ::= map aSet → tuple through [c : any |
+			cast c into [cc:character | cc's code point]];
+		sorted ::= quicksort unorderedString;
+		size ::= ||sorted||;
+		position : integer := 1;
+		While [position ≤ size] do
+		[
+
+		]
+
+
+//			aStream.append("¢[");
+//			final SortedSet<Integer> codePointsSet = new TreeSet<>();
+//			for (final A_Character character : object)
+//			{
+//				codePointsSet.add(character.codePoint());
+//			}
+//			final Iterator<Integer> iterator = codePointsSet.iterator();
+//			int runStart = iterator.next();
+//			do
+//			{
+//				int runEnd = runStart;
+//				int next = -1;
+//				while (iterator.hasNext())
+//				{
+//					next = iterator.next();
+//					if (next != runEnd + 1)
+//					{
+//						break;
+//					}
+//					runEnd++;
+//					next = -1;
+//				}
+//				writeRangeElement(aStream, runStart);
+//				if (runEnd != runStart)
+//				{
+//					// Skip the dash if the start and end are consecutive.
+//					if (runEnd != runStart + 1)
+//					{
+//						aStream.appendCodePoint('-');
+//					}
+//					writeRangeElement(aStream, runEnd);
+//				}
+//				runStart = next;
+//			}
+//			while (runStart != -1);
+//			aStream.append("]");
+
+//	]
+*/
 	else
 	[
 		Assert: ¬aSet is empty;

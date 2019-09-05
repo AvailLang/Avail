@@ -75,12 +75,8 @@ public final class P_GetObjectTypeField extends Primitive
 		interpreter.checkArgumentCount(2);
 		final A_Type objectType = interpreter.argument(0);
 		final A_Atom field = interpreter.argument(1);
-		final A_Map fieldTypeMap = objectType.fieldTypeMap();
-		if (!fieldTypeMap.hasKey(field))
-		{
-			return interpreter.primitiveFailure(E_NO_SUCH_FIELD);
-		}
-		return interpreter.primitiveSuccess(fieldTypeMap.mapAt(field));
+
+		return interpreter.primitiveSuccess(objectType.fieldTypeAt(field));
 	}
 
 	@Override

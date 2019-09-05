@@ -32,22 +32,17 @@
 
 package com.avail.interpreter.primitive.fibers;
 
-import com.avail.descriptor.A_Fiber;
-import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.interpreter.Interpreter.resumeFromSuccessfulPrimitive;
 import static com.avail.interpreter.Primitive.Flag.*;
-import static com.avail.utility.Nulls.stripNull;
 
 /**
  * <strong>Primitive:</strong> Yield the current {@linkplain FiberDescriptor
@@ -71,15 +66,9 @@ extends Primitive
 		final Interpreter interpreter)
 	{
 		interpreter.checkArgumentCount(0);
-		final A_Fiber fiber = interpreter.fiber();
-		final A_Function primitiveFunction = stripNull(interpreter.function);
-		interpreter.postExitContinuation(
-			() -> resumeFromSuccessfulPrimitive(
-				currentRuntime(),
-				fiber,
-				this,
-				nil));
-		return interpreter.primitiveSuspend(primitiveFunction);
+
+		return interpreter.suspendAndDo(
+			(toSucceed, toFail) -> toSucceed.value(nil));
 	}
 
 	@Override

@@ -37,6 +37,7 @@ import com.avail.descriptor.*;
 import com.avail.exceptions.MapException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+import com.avail.io.TextInterface;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.util.ArrayList;
@@ -57,7 +58,6 @@ import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE;
 import static com.avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND;
 import static com.avail.interpreter.Primitive.Flag.CanSuspend;
 import static com.avail.interpreter.Primitive.Flag.Unknown;
-import static com.avail.utility.Nulls.stripNull;
 
 /**
  * <strong>Primitive:</strong> Get the {@linkplain
@@ -83,40 +83,36 @@ extends Primitive
 	{
 		interpreter.checkArgumentCount(1);
 		final A_BasicObject exception = interpreter.argument(0);
+
 		final AvailRuntime runtime = interpreter.runtime();
-		final A_Fiber fiber = interpreter.fiber();
+		// The primitive is flagged CanSuspend to force the stack to be reified.
 		final A_Continuation continuation;
 		try
 		{
-			continuation = exception.fieldMap().mapAt(stackDumpAtom());
+			continuation = exception.fieldAt(stackDumpAtom());
 		}
 		catch (final MapException e)
 		{
 			assert e.numericCode().extractInt() == E_KEY_NOT_FOUND.nativeCode();
 			return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE);
 		}
-		final A_Function primitiveFunction =
-			stripNull(interpreter.function);
-		interpreter.primitiveSuspend(primitiveFunction);
-		dumpStackThen(
-			runtime,
-			fiber.textInterface(),
-			continuation,
-			stack ->
-			{
-				final List<A_String> frames = new ArrayList<>(stack.size());
-				for (int i = stack.size() - 1; i >= 0; i--)
+
+		final TextInterface textInterface = interpreter.fiber().textInterface();
+		return interpreter.suspendAndDo((toSucceed, toFail) ->
+			dumpStackThen(
+				runtime,
+				textInterface,
+				continuation,
+				stack ->
 				{
-					frames.add(stringFrom(stack.get(i)));
-				}
-				final A_Tuple stackDump = tupleFromList(frames);
-				Interpreter.resumeFromSuccessfulPrimitive(
-					runtime,
-					fiber,
-					this,
-					stackDump);
-			});
-		return Result.FIBER_SUSPENDED;
+					final List<A_String> frames = new ArrayList<>(stack.size());
+					for (int i = stack.size() - 1; i >= 0; i--)
+					{
+						frames.add(stringFrom(stack.get(i)));
+					}
+					final A_Tuple stackDump = tupleFromList(frames);
+					toSucceed.value(stackDump);
+				}));
 	}
 
 	@Override

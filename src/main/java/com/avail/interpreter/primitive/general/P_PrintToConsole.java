@@ -31,9 +31,10 @@
  */
 package com.avail.interpreter.primitive.general;
 
-import com.avail.AvailRuntime;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Type;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
+import com.avail.descriptor.StringDescriptor;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -43,8 +44,6 @@ import com.avail.io.TextOutputChannel;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.List;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -56,7 +55,6 @@ import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.E_IO_ERROR;
 import static com.avail.interpreter.Primitive.Flag.CanSuspend;
 import static com.avail.interpreter.Primitive.Flag.Unknown;
-import static com.avail.utility.Nulls.stripNull;
 
 /**
  * <strong>Primitive:</strong> Print the specified {@linkplain
@@ -89,30 +87,14 @@ extends Primitive
 			loader.statementCanBeSummarized(false);
 		}
 
-		final AvailRuntime runtime = interpreter.runtime();
-		final A_Fiber fiber = interpreter.fiber();
-		final TextInterface textInterface = fiber.textInterface();
-		final A_Function primitiveFunction = stripNull(interpreter.function);
-		assert primitiveFunction.code().primitive() == this;
-		final List<AvailObject> copiedArgs =
-			new ArrayList<>(interpreter.argsBuffer);
-		interpreter.postExitContinuation(
-			() -> textInterface.getOutputChannel().write(
+		final TextInterface textInterface = interpreter.fiber().textInterface();
+		return interpreter.suspendAndDo((toSucceed, toFail) ->
+			textInterface.getOutputChannel().write(
 				string.asNativeString(),
-				fiber,
+				nil,
 				new SimpleCompletionHandler<>(
-					result -> Interpreter.resumeFromSuccessfulPrimitive(
-						runtime,
-						fiber,
-						P_PrintToConsole.this,
-						nil),
-					exc -> Interpreter.resumeFromFailedPrimitive(
-						runtime,
-						fiber,
-						E_IO_ERROR.numericCode(),
-						primitiveFunction,
-						copiedArgs))));
-		return interpreter.primitiveSuspend(primitiveFunction);
+					result -> toSucceed.value(nil),
+					exc -> toFail.value(E_IO_ERROR))));
 	}
 
 	@Override

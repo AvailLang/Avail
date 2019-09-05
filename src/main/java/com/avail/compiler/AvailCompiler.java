@@ -4811,10 +4811,39 @@ public final class AvailCompiler
 				solution ->
 				{
 					final A_Phrase headerPhrase = solution.phrase();
-					assert headerPhrase.phraseKindIsUnder(
-						EXPRESSION_AS_STATEMENT_PHRASE);
-					assert headerPhrase.apparentSendName().equals(
-						MODULE_HEADER.atom);
+					if (headerPhrase.phraseKindIsUnder(MARKER_PHRASE))
+					{
+						// It made it to the end of the file.  This mechanism is
+						// used to determine when we've already parsed the last
+						// top-level statement of a module, when only whitespace
+						// and comments remain.  Not appropriate for a module
+						// header.
+						compilationContext.diagnostics.reportError(
+							solution.endState().lexingState,
+							"Unexpectedly reached end of file without "
+								+ "encountering module header.",
+							"");
+						return;
+					}
+					if (!headerPhrase.phraseKindIsUnder(
+							EXPRESSION_AS_STATEMENT_PHRASE)
+						|| !headerPhrase.apparentSendName().equals(
+							MODULE_HEADER.atom))
+					{
+						// This shouldn't be possible, but in theory we might
+						// some day introduce non-root macros for arguments.
+						stringifyThen(
+							compilationContext.runtime,
+							compilationContext.getTextInterface(),
+							headerPhrase,
+							headerPhraseAsString ->
+								compilationContext.diagnostics.reportError(
+									solution.endState().lexingState,
+									"Expected module header, but found this "
+										+ "phrase instead: %s",
+									headerPhraseAsString));
+						return;
+					}
 					try
 					{
 						final boolean ok = processHeaderMacro(

@@ -50,7 +50,8 @@ Uses
 	"Variables"
 Names
 	"environment map",
-	"`${…}«else_»"
+	"`${…}«else_»",
+	"`${…$}«else_»"
 Body
 
 Method "{_→_`|_.._}" is stable at
@@ -338,16 +339,20 @@ Public method "`${…}«else_»" is
 	aToken : token,
 	else : ([]→string)?
 |
-	environment map[aToken's lexeme]
-		else else[1]
-			else [invoke early failure function with <key-not-found code>]
+	environment map[aToken's lexeme] else
+	[
+		invoke
+			else[1] else
+				[[invoke early failure function with <key-not-found code>]]
+		with <>
+	]
 ] : string;
 
 /**
  * Answer the value of the requested environment variable.
  *
- * @method "`${…}"
- * @param "aLiteralToken" "literalToken"
+ * @method "`${…$}«else_»"
+ * @param "aToken" "literal token ⇒ nonempty string"
  *        The name of the environment variable.
  * @param "else" "[]→string"
  *        The {@type "function"} to evaluate to produce a default if the
@@ -355,14 +360,16 @@ Public method "`${…}«else_»" is
  * @returns "string"
  * @category "Maps" "Queries"
  */
-Public method "`${…}«else_»" is
+Public method "`${…$}«else_»" is
 [
-	aToken : literal token,
+	aToken : literal token ⇒ nonempty string,
 	else : ([]→string)?
 |
-	environment map[
-		cast aToken's value into [t : string | t]
-		else [aToken's lexeme]]
-	else else[1] else
-		[invoke early failure function with <key-not-found code>]
+	environment map[aToken's value] else
+	[
+		invoke
+			else[1] else
+				[[invoke early failure function with <key-not-found code>]]
+		with <>
+	]
 ] : string;

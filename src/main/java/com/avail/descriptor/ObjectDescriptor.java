@@ -617,7 +617,9 @@ extends Descriptor
 	 * Construct a new {@code ObjectDescriptor}.
 	 *
 	 * @param mutability
-	 *        The {@linkplain Mutability mutability} of the new descriptor.
+	 *        The {@link Mutability} of the new descriptor.
+	 * @param variant
+	 *        The {@link ObjectLayoutVariant} for the new descriptor.
 	 */
 	ObjectDescriptor (
 		final Mutability mutability,

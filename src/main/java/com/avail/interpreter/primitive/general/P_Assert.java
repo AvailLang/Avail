@@ -85,35 +85,37 @@ public final class P_Assert extends Primitive
 		interpreter.checkArgumentCount(2);
 		final A_Atom predicate = interpreter.argument(0);
 		final A_String failureMessage = interpreter.argument(1);
-		if (!predicate.extractBoolean())
+
+		if (predicate.extractBoolean())
 		{
-			final A_Fiber fiber = interpreter.fiber();
-			final A_Continuation continuation =
-				stripNull(interpreter.reifiedContinuation);
-			interpreter.primitiveSuspend(stripNull(interpreter.function));
-			dumpStackThen(
-				interpreter.runtime(),
-				fiber.textInterface(),
-				continuation,
-				stack ->
-				{
-					final StringBuilder builder = new StringBuilder();
-					builder.append(failureMessage.asNativeString());
-					for (final String frame : stack)
-					{
-						builder.append(format("%n\t-- %s", frame));
-					}
-					builder.append("\n\n");
-					final AvailAssertionFailedException killer =
-						new AvailAssertionFailedException(
-							builder.toString());
-					killer.fillInStackTrace();
-					fiber.executionState(ExecutionState.ABORTED);
-					fiber.failureContinuation().value(killer);
-				});
-			return Result.FIBER_SUSPENDED;
+			return interpreter.primitiveSuccess(nil);
 		}
-		return interpreter.primitiveSuccess(nil);
+
+		final A_Fiber fiber = interpreter.fiber();
+		final A_Continuation continuation =
+			stripNull(interpreter.reifiedContinuation);
+		interpreter.primitiveSuspend(stripNull(interpreter.function));
+		dumpStackThen(
+			interpreter.runtime(),
+			fiber.textInterface(),
+			continuation,
+			stack ->
+			{
+				final StringBuilder builder = new StringBuilder();
+				builder.append(failureMessage.asNativeString());
+				for (final String frame : stack)
+				{
+					builder.append(format("%n\t-- %s", frame));
+				}
+				builder.append("\n\n");
+				final AvailAssertionFailedException killer =
+					new AvailAssertionFailedException(
+						builder.toString());
+				killer.fillInStackTrace();
+				fiber.executionState(ExecutionState.ABORTED);
+				fiber.failureContinuation().value(killer);
+			});
+		return Result.FIBER_SUSPENDED;
 	}
 
 	@Override

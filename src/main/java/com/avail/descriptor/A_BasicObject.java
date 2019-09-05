@@ -1149,4 +1149,12 @@ extends JSONFriendly
 		A_Atom field,
 		A_BasicObject value,
 		boolean canDestroy);
+
+	/**
+	 * Extract a field type from an {@link ObjectTypeDescriptor object type}.
+	 *
+	 * @param field
+	 * @return
+	 */
+	A_Type fieldTypeAt (A_Atom field);
 }

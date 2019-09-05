@@ -1012,7 +1012,8 @@ Extends
 		"integrate_and_with_",
 		"integrate«_‡,and⁇»with_",
 		"map each…→…in|of_§through_",
-		"`${…}«else_»"
+		"`${…}«else_»",
+		"`${…$}«else_»"
 	),
 	"Methods" =
 	(

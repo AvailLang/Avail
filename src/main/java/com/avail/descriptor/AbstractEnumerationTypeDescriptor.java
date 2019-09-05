@@ -413,9 +413,13 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override @AvailMethod
+	abstract A_Type o_FieldTypeAt (
+		final AvailObject object,
+		final A_Atom field);
+
+	@Override @AvailMethod
 	abstract A_Map o_FieldTypeMap (
 		final AvailObject object);
-
 
 	@Override @AvailMethod
 	abstract A_Number o_LowerBound (

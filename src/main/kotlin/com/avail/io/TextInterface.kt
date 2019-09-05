@@ -59,11 +59,11 @@ import java.nio.charset.StandardCharsets
  * Construct a new `TextInterface`.
  *
  * @param inputChannel
- * The [standard input channel][TextInputChannel].
+ *   The [standard input channel][TextInputChannel].
  * @param outputChannel
- * The [standard output channel][TextOutputChannel].
+ *   The [standard output channel][TextOutputChannel].
  * @param errorChannel
- * The standard error channel.
+ *   The standard error channel.
  */
 class TextInterface constructor(
 	val inputChannel: TextInputChannel,

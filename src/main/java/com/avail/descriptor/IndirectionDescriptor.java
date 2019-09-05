@@ -4869,6 +4869,13 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	A_Type o_FieldTypeAt (
+		final AvailObject object, final A_Atom field)
+	{
+		return o_Traversed(object).fieldTypeAt(field);
+	}
+
+	@Override
 	A_DefinitionParsingPlan o_ParsingPlan (final AvailObject object)
 	{
 		return o_Traversed(object).parsingPlan();

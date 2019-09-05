@@ -5838,6 +5838,12 @@ implements
 	}
 
 	@Override
+	public A_Type fieldTypeAt (final A_Atom field)
+	{
+		return descriptor.o_FieldTypeAt(this, field);
+	}
+
+	@Override
 	public A_DefinitionParsingPlan parsingPlan ()
 	{
 		return descriptor.o_ParsingPlan(this);
