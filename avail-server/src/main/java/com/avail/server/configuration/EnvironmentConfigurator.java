@@ -34,8 +34,6 @@ package com.avail.server.configuration;
 
 import com.avail.builder.ModuleRoots;
 import com.avail.builder.RenamesFileParser;
-import com.avail.tools.compiler.Compiler;
-import com.avail.tools.compiler.configuration.CommandLineConfigurator;
 import com.avail.utility.configuration.Configurator;
 
 /**
@@ -43,8 +41,7 @@ import com.avail.utility.configuration.Configurator;
  * Configurator#updateConfiguration() updates} a {@linkplain
  * AvailServerConfiguration compiler configuration} from the environment.
  *
- * <p>The following environment variables are used by the {@linkplain
- * Compiler compiler}:</p>
+ * <p>The following environment variables are used by the compiler:</p>
  *
  * <ul>
  * <li><strong>AVAIL_ROOTS</strong>: The {@linkplain ModuleRoots Avail root

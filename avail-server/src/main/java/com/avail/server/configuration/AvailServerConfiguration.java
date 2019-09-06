@@ -37,7 +37,6 @@ import com.avail.builder.ModuleRoots;
 import com.avail.builder.RenamesFileParser;
 import com.avail.builder.RenamesFileParserException;
 import com.avail.server.AvailServer;
-import com.avail.tools.compiler.configuration.CompilerConfiguration;
 import com.avail.utility.configuration.Configuration;
 
 import javax.annotation.Nullable;
@@ -136,7 +135,7 @@ implements Configuration
 
 	/**
 	 * Answer the {@linkplain ModuleNameResolver module name resolver} correct
-	 * for the current {@linkplain CompilerConfiguration configuration}.
+	 * for the current configuration.
 	 *
 	 * @return A module name resolver.
 	 * @throws FileNotFoundException
@@ -160,6 +159,7 @@ implements Configuration
 			else
 			{
 				final File file = new File(path);
+				//noinspection IOResourceOpenedButNotSafelyClosed
 				reader = new BufferedReader(new InputStreamReader(
 					new FileInputStream(file), StandardCharsets.UTF_8));
 			}
