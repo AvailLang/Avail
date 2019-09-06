@@ -119,7 +119,7 @@ internal class Group : Expression
 	 */
 	private var maximumCardinality = Integer.MAX_VALUE
 
-	override val isArgumentOrGroup: Boolean
+	override val yieldsValue: Boolean
 		get() = true
 
 	override val isGroup: Boolean
@@ -198,7 +198,7 @@ internal class Group : Expression
 	 */
 	private val needsDoubleWrapping: Boolean
 		get() =
-			beforeDagger.arguments.size != 1 || afterDagger.arguments.size != 0
+			beforeDagger.yielders.size != 1 || afterDagger.yielders.size != 0
 
 	override fun extractSectionCheckpointsInto(
 		sectionCheckpoints: MutableList<SectionCheckpoint>)
@@ -249,8 +249,8 @@ internal class Group : Expression
 			// size ranges from the number of arguments left of the dagger
 			// up to that plus the number of arguments right of the dagger.
 			assert(argumentType.isTupleType)
-			val argsBeforeDagger = beforeDagger.arguments.size
-			val argsAfterDagger = afterDagger.arguments.size
+			val argsBeforeDagger = beforeDagger.yielders.size
+			val argsAfterDagger = afterDagger.yielders.size
 			val expectedLower = fromInt(argsBeforeDagger)
 			val expectedUpper = fromInt(
 				argsBeforeDagger + argsAfterDagger)
@@ -286,12 +286,12 @@ internal class Group : Expression
 					throwSignatureException(E_INCORRECT_TYPE_FOR_COMPLEX_GROUP)
 				}
 				var j = 1
-				for (e in beforeDagger.arguments)
+				for (e in beforeDagger.yielders)
 				{
 					e.checkType(solutionType.typeAtIndex(j), sectionNumber)
 					j++
 				}
-				for (e in afterDagger.arguments)
+				for (e in afterDagger.yielders)
 				{
 					e.checkType(solutionType.typeAtIndex(j), sectionNumber)
 					j++
@@ -362,8 +362,8 @@ internal class Group : Expression
 			 * $skip:
 			 */
 			generator.partialListsCount++
-			assert(beforeDagger.arguments.size == 1)
-			assert(afterDagger.arguments.size == 0)
+			assert(beforeDagger.yielders.size == 1)
+			assert(afterDagger.yielders.size == 0)
 			var hasWrapped = false
 			val `$skip` = Label()
 			if (minSize == 0)
@@ -642,19 +642,19 @@ internal class Group : Expression
 			// the parse stack, form a list with what has been pushed before any
 			// subexpression that has a section checkpoint, and use appends from
 			// that point onward.
-			if (expression!!.hasSectionCheckpoints)
+			if (expression.hasSectionCheckpoints)
 			{
 				tidyPushedList(generator, ungroupedArgCount, listIsPushed)
 				ungroupedArgCount = 0
 				listIsPushed = true
 			}
-			if (expression.isArgumentOrGroup)
+			if (expression.yieldsValue)
 			{
 				argIndex++
 				val realTypeIndex =
-					if (beforeDagger.argumentsAreReordered
+					if (beforeDagger.yieldersAreReordered
 							=== java.lang.Boolean.TRUE)
-						beforeDagger.permutedArguments[argIndex - 1]
+						beforeDagger.permutedYielders[argIndex - 1]
 					else
 						argIndex
 				val entryType =
@@ -671,14 +671,14 @@ internal class Group : Expression
 					SHOULD_NOT_HAVE_ARGUMENTS)
 			}
 		}
-		assert(argIndex == beforeDagger.arguments.size)
+		assert(argIndex == beforeDagger.yielders.size)
 		tidyPushedList(generator, ungroupedArgCount, listIsPushed)
 		generator.partialListsCount -= 2
-		if (beforeDagger.argumentsAreReordered === java.lang.Boolean.TRUE)
+		if (beforeDagger.yieldersAreReordered === java.lang.Boolean.TRUE)
 		{
 			// Permute the list on top of stack.
 			val permutationTuple =
-				tupleFromIntegerList(beforeDagger.permutedArguments)
+				tupleFromIntegerList(beforeDagger.permutedYielders)
 			val permutationIndex = indexForPermutation(permutationTuple)
 			generator.flushDelayed()
 			generator.emit(this, PERMUTE_LIST, permutationIndex)
@@ -702,22 +702,22 @@ internal class Group : Expression
 	{
 		val subexpressionsTupleType = phraseType.subexpressionsTupleType()
 		generator.partialListsCount += 2
-		var argIndex = beforeDagger.arguments.size
+		var argIndex = beforeDagger.yielders.size
 		var ungroupedArgCount = 0
 		for (expression in afterDagger.expressions)
 		{
-			if (expression!!.hasSectionCheckpoints)
+			if (expression.hasSectionCheckpoints)
 			{
 				tidyPushedList(generator, ungroupedArgCount, true)
 				ungroupedArgCount = 0
 			}
-			if (expression.isArgumentOrGroup)
+			if (expression.yieldsValue)
 			{
 				argIndex++
 				val realTypeIndex =
-					if (afterDagger.argumentsAreReordered
+					if (afterDagger.yieldersAreReordered
 							=== java.lang.Boolean.TRUE)
-						afterDagger.permutedArguments[argIndex - 1]
+						afterDagger.permutedYielders[argIndex - 1]
 					else
 						argIndex
 				val entryType =
@@ -736,13 +736,13 @@ internal class Group : Expression
 		}
 		tidyPushedList(generator, ungroupedArgCount, true)
 		generator.partialListsCount -= 2
-		if (afterDagger.argumentsAreReordered === java.lang.Boolean.TRUE)
+		if (afterDagger.yieldersAreReordered === java.lang.Boolean.TRUE)
 		{
 			// Permute just the right portion of the list on top of
 			// stack.  The left portion was already adjusted in case it
 			// was the last iteration and didn't have a right side.
-			val leftArgCount = beforeDagger.arguments.size
-			val rightArgCount = afterDagger.arguments.size
+			val leftArgCount = beforeDagger.yielders.size
+			val rightArgCount = afterDagger.yielders.size
 			val adjustedPermutationSize = leftArgCount + rightArgCount
 			val adjustedPermutationList =
 				ArrayList<Int>(adjustedPermutationSize)
@@ -757,7 +757,7 @@ internal class Group : Expression
 				// Adjust the right permutation indices by the size of the left
 				// part.
 				adjustedPermutationList.add(
-					afterDagger.arguments[i].explicitOrdinal + leftArgCount)
+					afterDagger.yielders[i].explicitOrdinal + leftArgCount)
 			}
 			val permutationTuple = tupleFromIntegerList(adjustedPermutationList)
 			val permutationIndex = indexForPermutation(permutationTuple)
@@ -811,7 +811,7 @@ internal class Group : Expression
 		{
 			val builder = StringBuilder()
 			builder.append(e)
-			if (e!!.canBeReordered && e.explicitOrdinal != -1)
+			if (e.canBeReordered && e.explicitOrdinal != -1)
 			{
 				builder.appendCodePoint(
 					circledNumberCodePoint(e.explicitOrdinal))
@@ -922,7 +922,7 @@ internal class Group : Expression
 		}
 		else
 		{
-			expressionsToVisit = beforeDagger.expressions
+			expressionsToVisit = beforeDagger.expressions.toMutableList()
 		}
 		var needsSpace = false
 		for (expr in expressionsToVisit)

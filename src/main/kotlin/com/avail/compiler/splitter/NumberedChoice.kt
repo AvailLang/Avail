@@ -82,7 +82,7 @@ import com.avail.utility.Nulls.stripNull
 internal class NumberedChoice constructor(private val alternation: Alternation)
 : Expression(alternation.positionInName)
 {
-	override val isArgumentOrGroup: Boolean
+	override val yieldsValue: Boolean
 		get() = true
 
 	override val isLowerCase: Boolean

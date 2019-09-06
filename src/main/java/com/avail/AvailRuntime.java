@@ -1120,6 +1120,7 @@ public final class AvailRuntime
 		specials[166] = inclusive(0, (1L << 32) - 1);
 		specials[167] = inclusive(0, (1L << 28) - 1);
 		specials[168] = inclusive(1L, 4L);
+		specials[169] = inclusive(0L, 31L);
 
 		// DO NOT CHANGE THE ORDER OF THESE ENTRIES!  Serializer compatibility
 		// depends on the order of this list.

@@ -1,5 +1,5 @@
 /*
- * MutuallyRecursive2.avail
+ * MutuallyRecursive3.avail
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,9 +30,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "MutuallyRecursive2"
+Module "MutuallyRecursive3"
 Versions
 	"1.4.0"
 Uses
-	"MutuallyRecursive3"
+	"UsedByMutuallyRecursive3",
+	"MutuallyRecursive1"
 Body

@@ -69,7 +69,7 @@ internal open class Argument constructor(
 	positionInName: Int,
 	val absoluteUnderscoreIndex: Int) : Expression(positionInName)
 {
-	override val isArgumentOrGroup: Boolean
+	override val yieldsValue: Boolean
 		get() = true
 
 	override val underscoreCount: Int

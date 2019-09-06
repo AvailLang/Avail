@@ -83,8 +83,7 @@ import java.util.logging.Logger;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
-import static com.avail.compiler.problems.ProblemType.EXECUTION;
-import static com.avail.compiler.problems.ProblemType.PARSE;
+import static com.avail.compiler.problems.ProblemType.*;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
 import static com.avail.descriptor.FiberDescriptor.commandPriority;
 import static com.avail.descriptor.FiberDescriptor.newFiber;
@@ -101,6 +100,7 @@ import static com.avail.utility.Locks.auto;
 import static com.avail.utility.StackPrinter.trace;
 import static java.lang.String.format;
 import static java.util.Collections.*;
+import static java.util.stream.Collectors.joining;
 
 /**
  * An {@code AvailBuilder} {@linkplain AvailCompiler compiles} and
@@ -782,6 +782,27 @@ public final class AvailBuilder
 			problemHandler,
 			() ->
 			{
+				if (moduleGraph.isCyclic())
+				{
+					problemHandler.handle(
+						new Problem(
+							target,
+							1,
+							0,
+							TRACE,
+							"Cycle detected in ancestor modules: {0}",
+							moduleGraph.findCycle().stream()
+								.map(ModuleName::qualifiedName)
+								.collect(joining("\n\t", "\n\t", "")))
+						{
+							@Override
+							protected void abortCompilation ()
+							{
+								stopBuildReason(
+									"Module graph has cyclic dependency");
+							}
+						});
+				}
 				if (shouldStopBuild())
 				{
 					safeAfterAll.value();

@@ -83,20 +83,11 @@ internal class Optional constructor(
 	positionInName: Int,
 	private val sequence: Sequence) : Expression(positionInName)
 {
-	override val isArgumentOrGroup: Boolean
+	override val yieldsValue: Boolean
 		get() = true
 
 	override val isLowerCase: Boolean
 		get() = sequence.isLowerCase
-
-	init
-	{
-		if (sequence.canBeReordered)
-		{
-			explicitOrdinal = sequence.explicitOrdinal
-			sequence.explicitOrdinal = -1
-		}
-	}
 
 	override val underscoreCount: Int
 		get()
@@ -141,7 +132,7 @@ internal class Optional constructor(
 		val `$absent` = Label()
 		generator.emitBranchForward(this, `$absent`)
 		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION)
-		assert(sequence.argumentsAreReordered !== java.lang.Boolean.TRUE)
+		assert(sequence.yieldersAreReordered !== java.lang.Boolean.TRUE)
 		sequence.emitOn(
 			emptyListPhraseType(), generator, SHOULD_NOT_HAVE_ARGUMENTS)
 		generator.flushDelayed()
@@ -188,7 +179,7 @@ internal class Optional constructor(
 		val `$absent` = Label()
 		generator.emitBranchForward(this, `$absent`)
 		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION)
-		assert(sequence.argumentsAreReordered !== java.lang.Boolean.TRUE)
+		assert(sequence.yieldersAreReordered !== java.lang.Boolean.TRUE)
 		sequence.emitOn(
 			emptyListPhraseType(), generator, SHOULD_NOT_HAVE_ARGUMENTS)
 		generator.flushDelayed()

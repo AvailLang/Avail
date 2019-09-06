@@ -82,7 +82,7 @@ internal class Counter(
 	positionInName: Int,
 	private val group: Group) : Expression(positionInName)
 {
-	override val isArgumentOrGroup
+	override val yieldsValue
 		get() = true
 
 	override val isLowerCase
@@ -90,8 +90,8 @@ internal class Counter(
 
 	init
 	{
-		explicitOrdinal = group.explicitOrdinal
-		group.explicitOrdinal = -1
+		assert(group.beforeDagger.yielders.isEmpty())
+		assert(group.afterDagger.yielders.isEmpty())
 	}
 
 	override val underscoreCount: Int
@@ -154,7 +154,7 @@ internal class Counter(
 		val oldPartialListsCount = generator.partialListsCount
 		for (expression in group.beforeDagger.expressions)
 		{
-			assert(!expression!!.isArgumentOrGroup)
+			assert(!expression.yieldsValue)
 			generator.partialListsCount = Integer.MIN_VALUE
 			expression.emitOn(
 				emptyListPhraseType(),
@@ -167,7 +167,7 @@ internal class Counter(
 		generator.emitBranchForward(this, `$loopExit`)
 		for (expression in group.afterDagger.expressions)
 		{
-			assert(!expression!!.isArgumentOrGroup)
+			assert(!expression.yieldsValue)
 			expression.emitOn(
 				emptyListPhraseType(),
 				generator,
@@ -208,7 +208,7 @@ internal class Counter(
 				Collections.emptyIterator(),
 				builder,
 				indent,
-				isArgumentOrGroup)
+				yieldsValue)
 		}
 		builder.append('#')
 	}
