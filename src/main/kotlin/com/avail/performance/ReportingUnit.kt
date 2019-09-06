@@ -96,6 +96,7 @@ enum class ReportingUnit constructor(vararg ranges: Range)
 	internal val ranges: Array<Range>
 	init
 	{
+		@Suppress("UNCHECKED_CAST")
 		this.ranges = ranges as Array<Range>
 	}
 
