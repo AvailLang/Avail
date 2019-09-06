@@ -36,9 +36,9 @@ package com.avail.utility.configuration
  * A `Configurator` produces a [configuration][Configuration] tuple information
  * provided during construction of a concrete implementation.
  *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @param ConfigurationType
  *   The type of resulting [configurations][Configuration].
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 interface Configurator<ConfigurationType : Configuration>
 {
@@ -57,11 +57,8 @@ interface Configurator<ConfigurationType : Configuration>
 	fun updateConfiguration()
 
 	/**
-	 * Answer the [configuration][Configuration] produced by the
+	 * The [configuration][Configuration] produced by the
 	 * [configurator][Configurator].
-	 *
-	 * @return
-	 *   A configuration.
 	 */
-	fun configuration(): ConfigurationType
+	val configuration: ConfigurationType
 }

@@ -1,19 +1,19 @@
 /*
- * VerbosityLevel.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * VerbosityLevel.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
+ *  Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
+ *  Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
+ *  Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -30,17 +30,19 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.tools.compiler.configuration;
+package com.avail.tools.compiler.configuration
 
 /**
- * The level of verbosity requested of the compiler.
- *   0 ~ error message only (default)
- *   1 ~ global build progress + error messages
- *   2 ~ global build progress + local build progress + error messages
+ * The level of verbosity requested of the compiler:
+ *
+ * 1. error message only (default)
+ * 2. global build progress + error messages
+ * 3. global build progress + local build progress + error messages
  *
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  */
-public enum VerbosityLevel
+@Suppress("unused")
+enum class VerbosityLevel
 {
 	/**
 	 * The default level when verbosity is not requested. Only error messages
@@ -55,11 +57,7 @@ public enum VerbosityLevel
 	 */
 	GLOBAL_PROGRESS
 	{
-		@Override
-		public boolean displayGlobalProgress ()
-		{
-			return true;
-		}
+		override val displayGlobalProgress = true
 	},
 
 	/**
@@ -68,44 +66,26 @@ public enum VerbosityLevel
 	 */
 	GLOBAL_LOCAL_PROGRESS
 	{
-		@Override
-		public boolean displayGlobalProgress ()
-		{
-			return true;
-		}
-		@Override
-		public boolean displayLocalProgress ()
-		{
-			return true;
-		}
+		override val displayGlobalProgress = true
+		override val displayLocalProgress = true
 	};
 
-	/**
-	 * Supplies the VerbosityLevel corresponding to the supplied integer.
-	 *
-	 * @param i The supplied integer.
-	 * @return The VerbosityLevel.
-	 */
-	static VerbosityLevel atLevel (final int i)
-	{
-		return values()[i];
-	}
+	/** `true` iff verbosity level 1 or 2 is selected. */
+	open val displayGlobalProgress = false
 
-	/**
-	 * @return True only when verbosity level 1 or 2 is selected. This is
-	 *         accomplished through method overrides.
-	 */
-	public boolean displayGlobalProgress()
-	{
-		return false;
-	}
+	/** `true` only when verbosity level 2 is selected. */
+	open val displayLocalProgress = false
 
-	/**
-	 * @return True only when verbosity level 2 is selected. This is
-	 *         accomplished through method overrides.
-	 */
-	public boolean displayLocalProgress()
+	companion object
 	{
-		return false;
+		/**
+		 * Supplies the VerbosityLevel corresponding to the supplied integer.
+		 *
+		 * @param i
+		 *   The supplied integer.
+		 * @return
+		 *   The [VerbosityLevel].
+		 */
+		internal fun atLevel(i: Int): VerbosityLevel = values()[i]
 	}
 }

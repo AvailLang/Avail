@@ -159,7 +159,7 @@ implements Configurator<UnicodeConfiguration>
 	}
 
 	@Override
-	public UnicodeConfiguration configuration ()
+	public UnicodeConfiguration getConfiguration()
 	{
 		return configuration;
 	}

@@ -1,6 +1,6 @@
 /*
- * XMLEventHandler.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * XMLEventHandler.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -72,8 +72,9 @@ internal class XMLEventHandler<
 constructor (
 	private val model: XMLDocumentModel<ConfigurationType, ElementType, StateType>,
 	private val state: StateType) : DefaultHandler()
-		where ElementType : Enum<ElementType>,
-			  ElementType : XMLElement<ConfigurationType, ElementType, StateType>
+where
+	ElementType : Enum<ElementType>,
+	ElementType : XMLElement<ConfigurationType, ElementType, StateType>
 {
 	/**
 	 * Answer a [SAXException].
@@ -96,7 +97,7 @@ constructor (
 		for (element in allowed)
 		{
 			builder.append("\n\t\"")
-			builder.append(element.qName().toUpperCase())
+			builder.append(element.qName.toUpperCase())
 			builder.append('"')
 		}
 		builder.append('\n')

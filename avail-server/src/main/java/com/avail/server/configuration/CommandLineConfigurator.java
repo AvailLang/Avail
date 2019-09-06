@@ -200,7 +200,7 @@ implements Configurator<AvailServerConfiguration>
 	private final Appendable helpStream;
 
 	@Override
-	public AvailServerConfiguration configuration ()
+	public AvailServerConfiguration getConfiguration()
 	{
 		return configuration;
 	}

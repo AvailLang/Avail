@@ -1,5 +1,5 @@
 /*
- * ConfigurationState.java
+ * ConfigurationState.kt
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -33,10 +33,7 @@
 package com.avail.utility.configuration
 
 import java.lang.Thread.State
-import java.util.ArrayDeque
-import java.util.Deque
-
-import com.avail.utility.Nulls.stripNull
+import java.util.*
 
 /**
  * An `XMLConfiguratorState` encapsulates the state of an [XMLConfigurator].
@@ -47,10 +44,10 @@ import com.avail.utility.Nulls.stripNull
  *   A concrete [XMLElement] class.
  * @param StateType
  *   A concrete `XMLConfiguratorState` class.
- * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
  * @property configuration
  *   The [configuration][Configuration].
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
  * @constructor
  * Construct a new [State].
@@ -62,13 +59,13 @@ class XMLConfiguratorState<
 	ConfigurationType : Configuration,
 	ElementType,
 	StateType : XMLConfiguratorState<ConfigurationType, ElementType, StateType>>
-constructor(private val configuration: ConfigurationType)
-	where  ElementType : Enum<ElementType>,
-		   ElementType : XMLElement<ConfigurationType, ElementType, StateType>
+constructor(private val configuration: ConfigurationType) where
+	ElementType : Enum<ElementType>,
+	ElementType : XMLElement<ConfigurationType, ElementType, StateType>
 {
 
 	/** The [document model][XMLDocumentModel]. */
-	private var model:
+	internal var model:
 		XMLDocumentModel<ConfigurationType, ElementType, StateType>? = null
 
 	/** The [accumulator][StringBuilder] for text. */
@@ -81,28 +78,6 @@ constructor(private val configuration: ConfigurationType)
 	private val stack = ArrayDeque<ElementType>(5)
 
 	/**
-	 * Answer the [document model][XMLDocumentModel].
-	 *
-	 * @return
-	 *   The document model.
-	 */
-	fun documentModel():
-		XMLDocumentModel<ConfigurationType, ElementType, StateType> =
-			stripNull(model)
-
-	/**
-	 * Set the [document model][XMLDocumentModel].
-	 *
-	 * @param model
-	 *   The document model.
-	 */
-	fun setDocumentModel(
-		model: XMLDocumentModel<ConfigurationType, ElementType, StateType>)
-	{
-		this.model = model
-	}
-
-	/**
 	 * Answer the [configuration][Configuration] manipulated by this
 	 * [state][XMLConfiguratorState].
 	 *
@@ -113,6 +88,7 @@ constructor(private val configuration: ConfigurationType)
 	/**
 	 * Activate the text accumulator.
 	 */
+	@Suppress("unused")
 	fun startAccumulator()
 	{
 		accumulator.setLength(0)
@@ -140,15 +116,14 @@ constructor(private val configuration: ConfigurationType)
 	}
 
 	/**
-	 * Answer the current contents of the text accumulator. This may contain
-	 * leading or trailing whitespace.
-	 *
-	 * @return
-	 *   The text contained within the accumulator.
+	 * The current contents of the text accumulator. This may contain leading or
+	 * trailing whitespace.
 	 */
-	fun accumulatorContents(): String = accumulator.toString()
+	@Suppress("unused")
+	val accumulatorContents get() = accumulator.toString()
 
 	/** Deactivate the text accumulator. */
+	@Suppress("unused")
 	fun stopAccumulator()
 	{
 		shouldAccumulate = false
@@ -160,10 +135,7 @@ constructor(private val configuration: ConfigurationType)
 	 * @param element
 	 *   An element.
 	 */
-	fun push(element: ElementType)
-	{
-		stack.push(element)
-	}
+	fun push(element: ElementType) = stack.push(element)
 
 	/**
 	 * Answer the [top][XMLElement] of the parse stack (without consuming it).
@@ -187,16 +159,18 @@ constructor(private val configuration: ConfigurationType)
 	 * @return
 	 *   The parent element.
 	 */
-	fun parentElement(): ElementType?
-	{
-		val thisElement = stack.pop()
-		try
+	@Suppress("unused")
+	val parentElement: ElementType?
+		get()
 		{
-			return stack.peek()
+			val thisElement = stack.pop()
+			try
+			{
+				return stack.peek()
+			}
+			finally
+			{
+				stack.push(thisElement)
+			}
 		}
-		finally
-		{
-			stack.push(thisElement)
-		}
-	}
 }

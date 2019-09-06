@@ -37,6 +37,7 @@ import java.time.format.DateTimeFormatter
 plugins {
 	id 'java'
 	id 'org.jetbrains.kotlin.jvm'
+	id 'com.github.johnrengelman.shadow'
 }
 
 group 'org.availlang'
@@ -74,7 +75,7 @@ dependencies {
 // Capture the time at which the build began and record it into a resource file.
 task generateBuildTime {
 	def pathWorkbenchBuildResources =
-		"$buildDir/resources/main/resources/server"
+		"$buildDir/resources/main/resources/cli"
 	def pathToBuildTime = "$pathWorkbenchBuildResources/build-time.txt"
 	outputs.files pathToBuildTime
 
@@ -92,23 +93,17 @@ task generateBuildTime {
 // Update the dependencies of "classes".
 classes.dependsOn generateBuildTime
 
-// Produce a fat JAR for the Avail server.
+// Produce a fat JAR for the Avail CLI.
 jar {
 	manifest {
 		attributes 'Main-Class': 'com.avail.tools.compiler.Compiler'
-	}
-
-	from {
-		configurations.compileClasspath.collect {
-			it.isDirectory() ? it : zipTree(it)
-		}
 	}
 }
 
 // Copy the JAR into the distribution directory.
 task releaseAvailCLI (type: Copy) {
 	group = 'release'
-	from jar.outputs.files
+	from shadowJar.outputs.files
 	into file("${rootProject.projectDir}/distro/lib")
 }
 

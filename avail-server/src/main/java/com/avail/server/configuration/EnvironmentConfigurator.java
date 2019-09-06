@@ -76,7 +76,7 @@ implements Configurator<AvailServerConfiguration>
 	private boolean isConfigured;
 
 	@Override
-	public AvailServerConfiguration configuration ()
+	public AvailServerConfiguration getConfiguration()
 	{
 		return configuration;
 	}

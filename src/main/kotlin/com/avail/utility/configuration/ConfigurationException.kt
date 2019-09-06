@@ -48,6 +48,7 @@ class ConfigurationException : Exception
 	 *   The detail message, expected to be the proximal reason why
 	 *   configuration failed.
 	 */
+	@Suppress("unused")
 	constructor(message: String) : super(message)
 
 	/**

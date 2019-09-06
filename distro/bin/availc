@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# avail-server
+# availc
 # Copyright © 1993-2018, The Avail Foundation, LLC.
 # All rights reserved.
 #
@@ -108,8 +108,8 @@ fi
 # These are the system arguments for the Java virtual machine.
 VMARGS=-Xmx2g\ -classpath\ "$AVAIL_HOME/lib"\ $OSARGS\ "-Djava.util.logging.config.file=$HOME/.avail/logging.properties"\ "-DavailRoots=$AVAIL_ROOTS"\ "-DavailRenames=$AVAIL_RENAMES"
 
-# Launch the Avail server in the background.
-SERVJAR=$AVAIL_HOME/lib/avail-server-1.4-all.jar
+# Launch the Avail development environment in the background.
+CLIJAR=$AVAIL_HOME/lib/avail-cli-1.4-all.jar
 # shellcheck disable=SC2048
 # shellcheck disable=SC2086
-$VM $VMARGS -jar "$SERVJAR" $* &
+$VM $VMARGS -jar "$CLIJAR" $*

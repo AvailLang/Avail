@@ -137,7 +137,7 @@ enum class StatisticReport constructor(
 	/**
 	 * Register a [Statistic] with this `StatisticReport`.  This happens when
 	 * the statistic is first created, as part of its constructor. Access to the
-	 * [List] of [.statistics] is synchronized on the list, to ensure atomic
+	 * [List] of [statistics] is synchronized on the list, to ensure atomic
 	 * access among registrations and between registrations and enumeration of
 	 * the list.
 	 *

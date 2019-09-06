@@ -37,6 +37,7 @@ import java.time.format.DateTimeFormatter
 plugins {
 	id 'java'
 	id 'org.jetbrains.kotlin.jvm'
+	id 'com.github.johnrengelman.shadow'
 }
 
 group 'org.availlang'
@@ -97,18 +98,12 @@ jar {
 	manifest {
 		attributes 'Main-Class': 'com.avail.server.AvailServer'
 	}
-
-	from {
-		configurations.compileClasspath.collect {
-			it.isDirectory() ? it : zipTree(it)
-		}
-	}
 }
 
 // Copy the JAR into the distribution directory.
 task releaseAvailServer (type: Copy) {
 	group = 'release'
-	from jar.outputs.files
+	from shadowJar.outputs.files
 	into file("${rootProject.projectDir}/distro/lib")
 }
 

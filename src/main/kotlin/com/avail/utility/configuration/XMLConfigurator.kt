@@ -1,6 +1,6 @@
 /*
- * XMLConfigurator.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * XMLConfigurator.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,13 +42,12 @@ import java.io.InputStream
  * In order to use an `XMLConfigurator` to obtain a configuration, a client must
  * implement three abstractions:
  *
- *
  *  * A [Configuration] specific to the client's requirements.
  *  * An [enumeration][Enum] that satisfies the [XMLElement] interface.
  *  This enumeration defines all valid elements for a particular document type.
  *  Members must be able to satisfy requests for their
- *  [qualified name][XMLElement.qName] and immediate
- *  [parentage][XMLElement.allowedParents]. Members are also responsible for
+ *  [qualified name][XMLElement.getQName] and immediate
+ *  [parentage][XMLElement.getAllowedParents]. Members are also responsible for
  *  their own processing (see [startElement][XMLElement.startElement] and
  *  [endElement][XMLElement.endElement].
  *  * An [XMLConfiguratorState] that maintains any state required by the
@@ -61,17 +60,16 @@ import java.io.InputStream
  *   A concrete [XMLElement] class.
  * @param StateType
  *   A concrete [XMLConfiguratorState] class.
- * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
- * @property configuration
- *   The [configuration][Configuration].
  * @property state
  *   The [configurator state][XMLConfiguratorState].
  * @property documentStream
  *   The [input stream][InputStream] which contains the XML document that
  *   describes the [configuration][Configuration].
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
  * @constructor
+ *
  * Construct a new [XMLConfigurator].
  *
  * @param configuration
@@ -88,14 +86,14 @@ class XMLConfigurator<
 	ConfigurationType : Configuration,
 	ElementType,
 	StateType : XMLConfiguratorState<ConfigurationType, ElementType, StateType>>
-	constructor(
-		val configuration: ConfigurationType,
-		val state: StateType,
-		elementClass: Class<ElementType>,
-		private val documentStream: InputStream)
-	: Configurator<ConfigurationType>
-		where ElementType : Enum<ElementType>,
-			  ElementType : XMLElement<ConfigurationType, ElementType, StateType>
+constructor(
+	override val configuration: ConfigurationType,
+	val state: StateType,
+	elementClass: Class<ElementType>,
+	private val documentStream: InputStream)
+: Configurator<ConfigurationType>
+	where ElementType : Enum<ElementType>,
+		  ElementType : XMLElement<ConfigurationType, ElementType, StateType>
 {
 	/**
 	 * Has the [configurator][XMLConfigurator] been run yet?
@@ -113,7 +111,7 @@ class XMLConfigurator<
 
 	init
 	{
-		state.setDocumentModel(model)
+		state.model = model
 	}
 
 	@Throws(ConfigurationException::class)
@@ -133,11 +131,5 @@ class XMLConfigurator<
 				throw ConfigurationException("configuration error", e)
 			}
 		}
-	}
-
-	override fun configuration(): ConfigurationType
-	{
-		assert(isConfigured)
-		return configuration
 	}
 }
