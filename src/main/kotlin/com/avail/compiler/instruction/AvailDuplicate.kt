@@ -1,6 +1,6 @@
 /*
- * AvailMakeTuple.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * AvailDuplicate.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,41 +30,29 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler.instruction;
+package com.avail.compiler.instruction
 
-import com.avail.descriptor.A_Token;
-import com.avail.descriptor.A_Tuple;
-import com.avail.interpreter.levelOne.L1Operation;
-import com.avail.io.NybbleOutputStream;
+import com.avail.descriptor.A_Token
+import com.avail.descriptor.A_Tuple
+import com.avail.interpreter.levelOne.L1Operation
+import com.avail.interpreter.levelOne.L1Operation.L1Ext_doDuplicate
+import com.avail.io.NybbleOutputStream
 
 /**
- * Construct a tuple from some number of objects already pushed on the stack.
+ * `AvailDuplicate` models the [L1Ext_doDuplicate] nybblecode.
  *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct an `AvailDuplicate` instruction.
+ *
+ * @param relevantTokens
+ *   The [A_Tuple] of [A_Token]s that are associated with this instruction.
  */
-public class AvailMakeTuple extends AvailInstructionWithIndex
+class AvailDuplicate constructor(relevantTokens: A_Tuple)
+	: AvailInstruction(relevantTokens)
 {
-	/**
-	 * Construct a new {@code AvailMakeTuple} that consumes the specified number
-	 * of elements from the stack to create a tuple.
-	 *
-	 * @param relevantTokens
-	 *        The {@link A_Tuple} of {@link A_Token}s that are associated with
-	 *        this instruction.
-	 * @param index
-	 *        The number of stack elements to pop to make a tuple.
-	 */
-	public AvailMakeTuple (
-		final A_Tuple relevantTokens,
-		final int index)
-	{
-		super(relevantTokens, index);
-	}
-
-	@Override
-	public void writeNybblesOn (final NybbleOutputStream aStream)
-	{
-		L1Operation.L1_doMakeTuple.writeTo(aStream);
-		writeIntegerOn(index, aStream);
-	}
+	override fun writeNybblesOn(aStream: NybbleOutputStream) =
+		L1Ext_doDuplicate.writeTo(aStream)
 }

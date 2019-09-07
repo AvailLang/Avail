@@ -1,6 +1,6 @@
 /*
- * AvailLabel.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * AvailSetLiteralVariable.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,46 +30,35 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler.instruction;
+package com.avail.compiler.instruction
 
-import com.avail.descriptor.A_Token;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.BlockPhraseDescriptor;
-import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
-import com.avail.io.NybbleOutputStream;
+import com.avail.descriptor.A_Token
+import com.avail.descriptor.A_Tuple
+import com.avail.interpreter.levelOne.L1Operation.L1Ext_doSetLiteral
+import com.avail.io.NybbleOutputStream
 
 /**
- * An {@code AvailLabel} is a pseudo-instruction in the {@linkplain
- * AvailInstruction Level One instruction} set.  It represents a {@linkplain
- * DeclarationKind#LABEL label phrase} in the parse tree of a {@linkplain
- * BlockPhraseDescriptor block}.  If a label declaration occurs at all in a
- * block, it must be the first statement of the block.
- *
- * <p>No actual nybblecodes are generated for an {@code AvailLabel}.  The only
- * reason for a label pseudo-instruction to exist is to keep track of which
- * blocks require labels.</p>
+ * Assign to a variable that's captured as a literal in the code.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct a new `AvailSetLiteralVariable`.
+ *
+ * @param relevantTokens
+ *   The [A_Tuple] of [A_Token]s that are associated with this instruction.
+ * @param variableLiteralIndex
+ *   The index of the literal variable.
  */
-public class AvailLabel extends AvailInstruction
+class AvailSetLiteralVariable constructor(
+	relevantTokens: A_Tuple,
+	variableLiteralIndex: Int)
+: AvailInstructionWithIndex(relevantTokens, variableLiteralIndex)
 {
-	/**
-	 * Construct an instruction.  Capture the tokens that contributed to it.
-	 *
-	 * @param relevantTokens
-	 *        The {@link A_Tuple} of {@link A_Token}s that are associated with
-	 *        this instruction.
-	 */
-	public AvailLabel (final A_Tuple relevantTokens)
+	override fun writeNybblesOn(aStream: NybbleOutputStream)
 	{
-		super(relevantTokens);
-	}
-
-	@Override
-	public void writeNybblesOn (
-		final NybbleOutputStream aStream)
-	{
-		// A label pseudo-instruction has no actual nybblecode instructions
-		// generated for it.
+		L1Ext_doSetLiteral.writeTo(aStream)
+		writeIntegerOn(index, aStream)
 	}
 }

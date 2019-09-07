@@ -1,6 +1,6 @@
 /*
- * package-info.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * AvailMakeTuple.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,35 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-@NonnullByDefault
-package com.avail.compiler.instruction;
-import com.avail.annotations.NonnullByDefault;
+package com.avail.compiler.instruction
+
+import com.avail.descriptor.A_Token
+import com.avail.descriptor.A_Tuple
+import com.avail.interpreter.levelOne.L1Operation.L1_doMakeTuple
+import com.avail.io.NybbleOutputStream
+
+/**
+ * Construct a tuple from some number of objects already pushed on the stack.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct a new `AvailMakeTuple` that consumes the specified number of
+ * elements from the stack to create a tuple.
+ *
+ * @param relevantTokens
+ *   The [A_Tuple] of [A_Token]s that are associated with this instruction.
+ * @param index
+ *   The number of stack elements to pop to make a tuple.
+ */
+class AvailMakeTuple constructor(
+	relevantTokens: A_Tuple,
+	index: Int) : AvailInstructionWithIndex(relevantTokens, index)
+{
+	override fun writeNybblesOn(aStream: NybbleOutputStream)
+	{
+		L1_doMakeTuple.writeTo(aStream)
+		writeIntegerOn(index, aStream)
+	}
+}

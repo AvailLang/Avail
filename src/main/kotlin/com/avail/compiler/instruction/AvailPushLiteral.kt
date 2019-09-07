@@ -1,6 +1,6 @@
 /*
- * AvailPermute.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * AvailPushLiteral.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,42 +30,38 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler.instruction;
+package com.avail.compiler.instruction
 
-import com.avail.descriptor.A_Token;
-import com.avail.descriptor.A_Tuple;
-import com.avail.interpreter.levelOne.L1Operation;
-import com.avail.io.NybbleOutputStream;
-
+import com.avail.descriptor.A_Token
+import com.avail.descriptor.A_Tuple
+import com.avail.descriptor.ContinuationDescriptor
+import com.avail.interpreter.levelOne.L1Operation.L1_doPushLiteral
+import com.avail.io.NybbleOutputStream
 
 /**
- * Permute the top N stack items via a permutation found in a literal tuple.
+ * `AvailPushLiteral` is an instruction that represents pushing a particular
+ * object (known at code generation time, undoubtedly earlier) onto a
+ * [continuation][ContinuationDescriptor]'s stack.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct a new `AvailPushLiteral`.
+ *
+ * @param relevantTokens
+ *   The [A_Tuple] of [A_Token]s that are associated with this instruction.
+ * @param literalIndex
+ *   The index of the literal being pushed.
  */
-public class AvailPermute extends AvailInstructionWithIndex
+class AvailPushLiteral constructor(
+	relevantTokens: A_Tuple,
+	literalIndex: Int)
+: AvailInstructionWithIndex(relevantTokens, literalIndex)
 {
-	/**
-	 * Construct a new {@code AvailPermute}.
-	 *
-	 * @param relevantTokens
-	 *        The {@link A_Tuple} of {@link A_Token}s that are associated with
-	 *        this instruction.
-	 * @param permutationIndex
-	 *        The literal index of the tuple with which to permute the top
-	 *        region of the stack.
-	 */
-	public AvailPermute (
-		final A_Tuple relevantTokens,
-		final int permutationIndex)
+	override fun writeNybblesOn(aStream: NybbleOutputStream)
 	{
-		super(relevantTokens, permutationIndex);
-	}
-
-	@Override
-	public void writeNybblesOn (final NybbleOutputStream aStream)
-	{
-		L1Operation.L1Ext_doPermute.writeTo(aStream);
-		writeIntegerOn(index, aStream);
+		L1_doPushLiteral.writeTo(aStream)
+		writeIntegerOn(index, aStream)
 	}
 }

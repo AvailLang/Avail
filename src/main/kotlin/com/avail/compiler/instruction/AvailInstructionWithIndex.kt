@@ -1,6 +1,6 @@
 /*
- * AvailPushLiteral.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * AvailInstructionWithIndex.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,42 +30,29 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler.instruction;
+package com.avail.compiler.instruction
 
-import com.avail.descriptor.A_Token;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.ContinuationDescriptor;
-import com.avail.interpreter.levelOne.L1Operation;
-import com.avail.io.NybbleOutputStream;
+import com.avail.descriptor.A_Token
+import com.avail.descriptor.A_Tuple
 
 /**
- * {@code AvailPushLiteral} is an instruction that represents pushing a
- * particular object (known at code generation time, undoubtedly earlier) onto a
- * {@linkplain ContinuationDescriptor continuation}'s stack.
+ * This abstract subclass of [AvailInstruction] introduces a generic index whose
+ * interpretation is left to subclasses.
  *
+ * @property index
+ *   A generic index to be interpreted by subclasses.  Must be non-negative.
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct a new `AvailInstructionWithIndex`.
+ *
+ * @param relevantTokens
+ *   The [A_Tuple] of [A_Token]s that are associated with this instruction.
+ * @param index
+ *   A generic, non-negative index to record.  Subclasses interpret this value
+ *   however they need.
  */
-public class AvailPushLiteral extends AvailInstructionWithIndex
-{
-	/**
-	 * Construct a new {@code AvailPushLiteral}.
-	 *
-	 * @param relevantTokens
-	 *        The {@link A_Tuple} of {@link A_Token}s that are associated with
-	 *        this instruction.
-	 * @param literalIndex The index of the literal being pushed.
-	 */
-	public AvailPushLiteral (
-		final A_Tuple relevantTokens,
-		final int literalIndex)
-	{
-		super(relevantTokens, literalIndex);
-	}
-
-	@Override
-	public void writeNybblesOn (final NybbleOutputStream aStream)
-	{
-		L1Operation.L1_doPushLiteral.writeTo(aStream);
-		writeIntegerOn(index, aStream);
-	}
-}
+abstract class AvailInstructionWithIndex constructor(
+	relevantTokens: A_Tuple,
+	val index: Int) : AvailInstruction(relevantTokens)

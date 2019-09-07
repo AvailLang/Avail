@@ -1,6 +1,6 @@
 /*
- * AvailSetOuterVariable.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * AvailSetOuterVariable.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,85 +30,64 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler.instruction;
+package com.avail.compiler.instruction
 
-import com.avail.compiler.AvailCodeGenerator;
-import com.avail.descriptor.A_Token;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.FunctionDescriptor;
-import com.avail.interpreter.levelOne.L1Operation;
-import com.avail.io.NybbleOutputStream;
-
-import javax.annotation.Nullable;
-import java.util.List;
+import com.avail.compiler.AvailCodeGenerator
+import com.avail.descriptor.A_Token
+import com.avail.descriptor.A_Tuple
+import com.avail.descriptor.FunctionDescriptor
+import com.avail.interpreter.levelOne.L1Operation.L1_doSetOuter
+import com.avail.io.NybbleOutputStream
 
 /**
  * Set the value of a variable found in the function's list of captured outer
  * variables.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct a new `AvailSetOuterVariable`.
+ *
+ * @param relevantTokens
+ *   The [A_Tuple] of [A_Token]s that are associated with this instruction.
+ * @param outerIndex
+ *   The index of the variable in a [function's][FunctionDescriptor] outer
+ *   variables.
  */
-public class AvailSetOuterVariable extends AvailInstructionWithIndex
+class AvailSetOuterVariable constructor(
+	relevantTokens: A_Tuple,
+	outerIndex: Int) : AvailInstructionWithIndex(relevantTokens, outerIndex)
 {
-	/**
-	 * Construct a new {@code AvailSetOuterVariable}.
-	 *
-	 * @param relevantTokens
-	 *        The {@link A_Tuple} of {@link A_Token}s that are associated with
-	 *        this instruction.
-	 * @param outerIndex
-	 *        The index of the variable in a {@linkplain FunctionDescriptor
-	 *        function's} outer variables.
-	 */
-	public AvailSetOuterVariable (
-		final A_Tuple relevantTokens,
-		final int outerIndex)
-	{
-		super(relevantTokens, outerIndex);
-	}
+	override val isOuterUse: Boolean
+		get() = true
 
-	@Override
-	public void writeNybblesOn (final NybbleOutputStream aStream)
+	override fun writeNybblesOn(aStream: NybbleOutputStream)
 	{
-		//  Write nybbles to the stream (a WriteStream on a ByteArray).
-
-		L1Operation.L1_doSetOuter.writeTo(aStream);
-		writeIntegerOn(index, aStream);
+		L1_doSetOuter.writeTo(aStream)
+		writeIntegerOn(index, aStream)
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The receiver sets the value of an outer variable, so it can't be an
-	 * outer reference to an argument (they aren't wrapped in a variable).</p>
+	 * The receiver sets the value of an outer variable, so it can't be an
+	 * outer reference to an argument (they aren't wrapped in a variable).
 	 */
-	@Override
-	public void fixUsageFlags (
-		final List<AvailVariableAccessNote> localData,
-		final List<AvailVariableAccessNote> outerData,
-		final AvailCodeGenerator codeGenerator)
+	override fun fixUsageFlags(
+		localData: MutableList<AvailVariableAccessNote?>,
+		outerData: MutableList<AvailVariableAccessNote?>,
+		codeGenerator: AvailCodeGenerator)
 	{
-		@Nullable AvailVariableAccessNote note = outerData.get(index - 1);
+		var note = outerData[index - 1]
 		if (note == null)
 		{
-			note = new AvailVariableAccessNote();
-			outerData.set(index - 1, note);
+			note = AvailVariableAccessNote()
+			outerData[index - 1] = note
 		}
 		// If there was a get before this set, leave its canClear flag set to
 		// true.
-		note.previousGet(null);
+		note.previousGet = null
 		// Any previous push could not be the last access, as we're using the
 		// variable right now.
-		final @Nullable AvailPushVariable previousPush = note.previousPush();
-		if (previousPush != null)
-		{
-			previousPush.isLastAccess(false);
-		}
-	}
-
-	@Override
-	public boolean isOuterUse ()
-	{
-		return true;
+		note.previousPush?.isLastAccess = false
 	}
 }

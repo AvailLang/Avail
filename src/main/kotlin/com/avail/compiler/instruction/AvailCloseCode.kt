@@ -1,6 +1,6 @@
 /*
- * AvailPop.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * AvailCloseCode.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,37 +30,45 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler.instruction;
+package com.avail.compiler.instruction
 
-import com.avail.descriptor.A_Token;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.ContinuationDescriptor;
-import com.avail.interpreter.levelOne.L1Operation;
-import com.avail.io.NybbleOutputStream;
+import com.avail.descriptor.A_Token
+import com.avail.descriptor.A_Tuple
+import com.avail.descriptor.CompiledCodeDescriptor
+import com.avail.descriptor.FunctionDescriptor
+import com.avail.interpreter.levelOne.L1Operation.L1_doClose
+import com.avail.io.NybbleOutputStream
 
 /**
- * The {@code AvailPop} instruction represents the removal of one element from
- * a {@linkplain ContinuationDescriptor continuation}'s stack of values.
+ * This instruction build a [function][FunctionDescriptor] from
+ * [compiled code][CompiledCodeDescriptor] and some pushed variables.
  *
+ * @property numCopiedVars
+ *   The number of variables that have been pushed on the stack to be captured
+ *   as outer variables of the resulting [function][FunctionDescriptor].
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct a new `AvailCloseCode`.
+ *
+ * @param relevantTokens
+ *   The [A_Tuple] of [A_Token]s that are associated with this instruction.
+ * @param numCopiedVars
+ *   The number of already-pushed variables to capture in the function as outer
+ *   variables.
+ * @param codeIndex
+ *   The index of the compiled code in the literals.
  */
-public class AvailPop extends AvailInstruction
+class AvailCloseCode constructor(
+	relevantTokens: A_Tuple,
+	private val numCopiedVars: Int,
+	codeIndex: Int) : AvailInstructionWithIndex(relevantTokens, codeIndex)
 {
-	/**
-	 * Construct an instruction.  Capture the tokens that contributed to it.
-	 *
-	 * @param relevantTokens
-	 *        The {@link A_Tuple} of {@link A_Token}s that are associated with
-	 *        this instruction.
-	 */
-	public AvailPop (final A_Tuple relevantTokens)
+	override fun writeNybblesOn(aStream: NybbleOutputStream)
 	{
-		super(relevantTokens);
-	}
-
-	@Override
-	public void writeNybblesOn (final NybbleOutputStream aStream)
-	{
-		L1Operation.L1_doPop.writeTo(aStream);
+		L1_doClose.writeTo(aStream)
+		writeIntegerOn(numCopiedVars, aStream)
+		writeIntegerOn(index, aStream)
 	}
 }

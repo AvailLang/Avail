@@ -1,6 +1,6 @@
 /*
- * AvailGetVariable.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * AvailCall.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,54 +30,45 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler.instruction;
+package com.avail.compiler.instruction
 
-
-import com.avail.descriptor.A_Token;
-import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Token
+import com.avail.descriptor.A_Tuple
+import com.avail.descriptor.MethodDescriptor
+import com.avail.interpreter.levelOne.L1Operation
+import com.avail.io.NybbleOutputStream
 
 /**
- * Push the value of a variable of some sort.
+ * This is a multi-method call instruction.  The opcode is followed by the index
+ * of the message (a [method][MethodDescriptor]), then the index of the literal
+ * that holds the return type for this call site.
  *
+ * @property verifyIndex
+ *   The index of the literal that holds the call-site specific return type.
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct a new `AvailCall`.
+ *
+ * @param relevantTokens
+ *   The [A_Tuple] of [A_Token]s that are associated with this instruction.
+ * @param messageIndex
+ *   The index of the literal that holds the message (a
+ *   [method][MethodDescriptor]).
+ * @param verifyIndex
+ *   The index of the literal that holds the return type.
  */
-public abstract class AvailGetVariable extends AvailInstructionWithIndex
+open class AvailCall constructor(
+	relevantTokens: A_Tuple,
+	messageIndex: Int,
+	internal val verifyIndex: Int)
+: AvailInstructionWithIndex(relevantTokens, messageIndex)
 {
-	/**
-	 * Whether this instruction should be the clearing form of get or the
-	 * non-clearing form.  The clearing form is used only when this is the last
-	 * use of the variable before the next write.
-	 */
-	boolean canClear;
-
-	/**
-	 * Construct a new {@code AvailGetVariable}.
-	 *
-	 * @param relevantTokens
-	 *        The {@link A_Tuple} of {@link A_Token}s that are associated with
-	 *        this instruction.
-	 * @param variableIndex
-	 *        The index of the variable in some unspecified coordinate system.
-	 */
-	public AvailGetVariable (
-		final A_Tuple relevantTokens,
-		final int variableIndex)
+	override fun writeNybblesOn(aStream: NybbleOutputStream)
 	{
-		super(relevantTokens, variableIndex);
-	}
-
-	/**
-	 * Set whether this is a clearing get (true) or a regular duplicating get
-	 * (false).  A clearing get is the last use of the variable until the next
-	 * write, so it's safe to clear the variable's contents.  This avoids
-	 * increasing the value's reference count unnecessarily.
-	 *
-	 * <p>This must be set correctly prior to final code generation.</p>
-	 *
-	 * @param newFlag The new value of the flag.
-	 */
-	public void canClear (final boolean newFlag)
-	{
-		canClear = newFlag;
+		L1Operation.L1_doCall.writeTo(aStream)
+		writeIntegerOn(index, aStream)
+		writeIntegerOn(verifyIndex, aStream)
 	}
 }

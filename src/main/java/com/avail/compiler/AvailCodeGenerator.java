@@ -429,7 +429,7 @@ public final class AvailCodeGenerator
 		{
 			final AvailInstruction onlyInstruction = instructions.get(0);
 			if (onlyInstruction instanceof AvailPushLiteral
-				&& ((AvailPushLiteral) onlyInstruction).index() == 1)
+				&& ((AvailPushLiteral) onlyInstruction).getIndex() == 1)
 			{
 				// The block immediately answers a constant.
 				primitive(P_PushConstant.instance);
@@ -439,7 +439,7 @@ public final class AvailCodeGenerator
 			{
 				// The block immediately answers the specified argument.
 				final int argumentIndex =
-					((AvailPushLocalVariable) onlyInstruction).index();
+					((AvailPushLocalVariable) onlyInstruction).getIndex();
 				switch (argumentIndex)
 				{
 					case 1:
@@ -461,7 +461,7 @@ public final class AvailCodeGenerator
 				// instructions that might use another outer.
 				final AvailPushOuterVariable pushOuter =
 					(AvailPushOuterVariable) onlyInstruction;
-				assert pushOuter.index() == 1;
+				assert pushOuter.getIndex() == 1;
 				assert pushOuter.isLastAccess();
 				primitive(P_PushLastOuter.instance);
 			}
@@ -469,7 +469,7 @@ public final class AvailCodeGenerator
 			// variables can be unassigned, and reading an unassigned module
 			// variable must fail appropriately.
 			if (onlyInstruction instanceof AvailGetLiteralVariable
-				&& ((AvailGetLiteralVariable) onlyInstruction).index() == 1
+				&& ((AvailGetLiteralVariable) onlyInstruction).getIndex() == 1
 				&& literals.get(0).isInitializedWriteOnceVariable())
 			{
 				primitive(P_GetGlobalVariableValue.instance);
@@ -485,11 +485,12 @@ public final class AvailCodeGenerator
 		{
 			if (instruction.isOuterUse())
 			{
-				final int i = ((AvailInstructionWithIndex) instruction).index();
+				final int i =
+					((AvailInstructionWithIndex) instruction).getIndex();
 				unusedOuters.clear(i - 1);
 			}
 			instruction.writeNybblesOn(nybbles);
-			final int nextLineNumber = instruction.lineNumber();
+			final int nextLineNumber = instruction.getLineNumber();
 			if (nextLineNumber == -1)
 			{
 				// Indicate no change.
@@ -592,7 +593,10 @@ public final class AvailCodeGenerator
 	 * empty, just evaluate the action.
 	 *
 	 * @param tokens
+	 *        The tokens to make available during the application of the
+	 *        supplied action.
 	 * @param action
+	 *        An arbitrary action.
 	 */
 	public void setTokensWhile (
 		final A_Tuple tokens,
@@ -909,6 +913,8 @@ public final class AvailCodeGenerator
 	 * Emit code to pop the stack and write into a local or outer variable.
 	 *
 	 * @param tokens
+	          The {@linkplain A_Tuple tuple} of {@linkplain A_Token tokens} that
+	          are associated with this instruction.
 	 * @param localOrOuter
 	 *        The {@linkplain DeclarationPhraseDescriptor declaration} of the
 	 *        {@link DeclarationKind#LOCAL_VARIABLE local} or outer variable in
@@ -968,7 +974,7 @@ public final class AvailCodeGenerator
 	 */
 	private void addInstruction (final AvailInstruction instruction)
 	{
-		if (instruction.relevantTokens().tupleSize() == 0)
+		if (instruction.getRelevantTokens().tupleSize() == 0)
 		{
 			// Replace it with the nearest tuple from the stack, which should
 			// relate to the most specific position in the phrase tree for which

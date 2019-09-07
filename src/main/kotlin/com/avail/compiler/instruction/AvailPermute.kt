@@ -1,6 +1,6 @@
 /*
- * AvailCloseCode.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * AvailPermute.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,56 +30,36 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler.instruction;
+package com.avail.compiler.instruction
 
-import com.avail.descriptor.A_Token;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.CompiledCodeDescriptor;
-import com.avail.descriptor.FunctionDescriptor;
-import com.avail.interpreter.levelOne.L1Operation;
-import com.avail.io.NybbleOutputStream;
+import com.avail.descriptor.A_Token
+import com.avail.descriptor.A_Tuple
+import com.avail.interpreter.levelOne.L1Operation.L1Ext_doPermute
+import com.avail.io.NybbleOutputStream
 
 /**
- * This instruction build a {@linkplain FunctionDescriptor function} from
- * {@linkplain CompiledCodeDescriptor compiled code} and some pushed variables.
+ * Permute the top N stack items via a permutation found in a literal tuple.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct a new `AvailPermute`.
+ *
+ * @param relevantTokens
+ *   The [A_Tuple] of [A_Token]s that are associated with this instruction.
+ * @param permutationIndex
+ *   The literal index of the tuple with which to permute the top region of the
+ *   stack.
  */
-public class AvailCloseCode extends AvailInstructionWithIndex
+class AvailPermute constructor(
+	relevantTokens: A_Tuple,
+	permutationIndex: Int)
+: AvailInstructionWithIndex(relevantTokens, permutationIndex)
 {
-	/**
-	 * The number of variables that have been pushed on the stack to be
-	 * captured as outer variables of the resulting {@linkplain
-	 * FunctionDescriptor function}.
-	 */
-	final int numCopiedVars;
-
-	/**
-	 * Construct a new {@code AvailCloseCode}.
-	 *
-	 * @param relevantTokens
-	 *        The {@link A_Tuple} of {@link A_Token}s that are associated with
-	 *        this instruction.
-	 * @param numCopiedVars
-	 *        The number of already-pushed variables to capture in the function
-	 *        as outer variables.
-	 * @param codeIndex
-	 *        The index of the compiled code in the literals.
-	 */
-	public AvailCloseCode (
-		final A_Tuple relevantTokens,
-		final int numCopiedVars,
-		final int codeIndex)
+	override fun writeNybblesOn(aStream: NybbleOutputStream)
 	{
-		super(relevantTokens, codeIndex);
-		this.numCopiedVars = numCopiedVars;
-	}
-
-	@Override
-	public void writeNybblesOn (final NybbleOutputStream aStream)
-	{
-		L1Operation.L1_doClose.writeTo(aStream);
-		writeIntegerOn(numCopiedVars, aStream);
-		writeIntegerOn(index, aStream);
+		L1Ext_doPermute.writeTo(aStream)
+		writeIntegerOn(index, aStream)
 	}
 }

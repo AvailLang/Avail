@@ -1,6 +1,6 @@
 /*
- * AvailDuplicate.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * AvailGetVariable.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,37 +30,35 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler.instruction;
+package com.avail.compiler.instruction
 
-import com.avail.descriptor.A_Token;
-import com.avail.descriptor.A_Tuple;
-import com.avail.interpreter.levelOne.L1Operation;
-import com.avail.io.NybbleOutputStream;
+
+import com.avail.descriptor.A_Token
+import com.avail.descriptor.A_Tuple
 
 /**
- * {@code AvailDuplicate} models the {@link
- * L1Operation#L1Ext_doDuplicate duplicate} nybblecode.
+ * Push the value of a variable of some sort.
  *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct a new `AvailGetVariable`.
+ *
+ * @param relevantTokens
+ *   The [A_Tuple] of [A_Token]s that are associated with this instruction.
+ * @param variableIndex
+ *   The index of the variable in some unspecified coordinate system.
  */
-public class AvailDuplicate
-extends AvailInstruction
+abstract class AvailGetVariable constructor(
+	relevantTokens: A_Tuple,
+	variableIndex: Int)
+: AvailInstructionWithIndex(relevantTokens, variableIndex)
 {
 	/**
-	 * Construct an {@code AvailDuplicate} instruction.
-	 *
-	 * @param relevantTokens
-	 *        The {@link A_Tuple} of {@link A_Token}s that are associated with
-	 *        this instruction.
+	 * Whether this instruction should be the clearing form of get or the
+	 * non-clearing form.  The clearing form is used only when this is the last
+	 * use of the variable before the next write.
 	 */
-	public AvailDuplicate (final A_Tuple relevantTokens)
-	{
-		super(relevantTokens);
-	}
-
-	@Override
-	public void writeNybblesOn (final NybbleOutputStream aStream)
-	{
-		L1Operation.L1Ext_doDuplicate.writeTo(aStream);
-	}
+	internal var canClear: Boolean = false
 }

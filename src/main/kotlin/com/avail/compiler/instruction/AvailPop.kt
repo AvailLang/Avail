@@ -1,6 +1,6 @@
 /*
- * AvailSetLiteralVariable.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * AvailPop.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,40 +30,30 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler.instruction;
+package com.avail.compiler.instruction
 
-import com.avail.descriptor.A_Token;
-import com.avail.descriptor.A_Tuple;
-import com.avail.interpreter.levelOne.L1Operation;
-import com.avail.io.NybbleOutputStream;
+import com.avail.descriptor.A_Token
+import com.avail.descriptor.A_Tuple
+import com.avail.descriptor.ContinuationDescriptor
+import com.avail.interpreter.levelOne.L1Operation.L1_doPop
+import com.avail.io.NybbleOutputStream
 
 /**
- * Assign to a variable that's captured as a literal in the code.
+ * The `AvailPop` instruction represents the removal of one element from
+ * a [continuation][ContinuationDescriptor]'s stack of values.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct an instruction.  Capture the tokens that contributed to it.
+ *
+ * @param relevantTokens
+ *   The [A_Tuple] of [A_Token]s that are associated with this instruction.
  */
-public class AvailSetLiteralVariable extends AvailInstructionWithIndex
+class AvailPop constructor(relevantTokens: A_Tuple)
+	: AvailInstruction(relevantTokens)
 {
-	/**
-	 * Construct a new {@code AvailSetLiteralVariable}.
-	 *
-	 * @param relevantTokens
-	 *        The {@link A_Tuple} of {@link A_Token}s that are associated with
-	 *        this instruction.
-	 * @param variableLiteralIndex
-	 *        The index of the literal variable.
-	 */
-	public AvailSetLiteralVariable (
-		final A_Tuple relevantTokens,
-		final int variableLiteralIndex)
-	{
-		super(relevantTokens, variableLiteralIndex);
-	}
-
-	@Override
-	public void writeNybblesOn (final NybbleOutputStream aStream)
-	{
-		L1Operation.L1Ext_doSetLiteral.writeTo(aStream);
-		writeIntegerOn(index, aStream);
-	}
+	override fun writeNybblesOn(aStream: NybbleOutputStream) =
+		L1_doPop.writeTo(aStream)
 }
