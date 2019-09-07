@@ -189,9 +189,16 @@ object Compiler
 				val level = configuration.verbosityLevel
 				if (level.displayGlobalProgress && !level.displayLocalProgress)
 				{
-					// Erase the previous global status.
-					print("\b".repeat(globalStatus.length))
-					println(status)
+					if (System.console() != null)
+					{
+						// Erase the previous global status.
+						print("\b".repeat(globalStatus.length))
+						print(status)
+					}
+					else
+					{
+						println(status)
+					}
 				}
 				globalStatus = status
 			}
@@ -291,7 +298,7 @@ object Compiler
 		{
 			// The command-line arguments were malformed, or
 			// The arguments specified a missing file, or
-			// The renames file did not parse correctly
+			// The renames file did not parse correctly.
 			System.err.println(e.message)
 			return
 		}
