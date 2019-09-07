@@ -1,6 +1,6 @@
 /*
- * LoadingEffect.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * LoadingEffect.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,28 +30,29 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.effects;
+package com.avail.interpreter.effects
 
-import com.avail.interpreter.levelOne.L1InstructionWriter;
+import com.avail.interpreter.levelOne.L1InstructionWriter
 
 /**
- * A {@code LoadingEffect} is a summarized activity that took place during
- * execution of a top-level statement during module compilation.  If certain
- * criteria are met, what gets recorded for replay is not a zero-argument
- * function containing that top-level statement, but instead is a summarized
- * function that has an equivalent effect on the currently module, although it
- * may be much more efficient.
+ * A `LoadingEffect` is a summarized activity that took place during execution
+ * of a top-level statement during module compilation.  If certain criteria are
+ * met, what gets recorded for replay is not a zero-argument function containing
+ * that top-level statement, but instead is a summarized function that has an
+ * equivalent effect on the currently module, although it may be much more
+ * efficient.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public abstract class LoadingEffect
+internal abstract class LoadingEffect
 {
 	/**
-	 * Write to the {@link L1InstructionWriter} a statement capable of
+	 * Write to the [L1InstructionWriter] a statement capable of
 	 * reproducing this effect upon subsequent loading.  The generated code
 	 * should leave one (ignored) value on the stack.
 	 *
-	 * @param writer An {@link L1InstructionWriter}.
+	 * @param writer
+	 *   An [L1InstructionWriter].
 	 */
-	public abstract void writeEffectTo (final L1InstructionWriter writer);
+	abstract fun writeEffectTo(writer: L1InstructionWriter)
 }

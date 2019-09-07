@@ -1,6 +1,6 @@
 /*
- * LoadingEffectToAddDefinition.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * LoadingEffectToAddDefinition.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,126 +30,121 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.effects;
+package com.avail.interpreter.effects
 
-import com.avail.descriptor.A_Atom;
-import com.avail.descriptor.A_Definition;
-import com.avail.descriptor.A_Method;
-import com.avail.descriptor.DefinitionDescriptor;
-import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
-import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.interpreter.levelOne.L1InstructionWriter;
-import com.avail.interpreter.levelOne.L1Operation;
+import com.avail.descriptor.A_Definition
+import com.avail.descriptor.A_Method
+import com.avail.descriptor.DefinitionDescriptor
+import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.*
+import com.avail.descriptor.TypeDescriptor.Types
+import com.avail.interpreter.levelOne.L1InstructionWriter
+import com.avail.interpreter.levelOne.L1Operation
 
 /**
- * A {@code LoadingEffectToAddDefinition} summarizes the addition of one
- * {@link DefinitionDescriptor definition} to a {@link A_Method method}.
+ * A `LoadingEffectToAddDefinition` summarizes the addition of one
+ * [definition][DefinitionDescriptor] to a [method][A_Method].
  *
+ * @property definition
+ *   The definition being added by this effect.
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct a new `LoadingEffectToAddDefinition`.
+ *
+ * @param definition
+ *   The definition being added.
  */
-public class LoadingEffectToAddDefinition extends LoadingEffect
+internal class LoadingEffectToAddDefinition constructor(
+	internal val definition: A_Definition) : LoadingEffect()
 {
-	/** The definition being added by this effect. */
-	final A_Definition definition;
-
-	/**
-	 * Construct a new {@code LoadingEffectToAddDefinition}.
-	 *
-	 * @param definition The definition being added.
-	 */
-	public LoadingEffectToAddDefinition (final A_Definition definition)
+	override fun writeEffectTo(writer: L1InstructionWriter)
 	{
-		this.definition = definition;
-	}
-
-	@Override
-	public void writeEffectTo (final L1InstructionWriter writer)
-	{
-		final A_Atom atom = definition.definitionMethod()
+		val atom = definition.definitionMethod()
 			.chooseBundle(definition.definitionModule())
-			.message();
-		if (definition.isAbstractDefinition())
+			.message()
+		if (definition.isAbstractDefinition)
 		{
 			// Push the bundle's atom.
 			writer.write(
 				0,
 				L1Operation.L1_doPushLiteral,
-				writer.addLiteral(atom));
+				writer.addLiteral(atom))
 			// Push the function type.
 			writer.write(
 				0,
 				L1Operation.L1_doPushLiteral,
-				writer.addLiteral(definition.bodySignature()));
+				writer.addLiteral(definition.bodySignature()))
 			// Call the abstract definition loading method.
 			writer.write(
 				0,
 				L1Operation.L1_doCall,
-				writer.addLiteral(SpecialMethodAtom.ABSTRACT_DEFINER.bundle),
-				writer.addLiteral(Types.TOP.o()));
-			return;
+				writer.addLiteral(ABSTRACT_DEFINER.bundle),
+				writer.addLiteral(Types.TOP.o()))
+			return
 		}
-		if (definition.isForwardDefinition())
+		if (definition.isForwardDefinition)
 		{
 			// Push the bundle's atom.
 			writer.write(
 				0,
 				L1Operation.L1_doPushLiteral,
-				writer.addLiteral(atom));
+				writer.addLiteral(atom))
 			// Push the function type.
 			writer.write(
 				0,
 				L1Operation.L1_doPushLiteral,
-				writer.addLiteral(definition.bodySignature()));
+				writer.addLiteral(definition.bodySignature()))
 			// Call the forward definition loading method.
 			writer.write(
 				0,
 				L1Operation.L1_doCall,
-				writer.addLiteral(SpecialMethodAtom.FORWARD_DEFINER.bundle),
-				writer.addLiteral(Types.TOP.o()));
-			return;
+				writer.addLiteral(FORWARD_DEFINER.bundle),
+				writer.addLiteral(Types.TOP.o()))
+			return
 		}
-		if (definition.isMacroDefinition())
+		if (definition.isMacroDefinition)
 		{
 			// NOTE: The prefix functions are dealt with as separate effects.
 			// Push the bundle's atom.
 			writer.write(
 				0,
 				L1Operation.L1_doPushLiteral,
-				writer.addLiteral(atom));
+				writer.addLiteral(atom))
 			// Push the tuple of macro prefix functions.
 			writer.write(
 				0,
 				L1Operation.L1_doPushLiteral,
-				writer.addLiteral(definition.prefixFunctions()));
+				writer.addLiteral(definition.prefixFunctions()))
 			// Push the macro body function.
 			writer.write(
 				0,
 				L1Operation.L1_doPushLiteral,
-				writer.addLiteral(definition.bodyBlock()));
+				writer.addLiteral(definition.bodyBlock()))
 			// Call the macro definition method.
 			writer.write(
 				0,
 				L1Operation.L1_doCall,
-				writer.addLiteral(SpecialMethodAtom.MACRO_DEFINER.bundle),
-				writer.addLiteral(Types.TOP.o()));
-			return;
+				writer.addLiteral(MACRO_DEFINER.bundle),
+				writer.addLiteral(Types.TOP.o()))
+			return
 		}
-		assert definition.isMethodDefinition();
+		assert(definition.isMethodDefinition)
 		// Push the bundle's atom.
 		writer.write(
 			0,
 			L1Operation.L1_doPushLiteral,
-			writer.addLiteral(atom));
+			writer.addLiteral(atom))
 		// Push the body function.
 		writer.write(
 			0,
 			L1Operation.L1_doPushLiteral,
-			writer.addLiteral(definition.bodyBlock()));
+			writer.addLiteral(definition.bodyBlock()))
 		// Call the definition loading method.
 		writer.write(
 			0,
 			L1Operation.L1_doCall,
-			writer.addLiteral(SpecialMethodAtom.METHOD_DEFINER.bundle),
-			writer.addLiteral(Types.TOP.o()));
+			writer.addLiteral(METHOD_DEFINER.bundle),
+			writer.addLiteral(Types.TOP.o()))
 	}
 }

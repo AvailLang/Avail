@@ -1,6 +1,6 @@
 /*
- * LoadingEffectToRunPrimitive.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * LoadingEffectToRunPrimitive.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,59 +30,59 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.effects;
+package com.avail.interpreter.effects
 
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Bundle;
-import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.interpreter.levelOne.L1InstructionWriter;
-import com.avail.interpreter.levelOne.L1Operation;
+import com.avail.descriptor.A_BasicObject
+import com.avail.descriptor.A_Bundle
+import com.avail.descriptor.TypeDescriptor.Types
+import com.avail.interpreter.levelOne.L1InstructionWriter
+import com.avail.interpreter.levelOne.L1Operation
 
 /**
- * A {@code LoadingEffectToRunPrimitive} summarizes the execution of some
+ * A `LoadingEffectToRunPrimitive` summarizes the execution of some
  * primitive, with literal arguments.
  *
+ * @property primitiveBundle
+ *   The primitive to run.
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct a new `LoadingEffectToRunPrimitive`.
+ *
+ * @param primitiveBundle
+ *   The primitive [A_Bundle] to invoke.
+ * @param arguments
+ *   The argument values for the primitive.
  */
-public class LoadingEffectToRunPrimitive extends LoadingEffect
+internal class LoadingEffectToRunPrimitive constructor(
+	private val primitiveBundle: A_Bundle,
+	vararg arguments: A_BasicObject) : LoadingEffect()
 {
-	/** The primitive to run. */
-	final A_Bundle primitiveBundle;
+	/** The array of arguments to pass to the primitive.  */
+	internal val arguments: Array<out A_BasicObject>
 
-	/** The array of arguments to pass to the primitive. */
-	final A_BasicObject[] arguments;
-
-	/**
-	 * Construct a new {@code LoadingEffectToRunPrimitive}.
-	 *
-	 * @param primitiveBundle The primitive {@link A_Bundle} to invoke.
-	 * @param arguments The argument values for the primitive.
-	 */
-	public LoadingEffectToRunPrimitive (
-		final A_Bundle primitiveBundle,
-		final A_BasicObject... arguments)
+	init
 	{
-		assert primitiveBundle.bundleMethod().numArgs() == arguments.length;
-		this.primitiveBundle = primitiveBundle;
-		this.arguments = arguments.clone();
+		assert(primitiveBundle.bundleMethod().numArgs() == arguments.size)
+		this.arguments = arguments.clone()
 	}
 
-	@Override
-	public void writeEffectTo (final L1InstructionWriter writer)
+	override fun writeEffectTo(writer: L1InstructionWriter)
 	{
 		// Push each argument.
-		for (final A_BasicObject argument : arguments)
+		for (argument in arguments)
 		{
 			writer.write(
 				0,
 				L1Operation.L1_doPushLiteral,
-				writer.addLiteral(argument));
+				writer.addLiteral(argument))
 		}
 		// Call the primitive, leaving the return value on the stack.
 		writer.write(
 			0,
 			L1Operation.L1_doCall,
 			writer.addLiteral(primitiveBundle),
-			writer.addLiteral(Types.TOP.o()));
+			writer.addLiteral(Types.TOP.o()))
 	}
 }
