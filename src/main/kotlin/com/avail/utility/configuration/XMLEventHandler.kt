@@ -32,12 +32,11 @@
 
 package com.avail.utility.configuration
 
+import com.avail.utility.Nulls.stripNull
 import org.xml.sax.Attributes
 import org.xml.sax.SAXException
 import org.xml.sax.helpers.DefaultHandler
 import javax.xml.parsers.SAXParser
-
-import com.avail.utility.Nulls.stripNull
 
 /**
  * An [XMLConfigurator] uses a `XMLEventHandler` to interface with the

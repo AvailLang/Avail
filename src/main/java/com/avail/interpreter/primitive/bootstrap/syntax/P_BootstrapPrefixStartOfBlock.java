@@ -32,7 +32,11 @@
 
 package com.avail.interpreter.primitive.bootstrap.syntax;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -40,7 +44,9 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import javax.annotation.Nullable;
 
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.*;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY;
+import static com.avail.descriptor.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_STACK_KEY;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;

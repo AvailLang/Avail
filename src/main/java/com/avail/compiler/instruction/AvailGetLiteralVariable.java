@@ -34,8 +34,7 @@ package com.avail.compiler.instruction;
 
 import com.avail.descriptor.A_Tuple;
 import com.avail.interpreter.levelOne.L1Operation;
-
-import java.io.ByteArrayOutputStream;
+import com.avail.io.NybbleOutputStream;
 
 /**
  * Push the value of a variable found in a literal.
@@ -60,7 +59,7 @@ public class AvailGetLiteralVariable extends AvailInstructionWithIndex
 	}
 
 	@Override
-	public void writeNybblesOn (final ByteArrayOutputStream aStream)
+	public void writeNybblesOn (final NybbleOutputStream aStream)
 	{
 		L1Operation.L1Ext_doGetLiteral.writeTo(aStream);
 		writeIntegerOn(index, aStream);

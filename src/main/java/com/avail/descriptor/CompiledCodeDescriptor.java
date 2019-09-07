@@ -32,8 +32,12 @@
 
 package com.avail.descriptor;
 
-import com.avail.annotations.*;
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.EnumField;
 import com.avail.annotations.EnumField.Converter;
+import com.avail.annotations.HideFieldInDebugger;
+import com.avail.annotations.HideFieldJustForPrinting;
+import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.interpreter.Primitive;
@@ -52,7 +56,11 @@ import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.json.JSONWriter;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -61,8 +69,19 @@ import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.descriptor.AtomDescriptor.createSpecialAtom;
 import static com.avail.descriptor.AtomWithPropertiesDescriptor.createAtomWithProperties;
 import static com.avail.descriptor.AvailObject.newObjectIndexedIntegerIndexedDescriptor;
-import static com.avail.descriptor.CompiledCodeDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.CompiledCodeDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.CompiledCodeDescriptor.IntegerSlots.FRAME_SLOTS;
+import static com.avail.descriptor.CompiledCodeDescriptor.IntegerSlots.HASH;
+import static com.avail.descriptor.CompiledCodeDescriptor.IntegerSlots.NUM_ARGS;
+import static com.avail.descriptor.CompiledCodeDescriptor.IntegerSlots.NUM_CONSTANTS;
+import static com.avail.descriptor.CompiledCodeDescriptor.IntegerSlots.NUM_LOCALS;
+import static com.avail.descriptor.CompiledCodeDescriptor.IntegerSlots.NUM_OUTERS;
+import static com.avail.descriptor.CompiledCodeDescriptor.IntegerSlots.NYBBLECODES_;
+import static com.avail.descriptor.CompiledCodeDescriptor.IntegerSlots.PRIMITIVE;
+import static com.avail.descriptor.CompiledCodeDescriptor.ObjectSlots.FUNCTION_TYPE;
+import static com.avail.descriptor.CompiledCodeDescriptor.ObjectSlots.INVOCATION_STATISTIC;
+import static com.avail.descriptor.CompiledCodeDescriptor.ObjectSlots.LITERAL_AT_;
+import static com.avail.descriptor.CompiledCodeDescriptor.ObjectSlots.PROPERTY_ATOM;
+import static com.avail.descriptor.CompiledCodeDescriptor.ObjectSlots.STARTING_CHUNK;
 import static com.avail.descriptor.CompiledCodeTypeDescriptor.compiledCodeTypeForFunctionType;
 import static com.avail.descriptor.CompiledCodeTypeDescriptor.mostGeneralCompiledCodeType;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
@@ -1422,7 +1441,7 @@ extends Descriptor
 	{
 		final L1InstructionWriter writer = new L1InstructionWriter(
 			module, lineNumber, nil);
-		writer.primitive(primitive);
+		writer.setPrimitive(primitive);
 		final A_Type functionType = primitive.blockTypeRestriction();
 		final A_Type argsTupleType = functionType.argsTupleType();
 		final int numArgs = argsTupleType.sizeRange().upperBound().extractInt();
@@ -1432,7 +1451,7 @@ extends Descriptor
 			argTypes[i] = argsTupleType.typeAtIndex(i + 1);
 		}
 		writer.argumentTypes(argTypes);
-		writer.returnType(functionType.returnType());
+		writer.setReturnType(functionType.returnType());
 		primitive.writeDefaultFailureCode(lineNumber, writer, numArgs);
 		return writer.compiledCode();
 	}

@@ -33,7 +33,13 @@
 package com.avail.interpreter.primitive.files;
 
 import com.avail.AvailRuntime;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AtomDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.io.IOSystem.FileHandle;
@@ -58,7 +64,10 @@ import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.exceptions.AvailErrorCode.E_INVALID_HANDLE;
+import static com.avail.exceptions.AvailErrorCode.E_IO_ERROR;
+import static com.avail.exceptions.AvailErrorCode.E_NOT_OPEN_FOR_WRITE;
+import static com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 import static java.util.Collections.singletonList;

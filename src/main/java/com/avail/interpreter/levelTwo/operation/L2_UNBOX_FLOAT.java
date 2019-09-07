@@ -48,7 +48,9 @@ import java.util.Set;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_FLOAT;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Type.*;
+import static org.objectweb.asm.Type.DOUBLE_TYPE;
+import static org.objectweb.asm.Type.getInternalName;
+import static org.objectweb.asm.Type.getMethodDescriptor;
 
 /**
  * Unbox an {@code float} from an {@link AvailObject}.

@@ -35,6 +35,7 @@ package com.avail.compiler.instruction;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Tuple;
+import com.avail.io.NybbleOutputStream;
 
 import java.io.ByteArrayOutputStream;
 import java.util.List;
@@ -125,7 +126,7 @@ public abstract class AvailInstruction
 	 *
 	 * @param aStream Where to write the nybbles.
 	 */
-	public abstract void writeNybblesOn (final ByteArrayOutputStream aStream);
+	public abstract void writeNybblesOn (final NybbleOutputStream aStream);
 
 	/**
 	 * The instructions of a block are being iterated over.  Coordinate

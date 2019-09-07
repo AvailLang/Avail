@@ -39,7 +39,9 @@ import java.nio.ByteBuffer;
 
 import static com.avail.descriptor.AvailObject.newLike;
 import static com.avail.descriptor.AvailObject.newObjectIndexedIntegerIndexedDescriptor;
-import static com.avail.descriptor.Mutability.*;
+import static com.avail.descriptor.Mutability.IMMUTABLE;
+import static com.avail.descriptor.Mutability.MUTABLE;
+import static com.avail.descriptor.Mutability.SHARED;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TreeTupleDescriptor.IntegerSlots.CUMULATIVE_SIZES_AREA_;
 import static com.avail.descriptor.TreeTupleDescriptor.IntegerSlots.HASH_OR_ZERO;

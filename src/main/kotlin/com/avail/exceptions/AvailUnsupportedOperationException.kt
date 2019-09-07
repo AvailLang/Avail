@@ -36,8 +36,6 @@ import com.avail.descriptor.AbstractDescriptor
 import com.avail.descriptor.AvailObject
 import com.avail.descriptor.Descriptor
 
-import java.lang.String.format
-
 /**
  * An `AvailUnsupportedOperationException` is thrown whenever an
  * [Avail object][AvailObject]'s [descriptor][Descriptor] is asked to perform an

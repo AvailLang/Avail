@@ -33,8 +33,12 @@
 package com.avail.interpreter.primitive.bootstrap.syntax;
 
 import com.avail.compiler.AvailRejectedParseException;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Type;
 import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
+import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -51,7 +55,9 @@ import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.DECLARATION_PHRASE;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
-import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.interpreter.Primitive.Flag.Bootstrap;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
  * The {@code P_BootstrapVariableDeclarationMacro} primitive is used

@@ -37,7 +37,9 @@ import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
-import static com.avail.descriptor.AbstractDefinitionDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.AbstractDefinitionDescriptor.ObjectSlots.BODY_SIGNATURE;
+import static com.avail.descriptor.AbstractDefinitionDescriptor.ObjectSlots.DEFINITION_METHOD;
+import static com.avail.descriptor.AbstractDefinitionDescriptor.ObjectSlots.MODULE;
 
 
 /**

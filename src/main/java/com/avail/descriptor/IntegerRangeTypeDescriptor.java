@@ -46,10 +46,17 @@ import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.InfinityDescriptor.negativeInfinity;
 import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
-import static com.avail.descriptor.IntegerDescriptor.*;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.IntegerDescriptor.fromLong;
+import static com.avail.descriptor.IntegerDescriptor.one;
+import static com.avail.descriptor.IntegerDescriptor.zero;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.ObjectSlots.LOWER_BOUND;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.ObjectSlots.UPPER_BOUND;
-import static com.avail.descriptor.PojoTypeDescriptor.*;
+import static com.avail.descriptor.PojoTypeDescriptor.byteRange;
+import static com.avail.descriptor.PojoTypeDescriptor.charRange;
+import static com.avail.descriptor.PojoTypeDescriptor.intRange;
+import static com.avail.descriptor.PojoTypeDescriptor.longRange;
+import static com.avail.descriptor.PojoTypeDescriptor.shortRange;
 import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
 
 /**

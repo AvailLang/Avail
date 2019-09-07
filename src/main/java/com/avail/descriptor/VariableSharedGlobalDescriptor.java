@@ -46,8 +46,15 @@ import java.util.WeakHashMap;
 
 import static com.avail.AvailRuntimeSupport.nextHash;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.VariableSharedGlobalDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.VariableSharedGlobalDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.VariableSharedGlobalDescriptor.IntegerSlots.HASH_ALWAYS_SET;
+import static com.avail.descriptor.VariableSharedGlobalDescriptor.IntegerSlots.HASH_AND_MORE;
+import static com.avail.descriptor.VariableSharedGlobalDescriptor.IntegerSlots.VALUE_IS_STABLE;
+import static com.avail.descriptor.VariableSharedGlobalDescriptor.ObjectSlots.DEPENDENT_CHUNKS_WEAK_SET_POJO;
+import static com.avail.descriptor.VariableSharedGlobalDescriptor.ObjectSlots.GLOBAL_NAME;
+import static com.avail.descriptor.VariableSharedGlobalDescriptor.ObjectSlots.KIND;
+import static com.avail.descriptor.VariableSharedGlobalDescriptor.ObjectSlots.MODULE;
+import static com.avail.descriptor.VariableSharedGlobalDescriptor.ObjectSlots.VALUE;
+import static com.avail.descriptor.VariableSharedGlobalDescriptor.ObjectSlots.WRITE_REACTORS;
 
 /**
  * My {@linkplain AvailObject object instances} are {@linkplain

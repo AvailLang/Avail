@@ -33,15 +33,11 @@
 package com.avail.compiler.splitter
 
 import com.avail.compiler.ParsingOperation
-import com.avail.descriptor.A_Tuple
-import com.avail.utility.Pair
-
-import java.util.ArrayList
-import java.util.BitSet
-import java.util.Collections
-
 import com.avail.compiler.ParsingOperation.*
+import com.avail.descriptor.A_Tuple
 import com.avail.descriptor.TupleDescriptor.tupleFromIntegerList
+import com.avail.utility.Pair
+import java.util.*
 
 /**
  * `InstructionGenerator` is used by `MessageSplitter` to accumulate the

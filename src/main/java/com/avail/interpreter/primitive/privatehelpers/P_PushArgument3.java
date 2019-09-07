@@ -44,7 +44,10 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import java.util.List;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
+import static com.avail.interpreter.Primitive.Flag.Private;
+import static com.avail.interpreter.Primitive.Flag.SpecialForm;
 
 /**
  * <strong>Primitive:</strong> The third argument is being returned.

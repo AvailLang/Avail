@@ -32,7 +32,12 @@
 
 package com.avail.interpreter.primitive.phrases;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.DeclarationPhraseDescriptor;
+import com.avail.descriptor.TokenDescriptor;
+import com.avail.descriptor.VariableUsePhraseDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
@@ -43,7 +48,9 @@ import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.DECLARATION_P
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import static com.avail.descriptor.VariableUsePhraseDescriptor.newUse;
-import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
  * <strong>Primitive:</strong> Create a {@linkplain

@@ -35,8 +35,7 @@ package com.avail.compiler.instruction;
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Tuple;
 import com.avail.interpreter.levelOne.L1Operation;
-
-import java.io.ByteArrayOutputStream;
+import com.avail.io.NybbleOutputStream;
 
 /**
  * {@code AvailDuplicate} models the {@link
@@ -60,7 +59,7 @@ extends AvailInstruction
 	}
 
 	@Override
-	public void writeNybblesOn (final ByteArrayOutputStream aStream)
+	public void writeNybblesOn (final NybbleOutputStream aStream)
 	{
 		L1Operation.L1Ext_doDuplicate.writeTo(aStream);
 	}

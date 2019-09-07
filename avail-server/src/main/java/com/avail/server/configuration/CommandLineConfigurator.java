@@ -46,7 +46,12 @@ import com.avail.utility.configuration.Configurator;
 
 import java.io.File;
 
-import static com.avail.server.configuration.CommandLineConfigurator.OptionKey.*;
+import static com.avail.server.configuration.CommandLineConfigurator.OptionKey.AVAIL_RENAMES;
+import static com.avail.server.configuration.CommandLineConfigurator.OptionKey.AVAIL_ROOTS;
+import static com.avail.server.configuration.CommandLineConfigurator.OptionKey.DOCUMENT_ROOT;
+import static com.avail.server.configuration.CommandLineConfigurator.OptionKey.HELP;
+import static com.avail.server.configuration.CommandLineConfigurator.OptionKey.SERVER_AUTHORITY;
+import static com.avail.server.configuration.CommandLineConfigurator.OptionKey.SERVER_PORT;
 import static java.util.Collections.singletonList;
 
 /**

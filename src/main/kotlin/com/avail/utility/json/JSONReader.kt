@@ -37,8 +37,7 @@ import java.io.IOException
 import java.io.Reader
 import java.math.BigDecimal
 import java.nio.charset.MalformedInputException
-import java.util.HashMap
-import java.util.LinkedList
+import java.util.*
 
 /**
  * A `JSONReader` produces [JSON-friendly][JSONFriendly] [ ] given a valid JSON document.

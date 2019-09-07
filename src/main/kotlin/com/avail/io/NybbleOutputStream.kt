@@ -1,6 +1,6 @@
 /*
- * package-info.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * NybbleOutputStream.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,34 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-@NonnullByDefault
-package com.avail.interpreter.levelOne;
-import com.avail.annotations.NonnullByDefault;
+package com.avail.io
+
+import java.io.ByteArrayOutputStream
+
+/**
+ * `NybbleOutputStream` is a [ByteArrayOutputStream] that enforces that only
+ * nybbles — values in `[0..15]` — are written.
+ *
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
+ */
+class NybbleOutputStream
+@JvmOverloads constructor(size: Int = 0): ByteArrayOutputStream(size)
+{
+	override fun write(b: Int)
+	{
+		assert(b < 16) { "b must be in [0..15]" }
+		super.write(b)
+	}
+
+	override fun write(b: ByteArray)
+	{
+		assert(b.all { it < 16 }) { "all bytes must be in [0..15]" }
+		super.write(b)
+	}
+
+	override fun write(b: ByteArray, off: Int, len: Int)
+	{
+		assert((off..len).all { b[it] < 16 }) { "all bytes must be in [0..15]" }
+		super.write(b, off, len)
+	}
+}

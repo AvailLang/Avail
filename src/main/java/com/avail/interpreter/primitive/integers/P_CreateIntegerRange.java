@@ -31,16 +31,24 @@
  */
 package com.avail.interpreter.primitive.integers;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.EnumerationTypeDescriptor;
+import com.avail.descriptor.IntegerRangeTypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.extendedIntegers;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.extendedIntegersMeta;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.integerRangeType;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
  * <strong>Primitive:</strong> Answer the {@linkplain

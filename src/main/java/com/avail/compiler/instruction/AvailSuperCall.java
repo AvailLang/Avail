@@ -32,10 +32,13 @@
 
 package com.avail.compiler.instruction;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Bundle;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.MethodDescriptor;
+import com.avail.descriptor.TupleTypeDescriptor;
 import com.avail.interpreter.levelOne.L1Operation;
-
-import java.io.ByteArrayOutputStream;
+import com.avail.io.NybbleOutputStream;
 
 /**
  * This is a multi-method super-call instruction.  The opcode is followed by:
@@ -85,7 +88,7 @@ public class AvailSuperCall extends AvailCall
 	}
 
 	@Override
-	public void writeNybblesOn (final ByteArrayOutputStream aStream)
+	public void writeNybblesOn (final NybbleOutputStream aStream)
 	{
 		L1Operation.L1Ext_doSuperCall.writeTo(aStream);
 		writeIntegerOn(index, aStream);

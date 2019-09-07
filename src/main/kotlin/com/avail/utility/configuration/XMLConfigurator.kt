@@ -32,8 +32,8 @@
 
 package com.avail.utility.configuration
 
-import javax.xml.parsers.SAXParserFactory
 import java.io.InputStream
+import javax.xml.parsers.SAXParserFactory
 
 /**
  * An `XMLConfigurator` obtains a [configuration][Configuration] by processing

@@ -34,13 +34,15 @@ package com.avail.performance
 
 import com.avail.descriptor.A_BundleTree
 import com.avail.optimizer.StackReifier
+import com.avail.performance.ReportingUnit.DIMENSIONLESS_INTEGRAL
+import com.avail.performance.ReportingUnit.NANOSECONDS
 import com.avail.utility.Pair
 import java.text.Collator
 import java.util.ArrayList
 import java.util.EnumSet
-
-import com.avail.performance.ReportingUnit.DIMENSIONLESS_INTEGRAL
-import com.avail.performance.ReportingUnit.NANOSECONDS
+import kotlin.Comparator
+import kotlin.String
+import kotlin.synchronized
 
 /**
  * The statistic reports requested of the compiler:
@@ -228,6 +230,7 @@ enum class StatisticReport constructor(
 		 * @return
 		 *   The specified reports as a single [String].
 		 */
+		@JvmStatic
 		fun produceReports(reports: EnumSet<StatisticReport>): String
 		{
 			val builder = StringBuilder()

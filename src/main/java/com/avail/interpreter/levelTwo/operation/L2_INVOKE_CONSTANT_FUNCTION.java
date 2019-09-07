@@ -48,7 +48,9 @@ import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static com.avail.interpreter.levelTwo.L2OperandType.CONSTANT;
+import static com.avail.interpreter.levelTwo.L2OperandType.PC;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR;
 
 /**
  * The given (constant) function is invoked.  The function may be a primitive,

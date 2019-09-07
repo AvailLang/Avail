@@ -38,7 +38,15 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2NamedOperandType;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.*;
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
+import com.avail.interpreter.levelTwo.operand.L2FloatImmediateOperand;
+import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
+import com.avail.interpreter.levelTwo.operand.L2Operand;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteFloatOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteOperand;
 import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.interpreter.levelTwo.register.L2FloatRegister;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
@@ -52,7 +60,12 @@ import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static com.avail.interpreter.levelTwo.L2OperandType.CONSTANT;
+import static com.avail.interpreter.levelTwo.L2OperandType.FLOAT_IMMEDIATE;
+import static com.avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_FLOAT;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_INT;
 
 /**
  * Move a constant {@link AvailObject} into a register.  Instances of this

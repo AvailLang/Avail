@@ -33,7 +33,12 @@
 package com.avail.interpreter.primitive.processes;
 
 import com.avail.AvailRuntime;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
 import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.Interpreter;
@@ -47,7 +52,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.ProcessBuilder.Redirect;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
@@ -62,7 +71,9 @@ import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.TupleTypeDescriptor.*;
+import static com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf;
+import static com.avail.descriptor.TupleTypeDescriptor.stringType;
+import static com.avail.descriptor.TupleTypeDescriptor.zeroOrOneOf;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.E_NO_EXTERNAL_PROCESS;
 import static com.avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED;

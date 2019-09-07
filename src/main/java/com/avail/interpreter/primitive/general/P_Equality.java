@@ -31,7 +31,11 @@
  */
 package com.avail.interpreter.primitive.general;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.EnumerationTypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
@@ -41,12 +45,18 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.util.List;
 
-import static com.avail.descriptor.AtomDescriptor.*;
-import static com.avail.descriptor.EnumerationTypeDescriptor.*;
+import static com.avail.descriptor.AtomDescriptor.falseObject;
+import static com.avail.descriptor.AtomDescriptor.objectFromBoolean;
+import static com.avail.descriptor.AtomDescriptor.trueObject;
+import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.EnumerationTypeDescriptor.falseType;
+import static com.avail.descriptor.EnumerationTypeDescriptor.trueType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
-import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
  * <strong>Primitive:</strong> Compare for equality. Answer a {@linkplain

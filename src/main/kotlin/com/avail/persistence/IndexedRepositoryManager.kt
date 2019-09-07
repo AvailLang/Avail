@@ -1354,6 +1354,7 @@ class IndexedRepositoryManager constructor(
 		 * @throws IndexedFileException
 		 *   If an [exception][Exception] occurs.
 		 */
+		@JvmStatic
 		fun createTemporary(
 				rootName: String,
 				prefix: String,

@@ -31,7 +31,12 @@
  */
 package com.avail.interpreter.primitive.pojos;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.IntegerDescriptor;
+import com.avail.descriptor.PojoTypeDescriptor;
 import com.avail.exceptions.MarshalingException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;

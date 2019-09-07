@@ -31,15 +31,14 @@
  */
 package com.avail.compiler.splitter
 
+import com.avail.compiler.ParsingOperation.*
 import com.avail.compiler.splitter.InstructionGenerator.Label
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
 import com.avail.descriptor.A_Phrase
 import com.avail.descriptor.A_Type
-import java.util.ArrayList
-
-import com.avail.compiler.ParsingOperation.*
 import com.avail.descriptor.BottomTypeDescriptor.bottom
 import com.avail.descriptor.ListPhraseTypeDescriptor.emptyListPhraseType
+import java.util.*
 import java.util.Collections.unmodifiableList
 
 /**

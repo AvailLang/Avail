@@ -46,7 +46,9 @@ import static com.avail.descriptor.ByteStringDescriptor.IntegerSlots.HASH_OR_ZER
 import static com.avail.descriptor.ByteStringDescriptor.IntegerSlots.RAW_LONGS_;
 import static com.avail.descriptor.CharacterDescriptor.fromByteCodePoint;
 import static com.avail.descriptor.CharacterDescriptor.hashOfByteCharacterWithCodePoint;
-import static com.avail.descriptor.Mutability.*;
+import static com.avail.descriptor.Mutability.IMMUTABLE;
+import static com.avail.descriptor.Mutability.MUTABLE;
+import static com.avail.descriptor.Mutability.SHARED;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TreeTupleDescriptor.concatenateAtLeastOneTree;
 import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;

@@ -44,7 +44,12 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Opcodes.ALOAD;
+import static org.objectweb.asm.Opcodes.ASTORE;
+import static org.objectweb.asm.Opcodes.DLOAD;
+import static org.objectweb.asm.Opcodes.DSTORE;
+import static org.objectweb.asm.Opcodes.ILOAD;
+import static org.objectweb.asm.Opcodes.ISTORE;
 
 /**
  * {@code L2Register} models the conceptual use of a register by a {@linkplain

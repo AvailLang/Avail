@@ -37,8 +37,7 @@ import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.CompiledCodeDescriptor;
 import com.avail.descriptor.FunctionDescriptor;
 import com.avail.interpreter.levelOne.L1Operation;
-
-import java.io.ByteArrayOutputStream;
+import com.avail.io.NybbleOutputStream;
 
 /**
  * This instruction build a {@linkplain FunctionDescriptor function} from
@@ -77,7 +76,7 @@ public class AvailCloseCode extends AvailInstructionWithIndex
 	}
 
 	@Override
-	public void writeNybblesOn (final ByteArrayOutputStream aStream)
+	public void writeNybblesOn (final NybbleOutputStream aStream)
 	{
 		L1Operation.L1_doClose.writeTo(aStream);
 		writeIntegerOn(numCopiedVars, aStream);

@@ -80,6 +80,7 @@ class TextInterface constructor(
 		 * @return
 		 *   A text interface suitable for managing the system streams.
 		 */
+		@JvmStatic
 		fun system(): TextInterface
 		{
 			return TextInterface(

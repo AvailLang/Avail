@@ -31,12 +31,11 @@
  */
 package com.avail.compiler.splitter
 
-import com.avail.compiler.splitter.MessageSplitter.Metacharacter
-import com.avail.descriptor.A_Type
-
 import com.avail.compiler.ParsingOperation.PARSE_ANY_RAW_TOKEN
 import com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT
 import com.avail.compiler.splitter.MessageSplitter.Companion.indexForConstant
+import com.avail.compiler.splitter.MessageSplitter.Metacharacter
+import com.avail.descriptor.A_Type
 
 /**
  * A `RawTokenArgument` is an occurrence of [ellipsis][Metacharacter.ELLIPSIS]

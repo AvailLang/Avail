@@ -32,7 +32,11 @@
 
 package com.avail.compiler.instruction;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.CompiledCodeDescriptor;
+import com.avail.descriptor.ContinuationDescriptor;
+import com.avail.descriptor.FunctionDescriptor;
 
 /**
  * Push a variable of some sort.

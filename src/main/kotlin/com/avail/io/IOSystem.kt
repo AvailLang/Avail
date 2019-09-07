@@ -33,14 +33,17 @@
 package com.avail.io
 
 import com.avail.AvailRuntime
+import com.avail.AvailRuntimeConfiguration.availableProcessors
 import com.avail.AvailThread
 import com.avail.descriptor.A_String
 import com.avail.descriptor.A_Tuple
 import com.avail.descriptor.AtomDescriptor
 import com.avail.descriptor.AtomDescriptor.SpecialAtom
+import com.avail.descriptor.AvailObject.multiplier
 import com.avail.descriptor.PojoDescriptor
 import com.avail.utility.LRUCache
 import com.avail.utility.MutableOrNull
+import com.avail.utility.Nulls.stripNull
 import com.avail.utility.SimpleThreadFactory
 import java.io.IOException
 import java.nio.channels.AsynchronousChannelGroup
@@ -50,17 +53,13 @@ import java.nio.channels.AsynchronousSocketChannel
 import java.nio.file.*
 import java.nio.file.attribute.FileAttribute
 import java.nio.file.attribute.PosixFilePermission
-import java.util.WeakHashMap
+import java.nio.file.attribute.PosixFilePermission.*
+import java.util.*
+import java.util.Collections.synchronizedMap
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy
 import java.util.concurrent.TimeUnit
-
-import com.avail.AvailRuntimeConfiguration.availableProcessors
-import com.avail.descriptor.AvailObject.multiplier
-import com.avail.utility.Nulls.stripNull
-import java.nio.file.attribute.PosixFilePermission.*
-import java.util.Collections.synchronizedMap
 
 /**
  * This aggregates socket and file I/O information and behavior specific to an
@@ -409,6 +408,7 @@ class IOSystem constructor(val runtime: AvailRuntime)
 	companion object
 	{
 		/** The default [file system][FileSystem].  */
+		@JvmStatic
 		val fileSystem: FileSystem = FileSystems.getDefault()
 
 		/**
@@ -432,6 +432,7 @@ class IOSystem constructor(val runtime: AvailRuntime)
 		 * `false` for an array that forbids symbolic link traversal.
 		 * @return An array of link options.
 		 */
+		@JvmStatic
 		fun followSymlinks(shouldFollow: Boolean): Array<LinkOption> =
 			if (shouldFollow) followSymlinks else doNotFollowSymbolicLinks
 
@@ -439,7 +440,8 @@ class IOSystem constructor(val runtime: AvailRuntime)
 		 * The [POSIX file permissions][PosixFilePermission]. *The order of
 		 * these elements should not be changed!*
 		 */
-		private val posixPermissions = arrayOf(
+		@JvmStatic
+		val posixPermissions = arrayOf(
 			OWNER_READ,
 			OWNER_WRITE,
 			OWNER_EXECUTE,
@@ -449,13 +451,5 @@ class IOSystem constructor(val runtime: AvailRuntime)
 			OTHERS_READ,
 			OTHERS_WRITE,
 			OTHERS_EXECUTE)
-
-		/**
-		 * The [POSIX file permissions][PosixFilePermission].
-		 *
-		 * @return The POSIX file permissions.
-		 */
-		fun posixPermissions(): Array<PosixFilePermission> =
-			posixPermissions
 	}
 }

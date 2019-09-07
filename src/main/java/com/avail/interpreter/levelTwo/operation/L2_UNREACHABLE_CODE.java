@@ -43,7 +43,9 @@ import java.util.List;
 
 import static org.objectweb.asm.Opcodes.ATHROW;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
-import static org.objectweb.asm.Type.*;
+import static org.objectweb.asm.Type.getInternalName;
+import static org.objectweb.asm.Type.getMethodDescriptor;
+import static org.objectweb.asm.Type.getType;
 
 /**
  * This instruction should never be reached.  Stop the VM if it is.  We need the

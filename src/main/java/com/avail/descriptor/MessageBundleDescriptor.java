@@ -41,7 +41,11 @@ import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.DefinitionParsingPlanDescriptor.newParsingPlan;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
-import static com.avail.descriptor.MessageBundleDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.MessageBundleDescriptor.ObjectSlots.DEFINITION_PARSING_PLANS;
+import static com.avail.descriptor.MessageBundleDescriptor.ObjectSlots.GRAMMATICAL_RESTRICTIONS;
+import static com.avail.descriptor.MessageBundleDescriptor.ObjectSlots.MESSAGE;
+import static com.avail.descriptor.MessageBundleDescriptor.ObjectSlots.MESSAGE_SPLITTER_POJO;
+import static com.avail.descriptor.MessageBundleDescriptor.ObjectSlots.METHOD;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE;

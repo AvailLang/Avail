@@ -40,13 +40,19 @@ import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.io.IOException;
-import java.net.*;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.net.UnknownHostException;
 import java.nio.channels.AsynchronousSocketChannel;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.SOCKET_KEY;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.bytes;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.singleInt;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.unsignedShorts;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.SetDescriptor.set;
@@ -54,7 +60,10 @@ import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
 import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.exceptions.AvailErrorCode.E_INVALID_HANDLE;
+import static com.avail.exceptions.AvailErrorCode.E_IO_ERROR;
+import static com.avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED;
+import static com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 

@@ -38,7 +38,11 @@ import com.avail.builder.ModuleNameResolver;
 import com.avail.builder.UnresolvedDependencyException;
 import com.avail.compiler.ModuleHeader;
 import com.avail.compiler.ModuleImport;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.CommentTokenDescriptor;
 import com.avail.utility.Pair;
 import com.avail.utility.json.JSONWriter;
 
@@ -47,8 +51,14 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.SetDescriptor.setFromCollection;

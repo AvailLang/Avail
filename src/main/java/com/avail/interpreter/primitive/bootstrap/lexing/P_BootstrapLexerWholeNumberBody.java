@@ -32,7 +32,11 @@
 
 package com.avail.interpreter.primitive.bootstrap.lexing;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.IntegerDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
@@ -43,7 +47,10 @@ import static com.avail.descriptor.LexerDescriptor.lexerBodyFunctionType;
 import static com.avail.descriptor.LiteralTokenDescriptor.literalToken;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.SetDescriptor.set;
-import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.interpreter.Primitive.Flag.Bootstrap;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
  * The {@code P_BootstrapLexerWholeNumberBody} primitive is used for parsing

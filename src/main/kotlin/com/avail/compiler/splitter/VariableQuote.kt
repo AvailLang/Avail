@@ -31,13 +31,12 @@
  */
 package com.avail.compiler.splitter
 
-import com.avail.compiler.splitter.MessageSplitter.Metacharacter
-import java.util.IdentityHashMap
-
 import com.avail.compiler.ParsingOperation.*
 import com.avail.compiler.splitter.MessageSplitter.Companion.indexForConstant
+import com.avail.compiler.splitter.MessageSplitter.Metacharacter
 import com.avail.descriptor.*
 import com.avail.utility.Nulls.stripNull
+import java.util.*
 
 /**
  * A `VariableQuote` is an occurrence of [up arrow][Metacharacter.UP_ARROW] (↑)

@@ -1,6 +1,6 @@
 /*
- * L1OperandTypeDispatcher.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * L1OperandTypeDispatcher.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,45 +30,45 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.levelOne;
+package com.avail.interpreter.levelOne
 
-import com.avail.descriptor.FunctionDescriptor;
+import com.avail.descriptor.FunctionDescriptor
 
 /**
- * A visitor for {@linkplain L1OperandType}s.
+ * A visitor for [L1OperandType]s.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-interface L1OperandTypeDispatcher
+internal interface L1OperandTypeDispatcher
 {
 	/**
-	 * The operand is an {@linkplain L1OperandType#IMMEDIATE immediate value},
-	 * encoding an integer as itself.
+	 * The operand is an [immediate value][L1OperandType.IMMEDIATE], encoding an
+	 * integer as itself.
 	 */
-	void doImmediate ();
+	fun doImmediate()
 
 	/**
-	 * The operand is a {@linkplain L1OperandType#LITERAL literal value},
-	 * encoded by a subscript into some list of literals.
+	 * The operand is a [literal value][L1OperandType.LITERAL], encoded by a
+	 * subscript into some list of literals.
 	 */
-	void doLiteral ();
+	fun doLiteral()
 
 	/**
-	 * The operand is a {@linkplain L1OperandType#LOCAL local}, encoded by a
-	 * subscript into the arguments and locals area.
+	 * The operand is a [local][L1OperandType.LOCAL], encoded by a subscript
+	 * into the arguments and locals area.
 	 */
-	void doLocal ();
+	fun doLocal()
 
 	/**
-	 * The operand is a declaration {@linkplain L1OperandType#OUTER captured}
-	 * set an outer scope, encoded as a subscript into some {@linkplain
-	 * FunctionDescriptor function}'s list of outer variables.
+	 * The operand is a declaration [captured][L1OperandType.OUTER] set an outer
+	 * scope, encoded as a subscript into some [function][FunctionDescriptor]'s
+	 * list of outer variables.
 	 */
-	void doOuter ();
+	fun doOuter()
 
 	/**
 	 * The operand is an extension nybblecode, indicating that the current
-	 * {@link L1Operation} has an ordinal equal to the next nybble plus 16.
+	 * [L1Operation] has an ordinal equal to the next nybble plus 16.
 	 */
-	void doExtension ();
+	fun doExtension()
 }

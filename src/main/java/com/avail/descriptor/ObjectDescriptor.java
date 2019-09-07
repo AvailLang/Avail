@@ -41,7 +41,13 @@ import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Strings;
 import com.avail.utility.json.JSONWriter;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.IdentityHashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY;
 import static com.avail.descriptor.AvailObject.multiplier;
@@ -52,7 +58,9 @@ import static com.avail.descriptor.ObjectDescriptor.IntegerSlots.HASH_AND_MORE;
 import static com.avail.descriptor.ObjectDescriptor.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.ObjectDescriptor.ObjectSlots.FIELD_VALUES_;
 import static com.avail.descriptor.ObjectDescriptor.ObjectSlots.KIND;
-import static com.avail.descriptor.ObjectTupleDescriptor.*;
+import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.ObjectTypeDescriptor.namesAndBaseTypesForObjectType;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;

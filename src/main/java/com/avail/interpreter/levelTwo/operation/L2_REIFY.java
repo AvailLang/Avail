@@ -55,7 +55,11 @@ import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 import static com.avail.utility.Strings.increaseIndentation;
 import static org.objectweb.asm.Opcodes.ASTORE;
 import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
-import static org.objectweb.asm.Type.*;
+import static org.objectweb.asm.Type.BOOLEAN_TYPE;
+import static org.objectweb.asm.Type.INT_TYPE;
+import static org.objectweb.asm.Type.getInternalName;
+import static org.objectweb.asm.Type.getMethodDescriptor;
+import static org.objectweb.asm.Type.getType;
 
 /**
  * Create a StackReifier and jump to the "on reification" label.  This will

@@ -31,7 +31,11 @@
  */
 package com.avail.interpreter.primitive.sets;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.SetDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
@@ -44,7 +48,9 @@ import static com.avail.descriptor.IntegerRangeTypeDescriptor.integerRangeType;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.SetTypeDescriptor.mostGeneralSetType;
 import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
-import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
  * <strong>Primitive:</strong> Answer the union of two {@linkplain

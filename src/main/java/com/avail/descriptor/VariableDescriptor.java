@@ -57,9 +57,14 @@ import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.VariableDescriptor.IntegerSlots.HASH_AND_MORE;
 import static com.avail.descriptor.VariableDescriptor.IntegerSlots.HASH_OR_ZERO;
-import static com.avail.descriptor.VariableDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.VariableDescriptor.ObjectSlots.KIND;
+import static com.avail.descriptor.VariableDescriptor.ObjectSlots.VALUE;
+import static com.avail.descriptor.VariableDescriptor.ObjectSlots.WRITE_REACTORS;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
-import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.exceptions.AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE;
+import static com.avail.exceptions.AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE;
+import static com.avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND;
+import static com.avail.exceptions.AvailErrorCode.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED;
 
 /**
  * My {@linkplain AvailObject object instances} are variables which can hold

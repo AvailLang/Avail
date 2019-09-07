@@ -31,7 +31,11 @@
  */
 package com.avail.interpreter.primitive.pojos;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.RawPojoDescriptor;
 import com.avail.exceptions.MarshalingException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
@@ -59,7 +63,9 @@ import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.RAW_POJO;
-import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED;
+import static com.avail.exceptions.AvailErrorCode.E_JAVA_METHOD_NOT_AVAILABLE;
+import static com.avail.exceptions.AvailErrorCode.E_POJO_TYPE_IS_ABSTRACT;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.primitive.pojos.PrimitiveHelper.rawPojoInvokerFunctionFromFunctionType;

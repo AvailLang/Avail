@@ -32,7 +32,11 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.FiberDescriptor.*;
+import com.avail.descriptor.FiberDescriptor.ExecutionState;
+import com.avail.descriptor.FiberDescriptor.GeneralFlag;
+import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
+import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
+import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.interpreter.AvailLoader;
 import com.avail.io.TextInterface;
 import com.avail.utility.evaluation.Continuation1;

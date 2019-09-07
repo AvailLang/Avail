@@ -31,25 +31,24 @@
  */
 package com.avail.compiler.splitter
 
-import com.avail.compiler.splitter.InstructionGenerator.Label
-import com.avail.compiler.splitter.MessageSplitter.Metacharacter
-import com.avail.descriptor.A_Phrase
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
-import com.avail.exceptions.SignatureException
-import java.util.Collections
-
 import com.avail.compiler.ParsingOperation.PUSH_LITERAL
 import com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT
+import com.avail.compiler.splitter.InstructionGenerator.Label
 import com.avail.compiler.splitter.MessageSplitter.Companion.indexForConstant
 import com.avail.compiler.splitter.MessageSplitter.Companion.throwSignatureException
+import com.avail.compiler.splitter.MessageSplitter.Metacharacter
 import com.avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS
+import com.avail.descriptor.A_Phrase
+import com.avail.descriptor.A_Type
 import com.avail.descriptor.BottomTypeDescriptor.bottom
 import com.avail.descriptor.IntegerDescriptor.fromInt
 import com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive
 import com.avail.descriptor.ListPhraseTypeDescriptor.emptyListPhraseType
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_NUMBERED_CHOICE
+import com.avail.exceptions.SignatureException
 import com.avail.utility.Nulls.stripNull
+import java.util.*
 
 /**
  * A `NumberedChoice` is a special subgroup (i.e., not a root group) indicated

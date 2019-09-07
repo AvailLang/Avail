@@ -2,5 +2,5 @@
 /libraries
 /modules
 /workspace.xml
-modules.xml
-compiler.xml
+/modules.xml
+/compiler.xml

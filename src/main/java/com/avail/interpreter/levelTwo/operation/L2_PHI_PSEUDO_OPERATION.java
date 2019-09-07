@@ -35,18 +35,38 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2NamedOperandType;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.*;
+import com.avail.interpreter.levelTwo.operand.L2Operand;
+import com.avail.interpreter.levelTwo.operand.L2PcOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadFloatOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteOperand;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.interpreter.levelTwo.register.L2FloatRegister;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
-import com.avail.optimizer.*;
+import com.avail.optimizer.L2BasicBlock;
+import com.avail.optimizer.L2ControlFlowGraph;
+import com.avail.optimizer.L2Generator;
+import com.avail.optimizer.L2ValueManifest;
+import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_INT_VECTOR;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_FLOAT;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_INT;
 
 /**
  * The {@code L2_PHI_PSEUDO_OPERATION} occurs at the start of a {@link

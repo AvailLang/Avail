@@ -44,7 +44,10 @@ import static com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationL
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
-import static com.avail.descriptor.ListPhraseTypeDescriptor.*;
+import static com.avail.descriptor.ListPhraseTypeDescriptor.list;
+import static com.avail.descriptor.ListPhraseTypeDescriptor.listPrefix;
+import static com.avail.descriptor.ListPhraseTypeDescriptor.zeroOrMoreList;
+import static com.avail.descriptor.ListPhraseTypeDescriptor.zeroOrOneList;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.PhraseTypeDescriptor.Constants.stringLiteralType;

@@ -47,8 +47,13 @@ import java.util.List;
 
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.ON_RAMP;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
-import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Type.*;
+import static org.objectweb.asm.Opcodes.ARETURN;
+import static org.objectweb.asm.Opcodes.GETFIELD;
+import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
+import static org.objectweb.asm.Type.getDescriptor;
+import static org.objectweb.asm.Type.getInternalName;
+import static org.objectweb.asm.Type.getMethodDescriptor;
+import static org.objectweb.asm.Type.getType;
 
 /**
  * Use the {@link Interpreter#levelOneStepper} to execute the Level One

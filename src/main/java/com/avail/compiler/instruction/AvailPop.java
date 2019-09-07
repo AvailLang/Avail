@@ -36,8 +36,7 @@ import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.ContinuationDescriptor;
 import com.avail.interpreter.levelOne.L1Operation;
-
-import java.io.ByteArrayOutputStream;
+import com.avail.io.NybbleOutputStream;
 
 /**
  * The {@code AvailPop} instruction represents the removal of one element from
@@ -60,7 +59,7 @@ public class AvailPop extends AvailInstruction
 	}
 
 	@Override
-	public void writeNybblesOn (final ByteArrayOutputStream aStream)
+	public void writeNybblesOn (final NybbleOutputStream aStream)
 	{
 		L1Operation.L1_doPop.writeTo(aStream);
 	}

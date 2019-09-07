@@ -32,7 +32,11 @@
 
 package com.avail.interpreter.primitive.bootstrap.syntax;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Bundle;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_Type;
 import com.avail.exceptions.AmbiguousNameException;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.AvailLoader;
@@ -50,7 +54,10 @@ import static com.avail.descriptor.ListPhraseDescriptor.emptyListNode;
 import static com.avail.descriptor.ListPhraseDescriptor.newListNode;
 import static com.avail.descriptor.LiteralPhraseDescriptor.syntheticLiteralNodeFor;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
-import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.*;
+import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.CREATE_LITERAL_PHRASE;
+import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.CREATE_LITERAL_TOKEN;
+import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.MACRO_DEFINER;
+import static com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.METHOD_DEFINER;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.SEQUENCE_PHRASE;
@@ -59,7 +66,9 @@ import static com.avail.descriptor.SequencePhraseDescriptor.newSequence;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
 import static com.avail.interpreter.Primitive.Flag.Bootstrap;
 import static com.avail.interpreter.Primitive.Flag.CanInline;

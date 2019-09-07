@@ -48,7 +48,16 @@ import com.avail.utility.evaluation.SimpleDescriber;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.PriorityQueue;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -74,7 +83,10 @@ import static com.avail.utility.Strings.lineBreakPattern;
 import static com.avail.utility.evaluation.Combinator.recurse;
 import static java.lang.Math.min;
 import static java.lang.String.format;
-import static java.util.Collections.*;
+import static java.util.Collections.emptyIterator;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.reverseOrder;
+import static java.util.Collections.sort;
 
 /**
  * This tracks the problems encountered while compiling a single module.

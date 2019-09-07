@@ -38,7 +38,11 @@ import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.EnumSet;
+import java.util.IdentityHashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 import static com.avail.descriptor.AtomDescriptor.falseObject;
 import static com.avail.descriptor.AtomDescriptor.trueObject;

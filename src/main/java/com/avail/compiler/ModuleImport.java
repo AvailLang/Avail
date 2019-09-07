@@ -33,8 +33,17 @@
 package com.avail.compiler;
 
 import com.avail.builder.ModuleName;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.MapDescriptor;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
+import com.avail.descriptor.NilDescriptor;
+import com.avail.descriptor.SetDescriptor;
+import com.avail.descriptor.StringDescriptor;
+import com.avail.descriptor.TupleDescriptor;
 import com.avail.serialization.MalformedSerialStreamException;
 
 import static com.avail.descriptor.AtomDescriptor.objectFromBoolean;

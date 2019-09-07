@@ -46,8 +46,14 @@ import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
 import java.util.Set;
 
-import static com.avail.tools.bootstrap.Resources.Key.*;
-import static com.avail.tools.bootstrap.Resources.*;
+import static com.avail.tools.bootstrap.Resources.Key.specialObjectCommentTemplate;
+import static com.avail.tools.bootstrap.Resources.Key.specialObjectCommentTypeTemplate;
+import static com.avail.tools.bootstrap.Resources.Key.specialObjectCommentValueTemplate;
+import static com.avail.tools.bootstrap.Resources.escape;
+import static com.avail.tools.bootstrap.Resources.specialObjectCommentKey;
+import static com.avail.tools.bootstrap.Resources.specialObjectKey;
+import static com.avail.tools.bootstrap.Resources.specialObjectTypeKey;
+import static com.avail.tools.bootstrap.Resources.specialObjectsBaseName;
 
 /**
  * Generate a {@linkplain PropertyResourceBundle property resource bundle} that

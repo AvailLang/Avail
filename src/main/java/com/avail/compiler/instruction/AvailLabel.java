@@ -36,8 +36,7 @@ import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.BlockPhraseDescriptor;
 import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
-
-import java.io.ByteArrayOutputStream;
+import com.avail.io.NybbleOutputStream;
 
 /**
  * An {@code AvailLabel} is a pseudo-instruction in the {@linkplain
@@ -68,7 +67,7 @@ public class AvailLabel extends AvailInstruction
 
 	@Override
 	public void writeNybblesOn (
-		final ByteArrayOutputStream aStream)
+		final NybbleOutputStream aStream)
 	{
 		// A label pseudo-instruction has no actual nybblecode instructions
 		// generated for it.

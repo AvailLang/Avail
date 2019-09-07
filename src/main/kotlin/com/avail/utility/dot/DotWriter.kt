@@ -38,6 +38,7 @@ import com.avail.utility.CheckedConsumer
 import com.avail.utility.Pair
 import com.avail.utility.Strings.tabs
 import com.avail.utility.dot.DotWriter.AttributeWriter
+import com.avail.utility.dot.DotWriter.DefaultAttributeBlockType.*
 import java.io.IOException
 import java.lang.Math.max
 import java.lang.Math.min

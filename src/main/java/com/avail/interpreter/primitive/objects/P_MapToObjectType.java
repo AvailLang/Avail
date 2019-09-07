@@ -31,7 +31,13 @@
  */
 package com.avail.interpreter.primitive.objects;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AtomDescriptor;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.InstanceTypeDescriptor;
+import com.avail.descriptor.MapDescriptor;
+import com.avail.descriptor.ObjectTypeDescriptor;
+import com.avail.descriptor.TypeDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
@@ -44,7 +50,9 @@ import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.ObjectTypeDescriptor.mostGeneralObjectMeta;
 import static com.avail.descriptor.ObjectTypeDescriptor.objectTypeFromMap;
 import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
-import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
  * <strong>Primitive:</strong> Convert a {@linkplain MapDescriptor map}

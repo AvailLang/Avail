@@ -32,7 +32,12 @@
 
 package com.avail.interpreter.primitive.phrases;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.BlockPhraseDescriptor;
+import com.avail.descriptor.FunctionDescriptor;
 import com.avail.exceptions.AvailRuntimeException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -48,7 +53,9 @@ import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.BLOCK_PHRASE;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.exceptions.AvailErrorCode.E_BLOCK_COMPILATION_FAILED;
+import static com.avail.exceptions.AvailErrorCode.E_BLOCK_IS_INVALID;
+import static com.avail.exceptions.AvailErrorCode.E_BLOCK_MUST_NOT_CONTAIN_OUTERS;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 

@@ -44,10 +44,14 @@ import static com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationL
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.SUPER_CAST_PHRASE;
 import static com.avail.descriptor.SuperCastPhraseDescriptor.newSuperCastNode;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
-import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.interpreter.Primitive.Flag.Bootstrap;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
  * The {@code P_BootstrapSuperCastMacro} primitive is used to create a

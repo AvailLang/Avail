@@ -54,7 +54,9 @@ import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.exceptions.AvailErrorCode.E_INVALID_HANDLE;
+import static com.avail.exceptions.AvailErrorCode.E_NOT_OPEN_FOR_READ;
+import static com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 

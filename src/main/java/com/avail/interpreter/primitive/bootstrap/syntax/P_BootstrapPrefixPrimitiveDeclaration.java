@@ -33,8 +33,12 @@
 package com.avail.interpreter.primitive.bootstrap.syntax;
 
 import com.avail.compiler.AvailRejectedParseException;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Type;
 import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
+import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
@@ -53,11 +57,15 @@ import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE;
-import static com.avail.descriptor.TupleTypeDescriptor.*;
+import static com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf;
+import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
+import static com.avail.descriptor.TupleTypeDescriptor.zeroOrOneOf;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
-import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.interpreter.Primitive.Flag.Bootstrap;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
 import static com.avail.utility.Nulls.stripNull;
 
 /**

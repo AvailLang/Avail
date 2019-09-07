@@ -48,7 +48,10 @@ import static com.avail.descriptor.PrimitiveTypeDescriptor.IntegerSlots.HASH;
 import static com.avail.descriptor.PrimitiveTypeDescriptor.ObjectSlots.NAME;
 import static com.avail.descriptor.PrimitiveTypeDescriptor.ObjectSlots.PARENT;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
+import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
+import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
+import static com.avail.descriptor.TypeDescriptor.Types.all;
 import static com.avail.utility.Nulls.stripNull;
 
 /**

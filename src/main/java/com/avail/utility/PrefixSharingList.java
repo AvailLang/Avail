@@ -33,7 +33,14 @@
 package com.avail.utility;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.AbstractList;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.NoSuchElementException;
 
 import static com.avail.utility.Nulls.stripNull;
 import static java.util.Collections.singletonList;

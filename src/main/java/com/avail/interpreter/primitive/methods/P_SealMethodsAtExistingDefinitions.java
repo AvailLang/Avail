@@ -33,7 +33,14 @@
 package com.avail.interpreter.primitive.methods;
 
 import com.avail.AvailRuntime;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Bundle;
+import com.avail.descriptor.A_Definition;
+import com.avail.descriptor.A_Method;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
 import com.avail.exceptions.AvailRuntimeException;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.AvailLoader;

@@ -32,8 +32,14 @@
 
 package com.avail.interpreter.primitive.fibers;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AtomDescriptor;
 import com.avail.descriptor.AtomDescriptor.SpecialAtom;
+import com.avail.descriptor.FiberDescriptor;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;

@@ -37,9 +37,9 @@ import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.ContinuationDescriptor;
 import com.avail.interpreter.levelOne.L1Operation;
+import com.avail.io.NybbleOutputStream;
 
 import javax.annotation.Nullable;
-import java.io.ByteArrayOutputStream;
 import java.util.List;
 
 /**
@@ -69,7 +69,7 @@ public class AvailGetLocalVariable extends AvailGetVariable
 
 	@Override
 	public void writeNybblesOn (
-			final ByteArrayOutputStream aStream)
+			final NybbleOutputStream aStream)
 	{
 		//  Write nybbles to the stream (a WriteStream on a ByteArray).
 

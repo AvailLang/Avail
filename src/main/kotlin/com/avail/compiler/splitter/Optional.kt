@@ -32,26 +32,25 @@
 package com.avail.compiler.splitter
 
 import com.avail.compiler.ParsingOperation
+import com.avail.compiler.ParsingOperation.*
 import com.avail.compiler.splitter.InstructionGenerator.Label
-import com.avail.compiler.splitter.MessageSplitter.*
+import com.avail.compiler.splitter.MessageSplitter.Companion.indexForFalse
+import com.avail.compiler.splitter.MessageSplitter.Companion.indexForTrue
+import com.avail.compiler.splitter.MessageSplitter.Companion.throwSignatureException
+import com.avail.compiler.splitter.MessageSplitter.Metacharacter
+import com.avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS
 import com.avail.descriptor.A_Phrase
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AtomDescriptor
 import com.avail.descriptor.EnumerationTypeDescriptor
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
-import com.avail.exceptions.SignatureException
-import com.avail.utility.evaluation.Continuation0
-import java.util.Collections
-
-import com.avail.compiler.ParsingOperation.*
-import com.avail.compiler.splitter.MessageSplitter.Companion.indexForTrue
-import com.avail.compiler.splitter.MessageSplitter.Companion.indexForFalse
-import com.avail.compiler.splitter.MessageSplitter.Companion.throwSignatureException
-import com.avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS
 import com.avail.descriptor.EnumerationTypeDescriptor.booleanType
 import com.avail.descriptor.ListPhraseTypeDescriptor.emptyListPhraseType
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_BOOLEAN_GROUP
+import com.avail.exceptions.SignatureException
 import com.avail.utility.Nulls.stripNull
+import com.avail.utility.evaluation.Continuation0
+import java.util.*
 
 /**
  * An `Optional` is a [Sequence] wrapped in guillemets («»), and followed by a

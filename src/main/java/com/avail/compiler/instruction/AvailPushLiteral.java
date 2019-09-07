@@ -36,8 +36,7 @@ import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Tuple;
 import com.avail.descriptor.ContinuationDescriptor;
 import com.avail.interpreter.levelOne.L1Operation;
-
-import java.io.ByteArrayOutputStream;
+import com.avail.io.NybbleOutputStream;
 
 /**
  * {@code AvailPushLiteral} is an instruction that represents pushing a
@@ -64,7 +63,7 @@ public class AvailPushLiteral extends AvailInstructionWithIndex
 	}
 
 	@Override
-	public void writeNybblesOn (final ByteArrayOutputStream aStream)
+	public void writeNybblesOn (final NybbleOutputStream aStream)
 	{
 		L1Operation.L1_doPushLiteral.writeTo(aStream);
 		writeIntegerOn(index, aStream);

@@ -34,7 +34,11 @@ package com.avail.interpreter.primitive.bootstrap.syntax;
 
 import com.avail.compiler.AvailCompiler;
 import com.avail.compiler.AvailRejectedParseException;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -46,11 +50,15 @@ import static com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationL
 import static com.avail.descriptor.DeclarationPhraseDescriptor.newConstant;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LOCAL_CONSTANT_PHRASE;
 import static com.avail.descriptor.TokenDescriptor.TokenType.KEYWORD;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
-import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.interpreter.Primitive.Flag.Bootstrap;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
  * The {@code P_BootstrapConstantDeclarationMacro} primitive is used for

@@ -41,9 +41,9 @@ import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.primitive.controlflow.P_ExitContinuationWithResult;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments;
+import com.avail.io.NybbleOutputStream;
 
 import javax.annotation.Nullable;
-import java.io.ByteArrayOutputStream;
 import java.util.List;
 
 /**
@@ -77,7 +77,7 @@ public class AvailPushLabel extends AvailInstruction
 	}
 
 	@Override
-	public void writeNybblesOn (final ByteArrayOutputStream aStream)
+	public void writeNybblesOn (final NybbleOutputStream aStream)
 	{
 		L1Operation.L1Ext_doPushLabel.writeTo(aStream);
 	}

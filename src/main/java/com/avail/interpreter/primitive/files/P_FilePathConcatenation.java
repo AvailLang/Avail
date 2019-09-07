@@ -32,7 +32,11 @@
 
 package com.avail.interpreter.primitive.files;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.StringDescriptor;
+import com.avail.descriptor.TupleDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.io.IOSystem;
@@ -79,7 +83,7 @@ extends Primitive
 	{
 		interpreter.checkArgumentCount(1);
 		final A_Tuple tuple = interpreter.argument(0);
-		final FileSystem fileSystem = IOSystem.Companion.getFileSystem();
+		final FileSystem fileSystem = IOSystem.getFileSystem();
 		@Nullable Path path = null;
 		try
 		{

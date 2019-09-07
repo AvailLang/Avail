@@ -31,7 +31,11 @@
  */
 package com.avail.interpreter.primitive.phrases;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.TokenDescriptor;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -44,9 +48,17 @@ import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.SetDescriptor.set;
-import static com.avail.descriptor.TokenDescriptor.TokenType.*;
+import static com.avail.descriptor.TokenDescriptor.TokenType.COMMENT;
+import static com.avail.descriptor.TokenDescriptor.TokenType.END_OF_FILE;
+import static com.avail.descriptor.TokenDescriptor.TokenType.KEYWORD;
+import static com.avail.descriptor.TokenDescriptor.TokenType.LITERAL;
+import static com.avail.descriptor.TokenDescriptor.TokenType.OPERATOR;
+import static com.avail.descriptor.TokenDescriptor.TokenType.WHITESPACE;
+import static com.avail.descriptor.TokenDescriptor.TokenType.lookupTokenType;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
-import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
  * <strong>Primitive:</strong> Get the specified {@linkplain TokenDescriptor

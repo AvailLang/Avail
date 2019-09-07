@@ -43,7 +43,10 @@ import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.exceptions.AvailErrorCode.E_CANNOT_MARK_HANDLER_FRAME;
+import static com.avail.exceptions.AvailErrorCode.E_HANDLER_SENTINEL;
+import static com.avail.exceptions.AvailErrorCode.E_NO_HANDLER_FRAME;
+import static com.avail.exceptions.AvailErrorCode.E_UNWIND_SENTINEL;
 import static com.avail.interpreter.Primitive.Flag.CanSuspend;
 import static com.avail.interpreter.Primitive.Flag.Unknown;
 

@@ -32,7 +32,13 @@
 
 package com.avail.interpreter.levelTwo.operand;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.BottomTypeDescriptor;
+import com.avail.descriptor.NilDescriptor;
+import com.avail.descriptor.SetDescriptor;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_EQUALS_CONSTANT;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_CONSTANT;
 import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
@@ -40,7 +46,11 @@ import com.avail.interpreter.levelTwo.register.L2FloatRegister;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
@@ -49,11 +59,16 @@ import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.SetDescriptor.*;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.SetDescriptor.setFromCollection;
+import static com.avail.descriptor.SetDescriptor.toSet;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.descriptor.TypeDescriptor.isProperSubtype;
-import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.*;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.IMMUTABLE;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_FLOAT;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT;
 import static java.util.Collections.singleton;
 import static java.util.Collections.unmodifiableSet;
 

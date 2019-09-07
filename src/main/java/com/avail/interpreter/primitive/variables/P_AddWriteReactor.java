@@ -32,7 +32,12 @@
 
 package com.avail.interpreter.primitive.variables;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.A_Variable;
+import com.avail.descriptor.AtomDescriptor;
+import com.avail.descriptor.VariableDescriptor;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -50,7 +55,9 @@ import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType;
 import static com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM;
-import static com.avail.interpreter.Primitive.Fallibility.*;
+import static com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail;
+import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
+import static com.avail.interpreter.Primitive.Fallibility.CallSiteMustFail;
 import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 
 /**

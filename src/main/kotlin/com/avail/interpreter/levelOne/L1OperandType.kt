@@ -1,6 +1,6 @@
 /*
- * L1OperandType.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * L1OperandType.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,101 +30,87 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.levelOne;
+package com.avail.interpreter.levelOne
 
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.CompiledCodeDescriptor;
-import com.avail.descriptor.FunctionDescriptor;
-
+import com.avail.descriptor.AvailObject
+import com.avail.descriptor.CompiledCodeDescriptor
+import com.avail.descriptor.FunctionDescriptor
 
 
 /**
- * An L1 instruction consists of an {@link L1Operation} and its operands, each
- * implicitly described by the operation's {@link L1OperandType}s.  These
- * operand types say how to interpret some integer that occurs as the encoding
- * of an actual operand of an instruction.
+ * An L1 instruction consists of an [L1Operation] and its operands, each
+ * implicitly described by the operation's [L1OperandType]s.  These operand
+ * types say how to interpret some integer that occurs as the encoding of an
+ * actual operand of an instruction.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public enum L1OperandType
+enum class L1OperandType
 {
 	/**
 	 * The integer in the nybblecode stream is to be treated as itself, a simple
 	 * integer.
 	 */
-	IMMEDIATE()
+	IMMEDIATE
 	{
-		@Override
-		void dispatch(final L1OperandTypeDispatcher dispatcher)
-		{
-			dispatcher.doImmediate();
-		}
+		override fun dispatch(dispatcher: L1OperandTypeDispatcher) =
+			dispatcher.doImmediate()
 	},
+
 	/**
 	 * The integer in the nybblecode stream is to be treated as an index into
-	 * the current {@linkplain CompiledCodeDescriptor compiled code} object's
-	 * {@linkplain AvailObject#literalAt(int) literals}.
-	 * This allows instructions to refer to arbitrary {@linkplain AvailObject}s.
+	 * the current [compiled code][CompiledCodeDescriptor] object's
+	 * [literals][AvailObject.literalAt]. This allows instructions to refer to
+	 * arbitrary [AvailObject]s.
 	 */
-	LITERAL()
+	LITERAL
 	{
-		@Override
-		void dispatch(final L1OperandTypeDispatcher dispatcher)
-		{
-			dispatcher.doLiteral();
-		}
+		override fun dispatch(dispatcher: L1OperandTypeDispatcher) =
+			dispatcher.doLiteral()
 	},
+
 	/**
 	 * The integer in the nybblecode stream is to be treated as an index into
 	 * the arguments and local variables of the continuation.  The arguments
 	 * come first, numbered from 1, then the local variables.
 	 */
-	LOCAL()
+	LOCAL
 	{
-		@Override
-		void dispatch(final L1OperandTypeDispatcher dispatcher)
-		{
-			dispatcher.doLocal();
-		}
+		override fun dispatch(dispatcher: L1OperandTypeDispatcher) =
+			dispatcher.doLocal()
 	},
+
 	/**
 	 * The integer in the nybblecode stream is to be treated as an index into
-	 * the current {@linkplain FunctionDescriptor function}'s captured outer
-	 * variables.
+	 * the current [function][FunctionDescriptor]'s captured outer variables.
 	 */
-	OUTER()
+	OUTER
 	{
-		@Override
-		void dispatch(final L1OperandTypeDispatcher dispatcher)
-		{
-			dispatcher.doOuter();
-		}
+		override fun dispatch(dispatcher: L1OperandTypeDispatcher) =
+			dispatcher.doOuter()
 	},
+
 	/**
 	 * The next nybble from the nybblecode stream is to be treated as an
 	 * extended nybblecode.  For some purposes it can be treated as though the
 	 * value 16 has been added to it, bringing it into the range 16..31.
 	 */
-	EXTENSION()
+	EXTENSION
 	{
-		@Override
-		void dispatch(final L1OperandTypeDispatcher dispatcher)
-		{
-			dispatcher.doExtension();
-		}
+		override fun dispatch(dispatcher: L1OperandTypeDispatcher) =
+			dispatcher.doExtension()
 	};
 
 	/**
-	 * Invoke an operation on the {@link L1OperandTypeDispatcher} which is
-	 * specific to which {@link L1OperandType} the receiver is.  Subclasses of
-	 * {@code L1OperandTypeDispatcher} will perform something suitable for that
+	 * Invoke an operation on the [L1OperandTypeDispatcher] which is specific to
+	 * which [L1OperandType] the receiver is.  Subclasses of
+	 * `L1OperandTypeDispatcher` will perform something suitable for that
 	 * subclass, perhaps consuming and interpreting an operand from a nybblecode
 	 * stream.
 	 *
 	 * @param dispatcher
-	 *            The {@link L1OperandTypeDispatcher} on which to invoke a
-	 *            method specific to this operand type.
+	 *   The [L1OperandTypeDispatcher] on which to invoke a method specific to
+	 *   this operand type.
 	 */
-	abstract void dispatch(L1OperandTypeDispatcher dispatcher);
-
+	internal abstract fun dispatch(dispatcher: L1OperandTypeDispatcher)
 }

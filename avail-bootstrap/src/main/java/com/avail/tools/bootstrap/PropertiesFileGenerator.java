@@ -47,9 +47,11 @@ import java.util.Locale;
 import java.util.Properties;
 import java.util.ResourceBundle;
 
-import static com.avail.tools.bootstrap.Resources.*;
 import static com.avail.tools.bootstrap.Resources.Key.generatedPropertiesNotice;
 import static com.avail.tools.bootstrap.Resources.Key.propertiesCopyright;
+import static com.avail.tools.bootstrap.Resources.localName;
+import static com.avail.tools.bootstrap.Resources.preambleBaseName;
+import static com.avail.tools.bootstrap.Resources.sourceBaseName;
 import static java.lang.String.format;
 /**
  * {@code PropertiesFileGenerator} defines state and operations common to the

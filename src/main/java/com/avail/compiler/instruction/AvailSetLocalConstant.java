@@ -37,9 +37,9 @@ import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Tuple;
 import com.avail.interpreter.levelOne.L1Operation;
+import com.avail.io.NybbleOutputStream;
 
 import javax.annotation.Nullable;
-import java.io.ByteArrayOutputStream;
 import java.util.List;
 
 /**
@@ -67,7 +67,7 @@ public class AvailSetLocalConstant extends AvailInstructionWithIndex
 	}
 
 	@Override
-	public void writeNybblesOn (final ByteArrayOutputStream aStream)
+	public void writeNybblesOn (final NybbleOutputStream aStream)
 	{
 		L1Operation.L1Ext_doSetLocalSlot.writeTo(aStream);
 		writeIntegerOn(index, aStream);

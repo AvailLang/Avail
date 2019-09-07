@@ -31,18 +31,17 @@
  */
 package com.avail.compiler.splitter
 
-import com.avail.compiler.splitter.MessageSplitter.Metacharacter
-import com.avail.descriptor.A_Phrase
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.LiteralPhraseDescriptor
-import java.util.IdentityHashMap
-
 import com.avail.compiler.ParsingConversionRule.EVALUATE_EXPRESSION
 import com.avail.compiler.ParsingOperation.*
 import com.avail.compiler.splitter.MessageSplitter.Companion.indexForConstant
+import com.avail.compiler.splitter.MessageSplitter.Metacharacter
 import com.avail.descriptor.A_BasicObject
+import com.avail.descriptor.A_Phrase
+import com.avail.descriptor.A_Type
+import com.avail.descriptor.LiteralPhraseDescriptor
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
 import com.avail.utility.Nulls.stripNull
+import java.util.*
 
 /**
  * A `ArgumentInModuleScope` is an occurrence of an

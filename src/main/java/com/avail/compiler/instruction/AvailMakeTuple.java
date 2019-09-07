@@ -35,8 +35,7 @@ package com.avail.compiler.instruction;
 import com.avail.descriptor.A_Token;
 import com.avail.descriptor.A_Tuple;
 import com.avail.interpreter.levelOne.L1Operation;
-
-import java.io.ByteArrayOutputStream;
+import com.avail.io.NybbleOutputStream;
 
 /**
  * Construct a tuple from some number of objects already pushed on the stack.
@@ -63,7 +62,7 @@ public class AvailMakeTuple extends AvailInstructionWithIndex
 	}
 
 	@Override
-	public void writeNybblesOn (final ByteArrayOutputStream aStream)
+	public void writeNybblesOn (final NybbleOutputStream aStream)
 	{
 		L1Operation.L1_doMakeTuple.writeTo(aStream);
 		writeIntegerOn(index, aStream);

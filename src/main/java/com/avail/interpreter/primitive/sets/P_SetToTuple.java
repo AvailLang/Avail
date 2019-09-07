@@ -31,7 +31,11 @@
  */
 package com.avail.interpreter.primitive.sets;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.SetDescriptor;
+import com.avail.descriptor.TupleDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
@@ -44,7 +48,9 @@ import static com.avail.descriptor.SetTypeDescriptor.mostGeneralSetType;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
 import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
-import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
 /**
  * <strong>Primitive:</strong> Convert a {@linkplain SetDescriptor set}

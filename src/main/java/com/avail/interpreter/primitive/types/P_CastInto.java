@@ -31,7 +31,11 @@
  */
 package com.avail.interpreter.primitive.types;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
@@ -58,7 +62,9 @@ import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE;
-import static com.avail.interpreter.Primitive.Fallibility.*;
+import static com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail;
+import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
+import static com.avail.interpreter.Primitive.Fallibility.CallSiteMustFail;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.Invokes;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED;

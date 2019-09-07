@@ -47,7 +47,9 @@ import java.util.HashSet;
 import java.util.Map.Entry;
 
 import static com.avail.utility.Strings.tabs;
-import static java.nio.file.StandardOpenOption.*;
+import static java.nio.file.StandardOpenOption.CREATE;
+import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
+import static java.nio.file.StandardOpenOption.WRITE;
 
 /**
  * A holder for all categories in stacks

@@ -41,14 +41,25 @@ import com.avail.utility.json.JSONWriter;
 import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 
-import static com.avail.descriptor.AbstractNumberDescriptor.Sign.*;
+import static com.avail.descriptor.AbstractNumberDescriptor.Sign.INDETERMINATE;
+import static com.avail.descriptor.AbstractNumberDescriptor.Sign.NEGATIVE;
+import static com.avail.descriptor.AbstractNumberDescriptor.Sign.POSITIVE;
+import static com.avail.descriptor.AbstractNumberDescriptor.Sign.ZERO;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.DoubleDescriptor.IntegerSlots.LONG_BITS;
 import static com.avail.descriptor.InfinityDescriptor.negativeInfinity;
 import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
-import static com.avail.descriptor.IntegerDescriptor.*;
+import static com.avail.descriptor.IntegerDescriptor.createUninitializedInteger;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.IntegerDescriptor.fromLong;
+import static com.avail.descriptor.IntegerDescriptor.truncatedFromDouble;
+import static com.avail.descriptor.IntegerDescriptor.zero;
 import static com.avail.descriptor.TypeDescriptor.Types.DOUBLE;
-import static java.lang.Math.*;
+import static java.lang.Math.abs;
+import static java.lang.Math.floor;
+import static java.lang.Math.getExponent;
+import static java.lang.Math.max;
+import static java.lang.Math.scalb;
 
 /**
  * A boxed, identityless Avail representation of IEEE-754 double-precision

@@ -45,7 +45,9 @@ import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.PermutedListPhraseDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.PermutedListPhraseDescriptor.ObjectSlots.EXPRESSION_TYPE;
+import static com.avail.descriptor.PermutedListPhraseDescriptor.ObjectSlots.LIST;
+import static com.avail.descriptor.PermutedListPhraseDescriptor.ObjectSlots.PERMUTATION;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PERMUTED_LIST_PHRASE;
 import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
 

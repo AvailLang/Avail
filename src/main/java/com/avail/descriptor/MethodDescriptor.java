@@ -57,7 +57,17 @@ import com.avail.interpreter.primitive.controlflow.P_ResumeContinuation;
 import com.avail.interpreter.primitive.general.P_EmergencyExit;
 import com.avail.interpreter.primitive.hooks.P_DeclareStringificationAtom;
 import com.avail.interpreter.primitive.hooks.P_GetRaiseJavaExceptionInAvailFunction;
-import com.avail.interpreter.primitive.methods.*;
+import com.avail.interpreter.primitive.methods.P_AbstractMethodDeclarationForAtom;
+import com.avail.interpreter.primitive.methods.P_AddSemanticRestrictionForAtom;
+import com.avail.interpreter.primitive.methods.P_Alias;
+import com.avail.interpreter.primitive.methods.P_ForwardMethodDeclarationForAtom;
+import com.avail.interpreter.primitive.methods.P_GrammaticalRestrictionFromAtoms;
+import com.avail.interpreter.primitive.methods.P_MethodDeclarationFromAtom;
+import com.avail.interpreter.primitive.methods.P_SealMethodByAtom;
+import com.avail.interpreter.primitive.methods.P_SimpleLexerDefinitionForAtom;
+import com.avail.interpreter.primitive.methods.P_SimpleMacroDeclaration;
+import com.avail.interpreter.primitive.methods.P_SimpleMacroDefinitionForAtom;
+import com.avail.interpreter.primitive.methods.P_SimpleMethodDeclaration;
 import com.avail.interpreter.primitive.modules.P_AddUnloadFunction;
 import com.avail.interpreter.primitive.modules.P_DeclareAllExportedAtoms;
 import com.avail.interpreter.primitive.modules.P_PrivateCreateModuleVariable;
@@ -73,7 +83,12 @@ import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Locks.Auto;
 import com.avail.utility.json.JSONWriter;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.WeakHashMap;
 
 import static com.avail.AvailRuntimeSupport.nextHash;
 import static com.avail.descriptor.AtomDescriptor.createSpecialAtom;
@@ -88,7 +103,15 @@ import static com.avail.descriptor.MethodDescriptor.CreateMethodOrMacroEnum.CREA
 import static com.avail.descriptor.MethodDescriptor.CreateMethodOrMacroEnum.CREATE_METHOD;
 import static com.avail.descriptor.MethodDescriptor.IntegerSlots.HASH;
 import static com.avail.descriptor.MethodDescriptor.IntegerSlots.NUM_ARGS;
-import static com.avail.descriptor.MethodDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.MethodDescriptor.ObjectSlots.DEFINITIONS_TUPLE;
+import static com.avail.descriptor.MethodDescriptor.ObjectSlots.DEPENDENT_CHUNKS_WEAK_SET_POJO;
+import static com.avail.descriptor.MethodDescriptor.ObjectSlots.LEXER_OR_NIL;
+import static com.avail.descriptor.MethodDescriptor.ObjectSlots.MACRO_DEFINITIONS_TUPLE;
+import static com.avail.descriptor.MethodDescriptor.ObjectSlots.MACRO_TESTING_TREE;
+import static com.avail.descriptor.MethodDescriptor.ObjectSlots.OWNING_BUNDLES;
+import static com.avail.descriptor.MethodDescriptor.ObjectSlots.PRIVATE_TESTING_TREE;
+import static com.avail.descriptor.MethodDescriptor.ObjectSlots.SEALED_ARGUMENTS_TYPES_TUPLE;
+import static com.avail.descriptor.MethodDescriptor.ObjectSlots.SEMANTIC_RESTRICTIONS_SET;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE;
@@ -105,7 +128,10 @@ import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restriction
 import static com.avail.utility.Locks.auto;
 import static java.lang.Boolean.TRUE;
 import static java.util.Arrays.asList;
-import static java.util.Collections.*;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.nCopies;
+import static java.util.Collections.newSetFromMap;
+import static java.util.Collections.synchronizedSet;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -571,7 +597,7 @@ extends Descriptor
 			object.slot(PRIVATE_TESTING_TREE).javaObjectNotNull();
 		final A_Tuple resultTuple =
 			runtimeDispatcher.lookupByTypes(tree, argumentTypeTuple, TRUE);
-		return MethodDefinitionException.Companion.extractUniqueMethod(resultTuple);
+		return MethodDefinitionException.extractUniqueMethod(resultTuple);
 	}
 
 	/**
@@ -589,7 +615,7 @@ extends Descriptor
 			object.slot(PRIVATE_TESTING_TREE).javaObjectNotNull();
 		final A_Tuple results =
 			runtimeDispatcher.lookupByValues(tree, argumentList, TRUE);
-		return MethodDefinitionException.Companion.extractUniqueMethod(results);
+		return MethodDefinitionException.extractUniqueMethod(results);
 	}
 
 	/**

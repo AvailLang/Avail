@@ -33,16 +33,13 @@
 package com.avail.utility.json
 
 import com.avail.utility.evaluation.Continuation0
+import com.avail.utility.json.JSONWriter.JSONState.*
 import java.io.IOException
 import java.io.StringWriter
 import java.io.Writer
 import java.math.BigDecimal
 import java.math.BigInteger
-import java.util.Deque
-import java.util.Formatter
-import java.util.LinkedList
-
-import com.avail.utility.json.JSONWriter.JSONState.*
+import java.util.*
 
 /**
  * A `JSONWriter` produces ASCII-only documents that adhere strictly to

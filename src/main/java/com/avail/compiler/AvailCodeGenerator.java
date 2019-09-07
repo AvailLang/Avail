@@ -32,18 +32,70 @@
 
 package com.avail.compiler;
 
-import com.avail.compiler.instruction.*;
-import com.avail.descriptor.*;
+import com.avail.compiler.instruction.AvailCall;
+import com.avail.compiler.instruction.AvailCloseCode;
+import com.avail.compiler.instruction.AvailDuplicate;
+import com.avail.compiler.instruction.AvailGetLiteralVariable;
+import com.avail.compiler.instruction.AvailGetLocalVariable;
+import com.avail.compiler.instruction.AvailGetOuterVariable;
+import com.avail.compiler.instruction.AvailInstruction;
+import com.avail.compiler.instruction.AvailInstructionWithIndex;
+import com.avail.compiler.instruction.AvailLabel;
+import com.avail.compiler.instruction.AvailMakeTuple;
+import com.avail.compiler.instruction.AvailPermute;
+import com.avail.compiler.instruction.AvailPop;
+import com.avail.compiler.instruction.AvailPushLabel;
+import com.avail.compiler.instruction.AvailPushLiteral;
+import com.avail.compiler.instruction.AvailPushLocalVariable;
+import com.avail.compiler.instruction.AvailPushOuterVariable;
+import com.avail.compiler.instruction.AvailSetLiteralVariable;
+import com.avail.compiler.instruction.AvailSetLocalConstant;
+import com.avail.compiler.instruction.AvailSetLocalVariable;
+import com.avail.compiler.instruction.AvailSetOuterVariable;
+import com.avail.compiler.instruction.AvailSuperCall;
+import com.avail.compiler.instruction.AvailVariableAccessNote;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Bundle;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_Token;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.BlockPhraseDescriptor;
+import com.avail.descriptor.CompiledCodeDescriptor;
+import com.avail.descriptor.ContinuationDescriptor;
+import com.avail.descriptor.DeclarationPhraseDescriptor;
 import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
+import com.avail.descriptor.FunctionDescriptor;
+import com.avail.descriptor.ObjectTypeDescriptor;
+import com.avail.descriptor.PhraseDescriptor;
+import com.avail.descriptor.SetDescriptor;
+import com.avail.descriptor.TupleDescriptor;
+import com.avail.descriptor.VariableDescriptor;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
-import com.avail.interpreter.primitive.privatehelpers.*;
+import com.avail.interpreter.primitive.privatehelpers.P_GetGlobalVariableValue;
+import com.avail.interpreter.primitive.privatehelpers.P_PushArgument1;
+import com.avail.interpreter.primitive.privatehelpers.P_PushArgument2;
+import com.avail.interpreter.primitive.privatehelpers.P_PushArgument3;
+import com.avail.interpreter.primitive.privatehelpers.P_PushConstant;
+import com.avail.interpreter.primitive.privatehelpers.P_PushLastOuter;
+import com.avail.io.NybbleOutputStream;
 import com.avail.utility.evaluation.Continuation0;
 
 import javax.annotation.Nullable;
-import java.io.ByteArrayOutputStream;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import static com.avail.descriptor.CompiledCodeDescriptor.newCompiledCode;
 import static com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_CONSTANT;
@@ -54,7 +106,9 @@ import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.ASSIGNMENT_PHRASE;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LABEL_PHRASE;
-import static com.avail.descriptor.TupleDescriptor.*;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.toList;
+import static com.avail.descriptor.TupleDescriptor.tupleFromIntegerList;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 import static java.util.Arrays.asList;
 
@@ -424,7 +478,7 @@ public final class AvailCodeGenerator
 		// Make sure we're not closing over variables that don't get used.
 		final BitSet unusedOuters = new BitSet(outerMap.size());
 		unusedOuters.flip(0, outerMap.size());
-		final ByteArrayOutputStream nybbles = new ByteArrayOutputStream(50);
+		final NybbleOutputStream nybbles = new NybbleOutputStream(50);
 		final List<Integer> encodedLineNumberDeltas = new ArrayList<>(50);
 		int currentLineNumber = startingLineNumber;
 		for (final AvailInstruction instruction : instructions)
@@ -536,6 +590,9 @@ public final class AvailCodeGenerator
 	 * Capture an {@link A_Tuple} of {@link A_Token}s for the duration of
 	 * execution of the {@link Continuation0 action}.  If the tuple of tokens is
 	 * empty, just evaluate the action.
+	 *
+	 * @param tokens
+	 * @param action
 	 */
 	public void setTokensWhile (
 		final A_Tuple tokens,
@@ -851,7 +908,7 @@ public final class AvailCodeGenerator
 	/**
 	 * Emit code to pop the stack and write into a local or outer variable.
 	 *
-	 final A_Tuple tokens,
+	 * @param tokens
 	 * @param localOrOuter
 	 *        The {@linkplain DeclarationPhraseDescriptor declaration} of the
 	 *        {@link DeclarationKind#LOCAL_VARIABLE local} or outer variable in
@@ -905,6 +962,9 @@ public final class AvailCodeGenerator
 	 * Add the {@link AvailInstruction} to the generated sequence.  Use the
 	 * instruction's tuple of tokens if non-empty, otherwise examine the
 	 * {@link #tokensStack} for a better candidate.
+	 *
+	 * @param instruction
+	 *        An instruction.
 	 */
 	private void addInstruction (final AvailInstruction instruction)
 	{

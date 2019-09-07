@@ -82,14 +82,13 @@ extends Primitive
 		final Path path;
 		try
 		{
-			path = IOSystem.Companion.getFileSystem().getPath(
-				filename.asNativeString());
+			path = IOSystem.getFileSystem().getPath(filename.asNativeString());
 		}
 		catch (final InvalidPathException e)
 		{
 			return interpreter.primitiveFailure(E_INVALID_PATH);
 		}
-		final LinkOption[] options = IOSystem.Companion.followSymlinks(
+		final LinkOption[] options = IOSystem.followSymlinks(
 			followSymlinks.extractBoolean());
 		final boolean exists;
 		try

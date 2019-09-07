@@ -44,7 +44,9 @@ import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.PrimitiveTypeDescriptor.createMutablePrimitiveObjectNamed;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
+import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
+import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
 import static com.avail.utility.Nulls.stripNull;
 
 /**

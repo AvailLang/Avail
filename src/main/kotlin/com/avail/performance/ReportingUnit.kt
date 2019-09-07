@@ -33,7 +33,7 @@
 package com.avail.performance
 
 import com.avail.AvailRuntimeConfiguration
-
+import com.avail.performance.ReportingUnit.Range
 import java.lang.Double.NEGATIVE_INFINITY
 import java.lang.Double.POSITIVE_INFINITY
 import java.lang.String.format
