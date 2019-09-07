@@ -56,7 +56,7 @@ import static java.util.Collections.singletonList;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public final class PrefixSharingList<E>
-	extends AbstractCollection<E>
+	extends AbstractList<E>
 	implements List<E>
 {
 	/** The size of this list */
@@ -214,6 +214,7 @@ public final class PrefixSharingList<E>
 		final int mySize = size;
 		return new Iterator<E>()
 		{
+			/** The current position. */
 			int position = 0;
 
 			@Override
@@ -291,6 +292,7 @@ public final class PrefixSharingList<E>
 	 * @param allButLast The leading elements of the list.
 	 * @param lastElement The value by which to extend the list.
 	 * @return A new immutable list with all those elements.
+	 * @param <E2> The list's element type.
 	 */
 	public static <E2> List<E2> append (
 		final List<E2> allButLast,
@@ -310,6 +312,7 @@ public final class PrefixSharingList<E>
 	 * @param originalList The original list.
 	 * @return An immutable list containing all but the last element of the
 	 *         original.
+	 * @param <E2> The list's element type.
 	 */
 	public static <E2> List<E2> withoutLast (
 		final List<E2> originalList)
@@ -340,6 +343,7 @@ public final class PrefixSharingList<E>
 	 *
 	 * @param list The list.
 	 * @return The last element of that list.
+	 * @param <E2> The list's element type.
 	 */
 	public static <E2> E2 last (
 		final List<E2> list)
