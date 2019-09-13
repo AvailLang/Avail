@@ -100,17 +100,8 @@ import com.avail.io.TextInterface;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import com.avail.persistence.IndexedRepositoryManager;
-import com.avail.utility.Mutable;
-import com.avail.utility.MutableInt;
-import com.avail.utility.MutableLong;
-import com.avail.utility.MutableOrNull;
-import com.avail.utility.PrefixSharingList;
-import com.avail.utility.evaluation.Continuation0;
-import com.avail.utility.evaluation.Continuation1NotNull;
-import com.avail.utility.evaluation.Continuation2NotNull;
-import com.avail.utility.evaluation.Describer;
-import com.avail.utility.evaluation.FormattingDescriber;
-import com.avail.utility.evaluation.Transformer3;
+import com.avail.utility.*;
+import com.avail.utility.evaluation.*;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -916,16 +907,56 @@ public final class AvailCompiler
 	{
 		final Mutable<A_Phrase> phrase1 = new Mutable<>(interpretation1);
 		final Mutable<A_Phrase> phrase2 = new Mutable<>(interpretation2);
-		findParseTreeDiscriminants(phrase1, phrase2);
-		where.expected(
-			STRONG,
-			asList(phrase1.value, phrase2.value),
-			strings ->
-				"unambiguous interpretation.  "
-					+ "Here are two possible parsings...\n\t"
-					+ strings.get(0)
-					+ "\n\t"
-					+ strings.get(1));
+		if (phrase1.value.equals(phrase2.value))
+		{
+			where.expected(
+				STRONG,
+				asList(
+					phrase1.value,
+					phrase1.value.macroOriginalSendNode()),
+				strings ->
+					"unambiguous interpretation.  "
+						+ "At least two parses produced the same "
+						+ "phrase:\n\t"
+						+ strings.get(0)
+						+ "\n...where the pre-macro expression is:\n\t"
+						+ strings.get(1));
+		}
+		else
+		{
+			findParseTreeDiscriminants(phrase1, phrase2);
+			where.expected(
+				STRONG,
+				asList(
+					phrase1.value,
+					phrase2.value,
+					phrase1.value.macroOriginalSendNode(),
+					phrase2.value.macroOriginalSendNode()),
+				strings ->
+				{
+					final String print1 = strings.get(0);
+					final String print2 = strings.get(1);
+					final String original1 = strings.get(2);
+					final String original2 = strings.get(3);
+					if (print1.equals(print2))
+					{
+						return "unambiguous interpretation.  "
+							+ "At least two parses produced same-looking "
+							+ "phrases after macro substitution.  The "
+							+ "post-macro phrase is:\n\t"
+							+ print1
+							+ "\n...and the pre-macro phrases are:\n\t"
+							+ original1
+							+ "\n\t"
+							+ original2;
+					}
+					return "unambiguous interpretation.  "
+						+ "Here are two possible parsings...\n\t"
+						+ print1
+						+ "\n\t"
+						+ print2;
+				});
+		}
 		compilationContext.diagnostics.reportError();
 	}
 
