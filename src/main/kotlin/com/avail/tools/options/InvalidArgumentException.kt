@@ -1,6 +1,6 @@
 /*
- * MissingArgumentException.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * InvalidArgumentException.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,39 +30,23 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.tools.options;
+package com.avail.tools.options
 
 /**
- * Exception thrown during {@link OptionProcessor#processOptions(String[])
- * option processing} upon discovery that a mandatory argument is missing.
+ * Exception thrown during [option processing][OptionProcessor.processOptions]
+ * upon discovery that an argument is invalid.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct a new `[InvalidArgumentException]`.
+ *
+ * @param keyword
+ *   The keyword whose argument was invalid.
  */
-@SuppressWarnings("serial")
-public class MissingArgumentException
-extends OptionProcessingException
-{
-	/** The keyword. */
-	private final String keyword;
-
-	/**
-	 * Answer the keyword.
-	 *
-	 * @return The keyword.
-	 */
-	public String keyword ()
-	{
-		return keyword;
-	}
-
-	/**
-	 * Construct a new <code>{@link MissingArgumentException}</code>.
-	 *
-	 * @param keyword The keyword whose argument was missing.
-	 */
-	public MissingArgumentException (final String keyword)
-	{
-		super("\"" + keyword + "\" requires an argument");
-		this.keyword = keyword;
-	}
-}
+@Suppress("unused")
+class InvalidArgumentException constructor(
+	/** The keyword.  */
+	val keyword: String)
+: OptionProcessingException("argument of \"$keyword\" was invalid")

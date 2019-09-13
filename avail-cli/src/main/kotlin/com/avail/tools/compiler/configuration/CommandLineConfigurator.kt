@@ -36,9 +36,23 @@ import com.avail.builder.ModuleName
 import com.avail.builder.ModuleRoots
 import com.avail.builder.RenamesFileParser
 import com.avail.performance.StatisticReport
-import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.*
-import com.avail.tools.options.*
-import com.avail.utility.MutableOrNull
+import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.AVAIL_RENAMES
+import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.AVAIL_ROOTS
+import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.CLEAR_REPOSITORIES
+import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.COMPILE_MODULES
+import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.DOCUMENTATION_PATH
+import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.GENERATE_DOCUMENTATION
+import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.HELP
+import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.QUIET
+import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.SHOW_STATISTICS
+import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.TARGET_MODULE_NAME
+import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.VERBOSE_MODE
+import com.avail.tools.options.DefaultOption
+import com.avail.tools.options.GenericHelpOption
+import com.avail.tools.options.GenericOption
+import com.avail.tools.options.OptionProcessingException
+import com.avail.tools.options.OptionProcessor
+import com.avail.tools.options.OptionProcessorFactory
 import com.avail.utility.configuration.ConfigurationException
 import com.avail.utility.configuration.Configurator
 import java.io.File
@@ -158,109 +172,98 @@ class CommandLineConfigurator constructor(
 	 */
 	private fun createOptionProcessor(): OptionProcessor<OptionKey>
 	{
-		val processor = MutableOrNull<OptionProcessor<OptionKey>>()
 		val factory = OptionProcessorFactory(OptionKey::class.java)
-
-		factory.addOption(GenericOption(
-			AVAIL_RENAMES,
-			listOf("availRenames"),
-			"The path to the renames file. This option overrides "
+		factory.configure {
+			addOption(GenericOption(
+				AVAIL_RENAMES,
+				listOf("availRenames"),
+				"The path to the renames file. This option overrides "
 				+ "environment variables.")
-			{ _, renamesString ->
-				processor.value().checkEncountered(AVAIL_RENAMES, 0)
-				configuration.renamesFilePath = renamesString
-			})
-
-		factory.addOption(GenericOption(
-			AVAIL_ROOTS,
-			listOf("availRoots"),
-			"The Avail roots, as a semicolon (;) separated list of module root "
+				{ _, renamesString ->
+					checkEncountered(AVAIL_RENAMES, 0)
+					configuration.renamesFilePath = renamesString
+				})
+			addOption(GenericOption(
+				AVAIL_ROOTS,
+				listOf("availRoots"),
+				"The Avail roots, as a semicolon (;) separated list of module root "
 				+ "specifications. Each module root specification comprises a "
 				+ "logical root name, then an equals (=), then a module root "
 				+ "location. A module root location comprises the absolute "
 				+ "path to a binary module repository, then optionally a comma "
 				+ "(,) and the absolute path to a source package. This option "
 				+ "overrides environment variables.")
-			{ _, rootsString ->
-				processor.value().checkEncountered(AVAIL_ROOTS, 0)
-				configuration.availRootsPath = rootsString
-			})
-
-		factory.addOption(GenericOption(
-			COMPILE_MODULES,
-			listOf("c", "compile"),
-			"Compile the target module and its ancestors.")
-			{ _ ->
-				processor.value().checkEncountered(COMPILE_MODULES, 0)
-				configuration.compileModules = true
-			})
-
-		factory.addOption(GenericOption(
-			CLEAR_REPOSITORIES,
-			listOf("f", "clearRepositories"),
-			"Force removal of all repositories for which the Avail root path "
+				{ _, rootsString ->
+					checkEncountered(AVAIL_ROOTS, 0)
+					  configuration.availRootsPath = rootsString!!
+				})
+			addOption(GenericOption(
+				COMPILE_MODULES,
+				listOf("c", "compile"),
+				"Compile the target module and its ancestors.")
+				{ _ ->
+					checkEncountered(COMPILE_MODULES, 0)
+					configuration.compileModules = true
+				})
+			addOption(GenericOption(
+				CLEAR_REPOSITORIES,
+				listOf("f", "clearRepositories"),
+				"Force removal of all repositories for which the Avail root path "
 				+ "has valid source directories specified. This option can be "
 				+ "used in isolation and will cause the repositories to be "
 				+ "emptied. In an invocation with a valid target module name, "
 				+ "the repositories will be cleared before compilation is "
 				+ "attempted. Mutually exclusive with -g.")
-			{ _ ->
-				processor.value().checkEncountered(CLEAR_REPOSITORIES, 0)
-				processor.value()
-					.checkEncountered(GENERATE_DOCUMENTATION, 0)
-				configuration.clearRepositories = true
-			})
-
-		factory.addOption(GenericOption(
-			GENERATE_DOCUMENTATION,
-			listOf("g", "generateDocumentation"),
-			"Generate Stacks documentation for the target module and its "
+				{ _ ->
+					checkEncountered(CLEAR_REPOSITORIES, 0)
+					checkEncountered(GENERATE_DOCUMENTATION, 0)
+					configuration.clearRepositories = true
+				})
+			addOption(GenericOption(
+				GENERATE_DOCUMENTATION,
+				listOf("g", "generateDocumentation"),
+				"Generate Stacks documentation for the target module and its "
 				+ "ancestors. The relevant repositories must already contain "
 				+ "compilations for every module implied by the request. "
 				+ "Mutually exclusive with -f.")
-			{ _ ->
-				processor.value()
-					.checkEncountered(GENERATE_DOCUMENTATION, 0)
-				processor.value().checkEncountered(CLEAR_REPOSITORIES, 0)
-				processor.value().checkEncountered(SHOW_STATISTICS, 0)
-				configuration.generateDocumentation = true
-			})
-
-		factory.addOption(GenericOption(
-			DOCUMENTATION_PATH,
-			listOf("G", "documentationPath"),
-			"The path to the output directory where documentation and data "
+				{ _ ->
+					checkEncountered(GENERATE_DOCUMENTATION, 0)
+					checkEncountered(CLEAR_REPOSITORIES, 0)
+					checkEncountered(SHOW_STATISTICS, 0)
+					configuration.generateDocumentation = true
+				})
+			addOption(GenericOption(
+				DOCUMENTATION_PATH,
+				listOf("G", "documentationPath"),
+				"The path to the output directory where documentation and data "
 				+ "files will appear when Stacks documentation is generated. "
 				+ "Requires -g.")
-			{ keyword, pathString ->
-				processor.value().checkEncountered(DOCUMENTATION_PATH, 0)
-				val path: Path
-				try
-				{
-					path = Paths.get(pathString)
-				}
-				catch (e: InvalidPathException)
-				{
-					throw OptionProcessingException(
-						"$keyword: invalid path: ${e.localizedMessage}")
-				}
-
-				configuration.documentationPath = path
-			})
-
-		factory.addOption(GenericOption(
-			QUIET,
-			listOf("q", "quiet"),
-			"Mute all output originating from user code.")
-			{ _ ->
-				processor.value().checkEncountered(QUIET, 0)
-				configuration.quiet = true
-			})
-
-		factory.addOption(GenericOption(
-			SHOW_STATISTICS,
-			listOf("s", "showStatistics"),
-			"Request statistics about the most time-intensive operations in "
+				{ keyword, pathString ->
+					checkEncountered(DOCUMENTATION_PATH, 0)
+					val path: Path
+					try
+					{
+						path = Paths.get(pathString!!)
+					}
+					catch (e: InvalidPathException)
+					{
+						throw OptionProcessingException(
+							"$keyword: invalid path: ${e.localizedMessage}")
+					}
+					configuration.documentationPath = path
+				})
+			addOption(GenericOption(
+				QUIET,
+				listOf("q", "quiet"),
+				"Mute all output originating from user code.")
+				{ _ ->
+					checkEncountered(QUIET, 0)
+					configuration.quiet = true
+				})
+			addOption(GenericOption(
+				SHOW_STATISTICS,
+				listOf("s", "showStatistics"),
+				"Request statistics about the most time-intensive operations in "
 				+ "all categories ( -s or --showStatistics ) or for specific "
 				+ "categories, using a comma-separated list of keywords "
 				+ "( --showStatistics=#,# ). Requires -c.\n"
@@ -273,37 +276,34 @@ class CommandLineConfigurator constructor(
 				+ "time-intensive to run overall."
 				+ "\nPrimitiveReturnTypeChecks - The primitives that take the "
 				+ "most time checking return types.",
-			{
-				processor.value().checkEncountered(SHOW_STATISTICS, 0)
-				processor.value()
-					.checkEncountered(GENERATE_DOCUMENTATION, 0)
-				val reports = EnumSet.allOf(StatisticReport::class.java)
-				configuration.reports = reports
-			},
-			{ keyword, reportsString ->
-				processor.value().checkEncountered(SHOW_STATISTICS, 0)
-				processor.value()
-					.checkEncountered(GENERATE_DOCUMENTATION, 0)
-				val reportsArr = reportsString.split(",".toRegex())
-					.dropLastWhile { it.isEmpty() }.toTypedArray()
-				val reports = EnumSet.noneOf(StatisticReport::class.java)
-				for (reportName in reportsArr)
 				{
-					val report = StatisticReport.reportFor(reportName)
-						?: throw OptionProcessingException(
-							"$keyword: Illegal argument.")
+					checkEncountered(SHOW_STATISTICS, 0)
+					checkEncountered(GENERATE_DOCUMENTATION, 0)
+					val reports = EnumSet.allOf(StatisticReport::class.java)
+					configuration.reports = reports
+				},
+				{ keyword, reportsString ->
+					checkEncountered(SHOW_STATISTICS, 0)
+					checkEncountered(GENERATE_DOCUMENTATION, 0)
+					val reportsArr = reportsString.split(",".toRegex())
+						.dropLastWhile { it.isEmpty() }.toTypedArray()
+					val reports = EnumSet.noneOf(StatisticReport::class.java)
+					for (reportName in reportsArr)
+					{
+						val report = StatisticReport.reportFor(reportName)
+									 ?: throw OptionProcessingException(
+										 "$keyword: Illegal argument.")
 
-					// This will also catch the illegal use of "="
-					// without any items following.
-					reports.add(report)
-				}
-				configuration.reports = reports
-			}))
-
-		factory.addOption(GenericOption(
-			VERBOSE_MODE,
-			listOf("v", "verboseMode"),
-			"Request minimum verbosity ( -v or --verboseMode ) "
+						// This will also catch the illegal use of "="
+						// without any items following.
+						reports.add(report)
+					}
+					configuration.reports = reports
+				}))
+			addOption(GenericOption(
+				VERBOSE_MODE,
+				listOf("v", "verboseMode"),
+				"Request minimum verbosity ( -v or --verboseMode ) "
 				+ "or manually set the verbosity level ( --verboseMode=# ).\n"
 				+ "\nPossible values for # include:"
 				+ "\n0 - Zero extra verbosity. Only error messages will be "
@@ -314,61 +314,57 @@ class CommandLineConfigurator constructor(
 				+ "level for this option when a level is not specified."
 				+ "\n2 - Global progress is output along with the local module "
 				+ "compilation progress and any error messages.",
-			{
-				processor.value().checkEncountered(VERBOSE_MODE, 0)
-				configuration.verbosityLevel = VerbosityLevel.atLevel(1)
-			},
-			{ keyword, verboseString ->
-				processor.value().checkEncountered(VERBOSE_MODE, 0)
-				try
 				{
-					// This parseInt will (also) throw an exception if
-					// it tries to parse "" as a result of the illegal
-					// use of "=" without any items following.
-					val level = Integer.parseInt(verboseString)
-					configuration.verbosityLevel = VerbosityLevel.atLevel(level)
-				}
-				catch (e: NumberFormatException)
-				{
-					throw OptionProcessingException(
-						"$keyword: Illegal argument.",
-						e)
-				}
-			}))
-
-		factory.addOption(
-			GenericHelpOption(
-				HELP,
-				processor,
-				"The Avail compiler understands the following options: ",
-				helpStream))
-
-		factory.addOption(DefaultOption(
-			TARGET_MODULE_NAME,
-			"The target module name for compilation and/or documentation "
+					checkEncountered(VERBOSE_MODE, 0)
+					configuration.verbosityLevel = VerbosityLevel.atLevel(1)
+				},
+				{ keyword, verboseString ->
+					checkEncountered(VERBOSE_MODE, 0)
+					try
+					{
+						// This parseInt will (also) throw an exception if
+						// it tries to parse "" as a result of the illegal
+						// use of "=" without any items following.
+						val level = Integer.parseInt(verboseString)
+						configuration.verbosityLevel = VerbosityLevel.atLevel(level)
+					}
+					catch (e: NumberFormatException)
+					{
+						throw OptionProcessingException(
+							"$keyword: Illegal argument.",
+							e)
+					}
+				}))
+			addOption(
+				GenericHelpOption(
+					HELP,
+					"The Avail compiler understands the following options: ",
+					helpStream))
+			addOption(DefaultOption(
+				TARGET_MODULE_NAME,
+				"The target module name for compilation and/or documentation "
 				+ "generation. The module is specified via a path relative to "
 				+ "an AVAIL_ROOTS root name. For example, if AVAIL_ROOTS "
 				+ "specifies a root named \"foo\" at path "
 				+ "/usr/local/avail/stuff/, and module \"frog\" is in the root "
 				+ "directory as /usr/local/avail/stuff/frog, the target module "
 				+ "name would be /foo/frog.")
-			{ _, targetModuleString ->
-				processor.value().checkEncountered(TARGET_MODULE_NAME, 0)
-				try
-				{
-					configuration.targetModuleName =
-						ModuleName(targetModuleString)
-				}
-				catch (e: OptionProcessingException)
-				{
-					throw OptionProcessingException(
-						"«default»: ${e.message}",
-						e)
-				}
-			})
-
-		processor.value = factory.createOptionProcessor()
-		return processor.value()
+				{ _, targetModuleString ->
+					  checkEncountered(TARGET_MODULE_NAME, 0)
+					  try
+					  {
+						  configuration.targetModuleName =
+							  ModuleName(targetModuleString!!)
+					  }
+					  catch (e: OptionProcessingException)
+					  {
+						  throw OptionProcessingException(
+							  "«default»: ${e.message}",
+							  e)
+					  }
+				})
+		}
+		return factory.createOptionProcessor()
 	}
 
 	@Synchronized @Throws(ConfigurationException::class)

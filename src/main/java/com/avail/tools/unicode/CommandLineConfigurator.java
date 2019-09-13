@@ -36,7 +36,6 @@ import com.avail.tools.options.DefaultOption;
 import com.avail.tools.options.GenericHelpOption;
 import com.avail.tools.options.OptionProcessor;
 import com.avail.tools.options.OptionProcessorFactory;
-import com.avail.utility.MutableOrNull;
 import com.avail.utility.configuration.ConfigurationException;
 import com.avail.utility.configuration.Configurator;
 
@@ -112,13 +111,10 @@ implements Configurator<UnicodeConfiguration>
 	 */
 	private OptionProcessor<OptionKey> createOptionProcessor ()
 	{
-		final MutableOrNull<OptionProcessor<OptionKey>> processor =
-			new MutableOrNull<>();
 		final OptionProcessorFactory<OptionKey> factory =
 			new OptionProcessorFactory<>(OptionKey.class);
 		factory.addOption(new GenericHelpOption<>(
 			HELP,
-			processor,
 			"The Unicode catalog generator understands the following "
 				+ "options: ",
 			helpStream));
@@ -126,13 +122,13 @@ implements Configurator<UnicodeConfiguration>
 			TARGET_PATH,
 			"The location of the target JSON file. If a regular file already "
 				+ "exists at this location, then it will be overwritten.",
-			(unused, pathString) ->
+			(processor, unused, pathString) ->
 			{
-				processor.value().checkEncountered(TARGET_PATH, 0);
+				processor.checkEncountered(TARGET_PATH, 0);
 				configuration.catalogPath = Paths.get(pathString);
+				return null;
 			}));
-		processor.value = factory.createOptionProcessor();
-		return processor.value();
+		return factory.createOptionProcessor();
 	}
 
 	/**

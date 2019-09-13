@@ -1,6 +1,6 @@
 /*
- * UnrecognizedOptionException.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * DefaultOption.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,39 +30,31 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.tools.options;
+package com.avail.tools.options
 
 /**
- * Exception thrown during {@link OptionProcessor#processOptions(String[])
- * option processing} upon discovery of an unrecognized option keyword.
+ * A `DefaultOption` is the [option][Option] that an [option
+ * processor][OptionProcessor] recognizes bare arguments as being implicitly
+ * associated with.
  *
+ * @param OptionKeyType
+ *   The type of the option.
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Leslie Schultz &lt;leslie@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct a new instance.
+ *
+ * @param optionKey
+ *   The option key.
+ * @param description
+ *   A description of the `DefaultOption`.
+ * @param action
+ *   The action that should be performed upon setting of this `DefaultOption`.
  */
-@SuppressWarnings("serial")
-public class UnrecognizedKeywordException
-extends OptionProcessingException
-{
-	/** The unrecognized keyword. */
-	private final String keyword;
-
-	/**
-	 * Answer the unrecognized keyword.
-	 *
-	 * @return The unrecognized keyword.
-	 */
-	public String keyword ()
-	{
-		return keyword;
-	}
-
-	/**
-	 * Construct a new {@code UnrecognizedKeywordException}.
-	 *
-	 * @param keyword The unrecognized keyword.
-	 */
-	UnrecognizedKeywordException (final String keyword)
-	{
-		super("\"" + keyword + "\" is not a recognized option keyword");
-		this.keyword = keyword;
-	}
-}
+class DefaultOption<OptionKeyType : Enum<OptionKeyType>>(
+	optionKey: OptionKeyType,
+	description: String,
+	action: OptionProcessor<OptionKeyType>.(String, String?) -> Unit)
+: GenericOption<OptionKeyType>(optionKey, listOf(""), description, action)

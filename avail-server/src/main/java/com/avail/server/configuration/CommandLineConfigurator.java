@@ -40,7 +40,6 @@ import com.avail.tools.options.GenericOption;
 import com.avail.tools.options.OptionProcessingException;
 import com.avail.tools.options.OptionProcessor;
 import com.avail.tools.options.OptionProcessorFactory;
-import com.avail.utility.MutableOrNull;
 import com.avail.utility.configuration.ConfigurationException;
 import com.avail.utility.configuration.Configurator;
 
@@ -110,8 +109,6 @@ implements Configurator<AvailServerConfiguration>
 	 */
 	private OptionProcessor<OptionKey> createOptionProcessor ()
 	{
-		final MutableOrNull<OptionProcessor<OptionKey>> processor =
-			new MutableOrNull<>();
 		final OptionProcessorFactory<OptionKey> factory =
 			new OptionProcessorFactory<>(OptionKey.class);
 		factory.addOption(new GenericOption<>(
@@ -119,10 +116,11 @@ implements Configurator<AvailServerConfiguration>
 			singletonList("availRenames"),
 			"The path to the renames file. This option overrides environment "
 				+ "variables.",
-			(keyword, renamesString) ->
+			(processor, keyword, renamesString) ->
 			{
-				processor.value().checkEncountered(AVAIL_RENAMES, 0);
+				processor.checkEncountered(AVAIL_RENAMES, 0);
 				configuration.setRenamesFilePath(renamesString);
+				return null;
 			}));
 		factory.addOption(new GenericOption<>(
 			AVAIL_ROOTS,
@@ -134,29 +132,31 @@ implements Configurator<AvailServerConfiguration>
 				+ "a binary module repository, then optionally a comma (,) and the "
 				+ "absolute path to a source package. This option overrides " +
 				"environment variables.",
-			(keyword, rootsString) ->
+			(processor, keyword, rootsString) ->
 			{
-				processor.value().checkEncountered(AVAIL_ROOTS, 0);
+				processor.checkEncountered(AVAIL_ROOTS, 0);
 				configuration.setAvailRootsPath(rootsString);
+				return null;
 			}));
 		factory.addOption(new GenericOption<>(
 			SERVER_AUTHORITY,
 			singletonList("serverAuthority"),
 			"The server authority, i.e., the name of the Avail server. If not "
 				+ "specified, then the server authority defaults to \"localhost\".",
-			(keyword, nameString) ->
+			(processor, keyword, nameString) ->
 			{
-				processor.value().checkEncountered(SERVER_AUTHORITY, 0);
+				processor.checkEncountered(SERVER_AUTHORITY, 0);
 				configuration.setServerAuthority(nameString);
+				return null;
 			}));
 		factory.addOption(new GenericOption<>(
 			SERVER_PORT,
 			singletonList("serverPort"),
 			"The server port. If not specified, then the server port defaults "
 				+ "to 40000.",
-			(keyword, portString) ->
+			(processor, keyword, portString) ->
 			{
-				processor.value().checkEncountered(SERVER_PORT, 0);
+				processor.checkEncountered(SERVER_PORT, 0);
 				final int port;
 				try
 				{
@@ -169,6 +169,7 @@ implements Configurator<AvailServerConfiguration>
 						e);
 				}
 				configuration.setServerPort(port);
+				return null;
 			}));
 		factory.addOption(new GenericOption<>(
 			DOCUMENT_ROOT,
@@ -178,18 +179,17 @@ implements Configurator<AvailServerConfiguration>
 				+ "server. These files are available through GET requests under "
 				+ "the URI /doc. If not specified, then the Avail server will "
 				+ "reject all such requests.",
-			(keyword, pathString) ->
+			(processor, keyword, pathString) ->
 			{
-				processor.value().checkEncountered(DOCUMENT_ROOT, 0);
+				processor.checkEncountered(DOCUMENT_ROOT, 0);
 				configuration.setDocumentPath(pathString);
+				return null;
 			}));
 		factory.addOption(new GenericHelpOption<>(
 			HELP,
-			processor,
 			"The Avail server understands the following options: ",
 			helpStream));
-		processor.value = factory.createOptionProcessor();
-		return processor.value();
+		return factory.createOptionProcessor();
 	}
 
 	/** The {@linkplain AvailServerConfiguration configuration}. */

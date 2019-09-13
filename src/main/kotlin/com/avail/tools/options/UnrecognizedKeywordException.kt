@@ -1,6 +1,6 @@
 /*
- * Option.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * UnrecognizedKeywordException.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,55 +30,23 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.tools.options;
-
-import com.avail.utility.evaluation.Continuation2;
-
-import java.util.LinkedHashSet;
+package com.avail.tools.options
 
 /**
- * An {@code Option} comprises an {@linkplain Enum enumerated type} which
- * defines the domain of the option, the keywords which parsers may use to
- * identify the option, an end-user friendly description of the option, and an
- * {@linkplain Continuation2 action} that should be performed each time that the
- * option is set.
+ * Exception thrown during [option processing][OptionProcessor.processOptions]
+ * upon discovery of an unrecognized option keyword.
  *
+ * @property keyword
+ *   The unrecognized keyword.
  * @author Todd L Smith &lt;todd@availlang.org&gt;
- * @author Leslie Schultz &lt;leslie@availlang.org&gt;
- * @param <OptionKeyType> The type of the option.
+ *
+ * @constructor
+ *
+ * Construct a new `UnrecognizedKeywordException`.
+ *
+ * @param keyword
+ *   The unrecognized keyword.
  */
-public interface Option<OptionKeyType extends Enum<OptionKeyType>>
-{
-	/**
-	 * Answer the option key, a member of the {@linkplain Enum enumeration}
-	 * which defines this option space.
-	 *
-	 * @return The option key.
-	 */
-	OptionKeyType key ();
-
-	/**
-	 * Answer the {@linkplain LinkedHashSet set} of keywords that indicate this
-	 * {@linkplain GenericOption option}.
-	 *
-	 * @return A {@linkplain LinkedHashSet set} of keywords.
-	 */
-	LinkedHashSet<String> keywords ();
-
-	/**
-	 * Answer an end-user comprehensible description of the {@linkplain
-	 * GenericOption option}.
-	 *
-	 * @return A description of the {@linkplain GenericOption option}.
-	 */
-	String description ();
-
-	/**
-	 * Answer the {@linkplain Continuation2 action} that should be performed
-	 * upon setting of this {@linkplain GenericOption option}.
-	 *
-	 * @return An action that accepts an option keyword and its associated
-	 *         value.
-	 */
-	Continuation2<String, String> action ();
-}
+class UnrecognizedKeywordException internal constructor(val keyword: String)
+	: OptionProcessingException(
+		"\"$keyword\" is not a recognized option keyword")

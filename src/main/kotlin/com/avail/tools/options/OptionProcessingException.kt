@@ -1,6 +1,6 @@
 /*
- * OptionProcessingException.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * OptionProcessingException.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,63 +30,48 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.tools.options;
+package com.avail.tools.options
 
 /**
- * Exception thrown during {@link OptionProcessor#processOptions(String[])
- * option processing}.
+ * Exception thrown during [option processing][OptionProcessor.processOptions].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@SuppressWarnings("serial")
-public class OptionProcessingException
-extends RuntimeException
+open class OptionProcessingException : RuntimeException
 {
 	/**
-	 * Construct a new {@link OptionProcessingException}.
+	 * Construct a new [OptionProcessingException].
 	 */
-	public OptionProcessingException ()
-	{
-		// No implementation required.
-	}
+	@Suppress("unused")
+	constructor()
 
 	/**
-	 * Construct a new {@link OptionProcessingException}.
-	 *
-	 * @param message A (hopefully) informative message explaining why {@link
-	 *                OptionProcessor#processOptions(String[]) option
-	 *                processing} failed.
-	 */
-	public OptionProcessingException (final String message)
-	{
-		super(message);
-	}
-
-	/**
-	 * Construct a new {@link OptionProcessingException}.
-	 *
-	 * @param cause
-	 *        The original {@linkplain Throwable exception} which caused the new
-	 *        instance to be raised.
-	 */
-	public OptionProcessingException (final Throwable cause)
-	{
-		super(cause);
-	}
-
-	/**
-	 * Construct a new {@link OptionProcessingException}.
+	 * Construct a new [OptionProcessingException].
 	 *
 	 * @param message
-	 *        A (hopefully) informative message explaining why {@linkplain
-	 *        OptionProcessor#processOptions(String[]) option processing}
-	 *        failed.
-	 * @param cause
-	 *        The original {@linkplain Throwable exception} which caused the new
-	 *        instance to be raised.
+	 *   A (hopefully) informative message explaining why
+	 *   [OptionProcessor.processOptions] failed.
 	 */
-	public OptionProcessingException (final String message, final Throwable cause)
-	{
-		super(message, cause);
-	}
+	constructor(message: String) : super(message)
+
+	/**
+	 * Construct a new [OptionProcessingException].
+	 *
+	 * @param cause
+	 *   The original [exception][Throwable] which caused the new instance to be
+	 *   raised.
+	 */
+	constructor(cause: Throwable) : super(cause)
+
+	/**
+	 * Construct a new [OptionProcessingException].
+	 *
+	 * @param message
+	 *   A (hopefully) informative message explaining why
+	 *   [OptionProcessor.processOptions] failed.
+	 * @param cause
+	 *   The original [exception][Throwable] which caused the new instance to be
+	 *   raised.
+	 */
+	constructor(message: String, cause: Throwable) : super(message, cause)
 }

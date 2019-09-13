@@ -1,6 +1,6 @@
 /*
- * DefaultOption.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * ValidationException.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,40 +30,53 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.tools.options;
-
-import com.avail.utility.evaluation.Continuation2NotNull;
-
-import static java.util.Collections.singletonList;
+package com.avail.tools.options
 
 /**
- * A {@code DefaultOption} is the {@linkplain Option option} that an {@linkplain
- * OptionProcessor option processor} recognizes bare arguments as being
- * implicitly associated with.
+ * Exception thrown by the [factory][OptionProcessorFactory]'s validation
+ * process in the event that the client-specified [option
+ * processor][OptionProcessor] fails validation.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
- * @author Leslie Schultz &lt;leslie@availlang.org&gt;
- * @param <OptionKeyType> The type of the option.
  */
-public final class DefaultOption<OptionKeyType extends Enum<OptionKeyType>>
-extends GenericOption<OptionKeyType>
+@Suppress("unused")
+class ValidationException : RuntimeException
 {
 	/**
-	 * Construct a new instance.
-	 *
-	 * @param optionKey
-	 *        The option key.
-	 * @param description
-	 *        A description of the {@code DefaultOption}.
-	 * @param action
-	 *        The {@linkplain Continuation2NotNull action} that should be
-	 *        performed upon setting of this {@code DefaultOption}.
+	 * Construct a new [ValidationException].
 	 */
-	public DefaultOption (
-		final OptionKeyType optionKey,
-		final String description,
-		final Continuation2NotNull<String, String> action)
-	{
-		super(optionKey, singletonList(""), description, action);
-	}
+	internal constructor()
+
+	/**
+	 * Construct a new [ValidationException].
+	 *
+	 * @param message
+	 *   A (hopefully) informative message explaining why the
+	 *   [factory][OptionProcessorFactory] could not validate the specified
+	 *   [option processor][OptionProcessor].
+	 */
+	internal constructor(message: String) : super(message)
+
+	/**
+	 * Construct a new [ValidationException].
+	 *
+	 * @param cause
+	 *   The original [exception][Throwable] which caused the new instance to be
+	 *   raised.
+	 */
+	internal constructor(cause: Throwable) : super(cause)
+
+	/**
+	 * Construct a new [ValidationException].
+	 *
+	 * @param message
+	 *   A (hopefully) informative message explaining why the
+	 *   [factory][OptionProcessorFactory] could not validate the specified
+	 *   [option processor][OptionProcessor].
+	 * @param cause
+	 *   The original [exception][Throwable] which caused the new instance to be
+	 *   raised.
+	 */
+	internal constructor(message: String, cause: Throwable)
+		: super(message, cause)
 }

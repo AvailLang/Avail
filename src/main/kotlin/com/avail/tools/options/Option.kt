@@ -1,6 +1,6 @@
 /*
- * ValidationException.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Option.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,65 +30,46 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.tools.options;
+package com.avail.tools.options
+
+import com.avail.utility.evaluation.Continuation2
+import java.util.*
 
 /**
- * Exception thrown by the {@linkplain OptionProcessorFactory factory}'s
- * validation process in the event that the client-specified
- * {@linkplain OptionProcessor option processor} fails validation.
+ * An `Option` comprises an [enumerated type][Enum] which defines the domain of
+ * the option, the keywords which parsers may use to identify the option, an
+ * end-user friendly description of the option, and an [action][Continuation2]
+ * that should be performed each time that the option is set.
  *
+ * @param OptionKeyType
+ *   The type of the option.
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  */
-@SuppressWarnings("serial")
-public class ValidationException
-extends RuntimeException
+interface Option<OptionKeyType : Enum<OptionKeyType>>
 {
 	/**
-	 * Construct a new {@link ValidationException}.
+	 * The option key, a member of the [enumeration][Enum] which defines this
+	 * option space.
 	 */
-	ValidationException ()
-	{
-		// No implementation required.
-	}
+	val key: OptionKeyType
 
 	/**
-	 * Construct a new {@link ValidationException}.
-	 *
-	 * @param message
-	 *        A (hopefully) informative message explaining why the {@linkplain
-	 *        OptionProcessorFactory factory} could not validate the specified
-	 *        {@linkplain OptionProcessor option processor}.
+	 * The [set][LinkedHashSet] of keywords that indicate this
+	 * [option][GenericOption].
 	 */
-	ValidationException (final String message)
-	{
-		super(message);
-	}
+	val keywords: LinkedHashSet<String>
 
 	/**
-	 * Construct a new {@link ValidationException}.
+	 * Answer an end-user comprehensible description of the option.
 	 *
-	 * @param cause
-	 *        The original {@linkplain Throwable exception} which caused the new
-	 *        instance to be raised.
+	 * @return A description of the option.
 	 */
-	ValidationException (final Throwable cause)
-	{
-		super(cause);
-	}
+	val description: String
 
 	/**
-	 * Construct a new {@link ValidationException}.
-	 *
-	 * @param message
-	 *        A (hopefully) informative message explaining why the {@linkplain
-	 *        OptionProcessorFactory factory} could not validate the specified
-	 *        {@linkplain OptionProcessor option processor}.
-	 * @param cause
-	 *        The original {@linkplain Throwable exception} which caused the new
-	 *        instance to be raised.
+	 * The action that should be performed upon setting of this
+	 * [option][GenericOption].
 	 */
-	ValidationException (final String message, final Throwable cause)
-	{
-		super(message, cause);
-	}
+	val action: OptionProcessor<OptionKeyType>.(String, String?) -> Unit
 }
