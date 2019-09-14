@@ -70,7 +70,7 @@ dependencies {
 // Capture the time at which the build began and record it into a resource file.
 task generateBuildTime {
 	def pathWorkbenchBuildResources =
-		"$buildDir/resources/main/resources/cli"
+		"$buildDir/resources/main/resources/unicode"
 	def pathToBuildTime = "$pathWorkbenchBuildResources/build-time.txt"
 	outputs.files pathToBuildTime
 
@@ -91,16 +91,16 @@ classes.dependsOn generateBuildTime
 // Produce a fat JAR for the Avail CLI.
 jar {
 	manifest {
-		attributes 'Main-Class': 'com.avail.tools.compiler.Compiler'
+		attributes 'Main-Class': 'com.avail.tools.unicode.CatalogGenerator'
 	}
 }
 
 // Copy the JAR into the distribution directory.
-task releaseAvailCLI (type: Copy) {
+task releaseUnicodeGenerator (type: Copy) {
 	group = 'release'
 	from shadowJar.outputs.files
 	into file("${rootProject.projectDir}/distro/lib")
 }
 
 // Update the dependencies of "assemble".
-assemble.dependsOn releaseAvailCLI
+assemble.dependsOn releaseUnicodeGenerator

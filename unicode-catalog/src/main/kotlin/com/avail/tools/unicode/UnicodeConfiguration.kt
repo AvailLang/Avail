@@ -1,5 +1,5 @@
 /*
- * Configuration.java
+ * UnicodeConfiguration.kt
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,29 +30,24 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.tools.unicode;
+package com.avail.tools.unicode
 
-import com.avail.utility.configuration.Configuration;
+import com.avail.utility.configuration.Configuration
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.Path
+import java.nio.file.Paths
 
 /**
- * {@code Configuration} describes the configuration of {@link
- * CatalogGenerator}.
+ * `Configuration` describes the configuration of a [CatalogGenerator].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class UnicodeConfiguration
-implements Configuration
+internal class UnicodeConfiguration : Configuration
 {
-	/** The {@linkplain Path directory} containing the JSON files. */
-	Path catalogPath = Paths.get(
-		"src", "com", "avail", "tools", "unicode", "generated");
+	/** The [directory][Path] containing the JSON files.  */
+	internal var catalogPath = Paths.get(
+		"src", "main", "kotlin", "com", "avail", "tools",
+		"unicode", "generated")
 
-	@Override
-	public boolean isValid ()
-	{
-		return true;
-	}
+	override val isValid get() = true
 }
