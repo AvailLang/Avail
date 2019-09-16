@@ -41,15 +41,7 @@ import com.avail.compiler.ModuleHeader;
 import com.avail.compiler.ModuleImport;
 import com.avail.compiler.problems.Problem;
 import com.avail.compiler.problems.ProblemHandler;
-import com.avail.descriptor.A_Atom;
-import com.avail.descriptor.A_Fiber;
-import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_Map;
-import com.avail.descriptor.A_Module;
-import com.avail.descriptor.A_Phrase;
-import com.avail.descriptor.A_String;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ModuleDescriptor;
+import com.avail.descriptor.*;
 import com.avail.io.SimpleCompletionHandler;
 import com.avail.io.TextInterface;
 import com.avail.persistence.IndexedRepositoryManager;
@@ -60,12 +52,7 @@ import com.avail.serialization.MalformedSerialStreamException;
 import com.avail.serialization.Serializer;
 import com.avail.utility.Graph;
 import com.avail.utility.Locks.Auto;
-import com.avail.utility.evaluation.Continuation0;
-import com.avail.utility.evaluation.Continuation1;
-import com.avail.utility.evaluation.Continuation1NotNull;
-import com.avail.utility.evaluation.Continuation2;
-import com.avail.utility.evaluation.Continuation2NotNull;
-import com.avail.utility.evaluation.Continuation3NotNull;
+import com.avail.utility.evaluation.*;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
@@ -74,14 +61,8 @@ import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -94,9 +75,7 @@ import java.util.logging.Logger;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
-import static com.avail.compiler.problems.ProblemType.EXECUTION;
-import static com.avail.compiler.problems.ProblemType.PARSE;
-import static com.avail.compiler.problems.ProblemType.TRACE;
+import static com.avail.compiler.problems.ProblemType.*;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
 import static com.avail.descriptor.FiberDescriptor.commandPriority;
 import static com.avail.descriptor.FiberDescriptor.newFiber;
@@ -112,9 +91,7 @@ import static com.avail.interpreter.Interpreter.runOutermostFunction;
 import static com.avail.utility.Locks.auto;
 import static com.avail.utility.StackPrinter.trace;
 import static java.lang.String.format;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.synchronizedList;
-import static java.util.Collections.synchronizedMap;
+import static java.util.Collections.*;
 import static java.util.stream.Collectors.joining;
 
 /**
@@ -1470,7 +1447,11 @@ public final class AvailBuilder
 					result -> onSuccess.value(result, postSuccessCleanup),
 					e ->
 					{
-						if (!(e instanceof FiberTerminationException))
+						if (e instanceof FiberTerminationException)
+						{
+							onFailure.value();
+						}
+						else
 						{
 							final Problem problem = new Problem(
 								null,
@@ -1490,10 +1471,6 @@ public final class AvailBuilder
 								}
 							};
 							commandProblemHandler.handle(problem);
-						}
-						else
-						{
-							onFailure.value();
 						}
 					});
 				runOutermostFunction(runtime, fiber, function, emptyList());

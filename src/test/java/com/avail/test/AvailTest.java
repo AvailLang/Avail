@@ -38,12 +38,7 @@ import com.avail.builder.UnresolvedDependencyException;
 import com.avail.test.AvailRuntimeTestHelper.TestErrorChannel;
 import com.avail.utility.Mutable;
 import com.avail.utility.Nulls;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -201,12 +196,12 @@ public class AvailTest
 			(result, cleanup) ->
 				cleanup.value(() ->
 				{
-					ok.value = true;
+					ok.value = result.extractBoolean();
 					semaphore.release();
 				}),
 			semaphore::release);
 		semaphore.acquireUninterruptibly();
-		assertTrue(ok.value);
+		assertTrue(ok.value, "Some Avail tests failed");
 		assertFalse(helper().errorDetected());
 		// TODO: [TLS] Runners.avail needs to be reworked so that Avail unit
 		// test failures show up on standard error instead of standard output,

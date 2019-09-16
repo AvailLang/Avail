@@ -44,6 +44,7 @@ Names
 	"report on_",
 
 	/* Analyzing reports. */
+	"bad results of_",
 	"_'s⁇metrics by module",
 	"_'s⁇metrics by test suite",
 
@@ -671,7 +672,7 @@ Public method "_'s⁇metrics by test suite" is
  * @returns "<unit test failure…|>"
  * @category "Unit Testing"
  */
-Private method "bad results of_" is
+Public method "bad results of_" is
 [
 	results : <unit test result…|>
 |
