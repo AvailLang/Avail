@@ -815,12 +815,13 @@ class L1Decompiler constructor(
 					val permutation = phrase.permutation()
 					val list = phrase.list()
 					val size = list.expressionsSize()
-					val outputArray = Array(size) {
-						val i = it + 1
-						val index = permutation.tupleIntAt(i)
-						val element = list.expressionAt(index)
-						adjustSuperCastsIn(
-							element, superUnionType.typeAtIndex(i))
+					val outputArray = Array<A_Phrase>(size) { nil }
+					for (i in 1..size)
+					{
+						val permutedIndex = permutation.tupleIntAt(i)
+						outputArray[permutedIndex - 1] = adjustSuperCastsIn(
+							list.expressionAt(permutedIndex),
+							superUnionType.typeAtIndex(i))
 					}
 					return newPermutedListNode(
 						newListNode(tupleFromArray(*outputArray)), permutation)
@@ -828,14 +829,12 @@ class L1Decompiler constructor(
 				phrase.phraseKindIsUnder(LIST_PHRASE) ->
 				{
 					// Apply the superUnionType's elements to the list.
-					val size = phrase.expressionsSize()
-					val outputArray = Array(size) {
-						val i = it + 1
-						val element = phrase.expressionAt(i)
-						adjustSuperCastsIn(
-							element, superUnionType.typeAtIndex(i))
-					}
-					return newListNode(tupleFromArray(*outputArray))
+					return newListNode(
+						generateObjectTupleFrom(phrase.expressionsSize()) {
+							adjustSuperCastsIn(
+								phrase.expressionAt(it),
+								superUnionType.typeAtIndex(it))
+						})
 				}
 				else -> return newSuperCastNode(phrase, superUnionType)
 			}
