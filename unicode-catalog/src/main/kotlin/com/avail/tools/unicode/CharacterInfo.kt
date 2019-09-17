@@ -74,17 +74,17 @@ internal class CharacterInfo constructor(internal val codePoint: Int)
 		codePoint.compareTo(other.codePoint)
 
 	/** A [String] that contains only the UTF-16 encoding of the code point. */
-	val character: String
+	private val character: String
 		get() = String(Character.toChars(codePoint))
 
 	/** The Unicode name of the code point. */
-	val unicodeName: String
+	private val unicodeName: String
 		get() = Character.getName(codePoint)
 
 	/**
 	 * The decimal coding of the HTML entity corresponding to the code point.
 	 */
-	val htmlEntityDecimal: String
+	private val htmlEntityDecimal: String
 		get() = format("&#%d;", codePoint)
 
 	/**
@@ -93,7 +93,7 @@ internal class CharacterInfo constructor(internal val codePoint: Int)
 	 *
 	 * @return The HTML entity.
 	 */
-	val htmlEntityHexadecimal: String
+	private val htmlEntityHexadecimal: String
 		get() = format("&#x%x;", codePoint)
 
 	override fun writeTo(writer: JSONWriter)
