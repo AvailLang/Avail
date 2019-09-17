@@ -32,13 +32,7 @@
 
 package com.avail.interpreter.levelTwo.operand;
 
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Set;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.BottomTypeDescriptor;
-import com.avail.descriptor.NilDescriptor;
-import com.avail.descriptor.SetDescriptor;
+import com.avail.descriptor.*;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_EQUALS_CONSTANT;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_CONSTANT;
 import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
@@ -46,7 +40,6 @@ import com.avail.interpreter.levelTwo.register.L2FloatRegister;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Objects;
@@ -59,18 +52,13 @@ import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.SetDescriptor.set;
-import static com.avail.descriptor.SetDescriptor.setFromCollection;
-import static com.avail.descriptor.SetDescriptor.toSet;
+import static com.avail.descriptor.SetDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.descriptor.TypeDescriptor.isProperSubtype;
-import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED;
-import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.IMMUTABLE;
-import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_FLOAT;
-import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT;
-import static java.util.Collections.singleton;
-import static java.util.Collections.unmodifiableSet;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.*;
+import static java.util.Collections.emptySet;
+import static java.util.Collections.*;
 
 /**
  * This mechanism describes a restriction of a type without saying what it's to
@@ -148,18 +136,7 @@ public final class TypeRestriction
 		UNBOXED_FLOAT;
 
 		/** A pre-computed bit mask for this flag. */
-		private final int mask;
-
-		RestrictionFlagEncoding ()
-		{
-			this.mask = 1 << ordinal();
-		}
-
-		/** Answer the pre-computed bit mask for this flag. */
-		public int mask ()
-		{
-			return mask;
-		}
+		public final int mask = 1 << ordinal();
 	}
 
 	/**
@@ -176,7 +153,7 @@ public final class TypeRestriction
 	/** Answer whether the restricted value is known to be immutable. */
 	public boolean isImmutable ()
 	{
-		return (flags & IMMUTABLE.mask()) != 0;
+		return (flags & IMMUTABLE.mask) != 0;
 	}
 
 	/**
@@ -185,7 +162,7 @@ public final class TypeRestriction
 	 */
 	public boolean isBoxed ()
 	{
-		return (flags & BOXED.mask()) != 0;
+		return (flags & BOXED.mask) != 0;
 	}
 
 	/**
@@ -194,7 +171,7 @@ public final class TypeRestriction
 	 */
 	public boolean isUnboxedInt ()
 	{
-		return (flags & UNBOXED_INT.mask()) != 0;
+		return (flags & UNBOXED_INT.mask) != 0;
 	}
 
 	/**
@@ -203,7 +180,7 @@ public final class TypeRestriction
 	 */
 	public boolean isUnboxedFloat ()
 	{
-		return (flags & UNBOXED_FLOAT.mask()) != 0;
+		return (flags & UNBOXED_FLOAT.mask) != 0;
 	}
 
 	/**
@@ -244,7 +221,7 @@ public final class TypeRestriction
 		final int typesSize = excludedTypes.size();
 		this.excludedTypes =
 			typesSize == 0
-				? Collections.emptySet()
+				? emptySet()
 				: typesSize == 1
 					? singleton(excludedTypes.iterator().next())
 					: unmodifiableSet(new HashSet<>(excludedTypes));
@@ -252,7 +229,7 @@ public final class TypeRestriction
 		final int constantsSize = excludedValues.size();
 		this.excludedValues =
 			constantsSize == 0
-				? Collections.emptySet()
+				? emptySet()
 				: constantsSize == 1
 					? singleton(excludedValues.iterator().next())
 					: unmodifiableSet(new HashSet<>(excludedValues));
@@ -298,10 +275,10 @@ public final class TypeRestriction
 			constantOrNull,
 			excludedTypes,
 			excludedValues,
-			(isImmutable ? IMMUTABLE.mask() : 0)
-				+ (isBoxed ? BOXED.mask() : 0)
-				+ (isUnboxedInt ? UNBOXED_INT.mask() : 0)
-				+ (isUnboxedFloat ? UNBOXED_FLOAT.mask() : 0));
+			(isImmutable ? IMMUTABLE.mask : 0)
+				+ (isBoxed ? BOXED.mask : 0)
+				+ (isUnboxedInt ? UNBOXED_INT.mask : 0)
+				+ (isUnboxedFloat ? UNBOXED_FLOAT.mask : 0));
 	}
 
 	/**
@@ -316,7 +293,7 @@ public final class TypeRestriction
 			TOP.o(),
 			nil,
 			singleton(ANY.o()),
-			Collections.emptySet(),
+			emptySet(),
 			true,
 			true,
 			false,
@@ -330,8 +307,8 @@ public final class TypeRestriction
 		new TypeRestriction(
 			TOP.o(),
 			null,
-			Collections.emptySet(),
-			Collections.emptySet(),
+			emptySet(),
+			emptySet(),
 			false,
 			true,
 			false,
@@ -345,8 +322,8 @@ public final class TypeRestriction
 		new TypeRestriction(
 			TOP.o(),
 			null,
-			Collections.emptySet(),
-			Collections.emptySet(),
+			emptySet(),
+			emptySet(),
 			true,
 			true,
 			false,
@@ -360,8 +337,8 @@ public final class TypeRestriction
 		new TypeRestriction(
 			ANY.o(),
 			null,
-			Collections.emptySet(),
-			Collections.emptySet(),
+			emptySet(),
+			emptySet(),
 			false,
 			true,
 			false,
@@ -375,8 +352,8 @@ public final class TypeRestriction
 		new TypeRestriction(
 			ANY.o(),
 			null,
-			Collections.emptySet(),
-			Collections.emptySet(),
+			emptySet(),
+			emptySet(),
 			true,
 			true,
 			false,
@@ -393,8 +370,8 @@ public final class TypeRestriction
 		new TypeRestriction(
 			bottom(),
 			null,
-			Collections.emptySet(),
-			Collections.emptySet(),
+			emptySet(),
+			emptySet(),
 			true,
 			false,
 			false,
@@ -414,8 +391,8 @@ public final class TypeRestriction
 		new TypeRestriction(
 			instanceMeta(bottom()),
 			bottom(),
-			Collections.emptySet(),
-			Collections.emptySet(),
+			emptySet(),
+			emptySet(),
 			true,
 			true,
 			false,
@@ -466,8 +443,8 @@ public final class TypeRestriction
 			return new TypeRestriction(
 				instanceTypeOrMetaOn(givenConstantOrNull),
 				givenConstantOrNull,
-				Collections.emptySet(),
-				Collections.emptySet(),
+				emptySet(),
+				emptySet(),
 				flags);
 		}
 
@@ -476,13 +453,13 @@ public final class TypeRestriction
 		{
 			if (givenType.equals(TOP.o()))
 			{
-				return (flags & IMMUTABLE.mask()) != 0
+				return (flags & IMMUTABLE.mask) != 0
 					? topRestrictionImmutable
 					: topRestriction;
 			}
 			if (givenType.equals(ANY.o()))
 			{
-				return (flags & IMMUTABLE.mask()) != 0
+				return (flags & IMMUTABLE.mask) != 0
 					? anyRestrictionImmutable
 					: anyRestriction;
 			}
@@ -500,8 +477,8 @@ public final class TypeRestriction
 				return new TypeRestriction(
 					givenType,
 					instance,
-					Collections.emptySet(),
-					Collections.emptySet(),
+					emptySet(),
+					emptySet(),
 					flags);
 			}
 		}
@@ -550,10 +527,10 @@ public final class TypeRestriction
 		final boolean isUnboxedFloat)
 	{
 		final int flags =
-			(isImmutable ? IMMUTABLE.mask() : 0)
-				+ (isBoxed ? BOXED.mask() : 0)
-				+ (isUnboxedInt ? UNBOXED_INT.mask() : 0)
-				+ (isUnboxedFloat ? UNBOXED_FLOAT.mask() : 0);
+			(isImmutable ? IMMUTABLE.mask : 0)
+				+ (isBoxed ? BOXED.mask : 0)
+				+ (isUnboxedInt ? UNBOXED_INT.mask : 0)
+				+ (isUnboxedFloat ? UNBOXED_FLOAT.mask : 0);
 		return restriction(
 			type,
 			constantOrNull,
@@ -611,8 +588,8 @@ public final class TypeRestriction
 					return fromCanonical(
 						instanceTypeOrMetaOn(instance),
 						instance,
-						Collections.emptySet(),
-						Collections.emptySet(),
+						emptySet(),
+						emptySet(),
 						flags);
 				}
 				default:
@@ -622,8 +599,8 @@ public final class TypeRestriction
 					return new TypeRestriction(
 						enumerationWith(setFromCollection(instances)),
 						null,
-						Collections.emptySet(),
-						Collections.emptySet(),
+						emptySet(),
+						emptySet(),
 						flags);
 				}
 			}
@@ -659,8 +636,8 @@ public final class TypeRestriction
 			return new TypeRestriction(
 				instanceTypeOrMetaOn(constantOrNull),
 				constantOrNull,
-				Collections.emptySet(),
-				Collections.emptySet(),
+				emptySet(),
+				emptySet(),
 				flags);
 		}
 
@@ -737,8 +714,8 @@ public final class TypeRestriction
 		return restriction(
 			type,
 			constantOrNull,
-			Collections.emptySet(),
-			Collections.emptySet(),
+			emptySet(),
+			emptySet(),
 			false,
 			true,
 			false,
@@ -765,9 +742,9 @@ public final class TypeRestriction
 		return restriction(
 			type,
 			null,
-			Collections.emptySet(),
-			Collections.emptySet(),
-			encoding.mask());
+			emptySet(),
+			emptySet(),
+			encoding.mask);
 	}
 
 	/**
@@ -798,10 +775,9 @@ public final class TypeRestriction
 		return restriction(
 			constant.equalsNil() ? TOP.o() : instanceTypeOrMetaOn(constant),
 			constant,
-			Collections.emptySet(),
-			Collections.emptySet(),
-			encoding.mask()
-				| (encoding == BOXED ? IMMUTABLE.mask() : 0));
+			emptySet(),
+			emptySet(),
+			encoding.mask | (encoding == BOXED ? IMMUTABLE.mask : 0));
 	}
 
 	/**
@@ -1078,7 +1054,7 @@ public final class TypeRestriction
 	 */
 	public TypeRestriction withFlag (final RestrictionFlagEncoding flagEncoding)
 	{
-		if ((flags & flagEncoding.mask()) != 0)
+		if ((flags & flagEncoding.mask) != 0)
 		{
 			// Flag is already set.
 			return this;
@@ -1088,7 +1064,7 @@ public final class TypeRestriction
 			constantOrNull,
 			excludedTypes,
 			excludedValues,
-			flags | flagEncoding.mask());
+			flags | flagEncoding.mask);
 	}
 
 	/**
@@ -1102,7 +1078,7 @@ public final class TypeRestriction
 	public TypeRestriction withoutFlag (
 		final RestrictionFlagEncoding flagEncoding)
 	{
-		if ((flags & flagEncoding.mask()) == 0)
+		if ((flags & flagEncoding.mask) == 0)
 		{
 			// Flag is already set.
 			return this;
@@ -1112,7 +1088,7 @@ public final class TypeRestriction
 			constantOrNull,
 			excludedTypes,
 			excludedValues,
-			flags & ~flagEncoding.mask());
+			flags & ~flagEncoding.mask);
 	}
 
 	/**

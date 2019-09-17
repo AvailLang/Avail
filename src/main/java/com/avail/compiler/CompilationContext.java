@@ -41,21 +41,8 @@ import com.avail.compiler.problems.Problem;
 import com.avail.compiler.problems.ProblemHandler;
 import com.avail.compiler.problems.ProblemType;
 import com.avail.compiler.scanning.LexingState;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Fiber;
-import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_Map;
-import com.avail.descriptor.A_Module;
-import com.avail.descriptor.A_Phrase;
-import com.avail.descriptor.A_RawFunction;
-import com.avail.descriptor.A_String;
-import com.avail.descriptor.A_Token;
+import com.avail.descriptor.*;
 import com.avail.descriptor.AtomDescriptor.SpecialAtom;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.FiberDescriptor;
-import com.avail.descriptor.FunctionDescriptor;
-import com.avail.descriptor.ModuleDescriptor;
-import com.avail.descriptor.PhraseDescriptor;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.exceptions.AvailAssertionFailedException;
 import com.avail.exceptions.AvailEmergencyExitException;
@@ -456,12 +443,15 @@ public class CompilationContext
 					+ "\n\t"
 					+ join("\n", lines).trim());
 		}
-		logger.log(
-			Level.FINEST,
-			format(
-				"Started work unit: %d/%d%n",
-				getWorkUnitsCompleted(),
-				getWorkUnitsQueued()));
+		if (logger.isLoggable(Level.FINEST))
+		{
+			logger.log(
+				Level.FINEST,
+				format(
+					"Started work unit: %d/%d%n",
+					getWorkUnitsCompleted(),
+					getWorkUnitsQueued()));
+		}
 	}
 
 	/**
@@ -533,9 +523,13 @@ public class CompilationContext
 							+ (queued - completed)
 							+ ')');
 				}
-				logger.log(
-					Level.FINEST,
-					format("Completed work unit: %d/%d%n", completed, queued));
+				if (logger.isLoggable(Level.FINEST))
+				{
+					logger.log(
+						Level.FINEST,
+						format(
+							"Completed work unit: %d/%d%n", completed, queued));
+				}
 				if (completed == queued)
 				{
 					try
