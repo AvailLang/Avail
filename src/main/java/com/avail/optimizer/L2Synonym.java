@@ -31,15 +31,10 @@
  */
 package com.avail.optimizer;
 
-import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.optimizer.values.Frame;
 import com.avail.optimizer.values.L2SemanticValue;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.UnaryOperator;
 
 import static java.util.Collections.singleton;
@@ -47,10 +42,9 @@ import static java.util.Collections.unmodifiableSet;
 import static java.util.stream.Collectors.toCollection;
 
 /**
- * An {@code L2Synonym} is a set of {@link L2Register}s and {@link
- * L2SemanticValue}s.  The {@link L2ValueManifest} at each instruction includes
- * a set of synonyms which partition the potentially both the live registers and
- * semantic values.
+ * An {@code L2Synonym} is a set of {@link L2SemanticValue}s known to represent
+ * the same value in some {@link L2ValueManifest}.  The manifest at each
+ * instruction includes a set of synonyms which partition the semantic values.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
