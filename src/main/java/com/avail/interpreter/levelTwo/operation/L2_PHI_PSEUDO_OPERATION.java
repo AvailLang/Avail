@@ -35,38 +35,18 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2NamedOperandType;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2Operand;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadFloatOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteOperand;
-import com.avail.interpreter.levelTwo.operand.TypeRestriction;
+import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.interpreter.levelTwo.register.L2FloatRegister;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
-import com.avail.optimizer.L2BasicBlock;
-import com.avail.optimizer.L2ControlFlowGraph;
-import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.L2ValueManifest;
-import com.avail.optimizer.RegisterSet;
+import com.avail.optimizer.*;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_INT_VECTOR;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_FLOAT;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_INT;
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
 
 /**
  * The {@code L2_PHI_PSEUDO_OPERATION} occurs at the start of a {@link
@@ -144,7 +124,7 @@ extends L2Operation
 			L2ReadFloatOperand, L2FloatRegister>
 		unboxedFloat = new L2_PHI_PSEUDO_OPERATION<>(
 			L2_MOVE.unboxedFloat,
-			READ_BOXED_VECTOR.is("potential float sources"),
+			READ_FLOAT_VECTOR.is("potential float sources"),
 			WRITE_FLOAT.is("float destination"));
 
 	@Override
@@ -225,6 +205,9 @@ extends L2Operation
 	 *        The {@link L2Instruction} whose operation has this type.
 	 * @param inputIndex
 	 *        The index to remove.
+	 * @return A replacement {@link L2Instruction}, whose operation may be
+	 *         either another {@code L2_PHI_PSEUDO_OPERATION} or an {@link
+	 *         L2_MOVE}.
 	 */
 	public L2Instruction withoutIndex (
 		final L2Instruction instruction,
@@ -271,7 +254,7 @@ extends L2Operation
 	{
 		assert this == instruction.operation();
 		final L2ReadVectorOperand<RR, R> sources = instruction.operand(0);
-		final L2WriteOperand<R> destination = instruction.operand(1);
+//		final L2WriteOperand<R> destination = instruction.operand(1);
 
 		assert sources.elements().size()
 			== instruction.basicBlock.predecessorEdgesCount();

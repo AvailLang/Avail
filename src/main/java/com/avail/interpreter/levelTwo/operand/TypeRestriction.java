@@ -40,10 +40,7 @@ import com.avail.interpreter.levelTwo.register.L2FloatRegister;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
 
 import javax.annotation.Nullable;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
@@ -181,6 +178,17 @@ public final class TypeRestriction
 	public boolean isUnboxedFloat ()
 	{
 		return (flags & UNBOXED_FLOAT.mask) != 0;
+	}
+
+	/**
+	 * Answer whether the specified flag is set.
+	 *
+	 * @param restrictionFlag The flag to test.
+	 * @return Whether the flag is set.
+	 */
+	public boolean hasFlag (final RestrictionFlagEncoding restrictionFlag)
+	{
+		return (flags & restrictionFlag.mask) != 0;
 	}
 
 	/**

@@ -36,6 +36,8 @@ import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding;
 import com.avail.optimizer.L2ControlFlowGraph;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.reoptimizer.L2Inliner;
@@ -60,22 +62,34 @@ import static org.objectweb.asm.Opcodes.ISTORE;
  */
 public abstract class L2Register
 {
+	/**
+	 * One of the kinds of registers that Level Two supports.
+	 */
 	public enum RegisterKind
 	{
 		/**
 		 * The kind of register that holds an {@link AvailObject}.
 		 */
-		BOXED(ALOAD, ASTORE),
+		BOXED(
+			ALOAD,
+			ASTORE,
+			RestrictionFlagEncoding.BOXED),
 
 		/**
 		 * The kind of register that holds an {@code int}.
 		 */
-		INTEGER(ILOAD, ISTORE),
+		INTEGER(
+			ILOAD,
+			ISTORE,
+			RestrictionFlagEncoding.UNBOXED_INT),
 
 		/**
 		 * The kind of register that holds a {@code double}.
 		 */
-		FLOAT(DLOAD, DSTORE),
+		FLOAT(
+			DLOAD,
+			DSTORE,
+			RestrictionFlagEncoding.UNBOXED_FLOAT),
 
 //		/**
 //		 * The kind of register that holds the value of some variable prior to
@@ -90,12 +104,30 @@ public abstract class L2Register
 		/** The JVM instruction that stores a register of this kind. */
 		public final int storeInstruction;
 
-		RegisterKind (
+		/**
+±		 * The {@link RestrictionFlagEncoding} used to indicate a {@link
+		 * TypeRestriction} has an available register of this kind.
+		 */
+		public final RestrictionFlagEncoding restrictionFlag;
+
+		/**
+		 * Create an instance of the enum.
+		 *
+		 * @param loadInstruction
+		 *        The JVM instruction for loading.
+		 * @param storeInstruction
+		 *        The JVM instruction for storing.
+		 * @param restrictionFlag
+		 *        The corresponding {@link RestrictionFlagEncoding}.
+		 */
+		RegisterKind(
 			final int loadInstruction,
-			final int storeInstruction)
+			final int storeInstruction,
+			final RestrictionFlagEncoding restrictionFlag)
 		{
 			this.loadInstruction = loadInstruction;
 			this.storeInstruction = storeInstruction;
+			this.restrictionFlag = restrictionFlag;
 		}
 
 		/** Don't modify this array. */
