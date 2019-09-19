@@ -35,32 +35,17 @@ import com.avail.compiler.AvailCompiler;
 import com.avail.compiler.AvailRejectedParseException;
 import com.avail.compiler.CompilationContext;
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Fiber;
-import com.avail.descriptor.A_Lexer;
-import com.avail.descriptor.A_Set;
-import com.avail.descriptor.A_String;
-import com.avail.descriptor.A_Token;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.*;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.AvailLoader.LexicalScanner;
 import com.avail.interpreter.Interpreter;
-import com.avail.utility.evaluation.Continuation1;
-import com.avail.utility.evaluation.Continuation1NotNull;
-import com.avail.utility.evaluation.Describer;
-import com.avail.utility.evaluation.SimpleDescriber;
-import com.avail.utility.evaluation.Transformer1;
+import com.avail.utility.evaluation.*;
 
 import javax.annotation.Nullable;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -289,15 +274,15 @@ public class LexingState
 				compilationContext.loader().lexicalScanner();
 			final int codePoint =
 				compilationContext.source().tupleCodePointAt(position);
+			final String charString =
+				CharacterDescriptor.fromCodePoint(codePoint).toString();
 			expected(
 				STRONG,
 				format(
 					"an applicable lexer, but all %d filter functions returned "
-						+ "false (code point = %s(U+%04x))",
+						+ "false (code point = %s (U+%04x))",
 					scanner.allVisibleLexers.size(),
-					(Character.isWhitespace(codePoint)
-						 ? ""
-						 : "¢" + codePoint + " "),
+					charString,
 					codePoint));
 			for (final Continuation1NotNull<List<A_Token>> action
 				: stripNull(actions))
