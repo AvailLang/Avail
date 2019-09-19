@@ -32,22 +32,17 @@
 
 Module "CSV"
 Uses
-	"Avail"
+	"CSV Data"
 Extends
-	"Avail" =
-	(
-		"whitespace lexer",
-		"string token lexer",
-		"whole number lexer",
-		"operator lexer",
-		"keyword lexer"
-	),
 	"CSV Language" =
 	(
+		"keyword lexer",
+		"operator lexer",
+		"CSV whitespace lexer",
 		"Reset CSV processor",
 		"Display CSV(as a table«with headers»?)"
-	),
-	"CSV Data"
+	)
 Entries
+	"Reset CSV processor",
 	"Display CSV(as a table«with headers»?)"
 Body

@@ -32,20 +32,20 @@
 
 Module "CSV Language"
 Extends
-	"Avail" = (
-		/* Some of the core Avail syntax */
-		"whitespace lexer",
+	"Avail" =
+	(
+		/* Some of the core Avail syntax. */
+		"keyword lexer",
 		"string token lexer",
-		"whole number lexer",
-		"operator lexer",
-		"_!;",
-		"…$"
+		"operator lexer"
 	)
 Uses
 	"Avail"
 Names
 	/* Build CSV records. */
-	"«_‡,»",
+	"CSV whitespace lexer",
+	"CSV end of line lexer",
+	"«…!»«…$‡,»…!",
 
 	/* CSV data module processing. */
 	"Reset CSV processor",
@@ -80,90 +80,69 @@ Explicit class "invalid-CSV-record exception" extends descriptive exception;
 /**
  * Validate the specified CSV record. If no records have been previously
  * validated, then assume that the supplied record is the header and that it
- * specifies the expected column count.
+ * specifies the expected column count. Reject the current parse on failure.
  *
  * @method "Validate_"
  * @param "record" "string+"
  *        A CSV record that includes at least one column.
  * @returns "⊤"
- * @raises "invalid-CSV-record exception"
  */
 Private method "Validate_" is
 [
 	record : string+
 |
-	/* Get the size of the record. */
+	// Get the size of the record.
 	size ::= |record|;
-
-	/* If the column count hasn't been set yet, then set it. */
-	If columnCount is unassigned then
+	// Enforce the column count, if possible.
+	If columnCount is assigned ∧ size ≠ columnCount then
 	[
-		columnCount := size;
-	]
-	/* Otherwise, enforce the column count! */
-	else if size ≠ columnCount then
-	[
-		Raise a descriptive exception with
-			error message ::=
-				format "CSV record #“①” to have “②” columns (not “③”)"
-				with |records| + 1, columnCount, size
+		Reject parse, expected:
+			format "CSV record #“①” to have “②” columns (not “③”)"
+			with |records| + 1, columnCount, size
 	];
 ];
+
+/**
+ * Actually add the CSV record to {@global "records"}.
+ *
+ * @method "Append record_"
+ * @param "record" "string+"
+ * @returns "⊤"
+ */
+Private method "Append record_" is
+[
+	record : string+
+|
+	If columnCount is unassigned then [columnCount := |record|;];
+	records ++= <record>;
+];
+
+"end-of-line marker" is a new atom;
 
 /**
  * Add the CSV record to {@global "records"}.
  *
- * @method "«_‡,»"
- * @param "record" "string+"
- *        A {@type "tuple"} of {@type "string"}s.
- * @returns "⊤"
+ * @method "«…$‡,»"
+ * @param "pLeadingEOLs" "list phrase⇒((literal token⇒{end-of-line marker}ᵀ)*)"
+ *        The leading {@method "end-of-line marker"}s, corresponding to line
+ *        feed characters.
+ * @param "record" "list phrase ⇒ ((literal token ⇒ string)+)"
+ *        A {@type "list phrase" list} of {@type "literal token" literal} {@type
+ *        "string"}s.
+ * @param "pTrailingEOL" "literal phrase⇒(literal token⇒{end-of-line marker}ᵀ)"
+ *        The trailing {@method "end-of-line marker"}.
+ * @returns "expression as statement phrase"
  */
-Public method "«_‡,»" is
+Public macro "«…!»«…$‡,»…!" is
 [
-	record : string+
+	pLeadingEOLs : list phrase ⇒ ((literal token ⇒ {end-of-line marker}ᵀ)*),
+	pRecord : list phrase ⇒ ((literal token ⇒ string)+),
+	pTrailingEOL : literal phrase ⇒ (literal token ⇒ {end-of-line marker}ᵀ)
 |
+	// We know that the record comprises only literals, so evaluate it.
+	record ::= map each column of evaluate pRecord through [column's value];
 	Validate record;
-	records ++= <record>;
-];
-
-/**
- * Instruct the compiler to enforce the requirement that every column datum is
- * statically known.
- *
- * @method "«_‡,»"
- * @restricts "string+'s type"
- */
-Semantic restriction "«_‡,»" is
-[
-	recordType : string+'s type
-|
-	/* The guillemets in the method name ensure that each CSV record has a
-	 * column count that is entirely *lexical*. The argument therefore has a
-	 * fixed, single value size range. To determine the size of the actual
-	 * record, we can arbitrarily choose either the lower or upper bound of the
-	 * type, because they will be equal.
-	 */
-	sizes ::= ||recordType||;
-	Assert: ⎣sizes⎦ = ⎡sizes⎤;
-	size ::= ⎣sizes⎦;
-
-	/* Ensure that every column is an instance type, i.e. a statically known
-	 * value.
-	 */
-	For each columnIndex from 1 to size do
-	[
-		Unless |recordType[columnIndex]| = 1 then
-		[
-			Reject parse, expected:
-				format
-					"column #“①” to have a well-known value \
-					\|(but the type is merely “②”)"
-				with columnIndex, recordType[columnIndex]
-		];
-	];
-
-	/* Don't bother strengthening the type; the method only has side effect. */
-	⊤
+	send $"Append record_" with «<‘record’>» : ⊤ → statement phrase
 ];
 
 /**
@@ -327,3 +306,56 @@ Public method "Display CSV(as a table«with headers»?)" is
 	/* Display the collected text. */
 	Print: text;
 ];
+
+// Define the lexers together, to keep their lexing effects transactional.
+[
+	/**
+	 * Redefine whitespace to ignore line feeds.
+	 *
+	 * @lexer "CSV whitespace lexer"
+	 * @param "source" "string"
+	 *        The complete source text.
+	 * @param "position" "real source position"
+	 *        The position of the leading {@type "character"}.
+	 * @param "line" "real source line number"
+	 *        The line number of the leading {@type "character"}.
+	 * @returns "{token+|}"
+	 *          The possible lexes discovered at {@code "position"}.
+	 */
+	Lexer $"CSV whitespace lexer"
+	when [c : character | c ∈ {¢" ", ¢"\t"}]
+	is
+	[
+		source : string,
+		position : real source position,
+		line : real source line number
+	|
+		{<whitespace (source[position..position]) @ position:line>}
+	];
+
+	/**
+	 * Convert line feed characters into occurrences of a special {@type
+	 * "atom"}, for the purpose of eliminating the ambiguity in top-level
+	 * parsing.
+	 *
+	 * @lexer "CSV end of line lexer"
+	 * @param "source" "string"
+	 *        The complete source text.
+	 * @param "position" "real source position"
+	 *        The position of the leading {@type "character"}.
+	 * @param "line" "real source line number"
+	 *        The line number of the leading {@type "character"}.
+	 * @returns "{token+|}"
+	 *          The possible lexes discovered at {@code "position"}.
+	 */
+	Lexer $"CSV end of line lexer"
+	when [c : character | c = ¢"\n"]
+	is
+	[
+		source : string,
+		position : real source position,
+		line : real source line number
+	|
+		{<`end-of-line marker` (source[position..position]) @ position:line>}
+	];
+]();
