@@ -79,6 +79,9 @@ extends L2ReadOperand<L2BoxedRegister>
 	 *        The {@link TypeRestriction} to constrain this particular read.
 	 *        This restriction has been guaranteed by the VM at the point where
 	 *        this operand's instruction occurs.
+	 * @param manifest
+	 *        The {@link L2ValueManifest} from which to extract a suitable
+	 *        definition instruction.
 	 */
 	public L2ReadBoxedOperand (
 		final L2SemanticValue semanticValue,

@@ -1,5 +1,5 @@
 /*
- * Foundation Tests.avail
+ * Optimizer Tests.avail
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,31 +30,39 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Foundation Tests"
+Module "Optimizer Tests"
 Versions
 	"1.4.0"
 Uses
-	"Avail"
-Extends
-	"Assertion Tests" = ("assertion test suite"),
-	"Backtracking Tests" = ("backtracking test suite"),
-	"Cast Tests" = ("cast test suite"),
-	"Characters Tests" = ("character test suite"),
- 	"Common" = ("Foundation|foundation test suite"),
-	"Concurrency Tests" = ("concurrency test suite"),
-	"Control Structure Tests" = ("control structure test suite"),
-	"Decompiler Tests" = ("decompiler test suite"),
-	"Exception Tests" = ("exception test suite"),
-	"Function Tests" = ("function test suite"),
-	"Logic Tests" = ("logic test suite"),
-	"Map Tests" = ("map test suite"),
-	"Math Tests" = ("math test suite"),
-	"Message Tests" = ("message test suite"),
-	"Observation Tests" = ("observation test suite"),
-	"Optimizer Tests" = ("optimizer test suite"),
-	"Pojo Tests" = ("pojo test suite"),
-	"Set Tests" = ("set test suite"),
-	"String Tests" = ("string test suite"),
-	"Tuple Tests" = ("tuple test suite"),
-	"Type Tests" = ("type test suite")
+	"Common"
+Names
+	"optimizer test suite"
 Body
+
+/* The test suite identifier. */
+"optimizer test suite" is a new atom;
+
+New test suite optimizer test suite extends foundation test suite;
+
+/*
+ * Regression for a bug in the (early 1.4.0, Sept 2019) optimizer.  If a boxed
+ * and int (or float) register exist for the same semantic value in all incoming
+ * edges to a basic block, it was confused by the presence of the first synonym
+ * when adding the second phi.
+ */
+Test "multi-kind phi synonyms" in optimizer test suite is
+[
+	x : tuple := <10, 20>;  /* Prevents folding (Sept 2019). */
+	y : tuple := <30, 40>;  /* Prevents folding (Sept 2019). */
+	Repeat
+	[
+		if (|x| = |y|) then
+		[
+			Ignore: x ++ y;
+		]
+		else
+		[
+			Ignore: y ++ x;
+		];
+	] 1000 times;
+];
