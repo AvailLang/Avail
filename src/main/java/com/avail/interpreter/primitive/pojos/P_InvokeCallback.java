@@ -138,9 +138,10 @@ public final class P_InvokeCallback extends Primitive
 					copiedArgs);
 			}
 		};
+		final Result result = interpreter.primitiveSuspend(primitiveFunction);
 		runtime.callbackSystem().executeCallbackTask(
 			callback, argumentsTuple, completion, failure);
-		return interpreter.primitiveSuspend(primitiveFunction);
+		return result;
 	}
 
 	@Override
