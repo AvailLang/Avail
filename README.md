@@ -64,10 +64,11 @@ BEFORE INSTALLING
 Before installing Avail, you will need to make sure that you have obtained and
 installed the prerequisite software:
 
-1) Java: You will need version 1.8, or later, of the Java Development Kit (JDK)
-Standard Edition (SE). Many modern systems already have some version of the JDK,
-so you should check your JDK version before obtaining and installing it from
-Oracle (or some other vendor). You can do so like this:
+1) Java: You will need version 1.8 of the Java Development Kit (JDK) Standard
+Edition (SE), NOT an earlier or later version. Many modern systems already
+have some version of the JDK, so you should check your JDK version before
+obtaining and installing it from Oracle (or some other vendor). You can do so
+like this:
 
 	$ javac -version
 
