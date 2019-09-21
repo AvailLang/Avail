@@ -81,7 +81,7 @@ extends Primitive
 		final A_Number oneBasedRejectionLevel = interpreter.argument(0);
 		final A_String rejectionString = interpreter.argument(1);
 		throw new AvailRejectedParseException(
-			ParseNotificationLevel.levelFromInt(
+			ParseNotificationLevel.Companion.levelFromInt(
 				oneBasedRejectionLevel.extractInt() - 1),
 			rejectionString);
 	}

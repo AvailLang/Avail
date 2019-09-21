@@ -6,14 +6,14 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  Redistributions of source code must retain the above copyright notice, this
+ * * Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- *  Redistributions in binary form must reproduce the above copyright notice,
+ * * Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- *  Neither the name of the copyright holder nor the names of the contributors
+ * * Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -36,6 +36,8 @@ import com.avail.compiler.problems.ProblemHandler;
 import com.avail.compiler.problems.ProblemType;
 import com.avail.io.SimpleCompletionHandler;
 import com.avail.utility.evaluation.Continuation1NotNull;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function1;
 
 import java.util.Formatter;
 
@@ -57,9 +59,9 @@ class BuilderProblemHandler implements ProblemHandler
 	 *
 	 * <ol>
 	 * <li>The {@linkplain ProblemType problem type}.</li>
-	 * <li>The {@linkplain Problem#moduleName module name}, or {@code null}
+	 * <li>The {@linkplain Problem#getModuleName() module name}, or {@code null}
 	 *     if there is no specific module in context.</li>
-	 * <li>The {@linkplain Problem#lineNumber line number} in the source at
+	 * <li>The {@linkplain Problem#getLineNumber() line number} in the source at
 	 *     which the problem occurs.</li>
 	 * <li>A {@linkplain Problem#toString() general description} of the
 	 *     problem.</li>
@@ -88,20 +90,20 @@ class BuilderProblemHandler implements ProblemHandler
 	@Override
 	public void handleGeneric (
 		final Problem problem,
-		final Continuation1NotNull<Boolean> decider)
+		final Function1<? super Boolean, Unit> decider)
 	{
 		availBuilder.stopBuildReason("Build failed");
 		final String formatted = format(
 			pattern,
-			problem.type,
-			problem.moduleName,
-			problem.lineNumber,
+			problem.getType(),
+			problem.getModuleName(),
+			problem.getLineNumber(),
 			problem.toString());
 		availBuilder.textInterface.getErrorChannel().write(
 			formatted,
 			null,
 			new SimpleCompletionHandler<Integer, Void>(
-				r -> decider.value(false),
-				t -> decider.value(false)));
+				r -> decider.invoke(false),
+				t -> decider.invoke(false)));
 	}
 }

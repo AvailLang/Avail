@@ -655,8 +655,8 @@ class MessageSplitter
 				expression.positionInName - 1
 			}
 		val annotatedString = (string.substring(0, zeroBasedPosition)
-			+ CompilerDiagnostics.errorIndicatorSymbol
-			+ string.substring(zeroBasedPosition))
+							   + CompilerDiagnostics.errorIndicatorSymbol
+							   + string.substring(zeroBasedPosition))
 		return stringFrom(annotatedString).toString()
 	}
 

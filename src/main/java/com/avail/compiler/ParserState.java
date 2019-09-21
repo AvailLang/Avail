@@ -126,7 +126,7 @@ public class ParserState
 				max(lexingState.position - 20, 1),
 				max(lexingState.position - 1, 0),
 				false)).asNativeString(),
-			CompilerDiagnostics.errorIndicatorSymbol,
+			CompilerDiagnostics.Companion.getErrorIndicatorSymbol(),
 			(source.copyStringFromToCanDestroy(
 				min(lexingState.position, source.tupleSize() + 1),
 				min(lexingState.position + 20, source.tupleSize()),

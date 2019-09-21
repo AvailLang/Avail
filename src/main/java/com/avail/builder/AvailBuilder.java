@@ -53,6 +53,10 @@ import com.avail.serialization.Serializer;
 import com.avail.utility.Graph;
 import com.avail.utility.Locks.Auto;
 import com.avail.utility.evaluation.*;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function1;
+import kotlin.reflect.KFunction;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
@@ -788,7 +792,7 @@ public final class AvailBuilder
 								.collect(joining("\n\t", "\n\t", "")))
 						{
 							@Override
-							protected void abortCompilation ()
+							public void abortCompilation ()
 							{
 								stopBuildReason(
 									"Module graph has cyclic dependency");
@@ -1215,21 +1219,21 @@ public final class AvailBuilder
 					@Override
 					public void handleGeneric (
 						final Problem problem,
-						final Continuation1NotNull<Boolean> decider)
+						final Function1<? super Boolean, Unit> decider)
 					{
 						// Clone the problem message into a new problem to avoid
 						// running any cleanup associated with aborting the
 						// problem a second time.
 						final Problem copy = new Problem(
-							problem.moduleName,
-							problem.lineNumber,
-							problem.characterInFile,
-							problem.type,
+							problem.getModuleName(),
+							problem.getLineNumber(),
+							problem.getCharacterInFile(),
+							problem.getType(),
 							"{0}",
 							problem.toString())
 						{
 							@Override
-							protected void abortCompilation ()
+							public void abortCompilation ()
 							{
 								// Do nothing.
 							}
@@ -1242,13 +1246,13 @@ public final class AvailBuilder
 								v.add(copy);
 								return v;
 							});
-						decider.value(false);
+						decider.invoke(false);
 					}
 
 					@Override
 					public void handleInternal (
-						final Problem problem,
-						final Continuation1NotNull<Boolean> decider)
+						@NotNull final Problem problem,
+						@NotNull final Function1<? super Boolean, Unit> decider)
 					{
 						textInterface.getErrorChannel().write(
 							problem.toString(),
@@ -1260,8 +1264,8 @@ public final class AvailBuilder
 
 					@Override
 					public void handleExternal (
-						final Problem problem,
-						final Continuation1NotNull<Boolean> decider)
+						@NotNull final Problem problem,
+						@NotNull final Function1<? super Boolean, Unit> decider)
 					{
 						// Same as handleInternal (2015.04.24)
 						textInterface.getErrorChannel().write(
@@ -1366,12 +1370,12 @@ public final class AvailBuilder
 			{
 				for (final Problem problem : entry.getValue())
 				{
-					if (problem.characterInFile > deepestPosition)
+					if (problem.getCharacterInFile() > deepestPosition)
 					{
-						deepestPosition = problem.characterInFile;
+						deepestPosition = problem.getCharacterInFile();
 						deepestProblems.clear();
 					}
-					if (problem.characterInFile == deepestPosition)
+					if (problem.getCharacterInFile() == deepestPosition)
 					{
 						deepestProblems.add(problem);
 					}

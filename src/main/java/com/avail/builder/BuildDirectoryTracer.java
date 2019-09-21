@@ -6,14 +6,14 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  Redistributions of source code must retain the above copyright notice, this
+ * * Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- *  Redistributions in binary form must reproduce the above copyright notice,
+ * * Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- *  Neither the name of the copyright holder nor the names of the contributors
+ * * Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -40,9 +40,10 @@ import com.avail.persistence.IndexedRepositoryManager.ModuleArchive;
 import com.avail.persistence.IndexedRepositoryManager.ModuleVersion;
 import com.avail.persistence.IndexedRepositoryManager.ModuleVersionKey;
 import com.avail.utility.evaluation.Continuation0;
-import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Continuation2NotNull;
 import com.avail.utility.evaluation.Continuation3NotNull;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function1;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
@@ -384,7 +385,13 @@ final class BuildDirectoryTracer
 			compiler ->
 			{
 				compiler.compilationContext.diagnostics
-					.setSuccessAndFailureReporters(() -> { }, completedAction);
+					.setSuccessAndFailureReporters(
+						() -> null,
+						() ->
+						{
+							completedAction.value();
+							return null;
+						});
 				compiler.parseModuleHeader(
 					afterHeader ->
 					{
@@ -410,12 +417,12 @@ final class BuildDirectoryTracer
 				@Override
 				public void handleGeneric (
 					final Problem problem,
-					final Continuation1NotNull<Boolean> decider)
+					final Function1<? super Boolean, Unit> decider)
 				{
 					// Simply ignore all problems when all we're doing is
 					// trying to locate the entry points within any
 					// syntactically valid modules.
-					decider.value(false);
+					decider.invoke(false);
 				}
 			});
 	}

@@ -1,19 +1,19 @@
 /*
- * SimpleProblemHandler.java
+ * SimpleProblemHandler.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  Redistributions of source code must retain the above copyright notice, this
+ * * Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- *  Redistributions in binary form must reproduce the above copyright notice,
+ * * Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- *  Neither the name of the copyright holder nor the names of the contributors
+ * * Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -30,37 +30,31 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler.problems;
-
-import com.avail.utility.evaluation.Continuation1NotNull;
-
+package com.avail.compiler.problems
 
 /**
- * A {@code SimpleProblemHandler} is a {@link ProblemHandler} that handles all
- * {@link Problem}s the same way, via its {@link #handleGeneric(Problem,
- * Continuation1NotNull)} method.
+ * A `SimpleProblemHandler` is a [ProblemHandler] that handles all
+ * [Problem]s the same way, via its [handleGeneric] method.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@Suppress("unused")
 @FunctionalInterface
-public interface SimpleProblemHandler extends ProblemHandler
+interface SimpleProblemHandler : ProblemHandler
 {
 	/**
-	 * One of the {@link ProblemType}-specific handler methods was invoked, but
-	 * (1) it was not specifically overridden in the subclass, and (2) this
-	 * method was not specifically overridden in the subclass.  Always fail in
-	 * this circumstance.
+	 * One of the [ProblemType]-specific handler methods was invoked, but (1) it
+	 * was not specifically overridden in the subclass, and (2) this method was
+	 * not specifically overridden in the subclass.  Always fail in this
+	 * circumstance.
 	 *
 	 * @param problem
-	 *        The problem being handled generically.
+	 *   The problem being handled generically.
 	 * @param decider
-	 *        How to {@linkplain Problem#continueCompilation() continue} or
-	 *        {@linkplain Problem#abortCompilation() abort} compilation.
-	 *        Accepts a {@linkplain Boolean boolean} that is {@code true} iff
-	 *        compilation should continue.
+	 *   How to [continue][Problem.continueCompilation] or
+	 *   [abort][Problem.abortCompilation] compilation. Accepts a
+	 *   [boolean][Boolean] that is `true` iff compilation should continue.
 	 */
-	@Override
-	void handleGeneric (
-		final Problem problem,
-		final Continuation1NotNull<Boolean> decider);
+	@JvmDefault
+	override fun handleGeneric(problem: Problem, decider: (Boolean) -> Unit)
 }

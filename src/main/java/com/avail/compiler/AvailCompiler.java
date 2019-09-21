@@ -526,7 +526,7 @@ public final class AvailCompiler
 		final List<CompilerSolution> solutions = new ArrayList<>(1);
 		compilationContext.setNoMoreWorkUnits(() ->
 		{
-			if (compilationContext.diagnostics.pollForAbort.getAsBoolean())
+			if (compilationContext.diagnostics.getPollForAbort().getAsBoolean())
 			{
 				// We may have been asked to abort sub-tasks by a failure in
 				// another module, so we can't trust the count of solutions.
@@ -4374,7 +4374,7 @@ public final class AvailCompiler
 		{
 			fragmentCache.clear();
 		}
-		compilationContext.diagnostics.getSuccessReporter().value();
+		compilationContext.diagnostics.getSuccessReporter().invoke();
 	}
 
 	/**
@@ -4418,8 +4418,13 @@ public final class AvailCompiler
 				serializePublicationFunction(false);
 				commitModuleTransaction();
 				onSuccess.value(compilationContext.module());
+				return null;
 			},
-			() -> rollbackModuleTransaction(afterFail));
+			() ->
+			{
+				rollbackModuleTransaction(afterFail);
+				return null;
+			});
 		startModuleTransaction();
 		parseModuleCompletely();
 	}
@@ -4446,7 +4451,12 @@ public final class AvailCompiler
 		final Continuation0 afterFail)
 	{
 		compilationContext.diagnostics.setSuccessAndFailureReporters(
-			() -> { }, afterFail);
+			() -> null,
+			() ->
+			{
+				afterFail.value();
+				return null;
+			});
 		assert compilationContext.getWorkUnitsCompleted() == 0
 			&& compilationContext.getWorkUnitsQueued() == 0;
 		// Start a module transaction, just to complete any necessary

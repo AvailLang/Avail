@@ -841,7 +841,7 @@ public class CompilationContext
 		final int position,
 		final Throwable e)
 	{
-		diagnostics.compilationIsInvalid = true;
+		diagnostics.setCompilationIsInvalid(true);
 		final Problem problem = new Problem(
 			moduleName(),
 			lineNumber,
@@ -852,7 +852,7 @@ public class CompilationContext
 			trace(e))
 		{
 			@Override
-			protected void abortCompilation ()
+			public void abortCompilation ()
 			{
 				// Nothing else needed
 			}
@@ -877,7 +877,7 @@ public class CompilationContext
 		final int position,
 		final Throwable e)
 	{
-		diagnostics.compilationIsInvalid = true;
+		diagnostics.setCompilationIsInvalid(true);
 		if (e instanceof FiberTerminationException)
 		{
 			diagnostics.handleProblem(
@@ -932,7 +932,7 @@ public class CompilationContext
 		final int position,
 		final AvailAssertionFailedException e)
 	{
-		diagnostics.compilationIsInvalid = true;
+		diagnostics.setCompilationIsInvalid(true);
 		diagnostics.handleProblem(new Problem(
 			moduleName(),
 			lineNumber,
@@ -966,7 +966,7 @@ public class CompilationContext
 		final int position,
 		final AvailEmergencyExitException e)
 	{
-		diagnostics.compilationIsInvalid = true;
+		diagnostics.setCompilationIsInvalid(true);
 		diagnostics.handleProblem(new Problem(
 			moduleName(),
 			lineNumber,
