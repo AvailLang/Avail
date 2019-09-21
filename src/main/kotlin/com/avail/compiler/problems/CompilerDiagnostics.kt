@@ -927,7 +927,7 @@ class CompilerDiagnostics constructor(
 			val candidates = ArrayList<A_Token>()
 			for (startState in startLexingStates)
 			{
-				val known = startState.knownToBeComputedTokensOrNull()
+				val known = startState.knownToBeComputedTokensOrNull
 				if (known != null)
 				{
 					candidates.addAll(known)

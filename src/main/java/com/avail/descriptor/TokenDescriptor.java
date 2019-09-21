@@ -332,9 +332,9 @@ extends Descriptor
 		}
 		// Now lookup/capture the next state.
 		final List<A_Token> allTokens =
-			append(priorLexingState.allTokens, object);
+			append(priorLexingState.getAllTokens(), object);
 		final LexingState state = new LexingState(
-			priorLexingState.compilationContext,
+			priorLexingState.getCompilationContext(),
 			positionAfter,
 			line,
 			allTokens);

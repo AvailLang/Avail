@@ -98,8 +98,8 @@ public enum ParsingConversionRule
 			final A_Token token =
 				literalToken(
 					stringFrom(count.toString()),
-					lexingState.position,
-					lexingState.lineNumber,
+					lexingState.getPosition(),
+					lexingState.getLineNumber(),
 					count);
 			continuation.value(literalNodeFromToken(token));
 		}

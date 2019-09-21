@@ -169,10 +169,12 @@ interface ProblemHandler
 	 *   [boolean][Boolean] that is `true` iff compilation should continue.
 	 */
 	@JvmDefault
-	fun handleGeneric(problem: Problem, decider: (Boolean) -> Unit): Unit =
+	fun handleGeneric(problem: Problem, decider: (Boolean) -> Unit)
+	{
 		throw UnsupportedOperationException(
 			"Failed to reimplement either a problem type-specific handler"
 			+ " or handleGeneric")
+	}
 
 	/**
 	 * Handle the specified [problem][Problem],

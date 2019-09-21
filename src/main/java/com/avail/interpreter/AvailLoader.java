@@ -94,6 +94,7 @@ import com.avail.utility.Pair;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Continuation2NotNull;
+import kotlin.Unit;
 
 import javax.annotation.Nullable;
 import java.util.ArrayDeque;
@@ -451,7 +452,7 @@ public final class AvailLoader
 			final List<A_Character> argsList =
 				singletonList(fromCodePoint(codePoint));
 			final CompilationContext compilationContext =
-				lexingState.compilationContext;
+				lexingState.getCompilationContext();
 			final AvailLoader loader = compilationContext.loader();
 			final List<A_Lexer> applicableLexers = new ArrayList<>();
 			final ReadWriteLock joinLock = new ReentrantReadWriteLock();
@@ -494,6 +495,7 @@ public final class AvailLoader
 								setFromCollection(applicableLexers),
 								failureMap.value);
 						}
+						return Unit.INSTANCE;
 					},
 					throwable ->
 					{
@@ -518,6 +520,7 @@ public final class AvailLoader
 								setFromCollection(applicableLexers),
 								failureMap.value);
 						}
+						return Unit.INSTANCE;
 					});
 				fibers.add(fiber);
 			}

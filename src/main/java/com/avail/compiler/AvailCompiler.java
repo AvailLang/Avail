@@ -60,6 +60,7 @@ import com.avail.performance.StatisticReport;
 import com.avail.persistence.IndexedRepositoryManager;
 import com.avail.utility.*;
 import com.avail.utility.evaluation.*;
+import kotlin.Unit;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -1079,7 +1080,17 @@ public final class AvailCompiler
 		fiber.setGeneralFlag(GeneralFlag.CAN_REJECT_PARSE);
 		fiber.textInterface(compilationContext.getTextInterface());
 		lexingState.setFiberContinuationsTrackingWork(
-			fiber, onSuccess, onFailure);
+			fiber,
+			value ->
+			{
+				onSuccess.value(value);
+				return Unit.INSTANCE;
+			},
+			throwable ->
+			{
+				onFailure.value(throwable);
+				return Unit.INSTANCE;
+			});
 		runOutermostFunction(compilationContext.runtime, fiber, function, args);
 	}
 
@@ -1128,7 +1139,8 @@ public final class AvailCompiler
 					.iterator().next().message(),
 				mod.equals(nil)
 					? "no module"
-					: mod.moduleName(), code.startingLineNumber()));
+					: mod.moduleName(),
+				code.startingLineNumber()));
 		fiber.setGeneralFlag(GeneralFlag.CAN_REJECT_PARSE);
 		fiber.setGeneralFlag(GeneralFlag.IS_EVALUATING_MACRO);
 		A_Map fiberGlobals = fiber.fiberGlobals();
@@ -1143,8 +1155,13 @@ public final class AvailCompiler
 				clientParseDataOut.value =
 					fiber.fiberGlobals().mapAt(CLIENT_DATA_GLOBAL_KEY.atom);
 				onSuccess.value(outputPhrase);
+				return Unit.INSTANCE;
 			},
-			onFailure);
+			throwable ->
+			{
+				onFailure.value(throwable);
+				return Unit.INSTANCE;
+			});
 		runOutermostFunction(compilationContext.runtime, fiber, function, args);
 	}
 
@@ -2630,7 +2647,7 @@ public final class AvailCompiler
 		final A_Map withTokens = start.clientDataMap
 			.mapAtPuttingCanDestroy(
 				ALL_TOKENS_KEY.atom,
-				tupleFromList(start.lexingState.allTokens),
+				tupleFromList(start.lexingState.getAllTokens()),
 				false)
 			.mapAtPuttingCanDestroy(
 				STATIC_TOKENS_KEY.atom, tupleFromList(consumedTokens), false);
@@ -2657,6 +2674,7 @@ public final class AvailCompiler
 					argsSoFar,
 					marksSoFar,
 					continuation);
+				return Unit.INSTANCE;
 			},
 			e ->
 			{
@@ -2693,6 +2711,7 @@ public final class AvailCompiler
 						new FormattingDescriber(
 							"prefix function not to have failed with:\n%s", e));
 				}
+				return Unit.INSTANCE;
 			});
 		runOutermostFunction(
 			compilationContext.runtime, fiber, prefixFunction, listOfArgs);
@@ -3682,7 +3701,7 @@ public final class AvailCompiler
 				STATIC_TOKENS_KEY.atom, tupleFromList(consumedTokens), false)
 			.mapAtPuttingCanDestroy(
 				ALL_TOKENS_KEY.atom,
-				tupleFromList(stateAfterCall.lexingState.allTokens),
+				tupleFromList(stateAfterCall.lexingState.getAllTokens()),
 				false)
 			.mapAtPuttingCanDestroy(MACRO_BUNDLE_KEY.atom, bundle, true)
 			.makeShared();
@@ -4190,7 +4209,7 @@ public final class AvailCompiler
 					pragmaToken,
 					pragmaValue,
 					state,
-					() -> state.lexingState.compilationContext.eventuallyDo(
+					() -> state.lexingState.getCompilationContext().eventuallyDo(
 						state.lexingState, recurse));
 			});
 	}
@@ -4250,9 +4269,9 @@ public final class AvailCompiler
 		final LexingState startLexingState = start.lexingState;
 		final ParserState startWithoutAnyTokens = new ParserState(
 			new LexingState(
-				startLexingState.compilationContext,
-				startLexingState.position,
-				startLexingState.lineNumber,
+				startLexingState.getCompilationContext(),
+				startLexingState.getPosition(),
+				startLexingState.getLineNumber(),
 				emptyList()),
 			start.clientDataMap);
 		parseOutermostStatement(
@@ -4418,12 +4437,12 @@ public final class AvailCompiler
 				serializePublicationFunction(false);
 				commitModuleTransaction();
 				onSuccess.value(compilationContext.module());
-				return null;
+				return Unit.INSTANCE;
 			},
 			() ->
 			{
 				rollbackModuleTransaction(afterFail);
-				return null;
+				return Unit.INSTANCE;
 			});
 		startModuleTransaction();
 		parseModuleCompletely();
@@ -4451,11 +4470,11 @@ public final class AvailCompiler
 		final Continuation0 afterFail)
 	{
 		compilationContext.diagnostics.setSuccessAndFailureReporters(
-			() -> null,
+			() -> Unit.INSTANCE,
 			() ->
 			{
 				afterFail.value();
-				return null;
+				return Unit.INSTANCE;
 			});
 		assert compilationContext.getWorkUnitsCompleted() == 0
 			&& compilationContext.getWorkUnitsQueued() == 0;

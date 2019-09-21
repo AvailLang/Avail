@@ -256,7 +256,7 @@ public enum PragmaKind
 			final String bodyPrimitiveName = primParts[1];
 			final String lexerName = parts[1].trim();
 			final A_String availName = stringFrom(lexerName);
-			final A_Module module = state.lexingState.compilationContext.module();
+			final A_Module module = state.lexingState.getCompilationContext().module();
 			final A_Set atoms = module.trueNamesForStringName(availName);
 			if (atoms.setSize() == 0)
 			{

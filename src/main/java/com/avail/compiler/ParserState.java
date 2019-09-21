@@ -117,19 +117,19 @@ public class ParserState
 	@Override
 	public String toString ()
 	{
-		final A_String source = lexingState.compilationContext.source();
+		final A_String source = lexingState.getCompilationContext().source();
 		return format(
 			"%s%n\tPOSITION = %d%n\tTOKENS = %s %s %s%n\tCLIENT_DATA = %s",
 			getClass().getSimpleName(),
-			lexingState.position,
+			lexingState.getPosition(),
 			(source.copyStringFromToCanDestroy(
-				max(lexingState.position - 20, 1),
-				max(lexingState.position - 1, 0),
+				max(lexingState.getPosition() - 20, 1),
+				max(lexingState.getPosition() - 1, 0),
 				false)).asNativeString(),
 			CompilerDiagnostics.Companion.getErrorIndicatorSymbol(),
 			(source.copyStringFromToCanDestroy(
-				min(lexingState.position, source.tupleSize() + 1),
-				min(lexingState.position + 20, source.tupleSize()),
+				min(lexingState.getPosition(), source.tupleSize() + 1),
+				min(lexingState.getPosition() + 20, source.tupleSize()),
 				false)).asNativeString(),
 			clientDataMap);
 	}
@@ -141,21 +141,21 @@ public class ParserState
 	 */
 	String shortString ()
 	{
-		final A_String source = lexingState.compilationContext.source();
-		if (lexingState.position == 1)
+		final A_String source = lexingState.getCompilationContext().source();
+		if (lexingState.getPosition() == 1)
 		{
 			return "(start)";
 		}
-		if (lexingState.position == source.tupleSize() + 1)
+		if (lexingState.getPosition() == source.tupleSize() + 1)
 		{
 			return "(end)";
 		}
 		final A_String nearbyText = source.copyStringFromToCanDestroy(
-			lexingState.position,
-			min(lexingState.position + 20, source.tupleSize()),
+			lexingState.getPosition(),
+			min(lexingState.getPosition() + 20, source.tupleSize()),
 			false);
 		//noinspection DynamicRegexReplaceableByCompiledPattern
-		return lexingState.lineNumber + ":"
+		return lexingState.getLineNumber() + ":"
 			+ nearbyText.asNativeString().replace("\n", "\\n")
 			+ '…';
 	}
@@ -180,7 +180,7 @@ public class ParserState
 	 */
 	public int position ()
 	{
-		return lexingState.position;
+		return lexingState.getPosition();
 	}
 
 	/**
@@ -190,7 +190,7 @@ public class ParserState
 	 */
 	public int lineNumber ()
 	{
-		return lexingState.lineNumber;
+		return lexingState.getLineNumber();
 	}
 
 	/**
@@ -200,8 +200,8 @@ public class ParserState
 	 */
 	public boolean atEnd ()
 	{
-		return lexingState.position ==
-			lexingState.compilationContext.source().tupleSize() + 1;
+		return lexingState.getPosition() ==
+			lexingState.getCompilationContext().source().tupleSize() + 1;
 	}
 
 	/**
@@ -224,7 +224,7 @@ public class ParserState
 		final ParseNotificationLevel level,
 		final Describer describer)
 	{
-		lexingState.compilationContext.diagnostics.expectedAt(
+		lexingState.getCompilationContext().diagnostics.expectedAt(
 			level, describer, lexingState);
 	}
 
@@ -252,7 +252,7 @@ public class ParserState
 			level,
 			continuation -> Interpreter.stringifyThen(
 				currentRuntime(),
-				lexingState.compilationContext.getTextInterface(),
+				lexingState.getCompilationContext().getTextInterface(),
 				values,
 				list -> continuation.value(transformer.apply(list))));
 	}

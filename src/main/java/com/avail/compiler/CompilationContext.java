@@ -55,6 +55,7 @@ import com.avail.io.TextInterface;
 import com.avail.serialization.Serializer;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1NotNull;
+import kotlin.Unit;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
@@ -373,7 +374,8 @@ public class CompilationContext
 				catch (final Exception e)
 				{
 					reportInternalProblem(
-						lexingState.lineNumber, lexingState.position, e);
+						lexingState.getLineNumber(),
+						lexingState.getPosition(), e);
 				}
 			});
 	}
@@ -497,7 +499,7 @@ public class CompilationContext
 			catch (final Exception e)
 			{
 				reportInternalProblem(
-					lexingState.lineNumber, lexingState.position, e);
+					lexingState.getLineNumber(), lexingState.getPosition(), e);
 			}
 			finally
 			{
@@ -542,7 +544,8 @@ public class CompilationContext
 					catch (final Exception e)
 					{
 						reportInternalProblem(
-							lexingState.lineNumber, lexingState.position, e);
+							lexingState.getLineNumber(),
+							lexingState.getPosition(), e);
 					}
 				}
 			}
@@ -653,7 +656,7 @@ public class CompilationContext
 			{
 				final long after = AvailRuntimeSupport.captureNanos();
 				Interpreter.current().recordTopStatementEvaluation(
-					after - before, module, lexingState.lineNumber);
+					after - before, module, lexingState.getLineNumber());
 				loader().stopRecordingEffects();
 				serializeAfterRunning(function);
 				onSuccess.value(successValue);
@@ -661,8 +664,20 @@ public class CompilationContext
 		}
 		if (trackTasks)
 		{
+			final Continuation1NotNull<AvailObject> finalAdjustedSuccess =
+				adjustedSuccess;
 			lexingState.setFiberContinuationsTrackingWork(
-				fiber, adjustedSuccess, onFailure);
+				fiber,
+				value ->
+				{
+					finalAdjustedSuccess.value(value);
+					return Unit.INSTANCE;
+				},
+				throwable ->
+				{
+					onFailure.value(throwable);
+					return Unit.INSTANCE;
+				});
 		}
 		else
 		{
@@ -702,7 +717,7 @@ public class CompilationContext
 	{
 		evaluateFunctionThen(
 			createFunctionForPhrase(
-				expressionNode, module(), lexingState.lineNumber),
+				expressionNode, module(), lexingState.getLineNumber()),
 			lexingState,
 			emptyList(),
 			emptyMap(),

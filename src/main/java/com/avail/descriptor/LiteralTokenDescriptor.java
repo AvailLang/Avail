@@ -279,7 +279,7 @@ extends TokenDescriptor
 			if (!pojo.equalsNil())
 			{
 				final LexingState nextState = pojo.javaObjectNotNull();
-				nextState.compilationContext.recordToken(innerToken);
+				nextState.getCompilationContext().recordToken(innerToken);
 			}
 		}
 		else
