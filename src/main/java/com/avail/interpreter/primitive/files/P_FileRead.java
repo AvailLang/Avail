@@ -50,6 +50,7 @@ import com.avail.io.IOSystem.FileHandle;
 import com.avail.io.SimpleCompletionHandler;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.utility.MutableOrNull;
+import kotlin.Unit;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -360,14 +361,19 @@ extends Primitive
 						newFiber,
 						succeed,
 						singletonList(bytesTuple));
+					return Unit.INSTANCE;
 				},
 				// failed
-				killer -> runOutermostFunction(
-					runtime,
-					newFiber,
-					fail,
-					singletonList(
-						E_IO_ERROR.numericCode()))));
+				killer ->
+				{
+					runOutermostFunction(
+						runtime,
+						newFiber,
+						fail,
+						singletonList(
+							E_IO_ERROR.numericCode()));
+					return Unit.INSTANCE;
+				}));
 		return interpreter.primitiveSuccess(newFiber);
 	}
 

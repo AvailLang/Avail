@@ -32,8 +32,9 @@
 
 package com.avail.utility;
 
-import com.avail.utility.evaluation.Continuation0;
-import com.avail.utility.evaluation.Continuation2NotNull;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function0;
+import kotlin.jvm.functions.Function2;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -615,9 +616,9 @@ public class Graph<Vertex>
 
 	/**
 	 * Visit the vertices in DAG order.  The action is invoked for each vertex,
-	 * also passing a completion action (a {@link Continuation0}) to invoke when
-	 * that vertex visit is considered complete, allowing successors for which
-	 * all predecessors have completed to be visited.
+	 * also passing a completion action to invoke when that vertex visit is
+	 * considered complete, allowing successors for which all predecessors have
+	 * completed to be visited.
 	 *
 	 * <p>The afterTraversal action runs at the end of the last completed
 	 * vertex's completion action (passed as the second argument to the
@@ -636,17 +637,17 @@ public class Graph<Vertex>
 	 *        What to do after traversing the entire graph.
 	 */
 	public void parallelVisitThen (
-		final Continuation2NotNull<Vertex, Continuation0> visitAction,
-		final Continuation0 afterTraversal)
+		final Function2<Vertex, Function0<Unit>, Unit> visitAction,
+		final Function0<Unit> afterTraversal)
 	{
 		new ParallelVisitor(visitAction, afterTraversal).execute();
 	}
 
 	/**
 	 * Visit the vertices in DAG order.  The action is invoked for each vertex,
-	 * also passing a completion action (a {@link Continuation0}) to invoke when
-	 * that vertex visit is considered complete, allowing successors for which
-	 * all predecessors have completed to be visited.
+	 * also passing a completion action to invoke when that vertex visit is
+	 * considered complete, allowing successors for which all predecessors have
+	 * completed to be visited.
 	 *
 	 * <p>Block this {@link Thread} until traversal is complete.</p>
 	 *
@@ -655,7 +656,7 @@ public class Graph<Vertex>
 	 * @param visitAction What to do for each vertex.
 	 */
 	public void parallelVisit (
-		final Continuation2NotNull<Vertex, Continuation0> visitAction)
+		final Function2<Vertex, Function0<Unit>, Unit> visitAction)
 	{
 		assert !isCyclic();
 		final Semaphore semaphore = new Semaphore(0);
@@ -667,6 +668,7 @@ public class Graph<Vertex>
 				final boolean old = safetyCheck.getAndSet(true);
 				assert !old : "Reached end of graph traversal twice";
 				semaphore.release();
+				return Unit.INSTANCE;
 			});
 		semaphore.acquireUninterruptibly();
 	}
@@ -682,7 +684,7 @@ public class Graph<Vertex>
 		 * This action is invoked during {@link #execute() execution} exactly
 		 * once for each vertex, precisely when that vertex's predecessors have
 		 * all completed.  This vertex must indicate its own completion by
-		 * invoking the passed {@link Continuation0 action}.
+		 * invoking the passed action.
 		 *
 		 * <p>Note that this completion action does not have to be invoked
 		 * within the same thread as the invocation of the visitAction, it
@@ -694,7 +696,7 @@ public class Graph<Vertex>
 		 * invoke on a cyclic graph.  Do not invoke any completion action more
 		 * than once.</p>
 		 */
-		private final Continuation2NotNull<Vertex, Continuation0> visitAction;
+		private final Function2<Vertex, Function0<Unit>, Unit> visitAction;
 
 		/**
 		 * This action runs after a complete traversal of the graph.  This runs
@@ -703,7 +705,7 @@ public class Graph<Vertex>
 		 * second argument) within the same {@link Thread}, this final action
 		 * will also run in that thread.
 		 */
-		private final Continuation0 afterTraversal;
+		private final Function0<Unit> afterTraversal;
 
 		/**
 		 * A {@link Map} keeping track of how many predecessors of each vertex
@@ -729,14 +731,14 @@ public class Graph<Vertex>
 		 *
 		 * @param visitAction
 		 *        What to perform for each vertex being visited.  The second
-		 *        argument to this action is a {@link Continuation0} to invoke
-		 *        when the {@link Vertex} has been fully processed.
+		 *        argument to this action is a to invoke when the {@link Vertex}
+		 *        has been fully processed.
 		 * @param afterTraversal
 		 *        What to perform after the entire traversal has completed.
 		 */
 		ParallelVisitor (
-			final Continuation2NotNull<Vertex, Continuation0> visitAction,
-			final Continuation0 afterTraversal)
+			final Function2<Vertex, Function0<Unit>, Unit> visitAction,
+			final Function0<Unit> afterTraversal)
 		{
 			this.visitAction = visitAction;
 			this.afterTraversal = afterTraversal;
@@ -801,7 +803,7 @@ public class Graph<Vertex>
 				{
 					predecessorCountdowns.remove(vertex);
 					final AtomicBoolean alreadyRan = new AtomicBoolean(false);
-					visitAction.value(
+					visitAction.invoke(
 						vertex,
 						() ->
 						{
@@ -817,12 +819,13 @@ public class Graph<Vertex>
 							{
 								assert queue.isEmpty();
 								assert predecessorCountdowns.isEmpty();
-								afterTraversal.value();
+								afterTraversal.invoke();
 							}
 							else
 							{
 								visitRemainingVertices();
 							}
+							return Unit.INSTANCE;
 						});
 				}
 			}
@@ -857,7 +860,7 @@ public class Graph<Vertex>
 			if (predecessorCountdowns.isEmpty())
 			{
 				// There are no vertices, so run the afterTraversal action now.
-				afterTraversal.value();
+				afterTraversal.invoke();
 				return;
 			}
 			// Otherwise, the last completion action to run will invoke the
@@ -870,9 +873,9 @@ public class Graph<Vertex>
 	 * Create a subgraph containing each of the provided vertices and all of
 	 * their ancestors.
 	 *
-	 * <p>Note: Don't use {@link #parallelVisitThen(Continuation2NotNull,
-	 * Continuation0)}, because the graph may contain cycles that we're
-	 * interested in rendering (i.e., to determine how to break them).</p>
+	 * <p>Note: Don't use {@link #parallelVisitThen(Function2, Function0)},
+	 * because the graph may contain cycles that we're interested in rendering
+	 * (i.e., to determine how to break them).</p>
 	 *
 	 * @param seeds The vertices whose ancestors to include.
 	 * @return The specified subgraph of the receiver.
@@ -995,7 +998,8 @@ public class Graph<Vertex>
 				}
 			}
 			ancestorSets.put(vertex, ancestorSet);
-			completionAction.value();
+			completionAction.invoke();
+			return Unit.INSTANCE;
 		});
 		final Graph<Vertex> result = new Graph<>();
 		result.addVertices(vertices());

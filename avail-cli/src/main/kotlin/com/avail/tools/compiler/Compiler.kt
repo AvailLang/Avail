@@ -36,8 +36,8 @@ import com.avail.AvailRuntime
 import com.avail.builder.AvailBuilder
 import com.avail.builder.ModuleNameResolver
 import com.avail.builder.RenamesFileParserException
-import com.avail.compiler.AvailCompiler.CompilerProgressReporter
-import com.avail.compiler.AvailCompiler.GlobalProgressReporter
+import com.avail.compiler.CompilerProgressReporter
+import com.avail.compiler.GlobalProgressReporter
 import com.avail.descriptor.ModuleDescriptor
 import com.avail.io.ConsoleInputChannel
 import com.avail.io.ConsoleOutputChannel
@@ -179,8 +179,9 @@ object Compiler
 	 * @return
 	 *   A global tracker.
 	 */
-	private fun globalTracker(configuration: CompilerConfiguration) =
-		GlobalProgressReporter { processedBytes, totalBytes ->
+	private fun globalTracker(
+			configuration: CompilerConfiguration): GlobalProgressReporter =
+		{ processedBytes, totalBytes ->
 			synchronized(statusLock) {
 				val perThousand = (processedBytes * 1000 / totalBytes).toInt()
 				val percent = perThousand / 10.0f
@@ -219,8 +220,9 @@ object Compiler
 	 * @return
 	 *   A local tracker.
 	 */
-	private fun localTracker(configuration: CompilerConfiguration) =
-		CompilerProgressReporter { module, moduleSize, position ->
+	private fun localTracker(
+			configuration: CompilerConfiguration): CompilerProgressReporter =
+		{ module, moduleSize, position ->
 			synchronized(statusLock) {
 				val level = configuration.verbosityLevel
 				if (level.displayLocalProgress)

@@ -51,6 +51,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.io.SimpleCompletionHandler;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+import kotlin.Unit;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
@@ -165,13 +166,18 @@ extends Primitive
 							asList(
 								tupleForByteBuffer(buffer),
 								objectFromBoolean(bytesRead == -1)));
+						return Unit.INSTANCE;
 					},
-					killer -> Interpreter.runOutermostFunction(
-						runtime,
-						newFiber,
-						fail,
-						singletonList(
-							E_IO_ERROR.numericCode()))));
+					killer ->
+					{
+						Interpreter.runOutermostFunction(
+							runtime,
+							newFiber,
+							fail,
+							singletonList(
+								E_IO_ERROR.numericCode()));
+						return Unit.INSTANCE;
+					}));
 		}
 		catch (final IllegalArgumentException e)
 		{

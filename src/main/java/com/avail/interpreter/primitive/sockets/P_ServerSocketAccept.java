@@ -52,6 +52,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.io.SimpleCompletionHandler;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+import kotlin.Unit;
 
 import java.nio.channels.AsynchronousServerSocketChannel;
 import java.nio.channels.AsynchronousSocketChannel;
@@ -163,13 +164,18 @@ extends Primitive
 							newFiber,
 							succeed,
 							singletonList(newHandle));
+						return Unit.INSTANCE;
 					},
-					killer -> runOutermostFunction(
-						runtime,
-						newFiber,
-						fail,
-						singletonList(
-							E_IO_ERROR.numericCode()))));
+					killer ->
+					{
+						runOutermostFunction(
+							runtime,
+							newFiber,
+							fail,
+							singletonList(
+								E_IO_ERROR.numericCode()));
+						return Unit.INSTANCE;
+					}));
 		}
 		catch (final IllegalStateException e)
 		{

@@ -42,6 +42,7 @@ import com.avail.io.SimpleCompletionHandler;
 import com.avail.io.TextInterface;
 import com.avail.io.TextOutputChannel;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+import kotlin.Unit;
 
 import javax.annotation.Nullable;
 
@@ -93,8 +94,16 @@ extends Primitive
 				string.asNativeString(),
 				nil,
 				new SimpleCompletionHandler<>(
-					result -> toSucceed.value(nil),
-					exc -> toFail.value(E_IO_ERROR))));
+					result ->
+					{
+						toSucceed.value(nil);
+						return Unit.INSTANCE;
+					},
+					exc ->
+					{
+						toFail.value(E_IO_ERROR);
+						return Unit.INSTANCE;
+					})));
 	}
 
 	@Override

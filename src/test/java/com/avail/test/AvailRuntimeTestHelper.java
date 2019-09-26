@@ -45,6 +45,7 @@ import com.avail.builder.UnresolvedDependencyException;
 import com.avail.io.TextInterface;
 import com.avail.io.TextOutputChannel;
 import com.avail.utility.IO;
+import kotlin.Unit;
 
 import javax.annotation.Nullable;
 import java.io.BufferedReader;
@@ -378,8 +379,16 @@ public class AvailRuntimeTestHelper
 			new ModuleName(moduleName), null);
 		builder.buildTarget(
 			library,
-			this::localTrack,
-			this::globalTrack,
+			(name, moduleSize, position) ->
+			{
+				localTrack(name, moduleSize, position);
+				return Unit.INSTANCE;
+			},
+			(moduleBytes, totalBytes) ->
+			{
+				globalTrack(moduleBytes, totalBytes);
+				return Unit.INSTANCE;
+			},
 			builder.buildProblemHandler);
 		builder.checkStableInvariants();
 		return builder.getLoadedModule(library) != null;

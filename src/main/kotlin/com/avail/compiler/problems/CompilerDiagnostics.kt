@@ -53,7 +53,6 @@ import com.avail.persistence.IndexedRepositoryManager
 import com.avail.utility.Locks.auto
 import com.avail.utility.Locks.lockWhile
 import com.avail.utility.Mutable
-import com.avail.utility.Nulls.stripNull
 import com.avail.utility.Strings.addLineNumbers
 import com.avail.utility.Strings.lineBreakPattern
 import com.avail.utility.evaluation.Combinator.recurse
@@ -101,10 +100,10 @@ import kotlin.math.min
  * @param problemHandler
  *   A [ProblemHandler] for, well, handling problems during compilation.
  */
-class CompilerDiagnostics constructor(
+class CompilerDiagnostics(
 	private val source: A_String,
 	private val moduleName: ModuleName,
-	val pollForAbort: BooleanSupplier,
+	val pollForAbort: () -> Boolean,
 	private val problemHandler: ProblemHandler)
 {
 	/**
@@ -150,7 +149,7 @@ class CompilerDiagnostics constructor(
 	 * The [continuation][Continuation0] that reports success of compilation.
 	 */
 	@Volatile
-	private var successReporter: (()->Unit)? = null
+	var successReporter: (()->Unit)? = null
 
 	/**
 	 * The [continuation][Continuation0] that runs after compilation fails.
@@ -387,7 +386,7 @@ class CompilerDiagnostics constructor(
 			groupedProblems: List<ProblemsAtPosition>,
 			headerMessagePattern: String)
 		{
-			if (pollForAbort.asBoolean)
+			if (pollForAbort())
 			{
 				// Never report errors during a client-initiated abort.
 				failureReporter!!()
@@ -401,7 +400,7 @@ class CompilerDiagnostics constructor(
 			val startOfFirstLine = 1 + lastIndexOf(
 				source,
 				'\n'.toInt(),
-				stripNull(startOfStatement).position() - 1,
+				startOfStatement!!.position - 1,
 				1)
 			val initialLineNumber = 1 + occurrencesInRange(
 				source,
@@ -520,7 +519,7 @@ class CompilerDiagnostics constructor(
 					alreadySeen.clear()
 					assert(problemIterator.value.hasNext())
 				}
-				problemIterator.value.next().describeThen { message ->
+				problemIterator.value.next().invoke { message ->
 					// Suppress duplicate messages.
 					if (!alreadySeen.contains(message))
 					{
@@ -697,14 +696,6 @@ class CompilerDiagnostics constructor(
 	fun handleProblem(problem: Problem) = problemHandler.handle(problem)
 
 	/**
-	 * Get the success reporter.
-	 *
-	 * @return
-	 *   What to do when the module compilation completes successfully.
-	 */
-	fun getSuccessReporter() = successReporter!!
-
-	/**
 	 * Set the success reporter and failure reporter.
 	 *
 	 * @param theSuccessReporter
@@ -838,12 +829,12 @@ class CompilerDiagnostics constructor(
 				list = ExpectationsList()
 				list.expectedAt(
 					STRONG,
-					Describer { then ->
-						then.value(
+					{ then ->
+						then(
 							"to be able to parse a top-level statement here, "
 							+ "but undescribed impediments were encountered.")
 					},
-					stripNull(startOfStatement).lexingState)
+					startOfStatement!!.lexingState)
 			}
 		}
 		assert(!list.isEmpty)

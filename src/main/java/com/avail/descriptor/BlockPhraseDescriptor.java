@@ -358,7 +358,7 @@ extends PhraseDescriptor
 		final AvailCodeGenerator codeGenerator)
 	{
 		final A_RawFunction compiledBlock =
-			object.generateInModule(codeGenerator.module());
+			object.generateInModule(codeGenerator.getModule());
 		if (object.neededVariables().tupleSize() == 0)
 		{
 			final A_Function function =
@@ -419,7 +419,7 @@ extends PhraseDescriptor
 		final AvailObject object,
 		final A_Module module)
 	{
-		return AvailCodeGenerator.generateFunction(module, object);
+		return AvailCodeGenerator.Companion.generateFunction(module, object);
 	}
 
 	@Override @AvailMethod

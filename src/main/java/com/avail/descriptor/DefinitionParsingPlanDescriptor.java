@@ -193,7 +193,7 @@ extends Descriptor
 						{
 							builder.append(" Conversion = ");
 							builder.append(
-								ParsingConversionRule.ruleNumber(operand));
+								ParsingConversionRule.Companion.ruleNumber(operand));
 							break;
 						}
 						default:

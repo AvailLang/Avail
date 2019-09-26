@@ -1,6 +1,6 @@
 /*
- * SimpleDescriber.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Describer.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,39 +30,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.utility.evaluation;
+package com.avail.utility.evaluation
+
+import com.avail.compiler.AvailCompiler
 
 /**
- * A {@code SimpleDescriber} is a {@link Describer} that is given an
- * already-constructed {@link String} at construction time.
+ * A `Describer` produces a message and forwards it to a supplied continuation.
+ * It is used by the [AvailCompiler] to support lazy stringification in a
+ * continuation-passing style.
  *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class SimpleDescriber implements Describer
-{
-	/** The string provided at construction time. */
-	final String string;
-
-	/**
-	 * Construct a new {@code SimpleDescriber} with an already-computed String.
-	 *
-	 * @param string The String that this describer describes itself as.
-	 */
-	public SimpleDescriber (final String string)
-	{
-		this.string = string;
-	}
-
-	/**
-	 * Use the previously stored String as the description, passing it into the
-	 * specified {@linkplain Continuation1 continuation}.
-	 *
-	 * @param continuation
-	 *        What to do with the message.
-	 */
-	@Override
-	public void describeThen (final Continuation1NotNull<String> continuation)
-	{
-		continuation.value(string);
-	}
-}
+typealias Describer = ((String)->Unit)->Unit

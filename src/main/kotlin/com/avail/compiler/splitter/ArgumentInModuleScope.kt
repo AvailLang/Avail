@@ -110,7 +110,7 @@ internal class ArgumentInModuleScope constructor(
 			this,
 			TYPE_CHECK_ARGUMENT,
 			indexForConstant(expressionType))
-		generator.emitDelayed(this, CONVERT, EVALUATE_EXPRESSION.number())
+		generator.emitDelayed(this, CONVERT, EVALUATE_EXPRESSION.number)
 		return wrapState
 	}
 

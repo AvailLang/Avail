@@ -1,6 +1,6 @@
 /*
- * AvailCompilerFragmentCache.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * AvailCompilerFragmentCache.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,56 +30,53 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler;
+package com.avail.compiler
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentHashMap
 
 /**
- * An {@code AvailCompilerFragmentCache} implements a memoization mechanism for
- * a {@linkplain AvailCompiler compiler}.  The purpose is to ensure that
- * the effort to parse a subexpression starting at a specific token is reused
- * when backtracking.
+ * An `AvailCompilerFragmentCache` implements a memoization mechanism for a
+ * [compiler][AvailCompiler].  The purpose is to ensure that the effort to parse
+ * a subexpression starting at a specific token is reused when backtracking.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class AvailCompilerFragmentCache
+class AvailCompilerFragmentCache
 {
 	/**
-	 * Keeps track of the {@link CompilerSolution solutions} that
-	 * have been found at various positions.  Technically at various {@linkplain
-	 * ParserState parser states}, since we must take into account which
-	 * variable declarations are in scope when looking for subexpressions.
+	 * Keeps track of the [solutions][CompilerSolution] that have been found at
+	 * various positions.  Technically at various [parser states][ParserState],
+	 * since we must take into account which variable declarations are in scope
+	 * when looking for subexpressions.
 	 *
-	 * <p>This is implemented with a {@link ConcurrentHashMap} to minimize
-	 * contention.</p>
+	 * This is implemented with a [ConcurrentHashMap] to minimize contention.
 	 */
-	private final Map<ParserState, AvailCompilerBipartiteRendezvous> solutions =
-		new ConcurrentHashMap<>(100);
+	private val solutions =
+		ConcurrentHashMap<ParserState, AvailCompilerBipartiteRendezvous>(100)
 
 	/**
-	 * Look up the {@link AvailCompilerBipartiteRendezvous} at the given {@link
-	 * ParserState}, creating one if necessary.
+	 * Look up the [AvailCompilerBipartiteRendezvous] at the given [parser
+	 * state][ParserState], creating one if necessary.
 	 *
 	 * @param parserState
-	 *        The {@link ParserState} to look up.
-	 * @return The requested {@link AvailCompilerBipartiteRendezvous}.
+	 *   The [ParserState] to look up.
+	 * @return
+	 *   The requested [AvailCompilerBipartiteRendezvous].
 	 */
-	public synchronized AvailCompilerBipartiteRendezvous getRendezvous (
-		final ParserState parserState)
-	{
-		return solutions.computeIfAbsent(
-			parserState, state -> new AvailCompilerBipartiteRendezvous());
-	}
+	@Synchronized
+	fun getRendezvous(parserState: ParserState) =
+		solutions.computeIfAbsent(parserState) {
+			AvailCompilerBipartiteRendezvous()
+		}
 
 	/**
 	 * Clear all cached solutions.  This should be invoked between top level
 	 * module statements, since their execution may add new methods, thereby
 	 * invalidating previous parse results.
 	 */
-	void clear ()
+	internal fun clear()
 	{
-		assert Thread.holdsLock(this);
-		solutions.clear();
+		assert(Thread.holdsLock(this))
+		solutions.clear()
 	}
 }

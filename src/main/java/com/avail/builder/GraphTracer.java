@@ -38,6 +38,7 @@ import com.avail.utility.Graph;
 import com.avail.utility.MutableInt;
 import com.avail.utility.Strings;
 import com.avail.utility.evaluation.Continuation1NotNull;
+import kotlin.Unit;
 
 import java.io.File;
 import java.io.IOException;
@@ -311,6 +312,7 @@ final class GraphTracer
 					out.append(node.safeLabel());
 					out.append("];\n");
 				}
+				return Unit.INSTANCE;
 			},
 			// After the node.
 			(node, depth) ->
@@ -371,6 +373,7 @@ final class GraphTracer
 					tab.value(depth);
 					out.append("}\n");
 				}
+				return Unit.INSTANCE;
 			},
 			0);
 		final AsynchronousFileChannel channel;
@@ -394,7 +397,8 @@ final class GraphTracer
 			0,
 			null,
 			new SimpleCompletionHandler<>(
-				(result, unused, handler) -> {
+				(result, unused, handler) ->
+				{
 					position.value += stripNull(result);
 					if (buffer.hasRemaining())
 					{
@@ -404,7 +408,8 @@ final class GraphTracer
 							null,
 							handler);
 					}
+					return Unit.INSTANCE;
 				},
-				(t, unused, handler) -> { }));
+				(t, unused, handler) -> Unit.INSTANCE));
 	}
 }

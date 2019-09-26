@@ -1,6 +1,6 @@
 /*
- * package-info.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * FiberTerminationException.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-@NonnullByDefault
-package com.avail.compiler;
-import com.avail.annotations.NonnullByDefault;
+package com.avail.compiler
+
+import com.avail.descriptor.A_Fiber
+import com.avail.exceptions.PrimitiveThrownException
+
+/**
+ * Throw a `FiberTerminationException` indicate that a [fiber][A_Fiber] has
+ * suicided.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ */
+class FiberTerminationException : PrimitiveThrownException()

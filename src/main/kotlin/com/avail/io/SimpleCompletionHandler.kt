@@ -32,11 +32,7 @@
 
 package com.avail.io
 
-import com.avail.utility.evaluation.Continuation3NotNullNullNotNull
-
 import java.nio.channels.CompletionHandler
-import java.util.function.BiConsumer
-import java.util.function.Consumer
 
 /**
  * A convenient [CompletionHandler] implementation that takes two lambdas at
@@ -50,10 +46,10 @@ import java.util.function.Consumer
 class SimpleCompletionHandler<V, A> : CompletionHandler<V, A>
 {
 	/** What to do on successful completion.  */
-	private val completed: BiConsumer<V, A>
+	private val completed: (V, A) -> Unit
 
 	/** What to do upon failure.  */
-	private val failed: BiConsumer<Throwable, A>
+	private val failed: (Throwable, A) -> Unit
 
 	/**
 	 * Create a completion handler with the given completed and failed lambdas.
@@ -63,7 +59,7 @@ class SimpleCompletionHandler<V, A> : CompletionHandler<V, A>
 	 * @param
 	 *   failed What to do upon failure.
 	 */
-	constructor(completed: BiConsumer<V, A>, failed: BiConsumer<Throwable, A>)
+	constructor(completed: (V, A) -> Unit, failed: (Throwable, A) -> Unit)
 	{
 		this.completed = completed
 		this.failed = failed
@@ -79,10 +75,10 @@ class SimpleCompletionHandler<V, A> : CompletionHandler<V, A>
 	 * @param failed
 	 *   What to do upon failure.
 	 */
-	constructor(completed: Consumer<V>, failed: Consumer<Throwable>)
+	constructor(completed: (V) -> Unit, failed: (Throwable) -> Unit)
 	{
-		this.completed = BiConsumer { v, _ -> completed.accept(v) }
-		this.failed = BiConsumer{ t, _ -> failed.accept(t) }
+		this.completed = { v, _ -> completed(v) }
+		this.failed = { t, _ -> failed(t) }
 	}
 
 	/**
@@ -96,20 +92,16 @@ class SimpleCompletionHandler<V, A> : CompletionHandler<V, A>
 	 *   What to do upon failure.
 	 */
 	constructor(
-		completed: Continuation3NotNullNullNotNull<V, A, SimpleCompletionHandler<V, A>>,
-		failed: Continuation3NotNullNullNotNull<Throwable, A, SimpleCompletionHandler<V, A>>)
+		completed: (V, A, SimpleCompletionHandler<V, A>) -> Unit,
+		failed: (Throwable, A, SimpleCompletionHandler<V, A>) -> Unit)
 	{
-		this.completed = BiConsumer{ v, a -> completed.value(v, a, this) }
-		this.failed = BiConsumer{ t, a -> failed.value(t, a, this) }
+		this.completed = { v, a -> completed(v, a, this) }
+		this.failed = { t, a -> failed(t, a, this) }
 	}
 
-	override fun completed(result: V, attachment: A)
-	{
-		completed.accept(result, attachment)
-	}
+	override fun completed(result: V, attachment: A) =
+		completed.invoke(result, attachment)
 
-	override fun failed(exc: Throwable, attachment: A)
-	{
-		failed.accept(exc, attachment)
-	}
+	override fun failed(exc: Throwable, attachment: A) =
+		failed.invoke(exc, attachment)
 }

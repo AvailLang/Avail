@@ -82,7 +82,7 @@ class AvailPushLabel constructor(relevantTokens: A_Tuple)
 		outerData: MutableList<AvailVariableAccessNote?>,
 		codeGenerator: AvailCodeGenerator)
 	{
-		for (index in 0 until codeGenerator.numArgs())
+		for (index in 0 until codeGenerator.numArgs)
 		{
 			var note = localData[index]
 			if (note == null)

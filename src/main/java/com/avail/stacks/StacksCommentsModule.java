@@ -364,7 +364,7 @@ public class StacksCommentsModule
 		final LinkingFileMap linkingFileMap,
 		final String linkPrefix)
 	{
-		this.moduleName = header.moduleName.qualifiedName();
+		this.moduleName = header.getModuleName().qualifiedName();
 		this.linkPrefix = linkPrefix;
 
 		this.fileExtensionName = "json";
@@ -388,7 +388,7 @@ public class StacksCommentsModule
 			new HashMap<>();
 
 		this.inScopeMethodsToFileNames =
-			createFileNames(header.exportedNames, moduleName,
+			createFileNames(header.getExportedNames(), moduleName,
 				fileExtensionName);
 
 		for (final StacksCommentsModule comment : moduleToComments.values())
@@ -412,7 +412,7 @@ public class StacksCommentsModule
 			}
 		}
 
-		for (final A_String implementationName : header.exportedNames)
+		for (final A_String implementationName : header.getExportedNames())
 		{
 			final ImplementationGroup group =
 				new ImplementationGroup(implementationName, moduleName,
@@ -464,7 +464,7 @@ public class StacksCommentsModule
 		{
 			final StringBuilder newLogEntry = new StringBuilder()
 				.append("<h3>")
-				.append(header.moduleName.qualifiedName())
+				.append(header.getModuleName().qualifiedName())
 				.append(" <em>(")
 				.append(errorCount)
 				.append(")</em></h3>\n<ol>");
@@ -501,21 +501,21 @@ public class StacksCommentsModule
 		final HashMap<String,StacksUsesModule> usesMap =
 			new HashMap<>();
 
-		for (final ModuleImport moduleImport : header.importedModules)
+		for (final ModuleImport moduleImport : header.getImportedModules())
 		{
 			try
 			{
 				final String moduleImportName = resolver.resolve(
-					header.moduleName
-						.asSibling(moduleImport.moduleName.asNativeString()),
-					header.moduleName).qualifiedName();
+					header.getModuleName()
+						.asSibling(moduleImport.getModuleName().asNativeString()),
+					header.getModuleName()).qualifiedName();
 
-				if (moduleImport.isExtension)
+				if (moduleImport.isExtension())
 				{
 					A_Set collectedExtendedNames =
 						emptySet();
 
-					if (moduleImport.wildcard)
+					if (moduleImport.getWildcard())
 					{
 						collectedExtendedNames =
 							collectedExtendedNames.setUnionCanDestroy(
@@ -533,23 +533,23 @@ public class StacksCommentsModule
 									.keySet()),
 								true);
 					}
-					if (!moduleImport.excludes.equals(emptySet()))
+					if (!moduleImport.getExcludes().equals(emptySet()))
 					{
 						collectedExtendedNames = collectedExtendedNames
-							.setMinusCanDestroy(moduleImport.excludes, true);
+							.setMinusCanDestroy(moduleImport.getExcludes(), true);
 					}
 
 					//Determine what keys need to be explicitly removed
 					//due to the rename.
 					final A_Set removeRenames =
-						moduleImport.renames.valuesAsTuple().asSet();
+						moduleImport.getRenames().valuesAsTuple().asSet();
 
 					collectedExtendedNames = collectedExtendedNames
 							.setMinusCanDestroy(removeRenames, true);
 
 					collectedExtendedNames =
 						collectedExtendedNames.setUnionCanDestroy(
-							moduleImport.names, true);
+							moduleImport.getNames(), true);
 
 					final StacksExtendsModule stacksExtends =
 						new StacksExtendsModule(
@@ -559,7 +559,7 @@ public class StacksCommentsModule
 						new ArrayList<>();
 
 					for (final A_String rename :
-						moduleImport.renames.keysAsSet())
+						moduleImport.getRenames().keysAsSet())
 					{
 						renameValues.add(rename);
 					}
@@ -572,13 +572,13 @@ public class StacksCommentsModule
 					inScopeMethodsToFileNames.putAll(renameFileNames);
 
 					for (final A_String rename :
-						moduleImport.renames.keysAsSet())
+						moduleImport.getRenames().keysAsSet())
 					{
 						stacksExtends.renameImplementation(
-							moduleImport.renames.mapAt(rename),
+							moduleImport.getRenames().mapAt(rename),
 								rename,this, renameFileNames.get(rename),
 								!collectedExtendedNames.hasElement(
-									moduleImport.renames.mapAt(rename)));
+									moduleImport.getRenames().mapAt(rename)));
 					}
 
 					A_Set removeSet = setFromCollection(
@@ -664,7 +664,7 @@ public class StacksCommentsModule
 					A_Set collectedUsesNames =
 						emptySet();
 
-					if (moduleImport.wildcard)
+					if (moduleImport.getWildcard())
 					{
 						collectedUsesNames =
 							collectedUsesNames.setUnionCanDestroy(
@@ -681,16 +681,16 @@ public class StacksCommentsModule
 										.keySet()),
 								true);
 					}
-					if (!moduleImport.excludes.equals(emptySet()))
+					if (!moduleImport.getExcludes().equals(emptySet()))
 					{
 						collectedUsesNames = collectedUsesNames
-							.setMinusCanDestroy(moduleImport.excludes, true);
+							.setMinusCanDestroy(moduleImport.getExcludes(), true);
 					}
 
 					//Determine what keys need to be explicitly removed
 					//due to the rename.
 					final A_Set removeRenames =
-						moduleImport.renames.valuesAsTuple().asSet();
+						moduleImport.getRenames().valuesAsTuple().asSet();
 
 					collectedUsesNames =
 						collectedUsesNames
@@ -698,18 +698,18 @@ public class StacksCommentsModule
 
 					collectedUsesNames =
 						collectedUsesNames.setUnionCanDestroy(
-							moduleImport.names, true);
+							moduleImport.getNames(), true);
 
 					final StacksUsesModule stacksUses =
 						new StacksUsesModule(
 							moduleToComments.get(moduleImportName),
-							moduleImport.renames);
+							moduleImport.getRenames());
 
 					final ArrayList<A_String> renameValues =
 						new ArrayList<>();
 
 					for (final A_String rename :
-						moduleImport.renames.keysAsSet())
+						moduleImport.getRenames().keysAsSet())
 					{
 						renameValues.add(rename);
 					}
@@ -719,13 +719,13 @@ public class StacksCommentsModule
 						createFileNames(renameValues, moduleName, ".json");
 
 					for (final  A_String rename :
-						moduleImport.renames.keysAsSet())
+						moduleImport.getRenames().keysAsSet())
 					{
 						stacksUses.renameImplementation(
-							moduleImport.renames.mapAt(rename),
+							moduleImport.getRenames().mapAt(rename),
 							rename,this,  renameFileNames.get(rename),
 							!collectedUsesNames.hasElement(
-								moduleImport.renames.mapAt(rename)));
+								moduleImport.getRenames().mapAt(rename)));
 					}
 
 					A_Set removeSet = setFromCollection(

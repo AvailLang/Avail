@@ -453,7 +453,8 @@ public final class AvailLoader
 				singletonList(fromCodePoint(codePoint));
 			final CompilationContext compilationContext =
 				lexingState.getCompilationContext();
-			final AvailLoader loader = compilationContext.loader();
+			final AvailLoader loader =
+				stripNull(compilationContext.getLoader());
 			final List<A_Lexer> applicableLexers = new ArrayList<>();
 			final ReadWriteLock joinLock = new ReentrantReadWriteLock();
 			final Mutable<Map<A_Lexer, Throwable>> failureMap =

@@ -104,6 +104,7 @@
       <w>foundational</w>
       <w>fudge</w>
       <w>gmail</w>
+      <w>graphviz</w>
       <w>guillemet</w>
       <w>guillemets</w>
       <w>headlabel</w>
@@ -125,6 +126,7 @@
       <w>int</w>
       <w>inter</w>
       <w>intermodular</w>
+      <w>interruptible</w>
       <w>iterable</w>
       <w>juxtaposition</w>
       <w>keyhole</w>
@@ -152,6 +154,7 @@
       <w>multigraphs</w>
       <w>multilingual</w>
       <w>multimacro</w>
+      <w>multimap</w>
       <w>multimethod</w>
       <w>multimethods</w>
       <w>myers</w>
@@ -161,6 +164,7 @@
       <w>nonalphanumeric</w>
       <w>noncontradiction</w>
       <w>nullary</w>
+      <w>nulling</w>
       <w>nybble</w>
       <w>nybblecode</w>
       <w>nybblecodes</w>
@@ -255,6 +259,7 @@
       <w>subtuples</w>
       <w>subtype</w>
       <w>subtypes</w>
+      <w>suicided</w>
       <w>supercast</w>
       <w>supercasts</w>
       <w>superexpressions</w>

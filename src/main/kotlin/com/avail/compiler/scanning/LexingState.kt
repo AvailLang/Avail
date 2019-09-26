@@ -127,16 +127,15 @@ class LexingState constructor(
 	 * waiting actions.  Newer actions are launched upon arrival after the
 	 * tokens have been computed.
 	 */
-	private var actions: MutableList<Continuation1NotNull<List<A_Token>>>? =
-		ArrayList()
+	private var actions: MutableList<(List<A_Token>)->Unit>? = ArrayList()
 
 	/**
-	 * Eventually invoke the given [Continuation1NotNull]s, each with the given
-	 * argument.  Track them as outstanding actions, ensuring
-	 * [CompilationContext.getNoMoreWorkUnits] is invoked only when all such
-	 * queued actions for the [CompilationContext] have completed.  Ensure the
-	 * queued count is increased prior to actually queueing any of the actions,
-	 * to ensure a hasty execution of a prefix of the tasks doesn't cause the
+	 * Eventually invoke the given functions, each with the given argument.
+	 * Track them as outstanding actions, ensuring
+	 * [CompilationContext.noMoreWorkUnits] is invoked only when all such queued
+	 * actions for the [CompilationContext] have completed.  Ensure the queued
+	 * count is increased prior to actually queueing any of the actions, to
+	 * ensure a hasty execution of a prefix of the tasks doesn't cause the
 	 * `noMoreWorkUnits` to be executed prematurely.
 	 *
 	 * @param ArgType
@@ -148,17 +147,16 @@ class LexingState constructor(
 	 *   What to pass as an argument to the provided functions.
 	 */
 	private fun <ArgType> workUnitsDo(
-		continuations: List<Continuation1NotNull<ArgType>>,
+		continuations: List<(ArgType)->Unit>,
 		argument: ArgType)
 	{
 		compilationContext.workUnitsDo(this, continuations, argument)
 	}
 
 	/**
-	 * Eventually invoke the given [Continuation1NotNull] with the given
-	 * argument.  Track it as an outstanding action, ensuring
-	 * [CompilationContext.getNoMoreWorkUnits] is invoked only when all such
-	 * queued actions have completed.
+	 * Eventually invoke the given function with the given argument.  Track it
+	 * as an outstanding action, ensuring [CompilationContext.noMoreWorkUnits]
+	 * is invoked only when all such queued actions have completed.
 	 *
 	 * @param ArgType
 	 *   The type of argument to the given continuation.
@@ -168,7 +166,7 @@ class LexingState constructor(
 	 *   What to pass as an argument to the provided functions.
 	 */
 	fun <ArgType> workUnitDo(
-		continuation: Continuation1NotNull<ArgType>,
+		continuation: (ArgType)->Unit,
 		argument: ArgType)
 	{
 		compilationContext.workUnitsDo(this, listOf(continuation), argument)
@@ -184,7 +182,7 @@ class LexingState constructor(
 	 *   What to do with the list of tokens.
 	 */
 	@Synchronized
-	fun withTokensDo(newAction: Continuation1NotNull<List<A_Token>>)
+	fun withTokensDo(newAction: (List<A_Token>)->Unit)
 	{
 		if (actions == null)
 		{
@@ -207,7 +205,7 @@ class LexingState constructor(
 		// of nextTokens and then run the queued actions.
 		nextTokens = ArrayList(2)
 		val nextTokens = nextTokens!!
-		val source = compilationContext.source()
+		val source = compilationContext.source
 		if (position > source.tupleSize())
 		{
 			// The end of the source code.  Produce an end-of-file token.
@@ -222,7 +220,7 @@ class LexingState constructor(
 			this.actions = null
 			return
 		}
-		compilationContext.loader().lexicalScanner().getLexersForCodePointThen(
+		compilationContext.loader!!.lexicalScanner().getLexersForCodePointThen(
 			this,
 			source.tupleCodePointAt(position),
 			{ this.evaluateLexers(it) },
@@ -234,8 +232,8 @@ class LexingState constructor(
 	 * [lexers][A_Lexer], so run them.  When they have all completed, there will
 	 * be no outstanding tasks for the relevant [CompilationContext], so it will
 	 * automatically invoke
-	 * [noMoreWorkUnits][CompilationContext.getNoMoreWorkUnits], allowing
-	 * parsing to continue.
+	 * [noMoreWorkUnits][CompilationContext.noMoreWorkUnits], allowing parsing
+	 * to continue.
 	 *
 	 * @param applicableLexers
 	 *   The lexers that passed their filter functions.
@@ -247,9 +245,9 @@ class LexingState constructor(
 		if (applicableLexers.tupleSize() == 0)
 		{
 			// No applicable lexers.
-			val scanner = compilationContext.loader().lexicalScanner()
+			val scanner = compilationContext.loader!!.lexicalScanner()
 			val codePoint =
-				compilationContext.source().tupleCodePointAt(position)
+				compilationContext.source.tupleCodePointAt(position)
 			val charString =
 				CharacterDescriptor.fromCodePoint(codePoint).toString()
 			expected(
@@ -272,7 +270,7 @@ class LexingState constructor(
 		// actions.
 		val countdown = AtomicInteger(applicableLexers.tupleSize())
 		val arguments = listOf<A_BasicObject>(
-			compilationContext.source(),
+			compilationContext.source,
 			fromInt(position),
 			fromInt(lineNumber))
 		for (lexer in applicableLexers)
@@ -300,7 +298,7 @@ class LexingState constructor(
 		arguments: List<A_BasicObject>,
 		countdown: AtomicInteger)
 	{
-		val loader = compilationContext.loader()
+		val loader = compilationContext.loader!!
 		val fiber = newLoaderFiber(
 			lexerBodyFunctionType().returnType(),
 			loader
@@ -323,23 +321,21 @@ class LexingState constructor(
 				{
 					expected(
 						throwable.level,
-						throwable.rejectionString().asNativeString())
+						throwable.rejectionString.asNativeString())
 				}
 				else
 				{
 					// Report the problem as an expectation, with a stack trace.
-					expected(
-						STRONG,
-						Describer { afterDescribing ->
-							val writer = StringWriter()
-							throwable.printStackTrace(PrintWriter(writer))
-							val text = format(
-								"%s not to have failed while "
+					expected(STRONG) { afterDescribing ->
+						val writer = StringWriter()
+						throwable.printStackTrace(PrintWriter(writer))
+						val text = format(
+							"%s not to have failed while "
 								+ "evaluating its body:\n%s",
-								lexer.toString(),
-								writer.toString())
-							afterDescribing.value(text)
-						})
+							lexer.toString(),
+							writer.toString())
+						afterDescribing(text)
+					}
 				}
 				decrementAndRunActionsWhenZero(countdown)
 			})
@@ -352,8 +348,8 @@ class LexingState constructor(
 	 * `onFailure` continuation, but not both.  However, immediately record the
 	 * fact that we're expecting one of these to be eventually invoked, and wrap
 	 * the continuations with code that will invoke
-	 * [getNoMoreWorkUnits][CompilationContext.getNoMoreWorkUnits] when the
-	 * number of outstanding tasks reaches zero.
+	 * [getNoMoreWorkUnits][CompilationContext.noMoreWorkUnits] when the number
+	 * of outstanding tasks reaches zero.
 	 *
 	 * @param fiber
 	 *   The [A_Fiber] to set up.
@@ -470,7 +466,7 @@ class LexingState constructor(
 	 * @return
 	 *   The list of actions prior to nulling the field.
 	 */
-	private val consumeActions: List<Continuation1NotNull<List<A_Token>>>
+	private val consumeActions: List<(List<A_Token>)->Unit>
 		@Synchronized
 		get()
 		{
@@ -491,18 +487,16 @@ class LexingState constructor(
 	{
 		for ((key, value) in filterFailures)
 		{
-			expected(
-				STRONG,
-				Describer { afterDescribing ->
-					val stringWriter = StringWriter()
-					value.printStackTrace(PrintWriter(stringWriter))
-					val text = format(
-						"%s not to have failed while evaluating its filter "
+			expected(STRONG) { afterDescribing ->
+				val stringWriter = StringWriter()
+				value.printStackTrace(PrintWriter(stringWriter))
+				val text = format(
+					"%s not to have failed while evaluating its filter "
 						+ "function:\n%s",
-						key.toString(),
-						stringWriter.toString())
-					afterDescribing.value(text)
-				})
+					key.toString(),
+					stringWriter.toString())
+				afterDescribing(text)
+			}
 		}
 	}
 
@@ -570,15 +564,13 @@ class LexingState constructor(
 		values: List<A_BasicObject>,
 		transformer: Function<List<String>, String>)
 	{
-		expected(
-			level,
-			Describer { continuation ->
-				Interpreter.stringifyThen(
-					compilationContext.loader().runtime(),
-					compilationContext.textInterface,
-					values
-				) { list -> continuation.value(transformer.apply(list)) }
-			})
+		expected(level) { continuation ->
+			Interpreter.stringifyThen(
+				compilationContext.loader!!.runtime(),
+				compilationContext.textInterface,
+				values
+			) { list -> continuation(transformer.apply(list)) }
+		}
 	}
 
 	/**

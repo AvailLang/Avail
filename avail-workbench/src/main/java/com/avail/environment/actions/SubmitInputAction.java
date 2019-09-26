@@ -38,7 +38,8 @@ import com.avail.interpreter.Interpreter;
 import com.avail.io.ConsoleInputChannel;
 import com.avail.io.ConsoleOutputChannel;
 import com.avail.io.TextInterface;
-import com.avail.utility.evaluation.Continuation0;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function0;
 
 import javax.annotation.Nullable;
 import javax.swing.*;
@@ -110,11 +111,12 @@ extends AbstractWorkbenchAction
 					// There may not be a selection, in which case the
 					// command will not be run – but any necessary cleanup
 					// will be run.
-					proceed.value(selection);
+					proceed.invoke(selection);
+					return Unit.INSTANCE;
 				},
 				(result, cleanup) ->
 				{
-					final Continuation0 afterward = () ->
+					final Function0<Unit> afterward = () ->
 					{
 						workbench.isRunning = false;
 						invokeLater(() ->
@@ -130,11 +132,12 @@ extends AbstractWorkbenchAction
 										workbench.errorStream())));
 							workbench.setEnablements();
 						});
+						return Unit.INSTANCE;
 					};
 					if (result.equalsNil())
 					{
-						cleanup.value(afterward);
-						return;
+						cleanup.invoke(afterward);
+						return Unit.INSTANCE;
 					}
 					Interpreter.stringifyThen(
 						workbench.availBuilder.runtime,
@@ -146,23 +149,28 @@ extends AbstractWorkbenchAction
 								.outputStream()
 								.append(resultString)
 								.append("\n");
-							cleanup.value(afterward);
+							cleanup.invoke(afterward);
 						});
+					return Unit.INSTANCE;
 				},
-				() -> invokeLater(() ->
+				() ->
 				{
-					workbench.isRunning = false;
-					workbench.inputStream().clear();
-					workbench.availBuilder.runtime.setTextInterface(
-						new TextInterface(
-							new ConsoleInputChannel(
-								workbench.inputStream()),
-							new ConsoleOutputChannel(
-								workbench.outputStream()),
-							new ConsoleOutputChannel(
-								workbench.errorStream())));
-					workbench.setEnablements();
-				}));
+					invokeLater(() ->
+					{
+						workbench.isRunning = false;
+						workbench.inputStream().clear();
+						workbench.availBuilder.runtime.setTextInterface(
+							new TextInterface(
+								new ConsoleInputChannel(
+									workbench.inputStream()),
+								new ConsoleOutputChannel(
+									workbench.outputStream()),
+								new ConsoleOutputChannel(
+									workbench.errorStream())));
+						workbench.setEnablements();
+					});
+					return Unit.INSTANCE;
+				});
 		}
 	}
 

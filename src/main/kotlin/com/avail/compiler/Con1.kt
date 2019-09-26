@@ -1,6 +1,6 @@
 /*
- * FormattingDescriber.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Con1.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,52 +30,40 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.utility.evaluation;
+package com.avail.compiler
 
-import java.util.Formatter;
-
-import static java.lang.String.format;
+import com.avail.compiler.AvailCompiler.PartialSubexpressionList
 
 /**
- * A {@code FormattingDescriber} is a {@link Describer} that is given a {@link
- * String} to act as a {@link Formatter} pattern, and an array of {@link
- * Object}s to supply to it.
+ * This is a subtype of function, but it also tracks the
+ * [PartialSubexpressionList] that describes the nesting of parse expressions
+ * that led to this particular continuation.  A function is also supplied to the
+ * constructor.
  *
+ * @property superexpressions
+ *   A [PartialSubexpressionList] containing all enclosing incomplete
+ *   expressions currently being parsed along this history, or `null` if it is
+ *   root `PartialSubexpressionList`.
+ * @property innerContinuation
+ *   A function to invoke.
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct a new `Con1`.
+ *
+ * @param superexpressions
+ *   The enclosing partially-parsed expressions.
+ * @param innerContinuation
+ *   A function that will be invoked.
  */
-public final class FormattingDescriber implements Describer
+internal class Con1 constructor(
+	val superexpressions: PartialSubexpressionList?,
+	private val innerContinuation: (CompilerSolution)->Unit)
+: (CompilerSolution)->Unit
 {
-	/** The {@link String} to use as a {@link Formatter} pattern. */
-	final String patternString;
-
-	/** The arguments to supply to the pattern. */
-	final Object[] arguments;
-
-	/**
-	 * Construct a new {@code FormattingDescriber}.
-	 *
-	 * @param patternString The pattern {@link String}.
-	 * @param arguments The arguments to populate the pattern.
-	 */
-	public FormattingDescriber (
-		final String patternString,
-		final Object... arguments)
+	override fun invoke(solution: CompilerSolution)
 	{
-		this.patternString = patternString;
-		//noinspection AssignmentOrReturnOfFieldWithMutableType
-		this.arguments = arguments;
-	}
-
-	/**
-	 * Produce the formatted string and pass it to the specified {@linkplain
-	 * Continuation1NotNull continuation}.
-	 *
-	 * @param continuation
-	 *        What to do with the formatted {@link String}.
-	 */
-	@Override
-	public void describeThen (final Continuation1NotNull<String> continuation)
-	{
-		continuation.value(format(patternString, arguments));
+		innerContinuation(solution)
 	}
 }

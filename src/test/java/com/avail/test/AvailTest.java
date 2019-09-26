@@ -38,6 +38,7 @@ import com.avail.builder.UnresolvedDependencyException;
 import com.avail.test.AvailRuntimeTestHelper.TestErrorChannel;
 import com.avail.utility.Mutable;
 import com.avail.utility.Nulls;
+import kotlin.Unit;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -192,14 +193,23 @@ public class AvailTest
 		final Mutable<Boolean> ok = new Mutable<>(false);
 		helper().builder.attemptCommand(
 			"Run all tests",
-			(commands, proceed) -> proceed.value(commands.get(0)),
+			(commands, proceed) ->
+			{
+				proceed.invoke(commands.get(0));
+				return Unit.INSTANCE;
+			},
 			(result, cleanup) ->
-				cleanup.value(() ->
+				cleanup.invoke(() ->
 				{
 					ok.value = result.extractBoolean();
 					semaphore.release();
+					return Unit.INSTANCE;
 				}),
-			semaphore::release);
+			() ->
+			{
+				semaphore.release();
+				return Unit.INSTANCE;
+			});
 		semaphore.acquireUninterruptibly();
 		assertTrue(ok.value, "Some Avail tests failed");
 		assertFalse(helper().errorDetected());

@@ -50,6 +50,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.io.SimpleCompletionHandler;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+import kotlin.Unit;
 
 import java.net.Inet6Address;
 import java.net.InetAddress;
@@ -191,17 +192,25 @@ extends Primitive
 				address,
 				null,
 				new SimpleCompletionHandler<>(
-					unused -> runOutermostFunction(
-						runtime,
-						newFiber,
-						succeed,
-						emptyList()),
-					killer -> runOutermostFunction(
-						runtime,
-						newFiber,
-						fail,
-						singletonList(
-							E_IO_ERROR.numericCode()))));
+					unused ->
+					{
+						runOutermostFunction(
+							runtime,
+							newFiber,
+							succeed,
+							emptyList());
+						return Unit.INSTANCE;
+					},
+					killer ->
+					{
+						runOutermostFunction(
+							runtime,
+							newFiber,
+							fail,
+							singletonList(
+								E_IO_ERROR.numericCode()));
+						return Unit.INSTANCE;
+					}));
 		}
 		catch (final IllegalArgumentException e)
 		{

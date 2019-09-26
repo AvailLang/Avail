@@ -46,7 +46,8 @@ import com.avail.persistence.IndexedRepositoryManager.ModuleVersionKey;
 import com.avail.serialization.Deserializer;
 import com.avail.serialization.MalformedSerialStreamException;
 import com.avail.stacks.StacksGenerator;
-import com.avail.utility.evaluation.Continuation0;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function0;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
@@ -123,12 +124,11 @@ final class DocumentationTracer
 	 *        build.
 	 * @param completionAction
 	 *        What to do when comments have been loaded for the named
-	 *        module (or an error occurs).
 	 */
 	void loadComments (
 		final ResolvedModuleName moduleName,
 		final ProblemHandler problemHandler,
-		final Continuation0 completionAction)
+		final Function0<Unit> completionAction)
 	{
 		final @Nullable ModuleVersion version = getVersion(moduleName);
 		if (version == null || version.getComments() == null)
@@ -145,7 +145,7 @@ final class DocumentationTracer
 				public void abortCompilation ()
 				{
 					availBuilder.stopBuildReason("Comment loading failed");
-					completionAction.value();
+					completionAction.invoke();
 				}
 			};
 			problemHandler.handle(problem);
@@ -182,7 +182,7 @@ final class DocumentationTracer
 				{
 					availBuilder.stopBuildReason(
 						"Comment deserialization failed");
-					completionAction.value();
+					completionAction.invoke();
 				}
 			};
 			problemHandler.handle(problem);
@@ -214,14 +214,14 @@ final class DocumentationTracer
 					availBuilder.stopBuildReason(
 						"Module header deserialization failed when "
 						+ "loading comments");
-					completionAction.value();
+					completionAction.invoke();
 				}
 			};
 			problemHandler.handle(problem);
 			return;
 		}
 		generator.add(header, tuple);
-		completionAction.value();
+		completionAction.invoke();
 	}
 
 	/**
@@ -236,17 +236,16 @@ final class DocumentationTracer
 	 *        build.
 	 * @param completionAction
 	 *        What to do when comments have been loaded for the named
-	 *        module.
 	 */
 	private void scheduleLoadComments (
 		final ResolvedModuleName moduleName,
 		final ProblemHandler problemHandler,
-		final Continuation0 completionAction)
+		final Function0<Unit> completionAction)
 	{
 		// Avoid scheduling new tasks if an exception has happened.
 		if (availBuilder.shouldStopBuild())
 		{
-			completionAction.value();
+			completionAction.invoke();
 			return;
 		}
 		availBuilder.runtime.execute(
@@ -257,7 +256,7 @@ final class DocumentationTracer
 				{
 					// An exception has been encountered since the
 					// earlier check.  Exit quickly.
-					completionAction.value();
+					completionAction.invoke();
 				}
 				else
 				{
@@ -274,13 +273,15 @@ final class DocumentationTracer
 	 *        How to handle or report {@link Problem}s that arise during the
 	 *        build.
 	 */
-	void load (
-		final ProblemHandler problemHandler)
+	void load (final ProblemHandler problemHandler)
 	{
 		availBuilder.moduleGraph.parallelVisit(
 			(moduleName, completionAction) ->
+			{
 				scheduleLoadComments(
-					moduleName, problemHandler, completionAction));
+					moduleName, problemHandler, completionAction);
+				return Unit.INSTANCE;
+			});
 	}
 
 	/**

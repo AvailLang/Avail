@@ -37,6 +37,7 @@ import com.avail.io.SimpleCompletionHandler;
 import com.avail.utility.IO;
 import com.avail.utility.MutableLong;
 import com.avail.utility.Nulls;
+import kotlin.Unit;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -114,12 +115,14 @@ public class StacksOutputFile
 						IO.close(outputFile);
 						synchronizer.decrementWorkCounter();
 					}
+					return Unit.INSTANCE;
 				},
 				(exc, unused, handler) ->
 				{
 					// Log something?
 					IO.close(outputFile);
 					synchronizer.decrementWorkCounter();
+					return Unit.INSTANCE;
 				}));
 	}
 

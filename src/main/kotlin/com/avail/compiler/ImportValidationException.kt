@@ -1,7 +1,7 @@
 /*
- * package-info.java
- * Copyright © 1993-2018, The Avail Foundation, LLC. All
- * rights reserved.
+ * ImportValidationException.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -30,5 +30,21 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.utility.evaluation;
-import com.avail.annotations.NonnullByDefault;
+package com.avail.compiler
+
+/**
+ * An `ImportValidationException` is raised by the constructor of
+ * [ModuleImport] when it is supplied with arguments that constitute
+ * an invalid import specification.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct a new `ImportValidationException`.
+ *
+ * @param message
+ *   A message suitable for use as a parse rejection.
+ */
+internal class ImportValidationException constructor(message: String)
+	: Exception(message)

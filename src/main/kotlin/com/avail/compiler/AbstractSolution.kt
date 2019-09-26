@@ -1,6 +1,6 @@
 /*
- * AvailAcceptedParseException.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * AbstractSolution.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,29 +30,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler;
-
-import com.avail.exceptions.PrimitiveThrownException;
-import com.avail.interpreter.primitive.phrases.P_AcceptParsing;
+package com.avail.compiler
 
 /**
- * An {@code AvailAcceptedParseException} is thrown by primitive {@link
- * P_AcceptParsing} to indicate the fiber running a semantic restriction
- * has accepted the argument types and does not need to restrict the proposed
- * expression's type.
+ * An `AbstractSolution` is a solution suitable for use in an
+ * [AvailCompilerBipartiteRendezvous].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class AvailAcceptedParseException
-extends PrimitiveThrownException
-{
-	/**
-	 * Construct a new {@link AvailAcceptedParseException}, which can be thrown
-	 * by primitive {@link P_AcceptParsing} to indicate a semantic
-	 * restriction has accepted a parse but does not wish to strengthen the
-	 * expression's type.
-	 */
-	public AvailAcceptedParseException ()
-	{
-	}
-}
+internal interface AbstractSolution

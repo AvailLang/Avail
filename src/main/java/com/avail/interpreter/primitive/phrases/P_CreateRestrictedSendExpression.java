@@ -329,7 +329,7 @@ extends Primitive
 					{
 						final AvailRejectedParseException rejected =
 							(AvailRejectedParseException) throwable;
-						final A_String string = rejected.rejectionString();
+						final A_String string = rejected.getRejectionString();
 						synchronized (problems)
 						{
 							problems.add(string);

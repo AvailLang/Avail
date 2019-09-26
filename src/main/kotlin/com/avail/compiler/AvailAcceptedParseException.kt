@@ -1,6 +1,6 @@
 /*
- * Describer.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * AvailAcceptedParseException.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,27 +30,23 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.utility.evaluation;
+package com.avail.compiler
 
-import com.avail.compiler.AvailCompiler;
+import com.avail.exceptions.PrimitiveThrownException
+import com.avail.interpreter.primitive.phrases.P_AcceptParsing
 
 /**
- * A {@code Describer} produces a message and forwards it to a supplied
- * {@linkplain Continuation1NotNull continuation}. It is used by the {@linkplain
- * AvailCompiler compiler} to support lazy stringification in a
- * continuation-passing style.
+ * An `AvailAcceptedParseException` is thrown by primitive [P_AcceptParsing] to
+ * indicate the fiber running a semantic restriction has accepted the argument
+ * types and does not need to restrict the proposed expression's type.
  *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct a new [AvailAcceptedParseException], which can be thrown
+ * by primitive [P_AcceptParsing] to indicate a semantic
+ * restriction has accepted a parse but does not wish to strengthen the
+ * expression's type.
  */
-@FunctionalInterface
-public interface Describer
-{
-	/**
-	 * Assemble a message and pass it into the specified {@linkplain
-	 * Continuation1NotNull continuation}.
-	 *
-	 * @param continuation
-	 *        What to do with the message.
-	 */
-	void describeThen (Continuation1NotNull<String> continuation);
-}
+class AvailAcceptedParseException : PrimitiveThrownException()

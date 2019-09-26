@@ -1,6 +1,6 @@
 /*
- * AvailCompilerBipartiteRendezvous.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * AvailCompilerBipartiteRendezvous.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,15 +30,14 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler;
+package com.avail.compiler
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.ArrayList
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * An {@code AvailCompilerBipartiteRendezvous} comes at parsing from both sides
- * to maximize the freedom of implementation of the parser.  It uses dynamic
+ * An `AvailCompilerBipartiteRendezvous` comes at parsing from both sides to
+ * maximize the freedom of implementation of the parser.  It uses dynamic
  * programming to avoid parsing the same subexpression multiple times.  When a
  * new continuation needs to run against all possible subexpressions, it looks
  * up the current parser state in a map to get the bipartite rendezvous.  That
@@ -48,83 +47,86 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * found it is run against all waiting actions and added to the list of
  * subexpressions.
  *
- * <p>These two cases ensure each continuation runs with each subexpression –
+ * These two cases ensure each continuation runs with each subexpression –
  * without requiring any particular order of execution of the continuations.
  * That allows us to reorder the continuations arbitrarily, including forcing
  * them to run basically in lock-step with the lexical scanner, avoiding
  * scanning too far ahead in the cases of dynamic scanning rules and power
- * strings.  It also allows parallel execution of the parser.</p>
+ * strings.  It also allows parallel execution of the parser.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class AvailCompilerBipartiteRendezvous
+class AvailCompilerBipartiteRendezvous
 {
 	/**
 	 * The solutions that have been encountered so far, and will be passed to
 	 * new actions when they arrive.
 	 */
-	private final List<CompilerSolution> solutions = new ArrayList<>(3);
+	private val solutions = ArrayList<CompilerSolution>(3)
 
 	/**
 	 * The actions that are waiting to run when new solutions arrive.
 	 */
-	private final List<Con1> actions = new ArrayList<>(3);
+	private val actions = ArrayList<Con1>(3)
 
-	/** Whether we've started parsing at this position. */
-	private final AtomicBoolean hasStarted = new AtomicBoolean(false);
+	/** Whether we've started parsing at this position.  */
+	private val hasStarted = AtomicBoolean(false)
 
 	/**
 	 * Atomically read hasStartedParsing, make it true, then answer the value
 	 * that was read.
 	 *
-	 * @return {@code true} if parsing had already been started at this
-	 *         position, {@code false} otherwise.
+	 * @return
+	 *   `true` if parsing had already been started at this position, `false`
+	 *   otherwise.
 	 */
-	boolean getAndSetStartedParsing ()
-	{
-		return hasStarted.getAndSet(true);
-	}
+	internal val andSetStartedParsing: Boolean
+		get() = hasStarted.getAndSet(true)
 
 	/**
 	 * Record a new solution, and also run any waiting actions with it.
 	 *
-	 * @param solution The new solution to record.
+	 * @param solution
+	 *   The new solution to record.
 	 */
-	synchronized void addSolution (final CompilerSolution solution)
+	@Synchronized
+	internal fun addSolution(solution: CompilerSolution)
 	{
 		if (solutions.contains(solution))
 		{
 			// TODO(MvG) - Should throw DuplicateSolutionException.
-			// For the moment, suppress duplicates if they're send phrases.
-			// We temporarily (9/29/2016) allow these duplicates because of the
-			// way definition parsing plans work.  The parsing instructions for
+			// For the moment, suppress duplicates if they're send phrases. We
+			// temporarily (9/29/2016) allow these duplicates because of the way
+			// definition parsing plans work.  The parsing instructions for
 			// repeated arguments can be unrolled, which causes the plans for
 			// different definitions of the same method to have diverging
 			// instructions.  More than one of these paths might complete
 			// successfully.  The resulting send phrases don't indicate which
 			// plan completed, just the bundle and argument phrases, hence the
 			// duplicate solutions.
-			return;
-			// throw new DuplicateSolutionException();
+			return
+			// throw new DuplicateSolutionException()
 		}
-		solutions.add(solution);
-		for (final Con1 action : actions)
+		solutions.add(solution)
+		for (action in actions)
 		{
-			action.value(solution);
+			action(solution)
 		}
 	}
 
 	/**
 	 * Record a new action, and also run any stored solutions through it.
 	 *
-	 * @param action The new action.
+	 * @param action
+	 *   The new action.
 	 */
-	synchronized void addAction (final Con1 action)
+	@Synchronized
+	internal fun addAction(action: Con1)
 	{
-		actions.add(action);
-		for (final CompilerSolution solution : solutions)
+		actions.add(action)
+		for (solution in solutions)
 		{
-			action.value(solution);
+			action(solution)
 		}
 	}
 }

@@ -181,7 +181,7 @@ internal class Counter(
 		generator.emit(`$loopSkip`)
 		generator.emitIf(
 			needsProgressCheck, this, DISCARD_SAVED_PARSE_POSITION)
-		generator.emit(this, CONVERT, LIST_TO_SIZE.number())
+		generator.emit(this, CONVERT, LIST_TO_SIZE.number)
 		return wrapState.processAfterPushedArgument(this, generator)
 	}
 

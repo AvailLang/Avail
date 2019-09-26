@@ -682,7 +682,7 @@ extends Descriptor
 								prefilterMap,
 								typeFilterPairs);
 							final long timeAfter = captureNanos();
-							op.expandingStatisticInNanoseconds.record(
+							op.getExpandingStatisticInNanoseconds().record(
 								timeAfter - timeBefore,
 								Interpreter.currentIndex());
 						}

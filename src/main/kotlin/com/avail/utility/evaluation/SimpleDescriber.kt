@@ -1,6 +1,6 @@
 /*
- * ImportValidationException.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * SimpleDescriber.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,24 +30,31 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler;
+package com.avail.utility.evaluation
 
 /**
- * An {@code ImportValidationException} is raised by the constructor of
- * {@link ModuleImport} when it is supplied with arguments that constitute
- * an invalid import specification.
+ * A `SimpleDescriber` is a [Describer] that is given an
+ * already-constructed [String] at construction time.
+ *
+ * @property string
+ *   The string provided at construction time.
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct a new `SimpleDescriber` with an already-computed [String].
+ *
+ * @param string
+ *   The String that this describer describes itself as.
  */
-final class ImportValidationException
-extends Exception
+class SimpleDescriber constructor(internal val string: String) : Describer
 {
 	/**
-	 * Construct a new {@code ImportValidationException}.
+	 * Use the previously stored [String] as the description, passing it into
+	 * the specified continuation.
 	 *
-	 * @param message
-	 *        A message suitable for use as a parse rejection.
+	 * @param continuation
+	 *   What to do with the message.
 	 */
-	ImportValidationException (final String message)
-	{
-		super(message);
-	}
+	override fun invoke(continuation: (String) -> Unit) = continuation(string)
 }

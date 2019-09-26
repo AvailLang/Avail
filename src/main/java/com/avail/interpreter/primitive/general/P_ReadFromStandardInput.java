@@ -38,6 +38,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.io.SimpleCompletionHandler;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+import kotlin.Unit;
 
 import java.nio.CharBuffer;
 
@@ -81,8 +82,16 @@ extends Primitive
 					buffer,
 					fiber,
 					new SimpleCompletionHandler<>(
-						result -> toSucceed.value(fromCodePoint(buffer.get(0))),
-						exc -> toFail.value(E_IO_ERROR)));
+						result ->
+						{
+							toSucceed.value(fromCodePoint(buffer.get(0)));
+							return Unit.INSTANCE;
+						},
+						exc ->
+						{
+							toFail.value(E_IO_ERROR);
+							return Unit.INSTANCE;
+						}));
 			});
 	}
 

@@ -328,87 +328,87 @@ public final class MessageSplitterTest
 				A("Print", "_"),
 				A(
 					PARSE_PART.encoding(1),
-					PARSE_ARGUMENT.encoding(),
+					PARSE_ARGUMENT.getEncoding(),
 					CHECK_ARGUMENT.encoding(1),
 					typeCheckEncodingForPhrase(stringType()),
-					APPEND_ARGUMENT.encoding())),
+					APPEND_ARGUMENT.getEncoding())),
 			C(
 				"_+_",
 				List(2, 2, Phrase(NUMBER.o())),
 				A("_", "+", "_"),
 				A(
-					PARSE_ARGUMENT.encoding(),
+					PARSE_ARGUMENT.getEncoding(),
 					PARSE_PART.encoding(2),  // Hoisted before the checks.
 					CHECK_ARGUMENT.encoding(1),
 					typeCheckEncodingForPhrase(NUMBER.o()),
 					//APPEND_ARGUMENT.encoding(), // See wrap/concatenate below
-					PARSE_ARGUMENT.encoding(),
+					PARSE_ARGUMENT.getEncoding(),
 					CHECK_ARGUMENT.encoding(2),
 					typeCheckEncodingForPhrase(NUMBER.o()),
 					WRAP_IN_LIST.encoding(2),
-					CONCATENATE.encoding())),
+					CONCATENATE.getEncoding())),
 			C(
 				"_+_*_",
 				List(3, 3, Phrase(NUMBER.o())),
 				A("_", "+", "_", "*", "_"),
 				A(
-					PARSE_ARGUMENT.encoding(),
+					PARSE_ARGUMENT.getEncoding(),
 					PARSE_PART.encoding(2),  // Hoisted before arg 1 checks
 					CHECK_ARGUMENT.encoding(1),
 					typeCheckEncodingForPhrase(NUMBER.o()),
 					//APPEND_ARGUMENT.encoding(), // See wrap/concatenate below
-					PARSE_ARGUMENT.encoding(),
+					PARSE_ARGUMENT.getEncoding(),
 					PARSE_PART.encoding(4),  // Hoisted before arg 2 checks
 					CHECK_ARGUMENT.encoding(2),
 					typeCheckEncodingForPhrase(NUMBER.o()),
 					//APPEND_ARGUMENT.encoding(), // See wrap/concatenate below
-					PARSE_ARGUMENT.encoding(),
+					PARSE_ARGUMENT.getEncoding(),
 					CHECK_ARGUMENT.encoding(3),
 					typeCheckEncodingForPhrase(NUMBER.o()),
 					WRAP_IN_LIST.encoding(3),
-					CONCATENATE.encoding())),
+					CONCATENATE.getEncoding())),
 			C(
 				"_;",
 				List(1, 1, Phrase(Phrase(TOP.o()))),
 				A("_", ";"),
 				A(
-					PARSE_ARGUMENT.encoding(),
+					PARSE_ARGUMENT.getEncoding(),
 					PARSE_PART.encoding(2),  // Hoisted before checks
 					CHECK_ARGUMENT.encoding(1),
 					typeCheckEncodingForPhrase(Phrase(TOP.o())),
-					APPEND_ARGUMENT.encoding())),
+					APPEND_ARGUMENT.getEncoding())),
 			C(
 				"__",
 				List(2, 2, Phrase(stringType())),
 				A("_", "_"),
 				A(
-					PARSE_ARGUMENT.encoding(),
+					PARSE_ARGUMENT.getEncoding(),
 					CHECK_ARGUMENT.encoding(1),
 					typeCheckEncodingForPhrase(stringType()),
 					//APPEND_ARGUMENT.encoding(), // See wrap/concatenate below
-					PARSE_ARGUMENT.encoding(),
+					PARSE_ARGUMENT.getEncoding(),
 					CHECK_ARGUMENT.encoding(2),
 					typeCheckEncodingForPhrase(stringType()),
 					//APPEND_ARGUMENT.encoding(), // See wrap/concatenate below
 					WRAP_IN_LIST.encoding(2),
-					CONCATENATE.encoding())),
+					CONCATENATE.getEncoding())),
 		/* Literals */
 			C(
 				"…#",
 				List(1, 1, Phrase(LiteralToken(wholeNumbers()))),
 				A("…", "#"),
 				A(
-					PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN.encoding(),
+					PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN.getEncoding(),
 					typeCheckEncodingForPhrase(LiteralToken(wholeNumbers())),
-					APPEND_ARGUMENT.encoding())),
+					APPEND_ARGUMENT.getEncoding())),
 			C(
 				"…$",
 				List(1, 1, Phrase(LiteralToken(stringType()))),
 				A("…", "$"),
 				A(
-					PARSE_RAW_STRING_LITERAL_TOKEN.encoding(),
+					PARSE_RAW_STRING_LITERAL_TOKEN.getEncoding(),
 					typeCheckEncodingForPhrase(LiteralToken(stringType())),
-					APPEND_ARGUMENT.encoding())),
+					APPEND_ARGUMENT.getEncoding())),
 		/* Backquotes. */
 			C(
 				"`__",
@@ -416,52 +416,52 @@ public final class MessageSplitterTest
 				A("`", "_", "_"),
 				A(
 					PARSE_PART.encoding(2),
-					PARSE_ARGUMENT.encoding(),
+					PARSE_ARGUMENT.getEncoding(),
 					CHECK_ARGUMENT.encoding(1),
 					typeCheckEncodingForPhrase(stringType()),
-					APPEND_ARGUMENT.encoding())),
+					APPEND_ARGUMENT.getEncoding())),
 			C(
 				"`$_",
 				List(1, 1, Phrase(stringType())),
 				A("`", "$", "_"),
 				A(
 					PARSE_PART.encoding(2),
-					PARSE_ARGUMENT.encoding(),
+					PARSE_ARGUMENT.getEncoding(),
 					CHECK_ARGUMENT.encoding(1),
 					typeCheckEncodingForPhrase(stringType()),
-					APPEND_ARGUMENT.encoding())),
+					APPEND_ARGUMENT.getEncoding())),
 			C(
 				"_`«_",
 				List(2, 2, Phrase(stringType())),
 				A("_", "`", "«", "_"),
 				A(
-					PARSE_ARGUMENT.encoding(),
+					PARSE_ARGUMENT.getEncoding(),
 					PARSE_PART.encoding(3), // Hoisted above checks
 					CHECK_ARGUMENT.encoding(1),
 					typeCheckEncodingForPhrase(stringType()),
 					//APPEND_ARGUMENT.encoding(),
-					PARSE_ARGUMENT.encoding(),
+					PARSE_ARGUMENT.getEncoding(),
 					CHECK_ARGUMENT.encoding(2),
 					typeCheckEncodingForPhrase(stringType()),
 					//APPEND_ARGUMENT.encoding(), // See wrap/concatenate below
 					WRAP_IN_LIST.encoding(2),
-					CONCATENATE.encoding())),
+					CONCATENATE.getEncoding())),
 			C(
 				"_``_",
 				List(2, 2, Phrase(stringType())),
 				A("_", "`", "`", "_"),
 				A(
-					PARSE_ARGUMENT.encoding(),
+					PARSE_ARGUMENT.getEncoding(),
 					PARSE_PART.encoding(3), // Hoisted above checks
 					CHECK_ARGUMENT.encoding(1),
 					typeCheckEncodingForPhrase(stringType()),
 					//APPEND_ARGUMENT.encoding(), // See wrap/concatenate below
-					PARSE_ARGUMENT.encoding(),
+					PARSE_ARGUMENT.getEncoding(),
 					CHECK_ARGUMENT.encoding(2),
 					typeCheckEncodingForPhrase(stringType()),
 					//APPEND_ARGUMENT.encoding(), // See wrap/concatenate below
 					WRAP_IN_LIST.encoding(2),
-					CONCATENATE.encoding())),
+					CONCATENATE.getEncoding())),
 			C(
 				"`#`?`~",
 				List(0, 0),
@@ -478,81 +478,81 @@ public final class MessageSplitterTest
 				A(
 					PARSE_PART.encoding(2),
 					PARSE_PART.encoding(4),
-					PARSE_ARGUMENT.encoding(),
+					PARSE_ARGUMENT.getEncoding(),
 					PARSE_PART.encoding(7), // Hoisted before checks
 					PARSE_PART.encoding(9), // Also hoisted before checks
 					CHECK_ARGUMENT.encoding(1),
 					typeCheckEncodingForPhrase(NUMBER.o()),
-					APPEND_ARGUMENT.encoding())),
+					APPEND_ARGUMENT.getEncoding())),
 		/* Repeated groups. */
 			C(
 				"«_;»",
 				List(1, 1, Phrase(zeroOrMoreOf(NUMBER.o()))),
 				A("«", "_", ";", "»"),
 				A(
-					EMPTY_LIST.encoding(),
+					EMPTY_LIST.getEncoding(),
 					BRANCH_FORWARD.encoding(16),
 					// First unrolled loop
-					PARSE_ARGUMENT.encoding(),
+					PARSE_ARGUMENT.getEncoding(),
 					PARSE_PART.encoding(3), // Hoisted before checks
 					CHECK_ARGUMENT.encoding(1),
 					typeCheckEncodingForPhrase(NUMBER.o()),
-					APPEND_ARGUMENT.encoding(),
+					APPEND_ARGUMENT.getEncoding(),
 					BRANCH_FORWARD.encoding(16), // Maybe that's all
 					// 9: Top of loop.
-					PARSE_ARGUMENT.encoding(),
+					PARSE_ARGUMENT.getEncoding(),
 					PARSE_PART.encoding(3), // Hoisted before checks
 					CHECK_ARGUMENT.encoding(1),
 					typeCheckEncodingForPhrase(NUMBER.o()),
-					APPEND_ARGUMENT.encoding(),
+					APPEND_ARGUMENT.getEncoding(),
 					BRANCH_FORWARD.encoding(16), // Maybe that's all
 					JUMP_BACKWARD.encoding(9), // To top of loop
 					// 16: After loop
-					APPEND_ARGUMENT.encoding())),
+					APPEND_ARGUMENT.getEncoding())),
 			C(
 				"«x»",
 				List(1, 1, List(0, -1, List(0, 0))),
 				A("«", "x", "»"),
 				A(
-					EMPTY_LIST.encoding(), // whole expression
+					EMPTY_LIST.getEncoding(), // whole expression
 					BRANCH_FORWARD.encoding(13), // allow zero occurrences
 					PARSE_PART.encoding(2), // unroll first one.
-					EMPTY_LIST.encoding(), // first occurrence has no arguments.
+					EMPTY_LIST.getEncoding(), // first occurrence has no arguments.
 					BRANCH_FORWARD.encoding(12), // done after one?
-					APPEND_ARGUMENT.encoding(), // save it and parse more.
+					APPEND_ARGUMENT.getEncoding(), // save it and parse more.
 					//7: Start of loop after unrolled iteration.
 					PARSE_PART.encoding(2),
-					EMPTY_LIST.encoding(), // other occurrences have no args.
+					EMPTY_LIST.getEncoding(), // other occurrences have no args.
 					BRANCH_FORWARD.encoding(12), // exit loop?
-					APPEND_ARGUMENT.encoding(), // capture it and continue
+					APPEND_ARGUMENT.getEncoding(), // capture it and continue
 					JUMP_BACKWARD.encoding(7),
 					//12:
-					APPEND_ARGUMENT.encoding(), // save last occurrence
+					APPEND_ARGUMENT.getEncoding(), // save last occurrence
 					//13:
-					APPEND_ARGUMENT.encoding())),  // save all occurrences
+					APPEND_ARGUMENT.getEncoding())),  // save all occurrences
 			C(
 				"«x y»",
 				List(1, 1, List(0, -1, List(0, 0))),
 				A("«", "x", "y", "»"),
 				A(
-					EMPTY_LIST.encoding(), // whole expression
+					EMPTY_LIST.getEncoding(), // whole expression
 					BRANCH_FORWARD.encoding(15), // allow zero occurrences
 					PARSE_PART.encoding(2), // unroll first x...
 					PARSE_PART.encoding(3), // ... and y.
-					EMPTY_LIST.encoding(), // first occurrence has no arguments.
+					EMPTY_LIST.getEncoding(), // first occurrence has no arguments.
 					BRANCH_FORWARD.encoding(14), // done after one?
-					APPEND_ARGUMENT.encoding(), // save it and parse more.
+					APPEND_ARGUMENT.getEncoding(), // save it and parse more.
 					//8: Start of loop after unrolled iteration.
 					PARSE_PART.encoding(2),  // x
 					PARSE_PART.encoding(3),  // y
-					EMPTY_LIST.encoding(), // other occurrences have no args.
+					EMPTY_LIST.getEncoding(), // other occurrences have no args.
 					BRANCH_FORWARD.encoding(14), // exit loop?
-					APPEND_ARGUMENT.encoding(), // capture it and continue
+					APPEND_ARGUMENT.getEncoding(), // capture it and continue
 					JUMP_BACKWARD.encoding(8),
 					//14:
-					APPEND_ARGUMENT.encoding(), // save all occurrences
+					APPEND_ARGUMENT.getEncoding(), // save all occurrences
 					//15:
-					APPEND_ARGUMENT.encoding())),
+					APPEND_ARGUMENT.getEncoding())),
 			C(
 				"«x_y»",
 				List(1, 1, List(0, -1, Phrase(NUMBER.o()))),
@@ -561,26 +561,26 @@ public final class MessageSplitterTest
 					// NOTE: The group's left half has one argument and the
 					// right half has none (it's elided).  Use single-wrapping
 					// to avoid creating a sequence of singleton tuples.
-					EMPTY_LIST.encoding(), // whole expression
+					EMPTY_LIST.getEncoding(), // whole expression
 					BRANCH_FORWARD.encoding(18), // allow zero occurrences
 					PARSE_PART.encoding(2), // unroll first occurrence
-					PARSE_ARGUMENT.encoding(),
+					PARSE_ARGUMENT.getEncoding(),
 					PARSE_PART.encoding(4), // Hoisted before checks
 					CHECK_ARGUMENT.encoding(1),
 					typeCheckEncodingForPhrase(NUMBER.o()),
-					APPEND_ARGUMENT.encoding(), // save it and parse more.
+					APPEND_ARGUMENT.getEncoding(), // save it and parse more.
 					BRANCH_FORWARD.encoding(18), // done after one?
 					//10: Start of loop after unrolled iteration.
 					PARSE_PART.encoding(2),  // next x
-					PARSE_ARGUMENT.encoding(),
+					PARSE_ARGUMENT.getEncoding(),
 					PARSE_PART.encoding(4), // Hoisted before checks
 					CHECK_ARGUMENT.encoding(1),
 					typeCheckEncodingForPhrase(NUMBER.o()),
-					APPEND_ARGUMENT.encoding(), // save it and parse more.
+					APPEND_ARGUMENT.getEncoding(), // save it and parse more.
 					BRANCH_FORWARD.encoding(18), // exit loop?
 					JUMP_BACKWARD.encoding(10),
 					//18:
-					APPEND_ARGUMENT.encoding())),  // save all occurrences
+					APPEND_ARGUMENT.getEncoding())),  // save all occurrences
 		C(
 			"«_:_»",
 			List(1, 1, List(0, -1, List(2, 2, Phrase(NUMBER.o())))),
@@ -588,59 +588,59 @@ public final class MessageSplitterTest
 			A(
 				// NOTE: The group's left half has two argument positions, so we
 				// have to double-wrap (i.e., produce a tuple of 2-tuples).
-				EMPTY_LIST.encoding(), // whole expression
+				EMPTY_LIST.getEncoding(), // whole expression
 				BRANCH_FORWARD.encoding(25), // allow zero occurrences
-				PARSE_ARGUMENT.encoding(),
+				PARSE_ARGUMENT.getEncoding(),
 				PARSE_PART.encoding(3), // Hoisted before checks
 				CHECK_ARGUMENT.encoding(1),
 				typeCheckEncodingForPhrase(NUMBER.o()),
-				PARSE_ARGUMENT.encoding(),
+				PARSE_ARGUMENT.getEncoding(),
 				CHECK_ARGUMENT.encoding(2),
 				typeCheckEncodingForPhrase(NUMBER.o()),
 				WRAP_IN_LIST.encoding(2),
 				BRANCH_FORWARD.encoding(24), // done after one?
-				APPEND_ARGUMENT.encoding(), // save it and parse more.
+				APPEND_ARGUMENT.getEncoding(), // save it and parse more.
 				//13: Start of loop after unrolled iteration.
-				PARSE_ARGUMENT.encoding(),
+				PARSE_ARGUMENT.getEncoding(),
 				PARSE_PART.encoding(3), // Hoisted before checks
 				CHECK_ARGUMENT.encoding(1),
 				typeCheckEncodingForPhrase(NUMBER.o()),
-				PARSE_ARGUMENT.encoding(),
+				PARSE_ARGUMENT.getEncoding(),
 				CHECK_ARGUMENT.encoding(2),
 				typeCheckEncodingForPhrase(NUMBER.o()),
 				WRAP_IN_LIST.encoding(2),
 				BRANCH_FORWARD.encoding(24), // exit loop?
-				APPEND_ARGUMENT.encoding(), // save it and parse more.
+				APPEND_ARGUMENT.getEncoding(), // save it and parse more.
 				JUMP_BACKWARD.encoding(13),
 				//24:
-				APPEND_ARGUMENT.encoding(), // save the last pair
+				APPEND_ARGUMENT.getEncoding(), // save the last pair
 				//25:
-				APPEND_ARGUMENT.encoding())),  // save all occurrences
+				APPEND_ARGUMENT.getEncoding())),  // save all occurrences
 		C("«»",
 			List(1, 1, List(0, -1, List(0, 0))),
 			A("«", "»"),
 			A(
 				// This is a degenerate case, and can't actually pass the
 				// progress checks because no tokens can ever be parsed.
-				EMPTY_LIST.encoding(), // Zero occurrences.
+				EMPTY_LIST.getEncoding(), // Zero occurrences.
 				BRANCH_FORWARD.encoding(16), // Try zero occurrences.
 				//3: Unrolled first occurrence
-				SAVE_PARSE_POSITION.encoding(), //Occurrences must make progress
-				EMPTY_LIST.encoding(), // Unrolled first occurrence.
+				SAVE_PARSE_POSITION.getEncoding(), //Occurrences must make progress
+				EMPTY_LIST.getEncoding(), // Unrolled first occurrence.
 				BRANCH_FORWARD.encoding(13), // Try a single occurrence.
-				APPEND_ARGUMENT.encoding(), // Add the occurrence.
-				ENSURE_PARSE_PROGRESS.encoding(), // Make sure it was productive
+				APPEND_ARGUMENT.getEncoding(), // Add the occurrence.
+				ENSURE_PARSE_PROGRESS.getEncoding(), // Make sure it was productive
 				//8: second and later occurrences.
-				EMPTY_LIST.encoding(),
+				EMPTY_LIST.getEncoding(),
 				BRANCH_FORWARD.encoding(13), // Try the new occurrence.
-				APPEND_ARGUMENT.encoding(), // Save it.
-				ENSURE_PARSE_PROGRESS.encoding(), // Make sure it was productive
+				APPEND_ARGUMENT.getEncoding(), // Save it.
+				ENSURE_PARSE_PROGRESS.getEncoding(), // Make sure it was productive
 				JUMP_BACKWARD.encoding(8), // Try another
 				//13: Save latest occurrence and try it.
-				APPEND_ARGUMENT.encoding(),
-				ENSURE_PARSE_PROGRESS.encoding(), // Must have made progress
-				DISCARD_SAVED_PARSE_POSITION.encoding(), // Chuck progress mark
-				APPEND_ARGUMENT.encoding())), // Save list as sole argument.
+				APPEND_ARGUMENT.getEncoding(),
+				ENSURE_PARSE_PROGRESS.getEncoding(), // Must have made progress
+				DISCARD_SAVED_PARSE_POSITION.getEncoding(), // Chuck progress mark
+				APPEND_ARGUMENT.getEncoding())), // Save list as sole argument.
 //		C("«»«»",
 //			A("«", "»", "«", "»"),
 //			A(

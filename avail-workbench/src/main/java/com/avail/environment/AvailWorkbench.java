@@ -95,6 +95,7 @@ import com.avail.utility.Mutable;
 import com.avail.utility.MutableInt;
 import com.avail.utility.MutableLong;
 import com.avail.utility.Pair;
+import kotlin.Unit;
 
 import javax.annotation.Nullable;
 import javax.swing.*;
@@ -1624,7 +1625,8 @@ extends JFrame
 						() -> moduleNodes.put(
 							resolvedName.qualifiedName(), moduleNode));
 				}
-				after.value();
+				after.invoke();
+				return Unit.INSTANCE;
 			});
 		final String [] mapKeys = moduleNodes.keySet().toArray(new String[0]);
 		Arrays.sort(mapKeys);
@@ -2812,6 +2814,7 @@ extends JFrame
 					// Postpone repaints up to 250ms to avoid thrash.
 					entryPointsTree.repaint(250);
 				}
+				return Unit.INSTANCE;
 			});
 
 		// Set up styles for the transcript.

@@ -1,7 +1,7 @@
 /*
- * package-info.java
- * Copyright © 1993-2018, The Avail Foundation, LLC. All
- * rights reserved.
+ * GlobalProgressReporter.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -30,5 +30,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.utility.evaluation;
-import com.avail.annotations.NonnullByDefault;
+package com.avail.compiler
+
+/**
+ * The [compiler][AvailCompiler] notifies a `GlobalProgressReporter`
+ * whenever a top-level statement is parsed unambiguously.
+ *
+ * The arguments are the total number of bytes of source being compiled and the
+ * current number of bytes that have been compiled and executed.
+ */
+typealias GlobalProgressReporter = (Long, Long)->Unit

@@ -35,8 +35,6 @@ package com.avail.builder;
 import com.avail.AvailRuntime;
 import com.avail.builder.AvailBuilder.LoadedModule;
 import com.avail.compiler.AvailCompiler;
-import com.avail.compiler.AvailCompiler.CompilerProgressReporter;
-import com.avail.compiler.AvailCompiler.GlobalProgressReporter;
 import com.avail.compiler.ModuleHeader;
 import com.avail.compiler.problems.Problem;
 import com.avail.compiler.problems.ProblemHandler;
@@ -61,7 +59,11 @@ import com.avail.serialization.Serializer;
 import com.avail.utility.MutableLong;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1NotNull;
-import com.avail.utility.evaluation.Continuation3;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function0;
+import kotlin.jvm.functions.Function1;
+import kotlin.jvm.functions.Function2;
+import kotlin.jvm.functions.Function3;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
@@ -99,8 +101,8 @@ final class BuildLoader
 	final AvailBuilder availBuilder;
 
 	/**
-	 * A {@linkplain CompilerProgressReporter} that is updated to show progress
-	 * while compiling or loading a module.  It accepts:
+	 * A continuation that is updated to show progress while compiling or
+	 * loading a module.  It accepts:
 	 *
 	 * <ol>
 	 * <li>the name of the module currently undergoing {@linkplain AvailCompiler
@@ -109,11 +111,11 @@ final class BuildLoader
 	 * <li>the current token at which parsing is taking place.</li>
 	 * </ol>
 	 */
-	private final CompilerProgressReporter localTracker;
+	private final Function3<ModuleName, Long, Long, Unit> localTracker;
 
 	/**
-	 * A {@linkplain Continuation3} that is updated to show global progress
-	 * while compiling or loading modules.  It accepts:
+	 * A continuation that is updated to show global progress while compiling or
+	 * loading modules.  It accepts:
 	 *
 	 * <ol>
 	 * <li>the name of the module undergoing compilation,</li>
@@ -121,7 +123,7 @@ final class BuildLoader
 	 * <li>the global size (in bytes) of all modules that will be built.</li>
 	 * </ol>
 	 */
-	private final GlobalProgressReporter globalTracker;
+	private final Function2<Long, Long, Unit> globalTracker;
 
 	/**
 	 * Construct a new {@code BuildLoader}.
@@ -129,7 +131,7 @@ final class BuildLoader
 	 * @param availBuilder
 	 *        The {@link AvailBuilder} for which to load modules.
 	 * @param localTracker
-	 *        A {@linkplain CompilerProgressReporter continuation} that accepts
+	 *        A continuation that accepts
 	 *        <ol>
 	 *        <li>the name of the module currently undergoing {@linkplain
 	 *        AvailCompiler compilation} as part of the recursive
@@ -139,7 +141,7 @@ final class BuildLoader
 	 *        <li>the size of the module in bytes.</li>
 	 *        </ol>
 	 * @param globalTracker
-	 *        A {@link GlobalProgressReporter} that accepts
+	 *        A continuation that accepts
 	 *        <ol>
 	 *        <li>the number of bytes globally processed, and</li>
 	 *        <li>the global size (in bytes) of all modules that will be
@@ -151,8 +153,8 @@ final class BuildLoader
 	 */
 	BuildLoader (
 		final AvailBuilder availBuilder,
-		final CompilerProgressReporter localTracker,
-		final GlobalProgressReporter globalTracker,
+		final Function3<ModuleName, Long, Long, Unit> localTracker,
+		final Function2<Long, Long, Unit> globalTracker,
 		final ProblemHandler problemHandler)
 	{
 		this.availBuilder = availBuilder;
@@ -188,17 +190,16 @@ final class BuildLoader
 	 *        that should be loaded.
 	 * @param completionAction
 	 *        The {@linkplain Continuation0 action} to perform after this module
-	 *        has been loaded.
 	 */
 	private void scheduleLoadModule (
 		final ResolvedModuleName target,
-		final Continuation0 completionAction)
+		final Function0<Unit> completionAction)
 	{
 		// Avoid scheduling new tasks if an exception has happened.
 		if (availBuilder.shouldStopBuild())
 		{
 			postLoad(target, 0L);
-			completionAction.value();
+			completionAction.invoke();
 			return;
 		}
 		availBuilder.runtime.execute(
@@ -209,7 +210,7 @@ final class BuildLoader
 				{
 					// An exception has been encountered since the earlier
 					// check.  Exit quickly.
-					completionAction.value();
+					completionAction.invoke();
 				}
 				else
 				{
@@ -236,9 +237,9 @@ final class BuildLoader
 	 */
 	private void loadModule (
 		final ResolvedModuleName moduleName,
-		final Continuation0 completionAction)
+		final Function0<Unit> completionAction)
 	{
-		globalTracker.value(bytesCompiled.get(), globalCodeSize);
+		globalTracker.invoke(bytesCompiled.get(), globalCodeSize);
 		// If the module is already loaded into the runtime, then we must not
 		// reload it.
 		final boolean isLoaded =
@@ -254,7 +255,7 @@ final class BuildLoader
 				"Already loaded: %s",
 				moduleName.qualifiedName());
 			postLoad(moduleName, 0L);
-			completionAction.value();
+			completionAction.invoke();
 		}
 		else
 		{
@@ -289,7 +290,7 @@ final class BuildLoader
 								+ "%s -> %s\n",
 							moduleName.qualifiedName(),
 							localName));
-					completionAction.value();
+					completionAction.invoke();
 					return;
 				}
 				final LoadedModule loadedPredecessor =
@@ -355,9 +356,9 @@ final class BuildLoader
 		final ModuleVersion version,
 		final ModuleCompilation compilation,
 		final byte[] sourceDigest,
-		final Continuation0 completionAction)
+		final Function0<Unit> completionAction)
 	{
-		localTracker.value(moduleName, moduleName.moduleSize(), 0L);
+		localTracker.invoke(moduleName, moduleName.moduleSize(), 0L);
 		final A_Module module = newModule(
 			stringFrom(moduleName.qualifiedName()));
 		final AvailLoader availLoader =
@@ -382,7 +383,7 @@ final class BuildLoader
 						{
 							availBuilder.stopBuildReason(
 								"Problem loading module");
-							completionAction.value();
+							completionAction.invoke();
 						}
 					};
 					problemHandler.handle(problem);
@@ -489,7 +490,7 @@ final class BuildLoader
 						() ->
 						{
 							postLoad(moduleName, 0L);
-							completionAction.value();
+							completionAction.invoke();
 						});
 				}
 				else
@@ -503,7 +504,7 @@ final class BuildLoader
 						compilation);
 					availBuilder.putLoadedModule(moduleName, loadedModule);
 					postLoad(moduleName, 0L);
-					completionAction.value();
+					completionAction.invoke();
 				}
 			});
 	}
@@ -523,15 +524,14 @@ final class BuildLoader
 	 *        The circumstances of compilation of this module.  Currently this
 	 *        is just the compilation times ({@code long}s) of the module's
 	 *        currently loaded predecessors, listed in the same order as the
-	 *        module's {@linkplain ModuleHeader#importedModules imports}.
+	 *        module's {@linkplain ModuleHeader#getImportedModules() imports}.
 	 * @param completionAction
-	 *        What to do after loading the module successfully or
-	 *        unsuccessfully.
+ *            What to do after loading the module successfully or
 	 */
 	private void compileModule (
 		final ResolvedModuleName moduleName,
 		final ModuleCompilationKey compilationKey,
-		final Continuation0 completionAction)
+		final Function0<Unit> completionAction)
 	{
 		final IndexedRepositoryManager repository = moduleName.repository();
 		final ModuleArchive archive = repository.getArchive(
@@ -541,55 +541,63 @@ final class BuildLoader
 			new ModuleVersionKey(moduleName, digest);
 		final MutableLong lastPosition = new MutableLong(0L);
 		final AtomicBoolean ranOnce = new AtomicBoolean(false);
-		final Continuation1NotNull<AvailCompiler> continuation =
-			compiler -> compiler.parseModule(
-				module ->
-				{
-					final boolean old = ranOnce.getAndSet(true);
-					assert !old : "Completed module compilation twice!";
-					final ByteArrayOutputStream stream =
-						compiler.compilationContext.serializerOutputStream;
-					// This is the moment of compilation.
-					final long compilationTime = System.currentTimeMillis();
-					final ModuleCompilation compilation =
-						repository.new ModuleCompilation(
-							compilationTime,
-							appendCRC(stream.toByteArray()));
-					archive.putCompilation(
-						versionKey, compilationKey, compilation);
+		final Function1<AvailCompiler, Unit> continuation =
+			compiler ->
+			{
+				compiler.parseModule(
+					module ->
+					{
+						final boolean old = ranOnce.getAndSet(true);
+						assert !old : "Completed module compilation twice!";
+						final ByteArrayOutputStream stream =
+							compiler
+								.getCompilationContext()
+								.getSerializerOutputStream();
+						// This is the moment of compilation.
+						final long compilationTime = System.currentTimeMillis();
+						final ModuleCompilation compilation =
+							repository.new ModuleCompilation(
+								compilationTime,
+								appendCRC(stream.toByteArray()));
+						archive.putCompilation(
+							versionKey, compilationKey, compilation);
 
-					// Serialize the Stacks comments.
-					final ByteArrayOutputStream out =
-						new ByteArrayOutputStream(5000);
-					final Serializer serializer =
-						new Serializer(out, module);
-					// TODO MvG - Capture "/**" comments for Stacks.
+						// Serialize the Stacks comments.
+						final ByteArrayOutputStream out =
+							new ByteArrayOutputStream(5000);
+						final Serializer serializer =
+							new Serializer(out, module);
+						// TODO MvG - Capture "/**" comments for Stacks.
 //						final A_Tuple comments = fromList(
 //                          module.commentTokens());
-					final A_Tuple comments = emptyTuple();
-					serializer.serialize(comments);
-					final ModuleVersion version =
-						stripNull(archive.getVersion(versionKey));
-					version.putComments(appendCRC(out.toByteArray()));
+						final A_Tuple comments = emptyTuple();
+						serializer.serialize(comments);
+						final ModuleVersion version =
+							stripNull(archive.getVersion(versionKey));
+						version.putComments(appendCRC(out.toByteArray()));
 
-					repository.commitIfStaleChanges(
-						AvailBuilder.maximumStaleRepositoryMs);
-					postLoad(moduleName, lastPosition.value);
-					availBuilder.putLoadedModule(
-						moduleName,
-						new LoadedModule(
+						repository.commitIfStaleChanges(
+							AvailBuilder.maximumStaleRepositoryMs);
+						postLoad(moduleName, lastPosition.value);
+						availBuilder.putLoadedModule(
 							moduleName,
-							versionKey.getSourceDigest(),
-							module,
-							version,
-							compilation));
-					completionAction.value();
-				},
-				() ->
-				{
-					postLoad(moduleName, lastPosition.value);
-					completionAction.value();
-				});
+							new LoadedModule(
+								moduleName,
+								versionKey.getSourceDigest(),
+								module,
+								version,
+								compilation));
+						completionAction.invoke();
+						return Unit.INSTANCE;
+					},
+					() ->
+					{
+						postLoad(moduleName, lastPosition.value);
+						completionAction.invoke();
+						return Unit.INSTANCE;
+					});
+				return Unit.INSTANCE;
+			};
 		AvailCompiler.create(
 			moduleName,
 			availBuilder.textInterface,
@@ -597,17 +605,19 @@ final class BuildLoader
 			(moduleName2, moduleSize, position) ->
 			{
 				assert moduleName.equals(moduleName2);
-				localTracker.value(moduleName, moduleSize, position);
-				globalTracker.value(
+				localTracker.invoke(moduleName, moduleSize, position);
+				globalTracker.invoke(
 					bytesCompiled.addAndGet(position - lastPosition.value),
 					globalCodeSize);
 				lastPosition.value = position;
+				return Unit.INSTANCE;
 			},
 			continuation,
 			() ->
 			{
 				postLoad(moduleName, lastPosition.value);
-				completionAction.value();
+				completionAction.invoke();
+				return Unit.INSTANCE;
 			},
 			problemHandler);
 	}
@@ -628,10 +638,10 @@ final class BuildLoader
 		final long lastPosition)
 	{
 		final long moduleSize = moduleName.moduleSize();
-		globalTracker.value(
+		globalTracker.invoke(
 			bytesCompiled.addAndGet(moduleSize - lastPosition),
 			globalCodeSize);
-		localTracker.value(moduleName, moduleSize, moduleSize);
+		localTracker.invoke(moduleName, moduleSize, moduleSize);
 	}
 
 	/**
@@ -646,7 +656,11 @@ final class BuildLoader
 		bytesCompiled.set(0L);
 		final int vertexCountBefore = availBuilder.moduleGraph.vertexCount();
 		availBuilder.moduleGraph.parallelVisitThen(
-			this::scheduleLoadModule,
+			(vertex, done) ->
+			{
+				scheduleLoadModule(vertex, done);
+				return Unit.INSTANCE;
+			},
 			() ->
 			{
 				try
@@ -665,6 +679,7 @@ final class BuildLoader
 				{
 					afterAll.value();
 				}
+				return Unit.INSTANCE;
 			});
 	}
 

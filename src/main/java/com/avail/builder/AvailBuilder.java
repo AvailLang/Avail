@@ -34,14 +34,20 @@ package com.avail.builder;
 
 import com.avail.AvailRuntime;
 import com.avail.compiler.AvailCompiler;
-import com.avail.compiler.AvailCompiler.CompilerProgressReporter;
-import com.avail.compiler.AvailCompiler.GlobalProgressReporter;
 import com.avail.compiler.FiberTerminationException;
 import com.avail.compiler.ModuleHeader;
 import com.avail.compiler.ModuleImport;
 import com.avail.compiler.problems.Problem;
 import com.avail.compiler.problems.ProblemHandler;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.ModuleDescriptor;
 import com.avail.io.SimpleCompletionHandler;
 import com.avail.io.TextInterface;
 import com.avail.persistence.IndexedRepositoryManager;
@@ -52,10 +58,15 @@ import com.avail.serialization.MalformedSerialStreamException;
 import com.avail.serialization.Serializer;
 import com.avail.utility.Graph;
 import com.avail.utility.Locks.Auto;
-import com.avail.utility.evaluation.*;
+import com.avail.utility.evaluation.Continuation0;
+import com.avail.utility.evaluation.Continuation1;
+import com.avail.utility.evaluation.Continuation1NotNull;
+import com.avail.utility.evaluation.Continuation2NotNull;
 import kotlin.Unit;
+import kotlin.jvm.functions.Function0;
 import kotlin.jvm.functions.Function1;
-import kotlin.reflect.KFunction;
+import kotlin.jvm.functions.Function2;
+import kotlin.jvm.functions.Function3;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -65,8 +76,14 @@ import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -79,7 +96,9 @@ import java.util.logging.Logger;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
-import static com.avail.compiler.problems.ProblemType.*;
+import static com.avail.compiler.problems.ProblemType.EXECUTION;
+import static com.avail.compiler.problems.ProblemType.PARSE;
+import static com.avail.compiler.problems.ProblemType.TRACE;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
 import static com.avail.descriptor.FiberDescriptor.commandPriority;
 import static com.avail.descriptor.FiberDescriptor.newFiber;
@@ -95,7 +114,9 @@ import static com.avail.interpreter.Interpreter.runOutermostFunction;
 import static com.avail.utility.Locks.auto;
 import static com.avail.utility.StackPrinter.trace;
 import static java.lang.String.format;
-import static java.util.Collections.*;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.synchronizedList;
+import static java.util.Collections.synchronizedMap;
 import static java.util.stream.Collectors.joining;
 
 /**
@@ -232,7 +253,7 @@ public final class AvailBuilder
 		synchronizedMap(new HashMap<>());
 
 	/** Whom to notify when modules load and unload. */
-	private final Set<Continuation2<LoadedModule, Boolean>> subscriptions =
+	private final Set<Function2<LoadedModule, Boolean, Unit>> subscriptions =
 		new HashSet<>();
 
 	/**
@@ -241,7 +262,7 @@ public final class AvailBuilder
 	 * @param subscription What to invoke during loads and unloads.
 	 */
 	public void subscribeToModuleLoading (
-		final Continuation2<LoadedModule, Boolean> subscription)
+		final Function2<LoadedModule, Boolean, Unit> subscription)
 	{
 		subscriptions.add(subscription);
 	}
@@ -253,7 +274,7 @@ public final class AvailBuilder
 	 */
 	@SuppressWarnings("unused")
 	public void unsubscribeToModuleLoading (
-		final Continuation2<LoadedModule, Boolean> subscription)
+		final Function2<LoadedModule, Boolean, Unit> subscription)
 	{
 		subscriptions.remove(subscription);
 	}
@@ -303,10 +324,10 @@ public final class AvailBuilder
 		try (final Auto ignore = auto(builderLock.writeLock()))
 		{
 			allLoadedModules.put(resolvedModuleName, loadedModule);
-			for (final Continuation2<LoadedModule, Boolean> subscription
+			for (final Function2<LoadedModule, Boolean, Unit> subscription
 				: subscriptions)
 			{
-				subscription.value(loadedModule, true);
+				subscription.invoke(loadedModule, true);
 			}
 		}
 	}
@@ -326,7 +347,7 @@ public final class AvailBuilder
 				allLoadedModules.get(resolvedModuleName);
 			allLoadedModules.remove(resolvedModuleName);
 			subscriptions.forEach(
-				subscription -> subscription.value(loadedModule, false));
+				subscription -> subscription.invoke(loadedModule, false));
 		}
 	}
 
@@ -428,7 +449,7 @@ public final class AvailBuilder
 	}
 
 	/** Create a {@link BooleanSupplier} for polling for abort requests. */
-	public final BooleanSupplier pollForAbort = this::shouldStopBuild;
+	public final Function0<Boolean> pollForAbort = this::shouldStopBuild;
 
 	/**
 	 * Cancel the build at the next convenient stopping point for each module.
@@ -694,17 +715,17 @@ public final class AvailBuilder
 		 * @param depth The depth of the current invocation.
 		 */
 		void recursiveDo (
-			final Continuation2NotNull<ModuleTree, Integer> enter,
-			final Continuation2NotNull<ModuleTree, Integer> exit,
+			final Function2<ModuleTree, Integer, Unit> enter,
+			final Function2<ModuleTree, Integer, Unit> exit,
 			final int depth)
 		{
-			enter.value(this, depth);
+			enter.invoke(this, depth);
 			final int nextDepth = depth + 1;
 			for (final ModuleTree child : children)
 			{
 				child.recursiveDo(enter, exit, nextDepth);
 			}
-			exit.value(this, depth);
+			exit.invoke(this, depth);
 		}
 	}
 
@@ -728,7 +749,7 @@ public final class AvailBuilder
 	 *        The {@linkplain ModuleName canonical name} of the module that the
 	 *        builder must (recursively) load into the {@link AvailRuntime}.
 	 * @param localTracker
-	 *        A {@linkplain CompilerProgressReporter continuation} that accepts
+	 *        A continuation that accepts
 	 *        <ol>
 	 *        <li>the name of the module currently undergoing {@linkplain
 	 *        AvailCompiler compilation} as part of the recursive build
@@ -738,7 +759,7 @@ public final class AvailBuilder
 	 *        <li>the most recently compiled {@linkplain A_Phrase phrase}.</li>
 	 *        </ol>
 	 * @param globalTracker
-	 *        A {@link GlobalProgressReporter} that accepts
+	 *        A continuation that accepts
 	 *        <ol>
 	 *        <li>the number of bytes globally processed, and</li>
 	 *        <li>the global size (in bytes) of all modules that will be
@@ -753,8 +774,8 @@ public final class AvailBuilder
 	 */
 	public void buildTargetThen (
 		final ModuleName target,
-		final CompilerProgressReporter localTracker,
-		final GlobalProgressReporter globalTracker,
+		final Function3<ModuleName, Long, Long, Unit> localTracker,
+		final Function2<Long, Long, Unit> globalTracker,
 		final ProblemHandler problemHandler,
 		final Continuation0 originalAfterAll)
 	{
@@ -819,7 +840,7 @@ public final class AvailBuilder
 	 *        The {@linkplain ModuleName canonical name} of the module that the
 	 *        builder must (recursively) load into the {@link AvailRuntime}.
 	 * @param localTracker
-	 *        A {@linkplain CompilerProgressReporter continuation} that accepts
+	 *        A continuation that accepts
 	 *        <ol>
 	 *        <li>the name of the module currently undergoing {@linkplain
 	 *        AvailCompiler compilation} as part of the recursive build
@@ -829,7 +850,7 @@ public final class AvailBuilder
 	 *        <li>the most recently compiled {@linkplain A_Phrase phrase}.</li>
 	 *        </ol>
 	 * @param globalTracker
-	 *        A {@link GlobalProgressReporter} that accepts
+	 *        A continuation that accepts
 	 *        <ol>
 	 *        <li>the number of bytes globally processed, and</li>
 	 *        <li>the global size (in bytes) of all modules that will be
@@ -841,8 +862,8 @@ public final class AvailBuilder
 	 */
 	public void buildTarget (
 		final ModuleName target,
-		final CompilerProgressReporter localTracker,
-		final GlobalProgressReporter globalTracker,
+		final Function3<ModuleName, Long, Long, Unit> localTracker,
+		final Function2<Long, Long, Unit> globalTracker,
 		final ProblemHandler problemHandler)
 	{
 		final Semaphore semaphore = new Semaphore(0);
@@ -968,11 +989,17 @@ public final class AvailBuilder
 	 *        processed.
 	 */
 	public void traceDirectories (
-		final Continuation3NotNull
-			<ResolvedModuleName, ModuleVersion, Continuation0> action)
+		final Function3<
+			ResolvedModuleName, ModuleVersion, Function0<Unit>, Unit> action)
 	{
 		final Semaphore semaphore = new Semaphore(0);
-		traceDirectories(action, semaphore::release);
+		traceDirectories(
+			action,
+			() ->
+			{
+				semaphore.release();
+				return Unit.INSTANCE;
+			});
 		// Trace is not currently interruptible.
 		semaphore.acquireUninterruptibly();
 	}
@@ -998,9 +1025,9 @@ public final class AvailBuilder
 	 *        What to do after all of the modules have been processed.
 	 */
 	public void traceDirectories (
-		final Continuation3NotNull
-			<ResolvedModuleName, ModuleVersion, Continuation0> action,
-		final Continuation0 afterAll)
+		final Function3<
+			ResolvedModuleName, ModuleVersion, Function0<Unit>, Unit> action,
+		final Function0<Unit> afterAll)
 	{
 		new BuildDirectoryTracer(this, afterAll).traceAllModuleHeaders(action);
 	}
@@ -1085,15 +1112,11 @@ public final class AvailBuilder
 	 */
 	public void attemptCommand (
 		final String command,
-		final Continuation2NotNull<
-				List<CompiledCommand>,
-				Continuation1NotNull<CompiledCommand>>
+		final Function2<List<CompiledCommand>, Function1<CompiledCommand, Unit>, Unit>
 			onAmbiguity,
-		final Continuation2NotNull<
-				AvailObject,
-				Continuation1NotNull<Continuation0>>
+		final Function2<AvailObject, Function1<Function0<Unit>, Unit>, Unit>
 			onSuccess,
-		final Continuation0 onFailure)
+		final Function0<Unit> onFailure)
 	{
 		clearShouldStopBuild();
 		runtime.execute(
@@ -1130,17 +1153,15 @@ public final class AvailBuilder
 	 * @param onFailure
 	 *        What to do otherwise.
 	 */
+	@SuppressWarnings("unchecked")
 	void scheduleAttemptCommand (
 		final String command,
-		final Continuation2NotNull<
-				List<CompiledCommand>,
-				Continuation1NotNull<CompiledCommand>>
+		final Function2<
+				List<CompiledCommand>, Function1<CompiledCommand, Unit>, Unit>
 			onAmbiguity,
-		final Continuation2NotNull<
-				AvailObject,
-				Continuation1NotNull<Continuation0>>
+		final Function2<AvailObject, Function1<Function0<Unit>, Unit>, Unit>
 			onSuccess,
-		final Continuation0 onFailure)
+		final Function0<Unit> onFailure)
 	{
 		final Set<LoadedModule> modulesWithEntryPoints = new HashSet<>();
 		for (final LoadedModule loadedModule : loadedModulesCopy())
@@ -1162,7 +1183,7 @@ public final class AvailBuilder
 				@Override
 				public void abortCompilation ()
 				{
-					onFailure.value();
+					onFailure.invoke();
 				}
 			};
 			commandProblemHandler.handle(problem);
@@ -1171,13 +1192,13 @@ public final class AvailBuilder
 
 		final Map<LoadedModule, List<A_Phrase>> allSolutions =
 			synchronizedMap(new HashMap<>());
-		final List<Continuation1NotNull<Continuation0>> allCleanups =
+		final List<Function1<Function0<Unit>, Unit>> allCleanups =
 			synchronizedList(new ArrayList<>());
 		final Map<LoadedModule, List<Problem>> allProblems =
 			synchronizedMap(new HashMap<>());
 		final AtomicInteger outstanding =
 			new AtomicInteger(modulesWithEntryPoints.size());
-		final Continuation0 decrement = () ->
+		final Function0<Unit> decrement = () ->
 		{
 			if (outstanding.decrementAndGet() == 0)
 			{
@@ -1189,6 +1210,7 @@ public final class AvailBuilder
 					parallelCombine(allCleanups),  // no longer changing
 					onFailure);
 			}
+			return Unit.INSTANCE;
 		};
 
 		for (final LoadedModule loadedModule : modulesWithEntryPoints)
@@ -1198,9 +1220,9 @@ public final class AvailBuilder
 					loadedModule.module.moduleName().asNativeString()
 						+ " (command)"));
 			final ModuleImport moduleImport =
-				ModuleImport.extend(loadedModule.module);
+				ModuleImport.Companion.extend(loadedModule.module);
 			final ModuleHeader header = new ModuleHeader(loadedModule.name);
-			header.importedModules.add(moduleImport);
+			header.getImportedModules().add(moduleImport);
 			header.applyToModule(module, runtime);
 			module.addImportedNames(
 				loadedModule.module.entryPoints().valuesAsTuple().asSet());
@@ -1210,10 +1232,7 @@ public final class AvailBuilder
 				stringFrom(command),
 				textInterface,
 				pollForAbort,
-				(moduleName, moduleSize, position) ->
-				{
-					// do nothing.
-				},
+				(moduleName, moduleSize, position) -> Unit.INSTANCE,
 				new BuilderProblemHandler(this, "«collection only»")
 				{
 					@Override
@@ -1258,8 +1277,16 @@ public final class AvailBuilder
 							problem.toString(),
 							null,
 							new SimpleCompletionHandler<>(
-								r -> handleGeneric(problem, decider),
-								t -> handleGeneric(problem, decider)));
+								r ->
+								{
+									handleGeneric(problem, decider);
+									return Unit.INSTANCE;
+								},
+								t ->
+								{
+									handleGeneric(problem, decider);
+									return Unit.INSTANCE;
+								}));
 					}
 
 					@Override
@@ -1272,25 +1299,33 @@ public final class AvailBuilder
 							problem.toString(),
 							null,
 							new SimpleCompletionHandler<>(
-								r -> handleGeneric(problem, decider),
-								t -> handleGeneric(problem, decider)));
+								r ->
+								{
+									handleGeneric(problem, decider);
+									return Unit.INSTANCE;
+								},
+								t ->
+								{
+									handleGeneric(problem, decider);
+									return Unit.INSTANCE;
+								}));
 					}
 				});
 			compiler.parseCommand(
 				(solutions, cleanup) ->
 				{
-					allSolutions.put(loadedModule, solutions);
-					allCleanups.add(cleanup);
-					decrement.value();
+					allSolutions.put(loadedModule, (List<A_Phrase>) solutions);
+					allCleanups.add((Function1<Function0<Unit>, Unit>) cleanup);
+					decrement.invoke();
+					return Unit.INSTANCE;
 				},
 				decrement);
 		}
 	}
 
 	/**
-	 * Given a {@linkplain Collection collection} of {@linkplain
-	 * Continuation1NotNull continuation}s, each of which expects a {@linkplain
-	 * Continuation0 continuation} (called the post-continuation activity) that
+	 * Given a {@linkplain Collection collection} of continuations, each of
+	 * which expects a continuation (called the post-continuation activity) that
 	 * instructs it on how to proceed when it has completed, produce a single
 	 * continuation that evaluates this collection in parallel and defers the
 	 * post-continuation activity until every member has completed.
@@ -1299,25 +1334,27 @@ public final class AvailBuilder
 	 *        A collection of continuations.
 	 * @return The combined continuation.
 	 */
-	Continuation1NotNull<Continuation0> parallelCombine (
-		final Collection<Continuation1NotNull<Continuation0>> continuations)
+	Function1<Function0<Unit>, Unit> parallelCombine (
+		final Collection<Function1<Function0<Unit>, Unit>> continuations)
 	{
 		final AtomicInteger count = new AtomicInteger(continuations.size());
 		return postAction ->
 		{
-			final Continuation0 decrement = () ->
+			final Function0<Unit> decrement = () ->
 			{
 				if (count.decrementAndGet() == 0)
 				{
-					postAction.value();
+					postAction.invoke();
 				}
+				return Unit.INSTANCE;
 			};
-			for (final Continuation1NotNull<Continuation0> continuation :
+			for (final Function1<Function0<Unit>, Unit> continuation :
 				continuations)
 			{
 				runtime.execute(
-					commandPriority, () -> continuation.value(decrement));
+					commandPriority, () -> continuation.invoke(decrement));
 			}
+			return Unit.INSTANCE;
 		};
 	}
 
@@ -1347,16 +1384,12 @@ public final class AvailBuilder
 	void processParsedCommand (
 		final Map<LoadedModule, List<A_Phrase>> solutions,
 		final Map<LoadedModule, List<Problem>> problems,
-		final Continuation2NotNull<
-				List<CompiledCommand>,
-				Continuation1NotNull<CompiledCommand>>
+		final Function2<List<CompiledCommand>, Function1<CompiledCommand, Unit>, Unit>
 			onAmbiguity,
-		final Continuation2NotNull<
-				AvailObject,
-				Continuation1NotNull<Continuation0>>
+		final Function2<AvailObject, Function1<Function0<Unit>, Unit>, Unit>
 			onSuccess,
-		final Continuation1NotNull<Continuation0> postSuccessCleanup,
-		final Continuation0 onFailure)
+		final Function1<Function0<Unit>, Unit> postSuccessCleanup,
+		final Function0<Unit> onFailure)
 	{
 		if (solutions.isEmpty())
 		{
@@ -1385,7 +1418,7 @@ public final class AvailBuilder
 			{
 				commandProblemHandler.handle(problem);
 			}
-			onFailure.value();
+			onFailure.invoke();
 			return;
 		}
 		// Filter the solutions to invocations of entry points.
@@ -1424,14 +1457,14 @@ public final class AvailBuilder
 				@Override
 				public void abortCompilation ()
 				{
-					onFailure.value();
+					onFailure.invoke();
 				}
 			};
 			commandProblemHandler.handle(problem);
 			return;
 		}
 
-		final Continuation1NotNull<CompiledCommand> unambiguous =
+		final Function1<CompiledCommand, Unit> unambiguous =
 			command ->
 			{
 				final A_Phrase phrase = command.phrase;
@@ -1448,12 +1481,12 @@ public final class AvailBuilder
 				fiber.fiberGlobals(fiberGlobals);
 				fiber.textInterface(textInterface);
 				fiber.setSuccessAndFailureContinuations(
-					result -> onSuccess.value(result, postSuccessCleanup),
+					result -> onSuccess.invoke(result, postSuccessCleanup),
 					e ->
 					{
 						if (e instanceof FiberTerminationException)
 						{
-							onFailure.value();
+							onFailure.invoke();
 						}
 						else
 						{
@@ -1471,23 +1504,24 @@ public final class AvailBuilder
 								@Override
 								public void abortCompilation ()
 								{
-									onFailure.value();
+									onFailure.invoke();
 								}
 							};
 							commandProblemHandler.handle(problem);
 						}
 					});
 				runOutermostFunction(runtime, fiber, function, emptyList());
+				return Unit.INSTANCE;
 			};
 
 		// If the command was unambiguous, then go ahead and run it.
 		if (commands.size() == 1)
 		{
-			unambiguous.value(commands.get(0));
+			unambiguous.invoke(commands.get(0));
 			return;
 		}
 
 		// Otherwise, report the possible commands for disambiguation.
-		onAmbiguity.value(commands, unambiguous);
+		onAmbiguity.invoke(commands, unambiguous);
 	}
 }

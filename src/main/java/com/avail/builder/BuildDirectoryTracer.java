@@ -41,9 +41,10 @@ import com.avail.persistence.IndexedRepositoryManager.ModuleVersion;
 import com.avail.persistence.IndexedRepositoryManager.ModuleVersionKey;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation2NotNull;
-import com.avail.utility.evaluation.Continuation3NotNull;
 import kotlin.Unit;
+import kotlin.jvm.functions.Function0;
 import kotlin.jvm.functions.Function1;
+import kotlin.jvm.functions.Function3;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
@@ -104,11 +105,10 @@ final class BuildDirectoryTracer
 	 *        The {@link AvailBuilder} for which we're tracing.
 	 * @param originalAfterTraceCompletes
 	 *        The {@link Continuation0} to run when after module has been
-	 *        recursively traced.
 	 */
 	BuildDirectoryTracer (
 		final AvailBuilder builder,
-		final Continuation0 originalAfterTraceCompletes)
+		final Function0<Unit> originalAfterTraceCompletes)
 	{
 		this.availBuilder = builder;
 		this.afterTraceCompletes = () ->
@@ -120,7 +120,7 @@ final class BuildDirectoryTracer
 			{
 				root.repository().commit();
 			}
-			originalAfterTraceCompletes.value();
+			originalAfterTraceCompletes.invoke();
 		};
 	}
 
@@ -149,8 +149,8 @@ final class BuildDirectoryTracer
 	 *        processed.
 	 */
 	void traceAllModuleHeaders (
-		final Continuation3NotNull
-			<ResolvedModuleName, ModuleVersion, Continuation0> moduleAction)
+		final Function3<
+			ResolvedModuleName, ModuleVersion, Function0<Unit>, Unit> moduleAction)
 	{
 		final ModuleRoots moduleRoots = availBuilder.runtime.moduleRoots();
 		for (final ModuleRoot moduleRoot : moduleRoots)
@@ -224,6 +224,7 @@ final class BuildDirectoryTracer
 									final boolean oldRan = ran.getAndSet(true);
 									assert !oldRan;
 									indicateFileCompleted(file);
+									return Unit.INSTANCE;
 								});
 						});
 					return CONTINUE;
@@ -352,9 +353,9 @@ final class BuildDirectoryTracer
 	 */
 	void traceOneModuleHeader (
 		final ResolvedModuleName resolvedName,
-		final Continuation3NotNull
-			<ResolvedModuleName, ModuleVersion, Continuation0> action,
-		final Continuation0 completedAction)
+		final Function3<
+			ResolvedModuleName, ModuleVersion, Function0<Unit>, Unit> action,
+		final Function0<Unit> completedAction)
 	{
 		final IndexedRepositoryManager repository = resolvedName.repository();
 		repository.commitIfStaleChanges(AvailBuilder.maximumStaleRepositoryMs);
@@ -370,37 +371,34 @@ final class BuildDirectoryTracer
 		{
 			// This version was already traced and recorded for a
 			// subsequent replay... like right now.  Reuse it.
-			action.value(resolvedName, existingVersion, completedAction);
+			action.invoke(resolvedName, existingVersion, completedAction);
 			return;
 		}
 		// Trace the source and write it back to the repository.
-		AvailCompiler.create(
+		AvailCompiler.Companion.create(
 			resolvedName,
 			availBuilder.textInterface,
 			availBuilder.pollForAbort,
-			(moduleName, moduleSize, position) ->
-			{
-				// do nothing.
-			},
+			(moduleName, moduleSize, position) -> Unit.INSTANCE,
 			compiler ->
 			{
-				compiler.compilationContext.diagnostics
+				compiler.getCompilationContext().getDiagnostics()
 					.setSuccessAndFailureReporters(
-						() -> null,
+						() -> Unit.INSTANCE,
 						() ->
 						{
-							completedAction.value();
-							return null;
+							completedAction.invoke();
+							return Unit.INSTANCE;
 						});
 				compiler.parseModuleHeader(
 					afterHeader ->
 					{
 						final ModuleHeader header = stripNull(
-							compiler.compilationContext.getModuleHeader());
+							compiler.getCompilationContext().getModuleHeader());
 						final List<String> importNames =
-							header.importedModuleNames();
+							header.getImportedModuleNames();
 						final List<String> entryPoints =
-							header.entryPointNames();
+							header.getEntryPointNames();
 						final ModuleVersion newVersion =
 							repository.new ModuleVersion(
 								sourceFile.length(),
@@ -408,8 +406,10 @@ final class BuildDirectoryTracer
 								entryPoints);
 						availBuilder.serialize(header, newVersion);
 						archive.putVersion(versionKey, newVersion);
-						action.value(resolvedName, newVersion, completedAction);
+						action.invoke(resolvedName, newVersion, completedAction);
+						return Unit.INSTANCE;
 					});
+				return Unit.INSTANCE;
 			},
 			completedAction,
 			new BuilderProblemHandler(availBuilder, "")

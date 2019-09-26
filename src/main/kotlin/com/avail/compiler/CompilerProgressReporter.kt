@@ -1,6 +1,6 @@
 /*
- * FiberTerminationException.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * CompilerProgressReporter.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,18 +30,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler;
+package com.avail.compiler
 
-import com.avail.descriptor.FiberDescriptor;
-import com.avail.exceptions.PrimitiveThrownException;
+import com.avail.builder.ModuleName
 
 /**
- * Throw a {@code FiberTerminationException} indicate that a {@linkplain
- * FiberDescriptor fiber} has suicided.
+ * The [compiler][AvailCompiler] notifies a `CompilerProgressReporter`
+ * whenever a top-level statement is parsed unambiguously.
  *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * The arguments are the module name, the module size in bytes, and the
+ * current parse position in bytes within the module.
  */
-public class FiberTerminationException
-extends PrimitiveThrownException
-{
-}
+typealias CompilerProgressReporter = (ModuleName, Long, Long)->Unit

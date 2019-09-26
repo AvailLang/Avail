@@ -52,6 +52,7 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.utility.Mutable;
 import com.avail.utility.MutableLong;
 import com.avail.utility.MutableOrNull;
+import kotlin.Unit;
 
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
@@ -290,6 +291,7 @@ extends Primitive
 						{
 							nextPosition.value += (long) bytesWritten;
 							continueWriting.value();
+							return Unit.INSTANCE;
 						},
 						throwable ->
 						{
@@ -307,6 +309,7 @@ extends Primitive
 								newFiber,
 								fail,
 								singletonList(E_IO_ERROR.numericCode()));
+							return Unit.INSTANCE;
 						}));
 			}
 			else
