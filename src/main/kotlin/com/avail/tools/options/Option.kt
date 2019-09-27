@@ -32,14 +32,13 @@
 
 package com.avail.tools.options
 
-import com.avail.utility.evaluation.Continuation2
 import java.util.*
 
 /**
  * An `Option` comprises an [enumerated type][Enum] which defines the domain of
  * the option, the keywords which parsers may use to identify the option, an
- * end-user friendly description of the option, and an [action][Continuation2]
- * that should be performed each time that the option is set.
+ * end-user friendly description of the option, and an action that should be
+ * performed each time that the option is set.
  *
  * @param OptionKeyType
  *   The type of the option.

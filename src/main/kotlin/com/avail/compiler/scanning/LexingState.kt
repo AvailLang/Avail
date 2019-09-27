@@ -55,7 +55,6 @@ import com.avail.descriptor.TokenDescriptor.TokenType.END_OF_FILE
 import com.avail.descriptor.TokenDescriptor.newToken
 import com.avail.interpreter.Interpreter
 import com.avail.utility.Nulls.stripNull
-import com.avail.utility.evaluation.Continuation1NotNull
 import com.avail.utility.evaluation.Describer
 import com.avail.utility.evaluation.SimpleDescriber
 import com.avail.utility.evaluation.Transformer1
@@ -354,11 +353,11 @@ class LexingState constructor(
 	 * @param fiber
 	 *   The [A_Fiber] to set up.
 	 * @param onSuccess
-	 *   The [Continuation1NotNull] to invoke in the event of a successful
-	 *   completion of the fiber.
+	 *   The continuation to invoke in the event of a successful completion of
+	 *   the fiber.
 	 * @param onFailure
-	 *   The [Continuation1NotNull] to invoke in the event that the
-	 *   fiber raises a [Throwable] during its execution.
+	 *   The continuation to invoke in the event that the fiber raises a
+	 *   [Throwable] during its execution.
 	 */
 	fun setFiberContinuationsTrackingWork(
 		fiber: A_Fiber,

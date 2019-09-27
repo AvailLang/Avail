@@ -32,7 +32,10 @@
 package com.avail.compiler.splitter
 
 import com.avail.compiler.ParsingOperation
-import com.avail.compiler.ParsingOperation.*
+import com.avail.compiler.ParsingOperation.DISCARD_SAVED_PARSE_POSITION
+import com.avail.compiler.ParsingOperation.ENSURE_PARSE_PROGRESS
+import com.avail.compiler.ParsingOperation.PUSH_LITERAL
+import com.avail.compiler.ParsingOperation.SAVE_PARSE_POSITION
 import com.avail.compiler.splitter.InstructionGenerator.Label
 import com.avail.compiler.splitter.MessageSplitter.Companion.indexForFalse
 import com.avail.compiler.splitter.MessageSplitter.Companion.indexForTrue
@@ -49,7 +52,6 @@ import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_BOOLEAN_GROUP
 import com.avail.exceptions.SignatureException
 import com.avail.utility.Nulls.stripNull
-import com.avail.utility.evaluation.Continuation0
 import java.util.*
 
 /**
@@ -149,7 +151,7 @@ internal class Optional constructor(
 
 	/**
 	 * On the given [InstructionGenerator], output [ParsingOperation]s to handle
-	 * this `Optional`'s present and absent cases, invoking the [Continuation0]
+	 * this `Optional`'s present and absent cases, invoking the continuation
 	 * within each.
 	 *
 	 * @param generator

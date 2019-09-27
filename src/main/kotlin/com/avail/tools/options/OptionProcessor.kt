@@ -35,7 +35,6 @@ package com.avail.tools.options
 import com.avail.utility.MutableInt
 import com.avail.utility.ParagraphFormatter
 import com.avail.utility.ParagraphFormatterStream
-import com.avail.utility.evaluation.Continuation1
 import java.io.IOException
 import java.util.*
 
@@ -49,9 +48,9 @@ import java.util.*
  * The sole public protocol of an option processor is [processOptions]. It
  * accepts an array of [String]s which it treats as containing separate option
  * strings. It extracts a keyword and an optional argument. The keyword is
- * mapped to a client-specified [action][Continuation1]; the argument will be
- * passed to this action upon positive identification of the option by keyword.
- * `null` will be passed in lieu of an argument if the argument was omitted.
+ * mapped to a client-specified action; the argument will be passed to this
+ * action upon positive identification of the option by keyword. `null` will be
+ * passed in lieu of an argument if the argument was omitted.
  *
  * Option strings may have the following forms:
  *
@@ -120,8 +119,8 @@ class OptionProcessor<OptionKeyType : Enum<OptionKeyType>> internal constructor(
 	}
 
 	/**
-	 * Perform the [action][Continuation1] associated with the option key bound
-	 * to the specified keyword.
+	 * Perform the action associated with the option key bound to the specified
+	 * keyword.
 	 *
 	 * @param keyword
 	 *   A potential keyword of the `OptionProcessor receiver`.
@@ -197,8 +196,8 @@ class OptionProcessor<OptionKeyType : Enum<OptionKeyType>> internal constructor(
 		}
 
 	/**
-	 * Perform the default [action][Continuation1] (associated with
-	 * the empty keyword) with the specified argument.
+	 * Perform the default action (associated with the empty keyword) with the
+	 * specified argument.
 	 *
 	 * @param argument
 	 *   The argument for the default action.
@@ -301,8 +300,7 @@ class OptionProcessor<OptionKeyType : Enum<OptionKeyType>> internal constructor(
 	/**
 	 * If the specified key was encountered more times than allowed, then throw
 	 * an [OptionProcessingException]. A key is considered encountered only once
-	 * it has been completely processed (and any user supplied
-	 * [action][Continuation1] invoked).
+	 * it has been completely processed (and any user supplied action invoked).
 	 *
 	 * @param key
 	 *   An option key.

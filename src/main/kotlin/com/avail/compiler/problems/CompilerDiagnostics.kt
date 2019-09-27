@@ -56,7 +56,6 @@ import com.avail.utility.Mutable
 import com.avail.utility.Strings.addLineNumbers
 import com.avail.utility.Strings.lineBreakPattern
 import com.avail.utility.evaluation.Combinator.recurse
-import com.avail.utility.evaluation.Continuation0
 import com.avail.utility.evaluation.Describer
 import com.avail.utility.evaluation.SimpleDescriber
 import java.lang.String.format
@@ -146,13 +145,13 @@ class CompilerDiagnostics(
 
 
 	/**
-	 * The [continuation][Continuation0] that reports success of compilation.
+	 * The continuation that reports success of compilation.
 	 */
 	@Volatile
 	var successReporter: (()->Unit)? = null
 
 	/**
-	 * The [continuation][Continuation0] that runs after compilation fails.
+	 * The continuation that runs after compilation fails.
 	 */
 	@Volatile
 	private var failureReporter: (()->Unit)? = null
