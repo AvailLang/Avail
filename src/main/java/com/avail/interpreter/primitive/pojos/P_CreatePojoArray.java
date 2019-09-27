@@ -31,11 +31,7 @@
  */
 package com.avail.interpreter.primitive.pojos;
 
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.IntegerDescriptor;
-import com.avail.descriptor.PojoTypeDescriptor;
-import com.avail.descriptor.TypeDescriptor;
+import com.avail.descriptor.*;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -53,7 +49,6 @@ import static com.avail.descriptor.PojoDescriptor.newPojo;
 import static com.avail.descriptor.PojoTypeDescriptor.mostGeneralPojoArrayType;
 import static com.avail.descriptor.PojoTypeDescriptor.pojoArrayType;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
-import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.CannotFail;
 
@@ -71,7 +66,7 @@ public final class P_CreatePojoArray extends Primitive
 	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_CreatePojoArray().init(
-			2, CannotFail, CanFold, CanInline);
+			2, CannotFail, CanInline);
 
 	@Override
 	public Result attempt (

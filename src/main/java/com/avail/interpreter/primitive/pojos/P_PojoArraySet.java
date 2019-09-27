@@ -31,12 +31,7 @@
  */
 package com.avail.interpreter.primitive.pojos;
 
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.IntegerDescriptor;
-import com.avail.descriptor.PojoTypeDescriptor;
+import com.avail.descriptor.*;
 import com.avail.exceptions.MarshalingException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
@@ -58,7 +53,6 @@ import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.exceptions.AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE;
 import static com.avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED;
 import static com.avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS;
-import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
@@ -75,7 +69,7 @@ public final class P_PojoArraySet extends Primitive
 	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_PojoArraySet().init(
-			3, CanFold, CanInline);
+			3, CanInline);
 
 	@Override
 	public Result attempt (

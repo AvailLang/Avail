@@ -31,19 +31,18 @@
  */
 package com.avail.interpreter.primitive.variables;
 
-import com.avail.descriptor.A_RawFunction;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.A_Variable;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.VariableDescriptor;
+import com.avail.descriptor.*;
 import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
+import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.interpreter.levelTwo.operation.L2_SET_VARIABLE;
 import com.avail.interpreter.levelTwo.operation.L2_SET_VARIABLE_NO_CHECK;
 import com.avail.optimizer.L1Translator;
 import com.avail.optimizer.L1Translator.CallSiteHelper;
+import com.avail.optimizer.L2BasicBlock;
+import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.util.List;
@@ -63,6 +62,7 @@ import static com.avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED;
 import static com.avail.exceptions.AvailErrorCode.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
+import static com.avail.optimizer.L2Generator.edgeTo;
 
 /**
  * <strong>Primitive:</strong> Assign the {@linkplain AvailObject value}
@@ -124,14 +124,34 @@ extends Primitive
 		final A_Type varInnerType = varType.writeType();
 
 		// These two operations have the same operand layouts.
-		translator.emitSetVariableOffRamp(
+		final L2Operation setOperation =
 			valueType.isSubtypeOf(varInnerType)
 				? L2_SET_VARIABLE_NO_CHECK.instance
-				: L2_SET_VARIABLE.instance,
+				: L2_SET_VARIABLE.instance;
+
+		final L2Generator generator = translator.generator;
+		final L2BasicBlock success =
+			generator.createBasicBlock("set local success");
+		final L2BasicBlock failure =
+			generator.createBasicBlock("set local failure");
+		// Emit the set-variable instruction.
+		translator.addInstruction(
+			setOperation,
 			varReg,
-			valueReg);
-		// We're now at the success position in the generated code.
-		callSiteHelper.useAnswer(translator.generator.boxedConstant(nil));
+			valueReg,
+			edgeTo(success),
+			edgeTo(failure));
+
+		// Emit the failure path.  Simply invoke the primitive function.
+		generator.startBlock(failure);
+		translator.generateGeneralFunctionInvocation(
+			functionToCallReg, arguments, false, callSiteHelper);
+
+		// End with the success block.  Note that the failure path could have
+		// also made it to the callSiteHelper's after-everything block if the
+		// call returns successfully.
+		generator.startBlock(success);
+		callSiteHelper.useAnswer(generator.boxedConstant(nil));
 		return true;
 	}
 
