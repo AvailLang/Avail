@@ -3531,8 +3531,8 @@ extends AbstractDescriptor
 		final @Nullable Class<?> ignoredClassHint)
 	{
 		// Treat AvailObjects as opaque for most purposes. Pass them to Java
-		// unmarshaled.
-		return object;
+		// unmarshaled, but made shared.
+		return object.makeShared();
 	}
 
 	@Override

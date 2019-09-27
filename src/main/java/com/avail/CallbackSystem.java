@@ -183,7 +183,7 @@ public class CallbackSystem
 	 * The Pojo type for a Java {@link Callback} object.
 	 */
 	private static final A_Type callbackTypePojo =
-		resolvePojoType(Callback.class, emptyMap());
+		resolvePojoType(Callback.class, emptyMap()).makeShared();
 
 	/**
 	 * The {@linkplain ThreadPoolExecutor thread pool executor} for performing
