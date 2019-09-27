@@ -36,8 +36,24 @@ import com.avail.AvailRuntime;
 import com.avail.compiler.AvailAcceptedParseException;
 import com.avail.compiler.AvailRejectedParseException;
 import com.avail.compiler.splitter.MessageSplitter;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Bundle;
+import com.avail.descriptor.A_Definition;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.A_Phrase;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_SemanticRestriction;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.ListPhraseDescriptor;
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
+import com.avail.descriptor.SendPhraseDescriptor;
+import com.avail.descriptor.TypeDescriptor;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
@@ -53,7 +69,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.avail.AvailRuntime.currentRuntime;
-import static com.avail.compiler.splitter.MessageSplitter.possibleErrors;
+import static com.avail.compiler.splitter.MessageSplitter.getPossibleErrors;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.FiberDescriptor.currentFiber;
 import static com.avail.descriptor.FiberDescriptor.newFiber;
@@ -68,8 +84,13 @@ import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.toList;
 import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Interpreter.*;
+import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE;
+import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS;
+import static com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER;
+import static com.avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION;
+import static com.avail.interpreter.Interpreter.resumeFromFailedPrimitive;
+import static com.avail.interpreter.Interpreter.resumeFromSuccessfulPrimitive;
+import static com.avail.interpreter.Interpreter.runOutermostFunction;
 import static com.avail.interpreter.Primitive.Flag.CanSuspend;
 import static com.avail.interpreter.Primitive.Flag.Unknown;
 import static com.avail.interpreter.Primitive.Result.FIBER_SUSPENDED;
@@ -251,6 +272,7 @@ extends Primitive
 							increaseIndentation(problem.asNativeString(), 1));
 					}
 				}
+				@SuppressWarnings("unused")
 				final A_String problemReport = stringFrom(builder.toString());
 				// TODO: Yeah, we went to the effort of assembling a pretty
 				// report about what went wrong, but the bootstrap logic can't
