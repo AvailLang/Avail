@@ -47,6 +47,7 @@ import com.avail.utility.Mutable;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1NotNull;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -67,8 +68,7 @@ import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.toList;
 import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
-import static com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS;
-import static com.avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Interpreter.*;
 import static com.avail.interpreter.Primitive.Flag.CanSuspend;
 import static com.avail.interpreter.Primitive.Flag.Unknown;
@@ -121,6 +121,12 @@ extends Primitive
 		final A_Phrase argsListNode = interpreter.argument(1);
 		final A_Type returnType = interpreter.argument(2);
 
+		final A_Fiber originalFiber = currentFiber();
+		final @Nullable AvailLoader loader = originalFiber.availLoader();
+		if (loader == null)
+		{
+			return interpreter.primitiveFailure(E_LOADING_IS_OVER);
+		}
 		final A_Tuple argExpressions = argsListNode.expressionsTuple();
 		final int argsCount = argExpressions.tupleSize();
 		final A_Bundle bundle;
@@ -131,20 +137,12 @@ extends Primitive
 			if (splitter.numberOfArguments() != argsCount)
 			{
 				return interpreter.primitiveFailure(
-					stringFrom(
-						"Incorrect number of arguments supplied for "
-							+ messageName));
+					E_INCORRECT_NUMBER_OF_ARGUMENTS);
 			}
 		}
 		catch (final MalformedMessageException e)
 		{
-			return interpreter.primitiveFailure(
-				stringFrom(
-					"Malformed message name: "
-						+ messageName
-						+ "("
-						+ e.describeProblem()
-						+ ")"));
+			return interpreter.primitiveFailure(e);
 		}
 		final A_Type argsTupleType = argsListNode.expressionType();
 		final A_Tuple argTypesTuple =
@@ -153,8 +151,6 @@ extends Primitive
 		// Compute the intersection of the supplied type, applicable definition
 		// return types, and semantic restriction types.  Start with the
 		// supplied type.
-		final A_Fiber originalFiber = currentFiber();
-		final AvailLoader loader = stripNull(originalFiber.availLoader());
 		final A_Module currentModule = loader.module();
 		final A_Set allVisibleModules = currentModule.allAncestors();
 		final Mutable<A_Type> intersection = new Mutable<>(returnType);
@@ -164,7 +160,7 @@ extends Primitive
 			bundle.bundleMethod().filterByTypes(argTypesList))
 		{
 			final A_Module definitionModule = definition.definitionModule();
-			if (definition.equalsNil()
+			if (definitionModule.equalsNil()
 				|| allVisibleModules.hasElement(definitionModule))
 			{
 				intersection.value = intersection.value.typeIntersection(
@@ -256,10 +252,15 @@ extends Primitive
 					}
 				}
 				final A_String problemReport = stringFrom(builder.toString());
+				// TODO: Yeah, we went to the effort of assembling a pretty
+				// report about what went wrong, but the bootstrap logic can't
+				// deal with anything but numeric codes, so just report a basic
+				// failure.
 				resumeFromFailedPrimitive(
 					runtime,
 					originalFiber,
-					problemReport,
+//					problemReport,
+					E_INCORRECT_ARGUMENT_TYPE.numericCode(),  // Ew, yuck.
 					primitiveFunction,
 					copiedArgs);
 			}
@@ -367,7 +368,8 @@ extends Primitive
 		return enumerationWith(
 			set(
 				E_INCORRECT_NUMBER_OF_ARGUMENTS,
-				E_NO_METHOD_DEFINITION
+				E_NO_METHOD_DEFINITION,
+				E_LOADING_IS_OVER
 			).setUnionCanDestroy(possibleErrors, true));
 	}
 }

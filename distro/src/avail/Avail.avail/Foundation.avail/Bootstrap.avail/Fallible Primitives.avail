@@ -2882,7 +2882,7 @@ Primitive "`«`↑_`»" is
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
  * @raises "dollar-sign-must-follow-an-ellipsis exception"
- * @raises "up-arrow-must-follow-argument exception"
+ * @raises "loading-is-over exception"
  */
 Primitive "restricted send_with_:_" is
 [
@@ -2910,6 +2910,7 @@ Primitive "restricted send_with_:_" is
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
 		dollar-sign-must-follow-an-ellipsis code,
+		loading-is-over code,
 		up-arrow-must-follow-argument code,
 		no-method-definition code,
 		inconsistent-argument-reordering code}ᵀ);
