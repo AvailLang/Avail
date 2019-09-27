@@ -42,7 +42,7 @@ Names
 
 	/* File name construction. */
 	"a file named_",
-	"concatenate_",
+	"assemble_",
 	"./_",
 	"«_‡/»",
 
@@ -397,21 +397,21 @@ Public method "current working directory" is
 ] : file name;
 
 /**
- * Concatenate the specified {@type "tuple"} of {@type "string" path component}s
+ * Combine the specified {@type "tuple"} of {@type "file name" path component}s
  * to obtain a {@type "file name"}. If no path components are specified, then
  * answer the {@method "current working directory"}.
  *
- * @method "concatenate_"
- * @param "fns" "<file name…|0..>"
+ * @method "assemble_"
+ * @param "fns" "file name*"
  * @returns "file name"
  * @raises "invalid-path exception"
  *         If any of the elements of {@param "fns"} cannot be understood as a
  *         path.
  * @category "Files"
  */
-Public stable method "concatenate_" is
+Public stable method "assemble_" is
 [
-	fns : <file name…|>
+	fns : file name*
 |
 	path ::=
 		[
@@ -424,7 +424,7 @@ Public stable method "concatenate_" is
 ] : file name;
 
 /**
- * Concatenate the specified {@type "tuple"} of {@type "string"}s to obtain a
+ * Combine the specified {@type "tuple"} of {@type "file name"}s to obtain a
  * {@type "file name"}.
  *
  * @method "«_‡/»"
@@ -439,7 +439,7 @@ Public method "«_‡/»" is
 [
 	fns : <file name…|2..>
 |
-	concatenate fns
+	assemble fns
 ] : file name;
 
 Semantic restriction "«_‡/»" is
@@ -456,7 +456,7 @@ Semantic restriction "«_‡/»" is
 	[
 		instances ::=
 			map each i in 1 to size through [fns[i]'s instance];
-		{concatenate instances}ᵀ
+		{assemble instances}ᵀ
 	]
 	else
 	[
@@ -465,8 +465,8 @@ Semantic restriction "«_‡/»" is
 ];
 
 /**
- * Concatenate the specified {@type "tuple"} of {@type "string"}s to obtain a
- * {@type "file name"}.
+ * Combine the leading {@type "file name"} and the subsequent {@type "string"}s
+ * to obtain a {@type "file name"}.
  *
  * @method "«_‡/»"
  * @param "fns" "<file name, string…|2..>"
@@ -504,7 +504,7 @@ Semantic restriction "«_‡/»" is
 	[
 		instances ::= <fns[1]'s instance> ++
 			map each i in 2 to size through [a file named fns[i]'s instance];
-		{concatenate instances}ᵀ
+		{assemble instances}ᵀ
 	]
 	else
 	[
@@ -553,7 +553,7 @@ Public stable method "_'s⁇parent path" is
 	fn : file name
 |
 	components ::= fn's path components;
-	concatenate components[1..|components| - 1]
+	assemble components[1..|components| - 1]
 ] : file name;
 
 Grammatical restriction "«_‡/»" is <{"«_‡/»"}>;

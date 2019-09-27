@@ -775,14 +775,14 @@ concatenation stream's tail method is
  *
  * @method "concatenate_"
  * @category "Data Abstractions" "Streams"
- * @param "streams" "stream*"
- *    streams - A tuple of streams.
+ * @param "streams" "stream+"
+ *    streams - A nonempty tuple of streams.
  * @returns "stream"
  *    The requested stream.
  */
 Method "concatenate_" is
 [
-	streams : stream*
+	streams : stream+
 |
 	if |streams| = 0 then [ an empty stream ]
 	else if |streams| = 1 then [ streams[1] ]
@@ -825,13 +825,13 @@ Public method "«_‡++»" is
  *
  * @method "concatenation semantic restriction"
  * @category "Data Abstractions" "Streams"
- * @returns "[stream*'s type]→concatenation stream"
+ * @returns "[stream+'s type]→concatenation stream"
  *    The requested function.
  */
 Private method "concatenation semantic restriction" is
 [
 	[
-		streams : stream*'s type
+		streams : stream+'s type
 	|
 		elementType : any's type's type := ⊥;
 		For each i from 1 to (⎣streams⎦ min (|streams' leading types| + 1)) do
