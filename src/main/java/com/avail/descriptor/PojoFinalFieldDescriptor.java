@@ -44,12 +44,13 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.IdentityHashMap;
 
+import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.PojoFinalFieldDescriptor.ObjectSlots.CACHED_VALUE;
 import static com.avail.descriptor.PojoFinalFieldDescriptor.ObjectSlots.FIELD;
 import static com.avail.descriptor.PojoFinalFieldDescriptor.ObjectSlots.KIND;
 import static com.avail.descriptor.PojoFinalFieldDescriptor.ObjectSlots.RECEIVER;
 import static com.avail.descriptor.PojoTypeDescriptor.unmarshal;
-import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
+import static com.avail.descriptor.VariableTypeDescriptor.variableReadWriteType;
 import static java.lang.reflect.Modifier.STATIC;
 
 /**
@@ -134,7 +135,7 @@ extends Descriptor
 			* object.slot(RECEIVER).hash() ^ 0x2199C0C3;
 	}
 
-	@Override boolean o_HasValue (AvailObject object)
+	@Override boolean o_HasValue (final AvailObject object)
 	{
 		// A pojo final field has a value by definition.
 		return true;
@@ -147,7 +148,7 @@ extends Descriptor
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation(AvailObject object)
+	SerializerOperation o_SerializerOperation(final AvailObject object)
 	{
 		final Field field = object.slot(FIELD).javaObjectNotNull();
 		if ((field.getModifiers() & STATIC) != 0)
@@ -331,6 +332,10 @@ extends Descriptor
 				AvailErrorCode.E_JAVA_MARSHALING_FAILED,
 				e);
 		}
-		return forOuterType(field, receiver, value, variableTypeFor(innerType));
+		return forOuterType(
+			field,
+			receiver,
+			value,
+			variableReadWriteType(innerType, bottom()));
 	}
 }
