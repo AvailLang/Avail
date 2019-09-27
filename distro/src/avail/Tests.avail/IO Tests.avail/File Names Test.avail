@@ -108,7 +108,7 @@ Test "path decomposition permutations" in file names test suite is
 		n ::= rng's next [1..12];
 		components ::= map 1 to n through
 			[_ : any | a file named rng's next element of allComponents];
-		path ::= concatenate components;
+		path ::= assemble components;
 		Require: path's path components = components;
 	] 10 times;
 ];
