@@ -51,6 +51,7 @@ Extends
 	"Math Tests" = ("math test suite"),
 	"Message Tests" = ("message test suite"),
 	"Observation Tests" = ("observation test suite"),
+	"Optimizer Tests" = ("optimizer test suite"),
 	"Pojo Tests" = ("pojo test suite"),
 	"Set Tests" = ("set test suite"),
 	"String Tests" = ("string test suite"),

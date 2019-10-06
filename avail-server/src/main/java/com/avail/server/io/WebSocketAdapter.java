@@ -40,6 +40,7 @@ import com.avail.utility.MutableOrNull;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1;
 import com.avail.utility.evaluation.Continuation1NotNull;
+import kotlin.Unit;
 
 import javax.annotation.Nullable;
 import javax.xml.bind.DatatypeConverter;
@@ -401,6 +402,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 						{
 							IO.close(channel);
 						}
+						return Unit.INSTANCE;
 					},
 					(e, unused, handler) ->
 					{
@@ -410,6 +412,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 							"unable to write HTTP response to " + channel,
 							e);
 						IO.close(channel);
+						return Unit.INSTANCE;
 					}));
 		}
 
@@ -539,7 +542,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 					{
 						if (remoteEndClosed(transport, bytesRead))
 						{
-							return;
+							return Unit.INSTANCE;
 						}
 						buffer.flip();
 						while (
@@ -582,6 +585,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 								}
 							}
 						}
+						return Unit.INSTANCE;
 					},
 					(e, unused, handler) ->
 					{
@@ -590,6 +594,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 							"failed while attempting to read client handshake",
 							e);
 						IO.close(channel);
+						return Unit.INSTANCE;
 					}));
 		}
 	}
@@ -777,6 +782,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 						{
 							IO.close(channel);
 						}
+						return Unit.INSTANCE;
 					},
 					(e, unused, handler) ->
 					{
@@ -786,6 +792,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 							"unable to write HTTP response to " + channel,
 							e);
 						IO.close(channel);
+						return Unit.INSTANCE;
 					}));
 		}
 	}
@@ -921,6 +928,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 						{
 							continuation.value();
 						}
+						return Unit.INSTANCE;
 					},
 					(e, unused, handler) ->
 					{
@@ -929,6 +937,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 							"unable to write HTTP response to " + channel,
 							e);
 						IO.close(channel);
+						return Unit.INSTANCE;
 					}));
 		}
 	}
@@ -956,6 +965,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 							assert request != null;
 							processRequest(request, channel);
 						});
+					return Unit.INSTANCE;
 				},
 				(e, unused, handler) ->
 				{
@@ -969,6 +979,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 							e);
 						close();
 					}
+					return Unit.INSTANCE;
 				}));
 	}
 
@@ -1584,7 +1595,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 				{
 					if (remoteEndClosed(transport, bytesRead))
 					{
-						return;
+						return Unit.INSTANCE;
 					}
 					if (buffer.hasRemaining())
 					{
@@ -1599,6 +1610,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 						frame.opcode = Opcode.all()[b & 0x0F];
 						readPayloadLengthThen(channel, frame, continuation);
 					}
+					return Unit.INSTANCE;
 				},
 				(e, unused, handler) ->
 				{
@@ -1607,6 +1619,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 						"failed while attempting to read opcode",
 						e);
 					IO.close(channel);
+					return Unit.INSTANCE;
 				}));
 	}
 
@@ -1635,7 +1648,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 				{
 					if (remoteEndClosed(transport, bytesRead))
 					{
-						return;
+						return Unit.INSTANCE;
 					}
 					if (buffer.hasRemaining())
 					{
@@ -1673,6 +1686,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 								break;
 						}
 					}
+					return Unit.INSTANCE;
 				},
 				(e, unused, handler) ->
 				{
@@ -1681,6 +1695,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 						"failed while attempting to read payload size",
 						e);
 					IO.close(channel);
+					return Unit.INSTANCE;
 				}));
 	}
 
@@ -1709,7 +1724,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 				{
 					if (remoteEndClosed(transport, bytesRead))
 					{
-						return;
+						return Unit.INSTANCE;
 					}
 					if (buffer.hasRemaining())
 					{
@@ -1742,6 +1757,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 							}
 						}
 					}
+					return Unit.INSTANCE;
 				},
 				(e, unused, handler) ->
 				{
@@ -1750,6 +1766,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 						"failed while attempting to read 2-byte payload size",
 						e);
 					IO.close(channel);
+					return Unit.INSTANCE;
 				}));
 	}
 
@@ -1778,7 +1795,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 				{
 					if (remoteEndClosed(transport, bytesRead))
 					{
-						return;
+						return Unit.INSTANCE;
 					}
 					if (buffer.hasRemaining())
 					{
@@ -1823,6 +1840,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 							}
 						}
 					}
+					return Unit.INSTANCE;
 				},
 				(e, unused, handler) ->
 				{
@@ -1831,6 +1849,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 						"failed while attempting to read 8-byte payload size",
 						e);
 					IO.close(channel);
+					return Unit.INSTANCE;
 				}));
 	}
 
@@ -1859,7 +1878,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 				{
 					if (remoteEndClosed(transport, bytesRead))
 					{
-						return;
+						return Unit.INSTANCE;
 					}
 					if (buffer.hasRemaining())
 					{
@@ -1871,6 +1890,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 						frame.maskingKey = buffer;
 						readPayloadDataThen(channel, frame, continuation);
 					}
+					return Unit.INSTANCE;
 				},
 				(e, unused, handler) ->
 				{
@@ -1879,6 +1899,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 						"failed while attempting to read masking key",
 						e);
 					IO.close(channel);
+					return Unit.INSTANCE;
 				}));
 	}
 
@@ -1909,7 +1930,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 				{
 					if (remoteEndClosed(transport, bytesRead))
 					{
-						return;
+						return Unit.INSTANCE;
 					}
 					if (buffer.hasRemaining())
 					{
@@ -1934,6 +1955,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 						// continuation now.
 						continuation.value();
 					}
+					return Unit.INSTANCE;
 				},
 				(e, unused, handler) ->
 				{
@@ -1942,6 +1964,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 						"failed while attempting to read payload",
 						e);
 					IO.close(channel);
+					return Unit.INSTANCE;
 				}));
 	}
 
@@ -1990,6 +2013,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 					{
 						success.value();
 					}
+					return Unit.INSTANCE;
 				},
 				(e, unused, handler) ->
 				{
@@ -2010,6 +2034,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 					{
 						failure.value(e);
 					}
+					return Unit.INSTANCE;
 				}));
 		}
 

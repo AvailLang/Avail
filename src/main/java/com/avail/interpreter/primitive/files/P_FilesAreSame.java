@@ -52,7 +52,9 @@ import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
-import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.exceptions.AvailErrorCode.E_INVALID_PATH;
+import static com.avail.exceptions.AvailErrorCode.E_IO_ERROR;
+import static com.avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 
@@ -84,7 +86,7 @@ extends Primitive
 		final Path secondPath;
 		try
 		{
-			final FileSystem fileSystem = IOSystem.Companion.getFileSystem();
+			final FileSystem fileSystem = IOSystem.getFileSystem();
 			firstPath = fileSystem.getPath(first.asNativeString());
 			secondPath = fileSystem.getPath(second.asNativeString());
 		}

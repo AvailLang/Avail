@@ -207,7 +207,7 @@ extends PhraseDescriptor
 	 * @param token The token that describes the literal.
 	 * @return The new literal phrase.
 	 */
-	public static AvailObject fromTokenForDecompiler (final A_Token token)
+	public static A_Phrase fromTokenForDecompiler (final A_Token token)
 	{
 		final AvailObject phrase = mutable.create();
 		phrase.setSlot(TOKEN, token);
@@ -221,7 +221,7 @@ extends PhraseDescriptor
 	 * @param token The token that describes the literal.
 	 * @return The new literal phrase.
 	 */
-	public static AvailObject literalNodeFromToken (final A_Token token)
+	public static A_Phrase literalNodeFromToken (final A_Token token)
 	{
 		assert token.isInstanceOfKind(mostGeneralLiteralTokenType());
 		final AvailObject phrase = mutable.create();
@@ -236,7 +236,7 @@ extends PhraseDescriptor
 	 * @param literalValue The value that this literal phrase should produce.
 	 * @return The new literal phrase.
 	 */
-	public static AvailObject syntheticLiteralNodeFor (
+	public static A_Phrase syntheticLiteralNodeFor (
 		final A_BasicObject literalValue)
 	{
 		final AvailObject token = literalToken(

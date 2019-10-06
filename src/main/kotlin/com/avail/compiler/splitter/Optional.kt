@@ -32,26 +32,27 @@
 package com.avail.compiler.splitter
 
 import com.avail.compiler.ParsingOperation
+import com.avail.compiler.ParsingOperation.DISCARD_SAVED_PARSE_POSITION
+import com.avail.compiler.ParsingOperation.ENSURE_PARSE_PROGRESS
+import com.avail.compiler.ParsingOperation.PUSH_LITERAL
+import com.avail.compiler.ParsingOperation.SAVE_PARSE_POSITION
 import com.avail.compiler.splitter.InstructionGenerator.Label
-import com.avail.compiler.splitter.MessageSplitter.*
+import com.avail.compiler.splitter.MessageSplitter.Companion.indexForFalse
+import com.avail.compiler.splitter.MessageSplitter.Companion.indexForTrue
+import com.avail.compiler.splitter.MessageSplitter.Companion.throwSignatureException
+import com.avail.compiler.splitter.MessageSplitter.Metacharacter
+import com.avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS
 import com.avail.descriptor.A_Phrase
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AtomDescriptor
 import com.avail.descriptor.EnumerationTypeDescriptor
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
-import com.avail.exceptions.SignatureException
-import com.avail.utility.evaluation.Continuation0
-import java.util.Collections
-
-import com.avail.compiler.ParsingOperation.*
-import com.avail.compiler.splitter.MessageSplitter.Companion.indexForTrue
-import com.avail.compiler.splitter.MessageSplitter.Companion.indexForFalse
-import com.avail.compiler.splitter.MessageSplitter.Companion.throwSignatureException
-import com.avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS
 import com.avail.descriptor.EnumerationTypeDescriptor.booleanType
 import com.avail.descriptor.ListPhraseTypeDescriptor.emptyListPhraseType
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_BOOLEAN_GROUP
+import com.avail.exceptions.SignatureException
 import com.avail.utility.Nulls.stripNull
+import java.util.*
 
 /**
  * An `Optional` is a [Sequence] wrapped in guillemets («»), and followed by a
@@ -83,20 +84,11 @@ internal class Optional constructor(
 	positionInName: Int,
 	private val sequence: Sequence) : Expression(positionInName)
 {
-	override val isArgumentOrGroup: Boolean
+	override val yieldsValue: Boolean
 		get() = true
 
 	override val isLowerCase: Boolean
 		get() = sequence.isLowerCase
-
-	init
-	{
-		if (sequence.canBeReordered)
-		{
-			explicitOrdinal = sequence.explicitOrdinal
-			sequence.explicitOrdinal = -1
-		}
-	}
 
 	override val underscoreCount: Int
 		get()
@@ -141,7 +133,7 @@ internal class Optional constructor(
 		val `$absent` = Label()
 		generator.emitBranchForward(this, `$absent`)
 		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION)
-		assert(sequence.argumentsAreReordered !== java.lang.Boolean.TRUE)
+		assert(sequence.yieldersAreReordered !== java.lang.Boolean.TRUE)
 		sequence.emitOn(
 			emptyListPhraseType(), generator, SHOULD_NOT_HAVE_ARGUMENTS)
 		generator.flushDelayed()
@@ -159,7 +151,7 @@ internal class Optional constructor(
 
 	/**
 	 * On the given [InstructionGenerator], output [ParsingOperation]s to handle
-	 * this `Optional`'s present and absent cases, invoking the [Continuation0]
+	 * this `Optional`'s present and absent cases, invoking the continuation
 	 * within each.
 	 *
 	 * @param generator
@@ -188,7 +180,7 @@ internal class Optional constructor(
 		val `$absent` = Label()
 		generator.emitBranchForward(this, `$absent`)
 		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION)
-		assert(sequence.argumentsAreReordered !== java.lang.Boolean.TRUE)
+		assert(sequence.yieldersAreReordered !== java.lang.Boolean.TRUE)
 		sequence.emitOn(
 			emptyListPhraseType(), generator, SHOULD_NOT_HAVE_ARGUMENTS)
 		generator.flushDelayed()

@@ -32,9 +32,7 @@
 
 package com.avail.utility.fsm
 
-import java.util.EnumMap
-import java.util.EnumSet
-import java.util.HashSet
+import java.util.*
 
 /**
  * A `StateMachineFactory` enables a client to dynamically specify and assemble

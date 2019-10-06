@@ -32,9 +32,7 @@
 package com.avail.compiler.splitter
 
 import com.avail.compiler.splitter.MessageSplitter.Companion.throwMalformedMessageException
-import com.avail.descriptor.A_Phrase
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.PhraseDescriptor
+import com.avail.descriptor.*
 import com.avail.exceptions.AvailErrorCode.E_CASE_INSENSITIVE_EXPRESSION_CANONIZATION
 import com.avail.exceptions.MalformedMessageException
 import com.avail.exceptions.SignatureException
@@ -69,7 +67,7 @@ internal abstract class Expression constructor(val positionInName: Int)
 	val canBeReordered: Boolean
 		get()
 		{
-			return isArgumentOrGroup
+			return yieldsValue
 		}
 
 	/**
@@ -90,19 +88,15 @@ internal abstract class Expression constructor(val positionInName: Int)
 		}
 
 	/**
-	 * Answer whether or not this an [argument][Argument] or [group][Group].
-	 *
-	 * @return
-	 *   `true` if and only if this is an argument or group, `false` otherwise.
+	 * `true` iff this [expression][Expression] is expected to produce a value
+	 * to be consumed by a [method][MethodDefinitionDescriptor] or [macro
+	 * definition][MacroDefinitionDescriptor]. Not applicable to [Sequence]s.
 	 */
-	internal open val isArgumentOrGroup: Boolean
+	internal open val yieldsValue: Boolean
 		get() = false
 
 	/**
-	 * Answer whether or not this a [group][Group].
-	 *
-	 * @return
-	 *   `true` if and only if this is an argument or group, `false` otherwise.
+	 * `true` if and only if this is an argument or group, `false` otherwise.
 	 */
 	internal open val isGroup: Boolean
 		get() = false

@@ -44,7 +44,9 @@ import java.util.IdentityHashMap;
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.LiteralTokenDescriptor.IntegerSlots.LINE_NUMBER;
 import static com.avail.descriptor.LiteralTokenDescriptor.IntegerSlots.START;
-import static com.avail.descriptor.LiteralTokenDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.LiteralTokenDescriptor.ObjectSlots.LITERAL;
+import static com.avail.descriptor.LiteralTokenDescriptor.ObjectSlots.NEXT_LEXING_STATE_POJO;
+import static com.avail.descriptor.LiteralTokenDescriptor.ObjectSlots.STRING;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
@@ -277,7 +279,7 @@ extends TokenDescriptor
 			if (!pojo.equalsNil())
 			{
 				final LexingState nextState = pojo.javaObjectNotNull();
-				nextState.compilationContext.recordToken(innerToken);
+				nextState.getCompilationContext().recordToken(innerToken);
 			}
 		}
 		else

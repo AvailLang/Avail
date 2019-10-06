@@ -33,7 +33,13 @@
 package com.avail.interpreter.primitive.pojos;
 
 import com.avail.AvailRuntime.HookType;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Map;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MarshalingException;
@@ -54,8 +60,14 @@ import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.PojoTypeDescriptor.marshalDefiningType;
 import static com.avail.descriptor.PojoTypeDescriptor.pojoTypeForClass;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.levelOne.L1Operation.*;
+import static com.avail.exceptions.AvailErrorCode.E_JAVA_FIELD_NOT_AVAILABLE;
+import static com.avail.exceptions.AvailErrorCode.E_JAVA_FIELD_REFERENCE_IS_AMBIGUOUS;
+import static com.avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED;
+import static com.avail.exceptions.AvailErrorCode.E_JAVA_METHOD_NOT_AVAILABLE;
+import static com.avail.exceptions.AvailErrorCode.E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS;
+import static com.avail.interpreter.levelOne.L1Operation.L1_doCall;
+import static com.avail.interpreter.levelOne.L1Operation.L1_doMakeTuple;
+import static com.avail.interpreter.levelOne.L1Operation.L1_doPushLocal;
 
 /**
  * {@code PrimitiveHelper} aggregates utility functions for reuse by the various
@@ -241,9 +253,9 @@ public final class PrimitiveHelper
 		}
 		final A_Type returnType = functionType.returnType();
 		final L1InstructionWriter writer = new L1InstructionWriter(nil, 0, nil);
-		writer.primitive(primitive);
+		writer.setPrimitive(primitive);
 		writer.argumentTypes(argTypesArray);
-		writer.returnType(returnType);
+		writer.setReturnType(returnType);
 		// Produce failure code.  First declare the local that holds primitive
 		// failure information.
 		final int failureLocal = writer.createLocal(

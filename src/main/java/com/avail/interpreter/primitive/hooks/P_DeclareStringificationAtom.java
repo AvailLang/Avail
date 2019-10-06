@@ -32,7 +32,11 @@
 
 package com.avail.interpreter.primitive.hooks;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AtomDescriptor;
+import com.avail.descriptor.MethodDescriptor;
 import com.avail.exceptions.AvailRuntimeException;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.AvailLoader;
@@ -51,8 +55,12 @@ import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
+import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
+import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
+import static com.avail.interpreter.Primitive.Flag.Private;
 
 /**
  * <strong>Primitive:</strong> Inform the VM of the {@linkplain
@@ -82,7 +90,7 @@ extends Primitive
 		// the specified value.
 		final L1InstructionWriter writer = new L1InstructionWriter(nil, 0, nil);
 		writer.argumentTypes(ANY.o());
-		writer.returnType(stringType());
+		writer.setReturnType(stringType());
 		writer.write(0, L1Operation.L1_doPushLocal, 1);
 		try
 		{

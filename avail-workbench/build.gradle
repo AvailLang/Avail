@@ -37,6 +37,7 @@ import java.time.format.DateTimeFormatter
 plugins {
 	id 'java'
 	id 'org.jetbrains.kotlin.jvm'
+	id 'com.github.johnrengelman.shadow'
 }
 
 group 'org.availlang'
@@ -45,11 +46,17 @@ version '1.4'
 sourceCompatibility = 1.8
 
 compileKotlin {
-	kotlinOptions.jvmTarget = "1.8"
+	kotlinOptions {
+		jvmTarget = "1.8"
+		freeCompilerArgs = ['-Xjvm-default=compatibility']
+	}
 }
 
 compileTestKotlin {
-	kotlinOptions.jvmTarget = "1.8"
+	kotlinOptions {
+		jvmTarget = "1.8"
+		freeCompilerArgs = ['-Xjvm-default=compatibility']
+	}
 }
 
 repositories {
@@ -97,18 +104,12 @@ jar {
 	manifest {
 		attributes 'Main-Class': 'com.avail.environment.AvailWorkbench'
 	}
-
-	from {
-		configurations.compileClasspath.collect {
-			it.isDirectory() ? it : zipTree(it)
-		}
-	}
 }
 
 // Copy the JAR into the distribution directory.
 task releaseAvailWorkbench (type: Copy) {
 	group = 'release'
-	from jar.outputs.files
+	from shadowJar.outputs.files
 	into file("${rootProject.projectDir}/distro/lib")
 }
 
@@ -143,7 +144,7 @@ task osx {
 			into resDst
 		}
 
-		def jarSrc = jar.outputs.files
+		def jarSrc = shadowJar.outputs.files
 		def jarDst = file("$appDst/Contents/Java")
 		mkdir jarDst
 		copy {

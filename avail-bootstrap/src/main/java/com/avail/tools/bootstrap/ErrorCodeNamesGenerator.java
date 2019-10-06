@@ -6,14 +6,14 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  Redistributions of source code must retain the above copyright notice, this
+ * * Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- *  Redistributions in binary form must reproduce the above copyright notice,
+ * * Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- *  Neither the name of the copyright holder nor the names of the contributors
+ * * Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -52,7 +52,10 @@ import java.util.Set;
 
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType;
-import static com.avail.tools.bootstrap.Resources.*;
+import static com.avail.tools.bootstrap.Resources.errorCodeCommentKey;
+import static com.avail.tools.bootstrap.Resources.errorCodeKey;
+import static com.avail.tools.bootstrap.Resources.errorCodesBaseName;
+import static com.avail.tools.bootstrap.Resources.escape;
 
 /**
  * Generate a {@linkplain PropertyResourceBundle property resource bundle} that
@@ -125,7 +128,7 @@ extends PropertiesFileGenerator
 			for (final A_Number code : unreachableErrorCodes)
 			{
 				unreachable.add(
-					AvailErrorCode.Companion.byNumericCode(code.extractInt()));
+					AvailErrorCode.byNumericCode(code.extractInt()));
 			}
 			System.err.printf(
 				"some error codes are unreachable: %s%n",

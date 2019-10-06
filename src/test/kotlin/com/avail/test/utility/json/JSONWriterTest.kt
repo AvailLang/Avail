@@ -32,20 +32,18 @@
 
 package com.avail.test.utility.json
 
+import com.avail.test.utility.json.TestJSONKeyValue.*
+import com.avail.utility.Nulls.stripNull
 import com.avail.utility.json.JSONException
 import com.avail.utility.json.JSONObject
 import com.avail.utility.json.JSONReader
 import com.avail.utility.json.JSONWriter
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
-
-import java.io.IOException
-import java.io.StringReader
-
-import com.avail.test.utility.json.TestJSONKeyValue.*
-import com.avail.utility.Nulls.stripNull
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.fail
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Test
+import java.io.IOException
+import java.io.StringReader
 
 /**
  * A `JSONWriterTest` contains unit tests for the [JSONWriter].

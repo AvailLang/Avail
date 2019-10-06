@@ -32,7 +32,7 @@
 
 package com.avail.utility.fsm
 
-import java.util.EnumMap
+import java.util.*
 
 /**
  * A finite state machine (**FSM**) comprises a finite set of states, a table of

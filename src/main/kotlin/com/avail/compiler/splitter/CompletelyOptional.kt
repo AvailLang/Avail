@@ -31,17 +31,13 @@
  */
 package com.avail.compiler.splitter
 
+import com.avail.compiler.ParsingOperation.*
 import com.avail.compiler.splitter.InstructionGenerator.Label
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
 import com.avail.descriptor.A_Phrase
 import com.avail.descriptor.A_Type
-import com.avail.exceptions.MalformedMessageException
-
-import com.avail.compiler.ParsingOperation.*
-import com.avail.compiler.splitter.MessageSplitter.Companion.throwMalformedMessageException
 import com.avail.descriptor.ListPhraseTypeDescriptor.emptyListPhraseType
 import com.avail.descriptor.TupleDescriptor.emptyTuple
-import com.avail.exceptions.AvailErrorCode.E_INCONSISTENT_ARGUMENT_REORDERING
 
 /**
  * A `CompletelyOptional` is a special [expression][Expression] indicated by a
@@ -68,27 +64,13 @@ import com.avail.exceptions.AvailErrorCode.E_INCONSISTENT_ARGUMENT_REORDERING
  *   The position of the start of this phrase in the message name.
  * @param sequence
  *   The governed [sequence][Sequence].
- * @throws MalformedMessageException
- *   If the inner expression has an [explicitOrdinal].
  */
-internal class CompletelyOptional
-@Throws(MalformedMessageException::class) constructor(
+internal class CompletelyOptional constructor(
 	positionInName: Int,
 	private val sequence: Sequence) : Expression(positionInName)
 {
 	override val isLowerCase: Boolean
 		get() = sequence.isLowerCase
-
-	init
-	{
-		if (sequence.canBeReordered && sequence.explicitOrdinal != -1)
-		{
-			throwMalformedMessageException(
-				E_INCONSISTENT_ARGUMENT_REORDERING,
-				"Completely optional phrase should not have a circled number " +
-					"to indicate reordering")
-		}
-	}
 
 	override val underscoreCount: Int
 		get()
@@ -126,7 +108,6 @@ internal class CompletelyOptional
 		val `$expressionSkip` = Label()
 		generator.emitBranchForward(this, `$expressionSkip`)
 		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION)
-		assert(!sequence.isArgumentOrGroup)
 		// The partialListsCount stays the same, in case there's a section
 		// checkpoint marker within this completely optional region.  That's a
 		// reasonable way to indicate that a prefix function should only run
@@ -135,7 +116,7 @@ internal class CompletelyOptional
 		// there's no problem.
 		for (expression in sequence.expressions)
 		{
-			expression!!.emitOn(
+			expression.emitOn(
 				emptyListPhraseType(),
 				generator,
 				WrapState.SHOULD_NOT_HAVE_ARGUMENTS)

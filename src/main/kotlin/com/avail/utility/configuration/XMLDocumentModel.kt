@@ -34,8 +34,7 @@ package com.avail.utility.configuration
 
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Modifier
-import java.util.HashMap
-import java.util.HashSet
+import java.util.*
 
 /**
  * An [XMLConfigurator] relies on an `XMLDocumentModel` to provide a schematic
@@ -65,9 +64,9 @@ class XMLDocumentModel<
 	ConfigurationType : Configuration,
 	ElementType,
 	StateType : XMLConfiguratorState<ConfigurationType, ElementType, StateType>>
-internal constructor(elementClass: Class<ElementType>)
-	where ElementType : Enum<ElementType>,
-		  ElementType : XMLElement<ConfigurationType, ElementType, StateType>
+internal constructor(elementClass: Class<ElementType>) where
+	ElementType : Enum<ElementType>,
+	ElementType : XMLElement<ConfigurationType, ElementType, StateType>
 {
 	/**
 	 * A [map][Map] from the qualified names of XML elements to the elements
@@ -125,8 +124,9 @@ internal constructor(elementClass: Class<ElementType>)
 	 * @return
 	 *   The allowed parent elements.
 	 */
+	@Suppress("MemberVisibilityCanBePrivate")
 	fun allowedParentsOf( element: ElementType): Set<ElementType> =
-		element.allowedParents()
+		element.allowedParents
 
 	init
 	{
@@ -137,6 +137,7 @@ internal constructor(elementClass: Class<ElementType>)
 		{
 			val valuesMethod = elementClass.getMethod("values")
 			assert(Modifier.isStatic(valuesMethod.modifiers))
+			@Suppress("UNCHECKED_CAST")
 			elements = valuesMethod.invoke(null) as Array<ElementType>
 		}
 		catch (e: SecurityException)
@@ -165,22 +166,17 @@ internal constructor(elementClass: Class<ElementType>)
 		elementsByQName = HashMap(elements!!.size)
 		allowedChildren = HashMap(elements.size)
 		var root: ElementType? = null
-		for (element in elements)
-		{
-			elementsByQName[element.qName()] = element
-			if (element.allowedParents().isEmpty())
+		elements.forEach { element ->
+			elementsByQName[element.qName] = element
+			if (element.allowedParents.isEmpty())
 			{
 				assert(root == null)
 				root = element
 			}
-			val children = HashSet<ElementType>()
-			for (child in elements)
-			{
-				if (child.allowedParents().contains(element))
-				{
-					children.add(child)
-				}
-			}
+			val children = elements
+				.asSequence()
+				.filter { it.allowedParents.contains(element) }
+				.toSet()
 			allowedChildren[element] = children
 		}
 		rootElement = root!!

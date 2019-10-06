@@ -111,9 +111,9 @@ public final class P_InvokeInstancePojoMethod extends Primitive
 				marshaledTypes.tupleAt(1).javaObject());
 		final @Nullable Object[] marshaledArgs = marshalValues(
 			marshaledTypes.copyTupleFromToCanDestroy(
-				2, marshaledTypes.tupleSize(), true),
+				2, marshaledTypes.tupleSize(), false),
 			methodArgs.copyTupleFromToCanDestroy(
-				2, methodArgs.tupleSize(), true),
+				2, methodArgs.tupleSize(), false),
 			errorOut);
 		if (errorOut.value != null)
 		{

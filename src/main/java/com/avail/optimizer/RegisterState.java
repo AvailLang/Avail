@@ -39,9 +39,15 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.register.L2Register;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
-import static com.avail.utility.PrefixSharingList.*;
+import static com.avail.utility.PrefixSharingList.append;
+import static com.avail.utility.PrefixSharingList.last;
+import static com.avail.utility.PrefixSharingList.withoutLast;
 
 /**
  * This class maintains information about one {@linkplain L2Register} on behalf

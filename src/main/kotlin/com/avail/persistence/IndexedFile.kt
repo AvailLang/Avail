@@ -35,7 +35,6 @@ import com.avail.persistence.IndexedRepositoryManager.Companion.log
 import com.avail.utility.Casts.cast
 import com.avail.utility.LRUCache
 import com.avail.utility.Nulls.stripNull
-import com.avail.utility.evaluation.Continuation0
 import java.io.DataOutputStream
 import java.io.File
 import java.io.IOException
@@ -583,10 +582,10 @@ abstract class IndexedFile
 	/**
 	 * Create the physical indexed file. The initial contents are created in
 	 * memory and then written to a temporary file. Once the header and master
-	 * blocks have been written, the argument [action][Continuation0] is
-	 * performed. Finally the temporary file is renamed to the canonical
-	 * filename. When the call returns, [file] and [channel] are live and a
-	 * write lock is held on the physical indexed file.
+	 * blocks have been written, the argument action is performed. Finally the
+	 * temporary file is renamed to the canonical filename. When the call
+	 * returns, [file] and [channel] are live and a write lock is held on the
+	 * physical indexed file.
 	 *
 	 * @param action
 	 *   An action to perform after the header and master blocks have been

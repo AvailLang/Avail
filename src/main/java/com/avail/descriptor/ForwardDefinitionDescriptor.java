@@ -39,7 +39,9 @@ import com.avail.utility.json.JSONWriter;
 
 import java.util.IdentityHashMap;
 
-import static com.avail.descriptor.ForwardDefinitionDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.ForwardDefinitionDescriptor.ObjectSlots.BODY_SIGNATURE;
+import static com.avail.descriptor.ForwardDefinitionDescriptor.ObjectSlots.DEFINITION_METHOD;
+import static com.avail.descriptor.ForwardDefinitionDescriptor.ObjectSlots.MODULE;
 
 /**
  * This is a forward declaration of a method.  An actual method must be defined

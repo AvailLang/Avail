@@ -6,14 +6,14 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  Redistributions of source code must retain the above copyright notice, this
+ * * Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- *  Redistributions in binary form must reproduce the above copyright notice,
+ * * Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- *  Neither the name of the copyright holder nor the names of the contributors
+ * * Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -33,8 +33,13 @@
 package com.avail.serialization
 
 import com.avail.AvailRuntime
-import com.avail.descriptor.*
-import com.avail.utility.evaluation.Continuation0
+import com.avail.descriptor.A_Atom
+import com.avail.descriptor.A_BasicObject
+import com.avail.descriptor.A_Module
+import com.avail.descriptor.A_String
+import com.avail.descriptor.A_Variable
+import com.avail.descriptor.AtomDescriptor
+import com.avail.descriptor.AvailObject
 import java.io.IOException
 import java.io.OutputStream
 import java.util.*
@@ -223,16 +228,17 @@ class Serializer
 	 * structures.
 	 *
 	 * To trace an object X with children Y and Z, first push onto the work
-	 * stack an action (a [Continuation0]) which will write X's
-	 * [SerializerInstruction].  Then examine X to discover Y and Z, pushing
-	 * `Continuation0`s which will trace Y then trace Z.  Since those will be
-	 * processed completely before the first action gets a chance to run (i.e.,
-	 * to generate the instruction for X), we ensure Y and Z are always created
-	 * before X.  Note that the continuation to trace Y must check if Y has
-	 * already been traced, since Z might recursively contain a reference to Y,
-	 * leading to Y needing to be traced prior to Z.
+	 * stack an action which will write X's [SerializerInstruction].  Then
+	 * examine X to discover Y and Z, pushing continuations which will trace Y
+	 * then trace Z.  Since those will be processed completely before the first
+	 * action gets a chance to run (i.e., to generate the instruction for X), we
+	 * ensure Y and Z are always created before X.  Note that the continuation
+	 * to trace Y must check if Y has already been traced, since Z might
+	 * recursively contain a reference to Y, leading to Y needing to be traced
+	 * prior to Z.
 	 *
-	 * @param object The object to trace.
+	 * @param object
+	 *   The object to trace.
 	 */
 	internal fun traceOne(`object`: AvailObject)
 	{

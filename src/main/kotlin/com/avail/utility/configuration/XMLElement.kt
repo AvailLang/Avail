@@ -1,6 +1,6 @@
 /*
- * XMLElement.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * XMLElement.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,24 +53,15 @@ interface XMLElement<
 	ConfigurationType : Configuration,
 	ElementType,
 	StateType : XMLConfiguratorState<ConfigurationType, ElementType, StateType>>
-	where ElementType : Enum<ElementType>,
-		  ElementType : XMLElement<ConfigurationType, ElementType, StateType>
+where
+	ElementType : Enum<ElementType>,
+	ElementType : XMLElement<ConfigurationType, ElementType, StateType>
 {
-	/**
-	 * Answer the qualified name of the [element][XMLElement].
-	 *
-	 * @return
-	 *   The qualified name of the element.
-	 */
-	fun qName(): String
+	/** The qualified name of the [element][XMLElement]. */
+	val qName: String
 
-	/**
-	 * Answer the allowed parent elements of the receiver element.
-	 *
-	 * @return
-	 *   The allowed parent elements.
-	 */
-	fun allowedParents(): Set<ElementType>
+	/** The allowed parent elements of the receiver element. */
+	val allowedParents: Set<ElementType>
 
 	/**
 	 * Receive notification of the start of an element.

@@ -34,5 +34,5 @@ Module "MutuallyRecursive2"
 Versions
 	"1.4.0"
 Uses
-	"MutuallyRecursive1"
+	"MutuallyRecursive3"
 Body

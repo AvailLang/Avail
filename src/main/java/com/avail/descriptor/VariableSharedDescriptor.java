@@ -54,7 +54,10 @@ import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.VariableSharedDescriptor.IntegerSlots.HASH_ALWAYS_SET;
 import static com.avail.descriptor.VariableSharedDescriptor.IntegerSlots.HASH_AND_MORE;
-import static com.avail.descriptor.VariableSharedDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.VariableSharedDescriptor.ObjectSlots.DEPENDENT_CHUNKS_WEAK_SET_POJO;
+import static com.avail.descriptor.VariableSharedDescriptor.ObjectSlots.KIND;
+import static com.avail.descriptor.VariableSharedDescriptor.ObjectSlots.VALUE;
+import static com.avail.descriptor.VariableSharedDescriptor.ObjectSlots.WRITE_REACTORS;
 import static java.util.Collections.newSetFromMap;
 import static java.util.Collections.synchronizedSet;
 

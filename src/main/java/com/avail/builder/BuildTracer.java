@@ -6,14 +6,14 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  Redistributions of source code must retain the above copyright notice, this
+ * * Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- *  Redistributions in binary form must reproduce the above copyright notice,
+ * * Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- *  Neither the name of the copyright holder nor the names of the contributors
+ * * Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -43,6 +43,7 @@ import com.avail.persistence.IndexedRepositoryManager.ModuleArchive;
 import com.avail.persistence.IndexedRepositoryManager.ModuleVersion;
 import com.avail.persistence.IndexedRepositoryManager.ModuleVersionKey;
 import com.avail.utility.evaluation.Continuation0;
+import kotlin.Unit;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -136,7 +137,7 @@ final class BuildTracer
 						availBuilder.runtime.moduleNameResolver().resolve(
 							qualifiedName, resolvedSuccessor);
 				}
-				catch (final Exception e)
+				catch (final Throwable e)
 				{
 					AvailBuilder.log(
 						Level.WARNING,
@@ -155,7 +156,7 @@ final class BuildTracer
 						e)
 					{
 						@Override
-						protected void abortCompilation ()
+						public void abortCompilation ()
 						{
 							indicateTraceCompleted();
 						}
@@ -210,7 +211,7 @@ final class BuildTracer
 				recursionSet)
 			{
 				@Override
-				protected void abortCompilation ()
+				public void abortCompilation ()
 				{
 					availBuilder.stopBuildReason(
 						"Module graph tracing failed due to recursion");
@@ -266,29 +267,31 @@ final class BuildTracer
 			resolvedName,
 			availBuilder.textInterface,
 			availBuilder.pollForAbort,
-			(moduleName, moduleSize, position) ->
-			{
-				// don't report progress from tracing imports.
-			},
+			(moduleName, moduleSize, position) -> Unit.INSTANCE,
 			compiler ->
 			{
-				compiler.compilationContext.diagnostics
+				compiler.getCompilationContext().getDiagnostics()
 					.setSuccessAndFailureReporters(
 						() ->
 						{
 							assert false
 								: "Should not succeed from header parsing";
+							return Unit.INSTANCE;
 						},
-						this::indicateTraceCompleted);
+						() ->
+						{
+							indicateTraceCompleted();
+							return Unit.INSTANCE;
+						});
 				compiler.parseModuleHeader(
 					afterHeader ->
 					{
 						final ModuleHeader header = stripNull(
-							compiler.compilationContext.getModuleHeader());
+							compiler.getCompilationContext().getModuleHeader());
 						final List<String> importNames =
-							header. importedModuleNames();
+							header.getImportedModuleNames();
 						final List<String> entryPoints =
-							header.entryPointNames();
+							header.getEntryPointNames();
 						final ModuleVersion newVersion =
 							repository.new ModuleVersion(
 								sourceFile.length(), importNames, entryPoints);
@@ -300,9 +303,15 @@ final class BuildTracer
 							recursionSet,
 							problemHandler);
 						indicateTraceCompleted();
+						return Unit.INSTANCE;
 					});
+				return Unit.INSTANCE;
 			},
-			this::indicateTraceCompleted,
+			() ->
+			{
+				indicateTraceCompleted();
+				return Unit.INSTANCE;
+			},
 			problemHandler);
 	}
 
@@ -414,21 +423,23 @@ final class BuildTracer
 				"Load failed.\n",
 				null,
 				new SimpleCompletionHandler<Integer, Void>(
-					r -> { },
-					t -> { }));
+					r -> Unit.INSTANCE,
+					t -> Unit.INSTANCE));
 		}
 		else
 		{
 			final int graphSize;
+			final int completions;
 			synchronized (this)
 			{
 				graphSize = availBuilder.moduleGraph.size();
+				completions = traceCompletions;
 			}
 			AvailBuilder.log(
 				Level.FINER,
 				"Traced or kept %d modules (%d edges)",
 				graphSize,
-				traceCompletions);
+				completions);
 		}
 		afterAll.value();
 	}

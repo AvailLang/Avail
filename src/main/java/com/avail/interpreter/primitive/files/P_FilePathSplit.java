@@ -81,7 +81,7 @@ extends Primitive
 	{
 		interpreter.checkArgumentCount(1);
 		final A_String filename = interpreter.argument(0);
-		final FileSystem fileSystem = IOSystem.Companion.getFileSystem();
+		final FileSystem fileSystem = IOSystem.getFileSystem();
 		final Path path;
 		try
 		{

@@ -40,6 +40,7 @@ import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.json.JSONWriter;
+import kotlin.Unit;
 
 import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
@@ -179,7 +180,10 @@ extends PhraseDescriptor
 		codeGenerator.setTokensWhile(
 			object.slot(MACRO_ORIGINAL_SEND).tokens(),
 			() ->
-				object.slot(OUTPUT_PARSE_NODE).emitAllValuesOn(codeGenerator));
+			{
+				object.slot(OUTPUT_PARSE_NODE).emitAllValuesOn(codeGenerator);
+				return Unit.INSTANCE;
+			});
 	}
 
 	@Override @AvailMethod
@@ -189,7 +193,11 @@ extends PhraseDescriptor
 	{
 		codeGenerator.setTokensWhile(
 			object.slot(MACRO_ORIGINAL_SEND).tokens(),
-			() -> object.slot(OUTPUT_PARSE_NODE).emitEffectOn(codeGenerator));
+			() ->
+			{
+				object.slot(OUTPUT_PARSE_NODE).emitEffectOn(codeGenerator);
+				return Unit.INSTANCE;
+			});
 	}
 
 	@Override @AvailMethod
@@ -200,7 +208,10 @@ extends PhraseDescriptor
 		codeGenerator.setTokensWhile(
 			object.slot(MACRO_ORIGINAL_SEND).tokens(),
 			() ->
-				object.slot(OUTPUT_PARSE_NODE).emitValueOn(codeGenerator));
+			{
+				object.slot(OUTPUT_PARSE_NODE).emitValueOn(codeGenerator);
+				return Unit.INSTANCE;
+			});
 	}
 
 	@Override @AvailMethod

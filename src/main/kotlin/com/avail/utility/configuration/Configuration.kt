@@ -40,11 +40,6 @@ package com.avail.utility.configuration
  */
 interface Configuration
 {
-	/**
-	 * Is the [configuration][Configuration] valid?
-	 *
-	 * @return
-	 *   `true` if the configuration is valid, `false` otherwise.
-	 */
+	/** `true` if the configuration is valid, `false` otherwise. */
 	val isValid: Boolean
 }

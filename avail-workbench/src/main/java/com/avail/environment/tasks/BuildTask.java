@@ -36,6 +36,7 @@ import com.avail.builder.ResolvedModuleName;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.environment.AvailWorkbench;
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchTask;
+import kotlin.Unit;
 
 import java.awt.*;
 
@@ -67,8 +68,18 @@ extends AbstractWorkbenchTask
 		assert targetModuleName != null;
 		workbench.availBuilder.buildTarget(
 			targetModuleName(),
-			workbench::eventuallyUpdatePerModuleProgress,
-			workbench::eventuallyUpdateBuildProgress,
+			(moduleName, moduleSize, position) ->
+			{
+				workbench.eventuallyUpdatePerModuleProgress(
+					moduleName, moduleSize, position);
+				return Unit.INSTANCE;
+			},
+			(bytesProcessed, totalBytes) ->
+			{
+				workbench.eventuallyUpdateBuildProgress(
+					bytesProcessed, totalBytes);
+				return Unit.INSTANCE;
+			},
 			workbench.availBuilder.buildProblemHandler);
 	}
 

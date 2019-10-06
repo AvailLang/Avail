@@ -117,16 +117,17 @@ concatenation reader's advance method is
  * Construct and answer an {@type "reader"} that produces values from the
  * specified tuple of readers The result first produces the values of the
  * first element of the tuple, then the second, etc.
+ *
  * @method "concatenate_"
- * @param "readers" "reader*"
- *        A tuple of readers.
+ * @param "readers" "reader+"
+ *        A nonempty tuple of readers.
  * @returns "reader"
  *          The requested reader.
  * @category "Data Abstractions" "Readers"
  */
 Method "concatenate_" is
 [
-	readers : reader*
+	readers : reader+
 |
 	if |readers| = 0 then [an exhausted reader]
 	else if |readers| = 1 then [readers[1]]
@@ -168,13 +169,13 @@ Method "«_‡++»" is
  * {@method "concatenate_"} and {@method "«_‡++»"} methods.
  * @category "Data Abstractions"
  * @method "concatenation semantic restriction"
- * @returns "[reader*'s type]→(concatenation reader's type)"
+ * @returns "[reader+'s type]→(concatenation reader's type)"
  *          The requested function.
  */
 Private method "concatenation semantic restriction" is
 [
 	[
-		readers : reader*'s type
+		readers : reader+'s type
 	|
 		elementType : any's type's type := ⊥;
 		For each i from 1 to (⎣readers⎦ min (|readers' leading types| + 1)) do
@@ -191,7 +192,7 @@ Private method "concatenation semantic restriction" is
  * Strengthen the {@type "reader"} {@method "concatenate_"} operation.
  *
  * @method "concatenate_"
- * @restricts "readers" "reader*'s type"
+ * @restricts "readers" "reader+'s type"
  * @returns "concatenation reader"
  * @category "Data Abstractions" "Readers"
  */

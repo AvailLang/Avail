@@ -31,4 +31,9 @@
  */
 
 rootProject.name = 'avail'
-include 'avail-bootstrap', 'avail-server', 'avail-workbench'
+include(
+	'avail-bootstrap',
+	'avail-cli',
+	'avail-server',
+	'avail-workbench',
+    'unicode-catalog')

@@ -47,7 +47,10 @@ import java.util.logging.Level;
 import static com.avail.interpreter.Interpreter.debugL1;
 import static com.avail.utility.Nulls.stripNull;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
-import static org.objectweb.asm.Type.*;
+import static org.objectweb.asm.Type.VOID_TYPE;
+import static org.objectweb.asm.Type.getInternalName;
+import static org.objectweb.asm.Type.getMethodDescriptor;
+import static org.objectweb.asm.Type.getType;
 
 /**
  * This is the first instruction of the L1 interpreter's on-ramp for resuming

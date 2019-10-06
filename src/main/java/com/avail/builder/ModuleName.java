@@ -63,14 +63,14 @@ public class ModuleName
 		return qualifiedName;
 	}
 
-	/** The logical root name of the {@linkplain ModuleName module name}. */
+	/** The logical root name of the {@code ModuleName}. */
 	private final String rootName;
 
 	/**
-	 * Answer the logical root name of the {@linkplain ModuleName module name}.
+	 * Answer the logical root name of the {@code ModuleName}.
 	 *
 	 * @return the rootName
-	 *         The logical root name of the {@linkplain ModuleName module name}.
+	 *         The logical root name of the {@code ModuleName}.
 	 */
 	public String rootName ()
 	{
@@ -78,17 +78,14 @@ public class ModuleName
 	}
 
 	/**
-	 * The fully-qualified package name of the {@linkplain ModuleName module
-	 * name}.
+	 * The fully-qualified package name of the {@code ModuleName}.
 	 */
 	private final String packageName;
 
 	/**
-	 * Answer the fully-qualified package name of the {@linkplain ModuleName
-	 * module name}.
+	 * Answer the fully-qualified package name of the {@code ModuleName}.
 	 *
-	 * @return The fully-qualified package name of the {@linkplain ModuleName
-	 *         module name}.
+	 * @return The fully-qualified package name of the {@code ModuleName}.
 	 */
 	public String packageName ()
 	{
@@ -97,16 +94,16 @@ public class ModuleName
 
 	/**
 	 * The local name of the {@linkplain ModuleDescriptor module} referenced by
-	 * this {@linkplain ModuleName module name}.
+	 * this {@code ModuleName}.
 	 */
 	private final String localName;
 
 	/**
 	 * Answer the local name of the {@linkplain ModuleDescriptor module}
-	 * referenced by this {@linkplain ModuleName module name}.
+	 * referenced by this {@code ModuleName}.
 	 *
 	 * @return The local name of the {@linkplain ModuleDescriptor module}
-	 *         referenced by this {@linkplain ModuleName module name}.
+	 *         referenced by this {@code ModuleName}.
 	 */
 	public String localName ()
 	{
@@ -114,14 +111,14 @@ public class ModuleName
 	}
 
 	/**
-	 * The lazily-initialized root-relative {@linkplain ModuleName module name}.
+	 * The lazily-initialized root-relative {@code ModuleName}.
 	 * This is the {@linkplain #qualifiedName() fully-qualified name} minus the
 	 * #rootName() module root}.
 	 */
 	private @Nullable String rootRelativeName;
 
 	/**
-	 * Answer the root-relative {@linkplain ModuleName module name}. This is the
+	 * Answer the root-relative {@code ModuleName}. This is the
 	 * {@linkplain #qualifiedName() fully-qualified name} minus the {@linkplain
 	 * #rootName() module root}.
 	 *
@@ -164,13 +161,14 @@ public class ModuleName
 	}
 
 	/**
-	 * Construct a new {@link ModuleName} from the specified fully-qualified
+	 * Construct a new {@code ModuleName} from the specified fully-qualified
 	 * module name.
 	 *
 	 * @param qualifiedName A fully-qualified module name.
 	 * @throws IllegalArgumentException
 	 *         If the argument was malformed.
 	 */
+	@SuppressWarnings("ThrowsRuntimeException")
 	public ModuleName (final String qualifiedName)
 	throws IllegalArgumentException
 	{
@@ -178,7 +176,7 @@ public class ModuleName
 	}
 
 	/**
-	 * Construct a new {@link ModuleName} from the specified fully-qualified
+	 * Construct a new {@code ModuleName} from the specified fully-qualified
 	 * module name.
 	 *
 	 * @param qualifiedName A fully-qualified module name.
@@ -186,8 +184,9 @@ public class ModuleName
 	 * @throws IllegalArgumentException
 	 *         If the argument was malformed.
 	 */
+	@SuppressWarnings("ThrowsRuntimeException")
 	public ModuleName (final String qualifiedName, final boolean isRename)
-		throws IllegalArgumentException
+	throws IllegalArgumentException
 	{
 		this.qualifiedName = qualifiedName;
 		this.isRename = isRename;
@@ -214,7 +213,7 @@ public class ModuleName
 	}
 
 	/**
-	 * Construct a new {@link ModuleName} from the specified canonical module
+	 * Construct a new {@code ModuleName} from the specified canonical module
 	 * group name and local name.
 	 *
 	 * @param packageName A canonical package name.
@@ -222,6 +221,7 @@ public class ModuleName
 	 * @throws IllegalArgumentException
 	 *         If the argument was malformed.
 	 */
+	@SuppressWarnings("ThrowsRuntimeException")
 	public ModuleName (
 		final String packageName,
 		final String localName)
@@ -231,7 +231,7 @@ public class ModuleName
 	}
 
 	/**
-	 * Construct a new {@link ModuleName} from the specified canonical module
+	 * Construct a new {@code ModuleName} from the specified canonical module
 	 * group name and local name.
 	 *
 	 * @param packageName A canonical package name.
@@ -240,6 +240,7 @@ public class ModuleName
 	 * @throws IllegalArgumentException
 	 *         If the argument was malformed.
 	 */
+	@SuppressWarnings("ThrowsRuntimeException")
 	public ModuleName (
 		final String packageName,
 		final String localName,

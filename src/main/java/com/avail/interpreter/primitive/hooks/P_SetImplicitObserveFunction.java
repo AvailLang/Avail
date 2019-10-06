@@ -32,9 +32,13 @@
 
 package com.avail.interpreter.primitive.hooks;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Type;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
+import com.avail.descriptor.FunctionDescriptor;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
+import com.avail.descriptor.VariableDescriptor;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -111,7 +115,7 @@ extends Primitive
 		final int outerIndex =
 			writer.createOuter(IMPLICIT_OBSERVE.functionType);
 		writer.argumentTypes(mostGeneralFunctionType(), mostGeneralTupleType());
-		writer.returnType(bottom());
+		writer.setReturnType(bottom());
 		writer.write(0, L1Operation.L1_doPushOuter, outerIndex);
 		writer.write(0, L1Operation.L1_doPushLocal, 1);
 		writer.write(0, L1Operation.L1_doPushLocal, 2);

@@ -36,6 +36,7 @@ import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.*;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding;
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
@@ -590,11 +591,29 @@ public final class L2ValueManifest
 		assert writer.instructionHasBeenEmitted();
 
 		final L2SemanticValue semanticValue = writer.semanticValue();
-		assert !hasSemanticValue(semanticValue);
-		final L2Synonym synonym = new L2Synonym(singleton(semanticValue));
-		semanticValueToSynonym.put(semanticValue, synonym);
-		synonymRestrictions.put(synonym, writer.restriction());
-		definitions.put(synonym, new ArrayList<>(singleton(writer)));
+		if (!hasSemanticValue(semanticValue))
+		{
+			// This is a new semantic value.
+			final L2Synonym synonym = new L2Synonym(singleton(semanticValue));
+			semanticValueToSynonym.put(semanticValue, synonym);
+			synonymRestrictions.put(synonym, writer.restriction());
+			definitions.put(synonym, new ArrayList<>(singleton(writer)));
+		}
+		else
+		{
+			// This is a new RegisterKind for an existing semantic value.
+			final L2Synonym synonym = semanticValueToSynonym(semanticValue);
+			final TypeRestriction existingRestriction =
+				restrictionFor(semanticValue);
+			final RestrictionFlagEncoding writerRestrictionFlag =
+				writer.registerKind().restrictionFlag;
+			// The restriction *might* know about this kind, if there were
+			// multiple kinds that led to multiple phi instructions for the same
+			// synonym.
+			synonymRestrictions.put(
+				synonym, existingRestriction.withFlag(writerRestrictionFlag));
+			definitions.get(synonym).add(writer);
+		}
 	}
 
 	/**
@@ -623,11 +642,10 @@ public final class L2ValueManifest
 				restrictionFor(sourceSemanticValue)
 					.intersection(writer.restriction()));
 		}
-		else
+		else if (!hasSemanticValue(semanticValue))
 		{
 			// Introduce the newly written semantic value, synonymous to the
 			// given one.
-			assert !hasSemanticValue(semanticValue);
 			final L2Synonym oldSynonym =
 				semanticValueToSynonym(sourceSemanticValue);
 			extendSynonym(oldSynonym, semanticValue);
@@ -635,6 +653,17 @@ public final class L2ValueManifest
 				semanticValue,
 				restrictionFor(sourceSemanticValue)
 					.intersection(writer.restriction()));
+		}
+		else
+		{
+			// The write to an existing semantic value must be a consequence of
+			// post-phi duplication into registers for synonymous semantic
+			// values, but where there were multiple kinds leading to multiple
+			// phis for the same target synonym.
+			final L2Synonym oldSynonym =
+				semanticValueToSynonym(sourceSemanticValue);
+			assert definitions.get(oldSynonym).stream().anyMatch(
+				instr -> instr.semanticValue() == semanticValue);
 		}
 		definitions.get(semanticValueToSynonym(semanticValue)).add(writer);
 	}
@@ -931,19 +960,22 @@ public final class L2ValueManifest
 	 *        A {@link BiFunction} taking an {@link L2SemanticValue} and a
 	 *        {@link TypeRestriction}, and producing a suitable {@link
 	 *        L2WriteOperand}.
+	 * @param <RV>
+	 *        The {@link L2ReadVectorOperand} supplying values.
 	 * @param <RR>
-	 *        The {@link L2ReadOperand} type supplying values.
+	 *        The {@link L2ReadOperand} type supplying each value.
 	 * @param <R>
 	 *        The kind of {@link L2Register}s to merge.
 	 */
 	private <
+		RV extends L2ReadVectorOperand<RR, R>,
 		RR extends L2ReadOperand<R>,
 		R extends L2Register>
 	void generatePhi (
 		final L2Generator generator,
 		final Collection<L2SemanticValue> relatedSemanticValues,
 		final TypeRestriction restriction,
-		final L2ReadVectorOperand<RR, R> sources,
+		final RV sources,
 		final L2_PHI_PSEUDO_OPERATION<RR, R> phiOperation,
 		final Function<L2SemanticValue, RR> createReader,
 		final BiFunction<L2SemanticValue, TypeRestriction, L2WriteOperand<R>>
@@ -990,10 +1022,11 @@ public final class L2ValueManifest
 			new ArrayList<>(relatedSemanticValues);
 		otherSemanticValues.remove(firstSemanticValue);
 		otherSemanticValues.forEach(
-			otherSemanticValue -> generator.moveRegister(
-				phiOperation.moveOperation,
-				createReader.apply(firstSemanticValue),
-				createWriter.apply(otherSemanticValue, restriction)));
+			otherSemanticValue ->
+				generator.addInstruction(
+					phiOperation.moveOperation,
+					createReader.apply(firstSemanticValue),
+					createWriter.apply(otherSemanticValue, restriction)));
 	}
 
 	/**

@@ -54,7 +54,12 @@ import org.objectweb.asm.MethodVisitor;
 import javax.annotation.Nullable;
 import java.util.Set;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_FLOAT;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_INT;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_FLOAT;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_INT;
 
 /**
  * Move an {@link AvailObject} from the source to the destination.  The

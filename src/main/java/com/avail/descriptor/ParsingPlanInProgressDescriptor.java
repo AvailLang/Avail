@@ -142,7 +142,7 @@ extends Descriptor
 			return false;
 		}
 		final int instruction = instructions.tupleIntAt(pc);
-		return ParsingOperation.decode(instruction) == JUMP_BACKWARD;
+		return ParsingOperation.Companion.decode(instruction) == JUMP_BACKWARD;
 	}
 
 	/**

@@ -36,6 +36,7 @@ import com.avail.AvailRuntime
 import com.avail.compiler.splitter.MessageSplitter
 import com.avail.descriptor.*
 import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind
+import com.avail.descriptor.IntegerDescriptor.fromInt
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
 import com.avail.interpreter.levelOne.L1Operation
 import com.avail.interpreter.primitive.phrases.P_AcceptParsing
@@ -49,10 +50,7 @@ import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.nio.file.Path
-import java.util.ArrayList
-import java.util.HashMap
-
-import com.avail.descriptor.IntegerDescriptor.fromInt
+import java.util.*
 
 /**
  * `AvailErrorCode` is an enumeration of all possible failures of operations on
@@ -793,6 +791,7 @@ enum class AvailErrorCode constructor(val code: Int)
 		 * @return
 		 *   The error code, or `null` if not defined.
 		 */
+		@JvmStatic
 		fun byNumericCode(numericCode: Int): AvailErrorCode? =
 			byNumericCode[numericCode]
 
@@ -802,6 +801,7 @@ enum class AvailErrorCode constructor(val code: Int)
 		 * @return
 		 *   A [list][List] of all valid numeric error codes.
 		 */
+		@JvmStatic
 		fun allNumericCodes(): List<Int>
 		{
 			val codes = ArrayList<Int>(values().size)

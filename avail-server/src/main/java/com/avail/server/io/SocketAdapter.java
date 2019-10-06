@@ -39,6 +39,7 @@ import com.avail.utility.IO;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1;
 import com.avail.utility.evaluation.Continuation1NotNull;
+import kotlin.Unit;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -124,6 +125,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 					final SocketChannel channel =
 						new SocketChannel(SocketAdapter.this, transport);
 					readMessage(channel);
+					return Unit.INSTANCE;
 				},
 				(e, unused, handler) ->
 				{
@@ -137,6 +139,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 							e);
 						close();
 					}
+					return Unit.INSTANCE;
 				}));
 	}
 
@@ -186,7 +189,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 				{
 					if (remoteEndClosed(transport, result))
 					{
-						return;
+						return Unit.INSTANCE;
 					}
 					if (buffer.hasRemaining())
 					{
@@ -225,6 +228,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 								});
 						}
 					}
+					return Unit.INSTANCE;
 				},
 				(e, unused, handler) ->
 				{
@@ -233,6 +237,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 						"failed while attempting to read payload length",
 						e);
 					IO.close(channel);
+					return Unit.INSTANCE;
 				}));
 	}
 
@@ -262,7 +267,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 				{
 					if (remoteEndClosed(transport, result))
 					{
-						return;
+						return Unit.INSTANCE;
 					}
 					if (buffer.hasRemaining())
 					{
@@ -273,6 +278,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 						buffer.flip();
 						continuation.value(buffer);
 					}
+					return Unit.INSTANCE;
 				},
 				(e, unused, handler) ->
 				{
@@ -281,6 +287,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 						"failed while attempting to read payload",
 						e);
 					IO.close(channel);
+					return Unit.INSTANCE;
 				}));
 	}
 
@@ -309,6 +316,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 					{
 						success.value();
 					}
+					return Unit.INSTANCE;
 				},
 				(e, unused, handler) ->
 				{
@@ -321,6 +329,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 					{
 						failure.value(e);
 					}
+					return Unit.INSTANCE;
 				}));
 	}
 
@@ -347,6 +356,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 					{
 						IO.close(transport);
 					}
+					return Unit.INSTANCE;
 				},
 				(e, unused, handler) ->
 				{
@@ -355,6 +365,7 @@ implements TransportAdapter<AsynchronousSocketChannel>
 						"failed while attempting to send close notification",
 						e);
 					IO.close(transport);
+					return Unit.INSTANCE;
 				}));
 	}
 

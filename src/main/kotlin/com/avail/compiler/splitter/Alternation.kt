@@ -31,15 +31,14 @@
  */
 package com.avail.compiler.splitter
 
+import com.avail.compiler.ParsingOperation.*
 import com.avail.compiler.splitter.InstructionGenerator.Label
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
 import com.avail.descriptor.A_Phrase
 import com.avail.descriptor.A_Type
-import java.util.ArrayList
-
-import com.avail.compiler.ParsingOperation.*
 import com.avail.descriptor.BottomTypeDescriptor.bottom
 import com.avail.descriptor.ListPhraseTypeDescriptor.emptyListPhraseType
+import java.util.*
 import java.util.Collections.unmodifiableList
 
 /**
@@ -72,23 +71,12 @@ internal class Alternation constructor(
 		unmodifiableList(ArrayList(alternatives))
 
 	override val isLowerCase: Boolean
-		get()
-		{
-			for (expression in alternatives)
-			{
-				if (!expression.isLowerCase)
-				{
-					return false
-				}
-			}
-			return true
-		}
+		get() = alternatives.stream().allMatch(Expression::isLowerCase)
 
 	override fun extractSectionCheckpointsInto(
 		sectionCheckpoints: MutableList<SectionCheckpoint>)
 	{
-		for (alternative in alternatives)
-		{
+		alternatives.forEach { alternative ->
 			alternative.extractSectionCheckpointsInto(sectionCheckpoints)
 		}
 	}
@@ -117,12 +105,8 @@ internal class Alternation constructor(
 		 * check progress and update saved position, or abort.
 		 * pop the parse position.
 		 */
-		var needsProgressCheck = false
-		for (alternative in alternatives)
-		{
-			needsProgressCheck =
-				needsProgressCheck or alternative.mightBeEmpty(bottom())
-		}
+		val needsProgressCheck =
+			alternatives.stream().anyMatch { it.mightBeEmpty(bottom()) }
 		generator.flushDelayed()
 		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION)
 		val `$after` = Label()
@@ -207,15 +191,6 @@ internal class Alternation constructor(
 			return last.shouldBeSeparatedOnRight
 		}
 
-	override fun mightBeEmpty(phraseType: A_Type): Boolean
-	{
-		for (alternative in alternatives)
-		{
-			if (alternative.mightBeEmpty(bottom()))
-			{
-				return true
-			}
-		}
-		return false
-	}
+	override fun mightBeEmpty(phraseType: A_Type): Boolean =
+		alternatives.stream().anyMatch { it.mightBeEmpty(bottom()) }
 }

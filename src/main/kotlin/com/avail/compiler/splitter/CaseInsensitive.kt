@@ -62,8 +62,8 @@ internal class CaseInsensitive constructor(
 	positionInName: Int,
 	val expression: Expression) : Expression(positionInName)
 {
-	override val isArgumentOrGroup
-		get() = expression.isArgumentOrGroup
+	override val yieldsValue
+		get() = expression.yieldsValue
 
 	override val isGroup
 		get() = expression.isGroup

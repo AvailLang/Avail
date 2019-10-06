@@ -34,10 +34,12 @@ Module "Characters"
 Versions
 	"1.4.0"
 Uses
+	"Early Assertions",
 	"Bootstrap",
 	"Control Structures",
 	"Definers",
 	"Early Conditionals",
+	"Early Tuples",
 	"Enumeration Support",
 	"Functions",
 	"Literals",
@@ -66,6 +68,7 @@ Names
 	"_is line terminator",
 	"_is punctuation start",
 	"_is punctuation end",
+	"_'s⁇character type name",
 	"punctuation end for_",
 	"punctuation start for_",
 
@@ -1506,3 +1509,120 @@ Public stable method "_is a control character" is
 |
 	(c's code point) ∈ controlCharacters
 ] : boolean;
+
+/**
+ * Character type names.
+ */
+characterTypes ::= <
+	/** General category "Cn" */
+	<"unassigned", 0>,
+
+	/** General category "Lu" */
+	<"uppercase letter", 1>,
+
+	/** General category "Ll" */
+	<"lowercase letter", 2>,
+
+	/** General category "Lt" */
+	<"titlecase letter", 3>,
+
+	/** General category "Lm" */
+	<"modifier letter", 4>,
+
+	/** General category "Lo" */
+	<"other letter", 5>,
+
+	/** General category "Mn" */
+	<"non-spacing mark", 6>,
+
+	/** General category "Me" */
+	<"enclosing mark", 7>,
+
+	/** General category "Mc" */
+	<"combining spacing mark", 8>,
+
+	/** General category "Nd" */
+	<"decimal digit number", 9>,
+
+	/** General category "Nl" */
+	<"letter number", 10>,
+
+	/** General category "No" */
+	<"other number", 11>,
+
+	/** General category "Zs" */
+	<"space separator", 12>,
+
+	/** General category "Zl" */
+	<"line separator", 13>,
+
+	/** General category "Zp" */
+	<"paragraph separator", 14>,
+
+	/** General category "Cc" */
+	<"control", 15>,
+
+	/** General category "Cf" */
+	<"format", 16>,
+
+	/** Invalid category */
+	<"invalid category 31", 17>,
+
+	/** General category "Co" */
+	<"private use", 18>,
+
+	/** General category "Cs" */
+	<"surrogate", 19>,
+
+	/** General category "Pd" */
+	<"dash punctuation", 20>,
+
+	/** General category "Ps" */
+	<"start punctuation", 21>,
+
+	/** General category "Pe" */
+	<"end punctuation", 22>,
+
+	/** General category "Pc" */
+	<"connector punctuation", 23>,
+
+	/** General category "Po" */
+	<"other punctuation", 24>,
+
+	/** General category "Sm" */
+	<"math symbol", 25>,
+
+	/** General category "Sc" */
+	<"currency symbol", 26>,
+
+	/** General category "Sk" */
+	<"modifier symbol", 27>,
+
+	/** General category "So" */
+	<"other symbol", 28>,
+
+	/** General category "Pi" */
+	<"initial quote punctuation", 29>,
+
+	/** General category "Pf" */
+	<"final quote punctuation", 30>,
+
+	/** Invalid category */
+	<"invalid category 31", 31>
+>;
+
+names : string* := <>;
+
+For each pair, i in characterTypes do
+[
+	name, value ::= pair;
+	Assert: value = i - 1 ("Character types were not consecutively numbered");
+	names ++= <name>;
+];
+
+Public stable method "_'s⁇character type name" is
+[
+	c : character
+|
+	names[c's character type number + 1]
+];

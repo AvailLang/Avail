@@ -124,7 +124,7 @@ extends L2Operation
 			L2ReadFloatOperand, L2FloatRegister>
 		unboxedFloat = new L2_PHI_PSEUDO_OPERATION<>(
 			L2_MOVE.unboxedFloat,
-			READ_BOXED_VECTOR.is("potential float sources"),
+			READ_FLOAT_VECTOR.is("potential float sources"),
 			WRITE_FLOAT.is("float destination"));
 
 	@Override
@@ -205,6 +205,9 @@ extends L2Operation
 	 *        The {@link L2Instruction} whose operation has this type.
 	 * @param inputIndex
 	 *        The index to remove.
+	 * @return A replacement {@link L2Instruction}, whose operation may be
+	 *         either another {@code L2_PHI_PSEUDO_OPERATION} or an {@link
+	 *         L2_MOVE}.
 	 */
 	public L2Instruction withoutIndex (
 		final L2Instruction instruction,
@@ -251,7 +254,7 @@ extends L2Operation
 	{
 		assert this == instruction.operation();
 		final L2ReadVectorOperand<RR, R> sources = instruction.operand(0);
-		final L2WriteOperand<R> destination = instruction.operand(1);
+//		final L2WriteOperand<R> destination = instruction.operand(1);
 
 		assert sources.elements().size()
 			== instruction.basicBlock.predecessorEdgesCount();

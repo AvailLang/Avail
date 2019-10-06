@@ -310,7 +310,7 @@ extends Descriptor
 		final A_Type returnType = functionType.returnType();
 		final L1InstructionWriter writer = new L1InstructionWriter(nil, 0, nil);
 		writer.argumentTypes(argTypesArray);
-		writer.returnType(returnType);
+		writer.setReturnType(returnType);
 		writer.write(
 			0,
 			L1Operation.L1_doPushLiteral,
@@ -380,7 +380,7 @@ extends Descriptor
 		final A_Type returnType = functionType.returnType();
 		final L1InstructionWriter writer = new L1InstructionWriter(nil, 0, nil);
 		writer.argumentTypes(argTypesArray);
-		writer.returnType(returnType);
+		writer.setReturnType(returnType);
 		for (int i = 1; i <= numArgs; i++)
 		{
 			writer.write(0, L1Operation.L1_doPushLastLocal, i);
@@ -557,7 +557,7 @@ extends Descriptor
 		final L1InstructionWriter writer = new L1InstructionWriter(
 			nil, 0, nil);
 		writer.argumentTypesTuple(paramTypes);
-		writer.returnType(bottom());
+		writer.setReturnType(bottom());
 		writer.write(
 			0,
 			L1Operation.L1_doPushLiteral,

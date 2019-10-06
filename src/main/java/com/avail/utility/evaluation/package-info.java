@@ -30,6 +30,5 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-@NonnullByDefault
 package com.avail.utility.evaluation;
 import com.avail.annotations.NonnullByDefault;

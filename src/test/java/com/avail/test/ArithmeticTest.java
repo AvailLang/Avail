@@ -51,7 +51,9 @@ import static com.avail.descriptor.FloatDescriptor.fromFloat;
 import static com.avail.descriptor.IntegerDescriptor.fromBigInteger;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static java.util.Arrays.asList;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Unit tests for the Avail arithmetic types.

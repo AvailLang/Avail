@@ -32,7 +32,12 @@
 
 package com.avail.interpreter.primitive.modules;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AtomDescriptor;
+import com.avail.descriptor.EnumerationTypeDescriptor;
 import com.avail.descriptor.ModuleDescriptor.ObjectSlots;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;

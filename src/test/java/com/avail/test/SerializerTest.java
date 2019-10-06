@@ -87,7 +87,9 @@ import static com.avail.utility.Nulls.stripNull;
 import static java.lang.Math.min;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * Unit tests for object serialization.
@@ -119,7 +121,7 @@ public final class SerializerTest
 	public void initializeAllWellKnownObjects ()
 	{
 		final IndexedRepositoryManager repository =
-			IndexedRepositoryManager.Companion.createTemporary(
+			IndexedRepositoryManager.createTemporary(
 				"avail", "test repository", null);
 		final File repositoryFile = repository.getFileName();
 		repository.close();
@@ -483,8 +485,8 @@ public final class SerializerTest
 		final L1InstructionWriter writer = new L1InstructionWriter(
 			nil, 0, nil);
 		writer.argumentTypes(FLOAT.o());
-		writer.primitive(P_FloatFloor.instance);
-		writer.returnType(FLOAT.o());
+		writer.setPrimitive(P_FloatFloor.instance);
+		writer.setReturnType(FLOAT.o());
 		final A_RawFunction code = writer.compiledCode();
 		final A_Function function =
 			createFunction(code, emptyTuple());

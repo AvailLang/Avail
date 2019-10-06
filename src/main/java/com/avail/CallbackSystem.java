@@ -32,7 +32,14 @@
 
 package com.avail;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.NilDescriptor;
+import com.avail.descriptor.PojoDescriptor;
 import com.avail.interpreter.primitive.pojos.P_InvokeCallback;
 import com.avail.utility.SimpleThreadFactory;
 
@@ -176,7 +183,7 @@ public class CallbackSystem
 	 * The Pojo type for a Java {@link Callback} object.
 	 */
 	private static final A_Type callbackTypePojo =
-		resolvePojoType(Callback.class, emptyMap());
+		resolvePojoType(Callback.class, emptyMap()).makeShared();
 
 	/**
 	 * The {@linkplain ThreadPoolExecutor thread pool executor} for performing

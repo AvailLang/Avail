@@ -40,7 +40,9 @@ import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.ReverseTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.ReverseTupleDescriptor.IntegerSlots.SIZE;
 import static com.avail.descriptor.ReverseTupleDescriptor.ObjectSlots.ORIGIN_TUPLE;
-import static com.avail.descriptor.TreeTupleDescriptor.*;
+import static com.avail.descriptor.TreeTupleDescriptor.concatenateAtLeastOneTree;
+import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;
+import static com.avail.descriptor.TreeTupleDescriptor.internalTreeReverse;
 
 /**
  * A reverse tuple holds a reference to an "origin" tuple and the origin

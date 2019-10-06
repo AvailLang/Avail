@@ -6,14 +6,14 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  Redistributions of source code must retain the above copyright notice, this
+ * * Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- *  Redistributions in binary form must reproduce the above copyright notice,
+ * * Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- *  Neither the name of the copyright holder nor the names of the contributors
+ * * Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -38,7 +38,9 @@ import com.avail.persistence.IndexedRepositoryManager;
 import com.avail.persistence.IndexedRepositoryManager.ModuleArchive;
 import com.avail.utility.Graph;
 import com.avail.utility.evaluation.Continuation0;
-import com.avail.utility.evaluation.Continuation2NotNull;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function0;
+import kotlin.jvm.functions.Function2;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -82,7 +84,7 @@ final class BuildUnloader
 	 */
 	private void determineSuccessorModules (
 		final ResolvedModuleName moduleName,
-		final Continuation0 completionAction)
+		final Function0<Unit> completionAction)
 	{
 		availBuilder.runtime.execute(
 			loaderPriority,
@@ -101,14 +103,14 @@ final class BuildUnloader
 						break;
 					}
 				}
-				completionAction.value();
+				completionAction.invoke();
 			});
 	}
 
 	/**
 	 * Determine which modules should be unloaded.  Suitable to be invoked
-	 * by {@link Graph#parallelVisit(Continuation2NotNull)} on the module
-	 * graph. For each module that should be unloaded, set its {@link
+	 * by {@link Graph#parallelVisit(Function2)} on the module graph. For each
+	 * module that should be unloaded, set its {@link
 	 * LoadedModule#deletionRequest deletionRequest}.
 	 *
 	 * <p>Note that the parallel graph visit mechanism blocks for all
@@ -125,7 +127,7 @@ final class BuildUnloader
 	 */
 	private void determineDirtyModules (
 		final @Nullable ResolvedModuleName moduleName,
-		final @Nullable Continuation0 completionAction)
+		final @Nullable Function0<Unit> completionAction)
 	{
 		assert moduleName != null;
 		assert completionAction != null;
@@ -172,14 +174,14 @@ final class BuildUnloader
 				loadedModule.deletionRequest = dirty;
 				AvailBuilder.log(
 					Level.FINEST, "(Module %s is dirty)", moduleName);
-				completionAction.value();
+				completionAction.invoke();
 			});
 	}
 
 	/**
 	 * Unload a module previously determined to be dirty, ensuring that the
 	 * completionAction runs when this is done.  Suitable for use by {@link
-	 * Graph#parallelVisit(Continuation2NotNull)} on the {@linkplain
+	 * Graph#parallelVisit(Function2)} on the {@linkplain
 	 * Graph#reverse() reverse} of the module graph.
 	 *
 	 * @param moduleName The name of a module to unload.
@@ -187,7 +189,7 @@ final class BuildUnloader
 	 */
 	private void unloadOneModule (
 		final ResolvedModuleName moduleName,
-		final Continuation0 completionAction)
+		final Function0<Unit> completionAction)
 	{
 		// No need to lock dirtyModules any more, since it's
 		// purely read-only at this point.
@@ -199,7 +201,7 @@ final class BuildUnloader
 					stripNull(availBuilder.getLoadedModule(moduleName));
 				if (!loadedModule.deletionRequest)
 				{
-					completionAction.value();
+					completionAction.invoke();
 					return;
 				}
 				AvailBuilder.log(
@@ -220,7 +222,7 @@ final class BuildUnloader
 							Level.FINER,
 							"Finished unload of: %s",
 							moduleName);
-						completionAction.value();
+						completionAction.invoke();
 					});
 			});
 	}
@@ -231,8 +233,18 @@ final class BuildUnloader
 	 */
 	void unloadModified ()
 	{
-		availBuilder.moduleGraph.parallelVisit(this::determineDirtyModules);
-		availBuilder.moduleGraph.reverse().parallelVisit(this::unloadOneModule);
+		availBuilder.moduleGraph.parallelVisit(
+			(moduleName, done) ->
+			{
+				determineDirtyModules(moduleName, done);
+				return Unit.INSTANCE;
+			});
+		availBuilder.moduleGraph.reverse().parallelVisit(
+			(moduleName, done) ->
+			{
+				unloadOneModule(moduleName, done);
+				return Unit.INSTANCE;
+			});
 		// Unloading of each A_Module is complete.  Update my local
 		// structures to agree.
 		for (final LoadedModule loadedModule : availBuilder.loadedModulesCopy())
@@ -276,8 +288,18 @@ final class BuildUnloader
 			}
 		}
 		int moduleCount = availBuilder.moduleGraph.vertexCount();
-		availBuilder.moduleGraph.parallelVisit(this::determineSuccessorModules);
-		availBuilder.moduleGraph.reverse().parallelVisit(this::unloadOneModule);
+		availBuilder.moduleGraph.parallelVisit(
+			(moduleName, done) ->
+			{
+				determineSuccessorModules(moduleName, done);
+				return Unit.INSTANCE;
+			});
+		availBuilder.moduleGraph.reverse().parallelVisit(
+			(moduleName, done) ->
+			{
+				unloadOneModule(moduleName, done);
+				return Unit.INSTANCE;
+			});
 		// Unloading of each A_Module is complete.  Update my local
 		// structures to agree.
 		for (final LoadedModule loadedModule : availBuilder.loadedModulesCopy())

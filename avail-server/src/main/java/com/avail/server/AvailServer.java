@@ -33,9 +33,14 @@
 package com.avail.server;
 
 import com.avail.AvailRuntime;
-import com.avail.builder.*;
-import com.avail.compiler.AvailCompiler.CompilerProgressReporter;
-import com.avail.compiler.AvailCompiler.GlobalProgressReporter;
+import com.avail.builder.AvailBuilder;
+import com.avail.builder.ModuleName;
+import com.avail.builder.ModuleNameResolver;
+import com.avail.builder.ModuleRoot;
+import com.avail.builder.ModuleRoots;
+import com.avail.builder.RenamesFileParserException;
+import com.avail.builder.ResolvedModuleName;
+import com.avail.builder.UnresolvedDependencyException;
 import com.avail.compiler.problems.ProblemHandler;
 import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.A_Module;
@@ -50,30 +55,61 @@ import com.avail.server.io.AvailServerChannel;
 import com.avail.server.io.AvailServerChannel.ProtocolState;
 import com.avail.server.io.ServerInputChannel;
 import com.avail.server.io.WebSocketAdapter;
-import com.avail.server.messages.*;
+import com.avail.server.messages.Command;
+import com.avail.server.messages.CommandMessage;
+import com.avail.server.messages.CommandParseException;
+import com.avail.server.messages.LoadModuleCommandMessage;
+import com.avail.server.messages.Message;
+import com.avail.server.messages.RunEntryPointCommandMessage;
+import com.avail.server.messages.SimpleCommandMessage;
+import com.avail.server.messages.UnloadModuleCommandMessage;
+import com.avail.server.messages.UpgradeCommandMessage;
+import com.avail.server.messages.VersionCommandMessage;
 import com.avail.utility.IO;
 import com.avail.utility.Mutable;
 import com.avail.utility.MutableOrNull;
 import com.avail.utility.configuration.ConfigurationException;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1NotNull;
-import com.avail.utility.evaluation.Continuation2NotNull;
 import com.avail.utility.evaluation.Continuation3NotNull;
 import com.avail.utility.json.JSONWriter;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function0;
+import kotlin.jvm.functions.Function2;
+import kotlin.jvm.functions.Function3;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.file.*;
+import java.nio.file.FileVisitOption;
+import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitor;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TimerTask;
+import java.util.UUID;
 import java.util.concurrent.Semaphore;
 import java.util.logging.Logger;
 
-import static java.util.Collections.*;
+import static com.avail.utility.Nulls.stripNull;
+import static java.util.Collections.singletonList;
+import static java.util.Collections.sort;
+import static java.util.Collections.synchronizedMap;
+import static java.util.Collections.unmodifiableSet;
 
 /**
  * A {@code AvailServer} manages an Avail environment.
@@ -861,13 +897,13 @@ public final class AvailServer
 					final String localName = fileName.substring(
 						0, fileName.length() - extension.length());
 					final ModuleNode node = new ModuleNode(localName);
-					stack.peekFirst().addModule(node);
+					stripNull(stack.peekFirst()).addModule(node);
 					stack.addFirst(node);
 					return FileVisitResult.CONTINUE;
 				}
 				// This is a resource.
 				final ModuleNode node = new ModuleNode(fileName);
-				stack.peekFirst().addResource(node);
+				stripNull(stack.peekFirst()).addResource(node);
 				stack.addFirst(node);
 				return FileVisitResult.CONTINUE;
 			}
@@ -899,12 +935,12 @@ public final class AvailServer
 					final String localName = fileName.substring(
 						0, fileName.length() - extension.length());
 					final ModuleNode node = new ModuleNode(localName);
-					stack.peekFirst().addModule(node);
+					stripNull(stack.peekFirst()).addModule(node);
 				}
 				else
 				{
 					final ModuleNode node = new ModuleNode(fileName);
-					stack.peekFirst().addResource(node);
+					stripNull(stack.peekFirst()).addResource(node);
 				}
 				return FileVisitResult.CONTINUE;
 			}
@@ -922,13 +958,13 @@ public final class AvailServer
 						0, fileName.length() - extension.length());
 					final ModuleNode node = new ModuleNode(localName);
 					node.exception = e;
-					stack.peekFirst().addModule(node);
+					stripNull(stack.peekFirst()).addModule(node);
 				}
 				else
 				{
 					final ModuleNode node = new ModuleNode(fileName);
 					node.exception = e;
-					stack.peekFirst().addResource(node);
+					stripNull(stack.peekFirst()).addResource(node);
 				}
 				return FileVisitResult.CONTINUE;
 			}
@@ -1022,7 +1058,8 @@ public final class AvailServer
 						{
 							map.put(name.qualifiedName(), entryPoints);
 						}
-						after.value();
+						after.invoke();
+						return Unit.INSTANCE;
 					});
 				writer.startArray();
 				for (final Entry<String, List<String>> entry :
@@ -1162,9 +1199,8 @@ public final class AvailServer
 
 	/**
 	 * Request new I/O-upgraded {@linkplain AvailServerChannel channels} to
-	 * support {@linkplain AvailBuilder#buildTarget(ModuleName,
-	 * CompilerProgressReporter, GlobalProgressReporter, ProblemHandler) module
-	 * loading}.
+	 * support {@linkplain AvailBuilder#buildTarget(ModuleName, Function3,
+	 * Function2, ProblemHandler)} module loading}.
 	 *
 	 * @param channel
 	 *        The {@linkplain AvailServerChannel channel} on which the
@@ -1287,6 +1323,7 @@ public final class AvailServer
 				{
 					localUpdates.add(writer);
 				}
+				return Unit.INSTANCE;
 			},
 			(bytesSoFar, totalBytes) ->
 			{
@@ -1301,6 +1338,7 @@ public final class AvailServer
 				{
 					globalUpdates.add(writer);
 				}
+				return Unit.INSTANCE;
 			},
 			builder.buildProblemHandler);
 		updater.cancel();
@@ -1423,9 +1461,8 @@ public final class AvailServer
 
 	/**
 	 * Request new I/O-upgraded {@linkplain AvailServerChannel channels} to
-	 * support {@linkplain AvailBuilder#attemptCommand(String,
-	 * Continuation2NotNull, Continuation2NotNull, Continuation0) builder}
-	 * command execution}.
+	 * support {@linkplain AvailBuilder#attemptCommand(String, Function2,
+	 * Function2, Function0) builder} command execution}.
 	 *
 	 * @param channel
 	 *        The {@linkplain AvailServerChannel channel} on which the
@@ -1474,6 +1511,7 @@ public final class AvailServer
 			(list, decider) ->
 			{
 				// TODO: [TLS] Disambiguate.
+				return Unit.INSTANCE;
 			},
 			(value, cleanup) ->
 			{
@@ -1492,8 +1530,13 @@ public final class AvailServer
 						});
 					channel.enqueueMessageThen(
 						message,
-						() -> cleanup.value(() -> IO.close(ioChannel)));
-					return;
+						() ->
+							cleanup.invoke(() ->
+							{
+								IO.close(ioChannel);
+								return Unit.INSTANCE;
+							}));
+					return Unit.INSTANCE;
 				}
 				Interpreter.stringifyThen(
 					runtime,
@@ -1514,10 +1557,19 @@ public final class AvailServer
 							});
 						channel.enqueueMessageThen(
 							message,
-							() -> cleanup.value(() -> IO.close(ioChannel)));
+							() -> cleanup.invoke(() ->
+							{
+								IO.close(ioChannel);
+								return Unit.INSTANCE;
+							}));
 					});
+				return Unit.INSTANCE;
 			},
-			() -> IO.close(ioChannel));
+			() ->
+			{
+				IO.close(ioChannel);
+				return Unit.INSTANCE;
+			});
 	}
 
 	/**

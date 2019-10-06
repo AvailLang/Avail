@@ -31,7 +31,13 @@
  */
 package com.avail.interpreter.primitive.general;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Continuation;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.exceptions.AvailEmergencyExitException;
 import com.avail.exceptions.AvailErrorCode;
@@ -50,7 +56,11 @@ import static com.avail.descriptor.ContinuationDescriptor.dumpStackThen;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
-import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.interpreter.Primitive.Flag.AlwaysSwitchesContinuation;
+import static com.avail.interpreter.Primitive.Flag.CanSuspend;
+import static com.avail.interpreter.Primitive.Flag.CanSwitchContinuations;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
+import static com.avail.interpreter.Primitive.Flag.Unknown;
 import static com.avail.utility.Casts.cast;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.String.format;
@@ -105,7 +115,7 @@ extends Primitive
 					final A_Number errorNumber = cast(errorMessageProducer);
 					final int intValue = errorNumber.extractInt();
 					final @Nullable AvailErrorCode code =
-						AvailErrorCode.Companion.byNumericCode(intValue);
+						AvailErrorCode.byNumericCode(intValue);
 					if (code != null)
 					{
 						builder.append(format(" (= %s)", code.name()));

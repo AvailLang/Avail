@@ -102,6 +102,8 @@ public final class L2Instruction
 
 	/**
 	 * The {@link L2Operation} whose execution this instruction represents.
+	 *
+	 * @return The instruction's {@link L2Operation}.
 	 */
 	public L2Operation operation ()
 	{
@@ -110,6 +112,8 @@ public final class L2Instruction
 
 	/**
 	 * Answer the {@link L2Operand}s to supply to the operation.
+	 *
+	 * @return The instruction's array of {@link L2Operand}s.
 	 */
 	public L2Operand[] operands ()
 	{
@@ -382,6 +386,7 @@ public final class L2Instruction
 	 * @param inliner
 	 *        The {@link L2Inliner} through which to write this
 	 *        instruction's equivalent effect.
+	 * @return The array of transformed {@link L2Operand}s.
 	 */
 	public L2Operand[] transformOperands (final L2Inliner inliner)
 	{

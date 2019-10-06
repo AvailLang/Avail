@@ -50,8 +50,9 @@ import static com.avail.descriptor.PojoTypeDescriptor.mostGeneralPojoArrayType;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.exceptions.AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE;
+import static com.avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED;
+import static com.avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 
 /**
@@ -68,7 +69,7 @@ public final class P_PojoArraySet extends Primitive
 	@ReferencedInGeneratedCode
 	public static final Primitive instance =
 		new P_PojoArraySet().init(
-			3, CanFold, CanInline);
+			3, CanInline);
 
 	@Override
 	public Result attempt (

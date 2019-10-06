@@ -109,7 +109,7 @@ Private method "nearby super bat swarm message" is
 		"An unusual odor sticks in your nose.\n",
 		"Your nose hairs are aquiver.\n",
 		"You hear the beating of wings.\n",
-		"Your feel a small draft.\n"
+		"You feel a small draft.\n"
 	>
 ] : string;
 

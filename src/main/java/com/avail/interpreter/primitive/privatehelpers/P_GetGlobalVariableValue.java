@@ -48,7 +48,10 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.CannotFail;
+import static com.avail.interpreter.Primitive.Flag.Private;
+import static com.avail.interpreter.Primitive.Flag.SpecialForm;
 import static com.avail.utility.Nulls.stripNull;
 
 /**

@@ -33,7 +33,7 @@
 package com.avail.performance
 
 import com.avail.AvailRuntimeConfiguration
-
+import com.avail.performance.ReportingUnit.Range
 import java.lang.Double.NEGATIVE_INFINITY
 import java.lang.Double.POSITIVE_INFINITY
 import java.lang.String.format
@@ -96,6 +96,7 @@ enum class ReportingUnit constructor(vararg ranges: Range)
 	internal val ranges: Array<Range>
 	init
 	{
+		@Suppress("UNCHECKED_CAST")
 		this.ranges = ranges as Array<Range>
 	}
 

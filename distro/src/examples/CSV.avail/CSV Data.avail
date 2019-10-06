@@ -32,29 +32,17 @@
 
 Module "CSV Data"
 Uses
-	"Avail" = (
-		/* Some of the core Avail syntax */
-		"whitespace lexer",
-		"string token lexer",
-		"whole number lexer",
-		"operator lexer",
-	),
-	"CSV Language" = (
-		"_!;",
-		"…$",
-		/* And the simple CSV language */
-		"«_‡,»"
-	)
+	"CSV Language"
 Body
 
-"last name", "first name", "d.o.b.";
-"Washington", "George", "1732.02.22";
-"Adams", "John", "1735.10.30";
-"Jefferson", "Thomas", "1743.04.13";
-"Madison", "James", "1751.03.16";
-"Monroe", "James", "1758.04.28";
-"Adams", "John Quincy", "1767.07.11";
-"Jackson", "Andrew", "1767.03.15";
-"Van Buren", "Martin", "1782.12.05";
-"Harrison", "William", "1773.02.09";
-"Tyler", "John", "1790.03.29";
+"last name", "first name", "d.o.b."
+"Washington", "George", "1732.02.22"
+"Adams", "John", "1735.10.30"
+"Jefferson", "Thomas", "1743.04.13"
+"Madison", "James", "1751.03.16"
+"Monroe", "James", "1758.04.28"
+"Adams", "John Quincy", "1767.07.11"
+"Jackson", "Andrew", "1767.03.15"
+"Van Buren", "Martin", "1782.12.05"
+"Harrison", "William", "1773.02.09"
+"Tyler", "John", "1790.03.29"

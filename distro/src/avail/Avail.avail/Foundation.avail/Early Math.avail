@@ -66,21 +66,17 @@ Body
  * Answer the semantic restriction function that should be used for each of
  * {@method "_'s⁇genuine lower bound"} and {@method "_'s⁇genuine upper bound"}.
  *
- * @method "integer range genuine«lower»?«upper»?\
-		\|bound semantic restriction function"
- * @param "wantsLower" "boolean"
- * @param "wantsUpper" "boolean"
+ * @method "integer range genuine«lower|«upper»!\
+ *         \|bound semantic restriction function"
+ * @param "lowerOrUpper" "[1..2]"
  * @returns "[extended integer meta's type]→([-∞..∞])'s type"
  *    A function that strengthens the integer range bounds methods.
  */
-Private method "integer range genuine«lower»?«upper»?\
-		\|bound semantic restriction function" is
+Private method
+"integer range genuine«lower|upper»!bound semantic restriction function" is
 [
-	wantsLower : boolean,
-	wantsUpper : boolean
+	lowerOrUpper : integer range from 1 (inclusive=true) to 2 (inclusive=true)
 |
-	Assert: wantsLower ≠ wantsUpper
-		("exactly one of {\"lower\", \"upper\"} to follow \"genuine\"");
 	[
 		range : extended integer meta's type
 	|
@@ -92,10 +88,10 @@ Private method "integer range genuine«lower»?«upper»?\
 		/* Must accommodate ⊥. It answers ∞ for its lower bound and -∞ for its
 		 * upper bound.
 		 */
-		lower ::= if wantsUpper
+		lower ::= if lowerOrUpper = 2
 			then [ -∞ ]
 			else [ instance's genuine lower bound ];
-		upper ::= if wantsLower
+		upper ::= if lowerOrUpper = 1
 			then [ ∞ ]
 			else [ instance's genuine upper bound ];
 		integer range from lower (inclusive=true) to upper (inclusive=true)

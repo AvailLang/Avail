@@ -37,6 +37,29 @@ Extends "Avail"
 Names
 Body
 
+Method "_first_" is [a : number, b: number | 123] : number;
+Method "_first_" is [a : number, b: integer | 1234] : number;
+Method "_first_" is [a : number, b: whole number | 12345] : number;
+Method "_first_" is [a : number, b: natural number | 123456] : number;
+
+Macro "_first_" is [
+	a : phrase,
+	b : phrase
+|
+	Print: "MAIN\n";
+	b
+];
+
+Macro "_first_" is [
+	a : literal phrase ⇒ number,
+	b : literal phrase ⇒ number
+|
+	Print: "CHILD\n";
+	`a's token's value + b's token's value`("some whack value") → literal phrase
+];
+
+Print: “1 max 2 min 3”;
+
 
 Repeat
 [

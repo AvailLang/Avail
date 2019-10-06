@@ -33,12 +33,25 @@
 package com.avail.interpreter.primitive.sockets;
 
 import com.avail.AvailRuntime;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AtomDescriptor;
+import com.avail.descriptor.ByteBufferTupleDescriptor;
+import com.avail.descriptor.EnumerationTypeDescriptor;
+import com.avail.descriptor.FiberDescriptor;
+import com.avail.descriptor.FunctionDescriptor;
+import com.avail.descriptor.IntegerDescriptor;
+import com.avail.descriptor.IntegerRangeTypeDescriptor;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.io.SimpleCompletionHandler;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+import kotlin.Unit;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
@@ -61,7 +74,9 @@ import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
 import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.exceptions.AvailErrorCode.E_INVALID_HANDLE;
+import static com.avail.exceptions.AvailErrorCode.E_IO_ERROR;
+import static com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 import static java.lang.Integer.MAX_VALUE;
@@ -151,13 +166,18 @@ extends Primitive
 							asList(
 								tupleForByteBuffer(buffer),
 								objectFromBoolean(bytesRead == -1)));
+						return Unit.INSTANCE;
 					},
-					killer -> Interpreter.runOutermostFunction(
-						runtime,
-						newFiber,
-						fail,
-						singletonList(
-							E_IO_ERROR.numericCode()))));
+					killer ->
+					{
+						Interpreter.runOutermostFunction(
+							runtime,
+							newFiber,
+							fail,
+							singletonList(
+								E_IO_ERROR.numericCode()));
+						return Unit.INSTANCE;
+					}));
 		}
 		catch (final IllegalArgumentException e)
 		{

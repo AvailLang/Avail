@@ -36,7 +36,9 @@ import com.avail.annotations.AvailMethod;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
-import static com.avail.descriptor.MethodDefinitionDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.MethodDefinitionDescriptor.ObjectSlots.BODY_BLOCK;
+import static com.avail.descriptor.MethodDefinitionDescriptor.ObjectSlots.DEFINITION_METHOD;
+import static com.avail.descriptor.MethodDefinitionDescriptor.ObjectSlots.MODULE;
 import static com.avail.descriptor.TypeDescriptor.Types.METHOD_DEFINITION;
 
 /**

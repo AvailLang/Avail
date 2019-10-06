@@ -32,13 +32,12 @@
 
 package com.avail.io
 
+import com.avail.AvailRuntime.currentRuntime
 import java.io.*
 import java.nio.CharBuffer
 import java.nio.channels.CompletionHandler
 import java.nio.charset.CodingErrorAction
 import java.nio.charset.StandardCharsets
-
-import com.avail.AvailRuntime.currentRuntime
 
 /**
  * A `ProcessInputChannel` provides a faux

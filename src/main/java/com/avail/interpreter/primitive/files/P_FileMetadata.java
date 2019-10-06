@@ -43,7 +43,11 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.io.IOError;
 import java.io.IOException;
-import java.nio.file.*;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
@@ -62,7 +66,9 @@ import static com.avail.descriptor.RawPojoDescriptor.equalityPojo;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
-import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.exceptions.AvailErrorCode.E_INVALID_PATH;
+import static com.avail.exceptions.AvailErrorCode.E_IO_ERROR;
+import static com.avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 import static java.lang.Long.MAX_VALUE;
@@ -94,14 +100,13 @@ extends Primitive
 		final Path path;
 		try
 		{
-			path = IOSystem.Companion.getFileSystem().getPath(
-				filename.asNativeString());
+			path = IOSystem.getFileSystem().getPath(filename.asNativeString());
 		}
 		catch (final InvalidPathException e)
 		{
 			return interpreter.primitiveFailure(E_INVALID_PATH);
 		}
-		final LinkOption[] options = IOSystem.Companion.followSymlinks(
+		final LinkOption[] options = IOSystem.followSymlinks(
 			followSymlinks.extractBoolean());
 		final BasicFileAttributes attributes;
 		try

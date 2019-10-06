@@ -46,7 +46,9 @@ import java.lang.reflect.Modifier;
 import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.IntegerDescriptor.zero;
-import static com.avail.descriptor.PojoFieldDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.PojoFieldDescriptor.ObjectSlots.FIELD;
+import static com.avail.descriptor.PojoFieldDescriptor.ObjectSlots.KIND;
+import static com.avail.descriptor.PojoFieldDescriptor.ObjectSlots.RECEIVER;
 import static com.avail.descriptor.PojoFinalFieldDescriptor.pojoFinalFieldForInnerType;
 import static com.avail.descriptor.PojoTypeDescriptor.unmarshal;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;

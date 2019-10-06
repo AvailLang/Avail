@@ -41,7 +41,12 @@ import com.avail.io.IOSystem;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.io.IOException;
-import java.nio.file.*;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.FileSystem;
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
 import java.nio.file.attribute.GroupPrincipal;
 import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.UserPrincipalLookupService;
@@ -54,7 +59,10 @@ import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.exceptions.AvailErrorCode.E_INVALID_PATH;
+import static com.avail.exceptions.AvailErrorCode.E_IO_ERROR;
+import static com.avail.exceptions.AvailErrorCode.E_OPERATION_NOT_SUPPORTED;
+import static com.avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 
@@ -85,18 +93,18 @@ extends Primitive
 		final A_String filename = interpreter.argument(0);
 		final A_String groupName = interpreter.argument(1);
 		final A_Atom followSymlinks = interpreter.argument(2);
-		final FileSystem fileSystem = IOSystem.Companion.getFileSystem();
+		final FileSystem fileSystem = IOSystem.getFileSystem();
 		final Path path;
 		try
 		{
-			path = IOSystem.Companion.getFileSystem().getPath(
+			path = IOSystem.getFileSystem().getPath(
 				filename.asNativeString());
 		}
 		catch (final InvalidPathException e)
 		{
 			return interpreter.primitiveFailure(E_INVALID_PATH);
 		}
-		final LinkOption[] options = IOSystem.Companion.followSymlinks(
+		final LinkOption[] options = IOSystem.followSymlinks(
 			followSymlinks.extractBoolean());
 		final PosixFileAttributeView view = Files.getFileAttributeView(
 			path, PosixFileAttributeView.class, options);

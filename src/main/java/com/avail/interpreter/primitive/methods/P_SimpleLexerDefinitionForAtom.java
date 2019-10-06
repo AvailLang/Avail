@@ -33,7 +33,13 @@
 package com.avail.interpreter.primitive.methods;
 
 import com.avail.AvailTask;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Bundle;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Lexer;
+import com.avail.descriptor.A_Method;
+import com.avail.descriptor.A_Type;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.AvailLoader;
@@ -48,7 +54,9 @@ import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.compiler.splitter.MessageSplitter.getPossibleErrors;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.LexerDescriptor.*;
+import static com.avail.descriptor.LexerDescriptor.lexerBodyFunctionType;
+import static com.avail.descriptor.LexerDescriptor.lexerFilterFunctionType;
+import static com.avail.descriptor.LexerDescriptor.newLexer;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.SetDescriptor.set;

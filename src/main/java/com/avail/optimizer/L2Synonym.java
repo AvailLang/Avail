@@ -6,14 +6,14 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  Redistributions of source code must retain the above copyright notice, this
+ * * Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- *  Redistributions in binary form must reproduce the above copyright notice,
+ * * Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- *  Neither the name of the copyright holder nor the names of the contributors
+ * * Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -31,7 +31,6 @@
  */
 package com.avail.optimizer;
 
-import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.optimizer.values.Frame;
 import com.avail.optimizer.values.L2SemanticValue;
 
@@ -43,10 +42,9 @@ import static java.util.Collections.unmodifiableSet;
 import static java.util.stream.Collectors.toCollection;
 
 /**
- * An {@code L2Synonym} is a set of {@link L2Register}s and {@link
- * L2SemanticValue}s.  The {@link L2ValueManifest} at each instruction includes
- * a set of synonyms which partition the potentially both the live registers and
- * semantic values.
+ * An {@code L2Synonym} is a set of {@link L2SemanticValue}s known to represent
+ * the same value in some {@link L2ValueManifest}.  The manifest at each
+ * instruction includes a set of synonyms which partition the semantic values.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;

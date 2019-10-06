@@ -34,6 +34,7 @@ package com.avail.test;
 
 import com.avail.utility.Graph;
 import com.avail.utility.Graph.GraphPreconditionFailure;
+import kotlin.Unit;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -41,7 +42,10 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Basic functionality test of {@link Graph}s.
@@ -243,7 +247,8 @@ public class GraphTest
 					assertFalse(previousVertex % vertex == 0);
 				}
 				visitedVertices.add(vertex);
-				completion.value();
+				completion.invoke();
+				return Unit.INSTANCE;
 			});
 		assertEquals(scale, visitedVertices.size());
 		assertEquals(scale, new HashSet<>(visitedVertices).size());

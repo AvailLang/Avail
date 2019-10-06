@@ -6,14 +6,14 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  Redistributions of source code must retain the above copyright notice, this
+ * * Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- *  Redistributions in binary form must reproduce the above copyright notice,
+ * * Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- *  Neither the name of the copyright holder nor the names of the contributors
+ * * Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -38,12 +38,8 @@ import com.avail.builder.UnresolvedDependencyException;
 import com.avail.test.AvailRuntimeTestHelper.TestErrorChannel;
 import com.avail.utility.Mutable;
 import com.avail.utility.Nulls;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import kotlin.Unit;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -157,6 +153,9 @@ public class AvailTest
 		{
 			"/experimental/builder tests/MutuallyRecursive1",
 			"/experimental/builder tests/MutuallyRecursive2",
+			"/experimental/builder tests/MutuallyRecursive3",
+			"/experimental/builder tests/UsesMutuallyRecursive1",
+			"/experimental/builder tests/UsesUsesMutuallyRecursive1",
 			"/experimental/builder tests/ShouldFailCompilation",
 			"/experimental/builder tests/ShouldFailDuplicateImportVersion",
 			"/experimental/builder tests/ShouldFailDuplicateName",
@@ -194,16 +193,25 @@ public class AvailTest
 		final Mutable<Boolean> ok = new Mutable<>(false);
 		helper().builder.attemptCommand(
 			"Run all tests",
-			(commands, proceed) -> proceed.value(commands.get(0)),
+			(commands, proceed) ->
+			{
+				proceed.invoke(commands.get(0));
+				return Unit.INSTANCE;
+			},
 			(result, cleanup) ->
-				cleanup.value(() ->
+				cleanup.invoke(() ->
 				{
-					ok.value = true;
+					ok.value = result.extractBoolean();
 					semaphore.release();
+					return Unit.INSTANCE;
 				}),
-			semaphore::release);
+			() ->
+			{
+				semaphore.release();
+				return Unit.INSTANCE;
+			});
 		semaphore.acquireUninterruptibly();
-		assertTrue(ok.value);
+		assertTrue(ok.value, "Some Avail tests failed");
 		assertFalse(helper().errorDetected());
 		// TODO: [TLS] Runners.avail needs to be reworked so that Avail unit
 		// test failures show up on standard error instead of standard output,

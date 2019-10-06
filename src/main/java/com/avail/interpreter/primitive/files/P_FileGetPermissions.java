@@ -32,14 +32,24 @@
 
 package com.avail.interpreter.primitive.files;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.IntegerDescriptor;
+import com.avail.descriptor.SetDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.io.IOSystem;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.io.IOException;
-import java.nio.file.*;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.EnumMap;
 import java.util.Map;
@@ -56,13 +66,16 @@ import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
-import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.exceptions.AvailErrorCode.E_INVALID_PATH;
+import static com.avail.exceptions.AvailErrorCode.E_IO_ERROR;
+import static com.avail.exceptions.AvailErrorCode.E_OPERATION_NOT_SUPPORTED;
+import static com.avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 
 /**
  * <strong>Primitive:</strong> Answer the {@linkplain IntegerDescriptor
- * ordinals} (into {@link IOSystem.Companion#posixPermissions}) of the
+ * ordinals} (into {@link IOSystem#getPosixPermissions()}) of the
  * {@linkplain PosixFilePermission POSIX file permissions} that describe the
  * access rights granted by the file named by specified {@linkplain Path path}.
  *
@@ -91,7 +104,8 @@ extends Primitive
 	// necessary.
 	static
 	{
-		final PosixFilePermission[] permissions = IOSystem.Companion.posixPermissions();
+		final PosixFilePermission[] permissions =
+			IOSystem.getPosixPermissions();
 		for (int i = 0; i < permissions.length; i++)
 		{
 			permissionMap.put(permissions[i], fromInt(i + 1));
@@ -131,13 +145,13 @@ extends Primitive
 		final Path path;
 		try
 		{
-			path = IOSystem.Companion.getFileSystem().getPath(filename.asNativeString());
+			path = IOSystem.getFileSystem().getPath(filename.asNativeString());
 		}
 		catch (final InvalidPathException e)
 		{
 			return interpreter.primitiveFailure(E_INVALID_PATH);
 		}
-		final LinkOption[] options = IOSystem.Companion.followSymlinks(
+		final LinkOption[] options = IOSystem.followSymlinks(
 			followSymlinks.extractBoolean());
 		final Set<PosixFilePermission> permissions;
 		try

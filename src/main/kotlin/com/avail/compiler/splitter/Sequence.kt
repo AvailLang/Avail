@@ -67,20 +67,20 @@ internal class Sequence constructor(positionInName: Int)
 : Expression(positionInName)
 {
 	/** The sequence of expressions that I comprise. */
-	val expressions: MutableList<Expression?> = ArrayList()
+	val expressions: MutableList<Expression> = ArrayList()
 
 	/**
 	 * Which of my [expressions] is an argument, ellipsis, or group? These are
 	 * in the order they occur in the `expressions` list.
 	 */
-	val arguments: MutableList<Expression> = ArrayList()
+	val yielders: MutableList<Expression> = ArrayList()
 
 	/**
 	 * My one-based permutation that takes argument expressions from the order
 	 * in which they occur to the order in which they are bound to arguments at
 	 * a call site.
 	 */
-	val permutedArguments: MutableList<Int> = ArrayList()
+	val permutedYielders: MutableList<Int> = ArrayList()
 
 	/**
 	 * A three-state indicator of whether my argument components should be
@@ -92,20 +92,10 @@ internal class Sequence constructor(positionInName: Int)
 	 * [java.lang.Boolean.FALSE], then no arguments so far have specified
 	 * reordering.
 	 */
-	var argumentsAreReordered: Boolean? = null
+	var yieldersAreReordered: Boolean? = null
 
 	override val isLowerCase: Boolean
-		get()
-		{
-			for (expression in expressions)
-			{
-				if (!expression!!.isLowerCase)
-				{
-					return false
-				}
-			}
-			return true
-		}
+		get() = expressions.stream().allMatch { it.isLowerCase }
 
 	/** A cache of places at which code splitting can take place.  */
 	@Volatile
@@ -125,14 +115,14 @@ internal class Sequence constructor(positionInName: Int)
 	fun addExpression(e: Expression)
 	{
 		expressions.add(e)
-		if (e.isArgumentOrGroup)
+		if (e.yieldsValue)
 		{
-			arguments.add(e)
+			yielders.add(e)
 		}
 		if (e.canBeReordered)
 		{
-			if (argumentsAreReordered != null
-				&& argumentsAreReordered == (e.explicitOrdinal == -1))
+			if (yieldersAreReordered != null
+				&& yieldersAreReordered == (e.explicitOrdinal == -1))
 			{
 				throwMalformedMessageException(
 					E_INCONSISTENT_ARGUMENT_REORDERING,
@@ -141,27 +131,26 @@ internal class Sequence constructor(positionInName: Int)
 						+ "or none of its arguments or direct subgroups numbered "
 						+ "for reordering")
 			}
-			argumentsAreReordered = e.explicitOrdinal != -1
+			yieldersAreReordered = e.explicitOrdinal != -1
 		}
 	}
 
-	override val underscoreCount: Int
+	@Deprecated("Not applicable to Sequence")
+	override val yieldsValue: Boolean
 		get()
 		{
-			var count = 0
-			for (expr in expressions)
-			{
-				count += expr!!.underscoreCount
-			}
-			return count
+			assert(false) { "Should not ask sequence if it yields a value" }
+			return false
 		}
+
+	override val underscoreCount: Int
+		get() = expressions.stream().mapToInt { it!!.underscoreCount }.sum()
 
 	override fun extractSectionCheckpointsInto(
 		sectionCheckpoints: MutableList<SectionCheckpoint>)
 	{
-		for (expression in expressions)
-		{
-			expression!!.extractSectionCheckpointsInto(sectionCheckpoints)
+		expressions.forEach { expression ->
+			expression.extractSectionCheckpointsInto(sectionCheckpoints)
 		}
 	}
 
@@ -230,20 +219,20 @@ internal class Sequence constructor(positionInName: Int)
 		// Make sure the tuple of argument types are suitable for the
 		// argument positions that I comprise.  Take the argument reordering
 		// permutation into account if present.
-		val expected = arguments.size
+		val expected = yielders.size
 		val sizes = argumentType.sizeRange()
 		if (!sizes.lowerBound().equalsInt(expected)
 			|| !sizes.upperBound().equalsInt(expected))
 		{
 			throwSignatureException(errorCode)
 		}
-		if (argumentsAreReordered === java.lang.Boolean.TRUE)
+		if (yieldersAreReordered === java.lang.Boolean.TRUE)
 		{
 			for (i in 1..expected)
 			{
-				val argumentOrGroup = arguments[i - 1]
+				val argumentOrGroup = yielders[i - 1]
 				val providedType =
-					argumentType.typeAtIndex(permutedArguments[i - 1])
+					argumentType.typeAtIndex(permutedYielders[i - 1])
 				assert(!providedType.isBottom)
 				argumentOrGroup.checkType(providedType, sectionNumber)
 			}
@@ -252,7 +241,7 @@ internal class Sequence constructor(positionInName: Int)
 		{
 			for (i in 1..expected)
 			{
-				val argumentOrGroup = arguments[i - 1]
+				val argumentOrGroup = yielders[i - 1]
 				val providedType = argumentType.typeAtIndex(i)
 				assert(!providedType.isBottom)
 				argumentOrGroup.checkType(providedType, sectionNumber)
@@ -289,7 +278,7 @@ internal class Sequence constructor(positionInName: Int)
 		for (expression in expressions)
 		{
 			// Put the subexpression into one of the runs.
-			if (expression!!.hasSectionCheckpoints)
+			if (expression.hasSectionCheckpoints)
 			{
 				if (currentRun.isNotEmpty())
 				{
@@ -300,14 +289,14 @@ internal class Sequence constructor(positionInName: Int)
 					listOf(
 						Pair(
 							expression,
-							if (expression.isArgumentOrGroup) ++typeIndex else 0)))
+							if (expression.yieldsValue) ++typeIndex else 0)))
 			}
 			else
 			{
 				currentRun.add(
 					Pair(
 						expression,
-						if (expression.isArgumentOrGroup) ++typeIndex else 0))
+						if (expression.yieldsValue) ++typeIndex else 0))
 				if (expression !is Optional)
 				{
 					result.add(ArrayList(currentRun))
@@ -353,8 +342,8 @@ internal class Sequence constructor(positionInName: Int)
 		val typeIndex = pair.second()
 		val realTypeIndex =
 			if (typeIndex != 0
-					&& argumentsAreReordered === java.lang.Boolean.TRUE)
-				permutedArguments[typeIndex - 1]
+					&& yieldersAreReordered === java.lang.Boolean.TRUE)
+				permutedYielders[typeIndex - 1]
 			else
 				typeIndex
 		val subexpressionType =
@@ -382,7 +371,7 @@ internal class Sequence constructor(positionInName: Int)
 			{
 				// Do the argument reversal at the outermost recursion.
 				val lastElementPushed =
-					run[runSize - 1].first().isArgumentOrGroup
+					run[runSize - 1].first().yieldsValue
 				val permutationSize = runSize + if (lastElementPushed) 0 else -1
 				if (permutationSize > 1)
 				{
@@ -438,7 +427,7 @@ internal class Sequence constructor(positionInName: Int)
 				}
 			}
 			emitRunOn(run, 0, generator, subexpressionsTupleType)
-			val argsInRun = if (lastInRun.isArgumentOrGroup)
+			val argsInRun = if (lastInRun.yieldsValue)
 				runSize
 			else
 				runSize - 1
@@ -467,17 +456,17 @@ internal class Sequence constructor(positionInName: Int)
 			listIsPushed
 				|| wrapState === SHOULD_NOT_PUSH_LIST
 				|| wrapState === SHOULD_NOT_HAVE_ARGUMENTS)
-		assert(arguments.size == argIndex)
+		assert(yielders.size == argIndex)
 		assert(
 			subexpressionsTupleType.sizeRange().lowerBound().equalsInt(
 				argIndex))
 		assert(
 			subexpressionsTupleType.sizeRange().upperBound().equalsInt(
 				argIndex))
-		if (argumentsAreReordered === java.lang.Boolean.TRUE)
+		if (yieldersAreReordered === java.lang.Boolean.TRUE)
 		{
 			assert(listIsPushed)
-			val permutationTuple = tupleFromIntegerList(permutedArguments)
+			val permutationTuple = tupleFromIntegerList(permutedYielders)
 			val permutationIndex = indexForPermutation(permutationTuple)
 			// This sequence was already collected into a list phrase as the
 			// arguments/groups were parsed.  Permute the list.
@@ -499,7 +488,7 @@ internal class Sequence constructor(positionInName: Int)
 				builder.append(", ")
 			}
 			builder.append(e)
-			if (e!!.canBeReordered && e.explicitOrdinal != -1)
+			if (e.canBeReordered && e.explicitOrdinal != -1)
 			{
 				builder.appendCodePoint(
 					circledNumberCodePoint(e.explicitOrdinal))
@@ -519,7 +508,7 @@ internal class Sequence constructor(positionInName: Int)
 		var needsSpace = false
 		for (expression in expressions)
 		{
-			if (expression!!.shouldBeSeparatedOnLeft && needsSpace)
+			if (expression.shouldBeSeparatedOnLeft && needsSpace)
 			{
 				builder.append(' ')
 			}
@@ -535,11 +524,11 @@ internal class Sequence constructor(positionInName: Int)
 
 	override val shouldBeSeparatedOnLeft: Boolean
 		get() =
-			expressions.isNotEmpty() && expressions[0]!!.shouldBeSeparatedOnLeft
+			expressions.isNotEmpty() && expressions[0].shouldBeSeparatedOnLeft
 
 	override val shouldBeSeparatedOnRight: Boolean
 		get() =
-			expressions.isNotEmpty() && expressions[expressions.size - 1]!!
+			expressions.isNotEmpty() && expressions[expressions.size - 1]
 				.shouldBeSeparatedOnRight
 
 	/**
@@ -554,18 +543,15 @@ internal class Sequence constructor(positionInName: Int)
 	@Throws(MalformedMessageException::class)
 	fun checkForConsistentOrdinals()
 	{
-		if (argumentsAreReordered !== java.lang.Boolean.TRUE)
+		if (yieldersAreReordered !== java.lang.Boolean.TRUE)
 		{
 			return
 		}
-		val usedOrdinalsList = ArrayList<Int>()
-		for (e in expressions)
-		{
-			if (e!!.canBeReordered)
-			{
-				usedOrdinalsList.add(e.explicitOrdinal)
-			}
-		}
+		val usedOrdinalsList = expressions
+			.asSequence()
+			.filter { it.canBeReordered }
+			.map { it.explicitOrdinal }
+			.toList()
 		val size = usedOrdinalsList.size
 		val sortedOrdinalsList = ArrayList(usedOrdinalsList)
 		sortedOrdinalsList.sort()
@@ -587,8 +573,8 @@ internal class Sequence constructor(positionInName: Int)
 					"the number of arguments/groups, but must not be in " +
 					"ascending order (got $usedOrdinalsList)")
 		}
-		assert(permutedArguments.isEmpty())
-		permutedArguments.addAll(usedOrdinalsList)
+		assert(permutedYielders.isEmpty())
+		permutedYielders.addAll(usedOrdinalsList)
 	}
 
 	override fun mightBeEmpty(phraseType: A_Type): Boolean
@@ -597,12 +583,12 @@ internal class Sequence constructor(positionInName: Int)
 		var index = 0
 		for (expression in expressions)
 		{
-			if (expression!!.isArgumentOrGroup)
+			if (expression.yieldsValue)
 			{
 				index++
 				val realTypeIndex =
-					if (argumentsAreReordered === java.lang.Boolean.TRUE)
-						permutedArguments[index - 1]
+					if (yieldersAreReordered === java.lang.Boolean.TRUE)
+						permutedYielders[index - 1]
 					else
 						index
 				val entryType =

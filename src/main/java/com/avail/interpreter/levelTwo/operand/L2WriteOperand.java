@@ -92,6 +92,8 @@ extends L2Operand
 	 * @param restriction
 	 *        The {@link TypeRestriction} that indicates what values are allowed
 	 *        to be written into the register.
+	 * @param register
+	 *        The {@link L2Register} to write.
 	 */
 	public L2WriteOperand (
 		final L2SemanticValue semanticValue,

@@ -37,7 +37,9 @@ import com.avail.annotations.HideFieldInDebugger;
 
 import static com.avail.AvailRuntimeSupport.nextHash;
 import static com.avail.descriptor.GrammaticalRestrictionDescriptor.IntegerSlots.HASH;
-import static com.avail.descriptor.GrammaticalRestrictionDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.GrammaticalRestrictionDescriptor.ObjectSlots.ARGUMENT_RESTRICTION_SETS;
+import static com.avail.descriptor.GrammaticalRestrictionDescriptor.ObjectSlots.DEFINITION_MODULE;
+import static com.avail.descriptor.GrammaticalRestrictionDescriptor.ObjectSlots.RESTRICTED_BUNDLE;
 
 /**
  * A {@code GrammaticalRestrictionDescriptor grammatical restriction} serves to

@@ -53,6 +53,7 @@ Extends
 		"report on_",
 
 		/* Analyzing reports. */
+		"bad results of_",
 		"_'s⁇metrics by module",
 		"_'s⁇metrics by test suite",
 

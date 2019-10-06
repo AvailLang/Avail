@@ -655,8 +655,8 @@ class MessageSplitter
 				expression.positionInName - 1
 			}
 		val annotatedString = (string.substring(0, zeroBasedPosition)
-			+ CompilerDiagnostics.errorIndicatorSymbol
-			+ string.substring(zeroBasedPosition))
+							   + CompilerDiagnostics.errorIndicatorSymbol
+							   + string.substring(zeroBasedPosition))
 		return stringFrom(annotatedString).toString()
 	}
 
@@ -1283,7 +1283,7 @@ class MessageSplitter
 				"A question mark (?) may only follow a simple "
 					+ "group (optional) or a group with arguments "
 					+ "(0 or 1 occurrences), but not one with a "
-					+ "double-dagger (‡), since that implies "
+					+ "double-dagger (‡), since that suggests "
 					+ "multiple occurrences to be separated"))
 		{
 			if (group.underscoreCount > 0)
@@ -1324,7 +1324,7 @@ class MessageSplitter
 			// The guillemet group should have had a single element, an
 			// alternation.
 			val alternation = cast<Expression, Alternation>(
-				group.beforeDagger.expressions[0]!!)
+				group.beforeDagger.expressions[0])
 			subexpression = NumberedChoice(alternation)
 		}
 		return subexpression
@@ -1406,7 +1406,7 @@ class MessageSplitter
 	 * @return
 	 *   The number of arguments this message takes.
 	 */
-	val numberOfArguments get() = rootSequence.arguments.size
+	val numberOfArguments get() = rootSequence.yielders.size
 
 	/**
 	 * Check that an [implementation][DefinitionDescriptor] with the given
@@ -1457,7 +1457,7 @@ class MessageSplitter
 	{
 		for (expression in rootSequence.expressions)
 		{
-			if (expression!!.isGroup)
+			if (expression.isGroup)
 			{
 				return true
 			}
@@ -1738,7 +1738,7 @@ class MessageSplitter
 		private fun checkAlternative(expression: Expression)
 		{
 			throwMalformedIf(
-				expression.isArgumentOrGroup
+				expression.yieldsValue
 						|| expression.underscoreCount > 0,
 				E_ALTERNATIVE_MUST_NOT_CONTAIN_ARGUMENTS,
 				"Alternatives must not contain arguments")

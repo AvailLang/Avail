@@ -48,7 +48,15 @@ import com.avail.utility.Mutable;
 import com.avail.utility.Pair;
 import com.avail.utility.Strings;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
 
 import static com.avail.AvailRuntimeSupport.captureNanos;
 import static com.avail.AvailRuntimeSupport.nextHash;
@@ -57,8 +65,20 @@ import static com.avail.compiler.ParsingOperation.decode;
 import static com.avail.compiler.splitter.MessageSplitter.constantForIndex;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
-import static com.avail.descriptor.MessageBundleTreeDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.MessageBundleTreeDescriptor.IntegerSlots.HASH_AND_MORE;
+import static com.avail.descriptor.MessageBundleTreeDescriptor.IntegerSlots.HASH_OR_ZERO;
+import static com.avail.descriptor.MessageBundleTreeDescriptor.IntegerSlots.HAS_BACKWARD_JUMP_INSTRUCTION;
+import static com.avail.descriptor.MessageBundleTreeDescriptor.IntegerSlots.IS_SOURCE_OF_CYCLE;
+import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.ALL_PLANS_IN_PROGRESS;
+import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.LATEST_BACKWARD_JUMP;
+import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.LAZY_ACTIONS;
+import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.LAZY_COMPLETE;
+import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.LAZY_INCOMPLETE;
+import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.LAZY_INCOMPLETE_CASE_INSENSITIVE;
+import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.LAZY_PREFILTER_MAP;
+import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.LAZY_TYPE_FILTER_PAIRS_TUPLE;
+import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.LAZY_TYPE_FILTER_TREE_POJO;
+import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.UNCLASSIFIED;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.ParsingPlanInProgressDescriptor.newPlanInProgress;
@@ -662,7 +682,7 @@ extends Descriptor
 								prefilterMap,
 								typeFilterPairs);
 							final long timeAfter = captureNanos();
-							op.expandingStatisticInNanoseconds.record(
+							op.getExpandingStatisticInNanoseconds().record(
 								timeAfter - timeBefore,
 								Interpreter.currentIndex());
 						}

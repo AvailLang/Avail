@@ -37,6 +37,7 @@ import java.time.format.DateTimeFormatter
 plugins {
 	id 'java'
 	id 'org.jetbrains.kotlin.jvm' version '1.3.50' // $kotlin_version
+	id 'com.github.johnrengelman.shadow' version '5.1.0' // $shadow_version
 }
 
 group 'org.availlang'
@@ -45,11 +46,17 @@ version '1.4'
 sourceCompatibility = 1.8
 
 compileKotlin {
-	kotlinOptions.jvmTarget = "1.8"
+	kotlinOptions {
+		jvmTarget = "1.8"
+		freeCompilerArgs = ['-Xjvm-default=compatibility']
+	}
 }
 
 compileTestKotlin {
-	kotlinOptions.jvmTarget = "1.8"
+	kotlinOptions {
+		jvmTarget = "1.8"
+		freeCompilerArgs = ['-Xjvm-default=compatibility']
+	}
 }
 
 repositories {
@@ -162,19 +169,10 @@ task generatePrimitivesList {
 classes.dependsOn generateBuildTime
 classes.dependsOn generatePrimitivesList
 
-// Produce a fat JAR for the Avail library.
-jar {
-	from {
-		configurations.compileClasspath.collect {
-			it.isDirectory() ? it : zipTree(it)
-		}
-	}
-}
-
 // Copy the JAR into the distribution directory.
 task releaseAvail (type: Copy) {
 	group = 'release'
-	from jar.outputs.files
+	from shadowJar.outputs.files
 	into file("$projectDir/distro/lib")
 }
 

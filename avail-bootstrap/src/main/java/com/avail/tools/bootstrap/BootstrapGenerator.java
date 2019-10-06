@@ -6,14 +6,14 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  Redistributions of source code must retain the above copyright notice, this
+ * * Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- *  Redistributions in binary form must reproduce the above copyright notice,
+ * * Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- *  Neither the name of the copyright holder nor the names of the contributors
+ * * Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -56,7 +56,17 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.ResourceBundle;
+import java.util.Set;
+import java.util.StringTokenizer;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
@@ -67,8 +77,52 @@ import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.interpreter.Primitive.byPrimitiveNumberOrNull;
-import static com.avail.tools.bootstrap.Resources.*;
-import static com.avail.tools.bootstrap.Resources.Key.*;
+import static com.avail.tools.bootstrap.Resources.Key;
+import static com.avail.tools.bootstrap.Resources.Key.availCopyright;
+import static com.avail.tools.bootstrap.Resources.Key.bootstrapDefineSpecialObjectMacro;
+import static com.avail.tools.bootstrap.Resources.Key.bootstrapDefiningMethod;
+import static com.avail.tools.bootstrap.Resources.Key.bootstrapMacroNames;
+import static com.avail.tools.bootstrap.Resources.Key.bootstrapMacros;
+import static com.avail.tools.bootstrap.Resources.Key.bootstrapSpecialObject;
+import static com.avail.tools.bootstrap.Resources.Key.definingMethodUse;
+import static com.avail.tools.bootstrap.Resources.Key.definingSpecialObjectUse;
+import static com.avail.tools.bootstrap.Resources.Key.errorCodesModuleName;
+import static com.avail.tools.bootstrap.Resources.Key.falliblePrimitivesModuleName;
+import static com.avail.tools.bootstrap.Resources.Key.generalModuleHeader;
+import static com.avail.tools.bootstrap.Resources.Key.generatedModuleNotice;
+import static com.avail.tools.bootstrap.Resources.Key.infalliblePrimitivesModuleName;
+import static com.avail.tools.bootstrap.Resources.Key.invokePrimitiveFailureFunctionMethod;
+import static com.avail.tools.bootstrap.Resources.Key.invokePrimitiveFailureFunctionMethodUse;
+import static com.avail.tools.bootstrap.Resources.Key.originModuleHeader;
+import static com.avail.tools.bootstrap.Resources.Key.originModuleName;
+import static com.avail.tools.bootstrap.Resources.Key.parameterPrefix;
+import static com.avail.tools.bootstrap.Resources.Key.primitiveFailureFunctionGetterMethod;
+import static com.avail.tools.bootstrap.Resources.Key.primitiveFailureFunctionName;
+import static com.avail.tools.bootstrap.Resources.Key.primitiveFailureFunctionSetterMethod;
+import static com.avail.tools.bootstrap.Resources.Key.primitiveFailureMethod;
+import static com.avail.tools.bootstrap.Resources.Key.primitiveFailureMethodUse;
+import static com.avail.tools.bootstrap.Resources.Key.primitiveFailureVariableName;
+import static com.avail.tools.bootstrap.Resources.Key.primitiveKeyword;
+import static com.avail.tools.bootstrap.Resources.Key.primitiveSemanticRestriction;
+import static com.avail.tools.bootstrap.Resources.Key.primitiveSemanticRestrictionUse;
+import static com.avail.tools.bootstrap.Resources.Key.primitivesModuleName;
+import static com.avail.tools.bootstrap.Resources.Key.representativeModuleName;
+import static com.avail.tools.bootstrap.Resources.Key.specialObjectUse;
+import static com.avail.tools.bootstrap.Resources.Key.specialObjectsModuleName;
+import static com.avail.tools.bootstrap.Resources.errorCodeCommentKey;
+import static com.avail.tools.bootstrap.Resources.errorCodeKey;
+import static com.avail.tools.bootstrap.Resources.errorCodesBaseName;
+import static com.avail.tools.bootstrap.Resources.generatedPackageName;
+import static com.avail.tools.bootstrap.Resources.preambleBaseName;
+import static com.avail.tools.bootstrap.Resources.primitiveCommentKey;
+import static com.avail.tools.bootstrap.Resources.primitiveParameterNameKey;
+import static com.avail.tools.bootstrap.Resources.primitivesBaseName;
+import static com.avail.tools.bootstrap.Resources.sourceBaseName;
+import static com.avail.tools.bootstrap.Resources.specialObjectCommentKey;
+import static com.avail.tools.bootstrap.Resources.specialObjectKey;
+import static com.avail.tools.bootstrap.Resources.specialObjectTypeKey;
+import static com.avail.tools.bootstrap.Resources.specialObjectsBaseName;
+import static com.avail.tools.bootstrap.Resources.stringify;
 
 /**
  * Generate the Avail system {@linkplain ModuleDescriptor modules} that
@@ -141,7 +195,7 @@ public final class BootstrapGenerator
 	 */
 	private String errorCodeName (final A_Number numericCode)
 	{
-		final @Nullable AvailErrorCode code = AvailErrorCode.Companion.byNumericCode(
+		final @Nullable AvailErrorCode code = AvailErrorCode.byNumericCode(
 			numericCode.extractInt());
 		assert code != null : String.format(
 			"no %s for %s", AvailErrorCode.class.getSimpleName(), numericCode);
@@ -157,7 +211,7 @@ public final class BootstrapGenerator
 	 */
 	private String exceptionName (final A_Number numericCode)
 	{
-		final @Nullable AvailErrorCode code = AvailErrorCode.Companion.byNumericCode(
+		final @Nullable AvailErrorCode code = AvailErrorCode.byNumericCode(
 			numericCode.extractInt());
 		assert code != null : String.format(
 			"no %s for %s", AvailErrorCode.class.getSimpleName(), numericCode);

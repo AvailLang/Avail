@@ -41,29 +41,29 @@ fi
 # not readable and writable by the current user.
 AVAIL_USER=$HOME/.avail
 CONFIG=$AVAIL_USER/etc
-if [ ! -e $CONFIG ]; then
-	install -d -m 700 $CONFIG
-elif [ ! -d $CONFIG ]; then
+if [ ! -e "$CONFIG" ]; then
+	install -d -m 700 "$CONFIG"
+elif [ ! -d "$CONFIG" ]; then
 	echo "Fatal error: $CONFIG exists but is not a directory."
 	exit 1
-elif [ ! -r $CONFIG -o ! -w $CONFIG ]; then
-	chmod u+rw $CONFIG
+elif [ ! -r "$CONFIG" -o ! -w "$CONFIG" ]; then
+	chmod u+rw "$CONFIG"
 fi
 
 # Copy the standard configuration file for logging, but only if the user does
 # not already have one in place.
-if [ ! -e $CONFIG/logging.properties ]; then
-	cp $AVAIL_HOME/etc/logging.properties $CONFIG/logging.properties
-elif [ ! -f $CONFIG/logging.properties ]; then
+if [ ! -e "$CONFIG/logging.properties" ]; then
+	cp "$AVAIL_HOME/etc/logging.properties" "$CONFIG/logging.properties"
+elif [ ! -f "$CONFIG/logging.properties" ]; then
 	echo "Fatal error: $CONFIG/logging.properties exists but is not a regular file"
 	exit 1
 fi
 
 # Create an empty renames file, but only if the user does not already have an
 # existing one.
-if [ ! -e $CONFIG/renames ]; then
-	touch $CONFIG/renames
-elif [ ! -f $CONFIG/renames ]; then
+if [ ! -e "$CONFIG/renames" ]; then
+	touch "$CONFIG/renames"
+elif [ ! -f "$CONFIG/renames" ]; then
 	echo "Fatal error: $CONFIG/renames exists but it is not a regular file"
 	exit 1
 fi
@@ -71,13 +71,13 @@ fi
 # Create the repository directory if necessary. Fix the permissions if it is
 # not readable and writable by the current user.
 REPOS=$AVAIL_USER/repos
-if [ ! -e $REPOS ]; then
-	install -d -m 700 $REPOS
-elif [ ! -d $REPOS ]; then
+if [ ! -e "$REPOS" ]; then
+	install -d -m 700 "$REPOS"
+elif [ ! -d "$REPOS" ]; then
 	echo "Fatal error: $REPOS exists but is not a directory."
 	exit 1
-elif [ ! -r $REPOS -o ! -w $REPOS ]; then
-	chmod u+rw $REPOS
+elif [ ! -r "$REPOS" -o ! -w "$REPOS" ]; then
+	chmod u+rw "$REPOS"
 fi
 
 # If AVAIL_ROOTS is not set, then default it.
@@ -91,15 +91,25 @@ if [ "X$AVAIL_RENAMES" = "X" ]; then
 fi
 
 # Find the Java virtual machine.
-VM=$(which java)
+VM=$(command -v java)
 if [ "X$VM" = "X" ]; then
 	echo "Fatal error: Could not locate the Java virtual machine (java)."
 	exit 1
 fi
 
+# The JVM for Mac OS X understands a few options that make for a prettier dock.
+OSNAME=$(uname -s)
+if [ "$OSNAME" = "Darwin" ]; then
+	OSARGS=-Xdock:name=$(basename "$0")\ -Xdock:icon=$AVAIL_HOME/images/AvailHammer.png
+else
+	OSARGS=
+fi
+
 # These are the system arguments for the Java virtual machine.
-VMARGS=-Xmx2g\ -classpath\ "$AVAIL_HOME/lib"\ "-Djava.util.logging.config.file=$HOME/.avail/logging.properties"\ "-DavailRoots=$AVAIL_ROOTS"\ "-DavailRenames=$AVAIL_RENAMES"
+VMARGS=-Xmx2g\ -classpath\ "$AVAIL_HOME/lib"\ $OSARGS\ "-Djava.util.logging.config.file=$HOME/.avail/logging.properties"\ "-DavailRoots=$AVAIL_ROOTS"\ "-DavailRenames=$AVAIL_RENAMES"
 
 # Launch the Avail server in the background.
-SERVJAR=$AVAIL_HOME/lib/avail-server-1.4.jar
-$VM $VMARGS -jar $SERVJAR $* &
+SERVJAR=$AVAIL_HOME/lib/avail-server-1.4-all.jar
+# shellcheck disable=SC2048
+# shellcheck disable=SC2086
+$VM $VMARGS -jar "$SERVJAR" $* &

@@ -31,7 +31,14 @@
  */
 package com.avail.interpreter.primitive.files;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Atom;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_String;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AtomDescriptor;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.SetDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.io.IOSystem;
@@ -40,7 +47,12 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.io.IOException;
 import java.nio.channels.AsynchronousFileChannel;
-import java.nio.file.*;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.FileSystem;
+import java.nio.file.InvalidPathException;
+import java.nio.file.OpenOption;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
@@ -61,7 +73,12 @@ import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
-import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.exceptions.AvailErrorCode.E_EXCEEDS_VM_LIMIT;
+import static com.avail.exceptions.AvailErrorCode.E_ILLEGAL_OPTION;
+import static com.avail.exceptions.AvailErrorCode.E_INVALID_PATH;
+import static com.avail.exceptions.AvailErrorCode.E_IO_ERROR;
+import static com.avail.exceptions.AvailErrorCode.E_OPERATION_NOT_SUPPORTED;
+import static com.avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.Primitive.Flag.HasSideEffect;
 import static java.nio.file.StandardOpenOption.READ;
@@ -128,11 +145,11 @@ extends Primitive
 	 */
 	private static FileAttribute<?>[] permissionsFor (final A_Set optionInts)
 	{
-		if (IOSystem.Companion.getFileSystem().supportedFileAttributeViews().contains(
+		if (IOSystem.getFileSystem().supportedFileAttributeViews().contains(
 			"posix"))
 		{
 			final PosixFilePermission[] allPermissions =
-				IOSystem.Companion.posixPermissions();
+				IOSystem.getPosixPermissions();
 			final Set<PosixFilePermission> permissions = EnumSet.noneOf(
 				PosixFilePermission.class);
 			for (final A_Number optionInt : optionInts)
@@ -180,7 +197,7 @@ extends Primitive
 		final Path path;
 		try
 		{
-			path = IOSystem.Companion.getFileSystem().getPath(filename.asNativeString());
+			path = IOSystem.getFileSystem().getPath(filename.asNativeString());
 		}
 		catch (final InvalidPathException e)
 		{

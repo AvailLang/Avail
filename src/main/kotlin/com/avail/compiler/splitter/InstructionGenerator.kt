@@ -33,15 +33,21 @@
 package com.avail.compiler.splitter
 
 import com.avail.compiler.ParsingOperation
+import com.avail.compiler.ParsingOperation.APPEND_ARGUMENT
+import com.avail.compiler.ParsingOperation.BRANCH_FORWARD
+import com.avail.compiler.ParsingOperation.Companion.decode
+import com.avail.compiler.ParsingOperation.Companion.operand
+import com.avail.compiler.ParsingOperation.EMPTY_LIST
+import com.avail.compiler.ParsingOperation.JUMP_BACKWARD
+import com.avail.compiler.ParsingOperation.JUMP_FORWARD
+import com.avail.compiler.ParsingOperation.PARSE_PART
+import com.avail.compiler.ParsingOperation.PARSE_PART_CASE_INSENSITIVELY
+import com.avail.compiler.ParsingOperation.PERMUTE_LIST
+import com.avail.compiler.ParsingOperation.WRAP_IN_LIST
 import com.avail.descriptor.A_Tuple
-import com.avail.utility.Pair
-
-import java.util.ArrayList
-import java.util.BitSet
-import java.util.Collections
-
-import com.avail.compiler.ParsingOperation.*
 import com.avail.descriptor.TupleDescriptor.tupleFromIntegerList
+import com.avail.utility.Pair
+import java.util.*
 
 /**
  * `InstructionGenerator` is used by `MessageSplitter` to accumulate the
@@ -129,7 +135,7 @@ internal class InstructionGenerator
 				|| operation === PERMUTE_LIST)
 				|| delayedArgumentInstructions.isEmpty())
 		expressionList.add(expression)
-		instructions.add(operation.encoding())
+		instructions.add(operation.encoding)
 	}
 
 	/**
@@ -287,7 +293,7 @@ internal class InstructionGenerator
 	fun emitDelayed(expression: Expression, operation: ParsingOperation)
 	{
 		delayedExpressionList.add(expression)
-		delayedArgumentInstructions.add(operation.encoding())
+		delayedArgumentInstructions.add(operation.encoding)
 	}
 
 	/**
@@ -400,7 +406,7 @@ internal class InstructionGenerator
 						// Swap it leftward if it commutes.
 						val priorInstruction = instructions[i - 1]
 						val priorOperation = decode(priorInstruction)
-						if (priorOperation.commutesWithParsePart())
+						if (priorOperation.commutesWithParsePart)
 						{
 							instructions[i] = priorInstruction
 							instructions[i - 1] = instruction

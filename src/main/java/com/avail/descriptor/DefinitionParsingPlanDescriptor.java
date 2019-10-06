@@ -47,7 +47,9 @@ import static com.avail.compiler.ParsingOperation.decode;
 import static com.avail.compiler.ParsingOperation.operand;
 import static com.avail.compiler.splitter.MessageSplitter.constantForIndex;
 import static com.avail.compiler.splitter.MessageSplitter.permutationAtIndex;
-import static com.avail.descriptor.DefinitionParsingPlanDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.DefinitionParsingPlanDescriptor.ObjectSlots.BUNDLE;
+import static com.avail.descriptor.DefinitionParsingPlanDescriptor.ObjectSlots.DEFINITION;
+import static com.avail.descriptor.DefinitionParsingPlanDescriptor.ObjectSlots.PARSING_INSTRUCTIONS;
 import static com.avail.descriptor.TypeDescriptor.Types.DEFINITION_PARSING_PLAN;
 import static com.avail.utility.StackPrinter.trace;
 
@@ -191,7 +193,7 @@ extends Descriptor
 						{
 							builder.append(" Conversion = ");
 							builder.append(
-								ParsingConversionRule.ruleNumber(operand));
+								ParsingConversionRule.Companion.ruleNumber(operand));
 							break;
 						}
 						default:

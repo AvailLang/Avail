@@ -63,6 +63,7 @@ Extends
 		"counting reader test suite",
 		"Data|data abstractions test suite",
 		"dates and times test suite",
+		"decompiler test suite",
 		"delimited reader test suite",
 		"exception test suite",
 		"file access rights test suite",
@@ -139,16 +140,18 @@ Private method "Show all test suites" is
 
 /**
  * Generate a test suite-oriented report for all test suites. Emit it to
- * standard output.
+ * standard output.  Answer false if any tests failed, otherwise true.
  *
  * @entry
  * @method "Run all tests"
- * @returns "⊤"
+ * @returns "boolean"
  */
 Private method "Run all tests" is
 [
-	Print: test suite-oriented “report on all tests”;
-] : ⊤;
+	report ::= report on all tests;
+	Print: test suite-oriented “report”;
+	|bad results of report's metrics| = 0
+] : boolean;
 
 /**
  * Generate a test suite-oriented report for the specified test suite. Emit it
@@ -164,7 +167,9 @@ Public method "Run all tests in_" is
 [
 	suiteID : atom
 |
-	Print: test suite-oriented “report on all tests in suiteID”;
+	report ::= report on all tests in suiteID;
+	Print: test suite-oriented “report”;
+	|bad results of report's metrics| = 0
 ];
 
 /**
@@ -179,9 +184,9 @@ Private method "Run all tests repeatedly" is
 	For each x from 1 to ∞ do
 	[
 		Print: "Starting run #" ++ “x” ++ "\n";
-		Run all tests;
+		Ignore: Run all tests;
 	]
-] : ⊤;
+] : ⊥;
 
 /**
  * Loop forever running the test repeatedly.  Print the count with each run.
@@ -197,9 +202,9 @@ Public method "Run all tests in_repeatedly" is
 	For each x from 1 to ∞ do
 	[
 		Print: "Starting run #" ++ “x” ++ "\n";
-		Run all tests in suiteID;
+		Ignore: Run all tests in suiteID;
 	]
-] : ⊤;
+] : ⊥;
 
 _compareTests ::=
 [
@@ -275,7 +280,7 @@ Private method "Debug tests" is
 			[
 				If currentEntry[1] = root test suite ID then
 				[
-					Run all tests;
+					Ignore: Run all tests;
 				]
 				else
 				[

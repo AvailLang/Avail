@@ -6,14 +6,14 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  Redistributions of source code must retain the above copyright notice, this
+ * * Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- *  Redistributions in binary form must reproduce the above copyright notice,
+ * * Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- *  Neither the name of the copyright holder nor the names of the contributors
+ * * Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -38,6 +38,7 @@ import com.avail.utility.Graph;
 import com.avail.utility.MutableInt;
 import com.avail.utility.Strings;
 import com.avail.utility.evaluation.Continuation1NotNull;
+import kotlin.Unit;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,10 +46,17 @@ import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousFileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.StandardOpenOption;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.String.format;
+import static java.lang.String.join;
 import static java.util.Collections.singleton;
 
 /**
@@ -99,9 +107,10 @@ final class GraphTracer
 		{
 			final Graph<ResolvedModuleName> ancestry =
 				availBuilder.moduleGraph.ancestryOfAll(singleton(targetModule));
+			final Graph<ResolvedModuleName> dag = ancestry.spanningDag();
 			final Graph<ResolvedModuleName> reduced =
-				ancestry.dagWithoutRedundantEdges();
-			renderGraph(reduced);
+				ancestry.withoutRedundantEdges(dag);
+			renderGraph(reduced, dag);
 		}
 		availBuilder.trimGraphToLoadedModules();
 	}
@@ -195,18 +204,24 @@ final class GraphTracer
 	}
 
 	/**
-	 * Write the given (reduced) module dependency graph as a .gv
-	 * (<strong>dot</strong>) file suitable for layout via Graphviz.
+	 * Write the given (reduced) module dependency graph as a
+	 * <strong>dot</strong> file suitable for layout via Graphviz.
 	 *
-	 * @param ancestry The graph of fully qualified module names.
+	 * @param reducedGraph
+	 *        The graph of fully qualified module names.
+	 * @param spanningDag
+	 *        The reduced spanning dag used to control the layout.
 	 */
-	private void renderGraph (final Graph<ResolvedModuleName> ancestry)
+	private void renderGraph (
+		final Graph<ResolvedModuleName> reducedGraph,
+		final Graph<ResolvedModuleName> spanningDag)
 	{
+		assert reducedGraph.vertexCount() == spanningDag.vertexCount();
 		final Map<String, ModuleTree> trees = new HashMap<>();
 		final ModuleTree root =
 			new ModuleTree("root_", "Module Dependencies", null);
 		trees.put("", root);
-		for (final ResolvedModuleName moduleName : ancestry.vertices())
+		for (final ResolvedModuleName moduleName : reducedGraph.vertices())
 		{
 			String string = moduleName.qualifiedName();
 			ModuleTree node = new ModuleTree(
@@ -252,6 +267,8 @@ final class GraphTracer
 					tab.value(depth);
 					out.append("{\n");
 					tab.value(depth + 1);
+					out.append("remincross = true;\n");
+					tab.value(depth + 1);
 					out.append("compound = true;\n");
 					tab.value(depth + 1);
 					out.append("splines = compound;\n");
@@ -295,6 +312,7 @@ final class GraphTracer
 					out.append(node.safeLabel());
 					out.append("];\n");
 				}
+				return Unit.INSTANCE;
 			},
 			// After the node.
 			(node, depth) ->
@@ -304,7 +322,7 @@ final class GraphTracer
 					out.append("\n");
 					// Output *all* the edges.
 					for (final ResolvedModuleName from :
-						ancestry.vertices())
+						reducedGraph.vertices())
 					{
 						final String qualified = from.qualifiedName();
 						final ModuleTree fromNode = trees.get(qualified);
@@ -312,24 +330,36 @@ final class GraphTracer
 						final boolean fromPackage =
 							parts[parts.length - 2].equals(
 								parts[parts.length - 1]);
-						final String fromName = fromNode.node;
 						for (final ResolvedModuleName to :
-							ancestry.successorsOf(from))
+							reducedGraph.successorsOf(from))
 						{
 							final String toName =
 								asNodeName(to.qualifiedName());
 							tab.value(depth + 1);
-							out.append(fromName);
+							out.append(fromNode.node);
 							out.append(" -> ");
 							out.append(toName);
+							final List<String> edgeStrings = new ArrayList<>();
 							if (fromPackage)
 							{
 								final ModuleTree parent =
 									stripNull(fromNode.parent());
 								final String parentName =
 									"cluster_" + parent.node;
-								out.append("[ltail=");
-								out.append(parentName);
+								edgeStrings.add("ltail=" + parentName);
+							}
+							if (!spanningDag.includesEdge(from, to))
+							{
+								// This is a back-edge.
+								edgeStrings.add("constraint=false");
+								edgeStrings.add("color=crimson");
+								edgeStrings.add("penwidth=3.0");
+								edgeStrings.add("style=dashed");
+							}
+							if (!edgeStrings.isEmpty())
+							{
+								out.append("[");
+								out.append(join(", ", edgeStrings));
 								out.append("]");
 							}
 							out.append(";\n");
@@ -343,6 +373,7 @@ final class GraphTracer
 					tab.value(depth);
 					out.append("}\n");
 				}
+				return Unit.INSTANCE;
 			},
 			0);
 		final AsynchronousFileChannel channel;
@@ -366,7 +397,8 @@ final class GraphTracer
 			0,
 			null,
 			new SimpleCompletionHandler<>(
-				(result, unused, handler) -> {
+				(result, unused, handler) ->
+				{
 					position.value += stripNull(result);
 					if (buffer.hasRemaining())
 					{
@@ -376,7 +408,8 @@ final class GraphTracer
 							null,
 							handler);
 					}
+					return Unit.INSTANCE;
 				},
-				(t, unused, handler) -> { }));
+				(t, unused, handler) -> Unit.INSTANCE));
 	}
 }
