@@ -279,7 +279,7 @@ implements Configuration
 	}
 
 	/** The Stacks documentation path. */
-	private Path documentationPath = StacksGenerator.defaultDocumentationPath;
+	private Path documentationPath = StacksGenerator.Companion.getDefaultDocumentationPath();
 
 	/**
 	 * Answer the Stacks documentation path.

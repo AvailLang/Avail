@@ -923,7 +923,7 @@ extends JFrame
 	 * StacksGenerator Stacks generator}.
 	 */
 	public Path documentationPath =
-		StacksGenerator.defaultDocumentationPath;
+		StacksGenerator.Companion.getDefaultDocumentationPath();
 
 	/** The {@linkplain BuildInputStream standard input stream}. */
 	private final @Nullable BuildInputStream inputStream;
