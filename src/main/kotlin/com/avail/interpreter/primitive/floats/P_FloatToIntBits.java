@@ -1,5 +1,5 @@
 /*
- * P_FloatFromIntBits.java
+ * P_FloatToIntBits.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -34,34 +34,34 @@ package com.avail.interpreter.primitive.floats;
 import com.avail.descriptor.A_Number;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.FloatDescriptor;
+import com.avail.descriptor.IntegerDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import static com.avail.descriptor.FloatDescriptor.fromFloat;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
-import static com.avail.interpreter.Primitive.Flag.CanFold;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static com.avail.interpreter.Primitive.Flag.CannotFail;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
- * <strong>Primitive:</strong> Given a 32-bit signed integer, treat the bit
- * pattern as a single-precision IEEE-754 representation, and answer that {@link
- * FloatDescriptor float} value.
+ * <strong>Primitive:</strong> Given a {@linkplain FloatDescriptor float} in
+ * single-precision IEEE-754 representation, treat the bit pattern as a 32-bit
+ * (signed) {@code int} and answer the corresponding Avail {@link
+ * IntegerDescriptor integer}.
  *
- * @see P_FloatToIntBits
+ * @see P_FloatFromIntBits
  */
-public final class P_FloatFromIntBits extends Primitive
+public final class P_FloatToIntBits extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	@ReferencedInGeneratedCode
 	public static final Primitive instance =
-		new P_FloatFromIntBits().init(
+		new P_FloatToIntBits().init(
 			1, CannotFail, CanFold, CanInline);
 
 	@Override
@@ -69,15 +69,15 @@ public final class P_FloatFromIntBits extends Primitive
 		final Interpreter interpreter)
 	{
 		interpreter.checkArgumentCount(1);
-		final A_Number intObject = interpreter.argument(0);
-		final int intValue = intObject.extractInt();
-		final float floatValue = Float.intBitsToFloat(intValue);
-		return interpreter.primitiveSuccess(fromFloat(floatValue));
+		final A_Number floatObject = interpreter.argument(0);
+		final float floatValue = floatObject.extractFloat();
+		final int floatBits = Float.floatToRawIntBits(floatValue);
+		return interpreter.primitiveSuccess(fromInt(floatBits));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(int32()), FLOAT.o());
+		return functionType(tuple(FLOAT.o()), int32());
 	}
 }

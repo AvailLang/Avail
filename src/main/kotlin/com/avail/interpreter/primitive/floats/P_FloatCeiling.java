@@ -1,5 +1,5 @@
 /*
- * P_FloatToIntBits.java
+ * P_FloatCeiling.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -31,39 +31,32 @@
  */
 package com.avail.interpreter.primitive.floats;
 
-import com.avail.descriptor.A_Number;
 import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FloatDescriptor;
-import com.avail.descriptor.IntegerDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
+import static com.avail.descriptor.FloatDescriptor.fromFloatRecycling;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.IntegerDescriptor.fromInt;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
-import static com.avail.interpreter.Primitive.Flag.CanFold;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static com.avail.interpreter.Primitive.Flag.CannotFail;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
- * <strong>Primitive:</strong> Given a {@linkplain FloatDescriptor float} in
- * single-precision IEEE-754 representation, treat the bit pattern as a 32-bit
- * (signed) {@code int} and answer the corresponding Avail {@link
- * IntegerDescriptor integer}.
- *
- * @see P_FloatFromIntBits
+ * <strong>Primitive:</strong> Answer the smallest integral {@linkplain
+ * FloatDescriptor float} greater than or equal to the given float.  If the
+ * float is ±INF or NaN then answer the argument.
  */
-public final class P_FloatToIntBits extends Primitive
+public final class P_FloatCeiling extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	@ReferencedInGeneratedCode
 	public static final Primitive instance =
-		new P_FloatToIntBits().init(
+		new P_FloatCeiling().init(
 			1, CannotFail, CanFold, CanInline);
 
 	@Override
@@ -71,15 +64,15 @@ public final class P_FloatToIntBits extends Primitive
 		final Interpreter interpreter)
 	{
 		interpreter.checkArgumentCount(1);
-		final A_Number floatObject = interpreter.argument(0);
-		final float floatValue = floatObject.extractFloat();
-		final int floatBits = Float.floatToRawIntBits(floatValue);
-		return interpreter.primitiveSuccess(fromInt(floatBits));
+		final AvailObject a = interpreter.argument(0);
+		final float f = a.extractFloat();
+		final float floor = (float) Math.ceil(f);
+		return interpreter.primitiveSuccess(fromFloatRecycling(floor, a, true));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(FLOAT.o()), int32());
+		return functionType(tuple(FLOAT.o()), FLOAT.o());
 	}
 }

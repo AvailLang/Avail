@@ -1,5 +1,5 @@
 /*
- * P_FloatFloor.java
+ * P_AsFloat.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -38,27 +38,25 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import static com.avail.descriptor.FloatDescriptor.fromFloatRecycling;
+import static com.avail.descriptor.FloatDescriptor.fromFloat;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
-import static com.avail.interpreter.Primitive.Flag.CanFold;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static com.avail.interpreter.Primitive.Flag.CannotFail;
+import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
- * <strong>Primitive:</strong> Answer the largest integral {@linkplain
- * FloatDescriptor float} less than or equal to the given float.  If the
- * float is ±INF or NaN then answer the argument.
+ * <strong>Primitive:</strong> Convert the numeric argument to a
+ * {@linkplain FloatDescriptor float}.
  */
-public final class P_FloatFloor extends Primitive
+public final class P_AsFloat extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	@ReferencedInGeneratedCode
 	public static final Primitive instance =
-		new P_FloatFloor().init(
+		new P_AsFloat().init(
 			1, CannotFail, CanFold, CanInline);
 
 	@Override
@@ -66,16 +64,17 @@ public final class P_FloatFloor extends Primitive
 		final Interpreter interpreter)
 	{
 		interpreter.checkArgumentCount(1);
-		final AvailObject a = interpreter.argument(0);
-		final float f = a.extractFloat();
-		final float floor = (float) Math.floor(f);
-		return interpreter.primitiveSuccess(
-			fromFloatRecycling(floor, a, true));
+		final AvailObject number = interpreter.argument(0);
+		if (number.isFloat())
+		{
+			return interpreter.primitiveSuccess(number);
+		}
+		return interpreter.primitiveSuccess(fromFloat(number.extractFloat()));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(FLOAT.o()), FLOAT.o());
+		return functionType(tuple(NUMBER.o()), FLOAT.o());
 	}
 }

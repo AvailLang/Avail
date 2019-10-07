@@ -1,5 +1,5 @@
 /*
- * P_FloatCeiling.java
+ * P_FloatLn.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -42,23 +42,21 @@ import static com.avail.descriptor.FloatDescriptor.fromFloatRecycling;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
-import static com.avail.interpreter.Primitive.Flag.CanFold;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static com.avail.interpreter.Primitive.Flag.CannotFail;
+import static com.avail.interpreter.Primitive.Flag.*;
+import static java.lang.Math.log;
 
 /**
- * <strong>Primitive:</strong> Answer the smallest integral {@linkplain
- * FloatDescriptor float} greater than or equal to the given float.  If the
- * float is ±INF or NaN then answer the argument.
+ * <strong>Primitive:</strong> Compute the natural logarithm of
+ * {@linkplain FloatDescriptor float} {@code a}.
  */
-public final class P_FloatCeiling extends Primitive
+public final class P_FloatLn extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	@ReferencedInGeneratedCode
 	public static final Primitive instance =
-		new P_FloatCeiling().init(
+		new P_FloatLn().init(
 			1, CannotFail, CanFold, CanInline);
 
 	@Override
@@ -67,9 +65,8 @@ public final class P_FloatCeiling extends Primitive
 	{
 		interpreter.checkArgumentCount(1);
 		final AvailObject a = interpreter.argument(0);
-		final float f = a.extractFloat();
-		final float floor = (float) Math.ceil(f);
-		return interpreter.primitiveSuccess(fromFloatRecycling(floor, a, true));
+		return interpreter.primitiveSuccess(
+			fromFloatRecycling((float) log(a.extractFloat()), a, true));
 	}
 
 	@Override

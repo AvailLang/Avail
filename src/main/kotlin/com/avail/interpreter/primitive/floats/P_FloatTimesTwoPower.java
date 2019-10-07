@@ -1,5 +1,5 @@
 /*
- * P_FloatModulus.java
+ * P_FloatTimesTwoPower.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -31,49 +31,53 @@
  */
 package com.avail.interpreter.primitive.floats;
 
+import com.avail.descriptor.A_Number;
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FloatDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import static com.avail.descriptor.FloatDescriptor.objectFromFloatRecycling;
+import static com.avail.descriptor.FloatDescriptor.fromFloatRecycling;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
+import static com.avail.descriptor.IntegerDescriptor.two;
+import static com.avail.descriptor.IntegerDescriptor.zero;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.integers;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
-import static com.avail.interpreter.Primitive.Flag.CanFold;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static com.avail.interpreter.Primitive.Flag.CannotFail;
-import static java.lang.Math.floor;
+import static com.avail.interpreter.Primitive.Flag.*;
+import static java.lang.Math.*;
 
 /**
- * <strong>Primitive:</strong> Divide {@linkplain FloatDescriptor float}
- * {@code a} by float {@code b}, but answer the remainder.
+ * <strong>Primitive:</strong> Compute {@linkplain FloatDescriptor
+ * float} {@code a*(2**b)} without intermediate overflow or any precision
+ * loss.
  */
-public final class P_FloatModulus extends Primitive
+public final class P_FloatTimesTwoPower extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	@ReferencedInGeneratedCode
 	public static final Primitive instance =
-		new P_FloatModulus().init(
-			2, CannotFail, CanInline, CanFold);
+		new P_FloatTimesTwoPower().init(
+			3, CannotFail, CanFold, CanInline);
 
 	@Override
 	public Result attempt (
 		final Interpreter interpreter)
 	{
-		interpreter.checkArgumentCount(2);
-		final AvailObject a = interpreter.argument(0);
-		final AvailObject b = interpreter.argument(1);
-		final float fa = a.extractFloat();
-		final float fb = b.extractFloat();
-		final float div = fa / fb;
-		final float mod = fa - (float) floor(div) * fb;
-		return interpreter.primitiveSuccess(
-			objectFromFloatRecycling(mod, a, b, true));
+		interpreter.checkArgumentCount(3);
+		final A_Number a = interpreter.argument(0);
+//		final A_Token literalTwo = interpreter.argument(1);
+		final A_Number b = interpreter.argument(2);
+
+		final int scale = b.isInt()
+			? min(max(b.extractInt(), -10000), 10000)
+			: (b.greaterOrEqual(zero()) ? 10000 : -10000);
+		final float f = scalb(a.extractFloat(), scale);
+		return interpreter.primitiveSuccess(fromFloatRecycling(f, a, true));
 	}
 
 	@Override
@@ -82,7 +86,8 @@ public final class P_FloatModulus extends Primitive
 		return functionType(
 			tuple(
 				FLOAT.o(),
-				FLOAT.o()),
+				instanceType(two()),
+				integers()),
 			FLOAT.o());
 	}
 }
