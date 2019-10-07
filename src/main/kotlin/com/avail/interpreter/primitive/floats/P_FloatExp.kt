@@ -1,5 +1,5 @@
 /*
- * P_FloatFromIntBits.java
+ * P_FloatExp.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -31,51 +31,48 @@
  */
 package com.avail.interpreter.primitive.floats;
 
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.FloatDescriptor;
-import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.Primitive;
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode
+import static
 
-import static com.avail.descriptor.FloatDescriptor.fromFloat;
+com.avail.descriptor.DoubleDescriptor.fromDouble;
+import static com.avail.descriptor.FloatDescriptor.fromFloatRecycling;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
+import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
 import static com.avail.interpreter.Primitive.Flag.*;
+import static java.lang.Math.E;
+import static java.lang.Math.exp;
 
 /**
- * <strong>Primitive:</strong> Given a 32-bit signed integer, treat the bit
- * pattern as a single-precision IEEE-754 representation, and answer that {@link
- * FloatDescriptor float} value.
- *
- * @see P_FloatToIntBits
+ * <strong>Primitive:</strong> Compute {@code e^a}, the natural
+ * exponential of the {@linkplain FloatDescriptor float} {@code a}.
  */
-public final class P_FloatFromIntBits extends Primitive
+public final class P_FloatExp extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	@ReferencedInGeneratedCode
 	public static final Primitive instance =
-		new P_FloatFromIntBits().init(
-			1, CannotFail, CanFold, CanInline);
+		new P_FloatExp().init(
+			2, CannotFail, CanFold, CanInline);
 
 	@Override
 	public Result attempt (
 		final Interpreter interpreter)
 	{
 		interpreter.checkArgumentCount(1);
-		final A_Number intObject = interpreter.argument(0);
-		final int intValue = intObject.extractInt();
-		final float floatValue = Float.intBitsToFloat(intValue);
-		return interpreter.primitiveSuccess(fromFloat(floatValue));
+		final AvailObject a = interpreter.argument(0);
+		return interpreter.primitiveSuccess(
+			fromFloatRecycling((float) exp(a.extractFloat()), a, true));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(int32()), FLOAT.o());
+		return functionType(
+			tuple(instanceType(fromDouble(E)), FLOAT.o()),
+			FLOAT.o());
 	}
 }

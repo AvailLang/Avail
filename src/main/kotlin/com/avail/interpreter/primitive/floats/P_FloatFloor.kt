@@ -1,5 +1,5 @@
 /*
- * P_FloatTruncatedAsInteger.java
+ * P_FloatFloor.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -31,68 +31,45 @@
  */
 package com.avail.interpreter.primitive.floats;
 
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.FloatDescriptor;
-import com.avail.descriptor.IntegerDescriptor;
-import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.Primitive;
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode
+import static
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
-import static com.avail.descriptor.DoubleDescriptor.doubleTruncatedToExtendedInteger;
+com.avail.descriptor.FloatDescriptor.fromFloatRecycling;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.extendedIntegers;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
-import static com.avail.exceptions.AvailErrorCode.E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER;
-import static com.avail.interpreter.Primitive.Flag.CanFold;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
+import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
- * <strong>Primitive:</strong> Convert a {@linkplain FloatDescriptor
- * float} to an {@linkplain IntegerDescriptor integer}, rounding towards
- * zero.
+ * <strong>Primitive:</strong> Answer the largest integral {@linkplain
+ * FloatDescriptor float} less than or equal to the given float.  If the
+ * float is ±INF or NaN then answer the argument.
  */
-public final class P_FloatTruncatedAsInteger extends Primitive
+public final class P_FloatFloor extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	@ReferencedInGeneratedCode
 	public static final Primitive instance =
-		new P_FloatTruncatedAsInteger().init(
-			1, CanFold, CanInline);
+		new P_FloatFloor().init(
+			1, CannotFail, CanFold, CanInline);
 
 	@Override
 	public Result attempt (
 		final Interpreter interpreter)
 	{
 		interpreter.checkArgumentCount(1);
-		final A_Number a = interpreter.argument(0);
-		// Extract the top two 32-bit sections.  That guarantees 33 bits
-		// of mantissa, which is more than a float actually captures.
+		final AvailObject a = interpreter.argument(0);
 		final float f = a.extractFloat();
-		if (Float.isNaN(f))
-		{
-			return interpreter.primitiveFailure(
-				E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER);
-		}
-		// Do the conversion as a Double.
+		final float floor = (float) Math.floor(f);
 		return interpreter.primitiveSuccess(
-			doubleTruncatedToExtendedInteger(f));
+			fromFloatRecycling(floor, a, true));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(FLOAT.o()), extendedIntegers());
-	}
-
-	@Override
-	protected A_Type privateFailureVariableType ()
-	{
-		return enumerationWith(set(E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER));
+		return functionType(tuple(FLOAT.o()), FLOAT.o());
 	}
 }

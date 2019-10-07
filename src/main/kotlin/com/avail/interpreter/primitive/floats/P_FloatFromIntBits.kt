@@ -1,5 +1,5 @@
 /*
- * P_FloatFloor.java
+ * P_FloatFromIntBits.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -31,32 +31,31 @@
  */
 package com.avail.interpreter.primitive.floats;
 
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.FloatDescriptor;
-import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.Primitive;
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode
+import static
 
-import static com.avail.descriptor.FloatDescriptor.fromFloatRecycling;
+com.avail.descriptor.FloatDescriptor.fromFloat;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
 import static com.avail.interpreter.Primitive.Flag.*;
 
 /**
- * <strong>Primitive:</strong> Answer the largest integral {@linkplain
- * FloatDescriptor float} less than or equal to the given float.  If the
- * float is ±INF or NaN then answer the argument.
+ * <strong>Primitive:</strong> Given a 32-bit signed integer, treat the bit
+ * pattern as a single-precision IEEE-754 representation, and answer that {@link
+ * FloatDescriptor float} value.
+ *
+ * @see P_FloatToIntBits
  */
-public final class P_FloatFloor extends Primitive
+public final class P_FloatFromIntBits extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	@ReferencedInGeneratedCode
 	public static final Primitive instance =
-		new P_FloatFloor().init(
+		new P_FloatFromIntBits().init(
 			1, CannotFail, CanFold, CanInline);
 
 	@Override
@@ -64,16 +63,15 @@ public final class P_FloatFloor extends Primitive
 		final Interpreter interpreter)
 	{
 		interpreter.checkArgumentCount(1);
-		final AvailObject a = interpreter.argument(0);
-		final float f = a.extractFloat();
-		final float floor = (float) Math.floor(f);
-		return interpreter.primitiveSuccess(
-			fromFloatRecycling(floor, a, true));
+		final A_Number intObject = interpreter.argument(0);
+		final int intValue = intObject.extractInt();
+		final float floatValue = Float.intBitsToFloat(intValue);
+		return interpreter.primitiveSuccess(fromFloat(floatValue));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(tuple(FLOAT.o()), FLOAT.o());
+		return functionType(tuple(int32()), FLOAT.o());
 	}
 }

@@ -31,14 +31,10 @@
  */
 package com.avail.interpreter.primitive.floats;
 
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.FloatDescriptor;
-import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.Primitive;
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode
+import static
 
-import static com.avail.descriptor.FloatDescriptor.fromFloatRecycling;
+com.avail.descriptor.FloatDescriptor.fromFloatRecycling;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;

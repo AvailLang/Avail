@@ -1,5 +1,5 @@
 /*
- * P_FloatExp.java
+ * P_FloatLn.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -31,36 +31,29 @@
  */
 package com.avail.interpreter.primitive.floats;
 
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.FloatDescriptor;
-import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.Primitive;
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode
+import static
 
-import static com.avail.descriptor.DoubleDescriptor.fromDouble;
-import static com.avail.descriptor.FloatDescriptor.fromFloatRecycling;
+com.avail.descriptor.FloatDescriptor.fromFloatRecycling;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
 import static com.avail.interpreter.Primitive.Flag.*;
-import static java.lang.Math.E;
-import static java.lang.Math.exp;
+import static java.lang.Math.log;
 
 /**
- * <strong>Primitive:</strong> Compute {@code e^a}, the natural
- * exponential of the {@linkplain FloatDescriptor float} {@code a}.
+ * <strong>Primitive:</strong> Compute the natural logarithm of
+ * {@linkplain FloatDescriptor float} {@code a}.
  */
-public final class P_FloatExp extends Primitive
+public final class P_FloatLn extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	@ReferencedInGeneratedCode
 	public static final Primitive instance =
-		new P_FloatExp().init(
-			2, CannotFail, CanFold, CanInline);
+		new P_FloatLn().init(
+			1, CannotFail, CanFold, CanInline);
 
 	@Override
 	public Result attempt (
@@ -69,14 +62,12 @@ public final class P_FloatExp extends Primitive
 		interpreter.checkArgumentCount(1);
 		final AvailObject a = interpreter.argument(0);
 		return interpreter.primitiveSuccess(
-			fromFloatRecycling((float) exp(a.extractFloat()), a, true));
+			fromFloatRecycling((float) log(a.extractFloat()), a, true));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(
-			tuple(instanceType(fromDouble(E)), FLOAT.o()),
-			FLOAT.o());
+		return functionType(tuple(FLOAT.o()), FLOAT.o());
 	}
 }

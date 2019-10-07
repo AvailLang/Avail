@@ -1,5 +1,5 @@
 /*
- * P_FloatTimesTwoPower.java
+ * P_FloatToIntBits.java
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -31,63 +31,48 @@
  */
 package com.avail.interpreter.primitive.floats;
 
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.FloatDescriptor;
-import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.Primitive;
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode
+import static
 
-import static com.avail.descriptor.FloatDescriptor.fromFloatRecycling;
-import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
-import static com.avail.descriptor.IntegerDescriptor.two;
-import static com.avail.descriptor.IntegerDescriptor.zero;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.integers;
+com.avail.descriptor.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
 import static com.avail.interpreter.Primitive.Flag.*;
-import static java.lang.Math.*;
 
 /**
- * <strong>Primitive:</strong> Compute {@linkplain FloatDescriptor
- * float} {@code a*(2**b)} without intermediate overflow or any precision
- * loss.
+ * <strong>Primitive:</strong> Given a {@linkplain FloatDescriptor float} in
+ * single-precision IEEE-754 representation, treat the bit pattern as a 32-bit
+ * (signed) {@code int} and answer the corresponding Avail {@link
+ * IntegerDescriptor integer}.
+ *
+ * @see P_FloatFromIntBits
  */
-public final class P_FloatTimesTwoPower extends Primitive
+public final class P_FloatToIntBits extends Primitive
 {
 	/**
 	 * The sole instance of this primitive class.  Accessed through reflection.
 	 */
 	@ReferencedInGeneratedCode
 	public static final Primitive instance =
-		new P_FloatTimesTwoPower().init(
-			3, CannotFail, CanFold, CanInline);
+		new P_FloatToIntBits().init(
+			1, CannotFail, CanFold, CanInline);
 
 	@Override
 	public Result attempt (
 		final Interpreter interpreter)
 	{
-		interpreter.checkArgumentCount(3);
-		final A_Number a = interpreter.argument(0);
-//		final A_Token literalTwo = interpreter.argument(1);
-		final A_Number b = interpreter.argument(2);
-
-		final int scale = b.isInt()
-			? min(max(b.extractInt(), -10000), 10000)
-			: (b.greaterOrEqual(zero()) ? 10000 : -10000);
-		final float f = scalb(a.extractFloat(), scale);
-		return interpreter.primitiveSuccess(fromFloatRecycling(f, a, true));
+		interpreter.checkArgumentCount(1);
+		final A_Number floatObject = interpreter.argument(0);
+		final float floatValue = floatObject.extractFloat();
+		final int floatBits = Float.floatToRawIntBits(floatValue);
+		return interpreter.primitiveSuccess(fromInt(floatBits));
 	}
 
 	@Override
 	protected A_Type privateBlockTypeRestriction ()
 	{
-		return functionType(
-			tuple(
-				FLOAT.o(),
-				instanceType(two()),
-				integers()),
-			FLOAT.o());
+		return functionType(tuple(FLOAT.o()), int32());
 	}
 }
