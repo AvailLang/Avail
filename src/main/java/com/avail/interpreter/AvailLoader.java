@@ -1608,32 +1608,32 @@ public final class AvailLoader
 
 		// Add the string literal lexer.
 		createPrimitiveLexerForHeaderParsing(
-			P_BootstrapLexerStringFilter.instance,
-			P_BootstrapLexerStringBody.instance,
+			P_BootstrapLexerStringFilter.INSTANCE,
+			P_BootstrapLexerStringBody.INSTANCE,
 			"string token lexer");
 
 		// The module header uses keywords, e.g. "Extends".
 		createPrimitiveLexerForHeaderParsing(
-			P_BootstrapLexerKeywordFilter.instance,
-			P_BootstrapLexerKeywordBody.instance,
+			P_BootstrapLexerKeywordFilter.INSTANCE,
+			P_BootstrapLexerKeywordBody.INSTANCE,
 			"keyword token lexer");
 
 		// There's also punctuation in there, like commas.
 		createPrimitiveLexerForHeaderParsing(
-			P_BootstrapLexerOperatorFilter.instance,
-			P_BootstrapLexerOperatorBody.instance,
+			P_BootstrapLexerOperatorFilter.INSTANCE,
+			P_BootstrapLexerOperatorBody.INSTANCE,
 			"operator token lexer");
 
 		// It would be tricky with no whitespace!
 		createPrimitiveLexerForHeaderParsing(
-			P_BootstrapLexerWhitespaceFilter.instance,
-			P_BootstrapLexerWhitespaceBody.instance,
+			P_BootstrapLexerWhitespaceFilter.INSTANCE,
+			P_BootstrapLexerWhitespaceBody.INSTANCE,
 			"whitespace lexer");
 
 		// Slash-star-star-slash comments are legal in the header.
 		createPrimitiveLexerForHeaderParsing(
-			P_BootstrapLexerSlashStarCommentFilter.instance,
-			P_BootstrapLexerSlashStarCommentBody.instance,
+			P_BootstrapLexerSlashStarCommentFilter.INSTANCE,
+			P_BootstrapLexerSlashStarCommentBody.INSTANCE,
 			"comment lexer");
 
 		moduleHeaderLexicalScanner.freezeFromChanges();

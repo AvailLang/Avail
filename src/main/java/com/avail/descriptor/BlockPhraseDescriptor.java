@@ -459,7 +459,7 @@ extends PhraseDescriptor
 	@Override @AvailMethod
 	@Nullable Primitive o_Primitive (final AvailObject object)
 	{
-		return Primitive.byNumber(object.slot(PRIMITIVE));
+		return Primitive.Companion.byNumber(object.slot(PRIMITIVE));
 	}
 
 	@Override @AvailMethod

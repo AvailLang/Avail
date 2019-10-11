@@ -76,7 +76,6 @@ import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.interpreter.Primitive.byPrimitiveNumberOrNull;
 import static com.avail.tools.bootstrap.Resources.Key;
 import static com.avail.tools.bootstrap.Resources.Key.availCopyright;
 import static com.avail.tools.bootstrap.Resources.Key.bootstrapDefineSpecialObjectMacro;
@@ -459,9 +458,10 @@ public final class BootstrapGenerator
 	private static List<Primitive> primitives (final @Nullable Boolean fallible)
 	{
 		final List<Primitive> primitives = new ArrayList<>();
-		for (int i = 1; i <= Primitive.maxPrimitiveNumber(); i++)
+		for (int i = 1; i <= Primitive.Companion.maxPrimitiveNumber(); i++)
 		{
-			final @Nullable Primitive primitive = byPrimitiveNumberOrNull(i);
+			final @Nullable Primitive primitive =
+				Primitive.Companion.byPrimitiveNumberOrNull(i);
 			if (primitive != null)
 			{
 				if (!primitive.hasFlag(Flag.Private)
@@ -974,7 +974,7 @@ public final class BootstrapGenerator
 	 */
 	private void generatePrimitiveToSetMethod (final PrintWriter writer)
 	{
-		final Primitive primitive = P_TupleToSet.instance;
+		final Primitive primitive = P_TupleToSet.INSTANCE;
 		final StringBuilder statements = new StringBuilder();
 		statements.append('\t');
 		statements.append(preamble.getString(primitiveKeyword.name()));
@@ -997,7 +997,7 @@ public final class BootstrapGenerator
 	 */
 	private void generatePrimitiveEnumMethod (final PrintWriter writer)
 	{
-		final Primitive primitive = P_CreateEnumeration.instance;
+		final Primitive primitive = P_CreateEnumeration.INSTANCE;
 		final StringBuilder statements = new StringBuilder();
 		statements.append('\t');
 		statements.append(preamble.getString(primitiveKeyword.name()));
@@ -1021,7 +1021,7 @@ public final class BootstrapGenerator
 	 */
 	private void generatePrimitiveFailureMethod (final PrintWriter writer)
 	{
-		final Primitive primitive = P_EmergencyExit.instance;
+		final Primitive primitive = P_EmergencyExit.INSTANCE;
 		final StringBuilder statements = new StringBuilder();
 		statements.append('\t');
 		statements.append(preamble.getString(primitiveKeyword.name()));
@@ -1141,7 +1141,7 @@ public final class BootstrapGenerator
 	private void generateInvokePrimitiveFailureFunctionMethod (
 		final PrintWriter writer)
 	{
-		final Primitive primitive = P_InvokeWithTuple.instance;
+		final Primitive primitive = P_InvokeWithTuple.INSTANCE;
 		final StringBuilder statements = new StringBuilder();
 		statements.append('\t');
 		statements.append(preamble.getString(primitiveKeyword.name()));
@@ -1181,7 +1181,7 @@ public final class BootstrapGenerator
 	private void generatePrivateSemanticRestrictionMethod (
 		final PrintWriter writer)
 	{
-		final Primitive primitive = P_AddSemanticRestriction.instance;
+		final Primitive primitive = P_AddSemanticRestriction.INSTANCE;
 		StringBuilder statements = new StringBuilder();
 		statements.append('\t');
 		statements.append(preamble.getString(primitiveKeyword.name()));
@@ -1214,7 +1214,7 @@ public final class BootstrapGenerator
 		statements.append("\n");
 		block = block(
 			primitiveMethodParameterDeclarations(
-				P_InvokeWithTuple.instance,
+				P_InvokeWithTuple.INSTANCE,
 				true),
 			statements.toString(),
 			null);

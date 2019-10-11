@@ -86,11 +86,11 @@ extends PropertiesFileGenerator
 		final Set<String> keys = new HashSet<>();
 		for (
 			int primitiveNumber = 1;
-			primitiveNumber <= Primitive.maxPrimitiveNumber();
+			primitiveNumber <= Primitive.Companion.maxPrimitiveNumber();
 			primitiveNumber++)
 		{
 			final @Nullable Primitive primitive =
-				Primitive.byPrimitiveNumberOrNull(primitiveNumber);
+				Primitive.Companion.byPrimitiveNumberOrNull(primitiveNumber);
 			if (primitive != null && !primitive.hasFlag(Flag.Private))
 			{
 				// Write a comment that gives the primitive number and its

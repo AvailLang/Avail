@@ -93,11 +93,11 @@ extends PropertiesFileGenerator
 		A_Set reachableErrorCodes = emptySet();
 		for (
 			int primitiveNumber = 1;
-			primitiveNumber <= Primitive.maxPrimitiveNumber();
+			primitiveNumber <= Primitive.Companion.maxPrimitiveNumber();
 			primitiveNumber++)
 		{
 			final @Nullable Primitive primitive =
-				Primitive.byPrimitiveNumberOrNull(primitiveNumber);
+				Primitive.Companion.byPrimitiveNumberOrNull(primitiveNumber);
 			if (primitive != null && !primitive.hasFlag(Flag.CannotFail))
 			{
 				final A_Type failureType = primitive.failureVariableType();

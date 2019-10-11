@@ -288,16 +288,16 @@ class AvailCodeGenerator private constructor(
 				&& onlyInstruction.index == 1)
 			{
 				// The block immediately answers a constant.
-				primitive = P_PushConstant.instance
+				primitive = P_PushConstant
 			}
 			else if (numArgs >= 1 && onlyInstruction is AvailPushLocalVariable)
 			{
 				// The block immediately answers the specified argument.
 				when (onlyInstruction.index)
 				{
-					1 -> primitive = P_PushArgument1.instance
-					2 -> primitive = P_PushArgument2.instance
-					3 -> primitive = P_PushArgument3.instance
+					1 -> primitive = P_PushArgument1
+					2 -> primitive = P_PushArgument2
+					3 -> primitive = P_PushArgument3
 				}
 			}
 			else if (onlyInstruction is AvailPushOuterVariable)
@@ -308,7 +308,7 @@ class AvailCodeGenerator private constructor(
 				// instructions that might use another outer.
 				assert(onlyInstruction.index == 1)
 				assert(onlyInstruction.isLastAccess)
-				primitive = P_PushLastOuter.instance
+				primitive = P_PushLastOuter
 			}
 			// Only optimize module constants, not module variables.  Module
 			// variables can be unassigned, and reading an unassigned module
@@ -317,7 +317,7 @@ class AvailCodeGenerator private constructor(
 				&& onlyInstruction.index == 1
 				&& literals[0].isInitializedWriteOnceVariable)
 			{
-				primitive = P_GetGlobalVariableValue.instance
+				primitive = P_GetGlobalVariableValue
 			}
 		}
 		// Make sure we're not closing over variables that don't get used.

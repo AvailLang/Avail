@@ -403,7 +403,7 @@ extends Descriptor
 		builder.append(object.currentLineNumber());
 		final @Nullable Primitive primitive =
 			code.primitive();
-		if (primitive == P_CatchException.instance)
+		if (primitive == P_CatchException.INSTANCE)
 		{
 			builder.append(", CATCH var = ");
 			builder.append(object.argOrLocalOrStackAt(4).value().value());

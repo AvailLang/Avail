@@ -41,6 +41,7 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.NilDescriptor;
 import com.avail.descriptor.PojoDescriptor;
 import com.avail.interpreter.primitive.pojos.P_InvokeCallback;
+import com.avail.interpreter.primitive.pojos.PrimitiveHelper;
 import com.avail.utility.SimpleThreadFactory;
 
 import java.util.Map;
@@ -57,7 +58,6 @@ import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.PojoDescriptor.newPojo;
 import static com.avail.descriptor.PojoTypeDescriptor.resolvePojoType;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
-import static com.avail.interpreter.primitive.pojos.PrimitiveHelper.rawPojoInvokerFunctionFromFunctionType;
 import static java.util.Collections.synchronizedMap;
 
 /**
@@ -283,10 +283,11 @@ public class CallbackSystem
 		final A_RawFunction rawFunction =
 			rawFunctionCache.computeIfAbsent(
 				functionType,
-				fType -> rawPojoInvokerFunctionFromFunctionType(
-					P_InvokeCallback.instance,
-					fType,
-					callbackTypePojo));
+				fType -> PrimitiveHelper.INSTANCE
+					.rawPojoInvokerFunctionFromFunctionType(
+						P_InvokeCallback.INSTANCE,
+						fType,
+						callbackTypePojo));
 		return createWithOuters1(rawFunction, callbackPojo);
 	}
 }

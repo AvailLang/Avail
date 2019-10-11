@@ -1089,129 +1089,129 @@ extends Descriptor
 		/** The special atom for failing during bootstrap.  Must be first. */
 		CRASH(
 			"vm crash:_",
-			P_EmergencyExit.instance),
+			P_EmergencyExit.INSTANCE),
 
 		/** The special atom for defining abstract methods. */
 		ABSTRACT_DEFINER(
 			"vm abstract_for_",
-			P_AbstractMethodDeclarationForAtom.instance),
+			P_AbstractMethodDeclarationForAtom.INSTANCE),
 
 		/** The special atom for adding to a map inside a variable. */
 		ADD_TO_MAP_VARIABLE(
 			"vm_↑[_]:=_",
-			P_AtomicAddToMap.instance),
+			P_AtomicAddToMap.INSTANCE),
 
 		/** The special atom for adding a module unload function. */
 		ADD_UNLOADER(
 			"vm on unload_",
-			P_AddUnloadFunction.instance),
+			P_AddUnloadFunction.INSTANCE),
 
 		/** The special atom for creating aliases of atoms. */
 		ALIAS(
 			"vm alias new name_to_",
-			P_Alias.instance),
+			P_Alias.INSTANCE),
 
 		/** The special atom for function application. */
 		APPLY(
 			"vm function apply_(«_‡,»)",
-			P_InvokeWithTuple.instance),
+			P_InvokeWithTuple.INSTANCE),
 
 		/** The special atom for adding properties to atoms. */
 		ATOM_PROPERTY(
 			"vm atom_at property_put_",
-			P_AtomSetProperty.instance),
+			P_AtomSetProperty.INSTANCE),
 
 		/** The special atom for removing properties from atoms. */
 		ATOM_REMOVE_PROPERTY(
 			"vm atom_remove property_",
-			P_AtomRemoveProperty.instance),
+			P_AtomRemoveProperty.INSTANCE),
 
 		/** The special atom for extracting the caller of a continuation. */
 		CONTINUATION_CALLER(
 			"vm_'s caller",
-			P_ContinuationCaller.instance),
+			P_ContinuationCaller.INSTANCE),
 
 		/** The special atom for creating a literal phrase. */
 		CREATE_LITERAL_PHRASE(
 			"vm create literal phrase_",
-			P_CreateLiteralExpression.instance),
+			P_CreateLiteralExpression.INSTANCE),
 
 		/** The special atom for creating a literal token. */
 		CREATE_LITERAL_TOKEN(
 			"vm create literal token_,_,_,_",
-			P_CreateLiteralToken.instance),
+			P_CreateLiteralToken.INSTANCE),
 
 		/** The special atom for declaring the stringifier atom. */
 		DECLARE_STRINGIFIER(
 			"vm stringifier:=_",
-			P_DeclareStringificationAtom.instance),
+			P_DeclareStringificationAtom.INSTANCE),
 
 		/** The special atom for forward-defining methods. */
 		FORWARD_DEFINER(
 			"vm forward_for_",
-			P_ForwardMethodDeclarationForAtom.instance),
+			P_ForwardMethodDeclarationForAtom.INSTANCE),
 
 		/** The special atom for getting a variable's value. */
 		GET_VARIABLE(
 			"vm↓_",
-			P_GetValue.instance),
+			P_GetValue.INSTANCE),
 
 		/** The special atom for adding grammatical restrictions. */
 		GRAMMATICAL_RESTRICTION(
 			"vm grammatical restriction_is_",
-			P_GrammaticalRestrictionFromAtoms.instance),
+			P_GrammaticalRestrictionFromAtoms.INSTANCE),
 
 		/** The special atom for defining lexers. */
 		LEXER_DEFINER(
 			"vm lexer_filter is_body is_",
-			P_SimpleLexerDefinitionForAtom.instance),
+			P_SimpleLexerDefinitionForAtom.INSTANCE),
 
 		/** The special atom for defining macros. */
 		MACRO_DEFINER(
 			"vm macro_is«_,»_",
-			P_SimpleMacroDeclaration.instance,
-			P_SimpleMacroDefinitionForAtom.instance),
+			P_SimpleMacroDeclaration.INSTANCE,
+			P_SimpleMacroDefinitionForAtom.INSTANCE),
 
 		/** The special atom for defining methods. */
 		METHOD_DEFINER(
 			"vm method_is_",
-			P_SimpleMethodDeclaration.instance,
-			P_MethodDeclarationFromAtom.instance),
+			P_SimpleMethodDeclaration.INSTANCE,
+			P_MethodDeclarationFromAtom.INSTANCE),
 
 		/** The special atom for publishing atoms. */
 		PUBLISH_ATOMS(
 			"vm publish atom set_(public=_)",
-			P_DeclareAllExportedAtoms.instance),
+			P_DeclareAllExportedAtoms.INSTANCE),
 
 		/** The special atom for recording a type's name. */
 		RECORD_TYPE_NAME(
 			"vm record type_name_",
-			P_RecordNewTypeName.instance),
+			P_RecordNewTypeName.INSTANCE),
 
 		/** The special atom for creating a module variable/constant. */
 		CREATE_MODULE_VARIABLE(
 			"vm in module_create_with variable type_«constant»?«stably computed»?",
-			P_PrivateCreateModuleVariable.instance),
+			P_PrivateCreateModuleVariable.INSTANCE),
 
 		/** The special atom for sealing methods. */
 		SEAL(
 			"vm seal_at_",
-			P_SealMethodByAtom.instance),
+			P_SealMethodByAtom.INSTANCE),
 
 		/** The special atom for adding semantic restrictions. */
 		SEMANTIC_RESTRICTION(
 			"vm semantic restriction_is_",
-			P_AddSemanticRestrictionForAtom.instance),
+			P_AddSemanticRestrictionForAtom.INSTANCE),
 
 		/** The special atom for resuming a continuation. */
 		RESUME_CONTINUATION(
 			"vm resume_",
-			P_ResumeContinuation.instance),
+			P_ResumeContinuation.INSTANCE),
 
 		/** The special atom for rethrowing a Java exception in Avail. */
 		GET_RETHROW_JAVA_EXCEPTION(
 			"vm get rethrow in Avail hook",
-			P_GetRaiseJavaExceptionInAvailFunction.instance),
+			P_GetRaiseJavaExceptionInAvailFunction.INSTANCE),
 
 		/** The special atom for parsing module headers. */
 		MODULE_HEADER(
@@ -1231,10 +1231,10 @@ extends Descriptor
 				+ "«Pragma«…$‡,»»"
 				+ "Body",
 			asList(
-				P_ModuleHeaderPrefixCheckModuleName.instance,
-				P_ModuleHeaderPrefixCheckModuleVersion.instance,
-				P_ModuleHeaderPrefixCheckImportVersion.instance),
-			P_ModuleHeaderPseudoMacro.instance);
+				P_ModuleHeaderPrefixCheckModuleName.INSTANCE,
+				P_ModuleHeaderPrefixCheckModuleVersion.INSTANCE,
+				P_ModuleHeaderPrefixCheckImportVersion.INSTANCE),
+			P_ModuleHeaderPseudoMacro.INSTANCE);
 
 		/** The special atom. */
 		public final A_Atom atom;

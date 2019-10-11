@@ -703,7 +703,7 @@ public final class AvailRuntime
 		STRINGIFICATION(
 			"«stringification»",
 			functionType(tuple(ANY.o()), stringType()),
-			P_ToString.instance),
+			P_ToString.INSTANCE),
 
 		/**
 		 * The {@code HookType} for a hook that holds the function to invoke
@@ -1315,7 +1315,7 @@ public final class AvailRuntime
 			TokenType.OPERATOR.atom,
 			TokenType.COMMENT.atom,
 			TokenType.WHITESPACE.atom,
-			P_CreateToken.tokenTypeOrdinalKey));
+			P_CreateToken.INSTANCE.getTokenTypeOrdinalKey()));
 
 		for (final A_Atom atom : specialAtomsList)
 		{

@@ -993,7 +993,7 @@ extends Descriptor
 	@Override @AvailMethod
 	@Nullable Primitive o_Primitive (final AvailObject object)
 	{
-		return Primitive.byNumber(object.slot(PRIMITIVE));
+		return Primitive.Companion.byNumber(object.slot(PRIMITIVE));
 	}
 
 	@Override @AvailMethod
@@ -1358,7 +1358,7 @@ extends Descriptor
 		code.setSlot(NUM_LOCALS, numLocals);
 		code.setSlot(NUM_CONSTANTS, numConstants);
 		code.setSlot(
-			PRIMITIVE, primitive == null ? 0 : primitive.primitiveNumber);
+			PRIMITIVE, primitive == null ? 0 : primitive.getPrimitiveNumber());
 		code.setSlot(NUM_OUTERS, numOuters);
 		code.setSlot(FUNCTION_TYPE, functionType);
 		code.setSlot(PROPERTY_ATOM, nil);

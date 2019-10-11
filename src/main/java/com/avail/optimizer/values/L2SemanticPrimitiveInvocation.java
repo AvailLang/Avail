@@ -85,7 +85,7 @@ extends L2SemanticValue
 		this.argumentSemanticValues =
 			unmodifiableList(new ArrayList<>(argumentSemanticValues));
 		// Compute the hash.
-		int h = primitive.primitiveNumber * multiplier;
+		int h = primitive.getPrimitiveNumber() * multiplier;
 		for (final L2SemanticValue argument : argumentSemanticValues)
 		{
 			h ^= argument.hashCode();

@@ -1736,7 +1736,7 @@ public final class L1Translator
 			{
 				final Primitive primitive =
 					L2_RUN_INFALLIBLE_PRIMITIVE.primitiveOf(boolSource);
-				if (primitive == P_Equality.instance)
+				if (primitive == P_Equality.INSTANCE)
 				{
 					final List<L2ReadBoxedOperand> args =
 						L2_RUN_INFALLIBLE_PRIMITIVE.argsOf(boolSource);
@@ -1776,7 +1776,7 @@ public final class L1Translator
 						constantBool ? failEdge : passEdge);
 					return;
 				}
-				else if (primitive == P_IsSubtypeOf.instance)
+				else if (primitive == P_IsSubtypeOf.INSTANCE)
 				{
 					// Instance-of testing is done by extracting the type and
 					// testing if it's a subtype.  See if the operand to the

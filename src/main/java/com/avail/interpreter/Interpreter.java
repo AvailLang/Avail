@@ -146,7 +146,7 @@ import static com.avail.interpreter.Primitive.Result.FAILURE;
 import static com.avail.interpreter.Primitive.Result.FIBER_SUSPENDED;
 import static com.avail.interpreter.Primitive.Result.SUCCESS;
 import static com.avail.interpreter.levelTwo.operation.L2_REIFY.StatisticCategory.ABANDON_BEFORE_RESTART_IN_L2;
-import static com.avail.interpreter.primitive.variables.P_SetValue.instance;
+import static com.avail.interpreter.primitive.variables.P_SetValue.INSTANCE;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
@@ -1311,8 +1311,8 @@ public final class Interpreter
 						final Primitive suspended =
 							stripNull(
 								joiner.suspendingFunction().code().primitive());
-						assert suspended == P_AttemptJoinFiber.instance
-							|| suspended == P_ParkCurrentFiber.instance;
+						assert suspended == P_AttemptJoinFiber.INSTANCE
+							|| suspended == P_ParkCurrentFiber.INSTANCE;
 						Interpreter.resumeFromSuccessfulPrimitive(
 							currentRuntime(),
 							joiner,
@@ -1658,7 +1658,7 @@ public final class Interpreter
 		// an exception augmented with stack information.
 		assert argsBuffer.size() == 1;
 		argsBuffer.set(0, exceptionValue);
-		final int primNum = P_CatchException.instance.primitiveNumber;
+		final int primNum = P_CatchException.INSTANCE.getPrimitiveNumber();
 		AvailObject continuation = stripNull(reifiedContinuation);
 		int depth = 0;
 		while (!continuation.equalsNil())
@@ -1768,7 +1768,7 @@ public final class Interpreter
 	 */
 	public Result markNearestGuard (final A_Number marker)
 	{
-		final int primNum = P_CatchException.instance.primitiveNumber;
+		final int primNum = P_CatchException.INSTANCE.getPrimitiveNumber();
 		A_Continuation continuation = stripNull(reifiedContinuation);
 		int depth = 0;
 		while (!continuation.equalsNil())
@@ -2955,7 +2955,7 @@ public final class Interpreter
 	 */
 	private static final A_Function assignmentFunction =
 		createFunction(
-			newPrimitiveRawFunction(instance, nil, 0),
+			newPrimitiveRawFunction(INSTANCE, nil, 0),
 			emptyTuple()
 		).makeShared();
 
