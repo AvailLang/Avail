@@ -29,54 +29,43 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.primitive.floats;
+package com.avail.interpreter.primitive.floats
 
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-import static
-
-com.avail.descriptor.FloatDescriptor.objectFromFloatRecycling;
-import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
-import static com.avail.interpreter.Primitive.Flag.*;
-import static java.lang.Math.floor;
+import com.avail.descriptor.A_Type
+import com.avail.descriptor.FloatDescriptor
+import com.avail.descriptor.FloatDescriptor.objectFromFloatRecycling
+import com.avail.descriptor.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.TypeDescriptor.Types.FLOAT
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
+import java.lang.Math.floor
 
 /**
- * <strong>Primitive:</strong> Divide {@linkplain FloatDescriptor float}
- * {@code a} by float {@code b}, but answer the remainder.
+ * **Primitive:** Divide [float][FloatDescriptor]
+ * `a` by float `b`, but answer the remainder.
  */
-public final class P_FloatModulus extends Primitive
-{
-	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
-	 */
-	@ReferencedInGeneratedCode
-	public static final Primitive instance =
-		new P_FloatModulus().init(
-			2, CannotFail, CanInline, CanFold);
+object P_FloatModulus : Primitive(2, CannotFail, CanInline, CanFold) {
 
-	@Override
-	public Result attempt (
-		final Interpreter interpreter)
-	{
-		interpreter.checkArgumentCount(2);
-		final AvailObject a = interpreter.argument(0);
-		final AvailObject b = interpreter.argument(1);
-		final float fa = a.extractFloat();
-		final float fb = b.extractFloat();
-		final float div = fa / fb;
-		final float mod = fa - (float) floor(div) * fb;
+	override fun attempt(
+		interpreter: Interpreter): Primitive.Result {
+		interpreter.checkArgumentCount(2)
+		val a = interpreter.argument(0)
+		val b = interpreter.argument(1)
+		val fa = a.extractFloat()
+		val fb = b.extractFloat()
+		val div = fa / fb
+		val mod = fa - floor(div.toDouble()).toFloat() * fb
 		return interpreter.primitiveSuccess(
-			objectFromFloatRecycling(mod, a, b, true));
+			objectFromFloatRecycling(mod, a, b, true))
 	}
 
-	@Override
-	protected A_Type privateBlockTypeRestriction ()
-	{
+	override fun privateBlockTypeRestriction(): A_Type {
 		return functionType(
 			tuple(
 				FLOAT.o(),
 				FLOAT.o()),
-			FLOAT.o());
+			FLOAT.o())
 	}
 }

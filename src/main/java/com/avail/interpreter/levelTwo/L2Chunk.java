@@ -32,17 +32,7 @@
 
 package com.avail.interpreter.levelTwo;
 
-import com.avail.descriptor.A_ChunkDependable;
-import com.avail.descriptor.A_Continuation;
-import com.avail.descriptor.A_RawFunction;
-import com.avail.descriptor.A_Set;
-import com.avail.descriptor.A_String;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.CompiledCodeDescriptor;
-import com.avail.descriptor.ContinuationDescriptor;
-import com.avail.descriptor.FiberDescriptor;
-import com.avail.descriptor.MethodDescriptor;
-import com.avail.descriptor.PojoDescriptor;
+import com.avail.descriptor.*;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.operation.L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO;
 import com.avail.interpreter.levelTwo.operation.L2_TRY_OPTIONAL_PRIMITIVE;
@@ -63,12 +53,7 @@ import com.avail.performance.StatisticReport;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.List;
-import java.util.Set;
-import java.util.WeakHashMap;
+import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -78,10 +63,7 @@ import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.AvailRuntimeSupport.captureNanos;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.SetDescriptor.emptySet;
-import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RESTART;
-import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RESUME;
-import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RETURN_INTO;
-import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.UNREACHABLE;
+import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.*;
 import static com.avail.optimizer.L1Translator.generateDefaultChunkControlFlowGraph;
 import static java.lang.String.format;
 import static java.util.Collections.newSetFromMap;
@@ -164,6 +146,9 @@ implements ExecutableChunk
 	 */
 	volatile @Nullable Generation generation = Generation.newest;
 
+	/**
+	 * A group of chunks with approximately equal most-recent access time.
+	 */
 	public static class Generation
 	{
 		/**
@@ -719,6 +704,9 @@ implements ExecutableChunk
 	/**
 	 * Create a new {@code L2Chunk} with the given information.
 	 *
+	 * @param code
+	 *        The [{@link A_RawFunction} that this is for, or {@code null} for
+	 *        the default chunk.
 	 * @param numObjects
 	 *        The number of object registers needed.
 	 * @param numIntegers
@@ -777,6 +765,8 @@ implements ExecutableChunk
 	/**
 	 * Answer my {@link A_Set} of {@link A_ChunkDependable}s, each of which will
 	 * invalidate this chunk if they change.
+	 *
+	 * @return Things that this chunk depends on.
 	 */
 	public A_Set contingentValues ()
 	{

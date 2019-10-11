@@ -29,45 +29,35 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.primitive.floats;
+package com.avail.interpreter.primitive.floats
 
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-import static
-
-com.avail.descriptor.FloatDescriptor.fromFloatRecycling;
-import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
-import static com.avail.interpreter.Primitive.Flag.*;
-import static java.lang.Math.log;
+import com.avail.descriptor.A_Type
+import com.avail.descriptor.FloatDescriptor
+import com.avail.descriptor.FloatDescriptor.fromFloatRecycling
+import com.avail.descriptor.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.TypeDescriptor.Types.FLOAT
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
+import kotlin.math.ln
 
 /**
- * <strong>Primitive:</strong> Compute the natural logarithm of
- * {@linkplain FloatDescriptor float} {@code a}.
+ * **Primitive:** Compute the natural logarithm of
+ * [float][FloatDescriptor] `a`.
  */
-public final class P_FloatLn extends Primitive
-{
-	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
-	 */
-	@ReferencedInGeneratedCode
-	public static final Primitive instance =
-		new P_FloatLn().init(
-			1, CannotFail, CanFold, CanInline);
+object P_FloatLn : Primitive(1, CannotFail, CanFold, CanInline) {
 
-	@Override
-	public Result attempt (
-		final Interpreter interpreter)
-	{
-		interpreter.checkArgumentCount(1);
-		final AvailObject a = interpreter.argument(0);
+	override fun attempt(
+		interpreter: Interpreter
+	): Result {
+		interpreter.checkArgumentCount(1)
+		val a = interpreter.argument(0)
 		return interpreter.primitiveSuccess(
-			fromFloatRecycling((float) log(a.extractFloat()), a, true));
+			fromFloatRecycling(ln(a.extractFloat().toDouble()).toFloat(), a, true))
 	}
 
-	@Override
-	protected A_Type privateBlockTypeRestriction ()
-	{
-		return functionType(tuple(FLOAT.o()), FLOAT.o());
+	override fun privateBlockTypeRestriction(): A_Type {
+		return functionType(tuple(FLOAT.o()), FLOAT.o())
 	}
 }

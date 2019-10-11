@@ -29,46 +29,33 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.primitive.floats;
+package com.avail.interpreter.primitive.floats
 
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-import static
-
-com.avail.descriptor.FloatDescriptor.fromFloatRecycling;
-import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Type
+import com.avail.descriptor.FloatDescriptor.fromFloatRecycling
+import com.avail.descriptor.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.TypeDescriptor.Types.FLOAT
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * <strong>Primitive:</strong> Answer the smallest integral {@linkplain
- * FloatDescriptor float} greater than or equal to the given float.  If the
+ * **Primitive:** Answer the smallest integral [ ] greater than or equal to the given float.  If the
  * float is ±INF or NaN then answer the argument.
  */
-public final class P_FloatCeiling extends Primitive
-{
-	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
-	 */
-	@ReferencedInGeneratedCode
-	public static final Primitive instance =
-		new P_FloatCeiling().init(
-			1, CannotFail, CanFold, CanInline);
+object P_FloatCeiling : Primitive(1, CannotFail, CanFold, CanInline) {
 
-	@Override
-	public Result attempt (
-		final Interpreter interpreter)
-	{
-		interpreter.checkArgumentCount(1);
-		final AvailObject a = interpreter.argument(0);
-		final float f = a.extractFloat();
-		final float floor = (float) Math.ceil(f);
-		return interpreter.primitiveSuccess(fromFloatRecycling(floor, a, true));
+	override fun attempt(
+		interpreter: Interpreter): Primitive.Result {
+		interpreter.checkArgumentCount(1)
+		val a = interpreter.argument(0)
+		val f = a.extractFloat()
+		val floor = Math.ceil(f.toDouble()).toFloat()
+		return interpreter.primitiveSuccess(fromFloatRecycling(floor, a, true))
 	}
 
-	@Override
-	protected A_Type privateBlockTypeRestriction ()
-	{
-		return functionType(tuple(FLOAT.o()), FLOAT.o());
+	override fun privateBlockTypeRestriction(): A_Type {
+		return functionType(tuple(FLOAT.o()), FLOAT.o())
 	}
 }

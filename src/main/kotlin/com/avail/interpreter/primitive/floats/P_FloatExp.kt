@@ -29,50 +29,39 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.primitive.floats;
+package com.avail.interpreter.primitive.floats
 
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-import static
-
-com.avail.descriptor.DoubleDescriptor.fromDouble;
-import static com.avail.descriptor.FloatDescriptor.fromFloatRecycling;
-import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
-import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
-import static com.avail.interpreter.Primitive.Flag.*;
-import static java.lang.Math.E;
-import static java.lang.Math.exp;
+import com.avail.descriptor.A_Type
+import com.avail.descriptor.DoubleDescriptor.fromDouble
+import com.avail.descriptor.FloatDescriptor
+import com.avail.descriptor.FloatDescriptor.fromFloatRecycling
+import com.avail.descriptor.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.InstanceTypeDescriptor.instanceType
+import com.avail.descriptor.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.TypeDescriptor.Types.FLOAT
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
+import java.lang.Math.E
+import java.lang.Math.exp
 
 /**
- * <strong>Primitive:</strong> Compute {@code e^a}, the natural
- * exponential of the {@linkplain FloatDescriptor float} {@code a}.
+ * **Primitive:** Compute `e^a`, the natural
+ * exponential of the [float][FloatDescriptor] `a`.
  */
-public final class P_FloatExp extends Primitive
-{
-	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
-	 */
-	@ReferencedInGeneratedCode
-	public static final Primitive instance =
-		new P_FloatExp().init(
-			2, CannotFail, CanFold, CanInline);
+object P_FloatExp : Primitive(2, CannotFail, CanFold, CanInline) {
 
-	@Override
-	public Result attempt (
-		final Interpreter interpreter)
-	{
-		interpreter.checkArgumentCount(1);
-		final AvailObject a = interpreter.argument(0);
+	override fun attempt(
+		interpreter: Interpreter): Primitive.Result {
+		interpreter.checkArgumentCount(1)
+		val a = interpreter.argument(0)
 		return interpreter.primitiveSuccess(
-			fromFloatRecycling((float) exp(a.extractFloat()), a, true));
+			fromFloatRecycling(exp(a.extractFloat().toDouble()).toFloat(), a, true))
 	}
 
-	@Override
-	protected A_Type privateBlockTypeRestriction ()
-	{
+	override fun privateBlockTypeRestriction(): A_Type {
 		return functionType(
 			tuple(instanceType(fromDouble(E)), FLOAT.o()),
-			FLOAT.o());
+			FLOAT.o())
 	}
 }

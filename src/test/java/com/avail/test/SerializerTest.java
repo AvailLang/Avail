@@ -37,15 +37,7 @@ import com.avail.builder.ModuleNameResolver;
 import com.avail.builder.ModuleRoots;
 import com.avail.builder.RenamesFileParser;
 import com.avail.builder.RenamesFileParserException;
-import com.avail.descriptor.A_Atom;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_Map;
-import com.avail.descriptor.A_Module;
-import com.avail.descriptor.A_RawFunction;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.AtomDescriptor;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.*;
 import com.avail.interpreter.levelOne.L1InstructionWriter;
 import com.avail.interpreter.primitive.floats.P_FloatFloor;
 import com.avail.persistence.IndexedRepositoryManager;
@@ -87,9 +79,7 @@ import static com.avail.utility.Nulls.stripNull;
 import static java.lang.Math.min;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for object serialization.
@@ -485,7 +475,7 @@ public final class SerializerTest
 		final L1InstructionWriter writer = new L1InstructionWriter(
 			nil, 0, nil);
 		writer.argumentTypes(FLOAT.o());
-		writer.setPrimitive(P_FloatFloor.instance);
+		writer.setPrimitive(P_FloatFloor.INSTANCE);
 		writer.setReturnType(FLOAT.o());
 		final A_RawFunction code = writer.compiledCode();
 		final A_Function function =

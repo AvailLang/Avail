@@ -141,14 +141,23 @@ task generateBuildTime {
 // setup to reflectively identify the complete catalog of primitives.
 task generatePrimitivesList {
 	// Un-Windows the path, if necessary.
-	def pathAvailBuildMain =
+	def pathAvailBuildJava =
 		"$buildDir/classes/java/main".replaceAll('\\\\', '/')
-	def allPrimitives = fileTree("$pathAvailBuildMain/com/avail/interpreter")
+	def pathAvailBuildKotlin =
+		"$buildDir/classes/kotlin/main".replaceAll('\\\\', '/')
+	def javaPrimitives =
+		fileTree("$pathAvailBuildJava/com/avail/interpreter")
+	def kotlinPrimitives =
+		fileTree("$pathAvailBuildKotlin/com/avail/interpreter")
 	def pathToPrimitivesList =
-		file("$pathAvailBuildMain/com/avail/interpreter/All_Primitives.txt")
-	allPrimitives.include "**/P_*.class"
-	allPrimitives.exclude '**/*$*.class'
-	allPrimitives.builtBy "compileJava"
+		file("$pathAvailBuildJava/com/avail/interpreter/All_Primitives.txt")
+	javaPrimitives.include "**/P_*.class"
+	javaPrimitives.exclude '**/*$*.class'
+	javaPrimitives.builtBy "compileJava"
+	kotlinPrimitives.include "**/P_*.class"
+	kotlinPrimitives.exclude '**/*$*.class'
+	kotlinPrimitives.builtBy "compileJava"
+	def allPrimitives = javaPrimitives + kotlinPrimitives
 	inputs.files allPrimitives
 	outputs.files pathToPrimitivesList
 
@@ -156,7 +165,8 @@ task generatePrimitivesList {
 		def allPrimitiveNames = allPrimitives.collect {
 			it.absolutePath
 				.replaceAll('\\\\', '/')
-				.replaceFirst("^$pathAvailBuildMain/", "")
+				.replaceFirst(
+					"^($pathAvailBuildJava|$pathAvailBuildKotlin)/", "")
 				.replaceFirst('\\.class', "\n")
 				.replaceAll("/", ".")
 		}.sort()

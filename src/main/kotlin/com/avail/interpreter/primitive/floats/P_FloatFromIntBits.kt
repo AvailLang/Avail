@@ -29,49 +29,36 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.primitive.floats;
+package com.avail.interpreter.primitive.floats
 
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-import static
-
-com.avail.descriptor.FloatDescriptor.fromFloat;
-import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
-import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Type
+import com.avail.descriptor.FloatDescriptor.fromFloat
+import com.avail.descriptor.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.IntegerRangeTypeDescriptor.int32
+import com.avail.descriptor.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.TypeDescriptor.Types.FLOAT
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * <strong>Primitive:</strong> Given a 32-bit signed integer, treat the bit
- * pattern as a single-precision IEEE-754 representation, and answer that {@link
- * FloatDescriptor float} value.
+ * **Primitive:** Given a 32-bit signed integer, treat the bit
+ * pattern as a single-precision IEEE-754 representation, and answer that [ ] value.
  *
  * @see P_FloatToIntBits
  */
-public final class P_FloatFromIntBits extends Primitive
-{
-	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
-	 */
-	@ReferencedInGeneratedCode
-	public static final Primitive instance =
-		new P_FloatFromIntBits().init(
-			1, CannotFail, CanFold, CanInline);
+object P_FloatFromIntBits : Primitive(1, CannotFail, CanFold, CanInline) {
 
-	@Override
-	public Result attempt (
-		final Interpreter interpreter)
-	{
-		interpreter.checkArgumentCount(1);
-		final A_Number intObject = interpreter.argument(0);
-		final int intValue = intObject.extractInt();
-		final float floatValue = Float.intBitsToFloat(intValue);
-		return interpreter.primitiveSuccess(fromFloat(floatValue));
+	override fun attempt(
+		interpreter: Interpreter): Primitive.Result {
+		interpreter.checkArgumentCount(1)
+		val intObject = interpreter.argument(0)
+		val intValue = intObject.extractInt()
+		val floatValue = java.lang.Float.intBitsToFloat(intValue)
+		return interpreter.primitiveSuccess(fromFloat(floatValue))
 	}
 
-	@Override
-	protected A_Type privateBlockTypeRestriction ()
-	{
-		return functionType(tuple(int32()), FLOAT.o());
+	override fun privateBlockTypeRestriction(): A_Type {
+		return functionType(tuple(int32()), FLOAT.o())
 	}
 }

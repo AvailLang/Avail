@@ -1,6 +1,6 @@
 /*
- * P_FloatTruncatedAsInteger.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * P_FloatTruncatedAsInteger.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,65 +29,50 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.primitive.floats;
+package com.avail.interpreter.primitive.floats
 
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-import static
-
-com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
-import static com.avail.descriptor.DoubleDescriptor.doubleTruncatedToExtendedInteger;
-import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.extendedIntegers;
-import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.SetDescriptor.set;
-import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
-import static com.avail.exceptions.AvailErrorCode.E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER;
-import static com.avail.interpreter.Primitive.Flag.CanFold;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
+import com.avail.descriptor.A_Type
+import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.DoubleDescriptor.doubleTruncatedToExtendedInteger
+import com.avail.descriptor.FloatDescriptor
+import com.avail.descriptor.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.IntegerDescriptor
+import com.avail.descriptor.IntegerRangeTypeDescriptor.extendedIntegers
+import com.avail.descriptor.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.SetDescriptor.set
+import com.avail.descriptor.TypeDescriptor.Types.FLOAT
+import com.avail.exceptions.AvailErrorCode.E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * <strong>Primitive:</strong> Convert a {@linkplain FloatDescriptor
- * float} to an {@linkplain IntegerDescriptor integer}, rounding towards
+ * **Primitive:** Convert a [ float][FloatDescriptor] to an [integer][IntegerDescriptor], rounding towards
  * zero.
  */
-public final class P_FloatTruncatedAsInteger extends Primitive
-{
-	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
-	 */
-	@ReferencedInGeneratedCode
-	public static final Primitive instance =
-		new P_FloatTruncatedAsInteger().init(
-			1, CanFold, CanInline);
+object P_FloatTruncatedAsInteger : Primitive(1, CanFold, CanInline) {
 
-	@Override
-	public Result attempt (
-		final Interpreter interpreter)
-	{
-		interpreter.checkArgumentCount(1);
-		final A_Number a = interpreter.argument(0);
+	override fun attempt(
+		interpreter: Interpreter): Result {
+		interpreter.checkArgumentCount(1)
+		val a = interpreter.argument(0)
 		// Extract the top two 32-bit sections.  That guarantees 33 bits
 		// of mantissa, which is more than a float actually captures.
-		final float f = a.extractFloat();
-		if (Float.isNaN(f))
-		{
-			return interpreter.primitiveFailure(
-				E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER);
-		}
+		val f = a.extractFloat()
+		return if (java.lang.Float.isNaN(f)) {
+			interpreter.primitiveFailure(
+				E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER)
+		} else interpreter.primitiveSuccess(
+			doubleTruncatedToExtendedInteger(f.toDouble()))
 		// Do the conversion as a Double.
-		return interpreter.primitiveSuccess(
-			doubleTruncatedToExtendedInteger(f));
 	}
 
-	@Override
-	protected A_Type privateBlockTypeRestriction ()
-	{
-		return functionType(tuple(FLOAT.o()), extendedIntegers());
+	override fun privateBlockTypeRestriction(): A_Type {
+		return functionType(tuple(FLOAT.o()), extendedIntegers())
 	}
 
-	@Override
-	protected A_Type privateFailureVariableType ()
-	{
-		return enumerationWith(set(E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER));
+	override fun privateFailureVariableType(): A_Type {
+		return enumerationWith(set(E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER))
 	}
 }

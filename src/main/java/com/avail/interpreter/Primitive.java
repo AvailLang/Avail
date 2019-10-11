@@ -32,26 +32,13 @@
 
 package com.avail.interpreter;
 
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Phrase;
-import com.avail.descriptor.A_RawFunction;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.CompiledCodeDescriptor;
-import com.avail.descriptor.FunctionTypeDescriptor;
-import com.avail.descriptor.IntegerEnumSlotDescriptionEnum;
+import com.avail.descriptor.*;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
-import com.avail.descriptor.TypeDescriptor;
 import com.avail.interpreter.levelOne.L1InstructionWriter;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
-import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
-import com.avail.interpreter.levelTwo.operand.TypeRestriction;
+import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE;
 import com.avail.interpreter.primitive.privatehelpers.P_PushConstant;
 import com.avail.optimizer.ExecutableChunk;
@@ -69,12 +56,9 @@ import javax.annotation.Nullable;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Field;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -84,13 +68,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 import static com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail;
 import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
-import static com.avail.interpreter.Primitive.Flag.CanFold;
-import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static com.avail.interpreter.Primitive.Flag.CanSuspend;
-import static com.avail.interpreter.Primitive.Flag.CanSwitchContinuations;
-import static com.avail.interpreter.Primitive.Flag.CannotFail;
-import static com.avail.interpreter.Primitive.Flag.Invokes;
-import static com.avail.interpreter.Primitive.Flag.SpecialForm;
+import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType;
 import static com.avail.utility.Nulls.stripNull;
@@ -145,6 +123,24 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public abstract class Primitive
 implements IntegerEnumSlotDescriptionEnum
 {
+	/** TODO: Temporary compatibility for primitives still written in Java. */
+	public Primitive () { }
+
+	/**
+	 * Constructor for primitives written in Kotlin.  Eventually the init()
+	 * method should be renamed and inlined here.
+	 *
+	 * @param theArgCount
+	 *        How many arguments are expected by this primitive.  {@code -1} for
+	 *        variadic primitives.
+	 * @param flags
+	 *        The {@link Flag}s to set for this primitive.
+	 */
+	public Primitive (final int theArgCount, final Flag... flags)
+	{
+		init(theArgCount, flags);
+	}
+
 	/**
 	 * The success state of a primitive attempt.
 	 */
@@ -578,6 +574,13 @@ implements IntegerEnumSlotDescriptionEnum
 		}
 
 		/**
+		 * The potential field names containing the primitive instance.  For
+		 * Java code, it's "instance", and for Kotlin it's "INSTANCE".
+		 */
+		private static final Set<String> instanceFieldNames =
+			new HashSet<>(Arrays.asList("instance", "INSTANCE"));
+
+		/**
 		 * While holding the monitor, double-check whether another thread has
 		 * loaded the primitive, loading it if not.
 		 *
@@ -593,11 +596,15 @@ implements IntegerEnumSlotDescriptionEnum
 				final ClassLoader loader = Primitive.class.getClassLoader();
 				try
 				{
-					final Class<?> primClass =
-						loader.loadClass(className);
+					final Class<?> primClass = loader.loadClass(className);
+					final Field field = Arrays.stream(primClass.getFields())
+						.filter(f -> instanceFieldNames.contains(f.getName()))
+						.findAny()
+						.orElseThrow(() -> new NoSuchFieldException(
+							"Couldn't find instance field of primitive "
+							+ className));
 					// Trigger the linker.
-					final Object instance =
-						primClass.getField("instance").get(null);
+					final Object instance = field.get(null);
 					assert instance != null
 						: "PrimitiveHolder.primitive field should have "
 						+ "been set during class loading";
@@ -775,7 +782,7 @@ implements IntegerEnumSlotDescriptionEnum
 	 *        with this primitive.
 	 * @return The initialized primitive.
 	 */
-	protected Primitive init (
+	public final Primitive init (
 		final int theArgCount,
 		final Flag... flags)
 	{

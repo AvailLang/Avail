@@ -29,61 +29,50 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.primitive.floats;
+package com.avail.interpreter.primitive.floats
 
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-import static
-
-com.avail.descriptor.FloatDescriptor.fromFloatRecycling;
-import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
-import static com.avail.descriptor.IntegerDescriptor.two;
-import static com.avail.descriptor.IntegerDescriptor.zero;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.integers;
-import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
-import static com.avail.interpreter.Primitive.Flag.*;
-import static java.lang.Math.*;
+import com.avail.descriptor.A_Type
+import com.avail.descriptor.FloatDescriptor
+import com.avail.descriptor.FloatDescriptor.fromFloatRecycling
+import com.avail.descriptor.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.InstanceTypeDescriptor.instanceType
+import com.avail.descriptor.IntegerDescriptor.two
+import com.avail.descriptor.IntegerDescriptor.zero
+import com.avail.descriptor.IntegerRangeTypeDescriptor.integers
+import com.avail.descriptor.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.TypeDescriptor.Types.FLOAT
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
+import java.lang.Math.*
 
 /**
- * <strong>Primitive:</strong> Compute {@linkplain FloatDescriptor
- * float} {@code a*(2**b)} without intermediate overflow or any precision
+ * **Primitive:** Compute [ float][FloatDescriptor] `a*(2**b)` without intermediate overflow or any precision
  * loss.
  */
-public final class P_FloatTimesTwoPower extends Primitive
-{
-	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
-	 */
-	@ReferencedInGeneratedCode
-	public static final Primitive instance =
-		new P_FloatTimesTwoPower().init(
-			3, CannotFail, CanFold, CanInline);
+object P_FloatTimesTwoPower : Primitive(3, CannotFail, CanFold, CanInline) {
 
-	@Override
-	public Result attempt (
-		final Interpreter interpreter)
-	{
-		interpreter.checkArgumentCount(3);
-		final A_Number a = interpreter.argument(0);
-//		final A_Token literalTwo = interpreter.argument(1);
-		final A_Number b = interpreter.argument(2);
+	override fun attempt(
+		interpreter: Interpreter): Primitive.Result {
+		interpreter.checkArgumentCount(3)
+		val a = interpreter.argument(0)
+		//		final A_Token literalTwo = interpreter.argument(1);
+		val b = interpreter.argument(2)
 
-		final int scale = b.isInt()
-			? min(max(b.extractInt(), -10000), 10000)
-			: (b.greaterOrEqual(zero()) ? 10000 : -10000);
-		final float f = scalb(a.extractFloat(), scale);
-		return interpreter.primitiveSuccess(fromFloatRecycling(f, a, true));
+		val scale = if (b.isInt)
+			min(max(b.extractInt(), -10000), 10000)
+		else
+			if (b.greaterOrEqual(zero())) 10000 else -10000
+		val f = scalb(a.extractFloat(), scale)
+		return interpreter.primitiveSuccess(fromFloatRecycling(f, a, true))
 	}
 
-	@Override
-	protected A_Type privateBlockTypeRestriction ()
-	{
+	override fun privateBlockTypeRestriction(): A_Type {
 		return functionType(
 			tuple(
 				FLOAT.o(),
 				instanceType(two()),
 				integers()),
-			FLOAT.o());
+			FLOAT.o())
 	}
 }

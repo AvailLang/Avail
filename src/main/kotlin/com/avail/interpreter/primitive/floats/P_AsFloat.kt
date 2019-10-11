@@ -29,48 +29,35 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.primitive.floats;
+package com.avail.interpreter.primitive.floats
 
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-import static
-
-com.avail.descriptor.FloatDescriptor.fromFloat;
-import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
-import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
-import static com.avail.interpreter.Primitive.Flag.*;
+import com.avail.descriptor.A_Type
+import com.avail.descriptor.FloatDescriptor
+import com.avail.descriptor.FloatDescriptor.fromFloat
+import com.avail.descriptor.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.TypeDescriptor.Types.FLOAT
+import com.avail.descriptor.TypeDescriptor.Types.NUMBER
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * <strong>Primitive:</strong> Convert the numeric argument to a
- * {@linkplain FloatDescriptor float}.
+ * **Primitive:** Convert the numeric argument to a
+ * [float][FloatDescriptor].
  */
-public final class P_AsFloat extends Primitive
-{
-	/**
-	 * The sole instance of this primitive class.  Accessed through reflection.
-	 */
-	@ReferencedInGeneratedCode
-	public static final Primitive instance =
-		new P_AsFloat().init(
-			1, CannotFail, CanFold, CanInline);
+object P_AsFloat : Primitive(1, CannotFail, CanFold, CanInline) {
 
-	@Override
-	public Result attempt (
-		final Interpreter interpreter)
-	{
-		interpreter.checkArgumentCount(1);
-		final AvailObject number = interpreter.argument(0);
-		if (number.isFloat())
-		{
-			return interpreter.primitiveSuccess(number);
-		}
-		return interpreter.primitiveSuccess(fromFloat(number.extractFloat()));
+	override fun attempt(
+		interpreter: Interpreter): Primitive.Result {
+		interpreter.checkArgumentCount(1)
+		val number = interpreter.argument(0)
+		return if (number.isFloat) {
+			interpreter.primitiveSuccess(number)
+		} else interpreter.primitiveSuccess(fromFloat(number.extractFloat()))
 	}
 
-	@Override
-	protected A_Type privateBlockTypeRestriction ()
-	{
-		return functionType(tuple(NUMBER.o()), FLOAT.o());
+	override fun privateBlockTypeRestriction(): A_Type {
+		return functionType(tuple(NUMBER.o()), FLOAT.o())
 	}
 }
