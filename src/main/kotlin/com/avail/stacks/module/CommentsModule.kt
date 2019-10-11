@@ -347,13 +347,10 @@ class CommentsModule constructor(
 				nameToCheck, moduleName, filename, true)
 			comment.addToImplementationGroup(stickyGroup)
 			stickyGroup.hasStickyComment(true)
-			if (!stickyNamesImplementations.keys.contains(nameToCheck))
-			{
-				stickyNamesImplementations[nameToCheck] = mutableMapOf()
-			}
-			stickyNamesImplementations[nameToCheck]?.let {
-				it[comment.signature.module] = stickyGroup
-			}
+			stickyNamesImplementations
+				.getOrPut(nameToCheck) {
+					mutableMapOf()
+				}[comment.signature.module] = stickyGroup
 		}
 	}
 
@@ -492,25 +489,19 @@ class CommentsModule constructor(
 
 					val visibleValues =
 						ArrayList<Pair<A_String, CommentGroup>>()
-					for (name in usesMethodLeafNameToModuleName.keys)
+					for ((name, value) in usesMethodLeafNameToModuleName)
 					{
-						for (module in usesMethodLeafNameToModuleName[name]!!.keys)
+						for ((module, commentGroup) in value)
 						{
-							visibleValues.add(
-								Pair(
-									name,
-									usesMethodLeafNameToModuleName[name]!![module]!!))
+							visibleValues.add(Pair(name, commentGroup))
 						}
 					}
 
-					for (name in extendsMethodLeafNameToModuleName.keys)
+					for ((name, groupMap) in extendsMethodLeafNameToModuleName)
 					{
-						for (module in extendsMethodLeafNameToModuleName[name]!!.keys)
+						for ((module, commentGroup) in groupMap)
 						{
-							visibleValues.add(
-								Pair(
-									name,
-									extendsMethodLeafNameToModuleName[name]!![module]!!))
+							visibleValues.add(Pair(name, commentGroup))
 						}
 					}
 
@@ -597,55 +588,42 @@ class CommentsModule constructor(
 
 					usesMap[moduleImportName] = stacksUses
 
-					for (key in
-						stacksUses.extendsMethodLeafNameToModuleName.keys)
+					for ((key, value) in
+						stacksUses.extendsMethodLeafNameToModuleName)
 					{
-						val addOn =
-							stacksUses.extendsMethodLeafNameToModuleName
 						if (usesMethodLeafNameToModuleName.containsKey(key))
 						{
-							val modToImplement = addOn[key]
-							for (mod in modToImplement!!.keys)
+							for ((mod, cGroup) in value)
 							{
-								usesMethodLeafNameToModuleName[key]!![mod] =
-									modToImplement[mod]!!
+								value[mod] = cGroup
 							}
 						}
 						else
 						{
-							usesMethodLeafNameToModuleName[key] = addOn[key]!!
+							usesMethodLeafNameToModuleName[key] = value
 						}
 					}
 
 					val visibleValues =
-						ArrayList<Pair<A_String, CommentGroup>>()
-					for (name in usesMethodLeafNameToModuleName.keys)
+						mutableListOf<Pair<A_String, CommentGroup>>()
+					for ((name, cGroupMap) in usesMethodLeafNameToModuleName)
 					{
-						for (module in
-							usesMethodLeafNameToModuleName[name]!!.keys)
+						for ((module, commentGroup) in cGroupMap)
 						{
-							visibleValues.add(
-								Pair(
-									name,
-									usesMethodLeafNameToModuleName[name]!![module]!!))
+							visibleValues.add(Pair(name, commentGroup))
 						}
 					}
 
-					for (name in extendsMethodLeafNameToModuleName.keys)
+					for ((name, cGroupMap) in extendsMethodLeafNameToModuleName)
 					{
-						for (module in
-							extendsMethodLeafNameToModuleName[name]!!.keys)
+						for ((module, commentGroup) in cGroupMap)
 						{
-							visibleValues.add(
-								Pair(
-									name,
-									extendsMethodLeafNameToModuleName[name]!![module]!!))
+							visibleValues.add(Pair(name, commentGroup))
 						}
 					}
 
 					val visibleFileNames =
 						createFileNames(visibleValues, "json")
-
 
 					inScopeMethodsToFileNames.putAll(visibleFileNames)
 				}
