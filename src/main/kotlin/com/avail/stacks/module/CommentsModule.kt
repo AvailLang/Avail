@@ -58,7 +58,8 @@ import com.avail.stacks.exceptions.StacksScannerException
 import com.avail.stacks.scanner.StacksScanner
 
 /**
- * A representation of all the fully parsed [ comments][CommentTokenDescriptor] in a given module
+ * A representation of all the fully parsed [comments][CommentTokenDescriptor]
+ * in a given module
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
@@ -94,7 +95,8 @@ class CommentsModule constructor(
 		val linkPrefix: String)
 {
 	/**
-	 *  A map of the modules extended by this module to the [StacksExtendsModule] content.
+	 *  A map of the modules extended by this module to the
+	 *  [StacksExtendsModule] content.
 	 */
 	val extendedNamesImplementations =
 		mutableMapOf<String, StacksExtendsModule>()
@@ -111,7 +113,8 @@ class CommentsModule constructor(
 		mutableMapOf<A_String, MutableMap<String, CommentGroup>>()
 
 	/**
-	 * A map of the modules used by this module to the [StacksUsesModule] content.
+	 * A map of the modules used by this module to the [StacksUsesModule]
+	 * content.
 	 */
 	var usesNamesImplementations = mutableMapOf<String, StacksUsesModule>()
 
@@ -344,10 +347,9 @@ class CommentsModule constructor(
 				nameToCheck, moduleName, filename, true)
 			comment.addToImplementationGroup(stickyGroup)
 			stickyGroup.hasStickyComment(true)
-			if (!stickyNamesImplementations.keys
-					.contains(nameToCheck))
+			if (!stickyNamesImplementations.keys.contains(nameToCheck))
 			{
-				stickyNamesImplementations[nameToCheck] = HashMap(0)
+				stickyNamesImplementations[nameToCheck] = mutableMapOf()
 			}
 			stickyNamesImplementations[nameToCheck]?.let {
 				it[comment.signature.module] = stickyGroup
@@ -928,19 +930,18 @@ class CommentsModule constructor(
 		runtime: AvailRuntime,
 		topLevelLinkFolderPath: String): Int
 	{
-		val filteredMap = HashMap<A_String, MutableMap<String, CommentGroup>>()
+		val filteredMap =
+			mutableMapOf<A_String, MutableMap<String, CommentGroup>>()
 
-		val notPopulated = HashMap<String, CommentGroup>()
+		val notPopulated = mutableMapOf<String, CommentGroup>()
 
 		var fileCount = 0
 
 		val ambiguousMethodFileMap =
 			mutableMapOf<A_String, MutableMap<String, CommentGroup>>()
 
-		for (key in extendsMethodLeafNameToModuleName.keys)
+		for ((key, value) in extendsMethodLeafNameToModuleName)
 		{
-			val tempMap = extendsMethodLeafNameToModuleName[key]!!
-
 			val stickyMap = stickyNamesImplementations[key]
 
 			/* If there is a sticky implementation group, force it into
@@ -948,30 +949,27 @@ class CommentsModule constructor(
 			 * the documentation should be updated. */
 			if (stickyMap != null)
 			{
-				tempMap.putAll(stickyMap)
+				value.putAll(stickyMap)
 			}
 
-			if (tempMap.size > 1)
+			if (value.size > 1)
 			{
-				ambiguousMethodFileMap[key] = tempMap
+				ambiguousMethodFileMap[key] = value
 			}
 
-			for (modName in tempMap.keys)
+			for (modName in value.keys)
 			{
-				val implementation = tempMap[modName]
-				if (tempMap[modName]!!.isPopulated)
+				val implementation = value[modName]
+				if (implementation?.isPopulated == true)
 				{
-					if (filteredMap.containsKey(key))
-					{
-						filteredMap[key]!![modName] = implementation!!
-					}
-					else
-					{
+					filteredMap[key]?.let {
+						it[modName] = implementation
+					} ?: {
 						val modToImplement =
-							HashMap<String, CommentGroup>()
-						modToImplement[modName] = implementation!!
+							mutableMapOf<String, CommentGroup>()
+						modToImplement[modName] = implementation
 						filteredMap[key] = modToImplement
-					}
+					}.invoke()
 
 					for (category in implementation.categories())
 					{
@@ -981,11 +979,12 @@ class CommentsModule constructor(
 							implementation.filepath!!.relativeFilePath())
 					}
 
-					if (tempMap.size == 1)
+					if (value.size == 1)
 					{
 						linkingFileMap.addNamedFileLinks(
 							key.asNativeString(),
-							linkPrefix + implementation.filepath!!.relativeFilePath())
+							linkPrefix +
+								implementation.filepath!!.relativeFilePath())
 					}
 
 					fileCount++
@@ -993,66 +992,53 @@ class CommentsModule constructor(
 				else
 				{
 					notPopulated[modName + "/" + key.asNativeString()] =
-						tempMap[modName]!!
+						value[modName]!!
 				}
 			}
 		}
 
 		/* Stage all documents that are sticky but not exported
 		 * to be written to a file.*/
-		for (key in stickyNamesImplementations.keys)
+		for ((key, value) in stickyNamesImplementations)
 		{
-			val tempMap = stickyNamesImplementations[key]
-
 			val exportMap = extendsMethodLeafNameToModuleName[key]
 
 			if (exportMap == null)
 			{
-				if (tempMap!!.size > 1)
+				if (value.size > 1)
 				{
-					ambiguousMethodFileMap[key] = tempMap
+					ambiguousMethodFileMap[key] = value
 				}
 
-				for (modName in tempMap.keys)
+				for (tempEntry in value)
 				{
-					val implementation = tempMap[modName]!!
-					if (tempMap[modName]!!.isPopulated)
-					{
-						if (filteredMap.containsKey(key))
-						{
-							filteredMap[key]!![modName] = implementation
-						}
-						else
-						{
-							val modToImplement =
-								HashMap<String, CommentGroup>()
-							modToImplement[modName] = implementation
-							filteredMap[key] = modToImplement
-						}
+					val implementation = tempEntry.value
+					if (filteredMap.containsKey(key))
+					filteredMap[key]?.let {
+						it[tempEntry.key] = implementation
+					} ?: {
+						val modToImplement =
+							HashMap<String, CommentGroup>()
+						modToImplement[tempEntry.key] = implementation
+						filteredMap[key] = modToImplement
+					}.invoke()
 
-						for (category in implementation.categories())
-						{
-							linkingFileMap.addCategoryMethodPair(
-								category,
-								key.asNativeString(),
+					for (category in implementation.categories())
+					{
+						linkingFileMap.addCategoryMethodPair(
+							category,
+							key.asNativeString(),
+							implementation.filepath!!.relativeFilePath())
+					}
+
+					if (value.size == 1)
+					{
+						linkingFileMap.addNamedFileLinks(
+							key.asNativeString(),
+							linkPrefix +
 								implementation.filepath!!.relativeFilePath())
-						}
-
-						if (tempMap.size == 1)
-						{
-							linkingFileMap.addNamedFileLinks(
-								key.asNativeString(),
-								linkPrefix +
-									implementation.filepath!!.relativeFilePath())
-						}
-
-						fileCount++
 					}
-					else
-					{
-						notPopulated[modName + "/" + key.asNativeString()] =
-							tempMap[modName]!!
-					}
+					fileCount++
 				}
 			}
 		}
