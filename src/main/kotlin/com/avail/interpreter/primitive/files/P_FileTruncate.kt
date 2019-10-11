@@ -149,7 +149,7 @@ object P_FileTruncate : Primitive(5, CanInline, HasSideEffect)
 	                   newFiber,
 	                   fail,
 	                   listOf(E_IO_ERROR.numericCode()))
-	               return@runtime.ioSystem().executeFileTask
+	               return@Runnable
 	           }
 
 	           Interpreter.runOutermostFunction(

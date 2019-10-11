@@ -113,7 +113,7 @@ object P_CreatePojoConstructorFunction : Primitive(2, CanInline, CanFold)
 			constructor = javaClass.getConstructor(*marshaledTypes)
 			marshaledTypesTuple = tupleFromList<AvailObject>(
 				Arrays.stream(marshaledTypes)
-					.map<AvailObject>(Function<Class<*>, AvailObject> { RawPojoDescriptor.equalityPojo(it) })
+					.map<AvailObject>{ RawPojoDescriptor.equalityPojo(it) }
 					.collect<List<AvailObject>, Any>(toList<AvailObject>()))
 		}
 		catch (e: MarshalingException)

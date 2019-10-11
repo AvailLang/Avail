@@ -88,10 +88,10 @@ object P_AttemptJoinFiber : Primitive(1, CanSuspend, Unknown)
 		{
 			return interpreter.primitiveFailure(E_FIBER_CANNOT_JOIN_ITSELF)
 		}
-		val succeed = joinee.lock<Boolean> {
+		val succeed = joinee.lock<Boolean> joineelock@ {
 			if (joinee.executionState().indicatesTermination())
 			{
-				return@joinee.lock true
+				return@joineelock true
 			}
 			// Add to the joinee's set of joining fibers.  To avoid deadlock,
 			// this step is done while holding only the joinee's lock, which
@@ -123,16 +123,17 @@ object P_AttemptJoinFiber : Primitive(1, CanSuspend, Unknown)
 		{
 			interpreter.primitiveSuccess(nil)
 		}
-		else current.lock<Primitive.Result> {
+		else current.lock<Primitive.Result> currentlock@ {
 			// If permit is not available, then park this fiber.
 			if (current.getAndSetSynchronizationFlag(
 					PERMIT_UNAVAILABLE, true))
 			{
-				return@current.lock interpreter . primitivePark stripNull<A_Function>(interpreter.function)
+				return@currentlock interpreter
+					.primitivePark(stripNull(interpreter.function))
 			}
 			else
 			{
-				return@current.lock interpreter . primitiveSuccess nil
+				return@currentlock interpreter.primitiveSuccess(nil)
 			}
 		}
 	}

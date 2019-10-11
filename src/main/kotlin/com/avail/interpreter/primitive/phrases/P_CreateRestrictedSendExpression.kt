@@ -32,22 +32,12 @@
 
 package com.avail.interpreter.primitive.phrases
 
-import com.avail.AvailRuntime
 import com.avail.compiler.AvailAcceptedParseException
 import com.avail.compiler.AvailRejectedParseException
-import com.avail.compiler.splitter.MessageSplitter
-import com.avail.descriptor.A_Atom
 import com.avail.descriptor.A_Bundle
-import com.avail.descriptor.A_Definition
-import com.avail.descriptor.A_Fiber
-import com.avail.descriptor.A_Function
-import com.avail.descriptor.A_Module
-import com.avail.descriptor.A_Phrase
 import com.avail.descriptor.A_RawFunction
 import com.avail.descriptor.A_SemanticRestriction
-import com.avail.descriptor.A_Set
 import com.avail.descriptor.A_String
-import com.avail.descriptor.A_Tuple
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AvailObject
 import com.avail.descriptor.ListPhraseDescriptor
@@ -55,13 +45,9 @@ import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
 import com.avail.descriptor.SendPhraseDescriptor
 import com.avail.descriptor.TypeDescriptor
 import com.avail.exceptions.MalformedMessageException
-import com.avail.interpreter.AvailLoader
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.utility.Mutable
-import com.avail.utility.evaluation.Continuation0
-import com.avail.utility.evaluation.Continuation1NotNull
 import java.util.ArrayList
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -95,14 +81,14 @@ import com.avail.utility.Nulls.stripNull
 import com.avail.utility.Strings.increaseIndentation
 
 /**
- * **Primitive CreateRestrictedSendExpression**: Create a
- * [send phrase][SendPhraseDescriptor] from the specified [ ], [list phrase][ListPhraseDescriptor] of
- * [argument expressions][PhraseKind.EXPRESSION_PHRASE], and
- * [return type][TypeDescriptor].  In addition, run all semantic
- * restrictions in separate fibers.  The resulting send phrase's return type
- * will be the intersection of the supplied type, the return types produced by
- * the semantic restrictions, and the applicable method definitions' return
- * types.
+ * **Primitive CreateRestrictedSendExpression**: Create a [send
+* phrase][SendPhraseDescriptor] from the specified [message bundle][A_Bundle],
+* [list phrase][ListPhraseDescriptor] of [argument
+* expressions][PhraseKind.EXPRESSION_PHRASE], and [return type][TypeDescriptor].
+* In addition, run all semantic restrictions in separate fibers.  The resulting
+* send phrase's return type will be the intersection of the supplied type, the
+* return types produced by the semantic restrictions, and the applicable method
+* definitions' return types.
  *
  *
  * In the event that one or more semantic restrictions should fail, their
@@ -122,9 +108,7 @@ import com.avail.utility.Strings.increaseIndentation
  */
 object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+	override fun attempt(interpreter: Interpreter): Primitive.Result
 	{
 		interpreter.checkArgumentCount(3)
 		val messageName = interpreter.argument(0)
@@ -207,11 +191,11 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 		val copiedArgs = ArrayList(interpreter.argsBuffer)
 		val countdown = AtomicInteger(restrictionsSize)
 		val problems = ArrayList<A_String>()
-		val decrement = {
+		val decrement = decrement@ {
 			if (countdown.decrementAndGet() != 0)
 			{
 				// We're not last to decrement, so don't do the epilogue.
-				return
+				return@decrement
 			}
 			// We're last to report.  Either succeed or fail the
 			// primitive within the original fiber.
@@ -266,11 +250,12 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 					copiedArgs)
 			}
 		}
-		val success = { resultType ->
-			if (resultType.isType())
+		val success = { resultType: AvailObject ->
+			if (resultType.isType)
 			{
 				synchronized(intersection) {
-					intersection.value = intersection.value.typeIntersection(resultType)
+					intersection.value =
+						intersection.value.typeIntersection(resultType)
 				}
 			}
 			else
@@ -283,7 +268,7 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 							+ resultType))
 				}
 			}
-			decrement.value()
+			decrement.invoke()
 		}
 		var fiberCount = 1
 		for (restriction in applicableRestrictions)
@@ -331,15 +316,13 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 		return FIBER_SUSPENDED
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				ATOM.o(),
 				LIST_PHRASE.mostGeneralType(),
 				topMeta()),
 			SEND_PHRASE.mostGeneralType())
-	}
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
@@ -354,14 +337,11 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 		return SEND_PHRASE.create(returnType)
 	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
 			set(
 				E_INCORRECT_NUMBER_OF_ARGUMENTS,
 				E_NO_METHOD_DEFINITION,
 				E_LOADING_IS_OVER
 			).setUnionCanDestroy(possibleErrors, true))
-	}
-
 }

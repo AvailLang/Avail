@@ -104,7 +104,7 @@ import com.avail.descriptor.VariableUsePhraseDescriptor.newUse
 import com.avail.exceptions.AvailErrorCode.E_JAVA_METHOD_NOT_AVAILABLE
 import com.avail.exceptions.AvailRuntimeException
 import com.avail.exceptions.MalformedMessageException
-import com.avail.interpreter.Primitive.primitiveByName
+import com.avail.interpreter.Primitive.Companion.primitiveByName
 import com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RESTART
 import com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RETURN_INTO
 import com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk

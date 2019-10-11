@@ -70,36 +70,36 @@ tasks.withType(JavaCompile) {
 dependencies {
 	// Kotlin.
 	implementation group: 'org.jetbrains.kotlin',
-		name: 'kotlin-stdlib-jdk8',
-		version: "$kotlin_version"
+			name: 'kotlin-stdlib-jdk8',
+			version: "$kotlin_version"
 
 	// JSR-305 null analysis framework.
 	implementation group: 'com.google.code.findbugs',
-		name: 'jsr305',
-		version: "$jsr_version"
+			name: 'jsr305',
+			version: "$jsr_version"
 
 	// ObjectWeb JVM code generation/analysis framework.
 	implementation group: 'org.ow2.asm', name: 'asm', version: "$asm_version"
 	implementation group: 'org.ow2.asm',
-		name: 'asm-analysis',
-		version: "$asm_version"
+			name: 'asm-analysis',
+			version: "$asm_version"
 	implementation group: 'org.ow2.asm',
-		name: 'asm-tree',
-		version: "$asm_version"
+			name: 'asm-tree',
+			version: "$asm_version"
 	implementation group: 'org.ow2.asm',
-		name: 'asm-util',
-		version: "$asm_version"
+			name: 'asm-util',
+			version: "$asm_version"
 
 	// JUnit 5.
 	testRuntimeOnly group: 'org.junit.jupiter',
-		name: 'junit-jupiter-engine',
-		version: "$junit_version"
+			name: 'junit-jupiter-engine',
+			version: "$junit_version"
 	testImplementation group: 'org.junit.jupiter',
-		name: 'junit-jupiter-api',
-		version: "$junit_version"
+			name: 'junit-jupiter-api',
+			version: "$junit_version"
 	testImplementation group: 'org.junit.jupiter',
-		name: 'junit-jupiter-params',
-		version: "$junit_version"
+			name: 'junit-jupiter-params',
+			version: "$junit_version"
 }
 
 // Compute the Avail roots. This is needed to properly configure "test".
@@ -128,9 +128,9 @@ task generateBuildTime {
 
 	doLast {
 		def formatter = DateTimeFormatter
-			.ofPattern("yyyyMMdd.HHmmss.SSS")
-			.withLocale(Locale.default)
-			.withZone(ZoneId.systemDefault())
+				.ofPattern("yyyyMMdd.HHmmss.SSS")
+				.withLocale(Locale.default)
+				.withZone(ZoneId.systemDefault())
 		def now = formatter.format(Instant.now())
 
 		file(pathToBuildTime).text = "$now\n"
@@ -141,34 +141,24 @@ task generateBuildTime {
 // setup to reflectively identify the complete catalog of primitives.
 task generatePrimitivesList {
 	// Un-Windows the path, if necessary.
-	def pathAvailBuildJava =
-		"$buildDir/classes/java/main".replaceAll('\\\\', '/')
-	def pathAvailBuildKotlin =
-		"$buildDir/classes/kotlin/main".replaceAll('\\\\', '/')
-	def javaPrimitives =
-		fileTree("$pathAvailBuildJava/com/avail/interpreter")
-	def kotlinPrimitives =
-		fileTree("$pathAvailBuildKotlin/com/avail/interpreter")
+	def pathAvailBuildMain =
+			"$buildDir/classes/kotlin/main".replaceAll('\\\\', '/')
+	def allPrimitives = fileTree("$pathAvailBuildMain/com/avail/interpreter")
 	def pathToPrimitivesList =
-		file("$pathAvailBuildJava/com/avail/interpreter/All_Primitives.txt")
-	javaPrimitives.include "**/P_*.class"
-	javaPrimitives.exclude '**/*$*.class'
-	javaPrimitives.builtBy "compileJava"
-	kotlinPrimitives.include "**/P_*.class"
-	kotlinPrimitives.exclude '**/*$*.class'
-	kotlinPrimitives.builtBy "compileJava"
-	def allPrimitives = javaPrimitives + kotlinPrimitives
+			file("$pathAvailBuildMain/com/avail/interpreter/All_Primitives.txt")
+	allPrimitives.include "**/P_*.class"
+	allPrimitives.exclude '**/*$*.class'
+	allPrimitives.builtBy "compileJava"
 	inputs.files allPrimitives
 	outputs.files pathToPrimitivesList
 
 	doLast {
 		def allPrimitiveNames = allPrimitives.collect {
 			it.absolutePath
-				.replaceAll('\\\\', '/')
-				.replaceFirst(
-					"^($pathAvailBuildJava|$pathAvailBuildKotlin)/", "")
-				.replaceFirst('\\.class', "\n")
-				.replaceAll("/", ".")
+					.replaceAll('\\\\', '/')
+					.replaceFirst("^$pathAvailBuildMain/", "")
+					.replaceFirst('\\.class', "\n")
+					.replaceAll("/", ".")
 		}.sort()
 
 		pathToPrimitivesList.text = allPrimitiveNames.join("")

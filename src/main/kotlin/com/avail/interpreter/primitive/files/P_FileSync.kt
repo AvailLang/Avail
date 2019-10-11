@@ -148,7 +148,7 @@ object P_FileSync : Primitive(4, CanInline, HasSideEffect)
                        newFiber,
                        fail,
                        listOf(E_IO_ERROR.numericCode()))
-                   return@runtime.ioSystem().executeFileTask
+                   return@Runnable
                }
 
                runOutermostFunction(

@@ -44,7 +44,7 @@ import com.avail.descriptor.SendPhraseDescriptor.newSendNode
 import com.avail.descriptor.StringDescriptor.stringFrom
 import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TypeDescriptor.Types.TOP
-import com.avail.interpreter.Primitive.primitiveByName
+import com.avail.interpreter.Primitive.Companion.primitiveByName
 import java.lang.String.format
 
 /**

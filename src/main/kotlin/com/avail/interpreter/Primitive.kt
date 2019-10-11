@@ -54,10 +54,7 @@ import com.avail.serialization.Serializer
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
-import java.lang.reflect.Field
-import java.net.URL
 import java.util.*
-import java.util.regex.Matcher
 import java.util.regex.Pattern
 
 import com.avail.descriptor.BottomTypeDescriptor.bottom
@@ -552,29 +549,34 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 		return argCount
 	}
 
-	/** A helper class to assist with lazy loading of [Primitive]s.  */
-	private class PrimitiveHolder
 	/**
+	 * A helper class to assist with lazy loading of [Primitive]s.
+	 *
+	 * @property name
+	 *   The name by which a primitive function is declared in Avail code.
+	 * @property className
+	 *   The full name of the Java class implementing the primitive.
+	 * @property number
+	 *   The numeric index of the primitive in the [.holdersByNumber]
+	 *   array.  This ordering may be arbitrary, specific to the currently
+	 *   running Java VM instance.  The number should never be included in any
+	 *   serialization of primitive functions.
+	 *
+	 * @constructor
 	 * Construct a new `PrimitiveHolder`.
 	 *
-	 * @param name The primitive's textual name.
-	 * @param className The fully qualified name of the Primitive subclass.
-	 * @param number The primitive's assigned index in the
+	 * @param name
+	 *   The primitive's textual name.
+	 * @param className
+	 *   The fully qualified name of the Primitive subclass.
+	 * @param number
+	 *   The primitive's assigned index in the
 	 */
-	internal constructor(
-		/** The name by which a primitive function is declared in Avail code.  */
+	private open class PrimitiveHolder internal constructor(
 		internal val name: String,
-		/** The full name of the Java class implementing the primitive.  */
 		internal val className: String,
-		/**
-		 * The numeric index of the primitive in the [.holdersByNumber]
-		 * array.  This ordering may be arbitrary, specific to the currently
-		 * running Java VM instance.  The number should never be included in any
-		 * serialization of primitive functions.
-		 */
 		internal val number: Int)
 	{
-
 		/**
 		 * The sole instance of the specific subclass of [Primitive].  It
 		 * is initialized only when needed for the first time, since that causes
@@ -623,7 +625,8 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 						}
 					// Trigger the linker.
 					val instance = field.get(null)
-					               ?: error("PrimitiveHolder.primitive field should have " + "been set during class loading")
+	                    ?: error("PrimitiveHolder.primitive field should have "
+	                             + "been set during class loading")
 				}
 				catch (e: ClassNotFoundException)
 				{
@@ -637,21 +640,29 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 				{
 					throw RuntimeException(e)
 				}
-
 			}
 			return stripNull(primitive)
 		}
 
 		companion object
 		{
-
 			/**
 			 * The potential field names containing the primitive instance.  For
 			 * Java code, it's "instance", and for Kotlin it's "INSTANCE".
 			 */
-			private val instanceFieldNames = HashSet(Arrays.asList("instance", "INSTANCE"))
+			private val instanceFieldNames =
+				mutableSetOf("instance", "INSTANCE")
 		}
 	}
+
+	/**
+	 * In order to enable the code paradigm in init, this object is used in
+	 * place of null.
+	 */
+	private object NullPrimitiveHolder : PrimitiveHolder(
+		"NULLPRIMITIVEHOLDER",
+			"NullPrimitiveHolder",
+			Integer.MIN_VALUE)
 
 	/**
 	 * Answer the [Statistic] for abandoning the stack due to a primitive
@@ -690,33 +701,40 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 	 * this primitive's [PrimitiveHolder] in [.holdersByClassName].
 	 *
 	 * @param theArgCount
-	 * The number of arguments the primitive expects.  The value -1 is
-	 * used by the special primitive [P_PushConstant] to
-	 * indicate it may have any number of arguments.  However, note that
-	 * that primitive cannot be used explicitly in Avail code.
+	 *   The number of arguments the primitive expects.  The value -1 is used by
+	 *   the special primitive [P_PushConstant] to indicate it may have any
+	 *   number of arguments.  However, note that that primitive cannot be used
+	 *   explicitly in Avail code.
 	 * @param flags
-	 * The flags that describe how the [L2Generator] should deal
-	 * with this primitive.
+	 *   The flags that describe how the [L2Generator] should deal with this
+	 *   primitive.
 	 * @return The initialized primitive.
 	 */
 	fun init(theArgCount: Int, vararg flags: Flag): Primitive
 	{
 		val holder = holdersByClassName[javaClass.name]
-		primitiveNumber = holder.number
+		primitiveNumber = holder!!.number
 		name = holder.name
 		argCount = theArgCount
 		assert(primitiveFlags.isEmpty())
 		for (flag in flags)
 		{
-			assert(!primitiveFlags.contains(flag)) { "Duplicate flag in " + javaClass.simpleName }
+			assert(!primitiveFlags.contains(flag))
+			{
+				"Duplicate flag in " + javaClass.simpleName
+			}
 			primitiveFlags.add(flag)
 		}
 		// Sanity check certain conditions.
-		assert(!primitiveFlags.contains(CanFold) || primitiveFlags.contains(CanInline)) {
+		assert(!primitiveFlags.contains(CanFold)
+		       || primitiveFlags.contains(CanInline))
+		{
 			("Primitive " + javaClass.simpleName
 			 + " has CanFold without CanInline")
 		}
-		assert(!primitiveFlags.contains(Invokes) || primitiveFlags.contains(CanInline)) {
+		assert(!primitiveFlags.contains(Invokes)
+		       || primitiveFlags.contains(CanInline))
+		{
 			("Primitive " + javaClass.simpleName
 			 + " has Invokes without CanInline")
 		}
@@ -749,10 +767,8 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 	 *
 	 * @return Whether this primitive has failure/alternative code.
 	 */
-	fun canHaveNybblecodes(): Boolean
-	{
-		return !hasFlag(CannotFail) || hasFlag(SpecialForm)
-	}
+	fun canHaveNybblecodes(): Boolean =
+		!hasFlag(CannotFail) || hasFlag(SpecialForm)
 
 	/**
 	 * Generate suitable primitive failure code on the given [ ]. Some primitives may have special requirements, but
@@ -798,10 +814,7 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 	 *
 	 * @return The name of this primitive.
 	 */
-	override fun name(): String
-	{
-		return name
-	}
+	override fun name(): String = name
 
 	/**
 	 * Be compliant with [IntegerEnumSlotDescriptionEnum] – although it
@@ -828,7 +841,8 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 		deltaNanoseconds: Long,
 		interpreterIndex: Int)
 	{
-		stripNull(runningNanos).record(deltaNanoseconds.toDouble(), interpreterIndex)
+		stripNull(runningNanos).record(
+			deltaNanoseconds.toDouble(), interpreterIndex)
 	}
 
 	/**
@@ -844,7 +858,8 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 		deltaNanoseconds: Long,
 		interpreterIndex: Int)
 	{
-		resultTypeCheckingNanos.record(deltaNanoseconds.toDouble(), interpreterIndex)
+		resultTypeCheckingNanos.record(
+			deltaNanoseconds.toDouble(), interpreterIndex)
 	}
 
 	/**
@@ -856,23 +871,21 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 	 * answer `false`, and generate nothing.
 	 *
 	 * @param functionToCallReg
-	 * The [L2ReadBoxedOperand] register that holds the function
-	 * being invoked.  The function's primitive is known to be the
-	 * receiver.
+	 *   The [L2ReadBoxedOperand] register that holds the function being
+	 *   invoked.  The function's primitive is known to be the receiver.
 	 * @param rawFunction
-	 * The primitive raw function whose invocation is being generated.
+	 *   The primitive raw function whose invocation is being generated.
 	 * @param arguments
-	 * The argument [L2ReadBoxedOperand]s supplied to the
-	 * function.
+	 *   The argument [L2ReadBoxedOperand]s supplied to the function.
 	 * @param argumentTypes
-	 * The list of [A_Type]s of the arguments.
+	 *   The list of [A_Type]s of the arguments.
 	 * @param translator
-	 * The [L1Translator] on which to emit code, if possible.
+	 *   The [L1Translator] on which to emit code, if possible.
 	 * @param callSiteHelper
-	 * Information about the call site being generated.
-	 * @return `true` if a specialized [L2Instruction] sequence was
-	 * generated, `false` if nothing was emitted and the general
-	 * mechanism should be used instead.
+	 *   Information about the call site being generated.
+	 * @return `true` if a specialized [L2Instruction] sequence was generated,
+	 *   `false` if nothing was emitted and the general mechanism should be used
+	 *   instead.
 	 */
 	open fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
@@ -886,7 +899,8 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 		// the primitive is infallible.  However, if the primitive can suspend
 		// the fiber (which can happen even if it's infallible), be careful not
 		// to inline it.
-		if (hasFlag(CanSuspend) || fallibilityForArgumentTypes(argumentTypes) != CallSiteCannotFail)
+		if (hasFlag(CanSuspend)
+		    || fallibilityForArgumentTypes(argumentTypes) != CallSiteCannotFail)
 		{
 			return false
 		}
@@ -954,12 +968,12 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 		 *
 		 *
 		 * If this array is insufficient to hold all the primitives, it can be
-		 * replaced with a larger one as needed.  However, be careful of the lack of
-		 * write barrier for array elements.  Reads should always be safe, as they
-		 * couldn't be caching stale data from the replacement array, because they
-		 * can't see it until after it has been populated at least to the extent
-		 * that the previous array was.  Writing new elements to the array has to be
-		 * protected
+		 * replaced with a larger one as needed.  However, be careful of the
+		 * lack of write barrier for array elements.  Reads should always be
+		 * safe, as they couldn't be caching stale data from the replacement
+		 * array, because they can't see it until after it has been populated at
+		 * least to the extent that the previous array was.  Writing new
+		 * elements to the array has to be protected
 		 */
 		private val holdersByNumber: Array<PrimitiveHolder>
 
@@ -976,15 +990,15 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 		private val primitiveNamePattern = Pattern.compile("P_(\\w+)")
 
 		/*
-	 * Read from allPrimitivesFileName to get a complete manifest of accessible
-	 * primitives.  Don't actually load the primitives yet.
-	 */
+	     * Read from allPrimitivesFileName to get a complete manifest of
+	     * accessible primitives.  Don't actually load the primitives yet.
+	     */
 		init
 		{
 			val byNumbers = ArrayList<PrimitiveHolder>()
-			byNumbers.add(null)  // Entry zero is reserved for not-a-primitive.
+			byNumbers.add(NullPrimitiveHolder)  // Entry zero is reserved for not-a-primitive.
 			var counter = 1
-			val byNames = HashMap<String, PrimitiveHolder>()
+			val byNames = mutableMapOf<String, PrimitiveHolder>()
 			val byClassNames = HashMap<String, PrimitiveHolder>()
 			try
 			{
@@ -994,7 +1008,10 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 					while (true)
 					{
 						val className = input.readLine() ?: break
-						val parts = className.split("\\.".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+						val parts =
+							className.split("\\.".toRegex())
+								.dropLastWhile { it.isEmpty() }
+								.toTypedArray()
 						val lastPart = parts[parts.size - 1]
 						val matcher = primitiveNamePattern.matcher(lastPart)
 						if (matcher.matches())

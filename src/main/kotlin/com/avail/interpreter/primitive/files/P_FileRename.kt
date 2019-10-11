@@ -149,12 +149,12 @@ object P_FileRename : Primitive(6, CanInline, HasSideEffect)
                        newFiber,
                        fail,
                        listOf(E_PERMISSION_DENIED.numericCode()))
-                   return@runtime.ioSystem().executeFileTask
+                   return@Runnable
                }
                catch (e: AccessDeniedException)
                {
                    Interpreter.runOutermostFunction(runtime, newFiber, fail, listOf(E_PERMISSION_DENIED.numericCode()))
-                   return@runtime.ioSystem().executeFileTask
+                   return@Runnable
                }
                catch (e: NoSuchFileException)
                {
@@ -163,7 +163,7 @@ object P_FileRename : Primitive(6, CanInline, HasSideEffect)
                        newFiber,
                        fail,
                        listOf(E_NO_FILE.numericCode()))
-                   return@runtime.ioSystem().executeFileTask
+                   return@Runnable
                }
                catch (e: FileAlreadyExistsException)
                {
@@ -172,7 +172,7 @@ object P_FileRename : Primitive(6, CanInline, HasSideEffect)
                        newFiber,
                        fail,
                        listOf(E_FILE_EXISTS.numericCode()))
-                   return@runtime.ioSystem().executeFileTask
+                   return@Runnable
                }
                catch (e: IOException)
                {
@@ -181,7 +181,7 @@ object P_FileRename : Primitive(6, CanInline, HasSideEffect)
                        newFiber,
                        fail,
                        listOf(E_IO_ERROR.numericCode()))
-                   return@runtime.ioSystem().executeFileTask
+                   return@Runnable
                }
 
                Interpreter.runOutermostFunction(
@@ -216,9 +216,6 @@ object P_FileRename : Primitive(6, CanInline, HasSideEffect)
 			fiberType(TOP.o()))
 	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_INVALID_PATH))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_INVALID_PATH))
 }

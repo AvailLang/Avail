@@ -153,7 +153,7 @@ object P_BootstrapVariableUseMacro : Primitive(1, CannotFail, CanInline, Bootstr
 				builder.append(" to be in scope (local scope is: ")
 				val scope = ArrayList(
 					toList<A_String>(scopeMap.keysAsSet().asTuple()))
-				scope.sort(comparing<A_String, String>(Function<A_String, String> { it.asNativeString() }))
+				scope.sortWith(comparing<A_String, String> { it.asNativeString() })
 				var first = true
 				for (eachVar in scope)
 				{

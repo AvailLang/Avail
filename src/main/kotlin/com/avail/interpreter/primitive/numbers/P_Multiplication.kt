@@ -256,7 +256,7 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 			private fun split(type: A_Type): List<A_Type>
 			{
 				return interestingRanges.stream()
-					.map<A_Type>(Function<A_Type, A_Type> { type.typeIntersection(it) })
+					.map<A_Type> { type.typeIntersection(it) }
 					.filter { subrange -> !subrange.isBottom }
 					.collect<List<A_Type>, Any>(toList())
 			}

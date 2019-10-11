@@ -211,8 +211,7 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 				val key = BufferKey(handle, bufferStart)
 				val bufferHolder = ioSystem.getBuffer(key)
 				val buffer = bufferHolder.value
-				if (buffer ==
-					null)
+				if (buffer == null)
 				{
 					if (firstMissingBufferStart == java.lang.Long.MIN_VALUE)
 					{
@@ -220,8 +219,8 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 						firstMissingBufferStart = bufferStart
 						if (firstPresentBufferStart != java.lang.Long.MIN_VALUE)
 						{
-							// We must have started with hits, and now we know how
-							// many buffers in a row to return.
+							// We must have started with hits, and now we know
+							// how many buffers in a row to return.
 							break
 						}
 					}
@@ -234,13 +233,13 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 						firstPresentBufferStart = bufferStart
 						if (firstMissingBufferStart != java.lang.Long.MIN_VALUE)
 						{
-							// We must have started with misses, and now we know how
-							// many buffers in a row to fetch.
+							// We must have started with misses, and now we know
+							// how many buffers in a row to fetch.
 							break
 						}
 					}
 				}
-				buffers.add(buffer)
+				buffers.add(buffer!!)
 				bufferStart += alignment.toLong()
 			}
 		}

@@ -32,7 +32,6 @@
 
 package com.avail.interpreter.primitive.files
 
-import com.avail.AvailRuntime
 import com.avail.descriptor.*
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
@@ -41,14 +40,11 @@ import com.avail.io.IOSystem
 import java.io.IOException
 import java.nio.file.AccessDeniedException
 import java.nio.file.FileAlreadyExistsException
-import java.nio.file.FileSystem
 import java.nio.file.Files
 import java.nio.file.InvalidPathException
 import java.nio.file.Path
-import java.nio.file.attribute.FileAttribute
 import java.nio.file.attribute.PosixFilePermission
 import java.nio.file.attribute.PosixFilePermissions
-import java.util.Collections
 import java.util.EnumSet
 
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
@@ -75,7 +71,7 @@ import java.util.Collections.singletonList
 /**
  * **Primitive:** Create a directory with the indicated name
  * and permissions. Answer a new [fiber][A_Fiber] which, if creation
- * is successful, will be started to run the success [ function][A_Function].
+ * is successful, will be started to run the success [function][A_Function].
  * If the creation fails, then the fiber will be started to apply the
  * failure function to the error code. The fiber runs at the specified priority.
  *
@@ -83,7 +79,6 @@ import java.util.Collections.singletonList
  */
 object P_CreateDirectory : Primitive(5, CanInline, HasSideEffect)
 {
-
 	override fun attempt(
 		interpreter: Interpreter): Primitive.Result
 	{
@@ -143,7 +138,7 @@ object P_CreateDirectory : Primitive(5, CanInline, HasSideEffect)
                        newFiber,
                        fail,
                        listOf(E_FILE_EXISTS.numericCode()))
-                   return@runtime.ioSystem().executeFileTask
+                   return@Runnable
                }
                catch (e: SecurityException)
                {
@@ -152,12 +147,16 @@ object P_CreateDirectory : Primitive(5, CanInline, HasSideEffect)
                        newFiber,
                        fail,
                        listOf(E_PERMISSION_DENIED.numericCode()))
-                   return@runtime.ioSystem().executeFileTask
+                   return@Runnable
                }
                catch (e: AccessDeniedException)
                {
-                   Interpreter.runOutermostFunction(runtime, newFiber, fail, listOf(E_PERMISSION_DENIED.numericCode()))
-                   return@runtime.ioSystem().executeFileTask
+                   Interpreter.runOutermostFunction(
+	                   runtime,
+	                   newFiber,
+	                   fail,
+	                   listOf(E_PERMISSION_DENIED.numericCode()))
+                   return@Runnable
                }
                catch (e: IOException)
                {
@@ -166,7 +165,7 @@ object P_CreateDirectory : Primitive(5, CanInline, HasSideEffect)
                        newFiber,
                        fail,
                        listOf(E_IO_ERROR.numericCode()))
-                   return@runtime.ioSystem().executeFileTask
+                   return@Runnable
                }
 
                Interpreter.runOutermostFunction(
@@ -180,24 +179,21 @@ object P_CreateDirectory : Primitive(5, CanInline, HasSideEffect)
 
 	override fun privateBlockTypeRestriction(): A_Type
 	{
-		return functionType(tuple(stringType(),
-		                          setTypeForSizesContentType(
-			                          inclusive(0, 9),
-			                          inclusive(1, 9)),
-		                          functionType(
-			                          emptyTuple(),
-			                          TOP.o()), functionType(
-			tuple(
-				enumerationWith(
-					set(E_FILE_EXISTS, E_PERMISSION_DENIED,
-					    E_IO_ERROR))),
-			TOP.o()), bytes()), fiberType(TOP.o()))
+		return functionType(
+			tuple(stringType(),
+				setTypeForSizesContentType(
+				  inclusive(0, 9),
+				  inclusive(1, 9)),
+				functionType(emptyTuple(), TOP.o()),
+				functionType(tuple(
+					enumerationWith(
+						set(E_FILE_EXISTS, E_PERMISSION_DENIED, E_IO_ERROR))),
+				TOP.o()), bytes()),
+			fiberType(TOP.o()))
 	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_INVALID_PATH))
-	}
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_INVALID_PATH))
 
 	/**
 	 * Convert the specified [set][SetDescriptor] of [ ] into the corresponding [set][Set]

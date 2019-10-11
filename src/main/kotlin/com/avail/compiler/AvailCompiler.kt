@@ -177,7 +177,7 @@ import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Interpreter.runOutermostFunction
 import com.avail.interpreter.Interpreter.stringifyThen
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.primitiveByName
+import com.avail.interpreter.Primitive.Companion.primitiveByName
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForConstant
