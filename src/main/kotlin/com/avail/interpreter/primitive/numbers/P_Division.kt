@@ -31,13 +31,11 @@
  */
 package com.avail.interpreter.primitive.numbers
 
-import com.avail.descriptor.A_Number
 import com.avail.descriptor.A_RawFunction
 import com.avail.descriptor.A_Type
 import com.avail.exceptions.ArithmeticException
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.AbstractNumberDescriptor.binaryNumericOperationTypeBound

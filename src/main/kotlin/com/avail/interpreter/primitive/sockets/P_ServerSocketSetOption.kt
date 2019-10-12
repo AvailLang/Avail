@@ -75,7 +75,7 @@ object P_ServerSocketSetOption : Primitive(2, CanInline, HasSideEffect)
 	/**
 	 * A one-based list of the standard socket options.
 	 */
-	private val socketOptions = arrayOf<SocketOption<*>>(null, SO_RCVBUF, SO_REUSEADDR)
+	private val socketOptions = arrayOf<SocketOption<*>?>(null, SO_RCVBUF, SO_REUSEADDR)
 
 	override fun attempt(
 		interpreter: Interpreter): Primitive.Result
@@ -94,15 +94,18 @@ object P_ServerSocketSetOption : Primitive(2, CanInline, HasSideEffect)
 		{
 			for (entry in options.mapIterable())
 			{
-				val option = socketOptions[entry.key().extractInt()]
+				val option = socketOptions[entry.key().extractInt()]!!
 				if (option.type() == Boolean::class.java && entry.value().isBoolean)
 				{
 					socket.setOption<Boolean>(
-						option, entry.value().extractBoolean())
+						option as SocketOption<Boolean>,
+						entry.value().extractBoolean())
 				}
 				else if (option.type() == Int::class.java && entry.value().isInt)
 				{
-					socket.setOption<Int>(option, entry.value().extractInt())
+					socket.setOption<Int>(
+						option as SocketOption<Int>,
+						entry.value().extractInt())
 				}
 				else
 				{

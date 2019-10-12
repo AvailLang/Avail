@@ -109,11 +109,13 @@ object P_InvokeStaticPojoMethod : Primitive(-1, Private)
 		val result: Any
 		try
 		{
-			result = method.invoke(null, *marshaledArgs)
+			result = marshaledArgs
+				?.let {  method.invoke(null, *it)}
+				     ?: method.invoke(null, null)
 		}
 		catch (e: InvocationTargetException)
 		{
-			val cause = e.cause
+			val cause = e.cause!!
 			return interpreter.primitiveFailure(newPojo(
 				identityPojo(cause), pojoTypeForClass(cause.javaClass)))
 		}

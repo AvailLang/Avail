@@ -182,7 +182,7 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 		}
 		else
 		{
-			bufferIterator = object : Iterator<ByteBuffer>
+			bufferIterator = object : MutableIterator<ByteBuffer>
 			{
 				/** The buffer to reuse for writing.  */
 				internal val buffer = ByteBuffer.allocateDirect(

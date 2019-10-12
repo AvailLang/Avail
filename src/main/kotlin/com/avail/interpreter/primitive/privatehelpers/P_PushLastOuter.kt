@@ -31,17 +31,13 @@
  */
 package com.avail.interpreter.primitive.privatehelpers
 
-import com.avail.descriptor.A_Function
 import com.avail.descriptor.A_RawFunction
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.AvailObject
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 
 import com.avail.descriptor.BottomTypeDescriptor.bottom
 import com.avail.interpreter.Primitive.Flag.CanInline

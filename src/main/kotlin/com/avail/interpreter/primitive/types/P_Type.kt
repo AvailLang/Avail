@@ -33,10 +33,8 @@ package com.avail.interpreter.primitive.types
 
 import com.avail.descriptor.A_RawFunction
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.AvailObject
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn
 import com.avail.descriptor.FunctionTypeDescriptor.functionType

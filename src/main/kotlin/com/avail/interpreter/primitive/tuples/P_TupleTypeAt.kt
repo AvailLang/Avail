@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.primitive.tuples
 
-import com.avail.descriptor.A_Number
 import com.avail.descriptor.A_RawFunction
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.BottomTypeDescriptor
@@ -40,7 +39,6 @@ import com.avail.descriptor.TupleTypeDescriptor
 import com.avail.descriptor.TypeDescriptor
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 
 import com.avail.descriptor.BottomTypeDescriptor.bottom
 import com.avail.descriptor.FunctionTypeDescriptor.functionType

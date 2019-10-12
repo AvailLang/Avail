@@ -41,8 +41,6 @@ import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_EQUALS_CONSTANT
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
-import com.avail.optimizer.L2BasicBlock
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 
 import com.avail.descriptor.AtomDescriptor.falseObject
 import com.avail.descriptor.AtomDescriptor.trueObject

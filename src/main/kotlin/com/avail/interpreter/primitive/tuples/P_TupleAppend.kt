@@ -32,15 +32,12 @@
 
 package com.avail.interpreter.primitive.tuples
 
-import com.avail.descriptor.A_BasicObject
 import com.avail.descriptor.A_RawFunction
-import com.avail.descriptor.A_Tuple
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AvailObject
 import com.avail.descriptor.TupleDescriptor
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 
 import com.avail.descriptor.ConcatenatedTupleTypeDescriptor.concatenatingAnd
 import com.avail.descriptor.FunctionTypeDescriptor.functionType

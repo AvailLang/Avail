@@ -32,13 +32,11 @@
 package com.avail.interpreter.primitive.sets
 
 import com.avail.descriptor.A_RawFunction
-import com.avail.descriptor.A_Set
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.SetDescriptor
 import com.avail.descriptor.TupleDescriptor
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple

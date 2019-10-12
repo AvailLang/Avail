@@ -31,29 +31,18 @@
  */
 package com.avail.interpreter.primitive.tuples
 
-import com.avail.descriptor.A_Number
 import com.avail.descriptor.A_RawFunction
-import com.avail.descriptor.A_Tuple
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.TupleDescriptor
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand
-import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand
-import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_COMPARE_INT
 import com.avail.interpreter.levelTwo.operation.L2_TUPLE_AT_CONSTANT
 import com.avail.interpreter.levelTwo.operation.L2_TUPLE_AT_NO_FAIL
 import com.avail.interpreter.levelTwo.operation.L2_TUPLE_SIZE
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
-import com.avail.optimizer.L2BasicBlock
-import com.avail.optimizer.L2Generator
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-import com.avail.optimizer.values.L2SemanticValue
 
 import java.util.Arrays
 
@@ -74,7 +63,6 @@ import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEnc
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType
 import com.avail.optimizer.L2Generator.edgeTo
-import java.util.Collections.singletonList
 
 /**
  * **Primitive:** Look up an element in the [ ].

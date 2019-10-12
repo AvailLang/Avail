@@ -112,9 +112,7 @@ object P_CreatePojoConstructorFunction : Primitive(2, CanInline, CanFold)
 			val marshaledTypes = marshalTypes(paramTypes)
 			constructor = javaClass.getConstructor(*marshaledTypes)
 			marshaledTypesTuple = tupleFromList<AvailObject>(
-				Arrays.stream(marshaledTypes)
-					.map<AvailObject>{ RawPojoDescriptor.equalityPojo(it) }
-					.collect<List<AvailObject>, Any>(toList<AvailObject>()))
+				marshaledTypes.map{ RawPojoDescriptor.equalityPojo(it) })
 		}
 		catch (e: MarshalingException)
 		{

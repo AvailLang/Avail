@@ -31,25 +31,16 @@
  */
 package com.avail.interpreter.primitive.numbers
 
-import com.avail.descriptor.A_Number
 import com.avail.descriptor.A_RawFunction
-import com.avail.descriptor.A_Set
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.AbstractNumberDescriptor
 import com.avail.exceptions.ArithmeticException
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand
-import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import com.avail.interpreter.levelTwo.operation.L2_SUBTRACT_INT_MINUS_INT
 import com.avail.interpreter.levelTwo.operation.L2_SUBTRACT_INT_MINUS_INT_MOD_32_BITS
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
-import com.avail.optimizer.L2BasicBlock
-import com.avail.optimizer.L2Generator
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-import com.avail.optimizer.values.L2SemanticValue
 
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.AbstractNumberDescriptor.binaryNumericOperationTypeBound
@@ -214,9 +205,7 @@ object P_Subtraction : Primitive(2, CanFold, CanInline)
 			// available unboxed arithmetic.
 			val returnTypeIfInts = returnTypeGuaranteedByVM(
 				rawFunction,
-				argumentTypes.stream()
-					.map { t -> t.typeIntersection(int32()) }
-					.collect<List<A_Type>, Any>(toList()))
+				argumentTypes.map { it.typeIntersection(int32()) })
 			val semanticTemp = generator.topFrame.temp(generator.nextUnique())
 			val tempWriter = generator.intWrite(
 				semanticTemp,

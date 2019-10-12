@@ -79,7 +79,8 @@ object P_SocketSetOption : Primitive(2, CanInline, HasSideEffect)
 	/**
 	 * A one-based list of the standard socket options.
 	 */
-	private val socketOptions = arrayOf<SocketOption<*>>(null, SO_RCVBUF, SO_REUSEADDR, SO_SNDBUF, SO_KEEPALIVE, TCP_NODELAY)
+	private val socketOptions = arrayOf<SocketOption<*>?>(
+		null, SO_RCVBUF, SO_REUSEADDR, SO_SNDBUF, SO_KEEPALIVE, TCP_NODELAY)
 
 	override fun attempt(
 		interpreter: Interpreter): Primitive.Result
@@ -100,22 +101,26 @@ object P_SocketSetOption : Primitive(2, CanInline, HasSideEffect)
 			{
 				val key = entry.key()
 				val entryValue = entry.value()
-				val option = socketOptions[key.extractInt()]
-				val type = option.type()
-				if (type == Boolean::class.java && entryValue.isBoolean)
-				{
-					socket.setOption<Boolean>(
-						option, entryValue.extractBoolean())
-				}
-				else if (type == Int::class.java && entryValue.isInt)
-				{
-					val value = entryValue.extractInt()
-					socket.setOption<Int>(option, value)
-				}
-				else
-				{
-					return interpreter.primitiveFailure(
-						E_INCORRECT_ARGUMENT_TYPE)
+				socketOptions[key.extractInt()]?.let { option ->
+					val type = option.type()
+					if (type == Boolean::class.java && entryValue.isBoolean)
+					{
+						socket.setOption<Boolean>(
+							option as SocketOption<Boolean>,
+							entryValue.extractBoolean())
+					}
+					else if (type == Int::class.java && entryValue.isInt)
+					{
+						val value = entryValue.extractInt()
+						socket.setOption<Int>(
+							option as SocketOption<Int>,
+							value)
+					}
+					else
+					{
+						return interpreter.primitiveFailure(
+							E_INCORRECT_ARGUMENT_TYPE)
+					}
 				}
 			}
 			return interpreter.primitiveSuccess(nil)

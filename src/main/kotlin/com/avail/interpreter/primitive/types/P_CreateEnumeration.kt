@@ -32,12 +32,10 @@
 package com.avail.interpreter.primitive.types
 
 import com.avail.descriptor.A_RawFunction
-import com.avail.descriptor.A_Set
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.SetDescriptor
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 
 import java.util.Enumeration
 
