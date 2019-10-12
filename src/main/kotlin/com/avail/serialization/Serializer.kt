@@ -33,13 +33,7 @@
 package com.avail.serialization
 
 import com.avail.AvailRuntime
-import com.avail.descriptor.A_Atom
-import com.avail.descriptor.A_BasicObject
-import com.avail.descriptor.A_Module
-import com.avail.descriptor.A_String
-import com.avail.descriptor.A_Variable
-import com.avail.descriptor.AtomDescriptor
-import com.avail.descriptor.AvailObject
+import com.avail.descriptor.*
 import java.io.IOException
 import java.io.OutputStream
 import java.util.*
@@ -97,7 +91,7 @@ class Serializer
 	 */
 	internal fun checkAtom(atom: A_Atom)
 	{
-		if (module == null)
+		if (module === null)
 		{
 			return
 		}
@@ -422,7 +416,7 @@ class Serializer
 			for (i in atomList.indices)
 			{
 				val specialAtom = atomList[i]
-				if (specialAtom != null)
+				if (specialAtom !== null)
 				{
 					specialAtoms[specialAtom] = i
 					specialAtomsByName[specialAtom.atomName()] = specialAtom

@@ -33,12 +33,25 @@
 package com.avail.interpreter
 
 import com.avail.descriptor.*
+import com.avail.descriptor.BottomTypeDescriptor.bottom
+import com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom
+import com.avail.descriptor.TypeDescriptor.Types.TOP
+import com.avail.descriptor.VariableTypeDescriptor.variableTypeFor
+import com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail
+import com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
+import com.avail.interpreter.Primitive.Flag
+import com.avail.interpreter.Primitive.Flag.*
 import com.avail.interpreter.levelOne.L1InstructionWriter
 import com.avail.interpreter.levelOne.L1Operation
 import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.interpreter.levelTwo.L2Instruction
-import com.avail.interpreter.levelTwo.operand.*
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
+import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType
 import com.avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import com.avail.interpreter.primitive.privatehelpers.P_PushConstant
 import com.avail.optimizer.ExecutableChunk
@@ -51,24 +64,14 @@ import com.avail.optimizer.values.L2SemanticValue
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
 import com.avail.serialization.Serializer
+import com.avail.utility.Nulls.stripNull
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
-import java.util.*
-import java.util.regex.Pattern
-
-import com.avail.descriptor.BottomTypeDescriptor.bottom
-import com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers
-import com.avail.descriptor.TypeDescriptor.Types.TOP
-import com.avail.descriptor.VariableTypeDescriptor.variableTypeFor
-import com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail
-import com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
-import com.avail.interpreter.Primitive.Flag.*
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType
-import com.avail.utility.Nulls.stripNull
 import java.lang.String.format
 import java.nio.charset.StandardCharsets.UTF_8
+import java.util.*
+import java.util.regex.Pattern
 
 /**
  * This abstraction represents the interface between Avail's Level One
@@ -444,7 +447,7 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 	fun blockTypeRestriction(): A_Type
 	{
 		var restriction = cachedBlockTypeRestriction
-		if (restriction == null)
+		if (restriction === null)
 		{
 			restriction = privateBlockTypeRestriction().makeShared()
 			cachedBlockTypeRestriction = restriction
@@ -612,7 +615,7 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 			// The double-check pattern.  Make sure there's a write barrier
 			// *before* and *after* writing the fully initialized primitive
 			// into its slot.
-			if (primitive == null)
+			if (primitive === null)
 			{
 				val loader = Primitive::class.java.classLoader
 				try
@@ -744,7 +747,7 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 			 + " has Invokes without CanInline")
 		}
 		// Register this instance.
-		assert(holder.primitive == null)
+		assert(holder.primitive === null)
 		holder.primitive = this
 		runningNanos = Statistic(
 			(if (hasFlag(CanInline)) "" else "[NOT INLINE]")
@@ -923,7 +926,7 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 			// See if we already have a value for an equivalent invocation.
 			val equivalent = generator.currentManifest().equivalentSemanticValue(
 				semanticValue)
-			if (equivalent != null)
+			if (equivalent !== null)
 			{
 				// Reuse the previously computed result.
 				generator.currentManifest().setRestriction(
@@ -1083,9 +1086,13 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 		/**
 		 * Locate the primitive that has the specified primitive number.
 		 *
+		 * This is @JvmStatic because it's currently used for debugger's
+		 * nice description of [CompiledCodeDescriptor.IntegerSlots.PRIMITIVE].
+		 *
 		 * @param primitiveNumber The primitive number for which to search.
 		 * @return The primitive with the specified primitive number.
 		 */
+		@JvmStatic
 		fun byPrimitiveNumberOrNull(
 			primitiveNumber: Int): Primitive?
 		{

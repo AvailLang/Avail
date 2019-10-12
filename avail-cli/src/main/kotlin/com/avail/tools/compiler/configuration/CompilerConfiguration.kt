@@ -65,7 +65,7 @@ class CompilerConfiguration : Configuration
 		get()
 		{
 			var roots = field
-			if (roots == null)
+			if (roots === null)
 			{
 				roots = ModuleRoots(availRootsPath)
 				availRoots = roots
@@ -97,11 +97,11 @@ class CompilerConfiguration : Configuration
 		get()
 		{
 			var resolver = field
-			if (resolver == null)
+			if (resolver === null)
 			{
 				val reader: Reader
 				val path = renamesFilePath
-				if (path == null)
+				if (path === null)
 				{
 					reader = StringReader("")
 				}

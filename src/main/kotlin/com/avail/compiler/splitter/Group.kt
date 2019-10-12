@@ -927,7 +927,7 @@ internal class Group : Expression
 		var needsSpace = false
 		for (expr in expressionsToVisit)
 		{
-			if (expr == null)
+			if (expr === null)
 			{
 				// Place-holder for the double-dagger.
 				builder.append('‡')

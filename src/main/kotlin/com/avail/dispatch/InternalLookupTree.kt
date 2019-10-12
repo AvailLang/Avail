@@ -110,7 +110,7 @@ internal constructor(
 
 	/** `true` if this node has been expanded, otherwise `false`. */
 	internal val isExpanded: Boolean
-		get() = argumentTypeToTest != null
+		get() = argumentTypeToTest !== null
 
 	/**
 	 * If they have not already been computed, compute and cache information
@@ -121,7 +121,7 @@ internal constructor(
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento)
 	{
-		if (argumentTypeToTest == null)
+		if (argumentTypeToTest === null)
 		{
 			synchronized(this) {
 				// We have to double-check if another thread has run
@@ -129,7 +129,7 @@ internal constructor(
 				// synchronized mutual exclusion, so this is a stable check.
 				// Also, argumentTypeToTest is volatile, ensuring Java's
 				// infamous double-check problem won't bite us.
-				if (argumentTypeToTest == null)
+				if (argumentTypeToTest === null)
 				{
 					chooseCriterion(adaptor, memento)
 				}
@@ -170,7 +170,7 @@ internal constructor(
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento)
 	{
-		assert(argumentTypeToTest == null)
+		assert(argumentTypeToTest === null)
 		val numArgs = knownArgumentRestrictions.size
 
 		val bound = adaptor.extractBoundingType(knownArgumentRestrictions)
@@ -188,7 +188,7 @@ internal constructor(
 				val signature = adaptor.restrictedSignature(element, bound)
 				val argTypes =
 					toList<A_Type>(signature.tupleOfTypesFromTo(1, numArgs))
-				if (commonArgTypes == null)
+				if (commonArgTypes === null)
 				{
 					commonArgTypes = argTypes
 				}
@@ -197,7 +197,7 @@ internal constructor(
 					for (i in 0 until numArgs)
 					{
 						val commonArgType = commonArgTypes[i]
-						if (commonArgType != null && !commonArgType.equals(
+						if (commonArgType !== null && !commonArgType.equals(
 								argTypes[i]))
 						{
 							commonArgTypes[i] = null
@@ -205,11 +205,11 @@ internal constructor(
 					}
 				}
 			}
-			// assert commonArgTypes != null;
+			// assert commonArgTypes !== null;
 			for (argNumber in 1..numArgs)
 			{
 				val commonType = commonArgTypes!![argNumber - 1]
-				if (commonType != null
+				if (commonType !== null
 						&& !knownArgumentRestrictions[argNumber - 1]
 							.containedByType(commonType))
 				{
@@ -230,7 +230,7 @@ internal constructor(
 		// test) is a tie between two criteria, break it by choosing the
 		// criterion that eliminates the most undecided definitions in the
 		// *best* case.
-		assert(argumentTypeToTest == null)
+		assert(argumentTypeToTest === null)
 		var bestSignature: A_Type? = null
 		var smallestMax = Integer.MAX_VALUE
 		var smallestMin = Integer.MAX_VALUE
@@ -304,7 +304,7 @@ internal constructor(
 				bestSignature = boundedCriterionSignature
 			}
 		}
-		assert(bestSignature != null)
+		assert(bestSignature !== null)
 
 		// We have chosen one of the best signatures to test.  However, we still
 		// need to decide which argument position to test.  Use the leftmost one
@@ -513,7 +513,7 @@ internal constructor(
 
 	override fun toString(indent: Int): String
 	{
-		if (argumentTypeToTest == null)
+		if (argumentTypeToTest === null)
 		{
 			return format(
 				"Lazy internal node: (u=%d, p=%d) known=%s",

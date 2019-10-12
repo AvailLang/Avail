@@ -33,31 +33,22 @@
 package com.avail.interpreter.primitive.bootstrap.syntax
 
 import com.avail.compiler.AvailRejectedParseException
-import com.avail.descriptor.A_Phrase
-import com.avail.descriptor.A_String
-import com.avail.descriptor.A_Token
+import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind
-import com.avail.descriptor.FiberDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
-import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
 import com.avail.descriptor.DeclarationPhraseDescriptor.newVariable
+import com.avail.descriptor.FiberDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceMetaDescriptor.anyMeta
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LOCAL_VARIABLE_PHRASE
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*
 import com.avail.descriptor.StringDescriptor.formatString
 import com.avail.descriptor.TokenDescriptor.TokenType.KEYWORD
 import com.avail.descriptor.TypeDescriptor.Types.ANY
 import com.avail.descriptor.TypeDescriptor.Types.TOKEN
-import com.avail.interpreter.Primitive.Flag.Bootstrap
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * The `P_BootstrapInitializingVariableDeclarationMacro` primitive is
@@ -112,7 +103,7 @@ object P_BootstrapInitializingVariableDeclarationMacro : Primitive(3, CanInline,
 		val variableDeclaration = newVariable(
 			nameToken, type, typeLiteral, initializationExpression)
 		val conflictingDeclaration = FiberDescriptor.addDeclaration(variableDeclaration)
-		if (conflictingDeclaration != null)
+		if (conflictingDeclaration !== null)
 		{
 			throw AvailRejectedParseException(
 				STRONG,

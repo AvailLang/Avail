@@ -60,16 +60,24 @@ import com.avail.utility.evaluation.Describer
 import com.avail.utility.evaluation.SimpleDescriber
 import java.lang.String.format
 import java.util.*
-import java.util.Collections.emptyIterator
-import java.util.Collections.emptyList
-import java.util.Collections.reverseOrder
-import java.util.Collections.sort
+import java.util.Collections.*
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReadWriteLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.function.BooleanSupplier
 import java.util.regex.Matcher
 import javax.annotation.concurrent.GuardedBy
+import kotlin.collections.Collection
+import kotlin.collections.Iterator
+import kotlin.collections.List
+import kotlin.collections.Map
+import kotlin.collections.MutableList
+import kotlin.collections.MutableSet
+import kotlin.collections.Set
+import kotlin.collections.isEmpty
+import kotlin.collections.isNotEmpty
+import kotlin.collections.set
+import kotlin.collections.sortWith
 import kotlin.math.min
 
 /**
@@ -343,7 +351,7 @@ class CompilerDiagnostics(
 			auto(expectationsLock.writeLock()).use {
 				val position = lexingState.position
 				var localExpectations = expectations[position]
-				if (localExpectations == null)
+				if (localExpectations === null)
 				{
 					if (expectationsIndexHeap.size == positionsToTrack
 						&& position < expectationsIndexHeap.peek())
@@ -918,7 +926,7 @@ class CompilerDiagnostics(
 			for (startState in startLexingStates)
 			{
 				val known = startState.knownToBeComputedTokensOrNull
-				if (known != null)
+				if (known !== null)
 				{
 					candidates.addAll(known)
 				}

@@ -121,7 +121,7 @@ internal class Sequence constructor(positionInName: Int)
 		}
 		if (e.canBeReordered)
 		{
-			if (yieldersAreReordered != null
+			if (yieldersAreReordered !== null
 				&& yieldersAreReordered == (e.explicitOrdinal == -1))
 			{
 				throwMalformedMessageException(
@@ -268,7 +268,7 @@ internal class Sequence constructor(positionInName: Int)
 	private fun runsForCodeSplitting(): List<List<Pair<Expression, Int>>>
 	{
 		val cached = cachedRunsForCodeSplitting
-		if (cached != null)
+		if (cached !== null)
 		{
 			return cached
 		}
@@ -504,7 +504,7 @@ internal class Sequence constructor(positionInName: Int)
 		builder: StringBuilder,
 		indent: Int)
 	{
-		assert(arguments != null)
+		assert(arguments !== null)
 		var needsSpace = false
 		for (expression in expressions)
 		{

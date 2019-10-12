@@ -32,31 +32,23 @@
 package com.avail.interpreter.primitive.pojos
 
 import com.avail.AvailRuntime.HookType
-import com.avail.descriptor.A_BasicObject
-import com.avail.descriptor.A_Function
-import com.avail.descriptor.A_RawFunction
-import com.avail.descriptor.A_Tuple
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.AvailObject
-import com.avail.exceptions.AvailErrorCode
-import com.avail.exceptions.MarshalingException
-import com.avail.interpreter.AvailLoader
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-import com.avail.utility.MutableOrNull
-import java.lang.reflect.Constructor
-import java.lang.reflect.InvocationTargetException
-
 import com.avail.descriptor.BottomTypeDescriptor.bottom
 import com.avail.descriptor.ObjectTupleDescriptor.tupleFromList
 import com.avail.descriptor.PojoDescriptor.newPojo
 import com.avail.descriptor.PojoTypeDescriptor.pojoTypeForClass
 import com.avail.descriptor.PojoTypeDescriptor.unmarshal
 import com.avail.descriptor.RawPojoDescriptor.identityPojo
+import com.avail.exceptions.AvailErrorCode
+import com.avail.exceptions.MarshalingException
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.Private
 import com.avail.interpreter.primitive.pojos.PrimitiveHelper.marshalValues
+import com.avail.utility.MutableOrNull
 import com.avail.utility.Nulls.stripNull
+import java.lang.reflect.Constructor
+import java.lang.reflect.InvocationTargetException
 
 /**
  * **Primitive:** Invoke a Java [Constructor], passing
@@ -99,7 +91,7 @@ object P_InvokePojoConstructor : Primitive(-1, Private)
 		val errorOut = MutableOrNull<AvailErrorCode>()
 		val marshaledArgs = marshalValues(
 			marshaledTypes, constructorArgs, errorOut)
-		if (errorOut.value != null)
+		if (errorOut.value !== null)
 		{
 			val e = errorOut.value
 			return interpreter.primitiveFailure(

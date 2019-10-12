@@ -91,7 +91,7 @@ class AvailPushOuterVariable constructor(
 		codeGenerator: AvailCodeGenerator)
 	{
 		var note = outerData[index - 1]
-		if (note == null)
+		if (note === null)
 		{
 			note = AvailVariableAccessNote()
 			outerData[index - 1] = note

@@ -33,43 +33,27 @@
 package com.avail.interpreter.primitive.bootstrap.syntax
 
 import com.avail.compiler.AvailRejectedParseException
-import com.avail.descriptor.A_Atom
-import com.avail.descriptor.A_BasicObject
-import com.avail.descriptor.A_Map
-import com.avail.descriptor.A_Module
-import com.avail.descriptor.A_Phrase
-import com.avail.descriptor.A_String
-import com.avail.descriptor.A_Token
-import com.avail.descriptor.A_Tuple
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.TokenDescriptor.TokenType
-import com.avail.interpreter.AvailLoader
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
+import com.avail.descriptor.A_Phrase
+import com.avail.descriptor.A_Type
 import com.avail.descriptor.AssignmentPhraseDescriptor.newAssignment
-import com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
-import com.avail.descriptor.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY
-import com.avail.descriptor.AtomDescriptor.SpecialAtom.STATIC_TOKENS_KEY
+import com.avail.descriptor.AtomDescriptor.SpecialAtom.*
 import com.avail.descriptor.DeclarationPhraseDescriptor.newModuleConstant
 import com.avail.descriptor.DeclarationPhraseDescriptor.newModuleVariable
 import com.avail.descriptor.ExpressionAsStatementPhraseDescriptor.newExpressionAsStatement
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.EXPRESSION_AS_STATEMENT_PHRASE
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*
 import com.avail.descriptor.StringDescriptor.formatString
+import com.avail.descriptor.TokenDescriptor.TokenType
 import com.avail.descriptor.TypeDescriptor.Types.ANY
 import com.avail.descriptor.TypeDescriptor.Types.TOKEN
 import com.avail.descriptor.VariableUsePhraseDescriptor.newUse
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
-import com.avail.interpreter.Primitive.Flag.Bootstrap
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * The `P_BootstrapAssignmentStatementMacro` primitive is used for
@@ -128,7 +112,7 @@ object P_BootstrapAssignmentStatementMacro : Primitive(2, CannotFail, CanInline,
 			declaration = newModuleConstant(actualToken, variableObject, nil)
 		}
 
-		if (declaration == null)
+		if (declaration === null)
 		{
 			throw AvailRejectedParseException(
 				STRONG

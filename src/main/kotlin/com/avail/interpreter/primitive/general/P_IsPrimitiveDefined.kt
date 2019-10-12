@@ -31,21 +31,15 @@
  */
 package com.avail.interpreter.primitive.general
 
-import com.avail.descriptor.A_String
 import com.avail.descriptor.A_Type
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.descriptor.AtomDescriptor.objectFromBoolean
 import com.avail.descriptor.EnumerationTypeDescriptor.booleanType
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.TupleTypeDescriptor.stringType
-import com.avail.interpreter.Primitive.Flag.CanFold
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
-import com.avail.interpreter.Primitive.Flag.Private
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive:** Is there a [ primitive][Primitive] with the specified name?
@@ -60,7 +54,7 @@ object P_IsPrimitiveDefined : Primitive(1, CannotFail, CanFold, CanInline)
 		val primitiveName = interpreter.argument(0)
 
 		val primitive = Primitive.primitiveByName(primitiveName.asNativeString())
-		val defined = primitive != null && !primitive.hasFlag(Private)
+		val defined = primitive !== null && !primitive.hasFlag(Private)
 		return interpreter.primitiveSuccess(objectFromBoolean(defined))
 	}
 

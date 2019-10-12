@@ -32,21 +32,10 @@
 package com.avail.interpreter.primitive.pojos
 
 import com.avail.descriptor.*
-import com.avail.exceptions.AvailErrorCode
-import com.avail.exceptions.MarshalingException
-import com.avail.interpreter.AvailLoader
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-import com.avail.utility.MutableOrNull
-import java.lang.reflect.Method
-import java.util.WeakHashMap
-
 import com.avail.descriptor.FunctionDescriptor.createWithOuters2
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.FunctionTypeDescriptor.functionTypeReturning
 import com.avail.descriptor.InstanceMetaDescriptor.anyMeta
-import com.avail.descriptor.InstanceMetaDescriptor.enumerationWith
 import com.avail.descriptor.MapDescriptor.emptyMap
 import com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
@@ -58,13 +47,20 @@ import com.avail.descriptor.TupleTypeDescriptor.stringType
 import com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf
 import com.avail.descriptor.TypeDescriptor.Types.RAW_POJO
 import com.avail.descriptor.TypeDescriptor.Types.TOP
+import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailErrorCode.E_JAVA_METHOD_NOT_AVAILABLE
 import com.avail.exceptions.AvailErrorCode.E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS
+import com.avail.exceptions.MarshalingException
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.primitive.pojos.PrimitiveHelper.lookupMethod
 import com.avail.interpreter.primitive.pojos.PrimitiveHelper.rawPojoInvokerFunctionFromFunctionType
 import com.avail.utility.Casts.cast
+import com.avail.utility.MutableOrNull
+import java.lang.reflect.Method
+import java.util.*
 import java.util.Collections.synchronizedMap
 
 /**
@@ -110,7 +106,7 @@ object P_CreatePojoStaticMethodFunction : Primitive(3, CanInline, CanFold)
 			val errorOut = MutableOrNull<AvailErrorCode>()
 			method = lookupMethod(
 				pojoType, methodName, marshaledTypes, errorOut)
-			if (method == null)
+			if (method === null)
 			{
 				return interpreter.primitiveFailure(errorOut.value())
 			}

@@ -39,9 +39,7 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
-import java.nio.file.StandardOpenOption.CREATE
-import java.nio.file.StandardOpenOption.TRUNCATE_EXISTING
-import java.nio.file.StandardOpenOption.WRITE
+import java.nio.file.StandardOpenOption.*
 
 /**
  * The Unicode catalog generator: it emits, as a JSON file, every code point in
@@ -125,7 +123,7 @@ object CatalogGenerator
 		val oldCatalog = readCatalog(configuration.catalogPath)
 		// Update the catalog.
 		val catalog =
-			if (oldCatalog == null)
+			if (oldCatalog === null)
 			{
 				Catalog()
 			}

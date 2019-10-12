@@ -323,7 +323,7 @@ class L1Decompiler constructor(
 			}
 			val argsTuple = tupleFromList(popExpressions(nArgs))
 			var listNode: A_Phrase = newListNode(argsTuple)
-			if (permutationTuple != null)
+			if (permutationTuple !== null)
 			{
 				listNode = newPermutedListNode(listNode, permutationTuple)
 			}
@@ -593,7 +593,7 @@ class L1Decompiler constructor(
 			}
 			val expressions = popExpressions(count)
 			var listNode: A_Phrase = newListNode(tupleFromList(expressions))
-			if (permutationTuple != null)
+			if (permutationTuple !== null)
 			{
 				listNode = newPermutedListNode(listNode, permutationTuple)
 			}
@@ -784,7 +784,7 @@ class L1Decompiler constructor(
 		val argsList = popExpressions(nArgs)
 		val listNode = newListNode(tupleFromList(argsList))
 		val argsNode =
-			if (permutationTuple != null)
+			if (permutationTuple !== null)
 				newPermutedListNode(listNode, permutationTuple)
 			else
 				listNode
@@ -883,7 +883,7 @@ class L1Decompiler constructor(
 			}
 			val decompiler = L1Decompiler(code, functionOuters, UnaryOperator {
 				var newCount: Int? = counts[it]
-				newCount = if (newCount == null) 1 else newCount + 1
+				newCount = if (newCount === null) 1 else newCount + 1
 				counts[it] = newCount
 				it + newCount
 			})

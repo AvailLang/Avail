@@ -40,47 +40,26 @@ import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.WE
 import com.avail.compiler.splitter.MessageSplitter
 import com.avail.compiler.splitter.MessageSplitter.Companion.constantForIndex
 import com.avail.compiler.splitter.MessageSplitter.Companion.permutationAtIndex
-import com.avail.descriptor.A_BundleTree
-import com.avail.descriptor.A_Phrase
-import com.avail.descriptor.A_Token
-import com.avail.descriptor.A_Tuple
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.AvailObject
-import com.avail.descriptor.FiberDescriptor
+import com.avail.descriptor.*
 import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
-import com.avail.descriptor.ListPhraseDescriptor
 import com.avail.descriptor.ListPhraseDescriptor.emptyListNode
 import com.avail.descriptor.ListPhraseDescriptor.newListNode
-import com.avail.descriptor.LiteralPhraseDescriptor
 import com.avail.descriptor.LiteralPhraseDescriptor.literalNodeFromToken
 import com.avail.descriptor.LiteralTokenDescriptor.literalToken
 import com.avail.descriptor.MacroSubstitutionPhraseDescriptor.newMacroSubstitution
-import com.avail.descriptor.MapDescriptor
 import com.avail.descriptor.ObjectTupleDescriptor.tupleFromList
 import com.avail.descriptor.PermutedListPhraseDescriptor.newPermutedListNode
-import com.avail.descriptor.PhraseDescriptor
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
-import com.avail.descriptor.ReferencePhraseDescriptor
 import com.avail.descriptor.ReferencePhraseDescriptor.referenceNodeFromUse
-import com.avail.descriptor.SendPhraseDescriptor
 import com.avail.descriptor.StringDescriptor.stringFrom
-import com.avail.descriptor.TokenDescriptor
 import com.avail.descriptor.TokenDescriptor.TokenType
-import com.avail.descriptor.TokenDescriptor.TokenType.COMMENT
-import com.avail.descriptor.TokenDescriptor.TokenType.END_OF_FILE
-import com.avail.descriptor.TokenDescriptor.TokenType.KEYWORD
-import com.avail.descriptor.TokenDescriptor.TokenType.LITERAL
-import com.avail.descriptor.TokenDescriptor.TokenType.WHITESPACE
-import com.avail.descriptor.TupleDescriptor
+import com.avail.descriptor.TokenDescriptor.TokenType.*
 import com.avail.descriptor.TupleDescriptor.toList
 import com.avail.descriptor.TupleTypeDescriptor.stringType
-import com.avail.descriptor.VariableDescriptor
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport.EXPANDING_PARSING_INSTRUCTIONS
 import com.avail.performance.StatisticReport.RUNNING_PARSING_INSTRUCTIONS
-import com.avail.utility.PrefixSharingList.append
-import com.avail.utility.PrefixSharingList.last
-import com.avail.utility.PrefixSharingList.withoutLast
+import com.avail.utility.PrefixSharingList.*
 import com.avail.utility.StackPrinter.trace
 import com.avail.utility.evaluation.Describer
 import java.util.*
@@ -220,8 +199,7 @@ enum class ParsingOperation constructor(
 			continuation: Con1)
 		{
 			assert(successorTrees.tupleSize() == 1)
-			val marker = if (firstArgOrNull ==
-				null)
+			val marker = if (firstArgOrNull === null)
 				start.position
 			else
 				initialTokenPosition.position
@@ -340,7 +318,7 @@ enum class ParsingOperation constructor(
 			assert(successorTrees.tupleSize() == 1)
 			val successorTree = successorTrees.tupleAt(1)
 			val partialSubexpressionList =
-				if (firstArgOrNull == null)
+				if (firstArgOrNull === null)
 					continuation.superexpressions!!.advancedTo(successorTree)
 				else
 					continuation.superexpressions
@@ -348,7 +326,7 @@ enum class ParsingOperation constructor(
 				start,
 				"argument",
 				firstArgOrNull,
-				firstArgOrNull == null
+				firstArgOrNull === null
 					&& initialTokenPosition.lexingState != start.lexingState,
 				false,
 				Con1(partialSubexpressionList) { solution ->
@@ -358,7 +336,7 @@ enum class ParsingOperation constructor(
 						initialTokenPosition,
 						// The argument counts as something that was consumed if
 						// it's not a leading argument...
-						firstArgOrNull == null,
+						firstArgOrNull === null,
 						// We're about to parse an argument, so whatever was in
 						// consumedAnything should be moved into
 						// consumedAnythingBeforeLatestArgument.
@@ -400,7 +378,7 @@ enum class ParsingOperation constructor(
 		{
 			assert(successorTrees.tupleSize() == 1)
 			val partialSubexpressionList =
-				if (firstArgOrNull == null)
+				if (firstArgOrNull === null)
 					continuation.superexpressions!!.advancedTo(
 						successorTrees.tupleAt(1))
 				else
@@ -409,7 +387,7 @@ enum class ParsingOperation constructor(
 				start,
 				"top-valued argument",
 				firstArgOrNull,
-				firstArgOrNull == null
+				firstArgOrNull === null
 					&& initialTokenPosition.lexingState != start.lexingState,
 				true,
 				Con1(partialSubexpressionList) { solution ->
@@ -419,7 +397,7 @@ enum class ParsingOperation constructor(
 						initialTokenPosition,
 						// The argument counts as something that was consumed if
 						// it's not a leading argument...
-						firstArgOrNull == null,
+						firstArgOrNull === null,
 						// We're about to parse an argument, so whatever was in
 						// consumedAnything should be moved into
 						// consumedAnythingBeforeLatestArgument.
@@ -455,7 +433,7 @@ enum class ParsingOperation constructor(
 		{
 			assert(successorTrees.tupleSize() == 1)
 			val partialSubexpressionList =
-				if (firstArgOrNull == null)
+				if (firstArgOrNull === null)
 					continuation.superexpressions!!.advancedTo(
 						successorTrees.tupleAt(1))
 				else
@@ -464,7 +442,7 @@ enum class ParsingOperation constructor(
 				start,
 				"variable reference",
 				firstArgOrNull,
-				firstArgOrNull == null
+				firstArgOrNull === null
 					&& initialTokenPosition.lexingState != start.lexingState,
 				false,
 				Con1(partialSubexpressionList) { variableUseSolution ->
@@ -525,7 +503,7 @@ enum class ParsingOperation constructor(
 						initialTokenPosition,
 						// The argument counts as something that was consumed if
 						// it's not a leading argument...
-						firstArgOrNull == null,
+						firstArgOrNull === null,
 						// We're about to parse an argument, so whatever was in
 						// consumedAnything should be moved into
 						// consumedAnythingBeforeLatestArgument.
@@ -594,7 +572,7 @@ enum class ParsingOperation constructor(
 			continuation: Con1)
 		{
 			assert(successorTrees.tupleSize() == 1)
-			if (firstArgOrNull != null)
+			if (firstArgOrNull !== null)
 			{
 				// Starting with a parseRawToken can't cause unbounded
 				// left-recursion, so treat it more like reading an expected
@@ -661,7 +639,7 @@ enum class ParsingOperation constructor(
 			continuation: Con1)
 		{
 			assert(successorTrees.tupleSize() == 1)
-			if (firstArgOrNull != null)
+			if (firstArgOrNull !== null)
 			{
 				// Starting with a parseRawToken can't cause unbounded
 				// left-recursion, so treat it more like reading an expected
@@ -740,7 +718,7 @@ enum class ParsingOperation constructor(
 			continuation: Con1)
 		{
 			assert(successorTrees.tupleSize() == 1)
-			if (firstArgOrNull != null)
+			if (firstArgOrNull !== null)
 			{
 				// Starting with a parseRawToken can't cause unbounded
 				// left-recursion, so treat it more like reading an expected
@@ -821,7 +799,7 @@ enum class ParsingOperation constructor(
 			continuation: Con1)
 		{
 			assert(successorTrees.tupleSize() == 1)
-			if (firstArgOrNull != null)
+			if (firstArgOrNull !== null)
 			{
 				// Starting with a parseRawToken can't cause unbounded
 				// left-recursion, so treat it more like reading an expected
@@ -1174,7 +1152,7 @@ enum class ParsingOperation constructor(
 			continuation: Con1)
 		{
 			assert(successorTrees.tupleSize() == 1)
-			assert(firstArgOrNull == null)
+			assert(firstArgOrNull === null)
 			compiler.eventuallyParseRestOfSendNode(
 				start,
 				successorTrees.tupleAt(1), null,

@@ -33,29 +33,11 @@
 package com.avail.interpreter.primitive.bootstrap.syntax
 
 import com.avail.compiler.AvailRejectedParseException
-import com.avail.descriptor.A_Atom
-import com.avail.descriptor.A_Fiber
-import com.avail.descriptor.A_Map
-import com.avail.descriptor.A_Phrase
-import com.avail.descriptor.A_Set
-import com.avail.descriptor.A_String
-import com.avail.descriptor.A_Token
-import com.avail.descriptor.A_Tuple
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.BlockPhraseDescriptor
-import com.avail.descriptor.FunctionDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-import java.util.ArrayList
-
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.WEAK
+import com.avail.descriptor.*
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
-import com.avail.descriptor.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY
-import com.avail.descriptor.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_STACK_KEY
-import com.avail.descriptor.AtomDescriptor.SpecialAtom.STATIC_TOKENS_KEY
+import com.avail.descriptor.AtomDescriptor.SpecialAtom.*
 import com.avail.descriptor.BlockPhraseDescriptor.newBlockNode
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceMetaDescriptor.anyMeta
@@ -63,26 +45,18 @@ import com.avail.descriptor.InstanceMetaDescriptor.topMeta
 import com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray
 import com.avail.descriptor.ObjectTupleDescriptor.tupleFromList
 import com.avail.descriptor.ObjectTypeDescriptor.exceptionType
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.BLOCK_PHRASE
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.STATEMENT_PHRASE
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*
 import com.avail.descriptor.SetDescriptor.emptySet
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TupleDescriptor.emptyTuple
-import com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf
-import com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes
-import com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf
-import com.avail.descriptor.TupleTypeDescriptor.zeroOrOneOf
-import com.avail.descriptor.TypeDescriptor.Types.ANY
-import com.avail.descriptor.TypeDescriptor.Types.TOKEN
-import com.avail.descriptor.TypeDescriptor.Types.TOP
+import com.avail.descriptor.TupleTypeDescriptor.*
+import com.avail.descriptor.TypeDescriptor.Types.*
 import com.avail.exceptions.AvailErrorCode.E_INCONSISTENT_PREFIX_FUNCTION
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
-import com.avail.interpreter.Primitive.Flag.Bootstrap
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
+import java.util.*
 
 /**
  * The `P_BootstrapBlockMacro` primitive is used for bootstrapping
@@ -216,7 +190,7 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 			}
 			val primName = primNamePhrase.token().string()
 			prim = Primitive.primitiveByName(primName.asNativeString())
-			if (prim == null)
+			if (prim === null)
 			{
 				return interpreter.primitiveFailure(
 					E_INCONSISTENT_PREFIX_FUNCTION)
@@ -294,14 +268,14 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 			assert(returnLiteralPhrase.phraseKindIsUnder(LITERAL_PHRASE))
 			val returnExpression = returnLiteralPhrase.token().literal()
 			allStatements.add(returnExpression)
-			deducedReturnType = if (labelReturnType == null)
+			deducedReturnType = if (labelReturnType === null)
 				returnExpression.expressionType()
 			else
 				returnExpression.expressionType().typeUnion(labelReturnType)
 		}
 		else
 		{
-			deducedReturnType = if (prim != null && prim.hasFlag(CannotFail))
+			deducedReturnType = if (prim !== null && prim.hasFlag(CannotFail))
 			{
 				// An infallible primitive must have no statements.
 				prim.blockTypeRestriction().returnType()
@@ -327,13 +301,13 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 		// applicable.  Also make sure the primitive's return type ⊆ the
 		// declared return type.  Finally, make sure that the label's return
 		// type ⊆ the block's effective return type.
-		if (declaredReturnType != null)
+		if (declaredReturnType !== null)
 		{
 			if (!deducedReturnType.isSubtypeOf(declaredReturnType))
 			{
 				throw AvailRejectedParseException(
 					STRONG,
-					if (labelReturnType == null)
+					if (labelReturnType === null)
 						"final expression's type ("
 						+ deducedReturnType
 						+ ") to agree with the declared return type ("
@@ -348,7 +322,7 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 						+ declaredReturnType
 						+ ")")
 			}
-			if (primitiveReturnType != null && !primitiveReturnType.isSubtypeOf(declaredReturnType))
+			if (primitiveReturnType !== null && !primitiveReturnType.isSubtypeOf(declaredReturnType))
 			{
 				throw AvailRejectedParseException(
 					STRONG,
@@ -358,7 +332,7 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 					+ declaredReturnType
 					+ ")")
 			}
-			if (labelReturnType != null && !labelReturnType.isSubtypeOf(declaredReturnType))
+			if (labelReturnType !== null && !labelReturnType.isSubtypeOf(declaredReturnType))
 			{
 				throw AvailRejectedParseException(
 					STRONG,
@@ -369,7 +343,7 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 					+ ")")
 			}
 		}
-		else if (primitiveReturnType != null)
+		else if (primitiveReturnType !== null)
 		{
 			// If it's a primitive, then the block must declare an explicit
 			// return type.

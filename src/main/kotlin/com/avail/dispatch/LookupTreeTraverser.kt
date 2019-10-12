@@ -156,7 +156,7 @@ protected constructor(
 	private fun visit(node: LookupTree<Element, Result, AdaptorMemento>)
 	{
 		val solution = node.solutionOrNull
-		if (solution != null)
+		if (solution !== null)
 		{
 			visitLeafNode(solution)
 			return

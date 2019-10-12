@@ -32,18 +32,8 @@
 
 package com.avail.interpreter.primitive.bootstrap.syntax
 
-import com.avail.descriptor.A_Atom
 import com.avail.descriptor.A_Bundle
-import com.avail.descriptor.A_Fiber
-import com.avail.descriptor.A_Phrase
 import com.avail.descriptor.A_Type
-import com.avail.exceptions.AmbiguousNameException
-import com.avail.exceptions.MalformedMessageException
-import com.avail.interpreter.AvailLoader
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.descriptor.BlockPhraseDescriptor.newBlockNode
 import com.avail.descriptor.ExpressionAsStatementPhraseDescriptor.newExpressionAsStatement
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
@@ -52,10 +42,7 @@ import com.avail.descriptor.ListPhraseDescriptor.emptyListNode
 import com.avail.descriptor.ListPhraseDescriptor.newListNode
 import com.avail.descriptor.LiteralPhraseDescriptor.syntheticLiteralNodeFor
 import com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType
-import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.CREATE_LITERAL_PHRASE
-import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.CREATE_LITERAL_TOKEN
-import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.MACRO_DEFINER
-import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.METHOD_DEFINER
+import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.*
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.SEQUENCE_PHRASE
@@ -64,10 +51,12 @@ import com.avail.descriptor.SequencePhraseDescriptor.newSequence
 import com.avail.descriptor.SetDescriptor.emptySet
 import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf
-import com.avail.descriptor.TypeDescriptor.Types.ANY
-import com.avail.descriptor.TypeDescriptor.Types.CHARACTER
-import com.avail.descriptor.TypeDescriptor.Types.TOP
+import com.avail.descriptor.TypeDescriptor.Types.*
+import com.avail.exceptions.AmbiguousNameException
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
+import com.avail.exceptions.MalformedMessageException
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.Bootstrap
 import com.avail.interpreter.Primitive.Flag.CanInline
 
@@ -88,7 +77,7 @@ object P_BootstrapDefineSpecialObjectMacro : Primitive(2, Bootstrap, CanInline)
 		val specialObjectLiteral = interpreter.argument(1)
 		val fiber = interpreter.fiber()
 		val loader = fiber.availLoader()
-		if (loader == null || loader.module().equalsNil())
+		if (loader === null || loader.module().equalsNil())
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		}

@@ -170,7 +170,7 @@ internal constructor(elementClass: Class<ElementType>) where
 			elementsByQName[element.qName] = element
 			if (element.allowedParents.isEmpty())
 			{
-				assert(root == null)
+				assert(root === null)
 				root = element
 			}
 			val children = elements

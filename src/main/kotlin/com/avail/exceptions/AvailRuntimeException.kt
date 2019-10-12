@@ -85,7 +85,7 @@ open class AvailRuntimeException : RuntimeException
 		get ()
 		{
 			var message: String? = super.message
-			if (message == null)
+			if (message === null)
 			{
 				message = errorCode.toString()
 			}

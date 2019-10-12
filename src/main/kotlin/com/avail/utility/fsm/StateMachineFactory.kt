@@ -150,7 +150,7 @@ constructor(
 	 */
 	@Suppress("unused") fun setEntryAction(state: State, actionKey: ActionKey)
 	{
-		assert(getSummary(state).entryActionKey == null)
+		assert(getSummary(state).entryActionKey === null)
 		getSummary(state).entryActionKey = actionKey
 	}
 
@@ -165,7 +165,7 @@ constructor(
 	 */
 	@Suppress("unused") fun setExitAction(state: State, actionKey: ActionKey)
 	{
-		assert(getSummary(state).exitActionKey == null)
+		assert(getSummary(state).exitActionKey === null)
 		getSummary(state).exitActionKey = actionKey
 	}
 
@@ -196,7 +196,7 @@ constructor(
 		endState: State)
 	{
 		// Remove assertion after it's fully implemented.
-		assert(event != null)
+		assert(event !== null)
 		getSummary(startState).addTransitionArc(
 			event,
 			StateTransitionArc(event, guardKey, actionKey, endState))
@@ -346,7 +346,7 @@ constructor(
 			for (arc in getSummary(state).allTransitionArcs())
 			{
 				val guardKey = arc.guardKey
-				if (guardKey != null)
+				if (guardKey !== null)
 				{
 					guardKeysInvoked.add(guardKey)
 				}
@@ -376,7 +376,7 @@ constructor(
 							"$event due to a previous unguarded arc for the " +
 							"same event")
 				}
-				if (arc.guardKey == null)
+				if (arc.guardKey === null)
 				{
 					unguardedArcsFound.add(event!!)
 				}
@@ -398,18 +398,18 @@ constructor(
 			for (arc in getSummary(state).allTransitionArcs())
 			{
 				val actionKey = arc.actionKey
-				if (actionKey != null)
+				if (actionKey !== null)
 				{
 					actionKeysInvoked.add(actionKey)
 				}
 			}
 			val entryKey = getSummary(state).entryActionKey
-			if (entryKey != null)
+			if (entryKey !== null)
 			{
 				actionKeysInvoked.add(entryKey)
 			}
 			val exitKey = getSummary(state).exitActionKey
-			if (exitKey != null)
+			if (exitKey !== null)
 			{
 				actionKeysInvoked.add(exitKey)
 			}

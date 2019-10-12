@@ -972,7 +972,7 @@ abstract class IndexedFile
 	{
 		log(Level.INFO, "Close: %s", fileReference!!)
 		lock.write {
-			if (longTermLock != null)
+			if (longTermLock !== null)
 			{
 				try
 				{
@@ -988,7 +988,7 @@ abstract class IndexedFile
 				}
 			}
 
-			if (channel != null)
+			if (channel !== null)
 			{
 				try
 				{
@@ -1004,7 +1004,7 @@ abstract class IndexedFile
 				}
 			}
 
-			if (file != null)
+			if (file !== null)
 			{
 				try
 				{
@@ -1142,7 +1142,7 @@ abstract class IndexedFile
 		lock.read {
 			val m = master!!
 			RecordCoordinates.origin != m.metaDataLocation || return null
-			if (metaData == null)
+			if (metaData === null)
 			{
 				val block = blockAtFilePosition(m.metaDataLocation.filePosition)
 				val buffer = ByteBuffer.wrap(block)
@@ -1194,14 +1194,14 @@ abstract class IndexedFile
 				// Determine the newest valid master node.
 				val previous = decodeMasterNode(previousMasterPosition)
 				var current = decodeMasterNode(masterPosition)
-				if (previous == null && current == null)
+				if (previous === null && current === null)
 				{
 					throw IndexedFileException(
 						"Invalid indexed file -- both master nodes are " +
 							"corrupt.")
 				}
 				var delta: Int? = null
-				if (previous != null && current != null)
+				if (previous !== null && current !== null)
 				{
 					delta = current.serialNumber - previous.serialNumber
 					if (abs(delta) != 1)
@@ -1212,7 +1212,7 @@ abstract class IndexedFile
 					}
 				}
 				// Swap the previous and current nodes if necessary.
-				if (previous != null && Integer.valueOf(1) != delta)
+				if (previous !== null && Integer.valueOf(1) != delta)
 				{
 					current = previous
 					// previous is unused after this point.
@@ -1220,7 +1220,7 @@ abstract class IndexedFile
 					previousMasterPosition = masterPosition
 					masterPosition = tempPos
 				}
-				if (master != null &&
+				if (master !== null &&
 					master!!.serialNumber != current!!.serialNumber)
 				{
 					// Clear the cached metadata if it has changed.
@@ -1345,7 +1345,7 @@ abstract class IndexedFile
 			indexedFile.masterNodeBuffer = ByteBuffer.allocate(
 				indexedFile.masterNodeSize)
 			indexedFile.createFile {
-				if (initialMetaData != null)
+				if (initialMetaData !== null)
 				{
 					try
 					{

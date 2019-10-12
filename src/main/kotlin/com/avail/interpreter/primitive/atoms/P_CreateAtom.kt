@@ -33,15 +33,8 @@ package com.avail.interpreter.primitive.atoms
 
 import com.avail.descriptor.A_Atom
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.AtomDescriptor
-import com.avail.descriptor.AvailObject
-import com.avail.exceptions.AmbiguousNameException
-import com.avail.interpreter.AvailLoader
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.AtomDescriptor
 import com.avail.descriptor.AtomDescriptor.createAtom
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.NilDescriptor.nil
@@ -49,7 +42,10 @@ import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TupleTypeDescriptor.stringType
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
+import com.avail.exceptions.AmbiguousNameException
 import com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_NAME
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
@@ -69,7 +65,7 @@ object P_CreateAtom : Primitive(1, CanInline)
 		val name = interpreter.argument(0)
 		val loader = interpreter.availLoaderOrNull()
 		val atom: A_Atom
-		if (loader == null)
+		if (loader === null)
 		{
 			atom = createAtom(name, nil)
 		}

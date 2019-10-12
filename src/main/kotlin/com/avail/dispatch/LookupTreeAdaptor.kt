@@ -326,7 +326,7 @@ internal abstract class LookupTreeAdaptor<
 	{
 		var tree = root
 		var solution = tree.solutionOrNull
-		while (solution == null)
+		while (solution === null)
 		{
 			tree = tree.lookupStepByTypes(argumentTypesList, this, memento)
 			solution = tree.solutionOrNull
@@ -355,7 +355,7 @@ internal abstract class LookupTreeAdaptor<
 	{
 		var tree = root
 		var solution = tree.solutionOrNull
-		while (solution == null)
+		while (solution === null)
 		{
 			tree = tree.lookupStepByTypes(argumentTypesTuple, this, memento)
 			solution = tree.solutionOrNull
@@ -385,7 +385,7 @@ internal abstract class LookupTreeAdaptor<
 	{
 		var tree = root
 		var solution = tree.solutionOrNull
-		while (solution == null)
+		while (solution === null)
 		{
 			tree = tree.lookupStepByValues(argValues, this, memento)
 			solution = tree.solutionOrNull
@@ -415,7 +415,7 @@ internal abstract class LookupTreeAdaptor<
 	{
 		var tree = root
 		var solution = tree.solutionOrNull
-		while (solution == null)
+		while (solution === null)
 		{
 			tree = tree.lookupStepByValues(argValues, this, memento)
 			solution = tree.solutionOrNull
@@ -443,7 +443,7 @@ internal abstract class LookupTreeAdaptor<
 	{
 		var tree = root
 		var solution = tree.solutionOrNull
-		while (solution == null)
+		while (solution === null)
 		{
 			tree = tree.lookupStepByValue(argValue, this, memento)
 			solution = tree.solutionOrNull

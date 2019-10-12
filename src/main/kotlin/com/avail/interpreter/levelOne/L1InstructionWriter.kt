@@ -33,6 +33,7 @@
 package com.avail.interpreter.levelOne
 
 import com.avail.descriptor.*
+import com.avail.descriptor.BottomTypeDescriptor.bottom
 import com.avail.descriptor.CompiledCodeDescriptor.newCompiledCode
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceMetaDescriptor.topMeta
@@ -120,7 +121,7 @@ class L1InstructionWriter constructor(
 	var primitive: Primitive? = null
 		set(newValue)
 		{
-			assert(field == null) { "Don't set the primitive twice" }
+			assert(field === null) { "Don't set the primitive twice" }
 			field = newValue
 		}
 
@@ -163,7 +164,7 @@ class L1InstructionWriter constructor(
 	fun addLiteral(literal: A_BasicObject): Int
 	{
 		var index: Int? = reverseLiterals[literal]
-		if (index == null)
+		if (index === null)
 		{
 			literals.add(literal as AvailObject)
 			index = literals.size
@@ -180,6 +181,8 @@ class L1InstructionWriter constructor(
 	 */
 	fun argumentTypes(vararg argTypes: A_Type)
 	{
+		assert(argumentTypes.isEmpty())
+		assert(bottom() !in argTypes)
 		assert(localTypes.size == 0) {
 			"Must declare argument types before allocating locals"
 		}
@@ -197,12 +200,12 @@ class L1InstructionWriter constructor(
 	 */
 	fun argumentTypesTuple(argTypes: A_Tuple)
 	{
+		assert(argumentTypes.isEmpty())
+		assert(bottom() !in argTypes)
 		assert(localTypes.size == 0) {
 			"Must declare argument types before allocating locals"
 		}
-		val types = ArrayList<A_Type>(argTypes.tupleSize())
-		argTypes.forEach { types.add(it) }
-		this.argumentTypes = types
+		argumentTypes.addAll(argTypes)
 	}
 
 	/**
@@ -356,7 +359,7 @@ class L1InstructionWriter constructor(
 	fun compiledCode(): AvailObject
 	{
 		val p = primitive
-		assert(p == null || p.hasFlag(Flag.CannotFail) || localTypes.size > 0) {
+		assert(p === null || p.hasFlag(Flag.CannotFail) || localTypes.size > 0) {
 			"Fallible primitive needs a primitive failure variable"
 		}
 		return newCompiledCode(

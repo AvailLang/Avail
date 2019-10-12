@@ -109,7 +109,7 @@ where
 	{
 		val parent = state.peek()
 		val allowedChildren : Set<ElementType> =
-			if (parent == null) setOf(model.rootElement())
+			if (parent === null) setOf(model.rootElement())
 			else model.allowedChildrenOf(parent)!!
 		val element = model.elementWithQName(qName)
 		if (!allowedChildren.contains(element))

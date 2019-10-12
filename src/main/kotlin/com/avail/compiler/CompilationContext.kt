@@ -44,25 +44,13 @@ import com.avail.compiler.problems.ProblemType
 import com.avail.compiler.problems.ProblemType.EXECUTION
 import com.avail.compiler.problems.ProblemType.INTERNAL
 import com.avail.compiler.scanning.LexingState
-import com.avail.descriptor.A_BasicObject
-import com.avail.descriptor.A_Fiber
-import com.avail.descriptor.A_Function
-import com.avail.descriptor.A_Map
-import com.avail.descriptor.A_Module
-import com.avail.descriptor.A_Phrase
-import com.avail.descriptor.A_String
-import com.avail.descriptor.A_Token
+import com.avail.descriptor.*
 import com.avail.descriptor.AtomDescriptor.SpecialAtom
 import com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
-import com.avail.descriptor.AvailObject
-import com.avail.descriptor.FiberDescriptor
 import com.avail.descriptor.FiberDescriptor.newLoaderFiber
-import com.avail.descriptor.FunctionDescriptor
 import com.avail.descriptor.FunctionDescriptor.createFunction
 import com.avail.descriptor.FunctionDescriptor.createFunctionForPhrase
 import com.avail.descriptor.MapDescriptor.emptyMap
-import com.avail.descriptor.ModuleDescriptor
-import com.avail.descriptor.PhraseDescriptor
 import com.avail.descriptor.StringDescriptor.formatString
 import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TypeDescriptor.Types
@@ -174,15 +162,15 @@ class CompilationContext(
 	var noMoreWorkUnits: (()->Unit)? = null
 		set(newNoMoreWorkUnits)
 		{
-			assert(newNoMoreWorkUnits == null
-				   != (this.noMoreWorkUnits == null)) {
+			assert(newNoMoreWorkUnits === null
+				   != (this.noMoreWorkUnits === null)) {
 				"noMoreWorkUnits must transition to or from null"
 			}
 
 			if (Interpreter.debugWorkUnits)
 			{
-				val wasNull = this.noMoreWorkUnits == null
-				val isNull = newNoMoreWorkUnits == null
+				val wasNull = this.noMoreWorkUnits === null
+				val isNull = newNoMoreWorkUnits === null
 				println(
 					(if (isNull) "\nClear" else "\nSet")
 					+ " noMoreWorkUnits (was "
@@ -198,7 +186,7 @@ class CompilationContext(
 			}
 			val ran = AtomicBoolean(false)
 			field =
-				if (newNoMoreWorkUnits == null)
+				if (newNoMoreWorkUnits === null)
 					null
 				else {
 					{
@@ -300,7 +288,7 @@ class CompilationContext(
 	private fun logWorkUnits(debugString: String)
 	{
 		var moduleName = debugModuleName
-		if (moduleName == null)
+		if (moduleName === null)
 		{
 			moduleName = this.moduleName.localName()
 			debugModuleName = moduleName
@@ -324,7 +312,7 @@ class CompilationContext(
 	 */
 	fun startWorkUnits(countToBeQueued: Int)
 	{
-		assert(noMoreWorkUnits != null)
+		assert(noMoreWorkUnits !== null)
 		assert(countToBeQueued > 0)
 		val queued = atomicWorkUnitsQueued.addAndGet(countToBeQueued.toLong())
 		if (Interpreter.debugWorkUnits)
@@ -389,7 +377,7 @@ class CompilationContext(
 		optionalSafetyCheck: AtomicBoolean?,
 		continuation: (ArgType)->Unit): (ArgType)->Unit
 	{
-		assert(noMoreWorkUnits != null)
+		assert(noMoreWorkUnits !== null)
 		val hasRunSafetyCheck = optionalSafetyCheck ?: AtomicBoolean(false)
 		if (Interpreter.debugWorkUnits)
 		{
@@ -482,7 +470,7 @@ class CompilationContext(
 		argument: ArgType)
 	{
 		assert(continuations.isNotEmpty())
-		assert(noMoreWorkUnits != null)
+		assert(noMoreWorkUnits !== null)
 
 		// Start by increasing the queued counter by the number of actions we're
 		// adding.

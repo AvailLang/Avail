@@ -32,69 +32,23 @@
 
 package com.avail.compiler
 
-import com.avail.compiler.instruction.AvailCall
-import com.avail.compiler.instruction.AvailCloseCode
-import com.avail.compiler.instruction.AvailDuplicate
-import com.avail.compiler.instruction.AvailGetLiteralVariable
-import com.avail.compiler.instruction.AvailGetLocalVariable
-import com.avail.compiler.instruction.AvailGetOuterVariable
-import com.avail.compiler.instruction.AvailInstruction
-import com.avail.compiler.instruction.AvailInstructionWithIndex
-import com.avail.compiler.instruction.AvailLabel
-import com.avail.compiler.instruction.AvailMakeTuple
-import com.avail.compiler.instruction.AvailPermute
-import com.avail.compiler.instruction.AvailPop
-import com.avail.compiler.instruction.AvailPushLabel
-import com.avail.compiler.instruction.AvailPushLiteral
-import com.avail.compiler.instruction.AvailPushLocalVariable
-import com.avail.compiler.instruction.AvailPushOuterVariable
-import com.avail.compiler.instruction.AvailSetLiteralVariable
-import com.avail.compiler.instruction.AvailSetLocalConstant
-import com.avail.compiler.instruction.AvailSetLocalVariable
-import com.avail.compiler.instruction.AvailSetOuterVariable
-import com.avail.compiler.instruction.AvailSuperCall
-import com.avail.compiler.instruction.AvailVariableAccessNote
-import com.avail.descriptor.A_BasicObject
-import com.avail.descriptor.A_Bundle
-import com.avail.descriptor.A_Module
-import com.avail.descriptor.A_Phrase
-import com.avail.descriptor.A_RawFunction
-import com.avail.descriptor.A_Set
-import com.avail.descriptor.A_Token
-import com.avail.descriptor.A_Tuple
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.BlockPhraseDescriptor
-import com.avail.descriptor.CompiledCodeDescriptor
+import com.avail.compiler.instruction.*
+import com.avail.descriptor.*
 import com.avail.descriptor.CompiledCodeDescriptor.newCompiledCode
-import com.avail.descriptor.ContinuationDescriptor
-import com.avail.descriptor.DeclarationPhraseDescriptor
 import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind
 import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_CONSTANT
-import com.avail.descriptor.FunctionDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.NybbleTupleDescriptor.generateNybbleTupleFrom
 import com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom
 import com.avail.descriptor.ObjectTupleDescriptor.tupleFromList
-import com.avail.descriptor.ObjectTypeDescriptor
-import com.avail.descriptor.PhraseDescriptor
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.ASSIGNMENT_PHRASE
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LABEL_PHRASE
-import com.avail.descriptor.SetDescriptor
-import com.avail.descriptor.TupleDescriptor
-import com.avail.descriptor.TupleDescriptor.emptyTuple
-import com.avail.descriptor.TupleDescriptor.toList
-import com.avail.descriptor.TupleDescriptor.tupleFromIntegerList
-import com.avail.descriptor.VariableDescriptor
+import com.avail.descriptor.TupleDescriptor.*
 import com.avail.descriptor.VariableTypeDescriptor.variableTypeFor
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag
-import com.avail.interpreter.primitive.privatehelpers.P_GetGlobalVariableValue
-import com.avail.interpreter.primitive.privatehelpers.P_PushArgument1
-import com.avail.interpreter.primitive.privatehelpers.P_PushArgument2
-import com.avail.interpreter.primitive.privatehelpers.P_PushArgument3
-import com.avail.interpreter.primitive.privatehelpers.P_PushConstant
-import com.avail.interpreter.primitive.privatehelpers.P_PushLastOuter
+import com.avail.interpreter.primitive.privatehelpers.*
 import com.avail.io.NybbleOutputStream
 import java.util.*
 
@@ -170,7 +124,7 @@ class AvailCodeGenerator private constructor(
 	private var primitive: Primitive? = primitive
 		set(thePrimitive)
 		{
-			assert(field == null) { "Primitive was already set" }
+			assert(field === null) { "Primitive was already set" }
 			field = thePrimitive
 		}
 
@@ -281,7 +235,7 @@ class AvailCodeGenerator private constructor(
 		fixFinalUses()
 		// Detect blocks that immediately return something and mark them with a
 		// special primitive number.
-		if (primitive == null && instructions.size == 1)
+		if (primitive === null && instructions.size == 1)
 		{
 			val onlyInstruction = instructions[0]
 			if (onlyInstruction is AvailPushLiteral
@@ -838,7 +792,7 @@ class AvailCodeGenerator private constructor(
 			instruction.fixUsageFlags(localData, outerData, this)
 		}
 		val p = primitive
-		if (p != null)
+		if (p !== null)
 		{
 			// If necessary, prevent clearing of the primitive failure variable
 			// after its last usage.
@@ -897,7 +851,7 @@ class AvailCodeGenerator private constructor(
 			val statementsTuple = blockPhrase.statementsTuple()
 			val statementsCount = statementsTuple.tupleSize()
 			if (statementsCount == 0
-				&& (primitive == null || primitive.canHaveNybblecodes()))
+				&& (primitive === null || primitive.canHaveNybblecodes()))
 			{
 				// Ideally, we could capture just the close-square-bracket here.
 				generator.emitPushLiteral(emptyTuple(), nil)

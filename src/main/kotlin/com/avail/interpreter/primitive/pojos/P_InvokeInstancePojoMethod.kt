@@ -32,17 +32,7 @@
 package com.avail.interpreter.primitive.pojos
 
 import com.avail.AvailRuntime.HookType
-import com.avail.descriptor.*
-import com.avail.exceptions.AvailErrorCode
-import com.avail.exceptions.MarshalingException
-import com.avail.interpreter.AvailLoader
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-import com.avail.utility.MutableOrNull
-import java.lang.reflect.InvocationTargetException
-import java.lang.reflect.Method
-
+import com.avail.descriptor.A_Type
 import com.avail.descriptor.BottomTypeDescriptor.bottom
 import com.avail.descriptor.ObjectTupleDescriptor.tupleFromList
 import com.avail.descriptor.PojoDescriptor.newPojo
@@ -50,9 +40,16 @@ import com.avail.descriptor.PojoDescriptor.nullPojo
 import com.avail.descriptor.PojoTypeDescriptor.pojoTypeForClass
 import com.avail.descriptor.PojoTypeDescriptor.unmarshal
 import com.avail.descriptor.RawPojoDescriptor.identityPojo
+import com.avail.exceptions.AvailErrorCode
+import com.avail.exceptions.MarshalingException
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.Private
 import com.avail.interpreter.primitive.pojos.PrimitiveHelper.marshalValues
+import com.avail.utility.MutableOrNull
 import com.avail.utility.Nulls.stripNull
+import java.lang.reflect.InvocationTargetException
+import java.lang.reflect.Method
 
 /**
  * **Primitive:** Given arguments that start with the receiver of
@@ -100,7 +97,7 @@ object P_InvokeInstancePojoMethod : Primitive(-1, Private)
 			methodArgs.copyTupleFromToCanDestroy(
 				2, methodArgs.tupleSize(), false),
 			errorOut)
-		if (errorOut.value != null)
+		if (errorOut.value !== null)
 		{
 			val e = errorOut.value
 			return interpreter.primitiveFailure(
@@ -130,7 +127,7 @@ object P_InvokeInstancePojoMethod : Primitive(-1, Private)
 				newPojo(identityPojo(e), pojoTypeForClass(e.javaClass)))
 		}
 
-		if (result == null)
+		if (result === null)
 		{
 			return interpreter.primitiveSuccess(nullPojo())
 		}

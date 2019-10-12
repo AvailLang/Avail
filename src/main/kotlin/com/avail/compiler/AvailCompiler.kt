@@ -45,10 +45,7 @@ import com.avail.compiler.ParsingOperation.Companion.operand
 import com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT
 import com.avail.compiler.PragmaKind.Companion.pragmaKindByLexeme
 import com.avail.compiler.problems.CompilerDiagnostics
-import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.MEDIUM
-import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.SILENT
-import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
-import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.WEAK
+import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.*
 import com.avail.compiler.problems.Problem
 import com.avail.compiler.problems.ProblemHandler
 import com.avail.compiler.problems.ProblemType.EXTERNAL
@@ -56,107 +53,43 @@ import com.avail.compiler.problems.ProblemType.PARSE
 import com.avail.compiler.scanning.LexingState
 import com.avail.compiler.splitter.MessageSplitter.Companion.constantForIndex
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
-import com.avail.descriptor.A_Atom
-import com.avail.descriptor.A_BasicObject
-import com.avail.descriptor.A_Bundle
-import com.avail.descriptor.A_BundleTree
-import com.avail.descriptor.A_Definition
-import com.avail.descriptor.A_Fiber
-import com.avail.descriptor.A_Function
-import com.avail.descriptor.A_Lexer
-import com.avail.descriptor.A_Map
-import com.avail.descriptor.A_Module
-import com.avail.descriptor.A_Phrase
-import com.avail.descriptor.A_SemanticRestriction
-import com.avail.descriptor.A_Set
-import com.avail.descriptor.A_String
-import com.avail.descriptor.A_Token
-import com.avail.descriptor.A_Tuple
-import com.avail.descriptor.A_Type
+import com.avail.descriptor.*
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn
 import com.avail.descriptor.AssignmentPhraseDescriptor.newAssignment
-import com.avail.descriptor.AtomDescriptor.SpecialAtom
-import com.avail.descriptor.AtomDescriptor.SpecialAtom.ALL_TOKENS_KEY
-import com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
-import com.avail.descriptor.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY
-import com.avail.descriptor.AtomDescriptor.SpecialAtom.MACRO_BUNDLE_KEY
-import com.avail.descriptor.AtomDescriptor.SpecialAtom.STATIC_TOKENS_KEY
-import com.avail.descriptor.AtomDescriptor.falseObject
-import com.avail.descriptor.AtomDescriptor.objectFromBoolean
-import com.avail.descriptor.AtomDescriptor.trueObject
-import com.avail.descriptor.AvailObject
-import com.avail.descriptor.BlockPhraseDescriptor
+import com.avail.descriptor.AtomDescriptor.*
+import com.avail.descriptor.AtomDescriptor.SpecialAtom.*
 import com.avail.descriptor.CompiledCodeDescriptor.newPrimitiveRawFunction
 import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_CONSTANT
 import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_VARIABLE
 import com.avail.descriptor.DeclarationPhraseDescriptor.newModuleConstant
 import com.avail.descriptor.DeclarationPhraseDescriptor.newModuleVariable
-import com.avail.descriptor.FiberDescriptor
 import com.avail.descriptor.FiberDescriptor.GeneralFlag
 import com.avail.descriptor.FiberDescriptor.newLoaderFiber
-import com.avail.descriptor.FunctionDescriptor
 import com.avail.descriptor.FunctionDescriptor.createFunction
 import com.avail.descriptor.FunctionDescriptor.createFunctionForPhrase
 import com.avail.descriptor.LexerDescriptor.lexerBodyFunctionType
 import com.avail.descriptor.LexerDescriptor.lexerFilterFunctionType
-import com.avail.descriptor.ListPhraseDescriptor
 import com.avail.descriptor.ListPhraseDescriptor.emptyListNode
 import com.avail.descriptor.ListPhraseDescriptor.newListNode
 import com.avail.descriptor.LiteralPhraseDescriptor.literalNodeFromToken
 import com.avail.descriptor.LiteralPhraseDescriptor.syntheticLiteralNodeFor
 import com.avail.descriptor.LiteralTokenDescriptor.literalToken
-import com.avail.descriptor.MacroDefinitionDescriptor
 import com.avail.descriptor.MacroSubstitutionPhraseDescriptor.newMacroSubstitution
 import com.avail.descriptor.MapDescriptor.emptyMap
 import com.avail.descriptor.MapDescriptor.mapFromPairs
 import com.avail.descriptor.MarkerPhraseDescriptor.newMarkerNode
-import com.avail.descriptor.MessageBundleDescriptor
-import com.avail.descriptor.MessageBundleTreeDescriptor
-import com.avail.descriptor.MethodDefinitionDescriptor
-import com.avail.descriptor.MethodDescriptor
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom
-import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.CRASH
-import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.CREATE_MODULE_VARIABLE
-import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.LEXER_DEFINER
-import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.MACRO_DEFINER
-import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.METHOD_DEFINER
-import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.MODULE_HEADER
-import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.PUBLISH_ATOMS
-import com.avail.descriptor.ModuleDescriptor
+import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.*
 import com.avail.descriptor.ModuleDescriptor.newModule
-import com.avail.descriptor.NilDescriptor
 import com.avail.descriptor.NilDescriptor.nil
-import com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.ObjectTupleDescriptor.tupleFromList
+import com.avail.descriptor.ObjectTupleDescriptor.*
 import com.avail.descriptor.ParsingPlanInProgressDescriptor.newPlanInProgress
-import com.avail.descriptor.PhraseDescriptor
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.BLOCK_PHRASE
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.DECLARATION_PHRASE
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.EXPRESSION_AS_STATEMENT_PHRASE
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.MACRO_SUBSTITUTION_PHRASE
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.MARKER_PHRASE
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PERMUTED_LIST_PHRASE
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.STATEMENT_PHRASE
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
-import com.avail.descriptor.SemanticRestrictionDescriptor
-import com.avail.descriptor.SendPhraseDescriptor
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*
 import com.avail.descriptor.SendPhraseDescriptor.newSendNode
-import com.avail.descriptor.SetDescriptor
 import com.avail.descriptor.SetDescriptor.emptySet
 import com.avail.descriptor.StringDescriptor.formatString
 import com.avail.descriptor.StringDescriptor.stringFrom
-import com.avail.descriptor.TokenDescriptor
-import com.avail.descriptor.TokenDescriptor.TokenType.COMMENT
-import com.avail.descriptor.TokenDescriptor.TokenType.END_OF_FILE
-import com.avail.descriptor.TokenDescriptor.TokenType.KEYWORD
-import com.avail.descriptor.TokenDescriptor.TokenType.OPERATOR
-import com.avail.descriptor.TokenDescriptor.TokenType.WHITESPACE
-import com.avail.descriptor.TupleDescriptor
+import com.avail.descriptor.TokenDescriptor.TokenType.*
 import com.avail.descriptor.TupleDescriptor.toList
 import com.avail.descriptor.TupleTypeDescriptor.stringType
 import com.avail.descriptor.TypeDescriptor.Types.TOKEN
@@ -187,14 +120,10 @@ import com.avail.io.TextInterface
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport.RUNNING_PARSING_INSTRUCTIONS
 import com.avail.persistence.IndexedRepositoryManager
+import com.avail.utility.*
 import com.avail.utility.Casts.cast
 import com.avail.utility.Locks.lockWhile
-import com.avail.utility.Mutable
-import com.avail.utility.MutableInt
-import com.avail.utility.MutableLong
-import com.avail.utility.MutableOrNull
 import com.avail.utility.Nulls.stripNull
-import com.avail.utility.PrefixSharingList
 import com.avail.utility.PrefixSharingList.append
 import com.avail.utility.PrefixSharingList.last
 import com.avail.utility.StackPrinter.trace
@@ -215,9 +144,7 @@ import java.util.Comparator.comparing
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantReadWriteLock
-import java.util.stream.Collectors.toList
-import java.util.stream.Collectors.toMap
-import java.util.stream.Collectors.toSet
+import java.util.stream.Collectors.*
 import java.util.stream.IntStream
 import kotlin.math.max
 import kotlin.math.min
@@ -326,7 +253,7 @@ class AvailCompiler(
 		val parent: PartialSubexpressionList?)
 	{
 		/** How many subexpressions deep that we're parsing.  */
-		val depth: Int = if (parent == null) 1 else parent.depth + 1
+		val depth: Int = if (parent === null) 1 else parent.depth + 1
 
 		/**
 		 * Create a list like the receiver, but with a different [message bundle
@@ -358,14 +285,14 @@ class AvailCompiler(
 		builder: StringBuilder)
 	{
 		var pointer = partialSubexpressions
-		if (pointer == null)
+		if (pointer === null)
 		{
 			builder.append("\n\t(top level expression)")
 			return
 		}
 		val maxDepth = 10
 		val limit = max(pointer.depth - maxDepth, 0)
-		while (pointer != null && pointer.depth >= limit)
+		while (pointer !== null && pointer.depth >= limit)
 		{
 			builder.append("\n\t")
 			builder.append(pointer.depth)
@@ -435,7 +362,7 @@ class AvailCompiler(
 		tryBlock: (Con1)->Unit,
 		supplyAnswer: Con1)
 	{
-		assert(compilationContext.noMoreWorkUnits == null)
+		assert(compilationContext.noMoreWorkUnits === null)
 		val solutions = ArrayList<CompilerSolution>(1)
 		compilationContext.noMoreWorkUnits = noMoreWorkUnits@{
 			if (compilationContext.diagnostics.pollForAbort())
@@ -835,7 +762,7 @@ class AvailCompiler(
 		{
 			LOCAL_CONSTANT ->
 			{
-				if (shadowProblem != null)
+				if (shadowProblem !== null)
 				{
 					afterStatement.expected(
 						STRONG,
@@ -913,7 +840,7 @@ class AvailCompiler(
 			}
 			LOCAL_VARIABLE ->
 			{
-				if (shadowProblem != null)
+				if (shadowProblem !== null)
 				{
 					afterStatement.expected(
 						STRONG,
@@ -1306,7 +1233,7 @@ class AvailCompiler(
 		val bundleTree = tempBundleTree
 
 		var skipCheckArgumentAction = false
-		if (firstArgOrNull == null)
+		if (firstArgOrNull === null)
 		{
 			// A call site is only valid if at least one token has been parsed.
 			if (consumedAnything)
@@ -1482,7 +1409,7 @@ class AvailCompiler(
 				}
 				// Eliminate it before queueing a work unit if it shouldn't run
 				// due to there being a first argument already pre-parsed.
-				if (firstArgOrNull == null || op.canRunIfHasFirstArgument)
+				if (firstArgOrNull === null || op.canRunIfHasFirstArgument)
 				{
 					start.workUnitDo(
 						{ value ->
@@ -2644,7 +2571,7 @@ class AvailCompiler(
 		wrapInLiteral: Boolean,
 		continuation: Con1)
 	{
-		if (firstArgOrNull != null)
+		if (firstArgOrNull !== null)
 		{
 			// We're parsing a message send with a leading argument, and that
 			// argument was explicitly provided to the parser.  We should
@@ -2702,7 +2629,7 @@ class AvailCompiler(
 							type.isBottom -> "⊥"
 							else -> null
 						}
-					if (badTypeName != null)
+					if (badTypeName !== null)
 					{
 						afterArgument.expected(WEAK) { c ->
 							val b = StringBuilder(100)
@@ -2780,7 +2707,7 @@ class AvailCompiler(
 			start.withMap(clientDataInGlobalScope),
 			"module-scoped argument",
 			firstArgOrNull,
-			firstArgOrNull == null
+			firstArgOrNull === null
 				&& initialTokenPosition.lexingState != start.lexingState,
 			false, // Static argument can't be top-valued
 			Con1(continuation.superexpressions) { solution ->
@@ -2794,7 +2721,7 @@ class AvailCompiler(
 					return@Con1
 				}
 
-				if (firstArgOrNull != null)
+				if (firstArgOrNull !== null)
 				{
 					// A leading argument was already supplied.  We couldn't
 					// prevent it from referring to variables that were in scope
@@ -2831,7 +2758,7 @@ class AvailCompiler(
 					initialTokenPosition,
 					// The argument counts as something that was consumed if
 					// it's not a leading argument...
-					firstArgOrNull == null,
+					firstArgOrNull === null,
 					// We're about to parse an argument, so whatever was in
 					// consumedAnything should be moved into
 					// consumedAnythingBeforeLatestArgument.
@@ -2918,7 +2845,7 @@ class AvailCompiler(
 			clientDataAfterRunning,
 			stateAfterCall.lexingState,
 			{ replacement ->
-				assert(clientDataAfterRunning.value != null)
+				assert(clientDataAfterRunning.value !== null)
 				// In theory a fiber can produce anything, although you have to
 				// mess with continuations to get it wrong.
 				if (!replacement.isInstanceOfKind(
@@ -3251,7 +3178,7 @@ class AvailCompiler(
 	{
 		// Process the filter primitive.
 		val filterPrimitive = primitiveByName(filterPrimitiveName)
-		if (filterPrimitive == null)
+		if (filterPrimitive === null)
 		{
 			state.expected(STRONG, "a valid primitive for the lexer filter")
 			return
@@ -3276,7 +3203,7 @@ class AvailCompiler(
 
 		// Process the body primitive.
 		val bodyPrimitive = primitiveByName(bodyPrimitiveName)
-		if (bodyPrimitive == null)
+		if (bodyPrimitive === null)
 		{
 			state.expected(
 				STRONG,
@@ -3360,7 +3287,7 @@ class AvailCompiler(
 			val pragmaKindString = pragmaParts[0].trim { it <= ' ' }
 			val pragmaValue = pragmaParts[1].trim { it <= ' ' }
 			val pragmaKind = pragmaKindByLexeme(pragmaKindString)
-			if (pragmaKind == null)
+			if (pragmaKind === null)
 			{
 				compilationContext.diagnostics.reportError(
 					pragmaToken.nextLexingState(),
@@ -3403,7 +3330,7 @@ class AvailCompiler(
 			val errorString = moduleHeader.applyToModule(
 				compilationContext.module,
 				compilationContext.runtime)
-			if (errorString != null)
+			if (errorString !== null)
 			{
 				compilationContext.progressReporter.invoke(
 					moduleName,
@@ -4043,7 +3970,7 @@ class AvailCompiler(
 			// We're the (only) cause of the transition from hasn't-started to
 			// has-started.  Suppress reporting if there are no superexpressions
 			// being parsed, or if we're at the root of the bundle tree.
-			val isRoot = originalContinuation.superexpressions == null
+			val isRoot = originalContinuation.superexpressions === null
 				|| originalContinuation.superexpressions.bundleTree.equals(
 					compilationContext.loader!!.rootBundleTree())
 			start.expected(if (isRoot) SILENT else WEAK) { withDescription ->
@@ -4485,7 +4412,7 @@ class AvailCompiler(
 			}
 			val objectCopy = `object`.copyMutablePhrase()
 			objectCopy.childrenMap { child ->
-				assert(child != null)
+				assert(child !== null)
 				assert(child!!.isInstanceOfKind(PARSE_PHRASE.mostGeneralType()))
 				treeMapWithParent(
 					child, transformer, objectCopy, outerPhrases, phraseMap)

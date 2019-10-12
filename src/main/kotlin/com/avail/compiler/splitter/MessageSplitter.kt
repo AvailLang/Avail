@@ -880,7 +880,7 @@ class MessageSplitter
 	private fun peekFor(metacharacter: Metacharacter): Boolean
 	{
 		val token = currentMessagePartOrNull
-		if (token != null && token.equals(metacharacter.string))
+		if (token !== null && token.equals(metacharacter.string))
 		{
 			messagePartPosition++
 			return true
@@ -900,7 +900,7 @@ class MessageSplitter
 	private fun peekAheadFor(metacharacter: Metacharacter): Boolean
 	{
 		val token = currentMessagePartOrNull
-		return token != null && token.equals(metacharacter.string)
+		return token !== null && token.equals(metacharacter.string)
 	}
 
 	/**
@@ -958,7 +958,7 @@ class MessageSplitter
 		errorString: String): Boolean
 	{
 		val token = currentMessagePartOrNull
-		if (token == null || !token.equals(metacharacter.string))
+		if (token === null || !token.equals(metacharacter.string))
 		{
 			return false
 		}
@@ -982,7 +982,7 @@ class MessageSplitter
 	{
 		val sequence = Sequence(messagePartPosition)
 		var expression = parseElementOrAlternation()
-		while (expression != null)
+		while (expression !== null)
 		{
 			sequence.addExpression(expression)
 			expression = parseElementOrAlternation()
@@ -1653,7 +1653,7 @@ class MessageSplitter
 			val strongConstant = constant.makeShared()
 			auto(constantsLock.readLock()).use {
 				val index = constantsMap[strongConstant]
-				if (index != null)
+				if (index !== null)
 				{
 					return index
 				}
@@ -1661,7 +1661,7 @@ class MessageSplitter
 
 			auto(constantsLock.writeLock()).use {
 				val index = constantsMap[strongConstant]
-				if (index != null)
+				if (index !== null)
 				{
 					return index
 				}

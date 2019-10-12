@@ -33,20 +33,11 @@
 package com.avail.interpreter.primitive.general
 
 import com.avail.descriptor.A_BasicObject
-import com.avail.descriptor.A_Module
 import com.avail.descriptor.A_Tuple
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.IntegerRangeTypeDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-import com.avail.serialization.Deserializer
-import java.io.ByteArrayInputStream
-import java.nio.ByteBuffer
-import java.util.ArrayList
-
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.IntegerRangeTypeDescriptor
 import com.avail.descriptor.IntegerRangeTypeDescriptor.bytes
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.ObjectTupleDescriptor.tupleFromList
@@ -55,7 +46,13 @@ import com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf
 import com.avail.descriptor.TypeDescriptor.Types.ANY
 import com.avail.descriptor.TypeDescriptor.Types.MODULE
 import com.avail.exceptions.AvailErrorCode.E_DESERIALIZATION_FAILED
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.serialization.Deserializer
+import java.io.ByteArrayInputStream
+import java.nio.ByteBuffer
+import java.util.*
 
 /**
  * **Primitive:** Answer a [tuple][A_Tuple]
@@ -108,7 +105,7 @@ object P_Deserialize : Primitive(2, CanInline)
 		try
 		{
 			var value: A_BasicObject? = deserializer.deserialize()
-			while (value != null)
+			while (value !== null)
 			{
 				values.add(value)
 				value = deserializer.deserialize()

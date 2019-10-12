@@ -32,9 +32,7 @@
 
 package com.avail.utility.json
 
-import com.avail.utility.json.JSONWriter.JSONState.EXPECTING_FIRST_OBJECT_KEY_OR_OBJECT_END
-import com.avail.utility.json.JSONWriter.JSONState.EXPECTING_FIRST_VALUE_OR_ARRAY_END
-import com.avail.utility.json.JSONWriter.JSONState.EXPECTING_SINGLE_VALUE
+import com.avail.utility.json.JSONWriter.JSONState.*
 import java.io.IOException
 import java.io.StringWriter
 import java.io.Writer
@@ -641,7 +639,7 @@ class JSONWriter : AutoCloseable
 	@Throws(JSONIOException::class, IllegalStateException::class)
 	fun format(pattern: String?, vararg args: Any)
 	{
-		if (pattern == null)
+		if (pattern === null)
 		{
 			writeNull()
 		}
@@ -721,7 +719,7 @@ class JSONWriter : AutoCloseable
 	 */
 	fun write(value: String?)
 	{
-		if (value == null)
+		if (value === null)
 		{
 			writeNull()
 		}

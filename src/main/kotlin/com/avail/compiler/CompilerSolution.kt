@@ -61,7 +61,7 @@ internal class CompilerSolution constructor(
 {
 	override fun equals(other: Any?): Boolean
 	{
-		if (other == null)
+		if (other === null)
 		{
 			return false
 		}

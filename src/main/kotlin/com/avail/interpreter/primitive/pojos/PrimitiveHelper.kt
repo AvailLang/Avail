@@ -33,36 +33,25 @@
 package com.avail.interpreter.primitive.pojos
 
 import com.avail.AvailRuntime.HookType
-import com.avail.descriptor.A_Function
-import com.avail.descriptor.A_RawFunction
-import com.avail.descriptor.A_String
-import com.avail.descriptor.A_Tuple
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom
-import com.avail.exceptions.AvailErrorCode
-import com.avail.exceptions.MarshalingException
-import com.avail.interpreter.Primitive
-import com.avail.interpreter.levelOne.L1InstructionWriter
-import com.avail.utility.MutableOrNull
-import java.lang.reflect.Field
-import java.lang.reflect.Method
-import java.util.HashSet
-
 import com.avail.AvailRuntime.HookType.RAISE_JAVA_EXCEPTION_IN_AVAIL
+import com.avail.descriptor.*
 import com.avail.descriptor.BottomTypeDescriptor.bottom
+import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.APPLY
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.PojoTypeDescriptor.marshalDefiningType
 import com.avail.descriptor.PojoTypeDescriptor.pojoTypeForClass
 import com.avail.descriptor.VariableTypeDescriptor.variableTypeFor
-import com.avail.exceptions.AvailErrorCode.E_JAVA_FIELD_NOT_AVAILABLE
-import com.avail.exceptions.AvailErrorCode.E_JAVA_FIELD_REFERENCE_IS_AMBIGUOUS
-import com.avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED
-import com.avail.exceptions.AvailErrorCode.E_JAVA_METHOD_NOT_AVAILABLE
-import com.avail.exceptions.AvailErrorCode.E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS
-import com.avail.interpreter.levelOne.L1Operation.L1_doCall
-import com.avail.interpreter.levelOne.L1Operation.L1_doMakeTuple
-import com.avail.interpreter.levelOne.L1Operation.L1_doPushLocal
+import com.avail.exceptions.AvailErrorCode
+import com.avail.exceptions.AvailErrorCode.*
+import com.avail.exceptions.MarshalingException
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.levelOne.L1InstructionWriter
+import com.avail.interpreter.levelOne.L1Operation.*
+import com.avail.utility.MutableOrNull
+import java.lang.reflect.Field
+import java.lang.reflect.Method
+import java.util.*
 
 /**
  * `PrimitiveHelper` aggregates utility functions for reuse by the various pojo
@@ -240,7 +229,7 @@ object PrimitiveHelper
 		val argTypes = functionType.argsTupleType()
 		val numArgs = argTypes.sizeRange().lowerBound().extractInt()
 		val argTypesArray = Array<A_Type>(numArgs) {i ->
-			argTypes.typeAtIndex(i)
+			argTypes.typeAtIndex(i + 1)
 		}
 		val returnType = functionType.returnType()
 		val writer = L1InstructionWriter(nil, 0, nil)
@@ -297,9 +286,11 @@ object PrimitiveHelper
 		var marshaled: Array<Any>? = null
 		try
 		{
-			marshaled = arrayOf(Array(args.tupleSize()) { i ->
-				args.tupleAt(i + 1).marshalToJava(marshaledTypes.tupleAt(i + 1).javaObjectNotNull<Class<*>>())
-			})
+			marshaled = Array(args.tupleSize()) {
+				args.tupleAt(it + 1).marshalToJava(
+					marshaledTypes.tupleAt(it + 1).
+						javaObjectNotNull<Class<*>>())!!
+			}
 		}
 		catch (e: MarshalingException)
 		{

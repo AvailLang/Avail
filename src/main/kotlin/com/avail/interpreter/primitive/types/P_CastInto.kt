@@ -34,17 +34,6 @@ package com.avail.interpreter.primitive.types
 import com.avail.descriptor.A_Function
 import com.avail.descriptor.A_RawFunction
 import com.avail.descriptor.A_Type
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
-import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import com.avail.interpreter.levelTwo.operation.L2_FUNCTION_PARAMETER_TYPE
-import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_CONSTANT
-import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
-import com.avail.optimizer.L1Translator
-import com.avail.optimizer.L1Translator.CallSiteHelper
-
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.BottomTypeDescriptor.bottom
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
@@ -54,13 +43,21 @@ import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TypeDescriptor.Types.ANY
 import com.avail.descriptor.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
-import com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail
-import com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
-import com.avail.interpreter.Primitive.Fallibility.CallSiteMustFail
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Fallibility.*
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.Invokes
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
+import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType
+import com.avail.interpreter.levelTwo.operation.L2_FUNCTION_PARAMETER_TYPE
+import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_CONSTANT
+import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
+import com.avail.optimizer.L1Translator
+import com.avail.optimizer.L1Translator.CallSiteHelper
 import com.avail.optimizer.L2Generator.edgeTo
 
 /**
@@ -162,7 +159,7 @@ object P_CastInto : Primitive(2, Invokes, CanInline)
 		val elseBlock = translator.generator.createBasicBlock("cast type did not match")
 
 		val typeTest = castFunctionRead.exactSoleArgumentType()
-		if (typeTest != null)
+		if (typeTest !== null)
 		{
 			// By tracing where the castBlock came from, we were able to
 			// determine the exact type to compare the value against.  This is
@@ -171,7 +168,7 @@ object P_CastInto : Primitive(2, Invokes, CanInline)
 			// test entirely.
 			val constant = valueRead.constantOrNull()
 			val passedTest: Boolean?
-			if (constant != null)
+			if (constant !== null)
 			{
 				passedTest = constant.isInstanceOf(typeTest)
 			}
@@ -187,7 +184,7 @@ object P_CastInto : Primitive(2, Invokes, CanInline)
 			{
 				passedTest = null
 			}
-			if (passedTest != null)
+			if (passedTest !== null)
 			{
 				// Go to the castBlock or elseBlock without having to do the
 				// runtime type test (since we just did it).  Don't do a type

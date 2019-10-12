@@ -34,11 +34,6 @@ package com.avail.interpreter.primitive.general
 
 import com.avail.descriptor.A_Map
 import com.avail.descriptor.A_Type
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import java.lang.ref.SoftReference
-import kotlin.collections.Map.Entry
-
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.MapDescriptor.emptyMap
@@ -46,9 +41,10 @@ import com.avail.descriptor.MapTypeDescriptor.mapTypeForSizesKeyTypeValueType
 import com.avail.descriptor.StringDescriptor.stringFrom
 import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TupleTypeDescriptor.stringType
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
-import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
+import java.lang.ref.SoftReference
 
 /**
  * **Primitive:** Answer a [map][A_Map] that
@@ -78,7 +74,7 @@ object P_EnvironmentMap : Primitive(0, CannotFail, CanInline, HasSideEffect)
 		// work will be done. Big deal. This is likely to be cheaper in general
 		// than repeatedly entering and leaving a critical section.
 		var result = environmentMap.get()
-		if (result == null)
+		if (result === null)
 		{
 			result = emptyMap()
 			val map = System.getenv()

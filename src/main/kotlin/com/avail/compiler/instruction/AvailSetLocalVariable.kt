@@ -84,7 +84,7 @@ class AvailSetLocalVariable constructor(
 		codeGenerator: AvailCodeGenerator)
 	{
 		var note = localData[index - 1]
-		if (note == null)
+		if (note === null)
 		{
 			note = AvailVariableAccessNote()
 			localData[index - 1] = note

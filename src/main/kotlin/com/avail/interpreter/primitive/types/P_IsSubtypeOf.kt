@@ -33,23 +33,17 @@ package com.avail.interpreter.primitive.types
 
 import com.avail.descriptor.A_RawFunction
 import com.avail.descriptor.A_Type
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import com.avail.optimizer.L1Translator
-import com.avail.optimizer.L1Translator.CallSiteHelper
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
-import com.avail.descriptor.AtomDescriptor.falseObject
-import com.avail.descriptor.AtomDescriptor.objectFromBoolean
-import com.avail.descriptor.AtomDescriptor.trueObject
+import com.avail.descriptor.AtomDescriptor.*
 import com.avail.descriptor.EnumerationTypeDescriptor.booleanType
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceMetaDescriptor.topMeta
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.interpreter.Primitive.Flag.CanFold
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.optimizer.L1Translator
+import com.avail.optimizer.L1Translator.CallSiteHelper
 
 /**
  * **Primitive:** Answer whether type1 is a subtype of type2
@@ -107,7 +101,7 @@ object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 		val yType = yMeta.instance()
 
 		val constantYType = yTypeReg.constantOrNull()
-		if (constantYType != null)
+		if (constantYType !== null)
 		{
 			assert(constantYType.isSubtypeOf(yType))
 			if (xType.isSubtypeOf(constantYType))
@@ -121,7 +115,7 @@ object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 		}
 
 		val constantXType = xTypeReg.constantOrNull()
-		if (constantXType != null)
+		if (constantXType !== null)
 		{
 			assert(constantXType.isSubtypeOf(xType))
 			if (!constantXType.isSubtypeOf(yType))

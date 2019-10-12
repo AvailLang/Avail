@@ -47,13 +47,7 @@ import java.nio.CharBuffer
 import java.nio.channels.FileChannel
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
-import java.nio.file.FileVisitOption
-import java.nio.file.FileVisitResult
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
-import java.nio.file.SimpleFileVisitor
-import java.nio.file.StandardOpenOption
+import java.nio.file.*
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.*
 import java.util.regex.Pattern
@@ -81,7 +75,7 @@ internal class Catalog
 		get()
 		{
 			var codePoints = field
-			if (codePoints == null)
+			if (codePoints === null)
 			{
 				codePoints = HashSet()
 				field = codePoints
@@ -100,7 +94,7 @@ internal class Catalog
 		get()
 		{
 			var codePoints = field
-			if (codePoints == null)
+			if (codePoints === null)
 			{
 				codePoints = TreeSet()
 				field = codePoints
@@ -123,7 +117,7 @@ internal class Catalog
 		get()
 		{
 			var codePoints = field
-			if (codePoints == null)
+			if (codePoints === null)
 			{
 				codePoints = TreeSet()
 				field = codePoints
@@ -501,7 +495,7 @@ internal class Catalog
 			System.err.printf("Fetching content from %s…%n", url)
 			val connection = url.openConnection()
 			var encoding = connection.contentEncoding
-			if (encoding == null)
+			if (encoding === null)
 			{
 				encoding = "UTF-8"
 			}

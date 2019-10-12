@@ -37,14 +37,7 @@ import com.avail.compiler.AvailRejectedParseException
 import com.avail.compiler.CompilationContext
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
-import com.avail.descriptor.A_BasicObject
-import com.avail.descriptor.A_Fiber
-import com.avail.descriptor.A_Lexer
-import com.avail.descriptor.A_Set
-import com.avail.descriptor.A_Token
-import com.avail.descriptor.A_Tuple
-import com.avail.descriptor.AvailObject
-import com.avail.descriptor.CharacterDescriptor
+import com.avail.descriptor.*
 import com.avail.descriptor.FiberDescriptor.GeneralFlag
 import com.avail.descriptor.FiberDescriptor.newLoaderFiber
 import com.avail.descriptor.IntegerDescriptor.fromInt
@@ -183,7 +176,7 @@ class LexingState constructor(
 	@Synchronized
 	fun withTokensDo(newAction: (List<A_Token>)->Unit)
 	{
-		if (actions == null)
+		if (actions === null)
 		{
 			// The complete list of tokens was already computed, and actions
 			// that arrived before that completed have already been started.
@@ -364,7 +357,7 @@ class LexingState constructor(
 		onSuccess: (AvailObject) -> Unit,
 		onFailure: (Throwable) -> Unit)
 	{
-		assert(compilationContext.noMoreWorkUnits != null)
+		assert(compilationContext.noMoreWorkUnits !== null)
 		// Wrap onSuccess and onFailure to maintain queued/completed counts.
 		compilationContext.startWorkUnits(1)
 		val oneWay = AtomicBoolean()
@@ -431,8 +424,8 @@ class LexingState constructor(
 	 */
 	private fun forceNextToken(token: A_Token)
 	{
-		assert(nextTokens == null)
-		assert(actions != null && actions!!.isEmpty())
+		assert(nextTokens === null)
+		assert(actions !== null && actions!!.isEmpty())
 		nextTokens = mutableListOf(token)
 		actions = null
 	}
@@ -514,7 +507,7 @@ class LexingState constructor(
 		@Synchronized
 		get()
 		{
-			return if (nextTokens == null)
+			return if (nextTokens === null)
 				null
 			else
 				unmodifiableList(ArrayList(nextTokens!!))

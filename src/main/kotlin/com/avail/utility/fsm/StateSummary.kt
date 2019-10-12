@@ -77,7 +77,7 @@ internal class StateSummary<
 	var entryActionKey: ActionKey? = null
 		set(actionKey)
 		{
-			assert(this.entryActionKey == null)
+			assert(this.entryActionKey === null)
 			field = actionKey
 		}
 
@@ -94,7 +94,7 @@ internal class StateSummary<
 	var exitActionKey: ActionKey? = null
 		set(actionKey)
 		{
-			assert(this.exitActionKey == null)
+			assert(this.exitActionKey === null)
 			field = actionKey
 		}
 
@@ -158,7 +158,7 @@ internal class StateSummary<
 	{
 		val collection: MutableCollection<StateTransitionArc<
 			State, Event, GuardKey, ActionKey, Memento>> =
-				if (event == null)
+				if (event === null)
 				{
 					automaticTransitionTable
 				}
@@ -225,7 +225,7 @@ internal class StateSummary<
 		StateTransitionArc<State, Event, GuardKey, ActionKey, Memento>?
 	{
 		val transitions =
-			if (event == null)
+			if (event === null)
 			{
 				automaticTransitionTable
 			}

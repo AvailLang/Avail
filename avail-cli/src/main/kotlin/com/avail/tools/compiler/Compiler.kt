@@ -190,7 +190,7 @@ object Compiler
 				val level = configuration.verbosityLevel
 				if (level.displayGlobalProgress && !level.displayLocalProgress)
 				{
-					if (System.console() != null)
+					if (System.console() !== null)
 					{
 						// Erase the previous global status.
 						print("\b".repeat(globalStatus.length))
@@ -242,7 +242,7 @@ object Compiler
 						globalStatus,
 						modName,
 						percent)
-					if (System.console() != null)
+					if (System.console() !== null)
 					{
 						print("\b".repeat(localStatus.length))
 						if (position != moduleSize)
@@ -271,7 +271,7 @@ object Compiler
 	{
 		resolver.moduleRoots().roots().forEach { root ->
 			val dir = root.sourceDirectory()
-			if (dir != null && dir.isDirectory)
+			if (dir !== null && dir.isDirectory)
 			{
 				root.clearRepository()
 			}

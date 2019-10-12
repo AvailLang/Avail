@@ -214,7 +214,7 @@ class IndexedRepositoryManager constructor(
 			val sourceFile = resolvedModuleName.sourceReference()
 			val lastModification = sourceFile.lastModified()
 			var digest: ByteArray? = digestCache[lastModification]
-			if (digest == null)
+			if (digest === null)
 			{
 				// Don't bother protecting against computing the digest for the
 				// same file in multiple threads.  At worst it's extra work, and
@@ -380,7 +380,7 @@ class IndexedRepositoryManager constructor(
 				compilation: ModuleCompilation) =
 			lock.withLock {
 				val version = stripNull(versions[versionKey])
-				assert(version.getCompilation(compilationKey) == null)
+				assert(version.getCompilation(compilationKey) === null)
 				version.compilations[compilationKey] = compilation
 				markDirty()
 			}
@@ -433,7 +433,7 @@ class IndexedRepositoryManager constructor(
 
 		override fun equals(other: Any?): Boolean
 		{
-			if (other == null)
+			if (other === null)
 			{
 				return false
 			}
@@ -577,7 +577,7 @@ class IndexedRepositoryManager constructor(
 
 		override fun equals(other: Any?): Boolean
 		{
-			if (other == null)
+			if (other === null)
 			{
 				return false
 			}
@@ -1168,13 +1168,13 @@ class IndexedRepositoryManager constructor(
 					null
 				}
 
-			if (repo == null)
+			if (repo === null)
 			{
 				repo = IndexedFile.newFile(
 					IndexedRepository::class.java, fileName, null)
 			}
 			val metadata = repo.metaData()
-			if (metadata != null)
+			if (metadata !== null)
 			{
 				val byteStream = ByteArrayInputStream(metadata)
 				DataInputStream(byteStream).use { binaryStream ->

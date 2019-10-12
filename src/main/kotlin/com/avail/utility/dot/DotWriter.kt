@@ -632,7 +632,7 @@ class DotWriter constructor(
 			indent()
 			identifier(nodeName)
 			linefeed()
-			if (block != null)
+			if (block !== null)
 			{
 				attributeBlock(block)
 			}
@@ -670,7 +670,7 @@ class DotWriter constructor(
 			edgeOperator()
 			identifier(target)
 			linefeed()
-			if (block != null)
+			if (block !== null)
 			{
 				attributeBlock(block)
 			}
@@ -686,12 +686,12 @@ class DotWriter constructor(
 		private fun nodeReference(node: DecoratedNode)
 		{
 			identifier(node.name)
-			if (node.port != null)
+			if (node.port !== null)
 			{
 				emit(":")
 				identifier(node.port)
 			}
-			if (node.compassPoint != null)
+			if (node.compassPoint !== null)
 			{
 				emit(":")
 				emit(node.compassPoint.name.toLowerCase())
@@ -721,7 +721,7 @@ class DotWriter constructor(
 			edgeOperator()
 			nodeReference(target)
 			linefeed()
-			if (block != null)
+			if (block !== null)
 			{
 				attributeBlock(block)
 			}
@@ -749,7 +749,7 @@ class DotWriter constructor(
 			edgeOperator()
 			identifier(target)
 			linefeed()
-			if (block != null)
+			if (block !== null)
 			{
 				attributeBlock(block)
 			}
@@ -777,7 +777,7 @@ class DotWriter constructor(
 			edgeOperator()
 			nodeReference(target)
 			linefeed()
-			if (block != null)
+			if (block !== null)
 			{
 				attributeBlock(block)
 			}
@@ -806,7 +806,7 @@ class DotWriter constructor(
 			linefeed()
 			subgraph(target)
 			linefeed()
-			if (block != null)
+			if (block !== null)
 			{
 				attributeBlock(block)
 			}
@@ -835,7 +835,7 @@ class DotWriter constructor(
 			linefeed()
 			subgraph(target)
 			linefeed()
-			if (block != null)
+			if (block !== null)
 			{
 				attributeBlock(block)
 			}
@@ -864,7 +864,7 @@ class DotWriter constructor(
 			linefeed()
 			subgraph(target)
 			linefeed()
-			if (block != null)
+			if (block !== null)
 			{
 				attributeBlock(block)
 			}
@@ -900,12 +900,12 @@ class DotWriter constructor(
 					else if (o is DecoratedNode)
 					{
 						identifier(o.name)
-						if (o.port != null)
+						if (o.port !== null)
 						{
 							emit(":")
 							identifier(o.port)
 						}
-						if (o.compassPoint != null)
+						if (o.compassPoint !== null)
 						{
 							emit(":")
 							identifier(o.compassPoint.name.toLowerCase())
@@ -936,7 +936,7 @@ class DotWriter constructor(
 					i++
 				}
 				linefeed()
-				if (block != null)
+				if (block !== null)
 				{
 					attributeBlock(block)
 				}

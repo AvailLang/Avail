@@ -32,10 +32,8 @@
 
 package com.avail.compiler
 
-import com.avail.descriptor.A_Token
-import java.util.HashMap
-
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
+import com.avail.descriptor.A_Token
 import com.avail.descriptor.ListPhraseDescriptor.newListNode
 import com.avail.descriptor.LiteralPhraseDescriptor.syntheticLiteralNodeFor
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.DECLARE_STRINGIFIER
@@ -46,6 +44,7 @@ import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TypeDescriptor.Types.TOP
 import com.avail.interpreter.Primitive.Companion.primitiveByName
 import java.lang.String.format
+import java.util.*
 
 /**
  * These are the tokens that are understood directly by the Avail compiler.
@@ -152,7 +151,7 @@ enum class PragmaKind constructor(val lexeme: String)
 			{
 				val primName = primNameStrings[i]
 				val prim = primitiveByName(primName)
-				if (prim == null)
+				if (prim === null)
 				{
 					state.expected(
 						STRONG,

@@ -85,7 +85,7 @@ class AvailPushLabel constructor(relevantTokens: A_Tuple)
 		for (index in 0 until codeGenerator.numArgs)
 		{
 			var note = localData[index]
-			if (note == null)
+			if (note === null)
 			{
 				note = AvailVariableAccessNote()
 				localData[index] = note
@@ -98,7 +98,7 @@ class AvailPushLabel constructor(relevantTokens: A_Tuple)
 
 		for (outerNote in outerData)
 		{
-			if (outerNote != null)
+			if (outerNote !== null)
 			{
 				outerNote.previousPush?.isLastAccess = false
 				outerNote.previousGet?.canClear = false

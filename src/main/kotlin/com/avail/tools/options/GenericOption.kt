@@ -98,7 +98,7 @@ open class GenericOption<OptionKeyType : Enum<OptionKeyType>> constructor(
 		description: String,
 		action: OptionProcessor<OptionKeyType>.(String) -> Unit)
 	: this(key, keywords, description, { keyword, forbidden ->
-		if (forbidden != null)
+		if (forbidden !== null)
 		{
 			throw OptionProcessingException(
 				"$keyword: An argument was specified, but none are "
@@ -130,7 +130,7 @@ open class GenericOption<OptionKeyType : Enum<OptionKeyType>> constructor(
 		action1: OptionProcessor<OptionKeyType>.(String) -> Unit,
 		action2: OptionProcessor<OptionKeyType>.(String, String) -> Unit)
 	: this(key, keywords, description, { keyword, optionalArgument ->
-		if (optionalArgument == null)
+		if (optionalArgument === null)
 		{
 			action1(keyword)
 		}

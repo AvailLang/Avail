@@ -1097,7 +1097,7 @@ enum class SerializerOperation constructor(
 			val primitive = `object`.primitive()
 			val primName: A_String
 			primName =
-				if (primitive == null)
+				if (primitive === null)
 				{
 					emptyTuple()
 				}
@@ -1594,7 +1594,7 @@ enum class SerializerOperation constructor(
 				if (moduleName.equalsNil())
 				{
 					val specialAtom = Serializer.specialAtomsByName[atomName]
-					if (specialAtom != null)
+					if (specialAtom !== null)
 					{
 						val bundle = specialAtom.bundleOrNil()
 						if (!bundle.equalsNil())
@@ -2122,7 +2122,7 @@ enum class SerializerOperation constructor(
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			val primitive = `object`.primitive()
-			val primitiveName = if (primitive == null)
+			val primitiveName = if (primitive === null)
 				emptyTuple()
 			else
 				stringFrom(primitive.name())

@@ -33,22 +33,14 @@
 package com.avail.interpreter.primitive.bootstrap.syntax
 
 import com.avail.compiler.AvailRejectedParseException
-import com.avail.descriptor.A_Phrase
-import com.avail.descriptor.A_Token
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind
-import com.avail.descriptor.FiberDescriptor
-import com.avail.descriptor.TokenDescriptor.TokenType
-import com.avail.interpreter.AvailLoader
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-import java.util.ArrayList
-
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
+import com.avail.descriptor.A_Phrase
+import com.avail.descriptor.A_Type
 import com.avail.descriptor.BottomTypeDescriptor.bottom
 import com.avail.descriptor.ContinuationTypeDescriptor.continuationTypeForFunctionType
+import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind
 import com.avail.descriptor.DeclarationPhraseDescriptor.newLabel
+import com.avail.descriptor.FiberDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceMetaDescriptor.anyMeta
 import com.avail.descriptor.InstanceMetaDescriptor.topMeta
@@ -57,14 +49,16 @@ import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.ObjectTupleDescriptor.tupleFromList
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
-import com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf
-import com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes
-import com.avail.descriptor.TupleTypeDescriptor.zeroOrOneOf
+import com.avail.descriptor.TokenDescriptor.TokenType
+import com.avail.descriptor.TupleTypeDescriptor.*
 import com.avail.descriptor.TypeDescriptor.Types.TOKEN
 import com.avail.descriptor.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.Bootstrap
 import com.avail.interpreter.Primitive.Flag.CanInline
+import java.util.*
 
 /**
  * The `P_BootstrapPrefixLabelDeclaration` primitive is used
@@ -143,7 +137,7 @@ object P_BootstrapPrefixLabelDeclaration : Primitive(3, CanInline, Bootstrap)
 		val continuationType = continuationTypeForFunctionType(functionType)
 		val labelDeclaration = newLabel(labelName, labelReturnTypePhrase, continuationType)
 		val conflictingDeclaration = FiberDescriptor.addDeclaration(labelDeclaration)
-		if (conflictingDeclaration != null)
+		if (conflictingDeclaration !== null)
 		{
 			throw AvailRejectedParseException(
 				STRONG,

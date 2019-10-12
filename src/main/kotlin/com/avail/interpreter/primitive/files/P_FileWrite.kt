@@ -31,37 +31,15 @@
  */
 package com.avail.interpreter.primitive.files
 
-import com.avail.AvailRuntime
-import com.avail.descriptor.A_Atom
-import com.avail.descriptor.A_BasicObject
-import com.avail.descriptor.A_Fiber
-import com.avail.descriptor.A_Function
-import com.avail.descriptor.A_Number
+import com.avail.AvailRuntime.currentRuntime
 import com.avail.descriptor.A_Tuple
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.AtomDescriptor
-import com.avail.descriptor.FunctionDescriptor
-import com.avail.descriptor.TupleDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.io.IOSystem
-import com.avail.io.IOSystem.BufferKey
-import com.avail.io.IOSystem.FileHandle
-import com.avail.io.SimpleCompletionHandler
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-import com.avail.utility.Mutable
-import com.avail.utility.MutableLong
-import com.avail.utility.MutableOrNull
-import java.nio.ByteBuffer
-import java.nio.channels.AsynchronousFileChannel
-import java.util.ArrayList
-import java.util.NoSuchElementException
-
-import com.avail.AvailRuntime.currentRuntime
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.AtomDescriptor
 import com.avail.descriptor.AtomDescriptor.SpecialAtom.FILE_KEY
 import com.avail.descriptor.FiberDescriptor.newFiber
 import com.avail.descriptor.FiberTypeDescriptor.fiberType
+import com.avail.descriptor.FunctionDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceTypeDescriptor.instanceType
 import com.avail.descriptor.IntegerRangeTypeDescriptor.bytes
@@ -74,18 +52,23 @@ import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.TypeDescriptor.Types.TOP
-import com.avail.exceptions.AvailErrorCode.E_EXCEEDS_VM_LIMIT
-import com.avail.exceptions.AvailErrorCode.E_INVALID_HANDLE
-import com.avail.exceptions.AvailErrorCode.E_IO_ERROR
-import com.avail.exceptions.AvailErrorCode.E_NOT_OPEN_FOR_WRITE
-import com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
+import com.avail.exceptions.AvailErrorCode.*
+import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Interpreter.runOutermostFunction
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.io.IOSystem.BufferKey
+import com.avail.io.IOSystem.FileHandle
+import com.avail.io.SimpleCompletionHandler
+import com.avail.utility.Mutable
+import com.avail.utility.MutableLong
 import com.avail.utility.evaluation.Combinator.recurse
 import java.lang.Math.min
+import java.nio.ByteBuffer
+import java.nio.channels.AsynchronousFileChannel
+import java.util.*
 import java.util.Collections.emptyList
-import java.util.Collections.singletonList
 
 /**
  * **Primitive:** Write the specified [ ] to the [file][AsynchronousFileChannel] associated with the [handle][AtomDescriptor]. Writing
@@ -263,7 +246,7 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 					nextPosition.value, null,
 					SimpleCompletionHandler(
 						{ bytesWritten ->
-							nextPosition.value += bytesWritten as Long
+							nextPosition.value += bytesWritten
 							continueWriting.value()
 							Unit
 						},
@@ -315,7 +298,7 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 							subscriptInTuple + consumedThisTime - 1,
 							false)
 					}
-					else if (tuple != null)
+					else if (tuple !== null)
 					{
 						// Update the cached tuple.
 						assert(tuple.tupleSize() == alignment)
@@ -350,7 +333,7 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 					// Otherwise we're attempting to update a subregion of
 					// an uncached buffer.  Just drop it in that case and
 					// let the OS cache pick up the slack.
-					if (tuple != null)
+					if (tuple !== null)
 					{
 						tuple = tuple.makeShared()
 						synchronized(bufferHolder) {

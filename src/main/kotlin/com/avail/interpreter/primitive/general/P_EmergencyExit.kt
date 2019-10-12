@@ -32,26 +32,20 @@
 package com.avail.interpreter.primitive.general
 
 import com.avail.descriptor.*
+import com.avail.descriptor.BottomTypeDescriptor.bottom
+import com.avail.descriptor.ContinuationDescriptor.dumpStackThen
 import com.avail.descriptor.FiberDescriptor.ExecutionState
+import com.avail.descriptor.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.TypeDescriptor.Types.ANY
 import com.avail.exceptions.AvailEmergencyExitException
 import com.avail.exceptions.AvailErrorCode
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
-import com.avail.descriptor.BottomTypeDescriptor.bottom
-import com.avail.descriptor.ContinuationDescriptor.dumpStackThen
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.TypeDescriptor.Types.ANY
-import com.avail.interpreter.Primitive.Flag.AlwaysSwitchesContinuation
-import com.avail.interpreter.Primitive.Flag.CanSuspend
-import com.avail.interpreter.Primitive.Flag.CanSwitchContinuations
-import com.avail.interpreter.Primitive.Flag.CannotFail
-import com.avail.interpreter.Primitive.Flag.Unknown
 import com.avail.utility.Casts.cast
 import com.avail.utility.Nulls.stripNull
 import java.lang.String.format
@@ -96,7 +90,7 @@ object P_EmergencyExit : Primitive(
 				val errorNumber = cast<A_BasicObject, A_Number>(errorMessageProducer)
 				val intValue = errorNumber.extractInt()
 				val code = AvailErrorCode.byNumericCode(intValue)
-				if (code != null)
+				if (code !== null)
 				{
 					builder.append(format(" (= %s)", code.name))
 				}

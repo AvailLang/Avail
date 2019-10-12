@@ -31,13 +31,10 @@
  */
 package com.avail.interpreter.primitive.continuations
 
-import com.avail.descriptor.*
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.interpreter.levelTwo.L2Chunk
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
+import com.avail.descriptor.A_BasicObject
+import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.ContinuationDescriptor
 import com.avail.descriptor.ContinuationDescriptor.createContinuationWithFrame
 import com.avail.descriptor.ContinuationTypeDescriptor.mostGeneralContinuationType
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
@@ -51,9 +48,10 @@ import com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType
 import com.avail.descriptor.VariableTypeDescriptor.variableTypeFor
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_CREATE_CONTINUATION_FOR_INFALLIBLE_PRIMITIVE_FUNCTION
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_CONTINUATION_STACK_SIZE
-import com.avail.interpreter.Primitive.Flag.CanFold
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RETURN_INTO
 import com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk
 
@@ -76,7 +74,7 @@ object P_CreateContinuation : Primitive(5, CanFold, CanInline)
 
 		val rawFunction = function.code()
 		val primitive = rawFunction.primitive()
-		if (primitive != null && primitive.hasFlag(CannotFail))
+		if (primitive !== null && primitive.hasFlag(CannotFail))
 		{
 			return interpreter.primitiveFailure(
 				E_CANNOT_CREATE_CONTINUATION_FOR_INFALLIBLE_PRIMITIVE_FUNCTION)
