@@ -577,6 +577,8 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 		internal val className: String,
 		internal val number: Int)
 	{
+		internal open val isNull = false
+
 		/**
 		 * The sole instance of the specific subclass of [Primitive].  It
 		 * is initialized only when needed for the first time, since that causes
@@ -661,8 +663,11 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 	 */
 	private object NullPrimitiveHolder : PrimitiveHolder(
 		"NULLPRIMITIVEHOLDER",
-			"NullPrimitiveHolder",
+			"Primitive.NullPrimitiveHolder",
 			Integer.MIN_VALUE)
+	{
+		override val isNull: Boolean = true
+	}
 
 	/**
 	 * Answer the [Statistic] for abandoning the stack due to a primitive
@@ -1072,7 +1077,7 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 		{
 			assert(primitiveNumber >= 0 && primitiveNumber <= maxPrimitiveNumber())
 			val holder = holdersByNumber[primitiveNumber]
-			return holder?.primitive()
+			return if (holder.isNull) { null } else { holder.primitive() }
 		}
 
 		/**

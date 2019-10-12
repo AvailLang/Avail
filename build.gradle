@@ -155,10 +155,10 @@ task generatePrimitivesList {
 	doLast {
 		def allPrimitiveNames = allPrimitives.collect {
 			it.absolutePath
-					.replaceAll('\\\\', '/')
-					.replaceFirst("^$pathAvailBuildMain/", "")
-					.replaceFirst('\\.class', "\n")
-					.replaceAll("/", ".")
+				.replaceAll('\\\\', '/')
+				.replaceFirst("^$pathAvailBuildMain/", "")
+				.replaceFirst('\\.class', "\n")
+				.replaceAll("/", ".")
 		}.sort()
 
 		pathToPrimitivesList.text = allPrimitiveNames.join("")

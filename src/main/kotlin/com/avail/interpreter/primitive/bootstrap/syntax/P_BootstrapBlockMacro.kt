@@ -301,14 +301,14 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 		}
 		else
 		{
-			if (prim != null && prim.hasFlag(CannotFail))
+			deducedReturnType = if (prim != null && prim.hasFlag(CannotFail))
 			{
 				// An infallible primitive must have no statements.
-				deducedReturnType = prim.blockTypeRestriction().returnType()
+				prim.blockTypeRestriction().returnType()
 			}
 			else
 			{
-				deducedReturnType = TOP.o()
+				TOP.o()
 			}
 		}
 
