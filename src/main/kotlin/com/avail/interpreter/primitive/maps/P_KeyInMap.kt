@@ -31,23 +31,17 @@
  */
 package com.avail.interpreter.primitive.maps
 
-import com.avail.descriptor.A_BasicObject
-import com.avail.descriptor.A_Map
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.MapDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.descriptor.AtomDescriptor.objectFromBoolean
 import com.avail.descriptor.EnumerationTypeDescriptor.booleanType
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.MapDescriptor
 import com.avail.descriptor.MapTypeDescriptor.mostGeneralMapType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.TypeDescriptor.Types.ANY
-import com.avail.interpreter.Primitive.Flag.CanFold
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive:** Check if the key is present in the
@@ -57,7 +51,7 @@ object P_KeyInMap : Primitive(2, CannotFail, CanFold, CanInline)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val key = interpreter.argument(0)

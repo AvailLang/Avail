@@ -32,17 +32,13 @@
 
 package com.avail.interpreter.primitive.fibers
 
-import com.avail.descriptor.A_Fiber
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.FiberDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.descriptor.FiberTypeDescriptor.mostGeneralFiberType
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.TupleTypeDescriptor.stringType
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail
 
@@ -55,7 +51,7 @@ object P_FiberName : Primitive(1, CannotFail, CanInline)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val fiber = interpreter.argument(0)

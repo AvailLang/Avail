@@ -32,29 +32,15 @@
 
 package com.avail.interpreter.primitive.methods
 
-import com.avail.AvailTask
-import com.avail.descriptor.A_Atom
-import com.avail.descriptor.A_Bundle
-import com.avail.descriptor.A_Fiber
-import com.avail.descriptor.A_Function
-import com.avail.descriptor.A_Lexer
-import com.avail.descriptor.A_Method
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom
-import com.avail.exceptions.MalformedMessageException
-import com.avail.interpreter.AvailLoader
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.interpreter.effects.LoadingEffectToRunPrimitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.AvailRuntime.currentRuntime
+import com.avail.AvailTask
 import com.avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
+import com.avail.descriptor.A_Bundle
+import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.LexerDescriptor.lexerBodyFunctionType
-import com.avail.descriptor.LexerDescriptor.lexerFilterFunctionType
-import com.avail.descriptor.LexerDescriptor.newLexer
+import com.avail.descriptor.LexerDescriptor.*
+import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetDescriptor.set
@@ -63,10 +49,14 @@ import com.avail.descriptor.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
+import com.avail.exceptions.MalformedMessageException
 import com.avail.interpreter.AvailLoader.Phase.EXECUTING_FOR_COMPILE
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanSuspend
 import com.avail.interpreter.Primitive.Flag.Unknown
 import com.avail.interpreter.Primitive.Result.FIBER_SUSPENDED
+import com.avail.interpreter.effects.LoadingEffectToRunPrimitive
 import com.avail.utility.Nulls.stripNull
 
 /**
@@ -85,7 +75,7 @@ object P_SimpleLexerDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
 		val atom = interpreter.argument(0)

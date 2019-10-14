@@ -32,19 +32,15 @@
 package com.avail.interpreter.primitive.fibers
 
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.FiberDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.descriptor.AtomDescriptor.objectFromBoolean
 import com.avail.descriptor.EnumerationTypeDescriptor.booleanType
+import com.avail.descriptor.FiberDescriptor
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.TERMINATION_REQUESTED
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.TupleDescriptor.emptyTuple
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
-import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive:** Has termination been requested for the
@@ -55,7 +51,7 @@ object P_IsTerminationRequested : Primitive(0, CannotFail, CanInline, HasSideEff
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(0)
 		return interpreter.primitiveSuccess(

@@ -53,7 +53,7 @@ import java.lang.Math.*
 object P_FloatTimesTwoPower : Primitive(3, CannotFail, CanFold, CanInline) {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result {
+		interpreter: Interpreter): Result {
 		interpreter.checkArgumentCount(3)
 		val a = interpreter.argument(0)
 		//		final A_Token literalTwo = interpreter.argument(1);

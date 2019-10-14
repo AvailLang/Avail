@@ -33,13 +33,6 @@
 package com.avail.interpreter.primitive.general
 
 import com.avail.descriptor.A_Type
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.io.TextInputChannel
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
-import java.io.IOException
-
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.NilDescriptor.nil
@@ -47,8 +40,12 @@ import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_IO_ERROR
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.io.TextInputChannel
+import java.io.IOException
 
 /**
  * **Primitive:** Reset the [ current fiber][Interpreter.fiber]'s [standard input channel][TextInputChannel] to the
@@ -60,7 +57,7 @@ object P_ResetStandardInputStream : Primitive(0, CanInline, HasSideEffect)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(0)
 		val channel = interpreter.fiber().textInterface().inputChannel

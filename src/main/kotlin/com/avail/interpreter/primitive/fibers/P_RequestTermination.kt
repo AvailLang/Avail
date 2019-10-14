@@ -35,7 +35,7 @@ import com.avail.AvailRuntime.currentRuntime
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.FiberDescriptor
 import com.avail.descriptor.FiberDescriptor.ExecutionState
-import com.avail.descriptor.FiberDescriptor.ExecutionState.SUSPENDED
+import com.avail.descriptor.FiberDescriptor.ExecutionState.*
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.TERMINATION_REQUESTED
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE
 import com.avail.descriptor.FiberTypeDescriptor.mostGeneralFiberType
@@ -58,7 +58,7 @@ object P_RequestTermination : Primitive(1, CanInline, CannotFail, HasSideEffect)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val fiber = interpreter.argument(0)
@@ -70,7 +70,7 @@ object P_RequestTermination : Primitive(1, CanInline, CannotFail, HasSideEffect)
 				PERMIT_UNAVAILABLE, false)
 			when (oldState)
 			{
-				FiberDescriptor.ExecutionState.ASLEEP ->
+				ASLEEP ->
 				{
 					// Try to cancel the task (if any). This is best
 					// effort only.
@@ -89,23 +89,24 @@ object P_RequestTermination : Primitive(1, CanInline, CannotFail, HasSideEffect)
 						fiberSuspendingPrimitive,
 						nil)
 				}
-				FiberDescriptor.ExecutionState.PARKED ->
+				PARKED ->
 				{
 					// Resume the fiber.
-					assert(!hadPermit) { "Should not have been parked with a permit" }
+					assert(!hadPermit) {
+						"Should not have been parked with a permit"
+					}
 					fiber.executionState(SUSPENDED)
 					val suspendingPrimitive = stripNull(
 						fiber.suspendingFunction().code().primitive())
-					assert(suspendingPrimitive === P_ParkCurrentFiber || suspendingPrimitive === P_AttemptJoinFiber)
+					assert(suspendingPrimitive === P_ParkCurrentFiber
+						|| suspendingPrimitive === P_AttemptJoinFiber)
 					resumeFromSuccessfulPrimitive(
 						currentRuntime(),
 						fiber,
 						suspendingPrimitive,
 						nil)
 				}
-				FiberDescriptor.ExecutionState.UNSTARTED, FiberDescriptor.ExecutionState.RUNNING, SUSPENDED, FiberDescriptor.ExecutionState.INTERRUPTED, FiberDescriptor.ExecutionState.TERMINATED, FiberDescriptor.ExecutionState.ABORTED, FiberDescriptor.ExecutionState.RETIRED ->
-				{
-				}
+				else -> { }
 			}
 		}
 		return interpreter.primitiveSuccess(nil)

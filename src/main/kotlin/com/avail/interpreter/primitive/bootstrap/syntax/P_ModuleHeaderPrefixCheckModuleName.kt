@@ -34,21 +34,15 @@ package com.avail.interpreter.primitive.bootstrap.syntax
 
 import com.avail.builder.ModuleName
 import com.avail.compiler.AvailRejectedParseException
-import com.avail.descriptor.A_Module
-import com.avail.descriptor.A_Phrase
-import com.avail.descriptor.A_String
-import com.avail.descriptor.A_Type
-import com.avail.interpreter.AvailLoader
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
+import com.avail.descriptor.A_Type
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray
 import com.avail.descriptor.PhraseTypeDescriptor.Constants.stringLiteralType
 import com.avail.descriptor.TypeDescriptor.Types.TOP
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.Bootstrap
 import com.avail.interpreter.Primitive.Flag.Private
 
@@ -63,7 +57,7 @@ object P_ModuleHeaderPrefixCheckModuleName : Primitive(1, Private, Bootstrap)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val moduleNameLiteral = interpreter.argument(0)

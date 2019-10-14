@@ -32,39 +32,22 @@
 
 package com.avail.interpreter.primitive.bootstrap.syntax
 
-import com.avail.descriptor.A_Atom
-import com.avail.descriptor.A_Fiber
-import com.avail.descriptor.A_Map
-import com.avail.descriptor.A_Tuple
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.BlockPhraseDescriptor
-import com.avail.descriptor.FunctionDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
+import com.avail.descriptor.*
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
-import com.avail.descriptor.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY
-import com.avail.descriptor.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_STACK_KEY
+import com.avail.descriptor.AtomDescriptor.SpecialAtom.*
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceMetaDescriptor.anyMeta
 import com.avail.descriptor.InstanceMetaDescriptor.topMeta
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.STATEMENT_PHRASE
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*
 import com.avail.descriptor.SetDescriptor.set
-import com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf
-import com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes
-import com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf
-import com.avail.descriptor.TupleTypeDescriptor.zeroOrOneOf
-import com.avail.descriptor.TypeDescriptor.Types.ANY
-import com.avail.descriptor.TypeDescriptor.Types.TOKEN
-import com.avail.descriptor.TypeDescriptor.Types.TOP
+import com.avail.descriptor.TupleTypeDescriptor.*
+import com.avail.descriptor.TypeDescriptor.Types.*
 import com.avail.exceptions.AvailErrorCode.E_INCONSISTENT_PREFIX_FUNCTION
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.Bootstrap
 import com.avail.interpreter.Primitive.Flag.CanInline
 
@@ -92,7 +75,7 @@ object P_BootstrapPrefixEndOfBlockBody : Primitive(5, CanInline, Bootstrap)
 	internal val scopeStackKey = COMPILER_SCOPE_STACK_KEY.atom
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(5)
 		//		final A_Phrase optionalArgumentDeclarations = interpreter.argument(0);

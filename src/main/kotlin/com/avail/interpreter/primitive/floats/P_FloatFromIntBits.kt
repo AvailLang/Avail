@@ -50,7 +50,7 @@ import com.avail.interpreter.Primitive.Flag.*
 object P_FloatFromIntBits : Primitive(1, CannotFail, CanFold, CanInline) {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result {
+		interpreter: Interpreter): Result {
 		interpreter.checkArgumentCount(1)
 		val intObject = interpreter.argument(0)
 		val intValue = intObject.extractInt()

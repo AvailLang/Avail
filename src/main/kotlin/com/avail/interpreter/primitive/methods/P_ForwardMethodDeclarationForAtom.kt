@@ -31,22 +31,10 @@
  */
 package com.avail.interpreter.primitive.methods
 
-import com.avail.AvailTask
-import com.avail.descriptor.A_Atom
-import com.avail.descriptor.A_Fiber
-import com.avail.descriptor.A_Function
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.AvailObject
-import com.avail.exceptions.MalformedMessageException
-import com.avail.exceptions.SignatureException
-import com.avail.interpreter.AvailLoader
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-import java.util.ArrayList
-
 import com.avail.AvailRuntime.currentRuntime
+import com.avail.AvailTask
 import com.avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
+import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionTypeDescriptor.functionMeta
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
@@ -55,17 +43,18 @@ import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.TypeDescriptor.Types.TOP
-import com.avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
-import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
-import com.avail.exceptions.AvailErrorCode.E_METHOD_IS_SEALED
-import com.avail.exceptions.AvailErrorCode.E_REDEFINED_WITH_SAME_ARGUMENT_TYPES
-import com.avail.exceptions.AvailErrorCode.E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS
+import com.avail.exceptions.AvailErrorCode.*
+import com.avail.exceptions.MalformedMessageException
+import com.avail.exceptions.SignatureException
+import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Interpreter.resumeFromFailedPrimitive
 import com.avail.interpreter.Interpreter.resumeFromSuccessfulPrimitive
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanSuspend
 import com.avail.interpreter.Primitive.Flag.Unknown
 import com.avail.interpreter.Primitive.Result.FIBER_SUSPENDED
 import com.avail.utility.Nulls.stripNull
+import java.util.*
 
 /**
  * **Primitive:** Forward declare a method (for recursion
@@ -75,7 +64,7 @@ object P_ForwardMethodDeclarationForAtom : Primitive(2, CanSuspend, Unknown)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val atom = interpreter.argument(0)

@@ -68,7 +68,7 @@ object P_EmergencyExit : Primitive(
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val errorMessageProducer = interpreter.argument(0)

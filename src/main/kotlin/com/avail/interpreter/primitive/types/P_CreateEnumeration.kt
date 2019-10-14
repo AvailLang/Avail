@@ -33,21 +33,17 @@ package com.avail.interpreter.primitive.types
 
 import com.avail.descriptor.A_RawFunction
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.SetDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-
-import java.util.Enumeration
-
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceMetaDescriptor.anyMeta
 import com.avail.descriptor.InstanceMetaDescriptor.instanceMeta
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.SetDescriptor
 import com.avail.descriptor.SetTypeDescriptor.mostGeneralSetType
-import com.avail.interpreter.Primitive.Flag.CanFold
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
+import java.util.*
 
 /**
  * **Primitive:** Create an [ enumeration][Enumeration] from the given [set][SetDescriptor] of instances.
@@ -56,7 +52,7 @@ object P_CreateEnumeration : Primitive(1, CannotFail, CanFold, CanInline)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val instanceSet = interpreter.argument(0)

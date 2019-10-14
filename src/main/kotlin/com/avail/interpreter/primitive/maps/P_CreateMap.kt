@@ -31,24 +31,19 @@
  */
 package com.avail.interpreter.primitive.maps
 
-import com.avail.descriptor.A_Tuple
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.MapDescriptor
-import com.avail.descriptor.TupleDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.MapDescriptor
 import com.avail.descriptor.MapDescriptor.mapWithBindings
 import com.avail.descriptor.MapTypeDescriptor.mostGeneralMapType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.TupleDescriptor
 import com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes
 import com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf
 import com.avail.descriptor.TypeDescriptor.Types.ANY
-import com.avail.interpreter.Primitive.Flag.CanFold
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive:** Answer a [map][MapDescriptor]
@@ -58,7 +53,7 @@ object P_CreateMap : Primitive(1, CannotFail, CanFold, CanInline)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val tupleOfBindings = interpreter.argument(0)

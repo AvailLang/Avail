@@ -32,21 +32,16 @@
 package com.avail.interpreter.primitive.maps
 
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.IntegerRangeTypeDescriptor
-import com.avail.descriptor.MapDescriptor
-import com.avail.descriptor.MapTypeDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceMetaDescriptor.instanceMeta
 import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
+import com.avail.descriptor.MapDescriptor
+import com.avail.descriptor.MapTypeDescriptor
 import com.avail.descriptor.MapTypeDescriptor.mapMeta
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.interpreter.Primitive.Flag.CanFold
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive:** Answer the [ ] of a [ map type][MapTypeDescriptor]. This specifies the range of sizes a [ map][MapDescriptor] can have while being considered an instance of this map type,
@@ -57,7 +52,7 @@ object P_MapTypeSizes : Primitive(1, CannotFail, CanFold, CanInline)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val mapType = interpreter.argument(0)

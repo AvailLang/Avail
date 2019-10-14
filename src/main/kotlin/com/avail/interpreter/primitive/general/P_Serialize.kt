@@ -34,13 +34,6 @@ package com.avail.interpreter.primitive.general
 
 import com.avail.descriptor.A_BasicObject
 import com.avail.descriptor.A_Type
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-import com.avail.serialization.Serializer
-
-import java.io.ByteArrayOutputStream
-
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.ByteArrayTupleDescriptor.tupleForByteArray
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
@@ -50,7 +43,11 @@ import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf
 import com.avail.descriptor.TypeDescriptor.Types.ANY
 import com.avail.exceptions.AvailErrorCode.E_SERIALIZATION_FAILED
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.serialization.Serializer
+import java.io.ByteArrayOutputStream
 
 /**
  * **Primitive:** Answer the serial representation of the
@@ -62,7 +59,7 @@ object P_Serialize : Primitive(1, CanInline)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val value = interpreter.argument(0)

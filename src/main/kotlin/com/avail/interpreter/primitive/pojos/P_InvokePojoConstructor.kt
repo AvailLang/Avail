@@ -70,7 +70,7 @@ object P_InvokePojoConstructor : Primitive(-1, Private)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		val constructorArgs = tupleFromList(interpreter.argsBuffer)
 

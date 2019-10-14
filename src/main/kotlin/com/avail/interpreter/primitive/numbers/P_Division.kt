@@ -33,10 +33,6 @@ package com.avail.interpreter.primitive.numbers
 
 import com.avail.descriptor.A_RawFunction
 import com.avail.descriptor.A_Type
-import com.avail.exceptions.ArithmeticException
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.AbstractNumberDescriptor.binaryNumericOperationTypeBound
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
@@ -46,8 +42,11 @@ import com.avail.descriptor.IntegerDescriptor.zero
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TypeDescriptor.Types.NUMBER
+import com.avail.exceptions.ArithmeticException
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_DIVIDE_BY_ZERO
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_DIVIDE_INFINITIES
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail
 import com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
 import com.avail.interpreter.Primitive.Flag.CanFold
@@ -60,7 +59,7 @@ object P_Division : Primitive(2, CanFold, CanInline)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val a = interpreter.argument(0)

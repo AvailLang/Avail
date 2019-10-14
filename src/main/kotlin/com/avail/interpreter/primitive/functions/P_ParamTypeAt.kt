@@ -31,12 +31,7 @@
  */
 package com.avail.interpreter.primitive.functions
 
-import com.avail.descriptor.A_Number
 import com.avail.descriptor.A_Type
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.descriptor.BottomTypeDescriptor.bottom
 import com.avail.descriptor.FunctionTypeDescriptor.functionMeta
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
@@ -44,11 +39,11 @@ import com.avail.descriptor.InstanceMetaDescriptor.anyMeta
 import com.avail.descriptor.IntegerRangeTypeDescriptor.int32
 import com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail
 import com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
-import com.avail.interpreter.Primitive.Flag.CanFold
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive:** Answer the type of the parameter at the
@@ -58,7 +53,7 @@ object P_ParamTypeAt : Primitive(2, CannotFail, CanFold, CanInline)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val functionType = interpreter.argument(0)

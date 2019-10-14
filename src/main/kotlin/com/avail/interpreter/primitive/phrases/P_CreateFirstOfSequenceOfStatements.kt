@@ -33,16 +33,7 @@
 package com.avail.interpreter.primitive.phrases
 
 import com.avail.descriptor.A_Phrase
-import com.avail.descriptor.A_Tuple
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.FirstOfSequencePhraseDescriptor
-import com.avail.descriptor.TupleDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
-import java.util.ArrayList
-
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FirstOfSequencePhraseDescriptor.newFirstOfSequenceNode
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
@@ -51,11 +42,15 @@ import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.FIRST_OF_SEQUENCE_PH
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import com.avail.descriptor.PhraseTypeDescriptor.containsOnlyStatements
 import com.avail.descriptor.SetDescriptor.set
+import com.avail.descriptor.TupleDescriptor
 import com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf
 import com.avail.descriptor.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_SEQUENCE_CONTAINS_INVALID_STATEMENTS
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
+import java.util.*
 
 /**
  * **Primitive:** Create a [ ] phrase from the specified
@@ -67,7 +62,7 @@ object P_CreateFirstOfSequenceOfStatements : Primitive(1, CanFold, CanInline)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val statements = interpreter.argument(0)

@@ -73,15 +73,15 @@ object P_BootstrapPrefixLabelDeclaration : Primitive(3, CanInline, Bootstrap)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
 		val optionalBlockArgumentsList = interpreter.argument(0)
 		//		final A_Phrase optionalPrimFailurePhrase = interpreter.argument(1);
 		val optionalLabelPhrase = interpreter.argument(2)
 
-		val loader = interpreter.availLoaderOrNull()
-		             ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+		interpreter.availLoaderOrNull() ?:
+			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 
 		// Note that because the section marker occurs inside the optionality
 		// of the label declaration, this function will only be invoked when

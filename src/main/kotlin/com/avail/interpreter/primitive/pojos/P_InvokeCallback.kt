@@ -31,30 +31,22 @@
  */
 package com.avail.interpreter.primitive.pojos
 
-import com.avail.AvailRuntime
 import com.avail.CallbackSystem
 import com.avail.CallbackSystem.Callback
-import com.avail.descriptor.A_BasicObject
-import com.avail.descriptor.A_Function
-import com.avail.descriptor.A_Tuple
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.AvailObject
-import com.avail.descriptor.PojoDescriptor
-import com.avail.interpreter.AvailLoader
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.interpreter.levelOne.L1InstructionWriter
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-import java.util.ArrayList
-
 import com.avail.descriptor.BottomTypeDescriptor.bottom
 import com.avail.descriptor.ObjectTupleDescriptor.tupleFromList
+import com.avail.descriptor.PojoDescriptor
 import com.avail.descriptor.PojoDescriptor.newPojo
 import com.avail.descriptor.PojoTypeDescriptor.pojoTypeForClass
 import com.avail.descriptor.RawPojoDescriptor.identityPojo
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanSuspend
 import com.avail.interpreter.Primitive.Flag.Private
+import com.avail.interpreter.levelOne.L1InstructionWriter
 import com.avail.utility.Nulls.stripNull
+import java.util.*
 
 /**
  * **Primitive:** Given zero or more arguments, invoke the [ ] that's in a [PojoDescriptor] stored in the sole outer
@@ -71,7 +63,7 @@ import com.avail.utility.Nulls.stripNull
 object P_InvokeCallback : Primitive(-1, Private, CanSuspend)
 {
 
-	override fun attempt(interpreter: Interpreter): Primitive.Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		val loader = interpreter.availLoaderOrNull()
 		loader?.statementCanBeSummarized(false)

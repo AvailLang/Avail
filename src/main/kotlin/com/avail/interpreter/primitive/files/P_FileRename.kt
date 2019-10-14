@@ -31,27 +31,9 @@
  */
 package com.avail.interpreter.primitive.files
 
-import com.avail.AvailRuntime
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.io.IOSystem
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
-import java.io.IOException
-import java.nio.file.AccessDeniedException
-import java.nio.file.CopyOption
-import java.nio.file.FileAlreadyExistsException
-import java.nio.file.FileStore
-import java.nio.file.Files
-import java.nio.file.InvalidPathException
-import java.nio.file.NoSuchFileException
-import java.nio.file.Path
-import java.nio.file.StandardCopyOption
-import java.util.ArrayList
-import java.util.Collections
-
 import com.avail.AvailRuntime.currentRuntime
-import com.avail.descriptor.*
+import com.avail.descriptor.A_BasicObject
+import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.EnumerationTypeDescriptor.booleanType
 import com.avail.descriptor.FiberDescriptor.newFiber
@@ -65,14 +47,15 @@ import com.avail.descriptor.StringDescriptor.formatString
 import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TupleTypeDescriptor.stringType
 import com.avail.descriptor.TypeDescriptor.Types.TOP
-import com.avail.exceptions.AvailErrorCode.E_FILE_EXISTS
-import com.avail.exceptions.AvailErrorCode.E_INVALID_PATH
-import com.avail.exceptions.AvailErrorCode.E_IO_ERROR
-import com.avail.exceptions.AvailErrorCode.E_NO_FILE
-import com.avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
+import com.avail.exceptions.AvailErrorCode.*
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
-import java.util.Collections.singletonList
+import com.avail.io.IOSystem
+import java.io.IOException
+import java.nio.file.*
+import java.util.*
 
 /**
  * **Primitive:** Rename the source [path][Path] to
@@ -86,7 +69,7 @@ object P_FileRename : Primitive(6, CanInline, HasSideEffect)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(6)
 		val source = interpreter.argument(0)

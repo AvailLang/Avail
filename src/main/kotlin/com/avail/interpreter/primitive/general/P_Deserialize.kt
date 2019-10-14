@@ -64,7 +64,7 @@ object P_Deserialize : Primitive(2, CanInline)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val bytes = interpreter.argument(0)

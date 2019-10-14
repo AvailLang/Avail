@@ -32,12 +32,7 @@
 
 package com.avail.interpreter.primitive.integers
 
-import com.avail.descriptor.A_Number
 import com.avail.descriptor.A_Type
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.IntegerDescriptor.zero
@@ -45,6 +40,8 @@ import com.avail.descriptor.IntegerRangeTypeDescriptor.integers
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.exceptions.AvailErrorCode.E_TOO_LARGE_TO_REPRESENT
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 
@@ -59,7 +56,7 @@ object P_BitShiftRight : Primitive(2, CanFold, CanInline)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val baseInteger = interpreter.argument(0)

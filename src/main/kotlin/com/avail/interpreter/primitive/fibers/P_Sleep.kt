@@ -35,11 +35,6 @@ package com.avail.interpreter.primitive.fibers
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.FiberDescriptor
 import com.avail.descriptor.FiberDescriptor.ExecutionState
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-
-import java.util.TimerTask
-
 import com.avail.descriptor.FiberDescriptor.ExecutionState.ASLEEP
 import com.avail.descriptor.FiberDescriptor.ExecutionState.SUSPENDED
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.TERMINATION_REQUESTED
@@ -50,10 +45,11 @@ import com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.TypeDescriptor.Types.TOP
-import com.avail.interpreter.Primitive.Flag.CanSuspend
-import com.avail.interpreter.Primitive.Flag.CannotFail
-import com.avail.interpreter.Primitive.Flag.Unknown
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
 import com.avail.utility.Nulls.stripNull
+import java.util.*
 
 /**
  * **Primitive:** Put the [ current][FiberDescriptor.currentFiber]
@@ -67,7 +63,7 @@ import com.avail.utility.Nulls.stripNull
 object P_Sleep : Primitive(1, CannotFail, CanSuspend, Unknown)
 {
 
-	override fun attempt(interpreter: Interpreter): Primitive.Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val sleepMillis = interpreter.argument(0)

@@ -31,25 +31,21 @@
  */
 package com.avail.interpreter.primitive.modules
 
-import com.avail.descriptor.A_String
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.AtomDescriptor
-import com.avail.descriptor.ModuleDescriptor
-import com.avail.descriptor.TupleDescriptor
-import com.avail.exceptions.AmbiguousNameException
-import com.avail.interpreter.AvailLoader
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.AtomDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.ModuleDescriptor
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetDescriptor.set
+import com.avail.descriptor.TupleDescriptor
 import com.avail.descriptor.TupleTypeDescriptor.stringType
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
+import com.avail.exceptions.AmbiguousNameException
 import com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_NAME
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
@@ -60,7 +56,7 @@ object P_LookupName : Primitive(1, CanInline)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val name = interpreter.argument(0)

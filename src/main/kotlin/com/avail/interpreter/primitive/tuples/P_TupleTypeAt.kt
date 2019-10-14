@@ -31,15 +31,7 @@
  */
 package com.avail.interpreter.primitive.tuples
 
-import com.avail.descriptor.A_RawFunction
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.BottomTypeDescriptor
-import com.avail.descriptor.TupleDescriptor
-import com.avail.descriptor.TupleTypeDescriptor
-import com.avail.descriptor.TypeDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-
+import com.avail.descriptor.*
 import com.avail.descriptor.BottomTypeDescriptor.bottom
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceMetaDescriptor.anyMeta
@@ -47,9 +39,9 @@ import com.avail.descriptor.InstanceMetaDescriptor.instanceMeta
 import com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.TupleTypeDescriptor.tupleMeta
-import com.avail.interpreter.Primitive.Flag.CanFold
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive:** Answer the [ type][TypeDescriptor] for the given element of [instances][TupleDescriptor] of
@@ -60,7 +52,7 @@ object P_TupleTypeAt : Primitive(2, CannotFail, CanFold, CanInline)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val tupleType = interpreter.argument(0)

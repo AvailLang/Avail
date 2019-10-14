@@ -65,7 +65,7 @@ object P_AbstractMethodDeclarationForAtom : Primitive(2, CanSuspend, Unknown)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val atom = interpreter.argument(0)

@@ -32,33 +32,18 @@
 
 package com.avail.interpreter.primitive.phrases
 
+import com.avail.AvailRuntime.currentRuntime
 import com.avail.compiler.AvailAcceptedParseException
 import com.avail.compiler.AvailRejectedParseException
-import com.avail.descriptor.A_Bundle
-import com.avail.descriptor.A_RawFunction
-import com.avail.descriptor.A_SemanticRestriction
-import com.avail.descriptor.A_String
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.AvailObject
-import com.avail.descriptor.ListPhraseDescriptor
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
-import com.avail.descriptor.SendPhraseDescriptor
-import com.avail.descriptor.TypeDescriptor
-import com.avail.exceptions.MalformedMessageException
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.utility.Mutable
-import java.util.ArrayList
-import java.util.concurrent.atomic.AtomicInteger
-
-import com.avail.AvailRuntime.currentRuntime
 import com.avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
+import com.avail.descriptor.*
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FiberDescriptor.currentFiber
 import com.avail.descriptor.FiberDescriptor.newFiber
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceMetaDescriptor.topMeta
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
 import com.avail.descriptor.SendPhraseDescriptor.newSendNode
@@ -67,18 +52,19 @@ import com.avail.descriptor.StringDescriptor.stringFrom
 import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TupleDescriptor.toList
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
-import com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
-import com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
-import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
-import com.avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION
-import com.avail.interpreter.Interpreter.resumeFromFailedPrimitive
-import com.avail.interpreter.Interpreter.resumeFromSuccessfulPrimitive
-import com.avail.interpreter.Interpreter.runOutermostFunction
+import com.avail.exceptions.AvailErrorCode.*
+import com.avail.exceptions.MalformedMessageException
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Interpreter.*
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanSuspend
 import com.avail.interpreter.Primitive.Flag.Unknown
 import com.avail.interpreter.Primitive.Result.FIBER_SUSPENDED
+import com.avail.utility.Mutable
 import com.avail.utility.Nulls.stripNull
 import com.avail.utility.Strings.increaseIndentation
+import java.util.*
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * **Primitive CreateRestrictedSendExpression**: Create a [send
@@ -108,7 +94,7 @@ import com.avail.utility.Strings.increaseIndentation
  */
 object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 {
-	override fun attempt(interpreter: Interpreter): Primitive.Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
 		val messageName = interpreter.argument(0)

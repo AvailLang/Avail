@@ -49,7 +49,7 @@ import com.avail.interpreter.Primitive.Flag.*
 object P_AsFloat : Primitive(1, CannotFail, CanFold, CanInline) {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result {
+		interpreter: Interpreter): Result {
 		interpreter.checkArgumentCount(1)
 		val number = interpreter.argument(0)
 		return if (number.isFloat) {

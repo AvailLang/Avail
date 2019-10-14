@@ -33,20 +33,6 @@
 package com.avail.interpreter.primitive.files
 
 import com.avail.descriptor.*
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.io.IOSystem
-
-import java.io.IOException
-import java.nio.file.AccessDeniedException
-import java.nio.file.FileAlreadyExistsException
-import java.nio.file.Files
-import java.nio.file.InvalidPathException
-import java.nio.file.Path
-import java.nio.file.attribute.PosixFilePermission
-import java.nio.file.attribute.PosixFilePermissions
-import java.util.EnumSet
-
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FiberDescriptor.newFiber
 import com.avail.descriptor.FiberTypeDescriptor.fiberType
@@ -60,13 +46,17 @@ import com.avail.descriptor.StringDescriptor.formatString
 import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TupleTypeDescriptor.stringType
 import com.avail.descriptor.TypeDescriptor.Types.TOP
-import com.avail.exceptions.AvailErrorCode.E_FILE_EXISTS
-import com.avail.exceptions.AvailErrorCode.E_INVALID_PATH
-import com.avail.exceptions.AvailErrorCode.E_IO_ERROR
-import com.avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
+import com.avail.exceptions.AvailErrorCode.*
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
-import java.util.Collections.singletonList
+import com.avail.io.IOSystem
+import java.io.IOException
+import java.nio.file.*
+import java.nio.file.attribute.PosixFilePermission
+import java.nio.file.attribute.PosixFilePermissions
+import java.util.*
 
 /**
  * **Primitive:** Create a directory with the indicated name
@@ -80,7 +70,7 @@ import java.util.Collections.singletonList
 object P_CreateDirectory : Primitive(5, CanInline, HasSideEffect)
 {
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(5)
 		val directoryName = interpreter.argument(0)

@@ -32,23 +32,15 @@
 
 package com.avail.interpreter.primitive.bootstrap.lexing
 
-import com.avail.descriptor.A_Number
-import com.avail.descriptor.A_String
-import com.avail.descriptor.A_Token
 import com.avail.descriptor.A_Type
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.descriptor.LexerDescriptor.lexerBodyFunctionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TokenDescriptor.TokenType.KEYWORD
 import com.avail.descriptor.TokenDescriptor.newToken
-import com.avail.interpreter.Primitive.Flag.Bootstrap
-import com.avail.interpreter.Primitive.Flag.CanFold
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * The `P_BootstrapLexerKeywordBody` primitive is used for parsing keyword
@@ -60,7 +52,7 @@ object P_BootstrapLexerKeywordBody : Primitive(3, CannotFail, CanFold, CanInline
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
 		val source = interpreter.argument(0)

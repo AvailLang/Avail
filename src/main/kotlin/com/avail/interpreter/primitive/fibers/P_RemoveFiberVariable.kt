@@ -32,16 +32,7 @@
 
 package com.avail.interpreter.primitive.fibers
 
-import com.avail.descriptor.A_Atom
-import com.avail.descriptor.A_Fiber
-import com.avail.descriptor.A_Map
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.AtomDescriptor
-import com.avail.descriptor.FiberDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.AtomDescriptor.SpecialAtom.HERITABLE_KEY
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
@@ -52,6 +43,8 @@ import com.avail.descriptor.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_NO_SUCH_FIBER_VARIABLE
 import com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
 
@@ -64,7 +57,7 @@ object P_RemoveFiberVariable : Primitive(1, CanInline, HasSideEffect)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val key = interpreter.argument(0)

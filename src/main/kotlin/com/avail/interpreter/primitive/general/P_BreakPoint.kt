@@ -32,15 +32,13 @@
 package com.avail.interpreter.primitive.general
 
 import com.avail.descriptor.A_Type
-import com.avail.exceptions.AvailBreakpointException
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TypeDescriptor.Types.TOP
+import com.avail.exceptions.AvailBreakpointException
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.Primitive.Flag.Unknown
 
@@ -51,7 +49,7 @@ object P_BreakPoint : Primitive(0, Unknown, CannotFail)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(0)
 		// Throw and catch a RuntimeException.  A sensibly configured debugger

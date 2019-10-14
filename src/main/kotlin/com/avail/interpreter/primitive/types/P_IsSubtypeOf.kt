@@ -53,7 +53,7 @@ object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val type1 = interpreter.argument(0)

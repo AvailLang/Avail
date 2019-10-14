@@ -34,9 +34,6 @@ package com.avail.interpreter.primitive.tuples
 
 import com.avail.descriptor.A_RawFunction
 import com.avail.descriptor.A_Type
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceTypeDescriptor.instanceType
@@ -49,6 +46,8 @@ import com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType
 import com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType
 import com.avail.descriptor.TypeDescriptor.Types.ANY
 import com.avail.exceptions.AvailErrorCode.E_EXCEEDS_VM_LIMIT
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 
@@ -61,7 +60,7 @@ object P_RepeatedElementTuple : Primitive(2, CanInline, CanFold)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 

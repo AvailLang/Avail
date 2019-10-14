@@ -32,16 +32,7 @@
 
 package com.avail.interpreter.primitive.modules
 
-import com.avail.descriptor.A_Atom
-import com.avail.descriptor.A_Map
-import com.avail.descriptor.A_Module
-import com.avail.descriptor.A_String
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.ModuleDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
+import com.avail.descriptor.*
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.MapTypeDescriptor.mapTypeForSizesKeyTypeValueType
@@ -49,6 +40,8 @@ import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.TupleTypeDescriptor.stringType
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.TypeDescriptor.Types.MODULE
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail
 
@@ -63,7 +56,7 @@ object P_NewNames : Primitive(1, CanInline, CannotFail)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val module = interpreter.argument(0)

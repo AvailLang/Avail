@@ -33,25 +33,18 @@
 package com.avail.interpreter.primitive.bootstrap.syntax
 
 import com.avail.compiler.AvailRejectedParseException
-import com.avail.descriptor.A_Phrase
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.SuperCastPhraseDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
+import com.avail.descriptor.A_Type
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceMetaDescriptor.anyMeta
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.SUPER_CAST_PHRASE
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*
+import com.avail.descriptor.SuperCastPhraseDescriptor
 import com.avail.descriptor.SuperCastPhraseDescriptor.newSuperCastNode
 import com.avail.descriptor.TypeDescriptor.Types.ANY
-import com.avail.interpreter.Primitive.Flag.Bootstrap
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * The `P_BootstrapSuperCastMacro` primitive is used to create a
@@ -64,7 +57,7 @@ object P_BootstrapSuperCastMacro : Primitive(2, CannotFail, CanInline, Bootstrap
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val expressionNode = interpreter.argument(0)

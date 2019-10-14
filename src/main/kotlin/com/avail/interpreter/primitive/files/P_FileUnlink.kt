@@ -61,7 +61,7 @@ object P_FileUnlink : Primitive(4, CanInline, HasSideEffect)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(4)
 		val recursive = interpreter.argument(0)

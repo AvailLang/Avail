@@ -70,7 +70,7 @@ object P_InvokeInstancePojoMethod : Primitive(-1, Private)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		val methodArgs = tupleFromList(interpreter.argsBuffer)
 
@@ -105,12 +105,10 @@ object P_InvokeInstancePojoMethod : Primitive(-1, Private)
 		}
 
 		// Invoke the instance method.
-		val result: Any
-		try
+		val result: Any? = try
 		{
-			result = marshaledArgs
-		         ?.let {  method.invoke(receiver, *it)}
-		         ?: method.invoke(receiver, null)
+			val marshaledArgsNotNull = marshaledArgs!!
+			method.invoke(receiver, *marshaledArgsNotNull)
 		}
 		catch (e: InvocationTargetException)
 		{

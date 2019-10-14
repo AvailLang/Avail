@@ -31,27 +31,13 @@
  */
 package com.avail.interpreter.primitive.files
 
-import com.avail.AvailRuntime
-import com.avail.descriptor.A_Atom
-import com.avail.descriptor.A_BasicObject
-import com.avail.descriptor.A_Fiber
-import com.avail.descriptor.A_Function
-import com.avail.descriptor.A_Number
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.AtomDescriptor
-import com.avail.descriptor.FunctionDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.io.IOSystem.FileHandle
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
-import java.io.IOException
-import java.nio.channels.AsynchronousFileChannel
-
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.AtomDescriptor
 import com.avail.descriptor.AtomDescriptor.SpecialAtom.FILE_KEY
 import com.avail.descriptor.FiberDescriptor.newFiber
 import com.avail.descriptor.FiberTypeDescriptor.fiberType
+import com.avail.descriptor.FunctionDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceTypeDescriptor.instanceType
 import com.avail.descriptor.IntegerRangeTypeDescriptor.bytes
@@ -61,15 +47,16 @@ import com.avail.descriptor.StringDescriptor.formatString
 import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.TypeDescriptor.Types.TOP
-import com.avail.exceptions.AvailErrorCode.E_INVALID_HANDLE
-import com.avail.exceptions.AvailErrorCode.E_IO_ERROR
-import com.avail.exceptions.AvailErrorCode.E_NOT_OPEN_FOR_WRITE
-import com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
+import com.avail.exceptions.AvailErrorCode.*
+import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Interpreter.runOutermostFunction
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.io.IOSystem.FileHandle
+import java.io.IOException
+import java.nio.channels.AsynchronousFileChannel
 import java.util.Collections.emptyList
-import java.util.Collections.singletonList
 
 /**
  * **Primitive:** Force all system buffers associated with the
@@ -92,7 +79,7 @@ object P_FileSync : Primitive(4, CanInline, HasSideEffect)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(4)
 		val atom = interpreter.argument(0)

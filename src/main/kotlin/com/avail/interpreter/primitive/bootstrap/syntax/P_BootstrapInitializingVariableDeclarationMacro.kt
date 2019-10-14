@@ -61,7 +61,7 @@ object P_BootstrapInitializingVariableDeclarationMacro : Primitive(3, CanInline,
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
 		val variableNameLiteral = interpreter.argument(0)

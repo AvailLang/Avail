@@ -52,7 +52,7 @@ import java.lang.Math.exp
 object P_FloatExp : Primitive(2, CannotFail, CanFold, CanInline) {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result {
+		interpreter: Interpreter): Result {
 		interpreter.checkArgumentCount(1)
 		val a = interpreter.argument(0)
 		return interpreter.primitiveSuccess(

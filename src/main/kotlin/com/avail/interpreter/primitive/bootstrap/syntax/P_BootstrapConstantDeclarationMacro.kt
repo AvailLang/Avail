@@ -60,7 +60,7 @@ object P_BootstrapConstantDeclarationMacro : Primitive(2, CannotFail, CanInline,
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val constantNameLiteral = interpreter.argument(0)

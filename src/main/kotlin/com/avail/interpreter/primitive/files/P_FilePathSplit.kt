@@ -33,18 +33,7 @@
 package com.avail.interpreter.primitive.files
 
 import com.avail.descriptor.A_String
-import com.avail.descriptor.A_Tuple
 import com.avail.descriptor.A_Type
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.io.IOSystem
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
-import java.nio.file.FileSystem
-import java.nio.file.InvalidPathException
-import java.nio.file.Path
-import java.util.ArrayList
-
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
@@ -54,8 +43,14 @@ import com.avail.descriptor.StringDescriptor.stringFrom
 import com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf
 import com.avail.descriptor.TupleTypeDescriptor.stringType
 import com.avail.exceptions.AvailErrorCode.E_INVALID_PATH
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.io.IOSystem
+import java.nio.file.InvalidPathException
+import java.nio.file.Path
+import java.util.*
 
 /**
  * **Primitive:** Split the specified [path][Path]
@@ -67,7 +62,7 @@ object P_FilePathSplit : Primitive(1, CanInline, CanFold)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val filename = interpreter.argument(0)

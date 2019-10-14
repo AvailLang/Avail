@@ -34,18 +34,14 @@ package com.avail.interpreter.primitive.fibers
 
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.FiberTypeDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.descriptor.FiberTypeDescriptor.fiberMeta
 import com.avail.descriptor.FiberTypeDescriptor.fiberType
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceMetaDescriptor.topMeta
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.interpreter.Primitive.Flag.CanFold
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive:** Create a [ fiber type][FiberTypeDescriptor] whose result type is the specified [type][A_Type].
@@ -56,7 +52,7 @@ object P_CreateFiberType : Primitive(1, CannotFail, CanFold, CanInline)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val resultType = interpreter.argument(0)

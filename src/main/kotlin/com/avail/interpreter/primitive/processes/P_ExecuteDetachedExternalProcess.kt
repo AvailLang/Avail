@@ -32,19 +32,7 @@
 
 package com.avail.interpreter.primitive.processes
 
-import com.avail.descriptor.A_String
-import com.avail.descriptor.A_Tuple
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.MapDescriptor.Entry
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
-import java.io.File
-import java.io.IOException
-import java.util.ArrayList
-import java.util.HashMap
-
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
@@ -52,14 +40,17 @@ import com.avail.descriptor.MapTypeDescriptor.mapTypeForSizesKeyTypeValueType
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray
 import com.avail.descriptor.SetDescriptor.set
-import com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf
-import com.avail.descriptor.TupleTypeDescriptor.stringType
-import com.avail.descriptor.TupleTypeDescriptor.zeroOrOneOf
+import com.avail.descriptor.TupleTypeDescriptor.*
 import com.avail.descriptor.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_NO_EXTERNAL_PROCESS
 import com.avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import java.io.File
+import java.io.IOException
+import java.util.*
 
 /**
  * **Primitive**: Execute a detached external [ process][Process]. No capability is provided to communicate with this [ ].
@@ -70,7 +61,7 @@ object P_ExecuteDetachedExternalProcess : Primitive(6, CanInline, HasSideEffect)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(6)
 		val processArgsTuple = interpreter.argument(0)

@@ -31,25 +31,18 @@
  */
 package com.avail.interpreter.primitive.functions
 
-import com.avail.descriptor.A_BasicObject
-import com.avail.descriptor.A_Function
-import com.avail.descriptor.A_Tuple
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.FunctionDescriptor
-import com.avail.descriptor.TupleDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.FunctionTypeDescriptor.mostGeneralFunctionType
 import com.avail.descriptor.IntegerDescriptor.zero
 import com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.TupleDescriptor
 import com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType
-import com.avail.interpreter.Primitive.Flag.CanFold
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive:** Answer the [ tuple][TupleDescriptor] of outer variables captured by this [ function][FunctionDescriptor].
@@ -58,7 +51,7 @@ object P_OuterVariables : Primitive(1, CannotFail, CanFold, CanInline)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val aFunction = interpreter.argument(0)

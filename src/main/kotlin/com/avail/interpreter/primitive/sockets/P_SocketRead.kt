@@ -32,30 +32,8 @@
 
 package com.avail.interpreter.primitive.sockets
 
-import com.avail.AvailRuntime
-import com.avail.descriptor.A_Atom
-import com.avail.descriptor.A_BasicObject
-import com.avail.descriptor.A_Fiber
-import com.avail.descriptor.A_Function
-import com.avail.descriptor.A_Number
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.AtomDescriptor
-import com.avail.descriptor.ByteBufferTupleDescriptor
-import com.avail.descriptor.EnumerationTypeDescriptor
-import com.avail.descriptor.FiberDescriptor
-import com.avail.descriptor.FunctionDescriptor
-import com.avail.descriptor.IntegerDescriptor
-import com.avail.descriptor.IntegerRangeTypeDescriptor
-import com.avail.exceptions.AvailErrorCode
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.io.SimpleCompletionHandler
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
-import java.nio.ByteBuffer
-import java.nio.channels.AsynchronousSocketChannel
-
 import com.avail.AvailRuntime.currentRuntime
+import com.avail.descriptor.*
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.AtomDescriptor.SpecialAtom.SOCKET_KEY
 import com.avail.descriptor.AtomDescriptor.objectFromBoolean
@@ -73,14 +51,17 @@ import com.avail.descriptor.StringDescriptor.formatString
 import com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.TypeDescriptor.Types.TOP
-import com.avail.exceptions.AvailErrorCode.E_INVALID_HANDLE
-import com.avail.exceptions.AvailErrorCode.E_IO_ERROR
-import com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
+import com.avail.exceptions.AvailErrorCode
+import com.avail.exceptions.AvailErrorCode.*
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.io.SimpleCompletionHandler
 import java.lang.Integer.MAX_VALUE
+import java.nio.ByteBuffer
+import java.nio.channels.AsynchronousSocketChannel
 import java.util.Arrays.asList
-import java.util.Collections.singletonList
 
 /**
  * **Primitive:** Initiate an asynchronous read from the
@@ -96,7 +77,7 @@ object P_SocketRead : Primitive(5, CanInline, HasSideEffect)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(5)
 		val size = interpreter.argument(0)

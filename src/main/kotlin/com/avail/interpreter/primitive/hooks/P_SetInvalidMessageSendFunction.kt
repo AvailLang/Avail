@@ -32,19 +32,16 @@
 
 package com.avail.interpreter.primitive.hooks
 
-import com.avail.descriptor.A_Function
+import com.avail.AvailRuntime.HookType.INVALID_MESSAGE_SEND
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.FunctionDescriptor
-import com.avail.descriptor.MethodDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
-import com.avail.AvailRuntime.HookType.INVALID_MESSAGE_SEND
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.MethodDescriptor
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.TypeDescriptor.Types.TOP
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
 
@@ -57,7 +54,7 @@ object P_SetInvalidMessageSendFunction : Primitive(1, CannotFail, HasSideEffect)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val function = interpreter.argument(0)

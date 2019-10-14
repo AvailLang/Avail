@@ -33,9 +33,6 @@ package com.avail.interpreter.primitive.maps
 
 import com.avail.descriptor.A_RawFunction
 import com.avail.descriptor.A_Type
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.MapTypeDescriptor.mostGeneralMapType
@@ -44,6 +41,8 @@ import com.avail.descriptor.SetDescriptor.emptySet
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TypeDescriptor.Types.ANY
 import com.avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 
@@ -54,7 +53,7 @@ object P_MapAtKey : Primitive(2, CanFold, CanInline)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val map = interpreter.argument(0)

@@ -69,7 +69,7 @@ object P_SimpleMethodDeclaration : Primitive(2, Bootstrap, CanSuspend, Unknown)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val string = interpreter.argument(0)

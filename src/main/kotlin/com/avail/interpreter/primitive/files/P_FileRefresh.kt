@@ -31,22 +31,10 @@
  */
 package com.avail.interpreter.primitive.files
 
-import com.avail.AvailRuntime
-import com.avail.descriptor.A_Atom
-import com.avail.descriptor.A_BasicObject
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.AtomDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.io.IOSystem.BufferKey
-import com.avail.io.IOSystem.FileHandle
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
-import java.nio.channels.AsynchronousFileChannel
-import java.util.ArrayList
-
 import com.avail.AvailRuntime.currentRuntime
+import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.AtomDescriptor
 import com.avail.descriptor.AtomDescriptor.SpecialAtom.FILE_KEY
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.NilDescriptor.nil
@@ -54,11 +42,14 @@ import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.TypeDescriptor.Types.TOP
-import com.avail.exceptions.AvailErrorCode.E_INVALID_HANDLE
-import com.avail.exceptions.AvailErrorCode.E_NOT_OPEN_FOR_READ
-import com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
+import com.avail.exceptions.AvailErrorCode.*
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.io.IOSystem.FileHandle
+import java.nio.channels.AsynchronousFileChannel
+import java.util.*
 
 /**
  * **Primitive:** Force all system buffers associated with the
@@ -71,7 +62,7 @@ object P_FileRefresh : Primitive(1, CanInline, HasSideEffect)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val atom = interpreter.argument(0)

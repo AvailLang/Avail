@@ -32,26 +32,10 @@
 
 package com.avail.interpreter.primitive.processes
 
-import com.avail.AvailRuntime
-import com.avail.descriptor.MapDescriptor.Entry
-import com.avail.exceptions.AvailErrorCode
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.io.ProcessInputChannel
-import com.avail.io.ProcessOutputChannel
-import com.avail.io.TextInterface
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
-import java.io.File
-import java.io.IOException
-import java.io.PrintStream
-import java.lang.ProcessBuilder.Redirect
-import java.util.ArrayList
-import java.util.Collections
-import java.util.HashMap
-
 import com.avail.AvailRuntime.currentRuntime
-import com.avail.descriptor.*
+import com.avail.descriptor.A_BasicObject
+import com.avail.descriptor.A_Fiber
+import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FiberDescriptor.newFiber
 import com.avail.descriptor.FiberTypeDescriptor.fiberType
@@ -64,16 +48,24 @@ import com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.StringDescriptor.stringFrom
 import com.avail.descriptor.TupleDescriptor.emptyTuple
-import com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf
-import com.avail.descriptor.TupleTypeDescriptor.stringType
-import com.avail.descriptor.TupleTypeDescriptor.zeroOrOneOf
+import com.avail.descriptor.TupleTypeDescriptor.*
 import com.avail.descriptor.TypeDescriptor.Types.TOP
+import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailErrorCode.E_NO_EXTERNAL_PROCESS
 import com.avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
+import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Interpreter.runOutermostFunction
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
-import java.util.Collections.singletonList
+import com.avail.io.ProcessInputChannel
+import com.avail.io.ProcessOutputChannel
+import com.avail.io.TextInterface
+import java.io.File
+import java.io.IOException
+import java.io.PrintStream
+import java.lang.ProcessBuilder.Redirect
+import java.util.*
 
 /**
  * **Primitive**: Execute an attached external [ process][Process]. The forked [fiber][A_Fiber] is wired to the external process's
@@ -85,7 +77,7 @@ object P_ExecuteAttachedExternalProcess : Primitive(6, CanInline, HasSideEffect)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(6)
 		val processArgsTuple = interpreter.argument(0)

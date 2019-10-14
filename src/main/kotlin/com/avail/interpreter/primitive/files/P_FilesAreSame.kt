@@ -32,19 +32,7 @@
 
 package com.avail.interpreter.primitive.files
 
-import com.avail.descriptor.A_String
 import com.avail.descriptor.A_Type
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.io.IOSystem
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
-import java.io.IOException
-import java.nio.file.FileSystem
-import java.nio.file.Files
-import java.nio.file.InvalidPathException
-import java.nio.file.Path
-
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.AtomDescriptor.objectFromBoolean
 import com.avail.descriptor.EnumerationTypeDescriptor.booleanType
@@ -52,11 +40,16 @@ import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TupleTypeDescriptor.stringType
-import com.avail.exceptions.AvailErrorCode.E_INVALID_PATH
-import com.avail.exceptions.AvailErrorCode.E_IO_ERROR
-import com.avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
+import com.avail.exceptions.AvailErrorCode.*
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.io.IOSystem
+import java.io.IOException
+import java.nio.file.Files
+import java.nio.file.InvalidPathException
+import java.nio.file.Path
 
 /**
  * **Primitive:** Do the specified [paths][Path]
@@ -68,7 +61,7 @@ object P_FilesAreSame : Primitive(2, CanInline, HasSideEffect)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val first = interpreter.argument(0)

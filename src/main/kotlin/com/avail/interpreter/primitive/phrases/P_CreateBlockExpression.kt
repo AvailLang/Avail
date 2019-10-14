@@ -33,28 +33,17 @@
 package com.avail.interpreter.primitive.phrases
 
 import com.avail.descriptor.A_Phrase
-import com.avail.descriptor.A_Set
-import com.avail.descriptor.A_String
-import com.avail.descriptor.A_Tuple
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.AvailObject
-import com.avail.descriptor.BlockPhraseDescriptor
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-import java.util.ArrayList
-
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.BlockPhraseDescriptor
 import com.avail.descriptor.BlockPhraseDescriptor.newBlockNode
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceMetaDescriptor.topMeta
 import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.ObjectTypeDescriptor.exceptionType
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.ARGUMENT_PHRASE
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.BLOCK_PHRASE
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*
 import com.avail.descriptor.PhraseTypeDescriptor.containsOnlyStatements
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType
@@ -63,8 +52,11 @@ import com.avail.descriptor.TupleTypeDescriptor.stringType
 import com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf
 import com.avail.exceptions.AvailErrorCode.E_BLOCK_CONTAINS_INVALID_STATEMENTS
 import com.avail.exceptions.AvailErrorCode.E_INVALID_PRIMITIVE_NUMBER
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
+import java.util.*
 
 /**
  * **Primitive:** Create a [ block expression][BlockPhraseDescriptor] from the specified [ argument declarations][PhraseKind.ARGUMENT_PHRASE], primitive number, statements, result type, and
@@ -76,7 +68,7 @@ object P_CreateBlockExpression : Primitive(5, CanFold, CanInline)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(5)
 		val argDecls = interpreter.argument(0)

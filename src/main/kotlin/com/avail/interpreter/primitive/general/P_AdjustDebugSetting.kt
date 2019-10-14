@@ -32,20 +32,16 @@
 package com.avail.interpreter.primitive.general
 
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.AvailObject
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
-import java.util.logging.Level
-
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.IntegerRangeTypeDescriptor.bytes
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.TypeDescriptor.Types.TOP
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.Primitive.Flag.Unknown
+import java.util.logging.Level
 
 /**
  * **Primitive:** Adjust the debugging level of the VM.
@@ -54,7 +50,7 @@ object P_AdjustDebugSetting : Primitive(1, Unknown, CannotFail)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val levelObject = interpreter.argument(0)

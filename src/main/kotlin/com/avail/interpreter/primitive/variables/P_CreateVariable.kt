@@ -32,16 +32,13 @@
 package com.avail.interpreter.primitive.variables
 
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.VariableDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceMetaDescriptor.anyMeta
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.VariableDescriptor.newVariableWithContentType
 import com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail
 
@@ -53,7 +50,7 @@ object P_CreateVariable : Primitive(1, CanInline, CannotFail)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val innerType = interpreter.argument(0)

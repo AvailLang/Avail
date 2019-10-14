@@ -32,34 +32,26 @@
 
 package com.avail.interpreter.primitive.bootstrap.syntax
 
-import com.avail.descriptor.A_Phrase
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.descriptor.EnumerationTypeDescriptor.booleanType
 import com.avail.descriptor.ExpressionAsStatementPhraseDescriptor.newExpressionAsStatement
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive
 import com.avail.descriptor.ListPhraseDescriptor.newListNode
-import com.avail.descriptor.ListPhraseTypeDescriptor.list
-import com.avail.descriptor.ListPhraseTypeDescriptor.zeroOrMoreList
-import com.avail.descriptor.ListPhraseTypeDescriptor.zeroOrOneList
+import com.avail.descriptor.ListPhraseTypeDescriptor.*
+import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.MODULE_HEADER
 import com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray
 import com.avail.descriptor.PhraseTypeDescriptor.Constants.stringLiteralType
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.STATEMENT_PHRASE
 import com.avail.descriptor.SendPhraseDescriptor.newSendNode
 import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TypeDescriptor.Types.TOP
-import com.avail.interpreter.Primitive.Flag.Bootstrap
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
-import com.avail.interpreter.Primitive.Flag.Private
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * The `P_ModuleHeaderPseudoMacro` primitive is used to parse module
@@ -75,7 +67,7 @@ object P_ModuleHeaderPseudoMacro : Primitive(6, Private, Bootstrap, CannotFail, 
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(6)
 		val moduleNameLiteral = interpreter.argument(0)

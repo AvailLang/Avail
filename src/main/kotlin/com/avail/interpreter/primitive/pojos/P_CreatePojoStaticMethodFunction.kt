@@ -87,7 +87,7 @@ object P_CreatePojoStaticMethodFunction : Primitive(3, CanInline, CanFold)
 	private val rawFunctionCache = synchronizedMap(WeakHashMap<A_Type, A_RawFunction>())
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
 		val pojoType = interpreter.argument(0)

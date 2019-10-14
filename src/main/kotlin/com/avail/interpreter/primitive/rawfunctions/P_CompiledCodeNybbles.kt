@@ -31,22 +31,17 @@
  */
 package com.avail.interpreter.primitive.rawfunctions
 
-import com.avail.descriptor.A_RawFunction
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.CompiledCodeDescriptor
-import com.avail.descriptor.TupleDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.descriptor.CompiledCodeTypeDescriptor.mostGeneralCompiledCodeType
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.IntegerRangeTypeDescriptor.nybbles
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.TupleDescriptor
 import com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf
-import com.avail.interpreter.Primitive.Flag.CanFold
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive:** Answer the [ nybblecodes][TupleDescriptor] of the [compiled code][CompiledCodeDescriptor].
@@ -55,7 +50,7 @@ object P_CompiledCodeNybbles : Primitive(1, CannotFail, CanFold, CanInline)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val code = interpreter.argument(0)

@@ -33,19 +33,17 @@
 package com.avail.interpreter.primitive.variables
 
 import com.avail.descriptor.A_Type
+import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FiberDescriptor
 import com.avail.descriptor.FiberDescriptor.TraceFlag
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
-import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_ILLEGAL_TRACE_MODE
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
 
 /**
@@ -57,7 +55,7 @@ object P_TraceVariableWrites : Primitive(0, HasSideEffect)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(0)
 		if (interpreter.traceVariableReadsBeforeWrites() || interpreter.traceVariableWrites())

@@ -63,7 +63,7 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val function = interpreter.argument(0)

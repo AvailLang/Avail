@@ -32,20 +32,10 @@
 
 package com.avail.interpreter.primitive.general
 
-import com.avail.descriptor.A_String
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.FiberDescriptor.ExecutionState
-import com.avail.descriptor.StringDescriptor
-import com.avail.interpreter.AvailLoader
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.io.SimpleCompletionHandler
-import com.avail.io.TextInterface
-import com.avail.io.TextOutputChannel
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.AvailObject
+import com.avail.descriptor.FiberDescriptor.ExecutionState
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
@@ -53,8 +43,12 @@ import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TupleTypeDescriptor.stringType
 import com.avail.descriptor.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_IO_ERROR
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanSuspend
 import com.avail.interpreter.Primitive.Flag.Unknown
+import com.avail.io.SimpleCompletionHandler
+import com.avail.io.TextOutputChannel
 
 /**
  * **Primitive:** Print the specified [ ] to the [current][Interpreter.fiber]'s [standard error channel][TextOutputChannel], [ ][ExecutionState.SUSPENDED] the current fiber until the string can
@@ -66,7 +60,7 @@ object P_PrintToErrorConsole : Primitive(1, CanSuspend, Unknown)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val string = interpreter.argument(0)

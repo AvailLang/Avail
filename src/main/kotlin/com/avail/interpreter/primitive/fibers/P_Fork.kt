@@ -32,24 +32,13 @@
 
 package com.avail.interpreter.primitive.fibers
 
-import com.avail.descriptor.A_Fiber
-import com.avail.descriptor.A_Function
-import com.avail.descriptor.A_Number
-import com.avail.descriptor.A_RawFunction
-import com.avail.descriptor.A_Tuple
 import com.avail.descriptor.A_Type
+import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.AvailObject
 import com.avail.descriptor.FiberDescriptor
-import com.avail.descriptor.FunctionDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
-import java.util.ArrayList
-
-import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FiberDescriptor.newFiber
 import com.avail.descriptor.FiberTypeDescriptor.mostGeneralFiberType
+import com.avail.descriptor.FunctionDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.FunctionTypeDescriptor.functionTypeReturning
 import com.avail.descriptor.IntegerRangeTypeDescriptor.bytes
@@ -61,8 +50,11 @@ import com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType
 import com.avail.descriptor.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import java.util.*
 
 /**
  * **Primitive:** Fork a new [fiber][FiberDescriptor]
@@ -75,7 +67,7 @@ object P_Fork : Primitive(3, CanInline, HasSideEffect)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
 		val function = interpreter.argument(0)

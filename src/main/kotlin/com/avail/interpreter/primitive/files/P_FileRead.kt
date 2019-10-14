@@ -59,16 +59,16 @@ import com.avail.io.IOSystem.BufferKey
 import com.avail.io.IOSystem.FileHandle
 import com.avail.io.SimpleCompletionHandler
 import java.io.IOException
-import java.lang.Math.min
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousFileChannel
-import java.util.*
+import kotlin.math.min
 
 /**
  * **Primitive:** Read the requested number of bytes from the
  * [file channel][AsynchronousFileChannel] associated with the
  * specified [handle][AtomDescriptor], starting at the requested
- * one-based position. Produce them as a [ tuple][ByteArrayTupleDescriptor] of bytes. If fewer bytes are available, then simply produce a shorter
+ * one-based position. Produce them as a [ tuple][ByteArrayTupleDescriptor] of
+ * bytes. If fewer bytes are available, then simply produce a shorter
  * tuple; an empty tuple unambiguously indicates that the end of the file has
  * been reached. If the request amount is infinite or very large, fewer bytes
  * may be returned, at the discretion of the Avail VM.
@@ -91,7 +91,7 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 	 * The maximum transfer size when reading from a file.  Attempts to read
 	 * more than this will simply be limited to this value.
 	 */
-	val MAX_READ_SIZE = 4194304
+	private const val MAX_READ_SIZE = 4194304
 
 	/**
 	 * The maximum transfer size for which a buffer is always allocated with the
@@ -100,10 +100,9 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 	 * actual file size to determine how big a buffer to actually use to avoid
 	 * over-allocating buffer space.
 	 */
-	val THRESHOLD_READ_SIZE = 32768
+	private const val THRESHOLD_READ_SIZE = 32768
 
-	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(6)
 		val positionObject = interpreter.argument(0)
@@ -151,82 +150,77 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 				// since the Avail code didn't ask about the file size.  Limit
 				// the buffer size to the threshold size to avoid
 				// over-allocating due to this blindness.
-				actualFileSize = java.lang.Long.MAX_VALUE
+				actualFileSize = Long.MAX_VALUE
 				size = THRESHOLD_READ_SIZE
 			}
 
-			if (oneBasedPositionLong > actualFileSize)
-			{
+			size = if (oneBasedPositionLong > actualFileSize) {
 				// Don't bother dealing with empty buffers.  Besides, the file
 				// might get more data before we actually read it.
-				size = 1
-			}
-			else
-			{
+				1
+			} else {
 				val available = actualFileSize - oneBasedPositionLong + 1
-				size = min(size, min(available, MAX_READ_SIZE.toLong()).toInt())
+				min(size, min(available, MAX_READ_SIZE.toLong()).toInt())
 			}
 		}
 
-		assert(0 < size && size <= MAX_READ_SIZE)
+		assert(size in 1..MAX_READ_SIZE)
 		val alignment = handle.alignment
-		val augmentedStart = (oneBasedPositionLong - 1) / alignment * alignment + 1
-		val augmentedEnd = (oneBasedPositionLong + size.toLong() + alignment.toLong() - 2) / alignment * alignment
+		val augmentedStart =
+			(oneBasedPositionLong - 1) / alignment * alignment + 1
+		val augmentedEnd =
+			(oneBasedPositionLong + size + alignment - 2) / alignment * alignment
 		val bufferCount = (augmentedEnd + 1 - augmentedStart) / alignment
 		assert(bufferCount == bufferCount.toInt().toLong())
-		val buffers = ArrayList<A_Tuple>(bufferCount.toInt())
 		// Collect the initial run of either cache hits or cache misses.  Limit
 		// the number of bytes actually returned to that first run, either
 		// concatenating buffers for a run of hits or fetching into a big buffer
 		// for a run of misses.
-		var firstPresentBufferStart = java.lang.Long.MIN_VALUE
-		var firstMissingBufferStart = java.lang.Long.MIN_VALUE
-		run {
-			var bufferStart = augmentedStart
-			while (bufferStart <= augmentedEnd)
+		var firstPresentBufferStart = Long.MIN_VALUE
+		var firstMissingBufferStart = Long.MIN_VALUE
+		val buffers = mutableListOf<A_Tuple?>()
+		for (bufferStart in
+			augmentedStart..augmentedEnd step alignment.toLong()
+		) {
+			val key = BufferKey(handle, bufferStart)
+			val bufferHolder = ioSystem.getBuffer(key)
+			val buffer = bufferHolder.value
+			if (buffer === null)
 			{
-				val key = BufferKey(handle, bufferStart)
-				val bufferHolder = ioSystem.getBuffer(key)
-				val buffer = bufferHolder.value
-				if (buffer === null)
+				if (firstMissingBufferStart == Long.MIN_VALUE)
 				{
-					if (firstMissingBufferStart == java.lang.Long.MIN_VALUE)
+					// This is the first null buffer encountered.
+					firstMissingBufferStart = bufferStart
+					if (firstPresentBufferStart != Long.MIN_VALUE)
 					{
-						// This is the first null buffer encountered.
-						firstMissingBufferStart = bufferStart
-						if (firstPresentBufferStart != java.lang.Long.MIN_VALUE)
-						{
-							// We must have started with hits, and now we know
-							// how many buffers in a row to return.
-							break
-						}
+						// We must have started with hits, and now we know
+						// how many buffers in a row to return.
+						break
 					}
 				}
-				else
-				{
-					if (firstPresentBufferStart == java.lang.Long.MIN_VALUE)
-					{
-						// This is the first hit encountered.
-						firstPresentBufferStart = bufferStart
-						if (firstMissingBufferStart != java.lang.Long.MIN_VALUE)
-						{
-							// We must have started with misses, and now we know
-							// how many buffers in a row to fetch.
-							break
-						}
-					}
-				}
-				buffers.add(buffer!!)
-				bufferStart += alignment.toLong()
 			}
+			else
+			{
+				if (firstPresentBufferStart == Long.MIN_VALUE)
+				{
+					// This is the first hit encountered.
+					firstPresentBufferStart = bufferStart
+					if (firstMissingBufferStart != Long.MIN_VALUE)
+					{
+						// We must have started with misses, and now we know
+						// how many buffers in a row to fetch.
+						break
+					}
+				}
+			}
+			buffers.add(buffer)
 		}
 		val current = interpreter.fiber()
 		val newFiber = newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
 			priority.extractInt()
 		) {
-			formatString("Asynchronous file read, %s",
-			             handle.filename)
+			formatString("Asynchronous file read, %s", handle.filename)
 		}
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
@@ -255,10 +249,7 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 		}
 		// We began with buffer misses, and we can figure out how many...
 		assert(firstMissingBufferStart == augmentedStart)
-		for (b in buffers)
-		{
-			assert(b === null)
-		}
+		assert(buffers.all { it == null })
 		size = buffers.size * alignment
 		// Now start the asynchronous read.
 		val buffer = ByteBuffer.allocateDirect(size)
@@ -284,12 +275,15 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 						assert(bytesTuple.tupleSize() == bytesRead)
 						// Seed the file cache, except for the final partial
 						// buffer.
-						val lastPosition = oneBasedPositionLong + bytesRead!! - 1
-						val lastFullBufferStart = lastPosition / alignment * alignment - alignment + 1
+						val lastPosition =
+							oneBasedPositionLong + bytesRead!! - 1
+						val lastFullBufferStart =
+							lastPosition / alignment * alignment - alignment + 1
 						var offsetInBuffer = 1
-						var bufferStart = oneBasedPositionLong
-						while (bufferStart <= lastFullBufferStart)
-						{
+						for (bufferStart in
+							oneBasedPositionLong..lastFullBufferStart step
+								alignment.toLong()
+						) {
 							val subtuple = bytesTuple.copyTupleFromToCanDestroy(
 								offsetInBuffer,
 								offsetInBuffer + alignment - 1,
@@ -305,18 +299,17 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 							// everything happens-after the above write.
 							ioSystem.getBuffer(key)
 							offsetInBuffer += alignment
-							bufferStart += alignment.toLong()
 						}
 					}
 					runOutermostFunction(
 						runtime,
 						newFiber,
 						succeed,
-						listOf<A_Tuple>(bytesTuple))
+						listOf(bytesTuple))
 					Unit
 				},
 				// failed
-				{ killer ->
+				{
 					runOutermostFunction(
 						runtime,
 						newFiber,

@@ -32,14 +32,7 @@
 package com.avail.interpreter.primitive.phrases
 
 import com.avail.descriptor.A_Atom
-import com.avail.descriptor.A_Bundle
-import com.avail.descriptor.A_Map
 import com.avail.descriptor.A_Type
-import com.avail.interpreter.AvailLoader
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
 import com.avail.descriptor.AtomDescriptor.SpecialAtom.MACRO_BUNDLE_KEY
@@ -49,6 +42,8 @@ import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
 import com.avail.exceptions.AvailErrorCode.E_NOT_EVALUATING_MACRO
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
@@ -60,7 +55,7 @@ object P_CurrentMacroName : Primitive(0, CanInline)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(0)
 		if (!interpreter.fiber().generalFlag(IS_EVALUATING_MACRO))

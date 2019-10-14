@@ -176,9 +176,10 @@ public final class Frame
 	 * @param uniqueId
 	 *        The unique identifier used to identify this temporary value within
 	 *        its frame.
-	 * @return An {@link L2SemanticTemp} representing the temporary value.
+	 * @return An {@link L2SemanticTemp} representing the temporary value,
+	 *         generalized to an {@link L2SemanticValue}..
 	 */
-	public L2SemanticTemp temp (
+	public L2SemanticValue temp (
 		final int uniqueId)
 	{
 		return new L2SemanticTemp(this, uniqueId);

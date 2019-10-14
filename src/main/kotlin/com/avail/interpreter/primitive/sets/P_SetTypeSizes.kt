@@ -31,23 +31,15 @@
  */
 package com.avail.interpreter.primitive.sets
 
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.IntegerRangeTypeDescriptor
-import com.avail.descriptor.SetDescriptor
-import com.avail.descriptor.SetTypeDescriptor
-import com.avail.descriptor.TypeDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
+import com.avail.descriptor.*
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceMetaDescriptor.instanceMeta
 import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetTypeDescriptor.setMeta
-import com.avail.interpreter.Primitive.Flag.CanFold
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive:** Extract a [ set type][SetTypeDescriptor]'s [range][IntegerRangeTypeDescriptor] of sizes. This
@@ -59,7 +51,7 @@ object P_SetTypeSizes : Primitive(1, CannotFail, CanFold, CanInline)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val setType = interpreter.argument(0)

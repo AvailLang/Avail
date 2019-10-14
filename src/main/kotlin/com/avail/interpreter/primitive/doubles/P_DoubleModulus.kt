@@ -32,19 +32,14 @@
 package com.avail.interpreter.primitive.doubles
 
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.AvailObject
 import com.avail.descriptor.DoubleDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.descriptor.DoubleDescriptor.objectFromDoubleRecycling
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.TypeDescriptor.Types.DOUBLE
-import com.avail.interpreter.Primitive.Flag.CanFold
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
 import java.lang.Math.floor
 
 /**
@@ -54,7 +49,7 @@ object P_DoubleModulus : Primitive(2, CannotFail, CanInline, CanFold)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val a = interpreter.argument(0)

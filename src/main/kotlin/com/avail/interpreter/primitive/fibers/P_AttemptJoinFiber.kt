@@ -32,16 +32,10 @@
 
 package com.avail.interpreter.primitive.fibers
 
-import com.avail.descriptor.A_Fiber
-import com.avail.descriptor.A_Function
 import com.avail.descriptor.A_Type
+import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FiberDescriptor
 import com.avail.descriptor.FiberDescriptor.ExecutionState
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
-import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE
 import com.avail.descriptor.FiberTypeDescriptor.mostGeneralFiberType
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
@@ -50,6 +44,8 @@ import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_FIBER_CANNOT_JOIN_ITSELF
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanSuspend
 import com.avail.interpreter.Primitive.Flag.Unknown
 import com.avail.utility.Nulls.stripNull
@@ -78,7 +74,7 @@ object P_AttemptJoinFiber : Primitive(1, CanSuspend, Unknown)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val joinee = interpreter.argument(0)

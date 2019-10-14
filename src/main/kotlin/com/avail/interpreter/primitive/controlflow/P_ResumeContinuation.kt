@@ -33,18 +33,13 @@
 package com.avail.interpreter.primitive.controlflow
 
 import com.avail.descriptor.A_Type
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-
 import com.avail.descriptor.BottomTypeDescriptor.bottom
 import com.avail.descriptor.ContinuationTypeDescriptor.mostGeneralContinuationType
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.interpreter.Primitive.Flag.AlwaysSwitchesContinuation
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CanSwitchContinuations
-import com.avail.interpreter.Primitive.Flag.CannotFail
-import com.avail.interpreter.Primitive.Flag.Private
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
 import com.avail.interpreter.Primitive.Result.CONTINUATION_CHANGED
 
 /**
@@ -62,7 +57,7 @@ object P_ResumeContinuation : Primitive(
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val con = interpreter.argument(0)

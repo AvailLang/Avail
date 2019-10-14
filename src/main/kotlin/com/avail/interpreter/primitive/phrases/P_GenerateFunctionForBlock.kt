@@ -32,19 +32,11 @@
 
 package com.avail.interpreter.primitive.phrases
 
-import com.avail.descriptor.A_Function
-import com.avail.descriptor.A_Phrase
 import com.avail.descriptor.A_RawFunction
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.BlockPhraseDescriptor
-import com.avail.descriptor.FunctionDescriptor
-import com.avail.exceptions.AvailRuntimeException
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.BlockPhraseDescriptor.recursivelyValidate
+import com.avail.descriptor.FunctionDescriptor
 import com.avail.descriptor.FunctionDescriptor.createFunction
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.FunctionTypeDescriptor.mostGeneralFunctionType
@@ -53,9 +45,10 @@ import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.BLOCK_PHRASE
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TupleDescriptor.emptyTuple
-import com.avail.exceptions.AvailErrorCode.E_BLOCK_COMPILATION_FAILED
-import com.avail.exceptions.AvailErrorCode.E_BLOCK_IS_INVALID
-import com.avail.exceptions.AvailErrorCode.E_BLOCK_MUST_NOT_CONTAIN_OUTERS
+import com.avail.exceptions.AvailErrorCode.*
+import com.avail.exceptions.AvailRuntimeException
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 
@@ -70,7 +63,7 @@ object P_GenerateFunctionForBlock : Primitive(1, CanFold, CanInline)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val block = interpreter.argument(0)

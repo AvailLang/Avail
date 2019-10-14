@@ -31,17 +31,7 @@
  */
 package com.avail.interpreter.primitive.tuples
 
-import com.avail.descriptor.A_Number
-import com.avail.descriptor.A_Tuple
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.BottomTypeDescriptor
-import com.avail.descriptor.TupleDescriptor
-import com.avail.descriptor.TupleTypeDescriptor
-import com.avail.descriptor.TypeDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
+import com.avail.descriptor.*
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceMetaDescriptor.anyMeta
@@ -54,6 +44,8 @@ import com.avail.descriptor.TupleTypeDescriptor.tupleMeta
 import com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf
 import com.avail.exceptions.AvailErrorCode.E_NEGATIVE_SIZE
 import com.avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 
@@ -66,7 +58,7 @@ object P_TupleTypeSequenceOfTypes : Primitive(3, CanFold, CanInline)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
 		val tupleType = interpreter.argument(0)

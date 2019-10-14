@@ -32,20 +32,16 @@
 package com.avail.interpreter.primitive.phrases
 
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.AvailObject
-import com.avail.descriptor.PhraseTypeDescriptor
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceMetaDescriptor.instanceMeta
 import com.avail.descriptor.InstanceMetaDescriptor.topMeta
 import com.avail.descriptor.InstanceTypeDescriptor.instanceType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import com.avail.exceptions.AvailErrorCode.E_BAD_YIELD_TYPE
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 
@@ -57,7 +53,7 @@ object P_CreatePhraseType : Primitive(2, CanFold, CanInline)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val baseType = interpreter.argument(0)

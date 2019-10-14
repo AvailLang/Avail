@@ -68,14 +68,15 @@ object P_BootstrapPrefixPrimitiveDeclaration : Primitive(2, CanInline, Bootstrap
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val optionalBlockArgumentsList = interpreter.argument(0)
 		val optionalPrimPhrase = interpreter.argument(1)
 
-		val loader = interpreter.fiber().availLoader()
-		             ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+		interpreter.availLoaderOrNull() ?:
+			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+
 		assert(optionalPrimPhrase.expressionsSize() == 1)
 		val primPhrase = optionalPrimPhrase.lastExpression()
 		val primNamePhrase = primPhrase.expressionAt(1)

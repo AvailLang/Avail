@@ -34,20 +34,16 @@ package com.avail.interpreter.primitive.atoms
 
 import com.avail.descriptor.A_Atom
 import com.avail.descriptor.A_Type
-import com.avail.exceptions.MalformedMessageException
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.descriptor.AtomDescriptor.falseObject
 import com.avail.descriptor.AtomDescriptor.trueObject
 import com.avail.descriptor.EnumerationTypeDescriptor.booleanType
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
-import com.avail.interpreter.Primitive.Flag.CanFold
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.exceptions.MalformedMessageException
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive:** Is the specified [atom][A_Atom] a
@@ -59,7 +55,7 @@ object P_IsCanonicalMessage : Primitive(1, CannotFail, CanInline, CanFold)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val name = interpreter.argument(0)

@@ -33,22 +33,19 @@
 package com.avail.interpreter.primitive.methods
 
 import com.avail.compiler.splitter.MessageSplitter
-import com.avail.descriptor.A_String
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.MethodDescriptor
-import com.avail.descriptor.StringDescriptor
-import com.avail.exceptions.MalformedMessageException
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
+import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.IntegerDescriptor.fromInt
 import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
+import com.avail.descriptor.MethodDescriptor
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.StringDescriptor
 import com.avail.descriptor.TupleTypeDescriptor.stringType
+import com.avail.exceptions.MalformedMessageException
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 
@@ -62,7 +59,7 @@ object P_MethodNameParametersCount : Primitive(1, CanFold, CanInline)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val name = interpreter.argument(0)

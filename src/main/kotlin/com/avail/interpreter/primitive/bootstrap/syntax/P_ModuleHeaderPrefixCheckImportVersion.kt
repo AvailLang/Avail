@@ -33,26 +33,19 @@
 package com.avail.interpreter.primitive.bootstrap.syntax
 
 import com.avail.compiler.AvailRejectedParseException
-import com.avail.descriptor.A_Phrase
-import com.avail.descriptor.A_String
-import com.avail.descriptor.A_Type
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
+import com.avail.descriptor.A_Type
 import com.avail.descriptor.EnumerationTypeDescriptor.booleanType
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive
-import com.avail.descriptor.ListPhraseTypeDescriptor.list
-import com.avail.descriptor.ListPhraseTypeDescriptor.listPrefix
-import com.avail.descriptor.ListPhraseTypeDescriptor.zeroOrMoreList
-import com.avail.descriptor.ListPhraseTypeDescriptor.zeroOrOneList
+import com.avail.descriptor.ListPhraseTypeDescriptor.*
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.PhraseTypeDescriptor.Constants.stringLiteralType
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import com.avail.descriptor.TypeDescriptor.Types.TOP
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.Bootstrap
 import com.avail.interpreter.Primitive.Flag.Private
 
@@ -69,7 +62,7 @@ object P_ModuleHeaderPrefixCheckImportVersion : Primitive(3, Private, Bootstrap)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		val allImportsList = interpreter.argument(2)
 		val lastImport = allImportsList.lastExpression()

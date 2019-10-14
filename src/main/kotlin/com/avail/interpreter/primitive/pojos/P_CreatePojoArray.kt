@@ -31,15 +31,10 @@
  */
 package com.avail.interpreter.primitive.pojos
 
-import com.avail.descriptor.*
-import com.avail.interpreter.AvailLoader
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-import java.lang.reflect.Array
-
+import com.avail.descriptor.A_Type
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceMetaDescriptor.anyMeta
+import com.avail.descriptor.IntegerDescriptor
 import com.avail.descriptor.IntegerRangeTypeDescriptor.singleInteger
 import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
@@ -47,8 +42,12 @@ import com.avail.descriptor.PojoDescriptor.newPojo
 import com.avail.descriptor.PojoTypeDescriptor.mostGeneralPojoArrayType
 import com.avail.descriptor.PojoTypeDescriptor.pojoArrayType
 import com.avail.descriptor.RawPojoDescriptor.identityPojo
+import com.avail.descriptor.TypeDescriptor
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail
+import java.lang.reflect.Array
 
 /**
  * **Primitive:** Create a [ ] that stores and answers elements of the
@@ -59,7 +58,7 @@ object P_CreatePojoArray : Primitive(2, CannotFail, CanInline)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val elementType = interpreter.argument(0)

@@ -32,33 +32,26 @@
 
 package com.avail.interpreter.primitive.methods
 
-import com.avail.descriptor.A_Set
-import com.avail.descriptor.A_Tuple
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.SetDescriptor
-import com.avail.descriptor.TupleDescriptor
-import com.avail.exceptions.MalformedMessageException
-import com.avail.exceptions.SignatureException
-import com.avail.interpreter.AvailLoader
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
+import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers
 import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.SetDescriptor
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType
+import com.avail.descriptor.TupleDescriptor
 import com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.TypeDescriptor.Types.TOP
-import com.avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
-import com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
-import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
+import com.avail.exceptions.AvailErrorCode.*
+import com.avail.exceptions.MalformedMessageException
+import com.avail.exceptions.SignatureException
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.Unknown
 
 /**
@@ -76,7 +69,7 @@ object P_GrammaticalRestrictionFromAtoms : Primitive(2, Unknown)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val atomSet = interpreter.argument(0)

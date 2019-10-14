@@ -49,7 +49,7 @@ import java.lang.Math.floor
 object P_FloatModulus : Primitive(2, CannotFail, CanInline, CanFold) {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result {
+		interpreter: Interpreter): Result {
 		interpreter.checkArgumentCount(2)
 		val a = interpreter.argument(0)
 		val b = interpreter.argument(1)

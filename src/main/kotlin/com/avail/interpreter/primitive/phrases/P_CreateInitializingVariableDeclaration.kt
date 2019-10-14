@@ -32,24 +32,20 @@
 
 package com.avail.interpreter.primitive.phrases
 
-import com.avail.descriptor.A_Phrase
-import com.avail.descriptor.A_Token
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
-import com.avail.descriptor.TokenDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.descriptor.DeclarationPhraseDescriptor.newVariable
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceMetaDescriptor.anyMeta
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LOCAL_VARIABLE_PHRASE
+import com.avail.descriptor.TokenDescriptor
 import com.avail.descriptor.TypeDescriptor.Types.ANY
 import com.avail.descriptor.TypeDescriptor.Types.TOKEN
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail
 
@@ -63,7 +59,7 @@ object P_CreateInitializingVariableDeclaration : Primitive(3, CanInline, CannotF
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
 		val token = interpreter.argument(0)

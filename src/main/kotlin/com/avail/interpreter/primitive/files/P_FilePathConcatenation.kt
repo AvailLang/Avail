@@ -62,7 +62,7 @@ object P_FilePathConcatenation : Primitive(1, CanInline, CanFold)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val tuple = interpreter.argument(0)

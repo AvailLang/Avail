@@ -104,7 +104,7 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 	private val staticTokensKey = STATIC_TOKENS_KEY.atom
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(7)
 		val optionalArgumentDeclarations = interpreter.argument(0)

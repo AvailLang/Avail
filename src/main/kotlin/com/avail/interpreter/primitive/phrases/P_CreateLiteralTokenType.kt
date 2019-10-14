@@ -33,20 +33,15 @@
 package com.avail.interpreter.primitive.phrases
 
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.LiteralTokenTypeDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceMetaDescriptor.anyMeta
 import com.avail.descriptor.InstanceMetaDescriptor.instanceMeta
 import com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType
 import com.avail.descriptor.LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.interpreter.Primitive.Flag.CanFold
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive:** Construct a [ ] with the given
@@ -58,7 +53,7 @@ object P_CreateLiteralTokenType : Primitive(1, CannotFail, CanFold, CanInline)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val literalValueType = interpreter.argument(0)

@@ -32,28 +32,19 @@
 
 package com.avail.interpreter.primitive.objects
 
-import com.avail.descriptor.A_RawFunction
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.ObjectTypeDescriptor
-import com.avail.descriptor.TupleDescriptor
-import com.avail.descriptor.TypeDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-
+import com.avail.descriptor.*
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceMetaDescriptor.anyMeta
 import com.avail.descriptor.InstanceMetaDescriptor.instanceMeta
 import com.avail.descriptor.MapDescriptor.emptyMap
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.ObjectTypeDescriptor.mostGeneralObjectMeta
-import com.avail.descriptor.ObjectTypeDescriptor.objectTypeFromMap
-import com.avail.descriptor.ObjectTypeDescriptor.objectTypeFromTuple
+import com.avail.descriptor.ObjectTypeDescriptor.*
 import com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes
 import com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
-import com.avail.interpreter.Primitive.Flag.CanFold
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive:** Convert a [tuple][TupleDescriptor]
@@ -67,7 +58,7 @@ object P_TupleToObjectType : Primitive(1, CannotFail, CanFold, CanInline)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val tuple = interpreter.argument(0)

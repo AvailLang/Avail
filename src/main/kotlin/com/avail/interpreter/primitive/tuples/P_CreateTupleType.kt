@@ -32,23 +32,15 @@
 package com.avail.interpreter.primitive.tuples
 
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.AvailObject
-import com.avail.descriptor.TupleTypeDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceMetaDescriptor.anyMeta
 import com.avail.descriptor.InstanceMetaDescriptor.instanceMeta
 import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.TupleTypeDescriptor.tupleMeta
-import com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType
-import com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf
-import com.avail.interpreter.Primitive.Flag.CanFold
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.descriptor.TupleTypeDescriptor.*
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive:** Construct a [ ] with the given parameters. Canonize the
@@ -58,7 +50,7 @@ object P_CreateTupleType : Primitive(3, CannotFail, CanFold, CanInline)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
 		val typeTuple = interpreter.argument(0)

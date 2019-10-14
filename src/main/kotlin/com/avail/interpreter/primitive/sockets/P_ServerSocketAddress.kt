@@ -32,38 +32,27 @@
 
 package com.avail.interpreter.primitive.sockets
 
-import com.avail.descriptor.A_Number
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.AtomDescriptor
-import com.avail.descriptor.AvailObject
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
-import java.io.IOException
-import java.net.InetAddress
-import java.net.InetSocketAddress
-import java.nio.channels.AsynchronousServerSocketChannel
-import java.nio.channels.ClosedChannelException
-
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.AtomDescriptor.SpecialAtom.SERVER_SOCKET_KEY
 import com.avail.descriptor.ByteArrayTupleDescriptor.tupleForByteArray
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.IntegerDescriptor.fromInt
-import com.avail.descriptor.IntegerRangeTypeDescriptor.bytes
-import com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive
-import com.avail.descriptor.IntegerRangeTypeDescriptor.unsignedShorts
+import com.avail.descriptor.IntegerRangeTypeDescriptor.*
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType
 import com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
-import com.avail.exceptions.AvailErrorCode.E_INVALID_HANDLE
-import com.avail.exceptions.AvailErrorCode.E_IO_ERROR
-import com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
+import com.avail.exceptions.AvailErrorCode.*
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
+import java.io.IOException
+import java.net.InetSocketAddress
+import java.nio.channels.AsynchronousServerSocketChannel
+import java.nio.channels.ClosedChannelException
 
 /**
  * **Primitive:** Answer the [ socket address][InetSocketAddress] of the [ asynchronous server socket channel][AsynchronousServerSocketChannel] referenced by the specified [ ].
@@ -74,7 +63,7 @@ object P_ServerSocketAddress : Primitive(1, CanInline)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val handle = interpreter.argument(0)

@@ -32,53 +32,33 @@
 
 package com.avail.interpreter.primitive.methods
 
-import com.avail.AvailTask
-import com.avail.compiler.splitter.MessageSplitter
-import com.avail.descriptor.A_Atom
-import com.avail.descriptor.A_Fiber
-import com.avail.descriptor.A_Function
-import com.avail.descriptor.A_Tuple
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.AvailObject
-import com.avail.descriptor.FunctionDescriptor
-import com.avail.descriptor.PhraseDescriptor
-import com.avail.descriptor.TupleDescriptor
-import com.avail.exceptions.MalformedMessageException
-import com.avail.exceptions.SignatureException
-import com.avail.interpreter.AvailLoader
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-import java.util.ArrayList
-
 import com.avail.AvailRuntime.currentRuntime
-import com.avail.compiler.splitter.MessageSplitter.Metacharacter
+import com.avail.AvailTask
 import com.avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
+import com.avail.compiler.splitter.MessageSplitter.Metacharacter
+import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.FunctionTypeDescriptor.functionTypeReturning
-import com.avail.descriptor.FunctionTypeDescriptor.mostGeneralFunctionType
+import com.avail.descriptor.FunctionDescriptor
+import com.avail.descriptor.FunctionTypeDescriptor.*
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.StringDescriptor.formatString
+import com.avail.descriptor.TupleDescriptor
 import com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.TypeDescriptor.Types.TOP
-import com.avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
-import com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
-import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
-import com.avail.exceptions.AvailErrorCode.E_MACRO_ARGUMENT_MUST_BE_A_PARSE_NODE
-import com.avail.exceptions.AvailErrorCode.E_MACRO_MUST_RETURN_A_PARSE_NODE
-import com.avail.exceptions.AvailErrorCode.E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP
-import com.avail.exceptions.AvailErrorCode.E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PARSE_NODE
-import com.avail.exceptions.AvailErrorCode.E_MACRO_PREFIX_FUNCTION_INDEX_OUT_OF_BOUNDS
-import com.avail.exceptions.AvailErrorCode.E_REDEFINED_WITH_SAME_ARGUMENT_TYPES
+import com.avail.exceptions.AvailErrorCode.*
+import com.avail.exceptions.MalformedMessageException
+import com.avail.exceptions.SignatureException
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanSuspend
 import com.avail.interpreter.Primitive.Flag.Unknown
 import com.avail.interpreter.Primitive.Result.FIBER_SUSPENDED
 import com.avail.utility.Nulls.stripNull
+import java.util.*
 
 /**
  * **Primitive:** Simple macro definition.  The first argument
@@ -93,7 +73,7 @@ object P_SimpleMacroDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
 		val atom = interpreter.argument(0)

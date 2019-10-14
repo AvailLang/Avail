@@ -32,21 +32,14 @@
 package com.avail.interpreter.primitive.functions
 
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.AvailObject
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.descriptor.BottomTypeDescriptor.bottom
-import com.avail.descriptor.FunctionTypeDescriptor.functionMeta
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.FunctionTypeDescriptor.functionTypeFromArgumentTupleType
+import com.avail.descriptor.FunctionTypeDescriptor.*
 import com.avail.descriptor.InstanceMetaDescriptor.topMeta
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetDescriptor.emptySet
-import com.avail.interpreter.Primitive.Flag.CanFold
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive:** Answer the most general function type with
@@ -56,7 +49,7 @@ object P_CreateGeneralFunctionType : Primitive(1, CannotFail, CanFold, CanInline
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val returnType = interpreter.argument(0)

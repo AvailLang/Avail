@@ -63,7 +63,7 @@ object P_FileCopy : Primitive(5, CanInline, HasSideEffect)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(5)
 		val source = interpreter.argument(0)

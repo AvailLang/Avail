@@ -32,31 +32,8 @@
 
 package com.avail.interpreter.primitive.sockets
 
-import com.avail.AvailRuntime
-import com.avail.descriptor.A_Atom
-import com.avail.descriptor.A_Fiber
-import com.avail.descriptor.A_Function
-import com.avail.descriptor.A_Module
-import com.avail.descriptor.A_Number
-import com.avail.descriptor.A_String
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.AtomDescriptor
-import com.avail.descriptor.AvailObject
-import com.avail.descriptor.FiberDescriptor
-import com.avail.descriptor.FunctionDescriptor
-import com.avail.descriptor.IntegerDescriptor
-import com.avail.descriptor.IntegerRangeTypeDescriptor
-import com.avail.descriptor.StringDescriptor
-import com.avail.exceptions.AvailErrorCode
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.io.SimpleCompletionHandler
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
-import java.nio.channels.AsynchronousServerSocketChannel
-import java.nio.channels.AsynchronousSocketChannel
-
 import com.avail.AvailRuntime.currentRuntime
+import com.avail.descriptor.*
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.AtomDescriptor.SpecialAtom.SERVER_SOCKET_KEY
 import com.avail.descriptor.AtomDescriptor.SpecialAtom.SOCKET_KEY
@@ -72,16 +49,16 @@ import com.avail.descriptor.RawPojoDescriptor.identityPojo
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.StringDescriptor.formatString
 import com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf
-import com.avail.descriptor.TypeDescriptor.Types.ATOM
-import com.avail.descriptor.TypeDescriptor.Types.CHARACTER
-import com.avail.descriptor.TypeDescriptor.Types.TOP
-import com.avail.exceptions.AvailErrorCode.E_INVALID_HANDLE
-import com.avail.exceptions.AvailErrorCode.E_IO_ERROR
-import com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
+import com.avail.descriptor.TypeDescriptor.Types.*
+import com.avail.exceptions.AvailErrorCode
+import com.avail.exceptions.AvailErrorCode.*
+import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Interpreter.runOutermostFunction
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
-import java.util.Collections.singletonList
+import com.avail.io.SimpleCompletionHandler
+import java.nio.channels.AsynchronousServerSocketChannel
 
 /**
  * **Primitive:** Accept an incoming connection on the
@@ -100,7 +77,7 @@ object P_ServerSocketAccept : Primitive(5, CanInline, HasSideEffect)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(5)
 		val handle = interpreter.argument(0)

@@ -31,35 +31,11 @@
  */
 package com.avail.interpreter.primitive.files
 
-import com.avail.descriptor.A_Atom
-import com.avail.descriptor.A_Number
-import com.avail.descriptor.A_Set
-import com.avail.descriptor.A_String
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.AtomDescriptor
-import com.avail.descriptor.AvailObject
-import com.avail.descriptor.SetDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.io.IOSystem
-import com.avail.io.IOSystem.FileHandle
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
-import java.io.IOException
-import java.nio.channels.AsynchronousFileChannel
-import java.nio.file.AccessDeniedException
-import java.nio.file.FileSystem
-import java.nio.file.InvalidPathException
-import java.nio.file.OpenOption
-import java.nio.file.Path
-import java.nio.file.StandardOpenOption
-import java.nio.file.attribute.FileAttribute
-import java.nio.file.attribute.PosixFilePermission
-import java.nio.file.attribute.PosixFilePermissions
-import java.util.EnumSet
-
 import com.avail.AvailRuntime.currentRuntime
+import com.avail.descriptor.A_Set
+import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.AtomDescriptor
 import com.avail.descriptor.AtomDescriptor.SpecialAtom.FILE_KEY
 import com.avail.descriptor.AtomDescriptor.createAtom
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
@@ -68,20 +44,27 @@ import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.RawPojoDescriptor.identityPojo
+import com.avail.descriptor.SetDescriptor
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType
 import com.avail.descriptor.TupleTypeDescriptor.stringType
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
-import com.avail.exceptions.AvailErrorCode.E_EXCEEDS_VM_LIMIT
-import com.avail.exceptions.AvailErrorCode.E_ILLEGAL_OPTION
-import com.avail.exceptions.AvailErrorCode.E_INVALID_PATH
-import com.avail.exceptions.AvailErrorCode.E_IO_ERROR
-import com.avail.exceptions.AvailErrorCode.E_OPERATION_NOT_SUPPORTED
-import com.avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
+import com.avail.exceptions.AvailErrorCode.*
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.io.IOSystem
+import com.avail.io.IOSystem.FileHandle
+import java.io.IOException
+import java.nio.channels.AsynchronousFileChannel
+import java.nio.file.*
 import java.nio.file.StandardOpenOption.READ
 import java.nio.file.StandardOpenOption.WRITE
+import java.nio.file.attribute.FileAttribute
+import java.nio.file.attribute.PosixFilePermission
+import java.nio.file.attribute.PosixFilePermissions
+import java.util.*
 
 /**
  * **Primitive:** Open an [ file][AsynchronousFileChannel]. Answer a [handle][AtomDescriptor] that uniquely identifies
@@ -93,7 +76,7 @@ object P_FileOpen : Primitive(4, CanInline, HasSideEffect)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(4)
 		val filename = interpreter.argument(0)

@@ -32,21 +32,15 @@
 
 package com.avail.interpreter.primitive.controlflow
 
-import com.avail.descriptor.A_Number
 import com.avail.descriptor.A_Type
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TypeDescriptor.Types.TOP
-import com.avail.exceptions.AvailErrorCode.E_CANNOT_MARK_HANDLER_FRAME
-import com.avail.exceptions.AvailErrorCode.E_HANDLER_SENTINEL
-import com.avail.exceptions.AvailErrorCode.E_NO_HANDLER_FRAME
-import com.avail.exceptions.AvailErrorCode.E_UNWIND_SENTINEL
+import com.avail.exceptions.AvailErrorCode.*
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanSuspend
 import com.avail.interpreter.Primitive.Flag.Unknown
 
@@ -61,7 +55,7 @@ object P_MarkNearestCatch : Primitive(1, CanSuspend, Unknown)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val code = interpreter.argument(0)

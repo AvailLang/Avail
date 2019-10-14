@@ -34,10 +34,6 @@ package com.avail.interpreter.primitive.phrases
 
 import com.avail.descriptor.A_RawFunction
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.TokenTypeDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceMetaDescriptor.instanceMeta
@@ -45,16 +41,12 @@ import com.avail.descriptor.InstanceTypeDescriptor.instanceType
 import com.avail.descriptor.LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetDescriptor.set
-import com.avail.descriptor.TokenDescriptor.TokenType.COMMENT
-import com.avail.descriptor.TokenDescriptor.TokenType.END_OF_FILE
-import com.avail.descriptor.TokenDescriptor.TokenType.KEYWORD
-import com.avail.descriptor.TokenDescriptor.TokenType.OPERATOR
-import com.avail.descriptor.TokenDescriptor.TokenType.WHITESPACE
-import com.avail.descriptor.TokenDescriptor.TokenType.lookupTokenType
+import com.avail.descriptor.TokenDescriptor.TokenType.*
+import com.avail.descriptor.TokenTypeDescriptor
 import com.avail.descriptor.TokenTypeDescriptor.tokenType
-import com.avail.interpreter.Primitive.Flag.CanFold
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
 import com.avail.interpreter.primitive.phrases.P_CreateToken.tokenTypeOrdinalKey
 
 /**
@@ -65,7 +57,7 @@ import com.avail.interpreter.primitive.phrases.P_CreateToken.tokenTypeOrdinalKey
 object P_CreateTokenType : Primitive(1, CannotFail, CanFold, CanInline)
 {
 
-	override fun attempt(interpreter: Interpreter): Primitive.Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val type = interpreter.argument(0)

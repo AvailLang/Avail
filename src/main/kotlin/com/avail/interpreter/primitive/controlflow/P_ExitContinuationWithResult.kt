@@ -31,15 +31,9 @@
  */
 package com.avail.interpreter.primitive.controlflow
 
-import com.avail.descriptor.A_Continuation
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.AvailObject
-import com.avail.descriptor.ContinuationDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.AvailObject
 import com.avail.descriptor.BottomTypeDescriptor.bottom
 import com.avail.descriptor.ContinuationTypeDescriptor.mostGeneralContinuationType
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
@@ -47,9 +41,9 @@ import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TypeDescriptor.Types.ANY
 import com.avail.exceptions.AvailErrorCode.E_CONTINUATION_EXPECTED_STRONGER_TYPE
-import com.avail.interpreter.Primitive.Flag.AlwaysSwitchesContinuation
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CanSwitchContinuations
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
 import com.avail.interpreter.Primitive.Result.CONTINUATION_CHANGED
 
 /**
@@ -63,7 +57,7 @@ object P_ExitContinuationWithResult : Primitive(
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val con = interpreter.argument(0)

@@ -32,25 +32,17 @@
 
 package com.avail.interpreter.primitive.phrases
 
-import com.avail.descriptor.A_Token
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.AvailObject
 import com.avail.descriptor.DeclarationPhraseDescriptor
-import com.avail.descriptor.TokenDescriptor
-import com.avail.descriptor.VariableUsePhraseDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.DECLARATION_PHRASE
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
 import com.avail.descriptor.TypeDescriptor.Types.TOKEN
 import com.avail.descriptor.VariableUsePhraseDescriptor.newUse
-import com.avail.interpreter.Primitive.Flag.CanFold
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive:** Create a [ ] from the specified [ ] and [ declaration][DeclarationPhraseDescriptor].
@@ -61,7 +53,7 @@ object P_CreateVariableUse : Primitive(2, CannotFail, CanFold, CanInline)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val decl = interpreter.argument(0)

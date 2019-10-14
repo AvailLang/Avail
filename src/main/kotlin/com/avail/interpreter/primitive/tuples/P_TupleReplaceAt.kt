@@ -33,12 +33,6 @@ package com.avail.interpreter.primitive.tuples
 
 import com.avail.descriptor.A_RawFunction
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.TupleDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-
-import java.util.ArrayList
-
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.IntegerDescriptor.fromInt
@@ -46,14 +40,18 @@ import com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.ObjectTupleDescriptor.tupleFromList
 import com.avail.descriptor.SetDescriptor.set
+import com.avail.descriptor.TupleDescriptor
 import com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType
 import com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType
 import com.avail.descriptor.TypeDescriptor.Types.ANY
 import com.avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 import java.lang.Math.max
 import java.lang.Math.min
+import java.util.*
 
 /**
  * **Primitive:** Answer a [ tuple][TupleDescriptor] like the given one, but with an element changed as indicated.
@@ -68,7 +66,7 @@ object P_TupleReplaceAt : Primitive(3, CanFold, CanInline)
 	private val maximumComplexity = fromInt(1000)
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
 		val tuple = interpreter.argument(0)

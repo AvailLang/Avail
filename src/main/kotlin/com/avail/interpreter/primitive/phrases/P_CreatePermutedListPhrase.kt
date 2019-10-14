@@ -32,23 +32,19 @@
 
 package com.avail.interpreter.primitive.phrases
 
-import com.avail.descriptor.A_Phrase
-import com.avail.descriptor.A_Tuple
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.ListPhraseDescriptor
-import com.avail.descriptor.PermutedListPhraseDescriptor
-import com.avail.descriptor.TupleDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers
+import com.avail.descriptor.ListPhraseDescriptor
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.PermutedListPhraseDescriptor
 import com.avail.descriptor.PermutedListPhraseDescriptor.newPermutedListNode
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PERMUTED_LIST_PHRASE
+import com.avail.descriptor.TupleDescriptor
 import com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail
 
@@ -61,7 +57,7 @@ object P_CreatePermutedListPhrase : Primitive(2, CannotFail, CanInline)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val list = interpreter.argument(0)

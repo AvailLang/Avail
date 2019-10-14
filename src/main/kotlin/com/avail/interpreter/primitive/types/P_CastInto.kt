@@ -68,7 +68,7 @@ object P_CastInto : Primitive(2, Invokes, CanInline)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val value = interpreter.argument(0)

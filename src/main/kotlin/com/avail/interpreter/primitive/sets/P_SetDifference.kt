@@ -31,19 +31,14 @@
  */
 package com.avail.interpreter.primitive.sets
 
-import com.avail.descriptor.A_Set
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.SetDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.SetDescriptor
 import com.avail.descriptor.SetTypeDescriptor.mostGeneralSetType
-import com.avail.interpreter.Primitive.Flag.CanFold
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive:** Answer the difference between two
@@ -53,7 +48,7 @@ object P_SetDifference : Primitive(2, CannotFail, CanFold, CanInline)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val set1 = interpreter.argument(0)

@@ -31,20 +31,19 @@
  */
 package com.avail.interpreter.primitive.privatehelpers
 
-import com.avail.descriptor.*
+import com.avail.descriptor.A_Function
+import com.avail.descriptor.A_RawFunction
+import com.avail.descriptor.A_Type
+import com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn
+import com.avail.descriptor.BottomTypeDescriptor.bottom
+import com.avail.descriptor.CompiledCodeDescriptor
+import com.avail.descriptor.TypeDescriptor.Types.TOP
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
-
-import com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn
-import com.avail.descriptor.BottomTypeDescriptor.bottom
-import com.avail.descriptor.TypeDescriptor.Types.TOP
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
-import com.avail.interpreter.Primitive.Flag.Private
-import com.avail.interpreter.Primitive.Flag.SpecialForm
 import com.avail.utility.Nulls.stripNull
 
 /**
@@ -63,7 +62,7 @@ object P_PushConstant : Primitive(-1, SpecialForm, Private, CanInline, CannotFai
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		val code = stripNull<A_Function>(interpreter.function).code()
 		assert(code.primitive() === this)

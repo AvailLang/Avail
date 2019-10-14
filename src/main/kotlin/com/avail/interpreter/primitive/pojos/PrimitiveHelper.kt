@@ -283,10 +283,9 @@ object PrimitiveHelper
 		errorOut: MutableOrNull<AvailErrorCode>): Array<Any>?
 	{
 		assert(marshaledTypes.tupleSize() == args.tupleSize())
-		var marshaled: Array<Any>? = null
-		try
+		return try
 		{
-			marshaled = Array(args.tupleSize()) {
+			Array(args.tupleSize()) {
 				args.tupleAt(it + 1).marshalToJava(
 					marshaledTypes.tupleAt(it + 1).
 						javaObjectNotNull<Class<*>>())!!
@@ -297,7 +296,5 @@ object PrimitiveHelper
 			errorOut.value = E_JAVA_MARSHALING_FAILED
 			return null
 		}
-
-		return marshaled
 	}
 }

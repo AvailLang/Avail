@@ -31,16 +31,7 @@
  */
 package com.avail.interpreter.primitive.variables
 
-import com.avail.descriptor.A_Fiber
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.A_Variable
-import com.avail.descriptor.AvailObject
-import com.avail.descriptor.VariableDescriptor
-import com.avail.exceptions.VariableSetException
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.NilDescriptor.nil
@@ -50,6 +41,9 @@ import com.avail.descriptor.TypeDescriptor.Types.TOP
 import com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_SWAP_CONTENTS_OF_DIFFERENTLY_TYPED_VARIABLES
 import com.avail.exceptions.AvailErrorCode.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED
+import com.avail.exceptions.VariableSetException
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
 
@@ -60,7 +54,7 @@ object P_Swap : Primitive(2, CanInline, HasSideEffect)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val var1 = interpreter.argument(0)

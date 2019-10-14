@@ -31,26 +31,17 @@
  */
 package com.avail.interpreter.primitive.fibers
 
-import com.avail.descriptor.A_Atom
-import com.avail.descriptor.A_BasicObject
-import com.avail.descriptor.A_Fiber
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AtomDescriptor
-import com.avail.descriptor.FiberDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.descriptor.AtomDescriptor.SpecialAtom.HERITABLE_KEY
+import com.avail.descriptor.FiberDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.TypeDescriptor.Types.ANY
-import com.avail.descriptor.TypeDescriptor.Types.ATOM
-import com.avail.descriptor.TypeDescriptor.Types.TOP
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
-import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.descriptor.TypeDescriptor.Types.*
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive:** Associate the given value with the given
@@ -61,7 +52,7 @@ object P_SetFiberVariable : Primitive(2, CannotFail, CanInline, HasSideEffect)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val key = interpreter.argument(0)

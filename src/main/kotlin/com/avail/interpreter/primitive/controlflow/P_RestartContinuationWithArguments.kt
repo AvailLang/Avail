@@ -31,25 +31,10 @@
  */
 package com.avail.interpreter.primitive.controlflow
 
-import com.avail.descriptor.A_Continuation
-import com.avail.descriptor.A_Number
 import com.avail.descriptor.A_RawFunction
-import com.avail.descriptor.A_Tuple
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.AvailObject
-import com.avail.descriptor.ContinuationDescriptor
-import com.avail.descriptor.FunctionDescriptor
-import com.avail.descriptor.TupleDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
-import com.avail.interpreter.levelTwo.operation.L2_RESTART_CONTINUATION_WITH_ARGUMENTS
-import com.avail.optimizer.L1Translator
-import com.avail.optimizer.L1Translator.CallSiteHelper
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.AvailObject
 import com.avail.descriptor.BottomTypeDescriptor.bottom
 import com.avail.descriptor.ContinuationTypeDescriptor.mostGeneralContinuationType
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
@@ -59,10 +44,15 @@ import com.avail.descriptor.TupleDescriptor.toList
 import com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
-import com.avail.interpreter.Primitive.Flag.AlwaysSwitchesContinuation
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CanSwitchContinuations
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
 import com.avail.interpreter.Primitive.Result.CONTINUATION_CHANGED
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import com.avail.interpreter.levelTwo.operation.L2_RESTART_CONTINUATION_WITH_ARGUMENTS
+import com.avail.optimizer.L1Translator
+import com.avail.optimizer.L1Translator.CallSiteHelper
 
 /**
  * **Primitive:** Restart the given [ ], but passing in the given [ ] of arguments. Make sure it's a label-like continuation
@@ -81,7 +71,7 @@ object P_RestartContinuationWithArguments : Primitive(
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val originalCon = interpreter.argument(0)

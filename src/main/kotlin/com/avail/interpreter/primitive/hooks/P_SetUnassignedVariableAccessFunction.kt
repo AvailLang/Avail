@@ -32,22 +32,18 @@
 
 package com.avail.interpreter.primitive.hooks
 
-import com.avail.descriptor.A_Function
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.FunctionDescriptor
-import com.avail.descriptor.MethodDescriptor
-import com.avail.descriptor.TypeDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.AvailRuntime.HookType.READ_UNASSIGNED_VARIABLE
+import com.avail.descriptor.A_Type
 import com.avail.descriptor.BottomTypeDescriptor.bottom
+import com.avail.descriptor.FunctionDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.TupleDescriptor.emptyTuple
+import com.avail.descriptor.TypeDescriptor
 import com.avail.descriptor.TypeDescriptor.Types.TOP
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
 
@@ -60,7 +56,7 @@ object P_SetUnassignedVariableAccessFunction : Primitive(1, CannotFail, HasSideE
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val function = interpreter.argument(0)

@@ -33,13 +33,7 @@ package com.avail.interpreter.primitive.phrases
 
 import com.avail.compiler.AvailRejectedParseException
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel
-import com.avail.descriptor.A_Number
-import com.avail.descriptor.A_String
 import com.avail.descriptor.A_Type
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.BottomTypeDescriptor.bottom
 import com.avail.descriptor.FiberDescriptor.GeneralFlag.CAN_REJECT_PARSE
@@ -49,6 +43,8 @@ import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TupleTypeDescriptor.stringType
 import com.avail.exceptions.AvailErrorCode.E_UNTIMELY_PARSE_REJECTION
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.Unknown
 
 /**
@@ -61,7 +57,7 @@ object P_RejectParsing : Primitive(2, Unknown)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		if (!interpreter.fiber().generalFlag(CAN_REJECT_PARSE))

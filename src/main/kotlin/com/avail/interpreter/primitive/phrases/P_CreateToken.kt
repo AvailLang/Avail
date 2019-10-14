@@ -32,35 +32,22 @@
 
 package com.avail.interpreter.primitive.phrases
 
-import com.avail.descriptor.A_Atom
-import com.avail.descriptor.A_RawFunction
-import com.avail.descriptor.A_Token
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.FunctionTypeDescriptor
-import com.avail.descriptor.TokenDescriptor
-import com.avail.descriptor.TokenDescriptor.TokenType
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-
+import com.avail.descriptor.*
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.AtomDescriptor.createSpecialAtom
 import com.avail.descriptor.IntegerDescriptor.fromInt
 import com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetDescriptor.set
-import com.avail.descriptor.TokenDescriptor.TokenType.COMMENT
-import com.avail.descriptor.TokenDescriptor.TokenType.END_OF_FILE
-import com.avail.descriptor.TokenDescriptor.TokenType.KEYWORD
-import com.avail.descriptor.TokenDescriptor.TokenType.OPERATOR
-import com.avail.descriptor.TokenDescriptor.TokenType.WHITESPACE
-import com.avail.descriptor.TokenDescriptor.TokenType.lookupTokenType
+import com.avail.descriptor.TokenDescriptor.TokenType
+import com.avail.descriptor.TokenDescriptor.TokenType.*
 import com.avail.descriptor.TokenDescriptor.newToken
 import com.avail.descriptor.TokenTypeDescriptor.tokenType
 import com.avail.descriptor.TupleTypeDescriptor.stringType
 import com.avail.descriptor.TypeDescriptor.Types.TOKEN
-import com.avail.interpreter.Primitive.Flag.CanFold
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive:** Create a [token][TokenDescriptor] with
@@ -88,7 +75,7 @@ object P_CreateToken : Primitive(4, CannotFail, CanFold, CanInline)
 		}
 	}
 
-	override fun attempt(interpreter: Interpreter): Primitive.Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(4)
 		val type = interpreter.argument(0)

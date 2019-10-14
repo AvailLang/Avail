@@ -34,23 +34,16 @@ package com.avail.interpreter.primitive.files
 
 import com.avail.descriptor.A_String
 import com.avail.descriptor.A_Type
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
-import java.io.IOException
-import java.nio.file.FileSystem
-import java.nio.file.FileSystems
-import java.nio.file.LinkOption
-import java.nio.file.Path
-
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.StringDescriptor.stringFrom
 import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TupleTypeDescriptor.stringType
-import com.avail.interpreter.Primitive.Flag.CanFold
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
+import java.io.IOException
+import java.nio.file.FileSystems
+import java.nio.file.Path
 
 /**
  * **Primitive:** Answer the [ ][Path.toRealPath] of the current working directory.
@@ -92,7 +85,7 @@ object P_CurrentWorkingDirectory : Primitive(0, CannotFail, CanInline, CanFold)
 	}
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(0)
 		return interpreter.primitiveSuccess(currentWorkingDirectory)

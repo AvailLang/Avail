@@ -32,33 +32,22 @@
 
 package com.avail.interpreter.primitive.hooks
 
-import com.avail.descriptor.A_Atom
-import com.avail.descriptor.A_Function
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.AtomDescriptor
-import com.avail.descriptor.MethodDescriptor
-import com.avail.exceptions.AvailRuntimeException
-import com.avail.exceptions.MalformedMessageException
-import com.avail.interpreter.AvailLoader
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.interpreter.levelOne.L1InstructionWriter
-import com.avail.interpreter.levelOne.L1Operation
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.AvailRuntime.HookType.STRINGIFICATION
+import com.avail.descriptor.A_Type
 import com.avail.descriptor.FunctionDescriptor.createFunction
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TupleTypeDescriptor.stringType
-import com.avail.descriptor.TypeDescriptor.Types.ANY
-import com.avail.descriptor.TypeDescriptor.Types.ATOM
-import com.avail.descriptor.TypeDescriptor.Types.TOP
-import com.avail.interpreter.Primitive.Flag.CannotFail
-import com.avail.interpreter.Primitive.Flag.HasSideEffect
-import com.avail.interpreter.Primitive.Flag.Private
+import com.avail.descriptor.TypeDescriptor.Types.*
+import com.avail.exceptions.AvailRuntimeException
+import com.avail.exceptions.MalformedMessageException
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.levelOne.L1InstructionWriter
+import com.avail.interpreter.levelOne.L1Operation
 
 /**
  * **Primitive:** Inform the VM of the [ ] of the preferred stringification [ ].
@@ -69,7 +58,7 @@ object P_DeclareStringificationAtom : Primitive(1, CannotFail, HasSideEffect, Pr
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val atom = interpreter.argument(0)

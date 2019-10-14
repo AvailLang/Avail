@@ -31,13 +31,7 @@
  */
 package com.avail.interpreter.primitive.objects
 
-import com.avail.descriptor.A_String
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.ObjectTypeDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceMetaDescriptor.instanceMeta
 import com.avail.descriptor.NilDescriptor.nil
@@ -46,9 +40,9 @@ import com.avail.descriptor.ObjectTypeDescriptor.mostGeneralObjectType
 import com.avail.descriptor.ObjectTypeDescriptor.removeNameFromType
 import com.avail.descriptor.TupleTypeDescriptor.stringType
 import com.avail.descriptor.TypeDescriptor.Types.TOP
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
-import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive:** Unbind a name from a [ ]. This can be useful for
@@ -61,7 +55,7 @@ object P_RemoveTypeName : Primitive(2, CanInline, CannotFail, HasSideEffect)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val name = interpreter.argument(0)

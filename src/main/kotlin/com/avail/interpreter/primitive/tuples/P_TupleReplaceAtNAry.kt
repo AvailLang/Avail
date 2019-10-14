@@ -32,18 +32,7 @@
 
 package com.avail.interpreter.primitive.tuples
 
-import com.avail.descriptor.A_BasicObject
-import com.avail.descriptor.A_Map
-import com.avail.descriptor.A_Tuple
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.AvailObject
-import com.avail.descriptor.MapDescriptor
-import com.avail.descriptor.TupleDescriptor
-import com.avail.exceptions.AvailException
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
+import com.avail.descriptor.*
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InfinityDescriptor.positiveInfinity
@@ -55,9 +44,10 @@ import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType
 import com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType
 import com.avail.descriptor.TypeDescriptor.Types.ANY
-import com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
-import com.avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND
-import com.avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
+import com.avail.exceptions.AvailErrorCode.*
+import com.avail.exceptions.AvailException
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 
@@ -186,7 +176,7 @@ object P_TupleReplaceAtNAry : Primitive(3, CanInline, CanFold)
 	}
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
 		val tuple = interpreter.argument(0)

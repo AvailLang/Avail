@@ -94,7 +94,7 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 	val MAX_WRITE_BUFFER_SIZE = 4194304
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(6)
 		val positionObject = interpreter.argument(0)
@@ -250,7 +250,7 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 							continueWriting.value()
 							Unit
 						},
-						{ throwable ->
+						{
 							// Invalidate *all* pages for this file to
 							// ensure subsequent I/O has a proper
 							// opportunity to re-encounter problems like

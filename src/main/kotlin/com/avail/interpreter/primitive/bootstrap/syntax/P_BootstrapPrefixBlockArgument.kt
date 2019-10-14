@@ -66,13 +66,13 @@ object P_BootstrapPrefixBlockArgument : Primitive(1, CanInline, Bootstrap)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val optionalBlockArgumentsList = interpreter.argument(0)
 
-		val loader = interpreter.availLoaderOrNull()
-		             ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+		interpreter.availLoaderOrNull() ?:
+			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 
 		assert(optionalBlockArgumentsList.expressionsSize() == 1)
 		val blockArgumentsList = optionalBlockArgumentsList.lastExpression()

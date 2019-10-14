@@ -91,7 +91,7 @@ object P_EnvironmentMap : Primitive(0, CannotFail, CanInline, HasSideEffect)
 	}
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(0)
 		return interpreter.primitiveSuccess(getEnvironmentMap())

@@ -33,19 +33,6 @@ package com.avail.interpreter.primitive.tuples
 
 import com.avail.descriptor.A_RawFunction
 import com.avail.descriptor.A_Type
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_COMPARE_INT
-import com.avail.interpreter.levelTwo.operation.L2_TUPLE_AT_CONSTANT
-import com.avail.interpreter.levelTwo.operation.L2_TUPLE_AT_NO_FAIL
-import com.avail.interpreter.levelTwo.operation.L2_TUPLE_SIZE
-import com.avail.optimizer.L1Translator
-import com.avail.optimizer.L1Translator.CallSiteHelper
-
-import java.util.Arrays
-
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.IntegerDescriptor.one
@@ -56,13 +43,24 @@ import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType
 import com.avail.descriptor.TypeDescriptor.Types.ANY
 import com.avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType
+import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_COMPARE_INT
+import com.avail.interpreter.levelTwo.operation.L2_TUPLE_AT_CONSTANT
+import com.avail.interpreter.levelTwo.operation.L2_TUPLE_AT_NO_FAIL
+import com.avail.interpreter.levelTwo.operation.L2_TUPLE_SIZE
+import com.avail.optimizer.L1Translator
+import com.avail.optimizer.L1Translator.CallSiteHelper
 import com.avail.optimizer.L2Generator.edgeTo
+import java.util.*
 
 /**
  * **Primitive:** Look up an element in the [ ].
@@ -71,7 +69,7 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val tuple = interpreter.argument(0)

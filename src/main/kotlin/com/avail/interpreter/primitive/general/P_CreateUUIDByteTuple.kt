@@ -34,22 +34,17 @@ package com.avail.interpreter.primitive.general
 
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.ByteBufferTupleDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
-import java.nio.ByteBuffer
-import java.util.UUID
-
 import com.avail.descriptor.ByteBufferTupleDescriptor.tupleForByteBuffer
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.IntegerRangeTypeDescriptor.bytes
 import com.avail.descriptor.IntegerRangeTypeDescriptor.singleInt
 import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
-import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
+import java.nio.ByteBuffer
+import java.util.*
 
 /**
  * **Primitive:** Answer a cryptographically strong
@@ -61,7 +56,7 @@ object P_CreateUUIDByteTuple : Primitive(0, CannotFail, CanInline, HasSideEffect
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(0)
 		val uuid = UUID.randomUUID()

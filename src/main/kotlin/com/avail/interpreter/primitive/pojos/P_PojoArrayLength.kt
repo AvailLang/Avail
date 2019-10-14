@@ -31,23 +31,17 @@
  */
 package com.avail.interpreter.primitive.pojos
 
-import com.avail.descriptor.A_BasicObject
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.PojoDescriptor
-import com.avail.interpreter.AvailLoader
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-import java.lang.reflect.Array
-
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.IntegerDescriptor.fromInt
 import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.PojoDescriptor
 import com.avail.descriptor.PojoTypeDescriptor.mostGeneralPojoArrayType
-import com.avail.interpreter.Primitive.Flag.CanFold
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
+import java.lang.reflect.Array
 
 /**
  * **Primitive:** Answer the length of the specified
@@ -57,7 +51,7 @@ object P_PojoArrayLength : Primitive(1, CannotFail, CanFold, CanInline)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val pojo = interpreter.argument(0)

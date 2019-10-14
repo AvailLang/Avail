@@ -49,7 +49,7 @@ object P_PushLastOuter : Primitive(-1, SpecialForm, Private, CanInline, CannotFa
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		val function = stripNull(interpreter.function)
 		assert(function.code().primitive() === this)

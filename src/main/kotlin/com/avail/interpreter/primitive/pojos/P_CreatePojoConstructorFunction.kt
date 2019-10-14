@@ -32,16 +32,6 @@
 package com.avail.interpreter.primitive.pojos
 
 import com.avail.descriptor.*
-import com.avail.exceptions.MarshalingException
-import com.avail.interpreter.AvailLoader
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-import java.lang.reflect.Constructor
-import java.lang.reflect.Modifier
-import java.util.Arrays
-import java.util.WeakHashMap
-
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionDescriptor.createWithOuters2
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
@@ -56,15 +46,18 @@ import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf
 import com.avail.descriptor.TypeDescriptor.Types.ANY
 import com.avail.descriptor.TypeDescriptor.Types.RAW_POJO
-import com.avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED
-import com.avail.exceptions.AvailErrorCode.E_JAVA_METHOD_NOT_AVAILABLE
-import com.avail.exceptions.AvailErrorCode.E_POJO_TYPE_IS_ABSTRACT
+import com.avail.exceptions.AvailErrorCode.*
+import com.avail.exceptions.MarshalingException
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.primitive.pojos.PrimitiveHelper.rawPojoInvokerFunctionFromFunctionType
 import com.avail.utility.Casts.cast
+import java.lang.reflect.Constructor
+import java.lang.reflect.Modifier
+import java.util.*
 import java.util.Collections.synchronizedMap
-import java.util.stream.Collectors.toList
 
 /**
  * **Primitive:** Given a [type][A_Type] that can be
@@ -88,7 +81,7 @@ object P_CreatePojoConstructorFunction : Primitive(2, CanInline, CanFold)
 	private val rawFunctionCache = synchronizedMap(WeakHashMap<A_Type, A_RawFunction>())
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val pojoType = interpreter.argument(0)

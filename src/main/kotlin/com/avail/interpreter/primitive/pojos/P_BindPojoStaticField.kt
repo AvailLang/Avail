@@ -33,22 +33,12 @@ package com.avail.interpreter.primitive.pojos
 
 import com.avail.descriptor.A_String
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.AvailObject
-import com.avail.descriptor.PojoFieldDescriptor
-import com.avail.exceptions.AvailErrorCode
-import com.avail.interpreter.AvailLoader
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-import com.avail.utility.MutableOrNull
-import java.lang.reflect.Field
-import java.lang.reflect.Modifier
-
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceMetaDescriptor.anyMeta
 import com.avail.descriptor.MapDescriptor.emptyMap
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.PojoFieldDescriptor
 import com.avail.descriptor.PojoFieldDescriptor.pojoFieldVariableForInnerType
 import com.avail.descriptor.PojoTypeDescriptor.resolvePojoType
 import com.avail.descriptor.RawPojoDescriptor.equalityPojo
@@ -56,11 +46,17 @@ import com.avail.descriptor.RawPojoDescriptor.rawNullPojo
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TupleTypeDescriptor.stringType
 import com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType
+import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailErrorCode.E_JAVA_FIELD_NOT_AVAILABLE
 import com.avail.exceptions.AvailErrorCode.E_JAVA_FIELD_REFERENCE_IS_AMBIGUOUS
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.primitive.pojos.PrimitiveHelper.lookupField
+import com.avail.utility.MutableOrNull
+import java.lang.reflect.Field
+import java.lang.reflect.Modifier
 
 /**
  * **Primitive:** Given a [type][A_Type] that can be
@@ -75,7 +71,7 @@ object P_BindPojoStaticField : Primitive(2, CanFold, CanInline)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val pojoType = interpreter.argument(0)

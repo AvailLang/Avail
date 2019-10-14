@@ -31,21 +31,8 @@
  */
 package com.avail.interpreter.primitive.methods
 
-import com.avail.descriptor.A_Atom
-import com.avail.descriptor.A_Function
-import com.avail.descriptor.A_Method
-import com.avail.descriptor.A_SemanticRestriction
-import com.avail.descriptor.A_String
-import com.avail.descriptor.A_Type
-import com.avail.exceptions.AmbiguousNameException
-import com.avail.exceptions.MalformedMessageException
-import com.avail.exceptions.SignatureException
-import com.avail.interpreter.AvailLoader
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
+import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.FunctionTypeDescriptor.functionTypeReturning
@@ -57,11 +44,12 @@ import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.StringDescriptor.formatString
 import com.avail.descriptor.TupleTypeDescriptor.stringType
 import com.avail.descriptor.TypeDescriptor.Types.TOP
-import com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_NAME
-import com.avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
-import com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
-import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
-import com.avail.exceptions.AvailErrorCode.E_TYPE_RESTRICTION_MUST_ACCEPT_ONLY_TYPES
+import com.avail.exceptions.AmbiguousNameException
+import com.avail.exceptions.AvailErrorCode.*
+import com.avail.exceptions.MalformedMessageException
+import com.avail.exceptions.SignatureException
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.Unknown
 
 /**
@@ -71,7 +59,7 @@ object P_AddSemanticRestriction : Primitive(2, Unknown)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val string = interpreter.argument(0)

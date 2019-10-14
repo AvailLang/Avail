@@ -57,7 +57,7 @@ object P_VisibleAtoms : Primitive(0, CanInline)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(0)
 		return if (interpreter.availLoaderOrNull() === null)

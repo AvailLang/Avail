@@ -31,13 +31,7 @@
  */
 package com.avail.interpreter.primitive.phrases
 
-import com.avail.descriptor.A_Phrase
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.SuperCastPhraseDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceMetaDescriptor.anyMeta
@@ -45,11 +39,12 @@ import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.SUPER_CAST_PHRASE
 import com.avail.descriptor.SetDescriptor.set
+import com.avail.descriptor.SuperCastPhraseDescriptor
 import com.avail.descriptor.SuperCastPhraseDescriptor.newSuperCastNode
 import com.avail.descriptor.TypeDescriptor.Types.ANY
-import com.avail.exceptions.AvailErrorCode.E_SUPERCAST_EXPRESSION_MUST_NOT_ALSO_BE_A_SUPERCAST
-import com.avail.exceptions.AvailErrorCode.E_SUPERCAST_EXPRESSION_TYPE_MUST_NOT_BE_TOP_OR_BOTTOM
-import com.avail.exceptions.AvailErrorCode.E_SUPERCAST_MUST_BE_STRICT_SUPERTYPE_OF_EXPRESSION_TYPE
+import com.avail.exceptions.AvailErrorCode.*
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 
@@ -64,7 +59,7 @@ object P_CreateSuperCastExpression : Primitive(2, CanFold, CanInline)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val expression = interpreter.argument(0)

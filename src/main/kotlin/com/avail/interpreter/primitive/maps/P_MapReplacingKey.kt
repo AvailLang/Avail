@@ -33,22 +33,19 @@ package com.avail.interpreter.primitive.maps
 
 import com.avail.descriptor.A_RawFunction
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.MapDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.IntegerDescriptor.one
 import com.avail.descriptor.IntegerDescriptor.two
 import com.avail.descriptor.IntegerRangeTypeDescriptor.integerRangeType
 import com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers
+import com.avail.descriptor.MapDescriptor
 import com.avail.descriptor.MapTypeDescriptor.mapTypeForSizesKeyTypeValueType
 import com.avail.descriptor.MapTypeDescriptor.mostGeneralMapType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.TypeDescriptor.Types.ANY
-import com.avail.interpreter.Primitive.Flag.CanFold
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive:** Answer a new [ map][MapDescriptor] like the given map, but also including the binding between `key` and `value`. Overwrite any existing value if the key is
@@ -58,7 +55,7 @@ object P_MapReplacingKey : Primitive(3, CannotFail, CanFold, CanInline)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
 		val map = interpreter.argument(0)

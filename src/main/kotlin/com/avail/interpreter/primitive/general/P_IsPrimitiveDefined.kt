@@ -48,7 +48,7 @@ object P_IsPrimitiveDefined : Primitive(1, CannotFail, CanFold, CanInline)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val primitiveName = interpreter.argument(0)

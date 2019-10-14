@@ -31,28 +31,20 @@
  */
 package com.avail.interpreter.primitive.atoms
 
-import com.avail.descriptor.A_Atom
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.AtomDescriptor
-import com.avail.descriptor.AvailObject
-import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom
-import com.avail.interpreter.AvailLoader
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.interpreter.effects.LoadingEffectToRunPrimitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetDescriptor.set
-import com.avail.descriptor.TypeDescriptor.Types.ANY
-import com.avail.descriptor.TypeDescriptor.Types.ATOM
-import com.avail.descriptor.TypeDescriptor.Types.TOP
+import com.avail.descriptor.TypeDescriptor.Types.*
 import com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.effects.LoadingEffectToRunPrimitive
 
 /**
  * **Primitive:** Within the first [ ], associate the given property key (another atom)
@@ -62,7 +54,7 @@ object P_AtomSetProperty : Primitive(3, CanInline, HasSideEffect)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
 		val atom = interpreter.argument(0)

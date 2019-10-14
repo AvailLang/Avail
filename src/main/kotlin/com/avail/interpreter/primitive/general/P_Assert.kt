@@ -32,29 +32,26 @@
 package com.avail.interpreter.primitive.general
 
 import com.avail.descriptor.*
-import com.avail.descriptor.FiberDescriptor.ExecutionState
-import com.avail.exceptions.AvailAssertionFailedException
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_EQUALS_CONSTANT
-import com.avail.optimizer.L1Translator
-import com.avail.optimizer.L1Translator.CallSiteHelper
-
 import com.avail.descriptor.AtomDescriptor.falseObject
 import com.avail.descriptor.AtomDescriptor.trueObject
 import com.avail.descriptor.BottomTypeDescriptor.bottom
 import com.avail.descriptor.ContinuationDescriptor.dumpStackThen
 import com.avail.descriptor.EnumerationTypeDescriptor.booleanType
+import com.avail.descriptor.FiberDescriptor.ExecutionState
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.TupleTypeDescriptor.stringType
 import com.avail.descriptor.TypeDescriptor.Types.TOP
-import com.avail.interpreter.Primitive.Flag.CanSuspend
-import com.avail.interpreter.Primitive.Flag.CannotFail
-import com.avail.interpreter.Primitive.Flag.Unknown
+import com.avail.exceptions.AvailAssertionFailedException
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_EQUALS_CONSTANT
+import com.avail.optimizer.L1Translator
+import com.avail.optimizer.L1Translator.CallSiteHelper
 import com.avail.optimizer.L2Generator.edgeTo
 import com.avail.utility.Nulls.stripNull
 import java.lang.String.format
@@ -68,7 +65,7 @@ object P_Assert : Primitive(2, Unknown, CanSuspend, CannotFail)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val predicate = interpreter.argument(0)

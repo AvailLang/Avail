@@ -33,27 +33,16 @@
 package com.avail.interpreter.primitive.methods
 
 import com.avail.compiler.splitter.MessageSplitter
+import com.avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
 import com.avail.descriptor.A_Atom
 import com.avail.descriptor.A_Bundle
-import com.avail.descriptor.A_BundleTree
-import com.avail.descriptor.A_Method
 import com.avail.descriptor.A_String
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.MapDescriptor.Entry
-import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom
-import com.avail.exceptions.AmbiguousNameException
-import com.avail.exceptions.MalformedMessageException
-import com.avail.interpreter.AvailLoader
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.interpreter.effects.LoadingEffectToRunPrimitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
-import com.avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.AtomDescriptor.SpecialAtom.MESSAGE_BUNDLE_KEY
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.MessageBundleDescriptor.newBundle
+import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.ParsingPlanInProgressDescriptor.newPlanInProgress
@@ -61,14 +50,15 @@ import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TupleTypeDescriptor.stringType
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.TypeDescriptor.Types.TOP
-import com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_NAME
-import com.avail.exceptions.AvailErrorCode.E_ATOM_ALREADY_EXISTS
-import com.avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
-import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
-import com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
+import com.avail.exceptions.AmbiguousNameException
+import com.avail.exceptions.AvailErrorCode.*
+import com.avail.exceptions.MalformedMessageException
 import com.avail.interpreter.AvailLoader.Phase.EXECUTING_FOR_COMPILE
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.effects.LoadingEffectToRunPrimitive
 
 /**
  * **Primitive:** Alias a [name][A_String] to another
@@ -80,7 +70,7 @@ object P_Alias : Primitive(2, CanInline, HasSideEffect)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val newString = interpreter.argument(0)

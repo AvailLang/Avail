@@ -33,18 +33,8 @@
 package com.avail.interpreter.primitive.sockets
 
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.AtomDescriptor
-import com.avail.descriptor.AvailObject
-import com.avail.descriptor.MapDescriptor.Entry
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
-import java.io.IOException
-import java.net.SocketOption
-import java.nio.channels.AsynchronousServerSocketChannel
-
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.AtomDescriptor
 import com.avail.descriptor.AtomDescriptor.SpecialAtom.SERVER_SOCKET_KEY
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive
@@ -52,17 +42,18 @@ import com.avail.descriptor.MapTypeDescriptor.mapTypeForSizesKeyTypeValueType
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetDescriptor.set
-import com.avail.descriptor.TypeDescriptor.Types.ANY
-import com.avail.descriptor.TypeDescriptor.Types.ATOM
-import com.avail.descriptor.TypeDescriptor.Types.TOP
-import com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
-import com.avail.exceptions.AvailErrorCode.E_INVALID_HANDLE
-import com.avail.exceptions.AvailErrorCode.E_IO_ERROR
-import com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
+import com.avail.descriptor.TypeDescriptor.Types.*
+import com.avail.exceptions.AvailErrorCode.*
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.utility.Casts.cast
+import java.io.IOException
+import java.net.SocketOption
 import java.net.StandardSocketOptions.SO_RCVBUF
 import java.net.StandardSocketOptions.SO_REUSEADDR
+import java.nio.channels.AsynchronousServerSocketChannel
 
 /**
  * **Primitive:** Set the socket options for the
@@ -78,7 +69,7 @@ object P_ServerSocketSetOption : Primitive(2, CanInline, HasSideEffect)
 	private val socketOptions = arrayOf<SocketOption<*>?>(null, SO_RCVBUF, SO_REUSEADDR)
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val handle = interpreter.argument(0)
@@ -95,17 +86,18 @@ object P_ServerSocketSetOption : Primitive(2, CanInline, HasSideEffect)
 			for (entry in options.mapIterable())
 			{
 				val option = socketOptions[entry.key().extractInt()]!!
-				if (option.type() == Boolean::class.java && entry.value().isBoolean)
+				val value = entry.value()
+				if (option.type() === java.lang.Boolean::class.java
+					&& value.isBoolean)
 				{
-					socket.setOption<Boolean>(
-						option as SocketOption<Boolean>,
-						entry.value().extractBoolean())
+					val booleanOption: SocketOption<Boolean> = cast(option)
+					socket.setOption(booleanOption, value.extractBoolean())
 				}
-				else if (option.type() == Int::class.java && entry.value().isInt)
+				else if (option.type() === java.lang.Integer::class.java
+					&& value.isInt)
 				{
-					socket.setOption<Int>(
-						option as SocketOption<Int>,
-						entry.value().extractInt())
+					val intOption: SocketOption<Int> = cast(option)
+					socket.setOption(intOption, value.extractInt())
 				}
 				else
 				{

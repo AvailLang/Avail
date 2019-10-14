@@ -31,24 +31,15 @@
  */
 package com.avail.interpreter.primitive.integers
 
-import com.avail.descriptor.A_Atom
-import com.avail.descriptor.A_Number
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.EnumerationTypeDescriptor
-import com.avail.descriptor.IntegerRangeTypeDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.descriptor.EnumerationTypeDescriptor.booleanType
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.IntegerRangeTypeDescriptor.extendedIntegers
-import com.avail.descriptor.IntegerRangeTypeDescriptor.extendedIntegersMeta
-import com.avail.descriptor.IntegerRangeTypeDescriptor.integerRangeType
+import com.avail.descriptor.IntegerRangeTypeDescriptor.*
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.interpreter.Primitive.Flag.CanFold
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive:** Answer the [ ] constrained by the specified
@@ -59,7 +50,7 @@ object P_CreateIntegerRange : Primitive(4, CannotFail, CanFold, CanInline)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(4)
 		val min = interpreter.argument(0)

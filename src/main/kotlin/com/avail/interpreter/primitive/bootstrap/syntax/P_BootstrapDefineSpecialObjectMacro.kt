@@ -70,7 +70,7 @@ object P_BootstrapDefineSpecialObjectMacro : Primitive(2, Bootstrap, CanInline)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val nameLiteral = interpreter.argument(0)

@@ -32,26 +32,21 @@
 
 package com.avail.interpreter.primitive.modules
 
-import com.avail.descriptor.A_Atom
-import com.avail.descriptor.A_Module
-import com.avail.descriptor.A_Set
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AtomDescriptor
 import com.avail.descriptor.EnumerationTypeDescriptor
-import com.avail.descriptor.ModuleDescriptor.ObjectSlots
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.descriptor.EnumerationTypeDescriptor.booleanType
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
+import com.avail.descriptor.ModuleDescriptor.ObjectSlots
 import com.avail.descriptor.ModuleDescriptor.currentModule
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.TypeDescriptor.Types.TOP
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.Primitive.Flag.Private
 
@@ -67,7 +62,7 @@ object P_DeclareAllExportedAtoms : Primitive(2, CannotFail, Private)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val names = interpreter.argument(0)

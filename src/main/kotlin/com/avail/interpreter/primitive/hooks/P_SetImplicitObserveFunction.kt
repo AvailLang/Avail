@@ -32,30 +32,28 @@
 
 package com.avail.interpreter.primitive.hooks
 
-import com.avail.descriptor.FiberDescriptor.TraceFlag
-import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom
-import com.avail.descriptor.VariableDescriptor.VariableAccessReactor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.interpreter.levelOne.L1InstructionWriter
-import com.avail.interpreter.levelOne.L1Operation
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.AvailRuntime.HookType.IMPLICIT_OBSERVE
 import com.avail.descriptor.*
 import com.avail.descriptor.BottomTypeDescriptor.bottom
 import com.avail.descriptor.ContinuationTypeDescriptor.mostGeneralContinuationType
+import com.avail.descriptor.FiberDescriptor.TraceFlag
 import com.avail.descriptor.FunctionDescriptor.createWithOuters1
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.FunctionTypeDescriptor.mostGeneralFunctionType
+import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.StringDescriptor.stringFrom
 import com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType
 import com.avail.descriptor.TypeDescriptor.Types.TOP
+import com.avail.descriptor.VariableDescriptor.VariableAccessReactor
 import com.avail.descriptor.VariableTypeDescriptor.variableTypeFor
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.levelOne.L1InstructionWriter
+import com.avail.interpreter.levelOne.L1Operation
 import com.avail.utility.Casts.cast
 
 /**
@@ -117,7 +115,7 @@ object P_SetImplicitObserveFunction : Primitive(1, CannotFail, HasSideEffect)
 	}
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val function = interpreter.argument(0)

@@ -73,7 +73,7 @@ object P_FileMetadata : Primitive(2, CanInline, HasSideEffect)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val filename = interpreter.argument(0)

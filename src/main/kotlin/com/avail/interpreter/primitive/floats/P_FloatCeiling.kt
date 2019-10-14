@@ -47,7 +47,7 @@ import com.avail.interpreter.Primitive.Flag.*
 object P_FloatCeiling : Primitive(1, CannotFail, CanFold, CanInline) {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result {
+		interpreter: Interpreter): Result {
 		interpreter.checkArgumentCount(1)
 		val a = interpreter.argument(0)
 		val f = a.extractFloat()

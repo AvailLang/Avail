@@ -31,21 +31,16 @@
  */
 package com.avail.interpreter.primitive.phrases
 
-import com.avail.descriptor.A_Phrase
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.SuperCastPhraseDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.SUPER_CAST_PHRASE
+import com.avail.descriptor.SuperCastPhraseDescriptor
 import com.avail.descriptor.TypeDescriptor.Types.ANY
-import com.avail.interpreter.Primitive.Flag.CanFold
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive:** Extract the base expression from a
@@ -55,7 +50,7 @@ object P_SuperCastExpression : Primitive(1, CanFold, CanInline, CannotFail)
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val supercast = interpreter.argument(0)

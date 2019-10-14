@@ -63,7 +63,7 @@ object P_CreateExplicitSubclassAtom : Primitive(1, CanInline)
 
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val name = interpreter.argument(0)

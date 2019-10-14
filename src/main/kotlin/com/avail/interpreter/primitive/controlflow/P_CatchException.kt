@@ -31,17 +31,10 @@
  */
 package com.avail.interpreter.primitive.controlflow
 
-import com.avail.descriptor.A_BasicObject
-import com.avail.descriptor.A_Tuple
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.A_Variable
-import com.avail.descriptor.FunctionDescriptor
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.BottomTypeDescriptor.bottom
+import com.avail.descriptor.FunctionDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.ObjectTypeDescriptor.exceptionType
@@ -51,14 +44,10 @@ import com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf
 import com.avail.descriptor.TypeDescriptor.Types.TOP
 import com.avail.descriptor.VariableDescriptor.newVariableWithOuterType
 import com.avail.descriptor.VariableTypeDescriptor.variableTypeFor
-import com.avail.exceptions.AvailErrorCode.E_HANDLER_SENTINEL
-import com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
-import com.avail.exceptions.AvailErrorCode.E_REQUIRED_FAILURE
-import com.avail.exceptions.AvailErrorCode.E_UNWIND_SENTINEL
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CatchException
-import com.avail.interpreter.Primitive.Flag.PreserveArguments
-import com.avail.interpreter.Primitive.Flag.PreserveFailureVariable
+import com.avail.exceptions.AvailErrorCode.*
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive:** Always fail. The Avail failure code
@@ -74,7 +63,7 @@ object P_CatchException : Primitive(
 {
 
 	override fun attempt(
-		interpreter: Interpreter): Primitive.Result
+		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
 		//		final A_BasicObject bodyBlock = interpreter.argument(0);
