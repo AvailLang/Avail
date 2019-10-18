@@ -45,14 +45,13 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * **Primitive:** If the first [ atom][AtomDescriptor] has a property whose key is the second atom, then return the
- * corresponding property value, otherwise fail.
+ * **Primitive:** If the first [ atom][AtomDescriptor] has a property whose key
+ * is the second atom, then return the corresponding property value, otherwise
+ * fail.
  */
 object P_AtomGetProperty : Primitive(2, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val atom = interpreter.argument(0)
@@ -69,21 +68,9 @@ object P_AtomGetProperty : Primitive(2, CanInline)
 		else interpreter.primitiveSuccess(propertyValue)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				ATOM.o(),
-				ATOM.o()),
-			ANY.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(ATOM.o(), ATOM.o()), ANY.o())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
-			set(
-				E_NO_SUCH_FIELD,
-				E_KEY_NOT_FOUND))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_NO_SUCH_FIELD, E_KEY_NOT_FOUND))
 }
