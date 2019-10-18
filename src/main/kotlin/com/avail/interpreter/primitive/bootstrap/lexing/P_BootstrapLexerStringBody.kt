@@ -136,12 +136,14 @@ object P_BootstrapLexerStringBody
 							{
 								throw AvailRejectedParseException(
 									STRONG,
-									"only whitespace characters on line " + "before \"\\|\" ")
+									"only whitespace characters on line "
+										+ "before \"\\|\" ")
 							}
 						'(' -> parseUnicodeEscapes(scanner, builder)
 						'[' -> throw AvailRejectedParseException(
 							WEAK,
-							"something other than \"\\[\", because power " + "strings are not yet supported")
+							"something other than \"\\[\", because power "
+								+ "strings are not yet supported")
 						else -> throw AvailRejectedParseException(
 							STRONG,
 							"Backslash escape should be followed by "
@@ -188,31 +190,29 @@ object P_BootstrapLexerStringBody
 
 	/**
 	 * A class to help consume codepoints during parsing.
-	 */
-	internal class Scanner
-	/**
+	 *
+	 * @property source
+	 *   The module source string.
+	 * @property position
+	 *   The starting position in the source.
+	 * @property lineNumber
+	 *   The starting line number in the source.
+	 *
+	 * @constructor
 	 * Create a `Scanner` to help parse the string literal.
 	 *
-	 * @param source The module source string.
-	 * @param position The starting position in the source.
-	 * @param lineNumber The starting line number in the source.
+	 * @param source
+	 *   The module source string.
+	 * @param position
+	 *   The starting position in the source.
+	 * @param lineNumber
+	 *   The starting line number in the source.
 	 */
-	(
-		/** The module source.  */
-		private val source: A_String,
-		/** The current position in the source.  */
-		var position: Int,
-		/** The current line number in the source.  */
-		var lineNumber: Int)
+	internal class Scanner constructor (
+		private val source: A_String, var position: Int, var lineNumber: Int)
 	{
-
 		/** The number of characters in the module source.  */
-		private val sourceSize: Int
-
-		init
-		{
-			this.sourceSize = source.tupleSize()
-		}
+		private val sourceSize: Int = source.tupleSize()
 
 		/**
 		 * Whether there are any more codepoints available.
@@ -220,10 +220,7 @@ object P_BootstrapLexerStringBody
 		 * @return `true` if there are more codepoints available,
 		 * otherwise `false`
 		 */
-		operator fun hasNext(): Boolean
-		{
-			return position <= sourceSize
-		}
+		operator fun hasNext(): Boolean =  position <= sourceSize
 
 		/**
 		 * Answer the next codepoint from the source, without consuming it.
@@ -231,15 +228,11 @@ object P_BootstrapLexerStringBody
 		 *
 		 * @return The next codepoint.
 		 */
-		fun peek(): Int
-		{
-			return source.tupleCodePointAt(position)
-		}
+		fun peek(): Int =  source.tupleCodePointAt(position)
 
 		/**
 		 * Answer the next codepoint from the source, and consume it.  Should
-		 * only be called if [hasNext] would produce true before
-		 * this call.
+		 * only be called if [hasNext] would produce true before this call.
 		 *
 		 * @return The consumed codepoint.
 		 */
@@ -261,10 +254,10 @@ object P_BootstrapLexerStringBody
 	 * 0x10FFFF, followed by a ")".
 	 *
 	 * @param scanner
-	 * The source of characters.
+	 *   The source of characters.
 	 * @param stringBuilder
-	 * The [StringBuilder] on which to append the corresponding
-	 * Unicode characters.
+	 *   The [StringBuilder] on which to append the corresponding Unicode
+	 *   characters.
 	 */
 	private fun parseUnicodeEscapes(
 		scanner: Scanner,
@@ -308,7 +301,8 @@ object P_BootstrapLexerStringBody
 				{
 					throw AvailRejectedParseException(
 						STRONG,
-						"at most six hex digits per comma-separated Unicode " + "entry")
+						"at most six hex digits per comma-separated Unicode "
+							+ "entry")
 				}
 				c = scanner.next()
 			}
@@ -334,9 +328,5 @@ object P_BootstrapLexerStringBody
 		}
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return lexerBodyFunctionType()
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type = lexerBodyFunctionType()
 }

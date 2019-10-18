@@ -48,11 +48,10 @@ import com.avail.interpreter.Primitive.Flag.*
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object P_BootstrapLexerKeywordBody : Primitive(3, CannotFail, CanFold, CanInline, Bootstrap)
+object P_BootstrapLexerKeywordBody
+	: Primitive(3, CannotFail, CanFold, CanInline, Bootstrap)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
 		val source = interpreter.argument(0)
@@ -77,9 +76,5 @@ object P_BootstrapLexerKeywordBody : Primitive(3, CannotFail, CanFold, CanInline
 		return interpreter.primitiveSuccess(set(tuple(token)))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return lexerBodyFunctionType()
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type = lexerBodyFunctionType()
 }

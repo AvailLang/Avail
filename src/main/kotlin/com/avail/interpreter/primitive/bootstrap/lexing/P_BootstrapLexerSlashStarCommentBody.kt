@@ -45,16 +45,15 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * The `P_BootstrapLexerSlashStarCommentBody` primitive is used for
- * parsing slash-star star-slash delimited comment tokens.
+ * The `P_BootstrapLexerSlashStarCommentBody` primitive is used for parsing
+ * slash-star star-slash delimited comment tokens.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object P_BootstrapLexerSlashStarCommentBody : Primitive(3, CannotFail, CanFold, CanInline, Bootstrap)
+object P_BootstrapLexerSlashStarCommentBody
+	: Primitive(3, CannotFail, CanFold, CanInline, Bootstrap)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
 		val source = interpreter.argument(0)
@@ -65,7 +64,8 @@ object P_BootstrapLexerSlashStarCommentBody : Primitive(3, CannotFail, CanFold, 
 		val startPosition = sourcePositionInteger.extractInt()
 		var position = startPosition + 1
 
-		if (position > sourceSize || source.tupleCodePointAt(position) != '*'.toInt())
+		if (position > sourceSize
+		    || source.tupleCodePointAt(position) != '*'.toInt())
 		{
 			// It didn't start with "/*", so it's not a comment.
 			return interpreter.primitiveSuccess(emptySet())
@@ -87,7 +87,8 @@ object P_BootstrapLexerSlashStarCommentBody : Primitive(3, CannotFail, CanFold, 
 
 			// At least two characters are available to examine.
 			val c = source.tupleCodePointAt(position)
-			if (c == '*'.toInt() && source.tupleCodePointAt(position + 1) == '/'.toInt())
+			if (c == '*'.toInt()
+			    && source.tupleCodePointAt(position + 1) == '/'.toInt())
 			{
 				// Close a nesting level.
 				position += 2
@@ -97,7 +98,8 @@ object P_BootstrapLexerSlashStarCommentBody : Primitive(3, CannotFail, CanFold, 
 					break
 				}
 			}
-			else if (c == '/'.toInt() && source.tupleCodePointAt(position + 1) == '*'.toInt())
+			else if (c == '/'.toInt()
+			         && source.tupleCodePointAt(position + 1) == '*'.toInt())
 			{
 				// Open a new nesting level.
 				position += 2
@@ -118,9 +120,6 @@ object P_BootstrapLexerSlashStarCommentBody : Primitive(3, CannotFail, CanFold, 
 		return interpreter.primitiveSuccess(set(tuple(token)))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return lexerBodyFunctionType()
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		lexerBodyFunctionType()
 }

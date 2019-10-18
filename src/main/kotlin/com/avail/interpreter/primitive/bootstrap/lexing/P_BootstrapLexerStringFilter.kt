@@ -43,17 +43,16 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * The `P_BootstrapLexerStringFilter` primitive is used for deciding
- * whether to look for a string literal constant at the specified location.
- * Obviously seeing an open-quote is the criterion.
+ * The `P_BootstrapLexerStringFilter` primitive is used for deciding whether to
+ * look for a string literal constant at the specified location. Obviously
+ * seeing an open-quote is the criterion.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object P_BootstrapLexerStringFilter : Primitive(1, CannotFail, CanFold, CanInline, Bootstrap)
+object P_BootstrapLexerStringFilter
+	: Primitive(1, CannotFail, CanFold, CanInline, Bootstrap)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val character = interpreter.argument(0)
@@ -63,9 +62,6 @@ object P_BootstrapLexerStringFilter : Primitive(1, CannotFail, CanFold, CanInlin
 			objectFromBoolean(codePoint == '\"'.toInt()))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(CHARACTER.o()), booleanType())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(CHARACTER.o()), booleanType())
 }

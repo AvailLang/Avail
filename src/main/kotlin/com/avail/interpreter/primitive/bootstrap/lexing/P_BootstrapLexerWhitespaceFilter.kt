@@ -43,17 +43,15 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * The `P_BootstrapLexerKeywordFilter` primitive is used for deciding
- * whether a particular Unicode character is an initial character for a run of
- * whitespace.
+ * The `P_BootstrapLexerKeywordFilter` primitive is used for deciding whether a
+ * particular Unicode character is an initial character for a run of whitespace.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object P_BootstrapLexerWhitespaceFilter : Primitive(1, CannotFail, CanFold, CanInline, Bootstrap)
+object P_BootstrapLexerWhitespaceFilter
+	: Primitive(1, CannotFail, CanFold, CanInline, Bootstrap)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val character = interpreter.argument(0)
@@ -66,9 +64,6 @@ object P_BootstrapLexerWhitespaceFilter : Primitive(1, CannotFail, CanFold, CanI
 				|| c == '\uFEFF'.toInt()))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(CHARACTER.o()), booleanType())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(CHARACTER.o()), booleanType())
 }

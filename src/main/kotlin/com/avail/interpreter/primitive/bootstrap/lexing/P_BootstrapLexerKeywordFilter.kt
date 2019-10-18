@@ -43,15 +43,14 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * The `P_BootstrapLexerKeywordFilter` primitive is used for deciding
- * whether a particular Unicode character is suitable as the start of a keyword
- * token.
+ * The `P_BootstrapLexerKeywordFilter` primitive is used for deciding whether a
+ * particular Unicode character is suitable as the start of a keyword token.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object P_BootstrapLexerKeywordFilter : Primitive(1, CannotFail, CanFold, CanInline, Bootstrap)
+object P_BootstrapLexerKeywordFilter
+	: Primitive(1, CannotFail, CanFold, CanInline, Bootstrap)
 {
-
 	override fun attempt(
 		interpreter: Interpreter): Result
 	{
@@ -64,9 +63,6 @@ object P_BootstrapLexerKeywordFilter : Primitive(1, CannotFail, CanFold, CanInli
 			objectFromBoolean(isIdentifierStart))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(CHARACTER.o()), booleanType())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(CHARACTER.o()), booleanType())
 }

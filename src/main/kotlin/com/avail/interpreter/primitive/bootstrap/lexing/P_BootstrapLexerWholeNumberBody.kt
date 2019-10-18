@@ -52,11 +52,10 @@ import com.avail.interpreter.Primitive.Flag.*
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object P_BootstrapLexerWholeNumberBody : Primitive(3, CannotFail, CanFold, CanInline, Bootstrap)
+object P_BootstrapLexerWholeNumberBody
+	: Primitive(3, CannotFail, CanFold, CanInline, Bootstrap)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
 		val source = interpreter.argument(0)
@@ -74,28 +73,24 @@ object P_BootstrapLexerWholeNumberBody : Primitive(3, CannotFail, CanFold, CanIn
 		return interpreter.primitiveSuccess(set(tuple(token)))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return lexerBodyFunctionType()
-	}
+	override fun privateBlockTypeRestriction(): A_Type = lexerBodyFunctionType()
 
 	/**
 	 * Determine how many consecutive decimal digits occur in the string,
 	 * starting at the given startPosition.
 	 *
 	 * @param string
-	 * The string to examine.
+	 *   The string to examine.
 	 * @param startPosition
-	 * The start of the run of digits in the string.
+	 *   The start of the run of digits in the string.
 	 * @return The number of consecutive digits that were found.
 	 */
-	private fun countDigits(
-		string: A_String,
-		startPosition: Int): Int
+	private fun countDigits(string: A_String, startPosition: Int): Int
 	{
 		val stringSize = string.tupleSize()
 		var position = startPosition
-		while (position <= stringSize && Character.isDigit(string.tupleCodePointAt(position)))
+		while (position <= stringSize
+		       && Character.isDigit(string.tupleCodePointAt(position)))
 		{
 			position++
 		}
@@ -107,17 +102,15 @@ object P_BootstrapLexerWholeNumberBody : Primitive(3, CannotFail, CanFold, CanIn
 	 * Read an integer from a range of the string.
 	 *
 	 * @param string
-	 * The string to read digits from.
+	 *   The string to read digits from.
 	 * @param startPosition
-	 * The position of the first digit to read.
+	 *   The position of the first digit to read.
 	 * @param digitCount
-	 * The number of digits to read.
+	 *   The number of digits to read.
 	 * @return A positive Avail [integer][IntegerDescriptor].
 	 */
 	private fun readInteger(
-		string: A_String,
-		startPosition: Int,
-		digitCount: Int): A_Number
+		string: A_String, startPosition: Int, digitCount: Int): A_Number
 	{
 		assert(digitCount > 0)
 		if (digitCount <= 18)
@@ -139,7 +132,8 @@ object P_BootstrapLexerWholeNumberBody : Primitive(3, CannotFail, CanFold, CanIn
 		// recurse on the remaining left digits to get L, then compute
 		// (10^18)^N * L + R.
 		val groupCount = (digitCount + 17) / 18
-		val logGroupCount = 31 - Integer.numberOfLeadingZeros(groupCount - 1)
+		val logGroupCount =
+			31 - Integer.numberOfLeadingZeros(groupCount - 1)
 		val rightGroupCount = 1 shl logGroupCount
 		assert(rightGroupCount < groupCount)
 		assert(rightGroupCount shl 1 >= groupCount)
@@ -155,7 +149,8 @@ object P_BootstrapLexerWholeNumberBody : Primitive(3, CannotFail, CanFold, CanIn
 			startPosition + digitCount - rightCount,
 			rightCount)
 		val squareOfQuintillion = cachedSquareOfQuintillion(logGroupCount)
-		val shiftedLeft = leftPart.timesCanDestroy(squareOfQuintillion, true)
+		val shiftedLeft =
+			leftPart.timesCanDestroy(squareOfQuintillion, true)
 		return shiftedLeft.plusCanDestroy(rightPart, true)
 	}
 }

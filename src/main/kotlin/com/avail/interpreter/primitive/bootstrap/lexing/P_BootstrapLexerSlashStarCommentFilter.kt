@@ -43,17 +43,16 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * The `P_BootstrapLexerSlashStarCommentFilter` primitive is used for
- * deciding whether a particular Unicode character is suitable as the start of a
+ * The `P_BootstrapLexerSlashStarCommentFilter` primitive is used for deciding
+ * whether a particular Unicode character is suitable as the start of a
  * slash-star star-slash comment.  Obviously only a slash would pass.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object P_BootstrapLexerSlashStarCommentFilter : Primitive(1, CannotFail, CanFold, CanInline, Bootstrap)
+object P_BootstrapLexerSlashStarCommentFilter
+	: Primitive(1, CannotFail, CanFold, CanInline, Bootstrap)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val character = interpreter.argument(0)
@@ -63,9 +62,6 @@ object P_BootstrapLexerSlashStarCommentFilter : Primitive(1, CannotFail, CanFold
 			objectFromBoolean(codePoint == '/'.toInt()))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(CHARACTER.o()), booleanType())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(CHARACTER.o()), booleanType())
 }

@@ -49,11 +49,10 @@ import com.avail.interpreter.Primitive.Flag.*
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object P_BootstrapLexerWholeNumberFilter : Primitive(1, CannotFail, CanFold, CanInline, Bootstrap)
+object P_BootstrapLexerWholeNumberFilter
+	: Primitive(1, CannotFail, CanFold, CanInline, Bootstrap)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val character = interpreter.argument(0)
@@ -63,9 +62,6 @@ object P_BootstrapLexerWholeNumberFilter : Primitive(1, CannotFail, CanFold, Can
 			objectFromBoolean(Character.isDigit(codePoint)))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(CHARACTER.o()), booleanType())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(CHARACTER.o()), booleanType())
 }

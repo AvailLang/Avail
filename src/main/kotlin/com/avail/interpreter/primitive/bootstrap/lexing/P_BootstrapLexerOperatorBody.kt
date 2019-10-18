@@ -44,8 +44,8 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * The `P_BootstrapLexerOperatorBody` primitive is used for parsing
- * operator tokens.  These currently are a single character long.
+ * The `P_BootstrapLexerOperatorBody` primitive is used for parsing operator
+ * tokens.  These currently are a single character long.
  *
  *
  * Note that if a slash is encountered, and it's followed an asterisk, it
@@ -54,11 +54,10 @@ import com.avail.interpreter.Primitive.Flag.*
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object P_BootstrapLexerOperatorBody : Primitive(3, CannotFail, CanFold, CanInline, Bootstrap)
+object P_BootstrapLexerOperatorBody
+	: Primitive(3, CannotFail, CanFold, CanInline, Bootstrap)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
 		val source = interpreter.argument(0)
@@ -86,9 +85,5 @@ object P_BootstrapLexerOperatorBody : Primitive(3, CannotFail, CanFold, CanInlin
 		return interpreter.primitiveSuccess(set(tuple(token)))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return lexerBodyFunctionType()
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type = lexerBodyFunctionType()
 }
