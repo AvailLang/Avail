@@ -48,14 +48,12 @@ import com.avail.interpreter.Primitive.Flag.Bootstrap
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * **Primitive:** Retrieve the [ ][AvailRuntime.specialObject] with the specified
- * ordinal.
+ * **Primitive:** Retrieve the [special object][AvailRuntime.specialObject] with
+ * the specified ordinal.
  */
 object P_SpecialObject : Primitive(1, CanInline, Bootstrap)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val ordinalLiteral = interpreter.argument(0)
@@ -79,17 +77,11 @@ object P_SpecialObject : Primitive(1, CanInline, Bootstrap)
 		return interpreter.primitiveSuccess(syntheticLiteralNodeFor(result))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				LITERAL_PHRASE.create(naturalNumbers())),
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(LITERAL_PHRASE.create(naturalNumbers())),
 			LITERAL_PHRASE.mostGeneralType())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_NO_SPECIAL_OBJECT))
-	}
-
+	override fun privateFailureVariableType(): A_Type=
+		enumerationWith(set(E_NO_SPECIAL_OBJECT))
 }
