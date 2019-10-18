@@ -45,13 +45,13 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * **Primitive:** Answer whether the second [ ] has a property whose key is the first atom.
+ * **Primitive:** Answer whether the second
+ * [atom][com.avail.descriptor.AtomDescriptor] has a property whose key is the
+ * first atom.
  */
 object P_AtomHasProperty : Primitive(2, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val propertyKey = interpreter.argument(0)
@@ -65,14 +65,9 @@ object P_AtomHasProperty : Primitive(2, CanInline)
 			objectFromBoolean(!propertyValue.equalsNil()))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(ATOM.o(), ATOM.o()), booleanType())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(ATOM.o(), ATOM.o()), booleanType())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_SPECIAL_ATOM))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_SPECIAL_ATOM))
 }
