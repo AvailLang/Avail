@@ -54,6 +54,7 @@ import com.avail.interpreter.Primitive.Flag.CanInline
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@Suppress("unused")
 object P_BootstrapPrefixStartOfBlock : Primitive(0, CanInline, Bootstrap)
 {
 	override fun attempt(interpreter: Interpreter): Result
@@ -70,23 +71,22 @@ object P_BootstrapPrefixStartOfBlock : Primitive(0, CanInline, Bootstrap)
 		var fiberGlobals = fiber.fiberGlobals()
 		var clientData: A_Map = fiberGlobals.mapAt(clientDataGlobalKey)
 		val bindings = clientData.mapAt(compilerScopeMapKey)
-		var stack: A_Tuple =
+		val stack: A_Tuple =
 			if (clientData.hasKey(compilerScopeStackKey))
 			{
 				clientData.mapAt(compilerScopeStackKey)
 			}
-			else { emptyTuple() }
-		stack = stack.appendCanDestroy(bindings, false)
-		clientData = clientData.mapAtPuttingCanDestroy(
-			compilerScopeStackKey, stack, true)
-		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
-			clientDataGlobalKey, clientData, true)
+			else { emptyTuple() }.appendCanDestroy(bindings, false)
+		clientData =
+			clientData.mapAtPuttingCanDestroy(
+				compilerScopeStackKey, stack, true)
+		fiberGlobals =
+			fiberGlobals.mapAtPuttingCanDestroy(
+				clientDataGlobalKey, clientData, true)
 		fiber.fiberGlobals(fiberGlobals.makeShared())
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(emptyTuple(), TOP.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(emptyTuple(), TOP.o())
 }
