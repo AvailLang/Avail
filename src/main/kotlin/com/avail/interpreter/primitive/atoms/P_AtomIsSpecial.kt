@@ -44,15 +44,14 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive**: Answer `true` if the specified [ ] [is special][A_Atom.isAtomSpecial].
+ * **Primitive**: Answer `true` if the specified [atom][A_Atom] [is
+ * special][A_Atom.isAtomSpecial].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_AtomIsSpecial : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val atom = interpreter.argument(0)
@@ -60,9 +59,6 @@ object P_AtomIsSpecial : Primitive(1, CannotFail, CanFold, CanInline)
 			objectFromBoolean(atom.isAtomSpecial))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(ATOM.o()), booleanType())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(ATOM.o()), booleanType())
 }
