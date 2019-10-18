@@ -48,15 +48,14 @@ import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * **Primitive:** Answer the [ module][ModuleDescriptor] that issued the specified [atom][AtomDescriptor].
+ * **Primitive:** Answer the [module][ModuleDescriptor] that issued the
+ * specified [atom][AtomDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_AtomIssuingModule : Primitive(1, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val atom = interpreter.argument(0)
@@ -69,14 +68,9 @@ object P_AtomIssuingModule : Primitive(1, CanFold, CanInline)
 		return interpreter.primitiveSuccess(issuer)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(ATOM.o()), MODULE.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(ATOM.o()), MODULE.o())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_SPECIAL_ATOM))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_SPECIAL_ATOM))
 }
