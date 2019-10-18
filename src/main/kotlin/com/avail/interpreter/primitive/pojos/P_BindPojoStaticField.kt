@@ -94,9 +94,9 @@ object P_BindPojoStaticField : Primitive(2, CanFold, CanInline)
 		// variables are expected.
 		val fieldType = resolvePojoType(
 			field.genericType, emptyMap())
-		val `var` = pojoFieldVariableForInnerType(
+		val variable = pojoFieldVariableForInnerType(
 			equalityPojo(field), rawNullPojo(), fieldType)
-		return interpreter.primitiveSuccess(`var`)
+		return interpreter.primitiveSuccess(variable)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type

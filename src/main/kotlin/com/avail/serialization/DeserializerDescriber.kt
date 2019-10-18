@@ -93,7 +93,7 @@ class DeserializerDescriber constructor(
 	override fun objectFromIndex(index: Int) =
 		throw UnsupportedOperationException()
 
-	override fun recordProducedObject(`object`: AvailObject) =
+	override fun recordProducedObject(obj: AvailObject) =
 		throw UnsupportedOperationException()
 
 	/**

@@ -55,8 +55,8 @@ object P_ObjectToMap : Primitive(1, CannotFail, CanFold, CanInline)
 		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
-		val `object` = interpreter.argument(0)
-		return interpreter.primitiveSuccess(`object`.fieldMap())
+		val obj = interpreter.argument(0)
+		return interpreter.primitiveSuccess(obj.fieldMap())
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type

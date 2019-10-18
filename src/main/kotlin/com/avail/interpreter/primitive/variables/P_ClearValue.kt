@@ -57,10 +57,10 @@ object P_ClearValue : Primitive(1, CanInline, HasSideEffect)
 		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
-		val `var` = interpreter.argument(0)
+		val variable = interpreter.argument(0)
 		try
 		{
-			`var`.clearValue()
+			variable.clearValue()
 		}
 		catch (e: VariableSetException)
 		{

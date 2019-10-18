@@ -74,9 +74,9 @@ object P_DisableTraceVariableReadsBeforeWrites : Primitive(2, HasSideEffect)
 		val fiber = interpreter.fiber()
 		val readBeforeWritten = fiber.variablesReadBeforeWritten()
 		val reactor = VariableAccessReactor(reactorFunction.makeShared())
-		for (`var` in readBeforeWritten)
+		for (variable in readBeforeWritten)
 		{
-			`var`.addWriteReactor(key, reactor)
+			variable.addWriteReactor(key, reactor)
 		}
 		return interpreter.primitiveSuccess(nil)
 	}

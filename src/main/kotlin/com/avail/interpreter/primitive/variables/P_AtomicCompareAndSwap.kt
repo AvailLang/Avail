@@ -64,14 +64,14 @@ object P_AtomicCompareAndSwap : Primitive(3, CanInline, HasSideEffect)
 		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
-		val `var` = interpreter.argument(0)
+		val variable = interpreter.argument(0)
 		val reference = interpreter.argument(1)
 		val newValue = interpreter.argument(2)
 		try
 		{
 			return interpreter.primitiveSuccess(
 				objectFromBoolean(
-					`var`.compareAndSwapValues(reference, newValue)))
+					variable.compareAndSwapValues(reference, newValue)))
 		}
 		catch (e: VariableGetException)
 		{

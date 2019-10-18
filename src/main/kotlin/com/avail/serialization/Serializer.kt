@@ -174,8 +174,8 @@ class Serializer
 	 *   The object's zero-based index in `encounteredObjects`.
 	 */
 	internal fun instructionForObject(
-			`object`: A_BasicObject): SerializerInstruction =
-		encounteredObjects[`object`]!!
+			obj: A_BasicObject): SerializerInstruction =
+		encounteredObjects[obj]!!
 
 	/**
 	 * Look up the object and return the existing instruction that produces it.
@@ -188,9 +188,9 @@ class Serializer
 	 * @return
 	 *   The (non-negative) index of the instruction that produced the object.
 	 */
-	internal fun indexOfExistingObject(`object`: A_BasicObject): Int
+	internal fun indexOfExistingObject(obj: A_BasicObject): Int
 	{
-		val instruction = encounteredObjects[`object`]!!
+		val instruction = encounteredObjects[obj]!!
 		assert(instruction.hasBeenWritten)
 		return instruction.index
 	}
@@ -204,14 +204,14 @@ class Serializer
 	 * @return
 	 *   The new [SerializerInstruction].
 	 */
-	private fun newInstruction(`object`: A_BasicObject): SerializerInstruction
+	private fun newInstruction(obj: A_BasicObject): SerializerInstruction
 	{
 		return SerializerInstruction(
-			if (specialObjects.containsKey(`object`))
+			if (specialObjects.containsKey(obj))
 				SerializerOperation.SPECIAL_OBJECT
 			else
-				`object`.serializerOperation(),
-			`object`,
+				obj.serializerOperation(),
+			obj,
 			this)
 	}
 
@@ -234,11 +234,11 @@ class Serializer
 	 * @param object
 	 *   The object to trace.
 	 */
-	internal fun traceOne(`object`: AvailObject)
+	internal fun traceOne(obj: AvailObject)
 	{
 		// Build but don't yet emit the instruction.
 		val instruction =
-			encounteredObjects.computeIfAbsent(`object`) {
+			encounteredObjects.computeIfAbsent(obj) {
 				newInstruction(it)
 			}
 		// Do nothing if the object's instruction has already been emitted.
@@ -271,14 +271,14 @@ class Serializer
 				}
 			}
 			if (instruction.operation.isVariableCreation
-				&& !`object`.value().equalsNil())
+				&& !obj.value().equalsNil())
 			{
-				variablesToAssign.add(`object`)
+				variablesToAssign.add(obj)
 				// Output an action to the *start* of the workStack to trace the
 				// variable's value.  This prevents recursion, but ensures that
 				// everything reachable, including through variables, will be
 				// traced.
-				workStack.addFirst { traceOne(`object`.value()) }
+				workStack.addFirst { traceOne(obj.value()) }
 			}
 		}
 	}
@@ -316,9 +316,9 @@ class Serializer
 	 * @param object
 	 *   An object to serialize.
 	 */
-	fun serialize(`object`: A_BasicObject)
+	fun serialize(obj: A_BasicObject)
 	{
-		val strongObject = `object` as AvailObject
+		val strongObject = obj as AvailObject
 		traceOne(strongObject)
 		while (!workStack.isEmpty())
 		{
@@ -383,8 +383,8 @@ class Serializer
 		 * @return
 		 *   The object's zero-based index in `encounteredObjects`.
 		 */
-		internal fun indexOfSpecialObject(`object`: A_BasicObject): Int =
-			specialObjects[`object`] ?: -1
+		internal fun indexOfSpecialObject(obj: A_BasicObject): Int =
+			specialObjects[obj] ?: -1
 
 		/**
 		 * Look up the object.  If it is a [special
@@ -396,8 +396,8 @@ class Serializer
 		 * @return
 		 *   The object's zero-based index in `encounteredObjects`.
 		 */
-		internal fun indexOfSpecialAtom(`object`: A_Atom): Int =
-			specialAtoms[`object`] ?: -1
+		internal fun indexOfSpecialAtom(obj: A_Atom): Int =
+			specialAtoms[obj] ?: -1
 
 		init
 		{

@@ -57,14 +57,14 @@ import java.nio.charset.StandardCharsets
 class ProcessInputChannel constructor(stream: InputStream) : TextInputChannel
 {
 	/** The wrapped [reader][Reader].  */
-	internal val `in`: Reader
+	internal val input: Reader
 
 	init
 	{
 		val decoder = StandardCharsets.UTF_8.newDecoder()
 		decoder.onMalformedInput(CodingErrorAction.REPLACE)
 		decoder.onUnmappableCharacter(CodingErrorAction.REPLACE)
-		`in` = BufferedReader(InputStreamReader(stream, decoder))
+		input = BufferedReader(InputStreamReader(stream, decoder))
 	}
 
 	// The standard input stream is always open; we do not permit it to be
@@ -79,7 +79,7 @@ class ProcessInputChannel constructor(stream: InputStream) : TextInputChannel
 			val charsRead: Int
 			try
 			{
-				charsRead = `in`.read(buffer)
+				charsRead = input.read(buffer)
 				if (charsRead == -1)
 				{
 					throw IOException("end of stream")
@@ -97,13 +97,13 @@ class ProcessInputChannel constructor(stream: InputStream) : TextInputChannel
 	@Throws(IOException::class)
 	override fun mark(readAhead: Int)
 	{
-		`in`.mark(readAhead)
+		input.mark(readAhead)
 	}
 
 	@Throws(IOException::class)
 	override fun reset()
 	{
-		`in`.reset()
+		input.reset()
 	}
 
 	override fun close()

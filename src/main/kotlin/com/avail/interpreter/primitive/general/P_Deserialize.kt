@@ -97,9 +97,9 @@ object P_Deserialize : Primitive(2, CanInline)
 			byteArray = buffer.array()
 		}
 
-		val `in` = ByteArrayInputStream(byteArray)
+		val input = ByteArrayInputStream(byteArray)
 		val deserializer = Deserializer(
-			`in`, interpreter.runtime())
+			input, interpreter.runtime())
 		deserializer.currentModule = module
 		val values = ArrayList<A_BasicObject>()
 		try

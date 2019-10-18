@@ -201,7 +201,7 @@ internal class Catalog
 	{
 		val codePoints = allCodePoints!!
 		val options = EnumSet.of(StandardOpenOption.READ)
-		val `in` = FileChannel.open(path, options)
+		val input = FileChannel.open(path, options)
 		val decoder = StandardCharsets.UTF_8.newDecoder()
 		val encoded = ByteBuffer.allocateDirect(4096)
 		val decoded = CharBuffer.allocate(4096)
@@ -210,7 +210,7 @@ internal class Catalog
 			var atEnd = false
 			while (!atEnd)
 			{
-				val bytesRead = `in`.read(encoded)
+				val bytesRead = input.read(encoded)
 				atEnd = bytesRead == -1
 				encoded.flip()
 				var result = decoder.decode(encoded, decoded, atEnd)
@@ -260,7 +260,7 @@ internal class Catalog
 		}
 		finally
 		{
-			IO.close(`in`)
+			IO.close(input)
 		}
 	}
 

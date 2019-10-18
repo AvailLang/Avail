@@ -66,8 +66,8 @@ internal enum class SerializerOperandEncoding
 	 */
 	BYTE
 	{
-		override fun write(`object`: AvailObject, serializer: Serializer) =
-			serializer.writeByte(`object`.extractUnsignedByte().toInt())
+		override fun write(obj: AvailObject, serializer: Serializer) =
+			serializer.writeByte(obj.extractUnsignedByte().toInt())
 
 		override fun read(deserializer: AbstractDeserializer) =
 			fromInt(deserializer.readByte())
@@ -88,9 +88,9 @@ internal enum class SerializerOperandEncoding
 	 */
 	COMPRESSED_SHORT
 	{
-		override fun write(`object`: AvailObject, serializer: Serializer)
+		override fun write(obj: AvailObject, serializer: Serializer)
 		{
-			val shortValue = `object`.extractInt()
+			val shortValue = obj.extractInt()
 			assert(shortValue and 0xFFFF == shortValue)
 			when
 			{
@@ -133,8 +133,8 @@ internal enum class SerializerOperandEncoding
 	 */
 	UNCOMPRESSED_SHORT
 	{
-		override fun write(`object`: AvailObject, serializer: Serializer) =
-			serializer.writeShort(`object`.extractUnsignedShort())
+		override fun write(obj: AvailObject, serializer: Serializer) =
+			serializer.writeShort(obj.extractUnsignedShort())
 
 		override fun read(deserializer: AbstractDeserializer): AvailObject =
 			fromInt(deserializer.readShort())
@@ -148,9 +148,9 @@ internal enum class SerializerOperandEncoding
 	 */
 	SIGNED_INT
 	{
-		override fun write(`object`: AvailObject, serializer: Serializer)
+		override fun write(obj: AvailObject, serializer: Serializer)
 		{
-			val intValue = `object`.extractInt()
+			val intValue = obj.extractInt()
 			serializer.writeInt(intValue)
 		}
 
@@ -166,9 +166,9 @@ internal enum class SerializerOperandEncoding
 	 */
 	UNSIGNED_INT
 	{
-		override fun write(`object`: AvailObject, serializer: Serializer)
+		override fun write(obj: AvailObject, serializer: Serializer)
 		{
-			val longValue = `object`.extractLong()
+			val longValue = obj.extractLong()
 			assert(longValue and 0xFFFFFFFFL == longValue)
 			serializer.writeInt(longValue.toInt())
 		}
@@ -188,13 +188,13 @@ internal enum class SerializerOperandEncoding
 	 */
 	OBJECT_REFERENCE
 	{
-		override fun trace(`object`: AvailObject, serializer: Serializer) =
+		override fun trace(obj: AvailObject, serializer: Serializer) =
 			// Visit the object.
-			serializer.traceOne(`object`)
+			serializer.traceOne(obj)
 
-		override fun write(`object`: AvailObject, serializer: Serializer)
+		override fun write(obj: AvailObject, serializer: Serializer)
 		{
-			val instruction = serializer.instructionForObject(`object`)
+			val instruction = serializer.instructionForObject(obj)
 			val index = instruction.index
 			assert(index >= 0) {
 				"Attempted to write reference to untraced object."
@@ -224,13 +224,13 @@ internal enum class SerializerOperandEncoding
 	 */
 	BIG_INTEGER_DATA
 	{
-		override fun write(`object`: AvailObject, serializer: Serializer)
+		override fun write(obj: AvailObject, serializer: Serializer)
 		{
-			val slotsCount = intCount(`object`)
+			val slotsCount = intCount(obj)
 			writeCompressedPositiveInt(slotsCount, serializer)
 			for (i in slotsCount downTo 1)
 			{
-				serializer.writeInt(`object`.rawSignedIntegerAt(i))
+				serializer.writeInt(obj.rawSignedIntegerAt(i))
 			}
 		}
 
@@ -253,20 +253,20 @@ internal enum class SerializerOperandEncoding
 	 */
 	TUPLE_OF_OBJECTS
 	{
-		override fun trace(`object`: AvailObject, serializer: Serializer)
+		override fun trace(obj: AvailObject, serializer: Serializer)
 		{
 			// Visit the *elements* of the tuple.
-			for (element in `object`)
+			for (element in obj)
 			{
 				serializer.traceOne(element as AvailObject)
 			}
 		}
 
-		override fun write(`object`: AvailObject, serializer: Serializer)
+		override fun write(obj: AvailObject, serializer: Serializer)
 		{
-			val tupleSize = `object`.tupleSize()
+			val tupleSize = obj.tupleSize()
 			writeCompressedPositiveInt(tupleSize, serializer)
-			for (element in `object`)
+			for (element in obj)
 			{
 				writeCompressedPositiveInt(
 					serializer.indexOfExistingObject(element),
@@ -310,13 +310,13 @@ internal enum class SerializerOperandEncoding
 	 */
 	BYTE_CHARACTER_TUPLE
 	{
-		override fun write(`object`: AvailObject, serializer: Serializer)
+		override fun write(obj: AvailObject, serializer: Serializer)
 		{
-			val tupleSize = `object`.tupleSize()
+			val tupleSize = obj.tupleSize()
 			writeCompressedPositiveInt(tupleSize, serializer)
 			for (i in 1..tupleSize)
 			{
-				serializer.writeByte(`object`.tupleCodePointAt(i))
+				serializer.writeByte(obj.tupleCodePointAt(i))
 			}
 		}
 
@@ -338,14 +338,14 @@ internal enum class SerializerOperandEncoding
 	 */
 	COMPRESSED_SHORT_CHARACTER_TUPLE
 	{
-		override fun write(`object`: AvailObject, serializer: Serializer)
+		override fun write(obj: AvailObject, serializer: Serializer)
 		{
-			val tupleSize = `object`.tupleSize()
+			val tupleSize = obj.tupleSize()
 			writeCompressedPositiveInt(tupleSize, serializer)
 			for (i in 1..tupleSize)
 			{
 				writeCompressedPositiveInt(
-					`object`.tupleCodePointAt(i), serializer)
+					obj.tupleCodePointAt(i), serializer)
 			}
 		}
 
@@ -369,14 +369,14 @@ internal enum class SerializerOperandEncoding
 	 */
 	COMPRESSED_ARBITRARY_CHARACTER_TUPLE
 	{
-		override fun write(`object`: AvailObject, serializer: Serializer)
+		override fun write(obj: AvailObject, serializer: Serializer)
 		{
-			val tupleSize = `object`.tupleSize()
+			val tupleSize = obj.tupleSize()
 			writeCompressedPositiveInt(tupleSize, serializer)
 			for (i in 1..tupleSize)
 			{
 				writeCompressedPositiveInt(
-					`object`.tupleCodePointAt(i), serializer)
+					obj.tupleCodePointAt(i), serializer)
 			}
 		}
 
@@ -395,11 +395,11 @@ internal enum class SerializerOperandEncoding
 	 */
 	COMPRESSED_INT_TUPLE
 	{
-		override fun write(`object`: AvailObject, serializer: Serializer)
+		override fun write(obj: AvailObject, serializer: Serializer)
 		{
-			val tupleSize = `object`.tupleSize()
+			val tupleSize = obj.tupleSize()
 			writeCompressedPositiveInt(tupleSize, serializer)
-			for (element in `object`)
+			for (element in obj)
 			{
 				writeCompressedPositiveInt(element.extractInt(), serializer)
 			}
@@ -424,13 +424,13 @@ internal enum class SerializerOperandEncoding
 	 */
 	UNCOMPRESSED_BYTE_TUPLE
 	{
-		override fun write(`object`: AvailObject, serializer: Serializer)
+		override fun write(obj: AvailObject, serializer: Serializer)
 		{
-			val tupleSize = `object`.tupleSize()
+			val tupleSize = obj.tupleSize()
 			writeCompressedPositiveInt(tupleSize, serializer)
 			for (i in 1..tupleSize)
 			{
-				serializer.writeByte(`object`.tupleIntAt(i))
+				serializer.writeByte(obj.tupleIntAt(i))
 			}
 		}
 
@@ -449,22 +449,22 @@ internal enum class SerializerOperandEncoding
 	 */
 	UNCOMPRESSED_NYBBLE_TUPLE
 	{
-		override fun write(`object`: AvailObject, serializer: Serializer)
+		override fun write(obj: AvailObject, serializer: Serializer)
 		{
-			val tupleSize = `object`.tupleSize()
+			val tupleSize = obj.tupleSize()
 			writeCompressedPositiveInt(tupleSize, serializer)
 			var i = 1
 			while (i < tupleSize)
 			{
-				val first = `object`.tupleIntAt(i)
-				val second = `object`.tupleIntAt(i + 1)
+				val first = obj.tupleIntAt(i)
+				val second = obj.tupleIntAt(i + 1)
 				val pair = (first shl 4) + second
 				serializer.writeByte(pair)
 				i += 2
 			}
 			if (tupleSize and 1 == 1)
 			{
-				serializer.writeByte(`object`.tupleIntAt(tupleSize) shl 4)
+				serializer.writeByte(obj.tupleIntAt(tupleSize) shl 4)
 			}
 		}
 
@@ -495,19 +495,19 @@ internal enum class SerializerOperandEncoding
 	 */
 	GENERAL_MAP
 	{
-		override fun trace(`object`: AvailObject, serializer: Serializer)
+		override fun trace(obj: AvailObject, serializer: Serializer)
 		{
-			for (entry in `object`.mapIterable())
+			for (entry in obj.mapIterable())
 			{
 				serializer.traceOne(entry.key())
 				serializer.traceOne(entry.value())
 			}
 		}
 
-		override fun write(`object`: AvailObject, serializer: Serializer)
+		override fun write(obj: AvailObject, serializer: Serializer)
 		{
-			writeCompressedPositiveInt(`object`.mapSize(), serializer)
-			for (entry in `object`.mapIterable())
+			writeCompressedPositiveInt(obj.mapSize(), serializer)
+			for (entry in obj.mapIterable())
 			{
 				writeCompressedPositiveInt(
 					serializer.indexOfExistingObject(entry.key()),
@@ -564,7 +564,7 @@ internal enum class SerializerOperandEncoding
 	 * @param serializer
 	 *   The [Serializer] with which to trace the object.
 	 */
-	internal open fun trace(`object`: AvailObject, serializer: Serializer)
+	internal open fun trace(obj: AvailObject, serializer: Serializer)
 	{
 		// do nothing
 	}
@@ -577,7 +577,7 @@ internal enum class SerializerOperandEncoding
 	 * @param serializer
 	 *   The [Serializer] on which to encode the object.
 	 */
-	internal abstract fun write(`object`: AvailObject, serializer: Serializer)
+	internal abstract fun write(obj: AvailObject, serializer: Serializer)
 
 	/**
 	 * Read an operand of the appropriate kind from the [AbstractDeserializer].
@@ -615,7 +615,7 @@ internal enum class SerializerOperandEncoding
 	 * @return
 	 *   The new operand.
 	 */
-	fun `as`(roleName: String): SerializerOperand
+	fun named(roleName: String): SerializerOperand
 	{
 		return SerializerOperand(this, roleName)
 	}

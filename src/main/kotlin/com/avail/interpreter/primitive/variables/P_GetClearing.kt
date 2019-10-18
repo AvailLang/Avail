@@ -60,11 +60,11 @@ object P_GetClearing : Primitive(1, CanInline, HasSideEffect)
 		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
-		val `var` = interpreter.argument(0)
+		val variable = interpreter.argument(0)
 		try
 		{
-			val valueObject = `var`.value
-			`var`.clearValue()
+			val valueObject = variable.value
+			variable.clearValue()
 			return interpreter.primitiveSuccess(valueObject)
 		}
 		catch (e: VariableGetException)

@@ -42,7 +42,7 @@ import com.avail.descriptor.AvailObject
  * @property operation
  *   The [SerializerOperation] that can decompose this object for serialization.
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
- * 
+ *
  * @constructor
  *
  * Construct a new `SerializerInstruction`.
@@ -56,7 +56,7 @@ import com.avail.descriptor.AvailObject
  */
 internal class SerializerInstruction constructor(
 	internal val operation: SerializerOperation,
-	`object`: A_BasicObject,
+	obj: A_BasicObject,
 	serializer: Serializer)
 {
 	/**
@@ -64,7 +64,7 @@ internal class SerializerInstruction constructor(
 	 * correspond to the operation's [SerializerOperation.operands].
 	 */
 	private val subobjects =
-		operation.decompose(`object` as AvailObject, serializer)
+		operation.decompose(obj as AvailObject, serializer)
 
 	/**
 	 * The index of this instruction in the list of instructions produced by a

@@ -73,8 +73,8 @@ object P_BindPojoInstanceField : Primitive(2, CanFold, CanInline)
 
 		// Use the actual Java runtime type of the pojo to perform the
 		// reflective field lookup.
-		val `object` = pojo.rawPojo().javaObjectNotNull<Any>()
-		val javaClass = `object`.javaClass
+		val obj = pojo.rawPojo().javaObjectNotNull<Any>()
+		val javaClass = obj.javaClass
 		val field: Field
 		try
 		{
@@ -94,9 +94,9 @@ object P_BindPojoInstanceField : Primitive(2, CanFold, CanInline)
 		}
 		val fieldType = resolvePojoType(
 			field.genericType, pojo.kind().typeVariables())
-		val `var` = pojoFieldVariableForInnerType(
+		val variable = pojoFieldVariableForInnerType(
 			equalityPojo(field), pojo.rawPojo(), fieldType)
-		return interpreter.primitiveSuccess(`var`)
+		return interpreter.primitiveSuccess(variable)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type

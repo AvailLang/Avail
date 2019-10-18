@@ -84,8 +84,8 @@ object P_ExecuteDetachedExternalProcess : Primitive(6, CanInline, HasSideEffect)
 		}
 		if (optIn.tupleSize() == 1)
 		{
-			val `in` = File(optIn.tupleAt(1).asNativeString())
-			builder.redirectInput(`in`)
+			val input = File(optIn.tupleAt(1).asNativeString())
+			builder.redirectInput(input)
 		}
 		if (optOut.tupleSize() == 1)
 		{

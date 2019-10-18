@@ -64,12 +64,12 @@ object P_AtomicFetchAndAdd : Primitive(2, CanInline, HasSideEffect)
 		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
-		val `var` = interpreter.argument(0)
+		val variable = interpreter.argument(0)
 		val addend = interpreter.argument(1)
 		try
 		{
 			return interpreter.primitiveSuccess(
-				`var`.fetchAndAddValue(addend))
+				variable.fetchAndAddValue(addend))
 		}
 		catch (e: VariableGetException)
 		{

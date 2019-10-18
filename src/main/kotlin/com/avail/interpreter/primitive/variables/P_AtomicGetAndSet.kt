@@ -62,11 +62,11 @@ object P_AtomicGetAndSet : Primitive(2, CanInline, HasSideEffect)
 		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
-		val `var` = interpreter.argument(0)
+		val variable = interpreter.argument(0)
 		val newValue = interpreter.argument(1)
 		try
 		{
-			return interpreter.primitiveSuccess(`var`.getAndSetValue(newValue))
+			return interpreter.primitiveSuccess(variable.getAndSetValue(newValue))
 		}
 		catch (e: VariableGetException)
 		{

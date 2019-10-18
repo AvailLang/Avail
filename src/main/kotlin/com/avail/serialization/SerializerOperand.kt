@@ -73,8 +73,8 @@ internal class SerializerOperand constructor(
 	 * @param serializer
 	 *   The [Serializer] onto which to record the object's parts.
 	 */
-	fun trace(`object`: AvailObject, serializer: Serializer) =
-		operandEncoding.trace(`object`, serializer)
+	fun trace(obj: AvailObject, serializer: Serializer) =
+		operandEncoding.trace(obj, serializer)
 
 	/**
 	 * Write the [AvailObject]'s subobjects as described by the
@@ -87,8 +87,8 @@ internal class SerializerOperand constructor(
 	 * @param serializer
 	 *   The serializer to which to write the object.
 	 */
-	fun write(`object`: AvailObject, serializer: Serializer) =
-		operandEncoding.write(`object`, serializer)
+	fun write(obj: AvailObject, serializer: Serializer) =
+		operandEncoding.write(obj, serializer)
 
 	/**
 	 * Read an [AvailObject] from the [AbstractDeserializer] using

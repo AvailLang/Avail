@@ -72,10 +72,10 @@ object P_DisableTraceVariableWrites : Primitive(0, HasSideEffect)
 		interpreter.setTraceVariableWrites(false)
 		val written = fiber.variablesWritten()
 		var functions = emptySet()
-		for (`var` in written)
+		for (variable in written)
 		{
 			functions = functions.setUnionCanDestroy(
-				`var`.validWriteReactorFunctions(),
+				variable.validWriteReactorFunctions(),
 				true)
 		}
 		return interpreter.primitiveSuccess(functions)

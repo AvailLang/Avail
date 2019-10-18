@@ -49,9 +49,9 @@ import java.io.InputStream
  *   The [AvailRuntime] whose scope is used to decode references to constructs
  *   that need to be looked up rather than re-instantiated.
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
- * 
+ *
  * @constructor
- * 
+ *
  * Construct a new `Deserializer`.
  *
  * @param input
@@ -161,5 +161,5 @@ abstract class AbstractDeserializer constructor(
 	 * @param object
 	 *   The object that was produced.
 	 */
-	internal abstract fun recordProducedObject(`object`: AvailObject)
+	internal abstract fun recordProducedObject(obj: AvailObject)
 }

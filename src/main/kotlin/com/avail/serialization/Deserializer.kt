@@ -133,10 +133,10 @@ class Deserializer constructor(
 	 *   The object that was produced.
 	 */
 	override fun recordProducedObject(
-		`object`: AvailObject)
+		obj: AvailObject)
 	{
 		assert(producedObject === null)
-		producedObject = `object`
+		producedObject = obj
 	}
 
 	companion object

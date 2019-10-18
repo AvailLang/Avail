@@ -66,11 +66,11 @@ object P_KeyInVariableMap : Primitive(2, CanInline, HasSideEffect)
 	{
 		interpreter.checkArgumentCount(2)
 		val key = interpreter.argument(0)
-		val `var` = interpreter.argument(1)
+		val variable = interpreter.argument(1)
 		try
 		{
 			return interpreter.primitiveSuccess(
-				objectFromBoolean(`var`.variableMapHasKey(key)))
+				objectFromBoolean(variable.variableMapHasKey(key)))
 		}
 		catch (e: VariableGetException)
 		{

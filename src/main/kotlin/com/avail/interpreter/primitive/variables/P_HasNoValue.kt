@@ -54,8 +54,8 @@ object P_HasNoValue : Primitive(1, CanInline, CannotFail)
 		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
-		val `var` = interpreter.argument(0)
-		return interpreter.primitiveSuccess(objectFromBoolean(!`var`.hasValue()))
+		val variable = interpreter.argument(0)
+		return interpreter.primitiveSuccess(objectFromBoolean(!variable.hasValue()))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type

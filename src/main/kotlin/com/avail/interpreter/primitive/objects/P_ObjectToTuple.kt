@@ -61,8 +61,8 @@ object P_ObjectToTuple : Primitive(1, CannotFail, CanFold, CanInline)
 		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
-		val `object` = interpreter.argument(0)
-		return interpreter.primitiveSuccess(`object`.fieldTuple())
+		val obj = interpreter.argument(0)
+		return interpreter.primitiveSuccess(obj.fieldTuple())
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type

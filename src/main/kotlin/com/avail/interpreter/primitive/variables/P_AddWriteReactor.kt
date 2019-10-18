@@ -65,7 +65,7 @@ object P_AddWriteReactor : Primitive(3, HasSideEffect)
 		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
-		val `var` = interpreter.argument(0)
+		val variable = interpreter.argument(0)
 		val key = interpreter.argument(1)
 		val reactorFunction = interpreter.argument(2)
 		// Forbid special atoms.
@@ -75,7 +75,7 @@ object P_AddWriteReactor : Primitive(3, HasSideEffect)
 		}
 		val sharedFunction = reactorFunction.makeShared()
 		val writeReactor = VariableAccessReactor(sharedFunction)
-		`var`.addWriteReactor(key, writeReactor)
+		variable.addWriteReactor(key, writeReactor)
 		return interpreter.primitiveSuccess(nil)
 	}
 

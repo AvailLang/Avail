@@ -62,7 +62,7 @@ object P_RemoveWriteReactor : Primitive(2, HasSideEffect)
 		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
-		val `var` = interpreter.argument(0)
+		val variable = interpreter.argument(0)
 		val key = interpreter.argument(1)
 		// Forbid special atoms.
 		if (key.isAtomSpecial)
@@ -71,7 +71,7 @@ object P_RemoveWriteReactor : Primitive(2, HasSideEffect)
 		}
 		try
 		{
-			`var`.removeWriteReactor(key)
+			variable.removeWriteReactor(key)
 		}
 		catch (e: AvailException)
 		{

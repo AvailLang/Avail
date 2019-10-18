@@ -855,8 +855,8 @@ class L1Decompiler constructor(
 			outerIndex: Int, type: A_Type): A_Phrase
 		{
 			val name = stringFrom("Outer#$outerIndex")
-			val `var` = newVariableWithOuterType(variableTypeFor(type))
-			val token = literalToken(name, 0, 0, `var`)
+			val variable = newVariableWithOuterType(variableTypeFor(type))
+			val token = literalToken(name, 0, 0, variable)
 			return fromTokenForDecompiler(token)
 		}
 

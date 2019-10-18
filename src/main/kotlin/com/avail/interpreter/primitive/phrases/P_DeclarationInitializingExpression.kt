@@ -67,7 +67,7 @@ object P_DeclarationInitializingExpression : Primitive(2, CanInline, HasSideEffe
 		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
-		val `var` = interpreter.argument(0)
+		val variable = interpreter.argument(0)
 		val decl = interpreter.argument(1)
 		val initializer = decl.initializationExpression()
 		try
@@ -75,7 +75,7 @@ object P_DeclarationInitializingExpression : Primitive(2, CanInline, HasSideEffe
 			var stored = false
 			if (!initializer.equalsNil())
 			{
-				`var`.setValue(initializer)
+				variable.setValue(initializer)
 				stored = true
 			}
 			return interpreter.primitiveSuccess(objectFromBoolean(stored))

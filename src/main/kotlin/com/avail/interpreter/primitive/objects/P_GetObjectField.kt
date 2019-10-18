@@ -60,10 +60,10 @@ object P_GetObjectField : Primitive(2, CanFold, CanInline)
 		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
-		val `object` = interpreter.argument(0)
+		val obj = interpreter.argument(0)
 		val field = interpreter.argument(1)
 
-		val traversed = `object`.traversed()
+		val traversed = obj.traversed()
 		val descriptor = traversed.descriptor() as ObjectDescriptor
 		val slotIndex = descriptor.variant.fieldToSlotIndex[field]
 		                ?: return interpreter.primitiveFailure(E_NO_SUCH_FIELD)

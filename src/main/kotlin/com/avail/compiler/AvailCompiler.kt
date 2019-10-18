@@ -779,10 +779,10 @@ class AvailCompiler(
 					afterStatement.lexingState,
 					false,
 					false,
-					{ `val` ->
+					{ value ->
 						loader.stopRecordingEffects()
 						val canSummarize = loader.statementCanBeSummarized()
-						val innerType = instanceTypeOrMetaOn(`val`)
+						val innerType = instanceTypeOrMetaOn(value)
 						val varType = variableTypeFor(innerType)
 						val creationSend = newSendNode(
 							TupleDescriptor.emptyTuple(),
@@ -803,28 +803,28 @@ class AvailCompiler(
 						// Force the declaration to be serialized.
 						compilationContext.serializeWithoutSummary(
 							creationFunction)
-						val `var` = createGlobal(varType, module, name, true)
-						`var`.valueWasStablyComputed(canSummarize)
-						module.addConstantBinding(name, `var`)
+						val variable = createGlobal(varType, module, name, true)
+						variable.valueWasStablyComputed(canSummarize)
+						module.addConstantBinding(name, variable)
 						// Update the map so that the local constant goes to a
 						// module constant.  Then subsequent statements in this
 						// sequence will transform uses of the constant
 						// appropriately.
 						val newConstant = newModuleConstant(
 							replacement.token(),
-							`var`,
+							variable,
 							replacement.initializationExpression())
 						declarationRemap[expression] = newConstant
 						// Now create a module variable declaration (i.e.,
 						// cheat) JUST for this initializing assignment.
 						val newDeclaration = newModuleVariable(
 							replacement.token(),
-							`var`,
+							variable,
 							nil,
 							replacement.initializationExpression())
 						val assign = newAssignment(
 							newUse(replacement.token(), newDeclaration),
-							syntheticLiteralNodeFor(`val`),
+							syntheticLiteralNodeFor(value),
 							expression.tokens(),
 							false)
 						val assignFunction = createFunctionForPhrase(
@@ -833,7 +833,7 @@ class AvailCompiler(
 							replacement.token().lineNumber())
 						compilationContext.serializeWithoutSummary(
 							assignFunction)
-						`var`.setValue(`val`)
+						variable.setValue(value)
 						onSuccess()
 					},
 					phraseFailure)
@@ -870,13 +870,13 @@ class AvailCompiler(
 				creationFunction.makeImmutable()
 				// Force the declaration to be serialized.
 				compilationContext.serializeWithoutSummary(creationFunction)
-				val `var` = createGlobal(varType, module, name, false)
-				module.addVariableBinding(name, `var`)
+				val variable = createGlobal(varType, module, name, false)
+				module.addVariableBinding(name, variable)
 				if (!replacement.initializationExpression().equalsNil())
 				{
 					val newDeclaration = newModuleVariable(
 						replacement.token(),
-						`var`,
+						variable,
 						replacement.typeExpression(),
 						replacement.initializationExpression())
 					declarationRemap[expression] = newDeclaration
@@ -892,8 +892,8 @@ class AvailCompiler(
 						afterStatement.lexingState,
 						false,
 						false,
-						{ `val` ->
-							`var`.setValue(`val`)
+						{ value ->
+							variable.setValue(value)
 							compilationContext.serializeWithoutSummary(
 								assignFunction)
 							onSuccess()
@@ -4383,7 +4383,7 @@ class AvailCompiler(
 		 * arguments: the phrase, its parent, and the list of enclosing block
 		 * phrases. Answer the recursively transformed phrase.
 		 *
-		 * @param `object`
+		 * @param obj
 		 *   The current [phrase][PhraseDescriptor].
 		 * @param transformer
 		 *   What to do with each descendant.
@@ -4400,17 +4400,17 @@ class AvailCompiler(
 		 *   A replacement for this phrase, possibly this phrase itself.
 		 */
 		private fun treeMapWithParent(
-			`object`: A_Phrase,
+			obj: A_Phrase,
 			transformer: (A_Phrase, A_Phrase, List<A_Phrase>) -> A_Phrase,
 			parentPhrase: A_Phrase,
 			outerPhrases: List<A_Phrase>,
 			phraseMap: MutableMap<A_Phrase, A_Phrase>): A_Phrase
 		{
-			if (phraseMap.containsKey(`object`))
+			if (phraseMap.containsKey(obj))
 			{
-				return phraseMap[`object`]!!
+				return phraseMap[obj]!!
 			}
-			val objectCopy = `object`.copyMutablePhrase()
+			val objectCopy = obj.copyMutablePhrase()
 			objectCopy.childrenMap { child ->
 				assert(child !== null)
 				assert(child!!.isInstanceOfKind(PARSE_PHRASE.mostGeneralType()))
@@ -4420,7 +4420,7 @@ class AvailCompiler(
 			val transformed = transformer(
 				objectCopy, parentPhrase, outerPhrases)
 			transformed.makeShared()
-			phraseMap[`object`] = transformed
+			phraseMap[obj] = transformed
 			return transformed
 		}
 

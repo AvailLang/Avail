@@ -157,7 +157,7 @@ enum class SerializerOperation constructor(
 	ZERO_INTEGER(0)
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			return array()
@@ -178,7 +178,7 @@ enum class SerializerOperation constructor(
 	ONE_INTEGER(1)
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			return array()
@@ -199,7 +199,7 @@ enum class SerializerOperation constructor(
 	TWO_INTEGER(2)
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			return array()
@@ -220,7 +220,7 @@ enum class SerializerOperation constructor(
 	THREE_INTEGER(3)
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			return array()
@@ -241,7 +241,7 @@ enum class SerializerOperation constructor(
 	FOUR_INTEGER(4)
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			return array()
@@ -262,7 +262,7 @@ enum class SerializerOperation constructor(
 	FIVE_INTEGER(5)
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			return array()
@@ -283,7 +283,7 @@ enum class SerializerOperation constructor(
 	SIX_INTEGER(6)
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			return array()
@@ -304,7 +304,7 @@ enum class SerializerOperation constructor(
 	SEVEN_INTEGER(7)
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			return array()
@@ -325,7 +325,7 @@ enum class SerializerOperation constructor(
 	EIGHT_INTEGER(8)
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			return array()
@@ -346,7 +346,7 @@ enum class SerializerOperation constructor(
 	NINE_INTEGER(9)
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			return array()
@@ -367,7 +367,7 @@ enum class SerializerOperation constructor(
 	TEN_INTEGER(10)
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			return array()
@@ -385,13 +385,13 @@ enum class SerializerOperation constructor(
 	 * An Avail integer in the range 11..255.  Note that 0..10 have their own
 	 * special cases already which require very little space.
 	 */
-	BYTE_INTEGER(11, BYTE.`as`("only byte"))
+	BYTE_INTEGER(11, BYTE.named("only byte"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(`object`)
+			return array(obj)
 		}
 
 		override fun compose(
@@ -414,13 +414,13 @@ enum class SerializerOperation constructor(
 	 * own special cases already which require less space.  Don't try to
 	 * compress the short value for this reason.
 	 */
-	SHORT_INTEGER(12, UNCOMPRESSED_SHORT.`as`("the unsigned short"))
+	SHORT_INTEGER(12, UNCOMPRESSED_SHORT.named("the unsigned short"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(`object`)
+			return array(obj)
 		}
 
 		override fun compose(
@@ -442,13 +442,13 @@ enum class SerializerOperation constructor(
 	 * An Avail integer in the range -2<sup>31</sup> through 2<sup>31</sup>-1,
 	 * except the range 0..65535 which have their own special cases already.
 	 */
-	INT_INTEGER(13, SIGNED_INT.`as`("int's value"))
+	INT_INTEGER(13, SIGNED_INT.named("int's value"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(`object`)
+			return array(obj)
 		}
 
 		override fun compose(
@@ -469,13 +469,13 @@ enum class SerializerOperation constructor(
 	/**
 	 * An Avail integer that cannot be represented as an `int`.
 	 */
-	BIG_INTEGER(14, BIG_INTEGER_DATA.`as`("constituent ints"))
+	BIG_INTEGER(14, BIG_INTEGER_DATA.named("constituent ints"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(`object`)
+			return array(obj)
 		}
 
 		override fun compose(
@@ -499,7 +499,7 @@ enum class SerializerOperation constructor(
 	NIL(15)
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			return array()
@@ -517,14 +517,14 @@ enum class SerializerOperation constructor(
 	 * This special opcode causes a previously built object to be produced as an
 	 * actual checkpoint output from the [Deserializer].
 	 */
-	CHECKPOINT(16, OBJECT_REFERENCE.`as`("object to checkpoint"))
+	CHECKPOINT(16, OBJECT_REFERENCE.named("object to checkpoint"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			// Make sure the function actually gets written out.
-			return array(`object`)
+			return array(obj)
 		}
 
 		override fun compose(
@@ -540,14 +540,14 @@ enum class SerializerOperation constructor(
 	/**
 	 * One of the special objects that the [AvailRuntime] maintains.
 	 */
-	SPECIAL_OBJECT(17, COMPRESSED_SHORT.`as`("special object number"))
+	SPECIAL_OBJECT(17, COMPRESSED_SHORT.named("special object number"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			return array(
-				fromInt(Serializer.indexOfSpecialObject(`object`)))
+				fromInt(Serializer.indexOfSpecialObject(obj)))
 		}
 
 		override fun compose(
@@ -572,14 +572,14 @@ enum class SerializerOperation constructor(
 	/**
 	 * One of the special atoms that the [AvailRuntime] maintains.
 	 */
-	SPECIAL_ATOM(18, COMPRESSED_SHORT.`as`("special atom number"))
+	SPECIAL_ATOM(18, COMPRESSED_SHORT.named("special atom number"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			return array(
-				fromInt(Serializer.indexOfSpecialAtom(`object`)))
+				fromInt(Serializer.indexOfSpecialAtom(obj)))
 		}
 
 		override fun compose(
@@ -605,13 +605,13 @@ enum class SerializerOperation constructor(
 	 * A [character][CharacterDescriptor] whose code point fits in an
 	 * unsigned byte (0..255).
 	 */
-	BYTE_CHARACTER(19, BYTE.`as`("Latin-1 code point"))
+	BYTE_CHARACTER(19, BYTE.named("Latin-1 code point"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(fromInt(`object`.codePoint()))
+			return array(fromInt(obj.codePoint()))
 		}
 
 		override fun compose(
@@ -626,13 +626,13 @@ enum class SerializerOperation constructor(
 	 * A [character][CharacterDescriptor] whose code point requires an
 	 * unsigned short (256..65535).
 	 */
-	SHORT_CHARACTER(20, UNCOMPRESSED_SHORT.`as`("BMP code point"))
+	SHORT_CHARACTER(20, UNCOMPRESSED_SHORT.named("BMP code point"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(fromInt(`object`.codePoint()))
+			return array(fromInt(obj.codePoint()))
 		}
 
 		override fun compose(
@@ -649,15 +649,15 @@ enum class SerializerOperation constructor(
 	 */
 	LARGE_CHARACTER(
 		21,
-		BYTE.`as`("SMP codepoint high byte"),
-		BYTE.`as`("SMP codepoint middle byte"),
-		BYTE.`as`("SMP codepoint low byte"))
+		BYTE.named("SMP codepoint high byte"),
+		BYTE.named("SMP codepoint middle byte"),
+		BYTE.named("SMP codepoint low byte"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			val codePoint = `object`.codePoint()
+			val codePoint = obj.codePoint()
 			return array(
 				fromInt(codePoint shr 16 and 0xFF),
 				fromInt(codePoint shr 8 and 0xFF),
@@ -678,13 +678,13 @@ enum class SerializerOperation constructor(
 	/**
 	 * A [float][FloatDescriptor].  Convert the raw bits to an int for writing.
 	 */
-	FLOAT(22, SIGNED_INT.`as`("raw bits"))
+	FLOAT(22, SIGNED_INT.named("raw bits"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			val floatValue = `object`.extractFloat()
+			val floatValue = obj.extractFloat()
 			val floatBits = floatToRawIntBits(floatValue)
 			return array(fromInt(floatBits))
 		}
@@ -714,14 +714,14 @@ enum class SerializerOperation constructor(
 	 */
 	DOUBLE(
 		23,
-		SIGNED_INT.`as`("upper raw bits"),
-		SIGNED_INT.`as`("lower raw bits"))
+		SIGNED_INT.named("upper raw bits"),
+		SIGNED_INT.named("lower raw bits"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			val doubleValue = `object`.extractDouble()
+			val doubleValue = obj.extractDouble()
 			val doubleBits = doubleToRawLongBits(doubleValue)
 			return array(
 				fromInt((doubleBits shr 32).toInt()),
@@ -759,13 +759,13 @@ enum class SerializerOperation constructor(
 	 * A [tuple][TupleDescriptor] of arbitrary objects.  Write the size of the
 	 * tuple then the elements as object identifiers.
 	 */
-	GENERAL_TUPLE(24, TUPLE_OF_OBJECTS.`as`("tuple elements"))
+	GENERAL_TUPLE(24, TUPLE_OF_OBJECTS.named("tuple elements"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(`object`)
+			return array(obj)
 		}
 
 		override fun compose(
@@ -780,13 +780,13 @@ enum class SerializerOperation constructor(
 	 * A [tuple of characters with code points in][StringDescriptor].  Write the
 	 * size of the tuple then the sequence of character bytes.
 	 */
-	BYTE_STRING(25, BYTE_CHARACTER_TUPLE.`as`("Latin-1 string"))
+	BYTE_STRING(25, BYTE_CHARACTER_TUPLE.named("Latin-1 string"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(`object`)
+			return array(obj)
 		}
 
 		override fun compose(
@@ -804,14 +804,14 @@ enum class SerializerOperation constructor(
 	 */
 	SHORT_STRING(
 		26,
-		COMPRESSED_SHORT_CHARACTER_TUPLE.`as`(
+		COMPRESSED_SHORT_CHARACTER_TUPLE.named(
 			"Basic Multilingual Plane string"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(`object`)
+			return array(obj)
 		}
 
 		override fun compose(
@@ -828,13 +828,13 @@ enum class SerializerOperation constructor(
 	 */
 	ARBITRARY_STRING(
 		27,
-		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.`as`("arbitrary string"))
+		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.named("arbitrary string"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(`object`)
+			return array(obj)
 		}
 
 		override fun compose(
@@ -849,13 +849,13 @@ enum class SerializerOperation constructor(
 	 * A [tuple of integers][TupleDescriptor] whose values all fall in the range
 	 * 0..2^31-1.
 	 */
-	INT_TUPLE(28, COMPRESSED_INT_TUPLE.`as`("tuple of ints"))
+	INT_TUPLE(28, COMPRESSED_INT_TUPLE.named("tuple of ints"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(`object`)
+			return array(obj)
 		}
 
 		override fun compose(
@@ -870,13 +870,13 @@ enum class SerializerOperation constructor(
 	 * A [tuple of integers][TupleDescriptor] whose values all fall in the range
 	 * 0..255.
 	 */
-	BYTE_TUPLE(29, UNCOMPRESSED_BYTE_TUPLE.`as`("tuple of bytes"))
+	BYTE_TUPLE(29, UNCOMPRESSED_BYTE_TUPLE.named("tuple of bytes"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(`object`)
+			return array(obj)
 		}
 
 		override fun compose(
@@ -891,13 +891,13 @@ enum class SerializerOperation constructor(
 	 * A [tuple of integers][TupleDescriptor] whose values fall in the range
 	 * 0..15.
 	 */
-	NYBBLE_TUPLE(30, UNCOMPRESSED_NYBBLE_TUPLE.`as`("tuple of nybbles"))
+	NYBBLE_TUPLE(30, UNCOMPRESSED_NYBBLE_TUPLE.named("tuple of nybbles"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(`object`)
+			return array(obj)
 		}
 
 		override fun compose(
@@ -913,13 +913,13 @@ enum class SerializerOperation constructor(
 	 * key```[N]```, value```[N]```) and work with that, converting it back to a
 	 * map when deserializing.
 	 */
-	MAP(31, GENERAL_MAP.`as`("map contents"))
+	MAP(31, GENERAL_MAP.named("map contents"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(`object`)
+			return array(obj)
 		}
 
 		override fun compose(
@@ -935,13 +935,13 @@ enum class SerializerOperation constructor(
 	 * key```[N]```, value```[N]```) and work with that, converting it back to a
 	 * map when deserializing.
 	 */
-	OBJECT(32, GENERAL_MAP.`as`("field map"))
+	OBJECT(32, GENERAL_MAP.named("field map"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(`object`.fieldMap())
+			return array(obj.fieldMap())
 		}
 
 		override fun compose(
@@ -957,13 +957,13 @@ enum class SerializerOperation constructor(
 	 * key```[N]```, value```[N]```) and work with that, converting it back to a
 	 * map when deserializing.
 	 */
-	OBJECT_TYPE(33, GENERAL_MAP.`as`("field type map"))
+	OBJECT_TYPE(33, GENERAL_MAP.named("field type map"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(`object`.fieldTypeMap())
+			return array(obj.fieldTypeMap())
 		}
 
 		override fun compose(
@@ -982,21 +982,21 @@ enum class SerializerOperation constructor(
 	 */
 	ATOM(
 		34,
-		OBJECT_REFERENCE.`as`("atom name"),
-		OBJECT_REFERENCE.`as`("module name"))
+		OBJECT_REFERENCE.named("atom name"),
+		OBJECT_REFERENCE.named("module name"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			serializer.checkAtom(`object`)
-			assert(`object`.getAtomProperty(HERITABLE_KEY.atom).equalsNil())
-			val module = `object`.issuingModule()
+			serializer.checkAtom(obj)
+			assert(obj.getAtomProperty(HERITABLE_KEY.atom).equalsNil())
+			val module = obj.issuingModule()
 			if (module.equalsNil())
 			{
 				throw RuntimeException("Atom has no issuing module")
 			}
-			return array(`object`.atomName(), module.moduleName())
+			return array(obj.atomName(), module.moduleName())
 		}
 
 		override fun compose(
@@ -1018,23 +1018,23 @@ enum class SerializerOperation constructor(
 	 */
 	HERITABLE_ATOM(
 		35,
-		OBJECT_REFERENCE.`as`("atom name"),
-		OBJECT_REFERENCE.`as`("module name"))
+		OBJECT_REFERENCE.named("atom name"),
+		OBJECT_REFERENCE.named("module name"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			serializer.checkAtom(`object`)
+			serializer.checkAtom(obj)
 			assert(
-				`object`.getAtomProperty(HERITABLE_KEY.atom).equals(
+				obj.getAtomProperty(HERITABLE_KEY.atom).equals(
 					trueObject()))
-			val module = `object`.issuingModule()
+			val module = obj.issuingModule()
 			if (module.equalsNil())
 			{
 				throw RuntimeException("Atom has no issuing module")
 			}
-			return array(`object`.atomName(), module.moduleName())
+			return array(obj.atomName(), module.moduleName())
 		}
 
 		override fun compose(
@@ -1055,46 +1055,46 @@ enum class SerializerOperation constructor(
 	 */
 	COMPILED_CODE(
 		36,
-		COMPRESSED_SHORT.`as`("Total number of frame slots"),
-		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.`as`("Primitive name"),
-		OBJECT_REFERENCE.`as`("Function type"),
-		UNCOMPRESSED_NYBBLE_TUPLE.`as`("Level one nybblecodes"),
-		TUPLE_OF_OBJECTS.`as`("Regular literals"),
-		TUPLE_OF_OBJECTS.`as`("Local types"),
-		TUPLE_OF_OBJECTS.`as`("Constant types"),
-		TUPLE_OF_OBJECTS.`as`("Outer types"),
-		OBJECT_REFERENCE.`as`("Module name"),
-		UNSIGNED_INT.`as`("Line number"),
-		COMPRESSED_INT_TUPLE.`as`("Encoded line number deltas"),
-		OBJECT_REFERENCE.`as`("Originating phrase"))
+		COMPRESSED_SHORT.named("Total number of frame slots"),
+		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.named("Primitive name"),
+		OBJECT_REFERENCE.named("Function type"),
+		UNCOMPRESSED_NYBBLE_TUPLE.named("Level one nybblecodes"),
+		TUPLE_OF_OBJECTS.named("Regular literals"),
+		TUPLE_OF_OBJECTS.named("Local types"),
+		TUPLE_OF_OBJECTS.named("Constant types"),
+		TUPLE_OF_OBJECTS.named("Outer types"),
+		OBJECT_REFERENCE.named("Module name"),
+		UNSIGNED_INT.named("Line number"),
+		COMPRESSED_INT_TUPLE.named("Encoded line number deltas"),
+		OBJECT_REFERENCE.named("Originating phrase"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			val numLocals = `object`.numLocals()
-			val numConstants = `object`.numConstants()
-			val numOuters = `object`.numOuters()
+			val numLocals = obj.numLocals()
+			val numConstants = obj.numConstants()
+			val numOuters = obj.numOuters()
 			val numRegularLiterals =
-				`object`.numLiterals() - numConstants - numLocals - numOuters
+				obj.numLiterals() - numConstants - numLocals - numOuters
 			val regularLiterals = generateObjectTupleFrom(numRegularLiterals) {
-				`object`.literalAt(it)
+				obj.literalAt(it)
 			}
 			val localTypes = generateObjectTupleFrom(numLocals) {
-				`object`.localTypeAt(it)
+				obj.localTypeAt(it)
 			}
 			val constantTypes = generateObjectTupleFrom(numConstants) {
-				`object`.constantTypeAt(it)
+				obj.constantTypeAt(it)
 			}
 			val outerTypes = generateObjectTupleFrom(numOuters) {
-				`object`.outerTypeAt(it)
+				obj.outerTypeAt(it)
 			}
-			val module = `object`.module()
+			val module = obj.module()
 			val moduleName = if (module.equalsNil())
 				emptyTuple()
 			else
 				module.moduleName()
-			val primitive = `object`.primitive()
+			val primitive = obj.primitive()
 			val primName: A_String
 			primName =
 				if (primitive === null)
@@ -1106,18 +1106,18 @@ enum class SerializerOperation constructor(
 					stringFrom(primitive.name())
 				}
 			return array(
-				fromInt(`object`.numSlots()),
+				fromInt(obj.numSlots()),
 				primName,
-				`object`.functionType(),
-				`object`.nybbles(),
+				obj.functionType(),
+				obj.nybbles(),
 				regularLiterals,
 				localTypes,
 				constantTypes,
 				outerTypes,
 				moduleName,
-				fromInt(`object`.startingLineNumber()),
-				`object`.lineNumberEncodedDeltas(),
-				`object`.originatingPhrase())
+				fromInt(obj.startingLineNumber()),
+				obj.lineNumberEncodedDeltas(),
+				obj.originatingPhrase())
 		}
 
 		override fun compose(
@@ -1167,15 +1167,15 @@ enum class SerializerOperation constructor(
 	 * A [function][FunctionDescriptor] with no outer (lexically captured)
 	 * variables.
 	 */
-	CLEAN_FUNCTION(37, OBJECT_REFERENCE.`as`("Compiled code"))
+	CLEAN_FUNCTION(37, OBJECT_REFERENCE.named("Compiled code"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			assert(`object`.numOuterVars() == 0)
+			assert(obj.numOuterVars() == 0)
 			return array(
-				`object`.code())
+				obj.code())
 		}
 
 		override fun compose(
@@ -1193,18 +1193,18 @@ enum class SerializerOperation constructor(
 	 */
 	GENERAL_FUNCTION(
 		38,
-		OBJECT_REFERENCE.`as`("Compiled code"),
-		TUPLE_OF_OBJECTS.`as`("Outer values"))
+		OBJECT_REFERENCE.named("Compiled code"),
+		TUPLE_OF_OBJECTS.named("Outer values"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			val outers = generateObjectTupleFrom(`object`.numOuterVars()) {
-				`object`.outerVarAt(it)
+			val outers = generateObjectTupleFrom(obj.numOuterVars()) {
+				obj.outerVarAt(it)
 			}
 			return array(
-				`object`.code(),
+				obj.code(),
 				outers)
 		}
 
@@ -1223,7 +1223,7 @@ enum class SerializerOperation constructor(
 	 * reconstructs a new one, since there's no way to know where the original
 	 * one came from.
 	 */
-	LOCAL_VARIABLE(39, OBJECT_REFERENCE.`as`("variable type"))
+	LOCAL_VARIABLE(39, OBJECT_REFERENCE.named("variable type"))
 	{
 		override val isVariableCreation: Boolean
 			// This was a local variable, so answer true, indicating that we
@@ -1234,11 +1234,11 @@ enum class SerializerOperation constructor(
 			get() = true
 
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			assert(!`object`.isGlobal)
-			return array(`object`.kind())
+			assert(!obj.isGlobal)
+			return array(obj.kind())
 		}
 
 		override fun compose(
@@ -1268,23 +1268,23 @@ enum class SerializerOperation constructor(
 	 */
 	GLOBAL_VARIABLE(
 		40,
-		OBJECT_REFERENCE.`as`("variable type"),
-		OBJECT_REFERENCE.`as`("module name"),
-		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.`as`("variable name"),
-		BYTE.`as`("flags"))
+		OBJECT_REFERENCE.named("variable type"),
+		OBJECT_REFERENCE.named("module name"),
+		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.named("variable name"),
+		BYTE.named("flags"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			assert(`object`.isGlobal)
+			assert(obj.isGlobal)
 			val flags =
-				(if (`object`.isInitializedWriteOnceVariable) 1 else 0) +
-					if (`object`.valueWasStablyComputed()) 2 else 0
+				(if (obj.isInitializedWriteOnceVariable) 1 else 0) +
+					if (obj.valueWasStablyComputed()) 2 else 0
 			return array(
-				`object`.kind(),
-				`object`.globalModule(),
-				`object`.globalName(),
+				obj.kind(),
+				obj.globalModule(),
+				obj.globalName(),
 				fromInt(flags))
 		}
 
@@ -1323,13 +1323,13 @@ enum class SerializerOperation constructor(
 	 * A [set][SetDescriptor].  Convert it to a tuple and work with that,
 	 * converting it back to a set when deserializing.
 	 */
-	SET(41, TUPLE_OF_OBJECTS.`as`("tuple of objects"))
+	SET(41, TUPLE_OF_OBJECTS.named("tuple of objects"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(`object`.asTuple())
+			return array(obj.asTuple())
 		}
 
 		override fun compose(
@@ -1345,20 +1345,20 @@ enum class SerializerOperation constructor(
 	 */
 	TOKEN(
 		42,
-		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.`as`("token string"),
-		SIGNED_INT.`as`("start position"),
-		SIGNED_INT.`as`("line number"),
-		BYTE.`as`("token type code"))
+		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.named("token string"),
+		SIGNED_INT.named("start position"),
+		SIGNED_INT.named("line number"),
+		BYTE.named("token type code"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			return array(
-				`object`.string(),
-				fromInt(`object`.start()),
-				fromInt(`object`.lineNumber()),
-				fromInt(`object`.tokenType().ordinal))
+				obj.string(),
+				fromInt(obj.start()),
+				fromInt(obj.lineNumber()),
+				fromInt(obj.tokenType().ordinal))
 		}
 
 		override fun compose(
@@ -1382,20 +1382,20 @@ enum class SerializerOperation constructor(
 	 */
 	LITERAL_TOKEN(
 		43,
-		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.`as`("token string"),
-		OBJECT_REFERENCE.`as`("literal value"),
-		SIGNED_INT.`as`("start position"),
-		SIGNED_INT.`as`("line number"))
+		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.named("token string"),
+		OBJECT_REFERENCE.named("literal value"),
+		SIGNED_INT.named("start position"),
+		SIGNED_INT.named("line number"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			return array(
-				`object`.string(),
-				`object`.literal(),
-				fromInt(`object`.start()),
-				fromInt(`object`.lineNumber()))
+				obj.string(),
+				obj.literal(),
+				fromInt(obj.start()),
+				fromInt(obj.lineNumber()))
 		}
 
 		override fun compose(
@@ -1419,18 +1419,18 @@ enum class SerializerOperation constructor(
 	 */
 	COMMENT_TOKEN(
 		44,
-		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.`as`("token string"),
-		SIGNED_INT.`as`("start position"),
-		SIGNED_INT.`as`("line number"))
+		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.named("token string"),
+		SIGNED_INT.named("start position"),
+		SIGNED_INT.named("line number"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			return array(
-				`object`.string(),
-				fromInt(`object`.start()),
-				fromInt(`object`.lineNumber()))
+				obj.string(),
+				fromInt(obj.start()),
+				fromInt(obj.lineNumber()))
 		}
 
 		override fun compose(
@@ -1451,16 +1451,16 @@ enum class SerializerOperation constructor(
 	 */
 	ASSIGN_TO_VARIABLE(
 		45,
-		OBJECT_REFERENCE.`as`("variable to assign"),
-		OBJECT_REFERENCE.`as`("value to assign"))
+		OBJECT_REFERENCE.named("variable to assign"),
+		OBJECT_REFERENCE.named("value to assign"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			return array(
-				`object`,
-				`object`.value())
+				obj,
+				obj.value())
 		}
 
 		override fun compose(
@@ -1479,28 +1479,28 @@ enum class SerializerOperation constructor(
 	 */
 	CONTINUATION(
 		46,
-		OBJECT_REFERENCE.`as`("calling continuation"),
-		OBJECT_REFERENCE.`as`("continuation's function"),
-		TUPLE_OF_OBJECTS.`as`("continuation frame slots"),
-		COMPRESSED_SHORT.`as`("program counter"),
-		COMPRESSED_SHORT.`as`("stack pointer"))
+		OBJECT_REFERENCE.named("calling continuation"),
+		OBJECT_REFERENCE.named("continuation's function"),
+		TUPLE_OF_OBJECTS.named("continuation frame slots"),
+		COMPRESSED_SHORT.named("program counter"),
+		COMPRESSED_SHORT.named("stack pointer"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			val frameSlotCount = `object`.numSlots()
+			val frameSlotCount = obj.numSlots()
 			val frameSlotsList = ArrayList<AvailObject>(frameSlotCount)
 			for (i in 1..frameSlotCount)
 			{
-				frameSlotsList.add(`object`.argOrLocalOrStackAt(i))
+				frameSlotsList.add(obj.argOrLocalOrStackAt(i))
 			}
 			return array(
-				`object`.caller(),
-				`object`.function(),
+				obj.caller(),
+				obj.function(),
 				tupleFromList(frameSlotsList),
-				fromInt(`object`.pc()),
-				fromInt(`object`.stackp()))
+				fromInt(obj.pc()),
+				fromInt(obj.stackp()))
 		}
 
 		override fun compose(
@@ -1538,15 +1538,15 @@ enum class SerializerOperation constructor(
 	 * and if that atom has a bundle associated with it, that bundle's method is
 	 * used.
 	 */
-	METHOD(47, TUPLE_OF_OBJECTS.`as`("module name / atom name pairs"))
+	METHOD(47, TUPLE_OF_OBJECTS.named("module name / atom name pairs"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			assert(`object`.isInstanceOf(TypeDescriptor.Types.METHOD.o()))
+			assert(obj.isInstanceOf(TypeDescriptor.Types.METHOD.o()))
 			val pairs = ArrayList<A_Tuple>()
-			for (bundle in `object`.bundles())
+			for (bundle in obj.bundles())
 			{
 				val atom = bundle.message()
 				val module = atom.issuingModule()
@@ -1618,17 +1618,17 @@ enum class SerializerOperation constructor(
 	 */
 	METHOD_DEFINITION(
 		48,
-		OBJECT_REFERENCE.`as`("method"),
-		OBJECT_REFERENCE.`as`("signature"))
+		OBJECT_REFERENCE.named("method"),
+		OBJECT_REFERENCE.named("signature"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			assert(`object`.isMethodDefinition)
+			assert(obj.isMethodDefinition)
 			return array(
-				`object`.definitionMethod(),
-				`object`.bodySignature())
+				obj.definitionMethod(),
+				obj.bodySignature())
 		}
 
 		override fun compose(
@@ -1658,17 +1658,17 @@ enum class SerializerOperation constructor(
 	 */
 	MACRO_DEFINITION(
 		49,
-		OBJECT_REFERENCE.`as`("method"),
-		OBJECT_REFERENCE.`as`("signature"))
+		OBJECT_REFERENCE.named("method"),
+		OBJECT_REFERENCE.named("signature"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			assert(`object`.isMacroDefinition)
+			assert(obj.isMacroDefinition)
 			return array(
-				`object`.definitionMethod(),
-				`object`.bodySignature())
+				obj.definitionMethod(),
+				obj.bodySignature())
 		}
 
 		@Suppress("RemoveRedundantQualifierName")
@@ -1698,17 +1698,17 @@ enum class SerializerOperation constructor(
 	 */
 	ABSTRACT_DEFINITION(
 		50,
-		OBJECT_REFERENCE.`as`("method"),
-		OBJECT_REFERENCE.`as`("signature"))
+		OBJECT_REFERENCE.named("method"),
+		OBJECT_REFERENCE.named("signature"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			assert(`object`.isAbstractDefinition)
+			assert(obj.isAbstractDefinition)
 			return array(
-				`object`.definitionMethod(),
-				`object`.bodySignature())
+				obj.definitionMethod(),
+				obj.bodySignature())
 		}
 
 		override fun compose(
@@ -1737,17 +1737,17 @@ enum class SerializerOperation constructor(
 	 */
 	FORWARD_DEFINITION(
 		51,
-		OBJECT_REFERENCE.`as`("method"),
-		OBJECT_REFERENCE.`as`("signature"))
+		OBJECT_REFERENCE.named("method"),
+		OBJECT_REFERENCE.named("signature"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			assert(`object`.isForwardDefinition)
+			assert(obj.isForwardDefinition)
 			return array(
-				`object`.definitionMethod(),
-				`object`.bodySignature())
+				obj.definitionMethod(),
+				obj.bodySignature())
 		}
 
 		override fun compose(
@@ -1775,14 +1775,14 @@ enum class SerializerOperation constructor(
 	 * A reference to a [message bundle][MessageBundleDescriptor],
 	 * which should be reconstructed by looking it up.
 	 */
-	MESSAGE_BUNDLE(52, OBJECT_REFERENCE.`as`("message atom"))
+	MESSAGE_BUNDLE(52, OBJECT_REFERENCE.named("message atom"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			return array(
-				`object`.message())
+				obj.message())
 		}
 
 		override fun compose(
@@ -1807,13 +1807,13 @@ enum class SerializerOperation constructor(
 	/**
 	 * A reference to a module, possibly the one being constructed.
 	 */
-	MODULE(53, OBJECT_REFERENCE.`as`("module name"))
+	MODULE(53, OBJECT_REFERENCE.named("module name"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(`object`.moduleName())
+			return array(obj.moduleName())
 		}
 
 		override fun compose(
@@ -1841,26 +1841,26 @@ enum class SerializerOperation constructor(
 	 */
 	EXPLICIT_SUBCLASS_ATOM(
 		54,
-		OBJECT_REFERENCE.`as`("atom name"),
-		OBJECT_REFERENCE.`as`("module name"))
+		OBJECT_REFERENCE.named("atom name"),
+		OBJECT_REFERENCE.named("module name"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			serializer.checkAtom(`object`)
+			serializer.checkAtom(obj)
 			assert(
-				`object`.getAtomProperty(HERITABLE_KEY.atom)
+				obj.getAtomProperty(HERITABLE_KEY.atom)
 					.equalsNil())
 			assert(
-				`object`.getAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom)
+				obj.getAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom)
 					.equals(EXPLICIT_SUBCLASSING_KEY.atom))
-			val module = `object`.issuingModule()
+			val module = obj.issuingModule()
 			if (module.equalsNil())
 			{
 				throw RuntimeException("Atom has no issuing module")
 			}
-			return array(`object`.atomName(), module.moduleName())
+			return array(obj.atomName(), module.moduleName())
 		}
 
 		override fun compose(
@@ -1884,7 +1884,7 @@ enum class SerializerOperation constructor(
 	RAW_POJO_NULL(55)
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			return array()
@@ -1904,13 +1904,13 @@ enum class SerializerOperation constructor(
 	 */
 	RAW_NONPRIMITIVE_JAVA_CLASS(
 		56,
-		OBJECT_REFERENCE.`as`("class name"))
+		OBJECT_REFERENCE.named("class name"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			val javaClass = `object`.javaObjectNotNull<Class<*>>()
+			val javaClass = obj.javaObjectNotNull<Class<*>>()
 			return array(
 				stringFrom(javaClass.name))
 		}
@@ -1932,15 +1932,15 @@ enum class SerializerOperation constructor(
 	 */
 	RAW_POJO_METHOD(
 		57,
-		OBJECT_REFERENCE.`as`("declaring class pojo"),
-		OBJECT_REFERENCE.`as`("method name string"),
-		OBJECT_REFERENCE.`as`("marshaled argument pojo types"))
+		OBJECT_REFERENCE.named("declaring class pojo"),
+		OBJECT_REFERENCE.named("method name string"),
+		OBJECT_REFERENCE.named("marshaled argument pojo types"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			val method = `object`.javaObjectNotNull<Method>()
+			val method = obj.javaObjectNotNull<Method>()
 			val declaringClass = method.declaringClass
 			val methodName = method.name
 			val argumentTypes = method.parameterTypes
@@ -1983,14 +1983,14 @@ enum class SerializerOperation constructor(
 	 */
 	RAW_POJO_CONSTRUCTOR(
 		58,
-		OBJECT_REFERENCE.`as`("declaring class pojo"),
-		OBJECT_REFERENCE.`as`("marshaled argument pojo types"))
+		OBJECT_REFERENCE.named("declaring class pojo"),
+		OBJECT_REFERENCE.named("marshaled argument pojo types"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			val constructor = `object`.javaObjectNotNull<Constructor<*>>()
+			val constructor = obj.javaObjectNotNull<Constructor<*>>()
 			val declaringClass = constructor.declaringClass
 			val argumentTypes = constructor.parameterTypes
 
@@ -2029,13 +2029,13 @@ enum class SerializerOperation constructor(
 	 */
 	RAW_PRIMITIVE_JAVA_CLASS(
 		59,
-		OBJECT_REFERENCE.`as`("primitive class name"))
+		OBJECT_REFERENCE.named("primitive class name"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			val javaClass = `object`.javaObjectNotNull<Class<*>>()
+			val javaClass = obj.javaObjectNotNull<Class<*>>()
 			return array(stringFrom(javaClass.name))
 		}
 
@@ -2074,21 +2074,21 @@ enum class SerializerOperation constructor(
 	 */
 	ASSIGNMENT_PHRASE(
 		60,
-		BYTE.`as`("flags"),
-		OBJECT_REFERENCE.`as`("variable"),
-		OBJECT_REFERENCE.`as`("expression"),
-		OBJECT_REFERENCE.`as`("tokens"))
+		BYTE.named("flags"),
+		OBJECT_REFERENCE.named("variable"),
+		OBJECT_REFERENCE.named("expression"),
+		OBJECT_REFERENCE.named("tokens"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			val isInline = isInline(`object`)
+			val isInline = isInline(obj)
 			return array(
 				fromInt(if (isInline) 1 else 0),
-				`object`.variable(),
-				`object`.expression(),
-				`object`.tokens())
+				obj.variable(),
+				obj.expression(),
+				obj.tokens())
 		}
 
 		override fun compose(
@@ -2109,31 +2109,31 @@ enum class SerializerOperation constructor(
 	 */
 	BLOCK_PHRASE(
 		61,
-		TUPLE_OF_OBJECTS.`as`("arguments tuple"),
-		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.`as`("primitive name"),
-		TUPLE_OF_OBJECTS.`as`("statements tuple"),
-		OBJECT_REFERENCE.`as`("result type"),
-		TUPLE_OF_OBJECTS.`as`("declared exceptions"),
-		UNSIGNED_INT.`as`("starting line number"),
-		TUPLE_OF_OBJECTS.`as`("tokens"))
+		TUPLE_OF_OBJECTS.named("arguments tuple"),
+		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.named("primitive name"),
+		TUPLE_OF_OBJECTS.named("statements tuple"),
+		OBJECT_REFERENCE.named("result type"),
+		TUPLE_OF_OBJECTS.named("declared exceptions"),
+		UNSIGNED_INT.named("starting line number"),
+		TUPLE_OF_OBJECTS.named("tokens"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			val primitive = `object`.primitive()
+			val primitive = obj.primitive()
 			val primitiveName = if (primitive === null)
 				emptyTuple()
 			else
 				stringFrom(primitive.name())
 			return array(
-				`object`.argumentsTuple(),
+				obj.argumentsTuple(),
 				primitiveName,
-				`object`.statementsTuple(),
-				`object`.resultType(),
-				`object`.declaredExceptions().asTuple(),
-				fromInt(`object`.startingLineNumber()),
-				`object`.tokens())
+				obj.statementsTuple(),
+				obj.resultType(),
+				obj.declaredExceptions().asTuple(),
+				fromInt(obj.startingLineNumber()),
+				obj.tokens())
 		}
 
 		override fun compose(
@@ -2175,23 +2175,23 @@ enum class SerializerOperation constructor(
 	 */
 	DECLARATION_PHRASE(
 		62,
-		BYTE.`as`("declaration kind ordinal"),
-		OBJECT_REFERENCE.`as`("token"),
-		OBJECT_REFERENCE.`as`("declared type"),
-		OBJECT_REFERENCE.`as`("type expression"),
-		OBJECT_REFERENCE.`as`("initialization expression"),
-		OBJECT_REFERENCE.`as`("literal object"))
+		BYTE.named("declaration kind ordinal"),
+		OBJECT_REFERENCE.named("token"),
+		OBJECT_REFERENCE.named("declared type"),
+		OBJECT_REFERENCE.named("type expression"),
+		OBJECT_REFERENCE.named("initialization expression"),
+		OBJECT_REFERENCE.named("literal object"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			val kind = `object`.declarationKind()
-			val token = `object`.token()
-			val declaredType = `object`.declaredType()
-			val typeExpression = `object`.typeExpression()
-			val initializationExpression = `object`.initializationExpression()
-			val literalObject = `object`.literalObject()
+			val kind = obj.declarationKind()
+			val token = obj.token()
+			val declaredType = obj.declaredType()
+			val typeExpression = obj.typeExpression()
+			val initializationExpression = obj.initializationExpression()
+			val literalObject = obj.literalObject()
 			return array(
 				fromInt(kind.ordinal),
 				token,
@@ -2227,13 +2227,13 @@ enum class SerializerOperation constructor(
 	/**
 	 * An [expression-as-statement][ExpressionAsStatementPhraseDescriptor].
 	 */
-	EXPRESSION_AS_STATEMENT_PHRASE(63, OBJECT_REFERENCE.`as`("expression"))
+	EXPRESSION_AS_STATEMENT_PHRASE(63, OBJECT_REFERENCE.named("expression"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(`object`.expression())
+			return array(obj.expression())
 		}
 
 		override fun compose(
@@ -2248,13 +2248,13 @@ enum class SerializerOperation constructor(
 	/**
 	 * A [first-of-sequence phrase][FirstOfSequencePhraseDescriptor].
 	 */
-	FIRST_OF_SEQUENCE_PHRASE(64, TUPLE_OF_OBJECTS.`as`("statements"))
+	FIRST_OF_SEQUENCE_PHRASE(64, TUPLE_OF_OBJECTS.named("statements"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(`object`.statements())
+			return array(obj.statements())
 		}
 
 		override fun compose(
@@ -2269,13 +2269,13 @@ enum class SerializerOperation constructor(
 	/**
 	 * A [list phrase][ListPhraseDescriptor].
 	 */
-	LIST_PHRASE(65, TUPLE_OF_OBJECTS.`as`("expressions"))
+	LIST_PHRASE(65, TUPLE_OF_OBJECTS.named("expressions"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(`object`.expressionsTuple())
+			return array(obj.expressionsTuple())
 		}
 
 		override fun compose(
@@ -2290,13 +2290,13 @@ enum class SerializerOperation constructor(
 	/**
 	 * A [literal phrase][LiteralPhraseDescriptor].
 	 */
-	LITERAL_PHRASE(66, OBJECT_REFERENCE.`as`("literal token"))
+	LITERAL_PHRASE(66, OBJECT_REFERENCE.named("literal token"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(`object`.token())
+			return array(obj.token())
 		}
 
 		override fun compose(
@@ -2313,16 +2313,16 @@ enum class SerializerOperation constructor(
 	 */
 	MACRO_SUBSTITUTION_PHRASE(
 		67,
-		OBJECT_REFERENCE.`as`("original phrase"),
-		OBJECT_REFERENCE.`as`("output phrase"))
+		OBJECT_REFERENCE.named("original phrase"),
+		OBJECT_REFERENCE.named("output phrase"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			return array(
-				`object`.macroOriginalSendNode(),
-				`object`.outputPhrase())
+				obj.macroOriginalSendNode(),
+				obj.outputPhrase())
 		}
 
 		override fun compose(
@@ -2340,16 +2340,16 @@ enum class SerializerOperation constructor(
 	 */
 	PERMUTED_LIST_PHRASE(
 		68,
-		OBJECT_REFERENCE.`as`("list phrase"),
-		TUPLE_OF_OBJECTS.`as`("permutation"))
+		OBJECT_REFERENCE.named("list phrase"),
+		TUPLE_OF_OBJECTS.named("permutation"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			return array(
-				`object`.list(),
-				`object`.permutation())
+				obj.list(),
+				obj.permutation())
 		}
 
 		override fun compose(
@@ -2365,13 +2365,13 @@ enum class SerializerOperation constructor(
 	/**
 	 * A [permuted list phrase][PermutedListPhraseDescriptor].
 	 */
-	REFERENCE_PHRASE(69, OBJECT_REFERENCE.`as`("variable use"))
+	REFERENCE_PHRASE(69, OBJECT_REFERENCE.named("variable use"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(`object`.variable())
+			return array(obj.variable())
 		}
 
 		override fun compose(
@@ -2388,20 +2388,20 @@ enum class SerializerOperation constructor(
 	 */
 	SEND_PHRASE(
 		70,
-		OBJECT_REFERENCE.`as`("bundle"),
-		OBJECT_REFERENCE.`as`("arguments list phrase"),
-		OBJECT_REFERENCE.`as`("return type"),
-		TUPLE_OF_OBJECTS.`as`("tokens"))
+		OBJECT_REFERENCE.named("bundle"),
+		OBJECT_REFERENCE.named("arguments list phrase"),
+		OBJECT_REFERENCE.named("return type"),
+		TUPLE_OF_OBJECTS.named("tokens"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			return array(
-				`object`.bundle(),
-				`object`.argumentsListNode(),
-				`object`.expressionType(),
-				`object`.tokens())
+				obj.bundle(),
+				obj.argumentsListNode(),
+				obj.expressionType(),
+				obj.tokens())
 		}
 
 		override fun compose(
@@ -2419,13 +2419,13 @@ enum class SerializerOperation constructor(
 	/**
 	 * A [sequence phrase][SequencePhraseDescriptor].
 	 */
-	SEQUENCE_PHRASE(71, TUPLE_OF_OBJECTS.`as`("statements"))
+	SEQUENCE_PHRASE(71, TUPLE_OF_OBJECTS.named("statements"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(`object`.statements())
+			return array(obj.statements())
 		}
 
 		override fun compose(
@@ -2442,16 +2442,16 @@ enum class SerializerOperation constructor(
 	 */
 	SUPER_CAST_PHRASE(
 		72,
-		OBJECT_REFERENCE.`as`("expression"),
-		OBJECT_REFERENCE.`as`("type for lookup"))
+		OBJECT_REFERENCE.named("expression"),
+		OBJECT_REFERENCE.named("type for lookup"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			return array(
-				`object`.expression(),
-				`object`.superUnionType())
+				obj.expression(),
+				obj.superUnionType())
 		}
 
 		override fun compose(
@@ -2469,16 +2469,16 @@ enum class SerializerOperation constructor(
 	 */
 	VARIABLE_USE_PHRASE(
 		73,
-		OBJECT_REFERENCE.`as`("use token"),
-		OBJECT_REFERENCE.`as`("declaration"))
+		OBJECT_REFERENCE.named("use token"),
+		OBJECT_REFERENCE.named("declaration"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			return array(
-				`object`.token(),
-				`object`.declaration())
+				obj.token(),
+				obj.declaration())
 		}
 
 		override fun compose(
@@ -2499,13 +2499,13 @@ enum class SerializerOperation constructor(
 	 */
 	ARBITRARY_PRIMITIVE_TYPE(
 		74,
-		BYTE.`as`("primitive type ordinal"))
+		BYTE.named("primitive type ordinal"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(fromInt(extractOrdinal(`object`)))
+			return array(fromInt(extractOrdinal(obj)))
 		}
 
 		override fun compose(
@@ -2521,15 +2521,15 @@ enum class SerializerOperation constructor(
 	 */
 	STATIC_POJO_FIELD(
 		75,
-		OBJECT_REFERENCE.`as`("class name"),
-		OBJECT_REFERENCE.`as`("field name"))
+		OBJECT_REFERENCE.named("class name"),
+		OBJECT_REFERENCE.named("field name"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			assert(`object`.descriptor() is PojoFinalFieldDescriptor)
-			val field = `object`
+			assert(obj.descriptor() is PojoFinalFieldDescriptor)
+			val field = obj
 				.slot(PojoFinalFieldDescriptor.ObjectSlots.FIELD)
 				.javaObjectNotNull<Field>()
 			val definingClass = field.declaringClass
@@ -2573,7 +2573,7 @@ enum class SerializerOperation constructor(
 	@Suppress("unused") RESERVED_76(76)
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			throw RuntimeException("Reserved serializer operation")
@@ -2593,7 +2593,7 @@ enum class SerializerOperation constructor(
 	@Suppress("unused") RESERVED_77(77)
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			throw RuntimeException("Reserved serializer operation")
@@ -2613,7 +2613,7 @@ enum class SerializerOperation constructor(
 	@Suppress("unused") RESERVED_78(78)
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			throw RuntimeException("Reserved serializer operation")
@@ -2633,7 +2633,7 @@ enum class SerializerOperation constructor(
 	@Suppress("unused") RESERVED_79(79)
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			throw RuntimeException("Reserved serializer operation")
@@ -2650,13 +2650,13 @@ enum class SerializerOperation constructor(
 	/**
 	 * A [fiber type][FiberTypeDescriptor].
 	 */
-	FIBER_TYPE(80, OBJECT_REFERENCE.`as`("Result type"))
+	FIBER_TYPE(80, OBJECT_REFERENCE.named("Result type"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(`object`.resultType())
+			return array(obj.resultType())
 		}
 
 		override fun compose(
@@ -2673,18 +2673,18 @@ enum class SerializerOperation constructor(
 	 */
 	FUNCTION_TYPE(
 		81,
-		OBJECT_REFERENCE.`as`("Arguments tuple type"),
-		OBJECT_REFERENCE.`as`("Return type"),
-		TUPLE_OF_OBJECTS.`as`("Checked exceptions"))
+		OBJECT_REFERENCE.named("Arguments tuple type"),
+		OBJECT_REFERENCE.named("Return type"),
+		TUPLE_OF_OBJECTS.named("Checked exceptions"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			return array(
-				`object`.argsTupleType(),
-				`object`.returnType(),
-				`object`.declaredExceptions().asTuple())
+				obj.argsTupleType(),
+				obj.returnType(),
+				obj.declaredExceptions().asTuple())
 		}
 
 		override fun compose(
@@ -2704,18 +2704,18 @@ enum class SerializerOperation constructor(
 	 */
 	TUPLE_TYPE(
 		82,
-		OBJECT_REFERENCE.`as`("Tuple sizes"),
-		TUPLE_OF_OBJECTS.`as`("Leading types"),
-		OBJECT_REFERENCE.`as`("Default type"))
+		OBJECT_REFERENCE.named("Tuple sizes"),
+		TUPLE_OF_OBJECTS.named("Leading types"),
+		OBJECT_REFERENCE.named("Default type"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			return array(
-				`object`.sizeRange(),
-				`object`.typeTuple(),
-				`object`.defaultType())
+				obj.sizeRange(),
+				obj.typeTuple(),
+				obj.defaultType())
 		}
 
 		override fun compose(
@@ -2735,21 +2735,21 @@ enum class SerializerOperation constructor(
 	 */
 	INTEGER_RANGE_TYPE(
 		83,
-		BYTE.`as`("Inclusive flags"),
-		OBJECT_REFERENCE.`as`("Lower bound"),
-		OBJECT_REFERENCE.`as`("Upper bound"))
+		BYTE.named("Inclusive flags"),
+		OBJECT_REFERENCE.named("Lower bound"),
+		OBJECT_REFERENCE.named("Upper bound"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			val flags =
-				(if (`object`.lowerInclusive()) 1 else 0) +
-					if (`object`.upperInclusive()) 2 else 0
+				(if (obj.lowerInclusive()) 1 else 0) +
+					if (obj.upperInclusive()) 2 else 0
 			return array(
 				fromInt(flags),
-				`object`.lowerBound(),
-				`object`.upperBound())
+				obj.lowerBound(),
+				obj.upperBound())
 		}
 
 		override fun compose(
@@ -2782,19 +2782,19 @@ enum class SerializerOperation constructor(
 	 */
 	UNFUSED_POJO_TYPE(
 		84,
-		OBJECT_REFERENCE.`as`("class name"),
-		TUPLE_OF_OBJECTS.`as`("class parameterization"))
+		OBJECT_REFERENCE.named("class name"),
+		TUPLE_OF_OBJECTS.named("class parameterization"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			assert(`object`.isPojoType)
-			assert(!`object`.isPojoFusedType)
-			val rawPojoType = `object`.javaClass()
+			assert(obj.isPojoType)
+			assert(!obj.isPojoFusedType)
+			val rawPojoType = obj.javaClass()
 			val baseClass = rawPojoType.javaObjectNotNull<Class<*>>()
 			val className = stringFrom(baseClass.name)
-			val ancestorMap = `object`.javaAncestors()
+			val ancestorMap = obj.javaAncestors()
 			val myParameters = ancestorMap.mapAt(rawPojoType)
 			val processedParameters =
 				ArrayList<A_BasicObject>(myParameters.tupleSize())
@@ -2859,16 +2859,16 @@ enum class SerializerOperation constructor(
 	 * type into a tuple of size one, containing the name of the java class or
 	 * interface name.  This is enough to reconstruct the self pojo type.
 	 */
-	FUSED_POJO_TYPE(85, GENERAL_MAP.`as`("ancestor parameterizations map"))
+	FUSED_POJO_TYPE(85, GENERAL_MAP.named("ancestor parameterizations map"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			assert(`object`.isPojoType)
-			assert(`object`.isPojoFusedType)
+			assert(obj.isPojoType)
+			assert(obj.isPojoFusedType)
 			var symbolicMap = emptyMap()
-			for (entry in `object`.javaAncestors().mapIterable())
+			for (entry in obj.javaAncestors().mapIterable())
 			{
 				val baseClass = entry.key().javaObjectNotNull<Class<*>>()
 				val className = stringFrom(baseClass.name)
@@ -2941,16 +2941,16 @@ enum class SerializerOperation constructor(
 	 */
 	ARRAY_POJO_TYPE(
 		86,
-		OBJECT_REFERENCE.`as`("content type"),
-		OBJECT_REFERENCE.`as`("size range"))
+		OBJECT_REFERENCE.named("content type"),
+		OBJECT_REFERENCE.named("size range"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			assert(`object`.isPojoArrayType)
-			val contentType = `object`.contentType()
-			val sizeRange = `object`.sizeRange()
+			assert(obj.isPojoArrayType)
+			val contentType = obj.contentType()
+			val sizeRange = obj.sizeRange()
 			return array(contentType, sizeRange)
 		}
 
@@ -2973,10 +2973,10 @@ enum class SerializerOperation constructor(
 	 * a way to get to the raw Java classes involved, so we serialize their
 	 * names.
 	 */
-	SELF_POJO_TYPE_REPRESENTATIVE(87, TUPLE_OF_OBJECTS.`as`("class names"))
+	SELF_POJO_TYPE_REPRESENTATIVE(87, TUPLE_OF_OBJECTS.named("class names"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			throw RuntimeException(
@@ -2999,7 +2999,7 @@ enum class SerializerOperation constructor(
 	BOTTOM_POJO_TYPE(88)
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			return array()
@@ -3017,13 +3017,15 @@ enum class SerializerOperation constructor(
 	 * The bottom [pojo type][PojoTypeDescriptor], representing the most
 	 * specific type of pojo.
 	 */
-	COMPILED_CODE_TYPE(89, OBJECT_REFERENCE.`as`("function type for code type"))
+	COMPILED_CODE_TYPE(
+		89,
+		OBJECT_REFERENCE.named("function type for code type"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(`object`.functionType())
+			return array(obj.functionType())
 		}
 
 		override fun compose(
@@ -3040,13 +3042,13 @@ enum class SerializerOperation constructor(
 	 */
 	CONTINUATION_TYPE(
 		90,
-		OBJECT_REFERENCE.`as`("function type for continuation type"))
+		OBJECT_REFERENCE.named("function type for continuation type"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(`object`.functionType())
+			return array(obj.functionType())
 		}
 
 		override fun compose(
@@ -3061,13 +3063,13 @@ enum class SerializerOperation constructor(
 	 * An Avail [enumeration][EnumerationTypeDescriptor], a type that has an
 	 * explicit finite list of its instances.
 	 */
-	ENUMERATION_TYPE(91, TUPLE_OF_OBJECTS.`as`("set of instances"))
+	ENUMERATION_TYPE(91, TUPLE_OF_OBJECTS.named("set of instances"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(`object`.instances().asTuple())
+			return array(obj.instances().asTuple())
 		}
 
 		override fun compose(
@@ -3082,13 +3084,13 @@ enum class SerializerOperation constructor(
 	 * An Avail [singular enumeration][InstanceTypeDescriptor], a type that has
 	 * a single (non-type) instance.
 	 */
-	INSTANCE_TYPE(92, OBJECT_REFERENCE.`as`("type's instance"))
+	INSTANCE_TYPE(92, OBJECT_REFERENCE.named("type's instance"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(`object`.instance())
+			return array(obj.instance())
 		}
 
 		override fun compose(
@@ -3104,13 +3106,13 @@ enum class SerializerOperation constructor(
 	 * instance `i`, which is itself a type.  Subtypes of type `i` are also
 	 * considered instances of this instance meta.
 	 */
-	INSTANCE_META(93, OBJECT_REFERENCE.`as`("meta's instance"))
+	INSTANCE_META(93, OBJECT_REFERENCE.named("meta's instance"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(`object`.instance())
+			return array(obj.instance())
 		}
 
 		override fun compose(
@@ -3126,16 +3128,16 @@ enum class SerializerOperation constructor(
 	 */
 	SET_TYPE(
 		94,
-		OBJECT_REFERENCE.`as`("size range"),
-		OBJECT_REFERENCE.`as`("element type"))
+		OBJECT_REFERENCE.named("size range"),
+		OBJECT_REFERENCE.named("element type"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			return array(
-				`object`.sizeRange(),
-				`object`.contentType())
+				obj.sizeRange(),
+				obj.contentType())
 		}
 
 		override fun compose(
@@ -3153,18 +3155,18 @@ enum class SerializerOperation constructor(
 	 */
 	MAP_TYPE(
 		95,
-		OBJECT_REFERENCE.`as`("size range"),
-		OBJECT_REFERENCE.`as`("key type"),
-		OBJECT_REFERENCE.`as`("value type"))
+		OBJECT_REFERENCE.named("size range"),
+		OBJECT_REFERENCE.named("key type"),
+		OBJECT_REFERENCE.named("value type"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			return array(
-				`object`.sizeRange(),
-				`object`.keyType(),
-				`object`.valueType())
+				obj.sizeRange(),
+				obj.keyType(),
+				obj.valueType())
 		}
 
 		override fun compose(
@@ -3182,13 +3184,13 @@ enum class SerializerOperation constructor(
 	/**
 	 * A [token type][TokenTypeDescriptor].
 	 */
-	TOKEN_TYPE(96, OBJECT_REFERENCE.`as`("literal type"))
+	TOKEN_TYPE(96, OBJECT_REFERENCE.named("literal type"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(fromInt(`object`.tokenType().ordinal))
+			return array(fromInt(obj.tokenType().ordinal))
 		}
 
 		override fun compose(
@@ -3202,13 +3204,13 @@ enum class SerializerOperation constructor(
 	/**
 	 * A [literal token type][LiteralTokenTypeDescriptor].
 	 */
-	LITERAL_TOKEN_TYPE(97, OBJECT_REFERENCE.`as`("literal type"))
+	LITERAL_TOKEN_TYPE(97, OBJECT_REFERENCE.named("literal type"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(`object`.literalType())
+			return array(obj.literalType())
 		}
 
 		override fun compose(
@@ -3224,16 +3226,16 @@ enum class SerializerOperation constructor(
 	 */
 	PARSE_NODE_TYPE(
 		98,
-		BYTE.`as`("kind"),
-		OBJECT_REFERENCE.`as`("expression type"))
+		BYTE.named("kind"),
+		OBJECT_REFERENCE.named("expression type"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			return array(
-				fromInt(`object`.phraseKind().ordinal),
-				`object`.expressionType())
+				fromInt(obj.phraseKind().ordinal),
+				obj.expressionType())
 		}
 
 		override fun compose(
@@ -3252,18 +3254,18 @@ enum class SerializerOperation constructor(
 	 */
 	LIST_NODE_TYPE(
 		99,
-		BYTE.`as`("list phrase kind"),
-		OBJECT_REFERENCE.`as`("expression type"),
-		OBJECT_REFERENCE.`as`("subexpressions tuple type"))
+		BYTE.named("list phrase kind"),
+		OBJECT_REFERENCE.named("expression type"),
+		OBJECT_REFERENCE.named("subexpressions tuple type"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			return array(
-				fromInt(`object`.phraseKind().ordinal),
-				`object`.expressionType(),
-				`object`.subexpressionsTupleType())
+				fromInt(obj.phraseKind().ordinal),
+				obj.expressionType(),
+				obj.subexpressionsTupleType())
 		}
 
 		override fun compose(
@@ -3283,14 +3285,14 @@ enum class SerializerOperation constructor(
 	 * A [variable type][VariableTypeDescriptor] for which the read type and
 	 * write type are equal.
 	 */
-	SIMPLE_VARIABLE_TYPE(100, OBJECT_REFERENCE.`as`("content type"))
+	SIMPLE_VARIABLE_TYPE(100, OBJECT_REFERENCE.named("content type"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			val readType = `object`.readType()
-			assert(readType.equals(`object`.writeType()))
+			val readType = obj.readType()
+			assert(readType.equals(obj.writeType()))
 			return array(readType)
 		}
 
@@ -3308,15 +3310,15 @@ enum class SerializerOperation constructor(
 	 */
 	READ_WRITE_VARIABLE_TYPE(
 		101,
-		OBJECT_REFERENCE.`as`("read type"),
-		OBJECT_REFERENCE.`as`("write type"))
+		OBJECT_REFERENCE.named("read type"),
+		OBJECT_REFERENCE.named("write type"))
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			val readType = `object`.readType()
-			val writeType = `object`.writeType()
+			val readType = obj.readType()
+			val writeType = obj.writeType()
 			assert(!readType.equals(writeType))
 			return array(readType, writeType)
 		}
@@ -3338,7 +3340,7 @@ enum class SerializerOperation constructor(
 	BOTTOM_TYPE(102)
 	{
 		override fun decompose(
-			`object`: AvailObject,
+			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			return array()
@@ -3387,7 +3389,7 @@ enum class SerializerOperation constructor(
 	 *   `SerializerOperation`'s operands.
 	 */
 	internal abstract fun decompose(
-		`object`: AvailObject,
+		obj: AvailObject,
 		serializer: Serializer): Array<out A_BasicObject>
 
 	/**
