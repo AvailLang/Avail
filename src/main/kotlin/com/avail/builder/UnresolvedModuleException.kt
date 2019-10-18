@@ -1,6 +1,6 @@
 /*
- * UnresolvedModuleException.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * UnresolvedModuleException.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,59 +30,42 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.builder;
+package com.avail.builder
 
-import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.Collections.unmodifiableList
 
 /**
- * UnresolvedModuleException is a type of UnresolvedDependencyException that is
- * specifically for the case that the compiler could not find a module it
+ * `UnresolvedModuleException` is a type of [UnresolvedDependencyException] that
+ * is specifically for the case that the compiler could not find a module it
  * needed in order to resolve its dependency graph. It contains the list of
  * locations checked by the compiler for that module, which is all of the
  * acceptable locations for the missing module according to its dependent's
  * location.
  *
+ * @property acceptablePaths
+ *   he list of the places the unresolved module could have been.
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct a new `UnresolvedModuleException`.
+ *
+ * @param referringModuleName
+ *   The name of the module which contained the invalid module reference.
+ * @param unresolvedModuleName
+ *   The name of the module which could not be resolved.
+ * @param acceptablePaths
+ *   The list of places the module could have been.
  */
-public class UnresolvedModuleException
-extends UnresolvedDependencyException
+class UnresolvedModuleException  internal constructor(
+	referringModuleName: ResolvedModuleName?,
+	unresolvedModuleName: String,
+	acceptablePaths: List<ModuleName>)
+: UnresolvedDependencyException(referringModuleName, unresolvedModuleName)
 {
 	/**
 	 * The list of the places the unresolved module could have been.
 	 */
-	private final List<ModuleName> acceptablePaths;
-
-	/**
-	 * Answer the list of the places the unresolved module could have been.
-	 *
-	 * @return A {@linkplain ArrayList} list of the {@linkplain ModuleName
-	 *         module names}
-	 */
-	public List<ModuleName> acceptablePaths()
-	{
-		return acceptablePaths;
-	}
-
-	/**
-	 * Construct a new {@code UnresolvedModuleException}.
-	 *
-	 * @param referringModuleName
-	 *        The name of the module which contained the invalid module
-	 *        reference.
-	 * @param unresolvedModuleName
-	 *        The name of the module which could not be resolved.
-	 * @param acceptablePaths
-	 *        The list of places the module could have been.
-	 */
-	UnresolvedModuleException (
-		final @Nullable ResolvedModuleName referringModuleName,
-		final String unresolvedModuleName,
-		final List<ModuleName> acceptablePaths)
-	{
-		super(referringModuleName, unresolvedModuleName);
-		this.acceptablePaths = Collections.unmodifiableList(acceptablePaths);
-	}
+	@Suppress("MemberVisibilityCanBePrivate")
+	val acceptablePaths: List<ModuleName> = unmodifiableList(acceptablePaths)
 }

@@ -80,7 +80,7 @@ extends AbstractWorkbenchTask
 					bytesProcessed, totalBytes);
 				return Unit.INSTANCE;
 			},
-			workbench.availBuilder.buildProblemHandler);
+			workbench.availBuilder.getBuildProblemHandler());
 	}
 
 	@Override

@@ -39,6 +39,7 @@ import com.avail.test.AvailRuntimeTestHelper.TestErrorChannel;
 import com.avail.utility.Mutable;
 import com.avail.utility.Nulls;
 import kotlin.Unit;
+import kotlin.jvm.functions.Function0;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -199,7 +200,7 @@ public class AvailTest
 				return Unit.INSTANCE;
 			},
 			(result, cleanup) ->
-				cleanup.invoke(() ->
+				cleanup.invoke((Function0<Unit>) () ->
 				{
 					ok.value = result.extractBoolean();
 					semaphore.release();

@@ -1,6 +1,6 @@
 /*
- * package-info.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * RenamesFileParserException.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,5 +30,29 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.builder;
-import com.avail.annotations.NonnullByDefault;
+package com.avail.builder
+
+/**
+ * `RenamesFileParserException` is thrown by a [RenamesFileParser] when a
+ * [parse][RenamesFileParser.parse] fails for any reason.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ */
+class RenamesFileParserException : Exception
+{
+	/**
+	 * Construct a new [RenamesFileParserException].
+	 *
+	 * @param message
+	 *   The detail message.
+	 */
+	internal constructor(message: String) : super(message)
+
+	/**
+	 * Construct a new [RenamesFileParserException].
+	 *
+	 * @param cause
+	 *   The original [Throwable] that caused this exception.
+	 */
+	constructor(cause: Throwable) : super(cause)
+}

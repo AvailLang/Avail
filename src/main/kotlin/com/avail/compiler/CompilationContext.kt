@@ -302,7 +302,7 @@ class CompilationContext(
 		var moduleName = debugModuleName
 		if (moduleName == null)
 		{
-			moduleName = this.moduleName.localName()
+			moduleName = this.moduleName.localName
 			debugModuleName = moduleName
 		}
 		val builder = StringBuilder()

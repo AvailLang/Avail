@@ -1,6 +1,6 @@
 /*
- * CleanAction.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * UnresolvedRootException.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,50 +30,38 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.environment.actions;
-
-import com.avail.builder.ModuleRoot;
-import com.avail.environment.AvailWorkbench;
-
-import javax.annotation.Nullable;
-import java.awt.event.ActionEvent;
-
-import static com.avail.environment.AvailWorkbench.StreamStyle.INFO;
-import static java.lang.String.format;
+package com.avail.builder
 
 /**
- * A {@code CleanAction} empties all compiled module repositories.
+ * `UnresolvedRootException` is a type of [UnresolvedDependencyException] that
+ * is specifically for the case that the compiler could not find one of the
+ * roots it expected to be present. This may be caused by:
+ *
+ *  * The target module name referring to a root not present in `AVAIL_ROOTS`,
+ *    or
+ *  * The compiler being unable to find a root accounted for in `AVAIL_ROOTS`
+ *    because it has disappeared from the file system
+ *
+ * @property unresolvedRootName
+ *   The name of the root that could not be found.
+ * @author Leslie Schultz &lt;leslie@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct a new `UnresolvedRootException`.
+ *
+ * @param referringModuleName
+ *   The name of the module whose dependency graph resolution triggered the
+ *   failed root access.
+ * @param unresolvedModuleName
+ *   The name of the module which could not be resolved because of the failed
+ *   root access.
+ * @param unresolvedRootName
+ *   The name of the root which could not be resolved.
  */
-@SuppressWarnings("serial")
-public final class CleanAction
-extends AbstractWorkbenchAction
-{
-	@Override
-	public void actionPerformed (final @Nullable ActionEvent event)
-	{
-		workbench.availBuilder.unloadTarget(null);
-		assert workbench.backgroundTask == null;
-		// Clear all repositories.
-		for (final ModuleRoot root : workbench.resolver.getModuleRoots().getRoots())
-		{
-			root.clearRepository();
-		}
-		workbench.writeText(
-			format("Repository has been cleared.%n"),
-			INFO);
-	}
-
-	/**
-	 * Construct a new {@code CleanAction}.
-	 *
-	 * @param workbench
-	 *        The owning {@link AvailWorkbench}.
-	 */
-	public CleanAction (final AvailWorkbench workbench)
-	{
-		super(workbench, "Clean All");
-		putValue(
-			SHORT_DESCRIPTION,
-			"Unload all code and wipe the compiled module cache.");
-	}
-}
+class UnresolvedRootException internal constructor(
+	referringModuleName: ResolvedModuleName?,
+	unresolvedModuleName: String,
+	@Suppress("MemberVisibilityCanBePrivate")
+	val unresolvedRootName: String)
+: UnresolvedDependencyException(referringModuleName, unresolvedModuleName)

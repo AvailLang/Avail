@@ -62,7 +62,7 @@ extends AbstractWorkbenchTask
 			workbench.availBuilder.generateGraph(
 				targetModuleName(),
 				file,
-				workbench.availBuilder.buildProblemHandler);
+				workbench.availBuilder.getBuildProblemHandler());
 			workbench.writeText(
 				String.format(
 					"Module graph '%s' was created.\n",

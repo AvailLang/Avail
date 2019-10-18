@@ -210,8 +210,8 @@ class IndexedRepositoryManager constructor(
 		 */
 		fun digestForFile(resolvedModuleName: ResolvedModuleName): ByteArray
 		{
-			assert(resolvedModuleName.rootRelativeName() == rootRelativeName)
-			val sourceFile = resolvedModuleName.sourceReference()
+			assert(resolvedModuleName.rootRelativeName == rootRelativeName)
+			val sourceFile = resolvedModuleName.sourceReference
 			val lastModification = sourceFile.lastModified()
 			var digest: ByteArray? = digestCache[lastModification]
 			if (digest == null)

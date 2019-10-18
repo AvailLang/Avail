@@ -163,7 +163,7 @@ import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import static com.avail.AvailRuntimeConfiguration.activeVersionSummary;
-import static com.avail.builder.ModuleNameResolver.availExtension;
+import static com.avail.builder.ModuleNameResolver.getAvailExtension;
 import static com.avail.environment.AvailWorkbench.StreamStyle.BUILD_PROGRESS;
 import static com.avail.environment.AvailWorkbench.StreamStyle.COMMAND;
 import static com.avail.environment.AvailWorkbench.StreamStyle.ERR;
@@ -329,9 +329,9 @@ extends JFrame
 					+ t.getClass().getSimpleName()
 					+ ")";
 			}
-			else if (workbench.availBuilder.shouldStopBuild())
+			else if (workbench.availBuilder.getShouldStopBuild())
 			{
-				status = workbench.availBuilder.stopBuildReason();
+				status = workbench.availBuilder.getStopBuildReason();
 			}
 			else
 			{
@@ -354,9 +354,9 @@ extends JFrame
 			{
 				// Reopen the repositories if necessary.
 				for (final ModuleRoot root :
-					workbench.resolver.moduleRoots().roots())
+					workbench.resolver.getModuleRoots().getRoots())
 				{
-					root.repository().reopenIfNecessary();
+					root.getRepository().reopenIfNecessary();
 				}
 				executeTask();
 				return null;
@@ -365,9 +365,9 @@ extends JFrame
 			{
 				// Close all the repositories.
 				for (final ModuleRoot root :
-					workbench.resolver.moduleRoots().roots())
+					workbench.resolver.getModuleRoots().getRoots())
 				{
-					root.repository().close();
+					root.getRepository().close();
 				}
 				stopTimeMillis = currentTimeMillis();
 			}
@@ -484,7 +484,7 @@ extends JFrame
 		else
 		{
 			// Wait until 200ms have actually elapsed.
-			availBuilder.runtime.timer.schedule(
+			availBuilder.getRuntime().timer.schedule(
 				new TimerTask()
 				{
 					@Override
@@ -1362,7 +1362,7 @@ extends JFrame
 		if (selection != null)
 		{
 			final @Nullable TreePath path =
-				modulePath(selection.qualifiedName());
+				modulePath(selection.getQualifiedName());
 			if (path != null)
 			{
 				moduleTree.setSelectionPath(path);
@@ -1410,7 +1410,7 @@ extends JFrame
 				final String fileName)
 			{
 				final String localName = fileName.substring(
-					0, fileName.length() - availExtension.length());
+					0, fileName.length() - getAvailExtension().length());
 				final ModuleName moduleName;
 				if (parentNode instanceof ModuleRootNode)
 				{
@@ -1420,7 +1420,7 @@ extends JFrame
 					final ModuleRoot thisRoot = strongParentNode.moduleRoot();
 					assert thisRoot == moduleRoot;
 					moduleName = new ModuleName(
-						"/" + moduleRoot.name() + "/" + localName);
+						"/" + moduleRoot.getName() + "/" + localName);
 				}
 				else
 				{
@@ -1434,7 +1434,7 @@ extends JFrame
 					// The (resolved) parent is a package representative
 					// module, so use its parent, the package itself.
 					moduleName = new ModuleName(
-						parentModuleName.packageName(), localName);
+						parentModuleName.getPackageName(), localName);
 				}
 				return moduleName;
 			}
@@ -1458,7 +1458,7 @@ extends JFrame
 					return FileVisitResult.CONTINUE;
 				}
 				final String fileName = dir.getFileName().toString();
-				if (fileName.endsWith(availExtension))
+				if (fileName.endsWith(getAvailExtension()))
 				{
 					final ModuleName moduleName =
 						resolveModule(parentNode, fileName);
@@ -1513,7 +1513,7 @@ extends JFrame
 					throw new IOException("Avail root should be a directory");
 				}
 				final String fileName = file.getFileName().toString();
-				if (fileName.endsWith(availExtension))
+				if (fileName.endsWith(getAvailExtension()))
 				{
 					final ModuleName moduleName =
 						resolveModule(parentNode, fileName);
@@ -1557,17 +1557,17 @@ extends JFrame
 	 */
 	public TreeNode newModuleTree ()
 	{
-		final ModuleRoots roots = resolver.moduleRoots();
+		final ModuleRoots roots = resolver.getModuleRoots();
 		final DefaultMutableTreeNode treeRoot = new DefaultMutableTreeNode(
 			"(packages hidden root)");
 		// Put the invisible root onto the work stack.
 		final Deque<DefaultMutableTreeNode> stack = new ArrayDeque<>();
 		stack.add(treeRoot);
-		for (final ModuleRoot root : roots.roots())
+		for (final ModuleRoot root : roots.getRoots())
 		{
 			// Obtain the path associated with the module root.
-			root.repository().reopenIfNecessary();
-			final File rootDirectory = stripNull(root.sourceDirectory());
+			root.getRepository().reopenIfNecessary();
+			final File rootDirectory = stripNull(root.getSourceDirectory());
 			try
 			{
 				Files.walkFileTree(
@@ -1623,7 +1623,7 @@ extends JFrame
 					lockWhile(
 						mutex.writeLock(),
 						() -> moduleNodes.put(
-							resolvedName.qualifiedName(), moduleNode));
+							resolvedName.getQualifiedName(), moduleNode));
 				}
 				after.invoke();
 				return Unit.INSTANCE;
@@ -1873,7 +1873,7 @@ extends JFrame
 				if (!hasQueuedGlobalBuildUpdate)
 				{
 					hasQueuedGlobalBuildUpdate = true;
-					availBuilder.runtime.timer.schedule(
+					availBuilder.getRuntime().timer.schedule(
 						new TimerTask()
 						{
 							@Override
@@ -1973,7 +1973,7 @@ extends JFrame
 				if (!hasQueuedPerModuleBuildUpdate)
 				{
 					hasQueuedPerModuleBuildUpdate = true;
-					availBuilder.runtime.timer.schedule(
+					availBuilder.getRuntime().timer.schedule(
 						new TimerTask()
 						{
 							@Override
@@ -2005,7 +2005,7 @@ extends JFrame
 				progress.addAll(perModuleProgress.entrySet());
 				hasQueuedPerModuleBuildUpdate = false;
 			});
-		progress.sort(comparing(entry -> entry.getKey().qualifiedName()));
+		progress.sort(comparing(entry -> entry.getKey().getQualifiedName()));
 		final StringBuilder builder = new StringBuilder(100);
 		for (final Entry<ModuleName, Pair<Long, Long>> entry : progress)
 		{
@@ -2196,7 +2196,7 @@ extends JFrame
 		try
 		{
 			final Preferences rootsNode = basePreferences.node(moduleRootsKeyString);
-			final ModuleRoots roots = resolver.moduleRoots();
+			final ModuleRoots roots = resolver.getModuleRoots();
 			for (final String oldChildName : rootsNode.childrenNames())
 			{
 				if (roots.moduleRootFor(oldChildName) == null)
@@ -2206,18 +2206,18 @@ extends JFrame
 			}
 			for (final ModuleRoot root : roots)
 			{
-				final Preferences childNode = rootsNode.node(root.name());
+				final Preferences childNode = rootsNode.node(root.getName());
 				childNode.put(
 					moduleRootsRepoSubkeyString,
-					root.repository().getFileName().getPath());
+					root.getRepository().getFileName().getPath());
 				childNode.put(
 					moduleRootsSourceSubkeyString,
-					stripNull(root.sourceDirectory()).getPath());
+					stripNull(root.getSourceDirectory()).getPath());
 			}
 
 			final Preferences renamesNode =
 				basePreferences.node(moduleRenamesKeyString);
-			final Map<String, String> renames = resolver.renameRules();
+			final Map<String, String> renames = resolver.getRenameRules();
 			for (final String oldChildName : renamesNode.childrenNames())
 			{
 				int nameInt;
@@ -2809,7 +2809,7 @@ extends JFrame
 				assert loadedModule != null;
 				// Postpone repaints up to 250ms to avoid thrash.
 				moduleTree.repaint(250);
-				if (loadedModule.entryPoints().size() > 0)
+				if (loadedModule.getEntryPoints().size() > 0)
 				{
 					// Postpone repaints up to 250ms to avoid thrash.
 					entryPointsTree.repaint(250);

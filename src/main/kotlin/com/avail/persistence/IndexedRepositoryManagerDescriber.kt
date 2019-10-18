@@ -33,7 +33,7 @@
 package com.avail.persistence
 
 import com.avail.AvailRuntime
-import com.avail.builder.AvailBuilder.validatedBytesFrom
+import com.avail.builder.AvailBuilder.Companion.validatedBytesFrom
 import com.avail.descriptor.A_Module
 import com.avail.persistence.IndexedRepositoryManager.ModuleCompilation
 import com.avail.persistence.IndexedRepositoryManager.ModuleVersion

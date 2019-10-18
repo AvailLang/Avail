@@ -80,7 +80,7 @@ public class ModuleRootNode extends AbstractBuilderFrameTreeNode
 	@Override
 	String text (final boolean selected)
 	{
-		return moduleRoot.name();
+		return moduleRoot.getName();
 	}
 
 	@Override

@@ -516,7 +516,7 @@ public final class AvailRuntime
 	@ThreadSafe
 	public ModuleRoots moduleRoots ()
 	{
-		return moduleNameResolver().moduleRoots();
+		return moduleNameResolver().getModuleRoots();
 	}
 
 	/**

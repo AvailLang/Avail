@@ -1,6 +1,6 @@
 /*
- * RenamesFileParserException.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * UnresolvedDependencyException.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,35 +30,53 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.builder;
+package com.avail.builder
+
+import com.avail.descriptor.ModuleDescriptor
 
 /**
- * {@code RenamesFileParserException} is thrown by a {@link RenamesFileParser}
- * when a {@linkplain RenamesFileParser#parse() parse} fails for any reason.
+ * A `UnresolvedDependencyException` is thrown by the [builder][AvailBuilder]
+ * when an unresolved reference to a [module][ModuleDescriptor] is discovered.
  *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @property referringModuleName
+ *   The module that contained an unresolved reference to another module.
+ * @property unresolvedModuleName
+ *   The name of the module that could not be resolved.
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Leslie Schultz &lt;leslie@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct a new [UnresolvedDependencyException].
+ *
+ * @param referringModuleName
+ *   The name of the module which contained the invalid module reference.
+ * @param unresolvedModuleName
+ *   The name of the module which could not be resolved.
  */
-public final class RenamesFileParserException
-extends Exception
+@Suppress("MemberVisibilityCanBePrivate")
+abstract class UnresolvedDependencyException internal constructor(
+	var referringModuleName: ResolvedModuleName?,
+	val unresolvedModuleName: String) : Exception()
 {
 	/**
-	 * Construct a new {@link RenamesFileParserException}.
+	 * Construct the message based on whether or not this exception has a
+	 * referring module name.
 	 *
-	 * @param message The detail message.
+	 * @return
+	 *   The customized message.
 	 */
-	RenamesFileParserException (final String message)
+	override val message get(): String
 	{
-		super(message);
-	}
-
-	/**
-	 * Construct a new {@link RenamesFileParserException}.
-	 *
-	 * @param cause The original {@link Throwable} that caused this {@linkplain
-	 *              RenamesFileParserException exception}.
-	 */
-	public RenamesFileParserException (final Throwable cause)
-	{
-		super(cause);
+		return if (referringModuleName == null)
+		{
+			"[Unknown module] refers to unresolved module " +
+				"\"$unresolvedModuleName\"."
+		}
+		else
+		{
+			"module \"${referringModuleName!!.qualifiedName}\" refers to " +
+				"unresolved module \"$unresolvedModuleName\"."
+		}
 	}
 }

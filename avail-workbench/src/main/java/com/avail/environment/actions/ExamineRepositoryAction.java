@@ -66,7 +66,7 @@ extends AbstractWorkbenchAction
 				final ModuleRoot root =
 					stripNull(workbench.selectedModuleRoot());
 				try (final IndexedRepositoryManager repository =
-					root.repository())
+					root.getRepository())
 				{
 					repository.reopenIfNecessary();
 					final IndexedRepositoryManagerDescriber describer =

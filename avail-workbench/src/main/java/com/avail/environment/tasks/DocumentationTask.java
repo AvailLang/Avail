@@ -57,7 +57,7 @@ extends AbstractWorkbenchTask
 			workbench.availBuilder.generateDocumentation(
 				targetModuleName(),
 				workbench.documentationPath,
-				workbench.availBuilder.buildProblemHandler);
+				workbench.availBuilder.getBuildProblemHandler());
 		}
 		catch (final Exception e)
 		{

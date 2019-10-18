@@ -215,7 +215,7 @@ public class StacksGenerator
 		errorLog.addLogEntry(closeHTML,0);
 
 		final StacksCommentsModule outerMost = moduleToComments
-			.get(outermostModule.qualifiedName());
+			.get(outermostModule.getQualifiedName());
 
 		try
 		{
@@ -239,7 +239,7 @@ public class StacksGenerator
 				new StacksSynchronizer(fileToOutPutCount);
 
 			// JSON files
-			moduleToComments.get(outermostModule.qualifiedName())
+			moduleToComments.get(outermostModule.getQualifiedName())
 				.writeMethodsToJSONFiles(
 					providedDocumentPath,
 					synchronizer,

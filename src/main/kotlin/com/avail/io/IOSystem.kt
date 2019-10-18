@@ -128,7 +128,7 @@ class IOSystem constructor(val runtime: AvailRuntime)
 		{ _, value ->
 			// Just clear the mutable's value slot, freeing the actual
 			// buffer.
-			value!!.value = null
+			value.value = null
 		})
 
 	/**
@@ -169,6 +169,7 @@ class IOSystem constructor(val runtime: AvailRuntime)
 	 *
 	 * @param task A task.
 	 */
+	@Suppress("unused")
 	internal fun executeSocketTask(task: Runnable)
 	{
 		socketExecutor.execute(task)

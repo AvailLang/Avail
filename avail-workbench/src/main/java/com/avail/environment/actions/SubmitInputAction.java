@@ -80,7 +80,7 @@ extends AbstractWorkbenchAction
 			workbench.inputField.setText("");
 			workbench.isRunning = true;
 			workbench.setEnablements();
-			workbench.availBuilder.runtime.setTextInterface(new TextInterface(
+			workbench.availBuilder.getRuntime().setTextInterface(new TextInterface(
 				new ConsoleInputChannel(workbench.inputStream()),
 				new ConsoleOutputChannel(workbench.outputStream()),
 				new ConsoleOutputChannel(workbench.errorStream())));
@@ -122,7 +122,7 @@ extends AbstractWorkbenchAction
 						invokeLater(() ->
 						{
 							workbench.inputStream().clear();
-							workbench.availBuilder.runtime
+							workbench.availBuilder.getRuntime()
 								.setTextInterface(new TextInterface(
 									new ConsoleInputChannel(
 										workbench.inputStream()),
@@ -140,8 +140,8 @@ extends AbstractWorkbenchAction
 						return Unit.INSTANCE;
 					}
 					Interpreter.stringifyThen(
-						workbench.availBuilder.runtime,
-						workbench.availBuilder.runtime.textInterface(),
+						workbench.availBuilder.getRuntime(),
+						workbench.availBuilder.getRuntime().textInterface(),
 						result,
 						resultString ->
 						{
@@ -159,7 +159,7 @@ extends AbstractWorkbenchAction
 					{
 						workbench.isRunning = false;
 						workbench.inputStream().clear();
-						workbench.availBuilder.runtime.setTextInterface(
+						workbench.availBuilder.getRuntime().setTextInterface(
 							new TextInterface(
 								new ConsoleInputChannel(
 									workbench.inputStream()),

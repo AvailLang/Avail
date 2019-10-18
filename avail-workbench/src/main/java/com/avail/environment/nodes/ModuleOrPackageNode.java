@@ -111,13 +111,13 @@ extends AbstractBuilderFrameTreeNode
 	{
 		if (isRenamedSource())
 		{
-			return originalModuleName.localName()
+			return originalModuleName.getLocalName()
 				+ " → "
-				+ resolvedModuleName.qualifiedName();
+				+ resolvedModuleName.getQualifiedName();
 		}
 		else
 		{
-			return resolvedModuleName.localName();
+			return resolvedModuleName.getLocalName();
 		}
 	}
 

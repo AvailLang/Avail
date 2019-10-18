@@ -364,7 +364,7 @@ public class StacksCommentsModule
 		final LinkingFileMap linkingFileMap,
 		final String linkPrefix)
 	{
-		this.moduleName = header.getModuleName().qualifiedName();
+		this.moduleName = header.getModuleName().getQualifiedName();
 		this.linkPrefix = linkPrefix;
 
 		this.fileExtensionName = "json";
@@ -464,7 +464,7 @@ public class StacksCommentsModule
 		{
 			final StringBuilder newLogEntry = new StringBuilder()
 				.append("<h3>")
-				.append(header.getModuleName().qualifiedName())
+				.append(header.getModuleName().getQualifiedName())
 				.append(" <em>(")
 				.append(errorCount)
 				.append(")</em></h3>\n<ol>");
@@ -508,7 +508,7 @@ public class StacksCommentsModule
 				final String moduleImportName = resolver.resolve(
 					header.getModuleName()
 						.asSibling(moduleImport.getModuleName().asNativeString()),
-					header.getModuleName()).qualifiedName();
+					header.getModuleName()).getQualifiedName();
 
 				if (moduleImport.isExtension())
 				{

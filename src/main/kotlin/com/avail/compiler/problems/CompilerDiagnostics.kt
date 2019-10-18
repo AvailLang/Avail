@@ -487,7 +487,7 @@ class CompilerDiagnostics(
 						builder.append(
 							format(
 								"%n(file=\"%s\", line=%d)%n>>>%s",
-								moduleName.qualifiedName(),
+								moduleName.qualifiedName,
 								lastProblem.lineNumber,
 								rowOfDashes))
 						handleProblem(object : Problem(

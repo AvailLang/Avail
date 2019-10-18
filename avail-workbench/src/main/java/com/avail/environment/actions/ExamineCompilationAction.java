@@ -75,13 +75,13 @@ extends AbstractWorkbenchAction
 				final ResolvedModuleName moduleName =
 					stripNull(workbench.selectedModule());
 				try (final IndexedRepositoryManager repository =
-					moduleName.repository())
+					moduleName.getRepository())
 				{
 					repository.reopenIfNecessary();
 					final List<ModuleCompilation> compilations =
 						new ArrayList<>();
 					final ModuleArchive archive =
-						repository.getArchive(moduleName.rootRelativeName());
+						repository.getArchive(moduleName.getRootRelativeName());
 					for (final Entry<ModuleVersionKey, ModuleVersion> entry :
 						archive.getAllKnownVersions().entrySet())
 					{

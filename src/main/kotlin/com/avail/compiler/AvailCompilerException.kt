@@ -35,8 +35,6 @@ package com.avail.compiler
 import com.avail.builder.ModuleName
 import com.avail.descriptor.ModuleDescriptor
 
-import java.io.File
-
 /**
  * An `AvailCompilerException` is thrown by the [Avail compiler][AvailCompiler]
  * when compilation fails for any reason.

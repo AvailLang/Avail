@@ -165,7 +165,7 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 	 */
 	fun serializeHeaderOn(serializer: Serializer)
 	{
-		serializer.serialize(stringFrom(moduleName.qualifiedName()))
+		serializer.serialize(stringFrom(moduleName.qualifiedName))
 		serializer.serialize(tupleFromList(versions))
 		serializer.serialize(tuplesForSerializingModuleImports)
 		serializer.serialize(tupleFromList(ArrayList(exportedNames)))
@@ -225,11 +225,11 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 	fun deserializeHeaderFrom(deserializer: Deserializer)
 	{
 		val name = stripNull(deserializer.deserialize())
-		if (name.asNativeString() != moduleName.qualifiedName())
+		if (name.asNativeString() != moduleName.qualifiedName)
 		{
 			throw RuntimeException(
 				"Incorrect module name.  Expected: "
-				+ "${moduleName.qualifiedName()} but found $name")
+				+ "${moduleName.qualifiedName} but found $name")
 		}
 		val theVersions = stripNull(deserializer.deserialize())
 		versions.clear()
@@ -301,10 +301,10 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 				throw RuntimeException(e)
 			}
 
-			val availRef = stringFrom(ref.qualifiedName())
+			val availRef = stringFrom(ref.qualifiedName)
 			if (!runtime.includesModuleNamed(availRef))
 			{
-				return ("module \"" + ref.qualifiedName()
+				return ("module \"" + ref.qualifiedName
 						+ "\" to be loaded already")
 			}
 
@@ -317,7 +317,7 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 				{
 					return (
 						"version compatibility; module "
-						+ "\"${ref.localName()}\" guarantees versions "
+						+ "\"${ref.localName}\" guarantees versions "
 						+ "$modVersions but the current module requires "
 						+ "$reqVersions")
 				}
@@ -352,7 +352,7 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 				if (!importedNamesMultimap.hasKey(string))
 				{
 					return (
-						"module \"${ref.qualifiedName()}\" to export $string")
+						"module \"${ref.qualifiedName}\" to export $string")
 				}
 				atomsToImport = atomsToImport.setUnionCanDestroy(
 					importedNamesMultimap.mapAt(string), true)
@@ -367,14 +367,14 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 				if (!importedNamesMultimap.hasKey(oldString))
 				{
 					return (
-						"module \"${ref.qualifiedName()}\" to export "
+						"module \"${ref.qualifiedName}\" to export "
 						+ "$oldString for renaming to $newString")
 				}
 				val oldCandidates = importedNamesMultimap.mapAt(oldString)
 				if (oldCandidates.setSize() != 1)
 				{
 					return (
-						"module \"${ref.qualifiedName()}\" to export a "
+						"module \"${ref.qualifiedName}\" to export a "
 						+ "unique name $oldString for renaming to $newString")
 				}
 				val oldAtom = oldCandidates.iterator().next()
@@ -407,7 +407,7 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 				{
 					return (
 						"well-formed signature for $newString, a rename of "
-						+ "$oldString from \"${ref.qualifiedName()}\"")
+						+ "$oldString from \"${ref.qualifiedName}\"")
 				}
 
 				newAtom.setAtomProperty(

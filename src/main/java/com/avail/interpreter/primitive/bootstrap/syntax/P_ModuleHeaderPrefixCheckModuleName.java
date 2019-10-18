@@ -81,7 +81,7 @@ public final class P_ModuleHeaderPrefixCheckModuleName extends Primitive
 		final A_String qualifiedName = module.moduleName();
 		final ModuleName moduleNameInstance =
 			new ModuleName(qualifiedName.asNativeString());
-		final String localName = moduleNameInstance.localName();
+		final String localName = moduleNameInstance.getLocalName();
 
 		final String declaredModuleName =
 			moduleNameLiteral.token().literal().literal().asNativeString();

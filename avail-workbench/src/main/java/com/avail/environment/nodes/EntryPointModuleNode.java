@@ -82,7 +82,7 @@ public class EntryPointModuleNode extends AbstractBuilderFrameTreeNode
 	@Override
 	String text (final boolean selected)
 	{
-		return resolvedModuleName.qualifiedName();
+		return resolvedModuleName.getQualifiedName();
 	}
 
 	/**

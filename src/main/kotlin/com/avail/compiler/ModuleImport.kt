@@ -259,7 +259,7 @@ class ModuleImport
 			{
 				val name = ModuleName(module.moduleName().asNativeString())
 				return ModuleImport(
-					stringFrom(name.localName()),
+					stringFrom(name.localName),
 					module.versions(),
 					true,
 					emptySet(),

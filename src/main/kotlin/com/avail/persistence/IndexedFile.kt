@@ -168,37 +168,37 @@ abstract class IndexedFile
 	/** A [cache][LRUCache] of uncompressed records. */
 	private val blockCache = LRUCache<Long, ByteArray>(
 		DEFAULT_SOFT_CACHE_SIZE,
-		DEFAULT_STRONG_CACHE_SIZE
-	) { argument ->
-		try
-		{
-			val block = fetchSizedFromFile(argument!!)
-			val inflater = Inflater()
-			inflater.setInput(block)
-			val buffers = ArrayList<ByteArray>(10)
-			var size = 0
-			var bufferPos = -1
-			while (!inflater.needsInput())
+		DEFAULT_STRONG_CACHE_SIZE,
+		{ argument ->
+			try
 			{
-				val buffer = ByteArray(compressionBlockSize * 3 shr 1)
-				bufferPos = inflater.inflate(buffer)
-				size += bufferPos
-				buffers.add(buffer)
+				val block = fetchSizedFromFile(argument)
+				val inflater = Inflater()
+				inflater.setInput(block)
+				val buffers = ArrayList<ByteArray>(10)
+				var size = 0
+				var bufferPos = -1
+				while (!inflater.needsInput())
+				{
+					val buffer = ByteArray(compressionBlockSize * 3 shr 1)
+					bufferPos = inflater.inflate(buffer)
+					size += bufferPos
+					buffers.add(buffer)
+				}
+				val inflated = ByteBuffer.wrap(ByteArray(size))
+				for (i in 0 until buffers.size - 1)
+				{
+					inflated.put(buffers[i])
+				}
+				inflated.put(buffers[buffers.size - 1], 0, bufferPos)
+				assert(inflated.position() == inflated.capacity())
+				inflated.array()
 			}
-			val inflated = ByteBuffer.wrap(ByteArray(size))
-			for (i in 0 until buffers.size - 1)
+			catch (e: Exception)
 			{
-				inflated.put(buffers[i])
+				throw RuntimeException(e)
 			}
-			inflated.put(buffers[buffers.size - 1], 0, bufferPos)
-			assert(inflated.position() == inflated.capacity())
-			inflated.array()
-		}
-		catch (e: Exception)
-		{
-			throw RuntimeException(e)
-		}
-	}
+		})
 
 	/** The client-provided metadata, as a byte array. */
 	private var metaData: ByteArray? = null
@@ -538,7 +538,7 @@ abstract class IndexedFile
 		{
 			m.rawBytes.unsafeBytes
 		}
-		else blockCache.getNotNull(filePosition)
+		else blockCache[filePosition]
 	}
 
 	/**

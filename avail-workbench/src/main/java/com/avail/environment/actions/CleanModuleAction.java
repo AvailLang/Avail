@@ -72,7 +72,7 @@ extends AbstractWorkbenchAction
 				// Ignore problem for now.
 			}
 			workbench.writeText(
-				format("Repository %s has been cleaned.%n", root.name()),
+				format("Repository %s has been cleaned.%n", root.getName()),
 				INFO);
 			return;
 		}
@@ -80,14 +80,14 @@ extends AbstractWorkbenchAction
 		// Delete a module or package (and everything inside it).
 		final ResolvedModuleName selectedModule =
 			stripNull(workbench.selectedModule());
-		final String rootRelative = selectedModule.rootRelativeName();
-		final IndexedRepositoryManager repository = selectedModule.repository();
+		final String rootRelative = selectedModule.getRootRelativeName();
+		final IndexedRepositoryManager repository = selectedModule.getRepository();
 		repository.cleanModulesUnder(rootRelative);
 		repository.commit();
 		workbench.writeText(
 			format(
 				"Module or package %s has been cleaned.%n",
-				selectedModule.qualifiedName()),
+				selectedModule.getQualifiedName()),
 			INFO);
 	}
 

@@ -228,7 +228,7 @@ object Compiler
 				if (level.displayLocalProgress)
 				{
 					val percent = (position * 100 / moduleSize).toInt()
-					var modName = module.qualifiedName()
+					var modName = module.qualifiedName
 					val maxModuleNameLength = 61
 					val len = modName.length
 					if (len > maxModuleNameLength)
@@ -269,8 +269,8 @@ object Compiler
 	 */
 	private fun doClearRepositories(resolver: ModuleNameResolver)
 	{
-		resolver.moduleRoots().roots().forEach { root ->
-			val dir = root.sourceDirectory()
+		resolver.moduleRoots.roots.forEach { root ->
+			val dir = root.sourceDirectory
 			if (dir != null && dir.isDirectory)
 			{
 				root.clearRepository()

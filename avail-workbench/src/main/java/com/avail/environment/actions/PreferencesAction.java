@@ -141,10 +141,10 @@ extends AbstractWorkbenchAction
 	public void savePreferences ()
 	{
 		// Rebuild the ModuleRoots from the rootsTableModel.
-		final ModuleRoots roots = workbench.resolver.moduleRoots();
-		for (final ModuleRoot root : roots.roots())
+		final ModuleRoots roots = workbench.resolver.getModuleRoots();
+		for (final ModuleRoot root : roots.getRoots())
 		{
-			root.repository().close();
+			root.getRepository().close();
 		}
 		roots.clearRoots();
 		for (final List<String> triple : rootsTableModel.rows())
@@ -166,7 +166,7 @@ extends AbstractWorkbenchAction
 			}
 			for (final ModuleRoot root : roots)
 			{
-				root.repository().reopenIfNecessary();
+				root.getRepository().reopenIfNecessary();
 			}
 		}
 
@@ -200,12 +200,12 @@ extends AbstractWorkbenchAction
 		panel.add(rootsLabel);
 
 		rootsTableModel.rows().clear();
-		for (final ModuleRoot root : workbench.resolver.moduleRoots().roots())
+		for (final ModuleRoot root : workbench.resolver.getModuleRoots().getRoots())
 		{
 			final List<String> triple = new ArrayList<>(3);
-			triple.add(root.name());
-			triple.add(root.repository().getFileName().getPath());
-			final @Nullable File source = root.sourceDirectory();
+			triple.add(root.getName());
+			triple.add(root.getRepository().getFileName().getPath());
+			final @Nullable File source = root.getSourceDirectory();
 			triple.add(source == null ? "" : source.getPath());
 			rootsTableModel.rows().add(triple);
 		}
@@ -276,7 +276,7 @@ extends AbstractWorkbenchAction
 
 		renamesTableModel.rows().clear();
 		for (final Entry<String, String> rename
-			: workbench.resolver.renameRules().entrySet())
+			: workbench.resolver.getRenameRules().entrySet())
 		{
 			final List<String> pair = new ArrayList<>(2);
 			pair.add(rename.getKey());
