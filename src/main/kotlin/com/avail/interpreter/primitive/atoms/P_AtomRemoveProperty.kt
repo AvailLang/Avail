@@ -51,6 +51,7 @@ import com.avail.interpreter.effects.LoadingEffectToRunPrimitive
  * **Primitive:** Within the first [atom][com.avail.descriptor.AtomDescriptor],
  * remove the property with the given property key (another atom).
  */
+@Suppress("unused")
 object P_AtomRemoveProperty : Primitive(2, CanInline, HasSideEffect)
 {
 	override fun attempt(

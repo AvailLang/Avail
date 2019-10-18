@@ -49,6 +49,7 @@ import com.avail.interpreter.Primitive.Flag.CanInline
  * [atom][com.avail.descriptor.AtomDescriptor] has a property whose key is the
  * first atom.
  */
+@Suppress("unused")
 object P_AtomHasProperty : Primitive(2, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

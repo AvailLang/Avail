@@ -56,6 +56,7 @@ import com.avail.interpreter.Primitive.Flag.CanInline
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_LookupAtomsForName : Primitive(1, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

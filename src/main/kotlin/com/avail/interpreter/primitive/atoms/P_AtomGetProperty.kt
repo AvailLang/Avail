@@ -49,6 +49,7 @@ import com.avail.interpreter.Primitive.Flag.CanInline
  * is the second atom, then return the corresponding property value, otherwise
  * fail.
  */
+@Suppress("unused")
 object P_AtomGetProperty : Primitive(2, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

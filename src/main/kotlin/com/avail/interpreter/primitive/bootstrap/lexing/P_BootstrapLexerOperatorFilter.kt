@@ -55,6 +55,7 @@ import com.avail.interpreter.Primitive.Flag.*
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@Suppress("unused")
 object P_BootstrapLexerOperatorFilter
 	: Primitive(1, CannotFail, CanFold, CanInline, Bootstrap)
 {

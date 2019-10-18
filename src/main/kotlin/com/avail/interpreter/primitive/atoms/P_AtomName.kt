@@ -44,6 +44,7 @@ import com.avail.interpreter.Primitive.Flag.*
  * **Primitive:** Answer the name of an
  * [atom][com.avail.descriptor.AtomDescriptor].
  */
+@Suppress("unused")
 object P_AtomName : Primitive(1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

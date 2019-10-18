@@ -61,16 +61,16 @@ import com.avail.interpreter.Primitive.Flag.Bootstrap
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * **Primitive**: Construct a method and an accompanying
- * literalizing macro that provide access to the specified special object.
+ * **Primitive**: Construct a method and an accompanying literalizing macro that
+ * provide access to the specified special object.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object P_BootstrapDefineSpecialObjectMacro : Primitive(2, Bootstrap, CanInline)
+@Suppress("unused")
+object P_BootstrapDefineSpecialObjectMacro
+	: Primitive(2, Bootstrap, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val nameLiteral = interpreter.argument(0)
@@ -81,21 +81,19 @@ object P_BootstrapDefineSpecialObjectMacro : Primitive(2, Bootstrap, CanInline)
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		}
-		val bundle: A_Bundle
-		try
-		{
-			val trueName = loader.lookupName(
-				nameLiteral.token().literal())
-			bundle = trueName.bundleOrCreate()
-		}
-		catch (e: AmbiguousNameException)
-		{
-			return interpreter.primitiveFailure(e)
-		}
-		catch (e: MalformedMessageException)
-		{
-			return interpreter.primitiveFailure(e)
-		}
+		val bundle: A_Bundle =
+			try
+			{
+				loader.lookupName(nameLiteral.token().literal()).bundleOrCreate()
+			}
+			catch (e: AmbiguousNameException)
+			{
+				return interpreter.primitiveFailure(e)
+			}
+			catch (e: MalformedMessageException)
+			{
+				return interpreter.primitiveFailure(e)
+			}
 
 		// Create a send of the bootstrap method definer that, when actually
 		// sent, will produce a method that answers the special object.
@@ -116,46 +114,50 @@ object P_BootstrapDefineSpecialObjectMacro : Primitive(2, Bootstrap, CanInline)
 			TOP.o())
 		// Create a send of the bootstrap macro definer that, when actually
 		// sent, will produce a method that literalizes the special object.
-		val getValue = newSendNode(
-			emptyTuple(),
-			bundle,
-			newListNode(emptyTuple()),
-			specialObjectLiteral.expressionType())
-		val createLiteralToken = newSendNode(
-			emptyTuple(),
-			CREATE_LITERAL_TOKEN.bundle,
-			newListNode(
-				tuple(
-					getValue,
-					syntheticLiteralNodeFor(
-						specialObjectLiteral.token().string()),
-					syntheticLiteralNodeFor(
-						fromInt(0)),
-					syntheticLiteralNodeFor(
-						fromInt(0)))),
-			literalTokenType(specialObjectLiteral.expressionType()))
-		val createLiteralNode = newSendNode(
-			emptyTuple(),
-			CREATE_LITERAL_PHRASE.bundle,
-			newListNode(tuple(createLiteralToken)),
-			LITERAL_PHRASE.create(specialObjectLiteral.expressionType()))
-		val defineMacro = newSendNode(
-			emptyTuple(),
-			MACRO_DEFINER.bundle,
-			newListNode(
-				tuple(
-					nameLiteral,
-					emptyListNode(),
-					newBlockNode(
-						emptyTuple(),
-						0,
-						tuple(createLiteralNode),
-						LITERAL_PHRASE.create(
-							specialObjectLiteral.expressionType()),
-						emptySet(),
-						0,
-						emptyTuple()))),
-			TOP.o())
+		val getValue =
+			newSendNode(
+				emptyTuple(),
+				bundle,
+				newListNode(emptyTuple()),
+				specialObjectLiteral.expressionType())
+		val createLiteralToken =
+			newSendNode(
+				emptyTuple(),
+				CREATE_LITERAL_TOKEN.bundle,
+				newListNode(
+					tuple(
+						getValue,
+						syntheticLiteralNodeFor(
+							specialObjectLiteral.token().string()),
+						syntheticLiteralNodeFor(
+							fromInt(0)),
+						syntheticLiteralNodeFor(
+							fromInt(0)))),
+				literalTokenType(specialObjectLiteral.expressionType()))
+		val createLiteralNode =
+			newSendNode(
+				emptyTuple(),
+				CREATE_LITERAL_PHRASE.bundle,
+				newListNode(tuple(createLiteralToken)),
+				LITERAL_PHRASE.create(specialObjectLiteral.expressionType()))
+		val defineMacro =
+			newSendNode(
+				emptyTuple(),
+				MACRO_DEFINER.bundle,
+				newListNode(
+					tuple(
+						nameLiteral,
+						emptyListNode(),
+						newBlockNode(
+							emptyTuple(),
+							0,
+							tuple(createLiteralNode),
+							LITERAL_PHRASE.create(
+								specialObjectLiteral.expressionType()),
+							emptySet(),
+							0,
+							emptyTuple()))),
+				TOP.o())
 		return interpreter.primitiveSuccess(
 			newSequence(
 				tuple(
@@ -163,13 +165,10 @@ object P_BootstrapDefineSpecialObjectMacro : Primitive(2, Bootstrap, CanInline)
 					newExpressionAsStatement(defineMacro))))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				LITERAL_PHRASE.create(oneOrMoreOf(CHARACTER.o())),
 				LITERAL_PHRASE.create(ANY.o())),
 			SEQUENCE_PHRASE.mostGeneralType())
-	}
-
 }

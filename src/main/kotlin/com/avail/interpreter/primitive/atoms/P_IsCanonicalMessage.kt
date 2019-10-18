@@ -50,6 +50,7 @@ import com.avail.interpreter.Primitive.Flag.*
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_IsCanonicalMessage : Primitive(1, CannotFail, CanInline, CanFold)
 {
 	override fun attempt(interpreter: Interpreter): Result

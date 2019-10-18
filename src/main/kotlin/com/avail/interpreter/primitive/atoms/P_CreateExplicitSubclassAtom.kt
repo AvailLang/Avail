@@ -59,6 +59,7 @@ import com.avail.interpreter.Primitive.Flag.CanInline
  * If this method is executed outside the scope of compiling or loading, a
  * new atom will always be created.
  */
+@Suppress("unused")
 object P_CreateExplicitSubclassAtom : Primitive(1, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

@@ -51,6 +51,7 @@ import com.avail.interpreter.effects.LoadingEffectToRunPrimitive
  * [atom][com.avail.descriptor.AtomDescriptor], associate the given property key
  * (another atom) and property value.  This is a destructive operation.
  */
+@Suppress("unused")
 object P_AtomSetProperty : Primitive(3, CanInline, HasSideEffect)
 {
 	override fun attempt(
