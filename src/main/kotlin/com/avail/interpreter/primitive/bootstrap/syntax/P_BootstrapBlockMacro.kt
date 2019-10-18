@@ -56,41 +56,39 @@ import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
-import java.util.*
 
 /**
- * The `P_BootstrapBlockMacro` primitive is used for bootstrapping
- * the [block][BlockPhraseDescriptor] syntax for defining [ ].
+ * The `P_BootstrapBlockMacro` primitive is used for bootstrapping the
+ * [block][BlockPhraseDescriptor] syntax for defining
+ * [functions][FunctionDescriptor].
  *
  *
- * The strategy is to invoke prefix functions as various checkpoints are
- * reached during block parsing.  The prefix functions are invoked with all
- * arguments that have been parsed up to that point.
+ * The strategy is to invoke prefix functions as various checkpoints are reached
+ * during block parsing.  The prefix functions are invoked with all arguments
+ * that have been parsed up to that point.
  *
  *  * After the open square bracket ("["), push the existing scope stack.
  *  * After parsing each argument declaration, invoke a prefix function that
- * adds it to the scope.
+ *    adds it to the scope.
  *  * After parsing an optional primitive failure variable, invoke a prefix
- * function to add it to the scope.
+ *    function to add it to the scope.
  *  * After parsing an optional label declaration, invoke a prefix function to
- * add it to the scope.
+ *    add it to the scope.
  *  * When a statement is a local declaration (variable or constant), the macro
- * that builds it also adds it to the scope.
+ *    that builds it also adds it to the scope.
  *  * After the close square bracket ("]"), pop the scope stack.
  *
  *
- *
- * When the whole macro has been parsed, the actual parsed arguments are
- * passed to the macro body (i.e., this primitive).  The body function has to
- * look up any arguments, primitive failure variable, and/or label that may have
- * entered scope due to execution of a prefix function.  The body answers a
- * suitable replacement phrase, in this case a [ ].
+ * When the whole macro has been parsed, the actual parsed arguments are passed
+ * to the macro body (i.e., this primitive).  The body function has to look up
+ * any arguments, primitive failure variable, and/or label that may have entered
+ * scope due to execution of a prefix function.  The body answers a suitable
+ * replacement phrase, in this case a [block phrase][BlockPhraseDescriptor].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 {
-
 	/** The key to the client parsing data in the fiber's environment.  */
 	private val clientDataKey = CLIENT_DATA_GLOBAL_KEY.atom
 
@@ -103,8 +101,7 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 	/** The key to the all tokens tuple in the fiber's environment.  */
 	private val staticTokensKey = STATIC_TOKENS_KEY.atom
 
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(7)
 		val optionalArgumentDeclarations = interpreter.argument(0)
@@ -149,18 +146,24 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 		val tokens = clientData.mapAt(staticTokensKey)
 
 		assert(optionalArgumentDeclarations.expressionsSize() <= 1)
-		val argumentDeclarationPairs = if (optionalArgumentDeclarations.expressionsSize() == 0)
-			emptyTuple()
-		else
-			optionalArgumentDeclarations.expressionAt(1)
-				.expressionsTuple()
+
+		val argumentDeclarationPairs =
+			if (optionalArgumentDeclarations.expressionsSize() == 0)
+			{ emptyTuple() }
+			else
+			{
+				optionalArgumentDeclarations.expressionAt(1)
+					.expressionsTuple()
+			}
+
 		// Look up the names of the arguments that were declared in the first
 		// prefix function.
-		val argumentDeclarationsList = ArrayList<A_Phrase>(argumentDeclarationPairs.tupleSize())
+		val argumentDeclarationsList = mutableListOf<A_Phrase>()
 		run {
 			for (declarationPair in argumentDeclarationPairs)
 			{
-				val declarationName = declarationPair.expressionAt(1).token().string()
+				val declarationName =
+					declarationPair.expressionAt(1).token().string()
 				if (!scopeMap.hasKey(declarationName))
 				{
 					// The argument binding is missing.
@@ -177,7 +180,7 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 		val primNumber: Int
 		val primitiveReturnType: A_Type?
 		var canHaveStatements = true
-		val allStatements = ArrayList<A_Phrase>()
+		val allStatements = mutableListOf<A_Phrase>()
 		if (optionalPrimitive.expressionsSize() == 1)
 		{
 			val primPhrase = optionalPrimitive.expressionAt(1)
@@ -186,10 +189,11 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 			{
 				throw AvailRejectedParseException(
 					STRONG,
-					"primitive specification to be a (compiler created) " + "literal keyword token")
+					"primitive specification to be a (compiler created) "
+						+ "literal keyword token")
 			}
 			val primName = primNamePhrase.token().string()
-			prim = Primitive.primitiveByName(primName.asNativeString())
+			prim = primitiveByName(primName.asNativeString())
 			if (prim === null)
 			{
 				return interpreter.primitiveFailure(
@@ -219,7 +223,8 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 					return interpreter.primitiveFailure(
 						E_INCONSISTENT_PREFIX_FUNCTION)
 				}
-				val failureDeclaration = scopeMap.mapAt(failureDeclarationName)
+				val failureDeclaration =
+					scopeMap.mapAt(failureDeclarationName)
 				allStatements.add(failureDeclaration)
 			}
 			primitiveReturnType = prim.blockTypeRestriction().returnType()
@@ -245,13 +250,15 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 				return interpreter.primitiveFailure(
 					E_INCONSISTENT_PREFIX_FUNCTION)
 			}
-			val optionalLabelReturnTypePhrase = presentLabel.expressionAt(2)
+			val optionalLabelReturnTypePhrase =
+				presentLabel.expressionAt(2)
 			val label = scopeMap.mapAt(labelDeclarationName)
 			allStatements.add(label)
 			if (optionalLabelReturnTypePhrase.expressionsSize() == 1)
 			{
 				// Label's type was explicitly provided.
-				labelReturnType = label.declaredType().functionType().returnType()
+				labelReturnType =
+					label.declaredType().functionType().returnType()
 			}
 		}
 
@@ -261,30 +268,34 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 			allStatements.add(statement.token().literal())
 		}
 		assert(optionalReturnExpression.expressionsSize() <= 1)
-		val deducedReturnType: A_Type
-		if (optionalReturnExpression.expressionsSize() == 1)
-		{
-			val returnLiteralPhrase = optionalReturnExpression.expressionAt(1)
-			assert(returnLiteralPhrase.phraseKindIsUnder(LITERAL_PHRASE))
-			val returnExpression = returnLiteralPhrase.token().literal()
-			allStatements.add(returnExpression)
-			deducedReturnType = if (labelReturnType === null)
-				returnExpression.expressionType()
-			else
-				returnExpression.expressionType().typeUnion(labelReturnType)
-		}
-		else
-		{
-			deducedReturnType = if (prim !== null && prim.hasFlag(CannotFail))
+		val deducedReturnType: A_Type =
+			if (optionalReturnExpression.expressionsSize() == 1)
 			{
-				// An infallible primitive must have no statements.
-				prim.blockTypeRestriction().returnType()
+				val returnLiteralPhrase =
+					optionalReturnExpression.expressionAt(1)
+				assert(returnLiteralPhrase.phraseKindIsUnder(LITERAL_PHRASE))
+				val returnExpression =
+					returnLiteralPhrase.token().literal()
+				allStatements.add(returnExpression)
+
+				if (labelReturnType === null)
+				{
+					returnExpression.expressionType()
+				}
+				else
+				{
+					returnExpression.expressionType().typeUnion(labelReturnType)
+				}
 			}
 			else
 			{
-				TOP.o()
+				if (prim !== null && prim.hasFlag(CannotFail))
+				{
+					// An infallible primitive must have no statements.
+					prim.blockTypeRestriction().returnType()
+				}
+				else { TOP.o() }
 			}
-		}
 
 		if (allStatements.size > 0 && !canHaveStatements)
 		{
@@ -293,10 +304,12 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 				"infallible primitive function not to have statements")
 		}
 
-		val declaredReturnType = if (optionalReturnType.expressionsSize() != 0)
-			optionalReturnType.expressionAt(1).token().literal()
-		else
-			null
+		val declaredReturnType =
+			if (optionalReturnType.expressionsSize() != 0)
+			{
+				optionalReturnType.expressionAt(1).token().literal()
+			}
+			else { null }
 		// Make sure the last expression's type ⊆ the declared return type, if
 		// applicable.  Also make sure the primitive's return type ⊆ the
 		// declared return type.  Finally, make sure that the label's return
@@ -307,40 +320,34 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 			{
 				throw AvailRejectedParseException(
 					STRONG,
-					if (labelReturnType === null)
-						"final expression's type ("
-						+ deducedReturnType
-						+ ") to agree with the declared return type ("
-						+ declaredReturnType
-						+ ")"
-					else
-						"the union ("
-						+ deducedReturnType
-						+ ") of the final expression's type and the "
-						+ "label's declared type to agree with the "
-						+ "declared return type ("
-						+ declaredReturnType
-						+ ")")
+					labelReturnType?.let {
+						"the union ($deducedReturnType) of the final " +
+	                        "expression's type and the label's declared type " +
+							"to agree with the declared return type (" +
+							"$declaredReturnType)"
+					} ?: "final expression's type ($deducedReturnType) to " +
+						"agree with the declared return type " +
+						"($declaredReturnType)")
 			}
-			if (primitiveReturnType !== null && !primitiveReturnType.isSubtypeOf(declaredReturnType))
+			if (primitiveReturnType !== null
+			    && !primitiveReturnType.isSubtypeOf(declaredReturnType))
 			{
 				throw AvailRejectedParseException(
 					STRONG,
 					"primitive's intrinsic return type ("
-					+ primitiveReturnType
-					+ ") to agree with the declared return type ("
-					+ declaredReturnType
-					+ ")")
+						+ primitiveReturnType
+						+ ") to agree with the declared return type ("
+						+ declaredReturnType
+						+ ")")
 			}
-			if (labelReturnType !== null && !labelReturnType.isSubtypeOf(declaredReturnType))
+			if (labelReturnType !== null
+			    && !labelReturnType.isSubtypeOf(declaredReturnType))
 			{
 				throw AvailRejectedParseException(
 					STRONG,
-					"label's declared return type ("
-					+ labelReturnType
-					+ ") to agree with the function's declared return type ("
-					+ declaredReturnType
-					+ ")")
+					"label's declared return type ($labelReturnType) to agree "
+					+ "with the function's declared return type "
+					+ "($declaredReturnType)")
 			}
 		}
 		else if (primitiveReturnType !== null)
@@ -356,7 +363,8 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 		var exceptionsSet = emptySet()
 		if (optionalExceptionTypes.expressionsSize() == 1)
 		{
-			for (exceptionTypePhrase in optionalExceptionTypes.lastExpression().expressionsTuple())
+			for (exceptionTypePhrase in
+				optionalExceptionTypes.lastExpression().expressionsTuple())
 			{
 				exceptionsSet = exceptionsSet.setWithElementCanDestroy(
 					exceptionTypePhrase.token().literal(), true)
@@ -366,10 +374,9 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 		// The block's line number is the line of the first token that's part of
 		// the block, even if it's part of a subexpression (which it won't be
 		// with the core Avail syntax).
-		val lineNumber = if (tokens.tupleSize() == 0)
-			0
-		else
-			tokens.tupleAt(1).lineNumber()
+		val lineNumber =
+			if (tokens.tupleSize() == 0) { 0 }
+			else  { tokens.tupleAt(1).lineNumber() }
 		val block = newBlockNode(
 			tupleFromList(argumentDeclarationsList),
 			primNumber,
@@ -391,9 +398,8 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 		return interpreter.primitiveSuccess(block)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tupleFromArray(
 				/* Macro argument is a phrase. */
 				LIST_PHRASE.create(
@@ -445,28 +451,14 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 						 */
 						STATEMENT_PHRASE.mostGeneralType())),
 				/* Optional return expression */
-				LIST_PHRASE.create(
-					zeroOrOneOf(
-						PARSE_PHRASE.create(ANY.o()))),
+				LIST_PHRASE.create(zeroOrOneOf(PARSE_PHRASE.create(ANY.o()))),
 				/* Optional return type */
-				LIST_PHRASE.create(
-					zeroOrOneOf(
-						topMeta())),
+				LIST_PHRASE.create(zeroOrOneOf(topMeta())),
 				/* Optional tuple of exception types */
-				LIST_PHRASE.create(
-					zeroOrOneOf(
-						oneOrMoreOf(
-							exceptionType())))),
+				LIST_PHRASE.create(zeroOrOneOf(oneOrMoreOf(exceptionType())))),
 			/* ...and produce a block phrase. */
 			BLOCK_PHRASE.mostGeneralType())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
-			set(
-				E_LOADING_IS_OVER,
-				E_INCONSISTENT_PREFIX_FUNCTION))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_LOADING_IS_OVER, E_INCONSISTENT_PREFIX_FUNCTION))
 }

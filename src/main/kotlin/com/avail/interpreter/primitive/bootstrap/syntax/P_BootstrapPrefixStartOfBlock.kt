@@ -47,23 +47,22 @@ import com.avail.interpreter.Primitive.Flag.Bootstrap
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * The `P_BootstrapPrefixStartOfBlock` primitive is triggered at the
- * start of parsing a block.  It pushes the current scope onto the scope stack
- * so that it can be popped again by the [P_BootstrapBlockMacro] when
- * the block parsing completes.
+ * The `P_BootstrapPrefixStartOfBlock` primitive is triggered at the start of
+ * parsing a block.  It pushes the current scope onto the scope stack so that it
+ * can be popped again by the [P_BootstrapBlockMacro] when the block parsing
+ * completes.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 object P_BootstrapPrefixStartOfBlock : Primitive(0, CanInline, Bootstrap)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(0)
 
-		val loader = interpreter.fiber().availLoader()
-		             ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+		val loader =
+			interpreter.fiber().availLoader()
+	             ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		val clientDataGlobalKey = CLIENT_DATA_GLOBAL_KEY.atom
 		val compilerScopeMapKey = COMPILER_SCOPE_MAP_KEY.atom
 		val compilerScopeStackKey = COMPILER_SCOPE_STACK_KEY.atom
@@ -71,10 +70,12 @@ object P_BootstrapPrefixStartOfBlock : Primitive(0, CanInline, Bootstrap)
 		var fiberGlobals = fiber.fiberGlobals()
 		var clientData: A_Map = fiberGlobals.mapAt(clientDataGlobalKey)
 		val bindings = clientData.mapAt(compilerScopeMapKey)
-		var stack: A_Tuple = if (clientData.hasKey(compilerScopeStackKey))
-			clientData.mapAt(compilerScopeStackKey)
-		else
-			emptyTuple()
+		var stack: A_Tuple =
+			if (clientData.hasKey(compilerScopeStackKey))
+			{
+				clientData.mapAt(compilerScopeStackKey)
+			}
+			else { emptyTuple() }
 		stack = stack.appendCanDestroy(bindings, false)
 		clientData = clientData.mapAtPuttingCanDestroy(
 			compilerScopeStackKey, stack, true)
@@ -88,5 +89,4 @@ object P_BootstrapPrefixStartOfBlock : Primitive(0, CanInline, Bootstrap)
 	{
 		return functionType(emptyTuple(), TOP.o())
 	}
-
 }

@@ -50,17 +50,17 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * The `P_BootstrapConstantDeclarationMacro` primitive is used for
- * bootstrapping declaration of a [local][PhraseKind.LOCAL_CONSTANT_PHRASE].  Constant declarations that occur at the outermost
- * scope are rewritten by the [AvailCompiler] as a [ #MODULE_CONSTANT_NODE][PhraseKind].
+ * The `P_BootstrapConstantDeclarationMacro` primitive is used for bootstrapping
+ * declaration of a [local][PhraseKind.LOCAL_CONSTANT_PHRASE].  Constant
+ * declarations that occur at the outermost scope are rewritten by the
+ * [AvailCompiler] as a [ #MODULE_CONSTANT_NODE][PhraseKind].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object P_BootstrapConstantDeclarationMacro : Primitive(2, CannotFail, CanInline, Bootstrap)
+object P_BootstrapConstantDeclarationMacro
+	: Primitive(2, CannotFail, CanInline, Bootstrap)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val constantNameLiteral = interpreter.argument(0)
@@ -71,41 +71,39 @@ object P_BootstrapConstantDeclarationMacro : Primitive(2, CannotFail, CanInline,
 		if (nameToken.tokenType() != KEYWORD)
 		{
 			throw AvailRejectedParseException(
-				STRONG,
-				"new constant name to be alphanumeric, not %s",
-				nameString)
+				STRONG, "new constant name to be alphanumeric, not $nameString")
 		}
-		val initializationType = initializationExpression.expressionType()
+		val initializationType =
+			initializationExpression.expressionType()
 		if (initializationType.isTop || initializationType.isBottom)
 		{
 			throw AvailRejectedParseException(
 				STRONG,
-				"constant initialization expression to have a type other " + "than %s",
-				initializationType)
+				"constant initialization expression to have a type other "
+					+ "than $initializationType")
 		}
-		val constantDeclaration = newConstant(nameToken, initializationExpression)
-		val conflictingDeclaration = FiberDescriptor.addDeclaration(constantDeclaration)
+		val constantDeclaration =
+			newConstant(nameToken, initializationExpression)
+		val conflictingDeclaration =
+			FiberDescriptor.addDeclaration(constantDeclaration)
 		if (conflictingDeclaration !== null)
 		{
 			throw AvailRejectedParseException(
 				STRONG,
-				"local constant %s to have a name that doesn't shadow an " + "existing %s (from line %d)",
-				nameString,
-				conflictingDeclaration.declarationKind().nativeKindName(),
-				conflictingDeclaration.token().lineNumber())
+				"local constant $nameString to have a name that doesn't "
+				 + "shadow an existing "
+				 + "${conflictingDeclaration.declarationKind().nativeKindName()} "
+				 + "(from line ${conflictingDeclaration.token().lineNumber()})")
 		}
 		return interpreter.primitiveSuccess(constantDeclaration)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				/* Constant name token as a literal phrase */
 				LITERAL_PHRASE.create(TOKEN.o()),
 				/* Initialization expression */
 				EXPRESSION_PHRASE.create(ANY.o())),
 			LOCAL_CONSTANT_PHRASE.mostGeneralType())
-	}
-
 }

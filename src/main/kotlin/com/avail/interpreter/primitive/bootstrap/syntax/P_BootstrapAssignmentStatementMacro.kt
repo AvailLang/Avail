@@ -56,27 +56,27 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * The `P_BootstrapAssignmentStatementMacro` primitive is used for
- * assignment statements.  It constructs an expression-as-statement containing
- * an assignment that has the isInline flag cleared.
+ * The `P_BootstrapAssignmentStatementMacro` primitive is used for assignment
+ * statements.  It constructs an expression-as-statement containing an
+ * assignment that has the isInline flag cleared.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object P_BootstrapAssignmentStatementMacro : Primitive(2, CannotFail, CanInline, Bootstrap)
+object P_BootstrapAssignmentStatementMacro
+	: Primitive(2, CannotFail, CanInline, Bootstrap)
 {
+	/** The key to the all tokens tuple in the fiber's environment. */
+	private val staticTokensKey = STATIC_TOKENS_KEY.atom
 
-	/** The key to the all tokens tuple in the fiber's environment.  */
-	internal val staticTokensKey = STATIC_TOKENS_KEY.atom
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val variableNameLiteral = interpreter.argument(0)
 		val valueExpression = interpreter.argument(1)
 
-		val loader = interpreter.fiber().availLoader()
-		             ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+		val loader =
+			interpreter.fiber().availLoader()
+	             ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		assert(variableNameLiteral.isInstanceOf(
 			LITERAL_PHRASE.mostGeneralType()))
 		val literalToken = variableNameLiteral.token()
@@ -91,8 +91,8 @@ object P_BootstrapAssignmentStatementMacro : Primitive(2, CannotFail, CanInline,
 				"variable name for assignment to be alphanumeric, not $variableNameString")
 		}
 		val fiberGlobals = interpreter.fiber().fiberGlobals()
-		val clientData = fiberGlobals.mapAt(
-			CLIENT_DATA_GLOBAL_KEY.atom)
+		val clientData =
+			fiberGlobals.mapAt(CLIENT_DATA_GLOBAL_KEY.atom)
 		val scopeMap = clientData.mapAt(COMPILER_SCOPE_MAP_KEY.atom)
 		val module = loader.module()
 		var declaration: A_Phrase? = null
@@ -102,21 +102,22 @@ object P_BootstrapAssignmentStatementMacro : Primitive(2, CannotFail, CanInline,
 		}
 		else if (module.variableBindings().hasKey(variableNameString))
 		{
-			val variableObject = module.variableBindings().mapAt(variableNameString)
-			declaration = newModuleVariable(
-				actualToken, variableObject, nil, nil)
+			val variableObject =
+				module.variableBindings().mapAt(variableNameString)
+			declaration =
+				newModuleVariable(actualToken, variableObject, nil, nil)
 		}
 		else if (module.constantBindings().hasKey(variableNameString))
 		{
-			val variableObject = module.constantBindings().mapAt(variableNameString)
+			val variableObject =
+				module.constantBindings().mapAt(variableNameString)
 			declaration = newModuleConstant(actualToken, variableObject, nil)
 		}
 
 		if (declaration === null)
 		{
-			throw AvailRejectedParseException(
-				STRONG
-			) {
+			throw AvailRejectedParseException(STRONG)
+			{
 				formatString(
 					"variable (%s) for assignment to be in scope",
 					variableNameString)
@@ -125,9 +126,8 @@ object P_BootstrapAssignmentStatementMacro : Primitive(2, CannotFail, CanInline,
 		val declarationFinal = declaration
 		if (!declaration.declarationKind().isVariable)
 		{
-			throw AvailRejectedParseException(
-				STRONG
-			) {
+			throw AvailRejectedParseException(STRONG)
+			{
 				formatString(
 					"a name of a variable, not a %s",
 					declarationFinal.declarationKind().nativeKindName())
@@ -136,9 +136,8 @@ object P_BootstrapAssignmentStatementMacro : Primitive(2, CannotFail, CanInline,
 		if (!valueExpression.expressionType().isSubtypeOf(
 				declaration.declaredType()))
 		{
-			throw AvailRejectedParseException(
-				STRONG
-			) {
+			throw AvailRejectedParseException(STRONG)
+			{
 				formatString(
 					"assignment expression's type (%s) " + "to match variable type (%s)",
 					valueExpression.expressionType(),
@@ -153,15 +152,12 @@ object P_BootstrapAssignmentStatementMacro : Primitive(2, CannotFail, CanInline,
 		return interpreter.primitiveSuccess(assignmentAsStatement)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				/* Variable name for assignment */
 				LITERAL_PHRASE.create(TOKEN.o()),
 				/* Assignment value */
 				EXPRESSION_PHRASE.create(ANY.o())),
 			EXPRESSION_AS_STATEMENT_PHRASE.mostGeneralType())
-	}
-
 }
