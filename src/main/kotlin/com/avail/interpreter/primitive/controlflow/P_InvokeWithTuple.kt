@@ -152,7 +152,7 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 					// The function being invoked is itself a primitive. Dig
 					// deeper to find out whether that primitive would itself
 					// always succeed, and if so, what type it guarantees.
-					val primArgCount = primitive.argCount()
+					val primArgCount = primitive.argCount
 					val primArgSizes = argTupleType.sizeRange()
 					if (primArgSizes.lowerBound().equalsInt(primArgCount) && primArgSizes.upperBound().equalsInt(primArgCount))
 					{

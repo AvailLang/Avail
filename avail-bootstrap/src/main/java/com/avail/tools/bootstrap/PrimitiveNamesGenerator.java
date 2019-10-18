@@ -99,7 +99,7 @@ extends PropertiesFileGenerator
 				writer.format(
 					"# %s : _=%d%n",
 					primitive.name(),
-					primitive.argCount());
+					primitive.getArgCount());
 				// Write the primitive key and any name already associated with
 				// it.
 				writer.print(primitive.getClass().getSimpleName());
@@ -113,7 +113,7 @@ extends PropertiesFileGenerator
 				writer.println();
 				// Write each of the parameter keys and their previously
 				// associated values.
-				for (int i = 1; i <= primitive.argCount(); i++)
+				for (int i = 1; i <= primitive.getArgCount(); i++)
 				{
 					final String argNameKey =
 						primitiveParameterNameKey(primitive, i);
@@ -146,14 +146,14 @@ extends PropertiesFileGenerator
 					final String commentTemplate =
 						preambleBundle.getString(methodCommentTemplate.name());
 					final String parameters;
-					final int argCount = primitive.argCount();
+					final int argCount = primitive.getArgCount();
 					if (argCount > 0)
 					{
 						final String parameterTemplate =
 							preambleBundle.getString(
 								methodCommentParameterTemplate.name());
 						final StringBuilder builder = new StringBuilder(500);
-						for (int i = 0; i < primitive.argCount(); i++)
+						for (int i = 0; i < primitive.getArgCount(); i++)
 						{
 							builder.append(MessageFormat.format(
 								parameterTemplate,
@@ -187,7 +187,7 @@ extends PropertiesFileGenerator
 						final String raisesTemplate = preambleBundle.getString(
 							methodCommentRaisesTemplate.name());
 						final A_Type failureType =
-							primitive.failureVariableType();
+							primitive.getFailureVariableType();
 						if (failureType.isEnumeration())
 						{
 							final StringBuilder builder =

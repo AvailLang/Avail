@@ -71,7 +71,7 @@ object P_CatchException : Primitive(
 		//		final A_BasicObject ensureBlock = interpreter.argument(2);
 
 		val innerVariable = newVariableWithOuterType(
-			failureVariableType())
+			failureVariableType)
 
 		for (block in handlerBlocks)
 		{

@@ -81,18 +81,18 @@ import java.util.regex.Pattern
  * provide these primitives with equivalent semantics and names.
  *
  *
- * The subclasses must define [.attempt], which expects
- * its arguments to be accessed via [Interpreter.argument].  Each
- * subclass operates on its arguments to produce a side-effect and/or produce a
- * result.  The primitive's [Flag]s indicate any special preparations that
- * must be made before the invocation, such as reifying the Java stack.
+ * The subclasses must define [attempt], which expects its arguments to be
+ * accessed via [Interpreter.argument].  Each subclass operates on its arguments
+ * to produce a side-effect and/or produce a result.  The primitive's [Flag]s
+ * indicate any special preparations that must be made before the invocation,
+ * such as reifying the Java stack.
  *
  *
  * Primitives may succeed or fail, or cause some other action like non-local
  * control flow.  This is handled via [Interpreter.primitiveSuccess] and
- * [Interpreter.primitiveFailure] and similar methods.  If a
- * primitive fails, the statements in the containing function will be invoked,
- * as though the primitive had never been attempted.
+ * [Interpreter.primitiveFailure] and similar methods.  If a primitive fails,
+ * the statements in the containing function will be invoked, as though the
+ * primitive had never been attempted.
  *
  *
  * In addition, the `Primitive` subclasses collaborate with the [L1Translator]
@@ -105,8 +105,8 @@ import java.util.regex.Pattern
  *
  *
  * The main hook for primitive-specific optimization is
- * [tryToGenerateSpecialPrimitiveInvocation].
- * Because of the way the L2 translation makes use of [L2SemanticValue]s,
+ * [tryToGenerateSpecialPrimitiveInvocation].  Because of the way the L2
+ * translation makes use of [L2SemanticValue]s,
  * and [L2SemanticPrimitiveInvocation]s in particular, a primitive can
  * effectively examine the history of its arguments and compose or cancel a
  * chain of actions in the L2 code.  For example, a primitive that extracts an
@@ -118,14 +118,38 @@ import java.util.regex.Pattern
  * similar rich opportunities for these high-level optimizations.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @property argCount
+ *   The number of arguments the primitive expects.  The value -1 is used by
+ *   the special primitive [P_PushConstant] to indicate it may have any
+ *   number of arguments.  However, note that that primitive cannot be used
+ *   explicitly in Avail code.
+ *
+ * @constructor
+ * Construct a new [Primitive].  The first argument is a primitive number, the
+ * second is the number of arguments with which the primitive expects to be
+ * invoked, and the remaining arguments are [flags][Flag].
+ *
+ * Note that it's essential that this method, invoked during static
+ * initialization of each Primitive subclass, install this new instance into
+ * this primitive's [PrimitiveHolder] in [holdersByClassName].
+ *
+ * @param argCount
+ *   The number of arguments the primitive expects.  The value -1 is used by
+ *   the special primitive [P_PushConstant] to indicate it may have any
+ *   number of arguments.  However, note that that primitive cannot be used
+ *   explicitly in Avail code.
+ * @param flags
+ *   The flags that describe how the [L2Generator] should deal with this
+ *   primitive.
  */
-abstract class Primitive : IntegerEnumSlotDescriptionEnum
+abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
+	: IntegerEnumSlotDescriptionEnum
 {
-
 	/**
 	 * A [function type][FunctionTypeDescriptor] that restricts the
 	 * type of block that can use this primitive.  This is initialized lazily to
-	 * the value provided by [.privateBlockTypeRestriction], to avoid
+	 * the value provided by [privateBlockTypeRestriction], to avoid
 	 * having to compute this function type multiple times.
 	 */
 	private var cachedBlockTypeRestriction: A_Type? = null
@@ -135,7 +159,8 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 	 * variable declaration within the primitive declaration of a block.  The
 	 * actual variable's inner type must be this or a supertype.
 	 */
-	private val failureVariableType = privateFailureVariableType().makeShared()
+	val failureVariableType : AvailObject =
+		privateFailureVariableType().makeShared()
 
 	/**
 	 * This primitive's number.  The Avail source code refers to primitives by
@@ -143,14 +168,7 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 	 * within All_Primitives.txt.  [compiled code][CompiledCodeDescriptor]
 	 * stores the primitive number internally for speed.
 	 */
-	var primitiveNumber: Int = 0
-
-	/**
-	 * The number of arguments this primitive expects.  For [ ] this is -1, but that primitive cannot be used
-	 * explicitly in Avail code – it's plugged in automatically for functions
-	 * that immediately return a constant.
-	 */
-	private var argCount: Int = 0
+	val primitiveNumber: Int
 
 	/**
 	 * The flags that indicate to the [L2Generator] how an invocation of
@@ -182,31 +200,58 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 	/**
 	 * A performance metric indicating how long was spent checking the return
 	 * result for all invocations of this primitive in level two code.  An
-	 * excessively large value indicates a profitable opportunity for [ ][.returnTypeGuaranteedByVM] to return a stronger
-	 * type, perhaps allowing the level two optimizer to skip more checks.
+	 * excessively large value indicates a profitable opportunity for
+	 * [returnTypeGuaranteedByVM] to return a stronger type, perhaps allowing
+	 * the level two optimizer to skip more checks.
 	 */
 	private val resultTypeCheckingNanos = Statistic(
 		javaClass.simpleName + " (checking result)",
 		StatisticReport.PRIMITIVE_RETURNER_TYPE_CHECKS)
 
-	/** TODO: Temporary compatibility for primitives still written in Java.  */
-	constructor()
+	init
 	{
-	}
-
-	/**
-	 * Constructor for primitives written in Kotlin.  Eventually the init()
-	 * method should be renamed and inlined here.
-	 *
-	 * @param theArgCount
-	 * How many arguments are expected by this primitive.  `-1` for
-	 * variadic primitives.
-	 * @param flags
-	 * The [Flag]s to set for this primitive.
-	 */
-	constructor(theArgCount: Int, vararg flags: Flag)
-	{
-		init(theArgCount, *flags)
+		val holder = holdersByClassName[javaClass.name]
+		primitiveNumber = holder!!.number
+		name = holder.name
+		assert(primitiveFlags.isEmpty())
+		for (flag in flags)
+		{
+			assert(!primitiveFlags.contains(flag))
+			{
+				"Duplicate flag in " + javaClass.simpleName
+			}
+			primitiveFlags.add(flag)
+		}
+		// Sanity check certain conditions.
+		assert(!primitiveFlags.contains(CanFold)
+		       || primitiveFlags.contains(CanInline))
+		{
+			("Primitive " + javaClass.simpleName
+			 + " has CanFold without CanInline")
+		}
+		assert(!primitiveFlags.contains(Invokes)
+		       || primitiveFlags.contains(CanInline))
+		{
+			("Primitive " + javaClass.simpleName
+			 + " has Invokes without CanInline")
+		}
+		runningNanos = Statistic(
+			(if (hasFlag(CanInline)) "" else "[NOT INLINE]")
+			+ javaClass.simpleName
+			+ " (running)",
+			StatisticReport.PRIMITIVES)
+		if (hasFlag(CanSwitchContinuations))
+		{
+			reificationAbandonmentStat = Statistic(
+				"Abandoned for CONTINUATION_CHANGED from $name",
+				StatisticReport.REIFICATIONS)
+		}
+		if (!hasFlag(CanInline))
+		{
+			reificationForNoninlineStat = Statistic(
+				"Reification for non-inline $name",
+				StatisticReport.REIFICATIONS)
+		}
 	}
 
 	/**
@@ -236,9 +281,10 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 		CONTINUATION_CHANGED,
 
 		/**
-		 * A primitive with [Flag.CanInline] and [Flag.Invokes] has
-		 * set up the [Interpreter.function] and [ ][Interpreter.argsBuffer] for a call, but has not called it because
-		 * that's not permitted from within a `Primitive`.
+		 * A primitive with [Flag.CanInline] and [Flag.Invokes] has set up the
+		 * [Interpreter.function] and [Interpreter.argsBuffer] for a call, but
+		 * has not called it because that's not permitted from within a
+		 * `Primitive`.
 		 */
 		READY_TO_INVOKE,
 
@@ -397,20 +443,21 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 	}
 
 	/**
-	 * Attempt this primitive with the given [Interpreter].  The
-	 * interpreter's [argument list][Interpreter.argsBuffer] must be
-	 * set up prior to this call.  If the primitive fails, it should set the
-	 * primitive failure code by calling [Interpreter.primitiveFailure] and returning its result from the primitive.  Otherwise
-	 * it should set the interpreter's primitive result by calling [ ][Interpreter.primitiveSuccess] and then return its result
-	 * from the primitive.  For unusual primitives that replace the current
-	 * continuation, [Result.CONTINUATION_CHANGED] is more appropriate,
+	 * Attempt this primitive with the given [Interpreter].  The interpreter's
+	 * [argument list][Interpreter.argsBuffer] must be set up prior to this
+	 * call.  If the primitive fails, it should set the primitive failure code
+	 * by calling [Interpreter.primitiveFailure] and returning its result from
+	 * the primitive.  Otherwise it should set the interpreter's primitive
+	 * result by calling [Interpreter.primitiveSuccess] and then return its
+	 * result from the primitive.  For unusual primitives that replace the
+	 * current continuation, [Result.CONTINUATION_CHANGED] is more appropriate,
 	 * and the latestResult need not be set.  For primitives that need to cause
 	 * a context switch, [Result.FIBER_SUSPENDED] should be returned.
 	 *
 	 * @param interpreter
-	 * The [Interpreter] that is executing.
+	 *   The [Interpreter] that is executing.
 	 * @return The [Result] code indicating success or failure (or special
-	 * circumstance).
+	 *   circumstance).
 	 */
 	abstract fun attempt(interpreter: Interpreter): Result
 
@@ -440,9 +487,8 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 	 * Cache the value in this `Primitive` so subsequent requests are
 	 * fast.
 	 *
-	 * @return
-	 * A function type that restricts the type of a block that uses
-	 * this primitive.
+	 * @return A function type that restricts the type of a block that uses
+	 *   this primitive.
 	 */
 	fun blockTypeRestriction(): A_Type
 	{
@@ -454,9 +500,9 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 			val argsTupleType = restriction!!.argsTupleType()
 			val sizeRange = argsTupleType.sizeRange()
 			assert(restriction.isBottom
-			       || argCount() == -1
-			       || sizeRange.lowerBound().extractInt() == argCount()
-			       && sizeRange.upperBound().extractInt() == argCount())
+			       || argCount == -1
+			       || sizeRange.lowerBound().extractInt() == argCount
+			       && sizeRange.upperBound().extractInt() == argCount)
 		}
 		return restriction
 	}
@@ -486,71 +532,40 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 	 * Return an Avail [type][TypeDescriptor] that a failure variable
 	 * must accept in order to be compliant with this primitive.  A more general
 	 * type is acceptable for the variable.  This type is cached upon first
-	 * request and should be accessed via [.failureVariableType].
-	 *
+	 * request and should be accessed via [failureVariableType].
 	 *
 	 *
 	 * By default, expect the primitive to fail with a natural number.
 	 *
 	 *
-	 * @return
-	 * A type which is at least as specific as the type of the failure
-	 * variable declared in a block using this primitive.
-	 */
-	protected open fun privateFailureVariableType(): A_Type
-	{
-		return naturalNumbers()
-	}
-
-	/**
-	 * Return an Avail [type][TypeDescriptor] that a failure variable
-	 * must accept in order to be compliant with this primitive.  A more general
-	 * type is acceptable for the variable.  The type is cached for performance.
-	 *
 	 * @return A type which is at least as specific as the type of the failure
-	 * variable declared in a block using this primitive.
+	 *   variable declared in a block using this primitive.
 	 */
-	fun failureVariableType(): A_Type
-	{
-		return failureVariableType
-	}
+	protected open fun privateFailureVariableType(): A_Type = naturalNumbers()
 
 	/**
-	 * Answer the [fallibility][Fallibility] of the [ ] for a call site with the given argument [ ].
+	 * Answer the [fallibility][Fallibility] of the [primitive][Primitive] for a
+	 * call site with the given argument [types][TypeDescriptor].
 	 *
 	 * @param argumentTypes
-	 * A [list][List] of argument types.
+	 *   A [list][List] of argument types.
 	 * @return The fallibility of the call site.
 	 */
 	open fun fallibilityForArgumentTypes(
-		argumentTypes: List<A_Type>): Fallibility
-	{
-		return if (hasFlag(CannotFail))
-			CallSiteCannotFail
-		else
-			CallSiteCanFail
-	}
+		argumentTypes: List<A_Type>): Fallibility =
+			if (hasFlag(CannotFail))
+				CallSiteCannotFail
+			else
+				CallSiteCanFail
 
 	/**
 	 * Test whether the specified [Flag] is set for this primitive.
 	 *
-	 * @param flag The `Flag` to test.
+	 * @param flag
+	 *   The `Flag` to test.
 	 * @return Whether that `Flag` is set for this primitive.
 	 */
-	fun hasFlag(flag: Flag): Boolean
-	{
-		return primitiveFlags.contains(flag)
-	}
-
-	/**
-	 * The number of arguments this primitive expects.
-	 *
-	 * @return The count of arguments for this primitive.
-	 */
-	fun argCount(): Int
-	{
-		return argCount
-	}
+	fun hasFlag(flag: Flag): Boolean = primitiveFlags.contains(flag)
 
 	/**
 	 * A helper class to assist with lazy loading of [Primitive]s.
@@ -560,7 +575,7 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 	 * @property className
 	 *   The full name of the Java class implementing the primitive.
 	 * @property number
-	 *   The numeric index of the primitive in the [.holdersByNumber]
+	 *   The numeric index of the primitive in the [holdersByNumber]
 	 *   array.  This ordering may be arbitrary, specific to the currently
 	 *   running Java VM instance.  The number should never be included in any
 	 *   serialization of primitive functions.
@@ -580,73 +595,59 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 		internal val className: String,
 		internal val number: Int)
 	{
+		/**
+		 * `false` if this holding is holding a "real" [Primitive]. `true` if
+		 * this is acting as a `null` in a collection that strictly requires
+		 * non-nulls.
+		 */
 		internal open val isNull = false
 
 		/**
-		 * The sole instance of the specific subclass of [Primitive].  It
-		 * is initialized only when needed for the first time, since that causes
+		 * The sole instance of the specific subclass of [Primitive].  It is
+		 * initialized only when needed for the first time, since that causes
 		 * Java class loading to happen, and we'd rather smear out that startup
 		 * performance cost.
 		 */
-		@Volatile
-		internal var primitive: Primitive? = null
+		internal val primitive: Primitive by lazy {
+			val loader = Primitive::class.java.classLoader
+			try
+			{
+				val primClass = loader.loadClass(className)
+
+				val field =
+					primClass.getField("INSTANCE") ?:
+					throw NoSuchFieldException(
+						"Couldn't find instance field of primitive $className")
+				// Trigger the linker.
+				field.get(null) as Primitive
+			}
+			catch (e: ClassNotFoundException)
+			{
+				throw RuntimeException(e)
+			}
+			catch (e: NoSuchFieldException)
+			{
+				throw RuntimeException(e)
+			}
+			catch (e: IllegalAccessException)
+			{
+				throw RuntimeException(e)
+			}
+		}
+
+
 
 		/**
-		 * Get the [Primitive] from this `PrimitiveHolder`.  Load
-		 * the appropriate class if necessary.
+		 * Get the [Primitive] from this `PrimitiveHolder`.  Load the
+		 * appropriate class if necessary.
 		 *
-		 * @return The singleton instance of the requested subclass of [         ]
+		 * @return The singleton instance of the requested subclass of
+		 *   [Primitive].
 		 */
 		fun primitive(): Primitive
 		{
 			val p = primitive
-			return p ?: fetchPrimitive()
-		}
-
-		/**
-		 * While holding the monitor, double-check whether another thread has
-		 * loaded the primitive, loading it if not.
-		 *
-		 * @return The loaded primitive.
-		 */
-		@Synchronized
-		private fun fetchPrimitive(): Primitive
-		{
-			// The double-check pattern.  Make sure there's a write barrier
-			// *before* and *after* writing the fully initialized primitive
-			// into its slot.
-			if (primitive === null)
-			{
-				val loader = Primitive::class.java.classLoader
-				try
-				{
-					val primClass = loader.loadClass(className)
-					val field = Arrays.stream(primClass.fields)
-						.filter { f -> instanceFieldNames.contains(f.name) }
-						.findAny()
-						.orElseThrow {
-							NoSuchFieldException(
-								"Couldn't find instance field of primitive $className")
-						}
-					// Trigger the linker.
-					val instance = field.get(null)
-	                    ?: error("PrimitiveHolder.primitive field should have "
-	                             + "been set during class loading")
-				}
-				catch (e: ClassNotFoundException)
-				{
-					throw RuntimeException(e)
-				}
-				catch (e: NoSuchFieldException)
-				{
-					throw RuntimeException(e)
-				}
-				catch (e: IllegalAccessException)
-				{
-					throw RuntimeException(e)
-				}
-			}
-			return stripNull(primitive)
+			return p
 		}
 
 		companion object
@@ -656,7 +657,7 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 			 * Java code, it's "instance", and for Kotlin it's "INSTANCE".
 			 */
 			private val instanceFieldNames =
-				mutableSetOf("instance", "INSTANCE")
+				mutableSetOf("INSTANCE")
 		}
 	}
 
@@ -679,95 +680,17 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 	 *
 	 * @return The [Statistic].
 	 */
-	fun reificationAbandonmentStat(): Statistic
-	{
-		//		assert hasFlag(CanSwitchContinuations);
-		return stripNull(reificationAbandonmentStat)
-	}
+	fun reificationAbandonmentStat(): Statistic =
+		stripNull(reificationAbandonmentStat)
 
 	/**
-	 * Answer the [Statistic] for reification prior to invoking a
-	 * primitive that *does not* have [Flag.CanInline] set.
+	 * Answer the [Statistic] for reification prior to invoking a primitive that
+	 * *does not* have [Flag.CanInline] set.
 	 *
 	 * @return The [Statistic].
 	 */
-	fun reificationForNoninlineStat(): Statistic
-	{
-		//		assert !hasFlag(CanInline);
-		return stripNull(reificationForNoninlineStat)
-	}
-
-	/**
-	 * Initialize a newly constructed `Primitive`.  The first argument is
-	 * a primitive number, the second is the number of arguments with which the
-	 * primitive expects to be invoked, and the remaining arguments are
-	 * [flags][Flag].
-	 *
-	 *
-	 * Note that it's essential that this method, invoked during static
-	 * initialization of each Primitive subclass, install this new instance into
-	 * this primitive's [PrimitiveHolder] in [.holdersByClassName].
-	 *
-	 * @param theArgCount
-	 *   The number of arguments the primitive expects.  The value -1 is used by
-	 *   the special primitive [P_PushConstant] to indicate it may have any
-	 *   number of arguments.  However, note that that primitive cannot be used
-	 *   explicitly in Avail code.
-	 * @param flags
-	 *   The flags that describe how the [L2Generator] should deal with this
-	 *   primitive.
-	 * @return The initialized primitive.
-	 */
-	fun init(theArgCount: Int, vararg flags: Flag): Primitive
-	{
-		val holder = holdersByClassName[javaClass.name]
-		primitiveNumber = holder!!.number
-		name = holder.name
-		argCount = theArgCount
-		assert(primitiveFlags.isEmpty())
-		for (flag in flags)
-		{
-			assert(!primitiveFlags.contains(flag))
-			{
-				"Duplicate flag in " + javaClass.simpleName
-			}
-			primitiveFlags.add(flag)
-		}
-		// Sanity check certain conditions.
-		assert(!primitiveFlags.contains(CanFold)
-		       || primitiveFlags.contains(CanInline))
-		{
-			("Primitive " + javaClass.simpleName
-			 + " has CanFold without CanInline")
-		}
-		assert(!primitiveFlags.contains(Invokes)
-		       || primitiveFlags.contains(CanInline))
-		{
-			("Primitive " + javaClass.simpleName
-			 + " has Invokes without CanInline")
-		}
-		// Register this instance.
-		assert(holder.primitive === null)
-		holder.primitive = this
-		runningNanos = Statistic(
-			(if (hasFlag(CanInline)) "" else "[NOT INLINE]")
-			+ javaClass.simpleName
-			+ " (running)",
-			StatisticReport.PRIMITIVES)
-		if (hasFlag(CanSwitchContinuations))
-		{
-			reificationAbandonmentStat = Statistic(
-				"Abandoned for CONTINUATION_CHANGED from " + name(),
-				StatisticReport.REIFICATIONS)
-		}
-		if (!hasFlag(CanInline))
-		{
-			reificationForNoninlineStat = Statistic(
-				"Reification for non-inline " + name(),
-				StatisticReport.REIFICATIONS)
-		}
-		return this
-	}
+	fun reificationForNoninlineStat(): Statistic =
+		stripNull(reificationForNoninlineStat)
 
 	/**
 	 * Answer whether a raw function using this primitive can/should have
@@ -779,27 +702,26 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 		!hasFlag(CannotFail) || hasFlag(SpecialForm)
 
 	/**
-	 * Generate suitable primitive failure code on the given [ ]. Some primitives may have special requirements, but
+	 * Generate suitable primitive failure code on the given
+	 * [L1InstructionWriter]. Some primitives may have special requirements, but
 	 * most (fallible) primitives follow the same pattern.
 	 *
 	 * @param lineNumber
-	 * The line number at which to consider these
+	 *   The line number at which to consider these
 	 * @param writer
-	 * Where to write the failure code.
+	 *   Where to write the failure code.
 	 * @param numArgs
-	 * The number of arguments that the function will accept.
+	 *   The number of arguments that the function will accept.
 	 */
 	open fun writeDefaultFailureCode(
-		lineNumber: Int,
-		writer: L1InstructionWriter,
-		numArgs: Int)
+		lineNumber: Int, writer: L1InstructionWriter, numArgs: Int)
 	{
 		if (!hasFlag(CannotFail))
 		{
 			// Produce failure code.  First declare the local that holds
 			// primitive failure information.
 			val failureLocal = writer.createLocal(
-				variableTypeFor(failureVariableType()))
+				variableTypeFor(failureVariableType))
 			for (i in 1 .. numArgs)
 			{
 				writer.write(lineNumber, L1Operation.L1_doPushLastLocal, i)
@@ -818,7 +740,7 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 
 	/**
 	 * Answer the name of this primitive, which is just the class's simple name,
-	 * as previously captured by the [.name] field during [.init].
+	 * as previously captured by the [name] field during init.
 	 *
 	 * @return The name of this primitive.
 	 */
@@ -842,12 +764,13 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 	 * Record that some number of nanoseconds were just expended running this
 	 * primitive.
 	 *
-	 * @param deltaNanoseconds The sample to add, in nanoseconds.
-	 * @param interpreterIndex The contention bin in which to add the sample.
+	 * @param deltaNanoseconds
+	 *   The sample to add, in nanoseconds.
+	 * @param interpreterIndex
+	 *   The contention bin in which to add the sample.
 	 */
 	fun addNanosecondsRunning(
-		deltaNanoseconds: Long,
-		interpreterIndex: Int)
+		deltaNanoseconds: Long, interpreterIndex: Int)
 	{
 		stripNull(runningNanos).record(
 			deltaNanoseconds.toDouble(), interpreterIndex)
@@ -858,23 +781,21 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 	 * type of the value returned by this primitive.
 	 *
 	 * @param deltaNanoseconds
-	 * The amount of time just spent checking the result type.
+	 *   The amount of time just spent checking the result type.
 	 * @param interpreterIndex
-	 * The interpreterIndex of the current thread's interpreter.
+	 *   The interpreterIndex of the current thread's interpreter.
 	 */
 	fun addNanosecondsCheckingResultType(
-		deltaNanoseconds: Long,
-		interpreterIndex: Int)
-	{
-		resultTypeCheckingNanos.record(
-			deltaNanoseconds.toDouble(), interpreterIndex)
-	}
+		deltaNanoseconds: Long, interpreterIndex: Int) =
+			resultTypeCheckingNanos.record(
+				deltaNanoseconds.toDouble(), interpreterIndex)
+
 
 	/**
 	 * The primitive couldn't be folded out, so see if alternative instructions
 	 * can be generated for its invocation.  If so, answer `true`, ensure
-	 * control flow will go to the appropriate [CallSiteHelper] exit
-	 * point, and leave the translator NOT at a currentReachable() point.  If
+	 * control flow will go to the appropriate [CallSiteHelper] exit point,
+	 * and leave the translator NOT at a currentReachable() point.  If
 	 * the alternative instructions could not be generated for this primitive,
 	 * answer `false`, and generate nothing.
 	 *
@@ -916,7 +837,8 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 		// primitive as simply as possible, feeding a register with as strong a
 		// type as possible.
 		val generator = translator.generator
-		val guaranteedType = returnTypeGuaranteedByVM(rawFunction, argumentTypes)
+		val guaranteedType =
+			returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 		val restriction = restrictionForType(
 			if (guaranteedType.isBottom) TOP.o() else guaranteedType, BOXED)
 		val semanticValue: L2SemanticValue
@@ -924,8 +846,9 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 		{
 			semanticValue = generator.primitiveInvocation(this, arguments)
 			// See if we already have a value for an equivalent invocation.
-			val equivalent = generator.currentManifest().equivalentSemanticValue(
-				semanticValue)
+			val equivalent =
+				generator.currentManifest()
+					.equivalentSemanticValue(semanticValue)
 			if (equivalent !== null)
 			{
 				// Reuse the previously computed result.
@@ -941,7 +864,8 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 		{
 			semanticValue = generator.topFrame.temp(generator.nextUnique())
 		}
-		val writer = generator.boxedWrite(semanticValue, restriction)
+		val writer =
+			generator.boxedWrite(semanticValue, restriction)
 		translator.addInstruction(
 			L2_RUN_INFALLIBLE_PRIMITIVE.instance,
 			L2ConstantOperand(rawFunction),
@@ -986,9 +910,9 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 		private val holdersByNumber: Array<PrimitiveHolder>
 
 		/**
-		 * The name of a generated file which lists all primitive classes.  The file
-		 * is generated by the build process and is included in build products as
-		 * necessary.
+		 * The name of a generated file which lists all primitive classes.  The
+		 * file is generated by the build process and is included in build
+		 * products as necessary.
 		 */
 		private val allPrimitivesFileName = "All_Primitives.txt"
 
@@ -1006,11 +930,13 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 			val byNumbers = ArrayList<PrimitiveHolder>()
 			byNumbers.add(NullPrimitiveHolder)  // Entry zero is reserved for not-a-primitive.
 			var counter = 1
-			val byNames = mutableMapOf<String, PrimitiveHolder>()
+			val byNames =
+				mutableMapOf<String, PrimitiveHolder>()
 			val byClassNames = HashMap<String, PrimitiveHolder>()
 			try
 			{
-				val resource = Primitive::class.java.getResource(allPrimitivesFileName)
+				val resource =
+					Primitive::class.java.getResource(allPrimitivesFileName)
 				BufferedReader(
 					InputStreamReader(resource.openStream(), UTF_8)).use { input ->
 					while (true)
@@ -1021,7 +947,8 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 								.dropLastWhile { it.isEmpty() }
 								.toTypedArray()
 						val lastPart = parts[parts.size - 1]
-						val matcher = primitiveNamePattern.matcher(lastPart)
+						val matcher =
+							primitiveNamePattern.matcher(lastPart)
 						if (matcher.matches())
 						{
 							val name = matcher.group(1)
@@ -1051,36 +978,33 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 		 *
 		 * @return The largest primitive number.
 		 */
-		fun maxPrimitiveNumber(): Int
-		{
-			return holdersByNumber.size - 1
-		}
+		fun maxPrimitiveNumber(): Int = holdersByNumber.size - 1
 
 		/**
 		 * Given a primitive name, look it up and answer the `Primitive` if
 		 * found, or `null` if not found.
 		 *
-		 * @param name The primitive name to look up.
-		 * @return The primitive, or null if the name is not a valid primitive.
+		 * @param name
+		 *   The primitive name to look up.
+		 * @return The primitive, or `null` if the name is not a valid
+		 *   primitive.
 		 */
-		fun primitiveByName(name: String): Primitive?
-		{
-			val holder = holdersByName[name]
-			return holder?.primitive()
-		}
+		fun primitiveByName(name: String): Primitive? =
+			holdersByName[name]?.primitive
 
 		/**
 		 * Given a primitive number, look it up and answer the `Primitive` if
 		 * found, or `null` if not found.
 		 *
-		 * @param primitiveNumber The primitive number to look up.
+		 * @param primitiveNumber
+		 *   The primitive number to look up.
 		 * @return The primitive, or null if the name is not a valid primitive.
 		 */
 		fun byNumber(primitiveNumber: Int): Primitive?
 		{
 			assert(primitiveNumber >= 0 && primitiveNumber <= maxPrimitiveNumber())
 			val holder = holdersByNumber[primitiveNumber]
-			return if (holder.isNull) { null } else { holder.primitive() }
+			return if (holder.isNull) { null } else { holder.primitive }
 		}
 
 		/**
@@ -1093,34 +1017,34 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 		 * @return The primitive with the specified primitive number.
 		 */
 		@JvmStatic
-		fun byPrimitiveNumberOrNull(
-			primitiveNumber: Int): Primitive?
-		{
-			return if (primitiveNumber == 0)
+		fun byPrimitiveNumberOrNull(primitiveNumber: Int): Primitive? =
+			if (primitiveNumber == 0)
 			{
 				null
 			}
-			else holdersByNumber[primitiveNumber].primitive()
-		}
+			else holdersByNumber[primitiveNumber].primitive
 
 		/**
-		 * Determine whether the specified primitive declaration is acceptable to be
-		 * used with the given list of parameter declarations.  Answer null if they
-		 * are acceptable, otherwise answer a suitable `String` that is
-		 * expected to appear after the prefix "Expecting...".
+		 * Determine whether the specified primitive declaration is acceptable
+		 * to be used with the given list of parameter declarations.  Answer
+		 * null if they are acceptable, otherwise answer a suitable `String`
+		 * that is expected to appear after the prefix "Expecting...".
 		 *
-		 * @param primitiveNumber Which primitive.
-		 * @param arguments The argument declarations that we should check are legal
-		 * for this primitive.
-		 * @return Whether the primitive accepts arguments with types that conform
-		 * to the given argument declarations.
+		 * @param primitiveNumber
+		 *   Which primitive.
+		 * @param arguments
+		 *   The argument declarations that we should check are legal for this
+		 *   primitive.
+		 * @return Whether the primitive accepts arguments with types that
+		 *   conform to the given argument declarations.
 		 */
 		fun validatePrimitiveAcceptsArguments(
 			primitiveNumber: Int,
 			arguments: List<A_Phrase>): String?
 		{
-			val primitive = stripNull(byPrimitiveNumberOrNull(primitiveNumber))
-			val expected = primitive.argCount()
+			val primitive =
+				stripNull(byPrimitiveNumberOrNull(primitiveNumber))
+			val expected = primitive.argCount
 			if (expected == -1)
 			{
 				return null
@@ -1128,11 +1052,13 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 			if (arguments.size != expected)
 			{
 				return format(
-					"number of declared arguments (%d) to agree with primitive's" + " required number of arguments (%d).",
+					"number of declared arguments (%d) to agree with " +
+						"primitive's required number of arguments (%d).",
 					arguments.size,
 					expected)
 			}
-			val expectedTypes = primitive.blockTypeRestriction().argsTupleType()
+			val expectedTypes =
+				primitive.blockTypeRestriction().argsTupleType()
 			assert(expectedTypes.sizeRange().upperBound().extractInt() == expected)
 			val builder = StringBuilder()
 			for (i in 1 .. expected)
@@ -1141,13 +1067,14 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 				val expectedType = expectedTypes.typeAtIndex(i)
 				if (!declaredType.isSubtypeOf(expectedType))
 				{
-					if (builder.length > 0)
+					if (builder.isNotEmpty())
 					{
 						builder.append("\n")
 					}
 					builder.append(
 						format(
-							"argument #%d (%s) of primitive %s to be a subtype" + " of %s, not %s.",
+							"argument #%d (%s) of primitive %s to be a subtype"
+								+ " of %s, not %s.",
 							i,
 							arguments[i - 1].token().string(),
 							primitive.name(),
@@ -1155,11 +1082,14 @@ abstract class Primitive : IntegerEnumSlotDescriptionEnum
 							declaredType))
 				}
 			}
-			return if (builder.length == 0)
+			return if (builder.isEmpty())
 			{
 				null
 			}
-			else builder.toString()
+			else
+			{
+				builder.toString()
+			}
 		}
 	}
 }

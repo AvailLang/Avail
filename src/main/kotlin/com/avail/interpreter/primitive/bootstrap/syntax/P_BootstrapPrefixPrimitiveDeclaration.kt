@@ -147,7 +147,7 @@ object P_BootstrapPrefixPrimitiveDeclaration : Primitive(2, CanInline, Bootstrap
 					STRONG,
 					"primitive failure variable type not to be $failureType")
 			}
-			val requiredFailureType = prim.failureVariableType()
+			val requiredFailureType = prim.failureVariableType
 			if (!requiredFailureType.isSubtypeOf(failureType))
 			{
 				throw AvailRejectedParseException(

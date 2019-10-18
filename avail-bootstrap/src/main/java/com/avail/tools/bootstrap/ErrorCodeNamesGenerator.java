@@ -70,7 +70,7 @@ extends PropertiesFileGenerator
 	/**
 	 * Check if all {@linkplain AvailErrorCode error codes} are reachable from
 	 * {@linkplain Primitive primitive} {@linkplain
-	 * Primitive#failureVariableType() failure variable types}.
+	 * Primitive#getFailureVariableType() failure variable types}.
 	 *
 	 * @return {@code true} if all error codes are reachable, {@code false}
 	 *         otherwise.
@@ -100,7 +100,7 @@ extends PropertiesFileGenerator
 				Primitive.Companion.byPrimitiveNumberOrNull(primitiveNumber);
 			if (primitive != null && !primitive.hasFlag(Flag.CannotFail))
 			{
-				final A_Type failureType = primitive.failureVariableType();
+				final A_Type failureType = primitive.getFailureVariableType();
 				if (failureType.isEnumeration())
 				{
 					reachableErrorCodes =

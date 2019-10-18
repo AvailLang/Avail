@@ -684,7 +684,7 @@ public final class BootstrapGenerator
 			builder.append(
 				preamble.getString(primitiveFailureVariableName.name()));
 			builder.append(" : ");
-			final A_Type varType = primitive.failureVariableType();
+			final A_Type varType = primitive.getFailureVariableType();
 			if (varType.isEnumeration())
 			{
 				if (varType.isSubtypeOf(naturalNumbers()))
@@ -815,12 +815,12 @@ public final class BootstrapGenerator
 		if (primitiveBundle.containsKey(commentKey))
 		{
 			// Compute the number of template arguments.
-			final int primitiveArgCount = primitive.argCount();
+			final int primitiveArgCount = primitive.getArgCount();
 			final int templateArgCount = 2 + (primitiveArgCount << 1) +
 				(primitive.hasFlag(Flag.CannotFail)
 				? 0
-				: (primitive.failureVariableType().isEnumeration()
-					? primitive.failureVariableType()
+				: (primitive.getFailureVariableType().isEnumeration()
+					? primitive.getFailureVariableType()
 						.instanceCount().extractInt()
 					: 1));
 			final Object[] formatArgs = new Object[templateArgCount];
@@ -858,7 +858,7 @@ public final class BootstrapGenerator
 			if (!primitive.hasFlag(Flag.CannotFail))
 			{
 				int raiseIndex = (primitiveArgCount << 1) + 2;
-				final A_Type varType = primitive.failureVariableType();
+				final A_Type varType = primitive.getFailureVariableType();
 				if (varType.isEnumeration())
 				{
 					if (varType.isSubtypeOf(naturalNumbers()))
@@ -1151,7 +1151,7 @@ public final class BootstrapGenerator
 		statements.append(
 			preamble.getString(primitiveFailureVariableName.name()));
 		statements.append(" : ");
-		statements.append(specialObjectName(primitive.failureVariableType()));
+		statements.append(specialObjectName(primitive.getFailureVariableType()));
 		statements.append(')');
 		statements.append(";\n");
 		statements.append('\t');
