@@ -52,25 +52,25 @@ import com.avail.interpreter.Primitive.Flag.Bootstrap
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * The `P_BootstrapPrefixPostStatement` primitive is used for
- * ensuring that statements are top-valued before over-parsing.
+ * The `P_BootstrapPrefixPostStatement` primitive is used for ensuring that
+ * statements are top-valued before over-parsing.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@Suppress("unused")
 object P_BootstrapPrefixPostStatement : Primitive(4, CanInline, Bootstrap)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(4)
-		//		final A_Phrase blockArgumentsPhrase = interpreter.argument(0);
-		//		final A_Phrase optionalPrimFailurePhrase = interpreter.argument(1);
-		//		final A_Phrase optionalLabelPhrase = interpreter.argument(2);
+		// val blockArgumentsPhrase : A_Phrase = interpreter.argument(0)
+		// val optionalPrimFailurePhrase : A_Phrase = interpreter.argument(1)
+		// val optionalLabelPhrase : A_Phrase = interpreter.argument(2)
 		val statementsPhrase = interpreter.argument(3)
 
-		val loader = interpreter.availLoaderOrNull()
-		             ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+		val loader =
+			interpreter.availLoaderOrNull()
+	             ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 
 		// Here the statements so far are a list phrase, not a sequence.
 		// The section marker is inside the repetition, so this primitive could
@@ -79,15 +79,13 @@ object P_BootstrapPrefixPostStatement : Primitive(4, CanInline, Bootstrap)
 		val latestStatement = latestStatementLiteral.token().literal()
 		if (!latestStatement.expressionType().equals(TOP.o()))
 		{
-			throw AvailRejectedParseException(
-				WEAK, "statement to have type ⊤")
+			throw AvailRejectedParseException(WEAK, "statement to have type ⊤")
 		}
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				// Macro argument is a phrase.
 				LIST_PHRASE.create(
@@ -138,6 +136,4 @@ object P_BootstrapPrefixPostStatement : Primitive(4, CanInline, Bootstrap)
 						// phrase here instead of TOP.o().
 						STATEMENT_PHRASE.mostGeneralType()))),
 			TOP.o())
-	}
-
 }

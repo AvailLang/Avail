@@ -52,37 +52,35 @@ import com.avail.interpreter.Primitive.Flag.Bootstrap
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * The `P_BootstrapPrefixEndOfBlockBody` primitive is used for
- * bootstrapping the [block][BlockPhraseDescriptor] syntax for defining
+ * The `P_BootstrapPrefixEndOfBlockBody` primitive is used for bootstrapping the
+ * [block][BlockPhraseDescriptor] syntax for defining
  * [functions][FunctionDescriptor].
  *
- *
- * It ensures that declarations introduced within the block body end scope
- * when the close bracket ("]") is encountered.
+ * It ensures that declarations introduced within the block body end scope when
+ * the close bracket ("]") is encountered.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@Suppress("unused")
 object P_BootstrapPrefixEndOfBlockBody : Primitive(5, CanInline, Bootstrap)
 {
-
 	/** The key to the client parsing data in the fiber's environment.  */
-	internal val clientDataKey = CLIENT_DATA_GLOBAL_KEY.atom
+	private val clientDataKey = CLIENT_DATA_GLOBAL_KEY.atom
 
 	/** The key to the variable scope map in the client parsing data.  */
-	internal val scopeMapKey = COMPILER_SCOPE_MAP_KEY.atom
+	private val scopeMapKey = COMPILER_SCOPE_MAP_KEY.atom
 
 	/** The key to the tuple of scopes to pop as blocks complete parsing.  */
-	internal val scopeStackKey = COMPILER_SCOPE_STACK_KEY.atom
+	private val scopeStackKey = COMPILER_SCOPE_STACK_KEY.atom
 
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(5)
-		//		final A_Phrase optionalArgumentDeclarations = interpreter.argument(0);
-		//		final A_Phrase optionalPrimitive = interpreter.argument(1);
-		//		final A_Phrase optionalLabel = interpreter.argument(2);
-		//		final A_Phrase statements = interpreter.argument(3);
-		//		final A_Phrase optionalReturnExpression = interpreter.argument(4);
+		//	val optionalArgumentDeclarations : A_Phrase = interpreter.argument(0);
+		//	val optionalPrimitive : A_Phrase = interpreter.argument(1);
+		//	val A_Phrase optionalLabel : A_Phrase = interpreter.argument(2);
+		//	val statements : A_Phrase= interpreter.argument(3);
+		//	val optionalReturnExpression : A_Phrase = interpreter.argument(4);
 
 		val fiber = interpreter.fiber()
 		var fiberGlobals = fiber.fiberGlobals()
@@ -105,21 +103,24 @@ object P_BootstrapPrefixEndOfBlockBody : Primitive(5, CanInline, Bootstrap)
 		val currentScopeMap = clientData.mapAt(scopeMapKey)
 		var stack: A_Tuple = clientData.mapAt(scopeStackKey)
 		val poppedScopeMap = stack.tupleAt(stack.tupleSize())
-		stack = stack.tupleAtPuttingCanDestroy(
-			stack.tupleSize(), currentScopeMap, true)
-		clientData = clientData.mapAtPuttingCanDestroy(
-			scopeMapKey, poppedScopeMap, true)
-		clientData = clientData.mapAtPuttingCanDestroy(
-			scopeStackKey, stack, true)
-		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
-			clientDataKey, clientData, true)
+		stack =
+			stack.tupleAtPuttingCanDestroy(
+				stack.tupleSize(), currentScopeMap, true)
+		clientData =
+			clientData.mapAtPuttingCanDestroy(
+				scopeMapKey, poppedScopeMap, true)
+		clientData =
+			clientData.mapAtPuttingCanDestroy(
+				scopeStackKey, stack, true)
+		fiberGlobals =
+			fiberGlobals.mapAtPuttingCanDestroy(
+				clientDataKey, clientData, true)
 		fiber.fiberGlobals(fiberGlobals.makeShared())
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				/* Macro argument is a phrase. */
 				LIST_PHRASE.create(
@@ -175,14 +176,7 @@ object P_BootstrapPrefixEndOfBlockBody : Primitive(5, CanInline, Bootstrap)
 					zeroOrOneOf(
 						PARSE_PHRASE.create(ANY.o())))),
 			TOP.o())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
-			set(
-				E_LOADING_IS_OVER,
-				E_INCONSISTENT_PREFIX_FUNCTION))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_LOADING_IS_OVER, E_INCONSISTENT_PREFIX_FUNCTION))
 }

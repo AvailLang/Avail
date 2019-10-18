@@ -57,16 +57,16 @@ import com.avail.interpreter.Primitive.Flag.Bootstrap
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * The `P_BootstrapPrefixBlockArgument` primitive is used as a prefix
- * function for bootstrapping argument declarations within a [ ].
+ * The `P_BootstrapPrefixBlockArgument` primitive is used as a prefix function
+ * for bootstrapping argument declarations within a
+ * [block][P_BootstrapBlockMacro].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@Suppress("unused")
 object P_BootstrapPrefixBlockArgument : Primitive(1, CanInline, Bootstrap)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val optionalBlockArgumentsList = interpreter.argument(0)
@@ -75,7 +75,8 @@ object P_BootstrapPrefixBlockArgument : Primitive(1, CanInline, Bootstrap)
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 
 		assert(optionalBlockArgumentsList.expressionsSize() == 1)
-		val blockArgumentsList = optionalBlockArgumentsList.lastExpression()
+		val blockArgumentsList =
+			optionalBlockArgumentsList.lastExpression()
 		assert(blockArgumentsList.expressionsSize() >= 1)
 		val lastPair = blockArgumentsList.lastExpression()
 		assert(lastPair.expressionsSize() == 2)
@@ -92,8 +93,7 @@ object P_BootstrapPrefixBlockArgument : Primitive(1, CanInline, Bootstrap)
 		{
 			throw AvailRejectedParseException(
 				STRONG,
-				"argument name to be alphanumeric, not %s",
-				argName)
+				"argument name to be alphanumeric, not $argName")
 		}
 		val argType = typePhrase.token().literal()
 		assert(argType.isType)
@@ -107,22 +107,22 @@ object P_BootstrapPrefixBlockArgument : Primitive(1, CanInline, Bootstrap)
 
 		val argDeclaration = newArgument(argToken, argType, typePhrase)
 		// Add the binding and we're done.
-		val conflictingDeclaration = FiberDescriptor.addDeclaration(argDeclaration)
+		val conflictingDeclaration =
+			FiberDescriptor.addDeclaration(argDeclaration)
 		if (conflictingDeclaration !== null)
 		{
 			throw AvailRejectedParseException(
 				STRONG,
-				"block argument declaration %s to have a name that doesn't " + "shadow an existing %s (from line %d)",
-				argName,
-				conflictingDeclaration.declarationKind().nativeKindName(),
-				conflictingDeclaration.token().lineNumber())
+				"block argument declaration $argName to have a name that doesn't "
+					+ "shadow an existing "
+					+ conflictingDeclaration.declarationKind().nativeKindName()
+					+ "(from line ${conflictingDeclaration.token().lineNumber()}")
 		}
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				/* Macro argument is a phrase. */
 				LIST_PHRASE.create(
@@ -137,11 +137,7 @@ object P_BootstrapPrefixBlockArgument : Primitive(1, CanInline, Bootstrap)
 								/* Argument type. */
 								anyMeta()))))),
 			TOP.o())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_LOADING_IS_OVER))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_LOADING_IS_OVER))
 }

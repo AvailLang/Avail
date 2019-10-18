@@ -42,7 +42,6 @@ import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceMetaDescriptor.anyMeta
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*
-import com.avail.descriptor.StringDescriptor.formatString
 import com.avail.descriptor.TokenDescriptor.TokenType.KEYWORD
 import com.avail.descriptor.TypeDescriptor.Types.ANY
 import com.avail.descriptor.TypeDescriptor.Types.TOKEN
@@ -51,17 +50,17 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * The `P_BootstrapInitializingVariableDeclarationMacro` primitive is
- * used for bootstrapping declaration of a [ ][DeclarationKind.LOCAL_VARIABLE]
- * with an initializing expression.
+ * The `P_BootstrapInitializingVariableDeclarationMacro` primitive is used for
+ * bootstrapping declaration of a [local
+ * variable][DeclarationKind.LOCAL_VARIABLE] with an initializing expression.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object P_BootstrapInitializingVariableDeclarationMacro : Primitive(3, CanInline, CannotFail, Bootstrap)
+@Suppress("unused")
+object P_BootstrapInitializingVariableDeclarationMacro
+	: Primitive(3, CanInline, CannotFail, Bootstrap)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
 		val variableNameLiteral = interpreter.argument(0)
@@ -74,18 +73,17 @@ object P_BootstrapInitializingVariableDeclarationMacro : Primitive(3, CanInline,
 		{
 			throw AvailRejectedParseException(
 				STRONG,
-				"new variable name to be alphanumeric, not %s",
-				nameString)
+				"new variable name to be alphanumeric, not $nameString")
 		}
 		val type = typeLiteral.token().literal()
 		if (type.isTop || type.isBottom)
 		{
 			throw AvailRejectedParseException(
 				STRONG,
-				"variable's declared type to be something other than %s",
-				type)
+				"variable's declared type to be something other than $type")
 		}
-		val initializationType = initializationExpression.expressionType()
+		val initializationType =
+			initializationExpression.expressionType()
 		if (initializationType.isTop || initializationType.isBottom)
 		{
 			throw AvailRejectedParseException(
@@ -97,27 +95,27 @@ object P_BootstrapInitializingVariableDeclarationMacro : Primitive(3, CanInline,
 		{
 			throw AvailRejectedParseException(
 				STRONG,
-				formatString("initialization expression's type (%s) " + "to match variable type (%s)", initializationType,
-				             type))
+				"initialization expression's type ($initializationType) to "
+					+ "match variable type ($type)")
 		}
 		val variableDeclaration = newVariable(
 			nameToken, type, typeLiteral, initializationExpression)
-		val conflictingDeclaration = FiberDescriptor.addDeclaration(variableDeclaration)
+		val conflictingDeclaration =
+			FiberDescriptor.addDeclaration(variableDeclaration)
 		if (conflictingDeclaration !== null)
 		{
 			throw AvailRejectedParseException(
 				STRONG,
-				"local variable %s to have a name that doesn't shadow an " + "existing %s (from line %d)",
-				nameString,
-				conflictingDeclaration.declarationKind().nativeKindName(),
-				conflictingDeclaration.token().lineNumber())
+				"local variable $nameString to have a name that doesn't shadow "
+				    + "an existing "
+					+ conflictingDeclaration.declarationKind().nativeKindName()
+					+ "(from line ${conflictingDeclaration.token().lineNumber()})")
 		}
 		return interpreter.primitiveSuccess(variableDeclaration)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				/* Variable name token */
 				LITERAL_PHRASE.create(TOKEN.o()),
@@ -126,6 +124,4 @@ object P_BootstrapInitializingVariableDeclarationMacro : Primitive(3, CanInline,
 				/* Initialization expression */
 				EXPRESSION_PHRASE.create(ANY.o())),
 			LOCAL_VARIABLE_PHRASE.mostGeneralType())
-	}
-
 }

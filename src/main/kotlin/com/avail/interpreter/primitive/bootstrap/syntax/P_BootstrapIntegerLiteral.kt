@@ -43,16 +43,17 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Create a non-negative integer literal phrase from
- * a non-negative integer literal constant token (already wrapped as a literal
+ * **Primitive:** Create a non-negative integer literal phrase from a
+ * non-negative integer literal constant token (already wrapped as a literal
  * phrase).  This is a bootstrapped macro because not all subsets of the core
  * Avail syntax should allow non-negative integer literal phrases.
  */
-object P_BootstrapIntegerLiteral : Primitive(1, CanInline, CannotFail, Bootstrap)
+@Suppress("unused")
+object P_BootstrapIntegerLiteral :
+	Primitive(1, CanInline, CannotFail, Bootstrap)
 {
 
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val integerTokenLiteral = interpreter.argument(0)
@@ -64,12 +65,9 @@ object P_BootstrapIntegerLiteral : Primitive(1, CanInline, CannotFail, Bootstrap
 		return interpreter.primitiveSuccess(integerLiteral)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				LITERAL_PHRASE.create(literalTokenType(wholeNumbers()))),
 			LITERAL_PHRASE.create(wholeNumbers()))
-	}
-
 }

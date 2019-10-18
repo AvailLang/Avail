@@ -64,11 +64,11 @@ import java.util.*
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object P_BootstrapPrefixPrimitiveDeclaration : Primitive(2, CanInline, Bootstrap)
+@Suppress("unused")
+object P_BootstrapPrefixPrimitiveDeclaration
+	: Primitive(2, CanInline, Bootstrap)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val optionalBlockArgumentsList = interpreter.argument(0)
@@ -83,21 +83,21 @@ object P_BootstrapPrefixPrimitiveDeclaration : Primitive(2, CanInline, Bootstrap
 		if (!primNamePhrase.phraseKindIsUnder(LITERAL_PHRASE))
 		{
 			throw AvailRejectedParseException(
-				STRONG,
-				"primitive specification to be a literal keyword token")
+				STRONG, "primitive specification to be a literal keyword token")
 		}
 		val primName = primNamePhrase.token().string()
-		val prim = Primitive.primitiveByName(primName.asNativeString())
-		           ?: throw AvailRejectedParseException(
-			           STRONG,
-			           "a supported primitive name, not %s",
-			           primName)
+		val prim =
+			primitiveByName(primName.asNativeString())
+	           ?: throw AvailRejectedParseException(
+		           STRONG,
+		           "a supported primitive name, not $primName")
 
 		// Check that the primitive signature agrees with the arguments.
 		val blockArgumentPhrases = ArrayList<A_Phrase>()
 		if (optionalBlockArgumentsList.expressionsSize() == 1)
 		{
-			val blockArgumentsList = optionalBlockArgumentsList.lastExpression()
+			val blockArgumentsList =
+				optionalBlockArgumentsList.lastExpression()
 			assert(blockArgumentsList.expressionsSize() >= 1)
 			for (pair in blockArgumentsList.expressionsTuple())
 			{
@@ -105,16 +105,14 @@ object P_BootstrapPrefixPrimitiveDeclaration : Primitive(2, CanInline, Bootstrap
 				val namePhrase = pair.expressionAt(1)
 				val name = namePhrase.token().literal().string()
 				assert(name.isString)
-				val declaration = stripNull(FiberDescriptor.lookupBindingOrNull(name))
+				val declaration =
+					stripNull(FiberDescriptor.lookupBindingOrNull(name))
 				blockArgumentPhrases.add(declaration)
 			}
 		}
-		val problem = Primitive.validatePrimitiveAcceptsArguments(
-			prim.primitiveNumber, blockArgumentPhrases)
-		if (problem !== null)
-		{
-			throw AvailRejectedParseException(STRONG, problem)
-		}
+		validatePrimitiveAcceptsArguments(
+				prim.primitiveNumber, blockArgumentPhrases)
+			?.let { p -> throw AvailRejectedParseException(STRONG, p) }
 
 		// The section marker occurs inside the optionality of the primitive
 		// clause, but outside the primitive failure variable declaration.
@@ -127,7 +125,8 @@ object P_BootstrapPrefixPrimitiveDeclaration : Primitive(2, CanInline, Bootstrap
 			{
 				throw AvailRejectedParseException(
 					STRONG,
-					"no primitive failure variable declaration for this " + "infallible primitive")
+					"no primitive failure variable declaration for this "
+						+ "infallible primitive")
 			}
 			val failurePair = optionalFailure.expressionAt(1)
 			assert(failurePair.expressionsSize() == 2)
@@ -153,21 +152,21 @@ object P_BootstrapPrefixPrimitiveDeclaration : Primitive(2, CanInline, Bootstrap
 				throw AvailRejectedParseException(
 					STRONG,
 					"primitive failure variable to be a supertype of: "
-					+ requiredFailureType
-					+ ", not "
-					+ failureType)
+					+ "$requiredFailureType, not $failureType")
 			}
-			val failureDeclaration = newPrimitiveFailureVariable(
-				failureName, failureTypePhrase, failureType)
-			val conflictingDeclaration = FiberDescriptor.addDeclaration(failureDeclaration)
-			if (conflictingDeclaration !== null)
-			{
-				throw AvailRejectedParseException(
-					STRONG,
-					"primitive failure variable %s to have a name that doesn't " + "shadow an existing %s (from line %d)",
-					failureName.string(),
-					conflictingDeclaration.declarationKind().nativeKindName(),
-					conflictingDeclaration.token().lineNumber())
+			val failureDeclaration =
+				newPrimitiveFailureVariable(
+					failureName, failureTypePhrase, failureType)
+			FiberDescriptor.addDeclaration(failureDeclaration)
+				?.let{ conflictingDeclaration ->
+					throw AvailRejectedParseException(
+						STRONG,
+						"primitive failure variable ${failureName.string()} to "
+							+ "have a name that doesn't shadow an existing "
+							+ conflictingDeclaration.declarationKind()
+								.nativeKindName()
+							+  "(from line "
+							+ "${conflictingDeclaration.token().lineNumber()})")
 			}
 			return interpreter.primitiveSuccess(nil)
 		}
@@ -175,14 +174,14 @@ object P_BootstrapPrefixPrimitiveDeclaration : Primitive(2, CanInline, Bootstrap
 		{
 			throw AvailRejectedParseException(
 				STRONG,
-				"a primitive failure variable declaration for this " + "fallible primitive")
+				"a primitive failure variable declaration for this "
+					+ "fallible primitive")
 		}
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				/* Macro argument is a phrase. */
 				LIST_PHRASE.create(
@@ -213,6 +212,4 @@ object P_BootstrapPrefixPrimitiveDeclaration : Primitive(2, CanInline, Bootstrap
 									/* Primitive failure variable type */
 									anyMeta())))))),
 			TOP.o())
-	}
-
 }

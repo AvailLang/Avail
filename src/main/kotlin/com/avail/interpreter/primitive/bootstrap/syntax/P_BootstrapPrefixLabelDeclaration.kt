@@ -61,19 +61,17 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import java.util.*
 
 /**
- * The `P_BootstrapPrefixLabelDeclaration` primitive is used
- * for bootstrapping declaration of a [label][DeclarationKind.LABEL].
- * The label indicates a way to restart or exit a block, so it's probably best
- * if Avail's block syntax continues to constrain this to occur at the start of
- * a block.
+ * The `P_BootstrapPrefixLabelDeclaration` primitive is used for bootstrapping
+ * declaration of a [label][DeclarationKind.LABEL]. The label indicates a way to
+ * restart or exit a block, so it's probably best if Avail's block syntax
+ * continues to constrain this to occur at the start of a block.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@Suppress("unused")
 object P_BootstrapPrefixLabelDeclaration : Primitive(3, CanInline, Bootstrap)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
 		val optionalBlockArgumentsList = interpreter.argument(0)
@@ -96,23 +94,25 @@ object P_BootstrapPrefixLabelDeclaration : Primitive(3, CanInline, Bootstrap)
 			throw AvailRejectedParseException(
 				STRONG, "label name to be alphanumeric")
 		}
-		val optionalLabelReturnTypePhrase = labelPairPhrase.expressionAt(2)
+		val optionalLabelReturnTypePhrase =
+			labelPairPhrase.expressionAt(2)
 		val labelReturnTypePhrase: A_Phrase
-		val labelReturnType: A_Type
-		if (optionalLabelReturnTypePhrase.expressionsSize() == 1)
-		{
-			labelReturnTypePhrase = optionalLabelReturnTypePhrase.expressionAt(1)
-			assert(labelReturnTypePhrase.phraseKindIsUnder(LITERAL_PHRASE))
-			labelReturnType = labelReturnTypePhrase.token().literal()
-		}
-		else
-		{
-			// If the label doesn't specify a return type, use bottom.  Because
-			// of continuation return type contravariance, this is the most
-			// general answer.
-			labelReturnTypePhrase = nil
-			labelReturnType = bottom()
-		}
+		val labelReturnType: A_Type =
+			if (optionalLabelReturnTypePhrase.expressionsSize() == 1)
+			{
+				labelReturnTypePhrase =
+					optionalLabelReturnTypePhrase.expressionAt(1)
+				assert(labelReturnTypePhrase.phraseKindIsUnder(LITERAL_PHRASE))
+				labelReturnTypePhrase.token().literal()
+			}
+			else
+			{
+				// If the label doesn't specify a return type, use bottom.
+				// Because of continuation return type contravariance, this is
+				// the most general answer.
+				labelReturnTypePhrase = nil
+				bottom()
+			}
 
 		// Re-extract all the argument types so we can specify the exact type of
 		// the continuation.
@@ -120,7 +120,8 @@ object P_BootstrapPrefixLabelDeclaration : Primitive(3, CanInline, Bootstrap)
 		if (optionalBlockArgumentsList.expressionsSize() > 0)
 		{
 			assert(optionalBlockArgumentsList.expressionsSize() == 1)
-			val blockArgumentsList = optionalBlockArgumentsList.lastExpression()
+			val blockArgumentsList =
+				optionalBlockArgumentsList.lastExpression()
 			assert(blockArgumentsList.expressionsSize() >= 1)
 			for (argumentPair in blockArgumentsList.expressionsTuple())
 			{
@@ -133,25 +134,28 @@ object P_BootstrapPrefixLabelDeclaration : Primitive(3, CanInline, Bootstrap)
 				blockArgumentTypes.add(argType)
 			}
 		}
-		val functionType = functionType(tupleFromList(blockArgumentTypes), labelReturnType)
-		val continuationType = continuationTypeForFunctionType(functionType)
-		val labelDeclaration = newLabel(labelName, labelReturnTypePhrase, continuationType)
-		val conflictingDeclaration = FiberDescriptor.addDeclaration(labelDeclaration)
+		val functionType =
+			functionType(tupleFromList(blockArgumentTypes), labelReturnType)
+		val continuationType =
+			continuationTypeForFunctionType(functionType)
+		val labelDeclaration =
+			newLabel(labelName, labelReturnTypePhrase, continuationType)
+		val conflictingDeclaration =
+			FiberDescriptor.addDeclaration(labelDeclaration)
 		if (conflictingDeclaration !== null)
 		{
 			throw AvailRejectedParseException(
 				STRONG,
-				"label declaration %s to have a name that doesn't " + "shadow an existing %s (from line %d)",
-				labelName.string(),
-				conflictingDeclaration.declarationKind().nativeKindName(),
-				conflictingDeclaration.token().lineNumber())
+				"label declaration ${labelName.string()} to have a name that "
+					+ "doesn't shadow an existing "
+					+ conflictingDeclaration.declarationKind().nativeKindName()
+					+ "(from line ${conflictingDeclaration.token().lineNumber()})")
 		}
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				/* Macro argument is a phrase. */
 				LIST_PHRASE.create(
@@ -194,6 +198,4 @@ object P_BootstrapPrefixLabelDeclaration : Primitive(3, CanInline, Bootstrap)
 								/* Label return type. */
 								topMeta()))))),
 			TOP.o())
-	}
-
 }
