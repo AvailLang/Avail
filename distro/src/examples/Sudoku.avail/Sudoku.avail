@@ -68,7 +68,8 @@ Entries
 	"_timed solution",
 	"“_”(JSON board)",
 	"“_”(board)",
-	"Print board:_"
+	"Print board:_",
+	"Print_timed solution"
 Body
 
 /**
@@ -815,4 +816,22 @@ Private method "Print board:_" is
 	b : board
 |
 	Print: “b” (board);
+];
+
+/**
+ * Solve the supplied {@type "board"} and print prettily to standard output.
+ *
+ * @method "Print_timed solution"
+ * @param "b" "board"
+ * @returns "⊤"
+ * @raises "no-solution exception"
+ *         If {@param "b"} has no solution.
+ */
+Private method "Print_timed solution" is
+[
+	b : board
+|
+	solution ::= b timed solution;
+	Print: format "Time: “①”\n" with solution[1];
+	Print board: solution[2];
 ];
