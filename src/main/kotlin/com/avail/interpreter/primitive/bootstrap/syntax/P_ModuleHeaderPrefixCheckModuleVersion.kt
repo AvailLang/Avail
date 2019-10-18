@@ -49,18 +49,17 @@ import com.avail.interpreter.Primitive.Flag.Bootstrap
 import com.avail.interpreter.Primitive.Flag.Private
 
 /**
- * This is the prefix function for [P_ModuleHeaderPseudoMacro] associated
- * with having just read one more module version string.  Check it against the
+ * This is the prefix function for [P_ModuleHeaderPseudoMacro] associated with
+ * having just read one more module version string.  Check it against the
  * already parsed version strings to ensure it's not a duplicate.  Doing this in
  * a macro prefix function allows early checking (for duplicate versions).
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@Suppress("unused")
 object P_ModuleHeaderPrefixCheckModuleVersion : Primitive(2, Private, Bootstrap)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		val versionsOptionalList = interpreter.argument(1)
 		assert(versionsOptionalList.expressionsSize() == 1)
@@ -79,24 +78,20 @@ object P_ModuleHeaderPrefixCheckModuleVersion : Primitive(2, Private, Bootstrap)
 			{
 				throw AvailRejectedParseException(
 					STRONG,
-					"module version %s to be unique, not a duplicate of #%d in " + "the list (on line %d)",
-					latestVersionString,
-					i,
-					oldVersionPhrase.token().lineNumber())
+					"module version $latestVersionString to be unique, not a "
+						+  "duplicate of #$i in " + "the list (on line "
+						+ "${oldVersionPhrase.token().lineNumber()})")
 			}
 		}
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tupleFromArray(
 				/* Module name */
 				stringLiteralType,
 				/* Optional versions */
 				zeroOrOneList(zeroOrMoreList(stringLiteralType))),
 			TOP.o())
-	}
-
 }

@@ -50,19 +50,19 @@ import com.avail.interpreter.Primitive.Flag.Bootstrap
 import com.avail.interpreter.Primitive.Flag.Private
 
 /**
- * This is the prefix function for [P_ModuleHeaderPseudoMacro] associated
- * with having just read one more version string in an import clause.  Check it
+ * This is the prefix function for [P_ModuleHeaderPseudoMacro] associated with
+ * having just read one more version string in an import clause.  Check it
  * against the already parsed version strings for that import to ensure it's not
  * a duplicate. Doing this in a macro prefix function allows early checking (for
  * duplicate import versions), as well as detecting the leftmost error.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object P_ModuleHeaderPrefixCheckImportVersion : Primitive(3, Private, Bootstrap)
+@Suppress("unused")
+object P_ModuleHeaderPrefixCheckImportVersion
+	: Primitive(3, Private, Bootstrap)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		val allImportsList = interpreter.argument(2)
 		val lastImport = allImportsList.lastExpression()
@@ -76,64 +76,52 @@ object P_ModuleHeaderPrefixCheckImportVersion : Primitive(3, Private, Bootstrap)
 		val importVersionsSize = importVersions.expressionsSize()
 		val lastImportVersion = importVersions.lastExpression()
 		assert(lastImportVersion.phraseKindIsUnder(LITERAL_PHRASE))
-		val lastImportVersionString = lastImportVersion.token().literal().literal()
+		val lastImportVersionString =
+			lastImportVersion.token().literal().literal()
 		for (i in 1 until importVersionsSize)
 		{
 			val oldVersionPhrase = importVersions.expressionAt(i)
-			val oldVersion = oldVersionPhrase.token().literal().literal()
+			val oldVersion =
+				oldVersionPhrase.token().literal().literal()
 			if (lastImportVersionString.equals(oldVersion))
 			{
-				val importModuleName = lastImportNameEntry.expressionAt(1)
+				val importModuleName =
+					lastImportNameEntry.expressionAt(1)
 				throw AvailRejectedParseException(
 					STRONG,
-					"imported module (%s) version specification %s to be " + "unique, not a duplicate (of line %d)",
-					importModuleName,
-					lastImportVersionString,
-					oldVersionPhrase.token().lineNumber())
+					"imported module ($importModuleName) version specification "
+						+ "$lastImportVersionString to be unique, not a "
+						+ "duplicate (of line ${oldVersionPhrase.token().lineNumber()})")
 			}
 		}
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
-				/* Module name */
-				stringLiteralType,
-				/* Optional versions */
-				zeroOrOneList(zeroOrMoreList(stringLiteralType)),
+				stringLiteralType, // Module name
+				zeroOrOneList(zeroOrMoreList(stringLiteralType)), // Optional versions
 				/* All imports */
 				zeroOrMoreList(
 					list(
-						LITERAL_PHRASE.create(
-							inclusive(1, 2)),
+						LITERAL_PHRASE.create(inclusive(1, 2)),
 						zeroOrMoreList(
 							listPrefix(
-								// Last one won't have imported names yet.
-								2,
-								// Imported module name
-								stringLiteralType,
+								2, // Last one won't have imported names yet.
+								stringLiteralType, // Imported module name
 								// Imported module versions
-								zeroOrOneList(
-									zeroOrMoreList(stringLiteralType)),
+								zeroOrOneList(zeroOrMoreList(stringLiteralType)),
 								// Imported names
-								zeroOrOneList(
-									list(
-										zeroOrMoreList(
-											list(
-												// Negated import
-												LITERAL_PHRASE.create(
-													booleanType()),
-												// Name
-												stringLiteralType,
-												// Replacement name
-												zeroOrOneList(
-													stringLiteralType))),
+								zeroOrOneList(list(
+									zeroOrMoreList(list(
+											// Negated import
+											LITERAL_PHRASE.create(booleanType()),
+											stringLiteralType, // Name
+											// Replacement name
+											zeroOrOneList(stringLiteralType))),
 										// Final ellipsis (import all the rest)
 										LITERAL_PHRASE.create(
 											booleanType())))))))),
 			TOP.o())
-	}
-
 }

@@ -54,20 +54,22 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * The `P_ModuleHeaderPseudoMacro` primitive is used to parse module
- * headers.  When this primitive is invoked, it should yield a [ ][PhraseKind.STATEMENT_PHRASE].  The method is private, and used to parse the
+ * The `P_ModuleHeaderPseudoMacro` primitive is used to parse module headers.
+ * When this primitive is invoked, it should yield a
+ * [PhraseKind.STATEMENT_PHRASE].  The method is private, and used to parse the
  * headers of modules with the same machinery used for the bodies.
  *
  *
- * The name of the module header method is given in [ ][SpecialMethodAtom.MODULE_HEADER].
+ * The name of the module header method is given in
+ * [SpecialMethodAtom.MODULE_HEADER].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object P_ModuleHeaderPseudoMacro : Primitive(6, Private, Bootstrap, CannotFail, CanInline)
+@Suppress("unused")
+object P_ModuleHeaderPseudoMacro
+	: Primitive(6, Private, Bootstrap, CannotFail, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(6)
 		val moduleNameLiteral = interpreter.argument(0)
@@ -94,9 +96,8 @@ object P_ModuleHeaderPseudoMacro : Primitive(6, Private, Bootstrap, CannotFail, 
 					TOP.o())))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tupleFromArray(
 				/* Module name */
 				stringLiteralType,
@@ -115,21 +116,17 @@ object P_ModuleHeaderPseudoMacro : Primitive(6, Private, Bootstrap, CannotFail, 
 								zeroOrOneList(
 									zeroOrMoreList(stringLiteralType)),
 								// Imported names
-								zeroOrOneList(
-									list(
-										zeroOrMoreList(
-											list(
-												// Negated import
-												LITERAL_PHRASE.create(
-													booleanType()),
-												// Name
-												stringLiteralType,
-												// Replacement name
-												zeroOrOneList(
-													stringLiteralType))),
-										// Final ellipsis (import all the rest)
-										LITERAL_PHRASE.create(
-											booleanType()))))))),
+								zeroOrOneList(list(
+									zeroOrMoreList(list(
+										// Negated import
+										LITERAL_PHRASE.create(booleanType()),
+										// Name
+										stringLiteralType,
+										// Replacement name
+										zeroOrOneList(stringLiteralType))),
+									// Final ellipsis (import all the rest)
+									LITERAL_PHRASE.create(
+										booleanType()))))))),
 				/* Optional names */
 				zeroOrOneList(zeroOrMoreList(stringLiteralType)),
 				/* Optional entries */
@@ -138,6 +135,4 @@ object P_ModuleHeaderPseudoMacro : Primitive(6, Private, Bootstrap, CannotFail, 
 				zeroOrOneList(zeroOrMoreList(stringLiteralType))),
 			/* Shouldn't be invoked, so always fail. */
 			STATEMENT_PHRASE.mostGeneralType())
-	}
-
 }

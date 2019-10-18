@@ -47,17 +47,16 @@ import com.avail.interpreter.Primitive.Flag.Bootstrap
 import com.avail.interpreter.Primitive.Flag.Private
 
 /**
- * This is the prefix function for [P_ModuleHeaderPseudoMacro] associated
- * with having just read the module name.  It allows early checking that the
- * module name agrees with the file name.
+ * This is the prefix function for [P_ModuleHeaderPseudoMacro] associated with
+ * having just read the module name.  It allows early checking that the module
+ * name agrees with the file name.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@Suppress("unused")
 object P_ModuleHeaderPrefixCheckModuleName : Primitive(1, Private, Bootstrap)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val moduleNameLiteral = interpreter.argument(0)
@@ -68,7 +67,8 @@ object P_ModuleHeaderPrefixCheckModuleName : Primitive(1, Private, Bootstrap)
 		val moduleNameInstance = ModuleName(qualifiedName.asNativeString())
 		val localName = moduleNameInstance.localName()
 
-		val declaredModuleName = moduleNameLiteral.token().literal().literal().asNativeString()
+		val declaredModuleName =
+			moduleNameLiteral.token().literal().literal().asNativeString()
 		if (localName != declaredModuleName)
 		{
 			throw AvailRejectedParseException(
@@ -80,13 +80,9 @@ object P_ModuleHeaderPrefixCheckModuleName : Primitive(1, Private, Bootstrap)
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tupleFromArray(
-				/* Module name */
-				stringLiteralType),
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			/* Module name */
+			tupleFromArray(stringLiteralType),
 			TOP.o())
-	}
-
 }
