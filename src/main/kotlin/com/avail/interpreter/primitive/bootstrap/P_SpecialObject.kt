@@ -51,6 +51,7 @@ import com.avail.interpreter.Primitive.Flag.CanInline
  * **Primitive:** Retrieve the [special object][AvailRuntime.specialObject] with
  * the specified ordinal.
  */
+@Suppress("unused")
 object P_SpecialObject : Primitive(1, CanInline, Bootstrap)
 {
 	override fun attempt(interpreter: Interpreter): Result

@@ -51,16 +51,17 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * The `P_BootstrapVariableDeclarationMacro` primitive is used
- * for bootstrapping declaration of a [ local variable][DeclarationKind.LOCAL_VARIABLE] (without an initializing expression).
+ * The `P_BootstrapVariableDeclarationMacro` primitive is used for bootstrapping
+ * declaration of a [local variable][DeclarationKind.LOCAL_VARIABLE] (without an
+ * initializing expression).
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object P_BootstrapVariableDeclarationMacro : Primitive(2, CanInline, CannotFail, Bootstrap)
+@Suppress("unused")
+object P_BootstrapVariableDeclarationMacro
+	: Primitive(2, CanInline, CannotFail, Bootstrap)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val variableNameLiteral = interpreter.argument(0)
@@ -72,40 +73,33 @@ object P_BootstrapVariableDeclarationMacro : Primitive(2, CanInline, CannotFail,
 		{
 			throw AvailRejectedParseException(
 				STRONG,
-				"new variable name to be alphanumeric, not %s",
-				nameString)
+				"new variable name to be alphanumeric, not $nameString")
 		}
 		val type = typeLiteral.token().literal()
 		if (type.isTop || type.isBottom)
 		{
 			throw AvailRejectedParseException(
 				STRONG,
-				"variable's declared type to be something other than %s",
-				type)
+				"variable's declared type to be something other than $type")
 		}
-		val variableDeclaration = newVariable(nameToken, type, typeLiteral, nil)
-		val conflictingDeclaration = FiberDescriptor.addDeclaration(variableDeclaration)
-		if (conflictingDeclaration !== null)
-		{
+		val variableDeclaration =
+			newVariable(nameToken, type, typeLiteral, nil)
+		FiberDescriptor.addDeclaration(variableDeclaration)?.let {
 			throw AvailRejectedParseException(
 				STRONG,
-				"local variable %s to have a name that doesn't shadow an " + "existing %s (from line %d)",
-				nameString,
-				conflictingDeclaration.declarationKind().nativeKindName(),
-				conflictingDeclaration.token().lineNumber())
+				"local variable $nameString to have a name that doesn't shadow "
+					+ "an existing ${it.declarationKind().nativeKindName()} "
+					+ "(from line ${it.token().lineNumber()})")
 		}
 		return interpreter.primitiveSuccess(variableDeclaration)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				/* Variable name phrase. */
 				LITERAL_PHRASE.create(TOKEN.o()),
 				/* Variable type's literal phrase. */
 				LITERAL_PHRASE.create(anyMeta())),
 			DECLARATION_PHRASE.mostGeneralType())
-	}
-
 }

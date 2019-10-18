@@ -47,17 +47,18 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * The `P_BootstrapSuperCastMacro` primitive is used to create a
- * [super-cast phrase][SuperCastPhraseDescriptor].  This is used to
- * control method lookup, and is a generalization of the concept of `super` found in some object-oriented languages.
+ * The `P_BootstrapSuperCastMacro` primitive is used to create a [super-cast
+ * phrase][SuperCastPhraseDescriptor].  This is used to control method lookup,
+ * and is a generalization of the concept of `super` found in some
+ * object-oriented languages.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object P_BootstrapSuperCastMacro : Primitive(2, CannotFail, CanInline, Bootstrap)
+@Suppress("unused")
+object P_BootstrapSuperCastMacro
+	: Primitive(2, CannotFail, CanInline, Bootstrap)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val expressionNode = interpreter.argument(0)
@@ -68,30 +69,25 @@ object P_BootstrapSuperCastMacro : Primitive(2, CannotFail, CanInline, Bootstrap
 		{
 			throw AvailRejectedParseException(
 				STRONG,
-				"supercast type to be something other than %s",
-				type)
+				"supercast type to be something other than $type")
 		}
 		val expressionType = expressionNode.expressionType()
 		if (!expressionType.isSubtypeOf(type))
 		{
 			throw AvailRejectedParseException(
 				STRONG,
-				"supercast type (%s) to be a supertype of the " + "expression's type (%s)",
-				type,
-				expressionType)
+				"supercast type ($type) to be a supertype of the "
+					+ "expression's type ($expressionType)")
 		}
 		val superCast = newSuperCastNode(expressionNode, type)
 		superCast.makeImmutable()
 		return interpreter.primitiveSuccess(superCast)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				EXPRESSION_PHRASE.create(ANY.o()),
 				LITERAL_PHRASE.create(anyMeta())),
 			SUPER_CAST_PHRASE.mostGeneralType())
-	}
-
 }

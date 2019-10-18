@@ -65,17 +65,18 @@ import java.util.Comparator.comparing
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object P_BootstrapVariableUseMacro : Primitive(1, CannotFail, CanInline, Bootstrap)
+@Suppress("unused")
+object P_BootstrapVariableUseMacro
+	: Primitive(1, CannotFail, CanInline, Bootstrap)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val variableNameLiteral = interpreter.argument(0)
 
-		val loader = interpreter.availLoaderOrNull()
-		             ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+		val loader =
+			interpreter.availLoaderOrNull()
+	             ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		assert(variableNameLiteral.isInstanceOf(
 			LITERAL_PHRASE.mostGeneralType()))
 		val literalToken = variableNameLiteral.token()
@@ -86,29 +87,27 @@ object P_BootstrapVariableUseMacro : Primitive(1, CannotFail, CanInline, Bootstr
 		if (actualToken.tokenType() != TokenType.KEYWORD)
 		{
 			throw AvailRejectedParseException(
-				STRONG,
-				"variable %s to be alphanumeric",
-				variableNameString)
+				STRONG, "variable $variableNameString to be alphanumeric")
 		}
 		val fiberGlobals = interpreter.fiber().fiberGlobals()
-		val clientData = fiberGlobals.mapAt(
-			CLIENT_DATA_GLOBAL_KEY.atom)
+		val clientData =
+			fiberGlobals.mapAt(CLIENT_DATA_GLOBAL_KEY.atom)
 		val scopeMap = clientData.mapAt(COMPILER_SCOPE_MAP_KEY.atom)
 		if (scopeMap.hasKey(variableNameString))
 		{
 			val localDeclaration = scopeMap.mapAt(variableNameString)
 			// If the local constant is initialized by a literal, then treat a
 			// mention of that constant as though it were the literal itself.
-			if (localDeclaration.declarationKind() === LOCAL_CONSTANT && localDeclaration
-					.initializationExpression()
+			if (localDeclaration.declarationKind() === LOCAL_CONSTANT
+			    && localDeclaration.initializationExpression()
 					.phraseKindIsUnder(LITERAL_PHRASE))
 			{
 				return interpreter.primitiveSuccess(
 					localDeclaration.initializationExpression())
 			}
 
-			val variableUse = newUse(
-				actualToken, scopeMap.mapAt(variableNameString))
+			val variableUse =
+				newUse(actualToken, scopeMap.mapAt(variableNameString))
 			variableUse.makeImmutable()
 			return interpreter.primitiveSuccess(variableUse)
 		}
@@ -118,11 +117,8 @@ object P_BootstrapVariableUseMacro : Primitive(1, CannotFail, CanInline, Bootstr
 		if (module.variableBindings().hasKey(variableNameString))
 		{
 			val variableObject = module.variableBindings().mapAt(variableNameString)
-			val moduleVarDecl = newModuleVariable(
-				actualToken,
-				variableObject,
-				nil,
-				nil)
+			val moduleVarDecl =
+				newModuleVariable(actualToken, variableObject, nil, nil)
 			val variableUse = newUse(actualToken, moduleVarDecl)
 			variableUse.makeImmutable()
 			return interpreter.primitiveSuccess(variableUse)
@@ -135,9 +131,9 @@ object P_BootstrapVariableUseMacro : Primitive(1, CannotFail, CanInline, Bootstr
 				if (scopeMap.mapSize() == 0) SILENT else WEAK)
 			{
 				val builder = StringBuilder()
-				builder.append("variable ")
-				builder.append(variableNameString)
-				builder.append(" to be in scope (local scope is: ")
+					.append("variable ")
+					.append(variableNameString)
+					.append(" to be in scope (local scope is: ")
 				val scope = ArrayList(
 					toList<A_String>(scopeMap.keysAsSet().asTuple()))
 				scope.sortWith(comparing<A_String, String> { it.asNativeString() })
@@ -155,19 +151,17 @@ object P_BootstrapVariableUseMacro : Primitive(1, CannotFail, CanInline, Bootstr
 				stringFrom(builder.toString())
 			}
 		}
-		val variableObject = module.constantBindings().mapAt(variableNameString)
-		val moduleConstDecl = newModuleConstant(actualToken, variableObject, nil)
-		val variableUse = newUse(actualToken, moduleConstDecl)
+		val variableObject =
+			module.constantBindings().mapAt(variableNameString)
+		val moduleConstDecl =
+			newModuleConstant(actualToken, variableObject, nil)
+		val variableUse =
+			newUse(actualToken, moduleConstDecl)
 		return interpreter.primitiveSuccess(variableUse)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				/* Variable name */
-				LITERAL_PHRASE.create(TOKEN.o())),
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(LITERAL_PHRASE.create(TOKEN.o())), // Variable name
 			EXPRESSION_PHRASE.mostGeneralType())
-	}
-
 }

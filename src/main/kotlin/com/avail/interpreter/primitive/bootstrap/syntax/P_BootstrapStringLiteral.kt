@@ -43,16 +43,14 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Create a string literal phrase from a string
- * literal constant (already wrapped as a literal phrase).  This is a
- * bootstrapped macro because not all subsets of the core Avail syntax should
- * allow literal string phrases.
+ * **Primitive:** Create a string literal phrase from a string literal constant
+ * (already wrapped as a literal phrase).  This is a bootstrapped macro because
+ * not all subsets of the core Avail syntax should allow literal string phrases.
  */
-object P_BootstrapStringLiteral : Primitive(1, CannotFail, CanInline, Bootstrap)
+object P_BootstrapStringLiteral
+	: Primitive(1, CannotFail, CanInline, Bootstrap)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val stringTokenLiteral = interpreter.argument(0)
@@ -64,13 +62,10 @@ object P_BootstrapStringLiteral : Primitive(1, CannotFail, CanInline, Bootstrap)
 		return interpreter.primitiveSuccess(stringLiteral)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				LITERAL_PHRASE.create(
 					literalTokenType(stringType()))),
 			LITERAL_PHRASE.create(stringType()))
-	}
-
 }
