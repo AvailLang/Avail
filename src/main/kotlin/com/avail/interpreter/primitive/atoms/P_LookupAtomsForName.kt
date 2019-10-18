@@ -50,17 +50,15 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * **Primitive:** Look up every [true name][A_Atom]
- * bound to the specified [name][A_String] in the [ ] currently being [loaded][AvailLoader]. Never
- * create a true name.
+ * **Primitive:** Look up every [true name][A_Atom] bound to the specified
+ * [name][A_String] in the [module][com.avail.descriptor.A_Module] currently
+ * being [loaded][AvailLoader]. Never create a true name.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_LookupAtomsForName : Primitive(1, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val name = interpreter.argument(0)
@@ -70,16 +68,11 @@ object P_LookupAtomsForName : Primitive(1, CanInline)
 		return interpreter.primitiveSuccess(loader.lookupAtomsForName(name))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(stringType()), setTypeForSizesContentType(
-			wholeNumbers(),
-			ATOM.o()))
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		 functionType(
+			 tuple(stringType()),
+			 setTypeForSizesContentType(wholeNumbers(), ATOM.o()))
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_LOADING_IS_OVER))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_LOADING_IS_OVER))
 }

@@ -48,12 +48,11 @@ import com.avail.interpreter.Primitive.Flag.HasSideEffect
 import com.avail.interpreter.effects.LoadingEffectToRunPrimitive
 
 /**
- * **Primitive:** Within the first [ ], remove the property with the given property key
- * (another atom).
+ * **Primitive:** Within the first [atom][com.avail.descriptor.AtomDescriptor],
+ * remove the property with the given property key (another atom).
  */
 object P_AtomRemoveProperty : Primitive(2, CanInline, HasSideEffect)
 {
-
 	override fun attempt(
 		interpreter: Interpreter): Result
 	{
@@ -79,21 +78,9 @@ object P_AtomRemoveProperty : Primitive(2, CanInline, HasSideEffect)
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				ATOM.o(),
-				ATOM.o()),
-			TOP.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(ATOM.o(), ATOM.o()), TOP.o())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
-			set(
-				E_NO_SUCH_FIELD,
-				E_KEY_NOT_FOUND))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_NO_SUCH_FIELD, E_KEY_NOT_FOUND))
 }

@@ -46,16 +46,13 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Is the specified [atom][A_Atom] a
- * canonical method name?
+ * **Primitive:** Is the specified [atom][A_Atom] a canonical method name?
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_IsCanonicalMessage : Primitive(1, CannotFail, CanInline, CanFold)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val name = interpreter.argument(0)
@@ -74,9 +71,6 @@ object P_IsCanonicalMessage : Primitive(1, CannotFail, CanInline, CanFold)
 
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(ATOM.o()), booleanType())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(ATOM.o()), booleanType())
 }

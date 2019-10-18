@@ -47,12 +47,12 @@ import com.avail.interpreter.Primitive.Flag.HasSideEffect
 import com.avail.interpreter.effects.LoadingEffectToRunPrimitive
 
 /**
- * **Primitive:** Within the first [ ], associate the given property key (another atom)
- * and property value.  This is a destructive operation.
+ * **Primitive:** Within the first
+ * [atom][com.avail.descriptor.AtomDescriptor], associate the given property key
+ * (another atom) and property value.  This is a destructive operation.
  */
 object P_AtomSetProperty : Primitive(3, CanInline, HasSideEffect)
 {
-
 	override fun attempt(
 		interpreter: Interpreter): Result
 	{
@@ -75,19 +75,9 @@ object P_AtomSetProperty : Primitive(3, CanInline, HasSideEffect)
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				ATOM.o(),
-				ATOM.o(),
-				ANY.o()),
-			TOP.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(ATOM.o(), ATOM.o(), ANY.o()), TOP.o())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_SPECIAL_ATOM))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_SPECIAL_ATOM))
 }

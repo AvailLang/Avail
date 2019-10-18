@@ -49,7 +49,8 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * **Primitive:** Lookup or create a new [ atom][AtomDescriptor] with the given name.
+ * **Primitive:** Lookup or create a new [atom][AtomDescriptor] with the given
+ * name.
  *
  *
  * If this method is executed outside the scope of compiling or loading, a
@@ -57,9 +58,7 @@ import com.avail.interpreter.Primitive.Flag.CanInline
  */
 object P_CreateAtom : Primitive(1, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val name = interpreter.argument(0)
@@ -84,14 +83,9 @@ object P_CreateAtom : Primitive(1, CanInline)
 		return interpreter.primitiveSuccess(atom)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(stringType()), ATOM.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(stringType()), ATOM.o())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_AMBIGUOUS_NAME))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_AMBIGUOUS_NAME))
 }
