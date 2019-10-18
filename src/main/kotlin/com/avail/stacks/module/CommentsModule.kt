@@ -128,7 +128,7 @@ class CommentsModule constructor(
 	/**
 	 * The name of the module that contains these Stacks Comments.
 	 */
-	val moduleName: String = header.moduleName.qualifiedName()
+	val moduleName: String = header.moduleName.qualifiedName
 
 	/**
 	 * All public methods/classes from this module.
@@ -247,7 +247,7 @@ class CommentsModule constructor(
 		{
 			val newLogEntry = StringBuilder()
 				.append("<h3>")
-				.append(header.moduleName.qualifiedName())
+				.append(header.moduleName.qualifiedName)
 				.append(" <em>(")
 				.append(errorCount)
 				.append(")</em></h3>\n<ol>")
@@ -381,7 +381,7 @@ class CommentsModule constructor(
 				val moduleImportName = resolver.resolve(
 					header.moduleName
 						.asSibling(moduleImport.moduleName.asNativeString()),
-					header.moduleName).qualifiedName()
+					header.moduleName).qualifiedName
 
 				if (moduleImport.isExtension)
 				{

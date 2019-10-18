@@ -191,7 +191,7 @@ class StacksGenerator @Throws(IllegalArgumentException::class) constructor(
 
 		errorLog.addLogEntry(closeHTML, 0)
 
-		val outerMost = moduleToComments[outermostModule.qualifiedName()]!!
+		val outerMost = moduleToComments[outermostModule.qualifiedName]!!
 
 		try
 		{
@@ -214,7 +214,7 @@ class StacksGenerator @Throws(IllegalArgumentException::class) constructor(
 			val synchronizer = StacksSynchronizer(fileToOutPutCount)
 
 			// JSON files
-			moduleToComments[outermostModule.qualifiedName()]!!
+			moduleToComments[outermostModule.qualifiedName]!!
 				.writeMethodsToJSONFiles(
 					providedDocumentPath,
 					synchronizer,
