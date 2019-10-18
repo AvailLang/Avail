@@ -42,6 +42,7 @@ import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*
 import com.avail.descriptor.SetDescriptor.set
+import com.avail.descriptor.StringDescriptor
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
@@ -49,56 +50,51 @@ import com.avail.interpreter.Primitive.Flag.Bootstrap
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * The `P_BootstrapSendAsStatementMacro` primitive is used to allow
- * message sends producing ⊤ to be used as statements, by wrapping them inside
+ * The `P_BootstrapSendAsStatementMacro` primitive is used to allow message
+ * sends producing ⊤ to be used as statements, by wrapping them inside
  * [expression-as-statement][ExpressionAsStatementPhraseDescriptor].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@Suppress("unused")
 object P_BootstrapSendAsStatementMacro : Primitive(1, CanInline, Bootstrap)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val sendPhraseInLiteral = interpreter.argument(0)
 
-		val loader = interpreter.fiber().availLoader()
-		             ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+		val loader =
+			interpreter.fiber().availLoader()
+	             ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		val sendPhrase = sendPhraseInLiteral.token().literal()
 		if (!sendPhrase.phraseKindIsUnder(SEND_PHRASE))
 		{
 			throw AvailRejectedParseException(
 				WEAK,
-				"statement to be a ⊤-valued send phrase, not a %s: %s",
-				sendPhrase.phraseKind().name,
-				sendPhrase)
+				StringDescriptor.stringFrom(
+					"statement to be a ⊤-valued send phrase, not "
+					+ "a ${sendPhrase.phraseKind().name}: $sendPhrase"))
 		}
 		if (!sendPhrase.expressionType().isTop)
 		{
 			throw AvailRejectedParseException(
 				WEAK,
-				"statement to yield ⊤, but it yields %s.  Expression is: %s",
-				sendPhrase.expressionType(),
-				sendPhrase)
+				StringDescriptor.stringFrom("statement to yield ⊤, "
+                    + "but it yields ${sendPhrase.expressionType()}.  "
+                    + "Expression is: $sendPhrase"))
 		}
 		val sendAsStatement = newExpressionAsStatement(sendPhrase)
 		return interpreter.primitiveSuccess(sendAsStatement)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				/* The send phrase to treat as a statement */
 				LITERAL_PHRASE.create(SEND_PHRASE.mostGeneralType())),
 			EXPRESSION_AS_STATEMENT_PHRASE.mostGeneralType())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_LOADING_IS_OVER))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_LOADING_IS_OVER))
 }
