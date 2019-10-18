@@ -1,5 +1,5 @@
 /*
- * P_RemoveWriteReactor.java
+ * P_RemoveWriteReactor.kt
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *

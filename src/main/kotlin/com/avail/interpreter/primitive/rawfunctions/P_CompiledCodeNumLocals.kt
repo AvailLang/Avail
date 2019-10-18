@@ -1,5 +1,5 @@
 /*
- * P_CompiledCodeNumLocals.java
+ * P_CompiledCodeNumLocals.kt
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *

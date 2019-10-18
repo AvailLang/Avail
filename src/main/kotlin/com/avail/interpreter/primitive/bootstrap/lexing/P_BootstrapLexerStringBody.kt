@@ -1,5 +1,5 @@
 /*
- * P_BootstrapLexerStringBody.java
+ * P_BootstrapLexerStringBody.kt
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -227,7 +227,7 @@ object P_BootstrapLexerStringBody
 
 		/**
 		 * Answer the next codepoint from the source, without consuming it.
-		 * Should only be called if [.hasNext] would produce true.
+		 * Should only be called if [hasNext] would produce true.
 		 *
 		 * @return The next codepoint.
 		 */
@@ -238,7 +238,7 @@ object P_BootstrapLexerStringBody
 
 		/**
 		 * Answer the next codepoint from the source, and consume it.  Should
-		 * only be called if [.hasNext] would produce true before
+		 * only be called if [hasNext] would produce true before
 		 * this call.
 		 *
 		 * @return The consumed codepoint.

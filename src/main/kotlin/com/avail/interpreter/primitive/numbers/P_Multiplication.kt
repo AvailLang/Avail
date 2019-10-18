@@ -1,5 +1,5 @@
 /*
- * P_Multiplication.java
+ * P_Multiplication.kt
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -166,10 +166,10 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 		 * about whether an infinity should be included in the result.
 		 *
 		 * @param a
-		 * An extended integer from [.aType], not necessarily
+		 * An extended integer from [aType], not necessarily
 		 * inclusive.
 		 * @param b
-		 * An extended integer from [.bType], not necessarily
+		 * An extended integer from [bType], not necessarily
 		 * inclusive.
 		 */
 		private fun processPair(a: A_Number, b: A_Number)

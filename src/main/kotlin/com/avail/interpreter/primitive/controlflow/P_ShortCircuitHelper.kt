@@ -1,5 +1,5 @@
 /*
- * P_ShortCircuitHelper.java
+ * P_ShortCircuitHelper.kt
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *

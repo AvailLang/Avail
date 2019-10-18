@@ -1,5 +1,5 @@
 /*
- * P_CreateSequenceOfStatements.java
+ * P_CreateSequenceOfStatements.kt
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *

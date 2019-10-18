@@ -1,5 +1,5 @@
 /*
- * P_BootstrapInitializingVariableDeclarationMacro.java
+ * P_BootstrapInitializingVariableDeclarationMacro.kt
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *

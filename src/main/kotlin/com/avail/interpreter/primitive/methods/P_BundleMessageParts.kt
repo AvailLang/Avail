@@ -1,5 +1,5 @@
 /*
- * P_BundleMessageParts.java
+ * P_BundleMessageParts.kt
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *

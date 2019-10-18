@@ -1,5 +1,5 @@
 /*
- * P_ObjectTypeToMap.java
+ * P_ObjectTypeToMap.kt
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *

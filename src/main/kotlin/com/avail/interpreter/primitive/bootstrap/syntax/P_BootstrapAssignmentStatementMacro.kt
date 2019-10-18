@@ -1,5 +1,5 @@
 /*
- * P_BootstrapAssignmentStatementMacro.java
+ * P_BootstrapAssignmentStatementMacro.kt
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *

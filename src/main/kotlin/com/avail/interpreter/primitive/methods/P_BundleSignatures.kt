@@ -1,5 +1,5 @@
 /*
- * P_BundleSignatures.java
+ * P_BundleSignatures.kt
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *

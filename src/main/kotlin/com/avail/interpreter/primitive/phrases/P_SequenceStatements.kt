@@ -1,5 +1,5 @@
 /*
- * P_SequenceStatements.java
+ * P_SequenceStatements.kt
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *

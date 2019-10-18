@@ -1,5 +1,5 @@
 /*
- * P_TerminateCurrentFiber.java
+ * P_TerminateCurrentFiber.kt
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *

@@ -1,5 +1,5 @@
 /*
- * P_DisableTraceVariableWrites.java
+ * P_DisableTraceVariableWrites.kt
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *

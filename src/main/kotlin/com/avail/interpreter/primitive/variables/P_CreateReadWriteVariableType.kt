@@ -1,5 +1,5 @@
 /*
- * P_CreateReadWriteVariableType.java
+ * P_CreateReadWriteVariableType.kt
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *

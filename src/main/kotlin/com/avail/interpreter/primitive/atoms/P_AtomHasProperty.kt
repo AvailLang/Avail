@@ -1,5 +1,5 @@
 /*
- * P_AtomHasProperty.java
+ * P_AtomHasProperty.kt
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *

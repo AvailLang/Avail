@@ -1,5 +1,5 @@
 /*
- * P_EnvironmentMap.java
+ * P_EnvironmentMap.kt
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -62,7 +62,7 @@ object P_EnvironmentMap : Primitive(0, CannotFail, CanInline, HasSideEffect)
 	private var environmentMap = SoftReference<A_Map>(null)
 
 	/**
-	 * Get the [environment map][.environmentMap], creating a new one
+	 * Get the [environment map][environmentMap], creating a new one
 	 * as necessary (either because it has never been created or because the
 	 * garbage collector has discarded it).
 	 *

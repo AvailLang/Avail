@@ -1,5 +1,5 @@
 /*
- * P_DeclareAllExportedAtoms.java
+ * P_DeclareAllExportedAtoms.kt
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *

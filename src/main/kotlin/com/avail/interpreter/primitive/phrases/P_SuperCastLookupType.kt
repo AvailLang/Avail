@@ -1,5 +1,5 @@
 /*
- * P_SuperCastLookupType.java
+ * P_SuperCastLookupType.kt
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *

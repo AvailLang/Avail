@@ -1,5 +1,5 @@
 /*
- * P_GetGlobalVariableValue.java
+ * P_GetGlobalVariableValue.kt
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *

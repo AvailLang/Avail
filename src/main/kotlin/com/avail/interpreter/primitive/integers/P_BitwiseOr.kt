@@ -1,5 +1,5 @@
 /*
- * P_BitwiseOr.java
+ * P_BitwiseOr.kt
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *

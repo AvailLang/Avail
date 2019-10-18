@@ -1,5 +1,5 @@
 /*
- * P_ParseNodeExpressionType.java
+ * P_ParseNodeExpressionType.kt
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *

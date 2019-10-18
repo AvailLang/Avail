@@ -1,5 +1,5 @@
 /*
- * P_CreatePrimitiveFailureVariableDeclaration.java
+ * P_CreatePrimitiveFailureVariableDeclaration.kt
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *

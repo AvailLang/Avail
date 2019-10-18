@@ -1,5 +1,5 @@
 /*
- * P_BootstrapStringLiteral.java
+ * P_BootstrapStringLiteral.kt
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *

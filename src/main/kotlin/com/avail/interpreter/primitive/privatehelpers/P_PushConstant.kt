@@ -1,5 +1,5 @@
 /*
- * P_PushConstant.java
+ * P_PushConstant.kt
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -42,6 +42,7 @@ import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.primitive.privatehelpers.P_PushConstant.tryToGenerateSpecialPrimitiveInvocation
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
 import com.avail.utility.Nulls.stripNull
@@ -52,7 +53,7 @@ import com.avail.utility.Nulls.stripNull
  *
  *
  * This mechanism relies on
- * [.tryToGenerateSpecialPrimitiveInvocation]
+ * [tryToGenerateSpecialPrimitiveInvocation]
  * always producing specialized L2 code – i.e., a constant move.  Note that
  * [Flag.CanInline] normally skips making the actual called function
  * available, so we must be careful to expose it for the customized code

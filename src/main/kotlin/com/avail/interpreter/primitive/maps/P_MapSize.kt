@@ -1,5 +1,5 @@
 /*
- * P_MapSize.java
+ * P_MapSize.kt
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *

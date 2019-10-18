@@ -1,5 +1,5 @@
 /*
- * P_MethodFromName.java
+ * P_MethodFromName.kt
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *

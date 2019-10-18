@@ -1,5 +1,5 @@
 /*
- * P_CreatePermutedListPhrase.java
+ * P_CreatePermutedListPhrase.kt
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *

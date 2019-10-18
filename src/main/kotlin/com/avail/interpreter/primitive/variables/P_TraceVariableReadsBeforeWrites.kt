@@ -1,5 +1,5 @@
 /*
- * P_TraceVariableReadsBeforeWrites.java
+ * P_TraceVariableReadsBeforeWrites.kt
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *

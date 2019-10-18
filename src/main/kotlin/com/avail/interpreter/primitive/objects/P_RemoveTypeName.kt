@@ -1,5 +1,5 @@
 /*
- * P_RemoveTypeName.java
+ * P_RemoveTypeName.kt
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *

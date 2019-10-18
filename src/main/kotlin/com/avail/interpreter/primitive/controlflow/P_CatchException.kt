@@ -1,5 +1,5 @@
 /*
- * P_CatchException.java
+ * P_CatchException.kt
  * Copyright © 1993-2018, The Avail Foundation, LLC.
  * All rights reserved.
  *
