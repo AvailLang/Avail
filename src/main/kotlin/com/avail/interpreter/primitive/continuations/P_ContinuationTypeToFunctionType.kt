@@ -34,6 +34,7 @@ package com.avail.interpreter.primitive.continuations
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.ContinuationTypeDescriptor
 import com.avail.descriptor.ContinuationTypeDescriptor.continuationMeta
+import com.avail.descriptor.FunctionTypeDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionMeta
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
@@ -42,24 +43,20 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer the [ ] corresponding to the given
- * [continuation type][ContinuationTypeDescriptor].
+ * **Primitive:** Answer the [function type][FunctionTypeDescriptor]
+ * corresponding to the given [continuation type][ContinuationTypeDescriptor].
  */
-object P_ContinuationTypeToFunctionType : Primitive(1, CannotFail, CanFold, CanInline)
+@Suppress("unused")
+object P_ContinuationTypeToFunctionType
+	: Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val continuationType = interpreter.argument(0)
-		return interpreter.primitiveSuccess(
-			continuationType.functionType())
+		return interpreter.primitiveSuccess(continuationType.functionType())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(continuationMeta()), functionMeta())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(continuationMeta()), functionMeta())
 }

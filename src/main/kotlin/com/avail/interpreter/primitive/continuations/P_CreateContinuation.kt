@@ -56,14 +56,14 @@ import com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RETURN_INTO
 import com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk
 
 /**
- * **Primitive:** Create a [ continuation][ContinuationDescriptor]. It will execute as unoptimized code via the [ ][L2Chunk.unoptimizedChunk].  Fail if the provided function is an infallible
- * primitive.
+ * **Primitive:** Create a [continuation][ContinuationDescriptor]. It will
+ * execute as unoptimized code via the [L2Chunk.unoptimizedChunk].  Fail if the
+ * provided function is an infallible primitive.
  */
+@Suppress("unused")
 object P_CreateContinuation : Primitive(5, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(5)
 		val function = interpreter.argument(0)
@@ -96,9 +96,8 @@ object P_CreateContinuation : Primitive(5, CanFold, CanInline)
 		return interpreter.primitiveSuccess(cont)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				mostGeneralFunctionType(),
 				wholeNumbers(),
@@ -107,13 +106,9 @@ object P_CreateContinuation : Primitive(5, CanFold, CanInline)
 				variableTypeFor(
 					mostGeneralContinuationType())),
 			mostGeneralContinuationType())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(
 			E_CANNOT_CREATE_CONTINUATION_FOR_INFALLIBLE_PRIMITIVE_FUNCTION,
 			E_INCORRECT_CONTINUATION_STACK_SIZE))
-	}
-
 }

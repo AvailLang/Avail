@@ -42,26 +42,20 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer a [ ]'s stack pointer. This is the index
- * of the top-of-stack within the frame slots of the continuation. For an
- * empty stack its value equals the number of frame slots plus one.
+ * **Primitive:** Answer a [ ]'s stack pointer. This is the index of the
+ * top-of-stack within the frame slots of the continuation. For an empty stack
+ * its value equals the number of frame slots plus one.
  */
+@Suppress("unused")
 object P_ContinuationStackPointer : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val con = interpreter.argument(0)
 		return interpreter.primitiveSuccess(fromInt(con.stackp()))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(mostGeneralContinuationType()),
-			naturalNumbers())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(mostGeneralContinuationType()), naturalNumbers())
 }

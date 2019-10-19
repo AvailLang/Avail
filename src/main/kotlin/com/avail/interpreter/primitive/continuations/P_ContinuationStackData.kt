@@ -43,36 +43,30 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer a [ tuple][TupleDescriptor] containing the [continuation][ContinuationDescriptor]'s
- * stack data. Substitute an unassigned [ bottom][BottomTypeDescriptor]-typed [variable][VariableDescriptor] (unconstructible
- * from Avail) for any [null][NilDescriptor.nil] values.
+ * **Primitive:** Answer a [ tuple][TupleDescriptor] containing the
+ * [continuation][ContinuationDescriptor]'s stack data. Substitute an unassigned
+ * [bottom][BottomTypeDescriptor]-typed [variable][VariableDescriptor]
+ * (unconstructible from Avail) for any [null][NilDescriptor.nil] values.
  */
 object P_ContinuationStackData : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val con = interpreter.argument(0)
-		val tuple = generateObjectTupleFrom(
-			con.function().code().numSlots()
-		) { index ->
-			val entry = con.argOrLocalOrStackAt(index)
-			if (entry.equalsNil())
-				nilSubstitute()
-			else
-				entry
-		}
+		val tuple =
+			generateObjectTupleFrom(con.function().code().numSlots())
+			{ index ->
+				val entry = con.argOrLocalOrStackAt(index)
+				if (entry.equalsNil()) { nilSubstitute() }
+				else { entry }
+			}
 		tuple.makeSubobjectsImmutable()
 		return interpreter.primitiveSuccess(tuple)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(mostGeneralContinuationType()),
 			mostGeneralTupleType())
-	}
-
 }

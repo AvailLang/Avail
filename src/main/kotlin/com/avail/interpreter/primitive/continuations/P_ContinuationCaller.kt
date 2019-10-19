@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive.continuations
 
 import com.avail.descriptor.A_Type
+import com.avail.descriptor.ContinuationDescriptor
 import com.avail.descriptor.ContinuationTypeDescriptor.mostGeneralContinuationType
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
@@ -43,14 +44,13 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer a [ variable][VariableDescriptor] containing the caller of the specified [ ]. The variable will be unassigned if
- * the continuation has no caller.
+ * **Primitive:** Answer a [variable][VariableDescriptor] containing the caller
+ * of the specified [continuation][ContinuationDescriptor]. The variable will be
+ * unassigned if the continuation has no caller.
  */
 object P_ContinuationCaller : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val con = interpreter.argument(0)
@@ -64,11 +64,8 @@ object P_ContinuationCaller : Primitive(1, CannotFail, CanFold, CanInline)
 		return interpreter.primitiveSuccess(callerHolder)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(mostGeneralContinuationType()),
 			variableTypeFor(mostGeneralContinuationType()))
-	}
-
 }
