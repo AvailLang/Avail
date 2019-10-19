@@ -53,17 +53,14 @@ import com.avail.optimizer.L1Translator.CallSiteHelper
 import java.util.*
 
 /**
- * **Primitive:** [Function][FunctionDescriptor]
- * evaluation, given a [tuple][TupleDescriptor] of arguments.
- * Check the [types][TypeDescriptor] dynamically to prevent
- * corruption of the type system. Fail if the arguments are not of the
- * required types.
+ * **Primitive:** [Function][FunctionDescriptor] evaluation, given a
+ * [tuple][TupleDescriptor] of arguments. Check the [types][TypeDescriptor]
+ * dynamically to prevent corruption of the type system. Fail if the arguments
+ * are not of the required types.
  */
 object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val function = interpreter.argument(0)
@@ -74,8 +71,7 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 		val code = function.code()
 		if (code.numArgs() != numArgs)
 		{
-			return interpreter.primitiveFailure(
-				E_INCORRECT_NUMBER_OF_ARGUMENTS)
+			return interpreter.primitiveFailure(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 		}
 		val tupleType = functionType.argsTupleType()
 		for (i in 1 .. numArgs)
@@ -83,8 +79,7 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 			val arg = argTuple.tupleAt(i)
 			if (!arg.isInstanceOf(tupleType.typeAtIndex(i)))
 			{
-				return interpreter.primitiveFailure(
-					E_INCORRECT_ARGUMENT_TYPE)
+				return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE)
 			}
 		}
 
@@ -99,17 +94,15 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 		return READY_TO_INVOKE
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				mostGeneralFunctionType(),
 				mostGeneralTupleType()),
 			TOP.o())
-	}
 
-	override fun fallibilityForArgumentTypes(
-		argumentTypes: List<A_Type>): Primitive.Fallibility
+	override fun fallibilityForArgumentTypes(argumentTypes: List<A_Type>)
+		: Primitive.Fallibility
 	{
 		val functionType = argumentTypes[0]
 		val argTupleType = argumentTypes[1]
@@ -119,14 +112,17 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 		return if (fixedSize
 		           && paramsType.sizeRange().equals(argTupleType.sizeRange())
 		           && argTupleType.isSubtypeOf(paramsType))
-			CallSiteCannotFail
-		else
-			CallSiteCanFail
+			{
+				CallSiteCannotFail
+			}
+			else
+			{
+				CallSiteCanFail
+			}
 	}
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
-		argumentTypes: List<A_Type>): A_Type
+		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
 	{
 		val functionType = argumentTypes[0]
 		val argTupleType = argumentTypes[1]
@@ -154,7 +150,8 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 					// always succeed, and if so, what type it guarantees.
 					val primArgCount = primitive.argCount
 					val primArgSizes = argTupleType.sizeRange()
-					if (primArgSizes.lowerBound().equalsInt(primArgCount) && primArgSizes.upperBound().equalsInt(primArgCount))
+					if (primArgSizes.lowerBound().equalsInt(primArgCount)
+					    && primArgSizes.upperBound().equalsInt(primArgCount))
 					{
 						val innerArgTypes = ArrayList<A_Type>(primArgCount)
 						for (i in 1 .. primArgCount)
@@ -226,10 +223,11 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 		}
 		val argsSize = upperBound.extractInt()
 
-		val explodedArgumentRegisters = translator.explodeTupleIfPossible(
-			tupleReg,
-			toList(functionArgsType.tupleOfTypesFromTo(1, argsSize)))
-		                                ?: return false
+		val explodedArgumentRegisters =
+			translator.explodeTupleIfPossible(
+				tupleReg,
+				toList(functionArgsType.tupleOfTypesFromTo(1, argsSize)))
+                  ?: return false
 
 		// Fold out the call of this primitive, replacing it with an invoke of
 		// the supplied function, instead.  The client will generate any needed
@@ -238,5 +236,4 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 			functionReg, explodedArgumentRegisters, true, callSiteHelper)
 		return true
 	}
-
 }

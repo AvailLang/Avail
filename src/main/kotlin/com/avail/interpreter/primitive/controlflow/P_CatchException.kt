@@ -50,9 +50,9 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Always fail. The Avail failure code
- * invokes the [body block][FunctionDescriptor]. A handler block is
- * only invoked when an exception is raised.
+ * **Primitive:** Always fail. The Avail failure code invokes the [body
+ * block][FunctionDescriptor]. A handler block is only invoked when an exception
+ * is raised.
  */
 object P_CatchException : Primitive(
 	3,
@@ -87,34 +87,22 @@ object P_CatchException : Primitive(
 		return interpreter.primitiveFailure(innerVariable)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
-				functionType(
-					emptyTuple(),
-					TOP.o()),
-				zeroOrMoreOf(
-					functionType(
-						tuple(bottom()),
-						TOP.o())),
-				functionType(
-					emptyTuple(),
-					TOP.o())),
+				functionType(emptyTuple(), TOP.o()),
+				zeroOrMoreOf(functionType(tuple(bottom()), TOP.o())),
+				functionType(emptyTuple(), TOP.o())),
 			TOP.o())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
+	override fun privateFailureVariableType(): A_Type =
 		// Note: The failure value is itself a new variable stuffed into the
 		// outer (primitive-failure) variable.
-		return variableTypeFor(
+		variableTypeFor(
 			enumerationWith(
 				set(
 					E_REQUIRED_FAILURE,
 					E_INCORRECT_ARGUMENT_TYPE,
 					E_HANDLER_SENTINEL,
 					E_UNWIND_SENTINEL)))
-	}
-
 }

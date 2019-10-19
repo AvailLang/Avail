@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.primitive.controlflow
 
+import com.avail.descriptor.A_Continuation
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.BottomTypeDescriptor.bottom
 import com.avail.descriptor.ContinuationTypeDescriptor.mostGeneralContinuationType
@@ -43,7 +44,7 @@ import com.avail.interpreter.Primitive.Flag.*
 import com.avail.interpreter.Primitive.Result.CONTINUATION_CHANGED
 
 /**
- * **Primitive:** Resume the specified [ ].
+ * **Primitive:** Resume the specified [continuation][A_Continuation].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -55,9 +56,7 @@ object P_ResumeContinuation : Primitive(
 	CanSwitchContinuations,
 	AlwaysSwitchesContinuation)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val con = interpreter.argument(0)
@@ -71,12 +70,6 @@ object P_ResumeContinuation : Primitive(
 		return CONTINUATION_CHANGED
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				mostGeneralContinuationType()),
-			bottom())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(mostGeneralContinuationType()), bottom())
 }

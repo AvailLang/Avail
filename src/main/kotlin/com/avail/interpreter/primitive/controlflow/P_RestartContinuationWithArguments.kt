@@ -31,10 +31,8 @@
  */
 package com.avail.interpreter.primitive.controlflow
 
-import com.avail.descriptor.A_RawFunction
-import com.avail.descriptor.A_Type
+import com.avail.descriptor.*
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.AvailObject
 import com.avail.descriptor.BottomTypeDescriptor.bottom
 import com.avail.descriptor.ContinuationTypeDescriptor.mostGeneralContinuationType
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
@@ -55,11 +53,14 @@ import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
 
 /**
- * **Primitive:** Restart the given [ ], but passing in the given [ ] of arguments. Make sure it's a label-like continuation
- * rather than a call-like, because a call-like continuation has the expected
- * return type already pushed on the stack, and requires the return value, after
- * checking against that type, to overwrite the type in the stack (without
- * affecting the stack depth). Fail if the continuation's [ ] is not capable of accepting the given arguments.
+ * **Primitive:** Restart the given [continuation][ContinuationDescriptor], but
+ * passing in the given [tuple][TupleDescriptor] of arguments. Make sure it's a
+ * label-like continuation rather than a call-like, because a call-like
+ * continuation has the expected return type already pushed on the stack, and
+ * requires the return value, after checking against that type, to overwrite the
+ * type in the stack (without affecting the stack depth). Fail if the
+ * continuation's [function][FunctionDescriptor] is not capable of accepting the
+ * given arguments.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -70,8 +71,7 @@ object P_RestartContinuationWithArguments : Primitive(
 	AlwaysSwitchesContinuation)
 {
 
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val originalCon = interpreter.argument(0)
@@ -79,8 +79,16 @@ object P_RestartContinuationWithArguments : Primitive(
 
 		val code = originalCon.function().code()
 		//TODO MvG - This should be a primitive failure.
-		assert(originalCon.stackp() == code.numSlots() + 1) { "Continuation should have been a label- rather than " + "call-continuation" }
-		assert(originalCon.pc() == 0) { "Continuation should have been a label- rather than " + "call-continuation" }
+		assert(originalCon.stackp() == code.numSlots() + 1)
+		{
+			"Continuation should have been a label- rather than " +
+				"call-continuation"
+		}
+		assert(originalCon.pc() == 0)
+		{
+			"Continuation should have been a label- rather than " +
+				"call-continuation"
+		}
 
 		val numArgs = code.numArgs()
 		if (numArgs != arguments.tupleSize())
@@ -110,22 +118,14 @@ object P_RestartContinuationWithArguments : Primitive(
 		return CONTINUATION_CHANGED
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				mostGeneralContinuationType(),
-				mostGeneralTupleType()),
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(mostGeneralContinuationType(), mostGeneralTupleType()),
 			bottom())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
-			set(
-				E_INCORRECT_NUMBER_OF_ARGUMENTS,
-				E_INCORRECT_ARGUMENT_TYPE))
-	}
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
+			set(E_INCORRECT_NUMBER_OF_ARGUMENTS, E_INCORRECT_ARGUMENT_TYPE))
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
@@ -171,5 +171,4 @@ object P_RestartContinuationWithArguments : Primitive(
 			"unreachable after L2_RESTART_CONTINUATION_WITH_ARGUMENTS"))
 		return true
 	}
-
 }

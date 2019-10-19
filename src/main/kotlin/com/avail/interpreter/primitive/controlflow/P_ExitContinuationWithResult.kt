@@ -35,6 +35,7 @@ import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.AvailObject
 import com.avail.descriptor.BottomTypeDescriptor.bottom
+import com.avail.descriptor.ContinuationDescriptor
 import com.avail.descriptor.ContinuationTypeDescriptor.mostGeneralContinuationType
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
@@ -47,7 +48,8 @@ import com.avail.interpreter.Primitive.Flag.*
 import com.avail.interpreter.Primitive.Result.CONTINUATION_CHANGED
 
 /**
- * **Primitive:** Exit the given [ ] (returning result to its caller).
+ * **Primitive:** Exit the given [continuation][ContinuationDescriptor]
+ * (returning result to its caller).
  */
 object P_ExitContinuationWithResult : Primitive(
 	2,
@@ -55,9 +57,7 @@ object P_ExitContinuationWithResult : Primitive(
 	CanSwitchContinuations,
 	AlwaysSwitchesContinuation)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val con = interpreter.argument(0)

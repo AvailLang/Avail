@@ -49,21 +49,19 @@ import com.avail.utility.Nulls.stripNull
 
 /**
  * **Primitive:** Raise an exception. Scan the stack of
- * [continuations][ContinuationDescriptor] until one is found for
- * a [function][FunctionDescriptor] whose [code][A_RawFunction]
- * is [P_CatchException]. Get that continuation's second argument (a
- * handler block of one argument), and check if that handler block will accept
- * `exceptionValue`. If not, keep looking. If it will accept it, unwind
- * the stack so that the [P_CatchException] continuation is the top entry,
- * and invoke the handler block with `exceptionValue`. If there is no
- * suitable handler block, then fail this primitive (with the unhandled
- * exception).
+ * [continuations][ContinuationDescriptor] until one is found for a
+ * [function][FunctionDescriptor] whose [code][A_RawFunction] is
+ * [P_CatchException]. Get that continuation's second argument (a handler block
+ * of one argument), and check if that handler block will accept
+ * `exceptionValue`. If not, keep looking. If it will accept it, unwind the
+ * stack so that the [P_CatchException] continuation is the top entry, and
+ * invoke the handler block with `exceptionValue`. If there is no suitable
+ * handler block, then fail this primitive (with the unhandled exception).
  */
+@Suppress("unused")
 object P_RaiseException : Primitive(1, CanSuspend, CanSwitchContinuations)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val exception = interpreter.argument(0)
@@ -79,17 +77,8 @@ object P_RaiseException : Primitive(1, CanSuspend, CanSwitchContinuations)
 		return interpreter.searchForExceptionHandler(newException)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				exceptionType()),
-			bottom())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(exceptionType()), bottom())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return exceptionType()
-	}
-
+	override fun privateFailureVariableType(): A_Type = exceptionType()
 }
