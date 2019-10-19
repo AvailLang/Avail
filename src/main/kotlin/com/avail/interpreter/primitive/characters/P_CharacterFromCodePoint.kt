@@ -44,13 +44,13 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Convert a [ code point][IntegerDescriptor] into a [character][CharacterDescriptor].
+ * **Primitive:** Convert a [code point][IntegerDescriptor] into a
+ * [character][CharacterDescriptor].
  */
+@Suppress("unused")
 object P_CharacterFromCodePoint : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val codePoint = interpreter.argument(0)
@@ -58,9 +58,6 @@ object P_CharacterFromCodePoint : Primitive(1, CannotFail, CanFold, CanInline)
 			fromCodePoint(codePoint.extractInt()))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(characterCodePoints()), CHARACTER.o())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(characterCodePoints()), CHARACTER.o())
 }
