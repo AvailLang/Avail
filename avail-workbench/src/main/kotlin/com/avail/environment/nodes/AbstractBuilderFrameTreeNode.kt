@@ -56,7 +56,8 @@ import java.awt.*
  *   The builder for which this node is being built.
  */
 abstract class AbstractBuilderFrameTreeNode internal constructor(
-	internal val builder: AvailBuilder) : DefaultMutableTreeNode()
+		internal val builder: AvailBuilder)
+	: DefaultMutableTreeNode(), Comparable<AbstractBuilderFrameTreeNode>
 {
 	/**
 	 * Extract text to display for this node.  Presentation styling will be
@@ -128,6 +129,14 @@ abstract class AbstractBuilderFrameTreeNode internal constructor(
 	fun isSpecifiedByString(string: String): Boolean =
 		text(false) == string
 
+	override fun compareTo(other: AbstractBuilderFrameTreeNode): Int =
+		when
+		{
+			sortMajor() > other.sortMajor() -> 1
+			sortMajor() < other.sortMajor() -> -1
+			else -> text(false).compareTo(other.text(false))
+		}
+
 	/**
 	 * Sort the direct children of this node.  The default sort order is
 	 * alphabetic by the nodes' [text] (passing false).
@@ -136,8 +145,13 @@ abstract class AbstractBuilderFrameTreeNode internal constructor(
 	{
 		if (children != null)
 		{
-			children.sortedWith(
-				compareBy({ sortMajor() }, {text(false)}))
+			// HACK to make children sortable
+			val temp =
+				children.toMutableList()
+					as MutableList<AbstractBuilderFrameTreeNode>
+			temp.sort()
+			children.clear()
+			children.addAll(temp)
 		}
 	}
 
