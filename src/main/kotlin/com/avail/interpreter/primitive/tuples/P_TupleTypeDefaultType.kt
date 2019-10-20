@@ -45,6 +45,7 @@ import com.avail.interpreter.Primitive.Flag.*
  * **Primitive:** Answer the default [type][TypeDescriptor] for elements past
  * the leading types.
  */
+@Suppress("unused")
 object P_TupleTypeDefaultType : Primitive(1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

@@ -51,6 +51,7 @@ import com.avail.interpreter.Primitive.Flag.HasSideEffect
 /**
  * **Primitive:** Swap the contents of two [variables][A_Variable].
  */
+@Suppress("unused")
 object P_Swap : Primitive(2, CanInline, HasSideEffect)
 {
 	override fun attempt(interpreter: Interpreter): Result

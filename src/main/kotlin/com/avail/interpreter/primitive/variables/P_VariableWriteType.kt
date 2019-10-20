@@ -44,6 +44,7 @@ import com.avail.interpreter.Primitive.Flag.*
 /**
  * **Primitive:** Extract the write type of a [variable type ][VariableTypeDescriptor].
  */
+@Suppress("unused")
 object P_VariableWriteType : Primitive(1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

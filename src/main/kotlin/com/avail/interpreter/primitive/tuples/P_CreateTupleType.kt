@@ -47,6 +47,7 @@ import com.avail.interpreter.Primitive.Flag.*
  * **Primitive:** Construct a [tuple type][TupleTypeDescriptor] with the given
  * parameters. Canonize the data if necessary.
  */
+@Suppress("unused")
 object P_CreateTupleType : Primitive(3, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

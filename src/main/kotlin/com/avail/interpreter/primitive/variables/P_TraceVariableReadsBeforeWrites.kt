@@ -53,6 +53,7 @@ import com.avail.interpreter.Primitive.Flag.HasSideEffect
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_TraceVariableReadsBeforeWrites : Primitive(0, HasSideEffect)
 {
 	override fun attempt(interpreter: Interpreter): Result

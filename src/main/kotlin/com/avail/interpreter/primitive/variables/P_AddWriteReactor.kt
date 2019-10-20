@@ -57,6 +57,7 @@ import com.avail.interpreter.Primitive.Flag.HasSideEffect
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_AddWriteReactor : Primitive(3, HasSideEffect)
 {
 	override fun attempt(interpreter: Interpreter): Result

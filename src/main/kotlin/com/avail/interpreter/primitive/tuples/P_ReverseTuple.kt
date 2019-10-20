@@ -52,6 +52,7 @@ import java.lang.Integer.MAX_VALUE
  *
  * @author Richard A Arriaga &lt;rich@availlang.org&gt;
  */
+@Suppress("unused")
 object P_ReverseTuple : Primitive(1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

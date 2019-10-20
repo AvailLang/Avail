@@ -50,6 +50,7 @@ import com.avail.interpreter.Primitive.Flag.HasSideEffect
 /**
  * **Primitive:** Clear the [variable][A_Variable].
  */
+@Suppress("unused")
 object P_ClearValue : Primitive(1, CanInline, HasSideEffect)
 {
 	override fun attempt(interpreter: Interpreter): Result

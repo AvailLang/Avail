@@ -54,6 +54,7 @@ import kotlin.math.min
  * **Primitive:** Extract a [subtuple][TupleDescriptor] with the given range of
  * elements.
  */
+@Suppress("unused")
 object P_ExtractSubtuple : Primitive(3, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

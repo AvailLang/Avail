@@ -51,6 +51,7 @@ import com.avail.interpreter.Primitive.Flag.*
  * **Primitive:** Concatenate a [tuple][TupleDescriptor] of tuples together into
  * a single tuple.
  */
+@Suppress("unused")
 object P_ConcatenateTuples : Primitive(1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

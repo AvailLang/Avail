@@ -48,6 +48,7 @@ import com.avail.interpreter.Primitive.Flag.*
  * tuple type, assuming the element [types][TypeDescriptor] are consistent with
  * those specified by the tuple type.
  */
+@Suppress("unused")
 object P_TupleTypeSizes : Primitive(1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

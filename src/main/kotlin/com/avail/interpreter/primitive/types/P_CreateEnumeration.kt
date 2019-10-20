@@ -49,6 +49,7 @@ import java.util.*
  * **Primitive:** Create an [enumeration][Enumeration] from the given
  * [set][SetDescriptor] of instances.
  */
+@Suppress("unused")
 object P_CreateEnumeration : Primitive(1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

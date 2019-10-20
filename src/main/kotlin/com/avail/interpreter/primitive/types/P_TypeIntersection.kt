@@ -45,6 +45,7 @@ import com.avail.interpreter.Primitive.Flag.*
  * **Primitive:** Answer the type intersection of the
  * specified [types][TypeDescriptor].
  */
+@Suppress("unused")
 object P_TypeIntersection : Primitive(2, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

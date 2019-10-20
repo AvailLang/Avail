@@ -60,6 +60,7 @@ import com.avail.optimizer.L2Generator.edgeTo
  * **Primitive:** Assign the [value][AvailObject] to the
  * [variable][VariableDescriptor].
  */
+@Suppress("unused")
 object P_SetValue : Primitive(2, CanInline, HasSideEffect)
 {
 	override fun attempt(interpreter: Interpreter): Result

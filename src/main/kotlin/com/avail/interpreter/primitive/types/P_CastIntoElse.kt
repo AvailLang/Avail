@@ -62,6 +62,7 @@ import java.util.Collections.emptyList
  * first argument as its parameter, do the invocation. Otherwise invoke the
  * third argument, a zero-argument function.
  */
+@Suppress("unused")
 object P_CastIntoElse : Primitive(3, Invokes, CanInline, CannotFail)
 {
 	override fun attempt(interpreter: Interpreter): Result

@@ -52,6 +52,7 @@ import com.avail.interpreter.Primitive.Flag.*
  * **Primitive:** Answer a new [tuple][TupleDescriptor] like the argument but
  * with the [element][AvailObject] appended to its right.
  */
+@Suppress("unused")
 object P_TupleAppend : Primitive(2, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

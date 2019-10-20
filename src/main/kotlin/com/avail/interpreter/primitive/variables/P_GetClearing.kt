@@ -54,6 +54,7 @@ import com.avail.interpreter.Primitive.Flag.HasSideEffect
  * allows store-back patterns to be efficiently implemented in Level One
  * code while keeping the interpreter itself thread-safe and debugger-safe.
  */
+@Suppress("unused")
 object P_GetClearing : Primitive(1, CanInline, HasSideEffect)
 {
 	override fun attempt(interpreter: Interpreter): Result

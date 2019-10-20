@@ -48,6 +48,7 @@ import com.avail.optimizer.L1Translator.CallSiteHelper
 /**
  * **Primitive:** Answer whether type1 is a subtype of type2 (or equal).
  */
+@Suppress("unused")
 object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

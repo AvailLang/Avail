@@ -48,6 +48,7 @@ import com.avail.interpreter.Primitive.Flag.*
  * types][TupleTypeDescriptor]. This is basically the semantic restriction of
  * the two-argument concatenation operation.
  */
+@Suppress("unused")
 object P_TupleTypeConcatenate : Primitive(2, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

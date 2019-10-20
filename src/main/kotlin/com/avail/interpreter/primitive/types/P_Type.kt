@@ -46,6 +46,7 @@ import com.avail.interpreter.Primitive.Flag.*
 /**
  * **Primitive:** Answer the type of the given object.
  */
+@Suppress("unused")
 object P_Type : Primitive(1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

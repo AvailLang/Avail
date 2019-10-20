@@ -65,6 +65,7 @@ import com.avail.optimizer.L2Generator.edgeTo
  * first argument as its parameter, do the invocation. Otherwise fail the
  * primitive.
  */
+@Suppress("unused")
 object P_CastInto : Primitive(2, Invokes, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

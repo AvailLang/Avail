@@ -48,6 +48,7 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
  * **Primitive:** Answer [true][AtomDescriptor.trueObject] if the
  * [variable][VariableDescriptor] is unassigned (has no value).
  */
+@Suppress("unused")
 object P_HasNoValue : Primitive(1, CanInline, CannotFail)
 {
 	override fun attempt(interpreter: Interpreter): Result

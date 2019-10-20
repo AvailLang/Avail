@@ -61,6 +61,7 @@ import com.avail.interpreter.effects.LoadingEffectToRunPrimitive
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@Suppress("unused")
 object P_AtomicAddToMap : Primitive(3, CanInline, HasSideEffect) {
 	override fun attempt(interpreter: Interpreter): Result {
 		interpreter.checkArgumentCount(3)

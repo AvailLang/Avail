@@ -57,6 +57,7 @@ import kotlin.math.min
  * **Primitive:** Answer a [tuple][TupleDescriptor] like the given one, but with
  * an element changed as indicated.
  */
+@Suppress("unused")
 object P_TupleReplaceAt : Primitive(3, CanFold, CanInline)
 {
 	/**

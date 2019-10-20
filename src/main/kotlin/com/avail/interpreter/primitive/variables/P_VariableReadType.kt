@@ -47,6 +47,7 @@ import com.avail.interpreter.Primitive.Flag.*
  * **Primitive:** Extract the read type of a [variable type
  * ][VariableTypeDescriptor].
  */
+@Suppress("unused")
 object P_VariableReadType : Primitive(1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

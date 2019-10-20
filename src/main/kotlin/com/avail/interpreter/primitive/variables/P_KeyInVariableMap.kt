@@ -58,6 +58,7 @@ import com.avail.interpreter.Primitive.Flag.HasSideEffect
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@Suppress("unused")
 object P_KeyInVariableMap : Primitive(2, CanInline, HasSideEffect)
 {
 	override fun attempt(interpreter: Interpreter): Result

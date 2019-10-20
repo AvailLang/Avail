@@ -44,6 +44,7 @@ import com.avail.interpreter.Primitive.Flag.*
 /**
  * **Primitive:** Answer the union of the types in the given tuple of types.
  */
+@Suppress("unused")
 object P_UnionOfTupleOfTypes : Primitive(1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

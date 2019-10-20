@@ -48,6 +48,7 @@ import com.avail.interpreter.Primitive.Flag.*
  * [instances][TupleDescriptor] of the given [tuple type][TupleTypeDescriptor].
  * Answer [bottom][BottomTypeDescriptor] if out of range.
  */
+@Suppress("unused")
 object P_TupleTypeAt : Primitive(2, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

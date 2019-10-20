@@ -51,6 +51,7 @@ import com.avail.interpreter.Primitive.Flag.CanInline
  * **Primitive:** Obtain the instances of the specified
  * [type][InstanceMetaDescriptor.topMeta].
  */
+@Suppress("unused")
 object P_Instances : Primitive(1, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

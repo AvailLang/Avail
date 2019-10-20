@@ -47,6 +47,7 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
  * **Primitive:** Create a [variable][A_Variable] with the given inner
  * [type][A_Type].
  */
+@Suppress("unused")
 object P_CreateVariable : Primitive(1, CanInline, CannotFail)
 {
 	override fun attempt(interpreter: Interpreter): Result

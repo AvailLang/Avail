@@ -49,6 +49,7 @@ import com.avail.interpreter.Primitive.Flag.*
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_CreateReadWriteVariableType : Primitive(2, CannotFail, CanInline, CanFold)
 {
 	override fun attempt(interpreter: Interpreter): Result

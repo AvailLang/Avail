@@ -49,6 +49,7 @@ import com.avail.interpreter.Primitive.Flag.*
  * [types][TypeDescriptor] that constrain this [tuple
  * type][TupleTypeDescriptor].
  */
+@Suppress("unused")
 object P_TupleTypeLeadingTypes : Primitive(1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

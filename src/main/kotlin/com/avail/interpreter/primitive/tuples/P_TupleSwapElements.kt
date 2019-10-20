@@ -54,6 +54,7 @@ import kotlin.math.min
  * **Primitive:** Answer a [tuple][TupleDescriptor] like the given one, but with
  * the elements at the specified indices swapped.
  */
+@Suppress("unused")
 object P_TupleSwapElements : Primitive(3, CanFold, CanInline)
 {
 	/**

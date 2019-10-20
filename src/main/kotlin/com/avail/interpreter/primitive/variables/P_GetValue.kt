@@ -56,6 +56,7 @@ import com.avail.interpreter.Primitive.Flag.HasSideEffect
  * something). Since the primitive invocation code is going to erase it if it's
  * mutable anyhow, only the second case requires any real work.
  */
+@Suppress("unused")
 object P_GetValue : Primitive(1, CanInline, HasSideEffect)
 {
 	override fun attempt(interpreter: Interpreter): Result

@@ -54,6 +54,7 @@ import com.avail.optimizer.L1Translator.CallSiteHelper
 /**
  * **Primitive:** Answer the size of the [tuple][TupleDescriptor].
  */
+@Suppress("unused")
 object P_TupleSize : Primitive(1, CannotFail, CanFold, CanInline)
 {
 

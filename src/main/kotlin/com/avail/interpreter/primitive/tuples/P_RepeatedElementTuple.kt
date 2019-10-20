@@ -58,6 +58,7 @@ import com.avail.interpreter.Primitive.Flag.CanInline
  *
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  */
+@Suppress("unused")
 object P_RepeatedElementTuple : Primitive(2, CanInline, CanFold)
 {
 	override fun attempt(interpreter: Interpreter): Result

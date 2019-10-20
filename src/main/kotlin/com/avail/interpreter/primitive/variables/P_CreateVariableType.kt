@@ -46,6 +46,7 @@ import com.avail.interpreter.Primitive.Flag.*
  * **Primitive:** Create a [variable type][VariableTypeDescriptor] using the
  * given inner [type][A_Type].
  */
+@Suppress("unused")
 object P_CreateVariableType : Primitive(1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

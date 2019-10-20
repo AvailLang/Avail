@@ -47,6 +47,7 @@ import com.avail.interpreter.Primitive.Flag.*
  * **Primitive:** How many instances does the specified
  * [type][InstanceMetaDescriptor.topMeta] have?
  */
+@Suppress("unused")
 object P_InstanceCount : Primitive(1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

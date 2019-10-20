@@ -55,6 +55,7 @@ import com.avail.interpreter.Primitive.Flag.CanInline
  * [tuple][TupleTypeDescriptor]. Use [bottom][BottomTypeDescriptor] for indices
  * out of range.
  */
+@Suppress("unused")
 object P_TupleTypeSequenceOfTypes : Primitive(3, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

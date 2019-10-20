@@ -66,6 +66,7 @@ import java.lang.Integer.MAX_VALUE
 /**
  * **Primitive:** Look up an element in the [tuple][TupleDescriptor].
  */
+@Suppress("unused")
 object P_TupleAt : Primitive(2, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

@@ -53,6 +53,7 @@ import com.avail.interpreter.Primitive.Flag.CanInline
  *
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  */
+@Suppress("unused")
 object P_IntegerIntervalTuple : Primitive(3, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result
