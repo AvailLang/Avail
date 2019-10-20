@@ -69,11 +69,11 @@ class ExamineCompilationAction constructor (
 		execute@{
 			val moduleName =
 				stripNull(workbench.selectedModule())
-			moduleName.repository().use { repository ->
+			moduleName.repository.use { repository ->
 				repository.reopenIfNecessary()
 				val compilations = ArrayList<ModuleCompilation>()
 				val archive =
-					repository.getArchive(moduleName.rootRelativeName())
+					repository.getArchive(moduleName.rootRelativeName)
 				for ((_, version) in archive.allKnownVersions)
 				{
 					// final ModuleVersionKey versionKey = entry.getKey();

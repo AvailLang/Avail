@@ -67,7 +67,7 @@ class ExamineRepositoryAction constructor(
 		runtime.execute(FiberDescriptor.commandPriority)
 		{
 			val root = stripNull(workbench.selectedModuleRoot())
-			root.repository().use { repository ->
+			root.repository.use { repository ->
 				repository.reopenIfNecessary()
 				val describer = IndexedRepositoryManagerDescriber(repository)
 				workbench.outputStream.println(describer.dumpAll())

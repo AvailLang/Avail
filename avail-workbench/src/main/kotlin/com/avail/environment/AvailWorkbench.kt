@@ -35,7 +35,6 @@ package com.avail.environment
 import com.avail.AvailRuntime
 import com.avail.AvailRuntimeConfiguration.activeVersionSummary
 import com.avail.builder.*
-import com.avail.builder.ModuleNameResolver.availExtension
 import com.avail.descriptor.A_Module
 import com.avail.descriptor.ModuleDescriptor
 import com.avail.environment.AvailWorkbench.StreamStyle.*
@@ -446,8 +445,8 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			val t = terminator
 			status = when {
 				t != null -> "Aborted (${t.javaClass.simpleName})"
-				workbench.availBuilder.shouldStopBuild() ->
-					workbench.availBuilder.stopBuildReason()
+				workbench.availBuilder.shouldStopBuild ->
+					workbench.availBuilder.stopBuildReason
 				else -> "Done"
 			}
 			workbench.writeText(
@@ -466,9 +465,9 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			try
 			{
 				// Reopen the repositories if necessary.
-				for (root in workbench.resolver.moduleRoots().roots())
+				for (root in workbench.resolver.moduleRoots.roots)
 				{
-					root.repository().reopenIfNecessary()
+					root.repository.reopenIfNecessary()
 				}
 				executeTask()
 				return null
@@ -476,9 +475,9 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			finally
 			{
 				// Close all the repositories.
-				for (root in workbench.resolver.moduleRoots().roots())
+				for (root in workbench.resolver.moduleRoots.roots)
 				{
-					root.repository().close()
+					root.repository.close()
 				}
 				stopTimeMillis = currentTimeMillis()
 			}
@@ -1087,7 +1086,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		}
 		if (selection != null)
 		{
-			val path = modulePath(selection.qualifiedName())
+			val path = modulePath(selection.qualifiedName)
 			if (path != null)
 			{
 				moduleTree.selectionPath = path
@@ -1133,7 +1132,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 				parentNode: DefaultMutableTreeNode, fileName: String): ModuleName
 			{
 				val localName = fileName.substring(
-					0, fileName.length - availExtension.length)
+					0, fileName.length - ModuleNameResolver.availExtension.length)
 				val moduleName: ModuleName
 				if (parentNode is ModuleRootNode)
 				{
@@ -1141,7 +1140,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 					val thisRoot = parentNode.moduleRoot
 					assert(thisRoot == moduleRoot)
 					moduleName = ModuleName(
-						"/" + moduleRoot.name() + "/" + localName)
+						"/" + moduleRoot.name + "/" + localName)
 				}
 				else
 				{
@@ -1154,7 +1153,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 					// The (resolved) parent is a package representative
 					// module, so use its parent, the package itself.
 					moduleName = ModuleName(
-						parentModuleName.packageName(), localName)
+						parentModuleName.packageName, localName)
 				}
 				return moduleName
 			}
@@ -1175,7 +1174,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 					return FileVisitResult.CONTINUE
 				}
 				val fileName = dir!!.fileName.toString()
-				if (fileName.endsWith(availExtension))
+				if (fileName.endsWith(ModuleNameResolver.availExtension))
 				{
 					val moduleName = resolveModule(parentNode, fileName)
 					val resolved: ResolvedModuleName
@@ -1226,7 +1225,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 					throw IOException("Avail root should be a directory")
 				}
 				val fileName = file!!.fileName.toString()
-				if (fileName.endsWith(availExtension))
+				if (fileName.endsWith(ModuleNameResolver.availExtension))
 				{
 					val moduleName = resolveModule(parentNode, fileName)
 					try
@@ -1265,17 +1264,17 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	 */
 	private fun newModuleTree(): TreeNode
 	{
-		val roots = resolver.moduleRoots()
+		val roots = resolver.moduleRoots
 		val treeRoot = DefaultMutableTreeNode(
 			"(packages hidden root)")
 		// Put the invisible root onto the work stack.
 		val stack = ArrayDeque<DefaultMutableTreeNode>()
 		stack.add(treeRoot)
-		for (root in roots.roots())
+		for (root in roots.roots)
 		{
 			// Obtain the path associated with the module root.
-			root.repository().reopenIfNecessary()
-			val rootDirectory = stripNull(root.sourceDirectory())
+			root.repository.reopenIfNecessary()
+			val rootDirectory = stripNull(root.sourceDirectory)
 			try
 			{
 				Files.walkFileTree(
@@ -1326,7 +1325,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 					mutex.writeLock()
 				) {
 					moduleNodes.put(
-						resolvedName.qualifiedName(), moduleNode)
+						resolvedName.qualifiedName, moduleNode)
 				}
 			}
 			after.invoke()
@@ -1591,7 +1590,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		}
 		progress.sortWith(
 			comparing<Entry<ModuleName, Pair<Long, Long>>, String> {
-				entry -> entry.key.qualifiedName() })
+				entry -> entry.key.qualifiedName })
 		val builder = StringBuilder(100)
 		for ((key, pair) in progress)
 		{
@@ -1640,7 +1639,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		try
 		{
 			val rootsNode = basePreferences.node(moduleRootsKeyString)
-			val roots = resolver.moduleRoots()
+			val roots = resolver.moduleRoots
 			for (oldChildName in rootsNode.childrenNames())
 			{
 				if (roots.moduleRootFor(oldChildName) == null)
@@ -1650,18 +1649,18 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			}
 			for (root in roots)
 			{
-				val childNode = rootsNode.node(root.name())
+				val childNode = rootsNode.node(root.name)
 				childNode.put(
 					moduleRootsRepoSubkeyString,
-					root.repository().fileName.path)
+					root.repository.fileName.path)
 				childNode.put(
 					moduleRootsSourceSubkeyString,
-					stripNull(root.sourceDirectory()).path)
+					stripNull(root.sourceDirectory).path)
 			}
 
 			val renamesNode =
 				basePreferences.node(moduleRenamesKeyString)
-			val renames = resolver.renameRules()
+			val renames = resolver.renameRules
 			for (oldChildName in renamesNode.childrenNames())
 			{
 				val nameInt = try {
@@ -2146,10 +2145,9 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 
 		// Subscribe to module loading events.
 		availBuilder.subscribeToModuleLoading { loadedModule, _ ->
-			assert(loadedModule != null)
 			// Postpone repaints up to 250ms to avoid thrash.
 			moduleTree.repaint(250)
-			if (loadedModule!!.entryPoints().size > 0)
+			if (loadedModule.entryPoints.isNotEmpty())
 			{
 				// Postpone repaints up to 250ms to avoid thrash.
 				entryPointsTree.repaint(250)
@@ -2203,7 +2201,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 				ConsoleOutputChannel(outputStream),
 				ConsoleOutputChannel(errorStream))
 		runtime.setTextInterface(textInterface)
-		availBuilder.setTextInterface(textInterface)
+		availBuilder.textInterface = textInterface
 
 		val leftPane = JSplitPane(
 			JSplitPane.VERTICAL_SPLIT,

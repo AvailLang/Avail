@@ -170,18 +170,18 @@ abstract class AbstractBuilderFrameTreeNode internal constructor(
 		 * height.
 		 */
 		private val cachedScaledIcons = LRUCache<Pair<String, Int>, ImageIcon>(
-			100, 20)
-		{ pair ->
-			val iconResourceName = pair.first()
-			val path = (AvailWorkbench.resourcePrefix
-			            + iconResourceName + ".png")
-			val thisClass =
-				AbstractBuilderFrameTreeNode::class.java
-			val resource = thisClass.getResource(path)
-			val originalIcon = ImageIcon(resource)
-			val scaled = originalIcon.image.getScaledInstance(
-				-1, pair.second(), Image.SCALE_SMOOTH)
-			ImageIcon(scaled, iconResourceName)
-		}
+			100, 20,
+			{ pair ->
+				val iconResourceName = pair.first()
+				val path = (AvailWorkbench.resourcePrefix
+				            + iconResourceName + ".png")
+				val thisClass =
+					AbstractBuilderFrameTreeNode::class.java
+				val resource = thisClass.getResource(path)
+				val originalIcon = ImageIcon(resource)
+				val scaled = originalIcon.image.getScaledInstance(
+					-1, pair.second(), Image.SCALE_SMOOTH)
+				ImageIcon(scaled, iconResourceName)
+			})
 	}
 }

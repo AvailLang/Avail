@@ -69,7 +69,7 @@ class EntryPointModuleNode constructor(
 	override fun iconResourceName(): String = "ModuleInTree"
 
 	override fun text(selected: Boolean): String =
-		resolvedModuleName.qualifiedName()
+		resolvedModuleName.qualifiedName
 
 	override fun htmlStyle(selected: Boolean): String
 	{

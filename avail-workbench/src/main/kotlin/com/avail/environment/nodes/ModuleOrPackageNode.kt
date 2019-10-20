@@ -91,13 +91,13 @@ class ModuleOrPackageNode constructor(
 	override fun text(selected: Boolean): String =
 		if (isRenamedSource)
 		{
-			(originalModuleName.localName()
+			(originalModuleName.localName
 			 + " → "
-			 + resolvedModuleName.qualifiedName())
+			 + resolvedModuleName.qualifiedName)
 		}
 		else
 		{
-			resolvedModuleName.localName()
+			resolvedModuleName.localName
 		}
 
 	override fun htmlStyle(selected: Boolean): String

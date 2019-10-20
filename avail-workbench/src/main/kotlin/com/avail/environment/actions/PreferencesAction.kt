@@ -110,10 +110,10 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 	fun savePreferences()
 	{
 		// Rebuild the ModuleRoots from the rootsTableModel.
-		val roots = workbench.resolver.moduleRoots()
-		for (root in roots.roots())
+		val roots = workbench.resolver.moduleRoots
+		for (root in roots.roots)
 		{
-			root.repository().close()
+			root.repository.close()
 		}
 		roots.clearRoots()
 		for (triple in rootsTableModel.rows)
@@ -137,7 +137,7 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 
 			for (root in roots)
 			{
-				root.repository().reopenIfNecessary()
+				root.repository.reopenIfNecessary()
 			}
 		}
 
@@ -171,12 +171,12 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 		panel.add(rootsLabel)
 
 		rootsTableModel.rows.clear()
-		for (root in workbench.resolver.moduleRoots().roots())
+		for (root in workbench.resolver.moduleRoots.roots)
 		{
 			val triple = ArrayList<String>(3)
-			triple.add(root.name())
-			triple.add(root.repository().fileName.path)
-			val source = root.sourceDirectory()
+			triple.add(root.name)
+			triple.add(root.repository.fileName.path)
+			val source = root.sourceDirectory
 			triple.add(if (source == null) "" else source.path)
 			rootsTableModel.rows.add(triple)
 		}
@@ -244,7 +244,7 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 		panel.add(renamesLabel)
 
 		renamesTableModel.rows.clear()
-		for ((key, value) in workbench.resolver.renameRules())
+		for ((key, value) in workbench.resolver.renameRules)
 		{
 			val pair = ArrayList<String>(2)
 			pair.add(key)

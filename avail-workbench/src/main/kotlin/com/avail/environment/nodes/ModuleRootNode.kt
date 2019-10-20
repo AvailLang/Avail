@@ -56,7 +56,7 @@ class ModuleRootNode constructor(
 {
 	override fun iconResourceName(): String? = null
 
-	override fun text(selected: Boolean): String = moduleRoot.name()
+	override fun text(selected: Boolean): String = moduleRoot.name
 
 	override fun htmlStyle(selected: Boolean): String = "font-weight:900"
 }
