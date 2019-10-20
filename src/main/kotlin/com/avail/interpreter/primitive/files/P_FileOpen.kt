@@ -67,17 +67,15 @@ import java.nio.file.attribute.PosixFilePermissions
 import java.util.*
 
 /**
- * **Primitive:** Open an [ file][AsynchronousFileChannel]. Answer a [handle][AtomDescriptor] that uniquely identifies
- * the file.
+ * **Primitive:** Open an [file][AsynchronousFileChannel]. Answer a
+ * [handle][AtomDescriptor] that uniquely identifies the file.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
 object P_FileOpen : Primitive(4, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(4)
 		val filename = interpreter.argument(0)
@@ -105,42 +103,42 @@ object P_FileOpen : Primitive(4, CanInline, HasSideEffect)
 		{
 			return interpreter.primitiveFailure(E_ILLEGAL_OPTION)
 		}
-		val path: Path
-		try
-		{
-			path = IOSystem.fileSystem.getPath(filename.asNativeString())
-		}
-		catch (e: InvalidPathException)
-		{
-			return interpreter.primitiveFailure(E_INVALID_PATH)
-		}
+		val path: Path =
+			try
+			{
+				IOSystem.fileSystem.getPath(filename.asNativeString())
+			}
+			catch (e: InvalidPathException)
+			{
+				return interpreter.primitiveFailure(E_INVALID_PATH)
+			}
 
 		val atom = createAtom(filename, nil)
-		val channel: AsynchronousFileChannel
-		try
-		{
-			channel = ioSystem.openFile(path, fileOptions, *fileAttributes)
-		}
-		catch (e: IllegalArgumentException)
-		{
-			return interpreter.primitiveFailure(E_ILLEGAL_OPTION)
-		}
-		catch (e: UnsupportedOperationException)
-		{
-			return interpreter.primitiveFailure(E_OPERATION_NOT_SUPPORTED)
-		}
-		catch (e: SecurityException)
-		{
-			return interpreter.primitiveFailure(E_PERMISSION_DENIED)
-		}
-		catch (e: AccessDeniedException)
-		{
-			return interpreter.primitiveFailure(E_PERMISSION_DENIED)
-		}
-		catch (e: IOException)
-		{
-			return interpreter.primitiveFailure(E_IO_ERROR)
-		}
+		val channel: AsynchronousFileChannel =
+			try
+			{
+				ioSystem.openFile(path, fileOptions, *fileAttributes)
+			}
+			catch (e: IllegalArgumentException)
+			{
+				return interpreter.primitiveFailure(E_ILLEGAL_OPTION)
+			}
+			catch (e: UnsupportedOperationException)
+			{
+				return interpreter.primitiveFailure(E_OPERATION_NOT_SUPPORTED)
+			}
+			catch (e: SecurityException)
+			{
+				return interpreter.primitiveFailure(E_PERMISSION_DENIED)
+			}
+			catch (e: AccessDeniedException)
+			{
+				return interpreter.primitiveFailure(E_PERMISSION_DENIED)
+			}
+			catch (e: IOException)
+			{
+				return interpreter.primitiveFailure(E_IO_ERROR)
+			}
 
 		val fileHandle = FileHandle(
 			filename,
@@ -153,24 +151,19 @@ object P_FileOpen : Primitive(4, CanInline, HasSideEffect)
 		return interpreter.primitiveSuccess(atom)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				stringType(),
 				wholeNumbers(),
 				setTypeForSizesContentType(
-					wholeNumbers(),
-					inclusive(0, 9)),
+					wholeNumbers(), inclusive(0, 9)),
 				setTypeForSizesContentType(
-					wholeNumbers(),
-					inclusive(1, 9))),
+					wholeNumbers(), inclusive(1, 9))),
 			ATOM.o())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
 			set(
 				E_EXCEEDS_VM_LIMIT,
 				E_INVALID_PATH,
@@ -178,7 +171,6 @@ object P_FileOpen : Primitive(4, CanInline, HasSideEffect)
 				E_OPERATION_NOT_SUPPORTED,
 				E_PERMISSION_DENIED,
 				E_IO_ERROR))
-	}
 
 	/**
 	 * Stash the enum values for StandardOpenOption to avoid array copying.
@@ -186,21 +178,20 @@ object P_FileOpen : Primitive(4, CanInline, HasSideEffect)
 	internal val allStandardOpenOptions = StandardOpenOption.values()
 
 	/**
-	 * Construct the [set][EnumSet] of [open][OpenOption] that correspond to the supplied [set][SetDescriptor]
-	 * of integral option indicators.
+	 * Construct the [set][EnumSet] of [open][OpenOption] that correspond to the
+	 * supplied [set][SetDescriptor] of integral option indicators.
 	 *
 	 * @param optionInts
-	 * Some integral option indicators.
+	 *   Some integral option indicators.
 	 * @return The implied open options.
 	 */
-	private fun openOptionsFor(
-		optionInts: A_Set): Set<OpenOption>
+	private fun openOptionsFor(optionInts: A_Set): Set<OpenOption>
 	{
-		val options = EnumSet.noneOf(StandardOpenOption::class.java)
+		val options =
+			EnumSet.noneOf(StandardOpenOption::class.java)
 		for (optionInt in optionInts)
 		{
-			options.add(
-				allStandardOpenOptions[optionInt.extractInt()])
+			options.add(allStandardOpenOptions[optionInt.extractInt()])
 		}
 		return options
 	}
@@ -208,29 +199,25 @@ object P_FileOpen : Primitive(4, CanInline, HasSideEffect)
 	/**
 	 * Construct the [set][EnumSet] of [file attributes][FileAttribute] that
 	 * specify the [POSIX][PosixFilePermission] that correspond to the supplied
-	 * [ ] of integral option indicators.
+	 * [set][SetDescriptor] of integral option indicators.
 	 *
 	 * @param optionInts
-	 * Some integral option indicators.
+	 *   Some integral option indicators.
 	 * @return An array whose lone element is a set containing an attribute that
-	 * specifies the implied POSIX file permissions, or an empty array if the
-	 * [file system][FileSystem] does not support POSIX file permissions.
+	 *   specifies the implied POSIX file permissions, or an empty array if the
+	 *   [file system][FileSystem] does not support POSIX file permissions.
 	 */
-	private fun permissionsFor(optionInts: A_Set): Array<FileAttribute<*>>
-	{
-		if (IOSystem.fileSystem.supportedFileAttributeViews().contains(
-				"posix"))
+	private fun permissionsFor(optionInts: A_Set): Array<FileAttribute<*>> =
+		if (IOSystem.fileSystem.supportedFileAttributeViews().contains("posix"))
 		{
 			val allPermissions = IOSystem.posixPermissions
 			val permissions = EnumSet.noneOf(
 				PosixFilePermission::class.java)
 			for (optionInt in optionInts)
 			{
-				val permission = allPermissions[optionInt.extractInt() - 1]
-				permissions.add(permission)
+				permissions.add(allPermissions[optionInt.extractInt() - 1])
 			}
-			return arrayOf(PosixFilePermissions.asFileAttribute(permissions))
+			arrayOf(PosixFilePermissions.asFileAttribute(permissions))
 		}
-		return arrayOf()
-	}
+		else { arrayOf() }
 }

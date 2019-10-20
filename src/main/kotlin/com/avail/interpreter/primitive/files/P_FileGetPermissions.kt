@@ -59,9 +59,10 @@ import java.nio.file.attribute.PosixFilePermission
 import java.util.*
 
 /**
- * **Primitive:** Answer the [ ordinals][IntegerDescriptor] (into [IOSystem.getPosixPermissions]) of the
- * [POSIX file permissions][PosixFilePermission] that describe the
- * access rights granted by the file named by specified [path][Path].
+ * **Primitive:** Answer the [ordinals][IntegerDescriptor] (into
+ * [IOSystem.posixPermissions]) of the [POSIX file
+ * permissions][PosixFilePermission] that describe the access rights granted by
+ * the file named by specified [path][Path].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -69,9 +70,11 @@ import java.util.*
 object P_FileGetPermissions : Primitive(2, CanInline, HasSideEffect)
 {
 	/**
-	 * A [map][Map] from [POSIX file][PosixFilePermission] to [ordinals][IntegerDescriptor].
+	 * A [map][Map] from [POSIX file][PosixFilePermission] to
+	 * [ordinals][IntegerDescriptor].
 	 */
-	private val permissionMap = EnumMap<PosixFilePermission, A_Number>(PosixFilePermission::class.java)
+	private val permissionMap =
+		EnumMap<PosixFilePermission, A_Number>(PosixFilePermission::class.java)
 
 	// This is safe to do statically, since IntegerDescriptor holds the first
 	// 255 integers statically. This means that a specific AvailRuntime is not
@@ -86,11 +89,12 @@ object P_FileGetPermissions : Primitive(2, CanInline, HasSideEffect)
 	}
 
 	/**
-	 * Convert the specified [set][Set] of [ ] into the equivalent
-	 * [set][SetDescriptor] of [ ordinals][IntegerDescriptor].
+	 * Convert the specified [set][Set] of [permissions][PosixFilePermission]
+	 * into the equivalent [set][SetDescriptor] of [
+	 * ordinals][IntegerDescriptor].
 	 *
 	 * @param permissions
-	 * Some POSIX file permissions.
+	 *   Some POSIX file permissions.
 	 * @return The equivalent ordinals.
 	 */
 	private fun ordinalsFromPosixPermissions(
@@ -99,76 +103,67 @@ object P_FileGetPermissions : Primitive(2, CanInline, HasSideEffect)
 		var permissionOrdinals = emptySet()
 		for (permission in permissions)
 		{
-			val ordinal = permissionMap[permission]
-			permissionOrdinals = permissionOrdinals.setWithElementCanDestroy(
-				ordinal, true)
+			permissionOrdinals =
+				permissionOrdinals.setWithElementCanDestroy(
+					permissionMap[permission], true)
 		}
 		return permissionOrdinals
 	}
 
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val filename = interpreter.argument(0)
 		val followSymlinks = interpreter.argument(1)
-		val path: Path
-		try
-		{
-			path = IOSystem.fileSystem.getPath(filename.asNativeString())
-		}
-		catch (e: InvalidPathException)
-		{
-			return interpreter.primitiveFailure(E_INVALID_PATH)
-		}
+		val path: Path =
+			try
+			{
+				IOSystem.fileSystem.getPath(filename.asNativeString())
+			}
+			catch (e: InvalidPathException)
+			{
+				return interpreter.primitiveFailure(E_INVALID_PATH)
+			}
 
 		val options = IOSystem.followSymlinks(
 			followSymlinks.extractBoolean())
-		val permissions: Set<PosixFilePermission>
-		try
-		{
-			permissions = Files.getPosixFilePermissions(path, *options)
-		}
-		catch (e: SecurityException)
-		{
-			return interpreter.primitiveFailure(E_PERMISSION_DENIED)
-		}
-		catch (e: AccessDeniedException)
-		{
-			return interpreter.primitiveFailure(E_PERMISSION_DENIED)
-		}
-		catch (e: IOException)
-		{
-			return interpreter.primitiveFailure(E_IO_ERROR)
-		}
-		catch (e: UnsupportedOperationException)
-		{
-			return interpreter.primitiveFailure(E_OPERATION_NOT_SUPPORTED)
-		}
+		val permissions: Set<PosixFilePermission> =
+			try
+			{
+				Files.getPosixFilePermissions(path, *options)
+			}
+			catch (e: SecurityException)
+			{
+				return interpreter.primitiveFailure(E_PERMISSION_DENIED)
+			}
+			catch (e: AccessDeniedException)
+			{
+				return interpreter.primitiveFailure(E_PERMISSION_DENIED)
+			}
+			catch (e: IOException)
+			{
+				return interpreter.primitiveFailure(E_IO_ERROR)
+			}
+			catch (e: UnsupportedOperationException)
+			{
+				return interpreter.primitiveFailure(E_OPERATION_NOT_SUPPORTED)
+			}
 
 		val ordinals = ordinalsFromPosixPermissions(permissions)
 		return interpreter.primitiveSuccess(ordinals)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				stringType(),
-				booleanType()),
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(stringType(), booleanType()),
 			setTypeForSizesContentType(
-				wholeNumbers(),
-				inclusive(1, 9)))
-	}
+				wholeNumbers(), inclusive(1, 9)))
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
 			set(
 				E_INVALID_PATH,
 				E_PERMISSION_DENIED,
 				E_IO_ERROR,
 				E_OPERATION_NOT_SUPPORTED))
-	}
-
 }

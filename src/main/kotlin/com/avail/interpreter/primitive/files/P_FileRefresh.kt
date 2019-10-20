@@ -53,17 +53,15 @@ import java.util.*
 
 /**
  * **Primitive:** Force all system buffers associated with the
- * [readable][FileHandle.getCanRead] [ file channel][AsynchronousFileChannel] associated with the [handle][AtomDescriptor] to
- * be discarded from the cache.
+ * [readable][FileHandle.canRead] [file channel][AsynchronousFileChannel]
+ * associated with the [handle][AtomDescriptor] to be discarded from the cache.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
 object P_FileRefresh : Primitive(1, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val atom = interpreter.argument(0)
@@ -87,15 +85,9 @@ object P_FileRefresh : Primitive(1, CanInline, HasSideEffect)
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(ATOM.o()), TOP.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(ATOM.o()), TOP.o())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
-			set(E_INVALID_HANDLE, E_SPECIAL_ATOM, E_NOT_OPEN_FOR_READ))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_INVALID_HANDLE, E_SPECIAL_ATOM, E_NOT_OPEN_FOR_READ))
 }

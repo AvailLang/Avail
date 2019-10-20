@@ -52,70 +52,55 @@ import java.nio.file.InvalidPathException
 import java.nio.file.Path
 
 /**
- * **Primitive:** Answer the [ ][Path.toRealPath] that corresponds to the specified
- * path.
+ * **Primitive:** Answer the [real path][Path.toRealPath] that corresponds to
+ * the specified path.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
 object P_FileRealPath : Primitive(2, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val filename = interpreter.argument(0)
 		val followSymlinks = interpreter.argument(1)
-		val path: Path
-		try
-		{
-			path = IOSystem.fileSystem.getPath(filename.asNativeString())
-		}
-		catch (e: InvalidPathException)
-		{
-			return interpreter.primitiveFailure(E_INVALID_PATH)
-		}
+		val path: Path =
+			try
+			{
+				IOSystem.fileSystem.getPath(filename.asNativeString())
+			}
+			catch (e: InvalidPathException)
+			{
+				return interpreter.primitiveFailure(E_INVALID_PATH)
+			}
 
 		val options = IOSystem.followSymlinks(
 			followSymlinks.extractBoolean())
-		val realPath: Path
-		try
-		{
-			realPath = path.toRealPath(*options)
-		}
-		catch (e: SecurityException)
-		{
-			return interpreter.primitiveFailure(E_PERMISSION_DENIED)
-		}
-		catch (e: AccessDeniedException)
-		{
-			return interpreter.primitiveFailure(E_PERMISSION_DENIED)
-		}
-		catch (e: IOException)
-		{
-			return interpreter.primitiveFailure(E_IO_ERROR)
-		}
+		val realPath: Path =
+			try
+			{
+				 path.toRealPath(*options)
+			}
+			catch (e: SecurityException)
+			{
+				return interpreter.primitiveFailure(E_PERMISSION_DENIED)
+			}
+			catch (e: AccessDeniedException)
+			{
+				return interpreter.primitiveFailure(E_PERMISSION_DENIED)
+			}
+			catch (e: IOException)
+			{
+				return interpreter.primitiveFailure(E_IO_ERROR)
+			}
 
 		return interpreter.primitiveSuccess(stringFrom(realPath.toString()))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				stringType(),
-				booleanType()),
-			stringType())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(stringType(), booleanType()), stringType())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
-			set(
-				E_INVALID_PATH,
-				E_PERMISSION_DENIED,
-				E_IO_ERROR))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_INVALID_PATH, E_PERMISSION_DENIED, E_IO_ERROR))
 }

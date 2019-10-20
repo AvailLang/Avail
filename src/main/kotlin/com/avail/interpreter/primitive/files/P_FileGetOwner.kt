@@ -55,75 +55,64 @@ import java.nio.file.attribute.FileOwnerAttributeView
 import java.nio.file.attribute.UserPrincipal
 
 /**
- * **Primitive:** Answer the [user][UserPrincipal]
- * that owns the file denoted by the specified [path][Path].
+ * **Primitive:** Answer the [user][UserPrincipal] that owns the file denoted by
+ * the specified [path][Path].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
 object P_FileGetOwner : Primitive(2, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val filename = interpreter.argument(0)
 		val followSymlinks = interpreter.argument(1)
-		val path: Path
-		try
-		{
-			path = IOSystem.fileSystem.getPath(
-				filename.asNativeString())
-		}
-		catch (e: InvalidPathException)
-		{
-			return interpreter.primitiveFailure(E_INVALID_PATH)
-		}
+		val path: Path =
+			try
+			{
+				IOSystem.fileSystem.getPath(
+					filename.asNativeString())
+			}
+			catch (e: InvalidPathException)
+			{
+				return interpreter.primitiveFailure(E_INVALID_PATH)
+			}
 
 		val options = IOSystem.followSymlinks(
 			followSymlinks.extractBoolean())
 		val view = Files.getFileAttributeView(
 			path, FileOwnerAttributeView::class.java, *options)
-		           ?: return interpreter.primitiveFailure(E_OPERATION_NOT_SUPPORTED)
-		val user: UserPrincipal
-		try
-		{
-			user = view.owner
-		}
-		catch (e: SecurityException)
-		{
-			return interpreter.primitiveFailure(E_PERMISSION_DENIED)
-		}
-		catch (e: AccessDeniedException)
-		{
-			return interpreter.primitiveFailure(E_PERMISSION_DENIED)
-		}
-		catch (e: IOException)
-		{
-			return interpreter.primitiveFailure(E_IO_ERROR)
-		}
+	            ?: return interpreter.primitiveFailure(E_OPERATION_NOT_SUPPORTED)
+		val user: UserPrincipal =
+			try
+			{
+				view.owner
+			}
+			catch (e: SecurityException)
+			{
+				return interpreter.primitiveFailure(E_PERMISSION_DENIED)
+			}
+			catch (e: AccessDeniedException)
+			{
+				return interpreter.primitiveFailure(E_PERMISSION_DENIED)
+			}
+			catch (e: IOException)
+			{
+				return interpreter.primitiveFailure(E_IO_ERROR)
+			}
 
 		return interpreter.primitiveSuccess(stringFrom(user.name))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				stringType(),
-				booleanType()),
-			stringType())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(stringType(), booleanType()), stringType())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
 			set(
 				E_INVALID_PATH,
 				E_OPERATION_NOT_SUPPORTED,
 				E_PERMISSION_DENIED,
 				E_IO_ERROR))
-	}
-
 }

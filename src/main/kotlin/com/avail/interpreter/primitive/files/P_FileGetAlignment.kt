@@ -47,19 +47,16 @@ import com.avail.interpreter.Primitive.Flag.HasSideEffect
 import com.avail.io.IOSystem.FileHandle
 
 /**
- * **Primitive:** Determine the transfer alignment of the
- * underlying file.  This might not agree with the buffer size used in higher
- * level abstractions, but the VM manages buffers for the file along this
- * alignment.
+ * **Primitive:** Determine the transfer alignment of the underlying file.  This
+ * might not agree with the buffer size used in higher level abstractions, but
+ * the VM manages buffers for the file along this  alignment.
  *
  * @author Mark van Gulik&lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
 object P_FileGetAlignment : Primitive(1, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val atom = interpreter.argument(0)
@@ -72,14 +69,9 @@ object P_FileGetAlignment : Primitive(1, CanInline, HasSideEffect)
 		return interpreter.primitiveSuccess(fromInt(handle.alignment))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(ATOM.o()), naturalNumbers())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(ATOM.o()), naturalNumbers())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return instanceType(E_INVALID_HANDLE.numericCode())
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		instanceType(E_INVALID_HANDLE.numericCode())
 }

@@ -52,67 +52,51 @@ import java.nio.file.InvalidPathException
 import java.nio.file.Path
 
 /**
- * **Primitive:** Do the specified [paths][Path]
- * denote the same file?
+ * **Primitive:** Do the specified [paths][Path] denote the same file?
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
 object P_FilesAreSame : Primitive(2, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val first = interpreter.argument(0)
 		val second = interpreter.argument(1)
 		val firstPath: Path
-		val secondPath: Path
-		try
-		{
-			val fileSystem = IOSystem.fileSystem
-			firstPath = fileSystem.getPath(first.asNativeString())
-			secondPath = fileSystem.getPath(second.asNativeString())
-		}
-		catch (e: InvalidPathException)
-		{
-			return interpreter.primitiveFailure(E_INVALID_PATH)
-		}
+		val secondPath: Path =
+			try
+			{
+				val fileSystem = IOSystem.fileSystem
+				firstPath = fileSystem.getPath(first.asNativeString())
+				fileSystem.getPath(second.asNativeString())
+			}
+			catch (e: InvalidPathException)
+			{
+				return interpreter.primitiveFailure(E_INVALID_PATH)
+			}
 
-		val same: Boolean
-		try
-		{
-			same = Files.isSameFile(firstPath, secondPath)
-		}
-		catch (e: IOException)
-		{
-			return interpreter.primitiveFailure(E_IO_ERROR)
-		}
-		catch (e: SecurityException)
-		{
-			return interpreter.primitiveFailure(E_PERMISSION_DENIED)
-		}
+		val same: Boolean =
+			try
+			{
+				Files.isSameFile(firstPath, secondPath)
+			}
+			catch (e: IOException)
+			{
+				return interpreter.primitiveFailure(E_IO_ERROR)
+			}
+			catch (e: SecurityException)
+			{
+				return interpreter.primitiveFailure(E_PERMISSION_DENIED)
+			}
 
 		return interpreter.primitiveSuccess(objectFromBoolean(same))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				stringType(),
-				stringType()),
-			booleanType())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(stringType(), stringType()), booleanType())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
-			set(
-				E_INVALID_PATH,
-				E_PERMISSION_DENIED,
-				E_IO_ERROR))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_INVALID_PATH, E_PERMISSION_DENIED, E_IO_ERROR))
 }

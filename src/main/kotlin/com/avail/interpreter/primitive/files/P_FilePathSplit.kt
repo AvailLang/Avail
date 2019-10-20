@@ -53,30 +53,27 @@ import java.nio.file.Path
 import java.util.*
 
 /**
- * **Primitive:** Split the specified [path][Path]
- * into its components.
+ * **Primitive:** Split the specified [path][Path] into its components.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
 object P_FilePathSplit : Primitive(1, CanInline, CanFold)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val filename = interpreter.argument(0)
 		val fileSystem = IOSystem.fileSystem
-		val path: Path
-		try
-		{
-			path = fileSystem.getPath(filename.asNativeString())
-		}
-		catch (e: InvalidPathException)
-		{
-			return interpreter.primitiveFailure(E_INVALID_PATH)
-		}
+		val path: Path =
+			try
+			{
+				fileSystem.getPath(filename.asNativeString())
+			}
+			catch (e: InvalidPathException)
+			{
+				return interpreter.primitiveFailure(E_INVALID_PATH)
+			}
 
 		val components = ArrayList<A_String>()
 		for (component in path)
@@ -87,16 +84,9 @@ object P_FilePathSplit : Primitive(1, CanInline, CanFold)
 		return interpreter.primitiveSuccess(tuple)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(stringType()),
-			oneOrMoreOf(stringType()))
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(stringType()), oneOrMoreOf(stringType()))
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_INVALID_PATH))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_INVALID_PATH))
 }

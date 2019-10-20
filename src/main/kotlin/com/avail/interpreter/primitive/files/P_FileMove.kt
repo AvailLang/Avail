@@ -52,41 +52,43 @@ import java.io.IOException
 import java.nio.file.*
 
 /**
- * **Primitive:** Move the source [path][Path] to the
- * destination path. Use the supplied [ ][EnumerationTypeDescriptor.booleanType] to decide whether to
- * permit the destination to be overwritten.
+ * **Primitive:** Move the source [path][Path] to the destination path. Use the
+ * supplied [boolean][EnumerationTypeDescriptor.booleanType] to decide whether
+ * to permit the destination to be overwritten.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
 object P_FileMove : Primitive(3, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
 		val source = interpreter.argument(0)
 		val destination = interpreter.argument(1)
 		val overwrite = interpreter.argument(2)
 		val sourcePath: Path
-		val destinationPath: Path
-		try
-		{
-			sourcePath = IOSystem.fileSystem.getPath(
-				source.asNativeString())
-			destinationPath = IOSystem.fileSystem.getPath(
-				destination.asNativeString())
-		}
-		catch (e: InvalidPathException)
-		{
-			return interpreter.primitiveFailure(E_INVALID_PATH)
-		}
+		val destinationPath: Path =
+			try
+			{
+				sourcePath = IOSystem.fileSystem.getPath(
+					source.asNativeString())
+				IOSystem.fileSystem.getPath(destination.asNativeString())
+			}
+			catch (e: InvalidPathException)
+			{
+				return interpreter.primitiveFailure(E_INVALID_PATH)
+			}
 
-		val options = if (overwrite.extractBoolean())
-			arrayOf<CopyOption>(StandardCopyOption.REPLACE_EXISTING)
-		else
-			arrayOf()
+		val options =
+			if (overwrite.extractBoolean())
+			{
+				arrayOf<CopyOption>(StandardCopyOption.REPLACE_EXISTING)
+			}
+			else
+			{
+				arrayOf()
+			}
 		try
 		{
 			Files.move(
@@ -118,16 +120,15 @@ object P_FileMove : Primitive(3, CanInline, HasSideEffect)
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(stringType(), stringType(), booleanType()),
-		                    TOP.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(stringType(), stringType(), booleanType()), TOP.o())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_INVALID_PATH, E_PERMISSION_DENIED, E_NO_FILE,
-		                           E_FILE_EXISTS, E_IO_ERROR))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
+			set(
+				E_INVALID_PATH,
+				E_PERMISSION_DENIED,
+				E_NO_FILE,
+				E_FILE_EXISTS,
+				E_IO_ERROR))
 }

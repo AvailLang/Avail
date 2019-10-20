@@ -53,17 +53,15 @@ import java.nio.file.InvalidPathException
 import java.nio.file.Path
 
 /**
- * **Primitive:** Concatenate the [ elements][StringDescriptor] of the specified [tuple][TupleDescriptor] to form a
- * platform-specific [path][Path].
+ * **Primitive:** Concatenate the [elements][StringDescriptor] of the specified
+ * [tuple][TupleDescriptor] to form a platform-specific [path][Path].
  *
  * @author authorName &lt;emailAddress@availlang.org&gt;
  */
 @Suppress("unused")
 object P_FilePathConcatenation : Primitive(1, CanInline, CanFold)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val tuple = interpreter.argument(0)
@@ -74,13 +72,13 @@ object P_FilePathConcatenation : Primitive(1, CanInline, CanFold)
 			for (component in tuple)
 			{
 				val componentString = component.asNativeString()
-				if (path === null)
+				path = if (path === null)
 				{
-					path = fileSystem.getPath(componentString)
+					fileSystem.getPath(componentString)
 				}
 				else
 				{
-					path = path.resolve(componentString)
+					path.resolve(componentString)
 				}
 			}
 		}
@@ -90,22 +88,18 @@ object P_FilePathConcatenation : Primitive(1, CanInline, CanFold)
 		}
 
 		return if (path === null)
-		{
-			interpreter.primitiveSuccess(emptyTuple())
-		}
-		else interpreter.primitiveSuccess(stringFrom(path.toString()))
+			{
+				interpreter.primitiveSuccess(emptyTuple())
+			}
+			else
+			{
+				interpreter.primitiveSuccess(stringFrom(path.toString()))
+			}
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(zeroOrMoreOf(stringType())),
-			stringType())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(zeroOrMoreOf(stringType())), stringType())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_INVALID_PATH))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_INVALID_PATH))
 }

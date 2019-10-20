@@ -64,22 +64,22 @@ import java.nio.channels.AsynchronousFileChannel
 import kotlin.math.min
 
 /**
- * **Primitive:** Read the requested number of bytes from the
- * [file channel][AsynchronousFileChannel] associated with the
- * specified [handle][AtomDescriptor], starting at the requested
- * one-based position. Produce them as a [ tuple][ByteArrayTupleDescriptor] of
- * bytes. If fewer bytes are available, then simply produce a shorter
- * tuple; an empty tuple unambiguously indicates that the end of the file has
- * been reached. If the request amount is infinite or very large, fewer bytes
- * may be returned, at the discretion of the Avail VM.
+ * **Primitive:** Read the requested number of bytes from the [file
+ * channel][AsynchronousFileChannel] associated with the specified
+ * [handle][AtomDescriptor], starting at the requested one-based position.
+ * Produce them as a [tuple][ByteArrayTupleDescriptor] of bytes. If fewer bytes
+ * are available, then simply produce a shorter tuple; an empty tuple
+ * unambiguously indicates that the end of the file has been reached. If the
+ * request amount is infinite or very large, fewer bytes may be returned, at the
+ * discretion of the Avail VM.
  *
  *
  *
  * Answer a new fiber which, if the read is eventually successful, will be
- * started to apply the [success function][FunctionDescriptor] to the
- * resulting tuple of bytes.  If the read is unsuccessful, the fiber will be
- * started to apply the `failure function` to the error code.  The fiber
- * runs at the specified priority.
+ * started to apply the [success function][FunctionDescriptor] to the resulting
+ * tuple of bytes.  If the read is unsuccessful, the fiber will be started to
+ * apply the `failure function` to the error code.  The fiber runs at the
+ * specified priority.
  *
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -219,8 +219,8 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 		val current = interpreter.fiber()
 		val newFiber = newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
-			priority.extractInt()
-		) {
+			priority.extractInt())
+		{
 			formatString("Asynchronous file read, %s", handle.filename)
 		}
 		// If the current fiber is an Avail fiber, then the new one should be
@@ -240,7 +240,8 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 			// We began with buffer hits, so don't fetch anything.
 			// Concatenate the buffers we have.
 			val buffersTuple = tupleFromList(buffers)
-			val concatenated = buffersTuple.concatenateTuplesCanDestroy(false)
+			val concatenated =
+				buffersTuple.concatenateTuplesCanDestroy(false)
 			runOutermostFunction(
 				runtime,
 				newFiber,
@@ -283,13 +284,14 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 						var offsetInBuffer = 1
 						for (bufferStart in
 							oneBasedPositionLong..lastFullBufferStart step
-								alignment.toLong()
-						) {
-							val subtuple = bytesTuple.copyTupleFromToCanDestroy(
-								offsetInBuffer,
-								offsetInBuffer + alignment - 1,
-								false
-							).makeShared()
+								alignment.toLong())
+						{
+							val subtuple =
+								bytesTuple.copyTupleFromToCanDestroy(
+									offsetInBuffer,
+									offsetInBuffer + alignment - 1,
+									false
+								).makeShared()
 							assert(subtuple.tupleSize() == alignment)
 							val key = BufferKey(handle, bufferStart)
 							val bufferHolder = ioSystem.getBuffer(key)
@@ -321,31 +323,23 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 		return interpreter.primitiveSuccess(newFiber)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tupleFromArray(
 				naturalNumbers(),
 				inclusive(one(), positiveInfinity()),
 				ATOM.o(),
+				functionType(tuple(zeroOrMoreOf(bytes())), TOP.o()),
 				functionType(
-					tuple(zeroOrMoreOf(bytes())),
-					TOP.o()),
-				functionType(
-					tuple(instanceType(E_IO_ERROR.numericCode())),
-					TOP.o()),
+					tuple(instanceType(E_IO_ERROR.numericCode())), TOP.o()),
 				bytes()),
 			fiberType(TOP.o()))
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
 			set(
 				E_INVALID_HANDLE,
 				E_SPECIAL_ATOM,
 				E_NOT_OPEN_FOR_READ,
 				E_EXCEEDS_VM_LIMIT))
-	}
-
 }

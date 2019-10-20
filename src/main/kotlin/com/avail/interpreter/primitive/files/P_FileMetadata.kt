@@ -65,121 +65,108 @@ import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
 
 /**
- * **Primitive:** Answer the [ metadata][BasicFileAttributes] for the file indicated by the specified [path][Path].
+ * **Primitive:** Answer the [metadata][BasicFileAttributes] for the file
+ * indicated by the specified [path][Path].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
 object P_FileMetadata : Primitive(2, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val filename = interpreter.argument(0)
 		val followSymlinks = interpreter.argument(1)
-		val path: Path
-		try
-		{
-			path = IOSystem.fileSystem.getPath(filename.asNativeString())
-		}
-		catch (e: InvalidPathException)
-		{
-			return interpreter.primitiveFailure(E_INVALID_PATH)
-		}
+		val path: Path =
+			try
+			{
+				IOSystem.fileSystem.getPath(filename.asNativeString())
+			}
+			catch (e: InvalidPathException)
+			{
+				return interpreter.primitiveFailure(E_INVALID_PATH)
+			}
 
-		val options = IOSystem.followSymlinks(
-			followSymlinks.extractBoolean())
-		val attributes: BasicFileAttributes
-		try
-		{
-			attributes = Files.readAttributes(
-				path, BasicFileAttributes::class.java, *options)
-		}
-		catch (e: SecurityException)
-		{
-			return interpreter.primitiveFailure(E_PERMISSION_DENIED)
-		}
-		catch (e: AccessDeniedException)
-		{
-			return interpreter.primitiveFailure(E_PERMISSION_DENIED)
-		}
-		catch (e: IOException)
-		{
-			return interpreter.primitiveFailure(E_IO_ERROR)
-		}
+		val options =
+			IOSystem.followSymlinks(followSymlinks.extractBoolean())
+		val attributes: BasicFileAttributes =
+			try
+			{
+				Files.readAttributes(
+					path, BasicFileAttributes::class.java, *options)
+			}
+			catch (e: SecurityException)
+			{
+				return interpreter.primitiveFailure(E_PERMISSION_DENIED)
+			}
+			catch (e: AccessDeniedException)
+			{
+				return interpreter.primitiveFailure(E_PERMISSION_DENIED)
+			}
+			catch (e: IOException)
+			{
+				return interpreter.primitiveFailure(E_IO_ERROR)
+			}
 
 		// Build the attribute tuple.
 		val fileId = attributes.fileKey()
 		val raw: Any
-		val rawClass: Class<*>
 		// The file key may be null, in which case just use the path itself.
 		// Try to use the absolute path if it's available, otherwise just use
 		// the one supplied.
-		if (fileId !== null)
-		{
-			raw = fileId
-			rawClass = fileId.javaClass
-		}
-		else
-		{
-			// Curse you, Java, for your incomplete flow analysis.
-			var temp: Any
-			try
+		val rawClass: Class<*> =
+			if (fileId !== null)
 			{
-				temp = path.toAbsolutePath()
+				raw = fileId
+				fileId.javaClass
 			}
-			catch (e: SecurityException)
+			else
 			{
-				temp = path
-			}
-			catch (e: IOError)
-			{
-				temp = path
-			}
+				// Curse you, Java, for your incomplete flow analysis.
+				var temp: Any
+				try
+				{
+					temp = path.toAbsolutePath()
+				}
+				catch (e: SecurityException)
+				{
+					temp = path
+				}
+				catch (e: IOError)
+				{
+					temp = path
+				}
 
-			raw = temp
-			rawClass = Path::class.java
-		}
+				raw = temp
+				Path::class.java
+			}
 		val tuple = tupleFromArray(
-			newPojo(
-				equalityPojo(raw),
-				pojoTypeForClass(rawClass)),
+			newPojo(equalityPojo(raw), pojoTypeForClass(rawClass)),
 			fromInt(
-				if (attributes.isRegularFile)
-					1
-				else if (attributes.isDirectory)
-					2
-				else if (attributes.isSymbolicLink)
-					3
-				else
-					4), fromLong(
+				when
+				{
+					attributes.isRegularFile -> 1
+					attributes.isDirectory -> 2
+					attributes.isSymbolicLink -> 3
+					else -> 4
+				}), fromLong(
 			attributes.creationTime().toMillis()),
-			fromLong(
-				attributes.lastModifiedTime().toMillis()),
-			fromLong(
-				attributes.lastAccessTime().toMillis()),
-			fromLong(
-				attributes.size()))
+			fromLong(attributes.lastModifiedTime().toMillis()),
+			fromLong(attributes.lastAccessTime().toMillis()),
+			fromLong(attributes.size()))
 		return interpreter.primitiveSuccess(tuple)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(stringType(), booleanType()),
-		                    tupleTypeForSizesTypesDefaultType(
-			                    singleInt(6),
-			                    tuple(
-				                    mostGeneralPojoType(),
-				                    inclusive(1, 4)),
-			                    inclusive(0, MAX_VALUE)))
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(stringType(),
+			booleanType()),
+			tupleTypeForSizesTypesDefaultType(
+				singleInt(6),
+			    tuple(mostGeneralPojoType(), inclusive(1, 4)),
+				inclusive(0, MAX_VALUE)))
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
-			set(E_INVALID_PATH, E_PERMISSION_DENIED, E_IO_ERROR))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_INVALID_PATH, E_PERMISSION_DENIED, E_IO_ERROR))
 }

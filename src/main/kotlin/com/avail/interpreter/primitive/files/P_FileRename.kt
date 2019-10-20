@@ -43,6 +43,7 @@ import com.avail.descriptor.IntegerRangeTypeDescriptor.bytes
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray
 import com.avail.descriptor.SetDescriptor.set
+import com.avail.descriptor.StringDescriptor
 import com.avail.descriptor.StringDescriptor.formatString
 import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TupleTypeDescriptor.stringType
@@ -58,19 +59,16 @@ import java.nio.file.*
 import java.util.*
 
 /**
- * **Primitive:** Rename the source [path][Path] to
- * the destination path. Try not to overwrite an existing destination. This
- * operation is only likely to work for two paths provided by the same
- * [file store][FileStore].
+ * **Primitive:** Rename the source [path][Path] to the destination path. Try
+ * not to overwrite an existing destination. This operation is only likely to
+ * work for two paths provided by the same [file store][FileStore].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
 object P_FileRename : Primitive(6, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(6)
 		val source = interpreter.argument(0)
@@ -82,27 +80,26 @@ object P_FileRename : Primitive(6, CanInline, HasSideEffect)
 
 		val runtime = currentRuntime()
 		val sourcePath: Path
-		val destinationPath: Path
-		try
-		{
-			sourcePath = IOSystem.fileSystem.getPath(
-				source.asNativeString())
-			destinationPath = IOSystem.fileSystem.getPath(
-				destination.asNativeString())
-		}
-		catch (e: InvalidPathException)
-		{
-			return interpreter.primitiveFailure(E_INVALID_PATH)
-		}
+		val destinationPath: Path =
+			try
+			{
+				sourcePath = IOSystem.fileSystem.getPath(
+					source.asNativeString())
+				IOSystem.fileSystem.getPath(destination.asNativeString())
+			}
+			catch (e: InvalidPathException)
+			{
+				return interpreter.primitiveFailure(E_INVALID_PATH)
+			}
 
 		val priorityInt = priority.extractInt()
 		val current = interpreter.fiber()
 		val newFiber = newFiber(
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
-			priorityInt
-		) {
-			formatString("Asynchronous file rename, %s → %s", sourcePath,
-			             destinationPath)
+			priorityInt)
+		{
+			StringDescriptor.stringFrom(
+				"Asynchronous file rename, $sourcePath → $destinationPath")
 		}
 		newFiber.availLoader(current.availLoader())
 		newFiber.heritableFiberGlobals(
@@ -113,7 +110,8 @@ object P_FileRename : Primitive(6, CanInline, HasSideEffect)
 		fail.makeShared()
 
 		val replace = replaceExisting.extractBoolean()
-		runtime.ioSystem().executeFileTask(Runnable {
+		runtime.ioSystem().executeFileTask(
+			Runnable {
                val options = ArrayList<CopyOption>()
                if (replace)
                {
@@ -137,7 +135,11 @@ object P_FileRename : Primitive(6, CanInline, HasSideEffect)
                }
                catch (e: AccessDeniedException)
                {
-                   Interpreter.runOutermostFunction(runtime, newFiber, fail, listOf(E_PERMISSION_DENIED.numericCode()))
+                   Interpreter.runOutermostFunction(
+	                   runtime,
+	                   newFiber,
+	                   fail,
+	                   listOf(E_PERMISSION_DENIED.numericCode()))
                    return@Runnable
                }
                catch (e: NoSuchFileException)
@@ -177,28 +179,23 @@ object P_FileRename : Primitive(6, CanInline, HasSideEffect)
 		return interpreter.primitiveSuccess(newFiber)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tupleFromArray(
 				stringType(),
 				stringType(),
 				booleanType(),
+				functionType(emptyTuple(), TOP.o()),
 				functionType(
-					emptyTuple(),
-					TOP.o()),
-				functionType(
-					tuple(
-						enumerationWith(
-							set(
-								E_PERMISSION_DENIED,
-								E_FILE_EXISTS,
-								E_NO_FILE,
-								E_IO_ERROR))),
+					tuple(enumerationWith(
+						set(
+							E_PERMISSION_DENIED,
+							E_FILE_EXISTS,
+							E_NO_FILE,
+							E_IO_ERROR))),
 					TOP.o()),
 				bytes()),
 			fiberType(TOP.o()))
-	}
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_INVALID_PATH))
