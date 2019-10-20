@@ -661,7 +661,7 @@ public final class AvailServer
 	}
 
 	/**
-	 * Answer the {@linkplain ModuleRoots#modulePath() module roots path}.
+	 * Answer the {@linkplain ModuleRoots#getModulePath() module roots path}.
 	 *
 	 * @param channel
 	 *        The {@linkplain AvailServerChannel channel} on which the
@@ -681,7 +681,7 @@ public final class AvailServer
 		assert command.command() == Command.MODULE_ROOTS_PATH;
 		final Message message = newSuccessMessage(
 			command,
-			writer -> writer.write(runtime.moduleRoots().modulePath()));
+			writer -> writer.write(runtime.moduleRoots().getModulePath()));
 		channel.enqueueMessageThen(message, continuation);
 	}
 
@@ -872,7 +872,7 @@ public final class AvailServer
 		final ModuleRoot root,
 		final MutableOrNull<ModuleNode> tree)
 	{
-		final String extension = ModuleNameResolver.availExtension;
+		final String extension = ModuleNameResolver.getAvailExtension();
 		final Mutable<Boolean> isRoot = new Mutable<>(true);
 		final Deque<ModuleNode> stack = new ArrayDeque<>();
 		return new FileVisitor<Path>()
@@ -886,7 +886,7 @@ public final class AvailServer
 				if (isRoot.value)
 				{
 					isRoot.value = false;
-					final ModuleNode node = new ModuleNode(root.name());
+					final ModuleNode node = new ModuleNode(root.getName());
 					tree.value = node;
 					stack.add(node);
 					return FileVisitResult.CONTINUE;
@@ -926,7 +926,7 @@ public final class AvailServer
 				// The root should be a directory, not a file.
 				if (isRoot.value)
 				{
-					tree.value = new ModuleNode(root.name());
+					tree.value = new ModuleNode(root.getName());
 					return FileVisitResult.TERMINATE;
 				}
 				final String fileName = file.getFileName().toString();
@@ -1000,7 +1000,7 @@ public final class AvailServer
 				{
 					final MutableOrNull<ModuleNode> tree =
 						new MutableOrNull<>();
-					final @Nullable File directory = root.sourceDirectory();
+					final @Nullable File directory = root.getSourceDirectory();
 					if (directory != null)
 					{
 						try
@@ -1056,7 +1056,7 @@ public final class AvailServer
 							version.getEntryPoints();
 						if (!entryPoints.isEmpty())
 						{
-							map.put(name.qualifiedName(), entryPoints);
+							map.put(name.getQualifiedName(), entryPoints);
 						}
 						after.invoke();
 						return Unit.INSTANCE;
@@ -1104,7 +1104,7 @@ public final class AvailServer
 		try
 		{
 			for (final ModuleRoot root :
-				runtime.moduleNameResolver().moduleRoots().roots())
+				runtime.moduleNameResolver().getModuleRoots().getRoots())
 			{
 				root.clearRepository();
 			}
@@ -1315,7 +1315,7 @@ public final class AvailServer
 				final JSONWriter writer = new JSONWriter();
 				writer.startObject();
 				writer.write("module");
-				writer.write(name.qualifiedName());
+				writer.write(name.getQualifiedName());
 				writer.write("position");
 				writer.write(position);
 				writer.endObject();
@@ -1340,7 +1340,7 @@ public final class AvailServer
 				}
 				return Unit.INSTANCE;
 			},
-			builder.buildProblemHandler);
+			builder.getBuildProblemHandler());
 		updater.cancel();
 		updater.run();
 		assert localUpdates.isEmpty();
@@ -1531,7 +1531,7 @@ public final class AvailServer
 					channel.enqueueMessageThen(
 						message,
 						() ->
-							cleanup.invoke(() ->
+							cleanup.invoke((Function0<Unit>) () ->
 							{
 								IO.close(ioChannel);
 								return Unit.INSTANCE;
@@ -1557,7 +1557,7 @@ public final class AvailServer
 							});
 						channel.enqueueMessageThen(
 							message,
-							() -> cleanup.invoke(() ->
+							() -> cleanup.invoke((Function0<Unit>) () ->
 							{
 								IO.close(ioChannel);
 								return Unit.INSTANCE;

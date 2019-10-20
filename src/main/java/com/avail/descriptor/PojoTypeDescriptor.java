@@ -1414,7 +1414,7 @@ extends TypeDescriptor
 		final Class<?> target,
 		final A_Tuple typeArgs)
 	{
-		return cache.getNotNull(new LRUCacheKey(target, typeArgs));
+		return cache.get(new LRUCacheKey(target, typeArgs));
 	}
 
 	/**

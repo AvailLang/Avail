@@ -3428,7 +3428,7 @@ class AvailCompiler(
 					if (AvailLoader.debugLoadedStatements)
 					{
 						println(
-							moduleName.qualifiedName()
+							moduleName.qualifiedName
 								+ ':'.toString() + start.lineNumber
 								+ " Running statement:\n" + statement)
 					}
@@ -3636,7 +3636,7 @@ class AvailCompiler(
 
 		// Module name was checked against file name in a prefix function.
 		val moduleName = stringFromToken(moduleNameToken)
-		assert(moduleName.asNativeString() == this.moduleName.localName())
+		assert(moduleName.asNativeString() == this.moduleName.localName)
 
 		// Module versions were already checked for duplicates.
 		if (optionalVersions.tupleSize() > 0)
@@ -4206,7 +4206,7 @@ class AvailCompiler(
 					succeed(
 						AvailCompiler(
 							ModuleHeader(resolvedName),
-							newModule(stringFrom(resolvedName.qualifiedName())),
+							newModule(stringFrom(resolvedName.qualifiedName)),
 							stringFrom(sourceText),
 							textInterface,
 							pollForAbort,
@@ -4239,7 +4239,7 @@ class AvailCompiler(
 			problemHandler: ProblemHandler)
 		{
 			val runtime = currentRuntime()
-			val ref = resolvedName.sourceReference()
+			val ref = resolvedName.sourceReference
 			val decoder = StandardCharsets.UTF_8.newDecoder()
 			decoder.onMalformedInput(CodingErrorAction.REPLACE)
 			decoder.onUnmappableCharacter(CodingErrorAction.REPLACE)

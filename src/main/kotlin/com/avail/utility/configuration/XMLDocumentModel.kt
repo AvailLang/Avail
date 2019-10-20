@@ -138,7 +138,7 @@ internal constructor(elementClass: Class<ElementType>) where
 			val valuesMethod = elementClass.getMethod("values")
 			assert(Modifier.isStatic(valuesMethod.modifiers))
 			@Suppress("UNCHECKED_CAST")
-			elements = valuesMethod.invoke(null) as Array<ElementType>
+			elements = valuesMethod(null) as Array<ElementType>
 		}
 		catch (e: SecurityException)
 		{

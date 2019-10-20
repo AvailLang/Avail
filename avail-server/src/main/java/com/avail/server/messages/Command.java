@@ -158,7 +158,7 @@ public enum Command
 	MODULE_ROOT_PATHS,
 
 	/**
-	 * Answer the {@linkplain ModuleRoots#modulePath() module roots path}.
+	 * Answer the {@linkplain ModuleRoots#getModulePath() module roots path}.
 	 */
 	MODULE_ROOTS_PATH,
 

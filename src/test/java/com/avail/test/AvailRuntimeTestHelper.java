@@ -150,10 +150,10 @@ public class AvailRuntimeTestHelper
 		final AvailBuilder b = new AvailBuilder(runtime);
 		@SuppressWarnings("IOResourceOpenedButNotSafelyClosed")
 		final TestErrorChannel errorChannel = new TestErrorChannel(
-			b.textInterface.getErrorChannel());
+			b.getTextInterface().getErrorChannel());
 		b.setTextInterface(new TextInterface(
-			b.textInterface.getInputChannel(),
-			b.textInterface.getOutputChannel(),
+			b.getTextInterface().getInputChannel(),
+			b.getTextInterface().getOutputChannel(),
 			errorChannel));
 		return b;
 	}
@@ -255,7 +255,7 @@ public class AvailRuntimeTestHelper
 	 */
 	public void clearAllRepositories ()
 	{
-		resolver.moduleRoots().roots().forEach(ModuleRoot::clearRepository);
+		resolver.getModuleRoots().getRoots().forEach(ModuleRoot::clearRepository);
 	}
 
 	/**
@@ -264,7 +264,7 @@ public class AvailRuntimeTestHelper
 	public void clearError ()
 	{
 		final TestErrorChannel channel =
-			cast(builder.textInterface.getErrorChannel());
+			cast(builder.getTextInterface().getErrorChannel());
 		channel.errorDetected = false;
 	}
 
@@ -284,7 +284,7 @@ public class AvailRuntimeTestHelper
 	public boolean errorDetected ()
 	{
 		final TestErrorChannel channel =
-			cast(builder.textInterface.getErrorChannel());
+			cast(builder.getTextInterface().getErrorChannel());
 		return channel.errorDetected;
 	}
 
@@ -331,7 +331,7 @@ public class AvailRuntimeTestHelper
 		final long position)
 	{
 		final int percent = (int) ((position * 100) / moduleSize);
-		String modName = moduleName.qualifiedName();
+		String modName = moduleName.getQualifiedName();
 		final int maxModuleNameLength = 61;
 		final int len = modName.length();
 		if (len > maxModuleNameLength)
@@ -389,7 +389,7 @@ public class AvailRuntimeTestHelper
 				globalTrack(moduleBytes, totalBytes);
 				return Unit.INSTANCE;
 			},
-			builder.buildProblemHandler);
+			builder.getBuildProblemHandler());
 		builder.checkStableInvariants();
 		return builder.getLoadedModule(library) != null;
 	}
