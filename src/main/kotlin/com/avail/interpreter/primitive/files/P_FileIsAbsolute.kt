@@ -55,6 +55,7 @@ import java.nio.file.Path
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_FileIsAbsolute : Primitive(1, CanInline, HasSideEffect)
 {
 

@@ -60,6 +60,7 @@ import java.nio.file.attribute.PosixFileAttributeView
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_FileSetGroup : Primitive(3, CanInline, HasSideEffect)
 {
 

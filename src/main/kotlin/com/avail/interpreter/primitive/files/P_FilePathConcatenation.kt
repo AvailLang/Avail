@@ -58,6 +58,7 @@ import java.nio.file.Path
  *
  * @author authorName &lt;emailAddress@availlang.org&gt;
  */
+@Suppress("unused")
 object P_FilePathConcatenation : Primitive(1, CanInline, CanFold)
 {
 

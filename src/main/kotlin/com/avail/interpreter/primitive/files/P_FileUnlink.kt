@@ -57,6 +57,7 @@ import java.util.*
  * **Primitive:** Unlink the specified [path][Path]
  * from the file system.
  */
+@Suppress("unused")
 object P_FileUnlink : Primitive(4, CanInline, HasSideEffect)
 {
 

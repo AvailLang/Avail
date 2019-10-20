@@ -50,60 +50,49 @@ import java.nio.file.InvalidPathException
 import java.nio.file.Path
 
 /**
- * **Primitive:** Answer the [ absolute path][Path.toAbsolutePath] that corresponds to the specified path.
+ * **Primitive:** Answer the [absolute path][Path.toAbsolutePath] that
+ * corresponds to the specified path.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_FileAbsolutePath : Primitive(1, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val filename = interpreter.argument(0)
-		val path: Path
-		try
-		{
-			path = IOSystem.fileSystem.getPath(filename.asNativeString())
-		}
-		catch (e: InvalidPathException)
-		{
-			return interpreter.primitiveFailure(E_INVALID_PATH)
-		}
+		val path: Path =
+			try
+			{
+				IOSystem.fileSystem.getPath(filename.asNativeString())
+			}
+			catch (e: InvalidPathException)
+			{
+				return interpreter.primitiveFailure(E_INVALID_PATH)
+			}
 
-		val absolutePath: Path
-		try
-		{
-			absolutePath = path.toAbsolutePath()
-		}
-		catch (e: SecurityException)
-		{
-			return interpreter.primitiveFailure(E_PERMISSION_DENIED)
-		}
-		catch (e: IOError)
-		{
-			return interpreter.primitiveFailure(E_IO_ERROR)
-		}
+		val absolutePath: Path =
+			try
+			{
+				path.toAbsolutePath()
+			}
+			catch (e: SecurityException)
+			{
+				return interpreter.primitiveFailure(E_PERMISSION_DENIED)
+			}
+			catch (e: IOError)
+			{
+				return interpreter.primitiveFailure(E_IO_ERROR)
+			}
 
 		return interpreter.primitiveSuccess(
 			stringFrom(absolutePath.toString()))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(stringType()),
-			stringType())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(stringType()), stringType())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
-			set(
-				E_INVALID_PATH,
-				E_PERMISSION_DENIED,
-				E_IO_ERROR))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_INVALID_PATH, E_PERMISSION_DENIED, E_IO_ERROR))
 }

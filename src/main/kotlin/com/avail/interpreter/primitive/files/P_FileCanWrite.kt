@@ -51,53 +51,41 @@ import java.nio.file.InvalidPathException
 import java.nio.file.Path
 
 /**
- * **Primitive:** Is the specified [path][Path]
- * writable?
+ * **Primitive:** Is the specified [path][Path] writable?
  */
+@Suppress("unused")
 object P_FileCanWrite : Primitive(1, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val filename = interpreter.argument(0)
-		val path: Path
-		try
-		{
-			path = IOSystem.fileSystem.getPath(filename.asNativeString())
-		}
-		catch (e: InvalidPathException)
-		{
-			return interpreter.primitiveFailure(E_INVALID_PATH)
-		}
+		val path: Path =
+			try
+			{
+				IOSystem.fileSystem.getPath(filename.asNativeString())
+			}
+			catch (e: InvalidPathException)
+			{
+				return interpreter.primitiveFailure(E_INVALID_PATH)
+			}
 
-		val writable: Boolean
-		try
-		{
-			writable = Files.isWritable(path)
-		}
-		catch (e: SecurityException)
-		{
-			return interpreter.primitiveFailure(E_PERMISSION_DENIED)
-		}
+		val writable: Boolean =
+			try
+			{
+				Files.isWritable(path)
+			}
+			catch (e: SecurityException)
+			{
+				return interpreter.primitiveFailure(E_PERMISSION_DENIED)
+			}
 
 		return interpreter.primitiveSuccess(objectFromBoolean(writable))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(stringType()),
-			booleanType())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(stringType()), booleanType())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
-			set(
-				E_INVALID_PATH,
-				E_PERMISSION_DENIED))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_INVALID_PATH, E_PERMISSION_DENIED))
 }

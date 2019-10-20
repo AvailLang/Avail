@@ -85,6 +85,7 @@ import kotlin.math.min
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@Suppress("unused")
 object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 {
 	/**

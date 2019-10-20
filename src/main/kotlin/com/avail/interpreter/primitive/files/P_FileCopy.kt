@@ -55,15 +55,15 @@ import java.nio.file.attribute.BasicFileAttributes
 import java.util.*
 
 /**
- * **Primitive:** Recursively copy the source [ path][Path] to the destination path.
+ * **Primitive:** Recursively copy the source [path][Path] to the destination
+ * path.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_FileCopy : Primitive(5, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(5)
 		val source = interpreter.argument(0)
@@ -72,18 +72,17 @@ object P_FileCopy : Primitive(5, CanInline, HasSideEffect)
 		val replace = interpreter.argument(3)
 		val copyAttributes = interpreter.argument(4)
 		val sourcePath: Path
-		val destinationPath: Path
-		try
-		{
-			sourcePath = IOSystem.fileSystem.getPath(
-				source.asNativeString())
-			destinationPath = IOSystem.fileSystem.getPath(
-				destination.asNativeString())
-		}
-		catch (e: InvalidPathException)
-		{
-			return interpreter.primitiveFailure(E_INVALID_PATH)
-		}
+		val destinationPath: Path =
+			try
+			{
+				sourcePath = IOSystem.fileSystem.getPath(
+					source.asNativeString())
+				IOSystem.fileSystem.getPath(destination.asNativeString())
+			}
+			catch (e: InvalidPathException)
+			{
+				return interpreter.primitiveFailure(E_INVALID_PATH)
+			}
 
 		val optionList = ArrayList<CopyOption>(2)
 		if (replace.extractBoolean())
@@ -97,10 +96,15 @@ object P_FileCopy : Primitive(5, CanInline, HasSideEffect)
 		val options = optionList.toTypedArray()
 		try
 		{
-			val visitOptions = if (followSymlinks.extractBoolean())
-				EnumSet.of(FileVisitOption.FOLLOW_LINKS)
-			else
-				EnumSet.noneOf(FileVisitOption::class.java)
+			val visitOptions =
+				if (followSymlinks.extractBoolean())
+				{
+					EnumSet.of(FileVisitOption.FOLLOW_LINKS)
+				}
+				else
+				{
+					EnumSet.noneOf(FileVisitOption::class.java)
+				}
 			val partialSuccess = Mutable(false)
 			Files.walkFileTree(
 				sourcePath,
@@ -185,18 +189,17 @@ object P_FileCopy : Primitive(5, CanInline, HasSideEffect)
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(stringType(), stringType(), booleanType(), booleanType(),
-			      booleanType()), TOP.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(
+				stringType(),
+				stringType(),
+				booleanType(),
+				booleanType(),
+				booleanType()),
+			TOP.o())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
-			set(E_INVALID_PATH, E_PERMISSION_DENIED, E_IO_ERROR,
-			    E_PARTIAL_SUCCESS))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(
+			E_INVALID_PATH, E_PERMISSION_DENIED, E_IO_ERROR, E_PARTIAL_SUCCESS))
 }

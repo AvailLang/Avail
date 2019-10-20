@@ -64,6 +64,7 @@ import java.io.IOException
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_FileTruncate : Primitive(5, CanInline, HasSideEffect)
 {
 

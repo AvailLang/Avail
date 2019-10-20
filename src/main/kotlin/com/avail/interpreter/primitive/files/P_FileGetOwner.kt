@@ -60,6 +60,7 @@ import java.nio.file.attribute.UserPrincipal
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_FileGetOwner : Primitive(2, CanInline, HasSideEffect)
 {
 

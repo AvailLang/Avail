@@ -65,6 +65,7 @@ import java.util.*
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_FileRename : Primitive(6, CanInline, HasSideEffect)
 {
 

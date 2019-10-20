@@ -58,6 +58,7 @@ import java.nio.file.*
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_FileMove : Primitive(3, CanInline, HasSideEffect)
 {
 

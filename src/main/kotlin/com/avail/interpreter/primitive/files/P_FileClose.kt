@@ -50,16 +50,16 @@ import java.io.IOException
 import java.nio.channels.AsynchronousFileChannel
 
 /**
- * **Primitive:** Close the [ file][AsynchronousFileChannel] associated with the specified [handle][AtomDescriptor].
- * Forget the association between the handle and the file.
+ * **Primitive:** Close the [file][AsynchronousFileChannel] associated with the
+ * specified [handle][AtomDescriptor]. Forget the association between the handle
+ * and the file.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_FileClose : Primitive(1, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val atom = interpreter.argument(0)
@@ -84,14 +84,9 @@ object P_FileClose : Primitive(1, CanInline, HasSideEffect)
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(ATOM.o()), TOP.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(ATOM.o()), TOP.o())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return instanceType(E_INVALID_HANDLE.numericCode())
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		instanceType(E_INVALID_HANDLE.numericCode())
 }

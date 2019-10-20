@@ -58,6 +58,7 @@ import java.util.*
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_FilePathSplit : Primitive(1, CanInline, CanFold)
 {
 

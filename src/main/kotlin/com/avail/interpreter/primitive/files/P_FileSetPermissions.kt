@@ -66,6 +66,7 @@ import java.util.*
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_FileSetPermissions : Primitive(3, CanInline, HasSideEffect)
 {
 

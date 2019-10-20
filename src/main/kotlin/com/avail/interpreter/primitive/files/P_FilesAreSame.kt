@@ -57,6 +57,7 @@ import java.nio.file.Path
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_FilesAreSame : Primitive(2, CanInline, HasSideEffect)
 {
 

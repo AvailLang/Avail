@@ -69,6 +69,7 @@ import java.nio.file.attribute.BasicFileAttributes
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_FileMetadata : Primitive(2, CanInline, HasSideEffect)
 {
 

@@ -46,10 +46,12 @@ import java.nio.file.FileSystems
 import java.nio.file.Path
 
 /**
- * **Primitive:** Answer the [ ][Path.toRealPath] of the current working directory.
+ * **Primitive:** Answer the [real path][Path.toRealPath] of the current working
+ * directory.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_CurrentWorkingDirectory : Primitive(0, CannotFail, CanInline, CanFold)
 {
 	/**
@@ -67,19 +69,10 @@ object P_CurrentWorkingDirectory : Primitive(0, CannotFail, CanInline, CanFold)
 		val userDir = System.getProperty("user.dir")
 		val fileSystem = FileSystems.getDefault()
 		val path = fileSystem.getPath(userDir)
-		var realPathString: String
-		try
-		{
-			realPathString = path.toRealPath().toString()
-		}
-		catch (e: IOException)
-		{
-			realPathString = userDir
-		}
-		catch (e: SecurityException)
-		{
-			realPathString = userDir
-		}
+		var realPathString: String =
+			try { path.toRealPath().toString() }
+			catch (e: IOException) { userDir }
+			catch (e: SecurityException) { userDir }
 
 		currentWorkingDirectory = stringFrom(realPathString).makeShared()
 	}
@@ -91,9 +84,6 @@ object P_CurrentWorkingDirectory : Primitive(0, CannotFail, CanInline, CanFold)
 		return interpreter.primitiveSuccess(currentWorkingDirectory)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(emptyTuple(), stringType())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(emptyTuple(), stringType())
 }

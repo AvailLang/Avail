@@ -54,6 +54,7 @@ import com.avail.io.IOSystem.FileHandle
  *
  * @author Mark van Gulik&lt;mark@availlang.org&gt;
  */
+@Suppress("unused")
 object P_FileGetAlignment : Primitive(1, CanInline, HasSideEffect)
 {
 

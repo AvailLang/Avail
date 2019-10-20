@@ -58,6 +58,7 @@ import java.util.*
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@Suppress("unused")
 object P_FileRefresh : Primitive(1, CanInline, HasSideEffect)
 {
 

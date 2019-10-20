@@ -55,6 +55,7 @@ import java.nio.file.Path
  * [path][Path]? If the second argument is `false`, then no
  * symbolic links will be traversed.
  */
+@Suppress("unused")
 object P_FileExists : Primitive(2, CanInline, HasSideEffect)
 {
 

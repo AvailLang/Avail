@@ -59,18 +59,18 @@ import java.nio.file.attribute.PosixFilePermissions
 import java.util.*
 
 /**
- * **Primitive:** Create a directory with the indicated name
- * and permissions. Answer a new [fiber][A_Fiber] which, if creation
- * is successful, will be started to run the success [function][A_Function].
- * If the creation fails, then the fiber will be started to apply the
- * failure function to the error code. The fiber runs at the specified priority.
+ * **Primitive:** Create a directory with the indicated name and permissions.
+ * Answer a new [fiber][A_Fiber] which, if creation is successful, will be
+ * started to run the success [function][A_Function]. If the creation fails,
+ * then the fiber will be started to apply the failure function to the error
+ * code. The fiber runs at the specified priority.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_CreateDirectory : Primitive(5, CanInline, HasSideEffect)
 {
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(5)
 		val directoryName = interpreter.argument(0)
@@ -81,22 +81,23 @@ object P_CreateDirectory : Primitive(5, CanInline, HasSideEffect)
 
 		val runtime = interpreter.runtime()
 		val fileSystem = IOSystem.fileSystem
-		val path: Path
-		try
-		{
-			path = fileSystem.getPath(directoryName.asNativeString())
-		}
-		catch (e: InvalidPathException)
-		{
-			return interpreter.primitiveFailure(E_INVALID_PATH)
-		}
+		val path: Path =
+			try
+			{
+				fileSystem.getPath(directoryName.asNativeString())
+			}
+			catch (e: InvalidPathException)
+			{
+				return interpreter.primitiveFailure(E_INVALID_PATH)
+			}
 
 		val priorityInt = priority.extractInt()
 		val current = interpreter.fiber()
-		val newFiber = newFiber(
-			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
-			priorityInt
-		) { formatString("Asynchronous create directory, %s", path) }
+		val newFiber =
+			newFiber(
+				succeed.kind().returnType().typeUnion(fail.kind().returnType()),
+				priorityInt)
+			{ formatString("Asynchronous create directory, %s", path) }
 		newFiber.availLoader(current.availLoader())
 		newFiber.heritableFiberGlobals(
 			current.heritableFiberGlobals().makeShared())
@@ -106,8 +107,10 @@ object P_CreateDirectory : Primitive(5, CanInline, HasSideEffect)
 		fail.makeShared()
 
 		val permissions = permissionsFor(ordinals)
-		val attr = PosixFilePermissions.asFileAttribute(permissions)
-		runtime.ioSystem().executeFileTask(Runnable {
+		val attr =
+			PosixFilePermissions.asFileAttribute(permissions)
+		runtime.ioSystem().executeFileTask(
+			Runnable {
                try
                {
                    try
@@ -167,9 +170,8 @@ object P_CreateDirectory : Primitive(5, CanInline, HasSideEffect)
 		return interpreter.primitiveSuccess(newFiber)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(stringType(),
 				setTypeForSizesContentType(
 				  inclusive(0, 9),
@@ -180,17 +182,17 @@ object P_CreateDirectory : Primitive(5, CanInline, HasSideEffect)
 						set(E_FILE_EXISTS, E_PERMISSION_DENIED, E_IO_ERROR))),
 				TOP.o()), bytes()),
 			fiberType(TOP.o()))
-	}
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_INVALID_PATH))
 
 	/**
-	 * Convert the specified [set][SetDescriptor] of [ ] into the corresponding [set][Set]
-	 * of [POSIX file permissions][PosixFilePermission].
+	 * Convert the specified [set][SetDescriptor] of
+	 * [ordinals][IntegerDescriptor] into the corresponding [set][Set] of [POSIX
+	 * file permissions][PosixFilePermission].
 	 *
 	 * @param ordinals
-	 * Some ordinals.
+	 *   Some ordinals.
 	 * @return The equivalent POSIX file permissions.
 	 */
 	private fun permissionsFor(

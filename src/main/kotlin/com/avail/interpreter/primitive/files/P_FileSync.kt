@@ -75,6 +75,7 @@ import java.util.Collections.emptyList
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@Suppress("unused")
 object P_FileSync : Primitive(4, CanInline, HasSideEffect)
 {
 
