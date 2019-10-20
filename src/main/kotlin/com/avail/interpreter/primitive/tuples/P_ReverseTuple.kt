@@ -47,15 +47,14 @@ import com.avail.interpreter.Primitive.Flag.*
 import java.lang.Integer.MAX_VALUE
 
 /**
- * **Primitive:** Produce a [ reverse][A_Tuple.tupleReverse] of the given tuple; same elements, opposite order.
+ * **Primitive:** Produce a [reverse][A_Tuple.tupleReverse] of the given tuple;
+ * same elements, opposite order.
  *
  * @author Richard A Arriaga &lt;rich@availlang.org&gt;
  */
 object P_ReverseTuple : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val tuple = interpreter.argument(0)
@@ -75,7 +74,8 @@ object P_ReverseTuple : Primitive(1, CannotFail, CanFold, CanInline)
 		}
 		val tupleSizes = tupleType.sizeRange()
 		val tupleSizeLowerBound = tupleSizes.lowerBound()
-		if (!tupleSizeLowerBound.equals(tupleSizes.upperBound()) || !tupleSizeLowerBound.isInt)
+		if (!tupleSizeLowerBound.equals(tupleSizes.upperBound())
+			|| !tupleSizeLowerBound.isInt)
 		{
 			// Variable number of <key,value> pairs.  In theory we could
 			// still strengthen it, but a homogenous tuple type of the same size
@@ -92,11 +92,8 @@ object P_ReverseTuple : Primitive(1, CannotFail, CanFold, CanInline)
 			tupleSizes, reversedElementTypes, bottom())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(mostGeneralTupleType()),
 			mostGeneralTupleType())
-	}
-
 }

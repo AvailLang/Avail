@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.primitive.tuples
 
-import com.avail.descriptor.A_BasicObject
 import com.avail.descriptor.A_RawFunction
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
@@ -48,13 +47,12 @@ import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
-import java.lang.Math.max
-import java.lang.Math.min
-import java.util.function.IntFunction
+import kotlin.math.max
+import kotlin.math.min
 
 /**
- * **Primitive:** Answer a [ tuple][TupleDescriptor] like the given one, but with the elements at the specified indices
- * swapped.
+ * **Primitive:** Answer a [tuple][TupleDescriptor] like the given one, but with
+ * the elements at the specified indices swapped.
  */
 object P_TupleSwapElements : Primitive(3, CanFold, CanInline)
 {
@@ -63,10 +61,9 @@ object P_TupleSwapElements : Primitive(3, CanFold, CanInline)
 	 * guarantee about the resulting type, since the cost of computing it might
 	 * be higher than the potential savings.
 	 */
-	private val maximumComplexity = 100
+	private const val maximumComplexity = 100
 
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
 		val tuple = interpreter.argument(0)
@@ -90,15 +87,13 @@ object P_TupleSwapElements : Primitive(3, CanFold, CanInline)
 		return interpreter.primitiveSuccess(newTuple)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				mostGeneralTupleType(),
 				naturalNumbers(),
 				naturalNumbers()),
 			mostGeneralTupleType())
-	}
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
@@ -116,19 +111,21 @@ object P_TupleSwapElements : Primitive(3, CanFold, CanInline)
 			// At least one subscript is always out of range of the primitive.
 			return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 		}
-		val maxLowerBound = max(lowerBound1.extractInt(), lowerBound2.extractInt())
+		val maxLowerBound =
+			max(lowerBound1.extractInt(), lowerBound2.extractInt())
 		val maxTupleSize = tupleSizeRange.upperBound()
 		if (maxTupleSize.isInt && maxLowerBound > maxTupleSize.extractInt())
 		{
 			// One of the indices is always out of range of the tuple.
 			return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 		}
-		val minLowerBound = min(lowerBound1.extractInt(), lowerBound2.extractInt())
-
+		val minLowerBound =
+			min(lowerBound1.extractInt(), lowerBound2.extractInt())
 		val startOfSmear = min(minLowerBound, maximumComplexity)
 		// Keep the leading N types the same, but smear the rest.
-		val newLeadingTypes = generateObjectTupleFrom(
-			startOfSmear - 1, IntFunction<A_BasicObject> { originalTupleType.typeAtIndex(it) })
+		val newLeadingTypes = generateObjectTupleFrom(startOfSmear - 1) {
+			originalTupleType.typeAtIndex(it)
+		}
 		return tupleTypeForSizesTypesDefaultType(
 			tupleSizeRange,
 			newLeadingTypes,
@@ -136,9 +133,6 @@ object P_TupleSwapElements : Primitive(3, CanFold, CanInline)
 				startOfSmear, Integer.MAX_VALUE))
 	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_SUBSCRIPT_OUT_OF_BOUNDS))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_SUBSCRIPT_OUT_OF_BOUNDS))
 }

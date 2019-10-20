@@ -48,13 +48,12 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Concatenate a [ tuple][TupleDescriptor] of tuples together into a single tuple.
+ * **Primitive:** Concatenate a [tuple][TupleDescriptor] of tuples together into
+ * a single tuple.
  */
 object P_ConcatenateTuples : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val tuples = interpreter.argument(0)
@@ -62,12 +61,10 @@ object P_ConcatenateTuples : Primitive(1, CannotFail, CanFold, CanInline)
 			tuples.concatenateTuplesCanDestroy(true))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(zeroOrMoreOf(mostGeneralTupleType())),
 			mostGeneralTupleType())
-	}
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
@@ -116,18 +113,12 @@ object P_ConcatenateTuples : Primitive(1, CannotFail, CanFold, CanInline)
 				val maxSize = tuplesSizes.upperBound().timesCanDestroy(
 					innerSizes.upperBound(), false)
 				val newSizeRange = integerRangeType(
-					minSize,
-					true,
-					maxSize.plusCanDestroy(one(), true),
-					false)
+					minSize, true, maxSize.plusCanDestroy(one(), true), false)
 				return tupleTypeForSizesTypesDefaultType(
-					newSizeRange,
-					emptyTuple(),
-					innerTupleType.defaultType())
+					newSizeRange, emptyTuple(), innerTupleType.defaultType())
 			}
 		}
 		// Too tricky to bother narrowing.
 		return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 	}
-
 }

@@ -40,6 +40,7 @@ import com.avail.descriptor.IntegerRangeTypeDescriptor.int32
 import com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetDescriptor.set
+import com.avail.descriptor.TupleDescriptor
 import com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType
 import com.avail.descriptor.TypeDescriptor.Types.ANY
 import com.avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
@@ -60,16 +61,14 @@ import com.avail.interpreter.levelTwo.operation.L2_TUPLE_SIZE
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
 import com.avail.optimizer.L2Generator.edgeTo
-import java.util.*
+import java.lang.Integer.MAX_VALUE
 
 /**
- * **Primitive:** Look up an element in the [ ].
+ * **Primitive:** Look up an element in the [tuple][TupleDescriptor].
  */
 object P_TupleAt : Primitive(2, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val tuple = interpreter.argument(0)
@@ -86,14 +85,12 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 		else interpreter.primitiveSuccess(tuple.tupleAt(index))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				mostGeneralTupleType(),
 				naturalNumbers()),
 			ANY.o())
-	}
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
@@ -105,29 +102,25 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 		val lower = subscripts.lowerBound()
 		val upper = subscripts.upperBound()
 		val lowerInt = if (lower.isInt) lower.extractInt() else 1
-		val upperInt = if (upper.isInt)
-			upper.extractInt()
-		else
-			Integer.MAX_VALUE
+		val upperInt = if (upper.isInt) upper.extractInt() else MAX_VALUE
 		val unionType = tupleType.unionOfTypesAtThrough(lowerInt, upperInt)
 		unionType.makeImmutable()
 		return unionType
 	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_SUBSCRIPT_OUT_OF_BOUNDS))
-	}
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_SUBSCRIPT_OUT_OF_BOUNDS))
 
 	override fun fallibilityForArgumentTypes(
-		argumentTypes: List<A_Type>): Primitive.Fallibility
+		argumentTypes: List<A_Type>): Fallibility
 	{
 		val tupleType = argumentTypes[0]
 		val subscripts = argumentTypes[1]
 
 		val tupleTypeSizes = tupleType.sizeRange()
 		val minTupleSize = tupleTypeSizes.lowerBound()
-		return if (subscripts.lowerBound().greaterOrEqual(one()) && subscripts.upperBound().lessOrEqual(minTupleSize))
+		return if (subscripts.lowerBound().greaterOrEqual(one())
+			&& subscripts.upperBound().lessOrEqual(minTupleSize))
 		{
 			CallSiteCannotFail
 		}
@@ -148,11 +141,9 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 		if (fallibilityForArgumentTypes(argumentTypes) != CallSiteCannotFail)
 		{
 			// We can't guarantee success, so do a dynamic bounds check.
-			val failed = generator.createBasicBlock(
-				"failed bounds check")
+			val failed = generator.createBasicBlock("failed bounds check")
 			val semanticSize = generator.primitiveInvocation(
-				P_TupleSize,
-				listOf(tupleReg))
+				P_TupleSize, listOf(tupleReg))
 			val intSizeRestriction = restrictionForType(
 				tupleReg.type().sizeRange().typeIntersection(int32()),
 				UNBOXED_INT)
@@ -162,12 +153,16 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 				L2_TUPLE_SIZE.instance,
 				tupleReg,
 				sizeWriter)
-			val readSubscript = generator.readInt(subscriptReg.semanticValue(), failed)
+			val readSubscript = generator.readInt(
+				subscriptReg.semanticValue(), failed)
 			// At this position, we have the tuple size and subscript in int
 			// registers. Check the lower bound, if necessary.
-			if (generator.currentlyReachable() && readSubscript.restriction().type.lowerBound().lessThan(one()))
+			if (generator.currentlyReachable()
+				&& readSubscript.restriction().type.lowerBound()
+					.lessThan(one()))
 			{
-				val success1 = generator.createBasicBlock("passed lower bound check")
+				val success1 = generator.createBasicBlock(
+					"passed lower bound check")
 				generator.addInstruction(
 					L2_JUMP_IF_COMPARE_INT.greaterOrEqual,
 					readSubscript,
@@ -177,10 +172,12 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 				generator.startBlock(success1)
 			}
 			// Check the upper bound, if necessary.
-			if (generator.currentlyReachable() && subscriptReg.type().upperBound().greaterThan(
+			if (generator.currentlyReachable()
+				&& subscriptReg.type().upperBound().greaterThan(
 					intSizeRestriction.type.lowerBound()))
 			{
-				val success2 = generator.createBasicBlock("passed upper bound check")
+				val success2 = generator.createBasicBlock(
+					"passed upper bound check")
 				generator.addInstruction(
 					L2_JUMP_IF_COMPARE_INT.lessOrEqual,
 					readSubscript,
@@ -194,12 +191,12 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 				val resultRestriction = restrictionForType(
 					returnTypeGuaranteedByVM(
 						rawFunction,
-						Arrays.asList(
-							argumentTypes[0],
-							intSizeRestriction.type)),
+						listOf(argumentTypes[0], intSizeRestriction.type)),
 					BOXED)
-				val semanticResult = generator.primitiveInvocation(this, arguments)
-				val writeResult = generator.boxedWrite(semanticResult, resultRestriction)
+				val semanticResult =
+					generator.primitiveInvocation(this, arguments)
+				val writeResult =
+					generator.boxedWrite(semanticResult, resultRestriction)
 				generator.addInstruction(
 					L2_TUPLE_AT_NO_FAIL.instance,
 					tupleReg,
@@ -244,7 +241,8 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 			return true
 		}
 		// The subscript isn't a constant, but it's known to be in range.
-		val subscriptConversionFailure = generator.createBasicBlock("Should be unreachable")
+		val subscriptConversionFailure =
+			generator.createBasicBlock("Should be unreachable")
 		val subscriptIntReg = generator.readInt(
 			subscriptReg.semanticValue(),
 			subscriptConversionFailure)
@@ -257,5 +255,4 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 		callSiteHelper.useAnswer(translator.readBoxed(writer))
 		return true
 	}
-
 }

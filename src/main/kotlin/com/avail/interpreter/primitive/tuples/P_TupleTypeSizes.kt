@@ -31,37 +31,35 @@
  */
 package com.avail.interpreter.primitive.tuples
 
-import com.avail.descriptor.A_Type
+import com.avail.descriptor.*
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceMetaDescriptor.instanceMeta
 import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.TupleTypeDescriptor.tupleMeta
-import com.avail.descriptor.TypeDescriptor
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer the allowed size [ ] for this [ ]. These are the sizes that a [ ] may be and still be considered instances of the
- * tuple type, assuming the element [types][TypeDescriptor] are
- * consistent with those specified by the tuple type.
+ * **Primitive:** Answer the allowed size [ranges][IntegerRangeTypeDescriptor]
+ * for this [tuple type][TupleTypeDescriptor]. These are the sizes that a
+ * [tuple][TupleDescriptor] may be and still be considered instances of the
+ * tuple type, assuming the element [types][TypeDescriptor] are consistent with
+ * those specified by the tuple type.
  */
 object P_TupleTypeSizes : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val tupleType = interpreter.argument(0)
 		return interpreter.primitiveSuccess(tupleType.sizeRange())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(tupleMeta()), instanceMeta(
-			wholeNumbers()))
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(
+				tupleMeta()),
+			instanceMeta(wholeNumbers()))
 }

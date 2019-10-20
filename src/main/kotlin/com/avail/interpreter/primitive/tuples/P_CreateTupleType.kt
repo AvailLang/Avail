@@ -37,20 +37,19 @@ import com.avail.descriptor.InstanceMetaDescriptor.anyMeta
 import com.avail.descriptor.InstanceMetaDescriptor.instanceMeta
 import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.TupleTypeDescriptor
 import com.avail.descriptor.TupleTypeDescriptor.*
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Construct a [ ] with the given parameters. Canonize the
- * data if necessary.
+ * **Primitive:** Construct a [tuple type][TupleTypeDescriptor] with the given
+ * parameters. Canonize the data if necessary.
  */
 object P_CreateTupleType : Primitive(3, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
 		val typeTuple = interpreter.argument(0)
@@ -61,14 +60,11 @@ object P_CreateTupleType : Primitive(3, CannotFail, CanFold, CanInline)
 				sizeRange, typeTuple, defaultType))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				zeroOrMoreOf(anyMeta()),
 				anyMeta(),
 				instanceMeta(wholeNumbers())),
 			tupleMeta())
-	}
-
 }

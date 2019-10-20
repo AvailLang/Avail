@@ -44,25 +44,20 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer the [ type][TypeDescriptor] for the given element of [instances][TupleDescriptor] of
- * the given [tuple type][TupleTypeDescriptor]. Answer
- * [bottom][BottomTypeDescriptor] if out of range.
+ * **Primitive:** Answer the [type][TypeDescriptor] for the given element of
+ * [instances][TupleDescriptor] of the given [tuple type][TupleTypeDescriptor].
+ * Answer [bottom][BottomTypeDescriptor] if out of range.
  */
 object P_TupleTypeAt : Primitive(2, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val tupleType = interpreter.argument(0)
 		val index = interpreter.argument(1)
-		return if (!index.isInt)
-		{
-			interpreter.primitiveSuccess(bottom())
-		}
-		else interpreter.primitiveSuccess(
-			tupleType.typeAtIndex(index.extractInt()))
+		return interpreter.primitiveSuccess(
+			if (index.isInt) tupleType.typeAtIndex(index.extractInt())
+			else bottom())
 	}
 
 	override fun returnTypeGuaranteedByVM(
@@ -75,26 +70,19 @@ object P_TupleTypeAt : Primitive(2, CannotFail, CanFold, CanInline)
 		val tupleType = tupleMeta.instance()
 		val minIndex = indexType.lowerBound()
 		val maxIndex = indexType.upperBound()
-		if (minIndex.isInt)
-		{
-			val elementTypeBound = tupleType.unionOfTypesAtThrough(
-				minIndex.extractInt(),
-				if (maxIndex.isInt)
-					maxIndex.extractInt()
-				else
-					Integer.MAX_VALUE)
-			return instanceMeta(elementTypeBound)
-		}
-		return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
+		return if (minIndex.isInt) {
+			instanceMeta(
+				tupleType.unionOfTypesAtThrough(
+					minIndex.extractInt(),
+					if (maxIndex.isInt) maxIndex.extractInt()
+					else Integer.MAX_VALUE))
+		} else super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				tupleMeta(),
 				naturalNumbers()),
 			anyMeta())
-	}
-
 }

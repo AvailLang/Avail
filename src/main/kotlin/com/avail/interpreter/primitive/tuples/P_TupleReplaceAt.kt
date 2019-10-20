@@ -49,12 +49,13 @@ import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
-import java.lang.Math.max
-import java.lang.Math.min
 import java.util.*
+import kotlin.math.max
+import kotlin.math.min
 
 /**
- * **Primitive:** Answer a [ tuple][TupleDescriptor] like the given one, but with an element changed as indicated.
+ * **Primitive:** Answer a [tuple][TupleDescriptor] like the given one, but with
+ * an element changed as indicated.
  */
 object P_TupleReplaceAt : Primitive(3, CanFold, CanInline)
 {
@@ -65,8 +66,7 @@ object P_TupleReplaceAt : Primitive(3, CanFold, CanInline)
 	 */
 	private val maximumComplexity = fromInt(1000)
 
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
 		val tuple = interpreter.argument(0)
@@ -85,15 +85,13 @@ object P_TupleReplaceAt : Primitive(3, CanFold, CanInline)
 			tuple.tupleAtPuttingCanDestroy(index, value, true))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				mostGeneralTupleType(),
 				naturalNumbers(),
 				ANY.o()),
 			mostGeneralTupleType())
-	}
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
@@ -105,7 +103,9 @@ object P_TupleReplaceAt : Primitive(3, CanFold, CanInline)
 		val lowerBound = subscripts.lowerBound()
 		val upperBound = subscripts.upperBound()
 		val singleSubscript = lowerBound.equals(upperBound)
-		if (lowerBound.greaterThan(maximumComplexity) || upperBound.isFinite && upperBound.greaterThan(maximumComplexity))
+		if (lowerBound.greaterThan(maximumComplexity)
+			|| (upperBound.isFinite
+				&& upperBound.greaterThan(maximumComplexity)))
 		{
 			// Too expensive.  Fall back on the primitive's basic type.
 			return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
@@ -121,10 +121,7 @@ object P_TupleReplaceAt : Primitive(3, CanFold, CanInline)
 		else
 			Integer.MAX_VALUE
 		val typeList = ArrayList<A_Type>(originalTypeTuple.tupleSize())
-		for (element in originalTypeTuple)
-		{
-			typeList.add(element)
-		}
+		typeList.addAll(originalTypeTuple)
 		for (i in 1 until minSubscript)
 		{
 			typeList.add(originalTupleType.typeAtIndex(i))
@@ -162,9 +159,6 @@ object P_TupleReplaceAt : Primitive(3, CanFold, CanInline)
 			newDefaultType)
 	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_SUBSCRIPT_OUT_OF_BOUNDS))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_SUBSCRIPT_OUT_OF_BOUNDS))
 }

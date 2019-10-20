@@ -45,24 +45,21 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer the [ tuple][TupleDescriptor] of leading [types][TypeDescriptor] that constrain this
- * [tuple type][TupleTypeDescriptor].
+ * **Primitive:** Answer the [tuple][TupleDescriptor] of leading
+ * [types][TypeDescriptor] that constrain this [tuple
+ * type][TupleTypeDescriptor].
  */
 object P_TupleTypeLeadingTypes : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val tupleType = interpreter.argument(0)
 		return interpreter.primitiveSuccess(tupleType.typeTuple())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(tupleMeta()), zeroOrMoreOf(
-			anyMeta()))
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(tupleMeta()),
+			zeroOrMoreOf(anyMeta()))
 }

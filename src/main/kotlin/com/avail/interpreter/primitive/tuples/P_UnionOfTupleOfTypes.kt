@@ -42,14 +42,11 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer the union of the types in the given
- * tuple of types.
+ * **Primitive:** Answer the union of the types in the given tuple of types.
  */
 object P_UnionOfTupleOfTypes : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val tupleOfTypes = interpreter.argument(0)
@@ -61,11 +58,8 @@ object P_UnionOfTupleOfTypes : Primitive(1, CannotFail, CanFold, CanInline)
 		return interpreter.primitiveSuccess(unionObject)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(zeroOrMoreOf(topMeta())),
 			topMeta())
-	}
-
 }

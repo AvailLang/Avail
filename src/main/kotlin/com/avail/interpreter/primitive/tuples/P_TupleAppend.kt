@@ -49,13 +49,12 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer a new [ tuple][TupleDescriptor] like the argument but with the [ element][AvailObject] appended to its right.
+ * **Primitive:** Answer a new [tuple][TupleDescriptor] like the argument but
+ * with the [element][AvailObject] appended to its right.
  */
 object P_TupleAppend : Primitive(2, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val tuple = interpreter.argument(0)
@@ -77,13 +76,10 @@ object P_TupleAppend : Primitive(2, CannotFail, CanFold, CanInline)
 		return concatenatingAnd(aTupleType, anElementTupleType)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				mostGeneralTupleType(),
 				ANY.o()),
 			mostGeneralTupleType())
-	}
-
 }

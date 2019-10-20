@@ -36,27 +36,24 @@ import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceMetaDescriptor.anyMeta
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.TupleTypeDescriptor.tupleMeta
+import com.avail.descriptor.TypeDescriptor
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer the default [ ] for elements past the leading types.
+ * **Primitive:** Answer the default [type][TypeDescriptor] for elements past
+ * the leading types.
  */
 object P_TupleTypeDefaultType : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val tupleType = interpreter.argument(0)
 		return interpreter.primitiveSuccess(tupleType.defaultType())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(tupleMeta()), anyMeta())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(tupleMeta()), anyMeta())
 }

@@ -35,6 +35,7 @@ package com.avail.interpreter.primitive.tuples
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.IntegerIntervalTupleDescriptor
 import com.avail.descriptor.IntegerIntervalTupleDescriptor.createInterval
 import com.avail.descriptor.IntegerRangeTypeDescriptor.integers
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
@@ -47,21 +48,20 @@ import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * **Primitive:** Create an [ ].
+ * **Primitive:** Create an [integer interval tuple
+ * ][IntegerIntervalTupleDescriptor].
  *
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  */
 object P_IntegerIntervalTuple : Primitive(3, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
-
 		val start = interpreter.argument(0)
 		val end = interpreter.argument(1)
 		val delta = interpreter.argument(2)
+
 		return if (delta.equalsInt(0))
 		{
 			interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE)
@@ -69,19 +69,14 @@ object P_IntegerIntervalTuple : Primitive(3, CanFold, CanInline)
 		else interpreter.primitiveSuccess(createInterval(start, end, delta))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				integers(),
 				integers(),
 				integers()),
 			zeroOrMoreOf(integers()))
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_INCORRECT_ARGUMENT_TYPE))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_INCORRECT_ARGUMENT_TYPE))
 }

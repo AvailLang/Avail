@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive.tuples
 
 import com.avail.descriptor.A_Type
+import com.avail.descriptor.BottomTypeDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InfinityDescriptor.positiveInfinity
 import com.avail.descriptor.InstanceMetaDescriptor.anyMeta
@@ -47,28 +48,29 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer the [ type][TypeDescriptor] that is the union of the types within the given range of indices of
- * the given [tuple type][TupleTypeDescriptor]. Answer [ ] if all the indices are out of range.
+ * **Primitive:** Answer the [type][TypeDescriptor] that is the union of the
+ * types within the given range of indices of the given [tuple
+ * type][TupleTypeDescriptor]. Answer [bottom][BottomTypeDescriptor] if all the
+ * indices are out of range.
  */
 object P_TupleTypeAtThrough : Primitive(3, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
 		val tupleType = interpreter.argument(0)
 		val startIndex = interpreter.argument(1)
 		val endIndex = interpreter.argument(2)
-		val startInt = if (startIndex.isInt) startIndex.extractInt() else Integer.MAX_VALUE
-		val endInt = if (endIndex.isInt) endIndex.extractInt() else Integer.MAX_VALUE
+		val startInt = if (startIndex.isInt) startIndex.extractInt()
+		else Integer.MAX_VALUE
+		val endInt = if (endIndex.isInt) endIndex.extractInt()
+		else Integer.MAX_VALUE
 		return interpreter.primitiveSuccess(
 			tupleType.unionOfTypesAtThrough(startInt, endInt))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				tupleMeta(),
 				naturalNumbers(),
@@ -76,6 +78,4 @@ object P_TupleTypeAtThrough : Primitive(3, CannotFail, CanFold, CanInline)
 					zero(),
 					positiveInfinity())),
 			anyMeta())
-	}
-
 }

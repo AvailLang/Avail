@@ -48,16 +48,15 @@ import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
-import java.lang.Math.min
+import kotlin.math.min
 
 /**
- * **Primitive:** Extract a [ subtuple][TupleDescriptor] with the given range of elements.
+ * **Primitive:** Extract a [subtuple][TupleDescriptor] with the given range of
+ * elements.
  */
 object P_ExtractSubtuple : Primitive(3, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
 		val tuple = interpreter.argument(0)
@@ -70,8 +69,8 @@ object P_ExtractSubtuple : Primitive(3, CanFold, CanInline)
 		val startInt = start.extractInt()
 		val endInt = end.extractInt()
 		return if (startInt < 1
-		           || startInt > endInt + 1
-		           || endInt > tuple.tupleSize())
+			|| startInt > endInt + 1
+			|| endInt > tuple.tupleSize())
 		{
 			interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
@@ -93,7 +92,8 @@ object P_ExtractSubtuple : Primitive(3, CanFold, CanInline)
 		if (startInteger.equals(startType.upperBound()) && startInteger.isInt)
 		{
 			val startInt = startInteger.extractInt()
-			val adjustment = startInteger.minusCanDestroy(one(), false).makeImmutable()
+			val adjustment =
+				startInteger.minusCanDestroy(one(), false).makeImmutable()
 			val oldSizes = tupleType.sizeRange()
 			val oldEnd1 = oldSizes.upperBound()
 			val oldEnd2 = endType.upperBound()
@@ -101,7 +101,8 @@ object P_ExtractSubtuple : Primitive(3, CanFold, CanInline)
 				oldEnd2
 			else
 				oldEnd1
-			val newLower = endType.lowerBound().minusCanDestroy(adjustment, false)
+			val newLower =
+				endType.lowerBound().minusCanDestroy(adjustment, false)
 			val realLower = if (newLower.lessThan(zero())) zero() else newLower
 			val newEnd = oldEnd.minusCanDestroy(adjustment, false)
 			val newSizes = integerRangeType(
@@ -117,19 +118,14 @@ object P_ExtractSubtuple : Primitive(3, CanFold, CanInline)
 		return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				mostGeneralTupleType(),
 				naturalNumbers(),
 				wholeNumbers()),
 			mostGeneralTupleType())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_SUBSCRIPT_OUT_OF_BOUNDS))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_SUBSCRIPT_OUT_OF_BOUNDS))
 }

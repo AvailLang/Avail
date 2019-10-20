@@ -38,6 +38,7 @@ import com.avail.descriptor.IntegerDescriptor.fromInt
 import com.avail.descriptor.IntegerRangeTypeDescriptor.int32
 import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.TupleDescriptor
 import com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
@@ -51,7 +52,7 @@ import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
 
 /**
- * **Primitive:** Answer the size of the [ ].
+ * **Primitive:** Answer the size of the [tuple][TupleDescriptor].
  */
 object P_TupleSize : Primitive(1, CannotFail, CanFold, CanInline)
 {
@@ -63,19 +64,15 @@ object P_TupleSize : Primitive(1, CannotFail, CanFold, CanInline)
 		return interpreter.primitiveSuccess(fromInt(tuple.tupleSize()))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(mostGeneralTupleType()),
 			wholeNumbers())
-	}
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
-		argumentTypes: List<A_Type>): A_Type
-	{
-		return argumentTypes[0].sizeRange().typeIntersection(int32())
-	}
+		argumentTypes: List<A_Type>
+	): A_Type = argumentTypes[0].sizeRange().typeIntersection(int32())
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
@@ -90,30 +87,26 @@ object P_TupleSize : Primitive(1, CannotFail, CanFold, CanInline)
 		val returnType = returnTypeGuaranteedByVM(
 			rawFunction, argumentTypes)
 		//		assert returnType.isSubtypeOf(int32());
-		val unboxedValue: L2ReadIntOperand
-		if (returnType.lowerBound().equals(returnType.upperBound()))
-		{
-			// If the exact size of the tuple is known, then leverage that
-			// information to produce a constant.
-			unboxedValue = translator.generator.unboxedIntConstant(
-				returnType.lowerBound().extractInt())
-		}
-		else
-		{
-			// The exact size of the tuple isn't known, so generate code to
-			// extract it.
-			val restriction = restrictionForType(returnType, UNBOXED_INT)
-			val writer = translator.generator.intWriteTemp(restriction)
-			translator.addInstruction(
-				L2_TUPLE_SIZE.instance,
-				tupleReg,
-				writer)
-			unboxedValue = translator.currentManifest().readInt(
-				writer.semanticValue())
+		val unboxedValue: L2ReadIntOperand = when {
+			returnType.lowerBound().equals(returnType.upperBound()) ->
+				// If the exact size of the tuple is known, then leverage that
+				// information to produce a constant.
+				translator.generator.unboxedIntConstant(
+					returnType.lowerBound().extractInt())
+			else -> {
+				// The exact size of the tuple isn't known, so generate code to
+				// extract it.
+				val restriction = restrictionForType(returnType, UNBOXED_INT)
+				val writer = translator.generator.intWriteTemp(restriction)
+				translator.addInstruction(
+					L2_TUPLE_SIZE.instance,
+					tupleReg,
+					writer)
+				translator.currentManifest().readInt(writer.semanticValue())
+			}
 		}
 		val boxed = translator.generator.readBoxed(unboxedValue.semanticValue())
 		callSiteHelper.useAnswer(boxed)
 		return true
 	}
-
 }

@@ -53,30 +53,42 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
  * **Primitive:** Replace the value with a new value in the
- * [tuple][TupleDescriptor] at the location indicated by the path
- * tuple.
+ * [tuple][TupleDescriptor] at the location indicated by the path tuple.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
 object P_TupleReplaceAtNAry : Primitive(3, CanInline, CanFold)
 {
+	override fun attempt(interpreter: Interpreter): Result
+	{
+		interpreter.checkArgumentCount(3)
+		val tuple = interpreter.argument(0)
+		val pathTuple = interpreter.argument(1)
+		val newValue = interpreter.argument(2)
+		return try {
+			interpreter.primitiveSuccess(
+				recursivelyUpdateTuple(tuple, pathTuple, 1, newValue))
+		} catch (e: AvailException) {
+			interpreter.primitiveFailure(e)
+		}
+	}
+
 	/**
-	 * Recursively traverses the target [tuple][TupleDescriptor]
+	 * Recursively traverses the target [tuple][TupleDescriptor],
 	 * ultimately updating the value at the final index of the pathIndex.
 	 *
 	 * @param targetTuple
-	 * the [tuple][TupleDescriptor] to traverse
+	 *   The [tuple][TupleDescriptor] to traverse
 	 * @param pathTuple
-	 * [tuple][TupleDescriptor] containing the path of indices
-	 * to traverse to
+	 *   The [tuple][TupleDescriptor] of indices to traverse.
 	 * @param pathIndex
-	 * the current position of pathTuple being accessed
+	 *   The current position of pathTuple being accessed.
 	 * @param newValue
-	 * the updating value
+	 *   The updating value
 	 * @return
-	 * The outermost tuple with the update applied.
+	 *   The outermost tuple with the update applied.
 	 * @throws AvailException
-	 * If a problem occurs.
+	 *   If a problem occurs.
 	 */
 	@Throws(AvailException::class)
 	private fun recursivelyUpdateTuple(
@@ -97,25 +109,20 @@ object P_TupleReplaceAtNAry : Primitive(3, CanInline, CanFold)
 		}
 
 		val subtuple = targetTuple.tupleAt(targetIndex)
-		if (subtuple.isTuple)
-		{
-			val newTuple = recursivelyUpdateTuple(
-				subtuple, pathTuple, pathIndex + 1,
-				newValue)
-			return targetTuple.tupleAtPuttingCanDestroy(
-				targetIndex, newTuple, true)
-		}
-		else if (subtuple.isMap)
-		{
-			val newMap = recursivelyUpdateMap(
-				subtuple, pathTuple, pathIndex + 1,
-				newValue)
-			return targetTuple.tupleAtPuttingCanDestroy(
-				targetIndex, newMap, true)
-		}
-		else
-		{
-			throw AvailException(E_INCORRECT_ARGUMENT_TYPE)
+		return when {
+			subtuple.isTuple -> {
+				val newTuple = recursivelyUpdateTuple(
+					subtuple, pathTuple, pathIndex + 1, newValue)
+				targetTuple.tupleAtPuttingCanDestroy(
+					targetIndex, newTuple, true)
+			}
+			subtuple.isMap -> {
+				val newMap = recursivelyUpdateMap(
+					subtuple, pathTuple, pathIndex + 1, newValue)
+				targetTuple.tupleAtPuttingCanDestroy(
+					targetIndex, newMap, true)
+			}
+			else -> throw AvailException(E_INCORRECT_ARGUMENT_TYPE)
 		}
 	}
 
@@ -155,63 +162,42 @@ object P_TupleReplaceAtNAry : Primitive(3, CanInline, CanFold)
 				targetIndex, newValue, true)
 		}
 		val targetElement = targetMap.mapAt(targetIndex)
-		if (targetElement.isTuple)
-		{
-			val newTuple = recursivelyUpdateTuple(
-				targetElement, pathTuple, pathIndex + 1, newValue)
-			return targetMap.mapAtPuttingCanDestroy(
-				targetIndex, newTuple, true)
-		}
-		else if (targetElement.isMap)
-		{
-			val newMap = recursivelyUpdateMap(
-				targetElement, pathTuple, pathIndex + 1, newValue)
-			return targetMap.mapAtPuttingCanDestroy(
-				targetIndex, newMap, true)
-		}
-		else
-		{
-			throw AvailException(E_INCORRECT_ARGUMENT_TYPE)
+		return when {
+			targetElement.isTuple -> {
+				val newTuple = recursivelyUpdateTuple(
+					targetElement, pathTuple, pathIndex + 1, newValue)
+				targetMap.mapAtPuttingCanDestroy(
+					targetIndex, newTuple, true)
+			}
+			targetElement.isMap -> {
+				val newMap = recursivelyUpdateMap(
+					targetElement, pathTuple, pathIndex + 1, newValue)
+				targetMap.mapAtPuttingCanDestroy(
+					targetIndex, newMap, true)
+			}
+			else -> throw AvailException(E_INCORRECT_ARGUMENT_TYPE)
 		}
 	}
 
-	override fun attempt(
-		interpreter: Interpreter): Result
-	{
-		interpreter.checkArgumentCount(3)
-		val tuple = interpreter.argument(0)
-		val pathTuple = interpreter.argument(1)
-		val newValue = interpreter.argument(2)
-		try
-		{
-			return interpreter.primitiveSuccess(recursivelyUpdateTuple(
-				tuple, pathTuple, 1, newValue))
-		}
-		catch (e: AvailException)
-		{
-			return interpreter.primitiveFailure(e)
-		}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(
+				mostGeneralTupleType(),
+				tupleTypeForSizesTypesDefaultType(
+					integerRangeType(
+						fromInt(2),
+						true,
+						positiveInfinity(),
+						false),
+					emptyTuple(),
+					ANY.o()),
+				ANY.o()),
+			mostGeneralTupleType())
 
-	}
-
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(mostGeneralTupleType(),
-		                          tupleTypeForSizesTypesDefaultType(
-			                          integerRangeType(
-				                          fromInt(2),
-				                          true,
-				                          positiveInfinity(),
-				                          false),
-			                          emptyTuple(),
-			                          ANY.o()), ANY.o()), mostGeneralTupleType())
-	}
-
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
-			set(E_SUBSCRIPT_OUT_OF_BOUNDS, E_INCORRECT_ARGUMENT_TYPE,
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
+			set(
+				E_SUBSCRIPT_OUT_OF_BOUNDS,
+				E_INCORRECT_ARGUMENT_TYPE,
 			    E_KEY_NOT_FOUND))
-	}
-
 }

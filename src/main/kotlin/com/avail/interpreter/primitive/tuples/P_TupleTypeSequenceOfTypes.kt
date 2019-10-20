@@ -50,15 +50,14 @@ import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * **Primitive:** Answer a [ tuple][TupleDescriptor] of [types][TypeDescriptor] representing the types of the
- * given range of indices within the [tuple][TupleTypeDescriptor]. Use [bottom][BottomTypeDescriptor] for indices out of
- * range.
+ * **Primitive:** Answer a [tuple][TupleDescriptor] of [types][TypeDescriptor]
+ * representing the types of the given range of indices within the
+ * [tuple][TupleTypeDescriptor]. Use [bottom][BottomTypeDescriptor] for indices
+ * out of range.
  */
 object P_TupleTypeSequenceOfTypes : Primitive(3, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
 		val tupleType = interpreter.argument(0)
@@ -75,28 +74,23 @@ object P_TupleTypeSequenceOfTypes : Primitive(3, CanFold, CanInline)
 		{
 			return interpreter.primitiveFailure(E_NEGATIVE_SIZE)
 		}
-		val tupleObject = generateObjectTupleFrom(
-			tupleSize
-		) { i -> tupleType.typeAtIndex(i + startInt - 1).makeImmutable() }
+		val tupleObject = generateObjectTupleFrom(tupleSize) {
+			tupleType.typeAtIndex(it + startInt - 1).makeImmutable()
+		}
 		return interpreter.primitiveSuccess(tupleObject)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				tupleMeta(),
 				naturalNumbers(),
 				wholeNumbers()),
 			zeroOrMoreOf(anyMeta()))
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
 			set(
 				E_SUBSCRIPT_OUT_OF_BOUNDS,
 				E_NEGATIVE_SIZE))
-	}
-
 }
