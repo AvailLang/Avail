@@ -52,7 +52,7 @@ import com.avail.utility.Nulls.stripNull
 import java.util.*
 
 /**
- * **Primitive:** Put the [ current][FiberDescriptor.currentFiber]
+ * **Primitive:** Put the [current][FiberDescriptor.currentFiber]
  * [fiber][FiberDescriptor] to [sleep][ExecutionState.ASLEEP] for at least the
  * specified number of milliseconds. If the sleep time is zero (`0`), then
  * return immediately. If the sleep time is too big (i.e., greater than the
@@ -60,9 +60,9 @@ import java.util.*
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_Sleep : Primitive(1, CannotFail, CanSuspend, Unknown)
 {
-
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
@@ -140,10 +140,7 @@ object P_Sleep : Primitive(1, CannotFail, CanSuspend, Unknown)
 					{
 						assert(fiber.executionState() === SUSPENDED)
 						Interpreter.resumeFromSuccessfulPrimitive(
-							runtime,
-							fiber,
-							this,
-							nil)
+							runtime, fiber, this, nil)
 						return@fiberlock
 					}
 					fiber.executionState(ASLEEP)
@@ -156,11 +153,6 @@ object P_Sleep : Primitive(1, CannotFail, CanSuspend, Unknown)
 		return interpreter.primitiveSuspend(primitiveFunction)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(inclusive(
-			zero(),
-			positiveInfinity())), TOP.o())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(inclusive(zero(), positiveInfinity())), TOP.o())
 }

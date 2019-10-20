@@ -35,6 +35,7 @@ package com.avail.interpreter.primitive.fibers
 import com.avail.compiler.FiberTerminationException
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.BottomTypeDescriptor.bottom
+import com.avail.descriptor.FiberDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.interpreter.Interpreter
@@ -43,15 +44,14 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.Primitive.Flag.Unknown
 
 /**
- * **Primitive:** Terminate the current [ ].
+ * **Primitive:** Terminate the current [fiber][FiberDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_TerminateCurrentFiber : Primitive(0, Unknown, CannotFail)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(0)
 		// Throw an exception to ensure that the fiber's (Java) failure
@@ -59,9 +59,6 @@ object P_TerminateCurrentFiber : Primitive(0, Unknown, CannotFail)
 		throw FiberTerminationException()
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(emptyTuple(), bottom())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(emptyTuple(), bottom())
 }

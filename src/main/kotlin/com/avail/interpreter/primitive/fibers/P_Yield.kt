@@ -43,24 +43,20 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Yield the current [ fiber][FiberDescriptor] so that higher priority fibers and senior fibers can run.
+ * **Primitive:** Yield the current [fiber][FiberDescriptor] so that higher
+ * priority fibers and senior fibers can run.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_Yield : Primitive(0, CannotFail, CanSuspend, Unknown)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(0)
-
-		return interpreter.suspendAndDo { toSucceed, toFail -> toSucceed.value(nil) }
+		return interpreter.suspendAndDo { toSucceed, _ -> toSucceed.value(nil) }
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(emptyTuple(), TOP.o())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(emptyTuple(), TOP.o())
 }

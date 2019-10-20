@@ -34,7 +34,9 @@ package com.avail.interpreter.primitive.fibers
 
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.AtomDescriptor
 import com.avail.descriptor.AtomDescriptor.SpecialAtom.HERITABLE_KEY
+import com.avail.descriptor.FiberDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
@@ -49,15 +51,15 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
 
 /**
- * **Primitive:** Disassociate the given [ ] (key) from the variables of the current [ ].
+ * **Primitive:** Disassociate the given [name][AtomDescriptor] (key) from the
+ * variables of the current [fiber][FiberDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_RemoveFiberVariable : Primitive(1, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val key = interpreter.argument(0)
@@ -67,15 +69,14 @@ object P_RemoveFiberVariable : Primitive(1, CanInline, HasSideEffect)
 		}
 		val fiber = interpreter.fiber()
 		// Choose the correct map based on the heritability of the key.
-		val heritable = !key.getAtomProperty(HERITABLE_KEY.atom).equalsNil()
-		val globals = if (heritable)
-			fiber.heritableFiberGlobals()
-		else
-			fiber.fiberGlobals()
+		val heritable =
+			!key.getAtomProperty(HERITABLE_KEY.atom).equalsNil()
+		val globals =
+			if (heritable) {fiber.heritableFiberGlobals() }
+			else { fiber.fiberGlobals() }
 		if (!globals.hasKey(key))
 		{
-			return interpreter.primitiveFailure(
-				E_NO_SUCH_FIBER_VARIABLE)
+			return interpreter.primitiveFailure(E_NO_SUCH_FIBER_VARIABLE)
 		}
 		if (heritable)
 		{
@@ -90,14 +91,9 @@ object P_RemoveFiberVariable : Primitive(1, CanInline, HasSideEffect)
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(ATOM.o()), TOP.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(ATOM.o()), TOP.o())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_SPECIAL_ATOM, E_NO_SUCH_FIBER_VARIABLE))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_SPECIAL_ATOM, E_NO_SUCH_FIBER_VARIABLE))
 }

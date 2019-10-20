@@ -45,14 +45,13 @@ import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive:** Associate the given value with the given
- * [name][AtomDescriptor] (key) in the variables of the
- * current [fiber][FiberDescriptor].
+ * [name][AtomDescriptor] (key) in the variables of the current
+ * [fiber][FiberDescriptor].
  */
+@Suppress("unused")
 object P_SetFiberVariable : Primitive(2, CannotFail, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val key = interpreter.argument(0)
@@ -62,24 +61,17 @@ object P_SetFiberVariable : Primitive(2, CannotFail, CanInline, HasSideEffect)
 		{
 			fiber.fiberGlobals(
 				fiber.fiberGlobals().mapAtPuttingCanDestroy(
-					key.makeImmutable(),
-					value.makeImmutable(),
-					true))
+					key.makeImmutable(), value.makeImmutable(), true))
 		}
 		else
 		{
 			fiber.heritableFiberGlobals(
 				fiber.heritableFiberGlobals().mapAtPuttingCanDestroy(
-					key.makeImmutable(),
-					value.makeImmutable(),
-					true))
+					key.makeImmutable(), value.makeImmutable(), true))
 		}
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(ATOM.o(), ANY.o()), TOP.o())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(ATOM.o(), ANY.o()), TOP.o())
 }

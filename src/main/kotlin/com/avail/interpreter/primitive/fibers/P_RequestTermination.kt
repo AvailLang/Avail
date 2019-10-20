@@ -50,15 +50,14 @@ import com.avail.interpreter.Primitive.Flag.*
 import com.avail.utility.Nulls.stripNull
 
 /**
- * **Primitive:** Request termination of the given
- * [fiber][FiberDescriptor]. If the fiber is currently [ ][ExecutionState.PARKED] or [asleep][ExecutionState.ASLEEP],
- * then unpark it.
+ * **Primitive:** Request termination of the given [fiber][FiberDescriptor]. If
+ * the fiber is currently [parked][ExecutionState.PARKED] or
+ * [asleep][ExecutionState.ASLEEP], then unpark it.
  */
+@Suppress("unused")
 object P_RequestTermination : Primitive(1, CanInline, CannotFail, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val fiber = interpreter.argument(0)
@@ -112,9 +111,6 @@ object P_RequestTermination : Primitive(1, CanInline, CannotFail, HasSideEffect)
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(mostGeneralFiberType()), TOP.o())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(mostGeneralFiberType()), TOP.o())
 }
