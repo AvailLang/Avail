@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive.doubles
 
 import com.avail.descriptor.A_Type
+import com.avail.descriptor.DoubleDescriptor
 import com.avail.descriptor.DoubleDescriptor.fromDouble
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.IntegerRangeTypeDescriptor.int64
@@ -42,16 +43,16 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Given a 64-bit signed integer, treat the bit
- * pattern as a double-precision IEEE-754 representation, and answer that [ ] value.
+ * **Primitive:** Given a 64-bit signed integer, treat the bit pattern as a
+ * double-precision IEEE-754 representation, and answer that
+ * [double][DoubleDescriptor] value.
  *
  * @see P_DoubleToLongBits
  */
+@Suppress("unused")
 object P_DoubleFromLongBits : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val longObject = interpreter.argument(0)
@@ -60,11 +61,6 @@ object P_DoubleFromLongBits : Primitive(1, CannotFail, CanFold, CanInline)
 		return interpreter.primitiveSuccess(fromDouble(doubleValue))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(int64()),
-			DOUBLE.o())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(int64()), DOUBLE.o())
 }

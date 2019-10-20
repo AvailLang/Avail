@@ -46,14 +46,13 @@ import java.lang.Math.E
 import java.lang.Math.exp
 
 /**
- * **Primitive:** Compute `e^a`, the natural
- * exponential of the [double][DoubleDescriptor] `a`.
+ * **Primitive:** Compute `e^a`, the natural exponential of the
+ * [double][DoubleDescriptor] `a`.
  */
+@Suppress("unused")
 object P_DoubleExp : Primitive(2, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		//		final A_BasicObject euler = interpreter.argument(0);
@@ -62,13 +61,6 @@ object P_DoubleExp : Primitive(2, CannotFail, CanFold, CanInline)
 			fromDoubleRecycling(exp(a.extractDouble()), a, true))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				instanceType(fromDouble(E)),
-				DOUBLE.o()),
-			DOUBLE.o())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(instanceType(fromDouble(E)), DOUBLE.o()), DOUBLE.o())
 }

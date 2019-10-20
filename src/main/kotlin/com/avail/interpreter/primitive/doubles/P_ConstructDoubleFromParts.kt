@@ -52,6 +52,7 @@ import com.avail.interpreter.Primitive.Flag.*
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_ConstructDoubleFromParts : Primitive(3, CannotFail, CanInline, CanFold)
 {
 
@@ -69,11 +70,10 @@ object P_ConstructDoubleFromParts : Primitive(3, CannotFail, CanInline, CanFold)
 		// convert. This is less efficient than doing the work ourselves, but
 		// gives us the opportunity to leverage well-tested and tuned Java
 		// library code.
-		val numeral = (integerPart.string().asNativeString()
-		               + "."
-		               + fractionalPart.string().asNativeString()
-		               + "e"
-		               + exponentPart.string().asNativeString())
+		val numeral =
+			("${integerPart.string().asNativeString()}."
+				+ "${fractionalPart.string().asNativeString()}e"
+			    + exponentPart.string().asNativeString())
 		val result: A_Number
 		try
 		{
@@ -81,7 +81,8 @@ object P_ConstructDoubleFromParts : Primitive(3, CannotFail, CanInline, CanFold)
 		}
 		catch (e: NumberFormatException)
 		{
-			assert(false) { "This shouldn't happen, since we control the numeral!" }
+			assert(false)
+			{ "This shouldn't happen, since we control the numeral!" }
 			throw e
 		}
 

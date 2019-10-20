@@ -44,17 +44,17 @@ import com.avail.descriptor.TypeDescriptor.Types.DOUBLE
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
-import java.lang.Math.*
+import kotlin.math.max
+import kotlin.math.min
 
 /**
- * **Primitive:** Compute the [ double][DoubleDescriptor] `a*(2**b)` without intermediate overflow or any precision
- * loss.
+ * **Primitive:** Compute the [double][DoubleDescriptor] `a*(2**b)` without
+ * intermediate overflow or any precision loss.
  */
+@Suppress("unused")
 object P_DoubleTimesTwoPower : Primitive(3, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
 		val a = interpreter.argument(0)
@@ -64,18 +64,11 @@ object P_DoubleTimesTwoPower : Primitive(3, CannotFail, CanFold, CanInline)
 		val scale = if (b.isInt)
 			min(max(b.extractInt(), -10000), 10000)
 		else if (b.greaterOrEqual(zero())) 10000 else -10000
-		val d = scalb(a.extractDouble(), scale)
+		val d = Math.scalb(a.extractDouble(), scale)
 		return interpreter.primitiveSuccess(fromDoubleRecycling(d, a, true))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				DOUBLE.o(),
-				instanceType(two()),
-				integers()),
-			DOUBLE.o())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(DOUBLE.o(), instanceType(two()), integers()), DOUBLE.o())
 }

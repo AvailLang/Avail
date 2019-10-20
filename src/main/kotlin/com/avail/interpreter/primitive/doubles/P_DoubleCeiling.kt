@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive.doubles
 
 import com.avail.descriptor.A_Type
+import com.avail.descriptor.DoubleDescriptor
 import com.avail.descriptor.DoubleDescriptor.fromDoubleRecycling
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
@@ -39,29 +40,25 @@ import com.avail.descriptor.TypeDescriptor.Types.DOUBLE
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
+import kotlin.math.ceil
 
 /**
- * **Primitive:** Answer the smallest integral [ ] greater than or equal to the given double. If
- * the double is ±INF or NaN then answer the argument.
+ * **Primitive:** Answer the smallest integral [double][DoubleDescriptor]
+ * greater than or equal to the given double. If the double is ±INF or NaN then
+ * answer the argument.
  */
+@Suppress("unused")
 object P_DoubleCeiling : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val a = interpreter.argument(0)
 		val d = a.extractDouble()
-		val ceil = Math.ceil(d)
+		val ceil = ceil(d)
 		return interpreter.primitiveSuccess(fromDoubleRecycling(ceil, a, true))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(DOUBLE.o()),
-			DOUBLE.o())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(DOUBLE.o()), DOUBLE.o())
 }

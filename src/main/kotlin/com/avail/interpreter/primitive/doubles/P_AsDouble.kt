@@ -45,6 +45,7 @@ import com.avail.interpreter.Primitive.Flag.*
 /**
  * **Primitive:** Convert the numeric argument to a [double][DoubleDescriptor].
  */
+@Suppress("unused")
 object P_AsDouble : Primitive(1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

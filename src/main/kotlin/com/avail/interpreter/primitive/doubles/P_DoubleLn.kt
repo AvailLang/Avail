@@ -46,11 +46,10 @@ import java.lang.Math.log
  * **Primitive:** Compute the natural logarithm of the
  * [double][DoubleDescriptor] `a`.
  */
+@Suppress("unused")
 object P_DoubleLn : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val a = interpreter.argument(0)
@@ -58,11 +57,6 @@ object P_DoubleLn : Primitive(1, CannotFail, CanFold, CanInline)
 			fromDoubleRecycling(log(a.extractDouble()), a, true))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(DOUBLE.o()),
-			DOUBLE.o())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(DOUBLE.o()), DOUBLE.o())
 }

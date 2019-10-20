@@ -48,14 +48,13 @@ import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * **Primitive:** Convert a [ double][DoubleDescriptor] to an [integer][IntegerDescriptor], rounding towards
- * zero.
+ * **Primitive:** Convert a [double][DoubleDescriptor] to an
+ * [integer][IntegerDescriptor], rounding towards zero.
  */
+@Suppress("unused")
 object P_DoubleTruncatedAsInteger : Primitive(1, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val a = interpreter.argument(0)
@@ -69,16 +68,9 @@ object P_DoubleTruncatedAsInteger : Primitive(1, CanFold, CanInline)
 			doubleTruncatedToExtendedInteger(d))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(DOUBLE.o()),
-			extendedIntegers())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(DOUBLE.o()), extendedIntegers())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER))
 }

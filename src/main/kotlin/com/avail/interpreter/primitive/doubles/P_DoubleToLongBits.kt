@@ -34,6 +34,7 @@ package com.avail.interpreter.primitive.doubles
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.DoubleDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.IntegerDescriptor
 import com.avail.descriptor.IntegerDescriptor.fromLong
 import com.avail.descriptor.IntegerRangeTypeDescriptor.int64
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
@@ -43,16 +44,16 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Given a [ double][DoubleDescriptor]-precision IEEE-754 representation, treat the bit pattern as a 64-bit
- * (signed) `long` and answer the corresponding Avail [ ].
+ * **Primitive:** Given a [double][DoubleDescriptor]-precision IEEE-754
+ * representation, treat the bit pattern as a 64-bit (signed) `long` and answer
+ * the corresponding Avail [integer][IntegerDescriptor].
  *
  * @see P_DoubleFromLongBits
  */
+@Suppress("unused")
 object P_DoubleToLongBits : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val doubleObject = interpreter.argument(0)
@@ -61,11 +62,6 @@ object P_DoubleToLongBits : Primitive(1, CannotFail, CanFold, CanInline)
 		return interpreter.primitiveSuccess(fromLong(doubleBits))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(DOUBLE.o()),
-			int64())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(DOUBLE.o()), int64())
 }

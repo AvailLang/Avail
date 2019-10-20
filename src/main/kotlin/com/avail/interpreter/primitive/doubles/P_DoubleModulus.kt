@@ -43,13 +43,13 @@ import com.avail.interpreter.Primitive.Flag.*
 import java.lang.Math.floor
 
 /**
- * **Primitive:** Divide [ double][DoubleDescriptor] `a` by double `b`, but answer the remainder.
+ * **Primitive:** Divide [double][DoubleDescriptor] `a` by double `b`, but
+ * answer the remainder.
  */
+@Suppress("unused")
 object P_DoubleModulus : Primitive(2, CannotFail, CanInline, CanFold)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val a = interpreter.argument(0)
@@ -57,18 +57,11 @@ object P_DoubleModulus : Primitive(2, CannotFail, CanInline, CanFold)
 		val da = a.extractDouble()
 		val db = b.extractDouble()
 		val div = da / db
-		val mod = da - floor(div) * db
+		val mod = da - kotlin.math.floor(div) * db
 		return interpreter.primitiveSuccess(
 			objectFromDoubleRecycling(mod, a, b, true))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				DOUBLE.o(),
-				DOUBLE.o()),
-			DOUBLE.o())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(DOUBLE.o(), DOUBLE.o()), DOUBLE.o())
 }
