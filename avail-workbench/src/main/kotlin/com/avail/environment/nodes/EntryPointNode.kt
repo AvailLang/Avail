@@ -57,11 +57,10 @@ import com.avail.builder.ResolvedModuleName
  *   The name of the entry point.
  */
 class EntryPointNode constructor(
-		val resolvedModuleName: ResolvedModuleName,
-		builder: AvailBuilder,
-		val entryPointString: String)
-	: AbstractBuilderFrameTreeNode(builder)
-{
+	builder: AvailBuilder,
+	val resolvedModuleName: ResolvedModuleName,
+	val entryPointString: String
+): AbstractBuilderFrameTreeNode(builder) {
 	override fun iconResourceName(): String? = null
 
 	override fun text(selected: Boolean): String = entryPointString

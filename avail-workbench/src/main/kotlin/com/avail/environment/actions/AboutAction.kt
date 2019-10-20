@@ -34,12 +34,12 @@ package com.avail.environment.actions
 
 import com.avail.AvailRuntimeConfiguration
 import com.avail.environment.AvailWorkbench
-import javax.swing.*
-import javax.swing.border.EmptyBorder
-import java.awt.*
+import java.awt.BorderLayout
 import java.awt.Dialog.ModalityType
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
+import javax.swing.*
+import javax.swing.border.EmptyBorder
 
 /**
  * An `AboutAction` presents the "About Avail" dialog.
@@ -87,7 +87,7 @@ class AboutAction constructor(workbench: AvailWorkbench)
 		}
 		builder.append("<br><br>")
 		builder.append(
-			"Copyright \u00A9 1993-2017 The Avail Foundation, LLC.<br>")
+			"Copyright \u00A9 1993-2019 The Avail Foundation, LLC.<br>")
 		builder.append("All rights reserved.")
 		builder.append("</center></html>")
 		panel.add(
