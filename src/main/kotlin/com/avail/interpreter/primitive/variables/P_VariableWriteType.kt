@@ -35,28 +35,24 @@ import com.avail.descriptor.A_Type
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceMetaDescriptor.topMeta
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.VariableTypeDescriptor
 import com.avail.descriptor.VariableTypeDescriptor.variableMeta
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Extract the write type of a [ ].
+ * **Primitive:** Extract the write type of a [variable type ][VariableTypeDescriptor].
  */
 object P_VariableWriteType : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val type = interpreter.argument(0)
 		return interpreter.primitiveSuccess(type.writeType())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(variableMeta()), topMeta())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(variableMeta()), topMeta())
 }

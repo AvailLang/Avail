@@ -33,6 +33,7 @@
 package com.avail.interpreter.primitive.variables
 
 import com.avail.descriptor.A_Type
+import com.avail.descriptor.A_Variable
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.BottomTypeDescriptor.bottom
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
@@ -43,7 +44,6 @@ import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TypeDescriptor.Types.ANY
 import com.avail.descriptor.TypeDescriptor.Types.TOP
-import com.avail.descriptor.VariableDescriptor
 import com.avail.descriptor.VariableTypeDescriptor.variableReadWriteType
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE
@@ -56,37 +56,26 @@ import com.avail.interpreter.Primitive.Flag.HasSideEffect
 import com.avail.interpreter.effects.LoadingEffectToRunPrimitive
 
 /**
- * **Primitive:** Atomically read and update the map in the
- * specified [variable][VariableDescriptor] by adding the given key
- * and value.
+ * **Primitive:** Atomically read and update the map in the specified
+ * [variable][A_Variable] by adding the given key and value.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object P_AtomicAddToMap : Primitive(3, CanInline, HasSideEffect)
-{
-
-	override fun attempt(
-		interpreter: Interpreter): Result
-	{
+object P_AtomicAddToMap : Primitive(3, CanInline, HasSideEffect) {
+	override fun attempt(interpreter: Interpreter): Result {
 		interpreter.checkArgumentCount(3)
 		val variable = interpreter.argument(0)
 		val key = interpreter.argument(1)
 		val value = interpreter.argument(2)
-		try
-		{
+		try {
 			variable.atomicAddToMap(key, value)
-		}
-		catch (e: VariableGetException)
-		{
+		} catch (e: VariableGetException) {
 			return interpreter.primitiveFailure(e)
-		}
-		catch (e: VariableSetException)
-		{
+		} catch (e: VariableSetException) {
 			return interpreter.primitiveFailure(e)
 		}
 
-		val loader = interpreter.availLoaderOrNull()
-		loader?.recordEffect(
+		interpreter.availLoaderOrNull()?.recordEffect(
 			LoadingEffectToRunPrimitive(
 				SpecialMethodAtom.ADD_TO_MAP_VARIABLE.bundle,
 				variable,
@@ -95,9 +84,8 @@ object P_AtomicAddToMap : Primitive(3, CanInline, HasSideEffect)
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				variableReadWriteType(
 					mostGeneralMapType(),
@@ -105,14 +93,10 @@ object P_AtomicAddToMap : Primitive(3, CanInline, HasSideEffect)
 				ANY.o(),
 				ANY.o()),
 			TOP.o())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
 			set(
 				E_CANNOT_READ_UNASSIGNED_VARIABLE,
 				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE))
-	}
-
 }

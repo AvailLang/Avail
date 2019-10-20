@@ -51,15 +51,14 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
 
 /**
- * **Primitive:** Remove the [ write reactor][VariableAccessReactor] associated with the specified [key][AtomDescriptor].
+ * **Primitive:** Remove the [write reactor][VariableAccessReactor] associated
+ * with the specified [key][AtomDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_RemoveWriteReactor : Primitive(2, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val variable = interpreter.argument(0)
@@ -69,33 +68,24 @@ object P_RemoveWriteReactor : Primitive(2, HasSideEffect)
 		{
 			return interpreter.primitiveFailure(E_SPECIAL_ATOM)
 		}
-		try
-		{
+		return try {
 			variable.removeWriteReactor(key)
+			interpreter.primitiveSuccess(nil)
+		} catch (e: AvailException) {
+			interpreter.primitiveFailure(e.numericCode())
 		}
-		catch (e: AvailException)
-		{
-			return interpreter.primitiveFailure(e.numericCode())
-		}
-
-		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				mostGeneralVariableType(),
 				ATOM.o()),
 			TOP.o())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
 			set(
 				E_SPECIAL_ATOM,
 				E_KEY_NOT_FOUND))
-	}
-
 }

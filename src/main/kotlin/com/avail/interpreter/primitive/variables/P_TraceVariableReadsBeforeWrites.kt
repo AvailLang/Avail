@@ -47,18 +47,19 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
 
 /**
- * **Primitive:** Enable [ ][TraceFlag.TRACE_VARIABLE_READS_BEFORE_WRITES] for the [current fiber][FiberDescriptor.currentFiber].
+ * **Primitive:** Enable variable
+ * [read-before-write][TraceFlag.TRACE_VARIABLE_READS_BEFORE_WRITES] tracing for
+ * the [current fiber][FiberDescriptor.currentFiber].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_TraceVariableReadsBeforeWrites : Primitive(0, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(0)
-		if (interpreter.traceVariableReadsBeforeWrites() || interpreter.traceVariableWrites())
+		if (interpreter.traceVariableReadsBeforeWrites()
+			|| interpreter.traceVariableWrites())
 		{
 			return interpreter.primitiveFailure(E_ILLEGAL_TRACE_MODE)
 		}
@@ -66,14 +67,9 @@ object P_TraceVariableReadsBeforeWrites : Primitive(0, HasSideEffect)
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(emptyTuple(), TOP.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(emptyTuple(), TOP.o())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_ILLEGAL_TRACE_MODE))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_ILLEGAL_TRACE_MODE))
 }

@@ -57,38 +57,30 @@ import com.avail.optimizer.L1Translator.CallSiteHelper
 import com.avail.optimizer.L2Generator.edgeTo
 
 /**
- * **Primitive:** Assign the [value][AvailObject]
- * to the [variable][VariableDescriptor].
+ * **Primitive:** Assign the [value][AvailObject] to the
+ * [variable][VariableDescriptor].
  */
 object P_SetValue : Primitive(2, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val variable = interpreter.argument(0)
 		val value = interpreter.argument(1)
-		try
-		{
+		return try {
 			variable.setValue(value)
+			interpreter.primitiveSuccess(nil)
+		} catch (e: VariableSetException) {
+			interpreter.primitiveFailure(e)
 		}
-		catch (e: VariableSetException)
-		{
-			return interpreter.primitiveFailure(e)
-		}
-
-		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				mostGeneralVariableType(),
 				ANY.o()),
 			TOP.o())
-	}
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
@@ -135,15 +127,12 @@ object P_SetValue : Primitive(2, CanInline, HasSideEffect)
 		return true
 	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
 			set(
 				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE,
 				E_CANNOT_MODIFY_FINAL_JAVA_FIELD,
 				E_JAVA_MARSHALING_FAILED,
 				E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE,
 				E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED))
-	}
-
 }

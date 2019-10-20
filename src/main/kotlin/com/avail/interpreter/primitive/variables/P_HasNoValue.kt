@@ -45,24 +45,21 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail
 
 /**
- * **Primitive:** Answer [ ][AtomDescriptor.trueObject] if the [ variable][VariableDescriptor] is unassigned (has no value).
+ * **Primitive:** Answer [true][AtomDescriptor.trueObject] if the
+ * [variable][VariableDescriptor] is unassigned (has no value).
  */
 object P_HasNoValue : Primitive(1, CanInline, CannotFail)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val variable = interpreter.argument(0)
-		return interpreter.primitiveSuccess(objectFromBoolean(!variable.hasValue()))
+		return interpreter.primitiveSuccess(
+			objectFromBoolean(!variable.hasValue()))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(mostGeneralVariableType()),
 			booleanType())
-	}
-
 }

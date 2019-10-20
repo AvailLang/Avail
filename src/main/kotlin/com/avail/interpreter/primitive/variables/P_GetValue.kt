@@ -50,39 +50,30 @@ import com.avail.interpreter.Primitive.Flag.HasSideEffect
 
 /**
  * **Primitive:** There are two possibilities.  The
- * [variable][VariableDescriptor] is mutable, in which case we
- * want to destroy it, or the variable is immutable, in which case we want
- * to make sure the extracted value becomes immutable (in case the variable
- * is being held onto by something). Since the primitive invocation code is
- * going to erase it if it's mutable anyhow, only the second case requires
- * any real work.
+ * [variable][VariableDescriptor] is mutable, in which case we want to destroy
+ * it, or the variable is immutable, in which case we want to make sure the
+ * extracted value becomes immutable (in case the variable is being held onto by
+ * something). Since the primitive invocation code is going to erase it if it's
+ * mutable anyhow, only the second case requires any real work.
  */
 object P_GetValue : Primitive(1, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val variable = interpreter.argument(0)
-		try
-		{
-			return interpreter.primitiveSuccess(variable.value)
+		return try {
+			interpreter.primitiveSuccess(variable.value)
+		} catch (e: VariableGetException) {
+			interpreter.primitiveFailure(e)
 		}
-		catch (e: VariableGetException)
-		{
-			return interpreter.primitiveFailure(e)
-		}
-
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				mostGeneralVariableType()),
 			ANY.o())
-	}
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
@@ -93,11 +84,8 @@ object P_GetValue : Primitive(1, CanInline, HasSideEffect)
 		return if (readType.isTop) ANY.o() else readType
 	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(
 			E_CANNOT_READ_UNASSIGNED_VARIABLE,
 			E_JAVA_MARSHALING_FAILED))
-	}
-
 }

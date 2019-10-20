@@ -44,15 +44,14 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer a [ variable type][VariableTypeDescriptor] with the specified read and write types.
+ * **Primitive:** Answer a [variable type][VariableTypeDescriptor] with the
+ * specified read and write types.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_CreateReadWriteVariableType : Primitive(2, CannotFail, CanInline, CanFold)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val readType = interpreter.argument(0)
@@ -61,13 +60,10 @@ object P_CreateReadWriteVariableType : Primitive(2, CannotFail, CanInline, CanFo
 			variableReadWriteType(readType, writeType))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				topMeta(),
 				topMeta()),
 			variableMeta())
-	}
-
 }

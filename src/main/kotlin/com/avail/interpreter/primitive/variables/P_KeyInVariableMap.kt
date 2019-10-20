@@ -53,46 +53,35 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
 
 /**
- * **Primitive:** Test whether the [map][MapDescriptor] in the
- * specified [variable][VariableDescriptor] has the given key.
+ * **Primitive:** Test whether the [map][MapDescriptor] in the specified
+ * [variable][VariableDescriptor] has the given key.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 object P_KeyInVariableMap : Primitive(2, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val key = interpreter.argument(0)
 		val variable = interpreter.argument(1)
-		try
-		{
-			return interpreter.primitiveSuccess(
+		return try {
+			interpreter.primitiveSuccess(
 				objectFromBoolean(variable.variableMapHasKey(key)))
+		} catch (e: VariableGetException) {
+			interpreter.primitiveFailure(e)
 		}
-		catch (e: VariableGetException)
-		{
-			return interpreter.primitiveFailure(e)
-		}
+}
 
-	}
-
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				ANY.o(),
 				variableReadWriteType(
 					mostGeneralMapType(),
 					bottom())),
 			booleanType())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_CANNOT_READ_UNASSIGNED_VARIABLE))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_CANNOT_READ_UNASSIGNED_VARIABLE))
 }

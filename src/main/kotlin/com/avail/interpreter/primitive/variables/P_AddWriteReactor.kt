@@ -48,21 +48,18 @@ import com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType
 import com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Fallibility.*
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
 
 /**
- * **Primitive:** Add a [ write reactor][VariableAccessReactor] to the specified [variable][VariableDescriptor].
- * The supplied [key][AtomDescriptor] may be used subsequently to
- * remove the write reactor.
+ * **Primitive:** Add a [write reactor][VariableAccessReactor] to the specified
+ * [variable][VariableDescriptor]. The supplied [key][AtomDescriptor] may be
+ * used subsequently to remove the write reactor.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_AddWriteReactor : Primitive(3, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
 		val variable = interpreter.argument(0)
@@ -79,9 +76,8 @@ object P_AddWriteReactor : Primitive(3, HasSideEffect)
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				mostGeneralVariableType(),
 				ATOM.o(),
@@ -89,41 +85,27 @@ object P_AddWriteReactor : Primitive(3, HasSideEffect)
 					emptyTuple(),
 					TOP.o())),
 			TOP.o())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_SPECIAL_ATOM))
-	}
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_SPECIAL_ATOM))
 
 	override fun fallibilityForArgumentTypes(
-		argumentTypes: List<A_Type>): Primitive.Fallibility
+		argumentTypes: List<A_Type>): Fallibility
 	{
 		//		final A_Type varType = argumentTypes.get(0);
 		val keyType = argumentTypes[1]
 		//		final A_Type functionType = argumentTypes.get(2);
 		if (keyType.isEnumeration)
 		{
-			var allSpecial = true
-			var noneSpecial = true
-			for (key in keyType.instances())
-			{
-				val isSpecial = key.isAtomSpecial
-				allSpecial = allSpecial && isSpecial
-				noneSpecial = noneSpecial && !isSpecial
-			}
+			val allSpecial = keyType.instance().all { it.isAtomSpecial }
+			val noneSpecial = keyType.instance().none { it.isAtomSpecial }
 			// The aggregate booleans can only both be true in the degenerate
 			// case that keyType is ⊥, which should be impossible.
-			if (noneSpecial)
-			{
-				return CallSiteCannotFail
-			}
-			if (allSpecial)
-			{
-				return CallSiteMustFail
+			when {
+				allSpecial -> return Fallibility.CallSiteMustFail
+				noneSpecial -> return Fallibility.CallSiteCannotFail
 			}
 		}
-		return CallSiteCanFail
+		return Fallibility.CallSiteCanFail
 	}
-
 }

@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive.variables
 
 import com.avail.descriptor.A_Type
+import com.avail.descriptor.A_Variable
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.NilDescriptor.nil
@@ -48,13 +49,11 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
 
 /**
- * **Primitive:** Swap the contents of two [ ].
+ * **Primitive:** Swap the contents of two [variables][A_Variable].
  */
 object P_Swap : Primitive(2, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val var1 = interpreter.argument(0)
@@ -75,34 +74,25 @@ object P_Swap : Primitive(2, CanInline, HasSideEffect)
 			fiber.recordVariableAccess(var1, true)
 			fiber.recordVariableAccess(var2, true)
 		}
-		try
-		{
+		return try {
 			var1.setValue(value2)
 			var2.setValue(value1)
-			return interpreter.primitiveSuccess(nil)
+			interpreter.primitiveSuccess(nil)
+		} catch (e: VariableSetException) {
+			interpreter.primitiveFailure(e)
 		}
-		catch (e: VariableSetException)
-		{
-			return interpreter.primitiveFailure(e)
-		}
+}
 
-	}
-
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				mostGeneralVariableType(),
 				mostGeneralVariableType()),
 			TOP.o())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
 			set(
 				E_CANNOT_SWAP_CONTENTS_OF_DIFFERENTLY_TYPED_VARIABLES,
 				E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED))
-	}
-
 }

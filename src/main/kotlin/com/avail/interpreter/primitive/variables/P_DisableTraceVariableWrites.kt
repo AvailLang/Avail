@@ -32,13 +32,11 @@
 
 package com.avail.interpreter.primitive.variables
 
-import com.avail.descriptor.A_Type
+import com.avail.descriptor.*
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.FiberDescriptor
 import com.avail.descriptor.FiberDescriptor.TraceFlag
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
-import com.avail.descriptor.SetDescriptor
 import com.avail.descriptor.SetDescriptor.emptySet
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType
@@ -51,17 +49,19 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
 
 /**
- * **Primitive:** Disable [ ][TraceFlag.TRACE_VARIABLE_WRITES] for the [ ][FiberDescriptor.currentFiber]. For each [ ] that survived tracing, accumulate the variable's
- * [write reactor][VariableAccessReactor] [ ] into a [set][SetDescriptor]. Clear
- * the write reactors for each variable written. Answer the set of functions.
+ * **Primitive:** Disable [variable write tracing
+ * ][TraceFlag.TRACE_VARIABLE_WRITES] for the [current fiber
+ * ][FiberDescriptor.currentFiber]. For each [variable][A_Variable] that
+ * survived tracing, accumulate the variable's [write
+ * reactor][VariableAccessReactor] [functions][A_Function] into a [set][A_Set].
+ * Clear the write reactors for each variable written. Answer the set of
+ * functions.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_DisableTraceVariableWrites : Primitive(0, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(0)
 		val fiber = interpreter.fiber()
@@ -75,26 +75,20 @@ object P_DisableTraceVariableWrites : Primitive(0, HasSideEffect)
 		for (variable in written)
 		{
 			functions = functions.setUnionCanDestroy(
-				variable.validWriteReactorFunctions(),
-				true)
+				variable.validWriteReactorFunctions(), true)
 		}
 		return interpreter.primitiveSuccess(functions)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			emptyTuple(),
 			setTypeForSizesContentType(
 				wholeNumbers(),
 				functionType(
 					emptyTuple(),
 					TOP.o())))
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_ILLEGAL_TRACE_MODE))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_ILLEGAL_TRACE_MODE))
 }

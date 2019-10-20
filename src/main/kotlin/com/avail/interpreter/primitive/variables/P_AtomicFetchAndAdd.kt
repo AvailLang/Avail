@@ -34,13 +34,14 @@ package com.avail.interpreter.primitive.variables
 
 import com.avail.descriptor.A_RawFunction
 import com.avail.descriptor.A_Type
+import com.avail.descriptor.A_Variable
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.BottomTypeDescriptor.bottom
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.IntegerDescriptor
 import com.avail.descriptor.IntegerRangeTypeDescriptor.extendedIntegers
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetDescriptor.set
-import com.avail.descriptor.VariableDescriptor
 import com.avail.descriptor.VariableTypeDescriptor.variableReadWriteType
 import com.avail.exceptions.ArithmeticException
 import com.avail.exceptions.AvailErrorCode.*
@@ -53,15 +54,13 @@ import com.avail.interpreter.Primitive.Flag.HasSideEffect
 
 /**
  * **Primitive:** Atomically read and update the specified
- * [variable][VariableDescriptor] by the specified [ ].
+ * [variable][A_Variable] by the specified [amount][IntegerDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_AtomicFetchAndAdd : Primitive(2, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val variable = interpreter.argument(0)
@@ -83,30 +82,25 @@ object P_AtomicFetchAndAdd : Primitive(2, CanInline, HasSideEffect)
 		{
 			return interpreter.primitiveFailure(e)
 		}
-
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				variableReadWriteType(
 					extendedIntegers(),
 					bottom()),
 				extendedIntegers()),
 			extendedIntegers())
-	}
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
-		argumentTypes: List<A_Type>): A_Type
-	{
-		return argumentTypes[0].readType()
-	}
+		argumentTypes: List<A_Type>
+	): A_Type =
+		argumentTypes[0].readType()
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
 			set(
 				E_CANNOT_READ_UNASSIGNED_VARIABLE,
 				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE,
@@ -115,6 +109,4 @@ object P_AtomicFetchAndAdd : Primitive(2, CanInline, HasSideEffect)
 				E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE,
 				E_CANNOT_ADD_UNLIKE_INFINITIES,
 				E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED))
-	}
-
 }

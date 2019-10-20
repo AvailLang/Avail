@@ -32,13 +32,13 @@
 package com.avail.interpreter.primitive.variables
 
 import com.avail.descriptor.A_Type
+import com.avail.descriptor.A_Variable
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TypeDescriptor.Types.TOP
-import com.avail.descriptor.VariableDescriptor
 import com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType
 import com.avail.exceptions.AvailErrorCode.*
 import com.avail.exceptions.VariableSetException
@@ -48,44 +48,33 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
 
 /**
- * **Primitive:** Clear the [ variable][VariableDescriptor].
+ * **Primitive:** Clear the [variable][A_Variable].
  */
 object P_ClearValue : Primitive(1, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val variable = interpreter.argument(0)
-		try
-		{
+		return try {
 			variable.clearValue()
+			interpreter.primitiveSuccess(nil)
+		} catch (e: VariableSetException) {
+			interpreter.primitiveFailure(e.numericCode())
 		}
-		catch (e: VariableSetException)
-		{
-			return interpreter.primitiveFailure(e.numericCode())
-		}
-
-		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				mostGeneralVariableType()),
 			TOP.o())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
 			set(
 				E_CANNOT_MODIFY_FINAL_JAVA_FIELD,
 				E_JAVA_MARSHALING_FAILED,
 				E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE,
 				E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED))
-	}
-
 }

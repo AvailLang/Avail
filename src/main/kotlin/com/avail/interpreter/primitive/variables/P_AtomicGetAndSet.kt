@@ -34,12 +34,12 @@ package com.avail.interpreter.primitive.variables
 
 import com.avail.descriptor.A_RawFunction
 import com.avail.descriptor.A_Type
+import com.avail.descriptor.A_Variable
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TypeDescriptor.Types.ANY
-import com.avail.descriptor.VariableDescriptor
 import com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType
 import com.avail.exceptions.AvailErrorCode.*
 import com.avail.exceptions.VariableGetException
@@ -51,42 +51,32 @@ import com.avail.interpreter.Primitive.Flag.HasSideEffect
 
 /**
  * **Primitive:** Atomically read and overwrite the specified
- * [variable][VariableDescriptor].
+ * [variable][A_Variable].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_AtomicGetAndSet : Primitive(2, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val variable = interpreter.argument(0)
 		val newValue = interpreter.argument(1)
-		try
-		{
-			return interpreter.primitiveSuccess(variable.getAndSetValue(newValue))
+		return try {
+			interpreter.primitiveSuccess(variable.getAndSetValue(newValue))
+		} catch (e: VariableGetException) {
+			interpreter.primitiveFailure(e)
+		} catch (e: VariableSetException) {
+			interpreter.primitiveFailure(e)
 		}
-		catch (e: VariableGetException)
-		{
-			return interpreter.primitiveFailure(e)
-		}
-		catch (e: VariableSetException)
-		{
-			return interpreter.primitiveFailure(e)
-		}
-
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				mostGeneralVariableType(),
 				ANY.o()),
 			ANY.o())
-	}
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
@@ -97,9 +87,8 @@ object P_AtomicGetAndSet : Primitive(2, CanInline, HasSideEffect)
 		return if (readType.isTop) ANY.o() else readType
 	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
 			set(
 				E_CANNOT_READ_UNASSIGNED_VARIABLE,
 				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE,
@@ -107,6 +96,4 @@ object P_AtomicGetAndSet : Primitive(2, CanInline, HasSideEffect)
 				E_JAVA_MARSHALING_FAILED,
 				E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE,
 				E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED))
-	}
-
 }

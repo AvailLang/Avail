@@ -33,6 +33,7 @@ package com.avail.interpreter.primitive.variables
 
 import com.avail.descriptor.A_RawFunction
 import com.avail.descriptor.A_Type
+import com.avail.descriptor.A_Variable
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.AvailObject
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
@@ -48,39 +49,31 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
 
 /**
- * **Primitive:** Get the value of the [ ], clear the variable, then answer the
+ * **Primitive:** Get the value of the [variable][A_Variable], clear the variable, then answer the
  * previously extracted [value][AvailObject]. This operation
  * allows store-back patterns to be efficiently implemented in Level One
  * code while keeping the interpreter itself thread-safe and debugger-safe.
  */
 object P_GetClearing : Primitive(1, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val variable = interpreter.argument(0)
-		try
-		{
+		return try {
 			val valueObject = variable.value
 			variable.clearValue()
-			return interpreter.primitiveSuccess(valueObject)
+			interpreter.primitiveSuccess(valueObject)
+		} catch (e: VariableGetException) {
+			interpreter.primitiveFailure(e.numericCode())
 		}
-		catch (e: VariableGetException)
-		{
-			return interpreter.primitiveFailure(e.numericCode())
-		}
+}
 
-	}
-
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				mostGeneralVariableType()),
 			ANY.o())
-	}
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
@@ -91,15 +84,12 @@ object P_GetClearing : Primitive(1, CanInline, HasSideEffect)
 		return if (readType.isTop) ANY.o() else readType
 	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
 			set(
 				E_CANNOT_READ_UNASSIGNED_VARIABLE,
 				E_CANNOT_MODIFY_FINAL_JAVA_FIELD,
 				E_JAVA_MARSHALING_FAILED,
 				E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE,
 				E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED))
-	}
-
 }

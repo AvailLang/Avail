@@ -49,19 +49,18 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
 
 /**
- * **Primitive:** Disable [ ][TraceFlag.TRACE_VARIABLE_READS_BEFORE_WRITES] for the [current fiber][FiberDescriptor.currentFiber]. To
- * each [variable][VariableDescriptor] that survived tracing, add a
- * [write reactor][VariableAccessReactor] that wraps the specified
- * [function][FunctionDescriptor], associating it with the specified
- * [atom][AtomDescriptor] (for potential pre-activation removal).
+ * **Primitive:** Disable variable [read-before-write
+ * tracing][TraceFlag.TRACE_VARIABLE_READS_BEFORE_WRITES] for the [current
+ * fiber][FiberDescriptor.currentFiber]. To each [variable][A_Variable] that
+ * survived tracing, add a [write reactor][VariableAccessReactor] that wraps the
+ * specified [function][FunctionDescriptor], associating it with the specified
+ * [atom][A_Atom] (for potential pre-activation removal).
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_DisableTraceVariableReadsBeforeWrites : Primitive(2, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val key = interpreter.argument(0)
@@ -81,16 +80,13 @@ object P_DisableTraceVariableReadsBeforeWrites : Primitive(2, HasSideEffect)
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(ATOM.o(), functionType(
-			emptyTuple(),
-			TOP.o())), TOP.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(
+				ATOM.o(),
+				functionType(emptyTuple(), TOP.o())),
+			TOP.o())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_ILLEGAL_TRACE_MODE))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_ILLEGAL_TRACE_MODE))
 }

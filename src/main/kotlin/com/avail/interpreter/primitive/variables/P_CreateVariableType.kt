@@ -35,6 +35,7 @@ import com.avail.descriptor.A_Type
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceMetaDescriptor.anyMeta
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.VariableTypeDescriptor
 import com.avail.descriptor.VariableTypeDescriptor.variableMeta
 import com.avail.descriptor.VariableTypeDescriptor.variableTypeFor
 import com.avail.interpreter.Interpreter
@@ -42,24 +43,20 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Create a [ ] using the given inner type.
+ * **Primitive:** Create a [variable type][VariableTypeDescriptor] using the
+ * given inner [type][A_Type].
  */
 object P_CreateVariableType : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val type = interpreter.argument(0)
 		return interpreter.primitiveSuccess(variableTypeFor(type))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(anyMeta()),
 			variableMeta())
-	}
-
 }
