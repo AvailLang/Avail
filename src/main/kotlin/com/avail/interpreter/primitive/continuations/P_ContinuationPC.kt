@@ -31,15 +31,12 @@
  */
 package com.avail.interpreter.primitive.continuations
 
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.CompiledCodeDescriptor
-import com.avail.descriptor.ContinuationDescriptor
+import com.avail.descriptor.*
 import com.avail.descriptor.ContinuationTypeDescriptor.mostGeneralContinuationType
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.IntegerDescriptor.fromInt
 import com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.TupleDescriptor
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
@@ -47,25 +44,21 @@ import com.avail.interpreter.Primitive.Flag.*
 /**
  * **Primitive:** Answer the program counter of a
  * [continuation][ContinuationDescriptor]. This is the index of
- * the current instruction in the continuation's [ ]'s [code][CompiledCodeDescriptor]'s
+ * the current instruction in the continuation's [function][FunctionDescriptor]'s [code][CompiledCodeDescriptor]'s
  * [tuple][TupleDescriptor] of nybblecodes.
  */
+@Suppress("unused")
 object P_ContinuationPC : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val con = interpreter.argument(0)
 		return interpreter.primitiveSuccess(fromInt(con.pc()))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(mostGeneralContinuationType()),
 			naturalNumbers())
-	}
-
 }

@@ -45,40 +45,28 @@ import com.avail.interpreter.Primitive.Flag.CanSuspend
 import com.avail.interpreter.Primitive.Flag.Unknown
 
 /**
- * **Primitive:** Mark the nearest frame corresponding to an
- * invocation of [P_CatchException] as ineligible to handle exceptions
- * any longer.
+ * **Primitive:** Mark the nearest frame corresponding to an invocation of
+ * [P_CatchException] as ineligible to handle exceptions any longer.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_MarkNearestCatch : Primitive(1, CanSuspend, Unknown)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val code = interpreter.argument(0)
 		return interpreter.markNearestGuard(code)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				enumerationWith(
-					set(
-						E_HANDLER_SENTINEL,
-						E_UNWIND_SENTINEL))),
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(enumerationWith(
+				set(E_HANDLER_SENTINEL, E_UNWIND_SENTINEL))),
 			TOP.o())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
-			set(
-				E_CANNOT_MARK_HANDLER_FRAME,
-				E_NO_HANDLER_FRAME))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
+			set(E_CANNOT_MARK_HANDLER_FRAME, E_NO_HANDLER_FRAME))
 }

@@ -49,13 +49,13 @@ import com.avail.optimizer.L1Translator.CallSiteHelper
 import java.util.Collections.emptyList
 
 /**
- * **Primitive:** Invoke the [ trueBlock][FunctionDescriptor].
+ * **Primitive:** Invoke the [trueBlock][FunctionDescriptor].
  */
+@Suppress("unused")
 object P_IfTrueThenElse : Primitive(3, Invokes, CanInline, CannotFail)
 {
 
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
 		//		final A_Atom ignoredBoolean = interpreter.argument(0);
@@ -76,19 +76,13 @@ object P_IfTrueThenElse : Primitive(3, Invokes, CanInline, CannotFail)
 		return trueBlockType.returnType()
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		 functionType(
 			tuple(
 				ANY.o(),
-				functionType(
-					emptyTuple(),
-					TOP.o()),
-				functionType(
-					emptyTuple(),
-					TOP.o())),
+				functionType(emptyTuple(), TOP.o()),
+				functionType(emptyTuple(), TOP.o())),
 			TOP.o())
-	}
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
@@ -108,5 +102,4 @@ object P_IfTrueThenElse : Primitive(3, Invokes, CanInline, CannotFail)
 			thenFunction, emptyList(), true, callSiteHelper)
 		return true
 	}
-
 }

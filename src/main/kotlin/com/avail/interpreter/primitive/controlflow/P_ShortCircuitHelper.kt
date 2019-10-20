@@ -33,6 +33,7 @@ package com.avail.interpreter.primitive.controlflow
 
 import com.avail.descriptor.A_RawFunction
 import com.avail.descriptor.A_Type
+import com.avail.descriptor.FunctionDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.TupleDescriptor.emptyTuple
@@ -48,17 +49,17 @@ import com.avail.optimizer.L1Translator.CallSiteHelper
 import java.util.Collections.emptyList
 
 /**
- * **Primitive:** Run the zero-argument [ ], ignoring the leading [any][Types.ANY]
- * argument. This is used for short-circuit evaluation.
+ * **Primitive:** Run the zero-argument [function][FunctionDescriptor], ignoring
+ * the leading [any][Types.ANY] argument. This is used for short-circuit
+ * evaluation.
  */
+@Suppress("unused")
 object P_ShortCircuitHelper : Primitive(2, Invokes, CanInline, CannotFail)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
-		//		final A_Atom ignoredBool = interpreter.argument(0);
+		//		val ignoredBool: A_Atom = interpreter.argument(0);
 		val function = interpreter.argument(1)
 
 		// Function takes no arguments.
@@ -68,23 +69,13 @@ object P_ShortCircuitHelper : Primitive(2, Invokes, CanInline, CannotFail)
 	}
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
-		argumentTypes: List<A_Type>): A_Type
-	{
-		val blockType = argumentTypes[1]
-		return blockType.returnType()
-	}
+		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type =
+			argumentTypes[1].returnType()
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				ANY.o(),
-				functionType(
-					emptyTuple(),
-					TOP.o())),
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(ANY.o(), functionType(emptyTuple(), TOP.o())),
 			TOP.o())
-	}
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,

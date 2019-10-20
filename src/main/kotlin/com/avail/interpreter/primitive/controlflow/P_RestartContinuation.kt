@@ -50,8 +50,8 @@ import com.avail.optimizer.L1Translator.CallSiteHelper
 /**
  * **Primitive:** Restart the given [ ]. Make sure it's a label-like
  * continuation rather than a call-like, because a call-like continuation
- * requires a value to be stored on its stack in order to resume it,
- * something this primitive does not do.
+ * requires a value to be stored on its stack in order to resume it, something
+ * this primitive does not do.
  */
 object P_RestartContinuation : Primitive(
 	1,
@@ -60,17 +60,23 @@ object P_RestartContinuation : Primitive(
 	CanSwitchContinuations,
 	AlwaysSwitchesContinuation)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val originalCon = interpreter.argument(0)
 
 		val code = originalCon.function().code()
 		//TODO MvG - This should be a primitive failure.
-		assert(originalCon.stackp() == code.numSlots() + 1) { "Continuation should have been a label- rather than " + "call-continuation" }
-		assert(originalCon.pc() == 0) { "Continuation should have been a label- rather than " + "call-continuation" }
+		assert(originalCon.stackp() == code.numSlots() + 1)
+		{
+			"Continuation should have been a label- rather than " +
+				"call-continuation"
+		}
+		assert(originalCon.pc() == 0)
+		{
+			"Continuation should have been a label- rather than " +
+				"call-continuation"
+		}
 
 		// Move the (original) arguments from the continuation into
 		// interpreter.argsBuffer.
@@ -91,13 +97,8 @@ object P_RestartContinuation : Primitive(
 		return CONTINUATION_CHANGED
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				mostGeneralContinuationType()),
-			bottom())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(mostGeneralContinuationType()), bottom())
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
@@ -111,14 +112,11 @@ object P_RestartContinuation : Primitive(
 		// First, pop out of the Java stack frames back into the outer L2 run
 		// loop (which saves/restores the current frame and continues at the
 		// next L2 instruction).
-		translator.addInstruction(
-			L2_RESTART_CONTINUATION.instance,
-			arguments[0])
+		translator.addInstruction(L2_RESTART_CONTINUATION.instance, arguments[0])
 		assert(!translator.generator.currentlyReachable())
 		//		translator.startBlock(
 		//			translator.createBasicBlock(
 		//				"unreachable after L2_RESTART_CONTINUATION"));
 		return true
 	}
-
 }

@@ -57,40 +57,34 @@ import com.avail.interpreter.Primitive.Flag.Unknown
 import java.util.*
 
 /**
- * **Primitive:** Get the [ ][ObjectTypeDescriptor.stackDumpAtom] associated with the
- * specified [exception][ObjectTypeDescriptor.exceptionType].
+ * **Primitive:** Get the [ ][ObjectTypeDescriptor.stackDumpAtom] associated
+ * with the specified [exception][ObjectTypeDescriptor.exceptionType].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_ExceptionStackDump : Primitive(1, CanSuspend, Unknown)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val exception = interpreter.argument(0)
 
 		val runtime = interpreter.runtime()
 		// The primitive is flagged CanSuspend to force the stack to be reified.
-		val continuation: A_Continuation
-		try
-		{
-			continuation = exception.fieldAt(stackDumpAtom())
-		}
-		catch (e: MapException)
-		{
-			assert(e.numericCode().extractInt() == E_KEY_NOT_FOUND.nativeCode())
-			return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE)
-		}
+		val continuation : A_Continuation =
+			try { exception.fieldAt(stackDumpAtom()) }
+			catch (e: MapException)
+			{
+				assert(e.numericCode().extractInt()
+					       == E_KEY_NOT_FOUND.nativeCode())
+				return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE)
+			}
 
 		val textInterface = interpreter.fiber().textInterface()
-		return interpreter.suspendAndDo { toSucceed, toFail ->
-			dumpStackThen(
-				runtime,
-				textInterface,
-				continuation
-			) { stack ->
+		return interpreter.suspendAndDo { toSucceed, _ ->
+			dumpStackThen(runtime, textInterface, continuation)
+			{ stack ->
 				val frames = ArrayList<A_String>(stack.size)
 				for (i in stack.indices.reversed())
 				{
@@ -102,14 +96,9 @@ object P_ExceptionStackDump : Primitive(1, CanSuspend, Unknown)
 		}
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(exceptionType()), zeroOrMoreOf(stringType()))
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(exceptionType()), zeroOrMoreOf(stringType()))
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_INCORRECT_ARGUMENT_TYPE))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_INCORRECT_ARGUMENT_TYPE))
 }

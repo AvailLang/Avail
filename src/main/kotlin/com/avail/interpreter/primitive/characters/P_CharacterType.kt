@@ -43,14 +43,14 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Extract an integer representing the Java
- * enumeration value assuciated with the given [ character][CharacterDescriptor].
+ * **Primitive:** Extract an integer representing the Java enumeration value
+ * associated with the given [ character][CharacterDescriptor].
  *
  * @see Character.getType
  */
+@Suppress("unused")
 object P_CharacterType : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
 	override fun attempt(
 		interpreter: Interpreter): Result
 	{
@@ -61,11 +61,6 @@ object P_CharacterType : Primitive(1, CannotFail, CanFold, CanInline)
 		return interpreter.primitiveSuccess(fromInt(characterType))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(CHARACTER.o()),
-			inclusive(0, 31))
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(CHARACTER.o()), inclusive(0, 31))
 }

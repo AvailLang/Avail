@@ -49,13 +49,12 @@ import com.avail.optimizer.L1Translator.CallSiteHelper
 import java.util.Collections.emptyList
 
 /**
- * **Primitive:** Invoke the [ falseBlock][FunctionDescriptor].
+ * **Primitive:** Invoke the [falseBlock][FunctionDescriptor].
  */
+@Suppress("unused")
 object P_IfFalseThenElse : Primitive(3, Invokes, CanInline, CannotFail)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
 		//		final A_Atom ignoredBoolean = interpreter.argument(0);
@@ -69,26 +68,16 @@ object P_IfFalseThenElse : Primitive(3, Invokes, CanInline, CannotFail)
 	}
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
-		argumentTypes: List<A_Type>): A_Type
-	{
-		val falseBlockType = argumentTypes[2]
-		return falseBlockType.returnType()
-	}
+		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type =
+			argumentTypes[2].returnType()
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				ANY.o(),
-				functionType(
-					emptyTuple(),
-					TOP.o()),
-				functionType(
-					emptyTuple(),
-					TOP.o())),
+				functionType(emptyTuple(), TOP.o()),
+				functionType(emptyTuple(), TOP.o())),
 			TOP.o())
-	}
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
@@ -108,5 +97,4 @@ object P_IfFalseThenElse : Primitive(3, Invokes, CanInline, CannotFail)
 			elseFunction, emptyList(), true, callSiteHelper)
 		return true
 	}
-
 }
