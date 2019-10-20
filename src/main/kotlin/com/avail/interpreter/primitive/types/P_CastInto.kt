@@ -61,35 +61,34 @@ import com.avail.optimizer.L1Translator.CallSiteHelper
 import com.avail.optimizer.L2Generator.edgeTo
 
 /**
- * **Primitive:** If the second argument, a [ function][A_Function], accepts the first argument as its parameter, do the invocation.
- * Otherwise fail the primitive.
+ * **Primitive:** If the second argument, a [function][A_Function], accepts the
+ * first argument as its parameter, do the invocation. Otherwise fail the
+ * primitive.
  */
 object P_CastInto : Primitive(2, Invokes, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val value = interpreter.argument(0)
 		val castFunction = interpreter.argument(1)
 
-		if (value.isInstanceOf(
-				castFunction.code().functionType().argsTupleType().typeAtIndex(1)))
+		val expectedType =
+			castFunction.code().functionType().argsTupleType().typeAtIndex(1)
+		if (value.isInstanceOf(expectedType))
 		{
 			// "Jump" into the castFunction, to keep this frame from showing up.
 			interpreter.argsBuffer.clear()
 			interpreter.argsBuffer.add(value)
 			interpreter.function = castFunction
-			return Primitive.Result.READY_TO_INVOKE
+			return Result.READY_TO_INVOKE
 		}
 		// Fail the primitive.
 		return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				ANY.o(),
 				functionType(
@@ -97,26 +96,20 @@ object P_CastInto : Primitive(2, Invokes, CanInline)
 						bottom()),
 					TOP.o())),
 			TOP.o())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_INCORRECT_ARGUMENT_TYPE))
-	}
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_INCORRECT_ARGUMENT_TYPE))
 
+	// Keep it simple.  In theory, if we could show that the cast would not
+	// fail, and that the function was a primitive, we could ask the
+	// primitive what it would produce.
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
-		argumentTypes: List<A_Type>): A_Type
-	{
-		// Keep it simple.  In theory, if we could show that the cast would not
-		// fail, and that the function was a primitive, we could ask the
-		// primitive what it would produce.
-		val castFunctionType = argumentTypes[1]
-		return castFunctionType.returnType()
-	}
+		argumentTypes: List<A_Type>
+	): A_Type = argumentTypes[1].returnType()
 
 	override fun fallibilityForArgumentTypes(
-		argumentTypes: List<A_Type>): Primitive.Fallibility
+		argumentTypes: List<A_Type>): Fallibility
 	{
 		val valueType = argumentTypes[0]
 		val castFunctionType = argumentTypes[1]
@@ -155,8 +148,10 @@ object P_CastInto : Primitive(2, Invokes, CanInline)
 		val valueRead = arguments[0]
 		val castFunctionRead = arguments[1]
 
-		val castBlock = translator.generator.createBasicBlock("cast type matched")
-		val elseBlock = translator.generator.createBasicBlock("cast type did not match")
+		val castBlock =
+			translator.generator.createBasicBlock("cast type matched")
+		val elseBlock =
+			translator.generator.createBasicBlock("cast type did not match")
 
 		val typeTest = castFunctionRead.exactSoleArgumentType()
 		if (typeTest !== null)
@@ -167,22 +162,11 @@ object P_CastInto : Primitive(2, Invokes, CanInline)
 			// simply a block phrase.  First see if we can eliminate the runtime
 			// test entirely.
 			val constant = valueRead.constantOrNull()
-			val passedTest: Boolean?
-			if (constant !== null)
-			{
-				passedTest = constant.isInstanceOf(typeTest)
-			}
-			else if (valueRead.type().isSubtypeOf(typeTest))
-			{
-				passedTest = true
-			}
-			else if (valueRead.type().typeIntersection(typeTest).isBottom)
-			{
-				passedTest = false
-			}
-			else
-			{
-				passedTest = null
+			val passedTest: Boolean? = when {
+				constant !== null -> constant.isInstanceOf(typeTest)
+				valueRead.type().isSubtypeOf(typeTest) -> true
+				valueRead.type().typeIntersection(typeTest).isBottom -> false
+				else -> null
 			}
 			if (passedTest !== null)
 			{
@@ -256,7 +240,5 @@ object P_CastInto : Primitive(2, Invokes, CanInline)
 		translator.generateGeneralFunctionInvocation(
 			functionToCallReg, arguments, false, callSiteHelper)
 		return true
-
 	}
-
 }

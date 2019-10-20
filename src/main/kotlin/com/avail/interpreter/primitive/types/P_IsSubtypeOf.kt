@@ -46,14 +46,11 @@ import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
 
 /**
- * **Primitive:** Answer whether type1 is a subtype of type2
- * (or equal).
+ * **Primitive:** Answer whether type1 is a subtype of type2 (or equal).
  */
 object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val type1 = interpreter.argument(0)
@@ -62,14 +59,12 @@ object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 			objectFromBoolean(type1.isSubtypeOf(type2)))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				topMeta(),
 				topMeta()),
 			booleanType())
-	}
 
 	/**
 	 * Some identities apply.  The terms x and y are the values being compared
@@ -148,5 +143,4 @@ object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 			translator,
 			callSiteHelper)
 	}
-
 }

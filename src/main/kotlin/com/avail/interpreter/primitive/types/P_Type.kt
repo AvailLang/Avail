@@ -48,27 +48,20 @@ import com.avail.interpreter.Primitive.Flag.*
  */
 object P_Type : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val value = interpreter.argument(0)
 		return interpreter.primitiveSuccess(instanceTypeOrMetaOn(value))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(ANY.o()),
 			topMeta())
-	}
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
-		argumentTypes: List<A_Type>): A_Type
-	{
-		return instanceMeta(argumentTypes[0])
-	}
-
+		argumentTypes: List<A_Type>
+	): A_Type = instanceMeta(argumentTypes[0])
 }

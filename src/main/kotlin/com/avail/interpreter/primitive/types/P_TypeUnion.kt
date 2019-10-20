@@ -47,9 +47,7 @@ import com.avail.interpreter.Primitive.Flag.*
  */
 object P_TypeUnion : Primitive(2, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val type1 = interpreter.argument(0)
@@ -58,14 +56,12 @@ object P_TypeUnion : Primitive(2, CannotFail, CanFold, CanInline)
 			type1.typeUnion(type2).makeImmutable())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				topMeta(),
 				topMeta()),
 			topMeta())
-	}
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
@@ -75,5 +71,4 @@ object P_TypeUnion : Primitive(2, CannotFail, CanFold, CanInline)
 		val meta2 = argumentTypes[1]
 		return meta1.typeUnion(meta2)  // by metavariance
 	}
-
 }

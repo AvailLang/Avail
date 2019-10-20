@@ -58,14 +58,13 @@ import com.avail.optimizer.L2Generator.edgeTo
 import java.util.Collections.emptyList
 
 /**
- * **Primitive:** If the second argument, a [ function][A_Function], accepts the first argument as its parameter, do the invocation.
- * Otherwise invoke the third argument, a zero-argument function.
+ * **Primitive:** If the second argument, a [function][A_Function], accepts the
+ * first argument as its parameter, do the invocation. Otherwise invoke the
+ * third argument, a zero-argument function.
  */
 object P_CastIntoElse : Primitive(3, Invokes, CanInline, CannotFail)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
 		val value = interpreter.argument(0)
@@ -73,17 +72,18 @@ object P_CastIntoElse : Primitive(3, Invokes, CanInline, CannotFail)
 		val elseFunction = interpreter.argument(2)
 
 		interpreter.argsBuffer.clear()
-		if (value.isInstanceOf(
-				castFunction.code().functionType().argsTupleType().typeAtIndex(1)))
-		{
-			// "Jump" into the castFunction, to keep this frame from showing up.
-			interpreter.argsBuffer.add(value)
-			interpreter.function = castFunction
-			return Primitive.Result.READY_TO_INVOKE
+		val expectedType =
+			castFunction.code().functionType().argsTupleType().typeAtIndex(1)
+		// "Jump" into the castFunction or elseFunction, to keep this frame from
+		// showing up.
+		interpreter.function = when {
+			value.isInstanceOf(expectedType) -> {
+				interpreter.argsBuffer.add(value)
+				castFunction
+			}
+			else -> elseFunction
 		}
-		// "Jump" into the elseFunction, to keep this frame from showing up.
-		interpreter.function = elseFunction
-		return Primitive.Result.READY_TO_INVOKE
+		return Result.READY_TO_INVOKE
 	}
 
 	override fun returnTypeGuaranteedByVM(
@@ -97,9 +97,8 @@ object P_CastIntoElse : Primitive(3, Invokes, CanInline, CannotFail)
 			elseFunctionType.returnType())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				ANY.o(),
 				functionType(
@@ -110,7 +109,6 @@ object P_CastIntoElse : Primitive(3, Invokes, CanInline, CannotFail)
 					emptyTuple(),
 					TOP.o())),
 			TOP.o())
-	}
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
@@ -140,41 +138,28 @@ object P_CastIntoElse : Primitive(3, Invokes, CanInline, CannotFail)
 			// simply a function closure.  First see if we can eliminate the
 			// runtime test entirely.
 			var bypassTesting = true
-			val passedTest: Boolean
 			val constant = valueRead.constantOrNull()
-			if (constant !== null)
-			{
-				passedTest = constant.isInstanceOf(typeTest)
-			}
-			else if (valueRead.type().isSubtypeOf(typeTest))
-			{
-				passedTest = true
-			}
-			else if (valueRead.type().typeIntersection(typeTest).isBottom)
-			{
-				passedTest = false
-			}
-			else
-			{
-				bypassTesting = false
-				passedTest = false  // Keep compiler happy below.
+			val passedTest: Boolean = when {
+				constant !== null -> constant.isInstanceOf(typeTest)
+				valueRead.type().isSubtypeOf(typeTest) -> true
+				valueRead.type().typeIntersection(typeTest).isBottom -> false
+				else -> {
+					bypassTesting = false
+					false  // Keep compiler happy below.
+				}
 			}
 			if (bypassTesting)
 			{
 				// Run the castBlock or elseBlock without having to do the
 				// runtime type test (since we just did it).  Don't do a type
 				// check on the result, because the client will deal with it.
-				if (passedTest)
-				{
-					translator.generateGeneralFunctionInvocation(
+				when {
+					passedTest -> translator.generateGeneralFunctionInvocation(
 						castFunctionRead,
 						listOf(valueRead),
 						true,
 						callSiteHelper)
-				}
-				else
-				{
-					translator.generateGeneralFunctionInvocation(
+					else -> translator.generateGeneralFunctionInvocation(
 						elseFunctionRead, emptyList(), true, callSiteHelper)
 				}
 				return true
@@ -225,5 +210,4 @@ object P_CastIntoElse : Primitive(3, Invokes, CanInline, CannotFail)
 
 		return true
 	}
-
 }

@@ -53,9 +53,7 @@ import com.avail.interpreter.Primitive.Flag.CanInline
  */
 object P_Instances : Primitive(1, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val type = interpreter.argument(0)
@@ -66,13 +64,13 @@ object P_Instances : Primitive(1, CanFold, CanInline)
 		else interpreter.primitiveSuccess(type.instances())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(topMeta()), mostGeneralSetType())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(topMeta()),
+			mostGeneralSetType())
 
 	override fun fallibilityForArgumentTypes(
-		argumentTypes: List<A_Type>): Primitive.Fallibility
+		argumentTypes: List<A_Type>): Fallibility
 	{
 		val meta = argumentTypes[0]
 		return if (meta.instance().isEnumeration)
@@ -81,9 +79,6 @@ object P_Instances : Primitive(1, CanFold, CanInline)
 			CallSiteMustFail
 	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_NOT_AN_ENUMERATION))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_NOT_AN_ENUMERATION))
 }

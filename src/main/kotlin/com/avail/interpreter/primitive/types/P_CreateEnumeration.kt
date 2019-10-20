@@ -46,13 +46,12 @@ import com.avail.interpreter.Primitive.Flag.*
 import java.util.*
 
 /**
- * **Primitive:** Create an [ enumeration][Enumeration] from the given [set][SetDescriptor] of instances.
+ * **Primitive:** Create an [enumeration][Enumeration] from the given
+ * [set][SetDescriptor] of instances.
  */
 object P_CreateEnumeration : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val instanceSet = interpreter.argument(0)
@@ -60,12 +59,10 @@ object P_CreateEnumeration : Primitive(1, CannotFail, CanFold, CanInline)
 		return interpreter.primitiveSuccess(enumeration)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(mostGeneralSetType()),
 			anyMeta())
-	}
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
@@ -81,5 +78,4 @@ object P_CreateEnumeration : Primitive(1, CannotFail, CanFold, CanInline)
 		val metaType = instanceMeta(elementType)
 		return metaType.makeImmutable()
 	}
-
 }

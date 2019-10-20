@@ -49,20 +49,15 @@ import com.avail.interpreter.Primitive.Flag.*
  */
 object P_InstanceCount : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val type = interpreter.argument(0)
 		return interpreter.primitiveSuccess(type.instanceCount())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(topMeta()), inclusive(
-			zero(),
-			positiveInfinity()))
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(topMeta()),
+			inclusive(zero(), positiveInfinity()))
 }
