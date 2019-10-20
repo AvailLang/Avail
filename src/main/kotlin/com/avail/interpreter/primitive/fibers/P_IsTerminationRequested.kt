@@ -43,15 +43,14 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Has termination been requested for the
- * current [fiber][FiberDescriptor]? Answer the current value of the
- * appropriate interrupt flag and simultaneously clear it.
+ * **Primitive:** Has termination been requested for the current
+ * [fiber][FiberDescriptor]? Answer the current value of the appropriate
+ * interrupt flag and simultaneously clear it.
  */
+@Suppress("unused")
 object P_IsTerminationRequested : Primitive(0, CannotFail, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(0)
 		return interpreter.primitiveSuccess(
@@ -60,9 +59,6 @@ object P_IsTerminationRequested : Primitive(0, CannotFail, CanInline, HasSideEff
 					TERMINATION_REQUESTED)))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(emptyTuple(), booleanType())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(emptyTuple(), booleanType())
 }

@@ -46,16 +46,15 @@ import com.avail.interpreter.Primitive.Flag.CanSuspend
 import com.avail.interpreter.Primitive.Flag.Unknown
 
 /**
- * **Primitive:** Ask another fiber what it's doing.  Fail if
- * the fiber's continuation chain is empty (i.e., it is terminated).
+ * **Primitive:** Ask another fiber what it's doing.  Fail if the fiber's
+ * continuation chain is empty (i.e., it is terminated).
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@Suppress("unused")
 object P_GetContinuationOfOtherFiber : Primitive(1, CanSuspend, Unknown)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val otherFiber = interpreter.argument(0)
@@ -74,17 +73,10 @@ object P_GetContinuationOfOtherFiber : Primitive(1, CanSuspend, Unknown)
 		}
 	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_FIBER_IS_TERMINATED))
-	}
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_FIBER_IS_TERMINATED))
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				mostGeneralFiberType()),
-			mostGeneralContinuationType())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(mostGeneralFiberType()), mostGeneralContinuationType())
 }

@@ -33,6 +33,7 @@
 package com.avail.interpreter.primitive.fibers
 
 import com.avail.descriptor.A_Type
+import com.avail.descriptor.FiberDescriptor
 import com.avail.descriptor.FiberTypeDescriptor.mostGeneralFiberType
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
@@ -43,24 +44,20 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail
 
 /**
- * **Primitive:** Answer the name of the specified [ ].
+ * **Primitive:** Answer the name of the specified [fiber][FiberDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_FiberName : Primitive(1, CannotFail, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val fiber = interpreter.argument(0)
 		return interpreter.primitiveSuccess(fiber.fiberName())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(mostGeneralFiberType()), stringType())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(mostGeneralFiberType()), stringType())
 }

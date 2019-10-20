@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive.fibers
 
 import com.avail.descriptor.A_Type
+import com.avail.descriptor.FiberDescriptor
 import com.avail.descriptor.FiberTypeDescriptor.mostGeneralFiberType
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.TupleDescriptor.emptyTuple
@@ -41,23 +42,18 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail
 
 /**
- * **Primitive:** Answer the currently running [ ].
+ * **Primitive:** Answer the currently running [fiber][FiberDescriptor].
  */
+@Suppress("unused")
 object P_CurrentFiber : Primitive(0, CanInline, CannotFail)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(0)
 		return interpreter.primitiveSuccess(
 			interpreter.fiber().makeImmutable())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			emptyTuple(), mostGeneralFiberType())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(emptyTuple(), mostGeneralFiberType())
 }

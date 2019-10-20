@@ -32,7 +32,6 @@
 
 package com.avail.interpreter.primitive.fibers
 
-import com.avail.descriptor.A_Function
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.FiberDescriptor
 import com.avail.descriptor.FiberDescriptor.ExecutionState
@@ -49,40 +48,41 @@ import com.avail.utility.MutableOrNull
 import com.avail.utility.Nulls.stripNull
 
 /**
- * **Primitive:** Attempt to acquire the [ ][SynchronizationFlag.PERMIT_UNAVAILABLE] associated with the
- * [current][FiberDescriptor.currentFiber] [ fiber][FiberDescriptor]. If the permit is available, then consume it and return immediately.
- * If the permit is not available, then [park][ExecutionState.PARKED]
- * the current fiber. A fiber suspended in this fashion may be resumed only by
- * calling [P_UnparkFiber]. A newly unparked fiber should always
- * recheck the basis for its having parked, to see if it should park again.
- * Low-level synchronization mechanisms may require the ability to spuriously
- * unpark in order to ensure correctness.
+ * **Primitive:** Attempt to acquire the
+ * [permit][SynchronizationFlag.PERMIT_UNAVAILABLE] associated with the
+ * [current][FiberDescriptor.currentFiber] [fiber][FiberDescriptor]. If the
+ * permit is available, then consume it and return immediately. If the permit is
+ * not available, then [park][ExecutionState.PARKED] the current fiber. A fiber
+ * suspended in this fashion may be resumed only by calling [P_UnparkFiber]. A
+ * newly unparked fiber should always recheck the basis for its having parked,
+ * to see if it should park again. Low-level synchronization mechanisms may
+ * require the ability to spuriously unpark in order to ensure correctness.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_ParkCurrentFiber : Primitive(0, CannotFail, CanSuspend, Unknown)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(0)
 		val fiber = interpreter.fiber()
 		val result = MutableOrNull<Primitive.Result>()
 		fiber.lock {
 			// If permit is not available, then park this fiber.
-			result.value = if (fiber.getAndSetSynchronizationFlag(
-					PERMIT_UNAVAILABLE, true))
-				interpreter.primitivePark(stripNull<A_Function>(interpreter.function))
-			else
-				interpreter.primitiveSuccess(nil)
+			result.value =
+				if (fiber.getAndSetSynchronizationFlag(PERMIT_UNAVAILABLE, true))
+				{
+					interpreter.primitivePark(stripNull(interpreter.function))
+				}
+				else
+				{
+					interpreter.primitiveSuccess(nil)
+				}
 		}
 		return result.value()
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(emptyTuple(), TOP.o())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(emptyTuple(), TOP.o())
 }

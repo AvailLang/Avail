@@ -45,15 +45,15 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail
 
 /**
- * **Primitive:** Is the [ current][FiberDescriptor.currentFiber] able to reject an ongoing parse?
+ * **Primitive:** Is the [current][FiberDescriptor.currentFiber] able to reject
+ * an ongoing parse?
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_CanRejectParse : Primitive(0, CannotFail, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(0)
 		return interpreter.primitiveSuccess(
@@ -61,9 +61,6 @@ object P_CanRejectParse : Primitive(0, CannotFail, CanInline)
 				interpreter.fiber().generalFlag(CAN_REJECT_PARSE)))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(emptyTuple(), booleanType())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(emptyTuple(), booleanType())
 }

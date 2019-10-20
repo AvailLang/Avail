@@ -45,15 +45,15 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail
 
 /**
- * **Primitive:** Has the specified [ fiber][FiberDescriptor] produced a result yet?
+ * **Primitive:** Has the specified [fiber][FiberDescriptor] produced a result
+ * yet?
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_HasResult : Primitive(1, CannotFail, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val fiber = interpreter.argument(0)
@@ -61,11 +61,6 @@ object P_HasResult : Primitive(1, CannotFail, CanInline)
 			objectFromBoolean(!fiber.fiberResult().equalsNil()))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(mostGeneralFiberType()),
-			booleanType())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(mostGeneralFiberType()), booleanType())
 }

@@ -59,18 +59,16 @@ import com.avail.interpreter.Primitive.Flag.HasSideEffect
 import java.util.*
 
 /**
- * **Primitive:** Fork a new [fiber][FiberDescriptor]
- * to execute the specified [function][FunctionDescriptor] with the
- * supplied arguments. Do not retain a reference to the new fiber; it is
- * created as an orphan fiber.
+ * **Primitive:** Fork a new [fiber][FiberDescriptor] to execute the specified
+ * [function][FunctionDescriptor] with the supplied arguments. Do not retain a
+ * reference to the new fiber; it is created as an orphan fiber.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_ForkOrphan : Primitive(3, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
 		val function = interpreter.argument(0)
@@ -81,8 +79,7 @@ object P_ForkOrphan : Primitive(3, CanInline, HasSideEffect)
 		val code = function.code()
 		if (code.numArgs() != numArgs)
 		{
-			return interpreter.primitiveFailure(
-				E_INCORRECT_NUMBER_OF_ARGUMENTS)
+			return interpreter.primitiveFailure(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 		}
 		val callArgs = ArrayList<AvailObject>(numArgs)
 		val tupleType = function.kind().argsTupleType()
@@ -91,23 +88,19 @@ object P_ForkOrphan : Primitive(3, CanInline, HasSideEffect)
 			val anArg = argTuple.tupleAt(i)
 			if (!anArg.isInstanceOf(tupleType.typeAtIndex(i)))
 			{
-				return interpreter.primitiveFailure(
-					E_INCORRECT_ARGUMENT_TYPE)
+				return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE)
 			}
 			callArgs.add(anArg)
 		}
 		// Now that we know that the call will really happen, share the function
 		// and the arguments.
 		function.makeShared()
-		for (arg in callArgs)
-		{
-			arg.makeShared()
-		}
+		for (arg in callArgs) { arg.makeShared() }
 		val current = interpreter.fiber()
 		val orphan = newFiber(
 			function.kind().returnType(),
-			priority.extractInt()
-		) {
+			priority.extractInt())
+		{
 			formatString(
 				"Fork orphan, %s, %s:%d",
 				code.methodName(),
@@ -130,22 +123,15 @@ object P_ForkOrphan : Primitive(3, CanInline, HasSideEffect)
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				functionTypeReturning(TOP.o()),
 				mostGeneralTupleType(),
 				bytes()),
 			TOP.o())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
-			set(
-				E_INCORRECT_NUMBER_OF_ARGUMENTS,
-				E_INCORRECT_ARGUMENT_TYPE))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
+			set(E_INCORRECT_NUMBER_OF_ARGUMENTS, E_INCORRECT_ARGUMENT_TYPE))
 }

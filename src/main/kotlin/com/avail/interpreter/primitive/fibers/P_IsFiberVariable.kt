@@ -49,16 +49,15 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * **Primitive:** Does the [name][AtomDescriptor]
- * refer to a [fiber][FiberDescriptor]-local variable?
+ * **Primitive:** Does the [name][AtomDescriptor] refer to a
+ * [fiber][FiberDescriptor]-local variable?
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_IsFiberVariable : Primitive(1, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val key = interpreter.argument(0)
@@ -68,24 +67,19 @@ object P_IsFiberVariable : Primitive(1, CanInline)
 		}
 		val fiber = interpreter.fiber()
 		// Choose the correct map based on the heritability of the key.
-		val globals = if (key.getAtomProperty(HERITABLE_KEY.atom).equalsNil())
-			fiber.fiberGlobals()
-		else
-			fiber.heritableFiberGlobals()
+		val globals =
+			if (key.getAtomProperty(HERITABLE_KEY.atom).equalsNil())
+			{
+				fiber.fiberGlobals()
+			}
+		else { fiber.heritableFiberGlobals() }
 		return interpreter.primitiveSuccess(
 			objectFromBoolean(globals.hasKey(key)))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(ATOM.o()),
-			booleanType())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(ATOM.o()), booleanType())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_SPECIAL_ATOM))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_SPECIAL_ATOM))
 }

@@ -33,6 +33,7 @@ package com.avail.interpreter.primitive.fibers
 
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.AtomDescriptor
 import com.avail.descriptor.AtomDescriptor.SpecialAtom.HERITABLE_KEY
 import com.avail.descriptor.FiberDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
@@ -46,40 +47,33 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * **Primitive:** Lookup the given [ ] (key) in the variables of the current
- * [fiber][FiberDescriptor].
+ * **Primitive:** Lookup the given [name][AtomDescriptor] (key) in the variables of the current [fiber][FiberDescriptor].
  */
+@Suppress("unused")
 object P_LookupFiberVariable : Primitive(1, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val key = interpreter.argument(0)
 		val fiber = interpreter.fiber()
 		// Choose the correct map based on the heritability of the key.
-		val globals = if (key.getAtomProperty(HERITABLE_KEY.atom).equalsNil())
-			fiber.fiberGlobals()
-		else
-			fiber.heritableFiberGlobals()
+		val globals =
+			if (key.getAtomProperty(HERITABLE_KEY.atom).equalsNil())
+			{ fiber.fiberGlobals() }
+			else
+			{ fiber.heritableFiberGlobals() }
 		return if (!globals.hasKey(key))
 		{
 			interpreter.primitiveFailure(
 				E_NO_SUCH_FIBER_VARIABLE)
 		}
-		else interpreter.primitiveSuccess(
-			globals.mapAt(key).makeImmutable())
+		else { interpreter.primitiveSuccess(globals.mapAt(key).makeImmutable()) }
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(ATOM.o()), ANY.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(ATOM.o()), ANY.o())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_NO_SUCH_FIBER_VARIABLE))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_NO_SUCH_FIBER_VARIABLE))
 }

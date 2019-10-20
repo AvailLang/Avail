@@ -55,17 +55,16 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.utility.MutableOrNull
 
 /**
- * **Primitive:** Create a new [atom][AtomDescriptor]
- * with the given name that represents a [ ][SpecialAtom.HERITABLE_KEY] [fiber][FiberDescriptor]
+ * **Primitive:** Create a new [atom][AtomDescriptor] with the given name that
+ * represents a [heritable][SpecialAtom.HERITABLE_KEY] [fiber][FiberDescriptor]
  * variable.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_CreateFiberHeritableAtom : Primitive(1, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val name = interpreter.argument(0)
@@ -107,16 +106,9 @@ object P_CreateFiberHeritableAtom : Primitive(1, CanInline)
 		else interpreter.primitiveSuccess(trueName.value().makeShared())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(stringType()),
-			ATOM.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(stringType()), ATOM.o())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_ATOM_ALREADY_EXISTS, E_AMBIGUOUS_NAME))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_ATOM_ALREADY_EXISTS, E_AMBIGUOUS_NAME))
 }

@@ -46,16 +46,15 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail
 
 /**
- * **Primitive:** Has the specified [ fiber][FiberDescriptor] [terminated][ExecutionState.indicatesTermination] for some
- * reason?
+ * **Primitive:** Has the specified [fiber][FiberDescriptor]
+ * [terminated][ExecutionState.indicatesTermination] for some reason?
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_HasTerminated : Primitive(1, CannotFail, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val fiber = interpreter.argument(0)
@@ -63,11 +62,6 @@ object P_HasTerminated : Primitive(1, CannotFail, CanInline)
 			objectFromBoolean(fiber.executionState().indicatesTermination()))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(mostGeneralFiberType()),
-			booleanType())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(mostGeneralFiberType()), booleanType())
 }

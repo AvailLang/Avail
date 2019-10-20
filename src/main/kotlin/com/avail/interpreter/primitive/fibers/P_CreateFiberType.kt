@@ -44,26 +44,21 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Create a [ fiber type][FiberTypeDescriptor] whose result type is the specified [type][A_Type].
+ * **Primitive:** Create a [fiber type][FiberTypeDescriptor] whose result type
+ * is the specified [type][A_Type].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_CreateFiberType : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val resultType = interpreter.argument(0)
 		return interpreter.primitiveSuccess(fiberType(resultType))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(topMeta()),
-			fiberMeta())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(topMeta()), fiberMeta())
 }

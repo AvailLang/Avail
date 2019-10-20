@@ -72,9 +72,7 @@ import com.avail.utility.Nulls.stripNull
  */
 object P_AttemptJoinFiber : Primitive(1, CanSuspend, Unknown)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val joinee = interpreter.argument(0)
@@ -134,18 +132,9 @@ object P_AttemptJoinFiber : Primitive(1, CanSuspend, Unknown)
 		}
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				mostGeneralFiberType()),
-			TOP.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(mostGeneralFiberType()), TOP.o())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
-			set(E_FIBER_CANNOT_JOIN_ITSELF))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_FIBER_CANNOT_JOIN_ITSELF))
 }

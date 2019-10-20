@@ -62,18 +62,18 @@ import com.avail.interpreter.Primitive.Flag.HasSideEffect
 import java.util.*
 
 /**
- * **Primitive:** Schedule a new [ fiber][FiberDescriptor] to execute the specified [function][FunctionDescriptor] with
- * the supplied arguments. The fiber will begin running after at least the
- * specified number of milliseconds have elapsed. Do not retain a reference to
- * the new fiber; it is created as an orphan fiber.
+ * **Primitive:** Schedule a new [fiber][FiberDescriptor] to execute the
+ * specified [function][FunctionDescriptor] with the supplied arguments. The
+ * fiber will begin running after at least the specified number of milliseconds
+ * have elapsed. Do not retain a reference to the new fiber; it is created as an
+ * orphan fiber.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_DelayedForkOrphan : Primitive(4, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(4)
 		val sleepMillis = interpreter.argument(0)
@@ -85,8 +85,7 @@ object P_DelayedForkOrphan : Primitive(4, CanInline, HasSideEffect)
 		val code = function.code()
 		if (code.numArgs() != numArgs)
 		{
-			return interpreter.primitiveFailure(
-				E_INCORRECT_NUMBER_OF_ARGUMENTS)
+			return interpreter.primitiveFailure(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 		}
 		val callArgs = ArrayList<AvailObject>(numArgs)
 		val tupleType = function.kind().argsTupleType()
@@ -115,8 +114,8 @@ object P_DelayedForkOrphan : Primitive(4, CanInline, HasSideEffect)
 		val current = interpreter.fiber()
 		val orphan = newFiber(
 			function.kind().returnType(),
-			priority.extractInt()
-		) {
+			priority.extractInt())
+		{
 			formatString(
 				"Delayed fork orphan, %s, %s:%d",
 				code.methodName(),
@@ -138,8 +137,7 @@ object P_DelayedForkOrphan : Primitive(4, CanInline, HasSideEffect)
 		val runtime = currentRuntime()
 		if (sleepMillis.equalsInt(0))
 		{
-			Interpreter.runOutermostFunction(
-				runtime, orphan, function, callArgs)
+			Interpreter.runOutermostFunction(runtime, orphan, function, callArgs)
 		}
 		else
 		{
@@ -155,27 +153,20 @@ object P_DelayedForkOrphan : Primitive(4, CanInline, HasSideEffect)
 					}
 				},
 				sleepMillis.extractLong())
-		}// Otherwise, schedule the fiber to start later.
+		} // Otherwise, schedule the fiber to start later.
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				inclusive(zero(), positiveInfinity()),
 				functionTypeReturning(TOP.o()),
 				mostGeneralTupleType(),
 				bytes()),
 			TOP.o())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
-			set(
-				E_INCORRECT_NUMBER_OF_ARGUMENTS,
-				E_INCORRECT_ARGUMENT_TYPE))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
+			set(E_INCORRECT_NUMBER_OF_ARGUMENTS, E_INCORRECT_ARGUMENT_TYPE))
 }

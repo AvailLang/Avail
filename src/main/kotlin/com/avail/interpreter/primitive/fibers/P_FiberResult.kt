@@ -48,22 +48,21 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.utility.MutableOrNull
 
 /**
- * **Primitive:** Answer the result of the specified
- * [fiber][FiberDescriptor].
+ * **Primitive:** Answer the result of the specified [fiber][FiberDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_FiberResult : Primitive(1, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val fiber = interpreter.argument(0)
 		val result = MutableOrNull<Primitive.Result>()
 		fiber.lock {
-			if (!fiber.executionState().indicatesTermination() || fiber.fiberResult().equalsNil())
+			if (!fiber.executionState().indicatesTermination()
+			    || fiber.fiberResult().equalsNil())
 			{
 				result.value = interpreter.primitiveFailure(
 					E_FIBER_RESULT_UNAVAILABLE)
@@ -78,24 +77,19 @@ object P_FiberResult : Primitive(1, CanInline)
 				}
 				else
 				{
-					result.value = interpreter.primitiveSuccess(
-						fiber.fiberResult())
+					result.value =
+						interpreter.primitiveSuccess(fiber.fiberResult())
 				}
 			}
 		}
 		return result.value()
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(mostGeneralFiberType()), ANY.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(mostGeneralFiberType()), ANY.o())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(
+	override fun privateFailureVariableType(): A_Type =
+		 enumerationWith(set(
 			E_FIBER_RESULT_UNAVAILABLE,
 			E_FIBER_PRODUCED_INCORRECTLY_TYPED_RESULT))
-	}
-
 }

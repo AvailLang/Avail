@@ -45,24 +45,18 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
 /**
  * **Primitive:** Get the priority of a fiber.
  */
+@Suppress("unused")
 object P_GetFiberPriority : Primitive(1, CannotFail, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val fiber = interpreter.argument(0)
 		val priority = fiber.priority()
-		assert(0 <= priority && priority <= 255)
+		assert(priority in 0 .. 255)
 		return interpreter.primitiveSuccess(fromUnsignedByte(priority.toShort()))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(mostGeneralFiberType()),
-			bytes())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(mostGeneralFiberType()), bytes())
 }
