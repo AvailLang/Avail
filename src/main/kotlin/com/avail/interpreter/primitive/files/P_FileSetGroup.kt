@@ -52,42 +52,41 @@ import java.nio.file.AccessDeniedException
 import java.nio.file.Files
 import java.nio.file.InvalidPathException
 import java.nio.file.Path
+import java.nio.file.attribute.GroupPrincipal
 import java.nio.file.attribute.PosixFileAttributeView
 
 /**
- * **Primitive:** [ ][PosixFileAttributeView.setGroup] of the file
- * denoted by the specified [path][Path] to the [ ] denoted by the specified name.
+ * **Primitive:** [ ][PosixFileAttributeView.setGroup] of the file denoted by
+ * the specified [path][Path] to the [group][GroupPrincipal] denoted by the
+ * specified name.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
 object P_FileSetGroup : Primitive(3, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
 		val filename = interpreter.argument(0)
 		val groupName = interpreter.argument(1)
 		val followSymlinks = interpreter.argument(2)
 		val fileSystem = IOSystem.fileSystem
-		val path: Path
-		try
-		{
-			path = IOSystem.fileSystem.getPath(
-				filename.asNativeString())
-		}
-		catch (e: InvalidPathException)
-		{
-			return interpreter.primitiveFailure(E_INVALID_PATH)
-		}
+		val path: Path =
+			try
+			{
+				IOSystem.fileSystem.getPath(filename.asNativeString())
+			}
+			catch (e: InvalidPathException)
+			{
+				return interpreter.primitiveFailure(E_INVALID_PATH)
+			}
 
 		val options = IOSystem.followSymlinks(
 			followSymlinks.extractBoolean())
 		val view = Files.getFileAttributeView(
 			path, PosixFileAttributeView::class.java, *options)
-		           ?: return interpreter.primitiveFailure(E_OPERATION_NOT_SUPPORTED)
+	           ?: return interpreter.primitiveFailure(E_OPERATION_NOT_SUPPORTED)
 		try
 		{
 			val lookupService = fileSystem.userPrincipalLookupService
@@ -115,16 +114,14 @@ object P_FileSetGroup : Primitive(3, CanInline, HasSideEffect)
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(stringType(), stringType(), booleanType()),
-		                    TOP.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(stringType(), stringType(), booleanType()), TOP.o())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_INVALID_PATH, E_OPERATION_NOT_SUPPORTED,
-		                           E_PERMISSION_DENIED, E_IO_ERROR))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
+			set(
+				E_INVALID_PATH,
+				E_OPERATION_NOT_SUPPORTED,
+				E_PERMISSION_DENIED,
+				E_IO_ERROR))
 }

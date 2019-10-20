@@ -54,30 +54,27 @@ import java.nio.file.attribute.BasicFileAttributes
 import java.util.*
 
 /**
- * **Primitive:** Unlink the specified [path][Path]
- * from the file system.
+ * **Primitive:** Unlink the specified [path][Path] from the file system.
  */
 @Suppress("unused")
 object P_FileUnlink : Primitive(4, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(4)
 		val recursive = interpreter.argument(0)
 		val filename = interpreter.argument(1)
 		val requireExistence = interpreter.argument(2)
 		val followSymlinks = interpreter.argument(3)
-		val path: Path
-		try
-		{
-			path = IOSystem.fileSystem.getPath(filename.asNativeString())
-		}
-		catch (e: InvalidPathException)
-		{
-			return interpreter.primitiveFailure(E_INVALID_PATH)
-		}
+		val path: Path =
+			try
+			{
+				IOSystem.fileSystem.getPath(filename.asNativeString())
+			}
+			catch (e: InvalidPathException)
+			{
+				return interpreter.primitiveFailure(E_INVALID_PATH)
+			}
 
 		// Unless the unlink should be recursive, then try unlinking the target
 		// directly.
@@ -118,10 +115,15 @@ object P_FileUnlink : Primitive(4, CanInline, HasSideEffect)
 		}
 		else
 		{
-			val visitOptions = if (followSymlinks.extractBoolean())
-				EnumSet.of(FileVisitOption.FOLLOW_LINKS)
-			else
-				EnumSet.noneOf(FileVisitOption::class.java)
+			val visitOptions =
+				if (followSymlinks.extractBoolean())
+				{
+					EnumSet.of(FileVisitOption.FOLLOW_LINKS)
+				}
+				else
+				{
+					EnumSet.noneOf(FileVisitOption::class.java)
+				}
 			try
 			{
 				val partialSuccess = Mutable(false)
@@ -191,16 +193,18 @@ object P_FileUnlink : Primitive(4, CanInline, HasSideEffect)
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(booleanType(), stringType(), booleanType(),
-		                          booleanType()), TOP.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(booleanType(), stringType(), booleanType(), booleanType()),
+			TOP.o())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_INVALID_PATH, E_PERMISSION_DENIED, E_NO_FILE,
-		                           E_DIRECTORY_NOT_EMPTY, E_IO_ERROR, E_PARTIAL_SUCCESS))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
+			set(
+				E_INVALID_PATH,
+				E_PERMISSION_DENIED,
+				E_NO_FILE,
+				E_DIRECTORY_NOT_EMPTY,
+				E_IO_ERROR,
+				E_PARTIAL_SUCCESS))
 }

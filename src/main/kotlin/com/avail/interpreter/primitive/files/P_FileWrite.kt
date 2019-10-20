@@ -32,14 +32,11 @@
 package com.avail.interpreter.primitive.files
 
 import com.avail.AvailRuntime.currentRuntime
-import com.avail.descriptor.A_Tuple
-import com.avail.descriptor.A_Type
+import com.avail.descriptor.*
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.AtomDescriptor
 import com.avail.descriptor.AtomDescriptor.SpecialAtom.FILE_KEY
 import com.avail.descriptor.FiberDescriptor.newFiber
 import com.avail.descriptor.FiberTypeDescriptor.fiberType
-import com.avail.descriptor.FunctionDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceTypeDescriptor.instanceType
 import com.avail.descriptor.IntegerRangeTypeDescriptor.bytes
@@ -47,7 +44,6 @@ import com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray
 import com.avail.descriptor.SetDescriptor.set
-import com.avail.descriptor.StringDescriptor.formatString
 import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
@@ -64,21 +60,23 @@ import com.avail.io.SimpleCompletionHandler
 import com.avail.utility.Mutable
 import com.avail.utility.MutableLong
 import com.avail.utility.evaluation.Combinator.recurse
-import java.lang.Math.min
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousFileChannel
 import java.util.*
 import java.util.Collections.emptyList
+import kotlin.math.min
 
 /**
- * **Primitive:** Write the specified [ ] to the [file][AsynchronousFileChannel] associated with the [handle][AtomDescriptor]. Writing
- * begins at the specified one-based position of the file.
+ * **Primitive:** Write the specified [tuple][TupleDescriptor] to the
+ * [file][AsynchronousFileChannel] associated with the [handle][AtomDescriptor].
+ * Writing begins at the specified one-based position of the file.
  *
  *
  *
  * Answer a new fiber which, if the write is eventually successful, will be
- * started to run the success [function][FunctionDescriptor].  If the
- * write is unsuccessful, the fiber will be started to apply the failure `function` to the error code.  The fiber runs at the specified priority.
+ * started to run the success [function][FunctionDescriptor].  If the write is
+ * unsuccessful, the fiber will be started to apply the failure `function` to
+ * the error code.  The fiber runs at the specified priority.
  *
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -92,10 +90,9 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 	 * more bytes than this may be broken down internally into transfers that
 	 * are this small, possibly recycling the same buffer.
 	 */
-	val MAX_WRITE_BUFFER_SIZE = 4194304
+	const val MAX_WRITE_BUFFER_SIZE = 4194304
 
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(6)
 		val positionObject = interpreter.argument(0)
@@ -109,7 +106,14 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 		if (pojo.equalsNil())
 		{
 			return interpreter.primitiveFailure(
-				if (atom.isAtomSpecial) E_SPECIAL_ATOM else E_INVALID_HANDLE)
+				if (atom.isAtomSpecial)
+				{
+					E_SPECIAL_ATOM
+				}
+				else
+				{
+					E_INVALID_HANDLE
+				})
 		}
 		val handle = pojo.javaObjectNotNull<FileHandle>()
 		if (!handle.canWrite)
@@ -130,12 +134,13 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 		// Write the tuple of bytes, possibly split up into manageable sections.
 		// Also update the buffer cache to reflect the modified file content.
 		val current = interpreter.fiber()
-		val newFiber = newFiber(
-			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
-			priority.extractInt()
-		) {
-			formatString("Asynchronous file write, %s",
-			             handle.filename)
+		val newFiber =
+			newFiber(
+				succeed.kind().returnType().typeUnion(fail.kind().returnType()),
+				priority.extractInt())
+		{
+			StringDescriptor.stringFrom(
+				"Asynchronous file write, ${handle.filename}")
 		}
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
@@ -169,14 +174,14 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 			bufferIterator = object : MutableIterator<ByteBuffer>
 			{
 				/** The buffer to reuse for writing.  */
-				internal val buffer = ByteBuffer.allocateDirect(
+				val buffer = ByteBuffer.allocateDirect(
 					min(totalBytes, MAX_WRITE_BUFFER_SIZE))
 
 				/**
 				 * The position in the bytes tuple corresponding with the
 				 * current buffer start.
 				 */
-				internal var nextSubscript = 1
+				var nextSubscript = 1
 
 				override fun hasNext(): Boolean
 				{
@@ -200,8 +205,10 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 					{
 						// It's not all the rest, so round down to the nearest
 						// alignment boundary for performance.
-						val zeroBasedSubscriptAfterBuffer = oneBasedPositionLong + nextSubscript - 2 + count
-						val modulus = zeroBasedSubscriptAfterBuffer % alignment
+						val zeroBasedSubscriptAfterBuffer =
+							oneBasedPositionLong + nextSubscript - 2 + count
+						val modulus =
+							zeroBasedSubscriptAfterBuffer % alignment
 						assert(modulus == modulus.toInt().toLong())
 						if (modulus < count)
 						{
@@ -352,31 +359,23 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 		return interpreter.primitiveSuccess(newFiber)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tupleFromArray(
 				naturalNumbers(),
 				oneOrMoreOf(bytes()),
 				ATOM.o(),
+				functionType(emptyTuple(), TOP.o()),
 				functionType(
-					emptyTuple(),
-					TOP.o()),
-				functionType(
-					tuple(instanceType(E_IO_ERROR.numericCode())),
-					TOP.o()),
+					tuple(instanceType(E_IO_ERROR.numericCode())), TOP.o()),
 				bytes()),
 			fiberType(TOP.o()))
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
 			set(
 				E_INVALID_HANDLE,
 				E_SPECIAL_ATOM,
 				E_NOT_OPEN_FOR_WRITE,
 				E_EXCEEDS_VM_LIMIT))
-	}
-
 }

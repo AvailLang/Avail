@@ -43,7 +43,7 @@ import com.avail.descriptor.InstanceTypeDescriptor.instanceType
 import com.avail.descriptor.IntegerRangeTypeDescriptor.bytes
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetDescriptor.set
-import com.avail.descriptor.StringDescriptor.formatString
+import com.avail.descriptor.StringDescriptor
 import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.TypeDescriptor.Types.TOP
@@ -60,16 +60,16 @@ import java.util.Collections.emptyList
 
 /**
  * **Primitive:** Force all system buffers associated with the
- * [FileHandle.getCanWrite]  writable} [ file channel][AsynchronousFileChannel] associated with the [handle][AtomDescriptor] to
- * synchronize with the underlying device.
+ * [FileHandle.canWrite]  writable} [file channel][AsynchronousFileChannel]
+ * associated with the [handle][AtomDescriptor] to synchronize with the
+ * underlying device.
  *
  *
  *
  * Answer a new fiber which, if the sync is eventually successful, will be
- * started to run the success [function][FunctionDescriptor].  If the
- * sync fails with an [IOException], the fiber will be started to apply
- * the failure function to the error code.  The fiber runs at the specified
- * priority.
+ * started to run the success [function][FunctionDescriptor].  If the sync fails
+ * with an [IOException], the fiber will be started to apply the failure
+ * function to the error code.  The fiber runs at the specified priority.
  *
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -78,9 +78,7 @@ import java.util.Collections.emptyList
 @Suppress("unused")
 object P_FileSync : Primitive(4, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(4)
 		val atom = interpreter.argument(0)
@@ -108,13 +106,14 @@ object P_FileSync : Primitive(4, CanInline, HasSideEffect)
 		// never be blocked waiting for I/O.
 		val priorityInt = priority.extractInt()
 		val current = interpreter.fiber()
-		val newFiber = newFiber(
-			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
-			priorityInt
-		) {
-			formatString("Asynchronous file sync, %s",
-			             handle.filename)
-		}
+		val newFiber =
+			newFiber(
+				succeed.kind().returnType().typeUnion(fail.kind().returnType()),
+				priorityInt)
+			{
+				StringDescriptor.stringFrom(
+					"Asynchronous file sync, ${handle.filename}")
+			}
 		newFiber.availLoader(current.availLoader())
 		newFiber.heritableFiberGlobals(
 			current.heritableFiberGlobals().makeShared())
@@ -124,7 +123,8 @@ object P_FileSync : Primitive(4, CanInline, HasSideEffect)
 		fail.makeShared()
 
 		val runtime = interpreter.runtime()
-		runtime.ioSystem().executeFileTask(Runnable {
+		runtime.ioSystem().executeFileTask(
+			Runnable {
                try
                {
                    handle.channel.force(true)
@@ -148,9 +148,8 @@ object P_FileSync : Primitive(4, CanInline, HasSideEffect)
 		return interpreter.primitiveSuccess(newFiber)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				ATOM.o(),
 				functionType(emptyTuple(), TOP.o()),
@@ -159,12 +158,8 @@ object P_FileSync : Primitive(4, CanInline, HasSideEffect)
 					TOP.o()),
 				bytes()),
 			fiberType(TOP.o()))
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
 			set(E_INVALID_HANDLE, E_SPECIAL_ATOM, E_NOT_OPEN_FOR_WRITE))
-	}
-
 }

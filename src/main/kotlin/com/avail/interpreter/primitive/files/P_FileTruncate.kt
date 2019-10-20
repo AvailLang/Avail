@@ -35,6 +35,7 @@ package com.avail.interpreter.primitive.files
 import com.avail.AvailRuntime.currentRuntime
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.AtomDescriptor
 import com.avail.descriptor.AtomDescriptor.SpecialAtom.FILE_KEY
 import com.avail.descriptor.FiberDescriptor.newFiber
 import com.avail.descriptor.FiberTypeDescriptor.fiberType
@@ -44,7 +45,7 @@ import com.avail.descriptor.IntegerRangeTypeDescriptor.bytes
 import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetDescriptor.set
-import com.avail.descriptor.StringDescriptor.formatString
+import com.avail.descriptor.StringDescriptor
 import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.TypeDescriptor.Types.TOP
@@ -55,11 +56,13 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
 import com.avail.io.IOSystem.FileHandle
 import java.io.IOException
+import java.nio.channels.AsynchronousFileChannel
 
 /**
- * **Primitive:** If the specified size is less than the size
- * of the indicated [writable][FileHandle.getCanWrite] [ ] associated with the [ ], then reduce its size as indicated, discarding any
- * data beyond the new file size.
+ * **Primitive:** If the specified size is less than the size of the indicated
+ * [writable][FileHandle.canWrite] [file channel][AsynchronousFileChannel]
+ * associated with the [handle][AtomDescriptor], then reduce its size as
+ * indicated, discarding any data beyond the new file size.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -67,9 +70,7 @@ import java.io.IOException
 @Suppress("unused")
 object P_FileTruncate : Primitive(5, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(5)
 		val atom = interpreter.argument(0)
@@ -92,23 +93,29 @@ object P_FileTruncate : Primitive(5, CanInline, HasSideEffect)
 		val fileChannel = handle.channel
 		// Truncating to something beyond the file size has no effect, so use
 		// Long.MAX_VALUE if the newSize is bigger than that.
-		val size = if (sizeObject.isLong)
-			sizeObject.extractLong()
-		else
-			java.lang.Long.MAX_VALUE
+		val size =
+			if (sizeObject.isLong)
+			{
+				sizeObject.extractLong()
+			}
+			else
+			{
+				java.lang.Long.MAX_VALUE
+			}
 		val runtime = currentRuntime()
 		// Guaranteed non-negative by argument constraint.
 		assert(size >= 0L)
 
 		val priorityInt = priority.extractInt()
 		val current = interpreter.fiber()
-		val newFiber = newFiber(
-			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
-			priorityInt
-		) {
-			formatString("Asynchronous truncate, %s",
-			             handle.filename)
-		}
+		val newFiber =
+			newFiber(
+				succeed.kind().returnType().typeUnion(fail.kind().returnType()),
+				priorityInt)
+			{
+				StringDescriptor.stringFrom(
+					"Asynchronous truncate, ${handle.filename}")
+			}
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
 		newFiber.availLoader(current.availLoader())
@@ -122,7 +129,8 @@ object P_FileTruncate : Primitive(5, CanInline, HasSideEffect)
 		succeed.makeShared()
 		fail.makeShared()
 
-		runtime.ioSystem().executeFileTask(Runnable {
+		runtime.ioSystem().executeFileTask(
+			Runnable {
 	           try
 	           {
 	               fileChannel.truncate(size)
@@ -144,9 +152,8 @@ object P_FileTruncate : Primitive(5, CanInline, HasSideEffect)
 		return interpreter.primitiveSuccess(newFiber)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				ATOM.o(),
 				wholeNumbers(),
@@ -158,15 +165,8 @@ object P_FileTruncate : Primitive(5, CanInline, HasSideEffect)
 					TOP.o()),
 				bytes()),
 			fiberType(TOP.o()))
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
-			set(
-				E_INVALID_HANDLE,
-				E_NOT_OPEN_FOR_WRITE,
-				E_SPECIAL_ATOM))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
+			set(E_INVALID_HANDLE, E_NOT_OPEN_FOR_WRITE, E_SPECIAL_ATOM))
 }

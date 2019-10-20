@@ -37,6 +37,7 @@ import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.EnumerationTypeDescriptor.booleanType
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.IntegerDescriptor
 import com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
@@ -61,38 +62,36 @@ import java.nio.file.attribute.PosixFilePermission
 import java.util.*
 
 /**
- * **Primitive:** Set the access rights for the file specified
- * by the given [path][Path].
+ * **Primitive:** Set the access rights for the file specified by the given
+ * [path][Path].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
 object P_FileSetPermissions : Primitive(3, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
 		val filename = interpreter.argument(0)
 		val ordinals = interpreter.argument(1)
 		val followSymlinks = interpreter.argument(2)
-		val path: Path
-		try
-		{
-			path = IOSystem.fileSystem.getPath(filename.asNativeString())
-		}
-		catch (e: InvalidPathException)
-		{
-			return interpreter.primitiveFailure(E_INVALID_PATH)
-		}
+		val path: Path =
+			try
+			{
+				IOSystem.fileSystem.getPath(filename.asNativeString())
+			}
+			catch (e: InvalidPathException)
+			{
+				return interpreter.primitiveFailure(E_INVALID_PATH)
+			}
 
 		val permissions = permissionsFor(ordinals)
 		val options = IOSystem.followSymlinks(
 			followSymlinks.extractBoolean())
 		val view = Files.getFileAttributeView(
 			path, PosixFileAttributeView::class.java, *options)
-		           ?: return interpreter.primitiveFailure(E_OPERATION_NOT_SUPPORTED)
+	           ?: return interpreter.primitiveFailure(E_OPERATION_NOT_SUPPORTED)
 		try
 		{
 			view.setPermissions(permissions)
@@ -113,30 +112,33 @@ object P_FileSetPermissions : Primitive(3, CanInline, HasSideEffect)
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(stringType(), setTypeForSizesContentType(
-			inclusive(0, 9),
-			inclusive(1, 9)), booleanType()), TOP.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(stringType(),
+			      setTypeForSizesContentType(
+				      inclusive(0, 9),
+				inclusive(1, 9)),
+			      booleanType()),
+			TOP.o())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
-			set(E_INVALID_PATH, E_PERMISSION_DENIED, E_IO_ERROR,
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
+			set(
+				E_INVALID_PATH,
+				E_PERMISSION_DENIED,
+				E_IO_ERROR,
 			    E_OPERATION_NOT_SUPPORTED))
-	}
 
 	/**
-	 * Convert the specified [set][SetDescriptor] of [ ] into the corresponding [set][Set]
-	 * of [POSIX file permissions][PosixFilePermission].
+	 * Convert the specified [set][SetDescriptor] of
+	 * [ordinals][IntegerDescriptor] into the corresponding [set][Set] of [POSIX
+	 * file permissions][PosixFilePermission].
 	 *
 	 * @param ordinals
-	 * Some ordinals.
+	 *   Some ordinals.
 	 * @return The equivalent POSIX file permissions.
 	 */
-	private fun permissionsFor(
-		ordinals: A_Set): Set<PosixFilePermission>
+	private fun permissionsFor(ordinals: A_Set): Set<PosixFilePermission>
 	{
 		val allPermissions = IOSystem.posixPermissions
 		val permissions = EnumSet.noneOf(PosixFilePermission::class.java)

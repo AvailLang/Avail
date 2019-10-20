@@ -52,18 +52,14 @@ import java.io.IOException
 import java.io.RandomAccessFile
 
 /**
- * **Primitive:** Answer the size of the
- * [file][RandomAccessFile] associated with the specified
- * [handle][AtomDescriptor]. Supports 64-bit file sizes.
+ * **Primitive:** Answer the size of the [file][RandomAccessFile] associated with the specified [handle][AtomDescriptor]. Supports 64-bit file sizes.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
 object P_FileSize : Primitive(1, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val atom = interpreter.argument(0)
@@ -73,32 +69,23 @@ object P_FileSize : Primitive(1, CanInline, HasSideEffect)
 			return interpreter.primitiveFailure(E_INVALID_HANDLE)
 		}
 		val handle = pojo.javaObjectNotNull<FileHandle>()
-		val fileSize: Long
-		try
-		{
-			fileSize = handle.channel.size()
-		}
-		catch (e: IOException)
-		{
-			return interpreter.primitiveFailure(E_IO_ERROR)
-		}
+		val fileSize: Long =
+			try
+			{
+				handle.channel.size()
+			}
+			catch (e: IOException)
+			{
+				return interpreter.primitiveFailure(E_IO_ERROR)
+			}
 
 		return interpreter.primitiveSuccess(fromLong(fileSize))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(ATOM.o()),
-			wholeNumbers())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(ATOM.o()), wholeNumbers())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
-			set(
-				E_INVALID_HANDLE,
-				E_IO_ERROR))
-	}
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_INVALID_HANDLE, E_IO_ERROR))
 
 }
