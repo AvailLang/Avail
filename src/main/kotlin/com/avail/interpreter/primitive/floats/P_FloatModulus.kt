@@ -40,16 +40,18 @@ import com.avail.descriptor.TypeDescriptor.Types.FLOAT
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
-import java.lang.Math.floor
+import kotlin.math.floor
 
 /**
- * **Primitive:** Divide [float][FloatDescriptor]
- * `a` by float `b`, but answer the remainder.
+ * **Primitive:** Divide [float][FloatDescriptor] `a` by float `b`, but answer
+ * the remainder.
  */
-object P_FloatModulus : Primitive(2, CannotFail, CanInline, CanFold) {
+@Suppress("unused")
+object P_FloatModulus : Primitive(2, CannotFail, CanInline, CanFold)
+{
 
-	override fun attempt(
-		interpreter: Interpreter): Result {
+	override fun attempt(interpreter: Interpreter): Result
+	{
 		interpreter.checkArgumentCount(2)
 		val a = interpreter.argument(0)
 		val b = interpreter.argument(1)
@@ -61,11 +63,6 @@ object P_FloatModulus : Primitive(2, CannotFail, CanInline, CanFold) {
 			objectFromFloatRecycling(mod, a, b, true))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type {
-		return functionType(
-			tuple(
-				FLOAT.o(),
-				FLOAT.o()),
-			FLOAT.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(FLOAT.o(), FLOAT.o()), FLOAT.o())
 }

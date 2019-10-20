@@ -44,16 +44,19 @@ import com.avail.descriptor.TypeDescriptor.Types.FLOAT
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
-import java.lang.Math.*
+import kotlin.math.max
+import kotlin.math.min
 
 /**
- * **Primitive:** Compute [ float][FloatDescriptor] `a*(2**b)` without intermediate overflow or any precision
- * loss.
+ * **Primitive:** Compute [float][FloatDescriptor] `a*(2**b)` without
+ * intermediate overflow or any precision loss.
  */
-object P_FloatTimesTwoPower : Primitive(3, CannotFail, CanFold, CanInline) {
+@Suppress("unused")
+object P_FloatTimesTwoPower : Primitive(3, CannotFail, CanFold, CanInline)
+{
 
-	override fun attempt(
-		interpreter: Interpreter): Result {
+	override fun attempt(interpreter: Interpreter): Result
+	{
 		interpreter.checkArgumentCount(3)
 		val a = interpreter.argument(0)
 		//		final A_Token literalTwo = interpreter.argument(1);
@@ -63,16 +66,10 @@ object P_FloatTimesTwoPower : Primitive(3, CannotFail, CanFold, CanInline) {
 			min(max(b.extractInt(), -10000), 10000)
 		else
 			if (b.greaterOrEqual(zero())) 10000 else -10000
-		val f = scalb(a.extractFloat(), scale)
+		val f = Math.scalb(a.extractFloat(), scale)
 		return interpreter.primitiveSuccess(fromFloatRecycling(f, a, true))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type {
-		return functionType(
-			tuple(
-				FLOAT.o(),
-				instanceType(two()),
-				integers()),
-			FLOAT.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(FLOAT.o(), instanceType(two()), integers()), FLOAT.o())
 }

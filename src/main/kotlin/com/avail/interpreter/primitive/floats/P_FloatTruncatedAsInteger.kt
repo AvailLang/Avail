@@ -48,31 +48,32 @@ import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * **Primitive:** Convert a [ float][FloatDescriptor] to an [integer][IntegerDescriptor], rounding towards
- * zero.
+ * **Primitive:** Convert a [float][FloatDescriptor] to an
+ * [integer][IntegerDescriptor], rounding towards zero.
  */
-object P_FloatTruncatedAsInteger : Primitive(1, CanFold, CanInline) {
-
-	override fun attempt(
-		interpreter: Interpreter): Result {
+@Suppress("unused")
+object P_FloatTruncatedAsInteger : Primitive(1, CanFold, CanInline)
+{
+	override fun attempt(interpreter: Interpreter): Result
+	{
 		interpreter.checkArgumentCount(1)
 		val a = interpreter.argument(0)
 		// Extract the top two 32-bit sections.  That guarantees 33 bits
 		// of mantissa, which is more than a float actually captures.
 		val f = a.extractFloat()
-		return if (java.lang.Float.isNaN(f)) {
+		return if (java.lang.Float.isNaN(f))
+		{
 			interpreter.primitiveFailure(
 				E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER)
-		} else interpreter.primitiveSuccess(
+		}
+		else interpreter.primitiveSuccess(
 			doubleTruncatedToExtendedInteger(f.toDouble()))
 		// Do the conversion as a Double.
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type {
-		return functionType(tuple(FLOAT.o()), extendedIntegers())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(FLOAT.o()), extendedIntegers())
 
-	override fun privateFailureVariableType(): A_Type {
-		return enumerationWith(set(E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER))
-	}
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER))
 }

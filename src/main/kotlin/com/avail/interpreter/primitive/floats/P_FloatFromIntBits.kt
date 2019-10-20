@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive.floats
 
 import com.avail.descriptor.A_Type
+import com.avail.descriptor.FloatDescriptor
 import com.avail.descriptor.FloatDescriptor.fromFloat
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.IntegerRangeTypeDescriptor.int32
@@ -42,15 +43,17 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Given a 32-bit signed integer, treat the bit
- * pattern as a single-precision IEEE-754 representation, and answer that [ ] value.
+ * **Primitive:** Given a 32-bit signed integer, treat the bit pattern as a
+ * single-precision IEEE-754 representation, and answer that
+ * [float][FloatDescriptor] value.
  *
  * @see P_FloatToIntBits
  */
-object P_FloatFromIntBits : Primitive(1, CannotFail, CanFold, CanInline) {
-
-	override fun attempt(
-		interpreter: Interpreter): Result {
+@Suppress("unused")
+object P_FloatFromIntBits : Primitive(1, CannotFail, CanFold, CanInline)
+{
+	override fun attempt(interpreter: Interpreter): Result
+	{
 		interpreter.checkArgumentCount(1)
 		val intObject = interpreter.argument(0)
 		val intValue = intObject.extractInt()
@@ -58,7 +61,6 @@ object P_FloatFromIntBits : Primitive(1, CannotFail, CanFold, CanInline) {
 		return interpreter.primitiveSuccess(fromFloat(floatValue))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type {
-		return functionType(tuple(int32()), FLOAT.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(int32()), FLOAT.o())
 }

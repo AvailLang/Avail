@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive.floats
 
 import com.avail.descriptor.A_Type
+import com.avail.descriptor.FloatDescriptor
 import com.avail.descriptor.FloatDescriptor.fromFloatRecycling
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
@@ -39,23 +40,25 @@ import com.avail.descriptor.TypeDescriptor.Types.FLOAT
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
+import kotlin.math.ceil
 
 /**
- * **Primitive:** Answer the smallest integral [ ] greater than or equal to the given float.  If the
- * float is ±INF or NaN then answer the argument.
+ * **Primitive:** Answer the smallest integral [float][FloatDescriptor] greater
+ * than or equal to the given float.  If the float is ±INF or NaN then answer
+ * the argument.
  */
-object P_FloatCeiling : Primitive(1, CannotFail, CanFold, CanInline) {
-
-	override fun attempt(
-		interpreter: Interpreter): Result {
+@Suppress("unused")
+object P_FloatCeiling : Primitive(1, CannotFail, CanFold, CanInline)
+{
+	override fun attempt(interpreter: Interpreter): Result
+	{
 		interpreter.checkArgumentCount(1)
 		val a = interpreter.argument(0)
 		val f = a.extractFloat()
-		val floor = Math.ceil(f.toDouble()).toFloat()
+		val floor = ceil(f.toDouble()).toFloat()
 		return interpreter.primitiveSuccess(fromFloatRecycling(floor, a, true))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type {
-		return functionType(tuple(FLOAT.o()), FLOAT.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(FLOAT.o()), FLOAT.o())
 }

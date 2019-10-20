@@ -43,21 +43,19 @@ import com.avail.interpreter.Primitive.Flag.*
 import kotlin.math.ln
 
 /**
- * **Primitive:** Compute the natural logarithm of
- * [float][FloatDescriptor] `a`.
+ * **Primitive:** Compute the natural logarithm of [float][FloatDescriptor] `a`.
  */
-object P_FloatLn : Primitive(1, CannotFail, CanFold, CanInline) {
-
-	override fun attempt(
-		interpreter: Interpreter
-	): Result {
+@Suppress("unused")
+object P_FloatLn : Primitive(1, CannotFail, CanFold, CanInline)
+{
+	override fun attempt(interpreter: Interpreter): Result
+	{
 		interpreter.checkArgumentCount(1)
 		val a = interpreter.argument(0)
 		return interpreter.primitiveSuccess(
 			fromFloatRecycling(ln(a.extractFloat().toDouble()).toFloat(), a, true))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type {
-		return functionType(tuple(FLOAT.o()), FLOAT.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(FLOAT.o()), FLOAT.o())
 }

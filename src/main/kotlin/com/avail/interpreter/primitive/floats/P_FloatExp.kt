@@ -43,25 +43,25 @@ import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 import java.lang.Math.E
-import java.lang.Math.exp
+import kotlin.math.exp
 
 /**
- * **Primitive:** Compute `e^a`, the natural
- * exponential of the [float][FloatDescriptor] `a`.
+ * **Primitive:** Compute `e^a`, the natural exponential of the
+ * [float][FloatDescriptor] `a`.
  */
-object P_FloatExp : Primitive(2, CannotFail, CanFold, CanInline) {
-
+@Suppress("unused")
+object P_FloatExp : Primitive(2, CannotFail, CanFold, CanInline)
+{
 	override fun attempt(
-		interpreter: Interpreter): Result {
+		interpreter: Interpreter): Result
+	{
 		interpreter.checkArgumentCount(1)
 		val a = interpreter.argument(0)
 		return interpreter.primitiveSuccess(
-			fromFloatRecycling(exp(a.extractFloat().toDouble()).toFloat(), a, true))
+			fromFloatRecycling(
+				exp(a.extractFloat().toDouble()).toFloat(), a, true))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type {
-		return functionType(
-			tuple(instanceType(fromDouble(E)), FLOAT.o()),
-			FLOAT.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(instanceType(fromDouble(E)), FLOAT.o()), FLOAT.o())
 }

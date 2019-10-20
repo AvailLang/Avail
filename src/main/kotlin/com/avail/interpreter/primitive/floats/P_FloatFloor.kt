@@ -31,6 +31,8 @@
  */
 package com.avail.interpreter.primitive.floats
 
+import com.avail.descriptor.A_Type
+import com.avail.descriptor.FloatDescriptor
 import com.avail.descriptor.FloatDescriptor.fromFloatRecycling
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
@@ -41,12 +43,15 @@ import com.avail.interpreter.Primitive.Flag.*
 import kotlin.math.floor
 
 /**
- * **Primitive:** Answer the largest integral [ ] less than or equal to the given float.  If the
- * float is ±INF or NaN then answer the argument.
+ * **Primitive:** Answer the largest integral [float][FloatDescriptor] less than
+ * or equal to the given float.  If the float is ±INF or NaN then answer the
+ * argument.
  */
-object P_FloatFloor : Primitive(1, CannotFail, CanFold, CanInline) {
-
-	override fun attempt(interpreter: Interpreter): Result {
+@Suppress("unused")
+object P_FloatFloor : Primitive(1, CannotFail, CanFold, CanInline)
+{
+	override fun attempt(interpreter: Interpreter): Result
+	{
 		interpreter.checkArgumentCount(1)
 		val a = interpreter.argument(0)
 		val f = a.extractFloat()
@@ -54,6 +59,6 @@ object P_FloatFloor : Primitive(1, CannotFail, CanFold, CanInline) {
 		return interpreter.primitiveSuccess(fromFloatRecycling(floor, a, true))
 	}
 
-	override fun privateBlockTypeRestriction() =
+	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(tuple(FLOAT.o()), FLOAT.o())
 }

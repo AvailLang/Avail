@@ -43,21 +43,25 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Convert the numeric argument to a
- * [float][FloatDescriptor].
+ * **Primitive:** Convert the numeric argument to a [float][FloatDescriptor].
  */
-object P_AsFloat : Primitive(1, CannotFail, CanFold, CanInline) {
-
-	override fun attempt(
-		interpreter: Interpreter): Result {
+@Suppress("unused")
+object P_AsFloat : Primitive(1, CannotFail, CanFold, CanInline)
+{
+	override fun attempt(interpreter: Interpreter): Result
+	{
 		interpreter.checkArgumentCount(1)
 		val number = interpreter.argument(0)
-		return if (number.isFloat) {
+		return if (number.isFloat)
+		{
 			interpreter.primitiveSuccess(number)
-		} else interpreter.primitiveSuccess(fromFloat(number.extractFloat()))
+		}
+		else
+		{
+			interpreter.primitiveSuccess(fromFloat(number.extractFloat()))
+		}
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type {
-		return functionType(tuple(NUMBER.o()), FLOAT.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(NUMBER.o()), FLOAT.o())
 }
