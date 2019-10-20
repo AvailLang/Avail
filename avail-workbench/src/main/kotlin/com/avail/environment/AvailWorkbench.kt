@@ -33,145 +33,48 @@
 package com.avail.environment
 
 import com.avail.AvailRuntime
-import com.avail.builder.AvailBuilder
-import com.avail.builder.ModuleName
-import com.avail.builder.ModuleNameResolver
-import com.avail.builder.ModuleRoot
-import com.avail.builder.ModuleRoots
-import com.avail.builder.RenamesFileParser
-import com.avail.builder.ResolvedModuleName
-import com.avail.builder.UnresolvedDependencyException
+import com.avail.AvailRuntimeConfiguration.activeVersionSummary
+import com.avail.builder.*
+import com.avail.builder.ModuleNameResolver.availExtension
 import com.avail.descriptor.A_Module
 import com.avail.descriptor.ModuleDescriptor
-import com.avail.environment.actions.AboutAction
-import com.avail.environment.actions.BuildAction
-import com.avail.environment.actions.CancelAction
-import com.avail.environment.actions.CleanAction
-import com.avail.environment.actions.CleanModuleAction
-import com.avail.environment.actions.ClearTranscriptAction
-import com.avail.environment.actions.CreateProgramAction
-import com.avail.environment.actions.ExamineCompilationAction
-import com.avail.environment.actions.ExamineRepositoryAction
-import com.avail.environment.actions.GenerateDocumentationAction
-import com.avail.environment.actions.GenerateGraphAction
-import com.avail.environment.actions.InsertEntryPointAction
-import com.avail.environment.actions.ParserIntegrityCheckAction
-import com.avail.environment.actions.PreferencesAction
-import com.avail.environment.actions.RefreshAction
-import com.avail.environment.actions.ResetCCReportDataAction
-import com.avail.environment.actions.ResetVMReportDataAction
-import com.avail.environment.actions.RetrieveNextCommand
-import com.avail.environment.actions.RetrievePreviousCommand
-import com.avail.environment.actions.SetDocumentationPathAction
-import com.avail.environment.actions.ShowCCReportAction
-import com.avail.environment.actions.ShowVMReportAction
-import com.avail.environment.actions.SubmitInputAction
-import com.avail.environment.actions.ToggleDebugInterpreterL1
-import com.avail.environment.actions.ToggleDebugInterpreterL2
-import com.avail.environment.actions.ToggleDebugInterpreterPrimitives
-import com.avail.environment.actions.ToggleDebugJVM
-import com.avail.environment.actions.ToggleDebugWorkUnits
-import com.avail.environment.actions.ToggleFastLoaderAction
-import com.avail.environment.actions.ToggleL2SanityCheck
-import com.avail.environment.actions.TraceCompilerAction
-import com.avail.environment.actions.TraceLoadedStatementsAction
-import com.avail.environment.actions.TraceMacrosAction
-import com.avail.environment.actions.TraceSummarizeStatementsAction
-import com.avail.environment.actions.UnloadAction
-import com.avail.environment.actions.UnloadAllAction
-import com.avail.environment.nodes.AbstractBuilderFrameTreeNode
-import com.avail.environment.nodes.EntryPointModuleNode
-import com.avail.environment.nodes.EntryPointNode
-import com.avail.environment.nodes.ModuleOrPackageNode
-import com.avail.environment.nodes.ModuleRootNode
+import com.avail.environment.AvailWorkbench.StreamStyle.*
+import com.avail.environment.actions.*
+import com.avail.environment.nodes.*
 import com.avail.environment.tasks.BuildTask
 import com.avail.io.ConsoleInputChannel
 import com.avail.io.ConsoleOutputChannel
 import com.avail.io.TextInterface
 import com.avail.performance.Statistic
+import com.avail.performance.StatisticReport.WORKBENCH_TRANSCRIPT
 import com.avail.stacks.StacksGenerator
-import com.avail.utility.IO
-import com.avail.utility.Mutable
-import com.avail.utility.MutableInt
-import com.avail.utility.MutableLong
-import com.avail.utility.Pair
-import javax.swing.*
-import javax.swing.text.BadLocationException
-import javax.swing.text.SimpleAttributeSet
-import javax.swing.text.Style
-import javax.swing.text.StyleConstants
-import javax.swing.text.StyleContext
-import javax.swing.text.StyledDocument
-import javax.swing.text.TabSet
-import javax.swing.text.TabStop
-import javax.swing.tree.DefaultMutableTreeNode
-import javax.swing.tree.DefaultTreeCellRenderer
-import javax.swing.tree.DefaultTreeModel
-import javax.swing.tree.TreeNode
-import javax.swing.tree.TreePath
-import javax.swing.tree.TreeSelectionModel
+import com.avail.utility.*
+import com.avail.utility.Casts.cast
+import com.avail.utility.Locks.lockWhile
+import com.avail.utility.Nulls.stripNull
 import java.awt.*
-import java.awt.event.ActionEvent
-import java.awt.event.MouseAdapter
-import java.awt.event.MouseEvent
-import java.awt.event.WindowAdapter
-import java.awt.event.WindowEvent
-import java.io.BufferedReader
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.FileInputStream
-import java.io.IOException
-import java.io.InputStreamReader
-import java.io.OutputStream
-import java.io.PrintStream
-import java.io.Reader
-import java.io.StringReader
-import java.io.UnsupportedEncodingException
+import java.awt.event.*
+import java.io.*
+import java.lang.Integer.parseInt
+import java.lang.String.format
+import java.lang.System.arraycopy
+import java.lang.System.currentTimeMillis
 import java.nio.charset.StandardCharsets
-import java.nio.file.FileSystems
-import java.nio.file.FileVisitOption
-import java.nio.file.FileVisitResult
-import java.nio.file.FileVisitor
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
+import java.nio.file.*
 import java.nio.file.attribute.BasicFileAttributes
-import java.util.ArrayDeque
-import java.util.ArrayList
-import java.util.Arrays
-import java.util.Deque
-import java.util.EnumSet
-import java.util.Enumeration
-import java.util.HashMap
-import kotlin.collections.Map.Entry
-import java.util.Queue
-import java.util.TimerTask
+import java.util.*
+import java.util.Comparator.comparing
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.prefs.BackingStoreException
 import java.util.prefs.Preferences
-
-import com.avail.AvailRuntimeConfiguration.activeVersionSummary
-import com.avail.builder.ModuleNameResolver.availExtension
-import com.avail.environment.AvailWorkbench.StreamStyle.BUILD_PROGRESS
-import com.avail.environment.AvailWorkbench.StreamStyle.COMMAND
-import com.avail.environment.AvailWorkbench.StreamStyle.ERR
-import com.avail.environment.AvailWorkbench.StreamStyle.INFO
-import com.avail.environment.AvailWorkbench.StreamStyle.IN_ECHO
-import com.avail.environment.AvailWorkbench.StreamStyle.OUT
-import com.avail.environment.AvailWorkbench.StreamStyle.values
-import com.avail.performance.StatisticReport.WORKBENCH_TRANSCRIPT
-import com.avail.utility.Locks.lockWhile
-import com.avail.utility.Nulls.stripNull
-import java.lang.Integer.parseInt
-import java.lang.String.format
-import java.lang.System.arraycopy
-import java.lang.System.currentTimeMillis
-import java.util.Comparator.comparing
+import javax.swing.*
 import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS
 import javax.swing.SwingUtilities.invokeLater
+import javax.swing.text.*
+import javax.swing.tree.*
+import kotlin.collections.Map.Entry
 import kotlin.math.max
 import kotlin.math.min
 
@@ -272,13 +175,13 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	val transcript: JTextPane
 
 	/** The [scroll bars][JScrollPane] for the [transcript].  */
-	val transcriptScrollArea: JScrollPane
+	private val transcriptScrollArea: JScrollPane
 
 	/**
 	 * The [label][JLabel] that describes the current function of the
 	 * [input field][inputField].
 	 */
-	val inputLabel: JLabel
+	private val inputLabel: JLabel
 
 	/** The [text field][JTextField] that accepts standard input.  */
 	val inputField: JTextField
@@ -302,123 +205,123 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	var commandHistoryIndex = -1
 
 	/** Cycle one step backward in the command history.  */
-	internal val retrievePreviousAction = RetrievePreviousCommand(this)
+	private val retrievePreviousAction = RetrievePreviousCommand(this)
 
 	/** Cycle one step forward in the command history.  */
-	internal val retrieveNextAction = RetrieveNextCommand(this)
+	private val retrieveNextAction = RetrieveNextCommand(this)
 
 	/* Actions. */
 
 	/** The [refresh action][RefreshAction].  */
-	internal val refreshAction = RefreshAction(this)
+	private val refreshAction = RefreshAction(this)
 
 	/** The [&quot;about Avail&quot; action][AboutAction].  */
-	internal val aboutAction = AboutAction(this)
+	private val aboutAction = AboutAction(this)
 
 	/** The [&quot;Preferences...&quot; action][PreferencesAction].  */
-	internal val preferencesAction = PreferencesAction(this)
+	private val preferencesAction = PreferencesAction(this)
 
 	/** The [build action][BuildAction].  */
 	internal val buildAction = BuildAction(this, false)
 
 	/** The [unload action][UnloadAction].  */
-	internal val unloadAction = UnloadAction(this)
+	private val unloadAction = UnloadAction(this)
 
 	/** The [unload-all action][UnloadAllAction].  */
-	internal val unloadAllAction = UnloadAllAction(this)
+	private val unloadAllAction = UnloadAllAction(this)
 
 	/** The [cancel action][CancelAction].  */
-	internal val cancelAction = CancelAction(this)
+	private val cancelAction = CancelAction(this)
 
 	/** The [clean action][CleanAction].  */
-	internal val cleanAction = CleanAction(this)
+	private val cleanAction = CleanAction(this)
 
 	/** The [clean module action][CleanModuleAction].  */
-	internal val cleanModuleAction = CleanModuleAction(this)
+	private val cleanModuleAction = CleanModuleAction(this)
 
 	/** The [create program action][CreateProgramAction].  */
-	internal val createProgramAction = CreateProgramAction(this)
+	private val createProgramAction = CreateProgramAction(this)
 
 	/**
 	 * The [generate documentation action][GenerateDocumentationAction].
 	 */
-	internal val documentAction = GenerateDocumentationAction(this)
+	private val documentAction = GenerateDocumentationAction(this)
 
 	/** The [generate graph action][GenerateGraphAction].  */
-	internal val graphAction = GenerateGraphAction(this)
+	private val graphAction = GenerateGraphAction(this)
 
 	/**
 	 * The [documentation path dialog action][SetDocumentationPathAction].
 	 */
-	internal val setDocumentationPathAction = SetDocumentationPathAction(this)
+	private val setDocumentationPathAction = SetDocumentationPathAction(this)
 
 	/** The [show VM report action][ShowVMReportAction].  */
-	internal val showVMReportAction = ShowVMReportAction(this)
+	private val showVMReportAction = ShowVMReportAction(this)
 
 	/** The [reset VM report data action][ResetVMReportDataAction].  */
-	internal val resetVMReportDataAction = ResetVMReportDataAction(this)
+	private val resetVMReportDataAction = ResetVMReportDataAction(this)
 
 	/** The [show CC report action][ShowCCReportAction].  */
-	internal val showCCReportAction: ShowCCReportAction
+	private val showCCReportAction: ShowCCReportAction
 
 	/** The [reset CC report data action][ResetCCReportDataAction].  */
-	internal val resetCCReportDataAction: ResetCCReportDataAction
+	private val resetCCReportDataAction: ResetCCReportDataAction
 
 	/** The [toggle trace macros action][TraceMacrosAction].  */
-	internal val debugMacroExpansionsAction = TraceMacrosAction(this)
+	private val debugMacroExpansionsAction = TraceMacrosAction(this)
 
 	/** The [toggle trace compiler action][TraceCompilerAction].  */
-	internal val debugCompilerAction = TraceCompilerAction(this)
+	private val debugCompilerAction = TraceCompilerAction(this)
 
 	/** The [toggle fast-loader action][ToggleFastLoaderAction].  */
-	internal val toggleFastLoaderAction = ToggleFastLoaderAction(this)
+	private val toggleFastLoaderAction = ToggleFastLoaderAction(this)
 
 	/** The [toggle L1 debug action][ToggleDebugInterpreterL1].  */
-	internal val toggleDebugL1 = ToggleDebugInterpreterL1(this)
+	private val toggleDebugL1 = ToggleDebugInterpreterL1(this)
 
 	/** The [toggle L2 debug action][ToggleDebugInterpreterL2].  */
-	internal val toggleDebugL2 = ToggleDebugInterpreterL2(this)
+	private val toggleDebugL2 = ToggleDebugInterpreterL2(this)
 
 	/** The [ToggleL2SanityCheck] toggle L2 sanity checks action}.  */
-	internal val toggleL2SanityCheck = ToggleL2SanityCheck(this)
+	private val toggleL2SanityCheck = ToggleL2SanityCheck(this)
 
 	/**
 	 * The [toggle primitive debug action][ToggleDebugInterpreterPrimitives].
 	 */
-	internal val toggleDebugPrimitives =
+	private val toggleDebugPrimitives =
 		ToggleDebugInterpreterPrimitives(this)
 
 	/**
 	 * The [toggle work-units debug action][ToggleDebugWorkUnits].
 	 */
-	internal val toggleDebugWorkUnits = ToggleDebugWorkUnits(this)
+	private val toggleDebugWorkUnits = ToggleDebugWorkUnits(this)
 
 	/** The [toggle JVM dump debug action][ToggleDebugJVM].  */
-	internal val toggleDebugJVM = ToggleDebugJVM(this)
+	private val toggleDebugJVM = ToggleDebugJVM(this)
 
 	/**
 	 * The [toggle fast-loader summarization action][TraceSummarizeStatementsAction].
 	 */
-	internal val traceSummarizeStatementsAction =
+	private val traceSummarizeStatementsAction =
 		TraceSummarizeStatementsAction(this)
 
 	/**
 	 * The [toggle load-tracing action][TraceLoadedStatementsAction].
 	 */
-	internal val traceLoadedStatementsAction =
+	private val traceLoadedStatementsAction =
 		TraceLoadedStatementsAction(this)
 
 	/** The [ParserIntegrityCheckAction].  */
-	internal val parserIntegrityCheckAction: ParserIntegrityCheckAction
+	private val parserIntegrityCheckAction: ParserIntegrityCheckAction
 
 	/** The [ExamineRepositoryAction].  */
-	internal val examineRepositoryAction: ExamineRepositoryAction
+	private val examineRepositoryAction: ExamineRepositoryAction
 
 	/** The [ExamineCompilationAction].  */
-	internal val examineCompilationAction: ExamineCompilationAction
+	private val examineCompilationAction: ExamineCompilationAction
 
 	/** The [clear transcript action][ClearTranscriptAction].  */
-	internal val clearTranscriptAction = ClearTranscriptAction(this)
+	private val clearTranscriptAction = ClearTranscriptAction(this)
 
 	/** The [insert entry point action][InsertEntryPointAction].  */
 	internal val insertEntryPointAction = InsertEntryPointAction(this)
@@ -520,7 +423,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		private var stopTimeMillis: Long = 0
 
 		/** The [exception][Throwable] that terminated the build.  */
-		protected var terminator: Throwable? = null
+		private var terminator: Throwable? = null
 
 		/** Cancel the current task. */
 		fun cancel() = workbench.availBuilder.cancel()
@@ -541,19 +444,11 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			val durationMillis = stopTimeMillis - startTimeMillis
 			val status: String?
 			val t = terminator
-			if (t != null)
-			{
-				status = ("Aborted ("
-				          + t.javaClass.simpleName
-				          + ")")
-			}
-			else if (workbench.availBuilder.shouldStopBuild())
-			{
-				status = workbench.availBuilder.stopBuildReason()
-			}
-			else
-			{
-				status = "Done"
+			status = when {
+				t != null -> "Aborted (${t.javaClass.simpleName})"
+				workbench.availBuilder.shouldStopBuild() ->
+					workbench.availBuilder.stopBuildReason()
+				else -> "Done"
 			}
 			workbench.writeText(
 				format(
@@ -627,7 +522,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	 * maximizes efficiency while avoiding starvation of the UI process in the
 	 * event that a high volume of data is being written.
 	 */
-	internal fun updateTranscript()
+	private fun updateTranscript()
 	{
 		assert(totalQueuedTextSize.get() > 0)
 		val now = currentTimeMillis()
@@ -737,12 +632,12 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			// have kept adding things unboundedly while we were removing them.
 			// Adding things "boundedly" is fine, however (i.e., blocking on the
 			// dequeLock if too much is added).
-			val afterRemove = totalQueuedTextSize.addAndGet((-removedSize).toLong())
+			val afterRemove = totalQueuedTextSize.addAndGet(cast(-removedSize))
 			assert(afterRemove >= 0)
 			afterRemove == 0L
 		}
 
-		assert(!aggregatedEntries.isEmpty())
+		assert(aggregatedEntries.isNotEmpty())
 		assert(lengthToInsert.value > 0)
 		try
 		{
@@ -800,7 +695,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	 *   The color of foreground text in this style.
 	 */
 	enum class StreamStyle constructor(
-		val styleName: String, val foregroundColor: Color)
+		private val styleName: String, private val foregroundColor: Color)
 	{
 		/** The stream style used to echo user input.  */
 		IN_ECHO("input", Color(32, 144, 32)),
@@ -989,9 +884,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			count += bytes.size
 			writeText(text, IN_ECHO)
 			inputField.text = ""
-
-			// TODO Kotlin doesn't support Object.notifyAll()...
-			notifyAll()
+			javaNotifyAll()
 		}
 
 		/**
@@ -1036,16 +929,14 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			{
 				while (pos == count)
 				{
-
-					wait()
+					javaWait()
 				}
 			}
 			catch (e: InterruptedException)
 			{
 				return -1
 			}
-
-			return buf[pos++] and 0xFF
+			return buf[pos++].toInt() and 0xFF
 		}
 
 		@Synchronized
@@ -1062,8 +953,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			{
 				while (pos == count)
 				{
-
-					wait()
+					javaWait()
 				}
 			}
 			catch (e: InterruptedException)
@@ -1373,7 +1263,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	 *
 	 * @return The (invisible) root of the module tree.
 	 */
-	fun newModuleTree(): TreeNode
+	private fun newModuleTree(): TreeNode
 	{
 		val roots = resolver.moduleRoots()
 		val treeRoot = DefaultMutableTreeNode(
@@ -1402,13 +1292,11 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			}
 
 		}
-		val enumeration = treeRoot.preorderEnumeration()
+		val enumeration: Enumeration<AbstractBuilderFrameTreeNode> =
+			cast(treeRoot.preorderEnumeration())
 		// Skip the invisible root.
 		enumeration.nextElement()
-		while (enumeration.hasMoreElements())
-		{
-			enumeration.nextElement().sortChildren()
-		}
+		for (node in enumeration) { node.sortChildren() }
 		return treeRoot
 	}
 
@@ -1418,15 +1306,16 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	 *
 	 * @return The (invisible) root of the entry points tree.
 	 */
-	fun newEntryPointsTree(): TreeNode
+	private fun newEntryPointsTree(): TreeNode
 	{
 		val mutex = ReentrantReadWriteLock()
-		val moduleNodes = HashMap<String, DefaultMutableTreeNode>()
+		val moduleNodes = mutableMapOf<String, DefaultMutableTreeNode>()
 		availBuilder.traceDirectories { resolvedName, moduleVersion, after ->
 			val entryPoints = moduleVersion.getEntryPoints()
-			if (!entryPoints.isEmpty())
+			if (entryPoints.isNotEmpty())
 			{
-				val moduleNode = EntryPointModuleNode(availBuilder, resolvedName)
+				val moduleNode =
+					EntryPointModuleNode(availBuilder, resolvedName)
 				for (entryPoint in entryPoints)
 				{
 					val entryPointNode = EntryPointNode(
@@ -1451,13 +1340,11 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		{
 			entryPointsTreeRoot.add(moduleNodes[moduleLabel])
 		}
-		val enumeration = entryPointsTreeRoot.preorderEnumeration()
+		val enumeration: Enumeration<AbstractBuilderFrameTreeNode> =
+			cast(entryPointsTreeRoot.preorderEnumeration())
 		// Skip the invisible root.
 		enumeration.nextElement()
-		while (enumeration.hasMoreElements())
-		{
-			enumeration.nextElement().sortChildren()
-		}
+		for (node in enumeration) { node.sortChildren() }
 		return entryPointsTreeRoot
 	}
 
@@ -1472,15 +1359,15 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	 */
 	fun modulePath(moduleName: String): TreePath?
 	{
-		val path =
-			moduleName.split("/|\\\\".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+		val path = moduleName.split('/', '\\')
 		val model = moduleTree.model
 		val treeRoot = model.root as DefaultMutableTreeNode
-		var nodes: Enumeration<DefaultMutableTreeNode> = treeRoot.children()
+		var nodes: Enumeration<DefaultMutableTreeNode> =
+			cast(treeRoot.children())
 		var index = 1
 		while (nodes.hasMoreElements())
 		{
-			val node = nodes.nextElement() as AbstractBuilderFrameTreeNode
+			val node: AbstractBuilderFrameTreeNode = cast(nodes.nextElement())
 			if (node.isSpecifiedByString(path[index]))
 			{
 				index++
@@ -1488,7 +1375,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 				{
 					return TreePath(node.path)
 				}
-				nodes = node.children()
+				nodes = cast(node.children())
 			}
 		}
 		return null
@@ -1777,15 +1664,9 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			val renames = resolver.renameRules()
 			for (oldChildName in renamesNode.childrenNames())
 			{
-				var nameInt: Int
-				try
-				{
-					nameInt = parseInt(oldChildName)
-				}
-				catch (e: NumberFormatException)
-				{
-					nameInt = -1
-				}
+				val nameInt = try {
+					parseInt(oldChildName)
+				} catch (e: NumberFormatException) { -1 }
 
 				if (oldChildName != nameInt.toString()
 				    || nameInt < 0
@@ -1797,12 +1678,9 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			var rowCounter = 0
 			for ((key, value) in renames)
 			{
-				val childNode = renamesNode.node(
-					Integer.toString(rowCounter))
-				childNode.put(
-					moduleRenameSourceSubkeyString, key)
-				childNode.put(
-					moduleRenameTargetSubkeyString, value)
+				val childNode = renamesNode.node(rowCounter.toString())
+				childNode.put(moduleRenameSourceSubkeyString, key)
+				childNode.put(moduleRenameTargetSubkeyString, value)
 				rowCounter++
 			}
 			basePreferences.flush()
@@ -2140,7 +2018,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		moduleTree.toggleClickCount = 0
 		moduleTree.showsRootHandles = true
 		moduleTree.isRootVisible = false
-		moduleTree.addTreeSelectionListener { _ -> setEnablements() }
+		moduleTree.addTreeSelectionListener { setEnablements() }
 		moduleTree.cellRenderer = treeRenderer
 		moduleTree.addMouseListener(
 			object : MouseAdapter()
@@ -2181,7 +2059,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		entryPointsTree.toggleClickCount = 0
 		entryPointsTree.showsRootHandles = true
 		entryPointsTree.isRootVisible = false
-		entryPointsTree.addTreeSelectionListener { _ -> setEnablements() }
+		entryPointsTree.addTreeSelectionListener { setEnablements() }
 		entryPointsTree.cellRenderer = treeRenderer
 		entryPointsTree.addMouseListener(
 			object : MouseAdapter()
@@ -2362,7 +2240,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 							transcriptScrollArea,
 							0,
 							300,
-							java.lang.Short.MAX_VALUE.toInt()))
+							Short.MAX_VALUE.toInt()))
 				.addGroup(
 					rightPaneLayout.createSequentialGroup()
 						.addComponent(inputLabel)
@@ -2411,7 +2289,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			})
 		if (runningOnMac)
 		{
-			OSXUtility.setQuitHandler { _ ->
+			OSXUtility.setQuitHandler {
 				// Quit was pressed.  Close the workbench, which should
 				// save window position state then exit.
 				// Apple's apple.eawt.quitStrategy has never worked, to
@@ -2424,7 +2302,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 				dispatchEvent(closeEvent)
 				true
 			}
-			OSXUtility.setAboutHandler { _ ->
+			OSXUtility.setAboutHandler {
 				aboutAction.showDialog()
 				true
 			}
@@ -2444,7 +2322,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		try
 		{
 			// Set up Mac-specific preferences menu handler...
-			OSXUtility.setPreferencesHandler { event ->
+			OSXUtility.setPreferencesHandler {
 				preferencesAction.actionPerformed(null)
 				true
 			}
@@ -2461,7 +2339,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		/**
 		 * The prefix string for resources related to the workbench.
 		 */
-		val resourcePrefix = "/resources/avail-workbench/"
+		const val resourcePrefix = "/resources/avail-workbench/"
 
 		/**
 		 * Answer a properly prefixed [String] for accessing the resource having
@@ -2493,7 +2371,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		 * Java does not permit the current working directory to be changed, it
 		 * is safe to cache the answer at class-loading time.
 		 */
-		val currentWorkingDirectory: File
+		private val currentWorkingDirectory: File
 
 		// Obtain the current working directory. Try to resolve this location to its
 		// real path. If resolution fails, then just use the value of the "user.dir"
@@ -2520,7 +2398,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		}
 
 		/** Truncate the start of the document any time it exceeds this.  */
-		private val maxDocumentSize = 10000000
+		private const val maxDocumentSize = 10_000_000
 
 		/** The [Statistic] for tracking text insertions.  */
 		private val insertStringStat =
@@ -2644,7 +2522,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		 * @param resolver
 		 *   The [ModuleNameResolver] used for resolving module names.
 		 */
-		fun loadRenameRulesInto(resolver: ModuleNameResolver)
+		private fun loadRenameRulesInto(resolver: ModuleNameResolver)
 		{
 			resolver.clearRenameRules()
 			val node = basePreferences.node(moduleRenamesKeyString)
@@ -2660,7 +2538,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 						moduleRenameTargetSubkeyString, "")
 					// Ignore empty sources and targets, although they shouldn't
 					// occur.
-					if (!source.isEmpty() && !target.isEmpty())
+					if (source.isNotEmpty() && target.isNotEmpty())
 					{
 						resolver.addRenameRule(source, target)
 					}
@@ -2776,21 +2654,11 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		{
 			for (item in actionsAndSubmenus)
 			{
-				if (item == null)
-				{
-					menu.addSeparator()
-				}
-				else if (item is Action)
-				{
-					menu.add(item)
-				}
-				else if (item is JMenuItem)
-				{
-					menu.add(item)
-				}
-				else
-				{
-					assert(false) { "Bad argument while building menu" }
+				when (item) {
+					null -> menu.addSeparator()
+					is Action -> menu.add(item)
+					is JMenuItem -> menu.add(item)
+					else -> assert(false) { "Bad argument while building menu" }
 				}
 			}
 		}
@@ -2858,16 +2726,11 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			}
 
 			val rootsString = System.getProperty("availRoots", "")
-			val roots: ModuleRoots
-			if (rootsString.isEmpty())
-			{
+			val roots = when {
 				// Read the persistent preferences file...
-				roots = loadModuleRoots()
-			}
-			else
-			{
-				// Providing availRoots on the command line overrides preferences...
-				roots = ModuleRoots(rootsString)
+				rootsString.isEmpty() -> loadModuleRoots()
+				// Providing availRoots on command line overrides preferences...
+				else -> ModuleRoots(rootsString)
 			}
 
 			val resolver: ModuleNameResolver
@@ -2875,21 +2738,16 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			try
 			{
 				val renames = System.getProperty("availRenames", null)
-				if (renames == null)
-				{
+				reader = when (renames) {
 					// Load the renames from preferences further down.
-					reader = StringReader("")
+					null ->  StringReader("")
+					// Load renames from file specified on the command line...
+					else -> BufferedReader(
+						InputStreamReader(
+							FileInputStream(
+								File(renames)), StandardCharsets.UTF_8))
 				}
-				else
-				{
-					// Load the renames from the file specified on the command line...
-					val renamesFile = File(renames)
-
-					reader = BufferedReader(InputStreamReader(
-						FileInputStream(renamesFile), StandardCharsets.UTF_8))
-				}
-				val renameParser = RenamesFileParser(
-					reader, roots)
+				val renameParser = RenamesFileParser(reader, roots)
 				resolver = renameParser.parse()
 				if (renames == null)
 				{
