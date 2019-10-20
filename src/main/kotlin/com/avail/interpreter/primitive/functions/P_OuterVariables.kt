@@ -45,13 +45,13 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer the [ tuple][TupleDescriptor] of outer variables captured by this [ function][FunctionDescriptor].
+ * **Primitive:** Answer the [tuple][TupleDescriptor] of outer variables
+ * captured by this [function][FunctionDescriptor].
  */
+@Suppress("unused")
 object P_OuterVariables : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val aFunction = interpreter.argument(0)
@@ -64,11 +64,6 @@ object P_OuterVariables : Primitive(1, CannotFail, CanFold, CanInline)
 		return interpreter.primitiveSuccess(newTupleObject)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(mostGeneralFunctionType()),
-			mostGeneralTupleType())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(mostGeneralFunctionType()), mostGeneralTupleType())
 }

@@ -49,13 +49,13 @@ import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * **Primitive:** Answer a [ function][FunctionDescriptor] built from the [function][CompiledCodeDescriptor] and the outer variables.
+ * **Primitive:** Answer a [function][FunctionDescriptor] built from the
+ * [function][CompiledCodeDescriptor] and the outer variables.
  */
+@Suppress("unused")
 object P_CreateFunction : Primitive(2, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val rawFunction = interpreter.argument(0)
@@ -78,18 +78,11 @@ object P_CreateFunction : Primitive(2, CanFold, CanInline)
 		return interpreter.primitiveSuccess(function)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				mostGeneralCompiledCodeType(),
-				mostGeneralTupleType()),
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(mostGeneralCompiledCodeType(), mostGeneralTupleType()),
 			mostGeneralFunctionType())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_WRONG_OUTERS))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_WRONG_OUTERS))
 }

@@ -42,14 +42,14 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer the most general function type with
- * the given return type.
+ * **Primitive:** Answer the most general function type with the given return
+ * type.
  */
-object P_CreateGeneralFunctionType : Primitive(1, CannotFail, CanFold, CanInline)
+@Suppress("unused")
+object P_CreateGeneralFunctionType
+	: Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val returnType = interpreter.argument(0)
@@ -58,9 +58,6 @@ object P_CreateGeneralFunctionType : Primitive(1, CannotFail, CanFold, CanInline
 				bottom(), returnType, emptySet()))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(topMeta()), functionMeta())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(topMeta()), functionMeta())
 }

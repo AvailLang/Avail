@@ -46,14 +46,13 @@ import com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer the type of the parameter at the
- * given index within the given functionType.
+ * **Primitive:** Answer the type of the parameter at the given index within the
+ * given functionType.
  */
+@Suppress("unused")
 object P_ParamTypeAt : Primitive(2, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val functionType = interpreter.argument(0)
@@ -66,31 +65,25 @@ object P_ParamTypeAt : Primitive(2, CannotFail, CanFold, CanInline)
 			{
 				interpreter.primitiveSuccess(bottom())
 			}
-			else interpreter.primitiveSuccess(parametersType.defaultType())
+			else
+			{
+				interpreter.primitiveSuccess(parametersType.defaultType())
+			}
 		}
 		val index = indexObject.extractInt()
 		val argumentType = functionType.argsTupleType().typeAtIndex(index)
 		return interpreter.primitiveSuccess(argumentType)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				functionMeta(),
-				naturalNumbers()),
-			anyMeta())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(functionMeta(), naturalNumbers()), anyMeta())
 
 	override fun fallibilityForArgumentTypes(
 		argumentTypes: List<A_Type>): Primitive.Fallibility
 	{
-		//		final A_Type functionType = argumentTypes.get(0);
+		//		val functionType : A_Type = argumentTypes[0]
 		val indexType = argumentTypes[1]
-		return if (indexType.isSubtypeOf(int32()))
-			CallSiteCannotFail
-		else
-			CallSiteCanFail
+		return if (indexType.isSubtypeOf(int32())) { CallSiteCannotFail }
+		else { CallSiteCanFail }
 	}
-
 }

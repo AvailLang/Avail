@@ -43,33 +43,22 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer the return type of the given
- * functionType.
+ * **Primitive:** Answer the return type of the given functionType.
  */
+@Suppress("unused")
 object P_ReturnType : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val functionType = interpreter.argument(0)
 		return interpreter.primitiveSuccess(functionType.returnType())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(functionMeta()),
-			topMeta())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(functionMeta()), topMeta())
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
-		argumentTypes: List<A_Type>): A_Type
-	{
-		val functionMeta = argumentTypes[0]
-		return instanceMeta(functionMeta.instance().returnType())
-	}
-
+		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type =
+			instanceMeta(argumentTypes[0].instance().returnType())
 }

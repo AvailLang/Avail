@@ -42,14 +42,13 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer a tuple type describing the
- * parameters accepted by the function type.
+ * **Primitive:** Answer a tuple type describing the parameters accepted by the
+ * function type.
  */
+@Suppress("unused")
 object P_ParamsType : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val functionType = interpreter.argument(0)
@@ -57,10 +56,6 @@ object P_ParamsType : Primitive(1, CannotFail, CanFold, CanInline)
 			functionType.argsTupleType())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(functionMeta()), instanceMeta(
-			mostGeneralTupleType()))
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(functionMeta()), instanceMeta(mostGeneralTupleType()))
 }

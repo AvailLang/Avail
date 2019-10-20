@@ -43,14 +43,13 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Create a function type from a tuple of
- * argument types and a return type.
+ * **Primitive:** Create a function type from a tuple of argument types and a
+ * return type.
  */
+@Suppress("unused")
 object P_CreateFunctionType : Primitive(2, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val argTypes = interpreter.argument(0)
@@ -58,13 +57,6 @@ object P_CreateFunctionType : Primitive(2, CannotFail, CanFold, CanInline)
 		return interpreter.primitiveSuccess(functionType(argTypes, returnType))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				zeroOrMoreOf(anyMeta()),
-				topMeta()),
-			functionMeta())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(zeroOrMoreOf(anyMeta()), topMeta()), functionMeta())
 }

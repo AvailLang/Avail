@@ -45,15 +45,15 @@ import com.avail.interpreter.Primitive.Flag.*
 import com.avail.interpreter.levelOne.L1Decompiler.Companion.decompile
 
 /**
- * **Primitive:** Answer a [ phrase][BlockPhraseDescriptor] that represents the decompiled [ function][FunctionDescriptor].
+ * **Primitive:** Answer a [phrase][BlockPhraseDescriptor] that represents the
+ * decompiled [function][FunctionDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_DecompileFunction : Primitive(1, CanInline, CanFold, CannotFail)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val function = interpreter.argument(0)
@@ -61,12 +61,7 @@ object P_DecompileFunction : Primitive(1, CanInline, CanFold, CannotFail)
 		return interpreter.primitiveSuccess(decompiled)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				mostGeneralFunctionType()),
-			BLOCK_PHRASE.mostGeneralType())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(mostGeneralFunctionType()), BLOCK_PHRASE.mostGeneralType())
 }

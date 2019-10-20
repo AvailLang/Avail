@@ -41,14 +41,14 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Construct a [ function][FunctionDescriptor] that conforms to the specified [ ]. When applied, it applies the
+ * **Primitive:** Construct a [function][FunctionDescriptor] that conforms to
+ * the specified [function][FunctionDescriptor]. When applied, it applies the
  * specified function and answers that function's result.
  */
+@Suppress("unused")
 object P_CreateStubFunction : Primitive(2, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val newFunctionType = interpreter.argument(0)
@@ -57,13 +57,8 @@ object P_CreateStubFunction : Primitive(2, CannotFail, CanFold, CanInline)
 			createStubWithSignature(newFunctionType, function))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				functionMeta(),
-				mostGeneralFunctionType()),
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(functionMeta(), mostGeneralFunctionType()),
 			mostGeneralFunctionType())
-	}
-
 }
