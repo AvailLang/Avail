@@ -53,11 +53,9 @@ class CreateProgramAction constructor(workbench: AvailWorkbench)
 	{
 		assert(workbench.backgroundTask == null)
 
-		val selectedEntryPoint =
-			workbench.selectedEntryPoint() ?: return
+		workbench.selectedEntryPoint() ?: return
 
-		val moduleName =
-			workbench.selectedEntryPointModule() ?: return
+		val moduleName = workbench.selectedEntryPointModule() ?: return
 		if (workbench.availBuilder.getLoadedModule(moduleName) == null)
 		{
 			return

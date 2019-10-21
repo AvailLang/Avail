@@ -46,8 +46,8 @@ import com.avail.builder.ResolvedModuleName
  * @property entryPointString
  *   The entry point, which is a [String].
  * @constructor
- * Construct a new [EntryPointNode], given the name of the module and
- * the name of the entry point.
+ *   Construct a new [EntryPointNode], given the name of the module and the name
+ *   of the entry point.
  *
  * @param builder
  *   The builder for which this node is being built.

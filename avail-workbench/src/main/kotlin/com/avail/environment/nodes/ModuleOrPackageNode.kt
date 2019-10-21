@@ -48,20 +48,20 @@ import com.avail.builder.ResolvedModuleName
  * @property isPackage
  *   Whether this module's name refers to a package (directory).
  * @constructor
- * Construct a new [ModuleOrPackageNode].
+ *   Construct a new [ModuleOrPackageNode].
  *
  * @param builder
- * The builder for which this node is being built.
+ *   The builder for which this node is being built.
  * @param originalModuleName
- * The name of the module/package prior to resolution (renames).
+ *   The name of the module/package prior to resolution (renames).
  * @param resolvedModuleName
- * The resolved name of the module or package.
+ *   The resolved name of the module or package.
  * @param isPackage
- * Whether it's a package.
+ *   Whether it's a package.
  */
 class ModuleOrPackageNode constructor(
 	builder: AvailBuilder,
-	val originalModuleName: ModuleName,
+	private val originalModuleName: ModuleName,
 	val resolvedModuleName: ResolvedModuleName,
 	val isPackage: Boolean) : AbstractBuilderFrameTreeNode(builder)
 {
@@ -82,7 +82,7 @@ class ModuleOrPackageNode constructor(
 	 *
 	 * @return If this is a renamed module or package.
 	 */
-	val isRenamedSource: Boolean
+	private val isRenamedSource: Boolean
 		get() = resolvedModuleName.isRename
 
 	override fun iconResourceName(): String =

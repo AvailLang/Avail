@@ -36,8 +36,7 @@ import com.avail.builder.ResolvedModuleName
 import com.avail.descriptor.ModuleDescriptor
 import com.avail.environment.AvailWorkbench
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchTask
-
-import java.awt.*
+import java.awt.Cursor
 
 /**
  * A `BuildTask` launches the actual build of the target
@@ -52,7 +51,8 @@ import java.awt.*
  *   The resolved name of the target [module][ModuleDescriptor].
  */
 class BuildTask (
-		workbench: AvailWorkbench, targetModuleName: ResolvedModuleName)
+		workbench: AvailWorkbench,
+		targetModuleName: ResolvedModuleName)
 	: AbstractWorkbenchTask(workbench, targetModuleName)
 {
 	override fun executeTask()
@@ -60,16 +60,8 @@ class BuildTask (
 		assert(targetModuleName != null)
 		workbench.availBuilder.buildTarget(
 			targetModuleName(),
-			{ moduleName, moduleSize, position ->
-				workbench.eventuallyUpdatePerModuleProgress(
-					moduleName, moduleSize!!, position!!)
-				Unit
-			},
-			{ bytesProcessed, totalBytes ->
-				workbench.eventuallyUpdateBuildProgress(
-					bytesProcessed!!, totalBytes!!)
-				Unit
-			},
+			workbench::eventuallyUpdatePerModuleProgress,
+			workbench::eventuallyUpdateBuildProgress,
 			workbench.availBuilder.buildProblemHandler)
 	}
 

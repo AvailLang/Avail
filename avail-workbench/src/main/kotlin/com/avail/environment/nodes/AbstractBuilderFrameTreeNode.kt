@@ -34,11 +34,13 @@ package com.avail.environment.nodes
 
 import com.avail.builder.AvailBuilder
 import com.avail.environment.AvailWorkbench
+import com.avail.utility.Casts.cast
 import com.avail.utility.LRUCache
 import com.avail.utility.Pair
-import javax.swing.*
+import com.avail.utility.ifZero
+import java.awt.Image
+import javax.swing.ImageIcon
 import javax.swing.tree.DefaultMutableTreeNode
-import java.awt.*
 
 /**
  * An `AbstractBuilderFrameTreeNode` is a tree node used within some
@@ -101,7 +103,7 @@ abstract class AbstractBuilderFrameTreeNode internal constructor(
 		val pair = Pair(
 			iconResourceName,
 			if (lineHeight != 0) lineHeight else 19)
-		return cachedScaledIcons.get(pair)
+		return cachedScaledIcons[pair]
 	}
 
 	/**
@@ -129,12 +131,12 @@ abstract class AbstractBuilderFrameTreeNode internal constructor(
 	fun isSpecifiedByString(string: String): Boolean =
 		text(false) == string
 
+	/**
+	 * Order this node against another.
+	 */
 	override fun compareTo(other: AbstractBuilderFrameTreeNode): Int =
-		when
-		{
-			sortMajor() > other.sortMajor() -> 1
-			sortMajor() < other.sortMajor() -> -1
-			else -> text(false).compareTo(other.text(false))
+		sortMajor().compareTo(other.sortMajor()).ifZero {
+			text(false).compareTo(other.text(false))
 		}
 
 	/**
@@ -145,10 +147,9 @@ abstract class AbstractBuilderFrameTreeNode internal constructor(
 	{
 		if (children != null)
 		{
-			// HACK to make children sortable
-			val temp =
-				children.toMutableList()
-					as MutableList<AbstractBuilderFrameTreeNode>
+			// HACK to make children (Vector!) sortable
+			val temp: MutableList<AbstractBuilderFrameTreeNode> =
+				cast(children.toMutableList())
 			temp.sort()
 			children.clear()
 			children.addAll(temp)

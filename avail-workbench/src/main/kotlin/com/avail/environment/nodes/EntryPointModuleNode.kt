@@ -44,7 +44,7 @@ import com.avail.builder.ResolvedModuleName
  * @property resolvedModuleName
  *   The resolved name of the represented module.
  * @constructor
- * Construct a new [EntryPointNode].
+ *   Construct a new [EntryPointNode].
  *
  * @param builder
  *   The builder for which this node is being built.
@@ -58,10 +58,10 @@ class EntryPointModuleNode constructor(
 	/**
 	 * Is the [module or package][ModuleOrPackageNode] loaded?
 	 *
-	 * @return `true` if the module or package is already loaded, `false`
-	 *   otherwise.
+	 * @return
+	 *   `true` if the module or package is already loaded, `false` otherwise.
 	 */
-	val isLoaded: Boolean
+	private val isLoaded: Boolean
 		get() = synchronized(builder) {
 			return builder.getLoadedModule(resolvedModuleName) != null
 		}

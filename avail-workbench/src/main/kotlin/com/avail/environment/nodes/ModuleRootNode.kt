@@ -43,7 +43,7 @@ import com.avail.builder.ModuleRoot
  * @property moduleRoot
  *   The [ModuleRoot] that this represents.
  * @constructor
- * Construct a new [ModuleRootNode].
+ *   Construct a new [ModuleRootNode].
  *
  * @param builder
  *   The builder for which this node is being built.
