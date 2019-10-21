@@ -46,18 +46,18 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
 
 /**
- * **Primitive:** Set the [function][FunctionDescriptor]
- * to invoke to raise a Java [Throwable] (wrapped in a pojo) as an Avail
- * exception.  That function is invoked whenever a Java [Throwable] is
- * caught in a Pojo method or [Callback] invocation.
+ * **Primitive:** Set the [function][FunctionDescriptor] to invoke to raise a
+ * Java [Throwable] (wrapped in a pojo) as an Avail exception.  That function is
+ * invoked whenever a Java [Throwable] is caught in a Pojo method or [Callback]
+ * invocation.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object P_SetRaiseJavaExceptionInAvailFunction : Primitive(1, CannotFail, HasSideEffect)
+@Suppress("unused")
+object P_SetRaiseJavaExceptionInAvailFunction
+	: Primitive(1, CannotFail, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val function = interpreter.argument(0)
@@ -65,12 +65,6 @@ object P_SetRaiseJavaExceptionInAvailFunction : Primitive(1, CannotFail, HasSide
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				RAISE_JAVA_EXCEPTION_IN_AVAIL.functionType),
-			TOP.o())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(RAISE_JAVA_EXCEPTION_IN_AVAIL.functionType), TOP.o())
 }

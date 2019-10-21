@@ -34,8 +34,10 @@ package com.avail.interpreter.primitive.hooks
 
 import com.avail.AvailRuntime.HookType.STRINGIFICATION
 import com.avail.descriptor.A_Type
+import com.avail.descriptor.AtomDescriptor
 import com.avail.descriptor.FunctionDescriptor.createFunction
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.MethodDescriptor
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.TupleDescriptor.emptyTuple
@@ -50,15 +52,15 @@ import com.avail.interpreter.levelOne.L1InstructionWriter
 import com.avail.interpreter.levelOne.L1Operation
 
 /**
- * **Primitive:** Inform the VM of the [ ] of the preferred stringification [ ].
+ * **Primitive:** Inform the VM of the [atom][AtomDescriptor] of the preferred
+ * stringification [method][MethodDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_DeclareStringificationAtom : Primitive(1, CannotFail, HasSideEffect, Private)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val atom = interpreter.argument(0)
@@ -91,9 +93,6 @@ object P_DeclareStringificationAtom : Primitive(1, CannotFail, HasSideEffect, Pr
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(ATOM.o()), TOP.o())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(ATOM.o()), TOP.o())
 }

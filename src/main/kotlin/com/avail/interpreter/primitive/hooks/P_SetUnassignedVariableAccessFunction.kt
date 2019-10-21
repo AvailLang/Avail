@@ -37,6 +37,7 @@ import com.avail.descriptor.A_Type
 import com.avail.descriptor.BottomTypeDescriptor.bottom
 import com.avail.descriptor.FunctionDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.MethodDescriptor
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.TupleDescriptor.emptyTuple
@@ -48,15 +49,16 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
 
 /**
- * **Primitive:** Set the [ function][FunctionDescriptor] to invoke whenever the value produced by a [ ] send disagrees with the [ type][TypeDescriptor] expected.
+ * **Primitive:** Set the [function][FunctionDescriptor] to invoke whenever the
+ * value produced by a [method][MethodDescriptor] send disagrees with the
+ * [type][TypeDescriptor] expected.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_SetUnassignedVariableAccessFunction : Primitive(1, CannotFail, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val function = interpreter.argument(0)
@@ -64,14 +66,6 @@ object P_SetUnassignedVariableAccessFunction : Primitive(1, CannotFail, HasSideE
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				functionType(
-					emptyTuple(),
-					bottom())),
-			TOP.o())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(functionType(emptyTuple(), bottom())), TOP.o())
 }

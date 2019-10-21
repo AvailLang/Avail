@@ -57,23 +57,25 @@ import com.avail.interpreter.levelOne.L1Operation
 import com.avail.utility.Casts.cast
 
 /**
- * **Primitive:** Set the [ function][FunctionDescriptor] to invoke whenever a [variable][VariableDescriptor] with
- * [write reactors][VariableAccessReactor] is written when
- * [write tracing][TraceFlag.TRACE_VARIABLE_WRITES] is not enabled.
+ * **Primitive:** Set the [ function][FunctionDescriptor] to invoke whenever a
+ * [variable][VariableDescriptor] with [write reactors][VariableAccessReactor]
+ * is written when [write tracing][TraceFlag.TRACE_VARIABLE_WRITES] is not
+ * enabled.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_SetImplicitObserveFunction : Primitive(1, CannotFail, HasSideEffect)
 {
 	/** The [A_RawFunction] that wraps the supplied observe function.  */
 	private val rawFunction = createRawFunction()
 
 	/**
-	 * Create an [A_RawFunction] which has an outer that'll be supplied
-	 * during function closure.  The outer is a user-supplied function which
-	 * is itself given a function and a tuple of arguments to apply, after which
-	 * this generated function will resume the continuation that was interrupted
-	 * to invoke this primitive.
+	 * Create an [A_RawFunction] which has an outer that'll be supplied during
+	 * function closure.  The outer is a user-supplied function which is itself
+	 * given a function and a tuple of arguments to apply, after which this
+	 * generated function will resume the continuation that was interrupted to
+	 * invoke this primitive.
 	 *
 	 * @return The one-outer, two-argument raw function.
 	 */
@@ -114,26 +116,20 @@ object P_SetImplicitObserveFunction : Primitive(1, CannotFail, HasSideEffect)
 		return code
 	}
 
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val function = interpreter.argument(0)
 		// Produce a wrapper that will invoke the supplied function, and then
 		// specially resume the calling continuation (which won't be correctly
 		// set up for a return).
-		val wrapper = createWithOuters1(rawFunction, cast<A_Function, AvailObject>(function))
+		val wrapper =
+			createWithOuters1(rawFunction, cast<A_Function, AvailObject>(function))
 		// Now set the wrapper as the implicit observe function.
 		IMPLICIT_OBSERVE.set(interpreter.runtime(), wrapper)
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				IMPLICIT_OBSERVE.functionType),
-			TOP.o())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(IMPLICIT_OBSERVE.functionType), TOP.o())
 }

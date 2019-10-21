@@ -39,6 +39,7 @@ import com.avail.descriptor.FunctionDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.FunctionTypeDescriptor.mostGeneralFunctionType
 import com.avail.descriptor.InstanceMetaDescriptor.topMeta
+import com.avail.descriptor.MethodDescriptor
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.TypeDescriptor.Types.ANY
@@ -50,16 +51,16 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
 
 /**
- * **Primitive:** Set the [ function][FunctionDescriptor] to invoke whenever the result produced by a [ ] disagrees with the type decreed by the
- * applicable semantic restrictions at the call site.
+ * **Primitive:** Set the [function][FunctionDescriptor] to invoke whenever the
+ * result produced by a [method invocation][MethodDescriptor] disagrees with the
+ * type decreed by the applicable semantic restrictions at the call site.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_SetResultDisagreedWithExpectedTypeFunction : Primitive(1, CannotFail, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val function = interpreter.argument(0)
@@ -68,9 +69,8 @@ object P_SetResultDisagreedWithExpectedTypeFunction : Primitive(1, CannotFail, H
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				functionType(
 					tuple(
@@ -79,6 +79,4 @@ object P_SetResultDisagreedWithExpectedTypeFunction : Primitive(1, CannotFail, H
 						variableTypeFor(ANY.o())),
 					bottom())),
 			TOP.o())
-	}
-
 }

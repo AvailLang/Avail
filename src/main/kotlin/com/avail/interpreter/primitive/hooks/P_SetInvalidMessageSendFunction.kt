@@ -46,15 +46,16 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
 
 /**
- * **Primitive:** Set the [ function][FunctionDescriptor] to invoke whenever a whenever a [ method][MethodDescriptor] send fails for a definitional reason.
+ * **Primitive:** Set the [function][FunctionDescriptor] to invoke whenever a
+ * whenever a [method][MethodDescriptor] send fails for a definitional reason.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object P_SetInvalidMessageSendFunction : Primitive(1, CannotFail, HasSideEffect)
+@Suppress("unused")
+object P_SetInvalidMessageSendFunction
+	: Primitive(1, CannotFail, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val function = interpreter.argument(0)
@@ -62,12 +63,6 @@ object P_SetInvalidMessageSendFunction : Primitive(1, CannotFail, HasSideEffect)
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				INVALID_MESSAGE_SEND.functionType),
-			TOP.o())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(INVALID_MESSAGE_SEND.functionType), TOP.o())
 }
