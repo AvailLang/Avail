@@ -47,11 +47,10 @@ import com.avail.interpreter.Primitive.Flag.*
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_BitwiseXor : Primitive(2, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val a = interpreter.argument(0)
@@ -59,13 +58,6 @@ object P_BitwiseXor : Primitive(2, CannotFail, CanFold, CanInline)
 		return interpreter.primitiveSuccess(a.bitwiseXor(b, true))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				integers(),
-				integers()),
-			integers())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(integers(), integers()), integers())
 }

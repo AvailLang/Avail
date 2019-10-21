@@ -35,6 +35,7 @@ import com.avail.descriptor.A_Type
 import com.avail.descriptor.EnumerationTypeDescriptor
 import com.avail.descriptor.EnumerationTypeDescriptor.booleanType
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.IntegerRangeTypeDescriptor
 import com.avail.descriptor.IntegerRangeTypeDescriptor.*
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.interpreter.Interpreter
@@ -42,15 +43,15 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer the [ ] constrained by the specified
- * upper and lower bounds. The provided [ ][EnumerationTypeDescriptor.booleanType] indicate whether their
+ * **Primitive:** Answer the [integer range][IntegerRangeTypeDescriptor]
+ * constrained by the specified upper and lower bounds. The provided
+ * [booleans][EnumerationTypeDescriptor.booleanType] indicate whether their
  * corresponding bounds are inclusive (`true`) or exclusive (`false`).
  */
+@Suppress("unused")
 object P_CreateIntegerRange : Primitive(4, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(4)
 		val min = interpreter.argument(0)
@@ -65,15 +66,12 @@ object P_CreateIntegerRange : Primitive(4, CannotFail, CanFold, CanInline)
 				maxInc.extractBoolean()))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				extendedIntegers(),
 				booleanType(),
 				extendedIntegers(),
 				booleanType()),
 			extendedIntegersMeta())
-	}
-
 }

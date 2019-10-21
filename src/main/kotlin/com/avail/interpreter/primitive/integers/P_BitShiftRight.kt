@@ -46,17 +46,16 @@ import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * **Primitive:** Given any integer B, and a shift factor S,
- * compute ⎣B÷2<sup>S</sup>⎦.  This is the right-shift operation, but when S
- * is negative it acts as a left-shift.
+ * **Primitive:** Given any integer B, and a shift factor S, compute
+ * ⎣B÷2<sup>S</sup>⎦.  This is the right-shift operation, but when S is negative
+ * it acts as a left-shift.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@Suppress("unused")
 object P_BitShiftRight : Primitive(2, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val baseInteger = interpreter.argument(0)
@@ -67,18 +66,9 @@ object P_BitShiftRight : Primitive(2, CanFold, CanInline)
 				true))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				integers(),
-				integers()),
-			integers())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(integers(), integers()), integers())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_TOO_LARGE_TO_REPRESENT))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_TOO_LARGE_TO_REPRESENT))
 }

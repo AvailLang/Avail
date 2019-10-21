@@ -34,6 +34,7 @@ package com.avail.interpreter.primitive.integers
 
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.IntegerDescriptor
 import com.avail.descriptor.IntegerRangeTypeDescriptor.integers
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.interpreter.Interpreter
@@ -41,15 +42,14 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Compute the bitwise OR of the [ ].
+ * **Primitive:** Compute the bitwise OR of the [arguments][IntegerDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_BitwiseOr : Primitive(2, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val a = interpreter.argument(0)
@@ -57,13 +57,6 @@ object P_BitwiseOr : Primitive(2, CannotFail, CanFold, CanInline)
 		return interpreter.primitiveSuccess(a.bitwiseOr(b, true))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				integers(),
-				integers()),
-			integers())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(integers(), integers()), integers())
 }

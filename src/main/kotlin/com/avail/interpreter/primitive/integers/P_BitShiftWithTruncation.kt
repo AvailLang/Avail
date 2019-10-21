@@ -47,18 +47,17 @@ import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * **Primitive:** Given a positive integer B, a shift factor S,
- * and a truncation bit count T, shift B to the left by S bits (treating a
- * negative factor as a right shift), then truncate the result to the bottom
- * T bits by zeroing the rest.
+ * **Primitive:** Given a positive integer B, a shift factor S, and a truncation
+ * bit count T, shift B to the left by S bits (treating a negative factor as a
+ * right shift), then truncate the result to the bottom T bits by zeroing the
+ * rest.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@Suppress("unused")
 object P_BitShiftWithTruncation : Primitive(3, CanInline, CanFold)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
 		val baseInteger = interpreter.argument(0)
@@ -69,22 +68,13 @@ object P_BitShiftWithTruncation : Primitive(3, CanInline, CanFold)
 				shiftFactor, truncationBits, true))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				wholeNumbers(),
-				integers(),
-				wholeNumbers()),
-			wholeNumbers())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(wholeNumbers(), integers(), wholeNumbers()), wholeNumbers())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
 			set(
 				E_SHIFT_AND_TRUNCATE_REQUIRES_NON_NEGATIVE,
 				E_TOO_LARGE_TO_REPRESENT))
-	}
-
 }

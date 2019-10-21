@@ -43,25 +43,19 @@ import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive:** Answer the lower bound. The client can ask the
- * [integer range][IntegerRangeTypeDescriptor] if it includes the
- * answer to determine whether it is inclusive or exclusive.
+ * [integer range][IntegerRangeTypeDescriptor] if it includes the answer to
+ * determine whether it is inclusive or exclusive.
  */
+@Suppress("unused")
 object P_LowerBound : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val range = interpreter.argument(0)
 		return interpreter.primitiveSuccess(range.lowerBound())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(extendedIntegersMeta()),
-			extendedIntegers())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(extendedIntegersMeta()), extendedIntegers())
 }

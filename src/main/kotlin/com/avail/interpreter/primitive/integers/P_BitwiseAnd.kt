@@ -35,6 +35,7 @@ package com.avail.interpreter.primitive.integers
 import com.avail.descriptor.A_RawFunction
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.IntegerDescriptor
 import com.avail.descriptor.IntegerDescriptor.fromLong
 import com.avail.descriptor.IntegerDescriptor.zero
 import com.avail.descriptor.IntegerRangeTypeDescriptor.*
@@ -42,17 +43,17 @@ import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
+import kotlin.math.min
 
 /**
- * **Primitive:** Compute the bitwise AND of the [ ].
+ * **Primitive:** Compute the bitwise AND of the [arguments][IntegerDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_BitwiseAnd : Primitive(2, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val a = interpreter.argument(0)
@@ -61,8 +62,7 @@ object P_BitwiseAnd : Primitive(2, CannotFail, CanFold, CanInline)
 	}
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
-		argumentTypes: List<A_Type>): A_Type
+		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
 	{
 		assert(argumentTypes.size == 2)
 		val aRange = argumentTypes[0]
@@ -71,29 +71,32 @@ object P_BitwiseAnd : Primitive(2, CannotFail, CanFold, CanInline)
 		// If either value is constrained to a positive range, then at least
 		// guarantee the bit-wise and can't be greater than or equal to the next
 		// higher power of two of that range's upper bound.
-		val upper: Long
-		if (aRange.lowerBound().greaterOrEqual(zero()) && aRange.upperBound().isLong)
-		{
-			if (bRange.lowerBound().greaterOrEqual(zero()) && bRange.upperBound().isLong)
+		val upper: Long =
+			if (aRange.lowerBound().greaterOrEqual(zero())
+			    && aRange.upperBound().isLong)
 			{
-				upper = Math.min(
-					aRange.upperBound().extractLong(),
-					bRange.upperBound().extractLong())
+				if (bRange.lowerBound().greaterOrEqual(zero())
+				    && bRange.upperBound().isLong)
+				{
+					min(
+						aRange.upperBound().extractLong(),
+						bRange.upperBound().extractLong())
+				}
+				else
+				{
+					aRange.upperBound().extractLong()
+				}
+			}
+			else if (bRange.lowerBound().greaterOrEqual(zero())
+			         && bRange.upperBound().isLong)
+			{
+				bRange.upperBound().extractLong()
 			}
 			else
 			{
-				upper = aRange.upperBound().extractLong()
+				// Give up, as the result may be negative or exceed a long.
+				return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 			}
-		}
-		else if (bRange.lowerBound().greaterOrEqual(zero()) && bRange.upperBound().isLong)
-		{
-			upper = bRange.upperBound().extractLong()
-		}
-		else
-		{
-			// Give up, as the result may be negative or exceed a long.
-			return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
-		}
 		// At least one value is positive, so the result is positive.
 		// At least one is a long, so the result must be a long.
 		val highOneBit = java.lang.Long.highestOneBit(upper)
@@ -106,13 +109,6 @@ object P_BitwiseAnd : Primitive(2, CannotFail, CanFold, CanInline)
 		return integerRangeType(zero(), true, fromLong(maxValue), true)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				integers(),
-				integers()),
-			integers())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(integers(), integers()), integers())
 }
