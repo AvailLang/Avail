@@ -48,14 +48,13 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer a new [ map][MapDescriptor] like the given map, but also including the binding between `key` and `value`. Overwrite any existing value if the key is
- * already present.
+ * **Primitive:** Answer a new [map][MapDescriptor] like the given map, but also
+ * including the binding between `key` and `value`. Overwrite any existing value
+ * if the key is already present.
  */
 object P_MapReplacingKey : Primitive(3, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
 		val map = interpreter.argument(0)
@@ -65,22 +64,13 @@ object P_MapReplacingKey : Primitive(3, CannotFail, CanFold, CanInline)
 			map.mapAtPuttingCanDestroy(key, value, true))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				mostGeneralMapType(),
-				ANY.o(),
-				ANY.o()),
-			mapTypeForSizesKeyTypeValueType(
-				naturalNumbers(),
-				ANY.o(),
-				ANY.o()))
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(mostGeneralMapType(), ANY.o(), ANY.o()),
+			mapTypeForSizesKeyTypeValueType(naturalNumbers(), ANY.o(), ANY.o()))
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
-		argumentTypes: List<A_Type>): A_Type
+		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
 	{
 		val mapType = argumentTypes[0]
 		val addedKeyType = argumentTypes[1]
@@ -92,18 +82,19 @@ object P_MapReplacingKey : Primitive(3, CannotFail, CanFold, CanInline)
 		val oldSizes = mapType.sizeRange()
 		// Now there's at least one element.
 		var newMin = oldSizes.lowerBound()
-		if (oldMapKeyType.typeIntersection(newKeyType).isBottom || newMin.equalsInt(0))
+		if (oldMapKeyType.typeIntersection(newKeyType).isBottom
+		    || newMin.equalsInt(0))
 		{
 			newMin = newMin.plusCanDestroy(one(), false)
 		}
 		// ...and at most one more element.  We add two and make the bound
 		// exclusive to accommodate positive infinity.
-		val newMaxPlusOne = oldSizes.upperBound().plusCanDestroy(two(), false)
+		val newMaxPlusOne =
+			oldSizes.upperBound().plusCanDestroy(two(), false)
 		val newSizes = integerRangeType(
 			newMin, true, newMaxPlusOne, false)
 
 		return mapTypeForSizesKeyTypeValueType(
 			newSizes, newKeyType, newValueType)
 	}
-
 }

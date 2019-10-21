@@ -34,6 +34,7 @@ package com.avail.interpreter.primitive.maps
 import com.avail.descriptor.A_RawFunction
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.MapDescriptor
 import com.avail.descriptor.MapTypeDescriptor.mostGeneralMapType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetDescriptor
@@ -44,13 +45,12 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer the keys of this [ ] as a [set][SetDescriptor].
+ * **Primitive:** Answer the keys of this [map][MapDescriptor] as a
+ * [set][SetDescriptor].
  */
 object P_MapKeysAsSet : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val map = interpreter.argument(0)
@@ -58,8 +58,7 @@ object P_MapKeysAsSet : Primitive(1, CannotFail, CanFold, CanInline)
 	}
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
-		argumentTypes: List<A_Type>): A_Type
+		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
 	{
 		assert(argumentTypes.size == 1)
 		val mapType = argumentTypes[0]
@@ -71,11 +70,6 @@ object P_MapKeysAsSet : Primitive(1, CannotFail, CanFold, CanInline)
 			mapType.keyType())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(mostGeneralMapType()),
-			mostGeneralSetType())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(mostGeneralMapType()), mostGeneralSetType())
 }

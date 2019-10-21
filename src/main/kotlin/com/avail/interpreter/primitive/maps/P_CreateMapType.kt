@@ -45,13 +45,12 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer a [map][MapTypeDescriptor] with the given type constraints.
+ * **Primitive:** Answer a [map][MapTypeDescriptor] with the given type
+ * constraints.
  */
 object P_CreateMapType : Primitive(3, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
 		val keyType = interpreter.argument(0)
@@ -61,14 +60,8 @@ object P_CreateMapType : Primitive(3, CannotFail, CanFold, CanInline)
 			mapTypeForSizesKeyTypeValueType(sizes, keyType, valueType))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				anyMeta(),
-				anyMeta(),
-				instanceMeta(wholeNumbers())),
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(anyMeta(), anyMeta(), instanceMeta(wholeNumbers())),
 			mapMeta())
-	}
-
 }

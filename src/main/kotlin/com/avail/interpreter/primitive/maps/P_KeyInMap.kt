@@ -44,14 +44,11 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Check if the key is present in the
- * [map][MapDescriptor].
+ * **Primitive:** Check if the key is present in the [map][MapDescriptor].
  */
 object P_KeyInMap : Primitive(2, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val key = interpreter.argument(0)
@@ -59,13 +56,6 @@ object P_KeyInMap : Primitive(2, CannotFail, CanFold, CanInline)
 		return interpreter.primitiveSuccess(objectFromBoolean(map.hasKey(key)))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				ANY.o(),
-				mostGeneralMapType()),
-			booleanType())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(ANY.o(), mostGeneralMapType()), booleanType())
 }

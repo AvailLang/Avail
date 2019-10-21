@@ -51,9 +51,7 @@ import com.avail.interpreter.Primitive.Flag.CanInline
  */
 object P_MapAtKey : Primitive(2, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val map = interpreter.argument(0)
@@ -65,14 +63,11 @@ object P_MapAtKey : Primitive(2, CanFold, CanInline)
 		else interpreter.primitiveSuccess(map.mapAt(key))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(mostGeneralMapType(), ANY.o()), ANY.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(mostGeneralMapType(), ANY.o()), ANY.o())
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
-		argumentTypes: List<A_Type>): A_Type
+		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
 	{
 		val mapType = argumentTypes[0]
 		val keyType = argumentTypes[1]
@@ -98,9 +93,6 @@ object P_MapAtKey : Primitive(2, CanFold, CanInline)
 		return mapType.valueType()
 	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_KEY_NOT_FOUND))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_KEY_NOT_FOUND))
 }
