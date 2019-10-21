@@ -45,6 +45,7 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
 /**
  * **Primitive:** Produce a [ ] description of the sole argument.
  */
+@Suppress("unused")
 object P_ToString : Primitive(1, CanInline, CannotFail)
 {
 

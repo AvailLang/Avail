@@ -49,17 +49,17 @@ import com.avail.io.TextInputChannel
 import java.io.IOException
 
 /**
- * **Primitive:** Mark the [ current fiber][Interpreter.fiber]'s [standard input channel][TextInputChannel] to
- * allow the specified number of characters to be read ahead (and put back by a
- * subsequent [reset][P_ResetStandardInputStream]).
+ * **Primitive:** Mark the [current fiber][Interpreter.fiber]'s [standard input
+ * channel][TextInputChannel] to allow the specified number of characters to be
+ * read ahead (and put back by a subsequent
+ * [reset][P_ResetStandardInputStream]).
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_MarkStandardInputStream : Primitive(1, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val readAhead = interpreter.argument(0)
@@ -77,14 +77,9 @@ object P_MarkStandardInputStream : Primitive(1, CanInline, HasSideEffect)
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(wholeNumbers()), TOP.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(wholeNumbers()), TOP.o())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_IO_ERROR))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_IO_ERROR))
 }

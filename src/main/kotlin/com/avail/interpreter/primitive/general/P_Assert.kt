@@ -58,14 +58,15 @@ import java.lang.String.format
 import java.util.Arrays.asList
 
 /**
- * **Primitive:** Assert the specified [ ][EnumerationTypeDescriptor.booleanType] or raise an [ ] (in Java) that contains the provided
+ * **Primitive:** Assert the specified
+ * [predicate][EnumerationTypeDescriptor.booleanType] or raise an
+ * [AvailAssertionFailedException] (in Java) that contains the provided
  * [message][TupleTypeDescriptor.stringType].
  */
+@Suppress("unused")
 object P_Assert : Primitive(2, Unknown, CanSuspend, CannotFail)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val predicate = interpreter.argument(0)
@@ -77,41 +78,31 @@ object P_Assert : Primitive(2, Unknown, CanSuspend, CannotFail)
 		}
 
 		val fiber = interpreter.fiber()
-		val continuation = stripNull<AvailObject>(interpreter.reifiedContinuation)
-		interpreter.primitiveSuspend(stripNull<A_Function>(interpreter.function))
-		dumpStackThen(
-			interpreter.runtime(),
-			fiber.textInterface(),
-			continuation
-		) { stack ->
-			val builder = StringBuilder()
-			builder.append(failureMessage.asNativeString())
-			for (frame in stack)
-			{
-				builder.append(format("%n\t-- %s", frame))
+		val continuation = stripNull(interpreter.reifiedContinuation)
+		interpreter.primitiveSuspend(stripNull(interpreter.function))
+		dumpStackThen(interpreter.runtime(), fiber.textInterface(), continuation)
+			{ stack ->
+				val builder = StringBuilder()
+				builder.append(failureMessage.asNativeString())
+				for (frame in stack)
+				{
+					builder.append(format("%n\t-- %s", frame))
+				}
+				builder.append("\n\n")
+				val killer = AvailAssertionFailedException(
+					builder.toString())
+				killer.fillInStackTrace()
+				fiber.executionState(ExecutionState.ABORTED)
+				fiber.failureContinuation().value(killer)
 			}
-			builder.append("\n\n")
-			val killer = AvailAssertionFailedException(
-				builder.toString())
-			killer.fillInStackTrace()
-			fiber.executionState(ExecutionState.ABORTED)
-			fiber.failureContinuation().value(killer)
-		}
 		return Primitive.Result.FIBER_SUSPENDED
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				booleanType(),
-				stringType()),
-			TOP.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(booleanType(), stringType()), TOP.o())
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
-		argumentTypes: List<A_Type>): A_Type
+		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
 	{
 		val booleanType = argumentTypes[0]
 		return if (trueObject().isInstanceOf(booleanType))
@@ -169,7 +160,7 @@ object P_Assert : Primitive(2, Unknown, CanSuspend, CannotFail)
 		// as the condition argument to avoid infinite recursion.
 		translator.generateGeneralFunctionInvocation(
 			functionToCallReg,
-			asList(
+			listOf(
 				translator.generator.boxedConstant(falseObject()),
 				arguments[1]),
 			true,
@@ -180,5 +171,4 @@ object P_Assert : Primitive(2, Unknown, CanSuspend, CannotFail)
 		callSiteHelper.useAnswer(translator.generator.boxedConstant(nil))
 		return true
 	}
-
 }

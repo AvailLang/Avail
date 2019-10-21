@@ -48,22 +48,16 @@ import com.avail.interpreter.Primitive.Flag.*
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_Hash : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val value = interpreter.argument(0)
 		return interpreter.primitiveSuccess(fromInt(value.hash()))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(ANY.o()),
-			int32())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(ANY.o()), int32())
 }

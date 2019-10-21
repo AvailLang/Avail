@@ -43,28 +43,23 @@ import com.avail.interpreter.Primitive.Flag.*
 import java.lang.System.nanoTime
 
 /**
- * **Primitive:** Get the current time, in nanoseconds, from the
- * Java virtual machine's high-resolution time source. The value provided has
- * nanosecond precision, but not necessarily nanosecond resolution.
+ * **Primitive:** Get the current time, in nanoseconds, from the Java virtual
+ * machine's high-resolution time source. The value provided has nanosecond
+ * precision, but not necessarily nanosecond resolution.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object P_CurrentTimeNanoseconds : Primitive(0, CannotFail, CanInline, HasSideEffect)
+@Suppress("unused")
+object P_CurrentTimeNanoseconds
+	: Primitive(0, CannotFail, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(0)
 		return interpreter.primitiveSuccess(
 			fromLong(nanoTime()))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			emptyTuple(),
-			wholeNumbers())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(emptyTuple(), wholeNumbers())
 }

@@ -47,13 +47,13 @@ import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
 
 /**
- * **Primitive:** Compare for equality. Answer a [ ][EnumerationTypeDescriptor.booleanType].
+ * **Primitive:** Compare for equality. Answer a
+ * [boolean][EnumerationTypeDescriptor.booleanType].
  */
+@Suppress("unused")
 object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val a = interpreter.argument(0)
@@ -62,8 +62,7 @@ object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
 	}
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
-		argumentTypes: List<A_Type>): A_Type
+		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
 	{
 		assert(argumentTypes.size == 2)
 		val type1 = argumentTypes[0]
@@ -91,14 +90,8 @@ object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
 		return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				ANY.o(),
-				ANY.o()),
-			booleanType())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(ANY.o(), ANY.o()), booleanType())
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
@@ -155,5 +148,4 @@ object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
 			translator,
 			callSiteHelper)
 	}
-
 }

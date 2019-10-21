@@ -42,22 +42,19 @@ import com.avail.interpreter.Primitive.Flag.*
 import java.lang.System.currentTimeMillis
 
 /**
- * **Primitive:** Get the current time as milliseconds since
- * the Unix Epoch (00:00:00 UTC, Thursday, 1 January 1970).
+ * **Primitive:** Get the current time as milliseconds since the Unix Epoch
+ * (00:00:00 UTC, Thursday, 1 January 1970).
  */
-object P_CurrentTimeMilliseconds : Primitive(0, CannotFail, CanInline, HasSideEffect)
+@Suppress("unused")
+object P_CurrentTimeMilliseconds
+	: Primitive(0, CannotFail, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(0)
 		return interpreter.primitiveSuccess(fromLong(currentTimeMillis()))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(emptyTuple(), wholeNumbers())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(emptyTuple(), wholeNumbers())
 }

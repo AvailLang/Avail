@@ -40,6 +40,7 @@ import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetDescriptor.set
+import com.avail.descriptor.StringDescriptor
 import com.avail.descriptor.TupleTypeDescriptor.stringType
 import com.avail.descriptor.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_IO_ERROR
@@ -51,16 +52,17 @@ import com.avail.io.SimpleCompletionHandler
 import com.avail.io.TextOutputChannel
 
 /**
- * **Primitive:** Print the specified [ ] to the [current][Interpreter.fiber]'s [standard error channel][TextOutputChannel], [ ][ExecutionState.SUSPENDED] the current fiber until the string can
- * be queued for writing.
+ * **Primitive:** Print the specified [string][StringDescriptor] to the
+ * [current][Interpreter.fiber]'s [standard error channel][TextOutputChannel], [
+ * ][ExecutionState.SUSPENDED] the current fiber until the string can be queued
+ * for writing.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_PrintToErrorConsole : Primitive(1, CanSuspend, Unknown)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val string = interpreter.argument(0)
@@ -70,29 +72,24 @@ object P_PrintToErrorConsole : Primitive(1, CanSuspend, Unknown)
 
 		val textInterface = interpreter.fiber().textInterface()
 		return interpreter.suspendAndDo { toSucceed, toFail ->
-			textInterface.errorChannel.write<AvailObject>(
+			textInterface.errorChannel.write(
 				string.asNativeString(),
 				nil,
-				SimpleCompletionHandler<Int, AvailObject>(
-					{ result ->
+				SimpleCompletionHandler(
+					{ _ ->
 						toSucceed.value(nil)
 						Unit
 					},
-					{ exc ->
+					{ _ ->
 						toFail.value(E_IO_ERROR)
 						Unit
 					}))
 		}
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(stringType()), TOP.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(stringType()), TOP.o())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_IO_ERROR))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_IO_ERROR))
 }

@@ -46,11 +46,10 @@ import java.util.logging.Level
 /**
  * **Primitive:** Adjust the debugging level of the VM.
  */
+@Suppress("unused")
 object P_AdjustDebugSetting : Primitive(1, Unknown, CannotFail)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val levelObject = interpreter.argument(0)
@@ -64,9 +63,6 @@ object P_AdjustDebugSetting : Primitive(1, Unknown, CannotFail)
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(bytes()), TOP.o())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(bytes()), TOP.o())
 }

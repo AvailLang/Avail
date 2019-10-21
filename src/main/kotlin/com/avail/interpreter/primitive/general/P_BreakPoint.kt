@@ -45,11 +45,10 @@ import com.avail.interpreter.Primitive.Flag.Unknown
 /**
  * **Primitive:** Pause the VM.
  */
+@Suppress("unused")
 object P_BreakPoint : Primitive(0, Unknown, CannotFail)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(0)
 		// Throw and catch a RuntimeException.  A sensibly configured debugger
@@ -64,12 +63,8 @@ object P_BreakPoint : Primitive(0, Unknown, CannotFail)
 		{
 			return interpreter.primitiveSuccess(nil)
 		}
-
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(emptyTuple(), TOP.o())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(emptyTuple(), TOP.o())
 }

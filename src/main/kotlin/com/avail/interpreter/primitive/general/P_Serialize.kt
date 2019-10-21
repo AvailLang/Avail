@@ -50,16 +50,15 @@ import com.avail.serialization.Serializer
 import java.io.ByteArrayOutputStream
 
 /**
- * **Primitive:** Answer the serial representation of the
- * specified [value][A_BasicObject].
+ * **Primitive:** Answer the serial representation of the specified
+ * [value][A_BasicObject].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_Serialize : Primitive(1, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val value = interpreter.argument(0)
@@ -78,16 +77,9 @@ object P_Serialize : Primitive(1, CanInline)
 			tupleForByteArray(out.toByteArray()))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(ANY.o()),
-			oneOrMoreOf(bytes()))
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(ANY.o()), oneOrMoreOf(bytes()))
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_SERIALIZATION_FAILED))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_SERIALIZATION_FAILED))
 }

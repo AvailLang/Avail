@@ -48,16 +48,16 @@ import com.avail.io.TextInputChannel
 import java.io.IOException
 
 /**
- * **Primitive:** Reset the [ current fiber][Interpreter.fiber]'s [standard input channel][TextInputChannel] to the
- * previously set [mark][P_MarkStandardInputStream].
+ * **Primitive:** Reset the [ current fiber][Interpreter.fiber]'s [standard
+ * input channel][TextInputChannel] to the previously set
+ * [mark][P_MarkStandardInputStream].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_ResetStandardInputStream : Primitive(0, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(0)
 		val channel = interpreter.fiber().textInterface().inputChannel
@@ -73,14 +73,9 @@ object P_ResetStandardInputStream : Primitive(0, CanInline, HasSideEffect)
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(emptyTuple(), TOP.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(emptyTuple(), TOP.o())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_IO_ERROR))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_IO_ERROR))
 }

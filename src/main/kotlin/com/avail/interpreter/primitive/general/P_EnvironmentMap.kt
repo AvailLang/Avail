@@ -47,23 +47,24 @@ import com.avail.interpreter.Primitive.Flag.*
 import java.lang.ref.SoftReference
 
 /**
- * **Primitive:** Answer a [map][A_Map] that
- * represents the [environment][System.getenv] of the Avail virtual
- * machine.
+ * **Primitive:** Answer a [map][A_Map] that represents the
+ * [environment][System.getenv] of the Avail virtual machine.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_EnvironmentMap : Primitive(0, CannotFail, CanInline, HasSideEffect)
 {
 	/**
-	 * The cached [environment][System.getenv] [ map][A_Map]. The content may be `null` if memory pressure is high (or if
-	 * the [primitive][P_EnvironmentMap] has never been called.
+	 * The cached [environment][System.getenv] [map][A_Map]. The content may be
+	 * `null` if memory pressure is high (or if the
+	 * [primitive][P_EnvironmentMap] has never been called.
 	 */
 	private var environmentMap = SoftReference<A_Map>(null)
 
 	/**
-	 * Get the [environment map][environmentMap], creating a new one
-	 * as necessary (either because it has never been created or because the
+	 * Get the [environment map][environmentMap], creating a new one as
+	 * necessary (either because it has never been created or because the
 	 * garbage collector has discarded it).
 	 *
 	 * @return The environment map.
@@ -90,19 +91,15 @@ object P_EnvironmentMap : Primitive(0, CannotFail, CanInline, HasSideEffect)
 		return result
 	}
 
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(0)
 		return interpreter.primitiveSuccess(getEnvironmentMap())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			emptyTuple(),
 			mapTypeForSizesKeyTypeValueType(
 				wholeNumbers(), stringType(), stringType()))
-	}
-
 }

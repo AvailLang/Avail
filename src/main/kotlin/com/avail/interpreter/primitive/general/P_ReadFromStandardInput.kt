@@ -48,9 +48,11 @@ import com.avail.io.SimpleCompletionHandler
 import java.nio.CharBuffer
 
 /**
- * **Primitive:** Read one character from the standard input
- * stream, [suspending][ExecutionState.SUSPENDED] the [ ][Interpreter.fiber] until data becomes available.
+ * **Primitive:** Read one character from the standard input stream,
+ * [suspending][ExecutionState.SUSPENDED] the [fiber][Interpreter.fiber] until
+ * data becomes available.
  */
+@Suppress("unused")
 object P_ReadFromStandardInput : Primitive(0, CanSuspend, Unknown)
 {
 
@@ -65,27 +67,20 @@ object P_ReadFromStandardInput : Primitive(0, CanSuspend, Unknown)
 				buffer,
 				fiber,
 				SimpleCompletionHandler(
-					{ result ->
+					{ _ ->
 						toSucceed.value(fromCodePoint(buffer.get(0).toInt()))
 						Unit
 					},
-					{ exc ->
+					{ _ ->
 						toFail.value(E_IO_ERROR)
 						Unit
 					}))
 		}
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			emptyTuple(),
-			CHARACTER.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(emptyTuple(), CHARACTER.o())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_IO_ERROR))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_IO_ERROR))
 }

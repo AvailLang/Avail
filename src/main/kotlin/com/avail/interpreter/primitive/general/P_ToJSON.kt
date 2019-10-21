@@ -46,15 +46,14 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.utility.json.JSONWriter
 
 /**
- * **Primitive:** Render the given [ value][AvailObject] into JSON.
+ * **Primitive:** Render the given [value][AvailObject] into JSON.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_ToJSON : Primitive(1, CanInline, CannotFail)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val value = interpreter.argument(0)
@@ -64,11 +63,6 @@ object P_ToJSON : Primitive(1, CanInline, CannotFail)
 		return interpreter.primitiveSuccess(json)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(ANY.o()),
-			stringType())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(ANY.o()), stringType())
 }

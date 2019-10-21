@@ -44,11 +44,10 @@ import com.avail.interpreter.Primitive.Flag.*
 /**
  * **Primitive:** Is there a [ primitive][Primitive] with the specified name?
  */
+@Suppress("unused")
 object P_IsPrimitiveDefined : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val primitiveName = interpreter.argument(0)
@@ -58,11 +57,6 @@ object P_IsPrimitiveDefined : Primitive(1, CannotFail, CanFold, CanInline)
 		return interpreter.primitiveSuccess(objectFromBoolean(defined))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(stringType()),
-			booleanType())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(stringType()), booleanType())
 }

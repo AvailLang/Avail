@@ -47,16 +47,15 @@ import java.nio.ByteBuffer
 import java.util.*
 
 /**
- * **Primitive:** Answer a cryptographically strong
- * pseudo-random [UUID] as a 16-byte [ tuple][ByteBufferTupleDescriptor].
+ * **Primitive:** Answer a cryptographically strong pseudo-random [UUID] as a
+ * 16-byte [tuple][ByteBufferTupleDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_CreateUUIDByteTuple : Primitive(0, CannotFail, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(0)
 		val uuid = UUID.randomUUID()
@@ -67,12 +66,9 @@ object P_CreateUUIDByteTuple : Primitive(0, CannotFail, CanInline, HasSideEffect
 		return interpreter.primitiveSuccess(tupleForByteBuffer(bytes))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			emptyTuple(),
 			tupleTypeForSizesTypesDefaultType(
 				singleInt(16), emptyTuple(), bytes()))
-	}
-
 }

@@ -51,17 +51,15 @@ import java.security.NoSuchAlgorithmException
 import java.util.Arrays.asList
 
 /**
- * **Primitive:** Use a strong cryptographic message digest
- * algorithm to produce a hash of the specified [tuple][A_Tuple] of
- * bytes.
+ * **Primitive:** Use a strong cryptographic message digest algorithm to produce
+ * a hash of the specified [tuple][A_Tuple] of bytes.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_ComputeDigest : Primitive(2, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val algorithm = interpreter.argument(0)
@@ -73,7 +71,11 @@ object P_ComputeDigest : Primitive(2, CannotFail, CanFold, CanInline)
 		}
 		catch (e: NoSuchAlgorithmException)
 		{
-			assert(false) { "these are standard digest algorithm available in all " + "Java implementations" }
+			assert(false)
+			{
+				"these are standard digest algorithm available in all " +
+					"Java implementations"
+			}
 			throw RuntimeException(e)
 		}
 
@@ -87,14 +89,11 @@ object P_ComputeDigest : Primitive(2, CannotFail, CanFold, CanInline)
 		return interpreter.primitiveSuccess(digestTuple)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				enumerationWith(
-					tupleFromIntegerList(asList(1, 256, 384, 512)).asSet()),
+					tupleFromIntegerList(listOf(1, 256, 384, 512)).asSet()),
 				zeroOrMoreOf(bytes())),
 			oneOrMoreOf(bytes()))
-	}
-
 }

@@ -55,16 +55,16 @@ import java.nio.ByteBuffer
 import java.util.*
 
 /**
- * **Primitive:** Answer a [tuple][A_Tuple]
- * comprising the objects encoded in the specified [ ][IntegerRangeTypeDescriptor.bytes] tuple, preserving their order.
+ * **Primitive:** Answer a [tuple][A_Tuple] comprising the objects encoded in
+ * the specified [byte][IntegerRangeTypeDescriptor.bytes] tuple, preserving
+ * their order.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_Deserialize : Primitive(2, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val bytes = interpreter.argument(0)
@@ -119,18 +119,10 @@ object P_Deserialize : Primitive(2, CanInline)
 		return interpreter.primitiveSuccess(tupleFromList(values))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				zeroOrMoreOf(bytes()),
-				MODULE.o()),
-			zeroOrMoreOf(ANY.o()))
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(zeroOrMoreOf(bytes()), MODULE.o()), zeroOrMoreOf(ANY.o()))
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_DESERIALIZATION_FAILED))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_DESERIALIZATION_FAILED))
 }

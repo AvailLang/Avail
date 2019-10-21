@@ -51,13 +51,15 @@ import com.avail.utility.Nulls.stripNull
 import java.lang.String.format
 
 /**
- * **Primitive:** Exit the current [ ]. The specified argument will be converted
- * internally into a `string` and used to report an error message.
+ * **Primitive:** Exit the current [fiber][FiberDescriptor]. The specified
+ * argument will be converted internally into a `string` and used to report an
+ * error message.
  *
  *
  * It's marked with [Flag.CanSwitchContinuations] to force the stack to
  * be reified, for debugging convenience.
  */
+@Suppress("unused")
 object P_EmergencyExit : Primitive(
 	1,
 	Unknown,
@@ -66,20 +68,18 @@ object P_EmergencyExit : Primitive(
 	CanSuspend,
 	CannotFail)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val errorMessageProducer = interpreter.argument(0)
 		val fiber = interpreter.fiber()
-		val continuation = stripNull<AvailObject>(interpreter.reifiedContinuation)
-		interpreter.primitiveSuspend(stripNull<A_Function>(interpreter.function))
+		val continuation = stripNull(interpreter.reifiedContinuation)
+		interpreter.primitiveSuspend(stripNull(interpreter.function))
 		dumpStackThen(
 			interpreter.runtime(),
 			fiber.textInterface(),
-			continuation
-		) { stack ->
+			continuation)
+		{ stack ->
 			val builder = StringBuilder()
 			builder.append(format(
 				"A fiber (%s) has exited: %s",
@@ -87,7 +87,8 @@ object P_EmergencyExit : Primitive(
 				errorMessageProducer))
 			if (errorMessageProducer.isInt)
 			{
-				val errorNumber = cast<A_BasicObject, A_Number>(errorMessageProducer)
+				val errorNumber =
+					cast<A_BasicObject, A_Number>(errorMessageProducer)
 				val intValue = errorNumber.extractInt()
 				val code = AvailErrorCode.byNumericCode(intValue)
 				if (code !== null)
@@ -112,12 +113,8 @@ object P_EmergencyExit : Primitive(
 		return Primitive.Result.FIBER_SUSPENDED
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(ANY.o()),
-			bottom())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(ANY.o()), bottom())
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
@@ -130,5 +127,4 @@ object P_EmergencyExit : Primitive(
 		// Never inline.  Ensure the caller reifies the stack before calling it.
 		return false
 	}
-
 }
