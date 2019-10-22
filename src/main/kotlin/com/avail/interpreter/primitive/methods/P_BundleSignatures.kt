@@ -44,17 +44,14 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail
 
 /**
- * **Primitive:** Answer a [set][SetDescriptor]
- * of all currently defined [definitions][DefinitionDescriptor] for
- * the [true message name][AtomDescriptor] represented by
- * [bundle][MessageBundleDescriptor]. This includes abstract
- * signatures and forward signatures.
+ * **Primitive:** Answer a [set][SetDescriptor] of all currently defined
+ * [definitions][DefinitionDescriptor] for the [true message
+ * name][AtomDescriptor] represented by [bundle][MessageBundleDescriptor]. This
+ * includes abstract signatures and forward signatures.
  */
 object P_BundleSignatures : Primitive(1, CannotFail, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val bundle = interpreter.argument(0)
@@ -64,11 +61,9 @@ object P_BundleSignatures : Primitive(1, CannotFail, CanInline)
 		return interpreter.primitiveSuccess(definitions)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(MESSAGE_BUNDLE.o()), setTypeForSizesContentType(
-			wholeNumbers(),
-			DEFINITION.o()))
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(
+				MESSAGE_BUNDLE.o()),
+			setTypeForSizesContentType(wholeNumbers(), DEFINITION.o()))
 }

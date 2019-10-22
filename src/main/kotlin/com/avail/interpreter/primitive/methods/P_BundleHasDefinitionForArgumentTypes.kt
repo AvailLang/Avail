@@ -53,16 +53,15 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * **Primitive:** Does the [method][MethodDescriptor]
- * have a unique definition for the specified [ tuple][TupleDescriptor] of parameter [types][TypeDescriptor]?
+ * **Primitive:** Does the [method][MethodDescriptor] have a unique definition
+ * for the specified [tuple][TupleDescriptor] of parameter
+ * [types][TypeDescriptor]?
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_BundleHasDefinitionForArgumentTypes : Primitive(2, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val methodName = interpreter.argument(0)
@@ -78,36 +77,28 @@ object P_BundleHasDefinitionForArgumentTypes : Primitive(2, CanInline)
 			return interpreter.primitiveFailure(
 				E_INCORRECT_NUMBER_OF_ARGUMENTS)
 		}
-		try
-		{
-			val definition = method.lookupByTypesFromTuple(argTypes)
-			assert(!definition.equalsNil())
-			return interpreter.primitiveSuccess(trueObject())
-		}
-		catch (e: MethodDefinitionException)
-		{
-			return interpreter.primitiveSuccess(falseObject())
-		}
-
+		return interpreter.primitiveSuccess(
+			try
+			{
+				val definition =
+					method.lookupByTypesFromTuple(argTypes)
+				assert(!definition.equalsNil())
+				trueObject()
+			}
+			catch (e: MethodDefinitionException)
+			{
+				falseObject()
+			})
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				ATOM.o(),
-				zeroOrMoreOf(anyMeta())),
-			booleanType())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(ATOM.o(), zeroOrMoreOf(anyMeta())), booleanType())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
 			set(
 				E_AMBIGUOUS_METHOD_DEFINITION,
 				E_INCORRECT_NUMBER_OF_ARGUMENTS,
 				E_NO_METHOD,
 				E_NO_METHOD_DEFINITION))
-	}
-
 }

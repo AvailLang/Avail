@@ -46,14 +46,12 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail
 
 /**
- * **Primitive:** Answer the current precedence
- * restrictions for this [bundle][MessageBundleDescriptor].
+ * **Primitive:** Answer the current precedence restrictions for this
+ * [bundle][MessageBundleDescriptor].
  */
 object P_BundleRestrictions : Primitive(1, CanInline, CannotFail)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val bundle = interpreter.argument(0)
@@ -61,12 +59,8 @@ object P_BundleRestrictions : Primitive(1, CanInline, CannotFail)
 			bundle.grammaticalRestrictions().makeImmutable())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(MESSAGE_BUNDLE.o()), zeroOrMoreOf(
-			setTypeForSizesContentType(
-				wholeNumbers(),
-				ATOM.o())))
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(MESSAGE_BUNDLE.o()),
+			zeroOrMoreOf(setTypeForSizesContentType(wholeNumbers(), ATOM.o())))
 }
