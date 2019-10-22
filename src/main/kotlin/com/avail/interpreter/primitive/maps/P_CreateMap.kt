@@ -50,6 +50,7 @@ import com.avail.interpreter.Primitive.Flag.*
  * the argument [tuple][TupleDescriptor] of key-value bindings, i.e. 2-element
  * tuples.
  */
+@Suppress("unused")
 object P_CreateMap : Primitive(1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

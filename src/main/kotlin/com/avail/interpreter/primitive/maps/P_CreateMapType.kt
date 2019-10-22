@@ -48,6 +48,7 @@ import com.avail.interpreter.Primitive.Flag.*
  * **Primitive:** Answer a [map][MapTypeDescriptor] with the given type
  * constraints.
  */
+@Suppress("unused")
 object P_CreateMapType : Primitive(3, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

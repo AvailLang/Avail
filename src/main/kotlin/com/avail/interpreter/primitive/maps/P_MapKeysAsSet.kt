@@ -48,6 +48,7 @@ import com.avail.interpreter.Primitive.Flag.*
  * **Primitive:** Answer the keys of this [map][MapDescriptor] as a
  * [set][SetDescriptor].
  */
+@Suppress("unused")
 object P_MapKeysAsSet : Primitive(1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

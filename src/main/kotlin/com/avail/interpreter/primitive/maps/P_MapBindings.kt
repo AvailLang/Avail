@@ -50,6 +50,7 @@ import com.avail.interpreter.Primitive.Flag.*
  * **Primitive:** Answer the bindings of this [map][MapDescriptor] as a
  * [tuple][TupleDescriptor] of 2-tuples of key and value.
  */
+@Suppress("unused")
 object P_MapBindings : Primitive(1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

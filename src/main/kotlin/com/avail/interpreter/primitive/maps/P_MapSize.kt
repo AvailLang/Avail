@@ -37,6 +37,7 @@ import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.IntegerDescriptor.fromInt
 import com.avail.descriptor.IntegerRangeTypeDescriptor.int32
 import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
+import com.avail.descriptor.MapDescriptor
 import com.avail.descriptor.MapTypeDescriptor.mostGeneralMapType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.interpreter.Interpreter
@@ -44,32 +45,23 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer the size of the [ ]. This is the number of entries, which is also the
- * number of keys.
+ * **Primitive:** Answer the size of the [map][MapDescriptor]. This is the
+ * number of entries, which is also the number of keys.
  */
+@Suppress("unused")
 object P_MapSize : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val map = interpreter.argument(0)
 		return interpreter.primitiveSuccess(fromInt(map.mapSize()))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(mostGeneralMapType()),
-			wholeNumbers())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(mostGeneralMapType()), wholeNumbers())
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
-		argumentTypes: List<A_Type>): A_Type
-	{
-		return argumentTypes[0].sizeRange().typeIntersection(int32())
-	}
-
+		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type =
+			argumentTypes[0].sizeRange().typeIntersection(int32())
 }

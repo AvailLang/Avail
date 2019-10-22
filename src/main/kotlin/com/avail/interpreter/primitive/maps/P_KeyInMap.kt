@@ -46,6 +46,7 @@ import com.avail.interpreter.Primitive.Flag.*
 /**
  * **Primitive:** Check if the key is present in the [map][MapDescriptor].
  */
+@Suppress("unused")
 object P_KeyInMap : Primitive(2, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

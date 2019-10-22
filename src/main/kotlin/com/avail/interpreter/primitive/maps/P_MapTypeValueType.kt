@@ -37,27 +37,25 @@ import com.avail.descriptor.InstanceMetaDescriptor.anyMeta
 import com.avail.descriptor.MapTypeDescriptor
 import com.avail.descriptor.MapTypeDescriptor.mapMeta
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.TypeDescriptor
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer the value [ ] of a [map type][MapTypeDescriptor].
+ * **Primitive:** Answer the value [type][TypeDescriptor] of a [map
+ * type][MapTypeDescriptor].
  */
+@Suppress("unused")
 object P_MapTypeValueType : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val mapType = interpreter.argument(0)
 		return interpreter.primitiveSuccess(mapType.valueType())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(mapMeta()), anyMeta())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(mapMeta()), anyMeta())
 }

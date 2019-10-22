@@ -52,6 +52,7 @@ import com.avail.interpreter.Primitive.Flag.*
  * including the binding between `key` and `value`. Overwrite any existing value
  * if the key is already present.
  */
+@Suppress("unused")
 object P_MapReplacingKey : Primitive(3, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

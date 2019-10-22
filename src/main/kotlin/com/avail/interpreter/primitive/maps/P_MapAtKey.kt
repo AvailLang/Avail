@@ -49,6 +49,7 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 /**
  * **Primitive:** Look up the key in the [ ], answering the corresponding value.
  */
+@Suppress("unused")
 object P_MapAtKey : Primitive(2, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

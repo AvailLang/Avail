@@ -33,6 +33,7 @@ package com.avail.interpreter.primitive.maps
 
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.MapDescriptor
 import com.avail.descriptor.MapTypeDescriptor.mostGeneralMapType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.TupleDescriptor
@@ -42,23 +43,19 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer the values of this [ ] as a [tuple][TupleDescriptor], arbitrarily
- * ordered.
+ * **Primitive:** Answer the values of this [map][MapDescriptor] as a
+ * [tuple][TupleDescriptor], arbitrarily ordered.
  */
+@Suppress("unused")
 object P_MapValuesAsTuple : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val map = interpreter.argument(0)
 		return interpreter.primitiveSuccess(map.valuesAsTuple())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(mostGeneralMapType()), mostGeneralTupleType())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(mostGeneralMapType()), mostGeneralTupleType())
 }
