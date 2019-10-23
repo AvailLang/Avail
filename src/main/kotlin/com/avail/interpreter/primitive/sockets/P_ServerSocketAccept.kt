@@ -59,25 +59,28 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
 import com.avail.io.SimpleCompletionHandler
 import java.nio.channels.AsynchronousServerSocketChannel
+import java.nio.channels.AsynchronousSocketChannel
 
 /**
  * **Primitive:** Accept an incoming connection on the
- * [asynchronous server socket][AsynchronousServerSocketChannel]
- * referenced by the specified [handle][AtomDescriptor], using the
- * supplied [name][StringDescriptor] for a newly connected [ ]. Create a new [ fiber][FiberDescriptor] to respond to the asynchronous completion of the operation; the fiber
- * will run at the specified [ priority][IntegerRangeTypeDescriptor.bytes]. If the operation succeeds, then eventually start the new fiber to
- * apply the [success function][FunctionDescriptor] to a handle on the
- * new socket. If the operation fails, then eventually start the new fiber to
- * apply the [failure function][FunctionDescriptor] to the [ ] [error code][AvailErrorCode]. Answer the
- * new fiber.
+ * [asynchronous&#32;server&#32;socket][AsynchronousServerSocketChannel]
+ * referenced by the specified [handle][AtomDescriptor], using the supplied
+ * [name][StringDescriptor] for a newly connected
+ * [socket][AsynchronousSocketChannel]. Create a new [fiber][FiberDescriptor] to
+ * respond to the asynchronous completion of the operation; the fiber will run
+ * at the specified [priority][IntegerRangeTypeDescriptor.bytes]. If the
+ * operation succeeds, then eventually start the new fiber to apply the
+ * [success&#32;function][FunctionDescriptor] to a handle on the new socket. If
+ * the operation fails, then eventually start the new fiber to apply the
+ * [failure&#32;function][FunctionDescriptor] to the
+ * [numeric][IntegerDescriptor] [error&#32;code][AvailErrorCode]. Answer the new
+ * fiber.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_ServerSocketAccept : Primitive(5, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(5)
 		val handle = interpreter.argument(0)
@@ -111,7 +114,7 @@ object P_ServerSocketAccept : Primitive(5, CanInline, HasSideEffect)
 		fail.makeShared()
 		// Now start the asynchronous accept.
 		val runtime = currentRuntime()
-		try
+		return try
 		{
 			val module = currentModule()
 			socket.accept<Void>(
@@ -126,28 +129,24 @@ object P_ServerSocketAccept : Primitive(5, CanInline, HasSideEffect)
 							newFiber,
 							succeed,
 							listOf<A_Atom>(newHandle))
-						Unit
 					},
-					{ killer ->
+					{
 						runOutermostFunction(
 							runtime,
 							newFiber,
 							fail,
 							listOf(E_IO_ERROR.numericCode()))
-						Unit
 					}))
+			interpreter.primitiveSuccess(newFiber)
 		}
 		catch (e: IllegalStateException)
 		{
-			return interpreter.primitiveFailure(E_INVALID_HANDLE)
+			interpreter.primitiveFailure(E_INVALID_HANDLE)
 		}
-
-		return interpreter.primitiveSuccess(newFiber)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				ATOM.o(),
 				oneOrMoreOf(CHARACTER.o()),
@@ -159,15 +158,11 @@ object P_ServerSocketAccept : Primitive(5, CanInline, HasSideEffect)
 					TOP.o()),
 				bytes()),
 			mostGeneralFiberType())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
 			set(
 				E_INVALID_HANDLE,
 				E_SPECIAL_ATOM,
 				E_IO_ERROR))
-	}
-
 }

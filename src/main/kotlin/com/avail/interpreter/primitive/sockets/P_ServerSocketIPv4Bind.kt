@@ -51,26 +51,25 @@ import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.utility.Casts.cast
 import java.io.IOException
 import java.net.Inet4Address
-import java.net.InetAddress
+import java.net.InetAddress.getByAddress
 import java.net.InetSocketAddress
 import java.net.UnknownHostException
 import java.nio.channels.AsynchronousServerSocketChannel
 
 /**
- * **Primitive:** Bind the [ ]
- * referenced by the specified [handle][AtomDescriptor] to an
- * [IPv4 address][Inet4Address] and port. The bytes of the address are
- * specified in network byte order, i.e., big-endian.
+ * **Primitive:** Bind the [AsynchronousServerSocketChannel] referenced by the
+ * specified [handle][AtomDescriptor] to an [IPv4 address][Inet4Address] and
+ * port. The bytes of the address are specified in network byte order, i.e.,
+ * big-endian.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_ServerSocketIPv4Bind : Primitive(4, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(4)
 		val handle = interpreter.argument(0)
@@ -85,45 +84,41 @@ object P_ServerSocketIPv4Bind : Primitive(4, CanInline, HasSideEffect)
 		}
 		val socket = pojo.javaObjectNotNull<AsynchronousServerSocketChannel>()
 		// Build the big-endian address byte array.
-		val addressBytes = ByteArray(4)
-		for (i in addressBytes.indices)
-		{
-			val addressByte = addressTuple.tupleAt(i + 1)
-			addressBytes[i] = addressByte.extractUnsignedByte().toByte()
+		val addressBytes = ByteArray(4) {
+			addressTuple.tupleIntAt(it + 1).toByte()
 		}
 		val backlogInt = backlog.extractInt()
-		try
+		return try
 		{
-			val inetAddress = InetAddress.getByAddress(addressBytes) as Inet4Address
-			val address = InetSocketAddress(inetAddress, port.extractUnsignedShort())
+			val inetAddress: Inet4Address = cast(getByAddress(addressBytes))
+			val address =
+				InetSocketAddress(inetAddress, port.extractUnsignedShort())
 			socket.bind(address, backlogInt)
-			return interpreter.primitiveSuccess(nil)
+			interpreter.primitiveSuccess(nil)
 		}
 		catch (e: IllegalStateException)
 		{
-			return interpreter.primitiveFailure(E_INVALID_HANDLE)
+			interpreter.primitiveFailure(E_INVALID_HANDLE)
 		}
 		catch (e: UnknownHostException)
 		{
 			// This shouldn't actually happen, since we carefully enforce the
 			// range of addresses.
 			assert(false)
-			return interpreter.primitiveFailure(E_IO_ERROR)
+			interpreter.primitiveFailure(E_IO_ERROR)
 		}
 		catch (e: IOException)
 		{
-			return interpreter.primitiveFailure(E_IO_ERROR)
+			interpreter.primitiveFailure(E_IO_ERROR)
 		}
 		catch (e: SecurityException)
 		{
-			return interpreter.primitiveFailure(E_PERMISSION_DENIED)
+			interpreter.primitiveFailure(E_PERMISSION_DENIED)
 		}
-
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				ATOM.o(),
 				tupleTypeForSizesTypesDefaultType(
@@ -133,16 +128,12 @@ object P_ServerSocketIPv4Bind : Primitive(4, CanInline, HasSideEffect)
 				unsignedShorts(),
 				intRange()),
 			TOP.o())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
 			set(
 				E_INVALID_HANDLE,
 				E_SPECIAL_ATOM,
 				E_IO_ERROR,
 				E_PERMISSION_DENIED))
-	}
-
 }

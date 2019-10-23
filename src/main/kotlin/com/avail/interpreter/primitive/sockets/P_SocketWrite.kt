@@ -59,21 +59,25 @@ import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousSocketChannel
 import java.util.Collections.emptyList
 
+
 /**
  * **Primitive:** Initiate an asynchronous write from the
  * [socket][AsynchronousSocketChannel] referenced by the specified
- * [handle][AtomDescriptor]. Create a new [ fiber][FiberDescriptor] to respond to the asynchronous completion of the operation; the fiber
- * will run at the specified [ priority][IntegerRangeTypeDescriptor.bytes]. If the operation succeeds, then eventually start the new fiber to
- * apply the [success function][FunctionDescriptor]. If the operation
- * fails, then eventually start the new fiber to apply the [ ] to the [ numeric][IntegerDescriptor] [error code][AvailErrorCode]. Answer the new fiber.
+ * [handle][AtomDescriptor]. Create a new [fiber][FiberDescriptor] to respond to
+ * the asynchronous completion of the operation; the fiber will run at the
+ * specified [priority][IntegerRangeTypeDescriptor.bytes]. If the operation
+ * succeeds, then eventually start the new fiber to apply the
+ * [success&#32;function][FunctionDescriptor]. If the operation fails, then
+ * eventually start the new fiber to apply the
+ * [failure&#32;function][FunctionDescriptor] to the
+ * [numeric][IntegerDescriptor] [error&#32;code][AvailErrorCode]. Answer the new
+ * fiber.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_SocketWrite : Primitive(5, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(5)
 		val tuple = interpreter.argument(0)
@@ -85,27 +89,17 @@ object P_SocketWrite : Primitive(5, CanInline, HasSideEffect)
 		if (pojo.equalsNil())
 		{
 			return interpreter.primitiveFailure(
-				if (handle.isAtomSpecial)
-					E_SPECIAL_ATOM
-				else
-					E_INVALID_HANDLE)
+				if (handle.isAtomSpecial) E_SPECIAL_ATOM else E_INVALID_HANDLE)
 		}
 		val socket = pojo.javaObjectNotNull<AsynchronousSocketChannel>()
 		// Obtain a buffer for writing.
-		val buffer: ByteBuffer
-		if (tuple.isByteBufferTuple)
-		{
-			buffer = tuple.byteBuffer().slice()
-		}
-		else if (tuple.isByteArrayTuple)
-		{
-			buffer = ByteBuffer.wrap(tuple.byteArray())
-		}
-		else
-		{
-			buffer = ByteBuffer.allocateDirect(tuple.tupleSize())
-			tuple.transferIntoByteBuffer(1, tuple.tupleSize(), buffer)
-			buffer.flip()
+		val buffer = when {
+			tuple.isByteBufferTuple -> tuple.byteBuffer().slice()
+			tuple.isByteArrayTuple -> ByteBuffer.wrap(tuple.byteArray())
+			else -> ByteBuffer.allocateDirect(tuple.tupleSize()).also {
+				tuple.transferIntoByteBuffer(1, tuple.tupleSize(), it)
+				it.flip()
+			}
 		}
 		val current = interpreter.fiber()
 		val newFiber = newFiber(
@@ -126,30 +120,26 @@ object P_SocketWrite : Primitive(5, CanInline, HasSideEffect)
 		fail.makeShared()
 		// Now start the asynchronous write.
 		val runtime = currentRuntime()
-		try
+		return try
 		{
-			socket.write<Any>(
-				buffer, null,
+			socket.write(
+				buffer,
+				null,
 				SimpleCompletionHandler(
-					{ bytesWritten, unused, handler ->
-						// If not all bytes have been written yet, then keep
-						// writing.
+					{ _, _, handler ->
 						if (buffer.hasRemaining())
 						{
-							socket.write<Any>(buffer, null, handler)
+							// Not done all writing.  Continue.
+							socket.write(buffer, null, handler)
 						}
 						else
 						{
+							// Done all writing.  Report success.
 							Interpreter.runOutermostFunction(
-								runtime,
-								newFiber,
-								succeed,
-								emptyList())
-						}// Otherwise, report success.
-						Unit
+								runtime, newFiber, succeed, emptyList())
+						}
 					},
-					{ killer, unused, handler ->
-
+					{ _, _, _ ->
 						Interpreter.runOutermostFunction(
 							runtime,
 							newFiber,
@@ -157,18 +147,16 @@ object P_SocketWrite : Primitive(5, CanInline, HasSideEffect)
 							listOf(E_IO_ERROR.numericCode()))
 						Unit
 					}))
+			interpreter.primitiveSuccess(newFiber)
 		}
 		catch (e: IllegalStateException)
 		{
-			return interpreter.primitiveFailure(E_INVALID_HANDLE)
+			interpreter.primitiveFailure(E_INVALID_HANDLE)
 		}
-
-		return interpreter.primitiveSuccess(newFiber)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				zeroOrMoreOf(bytes()),
 				ATOM.o(),
@@ -180,15 +168,11 @@ object P_SocketWrite : Primitive(5, CanInline, HasSideEffect)
 					TOP.o()),
 				bytes()),
 			mostGeneralFiberType())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
 			set(
 				E_INVALID_HANDLE,
 				E_SPECIAL_ATOM,
 				E_IO_ERROR))
-	}
-
 }

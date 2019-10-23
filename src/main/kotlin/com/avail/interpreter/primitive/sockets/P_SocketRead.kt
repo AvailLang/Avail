@@ -61,23 +61,27 @@ import com.avail.io.SimpleCompletionHandler
 import java.lang.Integer.MAX_VALUE
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousSocketChannel
-import java.util.Arrays.asList
 
 /**
  * **Primitive:** Initiate an asynchronous read from the
  * [socket][AsynchronousSocketChannel] referenced by the specified
- * [handle][AtomDescriptor]. Create a new [ fiber][FiberDescriptor] to respond to the asynchronous completion of the operation; the fiber
- * will run at the specified [ priority][IntegerRangeTypeDescriptor.bytes]. If the operation succeeds, then eventually start the new fiber to
- * apply the [success function][FunctionDescriptor] to the [ ] and a [ ][EnumerationTypeDescriptor.booleanType] that is [ ][AtomDescriptor.trueObject] if the socket is exhausted. If the
- * operation fails, then eventually start the new fiber to apply the [ ] to the [ numeric][IntegerDescriptor] [error code][AvailErrorCode]. Answer the new fiber.
+ * [handle][AtomDescriptor]. Create a new [fiber][FiberDescriptor] to respond to
+ * the asynchronous completion of the operation; the fiber will run at the
+ * specified [priority][IntegerRangeTypeDescriptor.bytes]. If the operation
+ * succeeds, then eventually start the new fiber to apply the
+ * [success&#32;function][FunctionDescriptor] to the
+ * [result&#32;tuple][ByteBufferTupleDescriptor] and a
+ * [boolean][EnumerationTypeDescriptor.booleanType] that is
+ * [true][AtomDescriptor.trueObject] if the socket is exhausted. If the
+ * operation fails, then eventually start the new fiber to apply the
+ * [failure&#32;function][FunctionDescriptor] to the numeric
+ * [error&#32;code][AvailErrorCode]. Answer the new fiber.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_SocketRead : Primitive(5, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(5)
 		val size = interpreter.argument(0)
@@ -112,7 +116,7 @@ object P_SocketRead : Primitive(5, CanInline, HasSideEffect)
 		fail.makeShared()
 		// Now start the asynchronous read.
 		val runtime = currentRuntime()
-		try
+		return try
 		{
 			socket.read<Any>(
 				buffer,
@@ -124,12 +128,12 @@ object P_SocketRead : Primitive(5, CanInline, HasSideEffect)
 							runtime,
 							newFiber,
 							succeed,
-							asList(
+							listOf(
 								tupleForByteBuffer(buffer),
 								objectFromBoolean(bytesRead == -1)))
 						Unit
 					},
-					{ killer ->
+					{
 						Interpreter.runOutermostFunction(
 							runtime,
 							newFiber,
@@ -137,25 +141,23 @@ object P_SocketRead : Primitive(5, CanInline, HasSideEffect)
 							listOf(E_IO_ERROR.numericCode()))
 						Unit
 					}))
+			interpreter.primitiveSuccess(newFiber)
 		}
 		catch (e: IllegalArgumentException)
 		{
 			// This should only happen if the buffer is read only, which is
 			// impossible by construction here.
 			assert(false)
-			return interpreter.primitiveFailure(E_IO_ERROR)
+			interpreter.primitiveFailure(E_IO_ERROR)
 		}
 		catch (e: IllegalStateException)
 		{
-			return interpreter.primitiveFailure(E_INVALID_HANDLE)
+			interpreter.primitiveFailure(E_INVALID_HANDLE)
 		}
-
-		return interpreter.primitiveSuccess(newFiber)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				inclusive(0, MAX_VALUE.toLong()),
 				ATOM.o(),
@@ -169,15 +171,11 @@ object P_SocketRead : Primitive(5, CanInline, HasSideEffect)
 					TOP.o()),
 				bytes()),
 			mostGeneralFiberType())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
 			set(
 				E_INVALID_HANDLE,
 				E_SPECIAL_ATOM,
 				E_IO_ERROR))
-	}
-
 }

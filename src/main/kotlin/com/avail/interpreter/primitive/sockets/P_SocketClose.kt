@@ -51,16 +51,14 @@ import java.io.IOException
 import java.nio.channels.AsynchronousSocketChannel
 
 /**
- * **Primitive:** Close the [ ] referenced by the specified
- * [handle][AtomDescriptor].
+ * **Primitive:** Close the [AsynchronousSocketChannel] referenced by the
+ * specified [handle][AtomDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_SocketClose : Primitive(1, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val handle = interpreter.argument(0)
@@ -74,26 +72,17 @@ object P_SocketClose : Primitive(1, CanInline, HasSideEffect)
 					E_INVALID_HANDLE)
 		}
 		val socket = pojo.javaObjectNotNull<AsynchronousSocketChannel>()
-		try
-		{
+		return try {
 			socket.close()
-			return interpreter.primitiveSuccess(nil)
+			interpreter.primitiveSuccess(nil)
+		} catch (e: IOException) {
+			interpreter.primitiveFailure(E_IO_ERROR)
 		}
-		catch (e: IOException)
-		{
-			return interpreter.primitiveFailure(E_IO_ERROR)
-		}
-
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(ATOM.o()), TOP.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(ATOM.o()), TOP.o())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_INVALID_HANDLE, E_SPECIAL_ATOM, E_IO_ERROR))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_INVALID_HANDLE, E_SPECIAL_ATOM, E_IO_ERROR))
 }

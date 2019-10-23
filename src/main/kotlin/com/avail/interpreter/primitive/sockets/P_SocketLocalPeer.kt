@@ -56,16 +56,15 @@ import java.nio.channels.AsynchronousSocketChannel
 import java.nio.channels.ClosedChannelException
 
 /**
- * **Primitive:** Answer the [ socket address][InetSocketAddress] of the local peer of the [ ] referenced by the
- * specified [handle][AtomDescriptor].
+ * **Primitive:** Answer the [socket&#32;address][InetSocketAddress] of the
+ * local peer of the [AsynchronousSocketChannel] referenced by the specified
+ * [handle][AtomDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_SocketLocalPeer : Primitive(1, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val handle = interpreter.argument(0)
@@ -89,17 +88,14 @@ object P_SocketLocalPeer : Primitive(1, CanInline)
 		{
 			return interpreter.primitiveFailure(E_IO_ERROR)
 		}
-
-		val address = peer.address
-		val addressBytes = address.address
-		val addressTuple = tupleForByteArray(addressBytes)
-		val port = fromInt(peer.port)
-		return interpreter.primitiveSuccess(tuple(addressTuple, port))
+		return interpreter.primitiveSuccess(
+			tuple(
+				tupleForByteArray(peer.address.address),
+				fromInt(peer.port)))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(ATOM.o()),
 			tupleTypeForTypes(
 				tupleTypeForSizesTypesDefaultType(
@@ -107,15 +103,11 @@ object P_SocketLocalPeer : Primitive(1, CanInline)
 					emptyTuple(),
 					bytes()),
 				unsignedShorts()))
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
 			set(
 				E_INVALID_HANDLE,
 				E_SPECIAL_ATOM,
 				E_IO_ERROR))
-	}
-
 }

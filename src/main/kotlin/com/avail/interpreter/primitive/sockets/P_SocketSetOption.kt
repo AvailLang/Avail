@@ -56,7 +56,7 @@ import java.nio.channels.AsynchronousSocketChannel
 
 /**
  * **Primitive:** Set the socket options for the
- * [asynchronous socket channel][AsynchronousSocketChannel] referenced
+ * [asynchronous&#32;socket&#32;channel][AsynchronousSocketChannel] referenced
  * by the specified [handle][AtomDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -69,8 +69,7 @@ object P_SocketSetOption : Primitive(2, CanInline, HasSideEffect)
 	private val socketOptions = arrayOf<SocketOption<*>?>(
 		null, SO_RCVBUF, SO_REUSEADDR, SO_SNDBUF, SO_KEEPALIVE, TCP_NODELAY)
 
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val handle = interpreter.argument(0)
@@ -82,12 +81,10 @@ object P_SocketSetOption : Primitive(2, CanInline, HasSideEffect)
 				if (handle.isAtomSpecial) E_SPECIAL_ATOM else E_INVALID_HANDLE)
 		}
 		val socket = pojo.javaObjectNotNull<AsynchronousSocketChannel>()
-		try
+		return try
 		{
-			for (entry in options.mapIterable())
+			for ((key, value) in options.mapIterable())
 			{
-				val key = entry.key()
-				val value = entry.value()
 				socketOptions[key.extractInt()]?.let { option ->
 					val type = option.type()
 					if (type === java.lang.Boolean::class.java
@@ -109,22 +106,20 @@ object P_SocketSetOption : Primitive(2, CanInline, HasSideEffect)
 					}
 				}
 			}
-			return interpreter.primitiveSuccess(nil)
+			interpreter.primitiveSuccess(nil)
 		}
 		catch (e: IllegalArgumentException)
 		{
-			return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE)
+			interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE)
 		}
 		catch (e: IOException)
 		{
-			return interpreter.primitiveFailure(E_IO_ERROR)
+			interpreter.primitiveFailure(E_IO_ERROR)
 		}
-
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				ATOM.o(),
 				mapTypeForSizesKeyTypeValueType(
@@ -132,16 +127,12 @@ object P_SocketSetOption : Primitive(2, CanInline, HasSideEffect)
 					inclusive(1, (socketOptions.size - 1).toLong()),
 					ANY.o())),
 			TOP.o())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
 			set(
 				E_INVALID_HANDLE,
 				E_SPECIAL_ATOM,
 				E_INCORRECT_ARGUMENT_TYPE,
 				E_IO_ERROR))
-	}
-
 }

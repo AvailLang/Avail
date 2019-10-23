@@ -57,7 +57,8 @@ import java.nio.channels.AsynchronousServerSocketChannel
 
 /**
  * **Primitive:** Set the socket options for the
- * [asynchronous server socket][AsynchronousServerSocketChannel] referenced by the specified [handle][AtomDescriptor].
+ * [asynchronous&#32;server&#32;socket][AsynchronousServerSocketChannel]
+ * referenced by the specified [handle][AtomDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -68,8 +69,7 @@ object P_ServerSocketSetOption : Primitive(2, CanInline, HasSideEffect)
 	 */
 	private val socketOptions = arrayOf<SocketOption<*>?>(null, SO_RCVBUF, SO_REUSEADDR)
 
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val handle = interpreter.argument(0)
@@ -81,46 +81,39 @@ object P_ServerSocketSetOption : Primitive(2, CanInline, HasSideEffect)
 				if (handle.isAtomSpecial) E_SPECIAL_ATOM else E_INVALID_HANDLE)
 		}
 		val socket = pojo.javaObjectNotNull<AsynchronousServerSocketChannel>()
-		try
+		return try
 		{
 			for (entry in options.mapIterable())
 			{
 				val option = socketOptions[entry.key().extractInt()]!!
 				val value = entry.value()
-				if (option.type() === java.lang.Boolean::class.java
-					&& value.isBoolean)
-				{
+				if (option.type() == java.lang.Boolean::class.java
+						&& value.isBoolean) {
 					val booleanOption: SocketOption<Boolean> = cast(option)
 					socket.setOption(booleanOption, value.extractBoolean())
 				}
-				else if (option.type() === java.lang.Integer::class.java
-					&& value.isInt)
-				{
+				else if (option.type() == java.lang.Integer::class.java
+						&& value.isInt) {
 					val intOption: SocketOption<Int> = cast(option)
 					socket.setOption(intOption, value.extractInt())
 				}
-				else
-				{
-					return interpreter.primitiveFailure(
-						E_INCORRECT_ARGUMENT_TYPE)
-				}
+				else return interpreter.primitiveFailure(
+					E_INCORRECT_ARGUMENT_TYPE)
 			}
-			return interpreter.primitiveSuccess(nil)
+			interpreter.primitiveSuccess(nil)
 		}
 		catch (e: IllegalArgumentException)
 		{
-			return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE)
+			interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE)
 		}
 		catch (e: IOException)
 		{
-			return interpreter.primitiveFailure(E_IO_ERROR)
+			interpreter.primitiveFailure(E_IO_ERROR)
 		}
-
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				ATOM.o(),
 				mapTypeForSizesKeyTypeValueType(
@@ -128,16 +121,12 @@ object P_ServerSocketSetOption : Primitive(2, CanInline, HasSideEffect)
 					inclusive(1, (socketOptions.size - 1).toLong()),
 					ANY.o())),
 			TOP.o())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
 			set(
 				E_INVALID_HANDLE,
 				E_SPECIAL_ATOM,
 				E_INCORRECT_ARGUMENT_TYPE,
 				E_IO_ERROR))
-	}
-
 }

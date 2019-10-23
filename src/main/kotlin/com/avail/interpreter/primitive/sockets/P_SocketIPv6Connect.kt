@@ -57,26 +57,31 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
 import com.avail.io.SimpleCompletionHandler
-import java.net.*
+import java.net.Inet4Address
+import java.net.Inet6Address
+import java.net.Inet6Address.getByAddress
+import java.net.InetSocketAddress
+import java.net.UnknownHostException
 import java.nio.channels.AsynchronousSocketChannel
 import java.util.Collections.emptyList
 
 /**
- * **Primitive:** Connect the [ ] reference by the specified
- * [handle][AtomDescriptor] to an [IPv6][Inet6Address] and port. Create a new [fiber][FiberDescriptor] to respond
- * to the asynchronous completion of the operation; the fiber will run at the
- * specified [priority][IntegerRangeTypeDescriptor.bytes]. If the
- * operation succeeds, then eventually start the new fiber to apply the
- * [success function][FunctionDescriptor]. If the operation fails,
- * then eventually start the new fiber to apply the [ ] to the [ numeric][IntegerDescriptor] [error code][AvailErrorCode]. Answer the new fiber.
+ * **Primitive:** Connect the [AsynchronousSocketChannel] referenced by the
+ * specified [handle][AtomDescriptor] to an [IPv4&#32;address][Inet4Address] and
+ * port. Create a new [fiber][FiberDescriptor] to respond to the asynchronous
+ * completion of the operation; the fiber will run at the specified
+ * [priority][IntegerRangeTypeDescriptor.bytes]. If the operation succeeds, then
+ * eventually start the new fiber to apply the
+ * [success&#32;function][FunctionDescriptor]. If the operation fails, then
+ * eventually start the new fiber to apply the
+ * [failure&#32;function][FunctionDescriptor] to the numeric
+ * [error&#32;code][AvailErrorCode]. Answer the new fiber.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_SocketIPv6Connect : Primitive(6, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(6)
 		val handle = interpreter.argument(0)
@@ -96,18 +101,14 @@ object P_SocketIPv6Connect : Primitive(6, CanInline, HasSideEffect)
 		}
 		val socket = pojo.javaObjectNotNull<AsynchronousSocketChannel>()
 		// Build the big-endian address byte array.
-		val addressBytes = ByteArray(16)
-		for (i in addressBytes.indices)
-		{
-			val addressByte = addressTuple.tupleAt(i + 1)
-			addressBytes[i] = addressByte.extractUnsignedByte().toByte()
+		val addressBytes = ByteArray(16) {
+			addressTuple.tupleAt(it + 1).extractUnsignedByte().toByte()
 		}
-		val address: SocketAddress
-		try
+		val address = try
 		{
-			val inetAddress = InetAddress.getByAddress(addressBytes) as Inet6Address
-			address = InetSocketAddress(
-				inetAddress, port.extractUnsignedShort())
+			InetSocketAddress(
+				getByAddress(addressBytes) as Inet6Address,
+				port.extractUnsignedShort())
 		}
 		catch (e: IllegalStateException)
 		{
@@ -126,9 +127,10 @@ object P_SocketIPv6Connect : Primitive(6, CanInline, HasSideEffect)
 			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
 			priority.extractInt()
 		) {
-			// TODO Auto-generated method stub
-			formatString("Socket IPv6 connect, %s:%d",
-			             addressTuple.toString(), port.extractInt())
+			formatString(
+				"Socket IPv6 connect, %s:%d",
+				addressTuple.toString(),
+				port.extractInt())
 		}
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
@@ -144,48 +146,41 @@ object P_SocketIPv6Connect : Primitive(6, CanInline, HasSideEffect)
 		fail.makeShared()
 		// Now start the asynchronous connect.
 		val runtime = currentRuntime()
-		try
+		return try
 		{
 			socket.connect<Any>(
 				address,
 				null,
 				SimpleCompletionHandler(
-					{ unused ->
+					{ _ ->
 						runOutermostFunction(
-							runtime,
-							newFiber,
-							succeed,
-							emptyList())
-						Unit
+							runtime, newFiber, succeed, emptyList())
 					},
-					{ killer ->
+					{
 						runOutermostFunction(
 							runtime,
 							newFiber,
 							fail,
 							listOf(E_IO_ERROR.numericCode()))
-						Unit
 					}))
+			interpreter.primitiveSuccess(newFiber)
 		}
 		catch (e: IllegalArgumentException)
 		{
-			return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE)
+			interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE)
 		}
 		catch (e: IllegalStateException)
 		{
-			return interpreter.primitiveFailure(E_INVALID_HANDLE)
+			interpreter.primitiveFailure(E_INVALID_HANDLE)
 		}
 		catch (e: SecurityException)
 		{
-			return interpreter.primitiveFailure(E_PERMISSION_DENIED)
+			interpreter.primitiveFailure(E_PERMISSION_DENIED)
 		}
-
-		return interpreter.primitiveSuccess(newFiber)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tupleFromArray(
 				ATOM.o(),
 				tupleTypeForSizesTypesDefaultType(
@@ -199,17 +194,13 @@ object P_SocketIPv6Connect : Primitive(6, CanInline, HasSideEffect)
 					TOP.o()),
 				bytes()),
 			mostGeneralFiberType())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
 			set(
 				E_INVALID_HANDLE,
 				E_SPECIAL_ATOM,
 				E_INCORRECT_ARGUMENT_TYPE,
 				E_IO_ERROR,
 				E_PERMISSION_DENIED))
-	}
-
 }

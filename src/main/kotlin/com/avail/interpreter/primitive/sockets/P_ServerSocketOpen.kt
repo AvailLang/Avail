@@ -52,46 +52,36 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
 import java.io.IOException
+import java.nio.channels.AsynchronousServerSocketChannel
 
 /**
- * **Primitive:** Open an [ ]. Answer a
+ * **Primitive:** Open an [AsynchronousServerSocketChannel]. Answer a
  * [handle][AtomDescriptor] that uniquely identifies the socket.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_ServerSocketOpen : Primitive(1, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val name = interpreter.argument(0)
-		try
-		{
+		return try {
 			val handle = createAtom(name, currentModule())
 			val channel = currentRuntime().ioSystem().openServerSocket()
-			val pojo = identityPojo(channel)
-			handle.setAtomProperty(SERVER_SOCKET_KEY.atom, pojo)
-			return interpreter.primitiveSuccess(handle)
+			handle.setAtomProperty(
+				SERVER_SOCKET_KEY.atom, identityPojo(channel))
+			interpreter.primitiveSuccess(handle)
+		} catch (e: IOException) {
+			interpreter.primitiveFailure(E_IO_ERROR)
 		}
-		catch (e: IOException)
-		{
-			return interpreter.primitiveFailure(E_IO_ERROR)
-		}
-
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(oneOrMoreOf(CHARACTER.o())),
 			ATOM.o())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_IO_ERROR))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_IO_ERROR))
 }

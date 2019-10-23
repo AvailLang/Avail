@@ -732,6 +732,26 @@ extends Descriptor
 
 			return stripNull(value);
 		}
+
+		/**
+		 * Temporary Kotlin compatibility.
+		 *
+		 * @return The key.
+		 */
+		public AvailObject component1 ()
+		{
+			return key();
+		}
+
+		/**
+		 * Temporary Kotlin compatibility.
+		 *
+		 * @return The value.
+		 */
+		public AvailObject component2 ()
+		{
+			return value();
+		}
 	}
 
 	/**
