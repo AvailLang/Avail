@@ -47,14 +47,13 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer a new [ map][MapDescriptor], but without the given key. Answer the original map if the key does
- * not occur in it.
+ * **Primitive:** Answer a new [map][MapDescriptor], but without the given key.
+ * Answer the original map if the key does not occur in it.
  */
+@Suppress("unused")
 object P_MapWithoutKey : Primitive(2, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val map = interpreter.argument(0)
@@ -63,14 +62,8 @@ object P_MapWithoutKey : Primitive(2, CannotFail, CanFold, CanInline)
 			map.mapWithoutKeyCanDestroy(key, true))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				mostGeneralMapType(),
-				ANY.o()),
-			mostGeneralMapType())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(mostGeneralMapType(), ANY.o()), mostGeneralMapType())
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
@@ -97,5 +90,4 @@ object P_MapWithoutKey : Primitive(2, CannotFail, CanFold, CanInline)
 		return mapTypeForSizesKeyTypeValueType(
 			newSizeRange, mapType.keyType(), mapType.valueType())
 	}
-
 }

@@ -61,23 +61,21 @@ import com.avail.interpreter.Primitive.Flag.HasSideEffect
 import com.avail.interpreter.effects.LoadingEffectToRunPrimitive
 
 /**
- * **Primitive:** Alias a [name][A_String] to another
- * [name][A_Atom].
+ * **Primitive:** Alias a [name][A_String] to another [name][A_Atom].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_Alias : Primitive(2, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val newString = interpreter.argument(0)
 		val oldAtom = interpreter.argument(1)
 
-		val loader = interpreter.availLoaderOrNull()
-		             ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+		val loader =
+			interpreter.availLoaderOrNull()
+	             ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		if (!loader.phase().isExecuting)
 		{
 			return interpreter.primitiveFailure(
@@ -131,25 +129,16 @@ object P_Alias : Primitive(2, CanInline, HasSideEffect)
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				stringType(),
-				ATOM.o()),
-			TOP.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(stringType(), ATOM.o()), TOP.o())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
 			set(
-				E_LOADING_IS_OVER,
-				E_CANNOT_DEFINE_DURING_COMPILATION,
-				E_SPECIAL_ATOM,
-				E_AMBIGUOUS_NAME,
-				E_ATOM_ALREADY_EXISTS
-			).setUnionCanDestroy(possibleErrors, true))
-	}
-
+					E_LOADING_IS_OVER,
+					E_CANNOT_DEFINE_DURING_COMPILATION,
+					E_SPECIAL_ATOM,
+					E_AMBIGUOUS_NAME,
+					E_ATOM_ALREADY_EXISTS)
+				.setUnionCanDestroy(possibleErrors, true))
 }

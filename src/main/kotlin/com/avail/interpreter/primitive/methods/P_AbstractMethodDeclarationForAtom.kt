@@ -56,16 +56,14 @@ import com.avail.utility.Nulls.stripNull
 import java.util.*
 
 /**
- * **Primitive:** Declare method as [ ]. This identifies responsibility for
- * definitions that want to be concrete.
+ * **Primitive:** Declare method as [abstract][P_AbstractMethodDeclaration].
+ * This identifies responsibility for definitions that want to be concrete.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_AbstractMethodDeclarationForAtom : Primitive(2, CanSuspend, Unknown)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val atom = interpreter.argument(0)
@@ -87,9 +85,8 @@ object P_AbstractMethodDeclarationForAtom : Primitive(2, CanSuspend, Unknown)
 		interpreter.primitiveSuspend(primitiveFunction)
 		interpreter.runtime().whenLevelOneSafeDo(
 			fiber.priority(),
-			AvailTask.forUnboundFiber(
-				fiber
-			) {
+			AvailTask.forUnboundFiber(fiber)
+			{
 				try
 				{
 					loader.addAbstractSignature(atom, blockSignature)
@@ -110,26 +107,26 @@ object P_AbstractMethodDeclarationForAtom : Primitive(2, CanSuspend, Unknown)
 				}
 				catch (e: SignatureException)
 				{
-					Interpreter.resumeFromFailedPrimitive(currentRuntime(), fiber, e.numericCode(), primitiveFunction, copiedArgs)
+					Interpreter.resumeFromFailedPrimitive(
+						currentRuntime(),
+						fiber,
+						e.numericCode(),
+						primitiveFunction,
+						copiedArgs)
 				}
 			})
 		return FIBER_SUSPENDED
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(ATOM.o(), functionMeta()), TOP.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(ATOM.o(), functionMeta()), TOP.o())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
 			set(
 				E_LOADING_IS_OVER, E_CANNOT_DEFINE_DURING_COMPILATION,
 				E_REDEFINED_WITH_SAME_ARGUMENT_TYPES,
 				E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS,
 				E_METHOD_IS_SEALED
 			).setUnionCanDestroy(possibleErrors, true))
-	}
-
 }

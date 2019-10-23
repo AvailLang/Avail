@@ -57,9 +57,7 @@ import com.avail.interpreter.Primitive.Flag.Unknown
  */
 object P_AddSemanticRestriction : Primitive(2, Unknown)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val string = interpreter.argument(0)
@@ -85,7 +83,8 @@ object P_AddSemanticRestriction : Primitive(2, Unknown)
 		{
 			val atom = loader.lookupName(string)
 			val method = atom.bundleOrCreate().bundleMethod()
-			val restriction = newSemanticRestriction(function, method, interpreter.module())
+			val restriction =
+				newSemanticRestriction(function, method, interpreter.module())
 			loader.addSemanticRestriction(restriction)
 		}
 		catch (e: MalformedMessageException)
@@ -106,18 +105,12 @@ object P_AddSemanticRestriction : Primitive(2, Unknown)
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				stringType(),
-				functionTypeReturning(topMeta())),
-			TOP.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(stringType(), functionTypeReturning(topMeta())), TOP.o())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
 			set(
 				E_LOADING_IS_OVER,
 				E_CANNOT_DEFINE_DURING_COMPILATION,
@@ -125,6 +118,4 @@ object P_AddSemanticRestriction : Primitive(2, Unknown)
 				E_TYPE_RESTRICTION_MUST_ACCEPT_ONLY_TYPES,
 				E_INCORRECT_NUMBER_OF_ARGUMENTS
 			).setUnionCanDestroy(possibleErrors, true))
-	}
-
 }

@@ -32,7 +32,9 @@
 package com.avail.interpreter.primitive.methods
 
 import com.avail.descriptor.A_Type
+import com.avail.descriptor.AtomDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.MessageBundleDescriptor
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE
@@ -41,13 +43,12 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer a [ ]'s message (an [ ], the message's true name).
+ * **Primitive:** Answer a [message bundle's][MessageBundleDescriptor] message
+ * (an [atom][AtomDescriptor], the message's true name).
  */
 object P_BundleMessage : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val bundle = interpreter.argument(0)
@@ -55,9 +56,6 @@ object P_BundleMessage : Primitive(1, CannotFail, CanFold, CanInline)
 			bundle.message().makeImmutable())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(MESSAGE_BUNDLE.o()), ATOM.o())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(MESSAGE_BUNDLE.o()), ATOM.o())
 }

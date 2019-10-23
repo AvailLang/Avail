@@ -34,6 +34,7 @@ package com.avail.interpreter.primitive.maps
 import com.avail.descriptor.A_Tuple
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.MapDescriptor
 import com.avail.descriptor.MapTypeDescriptor.mostGeneralMapType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray
@@ -46,14 +47,13 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer the bindings of this [ ] as a [tuple][TupleDescriptor] of 2-tuples of
- * key and value.
+ * **Primitive:** Answer the bindings of this [map][MapDescriptor] as a
+ * [tuple][TupleDescriptor] of 2-tuples of key and value.
  */
+@Suppress("unused")
 object P_MapBindings : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val map = interpreter.argument(0)
@@ -67,15 +67,8 @@ object P_MapBindings : Primitive(1, CannotFail, CanFold, CanInline)
 		return interpreter.primitiveSuccess(tupleFromArray(*bindings))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				mostGeneralMapType()),
-			zeroOrMoreOf(
-				tupleTypeForTypes(
-					ANY.o(),
-					ANY.o())))
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(mostGeneralMapType()),
+			zeroOrMoreOf(tupleTypeForTypes(ANY.o(), ANY.o())))
 }

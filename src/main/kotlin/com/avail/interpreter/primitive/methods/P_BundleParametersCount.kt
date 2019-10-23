@@ -44,16 +44,14 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer the number of arguments expected by
- * the specified [method][MethodDescriptor].
+ * **Primitive:** Answer the number of arguments expected by the specified
+ * [method][MethodDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_BundleParametersCount : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val bundle = interpreter.argument(0)
@@ -63,11 +61,6 @@ object P_BundleParametersCount : Primitive(1, CannotFail, CanFold, CanInline)
 			fromInt(splitter.numberOfArguments))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(MESSAGE_BUNDLE.o()),
-			wholeNumbers())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(MESSAGE_BUNDLE.o()), wholeNumbers())
 }

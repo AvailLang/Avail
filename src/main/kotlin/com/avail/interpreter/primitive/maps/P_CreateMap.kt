@@ -46,29 +46,22 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer a [map][MapDescriptor]
- * whose contents are determined by the argument [ tuple][TupleDescriptor] of key-value bindings, i.e. 2-element tuples.
+ * **Primitive:** Answer a [map][MapDescriptor] whose contents are determined by
+ * the argument [tuple][TupleDescriptor] of key-value bindings, i.e. 2-element
+ * tuples.
  */
+@Suppress("unused")
 object P_CreateMap : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val tupleOfBindings = interpreter.argument(0)
 		return interpreter.primitiveSuccess(mapWithBindings(tupleOfBindings))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				zeroOrMoreOf(
-					tupleTypeForTypes(
-						ANY.o(),
-						ANY.o()))),
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(zeroOrMoreOf(tupleTypeForTypes(ANY.o(), ANY.o()))),
 			mostGeneralMapType())
-	}
-
 }
