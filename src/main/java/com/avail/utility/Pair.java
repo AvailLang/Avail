@@ -107,4 +107,14 @@ public class Pair<FirstType, SecondType>
 	{
 		return first + "," + second;
 	}
+
+	public FirstType component1 ()
+	{
+		return first;
+	}
+
+	public SecondType component2 ()
+	{
+		return second;
+	}
 }

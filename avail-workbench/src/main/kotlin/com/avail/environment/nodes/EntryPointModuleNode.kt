@@ -71,17 +71,7 @@ class EntryPointModuleNode constructor(
 	override fun text(selected: Boolean): String =
 		resolvedModuleName.qualifiedName
 
-	override fun htmlStyle(selected: Boolean): String
-	{
-		var base = super.htmlStyle(selected) + ";font-weight:bold"
-		if (!isLoaded)
-		{
-			base += ";font-style:italic"
-			if (!selected)
-			{
-				base += ";color:gray"
-			}
-		}
-		return base
-	}
+	override fun htmlStyle(selected: Boolean): String =
+		fontStyle(bold = true, italic = !isLoaded) +
+			colorStyle(selected, isLoaded, resolvedModuleName.isRename)
 }

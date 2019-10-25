@@ -127,7 +127,7 @@ class CompilerConfiguration : Configuration
 
 				field = resolver
 			}
-			return resolver!!
+			return resolver
 		}
 
 	/** The target [module][ModuleName] for compilation.  */

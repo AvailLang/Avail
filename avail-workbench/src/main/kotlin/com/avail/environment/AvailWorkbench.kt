@@ -51,6 +51,7 @@ import com.avail.utility.*
 import com.avail.utility.Casts.cast
 import com.avail.utility.Locks.lockWhile
 import com.avail.utility.Nulls.stripNull
+import com.bulenkov.darcula.DarculaLaf
 import java.awt.*
 import java.awt.event.*
 import java.io.*
@@ -679,40 +680,82 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	}
 
 	/**
+	 * An abstraction for a color that's dependent on light versus dark mode.
+	 *
+	 * @property light
+	 *   The color to use in light mode.
+	 * @property light
+	 *   The color to use in dark mode.
+	 * @constructor
+	 * Construct a new `AdaptiveColor`.
+	 */
+	data class AdaptiveColor constructor(
+		private val light: Color,
+		private val dark: Color
+	) {
+		val color: Color get() = if (darkMode) dark else light
+
+		val hex: String get() = with(color) {
+			format("#%02x%02x%02x", red, green, blue)
+		}
+	}
+
+	/**
 	 * An abstraction of the styles of streams used by the workbench.
 	 *
 	 * @property styleName
 	 *   The name of this style.
-	 * @property foregroundColor
-	 *   The color of foreground text in this style.
 	 * @constructor
 	 * Construct a new `StreamStyle`.
 	 *
-	 * @param styleName
-	 *   The name of this style.
-	 * @param foregroundColor
-	 *   The color of foreground text in this style.
+	 * @param light
+	 *   The color of foreground text in this style for light mode.
+	 * @param dark
+	 *   The color of foreground text in this style for dark mode.
 	 */
 	enum class StreamStyle constructor(
-		private val styleName: String, private val foregroundColor: Color)
+		private val styleName: String,
+		light: Color,
+		dark: Color)
 	{
 		/** The stream style used to echo user input.  */
-		IN_ECHO("input", Color(32, 144, 32)),
+		IN_ECHO(
+			"input",
+			light = Color(32, 144, 32),
+			dark = Color(55, 156, 26)),
 
 		/** The stream style used to display normal output.  */
-		OUT("output", Color.BLACK),
+		OUT(
+			"output",
+			light = Color.BLACK,
+			dark = Color(238, 238, 238)),
 
 		/** The stream style used to display error output.  */
-		ERR("error", Color.RED),
+		ERR(
+			"error",
+			light = Color.RED,
+			dark = Color(231, 70, 68)),
 
 		/** The stream style used to display informational text.  */
-		INFO("info", Color.BLUE),
+		INFO(
+			"info",
+			light = Color.BLUE,
+			dark = Color(83, 148, 236)),
 
 		/** The stream style used to echo commands.  */
-		COMMAND("command", Color.MAGENTA),
+		COMMAND(
+			"command",
+			light = Color.MAGENTA,
+			dark = Color(174, 138, 190)),
 
 		/** Progress updates produced by a build.  */
-		BUILD_PROGRESS("build", Color(128, 96, 0));
+		BUILD_PROGRESS(
+			"build",
+			light = Color(128, 96, 0),
+			dark = Color(220, 196, 87));
+
+		/** Combine the light and dark into an AdaptiveColor. */
+		private val adaptiveColor = AdaptiveColor(light, dark)
 
 		/**
 		 * Create my corresponding [Style] in the [StyledDocument].
@@ -726,7 +769,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 				StyleContext.getDefaultStyleContext().getStyle(
 				StyleContext.DEFAULT_STYLE)
 			val style = doc.addStyle(styleName, defaultStyle)
-			StyleConstants.setForeground(style, foregroundColor)
+			StyleConstants.setForeground(style, adaptiveColor.color)
 		}
 
 		/**
@@ -1023,7 +1066,9 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			!busy && selectedEntryPointModule() != null
 		inputLabel.text = if (isRunning) "Console Input:" else "Command:"
 		inputField.background =
-			if (isRunning) { Color(192, 255, 192) } else { null }
+			if (isRunning) inputBackgroundWhenRunning.color else null
+		inputField.foreground =
+			if (isRunning) inputForegroundWhenRunning.color else null
 	}
 
 	/**
@@ -2007,6 +2052,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		// Create the module tree.
 		moduleTree = JTree(
 			DefaultMutableTreeNode("(packages hidden root)"))
+		moduleTree.background = null
 		moduleTree.toolTipText = "All modules, organized by module root."
 		moduleTree.componentPopupMenu = buildMenu.popupMenu
 		moduleTree.isEditable = false
@@ -2049,6 +2095,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		// Create the entry points tree.
 		entryPointsTree = JTree(
 			DefaultMutableTreeNode("(entry points hidden root)"))
+		moduleTree.background = null
 		entryPointsTree.toolTipText = "All entry points, organized by defining module."
 		entryPointsTree.isEditable = false
 		entryPointsTree.isEnabled = true
@@ -2329,7 +2376,6 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		{
 			throw RuntimeException(e)
 		}
-
 	}
 
 	companion object
@@ -2337,7 +2383,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		/**
 		 * The prefix string for resources related to the workbench.
 		 */
-		const val resourcePrefix = "/resources/avail-workbench/"
+		private const val resourcePrefix = "/resources/workbench/"
 
 		/**
 		 * Answer a properly prefixed [String] for accessing the resource having
@@ -2352,11 +2398,34 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 
 		/** Determine at startup whether we're on a Mac.  */
 		val runningOnMac =
-			System.getProperty("os.name").toLowerCase().matches("mac os x.*".toRegex())
+			System.getProperty("os.name").toLowerCase().matches(
+				"mac os x.*".toRegex())
 
 		/** Determine at startup whether we should show developer commands.  */
 		val showDeveloperTools =
-			"true".equals(System.getProperty("availDeveloper"), ignoreCase = true)
+			"true".equals(
+				System.getProperty("availDeveloper"), ignoreCase = true)
+
+		/**
+		 * An indicator of whether to show the user interface in dark (Darcula)
+		 * mode.
+		 */
+		val darkMode: Boolean =
+			System.getProperty("darkMode")?.equals("true") ?: true
+
+		/**
+		 * The background color of the input field when a command is running.
+		 */
+		val inputBackgroundWhenRunning = AdaptiveColor(
+			light = Color(192, 255, 192),
+			dark = Color(55, 156, 26))
+
+		/**
+		 * The foreground color of the input field when a command is running.
+		 */
+		val inputForegroundWhenRunning = AdaptiveColor(
+			light = Color.black,
+			dark = Color.white)
 
 		/**
 		 * The numeric mask for the modifier key suitable for the current
@@ -2377,8 +2446,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		init
 		{
 			val userDir = System.getProperty("user.dir")
-			val fileSystem = FileSystems.getDefault()
-			val path = fileSystem.getPath(userDir)
+			val path = FileSystems.getDefault().getPath(userDir)
 
 			currentWorkingDirectory = File(
 				try
@@ -2510,7 +2578,6 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 				System.err.println(
 					"Unable to read Avail roots preferences.")
 			}
-
 			return roots
 		}
 
@@ -2547,7 +2614,6 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 				System.err.println(
 					"Unable to read Avail rename rule preferences.")
 			}
-
 		}
 
 		/**
@@ -2590,31 +2656,33 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		private val treeRenderer = object : DefaultTreeCellRenderer()
 		{
 			override fun getTreeCellRendererComponent(
-				tree: JTree?,
+				tree: JTree,
 				value: Any?,
-				selected1: Boolean,
+				selected: Boolean,
 				expanded: Boolean,
 				leaf: Boolean,
 				row: Int,
-				hasFocus1: Boolean): Component
+				hasFocus: Boolean): Component
 			{
-				assert(tree != null)
-				assert(value != null)
-				if (value is AbstractBuilderFrameTreeNode)
-				{
-					val node =
-						value as AbstractBuilderFrameTreeNode?
-					val icon = node!!.icon(tree!!.rowHeight)
-					setLeafIcon(icon)
-					setOpenIcon(icon)
-					setClosedIcon(icon)
-					var html = node.htmlText(selected1)
-					html = "<html>$html</html>"
-					return super.getTreeCellRendererComponent(
-						tree, html, selected1, expanded, leaf, row, hasFocus1)
+				return when (value) {
+					is AbstractBuilderFrameTreeNode -> {
+						val icon = value.icon(tree.rowHeight)
+						setLeafIcon(icon)
+						setOpenIcon(icon)
+						setClosedIcon(icon)
+						var html = value.htmlText(selected)
+						html = "<html>$html</html>"
+						super.getTreeCellRendererComponent(
+							tree, html, selected, expanded, leaf, row, hasFocus)
+					}
+					else -> return super.getTreeCellRendererComponent(
+						tree, value, selected, expanded, leaf, row, hasFocus)
+				}.apply {
+					if (darkMode) {
+						// Fully transparent.
+						backgroundNonSelectionColor = Color(45, 45, 45, 0)
+					}
 				}
-				return super.getTreeCellRendererComponent(
-					tree!!, value, selected1, expanded, leaf, row, hasFocus1)
 			}
 		}
 
@@ -2718,6 +2786,10 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		@JvmStatic
 		fun main(args: Array<String>)
 		{
+			if (darkMode) {
+				UIManager.setLookAndFeel(DarculaLaf())
+			}
+
 			if (runningOnMac)
 			{
 				setUpForMac()

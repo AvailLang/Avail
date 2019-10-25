@@ -65,7 +65,6 @@ class ModuleOrPackageNode constructor(
 	val resolvedModuleName: ResolvedModuleName,
 	val isPackage: Boolean) : AbstractBuilderFrameTreeNode(builder)
 {
-
 	/**
 	 * Is the [module or package][ModuleOrPackageNode] loaded?
 	 *
@@ -91,37 +90,19 @@ class ModuleOrPackageNode constructor(
 	override fun text(selected: Boolean): String =
 		if (isRenamedSource)
 		{
-			(originalModuleName.localName
-			 + " → "
-			 + resolvedModuleName.qualifiedName)
+			(originalModuleName.localName +
+				" → " +
+				resolvedModuleName.qualifiedName)
 		}
 		else
 		{
 			resolvedModuleName.localName
 		}
 
-	override fun htmlStyle(selected: Boolean): String
-	{
-		var base = super.htmlStyle(selected)
-		val renamed = isRenamedSource
-		if (renamed)
-		{
-			base += ";color:orange"
-		}
-		if (isPackage)
-		{
-			base += ";font-weight:bold"
-		}
-		if (!isLoaded)
-		{
-			base += ";font-style:italic"
-			if (!selected && !renamed)
-			{
-				base += ";color:gray"
-			}
-		}
-		return base
-	}
+	override fun htmlStyle(selected: Boolean): String =
+		fontStyle(bold = isPackage, italic = !isLoaded) +
+			colorStyle(selected, isLoaded, isRenamedSource)
 
-	override fun sortMajor(): Int = if (isPackage) { 10 } else { 20 }
+	override val sortMajor: Int
+		get() = if (isPackage) 10 else 20
 }

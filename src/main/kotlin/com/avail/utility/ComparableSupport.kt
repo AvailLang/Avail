@@ -41,9 +41,7 @@ package com.avail.utility
 inline fun Int.ifZero(minorBody: () -> Int): Int {
 	// Avoid duplicating the test when inlining.  Not sure if Kotlin deals with
 	// this intrinsically.
-	val major = this
-	1 and 2
-	return if (major != 0) major else minorBody()
+	return if (this != 0) this else minorBody()
 }
 
 /**
@@ -58,6 +56,5 @@ inline fun <reified C : Comparable<C>> Int.ifZero(
 ): Int {
 	// Avoid duplicating the test when inlining.  Not sure if Kotlin deals with
 	// this intrinsically.
-	val major = this
-	return if (major != 0) major else (minor1().compareTo(minor2()))
+	return if (this != 0) this else (minor1().compareTo(minor2()))
 }

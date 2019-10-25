@@ -61,6 +61,9 @@ compileTestKotlin {
 
 repositories {
 	mavenCentral()
+	flatDir {
+		dirs 'libs'
+	}
 }
 
 dependencies {
@@ -76,6 +79,9 @@ dependencies {
 	implementation group: 'com.google.code.findbugs',
 		name: 'jsr305',
 		version: "$jsr_version"
+
+	// Dark mode look & feel.
+	implementation name: 'darcula'
 }
 
 // Capture the time at which the build began and record it into a resource file.
@@ -136,7 +142,7 @@ task osx {
 			into file(appDst)
 		}
 
-		def resDir = "$projectDir/src/main/resources/resources/avail-workbench"
+		def resDir = "$projectDir/src/main/resources/resources/workbench"
 		def resSrc = file("$resDir/AvailHammer.icns")
 		def resDst = file("$appDst/Contents/Resources")
 		copy {

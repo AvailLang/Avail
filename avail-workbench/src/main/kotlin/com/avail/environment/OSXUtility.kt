@@ -65,7 +65,7 @@ object OSXUtility
 	internal val enableAboutMethod: Method
 
 	/** The method Application#setEnabledPreferencesMenu(boolean). */
-	internal val enablePrefsMethod: Method
+	internal val enablePreferencesMethod: Method
 
 	/** The method Application.setDockIconBadge(String). */
 	internal val setDockIconBadgeMethod: Method
@@ -90,7 +90,7 @@ object OSXUtility
 			enableAboutMethod =
 				applicationClass.getDeclaredMethod(
 				"setEnabledAboutMenu", Boolean::class.javaPrimitiveType)
-			enablePrefsMethod =
+			enablePreferencesMethod =
 				applicationClass.getDeclaredMethod(
 					"setEnabledPreferencesMenu",
 					Boolean::class.javaPrimitiveType)
@@ -135,7 +135,7 @@ object OSXUtility
 	 *
 	 * @param quitHandler
 	 */
-	fun setQuitHandler(quitHandler: ((Any) -> Boolean)?)
+	fun setQuitHandler(quitHandler: (Any) -> Boolean)
 	{
 		setHandler("handleQuit", quitHandler)
 	}
@@ -147,7 +147,7 @@ object OSXUtility
 	 *
 	 * @param aboutHandler
 	 */
-	fun setAboutHandler(aboutHandler: ((Any) -> Boolean)?)
+	fun setAboutHandler(aboutHandler: (Any) -> Boolean)
 	{
 		setHandler("handleAbout", aboutHandler)
 
@@ -155,7 +155,7 @@ object OSXUtility
 		// com.apple.eawt.Application reflectively.
 		try
 		{
-			enableAboutMethod.invoke(macOSXApplication, aboutHandler != null)
+			enableAboutMethod.invoke(macOSXApplication, true)
 		}
 		catch (ex: Exception)
 		{
@@ -169,16 +169,16 @@ object OSXUtility
 	 * application options. They will be called when the Preferences menu
 	 * item is selected from the application menu.
 	 *
-	 * @param prefsHandler
+	 * @param preferences
 	 */
-	fun setPreferencesHandler(prefsHandler: ((Any)-> Boolean)?)
+	fun setPreferencesHandler(preferences: (Any)-> Boolean)
 	{
-		setHandler("handlePreferences", prefsHandler)
+		setHandler("handlePreferences", preferences)
 		// If we're setting a handler, enable the Preferences menu item by
 		// calling com.apple.eawt.Application reflectively.
 		try
 		{
-			enablePrefsMethod.invoke(macOSXApplication, prefsHandler != null)
+			enablePreferencesMethod.invoke(macOSXApplication, true)
 		}
 		catch (ex: Exception)
 		{
@@ -196,8 +196,7 @@ object OSXUtility
 	 *
 	 * @param fileHandler
 	 */
-	fun setFileHandler(
-		fileHandler: (String) -> Boolean)
+	fun setFileHandler(fileHandler: (String) -> Boolean)
 	{
 		setHandler("handleOpenFile") { event ->
 			val filename: String
@@ -229,7 +228,7 @@ object OSXUtility
 	 * @param handlerMessage
 	 * @param handler
 	 */
-	fun setHandler(handlerMessage: String, handler: ((Any) -> Boolean)?)
+	private fun setHandler(handlerMessage: String, handler: (Any) -> Boolean)
 	{
 		try
 		{
@@ -238,15 +237,13 @@ object OSXUtility
 				arrayOf(applicationListenerClass))
 			{ thisProxy, method, args ->
 				assert(thisProxy != null)
-				assert(method != null)
-				assert(args != null)
 				val success: Boolean =
-					if (method!!.name == handlerMessage && handler != null)
+					if (method.name == handlerMessage)
 					{
-						java.lang.Boolean.TRUE == handler(args!![0])
+						java.lang.Boolean.TRUE == handler(args[0])
 					}
 					else { false }
-				setApplicationEventHandled(args!![0], success)
+				setApplicationEventHandled(args[0], success)
 				success
 			}
 			addListenerMethod.invoke(macOSXApplication, proxy)
@@ -276,7 +273,7 @@ object OSXUtility
 	 * @param event
 	 * @param handled
 	 */
-	internal fun setApplicationEventHandled(event: Any, handled: Boolean)
+	private fun setApplicationEventHandled(event: Any, handled: Boolean)
 	{
 		try
 		{
@@ -292,6 +289,5 @@ object OSXUtility
 				"OSXUtility was unable to handle an ApplicationEvent: $event")
 			e.printStackTrace()
 		}
-
 	}
 }

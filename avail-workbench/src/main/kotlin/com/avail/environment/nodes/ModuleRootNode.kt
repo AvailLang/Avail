@@ -58,5 +58,6 @@ class ModuleRootNode constructor(
 
 	override fun text(selected: Boolean): String = moduleRoot.name
 
-	override fun htmlStyle(selected: Boolean): String = "font-weight:900"
+	override fun htmlStyle(selected: Boolean): String =
+		fontStyle(bold = true) + colorStyle(selected, true, false)
 }

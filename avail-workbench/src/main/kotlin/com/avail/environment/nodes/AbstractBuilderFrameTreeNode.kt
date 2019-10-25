@@ -34,10 +34,18 @@ package com.avail.environment.nodes
 
 import com.avail.builder.AvailBuilder
 import com.avail.environment.AvailWorkbench
+import com.avail.environment.AvailWorkbench.AdaptiveColor
+import com.avail.environment.nodes.AbstractBuilderFrameTreeNode.Companion.LoadedState.Loaded
+import com.avail.environment.nodes.AbstractBuilderFrameTreeNode.Companion.LoadedState.Unloaded
+import com.avail.environment.nodes.AbstractBuilderFrameTreeNode.Companion.RenamedState.NotRenamed
+import com.avail.environment.nodes.AbstractBuilderFrameTreeNode.Companion.RenamedState.Renamed
+import com.avail.environment.nodes.AbstractBuilderFrameTreeNode.Companion.SelectedState.Selected
+import com.avail.environment.nodes.AbstractBuilderFrameTreeNode.Companion.SelectedState.Unselected
 import com.avail.utility.Casts.cast
 import com.avail.utility.LRUCache
 import com.avail.utility.Pair
 import com.avail.utility.ifZero
+import java.awt.Color
 import java.awt.Image
 import javax.swing.ImageIcon
 import javax.swing.tree.DefaultMutableTreeNode
@@ -58,8 +66,8 @@ import javax.swing.tree.DefaultMutableTreeNode
  *   The builder for which this node is being built.
  */
 abstract class AbstractBuilderFrameTreeNode internal constructor(
-		internal val builder: AvailBuilder)
-	: DefaultMutableTreeNode(), Comparable<AbstractBuilderFrameTreeNode>
+		internal val builder: AvailBuilder
+) : DefaultMutableTreeNode(), Comparable<AbstractBuilderFrameTreeNode>
 {
 	/**
 	 * Extract text to display for this node.  Presentation styling will be
@@ -78,7 +86,7 @@ abstract class AbstractBuilderFrameTreeNode internal constructor(
 	 *   Whether the node is selected.
 	 * @return The span style attribute text.
 	 */
-	internal open fun htmlStyle(selected: Boolean): String = "font-weight:normal"
+	internal abstract fun htmlStyle(selected: Boolean): String
 
 	/**
 	 * The local file name `String` of an image file, relative to the
@@ -114,12 +122,9 @@ abstract class AbstractBuilderFrameTreeNode internal constructor(
 	 * @return The HTML text as a [String].
 	 */
 	fun htmlText(selected: Boolean): String =
-		("<div style=\"" + htmlStyle(selected) + "\">"
-		        + text(selected)
-		        + "</div>")
+		"<div style=\"${htmlStyle(selected)}\">${text(selected)}</div>"
 
-	override fun toString(): String =
-		javaClass.simpleName + ": " + text(false)
+	override fun toString(): String = "${javaClass.simpleName}: ${text(false)}"
 
 	/**
 	 * Answer whether string is an appropriate semantic label for this node.
@@ -135,7 +140,7 @@ abstract class AbstractBuilderFrameTreeNode internal constructor(
 	 * Order this node against another.
 	 */
 	override fun compareTo(other: AbstractBuilderFrameTreeNode): Int =
-		sortMajor().compareTo(other.sortMajor()).ifZero {
+		sortMajor.compareTo(other.sortMajor).ifZero {
 			text(false).compareTo(other.text(false))
 		}
 
@@ -161,10 +166,66 @@ abstract class AbstractBuilderFrameTreeNode internal constructor(
 	 *
 	 * @return An `int`.  Lower values sort before higher ones.
 	 */
-	open fun sortMajor(): Int =  0
+	open val sortMajor: Int get() = 0
 
-	companion object
-	{
+	companion object {
+		enum class LoadedState {Loaded, Unloaded}
+		enum class RenamedState {Renamed, NotRenamed}
+		enum class SelectedState {Selected, Unselected}
+
+		val palette = mapOf(
+			Triple(Unloaded, NotRenamed, Unselected) to AdaptiveColor(
+				light = Color.gray,
+				dark = Color.gray),
+			Triple(Unloaded, NotRenamed, Selected) to AdaptiveColor(
+				light = Color.lightGray,
+				dark = Color.lightGray),
+			Triple(Unloaded, Renamed, Unselected) to AdaptiveColor(
+				light = Color(220, 170, 10),
+				dark = Color(110, 98, 43)),
+			Triple(Unloaded, Renamed, Selected) to AdaptiveColor(
+				light = Color(180, 145, 0),
+				dark = Color(180, 160, 72)),
+			Triple(Loaded, NotRenamed, Unselected) to AdaptiveColor(
+				light = Color.black,
+				dark = Color(169, 183, 198)),
+			Triple(Loaded, NotRenamed, Selected) to AdaptiveColor(
+				light = Color.white,
+				dark = Color(169, 183, 198)),
+			Triple(Loaded, Renamed, Unselected) to AdaptiveColor(
+				light = Color(200, 160, 0),
+				dark = Color(180, 160, 72)),
+			Triple(Loaded, Renamed, Selected) to AdaptiveColor(
+				light = Color(235, 190, 30),
+				dark = Color(180, 160, 72)))
+
+		/**
+		 * Produce a style string that includes foreground and background
+		 * colors based on the given parameters and current light/dark mode.
+		 */
+		fun colorStyle(
+			selected: Boolean,
+			loaded: Boolean,
+			renamed: Boolean): String
+		{
+			val fore: AdaptiveColor = palette[
+				Triple(
+					if (loaded) Loaded else Unloaded,
+					if (renamed) Renamed else NotRenamed,
+					if (selected) Selected else Unselected)]!!
+			return "color:${fore.hex};"
+		}
+
+		/**
+		 * Produce a style string that includes foreground and background
+		 * colors based on the given parameters and current light/dark mode.
+		 */
+		fun fontStyle(
+			bold: Boolean = false,
+			italic: Boolean = false
+		): String =
+			(if (bold) "font-weight:900;" else "") +
+			(if (italic) "font-style:italic;" else "")
 
 		/**
 		 * A static cache of scaled icons, organized by node class and line
@@ -172,16 +233,13 @@ abstract class AbstractBuilderFrameTreeNode internal constructor(
 		 */
 		private val cachedScaledIcons = LRUCache<Pair<String, Int>, ImageIcon>(
 			100, 20,
-			{ pair ->
-				val iconResourceName = pair.first()
-				val path = (AvailWorkbench.resourcePrefix
-				            + iconResourceName + ".png")
-				val thisClass =
-					AbstractBuilderFrameTreeNode::class.java
+			{ (iconResourceName, height) ->
+				val path = AvailWorkbench.resource("$iconResourceName.png")
+				val thisClass = AbstractBuilderFrameTreeNode::class.java
 				val resource = thisClass.getResource(path)
 				val originalIcon = ImageIcon(resource)
 				val scaled = originalIcon.image.getScaledInstance(
-					-1, pair.second(), Image.SCALE_SMOOTH)
+					-1, height, Image.SCALE_SMOOTH)
 				ImageIcon(scaled, iconResourceName)
 			})
 	}

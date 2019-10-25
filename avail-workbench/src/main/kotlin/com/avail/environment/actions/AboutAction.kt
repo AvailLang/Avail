@@ -34,7 +34,9 @@ package com.avail.environment.actions
 
 import com.avail.AvailRuntimeConfiguration
 import com.avail.environment.AvailWorkbench
+import com.avail.environment.AvailWorkbench.AdaptiveColor
 import java.awt.BorderLayout
+import java.awt.Color
 import java.awt.Dialog.ModalityType
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
@@ -70,13 +72,11 @@ class AboutAction constructor(workbench: AvailWorkbench)
 
 		val logo = ImageIcon(
 			this.javaClass.getResource(
-				AvailWorkbench.resourcePrefix
-				+ "resources/workbench/Avail-logo-about.png"))
+				AvailWorkbench.resource("Avail-logo-about.png")))
 		panel.add(JLabel(logo))
 
 		val builder = StringBuilder(200)
 		builder.append("<html><center>")
-		builder.append("<font color=blue>www.availlang.org</font><br><br><br>")
 		builder.append("<font size=+2>The Avail Workbench</font><br>")
 		builder.append("<font size=-1>Supported Versions:</font>")
 		for (version in AvailRuntimeConfiguration.activeVersions())
@@ -88,7 +88,12 @@ class AboutAction constructor(workbench: AvailWorkbench)
 		builder.append("<br><br>")
 		builder.append(
 			"Copyright \u00A9 1993-2019 The Avail Foundation, LLC.<br>")
-		builder.append("All rights reserved.")
+		builder.append("All rights reserved.<br><br>")
+		val siteColor = AdaptiveColor(
+			light = Color(16, 16, 192),
+			dark = Color(128, 160, 255))
+		val site = "www.availlang.org"
+		builder.append("<font color=${siteColor.hex}>$site</font><br><br><br>")
 		builder.append("</center></html>")
 		panel.add(
 			JLabel(

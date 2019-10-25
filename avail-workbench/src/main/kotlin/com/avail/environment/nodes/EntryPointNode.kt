@@ -65,19 +65,10 @@ class EntryPointNode constructor(
 
 	override fun text(selected: Boolean): String = entryPointString
 
-	override fun htmlStyle(selected: Boolean): String
-	{
+	override fun htmlStyle(selected: Boolean): String =
 		synchronized(builder) {
-			var base = super.htmlStyle(selected)
-			if (builder.getLoadedModule(resolvedModuleName) == null)
-			{
-				base += ";font-style:italic"
-				if (!selected)
-				{
-					base += ";color:gray"
-				}
-			}
-			return base
+			val loaded = builder.getLoadedModule(resolvedModuleName) !== null
+			fontStyle(italic = loaded) +
+				colorStyle(selected, loaded, resolvedModuleName.isRename)
 		}
-	}
 }
