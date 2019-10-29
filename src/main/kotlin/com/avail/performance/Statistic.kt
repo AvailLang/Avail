@@ -89,7 +89,7 @@ class Statistic constructor(
 	 *   The index specifying which [PerInterpreterStatistic] to add the sample
 	 *   to.
 	 */
-	fun record(sample: Double, index: Int = Interpreter.currentIndex()) =
+	fun record(sample: Double, index: Int = Interpreter.currentIndexOrZero()) =
 		statistics[index].record(sample)
 
 	/**
@@ -102,7 +102,7 @@ class Statistic constructor(
 	 *   The index specifying which [PerInterpreterStatistic] to add the sample
 	 *   to.
 	 */
-	fun record(sample: Long, index: Int) =
+	fun record(sample: Long, index: Int = Interpreter.currentIndexOrZero()) =
 		statistics[index].record(sample.toDouble())
 
 	/**
@@ -127,7 +127,7 @@ class Statistic constructor(
 	 * value produced by the body.
 	 */
 	inline fun <reified A> record(
-		index: Int = Interpreter.currentIndex(),
+		index: Int = Interpreter.currentIndexOrZero(),
 		body: () -> A
 	): A {
 		val before = System.nanoTime()

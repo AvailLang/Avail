@@ -276,8 +276,7 @@ class Serializer
 				// traced.
 				workStack.addFirst { traceOne(obj.value()) }
 			}
-			instruction.operation.traceStat.record(
-				(System.nanoTime() - before).toDouble())
+			instruction.operation.traceStat.record(System.nanoTime() - before)
 		}
 	}
 

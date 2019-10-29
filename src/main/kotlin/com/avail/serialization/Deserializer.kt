@@ -112,8 +112,7 @@ class Deserializer constructor(
 				val newObject = operation.compose(subobjectsBuffer, this)
 				newObject.makeImmutable()
 				addObject(newObject as AvailObject)
-				operation.deserializeStat.record(
-					(System.nanoTime() - before).toDouble())
+				operation.deserializeStat.record(System.nanoTime() - before)
 			}
 			val temp = producedObject
 			producedObject = null

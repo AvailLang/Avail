@@ -580,7 +580,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		}
 		finally
 		{
-			discardExcessLeadingStat.record((System.nanoTime() - before).toDouble(), 0)
+			discardExcessLeadingStat.record(System.nanoTime() - before)
 		}
 	}
 
@@ -653,7 +653,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 				document.remove(
 					statusSize, min(amountToRemove, length - statusSize))
 				// Always use index 0, since this only happens in the UI thread.
-				removeStringStat.record((System.nanoTime() - beforeRemove).toDouble(), 0)
+				removeStringStat.record(System.nanoTime() - beforeRemove)
 			}
 			for (entry in aggregatedEntries)
 			{
@@ -663,7 +663,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 					entry.string,
 					entry.style.styleIn(document))
 				// Always use index 0, since this only happens in the UI thread.
-				insertStringStat.record((System.nanoTime() - before).toDouble(), 0)
+				insertStringStat.record(System.nanoTime() - before)
 			}
 		}
 		catch (e: BadLocationException)
@@ -1084,8 +1084,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 					perModuleStatusTextSize,
 					document.length - perModuleStatusTextSize)
 				// Always use index 0, since this only happens in the UI thread.
-				removeStringStat.record(
-					(System.nanoTime() - beforeRemove).toDouble(), 0)
+				removeStringStat.record(System.nanoTime() - beforeRemove)
 			}
 			catch (e: BadLocationException)
 			{
@@ -1653,8 +1652,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			val beforeRemove = System.nanoTime()
 			doc.remove(0, perModuleStatusTextSize)
 			// Always use index 0, since this only happens in the UI thread.
-			removeStringStat.record(
-				(System.nanoTime() - beforeRemove).toDouble(), 0)
+			removeStringStat.record(System.nanoTime() - beforeRemove)
 
 			val beforeInsert = System.nanoTime()
 			doc.insertString(
@@ -1662,8 +1660,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 				string,
 				BUILD_PROGRESS.styleIn(doc))
 			// Always use index 0, since this only happens in the UI thread.
-			insertStringStat.record(
-				(System.nanoTime() - beforeInsert).toDouble(), 0)
+			insertStringStat.record(System.nanoTime() - beforeInsert)
 		}
 		catch (e: BadLocationException)
 		{
@@ -1956,8 +1953,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			dequeLock.lock()
 			try
 			{
-				waitForDequeLockStat.record(
-					(System.nanoTime() - beforeLock).toDouble(), 0)
+				waitForDequeLockStat.record(System.nanoTime() - beforeLock)
 				totalQueuedTextSize.getAndAdd(
 					(-privateDiscardExcessLeadingQueuedUpdates()).toLong())
 			}
@@ -1965,7 +1961,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			{
 				// Record the stat just before unlocking, to avoid the need for
 				// a lock for the statistic itself.
-				writeTextStat.record((System.nanoTime() - before).toDouble(), 0)
+				writeTextStat.record(System.nanoTime() - before)
 				dequeLock.unlock()
 			}
 		}

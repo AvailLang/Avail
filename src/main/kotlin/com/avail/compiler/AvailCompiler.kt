@@ -1349,9 +1349,7 @@ class AvailCompiler(
 						latestPhrase,
 						bundleTree.latestBackwardJump())
 				val timeAfter = captureNanos()
-				typeCheckArgumentStat.record(
-					(timeAfter - timeBefore).toDouble(),
-					Interpreter.currentIndex())
+				typeCheckArgumentStat.record(timeAfter - timeBefore)
 				if (AvailRuntimeConfiguration.debugCompilerSteps)
 				{
 					println("Type filter: $latestPhrase -> $successor")
@@ -1529,9 +1527,7 @@ class AvailCompiler(
 						val stat =
 							if (caseInsensitive) matchTokenInsensitivelyStat
 							else matchTokenStat
-						stat.record(
-							(timeAfter - timeBefore).toDouble(),
-							Interpreter.currentIndex())
+						stat.record(timeAfter - timeBefore)
 					}
 					assert(foundOne)
 					// Only report if at least one static token has been
@@ -1782,9 +1778,7 @@ class AvailCompiler(
 			consumedTokens,
 			continuation)
 		val timeAfter = captureNanos()
-		op.parsingStatisticInNanoseconds.record(
-			(timeAfter - timeBefore).toDouble(),
-			Interpreter.currentIndex())
+		op.parsingStatisticInNanoseconds.record(timeAfter - timeBefore)
 	}
 
 	/**
