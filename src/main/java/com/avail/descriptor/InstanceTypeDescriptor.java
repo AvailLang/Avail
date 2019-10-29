@@ -46,7 +46,8 @@ import static com.avail.descriptor.InstanceTypeDescriptor.ObjectSlots.INSTANCE;
 import static com.avail.descriptor.IntegerDescriptor.one;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.singleInt;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.SetDescriptor.emptySet;
+import static com.avail.descriptor.SetDescriptor.generateSetFrom;
+import static com.avail.descriptor.SetDescriptor.singletonSet;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
@@ -210,8 +211,9 @@ extends AbstractEnumerationTypeDescriptor
 			// Create a new enumeration containing all elements from both
 			// enumerations.
 			return
-				enumerationWith(another.instances().setWithElementCanDestroy(
-					getInstance(object), false));
+				enumerationWith(
+					another.instances().setWithElementCanDestroy(
+						getInstance(object), false));
 		}
 		// Another is a kind.
 		if (getInstance(object).isInstanceOfKind(another))
@@ -399,14 +401,9 @@ extends AbstractEnumerationTypeDescriptor
 		{
 			return instanceTypeOrMetaOn(tuple.tupleAt(startIndex));
 		}
-		A_Set set = emptySet();
-		for (
-			int i = max(startIndex, 1), end = min(endIndex, upperIndex);
-			i <= end;
-			i++)
-		{
-			set = set.setWithElementCanDestroy(tuple.tupleAt(i), true);
-		}
+		final int offset = max(startIndex, 1) - 1;
+		final int size = min(endIndex, upperIndex) - offset;
+		final A_Set set = generateSetFrom(size, i -> tuple.tupleAt(i + offset));
 		return enumerationWith(set);
 	}
 
@@ -495,9 +492,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	A_Set o_Instances (final AvailObject object)
 	{
-		return emptySet().setWithElementCanDestroy(
-			getInstance(object),
-			true);
+		return singletonSet(getInstance(object));
 	}
 
 	@Override @AvailMethod

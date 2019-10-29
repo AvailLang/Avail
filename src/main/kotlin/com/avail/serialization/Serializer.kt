@@ -34,6 +34,7 @@ package com.avail.serialization
 
 import com.avail.AvailRuntime
 import com.avail.descriptor.*
+import com.avail.serialization.SerializerOperation.*
 import java.io.IOException
 import java.io.OutputStream
 import java.util.*
@@ -168,7 +169,7 @@ class Serializer
 	 * Look up the object.  If it is already in the [encounteredObjects] list,
 	 * answer the corresponding [SerializerInstruction].
 	 *
-	 * @param object
+	 * @param obj
 	 *   The object to look up.
 	 * @return
 	 *   The object's zero-based index in `encounteredObjects`.
@@ -183,7 +184,7 @@ class Serializer
 	 * the instruction has not yet been written; that is, the instruction must
 	 * already have been written.
 	 *
-	 * @param object
+	 * @param obj
 	 *   The object to look up.
 	 * @return
 	 *   The (non-negative) index of the instruction that produced the object.
@@ -199,20 +200,16 @@ class Serializer
 	 * Trace the object and answer, but don't emit, a [SerializerInstruction]
 	 * suitable for adding to the [encounteredObjects] [Map].
 	 *
-	 * @param object
+	 * @param obj
 	 *   The [A_BasicObject] to trace.
 	 * @return
 	 *   The new [SerializerInstruction].
 	 */
 	private fun newInstruction(obj: A_BasicObject): SerializerInstruction
 	{
-		return SerializerInstruction(
-			if (specialObjects.containsKey(obj))
-				SerializerOperation.SPECIAL_OBJECT
-			else
-				obj.serializerOperation(),
-			obj,
-			this)
+		val operation = if (specialObjects.containsKey(obj)) SPECIAL_OBJECT
+		else obj.serializerOperation()
+		return SerializerInstruction(operation, obj, this)
 	}
 
 	/**
@@ -231,16 +228,15 @@ class Serializer
 	 * recursively contain a reference to Y, leading to Y needing to be traced
 	 * prior to Z.
 	 *
-	 * @param object
+	 * @param obj
 	 *   The object to trace.
 	 */
 	internal fun traceOne(obj: AvailObject)
 	{
+		val before = System.nanoTime()
 		// Build but don't yet emit the instruction.
 		val instruction =
-			encounteredObjects.computeIfAbsent(obj) {
-				newInstruction(it)
-			}
+			encounteredObjects.computeIfAbsent(obj) { newInstruction(it) }
 		// Do nothing if the object's instruction has already been emitted.
 		if (!instruction.hasBeenWritten)
 		{
@@ -280,6 +276,8 @@ class Serializer
 				// traced.
 				workStack.addFirst { traceOne(obj.value()) }
 			}
+			instruction.operation.traceStat.record(
+				(System.nanoTime() - before).toDouble())
 		}
 	}
 
@@ -313,7 +311,7 @@ class Serializer
 	 * Serialize this [AvailObject] so that it will appear as the next
 	 * checkpoint object during deserialization.
 	 *
-	 * @param object
+	 * @param obj
 	 *   An object to serialize.
 	 */
 	fun serialize(obj: A_BasicObject)
@@ -327,27 +325,31 @@ class Serializer
 		// Next, do all variable assignments...
 		for (variable in variablesToAssign)
 		{
-			assert(!variable.value().equalsNil())
-			val assignment = SerializerInstruction(
-				SerializerOperation.ASSIGN_TO_VARIABLE,
-				variable,
-				this)
-			assignment.index = instructionsWritten
-			instructionsWritten++
-			assignment.writeTo(this)
-			assert(assignment.hasBeenWritten)
+			ASSIGN_TO_VARIABLE.serializeStat.record {
+				assert(!variable.value().equalsNil())
+				val assignment = SerializerInstruction(
+					ASSIGN_TO_VARIABLE,
+					variable,
+					this)
+				assignment.index = instructionsWritten
+				instructionsWritten++
+				assignment.writeTo(this)
+				assert(assignment.hasBeenWritten)
+			}
 		}
 		variablesToAssign.clear()
 		// Finally, write a checkpoint to say there's something ready for the
 		// deserializer to answer.
-		val checkpoint = SerializerInstruction(
-			SerializerOperation.CHECKPOINT,
-			strongObject,
-			this)
-		checkpoint.index = instructionsWritten
-		instructionsWritten++
-		checkpoint.writeTo(this)
-		assert(checkpoint.hasBeenWritten)
+		CHECKPOINT.serializeStat.record {
+			val checkpoint = SerializerInstruction(
+				CHECKPOINT,
+				strongObject,
+				this)
+			checkpoint.index = instructionsWritten
+			instructionsWritten++
+			checkpoint.writeTo(this)
+			assert(checkpoint.hasBeenWritten)
+		}
 	}
 
 	companion object
@@ -378,7 +380,7 @@ class Serializer
 		 * object][AvailRuntime.specialObjects], then answer which special
 		 * object it is, otherwise answer -1.
 		 *
-		 * @param object
+		 * @param obj
 		 *   The object to look up.
 		 * @return
 		 *   The object's zero-based index in `encounteredObjects`.

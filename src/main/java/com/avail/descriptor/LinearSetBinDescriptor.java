@@ -37,16 +37,13 @@ import com.avail.annotations.HideFieldInDebugger;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 
 import java.util.NoSuchElementException;
+import java.util.function.IntFunction;
 
 import static com.avail.descriptor.AvailObjectRepresentation.newLike;
-import static com.avail.descriptor.HashedSetBinDescriptor.checkHashedSetBin;
-import static com.avail.descriptor.HashedSetBinDescriptor.createInitializedHashSetBin;
+import static com.avail.descriptor.HashedSetBinDescriptor.*;
 import static com.avail.descriptor.LinearSetBinDescriptor.IntegerSlots.BIN_HASH;
 import static com.avail.descriptor.LinearSetBinDescriptor.ObjectSlots.BIN_ELEMENT_AT_;
-import static com.avail.descriptor.Mutability.IMMUTABLE;
-import static com.avail.descriptor.Mutability.MUTABLE;
-import static com.avail.descriptor.Mutability.SHARED;
-import static com.avail.descriptor.Mutability.values;
+import static com.avail.descriptor.Mutability.*;
 import static java.lang.Long.bitCount;
 
 /**
@@ -105,9 +102,10 @@ extends SetBinDescriptor
 	/**
 	 * When a {@linkplain LinearSetBinDescriptor linear bin} reaches this many
 	 * entries and it's not already at the bottom allowable level ({@link
-	 * #numberOfLevels} - 1) of the hash tree, then convert it to a hashed bin.
+	 * HashedSetBinDescriptor#numberOfLevels} - 1) of the hash tree, then
+	 * convert it to a hashed bin.
 	 */
-	private static final int thresholdToHash = 10;
+	static final int thresholdToHash = 10;
 
 	/** Whether to do sanity checks on linear set bins' hashes. */
 	private static final boolean checkBinHashes = false;
@@ -363,8 +361,10 @@ extends SetBinDescriptor
 	{
 		return new SetIterator()
 		{
+			/** How many elements will be visited. */
 			final int limit = object.variableObjectSlotsCount();
 
+			/** The next one-based index to visit. */
 			int index = 1;
 
 			@Override
@@ -407,12 +407,6 @@ extends SetBinDescriptor
 		checkBinHash(instance);
 		return instance;
 	}
-
-	/**
-	 * The number of distinct levels at which {@linkplain LinearSetBinDescriptor
-	 * linear bins} may occur.
-	 */
-	private static final byte numberOfLevels = 6;
 
 	/**
 	 * Answer a suitable descriptor for a linear bin with the specified
@@ -511,5 +505,53 @@ extends SetBinDescriptor
 	static AvailObject emptyLinearSetBin (final byte level)
 	{
 		return emptyBins[level];
+	}
+
+	/**
+	 * Generate a linear set bin by extracting the specified number of values
+	 * from the generator.  The values might not necessarily be unique, so
+	 * reduce them.  If they are all the same value, answer the value itself as
+	 * a singleton bin.
+	 *
+	 * <p>Each element is compared against all the others to detect duplicates
+	 * while populating the bin.  If any duplicates are detected, a copy is made
+	 * of the populated prefix of the bin.</p>
+	 *
+	 * @param level The level of the bin to create.
+	 * @param size The number of values to extract from the generator.
+	 * @param generator A generator to provide {@link AvailObject}s to store.
+	 * @return A top-level linear set bin.
+	 */
+	static AvailObject generateLinearSetBinFrom (
+		final byte level,
+		final int size,
+		final IntFunction<? extends A_BasicObject> generator)
+	{
+		final AvailObject bin = descriptorFor(MUTABLE, level).create(size);
+		int hash = 0;
+		int written = 0;
+		outer: for (int i = 1; i <= size; i++)
+		{
+			final A_BasicObject element = generator.apply(i);
+			for (int j = 1; j <= written; j++)
+			{
+				if (element.equals(bin.slot(BIN_ELEMENT_AT_, j)))
+				{
+					continue outer;
+				}
+			}
+			bin.setSlot(BIN_ELEMENT_AT_, ++written, element);
+			hash += element.hash();
+		}
+		bin.setSlot(BIN_HASH, hash);
+		if (written == size)
+		{
+			return bin;
+		}
+		if (written == 1)
+		{
+			return bin.slot(BIN_ELEMENT_AT_, 1);
+		}
+		return newLike(bin.descriptor, bin, written - size, 0);
 	}
 }

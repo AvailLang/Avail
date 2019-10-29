@@ -49,7 +49,7 @@ import com.avail.descriptor.AvailObject
  *
  * @param operation
  *   The [SerializerOperation] that will decompose the object for serialization.
- * @param object
+ * @param obj
  *   The object to record by this instruction.
  * @param serializer
  *   The [Serializer] to which this instruction will record.
@@ -107,5 +107,7 @@ internal class SerializerInstruction constructor(
 	 *   Where to write the instruction.
 	 */
 	fun writeTo(serializer: Serializer) =
-		operation.writeObject(subobjects, serializer)
+		operation.serializeStat.record {
+			operation.writeObject(subobjects, serializer)
+		}
 }

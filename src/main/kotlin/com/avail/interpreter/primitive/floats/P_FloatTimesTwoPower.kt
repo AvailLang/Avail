@@ -44,6 +44,7 @@ import com.avail.descriptor.TypeDescriptor.Types.FLOAT
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
+import java.lang.Math.scalb
 import kotlin.math.max
 import kotlin.math.min
 
@@ -66,10 +67,15 @@ object P_FloatTimesTwoPower : Primitive(3, CannotFail, CanFold, CanInline)
 			min(max(b.extractInt(), -10000), 10000)
 		else
 			if (b.greaterOrEqual(zero())) 10000 else -10000
-		val f = Math.scalb(a.extractFloat(), scale)
+		val f = scalb(a.extractFloat(), scale)
 		return interpreter.primitiveSuccess(fromFloatRecycling(f, a, true))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(FLOAT.o(), instanceType(two()), integers()), FLOAT.o())
+		functionType(
+			tuple(
+				FLOAT.o(),
+				instanceType(two()),
+				integers()),
+			FLOAT.o())
 }

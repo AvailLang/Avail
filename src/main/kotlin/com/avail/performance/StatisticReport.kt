@@ -37,12 +37,11 @@ import com.avail.optimizer.StackReifier
 import com.avail.performance.ReportingUnit.DIMENSIONLESS_INTEGRAL
 import com.avail.performance.ReportingUnit.NANOSECONDS
 import com.avail.utility.Pair
+import com.avail.utility.ifZero
 import java.text.Collator
 import java.util.ArrayList
 import java.util.EnumSet
 import kotlin.Comparator
-import kotlin.String
-import kotlin.synchronized
 
 /**
  * The statistic reports requested of the compiler:
@@ -128,7 +127,16 @@ enum class StatisticReport constructor(
 	TOP_LEVEL_STATEMENTS("Top Level Statements By Module", NANOSECONDS),
 
 	/** Time spent updating text in workbench transcript.  */
-	WORKBENCH_TRANSCRIPT("Workbench transcript", NANOSECONDS);
+	WORKBENCH_TRANSCRIPT("Workbench transcript", NANOSECONDS),
+
+	/** Time spent serializing, by SerializerOperation. */
+	SERIALIZE_TRACE("Serialization tracing", NANOSECONDS),
+
+	/** Time spent serializing, by SerializerOperation. */
+	SERIALIZE_WRITE("Serialization writing", NANOSECONDS),
+
+	/** Time spent deserializing, by SerializerOperation. */
+	DESERIALIZE("Deserialization", NANOSECONDS);
 
 	/**
 	 * The [List] of [Statistic] objects that have been registered
@@ -145,23 +153,11 @@ enum class StatisticReport constructor(
 	 *
 	 * @param statistic The [Statistic] to be registered.
 	 */
-	fun registerStatistic(statistic: Statistic)
-	{
-		synchronized(statistics) {
-			statistics.add(statistic)
-		}
-	}
+	fun registerStatistic(statistic: Statistic) =
+		synchronized(statistics) { statistics.add(statistic) }
 
 	/** Clear all my [Statistic]s. */
-	fun clear()
-	{
-		synchronized(statistics) {
-			for (stat in statistics)
-			{
-				stat.clear()
-			}
-		}
-	}
+	fun clear() = synchronized(statistics) { statistics.forEach { it.clear() } }
 
 	/**
 	 * Collect the aggregates of my statistics, filter out the ones with zero
@@ -171,37 +167,26 @@ enum class StatisticReport constructor(
 	 * @return A sorted [List] of [Pair]&lt;[String],
 	 * [PerInterpreterStatistic]&gt;.
 	 */
-	fun sortedPairs(): MutableList<Pair<String, PerInterpreterStatistic>>
-	{
-		val namedSnapshots =
-			ArrayList<Pair<String, PerInterpreterStatistic>>(statistics.size)
-		for (stat in statistics)
-		{
-			val aggregate = stat.aggregate()
-			if (aggregate.count() > 0)
-			{
-				namedSnapshots.add(Pair(stat.name(), aggregate))
+	fun sortedPairs(): MutableList<Pair<String, PerInterpreterStatistic>> =
+		synchronized(statistics) {
+			val namedSnapshots =
+				statistics.map { Pair(it.name(), it.aggregate()) }
+					.toMutableList()
+			namedSnapshots.removeIf {
+				(_, aggregate) -> aggregate.count() == 0L
 			}
+			val collator = Collator.getInstance()
+			namedSnapshots.sortWith(
+				Comparator { (name1, aggregate1), (name2, aggregate2) ->
+					aggregate1.compareTo(aggregate2).ifZero {
+						collator.compare(name1, name2)
+					}
+				})
+			return namedSnapshots
 		}
-		val collator = Collator.getInstance()
-		namedSnapshots.sortWith(Comparator { pair1, pair2 ->
-			val byStat = pair1!!.second().compareTo(pair2!!.second())
-			if (byStat != 0)
-			{
-				byStat
-
-			}
-			else
-			{
-				collator.compare(pair1.first(), pair2.first())
-			}
-		})
-		return namedSnapshots
-	}
 
 	companion object
 	{
-
 		/**
 		 * Answer the StatisticReport associated with the given keyword.
 		 *
@@ -212,14 +197,7 @@ enum class StatisticReport constructor(
 		 */
 		fun reportFor(str: String): StatisticReport?
 		{
-			for (report in values())
-			{
-				if (report.title == str)
-				{
-					return report
-				}
-			}
-			return null
+			return values().firstOrNull { it.title == str }
 		}
 
 		/**
@@ -231,34 +209,21 @@ enum class StatisticReport constructor(
 		 *   The specified reports as a single [String].
 		 */
 		@JvmStatic
-		fun produceReports(reports: EnumSet<StatisticReport>): String
-		{
-			val builder = StringBuilder()
-			builder.append("\n")
-			for (report in reports)
-			{
-				builder.append('\n')
-				builder.append(report.title)
-				builder.append('\n')
-				val pairs = report.sortedPairs()
-				if (pairs.isNotEmpty())
-				{
-					val total = PerInterpreterStatistic.emptyStatistic()
-					for (pair in pairs)
-					{
-						pair.second().addTo(total)
+		fun produceReports(reports: EnumSet<StatisticReport>): String =
+			StringBuilder("\n").apply {
+				reports.forEach { report ->
+					append("\n${report.title}\n")
+					val pairs = report.sortedPairs()
+					if (pairs.isNotEmpty()) {
+						val total = PerInterpreterStatistic()
+						pairs.forEach { (_, stat) -> stat.addTo(total) }
+						pairs.add(0, Pair("TOTAL", total))
+						pairs.forEach { (name, stat) ->
+							stat.describeOn(this@apply, report.unit)
+							append(" $name\n")
+						}
 					}
-					pairs.add(0, Pair("TOTAL", total))
 				}
-				for (pair in pairs)
-				{
-					pair.second().describeOn(builder, report.unit)
-					builder.append(" ")
-					builder.append(pair.first())
-					builder.append('\n')
-				}
-			}
-			return builder.toString()
-		}
+			}.toString()
 	}
 }

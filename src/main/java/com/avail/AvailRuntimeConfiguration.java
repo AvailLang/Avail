@@ -33,6 +33,7 @@
 package com.avail;
 import com.avail.descriptor.A_Set;
 import com.avail.descriptor.MacroDefinitionDescriptor;
+import com.avail.descriptor.StringDescriptor;
 import com.avail.interpreter.Interpreter;
 
 import javax.annotation.Nullable;
@@ -40,8 +41,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Scanner;
 
-import static com.avail.descriptor.SetDescriptor.emptySet;
-import static com.avail.descriptor.StringDescriptor.stringFrom;
+import static com.avail.descriptor.SetDescriptor.generateSetFrom;
 
 /**
  * This class contains static state and methods related to the current running
@@ -111,13 +111,7 @@ public final class AvailRuntimeConfiguration
 	 */
 	public static A_Set activeVersions ()
 	{
-		A_Set versions = emptySet();
-		for (final String version : activeVersions)
-		{
-			versions = versions.setWithElementCanDestroy(
-				stringFrom(version), true);
-		}
-		return versions;
+		return generateSetFrom(activeVersions, StringDescriptor::stringFrom);
 	}
 
 	/**

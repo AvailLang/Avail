@@ -41,7 +41,7 @@ import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetDescriptor
-import com.avail.descriptor.SetDescriptor.emptySet
+import com.avail.descriptor.SetDescriptor.generateSetFrom
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType
 import com.avail.descriptor.TupleDescriptor
@@ -74,8 +74,8 @@ object P_GrammaticalRestriction : Primitive(2, Unknown)
 		interpreter.checkArgumentCount(2)
 		val parentStrings = interpreter.argument(0)
 		val excludedStringSets = interpreter.argument(1)
-		val loader = interpreter.availLoaderOrNull()
-		             ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+		val loader = interpreter.availLoaderOrNull() ?:
+		return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		if (!loader.phase().isExecuting)
 		{
 			return interpreter.primitiveFailure(
@@ -84,31 +84,23 @@ object P_GrammaticalRestriction : Primitive(2, Unknown)
 		var excludedAtomSets: A_Tuple = excludedStringSets.makeShared()
 		for (i in excludedStringSets.tupleSize() downTo 1)
 		{
-			var atomSet = emptySet()
-			for (string in excludedStringSets.tupleAt(i))
+			val strings = excludedStringSets.tupleAt(i)
+			val atomSet = try {
+				generateSetFrom(
+					strings.setSize(), strings.iterator(), loader::lookupName)
+			}
+			catch (e: AmbiguousNameException)
 			{
-				try
-				{
-					atomSet = atomSet.setWithElementCanDestroy(
-						loader.lookupName(string), true)
-				}
-				catch (e: AmbiguousNameException)
-				{
-					return interpreter.primitiveFailure(e)
-				}
-
+				return interpreter.primitiveFailure(e)
 			}
 			excludedAtomSets = excludedAtomSets.tupleAtPuttingCanDestroy(
 				i, atomSet, true)
 		}
-		var parentAtoms = emptySet()
 		try
 		{
-			for (string in parentStrings)
-			{
-				parentAtoms = parentAtoms.setWithElementCanDestroy(
-					loader.lookupName(string), true)
-			}
+			val parentAtoms = generateSetFrom(
+				parentStrings.setSize(), parentStrings.iterator()
+			) { loader.lookupName(it) }
 			loader.addGrammaticalRestrictions(parentAtoms, excludedAtomSets)
 		}
 		catch (e: MalformedMessageException)

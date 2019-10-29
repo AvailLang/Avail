@@ -110,19 +110,19 @@ import com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RETURN_INTO
 import com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk
 import com.avail.interpreter.primitive.pojos.P_CreatePojoConstructorFunction
 import com.avail.interpreter.primitive.pojos.P_CreatePojoInstanceMethodFunction
+import com.avail.performance.Statistic
+import com.avail.performance.StatisticReport
 import com.avail.serialization.SerializerOperandEncoding.*
 import com.avail.utility.Nulls.stripNull
 import java.lang.Double.doubleToRawLongBits
 import java.lang.Double.longBitsToDouble
 import java.lang.Float.floatToRawIntBits
 import java.lang.Float.intBitsToFloat
-import java.lang.String.format
 import java.lang.reflect.Constructor
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.util.*
-import kotlin.math.max
 
 /**
  * A `SerializerOpcode` describes how to disassemble and assemble the various
@@ -1406,11 +1406,7 @@ enum class SerializerOperation constructor(
 			val literal = subobjects[1]
 			val start = subobjects[2].extractInt()
 			val lineNumber = subobjects[3].extractInt()
-			return literalToken(
-				string,
-				start,
-				lineNumber,
-				literal)
+			return literalToken(string, start, lineNumber, literal)
 		}
 	},
 
@@ -3369,6 +3365,15 @@ enum class SerializerOperation constructor(
 	internal open val isVariableCreation: Boolean
 		get() = false
 
+	/** The [Statistic] for tracing for serialization, by operation. */
+	internal val traceStat = Statistic(name, StatisticReport.SERIALIZE_TRACE)
+
+	/** The [Statistic] for serializing traced objects, by operation. */
+	internal val serializeStat = Statistic(name, StatisticReport.SERIALIZE_WRITE)
+
+	/** The [Statistic] for deserialization, by operation. */
+	internal val deserializeStat = Statistic(name, StatisticReport.DESERIALIZE)
+
 	init
 	{
 		assert(ordinal and 255 == ordinal)
@@ -3380,7 +3385,7 @@ enum class SerializerOperation constructor(
 	 * Decompose the given [AvailObject] into an array of `AvailObject`s that
 	 * correspond with my [operands].
 	 *
-	 * @param object
+	 * @param obj
 	 *   The object to decompose.
 	 * @param serializer
 	 *   The serializer requesting decomposition.
@@ -3423,8 +3428,7 @@ enum class SerializerOperation constructor(
 	{
 		serializer.writeByte(ordinal)
 		assert(operandValues.size == operands.size)
-		for (i in operandValues.indices)
-		{
+		for (i in operandValues.indices) {
 			operands[i].write(operandValues[i] as AvailObject, serializer)
 		}
 	}
@@ -3438,18 +3442,15 @@ enum class SerializerOperation constructor(
 	internal open fun describe(describer: DeserializerDescriber)
 	{
 		describer.append(this.name)
-		for (operand in operands)
-		{
+		operands.forEach {
 			describer.append("\n\t")
-			operand.describe(describer)
+			it.describe(describer)
 		}
 	}
 
 	companion object
 	{
-		/**
-		 * The array of enumeration values.  Don't change it.
-		 */
+		/** The array of enumeration values.  Don't change it. */
 		private val all = values()
 
 		/**
@@ -3462,10 +3463,10 @@ enum class SerializerOperation constructor(
 		 */
 		internal fun byOrdinal(ordinal: Int) = all[ordinal]
 
-		/** The maximum number of operands of any SerializerOperation.  */
-		internal val maxSubobjects = Arrays.stream(all)
-			.map { op -> op.operands.size }
-			.reduce(0) { a, b -> max(a, b) }
+		/** The maximum number of operands of any SerializerOperation. */
+		internal val maxSubobjects = all.maxBy {
+			it.operands.size
+		}!!.operands.size
 
 		/**
 		 * Find or create the atom with the given name in the module with the
@@ -3496,8 +3497,7 @@ enum class SerializerOperation constructor(
 				{
 					return trueNames.asTuple().tupleAt(1)
 				}
-				val atom = createAtomWithProperties(
-					atomName, currentModule)
+				val atom = createAtomWithProperties(atomName, currentModule)
 				atom.makeImmutable()
 				currentModule.addPrivateName(atom)
 				return atom
@@ -3520,18 +3520,12 @@ enum class SerializerOperation constructor(
 				if (candidates.setSize() > 1)
 				{
 					throw RuntimeException(
-						format(
-							"Ambiguous atom \"%s\" in module %s",
-							atomName,
-							module))
+						"Ambiguous atom $atomName in module $module")
 				}
 			}
 			// This should probably fail more gracefully.
 			throw RuntimeException(
-				format(
-					"Unknown atom %s in module %s",
-					atomName,
-					module))
+				"Unknown atom $atomName in module $module")
 		}
 
 		/**

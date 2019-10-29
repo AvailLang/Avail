@@ -37,22 +37,18 @@ import com.avail.annotations.HideFieldInDebugger;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 
 import javax.annotation.Nullable;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.NoSuchElementException;
+import java.util.*;
+import java.util.function.IntFunction;
 
 import static com.avail.descriptor.AvailObjectRepresentation.newLike;
-import static com.avail.descriptor.HashedSetBinDescriptor.IntegerSlots.BIN_HASH;
-import static com.avail.descriptor.HashedSetBinDescriptor.IntegerSlots.BIN_SIZE;
-import static com.avail.descriptor.HashedSetBinDescriptor.IntegerSlots.BIT_VECTOR;
+import static com.avail.descriptor.HashedSetBinDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.HashedSetBinDescriptor.ObjectSlots.BIN_ELEMENT_AT_;
 import static com.avail.descriptor.HashedSetBinDescriptor.ObjectSlots.BIN_UNION_TYPE_OR_NIL;
 import static com.avail.descriptor.LinearSetBinDescriptor.emptyLinearSetBin;
-import static com.avail.descriptor.Mutability.IMMUTABLE;
-import static com.avail.descriptor.Mutability.MUTABLE;
-import static com.avail.descriptor.Mutability.SHARED;
+import static com.avail.descriptor.Mutability.*;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static java.lang.Long.bitCount;
+import static java.lang.StrictMath.max;
 
 /**
  * This class implements the internal hashed nodes of a Bagwell Ideal Hash Tree.
@@ -640,19 +636,111 @@ extends SetBinDescriptor
 	{
 		final AvailObject instance = createUninitializedHashedSetBin(
 			level, localSize, 0, 0, bitVector, nil);
-		instance.fillSlots(
-			BIN_ELEMENT_AT_,
-			1,
-			localSize,
-			emptyLinearSetBin((byte) (level + 1)));
+		final AvailObject emptySubbin = emptyLinearSetBin((byte) (level + 1));
+		instance.fillSlots(BIN_ELEMENT_AT_, 1, localSize, emptySubbin);
 		return instance;
 	}
+
+	/**
+	 * Create a hashed set bin from the size and generator.
+	 *
+	 * @param level The level of bin to create.
+	 * @param size The number of values to take from the generator.
+	 * @param generator The generator.
+	 * @return A set bin.
+	 */
+	static AvailObject generateHashedSetBinFrom (
+		final byte level,
+		final int size,
+		final IntFunction<? extends A_BasicObject> generator)
+	{
+		// First, group the elements by the relevant 6 bits of hash.
+		final List<List<A_BasicObject>> groups = new ArrayList<>(64);
+		for (int i = 0; i <= 63; i++)
+		{
+			groups.add(null);
+		}
+		final int shift = 6 * level;
+		final int groupEstimate = max((size >> 7) * 3, 4);
+		for (int i = 1; i <= size; i++)
+		{
+			final A_BasicObject element = generator.apply(i);
+			final int groupIndex = (element.hash() >>> shift) & 63;
+			List<A_BasicObject> group = groups.get(groupIndex);
+			if (group == null)
+			{
+				group = new ArrayList<>(groupEstimate);
+				groups.set(groupIndex, group);
+			}
+			else
+			{
+				// Check if the new element is the same as the first member of
+				// the group.  This reduces the chance of having to recurse to
+				// the bottom level before discovering massive duplication.
+				if (element.equals(group.get(0)))
+				{
+					continue;
+				}
+				// Also check the second entry, since it's relatively cheap.
+				if (group.size() >= 2 && element.equals(group.get(1)))
+				{
+					continue;
+				}
+			}
+			group.add(element);
+		}
+		// Convert groups into bins.
+		long bitVector = 0;
+		int occupiedBinCount = 0;
+		for (int binIndex = 0; binIndex <= 63; binIndex++)
+		{
+			if (groups.get(binIndex) != null) {
+				bitVector |= 1L << binIndex;
+				occupiedBinCount++;
+			}
+		}
+		assert bitVector != 0L;
+		assert occupiedBinCount != 0;
+		final AvailObject hashedBin = createUninitializedHashedSetBin(
+			level,
+			occupiedBinCount,
+			0, // Total count fixed later.
+			0, // Hash fixed later.
+			bitVector,
+			nil);
+		int written = 0;
+		int hash = 0;
+		int totalCount = 0;
+		for (int binIndex = 0; binIndex <= 63; binIndex++)
+		{
+			final List<A_BasicObject> group = groups.get(binIndex);
+			if (group != null)
+			{
+				final AvailObject childBin = generateSetBinFrom(
+					(byte)(level + 1), group.size(), i -> group.get(i - 1));
+				totalCount += childBin.setBinSize();
+				hash += childBin.setBinHash();
+				hashedBin.setSlot(BIN_ELEMENT_AT_, ++written, childBin);
+			}
+		}
+		if (hashedBin.setBinSize() == 1)
+		{
+			// All elements were equal.  Return the element itself to act as
+			// a singleton bin.
+			return hashedBin.slot(BIN_ELEMENT_AT_, 1);
+		}
+		assert written == occupiedBinCount;
+		hashedBin.setSlot(BIN_SIZE, totalCount);
+		hashedBin.setSlot(BIN_HASH, hash);
+		return hashedBin;
+	}
+
 
 	/**
 	 * The number of distinct levels that my instances can occupy in a set's
 	 * hash tree.
 	 */
-	private static final byte numberOfLevels = 6;
+	static final byte numberOfLevels = 6;
 
 	/**
 	 * Answer the appropriate {@code HashedSetBinDescriptor} to use for the

@@ -87,6 +87,7 @@ import com.avail.descriptor.ParsingPlanInProgressDescriptor.newPlanInProgress
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*
 import com.avail.descriptor.SendPhraseDescriptor.newSendNode
 import com.avail.descriptor.SetDescriptor.emptySet
+import com.avail.descriptor.SetDescriptor.generateSetFrom
 import com.avail.descriptor.StringDescriptor.formatString
 import com.avail.descriptor.StringDescriptor.stringFrom
 import com.avail.descriptor.TokenDescriptor.TokenType.*
@@ -144,7 +145,8 @@ import java.util.Comparator.comparing
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantReadWriteLock
-import java.util.stream.Collectors.*
+import java.util.stream.Collectors.toList
+import java.util.stream.Collectors.toMap
 import java.util.stream.IntStream
 import kotlin.math.max
 import kotlin.math.min
@@ -1502,13 +1504,12 @@ class AvailCompiler(
 						val successor = tokenMap.mapAt(string)
 						if (AvailRuntimeConfiguration.debugCompilerSteps)
 						{
+							val insensitive =
+								if (caseInsensitive) "insensitive token"
+								else "token"
 							println(
-								format(
-									"Matched %s token: %s @%d for %s",
-									if (caseInsensitive) "insensitive " else "",
-									string,
-									token.lineNumber(),
-									successor))
+								"Matched $insensitive: $string " +
+									"@${token.lineNumber()} for $successor")
 						}
 						recognized = true
 						// Record this token for the call site.
@@ -1537,17 +1538,16 @@ class AvailCompiler(
 					// consumed.
 					if (!recognized && consumedTokens.isNotEmpty())
 					{
-						val strings = tokens.stream()
-							.map(
-								if (caseInsensitive)
-								{
-									{ t: A_Token -> t.lowerCaseString() }
-								}
-								else
-								{
-									{ t: A_Token -> t.string() }
-								})
-							.collect(toSet<A_String>())
+						val strings = tokens.mapTo(
+							mutableSetOf<A_String>(),
+							if (caseInsensitive)
+							{
+								A_Token::lowerCaseString
+							}
+							else
+							{
+								A_Token::string
+							})
 						expectedKeywordsOf(
 							start, tokenMap, caseInsensitive, strings)
 					}
@@ -2971,13 +2971,7 @@ class AvailCompiler(
 				versions[i] = versions[i].trim { it <= ' ' }
 			}
 			// Put the required versions into a set.
-			var requiredVersions = emptySet()
-			for (version in versions)
-			{
-				requiredVersions = requiredVersions.setWithElementCanDestroy(
-					stringFrom(version),
-					true)
-			}
+			val requiredVersions = generateSetFrom(versions, ::stringFrom)
 			// Ask for the guaranteed versions.
 			val activeVersions = AvailRuntimeConfiguration.activeVersions()
 			// If the intersection of the sets is empty, then the module and

@@ -42,8 +42,8 @@ import com.avail.descriptor.TypeDescriptor.Types.DOUBLE
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
-import java.lang.Math.E
-import java.lang.Math.exp
+import kotlin.math.E
+import kotlin.math.exp
 
 /**
  * **Primitive:** Compute `e^a`, the natural exponential of the
@@ -62,5 +62,9 @@ object P_DoubleExp : Primitive(2, CannotFail, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(instanceType(fromDouble(E)), DOUBLE.o()), DOUBLE.o())
+		functionType(
+			tuple(
+				instanceType(fromDouble(E)),
+				DOUBLE.o()),
+			DOUBLE.o())
 }

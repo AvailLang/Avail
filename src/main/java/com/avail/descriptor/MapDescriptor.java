@@ -48,11 +48,14 @@ import java.util.function.BiConsumer;
 
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
 import static com.avail.descriptor.LinearMapBinDescriptor.emptyLinearMapBin;
 import static com.avail.descriptor.MapDescriptor.ObjectSlots.ROOT_BIN;
 import static com.avail.descriptor.MapTypeDescriptor.mapTypeForSizesKeyTypeValueType;
 import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
-import static com.avail.descriptor.SetDescriptor.emptySet;
+import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.SetDescriptor.generateSetFrom;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
@@ -216,6 +219,60 @@ extends Descriptor
 	AvailObjectFieldHelper[] o_DescribeForDebugger (
 		final AvailObject object)
 	{
+		if (object.isInstanceOfKind(
+			mapTypeForSizesKeyTypeValueType(
+				wholeNumbers(), stringType(), ANY.o())))
+		{
+			// The keys are all strings.
+			final AvailObjectFieldHelper[] fields =
+				new AvailObjectFieldHelper[object.mapSize()];
+			int counter = 0;
+			for (final Entry entry : object.mapIterable())
+			{
+				final int finalCounter = ++counter;
+
+				final A_String finalKey = entry.key();
+
+				fields[finalCounter] = new AvailObjectFieldHelper(
+					object,
+					new ObjectSlotsEnum()
+					{
+						@Override
+						public String name ()
+						{
+							// Truncate large key strings.
+							final int keyStringSize = finalKey.tupleSize();
+							final A_Tuple keyString;
+							if (keyStringSize > 50)
+							{
+								keyString = tuple(
+									finalKey.copyTupleFromToCanDestroy(
+										1, 25, false),
+									stringFrom(" … "),
+									finalKey.copyTupleFromToCanDestroy(
+										keyStringSize - 24,
+										keyStringSize,
+										false)
+								).concatenateTuplesCanDestroy(false);
+							}
+							else
+							{
+								keyString = finalKey;
+							}
+							return "Key#" + finalCounter + " = " + keyString;
+						}
+
+						@Override
+						public int ordinal ()
+						{
+							return finalCounter;
+						}
+					},
+					finalCounter,
+					entry.value());
+			}
+			return fields;
+		}
 		final AvailObjectFieldHelper[] fields =
 			new AvailObjectFieldHelper[(object.mapSize() << 1)];
 		int counter = 0;
@@ -518,13 +575,10 @@ extends Descriptor
 	{
 		// Answer a set with all my keys.  Mark the keys as immutable because
 		// they'll be shared with the new set.
-		A_Set result = emptySet();
-		for (final Entry entry : object.mapIterable())
-		{
-			result = result.setWithElementCanDestroy(
-				entry.key().makeImmutable(), true);
-		}
-		return result;
+		return generateSetFrom(
+			object.mapSize(),
+			object.mapIterable(),
+			entry -> entry.key().makeImmutable());
 	}
 
 	/**

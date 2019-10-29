@@ -40,7 +40,7 @@ import com.avail.descriptor.IntegerDescriptor.fromInt
 import com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive
 import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.SetDescriptor.emptySet
+import com.avail.descriptor.SetDescriptor.generateSetFrom
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType
 import com.avail.descriptor.TupleTypeDescriptor.stringType
@@ -100,14 +100,7 @@ object P_FileGetPermissions : Primitive(2, CanInline, HasSideEffect)
 	private fun ordinalsFromPosixPermissions(
 		permissions: Set<PosixFilePermission>): A_Set
 	{
-		var permissionOrdinals = emptySet()
-		for (permission in permissions)
-		{
-			permissionOrdinals =
-				permissionOrdinals.setWithElementCanDestroy(
-					permissionMap[permission], true)
-		}
-		return permissionOrdinals
+		return generateSetFrom(permissions, permissionMap::get)
 	}
 
 	override fun attempt(interpreter: Interpreter): Result

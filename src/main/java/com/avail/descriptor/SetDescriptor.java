@@ -40,24 +40,21 @@ import com.avail.serialization.SerializerOperation;
 import com.avail.utility.IteratorNotNull;
 import com.avail.utility.json.JSONWriter;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.IdentityHashMap;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
+import java.util.function.Function;
+import java.util.function.IntFunction;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
-import static com.avail.descriptor.LinearSetBinDescriptor.emptyLinearSetBin;
+import static com.avail.descriptor.LinearSetBinDescriptor.*;
 import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
 import static com.avail.descriptor.SetDescriptor.ObjectSlots.ROOT_BIN;
 import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
 import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
+import static com.avail.utility.Casts.cast;
 import static java.lang.String.format;
 
 /**
@@ -533,17 +530,13 @@ extends Descriptor
 			larger = object;
 			smaller = otherSet.traversed();
 		}
-		if (smaller.setSize() == 0)
-		{
-			if (!canDestroy && larger.descriptor().isMutable())
-			{
-				larger.makeImmutable();
-			}
-			return larger;
-		}
 		if (!canDestroy && larger.descriptor().isMutable())
 		{
 			larger.makeImmutable();
+		}
+		if (smaller.setSize() == 0)
+		{
+			return larger;
 		}
 		A_Set result = larger;
 		for (final A_BasicObject element : smaller)
@@ -726,12 +719,9 @@ extends Descriptor
 	public static A_Set setFromCollection (
 		final Collection<? extends A_BasicObject> collection)
 	{
-		A_Set set = emptySet();
-		for (final A_BasicObject element : collection)
-		{
-			set = set.setWithElementCanDestroy(element, true);
-		}
-		return set;
+		final Iterator<? extends A_BasicObject> iterator =
+			collection.iterator();
+		return generateSetFrom(collection.size(), i -> iterator.next());
 	}
 
 	/**
@@ -743,14 +733,13 @@ extends Descriptor
 	 * @return The corresponding Java {@link Set} of objects.
 	 * @param <X> The type of elements in the resulting {@link Set}.
 	 */
-	@SuppressWarnings("unchecked")
 	public static <X extends A_BasicObject> Set<X> toSet (
 		final A_Set set)
 	{
 		final Set<X> nativeSet = new HashSet<>(set.setSize());
 		for (final AvailObject element : set)
 		{
-			nativeSet.add((X) element);
+			nativeSet.add(cast(element));
 		}
 		return nativeSet;
 	}
@@ -766,12 +755,7 @@ extends Descriptor
 	public static A_Set set (
 		final A_BasicObject... elements)
 	{
-		A_Set set = emptySet();
-		for (final A_BasicObject element : elements)
-		{
-			set = set.setWithElementCanDestroy(element, true);
-		}
-		return set;
+		return generateSetFrom(elements.length, i -> elements[i - 1]);
 	}
 
 	/**
@@ -786,12 +770,7 @@ extends Descriptor
 	public static A_Set set (
 		final AvailErrorCode... errorCodeElements)
 	{
-		A_Set set = emptySet();
-		for (final AvailErrorCode element : errorCodeElements)
-		{
-			set = set.setWithElementCanDestroy(element.numericCode(), true);
-		}
-		return set;
+		return generateSetFrom(errorCodeElements, AvailErrorCode::numericCode);
 	}
 
 	/**
@@ -855,5 +834,193 @@ extends Descriptor
 	public static A_Set emptySet ()
 	{
 		return emptySet;
+	}
+
+	/**
+	 * Create an Avail set with exactly one element.  The element is not made
+	 * immutable first, nor is the new set.
+	 *
+	 * @param element
+	 *        The sole element of the set.
+	 * @return The new mutable set.
+	 */
+	public static A_Set singletonSet (
+		final A_BasicObject element)
+	{
+		final AvailObject set = mutable.create();
+		setRootBin(set, element);
+		set.hash();
+		return set;
+	}
+
+	/**
+	 * Create an Avail set with exactly two elements.  The elements are not made
+	 * immutable first, nor is the new set.
+	 *
+	 * @param element1
+	 *        The first element of the set.
+	 * @param element2
+	 *        The second element of the set.
+	 * @return The new mutable set.
+	 */
+	public static A_Set twoElementSet (
+		final A_BasicObject element1,
+		final A_BasicObject element2)
+	{
+		assert !element1.equals(element2);
+		final AvailObject set = mutable.create();
+		final AvailObject bin =
+			createLinearSetBinPair((byte) 0, element1, element2);
+		setRootBin(set, bin);
+		set.hash();
+		return set;
+	}
+
+	/**
+	 * Create an {@link A_Set}, then run the generator the specified number of
+	 * times to produce elements to add.  Deduplicate the elements.  Answer the
+	 * resulting set.
+	 *
+	 * @param size The number of values to extract from the generator.
+	 * @param generator A generator to provide {@link AvailObject}s to store.
+	 * @return The new set.
+	 */
+	public static A_Set generateSetFrom (
+		final int size,
+		final IntFunction<? extends A_BasicObject> generator)
+	{
+		switch (size)
+		{
+			case 0: return emptySet();
+			case 1: return singletonSet(generator.apply(1));
+			case 2:
+			{
+				final A_BasicObject element1 = generator.apply(1);
+				final A_BasicObject element2 = generator.apply(2);
+				if (element1.equals(element2))
+				{
+					return singletonSet(element1);
+				}
+				else
+				{
+					return twoElementSet(element1, element2);
+				}
+			}
+			default:
+			{
+				final AvailObject bin =
+					generateSetBinFrom((byte)0, size, generator);
+				final AvailObject set = mutable.create();
+				setRootBin(set, bin);
+				return set;
+			}
+		}
+	}
+
+	/**
+	 * Create an {@link A_Set}, then run the iterator the specified number of
+	 * times to produce elements to add.  Deduplicate the elements.  Answer the
+	 * resulting set.
+	 *
+	 * @param size The number of values to extract from the iterator.
+	 * @param iterator An iterator to provide {@link AvailObject}s to store.
+	 * @return The new set.
+	 */
+	public static A_Set generateSetFrom (
+		final int size,
+		final Iterator<? extends A_BasicObject> iterator)
+	{
+		return generateSetFrom(size, i -> iterator.next());
+	}
+
+	/**
+	 * Create an {@link A_Set}, then run the iterator the specified number of
+	 * times to produce elements to add.  Deduplicate the elements.  Answer the
+	 * resulting set.
+	 *
+	 * @param size
+	 *        The number of values to extract from the iterator.
+	 * @param iterator
+	 *        An iterator to provide {@link AvailObject}s to store.
+	 * @param transformer
+	 *        A {@link Function} to transform iterator elements.
+	 * @return The new set.
+	 * @param <A>
+	 *        The type of value produced by the iterator and consumed by the
+	 *        transformer.
+	 */
+	public static <A> A_Set generateSetFrom (
+		final int size,
+		final Iterator<? extends A> iterator,
+		final Function<? super A, ? extends A_BasicObject> transformer)
+	{
+		return generateSetFrom(size, i -> transformer.apply(iterator.next()));
+	}
+
+	/**
+	 * Create an {@link A_Set}, then iterate over the collection, invoking the
+	 * transformer to produce elements to add.  Deduplicate the elements.
+	 * Answer the resulting set.
+	 *
+	 * @param collection
+	 *        A collection containing values to be transformed.
+	 * @param transformer
+	 *        A {@link Function} to transform collection elements to
+	 *        {@link A_BasicObject}s.
+	 * @return The new set.
+	 * @param <A>
+	 *        The type of value found in the collection and consumed by the
+	 *        transformer.
+	 */
+	public static <A> A_Set generateSetFrom (
+		final Collection<? extends A> collection,
+		final Function<? super A, ? extends A_BasicObject> transformer)
+	{
+		return generateSetFrom(
+			collection.size(), collection.iterator(), transformer);
+	}
+
+	/**
+	 * Create an {@link A_Set}, then iterate over the array, invoking the
+	 * transformer to produce elements to add.  Deduplicate the elements.
+	 * Answer the resulting set.
+	 *
+	 * @param array
+	 *        An array containing values to be transformed.
+	 * @param transformer
+	 *        A {@link Function} to transform array elements to
+	 *        {@link A_BasicObject}s.
+	 * @return The new set.
+	 * @param <A>
+	 *        The type of value found in the array and consumed by the
+	 *        transformer.
+	 */
+	public static <A> A_Set generateSetFrom (
+		final A[] array,
+		final Function<? super A, ? extends A_BasicObject> transformer)
+	{
+		return generateSetFrom(
+			array.length, i -> transformer.apply(array[i - 1]));
+	}
+
+	/**
+	 * Create an {@link A_Set}, then iterate over the {@link A_Tuple}, invoking
+	 * the transformer to produce elements to add.  Deduplicate the elements.
+	 * Answer the resulting set.
+	 *
+	 * @param tuple
+	 *        A tuple containing values to be transformed.
+	 * @param transformer
+	 *        A {@link Function} to transform tuple elements to
+	 *        {@link A_BasicObject}s.
+	 * @return The new set.
+	 */
+	public static A_Set generateSetFrom (
+		final A_Tuple tuple,
+		final Function<? super AvailObject, ? extends A_BasicObject>
+			transformer)
+	{
+		return generateSetFrom(
+			tuple.tupleSize(), tuple.iterator(), transformer);
 	}
 }

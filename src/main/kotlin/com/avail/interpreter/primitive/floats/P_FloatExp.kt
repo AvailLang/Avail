@@ -42,7 +42,7 @@ import com.avail.descriptor.TypeDescriptor.Types.FLOAT
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
-import java.lang.Math.E
+import kotlin.math.E
 import kotlin.math.exp
 
 /**
@@ -63,5 +63,9 @@ object P_FloatExp : Primitive(2, CannotFail, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(instanceType(fromDouble(E)), FLOAT.o()), FLOAT.o())
+		functionType(
+			tuple(
+				instanceType(fromDouble(E)),
+				FLOAT.o()),
+			FLOAT.o())
 }

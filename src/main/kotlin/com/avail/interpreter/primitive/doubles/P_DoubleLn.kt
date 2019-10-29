@@ -40,7 +40,7 @@ import com.avail.descriptor.TypeDescriptor.Types.DOUBLE
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
-import java.lang.Math.log
+import kotlin.math.ln
 
 /**
  * **Primitive:** Compute the natural logarithm of the
@@ -54,9 +54,12 @@ object P_DoubleLn : Primitive(1, CannotFail, CanFold, CanInline)
 		interpreter.checkArgumentCount(1)
 		val a = interpreter.argument(0)
 		return interpreter.primitiveSuccess(
-			fromDoubleRecycling(log(a.extractDouble()), a, true))
+			fromDoubleRecycling(ln(a.extractDouble()), a, true))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(DOUBLE.o()), DOUBLE.o())
+		functionType(
+			tuple(
+				DOUBLE.o()),
+			DOUBLE.o())
 }

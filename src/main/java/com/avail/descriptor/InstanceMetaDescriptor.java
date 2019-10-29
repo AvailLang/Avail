@@ -45,7 +45,7 @@ import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.InstanceMetaDescriptor.ObjectSlots.INSTANCE;
 import static com.avail.descriptor.IntegerDescriptor.one;
-import static com.avail.descriptor.SetDescriptor.emptySet;
+import static com.avail.descriptor.SetDescriptor.singletonSet;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 
@@ -294,9 +294,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	A_Set o_Instances (final AvailObject object)
 	{
-		return emptySet().setWithElementCanDestroy(
-			getInstance(object),
-			true);
+		return singletonSet(getInstance(object));
 	}
 
 	@Override @AvailMethod

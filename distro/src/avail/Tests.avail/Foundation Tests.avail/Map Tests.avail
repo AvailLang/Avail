@@ -63,7 +63,8 @@ Test "keys values and bindings" in map test suite is
 	/*Require: a's type's key type ⊆ string;*/
 	/*Require: a's type's value type ⊆ [1..4];*/
 	Require: "foo" ∈ a;
-	Require: <<"foo",1>,<"bar",2>,<"frog",3>,<"prince",4>> = a's bindings;
+	Require: <<"foo",1>,<"bar",2>,<"frog",3>,<"prince",4>> → set
+		= a's bindings → set;
 
 ];
 
@@ -176,15 +177,16 @@ Test "count of where (macro)" in map test suite is
 Test "each of satisfies" in map test suite is
 [
 	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
-	counter : whole number := 0;
+	anyFailed : boolean := false;
  	b ::= each s→n of a satisfies
  	[
-		counter := counter +1;
- 		n ≤ 2
+ 		Require: anyFailed = false;
+		anyFailed := n ≤ 2;
+ 		¬anyFailed
  	];
- 	c ::= each s→n of a satisfies [n > 0];
+ 	Require: anyFailed = true;
  	Require: b = false;
- 	Require: counter = 3;
+ 	c ::= each s→n of a satisfies [n > 0];
  	Require: c = true;
 ];
 

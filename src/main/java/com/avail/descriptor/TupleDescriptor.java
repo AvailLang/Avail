@@ -43,15 +43,9 @@ import com.avail.utility.json.JSONWriter;
 
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.IdentityHashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Set;
-import java.util.Spliterator;
+import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -64,7 +58,7 @@ import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.NybbleTupleDescriptor.generateNybbleTupleFrom;
 import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
 import static com.avail.descriptor.ReverseTupleDescriptor.createReverseTuple;
-import static com.avail.descriptor.SetDescriptor.emptySet;
+import static com.avail.descriptor.SetDescriptor.generateSetFrom;
 import static com.avail.descriptor.SubrangeTupleDescriptor.createSubrange;
 import static com.avail.descriptor.TupleDescriptor.IntegerSlots.HASH_AND_MORE;
 import static com.avail.descriptor.TupleDescriptor.IntegerSlots.HASH_OR_ZERO;
@@ -834,12 +828,7 @@ extends Descriptor
 	@Override @AvailMethod
 	A_Set o_AsSet (final AvailObject object)
 	{
-		A_Set result = emptySet();
-		for (final AvailObject element : object)
-		{
-			result = result.setWithElementCanDestroy(element, true);
-		}
-		return result;
+		return generateSetFrom(object, Function.identity());
 	}
 
 	@Override @AvailMethod
@@ -1039,6 +1028,13 @@ extends Descriptor
 	 * {@linkplain #preToggle a randomly chosen constant} before being used, to
 	 * help prevent similar nested tuples from producing equal hashes.
 	 * </p>
+	 *
+	 * @param object
+	 *        The object containing elements to hash.
+	 * @param start
+	 *        The first index of elements to hash.
+	 * @param end
+	 *        The last index of elements to hash.
 	 */
 	@Override @AvailMethod
 	int o_ComputeHashFromTo (
@@ -1381,9 +1377,9 @@ extends Descriptor
 		/** The empty tuple. */
 		public static final AvailObject emptyTuple;
 
-		/** Create the empty tuple. */
 		static
 		{
+			// Create the empty tuple.
 			final A_Tuple t = generateNybbleTupleFrom(
 				0,
 				ignored ->
@@ -1395,6 +1391,7 @@ extends Descriptor
 			emptyTuple = t.makeShared();
 		}
 
+		/** Prevent unintentional instantiation. */
 		private Empty ()
 		{
 			// Avoid unintentional instantiation.
@@ -1421,6 +1418,7 @@ extends Descriptor
 	 * @param tuple
 	 *        A tuple.
 	 * @return The corresponding list of objects.
+	 * @param <X> The Java type of the elements.
 	 */
 	@SuppressWarnings("unchecked")
 	public static <X extends A_BasicObject> List<X> toList (
@@ -1441,6 +1439,7 @@ extends Descriptor
 	 * @param tuple
 	 *        A tuple.
 	 * @return The corresponding {@link Set} of objects.
+	 * @param <X> The Java types of the elements.
 	 */
 	@SuppressWarnings("unchecked")
 	public static <X extends A_BasicObject> Set<X> toSet (

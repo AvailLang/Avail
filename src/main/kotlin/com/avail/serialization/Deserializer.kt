@@ -102,16 +102,18 @@ class Deserializer constructor(
 			}
 			while (producedObject === null)
 			{
+				val before = System.nanoTime()
 				val ordinal = readByte()
 				val operation = SerializerOperation.byOrdinal(ordinal)
 				val operands = operation.operands
-				for (i in operands.indices)
-				{
+				for (i in operands.indices) {
 					subobjectsBuffer[i] = operands[i].read(this)
 				}
 				val newObject = operation.compose(subobjectsBuffer, this)
 				newObject.makeImmutable()
 				addObject(newObject as AvailObject)
+				operation.deserializeStat.record(
+					(System.nanoTime() - before).toDouble())
 			}
 			val temp = producedObject
 			producedObject = null
@@ -129,7 +131,7 @@ class Deserializer constructor(
 	/**
 	 * Record the provided object as an end product of deserialization.
 	 *
-	 * @param object
+	 * @param obj
 	 *   The object that was produced.
 	 */
 	override fun recordProducedObject(

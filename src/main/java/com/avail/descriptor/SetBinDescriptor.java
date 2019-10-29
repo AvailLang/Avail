@@ -37,8 +37,14 @@ import com.avail.annotations.HideFieldInDebugger;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 
 import javax.annotation.Nullable;
+import java.util.function.IntFunction;
 
+import static com.avail.descriptor.HashedSetBinDescriptor.generateHashedSetBinFrom;
+import static com.avail.descriptor.HashedSetBinDescriptor.numberOfLevels;
+import static com.avail.descriptor.LinearSetBinDescriptor.generateLinearSetBinFrom;
+import static com.avail.descriptor.LinearSetBinDescriptor.thresholdToHash;
 import static com.avail.descriptor.SetBinDescriptor.IntegerSlots.BIN_HASH;
+import static com.avail.utility.Casts.cast;
 
 /**
  * This abstract class organizes the idea of nodes in a Bagwell Ideal Hash Tree
@@ -138,5 +144,36 @@ extends Descriptor
 	{
 		super(mutability, typeTag, objectSlotsEnumClass, integerSlotsEnumClass);
 		this.level = (byte) level;
+	}
+
+	/**
+	 * Generate a bin at the requested level with values produced by {@code
+	 * size} invocations of the {@code generator}.
+	 *
+	 * @param level
+	 *        The level to create.
+	 * @param size
+	 *        The number of elements to generate.  There may be duplicates,
+	 *        which can lead to a bin with fewer elements than this number.
+	 * @param generator
+	 *        The generator.
+	 * @return A set bin.
+	 */
+	static AvailObject generateSetBinFrom (
+		final byte level,
+		final int size,
+		final IntFunction<? extends A_BasicObject> generator)
+	{
+		if (size == 1)
+		{
+			// Special case, exactly one value occurs, so return it.
+			return cast(generator.apply(1));
+		}
+		if (size < thresholdToHash || level >= numberOfLevels - 1)
+		{
+			// Use a linear bin.
+			return generateLinearSetBinFrom(level, size, generator);
+		}
+		return generateHashedSetBinFrom(level, size, generator);
 	}
 }

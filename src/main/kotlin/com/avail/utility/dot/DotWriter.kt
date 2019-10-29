@@ -40,13 +40,13 @@ import com.avail.utility.Strings.tabs
 import com.avail.utility.dot.DotWriter.AttributeWriter
 import com.avail.utility.dot.DotWriter.DefaultAttributeBlockType.*
 import java.io.IOException
-import java.lang.Math.max
-import java.lang.Math.min
 import java.util.*
 import java.util.Collections.unmodifiableSet
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 import java.util.stream.Collectors
+import kotlin.math.max
+import kotlin.math.min
 
 /**
  * `DotWriter` produces source text for **`dot`**, the widely supported graph
@@ -223,7 +223,7 @@ class DotWriter constructor(
 		fun endOfLineComment(comment: String)
 		{
 			accumulator.append("//")
-			if (!comment.isEmpty())
+			if (comment.isNotEmpty())
 			{
 				accumulator.append(' ')
 				accumulator.append(comment)
@@ -247,54 +247,56 @@ class DotWriter constructor(
 		private fun extractLine(s: String, max: Int): Pair<String, String>
 		{
 			// The index of the last whitespace character discovered.
-			var wsi = 0
+			var whiteIndex = 0
 			// The run length of that whitespace.
-			var wlen = 0
+			var whiteRun = 0
 			var i = 0
 			val lineLimit = min(s.length, max)
 			while (i < max)
 			{
-				var cp = s.codePointAt(i)
-				if (cp == '\n'.toInt())
+				var codePoint = s.codePointAt(i)
+				if (codePoint == '\n'.toInt())
 				{
 					// Upon discovery of a linefeed, compute the next line and
 					// the residue.
 					return Pair(s.substring(0, i), s.substring(i + 1))
 				}
-				if (Character.isWhitespace(cp))
+				if (Character.isWhitespace(codePoint))
 				{
 					// Note the first whitespace character discovered. Skip any
 					// subsequent whitespace characters — if they occur at the
 					// end of a line, then they will be omitted.
-					wsi = i
-					var sz = Character.charCount(cp)
-					wlen = sz
+					whiteIndex = i
+					var sz = Character.charCount(codePoint)
+					whiteRun = sz
 					while (true)
 					{
 						i += sz
 						if (i < lineLimit)
 						{
-							cp = s.codePointAt(i)
-							if (!Character.isWhitespace(cp))
+							codePoint = s.codePointAt(i)
+							if (!Character.isWhitespace(codePoint))
 							{
 								break
 							}
-							sz = Character.charCount(cp)
-							wlen += sz
+							sz = Character.charCount(codePoint)
+							whiteRun += sz
 						}
 					}
 				}
 				else
 				{
 					// Otherwise, just move on to the next character.
-					i += Character.charCount(cp)
+					i += Character.charCount(codePoint)
 				}
 			}
-			if (wsi > 0)
+			if (whiteIndex > 0)
 			{
 				// If any whitespace was discovered, then answer the next line
 				// and the residue.
-				return Pair(s.substring(0, wsi), s.substring(wsi + wlen))
+				return Pair(
+					s.substring(0, whiteIndex),
+					s.substring(whiteIndex + whiteRun))
 			}
 			else
 			{
@@ -307,9 +309,9 @@ class DotWriter constructor(
 					var cp = s.codePointAt(i)
 					if (Character.isWhitespace(i))
 					{
-						wsi = i
+						whiteIndex = i
 						var sz = Character.charCount(cp)
-						wlen = sz
+						whiteRun = sz
 						while (true)
 						{
 							i += sz
@@ -321,21 +323,23 @@ class DotWriter constructor(
 									break@outer
 								}
 								sz = Character.charCount(cp)
-								wlen += sz
+								whiteRun += sz
 							}
 						}
 					}
 					i += Character.charCount(cp)
 				}
-				if (wsi == 0)
+				if (whiteIndex == 0)
 				{
 					// If no whitespace characters were ever discovered and the
 					// limit was exceeded, then answer the entire string as the
 					// line and empty residue.
-					assert(wlen == 0)
+					assert(whiteRun == 0)
 					return Pair(s, "")
 				}
-				return Pair(s.substring(0, wsi), s.substring(wsi + wlen))
+				return Pair(
+					s.substring(0, whiteIndex),
+					s.substring(whiteIndex + whiteRun))
 			}
 		}
 
@@ -354,7 +358,7 @@ class DotWriter constructor(
 		{
 			val limit = max(1, charactersPerLine - 4 * indentationLevel - 3)
 			var residue = comment
-			while (!residue.isEmpty())
+			while (residue.isNotEmpty())
 			{
 				val pair = extractLine(residue, limit)
 				val line = pair.first()
@@ -529,9 +533,10 @@ class DotWriter constructor(
 		internal val compassPoint: CompassPoint?)
 
 	/**
-	 * A `GraphWriter` provides the capability of writing entire graphs,
-	 * and as such is able to emit [default attribute blocks][defaultAttributeBlock],
-	 * [nodes][node], and [ ][edge].
+	 * A `GraphWriter` provides the capability of writing entire graphs, and as
+	 * such is able to emit
+	 * [default&#32;attribute&#32;blocks][defaultAttributeBlock], [nodes][node],
+	 * and [edges][edge].
 	 *
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
@@ -1010,7 +1015,7 @@ class DotWriter constructor(
 		 * @return
 		 *   The requested variant.
 		 */
-		fun leftJustified(text: String) =
+		fun leftJustified(text: String): String =
 			lineFeed.matcher(label(text)).replaceAll(
 				Matcher.quoteReplacement("\\l"))
 
@@ -1024,7 +1029,7 @@ class DotWriter constructor(
 		 * @return
 		 *   The requested variant.
 		 */
-		fun rightJustified(text: String) =
+		fun rightJustified(text: String): String =
 			lineFeed.matcher(label(text)).replaceAll(
 				Matcher.quoteReplacement("\\r"))
 

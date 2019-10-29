@@ -34,11 +34,11 @@ package com.avail.performance
 
 import com.avail.AvailRuntimeConfiguration
 import com.avail.interpreter.Interpreter
-
-import java.lang.Math.sqrt
 import java.lang.String.format
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.sqrt
 
 /**
  * A `PerInterpreterStatistic` is an incremental, summarized recording of
@@ -84,12 +84,31 @@ import kotlin.math.min
  *   The sum of squares of differences of the samples from the mean.
  */
 class PerInterpreterStatistic internal constructor(
-	private var count: Long,
-	private var min: Double,
-	private var max: Double,
-	private var mean: Double,
-	private var sumOfDeltaSquares: Double) : Comparable<PerInterpreterStatistic>
-{
+	private val lock: AtomicInteger = AtomicInteger(0),
+	private var count: Long = 0L,
+	private var min: Double = Double.POSITIVE_INFINITY,
+	private var max: Double = Double.NEGATIVE_INFINITY,
+	private var mean: Double = 0.0,
+	private var sumOfDeltaSquares: Double = 0.0
+) : Comparable<PerInterpreterStatistic> {
+	/**
+	 * Acquire a spin-lock, run the body, and release the spin-lock.  The body
+	 * should be very short (or the lock rarely contended) to avoid starvation.
+	 *
+	 * @param body
+	 *   What to do while holding the spin lock.
+	 */
+	private inline fun <A> spinLockWhile(body: () -> A): A
+	{
+		while (!lock.compareAndSet(0, 1)) Thread.yield()
+		return try {
+			body()
+		}
+		finally {
+			val ok = lock.compareAndSet(1, 0)
+			assert(ok) { "Invalid spinlock state" }
+		}
+	}
 
 	/** Default sort is descending by sum.  */
 	override operator fun compareTo(other: PerInterpreterStatistic): Int
@@ -101,19 +120,25 @@ class PerInterpreterStatistic internal constructor(
 	/**
 	 * Return the number of samples that have been recorded.
 	 *
+	 * Unsynchronized, so only use if you know no other Thread could have
+	 * written to it since the last happens-before/happens-after fence.
+	 *
 	 * @return
 	 *   The sample count.
 	 */
-	@Synchronized fun count(): Long = count
+	internal fun count() = count
 
 	/**
 	 * Return the sum of the samples.  This is thread-safe, but may block if an
 	 * update (or other read) is in progress.
 	 *
+	 * Unsynchronized, so only use if you know no other Thread could have
+	 * written to it since the last happens-before/happens-after fence.
+	 *
 	 * @return
 	 *   The sum of the samples.
 	 */
-	@Synchronized fun sum(): Double = mean * count
+	internal fun sum() = mean * count
 
 	/**
 	 * Answer the corrected variance of the samples.  This is the sum of squares
@@ -121,15 +146,20 @@ class PerInterpreterStatistic internal constructor(
 	 * samples.  Fudge it for less than two samples, pretending the variance is
 	 * zero rather than undefined.
 	 *
+	 * Unsynchronized, so only use if you know no other Thread could have
+	 * written to it since the last happens-before/happens-after fence.
+	 *
 	 * @return
 	 *   The Bessel-corrected variance of the samples.
 	 */
-	@Synchronized fun variance(): Double =
-		computeVariance(count, sumOfDeltaSquares)
+	internal fun variance() = computeVariance(count, sumOfDeltaSquares)
 
 	/**
 	 * Given a count of samples and the sum of squares of their differences from
 	 * the mean, compute the variance.
+	 *
+	 * Unsynchronized, so only use if you know no other Thread could have
+	 * written to it since the last happens-before/happens-after fence.
 	 *
 	 * @param theCount
 	 *   The number of samples.
@@ -139,8 +169,9 @@ class PerInterpreterStatistic internal constructor(
 	 *   The statistical variance.
 	 */
 	private fun computeVariance(
-		theCount: Long, theSumOfDeltaSquares: Double): Double =
-			if (theCount <= 1L) 0.0 else theSumOfDeltaSquares / (theCount - 1L)
+		theCount: Long,
+		theSumOfDeltaSquares: Double
+	) = if (theCount <= 1L) 0.0 else theSumOfDeltaSquares / (theCount - 1L)
 
 	/**
 	 * Answer the Bessel-corrected ("unbiased") standard deviation of these
@@ -148,14 +179,20 @@ class PerInterpreterStatistic internal constructor(
 	 * therefore the distances of the samples from the mean are really the
 	 * distances from the sample mean, not the actual population mean.
 	 *
+	 * Unsynchronized, so only use if you know no other Thread could have
+	 * written to it since the last happens-before/happens-after fence.
+	 *
 	 * @return
 	 *   The Bessel-corrected standard deviation of the samples.
 	 */
-	fun standardDeviation(): Double = sqrt(variance())
+	internal fun standardDeviation() = sqrt(variance())
 
 	/**
 	 * Describe this statistic as though its samples are durations in
 	 * nanoseconds.
+	 *
+	 * Unsynchronized, so only use if you know no other Thread could have
+	 * written to it since the last happens-before/happens-after fence.
 	 *
 	 * @param builder
 	 *   Where to describe this statistic.
@@ -164,18 +201,12 @@ class PerInterpreterStatistic internal constructor(
 	 */
 	fun describeOn(builder: StringBuilder, unit: ReportingUnit)
 	{
-		val capturedCount: Long
-		val capturedMean: Double
-		val capturedSumOfDeltaSquares: Double
-		// Read multiple fields coherently.
-		synchronized(this) {
-			capturedCount = count
-			capturedMean = mean
-			capturedSumOfDeltaSquares = sumOfDeltaSquares
-		}
+		val capturedCount = count
+		val capturedMean = mean
+		val capturedSumOfDeltaSquares = sumOfDeltaSquares
+
 		val standardDeviation =
-			kotlin.math
-				.sqrt(computeVariance(capturedCount, capturedSumOfDeltaSquares))
+			sqrt(computeVariance(capturedCount, capturedSumOfDeltaSquares))
 		builder.append(
 			unit.describe(
 				capturedCount, capturedMean, 0.0, false))
@@ -190,21 +221,24 @@ class PerInterpreterStatistic internal constructor(
 
 	/**
 	 * Record a new sample, updating any cumulative statistical values.  This is
-	 * thread-safe.  However, the locking cost should be exceedingly low if a
-	 * [Statistic] is used to partition an array of [PerInterpreterStatistic]s
-	 * by [Interpreter].
+	 * thread-safe.  However, the locking cost is very low due to a spinlock, as
+	 * long as there's very low contention.  Since [Statistic] partitions use of
+	 * [PerInterpreterStatistic]s by [Interpreter] (and hence by [Thread]), the
+	 * contention is non-existent, except when accumulating stats to print.
 	 *
 	 * @param sample
 	 *   The sample value to record.
 	 */
-	@Synchronized fun record(sample: Double)
+	fun record(sample: Double)
 	{
-		count++
-		min = min(sample, min)
-		max = max(sample, max)
-		val delta = sample - mean
-		mean += delta / count
-		sumOfDeltaSquares += delta * (sample - mean)
+		spinLockWhile {
+			count++
+			min = min(sample, min)
+			max = max(sample, max)
+			val delta = sample - mean
+			mean += delta / count
+			sumOfDeltaSquares += delta * (sample - mean)
+		}
 	}
 
 	/**
@@ -215,42 +249,35 @@ class PerInterpreterStatistic internal constructor(
 	 * @param target
 	 *   The statistic to add the receiver to.
 	 */
-	@Synchronized internal fun addTo(target: PerInterpreterStatistic)
+	internal fun addTo(target: PerInterpreterStatistic)
 	{
-		val newCount = target.count + count
-		if (newCount > 0)
-		{
-			val delta = mean - target.mean
-			val newMean = (target.count * target.mean + count * mean) / newCount
-			val newSumOfDeltas = (target.sumOfDeltaSquares + sumOfDeltaSquares
-				+ delta * delta / newCount * target.count.toDouble() * count.toDouble())
-			// Now overwrite the target.
-			target.count = newCount
-			target.min = min(target.min, min)
-			target.max = max(target.max, max)
-			target.mean = newMean
-			target.sumOfDeltaSquares = newSumOfDeltas
+		spinLockWhile {
+			if (count > 0) {
+				val newCount = target.count + count
+				val delta = mean - target.mean
+				// Be careful of the order of overwrites.
+				target.mean = (target.count * target.mean + count * mean) / newCount
+				target.sumOfDeltaSquares =
+					target.sumOfDeltaSquares +
+						sumOfDeltaSquares +
+						delta * delta / newCount * target.count.toDouble() * count.toDouble()
+				// Now overwrite the target.
+				target.count = newCount
+				target.min = min(target.min, min)
+				target.max = max(target.max, max)
+			}
 		}
 	}
 
 	/** Reset this statistic as though no samples had ever been recorded. */
-	@Synchronized fun clear()
+	fun clear()
 	{
-		count = 0
-		min = java.lang.Double.POSITIVE_INFINITY
-		max = java.lang.Double.NEGATIVE_INFINITY
-		mean = 0.0
-		sumOfDeltaSquares = 0.0
-	}
-
-	companion object
-	{
-
-		fun emptyStatistic(): PerInterpreterStatistic = PerInterpreterStatistic(
-			0,
-			java.lang.Double.POSITIVE_INFINITY,
-			java.lang.Double.NEGATIVE_INFINITY,
-			0.0,
-			0.0)
+		spinLockWhile {
+			count = 0
+			min = java.lang.Double.POSITIVE_INFINITY
+			max = java.lang.Double.NEGATIVE_INFINITY
+			mean = 0.0
+			sumOfDeltaSquares = 0.0
+		}
 	}
 }

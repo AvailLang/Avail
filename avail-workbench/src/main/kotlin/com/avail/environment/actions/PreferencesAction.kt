@@ -35,20 +35,20 @@ package com.avail.environment.actions
 import com.avail.builder.ModuleRoot
 import com.avail.environment.AvailWorkbench
 import com.avail.persistence.IndexedFileException
-import javax.swing.*
-import javax.swing.GroupLayout.Alignment
-import javax.swing.border.EmptyBorder
-import javax.swing.table.AbstractTableModel
-import java.awt.*
+import java.awt.BorderLayout
+import java.awt.Color
 import java.awt.Dialog.ModalityType
+import java.awt.Dimension
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 import java.io.File
-import java.util.ArrayList
-import java.util.Arrays
-
-import java.lang.Math.min
+import java.util.*
+import javax.swing.*
+import javax.swing.GroupLayout.Alignment
 import javax.swing.SwingUtilities.invokeLater
+import javax.swing.border.EmptyBorder
+import javax.swing.table.AbstractTableModel
+import kotlin.math.min
 
 /**
  * An `AboutAction` presents the "About Avail" dialog.

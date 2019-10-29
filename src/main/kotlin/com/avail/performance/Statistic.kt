@@ -33,6 +33,7 @@
 package com.avail.performance
 
 import com.avail.AvailRuntimeConfiguration.maxInterpreters
+import com.avail.interpreter.Interpreter
 
 /**
  * An immutable collection of related statistics.
@@ -52,7 +53,7 @@ class Statistic constructor(
 	private val nameSupplier: () -> String, report: StatisticReport)
 {
 	/** The array of [PerInterpreterStatistic]s.  */
-	val statistics: Array<PerInterpreterStatistic>
+	val statistics = Array(maxInterpreters) { PerInterpreterStatistic() }
 
 	/**
 	 * Answer the name of this `Statistic`.  Note that the [nameSupplier] may
@@ -65,13 +66,6 @@ class Statistic constructor(
 
 	init
 	{
-		val temp =
-			arrayOfNulls<PerInterpreterStatistic>(maxInterpreters)
-		for (i in 0 until maxInterpreters)
-		{
-			temp[i] = PerInterpreterStatistic.emptyStatistic()
-		}
-		statistics = temp.requireNoNulls()
 		report.registerStatistic(this)
 	}
 
@@ -95,10 +89,21 @@ class Statistic constructor(
 	 *   The index specifying which [PerInterpreterStatistic] to add the sample
 	 *   to.
 	 */
-	fun record(sample: Double, index: Int)
-	{
+	fun record(sample: Double, index: Int = Interpreter.currentIndex()) =
 		statistics[index].record(sample)
-	}
+
+	/**
+	 * Record a sample in my [PerInterpreterStatistic] having the specified
+	 * contention-avoidance index.
+	 *
+	 * @param sample
+	 *   The [Long] sample to add.
+	 * @param index
+	 *   The index specifying which [PerInterpreterStatistic] to add the sample
+	 *   to.
+	 */
+	fun record(sample: Long, index: Int) =
+		statistics[index].record(sample.toDouble())
 
 	/**
 	 * Aggregate the information from my array of [PerInterpreterStatistic]s,
@@ -109,21 +114,25 @@ class Statistic constructor(
 	 */
 	fun aggregate(): PerInterpreterStatistic
 	{
-		val accumulator =
-			PerInterpreterStatistic.emptyStatistic()
-		for (each in statistics)
-		{
-			each.addTo(accumulator)
+		return PerInterpreterStatistic().apply {
+			statistics.forEach { it.addTo(this@apply) }
 		}
-		return accumulator
 	}
 
 	/** Clear each of my [PerInterpreterStatistic]s. */
-	fun clear()
-	{
-		for (each in statistics)
-		{
-			each.clear()
-		}
+	fun clear() = statistics.forEach { it.clear() }
+
+	/**
+	 * Perform the body, recording the time it took in the receiver.  Answer the
+	 * value produced by the body.
+	 */
+	inline fun <reified A> record(
+		index: Int = Interpreter.currentIndex(),
+		body: () -> A
+	): A {
+		val before = System.nanoTime()
+		val result = body()
+		statistics[index].record((System.nanoTime() - before).toDouble())
+		return result
 	}
 }

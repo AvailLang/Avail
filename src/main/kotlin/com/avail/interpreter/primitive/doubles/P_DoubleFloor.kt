@@ -40,6 +40,7 @@ import com.avail.descriptor.TypeDescriptor.Types.DOUBLE
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
+import kotlin.math.floor
 
 /**
  * **Primitive:** Answer the largest integral [double][DoubleDescriptor] less
@@ -54,7 +55,7 @@ object P_DoubleFloor : Primitive(1, CannotFail, CanFold, CanInline)
 		interpreter.checkArgumentCount(1)
 		val a = interpreter.argument(0)
 		val d = a.extractDouble()
-		val floor = Math.floor(d)
+		val floor = floor(d)
 		return interpreter.primitiveSuccess(
 			fromDoubleRecycling(floor, a, true))
 	}

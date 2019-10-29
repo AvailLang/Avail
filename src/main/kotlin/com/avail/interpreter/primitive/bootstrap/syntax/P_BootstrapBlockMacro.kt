@@ -46,8 +46,7 @@ import com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray
 import com.avail.descriptor.ObjectTupleDescriptor.tupleFromList
 import com.avail.descriptor.ObjectTypeDescriptor.exceptionType
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*
-import com.avail.descriptor.SetDescriptor.emptySet
-import com.avail.descriptor.SetDescriptor.set
+import com.avail.descriptor.SetDescriptor.*
 import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TupleTypeDescriptor.*
 import com.avail.descriptor.TypeDescriptor.Types.*
@@ -364,13 +363,11 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 		var exceptionsSet = emptySet()
 		if (optionalExceptionTypes.expressionsSize() == 1)
 		{
-			for (exceptionTypePhrase in
-				optionalExceptionTypes.lastExpression().expressionsTuple())
-			{
-				exceptionsSet = exceptionsSet.setWithElementCanDestroy(
-					exceptionTypePhrase.token().literal(), true)
-			}
-			exceptionsSet = exceptionsSet.makeImmutable()
+			val expressions =
+				optionalExceptionTypes.lastExpression().expressionsTuple()
+			exceptionsSet = generateSetFrom(expressions) {
+				it.token().literal()
+			}.makeImmutable()
 		}
 		// The block's line number is the line of the first token that's part of
 		// the block, even if it's part of a subexpression (which it won't be

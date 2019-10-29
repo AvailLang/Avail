@@ -58,7 +58,7 @@ import java.lang.String.format
  * @param ranges
  * The [Range]s used for rendering a statistic.
  */
-enum class ReportingUnit constructor(vararg ranges: Range)
+enum class ReportingUnit (private vararg val ranges: Range)
 {
 	/** The number of nanoseconds taken by some activity.  */
 	NANOSECONDS(
@@ -89,16 +89,6 @@ enum class ReportingUnit constructor(vararg ranges: Range)
 			"%, 8.0f",
 			"%, 8.3f±%,8.3f")
 	);
-
-	/**
-	 * The array of ranges to select a rendering strategy for statistics.
-	 */
-	internal val ranges: Array<Range>
-	init
-	{
-		@Suppress("UNCHECKED_CAST")
-		this.ranges = ranges as Array<Range>
-	}
 
 	/**
 	 * An [inclusive, exclusive) span, a scale, and a format string.

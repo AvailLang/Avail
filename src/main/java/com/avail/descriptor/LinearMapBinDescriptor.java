@@ -45,16 +45,9 @@ import static com.avail.descriptor.AvailObjectRepresentation.newLike;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.HashedMapBinDescriptor.checkHashedMapBin;
 import static com.avail.descriptor.HashedMapBinDescriptor.createLevelBitVector;
-import static com.avail.descriptor.LinearMapBinDescriptor.IntegerSlots.COMBINED_HASHES;
-import static com.avail.descriptor.LinearMapBinDescriptor.IntegerSlots.KEYS_HASH;
-import static com.avail.descriptor.LinearMapBinDescriptor.IntegerSlots.KEY_HASHES_AREA_;
-import static com.avail.descriptor.LinearMapBinDescriptor.IntegerSlots.VALUES_HASH_OR_ZERO;
-import static com.avail.descriptor.LinearMapBinDescriptor.ObjectSlots.BIN_KEY_UNION_KIND_OR_NIL;
-import static com.avail.descriptor.LinearMapBinDescriptor.ObjectSlots.BIN_SLOT_AT_;
-import static com.avail.descriptor.LinearMapBinDescriptor.ObjectSlots.BIN_VALUE_UNION_KIND_OR_NIL;
-import static com.avail.descriptor.Mutability.IMMUTABLE;
-import static com.avail.descriptor.Mutability.MUTABLE;
-import static com.avail.descriptor.Mutability.SHARED;
+import static com.avail.descriptor.LinearMapBinDescriptor.IntegerSlots.*;
+import static com.avail.descriptor.LinearMapBinDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.Mutability.*;
 import static com.avail.descriptor.NilDescriptor.nil;
 
 /**
@@ -618,28 +611,28 @@ extends MapBinDescriptor
 	{
 		return new MapIterable()
 		{
-			final int limit = entryCount(object);
-			int nextIndex = 1;
+			/** A countdown of entry indices. */
+			int index = entryCount(object);
 
 			@Override
 			public Entry next ()
 			{
-				if (nextIndex > limit)
+				if (index < 1)
 				{
 					throw new NoSuchElementException();
 				}
 				entry.setKeyAndHashAndValue(
-					object.slot(BIN_SLOT_AT_, (nextIndex << 1) - 1),
-					object.intSlot(KEY_HASHES_AREA_, nextIndex),
-					object.slot(BIN_SLOT_AT_, nextIndex << 1));
-				nextIndex++;
+					object.slot(BIN_SLOT_AT_, (index << 1) - 1),
+					object.intSlot(KEY_HASHES_AREA_, index),
+					object.slot(BIN_SLOT_AT_, index << 1));
+				index--;
 				return entry;
 			}
 
 			@Override
 			public boolean hasNext ()
 			{
-				return nextIndex <= limit;
+				return index >= 1;
 			}
 		};
 	}
