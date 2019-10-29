@@ -1364,37 +1364,35 @@ Method "“_”" is
 		chars ::= cast aSet into [x : {character|} | x];
 		index : natural number := 1;
 		out : string := "¢[";
-		unorderedString ::= map aSet → tuple through [c : any |
-			cast c into [cc: character | cc's code point]];
+		unorderedString ::= map each c of chars→tuple through [c's code point];
 		sorted ::= quicksort unorderedString;
 		size ::= |sorted|;
 		position : natural number := 1;
 		Do
 		[
-			runStart ::= sorted[((↑position)++)];
+			runStart ::= sorted[(position++)];
 			runEnd : code point := runStart;
 			While
 			[
-				position ≤ size ∧
-				[
-					sorted[((↑position)++)] = runEnd + 1
-				]
+				position ≤ size ∧ sorted[position] = runEnd + 1
 			]
 			do
 			[
+				position++;
 				runEnd++;
 			];
 			out ++= range element string for runStart → character;
 			If runEnd ≠ runStart then
 			[
 				/* Skip the dash if the start and end are consecutive. */
-				If (runEnd ≠ runStart + 1) then
+				If runEnd ≠ runStart + 1 then
 				[
 					out ++= "-";
 				];
 				out ++= range element string for runEnd → character;
 			];
-		] while position ≤ size;
+		]
+		while position ≤ size;
 		out ++ "]"
 	]
 	else

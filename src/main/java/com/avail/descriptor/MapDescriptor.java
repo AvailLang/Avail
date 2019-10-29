@@ -233,13 +233,21 @@ extends Descriptor
 
 				final A_String finalKey = entry.key();
 
-				fields[finalCounter] = new AvailObjectFieldHelper(
+				fields[finalCounter - 1] = new AvailObjectFieldHelper(
 					object,
 					new ObjectSlotsEnum()
 					{
+						/** The cached entry name. */
+						private @Nullable
+						String name = null;
+
 						@Override
 						public String name ()
 						{
+							if (name != null)
+							{
+								return name;
+							}
 							// Truncate large key strings.
 							final int keyStringSize = finalKey.tupleSize();
 							final A_Tuple keyString;
@@ -259,7 +267,11 @@ extends Descriptor
 							{
 								keyString = finalKey;
 							}
-							return "Key#" + finalCounter + " = " + keyString;
+							name = "Key#"
+								+ finalCounter
+								+ " "
+								+ keyString;
+							return name;
 						}
 
 						@Override
@@ -268,7 +280,7 @@ extends Descriptor
 							return finalCounter;
 						}
 					},
-					finalCounter,
+					-1,
 					entry.value());
 			}
 			return fields;
