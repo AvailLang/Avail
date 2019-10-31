@@ -34,6 +34,7 @@ package com.avail.interpreter.primitive.objects
 import com.avail.descriptor.A_RawFunction
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.AtomDescriptor
 import com.avail.descriptor.BottomTypeDescriptor.bottom
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ObjectDescriptor
@@ -51,13 +52,13 @@ import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * **Primitive:** Extract the specified [ ] from the [object][ObjectDescriptor].
+ * **Primitive:** Extract the specified [field][AtomDescriptor] from the
+ * [object][ObjectDescriptor].
  */
+@Suppress("unused")
 object P_GetObjectField : Primitive(2, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val obj = interpreter.argument(0)
@@ -65,27 +66,19 @@ object P_GetObjectField : Primitive(2, CanFold, CanInline)
 
 		val traversed = obj.traversed()
 		val descriptor = traversed.descriptor() as ObjectDescriptor
-		val slotIndex = descriptor.variant.fieldToSlotIndex[field]
-		                ?: return interpreter.primitiveFailure(E_NO_SUCH_FIELD)
+		val slotIndex =
+			descriptor.variant.fieldToSlotIndex[field]
+                ?: return interpreter.primitiveFailure(E_NO_SUCH_FIELD)
 		return interpreter.primitiveSuccess(
-			if (slotIndex == 0)
-				field
-			else
-				ObjectDescriptor.getField(traversed, slotIndex))
+			if (slotIndex == 0) { field }
+			else { ObjectDescriptor.getField(traversed, slotIndex) })
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				mostGeneralObjectType(),
-				ATOM.o()),
-			ANY.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(mostGeneralObjectType(), ATOM.o()), ANY.o())
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
-		argumentTypes: List<A_Type>): A_Type
+		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
 	{
 		val objectType = argumentTypes[0]
 		val fieldType = argumentTypes[1]
@@ -112,8 +105,8 @@ object P_GetObjectField : Primitive(2, CanFold, CanInline)
 		return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 	}
 
-	override fun fallibilityForArgumentTypes(
-		argumentTypes: List<A_Type>): Primitive.Fallibility
+	override fun fallibilityForArgumentTypes(argumentTypes: List<A_Type>)
+		: Primitive.Fallibility
 	{
 		val objectType = argumentTypes[0]
 		val fieldType = argumentTypes[1]
@@ -133,9 +126,6 @@ object P_GetObjectField : Primitive(2, CanFold, CanInline)
 		return CallSiteCanFail
 	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_NO_SUCH_FIELD))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_NO_SUCH_FIELD))
 }

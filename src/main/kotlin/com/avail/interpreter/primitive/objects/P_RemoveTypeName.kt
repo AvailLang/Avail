@@ -36,6 +36,7 @@ import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceMetaDescriptor.instanceMeta
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.ObjectTypeDescriptor
 import com.avail.descriptor.ObjectTypeDescriptor.mostGeneralObjectType
 import com.avail.descriptor.ObjectTypeDescriptor.removeNameFromType
 import com.avail.descriptor.TupleTypeDescriptor.stringType
@@ -45,17 +46,16 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Unbind a name from a [ ]. This can be useful for
- * removing the effect of [P_RecordNewTypeName] when unloading a
- * module.
+ * **Primitive:** Unbind a name from a
+ * [user-defined object type][ObjectTypeDescriptor]. This can be useful for
+ * removing the effect of [P_RecordNewTypeName] when unloading a module.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@Suppress("unused")
 object P_RemoveTypeName : Primitive(2, CanInline, CannotFail, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val name = interpreter.argument(0)
@@ -67,13 +67,7 @@ object P_RemoveTypeName : Primitive(2, CanInline, CannotFail, HasSideEffect)
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				stringType(),
-				instanceMeta(mostGeneralObjectType())),
-			TOP.o())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(stringType(), instanceMeta(mostGeneralObjectType())), TOP.o())
 }

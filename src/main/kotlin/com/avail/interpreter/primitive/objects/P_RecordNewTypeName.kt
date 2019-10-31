@@ -37,6 +37,7 @@ import com.avail.descriptor.InstanceMetaDescriptor.instanceMeta
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.ObjectTypeDescriptor
 import com.avail.descriptor.ObjectTypeDescriptor.mostGeneralObjectType
 import com.avail.descriptor.ObjectTypeDescriptor.setNameForType
 import com.avail.descriptor.TupleTypeDescriptor.stringType
@@ -47,14 +48,13 @@ import com.avail.interpreter.Primitive.Flag.*
 import com.avail.interpreter.effects.LoadingEffectToRunPrimitive
 
 /**
- * **Primitive:** Assign a name to a [ ]. This can be useful for
+ * **Primitive:** Assign a name to a
+ * [user-defined object type][ObjectTypeDescriptor]. This can be useful for
  * debugging.
  */
 object P_RecordNewTypeName : Primitive(2, CanInline, CannotFail, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val userType = interpreter.argument(0)
@@ -70,13 +70,7 @@ object P_RecordNewTypeName : Primitive(2, CanInline, CannotFail, HasSideEffect)
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				instanceMeta(mostGeneralObjectType()),
-				stringType()),
-			TOP.o())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(instanceMeta(mostGeneralObjectType()), stringType()), TOP.o())
 }

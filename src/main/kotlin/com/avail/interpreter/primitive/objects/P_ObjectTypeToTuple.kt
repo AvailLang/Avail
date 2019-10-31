@@ -50,17 +50,16 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
  * **Primitive:** Answer the field definitions of the specified
- * [object type][ObjectTypeDescriptor]. A field definition is a
- * 2-tuple whose first element is an [atom][AtomDescriptor] that
- * represents the field and whose second element is the value [ ].
+ * [object type][ObjectTypeDescriptor]. A field definition is a 2-tuple whose
+ * first element is an [atom][AtomDescriptor] that represents the field and whose
+ * second element is the value [user-defined object type][ObjectTypeDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_ObjectTypeToTuple : Primitive(1, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val objectType = interpreter.argument(0)
@@ -70,18 +69,16 @@ object P_ObjectTypeToTuple : Primitive(1, CanFold, CanInline)
 			// occurs as a first element, and ⊥ occurs as every second element.
 			// It's easier to just fail dynamically for this unrepresentable
 			// singularity.
-			interpreter.primitiveFailure(
-				AvailErrorCode.E_NO_SUCH_FIELD)
+			interpreter.primitiveFailure(AvailErrorCode.E_NO_SUCH_FIELD)
 		}
-		else interpreter.primitiveSuccess(objectType.fieldTypeTuple())
+		else
+		{
+			interpreter.primitiveSuccess(objectType.fieldTypeTuple())
+		}
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(mostGeneralObjectMeta()), zeroOrMoreOf(
-			tupleTypeForTypes(
-				ATOM.o(),
-				anyMeta())))
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(mostGeneralObjectMeta()),
+			zeroOrMoreOf(tupleTypeForTypes(ATOM.o(), anyMeta())))
 }

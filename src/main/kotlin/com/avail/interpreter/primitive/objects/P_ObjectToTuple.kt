@@ -48,29 +48,25 @@ import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive:** Answer the field assignments of the specified
- * [object][ObjectDescriptor]. A field assignment is a 2-tuple whose
- * first element is an [atom][AtomDescriptor] that represents the
- * field and whose second element is its value.
+ * [object][ObjectDescriptor]. A field assignment is a 2-tuple whose first
+ * element is an [atom][AtomDescriptor] that represents the field and whose
+ * second element is its value.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_ObjectToTuple : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val obj = interpreter.argument(0)
 		return interpreter.primitiveSuccess(obj.fieldTuple())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(mostGeneralObjectType()), zeroOrMoreOf(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(mostGeneralObjectType()), zeroOrMoreOf(
 			tupleTypeForTypes(
 				ATOM.o(),
 				ANY.o())))
-	}
-
 }
