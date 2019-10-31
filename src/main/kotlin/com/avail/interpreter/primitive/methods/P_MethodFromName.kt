@@ -35,6 +35,7 @@ import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.AtomDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.MethodDescriptor
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
@@ -45,14 +46,12 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * **Primitive:** Answer the [ ] associated with the given
- * [true name][AtomDescriptor].
+ * **Primitive:** Answer the [method][MethodDescriptor] associated with the
+ * given [true name][AtomDescriptor].
  */
 object P_MethodFromName : Primitive(1, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val trueName = interpreter.argument(0)
@@ -65,14 +64,9 @@ object P_MethodFromName : Primitive(1, CanInline)
 		return interpreter.primitiveSuccess(method)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(ATOM.o()), METHOD.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(ATOM.o()), METHOD.o())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_NO_METHOD))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_NO_METHOD))
 }

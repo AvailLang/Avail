@@ -45,15 +45,14 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer a string describing why the given
- * string is unsuitable as a [message][MessageBundleDescriptor] name.
- * If the given string is actually suitable, answer the empty string.
+ * **Primitive:** Answer a string describing why the given string is unsuitable
+ * as a [message][MessageBundleDescriptor] name. If the given string is actually
+ * suitable, answer the empty string.
  */
-object P_DescribeNoncanonicalMessage : Primitive(1, CanInline, CanFold, CannotFail)
+object P_DescribeNoncanonicalMessage
+	: Primitive(1, CanInline, CanFold, CannotFail)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val messageName = interpreter.argument(0)
@@ -70,11 +69,6 @@ object P_DescribeNoncanonicalMessage : Primitive(1, CanInline, CanFold, CannotFa
 		return interpreter.primitiveSuccess(emptyTuple())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(stringType()),
-			stringType())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(stringType()),stringType())
 }

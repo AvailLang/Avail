@@ -63,9 +63,7 @@ import java.util.*
  */
 object P_MethodDeclarationFromAtom : Primitive(2, CanSuspend, Unknown)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val atom = interpreter.argument(0)
@@ -86,10 +84,8 @@ object P_MethodDeclarationFromAtom : Primitive(2, CanSuspend, Unknown)
 		val copiedArgs = ArrayList(interpreter.argsBuffer)
 		interpreter.primitiveSuspend(primitiveFunction)
 		interpreter.runtime().whenLevelOneSafeDo(
-			fiber.priority(),
-			AvailTask.forUnboundFiber(
-				fiber
-			) {
+			fiber.priority(), AvailTask.forUnboundFiber(fiber)
+		{
 				try
 				{
 					loader.addMethodBody(atom, function)
@@ -110,32 +106,28 @@ object P_MethodDeclarationFromAtom : Primitive(2, CanSuspend, Unknown)
 				}
 				catch (e: SignatureException)
 				{
-					Interpreter.resumeFromFailedPrimitive(currentRuntime(), fiber, e.numericCode(), primitiveFunction, copiedArgs)
+					Interpreter.resumeFromFailedPrimitive(
+						currentRuntime(),
+						fiber,
+						e.numericCode(),
+						primitiveFunction,
+						copiedArgs)
 				}
 			})
 		return FIBER_SUSPENDED
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				ATOM.o(),
-				mostGeneralFunctionType()),
-			TOP.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(ATOM.o(), mostGeneralFunctionType()), TOP.o())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
 			set(
-				E_LOADING_IS_OVER,
-				E_CANNOT_DEFINE_DURING_COMPILATION,
-				E_METHOD_RETURN_TYPE_NOT_AS_FORWARD_DECLARED,
-				E_REDEFINED_WITH_SAME_ARGUMENT_TYPES,
-				E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS,
-				E_METHOD_IS_SEALED
-			).setUnionCanDestroy(possibleErrors, true))
-	}
-
+					E_LOADING_IS_OVER,
+					E_CANNOT_DEFINE_DURING_COMPILATION,
+					E_METHOD_RETURN_TYPE_NOT_AS_FORWARD_DECLARED,
+					E_REDEFINED_WITH_SAME_ARGUMENT_TYPES,
+					E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS,
+					E_METHOD_IS_SEALED)
+				.setUnionCanDestroy(possibleErrors, true))
 }

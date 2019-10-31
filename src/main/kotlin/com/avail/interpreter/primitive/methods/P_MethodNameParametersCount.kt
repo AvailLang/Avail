@@ -50,43 +50,35 @@ import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * **Primitive:** Treating the [ string][StringDescriptor] argument as a [method][MethodDescriptor] name, answer the
- * number of arguments expected for a valid send of the name.
+ * **Primitive:** Treating the [string][StringDescriptor] argument as a
+ * [method][MethodDescriptor] name, answer the number of arguments expected for
+ * a valid send of the name.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_MethodNameParametersCount : Primitive(1, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val name = interpreter.argument(0)
-		val splitter: MessageSplitter
-		try
-		{
-			splitter = MessageSplitter(name)
-		}
-		catch (e: MalformedMessageException)
-		{
-			return interpreter.primitiveFailure(e)
-		}
+		val splitter: MessageSplitter =
+			try
+			{
+				MessageSplitter(name)
+			}
+			catch (e: MalformedMessageException)
+			{
+				return interpreter.primitiveFailure(e)
+			}
 
 		return interpreter.primitiveSuccess(
 			fromInt(splitter.numberOfArguments))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(stringType()),
-			wholeNumbers())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(stringType()), wholeNumbers())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(possibleErrors)
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(possibleErrors)
 }

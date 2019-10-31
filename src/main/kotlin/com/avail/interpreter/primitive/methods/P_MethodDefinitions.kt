@@ -46,25 +46,20 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail
 
 /**
- * **Primitive**: Answer the [definitions][A_Definition]
- * of the specified [method][A_Method].
+ * **Primitive**: Answer the [definitions][A_Definition] of the specified
+ * [method][A_Method].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_MethodDefinitions : Primitive(1, CannotFail, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val method = interpreter.argument(0)
 		return interpreter.primitiveSuccess(method.definitionsTuple())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(METHOD.o()), zeroOrMoreOf(DEFINITION.o()))
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(METHOD.o()), zeroOrMoreOf(DEFINITION.o()))
 }

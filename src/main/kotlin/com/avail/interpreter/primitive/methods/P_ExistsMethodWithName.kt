@@ -46,16 +46,14 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail
 
 /**
- * **Primitive:** Does a [method][MethodDescriptor]
- * exist with the specified [true name][AtomDescriptor]?
+ * **Primitive:** Does a [method][MethodDescriptor] exist with the specified
+ * [true name][AtomDescriptor]?
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_ExistsMethodWithName : Primitive(1, CannotFail, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val trueName = interpreter.argument(0)
@@ -64,11 +62,6 @@ object P_ExistsMethodWithName : Primitive(1, CannotFail, CanInline)
 			objectFromBoolean(!bundle.equalsNil()))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(ATOM.o()),
-			booleanType())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(ATOM.o()), booleanType())
 }

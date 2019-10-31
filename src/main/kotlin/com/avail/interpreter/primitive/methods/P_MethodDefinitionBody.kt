@@ -32,8 +32,10 @@
 package com.avail.interpreter.primitive.methods
 
 import com.avail.descriptor.A_Type
+import com.avail.descriptor.FunctionDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.FunctionTypeDescriptor.mostGeneralFunctionType
+import com.avail.descriptor.MethodDefinitionDescriptor
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.TypeDescriptor.Types.METHOD_DEFINITION
 import com.avail.interpreter.Interpreter
@@ -41,13 +43,12 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer this [ ]'s [ ].
+ * **Primitive:** Answer this [method signature's][MethodDefinitionDescriptor]
+ * [body][FunctionDescriptor].
  */
 object P_MethodDefinitionBody : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val methodDefinition = interpreter.argument(0)
@@ -55,10 +56,6 @@ object P_MethodDefinitionBody : Primitive(1, CannotFail, CanFold, CanInline)
 			methodDefinition.bodyBlock().makeImmutable())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(METHOD_DEFINITION.o()),
-		                    mostGeneralFunctionType())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(METHOD_DEFINITION.o()), mostGeneralFunctionType())
 }

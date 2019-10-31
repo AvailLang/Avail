@@ -39,6 +39,7 @@ import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.AtomDescriptor.objectFromBoolean
 import com.avail.descriptor.EnumerationTypeDescriptor.booleanType
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.MethodDescriptor
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.TupleTypeDescriptor.stringType
 import com.avail.exceptions.MalformedMessageException
@@ -48,42 +49,34 @@ import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * **Primitive:** Treating the argument as a [ ] name, answer whether it contains groups.
+ * **Primitive:** Treating the argument as a [method][MethodDescriptor] name,
+ * answer whether it contains groups.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_MethodNameContainsGroups : Primitive(1, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val name = interpreter.argument(0)
-		val splitter: MessageSplitter
-		try
-		{
-			splitter = MessageSplitter(name)
-		}
-		catch (e: MalformedMessageException)
-		{
-			return interpreter.primitiveFailure(e)
-		}
+		val splitter: MessageSplitter =
+			try
+			{
+				MessageSplitter(name)
+			}
+			catch (e: MalformedMessageException)
+			{
+				return interpreter.primitiveFailure(e)
+			}
 
 		return interpreter.primitiveSuccess(
 			objectFromBoolean(splitter.containsGroups))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(stringType()),
-			booleanType())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(stringType()), booleanType())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(possibleErrors)
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(possibleErrors)
 }

@@ -57,19 +57,16 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.Unknown
 
 /**
- * **Primitive:** Message precedence declaration with
- * [tuple][TupleDescriptor] of [sets][SetDescriptor] of
- * messages to exclude for each argument position. Note that the tuple's
- * elements should correspond with occurrences of underscore in the method
- * names, *not* with the (top-level) arguments of the method. This
- * distinction is only apparent when guillemet notation is used to accept
- * tuples of arguments.
+ * **Primitive:** Message precedence declaration with [tuple][TupleDescriptor]
+ * of [sets][SetDescriptor] of messages to exclude for each argument position.
+ * Note that the tuple's elements should correspond with occurrences of
+ * underscore in the method names, *not* with the (top-level) arguments of the
+ * method. This distinction is only apparent when guillemet notation is used to
+ * accept tuples of arguments.
  */
 object P_GrammaticalRestriction : Primitive(2, Unknown)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val parentStrings = interpreter.argument(0)
@@ -85,22 +82,26 @@ object P_GrammaticalRestriction : Primitive(2, Unknown)
 		for (i in excludedStringSets.tupleSize() downTo 1)
 		{
 			val strings = excludedStringSets.tupleAt(i)
-			val atomSet = try {
-				generateSetFrom(
-					strings.setSize(), strings.iterator(), loader::lookupName)
-			}
+			val atomSet =
+				try
+				{
+					generateSetFrom(
+						strings.setSize(),
+						strings.iterator(),
+						loader::lookupName)
+				}
 			catch (e: AmbiguousNameException)
 			{
 				return interpreter.primitiveFailure(e)
 			}
-			excludedAtomSets = excludedAtomSets.tupleAtPuttingCanDestroy(
-				i, atomSet, true)
+			excludedAtomSets =
+				excludedAtomSets.tupleAtPuttingCanDestroy(i, atomSet, true)
 		}
 		try
 		{
-			val parentAtoms = generateSetFrom(
-				parentStrings.setSize(), parentStrings.iterator()
-			) { loader.lookupName(it) }
+			val parentAtoms =
+				generateSetFrom(parentStrings.setSize(), parentStrings.iterator())
+				{ loader.lookupName(it) }
 			loader.addGrammaticalRestrictions(parentAtoms, excludedAtomSets)
 		}
 		catch (e: MalformedMessageException)
@@ -119,29 +120,19 @@ object P_GrammaticalRestriction : Primitive(2, Unknown)
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
-				setTypeForSizesContentType(
-					naturalNumbers(),
-					stringType()),
+				setTypeForSizesContentType(naturalNumbers(), stringType()),
 				zeroOrMoreOf(
-					setTypeForSizesContentType(
-						wholeNumbers(),
-						stringType()))),
+					setTypeForSizesContentType(wholeNumbers(), stringType()))),
 			TOP.o())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
-			set(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(
 				E_LOADING_IS_OVER,
 				E_CANNOT_DEFINE_DURING_COMPILATION,
 				E_AMBIGUOUS_NAME,
-				E_INCORRECT_NUMBER_OF_ARGUMENTS
-			).setUnionCanDestroy(possibleErrors, true))
-	}
-
+				E_INCORRECT_NUMBER_OF_ARGUMENTS)
+			.setUnionCanDestroy(possibleErrors, true))
 }

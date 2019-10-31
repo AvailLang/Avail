@@ -32,14 +32,12 @@
 
 package com.avail.interpreter.primitive.methods
 
-import com.avail.descriptor.A_Type
+import com.avail.descriptor.*
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceMetaDescriptor.anyMeta
-import com.avail.descriptor.MethodDescriptor
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetDescriptor.set
-import com.avail.descriptor.TupleDescriptor
 import com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.TypeDescriptor.Types.DEFINITION
@@ -50,15 +48,16 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * **Primitive:** Lookup the unique [ ] in the specified [ ]'s [ method][MethodDescriptor] by the [tuple][TupleDescriptor] of parameter [ ].
+ * **Primitive:** Lookup the unique [definition][DefinitionDescriptor] in the
+ * specified [message bundle's][MessageBundleDescriptor]
+ * [method][MethodDescriptor] by the [tuple][TupleDescriptor] of parameter
+ * [types][TypeDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_DefinitionForArgumentTypes : Primitive(2, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val atom = interpreter.argument(0)
@@ -75,7 +74,8 @@ object P_DefinitionForArgumentTypes : Primitive(2, CanInline)
 				return interpreter.primitiveFailure(
 					E_INCORRECT_NUMBER_OF_ARGUMENTS)
 			}
-			val definition = bundle.bundleMethod().lookupByTypesFromTuple(argTypes)
+			val definition =
+				bundle.bundleMethod().lookupByTypesFromTuple(argTypes)
 			assert(!definition.equalsNil())
 			return interpreter.primitiveSuccess(definition)
 		}
@@ -86,17 +86,13 @@ object P_DefinitionForArgumentTypes : Primitive(2, CanInline)
 
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(ATOM.o(), zeroOrMoreOf(
-			anyMeta())), DEFINITION.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(ATOM.o(), zeroOrMoreOf(anyMeta())), DEFINITION.o())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_NO_METHOD, E_NO_METHOD_DEFINITION,
-		                           E_AMBIGUOUS_METHOD_DEFINITION,
-		                           E_INCORRECT_NUMBER_OF_ARGUMENTS))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(
+			E_NO_METHOD,
+			E_NO_METHOD_DEFINITION,
+			E_AMBIGUOUS_METHOD_DEFINITION,
+		    E_INCORRECT_NUMBER_OF_ARGUMENTS))
 }

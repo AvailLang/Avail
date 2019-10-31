@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive.methods
 
 import com.avail.descriptor.A_Type
+import com.avail.descriptor.DefinitionDescriptor
 import com.avail.descriptor.FunctionDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionMeta
@@ -43,14 +44,12 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer this [ ]'s [body][FunctionDescriptor]'s
- * [type][FunctionTypeDescriptor].
+ * **Primitive:** Answer this [definition's][DefinitionDescriptor]
+ * [body][FunctionDescriptor]'s [type][FunctionTypeDescriptor].
  */
 object P_DefinitionBodySignature : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val definition = interpreter.argument(0)
@@ -58,9 +57,6 @@ object P_DefinitionBodySignature : Primitive(1, CannotFail, CanFold, CanInline)
 			definition.bodySignature().makeImmutable())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(DEFINITION.o()), functionMeta())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(DEFINITION.o()), functionMeta())
 }

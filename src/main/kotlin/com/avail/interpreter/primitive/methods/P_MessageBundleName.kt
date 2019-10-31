@@ -32,7 +32,9 @@
 package com.avail.interpreter.primitive.methods
 
 import com.avail.descriptor.A_Type
+import com.avail.descriptor.AtomDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.MessageBundleDescriptor
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE
@@ -41,24 +43,20 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer the [ ] associated with the given [ ]. This is generally only
- * used when Avail code is saving or loading Avail code in the object dumper
+ * **Primitive:** Answer the [true name][AtomDescriptor] associated with the
+ * given [message bundle][MessageBundleDescriptor]. This is generally only used
+ * when Avail code is saving or loading Avail code in the object dumper
  * / loader.
  */
 object P_MessageBundleName : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val bundle = interpreter.argument(0)
 		return interpreter.primitiveSuccess(bundle.message())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(MESSAGE_BUNDLE.o()), ATOM.o())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(MESSAGE_BUNDLE.o()), ATOM.o())
 }

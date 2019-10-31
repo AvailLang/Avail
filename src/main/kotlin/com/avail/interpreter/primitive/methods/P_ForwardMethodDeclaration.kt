@@ -56,14 +56,11 @@ import com.avail.utility.Nulls.stripNull
 import java.util.*
 
 /**
- * **Primitive:** Forward declare a method (for recursion
- * or mutual recursion).
+ * **Primitive:** Forward declare a method (for recursion or mutual recursion).
  */
 object P_ForwardMethodDeclaration : Primitive(2, CanSuspend, Unknown)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val string = interpreter.argument(0)
@@ -82,9 +79,8 @@ object P_ForwardMethodDeclaration : Primitive(2, CanSuspend, Unknown)
 		interpreter.primitiveSuspend(primitiveFunction)
 		interpreter.runtime().whenLevelOneSafeDo(
 			fiber.priority(),
-			AvailTask.forUnboundFiber(
-				fiber
-			) {
+			AvailTask.forUnboundFiber(fiber)
+			{
 				try
 				{
 					loader.addForwardStub(
@@ -107,29 +103,34 @@ object P_ForwardMethodDeclaration : Primitive(2, CanSuspend, Unknown)
 				}
 				catch (e: SignatureException)
 				{
-					Interpreter.resumeFromFailedPrimitive(currentRuntime(), fiber, e.numericCode(), primitiveFunction, copiedArgs)
+					Interpreter.resumeFromFailedPrimitive(
+						currentRuntime(),
+						fiber,
+						e.numericCode(),
+						primitiveFunction,
+						copiedArgs)
 				}
 				catch (e: AmbiguousNameException)
 				{
-					Interpreter.resumeFromFailedPrimitive(currentRuntime(), fiber, e.numericCode(), primitiveFunction, copiedArgs)
+					Interpreter.resumeFromFailedPrimitive(
+						currentRuntime(),
+						fiber,
+						e.numericCode(),
+						primitiveFunction,
+						copiedArgs)
 				}
 			})
 		return FIBER_SUSPENDED
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(stringType(), functionMeta()), TOP.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(stringType(), functionMeta()), TOP.o())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
 			set(E_LOADING_IS_OVER, E_CANNOT_DEFINE_DURING_COMPILATION,
 			    E_AMBIGUOUS_NAME, E_REDEFINED_WITH_SAME_ARGUMENT_TYPES,
 			    E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS,
 			    E_METHOD_IS_SEALED)
 				.setUnionCanDestroy(possibleErrors, true))
-	}
-
 }

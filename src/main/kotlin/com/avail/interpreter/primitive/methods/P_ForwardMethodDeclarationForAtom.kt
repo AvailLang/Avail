@@ -57,14 +57,11 @@ import com.avail.utility.Nulls.stripNull
 import java.util.*
 
 /**
- * **Primitive:** Forward declare a method (for recursion
- * or mutual recursion).
+ * **Primitive:** Forward declare a method (for recursion or mutual recursion).
  */
 object P_ForwardMethodDeclarationForAtom : Primitive(2, CanSuspend, Unknown)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val atom = interpreter.argument(0)
@@ -82,10 +79,8 @@ object P_ForwardMethodDeclarationForAtom : Primitive(2, CanSuspend, Unknown)
 		val copiedArgs = ArrayList(interpreter.argsBuffer)
 		interpreter.primitiveSuspend(primitiveFunction)
 		interpreter.runtime().whenLevelOneSafeDo(
-			fiber.priority(),
-			AvailTask.forUnboundFiber(
-				fiber
-			) {
+			fiber.priority(), AvailTask.forUnboundFiber(fiber)
+		{
 				try
 				{
 					loader.addForwardStub(atom, blockSignature)
@@ -106,29 +101,26 @@ object P_ForwardMethodDeclarationForAtom : Primitive(2, CanSuspend, Unknown)
 				}
 				catch (e: SignatureException)
 				{
-					resumeFromFailedPrimitive(currentRuntime(), fiber, e.numericCode(), primitiveFunction, copiedArgs)
+					resumeFromFailedPrimitive(
+						currentRuntime(),
+						fiber,
+						e.numericCode(),
+						primitiveFunction,
+						copiedArgs)
 				}
 			})
 		return FIBER_SUSPENDED
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				ATOM.o(),
-				functionMeta()),
-			TOP.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(ATOM.o(), functionMeta()), TOP.o())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
-			set(E_LOADING_IS_OVER, E_CANNOT_DEFINE_DURING_COMPILATION,
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(
+				E_LOADING_IS_OVER,
+				E_CANNOT_DEFINE_DURING_COMPILATION,
 			    E_REDEFINED_WITH_SAME_ARGUMENT_TYPES,
 			    E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS,
 			    E_METHOD_IS_SEALED)
-				.setUnionCanDestroy(possibleErrors, true))
-	}
-
+			.setUnionCanDestroy(possibleErrors, true))
 }
