@@ -44,11 +44,10 @@ import com.avail.optimizer.L1Translator.CallSiteHelper
 /**
  * **Primitive:** The first argument is being returned.
  */
-object P_PushArgument1 : Primitive(-1, SpecialForm, Private, CanInline, CannotFail)
+object P_PushArgument1 : Primitive(
+	-1, SpecialForm, Private, CanInline, CannotFail)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		val argument = interpreter.argument(0)
 		return interpreter.primitiveSuccess(argument)
@@ -58,22 +57,21 @@ object P_PushArgument1 : Primitive(-1, SpecialForm, Private, CanInline, CannotFa
 		rawFunction: A_RawFunction,
 		argumentTypes: List<A_Type>): A_Type
 	{
-		assert(argumentTypes.size >= 1)
+		assert(argumentTypes.isNotEmpty())
 		return argumentTypes[0]
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		// This primitive is suitable for any one-or-more-argument function.
-		// It may seem strange that ⊥ is the return type, but that's to allow
-		// functions like [x : map | x] to type-check correctly!  The argument
-		// x has type map, so the last expression does also.  If we made this
-		// primitive say the result must be any, we would be illegally
-		// strengthening it by appending a return type declaration like ": map".
-		// However, the L2 translator will have to ignore the primitive block
-		// type restriction for this particular primitive.
-		return bottom()
-	}
+	/**
+	 * This primitive is suitable for any one-or-more-argument function. It may
+	 * seem strange that ⊥ is the return type, but that's to allow functions
+	 * like [x : map | x] to type-check correctly!  The argument x has type map,
+	 * so the last expression does also.  If we made this primitive say the
+	 * result must be any, we would be illegally strengthening it by appending a
+	 * return type declaration like ": map". However, the L2 translator will
+	 * have to ignore the primitive block type restriction for this particular
+	 * primitive.
+	 */
+	override fun privateBlockTypeRestriction(): A_Type = bottom()
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
@@ -89,5 +87,4 @@ object P_PushArgument1 : Primitive(-1, SpecialForm, Private, CanInline, CannotFa
 		callSiteHelper.useAnswer(arguments[0])
 		return true
 	}
-
 }

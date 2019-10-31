@@ -47,11 +47,10 @@ import com.avail.utility.Nulls.stripNull
 /**
  * **Primitive:** A global variable's value is being returned.
  */
-object P_GetGlobalVariableValue : Primitive(1, SpecialForm, CanInline, Private, CannotFail)
+object P_GetGlobalVariableValue : Primitive(
+	1, SpecialForm, CanInline, Private, CannotFail)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		val code = stripNull(interpreter.function).code()
 		val literalVariable = code.literalAt(1)
@@ -64,22 +63,19 @@ object P_GetGlobalVariableValue : Primitive(1, SpecialForm, CanInline, Private, 
 			assert(false) { "A write-only variable must be assigned!" }
 			throw RuntimeException(e)
 		}
-
 	}
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
-		argumentTypes: List<A_Type>): A_Type
-	{
-		return rawFunction.literalAt(1).kind().readType()
-	}
+		argumentTypes: List<A_Type>
+	): A_Type =
+		rawFunction.literalAt(1).kind().readType()
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		// This primitive is suitable for any function with any as the return
-		// type.  We can't express that yet, so we allow any function.
-		return bottom()
-	}
+	/**
+	 * This primitive is suitable for any function with any as the return type.
+	 * We can't express that yet, so we allow any function.
+	 */
+	override fun privateBlockTypeRestriction(): A_Type = bottom()
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
@@ -89,17 +85,17 @@ object P_GetGlobalVariableValue : Primitive(1, SpecialForm, CanInline, Private, 
 		translator: L1Translator,
 		callSiteHelper: CallSiteHelper): Boolean
 	{
-		val function = functionToCallReg.constantOrNull()
-		               ?: // We have to know the specific function to know what variable to
-		               // read from, since it's the first literal.
-		               return false
+		// We have to know the specific function to know what variable to read
+		// from, since it's the first literal.
+		val function = functionToCallReg.constantOrNull() ?: return false
 		val variable = function.code().literalAt(1)
 		// Avoid generating a constant move if the value wasn't stably computed.
 		// While it would be the correct value, it wouldn't trigger the fast
 		// loader suppression necessary to indicate that an unstable global
 		// constant had been accessed, and a new global constant initialization
 		// running this L2Chunk wouldn't be flagged correctly as also unstable.
-		if (variable.isInitializedWriteOnceVariable && variable.valueWasStablyComputed())
+		if (variable.isInitializedWriteOnceVariable &&
+			variable.valueWasStablyComputed())
 		{
 			// The variable is permanently set to this value.
 			callSiteHelper.useAnswer(

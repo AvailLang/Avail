@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.primitive.privatehelpers
 
-import com.avail.descriptor.A_Function
 import com.avail.descriptor.A_RawFunction
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn
@@ -45,36 +44,29 @@ import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.primitive.privatehelpers.P_PushConstant.tryToGenerateSpecialPrimitiveInvocation
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
-import com.avail.utility.Nulls.stripNull
 
 /**
- * **Primitive:** The first literal is being returned.
- * Extract the first literal from the [ compiled code][CompiledCodeDescriptor] that the interpreter has squirreled away for this purpose.
+ * **Primitive:** The first literal is being returned. Extract the first literal
+ * from the [compiled&#32;code][CompiledCodeDescriptor] that the interpreter has
+ * squirreled away for this purpose.
  *
- *
- * This mechanism relies on
- * [tryToGenerateSpecialPrimitiveInvocation]
- * always producing specialized L2 code – i.e., a constant move.  Note that
- * [Flag.CanInline] normally skips making the actual called function
- * available, so we must be careful to expose it for the customized code
- * generator.
+ * This mechanism relies on [tryToGenerateSpecialPrimitiveInvocation] always
+ * producing specialized L2 code – i.e., a constant move.  Note that [CanInline]
+ * normally skips making the actual called function available, so we must be
+ * careful to expose it for the customized code generator.
  */
-object P_PushConstant : Primitive(-1, SpecialForm, Private, CanInline, CannotFail)
+object P_PushConstant : Primitive(
+	-1, SpecialForm, Private, CanInline, CannotFail)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
-		val code = stripNull<A_Function>(interpreter.function).code()
+		val code = interpreter.function!!.code()
 		assert(code.primitive() === this)
 		return interpreter.primitiveSuccess(code.literalAt(1))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		// This primitive is suitable for any block signature.
-		return bottom()
-	}
+	/** This primitive is suitable for any block signature. */
+	override fun privateBlockTypeRestriction(): A_Type = bottom()
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
@@ -96,5 +88,4 @@ object P_PushConstant : Primitive(-1, SpecialForm, Private, CanInline, CannotFai
 		callSiteHelper.useAnswer(translator.generator.boxedConstant(constant))
 		return true
 	}
-
 }
