@@ -43,13 +43,12 @@ import com.avail.optimizer.L1Translator.CallSiteHelper
 import com.avail.utility.Nulls.stripNull
 
 /**
- * **Primitive:** The only outer value is being returned.
+ * **Primitive:** The sole outer value is being returned.
  */
-object P_PushLastOuter : Primitive(-1, SpecialForm, Private, CanInline, CannotFail)
+object P_PushLastOuter : Primitive(
+	-1, SpecialForm, Private, CanInline, CannotFail)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		val function = stripNull(interpreter.function)
 		assert(function.code().primitive() === this)
@@ -58,17 +57,14 @@ object P_PushLastOuter : Primitive(-1, SpecialForm, Private, CanInline, CannotFa
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
-		argumentTypes: List<A_Type>): A_Type
-	{
-		return rawFunction.outerTypeAt(1)
-	}
+		argumentTypes: List<A_Type>
+	): A_Type = rawFunction.outerTypeAt(1)
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		// This primitive is suitable for any block signature, although really
-		// the primitive could only be applied if the function returns any.
-		return bottom()
-	}
+	/**
+	 * This primitive is suitable for any block signature, although really the
+	 * primitive could only be applied if the function returns any.
+	 */
+	override fun privateBlockTypeRestriction(): A_Type = bottom()
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
@@ -93,7 +89,8 @@ object P_PushLastOuter : Primitive(-1, SpecialForm, Private, CanInline, CannotFa
 		// See if we can find the instruction that created the function, using
 		// the original register that provided the value for the outer.  This
 		// should allow us to skip the creation of the function.
-		val functionCreationInstruction = functionToCallReg.definitionSkippingMoves(true)
+		val functionCreationInstruction =
+			functionToCallReg.definitionSkippingMoves(true)
 		val returnType = functionToCallReg.type().returnType()
 		val outerReg = functionCreationInstruction.operation()
 			.extractFunctionOuter(
@@ -105,5 +102,4 @@ object P_PushLastOuter : Primitive(-1, SpecialForm, Private, CanInline, CannotFa
 		callSiteHelper.useAnswer(outerReg)
 		return true
 	}
-
 }

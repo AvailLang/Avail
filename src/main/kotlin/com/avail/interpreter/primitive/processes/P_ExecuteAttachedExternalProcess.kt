@@ -33,10 +33,10 @@
 package com.avail.interpreter.primitive.processes
 
 import com.avail.AvailRuntime.currentRuntime
-import com.avail.descriptor.A_BasicObject
 import com.avail.descriptor.A_Fiber
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.AvailObject
 import com.avail.descriptor.FiberDescriptor.newFiber
 import com.avail.descriptor.FiberTypeDescriptor.fiberType
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
@@ -65,19 +65,17 @@ import java.io.File
 import java.io.IOException
 import java.io.PrintStream
 import java.lang.ProcessBuilder.Redirect
-import java.util.*
 
 /**
- * **Primitive**: Execute an attached external [ process][Process]. The forked [fiber][A_Fiber] is wired to the external process's
- * standard input, output, and error mechanisms.
+ * **Primitive**: Execute an attached external [process][Process]. The forked
+ * [fiber][A_Fiber] is wired to the external process's standard input, output,
+ * and error mechanisms.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_ExecuteAttachedExternalProcess : Primitive(6, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(6)
 		val processArgsTuple = interpreter.argument(0)
@@ -86,13 +84,9 @@ object P_ExecuteAttachedExternalProcess : Primitive(6, CanInline, HasSideEffect)
 		val succeed = interpreter.argument(3)
 		val fail = interpreter.argument(4)
 		val priority = interpreter.argument(5)
+
 		// Transform the process arguments into native strings.
-		val processArgs = ArrayList<String>(
-			processArgsTuple.tupleSize())
-		for (processArg in processArgsTuple)
-		{
-			processArgs.add(processArg.asNativeString())
-		}
+		val processArgs = processArgsTuple.map(AvailObject::asNativeString)
 		// Set up the process builder, taking care to explicitly redirect the
 		// external process's streams to interface with us.
 		val builder = ProcessBuilder(processArgs)
@@ -106,10 +100,9 @@ object P_ExecuteAttachedExternalProcess : Primitive(6, CanInline, HasSideEffect)
 		}
 		if (optEnvironment.tupleSize() == 1)
 		{
-			val newEnvironmentMap = HashMap<String, String>()
-			for (entry in optEnvironment.tupleAt(1).mapIterable())
-			{
-				newEnvironmentMap[entry.key().asNativeString()] = entry.value().asNativeString()
+			val oldEnvironmentMap = optEnvironment.tupleAt(1)
+			val newEnvironmentMap = oldEnvironmentMap.mapIterable().associate {
+				(k, v) -> k.asNativeString() to v.asNativeString()
 			}
 			val environmentMap = builder.environment()
 			environmentMap.clear()
@@ -117,10 +110,9 @@ object P_ExecuteAttachedExternalProcess : Primitive(6, CanInline, HasSideEffect)
 		}
 		// Create the new fiber that will be connected to the external process.
 		val current = interpreter.fiber()
-		val newFiber = newFiber(
-			TOP.o(),
-			priority.extractInt()
-		) { stringFrom("External process execution") }
+		val newFiber = newFiber(TOP.o(), priority.extractInt()) {
+			stringFrom("External process execution")
+		}
 		newFiber.availLoader(current.availLoader())
 		newFiber.heritableFiberGlobals(
 			current.heritableFiberGlobals().makeShared())
@@ -137,12 +129,9 @@ object P_ExecuteAttachedExternalProcess : Primitive(6, CanInline, HasSideEffect)
 			newFiber.textInterface(
 				TextInterface(
 					ProcessInputChannel(process.inputStream),
-					ProcessOutputChannel(
-						PrintStream(process.outputStream)),
-					ProcessOutputChannel(
-						PrintStream(process.outputStream))))
-			runOutermostFunction(
-				runtime, newFiber, succeed, emptyList<A_BasicObject>())
+					ProcessOutputChannel(PrintStream(process.outputStream)),
+					ProcessOutputChannel(PrintStream(process.outputStream))))
+			runOutermostFunction(runtime, newFiber, succeed, emptyList())
 			return interpreter.primitiveSuccess(newFiber)
 		}
 		catch (e: SecurityException)
@@ -157,16 +146,12 @@ object P_ExecuteAttachedExternalProcess : Primitive(6, CanInline, HasSideEffect)
 		// Run the failure function on the new fiber.
 		newFiber.textInterface(current.textInterface())
 		runOutermostFunction(
-			runtime,
-			newFiber,
-			fail,
-			listOf(error.numericCode()))
+			runtime, newFiber, fail, listOf(error.numericCode()))
 		return interpreter.primitiveSuccess(newFiber)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tupleFromArray(
 				oneOrMoreOf(stringType()),
 				zeroOrOneOf(stringType()),
@@ -185,14 +170,10 @@ object P_ExecuteAttachedExternalProcess : Primitive(6, CanInline, HasSideEffect)
 					TOP.o()),
 				bytes()),
 			fiberType(TOP.o()))
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
 			set(
 				E_PERMISSION_DENIED,
 				E_NO_EXTERNAL_PROCESS))
-	}
-
 }
