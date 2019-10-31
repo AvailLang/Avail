@@ -46,15 +46,15 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * **Primitive:** Answer the [ ][A_Module.exportedNames] of the [ ][ModuleDescriptor.currentModule].
+ * **Primitive:** Answer the [exported names][A_Module.exportedNames] of the
+ * [current module][ModuleDescriptor.currentModule].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_ExportedNames : Primitive(0, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(0)
 		val fiber = interpreter.fiber()
@@ -65,11 +65,7 @@ object P_ExportedNames : Primitive(0, CanInline)
 		return interpreter.primitiveSuccess(exportedNames)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			emptyTuple(),
-			setTypeForSizesContentType(wholeNumbers(), ATOM.o()))
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			emptyTuple(), setTypeForSizesContentType(wholeNumbers(), ATOM.o()))
 }

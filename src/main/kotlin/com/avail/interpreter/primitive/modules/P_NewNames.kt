@@ -46,30 +46,25 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail
 
 /**
- * **Primitive:** Answer the introduced public names of the
- * specified [module][ModuleDescriptor].  This is a [map][A_Map]
- * from [string][A_String] to [atom][A_Atom].
+ * **Primitive:** Answer the introduced public names of the specified
+ * [module][ModuleDescriptor].  This is a [map][A_Map] from [string][A_String]
+ * to [atom][A_Atom].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_NewNames : Primitive(1, CanInline, CannotFail)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val module = interpreter.argument(0)
 		return interpreter.primitiveSuccess(module.newNames())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				MODULE.o()),
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(MODULE.o()),
 			mapTypeForSizesKeyTypeValueType(
 				wholeNumbers(), stringType(), ATOM.o()))
-	}
-
 }

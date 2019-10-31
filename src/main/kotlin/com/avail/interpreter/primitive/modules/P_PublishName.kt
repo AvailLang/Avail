@@ -51,19 +51,16 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
 
 /**
- * **Primitive:** Publish the [atom][AtomDescriptor]
- * associated with the specified [string][StringDescriptor] as a
- * public name of the current [module][ModuleDescriptor]. This has the
- * same effect as listing the string in the "Names" section of the current
- * module. Fails if called at runtime.
+ * **Primitive:** Publish the [atom][AtomDescriptor] associated with the
+ * specified [string][StringDescriptor] as a public name of the current
+ * [module][ModuleDescriptor]. This has the same effect as listing the string in
+ * the "Names" section of the current module. Fails if called at runtime.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_PublishName : Primitive(1, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val name = interpreter.argument(0)
@@ -79,30 +76,25 @@ object P_PublishName : Primitive(1, CanInline, HasSideEffect)
 			return interpreter.primitiveFailure(
 				E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
-		try
+		return try
 		{
 			val trueName = loader.lookupName(name)
 			module.introduceNewName(trueName)
 			module.addImportedName(trueName)
-			return interpreter.primitiveSuccess(nil)
+			interpreter.primitiveSuccess(nil)
 		}
 		catch (e: AmbiguousNameException)
 		{
-			return interpreter.primitiveFailure(e)
+			interpreter.primitiveFailure(e)
 		}
-
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(stringType()), TOP.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(stringType()), TOP.o())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
-			set(E_LOADING_IS_OVER, E_CANNOT_DEFINE_DURING_COMPILATION,
-			    E_AMBIGUOUS_NAME))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(
+			E_LOADING_IS_OVER,
+			E_CANNOT_DEFINE_DURING_COMPILATION,
+		    E_AMBIGUOUS_NAME))
 }

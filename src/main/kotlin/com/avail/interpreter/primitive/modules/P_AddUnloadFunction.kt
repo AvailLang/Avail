@@ -51,15 +51,14 @@ import com.avail.interpreter.Primitive.Flag.HasSideEffect
 import com.avail.interpreter.effects.LoadingEffectToRunPrimitive
 
 /**
- * **Primitive:** Add the specified [ unload function][A_Function] to the [current][ModuleDescriptor.currentModule].
+ * **Primitive:** Add the specified [unload function][A_Function] to the
+ * [current][ModuleDescriptor.currentModule].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_AddUnloadFunction : Primitive(1, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val unloadFunction = interpreter.argument(0)
@@ -73,14 +72,9 @@ object P_AddUnloadFunction : Primitive(1, CanInline, HasSideEffect)
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(functionTypeReturning(TOP.o())), TOP.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(functionTypeReturning(TOP.o())), TOP.o())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_LOADING_IS_OVER))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_LOADING_IS_OVER))
 }

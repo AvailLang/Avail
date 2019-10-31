@@ -46,27 +46,23 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail
 
 /**
- * **Primitive:** Answer the entry point names declared by the
- * specified [module][ModuleDescriptor].
+ * **Primitive:** Answer the entry point names declared by the specified
+ * [module][ModuleDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_Entries : Primitive(1, CanInline, CannotFail)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val module = interpreter.argument(0)
 		return interpreter.primitiveSuccess(module.entryPoints().keysAsSet())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(MODULE.o()), setTypeForSizesContentType(
-			wholeNumbers(),
-			stringType()))
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(MODULE.o()),
+			setTypeForSizesContentType(wholeNumbers(), stringType()))
 }

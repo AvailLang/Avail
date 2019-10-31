@@ -44,25 +44,21 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer the [name][StringDescriptor]
- * of the specified [module][ModuleDescriptor].
+ * **Primitive:** Answer the [name][StringDescriptor] of the specified
+ * [module][ModuleDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_ModuleName : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val module = interpreter.argument(0)
 		return interpreter.primitiveSuccess(module.moduleName())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(MODULE.o()), stringType())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(MODULE.o()), stringType())
 }

@@ -44,43 +44,40 @@ import com.avail.descriptor.TypeDescriptor.Types.ATOM
 import com.avail.exceptions.AmbiguousNameException
 import com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_NAME
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
+import com.avail.interpreter.AvailLoader
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * **Primitive:** Look up the [true][AtomDescriptor] bound to the specified [name][TupleDescriptor] in the
- * [module][ModuleDescriptor] currently being [ ], creating the true name if necessary.
+ * **Primitive:** Look up the [true][AtomDescriptor] bound to the specified
+ * [name][TupleDescriptor] in the [module][ModuleDescriptor] currently being
+ * [loaded][AvailLoader], creating the true name if necessary.
  */
+@Suppress("unused")
 object P_LookupName : Primitive(1, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val name = interpreter.argument(0)
-		val loader = interpreter.fiber().availLoader()
-		             ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
-		try
+		val loader =
+			interpreter.fiber().availLoader()
+	             ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+		return try
 		{
-			return interpreter.primitiveSuccess(loader.lookupName(name))
+			interpreter.primitiveSuccess(loader.lookupName(name))
 		}
 		catch (e: AmbiguousNameException)
 		{
-			return interpreter.primitiveFailure(e)
+			interpreter.primitiveFailure(e)
 		}
 
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(stringType()), ATOM.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(stringType()), ATOM.o())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_LOADING_IS_OVER, E_AMBIGUOUS_NAME))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_LOADING_IS_OVER, E_AMBIGUOUS_NAME))
 }

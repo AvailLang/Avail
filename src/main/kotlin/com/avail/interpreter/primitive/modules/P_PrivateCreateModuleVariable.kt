@@ -46,25 +46,28 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Create a [ global variable or constant][VariableSharedGlobalDescriptor], registering it with the given module.
+ * **Primitive:** Create a
+ * [global variable or constant][VariableSharedGlobalDescriptor], registering it
+ * with the given module.
  */
-object P_PrivateCreateModuleVariable : Primitive(5, CanFold, CanInline, Private, CannotFail)
+object P_PrivateCreateModuleVariable
+	: Primitive(5, CanFold, CanInline, Private, CannotFail)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(5)
 		val module = interpreter.argument(0)
 		val name = interpreter.argument(1)
 		val varType = interpreter.argument(2)
-		val isConstant = interpreter.argument(3).extractBoolean()
-		val stablyComputed = interpreter.argument(4).extractBoolean()
+		val isConstant =
+			interpreter.argument(3).extractBoolean()
+		val stablyComputed =
+			interpreter.argument(4).extractBoolean()
 
 		assert(isConstant || !stablyComputed)
 
-		val variable = createGlobal(
-			varType, module, name, isConstant)
+		val variable =
+			createGlobal(varType, module, name, isConstant)
 		if (stablyComputed)
 		{
 			variable.valueWasStablyComputed(true)
@@ -81,9 +84,8 @@ object P_PrivateCreateModuleVariable : Primitive(5, CanFold, CanInline, Private,
 		return interpreter.primitiveSuccess(variable)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				MODULE.o(),
 				stringType(),
@@ -91,6 +93,4 @@ object P_PrivateCreateModuleVariable : Primitive(5, CanFold, CanInline, Private,
 				booleanType(),
 				booleanType()),
 			TOP.o())
-	}
-
 }

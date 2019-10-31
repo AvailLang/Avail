@@ -46,16 +46,14 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * **Primitive:** Answer the [ module][ModuleDescriptor] currently undergoing compilation. Fails at runtime (if compilation is
- * over).
+ * **Primitive:** Answer the [module][ModuleDescriptor] currently undergoing
+ * compilation. Fails at runtime (if compilation is over).
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_CurrentModule : Primitive(0, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(0)
 		val module = currentModule()
@@ -66,16 +64,9 @@ object P_CurrentModule : Primitive(0, CanInline)
 		else interpreter.primitiveSuccess(module)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			emptyTuple(),
-			MODULE.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(emptyTuple(), MODULE.o())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_LOADING_IS_OVER))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_LOADING_IS_OVER))
 }

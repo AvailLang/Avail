@@ -51,18 +51,19 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.Primitive.Flag.Private
 
 /**
- * **Primitive:** This private primitive is used to ensure that
- * a module can deserialize correctly. It forces the given set of atoms to be
- * included in the current module's [ ][ObjectSlots.IMPORTED_NAMES] or [ ][ObjectSlots.PRIVATE_NAMES], depending on the
- * value of the supplied [ boolean][EnumerationTypeDescriptor.booleanType] ([true][AtomDescriptor.trueObject] for public, [ ][AtomDescriptor.falseObject] for private).
+ * **Primitive:** This private primitive is used to ensure that a module can
+ * deserialize correctly. It forces the given set of atoms to be included in the
+ * current module's [public names][ObjectSlots.IMPORTED_NAMES] or [private
+ * names][ObjectSlots.PRIVATE_NAMES], depending on the value of the supplied
+ * [boolean][EnumerationTypeDescriptor.booleanType]
+ * ([true][AtomDescriptor.trueObject] for public,
+ * [false][AtomDescriptor.falseObject] for private).
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 object P_DeclareAllExportedAtoms : Primitive(2, CannotFail, Private)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val names = interpreter.argument(0)
@@ -80,15 +81,10 @@ object P_DeclareAllExportedAtoms : Primitive(2, CannotFail, Private)
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
-				setTypeForSizesContentType(
-					wholeNumbers(),
-					ATOM.o()),
+				setTypeForSizesContentType(wholeNumbers(), ATOM.o()),
 				booleanType()),
 			TOP.o())
-	}
-
 }

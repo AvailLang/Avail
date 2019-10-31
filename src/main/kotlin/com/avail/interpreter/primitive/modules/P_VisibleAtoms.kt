@@ -43,21 +43,21 @@ import com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType
 import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
+import com.avail.interpreter.AvailLoader
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * **Primitive**: Answer every [true name][A_Atom]
- * visible in the [module][A_Module] currently being [ ].
+ * **Primitive**: Answer every [true name][A_Atom] visible in the
+ * [module][A_Module] currently being [loader][AvailLoader].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_VisibleAtoms : Primitive(0, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(0)
 		return if (interpreter.availLoaderOrNull() === null)
@@ -68,18 +68,10 @@ object P_VisibleAtoms : Primitive(0, CanInline)
 			interpreter.module().visibleNames())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			emptyTuple(),
-			setTypeForSizesContentType(
-				wholeNumbers(),
-				ATOM.o()))
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			emptyTuple(), setTypeForSizesContentType(wholeNumbers(), ATOM.o()))
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_LOADING_IS_OVER))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_LOADING_IS_OVER))
 }
