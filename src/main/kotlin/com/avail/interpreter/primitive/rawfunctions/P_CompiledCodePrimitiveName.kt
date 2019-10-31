@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.primitive.rawfunctions
 
-import com.avail.descriptor.A_String
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.CompiledCodeDescriptor
 import com.avail.descriptor.CompiledCodeTypeDescriptor.mostGeneralCompiledCodeType
@@ -46,35 +45,25 @@ import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive:** Answer the name of the primitive for this
- * [compiled code][CompiledCodeDescriptor].  Answer the empty string
- * if this code is not a primitive.
+ * [compiled&#32;code][CompiledCodeDescriptor].  Answer the empty string if this
+ * code is not a primitive.
  */
 object P_CompiledCodePrimitiveName : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val code = interpreter.argument(0)
 		val prim = code.primitive()
-		val string: A_String
-		if (prim === null)
-		{
-			string = emptyTuple()
-		}
-		else
-		{
-			string = stringFrom(prim.name())
+		val string = when {
+			prim === null -> emptyTuple()
+			else -> stringFrom(prim.name())
 		}
 		return interpreter.primitiveSuccess(string)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(mostGeneralCompiledCodeType()),
 			stringType())
-	}
-
 }

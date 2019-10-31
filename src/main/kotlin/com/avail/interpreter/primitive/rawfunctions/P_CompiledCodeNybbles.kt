@@ -44,25 +44,21 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer the [ nybblecodes][TupleDescriptor] of the [compiled code][CompiledCodeDescriptor].
+ * **Primitive:** Answer the [nybblecodes][TupleDescriptor] of the
+ * [compiled&#32;code][CompiledCodeDescriptor].
  */
 object P_CompiledCodeNybbles : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val code = interpreter.argument(0)
 		return interpreter.primitiveSuccess(code.nybbles())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				mostGeneralCompiledCodeType()),
 			zeroOrMoreOf(nybbles()))
-	}
-
 }

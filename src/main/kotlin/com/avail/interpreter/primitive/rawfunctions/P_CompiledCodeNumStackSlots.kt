@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive.rawfunctions
 
 import com.avail.descriptor.A_Type
+import com.avail.descriptor.CompiledCodeDescriptor
 import com.avail.descriptor.CompiledCodeTypeDescriptor.mostGeneralCompiledCodeType
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.IntegerDescriptor.fromInt
@@ -42,25 +43,21 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer the number of stack slots (not
- * counting arguments and locals) created for the [ ].
+ * **Primitive:** Answer the number of stack slots (not counting arguments and
+ * locals) created for the [compiled&32;code][CompiledCodeDescriptor].
  */
-object P_CompiledCodeNumStackSlots : Primitive(1, CannotFail, CanFold, CanInline)
+object P_CompiledCodeNumStackSlots : Primitive(
+	1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val code = interpreter.argument(0)
 		return interpreter.primitiveSuccess(fromInt(code.maxStackDepth()))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(mostGeneralCompiledCodeType()),
 			wholeNumbers())
-	}
-
 }

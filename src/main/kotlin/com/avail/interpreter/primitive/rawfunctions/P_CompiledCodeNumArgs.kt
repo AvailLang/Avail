@@ -43,25 +43,20 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer the number of arguments expected
- * by the [compiled code][CompiledCodeDescriptor].
+ * **Primitive:** Answer the number of arguments expected by the
+ * [compiled&#32;code][CompiledCodeDescriptor].
  */
 object P_CompiledCodeNumArgs : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val code = interpreter.argument(0)
 		return interpreter.primitiveSuccess(fromInt(code.numArgs()))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(mostGeneralCompiledCodeType()),
 			wholeNumbers())
-	}
-
 }

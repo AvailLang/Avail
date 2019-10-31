@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive.rawfunctions
 
 import com.avail.descriptor.A_Type
+import com.avail.descriptor.CompiledCodeDescriptor
 import com.avail.descriptor.CompiledCodeTypeDescriptor.mostGeneralCompiledCodeType
 import com.avail.descriptor.FunctionDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
@@ -44,24 +45,20 @@ import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive:** Answer the number of outer variables in
- * [functions][FunctionDescriptor] derived from this [ ].
+ * [functions][FunctionDescriptor] derived from this
+ * [compiled&#32;code][CompiledCodeDescriptor].
  */
 object P_CompiledCodeNumOuters : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val code = interpreter.argument(0)
 		return interpreter.primitiveSuccess(fromInt(code.numOuters()))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(mostGeneralCompiledCodeType()),
 			wholeNumbers())
-	}
-
 }

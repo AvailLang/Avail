@@ -32,7 +32,9 @@
 package com.avail.interpreter.primitive.rawfunctions
 
 import com.avail.descriptor.A_Type
+import com.avail.descriptor.CompiledCodeDescriptor
 import com.avail.descriptor.CompiledCodeTypeDescriptor.mostGeneralCompiledCodeType
+import com.avail.descriptor.FunctionDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.FunctionTypeDescriptor.mostGeneralFunctionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
@@ -41,23 +43,21 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer the [ ] within this [ ].
+ * **Primitive:** Answer the [compiled&#32;code][CompiledCodeDescriptor] within
+ * this [function][FunctionDescriptor].
  */
 object P_CompiledCodeOfFunction : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val aFunction = interpreter.argument(0)
 		return interpreter.primitiveSuccess(aFunction.code())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(mostGeneralFunctionType()),
-		                    mostGeneralCompiledCodeType())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(
+				mostGeneralFunctionType()),
+			mostGeneralCompiledCodeType())
 }

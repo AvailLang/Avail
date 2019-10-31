@@ -46,31 +46,25 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer a [ tuple][TupleDescriptor] with the literals from this [ compiled code][CompiledCodeDescriptor].
+ * **Primitive:** Answer a [tuple][TupleDescriptor] with the literals from this
+ * [compiled&#32;code][CompiledCodeDescriptor].
  */
 object P_CompiledCodeLiterals : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val code = interpreter.argument(0)
 
-		val tupleObject = generateObjectTupleFrom(
-			code.numLiterals()
-		) { index ->
-			val literal = code.literalAt(index)
+		val tupleObject = generateObjectTupleFrom(code.numLiterals()) {
+			val literal = code.literalAt(it)
 			if (literal.equalsNil()) zero() else literal
 		}
 		return interpreter.primitiveSuccess(tupleObject)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(mostGeneralCompiledCodeType()),
 			zeroOrMoreOf(ANY.o()))
-	}
-
 }
