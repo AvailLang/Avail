@@ -43,13 +43,13 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer a new [ set][SetDescriptor] like the argument but without the excluded [ element][AvailObject]. If it was already absent, answer the original set.
+ * **Primitive:** Answer a new [set][SetDescriptor] like the argument but
+ * without the excluded [element][AvailObject]. If it was already absent, answer
+ * the original set.
  */
 object P_SetWithout : Primitive(2, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val set = interpreter.argument(0)
@@ -59,10 +59,10 @@ object P_SetWithout : Primitive(2, CannotFail, CanFold, CanInline)
 			set.setWithoutElementCanDestroy(excludedElement, true))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(mostGeneralSetType(), ANY.o()),
-		                    mostGeneralSetType())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(
+				mostGeneralSetType(),
+				ANY.o()),
+			mostGeneralSetType())
 }

@@ -48,23 +48,23 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Convert a [ tuple][TupleDescriptor] into a [set][SetDescriptor].
+ * **Primitive:** Convert a [tuple][TupleDescriptor] into a
+ * [set][SetDescriptor].
  */
 object P_TupleToSet : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val tuple = interpreter.argument(0)
 		return interpreter.primitiveSuccess(tuple.asSet())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(mostGeneralTupleType()), mostGeneralSetType())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(
+				mostGeneralTupleType()),
+			mostGeneralSetType())
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
@@ -72,9 +72,7 @@ object P_TupleToSet : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		val tupleType = argumentTypes[0]
 
-		val unionType = tupleType.unionOfTypesAtThrough(
-			1,
-			Integer.MAX_VALUE)
+		val unionType = tupleType.unionOfTypesAtThrough(1, Integer.MAX_VALUE)
 		unionType.makeImmutable()
 		val tupleSizes = tupleType.sizeRange()
 		// Technically, if two tuple entries have disjoint types then the
@@ -89,7 +87,9 @@ object P_TupleToSet : Primitive(1, CannotFail, CanFold, CanInline)
 		// elements.  We do neither optimization here, but we do note that only
 		// the empty tuple can produce the empty set, and the set size is never
 		// greater than the tuple size.
-		val minSize = if (tupleSizes.lowerBound().equalsInt(0)) zero() else one()
+		val minSize =
+			if (tupleSizes.lowerBound().equalsInt(0)) zero()
+			else one()
 		val setSizes = integerRangeType(
 			minSize,
 			true,
@@ -97,5 +97,4 @@ object P_TupleToSet : Primitive(1, CannotFail, CanFold, CanInline)
 			tupleSizes.upperInclusive())
 		return setTypeForSizesContentType(setSizes, unionType)
 	}
-
 }

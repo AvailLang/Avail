@@ -43,22 +43,18 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Extract a [ set type][SetTypeDescriptor]'s element [type][TypeDescriptor].
+ * **Primitive:** Extract a [set&#32;type][SetTypeDescriptor]'s element
+ * [type][TypeDescriptor].
  */
 object P_SetTypeElementType : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val setType = interpreter.argument(0)
 		return interpreter.primitiveSuccess(setType.contentType())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(setMeta()), anyMeta())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(setMeta()), anyMeta())
 }

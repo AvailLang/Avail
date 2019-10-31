@@ -45,13 +45,12 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Check if the [ object][AvailObject] is an element of the [set][SetDescriptor].
+ * **Primitive:** Check if the [object][AvailObject] is an element of the
+ * [set][SetDescriptor].
  */
 object P_ElementInSet : Primitive(2, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val element = interpreter.argument(0)
@@ -61,13 +60,10 @@ object P_ElementInSet : Primitive(2, CannotFail, CanFold, CanInline)
 			objectFromBoolean(set.hasElement(element)))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				ANY.o(),
 				mostGeneralSetType()),
 			booleanType())
-	}
-
 }

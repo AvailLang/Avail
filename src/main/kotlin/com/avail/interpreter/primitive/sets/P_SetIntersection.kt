@@ -41,14 +41,11 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer the intersection of two
- * [sets][SetDescriptor].
+ * **Primitive:** Answer the intersection of two [sets][SetDescriptor].
  */
 object P_SetIntersection : Primitive(2, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val set1 = interpreter.argument(0)
@@ -58,13 +55,10 @@ object P_SetIntersection : Primitive(2, CannotFail, CanFold, CanInline)
 			set1.setIntersectionCanDestroy(set2, true))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				mostGeneralSetType(),
 				mostGeneralSetType()),
 			mostGeneralSetType())
-	}
-
 }
