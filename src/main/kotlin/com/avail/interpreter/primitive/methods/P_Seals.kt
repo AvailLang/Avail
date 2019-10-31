@@ -50,22 +50,16 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_Seals : Primitive(1, CanInline, CannotFail)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val method = interpreter.argument(0)
 		return interpreter.primitiveSuccess(method.sealedArgumentsTypesTuple())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(METHOD.o()), zeroOrMoreOf(
-			zeroOrMoreOf(
-				anyMeta())))
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(METHOD.o()), zeroOrMoreOf(zeroOrMoreOf(anyMeta())))
 }

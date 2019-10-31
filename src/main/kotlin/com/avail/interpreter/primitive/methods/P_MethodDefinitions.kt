@@ -51,6 +51,7 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_MethodDefinitions : Primitive(1, CannotFail, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

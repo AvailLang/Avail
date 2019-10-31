@@ -46,6 +46,7 @@ import com.avail.interpreter.Primitive.Flag.*
  * **Primitive:** Answer this [method signature's][MethodDefinitionDescriptor]
  * [body][FunctionDescriptor].
  */
+@Suppress("unused")
 object P_MethodDefinitionBody : Primitive(1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

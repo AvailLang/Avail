@@ -34,6 +34,7 @@ package com.avail.interpreter.primitive.methods
 
 import com.avail.descriptor.A_Atom
 import com.avail.descriptor.A_Definition
+import com.avail.descriptor.A_Method
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
@@ -54,16 +55,15 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
 
 /**
- * **Primitive:** Seal the [named][A_Atom] [ ] at each existing [definition][A_Definition]. Ignore
- * macros and forward definitions.
+ * **Primitive:** Seal the [named][A_Atom] [A_Method] at each existing
+ * [definition][A_Definition]. Ignore macros and forward definitions.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_SealMethodsAtExistingDefinitions : Primitive(1, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val methodNames = interpreter.argument(0)
@@ -95,7 +95,8 @@ object P_SealMethodsAtExistingDefinitions : Primitive(1, CanInline, HasSideEffec
 					{
 						val function = definition.bodySignature()
 						val params = function.argsTupleType()
-						val signature = params.tupleOfTypesFromTo(1, method.numArgs())
+						val signature =
+							params.tupleOfTypesFromTo(1, method.numArgs())
 						try
 						{
 							runtime.addSeal(name, signature)
@@ -114,17 +115,12 @@ object P_SealMethodsAtExistingDefinitions : Primitive(1, CanInline, HasSideEffec
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(setTypeForSizesContentType(
-			wholeNumbers(),
-			ATOM.o())), TOP.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(setTypeForSizesContentType(wholeNumbers(), ATOM.o())),
+			TOP.o())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
 			set(E_LOADING_IS_OVER, E_CANNOT_DEFINE_DURING_COMPILATION))
-	}
-
 }

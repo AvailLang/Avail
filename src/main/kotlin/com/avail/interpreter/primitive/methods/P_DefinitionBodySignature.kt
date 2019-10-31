@@ -47,6 +47,7 @@ import com.avail.interpreter.Primitive.Flag.*
  * **Primitive:** Answer this [definition's][DefinitionDescriptor]
  * [body][FunctionDescriptor]'s [type][FunctionTypeDescriptor].
  */
+@Suppress("unused")
 object P_DefinitionBodySignature : Primitive(1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

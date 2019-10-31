@@ -49,6 +49,7 @@ import com.avail.interpreter.Primitive.Flag.CanInline
  * **Primitive:** Answer the [method][MethodDescriptor] associated with the
  * given [true name][AtomDescriptor].
  */
+@Suppress("unused")
 object P_MethodFromName : Primitive(1, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

@@ -47,6 +47,7 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
  * **Primitive:** Answer whether precedence restrictions have been defined (yet)
  * for this [bundle][MessageBundleDescriptor].
  */
+@Suppress("unused")
 object P_BundleHasRestrictions : Primitive(1, CanInline, CannotFail)
 {
 	override fun attempt(interpreter: Interpreter): Result

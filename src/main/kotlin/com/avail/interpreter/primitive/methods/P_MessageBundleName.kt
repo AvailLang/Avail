@@ -48,6 +48,7 @@ import com.avail.interpreter.Primitive.Flag.*
  * when Avail code is saving or loading Avail code in the object dumper
  * / loader.
  */
+@Suppress("unused")
 object P_MessageBundleName : Primitive(1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

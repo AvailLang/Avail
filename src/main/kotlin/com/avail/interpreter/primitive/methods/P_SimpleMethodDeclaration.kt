@@ -37,6 +37,7 @@ import com.avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.AtomDescriptor
+import com.avail.descriptor.FunctionDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.FunctionTypeDescriptor.mostGeneralFunctionType
 import com.avail.descriptor.ModuleDescriptor
@@ -58,18 +59,16 @@ import com.avail.utility.Nulls.stripNull
 import java.util.*
 
 /**
- * **Primitive:** Add a method definition, given a string for
- * which to look up the corresponding [atom][AtomDescriptor] in the
- * current [module][ModuleDescriptor] and the [ ] which will act as the body of the method
- * definition.
+ * **Primitive:** Add a method definition, given a string for which to look up
+ * the corresponding [atom][AtomDescriptor] in the current
+ * [module][ModuleDescriptor] and the [function][FunctionDescriptor] which will
+ * act as the body of the method definition.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 object P_SimpleMethodDeclaration : Primitive(2, Bootstrap, CanSuspend, Unknown)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val string = interpreter.argument(0)
@@ -91,9 +90,8 @@ object P_SimpleMethodDeclaration : Primitive(2, Bootstrap, CanSuspend, Unknown)
 		interpreter.primitiveSuspend(primitiveFunction)
 		interpreter.runtime().whenLevelOneSafeDo(
 			fiber.priority(),
-			AvailTask.forUnboundFiber(
-				fiber
-			) {
+			AvailTask.forUnboundFiber(fiber)
+			{
 				try
 				{
 					val atom = loader.lookupName(string)
@@ -115,34 +113,37 @@ object P_SimpleMethodDeclaration : Primitive(2, Bootstrap, CanSuspend, Unknown)
 				}
 				catch (e: SignatureException)
 				{
-					Interpreter.resumeFromFailedPrimitive(currentRuntime(), fiber, e.numericCode(), primitiveFunction, copiedArgs)
+					Interpreter.resumeFromFailedPrimitive(
+						currentRuntime(),
+						fiber,
+						e.numericCode(),
+						primitiveFunction,
+						copiedArgs)
 				}
 				catch (e: AmbiguousNameException)
 				{
-					Interpreter.resumeFromFailedPrimitive(currentRuntime(), fiber, e.numericCode(), primitiveFunction, copiedArgs)
+					Interpreter.resumeFromFailedPrimitive(
+						currentRuntime(),
+						fiber,
+						e.numericCode(),
+						primitiveFunction,
+						copiedArgs)
 				}
 			})
 		return FIBER_SUSPENDED
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(stringType(), mostGeneralFunctionType()),
-		                    TOP.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(stringType(), mostGeneralFunctionType()), TOP.o())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
-			set(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(
 				E_LOADING_IS_OVER,
 				E_CANNOT_DEFINE_DURING_COMPILATION,
 				E_AMBIGUOUS_NAME,
 				E_METHOD_RETURN_TYPE_NOT_AS_FORWARD_DECLARED,
 				E_REDEFINED_WITH_SAME_ARGUMENT_TYPES,
 				E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS,
-				E_METHOD_IS_SEALED
-			).setUnionCanDestroy(possibleErrors, true))
-	}
-
+				E_METHOD_IS_SEALED)
+            .setUnionCanDestroy(possibleErrors, true))
 }

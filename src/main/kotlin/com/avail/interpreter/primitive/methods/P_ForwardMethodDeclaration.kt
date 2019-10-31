@@ -58,6 +58,7 @@ import java.util.*
 /**
  * **Primitive:** Forward declare a method (for recursion or mutual recursion).
  */
+@Suppress("unused")
 object P_ForwardMethodDeclaration : Primitive(2, CanSuspend, Unknown)
 {
 	override fun attempt(interpreter: Interpreter): Result

@@ -49,6 +49,7 @@ import com.avail.interpreter.Primitive.Flag.*
  * as a [message][MessageBundleDescriptor] name. If the given string is actually
  * suitable, answer the empty string.
  */
+@Suppress("unused")
 object P_DescribeNoncanonicalMessage
 	: Primitive(1, CanInline, CanFold, CannotFail)
 {

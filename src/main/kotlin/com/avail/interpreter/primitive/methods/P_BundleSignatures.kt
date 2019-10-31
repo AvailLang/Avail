@@ -49,6 +49,7 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
  * name][AtomDescriptor] represented by [bundle][MessageBundleDescriptor]. This
  * includes abstract signatures and forward signatures.
  */
+@Suppress("unused")
 object P_BundleSignatures : Primitive(1, CannotFail, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

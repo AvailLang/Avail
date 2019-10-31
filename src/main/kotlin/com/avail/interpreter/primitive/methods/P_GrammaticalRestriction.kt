@@ -64,6 +64,7 @@ import com.avail.interpreter.Primitive.Flag.Unknown
  * method. This distinction is only apparent when guillemet notation is used to
  * accept tuples of arguments.
  */
+@Suppress("unused")
 object P_GrammaticalRestriction : Primitive(2, Unknown)
 {
 	override fun attempt(interpreter: Interpreter): Result

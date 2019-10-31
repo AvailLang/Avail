@@ -42,6 +42,7 @@ import com.avail.descriptor.FunctionDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.*
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.PhraseDescriptor
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.StringDescriptor.formatString
@@ -61,19 +62,18 @@ import com.avail.utility.Nulls.stripNull
 import java.util.*
 
 /**
- * **Primitive:** Simple macro definition.  The first argument
- * is the macro name, and the second argument is a [ tuple][TupleDescriptor] of [functions][FunctionDescriptor] returning ⊤, one for each
- * occurrence of a [section sign][Metacharacter.SECTION_SIGN] (§)
- * in the macro name.  The third argument is the function to invoke for the
- * complete macro.  It is constrained to answer a [ ].
+ * **Primitive:** Simple macro definition.  The first argument is the macro
+ * name, and the second argument is a [tuple][TupleDescriptor] of
+ * [functions][FunctionDescriptor] returning ⊤, one for each occurrence of a
+ * [section sign][Metacharacter.SECTION_SIGN] (§) in the macro name.  The third
+ * argument is the function to invoke for the complete macro.  It is constrained
+ * to answer a [phrase][PhraseDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_SimpleMacroDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
 		val atom = interpreter.argument(0)
@@ -145,9 +145,8 @@ object P_SimpleMacroDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 		interpreter.primitiveSuspend(primitiveFunction)
 		interpreter.runtime().whenLevelOneSafeDo(
 			fiber.priority(),
-			AvailTask.forUnboundFiber(
-				fiber
-			) {
+			AvailTask.forUnboundFiber(fiber)
+			{
 				try
 				{
 					loader.addMacroBody(
@@ -180,26 +179,27 @@ object P_SimpleMacroDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 				}
 				catch (e: SignatureException)
 				{
-					Interpreter.resumeFromFailedPrimitive(currentRuntime(), fiber, e.numericCode(), primitiveFunction, copiedArgs)
+					Interpreter.resumeFromFailedPrimitive(
+						currentRuntime(),
+						fiber,
+						e.numericCode(),
+						primitiveFunction,
+						copiedArgs)
 				}
 			})
 		return FIBER_SUSPENDED
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				ATOM.o(),
 				zeroOrMoreOf(mostGeneralFunctionType()),
 				functionTypeReturning(PARSE_PHRASE.mostGeneralType())),
 			TOP.o())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
-			set(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(
 				E_LOADING_IS_OVER, E_CANNOT_DEFINE_DURING_COMPILATION,
 				E_INCORRECT_NUMBER_OF_ARGUMENTS,
 				E_REDEFINED_WITH_SAME_ARGUMENT_TYPES,
@@ -207,8 +207,6 @@ object P_SimpleMacroDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 				E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP,
 				E_MACRO_ARGUMENT_MUST_BE_A_PARSE_NODE,
 				E_MACRO_MUST_RETURN_A_PARSE_NODE,
-				E_MACRO_PREFIX_FUNCTION_INDEX_OUT_OF_BOUNDS
-			).setUnionCanDestroy(possibleErrors, true))
-	}
-
+				E_MACRO_PREFIX_FUNCTION_INDEX_OUT_OF_BOUNDS)
+            .setUnionCanDestroy(possibleErrors, true))
 }

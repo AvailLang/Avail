@@ -56,16 +56,15 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
 
 /**
- * **Primitive:** Seal the named [ method][MethodDescriptor] at the specified [signature][TupleTypeDescriptor]. No
- * further definitions may be added below this signature.
+ * **Primitive:** Seal the named [method][MethodDescriptor] at the specified
+ * [signature][TupleTypeDescriptor]. No further definitions may be added below
+ * this signature.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_SealMethodByAtom : Primitive(2, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val methodName = interpreter.argument(0)
@@ -93,26 +92,19 @@ object P_SealMethodByAtom : Primitive(2, CanInline, HasSideEffect)
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				ATOM.o(),
 				tupleTypeForSizesTypesDefaultType(
-					wholeNumbers(),
-					emptyTuple(),
-					anyMeta())),
+					wholeNumbers(), emptyTuple(), anyMeta())),
 			TOP.o())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
 			set(
 				E_LOADING_IS_OVER,
 				E_CANNOT_DEFINE_DURING_COMPILATION,
 				E_INCORRECT_NUMBER_OF_ARGUMENTS
 			).setUnionCanDestroy(possibleErrors, true))
-	}
-
 }

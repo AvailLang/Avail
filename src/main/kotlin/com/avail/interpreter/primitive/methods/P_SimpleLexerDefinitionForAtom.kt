@@ -60,22 +60,20 @@ import com.avail.interpreter.effects.LoadingEffectToRunPrimitive
 import com.avail.utility.Nulls.stripNull
 
 /**
- * **Primitive:** Simple lexer definition.  The first argument
- * is the lexer name (an atom).  The second argument is a (stable, pure) filter
- * function which takes a character and answers true if the lexer should run
- * when that character is encountered in the input, otherwise false.  The third
- * argument is the body function, which takes a character, the source string,
- * and the current (one-based) index into it.  It may invoke a primitive to
- * accept zero or more lexings and/or a primitive to reject the lexing with a
- * diagnostic message.
+ * **Primitive:** Simple lexer definition.  The first argument is the lexer name
+ * (an atom).  The second argument is a (stable, pure) filter function which
+ * takes a character and answers true if the lexer should run when that
+ * character is encountered in the input, otherwise false.  The third argument
+ * is the body function, which takes a character, the source string, and the
+ * current (one-based) index into it.  It may invoke a primitive to accept zero
+ * or more lexings and/or a primitive to reject the lexing with a diagnostic
+ * message.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 object P_SimpleLexerDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
 		val atom = interpreter.argument(0)
@@ -101,15 +99,14 @@ object P_SimpleLexerDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 		}
 
 		val method = bundle.bundleMethod()
-		val lexer = newLexer(
-			filterFunction, bodyFunction, method, loader.module())
+		val lexer =
+			newLexer(filterFunction, bodyFunction, method, loader.module())
 		val primitiveFunction = stripNull(interpreter.function)
 		interpreter.primitiveSuspend(primitiveFunction)
 		interpreter.runtime().whenLevelOneSafeDo(
 			fiber.priority(),
-			AvailTask.forUnboundFiber(
-				fiber
-			) {
+			AvailTask.forUnboundFiber(fiber)
+			{
 				filterFunction.code().setMethodName(
 					formatString("Filter for lexer %s",
 					             atom.atomName()))
@@ -134,23 +131,15 @@ object P_SimpleLexerDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 		return FIBER_SUSPENDED
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
-				ATOM.o(),
-				lexerFilterFunctionType(),
-				lexerBodyFunctionType()),
+				ATOM.o(), lexerFilterFunctionType(), lexerBodyFunctionType()),
 			TOP.o())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
-			set(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(
 				E_LOADING_IS_OVER,
-				E_CANNOT_DEFINE_DURING_COMPILATION
-			).setUnionCanDestroy(possibleErrors, true))
-	}
-
+				E_CANNOT_DEFINE_DURING_COMPILATION)
+			.setUnionCanDestroy(possibleErrors, true))
 }

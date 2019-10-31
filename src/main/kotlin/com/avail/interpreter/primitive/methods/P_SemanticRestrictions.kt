@@ -31,10 +31,8 @@
  */
 package com.avail.interpreter.primitive.methods
 
-import com.avail.descriptor.A_Function
-import com.avail.descriptor.A_Type
+import com.avail.descriptor.*
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.FunctionDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.FunctionTypeDescriptor.functionTypeReturning
 import com.avail.descriptor.InstanceMetaDescriptor.anyMeta
@@ -42,7 +40,6 @@ import com.avail.descriptor.InstanceMetaDescriptor.topMeta
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.ObjectTupleDescriptor.tupleFromList
 import com.avail.descriptor.SetDescriptor.set
-import com.avail.descriptor.TupleDescriptor
 import com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf
 import com.avail.descriptor.TypeDescriptor.Types.METHOD
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
@@ -52,14 +49,14 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import java.util.*
 
 /**
- * **Primitive:** Answer a [ tuple][TupleDescriptor] of restriction [functions][FunctionDescriptor] that
- * would run for a call site for the specified [ ] and tuple of argument types.
+ * **Primitive:** Answer a [tuple][TupleDescriptor] of restriction
+ * [functions][FunctionDescriptor] that would run for a call site for the
+ * specified [method][MethodDescriptor] and tuple of argument types.
  */
+@Suppress("unused")
 object P_SemanticRestrictions : Primitive(2, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val method = interpreter.argument(0)
@@ -83,18 +80,11 @@ object P_SemanticRestrictions : Primitive(2, CanInline)
 		return interpreter.primitiveSuccess(tupleFromList(applicable))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				METHOD.o(),
-				zeroOrMoreOf(anyMeta())),
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(METHOD.o(), zeroOrMoreOf(anyMeta())),
 			zeroOrMoreOf(functionTypeReturning(topMeta())))
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_INCORRECT_NUMBER_OF_ARGUMENTS))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_INCORRECT_NUMBER_OF_ARGUMENTS))
 }

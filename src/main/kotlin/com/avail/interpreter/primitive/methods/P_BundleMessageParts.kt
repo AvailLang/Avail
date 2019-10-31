@@ -47,6 +47,7 @@ import com.avail.interpreter.Primitive.Flag.*
  * **Primitive:** Answer a [message bundle's][MessageBundleDescriptor] message
  * parts (a [tuple][TupleDescriptor] of strings).
  */
+@Suppress("unused")
 object P_BundleMessageParts : Primitive(1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result

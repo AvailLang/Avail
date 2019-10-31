@@ -49,6 +49,7 @@ import com.avail.interpreter.Primitive.Flag.*
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_BundleParametersCount : Primitive(1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result
