@@ -45,13 +45,11 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Create a [ set type][SetTypeDescriptor].
+ * **Primitive:** Create a [set&#32;type][SetTypeDescriptor].
  */
 object P_CreateSetType : Primitive(2, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val contentType = interpreter.argument(0)
@@ -60,13 +58,10 @@ object P_CreateSetType : Primitive(2, CannotFail, CanFold, CanInline)
 			setTypeForSizesContentType(sizeRange, contentType))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				anyMeta(),
 				instanceMeta(wholeNumbers())),
 			setMeta())
-	}
-
 }

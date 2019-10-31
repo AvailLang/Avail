@@ -46,15 +46,13 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Convert a [set][SetDescriptor]
- * into an arbitrarily ordered [tuple][TupleDescriptor]. The
- * conversion is unstable (two calls may produce different orderings).
+ * **Primitive:** Convert a [set][SetDescriptor] into an arbitrarily ordered
+ * [tuple][TupleDescriptor]. The conversion is unstable – two successive calls
+ * may produce different orderings.
  */
 object P_SetToTuple : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val set = interpreter.argument(0)
@@ -74,11 +72,8 @@ object P_SetToTuple : Primitive(1, CannotFail, CanFold, CanInline)
 			setType.sizeRange(), emptyTuple(), setType.contentType())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(mostGeneralSetType()),
 			mostGeneralTupleType())
-	}
-
 }

@@ -46,9 +46,7 @@ import com.avail.interpreter.Primitive.Flag.*
  */
 object P_SetDifference : Primitive(2, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val set1 = interpreter.argument(0)
@@ -58,13 +56,10 @@ object P_SetDifference : Primitive(2, CannotFail, CanFold, CanInline)
 			set1.setMinusCanDestroy(set2, true))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				mostGeneralSetType(),
 				mostGeneralSetType()),
 			mostGeneralSetType())
-	}
-
 }

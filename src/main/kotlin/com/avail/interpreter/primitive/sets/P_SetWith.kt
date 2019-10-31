@@ -49,15 +49,13 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer a new [set][SetDescriptor] like
- * the argument but including the new [element][AvailObject].  If it
- * was already present, answer the original set.
+ * **Primitive:** Answer a new [set][SetDescriptor] like the argument but
+ * including the new [element][AvailObject].  If it was already present, answer
+ * the original set.
  */
 object P_SetWith : Primitive(2, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val set = interpreter.argument(0)
@@ -67,16 +65,14 @@ object P_SetWith : Primitive(2, CannotFail, CanFold, CanInline)
 			set.setWithElementCanDestroy(newElement, true))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				mostGeneralSetType(),
 				ANY.o()),
 			setTypeForSizesContentType(
 				naturalNumbers(),
 				ANY.o()))
-	}
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
@@ -86,7 +82,8 @@ object P_SetWith : Primitive(2, CannotFail, CanFold, CanInline)
 		val newElementType = argumentTypes[1]
 
 		val setContentType = setType.contentType()
-		val mightBePresent = !setContentType.typeIntersection(newElementType).isBottom
+		val mightBePresent =
+			!setContentType.typeIntersection(newElementType).isBottom
 		val sizes = setType.sizeRange()
 		val unionSize = integerRangeType(
 			if (mightBePresent)
@@ -97,9 +94,7 @@ object P_SetWith : Primitive(2, CannotFail, CanFold, CanInline)
 			sizes.upperBound().plusCanDestroy(two(), false),
 			false)
 		val unionType = setTypeForSizesContentType(
-			unionSize,
-			setType.contentType().typeUnion(newElementType))
+			unionSize, setType.contentType().typeUnion(newElementType))
 		return unionType.makeImmutable()
 	}
-
 }

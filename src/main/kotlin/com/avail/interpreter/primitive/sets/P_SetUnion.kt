@@ -37,6 +37,7 @@ import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.IntegerDescriptor.one
 import com.avail.descriptor.IntegerRangeTypeDescriptor.integerRangeType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.SetDescriptor
 import com.avail.descriptor.SetTypeDescriptor.mostGeneralSetType
 import com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType
 import com.avail.interpreter.Interpreter
@@ -44,30 +45,25 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer the union of two [ ].
+ * **Primitive:** Answer the union of two [sets][SetDescriptor].
  */
 object P_SetUnion : Primitive(2, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val set1 = interpreter.argument(0)
 		val set2 = interpreter.argument(1)
 
-		return interpreter.primitiveSuccess(
-			set1.setUnionCanDestroy(set2, true))
+		return interpreter.primitiveSuccess(set1.setUnionCanDestroy(set2, true))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				mostGeneralSetType(),
 				mostGeneralSetType()),
 			mostGeneralSetType())
-	}
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
@@ -96,9 +92,7 @@ object P_SetUnion : Primitive(2, CannotFail, CanFold, CanInline)
 		val unionSize = integerRangeType(
 			minSize, true, maxSize.plusCanDestroy(one(), false), false)
 		val unionType = setTypeForSizesContentType(
-			unionSize,
-			setType1.contentType().typeUnion(setType2.contentType()))
+			unionSize, setType1.contentType().typeUnion(setType2.contentType()))
 		return unionType.makeImmutable()
 	}
-
 }

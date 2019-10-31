@@ -42,26 +42,24 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Extract a [ set type][SetTypeDescriptor]'s [range][IntegerRangeTypeDescriptor] of sizes. This
- * is the range of sizes that a [set][SetDescriptor] must fall in
- * to be considered a member of the set type, assuming the elements all
- * satisfy the set type's element [type][TypeDescriptor].
+ * **Primitive:** Extract a [set&#32;type][SetTypeDescriptor]'s
+ * [range][IntegerRangeTypeDescriptor] of sizes. This is the range of sizes that
+ * a [set][SetDescriptor] must fall in to be considered a member of the set
+ * type, assuming the elements all satisfy the set type's element
+ * [type][TypeDescriptor].
  */
 object P_SetTypeSizes : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val setType = interpreter.argument(0)
 		return interpreter.primitiveSuccess(setType.sizeRange())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(setMeta()), instanceMeta(
-			wholeNumbers()))
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(
+				setMeta()),
+			instanceMeta(wholeNumbers()))
 }

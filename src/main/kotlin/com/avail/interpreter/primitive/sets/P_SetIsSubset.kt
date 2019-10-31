@@ -43,14 +43,11 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Check if [set1][SetDescriptor] is a
- * subset of `set2`.
+ * **Primitive:** Check if [set1][SetDescriptor] is a subset of `set2`.
  */
 object P_SetIsSubset : Primitive(2, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val set1 = interpreter.argument(0)
@@ -60,13 +57,10 @@ object P_SetIsSubset : Primitive(2, CannotFail, CanFold, CanInline)
 			objectFromBoolean(set1.isSubsetOf(set2)))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				mostGeneralSetType(),
 				mostGeneralSetType()),
 			booleanType())
-	}
-
 }

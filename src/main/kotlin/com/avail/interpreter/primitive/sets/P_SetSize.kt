@@ -38,19 +38,18 @@ import com.avail.descriptor.IntegerDescriptor.fromInt
 import com.avail.descriptor.IntegerRangeTypeDescriptor.int32
 import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.SetDescriptor
 import com.avail.descriptor.SetTypeDescriptor.mostGeneralSetType
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer the size of the [ ].
+ * **Primitive:** Answer the size of the [set][SetDescriptor].
  */
 object P_SetSize : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val set = interpreter.argument(0)
@@ -58,18 +57,14 @@ object P_SetSize : Primitive(1, CannotFail, CanFold, CanInline)
 		return interpreter.primitiveSuccess(fromInt(set.setSize()))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(mostGeneralSetType()),
 			wholeNumbers())
-	}
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
-		argumentTypes: List<A_Type>): A_Type
-	{
-		return argumentTypes[0].sizeRange().typeIntersection(int32())
-	}
-
+		argumentTypes: List<A_Type>
+	): A_Type =
+		argumentTypes[0].sizeRange().typeIntersection(int32())
 }
