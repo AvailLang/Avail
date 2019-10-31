@@ -34,6 +34,7 @@ package com.avail.interpreter.primitive.processes
 
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.AvailObject
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.MapTypeDescriptor.mapTypeForSizesKeyTypeValueType
@@ -50,18 +51,16 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
 import java.io.File
 import java.io.IOException
-import java.util.*
 
 /**
- * **Primitive**: Execute a detached external [ process][Process]. No capability is provided to communicate with this [ ].
+ * **Primitive**: Execute a detached external [process][Process]. No capability
+ * is provided to communicate with this process.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_ExecuteDetachedExternalProcess : Primitive(6, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(6)
 		val processArgsTuple = interpreter.argument(0)
@@ -70,40 +69,30 @@ object P_ExecuteDetachedExternalProcess : Primitive(6, CanInline, HasSideEffect)
 		val optOut = interpreter.argument(3)
 		val optError = interpreter.argument(4)
 		val optEnvironment = interpreter.argument(5)
-		val processArgs = ArrayList<String>(
-			processArgsTuple.tupleSize())
-		for (processArg in processArgsTuple)
-		{
-			processArgs.add(processArg.asNativeString())
-		}
+		val processArgs = processArgsTuple.map(AvailObject::asNativeString)
 		val builder = ProcessBuilder(processArgs)
 		if (optDir.tupleSize() == 1)
 		{
-			val dir = File(optDir.tupleAt(1).asNativeString())
-			builder.directory(dir)
+			builder.directory(File(optDir.tupleAt(1).asNativeString()))
 		}
 		if (optIn.tupleSize() == 1)
 		{
-			val input = File(optIn.tupleAt(1).asNativeString())
-			builder.redirectInput(input)
+			builder.redirectInput(File(optIn.tupleAt(1).asNativeString()))
 		}
 		if (optOut.tupleSize() == 1)
 		{
-			val out = File(optOut.tupleAt(1).asNativeString())
-			builder.redirectOutput(out)
+			builder.redirectOutput(File(optOut.tupleAt(1).asNativeString()))
 		}
 		if (optError.tupleSize() == 1)
 		{
-			val err = File(optError.tupleAt(1).asNativeString())
-			builder.redirectError(err)
+			builder.redirectError(File(optError.tupleAt(1).asNativeString()))
 		}
 		if (optEnvironment.tupleSize() == 1)
 		{
-			val newEnvironmentMap = HashMap<String, String>()
-			for (entry in optEnvironment.tupleAt(1).mapIterable())
-			{
-				newEnvironmentMap[entry.key().asNativeString()] = entry.value().asNativeString()
-			}
+			val newEnvironmentMap =
+				optEnvironment.tupleAt(1).mapIterable().associate {
+					(k, v) -> k.asNativeString() to v.asNativeString()
+				}
 			val environmentMap = builder.environment()
 			environmentMap.clear()
 			environmentMap.putAll(newEnvironmentMap)
@@ -120,13 +109,11 @@ object P_ExecuteDetachedExternalProcess : Primitive(6, CanInline, HasSideEffect)
 		{
 			return interpreter.primitiveFailure(E_NO_EXTERNAL_PROCESS)
 		}
-
 		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tupleFromArray(
 				oneOrMoreOf(stringType()),
 				zeroOrOneOf(stringType()),
@@ -139,14 +126,10 @@ object P_ExecuteDetachedExternalProcess : Primitive(6, CanInline, HasSideEffect)
 						stringType(),
 						stringType()))),
 			TOP.o())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
 			set(
 				E_PERMISSION_DENIED,
 				E_NO_EXTERNAL_PROCESS))
-	}
-
 }
