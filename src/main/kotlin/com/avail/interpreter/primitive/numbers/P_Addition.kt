@@ -34,6 +34,7 @@ package com.avail.interpreter.primitive.numbers
 import com.avail.descriptor.A_RawFunction
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.AbstractNumberDescriptor
 import com.avail.descriptor.AbstractNumberDescriptor.binaryNumericOperationTypeBound
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InfinityDescriptor.negativeInfinity
@@ -63,35 +64,29 @@ import com.avail.optimizer.L1Translator.CallSiteHelper
 import com.avail.optimizer.L2Generator.edgeTo
 
 /**
- * **Primitive:** Add two [ ].
+ * **Primitive:** Add two [numbers][AbstractNumberDescriptor].
  */
+@Suppress("unused")
 object P_Addition : Primitive(2, CanFold, CanInline)
 {
-
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val a = interpreter.argument(0)
 		val b = interpreter.argument(1)
-		try
+		return try
 		{
-			return interpreter.primitiveSuccess(a.plusCanDestroy(b, true))
+			interpreter.primitiveSuccess(a.plusCanDestroy(b, true))
 		}
 		catch (e: ArithmeticException)
 		{
-			return interpreter.primitiveFailure(e)
+			interpreter.primitiveFailure(e)
 		}
 
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				NUMBER.o(),
-				NUMBER.o()),
-			NUMBER.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(NUMBER.o(), NUMBER.o()), NUMBER.o())
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
@@ -128,8 +123,12 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 					bType.lowerBound(), false)
 				val high = aType.upperBound().plusCanDestroy(
 					bType.upperBound(), false)
-				val includesNegativeInfinity = negativeInfinity().isInstanceOf(aType) || negativeInfinity().isInstanceOf(bType)
-				val includesInfinity = positiveInfinity().isInstanceOf(aType) || positiveInfinity().isInstanceOf(bType)
+				val includesNegativeInfinity =
+					negativeInfinity().isInstanceOf(aType)
+						|| negativeInfinity().isInstanceOf(bType)
+				val includesInfinity =
+					positiveInfinity().isInstanceOf(aType)
+						|| positiveInfinity().isInstanceOf(bType)
 				return integerRangeType(
 					low.minusCanDestroy(one(), false),
 					includesNegativeInfinity,
@@ -151,21 +150,27 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 		val aType = argumentTypes[0]
 		val bType = argumentTypes[1]
 
-		val aTypeIncludesNegativeInfinity = negativeInfinity().isInstanceOf(aType)
-		val aTypeIncludesInfinity = positiveInfinity().isInstanceOf(aType)
-		val bTypeIncludesNegativeInfinity = negativeInfinity().isInstanceOf(bType)
-		val bTypeIncludesInfinity = positiveInfinity().isInstanceOf(bType)
-		return if (aTypeIncludesInfinity && bTypeIncludesNegativeInfinity || aTypeIncludesNegativeInfinity && bTypeIncludesInfinity)
+		val aTypeIncludesNegativeInfinity =
+			negativeInfinity().isInstanceOf(aType)
+		val aTypeIncludesInfinity =
+			positiveInfinity().isInstanceOf(aType)
+		val bTypeIncludesNegativeInfinity =
+			negativeInfinity().isInstanceOf(bType)
+		val bTypeIncludesInfinity =
+			positiveInfinity().isInstanceOf(bType)
+		return if (aTypeIncludesInfinity && bTypeIncludesNegativeInfinity
+           || aTypeIncludesNegativeInfinity && bTypeIncludesInfinity)
 		{
 			CallSiteCanFail
 		}
-		else CallSiteCannotFail
+		else
+		{
+			CallSiteCannotFail
+		}
 	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_CANNOT_ADD_UNLIKE_INFINITIES))
-	}
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_CANNOT_ADD_UNLIKE_INFINITIES))
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
@@ -182,7 +187,8 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 
 		// If either of the argument types does not intersect with int32, then
 		// fall back to the primitive invocation.
-		if (aType.typeIntersection(int32()).isBottom || bType.typeIntersection(int32()).isBottom)
+		if (aType.typeIntersection(int32()).isBottom
+		    || bType.typeIntersection(int32()).isBottom)
 		{
 			return false
 		}
@@ -191,18 +197,24 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 		val generator = translator.generator
 		val fallback = generator.createBasicBlock(
 			"fall back to boxed addition")
-		val intA = generator.readInt(a.semanticValue(), fallback)
-		val intB = generator.readInt(b.semanticValue(), fallback)
+		val intA =
+			generator.readInt(a.semanticValue(), fallback)
+		val intB =
+			generator.readInt(b.semanticValue(), fallback)
 		if (generator.currentlyReachable())
 		{
 			// The happy path is reachable.  Generate the most efficient
 			// available unboxed arithmetic.
-			val returnTypeIfInts = returnTypeGuaranteedByVM(
-				rawFunction, argumentTypes.map { it.typeIntersection(int32()) })
-			val semanticTemp = generator.topFrame.temp(generator.nextUnique())
-			val tempWriter = generator.intWrite(
-				semanticTemp,
-				restrictionForType(returnTypeIfInts, UNBOXED_INT))
+			val returnTypeIfInts =
+				returnTypeGuaranteedByVM(
+					rawFunction,
+					argumentTypes.map { it.typeIntersection(int32()) })
+			val semanticTemp =
+				generator.topFrame.temp(generator.nextUnique())
+			val tempWriter =
+				generator.intWrite(
+					semanticTemp,
+					restrictionForType(returnTypeIfInts, UNBOXED_INT))
 			if (returnTypeIfInts.isSubtypeOf(int32()))
 			{
 				// The result is guaranteed not to overflow, so emit an
@@ -219,7 +231,8 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 			else
 			{
 				// The result could exceed an int32.
-				val success = generator.createBasicBlock("sum is in range")
+				val success =
+					generator.createBasicBlock("sum is in range")
 				translator.addInstruction(
 					L2_ADD_INT_TO_INT.instance,
 					intA,
@@ -245,5 +258,4 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 		}
 		return true
 	}
-
 }

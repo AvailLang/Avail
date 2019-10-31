@@ -52,11 +52,10 @@ import com.avail.optimizer.L1Translator.CallSiteHelper
  * **Primitive:** Compare two extended integers and answer a
  * [boolean][EnumerationTypeDescriptor.booleanType].
  */
+@Suppress("unused")
 object P_LessThan : Primitive(2, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val a = interpreter.argument(0)
@@ -64,30 +63,29 @@ object P_LessThan : Primitive(2, CannotFail, CanFold, CanInline)
 		return interpreter.primitiveSuccess(objectFromBoolean(a.lessThan(b)))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				NUMBER.o(),
-				NUMBER.o()),
-			booleanType())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(NUMBER.o(), NUMBER.o()), booleanType())
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
-		argumentTypes: List<A_Type>): A_Type
+		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
 	{
-		val possible = possibleOrdersWhenComparingInstancesOf(
+		val possible =
+			possibleOrdersWhenComparingInstancesOf(
 			argumentTypes[0], argumentTypes[1])
 		val canBeTrue = possible.contains(LESS)
-		val canBeFalse = (possible.contains(EQUAL)
-		                  || possible.contains(MORE)
-		                  || possible.contains(INCOMPARABLE))
+		val canBeFalse =
+			(possible.contains(EQUAL)
+			    || possible.contains(MORE)
+		        || possible.contains(INCOMPARABLE))
 		assert(canBeTrue || canBeFalse)
 		return if (canBeTrue)
-			if (canBeFalse) booleanType() else trueType()
+		{
+			if (canBeFalse) { booleanType() } else { trueType() }
+		}
 		else
+		{
 			falseType()
+		}
 	}
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
@@ -102,12 +100,14 @@ object P_LessThan : Primitive(2, CannotFail, CanFold, CanInline)
 		val secondReg = arguments[1]
 		val firstType = firstReg.type()
 		val secondType = secondReg.type()
-		val possible = possibleOrdersWhenComparingInstancesOf(
+		val possible =
+			possibleOrdersWhenComparingInstancesOf(
 			firstType, secondType)
 		val canBeTrue = possible.contains(LESS)
-		val canBeFalse = (possible.contains(EQUAL)
-		                  || possible.contains(MORE)
-		                  || possible.contains(INCOMPARABLE))
+		val canBeFalse =
+			(possible.contains(EQUAL)
+				|| possible.contains(MORE)
+				|| possible.contains(INCOMPARABLE))
 		assert(canBeTrue || canBeFalse)
 		if (!canBeTrue || !canBeFalse)
 		{
@@ -124,5 +124,4 @@ object P_LessThan : Primitive(2, CannotFail, CanFold, CanInline)
 			translator,
 			callSiteHelper)
 	}
-
 }

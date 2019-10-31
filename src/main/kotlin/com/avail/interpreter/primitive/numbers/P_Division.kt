@@ -55,67 +55,55 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 /**
  * **Primitive:** Divide an extended integer by another one.
  */
+@Suppress("unused")
 object P_Division : Primitive(2, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val a = interpreter.argument(0)
 		val b = interpreter.argument(1)
-		try
+		return try
 		{
-			return interpreter.primitiveSuccess(a.divideCanDestroy(b, true))
+			interpreter.primitiveSuccess(a.divideCanDestroy(b, true))
 		}
 		catch (e: ArithmeticException)
 		{
-			return interpreter.primitiveFailure(e)
+			interpreter.primitiveFailure(e)
 		}
-
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				NUMBER.o(),
-				NUMBER.o()),
-			NUMBER.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(NUMBER.o(), NUMBER.o()), NUMBER.o())
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
-		argumentTypes: List<A_Type>): A_Type
+		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type =
+			binaryNumericOperationTypeBound(argumentTypes[0], argumentTypes[1])
+
+	override fun fallibilityForArgumentTypes(argumentTypes: List<A_Type>)
+		: Primitive.Fallibility
 	{
 		val aType = argumentTypes[0]
 		val bType = argumentTypes[1]
 
-		return binaryNumericOperationTypeBound(aType, bType)
-	}
-
-	override fun fallibilityForArgumentTypes(
-		argumentTypes: List<A_Type>): Primitive.Fallibility
-	{
-		val aType = argumentTypes[0]
-		val bType = argumentTypes[1]
-
-		val aTypeIncludesInfinity = negativeInfinity().isInstanceOf(aType) || positiveInfinity().isInstanceOf(aType)
-		val bTypeIncludesInfinity = negativeInfinity().isInstanceOf(bType) || positiveInfinity().isInstanceOf(bType)
+		val aTypeIncludesInfinity =
+			negativeInfinity().isInstanceOf(aType)
+				|| positiveInfinity().isInstanceOf(aType)
+		val bTypeIncludesInfinity =
+			negativeInfinity().isInstanceOf(bType)
+				|| positiveInfinity().isInstanceOf(bType)
 		val bTypeIncludesZero = zero().isInstanceOf(bType)
-		return if (bTypeIncludesZero || aTypeIncludesInfinity && bTypeIncludesInfinity)
+		return if (bTypeIncludesZero
+			|| aTypeIncludesInfinity && bTypeIncludesInfinity)
 		{
 			CallSiteCanFail
 		}
-		else CallSiteCannotFail
+		else
+		{
+			CallSiteCannotFail
+		}
 	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
-			set(
-				E_CANNOT_DIVIDE_BY_ZERO,
-				E_CANNOT_DIVIDE_INFINITIES))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_CANNOT_DIVIDE_BY_ZERO, E_CANNOT_DIVIDE_INFINITIES))
 }

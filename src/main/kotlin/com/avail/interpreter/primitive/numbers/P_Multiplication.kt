@@ -63,39 +63,34 @@ import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
 import com.avail.optimizer.L2Generator.edgeTo
 import java.util.*
-import java.util.Arrays.asList
 
 /**
  * **Primitive:** Multiply two extended integers.
  */
+@Suppress("unused")
 object P_Multiplication : Primitive(2, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val a = interpreter.argument(0)
 		val b = interpreter.argument(1)
-		try
+		return try
 		{
-			return interpreter.primitiveSuccess(a.timesCanDestroy(b, true))
+			interpreter.primitiveSuccess(a.timesCanDestroy(b, true))
 		}
 		catch (e: ArithmeticException)
 		{
-			return interpreter.primitiveFailure(e)
+			interpreter.primitiveFailure(e)
 		}
 
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(NUMBER.o(), NUMBER.o()), NUMBER.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(NUMBER.o(), NUMBER.o()), NUMBER.o())
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
-		argumentTypes: List<A_Type>): A_Type
+		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
 	{
 		val aType = argumentTypes[0]
 		val bType = argumentTypes[1]
@@ -137,23 +132,32 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 		{
 			BoundCalculator(aType, bType).process()
 		}
-		else binaryNumericOperationTypeBound(aType, bType)
+		else
+		{
+			binaryNumericOperationTypeBound(aType, bType)
+		}
 	}
 
-	/** A helper class for computing precise bounds.  */
-	class BoundCalculator
 	/**
+	 * A helper class for computing precise bounds.
+	 *
+	 * @property aType
+	 *   An integer range type.
+	 * @property bType
+	 *   Another integer range type.
+	 *
+	 * @constructor
 	 * Set up a new `BoundCalculator` for computing the bound of the
 	 * product of elements from two integer range types.
 	 *
-	 * @param aType An integer range type.
-	 * @param bType Another integer range type.
+	 * @param aType
+	 *   An integer range type.
+	 * @param bType
+	 *   Another integer range type.
 	 */
-	internal constructor(
-		/** The input ranges.  */
+	class BoundCalculator internal constructor(
 		private val aType: A_Type, private val bType: A_Type)
 	{
-
 		/** Accumulate the range.  */
 		private var union = bottom()
 
@@ -166,15 +170,14 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 		 * about whether an infinity should be included in the result.
 		 *
 		 * @param a
-		 * An extended integer from [aType], not necessarily
-		 * inclusive.
+		 *   An extended integer from [aType], not necessarily inclusive.
 		 * @param b
-		 * An extended integer from [bType], not necessarily
-		 * inclusive.
+		 *   An extended integer from [bType], not necessarily inclusive.
 		 */
 		private fun processPair(a: A_Number, b: A_Number)
 		{
-			if ((!a.equalsInt(0) || b.isFinite) && (!b.equalsInt(0) || a.isFinite))
+			if ((!a.equalsInt(0) || b.isFinite)
+			    && (!b.equalsInt(0) || a.isFinite))
 			{
 				// It's not 0 × ±∞, so include this product in the range.
 				// Always include infinities for now, and trim them out later.
@@ -228,9 +231,8 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 
 		companion object
 		{
-
 			/** Partition the integers by sign.  */
-			private val interestingRanges = asList(
+			private val interestingRanges = listOf(
 				inclusive(negativeInfinity(), negativeOne()),
 				inclusive(zero(), zero()),
 				inclusive(one(), positiveInfinity()))
@@ -246,27 +248,33 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 		}
 	}
 
-	override fun fallibilityForArgumentTypes(
-		argumentTypes: List<A_Type>): Primitive.Fallibility
+	override fun fallibilityForArgumentTypes(argumentTypes: List<A_Type>)
+		: Primitive.Fallibility
 	{
 		val aType = argumentTypes[0]
 		val bType = argumentTypes[1]
 
 		val aTypeIncludesZero = zero().isInstanceOf(aType)
-		val aTypeIncludesInfinity = negativeInfinity().isInstanceOf(aType) || positiveInfinity().isInstanceOf(aType)
+		val aTypeIncludesInfinity =
+			negativeInfinity().isInstanceOf(aType)
+				|| positiveInfinity().isInstanceOf(aType)
 		val bTypeIncludesZero = zero().isInstanceOf(bType)
-		val bTypeIncludesInfinity = negativeInfinity().isInstanceOf(bType) || positiveInfinity().isInstanceOf(bType)
-		return if (aTypeIncludesZero && bTypeIncludesInfinity || aTypeIncludesInfinity && bTypeIncludesZero)
+		val bTypeIncludesInfinity =
+			negativeInfinity().isInstanceOf(bType)
+				|| positiveInfinity().isInstanceOf(bType)
+		return if (aTypeIncludesZero && bTypeIncludesInfinity
+			|| aTypeIncludesInfinity && bTypeIncludesZero)
 		{
 			CallSiteCanFail
 		}
-		else CallSiteCannotFail
+		else
+		{
+			CallSiteCannotFail
+		}
 	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_CANNOT_MULTIPLY_ZERO_AND_INFINITY))
-	}
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_CANNOT_MULTIPLY_ZERO_AND_INFINITY))
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
@@ -283,7 +291,8 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 
 		// If either of the argument types does not intersect with int32, then
 		// fall back to the primitive invocation.
-		if (aType.typeIntersection(int32()).isBottom || bType.typeIntersection(int32()).isBottom)
+		if (aType.typeIntersection(int32()).isBottom
+		    || bType.typeIntersection(int32()).isBottom)
 		{
 			return false
 		}
@@ -301,10 +310,12 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 			val returnTypeIfInts = returnTypeGuaranteedByVM(
 				rawFunction,
 				argumentTypes.map { it.typeIntersection(int32()) })
-			val semanticTemp = generator.topFrame.temp(generator.nextUnique())
-			val tempWriter = generator.intWrite(
-				semanticTemp,
-				restrictionForType(returnTypeIfInts, UNBOXED_INT))
+			val semanticTemp =
+				generator.topFrame.temp(generator.nextUnique())
+			val tempWriter =
+				generator.intWrite(
+					semanticTemp,
+					restrictionForType(returnTypeIfInts, UNBOXED_INT))
 			if (returnTypeIfInts.isSubtypeOf(int32()))
 			{
 				// The result is guaranteed not to overflow, so emit an
@@ -321,7 +332,8 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 			else
 			{
 				// The result could exceed an int32.
-				val success = generator.createBasicBlock("product is in range")
+				val success =
+					generator.createBasicBlock("product is in range")
 				translator.addInstruction(
 					L2_MULTIPLY_INT_BY_INT.instance,
 					intA,
