@@ -45,25 +45,22 @@ import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive:** Answer the content type of the specified
- * [pojo array type][PojoTypeDescriptor.mostGeneralPojoArrayType].
+ * [pojo&#32;array&#32;type][PojoTypeDescriptor.mostGeneralPojoArrayType].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_PojoArrayTypeContentType : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val pojoArrayType = interpreter.argument(0)
 		return interpreter.primitiveSuccess(pojoArrayType.contentType())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(instanceMeta(
-			mostGeneralPojoArrayType())), anyMeta())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(
+				instanceMeta(mostGeneralPojoArrayType())),
+			anyMeta())
 }

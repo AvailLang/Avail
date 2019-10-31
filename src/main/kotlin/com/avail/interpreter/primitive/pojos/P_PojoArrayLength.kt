@@ -45,31 +45,24 @@ import java.lang.reflect.Array
 
 /**
  * **Primitive:** Answer the length of the specified
- * [pojo array][PojoDescriptor].
+ * [pojo&#32;array][PojoDescriptor].
  */
 object P_PojoArrayLength : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val pojo = interpreter.argument(0)
 
-		val loader = interpreter.availLoaderOrNull()
-		loader?.statementCanBeSummarized(false)
+		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
 
-		val rawPojo = pojo.rawPojo()
-		val array = rawPojo.javaObjectNotNull<Any>()
+		val array = pojo.rawPojo().javaObjectNotNull<Any>()
 		return interpreter.primitiveSuccess(fromInt(Array.getLength(array)))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				mostGeneralPojoArrayType()),
 			wholeNumbers())
-	}
-
 }

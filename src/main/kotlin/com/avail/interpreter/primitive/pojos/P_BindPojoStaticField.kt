@@ -59,60 +59,49 @@ import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 
 /**
- * **Primitive:** Given a [type][A_Type] that can be
- * successfully marshaled to a Java type and a [string][A_String] that
- * names a `static` [field][Field] of that type, bind the
- * `static` field to a [variable][PojoFieldDescriptor] such that
- * reads and writes of this variable pass through to the bound field.
+ * **Primitive:** Given a [type][A_Type] that can be successfully marshaled to a
+ * Java type and a [string][A_String] that names a `static` [field][Field] of
+ * that type, bind the `static` field to a [variable][PojoFieldDescriptor] such
+ * that reads and writes of this variable pass through to the bound field.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_BindPojoStaticField : Primitive(2, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val pojoType = interpreter.argument(0)
 		val fieldName = interpreter.argument(1)
 
-		val loader = interpreter.availLoaderOrNull()
-		loader?.statementCanBeSummarized(false)
+		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
 
 		val errorOut = MutableOrNull<AvailErrorCode>()
 		val field = lookupField(pojoType, fieldName, errorOut)
-		            ?: return interpreter.primitiveFailure(errorOut.value())
+			?: return interpreter.primitiveFailure(errorOut.value())
 		if (!Modifier.isStatic(field.modifiers))
 		{
 			// This is not the right primitive to bind instance fields.
-			return interpreter.primitiveFailure(
-				E_JAVA_FIELD_NOT_AVAILABLE)
+			return interpreter.primitiveFailure(E_JAVA_FIELD_NOT_AVAILABLE)
 		}
 		// A static field cannot have a type parametric on type variables
 		// of the declaring class, so pass an empty map where the type
 		// variables are expected.
-		val fieldType = resolvePojoType(
-			field.genericType, emptyMap())
+		val fieldType = resolvePojoType(field.genericType, emptyMap())
 		val variable = pojoFieldVariableForInnerType(
 			equalityPojo(field), rawNullPojo(), fieldType)
 		return interpreter.primitiveSuccess(variable)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				anyMeta(),
 				stringType()),
 			mostGeneralVariableType())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(
 			E_JAVA_FIELD_NOT_AVAILABLE,
 			E_JAVA_FIELD_REFERENCE_IS_AMBIGUOUS))
-	}
-
 }

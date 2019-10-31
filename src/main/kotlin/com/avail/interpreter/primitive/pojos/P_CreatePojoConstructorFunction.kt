@@ -31,7 +31,10 @@
  */
 package com.avail.interpreter.primitive.pojos
 
-import com.avail.descriptor.*
+import com.avail.descriptor.A_Function
+import com.avail.descriptor.A_RawFunction
+import com.avail.descriptor.A_Tuple
+import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionDescriptor.createWithOuters2
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
@@ -60,13 +63,13 @@ import java.util.*
 import java.util.Collections.synchronizedMap
 
 /**
- * **Primitive:** Given a [type][A_Type] that can be
- * successfully marshaled to a Java type, and a [tuple][A_Tuple] of
- * parameter [types][A_Type], create a [ function][A_Function] that when applied will produce a new instance of the defining Java
- * type. The instance is created by invoking a reflected Java [ ] with arguments conforming to the marshaling of the
- * parameter types. If the new instance has a preferred Avail surrogate type,
- * then marshal the value to the surrogate type prior to answering it.
- *
+ * **Primitive:** Given a [type][A_Type] that can be successfully marshaled to a
+ * Java type, and a [tuple][A_Tuple] of parameter [types][A_Type], create a
+ * [function][A_Function] that when applied will produce a new instance of the
+ * defining Java type. The instance is created by invoking a reflected Java
+ * [Constructor] with arguments conforming to the marshaling of the parameter
+ * types. If the new instance has a preferred Avail surrogate type, then marshal
+ * the value to the surrogate type prior to answering it.
  *
  * Should the Java method raise an exception, re-raise it within Avail as a
  * pojo exception.
@@ -78,17 +81,16 @@ object P_CreatePojoConstructorFunction : Primitive(2, CanInline, CanFold)
 	/**
 	 * Cache of [A_RawFunction]s, keyed by the function [A_Type].
 	 */
-	private val rawFunctionCache = synchronizedMap(WeakHashMap<A_Type, A_RawFunction>())
+	private val rawFunctionCache =
+		synchronizedMap(WeakHashMap<A_Type, A_RawFunction>())
 
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val pojoType = interpreter.argument(0)
 		val paramTypes = interpreter.argument(1)
 
-		val loader = interpreter.availLoaderOrNull()
-		loader?.statementCanBeSummarized(false)
+		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
 
 		// Marshal the argument types and look up the appropriate
 		// constructor.
@@ -101,11 +103,10 @@ object P_CreatePojoConstructorFunction : Primitive(2, CanInline, CanFold)
 			{
 				return interpreter.primitiveFailure(E_POJO_TYPE_IS_ABSTRACT)
 			}
-
 			val marshaledTypes = marshalTypes(paramTypes)
 			constructor = javaClass.getConstructor(*marshaledTypes)
-			marshaledTypesTuple = tupleFromList<AvailObject>(
-				marshaledTypes.map{ RawPojoDescriptor.equalityPojo(it) })
+			marshaledTypesTuple = tupleFromList(
+				marshaledTypes.map{ equalityPojo(it) })
 		}
 		catch (e: MarshalingException)
 		{
@@ -117,13 +118,10 @@ object P_CreatePojoConstructorFunction : Primitive(2, CanInline, CanFold)
 		}
 
 		val functionType = functionType(paramTypes, pojoType)
-
-		val rawFunction = (rawFunctionCache as java.util.Map<A_Type, A_RawFunction>).computeIfAbsent(
-			functionType
-		) { fType ->
+		val rawFunction = rawFunctionCache.computeIfAbsent(functionType) {
 			rawPojoInvokerFunctionFromFunctionType(
 				P_InvokePojoConstructor,
-				fType,
+				it,
 				// Outer#1 = Constructor to invoke.
 				RAW_POJO.o(),
 				// Outer#2 = Marshaled type parameters.
@@ -134,26 +132,21 @@ object P_CreatePojoConstructorFunction : Primitive(2, CanInline, CanFold)
 			// Outer#1 = Constructor to invoke.
 			equalityPojo(constructor),
 			// Outer#2 = Marshaled type parameters.
-			cast<A_Tuple, AvailObject>(marshaledTypesTuple))
+			cast(marshaledTypesTuple))
 		return interpreter.primitiveSuccess(function)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				anyMeta(),
 				zeroOrMoreOf(anyMeta())),
 			functionTypeReturning(ANY.o()))
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
 			set(
 				E_POJO_TYPE_IS_ABSTRACT,
 				E_JAVA_MARSHALING_FAILED,
 				E_JAVA_METHOD_NOT_AVAILABLE))
-	}
-
 }

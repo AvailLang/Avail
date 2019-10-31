@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive.pojos
 
 import com.avail.AvailRuntime.HookType
+import com.avail.descriptor.A_Tuple
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.BottomTypeDescriptor.bottom
 import com.avail.descriptor.ObjectTupleDescriptor.tupleFromList
@@ -47,33 +48,28 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.Private
 import com.avail.interpreter.primitive.pojos.PrimitiveHelper.marshalValues
 import com.avail.utility.MutableOrNull
-import com.avail.utility.Nulls.stripNull
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 
 /**
- * **Primitive:** Invoke a static Java [Method], passing
- * marshaled forms of this primitive's arguments.  Unmarshal the resulting
- * object as needed.
+ * **Primitive:** Invoke a static Java [Method], passing marshaled forms of this
+ * primitive's arguments.  Unmarshal the resulting object as needed.
  *
+ * If an exception is thrown during evaluation, raise it as an Avail exception
+ * via the [HookType.RAISE_JAVA_EXCEPTION_IN_AVAIL] hook.
  *
- * If an exception is thrown during evaluation, raise it as an Avail
- * exception via the [HookType.RAISE_JAVA_EXCEPTION_IN_AVAIL] hook.
- *
- *
- * The current function was constructed via [ ], and has two outer values: the Java [ ] and the tuple of marshaled types.
+ * The current function was constructed via [P_CreatePojoStaticMethodFunction],
+ * and has two outer values: the Java [Method] and the [tuple][A_Tuple] of
+ * marshaled [types][A_Type].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_InvokeStaticPojoMethod : Primitive(-1, Private)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		val methodArgs = tupleFromList(interpreter.argsBuffer)
-
-		val primitiveFunction = stripNull(interpreter.function)
+		val primitiveFunction = interpreter.function!!
 		val primitiveRawFunction = primitiveFunction.code()
 		assert(primitiveRawFunction.primitive() === this)
 
@@ -82,34 +78,32 @@ object P_InvokeStaticPojoMethod : Primitive(-1, Private)
 		// The exact return kind was captured in the function type.
 		val expectedType = primitiveRawFunction.functionType().returnType()
 
-		val loader = interpreter.availLoaderOrNull()
-		loader?.statementCanBeSummarized(false)
+		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
 
 		// Marshal the arguments.
 		val method = methodPojo.javaObjectNotNull<Method>()
 		val errorOut = MutableOrNull<AvailErrorCode>()
-		val marshaledArgs = marshalValues(
-			marshaledTypes, methodArgs, errorOut)
+		val marshaledArgs = marshalValues(marshaledTypes, methodArgs, errorOut)
 		if (errorOut.value !== null)
 		{
-			val e = errorOut.value
+			val e = errorOut.value()
 			return interpreter.primitiveFailure(
-				newPojo(identityPojo(e), pojoTypeForClass(e!!.javaClass)))
+				newPojo(identityPojo(e), pojoTypeForClass(e.javaClass)))
 		}
 
 		// Invoke the static method.
-		val result: Any
+		val result: Any?
 		try
 		{
 			result = marshaledArgs
-				?.let {  method.invoke(null, *it)}
-				     ?: method.invoke(null, null)
+				?.let { method.invoke(null, *it) }
+				?: method.invoke(null, null)
 		}
 		catch (e: InvocationTargetException)
 		{
 			val cause = e.cause!!
-			return interpreter.primitiveFailure(newPojo(
-				identityPojo(cause), pojoTypeForClass(cause.javaClass)))
+			return interpreter.primitiveFailure(
+				newPojo(identityPojo(cause), pojoTypeForClass(cause.javaClass)))
 		}
 		catch (e: Throwable)
 		{
@@ -119,36 +113,22 @@ object P_InvokeStaticPojoMethod : Primitive(-1, Private)
 				newPojo(identityPojo(e), pojoTypeForClass(e.javaClass)))
 		}
 
-		if (result === null)
-		{
-			return interpreter.primitiveSuccess(nullPojo())
-		}
+		result ?: return interpreter.primitiveSuccess(nullPojo())
 
-		try
-		{
-			val unmarshaled = unmarshal(result, expectedType)
-			return interpreter.primitiveSuccess(unmarshaled)
+		return try {
+			interpreter.primitiveSuccess(unmarshal(result, expectedType))
+		} catch (e: MarshalingException) {
+			interpreter.primitiveFailure(
+				newPojo(identityPojo(e), pojoTypeForClass(e.javaClass)))
 		}
-		catch (e: MarshalingException)
-		{
-			return interpreter.primitiveFailure(
-				newPojo(
-					identityPojo(e),
-					pojoTypeForClass(e.javaClass)))
-		}
-
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		// This primitive is suitable for any block signature, although really
-		// the primitive could only be applied if the function returns any.
-		return bottom()
-	}
+	/**
+	 * This primitive is suitable for any block signature, although really the
+	 * primitive could only be applied if the function returns any.
+	 */
+	override fun privateBlockTypeRestriction(): A_Type = bottom()
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return pojoTypeForClass(Throwable::class.java)
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		pojoTypeForClass(Throwable::class.java)
 }

@@ -36,6 +36,7 @@ import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.PojoFieldDescriptor
 import com.avail.descriptor.PojoFieldDescriptor.pojoFieldVariableForInnerType
 import com.avail.descriptor.PojoTypeDescriptor.mostGeneralPojoType
 import com.avail.descriptor.PojoTypeDescriptor.resolvePojoType
@@ -52,24 +53,22 @@ import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 
 /**
- * **Primitive:** Given a value that can be successfully marshaled
- * to Java and a [string][A_String] that names an instance [ ] of that value, bind the field to a [ ] such that reads and writes of this variable
- * pass through to the bound field.
+ * **Primitive:** Given a value that can be successfully marshaled to Java and a
+ * [string][A_String] that names an instance [field][Field] of that value, bind
+ * the field to a [variable][PojoFieldDescriptor] such that reads and writes of
+ * this variable pass through to the bound field.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_BindPojoInstanceField : Primitive(2, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val pojo = interpreter.argument(0)
 		val fieldName = interpreter.argument(1)
 
-		val loader = interpreter.availLoaderOrNull()
-		loader?.statementCanBeSummarized(false)
+		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
 
 		// Use the actual Java runtime type of the pojo to perform the
 		// reflective field lookup.
@@ -82,15 +81,13 @@ object P_BindPojoInstanceField : Primitive(2, CanFold, CanInline)
 		}
 		catch (e: NoSuchFieldException)
 		{
-			return interpreter.primitiveFailure(
-				E_JAVA_FIELD_NOT_AVAILABLE)
+			return interpreter.primitiveFailure(E_JAVA_FIELD_NOT_AVAILABLE)
 		}
 
 		// This is not the right primitive to bind static fields.
 		if (Modifier.isStatic(field.modifiers))
 		{
-			return interpreter.primitiveFailure(
-				E_JAVA_FIELD_NOT_AVAILABLE)
+			return interpreter.primitiveFailure(E_JAVA_FIELD_NOT_AVAILABLE)
 		}
 		val fieldType = resolvePojoType(
 			field.genericType, pojo.kind().typeVariables())
@@ -99,18 +96,13 @@ object P_BindPojoInstanceField : Primitive(2, CanFold, CanInline)
 		return interpreter.primitiveSuccess(variable)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				mostGeneralPojoType(),
 				stringType()),
 			mostGeneralVariableType())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_JAVA_FIELD_NOT_AVAILABLE))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_JAVA_FIELD_NOT_AVAILABLE))
 }

@@ -51,7 +51,6 @@ import com.avail.interpreter.levelOne.L1Operation.*
 import com.avail.utility.MutableOrNull
 import java.lang.reflect.Field
 import java.lang.reflect.Method
-import java.util.*
 
 /**
  * `PrimitiveHelper` aggregates utility functions for reuse by the various pojo
@@ -75,64 +74,56 @@ object PrimitiveHelper
 	 * @param errorOut
 	 *   A [MutableOrNull] into which an [AvailErrorCode] can be written in the
 	 *   event that a unique [Method] is not found.
-	 * @return Either the successfully looked up [Method] or `null`.
-	 * Note that either the return is non-null or the errorOut will
-	 * have a non-null value written to it.
+	 * @return
+	 *   Either the successfully looked up [Method] or `null`. Note that either
+	 *   the return is non-null or the errorOut will have a non-null value
+	 *   written to it.
 	 */
 	internal fun lookupMethod(
 		pojoType: A_Type,
 		methodName: A_String,
 		marshaledTypes: Array<Class<*>>,
-		errorOut: MutableOrNull<AvailErrorCode>): Method?
+		errorOut: MutableOrNull<AvailErrorCode>
+	): Method?
 	{
-		// If pojoType is not a fused type, then it has an immediate class that
-		// should be used to recursively look up the method.
 		if (!pojoType.isPojoType || !pojoType.isPojoFusedType)
 		{
-			val javaClass = marshalDefiningType(pojoType)
-			try
-			{
-				return javaClass.getMethod(
+			// It's not a fused type, so it has an immediate class that should
+			// be used to recursively look up the method.
+			return try {
+				marshalDefiningType(pojoType).getMethod(
 					methodName.asNativeString(), *marshaledTypes)
-			}
-			catch (e: NoSuchMethodException)
-			{
+			} catch (e: NoSuchMethodException) {
 				errorOut.value = E_JAVA_METHOD_NOT_AVAILABLE
-				return null
+				null
 			}
-
 		}
 		else
 		{
-			val methods = HashSet<Method>()
-			val ancestors = pojoType.javaAncestors()
-			for (ancestor in ancestors.keysAsSet())
+			// It's a fused type, so iterate through its ancestry in an attempt
+			// to uniquely resolve the method.
+			val methods = mutableSetOf<Method>()
+			for ((_, ancestor) in pojoType.javaAncestors().mapIterable())
 			{
 				val javaClass = marshalDefiningType(ancestor)
 				try
 				{
-					methods.add(javaClass.getMethod(
-						methodName.asNativeString(), *marshaledTypes))
+					methods.add(
+						javaClass.getMethod(
+							methodName.asNativeString(), *marshaledTypes))
 				}
 				catch (e: NoSuchMethodException)
 				{
 					// Ignore -- this is not unexpected.
 				}
-
 			}
-			if (methods.isEmpty())
-			{
-				errorOut.value = E_JAVA_METHOD_NOT_AVAILABLE
-				return null
+			when (methods.size) {
+				1 -> return methods.iterator().next()
+				0 -> errorOut.value = E_JAVA_METHOD_NOT_AVAILABLE
+				else -> errorOut.value = E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS
 			}
-			if (methods.size > 1)
-			{
-				errorOut.value = E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS
-				return null
-			}
-			return methods.iterator().next()
-		}// If pojoType is a fused type, then iterate through its ancestry in an
-		// attempt to uniquely resolve the method.
+			return null
+		}
 	}
 
 	/**
@@ -146,68 +137,60 @@ object PrimitiveHelper
 	 * @param errorOut
 	 *   A [MutableOrNull] into which an [AvailErrorCode] can be written in the
 	 *   event that a unique [Field] is not found.
-	 * @return Either the successfully looked up [Field] or `null`.
-	 *   Note that either the return is non-null or the errorOut will have a
-	 *   non-null value written to it.
+	 * @return
+	 *   Either the successfully looked up [Field] or `null`. Note that either
+	 *   the return is non-null or the errorOut will have a non-null value
+	 *   written to it.
 	 */
 	internal fun lookupField(
 		pojoType: A_Type,
 		fieldName: A_String,
-		errorOut: MutableOrNull<AvailErrorCode>): Field?
+		errorOut: MutableOrNull<AvailErrorCode>
+	): Field?
 	{
-		// If pojoType is not a fused type, then it has an immediate class
-		// that should be used to recursively look up the field.
 		if (!pojoType.isPojoType || !pojoType.isPojoFusedType)
 		{
+			// The pojoType is not a fused type, so it has an immediate class
+			// that should be used to recursively look up the field.
 			val javaClass = marshalDefiningType(pojoType)
-			try
-			{
-				return javaClass.getField(fieldName.asNativeString())
-			}
-			catch (e: NoSuchFieldException)
-			{
+			return try {
+				javaClass.getField(fieldName.asNativeString())
+			} catch (e: NoSuchFieldException) {
 				errorOut.value = E_JAVA_FIELD_NOT_AVAILABLE
-				return null
+				null
 			}
-
 		}
 		else
 		{
-			val fields = HashSet<Field>()
-			val ancestors = pojoType.javaAncestors()
-			for (ancestor in ancestors.keysAsSet())
+			// The pojoType is a fused type, so iterate through its ancestry in
+			// an attempt to uniquely resolve the field.
+			val fields = mutableSetOf<Field>()
+			for ((_, ancestor) in pojoType.javaAncestors().mapIterable())
 			{
 				val javaClass = marshalDefiningType(ancestor)
 				try
 				{
-					fields.add(javaClass.getField(
-						fieldName.asNativeString()))
+					fields.add(javaClass.getField(fieldName.asNativeString()))
 				}
 				catch (e: NoSuchFieldException)
 				{
 					// Ignore -- this is not unexpected.
 				}
-
 			}
-			if (fields.isEmpty())
-			{
-				errorOut.value = E_JAVA_FIELD_NOT_AVAILABLE
-				return null
+			when (fields.size) {
+				1 -> return fields.iterator().next()
+				0 -> errorOut.value = E_JAVA_FIELD_NOT_AVAILABLE
+				else -> errorOut.value = E_JAVA_FIELD_REFERENCE_IS_AMBIGUOUS
 			}
-			if (fields.size > 1)
-			{
-				errorOut.value = E_JAVA_FIELD_REFERENCE_IS_AMBIGUOUS
-				return null
-			}
-			return fields.iterator().next()
-		}// If pojoType is a fused type, then iterate through its ancestry in
-		// an attempt to uniquely resolve the field.
+			return null
+		}
 	}
 
 	/**
-	 * Synthesize an [A_RawFunction].  It should have the given function type,
-	 * and expect to be instantiated as an [A_Function] with the given types of
-	 * outers.  It should also be [Primitive], with failure code to invoke the
+	 * Synthesize a [raw&#32;function][A_RawFunction].  It should have the given
+	 * [function&#32;type][FunctionTypeDescriptor], and expect to be
+	 * instantiated as a [function][A_Function] with the given types of outers.
+	 * It should also be [Primitive], with failure code to invoke the
 	 * [HookType.RAISE_JAVA_EXCEPTION_IN_AVAIL] if a Java [Throwable] is caught
 	 * and made available in the failure variable.
 	 *
@@ -219,17 +202,19 @@ object PrimitiveHelper
 	 * @param outerTypes
 	 *   The [A_Type]s of the outers that will be supplied later to the raw
 	 *   function to make an [A_Function].
-	 * @return An [A_RawFunction] with the exact given signature.
+	 * @return
+	 *   An [A_RawFunction] with the exact given signature.
 	 */
 	fun rawPojoInvokerFunctionFromFunctionType(
 		primitive: Primitive,
 		functionType: A_Type,
-		vararg outerTypes: A_Type): A_RawFunction
+		vararg outerTypes: A_Type
+	): A_RawFunction
 	{
 		val argTypes = functionType.argsTupleType()
 		val numArgs = argTypes.sizeRange().lowerBound().extractInt()
-		val argTypesArray = Array<A_Type>(numArgs) {i ->
-			argTypes.typeAtIndex(i + 1)
+		val argTypesArray = Array<A_Type>(numArgs) {
+			argTypes.typeAtIndex(it + 1)
 		}
 		val returnType = functionType.returnType()
 		val writer = L1InstructionWriter(nil, 0, nil)
@@ -241,10 +226,7 @@ object PrimitiveHelper
 		val failureLocal = writer.createLocal(
 			variableTypeFor(pojoTypeForClass(Throwable::class.java)))
 		assert(failureLocal == numArgs + 1)
-		for (outerType in outerTypes)
-		{
-			writer.createOuter(outerType)
-		}
+		outerTypes.forEach { outerType -> writer.createOuter(outerType) }
 		writer.write(
 			0,
 			L1_doCall,
@@ -275,20 +257,21 @@ object PrimitiveHelper
 	 * @param errorOut
 	 *   A [MutableOrNull] into which an [AvailErrorCode] can  be written in the
 	 *   event that marshaling fails for some value.
-	 * @return The marshaled values.
+	 * @return
+	 *   The marshaled values.
 	 */
 	internal fun marshalValues(
 		marshaledTypes: A_Tuple,
 		args: A_Tuple,
-		errorOut: MutableOrNull<AvailErrorCode>): Array<Any>?
+		errorOut: MutableOrNull<AvailErrorCode>
+	): Array<Any>?
 	{
 		assert(marshaledTypes.tupleSize() == args.tupleSize())
 		return try
 		{
 			Array(args.tupleSize()) {
 				args.tupleAt(it + 1).marshalToJava(
-					marshaledTypes.tupleAt(it + 1).
-						javaObjectNotNull<Class<*>>())!!
+					marshaledTypes.tupleAt(it + 1).javaObjectNotNull())!!
 			}
 		}
 		catch (e: MarshalingException)

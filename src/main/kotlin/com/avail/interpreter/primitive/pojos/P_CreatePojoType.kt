@@ -50,51 +50,38 @@ import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * **Primitive:** Answer the [type][A_Type] that
- * represents the [Java class][Class] specified by the given
- * fully-qualified name and type parameters. The result is either an Avail
- * [type][A_Type] or a [pojo type][PojoTypeDescriptor].
+ * **Primitive:** Answer the [type][A_Type] that represents the Java [Class]
+ * specified by the given fully-qualified name and type parameters. The result
+ * is either an Avail [type][A_Type] or a [pojo&#32;type][PojoTypeDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_CreatePojoType : Primitive(2, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val className = interpreter.argument(0)
 		val classParameters = interpreter.argument(1)
 
-		try
-		{
-			val pojoType = interpreter.runtime().lookupJavaType(
-				className, classParameters)
-			return interpreter.primitiveSuccess(
-				canonicalPojoType(pojoType, true))
+		return try {
+			val pojoType =
+				interpreter.runtime().lookupJavaType(className, classParameters)
+			interpreter.primitiveSuccess(canonicalPojoType(pojoType, true))
+		} catch (e: AvailRuntimeException) {
+			interpreter.primitiveFailure(e.numericCode())
 		}
-		catch (e: AvailRuntimeException)
-		{
-			return interpreter.primitiveFailure(e.numericCode())
-		}
-
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				stringType(),
 				zeroOrMoreOf(anyMeta())),
 			anyMeta())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(
 			E_JAVA_CLASS_NOT_AVAILABLE,
 			E_INCORRECT_NUMBER_OF_ARGUMENTS))
-	}
-
 }

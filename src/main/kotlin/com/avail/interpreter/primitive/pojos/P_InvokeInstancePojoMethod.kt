@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive.pojos
 
 import com.avail.AvailRuntime.HookType
+import com.avail.descriptor.A_Tuple
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.BottomTypeDescriptor.bottom
 import com.avail.descriptor.ObjectTupleDescriptor.tupleFromList
@@ -52,25 +53,23 @@ import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 
 /**
- * **Primitive:** Given arguments that start with the receiver of
- * a Java [Method], followed by the method's own arguments, invoke the
- * method.  Note that this is a late-bound invocation, so it dynamically locates
- * the actual Java code to invoke.
- *
+ * **Primitive:** Given arguments that start with the receiver of a Java
+ * [Method], followed by the method's own arguments, invoke the method.  Note
+ * that this is a late-bound invocation, so it dynamically locates the actual
+ * Java code to invoke.
  *
  * Perform necessary marshalling of the receiver and arguments, and
  * unmarshalling of the result.  If an exception is thrown during evaluation,
- * raise it as an Avail exception via the [ ][HookType.RAISE_JAVA_EXCEPTION_IN_AVAIL] hook.
+ * raise it as an Avail exception via the
+ * [HookType.RAISE_JAVA_EXCEPTION_IN_AVAIL] hook.
  *
- *
- * The current function was constructed via [ ], and has two outer values: the Java
- * [Method] and the tuple of marshaled types.
+ * The current function was constructed via
+ * [P_CreatePojoInstanceMethodFunction], and has two outer values: the Java
+ * [Method] and the [tuple][A_Tuple] of marshaled types.
  */
 object P_InvokeInstancePojoMethod : Primitive(-1, Private)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		val methodArgs = tupleFromList(interpreter.argsBuffer)
 
@@ -83,14 +82,13 @@ object P_InvokeInstancePojoMethod : Primitive(-1, Private)
 		// The exact return kind was captured in the function type.
 		val expectedType = primitiveRawFunction.functionType().returnType()
 
-		val loader = interpreter.availLoaderOrNull()
-		loader?.statementCanBeSummarized(false)
+		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
 
 		// Marshal the arguments.
 		val method = methodPojo.javaObjectNotNull<Method>()
 		val errorOut = MutableOrNull<AvailErrorCode>()
 		val receiver = methodArgs.tupleAt(1).marshalToJava(
-			marshaledTypes.tupleAt(1).javaObject<Class<*>>())
+			marshaledTypes.tupleAt(1).javaObject())
 		val marshaledArgs = marshalValues(
 			marshaledTypes.copyTupleFromToCanDestroy(
 				2, marshaledTypes.tupleSize(), false),
@@ -99,16 +97,15 @@ object P_InvokeInstancePojoMethod : Primitive(-1, Private)
 			errorOut)
 		if (errorOut.value !== null)
 		{
-			val e = errorOut.value
+			val e = errorOut.value()
 			return interpreter.primitiveFailure(
-				newPojo(identityPojo(e), pojoTypeForClass(e!!.javaClass)))
+				newPojo(identityPojo(e), pojoTypeForClass(e.javaClass)))
 		}
 
 		// Invoke the instance method.
 		val result: Any? = try
 		{
-			val marshaledArgsNotNull = marshaledArgs!!
-			method.invoke(receiver, *marshaledArgsNotNull)
+			method.invoke(receiver, *marshaledArgs!!)
 		}
 		catch (e: InvocationTargetException)
 		{
@@ -125,36 +122,22 @@ object P_InvokeInstancePojoMethod : Primitive(-1, Private)
 				newPojo(identityPojo(e), pojoTypeForClass(e.javaClass)))
 		}
 
-		if (result === null)
-		{
-			return interpreter.primitiveSuccess(nullPojo())
-		}
+		result ?: return interpreter.primitiveSuccess(nullPojo())
 
-		try
-		{
-			val unmarshaled = unmarshal(result, expectedType)
-			return interpreter.primitiveSuccess(unmarshaled)
+		return try {
+			interpreter.primitiveSuccess(unmarshal(result, expectedType))
+		} catch (e: MarshalingException) {
+			interpreter.primitiveFailure(
+				newPojo(identityPojo(e), pojoTypeForClass(e.javaClass)))
 		}
-		catch (e: MarshalingException)
-		{
-			return interpreter.primitiveFailure(
-				newPojo(
-					identityPojo(e),
-					pojoTypeForClass(e.javaClass)))
-		}
-
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		// This primitive is suitable for any block signature, although really
-		// the primitive could only be applied if the function returns any.
-		return bottom()
-	}
+	/**
+	 * This primitive is suitable for any block signature, although really the
+	 * primitive could only be applied if the function returns any.
+	 */
+	override fun privateBlockTypeRestriction(): A_Type = bottom()
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return pojoTypeForClass(Throwable::class.java)
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		pojoTypeForClass(Throwable::class.java)
 }

@@ -52,59 +52,49 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import java.lang.reflect.Array
 
 /**
- * **Primitive:** Get the [element][AvailObject]
- * that resides at the given [subscript][IntegerDescriptor] of the
- * specified [pojo array type][PojoTypeDescriptor].
+ * **Primitive:** Get the [element][AvailObject] that resides at the given
+ * [subscript][IntegerDescriptor] of the specified
+ * [pojo&#32;array&#32;type][PojoTypeDescriptor].
  */
 object P_PojoArrayGet : Primitive(2, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val pojo = interpreter.argument(0)
 		val subscript = interpreter.argument(1)
 
-		val loader = interpreter.availLoaderOrNull()
-		loader?.statementCanBeSummarized(false)
+		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
 
-		val rawPojo = pojo.rawPojo()
-		val array = rawPojo.javaObjectNotNull<Any>()
+		val array = pojo.rawPojo().javaObjectNotNull<Any>()
+		if (!subscript.isInt)
+		{
+			return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
+		}
 		val index = subscript.extractInt()
 		if (index > Array.getLength(array))
 		{
 			return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
 		val element = Array.get(array, index - 1)
-		val unmarshaled: AvailObject
-		try
-		{
-			unmarshaled = unmarshal(element, pojo.kind().contentType())
+		return try {
+			interpreter.primitiveSuccess(
+				unmarshal(element, pojo.kind().contentType()))
+		} catch (e: MarshalingException) {
+			interpreter.primitiveFailure(e)
 		}
-		catch (e: MarshalingException)
-		{
-			return interpreter.primitiveFailure(e)
-		}
-
-		return interpreter.primitiveSuccess(unmarshaled)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				mostGeneralPojoArrayType(),
 				naturalNumbers()),
 			ANY.o())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
 			set(
 				E_SUBSCRIPT_OUT_OF_BOUNDS,
 				E_JAVA_MARSHALING_FAILED))
-	}
-
 }

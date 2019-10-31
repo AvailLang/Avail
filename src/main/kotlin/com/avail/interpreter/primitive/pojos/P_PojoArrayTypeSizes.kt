@@ -44,27 +44,23 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer the cardinality restriction of the
- * specified [pojo array][PojoTypeDescriptor.mostGeneralPojoArrayType].
+ * **Primitive:** Answer the cardinality restriction of the specified
+ * [pojo&#32;array&#32;type][PojoTypeDescriptor.mostGeneralPojoArrayType].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_PojoArrayTypeSizes : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val pojoArrayType = interpreter.argument(0)
 		return interpreter.primitiveSuccess(pojoArrayType.sizeRange())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(instanceMeta(
-			mostGeneralPojoArrayType())), instanceMeta(
-			wholeNumbers()))
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(
+				instanceMeta(mostGeneralPojoArrayType())),
+			instanceMeta(wholeNumbers()))
 }

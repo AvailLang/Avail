@@ -38,20 +38,22 @@ import com.avail.descriptor.InstanceMetaDescriptor.instanceMeta
 import com.avail.descriptor.IntegerRangeTypeDescriptor
 import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.PojoTypeDescriptor
 import com.avail.descriptor.PojoTypeDescriptor.mostGeneralPojoArrayType
 import com.avail.descriptor.PojoTypeDescriptor.pojoArrayType
+import com.avail.descriptor.TypeDescriptor
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Create a [ ] for the specified [ ] and [range of][IntegerRangeTypeDescriptor].
+ * **Primitive:** Create a [pojo&#32;array&#32;type][PojoTypeDescriptor] for the
+ * specified [type][TypeDescriptor] and [range][IntegerRangeTypeDescriptor] of
+ * sizes.
  */
 object P_CreatePojoArrayType : Primitive(2, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val type = interpreter.argument(0)
@@ -59,13 +61,10 @@ object P_CreatePojoArrayType : Primitive(2, CannotFail, CanFold, CanInline)
 		return interpreter.primitiveSuccess(pojoArrayType(type, sizes))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				anyMeta(),
 				instanceMeta(wholeNumbers())),
 			instanceMeta(mostGeneralPojoArrayType()))
-	}
-
 }

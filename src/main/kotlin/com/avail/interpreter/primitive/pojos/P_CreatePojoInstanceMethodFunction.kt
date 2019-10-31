@@ -64,17 +64,17 @@ import java.util.*
 import java.util.Collections.synchronizedMap
 
 /**
- * **Primitive:** Given a [type][A_Type] that can be
- * successfully marshaled to a Java type, a [string][A_String] that
- * names an instance [method][Method] of that type, and a [ ] of parameter [types][A_Type], create a [ ] that when applied will invoke the instance method. The
+ * **Primitive:** Given a [type][A_Type] that can be successfully marshaled to a
+ * Java type, a [string][A_String] that names an instance [method][Method] of
+ * that type, and a [tuple][A_Tuple] of parameter [types][A_Type], create a
+ * [function][A_Function] that when applied will invoke the instance method. The
  * instance method is invoked with arguments conforming to the marshaling of the
  * receiver type and then the parameter types. If the return value has a
  * preferred Avail surrogate type, then marshal the value to the surrogate type
  * prior to answering it.
  *
- *
- * Should the Java method raise an exception, re-raise it within Avail as a
- * pojo exception.
+ * Should the Java method raise an exception, re-raise it within Avail as a pojo
+ * exception.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -83,18 +83,17 @@ object P_CreatePojoInstanceMethodFunction : Primitive(3, CanInline, CanFold)
 	/**
 	 * Cache of [A_RawFunction]s, keyed by the function [A_Type].
 	 */
-	private val rawFunctionCache = synchronizedMap(WeakHashMap<A_Type, A_RawFunction>())
+	private val rawFunctionCache =
+		synchronizedMap(WeakHashMap<A_Type, A_RawFunction>())
 
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
 		val pojoType = interpreter.argument(0)
 		val methodName = interpreter.argument(1)
 		val paramTypes = interpreter.argument(2)
 
-		val loader = interpreter.availLoaderOrNull()
-		loader?.statementCanBeSummarized(false)
+		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
 
 		// Marshal the argument types.
 		val method: Method?
@@ -111,14 +110,13 @@ object P_CreatePojoInstanceMethodFunction : Primitive(3, CanInline, CanFold)
 			}
 			// The indices are fiddly because we need to make room for the
 			// receiver type at the front.
-			marshaledTypesTuple = generateObjectTupleFrom(
-				marshaledTypes.size + 1
-			) { i ->
-				if (i == 1)
-					identityPojo(marshalDefiningType(pojoType))
-				else
-					equalityPojo(marshaledTypes[i - 2])
-			}
+			marshaledTypesTuple =
+				generateObjectTupleFrom(marshaledTypes.size + 1) {
+					if (it == 1)
+						identityPojo(marshalDefiningType(pojoType))
+					else
+						equalityPojo(marshaledTypes[it - 2])
+				}
 		}
 		catch (e: MarshalingException)
 		{
@@ -128,14 +126,13 @@ object P_CreatePojoInstanceMethodFunction : Primitive(3, CanInline, CanFold)
 		val returnType = resolvePojoType(
 			method.genericReturnType,
 			if (pojoType.isPojoType) pojoType.typeVariables() else emptyMap())
-		val paramTypesWithReceiver = tuple(pojoType).concatenateWith(paramTypes, false)
+		val paramTypesWithReceiver =
+			tuple(pojoType).concatenateWith(paramTypes, false)
 		val functionType = functionType(paramTypesWithReceiver, returnType)
-
 		val rawFunction = rawFunctionCache.computeIfAbsent(functionType) {
-			fType ->
 			rawPojoInvokerFunctionFromFunctionType(
 				P_InvokeInstancePojoMethod,
-				fType,
+				it,
 				// Outer#1 = Instance method to invoke.
 				RAW_POJO.o(),
 				// Outer#2 = Marshaled type parameters, starting with receiver.
@@ -146,25 +143,20 @@ object P_CreatePojoInstanceMethodFunction : Primitive(3, CanInline, CanFold)
 			// Outer#1 = Instance method to invoke.
 			equalityPojo(method),
 			// Outer#2 = Marshaled type parameters.
-			cast<A_Tuple, AvailObject>(marshaledTypesTuple))
+			cast(marshaledTypesTuple))
 		return interpreter.primitiveSuccess(function)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				anyMeta(),
 				stringType(),
 				zeroOrMoreOf(anyMeta())),
 			functionTypeReturning(TOP.o()))
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(
 			E_JAVA_METHOD_NOT_AVAILABLE,
 			E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS))
-	}
-
 }

@@ -52,24 +52,26 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import java.lang.reflect.Array
 
 /**
- * **Primitive:** Overwrite the [ element][AvailObject] that resides at the given [ subscript][IntegerDescriptor] of the specified [pojo array][PojoTypeDescriptor].
+ * **Primitive:** Overwrite the [element][AvailObject] that resides at the given
+ * [subscript][IntegerDescriptor] of the specified
+ * [pojo&#32;array][PojoTypeDescriptor].
  */
 object P_PojoArraySet : Primitive(3, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
 		val pojo = interpreter.argument(0)
 		val subscript = interpreter.argument(1)
 		val value = interpreter.argument(2)
 
-		val loader = interpreter.availLoaderOrNull()
-		loader?.statementCanBeSummarized(false)
+		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
 
-		val rawPojo = pojo.rawPojo()
-		val array = rawPojo.javaObjectNotNull<Any>()
+		val array = pojo.rawPojo().javaObjectNotNull<Any>()
+		if (!subscript.isInt)
+		{
+			return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
+		}
 		val index = subscript.extractInt()
 		if (index > Array.getLength(array))
 		{
@@ -81,31 +83,27 @@ object P_PojoArraySet : Primitive(3, CanInline)
 			return interpreter.primitiveFailure(
 				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 		}
-		try
-		{
+		return try {
 			val marshaledType = contentType.marshalToJava(null) as Class<*>?
 			Array.set(array, index - 1, value.marshalToJava(marshaledType))
+			interpreter.primitiveSuccess(nil)
+		} catch (e: MarshalingException) {
+			interpreter.primitiveFailure(e)
 		}
-		catch (e: MarshalingException)
-		{
-			return interpreter.primitiveFailure(e)
-		}
-
-		return interpreter.primitiveSuccess(nil)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(mostGeneralPojoArrayType(),
-		                          naturalNumbers(), ANY.o()), TOP.o())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(
+				mostGeneralPojoArrayType(),
+				naturalNumbers(),
+				ANY.o()),
+			TOP.o())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(
-			E_SUBSCRIPT_OUT_OF_BOUNDS,
-			E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE,
-			E_JAVA_MARSHALING_FAILED))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
+			set(
+				E_SUBSCRIPT_OUT_OF_BOUNDS,
+				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE,
+				E_JAVA_MARSHALING_FAILED))
 }

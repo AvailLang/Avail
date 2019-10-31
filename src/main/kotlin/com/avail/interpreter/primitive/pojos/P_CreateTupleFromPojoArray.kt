@@ -45,42 +45,36 @@ import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail
-import com.avail.utility.MutableOrNull
 import java.lang.reflect.Array
 
 /**
- * **Primitive:** Convert the specified [ ][PojoTypeDescriptor.mostGeneralPojoArrayType] to a [ ].
+ * **Primitive:** Convert the specified
+ * [pojo&#32;array][PojoTypeDescriptor.mostGeneralPojoArrayType] to a
+ * [tuple][A_Tuple].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_CreateTupleFromPojoArray : Primitive(1, CanInline, CannotFail)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val array = interpreter.argument(0)
-		val tuple = MutableOrNull<A_Tuple>()
-		array.lock {
+		// Hold a lock on the array while accessing it.
+		val tuple = array.lock<A_Tuple> {
 			val rawArray = array.rawPojo().javaObjectNotNull<Any>()
-			tuple.value = generateObjectTupleFrom(
-				Array.getLength(rawArray)
-			) { i ->
+			generateObjectTupleFrom(Array.getLength(rawArray)) {
 				unmarshal(
-					Array.get(rawArray, i - 1),
+					Array.get(rawArray, it - 1),
 					array.kind().contentType())
 			}
 		}
-		return interpreter.primitiveSuccess(tuple.value())
+		return interpreter.primitiveSuccess(tuple)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				mostGeneralPojoArrayType()),
 			mostGeneralTupleType())
-	}
-
 }

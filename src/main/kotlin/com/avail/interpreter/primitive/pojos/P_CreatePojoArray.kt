@@ -39,6 +39,7 @@ import com.avail.descriptor.IntegerRangeTypeDescriptor.singleInteger
 import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.PojoDescriptor.newPojo
+import com.avail.descriptor.PojoTypeDescriptor
 import com.avail.descriptor.PojoTypeDescriptor.mostGeneralPojoArrayType
 import com.avail.descriptor.PojoTypeDescriptor.pojoArrayType
 import com.avail.descriptor.RawPojoDescriptor.identityPojo
@@ -50,38 +51,31 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
 import java.lang.reflect.Array
 
 /**
- * **Primitive:** Create a [ ] that stores and answers elements of the
- * specified [Avail type][TypeDescriptor] and has the specified
- * [length][IntegerDescriptor].
+ * **Primitive:** Create a [pojo&#32;array][PojoTypeDescriptor] that stores and
+ * answers elements of the specified Avail [type][TypeDescriptor] and has the
+ * specified [length][IntegerDescriptor].
  */
 object P_CreatePojoArray : Primitive(2, CannotFail, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val elementType = interpreter.argument(0)
 		val length = interpreter.argument(1)
 
-		val loader = interpreter.availLoaderOrNull()
-		loader?.statementCanBeSummarized(false)
+		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
 
-		val pojoType = pojoArrayType(
-			elementType, singleInteger(length))
+		val pojoType = pojoArrayType(elementType, singleInteger(length))
 		val array = Array.newInstance(
-			elementType.marshalToJava(null) as Class<*>?, length.extractInt())
+			elementType.marshalToJava(null) as Class<*>, length.extractInt())
 		val pojo = newPojo(identityPojo(array), pojoType)
 		return interpreter.primitiveSuccess(pojo)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				anyMeta(),
 				wholeNumbers()),
 			mostGeneralPojoArrayType())
-	}
-
 }

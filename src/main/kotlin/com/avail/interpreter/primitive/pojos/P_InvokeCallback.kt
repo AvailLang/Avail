@@ -32,7 +32,7 @@
 package com.avail.interpreter.primitive.pojos
 
 import com.avail.CallbackSystem
-import com.avail.CallbackSystem.Callback
+import com.avail.CallbackSystem.*
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.BottomTypeDescriptor.bottom
 import com.avail.descriptor.ObjectTupleDescriptor.tupleFromList
@@ -45,41 +45,35 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanSuspend
 import com.avail.interpreter.Primitive.Flag.Private
 import com.avail.interpreter.levelOne.L1InstructionWriter
-import com.avail.utility.Nulls.stripNull
-import java.util.*
 
 /**
- * **Primitive:** Given zero or more arguments, invoke the [ ] that's in a [PojoDescriptor] stored in the sole outer
- * variable.
+ * **Primitive:** Given zero or more arguments, invoke the [Callback] that's in
+ * a [pojo][PojoDescriptor] stored in the sole outer variable.
  *
- *
- * If a Java [Throwable] is thrown while executing the [ ], or if the specific callback indicates failure of some other form,
- * invoke TODO the handler for Java exceptions in callbacks.  Otherwise, answer
- * the result of successfully executing the callback.  The callback body runs in
- * the [CallbackSystem]'s thread pool.
+ * If a Java [Throwable] is thrown while executing the [Callback], or if the
+ * specific callback indicates failure of some other form, invoke the handler
+ * for Java exceptions in callbacks.  Otherwise, answer the result of
+ * successfully executing the callback.  The callback body runs in the
+ * [CallbackSystem]'s thread pool.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 object P_InvokeCallback : Primitive(-1, Private, CanSuspend)
 {
-
 	override fun attempt(interpreter: Interpreter): Result
 	{
-		val loader = interpreter.availLoaderOrNull()
-		loader?.statementCanBeSummarized(false)
+		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
 		val runtime = interpreter.runtime()
-		val primitiveFunction = stripNull(interpreter.function)
+		val primitiveFunction = interpreter.function!!
 		assert(primitiveFunction.code().primitive() === this)
 		val callbackPojo = primitiveFunction.outerVarAt(1)
-		val copiedArgs = ArrayList(interpreter.argsBuffer)
-		val argumentsTuple = tupleFromList(copiedArgs).makeShared()
+		val argumentsTuple = tupleFromList(interpreter.argsBuffer)
 		return interpreter.suspendAndDoWithFailureObject { toSucceed, toFail ->
 			runtime.callbackSystem().executeCallbackTask(
-				callbackPojo.javaObjectNotNull<Callback>(),
+				callbackPojo.javaObjectNotNull(),
 				argumentsTuple,
-				CallbackSystem.CallbackCompletion {
-					result -> toSucceed.value(result.makeShared()) },
-				CallbackSystem.CallbackFailure { throwable ->
+				CallbackCompletion { toSucceed.value(it.makeShared()) },
+				CallbackFailure { throwable ->
 					toFail.value(
 						newPojo(
 							identityPojo(throwable),
@@ -89,16 +83,11 @@ object P_InvokeCallback : Primitive(-1, Private, CanSuspend)
 		}
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		// This primitive is suitable for any block signature.
-		return bottom()
-	}
+	/** This primitive is suitable for any block signature. */
+	override fun privateBlockTypeRestriction(): A_Type = bottom()
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return pojoTypeForClass(Throwable::class.java)
-	}
+	override fun privateFailureVariableType(): A_Type =
+		pojoTypeForClass(Throwable::class.java)
 
 	override fun writeDefaultFailureCode(
 		lineNumber: Int,
@@ -109,8 +98,6 @@ object P_InvokeCallback : Primitive(-1, Private, CanSuspend)
 		// this default mechanism.  See CallbackSystem for details.
 		throw UnsupportedOperationException(
 			this.javaClass.simpleName
-			+ " must not create a function through the bootstrap "
-			+ "mechanism")
+			+ " must not create a function through the bootstrap mechanism")
 	}
-
 }
