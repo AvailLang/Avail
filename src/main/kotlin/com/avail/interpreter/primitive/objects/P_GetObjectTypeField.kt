@@ -34,6 +34,7 @@ package com.avail.interpreter.primitive.objects
 import com.avail.descriptor.A_RawFunction
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.AtomDescriptor
 import com.avail.descriptor.BottomTypeDescriptor.bottom
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceMetaDescriptor.anyMeta
@@ -52,13 +53,13 @@ import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * **Primitive:** Extract the specified [ ]'s type from the [ object type][ObjectTypeDescriptor].
+ * **Primitive:** Extract the specified [field's][AtomDescriptor] type from the
+ * [ object type][ObjectTypeDescriptor].
  */
+@Suppress("unused")
 object P_GetObjectTypeField : Primitive(2, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val objectType = interpreter.argument(0)
@@ -67,18 +68,11 @@ object P_GetObjectTypeField : Primitive(2, CanFold, CanInline)
 		return interpreter.primitiveSuccess(objectType.fieldTypeAt(field))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				mostGeneralObjectMeta(),
-				ATOM.o()),
-			anyMeta())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(mostGeneralObjectMeta(), ATOM.o()), anyMeta())
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
-		argumentTypes: List<A_Type>): A_Type
+		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
 	{
 		val objectMeta = argumentTypes[0]
 		val fieldType = argumentTypes[1]
@@ -107,8 +101,8 @@ object P_GetObjectTypeField : Primitive(2, CanFold, CanInline)
 		return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 	}
 
-	override fun fallibilityForArgumentTypes(
-		argumentTypes: List<A_Type>): Primitive.Fallibility
+	override fun fallibilityForArgumentTypes(argumentTypes: List<A_Type>)
+		: Primitive.Fallibility
 	{
 		val objectMeta = argumentTypes[0]
 		val fieldType = argumentTypes[1]
@@ -130,9 +124,6 @@ object P_GetObjectTypeField : Primitive(2, CanFold, CanInline)
 		return CallSiteCanFail
 	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_NO_SUCH_FIELD))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_NO_SUCH_FIELD))
 }

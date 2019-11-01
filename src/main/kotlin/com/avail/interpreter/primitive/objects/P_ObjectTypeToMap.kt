@@ -31,18 +31,15 @@
  */
 package com.avail.interpreter.primitive.objects
 
-import com.avail.descriptor.A_Type
+import com.avail.descriptor.*
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.AtomDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceMetaDescriptor.anyMeta
 import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
-import com.avail.descriptor.MapDescriptor
 import com.avail.descriptor.MapTypeDescriptor.mapTypeForSizesKeyTypeValueType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.ObjectTypeDescriptor.mostGeneralObjectMeta
 import com.avail.descriptor.SetDescriptor.set
-import com.avail.descriptor.TypeDescriptor
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
 import com.avail.exceptions.AvailErrorCode.E_NO_SUCH_FIELD
 import com.avail.interpreter.Interpreter
@@ -51,14 +48,14 @@ import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * **Primitive:** Convert an [ ] into a [map][MapDescriptor]
- * from [fields][AtomDescriptor]' [ ] to [types][TypeDescriptor].
+ * **Primitive:** Convert an [ ] into a [map][MapDescriptor] from
+ * [fields][AtomDescriptor]' [type][InstanceTypeDescriptor] to
+ * [types][TypeDescriptor].
  */
+@Suppress("unused")
 object P_ObjectTypeToMap : Primitive(1, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val objectType = interpreter.argument(0)
@@ -73,18 +70,11 @@ object P_ObjectTypeToMap : Primitive(1, CanFold, CanInline)
 		else interpreter.primitiveSuccess(objectType.fieldTypeMap())
 	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_NO_SUCH_FIELD))
-	}
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_NO_SUCH_FIELD))
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				mostGeneralObjectMeta()),
-			mapTypeForSizesKeyTypeValueType(
-				wholeNumbers(), ATOM.o(), anyMeta()))
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(mostGeneralObjectMeta()),
+			mapTypeForSizesKeyTypeValueType(wholeNumbers(), ATOM.o(), anyMeta()))
 }

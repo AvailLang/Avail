@@ -46,14 +46,13 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail
 
 /**
- * **Primitive:** Answer the set of locally-most-specific
- * user-assigned names for the specified [ user-defined object type][ObjectTypeDescriptor].
+ * **Primitive:** Answer the set of locally-most-specific user-assigned names
+ * for the specified [user-defined object type][ObjectTypeDescriptor].
  */
+@Suppress("unused")
 object P_TypeNames : Primitive(1, CanInline, CannotFail)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val userType = interpreter.argument(0)
@@ -62,12 +61,9 @@ object P_TypeNames : Primitive(1, CanInline, CannotFail)
 		return interpreter.primitiveSuccess(names)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				mostGeneralObjectMeta()),
 			setTypeForSizesContentType(wholeNumbers(), stringType()))
-	}
-
 }

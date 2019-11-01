@@ -47,43 +47,36 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Convert a [tuple][TupleDescriptor]
- * of field definitions into an [object type][ObjectTypeDescriptor].
- * A field definition is a 2-tuple whose first element is an [ ] that represents the field and whose second element is
- * the value [type][TypeDescriptor].
+ * **Primitive:** Convert a [tuple][TupleDescriptor] of field definitions into
+ * an [object type][ObjectTypeDescriptor]. A field definition is a 2-tuple whose
+ * first element is an [atom][AtomDescriptor] that represents the field and
+ * whose second element is the value [type][TypeDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_TupleToObjectType : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val tuple = interpreter.argument(0)
 		return interpreter.primitiveSuccess(objectTypeFromTuple(tuple))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				zeroOrMoreOf(
-					tupleTypeForTypes(
-						ATOM.o(),
-						anyMeta()))),
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(zeroOrMoreOf(tupleTypeForTypes(ATOM.o(), anyMeta()))),
 			mostGeneralObjectMeta())
-	}
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
-		argumentTypes: List<A_Type>): A_Type
+		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
 	{
 		val tupleType = argumentTypes[0]
 		val tupleSizes = tupleType.sizeRange()
 		val tupleSizeLowerBound = tupleSizes.lowerBound()
-		if (!tupleSizeLowerBound.equals(tupleSizes.upperBound()) || !tupleSizeLowerBound.isInt)
+		if (!tupleSizeLowerBound.equals(tupleSizes.upperBound())
+		    || !tupleSizeLowerBound.isInt)
 		{
 			// Variable number of <key,value> pairs.  Give up.
 			return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
@@ -99,24 +92,21 @@ object P_TupleToObjectType : Primitive(1, CannotFail, CanFold, CanInline)
 			if (!keyType.isEnumeration || !keyType.instanceCount().equalsInt(1))
 			{
 				// Can only strengthen if all key atoms are statically known.
-				return super.returnTypeGuaranteedByVM(
-					rawFunction, argumentTypes)
+				return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 			}
 			val keyValue = keyType.instance()
 			assert(keyValue.isAtom)
 			if (fieldTypeMap.hasKey(keyValue))
 			{
 				// In case the semantics of this situation change.  Give up.
-				return super.returnTypeGuaranteedByVM(
-					rawFunction, argumentTypes)
+				return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 			}
 			val valueMeta = pairType.typeAtIndex(2)
 			assert(valueMeta.isInstanceMeta)
 			val valueType = valueMeta.instance()
-			fieldTypeMap = fieldTypeMap.mapAtPuttingCanDestroy(
-				keyValue, valueType, true)
+			fieldTypeMap =
+				fieldTypeMap.mapAtPuttingCanDestroy(keyValue, valueType, true)
 		}
 		return instanceMeta(objectTypeFromMap(fieldTypeMap))
 	}
-
 }

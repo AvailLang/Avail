@@ -46,26 +46,21 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Convert an [ object][ObjectDescriptor] into a [map][MapDescriptor] from fields to values.
+ * **Primitive:** Convert an [object][ObjectDescriptor] into a
+ * [map][MapDescriptor] from fields to values.
  */
+@Suppress("unused")
 object P_ObjectToMap : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val obj = interpreter.argument(0)
 		return interpreter.primitiveSuccess(obj.fieldMap())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(
-				mostGeneralObjectType()),
-			mapTypeForSizesKeyTypeValueType(
-				wholeNumbers(), ATOM.o(), ANY.o()))
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(mostGeneralObjectType()),
+			mapTypeForSizesKeyTypeValueType(wholeNumbers(), ATOM.o(), ANY.o()))
 }
