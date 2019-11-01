@@ -45,27 +45,23 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Create a [ literal expression][LiteralPhraseDescriptor] from the specified [ literal token][LiteralTokenDescriptor].
+ * **Primitive:** Create a [literal&#32;expression][LiteralPhraseDescriptor]
+ * from the specified [literal&#32;token][LiteralTokenDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_CreateLiteralExpression : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val token = interpreter.argument(0)
 		return interpreter.primitiveSuccess(literalNodeFromToken(token))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				mostGeneralLiteralTokenType()),
 			LITERAL_PHRASE.mostGeneralType())
-	}
-
 }

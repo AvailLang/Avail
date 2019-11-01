@@ -46,29 +46,24 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer the [tuple][TupleDescriptor]
- * of [argument declarations][PhraseKind.ARGUMENT_PHRASE] for the
- * specified [block][BlockPhraseDescriptor].
+ * **Primitive:** Answer the [tuple][TupleDescriptor] of
+ * [argument&#32;declarations][PhraseKind.ARGUMENT_PHRASE] for the specified
+ * [block][BlockPhraseDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_BlockArguments : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val block = interpreter.argument(0)
 		return interpreter.primitiveSuccess(block.argumentsTuple())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				BLOCK_PHRASE.mostGeneralType()),
 			zeroOrMoreOf(ARGUMENT_PHRASE.mostGeneralType()))
-	}
-
 }

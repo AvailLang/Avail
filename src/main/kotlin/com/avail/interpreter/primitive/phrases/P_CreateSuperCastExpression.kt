@@ -49,57 +49,46 @@ import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * **Primitive:** Transform a base expression and a type into
- * a [supercast phrase][SuperCastPhraseDescriptor] that will use that
- * type for lookup.  Fail if the type is not a strict supertype of that which
- * will be produced by the expression.  Also fail if the expression is itself a
+ * **Primitive:** Transform a base expression and a type into a
+ * [supercast&#32;phrase][SuperCastPhraseDescriptor] that will use that type for
+ * lookup.  Fail if the type is not a strict supertype of that which will be
+ * produced by the expression.  Also fail if the expression is itself a
  * supertype, or if it is top-valued or bottom-valued.
  */
 object P_CreateSuperCastExpression : Primitive(2, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val expression = interpreter.argument(0)
 		val lookupType = interpreter.argument(1)
 
 		val expressionType = expression.expressionType()
-		if (expressionType.isBottom || expressionType.isTop)
-		{
-			return interpreter.primitiveFailure(
-				E_SUPERCAST_EXPRESSION_TYPE_MUST_NOT_BE_TOP_OR_BOTTOM)
+		return when {
+			expressionType.isBottom || expressionType.isTop ->
+				interpreter.primitiveFailure(
+					E_SUPERCAST_EXPRESSION_TYPE_MUST_NOT_BE_TOP_OR_BOTTOM)
+			expression.phraseKindIsUnder(SUPER_CAST_PHRASE) ->
+				interpreter.primitiveFailure(
+					E_SUPERCAST_EXPRESSION_MUST_NOT_ALSO_BE_A_SUPERCAST)
+			!expressionType.isSubtypeOf(lookupType)
+					|| expressionType.equals(lookupType) ->
+				interpreter.primitiveFailure(
+					E_SUPERCAST_MUST_BE_STRICT_SUPERTYPE_OF_EXPRESSION_TYPE)
+			else -> interpreter.primitiveSuccess(newSuperCastNode(expression, lookupType))
 		}
-		if (expression.phraseKindIsUnder(SUPER_CAST_PHRASE))
-		{
-			return interpreter.primitiveFailure(
-				E_SUPERCAST_EXPRESSION_MUST_NOT_ALSO_BE_A_SUPERCAST)
-		}
-		if (!expressionType.isSubtypeOf(lookupType) || expressionType.equals(lookupType))
-		{
-			return interpreter.primitiveFailure(
-				E_SUPERCAST_MUST_BE_STRICT_SUPERTYPE_OF_EXPRESSION_TYPE)
-		}
-		val supercast = newSuperCastNode(expression, lookupType)
-		return interpreter.primitiveSuccess(supercast)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				EXPRESSION_PHRASE.create(ANY.o()),
 				anyMeta()),
 			SUPER_CAST_PHRASE.mostGeneralType())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(
 			E_SUPERCAST_EXPRESSION_TYPE_MUST_NOT_BE_TOP_OR_BOTTOM,
 			E_SUPERCAST_EXPRESSION_MUST_NOT_ALSO_BE_A_SUPERCAST,
 			E_SUPERCAST_MUST_BE_STRICT_SUPERTYPE_OF_EXPRESSION_TYPE))
-	}
-
 }

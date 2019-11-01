@@ -39,6 +39,7 @@ import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.NilDescriptor
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*
+import com.avail.descriptor.SequencePhraseDescriptor
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TypeDescriptor.Types
@@ -51,29 +52,27 @@ import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * **Primitive:** Transform a variable reference and an expression
- * into an [assignment][AssignmentPhraseDescriptor] statement. Such a
- * phrase has type [top][Types.TOP] and cannot be embedded as a
- * subexpression.
+ * **Primitive:** Transform a variable reference and an expression into an
+ * [assignment][AssignmentPhraseDescriptor] statement. Such a phrase has type
+ * [top][Types.TOP] and cannot be embedded as a subexpression.
  *
- *
- * Note that because we can have "inner" assignment phrases (i.e.,
- * assignments used as subexpressions), we actually produce a [ ] here, consisting of the assignment
- * phrase proper (whose output is effectively discarded) and a literal
- * [null value][NilDescriptor.nil].
+ * Note that because we can have "inner" assignment phrases (i.e., assignments
+ * used as subexpressions), we actually produce a
+ * [sequence&#32;phrase][SequencePhraseDescriptor] here, consisting of the
+ * assignment phrase proper (whose output is effectively discarded) and a
+ * literal [null value][NilDescriptor.nil].
  */
 object P_CreateAssignmentStatement : Primitive(2, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val variable = interpreter.argument(0)
 		val expression = interpreter.argument(1)
 
 		val declaration = variable.declaration()
-		if (!declaration.phraseKindIsUnder(MODULE_VARIABLE_PHRASE) && !declaration.phraseKindIsUnder(LOCAL_VARIABLE_PHRASE))
+		if (!declaration.phraseKindIsUnder(MODULE_VARIABLE_PHRASE)
+			&& !declaration.phraseKindIsUnder(LOCAL_VARIABLE_PHRASE))
 		{
 			return interpreter.primitiveFailure(
 				E_DECLARATION_KIND_DOES_NOT_SUPPORT_ASSIGNMENT)
@@ -88,21 +87,16 @@ object P_CreateAssignmentStatement : Primitive(2, CanFold, CanInline)
 		return interpreter.primitiveSuccess(assignment)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				VARIABLE_USE_PHRASE.mostGeneralType(),
 				EXPRESSION_PHRASE.create(ANY.o())),
 			ASSIGNMENT_PHRASE.mostGeneralType())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
 			set(
 				E_DECLARATION_KIND_DOES_NOT_SUPPORT_ASSIGNMENT,
 				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE))
-	}
-
 }

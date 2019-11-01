@@ -37,6 +37,7 @@ import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.SEQUENCE_PHRASE
+import com.avail.descriptor.SequencePhraseDescriptor
 import com.avail.descriptor.TupleDescriptor
 import com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf
 import com.avail.interpreter.Interpreter
@@ -44,28 +45,23 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer the specified [ ]'s [tuple][TupleDescriptor] of
- * statements.
+ * **Primitive:** Answer the specified [sequence][SequencePhraseDescriptor]'s
+ * [tuple][TupleDescriptor] of statements.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_SequenceStatements : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val seq = interpreter.argument(0)
 		return interpreter.primitiveSuccess(seq.statements())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				SEQUENCE_PHRASE.mostGeneralType()),
 			zeroOrMoreOf(PARSE_PHRASE.mostGeneralType()))
-	}
-
 }

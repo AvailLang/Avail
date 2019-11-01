@@ -33,8 +33,10 @@
 package com.avail.interpreter.primitive.phrases
 
 import com.avail.descriptor.A_Type
+import com.avail.descriptor.ExpressionAsStatementPhraseDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.PhraseDescriptor
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.EXPRESSION_AS_STATEMENT_PHRASE
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
 import com.avail.interpreter.Interpreter
@@ -43,27 +45,23 @@ import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive ExpressionAsStatementExpression**: Answer the
- * expression wrapped by the expression-as-statement phrase.
+ * [expression][PhraseDescriptor] wrapped by an
+ * [expression-as-statement][ExpressionAsStatementPhraseDescriptor] phrase.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_ExpressionAsStatementExpression : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val stmt = interpreter.argument(0)
 		return interpreter.primitiveSuccess(stmt.expression())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				EXPRESSION_AS_STATEMENT_PHRASE.mostGeneralType()),
 			EXPRESSION_PHRASE.mostGeneralType())
-	}
-
 }

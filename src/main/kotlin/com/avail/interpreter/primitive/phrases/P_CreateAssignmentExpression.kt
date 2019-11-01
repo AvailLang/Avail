@@ -49,22 +49,21 @@ import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * **Primitive:** Transform a variable reference and an
- * expression into an inner [assignment][AssignmentPhraseDescriptor]. Such a node also produces the assigned value as its result, so it
- * can be embedded as a subexpression.
+ * **Primitive:** Transform a variable reference and an expression into an inner
+ * [assignment][AssignmentPhraseDescriptor]. Such a node also produces the
+ * assigned value as its result, so it can be embedded as a subexpression.
  */
 object P_CreateAssignmentExpression : Primitive(2, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val variable = interpreter.argument(0)
 		val expression = interpreter.argument(1)
 
 		val declaration = variable.declaration()
-		if (!declaration.phraseKindIsUnder(MODULE_VARIABLE_PHRASE) && !declaration.phraseKindIsUnder(LOCAL_VARIABLE_PHRASE))
+		if (!declaration.phraseKindIsUnder(MODULE_VARIABLE_PHRASE)
+			&& !declaration.phraseKindIsUnder(LOCAL_VARIABLE_PHRASE))
 		{
 			return interpreter.primitiveFailure(
 				E_DECLARATION_KIND_DOES_NOT_SUPPORT_ASSIGNMENT)
@@ -74,26 +73,20 @@ object P_CreateAssignmentExpression : Primitive(2, CanFold, CanInline)
 			return interpreter.primitiveFailure(
 				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 		}
-		val assignment = newAssignment(
-			variable, expression, emptyTuple(), true)
+		val assignment = newAssignment(variable, expression, emptyTuple(), true)
 		return interpreter.primitiveSuccess(assignment)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				VARIABLE_USE_PHRASE.mostGeneralType(),
 				EXPRESSION_PHRASE.create(ANY.o())),
 			ASSIGNMENT_PHRASE.mostGeneralType())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
 			set(
 				E_DECLARATION_KIND_DOES_NOT_SUPPORT_ASSIGNMENT,
 				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE))
-	}
-
 }

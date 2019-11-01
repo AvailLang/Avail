@@ -33,6 +33,7 @@
 package com.avail.interpreter.primitive.phrases
 
 import com.avail.descriptor.A_Type
+import com.avail.descriptor.A_Variable
 import com.avail.descriptor.DeclarationPhraseDescriptor.newModuleVariable
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.NilDescriptor.nil
@@ -48,16 +49,15 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail
 
 /**
- * **Primitive:** Create a new [ ][PhraseKind.MODULE_VARIABLE_PHRASE] from the
- * specified [token][TokenDescriptor] and actual [ ].
+ * **Primitive:** Create a new
+ * [module&#32;variable&#32;declaration][PhraseKind.MODULE_VARIABLE_PHRASE] from
+ * the specified [token][TokenDescriptor] and actual [variable][A_Variable].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 object P_CreateModuleVariableDeclaration : Primitive(2, CanInline, CannotFail)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val variable = interpreter.argument(0)
@@ -66,13 +66,10 @@ object P_CreateModuleVariableDeclaration : Primitive(2, CanInline, CannotFail)
 			newModuleVariable(token, variable, nil, nil))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				mostGeneralVariableType(),
 				TOKEN.o()),
 			MODULE_VARIABLE_PHRASE.mostGeneralType())
-	}
-
 }

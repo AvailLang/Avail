@@ -49,15 +49,15 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail
 
 /**
- * **Primitive**: Create a [ permuted list phrase][PermutedListPhraseDescriptor] from the given [list][ListPhraseDescriptor] and permutation [tuple][TupleDescriptor].
+ * **Primitive**: Create a
+ * [permuted&#32;list&#32;phrase][PermutedListPhraseDescriptor] from the given
+ * [list][ListPhraseDescriptor] and permutation [tuple][TupleDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_CreatePermutedListPhrase : Primitive(2, CannotFail, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val list = interpreter.argument(0)
@@ -66,13 +66,10 @@ object P_CreatePermutedListPhrase : Primitive(2, CannotFail, CanInline)
 			newPermutedListNode(list, permutation))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				LIST_PHRASE.mostGeneralType(),
 				oneOrMoreOf(naturalNumbers())),
 			PERMUTED_LIST_PHRASE.mostGeneralType())
-	}
-
 }

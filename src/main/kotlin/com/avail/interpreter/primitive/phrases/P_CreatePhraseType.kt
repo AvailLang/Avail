@@ -37,6 +37,7 @@ import com.avail.descriptor.InstanceMetaDescriptor.instanceMeta
 import com.avail.descriptor.InstanceMetaDescriptor.topMeta
 import com.avail.descriptor.InstanceTypeDescriptor.instanceType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.PhraseTypeDescriptor
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import com.avail.exceptions.AvailErrorCode.E_BAD_YIELD_TYPE
@@ -46,14 +47,13 @@ import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * **Primitive:** Create a variation of a [ ].  In particular, create a phrase type of
- * the same [kind][PhraseKind] but with the specified expression type.
+ * **Primitive:** Create a variation of a
+ * [phrase&#32;type][PhraseTypeDescriptor]. In particular, create a phrase type
+ * of the same [kind][PhraseKind] but with the specified expression type.
  */
 object P_CreatePhraseType : Primitive(2, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val baseType = interpreter.argument(0)
@@ -70,18 +70,14 @@ object P_CreatePhraseType : Primitive(2, CanFold, CanInline)
 		else interpreter.primitiveSuccess(kind.create(expressionType))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				instanceMeta(PARSE_PHRASE.mostGeneralType()),
 				topMeta()),
 			instanceMeta(PARSE_PHRASE.mostGeneralType()))
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return instanceType(E_BAD_YIELD_TYPE.numericCode())
-	}
+	override fun privateFailureVariableType(): A_Type =
+		instanceType(E_BAD_YIELD_TYPE.numericCode())
 
 }

@@ -54,5 +54,5 @@ import com.avail.descriptor.Descriptor
 class AvailUnsupportedOperationException constructor(
 		descriptorClass: Class<out AbstractDescriptor>, messageName: String)
 	: RuntimeException(
-		"$descriptorClass.simpleName does not meaningfully implement " +
+		"${descriptorClass.simpleName} does not meaningfully implement " +
 			messageName)

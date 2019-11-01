@@ -43,25 +43,22 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Get the specified [ token][TokenDescriptor]'s one-based line number within the source module that supplied it. A
- * result of `0` means that the line number is unknown or meaningless.
+ * **Primitive:** Get the specified [token][TokenDescriptor]'s one-based line
+ * number within the source module that supplied it. A result of `0` means that
+ * the line number is unknown or meaningless.
  */
 object P_TokenLineNumber : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val token = interpreter.argument(0)
 		return interpreter.primitiveSuccess(fromInt(token.lineNumber()))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(TOKEN.o()),
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(
+				TOKEN.o()),
 			wholeNumbers())
-	}
-
 }

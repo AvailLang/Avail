@@ -33,6 +33,7 @@
 package com.avail.interpreter.primitive.phrases
 
 import com.avail.descriptor.A_Type
+import com.avail.descriptor.BlockPhraseDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
@@ -45,31 +46,27 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer the specified [ ]'s [set][SetDescriptor] of declared
- * exceptions.
+ * **Primitive:** Answer the specified [block][BlockPhraseDescriptor]'s
+ * [set][SetDescriptor] of declared exceptions.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_BlockDeclaredExceptions : Primitive(1, CannotFail, CanFold, CanInline)
 {
 
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val block = interpreter.argument(0)
 		return interpreter.primitiveSuccess(block.declaredExceptions())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				BLOCK_PHRASE.mostGeneralType()),
 			setTypeForSizesContentType(
 				wholeNumbers(),
 				// TODO: [MvG] Update with primitive exception type.
 				ANY.o()))
-	}
-
 }

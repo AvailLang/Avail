@@ -37,33 +37,30 @@ import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceMetaDescriptor.topMeta
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
+import com.avail.descriptor.SendPhraseDescriptor
 import com.avail.descriptor.TypeDescriptor
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer the specified [ ]'s expected [ return type][TypeDescriptor].
+ * **Primitive:** Answer the specified [send&#32;phrase][SendPhraseDescriptor]'s
+ * expected return []type][TypeDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_SendReturnType : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val send = interpreter.argument(0)
 		return interpreter.primitiveSuccess(send.expressionType())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				SEND_PHRASE.mostGeneralType()),
 			topMeta())
-	}
-
 }

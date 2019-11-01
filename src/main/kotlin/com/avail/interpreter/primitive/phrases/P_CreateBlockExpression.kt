@@ -56,19 +56,17 @@ import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
-import java.util.*
 
 /**
- * **Primitive:** Create a [ block expression][BlockPhraseDescriptor] from the specified [ argument declarations][PhraseKind.ARGUMENT_PHRASE], primitive number, statements, result type, and
- * exception set.
+ * **Primitive:** Create a []block&#32;expression][BlockPhraseDescriptor] from
+ * the specified [argument&#32;declarations][PhraseKind.ARGUMENT_PHRASE],
+ * primitive number, statements, result type, and exception set.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_CreateBlockExpression : Primitive(5, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(5)
 		val argDecls = interpreter.argument(0)
@@ -79,21 +77,17 @@ object P_CreateBlockExpression : Primitive(5, CanFold, CanInline)
 		// Verify that each element of "statements" is actually a statement,
 		// and that the last statement's expression type agrees with
 		// "resultType".
-		val flat = ArrayList<A_Phrase>(statements.tupleSize() + 3)
-		for (statement in statements)
-		{
-			statement.flattenStatementsInto(flat)
-		}
-		val primNumber: Int
-		if (primitiveName.tupleSize() > 0)
-		{
-			val primitive = Primitive.primitiveByName(primitiveName.asNativeString())
-			                ?: return interpreter.primitiveFailure(E_INVALID_PRIMITIVE_NUMBER)
-			primNumber = primitive.primitiveNumber
-		}
-		else
-		{
-			primNumber = 0
+		val flat = mutableListOf<A_Phrase>()
+		statements.forEach { it.flattenStatementsInto(flat) }
+		val primNumber = when {
+			primitiveName.tupleSize() == 0 -> 0
+			else -> {
+				val primitive =
+					primitiveByName(primitiveName.asNativeString())
+						?: return interpreter.primitiveFailure(
+							E_INVALID_PRIMITIVE_NUMBER)
+				primitive.primitiveNumber
+			}
 		}
 		if (!containsOnlyStatements(flat, resultType))
 		{
@@ -111,9 +105,8 @@ object P_CreateBlockExpression : Primitive(5, CanFold, CanInline)
 		return interpreter.primitiveSuccess(block)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				zeroOrMoreOf(ARGUMENT_PHRASE.mostGeneralType()),
 				stringType(),
@@ -121,14 +114,10 @@ object P_CreateBlockExpression : Primitive(5, CanFold, CanInline)
 				topMeta(),
 				setTypeForSizesContentType(wholeNumbers(), exceptionType())),
 			BLOCK_PHRASE.mostGeneralType())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
 			set(
 				E_BLOCK_CONTAINS_INVALID_STATEMENTS,
 				E_INVALID_PRIMITIVE_NUMBER))
-	}
-
 }

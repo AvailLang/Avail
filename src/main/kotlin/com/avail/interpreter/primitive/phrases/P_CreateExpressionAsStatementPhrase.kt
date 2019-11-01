@@ -51,21 +51,16 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
  */
 object P_CreateExpressionAsStatementPhrase : Primitive(1, CannotFail, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val expr = interpreter.argument(0)
 		return interpreter.primitiveSuccess(newExpressionAsStatement(expr))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				EXPRESSION_PHRASE.mostGeneralType()),
 			EXPRESSION_AS_STATEMENT_PHRASE.mostGeneralType())
-	}
-
 }

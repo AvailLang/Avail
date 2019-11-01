@@ -46,29 +46,24 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer the [tuple][TupleDescriptor]
- * of [statements][PhraseKind.PARSE_PHRASE] for the specified
+ * **Primitive:** Answer the [tuple][TupleDescriptor] of
+ * [statements][PhraseKind.PARSE_PHRASE] for the specified
  * [block][BlockPhraseDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_BlockStatements : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val block = interpreter.argument(0)
 		return interpreter.primitiveSuccess(block.statementsTuple())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				BLOCK_PHRASE.mostGeneralType()),
 			zeroOrMoreOf(PARSE_PHRASE.mostGeneralType()))
-	}
-
 }

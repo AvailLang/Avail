@@ -33,6 +33,7 @@
 package com.avail.interpreter.primitive.phrases
 
 import com.avail.descriptor.A_Type
+import com.avail.descriptor.DeclarationPhraseDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.DECLARATION_PHRASE
@@ -43,28 +44,23 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer the [token][TokenDescriptor]
- * that names the entity introduced by the [ ].
+ * **Primitive:** Answer the [token][TokenDescriptor] that names the entity
+ * introduced by the [declaration][DeclarationPhraseDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_DeclarationToken : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val decl = interpreter.argument(0)
 		return interpreter.primitiveSuccess(decl.token())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				DECLARATION_PHRASE.mostGeneralType()),
 			TOKEN.o())
-	}
-
 }

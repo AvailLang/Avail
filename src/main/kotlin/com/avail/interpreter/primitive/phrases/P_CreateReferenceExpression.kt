@@ -36,8 +36,10 @@ import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*
+import com.avail.descriptor.ReferencePhraseDescriptor
 import com.avail.descriptor.ReferencePhraseDescriptor.referenceNodeFromUse
 import com.avail.descriptor.SetDescriptor.set
+import com.avail.descriptor.VariableUsePhraseDescriptor
 import com.avail.exceptions.AvailErrorCode.E_DECLARATION_KIND_DOES_NOT_SUPPORT_REFERENCE
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
@@ -45,21 +47,21 @@ import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * **Primitive:** Transform a [ ] into a [ ].
+ * **Primitive:** Transform a [variable&#32;use][VariableUsePhraseDescriptor]
+ * into a [reference][ReferencePhraseDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_CreateReferenceExpression : Primitive(1, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val variableUse = interpreter.argument(0)
 
 		val declaration = variableUse.declaration()
-		if (!declaration.phraseKindIsUnder(MODULE_VARIABLE_PHRASE) && !declaration.phraseKindIsUnder(LOCAL_VARIABLE_PHRASE))
+		if (!declaration.phraseKindIsUnder(MODULE_VARIABLE_PHRASE)
+			&& !declaration.phraseKindIsUnder(LOCAL_VARIABLE_PHRASE))
 		{
 			return interpreter.primitiveFailure(
 				E_DECLARATION_KIND_DOES_NOT_SUPPORT_REFERENCE)
@@ -68,18 +70,13 @@ object P_CreateReferenceExpression : Primitive(1, CanFold, CanInline)
 		return interpreter.primitiveSuccess(reference)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				VARIABLE_USE_PHRASE.mostGeneralType()),
 			REFERENCE_PHRASE.mostGeneralType())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
 			set(E_DECLARATION_KIND_DOES_NOT_SUPPORT_REFERENCE))
-	}
-
 }

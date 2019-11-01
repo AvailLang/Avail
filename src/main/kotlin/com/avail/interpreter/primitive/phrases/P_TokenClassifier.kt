@@ -48,15 +48,14 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Get the specified [ token][TokenDescriptor]'s [classifier][TokenType] [atom][A_Atom].
+ * **Primitive:** Get the specified [token][TokenDescriptor]'s
+ * [classifier][TokenType], which is an [atom][A_Atom].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_TokenClassifier : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val token = interpreter.argument(0)
@@ -69,18 +68,17 @@ object P_TokenClassifier : Primitive(1, CannotFail, CanFold, CanInline)
 		argumentTypes: List<A_Type>): A_Type
 	{
 		val tokenType = argumentTypes[0]
-
-		return if (tokenType.instanceCount().equalsInt(1))
+		if (tokenType.instanceCount().equalsInt(1))
 		{
-			instanceType(tokenType.tokenType().atom)
+			return instanceType(tokenType.tokenType().atom)
 		}
-		else super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
+		return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
-			tuple(TOKEN.o()),
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(
+				TOKEN.o()),
 			enumerationWith(
 				set(
 					END_OF_FILE.atom,
@@ -89,6 +87,4 @@ object P_TokenClassifier : Primitive(1, CannotFail, CanFold, CanInline)
 					OPERATOR.atom,
 					COMMENT.atom,
 					WHITESPACE.atom)))
-	}
-
 }

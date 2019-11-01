@@ -60,30 +60,25 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanSuspend
 import com.avail.interpreter.Primitive.Flag.Unknown
 import com.avail.interpreter.Primitive.Result.FIBER_SUSPENDED
-import com.avail.utility.Mutable
-import com.avail.utility.Nulls.stripNull
 import com.avail.utility.Strings.increaseIndentation
-import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
- * **Primitive CreateRestrictedSendExpression**: Create a [send
-* phrase][SendPhraseDescriptor] from the specified [message bundle][A_Bundle],
-* [list phrase][ListPhraseDescriptor] of [argument
-* expressions][PhraseKind.EXPRESSION_PHRASE], and [return type][TypeDescriptor].
-* In addition, run all semantic restrictions in separate fibers.  The resulting
-* send phrase's return type will be the intersection of the supplied type, the
-* return types produced by the semantic restrictions, and the applicable method
-* definitions' return types.
- *
+ * **Primitive CreateRestrictedSendExpression**: Create a
+ * [send&#32;phrase][SendPhraseDescriptor] from the specified
+ * [message&#32;bundle][A_Bundle], [list&#32;phrase][ListPhraseDescriptor] of
+ * argument [expressions][PhraseKind.EXPRESSION_PHRASE], and
+ * [return&#32;type][TypeDescriptor]. In addition, run all semantic restrictions
+ * in separate fibers.  The resulting send phrase's return type will be the
+ * intersection of the supplied type, the return types produced by the semantic
+ * restrictions, and the applicable method definitions' return types.
  *
  * In the event that one or more semantic restrictions should fail, their
  * failure reasons will be captured and combined into a suitable composite
  * string.  This primitive will then fail with the composite string as the
  * failure value.  It is expected that the Avail primitive failure code will
- * simply invoke [P_RejectParsing] with that string to report the
- * encountered problems within the original fiber.
- *
+ * simply invoke [P_RejectParsing] with that string to report the encountered
+ * problems within the original fiber.
  *
  * The primitive may also fail (with a suitable string) if the number of
  * arguments is incorrect, but no further checking is performed.  If there are
@@ -102,8 +97,8 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 		val returnType = interpreter.argument(2)
 
 		val originalFiber = currentFiber()
-		val loader = originalFiber.availLoader()
-		             ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+		val loader = originalFiber.availLoader() ?:
+			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		val argExpressions = argsListNode.expressionsTuple()
 		val argsCount = argExpressions.tupleSize()
 		val bundle: A_Bundle
@@ -128,17 +123,18 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 		// Compute the intersection of the supplied type, applicable definition
 		// return types, and semantic restriction types.  Start with the
 		// supplied type.
-		val currentModule = loader.module()
-		val allVisibleModules = currentModule.allAncestors()
-		val intersection = Mutable<A_Type>(returnType)
+		val allVisibleModules = loader.module().allAncestors()
+		var intersection: A_Type = returnType
+		val intersectionMonitor = Object()
 		// Merge in the applicable (and visible) definition return types.
 		var anyDefinitionsApplicable = false
 		for (definition in bundle.bundleMethod().filterByTypes(argTypesList))
 		{
 			val definitionModule = definition.definitionModule()
-			if (definitionModule.equalsNil() || allVisibleModules.hasElement(definitionModule))
+			if (definitionModule.equalsNil()
+				|| allVisibleModules.hasElement(definitionModule))
 			{
-				intersection.value = intersection.value.typeIntersection(
+				intersection = intersection.typeIntersection(
 					definition.bodySignature().returnType())
 				anyDefinitionsApplicable = true
 			}
@@ -147,154 +143,128 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 		{
 			return interpreter.primitiveFailure(E_NO_METHOD_DEFINITION)
 		}
-		val applicableRestrictions = ArrayList<A_SemanticRestriction>()
-		for (restriction in bundle.bundleMethod().semanticRestrictions())
-		{
-			if (allVisibleModules.hasElement(restriction.definitionModule()))
-			{
-				// The semantic restriction takes the *types* as arguments.
-				if (restriction.function().kind().acceptsListOfArgValues(
-						argTypesList))
-				{
-					applicableRestrictions.add(restriction)
+		// Note, the semantic restriction takes the *types* as arguments.
+		val applicableRestrictions =
+			bundle.bundleMethod().semanticRestrictions().asSequence()
+				.filter {
+					allVisibleModules.hasElement(it.definitionModule()) &&
+						it.function().kind().acceptsListOfArgValues(
+							argTypesList)
 				}
-			}
-		}
+				.toList()
 		val restrictionsSize = applicableRestrictions.size
 		if (restrictionsSize == 0)
 		{
 			// No semantic restrictions.  Trivial success.
 			return interpreter.primitiveSuccess(
-				newSendNode(
-					emptyTuple(), bundle, argsListNode, intersection.value))
+				newSendNode(emptyTuple(), bundle, argsListNode, intersection))
 		}
 
 		// Merge in the (non-empty list of) semantic restriction results.
 		val runtime = currentRuntime()
-		val primitiveFunction = stripNull(interpreter.function)
+		val primitiveFunction = interpreter.function!!
 		assert(primitiveFunction.code().primitive() === this)
 		interpreter.primitiveSuspend(primitiveFunction)
-		val copiedArgs = ArrayList(interpreter.argsBuffer)
+		val copiedArgs = interpreter.argsBuffer.toList()
 		val countdown = AtomicInteger(restrictionsSize)
-		val problems = ArrayList<A_String>()
+		val problems = mutableListOf<A_String>()
 		val decrement = decrement@ {
-			if (countdown.decrementAndGet() != 0)
-			{
-				// We're not last to decrement, so don't do the epilogue.
-				return@decrement
-			}
-			// We're last to report.  Either succeed or fail the
-			// primitive within the original fiber.
-			if (problems.isEmpty())
-			{
-				// There were no problems.  Succeed the primitive with a
-				// send phrase yielding the intersection type.
-				resumeFromSuccessfulPrimitive(
+			when {
+				countdown.decrementAndGet() != 0 ->
+					// We're not last to decrement, so don't do the epilogue.
+					return@decrement
+				// We're last to report.  Either succeed or fail the
+				// primitive within the original fiber.
+				problems.isEmpty() -> resumeFromSuccessfulPrimitive(
 					runtime,
 					originalFiber,
 					this,
 					newSendNode(
-						emptyTuple(),
-						bundle,
-						argsListNode,
-						intersection.value))
-			}
-			else
-			{
-				// There were problems.  Fail the primitive with a string
-				// describing them all.
-				// assert problems.size() > 0;
-				val builder = StringBuilder()
-				if (problems.size == 1)
-				{
-					builder.append(problems[0].asNativeString())
-				}
-				else
-				{
-					builder.append(
-						"send phrase creation primitive not to have "
-						+ "encountered multiple problems in semantic "
-						+ "restrictions:")
-					for (problem in problems)
-					{
-						builder.append("\n\t")
-						builder.append(
-							increaseIndentation(problem.asNativeString(), 1))
+						emptyTuple(), bundle, argsListNode, intersection))
+				else -> {
+					// There were problems.  Fail the primitive with a string
+					// describing them all.
+					val problemReport: A_String = when {
+						problems.size == 1 -> problems[0]
+						else -> {
+							with(StringBuilder()) {
+								append(
+									"send phrase creation primitive not to " +
+										"have encountered multiple problems " +
+										"in semantic restrictions:")
+								for (problem in problems) {
+									append("\n\t")
+									append(
+										increaseIndentation(
+											problem.asNativeString(), 1))
+								}
+								stringFrom(toString())
+							}
+						}
 					}
+					// TODO: Yeah, we went to the effort of assembling a pretty
+					// report about what went wrong, but the bootstrap logic can't
+					// deal with anything but numeric codes, so just report a basic
+					// failure.
+					resumeFromFailedPrimitive(
+						runtime,
+						originalFiber,
+						// problemReport,
+						E_INCORRECT_ARGUMENT_TYPE.numericCode(), // Ew, yuck.
+						primitiveFunction,
+						copiedArgs)
 				}
-				val problemReport = stringFrom(builder.toString())
-				// TODO: Yeah, we went to the effort of assembling a pretty
-				// report about what went wrong, but the bootstrap logic can't
-				// deal with anything but numeric codes, so just report a basic
-				// failure.
-				resumeFromFailedPrimitive(
-					runtime,
-					originalFiber,
-					//					problemReport,
-					E_INCORRECT_ARGUMENT_TYPE.numericCode(), // Ew, yuck.
-					primitiveFunction,
-					copiedArgs)
 			}
 		}
-		val success = { resultType: AvailObject ->
-			if (resultType.isType)
-			{
-				synchronized(intersection) {
-					intersection.value =
-						intersection.value.typeIntersection(resultType)
+		val success: (AvailObject) -> Unit = {
+			when {
+				it.isType -> synchronized(intersectionMonitor) {
+					intersection = intersection.typeIntersection(it)
 				}
-			}
-			else
-			{
-				synchronized(problems) {
+				else -> synchronized(problems) {
 					problems.add(
 						stringFrom(
 							"Semantic restriction failed to produce "
-							+ "a type, and instead produced: "
-							+ resultType))
+								+ "a type, and instead produced: $it"))
 				}
 			}
 			decrement.invoke()
 		}
+		// Now launch the fibers.
 		var fiberCount = 1
 		for (restriction in applicableRestrictions)
 		{
 			val finalCount = fiberCount++
-			val forkedFiber = newFiber(
-				topMeta(),
-				originalFiber.priority()
-			) {
+			val forkedFiber = newFiber(topMeta(), originalFiber.priority()) {
 				stringFrom(
-					"Semantic restriction checker (#"
-					+ finalCount
-					+ ") for primitive "
-					+ this.javaClass.simpleName)
+					"Semantic restriction checker (#$finalCount) " +
+					"for primitive ${this.javaClass.simpleName}")
 			}
-			forkedFiber.availLoader(originalFiber.availLoader())
+			forkedFiber.availLoader(loader)
 			forkedFiber.heritableFiberGlobals(
 				originalFiber.heritableFiberGlobals())
 			forkedFiber.textInterface(originalFiber.textInterface())
 			forkedFiber.setSuccessAndFailureContinuations(
 				success,
 				{ throwable ->
-					if (throwable is AvailRejectedParseException)
-					{
-						val string = throwable.rejectionString
-						synchronized(problems) {
-							problems.add(string)
+					when (throwable) {
+						is AvailRejectedParseException -> {
+							// Compute the rejectionString outside the mutex.
+							val string = throwable.rejectionString
+							synchronized(problems) {
+								problems.add(string)
+							}
+						}
+						is AvailAcceptedParseException -> {
+							// Success without type narrowing – do nothing.
+						}
+						else ->
+							synchronized(problems) {
+								problems.add(stringFrom(
+									"evaluation of macro body not to raise an "
+										+ "unhandled exception:\n\t$throwable"))
 						}
 					}
-					else if (throwable !is AvailAcceptedParseException)
-					{
-						synchronized(problems) {
-							problems.add(stringFrom(
-								"evaluation of macro body not to raise an "
-								+ "unhandled exception:\n\t"
-								+ throwable))
-						}
-					}
-					// Success without type narrowing – do nothing.
-					// Now that we've fully dealt with it,
 				})
 			runOutermostFunction(
 				runtime, forkedFiber, restriction.function(), argTypesList)
@@ -315,8 +285,8 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 		argumentTypes: List<A_Type>): A_Type
 	{
 		assert(argumentTypes.size == 3)
-		//		final A_Type messageNameType = argumentTypes.get(0);
-		//		final A_Type argsListNodeType = argumentTypes.get(1);
+		// final A_Type messageNameType = argumentTypes.get(0);
+		// final A_Type argsListNodeType = argumentTypes.get(1);
 		val returnTypeType = argumentTypes[2]
 
 		val returnType = returnTypeType.instance()

@@ -53,15 +53,17 @@ import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * **Primitive:** Create a [send][SendPhraseDescriptor] from the specified [message][MessageBundleDescriptor], [list phrase][ListPhraseDescriptor] of [ ][PhraseKind.EXPRESSION_PHRASE], and [ ].  Do not apply semantic restrictions.
+ * **Primitive:** Create a [send&#32;expression][SendPhraseDescriptor] from the
+ * specified [message&#32;bundle][MessageBundleDescriptor],
+ * [list&#32;phrase][ListPhraseDescriptor] of argument
+ * [expressions][PhraseKind.EXPRESSION_PHRASE], and return
+ * [type][TypeDescriptor].  Do not apply semantic restrictions.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_CreateSendExpression : Primitive(3, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
 		val messageName = interpreter.argument(0)
@@ -70,55 +72,48 @@ object P_CreateSendExpression : Primitive(3, CanFold, CanInline)
 
 		val argExpressions = argsListNode.expressionsTuple()
 		val argsCount = argExpressions.tupleSize()
-		val bundle: A_Bundle
 		try
 		{
-			bundle = messageName.bundleOrCreate()
+			val bundle: A_Bundle = messageName.bundleOrCreate()
 			val splitter = bundle.messageSplitter()
 			if (splitter.numberOfArguments != argsCount)
 			{
 				return interpreter.primitiveFailure(
 					E_INCORRECT_NUMBER_OF_ARGUMENTS)
 			}
+			return interpreter.primitiveSuccess(
+				newSendNode(emptyTuple(), bundle, argsListNode, returnType))
 		}
 		catch (e: MalformedMessageException)
 		{
 			return interpreter.primitiveFailure(e.errorCode)
 		}
-
-		return interpreter.primitiveSuccess(
-			newSendNode(emptyTuple(), bundle, argsListNode, returnType))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				ATOM.o(),
 				LIST_PHRASE.mostGeneralType(),
 				topMeta()),
 			SEND_PHRASE.mostGeneralType())
-	}
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
 		argumentTypes: List<A_Type>): A_Type
 	{
 		assert(argumentTypes.size == 3)
-		//		final A_Type messageNameType = argumentTypes.get(0);
-		//		final A_Type argsListNodeType = argumentTypes.get(1);
+		// final A_Type messageNameType = argumentTypes.get(0);
+		// final A_Type argsListNodeType = argumentTypes.get(1);
 		val returnTypeType = argumentTypes[2]
 
 		val returnType = returnTypeType.instance()
 		return SEND_PHRASE.create(returnType)
 	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
 			set(
 				E_INCORRECT_NUMBER_OF_ARGUMENTS
 			).setUnionCanDestroy(possibleErrors, true))
-	}
-
 }

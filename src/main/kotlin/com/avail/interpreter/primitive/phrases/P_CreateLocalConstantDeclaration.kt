@@ -48,16 +48,16 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail
 
 /**
- * **Primitive:** Answer a [ ][PhraseKind.LOCAL_CONSTANT_PHRASE] from the
- * specified [token][TokenDescriptor] and initializing [ ][PhraseKind.EXPRESSION_PHRASE].
+ * **Primitive:** Answer a
+ * [local&#32;constant&#32;declaration][PhraseKind.LOCAL_CONSTANT_PHRASE] from
+ * the specified [token][TokenDescriptor] and initializing
+ * [expression][PhraseKind.EXPRESSION_PHRASE].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_CreateLocalConstantDeclaration : Primitive(2, CanInline, CannotFail)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val token = interpreter.argument(0)
@@ -65,13 +65,10 @@ object P_CreateLocalConstantDeclaration : Primitive(2, CanInline, CannotFail)
 		return interpreter.primitiveSuccess(newConstant(token, initializer))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				TOKEN.o(),
 				EXPRESSION_PHRASE.create(ANY.o())),
 			LOCAL_CONSTANT_PHRASE.mostGeneralType())
-	}
-
 }

@@ -48,14 +48,14 @@ import java.util.List;
 import static com.avail.descriptor.AtomDescriptor.createSpecialAtom;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.CommentTokenDescriptor.newCommentToken;
+import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
-import static com.avail.descriptor.TokenDescriptor.IntegerSlots.LINE_NUMBER;
-import static com.avail.descriptor.TokenDescriptor.IntegerSlots.START;
-import static com.avail.descriptor.TokenDescriptor.IntegerSlots.TOKEN_TYPE_CODE;
+import static com.avail.descriptor.TokenDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.TokenDescriptor.ObjectSlots.NEXT_LEXING_STATE_POJO;
 import static com.avail.descriptor.TokenDescriptor.ObjectSlots.STRING;
+import static com.avail.descriptor.TokenDescriptor.StaticInit.tokenTypeOrdinalKey;
 import static com.avail.descriptor.TokenDescriptor.TokenType.lookupTokenType;
 import static com.avail.descriptor.TokenTypeDescriptor.tokenType;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
@@ -192,8 +192,8 @@ extends Descriptor
 		 */
 		TokenType ()
 		{
-			this.atom = createSpecialAtom(
-				name().toLowerCase().replace('_', ' '));
+			atom = createSpecialAtom(name().toLowerCase().replace('_', ' '));
+			atom.setAtomProperty(tokenTypeOrdinalKey, fromInt(ordinal()));
 		}
 
 		/**
@@ -208,6 +208,21 @@ extends Descriptor
 		{
 			return all[ordinal];
 		}
+	}
+
+	/** A static class for untangling enum initialization. */
+	public static final class StaticInit
+	{
+		/** Don't instantiate this. */
+		private StaticInit () { };
+
+		/**
+		 * An internal [atom][A_Atom] for the other atoms of this
+		 * enumeration. It is keyed to the [ordinal][TokenType.ordinal]
+		 * of a [TokenType].
+		 */
+		public static A_Atom tokenTypeOrdinalKey = createSpecialAtom(
+			"token type ordinal key");
 	}
 
 	@Override
@@ -391,7 +406,7 @@ extends Descriptor
 	 * is updated automatically by the lexical scanning machinery to wrap a new
 	 * {@link LexingState}.  That machinery also sets up the new scanning
 	 * position, the new line number, and the list of {@link
-	 * LexingState#allTokens}.
+	 * LexingState#getAllTokens()}.
 	 *
 	 * @param string
 	 *        The token text.

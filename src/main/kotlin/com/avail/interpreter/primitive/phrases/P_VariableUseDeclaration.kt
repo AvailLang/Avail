@@ -33,6 +33,7 @@
 package com.avail.interpreter.primitive.phrases
 
 import com.avail.descriptor.A_Type
+import com.avail.descriptor.DeclarationPhraseDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.DECLARATION_PHRASE
@@ -43,28 +44,24 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer the [ ] that created the entity referenced
- * by this [variable use][VariableUsePhraseDescriptor].
+ * **Primitive:** Answer the [declaration][DeclarationPhraseDescriptor] that
+ * created the entity referenced
+ * by this [variable&#32;use][VariableUsePhraseDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_VariableUseDeclaration : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val use = interpreter.argument(0)
 		return interpreter.primitiveSuccess(use.declaration())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				VARIABLE_USE_PHRASE.mostGeneralType()),
 			DECLARATION_PHRASE.mostGeneralType())
-	}
-
 }

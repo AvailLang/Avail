@@ -33,6 +33,7 @@
 package com.avail.interpreter.primitive.phrases
 
 import com.avail.descriptor.A_Type
+import com.avail.descriptor.FirstOfSequencePhraseDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.FIRST_OF_SEQUENCE_PHRASE
@@ -43,28 +44,26 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer the specified [ ]'s [ ] of statements.  The first statement's result will be
- * the result produced by this first-of-sequence.
+ * **Primitive:** Answer the specified
+ * [first-of-sequence][FirstOfSequencePhraseDescriptor]'s [tuple][A_Tuple] of
+ * statements.  The first statement's result will be the result produced by this
+ * first-of-sequence.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 object P_FirstOfSequenceStatements : Primitive(1, CannotFail, CanFold, CanInline)
 {
 
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val seq = interpreter.argument(0)
 		return interpreter.primitiveSuccess(seq.statements())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				FIRST_OF_SEQUENCE_PHRASE.mostGeneralType()),
 			zeroOrMoreOf(PARSE_PHRASE.mostGeneralType()))
-	}
-
 }

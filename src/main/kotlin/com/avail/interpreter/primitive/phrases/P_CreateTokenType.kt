@@ -41,22 +41,22 @@ import com.avail.descriptor.InstanceTypeDescriptor.instanceType
 import com.avail.descriptor.LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetDescriptor.set
+import com.avail.descriptor.TokenDescriptor.StaticInit.tokenTypeOrdinalKey
 import com.avail.descriptor.TokenDescriptor.TokenType.*
 import com.avail.descriptor.TokenTypeDescriptor
 import com.avail.descriptor.TokenTypeDescriptor.tokenType
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
-import com.avail.interpreter.primitive.phrases.P_CreateToken.tokenTypeOrdinalKey
 
 /**
- * **Primitive:** Construct a [token][TokenTypeDescriptor] with the given parameterization.
+ * **Primitive:** Construct a [token&#32;type][TokenTypeDescriptor] with the
+ * given parameterization.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_CreateTokenType : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
@@ -72,23 +72,20 @@ object P_CreateTokenType : Primitive(1, CannotFail, CanFold, CanInline)
 		argumentTypes: List<A_Type>): A_Type
 	{
 		val atomType = argumentTypes[0]
-
 		if (atomType.instanceCount().equalsInt(1))
 		{
-			val atom = atomType.instance()
 			return instanceType(
 				tokenType(
 					lookupTokenType(
-						atom.getAtomProperty(tokenTypeOrdinalKey)
+						atomType.instance().getAtomProperty(tokenTypeOrdinalKey)
 							.extractInt())))
 
 		}
 		return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				enumerationWith(
 					set(
@@ -98,6 +95,4 @@ object P_CreateTokenType : Primitive(1, CannotFail, CanFold, CanInline)
 						COMMENT.atom,
 						WHITESPACE.atom))),
 			instanceMeta(mostGeneralLiteralTokenType()))
-	}
-
 }

@@ -49,16 +49,15 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail
 
 /**
- * **Primitive:** Create a [ label declaration][PhraseKind.LABEL_PHRASE] from the specified [token][TokenDescriptor] and
- * [continuation type][ContinuationTypeDescriptor].
+ * **Primitive:** Create a [label&#32;declaration][PhraseKind.LABEL_PHRASE] from
+ * the specified [token][TokenDescriptor] and
+ * [continuation&#32;type][ContinuationTypeDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_CreateLabelDeclaration : Primitive(2, CanInline, CannotFail)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val token = interpreter.argument(0)
@@ -66,13 +65,10 @@ object P_CreateLabelDeclaration : Primitive(2, CanInline, CannotFail)
 		return interpreter.primitiveSuccess(newLabel(token, nil, type))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				TOKEN.o(),
 				mostGeneralContinuationType()),
 			LABEL_PHRASE.mostGeneralType())
-	}
-
 }

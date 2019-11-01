@@ -37,6 +37,7 @@ import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.AtomDescriptor
 import com.avail.descriptor.AtomDescriptor.objectFromBoolean
 import com.avail.descriptor.BottomTypeDescriptor.bottom
+import com.avail.descriptor.DeclarationPhraseDescriptor
 import com.avail.descriptor.EnumerationTypeDescriptor.booleanType
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
@@ -55,52 +56,41 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
 
 /**
- * **Primitive:** If the specified [ ] has an initializing [ ][PhraseKind.EXPRESSION_PHRASE], then store it in the provided
- * [variable][VariableTypeDescriptor]. Answer [ ][AtomDescriptor.trueObject] if a value was stored.
+ * **Primitive:** If the specified [declaration][DeclarationPhraseDescriptor]
+ * has an initializing [expression][PhraseKind.EXPRESSION_PHRASE], then store it
+ * in the provided [variable][VariableTypeDescriptor]. Answer
+ * [true][AtomDescriptor.trueObject] if a value was stored.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_DeclarationInitializingExpression : Primitive(2, CanInline, HasSideEffect)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val variable = interpreter.argument(0)
 		val decl = interpreter.argument(1)
 		val initializer = decl.initializationExpression()
-		try
-		{
-			var stored = false
-			if (!initializer.equalsNil())
-			{
-				variable.setValue(initializer)
-				stored = true
-			}
-			return interpreter.primitiveSuccess(objectFromBoolean(stored))
+		if (initializer.equalsNil()) {
+			return interpreter.primitiveSuccess(objectFromBoolean(false))
 		}
-		catch (e: VariableSetException)
-		{
-			return interpreter.primitiveFailure(e)
+		return try {
+			variable.setValue(initializer)
+			interpreter.primitiveSuccess(objectFromBoolean(true))
+		} catch (e: VariableSetException) {
+			interpreter.primitiveFailure(e)
 		}
-
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				variableReadWriteType(TOP.o(), bottom()),
 				DECLARATION_PHRASE.mostGeneralType()),
 			booleanType())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(
 			E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE,
 			E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED))
-	}
-
 }

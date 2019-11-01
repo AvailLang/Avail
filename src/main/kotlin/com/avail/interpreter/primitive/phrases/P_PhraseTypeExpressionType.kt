@@ -45,26 +45,23 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Extract the result [ type][TypeDescriptor] of a [phrase type][PhraseTypeDescriptor].
+ * **Primitive:** Extract the result [type][TypeDescriptor] of a
+ * [phrase&#32;type][PhraseTypeDescriptor].
  */
 object P_PhraseTypeExpressionType : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val phraseType = interpreter.argument(0)
 		return interpreter.primitiveSuccess(phraseType.expressionType())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				instanceMeta(PARSE_PHRASE.mostGeneralType())),
 			topMeta())
-	}
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
@@ -73,5 +70,4 @@ object P_PhraseTypeExpressionType : Primitive(1, CannotFail, CanFold, CanInline)
 		val phraseMeta = argumentTypes[0]
 		return instanceMeta(phraseMeta.instance().expressionType())
 	}
-
 }

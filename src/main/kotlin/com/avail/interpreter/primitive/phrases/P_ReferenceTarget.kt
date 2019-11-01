@@ -37,32 +37,30 @@ import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.REFERENCE_PHRASE
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
+import com.avail.descriptor.ReferencePhraseDescriptor
+import com.avail.descriptor.VariableUsePhraseDescriptor
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer the [ ] of the specified [ ].
+ * **Primitive:** Answer the [target&#32;variable][VariableUsePhraseDescriptor]
+ * of the specified [reference][ReferencePhraseDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_ReferenceTarget : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val ref = interpreter.argument(0)
 		return interpreter.primitiveSuccess(ref.variable())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				REFERENCE_PHRASE.mostGeneralType()),
 			VARIABLE_USE_PHRASE.mostGeneralType())
-	}
-
 }

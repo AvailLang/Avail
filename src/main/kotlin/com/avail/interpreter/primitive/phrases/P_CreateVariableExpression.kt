@@ -48,31 +48,26 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail
 
 /**
- * **Primitive:** Create a [ ][PhraseKind.LOCAL_VARIABLE_PHRASE] from the
- * specified [token][TokenDescriptor] and type.
+ * **Primitive:** Create a
+ * [local&#32;variable&#32;declaration][PhraseKind.LOCAL_VARIABLE_PHRASE] from
+ * the specified [token][TokenDescriptor] and [type][A_Type].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_CreateVariableExpression : Primitive(2, CanInline, CannotFail)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val token = interpreter.argument(0)
 		val type = interpreter.argument(1)
-		return interpreter.primitiveSuccess(
-			newVariable(token, type, nil, nil))
+		return interpreter.primitiveSuccess(newVariable(token, type, nil, nil))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				TOKEN.o(),
 				anyMeta()),
 			LOCAL_VARIABLE_PHRASE.mostGeneralType())
-	}
-
 }

@@ -35,6 +35,7 @@ package com.avail.interpreter.primitive.phrases
 import com.avail.descriptor.A_RawFunction
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.BlockPhraseDescriptor
 import com.avail.descriptor.BlockPhraseDescriptor.recursivelyValidate
 import com.avail.descriptor.FunctionDescriptor
 import com.avail.descriptor.FunctionDescriptor.createFunction
@@ -53,17 +54,15 @@ import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * **Primitive:** Compile the specified [ ] into a [function][FunctionDescriptor].
- * The block is treated as a top-level construct, so it must not refer to any
- * outer variables.
+ * **Primitive:** Compile the specified [block][BlockPhraseDescriptor] into a
+ * [function][FunctionDescriptor]. The block is treated as a top-level
+ * construct, so it must not refer to any outer variables.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_GenerateFunctionForBlock : Primitive(1, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val block = interpreter.argument(0)
@@ -91,24 +90,18 @@ object P_GenerateFunctionForBlock : Primitive(1, CanFold, CanInline)
 		}
 
 		val function = createFunction(compiledCode, emptyTuple())
-		function.makeImmutable()
-		return interpreter.primitiveSuccess(function)
+		return interpreter.primitiveSuccess(function.makeImmutable())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				BLOCK_PHRASE.mostGeneralType()),
 			mostGeneralFunctionType())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(
 			E_BLOCK_IS_INVALID,
 			E_BLOCK_MUST_NOT_CONTAIN_OUTERS,
 			E_BLOCK_COMPILATION_FAILED))
-	}
-
 }

@@ -48,16 +48,14 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.Unknown
 
 /**
- * **Primitive:** Reject current macro substitution with the
- * specified one-based error level [1..4] and error string.  The levels
- * correspond to the instances of [ParseNotificationLevel], although the
- * integer has to be adjusted to zero-based to use [ ][ParseNotificationLevel.levelFromInt].
+ * **Primitive:** Reject current macro substitution with the specified one-based
+ * error level [1..4] and error string.  The levels correspond to the instances
+ * of [ParseNotificationLevel], although the integer has to be adjusted to
+ * zero-based to use [ParseNotificationLevel.levelFromInt].
  */
 object P_RejectParsing : Primitive(2, Unknown)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		if (!interpreter.fiber().generalFlag(CAN_REJECT_PARSE))
@@ -72,18 +70,13 @@ object P_RejectParsing : Primitive(2, Unknown)
 			rejectionString)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				inclusive(1L, 4L),
 				stringType()),
 			bottom())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_UNTIMELY_PARSE_REJECTION))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_UNTIMELY_PARSE_REJECTION))
 }

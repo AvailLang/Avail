@@ -43,23 +43,21 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Get the lexeme associated with the
+ * **Primitive:** Get the lexeme ([string][A_String]) associated with the
  * specified [token][TokenDescriptor].
  */
 object P_TokenLexeme : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val token = interpreter.argument(0)
 		return interpreter.primitiveSuccess(token.string())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(TOKEN.o()), oneOrMoreOf(CHARACTER.o()))
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(
+				TOKEN.o()),
+			oneOrMoreOf(CHARACTER.o()))
 }

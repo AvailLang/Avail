@@ -44,26 +44,20 @@ import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive:** Extract the base expression from a
- * [supercast phrase][SuperCastPhraseDescriptor].
+ * [supercast&#32;phrase][SuperCastPhraseDescriptor].
  */
 object P_SuperCastExpression : Primitive(1, CanFold, CanInline, CannotFail)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val supercast = interpreter.argument(0)
-
 		return interpreter.primitiveSuccess(supercast.expression())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				SUPER_CAST_PHRASE.mostGeneralType()),
 			EXPRESSION_PHRASE.create(ANY.o()))
-	}
-
 }

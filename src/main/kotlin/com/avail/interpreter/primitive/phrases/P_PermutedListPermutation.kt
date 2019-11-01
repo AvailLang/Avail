@@ -45,27 +45,23 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive**: Answer the [ permutation tuple][TupleDescriptor] of the specified [ permuted list phrase][PermutedListPhraseDescriptor].
+ * **Primitive**: Answer the [permutation&#32;tuple][TupleDescriptor] of the
+ * specified [permuted&#32;list&#32;phrase][PermutedListPhraseDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_PermutedListPermutation : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val permuted = interpreter.argument(0)
 		return interpreter.primitiveSuccess(permuted.permutation())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				PERMUTED_LIST_PHRASE.mostGeneralType()),
 			oneOrMoreOf(naturalNumbers()))
-	}
-
 }

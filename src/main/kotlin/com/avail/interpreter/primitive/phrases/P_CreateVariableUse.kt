@@ -39,21 +39,22 @@ import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.DECLARATION_PHRASE
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
 import com.avail.descriptor.TypeDescriptor.Types.TOKEN
+import com.avail.descriptor.VariableUsePhraseDescriptor
 import com.avail.descriptor.VariableUsePhraseDescriptor.newUse
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Create a [ ] from the specified [ ] and [ declaration][DeclarationPhraseDescriptor].
+ * **Primitive:** Create a [variable&#32;use][VariableUsePhraseDescriptor] from
+ * the specified [token][TokenDescriptor] and
+ * [declaration][DeclarationPhraseDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_CreateVariableUse : Primitive(2, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val decl = interpreter.argument(0)
@@ -61,13 +62,10 @@ object P_CreateVariableUse : Primitive(2, CannotFail, CanFold, CanInline)
 		return interpreter.primitiveSuccess(newUse(token, decl))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				DECLARATION_PHRASE.mostGeneralType(),
 				TOKEN.o()),
 			VARIABLE_USE_PHRASE.mostGeneralType())
-	}
-
 }

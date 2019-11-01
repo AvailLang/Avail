@@ -47,41 +47,32 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * **Primitive:** Answer the [A_Atom] for which a send phrase
- * is being macro-evaluated in the current fiber.  Fail if macro evaluation is
- * not happening in this fiber.
+ * **Primitive:** Answer the [atom]][A_Atom] for which a send phrase is being
+ * macro-evaluated in the current fiber.  Fail if macro evaluation is not
+ * happening in this fiber.
  */
 object P_CurrentMacroName : Primitive(0, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(0)
 		if (!interpreter.fiber().generalFlag(IS_EVALUATING_MACRO))
 		{
 			return interpreter.primitiveFailure(E_NOT_EVALUATING_MACRO)
 		}
-		val loader = interpreter.fiber().availLoader()
-		             ?: error("Macro expansion shouldn't be possible after loading")
+		interpreter.fiber().availLoader()
+			?: error("Macro expansion shouldn't be possible after loading")
 		val fiberGlobals = interpreter.fiber().fiberGlobals()
-		val clientData = fiberGlobals.mapAt(
-			CLIENT_DATA_GLOBAL_KEY.atom)
-		val currentMacroBundle = clientData.mapAt(
-			MACRO_BUNDLE_KEY.atom)
+		val clientData = fiberGlobals.mapAt(CLIENT_DATA_GLOBAL_KEY.atom)
+		val currentMacroBundle = clientData.mapAt(MACRO_BUNDLE_KEY.atom)
 		return interpreter.primitiveSuccess(currentMacroBundle.message())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			emptyTuple(),
 			ATOM.o())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_NOT_EVALUATING_MACRO))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_NOT_EVALUATING_MACRO))
 }

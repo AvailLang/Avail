@@ -44,27 +44,23 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer the [ send expression][SendPhraseDescriptor]'s target [method][MethodDescriptor].
+ * **Primitive:** Answer the [send&#32;expression][SendPhraseDescriptor]'s
+ * target [method][MethodDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_SendMethod : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val send = interpreter.argument(0)
 		return interpreter.primitiveSuccess(send.bundle().bundleMethod())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				SEND_PHRASE.mostGeneralType()),
 			METHOD.o())
-	}
-
 }

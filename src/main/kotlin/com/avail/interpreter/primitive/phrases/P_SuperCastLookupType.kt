@@ -36,32 +36,28 @@ import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceMetaDescriptor.anyMeta
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.SUPER_CAST_PHRASE
+import com.avail.descriptor.SuperCastPhraseDescriptor
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Extract the lookup type from a [ ].  This is the type that the
+ * **Primitive:** Extract the lookup [type][A_Type] from a
+ * [supercast&#32;phrase][SuperCastPhraseDescriptor].  This is the type that the
  * argument is to be treated as during method lookup.
  */
 object P_SuperCastLookupType : Primitive(1, CanFold, CanInline, CannotFail)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val supercast = interpreter.argument(0)
-
 		return interpreter.primitiveSuccess(supercast.superUnionType())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				SUPER_CAST_PHRASE.mostGeneralType()),
 			anyMeta())
-	}
-
 }

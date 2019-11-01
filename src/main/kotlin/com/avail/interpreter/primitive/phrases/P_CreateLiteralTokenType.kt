@@ -36,6 +36,7 @@ import com.avail.descriptor.A_Type
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceMetaDescriptor.anyMeta
 import com.avail.descriptor.InstanceMetaDescriptor.instanceMeta
+import com.avail.descriptor.LiteralTokenTypeDescriptor
 import com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType
 import com.avail.descriptor.LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
@@ -44,29 +45,24 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Construct a [ ] with the given
+ * **Primitive:** Construct a
+ * [literal&#32;token&#32;type][LiteralTokenTypeDescriptor] with the given
  * parameterization.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 object P_CreateLiteralTokenType : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val literalValueType = interpreter.argument(0)
-		return interpreter.primitiveSuccess(
-			literalTokenType(literalValueType))
+		return interpreter.primitiveSuccess(literalTokenType(literalValueType))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				anyMeta()),
 			instanceMeta(mostGeneralLiteralTokenType()))
-	}
-
 }

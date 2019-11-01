@@ -33,6 +33,7 @@
 package com.avail.interpreter.primitive.phrases
 
 import com.avail.descriptor.A_Type
+import com.avail.descriptor.AssignmentPhraseDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
@@ -44,27 +45,24 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer the specified [ ]'s [ ][PhraseKind.EXPRESSION_PHRASE].
+ * **Primitive:** Answer the specified
+ * [assignment][AssignmentPhraseDescriptor]'s
+ * [value&#32;expression][PhraseKind.EXPRESSION_PHRASE].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_AssignmentValue : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val assignment = interpreter.argument(0)
 		return interpreter.primitiveSuccess(assignment.expression())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				ASSIGNMENT_PHRASE.mostGeneralType()),
 			EXPRESSION_PHRASE.create(ANY.o()))
-	}
-
 }

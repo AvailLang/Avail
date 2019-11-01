@@ -36,6 +36,8 @@ import com.avail.descriptor.A_Type
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceMetaDescriptor.anyMeta
 import com.avail.descriptor.InstanceMetaDescriptor.instanceMeta
+import com.avail.descriptor.LiteralTokenDescriptor
+import com.avail.descriptor.LiteralTokenTypeDescriptor
 import com.avail.descriptor.LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.interpreter.Interpreter
@@ -43,27 +45,26 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Extract the type of value that can be inside
- * a literal token that satisfies this literal token type.
+ * <strong>Primitive:</strong> Extract the type of value that can be inside a
+ * [literal&#32;token][LiteralTokenDescriptor] that satisfies this
+ * [literal&#32;token&#32;type][LiteralTokenTypeDescriptor].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object P_LiteralTokenTypeValueType : Primitive(1, CannotFail, CanFold, CanInline)
+object P_LiteralTokenTypeValueType : Primitive(
+	1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val literalTokenType = interpreter.argument(0)
-		return interpreter.primitiveSuccess(
-			literalTokenType.literalType())
+		return interpreter.primitiveSuccess(literalTokenType.literalType())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(tuple(instanceMeta(
-			mostGeneralLiteralTokenType())), anyMeta())
-	}
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(
+				instanceMeta(
+					mostGeneralLiteralTokenType())),
+			anyMeta())
 }

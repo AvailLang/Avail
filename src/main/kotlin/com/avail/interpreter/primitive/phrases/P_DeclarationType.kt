@@ -44,28 +44,23 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer the [type][TypeDescriptor]
- * of the specified [declaration][DeclarationPhraseDescriptor].
+ * **Primitive:** Answer the [type][TypeDescriptor] of the specified
+ * [declaration][DeclarationPhraseDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_DeclarationType : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val decl = interpreter.argument(0)
 		return interpreter.primitiveSuccess(decl.declaredType())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				DECLARATION_PHRASE.mostGeneralType()),
 			anyMeta())
-	}
-
 }

@@ -48,16 +48,15 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail
 
 /**
- * **Primitive:** Create a new [ ][PhraseKind.ARGUMENT_PHRASE] from the specified
- * [token][TokenDescriptor] and type.
+ * **Primitive:** Create a new
+ * [argument&#32;declaration][PhraseKind.ARGUMENT_PHRASE] from the specified
+ * [token][TokenDescriptor] and [type][A_Type].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_CreateArgumentDeclaration : Primitive(2, CanInline, CannotFail)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val token = interpreter.argument(0)
@@ -65,13 +64,10 @@ object P_CreateArgumentDeclaration : Primitive(2, CanInline, CannotFail)
 		return interpreter.primitiveSuccess(newArgument(token, type, nil))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				TOKEN.o(),
 				anyMeta()),
 			ARGUMENT_PHRASE.mostGeneralType())
-	}
-
 }

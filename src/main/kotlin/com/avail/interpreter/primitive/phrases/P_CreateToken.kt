@@ -34,11 +34,10 @@ package com.avail.interpreter.primitive.phrases
 
 import com.avail.descriptor.*
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.AtomDescriptor.createSpecialAtom
-import com.avail.descriptor.IntegerDescriptor.fromInt
 import com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetDescriptor.set
+import com.avail.descriptor.TokenDescriptor.StaticInit.tokenTypeOrdinalKey;
 import com.avail.descriptor.TokenDescriptor.TokenType
 import com.avail.descriptor.TokenDescriptor.TokenType.*
 import com.avail.descriptor.TokenDescriptor.newToken
@@ -50,31 +49,15 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Create a [token][TokenDescriptor] with
- * the specified [TokenType], [lexeme][A_Token.string],
- * [starting character position][A_Token.start], and [ ][A_Token.lineNumber].
+ * **Primitive:** Create a [token][TokenDescriptor] with the specified
+ * [TokenType], [lexeme][A_Token.string],
+ * [starting&#32;character&#32;position][A_Token.start], and
+ * [line&#32;number][A_Token.lineNumber].
  *
  * @author Todd L Smith &lt;tsmith@safetyweb.org&gt;
  */
 object P_CreateToken : Primitive(4, CannotFail, CanFold, CanInline)
 {
-	/**
-	 * An internal [atom][A_Atom] for the other atoms of this
-	 * enumeration. It is keyed to the [ordinal][TokenType.ordinal]
-	 * of a [TokenType].
-	 */
-	val tokenTypeOrdinalKey = createSpecialAtom(
-		"token type ordinal key")
-
-	init
-	{
-		for (tokenType in TokenType.values())
-		{
-			tokenType.atom.setAtomProperty(
-				tokenTypeOrdinalKey, fromInt(tokenType.ordinal))
-		}
-	}
-
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(4)
@@ -96,9 +79,9 @@ object P_CreateToken : Primitive(4, CannotFail, CanFold, CanInline)
 		argumentTypes: List<A_Type>): A_Type
 	{
 		val atomType = argumentTypes[0]
-		//		final A_Type lexemeType = argumentTypes.get(1);
-		//		final A_Type startType = argumentTypes.get(2);
-		//		final A_Type lineType = argumentTypes.get(3);
+		// final A_Type lexemeType = argumentTypes.get(1);
+		// final A_Type startType = argumentTypes.get(2);
+		// final A_Type lineType = argumentTypes.get(3);
 
 		if (atomType.instanceCount().equalsInt(1))
 		{
@@ -106,14 +89,12 @@ object P_CreateToken : Primitive(4, CannotFail, CanFold, CanInline)
 			return tokenType(
 				lookupTokenType(
 					atom.getAtomProperty(tokenTypeOrdinalKey).extractInt()))
-
 		}
 		return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return FunctionTypeDescriptor.functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		FunctionTypeDescriptor.functionType(
 			tuple(
 				enumerationWith(
 					set(
@@ -123,9 +104,7 @@ object P_CreateToken : Primitive(4, CannotFail, CanFold, CanInline)
 						COMMENT.atom,
 						WHITESPACE.atom)),
 				stringType(),
-				inclusive(0, (1L shl 32) - 1),
-				inclusive(0, (1L shl 28) - 1)),
+				inclusive(0L, (1L shl 32) - 1),
+				inclusive(0L, (1L shl 28) - 1)),
 			TOKEN.o())
-	}
-
 }

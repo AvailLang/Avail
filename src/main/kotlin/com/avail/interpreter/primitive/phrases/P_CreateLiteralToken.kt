@@ -49,14 +49,15 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Create a [ literal token][LiteralTokenDescriptor] with the specified literal value, [ lexeme][A_Token.string], [starting character position][A_Token.start], and
- * [line number][A_Token.lineNumber].
+ * **Primitive:** Create a [literal&#32;token][LiteralTokenDescriptor] with the
+ * specified literal value, [lexeme][A_Token.string],
+ * [starting&#32;character&#32;position][A_Token.start], and
+ * [line&#32;number][A_Token.lineNumber].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_CreateLiteralToken : Primitive(4, CannotFail, CanFold, CanInline)
 {
-
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(4)
@@ -65,11 +66,7 @@ object P_CreateLiteralToken : Primitive(4, CannotFail, CanFold, CanInline)
 		val start = interpreter.argument(2)
 		val line = interpreter.argument(3)
 		return interpreter.primitiveSuccess(
-			literalToken(
-				lexeme,
-				start.extractInt(),
-				line.extractInt(),
-				value))
+			literalToken(lexeme, start.extractInt(), line.extractInt(), value))
 	}
 
 	override fun returnTypeGuaranteedByVM(
@@ -84,15 +81,12 @@ object P_CreateLiteralToken : Primitive(4, CannotFail, CanFold, CanInline)
 		return literalTokenType(valueType)
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				ANY.o(),
 				stringType(),
 				inclusive(0, (1L shl 32) - 1),
 				inclusive(0, (1L shl 28) - 1)),
 			mostGeneralLiteralTokenType())
-	}
-
 }

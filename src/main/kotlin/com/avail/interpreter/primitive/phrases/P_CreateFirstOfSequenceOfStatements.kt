@@ -35,6 +35,7 @@ package com.avail.interpreter.primitive.phrases
 import com.avail.descriptor.A_Phrase
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.FirstOfSequencePhraseDescriptor
 import com.avail.descriptor.FirstOfSequencePhraseDescriptor.newFirstOfSequenceNode
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
@@ -50,24 +51,21 @@ import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
-import java.util.*
 
 /**
- * **Primitive:** Create a [ ] phrase from the specified
- * [tuple][TupleDescriptor] of statements.
+ * **Primitive:** Create a [first-of-sequence][FirstOfSequencePhraseDescriptor]
+ * phrase from the specified [tuple][TupleDescriptor] of statements.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 object P_CreateFirstOfSequenceOfStatements : Primitive(1, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val statements = interpreter.argument(0)
 		val statementsSize = statements.tupleSize()
-		val flat = ArrayList<A_Phrase>(statementsSize + 3)
+		val flat = mutableListOf<A_Phrase>()
 		for (i in 2 .. statementsSize)
 		{
 			statements.tupleAt(i).flattenStatementsInto(flat)
@@ -78,21 +76,16 @@ object P_CreateFirstOfSequenceOfStatements : Primitive(1, CanFold, CanInline)
 				E_SEQUENCE_CONTAINS_INVALID_STATEMENTS)
 		}
 		flat.add(0, statements.tupleAt(1))
-		val sequence = newFirstOfSequenceNode(statements)
-		return interpreter.primitiveSuccess(sequence)
+		return interpreter.primitiveSuccess(newFirstOfSequenceNode(statements))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				zeroOrMoreOf(PARSE_PHRASE.mostGeneralType())),
 			FIRST_OF_SEQUENCE_PHRASE.mostGeneralType())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_SEQUENCE_CONTAINS_INVALID_STATEMENTS))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
+			set(E_SEQUENCE_CONTAINS_INVALID_STATEMENTS))
 }

@@ -33,36 +33,34 @@
 package com.avail.interpreter.primitive.phrases
 
 import com.avail.descriptor.A_Type
+import com.avail.descriptor.AssignmentPhraseDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.ASSIGNMENT_PHRASE
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
+import com.avail.descriptor.VariableUsePhraseDescriptor
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer the [ ] of the [ ].
+ * **Primitive:** Answer the [target&#32;variable][VariableUsePhraseDescriptor]
+ * of the [assignment][AssignmentPhraseDescriptor].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_AssignmentTarget : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val assignment = interpreter.argument(0)
 		return interpreter.primitiveSuccess(assignment.variable())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				ASSIGNMENT_PHRASE.mostGeneralType()),
 			VARIABLE_USE_PHRASE.mostGeneralType())
-	}
-
 }

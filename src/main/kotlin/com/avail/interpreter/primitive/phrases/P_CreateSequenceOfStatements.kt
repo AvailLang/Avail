@@ -51,23 +51,20 @@ import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
-import java.util.*
 
 /**
- * **Primitive:** Create a [ sequence][SequencePhraseDescriptor] from the specified [tuple][TupleDescriptor] of
- * statements.
+ * **Primitive:** Create a [sequence][SequencePhraseDescriptor] from the
+ * specified [tuple][TupleDescriptor] of statements.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_CreateSequenceOfStatements : Primitive(1, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val statements = interpreter.argument(0)
-		val flat = ArrayList<A_Phrase>(statements.tupleSize() + 3)
+		val flat = mutableListOf<A_Phrase>()
 		for (statement in statements)
 		{
 			statement.flattenStatementsInto(flat)
@@ -77,21 +74,17 @@ object P_CreateSequenceOfStatements : Primitive(1, CanFold, CanInline)
 			return interpreter.primitiveFailure(
 				E_SEQUENCE_CONTAINS_INVALID_STATEMENTS)
 		}
-		val sequence = newSequence(statements)
-		return interpreter.primitiveSuccess(sequence)
+		return interpreter.primitiveSuccess(newSequence(statements))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				zeroOrMoreOf(PARSE_PHRASE.mostGeneralType())),
 			SEQUENCE_PHRASE.mostGeneralType())
-	}
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_SEQUENCE_CONTAINS_INVALID_STATEMENTS))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
+			set(
+				E_SEQUENCE_CONTAINS_INVALID_STATEMENTS))
 }

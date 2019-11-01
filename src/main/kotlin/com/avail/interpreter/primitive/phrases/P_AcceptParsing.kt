@@ -48,11 +48,10 @@ import com.avail.interpreter.Primitive.Flag.Unknown
 /**
  * **Primitive:** Either an expression is having an applicable
  * semantic checked, a macro body is being executed for some invocation site, or
- * a [prefix function][A_Definition.prefixFunctions] for a macro is being
+ * a [prefix&#32;function][A_Definition.prefixFunctions] for a macro is being
  * invoked for a tentative prefix of an invocation site.  The Avail code has
  * decided by invoking this primitive that the terms of the invocation are
  * acceptable.
- *
  *
  * By using this primitive in a semantic restriction rather than simply
  * returning the value ⊤, we are able to indicate statically that a particular
@@ -70,9 +69,7 @@ import com.avail.interpreter.Primitive.Flag.Unknown
  */
 object P_AcceptParsing : Primitive(0, Unknown)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(0)
 		if (!interpreter.fiber().generalFlag(CAN_REJECT_PARSE))
@@ -82,14 +79,9 @@ object P_AcceptParsing : Primitive(0, Unknown)
 		throw AvailAcceptedParseException()
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(emptyTuple(), bottom())
-	}
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(emptyTuple(), bottom())
 
-	override fun privateFailureVariableType(): A_Type
-	{
-		return enumerationWith(set(E_UNTIMELY_PARSE_ACCEPTANCE))
-	}
-
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_UNTIMELY_PARSE_ACCEPTANCE))
 }

@@ -48,28 +48,23 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Create a [list][ListPhraseDescriptor]
- * from the specified [tuple][TupleDescriptor] of [ ][PhraseKind.EXPRESSION_PHRASE].
+ * **Primitive:** Create a [list][ListPhraseDescriptor] from the specified
+ * [tuple][TupleDescriptor] of [expressions][PhraseKind.EXPRESSION_PHRASE].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object P_CreateListExpression : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val expressions = interpreter.argument(0)
 		return interpreter.primitiveSuccess(newListNode(expressions))
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				zeroOrMoreOf(EXPRESSION_PHRASE.create(ANY.o()))),
 			LIST_PHRASE.mostGeneralType())
-	}
-
 }

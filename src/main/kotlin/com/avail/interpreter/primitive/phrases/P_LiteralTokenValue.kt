@@ -33,6 +33,7 @@ package com.avail.interpreter.primitive.phrases
 
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.LiteralTokenDescriptor
 import com.avail.descriptor.LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.TypeDescriptor.Types.ANY
@@ -41,25 +42,21 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Get the specified [ ]'s literal value.
+ * **Primitive:** Get the specified
+ * [literal&#32;token][LiteralTokenDescriptor]'s literal value.
  */
 object P_LiteralTokenValue : Primitive(1, CannotFail, CanFold, CanInline)
 {
-
-	override fun attempt(
-		interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val literalToken = interpreter.argument(0)
 		return interpreter.primitiveSuccess(literalToken.literal())
 	}
 
-	override fun privateBlockTypeRestriction(): A_Type
-	{
-		return functionType(
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
 			tuple(
 				mostGeneralLiteralTokenType()),
 			ANY.o())
-	}
-
 }
