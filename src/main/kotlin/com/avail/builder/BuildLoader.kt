@@ -406,7 +406,7 @@ internal class BuildLoader constructor(
 								(after - before).toDouble(),
 								module,
 								function.code().startingLineNumber())
-							runNext.value()
+							runNext()
 						},
 						fail)
 					availLoader.setPhase(Phase.EXECUTING_FOR_LOAD)

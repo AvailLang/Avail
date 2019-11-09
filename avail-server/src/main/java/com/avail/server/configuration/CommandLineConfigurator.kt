@@ -1,6 +1,6 @@
 /*
- * CommandLineConfigurator.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * CommandLineConfigurator.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,52 +30,70 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.server.configuration;
+package com.avail.server.configuration
 
-import com.avail.builder.ModuleRoots;
-import com.avail.builder.RenamesFileParser;
-import com.avail.server.AvailServer;
-import com.avail.tools.options.GenericHelpOption;
-import com.avail.tools.options.GenericOption;
-import com.avail.tools.options.OptionProcessingException;
-import com.avail.tools.options.OptionProcessor;
-import com.avail.tools.options.OptionProcessorFactory;
-import com.avail.utility.configuration.ConfigurationException;
-import com.avail.utility.configuration.Configurator;
-
-import java.io.File;
-
-import static com.avail.server.configuration.CommandLineConfigurator.OptionKey.AVAIL_RENAMES;
-import static com.avail.server.configuration.CommandLineConfigurator.OptionKey.AVAIL_ROOTS;
-import static com.avail.server.configuration.CommandLineConfigurator.OptionKey.DOCUMENT_ROOT;
-import static com.avail.server.configuration.CommandLineConfigurator.OptionKey.HELP;
-import static com.avail.server.configuration.CommandLineConfigurator.OptionKey.SERVER_AUTHORITY;
-import static com.avail.server.configuration.CommandLineConfigurator.OptionKey.SERVER_PORT;
-import static java.util.Collections.singletonList;
+import com.avail.builder.ModuleRoots
+import com.avail.builder.RenamesFileParser
+import com.avail.server.AvailServer
+import com.avail.server.configuration.CommandLineConfigurator.OptionKey.AVAIL_RENAMES
+import com.avail.server.configuration.CommandLineConfigurator.OptionKey.AVAIL_ROOTS
+import com.avail.server.configuration.CommandLineConfigurator.OptionKey.DOCUMENT_ROOT
+import com.avail.server.configuration.CommandLineConfigurator.OptionKey.HELP
+import com.avail.server.configuration.CommandLineConfigurator.OptionKey.SERVER_AUTHORITY
+import com.avail.server.configuration.CommandLineConfigurator.OptionKey.SERVER_PORT
+import com.avail.tools.options.GenericHelpOption
+import com.avail.tools.options.GenericOption
+import com.avail.tools.options.OptionProcessingException
+import com.avail.tools.options.OptionProcessor
+import com.avail.tools.options.OptionProcessorFactory
+import com.avail.utility.configuration.ConfigurationException
+import com.avail.utility.configuration.Configurator
+import java.io.File
 
 /**
- * Provides the {@linkplain AvailServerConfiguration configuration} for the
- * {@linkplain AvailServer Avail server}. Specifies the options that are
- * available as arguments to the server.
+ * Provides the [configuration][AvailServerConfiguration] for the [Avail
+ * server][AvailServer]. Specifies the options that are available as arguments
+ * to the server.
  *
+ * @property helpStream
+ *   The [appendable][Appendable] to which help text should be written.
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct a new instance.
+ *
+ * @param configuration
+ *   The base [server][AvailServerConfiguration].
+ * @param commandLineArguments
+ *   The command-line arguments.
+ * @param helpStream
+ *   The [Appendable] to which help text should be written.
  */
-public final class CommandLineConfigurator
-implements Configurator<AvailServerConfiguration>
+class CommandLineConfigurator constructor(
+	override val configuration: AvailServerConfiguration,
+	commandLineArguments: Array<String>,
+	private val helpStream: Appendable) : Configurator<AvailServerConfiguration>
 {
+	/** The command line arguments.  */
+	private val commandLineArguments = commandLineArguments.clone()
+
+	/** Has the [configurator][CommandLineConfigurator] been run yet? */
+	private var isConfigured: Boolean = false
+
 	/**
-	 * {@code OptionKey} enumerates the valid configuration options.
+	 * `OptionKey` enumerates the valid configuration options.
 	 */
-	enum OptionKey
+	internal enum class OptionKey
 	{
 		/**
-		 * Specification of the {@linkplain File path} to the {@linkplain
-		 * RenamesFileParser renames file}.
+		 * Specification of the [path][File] to the [renames
+		 * file][RenamesFileParser].
 		 */
 		AVAIL_RENAMES,
 
 		/**
-		 * Specification of the {@linkplain ModuleRoots Avail roots}.
+		 * Specification of the [Avail roots][ModuleRoots].
 		 */
 		AVAIL_ROOTS,
 
@@ -101,157 +119,105 @@ implements Configurator<AvailServerConfiguration>
 	}
 
 	/**
-	 * Create an {@linkplain OptionProcessor option processor} suitable for
-	 * {@linkplain #updateConfiguration() updating} a {@linkplain
-	 * AvailServerConfiguration server configuration}.
+	 * Create an [option processor][OptionProcessor] suitable for
+	 * [updating][updateConfiguration] a [server
+	 * configuration][AvailServerConfiguration].
 	 *
-	 * @return An option processor.
+	 * @return
+	 *   An option processor.
 	 */
-	private OptionProcessor<OptionKey> createOptionProcessor ()
+	private fun createOptionProcessor(): OptionProcessor<OptionKey>
 	{
-		final OptionProcessorFactory<OptionKey> factory =
-			new OptionProcessorFactory<>(OptionKey.class);
-		factory.addOption(new GenericOption<>(
-			AVAIL_RENAMES,
-			singletonList("availRenames"),
-			"The path to the renames file. This option overrides environment "
+		val factory = OptionProcessorFactory(OptionKey::class.java)
+		factory.configure {
+			addOption(GenericOption(
+				AVAIL_RENAMES,
+				listOf("availRenames"),
+				"The path to the renames file. This option overrides environment "
 				+ "variables.",
-			(processor, keyword, renamesString) ->
-			{
-				processor.checkEncountered(AVAIL_RENAMES, 0);
-				configuration.setRenamesFilePath(renamesString);
-				return null;
-			}));
-		factory.addOption(new GenericOption<>(
-			AVAIL_ROOTS,
-			singletonList("availRoots"),
-			"The Avail roots, as a semicolon (;) separated list of module root "
-				+ "specifications. Each module root specification comprises a "
-				+ "logical root name, then an equals (=), then a module root "
-				+ "location. A module root location comprises the absolute path to "
-				+ "a binary module repository, then optionally a comma (,) and the "
-				+ "absolute path to a source package. This option overrides " +
-				"environment variables.",
-			(processor, keyword, rootsString) ->
-			{
-				processor.checkEncountered(AVAIL_ROOTS, 0);
-				configuration.setAvailRootsPath(rootsString);
-				return null;
-			}));
-		factory.addOption(new GenericOption<>(
-			SERVER_AUTHORITY,
-			singletonList("serverAuthority"),
-			"The server authority, i.e., the name of the Avail server. If not "
-				+ "specified, then the server authority defaults to \"localhost\".",
-			(processor, keyword, nameString) ->
-			{
-				processor.checkEncountered(SERVER_AUTHORITY, 0);
-				configuration.setServerAuthority(nameString);
-				return null;
-			}));
-		factory.addOption(new GenericOption<>(
-			SERVER_PORT,
-			singletonList("serverPort"),
-			"The server port. If not specified, then the server port defaults "
-				+ "to 40000.",
-			(processor, keyword, portString) ->
-			{
-				processor.checkEncountered(SERVER_PORT, 0);
-				final int port;
-				try
-				{
-					port = Integer.parseInt(portString);
-				}
-				catch (final NumberFormatException e)
-				{
-					throw new OptionProcessingException(
-						"expected an integer \"p\" where 0 ≤ p < 65535",
-						e);
-				}
-				configuration.setServerPort(port);
-				return null;
-			}));
-		factory.addOption(new GenericOption<>(
-			DOCUMENT_ROOT,
-			singletonList("documentRoot"),
-			"The document root, as a path to a directory. The document root "
-				+ "contains static files that should be served by the Avail "
-				+ "server. These files are available through GET requests under "
-				+ "the URI /doc. If not specified, then the Avail server will "
-				+ "reject all such requests.",
-			(processor, keyword, pathString) ->
-			{
-				processor.checkEncountered(DOCUMENT_ROOT, 0);
-				configuration.setDocumentPath(pathString);
-				return null;
-			}));
-		factory.addOption(new GenericHelpOption<>(
-			HELP,
-			"The Avail server understands the following options: ",
-			helpStream));
-		return factory.createOptionProcessor();
+				{ _, renamesString ->
+					checkEncountered(AVAIL_RENAMES, 0)
+					configuration.renamesFilePath = renamesString
+				}))
+			factory.addOption(GenericOption(
+				AVAIL_ROOTS,
+				listOf("availRoots"),
+				"The Avail roots, as a semicolon (;) separated list of module "
+				+ "root specifications. Each module root specification "
+				+ "comprises a  logical root name, then an equals (=), then a "
+				+ "module root location. A module root location comprises the "
+				+ "absolute path to a binary module repository, then "
+				+ "optionally a comma (,) and the  absolute path to a source "
+				+ "package. This option overrides environment variables.",
+				{ _, rootsString ->
+					checkEncountered(AVAIL_ROOTS, 0)
+					configuration.availRootsPath = rootsString!!
+				}))
+			factory.addOption(GenericOption(
+				SERVER_AUTHORITY,
+				listOf("serverAuthority"),
+				"The server authority, i.e., the name of the Avail server. "
+				+ "If not specified, then the server authority defaults to "
+				+ "\"localhost\".",
+				{ _, nameString ->
+					checkEncountered(SERVER_AUTHORITY, 0)
+					configuration.serverAuthority = nameString!!
+				}))
+			factory.addOption(GenericOption(
+				SERVER_PORT,
+				listOf("serverPort"),
+				"The server port. If not specified, then the server port "
+				+ "defaults to 40000.",
+				{ _, portString ->
+					checkEncountered(SERVER_PORT, 0)
+					try
+					{
+						configuration.serverPort = Integer.parseInt(portString)
+					}
+					catch (e: NumberFormatException)
+					{
+						throw OptionProcessingException(
+							"expected an integer \"p\" where 0 ≤ p < 65535",
+							e)
+					}
+				}))
+			factory.addOption(GenericOption(
+				DOCUMENT_ROOT,
+				listOf("documentRoot"),
+				"The document root, as a path to a directory. The document "
+				+ "root contains static files that should be served by the "
+				+ "Avail server. These files are available through GET "
+				+ "requests under the URI /doc. If not specified, then the "
+				+ "Avail server will reject all such requests.",
+				{ _, pathString ->
+					checkEncountered(DOCUMENT_ROOT, 0)
+					configuration.documentPath = pathString
+				}))
+			factory.addOption(GenericHelpOption(
+				HELP,
+				"The Avail server understands the following options: ",
+				helpStream))
+		}
+		return factory.createOptionProcessor()
 	}
 
-	/** The {@linkplain AvailServerConfiguration configuration}. */
-	final AvailServerConfiguration configuration;
-
-	/** The command line arguments. */
-	private final String[] commandLineArguments;
-
-	/**
-	 * The {@linkplain Appendable appendable} to which help text should be
-	 * written.
-	 */
-	private final Appendable helpStream;
-
-	@Override
-	public AvailServerConfiguration getConfiguration()
-	{
-		return configuration;
-	}
-
-	/**
-	 * Has the {@linkplain CommandLineConfigurator configurator} been run yet?
-	 */
-	private boolean isConfigured;
-
-	@Override
-	public synchronized void updateConfiguration ()
-		throws ConfigurationException
+	@Synchronized
+	@Throws(ConfigurationException::class)
+	override fun updateConfiguration()
 	{
 		if (!isConfigured)
 		{
 			try
 			{
-				createOptionProcessor().processOptions(commandLineArguments);
-				isConfigured = true;
+				createOptionProcessor().processOptions(commandLineArguments)
+				isConfigured = true
 			}
-			catch (final Exception e)
+			catch (e: Exception)
 			{
-				throw new ConfigurationException(
-					"unexpected configuration error", e);
+				throw ConfigurationException(
+					"unexpected configuration error", e)
 			}
-		}
-	}
 
-	/**
-	 * Construct a new instance.
-	 *
-	 * @param configuration
-	 *        The base {@linkplain AvailServerConfiguration server
-	 *        configuration}.
-	 * @param commandLineArguments
-	 *        The command-line arguments.
-	 * @param helpStream
-	 *        The {@link Appendable} to which help text should be written.
-	 */
-	public CommandLineConfigurator (
-		final AvailServerConfiguration configuration,
-		final String[] commandLineArguments,
-		final Appendable helpStream)
-	{
-		this.configuration = configuration;
-		this.commandLineArguments = commandLineArguments.clone();
-		this.helpStream = helpStream;
+		}
 	}
 }

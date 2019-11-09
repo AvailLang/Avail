@@ -1,6 +1,6 @@
 /*
- * WebSocketAdapter.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * WebSocketAdapter.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,970 +30,858 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.server.io;
+@file:Suppress("MemberVisibilityCanBePrivate")
 
-import com.avail.io.SimpleCompletionHandler;
-import com.avail.server.AvailServer;
-import com.avail.server.messages.Message;
-import com.avail.utility.IO;
-import com.avail.utility.MutableOrNull;
-import com.avail.utility.evaluation.Continuation0;
-import com.avail.utility.evaluation.Continuation1;
-import com.avail.utility.evaluation.Continuation1NotNull;
-import kotlin.Unit;
+package com.avail.server.io
 
-import javax.annotation.Nullable;
-import javax.xml.bind.DatatypeConverter;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
-import java.nio.channels.AcceptPendingException;
-import java.nio.channels.AsynchronousServerSocketChannel;
-import java.nio.channels.AsynchronousSocketChannel;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Formatter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.regex.Pattern;
-
-import static com.avail.server.AvailServer.logger;
-import static com.avail.utility.Nulls.stripNull;
-import static com.avail.utility.evaluation.Combinator.recurse;
+import com.avail.io.SimpleCompletionHandler
+import com.avail.server.AvailServer
+import com.avail.server.AvailServer.Companion.logger
+import com.avail.server.messages.Message
+import com.avail.utility.IO
+import com.avail.utility.MutableOrNull
+import com.avail.utility.Nulls.stripNull
+import com.avail.utility.evaluation.Combinator.recurse
+import com.avail.utility.evaluation.Continuation1
+import java.io.ByteArrayOutputStream
+import java.io.IOException
+import java.net.InetSocketAddress
+import java.nio.ByteBuffer
+import java.nio.channels.AcceptPendingException
+import java.nio.channels.AsynchronousServerSocketChannel
+import java.nio.channels.AsynchronousSocketChannel
+import java.nio.charset.StandardCharsets
+import java.security.MessageDigest
+import java.security.NoSuchAlgorithmException
+import java.util.*
+import java.util.logging.Level
+import java.util.regex.Pattern
+import javax.xml.bind.DatatypeConverter
+import kotlin.experimental.and
+import kotlin.experimental.xor
 
 /**
- * A {@code WebSocketAdapter} provides a WebSocket interface to an {@linkplain
- * AvailServer Avail server}.
+ * A `WebSocketAdapter` provides a WebSocket interface to an [Avail
+ * server][AvailServer].
  *
+ * @property server
+ *   The [Avail server][AvailServer].
+ * @property adapterAddress
+ *   The [address][InetSocketAddress] of the [server socket
+ *   channel][AsynchronousServerSocketChannel].
+ * @property serverAuthority
+ *   The [server][WebSocketAdapter]'s authority, e.g., the host name of this
+ *   node.
  * @author Todd L Smith &lt;todd@availlang.org&gt;
- * @see <a href="http://tools.ietf.org/html/rfc6455">RFC 6455: The WebSocket Protocol</a>
+ * @see [RFC 6455: The WebSocket Protocol](http://tools.ietf.org/html/rfc6455)
+ *
+ * @constructor
+ *
+ * Construct a new [WebSocketAdapter] for the specified [server][AvailServer]
+ * that listens on the specified [socket address][InetSocketAddress].
+ *
+ * @param server
+ *   An Avail server.
+ * @param adapterAddress
+ *   The socket address of the listener.
+ * @param serverAuthority
+ *   The server's authority, e.g., the host name of this node.
+ * @throws IOException
+ *   If the [server socket][AsynchronousServerSocketChannel] could not be
+ *   opened.
  */
-@SuppressWarnings("UnnecessaryJavaDocLink")
-public final class WebSocketAdapter
-implements TransportAdapter<AsynchronousSocketChannel>
+class WebSocketAdapter @Throws(IOException::class) constructor(
+	override val server: AvailServer,
+	internal val adapterAddress: InetSocketAddress,
+	internal val serverAuthority: String)
+	: TransportAdapter<AsynchronousSocketChannel>
 {
-	/** The {@linkplain AvailServer Avail server}. */
-	final AvailServer server;
+	/** The [server socket channel][AsynchronousServerSocketChannel]. */
+	internal val serverChannel = server.runtime.ioSystem().openServerSocket()
 
-	@Override
-	public AvailServer server ()
+	init
 	{
-		return server;
+		this.serverChannel.bind(adapterAddress)
+		acceptConnections()
 	}
 
 	/**
-	 * The {@linkplain InetSocketAddress address} of the {@linkplain
-	 * AsynchronousServerSocketChannel server socket channel}.
-	 */
-	final InetSocketAddress adapterAddress;
-
-	/**
-	 * The {@linkplain WebSocketAdapter server}'s authority, e.g., the host name
-	 * of this node.
-	 */
-	final String serverAuthority;
-
-	/**
-	 * The {@linkplain AsynchronousServerSocketChannel server socket channel}.
-	 */
-	final AsynchronousServerSocketChannel serverChannel;
-
-	/**
-	 * Construct a new {@link WebSocketAdapter} for the specified {@linkplain
-	 * AvailServer server} that listens on the specified {@linkplain
-	 * InetSocketAddress socket address}.
+	 * A `HttpHeaderState` represents a state of the [client
+	 * handshake][ClientHandshake]
+	 * [recognizer][ClientHandshake.readClientHandshake].
 	 *
-	 * @param server
-	 *        An Avail server.
-	 * @param adapterAddress
-	 *        The socket address of the listener.
-	 * @param serverAuthority
-	 *        The server's authority, e.g., the host name of this node.
-	 * @throws IOException
-	 *         If the {@linkplain AsynchronousServerSocketChannel server socket
-	 *         channel} could not be opened.
+	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
-	public WebSocketAdapter (
-			final AvailServer server,
-			final InetSocketAddress adapterAddress,
-			final String serverAuthority)
-		throws IOException
+	private enum class HttpHeaderState
 	{
-		this.server = server;
-		this.adapterAddress = adapterAddress;
-		this.serverAuthority = serverAuthority;
-		this.serverChannel = server.runtime().ioSystem().openServerSocket();
-		this.serverChannel.bind(adapterAddress);
-		acceptConnections();
-	}
-
-	/**
-	 * A {@code HttpHeaderState} represents a state of the {@linkplain
-	 * ClientHandshake client handshake} {@linkplain
-	 * ClientHandshake#receiveThen(WebSocketChannel, WebSocketAdapter,
-	 * Continuation1) recognizer}.
-	 */
-	private enum HttpHeaderState
-	{
-		/** Beginning to read, or previously read an "ordinary" character. */
+		/** Beginning to read, or previously read an "ordinary" character.  */
 		START
 		{
-			@Override
-			public HttpHeaderState nextState (final int c)
-			{
-				return c == '\r' ? FIRST_CARRIAGE_RETURN : START;
-			}
+			override fun nextState(c: Int) =
+				if (c == '\r'.toInt()) FIRST_CARRIAGE_RETURN else START
 		},
 
-		/** Just read the first carriage return. */
+		/** Just read the first carriage return.  */
 		FIRST_CARRIAGE_RETURN
 		{
-			@Override
-			public HttpHeaderState nextState (final int c)
-			{
-				return c == '\n' ? FIRST_LINE_FEED : START;
-			}
+			override fun nextState(c: Int) =
+				if (c == '\n'.toInt()) FIRST_LINE_FEED else START
 		},
 
-		/** Just read the first carriage return + line feed. */
+		/** Just read the first carriage return + line feed.  */
 		FIRST_LINE_FEED
 		{
-			@Override
-			public HttpHeaderState nextState (final int c)
-			{
-				return c == '\r' ? SECOND_CARRIAGE_RETURN : START;
-			}
+			override fun nextState(c: Int) =
+				if (c == '\r'.toInt()) SECOND_CARRIAGE_RETURN else START
 		},
 
-		/** Just read the second carriage return. */
+		/** Just read the second carriage return.  */
 		SECOND_CARRIAGE_RETURN
 		{
-			@Override
-			public HttpHeaderState nextState (final int c)
-			{
-				return c == '\n' ? SECOND_LINE_FEED : START;
-			}
+			override fun nextState(c: Int) =
+				if (c == '\n'.toInt()) SECOND_LINE_FEED else START
 		},
 
 		/** Just read the second carriage return + line feed. */
 		SECOND_LINE_FEED
 		{
-			@Override
-			public HttpHeaderState nextState (final int c)
-			{
-				throw new RuntimeException("no states after final state");
-			}
+			override val isAcceptState get() = true
 
-			@Override
-			public boolean isAcceptState ()
+			override fun nextState(c: Int): HttpHeaderState
 			{
-				return true;
+				throw RuntimeException("no states after final state")
 			}
 		};
 
 		/**
-		 * Answer the next {@linkplain HttpHeaderState state} given a
-		 * transition on the specified character.
+		 * Is this an accept [state][HttpHeaderState]?
 		 *
-		 * @param c
-		 *        A character.
-		 * @return The next state.
+		 * @return
+		 *   `true` if this is an accept state, `false` otherwise.
 		 */
-		public abstract HttpHeaderState nextState (final int c);
+		open val isAcceptState: Boolean get() = false
 
 		/**
-		 * Is this an accept {@linkplain HttpHeaderState state}?
+		 * Answer the next [state][HttpHeaderState] given a transition on the
+		 * specified character.
 		 *
-		 * @return {@code true} if this is an accept state, {@code false}
-		 *         otherwise.
+		 * @param c
+		 *   A character.
+		 * @return
+		 *   The next state.
 		 */
-		@SuppressWarnings("BooleanMethodIsAlwaysInverted")
-		public boolean isAcceptState ()
-		{
-			return false;
-		}
+		abstract fun nextState(c: Int): HttpHeaderState
 	}
 
 	/**
-	 * An {@code HttpRequestMethod} represents one of the accepted HTTP request
+	 * An `HttpRequestMethod` represents one of the accepted HTTP request
 	 * methods.
 	 *
-	 * @see <a href="https://tools.ietf.org/html/rfc7231#section-4.3">
-	 *      Method Definitions</a>
+	 * @author Todd L Smith &lt;todd@availlang.org&gt;
+	 * @see [Method Definitions](https://tools.ietf.org/html/rfc7231.section-4.3)
 	 */
-	private enum HttpRequestMethod
+	private enum class HttpRequestMethod
 	{
 		/**
 		 * Request the metadata and content of a particular resource. Must be
 		 * free of side effects.
 		 */
-		GET,
+		GET;
 
-		/**
-		 * Request the metadata of a particular resource. Must be free of side
-		 * effects.
-		 */
-		HEAD;
-
-		/**
-		 * A {@linkplain Map map} from HTTP request method names to {@linkplain
-		 * HttpRequestMethod HTTP request methods}.
-		 */
-		private static final Map<String, HttpRequestMethod> methodsByName =
-			new HashMap<>();
-
-		static
+		companion object
 		{
-			for (final HttpRequestMethod method : values())
+			/**
+			 * A [map][Map] from HTTP request method names to [HTTP request
+			 * methods][HttpRequestMethod].
+			 */
+			private val methodsByName = HashMap<String, HttpRequestMethod>()
+
+			init
 			{
-				methodsByName.put(method.name().toLowerCase(), method);
+				for (method in values())
+				{
+					methodsByName[method.name.toLowerCase()] = method
+				}
 			}
-		}
 
-		/**
-		 * Answer the {@linkplain HttpRequestMethod request method} with the
-		 * specified name.
-		 *
-		 * @param name
-		 *        The request method name.
-		 * @return The named request method, or {@code null} if no such request
-		 *         method exists.
-		 */
-		static @Nullable HttpRequestMethod named (final String name)
-		{
-			return methodsByName.get(name.toLowerCase());
+			/**
+			 * Answer the [request method][HttpRequestMethod] with the specified
+			 * name.
+			 *
+			 * @param name
+			 *   The request method name.
+			 * @return
+			 *   The named request method, or `null` if no such request method
+			 *   exists.
+			 */
+			internal fun named(name: String): HttpRequestMethod? =
+				methodsByName[name.toLowerCase()]
 		}
 	}
 
 	/**
-	 * {@code HttpStatusCode} represents various HTTP status codes. The
-	 * enumeration comprises only those status codes used by the WebSocket
-	 * implementation; it is not intended to be comprehensive.
+	 * `HttpStatusCode` represents various HTTP status codes. The enumeration
+	 * comprises only those status codes used by the WebSocket implementation;
+	 * it is not intended to be comprehensive.
+	 *
+	 * @property statusCode
+	 *   The HTTP status code.
+	 * @author Todd L Smith &lt;todd@availlang.org&gt;
+	 *
+	 * @constructor
+	 *
+	 * Construct a new [HttpStatusCode].
+	 *
+	 * @param statusCode
+	 *   The status code.
 	 */
-	private enum HttpStatusCode
+	private enum class HttpStatusCode constructor(val statusCode: Int)
 	{
-		/** Switching protocols. */
-		SWITCHING_PROTOCOLS (101),
+		/** Switching protocols.  */
+		SWITCHING_PROTOCOLS(101),
 
-		/** Bad request. */
-		BAD_REQUEST (400),
+		/** Bad request.  */
+		BAD_REQUEST(400),
 
-		/** Not found. */
-		NOT_FOUND (404),
+		/** Not found.  */
+		NOT_FOUND(404),
 
-		/** Method not allowed. */
-		METHOD_NOT_ALLOWED (405);
-
-		/** The HTTP status code. */
-		private final int statusCode;
-
-		/**
-		 * Answer the numeric status code.
-		 *
-		 * @return The numeric status code.
-		 */
-		public int statusCode ()
-		{
-			return statusCode;
-		}
-
-		/**
-		 * Construct a new {@link HttpStatusCode}.
-		 *
-		 * @param statusCode
-		 *        The status code.
-		 */
-		HttpStatusCode (final int statusCode)
-		{
-			this.statusCode = statusCode;
-		}
+		/** Method not allowed.  */
+		METHOD_NOT_ALLOWED(405)
 	}
 
 	/**
-	 * A {@code ClientRequest} represents an arbitrary client handshake.
+	 * A `ClientRequest` represents an arbitrary client handshake.
+	 *
+	 * @property method
+	 *   The [request method][HttpRequestMethod].
+	 * @property uri
+	 *   The request URI.
+	 * @author Todd L Smith &lt;todd@availlang.org&gt;
+	 *
+	 * @constructor
+	 *
+	 * Construct a new [ClientRequest].
+	 *
+	 * @param method
+	 *   The [request method][HttpRequestMethod].
+	 * @param uri
+	 *   The request URI.
+	 * @param headers
+	 *   The parsed headers.
 	 */
-	private static class ClientRequest
+	private open class ClientRequest internal constructor(
+		internal val method: HttpRequestMethod,
+		internal val uri: String,
+		headers: Map<String, String>)
 	{
-		/** A {@link Pattern} for splitting HTTP headers. */
-		private static final Pattern splitHeaders =
-			Pattern.compile("(?:\r\n)+");
+		/** The HTTP headers.  */
+		internal val headers = Collections.unmodifiableMap(headers)
 
-		/** A {@link Pattern} for identifying one or more spaces. */
-		private static final Pattern manySpaces = Pattern.compile(" +");
-
-		/** The {@linkplain HttpRequestMethod request method}. */
-		final HttpRequestMethod method;
-
-		/** The request URI. */
-		final String uri;
-
-		/** The HTTP headers. */
-		final Map<String, String> headers;
-
-		/**
-		 * Construct a new {@link ClientRequest}.
-		 *
-		 * @param method
-		 *        The {@linkplain HttpRequestMethod request method}.
-		 * @param uri
-		 *        The request URI.
-		 * @param headers
-		 *        The parsed headers.
-		 */
-		ClientRequest (
-			final HttpRequestMethod method,
-			final String uri,
-			final Map<String, String> headers)
+		companion object
 		{
-			this.method = method;
-			this.uri = uri;
-			this.headers = Collections.unmodifiableMap(headers);
-		}
+			/** A [Pattern] for splitting HTTP headers.  */
+			private val splitHeaders = Pattern.compile("(?:\r\n)+")
 
-		/**
-		 * Write an appropriate HTTP error response to the specified {@linkplain
-		 * WebSocketChannel channel}.
-		 *
-		 * @param channel
-		 *        A channel.
-		 * @param statusCode
-		 *        The HTTP status code.
-		 * @param reason
-		 *        The reason message.
-		 * @see <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html">
-		 *      Status Code Definitions</a>
-		 */
-		static void badRequest (
-			final WebSocketChannel channel,
-			final HttpStatusCode statusCode,
-			final String reason)
-		{
-			@SuppressWarnings({
-				"resource",
-				"IOResourceOpenedButNotSafelyClosed"
-			})
-			final Formatter formatter = new Formatter();
-			formatter.format(
-				"HTTP/1.1 %03d %s\r\n\r\n"
-				+ "<html><head><title>Bad Request</title></head>"
-				+ "<body><strong>%2$s</strong></body></html>",
-				statusCode.statusCode(),
-				reason);
-			final ByteBuffer bytes = StandardCharsets.US_ASCII.encode(
-				formatter.toString());
-			final AsynchronousSocketChannel transport = channel.transport();
-			transport.write(
-				bytes,
-				null,
-				new SimpleCompletionHandler<>(
-					(result, unused, handler) ->
-					{
-						if (bytes.hasRemaining())
-						{
-							transport.write(bytes, null, handler);
-						}
-						else
-						{
-							IO.close(channel);
-						}
-						return Unit.INSTANCE;
-					},
-					(e, unused, handler) ->
-					{
-						//noinspection ObjectToString
-						logger.log(
-							Level.WARNING,
-							"unable to write HTTP response to " + channel,
-							e);
-						IO.close(channel);
-						return Unit.INSTANCE;
-					}));
-		}
+			/** A [Pattern] for identifying one or more spaces.  */
+			private val manySpaces = Pattern.compile(" +")
 
-		/**
-		 * Answer the parsed {@linkplain ClientRequest request}. If the headers
-		 * do not describe a valid request, then {@linkplain
-		 * #badRequest(WebSocketChannel, HttpStatusCode, String) fail the
-		 * connection} and answer {@code null}.
-		 *
-		 * @param channel
-		 *        A {@linkplain WebSocketChannel channel}.
-		 * @param adapter
-		 *        A {@linkplain WebSocketAdapter adapter}.
-		 * @param headersText
-		 *        The HTTP headers, as a single string. The individual headers
-		 *        are separated by carriage return + line feed.
-		 * @return The parsed headers, or {@code null} if the specified headers
-		 *         do not constitute a valid request.
-		 */
-		static @Nullable ClientRequest readRequest (
-			final WebSocketChannel channel,
-			final WebSocketAdapter adapter,
-			final String headersText)
-		{
-			final String[] headers = splitHeaders.split(headersText);
-			// Deal with the Request-Line specially.
-			final String requestLine = headers[0];
-			final String[] requestParts = manySpaces.split(requestLine);
-			if (requestParts.length != 3)
+			/**
+			 * Write an appropriate HTTP error response to the specified
+			 * [channel][WebSocketChannel].
+			 *
+			 * @param channel
+			 *   A channel.
+			 * @param statusCode
+			 *   The HTTP status code.
+			 * @param reason
+			 *   The reason message.
+			 * @see [Status Code Definitions](http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html)
+			 */
+			internal fun badRequest(
+				channel: WebSocketChannel,
+				statusCode: HttpStatusCode,
+				reason: String)
 			{
-				badRequest(
-					channel,
-					HttpStatusCode.BAD_REQUEST,
-					"Invalid Request-Line");
-				return null;
-			}
-			final @Nullable HttpRequestMethod method =
-				HttpRequestMethod.named(requestParts[0]);
-			if (method == null)
-			{
-				badRequest(
-					channel,
-					HttpStatusCode.METHOD_NOT_ALLOWED,
-					"Method Not Allowed");
-				return null;
-			}
-			if (!requestParts[2].equalsIgnoreCase("HTTP/1.1"))
-			{
-				badRequest(
-					channel,
-					HttpStatusCode.BAD_REQUEST,
-					"Invalid HTTP Version");
-				return null;
-			}
-			// Parse the remaining lines into a map.
-			final Map<String, String> map = new HashMap<>();
-			for (int i = 1; i < headers.length - 1; i++)
-			{
-				final String[] pair = headers[i].split(":", 2);
-				map.put(pair[0].trim().toLowerCase(), pair[1].trim());
-			}
-			// Validate the request.
-			final String host = map.get("host");
-			if (host != null)
-			{
-				final String[] hostParts = host.split(":", 2);
-				if (!adapter.serverAuthority.equalsIgnoreCase(hostParts[0]))
-				{
-					badRequest(
-						channel,
-						HttpStatusCode.BAD_REQUEST,
-						String.format(
-							"Invalid Server Authority (%s != %s)",
-							adapter.serverAuthority,
-							hostParts[0]));
-					return null;
-				}
-				if (hostParts.length == 2
-					&& adapter.adapterAddress.getPort()
-						!= Integer.parseInt(hostParts[1]))
-				{
-					badRequest(
-						channel,
-						HttpStatusCode.BAD_REQUEST,
-						"Invalid Port Number");
-					return null;
-				}
-			}
-			else
-			{
-				badRequest(
-					channel,
-					HttpStatusCode.BAD_REQUEST,
-					"Host Not Specified");
-				return null;
-			}
-			return new ClientRequest(method, requestParts[1], map);
-		}
-
-		/**
-		 * Read a {@linkplain ClientRequest client request} from the specified
-		 * {@linkplain WebSocketChannel channel}.
-		 *
-		 * @param channel
-		 *        A channel.
-		 * @param adapter
-		 *        A {@linkplain WebSocketAdapter adapter}.
-		 * @param continuation
-		 *        A {@linkplain Continuation1 continuation} that processes a
-		 *        valid request.
-		 */
-		static void receiveThen (
-			final WebSocketChannel channel,
-			final WebSocketAdapter adapter,
-			final Continuation1<ClientRequest> continuation)
-		{
-			final ByteArrayOutputStream bytes = new ByteArrayOutputStream(1024);
-			final ByteBuffer buffer = ByteBuffer.allocate(1024);
-			final MutableOrNull<HttpHeaderState> state =
-				new MutableOrNull<>(HttpHeaderState.START);
-			final AsynchronousSocketChannel transport = channel.transport();
-			transport.read(
-				buffer,
-				null,
-				new SimpleCompletionHandler<>(
-					(bytesRead, unused, handler) ->
-					{
-						if (remoteEndClosed(transport, bytesRead))
-						{
-							return Unit.INSTANCE;
-						}
-						buffer.flip();
-						while (
-							buffer.hasRemaining()
-							&& !state.value().isAcceptState())
-						{
-							state.value = state.value().nextState(buffer.get());
-						}
-						if (buffer.hasRemaining())
-						{
-							badRequest(
-								channel,
-								HttpStatusCode.BAD_REQUEST,
-								"Data Following Headers");
-						}
-						else
-						{
-							buffer.rewind();
-							bytes.write(
-								buffer.array(),
-								buffer.position(),
-								buffer.remaining());
-							if (!state.value().isAcceptState())
+				val formatter = Formatter()
+				formatter.format(
+					"HTTP/1.1 %03d %s\r\n\r\n"
+						+ "<html><head><title>Bad Request</title></head>"
+						+ "<body><strong>%2\$s</strong></body></html>",
+					statusCode.statusCode,
+					reason)
+				val bytes = StandardCharsets.US_ASCII.encode(
+					formatter.toString())
+				val transport = channel.transport
+				transport.write<Any>(
+					bytes,
+					null,
+					SimpleCompletionHandler(
+						{ _, _, handler ->
+							if (bytes.hasRemaining())
 							{
-								buffer.clear();
-								transport.read(buffer, null, handler);
+								transport.write<Any>(bytes, null, handler)
 							}
 							else
 							{
-								final @Nullable ClientRequest request =
-									readRequest(
-										channel,
-										adapter,
-										new String(
-											bytes.toByteArray(),
-											StandardCharsets.US_ASCII));
-								if (request != null)
-								{
-									continuation.value(request);
-								}
+								IO.close(channel)
 							}
-						}
-						return Unit.INSTANCE;
-					},
-					(e, unused, handler) ->
-					{
-						logger.log(
-							Level.WARNING,
-							"failed while attempting to read client handshake",
-							e);
-						IO.close(channel);
-						return Unit.INSTANCE;
-					}));
-		}
-	}
+						},
+						{ e, _, _ ->
 
-	/**
-	 * A {@code ClientHandshake} represents a WebSocket client handshake.
-	 */
-	private static final class ClientHandshake
-	extends ClientRequest
-	{
-		/** A {@link Pattern} to recognize space padded commas. */
-		private static final Pattern paddedComma = Pattern.compile(" *, *");
-
-		/** The WebSocket key. */
-		final byte[] key;
-
-		/** The requested protocols. */
-		@SuppressWarnings("unused")
-		final List<String> protocols;
-
-		/** The requested extensions. */
-		@SuppressWarnings("unused")
-		final List<String> extensions;
-
-		/**
-		 * Construct a new {@link ClientHandshake}.
-		 *
-		 * @param request
-		 *        The {@linkplain ClientRequest request}.
-		 * @param key
-		 *        The WebSocket key.
-		 * @param protocols
-		 *        The requested protocols.
-		 * @param extensions
-		 *        The requested extensions.
-		 */
-		private ClientHandshake (
-			final ClientRequest request,
-			final byte[] key,
-			final List<String> protocols,
-			final List<String> extensions)
-		{
-			super(request.method, request.uri, request.headers);
-			this.key = key;
-			this.protocols = protocols;
-			this.extensions = extensions;
-		}
-
-		/**
-		 * Answer a {@linkplain ClientHandshake client handshake} based on the
-		 * specified {@linkplain ClientRequest request}. If the headers do not
-		 * describe a valid  WebSocket client handshake, then {@linkplain
-		 * #badRequest(WebSocketChannel, HttpStatusCode, String) fail the
-		 * connection} and answer {@code null}.
-		 *
-		 * @param channel
-		 *        A {@linkplain WebSocketChannel channel}.
-		 * @param request
-		 *        The request.
-		 * @return A client handshake, or {@code null} if the specified headers
-		 *         do not constitute a valid WebSocket client handshake.
-		 */
-		static @Nullable ClientHandshake readClientHandshake (
-			final WebSocketChannel channel,
-			final ClientRequest request)
-		{
-			final Map<String, String> map = request.headers;
-			if (!"websocket".equalsIgnoreCase(map.get("upgrade")))
-			{
-				badRequest(
-					channel,
-					HttpStatusCode.BAD_REQUEST,
-					"Invalid Upgrade Header");
-				return null;
+							logger.log(
+								Level.WARNING,
+								"unable to write HTTP response to $channel",
+								e)
+							IO.close(channel)
+						}))
 			}
-			final String connection = map.get("connection");
-			if (connection != null)
+
+			/**
+			 * Answer the parsed [request][ClientRequest]. If the headers do not
+			 * describe a valid request, then [fail the connection][badRequest]
+			 * and answer `null`.
+			 *
+			 * @param channel
+			 *   A [channel][WebSocketChannel].
+			 * @param adapter
+			 *   A [adapter][WebSocketAdapter].
+			 * @param headersText
+			 *   The HTTP headers, as a single string. The individual headers
+			 *   are separated by carriage return + line feed.
+			 * @return
+			 *   The parsed headers, or `null` if the specified headers do not
+			 *   constitute a valid request.
+			 */
+			internal fun readRequest(
+				channel: WebSocketChannel,
+				adapter: WebSocketAdapter,
+				headersText: String): ClientRequest?
 			{
-				final String[] tokens = paddedComma.split(connection);
-				boolean includesUpgrade = false;
-				for (final String token : tokens)
-				{
-					if ("upgrade".equalsIgnoreCase(token))
-					{
-						includesUpgrade = true;
-						break;
-					}
-				}
-				if (!includesUpgrade)
+				val headers = splitHeaders.split(headersText)
+				// Deal with the Request-Line specially.
+				val requestLine = headers[0]
+				val requestParts = manySpaces.split(requestLine)
+				if (requestParts.size != 3)
 				{
 					badRequest(
 						channel,
 						HttpStatusCode.BAD_REQUEST,
-						"Invalid Connection Header");
-					return null;
+						"Invalid Request-Line")
+					return null
 				}
+				val method = HttpRequestMethod.named(requestParts[0])
+				if (method == null)
+				{
+					badRequest(
+						channel,
+						HttpStatusCode.METHOD_NOT_ALLOWED,
+						"Method Not Allowed")
+					return null
+				}
+				if (!requestParts[2].equals(
+						"HTTP/1.1",
+						ignoreCase = true))
+				{
+					badRequest(
+						channel,
+						HttpStatusCode.BAD_REQUEST,
+						"Invalid HTTP Version")
+					return null
+				}
+				// Parse the remaining lines into a map.
+				val map = HashMap<String, String>()
+				for (i in 1 until headers.size - 1)
+				{
+					val pair = headers[i].split(":".toRegex(), 2)
+					map[pair[0].trim { it <= ' ' }.toLowerCase()] =
+						pair[1].trim { it <= ' ' }
+				}
+				// Validate the request.
+				val host = map["host"]
+				if (host != null)
+				{
+					val hostParts = host.split(":".toRegex(), 2)
+					if (!adapter.serverAuthority.equals(
+							hostParts[0],
+							ignoreCase = true))
+					{
+						badRequest(
+							channel,
+							HttpStatusCode.BAD_REQUEST,
+							String.format(
+								"Invalid Server Authority (%s != %s)",
+								adapter.serverAuthority,
+								hostParts[0]))
+						return null
+					}
+					if (hostParts.size == 2
+						&& adapter.adapterAddress.port
+						!= Integer.parseInt(hostParts[1]))
+					{
+						badRequest(
+							channel,
+							HttpStatusCode.BAD_REQUEST,
+							"Invalid Port Number")
+						return null
+					}
+				}
+				else
+				{
+					badRequest(
+						channel,
+						HttpStatusCode.BAD_REQUEST,
+						"Host Not Specified")
+					return null
+				}
+				return ClientRequest(method, requestParts[1], map)
 			}
-			else
-			{
-				badRequest(
-					channel,
-					HttpStatusCode.BAD_REQUEST,
-					"Missing Connection Header");
-				return null;
-			}
-			if (!"13".equals(map.get("sec-websocket-version")))
-			{
-				badVersion(
-					channel,
-					Integer.parseInt(map.get("sec-websocket-version")));
-				return null;
-			}
-			if (!map.containsKey("sec-websocket-key"))
-			{
-				badRequest(
-					channel,
-					HttpStatusCode.BAD_REQUEST,
-					"Missing WebSocket Key");
-				return null;
-			}
-			final byte[] key = DatatypeConverter.parseBase64Binary(
-				map.get("sec-websocket-key"));
-			if (key.length != 16)
-			{
-				badRequest(
-					channel,
-					HttpStatusCode.BAD_REQUEST,
-					"Invalid WebSocket Key");
-				return null;
-			}
-			final List<String> protocols = Arrays.asList(
-				map.containsKey("sec-websocket-protocol")
-				? paddedComma.split(map.get("sec-websocket-protocol"))
-				: new String[0]);
-			final List<String> extensions = Arrays.asList(
-				map.containsKey("sec-websocket-extensions")
-				? paddedComma.split(map.get("sec-websocket-extensions"))
-				: new String[0]);
-			return new ClientHandshake(request, key, protocols, extensions);
-		}
 
-		/**
-		 * Write an HTTP error response to the specified {@linkplain
-		 * WebSocketChannel channel} that tells the client which
-		 * WebSocket versions the {@linkplain WebSocketAdapter adapter}
-		 * supports.
-		 *
-		 * @param channel
-		 *        A channel.
-		 * @param badVersion
-		 *        The (unsupported) WebSocket version requested by the client.
-		 */
-		static void badVersion (
-			final WebSocketChannel channel,
-			final int badVersion)
-		{
-			@SuppressWarnings({
-				"resource",
-				"IOResourceOpenedButNotSafelyClosed"
-			})
-			final Formatter formatter = new Formatter();
-			formatter.format(
-				"HTTP/1.1 %03d Bad Request\r\n"
-				+ "Sec-WebSocket-Version: 13\r\n"
-				+ "<html><head><title>Bad Handshake</title></head>"
-				+ "<body>"
-				+ "<strong>WebSocket Version %d Is Not Supported</strong>"
-				+ "</body></html>",
-				HttpStatusCode.BAD_REQUEST.statusCode(),
-				badVersion);
-			final ByteBuffer bytes = StandardCharsets.US_ASCII.encode(
-				formatter.toString());
-			final AsynchronousSocketChannel transport = channel.transport();
-			transport.write(
-				bytes,
-				null,
-				new SimpleCompletionHandler<>(
-					(result, unused, handler) ->
-					{
-						if (bytes.hasRemaining())
-						{
-							transport.write(bytes, null, handler);
-						}
-						else
-						{
-							IO.close(channel);
-						}
-						return Unit.INSTANCE;
-					},
-					(e, unused, handler) ->
-					{
-						//noinspection ObjectToString
-						logger.log(
-							Level.WARNING,
-							"unable to write HTTP response to " + channel,
-							e);
-						IO.close(channel);
-						return Unit.INSTANCE;
-					}));
+			/**
+			 * Read a [client request][ClientRequest] from the specified
+			 * [channel][WebSocketChannel].
+			 *
+			 * @param channel
+			 *   A channel.
+			 * @param adapter
+			 *   A [adapter][WebSocketAdapter].
+			 * @param continuation
+			 *   A [continuation][Continuation1] that processes a valid request.
+			 */
+			internal fun receiveThen(
+				channel: WebSocketChannel,
+				adapter: WebSocketAdapter,
+				continuation: (ClientRequest)->Unit)
+			{
+				val bytes = ByteArrayOutputStream(1024)
+				val buffer = ByteBuffer.allocate(1024)
+				val state = MutableOrNull(HttpHeaderState.START)
+				val transport = channel.transport
+				transport.read<Any>(
+					buffer,
+					null,
+					SimpleCompletionHandler(
+						{ bytesRead, _, handler ->
+							if (remoteEndClosed(transport, bytesRead))
+							{
+								return@SimpleCompletionHandler
+							}
+							buffer.flip()
+							while (buffer.hasRemaining()
+								&& !state.value().isAcceptState)
+							{
+								state.value = state.value().nextState(
+									buffer.get().toInt())
+							}
+							if (buffer.hasRemaining())
+							{
+								badRequest(
+									channel,
+									HttpStatusCode.BAD_REQUEST,
+									"Data Following Headers")
+							}
+							else
+							{
+								buffer.rewind()
+								bytes.write(
+									buffer.array(),
+									buffer.position(),
+									buffer.remaining())
+								if (!state.value().isAcceptState)
+								{
+									buffer.clear()
+									transport.read<Any>(buffer, null, handler)
+								}
+								else
+								{
+									val request = readRequest(
+										channel,
+										adapter,
+										String(
+											bytes.toByteArray(),
+											StandardCharsets.US_ASCII))
+									if (request != null)
+									{
+										continuation(request)
+									}
+								}
+							}
+						},
+						{ e, _, _ ->
+							logger.log(
+								Level.WARNING,
+								"failed while attempting to read client handshake",
+								e)
+							IO.close(channel)
+						}))
+			}
 		}
 	}
 
 	/**
-	 * A {@code ServerHandshake} represents a WebSocket server handshake.
+	 * A `ClientHandshake` represents a WebSocket client handshake.
+	 *
+	 * @property key
+	 *   The WebSocket key.
+	 * @property protocols
+	 *   The requested protocols.
+	 * @property extensions
+	 *   The requested extensions.
+	 * @author Todd L Smith &lt;todd@availlang.org&gt;
+	 *
+	 * @constructor
+	 *
+	 * Construct a new [ClientHandshake].
+	 *
+	 * @param request
+	 *   The [request][ClientRequest].
+	 * @param key
+	 *   The WebSocket key.
+	 * @param protocols
+	 *   The requested protocols.
+	 * @param extensions
+	 *   The requested extensions.
 	 */
-	private static final class ServerHandshake
+	private class ClientHandshake private constructor(
+		request: ClientRequest,
+		internal val key: ByteArray,
+		internal val protocols: List<String>,
+		internal val extensions: List<String>)
+		: ClientRequest(request.method, request.uri, request.headers)
+	{
+		companion object
+		{
+			/** A [Pattern] to recognize space padded commas.  */
+			private val paddedComma = Pattern.compile(" *, *")
+
+			/**
+			 * Answer a [client handshake][ClientHandshake] based on the
+			 * specified [request][ClientRequest]. If the headers do not
+			 * describe a valid  WebSocket client handshake, then [fail the
+			 * connection][ClientRequest.badRequest] and answer `null`.
+			 *
+			 * @param channel
+			 *   A [channel][WebSocketChannel].
+			 * @param request
+			 *   The request.
+			 * @return
+			 *   A client handshake, or `null` if the specified headers do not
+			 *   constitute a valid WebSocket client handshake.
+			 */
+			internal fun readClientHandshake(
+				channel: WebSocketChannel,
+				request: ClientRequest): ClientHandshake?
+			{
+				val map = request.headers
+				if (!"websocket".equals(map["upgrade"], ignoreCase = true))
+				{
+					badRequest(
+						channel,
+						HttpStatusCode.BAD_REQUEST,
+						"Invalid Upgrade Header")
+					return null
+				}
+				val connection = map["connection"]
+				if (connection != null)
+				{
+					val tokens = paddedComma.split(connection)
+					var includesUpgrade = false
+					for (token in tokens)
+					{
+						if ("upgrade".equals(token, ignoreCase = true))
+						{
+							includesUpgrade = true
+							break
+						}
+					}
+					if (!includesUpgrade)
+					{
+						badRequest(
+							channel,
+							HttpStatusCode.BAD_REQUEST,
+							"Invalid Connection Header")
+						return null
+					}
+				}
+				else
+				{
+					badRequest(
+						channel,
+						HttpStatusCode.BAD_REQUEST,
+						"Missing Connection Header")
+					return null
+				}
+				if ("13" != map["sec-websocket-version"])
+				{
+					badVersion(
+						channel,
+						Integer.parseInt(map["sec-websocket-version"]))
+					return null
+				}
+				if (!map.containsKey("sec-websocket-key"))
+				{
+					badRequest(
+						channel,
+						HttpStatusCode.BAD_REQUEST,
+						"Missing WebSocket Key")
+					return null
+				}
+				val key = DatatypeConverter.parseBase64Binary(
+					map["sec-websocket-key"])
+				if (key.size != 16)
+				{
+					badRequest(
+						channel,
+						HttpStatusCode.BAD_REQUEST,
+						"Invalid WebSocket Key")
+					return null
+				}
+				val protocols = listOf(
+					*if (map.containsKey("sec-websocket-protocol"))
+						paddedComma.split(map["sec-websocket-protocol"])
+					else
+						arrayOfNulls<String>(0))
+				val extensions = listOf(
+					*if (map.containsKey("sec-websocket-extensions"))
+						paddedComma.split(map["sec-websocket-extensions"])
+					else
+						arrayOfNulls<String>(0))
+				return ClientHandshake(request, key, protocols, extensions)
+			}
+
+			/**
+			 * Write an HTTP error response to the specified
+			 * [channel][WebSocketChannel] that tells the client which WebSocket
+			 * versions the [adapter][WebSocketAdapter] supports.
+			 *
+			 * @param channel
+			 *   A channel.
+			 * @param badVersion
+			 *   The (unsupported) WebSocket version requested by the client.
+			 */
+			internal fun badVersion(channel: WebSocketChannel, badVersion: Int)
+			{
+				val formatter = Formatter()
+				formatter.format(
+					"HTTP/1.1 %03d Bad Request\r\n"
+						+ "Sec-WebSocket-Version: 13\r\n"
+						+ "<html><head><title>Bad Handshake</title></head>"
+						+ "<body>"
+						+ "<strong>WebSocket Version %d Is Not Supported</strong>"
+						+ "</body></html>",
+					HttpStatusCode.BAD_REQUEST.statusCode,
+					badVersion)
+				val bytes = StandardCharsets.US_ASCII.encode(
+					formatter.toString())
+				val transport = channel.transport
+				transport.write<Any>(
+					bytes,
+					null,
+					SimpleCompletionHandler(
+						{ _, _, handler ->
+							if (bytes.hasRemaining())
+							{
+								transport.write<Any>(bytes, null, handler)
+							}
+							else
+							{
+								IO.close(channel)
+							}
+						},
+						{ e, _, _ ->
+
+							logger.log(
+								Level.WARNING,
+								"unable to write HTTP response to $channel",
+								e)
+							IO.close(channel)
+						}))
+			}
+		}
+	}
+
+	/**
+	 * A `ServerHandshake` represents a WebSocket server handshake.
+	 *
+	 * @property protocols
+	 *   The selected protocols.
+	 * @property extensions
+	 *   The selected extensions.
+	 * @author Todd L Smith &lt;todd@availlang.org&gt;
+	 *
+	 * @constructor
+	 *
+	 * Construct a new [ServerHandshake].
+	 *
+	 * @param key
+	 *   The client-supplied WebSocket key.
+	 * @param protocols
+	 *   The selected protocols.
+	 * @param extensions
+	 *   The selected extensions.
+	 */
+	private class ServerHandshake internal constructor(
+		key: ByteArray,
+		internal val protocols: List<String>,
+		internal val extensions: List<String>)
 	{
 		/** The WebSocket accept key. */
-		final String acceptKey;
-
-		/** The selected protocols. */
-		final List<String> protocols;
-
-		/** The selected extensions. */
-		final List<String> extensions;
+		internal val acceptKey: String
 
 		/**
 		 * Compute the WebSocket accept key from the client-supplied key.
 		 *
 		 * @param key
-		 *        The client-supplied WebSocket key.
-		 * @return The WebSocket accept key.
+		 *   The client-supplied WebSocket key.
+		 * @return
+		 *   The WebSocket accept key.
 		 */
-		private static String computeAcceptKey (final byte[] key)
+		private fun computeAcceptKey(key: ByteArray): String
 		{
-			final MessageDigest digest;
+			val digest: MessageDigest
 			try
 			{
-				digest = MessageDigest.getInstance("SHA-1");
+				digest = MessageDigest.getInstance("SHA-1")
 			}
-			catch (final NoSuchAlgorithmException e)
+			catch (e: NoSuchAlgorithmException)
 			{
-				throw new RuntimeException("SHA-1 not available", e);
+				throw RuntimeException("SHA-1 not available", e)
 			}
-			final String stringKey = DatatypeConverter.printBase64Binary(key)
-				+ "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
-			final byte[] acceptBytes =
-				digest.digest(stringKey.getBytes(StandardCharsets.US_ASCII));
-			return DatatypeConverter.printBase64Binary(acceptBytes);
+
+			val stringKey =
+				DatatypeConverter.printBase64Binary(key) +
+					"258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
+			val acceptBytes =
+				digest.digest(stringKey.toByteArray(StandardCharsets.US_ASCII))
+			return DatatypeConverter.printBase64Binary(acceptBytes)
 		}
 
-		/**
-		 * Construct a new {@link ServerHandshake}.
-		 *
-		 * @param key
-		 *        The client-supplied WebSocket key.
-		 * @param protocols
-		 *        The selected protocols.
-		 * @param extensions
-		 *        The selected extensions.
-		 */
-		ServerHandshake (
-			final byte[] key,
-			final List<String> protocols,
-			final List<String> extensions)
+		init
 		{
-			this.acceptKey = computeAcceptKey(key);
-			this.protocols = protocols;
-			this.extensions = extensions;
+			this.acceptKey = computeAcceptKey(key)
 		}
 
 		/**
-		 * Send the {@linkplain ServerHandshake server handshake} across the
-		 * specified {@linkplain AsynchronousSocketChannel channel}.
+		 * Send the [server handshake][ServerHandshake] across the specified
+		 * [channel][AsynchronousSocketChannel].
 		 *
 		 * @param channel
-		 *        A channel.
+		 *   A channel.
 		 * @param continuation
-		 *        What to do after sending the server handshake.
+		 *   What to do after sending the server handshake.
 		 */
-		public void sendThen (
-			final AsynchronousSocketChannel channel,
-			final Continuation0 continuation)
+		fun sendThen(
+			channel: AsynchronousSocketChannel,
+			continuation: ()->Unit)
 		{
-			@SuppressWarnings({
-				"resource",
-				"IOResourceOpenedButNotSafelyClosed"
-			})
-			final Formatter formatter = new Formatter();
+			val formatter = Formatter()
 			formatter.format(
 				"HTTP/1.1 %03d Switching Protocols\r\n"
-				+ "Upgrade: websocket\r\n"
-				+ "Connection: Upgrade\r\n"
-				+ "Sec-WebSocket-Accept: %s\r\n",
-				HttpStatusCode.SWITCHING_PROTOCOLS.statusCode(),
-				acceptKey);
-			if (!protocols.isEmpty())
+					+ "Upgrade: websocket\r\n"
+					+ "Connection: Upgrade\r\n"
+					+ "Sec-WebSocket-Accept: %s\r\n",
+				HttpStatusCode.SWITCHING_PROTOCOLS.statusCode,
+				acceptKey)
+			if (protocols.isNotEmpty())
 			{
-				formatter.format("Sec-WebSocket-Protocol: ");
-				boolean first = true;
-				for (final String protocol : protocols)
+				formatter.format("Sec-WebSocket-Protocol: ")
+				var first = true
+				for (protocol in protocols)
 				{
 					if (!first)
 					{
-						formatter.format(", ");
+						formatter.format(", ")
 					}
-					formatter.format("%s", protocol);
-					first = false;
+					formatter.format("%s", protocol)
+					first = false
 				}
-				formatter.format("\r\n");
+				formatter.format("\r\n")
 			}
-			if (!extensions.isEmpty())
+			if (extensions.isNotEmpty())
 			{
-				formatter.format("Sec-WebSocket-Extensions: ");
-				boolean first = true;
-				for (final String extension : extensions)
+				formatter.format("Sec-WebSocket-Extensions: ")
+				var first = true
+				for (extension in extensions)
 				{
 					if (!first)
 					{
-						formatter.format(", ");
+						formatter.format(", ")
 					}
-					formatter.format("%s", extension);
-					first = false;
+					formatter.format("%s", extension)
+					first = false
 				}
-				formatter.format("\r\n");
+				formatter.format("\r\n")
 			}
-			formatter.format("\r\n");
-			final ByteBuffer bytes = StandardCharsets.US_ASCII.encode(
-				formatter.toString());
-			channel.write(
+			formatter.format("\r\n")
+			val bytes = StandardCharsets.US_ASCII.encode(
+				formatter.toString())
+			channel.write<Any>(
 				bytes,
 				null,
-				new SimpleCompletionHandler<>(
-					(result, unused, handler) ->
-					{
+				SimpleCompletionHandler(
+					{ _, _, handler ->
 						if (bytes.hasRemaining())
 						{
-							channel.write(bytes, null, handler);
+							channel.write<Any>(bytes, null, handler)
 						}
 						else
 						{
-							continuation.value();
+							continuation()
 						}
-						return Unit.INSTANCE;
 					},
-					(e, unused, handler) ->
-					{
+					{ e, _, _ ->
 						logger.log(
 							Level.WARNING,
-							"unable to write HTTP response to " + channel,
-							e);
-						IO.close(channel);
-						return Unit.INSTANCE;
-					}));
+							"unable to write HTTP response to $channel",
+							e)
+						IO.close(channel)
+					}))
 		}
 	}
 
 	/**
 	 * Asynchronously accept incoming connections.
 	 */
-	private void acceptConnections ()
+	private fun acceptConnections()
 	{
-		serverChannel.accept(
+		serverChannel.accept<Any>(
 			null,
-			new SimpleCompletionHandler<>(
-				(transport, unused, handler) ->
-				{
+			SimpleCompletionHandler(
+				{ transport, _, handler ->
 					// Asynchronously accept a subsequent connection.
-					serverChannel.accept(null, handler);
-					final WebSocketChannel channel =
-						new WebSocketChannel(WebSocketAdapter.this, transport);
+					serverChannel.accept<Any>(null, handler)
+					val channel = WebSocketChannel(this, transport)
 					// Process the client request.
-					ClientRequest.receiveThen(
-						channel,
-						WebSocketAdapter.this,
-						request ->
-						{
-							assert request != null;
-							processRequest(request, channel);
-						});
-					return Unit.INSTANCE;
+					ClientRequest.receiveThen(channel,this) { request ->
+						processRequest(request, channel)
+					}
 				},
-				(e, unused, handler) ->
-				{
+				{ e, _, _ ->
 					// If there was a race between two accepts, then simply
 					// ignore one of them.
-					if (!(e instanceof AcceptPendingException))
+					if (e !is AcceptPendingException)
 					{
 						logger.log(
 							Level.WARNING,
-							"accept failed on " + adapterAddress,
-							e);
-						close();
+							"accept failed on $adapterAddress",
+							e)
+						close()
 					}
-					return Unit.INSTANCE;
-				}));
+					Unit
+				}))
 	}
 
 	/**
-	 * Process the specified {@linkplain ClientRequest request}.
+	 * Process the specified [request][ClientRequest].
+	 *
 	 * @param request
-	 *        The request.
+	 *   The request.
 	 * @param channel
-	 *        The {@linkplain WebSocketChannel channel} along which the request
-	 *        arrived.
+	 *   The [channel][WebSocketChannel] along which the request arrived.
 	 */
-	void processRequest (
-		final ClientRequest request,
-		final WebSocketChannel channel)
+	private fun processRequest(
+		request: ClientRequest,
+		channel: WebSocketChannel)
 	{
 		// Process a GET request.
 		if (request.method == HttpRequestMethod.GET)
@@ -1001,56 +889,53 @@ implements TransportAdapter<AsynchronousSocketChannel>
 			// Process a WebSocket request.
 			if (request.headers.containsKey("upgrade"))
 			{
-				final @Nullable ClientHandshake handshake =
-					ClientHandshake.readClientHandshake(channel, request);
+				val handshake =
+					ClientHandshake.readClientHandshake(channel, request)
 				if (handshake != null)
 				{
-					if (!handshake.uri.equals("/avail"))
+					if (handshake.uri != "/avail")
 					{
 						ClientRequest.badRequest(
 							channel,
 							HttpStatusCode.NOT_FOUND,
-							"Not Found");
+							"Not Found")
 					}
 					else
 					{
-						final List<String> empty = Collections.emptyList();
-						final ServerHandshake serverHandshake =
-							new ServerHandshake(handshake.key, empty, empty);
-						serverHandshake.sendThen(
-							channel.transport(),
-							() ->
-							{
-								channel.handshakeSucceeded();
-								readMessage(channel);
-							});
+						val empty = emptyList<String>()
+						val serverHandshake =
+							ServerHandshake(handshake.key, empty, empty)
+						serverHandshake.sendThen(channel.transport) {
+							channel.handshakeSucceeded()
+							readMessage(channel)
+						}
 					}
 				}
 			}
-			// Process an ordinary GET request.
 			else
 			{
-				// Process a request for a file within the document root.
-				if (request.uri.startsWith("/doc")
-					&& server.configuration().shouldServeDocuments())
-				{
-					// TODO: [TLS] Implement this!
-				}
-				else
-				{
-					ClientRequest.badRequest(
-						channel,
-						HttpStatusCode.NOT_FOUND,
-						"Not Found");
-				}
+				ClientRequest.badRequest(
+					channel,
+					HttpStatusCode.NOT_FOUND,
+					"Not Found")
 			}
+		}
+		else
+		{
+			ClientRequest.badRequest(
+				channel,
+				HttpStatusCode.METHOD_NOT_ALLOWED,
+				"Method Not Allowed")
 		}
 	}
 
 	/**
-	 * {@code Opcode} represents a WebSocket opcode.
+	 * `Opcode` represents a WebSocket opcode.
+	 *
+	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
-	private enum Opcode
+	@Suppress("unused")
+	private enum class Opcode
 	{
 		/*
 		 * Do not change the order of these values! Their ordinals correspond
@@ -1061,31 +946,19 @@ implements TransportAdapter<AsynchronousSocketChannel>
 		/** A continuation frame. */
 		CONTINUATION
 		{
-			@Override
-			public boolean isValid ()
-			{
-				return true;
-			}
+			override val isValid get() = true
 		},
 
 		/** A text frame. */
 		TEXT
 		{
-			@Override
-			public boolean isValid ()
-			{
-				return true;
-			}
+			override val isValid get() = true
 		},
 
 		/** A binary frame. */
 		BINARY
 		{
-			@Override
-			public boolean isValid ()
-			{
-				return true;
-			}
+			override val isValid get() = true
 		},
 
 		/** A reserved frame. */
@@ -1106,31 +979,19 @@ implements TransportAdapter<AsynchronousSocketChannel>
 		/** A close frame. */
 		CLOSE
 		{
-			@Override
-			public boolean isValid ()
-			{
-				return true;
-			}
+			override val isValid get() = true
 		},
 
 		/** A ping frame. */
 		PING
 		{
-			@Override
-			public boolean isValid ()
-			{
-				return true;
-			}
+			override val isValid get() = true
 		},
 
 		/** A pong frame. */
 		PONG
 		{
-			@Override
-			public boolean isValid ()
-			{
-				return true;
-			}
+			override val isValid get() = true
 		},
 
 		/** A reserved frame. */
@@ -1148,1028 +1009,919 @@ implements TransportAdapter<AsynchronousSocketChannel>
 		/** A reserved frame. */
 		RESERVED_15;
 
-		/** An array of all {@link Opcode} enumeration values. */
-		private static final Opcode[] all = values();
+		/** `true` if the opcode is valid, `false` otherwise. */
+		open val isValid get() = false
 
-		/**
-		 * Answer an array of all {@link Opcode} enumeration values.
-		 *
-		 * @return An array of all {@link Opcode} enum values.  Do not
-		 *         modify the array.
-		 */
-		public static Opcode[] all ()
+		companion object
 		{
-			//noinspection AssignmentOrReturnOfFieldWithMutableType
-			return all;
-		}
-
-		/**
-		 * Is the {@linkplain Opcode opcode} valid?
-		 *
-		 * @return {@code true} if the opcode is valid, {@code false}
-		 *         otherwise.
-		 */
-		public boolean isValid ()
-		{
-			return false;
+			/** An array of all [Opcode] enumeration values.  */
+			val all = values()
 		}
 	}
 
 	/**
-	 * {@code WebSocketStatusCode} represents one of the generic WebSocket
-	 * status codes.
+	 * `WebSocketStatusCode` represents one of the generic WebSocket status
+	 * codes.
+	 *
+	 * @property statusCode
+	 *   The WebSocket status code.
+	 * @author Todd L Smith &lt;todd@availlang.org&gt;
+	 *
+	 * @constructor
+	 *
+	 * Construct a new [WebSocketStatusCode].
+	 *
+	 * @param statusCode
+	 *   The WebSocket status code.
 	 */
-	@SuppressWarnings("unused")
-	private enum WebSocketStatusCode
+	@Suppress("unused")
+	private enum class WebSocketStatusCode constructor(val statusCode: Int)
 	{
 		/** Normal closure. */
-		NORMAL_CLOSURE (1000),
+		NORMAL_CLOSURE(1000),
 
 		/** Endpoint is going away. */
-		ENDPOINT_GOING_AWAY (1001),
+		ENDPOINT_GOING_AWAY(1001),
 
 		/** Protocol error. */
-		PROTOCOL_ERROR (1002),
+		PROTOCOL_ERROR(1002),
 
 		/** Unsupported message. */
-		UNSUPPORTED_MESSAGE (1003),
+		UNSUPPORTED_MESSAGE(1003),
 
 		/** Reserved. */
-		RESERVED_1004 (1004),
+		RESERVED_1004(1004),
 
 		/** No status code. */
-		NO_STATUS_CODE (1005),
+		NO_STATUS_CODE(1005),
 
-		/** No {@link Opcode#CLOSE CLOSE} {@linkplain Frame frame}. */
-		NO_CLOSE (1006),
+		/** No [CLOSE][Opcode.CLOSE] [frame][Frame]. */
+		NO_CLOSE(1006),
 
 		/** Bad data. */
-		BAD_DATA (1007),
+		BAD_DATA(1007),
 
 		/** Bad policy. */
-		BAD_POLICY (1008),
+		BAD_POLICY(1008),
 
 		/** Received message was too big. */
-		MESSAGE_TOO_BIG (1009),
+		MESSAGE_TOO_BIG(1009),
 
 		/** Unsupported extension. */
-		UNSUPPORTED_EXTENSION (1010),
+		UNSUPPORTED_EXTENSION(1010),
 
 		/** Server error. */
-		SERVER_ERROR (1011),
+		SERVER_ERROR(1011),
 
 		/** Bad TLS handshake. */
-		BAD_TLS_HANDSHAKE (1015);
-
-		/** The WebSocket status code. */
-		private final int statusCode;
-
-		/**
-		 * Answer the numeric status code.
-		 *
-		 * @return The numeric status code.
-		 */
-		public int statusCode ()
-		{
-			return statusCode;
-		}
-
-		/**
-		 * Construct a new {@link WebSocketStatusCode}.
-		 *
-		 * @param statusCode
-		 *        The WebSocket status code.
-		 */
-		WebSocketStatusCode (final int statusCode)
-		{
-			this.statusCode = statusCode;
-		}
+		BAD_TLS_HANDSHAKE(1015);
 	}
 
 	/**
-	 * {@code Frame} represents a WebSocket frame.
+	 * `Frame` represents a WebSocket frame.
+	 *
+	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
-	private static final class Frame
+	private class Frame
 	{
 		/** Is this the final fragment of the message? */
-		boolean isFinalFragment;
+		internal var isFinalFragment: Boolean = false
 
 		/** Is this fragment masked? */
-		boolean isMasked;
+		internal var isMasked: Boolean = false
 
-		/** The {@linkplain Opcode opcode}. */
-		@Nullable Opcode opcode;
-
-		/**
-		 * Answer the {@linkplain Opcode opcode}.
-		 *
-		 * @return The opcode.
-		 */
-		Opcode opcode ()
-		{
-			return stripNull(opcode);
-		}
+		/** The [opcode][Opcode]. */
+		internal var opcode: Opcode? = null
 
 		/** The length of the payload. */
-		long payloadLength;
+		internal var payloadLength: Long = 0
+
+		/** The masking key (valid only if [isMasked] is `true`). */
+		internal var maskingKey: ByteBuffer? = null
 
 		/**
-		 * The masking key (valid only if {@link #isMasked} is {@code true}).
+		 * The payload. This must not be [allocated
+		 * directly][ByteBuffer.allocateDirect], as access to the [backing
+		 * array][ByteBuffer.array] is required.
 		 */
-		@Nullable ByteBuffer maskingKey;
+		internal var payloadData: ByteBuffer? = null
 
 		/**
-		 * Answer the {@linkplain ByteBuffer masking key} (valid only if
-		 * {@link #isMasked} is {@code true}).
+		 * Answer a [buffer][ByteBuffer] that encodes the WebSocket
+		 * [frame][Frame].
 		 *
-		 * @return The masking key.
+		 * @return
+		 *   A buffer.
 		 */
-		ByteBuffer maskingKey ()
+		fun asByteBuffer(): ByteBuffer
 		{
-			return stripNull(maskingKey);
-		}
-
-		/**
-		 * The payload. This must not be {@linkplain
-		 * ByteBuffer#allocateDirect(int) allocated directly}, as access to the
-		 * {@linkplain ByteBuffer#array() backing array} is required.
-		 */
-		@Nullable ByteBuffer payloadData;
-
-		/**
-		 * Answer the {@linkplain ByteBuffer payload}.
-		 *
-		 * @return The payload.
-		 */
-		ByteBuffer payloadData ()
-		{
-			return stripNull(payloadData);
-		}
-
-		/**
-		 * Construct a new {@link Frame}.
-		 */
-		Frame ()
-		{
-			// No implementation required.
-		}
-
-		/**
-		 * Answer a {@linkplain ByteBuffer buffer} that encodes the WebSocket
-		 * {@linkplain Frame frame}.
-		 *
-		 * @return A buffer.
-		 */
-		public ByteBuffer asByteBuffer ()
-		{
-			assert opcode().isValid();
-			assert payloadLength == payloadData().limit();
-			int len = (int) payloadLength;
-			assert len == payloadLength;
+			assert(opcode!!.isValid)
+			assert(payloadLength == payloadData!!.limit().toLong())
+			var len = payloadLength.toInt()
+			assert(len.toLong() == payloadLength)
 			// Compute the length of the entire frame.
-			len += 2;
-			final int ext =
-				payloadLength < 126 ? 0 : payloadLength < 65536 ? 2 : 8;
-			len += ext;
-			len += isMasked ? 4 : 0;
-			final ByteBuffer buffer = ByteBuffer.allocateDirect(len);
+			len += 2
+			val ext =
+				when
+				{
+					payloadLength < 126 -> 0
+					payloadLength < 65536 -> 2
+					else -> 8
+				}
+			len += ext
+			len += if (isMasked) 4 else 0
+			val buffer = ByteBuffer.allocateDirect(len)
 			buffer.put(
-				(byte) ((isFinalFragment ? 0x80 : 0x00) | opcode().ordinal()));
+				((if (isFinalFragment) 0x80 else 0x00)
+					or opcode!!.ordinal).toByte())
 			buffer.put(
-				(byte) ((isMasked ? 0x80 : 0x00)
-				| (payloadLength < 126
-					? payloadLength : payloadLength < 65536
-					? 126 : 127)));
-			switch (ext)
+				((if (isMasked) 0x80 else 0x00)
+					or when
+					{
+						payloadLength < 126 -> payloadLength.toInt()
+						payloadLength < 65536 -> 126
+						else -> 127
+					}).toByte())
+			when (ext)
 			{
-				case 2:
-				{
-					buffer.putShort((short) payloadLength);
-					break;
-				}
-				case 8:
-				{
-					buffer.putLong(payloadLength);
-					break;
-				}
-				default:
-				{
-					// assert ext == 0;
-					break;
-				}
+				2 -> buffer.putShort(payloadLength.toShort())
+				8 -> buffer.putLong(payloadLength)
+				else -> {}
 			}
-			final ByteBuffer payload = payloadData();
-			payload.rewind();
+			val payload = payloadData!!
+			payload.rewind()
 			if (isMasked)
 			{
-				final ByteBuffer mask = maskingKey();
-				buffer.put(mask);
-				mask.rewind();
-				for (int i = 0; i < payloadLength; i++)
+				val mask = maskingKey!!
+				buffer.put(mask)
+				mask.rewind()
+				for (i in 0 until payloadLength.toInt())
 				{
-					final int j = i & 3;
-					buffer.put((byte) (payload.get(i) ^ mask.get(j)));
+					val j = i and 3
+					buffer.put((payload.get(i) xor mask.get(j)))
 				}
 			}
 			else
 			{
-				buffer.put(payload);
+				buffer.put(payload)
 			}
-			assert !buffer.hasRemaining();
-			buffer.rewind();
-			return buffer;
+			assert(!buffer.hasRemaining())
+			buffer.rewind()
+			return buffer
 		}
 	}
 
 	/**
-	 * Answer whether the remote end of the {@linkplain
-	 * AsynchronousSocketChannel transport} closed. If it did, then log this
-	 * information.
+	 * Read a complete message from the specified [channel][WebSocketChannel]. A
+	 * complete message may span multiple WebSocket [frames][Frame].
 	 *
-	 * @param transport
-	 *        A channel.
-	 * @param result
-	 *        {@code -1} if the remote end closed.
-	 * @return {@code true} if the remote end closed, {@code false} otherwise.
+	 * @param channel
+	 *   A channel.
 	 */
-	static boolean remoteEndClosed (
-		final AsynchronousSocketChannel transport,
-		final @Nullable Integer result)
+	override fun readMessage(
+		channel: AbstractTransportChannel<AsynchronousSocketChannel>)
 	{
-		assert result != null;
-		if (result == -1)
-		{
-			logger.log(Level.INFO, transport + " closed");
-			IO.close(transport);
-			return true;
+		val strongChannel = channel as WebSocketChannel
+		val bytes = ByteArrayOutputStream(1024)
+		val processMessage = {
+			val message = Message(
+				String(bytes.toByteArray(), StandardCharsets.UTF_8))
+			strongChannel.receiveMessage(message)
 		}
-		return false;
-	}
-
-	/**
-	 * Read a complete message from the specified {@linkplain WebSocketChannel
-	 * channel}. A complete message may span multiple WebSocket {@linkplain
-	 * Frame frames}.
-	 *
-	 * @param weakChannel
-	 *        A channel.
-	 */
-	@Override
-	public void readMessage (
-		final AbstractTransportChannel<AsynchronousSocketChannel> weakChannel)
-	{
-		final WebSocketChannel channel = (WebSocketChannel) weakChannel;
-		final ByteArrayOutputStream bytes = new ByteArrayOutputStream(1024);
-		final Continuation0 processMessage = () ->
-		{
-			final Message message = new Message(
-				new String(bytes.toByteArray(), StandardCharsets.UTF_8));
-			channel.receiveMessage(message);
-		};
-		recurse(
-			readFrame -> readFrameThen(
-				channel,
-				frame -> {
-					try
-					{
-						bytes.write(frame.payloadData().array());
-					}
-					catch (final IOException e)
-					{
-						assert false : "This never happens!";
-						throw new RuntimeException(e);
-					}
-					switch (frame.opcode())
-					{
-						case CONTINUATION:
-							// This isn't legal as the first frame of a
-							// message.
-							fail(
-								channel,
-								WebSocketStatusCode.PROTOCOL_ERROR,
-								"message cannot begin with continuation frame");
-							return;
-						case TEXT:
-							break;
-						case BINARY:
-							fail(
-								channel,
-								WebSocketStatusCode.UNSUPPORTED_MESSAGE,
-								"only text frames are supported");
-							break;
-						case CLOSE:
-							if (!frame.isFinalFragment)
-							{
-								fail(
-									channel,
-									WebSocketStatusCode.PROTOCOL_ERROR,
-									"close must be final fragment");
-							}
-							else
-							{
-								sendClose(channel);
-							}
-							return;
-						case PING:
-							if (!frame.isFinalFragment)
-							{
-								fail(
-									channel,
-									WebSocketStatusCode.PROTOCOL_ERROR,
-									"ping must be final fragment");
-							}
-							else
-							{
-								sendPong(
-									channel, bytes.toByteArray(), null, null);
-							}
-							readMessage(channel);
-							return;
-						case PONG:
-							if (!frame.isFinalFragment)
-							{
-								fail(
-									channel,
-									WebSocketStatusCode.PROTOCOL_ERROR,
-									"pong must be final fragment");
-							}
-							// Ignore an unsolicited (but valid) pong.
-							readMessage(channel);
-							return;
-						default:
-							// Fail on receipt of a reserved opcode.
-							assert !frame.opcode().isValid();
-							fail(
-								channel,
-								WebSocketStatusCode.PROTOCOL_ERROR,
-								"opcode "
-									+ frame.opcode().ordinal()
-									+ " is reserved");
-							return;
-					}
-					// A text frame was processed.
-					if (frame.isFinalFragment)
-					{
-						processMessage.value();
-					}
-					else
-					{
-						readFrameThen(
-							channel,
-							continuationFrame -> {
-								try
-								{
-									bytes.write(
-										continuationFrame.payloadData()
-											.array());
-								}
-								catch (final IOException e)
-								{
-									assert false : "This never happens!";
-									throw new RuntimeException(e);
-								}
-								if (continuationFrame.opcode
-									!= Opcode.CONTINUATION)
-								{
-									fail(
-										channel,
-										WebSocketStatusCode.PROTOCOL_ERROR,
-										"received "
-											+ continuationFrame.opcode().name()
-											+ " instead of continuation frame");
-								}
-								else if (!continuationFrame.isFinalFragment)
-								{
-									readFrame.value();
-								}
-								else
-								{
-									processMessage.value();
-								}
-							});
-					}
-				}));
-	}
-
-	/**
-	 * Read a WebSocket {@linkplain Frame frame}.
-	 *
-	 * @param channel
-	 *        A channel.
-	 * @param continuation
-	 *        What to do after the complete frame has been read.
-	 */
-	static void readFrameThen (
-		final WebSocketChannel channel,
-		final Continuation1NotNull<Frame> continuation)
-	{
-		final Frame frame = new Frame();
-		readOpcodeThen(
-			channel,
-			frame,
-			() -> continuation.value(frame));
-	}
-
-	/**
-	 * Read a WebSocket {@linkplain Opcode opcode} and FIN bit.
-	 *
-	 * @param channel
-	 *        A channel.
-	 * @param frame
-	 *        The current incoming {@linkplain Frame frame}.
-	 * @param continuation
-	 *        What to do after the complete frame has been read.
-	 */
-	private static void readOpcodeThen (
-		final WebSocketChannel channel,
-		final Frame frame,
-		final Continuation0 continuation)
-	{
-		final ByteBuffer buffer = ByteBuffer.allocateDirect(1);
-		final AsynchronousSocketChannel transport = channel.transport();
-		transport.read(
-			buffer,
-			null,
-			new SimpleCompletionHandler<>(
-				(bytesRead, unused, handler) ->
+		recurse { readFrame ->
+			readFrameThen(strongChannel) { frame ->
+				try
 				{
-					if (remoteEndClosed(transport, bytesRead))
-					{
-						return Unit.INSTANCE;
-					}
-					if (buffer.hasRemaining())
-					{
-						transport.read(buffer, null, handler);
-					}
-					else
-					{
-						buffer.flip();
-						final int b = buffer.get();
-						assert !buffer.hasRemaining();
-						frame.isFinalFragment = (b & 0x80) == 0x80;
-						frame.opcode = Opcode.all()[b & 0x0F];
-						readPayloadLengthThen(channel, frame, continuation);
-					}
-					return Unit.INSTANCE;
-				},
-				(e, unused, handler) ->
+					bytes.write(frame.payloadData!!.array())
+				}
+				catch (e: IOException)
 				{
-					logger.log(
-						Level.WARNING,
-						"failed while attempting to read opcode",
-						e);
-					IO.close(channel);
-					return Unit.INSTANCE;
-				}));
-	}
-
-	/**
-	 * Read a WebSocket payload length and MASK bit.
-	 *
-	 * @param channel
-	 *        A channel.
-	 * @param frame
-	 *        The current incoming {@linkplain Frame frame}.
-	 * @param continuation
-	 *        What to do after the complete frame has been read.
-	 */
-	static void readPayloadLengthThen (
-		final WebSocketChannel channel,
-		final Frame frame,
-		final Continuation0 continuation)
-	{
-		final ByteBuffer buffer = ByteBuffer.allocateDirect(1);
-		final AsynchronousSocketChannel transport = channel.transport();
-		transport.read(
-			buffer,
-			null,
-			new SimpleCompletionHandler<>(
-				(bytesRead, unused, handler) ->
+					assert(false) { "This never happens!" }
+					throw RuntimeException(e)
+				}
+				when (val opcode = frame.opcode!!)
 				{
-					if (remoteEndClosed(transport, bytesRead))
+					Opcode.CONTINUATION ->
 					{
-						return Unit.INSTANCE;
+						// This isn't legal as the first frame of a
+						// message.
+						fail(
+							strongChannel,
+							WebSocketStatusCode.PROTOCOL_ERROR,
+							"message cannot begin with continuation frame")
+						return@readFrameThen
 					}
-					if (buffer.hasRemaining())
+					Opcode.TEXT ->
 					{
-						transport.read(buffer, null, handler);
 					}
-					else
+					Opcode.BINARY -> fail(
+						strongChannel,
+						WebSocketStatusCode.UNSUPPORTED_MESSAGE,
+						"only text frames are supported")
+					Opcode.CLOSE ->
 					{
-						buffer.flip();
-						final int b = buffer.get();
-						assert !buffer.hasRemaining();
-						frame.isMasked = (b & 0x80) == 0x80;
-						final int len = b & 0x7F;
-						switch (len)
+						if (!frame.isFinalFragment)
 						{
-							case 126:
-								readPayloadLength2ByteExtensionThen(
-									channel, frame, continuation);
-								break;
-							case 127:
-								readPayloadLength8ByteExtensionThen(
-									channel, frame, continuation);
-								break;
-							default:
-								frame.payloadLength = len;
+							fail(
+								strongChannel,
+								WebSocketStatusCode.PROTOCOL_ERROR,
+								"close must be final fragment")
+						}
+						else
+						{
+							sendClose(strongChannel)
+						}
+						return@readFrameThen
+					}
+					Opcode.PING ->
+					{
+						if (!frame.isFinalFragment)
+						{
+							fail(
+								strongChannel,
+								WebSocketStatusCode.PROTOCOL_ERROR,
+								"ping must be final fragment")
+						}
+						else
+						{
+							sendPong(
+								strongChannel, bytes.toByteArray(), null, null)
+						}
+						readMessage(strongChannel)
+						return@readFrameThen
+					}
+					Opcode.PONG ->
+					{
+						if (!frame.isFinalFragment)
+						{
+							fail(
+								strongChannel,
+								WebSocketStatusCode.PROTOCOL_ERROR,
+								"pong must be final fragment")
+						}
+						// Ignore an unsolicited (but valid) pong.
+						readMessage(strongChannel)
+						return@readFrameThen
+					}
+					else ->
+					{
+						// Fail on receipt of a reserved opcode.
+						assert(!opcode.isValid)
+						fail(
+							strongChannel,
+							WebSocketStatusCode.PROTOCOL_ERROR,
+							"opcode "
+								+ opcode.ordinal
+								+ " is reserved")
+						return@readFrameThen
+					}
+				}
+				// A text frame was processed.
+				if (frame.isFinalFragment)
+				{
+					processMessage()
+				}
+				else
+				{
+					readFrameThen(strongChannel) { continuationFrame ->
+						try
+						{
+							bytes.write(continuationFrame.payloadData!!.array())
+						}
+						catch (e: IOException)
+						{
+							assert(false) { "This never happens!" }
+							throw RuntimeException(e)
+						}
+
+						if (continuationFrame.opcode !== Opcode.CONTINUATION)
+						{
+							fail(
+								strongChannel,
+								WebSocketStatusCode.PROTOCOL_ERROR,
+								"received "
+									+ continuationFrame.opcode!!.name
+									+ " instead of continuation frame")
+						}
+						else if (!continuationFrame.isFinalFragment)
+						{
+							readFrame()
+						}
+						else
+						{
+							processMessage()
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Send a [frame][Frame] bearing user data over the specified
+	 * [channel][WebSocketChannel].
+	 *
+	 * @param channel
+	 *   A channel.
+	 * @param payload
+	 *   A payload.
+	 * @param success
+	 *   What to do after sending the frame.
+	 * @param failure
+	 *   What to do if sending the frame fails.
+	 */
+	override fun sendUserData(
+		channel: AbstractTransportChannel<AsynchronousSocketChannel>,
+		payload: Message,
+		success: (()->Unit)?,
+		failure: ((Throwable)->Unit)?)
+	{
+		val strongChannel = channel as WebSocketChannel
+		val content = payload.content
+		val buffer = StandardCharsets.UTF_8.encode(content)
+		sendFrame(strongChannel, Opcode.TEXT, buffer, success, failure)
+	}
+
+	/**
+	 * Send a [CLOSE][Opcode.CLOSE] [frame][Frame] over the specified
+	 * [channel][WebSocketChannel]. Close the channel when the frame has been
+	 * sent.
+	 *
+	 * @param channel
+	 *   A channel.
+	 */
+	override fun sendClose(
+		channel: AbstractTransportChannel<AsynchronousSocketChannel>)
+	{
+		val strongChannel = channel as WebSocketChannel
+		val buffer = ByteBuffer.allocateDirect(2)
+		buffer.putShort(
+			WebSocketStatusCode.NORMAL_CLOSURE.statusCode.toShort())
+		sendFrame(
+			strongChannel,
+			Opcode.CLOSE,
+			buffer,
+			{ IO.close(strongChannel.transport) })
+	}
+
+	@Synchronized
+	override fun close()
+	{
+		if (serverChannel.isOpen)
+		{
+			IO.close(serverChannel)
+		}
+	}
+
+	companion object
+	{
+		/**
+		 * Answer whether the remote end of the
+		 * [transport][AsynchronousSocketChannel] closed. If it did, then log
+		 * this information.
+		 *
+		 * @param transport
+		 *   A channel.
+		 * @param result
+		 *   `-1` if the remote end closed.
+		 * @return
+		 *   `true` if the remote end closed, `false` otherwise.
+		 */
+		internal fun remoteEndClosed(
+			transport: AsynchronousSocketChannel,
+			result: Int?): Boolean
+		{
+			assert(result != null)
+			if (result == -1)
+			{
+				logger.log(Level.INFO, "$transport closed")
+				IO.close(transport)
+				return true
+			}
+			return false
+		}
+
+		/**
+		 * Read a WebSocket [frame][Frame].
+		 *
+		 * @param channel
+		 *   A channel.
+		 * @param continuation
+		 *   What to do after the complete frame has been read.
+		 */
+		private fun readFrameThen(
+			channel: WebSocketChannel,
+			continuation: (Frame)->Unit)
+		{
+			val frame = Frame()
+			readOpcodeThen(channel, frame) { continuation(frame) }
+		}
+
+		/**
+		 * Read a WebSocket [opcode][Opcode] and `FIN` bit.
+		 *
+		 * @param channel
+		 *   A channel.
+		 * @param frame
+		 *   The current incoming [frame][Frame].
+		 * @param continuation
+		 *   What to do after the complete frame has been read.
+		 */
+		private fun readOpcodeThen(
+			channel: WebSocketChannel,
+			frame: Frame,
+			continuation: ()->Unit)
+		{
+			val buffer = ByteBuffer.allocateDirect(1)
+			val transport = channel.transport
+			transport.read<Any>(
+				buffer,
+				null,
+				SimpleCompletionHandler(
+					{ bytesRead, _, handler ->
+						if (remoteEndClosed(transport, bytesRead))
+						{
+							return@SimpleCompletionHandler
+						}
+						if (buffer.hasRemaining())
+						{
+							transport.read<Any>(buffer, null, handler)
+						}
+						else
+						{
+							buffer.flip()
+							val b = buffer.get().toInt()
+							assert(!buffer.hasRemaining())
+							frame.isFinalFragment = b and 0x80 == 0x80
+							frame.opcode = Opcode.all[b and 0x0F]
+							readPayloadLengthThen(channel, frame, continuation)
+						}
+					},
+					{ e, _, _ ->
+						logger.log(
+							Level.WARNING,
+							"failed while attempting to read opcode",
+							e)
+						IO.close(channel)
+					}))
+		}
+
+		/**
+		 * Read a WebSocket payload length and MASK bit.
+		 *
+		 * @param channel
+		 *   A channel.
+		 * @param frame
+		 *   The current incoming [frame][Frame].
+		 * @param continuation
+		 *   What to do after the complete frame has been read.
+		 */
+		private fun readPayloadLengthThen(
+			channel: WebSocketChannel,
+			frame: Frame,
+			continuation: ()->Unit)
+		{
+			val buffer = ByteBuffer.allocateDirect(1)
+			val transport = channel.transport
+			transport.read<Any>(
+				buffer,
+				null,
+				SimpleCompletionHandler(
+					{ bytesRead, _, handler ->
+						if (remoteEndClosed(transport, bytesRead))
+						{
+							return@SimpleCompletionHandler
+						}
+						if (buffer.hasRemaining())
+						{
+							transport.read<Any>(buffer, null, handler)
+						}
+						else
+						{
+							buffer.flip()
+							val b = buffer.get().toInt()
+							assert(!buffer.hasRemaining())
+							frame.isMasked = b and 0x80 == 0x80
+							when (val len = b and 0x7F)
+							{
+								126 -> readPayloadLength2ByteExtensionThen(
+									channel, frame, continuation)
+								127 -> readPayloadLength8ByteExtensionThen(
+									channel, frame, continuation)
+								else ->
+								{
+									frame.payloadLength = len.toLong()
+									if (frame.isMasked)
+									{
+										readMaskingKeyThen(
+											channel, frame, continuation)
+									}
+									else
+									{
+										readPayloadDataThen(
+											channel, frame, continuation)
+									}
+								}
+							}
+						}
+					},
+					{ e, _, _ ->
+						logger.log(
+							Level.WARNING,
+							"failed while attempting to read payload size",
+							e)
+						IO.close(channel)
+					}))
+		}
+
+		/**
+		 * Read a 16-bit WebSocket payload length.
+		 *
+		 * @param channel
+		 *   A channel.
+		 * @param frame
+		 *   The current incoming [frame][Frame].
+		 * @param continuation
+		 *   What to do after the complete frame has been read.
+		 */
+		private fun readPayloadLength2ByteExtensionThen(
+			channel: WebSocketChannel,
+			frame: Frame,
+			continuation: ()->Unit)
+		{
+			val buffer = ByteBuffer.allocateDirect(2)
+			val transport = channel.transport
+			transport.read<Any>(
+				buffer,
+				null,
+				SimpleCompletionHandler(
+					{ bytesRead, _, handler ->
+						if (remoteEndClosed(transport, bytesRead))
+						{
+							return@SimpleCompletionHandler
+						}
+						if (buffer.hasRemaining())
+						{
+							transport.read<Any>(buffer, null, handler)
+						}
+						else
+						{
+							buffer.flip()
+							val len = buffer.short and 0xFFFF.toShort()
+							assert(!buffer.hasRemaining())
+							if (len < 126)
+							{
+								fail(
+									channel,
+									WebSocketStatusCode.PROTOCOL_ERROR,
+									"2-byte encoding for length=$len")
+							}
+							else
+							{
+								frame.payloadLength = len.toLong()
 								if (frame.isMasked)
 								{
 									readMaskingKeyThen(
-										channel, frame, continuation);
+										channel, frame, continuation)
 								}
 								else
 								{
 									readPayloadDataThen(
-										channel, frame, continuation);
+										channel, frame, continuation)
 								}
-								break;
-						}
-					}
-					return Unit.INSTANCE;
-				},
-				(e, unused, handler) ->
-				{
-					logger.log(
-						Level.WARNING,
-						"failed while attempting to read payload size",
-						e);
-					IO.close(channel);
-					return Unit.INSTANCE;
-				}));
-	}
-
-	/**
-	 * Read a 16-bit WebSocket payload length.
-	 *
-	 * @param channel
-	 *        A channel.
-	 * @param frame
-	 *        The current incoming {@linkplain Frame frame}.
-	 * @param continuation
-	 *        What to do after the complete frame has been read.
-	 */
-	static void readPayloadLength2ByteExtensionThen (
-		final WebSocketChannel channel,
-		final Frame frame,
-		final Continuation0 continuation)
-	{
-		final ByteBuffer buffer = ByteBuffer.allocateDirect(2);
-		final AsynchronousSocketChannel transport = channel.transport();
-		transport.read(
-			buffer,
-			null,
-			new SimpleCompletionHandler<>(
-				(bytesRead, unused, handler) ->
-				{
-					if (remoteEndClosed(transport, bytesRead))
-					{
-						return Unit.INSTANCE;
-					}
-					if (buffer.hasRemaining())
-					{
-						transport.read(buffer, null, handler);
-					}
-					else
-					{
-						buffer.flip();
-						final int len = buffer.getShort() & 0xFFFF;
-						assert !buffer.hasRemaining();
-						if (len < 126)
-						{
-							fail(
-								channel,
-								WebSocketStatusCode.PROTOCOL_ERROR,
-								"2-byte encoding for length=" + len);
-						}
-						else
-						{
-							frame.payloadLength = len;
-							if (frame.isMasked)
-							{
-								readMaskingKeyThen(
-									channel, frame, continuation);
-							}
-							else
-							{
-								readPayloadDataThen(
-									channel, frame, continuation);
 							}
 						}
-					}
-					return Unit.INSTANCE;
-				},
-				(e, unused, handler) ->
-				{
-					logger.log(
-						Level.WARNING,
-						"failed while attempting to read 2-byte payload size",
-						e);
-					IO.close(channel);
-					return Unit.INSTANCE;
-				}));
-	}
-
-	/**
-	 * Read a 64-bit WebSocket payload length.
-	 *
-	 * @param channel
-	 *        A channel.
-	 * @param frame
-	 *        The current incoming {@linkplain Frame frame}.
-	 * @param continuation
-	 *        What to do after the complete frame has been read.
-	 */
-	static void readPayloadLength8ByteExtensionThen (
-		final WebSocketChannel channel,
-		final Frame frame,
-		final Continuation0 continuation)
-	{
-		final ByteBuffer buffer = ByteBuffer.allocateDirect(8);
-		final AsynchronousSocketChannel transport = channel.transport();
-		transport.read(
-			buffer,
-			null,
-			new SimpleCompletionHandler<>(
-				(bytesRead, unused, handler) ->
-				{
-					if (remoteEndClosed(transport, bytesRead))
-					{
-						return Unit.INSTANCE;
-					}
-					if (buffer.hasRemaining())
-					{
-						transport.read(buffer, null, handler);
-					}
-					else
-					{
-						buffer.flip();
-						final long len = buffer.getLong();
-						assert !buffer.hasRemaining();
-						if (len < 65536)
-						{
-							// Note that this covers the case where the MSB is
-							// set (which is forbidden).
-							fail(
-								channel,
-								WebSocketStatusCode.PROTOCOL_ERROR,
-								"8-byte encoding for length=" + len);
-						}
-						else if (len > Message.MAX_SIZE)
-						{
-							fail(
-								channel,
-								WebSocketStatusCode.MESSAGE_TOO_BIG,
-								"length="
-								+ len
-								+ " exceeds maximum length of "
-								+ Message.MAX_SIZE);
-						}
-						else
-						{
-							frame.payloadLength = len;
-							if (frame.isMasked)
-							{
-								readMaskingKeyThen(
-									channel, frame, continuation);
-							}
-							else
-							{
-								readPayloadDataThen(
-									channel, frame, continuation);
-							}
-						}
-					}
-					return Unit.INSTANCE;
-				},
-				(e, unused, handler) ->
-				{
-					logger.log(
-						Level.WARNING,
-						"failed while attempting to read 8-byte payload size",
-						e);
-					IO.close(channel);
-					return Unit.INSTANCE;
-				}));
-	}
-
-	/**
-	 * Read the payload masking key.
-	 *
-	 * @param channel
-	 *        A channel.
-	 * @param frame
-	 *        The current incoming {@linkplain Frame frame}.
-	 * @param continuation
-	 *        What to do after the complete frame has been read.
-	 */
-	static void readMaskingKeyThen (
-		final WebSocketChannel channel,
-		final Frame frame,
-		final Continuation0 continuation)
-	{
-		final ByteBuffer buffer = ByteBuffer.allocateDirect(4);
-		final AsynchronousSocketChannel transport = channel.transport();
-		transport.read(
-			buffer,
-			null,
-			new SimpleCompletionHandler<>(
-				(bytesRead, unused, handler) ->
-				{
-					if (remoteEndClosed(transport, bytesRead))
-					{
-						return Unit.INSTANCE;
-					}
-					if (buffer.hasRemaining())
-					{
-						transport.read(buffer, null, handler);
-					}
-					else
-					{
-						buffer.flip();
-						frame.maskingKey = buffer;
-						readPayloadDataThen(channel, frame, continuation);
-					}
-					return Unit.INSTANCE;
-				},
-				(e, unused, handler) ->
-				{
-					logger.log(
-						Level.WARNING,
-						"failed while attempting to read masking key",
-						e);
-					IO.close(channel);
-					return Unit.INSTANCE;
-				}));
-	}
-
-	/**
-	 * Read the payload data.
-	 *
-	 * @param channel
-	 *        A channel.
-	 * @param frame
-	 *        The current incoming {@linkplain Frame frame}.
-	 * @param continuation
-	 *        What to do after the complete frame has been read.
-	 */
-	static void readPayloadDataThen (
-		final WebSocketChannel channel,
-		final Frame frame,
-		final Continuation0 continuation)
-	{
-		final int len = (int) frame.payloadLength;
-		assert len == frame.payloadLength;
-		final ByteBuffer buffer = ByteBuffer.allocate(len);
-		final AsynchronousSocketChannel transport = channel.transport();
-		transport.read(
-			buffer,
-			null,
-			new SimpleCompletionHandler<>(
-				(bytesRead, unused, handler) ->
-				{
-					if (remoteEndClosed(transport, bytesRead))
-					{
-						return Unit.INSTANCE;
-					}
-					if (buffer.hasRemaining())
-					{
-						transport.read(buffer, null, handler);
-					}
-					else
-					{
-						buffer.flip();
-						if (frame.isMasked)
-						{
-							final ByteBuffer mask = stripNull(frame.maskingKey);
-							for (int i = 0; i < frame.payloadLength; i++)
-							{
-								final int j = i & 3;
-								buffer.put(
-									i, (byte) (buffer.get(i) ^ mask.get(j)));
-							}
-						}
-						assert buffer.position() == 0;
-						frame.payloadData = buffer;
-						// The complete frame has been read, so invoke the
-						// continuation now.
-						continuation.value();
-					}
-					return Unit.INSTANCE;
-				},
-				(e, unused, handler) ->
-				{
-					logger.log(
-						Level.WARNING,
-						"failed while attempting to read payload",
-						e);
-					IO.close(channel);
-					return Unit.INSTANCE;
-				}));
-	}
-
-	/**
-	 * Send a WebSocket {@linkplain Frame frame} based on the specified
-	 * {@linkplain Opcode opcode} and {@linkplain ByteBuffer payload}.
-	 *
-	 * @param channel
-	 *        A {@linkplain WebSocketChannel channel}.
-	 * @param opcode
-	 *        The opcode.
-	 * @param payload
-	 *        The payload.
-	 * @param success
-	 *        What to do after sending the frame, or {@code null} if no
-	 *        post-send action is necessary.
-	 * @param failure
-	 *        What to do if the send fails, or {@code null} if no
-	 */
-	private static void sendFrame (
-		final WebSocketChannel channel,
-		final Opcode opcode,
-		final ByteBuffer payload,
-		final @Nullable Continuation0 success,
-		final @Nullable Continuation1<Throwable> failure)
-	{
-		final Frame frame = new Frame();
-		frame.isFinalFragment = true;
-		frame.isMasked = false;
-		frame.opcode = opcode;
-		frame.payloadData = payload;
-		frame.payloadLength = payload.limit();
-		final ByteBuffer buffer = frame.asByteBuffer();
-		final AsynchronousSocketChannel transport = channel.transport();
-		transport.write(
-			buffer,
-			null,
-			new SimpleCompletionHandler<>(
-				(result, unused, handler) ->
-				{
-					if (buffer.hasRemaining())
-					{
-						transport.write(buffer, null, handler);
-					}
-					else if (success != null)
-					{
-						success.value();
-					}
-					return Unit.INSTANCE;
-				},
-				(e, unused, handler) ->
-				{
-					logger.log(
-						Level.WARNING,
-						"failed while attempting to send " + opcode,
-						e);
-					// Don't recurse.
-					if (opcode == Opcode.CLOSE)
-					{
-						IO.close(transport);
-					}
-					else
-					{
-						IO.close(channel);
-					}
-					if (failure != null)
-					{
-						failure.value(e);
-					}
-					return Unit.INSTANCE;
-				}));
+					},
+					{ e, _, _ ->
+						logger.log(
+							Level.WARNING,
+							"failed while attempting to read 2-byte "
+							+ "payload size",
+							e)
+						IO.close(channel)
+					}))
 		}
 
-	/**
-	 * Send a {@linkplain Frame frame} bearing user data over the specified
-	 * {@linkplain WebSocketChannel channel}.
-	 *
-	 * @param channel
-	 *        A channel.
-	 * @param payload
-	 *        A payload.
-	 * @param success
-	 *        What to do after sending the frame.
-	 * @param failure
-	 *        What to do if sending the frame fails.
-	 */
-	@Override
-	public void sendUserData (
-		final AbstractTransportChannel<AsynchronousSocketChannel> channel,
-		final Message payload,
-		final @Nullable Continuation0 success,
-		final @Nullable Continuation1<Throwable> failure)
-	{
-		final WebSocketChannel strongChannel = (WebSocketChannel) channel;
-		final String content = payload.content();
-		final ByteBuffer buffer = StandardCharsets.UTF_8.encode(content);
-		sendFrame(strongChannel, Opcode.TEXT, buffer, success, failure);
-	}
-
-	/**
-	 * Send a {@link Opcode#CLOSE CLOSE} {@linkplain Frame frame} over the
-	 * specified {@linkplain WebSocketChannel channel}. Close the channel when
-	 * the frame has been sent.
-	 *
-	 * @param weakChannel
-	 *        A channel.
-	 */
-	@Override
-	public void sendClose (
-		final AbstractTransportChannel<AsynchronousSocketChannel> weakChannel)
-	{
-		final WebSocketChannel channel = (WebSocketChannel) weakChannel;
-		final ByteBuffer buffer = ByteBuffer.allocateDirect(2);
-		buffer.putShort(
-			(short) WebSocketStatusCode.NORMAL_CLOSURE.statusCode());
-		sendFrame(
-			channel,
-			Opcode.CLOSE,
-			buffer,
-			() -> IO.close(channel.transport()),
-			null);
-	}
-
-	/**
-	 * Send a {@link Opcode#PING PING} {@linkplain Frame frame} over the
-	 * specified {@linkplain WebSocketChannel channel}.
-	 *
-	 * @param channel
-	 *        A channel.
-	 * @param payloadData
-	 *        The payload.
-	 * @param success
-	 *        What to do after sending the frame.
-	 * @param failure
-	 *        What to do if sending the frame fails.
-	 */
-	@SuppressWarnings("unused")
-	static void sendPing (
-		final WebSocketChannel channel,
-		final byte[] payloadData,
-		final @Nullable Continuation0 success,
-		final @Nullable Continuation1<Throwable> failure)
-	{
-		final ByteBuffer buffer = ByteBuffer.wrap(payloadData);
-		sendFrame(channel, Opcode.PING, buffer, success, failure);
-	}
-
-	/**
-	 * Send a {@link Opcode#PONG PONG} {@linkplain Frame frame} over the
-	 * specified {@linkplain WebSocketChannel channel}.
-	 *
-	 * @param channel
-	 *        A channel.
-	 * @param payloadData
-	 *        The payload (which was supplied by a leading {@link Opcode#PING
-	 *        PING} frame).
-	 * @param success
-	 *        What to do after sending the frame.
-	 * @param failure
-	 *        What to do if sending the frame fails.
-	 */
-	@SuppressWarnings("SameParameterValue")
-	static void sendPong (
-		final WebSocketChannel channel,
-		final byte[] payloadData,
-		final @Nullable Continuation0 success,
-		final @Nullable Continuation1<Throwable> failure)
-	{
-		final ByteBuffer buffer = ByteBuffer.wrap(payloadData);
-		sendFrame(channel, Opcode.PONG, buffer, success, failure);
-	}
-
-	/**
-	 * Fail the WebSocket connection.
-	 *
-	 * @param channel
-	 *        A channel.
-	 * @param statusCode
-	 *        The {@linkplain WebSocketStatusCode status code}.
-	 * @param reasonMessage
-	 *        The reason message.
-	 */
-	static void fail (
-		final WebSocketChannel channel,
-		final WebSocketStatusCode statusCode,
-		final String reasonMessage)
-	{
-		final ByteBuffer utf8 = StandardCharsets.UTF_8.encode(reasonMessage);
-		final ByteBuffer buffer = ByteBuffer.allocateDirect(utf8.limit() + 2);
-		buffer.putShort((short) statusCode.statusCode());
-		buffer.put(utf8);
-		sendFrame(
-			channel,
-			Opcode.CLOSE,
-			buffer,
-			() -> IO.close(channel),
-			null);
-	}
-
-	@Override
-	public synchronized void close ()
-	{
-		if (serverChannel.isOpen())
+		/**
+		 * Read a 64-bit WebSocket payload length.
+		 *
+		 * @param channel
+		 *   A channel.
+		 * @param frame
+		 *   The current incoming [frame][Frame].
+		 * @param continuation
+		 *   What to do after the complete frame has been read.
+		 */
+		private fun readPayloadLength8ByteExtensionThen(
+			channel: WebSocketChannel,
+			frame: Frame,
+			continuation: ()->Unit)
 		{
-			IO.close(serverChannel);
+			val buffer = ByteBuffer.allocateDirect(8)
+			val transport = channel.transport
+			transport.read<Any>(
+				buffer,
+				null,
+				SimpleCompletionHandler(
+					{ bytesRead, _, handler ->
+						if (remoteEndClosed(transport, bytesRead))
+						{
+							return@SimpleCompletionHandler
+						}
+						if (buffer.hasRemaining())
+						{
+							transport.read<Any>(buffer, null, handler)
+						}
+						else
+						{
+							buffer.flip()
+							val len = buffer.long
+							assert(!buffer.hasRemaining())
+							if (len < 65536)
+							{
+								// Note that this covers the case where the MSB
+								// is set (which is forbidden).
+								fail(
+									channel,
+									WebSocketStatusCode.PROTOCOL_ERROR,
+									"8-byte encoding for length=$len")
+							}
+							else if (len > Message.MAX_SIZE)
+							{
+								fail(
+									channel,
+									WebSocketStatusCode.MESSAGE_TOO_BIG,
+									"length="
+										+ len
+										+ " exceeds maximum length of "
+										+ Message.MAX_SIZE)
+							}
+							else
+							{
+								frame.payloadLength = len
+								if (frame.isMasked)
+								{
+									readMaskingKeyThen(
+										channel, frame, continuation)
+								}
+								else
+								{
+									readPayloadDataThen(
+										channel, frame, continuation)
+								}
+							}
+						}
+					},
+					{ e, _, _ ->
+						logger.log(
+							Level.WARNING,
+							"failed while attempting to read 8-byte "
+							+ "payload size",
+							e)
+						IO.close(channel)
+					}))
+		}
+
+		/**
+		 * Read the payload masking key.
+		 *
+		 * @param channel
+		 *   A channel.
+		 * @param frame
+		 *   The current incoming [frame][Frame].
+		 * @param continuation
+		 *   What to do after the complete frame has been read.
+		 */
+		private fun readMaskingKeyThen(
+			channel: WebSocketChannel,
+			frame: Frame,
+			continuation: ()->Unit)
+		{
+			val buffer = ByteBuffer.allocateDirect(4)
+			val transport = channel.transport
+			transport.read<Any>(
+				buffer,
+				null,
+				SimpleCompletionHandler(
+					{ bytesRead, _, handler ->
+						if (remoteEndClosed(transport, bytesRead))
+						{
+							return@SimpleCompletionHandler
+						}
+						if (buffer.hasRemaining())
+						{
+							transport.read<Any>(buffer, null, handler)
+						}
+						else
+						{
+							buffer.flip()
+							frame.maskingKey = buffer
+							readPayloadDataThen(channel, frame, continuation)
+						}
+					},
+					{ e, _, _ ->
+						logger.log(
+							Level.WARNING,
+							"failed while attempting to read masking key",
+							e)
+						IO.close(channel)
+					}))
+		}
+
+		/**
+		 * Read the payload data.
+		 *
+		 * @param channel
+		 *   A channel.
+		 * @param frame
+		 *   The current incoming [frame][Frame].
+		 * @param continuation
+		 *   What to do after the complete frame has been read.
+		 */
+		private fun readPayloadDataThen(
+			channel: WebSocketChannel,
+			frame: Frame,
+			continuation: ()->Unit)
+		{
+			val len = frame.payloadLength.toInt()
+			assert(len.toLong() == frame.payloadLength)
+			val buffer = ByteBuffer.allocate(len)
+			val transport = channel.transport
+			transport.read<Any>(
+				buffer,
+				null,
+				SimpleCompletionHandler(
+					{ bytesRead, _, handler ->
+						if (remoteEndClosed(transport, bytesRead))
+						{
+							return@SimpleCompletionHandler
+						}
+						if (buffer.hasRemaining())
+						{
+							transport.read<Any>(buffer, null, handler)
+						}
+						else
+						{
+							buffer.flip()
+							if (frame.isMasked)
+							{
+								val mask = stripNull(frame.maskingKey)
+								for (i in 0 until frame.payloadLength.toInt())
+								{
+									val j = i and 3
+									buffer.put(
+										i, (buffer.get(i) xor mask.get(j)))
+								}
+							}
+							assert(buffer.position() == 0)
+							frame.payloadData = buffer
+							// The complete frame has been read, so invoke the
+							// continuation now.
+							continuation()
+						}
+					},
+					{ e, _, _ ->
+						logger.log(
+							Level.WARNING,
+							"failed while attempting to read payload",
+							e)
+						IO.close(channel)
+					}))
+		}
+
+		/**
+		 * Send a WebSocket [frame][Frame] based on the specified
+		 * [opcode][Opcode] and [payload][ByteBuffer].
+		 *
+		 * @param channel
+		 *   A [channel][WebSocketChannel].
+		 * @param opcode
+		 *   The opcode.
+		 * @param payload
+		 *   The payload.
+		 * @param success
+		 *   What to do after sending the frame, or `null` if no post-send
+		 *   action is necessary.
+		 * @param failure
+		 *   What to do if the send fails, or `null` if no failure action is
+		 *   necessary.
+		 */
+		private fun sendFrame(
+			channel: WebSocketChannel,
+			opcode: Opcode,
+			payload: ByteBuffer,
+			success: (()->Unit)? = null,
+			failure: ((Throwable)->Unit)? = null)
+		{
+			val frame = Frame()
+			frame.isFinalFragment = true
+			frame.isMasked = false
+			frame.opcode = opcode
+			frame.payloadData = payload
+			frame.payloadLength = payload.limit().toLong()
+			val buffer = frame.asByteBuffer()
+			val transport = channel.transport
+			transport.write<Any>(
+				buffer,
+				null,
+				SimpleCompletionHandler(
+					{ _, _, handler ->
+						if (buffer.hasRemaining())
+						{
+							transport.write<Any>(buffer, null, handler)
+						}
+						else success?.invoke()
+					},
+					{ e, _, _ ->
+						logger.log(
+							Level.WARNING,
+							"failed while attempting to send $opcode",
+							e)
+						// Don't recurse.
+						if (opcode === Opcode.CLOSE)
+						{
+							IO.close(transport)
+						}
+						else
+						{
+							IO.close(channel)
+						}
+						failure?.invoke(e)
+					}))
+		}
+
+		/**
+		 * Send a [PING][Opcode.PING] [frame][Frame] over the specified
+		 * [channel][WebSocketChannel].
+		 *
+		 * @param channel
+		 *   A channel.
+		 * @param payloadData
+		 *   The payload.
+		 * @param success
+		 *   What to do after sending the frame.
+		 * @param failure
+		 *   What to do if sending the frame fails.
+		 */
+		@Suppress("unused")
+		internal fun sendPing(
+			channel: WebSocketChannel,
+			payloadData: ByteArray,
+			success: (()->Unit)?,
+			failure: ((Throwable)->Unit)?)
+		{
+			val buffer = ByteBuffer.wrap(payloadData)
+			sendFrame(channel, Opcode.PING, buffer, success, failure)
+		}
+
+		/**
+		 * Send a [PONG][Opcode.PONG] [frame][Frame] over the specified
+		 * [channel][WebSocketChannel].
+		 *
+		 * @param channel
+		 *   A channel.
+		 * @param payloadData
+		 *   The payload (which was supplied by a leading [PING][Opcode.PING]
+		 *   frame).
+		 * @param success
+		 *   What to do after sending the frame.
+		 * @param failure
+		 *   What to do if sending the frame fails.
+		 */
+		internal fun sendPong(
+			channel: WebSocketChannel,
+			payloadData: ByteArray,
+			success: (()->Unit)?,
+			failure: ((Throwable)->Unit)?)
+		{
+			val buffer = ByteBuffer.wrap(payloadData)
+			sendFrame(channel, Opcode.PONG, buffer, success, failure)
+		}
+
+		/**
+		 * Fail the WebSocket connection.
+		 *
+		 * @param channel
+		 *   A channel.
+		 * @param statusCode
+		 *   The [status code][WebSocketStatusCode].
+		 * @param reasonMessage
+		 *   The reason message.
+		 */
+		private fun fail(
+			channel: WebSocketChannel,
+			statusCode: WebSocketStatusCode,
+			reasonMessage: String)
+		{
+			val utf8 = StandardCharsets.UTF_8.encode(reasonMessage)
+			val buffer = ByteBuffer.allocateDirect(utf8.limit() + 2)
+			buffer.putShort(statusCode.statusCode.toShort())
+			buffer.put(utf8)
+			sendFrame(
+				channel,
+				Opcode.CLOSE,
+				buffer,
+				{ IO.close(channel) })
 		}
 	}
 }

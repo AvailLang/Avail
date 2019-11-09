@@ -1,6 +1,6 @@
 /*
- * WebSocketChannel.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * WebSocketChannel.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,120 +30,80 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.server.io;
+package com.avail.server.io
 
-import com.avail.server.messages.Message;
-import com.avail.utility.IO;
+import com.avail.server.messages.Message
+import com.avail.utility.IO
 
-import java.nio.channels.AsynchronousSocketChannel;
+import java.nio.channels.AsynchronousSocketChannel
 
 /**
- * A {@code WebSocketChannel} encapsulates an {@link AsynchronousSocketChannel}
- * created by a {@code WebSocketAdapter}.
+ * A `WebSocketChannel` encapsulates an [AsynchronousSocketChannel] created by a
+ * `WebSocketAdapter`.
  *
+ * @property adapter
+ *   The [WebSocketAdapter] that created this [channel][WebSocketChannel].
+ * @property transport
+ *   The [channel][AsynchronousSocketChannel] used by the associated
+ *   [WebSocketAdapter].
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct a new `WebSocketChannel`.
+ *
+ * @param adapter
+ *   The [WebSocketAdapter].
+ * @param transport
+ *   The [channel][AsynchronousSocketChannel].
  */
-final class WebSocketChannel
-extends AbstractTransportChannel<AsynchronousSocketChannel>
+internal class WebSocketChannel constructor(
+	override val adapter: WebSocketAdapter,
+	override val transport: AsynchronousSocketChannel)
+: AbstractTransportChannel<AsynchronousSocketChannel>()
 {
-	/**
-	 * The {@link WebSocketAdapter} that created this {@linkplain
-	 * WebSocketChannel channel}.
-	 */
-	final WebSocketAdapter adapter;
+	override val isOpen get() = transport.isOpen
+	override val maximumSendQueueDepth = MAX_QUEUE_DEPTH
+	override val maximumReceiveQueueDepth = MAX_QUEUE_DEPTH
 
-	@Override
-	public WebSocketAdapter adapter ()
-	{
-		return adapter;
-	}
-
-	/**
-	 * The {@linkplain AsynchronousSocketChannel channel} used by the associated
-	 * {@link WebSocketAdapter}.
-	 */
-	private final AsynchronousSocketChannel transport;
-
-	@Override
-	public AsynchronousSocketChannel transport ()
-	{
-		return transport;
-	}
-
-	@Override
-	public boolean isOpen ()
-	{
-		return transport.isOpen();
-	}
-
-	/**
-	 * Construct a new {@code WebSocketChannel}.
-	 *
-	 * @param adapter
-	 *        The {@link WebSocketAdapter}.
-	 * @param transport
-	 *        The {@linkplain AsynchronousSocketChannel channel}.
-	 */
-	WebSocketChannel (
-		final WebSocketAdapter adapter,
-		final AsynchronousSocketChannel transport)
-	{
-		this.adapter = adapter;
-		this.transport = transport;
-	}
-
-	/**
-	 * The maximum number of {@linkplain Message messages} permitted on the
-	 * {@linkplain #sendQueue queue}.
-	 */
-	private static final int MAX_QUEUE_DEPTH = 10;
-
-	@Override
-	protected int maximumSendQueueDepth ()
-	{
-		return MAX_QUEUE_DEPTH;
-	}
-
-	@Override
-	protected int maximumReceiveQueueDepth ()
-	{
-		return MAX_QUEUE_DEPTH;
-	}
-
-	/**
-	 * {@code true} if the WebSocket handshake succeeded, {@code false}
-	 * otherwise.
-	 */
-	private boolean handshakeSucceeded;
+	/** `true` if the WebSocket handshake succeeded, `false` otherwise. */
+	private var handshakeSucceeded = false
 
 	/**
 	 * Record the fact that the WebSocket handshake succeeded.
 	 */
-	public void handshakeSucceeded ()
+	fun handshakeSucceeded()
 	{
-		handshakeSucceeded = true;
+		handshakeSucceeded = true
 	}
 
-	@Override
-	public void close ()
+	override fun close()
 	{
 		if (handshakeSucceeded)
 		{
-			synchronized (sendQueue)
-			{
+			synchronized(sendQueue) {
 				if (!sendQueue.isEmpty())
 				{
-					closeAfterEmptyingSendQueue();
+					shouldCloseAfterEmptyingSendQueue = true
 				}
 				else
 				{
-					adapter.sendClose(this);
+					adapter.sendClose(this)
 				}
 			}
 		}
 		else
 		{
-			IO.close(transport);
+			IO.close(transport)
 		}
+	}
+
+	companion object
+	{
+		/**
+		 * The maximum number of [messages][Message] permitted on the
+		 * [queue][sendQueue].
+		 */
+		private const val MAX_QUEUE_DEPTH = 10
 	}
 }

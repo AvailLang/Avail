@@ -1,6 +1,6 @@
 /*
- * SimpleCommandMessage.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * SimpleCommandMessage.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,86 +30,75 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.server.messages;
+package com.avail.server.messages
 
-import com.avail.server.AvailServer;
-import com.avail.server.io.AvailServerChannel;
-import com.avail.utility.evaluation.Continuation0;
-
-import static com.avail.server.AvailServer.commandsThen;
+import com.avail.server.AvailServer.Companion.commandsThen
+import com.avail.server.io.AvailServerChannel
+import com.avail.server.messages.Command.ALL_FIBERS
+import com.avail.server.messages.Command.CLEAR_REPOSITORIES
+import com.avail.server.messages.Command.COMMANDS
+import com.avail.server.messages.Command.ENTRY_POINTS
+import com.avail.server.messages.Command.LOAD_MODULE
+import com.avail.server.messages.Command.MODULE_ROOTS
+import com.avail.server.messages.Command.MODULE_ROOTS_PATH
+import com.avail.server.messages.Command.MODULE_ROOT_PATHS
+import com.avail.server.messages.Command.RUN_ENTRY_POINT
+import com.avail.server.messages.Command.SOURCE_MODULES
+import com.avail.server.messages.Command.UNLOAD_ALL_MODULES
+import com.avail.server.messages.Command.UNLOAD_MODULE
+import com.avail.server.messages.Command.UPGRADE
+import com.avail.server.messages.Command.VERSION
 
 /**
- * A {@code SimpleCommandMessage} contains no state beyond the style of
- * {@linkplain Command command}.
+ * A `SimpleCommandMessage` contains no state beyond the style of
+ * [command][Command].
  *
+ * @property command
+ *   The [command][Command].
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct a new `SimpleCommandMessage`.
+ *
+ * @param command
+ *   The [command][Command].
  */
-public final class SimpleCommandMessage
-extends CommandMessage
+class SimpleCommandMessage internal constructor(
+	override val command: Command) : CommandMessage()
 {
-	/** The {@linkplain Command command}. */
-	private final Command command;
-
-	@Override
-	public Command command ()
+	override fun processThen(
+		channel: AvailServerChannel,
+		continuation: ()->Unit)
 	{
-		return command;
-	}
-
-	/**
-	 * Construct a new {@code SimpleCommandMessage}.
-	 *
-	 * @param command
-	 *        The {@linkplain Command command}.
-	 */
-	SimpleCommandMessage (final Command command)
-	{
-		this.command = command;
-	}
-
-	@Override
-	public void processThen (
-		final AvailServerChannel channel,
-		final Continuation0 continuation)
-	{
-		final AvailServer server = channel.server();
-		switch (command)
+		val server = channel.server
+		when (command)
 		{
-			case COMMANDS:
-				commandsThen(channel, this, continuation);
-				break;
-			case MODULE_ROOTS:
-				server.moduleRootsThen(channel, this, continuation);
-				break;
-			case MODULE_ROOT_PATHS:
-				server.moduleRootPathsThen(channel, this, continuation);
-				break;
-			case MODULE_ROOTS_PATH:
-				server.moduleRootsPathThen(channel, this, continuation);
-				break;
-			case SOURCE_MODULES:
-				server.sourceModulesThen(channel, this, continuation);
-				break;
-			case ENTRY_POINTS:
-				server.entryPointsThen(channel, this, continuation);
-				break;
-			case CLEAR_REPOSITORIES:
-				server.clearRepositoriesThen(channel, this, continuation);
-				break;
-			case UNLOAD_ALL_MODULES:
+			COMMANDS ->
+				commandsThen(channel, this, continuation)
+			MODULE_ROOTS ->
+				server.moduleRootsThen(channel, this, continuation)
+			MODULE_ROOT_PATHS ->
+				server.moduleRootPathsThen(channel, this, continuation)
+			MODULE_ROOTS_PATH ->
+				server.moduleRootsPathThen(channel, this, continuation)
+			SOURCE_MODULES ->
+				server.sourceModulesThen(channel, this, continuation)
+			ENTRY_POINTS ->
+				server.entryPointsThen(channel, this, continuation)
+			CLEAR_REPOSITORIES ->
+				server.clearRepositoriesThen(channel, this, continuation)
+			UNLOAD_ALL_MODULES ->
 				server.requestUpgradesForUnloadAllModulesThen(
-					channel, this, continuation);
-				break;
-			case ALL_FIBERS:
-				server.allFibersThen(channel, this, continuation);
-				break;
-			case VERSION:
-			case UPGRADE:
-			case LOAD_MODULE:
-			case UNLOAD_MODULE:
-			case RUN_ENTRY_POINT:
-				assert false : "This command should not be dispatched here!";
-				break;
+					channel, this, continuation)
+			ALL_FIBERS ->
+				server.allFibersThen(channel, this, continuation)
+			VERSION,
+			UPGRADE,
+			LOAD_MODULE,
+			UNLOAD_MODULE,
+			RUN_ENTRY_POINT ->
+				assert(false) { "This command should not be dispatched here!" }
 		}
 	}
 }

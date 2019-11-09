@@ -1,6 +1,6 @@
 /*
- * Command.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Command.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,141 +30,119 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.server.messages;
+package com.avail.server.messages
 
-import com.avail.AvailRuntime;
-import com.avail.builder.ModuleName;
-import com.avail.builder.ModuleRoot;
-import com.avail.builder.ModuleRoots;
-import com.avail.descriptor.A_Fiber;
-import com.avail.descriptor.A_Module;
-import com.avail.persistence.IndexedRepositoryManager;
-import com.avail.server.AvailServer;
-import com.avail.server.io.AvailServerChannel;
-import com.avail.utility.json.JSONWriter;
-
-import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Formatter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import static com.avail.utility.Nulls.stripNull;
-import static java.lang.String.format;
+import com.avail.AvailRuntime
+import com.avail.builder.ModuleName
+import com.avail.builder.ModuleRoot
+import com.avail.builder.ModuleRoots
+import com.avail.descriptor.A_Fiber
+import com.avail.descriptor.A_Module
+import com.avail.persistence.IndexedRepositoryManager
+import com.avail.server.AvailServer
+import com.avail.server.io.AvailServerChannel
+import com.avail.server.messages.Command.TrieNode
+import com.avail.server.messages.Command.TrieNode.Companion.trie
+import com.avail.utility.Nulls.stripNull
+import java.lang.String.format
+import java.util.*
 
 /**
- * To direct the activities of an {@linkplain AvailServer Avail server}, a
- * client sends {@linkplain CommandMessage command messages} that encode {@code
- * Command}s. The {@code Command} {@code enum} codifies the set of possible
- * commands, and each member specifies the decoding logic.
+ * To direct the activities of an [Avail server][AvailServer], a client sends
+ * [command messages][CommandMessage] that encode `Command`s. The `Command`
+ * `enum` codifies the set of possible commands, and each member specifies the
+ * decoding logic.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct a new `Command`. If it doesn't [require special
+ * parsing][requiresSpecialParsing], then add it to the parsing [TrieNode.trie]
+ * (treating the tokenization of its [name][name] on underscore boundaries as
+ * its syntax).
  */
-public enum Command
+enum class Command
 {
 	/**
 	 * Negotiate a protocol version.
 	 */
 	VERSION
 	{
-		@Override
-		boolean requiresSpecialParsing ()
-		{
-			return true;
-		}
+		override val requiresSpecialParsing get() = true
+		override val syntaxHelp get() = "VERSION <version: INTEGER>"
 
-		@Override
-		public String syntaxHelp ()
+		override fun parse(source: String): CommandMessage?
 		{
-			return "VERSION <version: INTEGER>";
-		}
+			val tokens = source.split("\\s+".toRegex(), 2)
+			if (tokens.size < 2
+				|| !tokens[0].equals("version", ignoreCase = true))
+			{
+				return null
+			}
+			return try
+			{
+				VersionCommandMessage(Integer.parseInt(tokens[1]))
+			}
+			catch (e: NumberFormatException)
+			{
+				null
+			}
 
-		@Override
-		public @Nullable CommandMessage parse (final String source)
-		{
-			final String[] tokens = source.split("\\s+", 2);
-			if (tokens.length < 2 || !tokens[0].equalsIgnoreCase("version"))
-			{
-				return null;
-			}
-			final int version;
-			try
-			{
-				version = Integer.parseInt(tokens[1]);
-			}
-			catch (final NumberFormatException e)
-			{
-				return null;
-			}
-			return new VersionCommandMessage(version);
 		}
 	},
 
 	/**
-	 * Upgrade the receiving {@linkplain AvailServerChannel channel} using a
-	 * server-forged {@link UUID}.
+	 * Upgrade the receiving [channel][AvailServerChannel] using a server-forged
+	 * [UUID].
 	 */
 	UPGRADE
 	{
-		@Override
-		boolean requiresSpecialParsing ()
-		{
-			return true;
-		}
+		override val requiresSpecialParsing get() = true
+		override val syntaxHelp get() = "UPGRADE <dashed: UUID>"
 
-		@Override
-		public String syntaxHelp ()
+		override fun parse(source: String): CommandMessage?
 		{
-			return "UPGRADE <dashed: UUID>";
-		}
+			val tokens = source.split("\\s+".toRegex(), 2)
+			if (tokens.size < 2
+				|| !tokens[0].equals("upgrade", ignoreCase = true))
+			{
+				return null
+			}
+			return try
+			{
+				UpgradeCommandMessage(UUID.fromString(tokens[1]))
+			}
+			catch (e: IllegalArgumentException)
+			{
+				null
+			}
 
-		@Override
-		public @Nullable CommandMessage parse (final String source)
-		{
-			final String[] tokens = source.split("\\s+", 2);
-			if (tokens.length < 2 || !tokens[0].equalsIgnoreCase("upgrade"))
-			{
-				return null;
-			}
-			final UUID uuid;
-			try
-			{
-				uuid = UUID.fromString(tokens[1]);
-			}
-			catch (final IllegalArgumentException e)
-			{
-				return null;
-			}
-			return new UpgradeCommandMessage(uuid);
 		}
 	},
 
 	/**
-	 * List all {@linkplain Command commands}.
+	 * List all [commands][Command].
 	 */
 	COMMANDS,
 
 	/**
-	 * List all {@linkplain ModuleRoot module roots}.
+	 * List all [module roots][ModuleRoot].
 	 */
 	MODULE_ROOTS,
 
 	/**
-	 * List all {@linkplain ModuleRoots#writePathsOn(JSONWriter) module root
-	 * paths}.
+	 * List all [module root paths][ModuleRoots.writePathsOn].
 	 */
 	MODULE_ROOT_PATHS,
 
 	/**
-	 * Answer the {@linkplain ModuleRoots#getModulePath() module roots path}.
+	 * Answer the [module roots path][ModuleRoots.modulePath].
 	 */
 	MODULE_ROOTS_PATH,
 
 	/**
-	 * List all source modules reachable from the {@linkplain ModuleRoot module
-	 * roots}.
+	 * List all source modules reachable from the [module roots][ModuleRoot].
 	 */
 	SOURCE_MODULES,
 
@@ -174,90 +152,66 @@ public enum Command
 	ENTRY_POINTS,
 
 	/**
-	 * Clear all {@linkplain IndexedRepositoryManager binary module
-	 * repositories}.
+	 * Clear all [binary module repositories][IndexedRepositoryManager].
 	 */
 	CLEAR_REPOSITORIES,
 
 	/**
-	 * Load the {@linkplain A_Module module} whose source is given by the
-	 * specified fully-qualified path.
+	 * Load the [module][A_Module] whose source is given by the specified
+	 * fully-qualified path.
 	 */
 	LOAD_MODULE
 	{
-		@Override
-		boolean requiresSpecialParsing ()
-		{
-			return true;
-		}
+		override val requiresSpecialParsing get() = true
+		override val syntaxHelp get() = "LOAD MODULE <fully-qualified: MODULE>"
 
-		@Override
-		public String syntaxHelp ()
+		override fun parse(source: String): LoadModuleCommandMessage?
 		{
-			return "LOAD MODULE <fully-qualified: MODULE>";
-		}
-
-		@Override
-		public @Nullable LoadModuleCommandMessage parse (final String source)
-		{
-			final String[] tokens = source.split("\\s+", 3);
-			if (tokens.length < 3
-				|| !tokens[0].equalsIgnoreCase("load")
-				|| !tokens[1].equalsIgnoreCase("module"))
+			val tokens = source.split("\\s+".toRegex(), 3)
+			if (tokens.size < 3
+				|| !tokens[0].equals("load", ignoreCase = true)
+				|| !tokens[1].equals("module", ignoreCase = true))
 			{
-				return null;
+				return null
 			}
-			final ModuleName name;
-			try
+			return try
 			{
-				name = new ModuleName(tokens[2]);
+				LoadModuleCommandMessage(ModuleName(tokens[2]))
 			}
-			catch (final IllegalArgumentException e)
+			catch (e: IllegalArgumentException)
 			{
-				return null;
+				null
 			}
-			return new LoadModuleCommandMessage(name);
 		}
 	},
 
 	/**
-	 * Unload the {@linkplain A_Module module} whose source is given by the
-	 * specified fully-qualified path.
+	 * Unload the [module][A_Module] whose source is given by the specified
+	 * fully-qualified path.
 	 */
 	UNLOAD_MODULE
 	{
-		@Override
-		boolean requiresSpecialParsing ()
-		{
-			return true;
-		}
+		override val requiresSpecialParsing get() = true
+		override val syntaxHelp get() =
+			"UNLOAD MODULE <fully-qualified: MODULE>"
 
-		@Override
-		public String syntaxHelp ()
+		override fun parse(source: String): CommandMessage?
 		{
-			return "UNLOAD MODULE <fully-qualified: MODULE>";
-		}
-
-		@Override
-		public @Nullable CommandMessage parse (final String source)
-		{
-			final String[] tokens = source.split("\\s+", 3);
-			if (tokens.length < 3
-				|| !tokens[0].equalsIgnoreCase("unload")
-				|| !tokens[1].equalsIgnoreCase("module"))
+			val tokens = source.split("\\s+".toRegex(), 3)
+			if (tokens.size < 3
+				|| !tokens[0].equals("unload", ignoreCase = true)
+				|| !tokens[1].equals("module", ignoreCase = true))
 			{
-				return null;
+				return null
 			}
-			final ModuleName name;
-			try
+			return try
 			{
-				name = new ModuleName(tokens[2]);
+				UnloadModuleCommandMessage(ModuleName(tokens[2]))
 			}
-			catch (final IllegalArgumentException e)
+			catch (e: IllegalArgumentException)
 			{
-				return null;
+				null
 			}
-			return new UnloadModuleCommandMessage(name);
 		}
 	},
 
@@ -271,317 +225,285 @@ public enum Command
 	 */
 	RUN_ENTRY_POINT
 	{
-		@Override
-		boolean requiresSpecialParsing ()
-		{
-			return true;
-		}
+		override val requiresSpecialParsing get() = true
+		override val syntaxHelp get() = "RUN <entry-point-command: EXPRESSION>"
 
-		@Override
-		public String syntaxHelp ()
+		override fun parse(source: String): RunEntryPointCommandMessage?
 		{
-			return "RUN <entry-point-command: EXPRESSION>";
-		}
-
-		@Override
-		public @Nullable RunEntryPointCommandMessage parse (final String source)
-		{
-			final String[] tokens = source.split("\\s+", 2);
-			if (tokens.length < 2 || !tokens[0].equalsIgnoreCase("run"))
-			{
-				return null;
-			}
-			return new RunEntryPointCommandMessage(tokens[1]);
+			val tokens = source.split("\\s+".toRegex(), 2)
+			return (
+				if (tokens.size < 2
+					|| !tokens[0].equals("run", ignoreCase = true))
+				{
+					null
+				}
+				else RunEntryPointCommandMessage(tokens[1]))
 		}
 	},
 
 	/**
-	 * View all {@linkplain A_Fiber fibers} associated with the {@linkplain
-	 * AvailServer server}'s {@linkplain AvailRuntime runtime}.
+	 * View all [fibers][A_Fiber] associated with the [server][AvailServer]'s
+	 * [runtime][AvailRuntime].
 	 */
 	ALL_FIBERS;
 
-	/** An array of all {@link Command} enumeration values. */
-	private static final Command[] all = values();
-
 	/**
-	 * Answer an array of all {@link Command} enumeration values.
-	 *
-	 * @return An array of all {@link Command} enum values.  Do not
-	 *         modify the array.
+	 * The tokenized syntax of the [command][Command], or `null` if the command
+	 * does not have fixed syntax.
 	 */
-	public static Command[] all ()
-	{
-		return all;
-	}
+	private val syntax: Array<String>?
 
 	/**
-	 * Do {@linkplain CommandMessage command messages} of this {@linkplain
-	 * Command form} require special parsing?
-	 *
-	 * @return {@code true} if special parsing is required, {@code false}
-	 *         otherwise.
+	 * `true` iff [command messages][CommandMessage] of this [form][Command]
+	 * require special parsing, `false` otherwise.
 	 */
-	boolean requiresSpecialParsing ()
-	{
-		return false;
-	}
+	internal open val requiresSpecialParsing get() = false
 
 	/**
-	 * Apply special parsing logic to produce a {@linkplain CommandMessage
-	 * command message} for this form of {@linkplain Command command}.
+	 * Apply special parsing logic to produce a [command
+	 * message][CommandMessage] for this form of [command][Command].
 	 *
 	 * @param source
-	 *        The source of the command.
-	 * @return A command message, or {@code null} if the tokens could not be
-	 *         understood as a command of this kind.
+	 *   The source of the command.
+	 * @return
+	 *   A command message, or `null` if the tokens could not be understood as a
+	 *   command of this kind.
 	 */
-	public @Nullable CommandMessage parse (final String source)
+	open fun parse(source: String): CommandMessage?
 	{
-		throw new UnsupportedOperationException();
+		throw UnsupportedOperationException()
 	}
 
 	/**
-	 * The tokenized syntax of the {@linkplain Command command}, or {@code null}
-	 * if the command does not have fixed syntax.
+	 * A [description][String] of the syntax of the [command][Command]. This
+	 * description should be helpful to a human.
 	 */
-	private final @Nullable String[] syntax;
-
-	/**
-	 * Answer a {@linkplain String description} of the syntax of the {@linkplain
-	 * Command command}. This description should be helpful to a human.
-	 *
-	 * @return A concise syntax guide.
-	 */
-	public String syntaxHelp ()
-	{
-		// This method should be overridden by any member that requires special
-		// parsing.
-		assert !requiresSpecialParsing();
-		final String[] tokens = stripNull(syntax);
-		final StringBuilder builder = new StringBuilder();
-		boolean first = true;
-		for (final String token : tokens)
+	open val syntaxHelp: String
+		get()
 		{
-			if (!first)
+			// This method should be overridden by any member that requires
+			// special parsing.
+			assert(!requiresSpecialParsing)
+			val tokens = stripNull(syntax)
+			val builder = StringBuilder()
+			var first = true
+			for (token in tokens)
 			{
-				builder.append(' ');
-			}
-			builder.append(token);
-			first = false;
-		}
-		return builder.toString();
-	}
-
-	/**
-	 * A {@code TrieNode} represents a {@linkplain Command command} prefix
-	 * within the {@linkplain #trie}.
-	 */
-	static final class TrieNode
-	{
-		/**
-		 * The {@linkplain Command command} indicated by the prefix
-		 * leading up to this {@linkplain TrieNode node}, or {@code null} if no
-		 * command is indicated.
-		 */
-		@Nullable Command command;
-
-		/**
-		 * The transition {@linkplain Map map}, indexed by following {@linkplain
-		 * String token}.
-		 */
-		final Map<String, TrieNode> nextNodes = new HashMap<>();
-
-		/**
-		 * The root of the trie for parsing {@linkplain Command commands}.
-		 */
-		private static final TrieNode trie = new TrieNode();
-
-		/**
-		 * Add the specified {@linkplain Command command} to the parse
-		 * {@linkplain #trie}, using the given array of {@link String}s as the
-		 * tokenized syntax of the command. All tokens are added as minuscule.
-		 *
-		 * @param command
-		 *        A command.
-		 * @param syntax
-		 *        The tokenized syntax of the command.
-		 */
-		static void addCommand (
-			final Command command,
-			final String... syntax)
-		{
-			TrieNode node = trie;
-			for (final String token : syntax)
-			{
-				final String lowercase = token.toLowerCase();
-				node = node.nextNodes.computeIfAbsent(
-					lowercase, k -> new TrieNode());
-			}
-			final @Nullable Command existingCommand = node.command;
-			assert existingCommand == null : format(
-				"Commands %s and %s have the same syntax!",
-				existingCommand.name(),
-				command.name());
-			node.command = command;
-		}
-
-		/**
-		 * The {@linkplain Command commands} that {@linkplain
-		 * #requiresSpecialParsing() require special parsing}.
-		 */
-		private static final List<Command> speciallyParsedCommands =
-			new ArrayList<>(10);
-
-		/**
-		 * Add the specified {@linkplain Command command} to the {@linkplain
-		 * #speciallyParsedCommands list} of {@linkplain
-		 * #requiresSpecialParsing() specially parsed commands}.
-		 *
-		 * @param command
-		 *        A specially parsed command.
-		 */
-		static void addSpeciallyParsedCommand (final Command command)
-		{
-			assert command.requiresSpecialParsing();
-			speciallyParsedCommands.add(command);
-		}
-
-		/**
-		 * Parse a {@linkplain Command command} using the parsing {@linkplain
-		 * #trie}.
-		 *
-		 * @param source
-		 *        The source of the command.
-		 * @return A command, or {@code null} if no command satisfied the
-		 *         given syntax.
-		 */
-		private static @Nullable Command parseSimpleCommand (
-			final String source)
-		{
-			TrieNode node = trie;
-			final String[] tokens = source.split("\\s+");
-			for (final String token : tokens)
-			{
-				final TrieNode nextNode = node.nextNodes.get(
-					token.toLowerCase());
-				if (nextNode == null)
+				if (!first)
 				{
-					return null;
+					builder.append(' ')
 				}
-				node = nextNode;
+				builder.append(token)
+				first = false
 			}
-			return node.command;
+			return builder.toString()
 		}
 
+	/**
+	 * A `TrieNode` represents a [command][Command] prefix within the [trie].
+	 */
+	internal class TrieNode
+	{
 		/**
-		 * Parse one or more {@linkplain CommandMessage command messages} from
-		 * the specified {@linkplain String source}.
-		 *
-		 * @param source
-		 *        The source of the command.
-		 * @return A {@linkplain List list} of command messages.
+		 * The [command][Command] indicated by the prefix leading up to this
+		 * [node][TrieNode], or `null` if no command is indicated.
 		 */
-		static List<CommandMessage> parseCommands (final String source)
+		var command: Command? = null
+
+		/**
+		 * The transition [map][Map], indexed by following [token][String].
+		 */
+		val nextNodes: MutableMap<String, TrieNode> = HashMap()
+
+		companion object
 		{
-			final List<CommandMessage> parsedCommands = new ArrayList<>();
-			final @Nullable Command simpleCommand = parseSimpleCommand(source);
-			if (simpleCommand != null)
+			/** The root of the trie for parsing [commands][Command]. */
+			private val trie = TrieNode()
+
+			/**
+			 * Add the specified [command][Command] to the parse [trie], using
+			 * the given array of [String]s as the tokenized syntax of the
+			 * command. All tokens are added as minuscule.
+			 *
+			 * @param command
+			 *   A command.
+			 * @param syntax
+			 *   The tokenized syntax of the command.
+			 */
+			fun addCommand(command: Command, vararg syntax: String)
 			{
-				parsedCommands.add(new SimpleCommandMessage(simpleCommand));
-			}
-			for (final Command command : speciallyParsedCommands)
-			{
-				try
+				var node = trie
+				for (token in syntax)
 				{
-					final @Nullable CommandMessage commandMessage =
-						command.parse(source);
-					if (commandMessage != null)
-					{
-						parsedCommands.add(commandMessage);
+					val lowercase = token.toLowerCase()
+					node = node.nextNodes.computeIfAbsent(lowercase) {
+						TrieNode()
 					}
 				}
-				catch (final UnsupportedOperationException e)
-				{
-					assert false :
-						"Attempted to specially parse a simple command!";
-					throw e;
+				val existingCommand = node.command
+				assert(existingCommand == null) {
+					format(
+						"Commands %s and %s have the same syntax!",
+						existingCommand!!.name,
+						command.name)
 				}
+				node.command = command
 			}
-			return parsedCommands;
+
+			/**
+			 * The [commands][Command] that [require special
+			 * parsing][requiresSpecialParsing].
+			 */
+			private val speciallyParsedCommands = ArrayList<Command>(10)
+
+			/**
+			 * Add the specified [command][Command] to the
+			 * [list][speciallyParsedCommands] of [specially parsed
+			 * commands][requiresSpecialParsing].
+			 *
+			 * @param command
+			 *   A specially parsed command.
+			 */
+			fun addSpeciallyParsedCommand(command: Command)
+			{
+				println("GOT HERE: $command")
+				assert(command.requiresSpecialParsing)
+				speciallyParsedCommands.add(command)
+			}
+
+			/**
+			 * Parse a [command][Command] using the parsing [trie].
+			 *
+			 * @param source
+			 *   The source of the command.
+			 * @return
+			 *   A command, or `null` if no command satisfied the given syntax.
+			 */
+			private fun parseSimpleCommand(source: String): Command?
+			{
+				var node = trie
+				val tokens = source.split("\\s+".toRegex())
+				for (token in tokens)
+				{
+					val nextNode = node.nextNodes[token.toLowerCase()]
+						?: return null
+					node = nextNode
+				}
+				return node.command
+			}
+
+			/**
+			 * Parse one or more [command messages][CommandMessage] from the
+			 * specified [source][String].
+			 *
+			 * @param source
+			 *   The source of the command.
+			 * @return
+			 *   A [list][List] of command messages.
+			 */
+			fun parseCommands(source: String): List<CommandMessage>
+			{
+				val parsedCommands = ArrayList<CommandMessage>()
+				val simpleCommand = parseSimpleCommand(source)
+				if (simpleCommand != null)
+				{
+					parsedCommands.add(SimpleCommandMessage(simpleCommand))
+				}
+				for (command in speciallyParsedCommands)
+				{
+					try
+					{
+						val commandMessage = command.parse(source)
+						if (commandMessage != null)
+						{
+							parsedCommands.add(commandMessage)
+						}
+					}
+					catch (e: UnsupportedOperationException)
+					{
+						assert(false) {
+							"Attempted to specially parse a simple command!"
+						}
+						throw e
+					}
+
+				}
+				return parsedCommands
+			}
 		}
 	}
 
-	/**
-	 * Construct a new {@code Command}. If it doesn't {@linkplain
-	 * #requiresSpecialParsing() require special parsing}, then add it to the
-	 * parsing {@linkplain TrieNode#trie} (treating the tokenization of its
-	 * {@linkplain #name() name} on underscore boundaries as its syntax).
-	 */
-	@SuppressWarnings("ThisEscapedInObjectConstruction")
-	Command ()
+	init
 	{
-		//noinspection OverriddenMethodCallDuringObjectConstruction
-		if (!requiresSpecialParsing())
+		@Suppress("LeakingThis")
+		if (!requiresSpecialParsing)
 		{
-			final String[] tokens = name().split("_");
-			this.syntax = tokens;
-			TrieNode.addCommand(this, tokens);
+			val tokens = name.split("_").toTypedArray()
+			this.syntax = tokens
+			TrieNode.addCommand(this, *tokens)
 		}
 		else
 		{
-			this.syntax = null;
-			TrieNode.addSpeciallyParsedCommand(this);
+			this.syntax = null
+			TrieNode.addSpeciallyParsedCommand(this)
 		}
 	}
 
-	/**
-	 * Parse an unambiguous {@linkplain CommandMessage command message} from the
-	 * supplied raw {@linkplain Message message}.
-	 *
-	 * @param message
-	 *        A raw message, comprising command source.
-	 * @return An unambiguous command message.
-	 * @throws CommandParseException
-	 *         If an unambiguous command could not be parsed.
-	 */
-	public static CommandMessage parse (final Message message)
-		throws CommandParseException
+	companion object
 	{
-		final String source = message.content();
-		final List<CommandMessage> parsedCommands =
-			TrieNode.parseCommands(source);
-		if (parsedCommands.isEmpty())
+		/** An array of all [Command] enumeration values.  */
+		val all = values()
+
+		/**
+		 * Parse an unambiguous [command message][CommandMessage] from the
+		 * supplied raw [message][Message].
+		 *
+		 * @param message
+		 *   A raw message, comprising command source.
+		 * @return
+		 *   An unambiguous command message.
+		 * @throws CommandParseException
+		 *   If an unambiguous command could not be parsed.
+		 */
+		@Throws(CommandParseException::class)
+		fun parse(message: Message): CommandMessage
 		{
-			throw new CommandParseException("unrecognized command");
-		}
-		if (parsedCommands.size() > 1)
-		{
-			//noinspection IOResourceOpenedButNotSafelyClosed
-			final Formatter formatter = new Formatter();
-			formatter.format(
-				"ambiguous command: could be %s",
-				parsedCommands.size() == 2 ? "either" : "any of");
-			for (int i = 0, size = parsedCommands.size(); i < size; i++)
+			val source = message.content
+			val parsedCommands = TrieNode.parseCommands(source)
+			if (parsedCommands.isEmpty())
 			{
-				final CommandMessage command = parsedCommands.get(i);
-				if (i > 0 && i < size - 1)
-				{
-					formatter.format(",");
-				}
-				else if (i == size - 1)
-				{
-					if (size > 2)
-					{
-						formatter.format(",");
-					}
-					formatter.format(" or");
-				}
-				formatter.format(" %s", command.command().name());
+				throw CommandParseException("unrecognized command")
 			}
-			throw new CommandParseException(formatter.toString());
+			if (parsedCommands.size > 1)
+			{
+				val formatter = Formatter()
+				formatter.format(
+					"ambiguous command: could be %s",
+					if (parsedCommands.size == 2) "either" else "any of")
+				var i = 0
+				val size = parsedCommands.size
+				while (i < size)
+				{
+					val command = parsedCommands[i]
+					if (i > 0 && i < size - 1)
+					{
+						formatter.format(",")
+					}
+					else if (i == size - 1)
+					{
+						if (size > 2)
+						{
+							formatter.format(",")
+						}
+						formatter.format(" or")
+					}
+					formatter.format(" %s", command.command.name)
+					i++
+				}
+				throw CommandParseException(formatter.toString())
+			}
+			// assert parsedCommands.size() == 1;
+			return parsedCommands[0]
 		}
-		// assert parsedCommands.size() == 1;
-		return parsedCommands.get(0);
 	}
 }

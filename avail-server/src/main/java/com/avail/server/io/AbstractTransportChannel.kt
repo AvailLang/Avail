@@ -1,6 +1,6 @@
 /*
- * AbstractTransportChannel.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * AbstractTransportChannel.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,325 +30,276 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.server.io;
+package com.avail.server.io
 
-import com.avail.server.AvailServer;
-import com.avail.server.messages.Message;
-import com.avail.utility.Pair;
-import com.avail.utility.evaluation.Continuation0;
-
-import javax.annotation.Nullable;
-import java.util.Deque;
-import java.util.LinkedList;
-
-import static com.avail.server.AvailServer.receiveMessageThen;
-import static com.avail.utility.evaluation.Combinator.recurse;
+import com.avail.server.AvailServer
+import com.avail.server.AvailServer.Companion.receiveMessageThen
+import com.avail.server.messages.Message
+import com.avail.utility.Pair
+import com.avail.utility.evaluation.Combinator.recurse
+import java.util.*
 
 /**
- * An {@code AbstractTransportChannel} represents an abstract connection between
- * an {@link AvailServer} and a {@link TransportAdapter}. It encapsulates the
- * implementation-specific channel required by the {@code TransportAdapter}, and
+ * An `AbstractTransportChannel` represents an abstract connection between an
+ * [AvailServer] and a [TransportAdapter]. It encapsulates the
+ * implementation-specific channel required by the `TransportAdapter`, and
  * provides mechanisms for sending and receiving messages.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
- * @param <T> The type of the enclosed channel.
+ * @param T
+ *   The type of the enclosed channel.
  */
-abstract class AbstractTransportChannel<T>
-extends AvailServerChannel
+abstract class AbstractTransportChannel<T> : AvailServerChannel()
 {
 	/**
-	 * Answer the {@link TransportAdapter} that created this {@linkplain
-	 * AbstractTransportChannel channel}.
-	 *
-	 * @return The {@code TransportAdapter} that created this channel.
+	 * A [queue][Deque] of [messages][Message] awaiting transmission by the
+	 * [adapter][TransportAdapter].
 	 */
-	protected abstract TransportAdapter<T> adapter ();
+	protected val sendQueue: Deque<Message> = LinkedList()
 
 	/**
-	 * Answer the underlying channel.
-	 *
-	 * @return The underlying channel.
+	 * Should the [channel][AbstractTransportChannel] close after emptying the
+	 * [message queue][sendQueue]?
 	 */
-	protected abstract T transport ();
+	@Suppress("MemberVisibilityCanBePrivate")
+	protected var shouldCloseAfterEmptyingSendQueue = false
 
 	/**
-	 * Answer the {@linkplain AvailServer server} that created this {@linkplain
-	 * AbstractTransportChannel channel}.
-	 *
-	 * @return The {@code AvailServer} that created this channel.
+	 * A [queue][Deque] of [pairs][Pair] of [messages][Message] and
+	 * continuations, as supplied to calls of
+	 * [enqueueMessageThen][enqueueMessageThen]. The maximum depth of this queue
+	 * is proportional to the size of the I/O thread pool.
 	 */
-	@Override
-	public AvailServer server ()
-	{
-		return adapter().server();
-	}
+	@Suppress("MemberVisibilityCanBePrivate")
+	protected val senders: Deque<Pair<Message, ()->Unit>> = LinkedList()
 
 	/**
-	 * A {@linkplain Deque queue} of {@linkplain Message messages} awaiting
-	 * transmission by the {@linkplain TransportAdapter adapter}.
+	 * A [queue][Deque] of [messages][Message] awaiting processing by the
+	 * [server][AvailServer].
 	 */
-	protected final Deque<Message> sendQueue = new LinkedList<>();
+	@Suppress("MemberVisibilityCanBePrivate")
+	protected val receiveQueue: Deque<Message> = LinkedList()
 
 	/**
-	 * Should the {@linkplain AbstractTransportChannel channel} close after
-	 * emptying the {@linkplain #sendQueue message queue}?
+	 * The [TransportAdapter] that created this
+	 * [channel][AbstractTransportChannel].
 	 */
-	private boolean shouldCloseAfterEmptyingSendQueue = false;
+	protected abstract val adapter: TransportAdapter<T>
+
+	/** The underlying channel. */
+	abstract val transport: T
 
 	/**
-	 * A {@linkplain Deque queue} of {@linkplain Pair pairs} of {@linkplain
-	 * Message messages} and {@linkplain Continuation0 continuations}, as
-	 * supplied to calls of {@link #enqueueMessageThen(Message, Continuation0)
-	 * enqueueMessageThen}. The maximum depth of this queue is proportional to
-	 * the size of the I/O thread pool.
+	 * The [server][AvailServer] that created this
+	 * [channel][AbstractTransportChannel].
 	 */
-	protected final Deque<Pair<Message, Continuation0>> senders =
-		new LinkedList<>();
+	override val server get() = adapter.server
 
-	/**
-	 * Request that this channel should be closed after emptying its send queue.
-	 */
-	protected void closeAfterEmptyingSendQueue ()
-	{
-		shouldCloseAfterEmptyingSendQueue = true;
-	}
-
-	/**
-	 * Answer whether this channel should be closed after emptying its send
-	 * queue.
-	 *
-	 * @return A {@code boolean}.
-	 */
-	protected boolean shouldCloseAfterEmptyingSendQueue ()
-	{
-		return shouldCloseAfterEmptyingSendQueue;
-	}
-
-	/**
-	 * Answer the maximum send queue depth for the message queue.
-	 *
-	 * @return The maximum send queue depth for the message queue.
-	 */
-	protected abstract int maximumSendQueueDepth ();
+	/** The maximum send queue depth for the message queue. */
+	protected abstract val maximumSendQueueDepth: Int
 
 	/**
 	 * Begin transmission of the enqueued messages, starting with the specified
-	 * {@linkplain Message message}. The argument must be the first message
-	 * in the message queue.
+	 * [message][Message]. The argument must be the first message in the message
+	 * queue.
 	 *
 	 * @param message
-	 *        The first message in the message queue (still enqueued).
+	 *   The first message in the message queue (still enqueued).
 	 */
-	protected void beginTransmission (final Message message)
+	@Suppress("MemberVisibilityCanBePrivate")
+	protected fun beginTransmission(message: Message)
 	{
-		final TransportAdapter<T> adapter = adapter();
+		val adapter = adapter
 		adapter.sendUserData(
 			this,
 			message,
-			() -> recurse(
-				sendMore ->
-				{
-					final Message nextMessage;
-					final @Nullable Pair<Message, Continuation0> pair;
-					synchronized (sendQueue)
-					{
-						// The message remains on the queue during
-						// transmission (in order to simplify the execution
-						// model). Remove it *after* transmission completes.
-						final Message sentMessage = sendQueue.removeFirst();
-						if (sentMessage.closeAfterSending())
+			{
+				recurse { sendMore ->
+					val nextMessage: Message?
+					val pair: Pair<Message, ()->Unit>?
+					synchronized(sendQueue) {
+						// The message remains on the queue during transmission
+						// (in order to simplify the execution model). Remove it
+						// *after* transmission completes.
+						val sentMessage = sendQueue.removeFirst()
+						if (sentMessage.closeAfterSending)
 						{
-							adapter.sendClose(this);
-							return;
+							adapter.sendClose(this)
+							return@recurse
 						}
 						// Remove the oldest sender, but release the monitor
 						// before evaluating it.
-						pair = senders.pollFirst();
+						pair = senders.pollFirst()
 						if (pair != null)
 						{
-							sendQueue.addLast(pair.first());
+							sendQueue.addLast(pair.first())
 						}
-						nextMessage = sendQueue.peekFirst();
-						assert sendQueue.size() <= maximumSendQueueDepth();
+						nextMessage = sendQueue.peekFirst()
+						assert(sendQueue.size <= maximumSendQueueDepth)
 					}
 					// Begin transmission of the next message.
 					if (nextMessage != null)
 					{
-						adapter.sendUserData(this, nextMessage, sendMore, null);
+						adapter.sendUserData(this, nextMessage, sendMore, null)
 					}
-					// If a close is in progress, but awaiting the queue to
-					// empty, then finish the close.
 					else
 					{
-						synchronized (sendQueue)
-						{
-							if (shouldCloseAfterEmptyingSendQueue())
+						synchronized(sendQueue) {
+							// If a close is in progress, but awaiting the queue
+							// to empty, then finish the close.
+							if (shouldCloseAfterEmptyingSendQueue)
 							{
-								adapter.sendClose(this);
-								return;
+								adapter.sendClose(this)
+								return@recurse
 							}
 						}
 					}
 					// Proceed the paused client.
-					if (pair != null)
-					{
-						pair.second().value();
-					}
-				}),
-			null);
+					pair?.second()?.invoke()
+				}
+			},
+			null)
 	}
 
-	@Override
-	public void enqueueMessageThen (
-		final Message message,
-		final Continuation0 enqueueSucceeded)
+	override fun enqueueMessageThen(
+		message: Message,
+		enqueueSucceeded: ()->Unit)
 	{
-		final boolean beginTransmitting;
-		final boolean invokeContinuationNow;
-		final int maxQueueDepth = maximumSendQueueDepth();
-		synchronized (sendQueue)
-		{
-			final int size = sendQueue.size();
+		val beginTransmitting: Boolean
+		val invokeContinuationNow: Boolean
+		val maxQueueDepth = maximumSendQueueDepth
+		synchronized(sendQueue) {
+			val size = sendQueue.size
 			// On the transition from empty to nonempty, begin consuming the
 			// message queue.
-			if (size == 0)
+			when
 			{
-				sendQueue.addLast(message);
-				beginTransmitting = true;
-				invokeContinuationNow = true;
-			}
-			// If the queue is nonempty and there is room available on the
-			// message queue, then simply enqueue the message.
-			else if (size < maxQueueDepth)
-			{
-				sendQueue.addLast(message);
-				beginTransmitting = false;
-				invokeContinuationNow = true;
-			}
-			// If there is no room available on the message queue, then pause
-			// the client until room becomes available.
-			else
-			{
-				assert size == maxQueueDepth;
-				senders.addLast(new Pair<>(
-					message, enqueueSucceeded));
-				beginTransmitting = false;
-				invokeContinuationNow = false;
+				size == 0 ->
+				{
+					// If there is no room available on the message queue, then
+					// pause the client until room becomes available.
+					sendQueue.addLast(message)
+					beginTransmitting = true
+					invokeContinuationNow = true
+				}
+				size < maxQueueDepth ->
+				{
+					// If the queue is nonempty and there is room available on
+					// the message queue, then simply enqueue the message.
+					sendQueue.addLast(message)
+					beginTransmitting = false
+					invokeContinuationNow = true
+				}
+				else ->
+				{
+					assert(size == maxQueueDepth)
+					senders.addLast(Pair(
+						message, enqueueSucceeded))
+					beginTransmitting = false
+					invokeContinuationNow = false
+				}
 			}
 		}
 		// Initiate the asynchronous transmission "loop".
 		if (beginTransmitting)
 		{
-			beginTransmission(message);
+			beginTransmission(message)
 		}
 		// Run the supplied continuation to proceed the execution of the client.
 		if (invokeContinuationNow)
 		{
-			enqueueSucceeded.value();
+			enqueueSucceeded()
 		}
 	}
 
-	/**
-	 * A {@linkplain Deque queue} of {@linkplain Message messages} awaiting
-	 * processing by the {@linkplain AvailServer server}.
-	 */
-	protected final Deque<Message> receiveQueue = new LinkedList<>();
-
-	/**
-	 * Answer the maximum receive queue depth for the message queue.
-	 *
-	 * @return The maximum receive queue depth for the message queue.
-	 */
-	protected abstract int maximumReceiveQueueDepth ();
+	/** The maximum receive queue depth for the message queue. */
+	protected abstract val maximumReceiveQueueDepth: Int
 
 	/**
 	 * Begin receipt of the enqueued messages, starting with the specified
-	 * {@linkplain Message message}. The argument must be the first message
-	 * in the message queue.
+	 * [message][Message]. The argument must be the first message in the message
+	 * queue.
 	 *
 	 * @param message
-	 *        The first message in the message queue (still enqueued).
+	 *   The first message in the message queue (still enqueued).
 	 */
-	protected void beginReceiving (final Message message)
+	@Suppress("MemberVisibilityCanBePrivate")
+	protected fun beginReceiving(message: Message)
 	{
-		final int maxQueueDepth = maximumReceiveQueueDepth();
-		receiveMessageThen(
-			message,
-			this,
-			() -> recurse(
-				receiveMore ->
+		val maxQueueDepth = maximumReceiveQueueDepth
+		receiveMessageThen(message, this) {
+			recurse { receiveMore ->
+				val nextMessage: Message?
+				val resumeReading: Boolean
+				synchronized(receiveQueue) {
+					// The message remains on the queue during reception (in
+					// order to simplify the execution model). Remove it *after*
+					// reception completes.
+					receiveQueue.removeFirst()
+					nextMessage = receiveQueue.peekFirst()
+					assert(receiveQueue.size < maximumReceiveQueueDepth)
+					// If the queue transitioned from full to non-full, then
+					// resume reading from the transport.
+					resumeReading = receiveQueue.size == maxQueueDepth - 1
+				}
+				// Begin receipt of the next message.
+				if (resumeReading)
 				{
-					final Message nextMessage;
-					final boolean resumeReading;
-					synchronized (receiveQueue)
-					{
-						// The message remains on the queue during
-						// reception (in order to simplify the execution
-						// model). Remove it *after* reception completes.
-						receiveQueue.removeFirst();
-						nextMessage = receiveQueue.peekFirst();
-						assert receiveQueue.size() < maximumReceiveQueueDepth();
-						// If the queue transitioned from full to non-full,
-						// then resume reading from the transport.
-						resumeReading =
-							receiveQueue.size() == maxQueueDepth - 1;
-					}
-					// Begin receipt of the next message.
-					if (resumeReading)
-					{
-						adapter().readMessage(this);
-					}
-					// Process the next message.
-					if (nextMessage != null)
-					{
-						receiveMessageThen(nextMessage, this, receiveMore);
-					}
-				}));
+					adapter.readMessage(this)
+				}
+				// Process the next message.
+				if (nextMessage != null)
+				{
+					receiveMessageThen(nextMessage, this, receiveMore)
+				}
+			}
+		}
 	}
 
-	@Override
-	public void receiveMessage (final Message message)
+	override fun receiveMessage(message: Message)
 	{
-		final boolean beginReceiving;
-		final boolean resumeReading;
-		final int maxQueueDepth = maximumReceiveQueueDepth();
-		synchronized (receiveQueue)
-		{
-			final int size = receiveQueue.size();
+		val beginReceiving: Boolean
+		val resumeReading: Boolean
+		val maxQueueDepth = maximumReceiveQueueDepth
+		synchronized(receiveQueue) {
+			val size = receiveQueue.size
 			// On the transition from empty to nonempty, begin consuming the
 			// message queue.
-			if (size == 0)
+			when
 			{
-				receiveQueue.addLast(message);
-				beginReceiving = true;
-				resumeReading = true;
-			}
-			// If the queue is nonempty and there is room available on the
-			// message queue, then simply enqueue the message.
-			else if (size < maxQueueDepth)
-			{
-				receiveQueue.addLast(message);
-				beginReceiving = false;
-				resumeReading = true;
-			}
-			// If there is no room available on the message queue, then pause
-			// the transport until room becomes available.
-			else
-			{
-				assert size == maxQueueDepth;
-				beginReceiving = false;
-				resumeReading = false;
+				size == 0 ->
+				{
+					// If there is no room available on the message queue, then
+					// pause the transport until room becomes available.
+					receiveQueue.addLast(message)
+					beginReceiving = true
+					resumeReading = true
+				}
+				size < maxQueueDepth ->
+				{
+					// If the queue is nonempty and there is room available on
+					// the message queue, then simply enqueue the message.
+					receiveQueue.addLast(message)
+					beginReceiving = false
+					resumeReading = true
+				}
+				else ->
+				{
+					assert(size == maxQueueDepth)
+					beginReceiving = false
+					resumeReading = false
+				}
 			}
 		}
 		// Resume reading messages from the transport.
 		if (resumeReading)
 		{
-			adapter().readMessage(this);
+			adapter.readMessage(this)
 		}
 		// Initiate the asynchronous reception "loop".
 		if (beginReceiving)
 		{
-			beginReceiving(message);
+			beginReceiving(message)
 		}
 	}
 }

@@ -1,6 +1,6 @@
 /*
- * AvailServerChannel.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * AvailServerChannel.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,294 +30,199 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.server.io;
+package com.avail.server.io
 
-import com.avail.io.TextInterface;
-import com.avail.server.AvailServer;
-import com.avail.server.messages.CommandMessage;
-import com.avail.server.messages.Message;
-import com.avail.utility.evaluation.Continuation0;
-
-import javax.annotation.Nullable;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicLong;
-
-import static com.avail.utility.Nulls.stripNull;
-import static java.util.Collections.singleton;
+import com.avail.io.TextInterface
+import com.avail.server.AvailServer
+import com.avail.server.messages.CommandMessage
+import com.avail.server.messages.Message
+import com.avail.utility.evaluation.Continuation0
+import java.util.*
+import java.util.concurrent.atomic.AtomicLong
 
 /**
- * An {@code AvailServerChannel} represents an abstract connection between an
- * {@link AvailServer} and a client (represented by a {@link TransportAdapter}).
- * It provides mechanisms for sending and receiving {@linkplain Message
- * messages}.
+ * An `AvailServerChannel` represents an abstract connection between an
+ * [AvailServer] and a client (represented by a [TransportAdapter]). It provides
+ * mechanisms for sending and receiving [messages][Message].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public abstract class AvailServerChannel
-implements AutoCloseable
+abstract class AvailServerChannel : AutoCloseable
 {
-	/**
-	 * Answer the {@linkplain AvailServer server} that created this {@linkplain
-	 * AbstractTransportChannel channel}.
-	 *
-	 * @return The {@code AvailServer} that created this channel.
-	 */
-	public abstract AvailServer server ();
+	/** `true` if the channel is open, `false` otherwise. */
+	abstract val isOpen: Boolean
+
+	/** The current [protocol state][ProtocolState].  */
+	var state = ProtocolState.VERSION_NEGOTIATION
+		set (newState)
+		{
+			assert(this.state.allowedSuccessorStates.contains(newState))
+			field = newState
+		}
 
 	/**
-	 * Is the {@linkplain AvailServerChannel channel} open?
-	 *
-	 * @return {@code true} if the channel is open, {@code false} otherwise.
+	 * The [text interface][TextInterface], or `null` if the
+	 * [receiver][AvailServerChannel] is not an upgraded I/O channel.
 	 */
-	public abstract boolean isOpen ();
+	var textInterface: TextInterface? = null
 
 	/**
-	 * Enqueue the given {@linkplain Message message}. When the message has
-	 * been enqueued, then execute the {@linkplain Continuation0 continuation}.
+	 * The [UUID]s of any upgrade requests issued by this
+	 * [channel][AvailServerChannel].
+	 */
+	private val requestedUpgrades = HashSet<UUID>()
+
+	/** The next [command][CommandMessage] [identifier][AtomicLong] to issue. */
+	private val commandId = AtomicLong(1)
+
+	/**
+	 * The [server][AvailServer] that created this
+	 * [channel][AbstractTransportChannel].
+	 */
+	abstract val server: AvailServer
+
+	/**
+	 * Enqueue the given [message][Message]. When the message has been enqueued,
+	 * then execute the [continuation][Continuation0].
 	 *
 	 * @param message
-	 *        A message.
+	 *   A message.
 	 * @param enqueueSucceeded
-	 *        What to do when the message has been successfully enqueued.
+	 *   What to do when the message has been successfully enqueued.
 	 */
-	public abstract void enqueueMessageThen (
-		final Message message,
-		final Continuation0 enqueueSucceeded);
+	abstract fun enqueueMessageThen(
+		message: Message,
+		enqueueSucceeded: ()->Unit)
 
 	/**
-	 * Receive an incoming {@linkplain Message message}.
+	 * Receive an incoming [message][Message].
 	 *
 	 * @param message
-	 *        A message.
+	 *   A message.
 	 */
-	public abstract void receiveMessage (final Message message);
+	abstract fun receiveMessage(message: Message)
 
 	/**
-	 * {@code ProtocolState} represents the communication state of a {@linkplain
-	 * AvailServerChannel server channel}.
+	 * `ProtocolState` represents the communication state of a [server
+	 * channel][AvailServerChannel].
+	 *
+	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
-	public enum ProtocolState
+	enum class ProtocolState
 	{
-		/** Protocol version must be negotiated. */
+		/** Protocol version must be negotiated.  */
 		VERSION_NEGOTIATION
 		{
-			@Override
-			Set<ProtocolState> allowedSuccessorStates ()
-			{
-				return singleton(ELIGIBLE_FOR_UPGRADE);
-			}
-
-			@Override
-			public boolean versionNegotiated ()
-			{
-				return false;
-			}
+			override val allowedSuccessorStates
+				get() = setOf(ELIGIBLE_FOR_UPGRADE)
+			override val versionNegotiated get() = false
 		},
 
 		/**
-		 * The {@linkplain AvailServerChannel channel} is eligible for upgrade.
+		 * The [channel][AvailServerChannel] is eligible for upgrade.
 		 */
 		ELIGIBLE_FOR_UPGRADE
 		{
-			@Override
-			Set<ProtocolState> allowedSuccessorStates ()
-			{
-				return EnumSet.of(COMMAND, IO);
-			}
-
-			@Override
-			public boolean eligibleForUpgrade ()
-			{
-				return true;
-			}
+			override val allowedSuccessorStates: Set<ProtocolState>
+				get() = EnumSet.of(COMMAND, IO)
+			override val eligibleForUpgrade get() = true
 		},
 
 		/**
-		 * The {@linkplain AvailServerChannel channel} should henceforth be
-		 * used to issue {@linkplain CommandMessage commands}.
+		 * The [channel][AvailServerChannel] should henceforth be used to issue
+		 * [commands][CommandMessage].
 		 */
 		COMMAND
 		{
-			@Override
-			Set<ProtocolState> allowedSuccessorStates ()
-			{
-				return Collections.emptySet();
-			}
+			override val allowedSuccessorStates: Set<ProtocolState>
+				get() = emptySet()
 		},
 
 		/**
-		 * The {@linkplain AvailServerChannel channel} should henceforth be
-		 * used for general text I/O.
+		 * The [channel][AvailServerChannel] should henceforth be used for
+		 * general text I/O.
 		 */
 		IO
 		{
-			@Override
-			Set<ProtocolState> allowedSuccessorStates ()
-			{
-				return Collections.emptySet();
-			}
-
-			@Override
-			public boolean generalTextIO ()
-			{
-				return true;
-			}
+			override val allowedSuccessorStates: Set<ProtocolState>
+				get() = emptySet()
+			override val generalTextIO get() = true
 		};
 
-		/**
-		 * Answer the allowed successor {@linkplain ProtocolState states} of
-		 * the receiver.
-		 *
-		 * @return The allowed successor states.
-		 */
-		abstract Set<ProtocolState> allowedSuccessorStates ();
+		/** The allowed successor [states][ProtocolState] of the receiver. */
+		internal abstract val allowedSuccessorStates: Set<ProtocolState>
 
 		/**
-		 * Does this {@linkplain ProtocolState state} indicate that the version
-		 * has already been negotiated?
+		 * Does this [state][ProtocolState] indicate that the version has
+		 * already been negotiated?
 		 *
-		 * @return {@code true} if the version has already been negotiated,
-		 *         {@code false} otherwise.
+		 * @return
+		 *   `true` if the version has already been negotiated, `false`
+		 *   otherwise.
 		 */
-		public boolean versionNegotiated ()
-		{
-			return true;
-		}
+		open val versionNegotiated get() = true
 
 		/**
-		 * Does this {@linkplain ProtocolState state} indicate eligibility for
-		 * upgrade?
+		 * Does this [state][ProtocolState] indicate eligibility for upgrade?
 		 *
-		 * @return {@code true} if the state indicates eligibility for upgrade,
-		 *         {@code false} otherwise.
+		 * @return
+		 *   `true` if the state indicates eligibility for upgrade, `false`
+		 *   otherwise.
 		 */
-		public boolean eligibleForUpgrade ()
-		{
-			return false;
-		}
+		open val eligibleForUpgrade get() = false
 
 		/**
-		 * Does this {@linkplain ProtocolState state} indicate a capability to
-		 * do general text I/O?
+		 * Does this [state][ProtocolState] indicate a capability to do general
+		 * text I/O?
 		 *
-		 * @return {@code true} if the state indicates the capability, {@code
-		 *         false} otherwise.
+		 * @return
+		 *   `true` if the state indicates the capability, `false` otherwise.
 		 */
-		public boolean generalTextIO ()
-		{
-			return false;
-		}
+		open val generalTextIO get() = false
 	}
 
-	/** The current {@linkplain ProtocolState protocol state}. */
-	private ProtocolState state = ProtocolState.VERSION_NEGOTIATION;
-
 	/**
-	 * Answer the current {@linkplain ProtocolState protocol state}.
-	 *
-	 * @return The current protocol state.
+	 * Upgrade the [channel][AvailServerChannel] for general I/O.
 	 */
-	public ProtocolState state ()
+	fun upgradeToIOChannel()
 	{
-		return state;
+		state = ProtocolState.IO
+		textInterface = TextInterface(
+			ServerInputChannel(this),
+			ServerOutputChannel(this),
+			ServerErrorChannel(this))
 	}
 
 	/**
-	 * Set the {@linkplain ProtocolState protocol state}.
-	 *
-	 * @param state
-	 *        The new protocol state. This must be an {@linkplain
-	 *        ProtocolState#allowedSuccessorStates() allowed successor} of the
-	 *        {@linkplain #state() current protocol state}.
-	 */
-	public void setState (final ProtocolState state)
-	{
-		assert this.state.allowedSuccessorStates().contains(state);
-		this.state = state;
-	}
-
-	/**
-	 * The {@linkplain TextInterface text interface}, or {@code null} if the
-	 * {@linkplain AvailServerChannel receiver} is not an upgraded I/O channel.
-	 */
-	private @Nullable TextInterface textInterface;
-
-	/**
-	 * Answer the {@linkplain TextInterface text interface}. This is applicable
-	 * for {@linkplain ProtocolState#generalTextIO() general text I/O}
-	 * {@linkplain AvailServerChannel channels} only.
-	 *
-	 * @return The text interface.
-	 */
-	public TextInterface textInterface ()
-	{
-		return stripNull(textInterface);
-	}
-
-	/**
-	 * Upgrade the {@linkplain AvailServerChannel channel} for general I/O.
-	 */
-	public void upgradeToIOChannel ()
-	{
-		setState(ProtocolState.IO);
-		textInterface = new TextInterface(
-			new ServerInputChannel(this),
-			new ServerOutputChannel(this),
-			new ServerErrorChannel(this));
-	}
-
-	/**
-	 * The {@link UUID}s of any upgrade requests issued by this {@linkplain
-	 * AvailServerChannel channel}.
-	 */
-	private final Set<UUID> requestedUpgrades = new HashSet<>();
-
-	/**
-	 * Record an upgrade request instigated by this {@linkplain
-	 * AvailServerChannel channel}.
+	 * Record an upgrade request instigated by this
+	 * [channel][AvailServerChannel].
 	 *
 	 * @param uuid
-	 *        The {@link UUID} that identifies the upgrade request.
+	 *   The [UUID] that identifies the upgrade request.
 	 */
-	public void recordUpgradeRequest (final UUID uuid)
+	fun recordUpgradeRequest(uuid: UUID)
 	{
-		synchronized (requestedUpgrades)
-		{
-			requestedUpgrades.add(uuid);
+		synchronized(requestedUpgrades) {
+			requestedUpgrades.add(uuid)
 		}
 	}
 
-	@Override
-	protected void finalize ()
+	protected fun finalize()
 	{
 		try
 		{
-			server().discontinueUpgradeRequests(requestedUpgrades);
+			server.discontinueUpgradeRequests(requestedUpgrades)
 		}
-		catch (final Throwable e)
+		catch (e: Throwable)
 		{
 			// Do not prevent destruction of this channel.
 		}
+
 	}
 
 	/**
-	 * The next {@linkplain CommandMessage command} {@linkplain AtomicLong
-	 * identifier} to issue.
+	 * The next [command identifier][CommandMessage] from the
+	 * [channel][AvailServerChannel]'s internal sequence.
 	 */
-	private final AtomicLong commandId = new AtomicLong(1);
-
-	/**
-	 * Answer the next {@linkplain CommandMessage command identifier} from the
-	 * {@linkplain AvailServerChannel channel}'s internal sequence.
-	 *
-	 * @return The next command identifier.
-	 */
-	public long nextCommandId ()
-	{
-		return commandId.getAndIncrement();
-	}
+	val nextCommandId = commandId.getAndIncrement()
 }

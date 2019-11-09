@@ -1,6 +1,6 @@
 /*
- * CommandParseException.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * CommandParseException.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,40 +30,33 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.server.messages;
+package com.avail.server.messages
 
 /**
- * A {@code CommandParseException} is raised by {@link Command#parse(Message)}
- * in the event of a failed parse.
+ * A `CommandParseException` is raised by [Command.parse] in the event of a
+ * failed parse.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class CommandParseException
-extends Exception
+class CommandParseException : Exception
 {
 	/**
-	 * Construct a new {@code CommandParseException}.
+	 * Construct a new `CommandParseException`.
 	 *
 	 * @param message
-	 *        A detailed error message suitable for reporting directly to a
-	 *        client.
+	 *   A detailed error message suitable for reporting directly to a client.
 	 */
-	CommandParseException (final String message)
-	{
-		super(message);
-	}
+	internal constructor(message: String) : super(message)
 
 	/**
-	 * Construct a new {@code CommandParseException}.
+	 * Construct a new `CommandParseException`.
 	 *
 	 * @param message
-	 *        A detailed error message suitable for reporting directly to a
-	 *        client.
+	 *   A detailed error message suitable for reporting directly to a client.
 	 * @param cause
-	 *        The causal {@linkplain Throwable exception}.
+	 *   The causal [exception][Throwable].
 	 */
-	CommandParseException (final String message, final Throwable cause)
-	{
-		super(message, cause);
-	}
+	@Suppress("unused")
+	internal constructor(message: String, cause: Throwable)
+		: super(message, cause)
 }

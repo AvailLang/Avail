@@ -1,6 +1,6 @@
 /*
- * AbstractServerOutputChannel.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * AbstractServerOutputChannel.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,130 +30,115 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.server.io;
+package com.avail.server.io
 
-import com.avail.io.TextOutputChannel;
-import com.avail.server.messages.Message;
-import com.avail.utility.json.JSONWriter;
-
-import javax.annotation.Nullable;
-import java.nio.CharBuffer;
-import java.nio.channels.ClosedChannelException;
-import java.nio.channels.CompletionHandler;
+import com.avail.io.TextOutputChannel
+import com.avail.server.messages.Message
+import com.avail.utility.json.JSONWriter
+import java.nio.CharBuffer
+import java.nio.channels.ClosedChannelException
+import java.nio.channels.CompletionHandler
 
 /**
- * A {@code AbstractServerOutputChannel} adapts an {@link AvailServerChannel
- * channel} for ordinary output.
+ * A `AbstractServerOutputChannel` adapts an [channel][AvailServerChannel] for
+ * ordinary output.
  *
+ * @property channel
+ *   The underlying [server channel][AvailServerChannel].
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct a new [AbstractServerOutputChannel].
+ *
+ * @param channel
+ *   The [server channel][AvailServerChannel] to adapt for general output.
  */
-public abstract class AbstractServerOutputChannel
-implements TextOutputChannel
+abstract class AbstractServerOutputChannel constructor(
+	private val channel: AvailServerChannel) : TextOutputChannel
 {
-	/** The underlying {@linkplain AvailServerChannel server channel}. */
-	private final AvailServerChannel channel;
+	override fun isOpen() = channel.isOpen
 
 	/**
-	 * Construct a new {@link AbstractServerOutputChannel}.
-	 *
-	 * @param channel
-	 *        The {@linkplain AvailServerChannel server channel} to adapt for
-	 *        general output.
+	 * The prefix for [message][Message] [content][Message.getContent] written to
+	 * this output channel.
 	 */
-	public AbstractServerOutputChannel (final AvailServerChannel channel)
-	{
-		this.channel = channel;
-	}
-
-	@Override
-	public final boolean isOpen ()
-	{
-		return channel.isOpen();
-	}
+	protected abstract val channelTag: String
 
 	/**
-	 * Answer the prefix for {@linkplain Message message} {@linkplain
-	 * Message#content() content} written to this output channel.
-	 *
-	 * @return The prefix for this output channel.
-	 */
-	protected abstract String channelTag ();
-
-	/**
-	 * Answer a {@linkplain Message message} that suitably represents this
-	 * {@linkplain AbstractServerOutputChannel channel} and the specified
-	 * {@linkplain String content}.
+	 * Answer a [message][Message] that suitably represents this
+	 * [channel][AbstractServerOutputChannel] and the specified
+	 * [content][String].
 	 *
 	 * @param data
-	 *        The content of the message.
-	 * @return A message.
+	 *   The content of the message.
+	 * @return
+	 *   A message.
 	 */
-	private Message newMessage (final String data)
+	private fun newMessage(data: String): Message
 	{
-		@SuppressWarnings("resource")
-		final JSONWriter writer = new JSONWriter();
-		writer.startObject();
-		writer.write("tag");
-		writer.write(channelTag());
-		writer.write("content");
-		writer.write(data);
-		writer.endObject();
-		return new Message(writer.toString());
+		val writer = JSONWriter()
+		writer.writeObject {
+			writer.write("tag")
+			writer.write(channelTag)
+			writer.write("content")
+			writer.write(data)
+		}
+		return Message(writer.toString())
 	}
 
-	@Override
-	public final <A> void write (
-		final CharBuffer buffer,
-		final @Nullable A attachment,
-		final CompletionHandler<Integer, A> handler)
+	override fun <A> write(
+		buffer: CharBuffer,
+		attachment: A?,
+		handler: CompletionHandler<Int, A>)
 	{
-		if (!isOpen())
+		if (!isOpen)
 		{
 			try
 			{
-				throw new ClosedChannelException();
+				throw ClosedChannelException()
 			}
-			catch (final ClosedChannelException e)
+			catch (e: ClosedChannelException)
 			{
-				handler.failed(e, attachment);
-				return;
+				handler.failed(e, attachment)
+				return
 			}
+
 		}
-		final int limit = buffer.limit();
-		final Message message = newMessage(buffer.toString());
-		channel.enqueueMessageThen(
-			message,
-			() -> handler.completed(limit, attachment));
+		val limit = buffer.limit()
+		val message = newMessage(buffer.toString())
+		channel.enqueueMessageThen(message) {
+			handler.completed(limit, attachment)
+		}
 	}
 
-	@Override
-	public final <A> void write (
-		final String data,
-		final @Nullable A attachment,
-		final CompletionHandler<Integer, A> handler)
+	override fun <A> write(
+		data: String,
+		attachment: A?,
+		handler: CompletionHandler<Int, A>)
 	{
-		if (!isOpen())
+		if (!isOpen)
 		{
 			try
 			{
-				throw new ClosedChannelException();
+				throw ClosedChannelException()
 			}
-			catch (final ClosedChannelException e)
+			catch (e: ClosedChannelException)
 			{
-				handler.failed(e, attachment);
-				return;
+				handler.failed(e, attachment)
+				return
 			}
+
 		}
-		final Message message = newMessage(data);
-		channel.enqueueMessageThen(
-			message,
-			() -> handler.completed(data.length(), attachment));
+		val message = newMessage(data)
+		channel.enqueueMessageThen(message) {
+			handler.completed(data.length, attachment)
+		}
 	}
 
-	@Override
-	public void close ()
+	override fun close()
 	{
 		// The AvailServerChannel should be closed, not this.
-		assert false : "This should not be closed directly!";
+		assert(false) { "This should not be closed directly!" }
 	}
 }

@@ -1,6 +1,6 @@
 /*
- * EnvironmentConfigurator.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * EnvironmentConfigurator.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,86 +30,67 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.server.configuration;
+package com.avail.server.configuration
 
-import com.avail.builder.ModuleRoots;
-import com.avail.builder.RenamesFileParser;
-import com.avail.utility.configuration.Configurator;
+import com.avail.builder.ModuleRoots
+import com.avail.builder.RenamesFileParser
+import com.avail.utility.configuration.Configurator
 
 /**
- * An {@code EnvironmentConfigurator} {@linkplain
- * Configurator#updateConfiguration() updates} a {@linkplain
- * AvailServerConfiguration compiler configuration} from the environment.
+ * An `EnvironmentConfigurator` [updates][Configurator.updateConfiguration] a
+ * [compiler configuration][AvailServerConfiguration] from the environment.
  *
- * <p>The following environment variables are used by the compiler:</p>
+ * The following environment variables are used by the compiler:
  *
- * <ul>
- * <li><strong>AVAIL_ROOTS</strong>: The {@linkplain ModuleRoots Avail root
- * path}, described by the following grammar:
- * <pre>
- * modulePath ::= binding ++ ";" ;
- * binding ::= logicalRoot "=" objectRepository ("," sourceDirectory) ;
- * logicalRoot ::= [^=;]+ ;
- * objectRepository ::= [^;]+ ;
- * sourceDirectory ::= [^;]+ ;
- * </pre>
- * {@code logicalRoot} represents a logical root name. {@code
- * objectRepository} represents the absolute path of a binary module repository.
- * {@code sourceDirectory} represents the absolute path of a package, i.e., a
- * directory containing source modules, and may be sometimes be omitted (e.g.,
- * when compilation is not required).</li>
- * <li><strong>AVAIL_RENAMES</strong>: The path to the {@linkplain
- * RenamesFileParser renames file}.</li>
- * </ul>
+ *  * **AVAIL_ROOTS**: The [Avail root][ModuleRoots], described by the following
+ *  grammar:
+ *  ```
+ *  modulePath ::= binding ++ ";" ;
+ *  binding ::= logicalRoot "=" objectRepository ("," sourceDirectory) ;
+ *  logicalRoot ::= [^=;]+ ;
+ *  objectRepository ::= [^;]+ ;
+ *  sourceDirectory ::= [^;]+ ;
+ *  ```
+ *  `logicalRoot` represents a logical root name. `objectRepository` represents
+ *  the absolute path of a binary module repository. `sourceDirectory` represents
+ *  the absolute path of a package, i.e., a directory containing source modules,
+ *  and may be sometimes be omitted (e.g., when compilation is not required).
+ *  * **AVAIL_RENAMES**: The path to the [renames file][RenamesFileParser].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct a new `EnvironmentConfigurator` for the specified
+ * [configuration][AvailServerConfiguration].
+ *
+ * @param configuration
+ *   The compiler configuration.
  */
-public final class EnvironmentConfigurator
-implements Configurator<AvailServerConfiguration>
+class EnvironmentConfigurator constructor(
+	override val configuration: AvailServerConfiguration)
+: Configurator<AvailServerConfiguration>
 {
-	/** The {@linkplain AvailServerConfiguration configuration}. */
-	private final AvailServerConfiguration configuration;
 
-	/**
-	 * Has the {@linkplain CommandLineConfigurator configurator} been run yet?
-	 */
-	private boolean isConfigured;
+	/** Has the [configurator][CommandLineConfigurator] been run yet? */
+	private var isConfigured: Boolean = false
 
-	@Override
-	public AvailServerConfiguration getConfiguration()
-	{
-		return configuration;
-	}
-
-	@Override
-	public synchronized void updateConfiguration ()
+	@Synchronized
+	override fun updateConfiguration()
 	{
 		if (!isConfigured)
 		{
-			final String availRootPath = System.getenv("AVAIL_ROOTS");
+			val availRootPath = System.getenv("AVAIL_ROOTS")
 			if (availRootPath != null)
 			{
-				configuration.setAvailRootsPath(availRootPath);
+				configuration.availRootsPath = availRootPath
 			}
-			final String renamesFilePath = System.getenv("AVAIL_RENAMES");
+			val renamesFilePath = System.getenv("AVAIL_RENAMES")
 			if (renamesFilePath != null)
 			{
-				configuration.setRenamesFilePath(renamesFilePath);
+				configuration.renamesFilePath = renamesFilePath
 			}
-			isConfigured = true;
+			isConfigured = true
 		}
-	}
-
-	/**
-	 * Construct a new {@code EnvironmentConfigurator} for the specified
-	 * {@linkplain AvailServerConfiguration configuration}.
-	 *
-	 * @param configuration
-	 *        The compiler configuration.
-	 */
-	public EnvironmentConfigurator (
-		final AvailServerConfiguration configuration)
-	{
-		this.configuration = configuration;
 	}
 }

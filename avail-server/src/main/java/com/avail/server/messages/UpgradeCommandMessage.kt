@@ -1,6 +1,6 @@
 /*
- * UpgradeCommandMessage.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * UpgradeCommandMessage.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,58 +30,36 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.server.messages;
+package com.avail.server.messages
 
-import com.avail.server.io.AvailServerChannel;
-import com.avail.utility.evaluation.Continuation0;
+import com.avail.server.io.AvailServerChannel
 
-import java.util.UUID;
+import java.util.UUID
 
 /**
- * An {@code UpgradeCommandMessage} represents an {@link Command#UPGRADE
- * UPGRADE} {@linkplain Command command}, and carries a {@link UUID} that
- * designates the desired upgrade.
+ * An `UpgradeCommandMessage` represents an [UPGRADE][Command.UPGRADE]
+ * [command][Command], and carries a [UUID] that designates the desired upgrade.
  *
+ * @property uuid
+ *   The [UUID] that designates the desired upgrade.
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct a new [UpgradeCommandMessage].
+ *
+ * @param uuid
+ *   The [UUID] that designates the desired upgrade.
  */
-public class UpgradeCommandMessage
-extends CommandMessage
+class UpgradeCommandMessage constructor(
+	val uuid: UUID) : CommandMessage()
 {
-	/** The {@link UUID} that designates the desired upgrade. */
-	private final UUID uuid;
+	override val command = Command.UPGRADE
 
-	/**
-	 * Answer the {@linkplain UUID uuid} that designates the desired upgrade.
-	 *
-	 * @return A {@code UUID}.
-	 */
-	public UUID uuid ()
+	override fun processThen(
+		channel: AvailServerChannel,
+		continuation: ()->Unit)
 	{
-		return uuid;
-	}
-
-	/**
-	 * Construct a new {@link UpgradeCommandMessage}.
-	 *
-	 * @param uuid
-	 *        The {@link UUID} that designates the desired upgrade.
-	 */
-	public UpgradeCommandMessage (final UUID uuid)
-	{
-		this.uuid = uuid;
-	}
-
-	@Override
-	public Command command ()
-	{
-		return Command.UPGRADE;
-	}
-
-	@Override
-	public void processThen (
-		final AvailServerChannel channel,
-		final Continuation0 continuation)
-	{
-		channel.server().upgradeThen(channel, this, continuation);
+		channel.server.upgradeThen(channel, this, continuation)
 	}
 }

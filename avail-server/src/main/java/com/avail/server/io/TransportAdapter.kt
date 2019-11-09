@@ -1,6 +1,6 @@
 /*
- * TransportAdapter.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * TransportAdapter.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,67 +30,61 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.server.io;
+package com.avail.server.io
 
-import com.avail.server.AvailServer;
-import com.avail.server.messages.Message;
-import com.avail.utility.evaluation.Continuation0;
-import com.avail.utility.evaluation.Continuation1;
-
-import javax.annotation.Nullable;
+import com.avail.server.AvailServer
+import com.avail.server.messages.Message
 
 /**
- * A {@code TransportAdapter} hides the details of using a particular transport
- * mechanism to send and receive {@linkplain Message messages}.
+ * A `TransportAdapter` hides the details of using a particular transport
+ * mechanism to send and receive [messages][Message].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
- * @param <T> The type of the underlying transport.
+ * @param T
+ *   The type of the underlying transport.
  */
-interface TransportAdapter<T>
-extends AutoCloseable
+interface TransportAdapter<T> : AutoCloseable
 {
 	/**
-	 * Answer the {@linkplain AvailServer Avail server} attached to this
-	 * {@linkplain TransportAdapter adapter}.
-	 *
-	 * @return The attached Avail server.
+	 * The [Avail server][AvailServer] attached to this
+	 * [adapter][TransportAdapter].
 	 */
-	AvailServer server ();
+	val server: AvailServer
 
 	/**
-	 * Read a complete message from the specified {@linkplain AbstractTransportChannel
-	 * channel}.
+	 * Read a complete message from the specified
+	 * [channel][AbstractTransportChannel].
 	 *
 	 * @param channel
-	 *        A channel.
+	 *   A channel.
 	 */
-	void readMessage (final AbstractTransportChannel<T> channel);
+	fun readMessage(channel: AbstractTransportChannel<T>)
 
 	/**
-	 * Send a {@linkplain Message message} bearing user data over the specified
-	 * {@linkplain AbstractTransportChannel channel}.
+	 * Send a [message][Message] bearing user data over the specified
+	 * [channel][AbstractTransportChannel].
 	 *
 	 * @param channel
-	 *        A channel.
+	 *   A channel.
 	 * @param payload
-	 *        A payload.
+	 *   A payload.
 	 * @param success
-	 *        What to do after sending the message.
+	 *   What to do after sending the message.
 	 * @param failure
-	 *        What to do if sending the message fails.
+	 *   What to do if sending the message fails.
 	 */
-	void sendUserData (
-		final AbstractTransportChannel<T> channel,
-		final Message payload,
-		final @Nullable Continuation0 success,
-		final @Nullable Continuation1<Throwable> failure);
+	fun sendUserData(
+		channel: AbstractTransportChannel<T>,
+		payload: Message,
+		success: (()->Unit)?,
+		failure: ((Throwable)->Unit)?)
 
 	/**
-	 * Send a polite close notification across the given {@linkplain
-	 * AbstractTransportChannel channel}.
+	 * Send a polite close notification across the given
+	 * [channel][AbstractTransportChannel].
 	 *
 	 * @param channel
-	 *        A channel.
+	 *   A channel.
 	 */
-	void sendClose (final AbstractTransportChannel<T> channel);
+	fun sendClose(channel: AbstractTransportChannel<T>)
 }

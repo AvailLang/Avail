@@ -1,6 +1,6 @@
 /*
- * ServerErrorChannel.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * ServerErrorChannel.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,32 +30,24 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.server.io;
+package com.avail.server.io
 
 /**
- * A {@code ServerErrorChannel} adapts an {@link AvailServerChannel channel} for
- * use as a standard output channel.
+ * A `ServerErrorChannel` adapts an [channel][AvailServerChannel] for use as a
+ * standard output channel.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct a new [ServerErrorChannel].
+ *
+ * @param channel
+ *   The [server channel][AvailServerChannel] to adapt as a standard error
+ *   channel.
  */
-public final class ServerErrorChannel
-extends AbstractServerOutputChannel
+class ServerErrorChannel constructor(channel: AvailServerChannel)
+	: AbstractServerOutputChannel(channel)
 {
-	/**
-	 * Construct a new {@link ServerErrorChannel}.
-	 *
-	 * @param channel
-	 *        The {@linkplain AvailServerChannel server channel} to adapt as a
-	 *        standard error channel.
-	 */
-	public ServerErrorChannel (final AvailServerChannel channel)
-	{
-		super(channel);
-	}
-
-	@Override
-	protected String channelTag ()
-	{
-		return "err";
-	}
+	override val channelTag = "err"
 }

@@ -1,6 +1,6 @@
 /*
- * SocketChannel.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * SocketChannel.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,98 +30,60 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.server.io;
+package com.avail.server.io
 
-import com.avail.server.messages.Message;
+import com.avail.server.messages.Message
 
-import java.nio.channels.AsynchronousSocketChannel;
+import java.nio.channels.AsynchronousSocketChannel
 
 /**
- * A {@code SocketChannel} encapsulates an {@link AsynchronousSocketChannel}
- * created by a {@code SocketAdapter}.
+ * A `SocketChannel` encapsulates an [AsynchronousSocketChannel] created by a
+ * `SocketAdapter`.
  *
+ * @property adapter
+ *   The [SocketAdapter] that created this [channel][SocketChannel].
+ * @property transport
+ *   The [channel][AsynchronousSocketChannel] used by the associated [SocketAdapter].
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct a new `SocketChannel`.
+ *
+ * @param adapter
+ *   The [SocketAdapter].
+ * @param transport
+ *   The [channel][AsynchronousSocketChannel].
  */
-final class SocketChannel
-extends AbstractTransportChannel<AsynchronousSocketChannel>
+internal class SocketChannel constructor(
+	override val adapter: SocketAdapter,
+	override val transport: AsynchronousSocketChannel)
+: AbstractTransportChannel<AsynchronousSocketChannel>()
 {
-	/**
-	 * The {@link SocketAdapter} that created this {@linkplain SocketChannel
-	 * channel}.
-	 */
-	final SocketAdapter adapter;
+	override val isOpen get() = transport.isOpen
+	override val maximumSendQueueDepth = MAX_QUEUE_DEPTH
+	override val maximumReceiveQueueDepth = MAX_QUEUE_DEPTH
 
-	@Override
-	public SocketAdapter adapter ()
+	override fun close()
 	{
-		return adapter;
-	}
-
-	/**
-	 * The {@linkplain AsynchronousSocketChannel channel} used by the associated
-	 * {@link SocketAdapter}.
-	 */
-	private final AsynchronousSocketChannel transport;
-
-	@Override
-	public AsynchronousSocketChannel transport ()
-	{
-		return transport;
-	}
-
-	@Override
-	public boolean isOpen ()
-	{
-		return transport.isOpen();
-	}
-
-	/**
-	 * Construct a new {@code SocketChannel}.
-	 *
-	 * @param adapter
-	 *        The {@link SocketAdapter}.
-	 * @param transport
-	 *        The {@linkplain AsynchronousSocketChannel channel}.
-	 */
-	SocketChannel (
-		final SocketAdapter adapter,
-		final AsynchronousSocketChannel transport)
-	{
-		this.adapter = adapter;
-		this.transport = transport;
-	}
-
-	/**
-	 * The maximum number of {@linkplain Message messages} permitted on the
-	 * {@linkplain #sendQueue queue}.
-	 */
-	private static final int MAX_QUEUE_DEPTH = 10;
-
-	@Override
-	protected int maximumSendQueueDepth ()
-	{
-		return MAX_QUEUE_DEPTH;
-	}
-
-	@Override
-	protected int maximumReceiveQueueDepth ()
-	{
-		return MAX_QUEUE_DEPTH;
-	}
-
-	@Override
-	public void close ()
-	{
-		synchronized (sendQueue)
-		{
+		synchronized(sendQueue) {
 			if (!sendQueue.isEmpty())
 			{
-				closeAfterEmptyingSendQueue();
+				shouldCloseAfterEmptyingSendQueue = true
 			}
 			else
 			{
-				adapter.sendClose(this);
+				adapter.sendClose(this)
 			}
 		}
+	}
+
+	companion object
+	{
+		/**
+		 * The maximum number of [messages][Message] permitted on the
+		 * [queue][sendQueue].
+		 */
+		private const val MAX_QUEUE_DEPTH = 10
 	}
 }

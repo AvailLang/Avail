@@ -1,6 +1,6 @@
 /*
- * CommandMessage.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * CommandMessage.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,66 +30,38 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.server.messages;
+package com.avail.server.messages
 
-import com.avail.server.io.AvailServerChannel;
-import com.avail.utility.evaluation.Continuation0;
+import com.avail.server.io.AvailServerChannel
 
 /**
- * A {@code CommandMessage} represents a fully-parsed {@linkplain Command
- * command}. Each command message knows the kind of command that it represents.
+ * A `CommandMessage` represents a fully-parsed [command][Command]. Each command
+ * message knows the kind of command that it represents.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public abstract class CommandMessage
+abstract class CommandMessage
 {
 	/**
-	 * Answer the encoded {@linkplain Command command}.
-	 *
-	 * @return The command.
+	 * The identifier of the [message][CommandMessage]. This identifier should
+	 * appear in any responses to this message.
 	 */
-	public abstract Command command ();
+	var commandId: Long = 0
+
+	/** The encoded [command][Command]. */
+	abstract val command: Command
 
 	/**
-	 * The identifier of the {@linkplain CommandMessage message}. This
-	 * identifier should appear in any responses to this message.
-	 */
-	private long commandId;
-
-	/**
-	 * Answer the identifier of the {@linkplain CommandMessage message}. This
-	 * identifier should appear in any responses to this message.
-	 *
-	 * @return The command identifier.
-	 */
-	public long commandId ()
-	{
-		return commandId;
-	}
-
-	/**
-	 * Answer the identifier of the {@linkplain CommandMessage message}. This
-	 * identifier should appear in any responses to this message.
-	 *
-	 * @param commandId
-	 *        The command identifier.
-	 */
-	public void setCommandId (final long commandId)
-	{
-		this.commandId = commandId;
-	}
-
-	/**
-	 * Process this {@linkplain CommandMessage command message} on behalf of the
-	 * specified {@linkplain AvailServerChannel channel}.
+	 * Process this [command message][CommandMessage] on behalf of the specified
+	 * [channel][AvailServerChannel].
 	 *
 	 * @param channel
-	 *        The channel that received this command message.
+	 *   The channel that received this command message.
 	 * @param continuation
-	 *        What to do when sufficient processing has occurred (and the
-	 *        channel wishes to begin receiving messages again).
+	 *   What to do when sufficient processing has occurred (and the channel
+	 *   wishes to begin receiving messages again).
 	 */
-	public abstract void processThen (
-		final AvailServerChannel channel,
-		final Continuation0 continuation);
+	abstract fun processThen(
+		channel: AvailServerChannel,
+		continuation: ()->Unit)
 }

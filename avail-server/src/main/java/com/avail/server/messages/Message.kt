@@ -1,6 +1,6 @@
 /*
- * Message.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Message.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,88 +30,62 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.server.messages;
+package com.avail.server.messages
 
-import com.avail.server.AvailServer;
-import com.avail.server.io.AvailServerChannel;
+import com.avail.server.AvailServer
+import com.avail.server.io.AvailServerChannel
 
 /**
- * An {@link AvailServer} sends and receives {@code Message}s. A {@code Message}
- * received by the server represents a command from the client, whereas a {@code
- * Message} sent by the server represents a response to a command.
+ * An [AvailServer] sends and receives `Message`s. A `Message` received by the
+ * server represents a command from the client, whereas a `Message` sent by the
+ * server represents a response to a command.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class Message
+class Message
 {
-	/** The maximum allowed size of a frame. */
-	public static final int MAX_SIZE = 1_024_000;
-
-	/** The {@linkplain String content} of the {@linkplain Message message}. */
-	private final String content;
+	/** The [content][String] of the [message][Message]. */
+	val content: String
 
 	/**
-	 * Answer the {@linkplain String content} of the {@linkplain Message
-	 * message}.
-	 *
-	 * @return The message's content.
+	 * Should the [channel][AvailServerChannel] be
+	 * [closed][AvailServerChannel.close] after transmitting this
+	 * [message][Message]?
 	 */
-	public String content ()
-	{
-		return content;
-	}
+	val closeAfterSending: Boolean
 
 	/**
-	 * Should the {@linkplain AvailServerChannel channel} be {@linkplain
-	 * AvailServerChannel#close() closed} after transmitting this {@linkplain
-	 * Message message}?
-	 */
-	private final boolean closeAfterSending;
-
-	/**
-	 * Should the {@linkplain AvailServerChannel channel} be {@linkplain
-	 * AvailServerChannel#close() closed} after transmitting this {@linkplain
-	 * Message message}?
-	 *
-	 * @return {@code true} if the channel should be closed after sending,
-	 *         {@code false} otherwise.
-	 */
-	public boolean closeAfterSending ()
-	{
-		return closeAfterSending;
-	}
-
-	/**
-	 * Construct a new {@link Message}.
+	 * Construct a new [Message].
 	 *
 	 * @param content
-	 *        The {@linkplain String content}.
+	 * The [content][String].
 	 */
-	public Message (final String content)
+	constructor(content: String)
 	{
-		this.content = content;
-		this.closeAfterSending = false;
+		this.content = content
+		this.closeAfterSending = false
 	}
 
 	/**
-	 * Construct a new {@link Message}.
+	 * Construct a new [Message].
 	 *
 	 * @param content
-	 *        The {@linkplain String content}.
+	 *   The [content][String].
 	 * @param closeAfterSending
-	 *        {@code true} if the {@linkplain AvailServerChannel channel} should
-	 *        be {@linkplain AvailServerChannel#close() closed} after
-	 *        transmitting this message.
+	 *   `true` if the [channel][AvailServerChannel] should be
+	 *   [closed][AvailServerChannel.close] after transmitting this message.
 	 */
-	public Message (final String content, final boolean closeAfterSending)
+	constructor(content: String, closeAfterSending: Boolean)
 	{
-		this.content = content;
-		this.closeAfterSending = closeAfterSending;
+		this.content = content
+		this.closeAfterSending = closeAfterSending
 	}
 
-	@Override
-	public String toString ()
+	override fun toString(): String = content
+
+	companion object
 	{
-		return content;
+		/** The maximum allowed size of a frame.  */
+		const val MAX_SIZE = 1024000
 	}
 }
