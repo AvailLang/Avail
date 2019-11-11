@@ -892,7 +892,7 @@ Public method "_[.._]" is
  * Construct and answer a slice (i.e., subtuple) that begins at the start of the
  * tuple and continues to subscript {@param "sliceEnd"}.
  *
- * @method "_[.._]"
+ * @macro "_[.._]"
  * @param "aTuple" "tuple"
  *        A tuple.
  * @param "sliceEnd" "whole number"
@@ -901,13 +901,15 @@ Public method "_[.._]" is
  *           The requested tuple.
  * @category "Tuples" "Types" "Queries"
  */
-Public stable method "_[.._]" is
+Public macro "_[.._]" is
 [
-	aTuple : tuple,
-	sliceEnd : whole number
+	aTuple : expression phrase ⇒ tuple,
+	sliceEnd : expression phrase ⇒ whole number
 |
-	aTuple[1..sliceEnd]
-] : tuple;
+	restricted send $"_[_.._]"
+		with «<aTuple, ‘1’, sliceEnd>»
+		: tuple
+] : expression phrase ⇒ tuple;
 
 /**
  * Strengthen the tuple type produced by {@param "_[.._]"} to the strongest

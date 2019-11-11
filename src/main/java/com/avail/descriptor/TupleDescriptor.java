@@ -45,7 +45,6 @@ import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -828,7 +827,7 @@ extends Descriptor
 	@Override @AvailMethod
 	A_Set o_AsSet (final AvailObject object)
 	{
-		return generateSetFrom(object, Function.identity());
+		return generateSetFrom(object.tupleSize(), object.iterator());
 	}
 
 	@Override @AvailMethod

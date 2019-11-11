@@ -1587,10 +1587,7 @@ public final class AvailRuntime
 							assert incompleteLevelOneSafeTasks == 0;
 							incompleteLevelOneSafeTasks =
 								levelOneSafeTasks.size();
-							for (final AvailTask task : levelOneSafeTasks)
-							{
-								execute(task);
-							}
+							levelOneSafeTasks.forEach(this::execute);
 							levelOneSafeTasks.clear();
 						}
 					}

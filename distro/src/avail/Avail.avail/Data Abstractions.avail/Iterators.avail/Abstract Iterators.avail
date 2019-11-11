@@ -590,12 +590,14 @@ Semantic restriction "take«at most»?_from_" is
  * @returns "boolean"
  * @author "Richard Arriaga"
  */
-Public method "_is not exhausted" is
+Public macro "_is not exhausted" is
 [
- 	aReader : reader
+ 	aReader : expression phrase ⇒ reader
 |
- 	¬aReader is exhausted
-] : boolean;
+	restricted send $"¬_"
+		with «<(restricted send $"_is exhausted" with «<aReader>» : boolean)>»
+		: boolean
+] : send phrase ⇒ boolean;
 
 /**
  * Answer a tuple containing the prefix of {@param "aReader"} that answered
