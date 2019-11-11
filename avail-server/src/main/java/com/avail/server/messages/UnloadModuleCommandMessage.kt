@@ -1,6 +1,6 @@
 /*
- * RunEntryPointCommandMessage.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * UnloadModuleCommandMessage.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,58 +30,38 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.server.messages;
+package com.avail.server.messages
 
-import com.avail.server.io.AvailServerChannel;
-import com.avail.utility.evaluation.Continuation0;
+import com.avail.builder.ModuleName
+import com.avail.descriptor.A_Module
+import com.avail.server.io.AvailServerChannel
 
 /**
- * A {@code RunEntryPointCommandMessage} represents a {@link
- * Command#RUN_ENTRY_POINT RUN_ENTRY_POINT} {@linkplain Command command}, and
- * carries the Avail command (i.e, entry point expression) that should be
- * executed.
+ * An `UnloadModuleCommandMessage` represents a
+ * [LOAD_MODULE][Command.LOAD_MODULE] [command][Command], and carries the
+ * [name][ModuleName] of the target [module][A_Module].
  *
+ * @property target
+ *   The [name][ModuleName] of the target [module][A_Module].
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct a new [UnloadModuleCommandMessage].
+ *
+ * @param target
+ *   The [name][ModuleName] of the target [module][A_Module].
  */
-public final class RunEntryPointCommandMessage
-extends CommandMessage
+class UnloadModuleCommandMessage constructor(
+	val target: ModuleName) : CommandMessage()
 {
-	/** The command expression. */
-	private final String expression;
+	override val command = Command.UNLOAD_MODULE
 
-	/**
-	 * Answer the command expression.
-	 *
-	 * @return The command expression.
-	 */
-	public String expression ()
+	override fun processThen(
+		channel: AvailServerChannel,
+		continuation: ()->Unit)
 	{
-		return expression;
-	}
-
-	/**
-	 * Construct a new {@link RunEntryPointCommandMessage}.
-	 *
-	 * @param expression
-	 *        The command expression.
-	 */
-	public RunEntryPointCommandMessage (final String expression)
-	{
-		this.expression = expression;
-	}
-
-	@Override
-	public Command command ()
-	{
-		return Command.RUN_ENTRY_POINT;
-	}
-
-	@Override
-	public void processThen (
-		final AvailServerChannel channel,
-		final Continuation0 continuation)
-	{
-		channel.server().requestUpgradesForRunThen(
-			channel, this, continuation);
+		channel.server.requestUpgradesForUnloadModuleThen(
+			channel, this, continuation)
 	}
 }

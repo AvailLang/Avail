@@ -1,6 +1,6 @@
 /*
- * VersionCommandMessage.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * SocketChannel.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,58 +30,60 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.server.messages;
+package com.avail.server.io
 
-import com.avail.server.io.AvailServerChannel;
-import com.avail.utility.evaluation.Continuation0;
+import com.avail.server.messages.Message
 
-import static com.avail.server.AvailServer.negotiateVersionThen;
+import java.nio.channels.AsynchronousSocketChannel
 
 /**
- * A {@code VersionCommandMessage} represents a {@link Command#VERSION
- * VERSION} {@linkplain Command command}, and carries the requested protocol
- * version.
+ * A `SocketChannel` encapsulates an [AsynchronousSocketChannel] created by a
+ * `SocketAdapter`.
  *
+ * @property adapter
+ *   The [SocketAdapter] that created this [channel][SocketChannel].
+ * @property transport
+ *   The [channel][AsynchronousSocketChannel] used by the associated [SocketAdapter].
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct a new `SocketChannel`.
+ *
+ * @param adapter
+ *   The [SocketAdapter].
+ * @param transport
+ *   The [channel][AsynchronousSocketChannel].
  */
-public final class VersionCommandMessage
-extends CommandMessage
+internal class SocketChannel constructor(
+	override val adapter: SocketAdapter,
+	override val transport: AsynchronousSocketChannel)
+: AbstractTransportChannel<AsynchronousSocketChannel>()
 {
-	/** The requested protocol version. */
-	private final int version;
+	override val isOpen get() = transport.isOpen
+	override val maximumSendQueueDepth = MAX_QUEUE_DEPTH
+	override val maximumReceiveQueueDepth = MAX_QUEUE_DEPTH
 
-	/**
-	 * Answer the requested protocol version.
-	 *
-	 * @return The requested protocol version.
-	 */
-	public int version ()
+	override fun close()
 	{
-		return version;
+		synchronized(sendQueue) {
+			if (!sendQueue.isEmpty())
+			{
+				shouldCloseAfterEmptyingSendQueue = true
+			}
+			else
+			{
+				adapter.sendClose(this)
+			}
+		}
 	}
 
-	/**
-	 * Construct a new {@code VersionCommandMessage}.
-	 *
-	 * @param version
-	 *        The requested protocol version.
-	 */
-	public VersionCommandMessage (final int version)
+	companion object
 	{
-		this.version = version;
-	}
-
-	@Override
-	public Command command ()
-	{
-		return Command.VERSION;
-	}
-
-	@Override
-	public void processThen (
-		final AvailServerChannel channel,
-		final Continuation0 continuation)
-	{
-		negotiateVersionThen(channel, this, continuation);
+		/**
+		 * The maximum number of [messages][Message] permitted on the
+		 * [queue][sendQueue].
+		 */
+		private const val MAX_QUEUE_DEPTH = 10
 	}
 }

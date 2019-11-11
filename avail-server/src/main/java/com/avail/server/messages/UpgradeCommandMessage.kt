@@ -1,6 +1,6 @@
 /*
- * ServerOutputChannel.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * UpgradeCommandMessage.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,32 +30,36 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.server.io;
+package com.avail.server.messages
+
+import com.avail.server.io.AvailServerChannel
+
+import java.util.UUID
 
 /**
- * A {@code ServerOutputChannel} adapts an {@link AvailServerChannel channel}
- * for use as a standard output channel.
+ * An `UpgradeCommandMessage` represents an [UPGRADE][Command.UPGRADE]
+ * [command][Command], and carries a [UUID] that designates the desired upgrade.
  *
+ * @property uuid
+ *   The [UUID] that designates the desired upgrade.
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct a new [UpgradeCommandMessage].
+ *
+ * @param uuid
+ *   The [UUID] that designates the desired upgrade.
  */
-public final class ServerOutputChannel
-extends AbstractServerOutputChannel
+class UpgradeCommandMessage constructor(
+	val uuid: UUID) : CommandMessage()
 {
-	/**
-	 * Construct a new {@link ServerOutputChannel}.
-	 *
-	 * @param channel
-	 *        The {@linkplain AvailServerChannel server channel} to adapt as a
-	 *        standard output channel.
-	 */
-	public ServerOutputChannel (final AvailServerChannel channel)
-	{
-		super(channel);
-	}
+	override val command = Command.UPGRADE
 
-	@Override
-	protected String channelTag ()
+	override fun processThen(
+		channel: AvailServerChannel,
+		continuation: ()->Unit)
 	{
-		return "out";
+		channel.server.upgradeThen(channel, this, continuation)
 	}
 }

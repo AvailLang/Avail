@@ -50,19 +50,16 @@ interface TextOutputChannel : AsynchronousChannel
 	 * Writes a sequence of characters to this `TextOutputChannel` from the
 	 * given [buffer][CharBuffer].
 	 *
-	 *
 	 * This method initiates an asynchronous write operation to write a
 	 * sequence of characters to this channel from the given buffer. The
 	 * supplied [CompletionHandler] is invoked when the write operation
 	 * completes (or fails). The result passed to the completion handler is the
 	 * number of characters written.
 	 *
-	 *
 	 * The write operation may write up to `r` characters to the channel, where
 	 * `r` is the [number][CharBuffer.remaining] in the buffer at the time that
 	 * the write is attempted. If `r` is `0`, then the write operation completes
 	 * immediately with a result of `0` without initiating an I/O operation.
-	 *
 	 *
 	 * Suppose that a character sequence of length `n` is written, where `0 < n
 	 * ≤ r`. This character sequence will be transferred from the buffer
@@ -72,11 +69,9 @@ interface TextOutputChannel : AsynchronousChannel
 	 * the buffer's position will be equal to `p + n`; its
 	 * [limit][CharBuffer.limit] will not have changed.
 	 *
-	 *
 	 * Buffers are not safe for use by multiple concurrent [ threads][Thread],
 	 * so care should be taken to avoid accessing the buffer until the operation
 	 * has completed.
-	 *
 	 *
 	 * This method may be invoked at any time.
 	 *

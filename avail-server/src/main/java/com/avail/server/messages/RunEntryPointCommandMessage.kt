@@ -1,6 +1,6 @@
 /*
- * LoadModuleCommandMessage.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * RunEntryPointCommandMessage.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,64 +30,36 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.server.messages;
+package com.avail.server.messages
 
-import com.avail.builder.ModuleName;
-import com.avail.descriptor.A_Module;
-import com.avail.server.io.AvailServerChannel;
-import com.avail.utility.evaluation.Continuation0;
+import com.avail.server.io.AvailServerChannel
 
 /**
- * A {@code LoadModuleCommandMessage} represents a {@link Command#LOAD_MODULE
- * LOAD_MODULE} {@linkplain Command command}, and carries the {@linkplain
- * ModuleName name} of the target {@linkplain A_Module module}.
+ * A `RunEntryPointCommandMessage` represents a
+ * [RUN_ENTRY_POINT][Command.RUN_ENTRY_POINT] [command][Command], and carries
+ * the Avail command (i.e, entry point expression) that should be executed.
  *
+ * @property expression
+ *   The command expression.
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct a new [RunEntryPointCommandMessage].
+ *
+ * @param expression
+ *   The command expression.
  */
-public class LoadModuleCommandMessage
-extends CommandMessage
+class RunEntryPointCommandMessage constructor(
+	val expression: String) : CommandMessage()
 {
-	/**
-	 * The {@linkplain ModuleName name} of the target {@linkplain A_Module
-	 * module}.
-	 */
-	private final ModuleName target;
+	override val command = Command.RUN_ENTRY_POINT
 
-	/**
-	 * Answer the {@linkplain ModuleName name} of the target {@linkplain
-	 * A_Module module}.
-	 *
-	 * @return The target module.
-	 */
-	public ModuleName target ()
+	override fun processThen(
+		channel: AvailServerChannel,
+		continuation: ()->Unit)
 	{
-		return target;
-	}
-
-	/**
-	 * Construct a new {@link LoadModuleCommandMessage}.
-	 *
-	 * @param target
-	 *        The {@linkplain ModuleName name} of the target {@linkplain
-	 *        A_Module module}.
-	 */
-	public LoadModuleCommandMessage (final ModuleName target)
-	{
-		this.target = target;
-	}
-
-	@Override
-	public Command command ()
-	{
-		return Command.LOAD_MODULE;
-	}
-
-	@Override
-	public void processThen (
-		final AvailServerChannel channel,
-		final Continuation0 continuation)
-	{
-		channel.server().requestUpgradesForLoadModuleThen(
-			channel, this, continuation);
+		channel.server.requestUpgradesForRunThen(
+			channel, this, continuation)
 	}
 }

@@ -1,6 +1,6 @@
 /*
  * P_FileWrite.kt
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -255,7 +255,7 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 					SimpleCompletionHandler(
 						{ bytesWritten ->
 							nextPosition.value += bytesWritten
-							continueWriting.value()
+							continueWriting()
 							Unit
 						},
 						{

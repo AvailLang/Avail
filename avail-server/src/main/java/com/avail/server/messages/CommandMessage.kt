@@ -1,6 +1,6 @@
 /*
- * UpgradeCommandMessage.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * CommandMessage.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,58 +30,38 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.server.messages;
+package com.avail.server.messages
 
-import com.avail.server.io.AvailServerChannel;
-import com.avail.utility.evaluation.Continuation0;
-
-import java.util.UUID;
+import com.avail.server.io.AvailServerChannel
 
 /**
- * An {@code UpgradeCommandMessage} represents an {@link Command#UPGRADE
- * UPGRADE} {@linkplain Command command}, and carries a {@link UUID} that
- * designates the desired upgrade.
+ * A `CommandMessage` represents a fully-parsed [command][Command]. Each command
+ * message knows the kind of command that it represents.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class UpgradeCommandMessage
-extends CommandMessage
+abstract class CommandMessage
 {
-	/** The {@link UUID} that designates the desired upgrade. */
-	private final UUID uuid;
+	/**
+	 * The identifier of the [message][CommandMessage]. This identifier should
+	 * appear in any responses to this message.
+	 */
+	var commandId: Long = 0
+
+	/** The encoded [command][Command]. */
+	abstract val command: Command
 
 	/**
-	 * Answer the {@linkplain UUID uuid} that designates the desired upgrade.
+	 * Process this [command message][CommandMessage] on behalf of the specified
+	 * [channel][AvailServerChannel].
 	 *
-	 * @return A {@code UUID}.
+	 * @param channel
+	 *   The channel that received this command message.
+	 * @param continuation
+	 *   What to do when sufficient processing has occurred (and the channel
+	 *   wishes to begin receiving messages again).
 	 */
-	public UUID uuid ()
-	{
-		return uuid;
-	}
-
-	/**
-	 * Construct a new {@link UpgradeCommandMessage}.
-	 *
-	 * @param uuid
-	 *        The {@link UUID} that designates the desired upgrade.
-	 */
-	public UpgradeCommandMessage (final UUID uuid)
-	{
-		this.uuid = uuid;
-	}
-
-	@Override
-	public Command command ()
-	{
-		return Command.UPGRADE;
-	}
-
-	@Override
-	public void processThen (
-		final AvailServerChannel channel,
-		final Continuation0 continuation)
-	{
-		channel.server().upgradeThen(channel, this, continuation);
-	}
+	abstract fun processThen(
+		channel: AvailServerChannel,
+		continuation: ()->Unit)
 }

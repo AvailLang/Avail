@@ -1,6 +1,6 @@
 /*
  * Combinator.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,10 @@
 
 package com.avail.utility.evaluation;
 
+import kotlin.Unit;
+import kotlin.jvm.functions.Function0;
+import kotlin.jvm.functions.Function1;
+
 /**
  * Utility for applying a Continuation1 recursively.
  */
@@ -51,10 +55,25 @@ public final class Combinator
 	 * @param body
 	 *        The {@link Continuation1NotNull} itself.
 	 */
-	public static void recurse (
-		final Continuation1NotNull<Continuation0> body)
+	public static void recurse (final Continuation1NotNull<Continuation0> body)
 	{
 		body.value(() -> recurse(body));
+	}
+
+	/**
+	 * Invoke the given {@link Function1} with a {@link Function0} which will,
+	 * when evaluated, do this again.
+	 *
+	 * @param body
+	 *        The {@link Function1} itself.
+	 */
+	public static void recurse (final Function1<Function0<Unit>, Unit> body)
+	{
+		body.invoke(() ->
+			{
+				recurse(body);
+				return Unit.INSTANCE;
+			});
 	}
 
 	/**
