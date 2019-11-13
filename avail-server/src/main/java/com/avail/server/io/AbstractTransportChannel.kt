@@ -140,6 +140,7 @@ abstract class AbstractTransportChannel<T> : AvailServerChannel()
 						if (sentMessage.closeAfterSending)
 						{
 							adapter.sendClose(this)
+							onChannelCloseAction(ServerMessageDisconnect)
 							return@recurse
 						}
 						// Remove the oldest sender, but release the monitor

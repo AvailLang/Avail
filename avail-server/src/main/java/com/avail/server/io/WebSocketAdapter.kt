@@ -960,6 +960,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 						serverHandshake.sendThen(channel.transport) {
 							channel.handshakeSucceeded()
 							readMessage(channel)
+							channel.heartbeat.sendHeartbeat()
 						}
 					}
 				}
@@ -1414,7 +1415,10 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 			strongChannel,
 			Opcode.CLOSE,
 			buffer,
-			{ IO.close(strongChannel.transport) })
+			{
+				println("GOT HERE: ===== Closing transport ====")
+				IO.close(strongChannel.transport)
+			})
 	}
 
 	@Synchronized

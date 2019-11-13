@@ -36,6 +36,7 @@ import com.avail.server.messages.Message
 import com.avail.utility.IO
 
 import java.nio.channels.AsynchronousSocketChannel
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * A `WebSocketChannel` encapsulates an [AsynchronousSocketChannel] created by a
@@ -92,9 +93,20 @@ internal class WebSocketChannel constructor(
 			heartbeatFailureThreshold,
 			heartbeatInterval,
 			heartbeatTimeout)
+
+	/**
+	 * `true` indicates the close [onChannelCloseAction] has not been run and
+	 * is eligible to run; `false` otherwise.
+	 */
+	private val onChannelCloseActionNotRun = AtomicBoolean(true)
+
 	override val onChannelCloseAction: (DisconnectReason) -> Unit =
 		{
-			onChannelCloseAction(it, this)
+			if (!onChannelCloseActionNotRun.getAndSet(false))
+			{
+				onChannelCloseAction(it, this)
+				println("Close action has been run")
+			}
 		}
 
 	/** `true` if the WebSocket handshake succeeded, `false` otherwise. */
@@ -106,20 +118,23 @@ internal class WebSocketChannel constructor(
 	fun handshakeSucceeded()
 	{
 		handshakeSucceeded = true
-		heartbeat.sendHeartbeat()
 	}
 
 	override fun close()
 	{
+		println("GOT HERE: ===== Closing channel...")
 		if (handshakeSucceeded)
 		{
+			println("GOT HERE: ===== Closing channel with handshake...")
 			synchronized(sendQueue) {
 				if (!sendQueue.isEmpty())
 				{
+					println("GOT HERE: ===== Closing channel with handshake send queue not empty...")
 					shouldCloseAfterEmptyingSendQueue = true
 				}
 				else
 				{
+					println("GOT HERE: ===== Closing channel with handshake send queue empty...")
 					adapter.sendClose(this)
 				}
 			}

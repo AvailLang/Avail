@@ -32,6 +32,8 @@
 
 package com.avail.server.io
 
+import com.avail.server.messages.Message
+
 /**
  * A `DisconnectOrigin` is an enum that specifies whether it was the client or
  * the server to disconnect the [AvailServerChannel].
@@ -76,4 +78,17 @@ object ClientDisconnect: DisconnectReason
 {
 	override val origin get () = DisconnectOrigin.CLIENT_ORIGIN
 	override val code get () = -1
+}
+
+/**
+ * A `ServerMessageDisconnect` is a [DisconnectReason] that specifies that the
+ * disconnect originated from the server due to a [Message.closeAfterSending]
+ * being `true`.
+ *
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ */
+object ServerMessageDisconnect: DisconnectReason
+{
+	override val origin get () = DisconnectOrigin.SERVER_ORIGIN
+	override val code get () = -2
 }
