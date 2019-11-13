@@ -52,6 +52,21 @@ import java.util.*
 abstract class AbstractTransportChannel<T> : AvailServerChannel()
 {
 	/**
+	 * The [Heartbeat] used by this [AbstractTransportChannel] to track
+	 * connectivity.
+	 */
+	open val heartbeat: Heartbeat = NoHeartbeat
+
+	/**
+	 * A function that accepts a [DisconnectReason] and the underlying
+	 * [channel][AbstractTransportChannel] and answers `Unit` that is to be
+	 * called when the channel is closed.
+	 *
+	 * Do nothing by default
+	 */
+	open val onChannelCloseAction: (DisconnectReason) -> Unit = { _ -> }
+
+	/**
 	 * A [queue][Deque] of [messages][Message] awaiting transmission by the
 	 * [adapter][TransportAdapter].
 	 */
@@ -84,7 +99,7 @@ abstract class AbstractTransportChannel<T> : AvailServerChannel()
 	 * The [TransportAdapter] that created this
 	 * [channel][AbstractTransportChannel].
 	 */
-	protected abstract val adapter: TransportAdapter<T>
+	internal abstract val adapter: TransportAdapter<T>
 
 	/** The underlying channel. */
 	abstract val transport: T

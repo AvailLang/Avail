@@ -44,6 +44,8 @@ import java.nio.channels.AcceptPendingException
 import java.nio.channels.AsynchronousServerSocketChannel
 import java.nio.channels.AsynchronousSocketChannel
 import java.nio.charset.StandardCharsets
+import java.util.concurrent.ScheduledThreadPoolExecutor
+import java.util.concurrent.ThreadFactory
 import java.util.logging.Level
 
 
@@ -69,6 +71,10 @@ import java.util.logging.Level
  *   An Avail server.
  * @param adapterAddress
  *   The socket address of the listener.
+ * @param onChannelCloseAction
+ *   A function that accepts a [DisconnectReason] and the underlying
+ *   [channel][AbstractTransportChannel] and answers `Unit` that is to be
+ *   called when the input channel is closed.
  * @throws IOException
  *   If the [server socket][AsynchronousServerSocketChannel] could not be
  *   opened.
@@ -76,7 +82,10 @@ import java.util.logging.Level
 class SocketAdapter @Throws(IOException::class) constructor(
 	override val server: AvailServer,
 	@Suppress("MemberVisibilityCanBePrivate")
-	internal val adapterAddress: InetSocketAddress)
+	internal val adapterAddress: InetSocketAddress,
+	override val onChannelCloseAction:
+		(DisconnectReason, AbstractTransportChannel<AsynchronousSocketChannel>)
+			-> Unit = { _, _ -> /* Do nothing */})
 	: TransportAdapter<AsynchronousSocketChannel>
 {
 	/** The [server socket channel][AsynchronousServerSocketChannel]. */
@@ -89,6 +98,16 @@ class SocketAdapter @Throws(IOException::class) constructor(
 		this.serverChannel.bind(adapterAddress)
 		acceptConnections()
 	}
+
+	override val timer =
+		ScheduledThreadPoolExecutor(
+			1,
+			ThreadFactory { r ->
+				val thread = Thread(r)
+				thread.isDaemon = true
+				thread.name = "SocketAdapterTimer" + thread.id
+				thread
+			})
 
 	/**
 	 * Asynchronously accept incoming connections.

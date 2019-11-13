@@ -34,6 +34,9 @@ package com.avail.server.io
 
 import com.avail.server.AvailServer
 import com.avail.server.messages.Message
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.ScheduledFuture
+import java.util.concurrent.TimeUnit
 
 /**
  * A `TransportAdapter` hides the details of using a particular transport
@@ -87,4 +90,30 @@ interface TransportAdapter<T> : AutoCloseable
 	 *   A channel.
 	 */
 	fun sendClose(channel: AbstractTransportChannel<T>)
+
+	/**
+	 * A function that accepts a [DisconnectReason] and the underlying
+	 * [channel][AbstractTransportChannel] and answers `Unit` that is to be
+	 * called when the input channel is closed.
+	 */
+	val onChannelCloseAction:
+		(DisconnectReason, AbstractTransportChannel<T>) -> Unit
+
+	/**
+	 * The [timer][ScheduledExecutorService] for
+	 * [scheduling activities][ScheduledFuture] related to managing
+	 * communication.
+	 */
+	val timer: ScheduledExecutorService
+
+	/**
+	 * Execute the supplied task in approximately [task] milliseconds.
+	 *
+	 * @param task
+	 *        The task.
+	 * @param action
+	 *        The task.
+	 */
+	fun millisTimer (task: Long, action: () -> Unit): ScheduledFuture<*> =
+		timer.schedule(action, task, TimeUnit.MILLISECONDS)
 }

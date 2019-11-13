@@ -54,6 +54,8 @@ import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 import java.util.*
+import java.util.concurrent.ScheduledThreadPoolExecutor
+import java.util.concurrent.ThreadFactory
 import java.util.logging.Level
 import java.util.regex.Pattern
 import javax.xml.bind.DatatypeConverter
@@ -72,7 +74,21 @@ import kotlin.experimental.xor
  * @property serverAuthority
  *   The [server][WebSocketAdapter]'s authority, e.g., the host name of this
  *   node.
+ * @property heartbeatFailureThreshold
+ *   The number of consecutive times the `heartbeatTimeout` is allowed to be
+ *   reached before disconnecting the client.
+ * @property heartbeatInterval
+ *   The time in milliseconds between each [Heartbeat] request made by the
+ *   server to the client after receiving a `Heartbeat` from the client.
+ * @property heartbeatTimeout
+ *   The amount of time in milliseconds the heartbeat will fail if a heartbeat
+ *   is not received from the client by the server.
+ * @property onChannelCloseAction
+ *   A function that accepts a [DisconnectReason] and the underlying
+ *   [channel][AbstractTransportChannel] and answers `Unit` that is to be
+ *   called when the input channel is closed.
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
  * @see [RFC 6455: The WebSocket Protocol](http://tools.ietf.org/html/rfc6455)
  *
  * @constructor
@@ -86,6 +102,19 @@ import kotlin.experimental.xor
  *   The socket address of the listener.
  * @param serverAuthority
  *   The server's authority, e.g., the host name of this node.
+ * @param heartbeatFailureThreshold
+ *   The number of consecutive times the `heartbeatTimeout` is allowed to be
+ *   reached before disconnecting the client.
+ * @param heartbeatInterval
+ *   The time in milliseconds between each [Heartbeat] request made by the
+ *   server to the client after receiving a `Heartbeat` from the client.
+ * @param heartbeatTimeout
+ *   The amount of time in milliseconds the heartbeat will fail if a heartbeat
+ *   is not received from the client by the server.
+ * @param onChannelCloseAction
+ *   A function that accepts a [DisconnectReason] and the underlying
+ *   [channel][AbstractTransportChannel] and answers `Unit` that is to be
+ *   called when the input channel is closed.
  * @throws IOException
  *   If the [server socket][AsynchronousServerSocketChannel] could not be
  *   opened.
@@ -93,7 +122,13 @@ import kotlin.experimental.xor
 class WebSocketAdapter @Throws(IOException::class) constructor(
 	override val server: AvailServer,
 	internal val adapterAddress: InetSocketAddress,
-	internal val serverAuthority: String)
+	internal val serverAuthority: String,
+	private val heartbeatFailureThreshold: Int = 3,
+	private val heartbeatInterval: Long = 12000,
+	private val heartbeatTimeout: Long = 15000,
+	override val onChannelCloseAction:
+		(DisconnectReason, AbstractTransportChannel<AsynchronousSocketChannel>)
+			-> Unit = { _, _ -> /* Do nothing */})
 	: TransportAdapter<AsynchronousSocketChannel>
 {
 	/** The [server socket channel][AsynchronousServerSocketChannel]. */
@@ -104,6 +139,16 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 		this.serverChannel.bind(adapterAddress)
 		acceptConnections()
 	}
+
+	override val timer =
+		ScheduledThreadPoolExecutor(
+			1,
+			ThreadFactory { r ->
+				val thread = Thread(r)
+				thread.isDaemon = true
+				thread.name = "WebSocketAdapterTimer" + thread.id
+				thread
+			})
 
 	/**
 	 * A `HttpHeaderState` represents a state of the [client
@@ -850,7 +895,14 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 				{ transport, _, handler ->
 					// Asynchronously accept a subsequent connection.
 					serverChannel.accept<Any>(null, handler)
-					val channel = WebSocketChannel(this, transport)
+					val channel =
+						WebSocketChannel(
+							this,
+							transport,
+							heartbeatFailureThreshold,
+							heartbeatInterval,
+							heartbeatTimeout,
+							onChannelCloseAction)
 					// Process the client request.
 					ClientRequest.receiveThen(channel,this) { request ->
 						processRequest(request, channel)
@@ -1244,6 +1296,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 						}
 						else
 						{
+							channel.heartbeat.receiveHeartbeat()
 							sendPong(
 								strongChannel, bytes.toByteArray(), null, null)
 						}
@@ -1261,6 +1314,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 						}
 						// Ignore an unsolicited (but valid) pong.
 						readMessage(strongChannel)
+						channel.heartbeat.receiveHeartbeat()
 						return@readFrameThen
 					}
 					else ->
