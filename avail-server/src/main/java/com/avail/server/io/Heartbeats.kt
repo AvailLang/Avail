@@ -193,6 +193,7 @@ internal class WebSocketChannelHeartbeat constructor(
 	override fun heartbeatFailureThresholdReached()
 	{
 		channel.onChannelCloseAction(ClientDisconnect)
+		channel.close()
 	}
 }
 
