@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import javax.annotation.Nullable;
 import java.util.List;
 
+import static com.avail.utility.Casts.cast;
 import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.StackPrinter.trace;
 
@@ -171,6 +172,11 @@ public class AvailObjectFieldHelper
 		return string;
 	}
 
+	/**
+	 * Produce a name for this helper in the debugger.
+	 *
+	 * @return A suitable {@link String} to present for this helper.
+	 */
 	private String privateComputeNameForDebugger ()
 	{
 		final StringBuilder builder = new StringBuilder();
@@ -199,8 +205,7 @@ public class AvailObjectFieldHelper
 		{
 			try
 			{
-				final IntegerSlotsEnum strongSlot =
-					(IntegerSlotsEnum) slot;
+				final IntegerSlotsEnum strongSlot = cast(slot);
 				final List<BitField> bitFields =
 					AbstractDescriptor.bitFieldsFor(strongSlot);
 				if (!bitFields.isEmpty())

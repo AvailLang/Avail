@@ -386,18 +386,6 @@ public final class Interpreter
 
 	/**
 	 * Answer the unique {@link #interpreterIndex} of the Avail interpreter
-	 * associated with the {@linkplain Thread#currentThread() current thread}.
-	 * If this thread is not an {@link AvailThread}, then fail.
-	 *
-	 * @return The current Avail {@code Interpreter}'s unique index.
-	 */
-	public static int currentIndex ()
-	{
-		return AvailThread.current().interpreter.interpreterIndex;
-	}
-
-	/**
-	 * Answer the unique {@link #interpreterIndex} of the Avail interpreter
 	 * associated with the {@linkplain Thread#currentThread() current thread},
 	 * if any.  If this thread is not an {@link AvailThread}, answer {@code 0}.
 	 *
@@ -1943,66 +1931,52 @@ public final class Interpreter
 	}
 
 	/**
-	 * Perform the actual {@link A_Function function} invocation with zero
+	 * Prepare to run a {@link A_Function function} invocation with zero
 	 * arguments.
 	 *
 	 * @param calledFunction
 	 *        The function to call.
-	 * @return The {@link StackReifier}, if any.
+	 * @return The calling {@link A_Function}
 	 */
 	@ReferencedInGeneratedCode
-	public @Nullable StackReifier invoke0 (
+	public A_Function preinvoke0 (
 		final A_Function calledFunction)
 	{
 		final A_Function savedFunction = stripNull(function);
-		final L2Chunk savedChunk = stripNull(chunk);
-
 		argsBuffer.clear();
 		function = calledFunction;
 		chunk = calledFunction.code().startingChunk();
 		offset = 0;
-		final @Nullable StackReifier reifier = runChunk();
-		function = savedFunction;
-		chunk = savedChunk;
-		returnNow = false;
-		assert !exitNow;
-		return reifier;
+		return savedFunction;
 	}
 
 	/**
-	 * Perform the actual {@link A_Function function} invocation with a single
+	 * Prepare to run a {@link A_Function function} invocation with one
 	 * argument.
 	 *
 	 * @param calledFunction
 	 *        The function to call.
 	 * @param arg1
 	 *        The sole argument to the function.
-	 * @return The {@link StackReifier}, if any.
+	 * @return The calling {@link A_Function}
 	 */
 	@ReferencedInGeneratedCode
-	public @Nullable StackReifier invoke1 (
+	public A_Function preinvoke1 (
 		final A_Function calledFunction,
 		final AvailObject arg1)
 	{
 		final A_Function savedFunction = stripNull(function);
-		final L2Chunk savedChunk = stripNull(chunk);
-
 		argsBuffer.clear();
 		argsBuffer.add(arg1);
 		function = calledFunction;
 		chunk = calledFunction.code().startingChunk();
 		offset = 0;
-		final @Nullable StackReifier reifier = runChunk();
-		function = savedFunction;
-		chunk = savedChunk;
-		returnNow = false;
-		assert !exitNow;
-		return reifier;
+		return savedFunction;
 	}
 
 	/**
-	 * Perform the actual {@link A_Function function} invocation with exactly
-	 * two arguments.
+	 * Prepare to run a {@link A_Function function} invocation with two
+	 * arguments.
 	 *
 	 * @param calledFunction
 	 *        The function to call.
@@ -2010,34 +1984,27 @@ public final class Interpreter
 	 *        The first argument to the function.
 	 * @param arg2
 	 *        The second argument to the function.
-	 * @return The {@link StackReifier}, if any.
+	 * @return The calling {@link A_Function}
 	 */
 	@ReferencedInGeneratedCode
-	public @Nullable StackReifier invoke2 (
+	public A_Function preinvoke2 (
 		final A_Function calledFunction,
 		final AvailObject arg1,
 		final AvailObject arg2)
 	{
 		final A_Function savedFunction = stripNull(function);
-		final L2Chunk savedChunk = stripNull(chunk);
-
 		argsBuffer.clear();
 		argsBuffer.add(arg1);
 		argsBuffer.add(arg2);
 		function = calledFunction;
 		chunk = calledFunction.code().startingChunk();
 		offset = 0;
-		final @Nullable StackReifier reifier = runChunk();
-		function = savedFunction;
-		chunk = savedChunk;
-		returnNow = false;
-		assert !exitNow;
-		return reifier;
+		return savedFunction;
 	}
 
 	/**
-	 * Perform the actual {@link A_Function function} invocation with exactly
-	 * three arguments.
+	 * Prepare to run a {@link A_Function function} invocation with three
+	 * arguments.
 	 *
 	 * @param calledFunction
 	 *        The function to call.
@@ -2047,18 +2014,16 @@ public final class Interpreter
 	 *        The second argument to the function.
 	 * @param arg3
 	 *        The third argument to the function.
-	 * @return The {@link StackReifier}, if any.
+	 * @return The calling {@link A_Function}
 	 */
 	@ReferencedInGeneratedCode
-	public @Nullable StackReifier invoke3 (
+	public A_Function preinvoke3 (
 		final A_Function calledFunction,
 		final AvailObject arg1,
 		final AvailObject arg2,
 		final AvailObject arg3)
 	{
 		final A_Function savedFunction = stripNull(function);
-		final L2Chunk savedChunk = stripNull(chunk);
-
 		argsBuffer.clear();
 		argsBuffer.add(arg1);
 		argsBuffer.add(arg2);
@@ -2066,39 +2031,53 @@ public final class Interpreter
 		function = calledFunction;
 		chunk = calledFunction.code().startingChunk();
 		offset = 0;
-		final @Nullable StackReifier reifier = runChunk();
-		function = savedFunction;
-		chunk = savedChunk;
-		returnNow = false;
-		assert !exitNow;
-		return reifier;
+		return savedFunction;
 	}
 
 	/**
-	 * Perform the actual {@link A_Function function} invocation.
+	 * Prepare to run a {@link A_Function function} invocation with an array of
+	 * arguments.
 	 *
 	 * @param calledFunction
 	 *        The function to call.
 	 * @param args
 	 *        The {@linkplain AvailObject arguments} to the function.
-	 * @return The {@link StackReifier}, if any.
+	 * @return The calling {@link A_Function}
 	 */
 	@ReferencedInGeneratedCode
-	public @Nullable StackReifier invoke (
+	public A_Function preinvoke (
 		final A_Function calledFunction,
 		final AvailObject[] args)
 	{
 		final A_Function savedFunction = stripNull(function);
-		final L2Chunk savedChunk = stripNull(chunk);
-
 		argsBuffer.clear();
 		Collections.addAll(argsBuffer, args);
 		function = calledFunction;
 		chunk = calledFunction.code().startingChunk();
 		offset = 0;
-		final @Nullable StackReifier reifier = runChunk();
-		function = savedFunction;
-		chunk = savedChunk;
+		return savedFunction;
+	}
+
+	/**
+	 * Do what's necessary after a function invocation, leaving just the given
+	 * {@link StackReifier} on the stack.
+	 *
+	 * @param callingChunk
+	 *        The chunk to return into.
+	 * @param callingFunction
+	 *        The function to return into.
+	 * @param reifier
+	 *        The {@link StackReifier} produced by the call, if any.
+	 * @return The given {@link StackReifier}, if any.
+	 */
+	@ReferencedInGeneratedCode
+	public @Nullable StackReifier postinvoke (
+		final L2Chunk callingChunk,
+		final A_Function callingFunction,
+		final @Nullable StackReifier reifier)
+	{
+		chunk = callingChunk;
+		function = callingFunction;
 		returnNow = false;
 		assert !exitNow;
 		return reifier;
@@ -2247,6 +2226,7 @@ public final class Interpreter
 	 * @return {@code null} if returning normally, otherwise a {@link
 	 *          StackReifier} to effect reification.
 	 */
+	@ReferencedInGeneratedCode
 	public @Nullable StackReifier runChunk ()
 	{
 		adjustUnreifiedCallDepthBy(1);

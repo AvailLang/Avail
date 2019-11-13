@@ -59,7 +59,8 @@ object P_DescribeNoncanonicalMessage
 		val messageName = interpreter.argument(0)
 		try
 		{
-			val splitter = MessageSplitter(messageName)
+			// Run for exceptions side-effect.
+			MessageSplitter(messageName)
 		}
 		catch (e: MalformedMessageException)
 		{

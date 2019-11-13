@@ -37,17 +37,9 @@ import com.avail.builder.ModuleName
 import com.avail.builder.ModuleNameResolver
 import com.avail.builder.UnresolvedDependencyException
 import com.avail.compiler.ModuleHeader
-import com.avail.descriptor.*
-import com.avail.utility.Pair
-import com.avail.utility.json.JSONWriter
-
-import java.io.IOException
-import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets
-import java.nio.file.Path
-import java.nio.file.attribute.BasicFileAttributes
-import java.util.*
-
+import com.avail.descriptor.A_String
+import com.avail.descriptor.A_Tuple
+import com.avail.descriptor.CommentTokenDescriptor
 import com.avail.descriptor.SetDescriptor.emptySet
 import com.avail.descriptor.SetDescriptor.setFromCollection
 import com.avail.descriptor.StringDescriptor.stringFrom
@@ -56,6 +48,14 @@ import com.avail.stacks.comment.AvailComment
 import com.avail.stacks.exceptions.StacksCommentBuilderException
 import com.avail.stacks.exceptions.StacksScannerException
 import com.avail.stacks.scanner.StacksScanner
+import com.avail.utility.Pair
+import com.avail.utility.json.JSONWriter
+import java.io.IOException
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets
+import java.nio.file.Path
+import java.nio.file.attribute.BasicFileAttributes
+import java.util.*
 
 /**
  * A representation of all the fully parsed [comments][CommentTokenDescriptor]
@@ -491,7 +491,7 @@ class CommentsModule constructor(
 						ArrayList<Pair<A_String, CommentGroup>>()
 					for ((name, value) in usesMethodLeafNameToModuleName)
 					{
-						for ((module, commentGroup) in value)
+						for ((_, commentGroup) in value)
 						{
 							visibleValues.add(Pair(name, commentGroup))
 						}
@@ -499,7 +499,7 @@ class CommentsModule constructor(
 
 					for ((name, groupMap) in extendsMethodLeafNameToModuleName)
 					{
-						for ((module, commentGroup) in groupMap)
+						for ((_, commentGroup) in groupMap)
 						{
 							visibleValues.add(Pair(name, commentGroup))
 						}
@@ -608,7 +608,7 @@ class CommentsModule constructor(
 						mutableListOf<Pair<A_String, CommentGroup>>()
 					for ((name, cGroupMap) in usesMethodLeafNameToModuleName)
 					{
-						for ((module, commentGroup) in cGroupMap)
+						for ((_, commentGroup) in cGroupMap)
 						{
 							visibleValues.add(Pair(name, commentGroup))
 						}
@@ -616,7 +616,7 @@ class CommentsModule constructor(
 
 					for ((name, cGroupMap) in extendsMethodLeafNameToModuleName)
 					{
-						for ((module, commentGroup) in cGroupMap)
+						for ((_, commentGroup) in cGroupMap)
 						{
 							visibleValues.add(Pair(name, commentGroup))
 						}
@@ -1258,7 +1258,9 @@ class CommentsModule constructor(
 	private fun writeAmbiguousAliasJSONFiles(
 		outputPath: Path,
 		runtime: AvailRuntime,
+		@Suppress("UNUSED_PARAMETER")
 		ambiguousMethodFileMap: MutableMap<A_String, MutableMap<String, CommentGroup>>,
+		@Suppress("UNUSED_PARAMETER")
 		topLevelLinkFolderPath: String,
 		linkingFileMap: LinkingFileMap)
 	{

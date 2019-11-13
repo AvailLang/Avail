@@ -86,8 +86,8 @@ extends PhraseDescriptor
 
 		/**
 		 * The {@linkplain Primitive primitive} number to invoke for this block.
-		 * This is not the {@link Enum#ordinal()} of the primitive, but rather
-		 * its {@link Primitive#primitiveNumber}.
+		 * The numbering is ephemeral, and is not serialized or accessible
+		 * within Avail code.
 		 */
 		@EnumField(
 			describedBy=Primitive.class,

@@ -31,9 +31,12 @@
  */
 package com.avail.interpreter.primitive.general
 
-import com.avail.descriptor.*
+import com.avail.descriptor.A_Number
+import com.avail.descriptor.A_RawFunction
+import com.avail.descriptor.A_Type
 import com.avail.descriptor.BottomTypeDescriptor.bottom
 import com.avail.descriptor.ContinuationDescriptor.dumpStackThen
+import com.avail.descriptor.FiberDescriptor
 import com.avail.descriptor.FiberDescriptor.ExecutionState
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
@@ -87,8 +90,7 @@ object P_EmergencyExit : Primitive(
 				errorMessageProducer))
 			if (errorMessageProducer.isInt)
 			{
-				val errorNumber =
-					cast<A_BasicObject, A_Number>(errorMessageProducer)
+				val errorNumber: A_Number = cast(errorMessageProducer)
 				val intValue = errorNumber.extractInt()
 				val code = AvailErrorCode.byNumericCode(intValue)
 				if (code !== null)

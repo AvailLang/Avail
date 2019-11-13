@@ -61,9 +61,8 @@ object P_BootstrapPrefixStartOfBlock : Primitive(0, CanInline, Bootstrap)
 	{
 		interpreter.checkArgumentCount(0)
 
-		val loader =
-			interpreter.fiber().availLoader()
-	             ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+		interpreter.fiber().availLoader() ?:
+			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		val clientDataGlobalKey = CLIENT_DATA_GLOBAL_KEY.atom
 		val compilerScopeMapKey = COMPILER_SCOPE_MAP_KEY.atom
 		val compilerScopeStackKey = COMPILER_SCOPE_STACK_KEY.atom

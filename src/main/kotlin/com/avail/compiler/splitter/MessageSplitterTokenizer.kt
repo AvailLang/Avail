@@ -244,7 +244,7 @@ class MessageSplitterTokenizer
 									sawRegular = true
 									skip()
 								}
-								!peek(BACK_QUOTE, SPACE) -> break@loop
+								!peek(BACK_QUOTE, UNDERSCORE) -> break@loop
 							}
 						}
 						if (sawRegular) {
@@ -255,7 +255,7 @@ class MessageSplitterTokenizer
 							acceptStripped(start until positionInName)
 						} else {
 							// If we never saw a regular character, then produce
-							// a token for each character.
+							// a token for each backquote and each underscore.
 							(start until positionInName).forEach { accept(it) }
 						}
 					}
@@ -274,25 +274,12 @@ class MessageSplitterTokenizer
 				}
 				else ->
 				{
-					var sawIdentifierUnderscore = false
 					loop@ while (!atEnd())
 					{
-						when
-						{
-							!isUnderscoreOrSpaceOrOperator(peek()) -> skip()
-							peek(BACK_QUOTE, UNDERSCORE) ->
-								sawIdentifierUnderscore = true
-							else -> break@loop
-						}
+						if (!isUnderscoreOrSpaceOrOperator(peek())) skip()
+						else if (!peek(BACK_QUOTE, UNDERSCORE)) break@loop
 					}
-					if (sawIdentifierUnderscore)
-					{
-						acceptStripped(start until positionInName)
-					}
-					else
-					{
-						accept(start, positionInName - 1)
-					}
+					acceptStripped(start until positionInName)
 				}
 			}
 		}

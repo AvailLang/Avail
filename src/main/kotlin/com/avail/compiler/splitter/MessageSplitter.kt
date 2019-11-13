@@ -78,8 +78,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
  *         If the message name is malformed.
  */
 class MessageSplitter
-@Throws(MalformedMessageException::class) constructor(messageName: A_String)
-{
+@Throws(MalformedMessageException::class) constructor(messageName: A_String) {
 	/**
 	 * The Avail string to be parsed.
 	 */
@@ -145,15 +144,12 @@ class MessageSplitter
 	 *    used in a special way. A backquote may also operate on another
 	 *    backquote (to indicate that an actual backquote token will appear in a
 	 *    call).
-	 *
-	 * @see .messagePartsTuple
 	 */
-	internal val messagePartsList: MutableList<A_String> = ArrayList(10)
+	private val messagePartsList: List<A_String>
 
 	/**
-	 * The sequence of strings constituting discrete tokens of the message name.
-	 *
-	 * @see .messagePartsList
+	 * The [A_Tuple] of [A_String]s constituting discrete tokens of the message
+	 * name.
 	 */
 	val messagePartsTuple: A_Tuple
 
@@ -161,7 +157,7 @@ class MessageSplitter
 	 * A collection of one-based positions in the original string, corresponding
 	 * to the [messagePartsList] that have been extracted.
 	 */
-	private val messagePartPositions: MutableList<Int> = ArrayList(10)
+	private val messagePartPositions: List<Int>
 
 	/** The current one-based parsing position in the list of tokens.  */
 	private var messagePartPosition: Int = 0
@@ -199,8 +195,7 @@ class MessageSplitter
 	 * @param javaString
 	 *        The Java [String] denoting the metacharacter.
 	 */
-	enum class Metacharacter constructor(javaString: String)
-	{
+	enum class Metacharacter constructor(javaString: String) {
 		/**
 		 * A back-quote (`) precedes a metacharacter to cause it to be treated
 		 * as an ordinary character.  Since no metacharacters are alphanumeric,
@@ -293,6 +288,22 @@ class MessageSplitter
 		 * yield ⊤ or ⊥.  Since these argument types are forbidden for methods,
 		 * this construct can only be used in macros, where what is passed as an
 		 * argument is a *phrase* yielding that type.
+		 *
+		 * When an exclamation mark follows a guillemet group, that group must
+		 * contain an alternation.  If no alternatives produce a value, the
+		 * effect is to push a constant corresponding with the alternative's
+		 * one-based index in the alternation.
+		 *
+		 * If the exclamation mark follows a guillemet group that contains an
+		 * alternation where at least one alternative produces a value, it
+		 * attempts to parse a series of alternative phrases.  Each parsed
+		 * phrase is numbered with an ascending one-based subscript,
+		 * representing the order in which the phrases occurred in the source.
+		 * The final effect is to push a single tuple with N elements,
+		 * corresponding to the N alternatives.  Each element is itself a tuple
+		 * with an appropriate number of arguments for that alternative, but
+		 * preceded by a natural number indicating the order of that phrase in
+		 * the source.
 		 */
 		EXCLAMATION_MARK("!"),
 
@@ -353,6 +364,11 @@ class MessageSplitter
 		SINGLE_DAGGER("†"),
 
 		/**
+		 * A space character separates alphanumeric tokens in a message name.
+		 */
+		SPACE(" "),
+
+		/**
 		 * An [Expression] followed by a tilde (~) causes all [Simple]
 		 * expressions anywhere within it to match case-insensitively to the
 		 * tokens lexed from the Avail source code.  All of these simple
@@ -395,31 +411,27 @@ class MessageSplitter
 		VERTICAL_BAR("|");
 
 		/** The Avail [A_String] denoting this metacharacter.  */
-		val string: A_String
+		val string: A_String = stringFrom(javaString).makeShared()
 
-		init
-		{
-			string = stringFrom(javaString).makeShared()
+		/** The sole codepoint ([Int]) of this [Metacharacter] instance. */
+		val codepoint: Int = string.tupleCodePointAt(1)
+
+		init {
 			assert(string.tupleSize() == 1)
 		}
 
-		companion object
-		{
+		companion object {
 			/**
 			 * This collects all metacharacters, including space and circled
 			 * numbers.  These are the characters that can be [BACK_QUOTE]d.
 			 */
-			private val backquotableCodepoints = HashSet<Int>()
+			private val backquotableCodepoints = mutableSetOf<Int>()
 
-			// Load the set with metacharacters, space, and circled numbers.
-			init
-			{
-				backquotableCodepoints.add(' '.toInt())
+			// Load the set with metacharacters and circled numbers.
+			init {
 				backquotableCodepoints.addAll(circledNumbersMap.keys)
-				for (metacharacter in values())
-				{
-					backquotableCodepoints.add(
-						metacharacter.string.tupleCodePointAt(1))
+				values().forEach {
+					backquotableCodepoints.add(it.codepoint)
 				}
 			}
 
@@ -437,17 +449,16 @@ class MessageSplitter
 		}
 	}
 
-	init
-	{
+	init {
 		this.messageName = messageName.makeShared()
-		try
-		{
-			splitMessage()
+		val tokenizer = MessageSplitterTokenizer(this.messageName)
+		this.messagePartsList = tokenizer.messagePartsList
+		this.messagePartPositions = tokenizer.messagePartPositions
+		try {
 			messagePartPosition = 1
 			rootSequence = parseSequence()
 
-			if (!atEnd)
-			{
+			if (!atEnd) {
 				peekFor(
 					CLOSE_GUILLEMET,
 					true,
@@ -464,37 +475,32 @@ class MessageSplitter
 					"Encountered unexpected character: $currentMessagePart")
 			}
 			messagePartsTuple = tupleFromList(messagePartsList).makeShared()
-		}
-		catch (e: MalformedMessageException)
-		{
+		} catch (e: MalformedMessageException) {
 			// Add contextual text and rethrow it.
 			throw MalformedMessageException(e.errorCode)
 			{
-				val builder = StringBuilder()
-				builder.append(e.describeProblem())
-				builder.append(". See arrow (")
-				builder.append(CompilerDiagnostics.errorIndicatorSymbol)
-				builder.append(") in: \"")
-				val characterIndex =
-					if (messagePartPosition > 0)
-						if (messagePartPosition <= messagePartPositions.size)
-							messagePartPositions[messagePartPosition - 1]
-						else
-							messageName.tupleSize() + 1
-					else
-						0
-				val before = messageName.copyStringFromToCanDestroy(
-					1, characterIndex - 1, false)
-				val after = messageName.copyStringFromToCanDestroy(
-					characterIndex, messageName.tupleSize(), false)
-				builder.append(before.asNativeString())
-				builder.append(CompilerDiagnostics.errorIndicatorSymbol)
-				builder.append(after.asNativeString())
-				builder.append('"')
-				builder.toString()
+				with(StringBuilder()) {
+					append(e.describeProblem())
+					append(". See arrow (")
+					append(CompilerDiagnostics.errorIndicatorSymbol)
+					append(") in: \"")
+					val characterIndex =
+						if (messagePartPosition > 0)
+							if (!atEnd)
+								messagePartPositions[messagePartPosition - 1]
+							else messageName.tupleSize() + 1
+						else 0
+					val before = messageName.copyStringFromToCanDestroy(
+						1, characterIndex - 1, false)
+					val after = messageName.copyStringFromToCanDestroy(
+						characterIndex, messageName.tupleSize(), false)
+					append(before.asNativeString())
+					append(CompilerDiagnostics.errorIndicatorSymbol)
+					append(after.asNativeString())
+					append('"')
+				}.toString()
 			}
 		}
-
 	}
 
 	/**
@@ -504,15 +510,11 @@ class MessageSplitter
 	 * @param builder
 	 *   The accumulator.
 	 */
-	private fun dumpForDebug(builder: StringBuilder)
-	{
-		builder.append(messageName.asNativeString())
-		builder.append("\n------\n")
-		for (part in messagePartsList)
-		{
-			builder.append('\t')
-			builder.append(part.asNativeString())
-			builder.append('\n')
+	private fun dumpForDebug(builder: StringBuilder) = with(builder) {
+		append(messageName.asNativeString())
+		append("\n------\n")
+		messagePartsList.forEach {
+			append("\t${it.asNativeString()}\n")
 		}
 	}
 
@@ -523,12 +525,11 @@ class MessageSplitter
 	 * @return
 	 *   The current 1-based position in the message name.
 	 */
-	private val positionInName get() =
-		if (atEnd)
-		{
-			messageName.tupleSize()
-		}
-		else messagePartPositions[messagePartPosition - 1]
+	private val positionInName
+		get() =
+			if (atEnd) {
+				messageName.tupleSize()
+			} else messagePartPositions[messagePartPosition - 1]
 
 	/**
 	 * Answer whether parsing has reached the end of the message parts.
@@ -545,8 +546,9 @@ class MessageSplitter
 	 * @return
 	 *   The current message part or `null`.
 	 */
-	private val currentMessagePartOrNull get() =
-		if (atEnd) null else messagePartsList[messagePartPosition - 1]
+	private val currentMessagePartOrNull
+		get() =
+			if (atEnd) null else messagePartsList[messagePartPosition - 1]
 
 	/**
 	 * Answer the current message part.  We must not be [atEnd].  Do
@@ -555,11 +557,11 @@ class MessageSplitter
 	 * @return
 	 *   The current message part.
 	 */
-	private val currentMessagePart get(): A_String
-	{
-		assert(!atEnd)
-		return messagePartsList[messagePartPosition - 1]
-	}
+	private val currentMessagePart
+		get(): A_String {
+			assert(!atEnd)
+			return messagePartsList[messagePartPosition - 1]
+		}
 
 	/**
 	 * Pretty-print a send of this message with given argument phrases.
@@ -575,8 +577,8 @@ class MessageSplitter
 	fun printSendNodeOnIndent(
 		sendPhrase: A_Phrase,
 		builder: StringBuilder,
-		indent: Int)
-	{
+		indent: Int
+	) {
 		builder.append('«')
 		rootSequence.printWithArguments(
 			sendPhrase.argumentsListNode().expressionsTuple().iterator(),
@@ -596,8 +598,7 @@ class MessageSplitter
 	 *   The tuple of integers encoding parse instructions for this message and
 	 *   argument types.
 	 */
-	fun instructionsTupleFor(phraseType: A_Type): A_Tuple
-	{
+	fun instructionsTupleFor(phraseType: A_Type): A_Tuple {
 		val generator = InstructionGenerator()
 		rootSequence.emitOn(phraseType, generator, WrapState.PUSHED_LIST)
 		generator.optimizeInstructions()
@@ -616,8 +617,7 @@ class MessageSplitter
 	 *   A list that indicates the origin [Expression] of each
 	 *   [ParsingOperation].
 	 */
-	private fun originExpressionsFor(phraseType: A_Type): List<Expression>
-	{
+	private fun originExpressionsFor(phraseType: A_Type): List<Expression> {
 		val generator = InstructionGenerator()
 		rootSequence.emitOn(phraseType, generator, WrapState.PUSHED_LIST)
 		generator.optimizeInstructions()
@@ -639,232 +639,15 @@ class MessageSplitter
 	 *   generated plus one.
 	 * @return The annotated message string.
 	 */
-	fun highlightedNameFor(phraseType: A_Type, pc: Int): String
-	{
+	fun highlightedNameFor(phraseType: A_Type, pc: Int): String {
 		val string = messageName.asNativeString()
 		val expressions = originExpressionsFor(phraseType)
-		val zeroBasedPosition: Int
-		zeroBasedPosition =
-			if (pc == expressions.size + 1)
-			{
-				string.length
-			}
-			else
-			{
-				val expression = expressions[pc - 1]
-				expression.positionInName - 1
-			}
-		val annotatedString = (string.substring(0, zeroBasedPosition)
-							   + CompilerDiagnostics.errorIndicatorSymbol
-							   + string.substring(zeroBasedPosition))
+		val zeroBasedPosition = if (pc == expressions.size + 1) string.length
+		else expressions[pc - 1].positionInName - 1
+		val annotatedString = string.replaceRange(
+			zeroBasedPosition until zeroBasedPosition,
+			CompilerDiagnostics.errorIndicatorSymbol)
 		return stringFrom(annotatedString).toString()
-	}
-
-	/**
-	 * Answer a variant of the [message name][messageName] with backquotes
-	 * stripped.
-	 *
-	 * @param start
-	 *   The start position, inclusive.
-	 * @param limit
-	 *   The end position, exclusive.
-	 * @return
-	 *   The variant.
-	 */
-	private fun stripBackquotes(start:Int, limit: Int): String
-	{
-		val builder = StringBuilder()
-		for (i in start until limit)
-		{
-			val cp = messageName.tupleCodePointAt(i)
-			if (cp != '`'.toInt())
-			{
-				builder.appendCodePoint(cp)
-			}
-		}
-		return builder.toString()
-	}
-
-	/**
-	 * Decompose the message name into its constituent token strings. These can
-	 * be subsequently parsed to generate the actual parse instructions. Do not
-	 * do any semantic analysis here, not even backquote processing – that would
-	 * lead to confusion over whether an operator was supposed to be treated as
-	 * a special token like open-guillemet («) rather than like a
-	 * backquote-escaped open-guillemet token.
-	 *
-	 * @throws MalformedMessageException
-	 *   If the signature is invalid.
-	 */
-	@Throws(MalformedMessageException::class)
-	private fun splitMessage()
-	{
-		if (messageName.tupleSize() == 0)
-		{
-			return
-		}
-		var position = 1
-		while (position <= messageName.tupleSize())
-		{
-			val ch = messageName.tupleCodePointAt(position)
-			when
-			{
-				ch == ' '.toInt() ->
-				{
-					if (messagePartsList.size == 0 ||
-							isUnderscoreOrSpaceOrOperator(
-								messageName.tupleCodePointAt(position - 1)))
-					{
-						// Problem is before the space.  Stuff the rest of the
-						// input in as a final token to make diagnostics look
-						// right.
-						messagePartsList.add(
-							messageName.copyStringFromToCanDestroy(
-								position, messageName.tupleSize(), false))
-						messagePartPositions.add(position)
-						messagePartPosition = messagePartsList.size - 1
-						throwMalformedMessageException(
-							E_METHOD_NAME_IS_NOT_CANONICAL,
-							"Expected alphanumeric character before space")
-					}
-					//  Skip the space.
-					position++
-					if (position > messageName.tupleSize()
-						|| isUnderscoreOrSpaceOrOperator(
-							messageName.tupleCodePointAt(position)))
-					{
-						if (messageName.tupleCodePointAt(position).toChar()!='`'
-							|| position == messageName.tupleSize()
-							|| messageName.tupleCodePointAt(position + 1)
-							!= '_'.toInt())
-						{
-							// Problem is after the space.
-							messagePartsList.add(
-								messageName.copyStringFromToCanDestroy(
-									position, messageName.tupleSize(), false))
-							messagePartPositions.add(position)
-							messagePartPosition = messagePartsList.size
-							throwMalformedMessageException(
-								E_METHOD_NAME_IS_NOT_CANONICAL,
-								"Expected alphanumeric character after space")
-						}
-						// This is legal; we want to be able to parse
-						// expressions like "a _b".
-					}
-				}
-				ch == '`'.toInt() ->
-					// Despite what the method comment says, backquote needs to
-					// be processed specially when followed by an underscore so
-					// that identifiers containing (escaped) underscores can be
-					// treated as a single token. Otherwise, they are
-					// unparseable.
-					if (position == messageName.tupleSize()
-							|| messageName.tupleCodePointAt(
-								position + 1) != '_'.toInt())
-					{
-						// We didn't find an underscore, so we need to deal with
-						// the backquote in the usual way.
-						messagePartsList.add(
-							messageName.copyStringFromToCanDestroy(
-								position, position, false))
-						messagePartPositions.add(position)
-						position++
-					}
-					else
-					{
-						var sawRegular = false
-						val start = position
-						loop@ while (position <= messageName.tupleSize())
-						{
-							when
-							{
-								!isUnderscoreOrSpaceOrOperator(
-									messageName.tupleCodePointAt(position)) ->
-								{
-									sawRegular = true
-									position++
-								}
-								messageName.tupleCodePointAt(position)
-										== '`'.toInt()
-									&& position + 1 <= messageName.tupleSize()
-									&& messageName.tupleCodePointAt(
-											position + 1)
-										== '_'.toInt() -> position += 2
-								else -> break@loop
-							}
-						}
-						if (sawRegular)
-						{
-							// If we ever saw something other than `_ in the
-							// sequence, then produce a single token that
-							// includes the underscores (but not the
-							// backquotes).
-							messagePartsList.add(stringFrom(
-								stripBackquotes(start, position)))
-							messagePartPositions.add(position)
-						}
-						else
-						{
-							// If we never saw a regular character, then produce
-							// a token for each character.
-							var i = start
-							val limit = position - 1
-							while (i <= limit)
-							{
-								messagePartsList.add(
-									messageName.copyStringFromToCanDestroy(
-										i, i, false))
-								messagePartPositions.add(i)
-								i++
-							}
-						}
-					}
-				isUnderscoreOrSpaceOrOperator(ch) ->
-				{
-					messagePartsList.add(
-						messageName.copyStringFromToCanDestroy(
-							position, position, false))
-					messagePartPositions.add(position)
-					position++
-				}
-				else ->
-				{
-					messagePartPositions.add(position)
-					var sawIdentifierUnderscore = false
-					val start = position
-					loop@ while (position <= messageName.tupleSize())
-					{
-						when
-						{
-							!isUnderscoreOrSpaceOrOperator(
-									messageName.tupleCodePointAt(position))
-								-> position++
-							messageName.tupleCodePointAt(position)
-									== '`'.toInt()
-								&& position + 1 <= messageName.tupleSize()
-								&& messageName.tupleCodePointAt(position + 1)
-									== '_'.toInt() ->
-							{
-								sawIdentifierUnderscore = true
-								position += 2
-							}
-							else -> break@loop
-						}
-					}
-					if (sawIdentifierUnderscore)
-					{
-						messagePartsList.add(stringFrom(
-							stripBackquotes(start, position)))
-					}
-					else
-					{
-						messagePartsList.add(
-							messageName.copyStringFromToCanDestroy(
-								start, position - 1, false))
-					}
-				}
-			}
-		}
 	}
 
 	/**
@@ -877,11 +660,9 @@ class MessageSplitter
 	 * @return
 	 *   Whether the given metacharacter was found and consumed.
 	 */
-	private fun peekFor(metacharacter: Metacharacter): Boolean
-	{
+	private fun peekFor(metacharacter: Metacharacter): Boolean {
 		val token = currentMessagePartOrNull
-		if (token !== null && token.equals(metacharacter.string))
-		{
+		if (token !== null && token.equals(metacharacter.string)) {
 			messagePartPosition++
 			return true
 		}
@@ -897,8 +678,7 @@ class MessageSplitter
 	 * @return
 	 *   Whether the given metacharacter is the next token.
 	 */
-	private fun peekAheadFor(metacharacter: Metacharacter): Boolean
-	{
+	private fun peekAheadFor(metacharacter: Metacharacter): Boolean {
 		val token = currentMessagePartOrNull
 		return token !== null && token.equals(metacharacter.string)
 	}
@@ -911,13 +691,10 @@ class MessageSplitter
 	 * @return
 	 *   The value of the parsed explicit ordinal, or -1 if there was none.
 	 */
-	private fun peekForExplicitOrdinal(): Int
-	{
-		if (!atEnd)
-		{
+	private fun peekForExplicitOrdinal(): Int {
+		if (!atEnd) {
 			val codePoint = currentMessagePart.tupleCodePointAt(1)
-			if (circledNumbersMap.containsKey(codePoint))
-			{
+			if (circledNumbersMap.containsKey(codePoint)) {
 				// In theory we could allow messages to go past ㊿ by
 				// allowing a sequence of circled single digits (⓪-⑨)
 				// that doesn't start with ⓪.  DEFINITELY not worth the
@@ -955,11 +732,9 @@ class MessageSplitter
 		metacharacter: Metacharacter,
 		failureCondition: Boolean,
 		errorCode: AvailErrorCode,
-		errorString: String): Boolean
-	{
+		errorString: String): Boolean {
 		val token = currentMessagePartOrNull
-		if (token === null || !token.equals(metacharacter.string))
-		{
+		if (token === null || !token.equals(metacharacter.string)) {
 			return false
 		}
 		throwMalformedIf(failureCondition, errorCode, errorString)
@@ -978,12 +753,10 @@ class MessageSplitter
 	 *   If the method name is malformed.
 	 */
 	@Throws(MalformedMessageException::class)
-	private fun parseSequence(): Sequence
-	{
+	private fun parseSequence(): Sequence {
 		val sequence = Sequence(messagePartPosition)
 		var expression = parseElementOrAlternation()
-		while (expression !== null)
-		{
+		while (expression !== null) {
 			sequence.addExpression(expression)
 			expression = parseElementOrAlternation()
 		}
@@ -1000,16 +773,14 @@ class MessageSplitter
 	 *   If the start of an [Expression] is found, but it's malformed.
 	 */
 	@Throws(MalformedMessageException::class)
-	private fun parseElementOrAlternation(): Expression?
-	{
+	private fun parseElementOrAlternation(): Expression? {
 		val firstExpression = parseElement() ?: return null
 		!peekAheadFor(VERTICAL_BAR) && return firstExpression
 		// It must be an alternation.
 		checkAlternative(firstExpression)
 		val alternatives = ArrayList<Expression>()
 		alternatives.add(firstExpression)
-		while (peekFor(VERTICAL_BAR))
-		{
+		while (peekFor(VERTICAL_BAR)) {
 			val nextExpression = parseElement()
 				?: throwMalformedMessageException(
 					E_VERTICAL_BAR_MUST_SEPARATE_TOKENS_OR_SIMPLE_GROUPS,
@@ -1033,32 +804,25 @@ class MessageSplitter
 	 *   it was malformed.
 	 */
 	@Throws(MalformedMessageException::class)
-	private fun parseElement(): Expression?
-	{
+	private fun parseElement(): Expression? {
 		// Try to parse the kinds of things that deal with their own suffixes.
 		if (atEnd
 			|| peekAheadFor(DOUBLE_DAGGER)
-			|| peekAheadFor(CLOSE_GUILLEMET))
-		{
+			|| peekAheadFor(CLOSE_GUILLEMET)) {
 			return null
 		}
-		if (peekFor(UNDERSCORE))
-		{
+		if (peekFor(UNDERSCORE)) {
 			return parseOptionalExplicitOrdinal(parseUnderscoreElement())
 		}
-		if (peekFor(ELLIPSIS))
-		{
+		if (peekFor(ELLIPSIS)) {
 			return parseOptionalExplicitOrdinal(parseEllipsisElement())
 		}
-		if (peekFor(OPEN_GUILLEMET))
-		{
+		if (peekFor(OPEN_GUILLEMET)) {
 			return parseOptionalExplicitOrdinal(parseGuillemetElement())
 		}
-		return if (peekFor(SECTION_SIGN))
-		{
+		return if (peekFor(SECTION_SIGN)) {
 			SectionCheckpoint(positionInName, ++numberOfSectionCheckpoints)
-		}
-		else parseSimple()
+		} else parseSimple()
 	}
 
 	/**
@@ -1070,8 +834,7 @@ class MessageSplitter
 	 *   If the [Simple] expression is malformed.
 	 */
 	@Throws(MalformedMessageException::class)
-	private fun parseSimple(): Expression
-	{
+	private fun parseSimple(): Expression {
 		// First, parse the next token, then apply a double-question-mark,
 		// tilde, and/or circled number.
 		if (peekFor(
@@ -1079,8 +842,7 @@ class MessageSplitter
 				atEnd,
 				E_EXPECTED_OPERATOR_AFTER_BACKQUOTE,
 				"Backquote (`) must be followed by a special " +
-					"metacharacter, space, or circled number"))
-		{
+					"metacharacter, space, or circled number")) {
 			val token = currentMessagePart
 			// Expects metacharacter or space or circled number after backquote.
 			throwMalformedIf(
@@ -1089,9 +851,7 @@ class MessageSplitter
 				E_EXPECTED_OPERATOR_AFTER_BACKQUOTE,
 				"Backquote (`) must be followed by a special " +
 					"metacharacter, space, or circled number, not ($token)")
-		}
-		else
-		{
+		} else {
 			// Parse a regular keyword or operator.
 			checkSuffixCharactersNotInSuffix()
 		}
@@ -1105,20 +865,16 @@ class MessageSplitter
 				!expression.isLowerCase,
 				E_CASE_INSENSITIVE_EXPRESSION_CANONIZATION,
 				"Tilde (~) may only occur after a lowercase token " +
-					"or a group of lowercase tokens"))
-		{
+					"or a group of lowercase tokens")) {
 			expression = expression.applyCaseInsensitive()
 		}
-		if (peekFor(QUESTION_MARK))
-		{
+		if (peekFor(QUESTION_MARK)) {
 			val sequence = Sequence(expression.positionInName)
 			sequence.addExpression(expression)
 			expression = Optional(
 				expression.positionInName,
 				sequence)
-		}
-		else if (peekFor(DOUBLE_QUESTION_MARK))
-		{
+		} else if (peekFor(DOUBLE_QUESTION_MARK)) {
 			val sequence = Sequence(expression.positionInName)
 			sequence.addExpression(expression)
 			expression = CompletelyOptional(
@@ -1138,11 +894,9 @@ class MessageSplitter
 	 *   A replacement [Expression] with its explicit ordinal set if necessary.
 	 *   This may be the original expression after mutation.
 	 */
-	private fun parseOptionalExplicitOrdinal(expression: Expression): Expression
-	{
+	private fun parseOptionalExplicitOrdinal(expression: Expression): Expression {
 		val ordinal = peekForExplicitOrdinal()
-		if (ordinal != -1)
-		{
+		if (ordinal != -1) {
 			expression.explicitOrdinal = ordinal
 		}
 		return expression
@@ -1158,11 +912,9 @@ class MessageSplitter
 	 *   If the token is special.
 	 */
 	@Throws(MalformedMessageException::class)
-	private fun checkSuffixCharactersNotInSuffix()
-	{
+	private fun checkSuffixCharactersNotInSuffix() {
 		val token = currentMessagePartOrNull ?: return
-		if (circledNumbersMap.containsKey(token.tupleCodePointAt(1)))
-		{
+		if (circledNumbersMap.containsKey(token.tupleCodePointAt(1))) {
 			throwMalformedMessageException(
 				E_INCONSISTENT_ARGUMENT_REORDERING,
 				"Unquoted circled numbers (⓪-㊿) may only follow an " +
@@ -1222,16 +974,13 @@ class MessageSplitter
 	 *   If the subgroup is malformed.
 	 */
 	@Throws(MalformedMessageException::class)
-	private fun parseGuillemetElement(): Expression
-	{
+	private fun parseGuillemetElement(): Expression {
 		// We just parsed an open guillemet.  Parse a subgroup, eat the
 		// mandatory close guillemet, and apply any modifiers to the group.
 		val startOfGroup = positionInName
 		val beforeDagger = parseSequence()
-		val group: Group
-		group =
-			if (peekFor(DOUBLE_DAGGER))
-			{
+		val group = when {
+			peekFor(DOUBLE_DAGGER) -> {
 				val afterDagger = parseSequence()
 				// Check for a second double-dagger.
 				peekFor(
@@ -1241,13 +990,10 @@ class MessageSplitter
 					"A group must have at most one double-dagger (‡)")
 				Group(startOfGroup, beforeDagger, afterDagger)
 			}
-			else
-			{
-				Group(startOfGroup, beforeDagger)
-			}
+			else -> Group(startOfGroup, beforeDagger)
+		}
 
-		if (!peekFor(CLOSE_GUILLEMET))
-		{
+		if (!peekFor(CLOSE_GUILLEMET)) {
 			// Expected matching close guillemet.
 			throwMalformedMessageException(
 				E_UNBALANCED_GUILLEMETS,
@@ -1262,8 +1008,7 @@ class MessageSplitter
 				!subexpression.isLowerCase,
 				E_CASE_INSENSITIVE_EXPRESSION_CANONIZATION,
 				"Tilde (~) may only occur after a lowercase " +
-					"token or a group of lowercase tokens"))
-		{
+					"token or a group of lowercase tokens")) {
 			subexpression = CaseInsensitive(startOfGroup, subexpression)
 		}
 
@@ -1272,11 +1017,9 @@ class MessageSplitter
 				group.underscoreCount > 0,
 				E_OCTOTHORP_MUST_FOLLOW_A_SIMPLE_GROUP_OR_ELLIPSIS,
 				"An octothorp (#) may only follow a non-yielding " +
-					"group or an ellipsis (…)"))
-		{
+					"group or an ellipsis (…)")) {
 			subexpression = Counter(startOfGroup, group)
-		}
-		else if (peekFor(
+		} else if (peekFor(
 				QUESTION_MARK,
 				group.hasDagger,
 				E_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_GROUP,
@@ -1284,33 +1027,26 @@ class MessageSplitter
 					+ "group (optional) or a group with arguments "
 					+ "(0 or 1 occurrences), but not one with a "
 					+ "double-dagger (‡), since that suggests "
-					+ "multiple occurrences to be separated"))
-		{
-			if (group.underscoreCount > 0)
-			{
+					+ "multiple occurrences to be separated")) {
+			if (group.underscoreCount > 0) {
 				// A complex group just gets bounded to [0..1] occurrences.
 				group.beOptional()
-			}
-			else
-			{
+			} else {
 				// A simple group turns into an Optional, which produces a
 				// literal boolean indicating the presence of such a
 				// subexpression.
 				subexpression = Optional(startOfGroup, group.beforeDagger)
 			}
-		}
-		else if (peekFor(
+		} else if (peekFor(
 				DOUBLE_QUESTION_MARK,
 				group.underscoreCount > 0 || group.hasDagger,
 				E_DOUBLE_QUESTION_MARK_MUST_FOLLOW_A_TOKEN_OR_SIMPLE_GROUP,
 				"A double question mark (⁇) may only follow "
 					+ "a token or simple group, not one with a "
-					+ "double-dagger (‡) or arguments"))
-		{
+					+ "double-dagger (‡) or arguments")) {
 			subexpression = CompletelyOptional(
 				startOfGroup, group.beforeDagger)
-		}
-		else if (peekFor(
+		} else if (peekFor(
 				EXCLAMATION_MARK,
 				group.underscoreCount > 0
 					|| group.hasDagger
@@ -1319,11 +1055,10 @@ class MessageSplitter
 				E_EXCLAMATION_MARK_MUST_FOLLOW_AN_ALTERNATION_GROUP,
 				"An exclamation mark (!) may only follow an "
 					+ "alternation group or (for macros) an "
-					+ "underscore"))
-		{
+					+ "underscore")) {
 			// The guillemet group should have had a single element, an
 			// alternation.
-			val alternation = cast<Expression, Alternation>(
+			val alternation: Alternation = cast(
 				group.beforeDagger.expressions[0])
 			subexpression = NumberedChoice(alternation)
 		}
@@ -1337,27 +1072,22 @@ class MessageSplitter
 	 * @return
 	 *   A newly parsed [RawTokenArgument] or subclass.
 	 */
-	private fun parseEllipsisElement(): Expression
-	{
+	private fun parseEllipsisElement(): Expression {
 		val tokenStart = messagePartPositions[messagePartPosition - 2]
 		incrementLeafArgumentCount()
 		val absoluteUnderscoreIndex = leafArgumentCount
-		if (peekFor(EXCLAMATION_MARK))
-		{
+		if (peekFor(EXCLAMATION_MARK)) {
 			return RawTokenArgument(
 				tokenStart, absoluteUnderscoreIndex)
 		}
-		if (peekFor(OCTOTHORP))
-		{
+		if (peekFor(OCTOTHORP)) {
 			return RawWholeNumberLiteralTokenArgument(
 				tokenStart, absoluteUnderscoreIndex)
 		}
-		return if (peekFor(DOLLAR_SIGN))
-		{
+		return if (peekFor(DOLLAR_SIGN)) {
 			RawStringLiteralTokenArgument(
 				tokenStart, absoluteUnderscoreIndex)
-		}
-		else RawKeywordTokenArgument(
+		} else RawKeywordTokenArgument(
 			tokenStart,
 			absoluteUnderscoreIndex)
 	}
@@ -1369,14 +1099,12 @@ class MessageSplitter
 	 * @return
 	 *   A newly parsed [Argument] or subclass.
 	 */
-	private fun parseUnderscoreElement(): Expression
-	{
+	private fun parseUnderscoreElement(): Expression {
 		// Capture the one-based index.
 		val positionInName = messagePartPositions[messagePartPosition - 2]
 		incrementLeafArgumentCount()
 		val absoluteUnderscoreIndex = leafArgumentCount
-		return when
-		{
+		return when {
 			peekFor(SINGLE_DAGGER) -> ArgumentInModuleScope(
 				positionInName, absoluteUnderscoreIndex)
 			peekFor(UP_ARROW) -> VariableQuote(
@@ -1391,8 +1119,7 @@ class MessageSplitter
 	 * Increment the number of leaf arguments, which agrees with the number of
 	 * non-backquoted underscores and ellipses.
 	 */
-	private fun incrementLeafArgumentCount()
-	{
+	private fun incrementLeafArgumentCount() {
 		leafArgumentCount++
 	}
 
@@ -1427,21 +1154,19 @@ class MessageSplitter
 	@Throws(SignatureException::class)
 	fun checkImplementationSignature(
 		functionType: A_Type,
-		sectionNumber: Int = Integer.MAX_VALUE)
-	{
+		sectionNumber: Int = Integer.MAX_VALUE
+	) {
 		val argsTupleType = functionType.argsTupleType()
 		val sizes = argsTupleType.sizeRange()
 		val lowerBound = sizes.lowerBound()
 		val upperBound = sizes.upperBound()
-		if (!lowerBound.equals(upperBound) || !lowerBound.isInt)
-		{
+		if (!lowerBound.equals(upperBound) || !lowerBound.isInt) {
 			// Method definitions (and other definitions) should take a
 			// definite number of arguments.
 			throwSignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 		}
 		val lowerBoundInt = lowerBound.extractInt()
-		if (lowerBoundInt != numberOfArguments)
-		{
+		if (lowerBoundInt != numberOfArguments) {
 			throwSignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 		}
 		rootSequence.checkRootType(functionType.argsTupleType(), sectionNumber)
@@ -1453,27 +1178,16 @@ class MessageSplitter
 	 * @return
 	 *   `true` if the message contains any groups, `false` otherwise.
 	 */
-	val containsGroups get (): Boolean
-	{
-		for (expression in rootSequence.expressions)
-		{
-			if (expression.isGroup)
-			{
-				return true
-			}
-		}
-		return false
-	}
+	val containsGroups
+		get(): Boolean = rootSequence.expressions.any(Expression::isGroup)
 
-	override fun toString(): String
-	{
+	override fun toString(): String {
 		val builder = StringBuilder()
 		dumpForDebug(builder)
 		return builder.toString()
 	}
 
-	companion object
-	{
+	companion object {
 		/**
 		 * The [set][A_Set] of all [errors][AvailErrorCode] that can happen
 		 * during [message splitting][MessageSplitter].
@@ -1504,8 +1218,8 @@ class MessageSplitter
 		/** A String containing all 51 circled numbers.  */
 		private const val circledNumbersString =
 			"⓪①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯" +
-			"⑰⑱⑲⑳㉑㉒㉓㉔㉕㉖㉗㉘㉙㉚㉛㉜㉝" +
-			"㉞㉟㊱㊲㊳㊴㊵㊶㊷㊸㊹㊺㊻㊼㊽㊾㊿"
+				"⑰⑱⑲⑳㉑㉒㉓㉔㉕㉖㉗㉘㉙㉚㉛㉜㉝" +
+				"㉞㉟㊱㊲㊳㊴㊵㊶㊷㊸㊹㊺㊻㊼㊽㊾㊿"
 
 		/** How many circled numbers are in Unicode.  */
 		private val circledNumbersCount =
@@ -1525,8 +1239,7 @@ class MessageSplitter
 		 *   The codepoint which depicts that number inside a circle.
 		 */
 		@JvmStatic
-		fun circledNumberCodePoint(number: Int): Int
-		{
+		fun circledNumberCodePoint(number: Int): Int {
 			assert(number in 0 until circledNumbersCount)
 			return circledNumberCodePoints[number]
 		}
@@ -1537,16 +1250,13 @@ class MessageSplitter
 		 *
 		 * @see [circledNumbersString]
 		 */
-		private val circledNumbersMap: MutableMap<Int, Int> =
-			HashMap(circledNumbersCount)
+		private val circledNumbersMap = mutableMapOf<Int, Int>()
 
-		/* Initialize circledNumbersMap and circledNumberCodePoints */
-		init
-		{
+		/** Initialize circledNumbersMap and circledNumberCodePoints */
+		init {
 			var positionInString = 0
 			var number = 0
-			while (positionInString < circledNumbersString.length)
-			{
+			while (positionInString < circledNumbersString.length) {
 				val codePoint =
 					circledNumbersString.codePointAt(positionInString)
 				circledNumbersMap[codePoint] = number
@@ -1611,25 +1321,20 @@ class MessageSplitter
 		 * @return The permutation's one-based index.
 		 */
 		@JvmStatic
-		fun indexForPermutation(permutation: A_Tuple): Int
-		{
+		fun indexForPermutation(permutation: A_Tuple): Int {
 			var checkedLimit = 0
-			while (true)
-			{
+			while (true) {
 				val before = permutations.get()
 				val newLimit = before.tupleSize()
-				for (i in checkedLimit + 1..newLimit)
-				{
-					if (before.tupleAt(i).equals(permutation))
-					{
+				for (i in checkedLimit + 1..newLimit) {
+					if (before.tupleAt(i).equals(permutation)) {
 						// Already exists.
 						return i
 					}
 				}
 				val after =
 					before.appendCanDestroy(permutation, false).makeShared()
-				if (permutations.compareAndSet(before, after))
-				{
+				if (permutations.compareAndSet(before, after)) {
 					// Added it successfully.
 					return after.tupleSize()
 				}
@@ -1648,21 +1353,18 @@ class MessageSplitter
 		 *   [constantForIndex].
 		 */
 		@JvmStatic
-		fun indexForConstant(constant: A_BasicObject): Int
-		{
+		fun indexForConstant(constant: A_BasicObject): Int {
 			val strongConstant = constant.makeShared()
 			auto(constantsLock.readLock()).use {
 				val index = constantsMap[strongConstant]
-				if (index !== null)
-				{
+				if (index !== null) {
 					return index
 				}
 			}
 
 			auto(constantsLock.writeLock()).use {
 				val index = constantsMap[strongConstant]
-				if (index !== null)
-				{
+				if (index !== null) {
 					return index
 				}
 				assert(constantsMap.size == constantsList.size)
@@ -1691,8 +1393,7 @@ class MessageSplitter
 		 *   The [AvailObject] at the given index.
 		 */
 		@JvmStatic
-		fun constantForIndex(index: Int): AvailObject
-		{
+		fun constantForIndex(index: Int): AvailObject {
 			auto(constantsLock.readLock())
 				.use { return constantsList[index - 1] }
 		}
@@ -1716,10 +1417,9 @@ class MessageSplitter
 		private fun throwMalformedIf(
 			condition: Boolean,
 			errorCode: AvailErrorCode,
-			errorString: String)
-		{
-			if (condition)
-			{
+			errorString: String
+		) {
+			if (condition) {
 				throwMalformedMessageException(errorCode, errorString)
 			}
 		}
@@ -1735,11 +1435,10 @@ class MessageSplitter
 		 *   If the alternative contains an argument.
 		 */
 		@Throws(MalformedMessageException::class)
-		private fun checkAlternative(expression: Expression)
-		{
+		private fun checkAlternative(expression: Expression) {
 			throwMalformedIf(
 				expression.yieldsValue
-						|| expression.underscoreCount > 0,
+					|| expression.underscoreCount > 0,
 				E_ALTERNATIVE_MUST_NOT_CONTAIN_ARGUMENTS,
 				"Alternatives must not contain arguments")
 		}
@@ -1754,8 +1453,7 @@ class MessageSplitter
 		 */
 		@JvmStatic
 		@Throws(SignatureException::class)
-		fun throwSignatureException(errorCode: AvailErrorCode): Nothing
-		{
+		fun throwSignatureException(errorCode: AvailErrorCode): Nothing {
 			throw SignatureException(errorCode)
 		}
 
@@ -1776,8 +1474,8 @@ class MessageSplitter
 		@JvmStatic
 		@Throws(MalformedMessageException::class)
 		fun throwMalformedMessageException(
-			errorCode: AvailErrorCode, errorMessage: String): Nothing
-		{
+			errorCode: AvailErrorCode, errorMessage: String
+		): Nothing {
 			throw MalformedMessageException(errorCode) { errorMessage }
 		}
 
@@ -1791,7 +1489,7 @@ class MessageSplitter
 		 *   `true` if the specified character is an operator character, space,
 		 *   underscore, or ellipsis; or `false` otherwise.
 		 */
-		private fun isUnderscoreOrSpaceOrOperator(cp: Int) =
+		fun isUnderscoreOrSpaceOrOperator(cp: Int) =
 			cp == '_'.toInt()
 				|| cp == '…'.toInt()
 				|| cp == ' '.toInt()
@@ -1815,7 +1513,7 @@ class MessageSplitter
 				|| Character.isSpaceChar(cp)
 				|| Character.isWhitespace(cp)
 				|| cp < 32
-				|| !(cp >= 160 || cp <= 126)
+				|| cp in 127..159
 				|| !Character.isDefined(cp)
 				|| cp == '_'.toInt()
 				|| cp == '"'.toInt()

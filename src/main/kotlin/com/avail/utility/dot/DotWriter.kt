@@ -104,7 +104,8 @@ class DotWriter constructor(
 	private val name: String,
 	internal val isDirected: Boolean,
 	internal val charactersPerLine: Int,
-	internal val accumulator: Appendable)
+	internal val accumulator: Appendable,
+	val copyrightOwner: String = System.getProperty("user.name"))
 {
 	/**
 	 * The indentation level.
@@ -307,7 +308,7 @@ class DotWriter constructor(
 				outer@ while (i < wideLimit)
 				{
 					var cp = s.codePointAt(i)
-					if (Character.isWhitespace(i))
+					if (Character.isWhitespace(cp))
 					{
 						whiteIndex = i
 						var sz = Character.charCount(cp)
