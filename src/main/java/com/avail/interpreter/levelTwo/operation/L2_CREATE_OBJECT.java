@@ -32,7 +32,7 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.descriptor.A_Map;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.MapDescriptor;

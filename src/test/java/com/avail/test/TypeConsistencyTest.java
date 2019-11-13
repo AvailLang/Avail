@@ -33,7 +33,7 @@
 package com.avail.test;
 
 import com.avail.AvailRuntime;
-import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AtomDescriptor;
 import com.avail.descriptor.AvailObject;

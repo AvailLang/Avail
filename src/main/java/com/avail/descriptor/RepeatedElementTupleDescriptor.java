@@ -34,6 +34,8 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.tuples.A_Tuple;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -155,7 +157,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Tuple o_CopyTupleFromToCanDestroy (
+	protected A_Tuple o_CopyTupleFromToCanDestroy (
 		final AvailObject object,
 		final int start,
 		final int end,
@@ -187,7 +189,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_CompareFromToWithStartingAt (
+	protected boolean o_CompareFromToWithStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -202,7 +204,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_CompareFromToWithRepeatedElementTupleStartingAt (
+	protected boolean o_CompareFromToWithRepeatedElementTupleStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -244,7 +246,7 @@ extends TupleDescriptor
 	}
 
 	@Override
-	A_Tuple o_ConcatenateWith (
+	protected A_Tuple o_ConcatenateWith (
 		final AvailObject object,
 		final A_Tuple otherTuple,
 		final boolean canDestroy)
@@ -302,13 +304,13 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsRepeatedElementTuple(object);
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsRepeatedElementTuple (
+	protected boolean o_EqualsRepeatedElementTuple (
 		final AvailObject object,
 		final A_Tuple aRepeatedElementTuple)
 	{
@@ -354,7 +356,7 @@ extends TupleDescriptor
 	}
 
 	@Override
-	int o_BitsPerEntry (final AvailObject object)
+	protected int o_BitsPerEntry (final AvailObject object)
 	{
 		// Consider a billion-element tuple. Since a repeated element tuple
 		// requires only O(1) storage, irrespective of its size, the average
@@ -363,7 +365,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TupleAt (final AvailObject object, final int index)
+	protected AvailObject o_TupleAt (final AvailObject object, final int index)
 	{
 		// Answer the value at the given index in the tuple object.
 		// Every element in this tuple is identical.
@@ -372,7 +374,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Tuple o_TupleAtPuttingCanDestroy (
+	protected A_Tuple o_TupleAtPuttingCanDestroy (
 		final AvailObject object,
 		final int index,
 		final A_BasicObject newValueObject,
@@ -436,7 +438,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Tuple o_AppendCanDestroy (
+	protected A_Tuple o_AppendCanDestroy (
 		final AvailObject object,
 		final A_BasicObject newElement,
 		final boolean canDestroy)
@@ -456,7 +458,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_TupleIntAt (final AvailObject object, final int index)
+	protected int o_TupleIntAt (final AvailObject object, final int index)
 	{
 		// Answer the value at the given index in the tuple object.
 		assert 1 <= index && index <= object.slot(SIZE);
@@ -464,19 +466,19 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Tuple o_TupleReverse(final AvailObject object)
+	protected A_Tuple o_TupleReverse(final AvailObject object)
 	{
 		return object;
 	}
 
 	@Override @AvailMethod
-	int o_TupleSize (final AvailObject object)
+	protected int o_TupleSize (final AvailObject object)
 	{
 		return object.slot(SIZE);
 	}
 
 	@Override
-	boolean o_TupleElementsInRangeAreInstancesOf (
+	protected boolean o_TupleElementsInRangeAreInstancesOf (
 		final AvailObject object,
 		final int startIndex,
 		final int endIndex,

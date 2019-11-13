@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.descriptor.MapDescriptor.MapIterable;
+import com.avail.descriptor.objects.A_BasicObject;
 
 import javax.annotation.Nullable;
 import java.util.ArrayDeque;
@@ -204,13 +205,13 @@ extends MapBinDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_BinElementAt (final AvailObject object, final int subscript)
+	protected AvailObject o_BinElementAt (final AvailObject object, final int subscript)
 	{
 		return object.slot(SUB_BINS_, subscript);
 	}
 
 	@Override @AvailMethod
-	void o_ForEachInMapBin (
+	protected void o_ForEachInMapBin (
 		final AvailObject object,
 		final BiConsumer<? super AvailObject, ? super AvailObject> action)
 	{
@@ -222,7 +223,7 @@ extends MapBinDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_MapBinSize (final AvailObject object)
+	protected int o_MapBinSize (final AvailObject object)
 	{
 		return (int) object.slot(BIN_SIZE);
 	}
@@ -231,7 +232,7 @@ extends MapBinDescriptor
 	 * Check if object, a bin, holds a subset of aSet's elements.
 	 */
 	@Override @AvailMethod
-	boolean o_IsBinSubsetOf (
+	protected boolean o_IsBinSubsetOf (
 		final AvailObject object,
 		final A_Set potentialSuperset)
 	{
@@ -248,7 +249,7 @@ extends MapBinDescriptor
 	}
 
 	@Override
-	boolean o_IsHashedMapBin (final AvailObject object)
+	protected boolean o_IsHashedMapBin (final AvailObject object)
 	{
 		return true;
 	}
@@ -300,7 +301,7 @@ extends MapBinDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_MapBinKeyUnionKind (final AvailObject object)
+	protected A_Type o_MapBinKeyUnionKind (final AvailObject object)
 	{
 		if (isShared())
 		{
@@ -331,7 +332,7 @@ extends MapBinDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_MapBinValueUnionKind (final AvailObject object)
+	protected A_Type o_MapBinValueUnionKind (final AvailObject object)
 	{
 		if (isShared())
 		{
@@ -350,7 +351,7 @@ extends MapBinDescriptor
 	 * other references exists.
 	 */
 	@Override @AvailMethod
-	A_MapBin o_MapBinAtHashPutLevelCanDestroy (
+	protected A_MapBin o_MapBinAtHashPutLevelCanDestroy (
 		final AvailObject object,
 		final A_BasicObject key,
 		final int keyHash,
@@ -469,7 +470,7 @@ extends MapBinDescriptor
 	 * bin.  The bin may be modified if it's mutable and canDestroy.
 	 */
 	@Override @AvailMethod
-	A_MapBin o_MapBinRemoveKeyHashCanDestroy (
+	protected A_MapBin o_MapBinRemoveKeyHashCanDestroy (
 		final AvailObject object,
 		final A_BasicObject key,
 		final int keyHash,
@@ -581,7 +582,7 @@ extends MapBinDescriptor
 	}
 
 	@Override
-	int o_MapBinValuesHash (final AvailObject object)
+	protected int o_MapBinValuesHash (final AvailObject object)
 	{
 		if (isShared())
 		{

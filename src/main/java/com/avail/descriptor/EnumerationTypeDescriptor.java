@@ -33,6 +33,10 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
+import com.avail.descriptor.atoms.A_Atom;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.parsing.A_Phrase;
+import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
@@ -190,25 +194,25 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_ComputeSuperkind (final AvailObject object)
+	protected A_Type o_ComputeSuperkind (final AvailObject object)
 	{
 		return getSuperkind(object);
 	}
 
 	@Override @AvailMethod
-	A_Number o_InstanceCount (final AvailObject object)
+	protected A_Number o_InstanceCount (final AvailObject object)
 	{
 		return fromInt(getInstances(object).setSize());
 	}
 
 	@Override @AvailMethod
-	A_Set o_Instances (final AvailObject object)
+	protected A_Set o_Instances (final AvailObject object)
 	{
 		return getInstances(object);
 	}
 
 	@Override
-	void printObjectOnAvoidingIndent (
+	protected void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder aStream,
 		final IdentityHashMap<A_BasicObject, Void> recursionMap,
@@ -237,7 +241,7 @@ extends AbstractEnumerationTypeDescriptor
 	 * </p>
 	 */
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		final boolean equal =
 			another.equalsEnumerationWithSet(getInstances(object));
@@ -258,7 +262,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsEnumerationWithSet (
+	protected boolean o_EqualsEnumerationWithSet (
 		final AvailObject object,
 		final A_Set aSet)
 	{
@@ -273,7 +277,7 @@ extends AbstractEnumerationTypeDescriptor
 	 * instances.
 	 */
 	@Override @AvailMethod
-	boolean o_HasObjectInstance (
+	protected boolean o_HasObjectInstance (
 		final AvailObject object,
 		final AvailObject potentialInstance)
 	{
@@ -281,13 +285,13 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	protected int o_Hash (final AvailObject object)
 	{
 		return (getInstances(object).hash() ^ 0x15b5b059) * multiplier;
 	}
 
 	@Override @AvailMethod
-	boolean o_IsInstanceOf (final AvailObject object, final A_Type aType)
+	protected boolean o_IsInstanceOf (final AvailObject object, final A_Type aType)
 	{
 		if (aType.isInstanceMeta())
 		{
@@ -330,7 +334,7 @@ extends AbstractEnumerationTypeDescriptor
 	 *         and {@code another}.
 	 */
 	@Override
-	A_Type computeIntersectionWith (
+	protected A_Type computeIntersectionWith (
 		final AvailObject object,
 		final A_Type another)
 	{
@@ -418,7 +422,7 @@ extends AbstractEnumerationTypeDescriptor
 	 *         and {@code another}.
 	 */
 	@Override
-	A_Type computeUnionWith (
+	protected A_Type computeUnionWith (
 		final AvailObject object,
 		final A_Type another)
 	{
@@ -441,49 +445,49 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_FieldTypeAt (final AvailObject object, final A_Atom field)
+	protected A_Type o_FieldTypeAt (final AvailObject object, final A_Atom field)
 	{
 		return getSuperkind(object).fieldTypeAt(field);
 	}
 
 	@Override @AvailMethod
-	A_Tuple o_FieldTypeTuple (final AvailObject object)
+	protected A_Tuple o_FieldTypeTuple (final AvailObject object)
 	{
 		return getSuperkind(object).fieldTypeTuple();
 	}
 
 	@Override @AvailMethod
-	A_Map o_FieldTypeMap (final AvailObject object)
+	protected A_Map o_FieldTypeMap (final AvailObject object)
 	{
 		return getSuperkind(object).fieldTypeMap();
 	}
 
 	@Override @AvailMethod
-	A_Number o_LowerBound (final AvailObject object)
+	protected A_Number o_LowerBound (final AvailObject object)
 	{
 		return getSuperkind(object).lowerBound();
 	}
 
 	@Override @AvailMethod
-	boolean o_LowerInclusive (final AvailObject object)
+	protected boolean o_LowerInclusive (final AvailObject object)
 	{
 		return getSuperkind(object).lowerInclusive();
 	}
 
 	@Override @AvailMethod
-	A_Number o_UpperBound (final AvailObject object)
+	protected A_Number o_UpperBound (final AvailObject object)
 	{
 		return getSuperkind(object).upperBound();
 	}
 
 	@Override @AvailMethod
-	boolean o_UpperInclusive (final AvailObject object)
+	protected boolean o_UpperInclusive (final AvailObject object)
 	{
 		return getSuperkind(object).upperInclusive();
 	}
 
 	@Override @AvailMethod
-	boolean o_EnumerationIncludesInstance (
+	protected boolean o_EnumerationIncludesInstance (
 		final AvailObject object,
 		final AvailObject potentialInstance)
 	{
@@ -491,7 +495,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeAtIndex (
+	protected A_Type o_TypeAtIndex (
 		final AvailObject object,
 		final int index)
 	{
@@ -503,7 +507,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_UnionOfTypesAtThrough (
+	protected A_Type o_UnionOfTypesAtThrough (
 		final AvailObject object,
 		final int startIndex,
 		final int endIndex)
@@ -517,26 +521,26 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_DefaultType (final AvailObject object)
+	protected A_Type o_DefaultType (final AvailObject object)
 	{
 		assert object.isTupleType();
 		return getSuperkind(object).defaultType();
 	}
 
 	@Override @AvailMethod
-	A_Type o_SizeRange (final AvailObject object)
+	protected A_Type o_SizeRange (final AvailObject object)
 	{
 		return getSuperkind(object).sizeRange();
 	}
 
 	@Override @AvailMethod
-	A_Tuple o_TypeTuple (final AvailObject object)
+	protected A_Tuple o_TypeTuple (final AvailObject object)
 	{
 		return getSuperkind(object).typeTuple();
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
+	protected boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
 	{
 		// Check if object (an enumeration) is a subtype of aType (should also
 		// be a type).  All members of me must also be instances of aType.
@@ -551,7 +555,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsIntegerRangeType (final AvailObject object)
+	protected boolean o_IsIntegerRangeType (final AvailObject object)
 	{
 		for (final A_BasicObject instance : getInstances(object))
 		{
@@ -564,7 +568,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsLiteralTokenType (final AvailObject object)
+	protected boolean o_IsLiteralTokenType (final AvailObject object)
 	{
 		for (final AvailObject instance : getInstances(object))
 		{
@@ -577,7 +581,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsMapType (final AvailObject object)
+	protected boolean o_IsMapType (final AvailObject object)
 	{
 		for (final A_BasicObject instance : getInstances(object))
 		{
@@ -590,7 +594,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSetType (final AvailObject object)
+	protected boolean o_IsSetType (final AvailObject object)
 	{
 		for (final A_BasicObject instance : getInstances(object))
 		{
@@ -603,7 +607,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsTupleType (final AvailObject object)
+	protected boolean o_IsTupleType (final AvailObject object)
 	{
 		for (final A_BasicObject instance : getInstances(object))
 		{
@@ -616,7 +620,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_AcceptsArgTypesFromFunctionType (
+	protected boolean o_AcceptsArgTypesFromFunctionType (
 		final AvailObject object,
 		final A_Type functionType)
 	{
@@ -625,7 +629,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_AcceptsListOfArgTypes (
+	protected boolean o_AcceptsListOfArgTypes (
 		final AvailObject object,
 		final List<? extends A_Type> argTypes)
 	{
@@ -633,7 +637,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_AcceptsListOfArgValues (
+	protected boolean o_AcceptsListOfArgValues (
 		final AvailObject object,
 		final List<? extends A_BasicObject> argValues)
 	{
@@ -641,7 +645,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_AcceptsTupleOfArgTypes (
+	protected boolean o_AcceptsTupleOfArgTypes (
 		final AvailObject object,
 		final A_Tuple argTypes)
 	{
@@ -649,7 +653,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_AcceptsTupleOfArguments (
+	protected boolean o_AcceptsTupleOfArguments (
 		final AvailObject object,
 		final A_Tuple arguments)
 	{
@@ -657,31 +661,31 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_ArgsTupleType (final AvailObject object)
+	protected A_Type o_ArgsTupleType (final AvailObject object)
 	{
 		return getSuperkind(object).argsTupleType();
 	}
 
 	@Override @AvailMethod
-	A_Set o_DeclaredExceptions (final AvailObject object)
+	protected A_Set o_DeclaredExceptions (final AvailObject object)
 	{
 		return getSuperkind(object).declaredExceptions();
 	}
 
 	@Override @AvailMethod
-	A_Type o_FunctionType (final AvailObject object)
+	protected A_Type o_FunctionType (final AvailObject object)
 	{
 		return getSuperkind(object).functionType();
 	}
 
 	@Override @AvailMethod
-	A_Type o_ContentType (final AvailObject object)
+	protected A_Type o_ContentType (final AvailObject object)
 	{
 		return getSuperkind(object).contentType();
 	}
 
 	@Override @AvailMethod
-	boolean o_CouldEverBeInvokedWith (
+	protected boolean o_CouldEverBeInvokedWith (
 		final AvailObject object,
 		final List<? extends TypeRestriction> argRestrictions)
 	{
@@ -689,7 +693,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsBetterRepresentationThan (
+	protected boolean o_IsBetterRepresentationThan (
 		final AvailObject object,
 		final A_BasicObject anotherObject)
 	{
@@ -698,25 +702,25 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_KeyType (final AvailObject object)
+	protected A_Type o_KeyType (final AvailObject object)
 	{
 		return getSuperkind(object).keyType();
 	}
 
 	@Override @AvailMethod
-	A_BasicObject o_Parent (final AvailObject object)
+	protected A_BasicObject o_Parent (final AvailObject object)
 	{
 		return getSuperkind(object).parent();
 	}
 
 	@Override @AvailMethod
-	A_Type o_ReturnType (final AvailObject object)
+	protected A_Type o_ReturnType (final AvailObject object)
 	{
 		return getSuperkind(object).returnType();
 	}
 
 	@Override @AvailMethod
-	A_Type o_ValueType (final AvailObject object)
+	protected A_Type o_ValueType (final AvailObject object)
 	{
 		return getSuperkind(object).valueType();
 	}
@@ -734,19 +738,19 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override
-	A_Type o_ReadType (final AvailObject object)
+	protected A_Type o_ReadType (final AvailObject object)
 	{
 		return getSuperkind(object).readType();
 	}
 
 	@Override
-	A_Type o_WriteType (final AvailObject object)
+	protected A_Type o_WriteType (final AvailObject object)
 	{
 		return getSuperkind(object).writeType();
 	}
 
 	@Override
-	A_Type o_ExpressionType (final AvailObject object)
+	protected A_Type o_ExpressionType (final AvailObject object)
 	{
 		A_Type unionType = bottom();
 		for (final A_Phrase instance : getInstances(object))
@@ -757,7 +761,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override
-	boolean o_RangeIncludesInt (final AvailObject object, final int anInt)
+	protected boolean o_RangeIncludesInt (final AvailObject object, final int anInt)
 	{
 		return getInstances(object).hasElement(fromInt(anInt));
 	}
@@ -769,7 +773,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override
-	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -780,7 +784,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override
-	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");

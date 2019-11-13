@@ -31,7 +31,7 @@
  */
 package com.avail.interpreter.primitive.maps
 
-import com.avail.descriptor.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.MapDescriptor

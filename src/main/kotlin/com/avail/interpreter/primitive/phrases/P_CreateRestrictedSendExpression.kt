@@ -52,6 +52,8 @@ import com.avail.descriptor.StringDescriptor.stringFrom
 import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TupleDescriptor.toList
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
+import com.avail.descriptor.bundles.A_Bundle
+import com.avail.descriptor.tuples.A_String
 import com.avail.exceptions.AvailErrorCode.*
 import com.avail.exceptions.MalformedMessageException
 import com.avail.interpreter.Interpreter

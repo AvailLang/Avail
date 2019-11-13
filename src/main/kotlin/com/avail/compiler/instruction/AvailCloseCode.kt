@@ -33,7 +33,7 @@
 package com.avail.compiler.instruction
 
 import com.avail.descriptor.A_Token
-import com.avail.descriptor.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.CompiledCodeDescriptor
 import com.avail.descriptor.FunctionDescriptor
 import com.avail.interpreter.levelOne.L1Operation.L1_doClose

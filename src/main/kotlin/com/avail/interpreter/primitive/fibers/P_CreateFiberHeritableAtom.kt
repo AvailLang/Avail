@@ -32,7 +32,7 @@
 
 package com.avail.interpreter.primitive.fibers
 
-import com.avail.descriptor.A_Atom
+import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.AtomDescriptor

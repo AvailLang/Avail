@@ -33,7 +33,7 @@
 package com.avail.interpreter.primitive.controlflow
 
 import com.avail.descriptor.A_Continuation
-import com.avail.descriptor.A_String
+import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.ContinuationDescriptor.dumpStackThen

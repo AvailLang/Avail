@@ -33,7 +33,7 @@
 package com.avail.compiler
 
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel
-import com.avail.descriptor.A_String
+import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.StringDescriptor
 import com.avail.descriptor.StringDescriptor.stringFrom
 import com.avail.exceptions.PrimitiveThrownException
@@ -123,7 +123,7 @@ class AvailRejectedParseException : PrimitiveThrownException
 	 *   The function that produces a diagnostic [Avail string][A_String] upon
 	 *   first request.
 	 */
-	constructor(level: ParseNotificationLevel, supplier: ()->A_String)
+	constructor(level: ParseNotificationLevel, supplier: ()-> A_String)
 	{
 		this.level = level
 		this.rejectionSupplier = supplier

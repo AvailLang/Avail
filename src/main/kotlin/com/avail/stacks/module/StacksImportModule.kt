@@ -32,7 +32,7 @@
 
 package com.avail.stacks.module
 
-import com.avail.descriptor.A_String
+import com.avail.descriptor.tuples.A_String
 import com.avail.utility.Pair
 
 import com.avail.descriptor.StringDescriptor.stringFrom

@@ -35,7 +35,7 @@ package com.avail.interpreter.primitive.methods
 import com.avail.AvailRuntime.currentRuntime
 import com.avail.AvailTask
 import com.avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
-import com.avail.descriptor.A_Bundle
+import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionTypeDescriptor.functionType

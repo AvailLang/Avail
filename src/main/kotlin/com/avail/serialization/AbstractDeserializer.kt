@@ -35,6 +35,7 @@ package com.avail.serialization
 import com.avail.AvailRuntime
 import com.avail.descriptor.*
 import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.tuples.A_String
 import java.io.IOException
 import java.io.InputStream
 

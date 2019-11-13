@@ -48,6 +48,7 @@ import com.avail.descriptor.TupleTypeDescriptor.stringType
 import com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf
 import com.avail.descriptor.TypeDescriptor.Types.RAW_POJO
 import com.avail.descriptor.TypeDescriptor.Types.TOP
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailErrorCode.E_JAVA_METHOD_NOT_AVAILABLE
 import com.avail.exceptions.AvailErrorCode.E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS

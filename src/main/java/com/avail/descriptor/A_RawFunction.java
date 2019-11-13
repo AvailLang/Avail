@@ -33,6 +33,13 @@
 package com.avail.descriptor;
 
 import com.avail.descriptor.CompiledCodeDescriptor.L1InstructionDecoder;
+import com.avail.descriptor.methods.A_Method;
+import com.avail.descriptor.methods.A_Definition;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.parsing.A_Phrase;
+import com.avail.descriptor.parsing.BlockPhraseDescriptor;
+import com.avail.descriptor.tuples.A_String;
+import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.L1Operation;

@@ -50,6 +50,7 @@ import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.StringDescriptor.formatString
 import com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf
 import com.avail.descriptor.TypeDescriptor.Types.*
+import com.avail.descriptor.atoms.A_Atom
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailErrorCode.*
 import com.avail.interpreter.Interpreter

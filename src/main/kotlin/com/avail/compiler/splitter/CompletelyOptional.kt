@@ -34,7 +34,7 @@ package com.avail.compiler.splitter
 import com.avail.compiler.ParsingOperation.*
 import com.avail.compiler.splitter.InstructionGenerator.Label
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
-import com.avail.descriptor.A_Phrase
+import com.avail.descriptor.parsing.A_Phrase
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.ListPhraseTypeDescriptor.emptyListPhraseType
 import com.avail.descriptor.TupleDescriptor.emptyTuple

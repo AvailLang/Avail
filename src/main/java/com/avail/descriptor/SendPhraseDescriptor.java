@@ -36,6 +36,14 @@ import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.descriptor.atoms.A_Atom;
+import com.avail.descriptor.bundles.A_Bundle;
+import com.avail.descriptor.bundles.MessageBundleDescriptor;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.parsing.A_Phrase;
+import com.avail.descriptor.parsing.BlockPhraseDescriptor;
+import com.avail.descriptor.parsing.PhraseDescriptor;
+import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Transformer1;
@@ -106,26 +114,26 @@ extends PhraseDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Atom o_ApparentSendName (final AvailObject object)
+	protected A_Atom o_ApparentSendName (final AvailObject object)
 	{
 		final A_Bundle bundle = object.slot(BUNDLE);
 		return bundle.message();
 	}
 
 	@Override @AvailMethod
-	A_Phrase o_ArgumentsListNode (final AvailObject object)
+	protected A_Phrase o_ArgumentsListNode (final AvailObject object)
 	{
 		return object.slot(ARGUMENTS_LIST_NODE);
 	}
 
 	@Override @AvailMethod
-	A_Bundle o_Bundle (final AvailObject object)
+	protected A_Bundle o_Bundle (final AvailObject object)
 	{
 		return object.slot(BUNDLE);
 	}
 
 	@Override @AvailMethod
-	void o_ChildrenDo (
+	protected void o_ChildrenDo (
 		final AvailObject object,
 		final Continuation1NotNull<A_Phrase> action)
 	{
@@ -133,7 +141,7 @@ extends PhraseDescriptor
 	}
 
 	@Override @AvailMethod
-	void o_ChildrenMap (
+	protected void o_ChildrenMap (
 		final AvailObject object,
 		final Transformer1<A_Phrase, A_Phrase> transformer)
 	{
@@ -143,7 +151,7 @@ extends PhraseDescriptor
 	}
 
 	@Override @AvailMethod
-	void o_EmitValueOn (
+	protected void o_EmitValueOn (
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
@@ -169,7 +177,7 @@ extends PhraseDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsPhrase (
+	protected boolean o_EqualsPhrase (
 		final AvailObject object,
 		final A_Phrase aPhrase)
 	{
@@ -182,13 +190,13 @@ extends PhraseDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_ExpressionType (final AvailObject object)
+	protected A_Type o_ExpressionType (final AvailObject object)
 	{
 		return object.slot(RETURN_TYPE);
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	protected int o_Hash (final AvailObject object)
 	{
 		return
 			(object.slot(ARGUMENTS_LIST_NODE).hash() * multiplier
@@ -198,7 +206,7 @@ extends PhraseDescriptor
 	}
 
 	@Override
-	PhraseKind o_PhraseKind (final AvailObject object)
+	protected PhraseKind o_PhraseKind (final AvailObject object)
 	{
 		return SEND_PHRASE;
 	}
@@ -210,7 +218,7 @@ extends PhraseDescriptor
 	}
 
 	@Override
-	void o_StatementsDo (
+	protected void o_StatementsDo (
 		final AvailObject object,
 		final Continuation1NotNull<A_Phrase> continuation)
 	{
@@ -218,13 +226,13 @@ extends PhraseDescriptor
 	}
 
 	@Override
-	A_Tuple o_Tokens (final AvailObject object)
+	protected A_Tuple o_Tokens (final AvailObject object)
 	{
 		return object.slot(TOKENS);
 	}
 
 	@Override @AvailMethod
-	void o_ValidateLocally (
+	protected void o_ValidateLocally (
 		final AvailObject object,
 		final @Nullable A_Phrase parent)
 	{
@@ -232,7 +240,7 @@ extends PhraseDescriptor
 	}
 
 	@Override
-	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -247,7 +255,7 @@ extends PhraseDescriptor
 	}
 
 	@Override
-	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");

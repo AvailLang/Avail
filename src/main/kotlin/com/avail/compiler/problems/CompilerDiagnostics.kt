@@ -39,7 +39,7 @@ import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.SI
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
 import com.avail.compiler.problems.ProblemType.PARSE
 import com.avail.compiler.scanning.LexingState
-import com.avail.descriptor.A_String
+import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.A_Token
 import com.avail.descriptor.CharacterDescriptor.fromCodePoint
 import com.avail.descriptor.FiberDescriptor

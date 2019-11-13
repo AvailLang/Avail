@@ -36,7 +36,7 @@ import com.avail.AvailRuntime.currentRuntime
 import com.avail.compiler.problems.CompilerDiagnostics
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel
 import com.avail.compiler.scanning.LexingState
-import com.avail.descriptor.A_BasicObject
+import com.avail.descriptor.objects.A_BasicObject
 import com.avail.descriptor.A_Map
 import com.avail.descriptor.AvailObject
 import com.avail.descriptor.MapDescriptor
@@ -212,9 +212,9 @@ class ParserState internal constructor(
 	 *   answers an expectation message.
 	 */
 	internal fun expected(
-			level: ParseNotificationLevel,
-			values: List<A_BasicObject>,
-			transformer: (List<String>)->String) =
+		level: ParseNotificationLevel,
+		values: List<A_BasicObject>,
+		transformer: (List<String>)->String) =
 		expected(level) { continuation ->
 			Interpreter.stringifyThen(
 				currentRuntime(),

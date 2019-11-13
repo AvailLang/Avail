@@ -33,7 +33,7 @@
 package com.avail.interpreter.primitive.bootstrap.lexing
 
 import com.avail.descriptor.A_Number
-import com.avail.descriptor.A_String
+import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.IntegerDescriptor
 import com.avail.descriptor.IntegerDescriptor.cachedSquareOfQuintillion

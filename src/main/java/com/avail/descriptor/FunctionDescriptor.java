@@ -35,6 +35,14 @@ package com.avail.descriptor;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
+import com.avail.descriptor.atoms.A_Atom;
+import com.avail.descriptor.bundles.A_Bundle;
+import com.avail.descriptor.methods.A_Method;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.parsing.A_Phrase;
+import com.avail.descriptor.parsing.BlockPhraseDescriptor;
+import com.avail.descriptor.parsing.PhraseDescriptor;
+import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.interpreter.levelOne.L1InstructionWriter;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
@@ -43,7 +51,7 @@ import com.avail.utility.json.JSONWriter;
 
 import java.util.IdentityHashMap;
 
-import static com.avail.descriptor.BlockPhraseDescriptor.newBlockNode;
+import static com.avail.descriptor.parsing.BlockPhraseDescriptor.newBlockNode;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.FunctionDescriptor.ObjectSlots.CODE;
 import static com.avail.descriptor.FunctionDescriptor.ObjectSlots.OUTER_VAR_AT_;
@@ -97,19 +105,19 @@ extends Descriptor
 	}
 
 	@Override
-	A_RawFunction o_Code (final AvailObject object)
+	protected A_RawFunction o_Code (final AvailObject object)
 	{
 		return object.slot(CODE);
 	}
 
 	@Override
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsFunction(object);
 	}
 
 	@Override
-	boolean o_EqualsFunction (
+	protected boolean o_EqualsFunction (
 		final AvailObject object,
 		final A_Function aFunction)
 	{
@@ -145,7 +153,7 @@ extends Descriptor
 	}
 
 	@Override
-	int o_Hash (final AvailObject object)
+	protected int o_Hash (final AvailObject object)
 	{
 		// Answer a 32-bit hash value. If outer vars of mutable functions can
 		// peel away when executed (last use of an outer var of a mutable
@@ -166,7 +174,7 @@ extends Descriptor
 	}
 
 	@Override
-	boolean o_IsFunction (final AvailObject object)
+	protected boolean o_IsFunction (final AvailObject object)
 	{
 		return true;
 	}
@@ -177,13 +185,13 @@ extends Descriptor
 	 * FunctionTypeDescriptor function type}.
 	 */
 	@Override
-	A_Type o_Kind (final AvailObject object)
+	protected A_Type o_Kind (final AvailObject object)
 	{
 		return object.slot(CODE).functionType();
 	}
 
 	@Override
-	String o_NameForDebugger (final AvailObject object)
+	protected String o_NameForDebugger (final AvailObject object)
 	{
 		return super.o_NameForDebugger(object) + " /* "
 			+ object.code().methodName().asNativeString()
@@ -194,13 +202,13 @@ extends Descriptor
 	 * Answer how many outer vars I've copied.
 	 */
 	@Override
-	int o_NumOuterVars (final AvailObject object)
+	protected int o_NumOuterVars (final AvailObject object)
 	{
 		return object.variableObjectSlotsCount();
 	}
 
 	@Override
-	boolean o_OptionallyNilOuterVar (
+	protected boolean o_OptionallyNilOuterVar (
 		final AvailObject object,
 		final int index)
 	{
@@ -219,7 +227,7 @@ extends Descriptor
 	}
 
 	@Override
-	void o_OuterVarAtPut (
+	protected void o_OuterVarAtPut (
 		final AvailObject object,
 		final int subscript,
 		final AvailObject value)
@@ -245,7 +253,7 @@ extends Descriptor
 	}
 
 	@Override
-	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -265,7 +273,7 @@ extends Descriptor
 	}
 
 	@Override
-	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");

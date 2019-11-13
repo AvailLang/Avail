@@ -32,8 +32,8 @@
 
 package com.avail.interpreter.primitive.general
 
-import com.avail.descriptor.A_BasicObject
-import com.avail.descriptor.A_Tuple
+import com.avail.descriptor.objects.A_BasicObject
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionTypeDescriptor.functionType

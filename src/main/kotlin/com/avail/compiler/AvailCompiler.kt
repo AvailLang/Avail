@@ -98,6 +98,16 @@ import com.avail.descriptor.TypeDescriptor.Types.TOP
 import com.avail.descriptor.VariableSharedGlobalDescriptor.createGlobal
 import com.avail.descriptor.VariableTypeDescriptor.variableTypeFor
 import com.avail.descriptor.VariableUsePhraseDescriptor.newUse
+import com.avail.descriptor.atoms.A_Atom
+import com.avail.descriptor.bundles.A_Bundle
+import com.avail.descriptor.bundles.A_BundleTree
+import com.avail.descriptor.bundles.MessageBundleTreeDescriptor
+import com.avail.descriptor.methods.A_Definition
+import com.avail.descriptor.methods.A_SemanticRestriction
+import com.avail.descriptor.objects.A_BasicObject
+import com.avail.descriptor.parsing.A_Phrase
+import com.avail.descriptor.tuples.A_String
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.dispatch.LookupTree
 import com.avail.exceptions.AvailAssertionFailedException
 import com.avail.exceptions.AvailEmergencyExitException

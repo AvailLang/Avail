@@ -33,7 +33,7 @@
 package com.avail.interpreter.primitive.phrases
 
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.BlockPhraseDescriptor
+import com.avail.descriptor.parsing.BlockPhraseDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.ObjectTupleDescriptor.tuple

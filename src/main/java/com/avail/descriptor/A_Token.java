@@ -34,6 +34,8 @@ package com.avail.descriptor;
 
 import com.avail.compiler.scanning.LexingState;
 import com.avail.descriptor.TokenDescriptor.TokenType;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.tuples.A_String;
 
 
 /**

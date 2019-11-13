@@ -32,6 +32,8 @@
 
 package com.avail.descriptor;
 
+import com.avail.descriptor.objects.A_BasicObject;
+
 import java.util.IdentityHashMap;
 /**
  * {@code FillerDescriptor} represents an unreachable {@link AvailObject} of

@@ -33,6 +33,7 @@
 package com.avail.interpreter.levelTwo.operand;
 
 import com.avail.descriptor.*;
+import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_EQUALS_CONSTANT;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_CONSTANT;
 import com.avail.interpreter.levelTwo.register.L2BoxedRegister;

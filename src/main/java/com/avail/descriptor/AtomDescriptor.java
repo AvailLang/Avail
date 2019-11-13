@@ -38,6 +38,12 @@ import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
 import com.avail.compiler.ParserState;
 import com.avail.compiler.splitter.MessageSplitter;
+import com.avail.descriptor.atoms.A_Atom;
+import com.avail.descriptor.bundles.A_Bundle;
+import com.avail.descriptor.bundles.MessageBundleDescriptor;
+import com.avail.descriptor.methods.A_Method;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.tuples.A_String;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.io.IOSystem.FileHandle;
 import com.avail.serialization.Serializer;
@@ -60,7 +66,7 @@ import static com.avail.descriptor.AtomDescriptor.SpecialAtom.HERITABLE_KEY;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.MESSAGE_BUNDLE_KEY;
 import static com.avail.descriptor.AtomDescriptor.SpecialAtom.TRUE;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
-import static com.avail.descriptor.MessageBundleDescriptor.newBundle;
+import static com.avail.descriptor.bundles.MessageBundleDescriptor.newBundle;
 import static com.avail.descriptor.MethodDescriptor.newMethod;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
@@ -152,7 +158,7 @@ extends Descriptor
 	}
 
 	@Override
-	boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
+	protected boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
 	{
 		return e == HASH_AND_MORE;
 	}
@@ -200,19 +206,19 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	A_String o_AtomName (final AvailObject object)
+	protected A_String o_AtomName (final AvailObject object)
 	{
 		return object.slot(NAME);
 	}
 
 	@Override @AvailMethod
-	A_Module o_IssuingModule (final AvailObject object)
+	protected A_Module o_IssuingModule (final AvailObject object)
 	{
 		return object.slot(ISSUING_MODULE);
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (
+	protected boolean o_Equals (
 		final AvailObject object,
 		final A_BasicObject another)
 	{
@@ -220,7 +226,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	protected int o_Hash (final AvailObject object)
 	{
 		int hash = object.slot(HASH_OR_ZERO);
 		if (hash == 0)
@@ -236,13 +242,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	final A_Type o_Kind (final AvailObject object)
+	protected final A_Type o_Kind (final AvailObject object)
 	{
 		return ATOM.o();
 	}
 
 	@Override @AvailMethod
-	final boolean o_ExtractBoolean (final AvailObject object)
+	protected final boolean o_ExtractBoolean (final AvailObject object)
 	{
 		if (object.equals(trueObject()))
 		{
@@ -253,13 +259,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	final boolean o_IsAtom (final AvailObject object)
+	protected final boolean o_IsAtom (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod
-	final boolean o_IsInstanceOfKind (
+	protected final boolean o_IsInstanceOfKind (
 		final AvailObject object,
 		final A_Type aType)
 	{
@@ -302,7 +308,7 @@ extends Descriptor
 	 * </p>
 	 */
 	@Override @AvailMethod
-	void o_SetAtomProperty (
+	protected void o_SetAtomProperty (
 		final AvailObject object,
 		final A_Atom key,
 		final A_BasicObject value)
@@ -326,7 +332,7 @@ extends Descriptor
 	 * </p>
 	 */
 	@Override @AvailMethod
-	AvailObject o_GetAtomProperty (
+	protected AvailObject o_GetAtomProperty (
 		final AvailObject object,
 		final A_Atom key)
 	{
@@ -353,20 +359,20 @@ extends Descriptor
 	}
 
 	@Override
-	boolean o_IsBoolean (final AvailObject object)
+	protected boolean o_IsBoolean (final AvailObject object)
 	{
 		return object.isInstanceOf(booleanType());
 	}
 
 	@Override
-	boolean o_IsAtomSpecial (final AvailObject object)
+	protected boolean o_IsAtomSpecial (final AvailObject object)
 	{
 		// See AtomWithPropertiesSharedDescriptor.
 		return false;
 	}
 
 	@Override
-	final @Nullable Object o_MarshalToJava (
+	protected final  @Nullable Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{
@@ -382,7 +388,7 @@ extends Descriptor
 	}
 
 	@Override
-	A_Bundle o_BundleOrCreate (final AvailObject object)
+	protected A_Bundle o_BundleOrCreate (final AvailObject object)
 		throws MalformedMessageException
 	{
 		A_Bundle bundle = object.getAtomProperty(MESSAGE_BUNDLE_KEY.atom);
@@ -398,13 +404,13 @@ extends Descriptor
 	}
 
 	@Override
-	A_Bundle o_BundleOrNil (final AvailObject object)
+	protected A_Bundle o_BundleOrNil (final AvailObject object)
 	{
 		return object.getAtomProperty(MESSAGE_BUNDLE_KEY.atom);
 	}
 
 	@Override
-	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -474,7 +480,7 @@ extends Descriptor
 
 	@Deprecated
 	@Override
-	final AtomDescriptor shared ()
+	protected final  AtomDescriptor shared ()
 	{
 		throw unsupportedOperationException();
 	}

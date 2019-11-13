@@ -33,6 +33,8 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -108,7 +110,7 @@ extends TypeDescriptor
 	 * Answer the type that my last element must have, if any.
 	 */
 	@Override @AvailMethod
-	A_Type o_DefaultType (final AvailObject object)
+	protected A_Type o_DefaultType (final AvailObject object)
 	{
 		final A_Type a = object.slot(FIRST_TUPLE_TYPE);
 		final A_Type b = object.slot(SECOND_TUPLE_TYPE);
@@ -116,13 +118,13 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsTupleType(object);
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsTupleType (
+	protected boolean o_EqualsTupleType (
 		final AvailObject object,
 		final A_Type aTupleType)
 	{
@@ -171,7 +173,7 @@ extends TypeDescriptor
 	 * creation, so don't call it from the garbage collector.
 	 */
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	protected int o_Hash (final AvailObject object)
 	{
 		becomeRealTupleType(object);
 		return object.hash();
@@ -184,7 +186,7 @@ extends TypeDescriptor
 	 * even though it's easy to construct.</p>
 	 */
 	@Override @AvailMethod
-	boolean o_IsBetterRepresentationThan (
+	protected boolean o_IsBetterRepresentationThan (
 		final AvailObject object,
 		final A_BasicObject anotherObject)
 	{
@@ -200,7 +202,7 @@ extends TypeDescriptor
 	 * </p>
 	 */
 	@Override @AvailMethod
-	int o_RepresentationCostOfTupleType (
+	protected int o_RepresentationCostOfTupleType (
 		final AvailObject object)
 	{
 		return object.slot(TUPLE_TYPE_COMPLEXITY);
@@ -212,7 +214,7 @@ extends TypeDescriptor
 	 * for its answer.
 	 */
 	@Override @AvailMethod
-	A_Type o_SizeRange (final AvailObject object)
+	protected A_Type o_SizeRange (final AvailObject object)
 	{
 		final A_Type sizeRange1 = object.slot(FIRST_TUPLE_TYPE).sizeRange();
 		final A_Type sizeRange2 = object.slot(SECOND_TUPLE_TYPE).sizeRange();
@@ -223,7 +225,7 @@ extends TypeDescriptor
 	 * Check if object is a subtype of aType.  They should both be types.
 	 */
 	@Override @AvailMethod
-	boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
+	protected boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
 	{
 		return aType.isSupertypeOfTupleType(object);
 	}
@@ -234,7 +236,7 @@ extends TypeDescriptor
 	 * indistinguishable under these conditions are considered the same type.
 	 */
 	@Override @AvailMethod
-	boolean o_IsSupertypeOfTupleType (
+	protected boolean o_IsSupertypeOfTupleType (
 		final AvailObject object,
 		final AvailObject aTupleType)
 	{
@@ -270,13 +272,13 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsTupleType (final AvailObject object)
+	protected boolean o_IsTupleType (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override
-	boolean o_IsVacuousType (final AvailObject object)
+	protected boolean o_IsVacuousType (final AvailObject object)
 	{
 		return object.slot(FIRST_TUPLE_TYPE).isVacuousType()
 			|| object.slot(SECOND_TUPLE_TYPE).isVacuousType();
@@ -302,7 +304,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	A_Tuple o_TupleOfTypesFromTo (
+	protected A_Tuple o_TupleOfTypesFromTo (
 		final AvailObject object,
 		final int startIndex,
 		final int endIndex)
@@ -317,7 +319,7 @@ extends TypeDescriptor
 	 * Answer bottom if the index is definitely out of bounds.
 	 */
 	@Override @AvailMethod
-	A_Type o_TypeAtIndex (final AvailObject object, final int index)
+	protected A_Type o_TypeAtIndex (final AvailObject object, final int index)
 	{
 		final AvailObject firstTupleType = object.slot(FIRST_TUPLE_TYPE);
 		final AvailObject secondTupleType = object.slot(SECOND_TUPLE_TYPE);
@@ -325,7 +327,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeIntersection (
+	protected A_Type o_TypeIntersection (
 		final AvailObject object,
 		final A_Type another)
 	{
@@ -341,7 +343,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeIntersectionOfTupleType (
+	protected A_Type o_TypeIntersectionOfTupleType (
 		final AvailObject object,
 		final A_Type aTupleType)
 	{
@@ -392,14 +394,14 @@ extends TypeDescriptor
 	 * it allocates objects.
 	 */
 	@Override @AvailMethod
-	A_Tuple o_TypeTuple (final AvailObject object)
+	protected A_Tuple o_TypeTuple (final AvailObject object)
 	{
 		becomeRealTupleType(object);
 		return object.typeTuple();
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeUnion (
+	protected A_Type o_TypeUnion (
 		final AvailObject object,
 		final A_Type another)
 	{
@@ -415,7 +417,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeUnionOfTupleType (
+	protected A_Type o_TypeUnionOfTupleType (
 		final AvailObject object,
 		final A_Type aTupleType)
 	{
@@ -456,7 +458,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_UnionOfTypesAtThrough (
+	protected A_Type o_UnionOfTypesAtThrough (
 		final AvailObject object,
 		final int startIndex,
 		final int endIndex)
@@ -513,7 +515,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		becomeRealTupleType(object);
 		writer.startObject();

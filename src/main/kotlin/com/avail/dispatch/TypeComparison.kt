@@ -32,8 +32,8 @@
 
 package com.avail.dispatch
 
-import com.avail.descriptor.A_BasicObject
-import com.avail.descriptor.A_Definition
+import com.avail.descriptor.objects.A_BasicObject
+import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.BottomTypeDescriptor
 import com.avail.interpreter.levelTwo.operand.TypeRestriction

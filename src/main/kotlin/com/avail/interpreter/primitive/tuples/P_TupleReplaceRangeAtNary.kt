@@ -44,6 +44,7 @@ import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType
 import com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType
 import com.avail.descriptor.TypeDescriptor.Types.ANY
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.exceptions.AvailErrorCode.*
 import com.avail.exceptions.AvailException
 import com.avail.interpreter.Interpreter

@@ -32,7 +32,7 @@
 
 package com.avail.interpreter.primitive.atoms
 
-import com.avail.descriptor.A_Atom
+import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AtomDescriptor.falseObject
 import com.avail.descriptor.AtomDescriptor.trueObject

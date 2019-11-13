@@ -33,7 +33,7 @@
 package com.avail.stacks.module
 
 import com.avail.descriptor.A_Map
-import com.avail.descriptor.A_String
+import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.MapDescriptor
 import com.avail.descriptor.StringDescriptor
 import com.avail.stacks.*
@@ -87,13 +87,13 @@ class StacksUsesModule : StacksImportModule
 	 *   qualified module path it is originally named from.
 	 */
 	constructor(
-			moduleImportName: String,
-			commentGroups: MutableMap<A_String, CommentGroup>,
-			moduleNameToExtendsList: MutableMap<String, StacksExtendsModule>,
-			methodLeafNameToModuleName: MutableMap<A_String, MutableMap<String, CommentGroup>>,
-			moduleNameToUsesList: MutableMap<String, StacksUsesModule>,
-			usesMethodLeafNameToModuleName: MutableMap<A_String, MutableMap<String, CommentGroup>>,
-			renames: A_Map)
+		moduleImportName: String,
+		commentGroups: MutableMap<A_String, CommentGroup>,
+		moduleNameToExtendsList: MutableMap<String, StacksExtendsModule>,
+		methodLeafNameToModuleName: MutableMap<A_String, MutableMap<String, CommentGroup>>,
+		moduleNameToUsesList: MutableMap<String, StacksUsesModule>,
+		usesMethodLeafNameToModuleName: MutableMap<A_String, MutableMap<String, CommentGroup>>,
+		renames: A_Map)
 		: super(
 			moduleImportName,
 			commentGroups,

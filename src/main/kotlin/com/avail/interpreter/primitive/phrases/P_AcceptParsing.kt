@@ -32,7 +32,7 @@
 package com.avail.interpreter.primitive.phrases
 
 import com.avail.compiler.AvailAcceptedParseException
-import com.avail.descriptor.A_Definition
+import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.BottomTypeDescriptor.bottom

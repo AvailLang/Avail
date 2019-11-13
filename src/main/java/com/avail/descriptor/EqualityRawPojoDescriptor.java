@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
+import com.avail.descriptor.objects.A_BasicObject;
 
 import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
@@ -50,13 +51,13 @@ final class EqualityRawPojoDescriptor
 extends RawPojoDescriptor
 {
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsEqualityRawPojoFor(object, javaObject);
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsEqualityRawPojo (
+	protected boolean o_EqualsEqualityRawPojo (
 		final AvailObject object,
 		final AvailObject otherEqualityRawPojo,
 		final @Nullable Object otherJavaObject)
@@ -114,7 +115,7 @@ extends RawPojoDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsRawPojoFor (
+	protected boolean o_EqualsRawPojoFor (
 		final AvailObject object,
 		final AvailObject otherRawPojo,
 		final @Nullable Object aRawPojo)
@@ -123,7 +124,7 @@ extends RawPojoDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	protected int o_Hash (final AvailObject object)
 	{
 		final @Nullable Object javaObject2 = javaObject;
 		return javaObject2 == null
@@ -136,7 +137,7 @@ extends RawPojoDescriptor
 	 * {@link #javaObject} but is {@linkplain Mutability#IMMUTABLE immutable}.
 	 */
 	@Override @AvailMethod
-	AvailObject o_MakeImmutable (final AvailObject object)
+	protected AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		if (isMutable())
 		{
@@ -152,7 +153,7 @@ extends RawPojoDescriptor
 	 * {@link #javaObject} but is {@linkplain Mutability#SHARED shared}.
 	 */
 	@Override @AvailMethod
-	AvailObject o_MakeShared (final AvailObject object)
+	protected AvailObject o_MakeShared (final AvailObject object)
 	{
 		if (!isShared())
 		{

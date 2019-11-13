@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
+import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.AvailRuntimeException;
 import com.avail.exceptions.VariableSetException;
@@ -99,21 +100,21 @@ extends Descriptor
 	}
 
 	@Override
-	void o_ClearValue (final AvailObject object)
+	protected void o_ClearValue (final AvailObject object)
 	{
 		throw new VariableSetException(
 			AvailErrorCode.E_CANNOT_MODIFY_FINAL_JAVA_FIELD);
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsPojoField(
 			object.slot(FIELD), object.slot(RECEIVER));
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsPojoField (
+	protected boolean o_EqualsPojoField (
 		final AvailObject object,
 		final AvailObject field,
 		final AvailObject receiver)
@@ -123,13 +124,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_GetValue (final AvailObject object)
+	protected AvailObject o_GetValue (final AvailObject object)
 	{
 		return object.slot(CACHED_VALUE);
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	protected int o_Hash (final AvailObject object)
 	{
 		return object.slot(FIELD).hash()
 			* object.slot(RECEIVER).hash() ^ 0x2199C0C3;
@@ -142,7 +143,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_Kind (final AvailObject object)
+	protected A_Type o_Kind (final AvailObject object)
 	{
 		return object.slot(KIND);
 	}
@@ -159,14 +160,14 @@ extends Descriptor
 	}
 
 	@Override
-	void o_SetValue (final AvailObject object, final A_BasicObject newValue)
+	protected void o_SetValue (final AvailObject object, final A_BasicObject newValue)
 	{
 		throw new VariableSetException(
 			AvailErrorCode.E_CANNOT_MODIFY_FINAL_JAVA_FIELD);
 	}
 
 	@Override
-	void o_SetValueNoCheck (
+	protected void o_SetValueNoCheck (
 		final AvailObject object,
 		final A_BasicObject newValue)
 	{
@@ -175,13 +176,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Value (final AvailObject object)
+	protected AvailObject o_Value (final AvailObject object)
 	{
 		return object.slot(CACHED_VALUE);
 	}
 
 	@Override
-	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -194,7 +195,7 @@ extends Descriptor
 	}
 
 	@Override
-	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -205,7 +206,7 @@ extends Descriptor
 	}
 
 	@Override
-	void printObjectOnAvoidingIndent (
+	protected void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
 		final IdentityHashMap<A_BasicObject, Void> recursionMap,

@@ -1,19 +1,19 @@
 /*
  * MessageBundleTreeDescriptor.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
+ *  Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
+ *  Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
+ *  Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -30,13 +30,21 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.descriptor;
+package com.avail.descriptor.bundles;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.compiler.ParsingOperation;
 import com.avail.compiler.splitter.MessageSplitter;
+import com.avail.descriptor.*;
 import com.avail.descriptor.MapDescriptor.Entry;
+import com.avail.descriptor.methods.A_Definition;
+import com.avail.descriptor.methods.A_GrammaticalRestriction;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.parsing.A_ParsingPlanInProgress;
+import com.avail.descriptor.parsing.A_Phrase;
+import com.avail.descriptor.tuples.A_String;
+import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.dispatch.LookupTree;
 import com.avail.dispatch.LookupTreeAdaptor;
 import com.avail.dispatch.TypeComparison;
@@ -57,8 +65,8 @@ import static com.avail.compiler.ParsingOperation.decode;
 import static com.avail.compiler.splitter.MessageSplitter.constantForIndex;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
-import static com.avail.descriptor.MessageBundleTreeDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.MessageBundleTreeDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.bundles.MessageBundleTreeDescriptor.IntegerSlots.*;
+import static com.avail.descriptor.bundles.MessageBundleTreeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.ParsingPlanInProgressDescriptor.newPlanInProgress;
@@ -219,7 +227,7 @@ extends Descriptor
 
 		/**
 		 * This is a map from an encoded {@link ParsingOperation (an {@linkplain
-		 * IntegerDescriptor integer}) to a {@link A_Tuple} of {@linkplain
+		 * IntegerDescriptor integer}) to a {@link A_Tuple } of {@linkplain
 		 * A_BundleTree}s to attempt if the instruction succeeds.
 		 *
 		 * <p>Note that the {@link ParsingOperation#PARSE_PART} and {@link
@@ -392,7 +400,7 @@ extends Descriptor
 	};
 
 	@Override
-	boolean allowsImmutableToMutableReferenceInField (
+	protected boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
 		return e == HASH_AND_MORE
@@ -409,7 +417,7 @@ extends Descriptor
 	}
 
 	@Override
-	void printObjectOnAvoidingIndent (
+	protected void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
 		final IdentityHashMap<A_BasicObject, Void> recursionMap,
@@ -482,7 +490,7 @@ extends Descriptor
 	 * A_Module)}.
 	 */
 	@Override
-	void o_AddPlanInProgress (
+	protected void o_AddPlanInProgress (
 		final AvailObject object,
 		final A_ParsingPlanInProgress planInProgress)
 	{
@@ -533,13 +541,13 @@ extends Descriptor
 	}
 
 	@Override
-	A_Map o_AllParsingPlansInProgress (final AvailObject object)
+	protected A_Map o_AllParsingPlansInProgress (final AvailObject object)
 	{
 		return object.slot(ALL_PLANS_IN_PROGRESS);
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.traversed().sameAddressAs(object);
 	}
@@ -548,7 +556,7 @@ extends Descriptor
 	 * Expand the bundle tree if there's anything unclassified in it.
 	 */
 	@Override @AvailMethod
-	void o_Expand (
+	protected void o_Expand (
 		final AvailObject object,
 		final A_Module module)
 	{
@@ -704,7 +712,7 @@ extends Descriptor
 	 * A_DefinitionParsingPlan} to agree with the new restriction.
 	 */
 	@Override
-	void o_UpdateForNewGrammaticalRestriction (
+	protected void o_UpdateForNewGrammaticalRestriction (
 		final AvailObject object,
 		final A_ParsingPlanInProgress planInProgress,
 		final Collection<Pair<A_BundleTree, A_ParsingPlanInProgress>>
@@ -833,7 +841,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	protected int o_Hash (final AvailObject object)
 	{
 		assert isShared();
 		int hash = object.slot(HASH_OR_ZERO);
@@ -864,13 +872,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_Kind (final AvailObject object)
+	protected A_Type o_Kind (final AvailObject object)
 	{
 		return MESSAGE_BUNDLE_TREE.o();
 	}
 
 	@Override @AvailMethod
-	A_Map o_LazyActions (final AvailObject object)
+	protected A_Map o_LazyActions (final AvailObject object)
 	{
 		assert isShared();
 		synchronized (object)
@@ -880,7 +888,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	A_Set o_LazyComplete (final AvailObject object)
+	protected A_Set o_LazyComplete (final AvailObject object)
 	{
 		assert isShared();
 		synchronized (object)
@@ -890,7 +898,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	A_Map o_LazyIncomplete (final AvailObject object)
+	protected A_Map o_LazyIncomplete (final AvailObject object)
 	{
 		assert isShared();
 		synchronized (object)
@@ -900,7 +908,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	A_Map o_LazyIncompleteCaseInsensitive (final AvailObject object)
+	protected A_Map o_LazyIncompleteCaseInsensitive (final AvailObject object)
 	{
 		assert isShared();
 		synchronized (object)
@@ -910,7 +918,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	A_Map o_LazyPrefilterMap (final AvailObject object)
+	protected A_Map o_LazyPrefilterMap (final AvailObject object)
 	{
 		assert isShared();
 		synchronized (object)
@@ -920,7 +928,7 @@ extends Descriptor
 	}
 //	lazyTypeFilterPairs
 	@Override @AvailMethod
-	A_BasicObject o_LazyTypeFilterTreePojo (final AvailObject object)
+	protected A_BasicObject o_LazyTypeFilterTreePojo (final AvailObject object)
 	{
 		assert isShared();
 		synchronized (object)
@@ -930,7 +938,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MakeImmutable (final AvailObject object)
+	protected AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		if (isMutable())
 		{
@@ -948,7 +956,7 @@ extends Descriptor
 	 * definition.
 	 */
 	@Override
-	void o_RemovePlanInProgress (
+	protected void o_RemovePlanInProgress (
 		final AvailObject object,
 		final A_ParsingPlanInProgress planInProgress)
 	{
@@ -973,25 +981,25 @@ extends Descriptor
 	 * @return A predecessor bundle tree or nil.
 	 */
 	@Override
-	A_BundleTree o_LatestBackwardJump (final AvailObject object)
+	protected A_BundleTree o_LatestBackwardJump (final AvailObject object)
 	{
 		return object.slot(LATEST_BACKWARD_JUMP);
 	}
 
 	@Override
-	boolean o_HasBackwardJump (final AvailObject object)
+	protected boolean o_HasBackwardJump (final AvailObject object)
 	{
 		return object.slot(HAS_BACKWARD_JUMP_INSTRUCTION) != 0;
 	}
 
 	@Override
-	boolean o_IsSourceOfCycle (final AvailObject object)
+	protected boolean o_IsSourceOfCycle (final AvailObject object)
 	{
 		return object.slot(IS_SOURCE_OF_CYCLE) != 0;
 	}
 
 	@Override
-	void o_IsSourceOfCycle (
+	protected void o_IsSourceOfCycle (
 		final AvailObject object,
 		final boolean isSourceOfCycle)
 	{
@@ -1386,7 +1394,7 @@ extends Descriptor
 		new MessageBundleTreeDescriptor(Mutability.MUTABLE);
 
 	@Override
-	MessageBundleTreeDescriptor mutable ()
+	public MessageBundleTreeDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -1396,14 +1404,14 @@ extends Descriptor
 		new MessageBundleTreeDescriptor(Mutability.SHARED);
 
 	@Override
-	MessageBundleTreeDescriptor immutable ()
+	protected MessageBundleTreeDescriptor immutable ()
 	{
 		// There is no immutable descriptor. Use the shared one.
 		return shared;
 	}
 
 	@Override
-	MessageBundleTreeDescriptor shared ()
+	protected MessageBundleTreeDescriptor shared ()
 	{
 		return shared;
 	}

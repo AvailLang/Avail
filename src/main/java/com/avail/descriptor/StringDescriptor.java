@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.descriptor.tuples.A_String;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.MutableInt;
 import com.avail.utility.json.JSONWriter;
@@ -58,13 +59,13 @@ public abstract class StringDescriptor
 extends TupleDescriptor
 {
 	@Override @AvailMethod
-	boolean o_IsString (final AvailObject object)
+	protected boolean o_IsString (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	SerializerOperation o_SerializerOperation (
+	protected SerializerOperation o_SerializerOperation (
 		final AvailObject object)
 	{
 		final int size = object.tupleSize();
@@ -83,7 +84,7 @@ extends TupleDescriptor
 	abstract int o_TupleCodePointAt (final AvailObject object, final int index);
 
 	@Override
-	boolean o_TupleElementsInRangeAreInstancesOf (
+	protected boolean o_TupleElementsInRangeAreInstancesOf (
 		final AvailObject object,
 		final int startIndex,
 		final int endIndex,
@@ -95,13 +96,13 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	final int o_TupleIntAt (final AvailObject object, final int index)
+	protected final int o_TupleIntAt (final AvailObject object, final int index)
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override
-	final void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	protected final  void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.write(object.asNativeString());
 	}

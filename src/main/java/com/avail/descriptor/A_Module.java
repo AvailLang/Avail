@@ -32,6 +32,15 @@
 
 package com.avail.descriptor;
 
+import com.avail.descriptor.atoms.A_Atom;
+import com.avail.descriptor.bundles.A_BundleTree;
+import com.avail.descriptor.methods.A_Definition;
+import com.avail.descriptor.methods.A_GrammaticalRestriction;
+import com.avail.descriptor.methods.A_SemanticRestriction;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.parsing.A_Lexer;
+import com.avail.descriptor.tuples.A_String;
+import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.AvailLoader.LexicalScanner;
 import com.avail.interpreter.primitive.modules.P_PublishName;

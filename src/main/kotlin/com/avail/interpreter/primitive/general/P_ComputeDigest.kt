@@ -32,7 +32,7 @@
 
 package com.avail.interpreter.primitive.general
 
-import com.avail.descriptor.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.ByteArrayTupleDescriptor.tupleForByteArray
@@ -48,7 +48,6 @@ import com.avail.interpreter.Primitive.Flag.*
 import java.nio.ByteBuffer
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
-import java.util.Arrays.asList
 
 /**
  * **Primitive:** Use a strong cryptographic message digest algorithm to produce

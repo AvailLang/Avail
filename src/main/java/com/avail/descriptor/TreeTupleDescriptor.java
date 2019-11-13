@@ -34,6 +34,9 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.tuples.A_String;
+import com.avail.descriptor.tuples.A_Tuple;
 
 import java.nio.ByteBuffer;
 
@@ -116,7 +119,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Tuple o_AppendCanDestroy (
+	protected A_Tuple o_AppendCanDestroy (
 		final AvailObject object,
 		final A_BasicObject newElement,
 		final boolean canDestroy)
@@ -132,19 +135,19 @@ extends TupleDescriptor
 	 * <p>Make this always seem a little worse than flat representations.</p>
 	 */
 	@Override @AvailMethod
-	int o_BitsPerEntry (final AvailObject object)
+	protected int o_BitsPerEntry (final AvailObject object)
 	{
 		return 65;
 	}
 
 	@Override @AvailMethod
-	A_Tuple o_ChildAt (final AvailObject object, final int childIndex)
+	protected A_Tuple o_ChildAt (final AvailObject object, final int childIndex)
 	{
 		return object.slot(SUBTUPLE_AT_, childIndex);
 	}
 
 	@Override @AvailMethod
-	int o_ChildCount (final AvailObject object)
+	protected int o_ChildCount (final AvailObject object)
 	{
 		return object.variableObjectSlotsCount();
 	}
@@ -157,7 +160,7 @@ extends TupleDescriptor
 	 * </p>
 	 */
 	@Override @AvailMethod
-	boolean o_CompareFromToWithStartingAt (
+	protected boolean o_CompareFromToWithStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -221,7 +224,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_CompareFromToWithByteStringStartingAt (
+	protected boolean o_CompareFromToWithByteStringStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -233,7 +236,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_CompareFromToWithByteTupleStartingAt (
+	protected boolean o_CompareFromToWithByteTupleStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -245,7 +248,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_CompareFromToWithNybbleTupleStartingAt (
+	protected boolean o_CompareFromToWithNybbleTupleStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -265,7 +268,7 @@ extends TupleDescriptor
 	 * </p>
 	 */
 	@Override @AvailMethod
-	boolean o_CompareFromToWithObjectTupleStartingAt (
+	protected boolean o_CompareFromToWithObjectTupleStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -280,7 +283,7 @@ extends TupleDescriptor
 	 * Hash part of the tuple object.
 	 */
 	@Override @AvailMethod
-	int o_ComputeHashFromTo (
+	protected int o_ComputeHashFromTo (
 		final AvailObject object,
 		final int startIndex,
 		final int endIndex)
@@ -319,7 +322,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Tuple o_ConcatenateWith (
+	protected A_Tuple o_ConcatenateWith (
 		final AvailObject object,
 		final A_Tuple otherTuple,
 		final boolean canDestroy)
@@ -332,7 +335,7 @@ extends TupleDescriptor
 	 * tuple.  Optimized here to take advantage of the tree structure.
 	 */
 	@Override @AvailMethod
-	A_Tuple o_CopyTupleFromToCanDestroy (
+	protected A_Tuple o_CopyTupleFromToCanDestroy (
 		final AvailObject object,
 		final int start,
 		final int end,
@@ -427,13 +430,13 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsAnyTuple(object);
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsAnyTuple (
+	protected boolean o_EqualsAnyTuple (
 		final AvailObject object,
 		final A_Tuple anotherTuple)
 	{
@@ -464,7 +467,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Tuple o_ReplaceFirstChild (
+	protected A_Tuple o_ReplaceFirstChild (
 		final AvailObject object,
 		final A_Tuple replacementChild)
 	{
@@ -502,7 +505,7 @@ extends TupleDescriptor
 	}
 
 	@Override
-	void o_TransferIntoByteBuffer (
+	protected void o_TransferIntoByteBuffer (
 		final AvailObject object,
 		final int startIndex,
 		final int endIndex,
@@ -546,7 +549,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_TreeTupleLevel (final AvailObject object)
+	protected int o_TreeTupleLevel (final AvailObject object)
 	{
 		return level;
 	}
@@ -555,7 +558,7 @@ extends TupleDescriptor
 	 * Answer the element at the given index in the tuple object.
 	 */
 	@Override @AvailMethod
-	AvailObject o_TupleAt (final AvailObject object, final int index)
+	protected AvailObject o_TupleAt (final AvailObject object, final int index)
 	{
 		final int childSubscript = childSubscriptForIndex(object, index);
 		final int offset = offsetForChildSubscript(object, childSubscript);
@@ -569,7 +572,7 @@ extends TupleDescriptor
 	 * canDestroy is true.
 	 */
 	@Override @AvailMethod
-	A_Tuple o_TupleAtPuttingCanDestroy (
+	protected A_Tuple o_TupleAtPuttingCanDestroy (
 		final AvailObject object,
 		final int index,
 		final A_BasicObject newValueObject,
@@ -622,7 +625,7 @@ extends TupleDescriptor
 	}
 
 	@Override
-	boolean o_TupleElementsInRangeAreInstancesOf (
+	protected boolean o_TupleElementsInRangeAreInstancesOf (
 		final AvailObject object,
 		final int startIndex,
 		final int endIndex,
@@ -662,7 +665,7 @@ extends TupleDescriptor
 	 * Answer the integer element at the given index in the tuple object.
 	 */
 	@Override @AvailMethod
-	int o_TupleIntAt (final AvailObject object, final int index)
+	protected int o_TupleIntAt (final AvailObject object, final int index)
 	{
 		final int childSubscript = childSubscriptForIndex(object, index);
 		final int offset = offsetForChildSubscript(object, childSubscript);
@@ -674,7 +677,7 @@ extends TupleDescriptor
 	 * Answer the number of elements in the tuple as an int.
 	 */
 	@Override @AvailMethod
-	int o_TupleSize (final AvailObject object)
+	protected int o_TupleSize (final AvailObject object)
 	{
 		return object.intSlot(
 			CUMULATIVE_SIZES_AREA_,

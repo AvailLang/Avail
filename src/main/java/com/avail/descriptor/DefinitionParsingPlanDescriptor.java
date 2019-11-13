@@ -37,6 +37,11 @@ import com.avail.compiler.AvailCompilerFragmentCache;
 import com.avail.compiler.ParsingConversionRule;
 import com.avail.compiler.ParsingOperation;
 import com.avail.compiler.splitter.MessageSplitter;
+import com.avail.descriptor.bundles.A_Bundle;
+import com.avail.descriptor.bundles.MessageBundleTreeDescriptor;
+import com.avail.descriptor.methods.A_Definition;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.tuples.A_Tuple;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -225,19 +230,19 @@ extends Descriptor
 	}
 
 	@Override
-	A_Bundle o_Bundle (final AvailObject object)
+	protected A_Bundle o_Bundle (final AvailObject object)
 	{
 		return object.slot(BUNDLE);
 	}
 
 	@Override
-	A_Definition o_Definition (final AvailObject object)
+	protected A_Definition o_Definition (final AvailObject object)
 	{
 		return object.slot(DEFINITION);
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		if (!another.kind().equals(DEFINITION_PARSING_PLAN.o()))
 		{
@@ -250,20 +255,20 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	protected int o_Hash (final AvailObject object)
 	{
 		return object.slot(DEFINITION).hash() ^ 0x92A26142
 			- object.slot(BUNDLE).hash();
 	}
 
 	@Override @AvailMethod
-	A_Type o_Kind (final AvailObject object)
+	protected A_Type o_Kind (final AvailObject object)
 	{
 		return DEFINITION_PARSING_PLAN.o();
 	}
 
 	@Override @AvailMethod
-	A_Tuple o_ParsingInstructions (final AvailObject object)
+	protected A_Tuple o_ParsingInstructions (final AvailObject object)
 	{
 		return object.slot(PARSING_INSTRUCTIONS);
 	}
@@ -292,7 +297,7 @@ extends Descriptor
 	 * @param definition The definition for this plan.
 	 * @return A new {@linkplain DefinitionParsingPlanDescriptor plan}.
 	 */
-	static A_DefinitionParsingPlan newParsingPlan (
+	public static A_DefinitionParsingPlan newParsingPlan (
 		final A_Bundle bundle,
 		final A_Definition definition)
 	{
@@ -322,13 +327,13 @@ extends Descriptor
 		new DefinitionParsingPlanDescriptor(Mutability.MUTABLE);
 
 	@Override
-	DefinitionParsingPlanDescriptor mutable ()
+	public DefinitionParsingPlanDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	@Override
-	DefinitionParsingPlanDescriptor immutable ()
+	protected DefinitionParsingPlanDescriptor immutable ()
 	{
 		// There is no immutable variant.
 		return shared;

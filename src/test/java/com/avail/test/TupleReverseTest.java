@@ -32,7 +32,7 @@
 
 package com.avail.test;
 
-import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ByteArrayTupleDescriptor;
 import com.avail.descriptor.ByteBufferTupleDescriptor;

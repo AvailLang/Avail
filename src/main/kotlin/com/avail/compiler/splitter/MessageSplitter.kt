@@ -42,6 +42,10 @@ import com.avail.descriptor.ObjectTupleDescriptor.tupleFromList
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.StringDescriptor.stringFrom
 import com.avail.descriptor.TupleDescriptor.emptyTuple
+import com.avail.descriptor.objects.A_BasicObject
+import com.avail.descriptor.parsing.A_Phrase
+import com.avail.descriptor.tuples.A_String
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailErrorCode.*
 import com.avail.exceptions.MalformedMessageException

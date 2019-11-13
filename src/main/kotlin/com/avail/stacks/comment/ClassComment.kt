@@ -32,7 +32,7 @@
 
 package com.avail.stacks.comment
 
-import com.avail.descriptor.A_String
+import com.avail.descriptor.tuples.A_String
 import com.avail.utility.json.JSONWriter
 
 import java.util.ArrayList

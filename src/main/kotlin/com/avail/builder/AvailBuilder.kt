@@ -45,7 +45,7 @@ import com.avail.compiler.problems.ProblemType.EXECUTION
 import com.avail.compiler.problems.ProblemType.PARSE
 import com.avail.compiler.problems.ProblemType.TRACE
 import com.avail.descriptor.A_Module
-import com.avail.descriptor.A_Phrase
+import com.avail.descriptor.parsing.A_Phrase
 import com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
 import com.avail.descriptor.AvailObject
 import com.avail.descriptor.FiberDescriptor.commandPriority

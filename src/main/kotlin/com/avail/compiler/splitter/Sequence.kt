@@ -37,7 +37,7 @@ import com.avail.compiler.splitter.MessageSplitter.Companion.indexForPermutation
 import com.avail.compiler.splitter.MessageSplitter.Companion.throwMalformedMessageException
 import com.avail.compiler.splitter.MessageSplitter.Companion.throwSignatureException
 import com.avail.compiler.splitter.WrapState.*
-import com.avail.descriptor.A_Phrase
+import com.avail.descriptor.parsing.A_Phrase
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.ListPhraseTypeDescriptor.emptyListPhraseType
 import com.avail.descriptor.TupleDescriptor.tupleFromIntegerList

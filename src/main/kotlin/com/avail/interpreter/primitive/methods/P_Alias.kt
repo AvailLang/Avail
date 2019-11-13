@@ -34,14 +34,14 @@ package com.avail.interpreter.primitive.methods
 
 import com.avail.compiler.splitter.MessageSplitter
 import com.avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
-import com.avail.descriptor.A_Atom
-import com.avail.descriptor.A_Bundle
-import com.avail.descriptor.A_String
+import com.avail.descriptor.atoms.A_Atom
+import com.avail.descriptor.bundles.A_Bundle
+import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.AtomDescriptor.SpecialAtom.MESSAGE_BUNDLE_KEY
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.MessageBundleDescriptor.newBundle
+import com.avail.descriptor.bundles.MessageBundleDescriptor.newBundle
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tuple

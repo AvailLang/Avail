@@ -33,6 +33,8 @@
 package com.avail.exceptions
 
 import com.avail.descriptor.*
+import com.avail.descriptor.methods.A_Definition
+import com.avail.descriptor.tuples.A_Tuple
 
 import com.avail.exceptions.AvailErrorCode.*
 

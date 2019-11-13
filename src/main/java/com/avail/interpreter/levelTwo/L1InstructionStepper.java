@@ -34,13 +34,13 @@ package com.avail.interpreter.levelTwo;
 
 import com.avail.AvailRuntime;
 import com.avail.AvailRuntime.HookType;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Bundle;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.bundles.A_Bundle;
 import com.avail.descriptor.A_Continuation;
-import com.avail.descriptor.A_Definition;
+import com.avail.descriptor.methods.A_Definition;
 import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_Method;
-import com.avail.descriptor.A_Tuple;
+import com.avail.descriptor.methods.A_Method;
+import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.A_Variable;
 import com.avail.descriptor.AvailObject;

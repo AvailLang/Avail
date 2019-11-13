@@ -34,6 +34,8 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.tuples.A_Tuple;
 
 import java.util.IdentityHashMap;
 
@@ -140,7 +142,7 @@ extends NumericTupleDescriptor
 	private static final int maximumCopySize = 32;
 
 	@Override @AvailMethod
-	A_Tuple o_AppendCanDestroy (
+	protected A_Tuple o_AppendCanDestroy (
 		final AvailObject object,
 		final A_BasicObject newElement,
 		final boolean canDestroy)
@@ -185,7 +187,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override
-	int o_BitsPerEntry (final AvailObject object)
+	protected int o_BitsPerEntry (final AvailObject object)
 	{
 		// Consider a billion element tuple. Since a small interval tuple
 		// requires only O(1) storage, irrespective of its size, the average
@@ -194,7 +196,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_CompareFromToWithStartingAt (
+	protected boolean o_CompareFromToWithStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -210,7 +212,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_CompareFromToWithSmallIntegerIntervalTupleStartingAt (
+	protected boolean o_CompareFromToWithSmallIntegerIntervalTupleStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -259,7 +261,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override
-	A_Tuple o_ConcatenateWith (
+	protected A_Tuple o_ConcatenateWith (
 		final AvailObject object,
 		final A_Tuple otherTuple,
 		final boolean canDestroy)
@@ -321,7 +323,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Tuple o_CopyTupleFromToCanDestroy (
+	protected A_Tuple o_CopyTupleFromToCanDestroy (
 		final AvailObject object,
 		final int start,
 		final int end,
@@ -363,13 +365,13 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsSmallIntegerIntervalTuple(object);
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsSmallIntegerIntervalTuple (
+	protected boolean o_EqualsSmallIntegerIntervalTuple (
 		final AvailObject object,
 		final A_Tuple aSmallIntegerIntervalTuple)
 	{
@@ -427,7 +429,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TupleAt (final AvailObject object, final int index)
+	protected AvailObject o_TupleAt (final AvailObject object, final int index)
 	{
 		// Answer the value at the given index in the tuple object.
 		// START + (index-1) × DELTA
@@ -438,7 +440,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Tuple o_TupleAtPuttingCanDestroy (
+	protected A_Tuple o_TupleAtPuttingCanDestroy (
 		final AvailObject object,
 		final int index,
 		final A_BasicObject newValueObject,
@@ -493,7 +495,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override
-	boolean o_TupleElementsInRangeAreInstancesOf (
+	protected boolean o_TupleElementsInRangeAreInstancesOf (
 		final AvailObject object,
 		final int startIndex,
 		final int endIndex,
@@ -519,7 +521,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_TupleIntAt (final AvailObject object, final int index)
+	protected int o_TupleIntAt (final AvailObject object, final int index)
 	{
 		// Answer the value at the given index in the tuple object.
 		// START + (index-1) × DELTA
@@ -532,7 +534,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Tuple o_TupleReverse(final AvailObject object)
+	protected A_Tuple o_TupleReverse(final AvailObject object)
 	{
 		final long newDelta = 0 - object.slot(DELTA);
 		// If tuple is small enough or is immutable, create a new interval.
@@ -554,7 +556,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_TupleSize (final AvailObject object)
+	protected int o_TupleSize (final AvailObject object)
 	{
 		return object.slot(SIZE);
 	}

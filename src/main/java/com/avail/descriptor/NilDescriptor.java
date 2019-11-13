@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
+import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.serialization.SerializerOperation;
 
 import java.util.IdentityHashMap;
@@ -74,7 +75,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.NIL;
 	}

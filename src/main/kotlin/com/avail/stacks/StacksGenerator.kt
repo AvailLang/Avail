@@ -37,7 +37,7 @@ import com.avail.builder.ModuleName
 import com.avail.builder.ModuleNameResolver
 import com.avail.compiler.ModuleHeader
 import com.avail.compiler.ModuleImport
-import com.avail.descriptor.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.CommentTokenDescriptor
 import com.avail.descriptor.ModuleDescriptor
 import com.avail.descriptor.TupleDescriptor

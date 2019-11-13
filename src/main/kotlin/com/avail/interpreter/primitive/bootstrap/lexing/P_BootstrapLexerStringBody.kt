@@ -35,7 +35,7 @@ package com.avail.interpreter.primitive.bootstrap.lexing
 import com.avail.compiler.AvailRejectedParseException
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.WEAK
-import com.avail.descriptor.A_String
+import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.CharacterDescriptor
 import com.avail.descriptor.LexerDescriptor.lexerBodyFunctionType

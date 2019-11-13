@@ -51,6 +51,8 @@ import java.util.*
 import com.avail.descriptor.SetDescriptor.emptySet
 import com.avail.descriptor.SetDescriptor.setFromCollection
 import com.avail.descriptor.StringDescriptor.stringFrom
+import com.avail.descriptor.tuples.A_String
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.stacks.*
 import com.avail.stacks.comment.AvailComment
 import com.avail.stacks.exceptions.StacksCommentBuilderException
@@ -86,13 +88,13 @@ import com.avail.stacks.scanner.StacksScanner
  *   An optional prefix to all files' link web links
  */
 class CommentsModule constructor(
-		header: ModuleHeader,
-		commentTokens: A_Tuple,
-		errorLog: StacksErrorLog,
-		resolver: ModuleNameResolver,
-		moduleToComments: HashMap<String, CommentsModule>,
-		linkingFileMap: LinkingFileMap,
-		val linkPrefix: String)
+	header: ModuleHeader,
+	commentTokens: A_Tuple,
+	errorLog: StacksErrorLog,
+	resolver: ModuleNameResolver,
+	moduleToComments: HashMap<String, CommentsModule>,
+	linkingFileMap: LinkingFileMap,
+	val linkPrefix: String)
 {
 	/**
 	 *  A map of the modules extended by this module to the

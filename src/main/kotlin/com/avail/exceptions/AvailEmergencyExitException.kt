@@ -32,7 +32,7 @@
 
 package com.avail.exceptions
 
-import com.avail.descriptor.A_String
+import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.StringDescriptor
 
 import com.avail.descriptor.StringDescriptor.stringFrom

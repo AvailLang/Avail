@@ -38,6 +38,7 @@ import com.avail.descriptor.FiberDescriptor.ExecutionState
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.TypeDescriptor.Types.ANY
+import com.avail.descriptor.objects.A_BasicObject
 import com.avail.exceptions.AvailEmergencyExitException
 import com.avail.exceptions.AvailErrorCode
 import com.avail.interpreter.Interpreter

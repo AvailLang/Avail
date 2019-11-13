@@ -34,6 +34,8 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
+import com.avail.descriptor.atoms.A_Atom;
+import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.AvailException;
 import com.avail.exceptions.VariableGetException;
@@ -173,7 +175,7 @@ extends Descriptor
 	}
 
 	@Override
-	boolean allowsImmutableToMutableReferenceInField (
+	protected boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
 		return e == VALUE
@@ -182,7 +184,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	protected int o_Hash (final AvailObject object)
 	{
 		int hash = object.slot(HASH_OR_ZERO);
 		if (hash == 0)
@@ -198,14 +200,14 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Value (final AvailObject object)
+	protected AvailObject o_Value (final AvailObject object)
 	{
 		return object.slot(VALUE);
 	}
 
 	@SuppressWarnings("ThrowsRuntimeException")
 	@Override @AvailMethod
-	AvailObject o_GetValue (final AvailObject object)
+	protected AvailObject o_GetValue (final AvailObject object)
 	throws VariableGetException
 	{
 		try
@@ -236,7 +238,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_HasValue (final AvailObject object)
+	protected boolean o_HasValue (final AvailObject object)
 	{
 		try
 		{
@@ -327,7 +329,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	void o_SetValue (final AvailObject object, final A_BasicObject newValue)
+	protected void o_SetValue (final AvailObject object, final A_BasicObject newValue)
 	throws VariableSetException
 	{
 		handleVariableWriteTracing(object);
@@ -341,7 +343,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	void o_SetValueNoCheck (
+	protected void o_SetValueNoCheck (
 			final AvailObject object,
 			final A_BasicObject newValue)
 		throws VariableSetException
@@ -352,7 +354,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_GetAndSetValue (
+	protected AvailObject o_GetAndSetValue (
 			final AvailObject object,
 			final A_BasicObject newValue)
 		throws VariableGetException, VariableSetException
@@ -382,7 +384,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_CompareAndSwapValues (
+	protected boolean o_CompareAndSwapValues (
 			final AvailObject object,
 			final A_BasicObject reference,
 			final A_BasicObject newValue)
@@ -416,7 +418,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	A_Number o_FetchAndAddValue (
+	protected A_Number o_FetchAndAddValue (
 			final AvailObject object,
 			final A_Number addend)
 		throws VariableGetException, VariableSetException
@@ -447,7 +449,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	void o_AtomicAddToMap (
+	protected void o_AtomicAddToMap (
 		final AvailObject object,
 		final A_BasicObject key,
 		final A_BasicObject value)
@@ -492,7 +494,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_VariableMapHasKey (
+	protected boolean o_VariableMapHasKey (
 		final AvailObject object,
 		final A_BasicObject key)
 	throws VariableGetException
@@ -510,14 +512,14 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	void o_ClearValue (final AvailObject object)
+	protected void o_ClearValue (final AvailObject object)
 	{
 		handleVariableWriteTracing(object);
 		object.setSlot(VALUE, nil);
 	}
 
 	@Override @AvailMethod
-	void o_AddDependentChunk (
+	protected void o_AddDependentChunk (
 		final AvailObject object,
 		final L2Chunk chunk)
 	{
@@ -528,7 +530,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	void o_RemoveDependentChunk (
+	protected void o_RemoveDependentChunk (
 		final AvailObject object,
 		final L2Chunk chunk)
 	{
@@ -540,7 +542,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	void o_AddWriteReactor (
+	protected void o_AddWriteReactor (
 		final AvailObject object,
 		final A_Atom key,
 		final VariableAccessReactor reactor)
@@ -559,7 +561,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	void o_RemoveWriteReactor (final AvailObject object, final A_Atom key)
+	protected void o_RemoveWriteReactor (final AvailObject object, final A_Atom key)
 		throws AvailException
 	{
 		final AvailObject rawPojo = object.slot(WRITE_REACTORS);
@@ -577,7 +579,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	A_Set o_ValidWriteReactorFunctions (final AvailObject object)
+	protected A_Set o_ValidWriteReactorFunctions (final AvailObject object)
 	{
 		final AvailObject rawPojo = object.slot(WRITE_REACTORS);
 		if (!rawPojo.equalsNil())
@@ -602,13 +604,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	final A_Type o_Kind (final AvailObject object)
+	protected final A_Type o_Kind (final AvailObject object)
 	{
 		return object.slot(KIND);
 	}
 
 	@Override @AvailMethod
-	final boolean o_Equals (
+	protected final boolean o_Equals (
 		final AvailObject object,
 		final A_BasicObject another)
 	{
@@ -616,7 +618,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	final boolean o_EqualsVariable (
+	protected final boolean o_EqualsVariable (
 		final AvailObject object,
 		final AvailObject aVariable)
 	{
@@ -624,7 +626,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MakeImmutable (final AvailObject object)
+	protected AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		// If I am being frozen (a variable), I don't need to freeze my current
 		// value. I do, on the other hand, have to freeze my kind object.
@@ -646,20 +648,20 @@ extends Descriptor
 	}
 
 	@Override
-	boolean o_IsInitializedWriteOnceVariable (final AvailObject object)
+	protected boolean o_IsInitializedWriteOnceVariable (final AvailObject object)
 	{
 		return false;
 	}
 
 	@Override @AvailMethod
-	boolean o_IsGlobal(
+	protected boolean o_IsGlobal(
 		final AvailObject object)
 	{
 		return false;
 	}
 
 	@Override @AvailMethod
-	boolean o_ValueWasStablyComputed (
+	protected boolean o_ValueWasStablyComputed (
 		final AvailObject object)
 	{
 		// The override in VariableSharedWriteOnceDescriptor answer a stored
@@ -669,7 +671,7 @@ extends Descriptor
 	}
 
 	@Override
-	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -685,7 +687,7 @@ extends Descriptor
 	}
 
 	@Override
-	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -765,7 +767,7 @@ extends Descriptor
 			IntegerSlots.class);
 
 	@Override
-	final VariableDescriptor mutable ()
+	protected final  VariableDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -779,13 +781,13 @@ extends Descriptor
 			IntegerSlots.class);
 
 	@Override
-	final VariableDescriptor immutable ()
+	protected final  VariableDescriptor immutable ()
 	{
 		return immutable;
 	}
 
 	@Override
-	final VariableDescriptor shared ()
+	protected final  VariableDescriptor shared ()
 	{
 		return VariableSharedDescriptor.shared;
 	}

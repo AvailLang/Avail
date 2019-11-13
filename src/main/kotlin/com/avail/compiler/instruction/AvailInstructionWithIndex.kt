@@ -33,7 +33,7 @@
 package com.avail.compiler.instruction
 
 import com.avail.descriptor.A_Token
-import com.avail.descriptor.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple
 
 /**
  * This abstract subclass of [AvailInstruction] introduces a generic index whose

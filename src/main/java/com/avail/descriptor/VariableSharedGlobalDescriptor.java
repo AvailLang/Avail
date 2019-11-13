@@ -34,6 +34,8 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.tuples.A_String;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.VariableGetException;
 import com.avail.exceptions.VariableSetException;
@@ -174,7 +176,7 @@ extends VariableSharedDescriptor
 	}
 
 	@Override
-	boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
+	protected boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
 	{
 		return super.allowsImmutableToMutableReferenceInField(e)
 			|| e == VALUE
@@ -184,19 +186,19 @@ extends VariableSharedDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Module o_GlobalModule (final AvailObject object)
+	protected A_Module o_GlobalModule (final AvailObject object)
 	{
 		return object.slot(MODULE);
 	}
 
 	@Override @AvailMethod
-	A_String o_GlobalName (final AvailObject object)
+	protected A_String o_GlobalName (final AvailObject object)
 	{
 		return object.slot(GLOBAL_NAME);
 	}
 
 	@Override @AvailMethod
-	void o_SetValue (final AvailObject object, final A_BasicObject newValue)
+	protected void o_SetValue (final AvailObject object, final A_BasicObject newValue)
 		throws VariableSetException
 	{
 		synchronized (object)
@@ -212,7 +214,7 @@ extends VariableSharedDescriptor
 	}
 
 	@Override @AvailMethod
-	void o_SetValueNoCheck (
+	protected void o_SetValueNoCheck (
 		final AvailObject object,
 		final A_BasicObject newValue)
 	{
@@ -230,7 +232,7 @@ extends VariableSharedDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_GetAndSetValue (
+	protected AvailObject o_GetAndSetValue (
 			final AvailObject object,
 			final A_BasicObject newValue)
 		throws VariableGetException, VariableSetException
@@ -244,7 +246,7 @@ extends VariableSharedDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_CompareAndSwapValues (
+	protected boolean o_CompareAndSwapValues (
 			final AvailObject object,
 			final A_BasicObject reference,
 			final A_BasicObject newValue)
@@ -259,7 +261,7 @@ extends VariableSharedDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Number o_FetchAndAddValue (
+	protected A_Number o_FetchAndAddValue (
 		final AvailObject object,
 		final A_Number addend)
 	throws VariableGetException, VariableSetException
@@ -273,7 +275,7 @@ extends VariableSharedDescriptor
 	}
 
 	@Override @AvailMethod
-	void o_AtomicAddToMap (
+	protected void o_AtomicAddToMap (
 		final AvailObject object,
 		final A_BasicObject key,
 		final A_BasicObject value)
@@ -288,7 +290,7 @@ extends VariableSharedDescriptor
 	}
 
 	@Override @AvailMethod
-	void o_ClearValue (final AvailObject object)
+	protected void o_ClearValue (final AvailObject object)
 	{
 		if (writeOnce)
 		{
@@ -299,20 +301,20 @@ extends VariableSharedDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsGlobal(
+	protected boolean o_IsGlobal(
 		final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod
-	boolean o_IsInitializedWriteOnceVariable (final AvailObject object)
+	protected boolean o_IsInitializedWriteOnceVariable (final AvailObject object)
 	{
 		return writeOnce;
 	}
 
 	@Override @AvailMethod
-	void o_ValueWasStablyComputed (
+	protected void o_ValueWasStablyComputed (
 		final AvailObject object,
 		final boolean wasStablyComputed)
 	{
@@ -322,7 +324,7 @@ extends VariableSharedDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_ValueWasStablyComputed (
+	protected boolean o_ValueWasStablyComputed (
 		final AvailObject object)
 	{
 		// Can only be set for write-once variables.

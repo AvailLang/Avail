@@ -32,7 +32,7 @@
 
 package com.avail.interpreter.primitive.general
 
-import com.avail.descriptor.A_BasicObject
+import com.avail.descriptor.objects.A_BasicObject
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.IntegerDescriptor.fromInt

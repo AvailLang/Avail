@@ -41,6 +41,18 @@ import com.avail.descriptor.AtomDescriptor.SpecialAtom;
 import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.descriptor.atoms.A_Atom;
+import com.avail.descriptor.bundles.A_Bundle;
+import com.avail.descriptor.bundles.A_BundleTree;
+import com.avail.descriptor.bundles.MessageBundleTreeDescriptor;
+import com.avail.descriptor.methods.A_Method;
+import com.avail.descriptor.methods.A_Definition;
+import com.avail.descriptor.methods.A_GrammaticalRestriction;
+import com.avail.descriptor.methods.A_SemanticRestriction;
+import com.avail.descriptor.parsing.A_ParsingPlanInProgress;
+import com.avail.descriptor.parsing.A_Lexer;
+import com.avail.descriptor.tuples.A_String;
+import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.exceptions.AmbiguousNameException;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.SignatureException;
@@ -79,7 +91,7 @@ import static com.avail.descriptor.FunctionDescriptor.createFunction;
 import static com.avail.descriptor.GrammaticalRestrictionDescriptor.newGrammaticalRestriction;
 import static com.avail.descriptor.LexerDescriptor.newLexer;
 import static com.avail.descriptor.MacroDefinitionDescriptor.newMacroDefinition;
-import static com.avail.descriptor.MessageBundleTreeDescriptor.newBundleTree;
+import static com.avail.descriptor.bundles.MessageBundleTreeDescriptor.newBundleTree;
 import static com.avail.descriptor.MethodDefinitionDescriptor.newMethodDefinition;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
@@ -625,7 +637,8 @@ public final class AvailLoader
 	 * this {@code AvailLoader} is using to parse its {@linkplain
 	 * ModuleDescriptor module}.
 	 */
-	private @Nullable A_BundleTree rootBundleTree;
+	private @Nullable
+	A_BundleTree rootBundleTree;
 
 	/**
 	 * Answer the {@linkplain MessageBundleTreeDescriptor message bundle tree}

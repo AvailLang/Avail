@@ -31,7 +31,7 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.A_Variable;
 import com.avail.descriptor.AbstractDescriptor;

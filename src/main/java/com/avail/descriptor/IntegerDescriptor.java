@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
+import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.exceptions.ArithmeticException;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MarshalingException;
@@ -246,7 +247,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override
-	String o_NameForDebugger (final AvailObject object)
+	protected String o_NameForDebugger (final AvailObject object)
 	{
 		if (object.isLong())
 		{
@@ -280,13 +281,13 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_RawSignedIntegerAt (final AvailObject object, final int subscript)
+	protected int o_RawSignedIntegerAt (final AvailObject object, final int subscript)
 	{
 		return object.intSlot(RAW_LONG_SLOTS_, subscript);
 	}
 
 	@Override @AvailMethod
-	void o_RawSignedIntegerAtPut (
+	protected void o_RawSignedIntegerAtPut (
 		final AvailObject object,
 		final int subscript,
 		final int value)
@@ -295,7 +296,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsInteger(object);
 	}
@@ -304,7 +305,7 @@ extends ExtendedIntegerDescriptor
 	 * Compare two integers for equality.
 	 */
 	@Override @AvailMethod
-	boolean o_EqualsInteger (
+	protected boolean o_EqualsInteger (
 		final AvailObject object,
 		final AvailObject anAvailInteger)
 	{
@@ -330,7 +331,7 @@ extends ExtendedIntegerDescriptor
 	 * Check if this is an integer whose value equals the given int.
 	 */
 	@Override @AvailMethod
-	boolean o_EqualsInt (
+	protected boolean o_EqualsInt (
 		final AvailObject object,
 		final int theInt)
 	{
@@ -340,7 +341,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsInstanceOfKind (
+	protected boolean o_IsInstanceOfKind (
 		final AvailObject object,
 		final A_Type aType)
 	{
@@ -380,7 +381,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	protected int o_Hash (final AvailObject object)
 	{
 		if (object.isUnsignedByte())
 		{
@@ -390,20 +391,20 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsFinite (final AvailObject object)
+	protected boolean o_IsFinite (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod
-	A_Type o_Kind (final AvailObject object)
+	protected A_Type o_Kind (final AvailObject object)
 	{
 		object.makeImmutable();
 		return singleInteger(object);
 	}
 
 	@Override @AvailMethod
-	A_Number o_DivideCanDestroy (
+	protected A_Number o_DivideCanDestroy (
 		final AvailObject object,
 		final A_Number aNumber,
 		final boolean canDestroy)
@@ -412,7 +413,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Number o_MinusCanDestroy (
+	protected A_Number o_MinusCanDestroy (
 		final AvailObject object,
 		final A_Number aNumber,
 		final boolean canDestroy)
@@ -421,7 +422,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Number o_PlusCanDestroy (
+	protected A_Number o_PlusCanDestroy (
 		final AvailObject object,
 		final A_Number aNumber,
 		final boolean canDestroy)
@@ -430,7 +431,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Number o_TimesCanDestroy (
+	protected A_Number o_TimesCanDestroy (
 		final AvailObject object,
 		final A_Number aNumber,
 		final boolean canDestroy)
@@ -439,7 +440,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsNybble (final AvailObject object)
+	protected boolean o_IsNybble (final AvailObject object)
 	{
 		if (intCount(object) > 1)
 		{
@@ -450,7 +451,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSignedByte (final AvailObject object)
+	protected boolean o_IsSignedByte (final AvailObject object)
 	{
 		if (intCount(object) > 1)
 		{
@@ -461,7 +462,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsUnsignedByte (final AvailObject object)
+	protected boolean o_IsUnsignedByte (final AvailObject object)
 	{
 		if (intCount(object) > 1)
 		{
@@ -472,7 +473,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSignedShort (final AvailObject object)
+	protected boolean o_IsSignedShort (final AvailObject object)
 	{
 		if (intCount(object) > 1)
 		{
@@ -483,7 +484,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsUnsignedShort (final AvailObject object)
+	protected boolean o_IsUnsignedShort (final AvailObject object)
 	{
 		if (intCount(object) > 1)
 		{
@@ -494,13 +495,13 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsInt (final AvailObject object)
+	protected boolean o_IsInt (final AvailObject object)
 	{
 		return intCount(object) == 1;
 	}
 
 	@Override @AvailMethod
-	boolean o_IsLong (final AvailObject object)
+	protected boolean o_IsLong (final AvailObject object)
 	{
 		return intCount(object) <= 2;
 	}
@@ -542,7 +543,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_ExtractUnsignedShort (final AvailObject object)
+	protected int o_ExtractUnsignedShort (final AvailObject object)
 	{
 		assert intCount(object) == 1;
 		final int value = object.rawSignedIntegerAt(1);
@@ -551,7 +552,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_ExtractInt (final AvailObject object)
+	protected int o_ExtractInt (final AvailObject object)
 	{
 		assert intCount(object) == 1 : "Integer value out of bounds";
 		return object.rawSignedIntegerAt(1);
@@ -610,7 +611,7 @@ extends ExtendedIntegerDescriptor
 	 * least significant quad comes first).
 	 */
 	@Override @AvailMethod
-	void o_RawUnsignedIntegerAtPut (
+	protected void o_RawUnsignedIntegerAtPut (
 		final AvailObject object,
 		final int subscript,
 		final int value)
@@ -619,7 +620,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	void o_TrimExcessInts (final AvailObject object)
+	protected void o_TrimExcessInts (final AvailObject object)
 	{
 		// Remove any redundant ints from my end.  Since I'm stored in Little
 		// Endian representation, I can simply be truncated with no need to
@@ -673,7 +674,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Number o_AddToInfinityCanDestroy (
+	protected A_Number o_AddToInfinityCanDestroy (
 		final AvailObject object,
 		final Sign sign,
 		final boolean canDestroy)
@@ -723,7 +724,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Number o_AddToIntegerCanDestroy (
+	protected A_Number o_AddToIntegerCanDestroy (
 		final AvailObject object,
 		final AvailObject anInteger,
 		final boolean canDestroy)
@@ -809,7 +810,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override
-	A_Number o_AddToDoubleCanDestroy (
+	protected A_Number o_AddToDoubleCanDestroy (
 		final AvailObject object,
 		final A_Number doubleObject,
 		final boolean canDestroy)
@@ -820,7 +821,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override
-	A_Number o_AddToFloatCanDestroy (
+	protected A_Number o_AddToFloatCanDestroy (
 		final AvailObject object,
 		final A_Number floatObject,
 		final boolean canDestroy)
@@ -831,7 +832,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Number o_DivideIntoInfinityCanDestroy (
+	protected A_Number o_DivideIntoInfinityCanDestroy (
 		final AvailObject object,
 		final Sign sign,
 		final boolean canDestroy)
@@ -872,7 +873,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Number o_DivideIntoIntegerCanDestroy (
+	protected A_Number o_DivideIntoIntegerCanDestroy (
 		final AvailObject object,
 		final AvailObject anInteger,
 		final boolean canDestroy)
@@ -986,7 +987,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Number o_MultiplyByInfinityCanDestroy (
+	protected A_Number o_MultiplyByInfinityCanDestroy (
 		final AvailObject object,
 		final Sign sign,
 		final boolean canDestroy)
@@ -1002,7 +1003,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Number o_MultiplyByIntegerCanDestroy (
+	protected A_Number o_MultiplyByIntegerCanDestroy (
 		final AvailObject object,
 		final AvailObject anInteger,
 		final boolean canDestroy)
@@ -1137,7 +1138,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Number o_SubtractFromInfinityCanDestroy (
+	protected A_Number o_SubtractFromInfinityCanDestroy (
 		final AvailObject object,
 		final Sign sign,
 		final boolean canDestroy)
@@ -1148,7 +1149,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Number o_SubtractFromIntegerCanDestroy (
+	protected A_Number o_SubtractFromIntegerCanDestroy (
 		final AvailObject object,
 		final AvailObject anInteger,
 		final boolean canDestroy)
@@ -1310,7 +1311,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Number o_BitwiseAnd (
+	protected A_Number o_BitwiseAnd (
 		final AvailObject object,
 		final A_Number anInteger,
 		final boolean canDestroy)
@@ -1361,7 +1362,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Number o_BitwiseOr (
+	protected A_Number o_BitwiseOr (
 		final AvailObject object,
 		final A_Number anInteger,
 		final boolean canDestroy)
@@ -1412,7 +1413,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Number o_BitwiseXor (
+	protected A_Number o_BitwiseXor (
 		final AvailObject object,
 		final A_Number anInteger,
 		final boolean canDestroy)
@@ -1493,7 +1494,7 @@ extends ExtendedIntegerDescriptor
 	 *            mod 2<sup>truncationBits</sup>
 	 */
 	@Override @AvailMethod
-	A_Number o_BitShiftLeftTruncatingToBits (
+	protected A_Number o_BitShiftLeftTruncatingToBits (
 		final AvailObject object,
 		final A_Number shiftFactor,
 		final A_Number truncationBits,
@@ -1638,7 +1639,7 @@ extends ExtendedIntegerDescriptor
 	 * @return &#x23a3;object &times; 2<sup>shiftFactor</sup>&#x23a6;
 	 */
 	@Override @AvailMethod
-	A_Number o_BitShift (
+	protected A_Number o_BitShift (
 		final AvailObject object,
 		final A_Number shiftFactor,
 		final boolean canDestroy)
@@ -1873,13 +1874,13 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override
-	boolean o_IsNumericallyIntegral (final AvailObject object)
+	protected boolean o_IsNumericallyIntegral (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override
-	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		if (object.isLong())
 		{

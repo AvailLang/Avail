@@ -32,7 +32,7 @@
 package com.avail.interpreter.primitive.pojos
 
 import com.avail.AvailRuntime.HookType
-import com.avail.descriptor.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.BottomTypeDescriptor.bottom
 import com.avail.descriptor.ObjectTupleDescriptor.tupleFromList

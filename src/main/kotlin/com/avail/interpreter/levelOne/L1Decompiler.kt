@@ -34,7 +34,7 @@ package com.avail.interpreter.levelOne
 
 import com.avail.descriptor.*
 import com.avail.descriptor.AssignmentPhraseDescriptor.newAssignment
-import com.avail.descriptor.BlockPhraseDescriptor.newBlockNode
+import com.avail.descriptor.parsing.BlockPhraseDescriptor.newBlockNode
 import com.avail.descriptor.CompiledCodeDescriptor.L1InstructionDecoder
 import com.avail.descriptor.ContinuationTypeDescriptor.continuationTypeForFunctionType
 import com.avail.descriptor.DeclarationPhraseDescriptor.*
@@ -59,6 +59,8 @@ import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.VariableDescriptor.newVariableWithOuterType
 import com.avail.descriptor.VariableTypeDescriptor.variableTypeFor
 import com.avail.descriptor.VariableUsePhraseDescriptor.newUse
+import com.avail.descriptor.parsing.A_Phrase
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.utility.PrefixSharingList.last
 import java.util.*
 import java.util.function.Function

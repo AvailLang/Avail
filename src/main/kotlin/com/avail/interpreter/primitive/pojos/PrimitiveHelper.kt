@@ -42,6 +42,8 @@ import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.PojoTypeDescriptor.marshalDefiningType
 import com.avail.descriptor.PojoTypeDescriptor.pojoTypeForClass
 import com.avail.descriptor.VariableTypeDescriptor.variableTypeFor
+import com.avail.descriptor.tuples.A_String
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailErrorCode.*
 import com.avail.exceptions.MarshalingException

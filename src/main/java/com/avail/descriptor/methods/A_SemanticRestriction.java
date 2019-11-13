@@ -1,19 +1,19 @@
 /*
  * A_SemanticRestriction.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
+ *  Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
+ *  Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
+ *  Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -30,7 +30,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.descriptor;
+package com.avail.descriptor.methods;
+
+import com.avail.descriptor.*;
+import com.avail.descriptor.methods.A_Method;
+import com.avail.descriptor.methods.A_Definition;
+import com.avail.descriptor.methods.A_GrammaticalRestriction;
+import com.avail.descriptor.objects.A_BasicObject;
 
 /**
  * {@code A_SemanticRestriction} is an interface that specifies the operations

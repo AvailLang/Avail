@@ -36,6 +36,7 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.HideFieldJustForPrinting;
 import com.avail.compiler.scanning.LexingState;
+import com.avail.descriptor.tuples.A_String;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -126,7 +127,7 @@ extends TokenDescriptor
 	}
 
 	@Override
-	boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
+	protected boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
 	{
 		return e == NEXT_LEXING_STATE_POJO
 			|| super.allowsImmutableToMutableReferenceInField(e);
@@ -145,7 +146,7 @@ extends TokenDescriptor
 	}
 
 	@Override
-	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");

@@ -43,7 +43,7 @@ import com.avail.descriptor.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY
 import com.avail.descriptor.AtomDescriptor.SpecialAtom.HERITABLE_KEY
 import com.avail.descriptor.AtomDescriptor.trueObject
 import com.avail.descriptor.AtomWithPropertiesDescriptor.createAtomWithProperties
-import com.avail.descriptor.BlockPhraseDescriptor.newBlockNode
+import com.avail.descriptor.parsing.BlockPhraseDescriptor.newBlockNode
 import com.avail.descriptor.BottomPojoTypeDescriptor.pojoBottom
 import com.avail.descriptor.CharacterDescriptor.fromCodePoint
 import com.avail.descriptor.CommentTokenDescriptor.newCommentToken
@@ -101,6 +101,11 @@ import com.avail.descriptor.VariableDescriptor.newVariableWithOuterType
 import com.avail.descriptor.VariableTypeDescriptor.variableReadWriteType
 import com.avail.descriptor.VariableTypeDescriptor.variableTypeFor
 import com.avail.descriptor.VariableUsePhraseDescriptor.newUse
+import com.avail.descriptor.atoms.A_Atom
+import com.avail.descriptor.methods.A_Definition
+import com.avail.descriptor.objects.A_BasicObject
+import com.avail.descriptor.tuples.A_String
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.exceptions.AvailErrorCode.E_JAVA_METHOD_NOT_AVAILABLE
 import com.avail.exceptions.AvailRuntimeException
 import com.avail.exceptions.MalformedMessageException

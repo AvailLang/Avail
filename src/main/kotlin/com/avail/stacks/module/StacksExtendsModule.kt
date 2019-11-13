@@ -32,7 +32,7 @@
 
 package com.avail.stacks.module
 
-import com.avail.descriptor.A_String
+import com.avail.descriptor.tuples.A_String
 import com.avail.stacks.*
 import com.avail.stacks.comment.GrammaticalRestrictionComment
 import com.avail.stacks.comment.MacroComment

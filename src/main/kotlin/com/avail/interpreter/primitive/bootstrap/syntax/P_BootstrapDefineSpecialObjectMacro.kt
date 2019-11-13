@@ -32,9 +32,9 @@
 
 package com.avail.interpreter.primitive.bootstrap.syntax
 
-import com.avail.descriptor.A_Bundle
+import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.BlockPhraseDescriptor.newBlockNode
+import com.avail.descriptor.parsing.BlockPhraseDescriptor.newBlockNode
 import com.avail.descriptor.ExpressionAsStatementPhraseDescriptor.newExpressionAsStatement
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.IntegerDescriptor.fromInt

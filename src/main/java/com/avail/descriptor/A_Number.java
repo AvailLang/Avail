@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
+import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.interpreter.primitive.numbers.P_LessOrEqual;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 

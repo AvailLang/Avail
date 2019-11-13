@@ -44,6 +44,7 @@ import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TupleTypeDescriptor.*
 import com.avail.descriptor.TypeDescriptor.Types.*
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.exceptions.AvailErrorCode.E_INCONSISTENT_PREFIX_FUNCTION
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import com.avail.interpreter.Interpreter

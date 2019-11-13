@@ -35,8 +35,8 @@ package com.avail.io
 import com.avail.AvailRuntime
 import com.avail.AvailRuntimeConfiguration.availableProcessors
 import com.avail.AvailThread
-import com.avail.descriptor.A_String
-import com.avail.descriptor.A_Tuple
+import com.avail.descriptor.tuples.A_String
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.AtomDescriptor
 import com.avail.descriptor.AtomDescriptor.SpecialAtom
 import com.avail.descriptor.AvailObject.multiplier

@@ -50,6 +50,20 @@ import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
+import com.avail.descriptor.atoms.A_Atom;
+import com.avail.descriptor.bundles.A_Bundle;
+import com.avail.descriptor.bundles.A_BundleTree;
+import com.avail.descriptor.bundles.MessageBundleDescriptor;
+import com.avail.descriptor.methods.A_Method;
+import com.avail.descriptor.methods.A_Definition;
+import com.avail.descriptor.methods.A_GrammaticalRestriction;
+import com.avail.descriptor.methods.A_SemanticRestriction;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.parsing.A_ParsingPlanInProgress;
+import com.avail.descriptor.parsing.A_Lexer;
+import com.avail.descriptor.parsing.A_Phrase;
+import com.avail.descriptor.tuples.A_String;
+import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.dispatch.LookupTree;
 import com.avail.exceptions.ArithmeticException;
 import com.avail.exceptions.AvailException;
@@ -113,30 +127,30 @@ public final class AvailObject
 extends AvailObjectRepresentation
 implements
 	A_BasicObject,
-		A_Atom,
-		A_Bundle,
-		A_BundleTree,
+	A_Atom,
+	A_Bundle,
+	A_BundleTree,
 		A_Character,
 		A_Continuation,
-		A_Definition,
+	A_Definition,
 		A_DefinitionParsingPlan,
 		A_Fiber,
 		A_Function,
-		A_GrammaticalRestriction,
-		A_Lexer,
+	A_GrammaticalRestriction,
+	A_Lexer,
 		A_Map,
 		A_MapBin,
-		A_Method,
+	A_Method,
 		A_Module,
 		A_Number,
-		A_ParsingPlanInProgress,
-		A_Phrase,
+	A_ParsingPlanInProgress,
+	A_Phrase,
 		A_RawFunction,
-		A_SemanticRestriction,
+	A_SemanticRestriction,
 		A_Set,
 		A_Token,
-		A_Tuple,
-			A_String,
+	A_Tuple,
+	A_String,
 		A_Type,
 		A_Variable
 {

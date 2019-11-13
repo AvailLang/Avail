@@ -49,6 +49,7 @@ import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.TypeDescriptor.Types.TOP
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.exceptions.AvailErrorCode.*
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Interpreter.runOutermostFunction

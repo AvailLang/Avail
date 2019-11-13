@@ -31,10 +31,10 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_Bundle;
-import com.avail.descriptor.A_Definition;
+import com.avail.descriptor.bundles.A_Bundle;
+import com.avail.descriptor.methods.A_Definition;
 import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_Method;
+import com.avail.descriptor.methods.A_Method;
 import com.avail.descriptor.A_Number;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;

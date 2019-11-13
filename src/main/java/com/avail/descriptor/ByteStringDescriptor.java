@@ -35,6 +35,9 @@ package com.avail.descriptor;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.tuples.A_String;
+import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.serialization.SerializerOperation;
 
 import javax.annotation.Nullable;
@@ -114,7 +117,7 @@ extends StringDescriptor
 	private static final int maximumCopySize = 64;
 
 	@Override @AvailMethod
-	A_Tuple o_AppendCanDestroy (
+	protected A_Tuple o_AppendCanDestroy (
 		final AvailObject object,
 		final A_BasicObject newElement,
 		final boolean canDestroy)
@@ -154,7 +157,7 @@ extends StringDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_CompareFromToWithStartingAt (
+	protected boolean o_CompareFromToWithStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -169,7 +172,7 @@ extends StringDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_CompareFromToWithByteStringStartingAt (
+	protected boolean o_CompareFromToWithByteStringStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -216,13 +219,13 @@ extends StringDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsByteString(object);
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsByteString (
+	protected boolean o_EqualsByteString (
 		final AvailObject object,
 		final A_String aByteString)
 	{
@@ -239,13 +242,13 @@ extends StringDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsByteString (final AvailObject object)
+	protected boolean o_IsByteString (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MakeImmutable (final AvailObject object)
+	protected AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		if (isMutable())
 		{
@@ -255,7 +258,7 @@ extends StringDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MakeShared (final AvailObject object)
+	protected AvailObject o_MakeShared (final AvailObject object)
 	{
 		if (!isShared())
 		{
@@ -275,7 +278,7 @@ extends StringDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TupleAt (final AvailObject object, final int index)
+	protected AvailObject o_TupleAt (final AvailObject object, final int index)
 	{
 		// Answer the element at the given index in the tuple object.  It's a
 		// one-byte character.
@@ -285,7 +288,7 @@ extends StringDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Tuple o_TupleAtPuttingCanDestroy (
+	protected A_Tuple o_TupleAtPuttingCanDestroy (
 		final AvailObject object,
 		final int index,
 		final A_BasicObject newValueObject,
@@ -323,14 +326,14 @@ extends StringDescriptor
 	}
 
 	@Override
-	int o_TupleCodePointAt (final AvailObject object, final int index)
+	protected int o_TupleCodePointAt (final AvailObject object, final int index)
 	{
 		assert index >= 1 && index <= object.tupleSize();
 		return object.byteSlot(RAW_LONGS_, index);
 	}
 
 	@Override @AvailMethod
-	A_Tuple o_TupleReverse(final AvailObject object)
+	protected A_Tuple o_TupleReverse(final AvailObject object)
 	{
 		final int size = object.tupleSize();
 		if (size > maximumCopySize)
@@ -347,7 +350,7 @@ extends StringDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_TupleSize (final AvailObject object)
+	protected int o_TupleSize (final AvailObject object)
 	{
 		// Answer the number of elements in the object.
 		return (object.variableIntegerSlotsCount() << 3)
@@ -355,7 +358,7 @@ extends StringDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_BitsPerEntry (final AvailObject object)
+	protected int o_BitsPerEntry (final AvailObject object)
 	{
 		// Answer approximately how many bits per entry are taken up by this
 		// object.
@@ -371,7 +374,7 @@ extends StringDescriptor
 	 * </p>
 	 */
 	@Override @AvailMethod
-	int o_ComputeHashFromTo (
+	protected int o_ComputeHashFromTo (
 		final AvailObject object,
 		final int start,
 		final int end)
@@ -389,7 +392,7 @@ extends StringDescriptor
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (final AvailObject object)
 	{
 		return SerializerOperation.BYTE_STRING;
 	}
@@ -403,7 +406,7 @@ extends StringDescriptor
 	}
 
 	@Override
-	A_Tuple o_CopyTupleFromToCanDestroy (
+	protected A_Tuple o_CopyTupleFromToCanDestroy (
 		final AvailObject object,
 		final int start,
 		final int end,
@@ -426,7 +429,7 @@ extends StringDescriptor
 	}
 
 	@Override
-	A_Tuple o_ConcatenateWith (
+	protected A_Tuple o_ConcatenateWith (
 		final AvailObject object,
 		final A_Tuple otherTuple,
 		final boolean canDestroy)

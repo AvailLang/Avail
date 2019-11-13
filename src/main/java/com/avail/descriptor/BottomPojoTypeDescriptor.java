@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
+import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -55,13 +56,13 @@ public final class BottomPojoTypeDescriptor
 extends PojoTypeDescriptor
 {
 	@Override @AvailMethod
-	boolean o_EqualsPojoBottomType (final AvailObject object)
+	protected boolean o_EqualsPojoBottomType (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsPojoType (
+	protected boolean o_EqualsPojoType (
 		final AvailObject object,
 		final AvailObject aPojoType)
 	{
@@ -69,20 +70,20 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	protected int o_Hash (final AvailObject object)
 	{
 		return 0x496FFE01;
 	}
 
 	@Override @AvailMethod
-	boolean o_IsAbstract (final AvailObject object)
+	protected boolean o_IsAbstract (final AvailObject object)
 	{
 		// Pojo bottom has an instance: null.
 		return false;
 	}
 
 	@Override
-	boolean o_IsPojoArrayType (final AvailObject object)
+	protected boolean o_IsPojoArrayType (final AvailObject object)
 	{
 		// Pojo bottom is the most specific pojo type, so it is also a pojo
 		// array type.
@@ -90,7 +91,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsPojoFusedType (final AvailObject object)
+	protected boolean o_IsPojoFusedType (final AvailObject object)
 	{
 		// Pojo bottom is the intersection of any two unrelated pojo types, so
 		// it is a pojo fusion type.
@@ -98,7 +99,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSubtypeOf (
+	protected boolean o_IsSubtypeOf (
 		final AvailObject object,
 		final A_Type aPojoType)
 	{
@@ -106,7 +107,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSupertypeOfPojoType (
+	protected boolean o_IsSupertypeOfPojoType (
 		final AvailObject object,
 		final A_Type aPojoType)
 	{
@@ -120,13 +121,13 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_JavaClass (final AvailObject object)
+	protected AvailObject o_JavaClass (final AvailObject object)
 	{
 		return rawNullPojo();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MakeImmutable (final AvailObject object)
+	protected AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		if (isMutable())
 		{
@@ -137,7 +138,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MakeShared (final AvailObject object)
+	protected AvailObject o_MakeShared (final AvailObject object)
 	{
 		if (!isShared())
 		{
@@ -147,7 +148,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_PojoSelfType (final AvailObject object)
+	protected A_Type o_PojoSelfType (final AvailObject object)
 	{
 		// The pojo bottom type is its own self type.
 		return object;
@@ -162,7 +163,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeIntersectionOfPojoType (
+	protected A_Type o_TypeIntersectionOfPojoType (
 		final AvailObject object,
 		final A_Type aPojoType)
 	{
@@ -170,7 +171,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override
-	A_Type o_TypeIntersectionOfPojoFusedType (
+	protected A_Type o_TypeIntersectionOfPojoFusedType (
 		final AvailObject object,
 		final A_Type aFusedPojoType)
 	{
@@ -178,7 +179,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override
-	A_Type o_TypeIntersectionOfPojoUnfusedType (
+	protected A_Type o_TypeIntersectionOfPojoUnfusedType (
 		final AvailObject object,
 		final A_Type anUnfusedPojoType)
 	{
@@ -186,7 +187,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeUnionOfPojoType (
+	protected A_Type o_TypeUnionOfPojoType (
 		final AvailObject object,
 		final A_Type aPojoType)
 	{
@@ -194,7 +195,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override
-	A_Type o_TypeUnionOfPojoFusedType (
+	protected A_Type o_TypeUnionOfPojoFusedType (
 		final AvailObject object,
 		final A_Type aFusedPojoType)
 	{
@@ -202,7 +203,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override
-	A_Type o_TypeUnionOfPojoUnfusedType (
+	protected A_Type o_TypeUnionOfPojoUnfusedType (
 		final AvailObject object,
 		final A_Type anUnfusedPojoType)
 	{
@@ -210,20 +211,20 @@ extends PojoTypeDescriptor
 	}
 
 	@Override
-	A_Map o_TypeVariables (final AvailObject object)
+	protected A_Map o_TypeVariables (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	SerializerOperation o_SerializerOperation (
+	protected SerializerOperation o_SerializerOperation (
 		final AvailObject object)
 	{
 		return SerializerOperation.BOTTOM_POJO_TYPE;
 	}
 
 	@Override
-	void printObjectOnAvoidingIndent (
+	protected void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
 		final IdentityHashMap<A_BasicObject, Void> recursionMap,
@@ -233,7 +234,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override
-	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");

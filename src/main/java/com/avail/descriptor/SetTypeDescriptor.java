@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
+import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -117,25 +118,25 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_ContentType (final AvailObject object)
+	protected A_Type o_ContentType (final AvailObject object)
 	{
 		return object.slot(CONTENT_TYPE);
 	}
 
 	@Override @AvailMethod
-	A_Type o_SizeRange (final AvailObject object)
+	protected A_Type o_SizeRange (final AvailObject object)
 	{
 		return object.slot(SIZE_RANGE);
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsSetType(object);
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsSetType (
+	protected boolean o_EqualsSetType (
 		final AvailObject object,
 		final A_Type aSetType)
 	{
@@ -149,7 +150,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	protected int o_Hash (final AvailObject object)
 	{
 		// Answer a 32-bit integer that is always the same for equal objects,
 		// but statistically different for different objects.
@@ -157,7 +158,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSubtypeOf (
+	protected boolean o_IsSubtypeOf (
 		final AvailObject object,
 		final A_Type aType)
 	{
@@ -167,7 +168,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSupertypeOfSetType (
+	protected boolean o_IsSupertypeOfSetType (
 		final AvailObject object,
 		final AvailObject aSetType)
 	{
@@ -181,7 +182,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	boolean o_IsVacuousType (final AvailObject object)
+	protected boolean o_IsVacuousType (final AvailObject object)
 	{
 		return
 			!object.slot(SIZE_RANGE).lowerBound().equalsInt(0)
@@ -189,7 +190,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeIntersection (
+	protected A_Type o_TypeIntersection (
 		final AvailObject object,
 		final A_Type another)
 	{
@@ -207,7 +208,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeIntersectionOfSetType (
+	protected A_Type o_TypeIntersectionOfSetType (
 		final AvailObject object,
 		final A_Type aSetType)
 	{
@@ -217,7 +218,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeUnion (
+	protected A_Type o_TypeUnion (
 		final AvailObject object,
 		final A_Type another)
 	{
@@ -237,7 +238,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeUnionOfSetType (
+	protected A_Type o_TypeUnionOfSetType (
 		final AvailObject object,
 		final A_Type aSetType)
 	{
@@ -247,7 +248,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSetType (final AvailObject object)
+	protected boolean o_IsSetType (final AvailObject object)
 	{
 		return true;
 	}
@@ -270,7 +271,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -283,7 +284,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");

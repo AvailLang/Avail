@@ -54,6 +54,9 @@ import com.avail.descriptor.MapDescriptor.emptyMap
 import com.avail.descriptor.StringDescriptor.formatString
 import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TypeDescriptor.Types
+import com.avail.descriptor.objects.A_BasicObject
+import com.avail.descriptor.parsing.A_Phrase
+import com.avail.descriptor.tuples.A_String
 import com.avail.exceptions.AvailAssertionFailedException
 import com.avail.exceptions.AvailEmergencyExitException
 import com.avail.interpreter.AvailLoader

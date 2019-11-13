@@ -34,7 +34,7 @@ package com.avail.interpreter.primitive.bootstrap.syntax
 
 import com.avail.compiler.AvailRejectedParseException
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
-import com.avail.descriptor.A_Phrase
+import com.avail.descriptor.parsing.A_Phrase
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind
 import com.avail.descriptor.DeclarationPhraseDescriptor.newPrimitiveFailureVariable

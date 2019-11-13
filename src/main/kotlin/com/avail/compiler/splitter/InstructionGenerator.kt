@@ -44,7 +44,7 @@ import com.avail.compiler.ParsingOperation.PARSE_PART
 import com.avail.compiler.ParsingOperation.PARSE_PART_CASE_INSENSITIVELY
 import com.avail.compiler.ParsingOperation.PERMUTE_LIST
 import com.avail.compiler.ParsingOperation.WRAP_IN_LIST
-import com.avail.descriptor.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.TupleDescriptor.tupleFromIntegerList
 import com.avail.utility.Pair
 import java.util.*

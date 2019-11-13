@@ -33,7 +33,7 @@
 package com.avail.interpreter.primitive.bootstrap.syntax
 
 import com.avail.descriptor.A_Map
-import com.avail.descriptor.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AtomDescriptor.SpecialAtom.*
 import com.avail.descriptor.FunctionTypeDescriptor.functionType

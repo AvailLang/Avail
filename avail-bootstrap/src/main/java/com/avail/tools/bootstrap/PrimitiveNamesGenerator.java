@@ -32,7 +32,7 @@
 
 package com.avail.tools.bootstrap;
 
-import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.descriptor.A_Type;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;

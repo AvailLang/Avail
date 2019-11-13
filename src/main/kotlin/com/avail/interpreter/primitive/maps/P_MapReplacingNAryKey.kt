@@ -40,6 +40,8 @@ import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf
 import com.avail.descriptor.TypeDescriptor.Types.ANY
+import com.avail.descriptor.objects.A_BasicObject
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.exceptions.AvailErrorCode.*
 import com.avail.exceptions.AvailException
 import com.avail.interpreter.Interpreter

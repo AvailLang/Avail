@@ -35,6 +35,11 @@ package com.avail.descriptor;
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.parsing.A_Phrase;
+import com.avail.descriptor.parsing.BlockPhraseDescriptor;
+import com.avail.descriptor.parsing.PhraseDescriptor;
+import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 

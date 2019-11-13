@@ -34,6 +34,8 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
+import com.avail.descriptor.atoms.A_Atom;
+import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.exceptions.AvailException;
 import com.avail.exceptions.VariableGetException;
 import com.avail.exceptions.VariableSetException;
@@ -150,7 +152,7 @@ extends VariableDescriptor
 	}
 
 	@Override
-	boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
+	protected boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
 	{
 		return super.allowsImmutableToMutableReferenceInField(e)
 			|| e == VALUE
@@ -194,13 +196,13 @@ extends VariableDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	protected int o_Hash (final AvailObject object)
 	{
 		return object.slot(HASH_ALWAYS_SET);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Value (final AvailObject object)
+	protected AvailObject o_Value (final AvailObject object)
 	{
 		recordReadFromSharedVariable(object);
 		synchronized (object)
@@ -210,7 +212,7 @@ extends VariableDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_GetValue (final AvailObject object)
+	protected AvailObject o_GetValue (final AvailObject object)
 		throws VariableGetException
 	{
 		recordReadFromSharedVariable(object);
@@ -221,7 +223,7 @@ extends VariableDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_HasValue (final AvailObject object)
+	protected boolean o_HasValue (final AvailObject object)
 	{
 		recordReadFromSharedVariable(object);
 		synchronized (object)
@@ -231,7 +233,7 @@ extends VariableDescriptor
 	}
 
 	@Override @AvailMethod
-	void o_SetValue (final AvailObject object, final A_BasicObject newValue)
+	protected void o_SetValue (final AvailObject object, final A_BasicObject newValue)
 		throws VariableSetException
 	{
 		synchronized (object)
@@ -248,7 +250,7 @@ extends VariableDescriptor
 	}
 
 	@Override @AvailMethod
-	void o_SetValueNoCheck (
+	protected void o_SetValueNoCheck (
 		final AvailObject object,
 		final A_BasicObject newValue)
 	{
@@ -266,7 +268,7 @@ extends VariableDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_GetAndSetValue (
+	protected AvailObject o_GetAndSetValue (
 			final AvailObject object,
 			final A_BasicObject newValue)
 		throws VariableGetException, VariableSetException
@@ -287,7 +289,7 @@ extends VariableDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_CompareAndSwapValues (
+	protected boolean o_CompareAndSwapValues (
 		final AvailObject object,
 		final A_BasicObject reference,
 		final A_BasicObject newValue)
@@ -310,7 +312,7 @@ extends VariableDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Number o_FetchAndAddValue (
+	protected A_Number o_FetchAndAddValue (
 		final AvailObject object,
 		final A_Number addend)
 	throws VariableGetException, VariableSetException
@@ -331,7 +333,7 @@ extends VariableDescriptor
 	}
 
 	@Override @AvailMethod
-	void o_AtomicAddToMap (
+	protected void o_AtomicAddToMap (
 		final AvailObject object,
 		final A_BasicObject key,
 		final A_BasicObject value)
@@ -347,7 +349,7 @@ extends VariableDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_VariableMapHasKey (
+	protected boolean o_VariableMapHasKey (
 		final AvailObject object,
 		final A_BasicObject key)
 	throws VariableGetException
@@ -359,7 +361,7 @@ extends VariableDescriptor
 	}
 
 	@Override @AvailMethod
-	void o_ClearValue (final AvailObject object)
+	protected void o_ClearValue (final AvailObject object)
 	{
 		synchronized (object)
 		{
@@ -373,7 +375,7 @@ extends VariableDescriptor
 	 * object not changing.
 	 */
 	@Override @AvailMethod
-	void o_AddDependentChunk (
+	protected void o_AddDependentChunk (
 		final AvailObject object,
 		final L2Chunk chunk)
 	{
@@ -402,7 +404,7 @@ extends VariableDescriptor
 	}
 
 	@Override @AvailMethod
-	void o_RemoveDependentChunk (
+	protected void o_RemoveDependentChunk (
 		final AvailObject object,
 		final L2Chunk chunk)
 	{
@@ -449,7 +451,7 @@ extends VariableDescriptor
 		StatisticReport.L2_OPTIMIZATION_TIME);
 
 	@Override @AvailMethod
-	void o_AddWriteReactor (
+	protected void o_AddWriteReactor (
 		final AvailObject object,
 		final A_Atom key,
 		final VariableAccessReactor reactor)
@@ -462,7 +464,7 @@ extends VariableDescriptor
 	}
 
 	@Override @AvailMethod
-	void o_RemoveWriteReactor (final AvailObject object, final A_Atom key)
+	protected void o_RemoveWriteReactor (final AvailObject object, final A_Atom key)
 		throws AvailException
 	{
 		recordReadFromSharedVariable(object);
@@ -473,7 +475,7 @@ extends VariableDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Set o_ValidWriteReactorFunctions (final AvailObject object)
+	protected A_Set o_ValidWriteReactorFunctions (final AvailObject object)
 	{
 		synchronized (object)
 		{
@@ -482,21 +484,21 @@ extends VariableDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MakeImmutable (final AvailObject object)
+	protected AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		// Do nothing; just answer the (shared) receiver.
 		return object;
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MakeShared (final AvailObject object)
+	protected AvailObject o_MakeShared (final AvailObject object)
 	{
 		// Do nothing; just answer the (shared) receiver.
 		return object;
 	}
 
 	@Override
-	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -509,7 +511,7 @@ extends VariableDescriptor
 	}
 
 	@Override
-	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");

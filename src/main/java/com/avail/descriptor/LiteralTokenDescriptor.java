@@ -36,6 +36,8 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.HideFieldJustForPrinting;
 import com.avail.compiler.scanning.LexingState;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.tuples.A_String;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -137,7 +139,7 @@ extends TokenDescriptor
 	}
 
 	@Override
-	boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
+	protected boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
 	{
 		return e == NEXT_LEXING_STATE_POJO
 			|| super.allowsImmutableToMutableReferenceInField(e);
@@ -171,19 +173,19 @@ extends TokenDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Literal (final AvailObject object)
+	protected AvailObject o_Literal (final AvailObject object)
 	{
 		return object.slot(LITERAL);
 	}
 
 	@Override @AvailMethod
-	A_Type o_Kind (final AvailObject object)
+	protected A_Type o_Kind (final AvailObject object)
 	{
 		return literalTokenType(instanceType(object));
 	}
 
 	@Override @AvailMethod
-	boolean o_IsInstanceOfKind (
+	protected boolean o_IsInstanceOfKind (
 		final AvailObject object,
 		final A_Type aTypeObject)
 	{
@@ -193,7 +195,7 @@ extends TokenDescriptor
 	}
 
 	@Override
-	boolean o_IsLiteralToken (final AvailObject object)
+	protected boolean o_IsLiteralToken (final AvailObject object)
 	{
 		return true;
 	}
@@ -205,7 +207,7 @@ extends TokenDescriptor
 	}
 
 	@Override
-	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -225,7 +227,7 @@ extends TokenDescriptor
 	}
 
 	@Override
-	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");

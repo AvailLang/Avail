@@ -32,6 +32,9 @@
 
 package com.avail.descriptor;
 
+import com.avail.descriptor.atoms.A_Atom;
+import com.avail.descriptor.objects.A_BasicObject;
+
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;

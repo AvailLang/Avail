@@ -34,6 +34,9 @@ package com.avail.serialization
 
 import com.avail.AvailRuntime
 import com.avail.descriptor.*
+import com.avail.descriptor.atoms.A_Atom
+import com.avail.descriptor.objects.A_BasicObject
+import com.avail.descriptor.tuples.A_String
 import com.avail.serialization.SerializerOperation.*
 import java.io.IOException
 import java.io.OutputStream

@@ -37,6 +37,8 @@ import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.tuples.A_String;
 import com.avail.interpreter.AvailLoader;
 import com.avail.io.TextInterface;
 import com.avail.utility.evaluation.Continuation1;

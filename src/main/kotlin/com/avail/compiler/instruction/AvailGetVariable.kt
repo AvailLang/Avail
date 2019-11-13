@@ -34,7 +34,7 @@ package com.avail.compiler.instruction
 
 
 import com.avail.descriptor.A_Token
-import com.avail.descriptor.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple
 
 /**
  * Push the value of a variable of some sort.

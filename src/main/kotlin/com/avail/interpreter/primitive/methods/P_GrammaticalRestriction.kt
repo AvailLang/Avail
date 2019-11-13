@@ -32,7 +32,7 @@
 package com.avail.interpreter.primitive.methods
 
 import com.avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
-import com.avail.descriptor.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionTypeDescriptor.functionType

@@ -32,7 +32,7 @@
 
 package com.avail.interpreter.primitive.files
 
-import com.avail.descriptor.A_String
+import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.StringDescriptor.stringFrom

@@ -34,6 +34,9 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.tuples.A_String;
+import com.avail.descriptor.tuples.A_Tuple;
 
 import java.nio.ByteBuffer;
 
@@ -125,7 +128,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Tuple o_AppendCanDestroy (
+	protected A_Tuple o_AppendCanDestroy (
 		final AvailObject object,
 		final A_BasicObject newElement,
 		final boolean canDestroy)
@@ -159,13 +162,13 @@ extends TupleDescriptor
 	 * representation.</p>
 	 */
 	@Override @AvailMethod
-	int o_BitsPerEntry (final AvailObject object)
+	protected int o_BitsPerEntry (final AvailObject object)
 	{
 		return 63;
 	}
 
 	@Override @AvailMethod
-	boolean o_CompareFromToWithByteStringStartingAt (
+	protected boolean o_CompareFromToWithByteStringStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -177,7 +180,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_CompareFromToWithByteTupleStartingAt (
+	protected boolean o_CompareFromToWithByteTupleStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -189,7 +192,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_CompareFromToWithNybbleTupleStartingAt (
+	protected boolean o_CompareFromToWithNybbleTupleStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -201,7 +204,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_CompareFromToWithObjectTupleStartingAt (
+	protected boolean o_CompareFromToWithObjectTupleStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -220,7 +223,7 @@ extends TupleDescriptor
 	 * </p>
 	 */
 	@Override @AvailMethod
-	boolean o_CompareFromToWithStartingAt (
+	protected boolean o_CompareFromToWithStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -263,7 +266,7 @@ extends TupleDescriptor
 	 * Hash part of the tuple object.
 	 */
 	@Override @AvailMethod
-	int o_ComputeHashFromTo (
+	protected int o_ComputeHashFromTo (
 		final AvailObject object,
 		final int startIndex,
 		final int endIndex)
@@ -279,7 +282,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Tuple o_ConcatenateWith (
+	protected A_Tuple o_ConcatenateWith (
 		final AvailObject object,
 		final A_Tuple otherTuple,
 		final boolean canDestroy)
@@ -315,7 +318,7 @@ extends TupleDescriptor
 	 * basis decide what the cutoff size is.
 	 */
 	@Override @AvailMethod
-	A_Tuple o_CopyTupleFromToCanDestroy (
+	protected A_Tuple o_CopyTupleFromToCanDestroy (
 		final AvailObject object,
 		final int start,
 		final int end,
@@ -349,13 +352,13 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsAnyTuple(object);
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsAnyTuple (
+	protected boolean o_EqualsAnyTuple (
 		final AvailObject object,
 		final A_Tuple anotherTuple)
 	{
@@ -381,7 +384,7 @@ extends TupleDescriptor
 	}
 
 	@Override
-	void o_TransferIntoByteBuffer (
+	protected void o_TransferIntoByteBuffer (
 		final AvailObject object,
 		final int startIndex,
 		final int endIndex,
@@ -402,7 +405,7 @@ extends TupleDescriptor
 	 * Answer the element at the given index in the tuple object.
 	 */
 	@Override @AvailMethod
-	AvailObject o_TupleAt (final AvailObject object, final int index)
+	protected AvailObject o_TupleAt (final AvailObject object, final int index)
 	{
 		assert 1 <= index && index <= object.slot(SIZE);
 		final int adjustedIndex = index + object.slot(START_INDEX) - 1;
@@ -423,7 +426,7 @@ extends TupleDescriptor
 	 * invoked instead to deal with a small flat tuple.
 	 */
 	@Override @AvailMethod
-	A_Tuple o_TupleAtPuttingCanDestroy (
+	protected A_Tuple o_TupleAtPuttingCanDestroy (
 		final AvailObject object,
 		final int index,
 		final A_BasicObject newValueObject,
@@ -480,7 +483,7 @@ extends TupleDescriptor
 	}
 
 	@Override
-	boolean o_TupleElementsInRangeAreInstancesOf (
+	protected boolean o_TupleElementsInRangeAreInstancesOf (
 		final AvailObject object,
 		final int startIndex,
 		final int endIndex,
@@ -497,7 +500,7 @@ extends TupleDescriptor
 	 * Answer the integer element at the given index in the tuple object.
 	 */
 	@Override @AvailMethod
-	int o_TupleIntAt (final AvailObject object, final int index)
+	protected int o_TupleIntAt (final AvailObject object, final int index)
 	{
 		assert 1 <= index && index <= object.slot(SIZE);
 		final int adjustedIndex = index + object.slot(START_INDEX) - 1;
@@ -505,7 +508,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Tuple o_TupleReverse(final AvailObject object)
+	protected A_Tuple o_TupleReverse(final AvailObject object)
 	{
 		//Because SubrangeTupleDescriptor is also a wrapper, presume
 		//that decision was already made that tuple size was too big to make
@@ -522,7 +525,7 @@ extends TupleDescriptor
 	 * Answer the number of elements in the tuple as an int.
 	 */
 	@Override @AvailMethod
-	int o_TupleSize (final AvailObject object)
+	protected int o_TupleSize (final AvailObject object)
 	{
 		return object.slot(SIZE);
 	}

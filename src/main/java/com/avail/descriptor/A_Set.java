@@ -32,6 +32,8 @@
 
 package com.avail.descriptor;
 
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.util.Iterator;

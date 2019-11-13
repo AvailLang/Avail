@@ -42,7 +42,7 @@ import com.avail.descriptor.FunctionDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.*
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.PhraseDescriptor
+import com.avail.descriptor.parsing.PhraseDescriptor
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.StringDescriptor.formatString

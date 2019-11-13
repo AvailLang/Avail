@@ -36,7 +36,7 @@ import com.avail.descriptor.A_Type
 import com.avail.descriptor.ExpressionAsStatementPhraseDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.PhraseDescriptor
+import com.avail.descriptor.parsing.PhraseDescriptor
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.EXPRESSION_AS_STATEMENT_PHRASE
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
 import com.avail.interpreter.Interpreter

@@ -33,7 +33,7 @@
 package com.avail.interpreter.primitive.tuples
 
 import com.avail.descriptor.A_RawFunction
-import com.avail.descriptor.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.BottomTypeDescriptor.bottom
 import com.avail.descriptor.FunctionTypeDescriptor.functionType

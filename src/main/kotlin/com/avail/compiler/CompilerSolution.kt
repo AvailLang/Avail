@@ -32,8 +32,8 @@
 
 package com.avail.compiler
 
-import com.avail.descriptor.A_Phrase
-import com.avail.descriptor.PhraseDescriptor
+import com.avail.descriptor.parsing.A_Phrase
+import com.avail.descriptor.parsing.PhraseDescriptor
 
 /**
  * An `CompilerSolution` is a record of having parsed some

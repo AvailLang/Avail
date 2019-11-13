@@ -33,7 +33,7 @@
 package com.avail.serialization
 
 import com.avail.AvailRuntime
-import com.avail.descriptor.A_Atom
+import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.AvailObject
 import com.avail.descriptor.NilDescriptor.nil
 import java.io.InputStream

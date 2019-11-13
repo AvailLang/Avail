@@ -38,6 +38,7 @@ import com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.TypeDescriptor.Types.TOP
 import com.avail.descriptor.VariableTypeDescriptor.variableTypeFor
+import com.avail.descriptor.parsing.A_Phrase
 import com.avail.interpreter.Primitive.Companion.holdersByClassName
 import com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail
 import com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail

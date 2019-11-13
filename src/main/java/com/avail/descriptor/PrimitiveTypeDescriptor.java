@@ -34,6 +34,8 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.tuples.A_String;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -153,13 +155,13 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsPrimitiveType(object);
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsPrimitiveType (
+	protected boolean o_EqualsPrimitiveType (
 		final AvailObject object,
 		final A_Type aPrimitiveType)
 	{
@@ -168,19 +170,19 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	protected int o_Hash (final AvailObject object)
 	{
 		return object.slot(HASH);
 	}
 
 	@Override @AvailMethod
-	A_BasicObject o_Parent (final AvailObject object)
+	protected A_BasicObject o_Parent (final AvailObject object)
 	{
 		return object.slot(PARENT);
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
+	protected boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
 	{
 		// Check if object (a type) is a subtype of aType (should also be a
 		// type).
@@ -188,7 +190,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSupertypeOfFiberType (
+	protected boolean o_IsSupertypeOfFiberType (
 		final AvailObject object,
 		final A_Type aFiberType)
 	{
@@ -198,7 +200,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSupertypeOfFunctionType (
+	protected boolean o_IsSupertypeOfFunctionType (
 		final AvailObject object,
 		final A_Type aFunctionType)
 	{
@@ -208,7 +210,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSupertypeOfListNodeType (
+	protected boolean o_IsSupertypeOfListNodeType (
 		final AvailObject object,
 		final A_Type aListNodeType)
 	{
@@ -216,7 +218,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSupertypeOfVariableType (
+	protected boolean o_IsSupertypeOfVariableType (
 		final AvailObject object,
 		final A_Type aVariableType)
 	{
@@ -226,7 +228,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSupertypeOfContinuationType (
+	protected boolean o_IsSupertypeOfContinuationType (
 		final AvailObject object,
 		final A_Type aContinuationType)
 	{
@@ -236,7 +238,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSupertypeOfCompiledCodeType (
+	protected boolean o_IsSupertypeOfCompiledCodeType (
 		final AvailObject object,
 		final A_Type aCompiledCodeType)
 	{
@@ -246,7 +248,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSupertypeOfIntegerRangeType (
+	protected boolean o_IsSupertypeOfIntegerRangeType (
 		final AvailObject object,
 		final A_Type anIntegerRangeType)
 	{
@@ -256,7 +258,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSupertypeOfTokenType (
+	protected boolean o_IsSupertypeOfTokenType (
 		final AvailObject object,
 		final A_Type aTokenType)
 	{
@@ -266,7 +268,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSupertypeOfLiteralTokenType (
+	protected boolean o_IsSupertypeOfLiteralTokenType (
 		final AvailObject object,
 		final A_Type aLiteralTokenType)
 	{
@@ -276,7 +278,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSupertypeOfMapType (
+	protected boolean o_IsSupertypeOfMapType (
 		final AvailObject object,
 		final AvailObject aMapType)
 	{
@@ -286,7 +288,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSupertypeOfObjectType (
+	protected boolean o_IsSupertypeOfObjectType (
 		final AvailObject object,
 		final AvailObject anObjectType)
 	{
@@ -296,7 +298,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSupertypeOfPhraseType (
+	protected boolean o_IsSupertypeOfPhraseType (
 		final AvailObject object,
 		final A_Type aPhraseType)
 	{
@@ -304,7 +306,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	boolean o_IsSupertypeOfPojoBottomType (
+	protected boolean o_IsSupertypeOfPojoBottomType (
 		final AvailObject object,
 		final A_Type aPojoType)
 	{
@@ -312,7 +314,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSupertypeOfPojoType (
+	protected boolean o_IsSupertypeOfPojoType (
 		final AvailObject object,
 		final A_Type aPojoType)
 	{
@@ -320,7 +322,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSupertypeOfPrimitiveTypeEnum (
+	protected boolean o_IsSupertypeOfPrimitiveTypeEnum (
 		final AvailObject object,
 		final Types primitiveTypeEnum)
 	{
@@ -329,7 +331,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSupertypeOfSetType (
+	protected boolean o_IsSupertypeOfSetType (
 		final AvailObject object,
 		final AvailObject aSetType)
 	{
@@ -339,7 +341,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSupertypeOfTupleType (
+	protected boolean o_IsSupertypeOfTupleType (
 		final AvailObject object,
 		final AvailObject aTupleType)
 	{
@@ -349,7 +351,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSupertypeOfEnumerationType (
+	protected boolean o_IsSupertypeOfEnumerationType (
 		final AvailObject object,
 		final A_BasicObject anEnumerationType)
 	{
@@ -357,7 +359,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	final AvailObject o_MakeImmutable (final AvailObject object)
+	protected final  AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		if (isMutable())
 		{
@@ -422,7 +424,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeIntersection (
+	protected A_Type o_TypeIntersection (
 		final AvailObject object,
 		final A_Type another)
 	{
@@ -430,7 +432,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeIntersectionOfListNodeType (
+	protected A_Type o_TypeIntersectionOfListNodeType (
 		final AvailObject object,
 		final A_Type aListNodeType)
 	{
@@ -442,7 +444,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeIntersectionOfPhraseType (
+	protected A_Type o_TypeIntersectionOfPhraseType (
 		final AvailObject object,
 		final A_Type aPhraseType)
 	{
@@ -454,7 +456,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeIntersectionOfPrimitiveTypeEnum (
+	protected A_Type o_TypeIntersectionOfPrimitiveTypeEnum (
 		final AvailObject object,
 		final Types primitiveTypeEnum)
 	{
@@ -462,7 +464,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeUnion (
+	protected A_Type o_TypeUnion (
 		final AvailObject object,
 		final A_Type another)
 	{
@@ -470,7 +472,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeUnionOfPrimitiveTypeEnum (
+	protected A_Type o_TypeUnionOfPrimitiveTypeEnum (
 		final AvailObject object,
 		final Types primitiveTypeEnum)
 	{
@@ -478,7 +480,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");

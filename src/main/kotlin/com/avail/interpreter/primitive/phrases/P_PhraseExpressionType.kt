@@ -37,7 +37,7 @@ import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceMetaDescriptor.instanceMeta
 import com.avail.descriptor.InstanceMetaDescriptor.topMeta
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.PhraseDescriptor
+import com.avail.descriptor.parsing.PhraseDescriptor
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import com.avail.descriptor.TypeDescriptor
 import com.avail.interpreter.Interpreter

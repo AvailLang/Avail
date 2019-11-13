@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
+import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -134,7 +135,7 @@ extends PhraseTypeDescriptor
 	}
 
 	@Override
-	boolean allowsImmutableToMutableReferenceInField (
+	protected boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
 		// Only the hash part may change (be set lazily), not other bit fields.
@@ -148,7 +149,7 @@ extends PhraseTypeDescriptor
 	 * and same tuple type of subexpressions.</p>
 	 */
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		assert object.phraseKindIsUnder(LIST_PHRASE);
 		return another.equalsListNodeType(object);
@@ -163,7 +164,7 @@ extends PhraseTypeDescriptor
 	 * is.</p>
 	 */
 	@Override @AvailMethod
-	boolean o_EqualsPhraseType (
+	protected boolean o_EqualsPhraseType (
 		final AvailObject object,
 		final A_Type aPhraseType)
 	{
@@ -172,7 +173,7 @@ extends PhraseTypeDescriptor
  	}
 
 	@Override
-	boolean o_EqualsListNodeType (
+	protected boolean o_EqualsListNodeType (
 		final AvailObject object,
 		final A_Type aListNodeType)
 	{
@@ -185,7 +186,7 @@ extends PhraseTypeDescriptor
 	}
 
 	@Override
-	int o_Hash (final AvailObject object)
+	protected int o_Hash (final AvailObject object)
 	{
 		int hash = object.slot(HASH_OR_ZERO);
 		if (hash == 0)
@@ -202,13 +203,13 @@ extends PhraseTypeDescriptor
 	}
 
 	@Override
-	A_Type o_SubexpressionsTupleType (final AvailObject object)
+	protected A_Type o_SubexpressionsTupleType (final AvailObject object)
 	{
 		return object.slot(SUBEXPRESSIONS_TUPLE_TYPE);
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
+	protected boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
 	{
 		return aType.isSupertypeOfListNodeType(object);
 	}
@@ -227,7 +228,7 @@ extends PhraseTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSupertypeOfPhraseType (
+	protected boolean o_IsSupertypeOfPhraseType (
 		final AvailObject object,
 		final A_Type aPhraseType)
 	{
@@ -242,7 +243,7 @@ extends PhraseTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeIntersection (
+	protected A_Type o_TypeIntersection (
 		final AvailObject object,
 		final A_Type another)
 	{
@@ -250,7 +251,7 @@ extends PhraseTypeDescriptor
 	}
 
 	@Override
-	A_Type o_TypeIntersectionOfListNodeType (
+	protected A_Type o_TypeIntersectionOfListNodeType (
 		final AvailObject object,
 		final A_Type aListNodeType)
 	{
@@ -272,7 +273,7 @@ extends PhraseTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeIntersectionOfPhraseType (
+	protected A_Type o_TypeIntersectionOfPhraseType (
 		final AvailObject object,
 		final A_Type aPhraseType)
 	{
@@ -293,13 +294,13 @@ extends PhraseTypeDescriptor
 	}
 
 	@Override
-	A_Type o_TypeUnion (final AvailObject object, final A_Type another)
+	protected A_Type o_TypeUnion (final AvailObject object, final A_Type another)
 	{
 		return another.typeUnionOfListNodeType(object);
 	}
 
 	@Override
-	A_Type o_TypeUnionOfListNodeType (
+	protected A_Type o_TypeUnionOfListNodeType (
 		final AvailObject object,
 		final A_Type aListNodeType)
 	{
@@ -318,7 +319,7 @@ extends PhraseTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeUnionOfPhraseType (
+	protected A_Type o_TypeUnionOfPhraseType (
 		final AvailObject object,
 		final A_Type aPhraseType)
 	{
@@ -334,7 +335,7 @@ extends PhraseTypeDescriptor
 	}
 
 	@Override
-	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");

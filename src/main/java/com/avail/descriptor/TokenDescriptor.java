@@ -38,6 +38,10 @@ import com.avail.annotations.EnumField.Converter;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.HideFieldJustForPrinting;
 import com.avail.compiler.scanning.LexingState;
+import com.avail.descriptor.atoms.A_Atom;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.tuples.A_String;
+import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -226,7 +230,7 @@ extends Descriptor
 	}
 
 	@Override
-	boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
+	protected boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
 	{
 		return e == NEXT_LEXING_STATE_POJO;
 	}
@@ -262,19 +266,19 @@ extends Descriptor
 	}
 
 	@Override
-	void o_ClearLexingState (final AvailObject object)
+	protected void o_ClearLexingState (final AvailObject object)
 	{
 		object.setSlot(NEXT_LEXING_STATE_POJO, nil);
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsToken(object);
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsToken (final AvailObject object, final A_Token aToken)
+	protected boolean o_EqualsToken (final AvailObject object, final A_Token aToken)
 	{
 		return object.string().equals(aToken.string())
 			&& object.start() == aToken.start()
@@ -285,7 +289,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	protected int o_Hash (final AvailObject object)
 	{
 		return
 			(object.string().hash() * multiplier
@@ -295,13 +299,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_Kind (final AvailObject object)
+	protected A_Type o_Kind (final AvailObject object)
 	{
 		return tokenType(object.tokenType());
 	}
 
 	@Override @AvailMethod
-	boolean o_IsInstanceOfKind (
+	protected boolean o_IsInstanceOfKind (
 		final AvailObject object,
 		final A_Type aTypeObject)
 	{
@@ -311,13 +315,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	int o_LineNumber (final AvailObject object)
+	protected int o_LineNumber (final AvailObject object)
 	{
 		return object.slot(LINE_NUMBER);
 	}
 
 	@Override @AvailMethod
-	A_String o_LowerCaseString (final AvailObject object)
+	protected A_String o_LowerCaseString (final AvailObject object)
 	{
 		return lowerCaseStringFrom(object);
 	}
@@ -329,7 +333,7 @@ extends Descriptor
 	}
 
 	@Override
-	void o_SetNextLexingStateFromPrior (
+	protected void o_SetNextLexingStateFromPrior (
 		final AvailObject object,
 		final LexingState priorLexingState)
 	{
@@ -364,13 +368,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	int o_Start (final AvailObject object)
+	protected int o_Start (final AvailObject object)
 	{
 		return object.slot(START);
 	}
 
 	@Override @AvailMethod
-	A_String o_String (final AvailObject object)
+	protected A_String o_String (final AvailObject object)
 	{
 		return object.slot(STRING);
 	}
@@ -382,7 +386,7 @@ extends Descriptor
 	}
 
 	@Override
-	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");

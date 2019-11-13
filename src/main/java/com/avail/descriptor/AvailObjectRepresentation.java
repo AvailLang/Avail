@@ -33,6 +33,8 @@
 package com.avail.descriptor;
 
 import com.avail.descriptor.CompiledCodeDescriptor.L1InstructionDecoder;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.utility.visitor.MarkUnreachableSubobjectVisitor;
 import sun.misc.Unsafe;
 
@@ -49,7 +51,7 @@ import static com.avail.descriptor.NilDescriptor.nil;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-abstract class AvailObjectRepresentation
+public abstract class AvailObjectRepresentation
 extends AbstractAvailObject
 implements A_BasicObject
 {
@@ -1260,7 +1262,7 @@ implements A_BasicObject
 	 * @param field An enumeration value that defines the field ordering.
 	 * @param anAvailObject The object to store at the specified slot.
 	 */
-	final void setVolatileSlot (
+	public final void setVolatileSlot (
 		final ObjectSlotsEnum field,
 		final A_BasicObject anAvailObject)
 	{
@@ -1286,7 +1288,7 @@ implements A_BasicObject
 	 * @param field An enumeration value that defines the field ordering.
 	 * @param anAvailObject The object to store at the specified slot.
 	 */
-	final void setMutableSlot (
+	public final void setMutableSlot (
 		final ObjectSlotsEnum field,
 		final A_BasicObject anAvailObject)
 	{
@@ -1338,7 +1340,7 @@ implements A_BasicObject
 	 * array by replacing it.
  	 */
 	@Override
-	final void truncateWithFillerForNewIntegerSlotsCount (
+	protected final  void truncateWithFillerForNewIntegerSlotsCount (
 		final int newIntegerSlotsCount)
 	{
 		final int oldIntegerSlotsCount = integerSlotsCount();
@@ -1358,7 +1360,7 @@ implements A_BasicObject
  	 * require at least one slot for the target pointer.
  	 */
 	@Override
-	final void truncateWithFillerForNewObjectSlotsCount (
+	protected final  void truncateWithFillerForNewObjectSlotsCount (
 		final int newObjectSlotsCount)
 	{
 		assert newObjectSlotsCount > 0;
@@ -1405,7 +1407,7 @@ implements A_BasicObject
 	 *            How many long fields to add (or if negative, to subtract).
 	 * @return A new object.
 	 */
-	static AvailObject newLike (
+	public static AvailObject newLike (
 		final AbstractDescriptor descriptor,
 		final AvailObjectRepresentation objectToCopy,
 		final int deltaObjectSlots,

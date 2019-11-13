@@ -32,7 +32,7 @@
 
 package com.avail.optimizer;
 
-import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.descriptor.A_ChunkDependable;
 import com.avail.descriptor.A_Number;
 import com.avail.descriptor.A_RawFunction;

@@ -34,6 +34,9 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
+import com.avail.descriptor.atoms.A_Atom;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.tuples.A_String;
 import com.avail.serialization.Serializer;
 
 import javax.annotation.Nullable;
@@ -140,7 +143,7 @@ extends AtomDescriptor
 	}
 
 	@Override
-	boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
+	protected boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
 	{
 		return super.allowsImmutableToMutableReferenceInField(e)
 			|| e == HASH_AND_MORE
@@ -177,7 +180,7 @@ extends AtomDescriptor
 	 * </p>
 	 */
 	@Override @AvailMethod
-	void o_SetAtomProperty (
+	protected void o_SetAtomProperty (
 		final AvailObject object,
 		final A_Atom key,
 		final A_BasicObject value)
@@ -205,7 +208,7 @@ extends AtomDescriptor
 	 * </p>
 	 */
 	@Override @AvailMethod
-	AvailObject o_GetAtomProperty (
+	protected AvailObject o_GetAtomProperty (
 		final AvailObject object,
 		final A_Atom key)
 	{

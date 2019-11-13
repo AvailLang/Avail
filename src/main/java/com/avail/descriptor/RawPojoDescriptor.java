@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
+import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.serialization.SerializerOperation;
 
 import javax.annotation.Nullable;
@@ -64,13 +65,13 @@ extends Descriptor
 	final @Nullable Object javaObject;
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsRawPojoFor(object, javaObject);
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsEqualityRawPojo (
+	protected boolean o_EqualsEqualityRawPojo (
 		final AvailObject object,
 		final AvailObject otherEqualityRawPojo,
 		final @Nullable Object otherJavaObject)
@@ -79,7 +80,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsRawPojoFor (
+	protected boolean o_EqualsRawPojoFor (
 		final AvailObject object,
 		final AvailObject otherRawPojo,
 		final @Nullable Object otherJavaObject)
@@ -109,7 +110,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	protected int o_Hash (final AvailObject object)
 	{
 		// This ensures that mutations of the wrapped pojo do not corrupt hashed
 		// Avail data structures.
@@ -117,20 +118,20 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	final boolean o_IsRawPojo (final AvailObject object)
+	protected final boolean o_IsRawPojo (final AvailObject object)
 	{
 		return true;
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override @AvailMethod
-	final @Nullable <T> T o_JavaObject (final AvailObject object)
+	protected final @Nullable <T> T o_JavaObject (final AvailObject object)
 	{
 		return (T) javaObject;
 	}
 
 	@Override @AvailMethod
-	final A_Type o_Kind (final AvailObject object)
+	protected final A_Type o_Kind (final AvailObject object)
 	{
 		return RAW_POJO.o();
 	}
@@ -140,7 +141,7 @@ extends Descriptor
 	 * {@link #javaObject} but is {@linkplain Mutability#IMMUTABLE immutable}.
 	 */
 	@Override @AvailMethod
-	AvailObject o_MakeImmutable (final AvailObject object)
+	protected AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		if (isMutable())
 		{
@@ -156,7 +157,7 @@ extends Descriptor
 	 * {@link #javaObject} but is {@linkplain Mutability#SHARED shared}.
 	 */
 	@Override @AvailMethod
-	AvailObject o_MakeShared (final AvailObject object)
+	protected AvailObject o_MakeShared (final AvailObject object)
 	{
 		if (!isShared())
 		{
@@ -168,7 +169,7 @@ extends Descriptor
 	}
 
 	@Override
-	final @Nullable Object o_MarshalToJava (
+	protected final  @Nullable Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{

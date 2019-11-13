@@ -37,7 +37,7 @@ import com.avail.compiler.problems.Problem
 import com.avail.compiler.problems.ProblemHandler
 import com.avail.compiler.problems.ProblemType.INTERNAL
 import com.avail.compiler.problems.ProblemType.TRACE
-import com.avail.descriptor.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.CommentTokenDescriptor
 import com.avail.descriptor.FiberDescriptor.loaderPriority
 import com.avail.descriptor.ModuleDescriptor

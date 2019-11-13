@@ -33,7 +33,7 @@ package com.avail.interpreter.primitive.pojos
 
 import com.avail.descriptor.A_Function
 import com.avail.descriptor.A_RawFunction
-import com.avail.descriptor.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionDescriptor.createWithOuters2

@@ -33,12 +33,12 @@
 package com.avail.compiler
 
 import com.avail.compiler.scanning.LexingState
-import com.avail.descriptor.A_Phrase
+import com.avail.descriptor.parsing.A_Phrase
 import com.avail.descriptor.AvailObject
 import com.avail.descriptor.IntegerDescriptor
 import com.avail.descriptor.ListPhraseDescriptor
 import com.avail.descriptor.LiteralPhraseDescriptor
-import com.avail.descriptor.PhraseDescriptor
+import com.avail.descriptor.parsing.PhraseDescriptor
 
 import com.avail.descriptor.IntegerDescriptor.fromInt
 import com.avail.descriptor.LiteralPhraseDescriptor.literalNodeFromToken

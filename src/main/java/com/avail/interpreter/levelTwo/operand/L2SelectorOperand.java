@@ -32,8 +32,8 @@
 
 package com.avail.interpreter.levelTwo.operand;
 
-import com.avail.descriptor.A_Bundle;
-import com.avail.descriptor.MessageBundleDescriptor;
+import com.avail.descriptor.bundles.A_Bundle;
+import com.avail.descriptor.bundles.MessageBundleDescriptor;
 import com.avail.descriptor.MethodDefinitionDescriptor;
 import com.avail.descriptor.MethodDescriptor;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;

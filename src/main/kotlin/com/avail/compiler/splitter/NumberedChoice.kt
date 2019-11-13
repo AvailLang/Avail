@@ -38,7 +38,7 @@ import com.avail.compiler.splitter.MessageSplitter.Companion.indexForConstant
 import com.avail.compiler.splitter.MessageSplitter.Companion.throwSignatureException
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
 import com.avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS
-import com.avail.descriptor.A_Phrase
+import com.avail.descriptor.parsing.A_Phrase
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.BottomTypeDescriptor.bottom
 import com.avail.descriptor.IntegerDescriptor.fromInt

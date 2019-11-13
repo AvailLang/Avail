@@ -33,7 +33,7 @@
 package com.avail.stacks
 
 import com.avail.AvailRuntime
-import com.avail.descriptor.A_String
+import com.avail.descriptor.tuples.A_String
 import com.avail.stacks.comment.*
 import com.avail.utility.json.JSONWriter
 

@@ -67,5 +67,5 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	abstract int o_TupleIntAt (final AvailObject object, final int index);
+	protected abstract int o_TupleIntAt (final AvailObject object, final int index);
 }

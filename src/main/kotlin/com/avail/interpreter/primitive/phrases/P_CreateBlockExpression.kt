@@ -32,11 +32,11 @@
 
 package com.avail.interpreter.primitive.phrases
 
-import com.avail.descriptor.A_Phrase
+import com.avail.descriptor.parsing.A_Phrase
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.BlockPhraseDescriptor
-import com.avail.descriptor.BlockPhraseDescriptor.newBlockNode
+import com.avail.descriptor.parsing.BlockPhraseDescriptor
+import com.avail.descriptor.parsing.BlockPhraseDescriptor.newBlockNode
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceMetaDescriptor.topMeta
 import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers

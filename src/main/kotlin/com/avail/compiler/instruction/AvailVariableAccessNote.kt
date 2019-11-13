@@ -32,7 +32,7 @@
 
 package com.avail.compiler.instruction
 
-import com.avail.descriptor.BlockPhraseDescriptor
+import com.avail.descriptor.parsing.BlockPhraseDescriptor
 
 /**
  * An `AvailVariableAccessNote` is a helper class used during data flow

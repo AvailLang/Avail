@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 
+import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 /**

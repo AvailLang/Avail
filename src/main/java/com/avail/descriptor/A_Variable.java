@@ -33,6 +33,9 @@
 package com.avail.descriptor;
 
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
+import com.avail.descriptor.atoms.A_Atom;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.tuples.A_String;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.AvailException;
 import com.avail.exceptions.VariableGetException;
@@ -57,7 +60,7 @@ extends A_ChunkDependable
 	 * @return The variable's kind.
 	 */
 	@Override
-	A_Type kind ();
+	protected A_Type kind ();
 
 	/**
 	 * Extract the current value of the {@linkplain VariableDescriptor
