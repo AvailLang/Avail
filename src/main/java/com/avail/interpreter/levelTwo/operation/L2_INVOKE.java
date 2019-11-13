@@ -141,7 +141,6 @@ extends L2ControlFlowOperation
 		final L2PcOperand onReification = instruction.operand(3);
 
 		translator.loadInterpreter(method);
-		method.visitInsn(DUP);
 		translator.loadInterpreter(method);
 		method.visitFieldInsn(
 			GETFIELD,

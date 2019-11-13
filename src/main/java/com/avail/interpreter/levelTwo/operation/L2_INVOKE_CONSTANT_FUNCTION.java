@@ -50,7 +50,6 @@ import java.util.Set;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static org.objectweb.asm.Opcodes.DUP;
 import static org.objectweb.asm.Opcodes.GETFIELD;
 import static org.objectweb.asm.Type.getDescriptor;
 import static org.objectweb.asm.Type.getInternalName;
@@ -142,7 +141,7 @@ extends L2ControlFlowOperation
 		final L2PcOperand onReification = instruction.operand(3);
 
 		translator.loadInterpreter(method);
-		method.visitInsn(DUP);
+		translator.loadInterpreter(method);
 		method.visitFieldInsn(
 			GETFIELD,
 			getInternalName(Interpreter.class),
