@@ -79,7 +79,7 @@ class StacksForbidsTag constructor(
 		position: Int,
 		jsonWriter: JSONWriter)
 	{
-		val rowSize = forbidMethods.size
+		// val rowSize = forbidMethods.size
 		jsonWriter.startObject()
 		jsonWriter.write("position")
 		jsonWriter.write("Argument " + arityIndex.lexeme)

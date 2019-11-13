@@ -33,10 +33,12 @@
 package com.avail.interpreter.primitive.hooks
 
 import com.avail.AvailRuntime.HookType.IMPLICIT_OBSERVE
-import com.avail.descriptor.*
+import com.avail.descriptor.A_RawFunction
+import com.avail.descriptor.A_Type
 import com.avail.descriptor.BottomTypeDescriptor.bottom
 import com.avail.descriptor.ContinuationTypeDescriptor.mostGeneralContinuationType
 import com.avail.descriptor.FiberDescriptor.TraceFlag
+import com.avail.descriptor.FunctionDescriptor
 import com.avail.descriptor.FunctionDescriptor.createWithOuters1
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.FunctionTypeDescriptor.mostGeneralFunctionType
@@ -46,6 +48,7 @@ import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.StringDescriptor.stringFrom
 import com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType
 import com.avail.descriptor.TypeDescriptor.Types.TOP
+import com.avail.descriptor.VariableDescriptor
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor
 import com.avail.descriptor.VariableTypeDescriptor.variableTypeFor
 import com.avail.interpreter.Interpreter
@@ -123,8 +126,7 @@ object P_SetImplicitObserveFunction : Primitive(1, CannotFail, HasSideEffect)
 		// Produce a wrapper that will invoke the supplied function, and then
 		// specially resume the calling continuation (which won't be correctly
 		// set up for a return).
-		val wrapper =
-			createWithOuters1(rawFunction, cast<A_Function, AvailObject>(function))
+		val wrapper = createWithOuters1(rawFunction, cast(function))
 		// Now set the wrapper as the implicit observe function.
 		IMPLICIT_OBSERVE.set(interpreter.runtime(), wrapper)
 		return interpreter.primitiveSuccess(nil)

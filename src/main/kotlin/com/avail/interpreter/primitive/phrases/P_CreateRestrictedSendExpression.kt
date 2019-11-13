@@ -184,6 +184,7 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 				else -> {
 					// There were problems.  Fail the primitive with a string
 					// describing them all.
+					@Suppress("UNUSED_VARIABLE")
 					val problemReport: A_String = when {
 						problems.size == 1 -> problems[0]
 						else -> {

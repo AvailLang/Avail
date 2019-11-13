@@ -56,10 +56,7 @@ import com.avail.interpreter.AvailLoader.Phase
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Interpreter.runOutermostFunction
 import com.avail.persistence.IndexedRepositoryManager
-import com.avail.persistence.IndexedRepositoryManager.ModuleCompilation
-import com.avail.persistence.IndexedRepositoryManager.ModuleCompilationKey
-import com.avail.persistence.IndexedRepositoryManager.ModuleVersion
-import com.avail.persistence.IndexedRepositoryManager.ModuleVersionKey
+import com.avail.persistence.IndexedRepositoryManager.*
 import com.avail.serialization.Deserializer
 import com.avail.serialization.MalformedSerialStreamException
 import com.avail.serialization.Serializer
@@ -74,6 +71,7 @@ import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 import java.util.logging.Level
+import kotlin.math.min
 
 /**
  * Used for parallel-loading modules in the [module
@@ -521,7 +519,10 @@ internal class BuildLoader constructor(
 			availBuilder.pollForAbort,
 			{ moduleName2, moduleSize, position ->
 				assert(moduleName == moduleName2)
-				localTracker(moduleName, moduleSize, position)
+				// Don't reach the full module size yet.  A separate update at
+				// 100% will be sent after post-loading actions are complete.
+				localTracker(
+					moduleName, moduleSize, min(position, moduleSize - 1))
 				globalTracker(
 					bytesCompiled.addAndGet(position - lastPosition.value),
 					globalCodeSize)

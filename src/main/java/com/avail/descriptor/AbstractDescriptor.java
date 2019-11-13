@@ -42,11 +42,7 @@ import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
-import com.avail.descriptor.FiberDescriptor.ExecutionState;
-import com.avail.descriptor.FiberDescriptor.GeneralFlag;
-import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
-import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
-import com.avail.descriptor.FiberDescriptor.TraceFlag;
+import com.avail.descriptor.FiberDescriptor.*;
 import com.avail.descriptor.MapDescriptor.MapIterable;
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.descriptor.SetDescriptor.SetIterator;
@@ -54,13 +50,7 @@ import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.dispatch.LookupTree;
-import com.avail.exceptions.AvailException;
-import com.avail.exceptions.AvailUnsupportedOperationException;
-import com.avail.exceptions.MalformedMessageException;
-import com.avail.exceptions.MethodDefinitionException;
-import com.avail.exceptions.SignatureException;
-import com.avail.exceptions.VariableGetException;
-import com.avail.exceptions.VariableSetException;
+import com.avail.exceptions.*;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.AvailLoader.LexicalScanner;
 import com.avail.interpreter.Primitive;
@@ -82,22 +72,11 @@ import com.avail.utility.visitor.AvailSubobjectVisitor;
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.IdentityHashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Spliterator;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.BiConsumer;
@@ -106,8 +85,11 @@ import java.util.stream.Stream;
 
 import static com.avail.descriptor.Mutability.MUTABLE;
 import static com.avail.descriptor.Mutability.SHARED;
+import static com.avail.utility.Casts.cast;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.Math.max;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.sort;
 
 /**
  * {@link AbstractDescriptor} is the base descriptor type.  An {@link
@@ -895,18 +877,19 @@ public abstract class AbstractDescriptor
 	private static final Map<IntegerSlotsEnum, List<BitField>> bitFieldsCache =
 		new HashMap<>(500);
 
+	/** A {@link ReadWriteLock} that protects the {@link #bitFieldsCache}. */
 	private static final ReadWriteLock bitFieldsLock =
 		new ReentrantReadWriteLock();
 
 	/**
-	 * Describe the integer field onto the provided {@link StringDescriptor}.
-	 * The pre-extracted {@code int} value is provided, as well as the
-	 * containing {@link AvailObject} and the {@link IntegerSlotsEnum} instance.
-	 * Take into account annotations on the slot enumeration object which may
-	 * define the way it should be described.
+	 * Describe the integer field onto the provided {@link StringBuilder}. The
+	 * pre-extracted {@code long} value is provided, as well as the containing
+	 * {@link AvailObject} and the {@link IntegerSlotsEnum} instance. Take into
+	 * account annotations on the slot enumeration object which may define the
+	 * way it should be described.
 	 *
 	 * @param object The object containing the {@code int} value in some slot.
-	 * @param value The {@code int} value of the slot.
+	 * @param value The {@code long} value of the slot.
 	 * @param slot The {@linkplain IntegerSlotsEnum integer slot} definition.
 	 * @param bitFields The slot's {@link BitField}s, if any.
 	 * @param builder Where to write the description.
@@ -961,12 +944,9 @@ public abstract class AbstractDescriptor
 			}
 		}
 		catch (
-			final NoSuchFieldException
-				| IllegalAccessException
-				| SecurityException
-				| NoSuchMethodException
+			final SecurityException
 				| IllegalArgumentException
-				| InvocationTargetException e)
+				| ReflectiveOperationException e)
 		{
 			throw new RuntimeException(e);
 		}
@@ -980,8 +960,7 @@ public abstract class AbstractDescriptor
 	 * @param slot The integer slot.
 	 * @return The slot's bit fields.
 	 */
-	static List<BitField> bitFieldsFor (
-		final IntegerSlotsEnum slot)
+	static List<BitField> bitFieldsFor (final IntegerSlotsEnum slot)
 	{
 		bitFieldsLock.readLock().lock();
 		try
@@ -1018,7 +997,7 @@ public abstract class AbstractDescriptor
 				{
 					try
 					{
-						final BitField bitField = (BitField) (field.get(null));
+						final BitField bitField = cast(field.get(null));
 						if (bitField.integerSlot == slot)
 						{
 							if (field.getAnnotation(HideFieldInDebugger.class)
@@ -1037,14 +1016,11 @@ public abstract class AbstractDescriptor
 					}
 				}
 			}
+			sort(bitFields);
 			if (bitFields.isEmpty())
 			{
 				// Save a little space.
-				bitFields = Collections.emptyList();
-			}
-			else
-			{
-				Collections.sort(bitFields);
+				bitFields = emptyList();
 			}
 			bitFieldsCache.put(slot, bitFields);
 			return bitFields;
@@ -1055,15 +1031,27 @@ public abstract class AbstractDescriptor
 		}
 	}
 
+	/**
+	 * Write a description of an integer field to the {@link StringBuilder}.
+	 *
+	 * @param value
+	 *        The value of the field, a {@code long}.
+	 * @param numBits
+	 *        The number of bits to show for this field.
+	 * @param enumAnnotation
+	 *        The optional {@link EnumField} annotation that was found on the
+	 *        field.
+	 * @param builder
+	 *        Where to write the description.
+	 * @throws ReflectiveOperationException
+	 *         If the {@link EnumField#lookupMethodName} is incorrect.
+	 */
 	private static void describeIntegerField (
 		final long value,
 		final int numBits,
 		final @Nullable EnumField enumAnnotation,
 		final StringBuilder builder)
-	throws
-		NoSuchMethodException,
-		IllegalAccessException,
-		InvocationTargetException
+	throws ReflectiveOperationException
 	{
 		if (enumAnnotation != null)
 		{

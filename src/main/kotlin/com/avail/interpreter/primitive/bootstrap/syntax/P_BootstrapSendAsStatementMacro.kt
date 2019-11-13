@@ -64,9 +64,9 @@ object P_BootstrapSendAsStatementMacro : Primitive(1, CanInline, Bootstrap)
 		interpreter.checkArgumentCount(1)
 		val sendPhraseInLiteral = interpreter.argument(0)
 
-		val loader =
-			interpreter.fiber().availLoader()
-	             ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+		interpreter.fiber().availLoader() ?:
+			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+
 		val sendPhrase = sendPhraseInLiteral.token().literal()
 		if (!sendPhrase.phraseKindIsUnder(SEND_PHRASE))
 		{

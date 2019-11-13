@@ -34,6 +34,7 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
@@ -50,16 +51,9 @@ import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.PC;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR;
-import static org.objectweb.asm.Opcodes.ASTORE;
-import static org.objectweb.asm.Opcodes.DUP;
-import static org.objectweb.asm.Opcodes.IFNULL;
-import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getType;
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Type.*;
 
 /**
  * The given function is invoked.  The function may be a primitive, and the
@@ -146,11 +140,16 @@ extends L2ControlFlowOperation
 		final L2PcOperand onReturn = instruction.operand(2);
 		final L2PcOperand onReification = instruction.operand(3);
 
-		// :: reifier = interpreter.invoke(
-		// ::   calledFunction,
-		// ::   args)
+		translator.loadInterpreter(method);
+		translator.loadInterpreter(method);
+		method.visitFieldInsn(
+			GETFIELD,
+			getInternalName(Interpreter.class),
+			"chunk",
+			getDescriptor(L2Chunk.class));
 		translator.loadInterpreter(method);
 		translator.load(method, function.register());
+		// :: [interpreter, callingChunk, interpreter, function]
 		generatePushArgumentsAndInvoke(
 			translator,
 			method,
@@ -161,8 +160,10 @@ extends L2ControlFlowOperation
 	}
 
 	/**
-	 * Generate code to push the arguments and invoke.  This expects the
-	 * interpreter and function to have been pushed already.
+	 * Generate code to push the arguments and invoke.  This expects the stack
+	 * to already contain the {@link Interpreter}, the calling {@link L2Chunk},
+	 * another occurrence of the {@link Interpreter}, and the {@link A_Function}
+	 * to be invoked.
 	 *
 	 * @param translator
 	 *        The translator on which to generate the invocation.
@@ -186,6 +187,16 @@ extends L2ControlFlowOperation
 		final L2PcOperand onReification)
 	{
 		// Generate special code for common cases of 0-3 arguments.
+		//
+		// :: caller set up [interpreter, callingChunk, interpreter, function]
+		// :: [interpreter, callingChunk, interpreter, function, [args...]]
+		// :: interpreter.preinvoke[0-3]?(function, [args...])
+		// :: [interpreter, callingChunk, callingFunction]
+		// :: -> [interpreter, callingChunk, callingFunction, interpreter]
+		// :: interpreter.runChunk()
+		// :: [interpreter, callingChunk, callingFunction, reifier]
+		// :: interpreter.postinvoke(callingChunk, callingFunction, reifier)
+		// :: [reifier]
 		switch (argsRegsList.size())
 		{
 			case 0:
@@ -193,9 +204,9 @@ extends L2ControlFlowOperation
 				method.visitMethodInsn(
 					INVOKEVIRTUAL,
 					getInternalName(Interpreter.class),
-					"invoke0",
+					"preinvoke0",
 					getMethodDescriptor(
-						getType(StackReifier.class),
+						getType(A_Function.class),
 						getType(A_Function.class)),
 					false);
 				break;
@@ -206,9 +217,9 @@ extends L2ControlFlowOperation
 				method.visitMethodInsn(
 					INVOKEVIRTUAL,
 					getInternalName(Interpreter.class),
-					"invoke1",
+					"preinvoke1",
 					getMethodDescriptor(
-						getType(StackReifier.class),
+						getType(A_Function.class),
 						getType(A_Function.class),
 						getType(AvailObject.class)),
 					false);
@@ -221,9 +232,9 @@ extends L2ControlFlowOperation
 				method.visitMethodInsn(
 					INVOKEVIRTUAL,
 					getInternalName(Interpreter.class),
-					"invoke2",
+					"preinvoke2",
 					getMethodDescriptor(
-						getType(StackReifier.class),
+						getType(A_Function.class),
 						getType(A_Function.class),
 						getType(AvailObject.class),
 						getType(AvailObject.class)),
@@ -238,9 +249,9 @@ extends L2ControlFlowOperation
 				method.visitMethodInsn(
 					INVOKEVIRTUAL,
 					getInternalName(Interpreter.class),
-					"invoke3",
+					"preinvoke3",
 					getMethodDescriptor(
-						getType(StackReifier.class),
+						getType(A_Function.class),
 						getType(A_Function.class),
 						getType(AvailObject.class),
 						getType(AvailObject.class),
@@ -254,15 +265,37 @@ extends L2ControlFlowOperation
 				method.visitMethodInsn(
 					INVOKEVIRTUAL,
 					getInternalName(Interpreter.class),
-					"invoke",
+					"preinvoke",
 					getMethodDescriptor(
-						getType(StackReifier.class),
+						getType(A_Function.class),
 						getType(A_Function.class),
 						getType(AvailObject[].class)),
 					false);
 				break;
 			}
 		}
+		// :: [interpreter, callingChunk, callingFunction]
+		translator.loadInterpreter(method);
+		// :: -> [interpreter, callingChunk, callingFunction, interpreter]
+		method.visitMethodInsn(
+			INVOKEVIRTUAL,
+			getInternalName(Interpreter.class),
+			"runChunk",
+			getMethodDescriptor(
+				getType(StackReifier.class)),
+			false);
+		// :: [interpreter, callingChunk, callingFunction, reifier]
+		method.visitMethodInsn(
+			INVOKEVIRTUAL,
+			getInternalName(Interpreter.class),
+			"postinvoke",
+			getMethodDescriptor(
+				getType(StackReifier.class),
+				getType(L2Chunk.class),
+				getType(A_Function.class),
+				getType(StackReifier.class)),
+			false);
+		// :: [reifier]
 		method.visitInsn(DUP);
 		method.visitVarInsn(ASTORE, translator.reifierLocal());
 		// :: if (reifier != null) goto onNormalReturn;

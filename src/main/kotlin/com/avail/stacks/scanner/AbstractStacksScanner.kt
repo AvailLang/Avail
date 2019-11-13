@@ -552,7 +552,7 @@ abstract class AbstractStacksScanner internal constructor(
 			@Throws(StacksScannerException::class)
 			private fun parseUnicodeEscapes(
 				scanner: AbstractStacksScanner,
-				stringBuilder: StringBuilder)
+				@Suppress("UNUSED_PARAMETER") stringBuilder: StringBuilder)
 			{
 				if (scanner.atEnd())
 				{
@@ -814,7 +814,7 @@ abstract class AbstractStacksScanner internal constructor(
 					&& !Character.isWhitespace(scanner.peek())
 					&& !scanner.atEnd())
 				{
-					val c = scanner.next()
+					scanner.next()
 				}
 				scanner.addCurrentToken()
 			}

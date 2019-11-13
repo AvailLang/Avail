@@ -138,13 +138,13 @@ internal class Simple constructor(
 		 * space before the token.  If the predecessor agrees, there will be a
 		 * space.
 		 */
-		private const val charactersThatLikeSpacesBefore = "(=+-×÷*/∧∨:?"
+		private const val charactersThatLikeSpacesBefore = "(=+-×÷*/∧∨:?⊆∈"
 
 		/**
 		 * Characters which, if they end a token, should vote for having a
 		 * space after the token.  If the successor agrees, there will be a
 		 * space.
 		 */
-		private const val charactersThatLikeSpacesAfter = ")]=+-×÷*/∧∨→"
+		private const val charactersThatLikeSpacesAfter = ")]=+-×÷*/∧∨→⊆∈"
 	}
 }
