@@ -72,9 +72,9 @@ import java.util.logging.Level
  * @param adapterAddress
  *   The socket address of the listener.
  * @param onChannelCloseAction
- *   A function that accepts a [DisconnectReason] and the underlying
- *   [channel][AbstractTransportChannel] and answers `Unit` that is to be
- *   called when the input channel is closed.
+ *   The custom action that is to be called when the input channel is closed in
+ *   order to support implementation-specific requirements for the closing of
+ *   a channel.
  * @throws IOException
  *   If the [server socket][AsynchronousServerSocketChannel] could not be
  *   opened.
@@ -105,7 +105,7 @@ class SocketAdapter @Throws(IOException::class) constructor(
 			ThreadFactory { r ->
 				val thread = Thread(r)
 				thread.isDaemon = true
-				thread.name = "SocketAdapterTimer" + thread.id
+				thread.name = "SocketAdapterTimer ${thread.id}"
 				thread
 			})
 

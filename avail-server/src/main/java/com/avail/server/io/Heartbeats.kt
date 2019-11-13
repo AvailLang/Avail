@@ -6,14 +6,14 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  Redistributions of source code must retain the above copyright notice, this
+ * * Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- *  Redistributions in binary form must reproduce the above copyright notice,
+ * * Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- *  Neither the name of the copyright holder nor the names of the contributors
+ * * Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -61,8 +61,8 @@ interface Heartbeat
  *   The time in milliseconds between each [Heartbeat] request made by the
  *   server to the client after receiving a `Heartbeat` from the client.
  * @property heartbeatTimeout
- *   The amount of time in milliseconds the heartbeat will fail if a heartbeat
- *   is not received from the client by the server.
+ *   The amount of time, in milliseconds, after which the heartbeat will fail if
+ *   a heartbeat is not received from the client by the server.
  * @property heartbeatFailureThreshold
  *   The number of consecutive times the [heartbeatTimeout] is allowed to be
  *   reached before [heartbeatFailureThresholdReached] is called.
@@ -74,8 +74,8 @@ interface Heartbeat
  *   The time in milliseconds between each [Heartbeat] request made by the
  *   server to the client after receiving a `Heartbeat` from the client.
  * @param heartbeatTimeout
- *   The amount of time in milliseconds the heartbeat will fail if a heartbeat
- *   is not received from the client by the server.
+ *   The amount of time, in milliseconds, after which the heartbeat will fail if
+ *   a heartbeat is not received from the client by the server.
  * @param heartbeatFailureThreshold
  *   The number of consecutive times the [heartbeatTimeout] is allowed to be
  *   reached before [heartbeatFailureThresholdReached] is called.
@@ -157,8 +157,8 @@ internal abstract class AbstractHeartbeat constructor(
  *   The time in milliseconds between each [Heartbeat] request made by the
  *   server to the client after receiving a `Heartbeat` from the client.
  * @param heartbeatTimeout
- *   The amount of time in milliseconds the heartbeat will fail if a heartbeat
- *   is not received from the client by the server.
+ *   The amount of time, in milliseconds, after which the heartbeat will fail if
+ *   a heartbeat is not received from the client by the server.
  * @param heartbeatFailureThreshold
  *   The number of consecutive times the [heartbeatTimeout] is allowed to be
  *   reached before [heartbeatFailureThresholdReached] is called.

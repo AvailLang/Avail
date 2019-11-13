@@ -62,15 +62,15 @@ import java.nio.channels.AsynchronousSocketChannel
  *   The time in milliseconds between each heartbeat request made by the server
  *   to the client.
  * @param heartbeatTimeout
- *   The amount of time in milliseconds the heartbeat will fail if a heartbeat
- *   is not received from the client by the server.
+ *   The amount of time, in milliseconds, after which the heartbeat will fail if
+ *   a heartbeat is not received from the client by the server.
  * @param heartbeatFailureThreshold
  *   The number of consecutive times the `heartbeatTimeout` is allowed to be
  *   reached before disconnecting the client.
  * @param onChannelCloseAction
- *   A function that accepts a [DisconnectReason] and the underlying
- *   [channel][AbstractTransportChannel] and answers `Unit` that is to be
- *   called when the input channel is closed.
+ *   The custom action that is to be called when the input channel is closed in
+ *   order to support implementation-specific requirements during the closing of
+ *   a channel.
  */
 internal class WebSocketChannel constructor(
 	override val adapter: WebSocketAdapter,

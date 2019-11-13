@@ -81,12 +81,12 @@ import kotlin.experimental.xor
  *   The time in milliseconds between each [Heartbeat] request made by the
  *   server to the client after receiving a `Heartbeat` from the client.
  * @property heartbeatTimeout
- *   The amount of time in milliseconds the heartbeat will fail if a heartbeat
- *   is not received from the client by the server.
+ *   The amount of time, in milliseconds, after which the heartbeat will fail if
+ *   a heartbeat is not received from the client by the server.
  * @property onChannelCloseAction
- *   A function that accepts a [DisconnectReason] and the underlying
- *   [channel][AbstractTransportChannel] and answers `Unit` that is to be
- *   called when the input channel is closed.
+ *   The custom action that is to be called when the input channel is closed in
+ *   order to support implementation-specific requirements for the closing of
+ *   a channel.
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  * @see [RFC 6455: The WebSocket Protocol](http://tools.ietf.org/html/rfc6455)
@@ -109,12 +109,12 @@ import kotlin.experimental.xor
  *   The time in milliseconds between each [Heartbeat] request made by the
  *   server to the client after receiving a `Heartbeat` from the client.
  * @param heartbeatTimeout
- *   The amount of time in milliseconds the heartbeat will fail if a heartbeat
- *   is not received from the client by the server.
+ *   The amount of time, in milliseconds, after which the heartbeat will fail if
+ *   a heartbeat is not received from the client by the server.
  * @param onChannelCloseAction
- *   A function that accepts a [DisconnectReason] and the underlying
- *   [channel][AbstractTransportChannel] and answers `Unit` that is to be
- *   called when the input channel is closed.
+ *   The custom action that is to be called when the input channel is closed in
+ *   order to support implementation-specific requirements for the closing of
+ *   a channel.
  * @throws IOException
  *   If the [server socket][AsynchronousServerSocketChannel] could not be
  *   opened.
@@ -123,12 +123,12 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 	override val server: AvailServer,
 	internal val adapterAddress: InetSocketAddress,
 	internal val serverAuthority: String,
-	private val heartbeatFailureThreshold: Int = 3,
-	private val heartbeatInterval: Long = 12000,
-	private val heartbeatTimeout: Long = 15000,
+	private val heartbeatFailureThreshold: Int = defaultHbFailThreshold,
+	private val heartbeatInterval: Long = defaultHbInterval,
+	private val heartbeatTimeout: Long = defaultHbTimeout,
 	override val onChannelCloseAction:
 		(DisconnectReason, AbstractTransportChannel<AsynchronousSocketChannel>)
-			-> Unit = { _, _ -> /* Do nothing */})
+			-> Unit = { _, _ -> /* Do nothing */ })
 	: TransportAdapter<AsynchronousSocketChannel>
 {
 	/** The [server socket channel][AsynchronousServerSocketChannel]. */
@@ -1297,8 +1297,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 						else
 						{
 							channel.heartbeat.receiveHeartbeat()
-							sendPong(
-								strongChannel, bytes.toByteArray(), null, null)
+							sendPong(strongChannel, bytes.toByteArray())
 						}
 						readMessage(strongChannel)
 						return@readFrameThen
@@ -1429,6 +1428,27 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 
 	companion object
 	{
+		/**
+		 * The default consecutive number [heartbeatTimeout] is allowed to
+		 * expire without receiving a response before the underlying
+		 * [WebSocketChannel] is closed.
+		 */
+		const val defaultHbFailThreshold: Int = 3
+
+		/**
+		 * The default time in milliseconds between each [Heartbeat] request
+		 * made by the server to the client after receiving a `Heartbeat` from
+		 * the client.
+		 */
+		const val defaultHbInterval: Long = 12000
+
+		/**
+		 * The default amount of time, in milliseconds, after which the
+		 * heartbeat will fail if a heartbeat is not received from the client by
+		 * the server.
+		 */
+		const val defaultHbTimeout: Long = 15000
+
 		/**
 		 * Answer whether the remote end of the
 		 * [transport][AsynchronousSocketChannel] closed. If it did, then log
@@ -1945,8 +1965,8 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 		internal fun sendPong(
 			channel: WebSocketChannel,
 			payloadData: ByteArray,
-			success: (()->Unit)?,
-			failure: ((Throwable)->Unit)?)
+			success: (()->Unit)? = null,
+			failure: ((Throwable)->Unit)? = null)
 		{
 			val buffer = ByteBuffer.wrap(payloadData)
 			sendFrame(channel, Opcode.PONG, buffer, success, failure)

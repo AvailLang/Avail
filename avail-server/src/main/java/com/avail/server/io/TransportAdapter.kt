@@ -92,9 +92,9 @@ interface TransportAdapter<T> : AutoCloseable
 	fun sendClose(channel: AbstractTransportChannel<T>)
 
 	/**
-	 * A function that accepts a [DisconnectReason] and the underlying
-	 * [channel][AbstractTransportChannel] and answers `Unit` that is to be
-	 * called when the input channel is closed.
+	 * The custom action that is to be called when the input channel is closed
+	 * in order to support implementation-specific requirements for the closing
+	 * of a channel.
 	 */
 	val onChannelCloseAction:
 		(DisconnectReason, AbstractTransportChannel<T>) -> Unit

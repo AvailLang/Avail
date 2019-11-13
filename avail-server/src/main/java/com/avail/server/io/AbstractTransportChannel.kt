@@ -62,9 +62,9 @@ abstract class AbstractTransportChannel<T> : AvailServerChannel()
 	 * [channel][AbstractTransportChannel] and answers `Unit` that is to be
 	 * called when the channel is closed.
 	 *
-	 * Do nothing by default
+	 * Do nothing by default.
 	 */
-	open val onChannelCloseAction: (DisconnectReason) -> Unit = { _ -> }
+	open val onChannelCloseAction: (DisconnectReason) -> Unit = {}
 
 	/**
 	 * A [queue][Deque] of [messages][Message] awaiting transmission by the
