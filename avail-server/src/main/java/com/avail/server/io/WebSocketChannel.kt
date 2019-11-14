@@ -102,7 +102,7 @@ internal class WebSocketChannel constructor(
 
 	override val onChannelCloseAction: (DisconnectReason) -> Unit =
 		{
-			if (!onChannelCloseActionNotRun.getAndSet(false))
+			if (onChannelCloseActionNotRun.getAndSet(false))
 			{
 				onChannelCloseAction(it, this)
 			}

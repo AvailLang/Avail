@@ -57,7 +57,7 @@ abstract class AvailServerChannel : AutoCloseable
 
 	/**
 	 * The unique channel [identifier][UUID] used to distinguish this
-	 * [AvailServerChannel] from `AvailServerChannel`s.
+	 * [AvailServerChannel] from other `AvailServerChannel`s.
 	 *
 	 * Only command channels will keep their UUID assigned upon construction.
 	 * All subordinate IO-channels will have their identifiers set to the
@@ -68,7 +68,7 @@ abstract class AvailServerChannel : AutoCloseable
 
 	/**
 	 * The [id] of the command [channel][AvailServerChannel] that is responsible
-	 * for spawning this channel if this channel were created through the
+	 * for spawning this channel if this channel was created through the
 	 * [upgrade][Command.UPGRADE] process.
 	 */
 	var parentId: UUID? = null

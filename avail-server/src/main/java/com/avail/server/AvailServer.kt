@@ -605,7 +605,7 @@ class AvailServer constructor(
 			afterUpgraded(upgradedChannel)
 			logger.log(
 				Level.FINEST,
-				"Channel, $oldId upgraded to: $upgradedChannel")
+				"Channel [$oldId] upgraded to [$upgradedChannel]")
 		}
 		channel.enqueueMessageThen(
 			newIOUpgradeRequestMessage(command, uuid),
