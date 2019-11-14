@@ -36,8 +36,7 @@ import com.avail.stacks.LinkingFileMap
 import com.avail.stacks.StacksErrorLog
 import com.avail.stacks.tokens.QuotedStacksToken
 import com.avail.utility.json.JSONWriter
-
-import java.util.HashSet
+import java.util.*
 
 /**
  * The Avail comment "@category" tag

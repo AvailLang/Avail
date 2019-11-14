@@ -33,12 +33,12 @@
 package com.avail.interpreter.primitive.functions
 
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.BlockPhraseDescriptor
 import com.avail.descriptor.FunctionDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.FunctionTypeDescriptor.mostGeneralFunctionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.BLOCK_PHRASE
+import com.avail.descriptor.parsing.BlockPhraseDescriptor
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*

@@ -32,6 +32,9 @@
 
 package com.avail.descriptor;
 
+import com.avail.descriptor.atoms.AtomDescriptor;
+import com.avail.descriptor.bundles.MessageBundleTreeDescriptor;
+
 /**
  * A description of the mutability of an {@linkplain AvailObject object}. This
  * information is not maintained by an object itself, but rather by the
@@ -40,7 +43,7 @@ package com.avail.descriptor;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-enum Mutability
+public enum Mutability
 {
 	/*
 	 * Much code assumes the exact ordering shown below. Do not change it under

@@ -10,6 +10,7 @@
       <w>inet</w>
       <w>noninline</w>
       <w>nonprimitive</w>
+      <w>precompute</w>
       <w>seminumerical</w>
       <w>situ</w>
       <w>spliterate</w>
@@ -17,10 +18,12 @@
       <w>spliterating</w>
       <w>subbin</w>
       <w>subkey</w>
+      <w>subregion</w>
       <w>subtable</w>
       <w>unboundedly</w>
       <w>unparameterized</w>
       <w>unsynchronized</w>
+      <w>untraced</w>
       <w>welford</w>
       <w>yielders</w>
     </words>

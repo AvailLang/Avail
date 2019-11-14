@@ -32,16 +32,16 @@
 
 package com.avail.interpreter.primitive.atoms
 
-import com.avail.descriptor.A_String
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.AtomDescriptor.falseObject
-import com.avail.descriptor.AtomDescriptor.trueObject
 import com.avail.descriptor.EnumerationTypeDescriptor.booleanType
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TupleTypeDescriptor.stringType
+import com.avail.descriptor.atoms.AtomDescriptor.falseObject
+import com.avail.descriptor.atoms.AtomDescriptor.trueObject
+import com.avail.descriptor.tuples.A_String
 import com.avail.exceptions.AmbiguousNameException
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import com.avail.interpreter.Interpreter

@@ -38,6 +38,8 @@ import static com.avail.utility.Casts.cast;
  * Subclasses get a public {@link #clone()} method without a silly catch of an
  * impossible exception.
  *
+ * @param <X> The self-type of the object to be cloned.
+ *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public class PublicCloneable <X extends PublicCloneable<X>>

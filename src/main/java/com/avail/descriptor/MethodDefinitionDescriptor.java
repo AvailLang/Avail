@@ -33,12 +33,11 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
+import com.avail.descriptor.methods.A_Method;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
-import static com.avail.descriptor.MethodDefinitionDescriptor.ObjectSlots.BODY_BLOCK;
-import static com.avail.descriptor.MethodDefinitionDescriptor.ObjectSlots.DEFINITION_METHOD;
-import static com.avail.descriptor.MethodDefinitionDescriptor.ObjectSlots.MODULE;
+import static com.avail.descriptor.MethodDefinitionDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.METHOD_DEFINITION;
 
 /**
@@ -82,43 +81,44 @@ extends DefinitionDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_BodySignature (final AvailObject object)
+	protected A_Type o_BodySignature (final AvailObject object)
 	{
 		return object.bodyBlock().kind();
 	}
 
 	@Override @AvailMethod
-	A_Function o_BodyBlock (final AvailObject object)
+	protected A_Function o_BodyBlock (final AvailObject object)
 	{
 		return object.slot(BODY_BLOCK);
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	protected int o_Hash (final AvailObject object)
 	{
 		return (object.bodyBlock().hash() * 19) ^ 0x70B2B1A9;
 	}
 
 	@Override @AvailMethod
-	A_Type o_Kind (final AvailObject object)
+	protected A_Type o_Kind (final AvailObject object)
 	{
 		return METHOD_DEFINITION.o();
 	}
 
 	@Override @AvailMethod
-	boolean o_IsMethodDefinition (final AvailObject object)
+	protected boolean o_IsMethodDefinition (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.METHOD_DEFINITION;
 	}
 
 	@Override
-	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -133,7 +133,7 @@ extends DefinitionDescriptor
 	}
 
 	@Override
-	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -191,13 +191,13 @@ extends DefinitionDescriptor
 		new MethodDefinitionDescriptor(Mutability.MUTABLE);
 
 	@Override
-	MethodDefinitionDescriptor mutable ()
+	protected MethodDefinitionDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	@Override
-	MethodDefinitionDescriptor immutable ()
+	protected MethodDefinitionDescriptor immutable ()
 	{
 		return shared;
 	}
@@ -207,7 +207,7 @@ extends DefinitionDescriptor
 		new MethodDefinitionDescriptor(Mutability.SHARED);
 
 	@Override
-	MethodDefinitionDescriptor shared ()
+	protected MethodDefinitionDescriptor shared ()
 	{
 		return shared;
 	}

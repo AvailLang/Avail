@@ -33,7 +33,6 @@
 package com.avail.interpreter.primitive.tuples
 
 import com.avail.descriptor.A_RawFunction
-import com.avail.descriptor.A_Tuple
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.BottomTypeDescriptor.bottom
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
@@ -41,6 +40,7 @@ import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType
 import com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*

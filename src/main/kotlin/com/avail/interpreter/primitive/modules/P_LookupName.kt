@@ -33,7 +33,6 @@ package com.avail.interpreter.primitive.modules
 
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.AtomDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ModuleDescriptor
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
@@ -41,6 +40,7 @@ import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TupleDescriptor
 import com.avail.descriptor.TupleTypeDescriptor.stringType
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
+import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.exceptions.AmbiguousNameException
 import com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_NAME
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER

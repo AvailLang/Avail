@@ -33,8 +33,7 @@
 package com.avail.environment.actions
 
 import com.avail.environment.AvailWorkbench
-
-import javax.swing.*
+import javax.swing.AbstractAction
 
 /**
  * An abstraction for all the workbench's actions.

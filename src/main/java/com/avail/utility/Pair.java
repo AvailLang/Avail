@@ -108,11 +108,19 @@ public class Pair<FirstType, SecondType>
 		return first + "," + second;
 	}
 
+	/**
+	 * Compatibility for deconstruction in Kotlin.
+	 * @return The {@link #first} component.
+	 */
 	public FirstType component1 ()
 	{
 		return first;
 	}
 
+	/**
+	 * Compatibility for deconstruction in Kotlin.
+	 * @return The {@link #second} component.
+	 */
 	public SecondType component2 ()
 	{
 		return second;

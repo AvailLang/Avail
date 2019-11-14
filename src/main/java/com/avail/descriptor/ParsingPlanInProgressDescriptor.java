@@ -36,6 +36,11 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.compiler.AvailCompilerFragmentCache;
 import com.avail.compiler.ParsingOperation;
+import com.avail.descriptor.bundles.MessageBundleTreeDescriptor;
+import com.avail.descriptor.methods.A_Definition;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.parsing.A_ParsingPlanInProgress;
+import com.avail.descriptor.tuples.A_Tuple;
 
 import java.util.IdentityHashMap;
 
@@ -94,19 +99,19 @@ extends Descriptor
 	}
 
 	@Override
-	int o_ParsingPc (final AvailObject object)
+	protected int o_ParsingPc (final AvailObject object)
 	{
 		return object.slot(PARSING_PC);
 	}
 
 	@Override
-	A_DefinitionParsingPlan o_ParsingPlan (final AvailObject object)
+	protected A_DefinitionParsingPlan o_ParsingPlan (final AvailObject object)
 	{
 		return object.slot(PARSING_PLAN);
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		if (!another.kind().equals(PARSING_PLAN_IN_PROGRESS.o()))
 		{
@@ -119,20 +124,20 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	protected int o_Hash (final AvailObject object)
 	{
 		return (object.slot(PARSING_PC) ^ 0x92A26142) * multiplier
 			- object.slot(PARSING_PLAN).hash();
 	}
 
 	@Override @AvailMethod
-	A_Type o_Kind (final AvailObject object)
+	protected A_Type o_Kind (final AvailObject object)
 	{
 		return PARSING_PLAN_IN_PROGRESS.o();
 	}
 
 	@Override
-	boolean o_IsBackwardJump (final AvailObject object)
+	protected boolean o_IsBackwardJump (final AvailObject object)
 	{
 		final A_DefinitionParsingPlan plan = object.slot(PARSING_PLAN);
 		final A_Tuple instructions = plan.parsingInstructions();
@@ -155,7 +160,7 @@ extends Descriptor
 	 * @return The annotated method name, a Java {@code String}.
 	 */
 	@Override @AvailMethod
-	String o_NameHighlightingPc (final AvailObject object)
+	protected String o_NameHighlightingPc (final AvailObject object)
 	{
 		final A_DefinitionParsingPlan plan = object.slot(PARSING_PLAN);
 		final int pc = object.slot(PARSING_PC);
@@ -217,13 +222,13 @@ extends Descriptor
 		new ParsingPlanInProgressDescriptor(Mutability.MUTABLE);
 
 	@Override
-	ParsingPlanInProgressDescriptor mutable ()
+	protected ParsingPlanInProgressDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	@Override
-	ParsingPlanInProgressDescriptor immutable ()
+	protected ParsingPlanInProgressDescriptor immutable ()
 	{
 		// There is no immutable variant.
 		return shared;
@@ -234,7 +239,7 @@ extends Descriptor
 		new ParsingPlanInProgressDescriptor(Mutability.SHARED);
 
 	@Override
-	ParsingPlanInProgressDescriptor shared ()
+	protected ParsingPlanInProgressDescriptor shared ()
 	{
 		return shared;
 	}

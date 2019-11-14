@@ -33,21 +33,14 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
+import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.utility.MutableOrNull;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.EnumSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
-import static com.avail.descriptor.AbstractNumberDescriptor.Order.EQUAL;
-import static com.avail.descriptor.AbstractNumberDescriptor.Order.INCOMPARABLE;
-import static com.avail.descriptor.AbstractNumberDescriptor.Order.LESS;
-import static com.avail.descriptor.AbstractNumberDescriptor.Order.MORE;
+import static com.avail.descriptor.AbstractNumberDescriptor.Order.*;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.DoubleDescriptor.fromDouble;
 import static com.avail.descriptor.FloatDescriptor.fromFloat;
@@ -669,44 +662,44 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	abstract boolean o_Equals (
+	protected abstract boolean o_Equals (
 		final AvailObject object,
 		final A_BasicObject another);
 
 	@Override @AvailMethod
-	abstract Order o_NumericCompare (
+	protected abstract Order o_NumericCompare (
 		final AvailObject object,
 		final A_Number another);
 
 	@Override @AvailMethod
-	abstract boolean o_IsInstanceOfKind (
+	protected abstract boolean o_IsInstanceOfKind (
 		final AvailObject object,
 		final A_Type aType);
 
 	@Override @AvailMethod
-	abstract int o_Hash (
+	protected abstract int o_Hash (
 		final AvailObject object);
 
 	@Override @AvailMethod
-	abstract A_Number o_DivideCanDestroy (
+	protected abstract A_Number o_DivideCanDestroy (
 		final AvailObject object,
 		final A_Number aNumber,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
-	abstract A_Number o_MinusCanDestroy (
+	protected abstract A_Number o_MinusCanDestroy (
 		final AvailObject object,
 		final A_Number aNumber,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
-	abstract A_Number o_PlusCanDestroy (
+	protected abstract A_Number o_PlusCanDestroy (
 		final AvailObject object,
 		final A_Number aNumber,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
-	abstract A_Number o_TimesCanDestroy (
+	protected abstract A_Number o_TimesCanDestroy (
 		final AvailObject object,
 		final A_Number aNumber,
 		final boolean canDestroy);
@@ -715,124 +708,124 @@ extends Descriptor
 	// Double-dispatched operations.
 
 	@Override @AvailMethod
-	abstract Order o_NumericCompareToInteger (
+	protected abstract Order o_NumericCompareToInteger (
 		final AvailObject object,
 		final AvailObject anInteger);
 
 	@Override @AvailMethod
-	abstract Order o_NumericCompareToInfinity (
+	protected abstract Order o_NumericCompareToInfinity (
 		final AvailObject object,
 		final Sign sign);
 
 	@Override @AvailMethod
-	abstract Order o_NumericCompareToDouble (
+	protected abstract Order o_NumericCompareToDouble (
 		final AvailObject object,
 		final double double1);
 
 	@Override @AvailMethod
-	abstract A_Number o_AddToInfinityCanDestroy (
+	protected abstract A_Number o_AddToInfinityCanDestroy (
 		final AvailObject object,
 		final Sign sign,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
-	abstract A_Number o_AddToIntegerCanDestroy (
+	protected abstract A_Number o_AddToIntegerCanDestroy (
 		final AvailObject object,
 		final AvailObject anInteger,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
-	abstract A_Number o_AddToDoubleCanDestroy (
+	protected abstract A_Number o_AddToDoubleCanDestroy (
 		final AvailObject object,
 		final A_Number doubleObject,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
-	abstract A_Number o_AddToFloatCanDestroy (
+	protected abstract A_Number o_AddToFloatCanDestroy (
 		final AvailObject object,
 		final A_Number floatObject,
 		boolean canDestroy);
 
 	@Override @AvailMethod
-	abstract A_Number o_DivideIntoInfinityCanDestroy (
+	protected abstract A_Number o_DivideIntoInfinityCanDestroy (
 		final AvailObject object,
 		final Sign sign,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
-	abstract A_Number o_DivideIntoIntegerCanDestroy (
+	protected abstract A_Number o_DivideIntoIntegerCanDestroy (
 		final AvailObject object,
 		final AvailObject anInteger,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
-	abstract A_Number o_MultiplyByInfinityCanDestroy (
+	protected abstract A_Number o_MultiplyByInfinityCanDestroy (
 		final AvailObject object,
 		final Sign sign,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
-	abstract A_Number o_MultiplyByIntegerCanDestroy (
+	protected abstract A_Number o_MultiplyByIntegerCanDestroy (
 		final AvailObject object,
 		final AvailObject anInteger,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
-	abstract A_Number o_SubtractFromInfinityCanDestroy (
+	protected abstract A_Number o_SubtractFromInfinityCanDestroy (
 		final AvailObject object,
 		final Sign sign,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
-	abstract A_Number o_SubtractFromIntegerCanDestroy (
+	protected abstract A_Number o_SubtractFromIntegerCanDestroy (
 		final AvailObject object,
 		final AvailObject anInteger,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
-	abstract A_Number o_SubtractFromDoubleCanDestroy (
+	protected abstract A_Number o_SubtractFromDoubleCanDestroy (
 		final AvailObject object,
 		final A_Number doubleObject,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
-	abstract A_Number o_SubtractFromFloatCanDestroy (
+	protected abstract A_Number o_SubtractFromFloatCanDestroy (
 		final AvailObject object,
 		final A_Number floatObject,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
-	abstract A_Number o_MultiplyByDoubleCanDestroy (
+	protected abstract A_Number o_MultiplyByDoubleCanDestroy (
 		final AvailObject object,
 		final A_Number doubleObject,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
-	abstract A_Number o_MultiplyByFloatCanDestroy (
+	protected abstract A_Number o_MultiplyByFloatCanDestroy (
 		final AvailObject object,
 		final A_Number floatObject,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
-	abstract A_Number o_DivideIntoDoubleCanDestroy (
+	protected abstract A_Number o_DivideIntoDoubleCanDestroy (
 		final AvailObject object,
 		final A_Number doubleObject,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
-	abstract A_Number o_DivideIntoFloatCanDestroy (
+	protected abstract A_Number o_DivideIntoFloatCanDestroy (
 		final AvailObject object,
 		final A_Number floatObject,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
-	abstract float o_ExtractFloat (AvailObject object);
+	protected abstract float o_ExtractFloat (AvailObject object);
 
 	@Override @AvailMethod
-	abstract double o_ExtractDouble (AvailObject object);
+	protected abstract double o_ExtractDouble (AvailObject object);
 
 	@Override @AvailMethod
-	abstract boolean o_IsNumericallyIntegral (AvailObject object);
+	protected abstract boolean o_IsNumericallyIntegral (AvailObject object);
 
 	/**
 	 * Construct a new {@link AbstractNumberDescriptor}.

@@ -33,7 +33,6 @@
 package com.avail.interpreter.primitive.controlflow
 
 import com.avail.descriptor.A_Continuation
-import com.avail.descriptor.A_String
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.ContinuationDescriptor.dumpStackThen
@@ -47,6 +46,7 @@ import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.StringDescriptor.stringFrom
 import com.avail.descriptor.TupleTypeDescriptor.stringType
 import com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf
+import com.avail.descriptor.tuples.A_String
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import com.avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND
 import com.avail.exceptions.MapException

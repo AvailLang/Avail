@@ -32,29 +32,18 @@
 
 package com.avail.tools.bootstrap;
 
-import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Type;
+import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
 
 import javax.annotation.Nullable;
 import java.io.PrintWriter;
 import java.text.MessageFormat;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Properties;
-import java.util.PropertyResourceBundle;
-import java.util.ResourceBundle;
-import java.util.Set;
+import java.util.*;
 
-import static com.avail.tools.bootstrap.Resources.Key.methodCommentParameterTemplate;
-import static com.avail.tools.bootstrap.Resources.Key.methodCommentRaisesTemplate;
-import static com.avail.tools.bootstrap.Resources.Key.methodCommentReturnsTemplate;
-import static com.avail.tools.bootstrap.Resources.Key.methodCommentTemplate;
-import static com.avail.tools.bootstrap.Resources.escape;
-import static com.avail.tools.bootstrap.Resources.primitiveCommentKey;
-import static com.avail.tools.bootstrap.Resources.primitiveParameterNameKey;
-import static com.avail.tools.bootstrap.Resources.primitivesBaseName;
+import static com.avail.tools.bootstrap.Resources.Key.*;
+import static com.avail.tools.bootstrap.Resources.*;
 import static java.lang.String.format;
 
 /**

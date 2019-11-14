@@ -56,6 +56,10 @@ import com.avail.descriptor.TokenDescriptor.TokenType
 import com.avail.descriptor.TokenDescriptor.TokenType.*
 import com.avail.descriptor.TupleDescriptor.toList
 import com.avail.descriptor.TupleTypeDescriptor.stringType
+import com.avail.descriptor.bundles.A_BundleTree
+import com.avail.descriptor.parsing.A_Phrase
+import com.avail.descriptor.parsing.PhraseDescriptor
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport.EXPANDING_PARSING_INSTRUCTIONS
 import com.avail.performance.StatisticReport.RUNNING_PARSING_INSTRUCTIONS
@@ -1628,14 +1632,14 @@ enum class ParsingOperation constructor(
 	 * A [Statistic] that records the number of nanoseconds spent while
 	 * executing occurrences of this [ParsingOperation].
 	 */
-	val parsingStatisticInNanoseconds = Statistic(
+	val parsingStatisticInNanoseconds: Statistic = Statistic(
 		name, RUNNING_PARSING_INSTRUCTIONS)
 
 	/**
 	 * A [Statistic] that records the number of nanoseconds spent while
 	 * expanding occurrences of this [ParsingOperation].
 	 */
-	val expandingStatisticInNanoseconds = Statistic(
+	val expandingStatisticInNanoseconds: Statistic = Statistic(
 		name, EXPANDING_PARSING_INSTRUCTIONS)
 
 	/** The instruction coding of the receiver. */

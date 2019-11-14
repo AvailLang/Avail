@@ -32,7 +32,7 @@
 
 package com.avail.stacks.tokens
 
-import java.util.HashMap
+import java.util.*
 
 /**
  * A tokenized stacks keyword.
@@ -80,7 +80,7 @@ abstract class KeywordStacksToken constructor(
 	 *   The string representation of the keyword
 	 * @constructor
 	 * The constructor of the [StacksKeyword]
-	 * @param lexeme 
+	 * @param lexeme
 	 *   String representation of the keyword.
 	 */
 	private enum class StacksKeyword constructor(val lexeme: String)

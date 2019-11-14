@@ -69,7 +69,7 @@ final class L2SemanticLabel extends L2FrameSpecificSemanticValue
 	@Override
 	public int hashCode ()
 	{
-		return frame().hashCode() ^ 0x3D9D8132;
+		return frame().hashCode() ^ 0x36B34F3D;
 	}
 
 	@Override

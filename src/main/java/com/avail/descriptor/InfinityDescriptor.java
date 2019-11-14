@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
+import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.exceptions.ArithmeticException;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.utility.json.JSONWriter;
@@ -77,19 +78,21 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (
+		final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsInfinity(sign);
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsInfinity (final AvailObject object, final Sign theSign)
+	protected boolean o_EqualsInfinity (
+		final AvailObject object, final Sign theSign)
 	{
 		return sign == theSign;
 	}
 
 	@Override @AvailMethod
-	Order o_NumericCompareToInteger (
+	protected Order o_NumericCompareToInteger (
 		final AvailObject object,
 		final AvailObject anInteger)
 	{
@@ -98,7 +101,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	Order o_NumericCompareToInfinity (
+	protected Order o_NumericCompareToInfinity (
 		final AvailObject object,
 		final Sign theSign)
 	{
@@ -106,7 +109,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsInstanceOfKind (
+	protected boolean o_IsInstanceOfKind (
 		final AvailObject object,
 		final A_Type aType)
 	{
@@ -126,25 +129,25 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	protected int o_Hash (final AvailObject object)
 	{
 		return sign == Sign.POSITIVE ? 0x14B326DA : 0xBF9302D;
 	}
 
 	@Override @AvailMethod
-	boolean o_IsFinite (final AvailObject object)
+	protected boolean o_IsFinite (final AvailObject object)
 	{
 		return false;
 	}
 
 	@Override @AvailMethod
-	A_Type o_Kind (final AvailObject object)
+	protected A_Type o_Kind (final AvailObject object)
 	{
 		return singleInteger(object);
 	}
 
 	@Override @AvailMethod
-	double o_ExtractDouble (final AvailObject object)
+	protected double o_ExtractDouble (final AvailObject object)
 	{
 		return object.isPositive()
 			? Double.POSITIVE_INFINITY
@@ -152,7 +155,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	float o_ExtractFloat (
+	protected float o_ExtractFloat (
 		final AvailObject object)
 	{
 		return object.isPositive()
@@ -161,7 +164,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Number o_DivideCanDestroy (
+	protected A_Number o_DivideCanDestroy (
 		final AvailObject object,
 		final A_Number aNumber,
 		final boolean canDestroy)
@@ -170,7 +173,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Number o_MinusCanDestroy (
+	protected A_Number o_MinusCanDestroy (
 		final AvailObject object,
 		final A_Number aNumber,
 		final boolean canDestroy)
@@ -179,7 +182,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Number o_PlusCanDestroy (
+	protected A_Number o_PlusCanDestroy (
 		final AvailObject object,
 		final A_Number aNumber,
 		final boolean canDestroy)
@@ -188,7 +191,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Number o_TimesCanDestroy (
+	protected A_Number o_TimesCanDestroy (
 		final AvailObject object,
 		final A_Number aNumber,
 		final boolean canDestroy)
@@ -197,13 +200,13 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsPositive (final AvailObject object)
+	protected boolean o_IsPositive (final AvailObject object)
 	{
 		return sign == Sign.POSITIVE;
 	}
 
 	@Override @AvailMethod
-	A_Number o_AddToInfinityCanDestroy (
+	protected A_Number o_AddToInfinityCanDestroy (
 		final AvailObject object,
 		final Sign theSign,
 		final boolean canDestroy)
@@ -217,7 +220,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Number o_AddToIntegerCanDestroy (
+	protected A_Number o_AddToIntegerCanDestroy (
 		final AvailObject object,
 		final AvailObject anInteger,
 		final boolean canDestroy)
@@ -226,7 +229,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Number o_AddToDoubleCanDestroy (
+	protected A_Number o_AddToDoubleCanDestroy (
 		final AvailObject object,
 		final A_Number doubleObject,
 		final boolean canDestroy)
@@ -238,7 +241,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Number o_AddToFloatCanDestroy (
+	protected A_Number o_AddToFloatCanDestroy (
 		final AvailObject object,
 		final A_Number floatObject,
 		final boolean canDestroy)
@@ -250,7 +253,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Number o_DivideIntoInfinityCanDestroy (
+	protected A_Number o_DivideIntoInfinityCanDestroy (
 		final AvailObject object,
 		final Sign theSign,
 		final boolean canDestroy)
@@ -260,7 +263,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Number o_DivideIntoIntegerCanDestroy (
+	protected A_Number o_DivideIntoIntegerCanDestroy (
 		final AvailObject object,
 		final AvailObject anInteger,
 		final boolean canDestroy)
@@ -293,7 +296,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Number o_MultiplyByInfinityCanDestroy (
+	protected A_Number o_MultiplyByInfinityCanDestroy (
 		final AvailObject object,
 		final Sign theSign,
 		final boolean canDestroy)
@@ -304,7 +307,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Number o_MultiplyByIntegerCanDestroy (
+	protected A_Number o_MultiplyByIntegerCanDestroy (
 		final AvailObject object,
 		final AvailObject anInteger,
 		final boolean canDestroy)
@@ -344,7 +347,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Number o_SubtractFromInfinityCanDestroy (
+	protected A_Number o_SubtractFromInfinityCanDestroy (
 		final AvailObject object,
 		final Sign theSign,
 		final boolean canDestroy)
@@ -360,7 +363,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Number o_SubtractFromIntegerCanDestroy (
+	protected A_Number o_SubtractFromIntegerCanDestroy (
 		final AvailObject object,
 		final AvailObject anInteger,
 		final boolean canDestroy)
@@ -395,13 +398,14 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	Order o_NumericCompare (final AvailObject object, final A_Number another)
+	protected Order o_NumericCompare (
+		final AvailObject object, final A_Number another)
 	{
 		return another.numericCompareToInfinity(sign).reverse();
 	}
 
 	@Override @AvailMethod
-	Order o_NumericCompareToDouble (
+	protected Order o_NumericCompareToDouble (
 		final AvailObject object,
 		final double double1)
 	{
@@ -409,31 +413,31 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MakeImmutable (final AvailObject object)
+	protected AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		assert isShared();
 		return object;
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MakeShared (final AvailObject object)
+	protected AvailObject o_MakeShared (final AvailObject object)
 	{
 		if (!isShared())
 		{
-			object.descriptor = shared();
+			object.setDescriptor(shared());
 		}
 		return object;
 	}
 
 	@Override
-	boolean o_IsNumericallyIntegral (final AvailObject object)
+	protected boolean o_IsNumericallyIntegral (final AvailObject object)
 	{
 		// Not finite, so not numerically equal to an integer.
 		return false;
 	}
 
 	@Override
-	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.write(sign == Sign.POSITIVE
 			? Double.POSITIVE_INFINITY
@@ -483,20 +487,20 @@ extends ExtendedIntegerDescriptor
 		new InfinityDescriptor(Mutability.SHARED, Sign.NEGATIVE);
 
 	@Override
-	AbstractDescriptor mutable ()
+	protected AbstractDescriptor mutable ()
 	{
 		return sign == Sign.POSITIVE ? mutablePositive : mutableNegative;
 	}
 
 	@Override
-	InfinityDescriptor immutable ()
+	protected InfinityDescriptor immutable ()
 	{
 		// There isn't an immutable variant; answer a shared one.
 		return shared();
 	}
 
 	@Override
-	InfinityDescriptor shared ()
+	protected InfinityDescriptor shared ()
 	{
 		return sign == Sign.POSITIVE ? sharedPositive : sharedNegative;
 	}

@@ -34,6 +34,8 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.tuples.A_Tuple;
 
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
@@ -44,9 +46,7 @@ import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.IntegerDescriptor.zero;
 import static com.avail.descriptor.IntegerIntervalTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.IntegerIntervalTupleDescriptor.IntegerSlots.SIZE;
-import static com.avail.descriptor.IntegerIntervalTupleDescriptor.ObjectSlots.DELTA;
-import static com.avail.descriptor.IntegerIntervalTupleDescriptor.ObjectSlots.END;
-import static com.avail.descriptor.IntegerIntervalTupleDescriptor.ObjectSlots.START;
+import static com.avail.descriptor.IntegerIntervalTupleDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
@@ -154,7 +154,7 @@ extends NumericTupleDescriptor
 	private static final int maximumCopySize = 4;
 
 	@Override @AvailMethod
-	A_Tuple o_AppendCanDestroy (
+	protected A_Tuple o_AppendCanDestroy (
 		final AvailObject object,
 		final A_BasicObject newElement,
 		final boolean canDestroy)
@@ -179,7 +179,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override
-	int o_BitsPerEntry (final AvailObject object)
+	protected int o_BitsPerEntry (final AvailObject object)
 	{
 		// Consider a billion element tuple. Since an interval tuple requires
 		// only O(1) storage, irrespective of its size, the average bits per
@@ -188,7 +188,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_CompareFromToWithIntegerIntervalTupleStartingAt (
+	protected boolean o_CompareFromToWithIntegerIntervalTupleStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -236,7 +236,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_CompareFromToWithStartingAt (
+	protected boolean o_CompareFromToWithStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -251,7 +251,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Tuple o_CopyTupleFromToCanDestroy (
+	protected A_Tuple o_CopyTupleFromToCanDestroy (
 		final AvailObject object,
 		final int start,
 		final int end,
@@ -298,7 +298,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override
-	A_Tuple o_ConcatenateWith (
+	protected A_Tuple o_ConcatenateWith (
 		final AvailObject object,
 		final A_Tuple otherTuple,
 		final boolean canDestroy)
@@ -361,13 +361,13 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsIntegerIntervalTuple(object);
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsIntegerIntervalTuple (
+	protected boolean o_EqualsIntegerIntervalTuple (
 		final AvailObject object,
 		final A_Tuple anIntegerIntervalTuple)
 	{
@@ -425,7 +425,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TupleAt (final AvailObject object, final int index)
+	protected AvailObject o_TupleAt (final AvailObject object, final int index)
 	{
 		// Answer the value at the given index in the tuple object.
 		// START + (index-1) * DELTA
@@ -437,7 +437,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Tuple o_TupleAtPuttingCanDestroy (
+	protected A_Tuple o_TupleAtPuttingCanDestroy (
 		final AvailObject object,
 		final int index,
 		final A_BasicObject newValueObject,
@@ -469,7 +469,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override
-	boolean o_TupleElementsInRangeAreInstancesOf (
+	protected boolean o_TupleElementsInRangeAreInstancesOf (
 		final AvailObject object,
 		final int startIndex,
 		final int endIndex,
@@ -495,14 +495,14 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_TupleIntAt (final AvailObject object, final int index)
+	protected int o_TupleIntAt (final AvailObject object, final int index)
 	{
 		// Answer the value at the given index in the tuple object.
 		return object.tupleAt(index).extractInt();
 	}
 
 	@Override @AvailMethod
-	A_Tuple o_TupleReverse(final AvailObject object)
+	protected A_Tuple o_TupleReverse(final AvailObject object)
 	{
 		//If tuple is small enough or is immutable, create a new Interval
 		if (object.tupleSize() < maximumCopySize || !isMutable())
@@ -529,7 +529,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_TupleSize (final AvailObject object)
+	protected int o_TupleSize (final AvailObject object)
 	{
 		return object.slot(SIZE);
 	}
@@ -628,7 +628,7 @@ extends NumericTupleDescriptor
 		new IntegerIntervalTupleDescriptor(Mutability.MUTABLE);
 
 	@Override
-	IntegerIntervalTupleDescriptor mutable ()
+	protected IntegerIntervalTupleDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -638,7 +638,7 @@ extends NumericTupleDescriptor
 		new IntegerIntervalTupleDescriptor(Mutability.IMMUTABLE);
 
 	@Override
-	IntegerIntervalTupleDescriptor immutable ()
+	protected IntegerIntervalTupleDescriptor immutable ()
 	{
 		return immutable;
 	}
@@ -648,7 +648,7 @@ extends NumericTupleDescriptor
 		new IntegerIntervalTupleDescriptor(Mutability.SHARED);
 
 	@Override
-	IntegerIntervalTupleDescriptor shared ()
+	protected IntegerIntervalTupleDescriptor shared ()
 	{
 		return shared;
 	}

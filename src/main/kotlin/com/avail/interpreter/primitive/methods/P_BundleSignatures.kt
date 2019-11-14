@@ -31,10 +31,12 @@
  */
 package com.avail.interpreter.primitive.methods
 
-import com.avail.descriptor.*
+import com.avail.descriptor.A_Type
+import com.avail.descriptor.DefinitionDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.SetDescriptor
 import com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType
 import com.avail.descriptor.TypeDescriptor.Types.DEFINITION
 import com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE

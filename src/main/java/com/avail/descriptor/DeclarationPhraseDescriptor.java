@@ -36,6 +36,11 @@ import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.parsing.A_Phrase;
+import com.avail.descriptor.parsing.PhraseDescriptor;
+import com.avail.descriptor.tuples.A_String;
+import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Transformer1;
@@ -46,18 +51,8 @@ import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind.ARGUMENT;
-import static com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind.LABEL;
-import static com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_CONSTANT;
-import static com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_VARIABLE;
-import static com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind.MODULE_CONSTANT;
-import static com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind.MODULE_VARIABLE;
-import static com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind.PRIMITIVE_FAILURE_REASON;
-import static com.avail.descriptor.DeclarationPhraseDescriptor.ObjectSlots.DECLARED_TYPE;
-import static com.avail.descriptor.DeclarationPhraseDescriptor.ObjectSlots.INITIALIZATION_EXPRESSION;
-import static com.avail.descriptor.DeclarationPhraseDescriptor.ObjectSlots.LITERAL_OBJECT;
-import static com.avail.descriptor.DeclarationPhraseDescriptor.ObjectSlots.TOKEN;
-import static com.avail.descriptor.DeclarationPhraseDescriptor.ObjectSlots.TYPE_EXPRESSION;
+import static com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind.*;
+import static com.avail.descriptor.DeclarationPhraseDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
@@ -488,8 +483,9 @@ extends PhraseDescriptor
 		 * Answer the previously stashed copy of the array of all {@link
 		 * DeclarationKind} enum values.
 		 *
-		 * @return The array of {@code DeclarationKind} values.  Do not modify
-		 *         the array.
+		 * @param ordinal
+		 *        The ordinal of the declaration kind to look up.
+		 * @return The requested {@code DeclarationKind}.
 		 */
 		public static DeclarationKind lookup (final int ordinal)
 		{
@@ -682,7 +678,7 @@ extends PhraseDescriptor
 	 * Getter for field name.
 	 */
 	@Override @AvailMethod
-	A_Token o_Token (
+	protected A_Token o_Token (
 		final AvailObject object)
 	{
 		return object.slot(TOKEN);
@@ -692,7 +688,7 @@ extends PhraseDescriptor
 	 * Getter for field declaredType.
 	 */
 	@Override @AvailMethod
-	A_Type o_DeclaredType (
+	protected A_Type o_DeclaredType (
 		final AvailObject object)
 	{
 		return object.slot(DECLARED_TYPE);
@@ -702,7 +698,7 @@ extends PhraseDescriptor
 	 * Getter for field typeExpression.
 	 */
 	@Override @AvailMethod
-	A_Phrase o_TypeExpression (
+	protected A_Phrase o_TypeExpression (
 		final AvailObject object)
 	{
 		return object.slot(TYPE_EXPRESSION);
@@ -712,7 +708,7 @@ extends PhraseDescriptor
 	 * Getter for field initializationExpression.
 	 */
 	@Override @AvailMethod
-	AvailObject o_InitializationExpression (
+	protected AvailObject o_InitializationExpression (
 		final AvailObject object)
 	{
 		return object.slot(INITIALIZATION_EXPRESSION);
@@ -722,7 +718,7 @@ extends PhraseDescriptor
 	 * Getter for field literalObject.
 	 */
 	@Override @AvailMethod
-	AvailObject o_LiteralObject (
+	protected AvailObject o_LiteralObject (
 		final AvailObject object)
 	{
 		return object.slot(LITERAL_OBJECT);
@@ -732,14 +728,14 @@ extends PhraseDescriptor
 	 * Getter for field declarationKind.
 	 */
 	@Override @AvailMethod
-	DeclarationKind o_DeclarationKind (
+	protected DeclarationKind o_DeclarationKind (
 		final AvailObject object)
 	{
 		return declarationKind;
 	}
 
 	@Override @AvailMethod
-	A_Type o_ExpressionType (final AvailObject object)
+	protected A_Type o_ExpressionType (final AvailObject object)
 	{
 		return TOP.o();
 	}
@@ -750,7 +746,7 @@ extends PhraseDescriptor
 	 * @param codeGenerator Where to emit the declaration.
 	 */
 	@Override @AvailMethod
-	void o_EmitEffectOn (
+	protected void o_EmitEffectOn (
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
@@ -762,7 +758,7 @@ extends PhraseDescriptor
 	 * This is a declaration, so it shouldn't generally produce a value.
 	 */
 	@Override @AvailMethod
-	void o_EmitValueOn (
+	protected void o_EmitValueOn (
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
@@ -771,7 +767,7 @@ extends PhraseDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	protected int o_Hash (final AvailObject object)
 	{
 		return
 			((((object.token().hash() * multiplier
@@ -784,7 +780,7 @@ extends PhraseDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsPhrase (
+	protected boolean o_EqualsPhrase (
 		final AvailObject object,
 		final A_Phrase aPhrase)
 	{
@@ -792,7 +788,7 @@ extends PhraseDescriptor
 	}
 
 	@Override @AvailMethod
-	void o_ChildrenMap (
+	protected void o_ChildrenMap (
 		final AvailObject object,
 		final Transformer1<A_Phrase, A_Phrase> transformer)
 	{
@@ -812,7 +808,7 @@ extends PhraseDescriptor
 	}
 
 	@Override @AvailMethod
-	void o_ChildrenDo (
+	protected void o_ChildrenDo (
 		final AvailObject object,
 		final Continuation1NotNull<A_Phrase> action)
 	{
@@ -824,7 +820,7 @@ extends PhraseDescriptor
 	}
 
 	@Override
-	void o_StatementsDo (
+	protected void o_StatementsDo (
 		final AvailObject object,
 		final Continuation1NotNull<A_Phrase> continuation)
 	{
@@ -833,7 +829,7 @@ extends PhraseDescriptor
 
 	@SuppressWarnings("EmptyMethod")
 	@Override @AvailMethod
-	void o_ValidateLocally (
+	protected void o_ValidateLocally (
 		final AvailObject object,
 		final @Nullable A_Phrase parent)
 	{
@@ -841,26 +837,27 @@ extends PhraseDescriptor
 	}
 
 	@Override
-	PhraseKind o_PhraseKind (
+	protected PhraseKind o_PhraseKind (
 		final AvailObject object)
 	{
 		return object.declarationKind().phraseKind();
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.DECLARATION_PHRASE;
 	}
 
 	@Override
-	A_Tuple o_Tokens (final AvailObject object)
+	protected A_Tuple o_Tokens (final AvailObject object)
 	{
 		return tuple(object.slot(TOKEN));
 	}
 
 	@Override
-	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -892,7 +889,7 @@ extends PhraseDescriptor
 	}
 
 	@Override
-	String o_NameForDebugger (final AvailObject object)
+	protected String o_NameForDebugger (final AvailObject object)
 	{
 		return super.o_NameForDebugger(object) + ": " + object.phraseKind();
 	}
@@ -1184,6 +1181,8 @@ extends PhraseDescriptor
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param declarationKind
+	 *        The declaration's {@link DeclarationKind}.
 	 */
 	public DeclarationPhraseDescriptor (
 		final Mutability mutability,
@@ -1220,13 +1219,13 @@ extends PhraseDescriptor
 	}
 
 	@Override
-	DeclarationPhraseDescriptor mutable ()
+	protected DeclarationPhraseDescriptor mutable ()
 	{
 		return mutables[declarationKind.ordinal()];
 	}
 
 	@Override
-	DeclarationPhraseDescriptor shared ()
+	protected DeclarationPhraseDescriptor shared ()
 	{
 		return shareds[declarationKind.ordinal()];
 	}

@@ -123,22 +123,13 @@ object P_FileMetadata : Primitive(2, CanInline, HasSideEffect)
 			}
 			else
 			{
-				// Curse you, Java, for your incomplete flow analysis.
-				var temp: Any
-				try
-				{
-					temp = path.toAbsolutePath()
+				raw = try {
+					path.toAbsolutePath()
+				} catch (e: SecurityException) {
+					path
+				} catch (e: IOError) {
+					path
 				}
-				catch (e: SecurityException)
-				{
-					temp = path
-				}
-				catch (e: IOError)
-				{
-					temp = path
-				}
-
-				raw = temp
 				Path::class.java
 			}
 		val tuple = tupleFromArray(

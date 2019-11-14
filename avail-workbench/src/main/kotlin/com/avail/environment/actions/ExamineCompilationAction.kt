@@ -37,11 +37,11 @@ import com.avail.descriptor.FiberDescriptor
 import com.avail.environment.AvailWorkbench
 import com.avail.persistence.IndexedRepositoryManager.ModuleCompilation
 import com.avail.persistence.IndexedRepositoryManagerDescriber
-import javax.swing.*
-import java.awt.event.ActionEvent
-
 import com.avail.utility.Casts.nullableCast
 import com.avail.utility.Nulls.stripNull
+import java.awt.event.ActionEvent
+import javax.swing.Action
+import javax.swing.JOptionPane
 
 /**
  * A `ExamineCompilationAction` presents information about a specific

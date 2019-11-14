@@ -32,7 +32,6 @@
 package com.avail.interpreter.primitive.files
 
 import com.avail.AvailRuntime.currentRuntime
-import com.avail.descriptor.A_BasicObject
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.EnumerationTypeDescriptor.booleanType
@@ -44,10 +43,10 @@ import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.StringDescriptor
-import com.avail.descriptor.StringDescriptor.formatString
 import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TupleTypeDescriptor.stringType
 import com.avail.descriptor.TypeDescriptor.Types.TOP
+import com.avail.descriptor.objects.A_BasicObject
 import com.avail.exceptions.AvailErrorCode.*
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive

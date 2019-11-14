@@ -36,7 +36,7 @@ import com.avail.builder.ResolvedModuleName
 import com.avail.descriptor.ModuleDescriptor
 import com.avail.environment.AvailWorkbench
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchTask
-import java.awt.*
+import java.awt.Cursor
 
 
 /**

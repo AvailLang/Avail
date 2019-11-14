@@ -35,7 +35,6 @@ package com.avail.interpreter.primitive.methods
 import com.avail.AvailRuntime.currentRuntime
 import com.avail.AvailTask
 import com.avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
-import com.avail.descriptor.A_Bundle
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
@@ -47,6 +46,7 @@ import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.StringDescriptor.formatString
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.TypeDescriptor.Types.TOP
+import com.avail.descriptor.bundles.A_Bundle
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import com.avail.exceptions.MalformedMessageException

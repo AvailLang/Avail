@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
+import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.AvailRuntimeException;
 import com.avail.exceptions.VariableSetException;
@@ -45,10 +46,7 @@ import java.lang.reflect.Modifier;
 import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.PojoFinalFieldDescriptor.ObjectSlots.CACHED_VALUE;
-import static com.avail.descriptor.PojoFinalFieldDescriptor.ObjectSlots.FIELD;
-import static com.avail.descriptor.PojoFinalFieldDescriptor.ObjectSlots.KIND;
-import static com.avail.descriptor.PojoFinalFieldDescriptor.ObjectSlots.RECEIVER;
+import static com.avail.descriptor.PojoFinalFieldDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.PojoTypeDescriptor.unmarshal;
 import static com.avail.descriptor.VariableTypeDescriptor.variableReadWriteType;
 import static java.lang.reflect.Modifier.STATIC;
@@ -99,21 +97,21 @@ extends Descriptor
 	}
 
 	@Override
-	void o_ClearValue (final AvailObject object)
+	protected void o_ClearValue (final AvailObject object)
 	{
 		throw new VariableSetException(
 			AvailErrorCode.E_CANNOT_MODIFY_FINAL_JAVA_FIELD);
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsPojoField(
 			object.slot(FIELD), object.slot(RECEIVER));
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsPojoField (
+	protected boolean o_EqualsPojoField (
 		final AvailObject object,
 		final AvailObject field,
 		final AvailObject receiver)
@@ -123,32 +121,34 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_GetValue (final AvailObject object)
+	protected AvailObject o_GetValue (final AvailObject object)
 	{
 		return object.slot(CACHED_VALUE);
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	protected int o_Hash (final AvailObject object)
 	{
 		return object.slot(FIELD).hash()
 			* object.slot(RECEIVER).hash() ^ 0x2199C0C3;
 	}
 
-	@Override boolean o_HasValue (final AvailObject object)
+	@Override
+	protected boolean o_HasValue (final AvailObject object)
 	{
 		// A pojo final field has a value by definition.
 		return true;
 	}
 
 	@Override @AvailMethod
-	A_Type o_Kind (final AvailObject object)
+	protected A_Type o_Kind (final AvailObject object)
 	{
 		return object.slot(KIND);
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation(final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		final Field field = object.slot(FIELD).javaObjectNotNull();
 		if ((field.getModifiers() & STATIC) != 0)
@@ -159,14 +159,14 @@ extends Descriptor
 	}
 
 	@Override
-	void o_SetValue (final AvailObject object, final A_BasicObject newValue)
+	protected void o_SetValue (final AvailObject object, final A_BasicObject newValue)
 	{
 		throw new VariableSetException(
 			AvailErrorCode.E_CANNOT_MODIFY_FINAL_JAVA_FIELD);
 	}
 
 	@Override
-	void o_SetValueNoCheck (
+	protected void o_SetValueNoCheck (
 		final AvailObject object,
 		final A_BasicObject newValue)
 	{
@@ -175,13 +175,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Value (final AvailObject object)
+	protected AvailObject o_Value (final AvailObject object)
 	{
 		return object.slot(CACHED_VALUE);
 	}
 
 	@Override
-	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -194,7 +194,7 @@ extends Descriptor
 	}
 
 	@Override
-	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -205,7 +205,7 @@ extends Descriptor
 	}
 
 	@Override
-	void printObjectOnAvoidingIndent (
+	protected void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
 		final IdentityHashMap<A_BasicObject, Void> recursionMap,
@@ -241,7 +241,7 @@ extends Descriptor
 		new PojoFinalFieldDescriptor(Mutability.MUTABLE);
 
 	@Override
-	PojoFinalFieldDescriptor mutable ()
+	protected PojoFinalFieldDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -251,7 +251,7 @@ extends Descriptor
 		new PojoFinalFieldDescriptor(Mutability.IMMUTABLE);
 
 	@Override
-	PojoFinalFieldDescriptor immutable ()
+	protected PojoFinalFieldDescriptor immutable ()
 	{
 		return immutable;
 	}
@@ -261,7 +261,7 @@ extends Descriptor
 		new PojoFinalFieldDescriptor(Mutability.SHARED);
 
 	@Override
-	PojoFinalFieldDescriptor shared ()
+	protected PojoFinalFieldDescriptor shared ()
 	{
 		return shared;
 	}

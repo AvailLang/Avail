@@ -33,10 +33,10 @@
 package com.avail.environment.actions
 
 import com.avail.environment.AvailWorkbench
-import javax.swing.*
 import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
-
+import javax.swing.Action
+import javax.swing.KeyStroke
 import javax.swing.SwingUtilities.invokeLater
 
 /**

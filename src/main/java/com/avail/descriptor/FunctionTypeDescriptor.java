@@ -35,6 +35,8 @@ package com.avail.descriptor;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Strings;
@@ -49,9 +51,7 @@ import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.FunctionTypeDescriptor.IntegerSlots.HASH_AND_MORE;
 import static com.avail.descriptor.FunctionTypeDescriptor.IntegerSlots.HASH_OR_ZERO;
-import static com.avail.descriptor.FunctionTypeDescriptor.ObjectSlots.ARGS_TUPLE_TYPE;
-import static com.avail.descriptor.FunctionTypeDescriptor.ObjectSlots.DECLARED_EXCEPTIONS;
-import static com.avail.descriptor.FunctionTypeDescriptor.ObjectSlots.RETURN_TYPE;
+import static com.avail.descriptor.FunctionTypeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.singleInt;
 import static com.avail.descriptor.SetDescriptor.emptySet;
@@ -133,7 +133,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
+	protected boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
 	{
 		return e == HASH_AND_MORE;
 	}
@@ -296,7 +296,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_AcceptsArgTypesFromFunctionType (
+	protected boolean o_AcceptsArgTypesFromFunctionType (
 		final AvailObject object,
 		final A_Type functionType)
 	{
@@ -305,7 +305,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_AcceptsListOfArgTypes (
+	protected boolean o_AcceptsListOfArgTypes (
 		final AvailObject object,
 		final List<? extends A_Type> argTypes)
 	{
@@ -321,7 +321,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_AcceptsListOfArgValues (
+	protected boolean o_AcceptsListOfArgValues (
 		final AvailObject object,
 		final List<? extends A_BasicObject> argValues)
 	{
@@ -338,7 +338,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_AcceptsTupleOfArgTypes (
+	protected boolean o_AcceptsTupleOfArgTypes (
 		final AvailObject object,
 		final A_Tuple argTypes)
 	{
@@ -354,7 +354,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_AcceptsTupleOfArguments (
+	protected boolean o_AcceptsTupleOfArguments (
 		final AvailObject object,
 		final A_Tuple arguments)
 	{
@@ -362,15 +362,15 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_ArgsTupleType (final AvailObject object)
+	protected A_Type o_ArgsTupleType (final AvailObject object)
 	{
 		return object.slot(ARGS_TUPLE_TYPE);
 	}
 
 	@Override @AvailMethod
-	boolean o_CouldEverBeInvokedWith (
+	protected boolean o_CouldEverBeInvokedWith (
 		final AvailObject object,
-		final List<? extends TypeRestriction> argRestrictions)
+		final List<TypeRestriction> argRestrictions)
 	{
 		final A_Type tupleType = object.slot(ARGS_TUPLE_TYPE);
 		for (int i = 1, end = argRestrictions.size(); i <= end; i++)
@@ -385,19 +385,19 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Set o_DeclaredExceptions (final AvailObject object)
+	protected A_Set o_DeclaredExceptions (final AvailObject object)
 	{
 		return object.slot(DECLARED_EXCEPTIONS);
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsFunctionType(object);
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsFunctionType (
+	protected boolean o_EqualsFunctionType (
 		final AvailObject object,
 		final A_Type aType)
 	{
@@ -436,7 +436,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	protected int o_Hash (final AvailObject object)
 	{
 		if (isShared())
 		{
@@ -449,13 +449,13 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
+	protected boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
 	{
 		return aType.isSupertypeOfFunctionType(object);
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSupertypeOfFunctionType (
+	protected boolean o_IsSupertypeOfFunctionType (
 		final AvailObject object,
 		final A_Type aFunctionType)
 	{
@@ -486,7 +486,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	boolean o_IsVacuousType (final AvailObject object)
+	protected boolean o_IsVacuousType (final AvailObject object)
 	{
 		final A_Type argsTupleType = object.slot(ARGS_TUPLE_TYPE);
 		final A_Type sizeRange = argsTupleType.sizeRange();
@@ -494,13 +494,13 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_ReturnType (final AvailObject object)
+	protected A_Type o_ReturnType (final AvailObject object)
 	{
 		return object.slot(RETURN_TYPE);
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeIntersection (
+	protected A_Type o_TypeIntersection (
 		final AvailObject object,
 		final A_Type another)
 	{
@@ -516,7 +516,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeIntersectionOfFunctionType (
+	protected A_Type o_TypeIntersectionOfFunctionType (
 		final AvailObject object,
 		final A_Type aFunctionType)
 	{
@@ -544,7 +544,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeUnion (
+	protected A_Type o_TypeUnion (
 		final AvailObject object,
 		final A_Type another)
 	{
@@ -560,7 +560,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeUnionOfFunctionType (
+	protected A_Type o_TypeUnionOfFunctionType (
 		final AvailObject object,
 		final A_Type aFunctionType)
 	{
@@ -581,13 +581,14 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.FUNCTION_TYPE;
 	}
 
 	@Override
-	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -602,7 +603,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -636,7 +637,7 @@ extends TypeDescriptor
 		new FunctionTypeDescriptor(Mutability.MUTABLE);
 
 	@Override
-	FunctionTypeDescriptor mutable ()
+	protected FunctionTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -646,7 +647,7 @@ extends TypeDescriptor
 		new FunctionTypeDescriptor(Mutability.IMMUTABLE);
 
 	@Override
-	FunctionTypeDescriptor immutable ()
+	protected FunctionTypeDescriptor immutable ()
 	{
 		return immutable;
 	}
@@ -656,7 +657,7 @@ extends TypeDescriptor
 		new FunctionTypeDescriptor(Mutability.SHARED);
 
 	@Override
-	FunctionTypeDescriptor shared ()
+	protected FunctionTypeDescriptor shared ()
 	{
 		return shared;
 	}

@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
+import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.utility.json.JSONWriter;
 
 import javax.annotation.Nullable;
@@ -73,13 +74,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsPojo(object);
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsPojo (final AvailObject object, final AvailObject aPojo)
+	protected boolean o_EqualsPojo (final AvailObject object, final AvailObject aPojo)
 	{
 		if (!object.slot(RAW_POJO).equals(aPojo.slot(RAW_POJO)))
 		{
@@ -92,7 +93,7 @@ extends Descriptor
 				aPojo.makeImmutable();
 				object.becomeIndirectionTo(aPojo);
 			}
-			else if (!aPojo.descriptor.isShared())
+			else if (!aPojo.descriptor().isShared())
 			{
 				object.makeImmutable();
 				aPojo.becomeIndirectionTo(object);
@@ -102,7 +103,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	protected int o_Hash (final AvailObject object)
 	{
 		int hash = object.slot(RAW_POJO).hash() ^ 0x749101DD;
 		hash *= multiplier;
@@ -111,19 +112,19 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsPojo (final AvailObject object)
+	protected boolean o_IsPojo (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod
-	A_Type o_Kind (final AvailObject object)
+	protected A_Type o_Kind (final AvailObject object)
 	{
 		return object.slot(KIND);
 	}
 
 	@Override
-	@Nullable Object o_MarshalToJava (
+	protected @Nullable Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{
@@ -131,7 +132,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_RawPojo (final AvailObject object)
+	protected AvailObject o_RawPojo (final AvailObject object)
 	{
 		return object.slot(RAW_POJO);
 	}
@@ -149,7 +150,7 @@ extends Descriptor
 	}
 
 	@Override
-	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -162,7 +163,7 @@ extends Descriptor
 	}
 
 	@Override
-	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -175,7 +176,7 @@ extends Descriptor
 	}
 
 	@Override
-	void printObjectOnAvoidingIndent (
+	protected void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
 		final IdentityHashMap<A_BasicObject, Void> recursionMap,
@@ -203,7 +204,7 @@ extends Descriptor
 		new PojoDescriptor(Mutability.MUTABLE);
 
 	@Override
-	PojoDescriptor mutable ()
+	protected PojoDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -213,7 +214,7 @@ extends Descriptor
 		new PojoDescriptor(Mutability.IMMUTABLE);
 
 	@Override
-	PojoDescriptor immutable ()
+	protected PojoDescriptor immutable ()
 	{
 		return immutable;
 	}
@@ -223,7 +224,7 @@ extends Descriptor
 		new PojoDescriptor(Mutability.SHARED);
 
 	@Override
-	PojoDescriptor shared ()
+	protected PojoDescriptor shared ()
 	{
 		return shared;
 	}

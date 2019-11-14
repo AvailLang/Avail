@@ -34,8 +34,6 @@ package com.avail.interpreter.primitive.sockets
 
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.AtomDescriptor
-import com.avail.descriptor.AtomDescriptor.SpecialAtom.SERVER_SOCKET_KEY
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive
 import com.avail.descriptor.MapTypeDescriptor.mapTypeForSizesKeyTypeValueType
@@ -43,6 +41,8 @@ import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TypeDescriptor.Types.*
+import com.avail.descriptor.atoms.AtomDescriptor
+import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.SERVER_SOCKET_KEY
 import com.avail.exceptions.AvailErrorCode.*
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive

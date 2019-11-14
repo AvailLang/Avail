@@ -6,14 +6,14 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
+ *  Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
+ *  Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
+ *  Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -30,14 +30,17 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.descriptor;
+package com.avail.descriptor.atoms;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
+import com.avail.descriptor.*;
+import com.avail.descriptor.bundles.A_Bundle;
+import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.serialization.Serializer;
 
-import static com.avail.descriptor.AtomWithPropertiesSharedDescriptor.IntegerSlots.HASH_OR_ZERO;
+import static com.avail.descriptor.atoms.AtomWithPropertiesSharedDescriptor.IntegerSlots.HASH_OR_ZERO;
 
 /**
  * An {@code atom} is an object that has identity by fiat, i.e., it is
@@ -137,20 +140,20 @@ extends AtomWithPropertiesDescriptor
 	}
 
 	@Override
-	AvailObject o_MakeImmutable (final AvailObject object)
+	public AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		// Do nothing; just answer the (shared) receiver.
 		return object;
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MakeShared (final AvailObject object)
+	protected AvailObject o_MakeShared (final AvailObject object)
 	{
 		return object;
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	protected int o_Hash (final AvailObject object)
 	{
 		final int hash = object.slot(HASH_OR_ZERO);
 		if (hash == 0)
@@ -164,7 +167,7 @@ extends AtomWithPropertiesDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_GetAtomProperty (
+	protected AvailObject o_GetAtomProperty (
 		final AvailObject object,
 		final A_Atom key)
 	{
@@ -175,7 +178,7 @@ extends AtomWithPropertiesDescriptor
 	}
 
 	@Override @AvailMethod
-	void o_SetAtomProperty (
+	protected void o_SetAtomProperty (
 		final AvailObject object,
 		final A_Atom key,
 		final A_BasicObject value)
@@ -189,7 +192,7 @@ extends AtomWithPropertiesDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Bundle o_BundleOrCreate (final AvailObject object)
+	protected A_Bundle o_BundleOrCreate (final AvailObject object)
 		throws MalformedMessageException
 	{
 		synchronized (object)
@@ -199,7 +202,7 @@ extends AtomWithPropertiesDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Bundle o_BundleOrNil (final AvailObject object)
+	protected A_Bundle o_BundleOrNil (final AvailObject object)
 	{
 		synchronized (object)
 		{
@@ -208,7 +211,7 @@ extends AtomWithPropertiesDescriptor
 	}
 
 	@Override
-	boolean o_IsAtomSpecial (final AvailObject object)
+	protected boolean o_IsAtomSpecial (final AvailObject object)
 	{
 		return isSpecial;
 	}

@@ -33,6 +33,10 @@
 package com.avail.descriptor;
 
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
+import com.avail.descriptor.atoms.A_Atom;
+import com.avail.descriptor.atoms.AtomDescriptor;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.tuples.A_String;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.AvailException;
 import com.avail.exceptions.VariableGetException;

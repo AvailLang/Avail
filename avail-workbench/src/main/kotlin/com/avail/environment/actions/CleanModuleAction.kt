@@ -33,11 +33,10 @@
 package com.avail.environment.actions
 
 import com.avail.environment.AvailWorkbench
-import com.avail.persistence.IndexedFileException
-import java.awt.event.ActionEvent
-
 import com.avail.environment.AvailWorkbench.StreamStyle.INFO
+import com.avail.persistence.IndexedFileException
 import com.avail.utility.Nulls.stripNull
+import java.awt.event.ActionEvent
 import java.lang.String.format
 import javax.swing.Action
 

@@ -46,22 +46,20 @@ class MapException : AvailRuntimeException
 {
 	/**
 	 * Construct a new `MapException` with the specified
-	 * [error code][AvailErrorCode].
+	 * [error&#32;code][AvailErrorCode].
 	 *
 	 * @param errorCode
-	 *   The [error code][AvailErrorCode].
+	 *   The [error&#32;code][AvailErrorCode].
 	 */
 	constructor(errorCode: AvailErrorCode) : super(errorCode)
-	{
-	}
 
 	/**
 	 * Construct a new `MapException` with the specified [cause][Throwable].
 	 *
 	 * @param errorCode
-	 *   The [error code][AvailErrorCode].
+	 *   The [error&#32;code][AvailErrorCode].
 	 * @param cause
-	 *   The proximal [cause][Throwable] of the [        ].
+	 *   The proximal [cause][Throwable] of the `MapException`.
 	 */
 	constructor(errorCode: AvailErrorCode, cause: Throwable)
 		: super(errorCode, cause)

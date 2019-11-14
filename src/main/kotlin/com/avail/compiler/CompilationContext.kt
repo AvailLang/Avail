@@ -45,8 +45,6 @@ import com.avail.compiler.problems.ProblemType.EXECUTION
 import com.avail.compiler.problems.ProblemType.INTERNAL
 import com.avail.compiler.scanning.LexingState
 import com.avail.descriptor.*
-import com.avail.descriptor.AtomDescriptor.SpecialAtom
-import com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
 import com.avail.descriptor.FiberDescriptor.newLoaderFiber
 import com.avail.descriptor.FunctionDescriptor.createFunction
 import com.avail.descriptor.FunctionDescriptor.createFunctionForPhrase
@@ -54,6 +52,12 @@ import com.avail.descriptor.MapDescriptor.emptyMap
 import com.avail.descriptor.StringDescriptor.formatString
 import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TypeDescriptor.Types
+import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom
+import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
+import com.avail.descriptor.objects.A_BasicObject
+import com.avail.descriptor.parsing.A_Phrase
+import com.avail.descriptor.parsing.PhraseDescriptor
+import com.avail.descriptor.tuples.A_String
 import com.avail.exceptions.AvailAssertionFailedException
 import com.avail.exceptions.AvailEmergencyExitException
 import com.avail.interpreter.AvailLoader

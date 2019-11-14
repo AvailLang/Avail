@@ -36,10 +36,9 @@ import com.avail.builder.ResolvedModuleName
 import com.avail.descriptor.ModuleDescriptor
 import com.avail.environment.AvailWorkbench
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchTask
-import java.awt.*
-import java.io.File
-
 import com.avail.environment.AvailWorkbench.StreamStyle.INFO
+import java.awt.Cursor
+import java.io.File
 
 /**
  * A `GraphTask` generates a .dot file describing a visual graph of

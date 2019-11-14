@@ -32,15 +32,15 @@
 
 package com.avail.stacks.module
 
-import com.avail.descriptor.A_String
-import com.avail.utility.Pair
-
 import com.avail.descriptor.StringDescriptor.stringFrom
-import com.avail.stacks.*
+import com.avail.descriptor.tuples.A_String
+import com.avail.stacks.CommentGroup
+import com.avail.stacks.StacksFilename
 import com.avail.stacks.comment.GrammaticalRestrictionComment
 import com.avail.stacks.comment.MacroComment
 import com.avail.stacks.comment.MethodComment
 import com.avail.stacks.comment.SemanticRestrictionComment
+import com.avail.utility.Pair
 
 /**
  * A grouping of all implementationGroups originating from the names section of

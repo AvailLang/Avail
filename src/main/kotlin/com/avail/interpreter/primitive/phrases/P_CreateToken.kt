@@ -37,7 +37,7 @@ import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetDescriptor.set
-import com.avail.descriptor.TokenDescriptor.StaticInit.tokenTypeOrdinalKey;
+import com.avail.descriptor.TokenDescriptor.StaticInit.tokenTypeOrdinalKey
 import com.avail.descriptor.TokenDescriptor.TokenType
 import com.avail.descriptor.TokenDescriptor.TokenType.*
 import com.avail.descriptor.TokenDescriptor.newToken

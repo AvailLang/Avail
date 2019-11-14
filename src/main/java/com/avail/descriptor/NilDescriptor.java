@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
+import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.serialization.SerializerOperation;
 
 import java.util.IdentityHashMap;
@@ -51,14 +52,15 @@ extends Descriptor
 {
 	@Override
 	@AvailMethod @ThreadSafe
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (
+		final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsNil();
 	}
 
 	@Override
 	@AvailMethod @ThreadSafe
-	int o_Hash (final AvailObject object)
+	protected int o_Hash (final AvailObject object)
 	{
 		// Nil should hash to zero, because the only place it can appear in a
 		// data structure is as a filler object. This currently (as of July
@@ -68,13 +70,14 @@ extends Descriptor
 
 	@Override
 	@AvailMethod @ThreadSafe
-	A_Type o_Kind (final AvailObject object)
+	protected A_Type o_Kind (final AvailObject object)
 	{
 		return TOP.o();
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.NIL;
 	}
@@ -106,7 +109,7 @@ extends Descriptor
 		new NilDescriptor(Mutability.MUTABLE);
 
 	@Override
-	NilDescriptor mutable ()
+	protected NilDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -116,7 +119,7 @@ extends Descriptor
 		new NilDescriptor(Mutability.IMMUTABLE);
 
 	@Override
-	NilDescriptor immutable ()
+	protected NilDescriptor immutable ()
 	{
 		return immutable;
 	}
@@ -126,7 +129,7 @@ extends Descriptor
 		new NilDescriptor(Mutability.SHARED);
 
 	@Override
-	NilDescriptor shared ()
+	protected NilDescriptor shared ()
 	{
 		return shared;
 	}

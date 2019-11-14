@@ -38,11 +38,12 @@ import com.avail.interpreter.Interpreter
 import com.avail.io.ConsoleInputChannel
 import com.avail.io.ConsoleOutputChannel
 import com.avail.io.TextInterface
-import javax.swing.*
 import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
-import java.util.Arrays
-
+import java.util.*
+import javax.swing.Action
+import javax.swing.JOptionPane
+import javax.swing.KeyStroke
 import javax.swing.SwingUtilities.invokeLater
 
 /**

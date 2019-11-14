@@ -33,10 +33,10 @@
 package com.avail.optimizer.jvm;
 
 import com.avail.AvailThread;
-import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Module;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelOne.L1Disassembler;
 import com.avail.interpreter.levelOne.L1Operation;

@@ -37,12 +37,12 @@ import com.avail.compiler.splitter.InstructionGenerator.Label
 import com.avail.compiler.splitter.MessageSplitter.Companion.throwSignatureException
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
 import com.avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS
-import com.avail.descriptor.A_Phrase
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.IntegerRangeTypeDescriptor
 import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.ListPhraseTypeDescriptor.emptyListPhraseType
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
+import com.avail.descriptor.parsing.A_Phrase
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_COUNTING_GROUP
 import com.avail.exceptions.SignatureException
 import com.avail.utility.Nulls.stripNull

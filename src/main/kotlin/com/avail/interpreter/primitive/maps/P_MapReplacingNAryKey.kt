@@ -32,14 +32,19 @@
 
 package com.avail.interpreter.primitive.maps
 
-import com.avail.descriptor.*
+import com.avail.descriptor.A_Map
+import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.MapDescriptor
 import com.avail.descriptor.MapTypeDescriptor.mostGeneralMapType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetDescriptor.set
+import com.avail.descriptor.TupleDescriptor
 import com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf
 import com.avail.descriptor.TypeDescriptor.Types.ANY
+import com.avail.descriptor.objects.A_BasicObject
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.exceptions.AvailErrorCode.*
 import com.avail.exceptions.AvailException
 import com.avail.interpreter.Interpreter

@@ -34,12 +34,15 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
+import com.avail.descriptor.bundles.A_Bundle;
+import com.avail.descriptor.bundles.MessageBundleDescriptor;
+import com.avail.descriptor.methods.A_GrammaticalRestriction;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.tuples.A_Tuple;
 
 import static com.avail.AvailRuntimeSupport.nextHash;
 import static com.avail.descriptor.GrammaticalRestrictionDescriptor.IntegerSlots.HASH;
-import static com.avail.descriptor.GrammaticalRestrictionDescriptor.ObjectSlots.ARGUMENT_RESTRICTION_SETS;
-import static com.avail.descriptor.GrammaticalRestrictionDescriptor.ObjectSlots.DEFINITION_MODULE;
-import static com.avail.descriptor.GrammaticalRestrictionDescriptor.ObjectSlots.RESTRICTED_BUNDLE;
+import static com.avail.descriptor.GrammaticalRestrictionDescriptor.ObjectSlots.*;
 
 /**
  * A {@code GrammaticalRestrictionDescriptor grammatical restriction} serves to
@@ -134,32 +137,32 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	protected int o_Hash (final AvailObject object)
 	{
 		return object.slot(HASH);
 	}
 
 	@Override
-	A_Bundle o_RestrictedBundle (final AvailObject object)
+	protected A_Bundle o_RestrictedBundle (final AvailObject object)
 	{
 		return object.slot(RESTRICTED_BUNDLE);
 	}
 
 	@Override
-	A_Tuple o_ArgumentRestrictionSets (final AvailObject object)
+	protected A_Tuple o_ArgumentRestrictionSets (final AvailObject object)
 	{
 		return object.slot(ARGUMENT_RESTRICTION_SETS);
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		// Compare by identity.
 		return object.sameAddressAs(another);
 	}
 
 	@Override @AvailMethod
-	A_Module o_DefinitionModule (final AvailObject object)
+	protected A_Module o_DefinitionModule (final AvailObject object)
 	{
 		return object.slot(DEFINITION_MODULE);
 	}
@@ -213,7 +216,7 @@ extends Descriptor
 		new GrammaticalRestrictionDescriptor(Mutability.MUTABLE);
 
 	@Override
-	GrammaticalRestrictionDescriptor mutable ()
+	protected GrammaticalRestrictionDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -223,14 +226,14 @@ extends Descriptor
 		new GrammaticalRestrictionDescriptor(Mutability.SHARED);
 
 	@Override
-	GrammaticalRestrictionDescriptor immutable ()
+	protected GrammaticalRestrictionDescriptor immutable ()
 	{
 		// There is no immutable variant; answer the shared descriptor.
 		return shared;
 	}
 
 	@Override
-	GrammaticalRestrictionDescriptor shared ()
+	protected GrammaticalRestrictionDescriptor shared ()
 	{
 		return shared;
 	}

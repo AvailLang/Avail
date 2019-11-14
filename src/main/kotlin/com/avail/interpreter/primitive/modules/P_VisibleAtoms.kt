@@ -32,7 +32,6 @@
 
 package com.avail.interpreter.primitive.modules
 
-import com.avail.descriptor.A_Atom
 import com.avail.descriptor.A_Module
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
@@ -42,6 +41,7 @@ import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType
 import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
+import com.avail.descriptor.atoms.A_Atom
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import com.avail.interpreter.AvailLoader
 import com.avail.interpreter.Interpreter

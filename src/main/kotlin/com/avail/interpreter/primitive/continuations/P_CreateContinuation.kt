@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.primitive.continuations
 
-import com.avail.descriptor.A_BasicObject
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.ContinuationDescriptor
@@ -46,6 +45,7 @@ import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TupleDescriptor.toList
 import com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType
 import com.avail.descriptor.VariableTypeDescriptor.variableTypeFor
+import com.avail.descriptor.objects.A_BasicObject
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_CREATE_CONTINUATION_FOR_INFALLIBLE_PRIMITIVE_FUNCTION
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_CONTINUATION_STACK_SIZE
 import com.avail.interpreter.Interpreter

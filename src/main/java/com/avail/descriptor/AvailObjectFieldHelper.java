@@ -32,6 +32,8 @@
 
 package com.avail.descriptor;
 
+import com.avail.descriptor.objects.A_BasicObject;
+
 import javax.annotation.Nullable;
 import java.util.List;
 
@@ -108,7 +110,8 @@ public class AvailObjectFieldHelper
 	/**
 	 * The object containing this field.
 	 */
-	private final @Nullable A_BasicObject parentObject;
+	private final @Nullable
+	A_BasicObject parentObject;
 
 	/**
 	 * The actual value being presented with the given label.

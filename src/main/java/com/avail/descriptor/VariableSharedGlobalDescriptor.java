@@ -34,6 +34,8 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.tuples.A_String;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.VariableGetException;
 import com.avail.exceptions.VariableSetException;
@@ -46,15 +48,8 @@ import java.util.WeakHashMap;
 
 import static com.avail.AvailRuntimeSupport.nextHash;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.VariableSharedGlobalDescriptor.IntegerSlots.HASH_ALWAYS_SET;
-import static com.avail.descriptor.VariableSharedGlobalDescriptor.IntegerSlots.HASH_AND_MORE;
-import static com.avail.descriptor.VariableSharedGlobalDescriptor.IntegerSlots.VALUE_IS_STABLE;
-import static com.avail.descriptor.VariableSharedGlobalDescriptor.ObjectSlots.DEPENDENT_CHUNKS_WEAK_SET_POJO;
-import static com.avail.descriptor.VariableSharedGlobalDescriptor.ObjectSlots.GLOBAL_NAME;
-import static com.avail.descriptor.VariableSharedGlobalDescriptor.ObjectSlots.KIND;
-import static com.avail.descriptor.VariableSharedGlobalDescriptor.ObjectSlots.MODULE;
-import static com.avail.descriptor.VariableSharedGlobalDescriptor.ObjectSlots.VALUE;
-import static com.avail.descriptor.VariableSharedGlobalDescriptor.ObjectSlots.WRITE_REACTORS;
+import static com.avail.descriptor.VariableSharedGlobalDescriptor.IntegerSlots.*;
+import static com.avail.descriptor.VariableSharedGlobalDescriptor.ObjectSlots.*;
 
 /**
  * My {@linkplain AvailObject object instances} are {@linkplain
@@ -174,7 +169,7 @@ extends VariableSharedDescriptor
 	}
 
 	@Override
-	boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
+	protected boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
 	{
 		return super.allowsImmutableToMutableReferenceInField(e)
 			|| e == VALUE
@@ -184,19 +179,19 @@ extends VariableSharedDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Module o_GlobalModule (final AvailObject object)
+	protected A_Module o_GlobalModule (final AvailObject object)
 	{
 		return object.slot(MODULE);
 	}
 
 	@Override @AvailMethod
-	A_String o_GlobalName (final AvailObject object)
+	protected A_String o_GlobalName (final AvailObject object)
 	{
 		return object.slot(GLOBAL_NAME);
 	}
 
 	@Override @AvailMethod
-	void o_SetValue (final AvailObject object, final A_BasicObject newValue)
+	protected void o_SetValue (final AvailObject object, final A_BasicObject newValue)
 		throws VariableSetException
 	{
 		synchronized (object)
@@ -212,7 +207,7 @@ extends VariableSharedDescriptor
 	}
 
 	@Override @AvailMethod
-	void o_SetValueNoCheck (
+	protected void o_SetValueNoCheck (
 		final AvailObject object,
 		final A_BasicObject newValue)
 	{
@@ -230,7 +225,7 @@ extends VariableSharedDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_GetAndSetValue (
+	protected AvailObject o_GetAndSetValue (
 			final AvailObject object,
 			final A_BasicObject newValue)
 		throws VariableGetException, VariableSetException
@@ -244,7 +239,7 @@ extends VariableSharedDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_CompareAndSwapValues (
+	protected boolean o_CompareAndSwapValues (
 			final AvailObject object,
 			final A_BasicObject reference,
 			final A_BasicObject newValue)
@@ -259,7 +254,7 @@ extends VariableSharedDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Number o_FetchAndAddValue (
+	protected A_Number o_FetchAndAddValue (
 		final AvailObject object,
 		final A_Number addend)
 	throws VariableGetException, VariableSetException
@@ -273,7 +268,7 @@ extends VariableSharedDescriptor
 	}
 
 	@Override @AvailMethod
-	void o_AtomicAddToMap (
+	protected void o_AtomicAddToMap (
 		final AvailObject object,
 		final A_BasicObject key,
 		final A_BasicObject value)
@@ -288,7 +283,7 @@ extends VariableSharedDescriptor
 	}
 
 	@Override @AvailMethod
-	void o_ClearValue (final AvailObject object)
+	protected void o_ClearValue (final AvailObject object)
 	{
 		if (writeOnce)
 		{
@@ -299,20 +294,20 @@ extends VariableSharedDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsGlobal(
+	protected boolean o_IsGlobal(
 		final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod
-	boolean o_IsInitializedWriteOnceVariable (final AvailObject object)
+	protected boolean o_IsInitializedWriteOnceVariable (final AvailObject object)
 	{
 		return writeOnce;
 	}
 
 	@Override @AvailMethod
-	void o_ValueWasStablyComputed (
+	protected void o_ValueWasStablyComputed (
 		final AvailObject object,
 		final boolean wasStablyComputed)
 	{
@@ -322,7 +317,7 @@ extends VariableSharedDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_ValueWasStablyComputed (
+	protected boolean o_ValueWasStablyComputed (
 		final AvailObject object)
 	{
 		// Can only be set for write-once variables.
@@ -330,7 +325,8 @@ extends VariableSharedDescriptor
 	}
 
 	@Override @AvailMethod
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.GLOBAL_VARIABLE;
 	}
@@ -367,7 +363,7 @@ extends VariableSharedDescriptor
 		result.setSlot(DEPENDENT_CHUNKS_WEAK_SET_POJO, nil);
 		result.setSlot(MODULE, module.makeShared());
 		result.setSlot(GLOBAL_NAME, name.makeShared());
-		result.descriptor = writeOnce ? sharedWriteOnce : shared;
+		result.setDescriptor(writeOnce ? sharedWriteOnce : shared);
 		return result;
 	}
 

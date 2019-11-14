@@ -36,26 +36,16 @@ import com.avail.AvailRuntime;
 import com.avail.CallbackSystem.Callback;
 import com.avail.builder.RenamesFileParserException;
 import com.avail.builder.UnresolvedDependencyException;
-import com.avail.descriptor.A_Atom;
-import com.avail.descriptor.A_Definition;
-import com.avail.descriptor.A_Fiber;
-import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_Map;
-import com.avail.descriptor.A_Method;
-import com.avail.descriptor.A_Module;
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.A_String;
-import com.avail.descriptor.A_Tuple;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.*;
+import com.avail.descriptor.atoms.A_Atom;
+import com.avail.descriptor.methods.A_Definition;
+import com.avail.descriptor.methods.A_Method;
+import com.avail.descriptor.tuples.A_String;
+import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.interpreter.Interpreter;
 import com.avail.test.AvailRuntimeTestHelper.TestErrorChannel;
 import com.avail.utility.Nulls;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 import javax.annotation.Nullable;
@@ -74,10 +64,7 @@ import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
 import static com.avail.utility.Casts.cast;
 import static java.util.Arrays.asList;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for calls into Avail from Java code.

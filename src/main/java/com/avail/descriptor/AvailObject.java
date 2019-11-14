@@ -39,25 +39,30 @@ import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.CompiledCodeDescriptor.L1InstructionDecoder;
 import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
-import com.avail.descriptor.FiberDescriptor.ExecutionState;
-import com.avail.descriptor.FiberDescriptor.GeneralFlag;
-import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
-import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
-import com.avail.descriptor.FiberDescriptor.TraceFlag;
+import com.avail.descriptor.FiberDescriptor.*;
 import com.avail.descriptor.MapDescriptor.MapIterable;
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
+import com.avail.descriptor.atoms.A_Atom;
+import com.avail.descriptor.bundles.A_Bundle;
+import com.avail.descriptor.bundles.A_BundleTree;
+import com.avail.descriptor.bundles.MessageBundleDescriptor;
+import com.avail.descriptor.methods.A_Definition;
+import com.avail.descriptor.methods.A_GrammaticalRestriction;
+import com.avail.descriptor.methods.A_Method;
+import com.avail.descriptor.methods.A_SemanticRestriction;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.parsing.A_Lexer;
+import com.avail.descriptor.parsing.A_ParsingPlanInProgress;
+import com.avail.descriptor.parsing.A_Phrase;
+import com.avail.descriptor.tuples.A_String;
+import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.dispatch.LookupTree;
 import com.avail.exceptions.ArithmeticException;
-import com.avail.exceptions.AvailException;
-import com.avail.exceptions.MalformedMessageException;
-import com.avail.exceptions.MethodDefinitionException;
-import com.avail.exceptions.SignatureException;
-import com.avail.exceptions.VariableGetException;
-import com.avail.exceptions.VariableSetException;
+import com.avail.exceptions.*;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.AvailLoader.LexicalScanner;
 import com.avail.interpreter.Primitive;
@@ -79,13 +84,7 @@ import com.avail.utility.visitor.MarkUnreachableSubobjectVisitor;
 import javax.annotation.Nullable;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.util.Collection;
-import java.util.IdentityHashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.Spliterator;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -113,30 +112,30 @@ public final class AvailObject
 extends AvailObjectRepresentation
 implements
 	A_BasicObject,
-		A_Atom,
-		A_Bundle,
-		A_BundleTree,
+	A_Atom,
+	A_Bundle,
+	A_BundleTree,
 		A_Character,
 		A_Continuation,
-		A_Definition,
+	A_Definition,
 		A_DefinitionParsingPlan,
 		A_Fiber,
 		A_Function,
-		A_GrammaticalRestriction,
-		A_Lexer,
+	A_GrammaticalRestriction,
+	A_Lexer,
 		A_Map,
 		A_MapBin,
-		A_Method,
+	A_Method,
 		A_Module,
 		A_Number,
-		A_ParsingPlanInProgress,
-		A_Phrase,
+	A_ParsingPlanInProgress,
+	A_Phrase,
 		A_RawFunction,
-		A_SemanticRestriction,
+	A_SemanticRestriction,
 		A_Set,
 		A_Token,
-		A_Tuple,
-			A_String,
+	A_Tuple,
+	A_String,
 		A_Type,
 		A_Variable
 {
@@ -192,7 +191,7 @@ implements
 				builder.append("*** A DESTROYED OBJECT ***");
 				return;
 			}
-			if (indent > descriptor.maximumIndent())
+			if (indent > descriptor().maximumIndent())
 			{
 				builder.append("*** DEPTH ***");
 				return;
@@ -205,7 +204,7 @@ implements
 			recursionMap.put(this, null);
 			try
 			{
-				descriptor.printObjectOnAvoidingIndent(
+				descriptor().printObjectOnAvoidingIndent(
 					this,
 					builder,
 					recursionMap,
@@ -239,7 +238,7 @@ implements
 	@Override
 	public AvailObjectFieldHelper[] describeForDebugger()
 	{
-		return descriptor.o_DescribeForDebugger(this);
+		return descriptor().o_DescribeForDebugger(this);
 	}
 
 	/**
@@ -250,7 +249,7 @@ implements
 	@Override
 	public String nameForDebugger()
 	{
-		return descriptor.o_NameForDebugger(this);
+		return descriptor().o_NameForDebugger(this);
 	}
 
 	/**
@@ -262,7 +261,7 @@ implements
 	@Override
 	public boolean showValueInNameForDebugger()
 	{
-		return descriptor.o_ShowValueInNameForDebugger(this);
+		return descriptor().o_ShowValueInNameForDebugger(this);
 	}
 
 	@Override
@@ -432,7 +431,7 @@ implements
 	@Override
 	public void setToInvalidDescriptor ()
 	{
-		descriptor = FillerDescriptor.shared;
+		setDescriptor(FillerDescriptor.shared);
 	}
 
 	/**
@@ -443,7 +442,7 @@ implements
 	@Override
 	public int hash ()
 	{
-		return descriptor.o_Hash(this);
+		return descriptor().o_Hash(this);
 	}
 
 	/**
@@ -476,7 +475,7 @@ implements
 	public boolean acceptsArgTypesFromFunctionType (
 		final A_Type functionType)
 	{
-		return descriptor.o_AcceptsArgTypesFromFunctionType(this, functionType);
+		return descriptor().o_AcceptsArgTypesFromFunctionType(this, functionType);
 	}
 
 	/**
@@ -493,7 +492,7 @@ implements
 	public boolean acceptsListOfArgTypes (
 		final List<? extends A_Type> argTypes)
 	{
-		return descriptor.o_AcceptsListOfArgTypes(this, argTypes);
+		return descriptor().o_AcceptsListOfArgTypes(this, argTypes);
 	}
 
 	/**
@@ -509,7 +508,7 @@ implements
 	public boolean acceptsListOfArgValues (
 		final List<? extends A_BasicObject> argValues)
 	{
-		return descriptor.o_AcceptsListOfArgValues(this, argValues);
+		return descriptor().o_AcceptsListOfArgValues(this, argValues);
 	}
 
 	/**
@@ -528,7 +527,7 @@ implements
 	public boolean acceptsTupleOfArgTypes (
 		final A_Tuple argTypes)
 	{
-		return descriptor.o_AcceptsTupleOfArgTypes(this, argTypes);
+		return descriptor().o_AcceptsTupleOfArgTypes(this, argTypes);
 	}
 
 	/**
@@ -546,7 +545,7 @@ implements
 	public boolean acceptsTupleOfArguments (
 		final A_Tuple arguments)
 	{
-		return descriptor.o_AcceptsTupleOfArguments(this, arguments);
+		return descriptor().o_AcceptsTupleOfArguments(this, arguments);
 	}
 
 	/**
@@ -558,7 +557,7 @@ implements
 	@Override
 	public void addDependentChunk (final L2Chunk chunk)
 	{
-		descriptor.o_AddDependentChunk(this, chunk);
+		descriptor().o_AddDependentChunk(this, chunk);
 	}
 
 	/**
@@ -576,7 +575,7 @@ implements
 			final A_Definition definition)
 		throws SignatureException
 	{
-		descriptor.o_MethodAddDefinition(this, definition);
+		descriptor().o_MethodAddDefinition(this, definition);
 	}
 
 	/**
@@ -591,7 +590,7 @@ implements
 	public void moduleAddGrammaticalRestriction (
 		final A_GrammaticalRestriction grammaticalRestriction)
 	{
-		descriptor.o_ModuleAddGrammaticalRestriction(
+		descriptor().o_ModuleAddGrammaticalRestriction(
 			this, grammaticalRestriction);
 	}
 
@@ -617,7 +616,7 @@ implements
 		final Sign sign,
 		final boolean canDestroy)
 	{
-		return descriptor.o_AddToInfinityCanDestroy(
+		return descriptor().o_AddToInfinityCanDestroy(
 			this,
 			sign,
 			canDestroy);
@@ -645,7 +644,7 @@ implements
 		final AvailObject anInteger,
 		final boolean canDestroy)
 	{
-		return descriptor.o_AddToIntegerCanDestroy(
+		return descriptor().o_AddToIntegerCanDestroy(
 			this,
 			anInteger,
 			canDestroy);
@@ -660,7 +659,7 @@ implements
 	@Override
 	public String asNativeString ()
 	{
-		return descriptor.o_AsNativeString(this);
+		return descriptor().o_AsNativeString(this);
 	}
 
 	/**
@@ -672,7 +671,7 @@ implements
 	@Override
 	public A_Set asSet ()
 	{
-		return descriptor.o_AsSet(this);
+		return descriptor().o_AsSet(this);
 	}
 
 	/**
@@ -685,14 +684,14 @@ implements
 	@Override
 	public A_Tuple asTuple ()
 	{
-		return descriptor.o_AsTuple(this);
+		return descriptor().o_AsTuple(this);
 	}
 
 	@Override
 	public void addGrammaticalRestriction (
 		final A_GrammaticalRestriction grammaticalRestriction)
 	{
-		descriptor.o_AddGrammaticalRestriction(
+		descriptor().o_AddGrammaticalRestriction(
 			this, grammaticalRestriction);
 	}
 
@@ -700,7 +699,7 @@ implements
 	public void moduleAddDefinition (
 		final A_BasicObject definition)
 	{
-		descriptor.o_ModuleAddDefinition(
+		descriptor().o_ModuleAddDefinition(
 			this,
 			definition);
 	}
@@ -709,7 +708,7 @@ implements
 	public void addDefinitionParsingPlan (
 		final A_DefinitionParsingPlan plan)
 	{
-		descriptor.o_AddDefinitionParsingPlan(
+		descriptor().o_AddDefinitionParsingPlan(
 			this,
 			plan);
 	}
@@ -718,7 +717,7 @@ implements
 	public void addImportedName (
 		final A_Atom trueName)
 	{
-		descriptor.o_AddImportedName(
+		descriptor().o_AddImportedName(
 			this,
 			trueName);
 	}
@@ -727,7 +726,7 @@ implements
 	public void addImportedNames (
 		final A_Set trueNames)
 	{
-		descriptor.o_AddImportedNames(
+		descriptor().o_AddImportedNames(
 			this,
 			trueNames);
 	}
@@ -736,7 +735,7 @@ implements
 	public void introduceNewName (
 		final A_Atom trueName)
 	{
-		descriptor.o_IntroduceNewName(
+		descriptor().o_IntroduceNewName(
 			this,
 			trueName);
 	}
@@ -745,7 +744,7 @@ implements
 	public void addPrivateName (
 		final A_Atom trueName)
 	{
-		descriptor.o_AddPrivateName(
+		descriptor().o_AddPrivateName(
 			this,
 			trueName);
 	}
@@ -757,7 +756,7 @@ implements
 		final byte myLevel,
 		final boolean canDestroy)
 	{
-		return descriptor.o_SetBinAddingElementHashLevelCanDestroy(
+		return descriptor().o_SetBinAddingElementHashLevelCanDestroy(
 			this,
 			elementObject,
 			elementObjectHash,
@@ -768,14 +767,14 @@ implements
 	@Override
 	public int setBinSize ()
 	{
-		return descriptor.o_SetBinSize(this);
+		return descriptor().o_SetBinSize(this);
 	}
 
 	@Override
 	public AvailObject binElementAt (
 		final int index)
 	{
-		return descriptor.o_BinElementAt(this, index);
+		return descriptor().o_BinElementAt(this, index);
 	}
 
 	@Override
@@ -783,7 +782,7 @@ implements
 		final A_BasicObject elementObject,
 		final int elementObjectHash)
 	{
-		return descriptor.o_BinHasElementWithHash(
+		return descriptor().o_BinHasElementWithHash(
 			this,
 			elementObject,
 			elementObjectHash);
@@ -792,7 +791,7 @@ implements
 	@Override
 	public int setBinHash ()
 	{
-		return descriptor.o_SetBinHash(this);
+		return descriptor().o_SetBinHash(this);
 	}
 
 	@Override
@@ -802,7 +801,7 @@ implements
 		final byte myLevel,
 		final boolean canDestroy)
 	{
-		return descriptor.o_BinRemoveElementHashLevelCanDestroy(
+		return descriptor().o_BinRemoveElementHashLevelCanDestroy(
 			this,
 			elementObject,
 			elementObjectHash,
@@ -813,74 +812,74 @@ implements
 	@Override
 	public int bitsPerEntry ()
 	{
-		return descriptor.o_BitsPerEntry(this);
+		return descriptor().o_BitsPerEntry(this);
 	}
 
 	@Override
 	public A_Function bodyBlock ()
 	{
-		return descriptor.o_BodyBlock(this);
+		return descriptor().o_BodyBlock(this);
 	}
 
 	@Override
 	public A_Type bodySignature ()
 	{
-		return descriptor.o_BodySignature(this);
+		return descriptor().o_BodySignature(this);
 	}
 
 	@Override
 	public A_BasicObject breakpointBlock ()
 	{
-		return descriptor.o_BreakpointBlock(this);
+		return descriptor().o_BreakpointBlock(this);
 	}
 
 	@Override
 	public void breakpointBlock (
 		final AvailObject value)
 	{
-		descriptor.o_BreakpointBlock(this, value);
+		descriptor().o_BreakpointBlock(this, value);
 	}
 
 	@Override
 	public A_BundleTree buildFilteredBundleTree ()
 	{
-		return descriptor.o_BuildFilteredBundleTree(this);
+		return descriptor().o_BuildFilteredBundleTree(this);
 	}
 
 	@Override
 	public A_Continuation caller ()
 	{
-		return descriptor.o_Caller(this);
+		return descriptor().o_Caller(this);
 	}
 
 	@Override
 	public void clearValue ()
 	{
-		descriptor.o_ClearValue(this);
+		descriptor().o_ClearValue(this);
 	}
 
 	@Override
 	public A_Function function ()
 	{
-		return descriptor.o_Function(this);
+		return descriptor().o_Function(this);
 	}
 
 	@Override
 	public A_Type functionType ()
 	{
-		return descriptor.o_FunctionType(this);
+		return descriptor().o_FunctionType(this);
 	}
 
 	@Override
 	public A_RawFunction code ()
 	{
-		return descriptor.o_Code(this);
+		return descriptor().o_Code(this);
 	}
 
 	@Override
 	public int codePoint ()
 	{
-		return descriptor.o_CodePoint(this);
+		return descriptor().o_CodePoint(this);
 	}
 
 	/**
@@ -906,7 +905,7 @@ implements
 		final A_Tuple anotherObject,
 		final int startIndex2)
 	{
-		return descriptor.o_CompareFromToWithStartingAt(
+		return descriptor().o_CompareFromToWithStartingAt(
 			this,
 			startIndex1,
 			endIndex1,
@@ -938,7 +937,7 @@ implements
 		final A_Tuple aTuple,
 		final int startIndex2)
 	{
-		return descriptor.o_CompareFromToWithAnyTupleStartingAt(
+		return descriptor().o_CompareFromToWithAnyTupleStartingAt(
 			this,
 			startIndex1,
 			endIndex1,
@@ -970,7 +969,7 @@ implements
 		final A_String aByteString,
 		final int startIndex2)
 	{
-		return descriptor.o_CompareFromToWithByteStringStartingAt(
+		return descriptor().o_CompareFromToWithByteStringStartingAt(
 			this,
 			startIndex1,
 			endIndex1,
@@ -1002,7 +1001,7 @@ implements
 		final A_Tuple aByteTuple,
 		final int startIndex2)
 	{
-		return descriptor.o_CompareFromToWithByteTupleStartingAt(
+		return descriptor().o_CompareFromToWithByteTupleStartingAt(
 			this,
 			startIndex1,
 			endIndex1,
@@ -1034,7 +1033,7 @@ implements
 		final A_Tuple anIntegerIntervalTuple,
 		final int startIndex2)
 	{
-		return descriptor.o_CompareFromToWithIntegerIntervalTupleStartingAt(
+		return descriptor().o_CompareFromToWithIntegerIntervalTupleStartingAt(
 			this,
 			startIndex1,
 			endIndex1,
@@ -1066,7 +1065,7 @@ implements
 		final A_Tuple anIntTuple,
 		final int startIndex2)
 	{
-		return descriptor.o_CompareFromToWithIntTupleStartingAt(
+		return descriptor().o_CompareFromToWithIntTupleStartingAt(
 			this,
 			startIndex1,
 			endIndex1,
@@ -1098,7 +1097,7 @@ implements
 		final A_Tuple aSmallIntegerIntervalTuple,
 		final int startIndex2)
 	{
-		return descriptor.o_CompareFromToWithSmallIntegerIntervalTupleStartingAt(
+		return descriptor().o_CompareFromToWithSmallIntegerIntervalTupleStartingAt(
 			this,
 			startIndex1,
 			endIndex1,
@@ -1130,7 +1129,7 @@ implements
 		final A_Tuple aRepeatedElementTuple,
 		final int startIndex2)
 	{
-		return descriptor.o_CompareFromToWithRepeatedElementTupleStartingAt(
+		return descriptor().o_CompareFromToWithRepeatedElementTupleStartingAt(
 			this,
 			startIndex1,
 			endIndex1,
@@ -1162,7 +1161,7 @@ implements
 		final A_Tuple aNybbleTuple,
 		final int startIndex2)
 	{
-		return descriptor.o_CompareFromToWithNybbleTupleStartingAt(
+		return descriptor().o_CompareFromToWithNybbleTupleStartingAt(
 			this,
 			startIndex1,
 			endIndex1,
@@ -1194,7 +1193,7 @@ implements
 		final A_Tuple anObjectTuple,
 		final int startIndex2)
 	{
-		return descriptor.o_CompareFromToWithObjectTupleStartingAt(
+		return descriptor().o_CompareFromToWithObjectTupleStartingAt(
 			this,
 			startIndex1,
 			endIndex1,
@@ -1226,7 +1225,7 @@ implements
 		final A_String aTwoByteString,
 		final int startIndex2)
 	{
-		return descriptor.o_CompareFromToWithTwoByteStringStartingAt(
+		return descriptor().o_CompareFromToWithTwoByteStringStartingAt(
 			this,
 			startIndex1,
 			endIndex1,
@@ -1237,7 +1236,7 @@ implements
 	@Override
 	public A_Set lazyComplete ()
 	{
-		return descriptor.o_LazyComplete(this);
+		return descriptor().o_LazyComplete(this);
 	}
 
 	@Override
@@ -1245,7 +1244,7 @@ implements
 		final int start,
 		final int end)
 	{
-		return descriptor.o_ComputeHashFromTo(
+		return descriptor().o_ComputeHashFromTo(
 			this,
 			start,
 			end);
@@ -1255,44 +1254,44 @@ implements
 	public A_Tuple concatenateTuplesCanDestroy (
 		final boolean canDestroy)
 	{
-		return descriptor.o_ConcatenateTuplesCanDestroy(this, canDestroy);
+		return descriptor().o_ConcatenateTuplesCanDestroy(this, canDestroy);
 	}
 
 	@Override
 	public A_Map constantBindings ()
 	{
-		return descriptor.o_ConstantBindings(this);
+		return descriptor().o_ConstantBindings(this);
 	}
 
 	@Override
 	public A_Type contentType ()
 	{
-		return descriptor.o_ContentType(this);
+		return descriptor().o_ContentType(this);
 	}
 
 	@Override
 	public A_Continuation continuation ()
 	{
-		return descriptor.o_Continuation(this);
+		return descriptor().o_Continuation(this);
 	}
 
 	@Override
 	public void continuation (
 		final A_Continuation value)
 	{
-		descriptor.o_Continuation(this, value);
+		descriptor().o_Continuation(this, value);
 	}
 
 	@Override
 	public A_Tuple copyAsMutableIntTuple ()
 	{
-		return descriptor.o_CopyAsMutableIntTuple(this);
+		return descriptor().o_CopyAsMutableIntTuple(this);
 	}
 
 	@Override
 	public A_Tuple copyAsMutableObjectTuple ()
 	{
-		return descriptor.o_CopyAsMutableObjectTuple(this);
+		return descriptor().o_CopyAsMutableObjectTuple(this);
 	}
 
 	@Override
@@ -1301,7 +1300,7 @@ implements
 		final int end,
 		final boolean canDestroy)
 	{
-		return descriptor.o_CopyTupleFromToCanDestroy(
+		return descriptor().o_CopyTupleFromToCanDestroy(
 			this,
 			start,
 			end,
@@ -1327,21 +1326,21 @@ implements
 		final boolean canDestroy)
 	{
 		return cast(
-			descriptor.o_CopyTupleFromToCanDestroy(
+			descriptor().o_CopyTupleFromToCanDestroy(
 				this, start, end, canDestroy));
 	}
 
 	@Override
 	public boolean couldEverBeInvokedWith (
-		final List<? extends TypeRestriction> argRestrictions)
+		final List<TypeRestriction> argRestrictions)
 	{
-		return descriptor.o_CouldEverBeInvokedWith(this, argRestrictions);
+		return descriptor().o_CouldEverBeInvokedWith(this, argRestrictions);
 	}
 
 	@Override
 	public A_Type defaultType ()
 	{
-		return descriptor.o_DefaultType(this);
+		return descriptor().o_DefaultType(this);
 	}
 
 	/**
@@ -1369,7 +1368,7 @@ implements
 		final A_Number aNumber,
 		final boolean canDestroy)
 	{
-		return descriptor.o_DivideCanDestroy(
+		return descriptor().o_DivideCanDestroy(
 			this,
 			aNumber,
 			canDestroy);
@@ -1397,7 +1396,7 @@ implements
 	{
 		try
 		{
-			return descriptor.o_DivideCanDestroy(
+			return descriptor().o_DivideCanDestroy(
 				this,
 				aNumber,
 				canDestroy);
@@ -1434,7 +1433,7 @@ implements
 		final Sign sign,
 		final boolean canDestroy)
 	{
-		return descriptor.o_DivideIntoInfinityCanDestroy(
+		return descriptor().o_DivideIntoInfinityCanDestroy(
 			this, sign, canDestroy);
 	}
 
@@ -1460,14 +1459,14 @@ implements
 		final AvailObject anInteger,
 		final boolean canDestroy)
 	{
-		return descriptor.o_DivideIntoIntegerCanDestroy(
+		return descriptor().o_DivideIntoIntegerCanDestroy(
 			this, anInteger, canDestroy);
 	}
 
 	@Override
 	public A_Continuation ensureMutable ()
 	{
-		return descriptor.o_EnsureMutable(this);
+		return descriptor().o_EnsureMutable(this);
 	}
 
 	/**
@@ -1492,7 +1491,7 @@ implements
 		{
 			return true;
 		}
-		if (!descriptor.o_Equals(this, another))
+		if (!descriptor().o_Equals(this, another))
 		{
 			return false;
 		}
@@ -1534,7 +1533,7 @@ implements
 	public boolean equalsAnyTuple (
 		final A_Tuple aTuple)
 	{
-		return descriptor.o_EqualsAnyTuple(this, aTuple);
+		return descriptor().o_EqualsAnyTuple(this, aTuple);
 	}
 
 	/**
@@ -1550,7 +1549,7 @@ implements
 	public boolean equalsByteString (
 		final A_String aByteString)
 	{
-		return descriptor.o_EqualsByteString(this, aByteString);
+		return descriptor().o_EqualsByteString(this, aByteString);
 	}
 
 	/**
@@ -1566,7 +1565,7 @@ implements
 	public boolean equalsByteTuple (
 		final A_Tuple aByteTuple)
 	{
-		return descriptor.o_EqualsByteTuple(this, aByteTuple);
+		return descriptor().o_EqualsByteTuple(this, aByteTuple);
 	}
 
 	/**
@@ -1583,7 +1582,7 @@ implements
 	public boolean equalsIntegerIntervalTuple (
 		final A_Tuple anIntegerIntervalTuple)
 	{
-		return descriptor.o_EqualsIntegerIntervalTuple(
+		return descriptor().o_EqualsIntegerIntervalTuple(
 			this,
 			anIntegerIntervalTuple);
 	}
@@ -1601,7 +1600,7 @@ implements
 	public boolean equalsIntTuple (
 		final A_Tuple anIntTuple)
 	{
-		return descriptor.o_EqualsIntTuple(this, anIntTuple);
+		return descriptor().o_EqualsIntTuple(this, anIntTuple);
 	}
 
 	/**
@@ -1618,7 +1617,7 @@ implements
 	public boolean equalsSmallIntegerIntervalTuple (
 		final A_Tuple aSmallIntegerIntervalTuple)
 	{
-		return descriptor.o_EqualsSmallIntegerIntervalTuple(
+		return descriptor().o_EqualsSmallIntegerIntervalTuple(
 			this,
 			aSmallIntegerIntervalTuple);
 	}
@@ -1637,7 +1636,7 @@ implements
 	public boolean equalsRepeatedElementTuple (
 		final A_Tuple aRepeatedElementTuple)
 	{
-		return descriptor.o_EqualsRepeatedElementTuple(
+		return descriptor().o_EqualsRepeatedElementTuple(
 			this,
 			aRepeatedElementTuple);
 	}
@@ -1654,20 +1653,20 @@ implements
 	public boolean equalsCharacterWithCodePoint (
 		final int aCodePoint)
 	{
-		return descriptor.o_EqualsCharacterWithCodePoint(this, aCodePoint);
+		return descriptor().o_EqualsCharacterWithCodePoint(this, aCodePoint);
 	}
 
 	@Override
 	public boolean equalsFiberType (final A_Type aFiberType)
 	{
-		return descriptor.o_EqualsFiberType(this, aFiberType);
+		return descriptor().o_EqualsFiberType(this, aFiberType);
 	}
 
 	@Override
 	public boolean equalsFunction (
 		final A_Function aFunction)
 	{
-		return descriptor.o_EqualsFunction(this, aFunction);
+		return descriptor().o_EqualsFunction(this, aFunction);
 	}
 
 	/**
@@ -1690,7 +1689,7 @@ implements
 	public boolean equalsFunctionType (
 		final A_Type aFunctionType)
 	{
-		return descriptor.o_EqualsFunctionType(this, aFunctionType);
+		return descriptor().o_EqualsFunctionType(this, aFunctionType);
 	}
 
 	/**
@@ -1705,7 +1704,7 @@ implements
 	public boolean equalsCompiledCode (
 		final A_RawFunction aCompiledCode)
 	{
-		return descriptor.o_EqualsCompiledCode(this, aCompiledCode);
+		return descriptor().o_EqualsCompiledCode(this, aCompiledCode);
 	}
 
 	/**
@@ -1724,42 +1723,42 @@ implements
 	public boolean equalsVariable (
 		final AvailObject aVariable)
 	{
-		return descriptor.o_EqualsVariable(this, aVariable);
+		return descriptor().o_EqualsVariable(this, aVariable);
 	}
 
 	@Override
 	public boolean equalsVariableType (
 		final A_Type aVariableType)
 	{
-		return descriptor.o_EqualsVariableType(this, aVariableType);
+		return descriptor().o_EqualsVariableType(this, aVariableType);
 	}
 
 	@Override
 	public boolean equalsContinuation (
 		final A_Continuation aContinuation)
 	{
-		return descriptor.o_EqualsContinuation(this, aContinuation);
+		return descriptor().o_EqualsContinuation(this, aContinuation);
 	}
 
 	@Override
 	public boolean equalsContinuationType (
 		final A_Type aContinuationType)
 	{
-		return descriptor.o_EqualsContinuationType(this, aContinuationType);
+		return descriptor().o_EqualsContinuationType(this, aContinuationType);
 	}
 
 	@Override
 	public boolean equalsDouble (
 		final double aDouble)
 	{
-		return descriptor.o_EqualsDouble(this, aDouble);
+		return descriptor().o_EqualsDouble(this, aDouble);
 	}
 
 	@Override
 	public boolean equalsFloat (
 		final float aFloat)
 	{
-		return descriptor.o_EqualsFloat(this, aFloat);
+		return descriptor().o_EqualsFloat(this, aFloat);
 	}
 
 	/**
@@ -1775,82 +1774,82 @@ implements
 	public boolean equalsInfinity (
 		final Sign sign)
 	{
-		return descriptor.o_EqualsInfinity(this, sign);
+		return descriptor().o_EqualsInfinity(this, sign);
 	}
 
 	@Override
 	public boolean equalsInteger (
 		final AvailObject anAvailInteger)
 	{
-		return descriptor.o_EqualsInteger(this, anAvailInteger);
+		return descriptor().o_EqualsInteger(this, anAvailInteger);
 	}
 
 	@Override
 	public boolean equalsIntegerRangeType (
 		final A_Type anIntegerRangeType)
 	{
-		return descriptor.o_EqualsIntegerRangeType(this, anIntegerRangeType);
+		return descriptor().o_EqualsIntegerRangeType(this, anIntegerRangeType);
 	}
 
 	@Override
 	public boolean equalsMap (
 		final A_Map aMap)
 	{
-		return descriptor.o_EqualsMap(this, aMap);
+		return descriptor().o_EqualsMap(this, aMap);
 	}
 
 	@Override
 	public boolean equalsMapType (
 		final A_Type aMapType)
 	{
-		return descriptor.o_EqualsMapType(this, aMapType);
+		return descriptor().o_EqualsMapType(this, aMapType);
 	}
 
 	@Override
 	public boolean equalsNybbleTuple (
 		final A_Tuple aNybbleTuple)
 	{
-		return descriptor.o_EqualsNybbleTuple(this, aNybbleTuple);
+		return descriptor().o_EqualsNybbleTuple(this, aNybbleTuple);
 	}
 
 	@Override
 	public boolean equalsObject (
 		final AvailObject anObject)
 	{
-		return descriptor.o_EqualsObject(this, anObject);
+		return descriptor().o_EqualsObject(this, anObject);
 	}
 
 	@Override
 	public boolean equalsObjectTuple (
 		final A_Tuple anObjectTuple)
 	{
-		return descriptor.o_EqualsObjectTuple(this, anObjectTuple);
+		return descriptor().o_EqualsObjectTuple(this, anObjectTuple);
 	}
 
 	@Override
 	public boolean equalsPhraseType (
 		final A_Type aPhraseType)
 	{
-		return descriptor.o_EqualsPhraseType(this, aPhraseType);
+		return descriptor().o_EqualsPhraseType(this, aPhraseType);
 	}
 
 	@Override
 	public boolean equalsPojo (final AvailObject aPojo)
 	{
-		return descriptor.o_EqualsPojo(this, aPojo);
+		return descriptor().o_EqualsPojo(this, aPojo);
 	}
 
 	@Override
 	public boolean equalsPojoType (final AvailObject aPojoType)
 	{
-		return descriptor.o_EqualsPojoType(this, aPojoType);
+		return descriptor().o_EqualsPojoType(this, aPojoType);
 	}
 
 	@Override
 	public boolean equalsPrimitiveType (
 		final A_Type aPrimitiveType)
 	{
-		return descriptor.o_EqualsPrimitiveType(this, aPrimitiveType);
+		return descriptor().o_EqualsPrimitiveType(this, aPrimitiveType);
 	}
 
 	@Override
@@ -1858,7 +1857,7 @@ implements
 		final AvailObject otherRawPojo,
 		final @Nullable Object otherJavaObject)
 	{
-		return descriptor.o_EqualsRawPojoFor(
+		return descriptor().o_EqualsRawPojoFor(
 			this,
 			otherRawPojo,
 			otherJavaObject);
@@ -1882,35 +1881,35 @@ implements
 	@Override
 	public boolean equalsReverseTuple (final A_Tuple aTuple)
 	{
-		return descriptor.o_EqualsReverseTuple(this, aTuple);
+		return descriptor().o_EqualsReverseTuple(this, aTuple);
 	}
 
 	@Override
 	public boolean equalsSet (
 		final A_Set aSet)
 	{
-		return descriptor.o_EqualsSet(this, aSet);
+		return descriptor().o_EqualsSet(this, aSet);
 	}
 
 	@Override
 	public boolean equalsSetType (
 		final A_Type aSetType)
 	{
-		return descriptor.o_EqualsSetType(this, aSetType);
+		return descriptor().o_EqualsSetType(this, aSetType);
 	}
 
 	@Override
 	public boolean equalsTupleType (
 		final A_Type aTupleType)
 	{
-		return descriptor.o_EqualsTupleType(this, aTupleType);
+		return descriptor().o_EqualsTupleType(this, aTupleType);
 	}
 
 	@Override
 	public boolean equalsTwoByteString (
 		final A_String aTwoByteString)
 	{
-		return descriptor.o_EqualsTwoByteString(this, aTwoByteString);
+		return descriptor().o_EqualsTwoByteString(this, aTwoByteString);
 	}
 
 	@Override
@@ -1924,51 +1923,51 @@ implements
 	@Override
 	public ExecutionState executionState ()
 	{
-		return descriptor.o_ExecutionState(this);
+		return descriptor().o_ExecutionState(this);
 	}
 
 	@Override
 	public void executionState (
 		final ExecutionState value)
 	{
-		descriptor.o_ExecutionState(this, value);
+		descriptor().o_ExecutionState(this, value);
 	}
 
 	@Override
 	public void expand (
 		final A_Module module)
 	{
-		descriptor.o_Expand(this, module);
+		descriptor().o_Expand(this, module);
 	}
 
 	@Override
 	public boolean extractBoolean ()
 	{
-		return descriptor.o_ExtractBoolean(this);
+		return descriptor().o_ExtractBoolean(this);
 	}
 
 	@Override
 	public short extractUnsignedByte ()
 	{
-		return descriptor.o_ExtractUnsignedByte(this);
+		return descriptor().o_ExtractUnsignedByte(this);
 	}
 
 	@Override
 	public double extractDouble ()
 	{
-		return descriptor.o_ExtractDouble(this);
+		return descriptor().o_ExtractDouble(this);
 	}
 
 	@Override
 	public float extractFloat ()
 	{
-		return descriptor.o_ExtractFloat(this);
+		return descriptor().o_ExtractFloat(this);
 	}
 
 	@Override
 	public int extractInt ()
 	{
-		return descriptor.o_ExtractInt(this);
+		return descriptor().o_ExtractInt(this);
 	}
 
 	/**
@@ -1980,45 +1979,45 @@ implements
 	@Override
 	public long extractLong ()
 	{
-		return descriptor.o_ExtractLong(this);
+		return descriptor().o_ExtractLong(this);
 	}
 
 	@Override
 	public byte extractNybble ()
 	{
-		return descriptor.o_ExtractNybble(this);
+		return descriptor().o_ExtractNybble(this);
 	}
 
 	@Override
 	public byte extractNybbleFromTupleAt (
 		final int index)
 	{
-		return descriptor.o_ExtractNybbleFromTupleAt(this, index);
+		return descriptor().o_ExtractNybbleFromTupleAt(this, index);
 	}
 
 	@Override
 	public A_Map fieldMap ()
 	{
-		return descriptor.o_FieldMap(this);
+		return descriptor().o_FieldMap(this);
 	}
 
 	@Override
 	public A_Map fieldTypeMap ()
 	{
-		return descriptor.o_FieldTypeMap(this);
+		return descriptor().o_FieldTypeMap(this);
 	}
 
 	@Override
 	public List<A_Definition> filterByTypes (
 		final List<? extends A_Type> argTypes)
 	{
-		return descriptor.o_FilterByTypes(this, argTypes);
+		return descriptor().o_FilterByTypes(this, argTypes);
 	}
 
 	@Override
 	public AvailObject getValue () throws VariableGetException
 	{
-		return descriptor.o_GetValue(this);
+		return descriptor().o_GetValue(this);
 	}
 
 	/**
@@ -2033,7 +2032,7 @@ implements
 	public boolean hasElement (
 		final A_BasicObject elementObject)
 	{
-		return descriptor.o_HasElement(this, elementObject);
+		return descriptor().o_HasElement(this, elementObject);
 	}
 
 	@Override
@@ -2041,7 +2040,7 @@ implements
 		final int startIndex,
 		final int endIndex)
 	{
-		return descriptor.o_HashFromTo(
+		return descriptor().o_HashFromTo(
 			this,
 			startIndex,
 			endIndex);
@@ -2050,113 +2049,113 @@ implements
 	@Override
 	public int hashOrZero ()
 	{
-		return descriptor.o_HashOrZero(this);
+		return descriptor().o_HashOrZero(this);
 	}
 
 	@Override
 	public void hashOrZero (
 		final int value)
 	{
-		descriptor.o_HashOrZero(this, value);
+		descriptor().o_HashOrZero(this, value);
 	}
 
 	@Override
 	public boolean hasKey (
 		final A_BasicObject keyObject)
 	{
-		return descriptor.o_HasKey(this, keyObject);
+		return descriptor().o_HasKey(this, keyObject);
 	}
 
 	@Override
 	public boolean hasObjectInstance (
 		final AvailObject potentialInstance)
 	{
-		return descriptor.o_HasObjectInstance(this, potentialInstance);
+		return descriptor().o_HasObjectInstance(this, potentialInstance);
 	}
 
 	@Override
 	public boolean hasGrammaticalRestrictions ()
 	{
-		return descriptor.o_HasGrammaticalRestrictions(this);
+		return descriptor().o_HasGrammaticalRestrictions(this);
 	}
 
 	@Override
 	public List<A_Definition> definitionsAtOrBelow (
-		final List<? extends TypeRestriction> argRestrictions)
+		final List<TypeRestriction> argRestrictions)
 	{
-		return descriptor.o_DefinitionsAtOrBelow(this, argRestrictions);
+		return descriptor().o_DefinitionsAtOrBelow(this, argRestrictions);
 	}
 
 	@Override
 	public A_Tuple definitionsTuple ()
 	{
-		return descriptor.o_DefinitionsTuple(this);
+		return descriptor().o_DefinitionsTuple(this);
 	}
 
 	@Override
 	public boolean includesDefinition (
 		final A_Definition imp)
 	{
-		return descriptor.o_IncludesDefinition(this, imp);
+		return descriptor().o_IncludesDefinition(this, imp);
 	}
 
 	@Override
 	public A_Map lazyIncomplete ()
 	{
-		return descriptor.o_LazyIncomplete(this);
+		return descriptor().o_LazyIncomplete(this);
 	}
 
 	@Override
 	public void setInterruptRequestFlag (
 		final InterruptRequestFlag flag)
 	{
-		descriptor.o_SetInterruptRequestFlag(this, flag);
+		descriptor().o_SetInterruptRequestFlag(this, flag);
 	}
 
 	@Override
 	public void decrementCountdownToReoptimize (
 		final Continuation1NotNull<Boolean> continuation)
 	{
-		descriptor.o_DecrementCountdownToReoptimize(this, continuation);
+		descriptor().o_DecrementCountdownToReoptimize(this, continuation);
 	}
 
 	@Override
 	public void countdownToReoptimize (
 		final int value)
 	{
-		descriptor.o_CountdownToReoptimize(this, value);
+		descriptor().o_CountdownToReoptimize(this, value);
 	}
 
 	@Override
 	public boolean isAbstract ()
 	{
-		return descriptor.o_IsAbstract(this);
+		return descriptor().o_IsAbstract(this);
 	}
 
 	@Override
 	public boolean isAbstractDefinition ()
 	{
-		return descriptor.o_IsAbstractDefinition(this);
+		return descriptor().o_IsAbstractDefinition(this);
 	}
 
 	@Override
 	public boolean isBetterRepresentationThan (
 		final A_BasicObject anotherObject)
 	{
-		return descriptor.o_IsBetterRepresentationThan(this, anotherObject);
+		return descriptor().o_IsBetterRepresentationThan(this, anotherObject);
 	}
 
 	@Override
 	public int representationCostOfTupleType ()
 	{
-		return descriptor.o_RepresentationCostOfTupleType(this);
+		return descriptor().o_RepresentationCostOfTupleType(this);
 	}
 
 	@Override
 	public boolean isBinSubsetOf (
 		final A_Set potentialSuperset)
 	{
-		return descriptor.o_IsBinSubsetOf(this, potentialSuperset);
+		return descriptor().o_IsBinSubsetOf(this, potentialSuperset);
 	}
 
 	/**
@@ -2168,7 +2167,7 @@ implements
 	@Override
 	public boolean isBoolean ()
 	{
-		return descriptor.o_IsBoolean(this);
+		return descriptor().o_IsBoolean(this);
 	}
 
 	/**
@@ -2180,7 +2179,7 @@ implements
 	@Override
 	public boolean isUnsignedByte ()
 	{
-		return descriptor.o_IsUnsignedByte(this);
+		return descriptor().o_IsUnsignedByte(this);
 	}
 
 	/**
@@ -2192,7 +2191,7 @@ implements
 	@Override
 	public boolean isByteTuple ()
 	{
-		return descriptor.o_IsByteTuple(this);
+		return descriptor().o_IsByteTuple(this);
 	}
 
 	/**
@@ -2204,7 +2203,7 @@ implements
 	@Override
 	public boolean isCharacter ()
 	{
-		return descriptor.o_IsCharacter(this);
+		return descriptor().o_IsCharacter(this);
 	}
 
 	/**
@@ -2216,7 +2215,7 @@ implements
 	@Override
 	public boolean isFunction ()
 	{
-		return descriptor.o_IsFunction(this);
+		return descriptor().o_IsFunction(this);
 	}
 
 	/**
@@ -2228,7 +2227,7 @@ implements
 	@Override
 	public boolean isAtom ()
 	{
-		return descriptor.o_IsAtom(this);
+		return descriptor().o_IsAtom(this);
 	}
 
 	/**
@@ -2240,13 +2239,13 @@ implements
 	@Override
 	public boolean isExtendedInteger ()
 	{
-		return descriptor.o_IsExtendedInteger(this);
+		return descriptor().o_IsExtendedInteger(this);
 	}
 
 	@Override
 	public boolean isFinite ()
 	{
-		return descriptor.o_IsFinite(this);
+		return descriptor().o_IsFinite(this);
 	}
 
 	/**
@@ -2258,7 +2257,7 @@ implements
 	@Override
 	public boolean isForwardDefinition ()
 	{
-		return descriptor.o_IsForwardDefinition(this);
+		return descriptor().o_IsForwardDefinition(this);
 	}
 
 	/**
@@ -2270,51 +2269,51 @@ implements
 	@Override
 	public boolean isMethodDefinition ()
 	{
-		return descriptor.o_IsMethodDefinition(this);
+		return descriptor().o_IsMethodDefinition(this);
 	}
 
 	@Override
 	public boolean isInstanceOf (
 		final A_Type aType)
 	{
-		return descriptor.o_IsInstanceOf(this, aType);
+		return descriptor().o_IsInstanceOf(this, aType);
 	}
 
 	@Override
 	public boolean isInstanceOfKind (
 		final A_Type aType)
 	{
-		return descriptor.o_IsInstanceOfKind(this, aType);
+		return descriptor().o_IsInstanceOfKind(this, aType);
 	}
 
 	@Override
 	public boolean isIntegerIntervalTuple ()
 	{
-		return descriptor.o_IsIntegerIntervalTuple(this);
+		return descriptor().o_IsIntegerIntervalTuple(this);
 	}
 
 	@Override
 	public boolean isIntTuple ()
 	{
-		return descriptor.o_IsIntTuple(this);
+		return descriptor().o_IsIntTuple(this);
 	}
 
 	@Override
 	public boolean isSmallIntegerIntervalTuple ()
 	{
-		return descriptor.o_IsSmallIntegerIntervalTuple(this);
+		return descriptor().o_IsSmallIntegerIntervalTuple(this);
 	}
 
 	@Override
 	public boolean isRepeatedElementTuple ()
 	{
-		return descriptor.o_IsRepeatedElementTuple(this);
+		return descriptor().o_IsRepeatedElementTuple(this);
 	}
 
 	@Override
 	public boolean isIntegerRangeType ()
 	{
-		return descriptor.o_IsIntegerRangeType(this);
+		return descriptor().o_IsIntegerRangeType(this);
 	}
 
 	/**
@@ -2325,13 +2324,13 @@ implements
 	@Override
 	public boolean isMap ()
 	{
-		return descriptor.o_IsMap(this);
+		return descriptor().o_IsMap(this);
 	}
 
 	@Override
 	public boolean isMapType ()
 	{
-		return descriptor.o_IsMapType(this);
+		return descriptor().o_IsMapType(this);
 	}
 
 	/**
@@ -2343,13 +2342,13 @@ implements
 	@Override
 	public boolean isNybble ()
 	{
-		return descriptor.o_IsNybble(this);
+		return descriptor().o_IsNybble(this);
 	}
 
 	@Override
 	public boolean isPositive ()
 	{
-		return descriptor.o_IsPositive(this);
+		return descriptor().o_IsPositive(this);
 	}
 
 	/**
@@ -2360,20 +2359,20 @@ implements
 	@Override
 	public boolean isSet ()
 	{
-		return descriptor.o_IsSet(this);
+		return descriptor().o_IsSet(this);
 	}
 
 	@Override
 	public boolean isSetType ()
 	{
-		return descriptor.o_IsSetType(this);
+		return descriptor().o_IsSetType(this);
 	}
 
 	@Override
 	public boolean isSubsetOf (
 		final A_Set another)
 	{
-		return descriptor.o_IsSubsetOf(this, another);
+		return descriptor().o_IsSubsetOf(this, another);
 	}
 
 	/**
@@ -2385,28 +2384,28 @@ implements
 	@Override
 	public boolean isString ()
 	{
-		return descriptor.o_IsString(this);
+		return descriptor().o_IsString(this);
 	}
 
 	@Override
 	public boolean isSubtypeOf (
 		final A_Type aType)
 	{
-		return descriptor.o_IsSubtypeOf(this, aType);
+		return descriptor().o_IsSubtypeOf(this, aType);
 	}
 
 	@Override
 	public boolean isSupertypeOfVariableType (
 		final A_Type aVariableType)
 	{
-		return descriptor.o_IsSupertypeOfVariableType(this, aVariableType);
+		return descriptor().o_IsSupertypeOfVariableType(this, aVariableType);
 	}
 
 	@Override
 	public boolean isSupertypeOfContinuationType (
 		final A_Type aContinuationType)
 	{
-		return descriptor.o_IsSupertypeOfContinuationType(
+		return descriptor().o_IsSupertypeOfContinuationType(
 			this,
 			aContinuationType);
 	}
@@ -2414,21 +2413,21 @@ implements
 	@Override
 	public boolean isSupertypeOfFiberType (final A_Type aFiberType)
 	{
-		return descriptor.o_IsSupertypeOfFiberType(this, aFiberType);
+		return descriptor().o_IsSupertypeOfFiberType(this, aFiberType);
 	}
 
 	@Override
 	public boolean isSupertypeOfFunctionType (
 		final A_Type aFunctionType)
 	{
-		return descriptor.o_IsSupertypeOfFunctionType(this, aFunctionType);
+		return descriptor().o_IsSupertypeOfFunctionType(this, aFunctionType);
 	}
 
 	@Override
 	public boolean isSupertypeOfIntegerRangeType (
 		final A_Type anIntegerRangeType)
 	{
-		return descriptor.o_IsSupertypeOfIntegerRangeType(
+		return descriptor().o_IsSupertypeOfIntegerRangeType(
 			this,
 			anIntegerRangeType);
 	}
@@ -2437,7 +2436,7 @@ implements
 	public boolean isSupertypeOfListNodeType (
 		final A_Type aListNodeType)
 	{
-		return descriptor.o_IsSupertypeOfListNodeType(
+		return descriptor().o_IsSupertypeOfListNodeType(
 			this,
 			aListNodeType);
 	}
@@ -2446,7 +2445,7 @@ implements
 	public boolean isSupertypeOfTokenType (
 		final A_Type aTokenType)
 	{
-		return descriptor.o_IsSupertypeOfTokenType(
+		return descriptor().o_IsSupertypeOfTokenType(
 			this,
 			aTokenType);
 	}
@@ -2455,7 +2454,7 @@ implements
 	public boolean isSupertypeOfLiteralTokenType (
 		final A_Type aLiteralTokenType)
 	{
-		return descriptor.o_IsSupertypeOfLiteralTokenType(
+		return descriptor().o_IsSupertypeOfLiteralTokenType(
 			this,
 			aLiteralTokenType);
 	}
@@ -2464,35 +2463,35 @@ implements
 	public boolean isSupertypeOfMapType (
 		final AvailObject aMapType)
 	{
-		return descriptor.o_IsSupertypeOfMapType(this, aMapType);
+		return descriptor().o_IsSupertypeOfMapType(this, aMapType);
 	}
 
 	@Override
 	public boolean isSupertypeOfObjectType (
 		final AvailObject anObjectType)
 	{
-		return descriptor.o_IsSupertypeOfObjectType(this, anObjectType);
+		return descriptor().o_IsSupertypeOfObjectType(this, anObjectType);
 	}
 
 	@Override
 	public boolean isSupertypeOfPhraseType (
 		final A_Type aPhraseType)
 	{
-		return descriptor.o_IsSupertypeOfPhraseType(this, aPhraseType);
+		return descriptor().o_IsSupertypeOfPhraseType(this, aPhraseType);
 	}
 
 	@Override
 	public boolean isSupertypeOfPojoType (
 		final A_Type aPojoType)
 	{
-		return descriptor.o_IsSupertypeOfPojoType(this, aPojoType);
+		return descriptor().o_IsSupertypeOfPojoType(this, aPojoType);
 	}
 
 	@Override
 	public boolean isSupertypeOfPrimitiveTypeEnum (
 		final Types primitiveTypeEnum)
 	{
-		return descriptor.o_IsSupertypeOfPrimitiveTypeEnum(
+		return descriptor().o_IsSupertypeOfPrimitiveTypeEnum(
 			this,
 			primitiveTypeEnum);
 	}
@@ -2501,27 +2500,27 @@ implements
 	public boolean isSupertypeOfSetType (
 		final AvailObject aSetType)
 	{
-		return descriptor.o_IsSupertypeOfSetType(this, aSetType);
+		return descriptor().o_IsSupertypeOfSetType(this, aSetType);
 	}
 
 	@Override
 	public boolean isSupertypeOfBottom ()
 	{
-		return descriptor.o_IsSupertypeOfBottom(this);
+		return descriptor().o_IsSupertypeOfBottom(this);
 	}
 
 	@Override
 	public boolean isSupertypeOfTupleType (
 		final AvailObject aTupleType)
 	{
-		return descriptor.o_IsSupertypeOfTupleType(this, aTupleType);
+		return descriptor().o_IsSupertypeOfTupleType(this, aTupleType);
 	}
 
 	@Override
 	public boolean isSupertypeOfEnumerationType (
 		final A_BasicObject anEnumerationType)
 	{
-		return descriptor.o_IsSupertypeOfEnumerationType(
+		return descriptor().o_IsSupertypeOfEnumerationType(
 			this, anEnumerationType);
 	}
 
@@ -2533,19 +2532,19 @@ implements
 	@Override
 	public boolean isTuple ()
 	{
-		return descriptor.o_IsTuple(this);
+		return descriptor().o_IsTuple(this);
 	}
 
 	@Override
 	public boolean isTupleType ()
 	{
-		return descriptor.o_IsTupleType(this);
+		return descriptor().o_IsTupleType(this);
 	}
 
 	@Override
 	public boolean isType ()
 	{
-		return descriptor.o_IsType(this);
+		return descriptor().o_IsType(this);
 	}
 
 	/**
@@ -2559,43 +2558,43 @@ implements
 	@ReferencedInGeneratedCode
 	public IteratorNotNull<AvailObject> iterator ()
 	{
-		return descriptor.o_Iterator(this);
+		return descriptor().o_Iterator(this);
 	}
 
 	@Override
 	public Spliterator<AvailObject> spliterator ()
 	{
-		return descriptor.o_Spliterator(this);
+		return descriptor().o_Spliterator(this);
 	}
 
 	@Override
 	public Stream<AvailObject> stream ()
 	{
-		return descriptor.o_Stream(this);
+		return descriptor().o_Stream(this);
 	}
 
 	@Override
 	public Stream<AvailObject> parallelStream ()
 	{
-		return descriptor.o_ParallelStream(this);
+		return descriptor().o_ParallelStream(this);
 	}
 
 	@Override
 	public A_Set keysAsSet ()
 	{
-		return descriptor.o_KeysAsSet(this);
+		return descriptor().o_KeysAsSet(this);
 	}
 
 	@Override
 	public A_Type keyType ()
 	{
-		return descriptor.o_KeyType(this);
+		return descriptor().o_KeyType(this);
 	}
 
 	@Override
 	public L2Chunk levelTwoChunk ()
 	{
-		return descriptor.o_LevelTwoChunk(this);
+		return descriptor().o_LevelTwoChunk(this);
 	}
 
 	@Override
@@ -2603,7 +2602,7 @@ implements
 		final L2Chunk chunk,
 		final int offset)
 	{
-		descriptor.o_LevelTwoChunkOffset(
+		descriptor().o_LevelTwoChunkOffset(
 			this,
 			chunk,
 			offset);
@@ -2612,27 +2611,27 @@ implements
 	@Override
 	public int levelTwoOffset ()
 	{
-		return descriptor.o_LevelTwoOffset(this);
+		return descriptor().o_LevelTwoOffset(this);
 	}
 
 	@Override
 	public AvailObject literal ()
 	{
-		return descriptor.o_Literal(this);
+		return descriptor().o_Literal(this);
 	}
 
 	@Override
 	public AvailObject literalAt (
 		final int index)
 	{
-		return descriptor.o_LiteralAt(this, index);
+		return descriptor().o_LiteralAt(this, index);
 	}
 
 	@Override
 	public AvailObject argOrLocalOrStackAt (
 		final int index)
 	{
-		return descriptor.o_ArgOrLocalOrStackAt(this, index);
+		return descriptor().o_ArgOrLocalOrStackAt(this, index);
 	}
 
 	@Override
@@ -2640,7 +2639,7 @@ implements
 		final int index,
 		final AvailObject value)
 	{
-		descriptor.o_ArgOrLocalOrStackAtPut(
+		descriptor().o_ArgOrLocalOrStackAtPut(
 			this,
 			index,
 			value);
@@ -2650,7 +2649,7 @@ implements
 	public A_Type localTypeAt (
 		final int index)
 	{
-		return descriptor.o_LocalTypeAt(this, index);
+		return descriptor().o_LocalTypeAt(this, index);
 	}
 
 	@Override
@@ -2658,7 +2657,7 @@ implements
 			final A_Tuple argumentTypeTuple)
 		throws MethodDefinitionException
 	{
-		return descriptor.o_LookupByTypesFromTuple(this, argumentTypeTuple);
+		return descriptor().o_LookupByTypesFromTuple(this, argumentTypeTuple);
 	}
 
 	@Override
@@ -2666,59 +2665,59 @@ implements
 		final List<? extends A_BasicObject> argumentList)
 	throws MethodDefinitionException
 	{
-		return descriptor.o_LookupByValuesFromList(this, argumentList);
+		return descriptor().o_LookupByValuesFromList(this, argumentList);
 	}
 
 	@Override
 	public A_Number lowerBound ()
 	{
-		return descriptor.o_LowerBound(this);
+		return descriptor().o_LowerBound(this);
 	}
 
 	@Override
 	public boolean lowerInclusive ()
 	{
-		return descriptor.o_LowerInclusive(this);
+		return descriptor().o_LowerInclusive(this);
 	}
 
 	@Override
 	public AvailObject makeImmutable ()
 	{
-		final Mutability mutability = descriptor.mutability;
+		final Mutability mutability = descriptor().mutability;
 		if (mutability != Mutability.MUTABLE)
 		{
 			return this;
 		}
-		return descriptor.o_MakeImmutable(this);
+		return descriptor().o_MakeImmutable(this);
 	}
 
 	@Override
 	public AvailObject makeShared ()
 	{
-		if (descriptor.mutability == Mutability.SHARED)
+		if (descriptor().mutability == Mutability.SHARED)
 		{
 			return this;
 		}
-		return descriptor.o_MakeShared(this);
+		return descriptor().o_MakeShared(this);
 	}
 
 	@Override
 	public AvailObject makeSubobjectsImmutable ()
 	{
-		return descriptor.o_MakeSubobjectsImmutable(this);
+		return descriptor().o_MakeSubobjectsImmutable(this);
 	}
 
 	@Override
 	public void makeSubobjectsShared ()
 	{
-		descriptor.o_MakeSubobjectsShared(this);
+		descriptor().o_MakeSubobjectsShared(this);
 	}
 
 	@Override
 	public AvailObject mapAt (
 		final A_BasicObject keyObject)
 	{
-		return descriptor.o_MapAt(this, keyObject);
+		return descriptor().o_MapAt(this, keyObject);
 	}
 
 	@Override
@@ -2727,7 +2726,7 @@ implements
 		final A_BasicObject newValueObject,
 		final boolean canDestroy)
 	{
-		return descriptor.o_MapAtPuttingCanDestroy(
+		return descriptor().o_MapAtPuttingCanDestroy(
 			this,
 			keyObject,
 			newValueObject,
@@ -2737,13 +2736,13 @@ implements
 	@Override
 	public int mapBinSize ()
 	{
-		return descriptor.o_MapBinSize(this);
+		return descriptor().o_MapBinSize(this);
 	}
 
 	@Override
 	public int mapSize ()
 	{
-		return descriptor.o_MapSize(this);
+		return descriptor().o_MapSize(this);
 	}
 
 	@Override
@@ -2751,7 +2750,7 @@ implements
 		final A_BasicObject keyObject,
 		final boolean canDestroy)
 	{
-		return descriptor.o_MapWithoutKeyCanDestroy(
+		return descriptor().o_MapWithoutKeyCanDestroy(
 			this,
 			keyObject,
 			canDestroy);
@@ -2760,25 +2759,25 @@ implements
 	@Override
 	public int maxStackDepth ()
 	{
-		return descriptor.o_MaxStackDepth(this);
+		return descriptor().o_MaxStackDepth(this);
 	}
 
 	@Override
 	public A_Atom message ()
 	{
-		return descriptor.o_Message(this);
+		return descriptor().o_Message(this);
 	}
 
 	@Override
 	public A_Tuple messageParts ()
 	{
-		return descriptor.o_MessageParts(this);
+		return descriptor().o_MessageParts(this);
 	}
 
 	@Override
 	public A_Set methodDefinitions ()
 	{
-		return descriptor.o_MethodDefinitions(this);
+		return descriptor().o_MethodDefinitions(this);
 	}
 
 	/**
@@ -2806,7 +2805,7 @@ implements
 		final A_Number aNumber,
 		final boolean canDestroy)
 	{
-		return descriptor.o_MinusCanDestroy(
+		return descriptor().o_MinusCanDestroy(
 			this,
 			aNumber,
 			canDestroy);
@@ -2834,7 +2833,7 @@ implements
 	{
 		try
 		{
-			return descriptor.o_MinusCanDestroy(
+			return descriptor().o_MinusCanDestroy(
 				this,
 				aNumber,
 				canDestroy);
@@ -2871,7 +2870,7 @@ implements
 		final Sign sign,
 		final boolean canDestroy)
 	{
-		return descriptor.o_MultiplyByInfinityCanDestroy(
+		return descriptor().o_MultiplyByInfinityCanDestroy(
 			this,
 			sign,
 			canDestroy);
@@ -2899,102 +2898,102 @@ implements
 		final AvailObject anInteger,
 		final boolean canDestroy)
 	{
-		return descriptor.o_MultiplyByIntegerCanDestroy(
+		return descriptor().o_MultiplyByIntegerCanDestroy(
 			this, anInteger, canDestroy);
 	}
 
 	@Override
 	public A_String atomName ()
 	{
-		return descriptor.o_AtomName(this);
+		return descriptor().o_AtomName(this);
 	}
 
 	@Override
 	public A_Map importedNames ()
 	{
-		return descriptor.o_ImportedNames(this);
+		return descriptor().o_ImportedNames(this);
 	}
 
 	@Override
 	public boolean nameVisible (
 		final A_Atom trueName)
 	{
-		return descriptor.o_NameVisible(this, trueName);
+		return descriptor().o_NameVisible(this, trueName);
 	}
 
 	@Override
 	public A_Map newNames ()
 	{
-		return descriptor.o_NewNames(this);
+		return descriptor().o_NewNames(this);
 	}
 
 	@Override
 	public int numArgs ()
 	{
-		return descriptor.o_NumArgs(this);
+		return descriptor().o_NumArgs(this);
 	}
 
 	@Override
 	public int numSlots ()
 	{
-		return descriptor.o_NumSlots(this);
+		return descriptor().o_NumSlots(this);
 	}
 
 	@Override
 	public int numLiterals ()
 	{
-		return descriptor.o_NumLiterals(this);
+		return descriptor().o_NumLiterals(this);
 	}
 
 	@Override
 	public int numLocals ()
 	{
-		return descriptor.o_NumLocals(this);
+		return descriptor().o_NumLocals(this);
 	}
 
 	@Override
 	public int numConstants ()
 	{
-		return descriptor.o_NumConstants(this);
+		return descriptor().o_NumConstants(this);
 	}
 
 	@Override
 	public int numOuters ()
 	{
-		return descriptor.o_NumOuters(this);
+		return descriptor().o_NumOuters(this);
 	}
 
 	@Override
 	public int numOuterVars ()
 	{
-		return descriptor.o_NumOuterVars(this);
+		return descriptor().o_NumOuterVars(this);
 	}
 
 	@Override
 	public A_Tuple nybbles ()
 	{
-		return descriptor.o_Nybbles(this);
+		return descriptor().o_Nybbles(this);
 	}
 
 	@Override
 	public boolean optionallyNilOuterVar (
 		final int index)
 	{
-		return descriptor.o_OptionallyNilOuterVar(this, index);
+		return descriptor().o_OptionallyNilOuterVar(this, index);
 	}
 
 	@Override
 	public A_Type outerTypeAt (
 		final int index)
 	{
-		return descriptor.o_OuterTypeAt(this, index);
+		return descriptor().o_OuterTypeAt(this, index);
 	}
 
 	@Override
 	public AvailObject outerVarAt (
 		final int index)
 	{
-		return descriptor.o_OuterVarAt(this, index);
+		return descriptor().o_OuterVarAt(this, index);
 	}
 
 	@Override
@@ -3002,18 +3001,18 @@ implements
 		final int index,
 		final AvailObject value)
 	{
-		descriptor.o_OuterVarAtPut(this, index, value);
+		descriptor().o_OuterVarAtPut(this, index, value);
 	}
 	@Override
 	public A_BasicObject parent ()
 	{
-		return descriptor.o_Parent(this);
+		return descriptor().o_Parent(this);
 	}
 
 	@Override
 	public int pc ()
 	{
-		return descriptor.o_Pc(this);
+		return descriptor().o_Pc(this);
 	}
 
 	/**
@@ -3040,7 +3039,7 @@ implements
 		final A_Number aNumber,
 		final boolean canDestroy)
 	{
-		return descriptor.o_PlusCanDestroy(
+		return descriptor().o_PlusCanDestroy(
 			this,
 			aNumber,
 			canDestroy);
@@ -3068,7 +3067,7 @@ implements
 	{
 		try
 		{
-			return descriptor.o_PlusCanDestroy(
+			return descriptor().o_PlusCanDestroy(
 				this,
 				aNumber,
 				canDestroy);
@@ -3086,51 +3085,51 @@ implements
 	@Override
 	public int primitiveNumber ()
 	{
-		return descriptor.o_PrimitiveNumber(this);
+		return descriptor().o_PrimitiveNumber(this);
 	}
 
 	@Override
 	public int priority ()
 	{
-		return descriptor.o_Priority(this);
+		return descriptor().o_Priority(this);
 	}
 
 	@Override
 	public void priority (final int value)
 	{
-		descriptor.o_Priority(this, value);
+		descriptor().o_Priority(this, value);
 	}
 
 	@Override
 	public A_Map privateNames ()
 	{
-		return descriptor.o_PrivateNames(this);
+		return descriptor().o_PrivateNames(this);
 	}
 
 	@Override
 	public A_Map fiberGlobals ()
 	{
-		return descriptor.o_FiberGlobals(this);
+		return descriptor().o_FiberGlobals(this);
 	}
 
 	@Override
 	public void fiberGlobals (final A_Map value)
 	{
-		descriptor.o_FiberGlobals(this, value);
+		descriptor().o_FiberGlobals(this, value);
 	}
 
 	@Override
 	public short rawByteForCharacterAt (
 		final int index)
 	{
-		return descriptor.o_RawByteForCharacterAt(this, index);
+		return descriptor().o_RawByteForCharacterAt(this, index);
 	}
 
 	@Override
 	public int rawShortForCharacterAt (
 		final int index)
 	{
-		return descriptor.o_RawShortForCharacterAt(this, index);
+		return descriptor().o_RawShortForCharacterAt(this, index);
 	}
 
 	@Override
@@ -3138,7 +3137,7 @@ implements
 		final int index,
 		final int anInteger)
 	{
-		descriptor.o_RawShortForCharacterAtPut(
+		descriptor().o_RawShortForCharacterAtPut(
 			this,
 			index,
 			anInteger);
@@ -3148,7 +3147,7 @@ implements
 	public int rawSignedIntegerAt (
 		final int index)
 	{
-		return descriptor.o_RawSignedIntegerAt(this, index);
+		return descriptor().o_RawSignedIntegerAt(this, index);
 	}
 
 	@Override
@@ -3156,7 +3155,7 @@ implements
 		final int index,
 		final int value)
 	{
-		descriptor.o_RawSignedIntegerAtPut(
+		descriptor().o_RawSignedIntegerAtPut(
 			this,
 			index,
 			value);
@@ -3166,7 +3165,7 @@ implements
 	public long rawUnsignedIntegerAt (
 		final int index)
 	{
-		return descriptor.o_RawUnsignedIntegerAt(this, index);
+		return descriptor().o_RawUnsignedIntegerAt(this, index);
 	}
 
 	@Override
@@ -3174,7 +3173,7 @@ implements
 		final int index,
 		final int value)
 	{
-		descriptor.o_RawUnsignedIntegerAtPut(
+		descriptor().o_RawUnsignedIntegerAtPut(
 			this,
 			index,
 			value);
@@ -3183,7 +3182,7 @@ implements
 	@Override
 	public void removeDependentChunk (final L2Chunk chunk)
 	{
-		descriptor.o_RemoveDependentChunk(this, chunk);
+		descriptor().o_RemoveDependentChunk(this, chunk);
 	}
 
 	@Override
@@ -3191,47 +3190,47 @@ implements
 		final AvailLoader loader,
 		final Continuation0 afterRemoval)
 	{
-		descriptor.o_RemoveFrom(this, loader, afterRemoval);
+		descriptor().o_RemoveFrom(this, loader, afterRemoval);
 	}
 
 	@Override
 	public void removeDefinition (
 		final A_Definition definition)
 	{
-		descriptor.o_RemoveDefinition(this, definition);
+		descriptor().o_RemoveDefinition(this, definition);
 	}
 
 	@Override
 	public void removeGrammaticalRestriction (
 		final A_GrammaticalRestriction obsoleteRestriction)
 	{
-		descriptor.o_RemoveGrammaticalRestriction(this, obsoleteRestriction);
+		descriptor().o_RemoveGrammaticalRestriction(this, obsoleteRestriction);
 	}
 
 	@Override
 	public void resolveForward (
 		final A_BasicObject forwardDefinition)
 	{
-		descriptor.o_ResolveForward(this, forwardDefinition);
+		descriptor().o_ResolveForward(this, forwardDefinition);
 	}
 
 	@Override
 	public A_Set grammaticalRestrictions ()
 	{
-		return descriptor.o_GrammaticalRestrictions(this);
+		return descriptor().o_GrammaticalRestrictions(this);
 	}
 
 	@Override
 	public A_Type returnType ()
 	{
-		return descriptor.o_ReturnType(this);
+		return descriptor().o_ReturnType(this);
 	}
 
 	@Override
 	public void scanSubobjects (
 		final AvailSubobjectVisitor visitor)
 	{
-		descriptor.o_ScanSubobjects(this, visitor);
+		descriptor().o_ScanSubobjects(this, visitor);
 	}
 
 	@Override
@@ -3239,7 +3238,7 @@ implements
 		final A_Set otherSet,
 		final boolean canDestroy)
 	{
-		return descriptor.o_SetIntersectionCanDestroy(
+		return descriptor().o_SetIntersectionCanDestroy(
 			this,
 			otherSet,
 			canDestroy);
@@ -3250,7 +3249,7 @@ implements
 		final A_Set otherSet,
 		final boolean canDestroy)
 	{
-		return descriptor.o_SetMinusCanDestroy(
+		return descriptor().o_SetMinusCanDestroy(
 			this,
 			otherSet,
 			canDestroy);
@@ -3259,7 +3258,7 @@ implements
 	@Override
 	public int setSize ()
 	{
-		return descriptor.o_SetSize(this);
+		return descriptor().o_SetSize(this);
 	}
 
 	@Override
@@ -3267,7 +3266,7 @@ implements
 		final A_Set otherSet,
 		final boolean canDestroy)
 	{
-		return descriptor.o_SetUnionCanDestroy(
+		return descriptor().o_SetUnionCanDestroy(
 			this,
 			otherSet,
 			canDestroy);
@@ -3277,13 +3276,13 @@ implements
 	public void setValue (final A_BasicObject newValue)
 		throws VariableSetException
 	{
-		descriptor.o_SetValue(this, newValue);
+		descriptor().o_SetValue(this, newValue);
 	}
 
 	@Override
 	public void setValueNoCheck (final A_BasicObject newValue)
 	{
-		descriptor.o_SetValueNoCheck(this, newValue);
+		descriptor().o_SetValueNoCheck(this, newValue);
 	}
 
 	@Override
@@ -3291,7 +3290,7 @@ implements
 		final A_BasicObject newElementObject,
 		final boolean canDestroy)
 	{
-		return descriptor.o_SetWithElementCanDestroy(
+		return descriptor().o_SetWithElementCanDestroy(
 			this,
 			newElementObject,
 			canDestroy);
@@ -3302,7 +3301,7 @@ implements
 		final A_BasicObject elementObjectToExclude,
 		final boolean canDestroy)
 	{
-		return descriptor.o_SetWithoutElementCanDestroy(
+		return descriptor().o_SetWithoutElementCanDestroy(
 			this,
 			elementObjectToExclude,
 			canDestroy);
@@ -3311,38 +3310,38 @@ implements
 	@Override
 	public A_Type sizeRange ()
 	{
-		return descriptor.o_SizeRange(this);
+		return descriptor().o_SizeRange(this);
 	}
 
 	@Override
 	public A_Map lazyActions ()
 	{
-		return descriptor.o_LazyActions(this);
+		return descriptor().o_LazyActions(this);
 	}
 
 	@Override
 	public AvailObject stackAt (
 		final int slotIndex)
 	{
-		return descriptor.o_StackAt(this, slotIndex);
+		return descriptor().o_StackAt(this, slotIndex);
 	}
 
 	@Override
 	public int stackp ()
 	{
-		return descriptor.o_Stackp(this);
+		return descriptor().o_Stackp(this);
 	}
 
 	@Override
 	public int start ()
 	{
-		return descriptor.o_Start(this);
+		return descriptor().o_Start(this);
 	}
 
 	@Override
 	public L2Chunk startingChunk ()
 	{
-		return descriptor.o_StartingChunk(this);
+		return descriptor().o_StartingChunk(this);
 	}
 
 	@Override
@@ -3350,14 +3349,14 @@ implements
 		final L2Chunk chunk,
 		final long countdown)
 	{
-		descriptor.o_SetStartingChunkAndReoptimizationCountdown(
+		descriptor().o_SetStartingChunkAndReoptimizationCountdown(
 			this, chunk, countdown);
 	}
 
 	@Override
 	public A_String string ()
 	{
-		return descriptor.o_String(this);
+		return descriptor().o_String(this);
 	}
 
 	/**
@@ -3382,7 +3381,7 @@ implements
 		final Sign sign,
 		final boolean canDestroy)
 	{
-		return descriptor.o_SubtractFromInfinityCanDestroy(
+		return descriptor().o_SubtractFromInfinityCanDestroy(
 			this, sign, canDestroy);
 	}
 
@@ -3407,7 +3406,7 @@ implements
 		final AvailObject anInteger,
 		final boolean canDestroy)
 	{
-		return descriptor.o_SubtractFromIntegerCanDestroy(
+		return descriptor().o_SubtractFromIntegerCanDestroy(
 			this, anInteger, canDestroy);
 	}
 
@@ -3436,7 +3435,7 @@ implements
 		final A_Number aNumber,
 		final boolean canDestroy)
 	{
-		return descriptor.o_TimesCanDestroy(
+		return descriptor().o_TimesCanDestroy(
 			this, aNumber, canDestroy);
 	}
 
@@ -3463,7 +3462,7 @@ implements
 	{
 		try
 		{
-			return descriptor.o_TimesCanDestroy(
+			return descriptor().o_TimesCanDestroy(
 				this,
 				aNumber,
 				canDestroy);
@@ -3481,33 +3480,33 @@ implements
 	@Override
 	public TokenType tokenType ()
 	{
-		return descriptor.o_TokenType(this);
+		return descriptor().o_TokenType(this);
 	}
 
 	@Override
 	public AvailObject traversed ()
 	{
-		return descriptor.o_Traversed(this);
+		return descriptor().o_Traversed(this);
 	}
 
 	@Override
 	public void trimExcessInts ()
 	{
-		descriptor.o_TrimExcessInts(this);
+		descriptor().o_TrimExcessInts(this);
 	}
 
 	@Override
 	public A_Set trueNamesForStringName (
 		final A_String stringName)
 	{
-		return descriptor.o_TrueNamesForStringName(this, stringName);
+		return descriptor().o_TrueNamesForStringName(this, stringName);
 	}
 
 	@Override
 	public AvailObject tupleAt (
 		final int index)
 	{
-		return descriptor.o_TupleAt(this, index);
+		return descriptor().o_TupleAt(this, index);
 	}
 
 	@Override
@@ -3516,7 +3515,7 @@ implements
 		final A_BasicObject newValueObject,
 		final boolean canDestroy)
 	{
-		return descriptor.o_TupleAtPuttingCanDestroy(
+		return descriptor().o_TupleAtPuttingCanDestroy(
 			this,
 			index,
 			newValueObject,
@@ -3527,7 +3526,7 @@ implements
 	public int tupleIntAt (
 		final int index)
 	{
-		return descriptor.o_TupleIntAt(this, index);
+		return descriptor().o_TupleIntAt(this, index);
 	}
 
 	/**
@@ -3536,40 +3535,40 @@ implements
 	@Override
 	public A_Tuple tupleReverse()
 	{
-		return descriptor.o_TupleReverse(this);
+		return descriptor().o_TupleReverse(this);
 	}
 
 	@Override
 	public int tupleSize ()
 	{
-		return descriptor.o_TupleSize(this);
+		return descriptor().o_TupleSize(this);
 	}
 
 	@Override
 	public A_Type kind ()
 	{
-		return descriptor.o_Kind(this);
+		return descriptor().o_Kind(this);
 	}
 
 	@Override
 	public A_Type typeAtIndex (
 		final int index)
 	{
-		return descriptor.o_TypeAtIndex(this, index);
+		return descriptor().o_TypeAtIndex(this, index);
 	}
 
 	@Override
 	public A_Type typeIntersection (
 		final A_Type another)
 	{
-		return descriptor.o_TypeIntersection(this, another);
+		return descriptor().o_TypeIntersection(this, another);
 	}
 
 	@Override
 	public A_Type typeIntersectionOfCompiledCodeType (
 		final A_Type aCompiledCodeType)
 	{
-		return descriptor.o_TypeIntersectionOfCompiledCodeType(
+		return descriptor().o_TypeIntersectionOfCompiledCodeType(
 			this,
 			aCompiledCodeType);
 	}
@@ -3578,7 +3577,7 @@ implements
 	public A_Type typeIntersectionOfContinuationType (
 		final A_Type aContinuationType)
 	{
-		return descriptor.o_TypeIntersectionOfContinuationType(
+		return descriptor().o_TypeIntersectionOfContinuationType(
 			this,
 			aContinuationType);
 	}
@@ -3587,7 +3586,7 @@ implements
 	public A_Type typeIntersectionOfFiberType (
 		final A_Type aFiberType)
 	{
-		return descriptor.o_TypeIntersectionOfFiberType(
+		return descriptor().o_TypeIntersectionOfFiberType(
 			this,
 			aFiberType);
 	}
@@ -3596,7 +3595,7 @@ implements
 	public A_Type typeIntersectionOfFunctionType (
 		final A_Type aFunctionType)
 	{
-		return descriptor.o_TypeIntersectionOfFunctionType(
+		return descriptor().o_TypeIntersectionOfFunctionType(
 			this,
 			aFunctionType);
 	}
@@ -3605,7 +3604,7 @@ implements
 	public A_Type typeIntersectionOfIntegerRangeType (
 		final A_Type anIntegerRangeType)
 	{
-		return descriptor.o_TypeIntersectionOfIntegerRangeType(
+		return descriptor().o_TypeIntersectionOfIntegerRangeType(
 			this,
 			anIntegerRangeType);
 	}
@@ -3614,7 +3613,7 @@ implements
 	public A_Type typeIntersectionOfListNodeType (
 		final A_Type aListNodeType)
 	{
-		return descriptor.o_TypeIntersectionOfListNodeType(
+		return descriptor().o_TypeIntersectionOfListNodeType(
 			this,
 			aListNodeType);
 	}
@@ -3623,21 +3622,21 @@ implements
 	public A_Type typeIntersectionOfMapType (
 		final A_Type aMapType)
 	{
-		return descriptor.o_TypeIntersectionOfMapType(this, aMapType);
+		return descriptor().o_TypeIntersectionOfMapType(this, aMapType);
 	}
 
 	@Override
 	public A_Type typeIntersectionOfObjectType (
 		final AvailObject anObjectType)
 	{
-		return descriptor.o_TypeIntersectionOfObjectType(this, anObjectType);
+		return descriptor().o_TypeIntersectionOfObjectType(this, anObjectType);
 	}
 
 	@Override
 	public A_Type typeIntersectionOfPhraseType (
 		final A_Type aPhraseType)
 	{
-		return descriptor.o_TypeIntersectionOfPhraseType(
+		return descriptor().o_TypeIntersectionOfPhraseType(
 			this,
 			aPhraseType);
 	}
@@ -3646,48 +3645,48 @@ implements
 	public A_Type typeIntersectionOfPojoType (
 		final A_Type aPojoType)
 	{
-		return descriptor.o_TypeIntersectionOfPojoType(this, aPojoType);
+		return descriptor().o_TypeIntersectionOfPojoType(this, aPojoType);
 	}
 
 	@Override
 	public A_Type typeIntersectionOfSetType (
 		final A_Type aSetType)
 	{
-		return descriptor.o_TypeIntersectionOfSetType(this, aSetType);
+		return descriptor().o_TypeIntersectionOfSetType(this, aSetType);
 	}
 
 	@Override
 	public A_Type typeIntersectionOfTupleType (
 		final A_Type aTupleType)
 	{
-		return descriptor.o_TypeIntersectionOfTupleType(this, aTupleType);
+		return descriptor().o_TypeIntersectionOfTupleType(this, aTupleType);
 	}
 
 	@Override
 	public A_Type typeIntersectionOfVariableType (
 		final A_Type aVariableType)
 	{
-		return descriptor.o_TypeIntersectionOfVariableType(this, aVariableType);
+		return descriptor().o_TypeIntersectionOfVariableType(this, aVariableType);
 	}
 
 	@Override
 	public A_Tuple typeTuple ()
 	{
-		return descriptor.o_TypeTuple(this);
+		return descriptor().o_TypeTuple(this);
 	}
 
 	@Override
 	public A_Type typeUnion (
 		final A_Type another)
 	{
-		return descriptor.o_TypeUnion(this, another);
+		return descriptor().o_TypeUnion(this, another);
 	}
 
 	@Override
 	public A_Type typeUnionOfFiberType (
 		final A_Type aFiberType)
 	{
-		return descriptor.o_TypeUnionOfFiberType(
+		return descriptor().o_TypeUnionOfFiberType(
 			this,
 			aFiberType);
 	}
@@ -3696,21 +3695,21 @@ implements
 	public A_Type typeUnionOfFunctionType (
 		final A_Type aFunctionType)
 	{
-		return descriptor.o_TypeUnionOfFunctionType(this, aFunctionType);
+		return descriptor().o_TypeUnionOfFunctionType(this, aFunctionType);
 	}
 
 	@Override
 	public A_Type typeUnionOfVariableType (
 		final A_Type aVariableType)
 	{
-		return descriptor.o_TypeUnionOfVariableType(this, aVariableType);
+		return descriptor().o_TypeUnionOfVariableType(this, aVariableType);
 	}
 
 	@Override
 	public A_Type typeUnionOfContinuationType (
 		final A_Type aContinuationType)
 	{
-		return descriptor.o_TypeUnionOfContinuationType(
+		return descriptor().o_TypeUnionOfContinuationType(
 			this, aContinuationType);
 	}
 
@@ -3718,7 +3717,7 @@ implements
 	public A_Type typeUnionOfIntegerRangeType (
 		final A_Type anIntegerRangeType)
 	{
-		return descriptor.o_TypeUnionOfIntegerRangeType(
+		return descriptor().o_TypeUnionOfIntegerRangeType(
 			this, anIntegerRangeType);
 	}
 
@@ -3726,7 +3725,7 @@ implements
 	public A_Type typeUnionOfListNodeType (
 		final A_Type aListNodeType)
 	{
-		return descriptor.o_TypeUnionOfListNodeType(
+		return descriptor().o_TypeUnionOfListNodeType(
 			this,
 			aListNodeType);
 	}
@@ -3735,21 +3734,21 @@ implements
 	public A_Type typeUnionOfMapType (
 		final A_Type aMapType)
 	{
-		return descriptor.o_TypeUnionOfMapType(this, aMapType);
+		return descriptor().o_TypeUnionOfMapType(this, aMapType);
 	}
 
 	@Override
 	public A_Type typeUnionOfObjectType (
 		final AvailObject anObjectType)
 	{
-		return descriptor.o_TypeUnionOfObjectType(this, anObjectType);
+		return descriptor().o_TypeUnionOfObjectType(this, anObjectType);
 	}
 
 	@Override
 	public A_Type typeUnionOfPhraseType (
 		final A_Type aPhraseType)
 	{
-		return descriptor.o_TypeUnionOfPhraseType(
+		return descriptor().o_TypeUnionOfPhraseType(
 			this,
 			aPhraseType);
 	}
@@ -3758,21 +3757,21 @@ implements
 	public A_Type typeUnionOfPojoType (
 		final A_Type aPojoType)
 	{
-		return descriptor.o_TypeUnionOfPojoType(this, aPojoType);
+		return descriptor().o_TypeUnionOfPojoType(this, aPojoType);
 	}
 
 	@Override
 	public A_Type typeUnionOfSetType (
 		final A_Type aSetType)
 	{
-		return descriptor.o_TypeUnionOfSetType(this, aSetType);
+		return descriptor().o_TypeUnionOfSetType(this, aSetType);
 	}
 
 	@Override
 	public A_Type typeUnionOfTupleType (
 		final A_Type aTupleType)
 	{
-		return descriptor.o_TypeUnionOfTupleType(this, aTupleType);
+		return descriptor().o_TypeUnionOfTupleType(this, aTupleType);
 	}
 
 	@Override
@@ -3780,7 +3779,7 @@ implements
 		final int startIndex,
 		final int endIndex)
 	{
-		return descriptor.o_UnionOfTypesAtThrough(
+		return descriptor().o_UnionOfTypesAtThrough(
 			this,
 			startIndex,
 			endIndex);
@@ -3789,50 +3788,50 @@ implements
 	@Override
 	public A_Number upperBound ()
 	{
-		return descriptor.o_UpperBound(this);
+		return descriptor().o_UpperBound(this);
 	}
 
 	@Override
 	public boolean upperInclusive ()
 	{
-		return descriptor.o_UpperInclusive(this);
+		return descriptor().o_UpperInclusive(this);
 	}
 
 	@Override
 	public AvailObject value ()
 	{
-		return descriptor.o_Value(this);
+		return descriptor().o_Value(this);
 	}
 
 	@Override
 	public void value (
 		final A_BasicObject value)
 	{
-		descriptor.o_Value(this, value);
+		descriptor().o_Value(this, value);
 	}
 
 	@Override
 	public A_Tuple valuesAsTuple ()
 	{
-		return descriptor.o_ValuesAsTuple(this);
+		return descriptor().o_ValuesAsTuple(this);
 	}
 
 	@Override
 	public A_Map variableBindings ()
 	{
-		return descriptor.o_VariableBindings(this);
+		return descriptor().o_VariableBindings(this);
 	}
 
 	@Override
 	public A_Set visibleNames ()
 	{
-		return descriptor.o_VisibleNames(this);
+		return descriptor().o_VisibleNames(this);
 	}
 
 	@Override
 	public A_Tuple parsingInstructions ()
 	{
-		return descriptor.o_ParsingInstructions(this);
+		return descriptor().o_ParsingInstructions(this);
 	}
 
 	/**
@@ -3844,147 +3843,147 @@ implements
 	@Override
 	public A_Phrase expression ()
 	{
-		return descriptor.o_Expression(this);
+		return descriptor().o_Expression(this);
 	}
 
 	@Override
 	public A_Phrase variable ()
 	{
-		return descriptor.o_Variable(this);
+		return descriptor().o_Variable(this);
 	}
 
 	@Override
 	public A_Tuple argumentsTuple ()
 	{
-		return descriptor.o_ArgumentsTuple(this);
+		return descriptor().o_ArgumentsTuple(this);
 	}
 
 	@Override
 	public A_Tuple statementsTuple ()
 	{
-		return descriptor.o_StatementsTuple(this);
+		return descriptor().o_StatementsTuple(this);
 	}
 
 	@Override
 	public A_Type resultType ()
 	{
-		return descriptor.o_ResultType(this);
+		return descriptor().o_ResultType(this);
 	}
 
 	@Override
 	public void neededVariables (final A_Tuple neededVariables)
 	{
-		descriptor.o_NeededVariables(this, neededVariables);
+		descriptor().o_NeededVariables(this, neededVariables);
 	}
 
 	@Override
 	public A_Tuple neededVariables ()
 	{
-		return descriptor.o_NeededVariables(this);
+		return descriptor().o_NeededVariables(this);
 	}
 
 	@Override
 	public @Nullable Primitive primitive ()
 	{
-		return descriptor.o_Primitive(this);
+		return descriptor().o_Primitive(this);
 	}
 
 	@Override
 	public A_Type declaredType ()
 	{
-		return descriptor.o_DeclaredType(this);
+		return descriptor().o_DeclaredType(this);
 	}
 
 	@Override
 	public DeclarationKind declarationKind ()
 	{
-		return descriptor.o_DeclarationKind(this);
+		return descriptor().o_DeclarationKind(this);
 	}
 
 	@Override
 	public AvailObject initializationExpression ()
 	{
-		return descriptor.o_InitializationExpression(this);
+		return descriptor().o_InitializationExpression(this);
 	}
 
 	@Override
 	public AvailObject literalObject ()
 	{
-		return descriptor.o_LiteralObject(this);
+		return descriptor().o_LiteralObject(this);
 	}
 
 	@Override
 	public A_Token token ()
 	{
-		return descriptor.o_Token(this);
+		return descriptor().o_Token(this);
 	}
 
 	@Override
 	public AvailObject markerValue ()
 	{
-		return descriptor.o_MarkerValue(this);
+		return descriptor().o_MarkerValue(this);
 	}
 
 	@Override
 	public A_Phrase argumentsListNode ()
 	{
-		return descriptor.o_ArgumentsListNode(this);
+		return descriptor().o_ArgumentsListNode(this);
 	}
 
 	@Override
 	public A_Bundle bundle ()
 	{
-		return descriptor.o_Bundle(this);
+		return descriptor().o_Bundle(this);
 	}
 
 	@Override
 	public A_Tuple expressionsTuple ()
 	{
-		return descriptor.o_ExpressionsTuple(this);
+		return descriptor().o_ExpressionsTuple(this);
 	}
 
 	@Override
 	public A_Phrase declaration ()
 	{
-		return descriptor.o_Declaration(this);
+		return descriptor().o_Declaration(this);
 	}
 
 	@Override
 	public A_Type expressionType ()
 	{
-		return descriptor.o_ExpressionType(this);
+		return descriptor().o_ExpressionType(this);
 	}
 
 	@Override
 	public void emitEffectOn (final AvailCodeGenerator codeGenerator)
 	{
-		descriptor.o_EmitEffectOn(this, codeGenerator);
+		descriptor().o_EmitEffectOn(this, codeGenerator);
 	}
 
 	@Override
 	public void emitValueOn (final AvailCodeGenerator codeGenerator)
 	{
-		descriptor.o_EmitValueOn(this, codeGenerator);
+		descriptor().o_EmitValueOn(this, codeGenerator);
 	}
 
 	@Override
 	public void childrenMap (
 		final Transformer1<A_Phrase, A_Phrase> aBlock)
 	{
-		descriptor.o_ChildrenMap(this, aBlock);
+		descriptor().o_ChildrenMap(this, aBlock);
 	}
 
 	@Override
 	public void childrenDo (
 		final Continuation1NotNull<A_Phrase> action)
 	{
-		descriptor.o_ChildrenDo(this, action);
+		descriptor().o_ChildrenDo(this, action);
 	}
 
 	@Override
 	public void validateLocally (final @Nullable A_Phrase parent)
 	{
-		descriptor.o_ValidateLocally(
+		descriptor().o_ValidateLocally(
 			this,
 			parent);
 	}
@@ -3993,129 +3992,129 @@ implements
 	public A_RawFunction generateInModule (
 		final A_Module module)
 	{
-		return descriptor.o_GenerateInModule(this, module);
+		return descriptor().o_GenerateInModule(this, module);
 	}
 
 	@Override
 	public A_Phrase copyWith (final A_Phrase newPhrase)
 	{
-		return descriptor.o_CopyWith(this, newPhrase);
+		return descriptor().o_CopyWith(this, newPhrase);
 	}
 
 	@Override
 	public void isLastUse (final boolean isLastUse)
 	{
-		descriptor.o_IsLastUse(this, isLastUse);
+		descriptor().o_IsLastUse(this, isLastUse);
 	}
 
 	@Override
 	public boolean isLastUse ()
 	{
-		return descriptor.o_IsLastUse(this);
+		return descriptor().o_IsLastUse(this);
 	}
 
 	@Override
 	public boolean isMacroDefinition ()
 	{
-		return descriptor.o_IsMacroDefinition(this);
+		return descriptor().o_IsMacroDefinition(this);
 	}
 
 	@Override
 	public A_Phrase copyMutablePhrase ()
 	{
-		return descriptor.o_CopyMutablePhrase(this);
+		return descriptor().o_CopyMutablePhrase(this);
 	}
 
 	@Override
 	public A_Type binUnionKind ()
 	{
-		return descriptor.o_BinUnionKind(this);
+		return descriptor().o_BinUnionKind(this);
 	}
 
 	@Override
 	public A_Phrase outputPhrase ()
 	{
-		return descriptor.o_OutputPhrase(this);
+		return descriptor().o_OutputPhrase(this);
 	}
 
 	@Override
 	public A_Atom apparentSendName ()
 	{
-		return descriptor.o_ApparentSendName(this);
+		return descriptor().o_ApparentSendName(this);
 	}
 
 	@Override
 	public A_Tuple statements ()
 	{
-		return descriptor.o_Statements(this);
+		return descriptor().o_Statements(this);
 	}
 
 	@Override
 	public void flattenStatementsInto (
 		final List<A_Phrase> accumulatedStatements)
 	{
-		descriptor.o_FlattenStatementsInto(this, accumulatedStatements);
+		descriptor().o_FlattenStatementsInto(this, accumulatedStatements);
 	}
 
 	@Override
 	public int lineNumber ()
 	{
-		return descriptor.o_LineNumber(this);
+		return descriptor().o_LineNumber(this);
 	}
 
 	@Override
 	public A_Map allParsingPlansInProgress ()
 	{
-		return descriptor.o_AllParsingPlansInProgress(this);
+		return descriptor().o_AllParsingPlansInProgress(this);
 	}
 
 	@Override
 	public boolean isSetBin ()
 	{
-		return descriptor.o_IsSetBin(this);
+		return descriptor().o_IsSetBin(this);
 	}
 
 	@Override
 	public MapIterable mapIterable ()
 	{
-		return descriptor.o_MapIterable(this);
+		return descriptor().o_MapIterable(this);
 	}
 
 	@Override
 	public A_Set declaredExceptions ()
 	{
-		return descriptor.o_DeclaredExceptions(this);
+		return descriptor().o_DeclaredExceptions(this);
 	}
 
 	@Override
 	public boolean isInt ()
 	{
-		return descriptor.o_IsInt(this);
+		return descriptor().o_IsInt(this);
 	}
 
 	@Override
 	public boolean isLong ()
 	{
-		return descriptor.o_IsLong(this);
+		return descriptor().o_IsLong(this);
 	}
 
 	@Override
 	public A_Type argsTupleType ()
 	{
-		return descriptor.o_ArgsTupleType(this);
+		return descriptor().o_ArgsTupleType(this);
 	}
 
 	@Override
 	public boolean equalsInstanceTypeFor (
 		final AvailObject anInstanceType)
 	{
-		return descriptor.o_EqualsInstanceTypeFor(this, anInstanceType);
+		return descriptor().o_EqualsInstanceTypeFor(this, anInstanceType);
 	}
 
 	@Override
 	public A_Set instances ()
 	{
-		return descriptor.o_Instances(this);
+		return descriptor().o_Instances(this);
 	}
 
 	/**
@@ -4130,20 +4129,20 @@ implements
 	@Override
 	public boolean equalsEnumerationWithSet (final A_Set aSet)
 	{
-		return descriptor.o_EqualsEnumerationWithSet(this, aSet);
+		return descriptor().o_EqualsEnumerationWithSet(this, aSet);
 	}
 
 	@Override
 	public boolean isEnumeration ()
 	{
-		return descriptor.o_IsEnumeration(this);
+		return descriptor().o_IsEnumeration(this);
 	}
 
 	@Override
 	public boolean enumerationIncludesInstance (
 		final AvailObject potentialInstance)
 	{
-		return descriptor.o_EnumerationIncludesInstance(
+		return descriptor().o_EnumerationIncludesInstance(
 			this,
 			potentialInstance);
 	}
@@ -4151,26 +4150,26 @@ implements
 	@Override
 	public A_Type valueType ()
 	{
-		return descriptor.o_ValueType(this);
+		return descriptor().o_ValueType(this);
 	}
 
 	@Override
 	public A_Type computeSuperkind ()
 	{
-		return descriptor.o_ComputeSuperkind(this);
+		return descriptor().o_ComputeSuperkind(this);
 	}
 
 	@Override
 	public boolean equalsCompiledCodeType (final A_Type aCompiledCodeType)
 	{
-		return descriptor.o_EqualsCompiledCodeType(this, aCompiledCodeType);
+		return descriptor().o_EqualsCompiledCodeType(this, aCompiledCodeType);
 	}
 
 	@Override
 	public boolean isSupertypeOfCompiledCodeType (
 		final A_Type aCompiledCodeType)
 	{
-		return descriptor.o_IsSupertypeOfCompiledCodeType(
+		return descriptor().o_IsSupertypeOfCompiledCodeType(
 			this,
 			aCompiledCodeType);
 	}
@@ -4179,7 +4178,7 @@ implements
 	public A_Type typeUnionOfCompiledCodeType (
 		final A_Type aCompiledCodeType)
 	{
-		return descriptor.o_TypeUnionOfCompiledCodeType(
+		return descriptor().o_TypeUnionOfCompiledCodeType(
  			this,
  			aCompiledCodeType);
 	}
@@ -4189,109 +4188,109 @@ implements
 		final A_Atom key,
 		final A_BasicObject value)
 	{
-		descriptor.o_SetAtomProperty(this, key, value);
+		descriptor().o_SetAtomProperty(this, key, value);
 	}
 
 	@Override
 	public AvailObject getAtomProperty (
 		final A_Atom key)
 	{
-		return descriptor.o_GetAtomProperty(this, key);
+		return descriptor().o_GetAtomProperty(this, key);
 	}
 
 	@Override
 	public boolean equalsEnumerationType (
 		final A_BasicObject anEnumerationType)
 	{
-		return descriptor.o_EqualsEnumerationType(this, anEnumerationType);
+		return descriptor().o_EqualsEnumerationType(this, anEnumerationType);
 	}
 
 	@Override
 	public A_Type readType ()
 	{
-		return descriptor.o_ReadType(this);
+		return descriptor().o_ReadType(this);
 	}
 
 	@Override
 	public A_Type writeType ()
 	{
-		return descriptor.o_WriteType(this);
+		return descriptor().o_WriteType(this);
 	}
 
 	@Override
 	public void versions (final A_Set versionStrings)
 	{
-		descriptor.o_Versions(this, versionStrings);
+		descriptor().o_Versions(this, versionStrings);
 	}
 
 	@Override
 	public A_Set versions ()
 	{
-		return descriptor.o_Versions(this);
+		return descriptor().o_Versions(this);
 	}
 
 	@Override
 	public PhraseKind phraseKind ()
 	{
-		return descriptor.o_PhraseKind(this);
+		return descriptor().o_PhraseKind(this);
 	}
 
 	@Override
 	public boolean phraseKindIsUnder (
 		final PhraseKind expectedPhraseKind)
 	{
-		return descriptor.o_PhraseKindIsUnder(this, expectedPhraseKind);
+		return descriptor().o_PhraseKindIsUnder(this, expectedPhraseKind);
 	}
 
 	@Override
 	public boolean isRawPojo ()
 	{
-		return descriptor.o_IsRawPojo(this);
+		return descriptor().o_IsRawPojo(this);
 	}
 
 	@Override
 	public void addSemanticRestriction (
 		final A_SemanticRestriction restriction)
 	{
-		descriptor.o_AddSemanticRestriction(this, restriction);
+		descriptor().o_AddSemanticRestriction(this, restriction);
 	}
 
 	@Override
 	public void removeSemanticRestriction (
 		final A_SemanticRestriction restriction)
 	{
-		descriptor.o_RemoveSemanticRestriction(this, restriction);
+		descriptor().o_RemoveSemanticRestriction(this, restriction);
 	}
 
 	@Override
 	public A_Set semanticRestrictions ()
 	{
-		return descriptor.o_SemanticRestrictions(this);
+		return descriptor().o_SemanticRestrictions(this);
 	}
 
 	@Override
 	public void addSealedArgumentsType (final A_Tuple typeTuple)
 	{
-		descriptor.o_AddSealedArgumentsType(this, typeTuple);
+		descriptor().o_AddSealedArgumentsType(this, typeTuple);
 	}
 
 	@Override
 	public void removeSealedArgumentsType (final A_Tuple typeTuple)
 	{
-		descriptor.o_RemoveSealedArgumentsType(this, typeTuple);
+		descriptor().o_RemoveSealedArgumentsType(this, typeTuple);
 	}
 
 	@Override
 	public A_Tuple sealedArgumentsTypesTuple ()
 	{
-		return descriptor.o_SealedArgumentsTypesTuple(this);
+		return descriptor().o_SealedArgumentsTypesTuple(this);
 	}
 
 	@Override
 	public void moduleAddSemanticRestriction (
 		final A_SemanticRestriction semanticRestriction)
 	{
-		descriptor.o_ModuleAddSemanticRestriction(
+		descriptor().o_ModuleAddSemanticRestriction(
 			this,
 			semanticRestriction);
 	}
@@ -4301,7 +4300,7 @@ implements
 		final A_String name,
 		final A_Variable constantBinding)
 	{
-		descriptor.o_AddConstantBinding(
+		descriptor().o_AddConstantBinding(
 			this,
 			name,
 			constantBinding);
@@ -4312,7 +4311,7 @@ implements
 		final A_String name,
 		final A_Variable variableBinding)
 	{
-		descriptor.o_AddVariableBinding(
+		descriptor().o_AddVariableBinding(
 			this,
 			name,
 			variableBinding);
@@ -4321,92 +4320,92 @@ implements
 	@Override
 	public boolean isMethodEmpty ()
 	{
-		return descriptor.o_IsMethodEmpty(this);
+		return descriptor().o_IsMethodEmpty(this);
 	}
 
 	@Override
 	public boolean isPojoSelfType ()
 	{
-		return descriptor.o_IsPojoSelfType(this);
+		return descriptor().o_IsPojoSelfType(this);
 	}
 
 	@Override
 	public A_Type pojoSelfType ()
 	{
-		return descriptor.o_PojoSelfType(this);
+		return descriptor().o_PojoSelfType(this);
 	}
 
 	@Override
 	public AvailObject javaClass ()
 	{
-		return descriptor.o_JavaClass(this);
+		return descriptor().o_JavaClass(this);
 	}
 
 	@Override
 	public boolean isUnsignedShort ()
 	{
-		return descriptor.o_IsUnsignedShort(this);
+		return descriptor().o_IsUnsignedShort(this);
 	}
 
 	@Override
 	public int extractUnsignedShort ()
 	{
-		return descriptor.o_ExtractUnsignedShort(this);
+		return descriptor().o_ExtractUnsignedShort(this);
 	}
 
 	@Override
 	public boolean isFloat ()
 	{
-		return descriptor.o_IsFloat(this);
+		return descriptor().o_IsFloat(this);
 	}
 
 	@Override
 	public boolean isDouble ()
 	{
-		return descriptor.o_IsDouble(this);
+		return descriptor().o_IsDouble(this);
 	}
 
 	@Override
 	public AvailObject rawPojo ()
 	{
-		return descriptor.o_RawPojo(this);
+		return descriptor().o_RawPojo(this);
 	}
 
 	@Override
 	public boolean isPojo ()
 	{
-		return descriptor.o_IsPojo(this);
+		return descriptor().o_IsPojo(this);
 	}
 
 	@Override
 	public boolean isPojoType ()
 	{
-		return descriptor.o_IsPojoType(this);
+		return descriptor().o_IsPojoType(this);
 	}
 
 	@Override
 	public Order numericCompare (final A_Number another)
 	{
-		return descriptor.o_NumericCompare(this, another);
+		return descriptor().o_NumericCompare(this, another);
 	}
 
 	@Override
 	public Order numericCompareToInfinity (
 		final Sign sign)
 	{
-		return descriptor.o_NumericCompareToInfinity(this, sign);
+		return descriptor().o_NumericCompareToInfinity(this, sign);
 	}
 
 	@Override
 	public Order numericCompareToDouble (final double aDouble)
 	{
-		return descriptor.o_NumericCompareToDouble(this, aDouble);
+		return descriptor().o_NumericCompareToDouble(this, aDouble);
 	}
 
 	@Override
 	public Order numericCompareToInteger (final AvailObject anInteger)
 	{
-		return descriptor.o_NumericCompareToInteger(this, anInteger);
+		return descriptor().o_NumericCompareToInteger(this, anInteger);
 	}
 
 	@Override
@@ -4414,7 +4413,7 @@ implements
 		final A_Number doubleObject,
 		final boolean canDestroy)
 	{
-		return descriptor.o_AddToDoubleCanDestroy (
+		return descriptor().o_AddToDoubleCanDestroy (
 			this,
 			doubleObject,
 			canDestroy);
@@ -4425,7 +4424,7 @@ implements
 		final A_Number floatObject,
 		final boolean canDestroy)
 	{
-		return descriptor.o_AddToFloatCanDestroy (
+		return descriptor().o_AddToFloatCanDestroy (
 			this,
 			floatObject,
 			canDestroy);
@@ -4436,7 +4435,7 @@ implements
 		final A_Number doubleObject,
 		final boolean canDestroy)
 	{
-		return descriptor.o_SubtractFromDoubleCanDestroy (
+		return descriptor().o_SubtractFromDoubleCanDestroy (
 			this,
 			doubleObject,
 			canDestroy);
@@ -4447,7 +4446,7 @@ implements
 		final A_Number floatObject,
 		final boolean canDestroy)
 	{
-		return descriptor.o_SubtractFromFloatCanDestroy (
+		return descriptor().o_SubtractFromFloatCanDestroy (
 			this,
 			floatObject,
 			canDestroy);
@@ -4458,7 +4457,7 @@ implements
 		final A_Number doubleObject,
 		final boolean canDestroy)
 	{
-		return descriptor .o_MultiplyByDoubleCanDestroy (
+		return descriptor().o_MultiplyByDoubleCanDestroy (
 			this,
 			doubleObject,
 			canDestroy);
@@ -4469,7 +4468,7 @@ implements
 		final A_Number floatObject,
 		final boolean canDestroy)
 	{
-		return descriptor.o_MultiplyByFloatCanDestroy (
+		return descriptor().o_MultiplyByFloatCanDestroy (
 			this,
 			floatObject,
 			canDestroy);
@@ -4480,7 +4479,7 @@ implements
 		final A_Number doubleObject,
 		final boolean canDestroy)
 	{
-		return descriptor.o_DivideIntoDoubleCanDestroy (
+		return descriptor().o_DivideIntoDoubleCanDestroy (
 			this,
 			doubleObject,
 			canDestroy);
@@ -4491,7 +4490,7 @@ implements
 		final A_Number floatObject,
 		final boolean canDestroy)
 	{
-		return descriptor.o_DivideIntoFloatCanDestroy (
+		return descriptor().o_DivideIntoFloatCanDestroy (
 			this,
 			floatObject,
 			canDestroy);
@@ -4500,13 +4499,13 @@ implements
 	@Override
 	public A_Map lazyPrefilterMap ()
 	{
-		return descriptor.o_LazyPrefilterMap(this);
+		return descriptor().o_LazyPrefilterMap(this);
 	}
 
 	@Override
 	public SerializerOperation serializerOperation ()
 	{
-		return descriptor.o_SerializerOperation(this);
+		return descriptor().o_SerializerOperation(this);
 	}
 
 	@Override
@@ -4517,7 +4516,7 @@ implements
 		final byte myLevel,
 		final boolean canDestroy)
 	{
-		return descriptor.o_MapBinAtHashPutLevelCanDestroy(
+		return descriptor().o_MapBinAtHashPutLevelCanDestroy(
 			this,
 			key,
 			keyHash,
@@ -4532,7 +4531,7 @@ implements
 		final int keyHash,
 		final boolean canDestroy)
 	{
-		return descriptor.o_MapBinRemoveKeyHashCanDestroy(
+		return descriptor().o_MapBinRemoveKeyHashCanDestroy(
 			this,
 			key,
 			keyHash,
@@ -4542,19 +4541,19 @@ implements
 	@Override
 	public A_Type mapBinKeyUnionKind ()
 	{
-		return descriptor.o_MapBinKeyUnionKind(this);
+		return descriptor().o_MapBinKeyUnionKind(this);
 	}
 
 	@Override
 	public A_Type mapBinValueUnionKind ()
 	{
-		return descriptor.o_MapBinValueUnionKind(this);
+		return descriptor().o_MapBinValueUnionKind(this);
 	}
 
 	@Override
 	public boolean isHashedMapBin ()
 	{
-		return descriptor.o_IsHashedMapBin(this);
+		return descriptor().o_IsHashedMapBin(this);
 	}
 
 	/**
@@ -4570,57 +4569,57 @@ implements
 		final A_BasicObject key,
 		final int keyHash)
 	{
-		return descriptor.o_MapBinAtHash(this, key, keyHash);
+		return descriptor().o_MapBinAtHash(this, key, keyHash);
 	}
 
 	@Override
 	public int mapBinKeysHash ()
 	{
-		return descriptor.o_MapBinKeysHash(this);
+		return descriptor().o_MapBinKeysHash(this);
 	}
 
 	@Override
 	public int mapBinValuesHash ()
 	{
-		return descriptor.o_MapBinValuesHash(this);
+		return descriptor().o_MapBinValuesHash(this);
 	}
 
 	@Override
 	public A_Module issuingModule ()
 	{
-		return descriptor.o_IssuingModule(this);
+		return descriptor().o_IssuingModule(this);
 	}
 
 	@Override
 	public boolean isPojoFusedType ()
 	{
-		return descriptor.o_IsPojoFusedType(this);
+		return descriptor().o_IsPojoFusedType(this);
 	}
 
 	@Override
 	public boolean isSupertypeOfPojoBottomType (
 		final A_Type aPojoType)
 	{
-		return descriptor.o_IsSupertypeOfPojoBottomType(this, aPojoType);
+		return descriptor().o_IsSupertypeOfPojoBottomType(this, aPojoType);
 	}
 
 	@Override
 	public boolean equalsPojoBottomType ()
 	{
-		return descriptor.o_EqualsPojoBottomType(this);
+		return descriptor().o_EqualsPojoBottomType(this);
 	}
 
 	@Override
 	public AvailObject javaAncestors ()
 	{
-		return descriptor.o_JavaAncestors(this);
+		return descriptor().o_JavaAncestors(this);
 	}
 
 	@Override
 	public A_Type typeIntersectionOfPojoFusedType (
 		final A_Type aFusedPojoType)
 	{
-		return descriptor.o_TypeIntersectionOfPojoFusedType(
+		return descriptor().o_TypeIntersectionOfPojoFusedType(
 			this, aFusedPojoType);
 	}
 
@@ -4628,7 +4627,7 @@ implements
 	public A_Type typeIntersectionOfPojoUnfusedType (
 		final A_Type anUnfusedPojoType)
 	{
-		return descriptor.o_TypeIntersectionOfPojoUnfusedType(
+		return descriptor().o_TypeIntersectionOfPojoUnfusedType(
 			this, anUnfusedPojoType);
 	}
 
@@ -4636,7 +4635,7 @@ implements
 	public A_Type typeUnionOfPojoFusedType (
 		final A_Type aFusedPojoType)
 	{
-		return descriptor.o_TypeUnionOfPojoFusedType(
+		return descriptor().o_TypeUnionOfPojoFusedType(
 			this, aFusedPojoType);
 	}
 
@@ -4644,26 +4643,26 @@ implements
 	public A_Type typeUnionOfPojoUnfusedType (
 		final A_Type anUnfusedPojoType)
 	{
-		return descriptor.o_TypeUnionOfPojoUnfusedType(
+		return descriptor().o_TypeUnionOfPojoUnfusedType(
 			this, anUnfusedPojoType);
 	}
 
 	@Override
 	public boolean isPojoArrayType ()
 	{
-		return descriptor.o_IsPojoArrayType(this);
+		return descriptor().o_IsPojoArrayType(this);
 	}
 
 	@Override
 	public @Nullable Object marshalToJava (final @Nullable Class<?> classHint)
 	{
-		return descriptor.o_MarshalToJava(this, classHint);
+		return descriptor().o_MarshalToJava(this, classHint);
 	}
 
 	@Override
 	public A_Map typeVariables ()
 	{
-		return descriptor.o_TypeVariables(this);
+		return descriptor().o_TypeVariables(this);
 	}
 
 	@Override
@@ -4671,31 +4670,31 @@ implements
 		final AvailObject field,
 		final AvailObject receiver)
 	{
-		return descriptor.o_EqualsPojoField(this, field, receiver);
+		return descriptor().o_EqualsPojoField(this, field, receiver);
 	}
 
 	@Override
 	public boolean isSignedByte ()
 	{
-		return descriptor.o_IsSignedByte(this);
+		return descriptor().o_IsSignedByte(this);
 	}
 
 	@Override
 	public boolean isSignedShort ()
 	{
-		return descriptor.o_IsSignedShort(this);
+		return descriptor().o_IsSignedShort(this);
 	}
 
 	@Override
 	public byte extractSignedByte ()
 	{
-		return descriptor.o_ExtractSignedByte(this);
+		return descriptor().o_ExtractSignedByte(this);
 	}
 
 	@Override
 	public short extractSignedShort ()
 	{
-		return descriptor.o_ExtractSignedShort(this);
+		return descriptor().o_ExtractSignedShort(this);
 	}
 
 	@Override
@@ -4703,7 +4702,7 @@ implements
 		final AvailObject otherEqualityRawPojo,
 		final @Nullable Object otherJavaObject)
 	{
-		return descriptor.o_EqualsEqualityRawPojo(
+		return descriptor().o_EqualsEqualityRawPojo(
 			this,
 			otherEqualityRawPojo,
 			otherJavaObject);
@@ -4712,19 +4711,19 @@ implements
 	@Override
 	public @Nullable <T> T javaObject ()
 	{
-		return descriptor.o_JavaObject(this);
+		return descriptor().o_JavaObject(this);
 	}
 
 	@Override
 	public <T> T javaObjectNotNull ()
 	{
-		return stripNull(descriptor.o_JavaObject(this));
+		return stripNull(descriptor().o_JavaObject(this));
 	}
 
 	@Override
 	public BigInteger asBigInteger ()
 	{
-		return descriptor.o_AsBigInteger(this);
+		return descriptor().o_AsBigInteger(this);
 	}
 
 	@Override
@@ -4732,31 +4731,31 @@ implements
 		final A_BasicObject newElement,
 		final boolean canDestroy)
 	{
-		return descriptor.o_AppendCanDestroy(this, newElement, canDestroy);
+		return descriptor().o_AppendCanDestroy(this, newElement, canDestroy);
 	}
 
 	@Override
 	public A_Map lazyIncompleteCaseInsensitive ()
 	{
-		return descriptor.o_LazyIncompleteCaseInsensitive(this);
+		return descriptor().o_LazyIncompleteCaseInsensitive(this);
 	}
 
 	@Override
 	public A_String lowerCaseString ()
 	{
-		return descriptor.o_LowerCaseString(this);
+		return descriptor().o_LowerCaseString(this);
 	}
 
 	@Override
 	public A_Number instanceCount ()
 	{
-		return descriptor.o_InstanceCount(this);
+		return descriptor().o_InstanceCount(this);
 	}
 
 	@Override
 	public long totalInvocations ()
 	{
-		return descriptor.o_TotalInvocations(this);
+		return descriptor().o_TotalInvocations(this);
 	}
 
 	/**
@@ -4765,32 +4764,32 @@ implements
 	@Override
 	public void tallyInvocation ()
 	{
-		descriptor.o_TallyInvocation(this);
+		descriptor().o_TallyInvocation(this);
 	}
 
 	@Override
 	public A_Tuple fieldTypeTuple ()
 	{
-		return descriptor.o_FieldTypeTuple(this);
+		return descriptor().o_FieldTypeTuple(this);
 	}
 
 	@Override
 	public A_Tuple fieldTuple ()
 	{
-		return descriptor.o_FieldTuple(this);
+		return descriptor().o_FieldTuple(this);
 	}
 
 	@Override
 	public A_Type literalType ()
 	{
-		return descriptor.o_LiteralType(this);
+		return descriptor().o_LiteralType(this);
 	}
 
 	@Override
 	public A_Type typeIntersectionOfTokenType (
 		final A_Type aTokenType)
 	{
-		return descriptor.o_TypeIntersectionOfTokenType(
+		return descriptor().o_TypeIntersectionOfTokenType(
 			this,
 			aTokenType);
 	}
@@ -4799,7 +4798,7 @@ implements
 	public A_Type typeIntersectionOfLiteralTokenType (
 		final A_Type aLiteralTokenType)
 	{
-		return descriptor.o_TypeIntersectionOfLiteralTokenType(
+		return descriptor().o_TypeIntersectionOfLiteralTokenType(
 			this,
 			aLiteralTokenType);
 	}
@@ -4808,7 +4807,7 @@ implements
 	public A_Type typeUnionOfTokenType (
 		final A_Type aTokenType)
 	{
-		return descriptor.o_TypeUnionOfTokenType(
+		return descriptor().o_TypeUnionOfTokenType(
 			this,
 			aTokenType);
 	}
@@ -4817,7 +4816,7 @@ implements
 	public A_Type typeUnionOfLiteralTokenType (
 		final A_Type aLiteralTokenType)
 	{
-		return descriptor.o_TypeUnionOfLiteralTokenType(
+		return descriptor().o_TypeUnionOfLiteralTokenType(
 			this,
 			aLiteralTokenType);
 	}
@@ -4825,47 +4824,47 @@ implements
 	@Override
 	public boolean isTokenType ()
 	{
-		return descriptor.o_IsTokenType(this);
+		return descriptor().o_IsTokenType(this);
 	}
 
 	@Override
 	public boolean isLiteralTokenType ()
 	{
-		return descriptor.o_IsLiteralTokenType(this);
+		return descriptor().o_IsLiteralTokenType(this);
 	}
 
 	@Override
 	public boolean isLiteralToken ()
 	{
-		return descriptor.o_IsLiteralToken(this);
+		return descriptor().o_IsLiteralToken(this);
 	}
 
 	@Override
 	public boolean equalsTokenType (
 		final A_Type aTokenType)
 	{
-		return descriptor.o_EqualsTokenType(this, aTokenType);
+		return descriptor().o_EqualsTokenType(this, aTokenType);
 	}
 
 	@Override
 	public boolean equalsLiteralTokenType (
 		final A_Type aLiteralTokenType)
 	{
-		return descriptor.o_EqualsLiteralTokenType(this, aLiteralTokenType);
+		return descriptor().o_EqualsLiteralTokenType(this, aLiteralTokenType);
 	}
 
 	@Override
 	public boolean equalsObjectType (
 		final AvailObject anObjectType)
 	{
-		return descriptor.o_EqualsObjectType(this, anObjectType);
+		return descriptor().o_EqualsObjectType(this, anObjectType);
 	}
 
 	@Override
 	public boolean equalsToken (
 		final A_Token aToken)
 	{
-		return descriptor.o_EqualsToken(this, aToken);
+		return descriptor().o_EqualsToken(this, aToken);
 	}
 
 	@Override
@@ -4873,7 +4872,7 @@ implements
 		final A_Number anInteger,
 		final boolean canDestroy)
 	{
-		return descriptor.o_BitwiseAnd(this, anInteger, canDestroy);
+		return descriptor().o_BitwiseAnd(this, anInteger, canDestroy);
 	}
 
 	@Override
@@ -4881,7 +4880,7 @@ implements
 		final A_Number anInteger,
 		final boolean canDestroy)
 	{
-		return descriptor.o_BitwiseOr(this, anInteger, canDestroy);
+		return descriptor().o_BitwiseOr(this, anInteger, canDestroy);
 	}
 
 	@Override
@@ -4889,7 +4888,7 @@ implements
 		final A_Number anInteger,
 		final boolean canDestroy)
 	{
-		return descriptor.o_BitwiseXor(this, anInteger, canDestroy);
+		return descriptor().o_BitwiseXor(this, anInteger, canDestroy);
 	}
 
 	@Override
@@ -4897,70 +4896,70 @@ implements
 		final A_Atom methodName,
 		final A_Tuple sealSignature)
 	{
-		descriptor.o_AddSeal(this, methodName, sealSignature);
+		descriptor().o_AddSeal(this, methodName, sealSignature);
 	}
 
 	@Override
 	public boolean isInstanceMeta ()
 	{
-		return descriptor.o_IsInstanceMeta(this);
+		return descriptor().o_IsInstanceMeta(this);
 	}
 
 	@Override
 	public AvailObject instance ()
 	{
-		return descriptor.o_Instance(this);
+		return descriptor().o_Instance(this);
 	}
 
 	@Override
 	public void setMethodName (
 		final A_String methodName)
 	{
-		descriptor.o_SetMethodName(this, methodName);
+		descriptor().o_SetMethodName(this, methodName);
 	}
 
 	@Override
 	public int startingLineNumber ()
 	{
-		return descriptor.o_StartingLineNumber(this);
+		return descriptor().o_StartingLineNumber(this);
 	}
 
 	@Override
 	public A_Module module ()
 	{
-		return descriptor.o_Module(this);
+		return descriptor().o_Module(this);
 	}
 
 	@Override
 	public A_String methodName ()
 	{
-		return descriptor.o_MethodName(this);
+		return descriptor().o_MethodName(this);
 	}
 
 	@Override
 	public boolean binElementsAreAllInstancesOfKind (
 		final A_Type kind)
 	{
-		return descriptor.o_BinElementsAreAllInstancesOfKind(this, kind);
+		return descriptor().o_BinElementsAreAllInstancesOfKind(this, kind);
 	}
 
 	@Override
 	public boolean setElementsAreAllInstancesOfKind (
 		final AvailObject kind)
 	{
-		return descriptor.o_SetElementsAreAllInstancesOfKind(this, kind);
+		return descriptor().o_SetElementsAreAllInstancesOfKind(this, kind);
 	}
 
 	@Override
 	public MapIterable mapBinIterable ()
 	{
-		return descriptor.o_MapBinIterable(this);
+		return descriptor().o_MapBinIterable(this);
 	}
 
 	@Override
 	public boolean rangeIncludesInt (final int anInt)
 	{
-		return descriptor.o_RangeIncludesInt(this, anInt);
+		return descriptor().o_RangeIncludesInt(this, anInt);
 	}
 
 	@Override
@@ -4969,7 +4968,7 @@ implements
 		final A_Number truncationBits,
 		final boolean canDestroy)
 	{
-		return descriptor.o_BitShiftLeftTruncatingToBits(
+		return descriptor().o_BitShiftLeftTruncatingToBits(
 			this,
 			shiftFactor,
 			truncationBits,
@@ -4979,7 +4978,7 @@ implements
 	@Override
 	public SetIterator setBinIterator ()
 	{
-		return descriptor.o_SetBinIterator(this);
+		return descriptor().o_SetBinIterator(this);
 	}
 
 	@Override
@@ -4987,19 +4986,19 @@ implements
 		final A_Number shiftFactor,
 		final boolean canDestroy)
 	{
-		return descriptor.o_BitShift(this, shiftFactor, canDestroy);
+		return descriptor().o_BitShift(this, shiftFactor, canDestroy);
 	}
 
 	@Override
 	public boolean equalsPhrase (final A_Phrase aPhrase)
 	{
-		return descriptor.o_EqualsPhrase(this, aPhrase);
+		return descriptor().o_EqualsPhrase(this, aPhrase);
 	}
 
 	@Override
 	public A_Phrase stripMacro ()
 	{
-		return descriptor.o_StripMacro(this);
+		return descriptor().o_StripMacro(this);
 	}
 
 	/**
@@ -5011,20 +5010,20 @@ implements
 	@Override
 	public A_Method definitionMethod ()
 	{
-		return descriptor.o_DefinitionMethod(this);
+		return descriptor().o_DefinitionMethod(this);
 	}
 
 	@Override
 	public A_Tuple prefixFunctions ()
 	{
-		return descriptor.o_PrefixFunctions(this);
+		return descriptor().o_PrefixFunctions(this);
 	}
 
 	@Override
 	public boolean equalsByteArrayTuple (
 		final A_Tuple aByteArrayTuple)
 	{
-		return descriptor.o_EqualsByteArrayTuple(this, aByteArrayTuple);
+		return descriptor().o_EqualsByteArrayTuple(this, aByteArrayTuple);
 	}
 
 	@Override
@@ -5034,20 +5033,20 @@ implements
 		final A_Tuple aByteArrayTuple,
 		final int startIndex2)
 	{
-		return descriptor.o_CompareFromToWithByteArrayTupleStartingAt(
+		return descriptor().o_CompareFromToWithByteArrayTupleStartingAt(
 			this, startIndex1, endIndex1, aByteArrayTuple, startIndex2);
 	}
 
 	@Override
 	public byte[] byteArray ()
 	{
-		return descriptor.o_ByteArray(this);
+		return descriptor().o_ByteArray(this);
 	}
 
 	@Override
 	public boolean isByteArrayTuple ()
 	{
-		return descriptor.o_IsByteArrayTuple(this);
+		return descriptor().o_IsByteArrayTuple(this);
 	}
 
 	@Override
@@ -5056,20 +5055,20 @@ implements
 		final Collection<Pair<A_BundleTree, A_ParsingPlanInProgress>>
 			treesToVisit)
 	{
-		descriptor.o_UpdateForNewGrammaticalRestriction(
+		descriptor().o_UpdateForNewGrammaticalRestriction(
 			this, planInProgress, treesToVisit);
 	}
 
 	@Override
 	public void lock (final Continuation0 critical)
 	{
-		descriptor.o_Lock(this, critical);
+		descriptor().o_Lock(this, critical);
 	}
 
 	@Override
 	public <T> T lock (final Supplier<T> supplier)
 	{
-		return descriptor.o_Lock(this, supplier);
+		return descriptor().o_Lock(this, supplier);
 	}
 
 	/**
@@ -5083,25 +5082,25 @@ implements
 	@Override
 	public @Nullable AvailLoader availLoader ()
 	{
-		return descriptor.o_AvailLoader(this);
+		return descriptor().o_AvailLoader(this);
 	}
 
 	@Override
 	public void availLoader (final @Nullable AvailLoader loader)
 	{
-		descriptor.o_AvailLoader(this, loader);
+		descriptor().o_AvailLoader(this, loader);
 	}
 
 	@Override
 	public A_String moduleName ()
 	{
-		return descriptor.o_ModuleName(this);
+		return descriptor().o_ModuleName(this);
 	}
 
 	@Override
 	public A_Method bundleMethod ()
 	{
-		return descriptor.o_BundleMethod(this);
+		return descriptor().o_BundleMethod(this);
 	}
 
 	/**
@@ -5114,7 +5113,7 @@ implements
 	@Override
 	public Continuation1NotNull<AvailObject> resultContinuation ()
 	{
-		return descriptor.o_ResultContinuation(this);
+		return descriptor().o_ResultContinuation(this);
 	}
 
 	/**
@@ -5127,7 +5126,7 @@ implements
 	@Override
 	public Continuation1NotNull<Throwable> failureContinuation ()
 	{
-		return descriptor.o_FailureContinuation(this);
+		return descriptor().o_FailureContinuation(this);
 	}
 
 	@Override
@@ -5135,7 +5134,7 @@ implements
 		final Continuation1NotNull<AvailObject> onSuccess,
 		final Continuation1NotNull<Throwable> onFailure)
 	{
-		descriptor.o_SetSuccessAndFailureContinuations(
+		descriptor().o_SetSuccessAndFailureContinuations(
 			this, onSuccess, onFailure);
 	}
 
@@ -5150,14 +5149,14 @@ implements
 	@Override
 	public boolean interruptRequestFlag (final InterruptRequestFlag flag)
 	{
-		return descriptor.o_InterruptRequestFlag(this, flag);
+		return descriptor().o_InterruptRequestFlag(this, flag);
 	}
 
 	@Override
 	public AvailObject getAndSetValue (final A_BasicObject newValue)
 		throws VariableGetException, VariableSetException
 	{
-		return descriptor.o_GetAndSetValue(this, newValue);
+		return descriptor().o_GetAndSetValue(this, newValue);
 	}
 
 	@Override
@@ -5166,21 +5165,21 @@ implements
 			final A_BasicObject newValue)
 		throws VariableGetException, VariableSetException
 	{
-		return descriptor.o_CompareAndSwapValues(this, reference, newValue);
+		return descriptor().o_CompareAndSwapValues(this, reference, newValue);
 	}
 
 	@Override
 	public A_Number fetchAndAddValue (final A_Number addend)
 		throws VariableGetException, VariableSetException
 	{
-		return descriptor.o_FetchAndAddValue(this, addend);
+		return descriptor().o_FetchAndAddValue(this, addend);
 	}
 
 	@Override
 	public boolean getAndClearInterruptRequestFlag (
 		final InterruptRequestFlag flag)
 	{
-		return descriptor.o_GetAndClearInterruptRequestFlag(this, flag);
+		return descriptor().o_GetAndClearInterruptRequestFlag(this, flag);
 	}
 
 	@Override
@@ -5188,85 +5187,85 @@ implements
 		final SynchronizationFlag flag,
 		final boolean newValue)
 	{
-		return descriptor.o_GetAndSetSynchronizationFlag(this, flag, newValue);
+		return descriptor().o_GetAndSetSynchronizationFlag(this, flag, newValue);
 	}
 
 	@Override
 	public AvailObject fiberResult ()
 	{
-		return descriptor.o_FiberResult(this);
+		return descriptor().o_FiberResult(this);
 	}
 
 	@Override
 	public void fiberResult (final A_BasicObject result)
 	{
-		descriptor.o_FiberResult(this, result);
+		descriptor().o_FiberResult(this, result);
 	}
 
 	@Override
 	public A_Set joiningFibers ()
 	{
-		return descriptor.o_JoiningFibers(this);
+		return descriptor().o_JoiningFibers(this);
 	}
 
 	@Override
 	public @Nullable TimerTask wakeupTask ()
 	{
-		return descriptor.o_WakeupTask(this);
+		return descriptor().o_WakeupTask(this);
 	}
 
 	@Override
 	public void wakeupTask (final @Nullable TimerTask task)
 	{
-		descriptor.o_WakeupTask(this, task);
+		descriptor().o_WakeupTask(this, task);
 	}
 
 	@Override
 	public void joiningFibers (final A_Set joiners)
 	{
-		descriptor.o_JoiningFibers(this, joiners);
+		descriptor().o_JoiningFibers(this, joiners);
 	}
 
 	@Override
 	public A_Map heritableFiberGlobals ()
 	{
-		return descriptor.o_HeritableFiberGlobals(this);
+		return descriptor().o_HeritableFiberGlobals(this);
 	}
 
 	@Override
 	public void heritableFiberGlobals (final A_Map globals)
 	{
-		descriptor.o_HeritableFiberGlobals(this, globals);
+		descriptor().o_HeritableFiberGlobals(this, globals);
 	}
 
 	@Override
 	public boolean generalFlag (final GeneralFlag flag)
 	{
-		return descriptor.o_GeneralFlag(this, flag);
+		return descriptor().o_GeneralFlag(this, flag);
 	}
 
 	@Override
 	public void setGeneralFlag (final GeneralFlag flag)
 	{
-		descriptor.o_SetGeneralFlag(this, flag);
+		descriptor().o_SetGeneralFlag(this, flag);
 	}
 
 	@Override
 	public void clearGeneralFlag (final GeneralFlag flag)
 	{
-		descriptor.o_ClearGeneralFlag(this, flag);
+		descriptor().o_ClearGeneralFlag(this, flag);
 	}
 
 	@Override
 	public ByteBuffer byteBuffer ()
 	{
-		return descriptor.o_ByteBuffer(this);
+		return descriptor().o_ByteBuffer(this);
 	}
 
 	@Override
 	public boolean equalsByteBufferTuple (final A_Tuple aByteBufferTuple)
 	{
-		return descriptor.o_EqualsByteBufferTuple(this, aByteBufferTuple);
+		return descriptor().o_EqualsByteBufferTuple(this, aByteBufferTuple);
 	}
 
 	@Override
@@ -5276,7 +5275,7 @@ implements
 		final A_Tuple aByteBufferTuple,
 		final int startIndex2)
 	{
-		return descriptor.o_CompareFromToWithByteBufferTupleStartingAt(
+		return descriptor().o_CompareFromToWithByteBufferTupleStartingAt(
 			this,
 			startIndex1,
 			endIndex1,
@@ -5287,61 +5286,61 @@ implements
 	@Override
 	public boolean isByteBufferTuple ()
 	{
-		return descriptor.o_IsByteBufferTuple(this);
+		return descriptor().o_IsByteBufferTuple(this);
 	}
 
 	@Override
 	public A_String fiberName ()
 	{
-		return descriptor.o_FiberName(this);
+		return descriptor().o_FiberName(this);
 	}
 
 	@Override
 	public void fiberNameSupplier (final Supplier<A_String> supplier)
 	{
-		descriptor.o_FiberNameSupplier(this, supplier);
+		descriptor().o_FiberNameSupplier(this, supplier);
 	}
 
 	@Override
 	public A_Set bundles ()
 	{
-		return descriptor.o_Bundles(this);
+		return descriptor().o_Bundles(this);
 	}
 
 	@Override
 	public void methodAddBundle (final A_Bundle bundle)
 	{
-		descriptor.o_MethodAddBundle(this, bundle);
+		descriptor().o_MethodAddBundle(this, bundle);
 	}
 
 	@Override
 	public A_Module definitionModule ()
 	{
-		return descriptor.o_DefinitionModule(this);
+		return descriptor().o_DefinitionModule(this);
 	}
 
 	@Override
 	public A_String definitionModuleName ()
 	{
-		return descriptor.o_DefinitionModuleName(this);
+		return descriptor().o_DefinitionModuleName(this);
 	}
 
 	@Override
 	public A_Bundle bundleOrCreate () throws MalformedMessageException
 	{
-		return descriptor.o_BundleOrCreate(this);
+		return descriptor().o_BundleOrCreate(this);
 	}
 
 	@Override
 	public A_Bundle bundleOrNil ()
 	{
-		return descriptor.o_BundleOrNil(this);
+		return descriptor().o_BundleOrNil(this);
 	}
 
 	@Override
 	public A_Map entryPoints ()
 	{
-		return descriptor.o_EntryPoints(this);
+		return descriptor().o_EntryPoints(this);
 	}
 
 	@Override
@@ -5349,55 +5348,55 @@ implements
 		final A_String stringName,
 		final A_Atom trueName)
 	{
-		descriptor.o_AddEntryPoint(this, stringName, trueName);
+		descriptor().o_AddEntryPoint(this, stringName, trueName);
 	}
 
 	@Override
 	public A_Set allAncestors ()
 	{
-		return descriptor.o_AllAncestors(this);
+		return descriptor().o_AllAncestors(this);
 	}
 
 	@Override
 	public void addAncestors (final A_Set moreAncestors)
 	{
-		descriptor.o_AddAncestors(this, moreAncestors);
+		descriptor().o_AddAncestors(this, moreAncestors);
 	}
 
 	@Override
 	public A_Tuple argumentRestrictionSets ()
 	{
-		return descriptor.o_ArgumentRestrictionSets(this);
+		return descriptor().o_ArgumentRestrictionSets(this);
 	}
 
 	@Override
 	public A_Bundle restrictedBundle ()
 	{
-		return descriptor.o_RestrictedBundle(this);
+		return descriptor().o_RestrictedBundle(this);
 	}
 
 	@Override
 	public void adjustPcAndStackp (final int pc, final int stackp)
 	{
-		descriptor.o_AdjustPcAndStackp(this, pc, stackp);
+		descriptor().o_AdjustPcAndStackp(this, pc, stackp);
 	}
 
 	@Override
 	public int treeTupleLevel ()
 	{
-		return descriptor.o_TreeTupleLevel(this);
+		return descriptor().o_TreeTupleLevel(this);
 	}
 
 	@Override
 	public int childCount ()
 	{
-		return descriptor.o_ChildCount(this);
+		return descriptor().o_ChildCount(this);
 	}
 
 	@Override
 	public A_Tuple childAt (final int childIndex)
 	{
-		return descriptor.o_ChildAt(this, childIndex);
+		return descriptor().o_ChildAt(this, childIndex);
 	}
 
 	@Override
@@ -5405,25 +5404,25 @@ implements
 		final A_Tuple otherTuple,
 		final boolean canDestroy)
 	{
-		return descriptor.o_ConcatenateWith(this, otherTuple, canDestroy);
+		return descriptor().o_ConcatenateWith(this, otherTuple, canDestroy);
 	}
 
 	@Override
 	public A_Tuple replaceFirstChild (final A_Tuple newFirst)
 	{
-		return descriptor.o_ReplaceFirstChild(this, newFirst);
+		return descriptor().o_ReplaceFirstChild(this, newFirst);
 	}
 
 	@Override
 	public boolean isByteString ()
 	{
-		return descriptor.o_IsByteString(this);
+		return descriptor().o_IsByteString(this);
 	}
 
 	@Override
 	public boolean isTwoByteString ()
 	{
-		return descriptor.o_IsTwoByteString(this);
+		return descriptor().o_IsTwoByteString(this);
 	}
 
 	@Override
@@ -5431,31 +5430,31 @@ implements
 		final A_Atom key,
 		final VariableAccessReactor reactor)
 	{
-		descriptor.o_AddWriteReactor(this, key, reactor);
+		descriptor().o_AddWriteReactor(this, key, reactor);
 	}
 
 	@Override
 	public void removeWriteReactor (final A_Atom key) throws AvailException
 	{
-		descriptor.o_RemoveWriteReactor(this, key);
+		descriptor().o_RemoveWriteReactor(this, key);
 	}
 
 	@Override
 	public boolean traceFlag (final TraceFlag flag)
 	{
-		return descriptor.o_TraceFlag(this, flag);
+		return descriptor().o_TraceFlag(this, flag);
 	}
 
 	@Override
 	public void setTraceFlag (final TraceFlag flag)
 	{
-		descriptor.o_SetTraceFlag(this, flag);
+		descriptor().o_SetTraceFlag(this, flag);
 	}
 
 	@Override
 	public void clearTraceFlag (final TraceFlag flag)
 	{
-		descriptor.o_ClearTraceFlag(this, flag);
+		descriptor().o_ClearTraceFlag(this, flag);
 	}
 
 	@Override
@@ -5463,98 +5462,98 @@ implements
 		final A_Variable var,
 		final boolean wasRead)
 	{
-		descriptor.o_RecordVariableAccess(this, var, wasRead);
+		descriptor().o_RecordVariableAccess(this, var, wasRead);
 	}
 
 	@Override
 	public A_Set variablesReadBeforeWritten ()
 	{
-		return descriptor.o_VariablesReadBeforeWritten(this);
+		return descriptor().o_VariablesReadBeforeWritten(this);
 	}
 
 	@Override
 	public A_Set variablesWritten ()
 	{
-		return descriptor.o_VariablesWritten(this);
+		return descriptor().o_VariablesWritten(this);
 	}
 
 	@Override
 	public A_Set validWriteReactorFunctions ()
 	{
-		return descriptor.o_ValidWriteReactorFunctions(this);
+		return descriptor().o_ValidWriteReactorFunctions(this);
 	}
 
 	@Override
 	public A_Continuation replacingCaller (final A_Continuation newCaller)
 	{
-		return descriptor.o_ReplacingCaller(this, newCaller);
+		return descriptor().o_ReplacingCaller(this, newCaller);
 	}
 
 	@Override
 	public void whenContinuationIsAvailableDo (
 		final Continuation1NotNull<A_Continuation> whenReified)
 	{
-		descriptor.o_WhenContinuationIsAvailableDo(this, whenReified);
+		descriptor().o_WhenContinuationIsAvailableDo(this, whenReified);
 	}
 
 	@Override
 	public A_Set getAndClearReificationWaiters ()
 	{
-		return descriptor.o_GetAndClearReificationWaiters(this);
+		return descriptor().o_GetAndClearReificationWaiters(this);
 	}
 
 	@Override
 	public boolean isBottom ()
 	{
-		return descriptor.o_IsBottom(this);
+		return descriptor().o_IsBottom(this);
 	}
 
 	@Override
 	public boolean isVacuousType ()
 	{
-		return descriptor.o_IsVacuousType(this);
+		return descriptor().o_IsVacuousType(this);
 	}
 
 	@Override
 	public boolean isTop ()
 	{
-		return descriptor.o_IsTop(this);
+		return descriptor().o_IsTop(this);
 	}
 
 	@Override
 	public boolean isAtomSpecial ()
 	{
-		return descriptor.o_IsAtomSpecial(this);
+		return descriptor().o_IsAtomSpecial(this);
 	}
 
 	@Override
 	public void addPrivateNames (final A_Set trueNames)
 	{
-		descriptor.o_AddPrivateNames(this, trueNames);
+		descriptor().o_AddPrivateNames(this, trueNames);
 	}
 
 	@Override
 	public boolean hasValue ()
 	{
-		return descriptor.o_HasValue(this);
+		return descriptor().o_HasValue(this);
 	}
 
 	@Override
 	public void addUnloadFunction (final A_Function unloadFunction)
 	{
-		descriptor.o_AddUnloadFunction(this, unloadFunction);
+		descriptor().o_AddUnloadFunction(this, unloadFunction);
 	}
 
 	@Override
 	public A_Set exportedNames ()
 	{
-		return descriptor.o_ExportedNames(this);
+		return descriptor().o_ExportedNames(this);
 	}
 
 	@Override
 	public boolean isInitializedWriteOnceVariable ()
 	{
-		return descriptor.o_IsInitializedWriteOnceVariable(this);
+		return descriptor().o_IsInitializedWriteOnceVariable(this);
 	}
 
 	@Override
@@ -5563,7 +5562,7 @@ implements
 		final int endIndex,
 		final ByteBuffer outputByteBuffer)
 	{
-		descriptor.o_TransferIntoByteBuffer(
+		descriptor().o_TransferIntoByteBuffer(
 			this, startIndex, endIndex, outputByteBuffer);
 	}
 
@@ -5573,52 +5572,52 @@ implements
 		final int endIndex,
 		final A_Type type)
 	{
-		return descriptor.o_TupleElementsInRangeAreInstancesOf(
+		return descriptor().o_TupleElementsInRangeAreInstancesOf(
 			this, startIndex, endIndex, type);
 	}
 
 	@Override
 	public boolean isNumericallyIntegral ()
 	{
-		return descriptor.o_IsNumericallyIntegral(this);
+		return descriptor().o_IsNumericallyIntegral(this);
 	}
 
 	@Override
 	public TextInterface textInterface ()
 	{
-		return descriptor.o_TextInterface(this);
+		return descriptor().o_TextInterface(this);
 	}
 
 	@Override
 	public void textInterface (final TextInterface textInterface)
 	{
-		descriptor.o_TextInterface(this, textInterface);
+		descriptor().o_TextInterface(this, textInterface);
 	}
 
 	@Override
 	public void writeTo (final JSONWriter writer)
 	{
-		descriptor.o_WriteTo(this, writer);
+		descriptor().o_WriteTo(this, writer);
 	}
 
 	@Override
 	public void writeSummaryTo (final JSONWriter writer)
 	{
-		descriptor.o_WriteSummaryTo(this, writer);
+		descriptor().o_WriteSummaryTo(this, writer);
 	}
 
 	@Override
 	public A_Type typeIntersectionOfPrimitiveTypeEnum (
 		final Types primitiveTypeEnum)
 	{
-		return descriptor.o_TypeIntersectionOfPrimitiveTypeEnum(
+		return descriptor().o_TypeIntersectionOfPrimitiveTypeEnum(
 			this, primitiveTypeEnum);
 	}
 
 	@Override
 	public A_Type typeUnionOfPrimitiveTypeEnum (final Types primitiveTypeEnum)
 	{
-		return descriptor.o_TypeUnionOfPrimitiveTypeEnum(
+		return descriptor().o_TypeUnionOfPrimitiveTypeEnum(
 			this, primitiveTypeEnum);
 	}
 
@@ -5627,219 +5626,219 @@ implements
 		final int startIndex,
 		final int endIndex)
 	{
-		return descriptor.o_TupleOfTypesFromTo(this, startIndex, endIndex);
+		return descriptor().o_TupleOfTypesFromTo(this, startIndex, endIndex);
 	}
 
 	@Override
 	public A_Phrase list ()
 	{
-		return descriptor.o_List(this);
+		return descriptor().o_List(this);
 	}
 
 	@Override
 	public A_Tuple permutation ()
 	{
-		return descriptor.o_Permutation(this);
+		return descriptor().o_Permutation(this);
 	}
 
 	@Override
 	public void emitAllValuesOn (final AvailCodeGenerator codeGenerator)
 	{
-		descriptor.o_EmitAllValuesOn(this, codeGenerator);
+		descriptor().o_EmitAllValuesOn(this, codeGenerator);
 	}
 
 	@Override
 	public A_Type superUnionType ()
 	{
-		return descriptor.o_SuperUnionType(this);
+		return descriptor().o_SuperUnionType(this);
 	}
 
 	@Override
 	public boolean hasSuperCast ()
 	{
-		return descriptor.o_HasSuperCast(this);
+		return descriptor().o_HasSuperCast(this);
 	}
 
 	@Override
 	public A_Tuple macroDefinitionsTuple ()
 	{
-		return descriptor.o_MacroDefinitionsTuple(this);
+		return descriptor().o_MacroDefinitionsTuple(this);
 	}
 
 	@Override
 	public A_Tuple lookupMacroByPhraseTuple (
 		final A_Tuple argumentPhraseTuple)
 	{
-		return descriptor.o_LookupMacroByPhraseTuple(
+		return descriptor().o_LookupMacroByPhraseTuple(
 			this, argumentPhraseTuple);
 	}
 
 	@Override
 	public A_Phrase expressionAt (final int index)
 	{
-		return descriptor.o_ExpressionAt(this, index);
+		return descriptor().o_ExpressionAt(this, index);
 	}
 
 	@Override
 	public int expressionsSize ()
 	{
-		return descriptor.o_ExpressionsSize(this);
+		return descriptor().o_ExpressionsSize(this);
 	}
 
 	@Override
 	public A_Phrase lastExpression () {
-		return descriptor.o_LastExpression(this);
+		return descriptor().o_LastExpression(this);
 	}
 
 	@Override
 	public int parsingPc ()
 	{
-		return descriptor.o_ParsingPc(this);
+		return descriptor().o_ParsingPc(this);
 	}
 
 	@Override
 	public boolean isMacroSubstitutionNode ()
 	{
-		return descriptor.o_IsMacroSubstitutionNode(this);
+		return descriptor().o_IsMacroSubstitutionNode(this);
 	}
 
 	@Override
 	public MessageSplitter messageSplitter ()
 	{
-		return descriptor.o_MessageSplitter(this);
+		return descriptor().o_MessageSplitter(this);
 	}
 
 	@Override
 	public void statementsDo (final Continuation1NotNull<A_Phrase> continuation)
 	{
-		descriptor.o_StatementsDo(this, continuation);
+		descriptor().o_StatementsDo(this, continuation);
 	}
 
 	@Override
 	public A_Phrase macroOriginalSendNode ()
 	{
-		return descriptor.o_MacroOriginalSendNode(this);
+		return descriptor().o_MacroOriginalSendNode(this);
 	}
 
 	@Override
 	public boolean equalsInt (final int theInt)
 	{
-		return descriptor.o_EqualsInt(this, theInt);
+		return descriptor().o_EqualsInt(this, theInt);
 	}
 
 	@Override
 	public A_Tuple tokens ()
 	{
-		return descriptor.o_Tokens(this);
+		return descriptor().o_Tokens(this);
 	}
 
 	@Override
 	public A_Bundle chooseBundle (final A_Module currentModule)
 	{
-		return descriptor.o_ChooseBundle(this, currentModule);
+		return descriptor().o_ChooseBundle(this, currentModule);
 	}
 
 	@Override
 	public boolean valueWasStablyComputed ()
 	{
-		return descriptor.o_ValueWasStablyComputed(this);
+		return descriptor().o_ValueWasStablyComputed(this);
 	}
 
 	@Override
 	public void valueWasStablyComputed (final boolean wasStablyComputed)
 	{
-		descriptor.o_ValueWasStablyComputed(this, wasStablyComputed);
+		descriptor().o_ValueWasStablyComputed(this, wasStablyComputed);
 	}
 
 	@Override
 	public long uniqueId ()
 	{
-		return descriptor.o_UniqueId(this);
+		return descriptor().o_UniqueId(this);
 	}
 
 	@Override
 	public A_Definition definition ()
 	{
-		return descriptor.o_Definition(this);
+		return descriptor().o_Definition(this);
 	}
 
 	@Override
 	public String nameHighlightingPc ()
 	{
-		return descriptor.o_NameHighlightingPc(this);
+		return descriptor().o_NameHighlightingPc(this);
 	}
 
 	@Override
 	public boolean setIntersects (final A_Set otherSet)
 	{
-		return descriptor.o_SetIntersects(this, otherSet);
+		return descriptor().o_SetIntersects(this, otherSet);
 	}
 
 	@Override
 	public void removePlanForDefinition (final A_Definition definition)
 	{
-		descriptor.o_RemovePlanForDefinition(this, definition);
+		descriptor().o_RemovePlanForDefinition(this, definition);
 	}
 
 	@Override
 	public A_Map definitionParsingPlans ()
 	{
-		return descriptor.o_DefinitionParsingPlans(this);
+		return descriptor().o_DefinitionParsingPlans(this);
 	}
 
 	@Override
 	public boolean equalsListNodeType (final A_Type aListNodeType)
 	{
-		return descriptor.o_EqualsListNodeType(this, aListNodeType);
+		return descriptor().o_EqualsListNodeType(this, aListNodeType);
 	}
 
 	@Override
 	public A_Type subexpressionsTupleType ()
 	{
-		return descriptor.o_SubexpressionsTupleType(this);
+		return descriptor().o_SubexpressionsTupleType(this);
 	}
 
 	@Override
 	public A_BasicObject lazyTypeFilterTreePojo ()
 	{
-		return descriptor.o_LazyTypeFilterTreePojo(this);
+		return descriptor().o_LazyTypeFilterTreePojo(this);
 	}
 
 	@Override
 	public void addPlanInProgress (final A_ParsingPlanInProgress planInProgress)
 	{
-		descriptor.o_AddPlanInProgress(this, planInProgress);
+		descriptor().o_AddPlanInProgress(this, planInProgress);
 	}
 
 	@Override
 	public A_Type parsingSignature ()
 	{
-		return descriptor.o_ParsingSignature(this);
+		return descriptor().o_ParsingSignature(this);
 	}
 
 	@Override
 	public void removePlanInProgress (
 		final A_ParsingPlanInProgress planInProgress)
 	{
-		descriptor.o_RemovePlanInProgress(this, planInProgress);
+		descriptor().o_RemovePlanInProgress(this, planInProgress);
 	}
 
 	@Override
 	public A_Set moduleSemanticRestrictions ()
 	{
-		return descriptor.o_ModuleSemanticRestrictions(this);
+		return descriptor().o_ModuleSemanticRestrictions(this);
 	}
 
 	@Override
 	public A_Set moduleGrammaticalRestrictions ()
 	{
-		return descriptor.o_ModuleGrammaticalRestrictions(this);
+		return descriptor().o_ModuleGrammaticalRestrictions(this);
 	}
 
 	@Override
 	public AvailObject fieldAt (final A_Atom field)
 	{
-		return descriptor.o_FieldAt(this, field);
+		return descriptor().o_FieldAt(this, field);
 	}
 
 	@Override
@@ -5848,20 +5847,20 @@ implements
 		final A_BasicObject value,
 		final boolean canDestroy)
 	{
-		return descriptor.o_FieldAtPuttingCanDestroy(
+		return descriptor().o_FieldAtPuttingCanDestroy(
 			this, field, value, canDestroy);
 	}
 
 	@Override
 	public A_Type fieldTypeAt (final A_Atom field)
 	{
-		return descriptor.o_FieldTypeAt(this, field);
+		return descriptor().o_FieldTypeAt(this, field);
 	}
 
 	@Override
 	public A_DefinitionParsingPlan parsingPlan ()
 	{
-		return descriptor.o_ParsingPlan(this);
+		return descriptor().o_ParsingPlan(this);
 	}
 
 	@Override
@@ -5870,222 +5869,222 @@ implements
 		final A_BasicObject value)
 	throws VariableGetException, VariableSetException
 	{
-		descriptor.o_AtomicAddToMap(this, key, value);
+		descriptor().o_AtomicAddToMap(this, key, value);
 	}
 
 	@Override
 	public boolean variableMapHasKey (final A_BasicObject key)
 	throws VariableGetException
 	{
-		return descriptor.o_VariableMapHasKey(this, key);
+		return descriptor().o_VariableMapHasKey(this, key);
 	}
 
 	@Override
 	public A_Method lexerMethod ()
 	{
-		return descriptor.o_LexerMethod(this);
+		return descriptor().o_LexerMethod(this);
 	}
 
 	@Override
 	public A_Function lexerFilterFunction ()
 	{
-		return descriptor.o_LexerFilterFunction(this);
+		return descriptor().o_LexerFilterFunction(this);
 	}
 
 	@Override
 	public A_Function lexerBodyFunction ()
 	{
-		return descriptor.o_LexerBodyFunction(this);
+		return descriptor().o_LexerBodyFunction(this);
 	}
 
 	@Override
 	public void setLexer (final A_Lexer lexer)
 	{
-		descriptor.o_SetLexer(this, lexer);
+		descriptor().o_SetLexer(this, lexer);
 	}
 
 	@Override
 	public void addLexer (final A_Lexer lexer)
 	{
-		descriptor.o_AddLexer(this, lexer);
+		descriptor().o_AddLexer(this, lexer);
 	}
 
 	@Override
 	public A_Phrase originatingPhrase ()
 	{
-		return descriptor.o_OriginatingPhrase(this);
+		return descriptor().o_OriginatingPhrase(this);
 	}
 
 	@Override
 	public A_Phrase typeExpression ()
 	{
-		return descriptor.o_TypeExpression(this);
+		return descriptor().o_TypeExpression(this);
 	}
 
 	@Override
 	public boolean isGlobal ()
 	{
-		return descriptor.o_IsGlobal(this);
+		return descriptor().o_IsGlobal(this);
 	}
 
 	@Override
 	public A_Module globalModule ()
 	{
-		return descriptor.o_GlobalModule(this);
+		return descriptor().o_GlobalModule(this);
 	}
 
 	@Override
 	public A_String globalName ()
 	{
-		return descriptor.o_GlobalName(this);
+		return descriptor().o_GlobalName(this);
 	}
 
 	@Override
 	public LexingState nextLexingState ()
 	{
-		return descriptor.o_NextLexingState(this);
+		return descriptor().o_NextLexingState(this);
 	}
 
 	@Override
 	public void setNextLexingStateFromPrior (
 		final LexingState priorLexingState)
 	{
-		descriptor.o_SetNextLexingStateFromPrior(this, priorLexingState);
+		descriptor().o_SetNextLexingStateFromPrior(this, priorLexingState);
 	}
 
 	@Override
 	public int tupleCodePointAt (final int index)
 	{
-		return descriptor.o_TupleCodePointAt(this, index);
+		return descriptor().o_TupleCodePointAt(this, index);
 	}
 
 	@Override
 	public LexicalScanner createLexicalScanner ()
 	{
-		return descriptor.o_CreateLexicalScanner(this);
+		return descriptor().o_CreateLexicalScanner(this);
 	}
 
 	@Override
 	public A_Lexer lexer ()
 	{
-		return descriptor.o_Lexer(this);
+		return descriptor().o_Lexer(this);
 	}
 
 	@Override
 	public void suspendingFunction (
 		final A_Function suspendingFunction)
 	{
-		descriptor.o_SuspendingFunction(this, suspendingFunction);
+		descriptor().o_SuspendingFunction(this, suspendingFunction);
 	}
 
 	@Override
 	public A_Function suspendingFunction ()
 	{
-		return descriptor.o_SuspendingFunction(this);
+		return descriptor().o_SuspendingFunction(this);
 	}
 
 	@Override
 	public boolean isBackwardJump ()
 	{
-		return descriptor.o_IsBackwardJump(this);
+		return descriptor().o_IsBackwardJump(this);
 	}
 
 	@Override
 	public A_BundleTree latestBackwardJump ()
 	{
-		return descriptor.o_LatestBackwardJump(this);
+		return descriptor().o_LatestBackwardJump(this);
 	}
 
 	@Override
 	public boolean hasBackwardJump ()
 	{
-		return descriptor.o_HasBackwardJump(this);
+		return descriptor().o_HasBackwardJump(this);
 	}
 
 	@Override
 	public boolean isSourceOfCycle ()
 	{
-		return descriptor.o_IsSourceOfCycle(this);
+		return descriptor().o_IsSourceOfCycle(this);
 	}
 
 	@Override
 	public void isSourceOfCycle (
 		final boolean isSourceOfCycle)
 	{
-		descriptor.o_IsSourceOfCycle(this, isSourceOfCycle);
+		descriptor().o_IsSourceOfCycle(this, isSourceOfCycle);
 	}
 
 	@Override
 	public StringBuilder debugLog ()
 	{
-		return descriptor.o_DebugLog(this);
+		return descriptor().o_DebugLog(this);
 	}
 
 	@Override
 	public A_Type constantTypeAt (final int index)
 	{
-		return descriptor.o_ConstantTypeAt(this, index);
+		return descriptor().o_ConstantTypeAt(this, index);
 	}
 
 	@Override
 	public Statistic returnerCheckStat ()
 	{
-		return descriptor.o_ReturnerCheckStat(this);
+		return descriptor().o_ReturnerCheckStat(this);
 	}
 
 	@Override
 	public Statistic returneeCheckStat ()
 	{
-		return descriptor.o_ReturneeCheckStat(this);
+		return descriptor().o_ReturneeCheckStat(this);
 	}
 
 	@Override
 	public int numNybbles ()
 	{
-		return descriptor.o_NumNybbles(this);
+		return descriptor().o_NumNybbles(this);
 	}
 
 	@Override
 	public A_Tuple lineNumberEncodedDeltas ()
 	{
-		return descriptor.o_LineNumberEncodedDeltas(this);
+		return descriptor().o_LineNumberEncodedDeltas(this);
 	}
 
 	@Override
 	public int currentLineNumber ()
 	{
-		return descriptor.o_CurrentLineNumber(this);
+		return descriptor().o_CurrentLineNumber(this);
 	}
 
 	@Override
 	public A_Type fiberResultType ()
 	{
-		return descriptor.o_FiberResultType(this);
+		return descriptor().o_FiberResultType(this);
 	}
 
 	@Override
 	public LookupTree<A_Definition, A_Tuple, Boolean> testingTree ()
 	{
-		return descriptor.o_TestingTree(this);
+		return descriptor().o_TestingTree(this);
 	}
 
 	@Override
 	public void forEach (
 		final BiConsumer<? super AvailObject, ? super AvailObject> action)
 	{
-		descriptor.o_ForEach(this, action);
+		descriptor().o_ForEach(this, action);
 	}
 
 	@Override
 	public void forEachInMapBin (
 		final BiConsumer<? super AvailObject, ? super AvailObject> action)
 	{
-		descriptor.o_ForEachInMapBin(this, action);
+		descriptor().o_ForEachInMapBin(this, action);
 	}
 
 	@Override
 	public void clearLexingState ()
 	{
-		descriptor.o_ClearLexingState(this);
+		descriptor().o_ClearLexingState(this);
 	}
 }

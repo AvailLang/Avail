@@ -34,17 +34,14 @@ package com.avail.stacks
 
 import com.avail.stacks.comment.ModuleComment
 import com.avail.utility.Pair
+import com.avail.utility.Strings.tabs
 import com.avail.utility.json.JSONWriter
-
 import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
-import java.util.ArrayList
-import java.util.HashSet
-
-import com.avail.utility.Strings.tabs
 import java.nio.file.StandardOpenOption.*
+import java.util.*
 
 /**
  * A holder for all categories in stacks

@@ -108,7 +108,6 @@ internal abstract class AbstractHeartbeat constructor(
 
 	override fun cancel()
 	{
-		println("Heartbeat($channelId) cancelled")
 		heartbeatCancelled = true
 		heartBeatTimer?.cancel(true)
 	}

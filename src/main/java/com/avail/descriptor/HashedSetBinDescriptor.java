@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.descriptor.SetDescriptor.SetIterator;
+import com.avail.descriptor.objects.A_BasicObject;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -149,7 +150,7 @@ extends SetBinDescriptor
 	{
 		if (checkBinHashes)
 		{
-			assert object.descriptor instanceof HashedSetBinDescriptor;
+			assert object.descriptor() instanceof HashedSetBinDescriptor;
 			final int stored = object.setBinHash();
 			int calculated = 0;
 			for (int i = object.variableObjectSlotsCount(); i >= 1; i--)
@@ -162,20 +163,21 @@ extends SetBinDescriptor
 		}
 	}
 
-	@Override boolean allowsImmutableToMutableReferenceInField (
+	@Override
+	protected boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
 		return e == BIN_UNION_TYPE_OR_NIL;
 	}
 
 	@Override @AvailMethod
-	int o_SetBinSize (final AvailObject object)
+	protected int o_SetBinSize (final AvailObject object)
 	{
 		return object.slot(BIN_SIZE);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_BinElementAt (final AvailObject object, final int subscript)
+	protected AvailObject o_BinElementAt (final AvailObject object, final int subscript)
 	{
 		return object.slot(BIN_ELEMENT_AT_, subscript);
 	}
@@ -209,7 +211,7 @@ extends SetBinDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_BinUnionKind (final AvailObject object)
+	protected A_Type o_BinUnionKind (final AvailObject object)
 	{
 		if (isShared())
 		{
@@ -222,7 +224,7 @@ extends SetBinDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_BinElementsAreAllInstancesOfKind (
+	protected boolean o_BinElementsAreAllInstancesOfKind (
 		final AvailObject object,
 		final A_Type kind)
 	{
@@ -236,7 +238,7 @@ extends SetBinDescriptor
 	 * exists.
 	 */
 	@Override @AvailMethod
-	A_BasicObject o_SetBinAddingElementHashLevelCanDestroy (
+	protected A_BasicObject o_SetBinAddingElementHashLevelCanDestroy (
 		final AvailObject object,
 		final A_BasicObject elementObject,
 		final int elementObjectHash,
@@ -337,7 +339,7 @@ extends SetBinDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_BinHasElementWithHash (
+	protected boolean o_BinHasElementWithHash (
 		final AvailObject object,
 		final A_BasicObject elementObject,
 		final int elementObjectHash)
@@ -364,7 +366,7 @@ extends SetBinDescriptor
 	 * resulting bin. The bin may be modified if it's mutable and canDestroy.
 	 */
 	@Override @AvailMethod
-	AvailObject o_BinRemoveElementHashLevelCanDestroy (
+	protected AvailObject o_BinRemoveElementHashLevelCanDestroy (
 		final AvailObject object,
 		final A_BasicObject elementObject,
 		final int elementObjectHash,
@@ -462,7 +464,7 @@ extends SetBinDescriptor
 	 * Check if object, a bin, holds a subset of aSet's elements.
 	 */
 	@Override @AvailMethod
-	boolean o_IsBinSubsetOf (
+	protected boolean o_IsBinSubsetOf (
 		final AvailObject object,
 		final A_Set potentialSuperset)
 	{
@@ -577,7 +579,7 @@ extends SetBinDescriptor
 	}
 
 	@Override
-	SetIterator o_SetBinIterator (final AvailObject object)
+	protected SetIterator o_SetBinIterator (final AvailObject object)
 	{
 		return new HashedSetBinIterator(object);
 	}
@@ -805,19 +807,19 @@ extends SetBinDescriptor
 	}
 
 	@Override
-	HashedSetBinDescriptor mutable ()
+	protected HashedSetBinDescriptor mutable ()
 	{
 		return descriptorFor(MUTABLE, level);
 	}
 
 	@Override
-	HashedSetBinDescriptor immutable ()
+	protected HashedSetBinDescriptor immutable ()
 	{
 		return descriptorFor(IMMUTABLE, level);
 	}
 
 	@Override
-	HashedSetBinDescriptor shared ()
+	protected HashedSetBinDescriptor shared ()
 	{
 		return descriptorFor(SHARED, level);
 	}

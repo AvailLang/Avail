@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
+import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -84,13 +85,13 @@ extends TypeDescriptor
 	}
 
 	@Override
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsLiteralTokenType(object);
 	}
 
 	@Override
-	boolean o_EqualsLiteralTokenType (
+	protected boolean o_EqualsLiteralTokenType (
 		final AvailObject object,
 		final A_Type aLiteralTokenType)
 	{
@@ -98,19 +99,19 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	protected int o_Hash (final AvailObject object)
 	{
 		return object.slot(LITERAL_TYPE).hash() ^ 0xF47FF1B1;
 	}
 
 	@Override
-	boolean o_IsLiteralTokenType (final AvailObject object)
+	protected boolean o_IsLiteralTokenType (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override
-	AvailObject o_MakeImmutable (final AvailObject object)
+	protected AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		if (isMutable())
 		{
@@ -121,7 +122,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
+	protected boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
 	{
 		// Check if object (a type) is a subtype of aType (should also be a
 		// type).
@@ -129,7 +130,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	boolean o_IsSupertypeOfLiteralTokenType (
+	protected boolean o_IsSupertypeOfLiteralTokenType (
 		final AvailObject object,
 		final A_Type aLiteralTokenType)
 	{
@@ -138,25 +139,26 @@ extends TypeDescriptor
 	}
 
 	@Override
-	boolean o_IsVacuousType (final AvailObject object)
+	protected boolean o_IsVacuousType (final AvailObject object)
 	{
 		return object.slot(LITERAL_TYPE).isVacuousType();
 	}
 
 	@Override @AvailMethod
-	A_Type o_LiteralType (final AvailObject object)
+	protected A_Type o_LiteralType (final AvailObject object)
 	{
 		return object.slot(LITERAL_TYPE);
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.LITERAL_TOKEN_TYPE;
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeIntersection (
+	protected A_Type o_TypeIntersection (
 		final AvailObject object,
 		final A_Type another)
 	{
@@ -176,7 +178,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeIntersectionOfLiteralTokenType (
+	protected A_Type o_TypeIntersectionOfLiteralTokenType (
 		final AvailObject object,
 		final A_Type aLiteralTokenType)
 	{
@@ -190,7 +192,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeIntersectionOfPrimitiveTypeEnum (
+	protected A_Type o_TypeIntersectionOfPrimitiveTypeEnum (
 		final AvailObject object,
 		final Types primitiveTypeEnum)
 	{
@@ -200,7 +202,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	A_Type o_TypeUnion (
+	protected A_Type o_TypeUnion (
 		final AvailObject object,
 		final A_Type another)
 	{
@@ -216,7 +218,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeUnionOfLiteralTokenType (
+	protected A_Type o_TypeUnionOfLiteralTokenType (
 		final AvailObject object,
 		final A_Type aLiteralTokenType)
 	{
@@ -230,7 +232,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeUnionOfPrimitiveTypeEnum (
+	protected A_Type o_TypeUnionOfPrimitiveTypeEnum (
 		final AvailObject object,
 		final Types primitiveTypeEnum)
 	{
@@ -238,7 +240,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -278,7 +280,7 @@ extends TypeDescriptor
 		new LiteralTokenTypeDescriptor(Mutability.MUTABLE);
 
 	@Override
-	LiteralTokenTypeDescriptor mutable ()
+	protected LiteralTokenTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -288,14 +290,14 @@ extends TypeDescriptor
 		new LiteralTokenTypeDescriptor(Mutability.SHARED);
 
 	@Override
-	LiteralTokenTypeDescriptor immutable ()
+	protected LiteralTokenTypeDescriptor immutable ()
 	{
 		// There is no immutable variant.
 		return shared;
 	}
 
 	@Override
-	LiteralTokenTypeDescriptor shared ()
+	protected LiteralTokenTypeDescriptor shared ()
 	{
 		return shared;
 	}

@@ -37,8 +37,7 @@ import com.avail.stacks.StacksErrorLog
 import com.avail.stacks.tokens.AbstractStacksToken
 import com.avail.stacks.tokens.QuotedStacksToken
 import com.avail.utility.json.JSONWriter
-
-import java.util.ArrayList
+import java.util.*
 
 /**
  * The "@link" tag use in an Avail comment to link to an external web page.
