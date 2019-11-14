@@ -285,7 +285,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	AvailObject o_MakeShared (final AvailObject object)
+	protected AvailObject o_MakeShared (final AvailObject object)
 	{
 		// Before an object using this descriptor can be shared, it must first
 		// become (an indirection to) a proper tuple type.
@@ -296,7 +296,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (
+	protected SerializerOperation o_SerializerOperation (
 		final AvailObject object)
 	{
 		becomeRealTupleType(object);
@@ -760,7 +760,7 @@ extends TypeDescriptor
 		new ConcatenatedTupleTypeDescriptor(Mutability.MUTABLE);
 
 	@Override
-	ConcatenatedTupleTypeDescriptor mutable ()
+	protected ConcatenatedTupleTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -770,13 +770,13 @@ extends TypeDescriptor
 		new ConcatenatedTupleTypeDescriptor(Mutability.IMMUTABLE);
 
 	@Override
-	ConcatenatedTupleTypeDescriptor immutable ()
+	protected ConcatenatedTupleTypeDescriptor immutable ()
 	{
 		return immutable;
 	}
 
 	@Override
-	ConcatenatedTupleTypeDescriptor shared ()
+	protected ConcatenatedTupleTypeDescriptor shared ()
 	{
 		throw unsupportedOperationException();
 	}

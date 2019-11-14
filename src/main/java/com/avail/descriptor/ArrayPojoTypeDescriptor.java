@@ -46,9 +46,7 @@ import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.ArrayPojoTypeDescriptor.IntegerSlots.HASH_AND_MORE;
 import static com.avail.descriptor.ArrayPojoTypeDescriptor.IntegerSlots.HASH_OR_ZERO;
-import static com.avail.descriptor.ArrayPojoTypeDescriptor.ObjectSlots.CONTENT_TYPE;
-import static com.avail.descriptor.ArrayPojoTypeDescriptor.ObjectSlots.JAVA_ANCESTORS;
-import static com.avail.descriptor.ArrayPojoTypeDescriptor.ObjectSlots.SIZE_RANGE;
+import static com.avail.descriptor.ArrayPojoTypeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.BottomPojoTypeDescriptor.pojoBottom;
 import static com.avail.descriptor.FusedPojoTypeDescriptor.createFusedPojoType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
@@ -183,7 +181,7 @@ extends PojoTypeDescriptor
 			aPojoType.makeImmutable();
 			object.becomeIndirectionTo(aPojoType);
 		}
-		else if (!aPojoType.descriptor.isShared())
+		else if (!aPojoType.descriptor().isShared())
 		{
 			object.makeImmutable();
 			aPojoType.becomeIndirectionTo(object);
@@ -256,7 +254,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override
-	@Nullable Object o_MarshalToJava (
+	protected @Nullable Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> classHint)
 	{
@@ -443,7 +441,7 @@ extends PojoTypeDescriptor
 		new ArrayPojoTypeDescriptor(Mutability.MUTABLE);
 
 	@Override
-	ArrayPojoTypeDescriptor mutable ()
+	protected ArrayPojoTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -453,7 +451,7 @@ extends PojoTypeDescriptor
 		new ArrayPojoTypeDescriptor(Mutability.IMMUTABLE);
 
 	@Override
-	ArrayPojoTypeDescriptor immutable ()
+	protected ArrayPojoTypeDescriptor immutable ()
 	{
 		return immutable;
 	}
@@ -463,7 +461,7 @@ extends PojoTypeDescriptor
 		new ArrayPojoTypeDescriptor(Mutability.SHARED);
 
 	@Override
-	ArrayPojoTypeDescriptor shared ()
+	protected ArrayPojoTypeDescriptor shared ()
 	{
 		return shared;
 	}

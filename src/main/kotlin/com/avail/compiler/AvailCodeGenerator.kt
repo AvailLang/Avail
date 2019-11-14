@@ -50,6 +50,7 @@ import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.objects.A_BasicObject
 import com.avail.descriptor.parsing.A_Phrase
 import com.avail.descriptor.parsing.BlockPhraseDescriptor
+import com.avail.descriptor.parsing.PhraseDescriptor
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag

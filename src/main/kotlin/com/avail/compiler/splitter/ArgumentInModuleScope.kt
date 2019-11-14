@@ -35,11 +35,11 @@ import com.avail.compiler.ParsingConversionRule.EVALUATE_EXPRESSION
 import com.avail.compiler.ParsingOperation.*
 import com.avail.compiler.splitter.MessageSplitter.Companion.indexForConstant
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
-import com.avail.descriptor.objects.A_BasicObject
-import com.avail.descriptor.parsing.A_Phrase
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.LiteralPhraseDescriptor
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
+import com.avail.descriptor.objects.A_BasicObject
+import com.avail.descriptor.parsing.A_Phrase
 import com.avail.utility.Nulls.stripNull
 import java.util.*
 

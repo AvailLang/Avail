@@ -222,13 +222,13 @@ extends Descriptor
 		new ParsingPlanInProgressDescriptor(Mutability.MUTABLE);
 
 	@Override
-	ParsingPlanInProgressDescriptor mutable ()
+	protected ParsingPlanInProgressDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	@Override
-	ParsingPlanInProgressDescriptor immutable ()
+	protected ParsingPlanInProgressDescriptor immutable ()
 	{
 		// There is no immutable variant.
 		return shared;
@@ -239,7 +239,7 @@ extends Descriptor
 		new ParsingPlanInProgressDescriptor(Mutability.SHARED);
 
 	@Override
-	ParsingPlanInProgressDescriptor shared ()
+	protected ParsingPlanInProgressDescriptor shared ()
 	{
 		return shared;
 	}

@@ -126,7 +126,6 @@ implements TextInputChannel
 		 *        The {@linkplain CompletionHandler completion handler} provided
 		 *        for notification of data availability.
 		 */
-		@SuppressWarnings("unchecked")
 		Waiter (
 			final CharBuffer buffer,
 			final @Nullable Object attachment,

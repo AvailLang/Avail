@@ -33,9 +33,9 @@ package com.avail.compiler.splitter
 
 import com.avail.compiler.ParsingOperation.PARSE_PART
 import com.avail.compiler.ParsingOperation.PARSE_PART_CASE_INSENSITIVELY
+import com.avail.descriptor.A_Type
 import com.avail.descriptor.parsing.A_Phrase
 import com.avail.descriptor.tuples.A_String
-import com.avail.descriptor.A_Type
 
 /**
  * A `Simple` is an [expression][Expression] that

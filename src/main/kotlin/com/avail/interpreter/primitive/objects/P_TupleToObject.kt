@@ -32,13 +32,16 @@
 
 package com.avail.interpreter.primitive.objects
 
-import com.avail.descriptor.*
+import com.avail.descriptor.A_RawFunction
+import com.avail.descriptor.A_Type
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.MapDescriptor.emptyMap
+import com.avail.descriptor.ObjectDescriptor
 import com.avail.descriptor.ObjectDescriptor.objectFromTuple
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.ObjectTypeDescriptor.mostGeneralObjectType
 import com.avail.descriptor.ObjectTypeDescriptor.objectTypeFromMap
+import com.avail.descriptor.TupleDescriptor
 import com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes
 import com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf
 import com.avail.descriptor.TypeDescriptor.Types.ANY

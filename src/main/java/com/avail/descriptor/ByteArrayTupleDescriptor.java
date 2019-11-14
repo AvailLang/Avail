@@ -404,7 +404,7 @@ extends NumericTupleDescriptor
 	{
 		if (isMutable())
 		{
-			object.descriptor = immutable;
+			object.setDescriptor(immutable);
 			object.slot(BYTE_ARRAY_POJO).makeImmutable();
 		}
 		return object;
@@ -415,7 +415,7 @@ extends NumericTupleDescriptor
 	{
 		if (!isShared())
 		{
-			object.descriptor = shared;
+			object.setDescriptor(shared);
 			object.slot(BYTE_ARRAY_POJO).makeShared();
 		}
 		return object;
@@ -445,7 +445,7 @@ extends NumericTupleDescriptor
 
 	@Override
 	@AvailMethod
-	A_Tuple o_TupleAtPuttingCanDestroy (
+	protected A_Tuple o_TupleAtPuttingCanDestroy (
 		final AvailObject object,
 		final int index,
 		final A_BasicObject newValueObject,
@@ -494,7 +494,7 @@ extends NumericTupleDescriptor
 
 	@Override
 	@AvailMethod
-	int o_TupleIntAt (final AvailObject object, final int index)
+	protected int o_TupleIntAt (final AvailObject object, final int index)
 	{
 		// Answer the integer element at the given index in the tuple object.
 		assert index >= 1 && index <= object.tupleSize();
@@ -558,7 +558,7 @@ extends NumericTupleDescriptor
 		new ByteArrayTupleDescriptor(Mutability.MUTABLE);
 
 	@Override
-	ByteArrayTupleDescriptor mutable ()
+	protected ByteArrayTupleDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -568,7 +568,7 @@ extends NumericTupleDescriptor
 		new ByteArrayTupleDescriptor(Mutability.IMMUTABLE);
 
 	@Override
-	ByteArrayTupleDescriptor immutable ()
+	protected ByteArrayTupleDescriptor immutable ()
 	{
 		return immutable;
 	}
@@ -578,7 +578,7 @@ extends NumericTupleDescriptor
 		new ByteArrayTupleDescriptor(Mutability.SHARED);
 
 	@Override
-	ByteArrayTupleDescriptor shared ()
+	protected ByteArrayTupleDescriptor shared ()
 	{
 		return shared;
 	}

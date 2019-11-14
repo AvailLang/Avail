@@ -33,8 +33,8 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
-import com.avail.descriptor.AtomDescriptor.SpecialAtom;
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
+import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom;
 import com.avail.descriptor.methods.A_Method;
 import com.avail.descriptor.parsing.PhraseDescriptor;
 import com.avail.descriptor.tuples.A_Tuple;
@@ -42,10 +42,7 @@ import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
 import static com.avail.descriptor.ListPhraseTypeDescriptor.createListNodeType;
-import static com.avail.descriptor.MacroDefinitionDescriptor.ObjectSlots.BODY_BLOCK;
-import static com.avail.descriptor.MacroDefinitionDescriptor.ObjectSlots.DEFINITION_METHOD;
-import static com.avail.descriptor.MacroDefinitionDescriptor.ObjectSlots.MACRO_PREFIX_FUNCTIONS;
-import static com.avail.descriptor.MacroDefinitionDescriptor.ObjectSlots.MODULE;
+import static com.avail.descriptor.MacroDefinitionDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeFromTupleOfTypes;
 import static com.avail.descriptor.TypeDescriptor.Types.MACRO_DEFINITION;
 
@@ -184,7 +181,8 @@ extends DefinitionDescriptor
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.MACRO_DEFINITION;
 	}
@@ -271,13 +269,13 @@ extends DefinitionDescriptor
 		new MacroDefinitionDescriptor(Mutability.MUTABLE);
 
 	@Override
-	MacroDefinitionDescriptor mutable ()
+	protected MacroDefinitionDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	@Override
-	MacroDefinitionDescriptor immutable ()
+	protected MacroDefinitionDescriptor immutable ()
 	{
 		// There is no immutable variant.
 		return shared;
@@ -288,7 +286,7 @@ extends DefinitionDescriptor
 		new MacroDefinitionDescriptor(Mutability.SHARED);
 
 	@Override
-	MacroDefinitionDescriptor shared ()
+	protected MacroDefinitionDescriptor shared ()
 	{
 		return shared;
 	}

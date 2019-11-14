@@ -69,12 +69,8 @@ object P_ReadFromStandardInput : Primitive(0, CanSuspend, Unknown)
 				SimpleCompletionHandler(
 					{ _ ->
 						toSucceed.value(fromCodePoint(buffer.get(0).toInt()))
-						Unit
 					},
-					{ _ ->
-						toFail.value(E_IO_ERROR)
-						Unit
-					}))
+					{ toFail.value(E_IO_ERROR) }))
 		}
 	}
 

@@ -38,6 +38,10 @@ import com.avail.descriptor.*
 import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind
 import com.avail.descriptor.IntegerDescriptor.fromInt
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
+import com.avail.descriptor.atoms.AtomDescriptor
+import com.avail.descriptor.bundles.A_Bundle
+import com.avail.descriptor.parsing.BlockPhraseDescriptor
+import com.avail.descriptor.parsing.PhraseDescriptor
 import com.avail.interpreter.levelOne.L1Operation
 import com.avail.interpreter.primitive.phrases.P_AcceptParsing
 import com.avail.interpreter.primitive.phrases.P_CurrentMacroName
@@ -454,7 +458,7 @@ enum class AvailErrorCode constructor(val code: Int)
 
 	/**
 	 * Cannot overwrite or clear an initialized
-	 * [wrtie-once variable][VariableSharedGlobalDescriptor].
+	 * [write-once variable][VariableSharedGlobalDescriptor].
 	 */
 	E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE(73),
 

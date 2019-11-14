@@ -49,29 +49,19 @@ import java.util.List;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import static com.avail.descriptor.AbstractNumberDescriptor.Order.EQUAL;
-import static com.avail.descriptor.AbstractNumberDescriptor.Order.LESS;
-import static com.avail.descriptor.AbstractNumberDescriptor.Order.MORE;
+import static com.avail.descriptor.AbstractNumberDescriptor.Order.*;
 import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.DoubleDescriptor.addDoubleAndIntegerCanDestroy;
-import static com.avail.descriptor.DoubleDescriptor.compareDoubleAndInteger;
-import static com.avail.descriptor.DoubleDescriptor.fromDoubleRecycling;
+import static com.avail.descriptor.DoubleDescriptor.*;
 import static com.avail.descriptor.FloatDescriptor.fromFloatRecycling;
 import static com.avail.descriptor.InfinityDescriptor.negativeInfinity;
 import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
 import static com.avail.descriptor.IntegerDescriptor.IntegerSlots.RAW_LONG_SLOTS_;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.singleInteger;
-import static com.avail.descriptor.Mutability.IMMUTABLE;
-import static com.avail.descriptor.Mutability.MUTABLE;
-import static com.avail.descriptor.Mutability.SHARED;
+import static com.avail.descriptor.Mutability.*;
 import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
 import static com.avail.utility.Locks.lockWhile;
 import static com.avail.utility.Locks.lockWhileNullable;
-import static java.lang.Math.abs;
-import static java.lang.Math.getExponent;
-import static java.lang.Math.max;
-import static java.lang.Math.min;
-import static java.lang.Math.scalb;
+import static java.lang.Math.*;
 import static java.util.Collections.singleton;
 
 /**
@@ -373,7 +363,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	Order o_NumericCompare (
+	protected Order o_NumericCompare (
 		final AvailObject object,
 		final A_Number another)
 	{
@@ -525,7 +515,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	short o_ExtractUnsignedByte (final AvailObject object)
+	protected short o_ExtractUnsignedByte (final AvailObject object)
 	{
 		assert intCount(object) == 1;
 		final int value = object.rawSignedIntegerAt(1);
@@ -534,7 +524,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	short o_ExtractSignedShort (final AvailObject object)
+	protected short o_ExtractSignedShort (final AvailObject object)
 	{
 		assert intCount(object) == 1;
 		final int value = object.rawSignedIntegerAt(1);
@@ -559,7 +549,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	long o_ExtractLong (final AvailObject object)
+	protected long o_ExtractLong (final AvailObject object)
 	{
 		assert
 			intCount(object) >= 1 && intCount(object) <= 2
@@ -576,13 +566,13 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	float o_ExtractFloat (final AvailObject object)
+	protected float o_ExtractFloat (final AvailObject object)
 	{
 		return (float) extractDoubleScaled(object, 0);
 	}
 
 	@Override @AvailMethod
-	double o_ExtractDouble (final AvailObject object)
+	protected double o_ExtractDouble (final AvailObject object)
 	{
 		return extractDoubleScaled(object, 0);
 	}
@@ -597,7 +587,7 @@ extends ExtendedIntegerDescriptor
 	 * </p>
 	 */
 	@Override @AvailMethod
-	long o_RawUnsignedIntegerAt (
+	protected long o_RawUnsignedIntegerAt (
 		final AvailObject object,
 		final int subscript)
 	{
@@ -669,7 +659,7 @@ extends ExtendedIntegerDescriptor
 					}
 				}
 			}
-			object.descriptor = mutableFor(size);
+			object.setDescriptor(mutableFor(size));
 		}
 	}
 
@@ -930,8 +920,8 @@ extends ExtendedIntegerDescriptor
 				output.setIntSlot(RAW_LONG_SLOTS_, 1, (int) quotient);
 				output.setIntSlot(RAW_LONG_SLOTS_, 2, (int) (quotient >> 32L));
 				// Distinguish between a long-sized and int-sized integer.
-				output.descriptor = mutableFor(
-					quotient == (int) quotient ? 1 : 2);
+				output.setDescriptor(mutableFor(
+					quotient == (int) quotient ? 1 : 2));
 				return output;
 			}
 			return fromLong(quotient);
@@ -1261,7 +1251,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	Order o_NumericCompareToInteger (
+	protected Order o_NumericCompareToInteger (
 		final AvailObject object,
 		final AvailObject anInteger)
 	{
@@ -1295,7 +1285,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	Order o_NumericCompareToInfinity (
+	protected Order o_NumericCompareToInfinity (
 		final AvailObject object,
 		final Sign sign)
 	{
@@ -1303,7 +1293,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	Order o_NumericCompareToDouble (
+	protected Order o_NumericCompareToDouble (
 		final AvailObject object,
 		final double aDouble)
 	{
@@ -1744,7 +1734,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	SerializerOperation o_SerializerOperation (
+	protected SerializerOperation o_SerializerOperation (
 		final AvailObject object)
 	{
 		if (object.isInt())
@@ -1781,7 +1771,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override
-	Object o_MarshalToJava (
+	protected Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> classHint)
 	{
@@ -2232,21 +2222,21 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override
-	IntegerDescriptor mutable ()
+	protected IntegerDescriptor mutable ()
 	{
 		return descriptors[
 			(unusedIntsOfLastLong & 1) * 3 + MUTABLE.ordinal()];
 	}
 
 	@Override
-	IntegerDescriptor immutable ()
+	protected IntegerDescriptor immutable ()
 	{
 		return descriptors[
 			(unusedIntsOfLastLong & 1) * 3 + IMMUTABLE.ordinal()];
 	}
 
 	@Override
-	IntegerDescriptor shared ()
+	protected IntegerDescriptor shared ()
 	{
 		return descriptors[
 			(unusedIntsOfLastLong & 1) * 3 + SHARED.ordinal()];

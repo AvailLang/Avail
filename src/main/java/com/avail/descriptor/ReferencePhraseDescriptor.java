@@ -192,13 +192,14 @@ extends PhraseDescriptor
 	}
 
 	@Override @AvailMethod
-	PhraseKind o_PhraseKind (final AvailObject object)
+	protected PhraseKind o_PhraseKind (final AvailObject object)
 	{
 		return REFERENCE_PHRASE;
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.REFERENCE_PHRASE;
 	}
@@ -264,7 +265,7 @@ extends PhraseDescriptor
 		new ReferencePhraseDescriptor(Mutability.MUTABLE);
 
 	@Override
-	ReferencePhraseDescriptor mutable ()
+	protected ReferencePhraseDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -274,7 +275,7 @@ extends PhraseDescriptor
 		new ReferencePhraseDescriptor(Mutability.SHARED);
 
 	@Override
-	ReferencePhraseDescriptor shared ()
+	protected ReferencePhraseDescriptor shared ()
 	{
 		return shared;
 	}

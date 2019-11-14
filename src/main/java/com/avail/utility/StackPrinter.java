@@ -46,6 +46,13 @@ public enum StackPrinter
 	// No instances of this enum, just using it to store static methods.
 	;
 
+	/**
+	 * Produce a {@link String} representation of the stack trace captured in
+	 * the given {@link Throwable}.
+	 *
+	 * @param t The {@link Throwable} containing a stack trace.
+	 * @return The {@link String} form of the stack trace.
+	 */
 	public static String trace (final Throwable t)
 	{
 		final CharArrayWriter inner = new CharArrayWriter();

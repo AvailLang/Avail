@@ -32,11 +32,11 @@
 
 package com.avail.test;
 
-import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.descriptor.A_Number;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FloatDescriptor;
 import com.avail.descriptor.IntegerDescriptor;
+import com.avail.descriptor.objects.A_BasicObject;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -51,9 +51,7 @@ import static com.avail.descriptor.FloatDescriptor.fromFloat;
 import static com.avail.descriptor.IntegerDescriptor.fromBigInteger;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static java.util.Arrays.asList;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for the Avail arithmetic types.

@@ -35,8 +35,8 @@ import com.avail.compiler.ParserState
 import com.avail.compiler.ParsingOperation.PREPARE_TO_RUN_PREFIX_FUNCTION
 import com.avail.compiler.ParsingOperation.RUN_PREFIX_FUNCTION
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
-import com.avail.descriptor.parsing.A_Phrase
 import com.avail.descriptor.A_Type
+import com.avail.descriptor.parsing.A_Phrase
 
 /**
  * An `SectionCheckpoint` expression is an occurrence of the [section

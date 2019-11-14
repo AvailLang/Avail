@@ -42,9 +42,9 @@ import java.util.Map;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.TupleDescriptor.toList;
+import static com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY;
 
 /**
  * The {@link ObjectLayoutVariant}s capture field layouts for objects and object
@@ -177,6 +177,10 @@ public final class ObjectLayoutVariant
 	/**
 	 * Look up or create a variant for the given set of fields ({@link
 	 * A_Atom}s).
+	 *
+	 * @param allFields
+	 *        The set of fields for which a variant is requested.
+	 * @return The lookup for that set of fields.
 	 */
 	static ObjectLayoutVariant variantForFields (final A_Set allFields)
 	{

@@ -32,9 +32,9 @@
 
 package com.avail.descriptor.parsing;
 
-import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.descriptor.A_DefinitionParsingPlan;
 import com.avail.descriptor.ParsingPlanInProgressDescriptor;
+import com.avail.descriptor.objects.A_BasicObject;
 
 /**
  * {@code A_ParsingPlanInProgress} is an interface that specifies the operations

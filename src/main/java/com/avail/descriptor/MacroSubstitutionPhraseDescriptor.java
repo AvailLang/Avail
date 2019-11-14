@@ -293,7 +293,7 @@ extends PhraseDescriptor
 	}
 
 	@Override
-	AvailObject o_InitializationExpression (final AvailObject object)
+	protected AvailObject o_InitializationExpression (final AvailObject object)
 	{
 		return object.slot(OUTPUT_PARSE_NODE).initializationExpression();
 	}
@@ -329,7 +329,7 @@ extends PhraseDescriptor
 	}
 
 	@Override
-	AvailObject o_LiteralObject (final AvailObject object)
+	protected AvailObject o_LiteralObject (final AvailObject object)
 	{
 		return object.slot(OUTPUT_PARSE_NODE).literalObject();
 	}
@@ -341,7 +341,7 @@ extends PhraseDescriptor
 	}
 
 	@Override
-	AvailObject o_MarkerValue (final AvailObject object)
+	protected AvailObject o_MarkerValue (final AvailObject object)
 	{
 		return object.slot(OUTPUT_PARSE_NODE).markerValue();
 	}
@@ -388,13 +388,14 @@ extends PhraseDescriptor
 	}
 
 	@Override
-	@Nullable Primitive o_Primitive (final AvailObject object)
+	protected @Nullable Primitive o_Primitive (final AvailObject object)
 	{
 		return object.slot(OUTPUT_PARSE_NODE).primitive();
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.MACRO_SUBSTITUTION_PHRASE;
 	}
@@ -522,7 +523,7 @@ extends PhraseDescriptor
 		new MacroSubstitutionPhraseDescriptor(Mutability.MUTABLE);
 
 	@Override
-	MacroSubstitutionPhraseDescriptor mutable ()
+	protected MacroSubstitutionPhraseDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -532,7 +533,7 @@ extends PhraseDescriptor
 		new MacroSubstitutionPhraseDescriptor(Mutability.SHARED);
 
 	@Override
-	MacroSubstitutionPhraseDescriptor shared ()
+	protected MacroSubstitutionPhraseDescriptor shared ()
 	{
 		return shared;
 	}

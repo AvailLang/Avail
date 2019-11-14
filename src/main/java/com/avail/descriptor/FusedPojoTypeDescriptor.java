@@ -51,9 +51,7 @@ import java.util.List;
 import static com.avail.descriptor.BottomPojoTypeDescriptor.pojoBottom;
 import static com.avail.descriptor.FusedPojoTypeDescriptor.IntegerSlots.HASH_AND_MORE;
 import static com.avail.descriptor.FusedPojoTypeDescriptor.IntegerSlots.HASH_OR_ZERO;
-import static com.avail.descriptor.FusedPojoTypeDescriptor.ObjectSlots.JAVA_ANCESTORS;
-import static com.avail.descriptor.FusedPojoTypeDescriptor.ObjectSlots.SELF_TYPE;
-import static com.avail.descriptor.FusedPojoTypeDescriptor.ObjectSlots.TYPE_VARIABLES;
+import static com.avail.descriptor.FusedPojoTypeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.RawPojoDescriptor.rawObjectClass;
@@ -177,7 +175,7 @@ extends PojoTypeDescriptor
 			aPojoType.makeImmutable();
 			object.becomeIndirectionTo(aPojoType);
 		}
-		else if (!aPojoType.descriptor.isShared())
+		else if (!aPojoType.descriptor().isShared())
 		{
 			object.makeImmutable();
 			aPojoType.becomeIndirectionTo(object);
@@ -238,19 +236,19 @@ extends PojoTypeDescriptor
 	}
 
 	@Override
-	AvailObject o_JavaAncestors (final AvailObject object)
+	protected AvailObject o_JavaAncestors (final AvailObject object)
 	{
 		return object.slot(JAVA_ANCESTORS);
 	}
 
 	@Override
-	AvailObject o_JavaClass (final AvailObject object)
+	protected AvailObject o_JavaClass (final AvailObject object)
 	{
 		return nil;
 	}
 
 	@Override
-	Object o_MarshalToJava (
+	protected Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{
@@ -295,7 +293,8 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	protected SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.FUSED_POJO_TYPE;
 	}
@@ -553,7 +552,7 @@ extends PojoTypeDescriptor
 		new FusedPojoTypeDescriptor(Mutability.MUTABLE);
 
 	@Override
-	FusedPojoTypeDescriptor mutable ()
+	protected FusedPojoTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -563,7 +562,7 @@ extends PojoTypeDescriptor
 		new FusedPojoTypeDescriptor(Mutability.IMMUTABLE);
 
 	@Override
-	FusedPojoTypeDescriptor immutable ()
+	protected FusedPojoTypeDescriptor immutable ()
 	{
 		return immutable;
 	}
@@ -573,7 +572,7 @@ extends PojoTypeDescriptor
 		new FusedPojoTypeDescriptor(Mutability.SHARED);
 
 	@Override
-	FusedPojoTypeDescriptor shared ()
+	protected FusedPojoTypeDescriptor shared ()
 	{
 		return shared;
 	}

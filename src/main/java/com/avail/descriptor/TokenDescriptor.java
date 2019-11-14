@@ -49,7 +49,6 @@ import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 import java.util.List;
 
-import static com.avail.descriptor.AtomDescriptor.createSpecialAtom;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.CommentTokenDescriptor.newCommentToken;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
@@ -63,6 +62,7 @@ import static com.avail.descriptor.TokenDescriptor.StaticInit.tokenTypeOrdinalKe
 import static com.avail.descriptor.TokenDescriptor.TokenType.lookupTokenType;
 import static com.avail.descriptor.TokenTypeDescriptor.tokenType;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
+import static com.avail.descriptor.atoms.AtomDescriptor.createSpecialAtom;
 import static com.avail.utility.PrefixSharingList.append;
 
 
@@ -327,7 +327,7 @@ extends Descriptor
 	}
 
 	@Override
-	LexingState o_NextLexingState (final AvailObject object)
+	protected LexingState o_NextLexingState (final AvailObject object)
 	{
 		return object.slot(NEXT_LEXING_STATE_POJO).javaObjectNotNull();
 	}
@@ -362,7 +362,8 @@ extends Descriptor
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.TOKEN;
 	}
@@ -380,7 +381,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	TokenType o_TokenType (final AvailObject object)
+	protected TokenType o_TokenType (final AvailObject object)
 	{
 		return lookupTokenType(object.slot(TOKEN_TYPE_CODE));
 	}
@@ -475,7 +476,7 @@ extends Descriptor
 			IntegerSlots.class);
 
 	@Override
-	TokenDescriptor mutable ()
+	protected TokenDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -489,14 +490,14 @@ extends Descriptor
 			IntegerSlots.class);
 
 	@Override
-	TokenDescriptor immutable ()
+	protected TokenDescriptor immutable ()
 	{
 		// Answer the shared descriptor, since there isn't an immutable one.
 		return shared;
 	}
 
 	@Override
-	TokenDescriptor shared ()
+	protected TokenDescriptor shared ()
 	{
 		return shared;
 	}

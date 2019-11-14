@@ -68,7 +68,7 @@ internal class SerializerOperand constructor(
 	 * tuple of its literals for use by the operand responsible for literals,
 	 * even though the actual representation does not use a separate tuple.
 	 *
-	 * @param object
+	 * @param obj
 	 *   The object to trace.
 	 * @param serializer
 	 *   The [Serializer] onto which to record the object's parts.
@@ -82,7 +82,7 @@ internal class SerializerOperand constructor(
 	 * produced solely for pre-processing information for serialization of a
 	 * single operand.
 	 *
-	 * @param object
+	 * @param obj
 	 *   The object to deconstruct and write.
 	 * @param serializer
 	 *   The serializer to which to write the object.

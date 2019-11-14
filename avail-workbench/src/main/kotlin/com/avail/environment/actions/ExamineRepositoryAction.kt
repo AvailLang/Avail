@@ -37,10 +37,9 @@ import com.avail.descriptor.FiberDescriptor
 import com.avail.environment.AvailWorkbench
 import com.avail.persistence.IndexedRepositoryManager
 import com.avail.persistence.IndexedRepositoryManagerDescriber
+import com.avail.utility.Nulls.stripNull
 import java.awt.event.ActionEvent
 import javax.swing.Action
-
-import com.avail.utility.Nulls.stripNull
 
 /**
  * A `ExamineRepositoryAction` presents information about the content of the

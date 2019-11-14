@@ -49,9 +49,7 @@ import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.PermutedListPhraseDescriptor.ObjectSlots.EXPRESSION_TYPE;
-import static com.avail.descriptor.PermutedListPhraseDescriptor.ObjectSlots.LIST;
-import static com.avail.descriptor.PermutedListPhraseDescriptor.ObjectSlots.PERMUTATION;
+import static com.avail.descriptor.PermutedListPhraseDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PERMUTED_LIST_PHRASE;
 import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
 
@@ -93,7 +91,8 @@ extends PhraseDescriptor
 		EXPRESSION_TYPE;
 	}
 
-	@Override boolean allowsImmutableToMutableReferenceInField (
+	@Override
+	protected boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
 		return e == EXPRESSION_TYPE;
@@ -260,7 +259,8 @@ extends PhraseDescriptor
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.PERMUTED_LIST_PHRASE;
 	}
@@ -396,7 +396,7 @@ extends PhraseDescriptor
 		new PermutedListPhraseDescriptor(Mutability.MUTABLE);
 
 	@Override
-	PermutedListPhraseDescriptor mutable ()
+	protected PermutedListPhraseDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -406,7 +406,7 @@ extends PhraseDescriptor
 		new PermutedListPhraseDescriptor(Mutability.SHARED);
 
 	@Override
-	PermutedListPhraseDescriptor shared ()
+	protected PermutedListPhraseDescriptor shared ()
 	{
 		return shared;
 	}

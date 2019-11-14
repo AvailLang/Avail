@@ -227,7 +227,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override
-	AvailObject o_Instance (final AvailObject object)
+	protected AvailObject o_Instance (final AvailObject object)
 	{
 		return getInstance(object);
 	}
@@ -582,7 +582,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	protected boolean o_CouldEverBeInvokedWith (
 		final AvailObject object,
-		final List<? extends TypeRestriction> argRestrictions)
+		final List<TypeRestriction> argRestrictions)
 	{
 		return getSuperkind(object).couldEverBeInvokedWith(argRestrictions);
 	}
@@ -637,7 +637,8 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.INSTANCE_TYPE;
 	}
@@ -665,7 +666,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override
-	TypeTag o_ComputeTypeTag (final AvailObject object)
+	protected TypeTag o_ComputeTypeTag (final AvailObject object)
 	{
 		return getInstance(object).typeTag().metaTag();
 	}
@@ -686,7 +687,7 @@ extends AbstractEnumerationTypeDescriptor
 		new InstanceTypeDescriptor(Mutability.MUTABLE);
 
 	@Override
-	AbstractEnumerationTypeDescriptor mutable ()
+	protected AbstractEnumerationTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -696,7 +697,7 @@ extends AbstractEnumerationTypeDescriptor
 		new InstanceTypeDescriptor(Mutability.IMMUTABLE);
 
 	@Override
-	AbstractEnumerationTypeDescriptor immutable ()
+	protected AbstractEnumerationTypeDescriptor immutable ()
 	{
 		return immutable;
 	}
@@ -706,7 +707,7 @@ extends AbstractEnumerationTypeDescriptor
 		new InstanceTypeDescriptor(Mutability.SHARED);
 
 	@Override
-	AbstractEnumerationTypeDescriptor shared ()
+	protected AbstractEnumerationTypeDescriptor shared ()
 	{
 		return shared;
 	}

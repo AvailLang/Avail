@@ -32,7 +32,7 @@
 
 package com.avail.compiler
 
-import java.util.ArrayList
+import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**

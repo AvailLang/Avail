@@ -160,7 +160,8 @@ extends PhraseDescriptor
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.LITERAL_PHRASE;
 	}
@@ -274,7 +275,7 @@ extends PhraseDescriptor
 		new LiteralPhraseDescriptor(Mutability.MUTABLE);
 
 	@Override
-	LiteralPhraseDescriptor mutable ()
+	protected LiteralPhraseDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -284,7 +285,7 @@ extends PhraseDescriptor
 		new LiteralPhraseDescriptor(Mutability.SHARED);
 
 	@Override
-	LiteralPhraseDescriptor shared ()
+	protected LiteralPhraseDescriptor shared ()
 	{
 		return shared;
 	}

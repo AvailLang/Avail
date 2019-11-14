@@ -651,13 +651,14 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	MapIterable o_MapIterable (final AvailObject object)
+	protected MapIterable o_MapIterable (final AvailObject object)
 	{
 		return rootBin(object).mapBinIterable();
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	protected SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.MAP;
 	}
@@ -880,7 +881,7 @@ extends Descriptor
 		new MapDescriptor(Mutability.MUTABLE);
 
 	@Override
-	MapDescriptor mutable ()
+	protected MapDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -890,7 +891,7 @@ extends Descriptor
 		new MapDescriptor(Mutability.IMMUTABLE);
 
 	@Override
-	MapDescriptor immutable ()
+	protected MapDescriptor immutable ()
 	{
 		return immutable;
 	}
@@ -900,7 +901,7 @@ extends Descriptor
 		new MapDescriptor(Mutability.SHARED);
 
 	@Override
-	MapDescriptor shared ()
+	protected MapDescriptor shared ()
 	{
 		return shared;
 	}

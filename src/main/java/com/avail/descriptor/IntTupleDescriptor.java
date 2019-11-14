@@ -41,18 +41,13 @@ import com.avail.utility.json.JSONWriter;
 import java.nio.ByteBuffer;
 import java.util.function.IntUnaryOperator;
 
-import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.AvailObject.newIndexedDescriptor;
-import static com.avail.descriptor.AvailObject.newLike;
+import static com.avail.descriptor.AvailObject.*;
 import static com.avail.descriptor.IntTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.IntTupleDescriptor.IntegerSlots.RAW_LONG_AT_;
 import static com.avail.descriptor.IntegerDescriptor.computeHashOfInt;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
-import static com.avail.descriptor.Mutability.IMMUTABLE;
-import static com.avail.descriptor.Mutability.MUTABLE;
-import static com.avail.descriptor.Mutability.SHARED;
-import static com.avail.descriptor.Mutability.values;
+import static com.avail.descriptor.Mutability.*;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TreeTupleDescriptor.concatenateAtLeastOneTree;
 import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;
@@ -144,7 +139,7 @@ extends NumericTupleDescriptor
 		if (isMutable() && canDestroy && (originalSize & 1) != 0)
 		{
 			// Enlarge it in place, using more of the final partial int field.
-			object.descriptor = descriptorFor(MUTABLE, newSize);
+			object.setDescriptor(descriptorFor(MUTABLE, newSize));
 			object.setIntSlot(RAW_LONG_AT_, newSize, intValue);
 			object.setSlot(HASH_OR_ZERO, 0);
 			return object;
@@ -285,7 +280,7 @@ extends NumericTupleDescriptor
 			{
 				// We can reuse the receiver; it has enough int slots.
 				result = object;
-				result.descriptor = descriptorFor(MUTABLE, newSize);
+				result.setDescriptor(descriptorFor(MUTABLE, newSize));
 			}
 			else
 			{
@@ -513,7 +508,7 @@ extends NumericTupleDescriptor
 	{
 		if (isMutable())
 		{
-			object.descriptor = descriptorFor(IMMUTABLE, object.tupleSize());
+			object.setDescriptor(descriptorFor(IMMUTABLE, object.tupleSize()));
 		}
 		return object;
 	}
@@ -523,7 +518,7 @@ extends NumericTupleDescriptor
 	{
 		if (!isShared())
 		{
-			object.descriptor = descriptorFor(SHARED, object.tupleSize());
+			object.setDescriptor(descriptorFor(SHARED, object.tupleSize()));
 		}
 		return object;
 	}
@@ -679,21 +674,21 @@ extends NumericTupleDescriptor
 	}
 
 	@Override
-	IntTupleDescriptor mutable ()
+	protected IntTupleDescriptor mutable ()
 	{
 		return descriptors[
 			(unusedIntsOfLastLong & 1) * 3 + MUTABLE.ordinal()];
 	}
 
 	@Override
-	IntTupleDescriptor immutable ()
+	protected IntTupleDescriptor immutable ()
 	{
 		return descriptors[
 			(unusedIntsOfLastLong & 1) * 3 + IMMUTABLE.ordinal()];
 	}
 
 	@Override
-	IntTupleDescriptor shared ()
+	protected IntTupleDescriptor shared ()
 	{
 		return descriptors[
 			(unusedIntsOfLastLong & 1) * 3 + SHARED.ordinal()];

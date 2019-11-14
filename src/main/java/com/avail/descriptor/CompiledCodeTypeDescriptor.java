@@ -214,7 +214,8 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.COMPILED_CODE_TYPE;
 	}
@@ -276,7 +277,7 @@ extends TypeDescriptor
 		new CompiledCodeTypeDescriptor(Mutability.MUTABLE);
 
 	@Override
-	TypeDescriptor mutable ()
+	protected TypeDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -286,14 +287,14 @@ extends TypeDescriptor
 		new CompiledCodeTypeDescriptor(Mutability.SHARED);
 
 	@Override
-	TypeDescriptor immutable ()
+	protected TypeDescriptor immutable ()
 	{
 		// There is only a shared descriptor, not an immutable one.
 		return shared;
 	}
 
 	@Override
-	TypeDescriptor shared ()
+	protected TypeDescriptor shared ()
 	{
 		return shared;
 	}

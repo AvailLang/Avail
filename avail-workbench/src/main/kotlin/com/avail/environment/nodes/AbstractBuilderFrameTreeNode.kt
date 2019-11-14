@@ -173,7 +173,7 @@ abstract class AbstractBuilderFrameTreeNode internal constructor(
 		enum class RenamedState {Renamed, NotRenamed}
 		enum class SelectedState {Selected, Unselected}
 
-		val palette = mapOf(
+		private val palette = mapOf(
 			Triple(Unloaded, NotRenamed, Unselected) to AdaptiveColor(
 				light = Color.gray,
 				dark = Color.gray),
@@ -208,12 +208,12 @@ abstract class AbstractBuilderFrameTreeNode internal constructor(
 			loaded: Boolean,
 			renamed: Boolean): String
 		{
-			val fore: AdaptiveColor = palette[
+			val fore: AdaptiveColor? = palette[
 				Triple(
 					if (loaded) Loaded else Unloaded,
 					if (renamed) Renamed else NotRenamed,
-					if (selected) Selected else Unselected)]!!
-			return "color:${fore.hex};"
+					if (selected) Selected else Unselected)]
+			return "color:${fore!!.hex};"
 		}
 
 		/**

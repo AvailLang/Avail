@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.atoms.A_Atom;
+import com.avail.descriptor.atoms.AtomDescriptor;
 import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.descriptor.tuples.A_String;
 import com.avail.descriptor.tuples.A_Tuple;
@@ -42,28 +43,11 @@ import com.avail.utility.LRUCache;
 import com.avail.utility.Mutable;
 
 import javax.annotation.Nullable;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Executable;
-import java.lang.reflect.GenericDeclaration;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
+import java.lang.reflect.*;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.avail.descriptor.ArrayPojoTypeDescriptor.arrayPojoType;
-import static com.avail.descriptor.AtomDescriptor.createSpecialAtom;
-import static com.avail.descriptor.AtomDescriptor.objectFromBoolean;
 import static com.avail.descriptor.BottomPojoTypeDescriptor.pojoBottom;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.DoubleDescriptor.fromDouble;
@@ -71,14 +55,8 @@ import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.FloatDescriptor.fromFloat;
 import static com.avail.descriptor.FusedPojoTypeDescriptor.createFusedPojoType;
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
-import static com.avail.descriptor.IntegerDescriptor.fromBigInteger;
-import static com.avail.descriptor.IntegerDescriptor.fromInt;
-import static com.avail.descriptor.IntegerDescriptor.fromLong;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.int64;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.integers;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
+import static com.avail.descriptor.IntegerDescriptor.*;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
@@ -91,12 +69,10 @@ import static com.avail.descriptor.SetDescriptor.setFromCollection;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
-import static com.avail.descriptor.TypeDescriptor.Types.ANY;
-import static com.avail.descriptor.TypeDescriptor.Types.DOUBLE;
-import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
-import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.UnfusedPojoTypeDescriptor.createUnfusedPojoType;
+import static com.avail.descriptor.atoms.AtomDescriptor.createSpecialAtom;
+import static com.avail.descriptor.atoms.AtomDescriptor.objectFromBoolean;
 import static com.avail.utility.Casts.nullableCast;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.Short.MAX_VALUE;
@@ -576,7 +552,7 @@ extends TypeDescriptor
 		A_Type anUnfusedPojoType);
 
 	@Override
-	protected final  A_Type o_TypeUnion (
+	protected final A_Type o_TypeUnion (
 		final AvailObject object,
 		final A_Type another)
 	{
@@ -794,7 +770,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	abstract void printObjectOnAvoidingIndent (
+	protected abstract void printObjectOnAvoidingIndent (
 		AvailObject object,
 		StringBuilder builder,
 		IdentityHashMap<A_BasicObject, Void> recursionMap,

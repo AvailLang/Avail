@@ -33,9 +33,6 @@
 package com.avail.descriptor.methods;
 
 import com.avail.descriptor.*;
-import com.avail.descriptor.methods.A_Method;
-import com.avail.descriptor.methods.A_Definition;
-import com.avail.descriptor.methods.A_GrammaticalRestriction;
 import com.avail.descriptor.objects.A_BasicObject;
 
 /**

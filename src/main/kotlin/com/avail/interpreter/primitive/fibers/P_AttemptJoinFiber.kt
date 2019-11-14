@@ -117,17 +117,16 @@ object P_AttemptJoinFiber : Primitive(1, CanSuspend, Unknown)
 		{
 			interpreter.primitiveSuccess(nil)
 		}
-		else current.lock<Primitive.Result> currentlock@ {
+		else current.lock<Result> {
 			// If permit is not available, then park this fiber.
 			if (current.getAndSetSynchronizationFlag(
 					PERMIT_UNAVAILABLE, true))
 			{
-				return@currentlock interpreter
-					.primitivePark(stripNull(interpreter.function))
+				interpreter.primitivePark(stripNull(interpreter.function))
 			}
 			else
 			{
-				return@currentlock interpreter.primitiveSuccess(nil)
+				interpreter.primitiveSuccess(nil)
 			}
 		}
 	}

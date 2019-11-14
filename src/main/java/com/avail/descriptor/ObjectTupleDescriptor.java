@@ -772,7 +772,7 @@ extends TupleDescriptor
 		new ObjectTupleDescriptor(Mutability.MUTABLE);
 
 	@Override
-	ObjectTupleDescriptor mutable ()
+	protected ObjectTupleDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -782,7 +782,7 @@ extends TupleDescriptor
 		new ObjectTupleDescriptor(Mutability.IMMUTABLE);
 
 	@Override
-	ObjectTupleDescriptor immutable ()
+	protected ObjectTupleDescriptor immutable ()
 	{
 		return immutable;
 	}
@@ -792,7 +792,7 @@ extends TupleDescriptor
 		new ObjectTupleDescriptor(Mutability.SHARED);
 
 	@Override
-	ObjectTupleDescriptor shared ()
+	protected ObjectTupleDescriptor shared ()
 	{
 		return shared;
 	}

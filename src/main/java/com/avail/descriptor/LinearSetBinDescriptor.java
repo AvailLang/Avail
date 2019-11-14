@@ -120,7 +120,7 @@ extends SetBinDescriptor
 	{
 		if (checkBinHashes)
 		{
-			assert object.descriptor instanceof LinearSetBinDescriptor;
+			assert object.descriptor() instanceof LinearSetBinDescriptor;
 			final int stored = object.setBinHash();
 			int calculated = 0;
 			for (int i = object.variableObjectSlotsCount(); i >= 1; i--)
@@ -358,7 +358,7 @@ extends SetBinDescriptor
 	}
 
 	@Override
-	SetIterator o_SetBinIterator (final AvailObject object)
+	protected SetIterator o_SetBinIterator (final AvailObject object)
 	{
 		return new SetIterator()
 		{
@@ -464,19 +464,19 @@ extends SetBinDescriptor
 	}
 
 	@Override
-	LinearSetBinDescriptor mutable ()
+	protected LinearSetBinDescriptor mutable ()
 	{
 		return descriptorFor(MUTABLE, level);
 	}
 
 	@Override
-	LinearSetBinDescriptor immutable ()
+	protected LinearSetBinDescriptor immutable ()
 	{
 		return descriptorFor(IMMUTABLE, level);
 	}
 
 	@Override
-	LinearSetBinDescriptor shared ()
+	protected LinearSetBinDescriptor shared ()
 	{
 		return descriptorFor(SHARED, level);
 	}
@@ -553,6 +553,6 @@ extends SetBinDescriptor
 		{
 			return bin.slot(BIN_ELEMENT_AT_, 1);
 		}
-		return newLike(bin.descriptor, bin, written - size, 0);
+		return newLike(bin.descriptor(), bin, written - size, 0);
 	}
 }

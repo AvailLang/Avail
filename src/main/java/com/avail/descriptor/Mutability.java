@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import com.avail.descriptor.atoms.AtomDescriptor;
 import com.avail.descriptor.bundles.MessageBundleTreeDescriptor;
 
 /**

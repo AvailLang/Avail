@@ -36,10 +36,10 @@ import com.avail.AvailRuntime.currentRuntime
 import com.avail.compiler.problems.CompilerDiagnostics
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel
 import com.avail.compiler.scanning.LexingState
-import com.avail.descriptor.objects.A_BasicObject
 import com.avail.descriptor.A_Map
 import com.avail.descriptor.AvailObject
 import com.avail.descriptor.MapDescriptor
+import com.avail.descriptor.objects.A_BasicObject
 import com.avail.interpreter.Interpreter
 import com.avail.utility.evaluation.Describer
 import com.avail.utility.evaluation.SimpleDescriber
@@ -71,15 +71,11 @@ class ParserState internal constructor(
 {
 	/**
 	 * A [map][MapDescriptor] of interesting information used by the compiler.
+	 *
+	 * Note that this map *must* be marked as shared, since parsing
+	 * proceeds in parallel.
 	 */
-	val clientDataMap: A_Map
-
-	init
-	{
-		// Note that this map *must* be marked as shared, since parsing proceeds
-		// in parallel.
-		this.clientDataMap = clientDataMap.makeShared()
-	}
+	val clientDataMap: A_Map = clientDataMap.makeShared()
 
 	override fun hashCode() =
 		lexingState.hashCode() * AvailObject.multiplier xor clientDataMap.hash()

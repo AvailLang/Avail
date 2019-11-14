@@ -49,17 +49,12 @@ import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
 import static com.avail.descriptor.LexerDescriptor.IntegerSlots.HASH;
-import static com.avail.descriptor.LexerDescriptor.ObjectSlots.DEFINITION_MODULE;
-import static com.avail.descriptor.LexerDescriptor.ObjectSlots.LEXER_BODY_FUNCTION;
-import static com.avail.descriptor.LexerDescriptor.ObjectSlots.LEXER_FILTER_FUNCTION;
-import static com.avail.descriptor.LexerDescriptor.ObjectSlots.LEXER_METHOD;
+import static com.avail.descriptor.LexerDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
 import static com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
-import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
-import static com.avail.descriptor.TypeDescriptor.Types.LEXER;
-import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 
 /**
  * A method maintains all definitions that have the same name.  At compile time
@@ -353,7 +348,7 @@ extends Descriptor
 		new LexerDescriptor(Mutability.MUTABLE);
 
 	@Override
-	LexerDescriptor mutable ()
+	protected LexerDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -363,14 +358,14 @@ extends Descriptor
 		new LexerDescriptor(Mutability.SHARED);
 
 	@Override
-	LexerDescriptor immutable ()
+	protected LexerDescriptor immutable ()
 	{
 		// There is no immutable descriptor. Use the shared one.
 		return shared;
 	}
 
 	@Override
-	LexerDescriptor shared ()
+	protected LexerDescriptor shared ()
 	{
 		return shared;
 	}

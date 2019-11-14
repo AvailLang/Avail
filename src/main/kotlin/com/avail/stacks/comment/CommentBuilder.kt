@@ -32,15 +32,18 @@
 
 package com.avail.stacks.comment
 
-import com.avail.stacks.*
-import com.avail.stacks.comment.signature.*
+import com.avail.stacks.LinkingFileMap
+import com.avail.stacks.StacksDescription
+import com.avail.stacks.comment.signature.CommentSignature
+import com.avail.stacks.comment.signature.GlobalCommentSignature
+import com.avail.stacks.comment.signature.MethodCommentSignature
+import com.avail.stacks.comment.signature.SemanticRestrictionCommentSignature
 import com.avail.stacks.exceptions.StacksCommentBuilderException
 import com.avail.stacks.tags.*
 import com.avail.stacks.tokens.AbstractStacksToken
 import com.avail.stacks.tokens.QuotedStacksToken
 import com.avail.stacks.tokens.RegionStacksToken
-import java.util.ArrayList
-import java.util.TreeMap
+import java.util.*
 
 /**
  * A builder class for an [AvailComment].

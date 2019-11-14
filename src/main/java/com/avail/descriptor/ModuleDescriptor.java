@@ -37,17 +37,18 @@ import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
 import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.descriptor.atoms.A_Atom;
+import com.avail.descriptor.atoms.AtomDescriptor;
 import com.avail.descriptor.bundles.A_Bundle;
 import com.avail.descriptor.bundles.A_BundleTree;
 import com.avail.descriptor.bundles.MessageBundleDescriptor;
 import com.avail.descriptor.bundles.MessageBundleTreeDescriptor;
-import com.avail.descriptor.methods.A_Method;
 import com.avail.descriptor.methods.A_Definition;
 import com.avail.descriptor.methods.A_GrammaticalRestriction;
+import com.avail.descriptor.methods.A_Method;
 import com.avail.descriptor.methods.A_SemanticRestriction;
 import com.avail.descriptor.objects.A_BasicObject;
-import com.avail.descriptor.parsing.A_ParsingPlanInProgress;
 import com.avail.descriptor.parsing.A_Lexer;
+import com.avail.descriptor.parsing.A_ParsingPlanInProgress;
 import com.avail.descriptor.tuples.A_String;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.exceptions.AvailRuntimeException;
@@ -65,7 +66,6 @@ import java.util.Set;
 
 import static com.avail.descriptor.FiberDescriptor.currentFiber;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
-import static com.avail.descriptor.bundles.MessageBundleTreeDescriptor.newBundleTree;
 import static com.avail.descriptor.ModuleDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ParsingPlanInProgressDescriptor.newPlanInProgress;
@@ -75,6 +75,7 @@ import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.FORWARD_DEFINITION;
 import static com.avail.descriptor.TypeDescriptor.Types.MODULE;
 import static com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType;
+import static com.avail.descriptor.bundles.MessageBundleTreeDescriptor.newBundleTree;
 
 /**
  * A {@linkplain ModuleDescriptor module} is the mechanism by which Avail code
@@ -226,7 +227,8 @@ extends Descriptor
 		LEXERS;
 	}
 
-	@Override boolean allowsImmutableToMutableReferenceInField (
+	@Override
+	protected boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
 		return e == ALL_ANCESTORS
@@ -649,7 +651,7 @@ extends Descriptor
 	}
 
 	@Override
-	AvailObject o_MakeImmutable (final AvailObject object)
+	protected AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		if (isMutable())
 		{
@@ -909,7 +911,7 @@ extends Descriptor
 	 * @param object The module.
 	 */
 	@Override @AvailMethod
-	LexicalScanner o_CreateLexicalScanner (
+	protected LexicalScanner o_CreateLexicalScanner (
 		final AvailObject object)
 	{
 		final Set<A_Lexer> lexers = new HashSet<>();
@@ -959,7 +961,8 @@ extends Descriptor
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.MODULE;
 	}
@@ -1032,7 +1035,7 @@ extends Descriptor
 		new ModuleDescriptor(Mutability.MUTABLE);
 
 	@Override
-	ModuleDescriptor mutable ()
+	protected ModuleDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -1042,14 +1045,14 @@ extends Descriptor
 		new ModuleDescriptor(Mutability.SHARED);
 
 	@Override
-	ModuleDescriptor immutable ()
+	protected ModuleDescriptor immutable ()
 	{
 		// There is no immutable descriptor. Use the shared one.
 		return shared;
 	}
 
 	@Override
-	ModuleDescriptor shared ()
+	protected ModuleDescriptor shared ()
 	{
 		return shared;
 	}

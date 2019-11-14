@@ -37,9 +37,7 @@ import com.avail.descriptor.methods.A_Method;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
-import static com.avail.descriptor.MethodDefinitionDescriptor.ObjectSlots.BODY_BLOCK;
-import static com.avail.descriptor.MethodDefinitionDescriptor.ObjectSlots.DEFINITION_METHOD;
-import static com.avail.descriptor.MethodDefinitionDescriptor.ObjectSlots.MODULE;
+import static com.avail.descriptor.MethodDefinitionDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.METHOD_DEFINITION;
 
 /**
@@ -113,7 +111,8 @@ extends DefinitionDescriptor
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.METHOD_DEFINITION;
 	}
@@ -192,13 +191,13 @@ extends DefinitionDescriptor
 		new MethodDefinitionDescriptor(Mutability.MUTABLE);
 
 	@Override
-	MethodDefinitionDescriptor mutable ()
+	protected MethodDefinitionDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	@Override
-	MethodDefinitionDescriptor immutable ()
+	protected MethodDefinitionDescriptor immutable ()
 	{
 		return shared;
 	}
@@ -208,7 +207,7 @@ extends DefinitionDescriptor
 		new MethodDefinitionDescriptor(Mutability.SHARED);
 
 	@Override
-	MethodDefinitionDescriptor shared ()
+	protected MethodDefinitionDescriptor shared ()
 	{
 		return shared;
 	}

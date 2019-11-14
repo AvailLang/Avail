@@ -52,11 +52,7 @@ import static com.avail.descriptor.ListPhraseTypeDescriptor.ObjectSlots.SUBEXPRE
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE;
-import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
-import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
-import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeFromTupleOfTypes;
-import static com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf;
-import static com.avail.descriptor.TupleTypeDescriptor.zeroOrOneOf;
+import static com.avail.descriptor.TupleTypeDescriptor.*;
 
 /**
  * Define the structure and behavior of {@link PhraseKind#LIST_PHRASE list
@@ -216,7 +212,7 @@ extends PhraseTypeDescriptor
 
 	@Override
 	@AvailMethod
-	boolean o_IsSupertypeOfListNodeType (
+	protected boolean o_IsSupertypeOfListNodeType (
 		final AvailObject object,
 		final A_Type aListNodeType)
 	{
@@ -237,7 +233,8 @@ extends PhraseTypeDescriptor
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.LIST_NODE_TYPE;
 	}
@@ -462,7 +459,7 @@ extends PhraseTypeDescriptor
 				{
 //					assert subexpressionType != null;
 					final AbstractDescriptor descriptorTraversed =
-						subexpressionType.traversed().descriptor;
+						subexpressionType.traversed().descriptor();
 					assert descriptorTraversed
 							instanceof PhraseTypeDescriptor
 						|| descriptorTraversed
@@ -494,7 +491,7 @@ extends PhraseTypeDescriptor
 				{
 					assert subexpressionType != null;
 					final AbstractDescriptor descriptorTraversed =
-						subexpressionType.traversed().descriptor;
+						subexpressionType.traversed().descriptor();
 					assert descriptorTraversed
 						instanceof PhraseTypeDescriptor
 						|| descriptorTraversed

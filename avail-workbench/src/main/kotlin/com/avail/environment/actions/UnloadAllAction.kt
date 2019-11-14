@@ -34,7 +34,7 @@ package com.avail.environment.actions
 
 import com.avail.environment.AvailWorkbench
 import com.avail.environment.tasks.UnloadTask
-import java.awt.*
+import java.awt.Cursor
 import java.awt.event.ActionEvent
 import javax.swing.Action
 

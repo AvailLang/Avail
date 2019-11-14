@@ -38,9 +38,7 @@ import com.avail.descriptor.methods.A_SemanticRestriction;
 import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.interpreter.primitive.phrases.P_RejectParsing;
 
-import static com.avail.descriptor.SemanticRestrictionDescriptor.ObjectSlots.DEFINITION_METHOD;
-import static com.avail.descriptor.SemanticRestrictionDescriptor.ObjectSlots.DEFINITION_MODULE;
-import static com.avail.descriptor.SemanticRestrictionDescriptor.ObjectSlots.FUNCTION;
+import static com.avail.descriptor.SemanticRestrictionDescriptor.ObjectSlots.*;
 
 /**
  * A {@code SemanticRestrictionDescriptor semantic restriction} holds a function
@@ -145,7 +143,7 @@ extends Descriptor
 		new SemanticRestrictionDescriptor(Mutability.MUTABLE);
 
 	@Override
-	SemanticRestrictionDescriptor mutable ()
+	protected SemanticRestrictionDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -155,14 +153,14 @@ extends Descriptor
 		new SemanticRestrictionDescriptor(Mutability.SHARED);
 
 	@Override
-	SemanticRestrictionDescriptor immutable ()
+	protected SemanticRestrictionDescriptor immutable ()
 	{
 		// There is no immutable variant; answer the shared descriptor.
 		return shared;
 	}
 
 	@Override
-	SemanticRestrictionDescriptor shared ()
+	protected SemanticRestrictionDescriptor shared ()
 	{
 		return shared;
 	}

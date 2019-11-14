@@ -134,13 +134,14 @@ extends TokenDescriptor
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.COMMENT_TOKEN;
 	}
 
 	@Override @AvailMethod
-	TokenType o_TokenType (final AvailObject object)
+	protected TokenType o_TokenType (final AvailObject object)
 	{
 		return TokenType.COMMENT;
 	}
@@ -207,7 +208,7 @@ extends TokenDescriptor
 		new CommentTokenDescriptor(Mutability.MUTABLE);
 
 	@Override
-	CommentTokenDescriptor mutable ()
+	protected CommentTokenDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -217,14 +218,14 @@ extends TokenDescriptor
 		new CommentTokenDescriptor(Mutability.SHARED);
 
 	@Override
-	CommentTokenDescriptor immutable ()
+	protected CommentTokenDescriptor immutable ()
 	{
 		// Answer the shared descriptor, since there isn't an immutable one.
 		return shared;
 	}
 
 	@Override
-	CommentTokenDescriptor shared ()
+	protected CommentTokenDescriptor shared ()
 	{
 		return shared;
 	}

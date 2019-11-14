@@ -204,7 +204,7 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 					insertionIndex = rootsTableModel.rowCount
 				}
 				rootsTableModel.rows.add(
-					insertionIndex, Arrays.asList("", "", ""))
+					insertionIndex, mutableListOf("", "", ""))
 				rootsTableModel.fireTableDataChanged()
 				rootsTable.changeSelection(
 					insertionIndex, 0, false, false)
@@ -275,7 +275,7 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 					insertionIndex = renamesTableModel.rowCount
 				}
 				renamesTableModel.rows.add(
-					insertionIndex, Arrays.asList("", ""))
+					insertionIndex, mutableListOf("", ""))
 				renamesTableModel.fireTableDataChanged()
 				renamesTable.changeSelection(
 					insertionIndex, 0, false, false)

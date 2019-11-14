@@ -45,9 +45,7 @@ import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.AvailObject.newLike;
 import static com.avail.descriptor.CharacterDescriptor.computeHashOfCharacterWithCodePoint;
 import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
-import static com.avail.descriptor.Mutability.IMMUTABLE;
-import static com.avail.descriptor.Mutability.MUTABLE;
-import static com.avail.descriptor.Mutability.SHARED;
+import static com.avail.descriptor.Mutability.*;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TreeTupleDescriptor.concatenateAtLeastOneTree;
 import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;
@@ -140,7 +138,7 @@ extends StringDescriptor
 		if (isMutable() && canDestroy && (originalSize & 3) != 0)
 		{
 			// Enlarge it in place, using more of the final partial int field.
-			object.descriptor = descriptorFor(MUTABLE, newSize);
+			object.setDescriptor(descriptorFor(MUTABLE, newSize));
 			object.rawShortForCharacterAtPut(newSize, intValue);
 			object.setSlot(HASH_OR_ZERO, 0);
 			return object;
@@ -256,7 +254,7 @@ extends StringDescriptor
 	{
 		if (isMutable())
 		{
-			object.descriptor = descriptorFor(IMMUTABLE, object.tupleSize());
+			object.setDescriptor(descriptorFor(IMMUTABLE, object.tupleSize()));
 		}
 		return object;
 	}
@@ -266,7 +264,7 @@ extends StringDescriptor
 	{
 		if (!isShared())
 		{
-			object.descriptor = descriptorFor(SHARED, object.tupleSize());
+			object.setDescriptor(descriptorFor(SHARED, object.tupleSize()));
 		}
 		return object;
 	}
@@ -392,7 +390,7 @@ extends StringDescriptor
 	}
 
 	@Override
-	Object o_MarshalToJava (
+	protected Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{
@@ -435,7 +433,7 @@ extends StringDescriptor
 			{
 				// We can reuse the receiver; it has enough int slots.
 				result = object;
-				result.descriptor = descriptorFor(MUTABLE, newSize);
+				result.setDescriptor(descriptorFor(MUTABLE, newSize));
 			}
 			else
 			{
@@ -523,21 +521,21 @@ extends StringDescriptor
 	}
 
 	@Override
-	TwoByteStringDescriptor mutable ()
+	protected TwoByteStringDescriptor mutable ()
 	{
 		return descriptors[
 			((4 - unusedShortsOfLastLong) & 3) * 3 + MUTABLE.ordinal()];
 	}
 
 	@Override
-	TwoByteStringDescriptor immutable ()
+	protected TwoByteStringDescriptor immutable ()
 	{
 		return descriptors[
 			((4 - unusedShortsOfLastLong) & 3) * 3 + IMMUTABLE.ordinal()];
 	}
 
 	@Override
-	TwoByteStringDescriptor shared ()
+	protected TwoByteStringDescriptor shared ()
 	{
 		return descriptors[
 			((4 - unusedShortsOfLastLong) & 3) * 3 + SHARED.ordinal()];

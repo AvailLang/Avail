@@ -39,7 +39,6 @@ import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.SI
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
 import com.avail.compiler.problems.ProblemType.PARSE
 import com.avail.compiler.scanning.LexingState
-import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.A_Token
 import com.avail.descriptor.CharacterDescriptor.fromCodePoint
 import com.avail.descriptor.FiberDescriptor
@@ -49,6 +48,7 @@ import com.avail.descriptor.TokenDescriptor.TokenType.END_OF_FILE
 import com.avail.descriptor.TokenDescriptor.TokenType.WHITESPACE
 import com.avail.descriptor.TokenDescriptor.newToken
 import com.avail.descriptor.TupleDescriptor.emptyTuple
+import com.avail.descriptor.tuples.A_String
 import com.avail.persistence.IndexedRepositoryManager
 import com.avail.utility.Locks.auto
 import com.avail.utility.Locks.lockWhile
@@ -67,17 +67,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.function.BooleanSupplier
 import java.util.regex.Matcher
 import javax.annotation.concurrent.GuardedBy
-import kotlin.collections.Collection
-import kotlin.collections.Iterator
-import kotlin.collections.List
-import kotlin.collections.Map
-import kotlin.collections.MutableList
-import kotlin.collections.MutableSet
-import kotlin.collections.Set
-import kotlin.collections.isEmpty
-import kotlin.collections.isNotEmpty
 import kotlin.collections.set
-import kotlin.collections.sortWith
 import kotlin.math.min
 
 /**

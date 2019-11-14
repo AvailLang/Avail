@@ -47,9 +47,7 @@ import static com.avail.descriptor.ByteTupleDescriptor.generateByteTupleFrom;
 import static com.avail.descriptor.IntegerDescriptor.fromUnsignedByte;
 import static com.avail.descriptor.IntegerDescriptor.hashOfUnsignedByte;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.nybbles;
-import static com.avail.descriptor.Mutability.IMMUTABLE;
-import static com.avail.descriptor.Mutability.MUTABLE;
-import static com.avail.descriptor.Mutability.SHARED;
+import static com.avail.descriptor.Mutability.*;
 import static com.avail.descriptor.NybbleTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.NybbleTupleDescriptor.IntegerSlots.RAW_LONG_AT_;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
@@ -150,7 +148,7 @@ extends NumericTupleDescriptor
 		{
 			// Enlarge it in place, using more of the final partial int field.
 			result = object;
-			result.descriptor = descriptorFor(MUTABLE, newSize);
+			result.setDescriptor(descriptorFor(MUTABLE, newSize));
 		}
 		else
 		{
@@ -272,7 +270,7 @@ extends NumericTupleDescriptor
 			if (canDestroy && isMutable() && deltaSlots == 0)
 			{
 				// We can reuse the receiver; it has enough int slots.
-				object.descriptor = descriptorFor(MUTABLE, newSize);
+				object.setDescriptor(descriptorFor(MUTABLE, newSize));
 				copy = object;
 			}
 			else
@@ -451,7 +449,7 @@ extends NumericTupleDescriptor
 	{
 		if (isMutable())
 		{
-			object.descriptor = descriptorFor(IMMUTABLE, object.tupleSize());
+			object.setDescriptor(descriptorFor(IMMUTABLE, object.tupleSize()));
 		}
 		return object;
 	}
@@ -461,12 +459,12 @@ extends NumericTupleDescriptor
 	{
 		if (!isShared())
 		{
-			object.descriptor = descriptorFor(SHARED, object.tupleSize());
+			object.setDescriptor(descriptorFor(SHARED, object.tupleSize()));
 		}
 		return object;
 	}
 	@Override @AvailMethod
-	SerializerOperation o_SerializerOperation (
+	protected SerializerOperation o_SerializerOperation (
 		final AvailObject object)
 	{
 		return SerializerOperation.NYBBLE_TUPLE;
@@ -637,11 +635,10 @@ extends NumericTupleDescriptor
 	}
 
 	/**
-	 * The static list of descriptors of this kind, organized in such a way that
-	 * {@link #descriptorFor(Mutability, int)} can find them by mutability and
-	 * number of unused nybbles in the last word.
+	 * The static array of descriptors of this kind, organized in such a way
+	 * that {@link #descriptorFor(Mutability, int)} can find them by mutability
+	 * and number of unused nybbles in the last word.
 	 */
-	/** The {@link NybbleTupleDescriptor} instances. */
 	private static final NybbleTupleDescriptor[] descriptors =
 		new NybbleTupleDescriptor[16 * 3];
 
@@ -657,21 +654,21 @@ extends NumericTupleDescriptor
 	}
 
 	@Override
-	NybbleTupleDescriptor mutable ()
+	protected NybbleTupleDescriptor mutable ()
 	{
 		return descriptors[
 			((16 - unusedNybblesOfLastLong) & 15) * 3 + MUTABLE.ordinal()];
 	}
 
 	@Override
-	NybbleTupleDescriptor immutable ()
+	protected NybbleTupleDescriptor immutable ()
 	{
 		return descriptors[
 			((16 - unusedNybblesOfLastLong) & 15) * 3 + IMMUTABLE.ordinal()];
 	}
 
 	@Override
-	NybbleTupleDescriptor shared ()
+	protected NybbleTupleDescriptor shared ()
 	{
 		return descriptors[
 			((16 - unusedNybblesOfLastLong) & 15) * 3 + SHARED.ordinal()];

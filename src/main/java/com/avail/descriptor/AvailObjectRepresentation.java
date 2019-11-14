@@ -100,7 +100,7 @@ implements A_BasicObject
 	@Override
 	public final void becomeIndirectionTo (final A_BasicObject anotherObject)
 	{
-		assert !descriptor.isShared();
+		assert !descriptor().isShared();
 		// Yes, this is really gross, but it's the simplest way to ensure that
 		// objectSlots can remain private ...
 		final AvailObject traversed = traversed();
@@ -117,22 +117,22 @@ implements A_BasicObject
 			objectSlots = new AvailObject[1];
 			objectSlots[0] = nil;
 		}
-		if (descriptor.isMutable())
+		if (descriptor().isMutable())
 		{
 			scanSubobjects(
 				new MarkUnreachableSubobjectVisitor(anotherObject));
-			descriptor = IndirectionDescriptor.mutable(
-				anotherTraversed.descriptor.typeTag);
+			setDescriptor(IndirectionDescriptor.mutable(
+				anotherTraversed.descriptor().typeTag));
 			objectSlots[0] = anotherTraversed;
 		}
 		else
 		{
 			anotherObject.makeImmutable();
-			descriptor = IndirectionDescriptor.mutable(
-				anotherTraversed.descriptor.typeTag);
+			setDescriptor(IndirectionDescriptor.mutable(
+				anotherTraversed.descriptor().typeTag));
 			objectSlots[0] = anotherTraversed;
-			descriptor = IndirectionDescriptor.immutable(
-				anotherTraversed.descriptor.typeTag);
+			setDescriptor(IndirectionDescriptor.immutable(
+				anotherTraversed.descriptor().typeTag));
 		}
 	}
 
@@ -149,7 +149,7 @@ implements A_BasicObject
 		if (shouldCheckSlots)
 		{
 			final @Nullable ObjectSlotsEnum [] permittedFields =
-				descriptor.debugObjectSlots[field.ordinal()];
+				descriptor().debugObjectSlots[field.ordinal()];
 			if (permittedFields != null)
 			{
 				for (final ObjectSlotsEnum permittedField : permittedFields)
@@ -163,7 +163,7 @@ implements A_BasicObject
 			// Check it the slow way.
 			final Class<?> definitionClass =
 				field.getClass().getEnclosingClass();
-			assert definitionClass.isInstance(descriptor);
+			assert definitionClass.isInstance(descriptor());
 			// Cache that field for next time.
 			final ObjectSlotsEnum [] newPermittedFields;
 			if (permittedFields == null)
@@ -176,7 +176,7 @@ implements A_BasicObject
 					permittedFields, permittedFields.length + 1);
 				newPermittedFields[permittedFields.length] = field;
 			}
-			descriptor.debugObjectSlots[field.ordinal()] = newPermittedFields;
+			descriptor().debugObjectSlots[field.ordinal()] = newPermittedFields;
 		}
 	}
 
@@ -193,7 +193,7 @@ implements A_BasicObject
 		if (shouldCheckSlots)
 		{
 			final @Nullable IntegerSlotsEnum [] permittedFields =
-				descriptor.debugIntegerSlots[field.ordinal()];
+				descriptor().debugIntegerSlots[field.ordinal()];
 			if (permittedFields != null)
 			{
 				for (final IntegerSlotsEnum permittedField : permittedFields)
@@ -207,7 +207,7 @@ implements A_BasicObject
 			// Check it the slow way.
 			final Class<?> definitionClass =
 				field.getClass().getEnclosingClass();
-			assert definitionClass.isInstance(descriptor);
+			assert definitionClass.isInstance(descriptor());
 			// Cache that field for next time.
 			final IntegerSlotsEnum [] newPermittedFields;
 			if (permittedFields == null)
@@ -220,7 +220,7 @@ implements A_BasicObject
 					permittedFields, permittedFields.length + 1);
 				newPermittedFields[permittedFields.length] = field;
 			}
-			descriptor.debugIntegerSlots[field.ordinal()] = newPermittedFields;
+			descriptor().debugIntegerSlots[field.ordinal()] = newPermittedFields;
 		}
 	}
 
@@ -463,7 +463,7 @@ implements A_BasicObject
 	public final long mutableSlot (final IntegerSlotsEnum field)
 	{
 		checkSlot(field);
-		if (descriptor.isShared())
+		if (descriptor().isShared())
 		{
 			return VolatileSlotHelper.volatileRead(longSlots, field.ordinal());
 		}
@@ -487,7 +487,7 @@ implements A_BasicObject
 	{
 		checkWriteForField(field);
 		checkSlot(field);
-		if (descriptor.isShared())
+		if (descriptor().isShared())
 		{
 			VolatileSlotHelper.volatileWrite(
 				longSlots, field.ordinal(), anInteger);
@@ -526,7 +526,7 @@ implements A_BasicObject
 	{
 		checkWriteForField(bitField.integerSlot);
 		checkSlot(bitField.integerSlot);
-		if (descriptor.isShared())
+		if (descriptor().isShared())
 		{
 			long oldFieldValue;
 			long newFieldValue;
@@ -563,7 +563,7 @@ implements A_BasicObject
 		final int subscript)
 	{
 		checkSlot(field);
-		if (descriptor.isShared())
+		if (descriptor().isShared())
 		{
 			return VolatileSlotHelper.volatileRead(
 				longSlots, field.ordinal() + subscript - 1);
@@ -590,7 +590,7 @@ implements A_BasicObject
 	{
 		checkWriteForField(field);
 		checkSlot(field);
-		if (descriptor.isShared())
+		if (descriptor().isShared())
 		{
 			VolatileSlotHelper.volatileWrite(
 				longSlots, field.ordinal() + subscript - 1, anInteger);
@@ -634,7 +634,7 @@ implements A_BasicObject
 	{
 		// If the receiver is shared, then the new value must become shared
 		// before it can be stored.
-		assert !descriptor.isShared() || anAvailObject.descriptor().isShared();
+		assert !descriptor().isShared() || anAvailObject.descriptor().isShared();
 		checkSlot(field);
 		checkWriteForField(field);
 		objectSlots[field.ordinal()] = (AvailObject) anAvailObject;
@@ -694,7 +694,7 @@ implements A_BasicObject
 	{
 		// If the receiver is shared, then the new value must become shared
 		// before it can be stored.
-		assert !descriptor.isShared() || anAvailObject.descriptor().isShared();
+		assert !descriptor().isShared() || anAvailObject.descriptor().isShared();
 		checkSlot(field);
 		checkWriteForField(field);
 		objectSlots[field.ordinal() + subscript - 1] =
@@ -745,7 +745,7 @@ implements A_BasicObject
 		final int zeroBasedStartSourceSubscript,
 		final int count)
 	{
-		assert !descriptor.isShared() || allShared(sourceList);
+		assert !descriptor().isShared() || allShared(sourceList);
 		checkSlot(field);
 		checkWriteForField(field);
 		// If the receiver is shared, then the new value must become shared
@@ -784,7 +784,7 @@ implements A_BasicObject
 		final int zeroBasedStartSourceSubscript,
 		final int count)
 	{
-		assert !descriptor.isShared()
+		assert !descriptor().isShared()
 			: "Block-transfers into shared objects is not supported";
 		checkSlot(targetField);
 		checkWriteForField(targetField);
@@ -821,7 +821,7 @@ implements A_BasicObject
 		final int zeroBasedStartSourceSubscript,
 		final int count)
 	{
-		assert !descriptor.isShared()
+		assert !descriptor().isShared()
 			: "Block-transfers into shared objects is not supported";
 		checkSlot(targetField);
 		checkWriteForField(targetField);
@@ -891,7 +891,7 @@ implements A_BasicObject
 		final int startSourceSubscript,
 		final int count)
 	{
-		assert !descriptor.isShared()
+		assert !descriptor().isShared()
 			: "Block-transfers into shared objects is not supported";
 		checkSlot(targetField);
 		checkWriteForField(targetField);
@@ -931,7 +931,7 @@ implements A_BasicObject
 		final int startSourceSubscript,
 		final int count)
 	{
-		assert !descriptor.isShared()
+		assert !descriptor().isShared()
 			: "Block-transfers into shared objects is not supported";
 		checkSlot(targetField);
 		checkWriteForField(targetField);
@@ -974,7 +974,7 @@ implements A_BasicObject
 		final int startSourceSubscript,
 		final int count)
 	{
-		assert !descriptor.isShared()
+		assert !descriptor().isShared()
 			: "Block-transfers into shared objects is not supported";
 		checkSlot(targetField);
 		checkWriteForField(targetField);
@@ -1013,7 +1013,7 @@ implements A_BasicObject
 		{
 			return;
 		}
-		assert !descriptor.isShared() || anAvailObject.descriptor().isShared();
+		assert !descriptor().isShared() || anAvailObject.descriptor().isShared();
 		checkSlot(field);
 		checkWriteForField(field);
 		final int startSlotIndex = field.ordinal() + startSubscript - 1;
@@ -1035,7 +1035,7 @@ implements A_BasicObject
 	public final AvailObject mutableSlot (final ObjectSlotsEnum field)
 	{
 		checkSlot(field);
-		if (descriptor.isShared())
+		if (descriptor().isShared())
 		{
 			return VolatileSlotHelper.volatileRead(
 				objectSlots, field.ordinal());
@@ -1191,7 +1191,7 @@ implements A_BasicObject
 		final int subscript)
 	{
 		checkSlot(field);
-		if (descriptor.isShared())
+		if (descriptor().isShared())
 		{
 			return VolatileSlotHelper.volatileRead(
 				objectSlots, field.ordinal() + subscript - 1);
@@ -1213,7 +1213,7 @@ implements A_BasicObject
 		final ObjectSlotsEnum field)
 	{
 		checkSlot(field);
-		if (descriptor.isShared())
+		if (descriptor().isShared())
 		{
 			return VolatileSlotHelper.volatileRead(
 				objectSlots, field.ordinal());
@@ -1239,7 +1239,7 @@ implements A_BasicObject
 	{
 		checkSlot(field);
 		checkWriteForField(field);
-		if (descriptor.isShared())
+		if (descriptor().isShared())
 		{
 			// The receiver is shared, so the new value must become shared
 			// before it can be stored.
@@ -1268,7 +1268,7 @@ implements A_BasicObject
 	{
 		checkSlot(field);
 		checkWriteForField(field);
-		if (descriptor.isShared())
+		if (descriptor().isShared())
 		{
 			// The receiver is shared, so the new value must become shared
 			// before it can be stored.
@@ -1340,7 +1340,7 @@ implements A_BasicObject
 	 * array by replacing it.
  	 */
 	@Override
-	protected final  void truncateWithFillerForNewIntegerSlotsCount (
+	protected final void truncateWithFillerForNewIntegerSlotsCount (
 		final int newIntegerSlotsCount)
 	{
 		final int oldIntegerSlotsCount = integerSlotsCount();
@@ -1360,7 +1360,7 @@ implements A_BasicObject
  	 * require at least one slot for the target pointer.
  	 */
 	@Override
-	protected final  void truncateWithFillerForNewObjectSlotsCount (
+	protected final void truncateWithFillerForNewObjectSlotsCount (
 		final int newObjectSlotsCount)
 	{
 		assert newObjectSlotsCount > 0;
@@ -1415,7 +1415,7 @@ implements A_BasicObject
 	{
 		assert deltaObjectSlots == 0 || descriptor.hasVariableObjectSlots;
 		assert deltaIntegerSlots == 0 || descriptor.hasVariableIntegerSlots;
-		assert descriptor.getClass().equals(objectToCopy.descriptor.getClass());
+		assert descriptor.getClass().equals(objectToCopy.descriptor().getClass());
 		final int newObjectSlotCount =
 			objectToCopy.objectSlots.length + deltaObjectSlots;
 		assert newObjectSlotCount >= descriptor.numberOfFixedObjectSlots;
@@ -1540,13 +1540,13 @@ implements A_BasicObject
 	public boolean equals (final @Nullable Object another)
 	{
 		return another instanceof AvailObject
-			&& descriptor.o_Equals((AvailObject) this, (AvailObject) another);
+			&& descriptor().o_Equals((AvailObject) this, (AvailObject) another);
 	}
 
 	@Override
 	public final int hashCode ()
 	{
-		return descriptor.o_Hash((AvailObject) this);
+		return descriptor().o_Hash((AvailObject) this);
 	}
 
 	/**
@@ -1560,13 +1560,13 @@ implements A_BasicObject
 	{
 		// First, directly access the descriptor's typeTag, which will be
 		// something other than UNKNOWN_TAG in the vast majority of attempts.
-		final TypeTag tag = descriptor.typeTag;
+		final TypeTag tag = descriptor().typeTag;
 		if (tag != TypeTag.UNKNOWN_TAG)
 		{
 			return tag;
 		}
 		// Fall back on computing the tag with a slower polymorphic method.
-		return descriptor.o_ComputeTypeTag((AvailObject) this);
+		return descriptor().o_ComputeTypeTag((AvailObject) this);
 	}
 
 	/**

@@ -38,17 +38,9 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.utility.MutableOrNull;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.EnumSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
-import static com.avail.descriptor.AbstractNumberDescriptor.Order.EQUAL;
-import static com.avail.descriptor.AbstractNumberDescriptor.Order.INCOMPARABLE;
-import static com.avail.descriptor.AbstractNumberDescriptor.Order.LESS;
-import static com.avail.descriptor.AbstractNumberDescriptor.Order.MORE;
+import static com.avail.descriptor.AbstractNumberDescriptor.Order.*;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.DoubleDescriptor.fromDouble;
 import static com.avail.descriptor.FloatDescriptor.fromFloat;

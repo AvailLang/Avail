@@ -90,7 +90,8 @@ extends PhraseDescriptor
 		TUPLE_TYPE;
 	}
 
-	@Override boolean allowsImmutableToMutableReferenceInField (
+	@Override
+	protected boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
 		return e == TUPLE_TYPE;
@@ -380,7 +381,8 @@ extends PhraseDescriptor
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.LIST_PHRASE;
 	}
@@ -451,7 +453,7 @@ extends PhraseDescriptor
 		new ListPhraseDescriptor(Mutability.MUTABLE);
 
 	@Override
-	ListPhraseDescriptor mutable ()
+	protected ListPhraseDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -461,7 +463,7 @@ extends PhraseDescriptor
 		new ListPhraseDescriptor(Mutability.SHARED);
 
 	@Override
-	ListPhraseDescriptor shared ()
+	protected ListPhraseDescriptor shared ()
 	{
 		return shared;
 	}

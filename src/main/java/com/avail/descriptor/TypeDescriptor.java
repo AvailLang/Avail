@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCompiler;
 import com.avail.descriptor.atoms.A_Atom;
+import com.avail.descriptor.atoms.AtomDescriptor;
 import com.avail.descriptor.bundles.MessageBundleDescriptor;
 import com.avail.descriptor.bundles.MessageBundleTreeDescriptor;
 import com.avail.descriptor.objects.A_BasicObject;
@@ -43,16 +44,16 @@ import com.avail.interpreter.AvailLoader.LexicalScanner;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 
 import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.PrimitiveTypeDescriptor.createMutablePrimitiveObjectNamed;
-import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
-import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
-import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.utility.Nulls.stripNull;
+import static java.util.Collections.unmodifiableList;
 
 /**
  * Every object in Avail has a type.  Types are also Avail objects.  The types
@@ -112,7 +113,7 @@ extends AbstractTypeDescriptor
 		ANY(TOP, TypeTag.ANY_TYPE_TAG),
 
 		/**
-		 * This is the kind of all nontypes.
+		 * This is the kind of all non-types.
 		 */
 		NONTYPE(ANY, TypeTag.NONTYPE_TYPE_TAG),
 
@@ -335,6 +336,9 @@ extends AbstractTypeDescriptor
 		 * @param parent
 		 *        The new type's parent, or {@code null} if the type has no
 		 *        parent.
+		 * @param typeTag
+		 *        The {@link TypeTag} that labels the kind of value that
+		 *        {@code o} is.
 		 */
 		Types (
 			final @Nullable Types parent,
@@ -357,17 +361,17 @@ extends AbstractTypeDescriptor
 		}
 
 		/**
-		 * Stash a copy of the array of all {@link Types} enum values.
+		 * Stash a {@link List} of all {@code Types} enum values.
 		 */
-		private static final Types[] all = values();
+		private static final List<Types> all =
+			unmodifiableList(Arrays.asList(values()));
 
 		/**
-		 * Answer the previously stashed copy of the array of all {@code Types}
-		 * enum values.
+		 * Answer the previously stashed {@link List} of all {@code Types}.
 		 *
-		 * @return The array of {@code Types} values.  Do not modify the array.
+		 * @return The immutable {@link List} of all {@code Types}.
 		 */
-		public static Types[] all ()
+		public static List<Types> all ()
 		{
 			return all;
 		}
@@ -375,7 +379,7 @@ extends AbstractTypeDescriptor
 		static
 		{
 			// Build all the objects with null fields.
-			assert all.length == enumCount;
+			assert all.size() == enumCount;
 			// Connect the objects.
 			for (final Types spec : all)
 			{
@@ -515,7 +519,7 @@ extends AbstractTypeDescriptor
 	@Override @AvailMethod
 	protected boolean o_CouldEverBeInvokedWith (
 		final AvailObject object,
-		final List<? extends TypeRestriction> argRestrictions)
+		final List<TypeRestriction> argRestrictions)
 	{
 		throw unsupportedOperationException();
 	}
@@ -825,7 +829,7 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override
-	@Nullable Object o_MarshalToJava (
+	protected @Nullable Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{

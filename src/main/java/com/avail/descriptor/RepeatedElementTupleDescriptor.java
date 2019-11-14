@@ -43,9 +43,7 @@ import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.AvailObjectRepresentation.newLike;
 import static com.avail.descriptor.ByteStringDescriptor.generateByteString;
-import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
-import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
+import static com.avail.descriptor.ObjectTupleDescriptor.*;
 import static com.avail.descriptor.RepeatedElementTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.RepeatedElementTupleDescriptor.IntegerSlots.SIZE;
 import static com.avail.descriptor.RepeatedElementTupleDescriptor.ObjectSlots.ELEMENT;
@@ -492,7 +490,7 @@ extends TupleDescriptor
 		new RepeatedElementTupleDescriptor(Mutability.MUTABLE);
 
 	@Override
-	RepeatedElementTupleDescriptor mutable ()
+	protected RepeatedElementTupleDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -502,7 +500,7 @@ extends TupleDescriptor
 		new RepeatedElementTupleDescriptor(Mutability.IMMUTABLE);
 
 	@Override
-	RepeatedElementTupleDescriptor immutable ()
+	protected RepeatedElementTupleDescriptor immutable ()
 	{
 		return immutable;
 	}
@@ -512,7 +510,7 @@ extends TupleDescriptor
 		new RepeatedElementTupleDescriptor(Mutability.SHARED);
 
 	@Override
-	RepeatedElementTupleDescriptor shared ()
+	protected RepeatedElementTupleDescriptor shared ()
 	{
 		return shared;
 	}

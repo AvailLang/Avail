@@ -107,7 +107,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	AvailObject o_MakeImmutable (final AvailObject object)
+	protected AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		if (isMutable())
 		{
@@ -134,13 +134,14 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	TokenType o_TokenType (final AvailObject object)
+	protected TokenType o_TokenType (final AvailObject object)
 	{
 		return lookupTokenType((int) object.slot(TOKEN_TYPE_CODE));
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.TOKEN_TYPE;
 	}
@@ -262,7 +263,7 @@ extends TypeDescriptor
 		new TokenTypeDescriptor(Mutability.MUTABLE);
 
 	@Override
-	TokenTypeDescriptor mutable ()
+	protected TokenTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -272,14 +273,14 @@ extends TypeDescriptor
 		new TokenTypeDescriptor(Mutability.SHARED);
 
 	@Override
-	TokenTypeDescriptor immutable ()
+	protected TokenTypeDescriptor immutable ()
 	{
 		// There is no immutable variant.
 		return shared;
 	}
 
 	@Override
-	TokenTypeDescriptor shared ()
+	protected TokenTypeDescriptor shared ()
 	{
 		return shared;
 	}

@@ -39,6 +39,7 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.EnumField;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.descriptor.atoms.A_Atom;
+import com.avail.descriptor.atoms.AtomDescriptor;
 import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.descriptor.parsing.A_Phrase;
 import com.avail.descriptor.tuples.A_String;
@@ -61,8 +62,6 @@ import java.util.function.Supplier;
 
 import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.AvailRuntimeSupport.nextFiberId;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.UNSTARTED;
 import static com.avail.descriptor.FiberDescriptor.IntegerSlots.*;
@@ -74,6 +73,8 @@ import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.SetDescriptor.setFromCollection;
+import static com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
+import static com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY;
 import static com.avail.utility.Nulls.stripNull;
 import static java.util.Collections.synchronizedMap;
 
@@ -695,7 +696,8 @@ extends Descriptor
 		}
 	}
 
-	@Override boolean allowsImmutableToMutableReferenceInField (
+	@Override
+	protected boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
 		// Allow mutable access to all fiber slots.
@@ -734,7 +736,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	long o_UniqueId (final AvailObject object)
+	protected long o_UniqueId (final AvailObject object)
 	{
 		return object.slot(DEBUG_UNIQUE_ID);
 	}
@@ -947,7 +949,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	@Nullable AvailLoader o_AvailLoader (final AvailObject object)
+	protected @Nullable AvailLoader o_AvailLoader (final AvailObject object)
 	{
 		final AvailObject pojo = object.mutableSlot(LOADER);
 		if (!pojo.equalsNil())
@@ -1073,7 +1075,7 @@ extends Descriptor
 	}
 
 	@Override
-	TextInterface o_TextInterface (final AvailObject object)
+	protected TextInterface o_TextInterface (final AvailObject object)
 	{
 		return object.mutableSlot(TEXT_INTERFACE).javaObjectNotNull();
 	}
@@ -1435,7 +1437,7 @@ extends Descriptor
 		new FiberDescriptor(Mutability.MUTABLE);
 
 	@Override
-	FiberDescriptor mutable ()
+	protected FiberDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -1445,7 +1447,7 @@ extends Descriptor
 		new FiberDescriptor(Mutability.IMMUTABLE);
 
 	@Override
-	FiberDescriptor immutable ()
+	protected FiberDescriptor immutable ()
 	{
 		return immutable;
 	}
@@ -1455,7 +1457,7 @@ extends Descriptor
 		new FiberDescriptor(Mutability.SHARED);
 
 	@Override
-	FiberDescriptor shared ()
+	protected FiberDescriptor shared ()
 	{
 		return shared;
 	}

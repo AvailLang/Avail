@@ -42,9 +42,7 @@ import com.avail.descriptor.tuples.A_Tuple;
 
 import static com.avail.AvailRuntimeSupport.nextHash;
 import static com.avail.descriptor.GrammaticalRestrictionDescriptor.IntegerSlots.HASH;
-import static com.avail.descriptor.GrammaticalRestrictionDescriptor.ObjectSlots.ARGUMENT_RESTRICTION_SETS;
-import static com.avail.descriptor.GrammaticalRestrictionDescriptor.ObjectSlots.DEFINITION_MODULE;
-import static com.avail.descriptor.GrammaticalRestrictionDescriptor.ObjectSlots.RESTRICTED_BUNDLE;
+import static com.avail.descriptor.GrammaticalRestrictionDescriptor.ObjectSlots.*;
 
 /**
  * A {@code GrammaticalRestrictionDescriptor grammatical restriction} serves to
@@ -218,7 +216,7 @@ extends Descriptor
 		new GrammaticalRestrictionDescriptor(Mutability.MUTABLE);
 
 	@Override
-	GrammaticalRestrictionDescriptor mutable ()
+	protected GrammaticalRestrictionDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -228,14 +226,14 @@ extends Descriptor
 		new GrammaticalRestrictionDescriptor(Mutability.SHARED);
 
 	@Override
-	GrammaticalRestrictionDescriptor immutable ()
+	protected GrammaticalRestrictionDescriptor immutable ()
 	{
 		// There is no immutable variant; answer the shared descriptor.
 		return shared;
 	}
 
 	@Override
-	GrammaticalRestrictionDescriptor shared ()
+	protected GrammaticalRestrictionDescriptor shared ()
 	{
 		return shared;
 	}

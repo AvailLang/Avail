@@ -59,13 +59,14 @@ public class RawPojoDescriptor
 extends Descriptor
 {
 	/**
-	 * The actual Java {@link Object} represented by the {@link AvailObject}
-	 * that uses this {@linkplain AbstractAvailObject#descriptor descriptor}.
+	 * The actual Java {@link Object} represented by the sole
+	 * {@link AvailObject} that uses this descriptor.
 	 */
 	final @Nullable Object javaObject;
 
 	@Override @AvailMethod
-	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (
+		final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsRawPojoFor(object, javaObject);
 	}
@@ -101,7 +102,7 @@ extends Descriptor
 			{
 				object.becomeIndirectionTo(otherRawPojo);
 			}
-			else if (!otherRawPojo.descriptor.isShared())
+			else if (!otherRawPojo.descriptor().isShared())
 			{
 				otherRawPojo.becomeIndirectionTo(object);
 			}
@@ -145,9 +146,9 @@ extends Descriptor
 	{
 		if (isMutable())
 		{
-			object.descriptor = new RawPojoDescriptor(
+			object.setDescriptor(new RawPojoDescriptor(
 				Mutability.IMMUTABLE,
-				javaObject);
+				javaObject));
 		}
 		return object;
 	}
@@ -161,15 +162,15 @@ extends Descriptor
 	{
 		if (!isShared())
 		{
-			object.descriptor = new RawPojoDescriptor(
+			object.setDescriptor(new RawPojoDescriptor(
 				Mutability.SHARED,
-				javaObject);
+				javaObject));
 		}
 		return object;
 	}
 
 	@Override
-	protected final  @Nullable Object o_MarshalToJava (
+	protected final @Nullable Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{
@@ -177,7 +178,7 @@ extends Descriptor
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (
+	protected SerializerOperation o_SerializerOperation (
 		final AvailObject object)
 	{
 		if (javaObject == null)
@@ -327,21 +328,21 @@ extends Descriptor
 
 	@Deprecated
 	@Override
-	AbstractDescriptor mutable ()
+	protected AbstractDescriptor mutable ()
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Deprecated
 	@Override
-	AbstractDescriptor immutable ()
+	protected AbstractDescriptor immutable ()
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Deprecated
 	@Override
-	AbstractDescriptor shared ()
+	protected AbstractDescriptor shared ()
 	{
 		throw unsupportedOperationException();
 	}

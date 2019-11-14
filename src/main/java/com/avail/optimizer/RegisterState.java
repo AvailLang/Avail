@@ -40,14 +40,12 @@ import com.avail.interpreter.levelTwo.register.L2Register;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.avail.utility.PrefixSharingList.append;
-import static com.avail.utility.PrefixSharingList.last;
-import static com.avail.utility.PrefixSharingList.withoutLast;
+import static com.avail.utility.PrefixSharingList.*;
+import static java.util.Collections.emptyList;
 
 /**
  * This class maintains information about one {@linkplain L2Register} on behalf
@@ -77,21 +75,21 @@ public final class RegisterState
 	 * efficiently disconnect this information.
 	 * </p>
 	 */
-	private List<L2Register> origins = Collections.emptyList();
+	private List<L2Register> origins = emptyList();
 
 	/**
 	 * The inverse of {@link #origins}.  For each key, the value is the
 	 * collection of registers that this value has been copied into (and not yet
 	 * been overwritten).
 	 */
-	private List<L2Register> invertedOrigins = Collections.emptyList();
+	private List<L2Register> invertedOrigins = emptyList();
 
 	/**
 	 * The {@link Set} of {@link L2Instruction}s that may have provided the
 	 * current value in that register.  There may be more than one such
 	 * instruction due to multiple paths converging by jumping to labels.
 	 */
-	private List<L2Instruction> sourceInstructions = Collections.emptyList();
+	private List<L2Instruction> sourceInstructions = emptyList();
 
 	/**
 	 * Indicates whether this RegisterState may have been shared among multiple
@@ -176,7 +174,7 @@ public final class RegisterState
 	public void clearSources ()
 	{
 		assert !isShared;
-		sourceInstructions = Collections.emptyList();
+		sourceInstructions = emptyList();
 	}
 
 	/**

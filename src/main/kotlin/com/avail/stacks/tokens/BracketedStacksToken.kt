@@ -32,16 +32,16 @@
 
 package com.avail.stacks.tokens
 
-import com.avail.stacks.*
+import com.avail.stacks.LinkingFileMap
+import com.avail.stacks.StacksErrorLog
 import com.avail.stacks.exceptions.StacksScannerException
 import com.avail.stacks.scanner.StacksBracketScanner
 import com.avail.stacks.tags.StacksLinkTag
 import com.avail.stacks.tags.StacksSeeTag
 import com.avail.utility.json.JSONWriter
-
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
-import java.util.HashMap
+import java.util.*
 
 /**
  * A stacks token representing a bracketed region in the comment.  This region

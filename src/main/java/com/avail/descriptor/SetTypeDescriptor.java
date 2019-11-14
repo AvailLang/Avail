@@ -43,9 +43,7 @@ import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.IntegerDescriptor.one;
 import static com.avail.descriptor.IntegerDescriptor.zero;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.singleInteger;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
 import static com.avail.descriptor.SetTypeDescriptor.ObjectSlots.CONTENT_TYPE;
 import static com.avail.descriptor.SetTypeDescriptor.ObjectSlots.SIZE_RANGE;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
@@ -254,13 +252,14 @@ extends TypeDescriptor
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.SET_TYPE;
 	}
 
 	@Override
-	AvailObject o_MakeImmutable (final AvailObject object)
+	protected AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		if (isMutable())
 		{
@@ -414,7 +413,7 @@ extends TypeDescriptor
 		new SetTypeDescriptor(Mutability.MUTABLE);
 
 	@Override
-	SetTypeDescriptor mutable ()
+	protected SetTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -424,14 +423,14 @@ extends TypeDescriptor
 		new SetTypeDescriptor(Mutability.SHARED);
 
 	@Override
-	SetTypeDescriptor immutable ()
+	protected SetTypeDescriptor immutable ()
 	{
 		// There isn't an immutable descriptor, just the shared one.
 		return shared;
 	}
 
 	@Override
-	SetTypeDescriptor shared ()
+	protected SetTypeDescriptor shared ()
 	{
 		return shared;
 	}

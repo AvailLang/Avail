@@ -212,7 +212,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override
-	AvailObject o_Instance (final AvailObject object)
+	protected AvailObject o_Instance (final AvailObject object)
 	{
 		return getInstance(object);
 	}
@@ -503,7 +503,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	protected boolean o_CouldEverBeInvokedWith (
 		final AvailObject object,
-		final List<? extends TypeRestriction> argRestrictions)
+		final List<TypeRestriction> argRestrictions)
 	{
 		throw unsupportedOperationException();
 	}
@@ -559,7 +559,8 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.INSTANCE_META;
 	}
@@ -587,7 +588,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override
-	TypeTag o_ComputeTypeTag (final AvailObject object)
+	protected TypeTag o_ComputeTypeTag (final AvailObject object)
 	{
 		final AvailObject instance = getInstance(object);
 		final TypeTag instanceTag = instance.typeTag();
@@ -595,7 +596,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	/**
-	 * Construct a new {@link InstanceMetaDescriptor}.
+	 * Construct a new {@code InstanceMetaDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
@@ -610,7 +611,7 @@ extends AbstractEnumerationTypeDescriptor
 		new InstanceMetaDescriptor(Mutability.MUTABLE);
 
 	@Override
-	AbstractEnumerationTypeDescriptor mutable ()
+	protected AbstractEnumerationTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -620,7 +621,7 @@ extends AbstractEnumerationTypeDescriptor
 		new InstanceMetaDescriptor(Mutability.IMMUTABLE);
 
 	@Override
-	AbstractEnumerationTypeDescriptor immutable ()
+	protected AbstractEnumerationTypeDescriptor immutable ()
 	{
 		return immutable;
 	}
@@ -630,7 +631,7 @@ extends AbstractEnumerationTypeDescriptor
 		new InstanceMetaDescriptor(Mutability.SHARED);
 
 	@Override
-	AbstractEnumerationTypeDescriptor shared ()
+	protected AbstractEnumerationTypeDescriptor shared ()
 	{
 		return shared;
 	}

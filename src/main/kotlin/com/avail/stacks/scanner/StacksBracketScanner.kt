@@ -34,9 +34,9 @@ package com.avail.stacks.scanner
 
 import com.avail.descriptor.CommentTokenDescriptor
 import com.avail.descriptor.TokenDescriptor
+import com.avail.stacks.exceptions.StacksScannerException
 import com.avail.stacks.tokens.AbstractStacksToken
 import com.avail.stacks.tokens.BracketedStacksToken
-import com.avail.stacks.exceptions.StacksScannerException
 
 /**
  * A Stacks scanner that tokenizes the lexeme of a [BracketedStacksToken].

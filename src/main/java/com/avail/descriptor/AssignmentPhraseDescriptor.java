@@ -50,9 +50,7 @@ import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.AssignmentPhraseDescriptor.IntegerSlots.IS_INLINE;
-import static com.avail.descriptor.AssignmentPhraseDescriptor.ObjectSlots.EXPRESSION;
-import static com.avail.descriptor.AssignmentPhraseDescriptor.ObjectSlots.TOKENS;
-import static com.avail.descriptor.AssignmentPhraseDescriptor.ObjectSlots.VARIABLE;
+import static com.avail.descriptor.AssignmentPhraseDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.NilDescriptor.nil;
@@ -276,7 +274,8 @@ extends PhraseDescriptor
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.ASSIGNMENT_PHRASE;
 	}
@@ -365,7 +364,7 @@ extends PhraseDescriptor
 		new AssignmentPhraseDescriptor(Mutability.MUTABLE);
 
 	@Override
-	AssignmentPhraseDescriptor mutable ()
+	protected AssignmentPhraseDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -375,7 +374,7 @@ extends PhraseDescriptor
 		new AssignmentPhraseDescriptor(Mutability.SHARED);
 
 	@Override
-	AssignmentPhraseDescriptor shared ()
+	protected AssignmentPhraseDescriptor shared ()
 	{
 		return shared;
 	}

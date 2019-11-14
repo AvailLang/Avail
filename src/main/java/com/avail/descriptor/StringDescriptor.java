@@ -81,7 +81,8 @@ extends TupleDescriptor
 	}
 
 	@Override
-	abstract int o_TupleCodePointAt (final AvailObject object, final int index);
+	protected abstract int o_TupleCodePointAt (
+		final AvailObject object, final int index);
 
 	@Override
 	protected boolean o_TupleElementsInRangeAreInstancesOf (
@@ -102,7 +103,7 @@ extends TupleDescriptor
 	}
 
 	@Override
-	protected final  void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	protected final void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.write(object.asNativeString());
 	}

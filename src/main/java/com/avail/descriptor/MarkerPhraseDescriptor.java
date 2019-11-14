@@ -170,7 +170,8 @@ extends PhraseDescriptor
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		// There's currently no reason to serialize a marker phrase.  This may
 		// change at some point.
@@ -229,7 +230,7 @@ extends PhraseDescriptor
 		new MarkerPhraseDescriptor(Mutability.MUTABLE);
 
 	@Override
-	MarkerPhraseDescriptor mutable ()
+	protected MarkerPhraseDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -239,7 +240,7 @@ extends PhraseDescriptor
 		new MarkerPhraseDescriptor(Mutability.SHARED);
 
 	@Override
-	MarkerPhraseDescriptor shared ()
+	protected MarkerPhraseDescriptor shared ()
 	{
 		return shared;
 	}

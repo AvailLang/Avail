@@ -31,18 +31,21 @@
  */
 package com.avail.interpreter.primitive.general
 
-import com.avail.descriptor.*
-import com.avail.descriptor.AtomDescriptor.falseObject
-import com.avail.descriptor.AtomDescriptor.trueObject
+import com.avail.descriptor.A_RawFunction
+import com.avail.descriptor.A_Type
 import com.avail.descriptor.BottomTypeDescriptor.bottom
 import com.avail.descriptor.ContinuationDescriptor.dumpStackThen
+import com.avail.descriptor.EnumerationTypeDescriptor
 import com.avail.descriptor.EnumerationTypeDescriptor.booleanType
 import com.avail.descriptor.FiberDescriptor.ExecutionState
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.TupleTypeDescriptor
 import com.avail.descriptor.TupleTypeDescriptor.stringType
 import com.avail.descriptor.TypeDescriptor.Types.TOP
+import com.avail.descriptor.atoms.AtomDescriptor.falseObject
+import com.avail.descriptor.atoms.AtomDescriptor.trueObject
 import com.avail.exceptions.AvailAssertionFailedException
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
@@ -55,7 +58,6 @@ import com.avail.optimizer.L1Translator.CallSiteHelper
 import com.avail.optimizer.L2Generator.edgeTo
 import com.avail.utility.Nulls.stripNull
 import java.lang.String.format
-import java.util.Arrays.asList
 
 /**
  * **Primitive:** Assert the specified

@@ -34,7 +34,6 @@ package com.avail.interpreter.primitive.bootstrap.syntax
 
 import com.avail.compiler.AvailRejectedParseException
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
-import com.avail.descriptor.parsing.A_Phrase
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind
 import com.avail.descriptor.DeclarationPhraseDescriptor.newPrimitiveFailureVariable
@@ -49,6 +48,7 @@ import com.avail.descriptor.TokenDescriptor.TokenType
 import com.avail.descriptor.TupleTypeDescriptor.*
 import com.avail.descriptor.TypeDescriptor.Types.TOKEN
 import com.avail.descriptor.TypeDescriptor.Types.TOP
+import com.avail.descriptor.parsing.A_Phrase
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive

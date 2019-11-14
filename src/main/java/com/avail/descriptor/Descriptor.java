@@ -49,13 +49,13 @@ import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.bundles.A_Bundle;
 import com.avail.descriptor.bundles.A_BundleTree;
-import com.avail.descriptor.methods.A_Method;
 import com.avail.descriptor.methods.A_Definition;
 import com.avail.descriptor.methods.A_GrammaticalRestriction;
+import com.avail.descriptor.methods.A_Method;
 import com.avail.descriptor.methods.A_SemanticRestriction;
 import com.avail.descriptor.objects.A_BasicObject;
-import com.avail.descriptor.parsing.A_ParsingPlanInProgress;
 import com.avail.descriptor.parsing.A_Lexer;
+import com.avail.descriptor.parsing.A_ParsingPlanInProgress;
 import com.avail.descriptor.parsing.A_Phrase;
 import com.avail.descriptor.tuples.A_String;
 import com.avail.descriptor.tuples.A_Tuple;
@@ -193,7 +193,7 @@ extends AbstractDescriptor
 
 	@Override
 	protected void o_AddAncestors (
-		final AvailObject object, 
+		final AvailObject object,
 		final A_Set moreAncestors)
 	{
 		throw unsupportedOperationException();
@@ -679,7 +679,7 @@ extends AbstractDescriptor
 	@Override
 	protected boolean o_CouldEverBeInvokedWith (
 		final AvailObject object,
-		final List<? extends TypeRestriction> argRestrictions)
+		final List<TypeRestriction> argRestrictions)
 	{
 		throw unsupportedOperationException();
 	}
@@ -769,7 +769,7 @@ extends AbstractDescriptor
 	@Override
 	protected List<A_Definition> o_DefinitionsAtOrBelow (
 		final AvailObject object,
-		final List<? extends TypeRestriction> argRestrictions)
+		final List<TypeRestriction> argRestrictions)
 	{
 		throw unsupportedOperationException();
 	}
@@ -2457,7 +2457,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public boolean o_IsInstanceOfKind (
+	protected boolean o_IsInstanceOfKind (
 		final AvailObject object, final A_Type aType)
 	{
 		return object.kind().isSubtypeOf(aType);
@@ -2486,8 +2486,7 @@ extends AbstractDescriptor
 		// immutable descendants).
 		if (isMutable())
 		{
-			//noinspection NonAtomicOperationOnVolatileField
-			object.descriptor = object.descriptor.immutable();
+			object.setDescriptor(object.descriptor().immutable());
 			object.makeSubobjectsImmutable();
 		}
 		return object;
@@ -2501,8 +2500,7 @@ extends AbstractDescriptor
 		// shared descendants).
 		if (!isShared())
 		{
-			//noinspection NonAtomicOperationOnVolatileField
-			object.descriptor = object.descriptor.shared();
+			object.setDescriptor(object.descriptor().shared());
 			object.makeSubobjectsShared();
 		}
 		return object;
@@ -2519,7 +2517,7 @@ extends AbstractDescriptor
 	 * @return
 	 */
 	@Override
-	protected final  AvailObject o_MakeSubobjectsImmutable (final AvailObject object)
+	protected final AvailObject o_MakeSubobjectsImmutable (final AvailObject object)
 	{
 		object.scanSubobjects(BeImmutableSubobjectVisitor.INSTANCE);
 		return object;
@@ -2535,7 +2533,7 @@ extends AbstractDescriptor
 	 * </p>
 	 */
 	@Override
-	protected final  void o_MakeSubobjectsShared (final AvailObject object)
+	protected final void o_MakeSubobjectsShared (final AvailObject object)
 	{
 		object.scanSubobjects(BeSharedSubobjectVisitor.INSTANCE);
 	}
@@ -3385,7 +3383,8 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	protected SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -3528,7 +3527,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	@Nullable Object o_MarshalToJava (
+	protected @Nullable Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{

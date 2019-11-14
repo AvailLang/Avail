@@ -37,17 +37,7 @@ import com.avail.builder.ModuleName
 import com.avail.builder.ModuleNameResolver
 import com.avail.builder.UnresolvedDependencyException
 import com.avail.compiler.ModuleHeader
-import com.avail.descriptor.*
-import com.avail.utility.Pair
-import com.avail.utility.json.JSONWriter
-
-import java.io.IOException
-import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets
-import java.nio.file.Path
-import java.nio.file.attribute.BasicFileAttributes
-import java.util.*
-
+import com.avail.descriptor.CommentTokenDescriptor
 import com.avail.descriptor.SetDescriptor.emptySet
 import com.avail.descriptor.SetDescriptor.setFromCollection
 import com.avail.descriptor.StringDescriptor.stringFrom
@@ -58,6 +48,14 @@ import com.avail.stacks.comment.AvailComment
 import com.avail.stacks.exceptions.StacksCommentBuilderException
 import com.avail.stacks.exceptions.StacksScannerException
 import com.avail.stacks.scanner.StacksScanner
+import com.avail.utility.Pair
+import com.avail.utility.json.JSONWriter
+import java.io.IOException
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets
+import java.nio.file.Path
+import java.nio.file.attribute.BasicFileAttributes
+import java.util.*
 
 /**
  * A representation of all the fully parsed [comments][CommentTokenDescriptor]

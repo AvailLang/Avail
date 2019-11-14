@@ -159,7 +159,8 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.FIBER_TYPE;
 	}
@@ -199,7 +200,7 @@ extends TypeDescriptor
 
 	@Override
 	@ThreadSafe
-	void printObjectOnAvoidingIndent (
+	protected void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
 		final IdentityHashMap<A_BasicObject, Void> recursionMap,
@@ -226,7 +227,7 @@ extends TypeDescriptor
 		new FiberTypeDescriptor(Mutability.MUTABLE);
 
 	@Override
-	FiberTypeDescriptor mutable ()
+	protected FiberTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -236,14 +237,14 @@ extends TypeDescriptor
 		new FiberTypeDescriptor(Mutability.SHARED);
 
 	@Override
-	FiberTypeDescriptor immutable ()
+	protected FiberTypeDescriptor immutable ()
 	{
 		// There is no immutable variation.
 		return shared;
 	}
 
 	@Override
-	FiberTypeDescriptor shared ()
+	protected FiberTypeDescriptor shared ()
 	{
 		return shared;
 	}

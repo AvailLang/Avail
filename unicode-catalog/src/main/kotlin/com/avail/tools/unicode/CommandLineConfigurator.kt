@@ -36,14 +36,12 @@ import com.avail.tools.options.DefaultOption
 import com.avail.tools.options.GenericHelpOption
 import com.avail.tools.options.OptionProcessor
 import com.avail.tools.options.OptionProcessorFactory
-import com.avail.utility.configuration.ConfigurationException
-import com.avail.utility.configuration.Configurator
-
-import java.nio.file.Path
-import java.nio.file.Paths
-
 import com.avail.tools.unicode.CommandLineConfigurator.OptionKey.HELP
 import com.avail.tools.unicode.CommandLineConfigurator.OptionKey.TARGET_PATH
+import com.avail.utility.configuration.ConfigurationException
+import com.avail.utility.configuration.Configurator
+import java.nio.file.Path
+import java.nio.file.Paths
 
 /**
  * `CommandLineConfigurator` provides the command-line configuration for

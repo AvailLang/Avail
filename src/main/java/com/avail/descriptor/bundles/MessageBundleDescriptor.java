@@ -36,9 +36,10 @@ import com.avail.annotations.AvailMethod;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.*;
 import com.avail.descriptor.atoms.A_Atom;
-import com.avail.descriptor.methods.A_Method;
+import com.avail.descriptor.atoms.AtomDescriptor;
 import com.avail.descriptor.methods.A_Definition;
 import com.avail.descriptor.methods.A_GrammaticalRestriction;
+import com.avail.descriptor.methods.A_Method;
 import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.serialization.SerializerOperation;
@@ -48,14 +49,10 @@ import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.DefinitionParsingPlanDescriptor.newParsingPlan;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
-import static com.avail.descriptor.bundles.MessageBundleDescriptor.ObjectSlots.DEFINITION_PARSING_PLANS;
-import static com.avail.descriptor.bundles.MessageBundleDescriptor.ObjectSlots.GRAMMATICAL_RESTRICTIONS;
-import static com.avail.descriptor.bundles.MessageBundleDescriptor.ObjectSlots.MESSAGE;
-import static com.avail.descriptor.bundles.MessageBundleDescriptor.ObjectSlots.MESSAGE_SPLITTER_POJO;
-import static com.avail.descriptor.bundles.MessageBundleDescriptor.ObjectSlots.METHOD;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE;
+import static com.avail.descriptor.bundles.MessageBundleDescriptor.ObjectSlots.*;
 
 /**
  * A message bundle is how a message name is bound to a {@linkplain
@@ -268,7 +265,8 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.MESSAGE_BUNDLE;
 	}

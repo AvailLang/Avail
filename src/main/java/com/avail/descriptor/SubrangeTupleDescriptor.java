@@ -41,9 +41,7 @@ import com.avail.descriptor.tuples.A_Tuple;
 import java.nio.ByteBuffer;
 
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.SubrangeTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
-import static com.avail.descriptor.SubrangeTupleDescriptor.IntegerSlots.SIZE;
-import static com.avail.descriptor.SubrangeTupleDescriptor.IntegerSlots.START_INDEX;
+import static com.avail.descriptor.SubrangeTupleDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.SubrangeTupleDescriptor.ObjectSlots.BASIS_TUPLE;
 import static com.avail.descriptor.TreeTupleDescriptor.concatenateAtLeastOneTree;
 import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;
@@ -578,7 +576,7 @@ extends TupleDescriptor
 		new SubrangeTupleDescriptor(Mutability.MUTABLE);
 
 	@Override
-	SubrangeTupleDescriptor mutable ()
+	protected SubrangeTupleDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -588,7 +586,7 @@ extends TupleDescriptor
 		new SubrangeTupleDescriptor(Mutability.IMMUTABLE);
 
 	@Override
-	SubrangeTupleDescriptor immutable ()
+	protected SubrangeTupleDescriptor immutable ()
 	{
 		return immutable;
 	}
@@ -598,7 +596,7 @@ extends TupleDescriptor
 		new SubrangeTupleDescriptor(Mutability.SHARED);
 
 	@Override
-	SubrangeTupleDescriptor shared ()
+	protected SubrangeTupleDescriptor shared ()
 	{
 		return shared;
 	}

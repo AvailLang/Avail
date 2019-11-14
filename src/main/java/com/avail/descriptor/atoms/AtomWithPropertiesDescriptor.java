@@ -1,19 +1,19 @@
 /*
  * AtomWithPropertiesDescriptor.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
+ *  Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
+ *  Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
+ *  Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -30,11 +30,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.descriptor;
+package com.avail.descriptor.atoms;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.descriptor.atoms.A_Atom;
+import com.avail.descriptor.*;
 import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.descriptor.tuples.A_String;
 import com.avail.serialization.Serializer;
@@ -44,13 +44,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.WeakHashMap;
 
-import static com.avail.descriptor.AtomWithPropertiesDescriptor.IntegerSlots.HASH_AND_MORE;
-import static com.avail.descriptor.AtomWithPropertiesDescriptor.IntegerSlots.HASH_OR_ZERO;
-import static com.avail.descriptor.AtomWithPropertiesDescriptor.ObjectSlots.ISSUING_MODULE;
-import static com.avail.descriptor.AtomWithPropertiesDescriptor.ObjectSlots.NAME;
-import static com.avail.descriptor.AtomWithPropertiesDescriptor.ObjectSlots.PROPERTY_MAP_POJO;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
+import static com.avail.descriptor.atoms.AtomWithPropertiesDescriptor.IntegerSlots.HASH_AND_MORE;
+import static com.avail.descriptor.atoms.AtomWithPropertiesDescriptor.IntegerSlots.HASH_OR_ZERO;
+import static com.avail.descriptor.atoms.AtomWithPropertiesDescriptor.ObjectSlots.*;
 import static java.util.Collections.synchronizedMap;
 
 /**
@@ -151,7 +149,7 @@ extends AtomDescriptor
 	}
 
 	@Override
-	AvailObject o_MakeShared (final AvailObject object)
+	protected AvailObject o_MakeShared (final AvailObject object)
 	{
 		assert !isShared();
 		// The layout of the destination descriptor is the same, so nothing
@@ -167,7 +165,7 @@ extends AtomDescriptor
 			entry.getKey().makeShared();
 			entry.setValue(entry.getValue().makeShared());
 		}
-		object.descriptor = AtomWithPropertiesSharedDescriptor.shared;
+		object.setDescriptor(AtomWithPropertiesSharedDescriptor.shared);
 		return object;
 	}
 
@@ -319,7 +317,7 @@ extends AtomDescriptor
 			IntegerSlots.class);
 
 	@Override
-	AtomWithPropertiesDescriptor mutable ()
+	protected AtomWithPropertiesDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -333,7 +331,7 @@ extends AtomDescriptor
 			IntegerSlots.class);
 
 	@Override
-	AtomWithPropertiesDescriptor immutable ()
+	protected AtomWithPropertiesDescriptor immutable ()
 	{
 		return immutable;
 	}

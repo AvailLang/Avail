@@ -40,11 +40,7 @@ import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
-import com.avail.descriptor.FiberDescriptor.ExecutionState;
-import com.avail.descriptor.FiberDescriptor.GeneralFlag;
-import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
-import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
-import com.avail.descriptor.FiberDescriptor.TraceFlag;
+import com.avail.descriptor.FiberDescriptor.*;
 import com.avail.descriptor.MapDescriptor.MapIterable;
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.descriptor.SetDescriptor.SetIterator;
@@ -54,23 +50,18 @@ import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.bundles.A_Bundle;
 import com.avail.descriptor.bundles.A_BundleTree;
-import com.avail.descriptor.methods.A_Method;
 import com.avail.descriptor.methods.A_Definition;
 import com.avail.descriptor.methods.A_GrammaticalRestriction;
+import com.avail.descriptor.methods.A_Method;
 import com.avail.descriptor.methods.A_SemanticRestriction;
 import com.avail.descriptor.objects.A_BasicObject;
-import com.avail.descriptor.parsing.A_ParsingPlanInProgress;
 import com.avail.descriptor.parsing.A_Lexer;
+import com.avail.descriptor.parsing.A_ParsingPlanInProgress;
 import com.avail.descriptor.parsing.A_Phrase;
 import com.avail.descriptor.tuples.A_String;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.dispatch.LookupTree;
-import com.avail.exceptions.AvailException;
-import com.avail.exceptions.MalformedMessageException;
-import com.avail.exceptions.MethodDefinitionException;
-import com.avail.exceptions.SignatureException;
-import com.avail.exceptions.VariableGetException;
-import com.avail.exceptions.VariableSetException;
+import com.avail.exceptions.*;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.AvailLoader.LexicalScanner;
 import com.avail.interpreter.Primitive;
@@ -90,11 +81,7 @@ import com.avail.utility.visitor.AvailSubobjectVisitor;
 import javax.annotation.Nullable;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.util.Collection;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Spliterator;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -208,11 +195,11 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_MakeImmutable (final AvailObject object)
+	protected AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		if (isMutable())
 		{
-			object.descriptor = immutable(typeTag);
+			object.setDescriptor(immutable(typeTag));
 			return object.slot(INDIRECTION_TARGET).makeImmutable();
 		}
 		return object.slot(INDIRECTION_TARGET);
@@ -223,7 +210,7 @@ extends AbstractDescriptor
 	{
 		if (!isShared())
 		{
-			object.descriptor = shared(typeTag);
+			object.setDescriptor(shared(typeTag));
 			return object.slot(INDIRECTION_TARGET).makeShared();
 		}
 		return object.slot(INDIRECTION_TARGET);
@@ -727,7 +714,7 @@ extends AbstractDescriptor
 	@Override
 	protected boolean o_CouldEverBeInvokedWith (
 		final AvailObject object,
-		final List<? extends TypeRestriction> argRestrictions)
+		final List<TypeRestriction> argRestrictions)
 	{
 		return o_Traversed(object).couldEverBeInvokedWith(argRestrictions);
 	}
@@ -1137,7 +1124,7 @@ extends AbstractDescriptor
 	@Override
 	List<A_Definition> o_DefinitionsAtOrBelow (
 		final AvailObject object,
-		final List<? extends TypeRestriction> argRestrictions)
+		final List<TypeRestriction> argRestrictions)
 	{
 		return o_Traversed(object).definitionsAtOrBelow(argRestrictions);
 	}
@@ -3445,7 +3432,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (
+	protected SerializerOperation o_SerializerOperation (
 		final AvailObject object)
 	{
 		return o_Traversed(object).serializerOperation();
@@ -3606,7 +3593,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	@Nullable Object o_MarshalToJava (
+	protected @Nullable Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> classHint)
 	{
@@ -4869,12 +4856,11 @@ extends AbstractDescriptor
 	{
 		final TypeTag tag = o_Traversed(object).typeTag();
 		// Now that we know it, switch to a descriptor that has it cached...
-		object.descriptor =
-			mutability == Mutability.MUTABLE
-				? mutable(tag)
-				: mutability == Mutability.IMMUTABLE
-					? immutable(tag)
-					: shared(tag);
+		object.setDescriptor(mutability == Mutability.MUTABLE
+			? mutable(tag)
+			: mutability == Mutability.IMMUTABLE
+				? immutable(tag)
+				: shared(tag));
 		return tag;
 	}
 

@@ -140,8 +140,7 @@ extends A_BasicObject
 	 * Dispatch to the descriptor.
 	 * @param argRestrictions
 	 */
-	boolean couldEverBeInvokedWith (
-		List<? extends TypeRestriction> argRestrictions);
+	boolean couldEverBeInvokedWith (List<TypeRestriction> argRestrictions);
 
 	/**
 	 * Also declared in {@link A_Phrase} for {@linkplain BlockPhraseDescriptor

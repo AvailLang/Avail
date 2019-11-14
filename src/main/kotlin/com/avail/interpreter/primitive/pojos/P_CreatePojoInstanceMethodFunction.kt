@@ -31,7 +31,9 @@
  */
 package com.avail.interpreter.primitive.pojos
 
-import com.avail.descriptor.*
+import com.avail.descriptor.A_Function
+import com.avail.descriptor.A_RawFunction
+import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionDescriptor.createWithOuters2
 import com.avail.descriptor.FunctionTypeDescriptor.functionType

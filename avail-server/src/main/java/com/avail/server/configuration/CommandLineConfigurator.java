@@ -35,22 +35,13 @@ package com.avail.server.configuration;
 import com.avail.builder.ModuleRoots;
 import com.avail.builder.RenamesFileParser;
 import com.avail.server.AvailServer;
-import com.avail.tools.options.GenericHelpOption;
-import com.avail.tools.options.GenericOption;
-import com.avail.tools.options.OptionProcessingException;
-import com.avail.tools.options.OptionProcessor;
-import com.avail.tools.options.OptionProcessorFactory;
+import com.avail.tools.options.*;
 import com.avail.utility.configuration.ConfigurationException;
 import com.avail.utility.configuration.Configurator;
 
 import java.io.File;
 
-import static com.avail.server.configuration.CommandLineConfigurator.OptionKey.AVAIL_RENAMES;
-import static com.avail.server.configuration.CommandLineConfigurator.OptionKey.AVAIL_ROOTS;
-import static com.avail.server.configuration.CommandLineConfigurator.OptionKey.DOCUMENT_ROOT;
-import static com.avail.server.configuration.CommandLineConfigurator.OptionKey.HELP;
-import static com.avail.server.configuration.CommandLineConfigurator.OptionKey.SERVER_AUTHORITY;
-import static com.avail.server.configuration.CommandLineConfigurator.OptionKey.SERVER_PORT;
+import static com.avail.server.configuration.CommandLineConfigurator.OptionKey.*;
 import static java.util.Collections.singletonList;
 
 /**

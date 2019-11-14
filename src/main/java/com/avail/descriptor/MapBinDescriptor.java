@@ -110,7 +110,7 @@ extends Descriptor
 	}
 
 	@Override
-	abstract MapIterable o_MapBinIterable (final AvailObject object);
+	protected abstract MapIterable o_MapBinIterable (final AvailObject object);
 
 	/**
 	 * The level of my objects in their enclosing bin trees. The top node is

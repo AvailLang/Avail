@@ -34,11 +34,10 @@ package com.avail.environment.actions
 
 import com.avail.environment.AvailWorkbench
 import com.avail.environment.tasks.UnloadTask
-import java.awt.event.ActionEvent
-
 import com.avail.utility.Nulls.stripNull
 import java.awt.Cursor.WAIT_CURSOR
 import java.awt.Cursor.getPredefinedCursor
+import java.awt.event.ActionEvent
 import javax.swing.Action
 
 /**

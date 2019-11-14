@@ -69,19 +69,19 @@ extends Descriptor
 		new FillerDescriptor(Mutability.SHARED);
 
 	@Override
-	FillerDescriptor mutable ()
+	protected FillerDescriptor mutable ()
 	{
 		return shared;
 	}
 
 	@Override
-	FillerDescriptor immutable ()
+	protected FillerDescriptor immutable ()
 	{
 		return shared;
 	}
 
 	@Override
-	FillerDescriptor shared ()
+	protected FillerDescriptor shared ()
 	{
 		return shared;
 	}

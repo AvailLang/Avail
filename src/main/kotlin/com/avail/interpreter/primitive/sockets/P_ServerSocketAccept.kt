@@ -35,9 +35,6 @@ package com.avail.interpreter.primitive.sockets
 import com.avail.AvailRuntime.currentRuntime
 import com.avail.descriptor.*
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.AtomDescriptor.SpecialAtom.SERVER_SOCKET_KEY
-import com.avail.descriptor.AtomDescriptor.SpecialAtom.SOCKET_KEY
-import com.avail.descriptor.AtomDescriptor.createAtom
 import com.avail.descriptor.FiberDescriptor.newFiber
 import com.avail.descriptor.FiberTypeDescriptor.mostGeneralFiberType
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
@@ -51,6 +48,9 @@ import com.avail.descriptor.StringDescriptor.formatString
 import com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf
 import com.avail.descriptor.TypeDescriptor.Types.*
 import com.avail.descriptor.atoms.A_Atom
+import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.SERVER_SOCKET_KEY
+import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.SOCKET_KEY
+import com.avail.descriptor.atoms.AtomDescriptor.createAtom
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailErrorCode.*
 import com.avail.interpreter.Interpreter

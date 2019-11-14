@@ -673,7 +673,8 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	protected SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.SET;
 	}
@@ -791,7 +792,7 @@ extends Descriptor
 		new SetDescriptor(Mutability.MUTABLE);
 
 	@Override
-	SetDescriptor mutable ()
+	protected SetDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -801,7 +802,7 @@ extends Descriptor
 		new SetDescriptor(Mutability.IMMUTABLE);
 
 	@Override
-	SetDescriptor immutable ()
+	protected SetDescriptor immutable ()
 	{
 		return immutable;
 	}
@@ -811,7 +812,7 @@ extends Descriptor
 		new SetDescriptor(Mutability.SHARED);
 
 	@Override
-	SetDescriptor shared ()
+	protected SetDescriptor shared ()
 	{
 		return shared;
 	}

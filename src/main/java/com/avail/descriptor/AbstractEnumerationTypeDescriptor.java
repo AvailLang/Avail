@@ -533,7 +533,7 @@ extends AbstractTypeDescriptor
 	@Override @AvailMethod
 	protected abstract boolean o_CouldEverBeInvokedWith (
 		final AvailObject object,
-		final List<? extends TypeRestriction> argRestrictions);
+		final List<TypeRestriction> argRestrictions);
 
 	@Override @AvailMethod
 	protected boolean o_IsBetterRepresentationThan (
@@ -749,7 +749,7 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override
-	abstract TypeTag o_ComputeTypeTag (final AvailObject object);
+	protected abstract TypeTag o_ComputeTypeTag (final AvailObject object);
 
 	/**
 	 * Answer a new object instance of this descriptor based on the set of

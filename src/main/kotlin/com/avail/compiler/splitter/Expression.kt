@@ -32,8 +32,11 @@
 package com.avail.compiler.splitter
 
 import com.avail.compiler.splitter.MessageSplitter.Companion.throwMalformedMessageException
-import com.avail.descriptor.*
+import com.avail.descriptor.A_Type
+import com.avail.descriptor.MacroDefinitionDescriptor
+import com.avail.descriptor.MethodDefinitionDescriptor
 import com.avail.descriptor.parsing.A_Phrase
+import com.avail.descriptor.parsing.PhraseDescriptor
 import com.avail.exceptions.AvailErrorCode.E_CASE_INSENSITIVE_EXPRESSION_CANONIZATION
 import com.avail.exceptions.MalformedMessageException
 import com.avail.exceptions.SignatureException

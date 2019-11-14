@@ -33,10 +33,12 @@
 package com.avail.environment.actions
 
 import com.avail.environment.AvailWorkbench
-import javax.swing.*
-import javax.swing.filechooser.FileFilter
 import java.awt.event.ActionEvent
 import java.io.File
+import javax.swing.Action
+import javax.swing.JFileChooser
+import javax.swing.JOptionPane
+import javax.swing.filechooser.FileFilter
 
 /**
  * A `SetDocumentationPathAction` displays a [modal dialog][JOptionPane] that

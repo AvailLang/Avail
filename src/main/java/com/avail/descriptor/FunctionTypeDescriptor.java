@@ -51,9 +51,7 @@ import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.FunctionTypeDescriptor.IntegerSlots.HASH_AND_MORE;
 import static com.avail.descriptor.FunctionTypeDescriptor.IntegerSlots.HASH_OR_ZERO;
-import static com.avail.descriptor.FunctionTypeDescriptor.ObjectSlots.ARGS_TUPLE_TYPE;
-import static com.avail.descriptor.FunctionTypeDescriptor.ObjectSlots.DECLARED_EXCEPTIONS;
-import static com.avail.descriptor.FunctionTypeDescriptor.ObjectSlots.RETURN_TYPE;
+import static com.avail.descriptor.FunctionTypeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.singleInt;
 import static com.avail.descriptor.SetDescriptor.emptySet;
@@ -372,7 +370,7 @@ extends TypeDescriptor
 	@Override @AvailMethod
 	protected boolean o_CouldEverBeInvokedWith (
 		final AvailObject object,
-		final List<? extends TypeRestriction> argRestrictions)
+		final List<TypeRestriction> argRestrictions)
 	{
 		final A_Type tupleType = object.slot(ARGS_TUPLE_TYPE);
 		for (int i = 1, end = argRestrictions.size(); i <= end; i++)
@@ -583,7 +581,8 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	protected SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.FUNCTION_TYPE;
 	}
@@ -638,7 +637,7 @@ extends TypeDescriptor
 		new FunctionTypeDescriptor(Mutability.MUTABLE);
 
 	@Override
-	FunctionTypeDescriptor mutable ()
+	protected FunctionTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -648,7 +647,7 @@ extends TypeDescriptor
 		new FunctionTypeDescriptor(Mutability.IMMUTABLE);
 
 	@Override
-	FunctionTypeDescriptor immutable ()
+	protected FunctionTypeDescriptor immutable ()
 	{
 		return immutable;
 	}
@@ -658,7 +657,7 @@ extends TypeDescriptor
 		new FunctionTypeDescriptor(Mutability.SHARED);
 
 	@Override
-	FunctionTypeDescriptor shared ()
+	protected FunctionTypeDescriptor shared ()
 	{
 		return shared;
 	}

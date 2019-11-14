@@ -34,8 +34,11 @@ package com.avail.interpreter.primitive.pojos
 
 import com.avail.AvailRuntime.HookType
 import com.avail.AvailRuntime.HookType.RAISE_JAVA_EXCEPTION_IN_AVAIL
-import com.avail.descriptor.*
+import com.avail.descriptor.A_Function
+import com.avail.descriptor.A_RawFunction
+import com.avail.descriptor.A_Type
 import com.avail.descriptor.BottomTypeDescriptor.bottom
+import com.avail.descriptor.FunctionTypeDescriptor
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.APPLY
 import com.avail.descriptor.NilDescriptor.nil

@@ -175,7 +175,8 @@ extends PhraseDescriptor
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.SUPER_CAST_PHRASE;
 	}
@@ -275,7 +276,7 @@ extends PhraseDescriptor
 		new SuperCastPhraseDescriptor(Mutability.MUTABLE);
 
 	@Override
-	SuperCastPhraseDescriptor mutable ()
+	protected SuperCastPhraseDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -285,7 +286,7 @@ extends PhraseDescriptor
 		new SuperCastPhraseDescriptor(Mutability.SHARED);
 
 	@Override
-	SuperCastPhraseDescriptor shared ()
+	protected SuperCastPhraseDescriptor shared ()
 	{
 		return shared;
 	}

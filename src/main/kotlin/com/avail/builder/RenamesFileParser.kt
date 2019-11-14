@@ -33,14 +33,14 @@
 package com.avail.builder
 
 import com.avail.annotations.ThreadSafe
+import com.avail.builder.RenamesFileParser.Token
 import com.avail.descriptor.ModuleDescriptor
+import com.avail.utility.Nulls.stripNull
 import java.io.EOFException
 import java.io.File
 import java.io.IOException
 import java.io.Reader
 import java.nio.charset.MalformedInputException
-
-import com.avail.utility.Nulls.stripNull
 
 /**
  * A `RenamesFileParser` parses a [file][File] of Avail

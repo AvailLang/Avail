@@ -33,9 +33,9 @@
 package com.avail.compiler
 
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel
-import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.StringDescriptor
 import com.avail.descriptor.StringDescriptor.stringFrom
+import com.avail.descriptor.tuples.A_String
 import com.avail.exceptions.PrimitiveThrownException
 import com.avail.interpreter.primitive.phrases.P_RejectParsing
 import java.lang.String.format

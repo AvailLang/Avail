@@ -131,7 +131,8 @@ extends MapBinDescriptor
 		BIN_SLOT_AT_;
 	}
 
-	@Override boolean allowsImmutableToMutableReferenceInField (
+	@Override
+	protected boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
 		return e == COMBINED_HASHES
@@ -608,7 +609,7 @@ extends MapBinDescriptor
 	}
 
 	@Override
-	MapIterable o_MapBinIterable (final AvailObject object)
+	protected MapIterable o_MapBinIterable (final AvailObject object)
 	{
 		return new MapIterable()
 		{
@@ -746,19 +747,19 @@ extends MapBinDescriptor
 	}
 
 	@Override
-	LinearMapBinDescriptor mutable ()
+	protected LinearMapBinDescriptor mutable ()
 	{
 		return descriptorFor(MUTABLE, level);
 	}
 
 	@Override
-	LinearMapBinDescriptor immutable ()
+	protected LinearMapBinDescriptor immutable ()
 	{
 		return descriptorFor(IMMUTABLE, level);
 	}
 
 	@Override
-	LinearMapBinDescriptor shared ()
+	protected LinearMapBinDescriptor shared ()
 	{
 		return descriptorFor(SHARED, level);
 	}

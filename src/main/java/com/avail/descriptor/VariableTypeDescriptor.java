@@ -218,7 +218,8 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.SIMPLE_VARIABLE_TYPE;
 	}
@@ -315,7 +316,7 @@ extends TypeDescriptor
 		new VariableTypeDescriptor(Mutability.MUTABLE);
 
 	@Override
-	VariableTypeDescriptor mutable ()
+	protected VariableTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -325,14 +326,14 @@ extends TypeDescriptor
 		new VariableTypeDescriptor(Mutability.SHARED);
 
 	@Override
-	VariableTypeDescriptor immutable ()
+	protected VariableTypeDescriptor immutable ()
 	{
 		// There is only a shared variant, not an immutable one.
 		return shared;
 	}
 
 	@Override
-	VariableTypeDescriptor shared ()
+	protected VariableTypeDescriptor shared ()
 	{
 		return shared;
 	}

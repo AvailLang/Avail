@@ -93,7 +93,7 @@ extends Descriptor
 				aPojo.makeImmutable();
 				object.becomeIndirectionTo(aPojo);
 			}
-			else if (!aPojo.descriptor.isShared())
+			else if (!aPojo.descriptor().isShared())
 			{
 				object.makeImmutable();
 				aPojo.becomeIndirectionTo(object);
@@ -124,7 +124,7 @@ extends Descriptor
 	}
 
 	@Override
-	@Nullable Object o_MarshalToJava (
+	protected @Nullable Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{
@@ -204,7 +204,7 @@ extends Descriptor
 		new PojoDescriptor(Mutability.MUTABLE);
 
 	@Override
-	PojoDescriptor mutable ()
+	protected PojoDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -214,7 +214,7 @@ extends Descriptor
 		new PojoDescriptor(Mutability.IMMUTABLE);
 
 	@Override
-	PojoDescriptor immutable ()
+	protected PojoDescriptor immutable ()
 	{
 		return immutable;
 	}
@@ -224,7 +224,7 @@ extends Descriptor
 		new PojoDescriptor(Mutability.SHARED);
 
 	@Override
-	PojoDescriptor shared ()
+	protected PojoDescriptor shared ()
 	{
 		return shared;
 	}

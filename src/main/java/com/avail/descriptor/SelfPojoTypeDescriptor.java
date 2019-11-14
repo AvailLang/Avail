@@ -187,7 +187,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override
-	@Nullable Object o_MarshalToJava (
+	protected @Nullable Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{
@@ -201,7 +201,8 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	protected SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.SELF_POJO_TYPE_REPRESENTATIVE;
 	}
@@ -343,7 +344,7 @@ extends PojoTypeDescriptor
 		new SelfPojoTypeDescriptor(Mutability.MUTABLE);
 
 	@Override
-	SelfPojoTypeDescriptor mutable ()
+	protected SelfPojoTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -353,14 +354,14 @@ extends PojoTypeDescriptor
 		new SelfPojoTypeDescriptor(Mutability.SHARED);
 
 	@Override
-	SelfPojoTypeDescriptor immutable ()
+	protected SelfPojoTypeDescriptor immutable ()
 	{
 		// There is no immutable descriptor.
 		return shared;
 	}
 
 	@Override
-	SelfPojoTypeDescriptor shared ()
+	protected SelfPojoTypeDescriptor shared ()
 	{
 		return shared;
 	}

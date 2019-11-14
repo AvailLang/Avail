@@ -65,8 +65,6 @@ import static com.avail.compiler.ParsingOperation.decode;
 import static com.avail.compiler.splitter.MessageSplitter.constantForIndex;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
-import static com.avail.descriptor.bundles.MessageBundleTreeDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.bundles.MessageBundleTreeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.ParsingPlanInProgressDescriptor.newPlanInProgress;
@@ -76,6 +74,8 @@ import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleDescriptor.toList;
 import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE_TREE;
+import static com.avail.descriptor.bundles.MessageBundleTreeDescriptor.IntegerSlots.*;
+import static com.avail.descriptor.bundles.MessageBundleTreeDescriptor.ObjectSlots.*;
 import static com.avail.dispatch.TypeComparison.compareForParsing;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType;
@@ -486,8 +486,8 @@ extends Descriptor
 	/**
 	 * Add the plan to this bundle tree.  Use the object as a monitor for mutual
 	 * exclusion to ensure changes from multiple fibers won't interfere, <em>not
-	 * </em> to ensure the mutual safety of {@link #o_Expand(AvailObject,
-	 * A_Module)}.
+	 * </em> to ensure the mutual safety of
+	 * {@link A_BundleTree#expand(A_Module)}.
 	 */
 	@Override
 	protected void o_AddPlanInProgress (
@@ -518,6 +518,7 @@ extends Descriptor
 	 *
 	 * @param outerMap {bundle → {definition → {plan-in-progress |}|}|}
 	 * @param planInProgress The {@link A_ParsingPlanInProgress} to add.
+	 * @return The map of maps of plans-in-progress.
 	 */
 	private static A_Map layeredMapWithPlan (
 		final A_Map outerMap,
@@ -1014,6 +1015,7 @@ extends Descriptor
 	 *
 	 * @param outerMap {bundle → {definition → {plan-in-progress |}|}|}
 	 * @param planInProgress The {@link A_ParsingPlanInProgress} to remove.
+	 * @return The new map of maps, with the plan-in-progress removed.
 	 */
 	private static A_Map layeredMapWithoutPlan (
 		final A_Map outerMap,
@@ -1066,6 +1068,9 @@ extends Descriptor
 	 *        the current module being parsed.  This is used to restrict the
 	 *        visibility of semantic and grammatical restrictions, as well as
 	 *        which method and macro {@link A_Definition}s can be parsed.
+	 * @param complete
+	 *        A {@link Mutable} {@link A_Set} of {@link A_Bundle}s which have
+	 *        had a send phrase completely parsed at this position.
 	 * @param incomplete
 	 *        A {@link Mutable} {@link A_Map} from {@link A_String} to successor
 	 *        {@link A_BundleTree}.  If a token's string matches one of the

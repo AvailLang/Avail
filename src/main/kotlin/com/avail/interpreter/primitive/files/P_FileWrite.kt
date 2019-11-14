@@ -32,11 +32,11 @@
 package com.avail.interpreter.primitive.files
 
 import com.avail.AvailRuntime.currentRuntime
-import com.avail.descriptor.*
+import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.AtomDescriptor.SpecialAtom.FILE_KEY
 import com.avail.descriptor.FiberDescriptor.newFiber
 import com.avail.descriptor.FiberTypeDescriptor.fiberType
+import com.avail.descriptor.FunctionDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceTypeDescriptor.instanceType
 import com.avail.descriptor.IntegerRangeTypeDescriptor.bytes
@@ -44,10 +44,14 @@ import com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray
 import com.avail.descriptor.SetDescriptor.set
+import com.avail.descriptor.StringDescriptor
+import com.avail.descriptor.TupleDescriptor
 import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.TypeDescriptor.Types.TOP
+import com.avail.descriptor.atoms.AtomDescriptor
+import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.FILE_KEY
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.exceptions.AvailErrorCode.*
 import com.avail.interpreter.Interpreter
@@ -159,21 +163,17 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 		// The iterator produces non-empty ByteBuffers, possibly the same one
 		// multiple times, refilling it each time.
 		val totalBytes = bytes.tupleSize()
-		val bufferIterator: Iterator<ByteBuffer>
-		if (bytes.isByteBufferTuple)
-		{
-			val buffer = bytes.byteBuffer().slice()
-			bufferIterator = listOf(buffer).iterator()
-		}
-		else if (bytes.isByteArrayTuple)
-		{
-			val buffer = ByteBuffer.wrap(bytes.byteArray())
-			bufferIterator = listOf(buffer).iterator()
-		}
-		else
-		{
-			bufferIterator = object : MutableIterator<ByteBuffer>
-			{
+		val bufferIterator: Iterator<ByteBuffer> = when {
+			bytes.isByteBufferTuple -> {
+				val buffer = bytes.byteBuffer().slice()
+				listOf(buffer).iterator()
+			}
+			bytes.isByteArrayTuple -> {
+				val buffer = ByteBuffer.wrap(bytes.byteArray())
+				listOf(buffer).iterator()
+			}
+			else -> object : MutableIterator<ByteBuffer> {
+				/** The buffer to reuse for writing.  */
 				/** The buffer to reuse for writing.  */
 				val buffer = ByteBuffer.allocateDirect(
 					min(totalBytes, MAX_WRITE_BUFFER_SIZE))
@@ -182,28 +182,26 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 				 * The position in the bytes tuple corresponding with the
 				 * current buffer start.
 				 */
+				/**
+				 * The position in the bytes tuple corresponding with the
+				 * current buffer start.
+				 */
 				var nextSubscript = 1
 
-				override fun hasNext(): Boolean
-				{
+				override fun hasNext(): Boolean {
 					return nextSubscript <= totalBytes
 				}
 
-				override fun next(): ByteBuffer
-				{
-					if (!hasNext())
-					{
+				override fun next(): ByteBuffer {
+					if (!hasNext()) {
 						throw NoSuchElementException()
 					}
 					buffer.clear()
 					var count = nextSubscript + buffer.limit() - 1
-					if (count >= totalBytes)
-					{
+					if (count >= totalBytes) {
 						// All the rest.
 						count = totalBytes
-					}
-					else
-					{
+					} else {
 						// It's not all the rest, so round down to the nearest
 						// alignment boundary for performance.
 						val zeroBasedSubscriptAfterBuffer =
@@ -211,8 +209,7 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 						val modulus =
 							zeroBasedSubscriptAfterBuffer % alignment
 						assert(modulus == modulus.toInt().toLong())
-						if (modulus < count)
-						{
+						if (modulus < count) {
 							// Shorten this buffer so it ends at an alignment
 							// boundary of the file, but only if it remains
 							// non-empty.  Not only will this improve throughput
@@ -231,8 +228,7 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 					return buffer
 				}
 
-				override fun remove()
-				{
+				override fun remove() {
 					throw UnsupportedOperationException()
 				}
 			}
@@ -332,7 +328,7 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 						}
 						assert(parts.size > 1)
 						tuple = parts.removeAt(0)
-						while (!parts.isEmpty())
+						while (parts.isNotEmpty())
 						{
 							tuple = tuple!!.concatenateWith(
 								parts.removeAt(0), true)

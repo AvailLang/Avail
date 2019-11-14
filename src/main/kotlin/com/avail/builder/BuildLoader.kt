@@ -56,10 +56,7 @@ import com.avail.interpreter.AvailLoader.Phase
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Interpreter.runOutermostFunction
 import com.avail.persistence.IndexedRepositoryManager
-import com.avail.persistence.IndexedRepositoryManager.ModuleCompilation
-import com.avail.persistence.IndexedRepositoryManager.ModuleCompilationKey
-import com.avail.persistence.IndexedRepositoryManager.ModuleVersion
-import com.avail.persistence.IndexedRepositoryManager.ModuleVersionKey
+import com.avail.persistence.IndexedRepositoryManager.*
 import com.avail.serialization.Deserializer
 import com.avail.serialization.MalformedSerialStreamException
 import com.avail.serialization.Serializer

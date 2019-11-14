@@ -189,7 +189,8 @@ extends PhraseDescriptor
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.SEQUENCE_PHRASE;
 	}
@@ -264,7 +265,7 @@ extends PhraseDescriptor
 		new SequencePhraseDescriptor(Mutability.MUTABLE);
 
 	@Override
-	SequencePhraseDescriptor mutable ()
+	protected SequencePhraseDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -274,7 +275,7 @@ extends PhraseDescriptor
 		new SequencePhraseDescriptor(Mutability.SHARED);
 
 	@Override
-	SequencePhraseDescriptor shared ()
+	protected SequencePhraseDescriptor shared ()
 	{
 		return shared;
 	}

@@ -151,13 +151,14 @@ extends PhraseDescriptor
 	}
 
 	@Override @AvailMethod
-	PhraseKind o_PhraseKind (final AvailObject object)
+	protected PhraseKind o_PhraseKind (final AvailObject object)
 	{
 		return EXPRESSION_AS_STATEMENT_PHRASE;
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.EXPRESSION_AS_STATEMENT_PHRASE;
 	}
@@ -243,7 +244,7 @@ extends PhraseDescriptor
 		new ExpressionAsStatementPhraseDescriptor(Mutability.MUTABLE);
 
 	@Override
-	ExpressionAsStatementPhraseDescriptor mutable ()
+	protected ExpressionAsStatementPhraseDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -253,7 +254,7 @@ extends PhraseDescriptor
 		new ExpressionAsStatementPhraseDescriptor(Mutability.SHARED);
 
 	@Override
-	ExpressionAsStatementPhraseDescriptor shared ()
+	protected ExpressionAsStatementPhraseDescriptor shared ()
 	{
 		return shared;
 	}

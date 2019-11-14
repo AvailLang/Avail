@@ -51,18 +51,8 @@ import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.AvailObject.error;
 import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind.ARGUMENT;
-import static com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind.LABEL;
-import static com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_CONSTANT;
-import static com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_VARIABLE;
-import static com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind.MODULE_CONSTANT;
-import static com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind.MODULE_VARIABLE;
-import static com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind.PRIMITIVE_FAILURE_REASON;
-import static com.avail.descriptor.DeclarationPhraseDescriptor.ObjectSlots.DECLARED_TYPE;
-import static com.avail.descriptor.DeclarationPhraseDescriptor.ObjectSlots.INITIALIZATION_EXPRESSION;
-import static com.avail.descriptor.DeclarationPhraseDescriptor.ObjectSlots.LITERAL_OBJECT;
-import static com.avail.descriptor.DeclarationPhraseDescriptor.ObjectSlots.TOKEN;
-import static com.avail.descriptor.DeclarationPhraseDescriptor.ObjectSlots.TYPE_EXPRESSION;
+import static com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind.*;
+import static com.avail.descriptor.DeclarationPhraseDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
@@ -493,8 +483,9 @@ extends PhraseDescriptor
 		 * Answer the previously stashed copy of the array of all {@link
 		 * DeclarationKind} enum values.
 		 *
-		 * @return The array of {@code DeclarationKind} values.  Do not modify
-		 *         the array.
+		 * @param ordinal
+		 *        The ordinal of the declaration kind to look up.
+		 * @return The requested {@code DeclarationKind}.
 		 */
 		public static DeclarationKind lookup (final int ordinal)
 		{
@@ -737,7 +728,7 @@ extends PhraseDescriptor
 	 * Getter for field declarationKind.
 	 */
 	@Override @AvailMethod
-	DeclarationKind o_DeclarationKind (
+	protected DeclarationKind o_DeclarationKind (
 		final AvailObject object)
 	{
 		return declarationKind;
@@ -853,7 +844,8 @@ extends PhraseDescriptor
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.DECLARATION_PHRASE;
 	}
@@ -1189,6 +1181,8 @@ extends PhraseDescriptor
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param declarationKind
+	 *        The declaration's {@link DeclarationKind}.
 	 */
 	public DeclarationPhraseDescriptor (
 		final Mutability mutability,
@@ -1225,13 +1219,13 @@ extends PhraseDescriptor
 	}
 
 	@Override
-	DeclarationPhraseDescriptor mutable ()
+	protected DeclarationPhraseDescriptor mutable ()
 	{
 		return mutables[declarationKind.ordinal()];
 	}
 
 	@Override
-	DeclarationPhraseDescriptor shared ()
+	protected DeclarationPhraseDescriptor shared ()
 	{
 		return shareds[declarationKind.ordinal()];
 	}

@@ -32,7 +32,6 @@
 package com.avail.interpreter.primitive.phrases
 
 import com.avail.compiler.AvailAcceptedParseException
-import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.BottomTypeDescriptor.bottom
@@ -40,6 +39,7 @@ import com.avail.descriptor.FiberDescriptor.GeneralFlag.CAN_REJECT_PARSE
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TupleDescriptor.emptyTuple
+import com.avail.descriptor.methods.A_Definition
 import com.avail.exceptions.AvailErrorCode.E_UNTIMELY_PARSE_ACCEPTANCE
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive

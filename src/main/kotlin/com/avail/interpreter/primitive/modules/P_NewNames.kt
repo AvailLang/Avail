@@ -32,10 +32,12 @@
 
 package com.avail.interpreter.primitive.modules
 
-import com.avail.descriptor.*
+import com.avail.descriptor.A_Map
+import com.avail.descriptor.A_Type
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.MapTypeDescriptor.mapTypeForSizesKeyTypeValueType
+import com.avail.descriptor.ModuleDescriptor
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.TupleTypeDescriptor.stringType
 import com.avail.descriptor.TypeDescriptor.Types.ATOM

@@ -39,13 +39,9 @@ import com.avail.persistence.IndexedRepositoryManager.ModuleVersion
 import com.avail.persistence.IndexedRepositoryManager.ModuleVersionKey
 import com.avail.utility.Nulls.stripNull
 import java.io.IOException
-import java.nio.file.FileVisitOption
-import java.nio.file.FileVisitResult
+import java.nio.file.*
 import java.nio.file.FileVisitResult.CONTINUE
 import java.nio.file.FileVisitResult.SKIP_SUBTREE
-import java.nio.file.FileVisitor
-import java.nio.file.Files
-import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.*
 import java.util.Collections.sort

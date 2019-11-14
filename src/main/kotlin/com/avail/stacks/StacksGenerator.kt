@@ -37,14 +37,13 @@ import com.avail.builder.ModuleName
 import com.avail.builder.ModuleNameResolver
 import com.avail.compiler.ModuleHeader
 import com.avail.compiler.ModuleImport
-import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.CommentTokenDescriptor
 import com.avail.descriptor.ModuleDescriptor
 import com.avail.descriptor.TupleDescriptor
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.stacks.module.CommentsModule
 import com.avail.utility.IO
 import com.avail.utility.Pair
-
 import java.io.FileInputStream
 import java.io.IOException
 import java.nio.ByteBuffer
@@ -55,7 +54,9 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
 import java.nio.file.attribute.BasicFileAttributes
-import java.util.EnumSet
+import java.util.*
+import kotlin.collections.HashMap
+import kotlin.collections.set
 
 /**
  * An Avail documentation generator.  It takes tokenized method/class comments
@@ -253,7 +254,7 @@ class StacksGenerator @Throws(IllegalArgumentException::class) constructor(
 		 * The default path to the output directory for module-oriented
 		 * documentation and data files.
 		 */
-		val defaultDocumentationPath = Paths.get("resources/stacks")!!
+		val defaultDocumentationPath = Paths.get("resources/stacks")
 
 		/**
 		 * Given a template file path, create a new file with the provided new

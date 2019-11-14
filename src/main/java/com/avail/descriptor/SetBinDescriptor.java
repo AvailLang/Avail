@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.descriptor.SetDescriptor.SetIterator;
+import com.avail.descriptor.atoms.AtomWithPropertiesDescriptor;
 import com.avail.descriptor.objects.A_BasicObject;
 
 import javax.annotation.Nullable;
@@ -105,7 +106,7 @@ extends Descriptor
 	}
 
 	@Override
-	abstract SetIterator o_SetBinIterator (
+	protected abstract SetIterator o_SetBinIterator (
 		final AvailObject object);
 
 	/**

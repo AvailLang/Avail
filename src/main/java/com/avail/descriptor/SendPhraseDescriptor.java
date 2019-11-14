@@ -55,10 +55,7 @@ import java.util.IdentityHashMap;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE;
-import static com.avail.descriptor.SendPhraseDescriptor.ObjectSlots.ARGUMENTS_LIST_NODE;
-import static com.avail.descriptor.SendPhraseDescriptor.ObjectSlots.BUNDLE;
-import static com.avail.descriptor.SendPhraseDescriptor.ObjectSlots.RETURN_TYPE;
-import static com.avail.descriptor.SendPhraseDescriptor.ObjectSlots.TOKENS;
+import static com.avail.descriptor.SendPhraseDescriptor.ObjectSlots.*;
 
 /**
  * My instances represent invocations of multi-methods in Avail code.
@@ -212,7 +209,8 @@ extends PhraseDescriptor
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.SEND_PHRASE;
 	}
@@ -321,7 +319,7 @@ extends PhraseDescriptor
 		new SendPhraseDescriptor(Mutability.MUTABLE);
 
 	@Override
-	SendPhraseDescriptor mutable ()
+	protected SendPhraseDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -331,7 +329,7 @@ extends PhraseDescriptor
 		new SendPhraseDescriptor(Mutability.SHARED);
 
 	@Override
-	SendPhraseDescriptor shared ()
+	protected SendPhraseDescriptor shared ()
 	{
 		return shared;
 	}

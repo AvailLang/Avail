@@ -32,9 +32,7 @@
 
 package com.avail.tools.options
 
-import java.util.EnumSet
-import java.util.HashMap
-import java.util.HashSet
+import java.util.*
 
 /**
  * An `OptionProcessorFactory` enables a client to dynamically specify and

@@ -207,7 +207,8 @@ extends PhraseDescriptor
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.VARIABLE_USE_PHRASE;
 	}
@@ -318,7 +319,7 @@ extends PhraseDescriptor
 		new VariableUsePhraseDescriptor(Mutability.MUTABLE);
 
 	@Override
-	VariableUsePhraseDescriptor mutable ()
+	protected VariableUsePhraseDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -328,7 +329,7 @@ extends PhraseDescriptor
 		new VariableUsePhraseDescriptor(Mutability.IMMUTABLE);
 
 	@Override
-	VariableUsePhraseDescriptor shared ()
+	protected VariableUsePhraseDescriptor shared ()
 	{
 		return shared;
 	}

@@ -51,7 +51,6 @@ import com.avail.utility.json.JSONWriter;
 
 import java.util.IdentityHashMap;
 
-import static com.avail.descriptor.parsing.BlockPhraseDescriptor.newBlockNode;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.FunctionDescriptor.ObjectSlots.CODE;
 import static com.avail.descriptor.FunctionDescriptor.ObjectSlots.OUTER_VAR_AT_;
@@ -61,6 +60,7 @@ import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.descriptor.parsing.BlockPhraseDescriptor.newBlockNode;
 import static com.avail.interpreter.levelOne.L1Decompiler.decompile;
 
 /**
@@ -221,7 +221,8 @@ extends Descriptor
 	}
 
 	@Override
-	AvailObject o_OuterVarAt (final AvailObject object, final int subscript)
+	protected AvailObject o_OuterVarAt (
+		final AvailObject object, final int subscript)
 	{
 		return object.slot(OUTER_VAR_AT_, subscript);
 	}
@@ -237,7 +238,8 @@ extends Descriptor
 
 	@Override
 	@AvailMethod @ThreadSafe
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		if (object.numOuterVars() == 0)
 		{
@@ -605,7 +607,7 @@ extends Descriptor
 		new FunctionDescriptor(Mutability.MUTABLE);
 
 	@Override
-	FunctionDescriptor mutable ()
+	protected FunctionDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -615,7 +617,7 @@ extends Descriptor
 		new FunctionDescriptor(Mutability.IMMUTABLE);
 
 	@Override
-	FunctionDescriptor immutable ()
+	protected FunctionDescriptor immutable ()
 	{
 		return immutable;
 	}
@@ -625,7 +627,7 @@ extends Descriptor
 		new FunctionDescriptor(Mutability.SHARED);
 
 	@Override
-	FunctionDescriptor shared ()
+	protected FunctionDescriptor shared ()
 	{
 		return shared;
 	}

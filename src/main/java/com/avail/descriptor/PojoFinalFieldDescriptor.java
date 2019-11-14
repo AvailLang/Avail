@@ -46,10 +46,7 @@ import java.lang.reflect.Modifier;
 import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.PojoFinalFieldDescriptor.ObjectSlots.CACHED_VALUE;
-import static com.avail.descriptor.PojoFinalFieldDescriptor.ObjectSlots.FIELD;
-import static com.avail.descriptor.PojoFinalFieldDescriptor.ObjectSlots.KIND;
-import static com.avail.descriptor.PojoFinalFieldDescriptor.ObjectSlots.RECEIVER;
+import static com.avail.descriptor.PojoFinalFieldDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.PojoTypeDescriptor.unmarshal;
 import static com.avail.descriptor.VariableTypeDescriptor.variableReadWriteType;
 import static java.lang.reflect.Modifier.STATIC;
@@ -136,7 +133,8 @@ extends Descriptor
 			* object.slot(RECEIVER).hash() ^ 0x2199C0C3;
 	}
 
-	@Override boolean o_HasValue (final AvailObject object)
+	@Override
+	protected boolean o_HasValue (final AvailObject object)
 	{
 		// A pojo final field has a value by definition.
 		return true;
@@ -149,7 +147,8 @@ extends Descriptor
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation(final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		final Field field = object.slot(FIELD).javaObjectNotNull();
 		if ((field.getModifiers() & STATIC) != 0)
@@ -242,7 +241,7 @@ extends Descriptor
 		new PojoFinalFieldDescriptor(Mutability.MUTABLE);
 
 	@Override
-	PojoFinalFieldDescriptor mutable ()
+	protected PojoFinalFieldDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -252,7 +251,7 @@ extends Descriptor
 		new PojoFinalFieldDescriptor(Mutability.IMMUTABLE);
 
 	@Override
-	PojoFinalFieldDescriptor immutable ()
+	protected PojoFinalFieldDescriptor immutable ()
 	{
 		return immutable;
 	}
@@ -262,7 +261,7 @@ extends Descriptor
 		new PojoFinalFieldDescriptor(Mutability.SHARED);
 
 	@Override
-	PojoFinalFieldDescriptor shared ()
+	protected PojoFinalFieldDescriptor shared ()
 	{
 		return shared;
 	}

@@ -34,7 +34,6 @@ package com.avail.interpreter.levelOne
 
 import com.avail.descriptor.*
 import com.avail.descriptor.AssignmentPhraseDescriptor.newAssignment
-import com.avail.descriptor.parsing.BlockPhraseDescriptor.newBlockNode
 import com.avail.descriptor.CompiledCodeDescriptor.L1InstructionDecoder
 import com.avail.descriptor.ContinuationTypeDescriptor.continuationTypeForFunctionType
 import com.avail.descriptor.DeclarationPhraseDescriptor.*
@@ -59,7 +58,11 @@ import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.VariableDescriptor.newVariableWithOuterType
 import com.avail.descriptor.VariableTypeDescriptor.variableTypeFor
 import com.avail.descriptor.VariableUsePhraseDescriptor.newUse
+import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.parsing.A_Phrase
+import com.avail.descriptor.parsing.BlockPhraseDescriptor
+import com.avail.descriptor.parsing.BlockPhraseDescriptor.newBlockNode
+import com.avail.descriptor.parsing.PhraseDescriptor
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.utility.PrefixSharingList.last
 import java.util.*
@@ -98,7 +101,7 @@ class L1Decompiler constructor(
 	 * The number of nybbles in the nybblecodes of the raw function being
 	 * decompiled.
 	 */
-	internal val numNybbles: Int
+	internal val numNybbles: Int = code.numNybbles()
 
 	/**
 	 * [Phrases][PhraseDescriptor] which correspond with the lexically captured
@@ -107,7 +110,7 @@ class L1Decompiler constructor(
 	 * [literal][LiteralPhraseDescriptor], but the latter may be phased out in
 	 * favor of module constants and module variables.
 	 */
-	internal val outers: Array<A_Phrase>
+	internal val outers: Array<A_Phrase> = outerDeclarations.clone()
 
 	/**
 	 * The [arguments declarations][DeclarationKind.ARGUMENT] for this code.
@@ -124,13 +127,13 @@ class L1Decompiler constructor(
 	 * Flags to indicate which local variables have been mentioned.  Upon first
 	 * mention, the corresponding local declaration should be emitted.
 	 */
-	internal val mentionedLocals: BooleanArray
+	private val mentionedLocals: BooleanArray
 
 	/**
 	 * The [local constants][DeclarationKind.LOCAL_CONSTANT] defined by this
 	 * code.
 	 */
-	internal val constants: Array<A_Phrase?>
+	internal val constants: Array<A_Phrase?> = arrayOfNulls(code.numConstants())
 
 	/**
 	 * The current position in the instruction stream at which decompilation is
@@ -163,8 +166,6 @@ class L1Decompiler constructor(
 
 	init
 	{
-		numNybbles = code.numNybbles()
-		outers = outerDeclarations.clone()
 		code.setUpInstructionDecoder(instructionDecoder)
 		instructionDecoder.pc(1)
 		val tupleType = code.functionType().argsTupleType()
@@ -189,7 +190,6 @@ class L1Decompiler constructor(
 		}
 		// Don't initialize the constants – we may as well wait until we reach
 		// the initialization for each, identified by an L1Ext_doSetSlot().
-		constants = arrayOfNulls(code.numConstants())
 
 		val dispatcher = DecompilerDispatcher()
 		while (!instructionDecoder.atEnd())

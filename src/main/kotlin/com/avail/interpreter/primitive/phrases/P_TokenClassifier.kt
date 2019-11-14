@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.primitive.phrases
 
-import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.A_RawFunction
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
@@ -43,6 +42,7 @@ import com.avail.descriptor.TokenDescriptor
 import com.avail.descriptor.TokenDescriptor.TokenType
 import com.avail.descriptor.TokenDescriptor.TokenType.*
 import com.avail.descriptor.TypeDescriptor.Types.TOKEN
+import com.avail.descriptor.atoms.A_Atom
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*

@@ -42,9 +42,7 @@ import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.ReverseTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.ReverseTupleDescriptor.IntegerSlots.SIZE;
 import static com.avail.descriptor.ReverseTupleDescriptor.ObjectSlots.ORIGIN_TUPLE;
-import static com.avail.descriptor.TreeTupleDescriptor.concatenateAtLeastOneTree;
-import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;
-import static com.avail.descriptor.TreeTupleDescriptor.internalTreeReverse;
+import static com.avail.descriptor.TreeTupleDescriptor.*;
 
 /**
  * A reverse tuple holds a reference to an "origin" tuple and the origin
@@ -144,7 +142,7 @@ extends TupleDescriptor
 	@Override @AvailMethod
 	protected A_Tuple o_ChildAt (final AvailObject object, final int childIndex)
 	{
-		if (!object.descriptor.isShared())
+		if (!object.descriptor().isShared())
 		{
 			final AvailObject treeTuple =
 				internalTreeReverse(object.slot(ORIGIN_TUPLE));
@@ -433,7 +431,7 @@ extends TupleDescriptor
 	}
 
 	@Override
-	ReverseTupleDescriptor mutable ()
+	protected ReverseTupleDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -443,7 +441,7 @@ extends TupleDescriptor
 		new ReverseTupleDescriptor(Mutability.IMMUTABLE);
 
 	@Override
-	ReverseTupleDescriptor immutable ()
+	protected ReverseTupleDescriptor immutable ()
 	{
 		return immutable;
 	}
@@ -453,7 +451,7 @@ extends TupleDescriptor
 		new ReverseTupleDescriptor(Mutability.SHARED);
 
 	@Override
-	ReverseTupleDescriptor shared ()
+	protected ReverseTupleDescriptor shared ()
 	{
 		return shared;
 	}

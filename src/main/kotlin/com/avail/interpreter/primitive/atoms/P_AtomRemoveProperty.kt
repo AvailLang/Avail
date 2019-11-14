@@ -40,6 +40,7 @@ import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.TypeDescriptor.Types.TOP
+import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.exceptions.AvailErrorCode.*
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
@@ -48,8 +49,8 @@ import com.avail.interpreter.Primitive.Flag.HasSideEffect
 import com.avail.interpreter.effects.LoadingEffectToRunPrimitive
 
 /**
- * **Primitive:** Within the first [atom][com.avail.descriptor.AtomDescriptor],
- * remove the property with the given property key (another atom).
+ * **Primitive:** Within the first [atom][AtomDescriptor], remove the property
+ * with the given property key (another atom).
  */
 @Suppress("unused")
 object P_AtomRemoveProperty : Primitive(2, CanInline, HasSideEffect)

@@ -53,9 +53,6 @@ import javax.annotation.Nullable;
 import java.util.*;
 
 import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.parsing.BlockPhraseDescriptor.IntegerSlots.PRIMITIVE;
-import static com.avail.descriptor.parsing.BlockPhraseDescriptor.IntegerSlots.STARTING_LINE_NUMBER;
-import static com.avail.descriptor.parsing.BlockPhraseDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind.MODULE_CONSTANT;
 import static com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind.MODULE_VARIABLE;
 import static com.avail.descriptor.FunctionDescriptor.createFunction;
@@ -64,6 +61,9 @@ import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.parsing.BlockPhraseDescriptor.IntegerSlots.PRIMITIVE;
+import static com.avail.descriptor.parsing.BlockPhraseDescriptor.IntegerSlots.STARTING_LINE_NUMBER;
+import static com.avail.descriptor.parsing.BlockPhraseDescriptor.ObjectSlots.*;
 import static com.avail.exceptions.AvailErrorCode.E_BLOCK_MUST_NOT_CONTAIN_OUTERS;
 import static com.avail.utility.evaluation.Combinator.recurse;
 
@@ -461,7 +461,8 @@ extends PhraseDescriptor
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.BLOCK_PHRASE;
 	}
@@ -810,7 +811,7 @@ extends PhraseDescriptor
 		new BlockPhraseDescriptor(Mutability.SHARED);
 
 	@Override
-	BlockPhraseDescriptor shared ()
+	protected BlockPhraseDescriptor shared ()
 	{
 		return shared;
 	}

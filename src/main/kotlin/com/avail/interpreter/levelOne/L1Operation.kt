@@ -33,6 +33,7 @@
 package com.avail.interpreter.levelOne
 
 import com.avail.descriptor.*
+import com.avail.descriptor.bundles.MessageBundleDescriptor
 import com.avail.interpreter.levelOne.L1OperandType.*
 import com.avail.interpreter.levelOne.L1Operation.L1_doExtension
 import com.avail.io.NybbleOutputStream

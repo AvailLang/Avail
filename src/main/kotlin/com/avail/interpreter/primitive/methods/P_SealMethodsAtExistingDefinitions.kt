@@ -32,9 +32,6 @@
 
 package com.avail.interpreter.primitive.methods
 
-import com.avail.descriptor.atoms.A_Atom
-import com.avail.descriptor.methods.A_Definition
-import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
@@ -45,6 +42,9 @@ import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.TypeDescriptor.Types.TOP
+import com.avail.descriptor.atoms.A_Atom
+import com.avail.descriptor.methods.A_Definition
+import com.avail.descriptor.methods.A_Method
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import com.avail.exceptions.AvailRuntimeException

@@ -46,9 +46,7 @@ import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.IntegerDescriptor.zero;
 import static com.avail.descriptor.IntegerIntervalTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.IntegerIntervalTupleDescriptor.IntegerSlots.SIZE;
-import static com.avail.descriptor.IntegerIntervalTupleDescriptor.ObjectSlots.DELTA;
-import static com.avail.descriptor.IntegerIntervalTupleDescriptor.ObjectSlots.END;
-import static com.avail.descriptor.IntegerIntervalTupleDescriptor.ObjectSlots.START;
+import static com.avail.descriptor.IntegerIntervalTupleDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
@@ -630,7 +628,7 @@ extends NumericTupleDescriptor
 		new IntegerIntervalTupleDescriptor(Mutability.MUTABLE);
 
 	@Override
-	IntegerIntervalTupleDescriptor mutable ()
+	protected IntegerIntervalTupleDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -640,7 +638,7 @@ extends NumericTupleDescriptor
 		new IntegerIntervalTupleDescriptor(Mutability.IMMUTABLE);
 
 	@Override
-	IntegerIntervalTupleDescriptor immutable ()
+	protected IntegerIntervalTupleDescriptor immutable ()
 	{
 		return immutable;
 	}
@@ -650,7 +648,7 @@ extends NumericTupleDescriptor
 		new IntegerIntervalTupleDescriptor(Mutability.SHARED);
 
 	@Override
-	IntegerIntervalTupleDescriptor shared ()
+	protected IntegerIntervalTupleDescriptor shared ()
 	{
 		return shared;
 	}

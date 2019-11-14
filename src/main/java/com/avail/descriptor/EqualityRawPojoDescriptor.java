@@ -80,7 +80,7 @@ extends RawPojoDescriptor
 					{
 						object.becomeIndirectionTo(otherEqualityRawPojo);
 					}
-					else if (!otherEqualityRawPojo.descriptor.isShared())
+					else if (!otherEqualityRawPojo.descriptor().isShared())
 					{
 						otherEqualityRawPojo.becomeIndirectionTo(object);
 					}
@@ -106,7 +106,7 @@ extends RawPojoDescriptor
 			{
 				object.becomeIndirectionTo(otherEqualityRawPojo);
 			}
-			else if (!otherEqualityRawPojo.descriptor.isShared())
+			else if (!otherEqualityRawPojo.descriptor().isShared())
 			{
 				otherEqualityRawPojo.becomeIndirectionTo(object);
 			}
@@ -141,9 +141,9 @@ extends RawPojoDescriptor
 	{
 		if (isMutable())
 		{
-			object.descriptor = new EqualityRawPojoDescriptor(
+			object.setDescriptor(new EqualityRawPojoDescriptor(
 				Mutability.IMMUTABLE,
-				javaObject);
+				javaObject));
 		}
 		return object;
 	}
@@ -157,9 +157,9 @@ extends RawPojoDescriptor
 	{
 		if (!isShared())
 		{
-			object.descriptor = new EqualityRawPojoDescriptor(
+			object.setDescriptor(new EqualityRawPojoDescriptor(
 				Mutability.SHARED,
-				javaObject);
+				javaObject));
 		}
 		return object;
 	}

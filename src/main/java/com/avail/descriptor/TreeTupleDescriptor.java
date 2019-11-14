@@ -42,9 +42,7 @@ import java.nio.ByteBuffer;
 
 import static com.avail.descriptor.AvailObject.newLike;
 import static com.avail.descriptor.AvailObject.newObjectIndexedIntegerIndexedDescriptor;
-import static com.avail.descriptor.Mutability.IMMUTABLE;
-import static com.avail.descriptor.Mutability.MUTABLE;
-import static com.avail.descriptor.Mutability.SHARED;
+import static com.avail.descriptor.Mutability.*;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TreeTupleDescriptor.IntegerSlots.CUMULATIVE_SIZES_AREA_;
 import static com.avail.descriptor.TreeTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
@@ -1010,9 +1008,12 @@ extends TupleDescriptor
 	}
 
 	/**
+	 * Reverse each child of this tree, then assemble them in reverse order into
+	 * a new tree.  Not that reversing each child may also have to recursively
+	 * navigate more levels of tree.
 	 *
-	 * @param object
-	 * @return
+	 * @param object The tree tuple to reverse.
+	 * @return A tree tuple that is the reverse of the given tree tuple.
 	 */
 	public static AvailObject internalTreeReverse (final AvailObject object)
 	{
@@ -1104,19 +1105,19 @@ extends TupleDescriptor
 	}
 
 	@Override
-	TreeTupleDescriptor mutable ()
+	protected TreeTupleDescriptor mutable ()
 	{
 		return descriptorFor(MUTABLE, level);
 	}
 
 	@Override
-	TreeTupleDescriptor immutable ()
+	protected TreeTupleDescriptor immutable ()
 	{
 		return descriptorFor(IMMUTABLE, level);
 	}
 
 	@Override
-	TreeTupleDescriptor shared ()
+	protected TreeTupleDescriptor shared ()
 	{
 		return descriptorFor(SHARED, level);
 	}

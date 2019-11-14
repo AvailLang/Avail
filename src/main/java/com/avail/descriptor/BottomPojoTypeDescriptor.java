@@ -115,7 +115,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override
-	AvailObject o_JavaAncestors (final AvailObject object)
+	protected AvailObject o_JavaAncestors (final AvailObject object)
 	{
 		return nil;
 	}
@@ -132,7 +132,7 @@ extends PojoTypeDescriptor
 		if (isMutable())
 		{
 			// There is no immutable descriptor.
-			object.descriptor = shared;
+			object.setDescriptor(shared);
 		}
 		return object;
 	}
@@ -142,7 +142,7 @@ extends PojoTypeDescriptor
 	{
 		if (!isShared())
 		{
-			object.descriptor = shared;
+			object.setDescriptor(shared);
 		}
 		return object;
 	}
@@ -155,7 +155,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override
-	Object o_MarshalToJava (
+	protected Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{
@@ -258,7 +258,7 @@ extends PojoTypeDescriptor
 		new BottomPojoTypeDescriptor(Mutability.MUTABLE);
 
 	@Override
-	BottomPojoTypeDescriptor mutable ()
+	protected BottomPojoTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -268,14 +268,14 @@ extends PojoTypeDescriptor
 		new BottomPojoTypeDescriptor(Mutability.SHARED);
 
 	@Override
-	BottomPojoTypeDescriptor immutable ()
+	protected BottomPojoTypeDescriptor immutable ()
 	{
 		// There is no immutable descriptor, just a shared one.
 		return shared;
 	}
 
 	@Override
-	BottomPojoTypeDescriptor shared ()
+	protected BottomPojoTypeDescriptor shared ()
 	{
 		return shared;
 	}

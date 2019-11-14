@@ -42,11 +42,7 @@ import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
-import com.avail.descriptor.FiberDescriptor.ExecutionState;
-import com.avail.descriptor.FiberDescriptor.GeneralFlag;
-import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
-import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
-import com.avail.descriptor.FiberDescriptor.TraceFlag;
+import com.avail.descriptor.FiberDescriptor.*;
 import com.avail.descriptor.MapDescriptor.MapIterable;
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.descriptor.SetDescriptor.SetIterator;
@@ -57,24 +53,18 @@ import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.bundles.A_Bundle;
 import com.avail.descriptor.bundles.A_BundleTree;
 import com.avail.descriptor.bundles.MessageBundleDescriptor;
-import com.avail.descriptor.methods.A_Method;
 import com.avail.descriptor.methods.A_Definition;
 import com.avail.descriptor.methods.A_GrammaticalRestriction;
+import com.avail.descriptor.methods.A_Method;
 import com.avail.descriptor.methods.A_SemanticRestriction;
 import com.avail.descriptor.objects.A_BasicObject;
-import com.avail.descriptor.parsing.A_ParsingPlanInProgress;
 import com.avail.descriptor.parsing.A_Lexer;
+import com.avail.descriptor.parsing.A_ParsingPlanInProgress;
 import com.avail.descriptor.parsing.A_Phrase;
 import com.avail.descriptor.tuples.A_String;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.dispatch.LookupTree;
-import com.avail.exceptions.AvailException;
-import com.avail.exceptions.AvailUnsupportedOperationException;
-import com.avail.exceptions.MalformedMessageException;
-import com.avail.exceptions.MethodDefinitionException;
-import com.avail.exceptions.SignatureException;
-import com.avail.exceptions.VariableGetException;
-import com.avail.exceptions.VariableSetException;
+import com.avail.exceptions.*;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.AvailLoader.LexicalScanner;
 import com.avail.interpreter.Primitive;
@@ -101,17 +91,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.IdentityHashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Spliterator;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.BiConsumer;
@@ -165,7 +145,7 @@ public abstract class AbstractDescriptor
 	 * A non-enum {@link ObjectSlotsEnum} that can be instantiated at will.
 	 * Useful for customizing debugger views of objects.
 	 */
-	final class DebuggerObjectSlots implements ObjectSlotsEnum
+	static final class DebuggerObjectSlots implements ObjectSlotsEnum
 	{
 		/** The slot name. */
 		public final String name;
@@ -215,7 +195,7 @@ public abstract class AbstractDescriptor
 	 *
 	 * @return A mutable descriptor equivalent to the receiver.
 	 */
-	public abstract AbstractDescriptor mutable ();
+	protected abstract AbstractDescriptor mutable ();
 
 	/**
 	 * Answer the {@linkplain Mutability#IMMUTABLE immutable} version of this
@@ -1809,7 +1789,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract boolean o_CouldEverBeInvokedWith (
 		AvailObject object,
-		List<? extends TypeRestriction> argRestrictions);
+		List<TypeRestriction> argRestrictions);
 
 	/**
 	 * Answer a fiber's internal debug log.
@@ -1968,7 +1948,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract List<A_Definition> o_DefinitionsAtOrBelow (
 		AvailObject object,
-		List<? extends TypeRestriction> argRestrictions);
+		List<TypeRestriction> argRestrictions);
 
 	/**
 	 * @param object
@@ -3223,11 +3203,8 @@ public abstract class AbstractDescriptor
 	 *
 	 * @param object An {@link AvailObject}.
 	 * @return A 64-bit signed Java {@code long}
+	 *
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
-	 */
-	/**
-	 * @param object
-	 * @return
 	 */
 	abstract long o_ExtractLong (AvailObject object);
 
@@ -4050,7 +4027,7 @@ public abstract class AbstractDescriptor
 	 * @param aType
 	 * @return
 	 */
-	public abstract boolean o_IsInstanceOfKind (
+	protected abstract boolean o_IsInstanceOfKind (
 		AvailObject object,
 		A_Type aType);
 
@@ -4342,11 +4319,8 @@ public abstract class AbstractDescriptor
 	 *
 	 * @param object An {@link AvailObject}.
 	 * @return An {@linkplain Iterator iterator}.
+	 *
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
-	 */
-	/**
-	 * @param object
-	 * @return
 	 */
 	abstract IteratorNotNull<AvailObject> o_Iterator (
 		AvailObject object);
@@ -5097,7 +5071,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract SerializerOperation o_SerializerOperation (
+	protected abstract SerializerOperation o_SerializerOperation (
 		final AvailObject object);
 
 	/**

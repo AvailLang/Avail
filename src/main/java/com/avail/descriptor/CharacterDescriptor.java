@@ -188,7 +188,7 @@ extends Descriptor
 		if (isMutable())
 		{
 			// Make the object shared instead.
-			object.descriptor = shared;
+			object.setDescriptor(shared);
 		}
 		return object;
 	}
@@ -198,7 +198,7 @@ extends Descriptor
 	{
 		if (!isShared())
 		{
-			object.descriptor = shared;
+			object.setDescriptor(shared);
 		}
 		return object;
 	}
@@ -210,7 +210,7 @@ extends Descriptor
 	}
 
 	@Override
-	Object o_MarshalToJava (
+	protected Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> classHint)
 	{
@@ -243,7 +243,8 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		final int codePoint = (int) object.slot(CODE_POINT);
 		if (codePoint < 256)
@@ -279,7 +280,7 @@ extends Descriptor
 		new CharacterDescriptor(Mutability.MUTABLE);
 
 	@Override
-	CharacterDescriptor mutable ()
+	protected CharacterDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -289,14 +290,14 @@ extends Descriptor
 		new CharacterDescriptor(Mutability.SHARED);
 
 	@Override
-	CharacterDescriptor immutable ()
+	protected CharacterDescriptor immutable ()
 	{
 		// There is no immutable variant; answer the shared descriptor.
 		return shared;
 	}
 
 	@Override
-	CharacterDescriptor shared ()
+	protected CharacterDescriptor shared ()
 	{
 		return shared;
 	}

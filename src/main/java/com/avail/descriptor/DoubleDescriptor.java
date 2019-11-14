@@ -42,25 +42,14 @@ import com.avail.utility.json.JSONWriter;
 import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 
-import static com.avail.descriptor.AbstractNumberDescriptor.Sign.INDETERMINATE;
-import static com.avail.descriptor.AbstractNumberDescriptor.Sign.NEGATIVE;
-import static com.avail.descriptor.AbstractNumberDescriptor.Sign.POSITIVE;
-import static com.avail.descriptor.AbstractNumberDescriptor.Sign.ZERO;
+import static com.avail.descriptor.AbstractNumberDescriptor.Sign.*;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.DoubleDescriptor.IntegerSlots.LONG_BITS;
 import static com.avail.descriptor.InfinityDescriptor.negativeInfinity;
 import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
-import static com.avail.descriptor.IntegerDescriptor.createUninitializedInteger;
-import static com.avail.descriptor.IntegerDescriptor.fromInt;
-import static com.avail.descriptor.IntegerDescriptor.fromLong;
-import static com.avail.descriptor.IntegerDescriptor.truncatedFromDouble;
-import static com.avail.descriptor.IntegerDescriptor.zero;
+import static com.avail.descriptor.IntegerDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.DOUBLE;
-import static java.lang.Math.abs;
-import static java.lang.Math.floor;
-import static java.lang.Math.getExponent;
-import static java.lang.Math.max;
-import static java.lang.Math.scalb;
+import static java.lang.Math.*;
 
 /**
  * A boxed, identityless Avail representation of IEEE-754 double-precision
@@ -553,13 +542,13 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override @AvailMethod
-	double o_ExtractDouble (final AvailObject object)
+	protected double o_ExtractDouble (final AvailObject object)
 	{
 		return getDouble(object);
 	}
 
 	@Override @AvailMethod
-	float o_ExtractFloat (final AvailObject object)
+	protected float o_ExtractFloat (final AvailObject object)
 	{
 		return (float) getDouble(object);
 	}
@@ -606,7 +595,7 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override
-	Object o_MarshalToJava (
+	protected Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{
@@ -674,7 +663,7 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override
-	Order o_NumericCompare (
+	protected Order o_NumericCompare (
 		final AvailObject object,
 		final A_Number another)
 	{
@@ -682,7 +671,7 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override
-	Order o_NumericCompareToInfinity (
+	protected Order o_NumericCompareToInfinity (
 		final AvailObject object,
 		final Sign sign)
 	{
@@ -704,7 +693,7 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override
-	Order o_NumericCompareToInteger (
+	protected Order o_NumericCompareToInteger (
 		final AvailObject object,
 		final AvailObject anInteger)
 	{
@@ -712,7 +701,7 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override
-	Order o_NumericCompareToDouble (
+	protected Order o_NumericCompareToDouble (
 		final AvailObject object,
 		final double aDouble)
 	{
@@ -732,7 +721,8 @@ extends AbstractNumberDescriptor
 
 	@Override
 	@AvailMethod @ThreadSafe
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.DOUBLE;
 	}
@@ -822,7 +812,7 @@ extends AbstractNumberDescriptor
 		new DoubleDescriptor(Mutability.MUTABLE);
 
 	@Override
-	DoubleDescriptor mutable ()
+	protected DoubleDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -832,7 +822,7 @@ extends AbstractNumberDescriptor
 		new DoubleDescriptor(Mutability.IMMUTABLE);
 
 	@Override
-	DoubleDescriptor immutable ()
+	protected DoubleDescriptor immutable ()
 	{
 		return immutable;
 	}
@@ -842,7 +832,7 @@ extends AbstractNumberDescriptor
 		new DoubleDescriptor(Mutability.SHARED);
 
 	@Override
-	DoubleDescriptor shared ()
+	protected DoubleDescriptor shared ()
 	{
 		return shared;
 	}

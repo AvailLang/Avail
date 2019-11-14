@@ -118,7 +118,7 @@ extends A_ChunkDependable
 	 * @return A {@linkplain List list} of definitions.
 	 */
 	List<A_Definition> definitionsAtOrBelow (
-		List<? extends TypeRestriction> argRestrictions);
+		List<TypeRestriction> argRestrictions);
 
 	/**
 	 * Is the given {@linkplain A_Definition definition} present in this

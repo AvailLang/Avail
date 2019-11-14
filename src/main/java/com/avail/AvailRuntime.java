@@ -39,18 +39,20 @@ import com.avail.builder.ModuleNameResolver;
 import com.avail.builder.ModuleRoots;
 import com.avail.builder.ResolvedModuleName;
 import com.avail.descriptor.*;
-import com.avail.descriptor.AtomDescriptor.SpecialAtom;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
+import com.avail.descriptor.TokenDescriptor.StaticInit;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.descriptor.atoms.A_Atom;
+import com.avail.descriptor.atoms.AtomDescriptor;
+import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom;
 import com.avail.descriptor.bundles.A_Bundle;
-import com.avail.descriptor.methods.A_Method;
 import com.avail.descriptor.methods.A_Definition;
 import com.avail.descriptor.methods.A_GrammaticalRestriction;
+import com.avail.descriptor.methods.A_Method;
 import com.avail.descriptor.methods.A_SemanticRestriction;
 import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.descriptor.tuples.A_String;
@@ -86,8 +88,6 @@ import java.util.function.Supplier;
 import static com.avail.AvailRuntime.HookType.*;
 import static com.avail.AvailRuntimeConfiguration.availableProcessors;
 import static com.avail.AvailRuntimeConfiguration.maxInterpreters;
-import static com.avail.descriptor.AtomDescriptor.falseObject;
-import static com.avail.descriptor.AtomDescriptor.trueObject;
 import static com.avail.descriptor.BottomPojoTypeDescriptor.pojoBottom;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.CompiledCodeDescriptor.newPrimitiveRawFunction;
@@ -127,6 +127,8 @@ import static com.avail.descriptor.TupleDescriptor.*;
 import static com.avail.descriptor.TupleTypeDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.descriptor.VariableTypeDescriptor.*;
+import static com.avail.descriptor.atoms.AtomDescriptor.falseObject;
+import static com.avail.descriptor.atoms.AtomDescriptor.trueObject;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.StackPrinter.trace;
@@ -1184,7 +1186,7 @@ public final class AvailRuntime
 			TokenType.OPERATOR.atom,
 			TokenType.COMMENT.atom,
 			TokenType.WHITESPACE.atom,
-			TokenDescriptor.StaticInit.tokenTypeOrdinalKey));
+			StaticInit.tokenTypeOrdinalKey));
 
 		for (final A_Atom atom : specialAtomsList)
 		{

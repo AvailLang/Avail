@@ -38,12 +38,11 @@ import com.avail.stacks.LinkingFileMap
 import com.avail.stacks.StacksDescription
 import com.avail.stacks.StacksErrorLog
 import com.avail.stacks.comment.signature.CommentSignature
+import com.avail.stacks.comment.signature.MethodCommentSignature
 import com.avail.stacks.module.StacksImportModule
 import com.avail.stacks.tags.*
 import com.avail.utility.json.JSONWriter
-import com.avail.stacks.comment.signature.MethodCommentSignature
-
-import java.util.ArrayList
+import java.util.*
 
 /**
  * A module global variable comment

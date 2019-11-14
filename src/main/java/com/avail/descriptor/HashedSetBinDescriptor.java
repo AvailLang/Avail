@@ -150,7 +150,7 @@ extends SetBinDescriptor
 	{
 		if (checkBinHashes)
 		{
-			assert object.descriptor instanceof HashedSetBinDescriptor;
+			assert object.descriptor() instanceof HashedSetBinDescriptor;
 			final int stored = object.setBinHash();
 			int calculated = 0;
 			for (int i = object.variableObjectSlotsCount(); i >= 1; i--)
@@ -163,7 +163,8 @@ extends SetBinDescriptor
 		}
 	}
 
-	@Override boolean allowsImmutableToMutableReferenceInField (
+	@Override
+	protected boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
 		return e == BIN_UNION_TYPE_OR_NIL;
@@ -578,7 +579,7 @@ extends SetBinDescriptor
 	}
 
 	@Override
-	SetIterator o_SetBinIterator (final AvailObject object)
+	protected SetIterator o_SetBinIterator (final AvailObject object)
 	{
 		return new HashedSetBinIterator(object);
 	}
@@ -806,19 +807,19 @@ extends SetBinDescriptor
 	}
 
 	@Override
-	HashedSetBinDescriptor mutable ()
+	protected HashedSetBinDescriptor mutable ()
 	{
 		return descriptorFor(MUTABLE, level);
 	}
 
 	@Override
-	HashedSetBinDescriptor immutable ()
+	protected HashedSetBinDescriptor immutable ()
 	{
 		return descriptorFor(IMMUTABLE, level);
 	}
 
 	@Override
-	HashedSetBinDescriptor shared ()
+	protected HashedSetBinDescriptor shared ()
 	{
 		return descriptorFor(SHARED, level);
 	}

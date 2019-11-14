@@ -34,7 +34,6 @@ package com.avail.interpreter.primitive.variables
 
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.AtomDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
@@ -43,6 +42,7 @@ import com.avail.descriptor.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.TypeDescriptor.Types.TOP
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor
 import com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType
+import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND
 import com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
 import com.avail.exceptions.AvailException

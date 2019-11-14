@@ -95,6 +95,7 @@ public final class Nulls
 	 * @param <T>
 	 *        The type of {@link Throwable} to be thrown if the value is null.
 	 * @return The value.
+	 * @throws T The subtype of {@link Throwable} to throw.
 	 */
 	public static @Nonnull <X, T extends Throwable> X stripNull (
 		final @Nullable X x,

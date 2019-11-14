@@ -214,7 +214,8 @@ extends PhraseDescriptor
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.FIRST_OF_SEQUENCE_PHRASE;
 	}
@@ -310,7 +311,7 @@ extends PhraseDescriptor
 		new FirstOfSequencePhraseDescriptor(Mutability.MUTABLE);
 
 	@Override
-	FirstOfSequencePhraseDescriptor mutable ()
+	protected FirstOfSequencePhraseDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -320,7 +321,7 @@ extends PhraseDescriptor
 		new FirstOfSequencePhraseDescriptor(Mutability.SHARED);
 
 	@Override
-	FirstOfSequencePhraseDescriptor shared ()
+	protected FirstOfSequencePhraseDescriptor shared ()
 	{
 		return shared;
 	}

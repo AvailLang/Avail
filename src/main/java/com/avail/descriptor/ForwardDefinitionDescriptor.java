@@ -40,9 +40,7 @@ import com.avail.utility.json.JSONWriter;
 
 import java.util.IdentityHashMap;
 
-import static com.avail.descriptor.ForwardDefinitionDescriptor.ObjectSlots.BODY_SIGNATURE;
-import static com.avail.descriptor.ForwardDefinitionDescriptor.ObjectSlots.DEFINITION_METHOD;
-import static com.avail.descriptor.ForwardDefinitionDescriptor.ObjectSlots.MODULE;
+import static com.avail.descriptor.ForwardDefinitionDescriptor.ObjectSlots.*;
 
 /**
  * This is a forward declaration of a method.  An actual method must be defined
@@ -134,7 +132,8 @@ extends DefinitionDescriptor
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.FORWARD_DEFINITION;
 	}
@@ -211,13 +210,13 @@ extends DefinitionDescriptor
 		new ForwardDefinitionDescriptor(Mutability.MUTABLE);
 
 	@Override
-	ForwardDefinitionDescriptor mutable ()
+	protected ForwardDefinitionDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	@Override
-	ForwardDefinitionDescriptor immutable ()
+	protected ForwardDefinitionDescriptor immutable ()
 	{
 		// There is no immutable variant.
 		return shared;
@@ -228,7 +227,7 @@ extends DefinitionDescriptor
 		new ForwardDefinitionDescriptor(Mutability.SHARED);
 
 	@Override
-	ForwardDefinitionDescriptor shared ()
+	protected ForwardDefinitionDescriptor shared ()
 	{
 		return shared;
 	}

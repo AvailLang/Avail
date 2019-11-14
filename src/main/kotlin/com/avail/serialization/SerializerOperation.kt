@@ -38,12 +38,6 @@ import com.avail.descriptor.*
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.AssignmentPhraseDescriptor.isInline
 import com.avail.descriptor.AssignmentPhraseDescriptor.newAssignment
-import com.avail.descriptor.AtomDescriptor.SpecialAtom
-import com.avail.descriptor.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY
-import com.avail.descriptor.AtomDescriptor.SpecialAtom.HERITABLE_KEY
-import com.avail.descriptor.AtomDescriptor.trueObject
-import com.avail.descriptor.AtomWithPropertiesDescriptor.createAtomWithProperties
-import com.avail.descriptor.parsing.BlockPhraseDescriptor.newBlockNode
 import com.avail.descriptor.BottomPojoTypeDescriptor.pojoBottom
 import com.avail.descriptor.CharacterDescriptor.fromCodePoint
 import com.avail.descriptor.CommentTokenDescriptor.newCommentToken
@@ -102,8 +96,17 @@ import com.avail.descriptor.VariableTypeDescriptor.variableReadWriteType
 import com.avail.descriptor.VariableTypeDescriptor.variableTypeFor
 import com.avail.descriptor.VariableUsePhraseDescriptor.newUse
 import com.avail.descriptor.atoms.A_Atom
+import com.avail.descriptor.atoms.AtomDescriptor
+import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom
+import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY
+import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.HERITABLE_KEY
+import com.avail.descriptor.atoms.AtomDescriptor.trueObject
+import com.avail.descriptor.atoms.AtomWithPropertiesDescriptor.createAtomWithProperties
+import com.avail.descriptor.bundles.MessageBundleDescriptor
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.objects.A_BasicObject
+import com.avail.descriptor.parsing.BlockPhraseDescriptor
+import com.avail.descriptor.parsing.BlockPhraseDescriptor.newBlockNode
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.exceptions.AvailErrorCode.E_JAVA_METHOD_NOT_AVAILABLE
@@ -980,7 +983,7 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * An [atom][AtomDescriptor].  Output the atom name and the name of the
+	 * An [atom][A_Atom].  Output the atom name and the name of the
 	 * module that issued it.  Look up the corresponding atom during
 	 * reconstruction, recreating it if it's not present and supposed to have
 	 * been issued by the current module.
@@ -1016,7 +1019,7 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * An [atom][AtomDescriptor].  Output the atom name and the name of the
+	 * An [atom][A_Atom].  Output the atom name and the name of the
 	 * module that issued it.  Look up the corresponding atom during
 	 * reconstruction, recreating it if it's not present and supposed to have
 	 * been issued by the current module.
@@ -1531,13 +1534,13 @@ enum class SerializerOperation constructor(
 
 	/**
 	 * A reference to a [method][MethodDescriptor] that should be looked up
-	 * during deserialization.  A method can have multiple [message
-	 * bundles][MessageBundleDescriptor], and *each* <module name, atom name>
-	 * pair is recorded during serialization. For system atoms we output nil for
-	 * the module name.  During deserialization, the list is searched for a
-	 * module that has been loaded, and if the corresponding name is an atom,
-	 * and if that atom has a bundle associated with it, that bundle's method is
-	 * used.
+	 * during deserialization.  A method can have multiple
+	 * [message&#32;bundles][MessageBundleDescriptor], and *each* <module name,
+	 * atom name> pair is recorded during serialization. For system atoms we
+	 * output nil for the module name.  During deserialization, the list is
+	 * searched for a module that has been loaded, and if the corresponding name
+	 * is an atom, and if that atom has a bundle associated with it, that
+	 * bundle's method is used.
 	 */
 	METHOD(47, TUPLE_OF_OBJECTS.named("module name / atom name pairs"))
 	{

@@ -54,16 +54,8 @@ import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
 import static com.avail.descriptor.PhraseTypeDescriptor.IntegerSlots.HASH_AND_MORE;
 import static com.avail.descriptor.PhraseTypeDescriptor.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.PhraseTypeDescriptor.ObjectSlots.EXPRESSION_TYPE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.ASSIGNMENT_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.SEQUENCE_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.STATEMENT_PHRASE;
-import static com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType;
-import static com.avail.descriptor.TupleTypeDescriptor.stringType;
-import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeFromTupleOfTypes;
+import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
+import static com.avail.descriptor.TupleTypeDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType;
@@ -743,7 +735,7 @@ extends TypeDescriptor
 
 	@Override
 	@AvailMethod
-	boolean o_IsSupertypeOfListNodeType (
+	protected boolean o_IsSupertypeOfListNodeType (
 		final AvailObject object,
 		final A_Type aListNodeType)
 	{
@@ -754,7 +746,7 @@ extends TypeDescriptor
 
 	@Override
 	@AvailMethod
-	boolean o_IsSupertypeOfPhraseType (
+	protected boolean o_IsSupertypeOfPhraseType (
 		final AvailObject object,
 		final A_Type aPhraseType)
 	{
@@ -771,7 +763,7 @@ extends TypeDescriptor
 	 * @return The {@linkplain PhraseKind kind} of phrase that the object is.
 	 */
 	@Override @AvailMethod
-	PhraseKind o_PhraseKind (final AvailObject object)
+	protected PhraseKind o_PhraseKind (final AvailObject object)
 	{
 		return kind;
 	}
@@ -785,7 +777,8 @@ extends TypeDescriptor
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.PARSE_NODE_TYPE;
 	}
@@ -1014,20 +1007,20 @@ extends TypeDescriptor
 	}
 
 	@Override
-	PhraseTypeDescriptor mutable ()
+	protected PhraseTypeDescriptor mutable ()
 	{
 		return kind.mutableDescriptor;
 	}
 
 	@Override
-	PhraseTypeDescriptor immutable ()
+	protected PhraseTypeDescriptor immutable ()
 	{
 		// There are no immutable descriptors.
 		return kind.sharedDescriptor;
 	}
 
 	@Override
-	PhraseTypeDescriptor shared ()
+	protected PhraseTypeDescriptor shared ()
 	{
 		return kind.sharedDescriptor;
 	}

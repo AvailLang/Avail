@@ -48,15 +48,8 @@ import java.util.WeakHashMap;
 
 import static com.avail.AvailRuntimeSupport.nextHash;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.VariableSharedGlobalDescriptor.IntegerSlots.HASH_ALWAYS_SET;
-import static com.avail.descriptor.VariableSharedGlobalDescriptor.IntegerSlots.HASH_AND_MORE;
-import static com.avail.descriptor.VariableSharedGlobalDescriptor.IntegerSlots.VALUE_IS_STABLE;
-import static com.avail.descriptor.VariableSharedGlobalDescriptor.ObjectSlots.DEPENDENT_CHUNKS_WEAK_SET_POJO;
-import static com.avail.descriptor.VariableSharedGlobalDescriptor.ObjectSlots.GLOBAL_NAME;
-import static com.avail.descriptor.VariableSharedGlobalDescriptor.ObjectSlots.KIND;
-import static com.avail.descriptor.VariableSharedGlobalDescriptor.ObjectSlots.MODULE;
-import static com.avail.descriptor.VariableSharedGlobalDescriptor.ObjectSlots.VALUE;
-import static com.avail.descriptor.VariableSharedGlobalDescriptor.ObjectSlots.WRITE_REACTORS;
+import static com.avail.descriptor.VariableSharedGlobalDescriptor.IntegerSlots.*;
+import static com.avail.descriptor.VariableSharedGlobalDescriptor.ObjectSlots.*;
 
 /**
  * My {@linkplain AvailObject object instances} are {@linkplain
@@ -332,7 +325,8 @@ extends VariableSharedDescriptor
 	}
 
 	@Override @AvailMethod
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.GLOBAL_VARIABLE;
 	}
@@ -369,7 +363,7 @@ extends VariableSharedDescriptor
 		result.setSlot(DEPENDENT_CHUNKS_WEAK_SET_POJO, nil);
 		result.setSlot(MODULE, module.makeShared());
 		result.setSlot(GLOBAL_NAME, name.makeShared());
-		result.descriptor = writeOnce ? sharedWriteOnce : shared;
+		result.setDescriptor(writeOnce ? sharedWriteOnce : shared);
 		return result;
 	}
 

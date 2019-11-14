@@ -1,19 +1,19 @@
 /*
  * AtomDescriptor.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
+ *  Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
+ *  Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
+ *  Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.descriptor;
+package com.avail.descriptor.atoms;
 
 import com.avail.AvailRuntimeSupport;
 import com.avail.annotations.AvailMethod;
@@ -38,7 +38,7 @@ import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
 import com.avail.compiler.ParserState;
 import com.avail.compiler.splitter.MessageSplitter;
-import com.avail.descriptor.atoms.A_Atom;
+import com.avail.descriptor.*;
 import com.avail.descriptor.bundles.A_Bundle;
 import com.avail.descriptor.bundles.MessageBundleDescriptor;
 import com.avail.descriptor.methods.A_Method;
@@ -56,21 +56,17 @@ import java.nio.channels.AsynchronousSocketChannel;
 import java.util.IdentityHashMap;
 import java.util.regex.Pattern;
 
-import static com.avail.descriptor.AtomDescriptor.IntegerSlots.HASH_AND_MORE;
-import static com.avail.descriptor.AtomDescriptor.IntegerSlots.HASH_OR_ZERO;
-import static com.avail.descriptor.AtomDescriptor.ObjectSlots.ISSUING_MODULE;
-import static com.avail.descriptor.AtomDescriptor.ObjectSlots.NAME;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.FALSE;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.HERITABLE_KEY;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.MESSAGE_BUNDLE_KEY;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.TRUE;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
-import static com.avail.descriptor.bundles.MessageBundleDescriptor.newBundle;
 import static com.avail.descriptor.MethodDescriptor.newMethod;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
+import static com.avail.descriptor.atoms.AtomDescriptor.IntegerSlots.HASH_AND_MORE;
+import static com.avail.descriptor.atoms.AtomDescriptor.IntegerSlots.HASH_OR_ZERO;
+import static com.avail.descriptor.atoms.AtomDescriptor.ObjectSlots.ISSUING_MODULE;
+import static com.avail.descriptor.atoms.AtomDescriptor.ObjectSlots.NAME;
+import static com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.*;
+import static com.avail.descriptor.bundles.MessageBundleDescriptor.newBundle;
 
 /**
  * An {@code atom} is an object that has identity by fiat, i.e., it is
@@ -282,7 +278,7 @@ extends Descriptor
 	 * </p>
 	 */
 	@Override
-	AvailObject o_MakeShared (final AvailObject object)
+	protected AvailObject o_MakeShared (final AvailObject object)
 	{
 		// Special atoms, which are already shared, should not transform.
 		if (!isShared())
@@ -341,7 +337,8 @@ extends Descriptor
 
 	@Override
 	@AvailMethod @ThreadSafe
-	final SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected final SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		if (object.isAtomSpecial())
 		{
@@ -372,7 +369,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected final  @Nullable Object o_MarshalToJava (
+	protected final @Nullable Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{
@@ -459,7 +456,7 @@ extends Descriptor
 			IntegerSlots.class);
 
 	@Override
-	AtomDescriptor mutable ()
+	protected AtomDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -473,14 +470,14 @@ extends Descriptor
 			IntegerSlots.class);
 
 	@Override
-	AtomDescriptor immutable ()
+	protected AtomDescriptor immutable ()
 	{
 		return immutable;
 	}
 
 	@Deprecated
 	@Override
-	protected final  AtomDescriptor shared ()
+	protected final AtomDescriptor shared ()
 	{
 		throw unsupportedOperationException();
 	}
@@ -528,7 +525,7 @@ extends Descriptor
 		atom.setSlot(HASH_OR_ZERO, 0);
 		atom.setSlot(ISSUING_MODULE, nil);
 		atom = atom.makeShared();
-		atom.descriptor = AtomWithPropertiesSharedDescriptor.sharedAndSpecial;
+		atom.setDescriptor(AtomWithPropertiesSharedDescriptor.sharedAndSpecial);
 		return atom;
 	}
 
@@ -554,9 +551,9 @@ extends Descriptor
 		atom.setSlot(HASH_OR_ZERO, 0);
 		atom.setSlot(ISSUING_MODULE, nil);
 		atom = atom.makeShared();
-		atom.descriptor = booleanValue
+		atom.setDescriptor(booleanValue
 			? AtomWithPropertiesSharedDescriptor.sharedAndSpecialForTrue
-			: AtomWithPropertiesSharedDescriptor.sharedAndSpecialForFalse;
+			: AtomWithPropertiesSharedDescriptor.sharedAndSpecialForFalse);
 		return atom;
 	}
 
@@ -623,29 +620,29 @@ extends Descriptor
 		OBJECT_TYPE_NAME_PROPERTY_KEY("object names"),
 
 		/**
-		 * The atom used as a key in a {@link ParserState}'s {@linkplain
-		 * ParserState#clientDataMap} to store the current map of declarations
-		 * that are in scope.
+		 * The atom used as a key in a {@link ParserState}'s
+		 * {@link ParserState#getClientDataMap()} to store the current map of
+		 * declarations that are in scope.
 		 */
 		COMPILER_SCOPE_MAP_KEY("Compilation scope"),
 
 		/**
-		 * The atom used as a key in a {@link ParserState}'s {@linkplain
-		 * ParserState#clientDataMap} to store a tuple of maps to restore as the
-		 * blocks that are being parsed are completed.
+		 * The atom used as a key in a {@link ParserState}'s
+		 * {@link ParserState#getClientDataMap()} to store a tuple of maps to
+		 * restore as the blocks that are being parsed are completed.
 		 */
 		COMPILER_SCOPE_STACK_KEY("Compilation scope stack"),
 
 		/**
-		 * The atom used as a key in a {@link ParserState}'s {@linkplain
-		 * ParserState#clientDataMap} to accumulate the tuple of tokens that
+		 * The atom used as a key in a {@link ParserState}'s {@link
+		 * ParserState#getClientDataMap()} to accumulate the tuple of tokens that
 		 * have been parsed so far for the current method/macro site.
 		 */
 		ALL_TOKENS_KEY("All tokens"),
 
 		/**
-		 * The atom used as a key in a {@link ParserState}'s {@linkplain
-		 * ParserState#clientDataMap} to accumulate the tuple of tokens that
+		 * The atom used as a key in a {@link ParserState}'s {@link
+		 * ParserState#getClientDataMap()} to accumulate the tuple of tokens that
 		 * have been parsed so far for the current method/macro site and are
 		 * mentioned by name in the method name.
 		 */
@@ -653,7 +650,7 @@ extends Descriptor
 
 		/**
 		 * The atom used to identify the entry in a {@linkplain ParserState}'s
-		 * {@linkplain ParserState#clientDataMap client data map} containing the
+		 * {@link ParserState#getClientDataMap() client data map} containing the
 		 * bundle of the macro send for which the current fiber is computing a
 		 * replacement phrase.
 		 */
@@ -661,8 +658,8 @@ extends Descriptor
 
 		/**
 		 * The atom used as a key in a {@linkplain FiberDescriptor fiber}'s
-		 * global map to extract the current {@link ParserState}'s {@linkplain
-		 * ParserState#clientDataMap}.
+		 * global map to extract the current {@link ParserState}'s {@link
+		 * ParserState#getClientDataMap()}.
 		 */
 		CLIENT_DATA_GLOBAL_KEY("Compiler client data"),
 

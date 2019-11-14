@@ -33,12 +33,12 @@
 package com.avail.environment.actions
 
 import com.avail.environment.AvailWorkbench
-import com.avail.environment.AvailWorkbench.AbstractWorkbenchTask
 import com.avail.environment.tasks.BuildTask
-import javax.swing.*
 import java.awt.event.ActionEvent
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
+import javax.swing.Action
+import javax.swing.KeyStroke
 
 /**
  * A `CancelAction` cancels a background [build task][BuildTask].

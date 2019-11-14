@@ -49,9 +49,7 @@ import static com.avail.descriptor.ByteTupleDescriptor.IntegerSlots.RAW_LONG_AT_
 import static com.avail.descriptor.IntegerDescriptor.fromUnsignedByte;
 import static com.avail.descriptor.IntegerDescriptor.hashOfUnsignedByte;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.bytes;
-import static com.avail.descriptor.Mutability.IMMUTABLE;
-import static com.avail.descriptor.Mutability.MUTABLE;
-import static com.avail.descriptor.Mutability.SHARED;
+import static com.avail.descriptor.Mutability.*;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TreeTupleDescriptor.concatenateAtLeastOneTree;
 import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;
@@ -140,7 +138,7 @@ extends NumericTupleDescriptor
 		if (isMutable() && canDestroy && (originalSize & 7) != 0)
 		{
 			// Enlarge it in place, using more of the final partial int field.
-			object.descriptor = descriptorFor(MUTABLE, newSize);
+			object.setDescriptor(descriptorFor(MUTABLE, newSize));
 			object.setByteSlot(RAW_LONG_AT_, newSize, (short) intValue);
 			object.setSlot(HASH_OR_ZERO, 0);
 			return object;
@@ -259,7 +257,7 @@ extends NumericTupleDescriptor
 			{
 				// We can reuse the receiver; it has enough int slots.
 				result = object;
-				result.descriptor = descriptorFor(MUTABLE, newSize);
+				result.setDescriptor(descriptorFor(MUTABLE, newSize));
 			}
 			else
 			{
@@ -428,7 +426,7 @@ extends NumericTupleDescriptor
 	{
 		if (isMutable())
 		{
-			object.descriptor = descriptorFor(IMMUTABLE, object.tupleSize());
+			object.setDescriptor(descriptorFor(IMMUTABLE, object.tupleSize()));
 		}
 		return object;
 	}
@@ -438,7 +436,7 @@ extends NumericTupleDescriptor
 	{
 		if (!isShared())
 		{
-			object.descriptor = descriptorFor(SHARED, object.tupleSize());
+			object.setDescriptor(descriptorFor(SHARED, object.tupleSize()));
 		}
 		return object;
 	}
@@ -585,21 +583,21 @@ extends NumericTupleDescriptor
 	}
 
 	@Override
-	ByteTupleDescriptor mutable ()
+	protected ByteTupleDescriptor mutable ()
 	{
 		return descriptors[
 			((8 - unusedBytesOfLastLong) & 7) * 3 + MUTABLE.ordinal()];
 	}
 
 	@Override
-	ByteTupleDescriptor immutable ()
+	protected ByteTupleDescriptor immutable ()
 	{
 		return descriptors[
 			((8 - unusedBytesOfLastLong) & 7) * 3 + IMMUTABLE.ordinal()];
 	}
 
 	@Override
-	ByteTupleDescriptor shared ()
+	protected ByteTupleDescriptor shared ()
 	{
 		return descriptors[
 			((8 - unusedBytesOfLastLong) & 7) * 3 + SHARED.ordinal()];

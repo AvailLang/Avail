@@ -35,15 +35,15 @@ package com.avail.stacks.scanner
 import com.avail.descriptor.A_Token
 import com.avail.descriptor.CharacterDescriptor
 import com.avail.descriptor.CommentTokenDescriptor
-import com.avail.stacks.comment.AvailComment
 import com.avail.stacks.LinkingFileMap
 import com.avail.stacks.StacksParser
-import com.avail.stacks.tokens.StacksToken
+import com.avail.stacks.comment.AvailComment
 import com.avail.stacks.exceptions.StacksCommentBuilderException
 import com.avail.stacks.exceptions.StacksScannerException
-import com.avail.stacks.tokens.SectionKeywordStacksToken
 import com.avail.stacks.tokens.BracketedStacksToken
-import java.util.ArrayList
+import com.avail.stacks.tokens.SectionKeywordStacksToken
+import com.avail.stacks.tokens.StacksToken
+import java.util.*
 
 /**
  * A scanner for Stacks comments.

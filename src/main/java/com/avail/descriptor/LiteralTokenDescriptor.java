@@ -46,9 +46,7 @@ import java.util.IdentityHashMap;
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.LiteralTokenDescriptor.IntegerSlots.LINE_NUMBER;
 import static com.avail.descriptor.LiteralTokenDescriptor.IntegerSlots.START;
-import static com.avail.descriptor.LiteralTokenDescriptor.ObjectSlots.LITERAL;
-import static com.avail.descriptor.LiteralTokenDescriptor.ObjectSlots.NEXT_LEXING_STATE_POJO;
-import static com.avail.descriptor.LiteralTokenDescriptor.ObjectSlots.STRING;
+import static com.avail.descriptor.LiteralTokenDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
@@ -167,7 +165,7 @@ extends TokenDescriptor
 	}
 
 	@Override @AvailMethod
-	TokenType o_TokenType (final AvailObject object)
+	protected TokenType o_TokenType (final AvailObject object)
 	{
 		return TokenType.LITERAL;
 	}
@@ -201,7 +199,8 @@ extends TokenDescriptor
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.LITERAL_TOKEN;
 	}
@@ -311,7 +310,7 @@ extends TokenDescriptor
 		new LiteralTokenDescriptor(Mutability.MUTABLE);
 
 	@Override
-	LiteralTokenDescriptor mutable ()
+	protected LiteralTokenDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -321,14 +320,14 @@ extends TokenDescriptor
 		new LiteralTokenDescriptor(Mutability.SHARED);
 
 	@Override
-	LiteralTokenDescriptor immutable ()
+	protected LiteralTokenDescriptor immutable ()
 	{
 		// Answer the shared descriptor, since there isn't an immutable one.
 		return shared;
 	}
 
 	@Override
-	LiteralTokenDescriptor shared ()
+	protected LiteralTokenDescriptor shared ()
 	{
 		return shared;
 	}

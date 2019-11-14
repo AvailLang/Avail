@@ -50,10 +50,7 @@ import static com.avail.descriptor.PrimitiveTypeDescriptor.IntegerSlots.HASH;
 import static com.avail.descriptor.PrimitiveTypeDescriptor.ObjectSlots.NAME;
 import static com.avail.descriptor.PrimitiveTypeDescriptor.ObjectSlots.PARENT;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
-import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
-import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
-import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
-import static com.avail.descriptor.TypeDescriptor.Types.all;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 import static com.avail.utility.Nulls.stripNull;
 
 /**
@@ -139,7 +136,7 @@ extends TypeDescriptor
 	private static Types extractEnum (final AvailObject object)
 	{
 		return stripNull(
-			((PrimitiveTypeDescriptor) object.descriptor).primitiveType);
+			((PrimitiveTypeDescriptor) object.descriptor()).primitiveType);
 	}
 
 	/**
@@ -359,7 +356,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	protected final  AvailObject o_MakeImmutable (final AvailObject object)
+	protected final AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		if (isMutable())
 		{
@@ -370,7 +367,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	@Nullable Object o_MarshalToJava (
+	protected @Nullable Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{
@@ -416,7 +413,8 @@ extends TypeDescriptor
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		// Most of the primitive types are already handled as special objects,
 		// so this only kicks in as a backup.
@@ -524,7 +522,7 @@ extends TypeDescriptor
 	{
 		assert mutability == Mutability.SHARED;
 		object.setSlot(PARENT, parentType);
-		object.descriptor = this;
+		object.setDescriptor(this);
 	}
 
 	/** The {@link Types primitive type} represented by this descriptor. */
@@ -599,13 +597,13 @@ extends TypeDescriptor
 		new PrimitiveTypeDescriptor();
 
 	@Override
-	PrimitiveTypeDescriptor mutable ()
+	protected PrimitiveTypeDescriptor mutable ()
 	{
 		return transientMutable;
 	}
 
 	@Override
-	PrimitiveTypeDescriptor immutable ()
+	protected PrimitiveTypeDescriptor immutable ()
 	{
 		// There are no immutable versions.
 		assert mutability == Mutability.SHARED;
@@ -613,7 +611,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	PrimitiveTypeDescriptor shared ()
+	protected PrimitiveTypeDescriptor shared ()
 	{
 		assert mutability == Mutability.SHARED;
 		return this;

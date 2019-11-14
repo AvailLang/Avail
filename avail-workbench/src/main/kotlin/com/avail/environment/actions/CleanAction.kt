@@ -33,9 +33,8 @@
 package com.avail.environment.actions
 
 import com.avail.environment.AvailWorkbench
-import java.awt.event.ActionEvent
-
 import com.avail.environment.AvailWorkbench.StreamStyle.INFO
+import java.awt.event.ActionEvent
 import java.lang.String.format
 import javax.swing.Action
 

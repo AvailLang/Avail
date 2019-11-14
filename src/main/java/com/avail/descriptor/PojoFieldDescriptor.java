@@ -47,9 +47,7 @@ import java.lang.reflect.Modifier;
 import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.IntegerDescriptor.zero;
-import static com.avail.descriptor.PojoFieldDescriptor.ObjectSlots.FIELD;
-import static com.avail.descriptor.PojoFieldDescriptor.ObjectSlots.KIND;
-import static com.avail.descriptor.PojoFieldDescriptor.ObjectSlots.RECEIVER;
+import static com.avail.descriptor.PojoFieldDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.PojoFinalFieldDescriptor.pojoFinalFieldForInnerType;
 import static com.avail.descriptor.PojoTypeDescriptor.unmarshal;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
@@ -143,7 +141,8 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (
+		final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsPojoField(
 			object.slot(FIELD), object.slot(RECEIVER));
@@ -188,7 +187,8 @@ extends Descriptor
 			* object.slot(RECEIVER).hash() ^ 0x2199C0C3;
 	}
 
-	@Override boolean o_HasValue (AvailObject object)
+	@Override
+	protected boolean o_HasValue (final AvailObject object)
 	{
 		// A pojo field has a value by definition, since we consider Java null
 		// as unequal to nil.
@@ -202,7 +202,8 @@ extends Descriptor
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation(AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		final Field field = object.slot(FIELD).javaObjectNotNull();
 		if ((field.getModifiers() & STATIC) != 0)
@@ -214,7 +215,8 @@ extends Descriptor
 
 
 	@Override @AvailMethod
-	protected void o_SetValue (final AvailObject object, final A_BasicObject newValue)
+	protected void o_SetValue (
+		final AvailObject object, final A_BasicObject newValue)
 	{
 		final Object receiver = object.slot(RECEIVER).javaObjectNotNull();
 		final Field field = object.slot(FIELD).javaObjectNotNull();
@@ -293,7 +295,8 @@ extends Descriptor
 	}
 
 	@Override
-	protected void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteSummaryTo (
+		final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -339,7 +342,7 @@ extends Descriptor
 		new PojoFieldDescriptor(Mutability.MUTABLE);
 
 	@Override
-	PojoFieldDescriptor mutable ()
+	protected PojoFieldDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -349,7 +352,7 @@ extends Descriptor
 		new PojoFieldDescriptor(Mutability.IMMUTABLE);
 
 	@Override
-	PojoFieldDescriptor immutable ()
+	protected PojoFieldDescriptor immutable ()
 	{
 		return immutable;
 	}
@@ -359,7 +362,7 @@ extends Descriptor
 		new PojoFieldDescriptor(Mutability.SHARED);
 
 	@Override
-	PojoFieldDescriptor shared ()
+	protected PojoFieldDescriptor shared ()
 	{
 		return shared;
 	}

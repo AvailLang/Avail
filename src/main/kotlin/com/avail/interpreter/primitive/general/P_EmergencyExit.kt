@@ -31,9 +31,12 @@
  */
 package com.avail.interpreter.primitive.general
 
-import com.avail.descriptor.*
+import com.avail.descriptor.A_Number
+import com.avail.descriptor.A_RawFunction
+import com.avail.descriptor.A_Type
 import com.avail.descriptor.BottomTypeDescriptor.bottom
 import com.avail.descriptor.ContinuationDescriptor.dumpStackThen
+import com.avail.descriptor.FiberDescriptor
 import com.avail.descriptor.FiberDescriptor.ExecutionState
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple

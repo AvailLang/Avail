@@ -159,8 +159,12 @@ extends Descriptor
 		final AvailCodeGenerator codeGenerator);
 
 	/**
-	 * {@linkplain A_Phrase phrases} must implement {@link
-	 * PhraseDescriptor#o_EqualsPhrase(AvailObject, A_Phrase)}.
+	 * {@linkplain A_Phrase phrases} compare with
+	 * {@link A_Phrase#equalsPhrase(A_Phrase)}.
+	 *
+	 * @param object The phrase.
+	 * @param another An object to compare it against.
+	 * @return Whether they are equal.
 	 */
 	@Override @AvailMethod
 	protected final boolean o_Equals (
@@ -194,8 +198,10 @@ extends Descriptor
 	}
 
 	/**
-	 * {@linkplain A_Phrase phrases} must implement {@link
-	 * AbstractDescriptor#o_Hash(AvailObject)}.
+	 * {@linkplain A_Phrase phrases} must implement this.
+	 *
+	 * @param object The phrase.
+	 * @return The hash of the phrase.
 	 */
 	@Override @AvailMethod
 	protected abstract int o_Hash (final AvailObject object);
@@ -210,7 +216,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	public boolean o_IsInstanceOfKind (
+	protected boolean o_IsInstanceOfKind (
 		final AvailObject object,
 		final A_Type aType)
 	{
@@ -266,7 +272,7 @@ extends Descriptor
 	}
 
 	@Override
-	abstract SerializerOperation o_SerializerOperation (
+	protected abstract SerializerOperation o_SerializerOperation (
 		final AvailObject object);
 
 	@Override

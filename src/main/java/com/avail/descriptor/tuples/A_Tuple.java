@@ -87,8 +87,7 @@ extends A_BasicObject, Iterable<AvailObject>
 
 	/**
 	 * Extract the backing {@code byte[]} from this tuple.  Only applicable if
-	 * the tuple's descriptor answers true to {@linkplain
-	 * TupleDescriptor#o_IsByteArrayTuple(AvailObject)}.
+	 * the tuple's descriptor answers true to {@link #isByteArrayTuple()}.
 	 *
 	 * @return This tuple's byte array.  Don't modify it.
 	 */

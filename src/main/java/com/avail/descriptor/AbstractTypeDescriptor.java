@@ -100,7 +100,7 @@ extends Descriptor
 	@Override @AvailMethod
 	protected abstract boolean o_CouldEverBeInvokedWith (
 		final AvailObject object,
-		final List<? extends TypeRestriction> argRestrictions);
+		final List<TypeRestriction> argRestrictions);
 
 	@Override @AvailMethod
 	protected abstract A_Type o_DefaultType (
@@ -511,7 +511,7 @@ extends Descriptor
 	protected abstract boolean o_IsTop (final AvailObject object);
 
 	/**
-	 * Construct a new {@link AbstractTypeDescriptor}.
+	 * Construct a new {@code AbstractTypeDescriptor}.
 	 *
 	 * @param mutability
 	 *            The {@linkplain Mutability mutability} of the new descriptor.

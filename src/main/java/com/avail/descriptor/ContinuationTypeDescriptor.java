@@ -257,7 +257,8 @@ extends TypeDescriptor
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.CONTINUATION_TYPE;
 	}
@@ -309,7 +310,7 @@ extends TypeDescriptor
 		new ContinuationTypeDescriptor(Mutability.MUTABLE);
 
 	@Override
-	ContinuationTypeDescriptor mutable ()
+	protected ContinuationTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -319,7 +320,7 @@ extends TypeDescriptor
 		new ContinuationTypeDescriptor(Mutability.IMMUTABLE);
 
 	@Override
-	ContinuationTypeDescriptor immutable ()
+	protected ContinuationTypeDescriptor immutable ()
 	{
 		return immutable;
 	}
@@ -329,7 +330,7 @@ extends TypeDescriptor
 		new ContinuationTypeDescriptor(Mutability.SHARED);
 
 	@Override
-	ContinuationTypeDescriptor shared ()
+	protected ContinuationTypeDescriptor shared ()
 	{
 		return shared;
 	}

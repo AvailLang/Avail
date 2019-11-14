@@ -37,6 +37,7 @@ import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.descriptor.atoms.A_Atom;
+import com.avail.descriptor.atoms.AtomDescriptor;
 import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.descriptor.tuples.A_String;
 import com.avail.descriptor.tuples.A_Tuple;
@@ -45,15 +46,8 @@ import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Strings;
 import com.avail.utility.json.JSONWriter;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.IdentityHashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.AvailObjectRepresentation.newLike;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
@@ -62,12 +56,11 @@ import static com.avail.descriptor.ObjectDescriptor.IntegerSlots.HASH_AND_MORE;
 import static com.avail.descriptor.ObjectDescriptor.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.ObjectDescriptor.ObjectSlots.FIELD_VALUES_;
 import static com.avail.descriptor.ObjectDescriptor.ObjectSlots.KIND;
-import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
-import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
+import static com.avail.descriptor.ObjectTupleDescriptor.*;
 import static com.avail.descriptor.ObjectTypeDescriptor.namesAndBaseTypesForObjectType;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
+import static com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY;
 
 /**
  * Avail {@linkplain ObjectTypeDescriptor user-defined object types} are novel.
@@ -216,7 +209,7 @@ extends Descriptor
 			return true;
 		}
 		final ObjectDescriptor otherDescriptor =
-			(ObjectDescriptor) anObject.descriptor;
+			(ObjectDescriptor) anObject.descriptor();
 		if (variant != otherDescriptor.variant)
 		{
 			return false;
@@ -425,7 +418,8 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	protected SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.OBJECT;
 	}
@@ -646,19 +640,19 @@ extends Descriptor
 	}
 
 	@Deprecated @Override
-	ObjectDescriptor mutable ()
+	protected ObjectDescriptor mutable ()
 	{
 		return variant.mutableObjectDescriptor;
 	}
 
 	@Deprecated @Override
-	ObjectDescriptor immutable ()
+	protected ObjectDescriptor immutable ()
 	{
 		return variant.immutableObjectDescriptor;
 	}
 
 	@Deprecated @Override
-	ObjectDescriptor shared ()
+	protected ObjectDescriptor shared ()
 	{
 		return variant.sharedObjectDescriptor;
 	}

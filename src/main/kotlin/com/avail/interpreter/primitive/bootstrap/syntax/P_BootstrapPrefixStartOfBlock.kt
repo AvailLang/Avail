@@ -33,13 +33,13 @@
 package com.avail.interpreter.primitive.bootstrap.syntax
 
 import com.avail.descriptor.A_Map
-import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.AtomDescriptor.SpecialAtom.*
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TypeDescriptor.Types.TOP
+import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.*
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive

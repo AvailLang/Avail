@@ -50,9 +50,7 @@ import java.util.Set;
 import static com.avail.AvailRuntime.HookType.IMPLICIT_OBSERVE;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
 import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getType;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Store the {@linkplain AvailRuntime#implicitObserveFunction() implicit

@@ -409,7 +409,7 @@ extends NumericTupleDescriptor
 	{
 		if (isMutable())
 		{
-			object.descriptor = immutable;
+			object.setDescriptor(immutable);
 			object.slot(BYTE_BUFFER).makeImmutable();
 		}
 		return object;
@@ -420,7 +420,7 @@ extends NumericTupleDescriptor
 	{
 		if (!isShared())
 		{
-			object.descriptor = shared;
+			object.setDescriptor(shared);
 			object.slot(BYTE_BUFFER).makeShared();
 		}
 		return object;
@@ -541,7 +541,7 @@ extends NumericTupleDescriptor
 		new ByteBufferTupleDescriptor(Mutability.MUTABLE);
 
 	@Override
-	AbstractDescriptor mutable ()
+	protected AbstractDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -551,7 +551,7 @@ extends NumericTupleDescriptor
 		new ByteBufferTupleDescriptor(Mutability.IMMUTABLE);
 
 	@Override
-	AbstractDescriptor immutable ()
+	protected AbstractDescriptor immutable ()
 	{
 		return immutable;
 	}
@@ -561,7 +561,7 @@ extends NumericTupleDescriptor
 		new ByteBufferTupleDescriptor(Mutability.SHARED);
 
 	@Override
-	AbstractDescriptor shared ()
+	protected AbstractDescriptor shared ()
 	{
 		return shared;
 	}

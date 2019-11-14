@@ -35,9 +35,10 @@ package com.avail.descriptor.bundles;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.*;
 import com.avail.descriptor.atoms.A_Atom;
-import com.avail.descriptor.methods.A_Method;
+import com.avail.descriptor.atoms.AtomDescriptor;
 import com.avail.descriptor.methods.A_Definition;
 import com.avail.descriptor.methods.A_GrammaticalRestriction;
+import com.avail.descriptor.methods.A_Method;
 import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.descriptor.tuples.A_Tuple;
 

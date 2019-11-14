@@ -43,12 +43,8 @@ import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.IntegerDescriptor.one;
 import static com.avail.descriptor.IntegerDescriptor.zero;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.singleInteger;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
-import static com.avail.descriptor.MapTypeDescriptor.ObjectSlots.KEY_TYPE;
-import static com.avail.descriptor.MapTypeDescriptor.ObjectSlots.SIZE_RANGE;
-import static com.avail.descriptor.MapTypeDescriptor.ObjectSlots.VALUE_TYPE;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
+import static com.avail.descriptor.MapTypeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 
 /**
@@ -292,7 +288,8 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.MAP_TYPE;
 	}
@@ -481,7 +478,7 @@ extends TypeDescriptor
 		new MapTypeDescriptor(Mutability.MUTABLE);
 
 	@Override
-	MapTypeDescriptor mutable ()
+	protected MapTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -491,14 +488,14 @@ extends TypeDescriptor
 		new MapTypeDescriptor(Mutability.SHARED);
 
 	@Override
-	MapTypeDescriptor immutable ()
+	protected MapTypeDescriptor immutable ()
 	{
 		// There is no immutable descriptor.
 		return shared;
 	}
 
 	@Override
-	MapTypeDescriptor shared ()
+	protected MapTypeDescriptor shared ()
 	{
 		return shared;
 	}

@@ -62,14 +62,8 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.ContinuationDescriptor.IntegerSlots.LEVEL_TWO_OFFSET;
-import static com.avail.descriptor.ContinuationDescriptor.IntegerSlots.LEVEL_TWO_OFFSET_AND_OTHER;
-import static com.avail.descriptor.ContinuationDescriptor.IntegerSlots.PROGRAM_COUNTER;
-import static com.avail.descriptor.ContinuationDescriptor.IntegerSlots.STACK_POINTER;
-import static com.avail.descriptor.ContinuationDescriptor.ObjectSlots.CALLER;
-import static com.avail.descriptor.ContinuationDescriptor.ObjectSlots.FRAME_AT_;
-import static com.avail.descriptor.ContinuationDescriptor.ObjectSlots.FUNCTION;
-import static com.avail.descriptor.ContinuationDescriptor.ObjectSlots.LEVEL_TWO_CHUNK;
+import static com.avail.descriptor.ContinuationDescriptor.IntegerSlots.*;
+import static com.avail.descriptor.ContinuationDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.ContinuationTypeDescriptor.continuationTypeForFunctionType;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.VariableDescriptor.newVariableWithContentType;
@@ -376,7 +370,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	L2Chunk o_LevelTwoChunk (final AvailObject object)
+	protected L2Chunk o_LevelTwoChunk (final AvailObject object)
 	{
 		final L2Chunk chunk =
 			object.mutableSlot(LEVEL_TWO_CHUNK).javaObjectNotNull();
@@ -442,7 +436,8 @@ extends Descriptor
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.CONTINUATION;
 	}
@@ -616,7 +611,7 @@ extends Descriptor
 		new ContinuationDescriptor(Mutability.MUTABLE);
 
 	@Override
-	ContinuationDescriptor mutable ()
+	protected ContinuationDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -626,7 +621,7 @@ extends Descriptor
 		new ContinuationDescriptor(Mutability.IMMUTABLE);
 
 	@Override
-	ContinuationDescriptor immutable ()
+	protected ContinuationDescriptor immutable ()
 	{
 		return immutable;
 	}
@@ -636,7 +631,7 @@ extends Descriptor
 		new ContinuationDescriptor(Mutability.SHARED);
 
 	@Override
-	ContinuationDescriptor shared ()
+	protected ContinuationDescriptor shared ()
 	{
 		return shared;
 	}

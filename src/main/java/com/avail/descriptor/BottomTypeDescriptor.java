@@ -194,7 +194,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	protected boolean o_CouldEverBeInvokedWith (
 		final AvailObject object,
-		final List<? extends TypeRestriction> argRestrictions)
+		final List<TypeRestriction> argRestrictions)
 	{
 		return true;
 	}
@@ -481,7 +481,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (
+	protected SerializerOperation o_SerializerOperation (
 		final AvailObject object)
 	{
 		return SerializerOperation.BOTTOM_TYPE;
@@ -579,7 +579,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override
-	TypeTag o_ComputeTypeTag (final AvailObject object)
+	protected TypeTag o_ComputeTypeTag (final AvailObject object)
 	{
 		return TypeTag.BOTTOM_TYPE_TAG;
 	}
@@ -593,13 +593,13 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override
-	BottomTypeDescriptor mutable ()
+	protected BottomTypeDescriptor mutable ()
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override
-	BottomTypeDescriptor immutable ()
+	protected BottomTypeDescriptor immutable ()
 	{
 		throw unsupportedOperationException();
 	}
@@ -609,7 +609,7 @@ extends AbstractEnumerationTypeDescriptor
 		new BottomTypeDescriptor();
 
 	@Override
-	BottomTypeDescriptor shared ()
+	protected BottomTypeDescriptor shared ()
 	{
 		return shared;
 	}

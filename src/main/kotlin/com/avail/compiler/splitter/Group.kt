@@ -38,7 +38,6 @@ import com.avail.compiler.splitter.MessageSplitter.Companion.circledNumberCodePo
 import com.avail.compiler.splitter.MessageSplitter.Companion.indexForPermutation
 import com.avail.compiler.splitter.MessageSplitter.Companion.throwSignatureException
 import com.avail.compiler.splitter.WrapState.*
-import com.avail.descriptor.parsing.A_Phrase
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AvailObject
 import com.avail.descriptor.InfinityDescriptor.positiveInfinity
@@ -52,6 +51,7 @@ import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
 import com.avail.descriptor.TupleDescriptor
 import com.avail.descriptor.TupleDescriptor.tupleFromIntegerList
 import com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes
+import com.avail.descriptor.parsing.A_Phrase
 import com.avail.exceptions.AvailErrorCode.*
 import com.avail.exceptions.MalformedMessageException
 import com.avail.exceptions.SignatureException

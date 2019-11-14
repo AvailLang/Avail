@@ -32,8 +32,8 @@
 
 package com.avail.stacks.exceptions
 
-import com.avail.stacks.scanner.AbstractStacksScanner
 import com.avail.stacks.comment.CommentBuilder
+import com.avail.stacks.scanner.AbstractStacksScanner
 import com.avail.stacks.scanner.StacksScanner
 
 /**

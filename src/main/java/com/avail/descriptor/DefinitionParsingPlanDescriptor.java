@@ -52,9 +52,7 @@ import static com.avail.compiler.ParsingOperation.decode;
 import static com.avail.compiler.ParsingOperation.operand;
 import static com.avail.compiler.splitter.MessageSplitter.constantForIndex;
 import static com.avail.compiler.splitter.MessageSplitter.permutationAtIndex;
-import static com.avail.descriptor.DefinitionParsingPlanDescriptor.ObjectSlots.BUNDLE;
-import static com.avail.descriptor.DefinitionParsingPlanDescriptor.ObjectSlots.DEFINITION;
-import static com.avail.descriptor.DefinitionParsingPlanDescriptor.ObjectSlots.PARSING_INSTRUCTIONS;
+import static com.avail.descriptor.DefinitionParsingPlanDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.DEFINITION_PARSING_PLAN;
 import static com.avail.utility.StackPrinter.trace;
 
@@ -290,12 +288,12 @@ extends Descriptor
 	}
 
 	/**
-	 * Create a new {@linkplain DefinitionParsingPlanDescriptor definition
+	 * Create a new {@code DefinitionParsingPlanDescriptor definition
 	 * parsing plan} for the given parameters.  Do not install it.
 	 *
 	 * @param bundle The bundle for this plan.
 	 * @param definition The definition for this plan.
-	 * @return A new {@linkplain DefinitionParsingPlanDescriptor plan}.
+	 * @return A new {@code DefinitionParsingPlanDescriptor plan}.
 	 */
 	public static A_DefinitionParsingPlan newParsingPlan (
 		final A_Bundle bundle,
@@ -312,7 +310,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct a new {@link DefinitionParsingPlanDescriptor}.
+	 * Construct a new {@code DefinitionParsingPlanDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
@@ -327,7 +325,7 @@ extends Descriptor
 		new DefinitionParsingPlanDescriptor(Mutability.MUTABLE);
 
 	@Override
-	public DefinitionParsingPlanDescriptor mutable ()
+	protected DefinitionParsingPlanDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -344,7 +342,7 @@ extends Descriptor
 		new DefinitionParsingPlanDescriptor(Mutability.SHARED);
 
 	@Override
-	DefinitionParsingPlanDescriptor shared ()
+	protected DefinitionParsingPlanDescriptor shared ()
 	{
 		return shared;
 	}

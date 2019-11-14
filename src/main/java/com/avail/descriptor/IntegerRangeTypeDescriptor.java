@@ -47,17 +47,10 @@ import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.InfinityDescriptor.negativeInfinity;
 import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
-import static com.avail.descriptor.IntegerDescriptor.fromInt;
-import static com.avail.descriptor.IntegerDescriptor.fromLong;
-import static com.avail.descriptor.IntegerDescriptor.one;
-import static com.avail.descriptor.IntegerDescriptor.zero;
+import static com.avail.descriptor.IntegerDescriptor.*;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.ObjectSlots.LOWER_BOUND;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.ObjectSlots.UPPER_BOUND;
-import static com.avail.descriptor.PojoTypeDescriptor.byteRange;
-import static com.avail.descriptor.PojoTypeDescriptor.charRange;
-import static com.avail.descriptor.PojoTypeDescriptor.intRange;
-import static com.avail.descriptor.PojoTypeDescriptor.longRange;
-import static com.avail.descriptor.PojoTypeDescriptor.shortRange;
+import static com.avail.descriptor.PojoTypeDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
 
 /**
@@ -226,7 +219,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	@Nullable Object o_MarshalToJava (
+	protected @Nullable Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{
@@ -309,7 +302,8 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	protected SerializerOperation o_SerializerOperation(final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.INTEGER_RANGE_TYPE;
 	}
@@ -707,20 +701,20 @@ extends TypeDescriptor
 	}
 
 	@Override
-	AbstractDescriptor mutable ()
+	protected AbstractDescriptor mutable ()
 	{
 		return lookupDescriptor(true, lowerInclusive, upperInclusive);
 	}
 
 	@Override
-	AbstractDescriptor immutable ()
+	protected AbstractDescriptor immutable ()
 	{
 		// There are no immutable descriptors, only shared ones.
 		return lookupDescriptor(false, lowerInclusive, upperInclusive);
 	}
 
 	@Override
-	AbstractDescriptor shared ()
+	protected AbstractDescriptor shared ()
 	{
 		return lookupDescriptor(false, lowerInclusive, upperInclusive);
 	}

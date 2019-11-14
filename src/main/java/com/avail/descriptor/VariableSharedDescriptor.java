@@ -56,10 +56,7 @@ import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.VariableSharedDescriptor.IntegerSlots.HASH_ALWAYS_SET;
 import static com.avail.descriptor.VariableSharedDescriptor.IntegerSlots.HASH_AND_MORE;
-import static com.avail.descriptor.VariableSharedDescriptor.ObjectSlots.DEPENDENT_CHUNKS_WEAK_SET_POJO;
-import static com.avail.descriptor.VariableSharedDescriptor.ObjectSlots.KIND;
-import static com.avail.descriptor.VariableSharedDescriptor.ObjectSlots.VALUE;
-import static com.avail.descriptor.VariableSharedDescriptor.ObjectSlots.WRITE_REACTORS;
+import static com.avail.descriptor.VariableSharedDescriptor.ObjectSlots.*;
 import static java.util.Collections.newSetFromMap;
 import static java.util.Collections.synchronizedSet;
 
@@ -243,6 +240,14 @@ extends VariableDescriptor
 		recordWriteToSharedVariable();
 	}
 
+	/**
+	 * Write to a newly-constructed variable, bypassing synchronization and
+	 * the capture of writes to shared variables for detecting top-level
+	 * statements that have side-effect.
+	 *
+	 * @param object The variable.
+	 * @param newValue The value to write.
+	 */
 	protected void bypass_VariableDescriptor_SetValue (
 		final AvailObject object, final A_BasicObject newValue)
 	{
@@ -261,6 +266,14 @@ extends VariableDescriptor
 		recordWriteToSharedVariable();
 	}
 
+	/**
+	 * Write to a newly-constructed variable, bypassing synchronization, type
+	 * checking, and the capture of writes to shared variables for detecting
+	 * top-level statements that have side-effect.
+	 *
+	 * @param object The variable.
+	 * @param newValue The value to write.
+	 */
 	protected void bypass_VariableDescriptor_SetValueNoCheck (
 		final AvailObject object, final A_BasicObject newValue)
 	{
@@ -561,7 +574,7 @@ extends VariableDescriptor
 			DEPENDENT_CHUNKS_WEAK_SET_POJO, nil);
 
 		// Redirect the old to the new to allow cyclic structures.
-		assert !oldVariable.descriptor.isShared();
+		assert !oldVariable.descriptor().isShared();
 		oldVariable.becomeIndirectionTo(newVariable);
 
 		// Make the parts shared.  This may recurse, but it will terminate when
@@ -571,8 +584,8 @@ extends VariableDescriptor
 		newVariable.setSlot(VALUE, value.makeShared());
 
 		// Now switch the new variable to truly shared.
-		assert newVariable.descriptor == mutableInitial;
-		newVariable.descriptor = shared;
+		assert newVariable.descriptor() == mutableInitial;
+		newVariable.setDescriptor(shared);
 
 		// For safety, make sure the indirection is also shared.
 		oldVariable.makeShared();

@@ -49,18 +49,10 @@ import java.util.function.UnaryOperator;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.integerRangeType;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.singleInt;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.zeroOrOne;
-import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
-import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray;
-import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
+import static com.avail.descriptor.ObjectTupleDescriptor.*;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.TupleTypeDescriptor.ObjectSlots.DEFAULT_TYPE;
-import static com.avail.descriptor.TupleTypeDescriptor.ObjectSlots.SIZE_RANGE;
-import static com.avail.descriptor.TupleTypeDescriptor.ObjectSlots.TYPE_TUPLE;
+import static com.avail.descriptor.TupleTypeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
 import static java.lang.Math.max;
@@ -372,7 +364,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	@Nullable Object o_MarshalToJava (
+	protected @Nullable Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{
@@ -384,7 +376,8 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	protected SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.TUPLE_TYPE;
 	}
@@ -876,7 +869,7 @@ extends TypeDescriptor
 		new TupleTypeDescriptor(Mutability.MUTABLE);
 
 	@Override
-	TupleTypeDescriptor mutable ()
+	protected TupleTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -886,7 +879,7 @@ extends TypeDescriptor
 		new TupleTypeDescriptor(Mutability.IMMUTABLE);
 
 	@Override
-	TupleTypeDescriptor immutable ()
+	protected TupleTypeDescriptor immutable ()
 	{
 		return immutable;
 	}
@@ -896,7 +889,7 @@ extends TypeDescriptor
 		new TupleTypeDescriptor(Mutability.SHARED);
 
 	@Override
-	TupleTypeDescriptor shared ()
+	protected TupleTypeDescriptor shared ()
 	{
 		return shared;
 	}

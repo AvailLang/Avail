@@ -37,6 +37,8 @@ import com.avail.interpreter.Interpreter;
 import javax.annotation.Nullable;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
+import static com.avail.utility.Casts.cast;
+
 /**
  * An {@code AvailThread} is a {@linkplain Thread thread} managed by a
  * particular {@linkplain AvailRuntime Avail runtime}. Instances may obtain the
@@ -110,6 +112,6 @@ extends Thread
 	public static AvailThread current ()
 	throws ClassCastException
 	{
-		return (AvailThread) Thread.currentThread();
+		return cast(Thread.currentThread());
 	}
 }

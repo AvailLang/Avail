@@ -38,9 +38,7 @@ import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
-import static com.avail.descriptor.AbstractDefinitionDescriptor.ObjectSlots.BODY_SIGNATURE;
-import static com.avail.descriptor.AbstractDefinitionDescriptor.ObjectSlots.DEFINITION_METHOD;
-import static com.avail.descriptor.AbstractDefinitionDescriptor.ObjectSlots.MODULE;
+import static com.avail.descriptor.AbstractDefinitionDescriptor.ObjectSlots.*;
 
 
 /**
@@ -109,7 +107,8 @@ extends DefinitionDescriptor
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.ABSTRACT_DEFINITION;
 	}
@@ -187,7 +186,7 @@ extends DefinitionDescriptor
 		new AbstractDefinitionDescriptor(Mutability.MUTABLE);
 
 	@Override
-	AbstractDefinitionDescriptor mutable ()
+	protected AbstractDefinitionDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -197,14 +196,14 @@ extends DefinitionDescriptor
 		new AbstractDefinitionDescriptor(Mutability.SHARED);
 
 	@Override
-	AbstractDefinitionDescriptor immutable ()
+	protected AbstractDefinitionDescriptor immutable ()
 	{
 		// There is no immutable variant.
 		return shared;
 	}
 
 	@Override
-	AbstractDefinitionDescriptor shared ()
+	protected AbstractDefinitionDescriptor shared ()
 	{
 		return shared;
 	}

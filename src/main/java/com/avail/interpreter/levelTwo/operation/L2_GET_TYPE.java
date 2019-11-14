@@ -31,10 +31,10 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor;
 import com.avail.descriptor.InstanceTypeDescriptor;
+import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
@@ -53,9 +53,7 @@ import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getType;
+import static org.objectweb.asm.Type.*;
 
 /**
  * Extract the {@link InstanceTypeDescriptor exact type} of an object in a

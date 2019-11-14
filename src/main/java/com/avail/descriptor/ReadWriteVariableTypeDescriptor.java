@@ -224,7 +224,8 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		if (object.readType().equals(object.writeType()))
 		{
@@ -287,7 +288,7 @@ extends TypeDescriptor
 		new ReadWriteVariableTypeDescriptor(Mutability.MUTABLE);
 
 	@Override
-	ReadWriteVariableTypeDescriptor mutable ()
+	protected ReadWriteVariableTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -297,14 +298,14 @@ extends TypeDescriptor
 		new ReadWriteVariableTypeDescriptor(Mutability.SHARED);
 
 	@Override
-	ReadWriteVariableTypeDescriptor immutable ()
+	protected ReadWriteVariableTypeDescriptor immutable ()
 	{
 		// There isn't an immutable variant.
 		return shared;
 	}
 
 	@Override
-	ReadWriteVariableTypeDescriptor shared ()
+	protected ReadWriteVariableTypeDescriptor shared ()
 	{
 		return shared;
 	}

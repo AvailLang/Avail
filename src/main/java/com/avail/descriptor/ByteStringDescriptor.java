@@ -49,9 +49,7 @@ import static com.avail.descriptor.ByteStringDescriptor.IntegerSlots.HASH_OR_ZER
 import static com.avail.descriptor.ByteStringDescriptor.IntegerSlots.RAW_LONGS_;
 import static com.avail.descriptor.CharacterDescriptor.fromByteCodePoint;
 import static com.avail.descriptor.CharacterDescriptor.hashOfByteCharacterWithCodePoint;
-import static com.avail.descriptor.Mutability.IMMUTABLE;
-import static com.avail.descriptor.Mutability.MUTABLE;
-import static com.avail.descriptor.Mutability.SHARED;
+import static com.avail.descriptor.Mutability.*;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TreeTupleDescriptor.concatenateAtLeastOneTree;
 import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;
@@ -140,7 +138,7 @@ extends StringDescriptor
 		if (isMutable() && canDestroy && (originalSize & 7) != 0)
 		{
 			// Enlarge it in place, using more of the final partial long field.
-			object.descriptor = descriptorFor(MUTABLE, newSize);
+			object.setDescriptor(descriptorFor(MUTABLE, newSize));
 			object.setByteSlot(RAW_LONGS_, newSize, (short) intValue);
 			object.setSlot(HASH_OR_ZERO, 0);
 			return object;
@@ -252,7 +250,7 @@ extends StringDescriptor
 	{
 		if (isMutable())
 		{
-			object.descriptor = descriptorFor(IMMUTABLE, object.tupleSize());
+			object.setDescriptor(descriptorFor(IMMUTABLE, object.tupleSize()));
 		}
 		return object;
 	}
@@ -262,13 +260,13 @@ extends StringDescriptor
 	{
 		if (!isShared())
 		{
-			object.descriptor = descriptorFor(SHARED, object.tupleSize());
+			object.setDescriptor(descriptorFor(SHARED, object.tupleSize()));
 		}
 		return object;
 	}
 
 	@Override @AvailMethod
-	short o_RawByteForCharacterAt (
+	protected short o_RawByteForCharacterAt (
 		final AvailObject object,
 		final int index)
 	{
@@ -392,13 +390,14 @@ extends StringDescriptor
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	protected SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.BYTE_STRING;
 	}
 
 	@Override
-	Object o_MarshalToJava (
+	protected Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{
@@ -464,7 +463,7 @@ extends StringDescriptor
 			{
 				// We can reuse the receiver; it has enough int slots.
 				result = object;
-				result.descriptor = descriptorFor(MUTABLE, newSize);
+				result.setDescriptor(descriptorFor(MUTABLE, newSize));
 			}
 			else
 			{
@@ -618,21 +617,21 @@ extends StringDescriptor
 	}
 
 	@Override
-	ByteStringDescriptor mutable ()
+	protected ByteStringDescriptor mutable ()
 	{
 		return descriptors[
 			((8 - unusedBytesOfLastLong) & 7) * 3 + MUTABLE.ordinal()];
 	}
 
 	@Override
-	ByteStringDescriptor immutable ()
+	protected ByteStringDescriptor immutable ()
 	{
 		return descriptors[
 			((8 - unusedBytesOfLastLong) & 7) * 3 + IMMUTABLE.ordinal()];
 	}
 
 	@Override
-	ByteStringDescriptor shared ()
+	protected ByteStringDescriptor shared ()
 	{
 		return descriptors[
 			((8 - unusedBytesOfLastLong) & 7) * 3 + SHARED.ordinal()];

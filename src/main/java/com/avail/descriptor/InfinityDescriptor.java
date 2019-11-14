@@ -78,19 +78,21 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (
+		final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsInfinity(sign);
 	}
 
 	@Override @AvailMethod
-	protected boolean o_EqualsInfinity (final AvailObject object, final Sign theSign)
+	protected boolean o_EqualsInfinity (
+		final AvailObject object, final Sign theSign)
 	{
 		return sign == theSign;
 	}
 
 	@Override @AvailMethod
-	Order o_NumericCompareToInteger (
+	protected Order o_NumericCompareToInteger (
 		final AvailObject object,
 		final AvailObject anInteger)
 	{
@@ -99,7 +101,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	Order o_NumericCompareToInfinity (
+	protected Order o_NumericCompareToInfinity (
 		final AvailObject object,
 		final Sign theSign)
 	{
@@ -145,7 +147,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	double o_ExtractDouble (final AvailObject object)
+	protected double o_ExtractDouble (final AvailObject object)
 	{
 		return object.isPositive()
 			? Double.POSITIVE_INFINITY
@@ -153,7 +155,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	float o_ExtractFloat (
+	protected float o_ExtractFloat (
 		final AvailObject object)
 	{
 		return object.isPositive()
@@ -396,13 +398,14 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	Order o_NumericCompare (final AvailObject object, final A_Number another)
+	protected Order o_NumericCompare (
+		final AvailObject object, final A_Number another)
 	{
 		return another.numericCompareToInfinity(sign).reverse();
 	}
 
 	@Override @AvailMethod
-	Order o_NumericCompareToDouble (
+	protected Order o_NumericCompareToDouble (
 		final AvailObject object,
 		final double double1)
 	{
@@ -421,7 +424,7 @@ extends ExtendedIntegerDescriptor
 	{
 		if (!isShared())
 		{
-			object.descriptor = shared();
+			object.setDescriptor(shared());
 		}
 		return object;
 	}
@@ -484,20 +487,20 @@ extends ExtendedIntegerDescriptor
 		new InfinityDescriptor(Mutability.SHARED, Sign.NEGATIVE);
 
 	@Override
-	AbstractDescriptor mutable ()
+	protected AbstractDescriptor mutable ()
 	{
 		return sign == Sign.POSITIVE ? mutablePositive : mutableNegative;
 	}
 
 	@Override
-	InfinityDescriptor immutable ()
+	protected InfinityDescriptor immutable ()
 	{
 		// There isn't an immutable variant; answer a shared one.
 		return shared();
 	}
 
 	@Override
-	InfinityDescriptor shared ()
+	protected InfinityDescriptor shared ()
 	{
 		return sign == Sign.POSITIVE ? sharedPositive : sharedNegative;
 	}

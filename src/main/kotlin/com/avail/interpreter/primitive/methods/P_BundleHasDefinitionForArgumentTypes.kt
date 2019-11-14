@@ -34,8 +34,6 @@ package com.avail.interpreter.primitive.methods
 
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.AtomDescriptor.falseObject
-import com.avail.descriptor.AtomDescriptor.trueObject
 import com.avail.descriptor.EnumerationTypeDescriptor.booleanType
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceMetaDescriptor.anyMeta
@@ -46,6 +44,8 @@ import com.avail.descriptor.TupleDescriptor
 import com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf
 import com.avail.descriptor.TypeDescriptor
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
+import com.avail.descriptor.atoms.AtomDescriptor.falseObject
+import com.avail.descriptor.atoms.AtomDescriptor.trueObject
 import com.avail.exceptions.AvailErrorCode.*
 import com.avail.exceptions.MethodDefinitionException
 import com.avail.interpreter.Interpreter

@@ -418,7 +418,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	public boolean o_IsInstanceOfKind (
+	protected boolean o_IsInstanceOfKind (
 		final AvailObject object,
 		final A_Type aTypeObject)
 	{
@@ -1277,7 +1277,7 @@ extends Descriptor
 	}
 
 	@Override
-	@Nullable Object o_MarshalToJava (
+	protected @Nullable Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{
@@ -1433,27 +1433,6 @@ extends Descriptor
 			list.add((X) element);
 		}
 		return list;
-	}
-
-	/**
-	 * Construct a Java {@link Set} from the specified {@linkplain
-	 * TupleDescriptor tuple}. The elements are not made immutable.
-	 *
-	 * @param tuple
-	 *        A tuple.
-	 * @return The corresponding {@link Set} of objects.
-	 * @param <X> The Java types of the elements.
-	 */
-	@SuppressWarnings("unchecked")
-	public static <X extends A_BasicObject> Set<X> toSet (
-		final A_Tuple tuple)
-	{
-		final Set<X> set = new HashSet<>(tuple.tupleSize());
-		for (final AvailObject element : tuple)
-		{
-			set.add((X) element);
-		}
-		return set;
 	}
 
 	/**

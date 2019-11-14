@@ -34,8 +34,6 @@ package com.avail.interpreter.primitive.phrases
 
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.AtomDescriptor
-import com.avail.descriptor.AtomDescriptor.objectFromBoolean
 import com.avail.descriptor.BottomTypeDescriptor.bottom
 import com.avail.descriptor.DeclarationPhraseDescriptor
 import com.avail.descriptor.EnumerationTypeDescriptor.booleanType
@@ -47,6 +45,8 @@ import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TypeDescriptor.Types.TOP
 import com.avail.descriptor.VariableTypeDescriptor
 import com.avail.descriptor.VariableTypeDescriptor.variableReadWriteType
+import com.avail.descriptor.atoms.AtomDescriptor
+import com.avail.descriptor.atoms.AtomDescriptor.objectFromBoolean
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE
 import com.avail.exceptions.AvailErrorCode.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED
 import com.avail.exceptions.VariableSetException

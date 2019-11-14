@@ -42,14 +42,9 @@ import com.avail.utility.json.JSONWriter;
 import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 
-import static com.avail.descriptor.AbstractNumberDescriptor.Sign.INDETERMINATE;
-import static com.avail.descriptor.AbstractNumberDescriptor.Sign.NEGATIVE;
-import static com.avail.descriptor.AbstractNumberDescriptor.Sign.POSITIVE;
-import static com.avail.descriptor.AbstractNumberDescriptor.Sign.ZERO;
+import static com.avail.descriptor.AbstractNumberDescriptor.Sign.*;
 import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.DoubleDescriptor.addDoubleAndIntegerCanDestroy;
-import static com.avail.descriptor.DoubleDescriptor.compareDoubleAndInteger;
-import static com.avail.descriptor.DoubleDescriptor.fromDoubleRecycling;
+import static com.avail.descriptor.DoubleDescriptor.*;
 import static com.avail.descriptor.FloatDescriptor.IntegerSlots.RAW_INT;
 import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
 import static java.lang.Float.floatToRawIntBits;
@@ -358,13 +353,13 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override @AvailMethod
-	float o_ExtractFloat (final AvailObject object)
+	protected float o_ExtractFloat (final AvailObject object)
 	{
 		return getFloat(object);
 	}
 
 	@Override @AvailMethod
-	double o_ExtractDouble (final AvailObject object)
+	protected double o_ExtractDouble (final AvailObject object)
 	{
 		return getDouble(object);
 	}
@@ -441,7 +436,7 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override
-	Object o_MarshalToJava (
+	protected Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{
@@ -512,13 +507,14 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override @AvailMethod
-	Order o_NumericCompare (final AvailObject object, final A_Number another)
+	protected Order o_NumericCompare (
+		final AvailObject object, final A_Number another)
 	{
 		return another.numericCompareToDouble(getDouble(object)).reverse();
 	}
 
 	@Override @AvailMethod
-	Order o_NumericCompareToDouble (
+	protected Order o_NumericCompareToDouble (
 		final AvailObject object,
 		final double double1)
 	{
@@ -540,7 +536,7 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override @AvailMethod
-	Order o_NumericCompareToInfinity (
+	protected Order o_NumericCompareToInfinity (
 		final AvailObject object,
 		final Sign sign)
 	{
@@ -562,7 +558,7 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override @AvailMethod
-	Order o_NumericCompareToInteger (
+	protected Order o_NumericCompareToInteger (
 		final AvailObject object,
 		final AvailObject anInteger)
 	{
@@ -583,7 +579,8 @@ extends AbstractNumberDescriptor
 
 	@Override
 	@AvailMethod @ThreadSafe
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.FLOAT;
 	}
@@ -671,7 +668,7 @@ extends AbstractNumberDescriptor
 		new FloatDescriptor(Mutability.MUTABLE);
 
 	@Override
-	FloatDescriptor mutable ()
+	protected FloatDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -681,7 +678,7 @@ extends AbstractNumberDescriptor
 		new FloatDescriptor(Mutability.IMMUTABLE);
 
 	@Override
-	FloatDescriptor immutable ()
+	protected FloatDescriptor immutable ()
 	{
 		return immutable;
 	}
@@ -691,7 +688,7 @@ extends AbstractNumberDescriptor
 		new FloatDescriptor(Mutability.SHARED);
 
 	@Override
-	FloatDescriptor shared ()
+	protected FloatDescriptor shared ()
 	{
 		return shared;
 	}

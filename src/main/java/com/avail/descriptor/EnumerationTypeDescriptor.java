@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.atoms.A_Atom;
+import com.avail.descriptor.atoms.AtomDescriptor;
 import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.descriptor.parsing.A_Phrase;
 import com.avail.descriptor.tuples.A_Tuple;
@@ -42,14 +43,8 @@ import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
 import javax.annotation.Nullable;
-import java.util.EnumSet;
-import java.util.IdentityHashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
-import static com.avail.descriptor.AtomDescriptor.falseObject;
-import static com.avail.descriptor.AtomDescriptor.trueObject;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.EnumerationTypeDescriptor.ObjectSlots.CACHED_SUPERKIND;
@@ -61,6 +56,8 @@ import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.SetDescriptor.set;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.descriptor.atoms.AtomDescriptor.falseObject;
+import static com.avail.descriptor.atoms.AtomDescriptor.trueObject;
 
 /**
  * My instances are called <em>enumerations</em>. This descriptor family is
@@ -187,7 +184,8 @@ extends AbstractEnumerationTypeDescriptor
 		return rawGetSuperkind(object);
 	}
 
-	@Override boolean allowsImmutableToMutableReferenceInField (
+	@Override
+	protected boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
 		return e == CACHED_SUPERKIND;
@@ -687,7 +685,7 @@ extends AbstractEnumerationTypeDescriptor
 	@Override @AvailMethod
 	protected boolean o_CouldEverBeInvokedWith (
 		final AvailObject object,
-		final List<? extends TypeRestriction> argRestrictions)
+		final List<TypeRestriction> argRestrictions)
 	{
 		return getSuperkind(object).couldEverBeInvokedWith(argRestrictions);
 	}
@@ -726,7 +724,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override
-	@Nullable Object o_MarshalToJava (
+	protected @Nullable Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{
@@ -767,7 +765,8 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.ENUMERATION_TYPE;
 	}
@@ -795,7 +794,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override
-	TypeTag o_ComputeTypeTag (final AvailObject object)
+	protected TypeTag o_ComputeTypeTag (final AvailObject object)
 	{
 		final Set<TypeTag> tags = EnumSet.noneOf(TypeTag.class);
 		for (final AvailObject instance : getInstances(object))
@@ -849,7 +848,7 @@ extends AbstractEnumerationTypeDescriptor
 		new EnumerationTypeDescriptor(Mutability.MUTABLE);
 
 	@Override
-	AbstractEnumerationTypeDescriptor mutable ()
+	protected AbstractEnumerationTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -859,7 +858,7 @@ extends AbstractEnumerationTypeDescriptor
 		new EnumerationTypeDescriptor(Mutability.IMMUTABLE);
 
 	@Override
-	AbstractEnumerationTypeDescriptor immutable ()
+	protected AbstractEnumerationTypeDescriptor immutable ()
 	{
 		return immutable;
 	}
@@ -869,7 +868,7 @@ extends AbstractEnumerationTypeDescriptor
 		new EnumerationTypeDescriptor(Mutability.SHARED);
 
 	@Override
-	AbstractEnumerationTypeDescriptor shared ()
+	protected AbstractEnumerationTypeDescriptor shared ()
 	{
 		return shared;
 	}
