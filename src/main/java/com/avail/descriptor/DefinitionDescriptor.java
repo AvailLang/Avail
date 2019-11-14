@@ -34,6 +34,9 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
+import com.avail.descriptor.methods.A_Method;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.tuples.A_String;
 import com.avail.serialization.SerializerOperation;
 
 import javax.annotation.Nullable;
@@ -77,7 +80,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	abstract A_Type o_BodySignature (final AvailObject object);
+	protected abstract A_Type o_BodySignature (final AvailObject object);
 
 	@Override @AvailMethod
 	public A_Method o_DefinitionMethod (final AvailObject object)
@@ -109,43 +112,43 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.traversed().sameAddressAs(object);
 	}
 
 	@Override @AvailMethod
-	abstract int o_Hash (final AvailObject object);
+	protected abstract int o_Hash (final AvailObject object);
 
 	@Override @AvailMethod
-	boolean o_IsAbstractDefinition (final AvailObject object)
+	protected boolean o_IsAbstractDefinition (final AvailObject object)
 	{
 		return false;
 	}
 
 	@Override @AvailMethod
-	boolean o_IsForwardDefinition (final AvailObject object)
+	protected boolean o_IsForwardDefinition (final AvailObject object)
 	{
 		return false;
 	}
 
 	@Override @AvailMethod
-	boolean o_IsMethodDefinition (final AvailObject object)
+	protected boolean o_IsMethodDefinition (final AvailObject object)
 	{
 		return false;
 	}
 
 	@Override @AvailMethod
-	boolean o_IsMacroDefinition (final AvailObject object)
+	protected boolean o_IsMacroDefinition (final AvailObject object)
 	{
 		return false;
 	}
 
 	@Override @AvailMethod
-	abstract A_Type o_Kind (final AvailObject object);
+	protected abstract A_Type o_Kind (final AvailObject object);
 
 	@Override @AvailMethod
-	A_Type o_ParsingSignature (final AvailObject object)
+	protected A_Type o_ParsingSignature (final AvailObject object)
 	{
 		// Non-macro definitions have a signature derived from the
 		// bodySignature.  We can safely make it a list phrase type.
@@ -164,7 +167,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	abstract SerializerOperation o_SerializerOperation (
+	protected abstract SerializerOperation o_SerializerOperation (
 		final AvailObject object);
 
 	/**

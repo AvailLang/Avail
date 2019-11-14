@@ -40,17 +40,7 @@ import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.utility.Graph;
 
 import javax.annotation.Nullable;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.Collection;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.avail.utility.Casts.cast;
 import static java.util.stream.Collectors.toList;

@@ -6,14 +6,14 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
+ *  Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
+ *  Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
+ *  Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -30,10 +30,18 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.descriptor;
+package com.avail.descriptor.bundles;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.splitter.MessageSplitter;
+import com.avail.descriptor.*;
+import com.avail.descriptor.atoms.A_Atom;
+import com.avail.descriptor.atoms.AtomDescriptor;
+import com.avail.descriptor.methods.A_Definition;
+import com.avail.descriptor.methods.A_GrammaticalRestriction;
+import com.avail.descriptor.methods.A_Method;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -41,14 +49,10 @@ import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.DefinitionParsingPlanDescriptor.newParsingPlan;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
-import static com.avail.descriptor.MessageBundleDescriptor.ObjectSlots.DEFINITION_PARSING_PLANS;
-import static com.avail.descriptor.MessageBundleDescriptor.ObjectSlots.GRAMMATICAL_RESTRICTIONS;
-import static com.avail.descriptor.MessageBundleDescriptor.ObjectSlots.MESSAGE;
-import static com.avail.descriptor.MessageBundleDescriptor.ObjectSlots.MESSAGE_SPLITTER_POJO;
-import static com.avail.descriptor.MessageBundleDescriptor.ObjectSlots.METHOD;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE;
+import static com.avail.descriptor.bundles.MessageBundleDescriptor.ObjectSlots.*;
 
 /**
  * A message bundle is how a message name is bound to a {@linkplain
@@ -115,7 +119,8 @@ extends Descriptor
 		DEFINITION_PARSING_PLANS;
 	}
 
-	@Override boolean allowsImmutableToMutableReferenceInField (
+	@Override
+	protected boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
 		return e == METHOD
@@ -124,7 +129,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	void o_AddGrammaticalRestriction (
+	protected void o_AddGrammaticalRestriction (
 		final AvailObject object,
 		final A_GrammaticalRestriction grammaticalRestriction)
 	{
@@ -142,7 +147,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	void o_AddDefinitionParsingPlan (
+	protected void o_AddDefinitionParsingPlan (
 		final AvailObject object,
 		final A_DefinitionParsingPlan plan)
 	{
@@ -160,55 +165,55 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	A_Method o_BundleMethod (final AvailObject object)
+	protected A_Method o_BundleMethod (final AvailObject object)
 	{
 		return object.mutableSlot(METHOD);
 	}
 
 	@Override
-	A_Map o_DefinitionParsingPlans (final AvailObject object)
+	protected A_Map o_DefinitionParsingPlans (final AvailObject object)
 	{
 		return object.slot(DEFINITION_PARSING_PLANS);
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.traversed().sameAddressAs(object);
 	}
 
 	@Override @AvailMethod
-	A_Set o_GrammaticalRestrictions (final AvailObject object)
+	protected A_Set o_GrammaticalRestrictions (final AvailObject object)
 	{
 		return object.mutableSlot(GRAMMATICAL_RESTRICTIONS);
 	}
 
 	@Override @AvailMethod
-	boolean o_HasGrammaticalRestrictions (final AvailObject object)
+	protected boolean o_HasGrammaticalRestrictions (final AvailObject object)
 	{
 		return object.mutableSlot(GRAMMATICAL_RESTRICTIONS).setSize() > 0;
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	protected int o_Hash (final AvailObject object)
 	{
 		return object.message().hash() ^ 0x0312CAB9;
 	}
 
 	@Override @AvailMethod
-	A_Type o_Kind (final AvailObject object)
+	protected A_Type o_Kind (final AvailObject object)
 	{
 		return MESSAGE_BUNDLE.o();
 	}
 
 	@Override @AvailMethod
-	A_Atom o_Message (final AvailObject object)
+	protected A_Atom o_Message (final AvailObject object)
 	{
 		return object.slot(MESSAGE);
 	}
 
 	@Override @AvailMethod
-	A_Tuple o_MessageParts (final AvailObject object)
+	protected A_Tuple o_MessageParts (final AvailObject object)
 	{
 		final A_BasicObject splitterPojo = object.slot(MESSAGE_SPLITTER_POJO);
 		final MessageSplitter messageSplitter =
@@ -217,14 +222,14 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	MessageSplitter o_MessageSplitter(final AvailObject object)
+	protected MessageSplitter o_MessageSplitter(final AvailObject object)
 	{
 		final A_BasicObject splitterPojo = object.slot(MESSAGE_SPLITTER_POJO);
 		return splitterPojo.javaObjectNotNull();
 	}
 
 	@Override @AvailMethod
-	void o_RemovePlanForDefinition (
+	protected void o_RemovePlanForDefinition (
 		final AvailObject object,
 		final A_Definition definition)
 	{
@@ -242,7 +247,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	void o_RemoveGrammaticalRestriction (
+	protected void o_RemoveGrammaticalRestriction (
 		final AvailObject object,
 		final A_GrammaticalRestriction obsoleteRestriction)
 	{
@@ -260,13 +265,14 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.MESSAGE_BUNDLE;
 	}
 
 	@Override
-	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -423,13 +429,13 @@ extends Descriptor
 		new MessageBundleDescriptor(Mutability.MUTABLE);
 
 	@Override
-	MessageBundleDescriptor mutable ()
+	public MessageBundleDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	@Override
-	MessageBundleDescriptor immutable ()
+	protected MessageBundleDescriptor immutable ()
 	{
 		// There is no immutable variant.
 		return shared;
@@ -440,7 +446,7 @@ extends Descriptor
 		new MessageBundleDescriptor(Mutability.SHARED);
 
 	@Override
-	MessageBundleDescriptor shared ()
+	protected MessageBundleDescriptor shared ()
 	{
 		return shared;
 	}

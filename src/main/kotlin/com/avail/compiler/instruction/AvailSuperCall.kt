@@ -32,11 +32,11 @@
 
 package com.avail.compiler.instruction
 
-import com.avail.descriptor.A_Bundle
 import com.avail.descriptor.A_Token
-import com.avail.descriptor.A_Tuple
 import com.avail.descriptor.MethodDescriptor
 import com.avail.descriptor.TupleTypeDescriptor
+import com.avail.descriptor.bundles.A_Bundle
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.interpreter.levelOne.L1Operation.L1Ext_doSuperCall
 import com.avail.io.NybbleOutputStream
 

@@ -34,6 +34,8 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.serialization.SerializerOperation;
 
 import java.nio.ByteBuffer;
@@ -45,9 +47,7 @@ import static com.avail.descriptor.ByteTupleDescriptor.generateByteTupleFrom;
 import static com.avail.descriptor.IntegerDescriptor.fromUnsignedByte;
 import static com.avail.descriptor.IntegerDescriptor.hashOfUnsignedByte;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.nybbles;
-import static com.avail.descriptor.Mutability.IMMUTABLE;
-import static com.avail.descriptor.Mutability.MUTABLE;
-import static com.avail.descriptor.Mutability.SHARED;
+import static com.avail.descriptor.Mutability.*;
 import static com.avail.descriptor.NybbleTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.NybbleTupleDescriptor.IntegerSlots.RAW_LONG_AT_;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
@@ -123,7 +123,7 @@ extends NumericTupleDescriptor
 	private final int unusedNybblesOfLastLong;
 
 	@Override @AvailMethod
-	A_Tuple o_AppendCanDestroy (
+	protected A_Tuple o_AppendCanDestroy (
 		final AvailObject object,
 		final A_BasicObject newElement,
 		final boolean canDestroy)
@@ -148,7 +148,7 @@ extends NumericTupleDescriptor
 		{
 			// Enlarge it in place, using more of the final partial int field.
 			result = object;
-			result.descriptor = descriptorFor(MUTABLE, newSize);
+			result.setDescriptor(descriptorFor(MUTABLE, newSize));
 		}
 		else
 		{
@@ -164,7 +164,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_BitsPerEntry (final AvailObject object)
+	protected int o_BitsPerEntry (final AvailObject object)
 	{
 		// Answer approximately how many bits per entry are taken up by this
 		// object.
@@ -172,7 +172,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_CompareFromToWithNybbleTupleStartingAt (
+	protected boolean o_CompareFromToWithNybbleTupleStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -202,7 +202,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_CompareFromToWithStartingAt (
+	protected boolean o_CompareFromToWithStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -217,7 +217,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_ComputeHashFromTo (
+	protected int o_ComputeHashFromTo (
 		final AvailObject object,
 		final int start,
 		final int end)
@@ -236,7 +236,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Tuple o_ConcatenateWith (
+	protected A_Tuple o_ConcatenateWith (
 		final AvailObject object,
 		final A_Tuple otherTuple,
 		final boolean canDestroy)
@@ -270,7 +270,7 @@ extends NumericTupleDescriptor
 			if (canDestroy && isMutable() && deltaSlots == 0)
 			{
 				// We can reuse the receiver; it has enough int slots.
-				object.descriptor = descriptorFor(MUTABLE, newSize);
+				object.setDescriptor(descriptorFor(MUTABLE, newSize));
 				copy = object;
 			}
 			else
@@ -305,7 +305,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override
-	A_Tuple o_CopyTupleFromToCanDestroy (
+	protected A_Tuple o_CopyTupleFromToCanDestroy (
 		final AvailObject object,
 		final int start,
 		final int end,
@@ -333,13 +333,13 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsNybbleTuple(object);
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsNybbleTuple (
+	protected boolean o_EqualsNybbleTuple (
 		final AvailObject object,
 		final A_Tuple aNybbleTuple)
 	{
@@ -389,7 +389,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsBetterRepresentationThan (
+	protected boolean o_IsBetterRepresentationThan (
 		final AvailObject object,
 		final A_BasicObject anotherObject)
 	{
@@ -402,7 +402,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsInstanceOfKind (
+	protected boolean o_IsInstanceOfKind (
 		final AvailObject object,
 		final A_Type aType)
 	{
@@ -445,33 +445,33 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MakeImmutable (final AvailObject object)
+	protected AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		if (isMutable())
 		{
-			object.descriptor = descriptorFor(IMMUTABLE, object.tupleSize());
+			object.setDescriptor(descriptorFor(IMMUTABLE, object.tupleSize()));
 		}
 		return object;
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MakeShared (final AvailObject object)
+	protected AvailObject o_MakeShared (final AvailObject object)
 	{
 		if (!isShared())
 		{
-			object.descriptor = descriptorFor(SHARED, object.tupleSize());
+			object.setDescriptor(descriptorFor(SHARED, object.tupleSize()));
 		}
 		return object;
 	}
 	@Override @AvailMethod
-	SerializerOperation o_SerializerOperation (
+	protected SerializerOperation o_SerializerOperation (
 		final AvailObject object)
 	{
 		return SerializerOperation.NYBBLE_TUPLE;
 	}
 
 	@Override
-	void o_TransferIntoByteBuffer (
+	protected void o_TransferIntoByteBuffer (
 		final AvailObject object,
 		final int startIndex,
 		final int endIndex,
@@ -484,14 +484,14 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TupleAt (final AvailObject object, final int index)
+	protected AvailObject o_TupleAt (final AvailObject object, final int index)
 	{
 		// Answer the element at the given index in the nybble tuple object.
 		return fromUnsignedByte(getNybble(object, index));
 	}
 
 	@Override @AvailMethod
-	A_Tuple o_TupleAtPuttingCanDestroy (
+	protected A_Tuple o_TupleAtPuttingCanDestroy (
 		final AvailObject object,
 		final int index,
 		final A_BasicObject newValueObject,
@@ -535,7 +535,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override
-	boolean o_TupleElementsInRangeAreInstancesOf (
+	protected boolean o_TupleElementsInRangeAreInstancesOf (
 		final AvailObject object,
 		final int startIndex,
 		final int endIndex,
@@ -547,7 +547,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_TupleIntAt (final AvailObject object, final int index)
+	protected int o_TupleIntAt (final AvailObject object, final int index)
 	{
 		// Answer the integer element at the given index in the nybble tuple
 		// object.
@@ -555,7 +555,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Tuple o_TupleReverse(final AvailObject object)
+	protected A_Tuple o_TupleReverse(final AvailObject object)
 	{
 		final int size = object.tupleSize();
 		if (size >= maximumCopySize)
@@ -572,7 +572,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_TupleSize (final AvailObject object)
+	protected int o_TupleSize (final AvailObject object)
 	{
 		return (object.variableIntegerSlotsCount() << 4)
 			- unusedNybblesOfLastLong;
@@ -635,11 +635,10 @@ extends NumericTupleDescriptor
 	}
 
 	/**
-	 * The static list of descriptors of this kind, organized in such a way that
-	 * {@link #descriptorFor(Mutability, int)} can find them by mutability and
-	 * number of unused nybbles in the last word.
+	 * The static array of descriptors of this kind, organized in such a way
+	 * that {@link #descriptorFor(Mutability, int)} can find them by mutability
+	 * and number of unused nybbles in the last word.
 	 */
-	/** The {@link NybbleTupleDescriptor} instances. */
 	private static final NybbleTupleDescriptor[] descriptors =
 		new NybbleTupleDescriptor[16 * 3];
 
@@ -655,21 +654,21 @@ extends NumericTupleDescriptor
 	}
 
 	@Override
-	NybbleTupleDescriptor mutable ()
+	protected NybbleTupleDescriptor mutable ()
 	{
 		return descriptors[
 			((16 - unusedNybblesOfLastLong) & 15) * 3 + MUTABLE.ordinal()];
 	}
 
 	@Override
-	NybbleTupleDescriptor immutable ()
+	protected NybbleTupleDescriptor immutable ()
 	{
 		return descriptors[
 			((16 - unusedNybblesOfLastLong) & 15) * 3 + IMMUTABLE.ordinal()];
 	}
 
 	@Override
-	NybbleTupleDescriptor shared ()
+	protected NybbleTupleDescriptor shared ()
 	{
 		return descriptors[
 			((16 - unusedNybblesOfLastLong) & 15) * 3 + SHARED.ordinal()];

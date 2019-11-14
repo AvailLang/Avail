@@ -32,7 +32,7 @@
 
 package com.avail.compiler.problems
 
-import com.avail.descriptor.PhraseDescriptor
+import com.avail.descriptor.parsing.PhraseDescriptor
 
 /**
  * A [Problem] has a `ProblemType`, indicating its basic nature

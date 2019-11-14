@@ -32,6 +32,8 @@
 
 package com.avail.descriptor;
 
+import com.avail.descriptor.objects.A_BasicObject;
+
 import java.util.IdentityHashMap;
 /**
  * {@code FillerDescriptor} represents an unreachable {@link AvailObject} of
@@ -67,19 +69,19 @@ extends Descriptor
 		new FillerDescriptor(Mutability.SHARED);
 
 	@Override
-	FillerDescriptor mutable ()
+	protected FillerDescriptor mutable ()
 	{
 		return shared;
 	}
 
 	@Override
-	FillerDescriptor immutable ()
+	protected FillerDescriptor immutable ()
 	{
 		return shared;
 	}
 
 	@Override
-	FillerDescriptor shared ()
+	protected FillerDescriptor shared ()
 	{
 		return shared;
 	}

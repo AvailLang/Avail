@@ -33,6 +33,13 @@
 package com.avail.descriptor;
 
 import com.avail.descriptor.CompiledCodeDescriptor.L1InstructionDecoder;
+import com.avail.descriptor.methods.A_Definition;
+import com.avail.descriptor.methods.A_Method;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.parsing.A_Phrase;
+import com.avail.descriptor.parsing.BlockPhraseDescriptor;
+import com.avail.descriptor.tuples.A_String;
+import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.L1Operation;
@@ -256,11 +263,10 @@ extends A_BasicObject
 	@Nullable Primitive primitive ();
 
 	/**
-	 * Answer the {@linkplain Primitive primitive} {@linkplain
-	 * Primitive#primitiveNumber number} associated with this {@linkplain
-	 * A_RawFunction function implementation}. The {@linkplain Interpreter
-	 * interpreter} will execute the indicated primitive before falling back on
-	 * the Avail code (in the event of failure only).
+	 * Answer the {@linkplain Primitive primitive} number associated with this
+	 * {@code function implementation}. The {@link Interpreter} will execute the
+	 * indicated primitive before falling back on the Avail code (in the event
+	 * of failure only).
 	 *
 	 * @return The primitive number, or zero ({@code 0}) if the function
 	 *         implementation is not linked to a primitive.

@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import com.avail.descriptor.MapDescriptor.MapIterable;
+import com.avail.descriptor.objects.A_BasicObject;
 
 import javax.annotation.Nullable;
 import java.util.function.BiConsumer;

@@ -49,7 +49,7 @@ public abstract class ExtendedIntegerDescriptor
 extends AbstractNumberDescriptor
 {
 	@Override @AvailMethod
-	boolean o_IsExtendedInteger (final AvailObject object)
+	protected boolean o_IsExtendedInteger (final AvailObject object)
 	{
 		return true;
 	}

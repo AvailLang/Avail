@@ -46,6 +46,9 @@ import com.avail.descriptor.StringDescriptor.formatString
 import com.avail.descriptor.StringDescriptor.stringFrom
 import com.avail.descriptor.TokenDescriptor.TokenType.END_OF_FILE
 import com.avail.descriptor.TokenDescriptor.newToken
+import com.avail.descriptor.objects.A_BasicObject
+import com.avail.descriptor.parsing.A_Lexer
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.interpreter.Interpreter
 import com.avail.utility.Nulls.stripNull
 import com.avail.utility.evaluation.Describer

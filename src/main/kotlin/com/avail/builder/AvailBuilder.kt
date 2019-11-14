@@ -33,20 +33,11 @@
 package com.avail.builder
 
 import com.avail.AvailRuntime
-import com.avail.compiler.AvailCompiler
-import com.avail.compiler.CompilerProgressReporter
-import com.avail.compiler.FiberTerminationException
-import com.avail.compiler.GlobalProgressReporter
-import com.avail.compiler.ModuleHeader
-import com.avail.compiler.ModuleImport
+import com.avail.compiler.*
 import com.avail.compiler.problems.Problem
 import com.avail.compiler.problems.ProblemHandler
-import com.avail.compiler.problems.ProblemType.EXECUTION
-import com.avail.compiler.problems.ProblemType.PARSE
-import com.avail.compiler.problems.ProblemType.TRACE
+import com.avail.compiler.problems.ProblemType.*
 import com.avail.descriptor.A_Module
-import com.avail.descriptor.A_Phrase
-import com.avail.descriptor.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
 import com.avail.descriptor.AvailObject
 import com.avail.descriptor.FiberDescriptor.commandPriority
 import com.avail.descriptor.FiberDescriptor.newFiber
@@ -58,14 +49,14 @@ import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
 import com.avail.descriptor.StringDescriptor.formatString
 import com.avail.descriptor.StringDescriptor.stringFrom
+import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
+import com.avail.descriptor.parsing.A_Phrase
 import com.avail.interpreter.Interpreter.debugWorkUnits
 import com.avail.interpreter.Interpreter.runOutermostFunction
 import com.avail.io.SimpleCompletionHandler
 import com.avail.io.TextInterface
 import com.avail.persistence.IndexedRepositoryManager
-import com.avail.persistence.IndexedRepositoryManager.ModuleArchive
-import com.avail.persistence.IndexedRepositoryManager.ModuleCompilation
-import com.avail.persistence.IndexedRepositoryManager.ModuleVersion
+import com.avail.persistence.IndexedRepositoryManager.*
 import com.avail.serialization.MalformedSerialStreamException
 import com.avail.serialization.Serializer
 import com.avail.utility.Graph
@@ -79,9 +70,7 @@ import java.nio.ByteBuffer
 import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.*
-import java.util.Collections.emptyList
-import java.util.Collections.synchronizedList
-import java.util.Collections.synchronizedMap
+import java.util.Collections.*
 import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
@@ -91,6 +80,9 @@ import java.util.logging.Level
 import java.util.logging.Logger
 import java.util.stream.Collectors.joining
 import java.util.zip.CRC32
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.collections.set
 import kotlin.concurrent.read
 
 /**

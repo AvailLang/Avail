@@ -32,7 +32,6 @@
 
 package com.avail.interpreter.primitive.files
 
-import com.avail.descriptor.A_String
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
@@ -42,6 +41,7 @@ import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.StringDescriptor.stringFrom
 import com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf
 import com.avail.descriptor.TupleTypeDescriptor.stringType
+import com.avail.descriptor.tuples.A_String
 import com.avail.exceptions.AvailErrorCode.E_INVALID_PATH
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive

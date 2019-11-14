@@ -40,7 +40,7 @@ import com.avail.tools.compiler.Compiler
 import com.avail.tools.compiler.configuration.VerbosityLevel.GLOBAL_LOCAL_PROGRESS
 import com.avail.utility.configuration.Configuration
 import java.io.*
-import java.nio.charset.StandardCharsets
+import java.nio.charset.StandardCharsets.UTF_8
 import java.util.*
 
 /**
@@ -61,7 +61,7 @@ class CompilerConfiguration : Configuration
 		}
 
 	/** The [Avail roots][ModuleRoots].  */
-	internal var availRoots: ModuleRoots? = null
+	private var availRoots: ModuleRoots? = null
 		get()
 		{
 			var roots = field
@@ -101,20 +101,13 @@ class CompilerConfiguration : Configuration
 			{
 				val reader: Reader
 				val path = renamesFilePath
-				if (path === null)
-				{
-					reader = StringReader("")
+				reader = if (path === null) {
+					StringReader("")
+				} else {
+					BufferedReader(
+						InputStreamReader(FileInputStream(File(path)), UTF_8))
 				}
-				else
-				{
-					val file = File(path)
-
-					reader = BufferedReader(
-						InputStreamReader(
-							FileInputStream(file), StandardCharsets.UTF_8))
-				}
-				val renameParser = RenamesFileParser(
-					reader, availRoots!!)
+				val renameParser = RenamesFileParser(reader, availRoots!!)
 				resolver = renameParser.parse()
 				try
 				{

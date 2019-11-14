@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
+import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.exceptions.MarshalingException;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
@@ -144,20 +145,20 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	int o_CodePoint (final AvailObject object)
+	protected int o_CodePoint (final AvailObject object)
 	{
 		return (int) object.slot(CODE_POINT);
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsCharacterWithCodePoint(
 			(int) object.slot(CODE_POINT));
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsCharacterWithCodePoint (
+	protected boolean o_EqualsCharacterWithCodePoint (
 		final AvailObject object,
 		final int otherCodePoint)
 	{
@@ -165,7 +166,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	protected int o_Hash (final AvailObject object)
 	{
 		final int codePoint = (int) object.slot(CODE_POINT);
 		if (codePoint >= 0 && codePoint <= 255)
@@ -176,40 +177,40 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsCharacter (final AvailObject object)
+	protected boolean o_IsCharacter (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MakeImmutable (final AvailObject object)
+	protected AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		if (isMutable())
 		{
 			// Make the object shared instead.
-			object.descriptor = shared;
+			object.setDescriptor(shared);
 		}
 		return object;
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MakeShared (final AvailObject object)
+	protected AvailObject o_MakeShared (final AvailObject object)
 	{
 		if (!isShared())
 		{
-			object.descriptor = shared;
+			object.setDescriptor(shared);
 		}
 		return object;
 	}
 
 	@Override @AvailMethod
-	A_Type o_Kind (final AvailObject object)
+	protected A_Type o_Kind (final AvailObject object)
 	{
 		return CHARACTER.o();
 	}
 
 	@Override
-	Object o_MarshalToJava (
+	protected Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> classHint)
 	{
@@ -242,7 +243,8 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		final int codePoint = (int) object.slot(CODE_POINT);
 		if (codePoint < 256)
@@ -257,7 +259,7 @@ extends Descriptor
 	}
 
 	@Override
-	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.write(tuple(object));
 	}
@@ -278,7 +280,7 @@ extends Descriptor
 		new CharacterDescriptor(Mutability.MUTABLE);
 
 	@Override
-	CharacterDescriptor mutable ()
+	protected CharacterDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -288,14 +290,14 @@ extends Descriptor
 		new CharacterDescriptor(Mutability.SHARED);
 
 	@Override
-	CharacterDescriptor immutable ()
+	protected CharacterDescriptor immutable ()
 	{
 		// There is no immutable variant; answer the shared descriptor.
 		return shared;
 	}
 
 	@Override
-	CharacterDescriptor shared ()
+	protected CharacterDescriptor shared ()
 	{
 		return shared;
 	}

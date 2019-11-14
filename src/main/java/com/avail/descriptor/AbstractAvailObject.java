@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 
+import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 /**
@@ -81,7 +82,7 @@ abstract class AbstractAvailObject
 	 * semantics. The descriptor essentially says how this object should behave,
 	 * including how its fields are laid out.
 	 */
-	protected volatile AbstractDescriptor descriptor;
+	private volatile AbstractDescriptor descriptor;
 
 	/**
 	 * Answer the object's {@linkplain AbstractDescriptor descriptor}.
@@ -95,6 +96,20 @@ abstract class AbstractAvailObject
 	}
 
 	/**
+	 * Replace the object's {@linkplain #descriptor}, thereby changing its
+	 * behavior.
+	 *
+	 * For example, making an object {@link Mutability#IMMUTABLE} or
+	 * {@link Mutability#SHARED} is accomplished by replacing the descriptor.
+	 *
+	 * @param descriptor The new {@link AbstractDescriptor}.
+	 */
+	public void setDescriptor (final AbstractDescriptor descriptor)
+	{
+		this.descriptor = descriptor;
+	}
+
+	/**
 	 * Replace the {@linkplain AbstractDescriptor descriptor} with a {@linkplain
 	 * FillerDescriptor filler object}. This blows up for most messages,
 	 * catching further uses of this object; note that all further uses are
@@ -102,7 +117,7 @@ abstract class AbstractAvailObject
 	 */
 	public final void destroy ()
 	{
-		descriptor = FillerDescriptor.shared;
+		setDescriptor(FillerDescriptor.shared);
 	}
 
 	/**
@@ -115,7 +130,7 @@ abstract class AbstractAvailObject
 	final boolean isDestroyed ()
 	{
 		checkValidAddress();
-		return descriptor == FillerDescriptor.shared;
+		return descriptor() == FillerDescriptor.shared;
 	}
 
 	/**
@@ -134,7 +149,7 @@ abstract class AbstractAvailObject
 	 */
 	public final int variableIntegerSlotsCount ()
 	{
-		return integerSlotsCount() - descriptor.numberOfFixedIntegerSlots();
+		return integerSlotsCount() - descriptor().numberOfFixedIntegerSlots();
 	}
 
 	/**
@@ -153,7 +168,7 @@ abstract class AbstractAvailObject
 	 */
 	public final int variableObjectSlotsCount ()
 	{
-		return objectSlotsCount() - descriptor.numberOfFixedObjectSlots();
+		return objectSlotsCount() - descriptor().numberOfFixedObjectSlots();
 	}
 
 	/**
@@ -163,7 +178,7 @@ abstract class AbstractAvailObject
 	 */
 	final void checkWriteForField (final AbstractSlotsEnum e)
 	{
-		descriptor.checkWriteForField(e);
+		descriptor().checkWriteForField(e);
 	}
 
 	/**

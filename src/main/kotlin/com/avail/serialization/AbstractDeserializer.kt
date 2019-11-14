@@ -33,8 +33,12 @@
 package com.avail.serialization
 
 import com.avail.AvailRuntime
-import com.avail.descriptor.*
+import com.avail.descriptor.A_Module
+import com.avail.descriptor.AvailObject
+import com.avail.descriptor.ModuleDescriptor
 import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.StringDescriptor
+import com.avail.descriptor.tuples.A_String
 import java.io.IOException
 import java.io.InputStream
 
@@ -158,7 +162,7 @@ abstract class AbstractDeserializer constructor(
 	/**
 	 * Record the provided object as an end product of deserialization.
 	 *
-	 * @param object
+	 * @param obj
 	 *   The object that was produced.
 	 */
 	internal abstract fun recordProducedObject(obj: AvailObject)

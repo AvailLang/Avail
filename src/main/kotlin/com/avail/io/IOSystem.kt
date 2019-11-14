@@ -35,12 +35,12 @@ package com.avail.io
 import com.avail.AvailRuntime
 import com.avail.AvailRuntimeConfiguration.availableProcessors
 import com.avail.AvailThread
-import com.avail.descriptor.A_String
-import com.avail.descriptor.A_Tuple
-import com.avail.descriptor.AtomDescriptor
-import com.avail.descriptor.AtomDescriptor.SpecialAtom
 import com.avail.descriptor.AvailObject.multiplier
 import com.avail.descriptor.PojoDescriptor
+import com.avail.descriptor.atoms.AtomDescriptor
+import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom
+import com.avail.descriptor.tuples.A_String
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.utility.LRUCache
 import com.avail.utility.MutableOrNull
 import com.avail.utility.Nulls.stripNull
@@ -332,7 +332,7 @@ class IOSystem constructor(val runtime: AvailRuntime)
 	 *   A container for a buffer, possibly empty.
 	 */
 	fun getBuffer(key: BufferKey): MutableOrNull<A_Tuple> =
-		stripNull(cachedBuffers.get(key))
+		stripNull(cachedBuffers[key])
 
 	/**
 	 * Discard the [container][MutableOrNull] responsible for the

@@ -36,6 +36,8 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.HideFieldJustForPrinting;
 import com.avail.compiler.scanning.LexingState;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.tuples.A_String;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -44,9 +46,7 @@ import java.util.IdentityHashMap;
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.LiteralTokenDescriptor.IntegerSlots.LINE_NUMBER;
 import static com.avail.descriptor.LiteralTokenDescriptor.IntegerSlots.START;
-import static com.avail.descriptor.LiteralTokenDescriptor.ObjectSlots.LITERAL;
-import static com.avail.descriptor.LiteralTokenDescriptor.ObjectSlots.NEXT_LEXING_STATE_POJO;
-import static com.avail.descriptor.LiteralTokenDescriptor.ObjectSlots.STRING;
+import static com.avail.descriptor.LiteralTokenDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
@@ -137,7 +137,7 @@ extends TokenDescriptor
 	}
 
 	@Override
-	boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
+	protected boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
 	{
 		return e == NEXT_LEXING_STATE_POJO
 			|| super.allowsImmutableToMutableReferenceInField(e);
@@ -165,25 +165,25 @@ extends TokenDescriptor
 	}
 
 	@Override @AvailMethod
-	TokenType o_TokenType (final AvailObject object)
+	protected TokenType o_TokenType (final AvailObject object)
 	{
 		return TokenType.LITERAL;
 	}
 
 	@Override @AvailMethod
-	AvailObject o_Literal (final AvailObject object)
+	protected AvailObject o_Literal (final AvailObject object)
 	{
 		return object.slot(LITERAL);
 	}
 
 	@Override @AvailMethod
-	A_Type o_Kind (final AvailObject object)
+	protected A_Type o_Kind (final AvailObject object)
 	{
 		return literalTokenType(instanceType(object));
 	}
 
 	@Override @AvailMethod
-	boolean o_IsInstanceOfKind (
+	protected boolean o_IsInstanceOfKind (
 		final AvailObject object,
 		final A_Type aTypeObject)
 	{
@@ -193,19 +193,20 @@ extends TokenDescriptor
 	}
 
 	@Override
-	boolean o_IsLiteralToken (final AvailObject object)
+	protected boolean o_IsLiteralToken (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.LITERAL_TOKEN;
 	}
 
 	@Override
-	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -225,7 +226,7 @@ extends TokenDescriptor
 	}
 
 	@Override
-	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -309,7 +310,7 @@ extends TokenDescriptor
 		new LiteralTokenDescriptor(Mutability.MUTABLE);
 
 	@Override
-	LiteralTokenDescriptor mutable ()
+	protected LiteralTokenDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -319,14 +320,14 @@ extends TokenDescriptor
 		new LiteralTokenDescriptor(Mutability.SHARED);
 
 	@Override
-	LiteralTokenDescriptor immutable ()
+	protected LiteralTokenDescriptor immutable ()
 	{
 		// Answer the shared descriptor, since there isn't an immutable one.
 		return shared;
 	}
 
 	@Override
-	LiteralTokenDescriptor shared ()
+	protected LiteralTokenDescriptor shared ()
 	{
 		return shared;
 	}

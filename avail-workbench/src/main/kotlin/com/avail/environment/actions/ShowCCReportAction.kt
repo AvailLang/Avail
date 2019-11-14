@@ -34,14 +34,11 @@ package com.avail.environment.actions
 
 import com.avail.AvailRuntime
 import com.avail.builder.AvailBuilder
-import com.avail.descriptor.CompiledCodeDescriptor.CodeCoverageReport
+import com.avail.descriptor.CompiledCodeDescriptor.codeCoverageReportsThen
 import com.avail.descriptor.FiberDescriptor
 import com.avail.environment.AvailWorkbench
-import java.awt.event.ActionEvent
-import java.util.Collections
-
-import com.avail.descriptor.CompiledCodeDescriptor.codeCoverageReportsThen
 import com.avail.environment.AvailWorkbench.StreamStyle.INFO
+import java.awt.event.ActionEvent
 import javax.swing.Action
 
 /**

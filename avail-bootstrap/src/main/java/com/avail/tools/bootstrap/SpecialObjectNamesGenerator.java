@@ -33,27 +33,15 @@
 package com.avail.tools.bootstrap;
 
 import com.avail.AvailRuntime;
-import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.objects.A_BasicObject;
 
 import java.io.PrintWriter;
 import java.text.MessageFormat;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Properties;
-import java.util.PropertyResourceBundle;
-import java.util.ResourceBundle;
-import java.util.Set;
+import java.util.*;
 
-import static com.avail.tools.bootstrap.Resources.Key.specialObjectCommentTemplate;
-import static com.avail.tools.bootstrap.Resources.Key.specialObjectCommentTypeTemplate;
-import static com.avail.tools.bootstrap.Resources.Key.specialObjectCommentValueTemplate;
-import static com.avail.tools.bootstrap.Resources.escape;
-import static com.avail.tools.bootstrap.Resources.specialObjectCommentKey;
-import static com.avail.tools.bootstrap.Resources.specialObjectKey;
-import static com.avail.tools.bootstrap.Resources.specialObjectTypeKey;
-import static com.avail.tools.bootstrap.Resources.specialObjectsBaseName;
+import static com.avail.tools.bootstrap.Resources.Key.*;
+import static com.avail.tools.bootstrap.Resources.*;
 
 /**
  * Generate a {@linkplain PropertyResourceBundle property resource bundle} that

@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.descriptor.MapDescriptor.MapIterable;
+import com.avail.descriptor.objects.A_BasicObject;
 
 import javax.annotation.Nullable;
 import java.util.NoSuchElementException;
@@ -130,7 +131,8 @@ extends MapBinDescriptor
 		BIN_SLOT_AT_;
 	}
 
-	@Override boolean allowsImmutableToMutableReferenceInField (
+	@Override
+	protected boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
 		return e == COMBINED_HASHES
@@ -200,13 +202,13 @@ extends MapBinDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_BinElementAt (final AvailObject object, final int subscript)
+	protected AvailObject o_BinElementAt (final AvailObject object, final int subscript)
 	{
 		return object.slot(BIN_SLOT_AT_, subscript);
 	}
 
 	@Override @AvailMethod
-	void o_ForEachInMapBin (
+	protected void o_ForEachInMapBin (
 		final AvailObject object,
 		final BiConsumer<? super AvailObject, ? super AvailObject> action)
 	{
@@ -220,7 +222,7 @@ extends MapBinDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_MapBinSize (final AvailObject object)
+	protected int o_MapBinSize (final AvailObject object)
 	{
 		// Answer how many (key,value) pairs this bin contains.
 		return entryCount(object);
@@ -246,7 +248,7 @@ extends MapBinDescriptor
 	}
 
 	@Override @AvailMethod
-	A_MapBin o_MapBinAtHashPutLevelCanDestroy (
+	protected A_MapBin o_MapBinAtHashPutLevelCanDestroy (
 		final AvailObject object,
 		final A_BasicObject key,
 		final int keyHash,
@@ -408,7 +410,7 @@ extends MapBinDescriptor
 	 * bin. The bin may be modified if it's mutable and canDestroy.
 	 */
 	@Override @AvailMethod
-	A_MapBin o_MapBinRemoveKeyHashCanDestroy (
+	protected A_MapBin o_MapBinRemoveKeyHashCanDestroy (
 		final AvailObject object,
 		final A_BasicObject key,
 		final int keyHash,
@@ -507,7 +509,7 @@ extends MapBinDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_MapBinKeyUnionKind (final AvailObject object)
+	protected A_Type o_MapBinKeyUnionKind (final AvailObject object)
 	{
 		if (isShared())
 		{
@@ -559,7 +561,7 @@ extends MapBinDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_MapBinValueUnionKind (final AvailObject object)
+	protected A_Type o_MapBinValueUnionKind (final AvailObject object)
 	{
 		if (isShared())
 		{
@@ -594,7 +596,7 @@ extends MapBinDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_MapBinValuesHash (final AvailObject object)
+	protected int o_MapBinValuesHash (final AvailObject object)
 	{
 		if (isShared())
 		{
@@ -607,7 +609,7 @@ extends MapBinDescriptor
 	}
 
 	@Override
-	MapIterable o_MapBinIterable (final AvailObject object)
+	protected MapIterable o_MapBinIterable (final AvailObject object)
 	{
 		return new MapIterable()
 		{
@@ -745,19 +747,19 @@ extends MapBinDescriptor
 	}
 
 	@Override
-	LinearMapBinDescriptor mutable ()
+	protected LinearMapBinDescriptor mutable ()
 	{
 		return descriptorFor(MUTABLE, level);
 	}
 
 	@Override
-	LinearMapBinDescriptor immutable ()
+	protected LinearMapBinDescriptor immutable ()
 	{
 		return descriptorFor(IMMUTABLE, level);
 	}
 
 	@Override
-	LinearMapBinDescriptor shared ()
+	protected LinearMapBinDescriptor shared ()
 	{
 		return descriptorFor(SHARED, level);
 	}

@@ -34,6 +34,8 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.utility.json.JSONWriter;
 
 import java.nio.ByteBuffer;
@@ -116,7 +118,7 @@ extends NumericTupleDescriptor
 	private static final int maximumCopySize = 64;
 
 	@Override @AvailMethod
-	A_Tuple o_AppendCanDestroy (
+	protected A_Tuple o_AppendCanDestroy (
 		final AvailObject object,
 		final A_BasicObject newElement,
 		final boolean canDestroy)
@@ -150,7 +152,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_ComputeHashFromTo (
+	protected int o_ComputeHashFromTo (
 		final AvailObject object,
 		final int start,
 		final int end)
@@ -168,13 +170,13 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsByteBufferTuple(object);
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsByteBufferTuple (
+	protected boolean o_EqualsByteBufferTuple (
 		final AvailObject object,
 		final A_Tuple aByteBufferTuple)
 	{
@@ -220,7 +222,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_CompareFromToWithStartingAt (
+	protected boolean o_CompareFromToWithStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -235,7 +237,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_CompareFromToWithByteBufferTupleStartingAt (
+	protected boolean o_CompareFromToWithByteBufferTupleStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -257,19 +259,19 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsByteTuple (final AvailObject object)
+	protected boolean o_IsByteTuple (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod
-	boolean o_IsByteBufferTuple (final AvailObject object)
+	protected boolean o_IsByteBufferTuple (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod
-	boolean o_IsInstanceOfKind (
+	protected boolean o_IsInstanceOfKind (
 		final AvailObject object,
 		final A_Type aType)
 	{
@@ -312,7 +314,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TupleAt (final AvailObject object, final int index)
+	protected AvailObject o_TupleAt (final AvailObject object, final int index)
 	{
 		// Answer the element at the given index in the tuple object.
 		final ByteBuffer buffer = object.slot(BYTE_BUFFER).javaObjectNotNull();
@@ -320,7 +322,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Tuple o_TupleAtPuttingCanDestroy (
+	protected A_Tuple o_TupleAtPuttingCanDestroy (
 		final AvailObject object,
 		final int index,
 		final A_BasicObject newValueObject,
@@ -359,7 +361,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_TupleIntAt (final AvailObject object, final int index)
+	protected int o_TupleIntAt (final AvailObject object, final int index)
 	{
 		// Answer the integer element at the given index in the tuple object.
 		assert index >= 1 && index <= object.tupleSize();
@@ -368,7 +370,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Tuple o_TupleReverse(final AvailObject object)
+	protected A_Tuple o_TupleReverse(final AvailObject object)
 	{
 		final int size = object.tupleSize();
 		if (size >= maximumCopySize)
@@ -388,7 +390,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_BitsPerEntry (final AvailObject object)
+	protected int o_BitsPerEntry (final AvailObject object)
 	{
 		// Answer approximately how many bits per entry are taken up by this
 		// object.
@@ -396,36 +398,36 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_TupleSize (final AvailObject object)
+	protected int o_TupleSize (final AvailObject object)
 	{
 		final ByteBuffer buffer = object.slot(BYTE_BUFFER).javaObjectNotNull();
 		return buffer.limit();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MakeImmutable (final AvailObject object)
+	protected AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		if (isMutable())
 		{
-			object.descriptor = immutable;
+			object.setDescriptor(immutable);
 			object.slot(BYTE_BUFFER).makeImmutable();
 		}
 		return object;
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MakeShared (final AvailObject object)
+	protected AvailObject o_MakeShared (final AvailObject object)
 	{
 		if (!isShared())
 		{
-			object.descriptor = shared;
+			object.setDescriptor(shared);
 			object.slot(BYTE_BUFFER).makeShared();
 		}
 		return object;
 	}
 
 	@Override
-	A_Tuple o_ConcatenateWith (
+	protected A_Tuple o_ConcatenateWith (
 		final AvailObject object,
 		final A_Tuple otherTuple,
 		final boolean canDestroy)
@@ -456,7 +458,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Tuple o_CopyTupleFromToCanDestroy (
+	protected A_Tuple o_CopyTupleFromToCanDestroy (
 		final AvailObject object,
 		final int start,
 		final int end,
@@ -486,7 +488,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override
-	void o_TransferIntoByteBuffer (
+	protected void o_TransferIntoByteBuffer (
 		final AvailObject object,
 		final int startIndex,
 		final int endIndex,
@@ -500,7 +502,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override
-	boolean o_TupleElementsInRangeAreInstancesOf (
+	protected boolean o_TupleElementsInRangeAreInstancesOf (
 		final AvailObject object,
 		final int startIndex,
 		final int endIndex,
@@ -512,7 +514,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override
-	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		final ByteBuffer buffer = object.slot(BYTE_BUFFER).javaObjectNotNull();
 		writer.startArray();
@@ -539,7 +541,7 @@ extends NumericTupleDescriptor
 		new ByteBufferTupleDescriptor(Mutability.MUTABLE);
 
 	@Override
-	AbstractDescriptor mutable ()
+	protected AbstractDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -549,7 +551,7 @@ extends NumericTupleDescriptor
 		new ByteBufferTupleDescriptor(Mutability.IMMUTABLE);
 
 	@Override
-	AbstractDescriptor immutable ()
+	protected AbstractDescriptor immutable ()
 	{
 		return immutable;
 	}
@@ -559,7 +561,7 @@ extends NumericTupleDescriptor
 		new ByteBufferTupleDescriptor(Mutability.SHARED);
 
 	@Override
-	AbstractDescriptor shared ()
+	protected AbstractDescriptor shared ()
 	{
 		return shared;
 	}

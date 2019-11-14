@@ -33,11 +33,12 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
+import com.avail.descriptor.methods.A_Method;
+import com.avail.descriptor.methods.A_SemanticRestriction;
+import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.interpreter.primitive.phrases.P_RejectParsing;
 
-import static com.avail.descriptor.SemanticRestrictionDescriptor.ObjectSlots.DEFINITION_METHOD;
-import static com.avail.descriptor.SemanticRestrictionDescriptor.ObjectSlots.DEFINITION_MODULE;
-import static com.avail.descriptor.SemanticRestrictionDescriptor.ObjectSlots.FUNCTION;
+import static com.avail.descriptor.SemanticRestrictionDescriptor.ObjectSlots.*;
 
 /**
  * A {@code SemanticRestrictionDescriptor semantic restriction} holds a function
@@ -91,32 +92,32 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	protected int o_Hash (final AvailObject object)
 	{
 		return (object.slot(FUNCTION).hash() ^ 0x0E0D9C10)
 			+ object.slot(DEFINITION_METHOD).hash();
 	}
 
 	@Override @AvailMethod
-	A_Function o_Function(final AvailObject object)
+	protected A_Function o_Function(final AvailObject object)
 	{
 		return object.slot(FUNCTION);
 	}
 
 	@Override
-	A_Method o_DefinitionMethod (final AvailObject object)
+	protected A_Method o_DefinitionMethod (final AvailObject object)
 	{
 		return object.slot(DEFINITION_METHOD);
 	}
 
 	@Override @AvailMethod
-	A_Module o_DefinitionModule (final AvailObject object)
+	protected A_Module o_DefinitionModule (final AvailObject object)
 	{
 		return object.slot(DEFINITION_MODULE);
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		// Compare by identity.
 		return object.sameAddressAs(another);
@@ -142,7 +143,7 @@ extends Descriptor
 		new SemanticRestrictionDescriptor(Mutability.MUTABLE);
 
 	@Override
-	SemanticRestrictionDescriptor mutable ()
+	protected SemanticRestrictionDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -152,14 +153,14 @@ extends Descriptor
 		new SemanticRestrictionDescriptor(Mutability.SHARED);
 
 	@Override
-	SemanticRestrictionDescriptor immutable ()
+	protected SemanticRestrictionDescriptor immutable ()
 	{
 		// There is no immutable variant; answer the shared descriptor.
 		return shared;
 	}
 
 	@Override
-	SemanticRestrictionDescriptor shared ()
+	protected SemanticRestrictionDescriptor shared ()
 	{
 		return shared;
 	}

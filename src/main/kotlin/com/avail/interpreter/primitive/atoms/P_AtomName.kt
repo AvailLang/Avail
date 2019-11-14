@@ -36,13 +36,13 @@ import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.TupleTypeDescriptor.stringType
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
+import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer the name of an
- * [atom][com.avail.descriptor.AtomDescriptor].
+ * **Primitive:** Answer the name of an [atom][AtomDescriptor].
  */
 @Suppress("unused")
 object P_AtomName : Primitive(1, CannotFail, CanFold, CanInline)

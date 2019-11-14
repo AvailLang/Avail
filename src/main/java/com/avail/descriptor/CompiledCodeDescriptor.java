@@ -32,14 +32,17 @@
 
 package com.avail.descriptor;
 
-import com.avail.annotations.AvailMethod;
-import com.avail.annotations.EnumField;
+import com.avail.annotations.*;
 import com.avail.annotations.EnumField.Converter;
-import com.avail.annotations.HideFieldInDebugger;
-import com.avail.annotations.HideFieldJustForPrinting;
-import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
+import com.avail.descriptor.atoms.A_Atom;
+import com.avail.descriptor.atoms.AtomDescriptor;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.parsing.A_Phrase;
+import com.avail.descriptor.parsing.PhraseDescriptor;
+import com.avail.descriptor.tuples.A_String;
+import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.L1Disassembler;
 import com.avail.interpreter.levelOne.L1InstructionWriter;
@@ -56,32 +59,15 @@ import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.json.JSONWriter;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Set;
-import java.util.WeakHashMap;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.avail.AvailRuntime.currentRuntime;
-import static com.avail.descriptor.AtomDescriptor.createSpecialAtom;
-import static com.avail.descriptor.AtomWithPropertiesDescriptor.createAtomWithProperties;
 import static com.avail.descriptor.AvailObject.newObjectIndexedIntegerIndexedDescriptor;
-import static com.avail.descriptor.CompiledCodeDescriptor.IntegerSlots.FRAME_SLOTS;
-import static com.avail.descriptor.CompiledCodeDescriptor.IntegerSlots.HASH;
-import static com.avail.descriptor.CompiledCodeDescriptor.IntegerSlots.NUM_ARGS;
-import static com.avail.descriptor.CompiledCodeDescriptor.IntegerSlots.NUM_CONSTANTS;
-import static com.avail.descriptor.CompiledCodeDescriptor.IntegerSlots.NUM_LOCALS;
-import static com.avail.descriptor.CompiledCodeDescriptor.IntegerSlots.NUM_OUTERS;
-import static com.avail.descriptor.CompiledCodeDescriptor.IntegerSlots.NYBBLECODES_;
-import static com.avail.descriptor.CompiledCodeDescriptor.IntegerSlots.PRIMITIVE;
-import static com.avail.descriptor.CompiledCodeDescriptor.ObjectSlots.FUNCTION_TYPE;
-import static com.avail.descriptor.CompiledCodeDescriptor.ObjectSlots.INVOCATION_STATISTIC;
-import static com.avail.descriptor.CompiledCodeDescriptor.ObjectSlots.LITERAL_AT_;
-import static com.avail.descriptor.CompiledCodeDescriptor.ObjectSlots.PROPERTY_ATOM;
-import static com.avail.descriptor.CompiledCodeDescriptor.ObjectSlots.STARTING_CHUNK;
+import static com.avail.descriptor.CompiledCodeDescriptor.IntegerSlots.*;
+import static com.avail.descriptor.CompiledCodeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.CompiledCodeTypeDescriptor.compiledCodeTypeForFunctionType;
 import static com.avail.descriptor.CompiledCodeTypeDescriptor.mostGeneralCompiledCodeType;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
@@ -93,6 +79,8 @@ import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.MODULE;
+import static com.avail.descriptor.atoms.AtomDescriptor.createSpecialAtom;
+import static com.avail.descriptor.atoms.AtomWithPropertiesDescriptor.createAtomWithProperties;
 import static com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
@@ -186,10 +174,11 @@ extends Descriptor
 		/**
 		 * The primitive number or zero. This does not correspond with the
 		 * {@linkplain Enum#ordinal() ordinal} of the {@link Primitive}
-		 * enumeration, but rather the value of its {@linkplain
-		 * Primitive#primitiveNumber primitiveNumber}. If a primitive is
-		 * specified then an attempt is made to executed it before running any
-		 * nybblecodes. The nybblecode instructions are only run if the
+		 * enumeration, but rather the value of its
+		 * {@linkplain Primitive#getPrimitiveNumber() primitiveNumber}. If a
+		 * primitive is specified then an attempt is made to executed it before
+		 * running any nybblecodes. The nybblecode instructions are only run if
+		 * the
 		 * primitive was unsuccessful.
 		 */
 		@EnumField(
@@ -469,7 +458,8 @@ extends Descriptor
 		}
 	}
 
-	@Override boolean allowsImmutableToMutableReferenceInField (
+	@Override
+	protected boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
 		return e == STARTING_CHUNK;
@@ -769,37 +759,37 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	void o_CountdownToReoptimize (final AvailObject object, final int value)
+	protected void o_CountdownToReoptimize (final AvailObject object, final int value)
 	{
 		getInvocationStatistic(object).countdownToReoptimize.set(value);
 	}
 
 	@Override @AvailMethod
-	long o_TotalInvocations (final AvailObject object)
+	protected long o_TotalInvocations (final AvailObject object)
 	{
 		return getInvocationStatistic(object).totalInvocations.get();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_LiteralAt (final AvailObject object, final int subscript)
+	protected AvailObject o_LiteralAt (final AvailObject object, final int subscript)
 	{
 		return object.slot(LITERAL_AT_, subscript);
 	}
 
 	@Override @AvailMethod
-	A_Type o_FunctionType (final AvailObject object)
+	protected A_Type o_FunctionType (final AvailObject object)
 	{
 		return object.slot(FUNCTION_TYPE);
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	protected int o_Hash (final AvailObject object)
 	{
 		return object.slot(HASH);
 	}
 
 	@Override @AvailMethod
-	void o_DecrementCountdownToReoptimize (
+	protected void o_DecrementCountdownToReoptimize (
 		final AvailObject object,
 		final Continuation1NotNull<Boolean> continuation)
 	{
@@ -826,7 +816,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	int o_NumNybbles (final AvailObject object)
+	protected int o_NumNybbles (final AvailObject object)
 	{
 		final int longCount = object.variableIntegerSlotsCount();
 		if (longCount == 0)
@@ -840,7 +830,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	A_Tuple o_Nybbles (final AvailObject object)
+	protected A_Tuple o_Nybbles (final AvailObject object)
 	{
 		// Extract a tuple of nybbles.
 		final int longCount = object.variableIntegerSlotsCount();
@@ -858,13 +848,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsCompiledCode(object);
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsCompiledCode (
+	protected boolean o_EqualsCompiledCode (
 		final AvailObject object,
 		final A_RawFunction aCompiledCode)
 	{
@@ -874,13 +864,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_Kind (final AvailObject object)
+	protected A_Type o_Kind (final AvailObject object)
 	{
 		return compiledCodeTypeForFunctionType(object.functionType());
 	}
 
 	@Override @AvailMethod
-	A_Type o_ConstantTypeAt (final AvailObject object, final int index)
+	protected A_Type o_ConstantTypeAt (final AvailObject object, final int index)
 	{
 		assert 1 <= index && index <= object.numConstants();
 		return object.literalAt(
@@ -890,7 +880,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_LocalTypeAt (final AvailObject object, final int index)
+	protected A_Type o_LocalTypeAt (final AvailObject object, final int index)
 	{
 		assert 1 <= index && index <= object.numLocals();
 		return object.literalAt(
@@ -901,7 +891,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_OuterTypeAt (final AvailObject object, final int index)
+	protected A_Type o_OuterTypeAt (final AvailObject object, final int index)
 	{
 		assert 1 <= index && index <= object.numOuters();
 		return object.literalAt(
@@ -913,7 +903,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	void o_SetStartingChunkAndReoptimizationCountdown (
+	protected void o_SetStartingChunkAndReoptimizationCountdown (
 		final AvailObject object,
 		final L2Chunk chunk,
 		final long countdown)
@@ -938,7 +928,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	int o_MaxStackDepth (final AvailObject object)
+	protected int o_MaxStackDepth (final AvailObject object)
 	{
 		return
 			object.numSlots()
@@ -947,7 +937,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	int o_NumArgs (final AvailObject object)
+	protected int o_NumArgs (final AvailObject object)
 	{
 		return object.slot(NUM_ARGS);
 	}
@@ -961,43 +951,43 @@ extends Descriptor
 	 * </p>
 	 */
 	@Override @AvailMethod
-	int o_NumSlots (final AvailObject object)
+	protected int o_NumSlots (final AvailObject object)
 	{
 		return object.slot(FRAME_SLOTS);
 	}
 
 	@Override @AvailMethod
-	int o_NumLiterals (final AvailObject object)
+	protected int o_NumLiterals (final AvailObject object)
 	{
 		return object.variableObjectSlotsCount();
 	}
 
 	@Override @AvailMethod
-	int o_NumConstants (final AvailObject object)
+	protected int o_NumConstants (final AvailObject object)
 	{
 		return object.slot(NUM_CONSTANTS);
 	}
 
 	@Override @AvailMethod
-	int o_NumLocals (final AvailObject object)
+	protected int o_NumLocals (final AvailObject object)
 	{
 		return object.slot(NUM_LOCALS);
 	}
 
 	@Override @AvailMethod
-	int o_NumOuters (final AvailObject object)
+	protected int o_NumOuters (final AvailObject object)
 	{
 		return object.slot(NUM_OUTERS);
 	}
 
 	@Override @AvailMethod
-	@Nullable Primitive o_Primitive (final AvailObject object)
+	protected @Nullable Primitive o_Primitive (final AvailObject object)
 	{
 		return Primitive.Companion.byNumber(object.slot(PRIMITIVE));
 	}
 
 	@Override @AvailMethod
-	int o_PrimitiveNumber (final AvailObject object)
+	protected int o_PrimitiveNumber (final AvailObject object)
 	{
 		// Answer the primitive number I should try before falling back on the
 		// Avail code.  Zero indicates not-a-primitive.
@@ -1005,7 +995,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	L2Chunk o_StartingChunk (final AvailObject object)
+	protected L2Chunk o_StartingChunk (final AvailObject object)
 	{
 		final L2Chunk chunk =
 			object.mutableSlot(STARTING_CHUNK).javaObjectNotNull();
@@ -1017,7 +1007,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	void o_TallyInvocation (final AvailObject object)
+	protected void o_TallyInvocation (final AvailObject object)
 	{
 		final InvocationStatistic invocationStatistic =
 			getInvocationStatistic(object);
@@ -1029,7 +1019,7 @@ extends Descriptor
 	 * Answer the starting line number for this block of code.
 	 */
 	@Override @AvailMethod
-	int o_StartingLineNumber (final AvailObject object)
+	protected int o_StartingLineNumber (final AvailObject object)
 	{
 		final A_Atom properties = object.mutableSlot(PROPERTY_ATOM);
 		final A_Number lineInteger =
@@ -1046,7 +1036,7 @@ extends Descriptor
 	 * @return The tuple of encoded line number deltas, or nil.
 	 */
 	@Override
-	A_Tuple o_LineNumberEncodedDeltas (
+	protected A_Tuple o_LineNumberEncodedDeltas (
 		final AvailObject object)
 	{
 		final A_Atom properties = object.mutableSlot(PROPERTY_ATOM);
@@ -1054,7 +1044,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	A_Phrase o_OriginatingPhrase (final AvailObject object)
+	protected A_Phrase o_OriginatingPhrase (final AvailObject object)
 	{
 		final A_Atom properties = object.mutableSlot(PROPERTY_ATOM);
 		return properties.getAtomProperty(originatingPhraseKeyAtom());
@@ -1064,20 +1054,21 @@ extends Descriptor
 	 * Answer the module in which this code occurs.
 	 */
 	@Override @AvailMethod
-	A_Module o_Module (final AvailObject object)
+	protected A_Module o_Module (final AvailObject object)
 	{
 		final A_Atom properties = object.mutableSlot(PROPERTY_ATOM);
 		return properties.issuingModule();
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	SerializerOperation o_SerializerOperation(final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.COMPILED_CODE;
 	}
 
 	@Override @AvailMethod
-	void o_SetMethodName (
+	protected void o_SetMethodName (
 		final AvailObject object,
 		final A_String methodName)
 	{
@@ -1120,7 +1111,7 @@ extends Descriptor
 		stringFrom("Unknown function").makeShared();
 
 	@Override @AvailMethod
-	A_String o_MethodName (final AvailObject object)
+	protected A_String o_MethodName (final AvailObject object)
 	{
 		final A_Atom propertyAtom = object.mutableSlot(PROPERTY_ATOM);
 		final A_String methodName =
@@ -1133,7 +1124,7 @@ extends Descriptor
 	}
 
 	@Override
-	String o_NameForDebugger (final AvailObject object)
+	protected String o_NameForDebugger (final AvailObject object)
 	{
 		return super.o_NameForDebugger(object) + ": " + object.methodName();
 	}
@@ -1145,7 +1136,7 @@ extends Descriptor
 	}
 
 	@Override
-	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -1191,7 +1182,7 @@ extends Descriptor
 	}
 
 	@Override
-	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -1476,7 +1467,7 @@ extends Descriptor
 		new CompiledCodeDescriptor(Mutability.MUTABLE);
 
 	@Override
-	CompiledCodeDescriptor mutable ()
+	protected CompiledCodeDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -1486,7 +1477,7 @@ extends Descriptor
 		new CompiledCodeDescriptor(Mutability.IMMUTABLE);
 
 	@Override
-	CompiledCodeDescriptor immutable ()
+	protected CompiledCodeDescriptor immutable ()
 	{
 		return immutable;
 	}
@@ -1496,7 +1487,7 @@ extends Descriptor
 		new CompiledCodeDescriptor(Mutability.SHARED);
 
 	@Override
-	CompiledCodeDescriptor shared ()
+	protected CompiledCodeDescriptor shared ()
 	{
 		return shared;
 	}
@@ -1589,7 +1580,7 @@ extends Descriptor
 	 * @return A {@link Statistic}, creating one if necessary.
 	 */
 	@Override
-	Statistic o_ReturnerCheckStat (
+	protected Statistic o_ReturnerCheckStat (
 		final AvailObject object)
 	{
 		final InvocationStatistic invocationStat =
@@ -1626,7 +1617,7 @@ extends Descriptor
 	 * @return A {@link Statistic}, creating one if necessary.
 	 */
 	@Override
-	Statistic o_ReturneeCheckStat (
+	protected Statistic o_ReturneeCheckStat (
 		final AvailObject object)
 	{
 		final InvocationStatistic invocationStat =

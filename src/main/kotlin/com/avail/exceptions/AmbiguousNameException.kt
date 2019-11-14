@@ -32,7 +32,7 @@
 
 package com.avail.exceptions
 
-import com.avail.descriptor.AtomDescriptor
+import com.avail.descriptor.atoms.AtomDescriptor
 
 /**
  * An `AmbiguousNameException` is thrown when a simple string name could

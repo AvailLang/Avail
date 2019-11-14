@@ -40,6 +40,9 @@ import com.avail.descriptor.InstanceMetaDescriptor.topMeta
 import com.avail.descriptor.NybbleTupleDescriptor.generateNybbleTupleFrom
 import com.avail.descriptor.ObjectTupleDescriptor.tupleFromList
 import com.avail.descriptor.TupleDescriptor.tupleFromIntegerList
+import com.avail.descriptor.objects.A_BasicObject
+import com.avail.descriptor.parsing.A_Phrase
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag
 import com.avail.interpreter.levelOne.L1Operation.L1_doExtension

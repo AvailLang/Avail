@@ -49,6 +49,20 @@ import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.TokenDescriptor.TokenType;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
+import com.avail.descriptor.atoms.A_Atom;
+import com.avail.descriptor.bundles.A_Bundle;
+import com.avail.descriptor.bundles.A_BundleTree;
+import com.avail.descriptor.bundles.MessageBundleDescriptor;
+import com.avail.descriptor.methods.A_Definition;
+import com.avail.descriptor.methods.A_GrammaticalRestriction;
+import com.avail.descriptor.methods.A_Method;
+import com.avail.descriptor.methods.A_SemanticRestriction;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.parsing.A_Lexer;
+import com.avail.descriptor.parsing.A_ParsingPlanInProgress;
+import com.avail.descriptor.parsing.A_Phrase;
+import com.avail.descriptor.tuples.A_String;
+import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.dispatch.LookupTree;
 import com.avail.exceptions.*;
 import com.avail.interpreter.AvailLoader;
@@ -133,7 +147,7 @@ public abstract class AbstractDescriptor
 	 * A non-enum {@link ObjectSlotsEnum} that can be instantiated at will.
 	 * Useful for customizing debugger views of objects.
 	 */
-	final class DebuggerObjectSlots implements ObjectSlotsEnum
+	static final class DebuggerObjectSlots implements ObjectSlotsEnum
 	{
 		/** The slot name. */
 		public final String name;
@@ -183,7 +197,7 @@ public abstract class AbstractDescriptor
 	 *
 	 * @return A mutable descriptor equivalent to the receiver.
 	 */
-	abstract AbstractDescriptor mutable ();
+	protected abstract AbstractDescriptor mutable ();
 
 	/**
 	 * Answer the {@linkplain Mutability#IMMUTABLE immutable} version of this
@@ -191,7 +205,7 @@ public abstract class AbstractDescriptor
 	 *
 	 * @return An immutable descriptor equivalent to the receiver.
 	 */
-	abstract AbstractDescriptor immutable ();
+	protected abstract AbstractDescriptor immutable ();
 
 	/**
 	 * Answer the {@linkplain Mutability#SHARED shared} version of this
@@ -199,7 +213,7 @@ public abstract class AbstractDescriptor
 	 *
 	 * @return A shared descriptor equivalent to the receiver.
 	 */
-	abstract AbstractDescriptor shared ();
+	protected abstract AbstractDescriptor shared ();
 
 	/**
 	 * Are {@linkplain AvailObject objects} using this descriptor {@linkplain
@@ -610,7 +624,7 @@ public abstract class AbstractDescriptor
 	 * @return Whether the specified field can be written even in an immutable
 	 *         object.
 	 */
-	boolean allowsImmutableToMutableReferenceInField (
+	protected boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
 		return false;
@@ -621,7 +635,7 @@ public abstract class AbstractDescriptor
 	 *
 	 * @return The number of levels.
 	 */
-	int maximumIndent ()
+	protected int maximumIndent ()
 	{
 		return 12;
 	}
@@ -656,7 +670,7 @@ public abstract class AbstractDescriptor
 	 *
 	 * @return The new uninitialized {@linkplain AvailObject object}.
 	 */
-	final AvailObject create ()
+	public final AvailObject create ()
 	{
 		return AvailObject.newIndexedDescriptor(0, this);
 	}
@@ -676,7 +690,7 @@ public abstract class AbstractDescriptor
 	 */
 	@SuppressWarnings("unchecked")
 	@ThreadSafe
-	void printObjectOnAvoidingIndent (
+	protected void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
 		final IdentityHashMap<A_BasicObject, Void> recursionMap,
@@ -1156,7 +1170,7 @@ public abstract class AbstractDescriptor
 	 *            The number of bits occupied by this {@code BitField}.
 	 * @return A BitField
 	 */
-	static BitField bitField (
+	public static BitField bitField (
 		final IntegerSlotsEnum integerSlot,
 		final int shift,
 		final int bits)
@@ -1783,7 +1797,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract boolean o_CouldEverBeInvokedWith (
 		AvailObject object,
-		List<? extends TypeRestriction> argRestrictions);
+		List<TypeRestriction> argRestrictions);
 
 	/**
 	 * Answer a fiber's internal debug log.
@@ -1942,7 +1956,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract List<A_Definition> o_DefinitionsAtOrBelow (
 		AvailObject object,
-		List<? extends TypeRestriction> argRestrictions);
+		List<TypeRestriction> argRestrictions);
 
 	/**
 	 * @param object
@@ -3197,11 +3211,8 @@ public abstract class AbstractDescriptor
 	 *
 	 * @param object An {@link AvailObject}.
 	 * @return A 64-bit signed Java {@code long}
+	 *
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
-	 */
-	/**
-	 * @param object
-	 * @return
 	 */
 	abstract long o_ExtractLong (AvailObject object);
 
@@ -3471,7 +3482,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract int o_PrimitiveNumber (AvailObject object);
+	protected abstract int o_PrimitiveNumber (AvailObject object);
 
 	/**
 	 * @param object
@@ -4024,7 +4035,7 @@ public abstract class AbstractDescriptor
 	 * @param aType
 	 * @return
 	 */
-	abstract boolean o_IsInstanceOfKind (
+	protected abstract boolean o_IsInstanceOfKind (
 		AvailObject object,
 		A_Type aType);
 
@@ -4316,11 +4327,8 @@ public abstract class AbstractDescriptor
 	 *
 	 * @param object An {@link AvailObject}.
 	 * @return An {@linkplain Iterator iterator}.
+	 *
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
-	 */
-	/**
-	 * @param object
-	 * @return
 	 */
 	abstract IteratorNotNull<AvailObject> o_Iterator (
 		AvailObject object);
@@ -4399,7 +4407,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract @Nullable Primitive o_Primitive (AvailObject object);
+	protected abstract @Nullable Primitive o_Primitive (AvailObject object);
 
 	/**
 	 * @param object
@@ -4770,7 +4778,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract PhraseKind o_PhraseKind (
+	protected abstract PhraseKind o_PhraseKind (
 		AvailObject object);
 
 	/**
@@ -4778,7 +4786,7 @@ public abstract class AbstractDescriptor
 	 * @param expectedPhraseKind
 	 * @return
 	 */
-	abstract boolean o_PhraseKindIsUnder (
+	protected abstract boolean o_PhraseKindIsUnder (
 		AvailObject object,
 		PhraseKind expectedPhraseKind);
 
@@ -5071,7 +5079,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract SerializerOperation o_SerializerOperation (
+	protected abstract SerializerOperation o_SerializerOperation (
 		final AvailObject object);
 
 	/**
@@ -5590,7 +5598,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	boolean o_ShowValueInNameForDebugger (
+	protected boolean o_ShowValueInNameForDebugger (
 		final AvailObject object)
 	{
 		return true;
@@ -6473,7 +6481,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param continuation
 	 */
-	abstract void o_StatementsDo (
+	protected abstract void o_StatementsDo (
 		AvailObject object,
 		Continuation1NotNull<A_Phrase> continuation);
 

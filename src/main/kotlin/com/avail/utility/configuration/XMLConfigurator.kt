@@ -46,8 +46,8 @@ import javax.xml.parsers.SAXParserFactory
  *  * An [enumeration][Enum] that satisfies the [XMLElement] interface.
  *  This enumeration defines all valid elements for a particular document type.
  *  Members must be able to satisfy requests for their
- *  [qualified name][XMLElement.getQName] and immediate
- *  [parentage][XMLElement.getAllowedParents]. Members are also responsible for
+ *  [qualified name][XMLElement.qName] and immediate
+ *  [parentage][XMLElement.allowedParents]. Members are also responsible for
  *  their own processing (see [startElement][XMLElement.startElement] and
  *  [endElement][XMLElement.endElement].
  *  * An [XMLConfiguratorState] that maintains any state required by the
@@ -101,8 +101,7 @@ constructor(
 	 * @return
 	 *   `true` if the configurator has been ren, `false` otherwise.
 	 */
-	var isConfigured: Boolean = false
-		private set
+	private var isConfigured: Boolean = false
 
 	/** The [document model][XMLDocumentModel].  */
 	private val model:

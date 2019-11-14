@@ -34,7 +34,6 @@ package com.avail.interpreter.primitive.variables
 
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.AtomDescriptor.objectFromBoolean
 import com.avail.descriptor.BottomTypeDescriptor.bottom
 import com.avail.descriptor.EnumerationTypeDescriptor.booleanType
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
@@ -45,6 +44,7 @@ import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TypeDescriptor.Types.ANY
 import com.avail.descriptor.VariableDescriptor
 import com.avail.descriptor.VariableTypeDescriptor.variableReadWriteType
+import com.avail.descriptor.atoms.AtomDescriptor.objectFromBoolean
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE
 import com.avail.exceptions.VariableGetException
 import com.avail.interpreter.Interpreter

@@ -37,6 +37,11 @@ import com.avail.compiler.AvailCompilerFragmentCache;
 import com.avail.compiler.ParsingConversionRule;
 import com.avail.compiler.ParsingOperation;
 import com.avail.compiler.splitter.MessageSplitter;
+import com.avail.descriptor.bundles.A_Bundle;
+import com.avail.descriptor.bundles.MessageBundleTreeDescriptor;
+import com.avail.descriptor.methods.A_Definition;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.tuples.A_Tuple;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,9 +52,7 @@ import static com.avail.compiler.ParsingOperation.decode;
 import static com.avail.compiler.ParsingOperation.operand;
 import static com.avail.compiler.splitter.MessageSplitter.constantForIndex;
 import static com.avail.compiler.splitter.MessageSplitter.permutationAtIndex;
-import static com.avail.descriptor.DefinitionParsingPlanDescriptor.ObjectSlots.BUNDLE;
-import static com.avail.descriptor.DefinitionParsingPlanDescriptor.ObjectSlots.DEFINITION;
-import static com.avail.descriptor.DefinitionParsingPlanDescriptor.ObjectSlots.PARSING_INSTRUCTIONS;
+import static com.avail.descriptor.DefinitionParsingPlanDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.DEFINITION_PARSING_PLAN;
 import static com.avail.utility.StackPrinter.trace;
 
@@ -225,19 +228,19 @@ extends Descriptor
 	}
 
 	@Override
-	A_Bundle o_Bundle (final AvailObject object)
+	protected A_Bundle o_Bundle (final AvailObject object)
 	{
 		return object.slot(BUNDLE);
 	}
 
 	@Override
-	A_Definition o_Definition (final AvailObject object)
+	protected A_Definition o_Definition (final AvailObject object)
 	{
 		return object.slot(DEFINITION);
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		if (!another.kind().equals(DEFINITION_PARSING_PLAN.o()))
 		{
@@ -250,20 +253,20 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	protected int o_Hash (final AvailObject object)
 	{
 		return object.slot(DEFINITION).hash() ^ 0x92A26142
 			- object.slot(BUNDLE).hash();
 	}
 
 	@Override @AvailMethod
-	A_Type o_Kind (final AvailObject object)
+	protected A_Type o_Kind (final AvailObject object)
 	{
 		return DEFINITION_PARSING_PLAN.o();
 	}
 
 	@Override @AvailMethod
-	A_Tuple o_ParsingInstructions (final AvailObject object)
+	protected A_Tuple o_ParsingInstructions (final AvailObject object)
 	{
 		return object.slot(PARSING_INSTRUCTIONS);
 	}
@@ -285,14 +288,14 @@ extends Descriptor
 	}
 
 	/**
-	 * Create a new {@linkplain DefinitionParsingPlanDescriptor definition
+	 * Create a new {@code DefinitionParsingPlanDescriptor definition
 	 * parsing plan} for the given parameters.  Do not install it.
 	 *
 	 * @param bundle The bundle for this plan.
 	 * @param definition The definition for this plan.
-	 * @return A new {@linkplain DefinitionParsingPlanDescriptor plan}.
+	 * @return A new {@code DefinitionParsingPlanDescriptor plan}.
 	 */
-	static A_DefinitionParsingPlan newParsingPlan (
+	public static A_DefinitionParsingPlan newParsingPlan (
 		final A_Bundle bundle,
 		final A_Definition definition)
 	{
@@ -307,7 +310,7 @@ extends Descriptor
 	}
 
 	/**
-	 * Construct a new {@link DefinitionParsingPlanDescriptor}.
+	 * Construct a new {@code DefinitionParsingPlanDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
@@ -322,13 +325,13 @@ extends Descriptor
 		new DefinitionParsingPlanDescriptor(Mutability.MUTABLE);
 
 	@Override
-	DefinitionParsingPlanDescriptor mutable ()
+	protected DefinitionParsingPlanDescriptor mutable ()
 	{
 		return mutable;
 	}
 
 	@Override
-	DefinitionParsingPlanDescriptor immutable ()
+	protected DefinitionParsingPlanDescriptor immutable ()
 	{
 		// There is no immutable variant.
 		return shared;
@@ -339,7 +342,7 @@ extends Descriptor
 		new DefinitionParsingPlanDescriptor(Mutability.SHARED);
 
 	@Override
-	DefinitionParsingPlanDescriptor shared ()
+	protected DefinitionParsingPlanDescriptor shared ()
 	{
 		return shared;
 	}

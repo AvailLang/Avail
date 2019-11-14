@@ -34,7 +34,6 @@ package com.avail.interpreter.primitive.hooks
 
 import com.avail.AvailRuntime.HookType.STRINGIFICATION
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.AtomDescriptor
 import com.avail.descriptor.FunctionDescriptor.createFunction
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.MethodDescriptor
@@ -43,6 +42,7 @@ import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TupleTypeDescriptor.stringType
 import com.avail.descriptor.TypeDescriptor.Types.*
+import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.exceptions.AvailRuntimeException
 import com.avail.exceptions.MalformedMessageException
 import com.avail.interpreter.Interpreter

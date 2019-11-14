@@ -34,7 +34,7 @@ package com.avail.compiler.problems
 
 import com.avail.compiler.scanning.LexingState
 import com.avail.utility.evaluation.Describer
-import java.util.ArrayList
+import java.util.*
 
 /**
  * An aggregate of problems at a specific token.  It also includes the [String]

@@ -34,6 +34,8 @@ package com.avail.descriptor;
 
 import com.avail.descriptor.ContinuationDescriptor.IntegerSlots;
 import com.avail.descriptor.ContinuationDescriptor.ObjectSlots;
+import com.avail.descriptor.methods.A_SemanticRestriction;
+import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;

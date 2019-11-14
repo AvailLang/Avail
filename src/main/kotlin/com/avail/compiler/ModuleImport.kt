@@ -33,24 +33,16 @@
 package com.avail.compiler
 
 import com.avail.builder.ModuleName
-import com.avail.descriptor.A_Map
-import com.avail.descriptor.A_Module
-import com.avail.descriptor.A_Set
-import com.avail.descriptor.A_String
-import com.avail.descriptor.A_Tuple
-import com.avail.descriptor.MapDescriptor
-import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom
-import com.avail.descriptor.NilDescriptor
-import com.avail.descriptor.SetDescriptor
-import com.avail.descriptor.StringDescriptor
-import com.avail.descriptor.TupleDescriptor
-import com.avail.serialization.MalformedSerialStreamException
-
-import com.avail.descriptor.AtomDescriptor.objectFromBoolean
+import com.avail.descriptor.*
 import com.avail.descriptor.MapDescriptor.emptyMap
+import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray
 import com.avail.descriptor.SetDescriptor.emptySet
 import com.avail.descriptor.StringDescriptor.stringFrom
+import com.avail.descriptor.atoms.AtomDescriptor.objectFromBoolean
+import com.avail.descriptor.tuples.A_String
+import com.avail.descriptor.tuples.A_Tuple
+import com.avail.serialization.MalformedSerialStreamException
 
 /**
  * Information that a [ModuleHeader] uses to keep track of a module

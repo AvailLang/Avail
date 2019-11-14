@@ -34,8 +34,8 @@ package com.avail.compiler.instruction
 
 import com.avail.compiler.AvailCodeGenerator
 import com.avail.descriptor.A_Token
-import com.avail.descriptor.A_Tuple
 import com.avail.descriptor.FunctionDescriptor
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.interpreter.levelOne.L1Operation.L1_doGetOuter
 import com.avail.interpreter.levelOne.L1Operation.L1_doGetOuterClearing
 import com.avail.io.NybbleOutputStream

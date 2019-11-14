@@ -36,6 +36,7 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.HideFieldJustForPrinting;
 import com.avail.compiler.scanning.LexingState;
+import com.avail.descriptor.tuples.A_String;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -126,26 +127,27 @@ extends TokenDescriptor
 	}
 
 	@Override
-	boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
+	protected boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
 	{
 		return e == NEXT_LEXING_STATE_POJO
 			|| super.allowsImmutableToMutableReferenceInField(e);
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.COMMENT_TOKEN;
 	}
 
 	@Override @AvailMethod
-	TokenType o_TokenType (final AvailObject object)
+	protected TokenType o_TokenType (final AvailObject object)
 	{
 		return TokenType.COMMENT;
 	}
 
 	@Override
-	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -206,7 +208,7 @@ extends TokenDescriptor
 		new CommentTokenDescriptor(Mutability.MUTABLE);
 
 	@Override
-	CommentTokenDescriptor mutable ()
+	protected CommentTokenDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -216,14 +218,14 @@ extends TokenDescriptor
 		new CommentTokenDescriptor(Mutability.SHARED);
 
 	@Override
-	CommentTokenDescriptor immutable ()
+	protected CommentTokenDescriptor immutable ()
 	{
 		// Answer the shared descriptor, since there isn't an immutable one.
 		return shared;
 	}
 
 	@Override
-	CommentTokenDescriptor shared ()
+	protected CommentTokenDescriptor shared ()
 	{
 		return shared;
 	}

@@ -32,9 +32,12 @@
 
 package com.avail.interpreter.primitive.variables
 
-import com.avail.descriptor.*
+import com.avail.descriptor.A_Type
+import com.avail.descriptor.A_Variable
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.FiberDescriptor
 import com.avail.descriptor.FiberDescriptor.TraceFlag
+import com.avail.descriptor.FunctionDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tuple

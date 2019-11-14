@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
+import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.interpreter.primitive.controlflow.P_ExitContinuationWithResult;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments;
 import com.avail.serialization.SerializerOperation;
@@ -92,7 +93,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_FunctionType (final AvailObject object)
+	protected A_Type o_FunctionType (final AvailObject object)
 	{
 		return object.slot(FUNCTION_TYPE);
 	}
@@ -112,7 +113,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsContinuationType(object);
 	}
@@ -126,7 +127,7 @@ extends TypeDescriptor
 	 * </p>
 	 */
 	@Override @AvailMethod
-	boolean o_EqualsContinuationType (
+	protected boolean o_EqualsContinuationType (
 		final AvailObject object,
 		final A_Type aContinuationType)
 	{
@@ -138,13 +139,13 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	protected int o_Hash (final AvailObject object)
 	{
 		return object.functionType().hash() * 11 ^ 0x3E20409;
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
+	protected boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
 	{
 		return aType.isSupertypeOfContinuationType(object);
 	}
@@ -162,7 +163,7 @@ extends TypeDescriptor
 	 * </p>
 	 */
 	@Override @AvailMethod
-	boolean o_IsSupertypeOfContinuationType (
+	protected boolean o_IsSupertypeOfContinuationType (
 		final AvailObject object,
 		final A_Type aContinuationType)
 	{
@@ -176,13 +177,13 @@ extends TypeDescriptor
 	}
 
 	@Override
-	boolean o_IsVacuousType (final AvailObject object)
+	protected boolean o_IsVacuousType (final AvailObject object)
 	{
 		return object.slot(FUNCTION_TYPE).isVacuousType();
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeIntersection (
+	protected A_Type o_TypeIntersection (
 		final AvailObject object,
 		final A_Type another)
 	{
@@ -198,7 +199,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeIntersectionOfContinuationType (
+	protected A_Type o_TypeIntersectionOfContinuationType (
 		final AvailObject object,
 		final A_Type aContinuationType)
 	{
@@ -219,7 +220,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeUnion (
+	protected A_Type o_TypeUnion (
 		final AvailObject object,
 		final A_Type another)
 	{
@@ -235,7 +236,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeUnionOfContinuationType (
+	protected A_Type o_TypeUnionOfContinuationType (
 		final AvailObject object,
 		final A_Type aContinuationType)
 	{
@@ -256,13 +257,14 @@ extends TypeDescriptor
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.CONTINUATION_TYPE;
 	}
 
 	@Override
-	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -308,7 +310,7 @@ extends TypeDescriptor
 		new ContinuationTypeDescriptor(Mutability.MUTABLE);
 
 	@Override
-	ContinuationTypeDescriptor mutable ()
+	protected ContinuationTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -318,7 +320,7 @@ extends TypeDescriptor
 		new ContinuationTypeDescriptor(Mutability.IMMUTABLE);
 
 	@Override
-	ContinuationTypeDescriptor immutable ()
+	protected ContinuationTypeDescriptor immutable ()
 	{
 		return immutable;
 	}
@@ -328,7 +330,7 @@ extends TypeDescriptor
 		new ContinuationTypeDescriptor(Mutability.SHARED);
 
 	@Override
-	ContinuationTypeDescriptor shared ()
+	protected ContinuationTypeDescriptor shared ()
 	{
 		return shared;
 	}

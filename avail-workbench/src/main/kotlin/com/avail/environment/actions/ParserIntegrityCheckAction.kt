@@ -36,7 +36,6 @@ import com.avail.AvailRuntime
 import com.avail.compiler.AvailCompiler
 import com.avail.descriptor.FiberDescriptor
 import com.avail.environment.AvailWorkbench
-import com.avail.utility.evaluation.Continuation0
 import java.awt.event.ActionEvent
 import javax.swing.Action
 

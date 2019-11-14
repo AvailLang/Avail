@@ -33,7 +33,6 @@ package com.avail.interpreter.primitive.pojos
 
 import com.avail.descriptor.A_Function
 import com.avail.descriptor.A_RawFunction
-import com.avail.descriptor.A_Tuple
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionDescriptor.createWithOuters2
@@ -49,6 +48,7 @@ import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf
 import com.avail.descriptor.TypeDescriptor.Types.ANY
 import com.avail.descriptor.TypeDescriptor.Types.RAW_POJO
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.exceptions.AvailErrorCode.*
 import com.avail.exceptions.MarshalingException
 import com.avail.interpreter.Interpreter

@@ -35,6 +35,10 @@ package com.avail.descriptor;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.compiler.scanning.LexingState;
+import com.avail.descriptor.bundles.A_Bundle;
+import com.avail.descriptor.methods.A_Method;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.parsing.A_Lexer;
 import com.avail.utility.json.JSONWriter;
 
 import java.util.IdentityHashMap;
@@ -45,17 +49,12 @@ import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
 import static com.avail.descriptor.LexerDescriptor.IntegerSlots.HASH;
-import static com.avail.descriptor.LexerDescriptor.ObjectSlots.DEFINITION_MODULE;
-import static com.avail.descriptor.LexerDescriptor.ObjectSlots.LEXER_BODY_FUNCTION;
-import static com.avail.descriptor.LexerDescriptor.ObjectSlots.LEXER_FILTER_FUNCTION;
-import static com.avail.descriptor.LexerDescriptor.ObjectSlots.LEXER_METHOD;
+import static com.avail.descriptor.LexerDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
 import static com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
-import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
-import static com.avail.descriptor.TypeDescriptor.Types.LEXER;
-import static com.avail.descriptor.TypeDescriptor.Types.TOKEN;
+import static com.avail.descriptor.TypeDescriptor.Types.*;
 
 /**
  * A method maintains all definitions that have the same name.  At compile time
@@ -179,31 +178,31 @@ extends Descriptor
 	}
 
 	@Override
-	A_Module o_DefinitionModule (final AvailObject object)
+	protected A_Module o_DefinitionModule (final AvailObject object)
 	{
 		return object.slot(DEFINITION_MODULE);
 	}
 
 	@Override
-	A_Method o_LexerMethod (final AvailObject object)
+	protected A_Method o_LexerMethod (final AvailObject object)
 	{
 		return object.slot(LEXER_METHOD);
 	}
 
 	@Override
-	A_Function o_LexerFilterFunction (final AvailObject object)
+	protected A_Function o_LexerFilterFunction (final AvailObject object)
 	{
 		return object.slot(LEXER_FILTER_FUNCTION);
 	}
 
 	@Override
-	A_Function o_LexerBodyFunction (final AvailObject object)
+	protected A_Function o_LexerBodyFunction (final AvailObject object)
 	{
 		return object.slot(LEXER_BODY_FUNCTION);
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		final AvailObject otherTraversed = another.traversed();
 		if (otherTraversed.sameAddressAs(object))
@@ -229,19 +228,19 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	protected int o_Hash (final AvailObject object)
 	{
 		return object.slot(HASH);
 	}
 
 	@Override @AvailMethod
-	A_Type o_Kind (final AvailObject object)
+	protected A_Type o_Kind (final AvailObject object)
 	{
 		return LEXER.o();
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MakeImmutable (final AvailObject object)
+	protected AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		if (isMutable())
 		{
@@ -252,7 +251,7 @@ extends Descriptor
 	}
 
 	@Override
-	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -269,7 +268,7 @@ extends Descriptor
 	}
 
 	@Override
-	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -349,7 +348,7 @@ extends Descriptor
 		new LexerDescriptor(Mutability.MUTABLE);
 
 	@Override
-	LexerDescriptor mutable ()
+	protected LexerDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -359,14 +358,14 @@ extends Descriptor
 		new LexerDescriptor(Mutability.SHARED);
 
 	@Override
-	LexerDescriptor immutable ()
+	protected LexerDescriptor immutable ()
 	{
 		// There is no immutable descriptor. Use the shared one.
 		return shared;
 	}
 
 	@Override
-	LexerDescriptor shared ()
+	protected LexerDescriptor shared ()
 	{
 		return shared;
 	}

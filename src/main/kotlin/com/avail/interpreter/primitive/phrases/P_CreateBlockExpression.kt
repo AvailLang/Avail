@@ -32,11 +32,8 @@
 
 package com.avail.interpreter.primitive.phrases
 
-import com.avail.descriptor.A_Phrase
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.BlockPhraseDescriptor
-import com.avail.descriptor.BlockPhraseDescriptor.newBlockNode
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceMetaDescriptor.topMeta
 import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
@@ -50,6 +47,9 @@ import com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType
 import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TupleTypeDescriptor.stringType
 import com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf
+import com.avail.descriptor.parsing.A_Phrase
+import com.avail.descriptor.parsing.BlockPhraseDescriptor
+import com.avail.descriptor.parsing.BlockPhraseDescriptor.newBlockNode
 import com.avail.exceptions.AvailErrorCode.E_BLOCK_CONTAINS_INVALID_STATEMENTS
 import com.avail.exceptions.AvailErrorCode.E_INVALID_PRIMITIVE_NUMBER
 import com.avail.interpreter.Interpreter

@@ -34,10 +34,8 @@ package com.avail.interpreter.primitive.bootstrap.syntax
 
 import com.avail.compiler.AvailRejectedParseException
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
-import com.avail.descriptor.A_Phrase
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AssignmentPhraseDescriptor.newAssignment
-import com.avail.descriptor.AtomDescriptor.SpecialAtom.*
 import com.avail.descriptor.DeclarationPhraseDescriptor.newModuleConstant
 import com.avail.descriptor.DeclarationPhraseDescriptor.newModuleVariable
 import com.avail.descriptor.ExpressionAsStatementPhraseDescriptor.newExpressionAsStatement
@@ -50,6 +48,8 @@ import com.avail.descriptor.TokenDescriptor.TokenType
 import com.avail.descriptor.TypeDescriptor.Types.ANY
 import com.avail.descriptor.TypeDescriptor.Types.TOKEN
 import com.avail.descriptor.VariableUsePhraseDescriptor.newUse
+import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.*
+import com.avail.descriptor.parsing.A_Phrase
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive

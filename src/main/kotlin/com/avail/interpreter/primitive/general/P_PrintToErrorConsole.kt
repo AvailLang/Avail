@@ -34,7 +34,6 @@ package com.avail.interpreter.primitive.general
 
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.AvailObject
 import com.avail.descriptor.FiberDescriptor.ExecutionState
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.NilDescriptor.nil
@@ -76,14 +75,8 @@ object P_PrintToErrorConsole : Primitive(1, CanSuspend, Unknown)
 				string.asNativeString(),
 				nil,
 				SimpleCompletionHandler(
-					{ _ ->
-						toSucceed.value(nil)
-						Unit
-					},
-					{ _ ->
-						toFail.value(E_IO_ERROR)
-						Unit
-					}))
+					{ _ -> toSucceed.value(nil) },
+					{ toFail.value(E_IO_ERROR) }))
 		}
 	}
 

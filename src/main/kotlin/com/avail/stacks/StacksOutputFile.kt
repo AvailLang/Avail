@@ -36,7 +36,6 @@ import com.avail.AvailRuntime
 import com.avail.utility.IO
 import com.avail.utility.MutableLong
 import com.avail.utility.Nulls
-
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousFileChannel
@@ -46,7 +45,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 import java.nio.file.attribute.BasicFileAttributes
-import java.util.EnumSet
+import java.util.*
 
 /**
  * The way a file is created.

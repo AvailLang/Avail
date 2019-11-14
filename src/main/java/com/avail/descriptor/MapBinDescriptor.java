@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.MapDescriptor.MapIterable;
+import com.avail.descriptor.objects.A_BasicObject;
 
 import javax.annotation.Nullable;
 import java.util.function.BiConsumer;
@@ -76,21 +77,21 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	int o_MapBinKeysHash (final AvailObject object)
+	protected int o_MapBinKeysHash (final AvailObject object)
 	{
 		return object.slot(KEYS_HASH);
 	}
 
 	@Override @AvailMethod
-	abstract void o_ForEachInMapBin (
+	protected abstract void o_ForEachInMapBin (
 		final AvailObject object,
 		final BiConsumer<? super AvailObject, ? super AvailObject> action);
 
 	@Override @AvailMethod
-	abstract int o_MapBinValuesHash (final AvailObject object);
+	protected abstract int o_MapBinValuesHash (final AvailObject object);
 
 	@Override
-	boolean o_IsHashedMapBin (final AvailObject object)
+	protected boolean o_IsHashedMapBin (final AvailObject object)
 	{
 		return false;
 	}
@@ -109,7 +110,7 @@ extends Descriptor
 	}
 
 	@Override
-	abstract MapIterable o_MapBinIterable (final AvailObject object);
+	protected abstract MapIterable o_MapBinIterable (final AvailObject object);
 
 	/**
 	 * The level of my objects in their enclosing bin trees. The top node is

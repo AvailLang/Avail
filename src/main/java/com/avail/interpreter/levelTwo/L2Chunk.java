@@ -33,6 +33,7 @@
 package com.avail.interpreter.levelTwo;
 
 import com.avail.descriptor.*;
+import com.avail.descriptor.tuples.A_String;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.operation.L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO;
 import com.avail.interpreter.levelTwo.operation.L2_TRY_OPTIONAL_PRIMITIVE;

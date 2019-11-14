@@ -33,10 +33,8 @@
 package com.avail.stacks.comment.signature
 
 import com.avail.utility.json.JSONWriter
-
-import java.util.ArrayList
-
 import java.lang.String.format
+import java.util.*
 
 /**
  * The defining characteristic of a semantic restriction comment as it pertains

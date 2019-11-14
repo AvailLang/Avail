@@ -35,6 +35,9 @@ package com.avail.descriptor;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.ArrayPojoTypeDescriptor.PojoArray;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.tuples.A_String;
+import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.serialization.SerializerOperation;
 
 import javax.annotation.Nullable;
@@ -92,19 +95,19 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_JavaAncestors (final AvailObject object)
+	protected AvailObject o_JavaAncestors (final AvailObject object)
 	{
 		return object.slot(JAVA_ANCESTORS);
 	}
 
 	@Override @AvailMethod
-	AvailObject o_JavaClass (final AvailObject object)
+	protected AvailObject o_JavaClass (final AvailObject object)
 	{
 		return object.slot(JAVA_CLASS);
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsPojoType (
+	protected boolean o_EqualsPojoType (
 		final AvailObject object,
 		final AvailObject aPojoType)
 	{
@@ -116,7 +119,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	protected int o_Hash (final AvailObject object)
 	{
 		// Note that this definition produces a value compatible with an unfused
 		// pojo type; this is necessary to permit comparison between an unfused
@@ -125,7 +128,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsAbstract (final AvailObject object)
+	protected boolean o_IsAbstract (final AvailObject object)
 	{
 		final A_BasicObject javaClass = object.slot(JAVA_CLASS);
 		return javaClass.equalsNil()
@@ -134,25 +137,25 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsPojoArrayType (final AvailObject object)
+	protected boolean o_IsPojoArrayType (final AvailObject object)
 	{
 		return object.slot(JAVA_CLASS).equals(equalityPojo(PojoArray.class));
 	}
 
 	@Override @AvailMethod
-	boolean o_IsPojoFusedType (final AvailObject object)
+	protected boolean o_IsPojoFusedType (final AvailObject object)
 	{
 		return object.slot(JAVA_CLASS).equalsNil();
 	}
 
 	@Override @AvailMethod
-	boolean o_IsPojoSelfType (final AvailObject object)
+	protected boolean o_IsPojoSelfType (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSupertypeOfPojoType (
+	protected boolean o_IsSupertypeOfPojoType (
 		final AvailObject object,
 		final A_Type aPojoType)
 	{
@@ -167,13 +170,13 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_PojoSelfType (final AvailObject object)
+	protected A_Type o_PojoSelfType (final AvailObject object)
 	{
 		return object;
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MakeImmutable (final AvailObject object)
+	protected AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		if (isMutable())
 		{
@@ -184,7 +187,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override
-	@Nullable Object o_MarshalToJava (
+	protected @Nullable Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{
@@ -198,13 +201,14 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.SELF_POJO_TYPE_REPRESENTATIVE;
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeIntersectionOfPojoType (
+	protected A_Type o_TypeIntersectionOfPojoType (
 		final AvailObject object,
 		final A_Type aPojoType)
 	{
@@ -235,7 +239,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeIntersectionOfPojoFusedType (
+	protected A_Type o_TypeIntersectionOfPojoFusedType (
 		final AvailObject object,
 		final A_Type aFusedPojoType)
 	{
@@ -243,7 +247,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeIntersectionOfPojoUnfusedType (
+	protected A_Type o_TypeIntersectionOfPojoUnfusedType (
 		final AvailObject object,
 		final A_Type anUnfusedPojoType)
 	{
@@ -251,7 +255,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeUnionOfPojoType (
+	protected A_Type o_TypeUnionOfPojoType (
 		final AvailObject object,
 		final A_Type aPojoType)
 	{
@@ -262,7 +266,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeUnionOfPojoFusedType (
+	protected A_Type o_TypeUnionOfPojoFusedType (
 		final AvailObject object,
 		final A_Type aFusedPojoType)
 	{
@@ -270,7 +274,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeUnionOfPojoUnfusedType (
+	protected A_Type o_TypeUnionOfPojoUnfusedType (
 		final AvailObject object,
 		final A_Type anUnfusedPojoType)
 	{
@@ -278,13 +282,13 @@ extends PojoTypeDescriptor
 	}
 
 	@Override
-	A_Map o_TypeVariables (final AvailObject object)
+	protected A_Map o_TypeVariables (final AvailObject object)
 	{
 		return emptyMap();
 	}
 
 	@Override
-	void printObjectOnAvoidingIndent (
+	protected void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
 		final IdentityHashMap<A_BasicObject, Void> recursionMap,
@@ -340,7 +344,7 @@ extends PojoTypeDescriptor
 		new SelfPojoTypeDescriptor(Mutability.MUTABLE);
 
 	@Override
-	SelfPojoTypeDescriptor mutable ()
+	protected SelfPojoTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -350,14 +354,14 @@ extends PojoTypeDescriptor
 		new SelfPojoTypeDescriptor(Mutability.SHARED);
 
 	@Override
-	SelfPojoTypeDescriptor immutable ()
+	protected SelfPojoTypeDescriptor immutable ()
 	{
 		// There is no immutable descriptor.
 		return shared;
 	}
 
 	@Override
-	SelfPojoTypeDescriptor shared ()
+	protected SelfPojoTypeDescriptor shared ()
 	{
 		return shared;
 	}

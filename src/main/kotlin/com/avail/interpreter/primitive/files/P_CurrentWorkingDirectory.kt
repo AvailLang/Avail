@@ -32,12 +32,12 @@
 
 package com.avail.interpreter.primitive.files
 
-import com.avail.descriptor.A_String
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.StringDescriptor.stringFrom
 import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TupleTypeDescriptor.stringType
+import com.avail.descriptor.tuples.A_String
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
@@ -69,7 +69,7 @@ object P_CurrentWorkingDirectory : Primitive(0, CannotFail, CanInline, CanFold)
 		val userDir = System.getProperty("user.dir")
 		val fileSystem = FileSystems.getDefault()
 		val path = fileSystem.getPath(userDir)
-		var realPathString: String =
+		val realPathString: String =
 			try { path.toRealPath().toString() }
 			catch (e: IOException) { userDir }
 			catch (e: SecurityException) { userDir }

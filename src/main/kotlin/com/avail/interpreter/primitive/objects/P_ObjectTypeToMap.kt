@@ -31,15 +31,18 @@
  */
 package com.avail.interpreter.primitive.objects
 
-import com.avail.descriptor.*
+import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceMetaDescriptor.anyMeta
+import com.avail.descriptor.InstanceTypeDescriptor
 import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
+import com.avail.descriptor.MapDescriptor
 import com.avail.descriptor.MapTypeDescriptor.mapTypeForSizesKeyTypeValueType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.ObjectTypeDescriptor.mostGeneralObjectMeta
 import com.avail.descriptor.SetDescriptor.set
+import com.avail.descriptor.TypeDescriptor
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
 import com.avail.exceptions.AvailErrorCode.E_NO_SUCH_FIELD
 import com.avail.interpreter.Interpreter

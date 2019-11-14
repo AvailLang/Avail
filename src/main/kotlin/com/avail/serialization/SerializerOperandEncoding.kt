@@ -559,7 +559,7 @@ internal enum class SerializerOperandEncoding
 	 * Visit an operand of some object prior to beginning to write a graph of
 	 * objects to the [Serializer].
 	 *
-	 * @param object
+	 * @param obj
 	 *   The [AvailObject] to trace.
 	 * @param serializer
 	 *   The [Serializer] with which to trace the object.
@@ -572,7 +572,7 @@ internal enum class SerializerOperandEncoding
 	/**
 	 * Write an operand with a suitable encoding to the [OutputStream].
 	 *
-	 * @param object
+	 * @param obj
 	 *   The [AvailObject] to serialize.
 	 * @param serializer
 	 *   The [Serializer] on which to encode the object.

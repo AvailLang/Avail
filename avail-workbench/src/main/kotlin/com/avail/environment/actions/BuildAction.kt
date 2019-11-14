@@ -34,13 +34,13 @@ package com.avail.environment.actions
 
 import com.avail.environment.AvailWorkbench
 import com.avail.environment.tasks.BuildTask
-import javax.swing.*
-import java.awt.event.ActionEvent
-import java.awt.event.KeyEvent
-
 import com.avail.utility.Nulls.stripNull
 import java.awt.Cursor.WAIT_CURSOR
 import java.awt.Cursor.getPredefinedCursor
+import java.awt.event.ActionEvent
+import java.awt.event.KeyEvent
+import javax.swing.Action
+import javax.swing.KeyStroke
 
 /**
  * A `BuildAction` launches a [build task][BuildTask] in a

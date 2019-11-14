@@ -33,21 +33,21 @@ package com.avail.interpreter.primitive.atoms
 
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.AtomDescriptor.objectFromBoolean
 import com.avail.descriptor.EnumerationTypeDescriptor.booleanType
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
+import com.avail.descriptor.atoms.AtomDescriptor
+import com.avail.descriptor.atoms.AtomDescriptor.objectFromBoolean
 import com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * **Primitive:** Answer whether the second
- * [atom][com.avail.descriptor.AtomDescriptor] has a property whose key is the
- * first atom.
+ * **Primitive:** Answer whether the second [atom][AtomDescriptor] has a
+ * property whose key is the first atom.
  */
 @Suppress("unused")
 object P_AtomHasProperty : Primitive(2, CanInline)

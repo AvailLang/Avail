@@ -38,12 +38,7 @@ import com.avail.builder.RenamesFileParser
 import com.avail.builder.RenamesFileParserException
 import com.avail.server.AvailServer
 import com.avail.utility.configuration.Configuration
-import java.io.BufferedReader
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileNotFoundException
-import java.io.InputStreamReader
-import java.io.StringReader
+import java.io.*
 import java.nio.charset.StandardCharsets
 
 /**

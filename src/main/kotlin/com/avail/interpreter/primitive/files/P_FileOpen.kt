@@ -35,9 +35,6 @@ import com.avail.AvailRuntime.currentRuntime
 import com.avail.descriptor.A_Set
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.AtomDescriptor
-import com.avail.descriptor.AtomDescriptor.SpecialAtom.FILE_KEY
-import com.avail.descriptor.AtomDescriptor.createAtom
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive
 import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
@@ -49,6 +46,9 @@ import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType
 import com.avail.descriptor.TupleTypeDescriptor.stringType
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
+import com.avail.descriptor.atoms.AtomDescriptor
+import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.FILE_KEY
+import com.avail.descriptor.atoms.AtomDescriptor.createAtom
 import com.avail.exceptions.AvailErrorCode.*
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive

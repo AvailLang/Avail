@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
+import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -42,12 +43,8 @@ import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.IntegerDescriptor.one;
 import static com.avail.descriptor.IntegerDescriptor.zero;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.singleInteger;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
-import static com.avail.descriptor.MapTypeDescriptor.ObjectSlots.KEY_TYPE;
-import static com.avail.descriptor.MapTypeDescriptor.ObjectSlots.SIZE_RANGE;
-import static com.avail.descriptor.MapTypeDescriptor.ObjectSlots.VALUE_TYPE;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
+import static com.avail.descriptor.MapTypeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 
 /**
@@ -89,19 +86,19 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_KeyType (final AvailObject object)
+	protected A_Type o_KeyType (final AvailObject object)
 	{
 		return object.slot(KEY_TYPE);
 	}
 
 	@Override @AvailMethod
-	A_Type o_SizeRange (final AvailObject object)
+	protected A_Type o_SizeRange (final AvailObject object)
 	{
 		return object.slot(SIZE_RANGE);
 	}
 
 	@Override @AvailMethod
-	A_Type o_ValueType (final AvailObject object)
+	protected A_Type o_ValueType (final AvailObject object)
 	{
 		return object.slot(VALUE_TYPE);
 	}
@@ -145,13 +142,13 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsMapType(object);
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsMapType (
+	protected boolean o_EqualsMapType (
 		final AvailObject object,
 		final A_Type aMapType)
 	{
@@ -165,7 +162,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	protected int o_Hash (final AvailObject object)
 	{
 		// Answer a 32-bit integer that is always the same for equal objects,
 		// but statistically different for different objects.
@@ -176,13 +173,13 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsMapType (final AvailObject object)
+	protected boolean o_IsMapType (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
+	protected boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
 	{
 		// Check if object (a type) is a subtype of aType (should also be a
 		// type).
@@ -190,7 +187,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSupertypeOfMapType (
+	protected boolean o_IsSupertypeOfMapType (
 		final AvailObject object,
 		final AvailObject aMapType)
 	{
@@ -202,7 +199,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	boolean o_IsVacuousType (final AvailObject object)
+	protected boolean o_IsVacuousType (final AvailObject object)
 	{
 		return
 			!object.slot(SIZE_RANGE).lowerBound().equalsInt(0)
@@ -211,7 +208,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeIntersection (
+	protected A_Type o_TypeIntersection (
 		final AvailObject object,
 		final A_Type another)
 	{
@@ -229,7 +226,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeIntersectionOfMapType (
+	protected A_Type o_TypeIntersectionOfMapType (
 		final AvailObject object,
 		final A_Type aMapType)
 	{
@@ -249,7 +246,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeUnion (
+	protected A_Type o_TypeUnion (
 		final AvailObject object,
 		final A_Type another)
 	{
@@ -271,7 +268,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeUnionOfMapType (
+	protected A_Type o_TypeUnionOfMapType (
 		final AvailObject object,
 		final A_Type aMapType)
 	{
@@ -291,13 +288,14 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.MAP_TYPE;
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MakeImmutable (final AvailObject object)
+	protected AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		if (isMutable())
 		{
@@ -309,7 +307,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -324,7 +322,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -480,7 +478,7 @@ extends TypeDescriptor
 		new MapTypeDescriptor(Mutability.MUTABLE);
 
 	@Override
-	MapTypeDescriptor mutable ()
+	protected MapTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -490,14 +488,14 @@ extends TypeDescriptor
 		new MapTypeDescriptor(Mutability.SHARED);
 
 	@Override
-	MapTypeDescriptor immutable ()
+	protected MapTypeDescriptor immutable ()
 	{
 		// There is no immutable descriptor.
 		return shared;
 	}
 
 	@Override
-	MapTypeDescriptor shared ()
+	protected MapTypeDescriptor shared ()
 	{
 		return shared;
 	}

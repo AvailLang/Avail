@@ -39,6 +39,7 @@ import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TypeDescriptor.Types.*
+import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
@@ -47,9 +48,9 @@ import com.avail.interpreter.Primitive.Flag.HasSideEffect
 import com.avail.interpreter.effects.LoadingEffectToRunPrimitive
 
 /**
- * **Primitive:** Within the first
- * [atom][com.avail.descriptor.AtomDescriptor], associate the given property key
- * (another atom) and property value.  This is a destructive operation.
+ * **Primitive:** Within the first [atom][AtomDescriptor], associate the given
+ * property key (another atom) and property value.  This is a destructive
+ * operation.
  */
 @Suppress("unused")
 object P_AtomSetProperty : Primitive(3, CanInline, HasSideEffect)

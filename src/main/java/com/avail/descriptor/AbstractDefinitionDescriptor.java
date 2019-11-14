@@ -34,12 +34,11 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.TypeDescriptor.Types;
+import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
-import static com.avail.descriptor.AbstractDefinitionDescriptor.ObjectSlots.BODY_SIGNATURE;
-import static com.avail.descriptor.AbstractDefinitionDescriptor.ObjectSlots.DEFINITION_METHOD;
-import static com.avail.descriptor.AbstractDefinitionDescriptor.ObjectSlots.MODULE;
+import static com.avail.descriptor.AbstractDefinitionDescriptor.ObjectSlots.*;
 
 
 /**
@@ -83,38 +82,39 @@ extends DefinitionDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_BodySignature (final AvailObject object)
+	protected A_Type o_BodySignature (final AvailObject object)
 	{
 		return object.slot(BODY_SIGNATURE);
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	protected int o_Hash (final AvailObject object)
 	{
 		return (object.slot(BODY_SIGNATURE).hash() * 19)
 			^ 0x201FE782;
 	}
 
 	@Override @AvailMethod
-	A_Type o_Kind (final AvailObject object)
+	protected A_Type o_Kind (final AvailObject object)
 	{
 		return Types.ABSTRACT_DEFINITION.o();
 	}
 
 	@Override @AvailMethod
-	boolean o_IsAbstractDefinition (final AvailObject object)
+	protected boolean o_IsAbstractDefinition (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.ABSTRACT_DEFINITION;
 	}
 
 	@Override
-	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -129,7 +129,7 @@ extends DefinitionDescriptor
 	}
 
 	@Override
-	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -186,7 +186,7 @@ extends DefinitionDescriptor
 		new AbstractDefinitionDescriptor(Mutability.MUTABLE);
 
 	@Override
-	AbstractDefinitionDescriptor mutable ()
+	protected AbstractDefinitionDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -196,14 +196,14 @@ extends DefinitionDescriptor
 		new AbstractDefinitionDescriptor(Mutability.SHARED);
 
 	@Override
-	AbstractDefinitionDescriptor immutable ()
+	protected AbstractDefinitionDescriptor immutable ()
 	{
 		// There is no immutable variant.
 		return shared;
 	}
 
 	@Override
-	AbstractDefinitionDescriptor shared ()
+	protected AbstractDefinitionDescriptor shared ()
 	{
 		return shared;
 	}

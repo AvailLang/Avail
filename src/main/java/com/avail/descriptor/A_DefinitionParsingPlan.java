@@ -33,6 +33,10 @@
 package com.avail.descriptor;
 
 import com.avail.compiler.ParsingOperation;
+import com.avail.descriptor.bundles.A_Bundle;
+import com.avail.descriptor.methods.A_Definition;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.tuples.A_Tuple;
 
 /**
  * {@code A_DefinitionParsingPlan} is an interface that specifies the operations

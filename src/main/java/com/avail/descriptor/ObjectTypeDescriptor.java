@@ -36,37 +36,34 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.MapDescriptor.Entry;
+import com.avail.descriptor.atoms.A_Atom;
+import com.avail.descriptor.atoms.AtomDescriptor;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.tuples.A_String;
+import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Strings;
 import com.avail.utility.json.JSONWriter;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.IdentityHashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY;
-import static com.avail.descriptor.AtomDescriptor.SpecialAtom.OBJECT_TYPE_NAME_PROPERTY_KEY;
-import static com.avail.descriptor.AtomDescriptor.createSpecialAtom;
-import static com.avail.descriptor.AtomDescriptor.trueObject;
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.MapDescriptor.emptyMap;
-import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
-import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
+import static com.avail.descriptor.ObjectTupleDescriptor.*;
 import static com.avail.descriptor.ObjectTypeDescriptor.IntegerSlots.HASH_AND_MORE;
 import static com.avail.descriptor.ObjectTypeDescriptor.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.ObjectTypeDescriptor.ObjectSlots.FIELD_TYPES_;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
+import static com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY;
+import static com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.OBJECT_TYPE_NAME_PROPERTY_KEY;
+import static com.avail.descriptor.atoms.AtomDescriptor.createSpecialAtom;
+import static com.avail.descriptor.atoms.AtomDescriptor.trueObject;
 
 /**
  * {@code ObjectTypeDescriptor} represents an Avail object type. An object type
@@ -116,7 +113,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
+	protected boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
 	{
 		return e == HASH_AND_MORE;
 	}
@@ -264,13 +261,13 @@ extends TypeDescriptor
 	}
 
 	@Override
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsObjectType(object);
 	}
 
 	@Override
-	boolean o_EqualsObjectType (
+	protected boolean o_EqualsObjectType (
 		final AvailObject object,
 		final AvailObject anObjectType)
 	{
@@ -279,7 +276,7 @@ extends TypeDescriptor
 			return true;
 		}
 		final ObjectTypeDescriptor otherDescriptor =
-			(ObjectTypeDescriptor) anObjectType.descriptor;
+			(ObjectTypeDescriptor) anObjectType.descriptor();
 		if (variant != otherDescriptor.variant)
 		{
 			return false;
@@ -329,7 +326,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_FieldTypeAt (final AvailObject object, final A_Atom field)
+	protected AvailObject o_FieldTypeAt (final AvailObject object, final A_Atom field)
 	{
 		// Fails with NullPointerException if key is not found.
 		final int slotIndex = variant.fieldToSlotIndex.get(field);
@@ -341,7 +338,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Map o_FieldTypeMap (final AvailObject object)
+	protected A_Map o_FieldTypeMap (final AvailObject object)
 	{
 		// Warning: May be much slower than it was before ObjectLayoutVariant.
 		A_Map fieldTypeMap = emptyMap();
@@ -361,7 +358,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Tuple o_FieldTypeTuple (final AvailObject object)
+	protected A_Tuple o_FieldTypeTuple (final AvailObject object)
 	{
 		final Iterator<Map.Entry<A_Atom, Integer>> fieldIterator =
 			variant.fieldToSlotIndex.entrySet().iterator();
@@ -383,7 +380,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	protected int o_Hash (final AvailObject object)
 	{
 		int hash = object.slot(HASH_OR_ZERO);
 		if (hash == 0)
@@ -405,12 +402,12 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_HasObjectInstance (
+	protected boolean o_HasObjectInstance (
 		final AvailObject object,
 		final AvailObject potentialInstance)
 	{
 		final ObjectDescriptor instanceDescriptor =
-			(ObjectDescriptor) potentialInstance.descriptor;
+			(ObjectDescriptor) potentialInstance.descriptor();
 		final ObjectLayoutVariant instanceVariant =
 			instanceDescriptor.variant;
 		if (instanceVariant == variant)
@@ -475,7 +472,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSubtypeOf (
+	protected boolean o_IsSubtypeOf (
 		final AvailObject object,
 		final A_Type aType)
 	{
@@ -483,7 +480,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSupertypeOfObjectType (
+	protected boolean o_IsSupertypeOfObjectType (
 		final AvailObject object,
 		final AvailObject anObjectType)
 	{
@@ -492,7 +489,7 @@ extends TypeDescriptor
 			return true;
 		}
 		final ObjectTypeDescriptor subtypeDescriptor =
-			(ObjectTypeDescriptor) anObjectType.descriptor;
+			(ObjectTypeDescriptor) anObjectType.descriptor();
 		final ObjectLayoutVariant subtypeVariant =
 			subtypeDescriptor.variant;
 		if (subtypeVariant == variant)
@@ -567,7 +564,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	boolean o_IsVacuousType (final AvailObject object)
+	protected boolean o_IsVacuousType (final AvailObject object)
 	{
 		final int limit = object.variableObjectSlotsCount();
 		for (int i = 1; i <= limit; i++)
@@ -581,7 +578,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeIntersection (
+	protected A_Type o_TypeIntersection (
 		final AvailObject object,
 		final A_Type another)
 	{
@@ -601,7 +598,7 @@ extends TypeDescriptor
 	 * Here we're finding the nearest common descendant of two object types.
 	 */
 	@Override @AvailMethod
-	A_Type o_TypeIntersectionOfObjectType (
+	protected A_Type o_TypeIntersectionOfObjectType (
 		final AvailObject object,
 		final AvailObject anObjectType)
 	{
@@ -678,7 +675,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeUnion (
+	protected A_Type o_TypeUnion (
 		final AvailObject object,
 		final A_Type another)
 	{
@@ -698,7 +695,7 @@ extends TypeDescriptor
 	 * Here we're finding the nearest common ancestor of two eager object types.
 	 */
 	@Override @AvailMethod
-	A_Type o_TypeUnionOfObjectType (
+	protected A_Type o_TypeUnionOfObjectType (
 		final AvailObject object,
 		final AvailObject anObjectType)
 	{
@@ -754,13 +751,14 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.OBJECT_TYPE;
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MakeImmutable (final AvailObject object)
+	protected AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		if (isMutable())
 		{
@@ -771,7 +769,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -786,7 +784,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -873,13 +871,12 @@ extends TypeDescriptor
 
 	/**
 	 * Assign a name to the specified {@code object type}.  If the only field
-	 * key {@link A_Atom}s in the object type are {@linkplain
-	 * AtomDescriptor#o_IsAtomSpecial(AvailObject) special atoms}, then the name
-	 * will not be recorded (unless allowSpecialAtomsToHoldName is true, which
-	 * is really only for naming special object types like {@link
-	 * #exceptionType}).  Note that it is technically <em>legal</em> for there
-	 * to be multiple names for a particular object type, although this is of
-	 * questionable value.
+	 * key {@link A_Atom}s in the object type are
+	 * {@linkplain A_Atom#isAtomSpecial() special atoms}, then the name will not
+	 * be recorded (unless allowSpecialAtomsToHoldName is true, which is really
+	 * only for naming special object types like {@link #exceptionType}).  Note
+	 * that it is technically <em>legal</em> for there to be multiple names for
+	 * a particular object type, although this is of questionable value.
 	 *
 	 * @param anObjectType
 	 *        An {@code object type}.
@@ -1107,19 +1104,19 @@ extends TypeDescriptor
 	}
 
 	@Deprecated @Override
-	ObjectTypeDescriptor mutable ()
+	protected ObjectTypeDescriptor mutable ()
 	{
 		return variant.mutableObjectTypeDescriptor;
 	}
 
 	@Deprecated @Override
-	ObjectTypeDescriptor immutable ()
+	protected ObjectTypeDescriptor immutable ()
 	{
 		return variant.immutableObjectTypeDescriptor;
 	}
 
 	@Deprecated @Override
-	ObjectTypeDescriptor shared ()
+	protected ObjectTypeDescriptor shared ()
 	{
 		return variant.sharedObjectTypeDescriptor;
 	}

@@ -34,6 +34,9 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.tuples.A_String;
+import com.avail.descriptor.tuples.A_Tuple;
 
 import javax.annotation.Nullable;
 import java.util.function.IntUnaryOperator;
@@ -42,9 +45,7 @@ import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.AvailObject.newLike;
 import static com.avail.descriptor.CharacterDescriptor.computeHashOfCharacterWithCodePoint;
 import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
-import static com.avail.descriptor.Mutability.IMMUTABLE;
-import static com.avail.descriptor.Mutability.MUTABLE;
-import static com.avail.descriptor.Mutability.SHARED;
+import static com.avail.descriptor.Mutability.*;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.TreeTupleDescriptor.concatenateAtLeastOneTree;
 import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;
@@ -114,7 +115,7 @@ extends StringDescriptor
 	int unusedShortsOfLastLong;
 
 	@Override @AvailMethod
-	A_Tuple o_AppendCanDestroy (
+	protected A_Tuple o_AppendCanDestroy (
 		final AvailObject object,
 		final A_BasicObject newElement,
 		final boolean canDestroy)
@@ -137,7 +138,7 @@ extends StringDescriptor
 		if (isMutable() && canDestroy && (originalSize & 3) != 0)
 		{
 			// Enlarge it in place, using more of the final partial int field.
-			object.descriptor = descriptorFor(MUTABLE, newSize);
+			object.setDescriptor(descriptorFor(MUTABLE, newSize));
 			object.rawShortForCharacterAtPut(newSize, intValue);
 			object.setSlot(HASH_OR_ZERO, 0);
 			return object;
@@ -154,7 +155,7 @@ extends StringDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_CompareFromToWithStartingAt (
+	protected boolean o_CompareFromToWithStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -169,7 +170,7 @@ extends StringDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_CompareFromToWithTwoByteStringStartingAt (
+	protected boolean o_CompareFromToWithTwoByteStringStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -195,13 +196,13 @@ extends StringDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsTwoByteString(object);
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsTwoByteString (
+	protected boolean o_EqualsTwoByteString (
 		final AvailObject object,
 		final A_String aTwoByteString)
 	{
@@ -243,27 +244,27 @@ extends StringDescriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_IsTwoByteString (final AvailObject object)
+	protected boolean o_IsTwoByteString (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MakeImmutable (final AvailObject object)
+	protected AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		if (isMutable())
 		{
-			object.descriptor = descriptorFor(IMMUTABLE, object.tupleSize());
+			object.setDescriptor(descriptorFor(IMMUTABLE, object.tupleSize()));
 		}
 		return object;
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MakeShared (final AvailObject object)
+	protected AvailObject o_MakeShared (final AvailObject object)
 	{
 		if (!isShared())
 		{
-			object.descriptor = descriptorFor(SHARED, object.tupleSize());
+			object.setDescriptor(descriptorFor(SHARED, object.tupleSize()));
 		}
 		return object;
 	}
@@ -272,13 +273,13 @@ extends StringDescriptor
 	 * Answer the int that encodes the character at the given index.
 	 */
 	@Override @AvailMethod
-	int o_RawShortForCharacterAt (final AvailObject object, final int index)
+	protected int o_RawShortForCharacterAt (final AvailObject object, final int index)
 	{
 		return object.shortSlot(RAW_LONGS_, index);
 	}
 
 	@Override @AvailMethod
-	void o_RawShortForCharacterAtPut (
+	protected void o_RawShortForCharacterAtPut (
 		final AvailObject object,
 		final int index,
 		final int anInteger)
@@ -289,7 +290,7 @@ extends StringDescriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_TupleAt (final AvailObject object, final int index)
+	protected AvailObject o_TupleAt (final AvailObject object, final int index)
 	{
 		// Answer the element at the given index in the tuple object. It's a
 		// two-byte character.
@@ -298,7 +299,7 @@ extends StringDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Tuple o_TupleAtPuttingCanDestroy (
+	protected A_Tuple o_TupleAtPuttingCanDestroy (
 		final AvailObject object,
 		final int index,
 		final A_BasicObject newValueObject,
@@ -333,14 +334,14 @@ extends StringDescriptor
 	}
 
 	@Override
-	int o_TupleCodePointAt (final AvailObject object, final int index)
+	protected int o_TupleCodePointAt (final AvailObject object, final int index)
 	{
 		assert index >= 1 && index <= object.tupleSize();
 		return object.shortSlot(RAW_LONGS_, index);
 	}
 
 	@Override @AvailMethod
-	A_Tuple o_TupleReverse(final AvailObject object)
+	protected A_Tuple o_TupleReverse(final AvailObject object)
 	{
 		final int size = object.tupleSize();
 		if (size > maximumCopySize)
@@ -355,14 +356,14 @@ extends StringDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_TupleSize (final AvailObject object)
+	protected int o_TupleSize (final AvailObject object)
 	{
 		return (object.variableIntegerSlotsCount() << 2)
 			- unusedShortsOfLastLong;
 	}
 
 	@Override @AvailMethod
-	int o_BitsPerEntry (final AvailObject object)
+	protected int o_BitsPerEntry (final AvailObject object)
 	{
 		// Answer approximately how many bits per entry are taken up by this
 		// object.
@@ -370,7 +371,7 @@ extends StringDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_ComputeHashFromTo (
+	protected int o_ComputeHashFromTo (
 		final AvailObject object,
 		final int start,
 		final int end)
@@ -389,7 +390,7 @@ extends StringDescriptor
 	}
 
 	@Override
-	Object o_MarshalToJava (
+	protected Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{
@@ -397,7 +398,7 @@ extends StringDescriptor
 	}
 
 	@Override
-	A_Tuple o_ConcatenateWith (
+	protected A_Tuple o_ConcatenateWith (
 		final AvailObject object,
 		final A_Tuple otherTuple,
 		final boolean canDestroy)
@@ -432,7 +433,7 @@ extends StringDescriptor
 			{
 				// We can reuse the receiver; it has enough int slots.
 				result = object;
-				result.descriptor = descriptorFor(MUTABLE, newSize);
+				result.setDescriptor(descriptorFor(MUTABLE, newSize));
 			}
 			else
 			{
@@ -463,7 +464,7 @@ extends StringDescriptor
 	}
 
 	@Override
-	A_Tuple o_CopyTupleFromToCanDestroy (
+	protected A_Tuple o_CopyTupleFromToCanDestroy (
 		final AvailObject object,
 		final int start,
 		final int end,
@@ -520,21 +521,21 @@ extends StringDescriptor
 	}
 
 	@Override
-	TwoByteStringDescriptor mutable ()
+	protected TwoByteStringDescriptor mutable ()
 	{
 		return descriptors[
 			((4 - unusedShortsOfLastLong) & 3) * 3 + MUTABLE.ordinal()];
 	}
 
 	@Override
-	TwoByteStringDescriptor immutable ()
+	protected TwoByteStringDescriptor immutable ()
 	{
 		return descriptors[
 			((4 - unusedShortsOfLastLong) & 3) * 3 + IMMUTABLE.ordinal()];
 	}
 
 	@Override
-	TwoByteStringDescriptor shared ()
+	protected TwoByteStringDescriptor shared ()
 	{
 		return descriptors[
 			((4 - unusedShortsOfLastLong) & 3) * 3 + SHARED.ordinal()];

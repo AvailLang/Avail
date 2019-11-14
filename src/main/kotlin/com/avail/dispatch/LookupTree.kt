@@ -32,10 +32,10 @@
 
 package com.avail.dispatch
 
-import com.avail.descriptor.A_BasicObject
-import com.avail.descriptor.A_Definition
-import com.avail.descriptor.A_Tuple
 import com.avail.descriptor.A_Type
+import com.avail.descriptor.methods.A_Definition
+import com.avail.descriptor.objects.A_BasicObject
+import com.avail.descriptor.tuples.A_Tuple
 
 /**
  * `LookupTree` is used to look up method definitions by argument types,

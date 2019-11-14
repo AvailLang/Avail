@@ -38,6 +38,8 @@ import com.avail.annotations.EnumField;
 import com.avail.annotations.EnumField.Converter;
 import com.avail.annotations.HideFieldJustForPrinting;
 import com.avail.descriptor.CompiledCodeDescriptor.L1InstructionDecoder;
+import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.L1Operation;
@@ -60,14 +62,8 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.ContinuationDescriptor.IntegerSlots.LEVEL_TWO_OFFSET;
-import static com.avail.descriptor.ContinuationDescriptor.IntegerSlots.LEVEL_TWO_OFFSET_AND_OTHER;
-import static com.avail.descriptor.ContinuationDescriptor.IntegerSlots.PROGRAM_COUNTER;
-import static com.avail.descriptor.ContinuationDescriptor.IntegerSlots.STACK_POINTER;
-import static com.avail.descriptor.ContinuationDescriptor.ObjectSlots.CALLER;
-import static com.avail.descriptor.ContinuationDescriptor.ObjectSlots.FRAME_AT_;
-import static com.avail.descriptor.ContinuationDescriptor.ObjectSlots.FUNCTION;
-import static com.avail.descriptor.ContinuationDescriptor.ObjectSlots.LEVEL_TWO_CHUNK;
+import static com.avail.descriptor.ContinuationDescriptor.IntegerSlots.*;
+import static com.avail.descriptor.ContinuationDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.ContinuationTypeDescriptor.continuationTypeForFunctionType;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.VariableDescriptor.newVariableWithContentType;
@@ -193,7 +189,7 @@ extends Descriptor
 	}
 
 	@Override
-	boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
+	protected boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
 	{
 		return e == LEVEL_TWO_OFFSET_AND_OTHER
 			|| e == LEVEL_TWO_CHUNK;
@@ -203,7 +199,7 @@ extends Descriptor
 	 * Set both my level one program counter and level one stack pointer.
 	 */
 	@Override @AvailMethod
-	void o_AdjustPcAndStackp (
+	protected void o_AdjustPcAndStackp (
 		final AvailObject object,
 		final int pc,
 		final int stackp)
@@ -214,7 +210,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	AvailObject o_ArgOrLocalOrStackAt (
+	protected AvailObject o_ArgOrLocalOrStackAt (
 		final AvailObject object,
 		final int subscript)
 	{
@@ -222,7 +218,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	void o_ArgOrLocalOrStackAtPut (
+	protected void o_ArgOrLocalOrStackAtPut (
 		final AvailObject object,
 		final int subscript,
 		final AvailObject value)
@@ -231,13 +227,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	A_Continuation o_Caller (final AvailObject object)
+	protected A_Continuation o_Caller (final AvailObject object)
 	{
 		return object.slot(CALLER);
 	}
 
 	@Override
-	int o_CurrentLineNumber (final AvailObject object)
+	protected int o_CurrentLineNumber (final AvailObject object)
 	{
 		final A_RawFunction code = object.function().code();
 		final A_Tuple encodedDeltas = code.lineNumberEncodedDeltas();
@@ -273,7 +269,7 @@ extends Descriptor
 	 * is therefore always able to directly modify it.
 	 */
 	@Override @AvailMethod
-	A_Continuation o_EnsureMutable (final AvailObject object)
+	protected A_Continuation o_EnsureMutable (final AvailObject object)
 	{
 		if (isMutable())
 		{
@@ -283,13 +279,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsContinuation(object);
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsContinuation (
+	protected boolean o_EqualsContinuation (
 		final AvailObject object,
 		final A_Continuation aContinuation)
 	{
@@ -325,13 +321,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	A_Function o_Function (final AvailObject object)
+	protected A_Function o_Function (final AvailObject object)
 	{
 		return object.slot(FUNCTION);
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	protected int o_Hash (final AvailObject object)
 	{
 		int h = 0x593599A;
 		h ^= object.caller().hash();
@@ -344,7 +340,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_Kind (final AvailObject object)
+	protected A_Type o_Kind (final AvailObject object)
 	{
 		return continuationTypeForFunctionType(object.function().kind());
 	}
@@ -353,7 +349,7 @@ extends Descriptor
 	 * Set both my chunk index and the offset into it.
 	 */
 	@Override @AvailMethod
-	void o_LevelTwoChunkOffset (
+	protected void o_LevelTwoChunkOffset (
 		final AvailObject object,
 		final L2Chunk chunk,
 		final int offset)
@@ -374,7 +370,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	L2Chunk o_LevelTwoChunk (final AvailObject object)
+	protected L2Chunk o_LevelTwoChunk (final AvailObject object)
 	{
 		final L2Chunk chunk =
 			object.mutableSlot(LEVEL_TWO_CHUNK).javaObjectNotNull();
@@ -386,13 +382,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	int o_LevelTwoOffset (final AvailObject object)
+	protected int o_LevelTwoOffset (final AvailObject object)
 	{
 		return object.mutableSlot(LEVEL_TWO_OFFSET);
 	}
 
 	@Override
-	String o_NameForDebugger (final AvailObject object)
+	protected String o_NameForDebugger (final AvailObject object)
 	{
 		final StringBuilder builder = new StringBuilder();
 		builder.append(super.o_NameForDebugger(object));
@@ -416,19 +412,19 @@ extends Descriptor
 	 * entries.
 	 */
 	@Override @AvailMethod
-	int o_NumSlots (final AvailObject object)
+	protected int o_NumSlots (final AvailObject object)
 	{
 		return object.variableObjectSlotsCount();
 	}
 
 	@Override @AvailMethod
-	int o_Pc (final AvailObject object)
+	protected int o_Pc (final AvailObject object)
 	{
 		return object.slot(PROGRAM_COUNTER);
 	}
 
 	@Override
-	A_Continuation o_ReplacingCaller (
+	protected A_Continuation o_ReplacingCaller (
 		final AvailObject object,
 		final A_Continuation newCaller)
 	{
@@ -440,7 +436,8 @@ extends Descriptor
 	}
 
 	@Override
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.CONTINUATION;
 	}
@@ -456,13 +453,13 @@ extends Descriptor
 	 * based on just the stack area.
 	 */
 	@Override @AvailMethod
-	AvailObject o_StackAt (final AvailObject object, final int subscript)
+	protected AvailObject o_StackAt (final AvailObject object, final int subscript)
 	{
 		return object.slot(FRAME_AT_, subscript);
 	}
 
 	@Override @AvailMethod
-	int o_Stackp (final AvailObject object)
+	protected int o_Stackp (final AvailObject object)
 	{
 		return object.slot(STACK_POINTER);
 	}
@@ -614,7 +611,7 @@ extends Descriptor
 		new ContinuationDescriptor(Mutability.MUTABLE);
 
 	@Override
-	ContinuationDescriptor mutable ()
+	protected ContinuationDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -624,7 +621,7 @@ extends Descriptor
 		new ContinuationDescriptor(Mutability.IMMUTABLE);
 
 	@Override
-	ContinuationDescriptor immutable ()
+	protected ContinuationDescriptor immutable ()
 	{
 		return immutable;
 	}
@@ -634,7 +631,7 @@ extends Descriptor
 		new ContinuationDescriptor(Mutability.SHARED);
 
 	@Override
-	ContinuationDescriptor shared ()
+	protected ContinuationDescriptor shared ()
 	{
 		return shared;
 	}

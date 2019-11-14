@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
+import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -73,38 +74,38 @@ extends TypeDescriptor
 	}
 
 	@Override
-	A_Type o_ResultType (final AvailObject object)
+	protected A_Type o_ResultType (final AvailObject object)
 	{
 		return object.slot(RESULT_TYPE);
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsFiberType(object);
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsFiberType (final AvailObject object, final A_Type aType)
+	protected boolean o_EqualsFiberType (final AvailObject object, final A_Type aType)
 	{
 		return object.sameAddressAs(aType)
 			|| aType.resultType().equals(object.slot(RESULT_TYPE));
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	protected int o_Hash (final AvailObject object)
 	{
 		return object.slot(RESULT_TYPE).hash() * 1307 ^ 0xBC084A71;
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
+	protected boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
 	{
 		return aType.isSupertypeOfFiberType(object);
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSupertypeOfFiberType (
+	protected boolean o_IsSupertypeOfFiberType (
 		final AvailObject object,
 		final A_Type aType)
 	{
@@ -112,7 +113,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeIntersection (final AvailObject object, final A_Type another)
+	protected A_Type o_TypeIntersection (final AvailObject object, final A_Type another)
 	{
 		if (object.isSubtypeOf(another))
 		{
@@ -126,7 +127,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeIntersectionOfFiberType (
+	protected A_Type o_TypeIntersectionOfFiberType (
 		final AvailObject object,
 		final A_Type aType)
 	{
@@ -135,7 +136,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeUnion (final AvailObject object, final A_Type another)
+	protected A_Type o_TypeUnion (final AvailObject object, final A_Type another)
 	{
 		if (object.isSubtypeOf(another))
 		{
@@ -149,7 +150,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeUnionOfFiberType (
+	protected A_Type o_TypeUnionOfFiberType (
 		final AvailObject object,
 		final A_Type aType)
 	{
@@ -158,13 +159,14 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.FIBER_TYPE;
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MakeImmutable (final AvailObject object)
+	protected AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		if (isMutable())
 		{
@@ -175,7 +177,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -186,7 +188,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -198,7 +200,7 @@ extends TypeDescriptor
 
 	@Override
 	@ThreadSafe
-	void printObjectOnAvoidingIndent (
+	protected void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
 		final IdentityHashMap<A_BasicObject, Void> recursionMap,
@@ -225,7 +227,7 @@ extends TypeDescriptor
 		new FiberTypeDescriptor(Mutability.MUTABLE);
 
 	@Override
-	FiberTypeDescriptor mutable ()
+	protected FiberTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -235,14 +237,14 @@ extends TypeDescriptor
 		new FiberTypeDescriptor(Mutability.SHARED);
 
 	@Override
-	FiberTypeDescriptor immutable ()
+	protected FiberTypeDescriptor immutable ()
 	{
 		// There is no immutable variation.
 		return shared;
 	}
 
 	@Override
-	FiberTypeDescriptor shared ()
+	protected FiberTypeDescriptor shared ()
 	{
 		return shared;
 	}

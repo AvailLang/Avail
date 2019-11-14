@@ -37,12 +37,12 @@ import com.avail.builder.ModuleName
 import com.avail.builder.ModuleNameResolver
 import com.avail.builder.UnresolvedDependencyException
 import com.avail.compiler.ModuleHeader
-import com.avail.descriptor.A_String
-import com.avail.descriptor.A_Tuple
 import com.avail.descriptor.CommentTokenDescriptor
 import com.avail.descriptor.SetDescriptor.emptySet
 import com.avail.descriptor.SetDescriptor.setFromCollection
 import com.avail.descriptor.StringDescriptor.stringFrom
+import com.avail.descriptor.tuples.A_String
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.stacks.*
 import com.avail.stacks.comment.AvailComment
 import com.avail.stacks.exceptions.StacksCommentBuilderException
@@ -86,13 +86,13 @@ import java.util.*
  *   An optional prefix to all files' link web links
  */
 class CommentsModule constructor(
-		header: ModuleHeader,
-		commentTokens: A_Tuple,
-		errorLog: StacksErrorLog,
-		resolver: ModuleNameResolver,
-		moduleToComments: HashMap<String, CommentsModule>,
-		linkingFileMap: LinkingFileMap,
-		val linkPrefix: String)
+	header: ModuleHeader,
+	commentTokens: A_Tuple,
+	errorLog: StacksErrorLog,
+	resolver: ModuleNameResolver,
+	moduleToComments: HashMap<String, CommentsModule>,
+	linkingFileMap: LinkingFileMap,
+	val linkPrefix: String)
 {
 	/**
 	 *  A map of the modules extended by this module to the
@@ -1259,7 +1259,8 @@ class CommentsModule constructor(
 		outputPath: Path,
 		runtime: AvailRuntime,
 		@Suppress("UNUSED_PARAMETER")
-		ambiguousMethodFileMap: MutableMap<A_String, MutableMap<String, CommentGroup>>,
+		ambiguousMethodFileMap:
+			MutableMap<A_String, MutableMap<String, CommentGroup>>,
 		@Suppress("UNUSED_PARAMETER")
 		topLevelLinkFolderPath: String,
 		linkingFileMap: LinkingFileMap)

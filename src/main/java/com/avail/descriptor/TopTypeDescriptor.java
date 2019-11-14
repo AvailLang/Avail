@@ -99,7 +99,7 @@ extends PrimitiveTypeDescriptor
 
 	@Override
 	@AvailMethod @ThreadSafe
-	boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
+	protected boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
 	{
 		// Check if object (the type top) is a subtype of aType (may also be
 		// top).
@@ -110,7 +110,7 @@ extends PrimitiveTypeDescriptor
 	@Override
 	@AvailMethod
 	@ThreadSafe
-	boolean o_IsSupertypeOfPrimitiveTypeEnum (
+	protected boolean o_IsSupertypeOfPrimitiveTypeEnum (
 		final AvailObject object,
 		final Types primitiveTypeEnum)
 	{
@@ -121,13 +121,13 @@ extends PrimitiveTypeDescriptor
 
 	@Override
 	@AvailMethod @ThreadSafe
-	boolean o_IsTop (final AvailObject object)
+	protected boolean o_IsTop (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override
-	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");

@@ -32,7 +32,6 @@
 package com.avail.interpreter.primitive.pojos
 
 import com.avail.AvailRuntime.HookType
-import com.avail.descriptor.A_Tuple
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.BottomTypeDescriptor.bottom
 import com.avail.descriptor.ObjectTupleDescriptor.tupleFromList
@@ -40,6 +39,7 @@ import com.avail.descriptor.PojoDescriptor.newPojo
 import com.avail.descriptor.PojoTypeDescriptor.pojoTypeForClass
 import com.avail.descriptor.PojoTypeDescriptor.unmarshal
 import com.avail.descriptor.RawPojoDescriptor.identityPojo
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.MarshalingException
 import com.avail.interpreter.Interpreter

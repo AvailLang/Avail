@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
+import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -85,25 +86,25 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_ReadType (final AvailObject object)
+	protected A_Type o_ReadType (final AvailObject object)
 	{
 		return object.slot(INNER_TYPE);
 	}
 
 	@Override @AvailMethod
-	A_Type o_WriteType (final AvailObject object)
+	protected A_Type o_WriteType (final AvailObject object)
 	{
 		return object.slot(INNER_TYPE);
 	}
 
 	@Override @AvailMethod
-	boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsVariableType(object);
 	}
 
 	@Override @AvailMethod
-	boolean o_EqualsVariableType (
+	protected boolean o_EqualsVariableType (
 		final AvailObject object,
 		final A_Type aType)
 	{
@@ -131,19 +132,19 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	int o_Hash (final AvailObject object)
+	protected int o_Hash (final AvailObject object)
 	{
 		return (object.slot(INNER_TYPE).hash() ^ 0x7613E420) + 0x024E3167;
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
+	protected boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
 	{
 		return aType.isSupertypeOfVariableType(object);
 	}
 
 	@Override @AvailMethod
-	boolean o_IsSupertypeOfVariableType (
+	protected boolean o_IsSupertypeOfVariableType (
 		final AvailObject object,
 		final A_Type aVariableType)
 	{
@@ -156,7 +157,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeIntersection (
+	protected A_Type o_TypeIntersection (
 		final AvailObject object,
 		final A_Type another)
 	{
@@ -172,7 +173,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeIntersectionOfVariableType (
+	protected A_Type o_TypeIntersectionOfVariableType (
 		final AvailObject object,
 		final A_Type aVariableType)
 	{
@@ -186,7 +187,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeUnion (
+	protected A_Type o_TypeUnion (
 		final AvailObject object,
 		final A_Type another)
 	{
@@ -202,7 +203,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	A_Type o_TypeUnionOfVariableType (
+	protected A_Type o_TypeUnionOfVariableType (
 		final AvailObject object,
 		final A_Type aVariableType)
 	{
@@ -217,13 +218,14 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	SerializerOperation o_SerializerOperation (final AvailObject object)
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
 	{
 		return SerializerOperation.SIMPLE_VARIABLE_TYPE;
 	}
 
 	@Override @AvailMethod
-	AvailObject o_MakeImmutable (final AvailObject object)
+	protected AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		if (isMutable())
 		{
@@ -234,7 +236,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -248,7 +250,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -314,7 +316,7 @@ extends TypeDescriptor
 		new VariableTypeDescriptor(Mutability.MUTABLE);
 
 	@Override
-	VariableTypeDescriptor mutable ()
+	protected VariableTypeDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -324,14 +326,14 @@ extends TypeDescriptor
 		new VariableTypeDescriptor(Mutability.SHARED);
 
 	@Override
-	VariableTypeDescriptor immutable ()
+	protected VariableTypeDescriptor immutable ()
 	{
 		// There is only a shared variant, not an immutable one.
 		return shared;
 	}
 
 	@Override
-	VariableTypeDescriptor shared ()
+	protected VariableTypeDescriptor shared ()
 	{
 		return shared;
 	}

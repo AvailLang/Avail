@@ -32,11 +32,11 @@
 
 package com.avail.interpreter.effects
 
-import com.avail.descriptor.A_Definition
-import com.avail.descriptor.A_Method
 import com.avail.descriptor.DefinitionDescriptor
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.*
 import com.avail.descriptor.TypeDescriptor.Types
+import com.avail.descriptor.methods.A_Definition
+import com.avail.descriptor.methods.A_Method
 import com.avail.interpreter.levelOne.L1InstructionWriter
 import com.avail.interpreter.levelOne.L1Operation
 
