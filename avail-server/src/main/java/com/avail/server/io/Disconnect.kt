@@ -53,6 +53,9 @@ enum class DisconnectOrigin
  * The `DisconnectReason` is an interface that defines the behavior for
  * providing a reason for a disconnected [AvailServerChannel].
  *
+ * All negative [DisconnectReason.code]s are reserved for system use. Nonzero
+ * `codes` are reserved for application specific implementations.
+ *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
 interface DisconnectReason
@@ -64,8 +67,23 @@ interface DisconnectReason
 
 	/**
 	 * A code that represents the [DisconnectReason] in a compact form.
+	 *
+	 * All negative [DisconnectReason.code]s are reserved for system use.
+	 * Nonzero `codes` are reserved for application specific implementations.
 	 */
 	val code: Int
+}
+
+/**
+ * The `UnspecifiedDisconnectReason` is the [DisconnectReason] provided for a
+ * close when no explicit `DisconnectReason` was supplied.
+ *
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ */
+object UnspecifiedDisconnectReason: DisconnectReason
+{
+	override val origin get () = DisconnectOrigin.SERVER_ORIGIN
+	override val code get () = -1
 }
 
 /**
@@ -77,7 +95,7 @@ interface DisconnectReason
 object ClientDisconnect: DisconnectReason
 {
 	override val origin get () = DisconnectOrigin.CLIENT_ORIGIN
-	override val code get () = -1
+	override val code get () = -2
 }
 
 /**
@@ -90,7 +108,7 @@ object ClientDisconnect: DisconnectReason
 object HeartbeatFailureDisconnect: DisconnectReason
 {
 	override val origin get () = DisconnectOrigin.SERVER_ORIGIN
-	override val code get () = -2
+	override val code get () = -3
 }
 
 /**
@@ -103,5 +121,5 @@ object HeartbeatFailureDisconnect: DisconnectReason
 object ServerMessageDisconnect: DisconnectReason
 {
 	override val origin get () = DisconnectOrigin.SERVER_ORIGIN
-	override val code get () = -3
+	override val code get () = -4
 }
