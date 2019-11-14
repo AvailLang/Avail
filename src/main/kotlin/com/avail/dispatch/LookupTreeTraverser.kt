@@ -161,9 +161,8 @@ protected constructor(
 			visitLeafNode(solution)
 			return
 		}
-		val internalNode = cast<
-			LookupTree<Element, Result, AdaptorMemento>,
-			InternalLookupTree<Element, Result, AdaptorMemento>>(node)
+		val internalNode: InternalLookupTree<Element, Result, AdaptorMemento> =
+			cast(node)
 		if (expandAll)
 		{
 			internalNode.expandIfNecessary(adaptor, adaptorMemento)

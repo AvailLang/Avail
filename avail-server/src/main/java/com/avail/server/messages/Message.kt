@@ -1,6 +1,6 @@
 /*
- * ServerErrorChannel.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Message.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,32 +30,62 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.server.io;
+package com.avail.server.messages
+
+import com.avail.server.AvailServer
+import com.avail.server.io.AvailServerChannel
 
 /**
- * A {@code ServerErrorChannel} adapts an {@link AvailServerChannel channel} for
- * use as a standard output channel.
+ * An [AvailServer] sends and receives `Message`s. A `Message` received by the
+ * server represents a command from the client, whereas a `Message` sent by the
+ * server represents a response to a command.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class ServerErrorChannel
-extends AbstractServerOutputChannel
+class Message
 {
+	/** The [content][String] of the [message][Message]. */
+	val content: String
+
 	/**
-	 * Construct a new {@link ServerErrorChannel}.
-	 *
-	 * @param channel
-	 *        The {@linkplain AvailServerChannel server channel} to adapt as a
-	 *        standard error channel.
+	 * Should the [channel][AvailServerChannel] be
+	 * [closed][AvailServerChannel.close] after transmitting this
+	 * [message][Message]?
 	 */
-	public ServerErrorChannel (final AvailServerChannel channel)
+	val closeAfterSending: Boolean
+
+	/**
+	 * Construct a new [Message].
+	 *
+	 * @param content
+	 * The [content][String].
+	 */
+	constructor(content: String)
 	{
-		super(channel);
+		this.content = content
+		this.closeAfterSending = false
 	}
 
-	@Override
-	protected String channelTag ()
+	/**
+	 * Construct a new [Message].
+	 *
+	 * @param content
+	 *   The [content][String].
+	 * @param closeAfterSending
+	 *   `true` if the [channel][AvailServerChannel] should be
+	 *   [closed][AvailServerChannel.close] after transmitting this message.
+	 */
+	constructor(content: String, closeAfterSending: Boolean)
 	{
-		return "err";
+		this.content = content
+		this.closeAfterSending = closeAfterSending
+	}
+
+	override fun toString(): String = content
+
+	companion object
+	{
+		/** The maximum allowed size of a frame.  */
+		const val MAX_SIZE = 1024000
 	}
 }

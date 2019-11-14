@@ -1,6 +1,6 @@
 /*
  * AvailRuntime.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -1598,10 +1598,7 @@ public final class AvailRuntime
 							assert incompleteLevelOneSafeTasks == 0;
 							incompleteLevelOneSafeTasks =
 								levelOneSafeTasks.size();
-							for (final AvailTask task : levelOneSafeTasks)
-							{
-								execute(task);
-							}
+							levelOneSafeTasks.forEach(this::execute);
 							levelOneSafeTasks.clear();
 						}
 					}

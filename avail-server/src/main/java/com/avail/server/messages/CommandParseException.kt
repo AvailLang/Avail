@@ -1,6 +1,6 @@
 /*
- * package-info.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * CommandParseException.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,33 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-@NonnullByDefault
-package com.avail.server.configuration;
-import com.avail.annotations.NonnullByDefault;
+package com.avail.server.messages
+
+/**
+ * A `CommandParseException` is raised by [Command.parse] in the event of a
+ * failed parse.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ */
+class CommandParseException : Exception
+{
+	/**
+	 * Construct a new `CommandParseException`.
+	 *
+	 * @param message
+	 *   A detailed error message suitable for reporting directly to a client.
+	 */
+	internal constructor(message: String) : super(message)
+
+	/**
+	 * Construct a new `CommandParseException`.
+	 *
+	 * @param message
+	 *   A detailed error message suitable for reporting directly to a client.
+	 * @param cause
+	 *   The causal [exception][Throwable].
+	 */
+	@Suppress("unused")
+	internal constructor(message: String, cause: Throwable)
+		: super(message, cause)
+}

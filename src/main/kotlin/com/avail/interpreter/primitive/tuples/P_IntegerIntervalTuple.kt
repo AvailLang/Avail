@@ -1,6 +1,6 @@
 /*
  * P_IntegerIntervalTuple.kt
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,7 @@ package com.avail.interpreter.primitive.tuples
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.IntegerDescriptor.zero
 import com.avail.descriptor.IntegerIntervalTupleDescriptor
 import com.avail.descriptor.IntegerIntervalTupleDescriptor.createInterval
 import com.avail.descriptor.IntegerRangeTypeDescriptor.integers
@@ -44,12 +45,13 @@ import com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Fallibility.*
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * **Primitive:** Create an [integer interval tuple
- * ][IntegerIntervalTupleDescriptor].
+ * **Primitive:** Create an
+ * [integer&#32;interval&#32;tuple][IntegerIntervalTupleDescriptor].
  *
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  */
@@ -77,6 +79,24 @@ object P_IntegerIntervalTuple : Primitive(3, CanFold, CanInline)
 				integers(),
 				integers()),
 			zeroOrMoreOf(integers()))
+
+	override fun fallibilityForArgumentTypes(
+		argumentTypes: List<A_Type>
+	): Fallibility {
+		// val start = argumentTypes[0]
+		// val end = argumentTypes[1]
+		val delta = argumentTypes[2]
+		val lowerDelta = delta.lowerBound()
+		val upperDelta = delta.upperBound()
+		return when
+		{
+			lowerDelta.greaterThan(zero()) || upperDelta.lessThan(zero()) ->
+				CallSiteCannotFail
+			lowerDelta.equalsInt(0) && upperDelta.equalsInt(0) ->
+				CallSiteMustFail
+			else -> CallSiteCanFail
+		}
+	}
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_INCORRECT_ARGUMENT_TYPE))

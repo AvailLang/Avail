@@ -491,7 +491,7 @@ class CommentsModule constructor(
 						ArrayList<Pair<A_String, CommentGroup>>()
 					for ((name, value) in usesMethodLeafNameToModuleName)
 					{
-						for ((module, commentGroup) in value)
+						for ((_, commentGroup) in value)
 						{
 							visibleValues.add(Pair(name, commentGroup))
 						}
@@ -499,7 +499,7 @@ class CommentsModule constructor(
 
 					for ((name, groupMap) in extendsMethodLeafNameToModuleName)
 					{
-						for ((module, commentGroup) in groupMap)
+						for ((_, commentGroup) in groupMap)
 						{
 							visibleValues.add(Pair(name, commentGroup))
 						}
@@ -608,7 +608,7 @@ class CommentsModule constructor(
 						mutableListOf<Pair<A_String, CommentGroup>>()
 					for ((name, cGroupMap) in usesMethodLeafNameToModuleName)
 					{
-						for ((module, commentGroup) in cGroupMap)
+						for ((_, commentGroup) in cGroupMap)
 						{
 							visibleValues.add(Pair(name, commentGroup))
 						}
@@ -616,7 +616,7 @@ class CommentsModule constructor(
 
 					for ((name, cGroupMap) in extendsMethodLeafNameToModuleName)
 					{
-						for ((module, commentGroup) in cGroupMap)
+						for ((_, commentGroup) in cGroupMap)
 						{
 							visibleValues.add(Pair(name, commentGroup))
 						}
@@ -1258,7 +1258,10 @@ class CommentsModule constructor(
 	private fun writeAmbiguousAliasJSONFiles(
 		outputPath: Path,
 		runtime: AvailRuntime,
-		ambiguousMethodFileMap: MutableMap<A_String, MutableMap<String, CommentGroup>>,
+		@Suppress("UNUSED_PARAMETER")
+		ambiguousMethodFileMap:
+			MutableMap<A_String, MutableMap<String, CommentGroup>>,
+		@Suppress("UNUSED_PARAMETER")
 		topLevelLinkFolderPath: String,
 		linkingFileMap: LinkingFileMap)
 	{

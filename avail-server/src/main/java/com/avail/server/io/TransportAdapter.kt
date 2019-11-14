@@ -1,6 +1,6 @@
 /*
- * CommandMessage.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * TransportAdapter.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,66 +30,61 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.server.messages;
+package com.avail.server.io
 
-import com.avail.server.io.AvailServerChannel;
-import com.avail.utility.evaluation.Continuation0;
+import com.avail.server.AvailServer
+import com.avail.server.messages.Message
 
 /**
- * A {@code CommandMessage} represents a fully-parsed {@linkplain Command
- * command}. Each command message knows the kind of command that it represents.
+ * A `TransportAdapter` hides the details of using a particular transport
+ * mechanism to send and receive [messages][Message].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @param T
+ *   The type of the underlying transport.
  */
-public abstract class CommandMessage
+interface TransportAdapter<T> : AutoCloseable
 {
 	/**
-	 * Answer the encoded {@linkplain Command command}.
-	 *
-	 * @return The command.
+	 * The [Avail server][AvailServer] attached to this
+	 * [adapter][TransportAdapter].
 	 */
-	public abstract Command command ();
+	val server: AvailServer
 
 	/**
-	 * The identifier of the {@linkplain CommandMessage message}. This
-	 * identifier should appear in any responses to this message.
-	 */
-	private long commandId;
-
-	/**
-	 * Answer the identifier of the {@linkplain CommandMessage message}. This
-	 * identifier should appear in any responses to this message.
-	 *
-	 * @return The command identifier.
-	 */
-	public long commandId ()
-	{
-		return commandId;
-	}
-
-	/**
-	 * Answer the identifier of the {@linkplain CommandMessage message}. This
-	 * identifier should appear in any responses to this message.
-	 *
-	 * @param commandId
-	 *        The command identifier.
-	 */
-	public void setCommandId (final long commandId)
-	{
-		this.commandId = commandId;
-	}
-
-	/**
-	 * Process this {@linkplain CommandMessage command message} on behalf of the
-	 * specified {@linkplain AvailServerChannel channel}.
+	 * Read a complete message from the specified
+	 * [channel][AbstractTransportChannel].
 	 *
 	 * @param channel
-	 *        The channel that received this command message.
-	 * @param continuation
-	 *        What to do when sufficient processing has occurred (and the
-	 *        channel wishes to begin receiving messages again).
+	 *   A channel.
 	 */
-	public abstract void processThen (
-		final AvailServerChannel channel,
-		final Continuation0 continuation);
+	fun readMessage(channel: AbstractTransportChannel<T>)
+
+	/**
+	 * Send a [message][Message] bearing user data over the specified
+	 * [channel][AbstractTransportChannel].
+	 *
+	 * @param channel
+	 *   A channel.
+	 * @param payload
+	 *   A payload.
+	 * @param success
+	 *   What to do after sending the message.
+	 * @param failure
+	 *   What to do if sending the message fails.
+	 */
+	fun sendUserData(
+		channel: AbstractTransportChannel<T>,
+		payload: Message,
+		success: (()->Unit)?,
+		failure: ((Throwable)->Unit)?)
+
+	/**
+	 * Send a polite close notification across the given
+	 * [channel][AbstractTransportChannel].
+	 *
+	 * @param channel
+	 *   A channel.
+	 */
+	fun sendClose(channel: AbstractTransportChannel<T>)
 }

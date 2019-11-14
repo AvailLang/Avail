@@ -1,6 +1,6 @@
 /*
  * P_CreateRestrictedSendExpression.kt
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -186,6 +186,7 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 				else -> {
 					// There were problems.  Fail the primitive with a string
 					// describing them all.
+					@Suppress("UNUSED_VARIABLE")
 					val problemReport: A_String = when {
 						problems.size == 1 -> problems[0]
 						else -> {

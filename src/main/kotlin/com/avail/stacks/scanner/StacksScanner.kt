@@ -604,7 +604,7 @@ class StacksScanner constructor (commentToken: A_Token, moduleName: String)
 											scanner.lineNumber),
 										scanner)
 								}
-								c = scanner.next()
+								scanner.next()
 							}
 							if (scanner.atEnd())
 							{

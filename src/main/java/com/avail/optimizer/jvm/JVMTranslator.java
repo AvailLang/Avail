@@ -1,6 +1,6 @@
 /*
  * JVMTranslator.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,7 @@
 package com.avail.optimizer.jvm;
 
 import com.avail.AvailThread;
+import com.avail.descriptor.A_Module;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.objects.A_BasicObject;
@@ -70,8 +71,10 @@ import java.util.Map.Entry;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.function.Consumer;
 import java.util.logging.Level;
+import java.util.regex.Pattern;
 
 import static com.avail.AvailRuntimeSupport.captureNanos;
+import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.optimizer.jvm.JVMTranslator.LiteralAccessor.invalidIndex;
 import static com.avail.performance.StatisticReport.FINAL_JVM_TRANSLATION_TIME;
 import static com.avail.utility.Nulls.stripNull;
@@ -131,6 +134,13 @@ public final class JVMTranslator
 	private @Nullable byte[] classBytes = null;
 
 	/**
+	 * A regex {@link Pattern} to find runs of characters that are forbidden in
+	 * a class name, and will be replaced with a single {@code '%'}.
+	 */
+	private static final Pattern classNameForbiddenCharacters =
+		Pattern.compile("[\\[\\]()./\\\\ :;\"'\\p{Cntrl}]+");
+
+	/**
 	 * Construct a new {@code JVMTranslator} to translate the specified array of
 	 * {@link L2Instruction}s to a {@link JVMChunk}.
 	 *
@@ -156,9 +166,20 @@ public final class JVMTranslator
 		this.chunkName = chunkName;
 		this.instructions = instructions.clone();
 		classWriter = new ClassWriter(COMPUTE_MAXS | COMPUTE_FRAMES);
-		className = String.format(
-			"com.avail.optimizer.jvm.generated.JVMChunk_%s",
-			UUID.randomUUID().toString().replace('-', '_'));
+		final A_Module module = code == null ? nil : code.module();
+		final String moduleName = module == nil
+			? "NoModule"
+			: module.moduleName().asNativeString()
+				.replaceAll("^.*/([^/]+)$", "$1");
+		final String descriptiveName = code == null
+			? "DEFAULT"
+			: classNameForbiddenCharacters.matcher(
+				code.methodName().asNativeString())
+					.replaceAll("\\$");
+		className = "com.avail.optimizer.jvm.generated."
+			+ moduleName + "-"
+			+ descriptiveName + "_"
+			+ UUID.randomUUID().toString().replace('-', '_');
 		classInternalName = className.replace('.', '/');
 	}
 

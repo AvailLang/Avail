@@ -1,6 +1,6 @@
 /*
  * P_BootstrapPrefixPostStatement.kt
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,9 +68,8 @@ object P_BootstrapPrefixPostStatement : Primitive(4, CanInline, Bootstrap)
 		// val optionalLabelPhrase : A_Phrase = interpreter.argument(2)
 		val statementsPhrase = interpreter.argument(3)
 
-		val loader =
-			interpreter.availLoaderOrNull()
-	             ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+		interpreter.availLoaderOrNull() ?:
+			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 
 		// Here the statements so far are a list phrase, not a sequence.
 		// The section marker is inside the repetition, so this primitive could

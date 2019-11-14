@@ -1,6 +1,6 @@
 /*
  * P_EmergencyExit.kt
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,6 @@ import com.avail.descriptor.FiberDescriptor.ExecutionState
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.TypeDescriptor.Types.ANY
-import com.avail.descriptor.objects.A_BasicObject
 import com.avail.exceptions.AvailEmergencyExitException
 import com.avail.exceptions.AvailErrorCode
 import com.avail.interpreter.Interpreter
@@ -91,8 +90,7 @@ object P_EmergencyExit : Primitive(
 				errorMessageProducer))
 			if (errorMessageProducer.isInt)
 			{
-				val errorNumber =
-					cast<A_BasicObject, A_Number>(errorMessageProducer)
+				val errorNumber: A_Number = cast(errorMessageProducer)
 				val intValue = errorNumber.extractInt()
 				val code = AvailErrorCode.byNumericCode(intValue)
 				if (code !== null)

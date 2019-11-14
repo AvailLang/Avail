@@ -1,6 +1,6 @@
 /*
  * L1Translator.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -160,13 +160,13 @@ public final class L1Translator
 	 * The current level one nybblecode position during naive translation to
 	 * level two.
 	 */
-	private final L1InstructionDecoder instructionDecoder =
+	final L1InstructionDecoder instructionDecoder =
 		new L1InstructionDecoder();
 
 	/**
 	 * The current stack depth during naive translation to level two.
 	 */
-	private int stackp;
+	int stackp;
 
 	/**
 	 * The exact function that we're translating, if known.  This is only

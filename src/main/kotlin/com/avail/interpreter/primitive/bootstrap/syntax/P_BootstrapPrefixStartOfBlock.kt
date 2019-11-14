@@ -1,6 +1,6 @@
 /*
  * P_BootstrapPrefixStartOfBlock.kt
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,9 +61,8 @@ object P_BootstrapPrefixStartOfBlock : Primitive(0, CanInline, Bootstrap)
 	{
 		interpreter.checkArgumentCount(0)
 
-		val loader =
-			interpreter.fiber().availLoader()
-	             ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+		interpreter.fiber().availLoader() ?:
+			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		val clientDataGlobalKey = CLIENT_DATA_GLOBAL_KEY.atom
 		val compilerScopeMapKey = COMPILER_SCOPE_MAP_KEY.atom
 		val compilerScopeStackKey = COMPILER_SCOPE_STACK_KEY.atom

@@ -1,6 +1,6 @@
 /*
- * VersionCommandMessage.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * ServerErrorChannel.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,58 +30,24 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.server.messages;
-
-import com.avail.server.io.AvailServerChannel;
-import com.avail.utility.evaluation.Continuation0;
-
-import static com.avail.server.AvailServer.negotiateVersionThen;
+package com.avail.server.io
 
 /**
- * A {@code VersionCommandMessage} represents a {@link Command#VERSION
- * VERSION} {@linkplain Command command}, and carries the requested protocol
- * version.
+ * A `ServerErrorChannel` adapts an [channel][AvailServerChannel] for use as a
+ * standard output channel.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct a new [ServerErrorChannel].
+ *
+ * @param channel
+ *   The [server channel][AvailServerChannel] to adapt as a standard error
+ *   channel.
  */
-public final class VersionCommandMessage
-extends CommandMessage
+class ServerErrorChannel constructor(channel: AvailServerChannel)
+	: AbstractServerOutputChannel(channel)
 {
-	/** The requested protocol version. */
-	private final int version;
-
-	/**
-	 * Answer the requested protocol version.
-	 *
-	 * @return The requested protocol version.
-	 */
-	public int version ()
-	{
-		return version;
-	}
-
-	/**
-	 * Construct a new {@code VersionCommandMessage}.
-	 *
-	 * @param version
-	 *        The requested protocol version.
-	 */
-	public VersionCommandMessage (final int version)
-	{
-		this.version = version;
-	}
-
-	@Override
-	public Command command ()
-	{
-		return Command.VERSION;
-	}
-
-	@Override
-	public void processThen (
-		final AvailServerChannel channel,
-		final Continuation0 continuation)
-	{
-		negotiateVersionThen(channel, this, continuation);
-	}
+	override val channelTag = "err"
 }

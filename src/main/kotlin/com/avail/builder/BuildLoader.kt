@@ -71,6 +71,7 @@ import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 import java.util.logging.Level
+import kotlin.math.min
 
 /**
  * Used for parallel-loading modules in the [module
@@ -403,7 +404,7 @@ internal class BuildLoader constructor(
 								(after - before).toDouble(),
 								module,
 								function.code().startingLineNumber())
-							runNext.value()
+							runNext()
 						},
 						fail)
 					availLoader.setPhase(Phase.EXECUTING_FOR_LOAD)
@@ -518,7 +519,10 @@ internal class BuildLoader constructor(
 			availBuilder.pollForAbort,
 			{ moduleName2, moduleSize, position ->
 				assert(moduleName == moduleName2)
-				localTracker(moduleName, moduleSize, position)
+				// Don't reach the full module size yet.  A separate update at
+				// 100% will be sent after post-loading actions are complete.
+				localTracker(
+					moduleName, moduleSize, min(position, moduleSize - 1))
 				globalTracker(
 					bytesCompiled.addAndGet(position - lastPosition.value),
 					globalCodeSize)

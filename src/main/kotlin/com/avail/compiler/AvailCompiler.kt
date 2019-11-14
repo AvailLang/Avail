@@ -136,7 +136,6 @@ import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport.RUNNING_PARSING_INSTRUCTIONS
 import com.avail.persistence.IndexedRepositoryManager
 import com.avail.utility.*
-import com.avail.utility.Casts.cast
 import com.avail.utility.Locks.lockWhile
 import com.avail.utility.Nulls.stripNull
 import com.avail.utility.PrefixSharingList.append
@@ -1913,11 +1912,9 @@ class AvailCompiler(
 				}
 				if (e is AvailRejectedParseException)
 				{
-					val stronger =
-						cast<Throwable, AvailRejectedParseException>(e)
 					start.expected(
-						stronger.level,
-						stronger.rejectionString.asNativeString())
+						e.level,
+						e.rejectionString.asNativeString())
 				}
 				else
 				{

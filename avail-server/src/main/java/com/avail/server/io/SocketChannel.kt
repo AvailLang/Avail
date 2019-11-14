@@ -1,6 +1,6 @@
 /*
- * ServerOutputChannel.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * SocketChannel.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,32 +30,60 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.server.io;
+package com.avail.server.io
+
+import com.avail.server.messages.Message
+
+import java.nio.channels.AsynchronousSocketChannel
 
 /**
- * A {@code ServerOutputChannel} adapts an {@link AvailServerChannel channel}
- * for use as a standard output channel.
+ * A `SocketChannel` encapsulates an [AsynchronousSocketChannel] created by a
+ * `SocketAdapter`.
  *
+ * @property adapter
+ *   The [SocketAdapter] that created this [channel][SocketChannel].
+ * @property transport
+ *   The [channel][AsynchronousSocketChannel] used by the associated [SocketAdapter].
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct a new `SocketChannel`.
+ *
+ * @param adapter
+ *   The [SocketAdapter].
+ * @param transport
+ *   The [channel][AsynchronousSocketChannel].
  */
-public final class ServerOutputChannel
-extends AbstractServerOutputChannel
+internal class SocketChannel constructor(
+	override val adapter: SocketAdapter,
+	override val transport: AsynchronousSocketChannel)
+: AbstractTransportChannel<AsynchronousSocketChannel>()
 {
-	/**
-	 * Construct a new {@link ServerOutputChannel}.
-	 *
-	 * @param channel
-	 *        The {@linkplain AvailServerChannel server channel} to adapt as a
-	 *        standard output channel.
-	 */
-	public ServerOutputChannel (final AvailServerChannel channel)
+	override val isOpen get() = transport.isOpen
+	override val maximumSendQueueDepth = MAX_QUEUE_DEPTH
+	override val maximumReceiveQueueDepth = MAX_QUEUE_DEPTH
+
+	override fun close()
 	{
-		super(channel);
+		synchronized(sendQueue) {
+			if (!sendQueue.isEmpty())
+			{
+				shouldCloseAfterEmptyingSendQueue = true
+			}
+			else
+			{
+				adapter.sendClose(this)
+			}
+		}
 	}
 
-	@Override
-	protected String channelTag ()
+	companion object
 	{
-		return "out";
+		/**
+		 * The maximum number of [messages][Message] permitted on the
+		 * [queue][sendQueue].
+		 */
+		private const val MAX_QUEUE_DEPTH = 10
 	}
 }

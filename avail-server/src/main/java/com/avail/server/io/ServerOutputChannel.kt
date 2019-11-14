@@ -1,6 +1,6 @@
 /*
- * CommandParseException.java
- * Copyright © 1993-2018, The Avail Foundation, LLC.
+ * ServerOutputChannel.kt
+ * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,40 +30,24 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.server.messages;
+package com.avail.server.io
 
 /**
- * A {@code CommandParseException} is raised by {@link Command#parse(Message)}
- * in the event of a failed parse.
+ * A `ServerOutputChannel` adapts an [channel][AvailServerChannel] for use as a
+ * standard output channel.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct a new [ServerOutputChannel].
+ *
+ * @param channel
+ *   The [server channel][AvailServerChannel] to adapt as a standard output
+ *   channel.
  */
-public final class CommandParseException
-extends Exception
+class ServerOutputChannel constructor(channel: AvailServerChannel)
+	: AbstractServerOutputChannel(channel)
 {
-	/**
-	 * Construct a new {@code CommandParseException}.
-	 *
-	 * @param message
-	 *        A detailed error message suitable for reporting directly to a
-	 *        client.
-	 */
-	CommandParseException (final String message)
-	{
-		super(message);
-	}
-
-	/**
-	 * Construct a new {@code CommandParseException}.
-	 *
-	 * @param message
-	 *        A detailed error message suitable for reporting directly to a
-	 *        client.
-	 * @param cause
-	 *        The causal {@linkplain Throwable exception}.
-	 */
-	CommandParseException (final String message, final Throwable cause)
-	{
-		super(message, cause);
-	}
+	override val channelTag = "out"
 }

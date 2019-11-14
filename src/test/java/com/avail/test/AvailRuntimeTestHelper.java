@@ -47,6 +47,7 @@ import java.nio.charset.StandardCharsets;
 
 import static com.avail.utility.Casts.cast;
 import static com.avail.utility.Nulls.stripNull;
+import static java.lang.System.currentTimeMillis;
 import static org.junit.jupiter.api.Assertions.fail;
 
 /**
@@ -65,6 +66,12 @@ public class AvailRuntimeTestHelper
 
 	/** The {@linkplain AvailBuilder Avail builder}. */
 	public final AvailBuilder builder;
+
+	/** The last {@link System#currentTimeMillis()} that an update was shown. */
+	public long lastUpdateMillis = 0;
+
+	/** The maximum notification rate for partially-loaded modules. */
+	public long updateRateMillis = 500;
 
 	/**
 	 * A {@code TestErrorChannel} augments a {@link TextOutputChannel} with
@@ -315,6 +322,12 @@ public class AvailRuntimeTestHelper
 		final long moduleSize,
 		final long position)
 	{
+		// Skip non-final per-module updates if they're too frequent.
+		if (position < moduleSize
+			&& currentTimeMillis() - lastUpdateMillis < updateRateMillis)
+		{
+			return;
+		}
 		final int percent = (int) ((position * 100) / moduleSize);
 		String modName = moduleName.getQualifiedName();
 		final int maxModuleNameLength = 61;
@@ -345,6 +358,7 @@ public class AvailRuntimeTestHelper
 		{
 			System.out.println(status);
 		}
+		lastUpdateMillis = currentTimeMillis();
 	}
 
 	/**

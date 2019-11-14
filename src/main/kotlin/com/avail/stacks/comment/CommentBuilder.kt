@@ -188,7 +188,7 @@ class CommentBuilder private constructor(
 	@Throws(ClassCastException::class, StacksCommentBuilderException::class)
 	fun addStacksAliasTag(
 		tagContentTokens: ArrayList<AbstractStacksToken>,
-		fileMap: LinkingFileMap)
+		@Suppress("UNUSED_PARAMETER") fileMap: LinkingFileMap)
 	{
 		val tempTokens = ArrayList<QuotedStacksToken>()
 
@@ -243,7 +243,7 @@ class CommentBuilder private constructor(
 	@Throws(ClassCastException::class, StacksCommentBuilderException::class)
 	fun addStacksCategoryTag(
 		tagContentTokens: ArrayList<AbstractStacksToken>,
-		fileMap: LinkingFileMap)
+		@Suppress("UNUSED_PARAMETER") fileMap: LinkingFileMap)
 	{
 		val tempTokens = ArrayList<QuotedStacksToken>()
 

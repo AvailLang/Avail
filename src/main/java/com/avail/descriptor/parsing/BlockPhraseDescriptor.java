@@ -6,14 +6,14 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  Redistributions of source code must retain the above copyright notice, this
+ * * Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- *  Redistributions in binary form must reproduce the above copyright notice,
+ * * Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- *  Neither the name of the copyright holder nor the names of the contributors
+ * * Neither the name of the copyright holder nor the names of the contributors
  *   may be used to endorse or promote products derived from this software
  *   without specific prior written permission.
  *
@@ -90,7 +90,8 @@ extends PhraseDescriptor
 		/**
 		 * The {@linkplain Primitive primitive} number to invoke for this block.
 		 * This is not the {@link Enum#ordinal()} of the primitive, but rather
-		 * its {@link Primitive#getPrimitiveNumber()}.
+		 * its {@link Primitive#getPrimitiveNumber()}. The numbering is
+		 * ephemeral, and is not serialized or accessible within Avail code.
 		 */
 		@EnumField(
 			describedBy=Primitive.class,
@@ -448,8 +449,7 @@ extends PhraseDescriptor
 	}
 
 	@Override @AvailMethod
-	@Nullable
-	protected Primitive o_Primitive (final AvailObject object)
+	protected @Nullable Primitive o_Primitive (final AvailObject object)
 	{
 		return Primitive.Companion.byNumber(object.slot(PRIMITIVE));
 	}
@@ -506,7 +506,8 @@ extends PhraseDescriptor
 	}
 
 	@Override
-	protected void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	protected void o_WriteSummaryTo (
+		final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -801,7 +802,7 @@ extends PhraseDescriptor
 		new BlockPhraseDescriptor(Mutability.MUTABLE);
 
 	@Override
-	public BlockPhraseDescriptor mutable ()
+	protected BlockPhraseDescriptor mutable ()
 	{
 		return mutable;
 	}
