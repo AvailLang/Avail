@@ -33,6 +33,7 @@
 package com.avail.server.io
 
 import com.avail.server.messages.Message
+import com.avail.utility.IO
 
 import java.nio.channels.AsynchronousSocketChannel
 
@@ -63,6 +64,15 @@ internal class SocketChannel constructor(
 	override val isOpen get() = transport.isOpen
 	override val maximumSendQueueDepth = MAX_QUEUE_DEPTH
 	override val maximumReceiveQueueDepth = MAX_QUEUE_DEPTH
+
+	override fun closeTransport ()
+	{
+		if (transport.isOpen)
+		{
+			heartbeat.cancel()
+			IO.close(transport)
+		}
+	}
 
 	override fun close()
 	{

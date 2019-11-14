@@ -105,7 +105,6 @@ internal class WebSocketChannel constructor(
 			if (!onChannelCloseActionNotRun.getAndSet(false))
 			{
 				onChannelCloseAction(it, this)
-				println("Close action has been run")
 			}
 		}
 
@@ -120,28 +119,33 @@ internal class WebSocketChannel constructor(
 		handshakeSucceeded = true
 	}
 
+	override fun closeTransport ()
+	{
+		if (transport.isOpen)
+		{
+			heartbeat.cancel()
+			IO.close(transport)
+		}
+	}
+
 	override fun close()
 	{
-		println("GOT HERE: ===== Closing channel...")
 		if (handshakeSucceeded)
 		{
-			println("GOT HERE: ===== Closing channel with handshake...")
 			synchronized(sendQueue) {
 				if (!sendQueue.isEmpty())
 				{
-					println("GOT HERE: ===== Closing channel with handshake send queue not empty...")
 					shouldCloseAfterEmptyingSendQueue = true
 				}
 				else
 				{
-					println("GOT HERE: ===== Closing channel with handshake send queue empty...")
 					adapter.sendClose(this)
 				}
 			}
 		}
 		else
 		{
-			IO.close(transport)
+			closeTransport()
 		}
 	}
 

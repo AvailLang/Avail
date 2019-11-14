@@ -43,6 +43,7 @@ import java.util.concurrent.TimeUnit
  * mechanism to send and receive [messages][Message].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
  * @param T
  *   The type of the underlying transport.
  */
@@ -90,6 +91,28 @@ interface TransportAdapter<T> : AutoCloseable
 	 *   A channel.
 	 */
 	fun sendClose(channel: AbstractTransportChannel<T>)
+
+	/**
+	 * Send a polite close notification across the given
+	 * [channel][AbstractTransportChannel].
+	 *
+	 * @param channel
+	 *   A channel.
+	 * @param reason
+	 *   The reason for the disconnect
+	 */
+	fun sendClose(channel: AbstractTransportChannel<T>, reason: DisconnectReason)
+
+	/**
+	 * Receive a polite close notification across the given
+	 * [channel][AbstractTransportChannel].
+	 *
+	 * @param channel
+	 *   A channel.
+	 * @param reason
+	 *   The [reason][DisconnectReason] for the disconnect.
+	 */
+	fun receiveClose(channel: AbstractTransportChannel<T>, reason: DisconnectReason)
 
 	/**
 	 * The custom action that is to be called when the input channel is closed

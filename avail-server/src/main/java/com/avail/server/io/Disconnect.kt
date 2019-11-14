@@ -81,6 +81,19 @@ object ClientDisconnect: DisconnectReason
 }
 
 /**
+ * A `HeartbeatFailureDisconnect` is a [DisconnectReason] that specifies that
+ * the disconnect originated from the server due to failure to receive any
+ * heartbeat responses from the client.
+ *
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ */
+object HeartbeatFailureDisconnect: DisconnectReason
+{
+	override val origin get () = DisconnectOrigin.SERVER_ORIGIN
+	override val code get () = -2
+}
+
+/**
  * A `ServerMessageDisconnect` is a [DisconnectReason] that specifies that the
  * disconnect originated from the server due to a [Message.closeAfterSending]
  * being `true`.
@@ -90,5 +103,5 @@ object ClientDisconnect: DisconnectReason
 object ServerMessageDisconnect: DisconnectReason
 {
 	override val origin get () = DisconnectOrigin.SERVER_ORIGIN
-	override val code get () = -2
+	override val code get () = -3
 }

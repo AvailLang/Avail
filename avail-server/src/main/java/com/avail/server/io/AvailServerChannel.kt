@@ -34,8 +34,10 @@ package com.avail.server.io
 
 import com.avail.io.TextInterface
 import com.avail.server.AvailServer
+import com.avail.server.messages.Command
 import com.avail.server.messages.CommandMessage
 import com.avail.server.messages.Message
+import com.avail.server.messages.UpgradeCommandMessage
 import com.avail.utility.evaluation.Continuation0
 import java.util.*
 import java.util.concurrent.atomic.AtomicLong
@@ -46,11 +48,36 @@ import java.util.concurrent.atomic.AtomicLong
  * mechanisms for sending and receiving [messages][Message].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
 abstract class AvailServerChannel : AutoCloseable
 {
 	/** `true` if the channel is open, `false` otherwise. */
 	abstract val isOpen: Boolean
+
+	/**
+	 * The unique channel [identifier][UUID] used to distinguish this
+	 * [AvailServerChannel] from `AvailServerChannel`s.
+	 *
+	 * Only command channels will keep their UUID assigned upon construction.
+	 * All subordinate IO-channels will have their identifiers set to the
+	 * [Command.UPGRADE] token received from a client-sent
+	 * [UpgradeCommandMessage].
+	 */
+	var id: UUID = UUID.randomUUID()
+
+	/**
+	 * The [id] of the command [channel][AvailServerChannel] that is responsible
+	 * for spawning this channel if this channel were created through the
+	 * [upgrade][Command.UPGRADE] process.
+	 */
+	var parentId: UUID? = null
+
+	/**
+	 * `true` if this [AvailServerChannel] is an IO channel for a
+	 * [parent][parentId] command channel.
+	 */
+	val isIOChannel get() = state == ProtocolState.IO
 
 	/** The current [protocol state][ProtocolState].  */
 	var state = ProtocolState.VERSION_NEGOTIATION
@@ -225,4 +252,14 @@ abstract class AvailServerChannel : AutoCloseable
 	 * [channel][AvailServerChannel]'s internal sequence.
 	 */
 	val nextCommandId = commandId.getAndIncrement()
+
+	override fun toString(): String =
+		if (isIOChannel)
+		{
+			"($id) $state: [$parentId] "
+		}
+		else
+		{
+			"($id) $state"
+		}
 }

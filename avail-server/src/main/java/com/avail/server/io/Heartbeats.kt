@@ -49,6 +49,12 @@ interface Heartbeat
 
 	/** Receive a heartbeat from the connected client. */
 	fun receiveHeartbeat ()
+
+	/** Discontinue sending any [Heartbeat]. */
+	fun cancel ()
+
+	/** The [AvailServerChannel.id] this [Heartbeat] is for. */
+	val channelId: UUID?
 }
 
 /**
@@ -94,7 +100,18 @@ internal abstract class AbstractHeartbeat constructor(
 	/** The number of times the pong has failed to respond to the ping. */
 	private var heartbeatFailureCount = 0
 
+	/**
+	 * `true` indicates this [Heartbeat] should be [cancelled][cancel]; `false`
+	 * otherwise.
+	 */
 	protected var heartbeatCancelled = false
+
+	override fun cancel()
+	{
+		println("Heartbeat($channelId) cancelled")
+		heartbeatCancelled = true
+		heartBeatTimer?.cancel(true)
+	}
 
 	/**
 	 * Schedule the next action to be taken if the [heartBeatTimer] were to
@@ -118,7 +135,6 @@ internal abstract class AbstractHeartbeat constructor(
 	 */
 	protected fun startHeartbeatTimer ()
 	{
-		println("GOT HERE: Starting Heartbeat timer")
 		heartBeatTimer?.cancel(true)
 		if (heartbeatCancelled) { return }
 		heartBeatTimer = scheduleNextHeartbeatAction {
@@ -126,14 +142,12 @@ internal abstract class AbstractHeartbeat constructor(
 			heartBeatTimer = scheduleNextHeartbeatAction {
 				if (++heartbeatFailureCount == 3)
 				{
-					println("GOT HERE: Heartbeat failure!! $heartbeatFailureCount")
 					heartBeatTimer?.cancel(true)
 					heartbeatCancelled = true
 					heartbeatFailureThresholdReached()
 				}
 				else
 				{
-					println("GOT HERE: Heartbeat failure $heartbeatFailureCount")
 					sendHeartbeat()
 				}
 			}
@@ -142,7 +156,6 @@ internal abstract class AbstractHeartbeat constructor(
 
 	override fun receiveHeartbeat ()
 	{
-		println("GOT HERE: Received Heartbeat")
 		heartbeatFailureCount = 0
 		startHeartbeatTimer()
 	}
@@ -180,6 +193,8 @@ internal class WebSocketChannelHeartbeat constructor(
 	: AbstractHeartbeat(
 		heartbeatFailureThreshold, heartbeatInterval, heartbeatTimeout)
 {
+	override val channelId: UUID? get() = channel.id
+
 	override fun scheduleNextHeartbeatAction(action: () -> Unit)
 		: ScheduledFuture<*> =
 			channel.adapter.millisTimer(heartbeatInterval, action)
@@ -187,28 +202,22 @@ internal class WebSocketChannelHeartbeat constructor(
 	override fun sendHeartbeat ()
 	{
 		if (heartbeatCancelled) { return }
-		println("GOT HERE: Sending Heartbeat")
 		val byteArray = ByteArray(10)
 		Random().nextBytes(byteArray)
 		WebSocketAdapter.sendPing(
 			channel,
 			byteArray,
 			{
-				println("GOT HERE: Heartbeat sent")
 				startHeartbeatTimer()
 			},
 			{
-				println("GOT HERE: Heartbeat failed to send!")
 				startHeartbeatTimer()
 			})
 	}
 
 	override fun heartbeatFailureThresholdReached()
 	{
-		println("GOT HERE: Closing heartbeats not received")
-		channel.onChannelCloseAction(ClientDisconnect)
-		channel.close()
-		println("GOT HERE: Closing heartbeats not received")
+		channel.adapter.sendClose(channel, HeartbeatFailureDisconnect)
 	}
 }
 
@@ -225,4 +234,9 @@ object NoHeartbeat: Heartbeat
 
 	// Do nothing
 	override fun receiveHeartbeat() = Unit
+
+	// Do nothing
+	override fun cancel() = Unit
+
+	override val channelId: UUID? = null
 }

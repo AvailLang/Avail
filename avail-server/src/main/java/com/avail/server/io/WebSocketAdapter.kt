@@ -1282,7 +1282,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 						}
 						else
 						{
-							sendClose(strongChannel)
+							receiveClose(strongChannel, ClientDisconnect)
 						}
 						return@readFrameThen
 					}
@@ -1407,6 +1407,10 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 	override fun sendClose(
 		channel: AbstractTransportChannel<AsynchronousSocketChannel>)
 	{
+		if (!channel.transport.isOpen)
+		{
+			return
+		}
 		val strongChannel = channel as WebSocketChannel
 		val buffer = ByteBuffer.allocateDirect(2)
 		buffer.putShort(
@@ -1416,9 +1420,60 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 			Opcode.CLOSE,
 			buffer,
 			{
-				println("GOT HERE: ===== Closing transport ====")
-				IO.close(strongChannel.transport)
+				// Do nothing as attempting to close here will lead to eventual
+				// ClosedChannelExceptions
 			})
+		{
+			strongChannel.closeTransport()
+		}
+	}
+
+	/**
+	 * Send a [CLOSE][Opcode.CLOSE] [frame][Frame] over the specified
+	 * [channel][WebSocketChannel]. Close the channel when the frame has been
+	 * sent.
+	 *
+	 * @param channel
+	 *   A channel.
+	 * @param reason
+	 *   The [reason][DisconnectReason] for the sending of the close.
+	 */
+	override fun sendClose(
+		channel: AbstractTransportChannel<AsynchronousSocketChannel>,
+		reason: DisconnectReason)
+	{
+		if (!channel.transport.isOpen)
+		{
+			return
+		}
+		val strongChannel = channel as WebSocketChannel
+		val buffer = ByteBuffer.allocateDirect(2)
+		buffer.putShort(
+			WebSocketStatusCode.NORMAL_CLOSURE.statusCode.toShort())
+		sendFrame(
+			strongChannel,
+			Opcode.CLOSE,
+			buffer,
+			{
+				onChannelCloseAction(reason, channel)
+			})
+		{
+			strongChannel.closeTransport()
+		}
+	}
+
+	override fun receiveClose(
+		channel: AbstractTransportChannel<AsynchronousSocketChannel>,
+		reason: DisconnectReason)
+	{
+		if (!channel.transport.isOpen)
+		{
+			// Presume closed handler already run.
+			return
+		}
+		val strongChannel = channel as WebSocketChannel
+		strongChannel.closeTransport()
+		onChannelCloseAction(reason, channel)
 	}
 
 	@Synchronized
@@ -1918,7 +1973,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 						// Don't recurse.
 						if (opcode === Opcode.CLOSE)
 						{
-							IO.close(transport)
+							channel.closeTransport()
 						}
 						else
 						{
