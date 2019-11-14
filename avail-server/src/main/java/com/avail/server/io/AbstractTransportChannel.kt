@@ -46,11 +46,27 @@ import java.util.*
  * provides mechanisms for sending and receiving messages.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
  * @param T
  *   The type of the enclosed channel.
  */
 abstract class AbstractTransportChannel<T> : AvailServerChannel()
 {
+	/**
+	 * The [Heartbeat] used by this [AbstractTransportChannel] to track
+	 * connectivity.
+	 */
+	open val heartbeat: Heartbeat = NoHeartbeat
+
+	/**
+	 * A function that accepts a [DisconnectReason] and the underlying
+	 * [channel][AbstractTransportChannel] and answers `Unit` that is to be
+	 * called when the channel is closed.
+	 *
+	 * Do nothing by default.
+	 */
+	open val onChannelCloseAction: (DisconnectReason) -> Unit = {}
+
 	/**
 	 * A [queue][Deque] of [messages][Message] awaiting transmission by the
 	 * [adapter][TransportAdapter].
@@ -84,10 +100,19 @@ abstract class AbstractTransportChannel<T> : AvailServerChannel()
 	 * The [TransportAdapter] that created this
 	 * [channel][AbstractTransportChannel].
 	 */
-	protected abstract val adapter: TransportAdapter<T>
+	internal abstract val adapter: TransportAdapter<T>
 
 	/** The underlying channel. */
 	abstract val transport: T
+
+	/**
+	 * Close the underlying [transport].
+	 *
+	 * Implementations should *only* attempt to close the `transport` only if it
+	 * has not been closed already. Implementations should also cancel the
+	 * [heartbeat].
+	 */
+	abstract fun closeTransport ()
 
 	/**
 	 * The [server][AvailServer] that created this
@@ -124,7 +149,8 @@ abstract class AbstractTransportChannel<T> : AvailServerChannel()
 						val sentMessage = sendQueue.removeFirst()
 						if (sentMessage.closeAfterSending)
 						{
-							adapter.sendClose(this)
+							adapter.sendClose(this, ServerMessageDisconnect)
+							onChannelCloseAction(ServerMessageDisconnect)
 							return@recurse
 						}
 						// Remove the oldest sender, but release the monitor

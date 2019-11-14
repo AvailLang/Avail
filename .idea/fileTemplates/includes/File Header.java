@@ -1,5 +1,5 @@
 /**
  * TODO: Document this!
  *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */

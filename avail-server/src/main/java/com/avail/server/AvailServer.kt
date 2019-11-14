@@ -68,6 +68,7 @@ import java.util.*
 import java.util.Collections.*
 import java.util.concurrent.Semaphore
 import java.util.logging.Logger
+
 import kotlin.collections.List
 import kotlin.collections.Map
 import kotlin.collections.MutableList
@@ -87,6 +88,7 @@ import kotlin.collections.set
  * @property runtime
  *   The [Avail runtime][AvailRuntime] managed by this [server][AvailServer].
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
  * @constructor
  *
@@ -575,9 +577,15 @@ class AvailServer constructor(
 		recordUpgradeRequest(channel,uuid) {
 				upgradedChannel, receivedUUID, resumeUpgrader ->
 			assert(uuid == receivedUUID)
+			val oldId = upgradedChannel.id
+			upgradedChannel.id = receivedUUID
+			upgradedChannel.parentId = channel.id
 			upgradedChannel.upgradeToIOChannel()
 			resumeUpgrader()
 			afterUpgraded(upgradedChannel)
+			logger.log(
+				Level.FINEST,
+				"Channel [$oldId] upgraded to [$upgradedChannel]")
 		}
 		channel.enqueueMessageThen(
 			newIOUpgradeRequestMessage(command, uuid),

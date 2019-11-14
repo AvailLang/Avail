@@ -366,7 +366,6 @@ enum class Command
 			 */
 			fun addSpeciallyParsedCommand(command: Command)
 			{
-				println("GOT HERE: $command")
 				assert(command.requiresSpecialParsing)
 				speciallyParsedCommands.add(command)
 			}

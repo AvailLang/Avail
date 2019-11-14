@@ -34,12 +34,16 @@ package com.avail.server.io
 
 import com.avail.server.AvailServer
 import com.avail.server.messages.Message
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.ScheduledFuture
+import java.util.concurrent.TimeUnit
 
 /**
  * A `TransportAdapter` hides the details of using a particular transport
  * mechanism to send and receive [messages][Message].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
  * @param T
  *   The type of the underlying transport.
  */
@@ -87,4 +91,52 @@ interface TransportAdapter<T> : AutoCloseable
 	 *   A channel.
 	 */
 	fun sendClose(channel: AbstractTransportChannel<T>)
+
+	/**
+	 * Send a polite close notification across the given
+	 * [channel][AbstractTransportChannel].
+	 *
+	 * @param channel
+	 *   A channel.
+	 * @param reason
+	 *   The reason for the disconnect
+	 */
+	fun sendClose(channel: AbstractTransportChannel<T>, reason: DisconnectReason)
+
+	/**
+	 * Receive a polite close notification across the given
+	 * [channel][AbstractTransportChannel].
+	 *
+	 * @param channel
+	 *   A channel.
+	 * @param reason
+	 *   The [reason][DisconnectReason] for the disconnect.
+	 */
+	fun receiveClose(channel: AbstractTransportChannel<T>, reason: DisconnectReason)
+
+	/**
+	 * The custom action that is to be called when the input channel is closed
+	 * in order to support implementation-specific requirements for the closing
+	 * of a channel.
+	 */
+	val onChannelCloseAction:
+		(DisconnectReason, AbstractTransportChannel<T>) -> Unit
+
+	/**
+	 * The [timer][ScheduledExecutorService] for
+	 * [scheduling activities][ScheduledFuture] related to managing
+	 * communication.
+	 */
+	val timer: ScheduledExecutorService
+
+	/**
+	 * Execute the supplied task in approximately [task] milliseconds.
+	 *
+	 * @param task
+	 *        The task.
+	 * @param action
+	 *        The task.
+	 */
+	fun millisTimer (task: Long, action: () -> Unit): ScheduledFuture<*> =
+		timer.schedule(action, task, TimeUnit.MILLISECONDS)
 }
