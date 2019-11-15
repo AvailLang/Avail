@@ -59,7 +59,7 @@ import java.util.concurrent.atomic.AtomicLong
  *   this channel.
  */
 abstract class AvailServerChannel constructor(
-	closeAction: (DisconnectReason, AvailServerChannel) -> Unit)
+	closeAction: (DisconnectReason, AvailServerChannel) -> Unit = {_,_->})
 {
 	/** `true` if the channel is open, `false` otherwise. */
 	abstract val isOpen: Boolean
@@ -68,8 +68,9 @@ abstract class AvailServerChannel constructor(
 	 * The [ChannelCloseHandler] that contains the application-specific close
 	 * logic to be run after this [AvailServerChannel] is closed.
 	 */
-	val channelCloseHandler: ChannelCloseHandler by lazy{
-		ChannelCloseHandler(this, closeAction) }
+	val channelCloseHandler: ChannelCloseHandler by lazy {
+		ChannelCloseHandler(this, closeAction)
+	}
 
 	/**
 	 * The unique channel [identifier][UUID] used to distinguish this

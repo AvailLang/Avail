@@ -94,7 +94,7 @@ interface DisconnectReason
 	 * @param level
 	 *   The `Level` of the log entry.
 	 * @param msg
-	 *   An optional custom message desired for logging. *Defaults to null.*
+	 *   An optional custom message desired for logging. *Defaults to `null`.*
 	 * @param e
 	 *   An optional [Throwable] that can be logged.
 	 */
@@ -218,7 +218,8 @@ class CommunicationErrorDisconnect constructor(val e: Throwable?)
 
 	override val logEntry: String
 		get() = e?.let {
-			"${super.logEntry} - ${it.message}" } ?: super.logEntry
+			"${super.logEntry} - ${it.message}"
+		} ?: super.logEntry
 }
 
 /**
