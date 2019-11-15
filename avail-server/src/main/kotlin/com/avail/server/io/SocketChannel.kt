@@ -55,11 +55,16 @@ import java.nio.channels.AsynchronousSocketChannel
  *   The [SocketAdapter].
  * @param transport
  *   The [channel][AsynchronousSocketChannel].
+ * @param closeAction
+ *   The custom action that is to be called when the this channel is closed in
+ *   order to support implementation-specific requirements during the closing of
+ *   a channel.
  */
 internal class SocketChannel constructor(
 	override val adapter: SocketAdapter,
-	override val transport: AsynchronousSocketChannel)
-: AbstractTransportChannel<AsynchronousSocketChannel>()
+	override val transport: AsynchronousSocketChannel,
+	closeAction: (DisconnectReason, AvailServerChannel) -> Unit = {_,_->})
+: AbstractTransportChannel<AsynchronousSocketChannel>(closeAction)
 {
 	override val isOpen get() = transport.isOpen
 	override val maximumSendQueueDepth = MAX_QUEUE_DEPTH
@@ -71,19 +76,21 @@ internal class SocketChannel constructor(
 		{
 			heartbeat.cancel()
 			IO.close(transport)
+			channelCloseHandler.close()
 		}
 	}
 
-	override fun close()
+	override fun scheduleClose(reason: DisconnectReason)
 	{
 		synchronized(sendQueue) {
 			if (!sendQueue.isEmpty())
 			{
 				shouldCloseAfterEmptyingSendQueue = true
+				channelCloseHandler.reason = reason
 			}
 			else
 			{
-				adapter.sendClose(this)
+				adapter.sendClose(this, reason)
 			}
 		}
 	}

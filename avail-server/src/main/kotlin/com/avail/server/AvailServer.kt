@@ -48,10 +48,12 @@ import com.avail.server.io.AvailServerChannel.ProtocolState
 import com.avail.server.io.AvailServerChannel.ProtocolState.COMMAND
 import com.avail.server.io.AvailServerChannel.ProtocolState.ELIGIBLE_FOR_UPGRADE
 import com.avail.server.io.AvailServerChannel.ProtocolState.VERSION_NEGOTIATION
+import com.avail.server.io.RunCompletionDisconnect
+import com.avail.server.io.RunFailureDisconnect
 import com.avail.server.io.ServerInputChannel
+import com.avail.server.io.ServerMessageDisconnect
 import com.avail.server.io.WebSocketAdapter
 import com.avail.server.messages.*
-import com.avail.utility.IO
 import com.avail.utility.Mutable
 import com.avail.utility.MutableOrNull
 import com.avail.utility.Nulls.stripNull
@@ -719,7 +721,7 @@ class AvailServer constructor(
 		channel.enqueueMessageThen(
 			newSuccessMessage(command) { writer -> writer.write("end") }
 		) {
-			IO.close(ioChannel)
+			ioChannel.scheduleClose(ServerMessageDisconnect)
 		}
 	}
 
@@ -819,7 +821,7 @@ class AvailServer constructor(
 		channel.enqueueMessageThen(
 			newSuccessMessage(command) { writer -> writer.write("end") }
 		) {
-			IO.close(ioChannel)
+			ioChannel.scheduleClose(ServerMessageDisconnect)
 		}
 	}
 
@@ -885,7 +887,7 @@ class AvailServer constructor(
 					}
 					channel.enqueueMessageThen(message) {
 						cleanup.invoke {
-							IO.close(ioChannel)
+							ioChannel.scheduleClose(RunCompletionDisconnect)
 						}
 					}
 					return@attemptCommand
@@ -905,13 +907,13 @@ class AvailServer constructor(
 					}
 					channel.enqueueMessageThen(message) {
 						cleanup.invoke {
-							IO.close(ioChannel)
+							ioChannel.scheduleClose(RunCompletionDisconnect)
 						}
 					}
 				}
 			},
 			{
-				IO.close(ioChannel)
+				ioChannel.scheduleClose(RunFailureDisconnect)
 			})
 	}
 
@@ -1019,7 +1021,7 @@ class AvailServer constructor(
 		 *   The reason for the failure.
 		 * @param closeAfterSending
 		 *   `true` if the [channel][AvailServerChannel] should be
-		 *   [closed][AvailServerChannel.close] after transmitting this message.
+		 *   [closed][AvailServerChannel.scheduleClose] after transmitting this message.
 		 * @return
 		 *   A message.
 		 */
