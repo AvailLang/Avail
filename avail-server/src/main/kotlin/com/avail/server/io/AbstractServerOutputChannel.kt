@@ -60,7 +60,7 @@ abstract class AbstractServerOutputChannel constructor(
 	override fun isOpen() = channel.isOpen
 
 	/**
-	 * The prefix for [message][Message] [content][Message.getContent] written to
+	 * The prefix for [message][Message] [content][Message.content] written to
 	 * this output channel.
 	 */
 	protected abstract val channelTag: String
