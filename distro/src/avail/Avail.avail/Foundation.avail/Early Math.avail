@@ -66,7 +66,7 @@ Body
  * Answer the semantic restriction function that should be used for each of
  * {@method "_'s⁇genuine lower bound"} and {@method "_'s⁇genuine upper bound"}.
  *
- * @method "integer range genuine«lower|«upper»!\
+ * @method "integer range genuine«lower|upper»!\
  *         \|bound semantic restriction function"
  * @param "lowerOrUpper" "[1..2]"
  * @returns "[extended integer meta's type]→([-∞..∞])'s type"

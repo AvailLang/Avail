@@ -882,307 +882,96 @@ public final class MessageSplitterTest
 					//15: Answer
 					CONVERT.encoding(LIST_TO_SIZE.getNumber()),
 					APPEND_ARGUMENT.getEncoding())), // [[...]]
-		C("«x y»~?",
-			List(1, 1, Phrase(booleanType())),
-			A("«", "x", "y", "»", "~", "?"),
-			A(
-				BRANCH_FORWARD.encoding(6),
-				PARSE_PART_CASE_INSENSITIVELY.encoding(2),
-				PARSE_PART_CASE_INSENSITIVELY.encoding(3),
-				PUSH_LITERAL.encoding(getIndexForTrue()),
-				JUMP_FORWARD.encoding(7),
-				//6:
-				PUSH_LITERAL.encoding(getIndexForFalse()),
-				//7:
-				APPEND_ARGUMENT.getEncoding()))
-//		/* Alternation. */
-//		C("hello|greetings",
-//			A("hello", "|", "greetings"),
-//			A(
-//				SAVE_PARSE_POSITION.encoding(),
-//				BRANCH.encoding(5),
-//				PARSE_PART.encoding(1),
-//				JUMP.encoding(6),
-//				PARSE_PART.encoding(3),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding())),
-//		C("a|b|c|d|e|f|g",
-//			A("a", "|", "b", "|", "c", "|", "d", "|", "e", "|", "f", "|", "g"),
-//			A(
-//				SAVE_PARSE_POSITION.encoding(),
-//				BRANCH.encoding(5),
-//				PARSE_PART.encoding(1),
-//				JUMP.encoding(21),
-//				BRANCH.encoding(8),
-//				PARSE_PART.encoding(3),
-//				JUMP.encoding(21),
-//				BRANCH.encoding(11),
-//				PARSE_PART.encoding(5),
-//				JUMP.encoding(21),
-//				BRANCH.encoding(14),
-//				PARSE_PART.encoding(7),
-//				JUMP.encoding(21),
-//				BRANCH.encoding(17),
-//				PARSE_PART.encoding(9),
-//				JUMP.encoding(21),
-//				BRANCH.encoding(20),
-//				PARSE_PART.encoding(11),
-//				JUMP.encoding(21),
-//				PARSE_PART.encoding(13),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding())),
-//		C("«fruit bats»|sloths|carp|«breakfast cereals»",
-//			A("«", "fruit", "bats", "»", "|", "sloths", "|", "carp", "|", "«",
-// "breakfast", "cereals", "»"),
-//			A(
-//				SAVE_PARSE_POSITION.encoding(),
-//				BRANCH.encoding(17),
-//				SAVE_PARSE_POSITION.encoding(),
-//				EMPTY_LIST.encoding(),
-//				BRANCH.encoding(15),
-//				EMPTY_LIST.encoding(),
-//				PARSE_PART.encoding(2),
-//				PARSE_PART.encoding(3),
-//				BRANCH.encoding(13),
-//				APPEND_ARGUMENT.encoding(),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				JUMP.encoding(6),
-//				APPEND_ARGUMENT.encoding(),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				JUMP.encoding(36),
-//				BRANCH.encoding(20),
-//				PARSE_PART.encoding(6),
-//				JUMP.encoding(36),
-//				BRANCH.encoding(23),
-//				PARSE_PART.encoding(8),
-//				JUMP.encoding(36),
-//				SAVE_PARSE_POSITION.encoding(),
-//				EMPTY_LIST.encoding(),
-//				BRANCH.encoding(35),
-//				EMPTY_LIST.encoding(),
-//				PARSE_PART.encoding(11),
-//				PARSE_PART.encoding(12),
-//				BRANCH.encoding(33),
-//				APPEND_ARGUMENT.encoding(),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				JUMP.encoding(26),
-//				APPEND_ARGUMENT.encoding(),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding())),
-//		C("«x|y»!",
-//			A("«", "x", "|", "y", "»", "!"),
-//			A(
-//				BRANCH.encoding(5),
-//				PARSE_PART.encoding(2),
-//				PUSH_INTEGER_LITERAL.encoding(1),
-//				JUMP.encoding(7),
-//				PARSE_PART.encoding(4),
-//				PUSH_INTEGER_LITERAL.encoding(2),
-//				APPEND_ARGUMENT.encoding())),
-//		C("[««…:_†§‡,»`|»?«Primitive…#«(…:_†)»?§;»?«`$…«:_†»?;
-// §»?«_!»«_!»?]«:_†»?«^«_†‡,»»?",
-//			A("[",
-//					"«", "«", "…", ":", "_", "†", "§", "‡", ",", "»",
-//						"`", "|", "»", "?",
-//					"«", "Primitive", "…", "#",
-//						"«", "(", "…", ":", "_", "†", ")", "»", "?", "§", ";",
-// "»", "?",
-//					"«", "`", "$", "…", "«", ":", "_", "†", "»", "?", ";",
-// "§", "»", "?",
-//					"«", "_", "!", "»",
-//					"«", "_", "!", "»", "?",
-//				"]",
-//				"«", ":", "_", "†", "»", "?",
-//				"«", "^", "«", "_", "†", "‡", ",", "»", "»", "?"),
-//			A(
-//			// open square bracket:
-//				PARSE_PART.encoding(1),  // = "["
-//			// argument declarations:
-//				SAVE_PARSE_POSITION.encoding(),
-//				EMPTY_LIST.encoding(),
-//				BRANCH.encoding(33),
-//				CHECK_AT_MOST.encoding(1),
-//				SAVE_PARSE_POSITION.encoding(),
-//				EMPTY_LIST.encoding(),
-//				BRANCH.encoding(26),
-//				EMPTY_LIST.encoding(),
-//				PARSE_RAW_KEYWORD_TOKEN.encoding(),
-//				APPEND_ARGUMENT.encoding(),
-//				PARSE_PART.encoding(5),  // = ":"
-//				PARSE_ARGUMENT_IN_MODULE_SCOPE.encoding(),
-//				CHECK_ARGUMENT.encoding(2),
-//				CONVERT.encoding(EVALUATE_EXPRESSION.number()),
-//				APPEND_ARGUMENT.encoding(),
-//				PREPARE_TO_RUN_PREFIX_FUNCTION.encoding(4),
-//				RUN_PREFIX_FUNCTION.encoding(1),
-//				BRANCH.encoding(24),
-//				PARSE_PART.encoding(10),  // = ","
-//				APPEND_ARGUMENT.encoding(),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				JUMP.encoding(9),
-//				APPEND_ARGUMENT.encoding(),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				APPEND_ARGUMENT.encoding(),
-//				PARSE_PART.encoding(13),  // = "|"
-//				BRANCH.encoding(32),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				JUMP.encoding(5),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				APPEND_ARGUMENT.encoding(),
-//			// optional primitive declaration:
-//				SAVE_PARSE_POSITION.encoding(),
-//				EMPTY_LIST.encoding(),
-//				BRANCH.encoding(74),
-//				CHECK_AT_MOST.encoding(1),
-//				EMPTY_LIST.encoding(),
-//				PARSE_PART.encoding(17),  // = "Primitive"
-//				PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN.encoding(),
-//				APPEND_ARGUMENT.encoding(),
-//				SAVE_PARSE_POSITION.encoding(),
-//				EMPTY_LIST.encoding(),
-//				BRANCH.encoding(63),
-//				CHECK_AT_MOST.encoding(1),
-//				EMPTY_LIST.encoding(),
-//				PARSE_PART.encoding(21),  // = "("
-//				PARSE_RAW_KEYWORD_TOKEN.encoding(),
-//				APPEND_ARGUMENT.encoding(),
-//				PARSE_PART.encoding(23),  // = ":"
-//				PARSE_ARGUMENT_IN_MODULE_SCOPE.encoding(),
-//				CHECK_ARGUMENT.encoding(5),
-//				CONVERT.encoding(EVALUATE_EXPRESSION.number()),
-//				APPEND_ARGUMENT.encoding(),
-//				PARSE_PART.encoding(26),  // = ")"
-//				BRANCH.encoding(61),
-//				APPEND_ARGUMENT.encoding(),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				JUMP.encoding(46),
-//				APPEND_ARGUMENT.encoding(),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				APPEND_ARGUMENT.encoding(),
-//				PREPARE_TO_RUN_PREFIX_FUNCTION.encoding(3),
-//				RUN_PREFIX_FUNCTION.encoding(2),
-//				PARSE_PART.encoding(30),  // = ";"
-//				BRANCH.encoding(72),
-//				APPEND_ARGUMENT.encoding(),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				JUMP.encoding(38),
-//				APPEND_ARGUMENT.encoding(),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				APPEND_ARGUMENT.encoding(),
-//			// optional label declaration:
-//				SAVE_PARSE_POSITION.encoding(),
-//				EMPTY_LIST.encoding(),
-//				BRANCH.encoding(108),
-//				CHECK_AT_MOST.encoding(1),
-//				EMPTY_LIST.encoding(),
-//				PARSE_PART.encoding(35),  // = "$"
-//				PARSE_RAW_KEYWORD_TOKEN.encoding(),
-//				APPEND_ARGUMENT.encoding(),
-//				SAVE_PARSE_POSITION.encoding(),
-//				EMPTY_LIST.encoding(),
-//				BRANCH.encoding(97),
-//				CHECK_AT_MOST.encoding(1),
-//				PARSE_PART.encoding(38),  // = ":"
-//				PARSE_ARGUMENT_IN_MODULE_SCOPE.encoding(),
-//				CHECK_ARGUMENT.encoding(7),
-//				CONVERT.encoding(EVALUATE_EXPRESSION.number()),
-//				APPEND_ARGUMENT.encoding(),
-//				BRANCH.encoding(96),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				JUMP.encoding(87),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				APPEND_ARGUMENT.encoding(),
-//				PARSE_PART.encoding(43),  // = ";"
-//				PREPARE_TO_RUN_PREFIX_FUNCTION.encoding(3),
-//				RUN_PREFIX_FUNCTION.encoding(3),
-//				BRANCH.encoding(106),
-//				APPEND_ARGUMENT.encoding(),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				JUMP.encoding(79),
-//				APPEND_ARGUMENT.encoding(),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				APPEND_ARGUMENT.encoding(),
-//			// statements and declarations
-//				SAVE_PARSE_POSITION.encoding(),
-//				EMPTY_LIST.encoding(),
-//				BRANCH.encoding(120),
-//				PARSE_TOP_VALUED_ARGUMENT.encoding(),
-//				CHECK_ARGUMENT.encoding(8),
-//				APPEND_ARGUMENT.encoding(),
-//				BRANCH.encoding(119),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				JUMP.encoding(113),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				APPEND_ARGUMENT.encoding(),
-//			// optional return expression
-//				SAVE_PARSE_POSITION.encoding(),
-//				EMPTY_LIST.encoding(),
-//				BRANCH.encoding(133),
-//				CHECK_AT_MOST.encoding(1),
-//				PARSE_TOP_VALUED_ARGUMENT.encoding(),
-//				CHECK_ARGUMENT.encoding(9),
-//				APPEND_ARGUMENT.encoding(),
-//				BRANCH.encoding(132),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				JUMP.encoding(125),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				APPEND_ARGUMENT.encoding(),
-//			// close square bracket
-//				PARSE_PART.encoding(56),  // = "]"
-//			// optional result type declaration
-//				SAVE_PARSE_POSITION.encoding(),
-//				EMPTY_LIST.encoding(),
-//				BRANCH.encoding(149),
-//				CHECK_AT_MOST.encoding(1),
-//				PARSE_PART.encoding(58),  // = ":"
-//				PARSE_ARGUMENT_IN_MODULE_SCOPE.encoding(),
-//				CHECK_ARGUMENT.encoding(10),
-//				CONVERT.encoding(EVALUATE_EXPRESSION.number()),
-//				APPEND_ARGUMENT.encoding(),
-//				BRANCH.encoding(148),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				JUMP.encoding(139),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				APPEND_ARGUMENT.encoding(),
-//			// optional exceptions declaration
-//				SAVE_PARSE_POSITION.encoding(),
-//				EMPTY_LIST.encoding(),
-//				BRANCH.encoding(174),
-//				CHECK_AT_MOST.encoding(1),
-//				PARSE_PART.encoding(64),  // = "^"
-//				SAVE_PARSE_POSITION.encoding(),
-//				EMPTY_LIST.encoding(),
-//				BRANCH.encoding(168),
-//				PARSE_ARGUMENT_IN_MODULE_SCOPE.encoding(),
-//				CHECK_ARGUMENT.encoding(11),
-//				CONVERT.encoding(EVALUATE_EXPRESSION.number()),
-//				APPEND_ARGUMENT.encoding(),
-//				BRANCH.encoding(167),
-//				PARSE_PART.encoding(69),  // = ","
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				JUMP.encoding(159),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				APPEND_ARGUMENT.encoding(),
-//				BRANCH.encoding(173),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				JUMP.encoding(154),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				APPEND_ARGUMENT.encoding()
-//			))
+			C("«x y»~?",
+				List(1, 1, Phrase(booleanType())),
+				A("«", "x", "y", "»", "~", "?"),
+				A(
+					BRANCH_FORWARD.encoding(6),
+					PARSE_PART_CASE_INSENSITIVELY.encoding(2),
+					PARSE_PART_CASE_INSENSITIVELY.encoding(3),
+					PUSH_LITERAL.encoding(getIndexForTrue()),
+					JUMP_FORWARD.encoding(7),
+					//6:
+					PUSH_LITERAL.encoding(getIndexForFalse()),
+					//7:
+					APPEND_ARGUMENT.getEncoding())),
+		/* Alternation. */
+			C("hello|greetings",
+				List(0, 0),
+				A("hello", "|", "greetings"),
+				A(
+					BRANCH_FORWARD.encoding(4),
+					PARSE_PART.encoding(1), // hello
+					JUMP_FORWARD.encoding(5),
+					//4:
+					PARSE_PART.encoding(3))), // greetings
+					//5:
+			C("a|b|c|d|e|f|g",
+				List(0, 0),
+				A("a", "|", "b", "|", "c", "|", "d", "|", "e", "|", "f", "|", "g"),
+				A(
+					BRANCH_FORWARD.encoding(4),
+					PARSE_PART.encoding(1), // a
+					JUMP_FORWARD.encoding(20),
+					// 4:
+					BRANCH_FORWARD.encoding(7),
+					PARSE_PART.encoding(3), // b
+					JUMP_FORWARD.encoding(20),
+					// 7:
+					BRANCH_FORWARD.encoding(10),
+					PARSE_PART.encoding(5), // c
+					JUMP_FORWARD.encoding(20),
+					// 10:
+					BRANCH_FORWARD.encoding(13),
+					PARSE_PART.encoding(7), // d
+					JUMP_FORWARD.encoding(20),
+					// 13:
+					BRANCH_FORWARD.encoding(16),
+					PARSE_PART.encoding(9), // e
+					JUMP_FORWARD.encoding(20),
+					// 16:
+					BRANCH_FORWARD.encoding(19),
+					PARSE_PART.encoding(11), // f
+					JUMP_FORWARD.encoding(20),
+					// 19:
+					PARSE_PART.encoding(13))), // g
+					// 20: (end-if)
+//		/* NOT YET SUPPORTED (no way to specify groups within alternations) */
+//			C("««fruit bats»|sloths|carp|«breakfast cereals»»",
+//				List(0, 0),
+//				A("«", "«", "fruit", "bats", "»", "|", "sloths", "|", "carp",
+//				  "|", "«", "breakfast", "cereals", "»", "»"),
+//				A(
+//					BRANCH_FORWARD.encoding(5),
+//					PARSE_PART.encoding(3), // fruit
+//					PARSE_PART.encoding(4), // bats
+//					JUMP_FORWARD.encoding(13),
+//					//5:
+//					BRANCH_FORWARD.encoding(8),
+//					PARSE_PART.encoding(7), // sloths
+//					JUMP_FORWARD.encoding(13),
+//					//8:
+//					BRANCH_FORWARD.encoding(11),
+//					PARSE_PART.encoding(9), // carp
+//					JUMP_FORWARD.encoding(13),
+//					//11:
+//					PARSE_PART.encoding(12), // breakfast
+//					PARSE_PART.encoding(13))) // cereals
+//					//13:
+			C("«x|y»!",
+				List(1, 1, Phrase(inclusive(1, 2))),
+				A("«", "x", "|", "y", "»", "!"),
+				A(
+					BRANCH_FORWARD.encoding(5),
+					PARSE_PART.encoding(2),
+					PUSH_LITERAL.encoding(indexForConstant(fromInt(1))),
+					JUMP_FORWARD.encoding(7),
+					//5:
+					PARSE_PART.encoding(4),
+					PUSH_LITERAL.encoding(indexForConstant(fromInt(2))),
+					//7:
+					typeCheckEncodingForPhrase(inclusive(1, 2)),
+					APPEND_ARGUMENT.getEncoding())) // [N]
 		};
 	}
 
