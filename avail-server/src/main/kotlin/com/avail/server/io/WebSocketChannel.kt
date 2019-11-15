@@ -36,7 +36,6 @@ import com.avail.server.messages.Message
 import com.avail.utility.IO
 
 import java.nio.channels.AsynchronousSocketChannel
-import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * A `WebSocketChannel` encapsulates an [AsynchronousSocketChannel] created by a
@@ -68,10 +67,10 @@ import java.util.concurrent.atomic.AtomicBoolean
  * @param heartbeatFailureThreshold
  *   The number of consecutive times the `heartbeatTimeout` is allowed to be
  *   reached before disconnecting the client.
- * @param onChannelCloseAction
- *   The custom action that is to be called when the input channel is closed in
- *   order to support implementation-specific requirements during the closing of
- *   a channel.
+ * @param closeAction
+ *   The custom action that is to be called when the this channel is closed in
+ *   order to support implementation-specific requirements after the closing of
+ *   this channel.
  */
 internal class WebSocketChannel constructor(
 	override val adapter: WebSocketAdapter,
@@ -79,13 +78,11 @@ internal class WebSocketChannel constructor(
 	heartbeatFailureThreshold: Int,
 	heartbeatInterval: Long,
 	heartbeatTimeout: Long,
-	onChannelCloseAction:
-		(DisconnectReason, AbstractTransportChannel<AsynchronousSocketChannel>)
-			-> Unit)
-: AbstractTransportChannel<AsynchronousSocketChannel>()
+	closeAction: (DisconnectReason, AvailServerChannel) -> Unit = {_,_->})
+: AbstractTransportChannel<AsynchronousSocketChannel>(closeAction)
 {
-	override val isOpen get() = transport.isOpen
 	override val maximumSendQueueDepth = MAX_QUEUE_DEPTH
+	override val isOpen get() = transport.isOpen
 	override val maximumReceiveQueueDepth = MAX_QUEUE_DEPTH
 	override val heartbeat: Heartbeat =
 		WebSocketChannelHeartbeat(
@@ -94,26 +91,10 @@ internal class WebSocketChannel constructor(
 			heartbeatInterval,
 			heartbeatTimeout)
 
-	/**
-	 * `true` indicates the close [onChannelCloseAction] has not been run and
-	 * is eligible to run; `false` otherwise.
-	 */
-	private val onChannelCloseActionNotRun = AtomicBoolean(true)
-
-	override val onChannelCloseAction: (DisconnectReason) -> Unit =
-		{
-			if (onChannelCloseActionNotRun.getAndSet(false))
-			{
-				onChannelCloseAction(it, this)
-			}
-		}
-
 	/** `true` if the WebSocket handshake succeeded, `false` otherwise. */
 	private var handshakeSucceeded = false
 
-	/**
-	 * Record the fact that the WebSocket handshake succeeded.
-	 */
+	/** Record the fact that the WebSocket handshake succeeded. */
 	fun handshakeSucceeded()
 	{
 		handshakeSucceeded = true
@@ -125,10 +106,11 @@ internal class WebSocketChannel constructor(
 		{
 			heartbeat.cancel()
 			IO.close(transport)
+			channelCloseHandler.close()
 		}
 	}
 
-	override fun close()
+	override fun scheduleClose(reason: DisconnectReason)
 	{
 		if (handshakeSucceeded)
 		{
@@ -136,15 +118,17 @@ internal class WebSocketChannel constructor(
 				if (!sendQueue.isEmpty())
 				{
 					shouldCloseAfterEmptyingSendQueue = true
+					channelCloseHandler.reason = reason
 				}
 				else
 				{
-					adapter.sendClose(this)
+					adapter.sendClose(this, reason)
 				}
 			}
 		}
 		else
 		{
+			channelCloseHandler.reason = reason
 			closeTransport()
 		}
 	}

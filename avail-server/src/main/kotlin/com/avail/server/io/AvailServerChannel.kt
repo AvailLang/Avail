@@ -49,11 +49,27 @@ import java.util.concurrent.atomic.AtomicLong
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ *
+ * @constructor
+ * Construct an [AvailServerChannel].
+ *
+ * @param closeAction
+ *   The custom action that is to be called when the this channel is closed in
+ *   order to support implementation-specific requirements after the closing of
+ *   this channel.
  */
-abstract class AvailServerChannel : AutoCloseable
+abstract class AvailServerChannel constructor(
+	closeAction: (DisconnectReason, AvailServerChannel) -> Unit)
 {
 	/** `true` if the channel is open, `false` otherwise. */
 	abstract val isOpen: Boolean
+
+	/**
+	 * The [ChannelCloseHandler] that contains the application-specific close
+	 * logic to be run after this [AvailServerChannel] is closed.
+	 */
+	val channelCloseHandler: ChannelCloseHandler by lazy{
+		ChannelCloseHandler(this, closeAction) }
 
 	/**
 	 * The unique channel [identifier][UUID] used to distinguish this
@@ -86,6 +102,27 @@ abstract class AvailServerChannel : AutoCloseable
 			assert(this.state.allowedSuccessorStates.contains(newState))
 			field = newState
 		}
+
+	/**
+	 * Schedule this [AvailServerChannel] to be closed cleanly if possible. This
+	 * does not guarantee that the channel will close right away nor does it
+	 * guarantee that it will be closed cleanly.
+	 *
+	 * @param reason
+	 *   The [DisconnectReason] for closing the channel.
+	 */
+	abstract fun scheduleClose (reason: DisconnectReason)
+
+	/**
+	 * Close this [AvailServerChannel] immediately. The provided reason will
+	 * be provided to the [channelCloseHandler] as the closing reason,
+	 * overriding any previously stated close reason if any had been provided
+	 * during a [scheduleClose] request.
+	 *
+	 * @param reason
+	 *   The [DisconnectReason] for closing the channel.
+	 */
+	abstract fun closeImmediately (reason: DisconnectReason)
 
 	/**
 	 * The [text interface][TextInterface], or `null` if the

@@ -75,7 +75,7 @@ import java.util.logging.Level
  * @param onChannelCloseAction
  *   The custom action that is to be called when the input channel is closed in
  *   order to support implementation-specific requirements for the closing of
- *   a channel.
+ *   a channel. *Does nothing by default.*
  * @throws IOException
  *   If the [server socket][AsynchronousServerSocketChannel] could not be
  *   opened.
@@ -85,8 +85,7 @@ class SocketAdapter @Throws(IOException::class) constructor(
 	@Suppress("MemberVisibilityCanBePrivate")
 	internal val adapterAddress: InetSocketAddress,
 	override val onChannelCloseAction:
-		(DisconnectReason, AbstractTransportChannel<AsynchronousSocketChannel>)
-			-> Unit = { _, _ -> /* Do nothing */})
+		(DisconnectReason, AvailServerChannel) -> Unit = { _, _ -> })
 	: TransportAdapter<AsynchronousSocketChannel>
 {
 	/** The [server socket channel][AsynchronousServerSocketChannel]. */
@@ -171,11 +170,16 @@ class SocketAdapter @Throws(IOException::class) constructor(
 						when
 						{
 							payloadLength == 0 ->
-								strongChannel.closeTransport()
+							{
+								strongChannel.closeImmediately(ClientDisconnect)
+							}
 							payloadLength > Message.MAX_SIZE ->
+							{
 								// If the message is too big, then close the
 								// transport.
-								strongChannel.closeTransport()
+								strongChannel
+									.closeImmediately(BadMessageDisconnect)
+							}
 							else ->
 								readPayloadThen(strongChannel, payloadLength) {
 									content ->
@@ -196,7 +200,8 @@ class SocketAdapter @Throws(IOException::class) constructor(
 						Level.WARNING,
 						"failed while attempting to read payload length",
 						e)
-					IO.close(strongChannel)
+					strongChannel.closeImmediately(
+						CommunicationErrorDisconnect(e))
 				}))
 	}
 
@@ -225,7 +230,8 @@ class SocketAdapter @Throws(IOException::class) constructor(
 						Level.WARNING,
 						"failed while attempting to send message",
 						e)
-					strongChannel.closeTransport()
+					strongChannel.closeImmediately(
+						CommunicationErrorDisconnect(e))
 					failure?.invoke(e)
 				}))
 	}
@@ -257,7 +263,8 @@ class SocketAdapter @Throws(IOException::class) constructor(
 						Level.WARNING,
 						"failed while attempting to send close notification",
 						e)
-					strongChannel.closeTransport()
+					strongChannel.closeImmediately(
+						CommunicationErrorDisconnect(e))
 					Unit
 				}))
 	}
@@ -281,8 +288,7 @@ class SocketAdapter @Throws(IOException::class) constructor(
 					}
 					else
 					{
-						onChannelCloseAction(reason, strongChannel)
-						strongChannel.closeTransport()
+						strongChannel.closeImmediately(reason)
 					}
 					Unit
 				},
@@ -291,22 +297,23 @@ class SocketAdapter @Throws(IOException::class) constructor(
 						Level.WARNING,
 						"failed while attempting to send close notification",
 						e)
-					strongChannel.closeTransport()
+					strongChannel.closeImmediately(
+						CommunicationErrorDisconnect(e))
 					Unit
 				}))
 	}
 
 	override fun receiveClose(
-		channel: AbstractTransportChannel<AsynchronousSocketChannel>,
-		reason: DisconnectReason)
+		channel: AbstractTransportChannel<AsynchronousSocketChannel>)
 	{
 		if (!channel.transport.isOpen)
 		{
 			// Presumes close was originated by server and already closed.
 			return
 		}
-		channel.closeTransport()
-		onChannelCloseAction(reason, channel)
+		channel.channelCloseHandler.reason?.let{
+			channel.closeTransport()
+		} ?: channel.closeImmediately(ClientDisconnect)
 	}
 
 	@Synchronized
@@ -387,8 +394,8 @@ class SocketAdapter @Throws(IOException::class) constructor(
 							Level.WARNING,
 							"failed while attempting to read payload",
 							e)
-						channel.closeTransport()
-						Unit
+						channel.closeImmediately(
+							CommunicationErrorDisconnect(e))
 					}))
 		}
 	}

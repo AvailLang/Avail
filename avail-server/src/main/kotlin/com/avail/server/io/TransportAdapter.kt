@@ -109,18 +109,15 @@ interface TransportAdapter<T> : AutoCloseable
 	 *
 	 * @param channel
 	 *   A channel.
-	 * @param reason
-	 *   The [reason][DisconnectReason] for the disconnect.
 	 */
-	fun receiveClose(channel: AbstractTransportChannel<T>, reason: DisconnectReason)
+	fun receiveClose(channel: AbstractTransportChannel<T>)
 
 	/**
 	 * The custom action that is to be called when the input channel is closed
 	 * in order to support implementation-specific requirements for the closing
 	 * of a channel.
 	 */
-	val onChannelCloseAction:
-		(DisconnectReason, AbstractTransportChannel<T>) -> Unit
+	val onChannelCloseAction: (DisconnectReason, AvailServerChannel) -> Unit
 
 	/**
 	 * The [timer][ScheduledExecutorService] for

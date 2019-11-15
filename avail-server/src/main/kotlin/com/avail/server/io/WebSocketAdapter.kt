@@ -114,7 +114,7 @@ import kotlin.experimental.xor
  * @param onChannelCloseAction
  *   The custom action that is to be called when the input channel is closed in
  *   order to support implementation-specific requirements for the closing of
- *   a channel.
+ *   a channel. *Does nothing by default.*
  * @throws IOException
  *   If the [server socket][AsynchronousServerSocketChannel] could not be
  *   opened.
@@ -127,8 +127,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 	private val heartbeatInterval: Long = defaultHbInterval,
 	private val heartbeatTimeout: Long = defaultHbTimeout,
 	override val onChannelCloseAction:
-		(DisconnectReason, AbstractTransportChannel<AsynchronousSocketChannel>)
-			-> Unit = { _, _ -> /* Do nothing */ })
+		(DisconnectReason, AvailServerChannel) -> Unit = { _, _ -> })
 	: TransportAdapter<AsynchronousSocketChannel>
 {
 	/** The [server socket channel][AsynchronousServerSocketChannel]. */
@@ -369,7 +368,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 							}
 							else
 							{
-								IO.close(channel)
+								channel.scheduleClose(BadMessageDisconnect)
 							}
 						},
 						{ e, _, _ ->
@@ -378,7 +377,8 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 								Level.WARNING,
 								"unable to write HTTP response to $channel",
 								e)
-							IO.close(channel)
+							channel.closeImmediately(
+								CommunicationErrorDisconnect(e))
 						}))
 			}
 
@@ -557,7 +557,8 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 								Level.WARNING,
 								"failed while attempting to read client handshake",
 								e)
-							IO.close(channel)
+							channel.closeImmediately(
+								CommunicationErrorDisconnect(e))
 						}))
 			}
 		}
@@ -730,7 +731,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 							}
 							else
 							{
-								IO.close(channel)
+								channel.scheduleClose(MismatchDisconnect)
 							}
 						},
 						{ e, _, _ ->
@@ -739,7 +740,8 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 								Level.WARNING,
 								"unable to write HTTP response to $channel",
 								e)
-							IO.close(channel)
+							channel.closeImmediately(
+								CommunicationErrorDisconnect(e))
 						}))
 			}
 		}
@@ -1282,7 +1284,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 						}
 						else
 						{
-							receiveClose(strongChannel, ClientDisconnect)
+							receiveClose(strongChannel)
 						}
 						return@readFrameThen
 					}
@@ -1424,7 +1426,8 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 				// ClosedChannelExceptions
 			})
 		{
-			strongChannel.closeTransport()
+			strongChannel.closeImmediately(
+				CommunicationErrorDisconnect(it))
 		}
 	}
 
@@ -1446,34 +1449,29 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 		{
 			return
 		}
+		channel.channelCloseHandler.reason = reason
 		val strongChannel = channel as WebSocketChannel
 		val buffer = ByteBuffer.allocateDirect(2)
 		buffer.putShort(
 			WebSocketStatusCode.NORMAL_CLOSURE.statusCode.toShort())
-		sendFrame(
-			strongChannel,
-			Opcode.CLOSE,
-			buffer,
-			{
-				onChannelCloseAction(reason, channel)
-			})
+		sendFrame(strongChannel, Opcode.CLOSE, buffer, {})
 		{
 			strongChannel.closeTransport()
 		}
 	}
 
 	override fun receiveClose(
-		channel: AbstractTransportChannel<AsynchronousSocketChannel>,
-		reason: DisconnectReason)
+		channel: AbstractTransportChannel<AsynchronousSocketChannel>)
 	{
 		if (!channel.transport.isOpen)
 		{
 			// Presume closed handler already run.
 			return
 		}
-		val strongChannel = channel as WebSocketChannel
-		strongChannel.closeTransport()
-		onChannelCloseAction(reason, channel)
+
+		channel.channelCloseHandler.reason?.let{
+			channel.closeTransport()
+		} ?: channel.closeImmediately(ClientDisconnect)
 	}
 
 	@Synchronized
@@ -1595,7 +1593,8 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 							Level.WARNING,
 							"failed while attempting to read opcode",
 							e)
-						IO.close(channel)
+						channel.closeImmediately(
+							CommunicationErrorDisconnect(e))
 					}))
 		}
 
@@ -1663,7 +1662,8 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 							Level.WARNING,
 							"failed while attempting to read payload size",
 							e)
-						IO.close(channel)
+						channel.closeImmediately(
+							CommunicationErrorDisconnect(e))
 					}))
 		}
 
@@ -1731,7 +1731,8 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 							"failed while attempting to read 2-byte "
 							+ "payload size",
 							e)
-						IO.close(channel)
+						channel.closeImmediately(
+							CommunicationErrorDisconnect(e))
 					}))
 		}
 
@@ -1811,7 +1812,8 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 							"failed while attempting to read 8-byte "
 							+ "payload size",
 							e)
-						IO.close(channel)
+						channel.closeImmediately(
+							CommunicationErrorDisconnect(e))
 					}))
 		}
 
@@ -1857,7 +1859,8 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 							Level.WARNING,
 							"failed while attempting to read masking key",
 							e)
-						IO.close(channel)
+						channel.closeImmediately(
+							CommunicationErrorDisconnect(e))
 					}))
 		}
 
@@ -1918,7 +1921,8 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 							Level.WARNING,
 							"failed while attempting to read payload",
 							e)
-						IO.close(channel)
+						channel.closeImmediately(
+							CommunicationErrorDisconnect(e))
 					}))
 		}
 
@@ -1970,15 +1974,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 							Level.WARNING,
 							"failed while attempting to send $opcode",
 							e)
-						// Don't recurse.
-						if (opcode === Opcode.CLOSE)
-						{
-							channel.closeTransport()
-						}
-						else
-						{
-							IO.close(channel)
-						}
+						channel.closeImmediately(CommunicationErrorDisconnect(e))
 						failure?.invoke(e)
 					}))
 		}
@@ -2050,11 +2046,8 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 			val buffer = ByteBuffer.allocateDirect(utf8.limit() + 2)
 			buffer.putShort(statusCode.statusCode.toShort())
 			buffer.put(utf8)
-			sendFrame(
-				channel,
-				Opcode.CLOSE,
-				buffer,
-				{ IO.close(channel) })
+			sendFrame(channel, Opcode.CLOSE, buffer)
+				{ channel.scheduleClose(CommunicationErrorDisconnect(it)) }
 		}
 	}
 }
