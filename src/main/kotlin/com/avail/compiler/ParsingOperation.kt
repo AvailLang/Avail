@@ -463,10 +463,8 @@ enum class ParsingOperation constructor(
 							// been encountered, so go ahead and report that we
 							// expected a variable.
 							afterUse.expected(
-								if (consumedStaticTokens.isEmpty())
-									WEAK
-								else
-									STRONG,
+								if (consumedStaticTokens.isEmpty()) WEAK
+								else STRONG,
 								describeWhyVariableUseIsExpected(
 									successorTrees.tupleAt(1)))
 						}
@@ -661,15 +659,15 @@ enum class ParsingOperation constructor(
 					{
 						start.expected(
 							if (consumedStaticTokens.isEmpty()) WEAK else STRONG
-						) { c ->
-							c(
+						) {
+							it(
 								"a keyword token, not " +
-								when (tokenType)
-								{
-									END_OF_FILE -> "end-of-file"
-									LITERAL -> token.literal()
-									else -> token.string()
-								})
+									when (tokenType)
+									{
+										END_OF_FILE -> "end-of-file"
+										LITERAL -> token.literal()
+										else -> token.string()
+									})
 						}
 					}
 					return@nextNonwhitespaceTokensDo
@@ -742,15 +740,15 @@ enum class ParsingOperation constructor(
 						start.expected(
 							if (consumedStaticTokens.isEmpty())WEAK
 							else STRONG
-						) { c ->
-							c(
+						) {
+							it(
 								"a string literal token, not " +
-								when (tokenType)
-								{
-									END_OF_FILE -> "end-of-file"
-									LITERAL -> token.literal()
-									else -> token.string()
-								})
+									when (tokenType)
+									{
+										END_OF_FILE -> "end-of-file"
+										LITERAL -> token.literal()
+										else -> token.string()
+									})
 						}
 					}
 					return@nextNonwhitespaceTokensDo
@@ -825,15 +823,15 @@ enum class ParsingOperation constructor(
 						start.expected(
 							if (consumedStaticTokens.isEmpty()) WEAK
 							else STRONG
-						) { c ->
-							c(
+						) {
+							it(
 								"a whole number literal token, not " +
-								when (tokenType)
-								{
-									END_OF_FILE -> "end-of-file"
-									LITERAL -> token.literal()
-									else -> token.string()
-								})
+									when (tokenType)
+									{
+										END_OF_FILE -> "end-of-file"
+										LITERAL -> token.literal()
+										else -> token.string()
+									})
 						}
 					}
 					return@nextNonwhitespaceTokensDo
@@ -844,7 +842,8 @@ enum class ParsingOperation constructor(
 					token.lineNumber(),
 					token)
 				compiler.compilationContext.recordToken(syntheticToken)
-				val newArgsSoFar = append(argsSoFar, literalNodeFromToken(syntheticToken))
+				val newArgsSoFar = append(
+					argsSoFar, literalNodeFromToken(syntheticToken))
 				compiler.eventuallyParseRestOfSendNode(
 					ParserState(
 						token.nextLexingState(), start.clientDataMap),
@@ -886,13 +885,12 @@ enum class ParsingOperation constructor(
 			assert(successorTrees.tupleSize() == 1)
 			val right = last(argsSoFar)
 			val popped1 = withoutLast(argsSoFar)
-			var concatenated = last(popped1)
+			val left = last(popped1)
 			val popped2 = withoutLast(popped1)
-			for (rightElement in right.expressionsTuple())
-			{
-				concatenated = concatenated.copyWith(rightElement)
+			val concatenated = when {
+				left.expressionsSize() == 0 -> right
+				else -> left.copyConcatenating(right)
 			}
-			val newArgsSoFar = append(popped2, concatenated)
 			compiler.eventuallyParseRestOfSendNode(
 				start,
 				successorTrees.tupleAt(1),
@@ -901,7 +899,7 @@ enum class ParsingOperation constructor(
 				consumedAnything,
 				consumedAnythingBeforeLatestArgument,
 				consumedStaticTokens,
-				newArgsSoFar,
+				append(popped2, concatenated),
 				marksSoFar,
 				continuation)
 		}
@@ -1216,11 +1214,10 @@ enum class ParsingOperation constructor(
 					// Deal with a failed conversion.  As of 2016-08-28, this
 					// can only happen during an expression evaluation.
 					assert(sanityFlag.compareAndSet(false, true))
-					start.expected(STRONG) { c ->
-						c(
+					start.expected(STRONG) {
+						it(
 							"evaluation of expression not to have "
-							+ "thrown Java exception:\n"
-							+ trace(e))
+								+ "thrown Java exception:\n${trace(e)}")
 					}
 				})
 		}

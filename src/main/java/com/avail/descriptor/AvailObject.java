@@ -4002,6 +4002,12 @@ implements
 	}
 
 	@Override
+	public A_Phrase copyConcatenating (final A_Phrase newListPhrase)
+	{
+		return descriptor().o_CopyConcatenating(this, newListPhrase);
+	}
+
+	@Override
 	public void isLastUse (final boolean isLastUse)
 	{
 		descriptor().o_IsLastUse(this, isLastUse);

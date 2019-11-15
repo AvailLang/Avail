@@ -4539,6 +4539,15 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
+	 * @param newListPhrase
+	 * @return
+	 */
+	abstract A_Phrase o_CopyConcatenating (
+		AvailObject object,
+		A_Phrase newListPhrase);
+
+	/**
+	 * @param object
 	 * @param isLastUse
 	 */
 	abstract void o_IsLastUse (

@@ -2931,6 +2931,14 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	protected A_Phrase o_CopyConcatenating (
+		final AvailObject object,
+		final A_Phrase newListPhrase)
+	{
+		return o_Traversed(object).copyConcatenating(newListPhrase);
+	}
+
+	@Override
 	protected void o_IsLastUse (
 		final AvailObject object,
 		final boolean isLastUse)

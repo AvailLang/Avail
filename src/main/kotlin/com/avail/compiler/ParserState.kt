@@ -216,7 +216,7 @@ class ParserState internal constructor(
 				currentRuntime(),
 				lexingState.compilationContext.textInterface,
 				values
-			) { list -> continuation(transformer(list)) }
+			) { continuation(transformer(it)) }
 		}
 
 	/**

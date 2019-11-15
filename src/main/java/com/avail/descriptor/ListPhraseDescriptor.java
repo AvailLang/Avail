@@ -197,6 +197,28 @@ extends PhraseDescriptor
 		return newListNode(newTuple);
 	}
 
+	/**
+	 * Create a new {@code ListPhraseDescriptor list phrase} with phrases from
+	 * a given list phrase appended to the end of the list.
+	 *
+	 * @param object
+	 *        The list phrase to extend.
+	 * @param newListPhrase
+	 *        The list phrase containing subphrases to append.
+	 * @return
+	 *         A new {@code ListPhraseDescriptor list phrase} with the given
+	 *         list phrase's subphrases appended.
+	 */
+	@Override @AvailMethod
+	protected A_Phrase o_CopyConcatenating (
+		final AvailObject object, final A_Phrase newListPhrase)
+	{
+		final A_Tuple oldTuple = object.slot(EXPRESSIONS_TUPLE);
+		final A_Tuple newTuple =
+			oldTuple.concatenateWith(newListPhrase.expressionsTuple(), false);
+		return newListNode(newTuple);
+	}
+
 	@Override
 	protected void o_EmitAllValuesOn (
 		final AvailObject object,

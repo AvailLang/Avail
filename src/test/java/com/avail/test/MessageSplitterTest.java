@@ -34,7 +34,12 @@ package com.avail.test;
 
 import com.avail.compiler.ParsingOperation;
 import com.avail.compiler.splitter.MessageSplitter;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_DefinitionParsingPlan;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.ListPhraseTypeDescriptor;
+import com.avail.descriptor.LiteralTokenTypeDescriptor;
+import com.avail.descriptor.PhraseTypeDescriptor;
 import com.avail.descriptor.tuples.A_String;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.exceptions.MalformedMessageException;
@@ -49,6 +54,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static com.avail.compiler.ParsingConversionRule.LIST_TO_SIZE;
 import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.compiler.splitter.MessageSplitter.indexForConstant;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
@@ -56,8 +62,7 @@ import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.IntegerDescriptor.fromLong;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.integerRangeType;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
 import static com.avail.descriptor.ListPhraseTypeDescriptor.createListNodeType;
 import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray;
@@ -554,344 +559,210 @@ public final class MessageSplitterTest
 					JUMP_BACKWARD.encoding(10),
 					//18:
 					APPEND_ARGUMENT.getEncoding())),  // save all occurrences
-		C(
-			"«_:_»",
-			List(1, 1, List(0, -1, List(2, 2, Phrase(NUMBER.o())))),
-			A("«", "_", ":", "_", "»"),
-			A(
-				// NOTE: The group's left half has two argument positions, so we
-				// have to double-wrap (i.e., produce a tuple of 2-tuples).
-				EMPTY_LIST.getEncoding(), // whole expression
-				BRANCH_FORWARD.encoding(25), // allow zero occurrences
-				PARSE_ARGUMENT.getEncoding(),
-				PARSE_PART.encoding(3), // Hoisted before checks
-				CHECK_ARGUMENT.encoding(1),
-				typeCheckEncodingForPhrase(NUMBER.o()),
-				PARSE_ARGUMENT.getEncoding(),
-				CHECK_ARGUMENT.encoding(2),
-				typeCheckEncodingForPhrase(NUMBER.o()),
-				WRAP_IN_LIST.encoding(2),
-				BRANCH_FORWARD.encoding(24), // done after one?
-				APPEND_ARGUMENT.getEncoding(), // save it and parse more.
-				//13: Start of loop after unrolled iteration.
-				PARSE_ARGUMENT.getEncoding(),
-				PARSE_PART.encoding(3), // Hoisted before checks
-				CHECK_ARGUMENT.encoding(1),
-				typeCheckEncodingForPhrase(NUMBER.o()),
-				PARSE_ARGUMENT.getEncoding(),
-				CHECK_ARGUMENT.encoding(2),
-				typeCheckEncodingForPhrase(NUMBER.o()),
-				WRAP_IN_LIST.encoding(2),
-				BRANCH_FORWARD.encoding(24), // exit loop?
-				APPEND_ARGUMENT.getEncoding(), // save it and parse more.
-				JUMP_BACKWARD.encoding(13),
-				//24:
-				APPEND_ARGUMENT.getEncoding(), // save the last pair
-				//25:
-				APPEND_ARGUMENT.getEncoding())),  // save all occurrences
-		C("«»",
-			List(1, 1, List(0, -1, List(0, 0))),
-			A("«", "»"),
-			A(
-				// This is a degenerate case, and can't actually pass the
-				// progress checks because no tokens can ever be parsed.
-				EMPTY_LIST.getEncoding(), // Zero occurrences.
-				BRANCH_FORWARD.encoding(16), // Try zero occurrences.
-				//3: Unrolled first occurrence
-				SAVE_PARSE_POSITION.getEncoding(), //Occurrences must make progress
-				EMPTY_LIST.getEncoding(), // Unrolled first occurrence.
-				BRANCH_FORWARD.encoding(13), // Try a single occurrence.
-				APPEND_ARGUMENT.getEncoding(), // Add the occurrence.
-				ENSURE_PARSE_PROGRESS.getEncoding(), // Make sure it was productive
-				//8: second and later occurrences.
-				EMPTY_LIST.getEncoding(),
-				BRANCH_FORWARD.encoding(13), // Try the new occurrence.
-				APPEND_ARGUMENT.getEncoding(), // Save it.
-				ENSURE_PARSE_PROGRESS.getEncoding(), // Make sure it was productive
-				JUMP_BACKWARD.encoding(8), // Try another
-				//13: Save latest occurrence and try it.
-				APPEND_ARGUMENT.getEncoding(),
-				ENSURE_PARSE_PROGRESS.getEncoding(), // Must have made progress
-				DISCARD_SAVED_PARSE_POSITION.getEncoding(), // Chuck progress mark
-				APPEND_ARGUMENT.getEncoding())), // Save list as sole argument.
-//		C("«»«»",
-//			A("«", "»", "«", "»"),
-//			A(
-//				SAVE_PARSE_POSITION.encoding(),
-//				EMPTY_LIST.encoding(),
-//				BRANCH.encoding(11),
-//				EMPTY_LIST.encoding(),
-//				BRANCH.encoding(9),
-//				APPEND_ARGUMENT.encoding(),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				JUMP.encoding(4),
-//				APPEND_ARGUMENT.encoding(),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				APPEND_ARGUMENT.encoding(),
-//				SAVE_PARSE_POSITION.encoding(),
-//				EMPTY_LIST.encoding(),
-//				BRANCH.encoding(23),
-//				EMPTY_LIST.encoding(),
-//				BRANCH.encoding(21),
-//				APPEND_ARGUMENT.encoding(),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				JUMP.encoding(16),
-//				APPEND_ARGUMENT.encoding(),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				APPEND_ARGUMENT.encoding())),
-//		C("«_»",
-//			A("«", "_", "»"),
-//			A(
-//				SAVE_PARSE_POSITION.encoding(),
-//				EMPTY_LIST.encoding(),
-//				BRANCH.encoding(11),
-//				PARSE_ARGUMENT.encoding(),
-//				CHECK_ARGUMENT.encoding(1),
-//				APPEND_ARGUMENT.encoding(),
-//				BRANCH.encoding(10),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				JUMP.encoding(4),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				APPEND_ARGUMENT.encoding())),
-//		/* Repeated groups with double dagger. */
-//		C("«_‡,»",
-//			A("«", "_", "‡", ",", "»"),
-//			A(
-//				SAVE_PARSE_POSITION.encoding(),
-//				EMPTY_LIST.encoding(),
-//				BRANCH.encoding(12),
-//				PARSE_ARGUMENT.encoding(),
-//				CHECK_ARGUMENT.encoding(1),
-//				APPEND_ARGUMENT.encoding(),
-//				BRANCH.encoding(11),
-//				PARSE_PART.encoding(4),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				JUMP.encoding(4),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				APPEND_ARGUMENT.encoding())),
-//		C("«‡»",
-//			A("«", "‡", "»"),
-//			A(
-//				SAVE_PARSE_POSITION.encoding(),
-//				EMPTY_LIST.encoding(),
-//				BRANCH.encoding(11),
-//				EMPTY_LIST.encoding(),
-//				BRANCH.encoding(9),
-//				APPEND_ARGUMENT.encoding(),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				JUMP.encoding(4),
-//				APPEND_ARGUMENT.encoding(),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				APPEND_ARGUMENT.encoding())),
-//		C("new_«with«_=_‡,»»",
-//			A("new", "_", "«", "with", "«", "_", "=", "_", "‡", ",", "»", "»"),
-//			A(
-//				PARSE_PART.encoding(1),
-//				PARSE_ARGUMENT.encoding(),
-//				CHECK_ARGUMENT.encoding(1),
-//				APPEND_ARGUMENT.encoding(),
-//				SAVE_PARSE_POSITION.encoding(),
-//				EMPTY_LIST.encoding(),
-//				BRANCH.encoding(33),
-//				PARSE_PART.encoding(4),
-//				SAVE_PARSE_POSITION.encoding(),
-//				EMPTY_LIST.encoding(),
-//				BRANCH.encoding(27),
-//				EMPTY_LIST.encoding(),
-//				PARSE_ARGUMENT.encoding(),
-//				CHECK_ARGUMENT.encoding(2),
-//				APPEND_ARGUMENT.encoding(),
-//				PARSE_PART.encoding(7),
-//				PARSE_ARGUMENT.encoding(),
-//				CHECK_ARGUMENT.encoding(3),
-//				APPEND_ARGUMENT.encoding(),
-//				BRANCH.encoding(25),
-//				PARSE_PART.encoding(10),
-//				APPEND_ARGUMENT.encoding(),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				JUMP.encoding(12),
-//				APPEND_ARGUMENT.encoding(),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				APPEND_ARGUMENT.encoding(),
-//				BRANCH.encoding(32),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				JUMP.encoding(8),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				APPEND_ARGUMENT.encoding())),
-//		/* Counting groups. */
-//		C("«x»#",
-//			A("«", "x", "»", "#"),
-//			A(
-//				SAVE_PARSE_POSITION.encoding(),
-//				EMPTY_LIST.encoding(),
-//				BRANCH.encoding(11),
-//				EMPTY_LIST.encoding(),
-//				PARSE_PART.encoding(2),
-//				APPEND_ARGUMENT.encoding(),
-//				BRANCH.encoding(10),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				JUMP.encoding(4),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				CONVERT.encoding(LIST_TO_SIZE.number()),
-//				APPEND_ARGUMENT.encoding())),
-//		C("«x y»#",
-//			A("«", "x", "y", "»", "#"),
-//			A(
-//				SAVE_PARSE_POSITION.encoding(),
-//				EMPTY_LIST.encoding(),
-//				BRANCH.encoding(12),
-//				EMPTY_LIST.encoding(),
-//				PARSE_PART.encoding(2),
-//				PARSE_PART.encoding(3),
-//				APPEND_ARGUMENT.encoding(),
-//				BRANCH.encoding(11),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				JUMP.encoding(4),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				CONVERT.encoding(LIST_TO_SIZE.number()),
-//				APPEND_ARGUMENT.encoding())),
-//		C("«»#",
-//			A("«", "»", "#"),
-//			A(
-//				SAVE_PARSE_POSITION.encoding(),
-//				EMPTY_LIST.encoding(),
-//				BRANCH.encoding(10),
-//				EMPTY_LIST.encoding(),
-//				APPEND_ARGUMENT.encoding(),
-//				BRANCH.encoding(9),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				JUMP.encoding(4),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				CONVERT.encoding(LIST_TO_SIZE.number()),
-//				APPEND_ARGUMENT.encoding())),
-//		C("«»#«»#",
-//			A("«", "»", "#", "«", "»", "#"),
-//			A(
-//				SAVE_PARSE_POSITION.encoding(),
-//				EMPTY_LIST.encoding(),
-//				BRANCH.encoding(10),
-//				EMPTY_LIST.encoding(),
-//				APPEND_ARGUMENT.encoding(),
-//				BRANCH.encoding(9),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				JUMP.encoding(4),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				CONVERT.encoding(LIST_TO_SIZE.number()),
-//				APPEND_ARGUMENT.encoding(),
-//				SAVE_PARSE_POSITION.encoding(),
-//				EMPTY_LIST.encoding(),
-//				BRANCH.encoding(22),
-//				EMPTY_LIST.encoding(),
-//				APPEND_ARGUMENT.encoding(),
-//				BRANCH.encoding(21),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				JUMP.encoding(16),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				CONVERT.encoding(LIST_TO_SIZE.number()),
-//				APPEND_ARGUMENT.encoding())),
-//		/* Counting groups with double dagger. */
-//		C("«‡»#",
-//			A("«", "‡", "»", "#"),
-//			A(
-//				SAVE_PARSE_POSITION.encoding(),
-//				EMPTY_LIST.encoding(),
-//				BRANCH.encoding(10),
-//				EMPTY_LIST.encoding(),
-//				APPEND_ARGUMENT.encoding(),
-//				BRANCH.encoding(9),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				JUMP.encoding(4),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				CONVERT.encoding(LIST_TO_SIZE.number()),
-//				APPEND_ARGUMENT.encoding())),
-//		C("«fish‡»#",
-//			A("«", "fish", "‡", "»", "#"),
-//			A(
-//				SAVE_PARSE_POSITION.encoding(),
-//				EMPTY_LIST.encoding(),
-//				BRANCH.encoding(11),
-//				EMPTY_LIST.encoding(),
-//				PARSE_PART.encoding(2),
-//				APPEND_ARGUMENT.encoding(),
-//				BRANCH.encoding(10),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				JUMP.encoding(4),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				CONVERT.encoding(LIST_TO_SIZE.number()),
-//				APPEND_ARGUMENT.encoding())),
-//		C("«‡face»#",
-//			A("«", "‡", "face", "»", "#"),
-//			A(
-//				SAVE_PARSE_POSITION.encoding(),
-//				EMPTY_LIST.encoding(),
-//				BRANCH.encoding(11),
-//				EMPTY_LIST.encoding(),
-//				APPEND_ARGUMENT.encoding(),
-//				BRANCH.encoding(10),
-//				PARSE_PART.encoding(3),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				JUMP.encoding(4),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				CONVERT.encoding(LIST_TO_SIZE.number()),
-//				APPEND_ARGUMENT.encoding())),
-//		C("«fish‡face»#",
-//			A("«", "fish", "‡", "face", "»", "#"),
-//			A(
-//				SAVE_PARSE_POSITION.encoding(),
-//				EMPTY_LIST.encoding(),
-//				BRANCH.encoding(12),
-//				EMPTY_LIST.encoding(),
-//				PARSE_PART.encoding(2),
-//				APPEND_ARGUMENT.encoding(),
-//				BRANCH.encoding(11),
-//				PARSE_PART.encoding(4),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				JUMP.encoding(4),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				CONVERT.encoding(LIST_TO_SIZE.number()),
-//				APPEND_ARGUMENT.encoding())),
-//		C("««fish‡face»#»",
-//			A("«", "«", "fish", "‡", "face", "»", "#", "»"),
-//			A(
-//				SAVE_PARSE_POSITION.encoding(),
-//				EMPTY_LIST.encoding(),
-//				BRANCH.encoding(22),
-//				SAVE_PARSE_POSITION.encoding(),
-//				EMPTY_LIST.encoding(),
-//				BRANCH.encoding(15),
-//				EMPTY_LIST.encoding(),
-//				PARSE_PART.encoding(3),
-//				APPEND_ARGUMENT.encoding(),
-//				BRANCH.encoding(14),
-//				PARSE_PART.encoding(5),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				JUMP.encoding(7),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				CONVERT.encoding(LIST_TO_SIZE.number()),
-//				APPEND_ARGUMENT.encoding(),
-//				BRANCH.encoding(21),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				JUMP.encoding(4),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				APPEND_ARGUMENT.encoding())),
+			C(
+				"«_:_»",
+				List(1, 1, List(0, -1, List(2, 2, Phrase(NUMBER.o())))),
+				A("«", "_", ":", "_", "»"),
+				A(
+					// NOTE: The group's left half has two argument positions, so we
+					// have to double-wrap (i.e., produce a tuple of 2-tuples).
+					EMPTY_LIST.getEncoding(), // whole expression
+					BRANCH_FORWARD.encoding(25), // allow zero occurrences
+					PARSE_ARGUMENT.getEncoding(),
+					PARSE_PART.encoding(3), // Hoisted before checks
+					CHECK_ARGUMENT.encoding(1),
+					typeCheckEncodingForPhrase(NUMBER.o()),
+					PARSE_ARGUMENT.getEncoding(),
+					CHECK_ARGUMENT.encoding(2),
+					typeCheckEncodingForPhrase(NUMBER.o()),
+					WRAP_IN_LIST.encoding(2),
+					BRANCH_FORWARD.encoding(24), // done after one?
+					APPEND_ARGUMENT.getEncoding(), // save it and parse more.
+					//13: Start of loop after unrolled iteration.
+					PARSE_ARGUMENT.getEncoding(),
+					PARSE_PART.encoding(3), // Hoisted before checks
+					CHECK_ARGUMENT.encoding(1),
+					typeCheckEncodingForPhrase(NUMBER.o()),
+					PARSE_ARGUMENT.getEncoding(),
+					CHECK_ARGUMENT.encoding(2),
+					typeCheckEncodingForPhrase(NUMBER.o()),
+					WRAP_IN_LIST.encoding(2),
+					BRANCH_FORWARD.encoding(24), // exit loop?
+					APPEND_ARGUMENT.getEncoding(), // save it and parse more.
+					JUMP_BACKWARD.encoding(13),
+					//24:
+					APPEND_ARGUMENT.getEncoding(), // save the last pair
+					//25:
+					APPEND_ARGUMENT.getEncoding())),  // save all occurrences
+			C("«»",
+				List(1, 1, List(0, -1, List(0, 0))),
+				A("«", "»"),
+				A(
+					// This is a degenerate case, and can't actually pass the
+					// progress checks because no tokens can ever be parsed.
+					EMPTY_LIST.getEncoding(), // Zero occurrences.
+					BRANCH_FORWARD.encoding(16), // Try zero occurrences.
+					//3: Unrolled first occurrence
+					SAVE_PARSE_POSITION.getEncoding(), //Occurrences must make progress
+					EMPTY_LIST.getEncoding(), // Unrolled first occurrence.
+					BRANCH_FORWARD.encoding(13), // Try a single occurrence.
+					APPEND_ARGUMENT.getEncoding(), // Add the occurrence.
+					ENSURE_PARSE_PROGRESS.getEncoding(), // Make sure it was productive
+					//8: second and later occurrences.
+					EMPTY_LIST.getEncoding(),
+					BRANCH_FORWARD.encoding(13), // Try the new occurrence.
+					APPEND_ARGUMENT.getEncoding(), // Save it.
+					ENSURE_PARSE_PROGRESS.getEncoding(), // Make sure it was productive
+					JUMP_BACKWARD.encoding(8), // Try another
+					//13: Save latest occurrence and try it.
+					APPEND_ARGUMENT.getEncoding(),
+					ENSURE_PARSE_PROGRESS.getEncoding(), // Must have made progress
+					DISCARD_SAVED_PARSE_POSITION.getEncoding(), // Chuck progress mark
+					//16:
+					APPEND_ARGUMENT.getEncoding())), // Save list as sole argument.
+			/* Repeated groups with double dagger. */
+			C("«_‡,»",
+				List(1, 1, List(0, -1, Phrase(NUMBER.o()))),
+				A("«", "_", "‡", ",", "»"),
+				A(
+					EMPTY_LIST.getEncoding(), // Zero occurrences.
+					BRANCH_FORWARD.encoding(16), // Try zero occurrences
+					//3: Unrolled first occurrence
+					PARSE_ARGUMENT.getEncoding(),
+					CHECK_ARGUMENT.encoding(1),
+					typeCheckEncodingForPhrase(NUMBER.o()),
+					APPEND_ARGUMENT.getEncoding(),
+					BRANCH_FORWARD.encoding(16), // Try single occurrence
+					//8: after double dagger.
+					PARSE_PART.encoding(4),
+					//9: second and later occurrences.
+					PARSE_ARGUMENT.getEncoding(),
+					CHECK_ARGUMENT.encoding(1),
+					typeCheckEncodingForPhrase(NUMBER.o()),
+					APPEND_ARGUMENT.getEncoding(),
+					BRANCH_FORWARD.encoding(16), // Try solution
+					//14: after double dagger
+					PARSE_PART.encoding(4),
+					JUMP_BACKWARD.encoding(9),
+					//16:
+					APPEND_ARGUMENT.getEncoding())), // Save list as sole argument.
+			C("new_«with_=_‡,»",
+				List(
+					2,
+					2,
+					Phrase(stringType()),
+					List(
+						1,  // require at least one 'with_=_' entry.
+						-1,
+						List(2, 2, Phrase(NUMBER.o()), Phrase(stringType())))),
+				A("new", "_", "«", "with", "_", "=", "_", "‡", ",", "»"),
+				A(
+					PARSE_PART.encoding(1), // new
+					PARSE_ARGUMENT.getEncoding(),
+					PARSE_PART.encoding(4), // read ahead for required first "with"
+					CHECK_ARGUMENT.encoding(1),
+					typeCheckEncodingForPhrase(stringType()),
+					EMPTY_LIST.getEncoding(),
+					PARSE_ARGUMENT.getEncoding(),
+					PARSE_PART.encoding(6), // "=" read-ahead
+					CHECK_ARGUMENT.encoding(2),
+					typeCheckEncodingForPhrase(NUMBER.o()),
+					PARSE_ARGUMENT.getEncoding(),
+					CHECK_ARGUMENT.encoding(3),
+					typeCheckEncodingForPhrase(stringType()),
+					WRAP_IN_LIST.encoding(2),
+					BRANCH_FORWARD.encoding(31), // Try one repetition
+					PARSE_PART.encoding(9), // ","
+					APPEND_ARGUMENT.getEncoding(),
+					//18: Second and subsequent iterations
+					PARSE_PART.encoding(4), // "with"
+					PARSE_ARGUMENT.getEncoding(),
+					PARSE_PART.encoding(6), // "=" read-ahead
+					CHECK_ARGUMENT.encoding(2),
+					typeCheckEncodingForPhrase(NUMBER.o()),
+					PARSE_ARGUMENT.getEncoding(),
+					CHECK_ARGUMENT.encoding(3),
+					typeCheckEncodingForPhrase(stringType()),
+					WRAP_IN_LIST.encoding(2),
+					BRANCH_FORWARD.encoding(31), // Try with this repetition
+					PARSE_PART.encoding(9), // ','
+					APPEND_ARGUMENT.getEncoding(),
+					JUMP_BACKWARD.encoding(18),
+					// 31: Add the latest pair and try it. [],1,[...][2,3]
+					APPEND_ARGUMENT.getEncoding(), // [],1, [...[2,3]]
+					WRAP_IN_LIST.encoding(2), // [], [1, [...[2,3]]]
+					CONCATENATE.getEncoding())), // [1, [...[2,3]]]
+		/* Counting groups. */
+			C("«x»#",
+				List(1, 1, Phrase(naturalNumbers())),
+				A("«", "x", "»", "#"),
+				A(
+					PARSE_PART.encoding(2), // Hoisted mandatory first unrolled x
+					EMPTY_LIST.getEncoding(), // The list of occurrences
+					EMPTY_LIST.getEncoding(), // One empty occurrence
+					BRANCH_FORWARD.encoding(11), // Try with one occurrence
+					APPEND_ARGUMENT.getEncoding(), // [], [], [] -> [], [[]]
+					//6: Second iteration onward
+					PARSE_PART.encoding(2), // "x"
+					EMPTY_LIST.getEncoding(), // [], [...], []
+					BRANCH_FORWARD.encoding(11), // Try with latest occurrence
+					APPEND_ARGUMENT.getEncoding(), // [], [...[]]
+					JUMP_BACKWARD.encoding(6),
+					//11: Try solution.  [], [...], []
+					APPEND_ARGUMENT.getEncoding(), // [], [...[]]
+					CONVERT.encoding(LIST_TO_SIZE.getNumber()), // [], N
+					APPEND_ARGUMENT.getEncoding())), // [N]
+			C("«x y»#",
+				List(1, 1, Phrase(naturalNumbers())),
+				A("«", "x", "y", "»", "#"),
+				A(
+					PARSE_PART.encoding(2), // Hoisted mandatory first x
+					PARSE_PART.encoding(3), // Hoisted mandatory first y
+					EMPTY_LIST.getEncoding(), // The list of occurrences
+					EMPTY_LIST.getEncoding(), // One empty occurrence
+					BRANCH_FORWARD.encoding(13), // Try with one occurrence
+					APPEND_ARGUMENT.getEncoding(), // [], [], [] -> [], [[]]
+					//7: Second iteration onward
+					PARSE_PART.encoding(2), // "x"
+					PARSE_PART.encoding(3), // "x"
+					EMPTY_LIST.getEncoding(), // [], [...], []
+					BRANCH_FORWARD.encoding(13), // Try with latest occurrence
+					APPEND_ARGUMENT.getEncoding(), // [], [...[]]
+					JUMP_BACKWARD.encoding(7),
+					//13: Try solution.  [], [...], []
+					APPEND_ARGUMENT.getEncoding(), // [], [...[]]
+					CONVERT.encoding(LIST_TO_SIZE.getNumber()), // [], N
+					APPEND_ARGUMENT.getEncoding())), // [N]
+			C("«fish‡face»#",
+				List(
+					1,
+					1,
+					Phrase(
+						integerRangeType(
+							fromInt(3),
+							true,
+							positiveInfinity(),
+							false))),
+				A("«", "fish", "‡", "face", "»", "#"),
+				A(
+					PARSE_PART.encoding(2), // Hoisted mandatory 1st fish
+					PARSE_PART.encoding(4), // Hoisted mandatory 1st face
+					PARSE_PART.encoding(2), // Hoisted mandatory 2nd fish
+					PARSE_PART.encoding(4), // Hoisted mandatory 2nd face
+					EMPTY_LIST.getEncoding(), // 1st occurrence [], []
+					EMPTY_LIST.getEncoding(), // 2nd occurrence [], [], []
+					WRAP_IN_LIST.encoding(2), // [], [[],[]]
+					//8: Loop
+					PARSE_PART.encoding(2), // Next fish
+					EMPTY_LIST.getEncoding(), // [], [...], []
+					BRANCH_FORWARD.encoding(14), // Try with new occurrence
+					PARSE_PART.encoding(4), // Next face, hoisted
+					APPEND_ARGUMENT.getEncoding(), // [], [...[]]
+					JUMP_BACKWARD.encoding(8),
+					//14: Try solution.  [], [...], []
+					APPEND_ARGUMENT.getEncoding(), // [], [...[]]
+					CONVERT.encoding(LIST_TO_SIZE.getNumber()), // [], N
+					APPEND_ARGUMENT.getEncoding())) // [N]
 //		/* Optional groups. */
 //		C("«x»?",
 //			A("«", "x", "»", "?"),

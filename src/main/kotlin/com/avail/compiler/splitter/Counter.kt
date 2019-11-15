@@ -32,16 +32,20 @@
 package com.avail.compiler.splitter
 
 import com.avail.compiler.ParsingConversionRule.LIST_TO_SIZE
-import com.avail.compiler.ParsingOperation.*
-import com.avail.compiler.splitter.InstructionGenerator.Label
+import com.avail.compiler.ParsingOperation.CONVERT
 import com.avail.compiler.splitter.MessageSplitter.Companion.throwSignatureException
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
-import com.avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS
+import com.avail.compiler.splitter.WrapState.SHOULD_NOT_PUSH_LIST
 import com.avail.descriptor.A_Type
+import com.avail.descriptor.InstanceTypeDescriptor.instanceType
 import com.avail.descriptor.IntegerRangeTypeDescriptor
 import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
-import com.avail.descriptor.ListPhraseTypeDescriptor.emptyListPhraseType
+import com.avail.descriptor.ListPhraseTypeDescriptor
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
+import com.avail.descriptor.TupleDescriptor.emptyTuple
+import com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType
 import com.avail.descriptor.parsing.A_Phrase
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_COUNTING_GROUP
 import com.avail.exceptions.SignatureException
@@ -80,8 +84,8 @@ import java.util.*
  */
 internal class Counter(
 	positionInName: Int,
-	private val group: Group) : Expression(positionInName)
-{
+	private val group: Group
+) : Expression(positionInName) {
 	override val yieldsValue
 		get() = true
 
@@ -140,47 +144,16 @@ internal class Counter(
 		 * under-pop parse position (remove 2nd from top of stack)
 		 */
 		generator.flushDelayed()
-		val needsProgressCheck = group.beforeDagger.mightBeEmpty(phraseType)
-		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION)
-		generator.emit(this, EMPTY_LIST)
-		val `$loopSkip` = Label()
-		generator.emitBranchForward(this, `$loopSkip`)
-		val `$loopStart` = Label()
-		generator.emit(`$loopStart`)
-		// Note that even though the Counter cannot contain anything that would
-		// push data, the Counter region must not contain a section checkpoint.
-		// There's no point, since the iteration would not be passed, in case
-		// it's confusing (number completed versus number started).
-		val oldPartialListsCount = generator.partialListsCount
-		for (expression in group.beforeDagger.expressions)
-		{
-			assert(!expression.yieldsValue)
-			generator.partialListsCount = Integer.MIN_VALUE
-			expression.emitOn(
-				emptyListPhraseType(),
-				generator,
-				SHOULD_NOT_HAVE_ARGUMENTS)
-		}
-		generator.emit(this, EMPTY_LIST)
-		generator.emit(this, APPEND_ARGUMENT)
-		val `$loopExit` = Label()
-		generator.emitBranchForward(this, `$loopExit`)
-		for (expression in group.afterDagger.expressions)
-		{
-			assert(!expression.yieldsValue)
-			expression.emitOn(
-				emptyListPhraseType(),
-				generator,
-				SHOULD_NOT_HAVE_ARGUMENTS)
-		}
-		generator.partialListsCount = oldPartialListsCount
-		generator.emitIf(needsProgressCheck, this, ENSURE_PARSE_PROGRESS)
-		generator.emitJumpBackward(this, `$loopStart`)
-		generator.emit(`$loopExit`)
-		generator.emitIf(needsProgressCheck, this, ENSURE_PARSE_PROGRESS)
-		generator.emit(`$loopSkip`)
-		generator.emitIf(
-			needsProgressCheck, this, DISCARD_SAVED_PARSE_POSITION)
+		val phraseCountRange = phraseType.expressionType()
+		val emptyTupleType = instanceType(emptyTuple())
+		val tupleOfEmptyTuplesType = tupleTypeForSizesTypesDefaultType(
+			phraseCountRange, emptyTuple(), emptyTupleType)
+		val tupleOfEmptyTuplePhrasesType = tupleTypeForSizesTypesDefaultType(
+			phraseCountRange, emptyTuple(), PARSE_PHRASE.create(emptyTupleType))
+		val listPhraseType = ListPhraseTypeDescriptor.createListNodeType(
+			LIST_PHRASE, tupleOfEmptyTuplesType, tupleOfEmptyTuplePhrasesType)
+		val newWrapState = group.emitOn(listPhraseType, generator, wrapState)
+		assert(newWrapState == SHOULD_NOT_PUSH_LIST)
 		generator.emit(this, CONVERT, LIST_TO_SIZE.number)
 		return wrapState.processAfterPushedArgument(this, generator)
 	}

@@ -98,10 +98,28 @@ extends A_BasicObject
 	A_Phrase copyMutablePhrase ();
 
 	/**
+	 * Create a new {@code ListPhraseDescriptor list phrase} with one more
+	 * phrase added to the end of the list.
+	 *
 	 * @param newPhrase
+	 *        The phrase to append.
 	 * @return
+	 *         A new {@code ListPhraseDescriptor list phrase} with the phrase
+	 *         appended.
 	 */
 	A_Phrase copyWith (A_Phrase newPhrase);
+
+	/**
+	 * Create a new {@code ListPhraseDescriptor list phrase} with the elements
+	 * of the given list phrase appended to the ones in the receiver.
+	 *
+	 * @param newListPhrase
+	 *        The list phrase containing phrases to append.
+	 * @return
+	 *         A new {@code ListPhraseDescriptor list phrase} with the given
+	 *         list phrase's subphrases appended.
+	 */
+	A_Phrase copyConcatenating (A_Phrase newListPhrase);
 
 	/**
 	 * @return

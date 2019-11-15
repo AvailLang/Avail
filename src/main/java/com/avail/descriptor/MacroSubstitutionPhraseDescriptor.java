@@ -161,6 +161,14 @@ extends PhraseDescriptor
 		return object.slot(OUTPUT_PARSE_NODE).copyWith(newPhrase);
 	}
 
+	@Override @AvailMethod
+	protected A_Phrase o_CopyConcatenating (
+		final AvailObject object, final A_Phrase newListPhrase)
+	{
+		// Create a copy the list, not this macro substitution.
+		return object.slot(OUTPUT_PARSE_NODE).copyConcatenating(newListPhrase);
+	}
+
 	@Override
 	protected A_Phrase o_Declaration (final AvailObject object)
 	{

@@ -949,7 +949,7 @@ class AvailCompiler(
 		caseInsensitive: Boolean,
 		excludedStrings: Set<A_String>)
 	{
-		where.expected(MEDIUM) { c ->
+		where.expected(MEDIUM) { withString ->
 			val builder = StringBuilder(200)
 			if (caseInsensitive)
 			{
@@ -1053,7 +1053,7 @@ class AvailCompiler(
 				}
 			}
 			compilationContext.eventuallyDo(where.lexingState) {
-				c(builder.toString())
+				withString(builder.toString())
 			}
 		}
 	}
@@ -1996,10 +1996,8 @@ class AvailCompiler(
 				describeWhyDefinitionsAreInapplicable(
 					bundle,
 					argTypes,
-					if (macroOrNil.equalsNil())
-						methodDefinitions
-					else
-						tuple(macroOrNil),
+					if (macroOrNil.equalsNil()) methodDefinitions
+					else tuple(macroOrNil),
 					allAncestors))
 			return
 		}
@@ -2458,8 +2456,8 @@ class AvailCompiler(
 				if (errorCode !== E_NO_METHOD_DEFINITION)
 				{
 					val finalErrorCode = stripNull(errorCode)
-					stateAfterCall.expected(MEDIUM) { withString ->
-						withString(
+					stateAfterCall.expected(MEDIUM) {
+						it(
 							if (finalErrorCode === E_AMBIGUOUS_METHOD_DEFINITION)
 								"unambiguous definition of macro " +
 									bundle.message()
@@ -2636,14 +2634,16 @@ class AvailCompiler(
 						}
 					if (badTypeName !== null)
 					{
-						afterArgument.expected(WEAK) { c ->
-							val b = StringBuilder(100)
-							b.append(kindOfArgument)
-							b.append(" to have a type other than ")
-							b.append(badTypeName)
-							b.append(" in:")
-							describeOn(continuation.superexpressions, b)
-							c(b.toString())
+						afterArgument.expected(WEAK) {
+							it(
+								with(StringBuilder(100)) {
+									append(kindOfArgument)
+									append(" to have a type other than ")
+									append(badTypeName)
+									append(" in:")
+									describeOn(
+										continuation.superexpressions, this)
+								}.toString())
 						}
 						return@Con1
 					}
@@ -2739,14 +2739,14 @@ class AvailCompiler(
 					{
 						// A leading argument was supplied which used at least
 						// one local.  It shouldn't have.
-						afterArg.expected(WEAK) { c ->
+						afterArg.expected(WEAK) {
 							val localNames = ArrayList<String>()
 							for (usedLocal in usedLocals)
 							{
 								val name = usedLocal.token().string()
 								localNames.add(name.asNativeString())
 							}
-							c(
+							it(
 								"a leading argument which "
 									+ "was supposed to be parsed in "
 									+ "module scope, but it referred to "
@@ -3972,11 +3972,11 @@ class AvailCompiler(
 			val isRoot = originalContinuation.superexpressions === null
 				|| originalContinuation.superexpressions.bundleTree.equals(
 					compilationContext.loader!!.rootBundleTree())
-			start.expected(if (isRoot) SILENT else WEAK) { withDescription ->
+			start.expected(if (isRoot) SILENT else WEAK) {
 				val builder = StringBuilder()
 				builder.append("an expression for (at least) this reason:")
 				describeOn(originalContinuation.superexpressions, builder)
-				withDescription(builder.toString())
+				it(builder.toString())
 			}
 			start.workUnitDo(
 				{ a -> parseExpressionUncachedThen(start, a) },

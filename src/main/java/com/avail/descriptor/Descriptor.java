@@ -2981,13 +2981,22 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	protected A_Phrase o_CopyWith (final AvailObject object, final A_Phrase newPhrase)
+	protected A_Phrase o_CopyWith (
+		final AvailObject object, final A_Phrase newPhrase)
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override
-	protected void o_IsLastUse (final AvailObject object, final boolean isLastUse)
+	protected A_Phrase o_CopyConcatenating (
+		final AvailObject object, final A_Phrase newListPhrase)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	protected void o_IsLastUse (
+		final AvailObject object, final boolean isLastUse)
 	{
 		throw unsupportedOperationException();
 	}
