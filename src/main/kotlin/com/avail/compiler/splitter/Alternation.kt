@@ -73,6 +73,11 @@ internal class Alternation constructor(
 	override val isLowerCase: Boolean
 		get() = alternatives.stream().allMatch(Expression::isLowerCase)
 
+	override fun applyCaseInsensitive(): Alternation {
+		return Alternation(
+			positionInName, alternatives.map(Expression::applyCaseInsensitive))
+	}
+
 	override fun extractSectionCheckpointsInto(
 		sectionCheckpoints: MutableList<SectionCheckpoint>)
 	{

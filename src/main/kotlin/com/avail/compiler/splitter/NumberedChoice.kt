@@ -87,6 +87,9 @@ internal class NumberedChoice constructor(private val alternation: Alternation)
 	override val isLowerCase: Boolean
 		get() = alternation.isLowerCase
 
+	override fun applyCaseInsensitive() =
+		NumberedChoice(alternation.applyCaseInsensitive())
+
 	override val underscoreCount: Int
 		get()
 		{

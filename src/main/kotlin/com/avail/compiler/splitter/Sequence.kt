@@ -67,20 +67,20 @@ internal class Sequence constructor(positionInName: Int)
 : Expression(positionInName)
 {
 	/** The sequence of expressions that I comprise. */
-	val expressions: MutableList<Expression> = ArrayList()
+	val expressions = mutableListOf<Expression>()
 
 	/**
 	 * Which of my [expressions] is an argument, ellipsis, or group? These are
 	 * in the order they occur in the `expressions` list.
 	 */
-	val yielders: MutableList<Expression> = ArrayList()
+	val yielders = mutableListOf<Expression>()
 
 	/**
 	 * My one-based permutation that takes argument expressions from the order
 	 * in which they occur to the order in which they are bound to arguments at
 	 * a call site.
 	 */
-	val permutedYielders: MutableList<Int> = ArrayList()
+	val permutedYielders = mutableListOf<Int>()
 
 	/**
 	 * A three-state indicator of whether my argument components should be
@@ -96,6 +96,14 @@ internal class Sequence constructor(positionInName: Int)
 
 	override val isLowerCase: Boolean
 		get() = expressions.stream().allMatch { it.isLowerCase }
+
+	override fun applyCaseInsensitive(): Sequence {
+		val copy = Sequence(positionInName)
+		expressions.forEach {
+			copy.addExpression(it.applyCaseInsensitive())
+		}
+		return copy
+	}
 
 	/** A cache of places at which code splitting can take place.  */
 	@Volatile

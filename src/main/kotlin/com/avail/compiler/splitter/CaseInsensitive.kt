@@ -75,6 +75,9 @@ internal class CaseInsensitive constructor(
 			return true
 		}
 
+	// It's already case-insensitive.
+	override fun applyCaseInsensitive() = this
+
 	init
 	{
 		if (expression.canBeReordered)

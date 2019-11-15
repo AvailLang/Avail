@@ -87,6 +87,9 @@ internal class Optional constructor(
 	override val isLowerCase: Boolean
 		get() = sequence.isLowerCase
 
+	override fun applyCaseInsensitive() =
+		Optional(positionInName, sequence.applyCaseInsensitive())
+
 	override val underscoreCount: Int
 		get()
 		{

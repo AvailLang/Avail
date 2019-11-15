@@ -42,7 +42,10 @@ import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.StringDescriptor.stringFrom
 import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.atoms.AtomDescriptor.*
+import com.avail.descriptor.bundles.A_BundleTree
+import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.objects.A_BasicObject
+import com.avail.descriptor.parsing.A_Lexer
 import com.avail.descriptor.parsing.A_Phrase
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
@@ -736,7 +739,8 @@ class MessageSplitter
 		metacharacter: Metacharacter,
 		failureCondition: Boolean,
 		errorCode: AvailErrorCode,
-		errorString: String): Boolean {
+		errorString: String
+	): Boolean {
 		val token = currentMessagePartOrNull
 		if (token === null || !token.equals(metacharacter.string)) {
 			return false
@@ -983,7 +987,7 @@ class MessageSplitter
 		// mandatory close guillemet, and apply any modifiers to the group.
 		val startOfGroup = positionInName
 		val beforeDagger = parseSequence()
-		val group = when {
+		var group: Group = when {
 			peekFor(DOUBLE_DAGGER) -> {
 				val afterDagger = parseSequence()
 				// Check for a second double-dagger.
@@ -997,33 +1001,35 @@ class MessageSplitter
 			else -> Group(startOfGroup, beforeDagger)
 		}
 
-		if (!peekFor(CLOSE_GUILLEMET)) {
+		if (!peekFor(CLOSE_GUILLEMET))
+		{
 			// Expected matching close guillemet.
 			throwMalformedMessageException(
 				E_UNBALANCED_GUILLEMETS,
 				"Expected close guillemet (») to end group")
 		}
-		var subexpression: Expression = group
 
 		// Look for a case-sensitive, then look for a counter, optional, or
 		// completely-optional.
 		if (peekFor(
-				TILDE,
-				!subexpression.isLowerCase,
-				E_CASE_INSENSITIVE_EXPRESSION_CANONIZATION,
-				"Tilde (~) may only occur after a lowercase " +
-					"token or a group of lowercase tokens")) {
-			subexpression = CaseInsensitive(startOfGroup, subexpression)
+			TILDE,
+			!group.isLowerCase,
+			E_CASE_INSENSITIVE_EXPRESSION_CANONIZATION,
+			"Tilde (~) may only occur after a lowercase " +
+				"token or a group of lowercase tokens"))
+		{
+			group = group.applyCaseInsensitive()
 		}
 
-		if (peekFor(
+		return when {
+			peekFor(
 				OCTOTHORP,
 				group.underscoreCount > 0,
 				E_OCTOTHORP_MUST_FOLLOW_A_SIMPLE_GROUP_OR_ELLIPSIS,
 				"An octothorp (#) may only follow a non-yielding " +
-					"group or an ellipsis (…)")) {
-			subexpression = Counter(startOfGroup, group)
-		} else if (peekFor(
+					"group or an ellipsis (…)"
+			) -> Counter(startOfGroup, group)
+			peekFor(
 				QUESTION_MARK,
 				group.hasDagger,
 				E_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_GROUP,
@@ -1031,26 +1037,28 @@ class MessageSplitter
 					+ "group (optional) or a group with arguments "
 					+ "(0 or 1 occurrences), but not one with a "
 					+ "double-dagger (‡), since that suggests "
-					+ "multiple occurrences to be separated")) {
-			if (group.underscoreCount > 0) {
-				// A complex group just gets bounded to [0..1] occurrences.
-				group.beOptional()
-			} else {
-				// A simple group turns into an Optional, which produces a
-				// literal boolean indicating the presence of such a
-				// subexpression.
-				subexpression = Optional(startOfGroup, group.beforeDagger)
+					+ "multiple occurrences to be separated"
+			) -> when {
+				group.underscoreCount > 0 -> {
+					// A complex group just gets bounded to [0..1] occurrences.
+					group.beOptional()
+					group
+				}
+				else ->
+					// A simple group turns into an Optional, which produces a
+					// literal boolean indicating the presence of such a
+					// subexpression.
+					Optional(startOfGroup, group.beforeDagger)
 			}
-		} else if (peekFor(
+			peekFor(
 				DOUBLE_QUESTION_MARK,
 				group.underscoreCount > 0 || group.hasDagger,
 				E_DOUBLE_QUESTION_MARK_MUST_FOLLOW_A_TOKEN_OR_SIMPLE_GROUP,
 				"A double question mark (⁇) may only follow "
 					+ "a token or simple group, not one with a "
-					+ "double-dagger (‡) or arguments")) {
-			subexpression = CompletelyOptional(
-				startOfGroup, group.beforeDagger)
-		} else if (peekFor(
+					+ "double-dagger (‡) or arguments"
+			) -> CompletelyOptional(startOfGroup, group.beforeDagger)
+			peekFor(
 				EXCLAMATION_MARK,
 				group.underscoreCount > 0
 					|| group.hasDagger
@@ -1059,14 +1067,16 @@ class MessageSplitter
 				E_EXCLAMATION_MARK_MUST_FOLLOW_AN_ALTERNATION_GROUP,
 				"An exclamation mark (!) may only follow an "
 					+ "alternation group or (for macros) an "
-					+ "underscore")) {
-			// The guillemet group should have had a single element, an
-			// alternation.
-			val alternation: Alternation = cast(
-				group.beforeDagger.expressions[0])
-			subexpression = NumberedChoice(alternation)
+					+ "underscore"
+			) -> {
+				// The guillemet group should have had a single element, an
+				// alternation.
+				val alternation: Alternation =
+					cast(group.beforeDagger.expressions[0])
+				NumberedChoice(alternation)
+			}
+			else -> group
 		}
-		return subexpression
 	}
 
 	/**
@@ -1079,21 +1089,16 @@ class MessageSplitter
 	private fun parseEllipsisElement(): Expression {
 		val tokenStart = messagePartPositions[messagePartPosition - 2]
 		incrementLeafArgumentCount()
-		val absoluteUnderscoreIndex = leafArgumentCount
-		if (peekFor(EXCLAMATION_MARK)) {
-			return RawTokenArgument(
-				tokenStart, absoluteUnderscoreIndex)
+		return when {
+			peekFor(EXCLAMATION_MARK) -> RawTokenArgument(
+				tokenStart, leafArgumentCount)
+			peekFor(OCTOTHORP) -> RawWholeNumberLiteralTokenArgument(
+				tokenStart, leafArgumentCount)
+			peekFor(DOLLAR_SIGN) -> RawStringLiteralTokenArgument(
+				tokenStart, leafArgumentCount)
+			else -> RawKeywordTokenArgument(
+				tokenStart, leafArgumentCount)
 		}
-		if (peekFor(OCTOTHORP)) {
-			return RawWholeNumberLiteralTokenArgument(
-				tokenStart, absoluteUnderscoreIndex)
-		}
-		return if (peekFor(DOLLAR_SIGN)) {
-			RawStringLiteralTokenArgument(
-				tokenStart, absoluteUnderscoreIndex)
-		} else RawKeywordTokenArgument(
-			tokenStart,
-			absoluteUnderscoreIndex)
 	}
 
 	/**
@@ -1107,15 +1112,14 @@ class MessageSplitter
 		// Capture the one-based index.
 		val positionInName = messagePartPositions[messagePartPosition - 2]
 		incrementLeafArgumentCount()
-		val absoluteUnderscoreIndex = leafArgumentCount
 		return when {
 			peekFor(SINGLE_DAGGER) -> ArgumentInModuleScope(
-				positionInName, absoluteUnderscoreIndex)
+				positionInName, leafArgumentCount)
 			peekFor(UP_ARROW) -> VariableQuote(
-				positionInName, absoluteUnderscoreIndex)
+				positionInName, leafArgumentCount)
 			peekFor(EXCLAMATION_MARK) -> ArgumentForMacroOnly(
-				positionInName, absoluteUnderscoreIndex)
-			else -> Argument(positionInName, absoluteUnderscoreIndex)
+				positionInName, leafArgumentCount)
+			else -> Argument(positionInName, leafArgumentCount)
 		}
 	}
 

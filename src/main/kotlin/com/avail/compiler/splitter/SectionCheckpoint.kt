@@ -71,6 +71,8 @@ internal class SectionCheckpoint constructor(
 	positionInName: Int,
 	private val subscript: Int) : Expression(positionInName)
 {
+	override fun applyCaseInsensitive(): SectionCheckpoint = this
+
 	override fun extractSectionCheckpointsInto(
 		sectionCheckpoints: MutableList<SectionCheckpoint>)
 	{

@@ -166,14 +166,23 @@ internal class Group : Expression
 	}
 
 	@Throws(MalformedMessageException::class)
-	override fun applyCaseInsensitive(): Expression
+	override fun applyCaseInsensitive(): Group
 	{
 		if (!isLowerCase)
 		{
 			// Fail due to the group containing a non-lowercase token.
-			super.applyCaseInsensitive()
+			MessageSplitter.throwMalformedMessageException(
+				E_CASE_INSENSITIVE_EXPRESSION_CANONIZATION,
+				"Tilde (~) may only occur after a lowercase token or a group " +
+					"of lowercase tokens")
 		}
-		return CaseInsensitive(positionInName, this)
+		return when {
+			hasDagger -> Group(
+				positionInName,
+				beforeDagger.applyCaseInsensitive(),
+				afterDagger.applyCaseInsensitive())
+			else -> Group(positionInName, beforeDagger.applyCaseInsensitive())
+		}
 	}
 
 	override val underscoreCount: Int

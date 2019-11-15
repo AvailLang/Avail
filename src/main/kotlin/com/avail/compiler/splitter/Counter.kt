@@ -92,6 +92,9 @@ internal class Counter(
 	override val isLowerCase
 		get() = group.isLowerCase
 
+	override fun applyCaseInsensitive() =
+		Counter(positionInName, group.applyCaseInsensitive())
+
 	init
 	{
 		assert(group.beforeDagger.yielders.isEmpty())

@@ -126,13 +126,7 @@ internal abstract class Expression constructor(val positionInName: Int)
 	 *   If the result would not be meaningful.
 	 */
 	@Throws(MalformedMessageException::class)
-	internal open fun applyCaseInsensitive(): Expression
-	{
-		throwMalformedMessageException(
-			E_CASE_INSENSITIVE_EXPRESSION_CANONIZATION,
-			"Tilde (~) may only occur after a lowercase token or a group of " +
-				"lowercase tokens")
-	}
+	internal abstract fun applyCaseInsensitive(): Expression
 
 	/**
 	 * Answer the number of non-backquoted underscores/ellipses that occur

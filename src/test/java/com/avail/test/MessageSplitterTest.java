@@ -56,8 +56,9 @@ import java.util.stream.Stream;
 
 import static com.avail.compiler.ParsingConversionRule.LIST_TO_SIZE;
 import static com.avail.compiler.ParsingOperation.*;
-import static com.avail.compiler.splitter.MessageSplitter.indexForConstant;
+import static com.avail.compiler.splitter.MessageSplitter.*;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
@@ -762,209 +763,138 @@ public final class MessageSplitterTest
 					//14: Try solution.  [], [...], []
 					APPEND_ARGUMENT.getEncoding(), // [], [...[]]
 					CONVERT.encoding(LIST_TO_SIZE.getNumber()), // [], N
-					APPEND_ARGUMENT.getEncoding())) // [N]
-//		/* Optional groups. */
-//		C("«x»?",
-//			A("«", "x", "»", "?"),
-//			A(
-//				BRANCH.encoding(8),
-//				SAVE_PARSE_POSITION.encoding(),
-//				PARSE_PART.encoding(2),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				PUSH_TRUE.encoding(),
-//				JUMP.encoding(9),
-//				PUSH_FALSE.encoding(),
-//				APPEND_ARGUMENT.encoding())),
-//		C("«x y»?",
-//			A("«", "x", "y", "»", "?"),
-//			A(
-//				BRANCH.encoding(9),
-//				SAVE_PARSE_POSITION.encoding(),
-//				PARSE_PART.encoding(2),
-//				PARSE_PART.encoding(3),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				PUSH_TRUE.encoding(),
-//				JUMP.encoding(10),
-//				PUSH_FALSE.encoding(),
-//				APPEND_ARGUMENT.encoding())),
-//		C("«»?",
-//			A("«", "»", "?"),
-//			A(
-//				BRANCH.encoding(7),
-//				SAVE_PARSE_POSITION.encoding(),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				PUSH_TRUE.encoding(),
-//				JUMP.encoding(8),
-//				PUSH_FALSE.encoding(),
-//				APPEND_ARGUMENT.encoding())),
-//		C("««bagel»#«friend»?»",
-//			A("«", "«", "bagel", "»", "#", "«", "friend", "»", "?", "»"),
-//			A(
-//				SAVE_PARSE_POSITION.encoding(),
-//				EMPTY_LIST.encoding(),
-//				BRANCH.encoding(33),
-//				EMPTY_LIST.encoding(),
-//				SAVE_PARSE_POSITION.encoding(),
-//				EMPTY_LIST.encoding(),
-//				BRANCH.encoding(15),
-//				EMPTY_LIST.encoding(),
-//				PARSE_PART.encoding(3),
-//				APPEND_ARGUMENT.encoding(),
-//				BRANCH.encoding(14),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				JUMP.encoding(8),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				CONVERT.encoding(LIST_TO_SIZE.number()),
-//				APPEND_ARGUMENT.encoding(),
-//				BRANCH.encoding(25),
-//				SAVE_PARSE_POSITION.encoding(),
-//				PARSE_PART.encoding(7),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				PUSH_TRUE.encoding(),
-//				JUMP.encoding(26),
-//				PUSH_FALSE.encoding(),
-//				APPEND_ARGUMENT.encoding(),
-//				BRANCH.encoding(31),
-//				APPEND_ARGUMENT.encoding(),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				JUMP.encoding(4),
-//				APPEND_ARGUMENT.encoding(),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				APPEND_ARGUMENT.encoding())),
-//		/* Completely optional groups. */
-//		C("very⁇good",
-//			A("very", "⁇", "good"),
-//			A(
-//				BRANCH.encoding(6),
-//				SAVE_PARSE_POSITION.encoding(),
-//				PARSE_PART.encoding(1),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				PARSE_PART.encoding(3))),
-//		C("«very extremely»⁇good",
-//			A("«", "very", "extremely", "»", "⁇", "good"),
-//			A(
-//				BRANCH.encoding(7),
-//				SAVE_PARSE_POSITION.encoding(),
-//				PARSE_PART.encoding(2),
-//				PARSE_PART.encoding(3),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				PARSE_PART.encoding(6))),
-//		/* Case insensitive. */
-//		C("fnord~",
-//			A("fnord", "~"),
-//			A(
-//				PARSE_PART_CASE_INSENSITIVELY.encoding(1))),
-//		C("the~_",
-//			A("the", "~", "_"),
-//			A(
-//				PARSE_PART_CASE_INSENSITIVELY.encoding(1),
-//				PARSE_ARGUMENT.encoding(),
-//				CHECK_ARGUMENT.encoding(1),
-//				APPEND_ARGUMENT.encoding())),
-//		C("«x~»",
-//			A("«", "x", "~", "»"),
-//			A(
-//				SAVE_PARSE_POSITION.encoding(),
-//				EMPTY_LIST.encoding(),
-//				BRANCH.encoding(12),
-//				EMPTY_LIST.encoding(),
-//				PARSE_PART_CASE_INSENSITIVELY.encoding(2),
-//				BRANCH.encoding(10),
-//				APPEND_ARGUMENT.encoding(),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				JUMP.encoding(4),
-//				APPEND_ARGUMENT.encoding(),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				APPEND_ARGUMENT.encoding())),
-//		C("«x»~",
-//			A("«", "x", "»", "~"),
-//			A(
-//				SAVE_PARSE_POSITION.encoding(),
-//				EMPTY_LIST.encoding(),
-//				BRANCH.encoding(12),
-//				EMPTY_LIST.encoding(),
-//				PARSE_PART_CASE_INSENSITIVELY.encoding(2),
-//				BRANCH.encoding(10),
-//				APPEND_ARGUMENT.encoding(),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				JUMP.encoding(4),
-//				APPEND_ARGUMENT.encoding(),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				APPEND_ARGUMENT.encoding())),
-//		C("«x~y»",
-//			A("«", "x", "~", "y", "»"),
-//			A(
-//				SAVE_PARSE_POSITION.encoding(),
-//				EMPTY_LIST.encoding(),
-//				BRANCH.encoding(13),
-//				EMPTY_LIST.encoding(),
-//				PARSE_PART_CASE_INSENSITIVELY.encoding(2),
-//				PARSE_PART.encoding(4),
-//				BRANCH.encoding(11),
-//				APPEND_ARGUMENT.encoding(),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				JUMP.encoding(4),
-//				APPEND_ARGUMENT.encoding(),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				APPEND_ARGUMENT.encoding())),
-//		C("«x y»~",
-//			A("«", "x", "y", "»", "~"),
-//			A(
-//				SAVE_PARSE_POSITION.encoding(),
-//				EMPTY_LIST.encoding(),
-//				BRANCH.encoding(13),
-//				EMPTY_LIST.encoding(),
-//				PARSE_PART_CASE_INSENSITIVELY.encoding(2),
-//				PARSE_PART_CASE_INSENSITIVELY.encoding(3),
-//				BRANCH.encoding(11),
-//				APPEND_ARGUMENT.encoding(),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				JUMP.encoding(4),
-//				APPEND_ARGUMENT.encoding(),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				APPEND_ARGUMENT.encoding())),
-//		C("«x y»#~",
-//			A("«", "x", "y", "»", "#", "~"),
-//			A(
-//				SAVE_PARSE_POSITION.encoding(),
-//				EMPTY_LIST.encoding(),
-//				BRANCH.encoding(12),
-//				EMPTY_LIST.encoding(),
-//				PARSE_PART_CASE_INSENSITIVELY.encoding(2),
-//				PARSE_PART_CASE_INSENSITIVELY.encoding(3),
-//				APPEND_ARGUMENT.encoding(),
-//				BRANCH.encoding(11),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				JUMP.encoding(4),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				CONVERT.encoding(LIST_TO_SIZE.number()),
-//				APPEND_ARGUMENT.encoding())),
-//		C("«x y»?~",
-//			A("«", "x", "y", "»", "?", "~"),
-//			A(
-//				BRANCH.encoding(9),
-//				SAVE_PARSE_POSITION.encoding(),
-//				PARSE_PART_CASE_INSENSITIVELY.encoding(2),
-//				PARSE_PART_CASE_INSENSITIVELY.encoding(3),
-//				ENSURE_PARSE_PROGRESS.encoding(),
-//				DISCARD_SAVED_PARSE_POSITION.encoding(),
-//				PUSH_TRUE.encoding(),
-//				JUMP.encoding(10),
-//				PUSH_FALSE.encoding(),
-//				APPEND_ARGUMENT.encoding())),
+					APPEND_ARGUMENT.getEncoding())), // [N]
+		/* Optional groups. */
+			C("«x»?",
+				List(1, 1, Phrase(booleanType())),
+				A("«", "x", "»", "?"),
+				A(
+					BRANCH_FORWARD.encoding(5),
+					PARSE_PART.encoding(2),
+					PUSH_LITERAL.encoding(getIndexForTrue()), // [], T
+					JUMP_FORWARD.encoding(6),
+					//5:
+					PUSH_LITERAL.encoding(getIndexForFalse()), // [], F
+					//6:
+					APPEND_ARGUMENT.getEncoding())), // [T/F]
+			C("«x y»?",
+				List(1, 1, Phrase(booleanType())),
+				A("«", "x", "y", "»", "?"),
+				A(
+					BRANCH_FORWARD.encoding(6),
+					PARSE_PART.encoding(2),
+					PARSE_PART.encoding(3),
+					PUSH_LITERAL.encoding(getIndexForTrue()), // [], T
+					JUMP_FORWARD.encoding(7),
+					//6:
+					PUSH_LITERAL.encoding(getIndexForFalse()), // [], F
+					//7:
+					APPEND_ARGUMENT.getEncoding())), // [T/F]
+		/* Completely optional groups. */
+			C("very⁇good",
+				List(0, 0),
+				A("very", "⁇", "good"),
+				A(
+					BRANCH_FORWARD.encoding(3),
+					PARSE_PART.encoding(1), // very
+					//3:
+					PARSE_PART.encoding(3))), // good
+			C("«very extremely»⁇good",
+				List(0, 0),
+				A("«", "very", "extremely", "»", "⁇", "good"),
+				A(
+					BRANCH_FORWARD.encoding(4),
+					PARSE_PART.encoding(2), // very
+					PARSE_PART.encoding(3), // very
+					//4:
+					PARSE_PART.encoding(6))), // good
+		/* Case insensitive. */
+			C("fnord~",
+				List(0, 0),
+				A("fnord", "~"),
+				A(
+					PARSE_PART_CASE_INSENSITIVELY.encoding(1))),
+			C("the~_",
+				List(1, 1, Phrase(NUMBER.o())),
+				A("the", "~", "_"),
+				A(
+					PARSE_PART_CASE_INSENSITIVELY.encoding(1),
+					PARSE_ARGUMENT.getEncoding(),
+					CHECK_ARGUMENT.encoding(1),
+					typeCheckEncodingForPhrase(NUMBER.o()),
+					APPEND_ARGUMENT.getEncoding())),
+			C("«x~»",
+				List(1, 1, List(1, -1, List(0, 0))),
+				A("«", "x", "~", "»"),
+				A(
+					PARSE_PART_CASE_INSENSITIVELY.encoding(2), // Hoisted 1st
+					EMPTY_LIST.getEncoding(), // [], []
+					EMPTY_LIST.getEncoding(), // [], [], []
+					BRANCH_FORWARD.encoding(11), // Try empty
+					APPEND_ARGUMENT.getEncoding(), // [], [[]]
+					//6: Loop
+					PARSE_PART_CASE_INSENSITIVELY.encoding(2), // Next x
+					EMPTY_LIST.getEncoding(), // [], [...], []
+					BRANCH_FORWARD.encoding(11), // Try empty
+					APPEND_ARGUMENT.getEncoding(), // [], [...[]]
+					JUMP_BACKWARD.encoding(6),
+					//11: Attempt. [], [...], []
+					APPEND_ARGUMENT.getEncoding(), // [], [...[]]
+					APPEND_ARGUMENT.getEncoding())), // [[...[]]]
+			C("«x»~",  // Should be the same as «x~»
+				List(1, 1, List(1, -1, List(0, 0))),
+				A("«", "x", "»", "~"),
+				A(
+					PARSE_PART_CASE_INSENSITIVELY.encoding(2), // Hoisted 1st
+					EMPTY_LIST.getEncoding(), // [], []
+					EMPTY_LIST.getEncoding(), // [], [], []
+					BRANCH_FORWARD.encoding(11), // Try empty
+					APPEND_ARGUMENT.getEncoding(), // [], [[]]
+					//6: Loop
+					PARSE_PART_CASE_INSENSITIVELY.encoding(2), // Next x
+					EMPTY_LIST.getEncoding(), // [], [...], []
+					BRANCH_FORWARD.encoding(11), // Try empty
+					APPEND_ARGUMENT.getEncoding(), // [], [...[]]
+					JUMP_BACKWARD.encoding(6),
+					//11: Attempt. [], [...], []
+					APPEND_ARGUMENT.getEncoding(), // [], [...[]]
+					APPEND_ARGUMENT.getEncoding())), // [[...[]]]
+			C("«x y»~#",
+				List(1, 1, Phrase(wholeNumbers())),
+				A("«", "x", "y", "»", "~", "#"),
+				A(
+					EMPTY_LIST.getEncoding(), // [], []
+					BRANCH_FORWARD.encoding(15), // Try zero occurrences
+					PARSE_PART_CASE_INSENSITIVELY.encoding(2), // Unrolled 1st x
+					PARSE_PART_CASE_INSENSITIVELY.encoding(3), // Unrolled 1st y
+					EMPTY_LIST.getEncoding(), // [], [], []
+					BRANCH_FORWARD.encoding(14), // Try first occurrence
+					APPEND_ARGUMENT.getEncoding(), // [], [[]]
+					//8: Loop
+					PARSE_PART_CASE_INSENSITIVELY.encoding(2), // Unrolled 1st x
+					PARSE_PART_CASE_INSENSITIVELY.encoding(3), // Unrolled 1st y
+					EMPTY_LIST.getEncoding(), // [], [...], []
+					BRANCH_FORWARD.encoding(14), // Try latest occurrence
+					APPEND_ARGUMENT.getEncoding(), // [], [...[]]
+					JUMP_BACKWARD.encoding(8),
+					//14: Latest occurrence. [], [...], []
+					APPEND_ARGUMENT.getEncoding(), // [], [...[]]
+					//15: Answer
+					CONVERT.encoding(LIST_TO_SIZE.getNumber()),
+					APPEND_ARGUMENT.getEncoding())), // [[...]]
+		C("«x y»~?",
+			List(1, 1, Phrase(booleanType())),
+			A("«", "x", "y", "»", "~", "?"),
+			A(
+				BRANCH_FORWARD.encoding(6),
+				PARSE_PART_CASE_INSENSITIVELY.encoding(2),
+				PARSE_PART_CASE_INSENSITIVELY.encoding(3),
+				PUSH_LITERAL.encoding(getIndexForTrue()),
+				JUMP_FORWARD.encoding(7),
+				//6:
+				PUSH_LITERAL.encoding(getIndexForFalse()),
+				//7:
+				APPEND_ARGUMENT.getEncoding()))
 //		/* Alternation. */
 //		C("hello|greetings",
 //			A("hello", "|", "greetings"),

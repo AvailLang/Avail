@@ -72,6 +72,9 @@ internal class CompletelyOptional constructor(
 	override val isLowerCase: Boolean
 		get() = sequence.isLowerCase
 
+	override fun applyCaseInsensitive(): Expression =
+		CompletelyOptional(positionInName, sequence.applyCaseInsensitive())
+
 	override val underscoreCount: Int
 		get()
 		{

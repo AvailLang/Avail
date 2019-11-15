@@ -72,6 +72,10 @@ internal open class Argument constructor(
 	override val yieldsValue: Boolean
 		get() = true
 
+	override fun applyCaseInsensitive(): Argument {
+		return this
+	}
+
 	override val underscoreCount: Int
 		get() = 1
 
