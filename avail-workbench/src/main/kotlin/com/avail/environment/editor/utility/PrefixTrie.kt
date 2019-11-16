@@ -6,10 +6,10 @@ import com.avail.utility.Pair
 /**
  * A `PrefixTrie` is trie of [PrefixNode]s.
  *
- * @param <T>
- * The type of object potentially held at the `PrefixNode`.
+ * @param T
+ *   The type of object potentially held at the `PrefixNode`.
  * @author Rich Arriaga &lt;rich@availlang.org&gt;
-</T> */
+ */
 class PrefixTrie<T>
 {
 	/**

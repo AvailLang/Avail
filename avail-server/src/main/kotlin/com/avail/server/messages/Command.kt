@@ -467,7 +467,7 @@ enum class Command
 		@Throws(CommandParseException::class)
 		fun parse(message: Message): CommandMessage
 		{
-			val source = message.content
+			val source = message.stringContent
 			val parsedCommands = TrieNode.parseCommands(source)
 			if (parsedCommands.isEmpty())
 			{

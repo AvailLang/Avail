@@ -34,6 +34,7 @@ package com.avail.server.messages
 
 import com.avail.server.AvailServer
 import com.avail.server.io.AvailServerChannel
+import java.nio.charset.StandardCharsets
 
 /**
  * An [AvailServer] sends and receives `Message`s. A `Message` received by the
@@ -41,47 +42,46 @@ import com.avail.server.io.AvailServerChannel
  * server represents a response to a command.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ *
+ * @property content
+ *   The [content][ByteArray] of the [message][Message].
+ * @property state
+ *   The [AvailServerChannel.ProtocolState] the source/target
+ *   [AvailServerChannel] was at when this [Message] was received/created.
+ * @property closeAfterSending
+ *   Should the [channel][AvailServerChannel] be
+ *   [closed][AvailServerChannel.scheduleClose] after transmitting this
+ *   [message][Message]?
+ *
+ * @constructor
+ * Construct a new [Message].
+ *
+ * @param content
+ *   The [content][ByteArray].
+ * @param state
+ *   The [AvailServerChannel.ProtocolState] the source/target
+ *   [AvailServerChannel] was at when this `Message` was received/created.
+ * @param closeAfterSending
+ *   `true` if the [channel][AvailServerChannel] should be
+ *   [closed][AvailServerChannel.scheduleClose] after transmitting this message.
  */
-class Message
+class Message constructor(
+	val content: ByteArray,
+	val state: AvailServerChannel.ProtocolState,
+	val closeAfterSending: Boolean = false)
 {
-	/** The [content][String] of the [message][Message]. */
-	val content: String
-
-	/**
-	 * Should the [channel][AvailServerChannel] be
-	 * [closed][AvailServerChannel.scheduleClose] after transmitting this
-	 * [message][Message]?
-	 */
-	val closeAfterSending: Boolean
-
-	/**
-	 * Construct a new [Message].
-	 *
-	 * @param content
-	 * The [content][String].
-	 */
-	constructor(content: String)
+	// TODO Process all message data as bytes and transform it just before
+	// actually using the data when being read.
+	val stringContent: String get()
 	{
-		this.content = content
-		this.closeAfterSending = false
+		require(state.generalTextIO)
+		{
+			"Message.stringContent was called but message was received as " +
+			"$state."
+		}
+		return String(content, StandardCharsets.UTF_8)
 	}
-
-	/**
-	 * Construct a new [Message].
-	 *
-	 * @param content
-	 *   The [content][String].
-	 * @param closeAfterSending
-	 *   `true` if the [channel][AvailServerChannel] should be
-	 *   [closed][AvailServerChannel.scheduleClose] after transmitting this message.
-	 */
-	constructor(content: String, closeAfterSending: Boolean)
-	{
-		this.content = content
-		this.closeAfterSending = closeAfterSending
-	}
-
-	override fun toString(): String = content
 
 	companion object
 	{

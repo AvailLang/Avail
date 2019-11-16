@@ -209,6 +209,15 @@ object MismatchDisconnect: DisconnectReason
  * the disconnect originated from the server due to an exception on the server.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ *
+ * @property e
+ *   The [Throwable] related to the error or `null` if none.
+ *
+ * @constructor
+ * Construct a CommunicationErrorDisconnect.
+ *
+ * @param e
+ *   The [Throwable] related to the error or `null` if none.
  */
 class CommunicationErrorDisconnect constructor(val e: Throwable?)
 	: DisconnectReason
@@ -233,4 +242,54 @@ object BadMessageDisconnect: DisconnectReason
 {
 	override val origin get () = DisconnectOrigin.SERVER_ORIGIN
 	override val code get () = -9
+}
+
+/**
+ * An `UnsupportedFormatDisconnect` is a [DisconnectReason] that indicates that
+ * the disconnect originated from the server due to receiving a message in the
+ * wrong format.
+ *
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ *
+ * @property msg
+ *   A message describing the format mismatch.
+ *
+ * @constructor
+ * Construct a CommunicationErrorDisconnect.
+ *
+ * @param msg
+ *   A message describing the format mismatch.
+ */
+class UnsupportedFormatDisconnect constructor(private val msg: String)
+	: DisconnectReason
+{
+	override val origin get () = DisconnectOrigin.SERVER_ORIGIN
+	override val code get () = -10
+
+	override val logEntry: String get() = "${super.logEntry} - $msg"
+}
+
+/**
+ * An `UnsupportedFormatDisconnect` is a [DisconnectReason] that indicates that
+ * the disconnect originated from the server due to receiving a message in the
+ * wrong format.
+ *
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ *
+ * @property msg
+ *   A message describing the format mismatch.
+ *
+ * @constructor
+ * Construct a CommunicationErrorDisconnect.
+ *
+ * @param msg
+ *   A message describing the format mismatch.
+ */
+class ProtocolErrorDisconnect constructor(private val msg: String)
+	: DisconnectReason
+{
+	override val origin get () = DisconnectOrigin.SERVER_ORIGIN
+	override val code get () = -11
+
+	override val logEntry: String get() = "${super.logEntry} - $msg"
 }
