@@ -94,7 +94,7 @@ abstract class AvailServerChannel constructor(
 	 * `true` if this [AvailServerChannel] is an IO channel for a
 	 * [parent][parentId] command channel.
 	 */
-	private val isIOChannel get() = state.isGeneralIO
+	private val isIOChannel get() = state.generalTextIO
 
 	/** The current [protocol state][ProtocolState].  */
 	var state = ProtocolState.VERSION_NEGOTIATION
@@ -189,7 +189,7 @@ abstract class AvailServerChannel constructor(
 		ELIGIBLE_FOR_UPGRADE
 		{
 			override val allowedSuccessorStates: Set<ProtocolState>
-				get() = EnumSet.of(COMMAND, IO_TEXT, IO_BINARY)
+				get() = EnumSet.of(COMMAND, IO_TEXT, BINARY)
 			override val eligibleForUpgrade get() = true
 		},
 
@@ -216,13 +216,13 @@ abstract class AvailServerChannel constructor(
 
 		/**
 		 * The [channel][AvailServerChannel] should henceforth be used for
-		 * general binary I/O.
+		 * general binary data transmission.
 		 */
-		IO_BINARY
+		BINARY
 		{
 			override val allowedSuccessorStates: Set<ProtocolState>
 				get() = emptySet()
-			override val generalBinaryIO get() = true
+			override val generalBinary get() = true
 		};
 
 		/** The allowed successor [states][ProtocolState] of the receiver. */
@@ -254,13 +254,7 @@ abstract class AvailServerChannel constructor(
 		 * binary I/O? `true` if the state indicates the capability, `false`
 		 * otherwise.
 		 */
-		open val generalBinaryIO get() = false
-
-		/**
-		 * Does this [state][ProtocolState] indicate a capability to do general
-		 * I/O. `true` if the state indicates the capability, `false` otherwise.
-		 */
-		val isGeneralIO: Boolean get() = generalTextIO || generalBinaryIO
+		open val generalBinary get() = false
 	}
 
 	/**
@@ -276,11 +270,12 @@ abstract class AvailServerChannel constructor(
 	}
 
 	/**
-	 * Upgrade the [channel][AvailServerChannel] for general binary I/O.
+	 * Upgrade the [channel][AvailServerChannel] for general binary data
+	 * transmission.
 	 */
-	fun upgradeToIOBinaryChannel()
+	fun upgradeToBinaryChannel()
 	{
-		state = ProtocolState.IO_BINARY
+		state = ProtocolState.BINARY
 		// TODO [RAA] what else?
 	}
 

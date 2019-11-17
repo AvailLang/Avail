@@ -46,7 +46,7 @@ import com.avail.server.configuration.EnvironmentConfigurator
 import com.avail.server.io.AvailServerChannel
 import com.avail.server.io.AvailServerChannel.ProtocolState.COMMAND
 import com.avail.server.io.AvailServerChannel.ProtocolState.ELIGIBLE_FOR_UPGRADE
-import com.avail.server.io.AvailServerChannel.ProtocolState.IO_BINARY
+import com.avail.server.io.AvailServerChannel.ProtocolState.BINARY
 import com.avail.server.io.AvailServerChannel.ProtocolState.IO_TEXT
 import com.avail.server.io.AvailServerChannel.ProtocolState.VERSION_NEGOTIATION
 import com.avail.server.io.RunCompletionDisconnect
@@ -625,7 +625,7 @@ class AvailServer constructor(
 			val oldId = upgradedChannel.id
 			upgradedChannel.id = receivedUUID
 			upgradedChannel.parentId = channel.id
-			upgradedChannel.upgradeToIOBinaryChannel()
+			upgradedChannel.upgradeToBinaryChannel()
 			resumeUpgrader()
 			afterUpgraded(upgradedChannel)
 			logger.log(
@@ -1259,7 +1259,7 @@ class AvailServer constructor(
 							ServerInputChannel
 					input.receiveMessageThen(message, receiveNext)
 				}
-				IO_BINARY ->
+				BINARY ->
 				{
 					// TODO!
 				}

@@ -37,7 +37,6 @@ package com.avail.server.io
 import com.avail.io.SimpleCompletionHandler
 import com.avail.server.AvailServer
 import com.avail.server.AvailServer.Companion.logger
-import com.avail.server.io.AvailServerChannel.ProtocolState.IO_BINARY
 import com.avail.server.messages.Message
 import com.avail.utility.IO
 import com.avail.utility.MutableOrNull
@@ -1268,7 +1267,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 					}
 					Opcode.TEXT ->
 					{
-						if (strongChannel.state.generalBinaryIO)
+						if (strongChannel.state.generalBinary)
 						{
 							val failMsg =
 								"only binary frames expected but received " +

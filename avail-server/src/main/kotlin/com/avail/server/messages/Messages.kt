@@ -75,7 +75,7 @@ class Message constructor(
 	// actually using the data when being read.
 	val stringContent: String get()
 	{
-		require(state.generalTextIO)
+		require(!state.generalBinary)
 		{
 			"Message.stringContent was called but message was received as " +
 			"$state."
