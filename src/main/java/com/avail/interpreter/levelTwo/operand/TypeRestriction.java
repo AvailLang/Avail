@@ -32,7 +32,12 @@
 
 package com.avail.interpreter.levelTwo.operand;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.BottomTypeDescriptor;
+import com.avail.descriptor.NilDescriptor;
+import com.avail.descriptor.SetDescriptor;
 import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_EQUALS_CONSTANT;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_CONSTANT;
@@ -50,6 +55,7 @@ import java.util.stream.Collectors;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.BottomTypeDescriptor.bottomMeta;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.NilDescriptor.nil;
@@ -401,7 +407,7 @@ public final class TypeRestriction
 	 */
 	public static final TypeRestriction bottomTypeRestriction =
 		new TypeRestriction(
-			instanceMeta(bottom()),
+			bottomMeta(),
 			bottom(),
 			emptySet(),
 			emptySet(),
@@ -760,6 +766,40 @@ public final class TypeRestriction
 	}
 
 	/**
+	 * The receiver is a restriction for a register holding some value.  Answer
+	 * the restriction for a register holding that value's type.
+	 *
+	 * @return The restriction on the value's type.
+	 */
+	public TypeRestriction metaRestriction ()
+	{
+		if (constantOrNull != null)
+		{
+			// We're a constant, so the metaRestriction is also a constant type.
+			return restrictionForConstant(type, BOXED);
+		}
+		final Set<A_BasicObject> resultExcludedValues = new HashSet<>();
+		// No object has exact type ⊥ or ⊤.
+		resultExcludedValues.add(TOP.o());
+		for (final A_BasicObject v : excludedValues)
+		{
+			resultExcludedValues.add(instanceTypeOrMetaOn(v));
+		}
+		final Set<A_Type> resultExcludedTypes = new HashSet<>();
+		resultExcludedTypes.add(bottomMeta());
+		for (final A_Type t : excludedTypes)
+		{
+			resultExcludedTypes.add(instanceMeta(t));
+		}
+		return restriction(
+			instanceMeta(type),
+			null,
+			resultExcludedTypes,
+			resultExcludedValues,
+			BOXED.mask);
+	}
+
+	/**
 	 * Create or reuse a {@code TypeRestriction}, for which no constant
 	 * information is provided (but might be deduced from the type).
 	 *
@@ -1031,22 +1071,25 @@ public final class TypeRestriction
 		{
 			return constantOrNull.isInstanceOf(testType);
 		}
-		if (testType.typeIntersection(type).isVacuousType())
+		final A_Type intersectedType = testType.typeIntersection(type);
+		if (intersectedType.isVacuousType())
 		{
 			return false;
 		}
 		for (final A_Type excludedType : excludedTypes)
 		{
-			if (testType.isSubtypeOf(excludedType))
+			if (intersectedType.isSubtypeOf(excludedType))
 			{
+				// Even though the bare types intersect, the intersection was
+				// explicitly excluded by the restriction.
 				return false;
 			}
 		}
 		//noinspection RedundantIfStatement
 		if (!excludedValues.isEmpty()
-			&& testType.isEnumeration()
-			&& !testType.isInstanceMeta()
-			&& testType.instances().isSubsetOf(
+			&& intersectedType.isEnumeration()
+			&& !intersectedType.isInstanceMeta()
+			&& intersectedType.instances().isSubsetOf(
 				setFromCollection(excludedValues)))
 		{
 			// Every element of the testType enumeration has been explicitly

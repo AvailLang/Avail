@@ -90,6 +90,7 @@ import static com.avail.AvailRuntimeConfiguration.availableProcessors;
 import static com.avail.AvailRuntimeConfiguration.maxInterpreters;
 import static com.avail.descriptor.BottomPojoTypeDescriptor.pojoBottom;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.BottomTypeDescriptor.bottomMeta;
 import static com.avail.descriptor.CompiledCodeDescriptor.newPrimitiveRawFunction;
 import static com.avail.descriptor.CompiledCodeTypeDescriptor.mostGeneralCompiledCodeType;
 import static com.avail.descriptor.ContinuationTypeDescriptor.continuationMeta;
@@ -962,7 +963,7 @@ public final class AvailRuntime
 		specials[27] = setMeta();
 		specials[28] = stringType();
 		specials[29] = bottom();
-		specials[30] = instanceMeta(bottom());
+		specials[30] = bottomMeta();
 		specials[31] = NONTYPE.o();
 		specials[32] = mostGeneralTupleType();
 		specials[33] = tupleMeta();

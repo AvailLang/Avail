@@ -43,13 +43,17 @@ import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.EnumSet;
+import java.util.IdentityHashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.BottomTypeDescriptor.bottomMeta;
 import static com.avail.descriptor.EnumerationTypeDescriptor.ObjectSlots.CACHED_SUPERKIND;
 import static com.avail.descriptor.EnumerationTypeDescriptor.ObjectSlots.INSTANCES;
-import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.NilDescriptor.nil;
@@ -400,7 +404,7 @@ extends AbstractEnumerationTypeDescriptor
 				&& another.isSubtypeOf(topMeta())
 				&& !another.isBottom())
 			{
-				return instanceMeta(bottom());
+				return bottomMeta();
 			}
 		}
 		return enumerationWith(set);

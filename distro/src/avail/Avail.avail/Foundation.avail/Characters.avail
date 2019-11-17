@@ -1611,14 +1611,17 @@ characterTypes ::= <
 	<"invalid category 31", 31>
 >;
 
-names : string* := <>;
-
-For each pair, i in characterTypes do
-[
-	name, value ::= pair;
-	Assert: value = i - 1 ("Character types were not consecutively numbered");
-	names ++= <name>;
-];
+names ::=
+	[
+		tempNames : string* := <>;
+		For each pair, i in characterTypes do
+		[
+			name, value ::= pair;
+			Assert: value = i - 1 ("Character types were not consecutively numbered");
+			tempNames ++= <name>;
+		];
+		cast tempNames into [t : <string…|32> | t]
+	]();
 
 Public stable method "_'s⁇character type name" is
 [

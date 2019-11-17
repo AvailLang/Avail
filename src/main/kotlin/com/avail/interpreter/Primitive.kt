@@ -36,6 +36,7 @@ import com.avail.descriptor.*
 import com.avail.descriptor.BottomTypeDescriptor.bottom
 import com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom
+import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.TypeDescriptor.Types.TOP
 import com.avail.descriptor.VariableTypeDescriptor.variableTypeFor
 import com.avail.descriptor.parsing.A_Phrase
@@ -49,10 +50,7 @@ import com.avail.interpreter.levelOne.L1InstructionWriter
 import com.avail.interpreter.levelOne.L1Operation
 import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.interpreter.levelTwo.L2Instruction
-import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
-import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import com.avail.interpreter.levelTwo.operand.*
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType
 import com.avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
@@ -61,6 +59,7 @@ import com.avail.optimizer.ExecutableChunk
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
 import com.avail.optimizer.L2Generator
+import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.optimizer.values.L2SemanticPrimitiveInvocation
 import com.avail.optimizer.values.L2SemanticValue
@@ -68,6 +67,10 @@ import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
 import com.avail.serialization.Serializer
 import com.avail.utility.Nulls.stripNull
+import org.objectweb.asm.Label
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes.*
+import org.objectweb.asm.Type
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
@@ -1069,4 +1072,172 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 			}
 		}
 	}
+
+	/**
+	 * Write a JVM invocation of this primitive.  This sets up the interpreter,
+	 * calls [Interpreter.beforeAttemptPrimitive], calls [Primitive.attempt],
+	 * calls [Interpreter.afterAttemptPrimitive], and records statistics as
+	 * needed. It also deals with primitive failures, suspensions, and
+	 * reifications.
+	 *
+	 * Subclasses may do something more specific and efficient, and should be
+	 * free to neglect the statistics.  However, the resultRegister must be
+	 * written, even if it's always [nil], to satisfy the JVM bytecode verifier.
+	 *
+	 * @param translator
+	 *   The [JVMTranslator] through which to write bytecodes.
+	 * @param method
+	 *   The [MethodVisitor] into which bytecodes are being written.
+	 * @param arguments
+	 *   The [L2ReadBoxedVectorOperand] containing arguments for the primitive.
+	 * @param result
+	 *   The [L2WriteBoxedOperand] that will be assigned the result of running
+	 *   the primitive, if successful.
+	 */
+	open fun generateJvmCode(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		arguments: L2ReadBoxedVectorOperand,
+		result: L2WriteBoxedOperand
+	) {
+		// :: argsBuffer = interpreter.argsBuffer;
+		translator.loadInterpreter(method)
+		// [interp]
+		method.visitFieldInsn(
+			GETFIELD,
+			Type.getInternalName(Interpreter::class.java),
+			"argsBuffer",
+			Type.getDescriptor(MutableList::class.java))
+		// [argsBuffer]
+		// :: argsBuffer.clear();
+		if (arguments.elements().isNotEmpty()) {
+			method.visitInsn(DUP)
+		}
+		// [argsBuffer[, argsBuffer if #args > 0]]
+		method.visitMethodInsn(
+			INVOKEINTERFACE,
+			Type.getInternalName(MutableList::class.java),
+			"clear",
+			Type.getMethodDescriptor(Type.VOID_TYPE),
+			true)
+		// [argsBuffer if #args > 0]
+		var i = 0
+		val limit = arguments.elements().size
+		while (i < limit) {
+			// :: argsBuffer.add(«argument[i]»);
+			if (i < limit - 1) {
+				method.visitInsn(DUP)
+			}
+			translator.load(method, arguments.elements()[i].register())
+			method.visitMethodInsn(
+				INVOKEINTERFACE,
+				Type.getInternalName(MutableList::class.java),
+				"add",
+				Type.getMethodDescriptor(
+					Type.BOOLEAN_TYPE,
+					Type.getType(Any::class.java)),
+				true)
+			method.visitInsn(POP)
+			i++
+		}
+		// []
+		translator.loadInterpreter(method)
+		// [interp]
+		translator.literal(method, this)
+		// [interp, prim]
+		method.visitInsn(DUP2)
+		// [interp, prim, interp, prim]
+		method.visitInsn(DUP2)
+		// [interp, prim, interp, prim, interp, prim]
+		// :: long timeBefore = beforeAttemptPrimitive(primitive);
+		method.visitMethodInsn(
+			INVOKEVIRTUAL,
+			Type.getInternalName(Interpreter::class.java),
+			"beforeAttemptPrimitive",
+			Type.getMethodDescriptor(
+				Type.getType(java.lang.Long.TYPE),
+				Type.getType(Primitive::class.java)),
+			false)
+		// [interp, prim, interp, prim, timeBeforeLong]
+		method.visitInsn(DUP2_X2) // Form 2: v3,v2,v1x2 -> v1x2,v3,v2,v1x2
+		// [interp, prim, timeBeforeLong, interp, prim, timeBeforeLong]
+		method.visitInsn(POP2) // Form 2: v1x2 -> empty
+		// [interp, prim, timeBeforeLong, interp, prim]
+		method.visitInsn(SWAP)
+		// [interp, prim, timeBeforeLong, prim, interp]
+		// :: Result success = primitive.attempt(interpreter)
+		method.visitMethodInsn(
+			INVOKEVIRTUAL,
+			Type.getInternalName(javaClass),
+			"attempt",
+			Type.getMethodDescriptor(
+				Type.getType(Result::class.java),
+				Type.getType(Interpreter::class.java)),
+			false)
+		// [interp, prim, timeBeforeLong, success]
+
+		// :: afterAttemptPrimitive(primitive, timeBeforeLong, success);
+		method.visitMethodInsn(
+			INVOKEVIRTUAL,
+			Type.getInternalName(Interpreter::class.java),
+			"afterAttemptPrimitive",
+			Type.getMethodDescriptor(
+				Type.getType(Result::class.java),
+				Type.getType(Primitive::class.java),
+				Type.getType(java.lang.Long.TYPE),
+				Type.getType(Result::class.java)),
+			false)
+		// [success] (returned as a nicety by afterAttemptPrimitive)
+
+		// If the infallible primitive definitely switches continuations, then
+		// return null to force the context switch.
+		if (hasFlag(AlwaysSwitchesContinuation)) {
+			// :: return null;
+			method.visitInsn(POP)
+			method.visitInsn(ACONST_NULL)
+			method.visitInsn(ARETURN)
+		} else if (!hasFlag(CanSwitchContinuations)) {
+			// :: result = interpreter.latestResult();
+			method.visitInsn(POP)
+			translator.loadInterpreter(method)
+			method.visitMethodInsn(
+				INVOKEVIRTUAL,
+				Type.getInternalName(Interpreter::class.java),
+				"latestResult",
+				Type.getMethodDescriptor(Type.getType(AvailObject::class.java)),
+				false)
+			translator.store(method, result.register())
+		} else {
+			// :: if (res == Result.SUCCESS) {
+			method.visitFieldInsn(
+				GETSTATIC,
+				Type.getInternalName(Result::class.java),
+				"SUCCESS",
+				Type.getDescriptor(Result::class.java))
+			val switchedContinuations = Label()
+			method.visitJumpInsn(IF_ACMPNE, switchedContinuations)
+			// ::    result = interpreter.latestResult();
+			translator.loadInterpreter(method)
+			method.visitMethodInsn(
+				INVOKEVIRTUAL,
+				Type.getInternalName(Interpreter::class.java),
+				"latestResult",
+				Type.getMethodDescriptor(Type.getType(AvailObject::class.java)),
+				false)
+			translator.store(method, result.register())
+			// ::    goto success;
+			val success = Label()
+			method.visitJumpInsn(GOTO, success)
+			// :: } else {
+			method.visitLabel(switchedContinuations)
+			// We switched continuations, so we need to return control to the
+			// caller in order to honor the switch.
+			// ::    return null;
+			method.visitInsn(ACONST_NULL)
+			method.visitInsn(ARETURN)
+			// :: }
+			method.visitLabel(success)
+		}
+	}
+
 }

@@ -32,19 +32,19 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
-import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
-import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.*;
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
+import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.ArrayList;
@@ -52,8 +52,6 @@ import java.util.List;
 import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Type.*;
 
 /**
  * Execute a primitive with the provided arguments, writing the result into
@@ -217,151 +215,7 @@ extends L2Operation
 		final L2ReadBoxedVectorOperand arguments = instruction.operand(2);
 		final L2WriteBoxedOperand result = instruction.operand(3);
 
-		// :: argsBuffer = interpreter.argsBuffer;
-		translator.loadInterpreter(method);
-		// [interp]
-		method.visitFieldInsn(
-			GETFIELD,
-			getInternalName(Interpreter.class),
-			"argsBuffer",
-			getDescriptor(List.class));
-		// [argsBuffer]
-		// :: argsBuffer.clear();
-		if (!arguments.elements().isEmpty())
-		{
-			method.visitInsn(DUP);
-		}
-		// [argsBuffer[, argsBuffer if #args > 0]]
-		method.visitMethodInsn(
-			INVOKEINTERFACE,
-			getInternalName(List.class),
-			"clear",
-			getMethodDescriptor(VOID_TYPE),
-			true);
-		// [argsBuffer if #args > 0]
-		for (int i = 0, limit = arguments.elements().size(); i < limit; i++)
-		{
-			// :: argsBuffer.add(«argument[i]»);
-			if (i < limit - 1)
-			{
-				method.visitInsn(DUP);
-			}
-			translator.load(method, arguments.elements().get(i).register());
-			method.visitMethodInsn(
-				INVOKEINTERFACE,
-				getInternalName(List.class),
-				"add",
-				getMethodDescriptor(BOOLEAN_TYPE, getType(Object.class)),
-				true);
-			method.visitInsn(POP);
-		}
-		// []
-
-		translator.loadInterpreter(method);
-		// [interp]
-		translator.literal(method, primitive.primitive);
-		// [interp, prim]
-		method.visitInsn(DUP2);
-		// [interp, prim, interp, prim]
-		method.visitInsn(DUP2);
-		// [interp, prim, interp, prim, interp, prim]
-		// :: long timeBefore = beforeAttemptPrimitive(primitive);
-		method.visitMethodInsn(
-			INVOKEVIRTUAL,
-			getInternalName(Interpreter.class),
-			"beforeAttemptPrimitive",
-			getMethodDescriptor(
-				getType(Long.TYPE),
-				getType(Primitive.class)),
-			false);
-		// [interp, prim, interp, prim, timeBeforeLong]
-		method.visitInsn(DUP2_X2);  // Form 2: v3,v2,v1x2 -> v1x2,v3,v2,v1x2
-		// [interp, prim, timeBeforeLong, interp, prim, timeBeforeLong]
-		method.visitInsn(POP2);  // Form 2: v1x2 -> empty
-		// [interp, prim, timeBeforeLong, interp, prim]
-		method.visitInsn(SWAP);
-		// [interp, prim, timeBeforeLong, prim, interp]
-		// :: Result success = primitive.attempt(interpreter)
-		method.visitMethodInsn(
-			INVOKEVIRTUAL,
-			getInternalName(primitive.primitive.getClass()),
-			"attempt",
-			getMethodDescriptor(
-				getType(Result.class),
-				getType(Interpreter.class)),
-			false);
-		// [interp, prim, timeBeforeLong, success]
-
-		// :: afterAttemptPrimitive(primitive, timeBeforeLong, success);
-		method.visitMethodInsn(
-			INVOKEVIRTUAL,
-			getInternalName(Interpreter.class),
-			"afterAttemptPrimitive",
-			getMethodDescriptor(
-				getType(Result.class),
-				getType(Primitive.class),
-				getType(Long.TYPE),
-				getType(Result.class)),
-			false);
-		// [success] (returned as a nicety by afterAttemptPrimitive)
-
-		// If the infallible primitive definitely switches continuations, then
-		// return null to force the context switch.
-		if (primitive.primitive.hasFlag(Flag.AlwaysSwitchesContinuation))
-		{
-			// :: return null;
-			method.visitInsn(POP);
-			method.visitInsn(ACONST_NULL);
-			method.visitInsn(ARETURN);
-		}
-		// If the infallible primitive cannot switch continuations, then by
-		// definition it can only succeed.
-		else if (!primitive.primitive.hasFlag(Flag.CanSwitchContinuations))
-		{
-			// :: result = interpreter.latestResult();
-			method.visitInsn(POP);
-			translator.loadInterpreter(method);
-			method.visitMethodInsn(
-				INVOKEVIRTUAL,
-				getInternalName(Interpreter.class),
-				"latestResult",
-				getMethodDescriptor(getType(AvailObject.class)),
-				false);
-			translator.store(method, result.register());
-		}
-		// Otherwise, determine whether the infallible primitive switched
-		// continuations and react accordingly.
-		else
-		{
-			// :: if (res == Result.SUCCESS) {
-			method.visitFieldInsn(
-				GETSTATIC,
-				getInternalName(Result.class),
-				"SUCCESS",
-				getDescriptor(Result.class));
-			final Label switchedContinuations = new Label();
-			method.visitJumpInsn(IF_ACMPNE, switchedContinuations);
-			// ::    result = interpreter.latestResult();
-			translator.loadInterpreter(method);
-			method.visitMethodInsn(
-				INVOKEVIRTUAL,
-				getInternalName(Interpreter.class),
-				"latestResult",
-				getMethodDescriptor(getType(AvailObject.class)),
-				false);
-			translator.store(method, result.register());
-			// ::    goto success;
-			final Label success = new Label();
-			method.visitJumpInsn(GOTO, success);
-			// :: } else {
-			method.visitLabel(switchedContinuations);
-			// We switched continuations, so we need to return control to the
-			// caller in order to honor the switch.
-			// ::    return null;
-			method.visitInsn(ACONST_NULL);
-			method.visitInsn(ARETURN);
-			// :: }
-			method.visitLabel(success);
-		}
+		primitive.primitive.generateJvmCode(
+			translator, method, arguments, result);
 	}
 }

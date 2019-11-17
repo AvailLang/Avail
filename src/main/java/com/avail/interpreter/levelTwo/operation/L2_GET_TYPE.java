@@ -33,6 +33,8 @@ package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.InstanceMetaDescriptor;
 import com.avail.descriptor.InstanceTypeDescriptor;
 import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
@@ -50,8 +52,10 @@ import java.util.Set;
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
+import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
+import static org.objectweb.asm.Opcodes.CHECKCAST;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Type.*;
 
@@ -155,16 +159,50 @@ extends L2Operation
 		final L2ReadBoxedOperand value = instruction.operand(0);
 		final L2WriteBoxedOperand type = instruction.operand(1);
 
-		// :: type = instanceTypeOfMetaOn(value);
 		translator.load(method, value.register());
-		method.visitMethodInsn(
-			INVOKESTATIC,
-			getInternalName(AbstractEnumerationTypeDescriptor.class),
-			"instanceTypeOrMetaOn",
-			getMethodDescriptor(
-				getType(A_Type.class),
-				getType(A_BasicObject.class)),
-			false);
+		// [value]
+		if (value.restriction().containedByType(NONTYPE.o()))
+		{
+			// The value will *never* be a type.
+			method.visitMethodInsn(
+				INVOKESTATIC,
+				getInternalName(InstanceTypeDescriptor.class),
+				"instanceType",
+				getMethodDescriptor(
+					getType(AvailObject.class),
+					getType(A_BasicObject.class)),
+				false);
+		}
+		else if (value.restriction().containedByType(topMeta()))
+		{
+			// The value will *always* be a type.
+			method.visitMethodInsn(
+				INVOKESTATIC,
+				getInternalName(InstanceMetaDescriptor.class),
+				"instanceMeta",
+				getMethodDescriptor(
+					getType(A_Type.class),
+					getType(A_Type.class)),
+				false);
+			// Strengthen to AvailObject
+			method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
+		}
+		else
+		{
+			// The value could be either a type or a non-type.
+			method.visitMethodInsn(
+				INVOKESTATIC,
+				getInternalName(
+					AbstractEnumerationTypeDescriptor.class),
+				"instanceTypeOrMetaOn",
+				getMethodDescriptor(
+					getType(A_Type.class),
+					getType(A_BasicObject.class)),
+				false);
+			// Strengthen to AvailObject
+			method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
+		}
+		// [type]
 		translator.store(method, type.register());
 	}
 }

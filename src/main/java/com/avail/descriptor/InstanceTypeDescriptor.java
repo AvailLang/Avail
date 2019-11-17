@@ -37,6 +37,7 @@ import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -719,6 +720,7 @@ extends AbstractEnumerationTypeDescriptor
 	 * @param instance The object whose type to represent.
 	 * @return An {@link AvailObject} representing the type of the argument.
 	 */
+	@ReferencedInGeneratedCode
 	public static AvailObject instanceType (final A_BasicObject instance)
 	{
 		assert !instance.isType();

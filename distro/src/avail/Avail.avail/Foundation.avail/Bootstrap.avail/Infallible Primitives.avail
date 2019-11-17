@@ -2565,7 +2565,7 @@ Primitive "literal token⇒_" is
  * @method "`«_::=_`»"
  * @param "name" "token"
  *        The name of the new constant.
- * @param "declaredType" "expression yielding any"
+ * @param "expression" "expression yielding any"
  *        The initialization expression for the new constant.
  * @returns "local constant phrase⇒⊤"
  *    The requested local constant declaration.
@@ -2573,7 +2573,7 @@ Primitive "literal token⇒_" is
 Primitive "`«_::=_`»" is
 [
 	name : token,
-	declaredType : expression yielding any
+	expression : expression yielding any
 |
 	Primitive CreateLocalConstantDeclaration;
 ] : local constant phrase;
@@ -3951,7 +3951,7 @@ Primitive "_⊆_" is
  * @method "_'s⁇type"
  * @param "value" "any"
  *        An arbitrary value.
- * @returns "(⊤)'s type"
+ * @returns "(any)'s type"
  *    The precise instance type of the supplied value.
  */
 Primitive "_'s⁇type" is
@@ -3959,7 +3959,7 @@ Primitive "_'s⁇type" is
 	value : any
 |
 	Primitive Type;
-] : type;
+] : any meta;
 
 /**
  * Compute and answer the type intersection of the two types. This is the most

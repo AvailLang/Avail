@@ -35,13 +35,17 @@ import com.avail.descriptor.A_RawFunction
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.InstanceMetaDescriptor.anyMeta
 import com.avail.descriptor.InstanceMetaDescriptor.instanceMeta
-import com.avail.descriptor.InstanceMetaDescriptor.topMeta
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.TypeDescriptor.Types.ANY
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operation.L2_GET_TYPE
+import com.avail.optimizer.L1Translator
+import com.avail.optimizer.L1Translator.CallSiteHelper
 
 /**
  * **Primitive:** Answer the type of the given object.
@@ -59,10 +63,30 @@ object P_Type : Primitive(1, CannotFail, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(ANY.o()),
-			topMeta())
+			anyMeta())
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
 		argumentTypes: List<A_Type>
 	): A_Type = instanceMeta(argumentTypes[0])
+
+	override fun tryToGenerateSpecialPrimitiveInvocation(
+		functionToCallReg: L2ReadBoxedOperand,
+		rawFunction: A_RawFunction,
+		arguments: List<L2ReadBoxedOperand>,
+		argumentTypes: List<A_Type>,
+		translator: L1Translator,
+		callSiteHelper: CallSiteHelper): Boolean
+	{
+		// Note that we exclude the values ⊥ and ⊤, as these are not the exact
+		// types of any objects.
+		val writer = translator.generator.boxedWriteTemp(
+			arguments[0].restriction().metaRestriction())
+		translator.addInstruction(
+			L2_GET_TYPE.instance,
+			arguments[0],
+			writer)
+		callSiteHelper.useAnswer(translator.readBoxed(writer))
+		return true
+	}
 }

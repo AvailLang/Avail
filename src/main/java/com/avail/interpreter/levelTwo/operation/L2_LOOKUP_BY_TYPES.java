@@ -42,7 +42,12 @@ import com.avail.exceptions.AvailException;
 import com.avail.exceptions.MethodDefinitionException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.operand.*;
+import com.avail.interpreter.levelTwo.operand.L2PcOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
+import com.avail.interpreter.levelTwo.operand.L2SelectorOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.RegisterSet;
@@ -199,7 +204,8 @@ extends L2ControlFlowOperation
 				.map(
 					argRegister -> registerSet.hasTypeAt(argRegister.register())
 						? registerSet.typeAt(argRegister.register())
-						: ANY.o()).map(type -> restrictionForType(type, BOXED))
+						: ANY.o())
+				.map(type -> restrictionForType(type, BOXED))
 				.collect(toList());
 		// Figure out what could be invoked at runtime given these argument
 		// type constraints.

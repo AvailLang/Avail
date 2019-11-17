@@ -63,7 +63,6 @@ import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
 import com.avail.interpreter.primitive.general.P_Equality;
-import com.avail.interpreter.primitive.types.P_IsSubtypeOf;
 import com.avail.optimizer.values.Frame;
 import com.avail.optimizer.values.L2SemanticValue;
 import com.avail.performance.Statistic;
@@ -73,7 +72,12 @@ import com.avail.utility.Pair;
 import com.avail.utility.evaluation.Continuation0;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 
 import static com.avail.AvailRuntime.HookType.*;
@@ -1591,7 +1595,7 @@ public final class L1Translator
 		// a pretty rare case.
 		final A_Type argMeta = instanceMeta(argRestriction.type);
 		final L2WriteBoxedOperand argTypeWrite =
-			generator.boxedWriteTemp(restrictionForType(argMeta, BOXED));
+			generator.boxedWriteTemp(argRestriction.metaRestriction());
 		addInstruction(L2_GET_TYPE.instance, argRead, argTypeWrite);
 		final L2ReadBoxedOperand superUnionReg =
 			generator.boxedConstant(superUnionElementType);
@@ -1690,47 +1694,81 @@ public final class L1Translator
 						constantBool ? failEdge : passEdge);
 					return;
 				}
-				else if (primitive == P_IsSubtypeOf.INSTANCE)
+				else if (boolSource.operation()
+					== L2_JUMP_IF_SUBTYPE_OF_CONSTANT.instance)
 				{
 					// Instance-of testing is done by extracting the type and
 					// testing if it's a subtype.  See if the operand to the
 					// is-subtype test is a get-type instruction.
-					final List<L2ReadBoxedOperand> args =
-						L2_RUN_INFALLIBLE_PRIMITIVE.argsOf(boolSource);
-					final @Nullable A_BasicObject constantType =
-						args.get(1).constantOrNull();
-					if (constantType != null)
+					final L2ReadBoxedOperand firstTypeOperand =
+						boolSource.operand(0);
+					final L2ConstantOperand secondConstantOperand =
+						boolSource.operand(1);
+					final L2Instruction firstTypeSource =
+						firstTypeOperand.definitionSkippingMoves(true);
+					if (firstTypeSource.operation() == L2_GET_TYPE.instance)
 					{
-						final L2Instruction typeSource =
-							args.get(0).definitionSkippingMoves(true);
-						if (typeSource.operation() == L2_GET_TYPE.instance)
-						{
-							// There's a get-type followed by an is-subtype
-							// followed by a compare-and-branch of the result
-							// against a constant boolean.  Replace with a
-							// branch-if-instance.
-							final L2ReadBoxedOperand valueSource =
-								L2_GET_TYPE.sourceValueOf(typeSource);
-							addInstruction(
-								L2_JUMP_IF_KIND_OF_CONSTANT.instance,
-								valueSource,
-								new L2ConstantOperand(constantType),
-								constantBool ? passEdge : failEdge,
-								constantBool ? failEdge : passEdge);
-							return;
-						}
-						// Perform a branch-if-is-subtype-of instead of checking
-						// whether the Avail boolean is true or false.
+						// There's a get-type followed by an is-subtype
+						// followed by a compare-and-branch of the result
+						// against a constant boolean.  Replace with a
+						// branch-if-kind.
+						final L2ReadBoxedOperand valueSource =
+							L2_GET_TYPE.sourceValueOf(firstTypeSource);
 						addInstruction(
-							L2_JUMP_IF_SUBTYPE_OF_CONSTANT.instance,
-							args.get(0),
-							new L2ConstantOperand(constantType),
+							L2_JUMP_IF_KIND_OF_CONSTANT.instance,
+							valueSource,
+							secondConstantOperand,
 							constantBool ? passEdge : failEdge,
 							constantBool ? failEdge : passEdge);
 						return;
 					}
-					// We don't have a special branch that compares two
-					// non-constant types, so fall through.
+					// Perform a branch-if-is-subtype-of instead of checking
+					// whether the Avail boolean is true or false.
+					addInstruction(
+						L2_JUMP_IF_SUBTYPE_OF_CONSTANT.instance,
+						firstTypeOperand,
+						secondConstantOperand,
+						constantBool ? passEdge : failEdge,
+						constantBool ? failEdge : passEdge);
+					return;
+				}
+				else if (boolSource.operation()
+					== L2_JUMP_IF_SUBTYPE_OF_OBJECT.instance)
+				{
+					// Instance-of testing is done by extracting the type and
+					// testing if it's a subtype.  See if the operand to the
+					// is-subtype test is a get-type instruction.
+					final L2ReadBoxedOperand firstTypeOperand =
+						boolSource.operand(0);
+					final L2ReadBoxedOperand secondTypeOperand =
+						boolSource.operand(0);
+					final L2Instruction firstTypeSource =
+						firstTypeOperand.definitionSkippingMoves(true);
+					if (firstTypeSource.operation() == L2_GET_TYPE.instance)
+					{
+						// There's a get-type followed by an is-subtype
+						// followed by a compare-and-branch of the result
+						// against a constant boolean.  Replace with a
+						// branch-if-kind.
+						final L2ReadBoxedOperand valueSource =
+							L2_GET_TYPE.sourceValueOf(firstTypeSource);
+						addInstruction(
+							L2_JUMP_IF_KIND_OF_OBJECT.instance,
+							valueSource,
+							secondTypeOperand,
+							constantBool ? passEdge : failEdge,
+							constantBool ? failEdge : passEdge);
+						return;
+					}
+					// Perform a branch-if-is-subtype-of instead of checking
+					// whether the Avail boolean is true or false.
+					addInstruction(
+						L2_JUMP_IF_SUBTYPE_OF_OBJECT.instance,
+						firstTypeOperand,
+						secondTypeOperand,
+						constantBool ? passEdge : failEdge,
+						constantBool ? failEdge : passEdge);
+					return;
 				}
 				// TODO MvG - We could check for other special cases here, like
 				// numeric less-than.  For now, fall through to compare the

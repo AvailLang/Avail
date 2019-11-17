@@ -41,9 +41,12 @@ import com.avail.descriptor.atoms.AtomDescriptor.*
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operation.*
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
+import com.avail.optimizer.L2Generator.edgeTo
 
 /**
  * **Primitive:** Answer whether type1 is a subtype of type2 (or equal).
@@ -71,7 +74,6 @@ object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 	 * Some identities apply.  The terms x and y are the values being compared
 	 * (not necessarily known statically), and x' and y' are their static types
 	 * (making them metatypes).
-	 *
 	 *
 	 *  1. The test is always true if the exact type y1 is known (not a
 	 * subtype) and x' ⊆ y1'.
@@ -136,12 +138,59 @@ object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 			return true
 		}
 
-		return super.tryToGenerateSpecialPrimitiveInvocation(
-			functionToCallReg,
-			rawFunction,
-			arguments,
-			argumentTypes,
-			translator,
-			callSiteHelper)
+		val ifSubtype = translator.generator.createBasicBlock("if subtype")
+		val ifNotSubtype = translator.generator.createBasicBlock("not subtype")
+
+		val xDef = xTypeReg.definitionSkippingMoves(true)
+		if (xDef.operation() == L2_GET_TYPE.instance)
+		{
+			// X is an L2_GET_TYPE of some other register.
+			// Convert this into an L2_JUMP_IF_KIND_OF_OBJECT/CONSTANT, but
+			// use the value that was provided to L2_GET_TYPE.
+			val xInstanceRead = L2_GET_TYPE.sourceValueOf(xDef)
+			if (constantYType !== null)
+			{
+				translator.addInstruction(
+					L2_JUMP_IF_KIND_OF_CONSTANT.instance,
+					xInstanceRead,
+					L2ConstantOperand(constantYType),
+					edgeTo(ifSubtype),
+					edgeTo(ifNotSubtype))
+			}
+			else
+			{
+				translator.addInstruction(
+					L2_JUMP_IF_KIND_OF_OBJECT.instance,
+					xInstanceRead,
+					yTypeReg,
+					edgeTo(ifSubtype),
+					edgeTo(ifNotSubtype))
+			}
+		}
+		else if (constantYType !== null)
+		{
+			translator.addInstruction(
+				L2_JUMP_IF_SUBTYPE_OF_CONSTANT.instance,
+				xTypeReg,
+				L2ConstantOperand(constantYType),
+				edgeTo(ifSubtype),
+				edgeTo(ifNotSubtype))
+		}
+		else
+		{
+			translator.addInstruction(
+				L2_JUMP_IF_SUBTYPE_OF_OBJECT.instance,
+				xTypeReg,
+				yTypeReg,
+				edgeTo(ifSubtype),
+				edgeTo(ifNotSubtype))
+		}
+		translator.generator.startBlock(ifSubtype)
+		callSiteHelper.useAnswer(
+			translator.generator.boxedConstant(trueObject()))
+		translator.generator.startBlock(ifNotSubtype)
+		callSiteHelper.useAnswer(
+			translator.generator.boxedConstant(falseObject()))
+		return true
 	}
 }

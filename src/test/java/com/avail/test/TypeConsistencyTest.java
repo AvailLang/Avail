@@ -50,6 +50,7 @@ import java.util.*;
 
 import static com.avail.descriptor.BottomPojoTypeDescriptor.pojoBottom;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.BottomTypeDescriptor.bottomMeta;
 import static com.avail.descriptor.ContinuationTypeDescriptor.continuationMeta;
 import static com.avail.descriptor.FiberTypeDescriptor.Types;
 import static com.avail.descriptor.FiberTypeDescriptor.*;
@@ -1009,7 +1010,7 @@ public class TypeConsistencyTest
 		{
 			@Override A_Type get ()
 			{
-				return instanceMeta(bottom());
+				return bottomMeta();
 			}
 		};
 

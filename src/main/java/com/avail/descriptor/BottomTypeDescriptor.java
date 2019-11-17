@@ -45,6 +45,7 @@ import java.util.List;
 
 import static com.avail.descriptor.InfinityDescriptor.negativeInfinity;
 import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
+import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
 import static com.avail.descriptor.IntegerDescriptor.zero;
 import static com.avail.descriptor.SetDescriptor.emptySet;
@@ -627,5 +628,18 @@ extends AbstractEnumerationTypeDescriptor
 	public static A_Type bottom ()
 	{
 		return bottom;
+	}
+
+	/** The meta-type with exactly one instance, {@link #bottom()}. */
+	private static final A_Type bottomMeta = instanceMeta(bottom).makeShared();
+
+	/**
+	 * Answer the meta-type whose sole instance is the type {@link #bottom()}.
+	 *
+	 * @return The meta-type which is {@code bottom}'s type.
+	 */
+	public static A_Type bottomMeta ()
+	{
+		return bottomMeta;
 	}
 }
