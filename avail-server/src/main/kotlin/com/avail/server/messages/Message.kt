@@ -49,7 +49,7 @@ class Message
 
 	/**
 	 * Should the [channel][AvailServerChannel] be
-	 * [closed][AvailServerChannel.close] after transmitting this
+	 * [closed][AvailServerChannel.scheduleClose] after transmitting this
 	 * [message][Message]?
 	 */
 	val closeAfterSending: Boolean
@@ -73,7 +73,7 @@ class Message
 	 *   The [content][String].
 	 * @param closeAfterSending
 	 *   `true` if the [channel][AvailServerChannel] should be
-	 *   [closed][AvailServerChannel.close] after transmitting this message.
+	 *   [closed][AvailServerChannel.scheduleClose] after transmitting this message.
 	 */
 	constructor(content: String, closeAfterSending: Boolean)
 	{

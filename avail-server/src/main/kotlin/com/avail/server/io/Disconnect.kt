@@ -33,6 +33,8 @@
 package com.avail.server.io
 
 import com.avail.server.messages.Message
+import java.util.logging.Level
+import java.util.logging.Logger
 
 /**
  * A `DisconnectOrigin` is an enum that specifies whether it was the client or
@@ -72,6 +74,57 @@ interface DisconnectReason
 	 * Nonzero `codes` are reserved for application specific implementations.
 	 */
 	val code: Int
+
+	/**
+	 * `true` indicates the disconnect occurred normally; `false` otherwise.
+	 */
+	val normalDisconnect: Boolean get() = false
+
+	/**
+	 * The loggable String describing the reason for the disconnect.
+	 */
+	val logEntry: String get() = "$origin($code): ${javaClass.simpleName}"
+
+	/**
+	 * Log this [DisconnectReason] to the provided [Logger] at the provided
+	 * [Level].
+	 *
+	 * @param logger
+	 *   The `Logger` to log this `Disconnect` to.
+	 * @param level
+	 *   The `Level` of the log entry.
+	 * @param msg
+	 *   An optional custom message desired for logging. *Defaults to `null`.*
+	 * @param e
+	 *   An optional [Throwable] that can be logged.
+	 */
+	fun log (
+		logger: Logger,
+		level: Level,
+		msg: String? = null,
+		e: Throwable? = null)
+	{
+		val message = msg?.let {
+			"$logEntry [$it]"
+		} ?: logEntry
+		e?.let {
+			logger.log(level, message, e)
+		} ?: logger.log(level, message)
+	}
+}
+
+/**
+ * A `RunCompletionDisconnect` is a [DisconnectReason] that specifies that the
+ * disconnect originated from the server due to a running application ending
+ * normally.
+ *
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ */
+object RunCompletionDisconnect: DisconnectReason
+{
+	override val origin get () = DisconnectOrigin.SERVER_ORIGIN
+	override val code get () = -1
+	override val normalDisconnect: Boolean get() = true
 }
 
 /**
@@ -83,7 +136,7 @@ interface DisconnectReason
 object UnspecifiedDisconnectReason: DisconnectReason
 {
 	override val origin get () = DisconnectOrigin.SERVER_ORIGIN
-	override val code get () = -1
+	override val code get () = -2
 }
 
 /**
@@ -95,7 +148,7 @@ object UnspecifiedDisconnectReason: DisconnectReason
 object ClientDisconnect: DisconnectReason
 {
 	override val origin get () = DisconnectOrigin.CLIENT_ORIGIN
-	override val code get () = -2
+	override val code get () = -3
 }
 
 /**
@@ -108,7 +161,20 @@ object ClientDisconnect: DisconnectReason
 object HeartbeatFailureDisconnect: DisconnectReason
 {
 	override val origin get () = DisconnectOrigin.SERVER_ORIGIN
-	override val code get () = -3
+	override val code get () = -4
+}
+
+/**
+ * A `RunFailureDisconnect` is a [DisconnectReason] that specifies that the
+ * disconnect originated from the server due to a application failing to run
+ * normally.
+ *
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ */
+object RunFailureDisconnect: DisconnectReason
+{
+	override val origin get () = DisconnectOrigin.SERVER_ORIGIN
+	override val code get () = -5
 }
 
 /**
@@ -121,5 +187,50 @@ object HeartbeatFailureDisconnect: DisconnectReason
 object ServerMessageDisconnect: DisconnectReason
 {
 	override val origin get () = DisconnectOrigin.SERVER_ORIGIN
-	override val code get () = -4
+	override val code get () = -6
+	override val normalDisconnect: Boolean get() = true
+}
+
+/**
+ * A `MismatchDisconnect` is a [DisconnectReason] that indicates that the
+ * disconnect originated from the server due to the client not being compatible
+ * with the server.
+ *
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ */
+object MismatchDisconnect: DisconnectReason
+{
+	override val origin get () = DisconnectOrigin.SERVER_ORIGIN
+	override val code get () = -7
+}
+
+/**
+ * A `CommunicationErrorDisconnect` is a [DisconnectReason] that indicates that
+ * the disconnect originated from the server due to an exception on the server.
+ *
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ */
+class CommunicationErrorDisconnect constructor(val e: Throwable?)
+	: DisconnectReason
+{
+	override val origin get () = DisconnectOrigin.SERVER_ORIGIN
+	override val code get () = -8
+
+	override val logEntry: String
+		get() = e?.let {
+			"${super.logEntry} - ${it.message}"
+		} ?: super.logEntry
+}
+
+/**
+ * A `BadMessageDisconnect` is a [DisconnectReason] that indicates that the
+ * disconnect originated from the server due to a bad request/message from the
+ * client.
+ *
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ */
+object BadMessageDisconnect: DisconnectReason
+{
+	override val origin get () = DisconnectOrigin.SERVER_ORIGIN
+	override val code get () = -9
 }

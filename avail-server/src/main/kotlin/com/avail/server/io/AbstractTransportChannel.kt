@@ -49,23 +49,24 @@ import java.util.*
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  * @param T
  *   The type of the enclosed channel.
+ *
+ * @constructor
+ * Construct an [AbstractTransportChannel].
+ *
+ * @param closeAction
+ *   The custom action that is to be called when the this channel is closed in
+ *   order to support implementation-specific requirements after the closing of
+ *   this channel.
  */
-abstract class AbstractTransportChannel<T> : AvailServerChannel()
+abstract class AbstractTransportChannel<T> constructor(
+		closeAction: (DisconnectReason, AvailServerChannel) -> Unit)
+	: AvailServerChannel(closeAction)
 {
 	/**
 	 * The [Heartbeat] used by this [AbstractTransportChannel] to track
 	 * connectivity.
 	 */
 	open val heartbeat: Heartbeat = NoHeartbeat
-
-	/**
-	 * A function that accepts a [DisconnectReason] and the underlying
-	 * [channel][AbstractTransportChannel] and answers `Unit` that is to be
-	 * called when the channel is closed.
-	 *
-	 * Do nothing by default.
-	 */
-	open val onChannelCloseAction: (DisconnectReason) -> Unit = {}
 
 	/**
 	 * A [queue][Deque] of [messages][Message] awaiting transmission by the
@@ -112,7 +113,7 @@ abstract class AbstractTransportChannel<T> : AvailServerChannel()
 	 * has not been closed already. Implementations should also cancel the
 	 * [heartbeat].
 	 */
-	abstract fun closeTransport ()
+	internal abstract fun closeTransport ()
 
 	/**
 	 * The [server][AvailServer] that created this
@@ -122,6 +123,12 @@ abstract class AbstractTransportChannel<T> : AvailServerChannel()
 
 	/** The maximum send queue depth for the message queue. */
 	protected abstract val maximumSendQueueDepth: Int
+
+	override fun closeImmediately(reason: DisconnectReason)
+	{
+		channelCloseHandler.reason = reason
+		closeTransport()
+	}
 
 	/**
 	 * Begin transmission of the enqueued messages, starting with the specified
@@ -150,7 +157,6 @@ abstract class AbstractTransportChannel<T> : AvailServerChannel()
 						if (sentMessage.closeAfterSending)
 						{
 							adapter.sendClose(this, ServerMessageDisconnect)
-							onChannelCloseAction(ServerMessageDisconnect)
 							return@recurse
 						}
 						// Remove the oldest sender, but release the monitor
