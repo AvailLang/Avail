@@ -592,12 +592,12 @@ class AvailServer constructor(
 				"Channel [$oldId] upgraded to [$upgradedChannel]")
 		}
 		channel.enqueueMessageThen(
-			newIOUpgradeRequestMessage(channel, command, uuid),
+			newUpgradeRequestMessage(channel, command, uuid),
 			afterEnqueuing)
 	}
 
 	/**
-	 * Request new binary I/O-upgraded [channels][AvailServerChannel].
+	 * Request new file editing [channels][AvailServerChannel].
 	 *
 	 * @param channel
 	 *   The [channel][AvailServerChannel] on which the
@@ -612,7 +612,7 @@ class AvailServer constructor(
 	 *   What to do when sufficient processing has occurred (and the
 	 *   `AvailServer` wishes to begin receiving messages again).
 	 */
-	private fun requestIOBinaryUpgradesThen(
+	fun requestEditFileUpgradesThen(
 		channel: AvailServerChannel,
 		command: CommandMessage,
 		afterUpgraded: (AvailServerChannel)->Unit,
@@ -625,7 +625,7 @@ class AvailServer constructor(
 			val oldId = upgradedChannel.id
 			upgradedChannel.id = receivedUUID
 			upgradedChannel.parentId = channel.id
-			upgradedChannel.upgradeToBinaryChannel()
+			upgradedChannel.state = BINARY
 			resumeUpgrader()
 			afterUpgraded(upgradedChannel)
 			logger.log(
@@ -633,7 +633,7 @@ class AvailServer constructor(
 				"Channel [$oldId] upgraded to [$upgradedChannel]")
 		}
 		channel.enqueueMessageThen(
-			newIOUpgradeRequestMessage(channel, command, uuid),
+			newUpgradeRequestMessage(channel, command, uuid),
 			afterEnqueuing)
 	}
 
@@ -1144,8 +1144,8 @@ class AvailServer constructor(
 		}
 
 		/**
-		 * Answer an I/O upgrade request [message][Message] that incorporates
-		 * the specified [UUID].
+		 * Answer an upgrade request [message][Message] that incorporates the
+		 * specified [UUID].
 		 *
 		 * @param channel
 		 *   The [AvailServerChannel] requesting the upgrade.
@@ -1157,7 +1157,7 @@ class AvailServer constructor(
 		 * @return
 		 *   A message.
 		 */
-		internal fun newIOUpgradeRequestMessage(
+		internal fun newUpgradeRequestMessage(
 			channel: AvailServerChannel,
 			command: CommandMessage,
 			uuid: UUID): Message

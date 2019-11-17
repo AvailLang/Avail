@@ -270,16 +270,6 @@ abstract class AvailServerChannel constructor(
 	}
 
 	/**
-	 * Upgrade the [channel][AvailServerChannel] for general binary data
-	 * transmission.
-	 */
-	fun upgradeToBinaryChannel()
-	{
-		state = ProtocolState.BINARY
-		// TODO [RAA] what else?
-	}
-
-	/**
 	 * Record an upgrade request instigated by this
 	 * [channel][AvailServerChannel].
 	 *
