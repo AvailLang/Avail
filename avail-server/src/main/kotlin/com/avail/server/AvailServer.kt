@@ -47,7 +47,7 @@ import com.avail.server.io.AvailServerChannel
 import com.avail.server.io.AvailServerChannel.ProtocolState.COMMAND
 import com.avail.server.io.AvailServerChannel.ProtocolState.ELIGIBLE_FOR_UPGRADE
 import com.avail.server.io.AvailServerChannel.ProtocolState.BINARY
-import com.avail.server.io.AvailServerChannel.ProtocolState.IO_TEXT
+import com.avail.server.io.AvailServerChannel.ProtocolState.IO
 import com.avail.server.io.AvailServerChannel.ProtocolState.VERSION_NEGOTIATION
 import com.avail.server.io.RunCompletionDisconnect
 import com.avail.server.io.RunFailureDisconnect
@@ -1252,7 +1252,7 @@ class AvailServer constructor(
 						channel.enqueueMessageThen(rebuttal, receiveNext)
 					}
 				}
-				IO_TEXT ->
+				IO ->
 				{
 					val input =
 						channel.textInterface!!.inputChannel as

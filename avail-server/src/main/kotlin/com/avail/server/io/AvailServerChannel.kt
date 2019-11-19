@@ -189,7 +189,7 @@ abstract class AvailServerChannel constructor(
 		ELIGIBLE_FOR_UPGRADE
 		{
 			override val allowedSuccessorStates: Set<ProtocolState>
-				get() = EnumSet.of(COMMAND, IO_TEXT, BINARY)
+				get() = EnumSet.of(COMMAND, IO, BINARY)
 			override val eligibleForUpgrade get() = true
 		},
 
@@ -207,7 +207,7 @@ abstract class AvailServerChannel constructor(
 		 * The [channel][AvailServerChannel] should henceforth be used for
 		 * general text I/O.
 		 */
-		IO_TEXT
+		IO
 		{
 			override val allowedSuccessorStates: Set<ProtocolState>
 				get() = emptySet()
@@ -250,8 +250,8 @@ abstract class AvailServerChannel constructor(
 		open val generalTextIO get() = false
 
 		/**
-		 * Does this [state][ProtocolState] indicate a capability to do general
-		 * binary I/O? `true` if the state indicates the capability, `false`
+		 * Does this [state][ProtocolState] indicate a capability to transmit
+		 * binary? `true` if the state indicates the capability, `false`
 		 * otherwise.
 		 */
 		open val generalBinary get() = false
@@ -262,7 +262,7 @@ abstract class AvailServerChannel constructor(
 	 */
 	fun upgradeToIOTextChannel()
 	{
-		state = ProtocolState.IO_TEXT
+		state = ProtocolState.IO
 		textInterface = TextInterface(
 			ServerInputChannel(this),
 			ServerOutputChannel(this),
