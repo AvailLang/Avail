@@ -2094,7 +2094,8 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 			buffer.put(utf8)
 			channel.channelCloseHandler.reason = reason
 			sendFrame(channel, Opcode.CLOSE, buffer) {
-				channel.scheduleClose(CommunicationErrorDisconnect(it)) }
+				channel.scheduleClose(CommunicationErrorDisconnect(it))
+			}
 		}
 	}
 }
