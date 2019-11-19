@@ -44,9 +44,10 @@ import com.avail.server.configuration.AvailServerConfiguration
 import com.avail.server.configuration.CommandLineConfigurator
 import com.avail.server.configuration.EnvironmentConfigurator
 import com.avail.server.io.AvailServerChannel
-import com.avail.server.io.AvailServerChannel.ProtocolState
 import com.avail.server.io.AvailServerChannel.ProtocolState.COMMAND
 import com.avail.server.io.AvailServerChannel.ProtocolState.ELIGIBLE_FOR_UPGRADE
+import com.avail.server.io.AvailServerChannel.ProtocolState.BINARY
+import com.avail.server.io.AvailServerChannel.ProtocolState.IO
 import com.avail.server.io.AvailServerChannel.ProtocolState.VERSION_NEGOTIATION
 import com.avail.server.io.RunCompletionDisconnect
 import com.avail.server.io.RunFailureDisconnect
@@ -182,7 +183,7 @@ class AvailServer constructor(
 		continuation: ()->Unit)
 	{
 		assert(command.command === Command.MODULE_ROOTS)
-		val message = newSuccessMessage(command) { writer ->
+		val message = newSuccessMessage(channel, command) { writer ->
 			runtime.moduleRoots().writeOn(writer)
 		}
 		channel.enqueueMessageThen(message, continuation)
@@ -206,7 +207,7 @@ class AvailServer constructor(
 		continuation: ()->Unit)
 	{
 		assert(command.command === Command.MODULE_ROOT_PATHS)
-		val message = newSuccessMessage(command) { writer ->
+		val message = newSuccessMessage(channel, command) { writer ->
 			runtime.moduleRoots().writePathsOn(writer)
 		}
 		channel.enqueueMessageThen(message, continuation)
@@ -230,7 +231,7 @@ class AvailServer constructor(
 		continuation: ()->Unit)
 	{
 		assert(command.command === Command.MODULE_ROOTS_PATH)
-		val message = newSuccessMessage(command) { writer ->
+		val message = newSuccessMessage(channel, command) { writer ->
 			writer.write(runtime.moduleRoots().modulePath)
 		}
 		channel.enqueueMessageThen(message, continuation)
@@ -409,7 +410,7 @@ class AvailServer constructor(
 		continuation: ()->Unit)
 	{
 		assert(command.command === Command.SOURCE_MODULES)
-		val message = newSuccessMessage(command) { writer ->
+		val message = newSuccessMessage(channel, command) { writer ->
 			val roots = runtime.moduleRoots()
 			writer.writeArray {
 				for (root in roots)
@@ -457,7 +458,7 @@ class AvailServer constructor(
 		continuation: ()->Unit)
 	{
 		assert(command.command === Command.ENTRY_POINTS)
-		val message = newSuccessMessage(command) { writer ->
+		val message = newSuccessMessage(channel, command) { writer ->
 			val map = synchronizedMap(HashMap<String, List<String>>())
 			builder.traceDirectories { name, version, after ->
 				val entryPoints = version.getEntryPoints()
@@ -509,11 +510,11 @@ class AvailServer constructor(
 			{
 				root.clearRepository()
 			}
-			newSimpleSuccessMessage(command)
+			newSimpleSuccessMessage(channel, command)
 		}
 		catch (e: IndexedFileException)
 		{
-			newErrorMessage(command, e.localizedMessage)
+			newErrorMessage(channel, command, e.localizedMessage)
 		}
 		channel.enqueueMessageThen(message, continuation)
 	}
@@ -537,7 +538,7 @@ class AvailServer constructor(
 		if (!channel.state.eligibleForUpgrade)
 		{
 			val message = newErrorMessage(
-				command, "channel not eligible for upgrade")
+				channel, command, "channel not eligible for upgrade")
 			channel.enqueueMessageThen(message, continuation)
 			return
 		}
@@ -547,7 +548,7 @@ class AvailServer constructor(
 		if (upgrader == null)
 		{
 			val message = newErrorMessage(
-				command, "no such upgrade")
+				channel, command, "no such upgrade")
 			channel.enqueueMessageThen(message, continuation)
 			return
 		}
@@ -555,7 +556,7 @@ class AvailServer constructor(
 	}
 
 	/**
-	 * Request new I/O-upgraded [channels][AvailServerChannel].
+	 * Request new text I/O-upgraded [channels][AvailServerChannel].
 	 *
 	 * @param channel
 	 *   The [channel][AvailServerChannel] on which the
@@ -570,7 +571,7 @@ class AvailServer constructor(
 	 *   What to do when sufficient processing has occurred (and the
 	 *   `AvailServer` wishes to begin receiving messages again).
 	 */
-	private fun requestUpgradesThen(
+	private fun requestIOTextUpgradesThen(
 		channel: AvailServerChannel,
 		command: CommandMessage,
 		afterUpgraded: (AvailServerChannel)->Unit,
@@ -591,7 +592,48 @@ class AvailServer constructor(
 				"Channel [$oldId] upgraded to [$upgradedChannel]")
 		}
 		channel.enqueueMessageThen(
-			newIOUpgradeRequestMessage(command, uuid),
+			newUpgradeRequestMessage(channel, command, uuid),
+			afterEnqueuing)
+	}
+
+	/**
+	 * Request new file editing [channels][AvailServerChannel].
+	 *
+	 * @param channel
+	 *   The [channel][AvailServerChannel] on which the
+	 *   [response][CommandMessage] should be sent.
+	 * @param command
+	 *   The [command][CommandMessage] on whose behalf the upgrade should be
+	 *   requested.
+	 * @param afterUpgraded
+	 *   What to do after the upgrades have been completed by the client. The
+	 *   argument is the upgraded channel.
+	 * @param afterEnqueuing
+	 *   What to do when sufficient processing has occurred (and the
+	 *   `AvailServer` wishes to begin receiving messages again).
+	 */
+	fun requestEditFileUpgradesThen(
+		channel: AvailServerChannel,
+		command: CommandMessage,
+		afterUpgraded: (AvailServerChannel)->Unit,
+		afterEnqueuing: ()->Unit)
+	{
+		val uuid = UUID.randomUUID()
+		recordUpgradeRequest(channel,uuid) {
+			upgradedChannel, receivedUUID, resumeUpgrader ->
+			assert(uuid == receivedUUID)
+			val oldId = upgradedChannel.id
+			upgradedChannel.id = receivedUUID
+			upgradedChannel.parentId = channel.id
+			upgradedChannel.state = BINARY
+			resumeUpgrader()
+			afterUpgraded(upgradedChannel)
+			logger.log(
+				Level.FINEST,
+				"Channel [$oldId] upgraded to [$upgradedChannel]")
+		}
+		channel.enqueueMessageThen(
+			newUpgradeRequestMessage(channel, command, uuid),
 			afterEnqueuing)
 	}
 
@@ -613,7 +655,7 @@ class AvailServer constructor(
 		command: LoadModuleCommandMessage,
 		continuation: ()->Unit)
 	{
-		requestUpgradesThen(
+		requestIOTextUpgradesThen(
 			channel,
 			command,
 			{ ioChannel -> loadModule(channel, ioChannel, command) },
@@ -640,7 +682,7 @@ class AvailServer constructor(
 		assert(ioChannel.state.generalTextIO)
 		val nothing = {}
 		channel.enqueueMessageThen(
-			newSuccessMessage(command) {writer -> writer.write("begin")},
+			newSuccessMessage(channel, command) { writer -> writer.write("begin")},
 			nothing)
 		val localUpdates = ArrayList<JSONWriter>()
 		val globalUpdates = ArrayList<JSONWriter>()
@@ -660,7 +702,7 @@ class AvailServer constructor(
 				}
 				if (locals.isNotEmpty() && globals.isNotEmpty())
 				{
-					val message = newSuccessMessage(command) { writer ->
+					val message = newSuccessMessage(channel, command) { writer ->
 						writer.writeObject {
 							writer.write("local")
 							writer.writeArray {
@@ -719,7 +761,7 @@ class AvailServer constructor(
 		assert(localUpdates.isEmpty())
 		assert(globalUpdates.isEmpty())
 		channel.enqueueMessageThen(
-			newSuccessMessage(command) { writer -> writer.write("end") }
+			newSuccessMessage(channel, command) { writer -> writer.write("end") }
 		) {
 			ioChannel.scheduleClose(ServerMessageDisconnect)
 		}
@@ -751,11 +793,12 @@ class AvailServer constructor(
 		}
 		catch (e: UnresolvedDependencyException)
 		{
-			val message = newErrorMessage(command, e.toString())
+			val message = newErrorMessage(
+				channel, command, e.toString())
 			channel.enqueueMessageThen(message) {}
 			return
 		}
-		requestUpgradesThen(
+		requestIOTextUpgradesThen(
 			channel,
 			command,
 			{ioChannel -> unloadModule(channel, ioChannel, command, moduleName)},
@@ -781,7 +824,7 @@ class AvailServer constructor(
 		continuation: ()->Unit)
 	{
 		assert(command.command === Command.UNLOAD_ALL_MODULES)
-		requestUpgradesThen(
+		requestIOTextUpgradesThen(
 			channel,
 			command,
 			{ ioChannel -> unloadModule(channel, ioChannel, command, null) },
@@ -812,14 +855,14 @@ class AvailServer constructor(
 		assert(!channel.state.generalTextIO)
 		assert(ioChannel.state.generalTextIO)
 		channel.enqueueMessageThen(
-			newSuccessMessage(command) { writer -> writer.write("begin") }
+			newSuccessMessage(channel, command) { writer -> writer.write("begin") }
 		) {
 			// Do nothing.
 		}
 		builder.textInterface = ioChannel.textInterface!!
 		builder.unloadTarget(target)
 		channel.enqueueMessageThen(
-			newSuccessMessage(command) { writer -> writer.write("end") }
+			newSuccessMessage(channel, command) { writer -> writer.write("end") }
 		) {
 			ioChannel.scheduleClose(ServerMessageDisconnect)
 		}
@@ -843,7 +886,7 @@ class AvailServer constructor(
 		command: RunEntryPointCommandMessage,
 		continuation: ()->Unit)
 	{
-		requestUpgradesThen(
+		requestIOTextUpgradesThen(
 			channel,
 			command,
 			{ ioChannel -> run(channel, ioChannel, command) },
@@ -877,7 +920,7 @@ class AvailServer constructor(
 			{ value, cleanup ->
 				if (value.equalsNil())
 				{
-					val message = newSuccessMessage(command) { writer ->
+					val message = newSuccessMessage(channel, command) { writer ->
 						writer.writeObject {
 							writer.write("expression")
 							writer.write(command.expression)
@@ -897,7 +940,7 @@ class AvailServer constructor(
 					ioChannel.textInterface!!,
 					value
 				) { string ->
-					val message = newSuccessMessage(command) { writer ->
+					val message = newSuccessMessage(channel, command) { writer ->
 						writer.writeObject {
 							writer.write("expression")
 							writer.write(command.expression)
@@ -938,7 +981,7 @@ class AvailServer constructor(
 	{
 		assert(command.command === Command.ALL_FIBERS)
 		val allFibers = runtime.allFibers()
-		val message = newSuccessMessage(command) { writer ->
+		val message = newSuccessMessage(channel, command) { writer ->
 			writer.writeArray {
 				for (fiber in allFibers)
 				{
@@ -1003,8 +1046,7 @@ class AvailServer constructor(
 		 *   A [JSONWriter].
 		 */
 		private fun writeCommandIdentifierOn(
-			commandId: Long,
-			writer: JSONWriter)
+			commandId: Long, writer: JSONWriter)
 		{
 			writer.write("id")
 			writer.write(commandId)
@@ -1014,6 +1056,8 @@ class AvailServer constructor(
 		 * Answer an error [message][Message] that incorporates the specified
 		 * reason.
 		 *
+		 * @param channel
+		 *   The [AvailServerChannel] the message will be sent on.
 		 * @param command
 		 *   The [command][CommandMessage] that failed, or `null` if the command
 		 *   could not be determined.
@@ -1027,6 +1071,7 @@ class AvailServer constructor(
 		 */
 		@JvmOverloads
 		internal fun newErrorMessage(
+			channel: AvailServerChannel,
 			command: CommandMessage?,
 			reason: String,
 			closeAfterSending: Boolean = false): Message
@@ -1042,18 +1087,24 @@ class AvailServer constructor(
 				writer.write("reason")
 				writer.write(reason)
 			}
-			return Message(writer.toString(), closeAfterSending)
+			return Message(
+				writer.toString().toByteArray(),
+				channel.state,
+				closeAfterSending)
 		}
 
 		/**
 		 * Answer a simple [message][Message] that just affirms success.
 		 *
+		 * @param
+		 *   The [AvailServerChannel] this message is for.
 		 * @param command
 		 *   The [command][CommandMessage] for which this is a response.
 		 * @return
 		 *   A message.
 		 */
-		internal fun newSimpleSuccessMessage(command: CommandMessage): Message
+		internal fun newSimpleSuccessMessage(
+			channel: AvailServerChannel, command: CommandMessage): Message
 		{
 			val writer = JSONWriter()
 			writer.writeObject {
@@ -1061,7 +1112,7 @@ class AvailServer constructor(
 				writeCommandOn(command.command, writer)
 				writeCommandIdentifierOn(command.commandId, writer)
 			}
-			return Message(writer.toString())
+			return Message(writer.toString().toByteArray(), channel.state)
 		}
 
 		/**
@@ -1076,8 +1127,9 @@ class AvailServer constructor(
 		 *   A message.
 		 */
 		internal fun newSuccessMessage(
+			channel: AvailServerChannel,
 			command: CommandMessage,
-			content: (JSONWriter)->Unit): Message
+			content: (JSONWriter) -> Unit): Message
 		{
 			val writer = JSONWriter()
 			writer.writeObject {
@@ -1087,13 +1139,15 @@ class AvailServer constructor(
 				writer.write("content")
 				content(writer)
 			}
-			return Message(writer.toString())
+			return Message(writer.toString().toByteArray(), channel.state)
 		}
 
 		/**
-		 * Answer an I/O upgrade request [message][Message] that incorporates
-		 * the specified [UUID].
+		 * Answer an upgrade request [message][Message] that incorporates the
+		 * specified [UUID].
 		 *
+		 * @param channel
+		 *   The [AvailServerChannel] requesting the upgrade.
 		 * @param command
 		 *   The [command][CommandMessage] on whose behalf the upgrade is
 		 *   requested.
@@ -1102,7 +1156,8 @@ class AvailServer constructor(
 		 * @return
 		 *   A message.
 		 */
-		internal fun newIOUpgradeRequestMessage(
+		internal fun newUpgradeRequestMessage(
+			channel: AvailServerChannel,
 			command: CommandMessage,
 			uuid: UUID): Message
 		{
@@ -1114,7 +1169,8 @@ class AvailServer constructor(
 				writer.write("upgrade")
 				writer.write(uuid.toString())
 			}
-			return Message(writer.toString())
+			return Message(
+				writer.toString().toByteArray(), channel.state)
 		}
 
 		/**
@@ -1139,7 +1195,7 @@ class AvailServer constructor(
 				VERSION_NEGOTIATION ->
 				{
 					val command = Command.VERSION.parse(
-						message.content)
+						message.stringContent)
 					if (command != null)
 					{
 						command.commandId = channel.nextCommandId
@@ -1148,6 +1204,7 @@ class AvailServer constructor(
 					else
 					{
 						val rebuttal = newErrorMessage(
+							channel,
 							null,
 							"must negotiate version before issuing "
 								+ "other commands",
@@ -1165,7 +1222,8 @@ class AvailServer constructor(
 					}
 					catch (e: CommandParseException)
 					{
-						val rebuttal = newErrorMessage(null, e.localizedMessage)
+						val rebuttal = newErrorMessage(
+							channel, null, e.localizedMessage)
 						channel.enqueueMessageThen(rebuttal, receiveNext)
 					}
 					finally
@@ -1188,16 +1246,21 @@ class AvailServer constructor(
 					}
 					catch (e: CommandParseException)
 					{
-						val rebuttal = newErrorMessage(null, e.localizedMessage)
+						val rebuttal = newErrorMessage(
+							channel, null, e.localizedMessage)
 						channel.enqueueMessageThen(rebuttal, receiveNext)
 					}
 				}
-				ProtocolState.IO ->
+				IO ->
 				{
 					val input =
 						channel.textInterface!!.inputChannel as
 							ServerInputChannel
 					input.receiveMessageThen(message, receiveNext)
+				}
+				BINARY ->
+				{
+					// TODO!
 				}
 			}
 		}
@@ -1227,7 +1290,7 @@ class AvailServer constructor(
 			if (channel.state.versionNegotiated)
 			{
 				val message = newErrorMessage(
-					command, "version already negotiated")
+					channel, command, "version already negotiated")
 				channel.enqueueMessageThen(message, continuation)
 				return
 			}
@@ -1235,13 +1298,13 @@ class AvailServer constructor(
 			val message: Message
 			if (supportedProtocolVersions.contains(version))
 			{
-				message = newSuccessMessage(command) { writer ->
+				message = newSuccessMessage(channel, command) { writer ->
 					writer.write(version)
 				}
 			}
 			else
 			{
-				message = newSuccessMessage(command) { writer ->
+				message = newSuccessMessage(channel, command) { writer ->
 					writer.writeObject {
 						writer.write("supported")
 						writer.writeArray {
@@ -1278,7 +1341,7 @@ class AvailServer constructor(
 			continuation: ()->Unit)
 		{
 			assert(command.command === Command.COMMANDS)
-			val message = newSuccessMessage(command) { writer ->
+			val message = newSuccessMessage(channel, command) { writer ->
 				val commands = Command.all
 				val help = ArrayList<String>(commands.size)
 				for (c in commands)

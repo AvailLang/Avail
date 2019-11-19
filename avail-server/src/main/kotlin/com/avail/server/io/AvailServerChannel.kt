@@ -94,7 +94,7 @@ abstract class AvailServerChannel constructor(
 	 * `true` if this [AvailServerChannel] is an IO channel for a
 	 * [parent][parentId] command channel.
 	 */
-	val isIOChannel get() = state == ProtocolState.IO
+	private val isIOChannel get() = state.generalTextIO
 
 	/** The current [protocol state][ProtocolState].  */
 	var state = ProtocolState.VERSION_NEGOTIATION
@@ -189,7 +189,7 @@ abstract class AvailServerChannel constructor(
 		ELIGIBLE_FOR_UPGRADE
 		{
 			override val allowedSuccessorStates: Set<ProtocolState>
-				get() = EnumSet.of(COMMAND, IO)
+				get() = EnumSet.of(COMMAND, IO, BINARY)
 			override val eligibleForUpgrade get() = true
 		},
 
@@ -212,6 +212,17 @@ abstract class AvailServerChannel constructor(
 			override val allowedSuccessorStates: Set<ProtocolState>
 				get() = emptySet()
 			override val generalTextIO get() = true
+		},
+
+		/**
+		 * The [channel][AvailServerChannel] should henceforth be used for
+		 * general binary data transmission.
+		 */
+		BINARY
+		{
+			override val allowedSuccessorStates: Set<ProtocolState>
+				get() = emptySet()
+			override val generalBinary get() = true
 		};
 
 		/** The allowed successor [states][ProtocolState] of the receiver. */
@@ -219,35 +230,35 @@ abstract class AvailServerChannel constructor(
 
 		/**
 		 * Does this [state][ProtocolState] indicate that the version has
-		 * already been negotiated?
-		 *
-		 * @return
-		 *   `true` if the version has already been negotiated, `false`
-		 *   otherwise.
+		 * already been negotiated? `true` if the version has already been
+		 * negotiated, `false` otherwise.
 		 */
 		open val versionNegotiated get() = true
 
 		/**
 		 * Does this [state][ProtocolState] indicate eligibility for upgrade?
-		 *
-		 * @return
-		 *   `true` if the state indicates eligibility for upgrade, `false`
-		 *   otherwise.
+		 * `true` if the state indicates eligibility for upgrade, `false`
+		 * otherwise.
 		 */
 		open val eligibleForUpgrade get() = false
 
 		/**
 		 * Does this [state][ProtocolState] indicate a capability to do general
-		 * text I/O?
-		 *
-		 * @return
-		 *   `true` if the state indicates the capability, `false` otherwise.
+		 * text I/O? `true` if the state indicates the capability, `false`
+		 * otherwise.
 		 */
 		open val generalTextIO get() = false
+
+		/**
+		 * Does this [state][ProtocolState] indicate a capability to transmit
+		 * binary? `true` if the state indicates the capability, `false`
+		 * otherwise.
+		 */
+		open val generalBinary get() = false
 	}
 
 	/**
-	 * Upgrade the [channel][AvailServerChannel] for general I/O.
+	 * Upgrade the [channel][AvailServerChannel] for general text I/O.
 	 */
 	fun upgradeToIOChannel()
 	{
@@ -289,7 +300,7 @@ abstract class AvailServerChannel constructor(
 	 * The next [command identifier][CommandMessage] from the
 	 * [channel][AvailServerChannel]'s internal sequence.
 	 */
-	val nextCommandId = commandId.getAndIncrement()
+	val nextCommandId get() = commandId.getAndIncrement()
 
 	override fun toString(): String =
 		if (isIOChannel)

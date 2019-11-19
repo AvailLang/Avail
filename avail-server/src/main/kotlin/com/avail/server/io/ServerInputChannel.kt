@@ -150,7 +150,8 @@ class ServerInputChannel constructor(
 			markBuffer = null
 			if (waiters.isEmpty())
 			{
-				val message = Message(buffer.toString())
+				val message = Message(
+					buffer.toString().toByteArray(), channel.state)
 				messages.addFirst(message)
 				position = 0
 				return
@@ -174,7 +175,7 @@ class ServerInputChannel constructor(
 			if (position != contentLength)
 			{
 				// assert waiters.isEmpty();
-				val message = Message(content)
+				val message = Message(content.toByteArray(), channel.state)
 				messages.addFirst(message)
 			}
 			// Otherwise, reset the position (since the whole message was
@@ -223,7 +224,7 @@ class ServerInputChannel constructor(
 			while (buffer.hasRemaining() && !messages.isEmpty())
 			{
 				val message = messages.peekFirst()
-				val content = message.content
+				val content = message.stringContent
 				val contentLength = content.length
 				val size = min(
 					buffer.remaining(), contentLength - position)
@@ -260,7 +261,8 @@ class ServerInputChannel constructor(
 			{
 				val message = messages.removeFirst()
 				val newMessage = Message(
-					message.content.substring(position))
+					message.stringContent.substring(position).toByteArray(),
+					channel.state)
 				messages.addFirst(newMessage)
 				position = 0
 			}
@@ -290,7 +292,7 @@ class ServerInputChannel constructor(
 			assert(messages.isEmpty())
 			assert(position == 0)
 			ready = ArrayList()
-			val content = message.content
+			val content = message.stringContent
 			val contentLength = content.length
 			while (position != contentLength && !waiters.isEmpty())
 			{
@@ -327,7 +329,8 @@ class ServerInputChannel constructor(
 				if (mark != null)
 				{
 					val newMessage = Message(
-						message.content.substring(position))
+						message.stringContent.substring(position).toByteArray(),
+						channel.state)
 					messages.addLast(newMessage)
 					position = 0
 				}
