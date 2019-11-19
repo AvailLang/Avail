@@ -584,7 +584,7 @@ class AvailServer constructor(
 			val oldId = upgradedChannel.id
 			upgradedChannel.id = receivedUUID
 			upgradedChannel.parentId = channel.id
-			upgradedChannel.upgradeToIOTextChannel()
+			upgradedChannel.upgradeToIOChannel()
 			resumeUpgrader()
 			afterUpgraded(upgradedChannel)
 			logger.log(
@@ -1046,8 +1046,7 @@ class AvailServer constructor(
 		 *   A [JSONWriter].
 		 */
 		private fun writeCommandIdentifierOn(
-			commandId: Long,
-			writer: JSONWriter)
+			commandId: Long, writer: JSONWriter)
 		{
 			writer.write("id")
 			writer.write(commandId)

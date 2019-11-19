@@ -260,7 +260,7 @@ abstract class AvailServerChannel constructor(
 	/**
 	 * Upgrade the [channel][AvailServerChannel] for general text I/O.
 	 */
-	fun upgradeToIOTextChannel()
+	fun upgradeToIOChannel()
 	{
 		state = ProtocolState.IO
 		textInterface = TextInterface(
@@ -300,7 +300,7 @@ abstract class AvailServerChannel constructor(
 	 * The next [command identifier][CommandMessage] from the
 	 * [channel][AvailServerChannel]'s internal sequence.
 	 */
-	val nextCommandId = commandId.getAndIncrement()
+	val nextCommandId get() = commandId.getAndIncrement()
 
 	override fun toString(): String =
 		if (isIOChannel)
