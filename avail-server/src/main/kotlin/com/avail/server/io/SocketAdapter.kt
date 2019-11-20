@@ -187,10 +187,8 @@ class SocketAdapter @Throws(IOException::class) constructor(
 									// The buffer should have been flipped
 									// already.
 									assert(content.position() == 0)
-									val message = Message(
-										String(
-											content.array(),
-											StandardCharsets.UTF_8))
+									val message =
+										Message(content.array(), channel.state)
 									strongChannel.receiveMessage(message)
 								}
 						}
@@ -214,7 +212,7 @@ class SocketAdapter @Throws(IOException::class) constructor(
 	{
 		val strongChannel = channel as SocketChannel
 		val buffer = StandardCharsets.UTF_8.encode(
-			payload.content)
+			payload.stringContent)
 		val transport = strongChannel.transport
 		transport.write<Any>(
 			buffer,

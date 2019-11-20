@@ -1239,8 +1239,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 		val strongChannel = channel as WebSocketChannel
 		val bytes = ByteArrayOutputStream(1024)
 		val processMessage = {
-			val message = Message(
-				String(bytes.toByteArray(), StandardCharsets.UTF_8))
+			val message = Message(bytes.toByteArray(), strongChannel.state)
 			strongChannel.receiveMessage(message)
 		}
 		recurse { readFrame ->
@@ -1268,11 +1267,32 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 					}
 					Opcode.TEXT ->
 					{
+						if (strongChannel.state.generalBinary)
+						{
+							val failMsg =
+								"only binary frames expected but received " +
+								"text frame"
+							fail(
+								strongChannel,
+								WebSocketStatusCode.UNSUPPORTED_MESSAGE,
+								failMsg,
+								UnsupportedFormatDisconnect(failMsg))
+						}
 					}
-					Opcode.BINARY -> fail(
-						strongChannel,
-						WebSocketStatusCode.UNSUPPORTED_MESSAGE,
-						"only text frames are supported")
+					Opcode.BINARY ->
+					{
+						if (strongChannel.state.generalTextIO)
+						{
+							val failMsg =
+								"only text frames expected but received " +
+								"binary frame on ${strongChannel.state} channel"
+							fail(
+								strongChannel,
+								WebSocketStatusCode.UNSUPPORTED_MESSAGE,
+								failMsg,
+								UnsupportedFormatDisconnect(failMsg))
+						}
+					}
 					Opcode.CLOSE ->
 					{
 						if (!frame.isFinalFragment)
@@ -1323,16 +1343,16 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 					{
 						// Fail on receipt of a reserved opcode.
 						assert(!opcode.isValid)
+						val msg = "opcode ${opcode.ordinal} is reserved"
 						fail(
 							strongChannel,
 							WebSocketStatusCode.PROTOCOL_ERROR,
-							"opcode "
-								+ opcode.ordinal
-								+ " is reserved")
+							msg,
+							ProtocolErrorDisconnect(msg))
 						return@readFrameThen
 					}
 				}
-				// A text frame was processed.
+				// A frame was processed.
 				if (frame.isFinalFragment)
 				{
 					processMessage()
@@ -1393,7 +1413,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 		failure: ((Throwable)->Unit)?)
 	{
 		val strongChannel = channel as WebSocketChannel
-		val content = payload.content
+		val content = payload.stringContent
 		val buffer = StandardCharsets.UTF_8.encode(content)
 		sendFrame(strongChannel, Opcode.TEXT, buffer, success, failure)
 	}
@@ -1786,9 +1806,9 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 									channel,
 									WebSocketStatusCode.MESSAGE_TOO_BIG,
 									"length="
-										+ len
-										+ " exceeds maximum length of "
-										+ Message.MAX_SIZE)
+									+ len
+									+ " exceeds maximum length of "
+									+ Message.MAX_SIZE)
 							}
 							else
 							{
@@ -2048,6 +2068,34 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 			buffer.put(utf8)
 			sendFrame(channel, Opcode.CLOSE, buffer)
 				{ channel.scheduleClose(CommunicationErrorDisconnect(it)) }
+		}
+
+		/**
+		 * Fail the WebSocket connection.
+		 *
+		 * @param channel
+		 *   A channel.
+		 * @param statusCode
+		 *   The [status code][WebSocketStatusCode].
+		 * @param reasonMessage
+		 *   The reason message.
+		 * @param reason
+		 *   The [DisconnectReason].
+		 */
+		private fun fail(
+			channel: WebSocketChannel,
+			statusCode: WebSocketStatusCode,
+			reasonMessage: String,
+			reason: DisconnectReason)
+		{
+			val utf8 = StandardCharsets.UTF_8.encode(reasonMessage)
+			val buffer = ByteBuffer.allocateDirect(utf8.limit() + 2)
+			buffer.putShort(statusCode.statusCode.toShort())
+			buffer.put(utf8)
+			channel.channelCloseHandler.reason = reason
+			sendFrame(channel, Opcode.CLOSE, buffer) {
+				channel.scheduleClose(CommunicationErrorDisconnect(it))
+			}
 		}
 	}
 }

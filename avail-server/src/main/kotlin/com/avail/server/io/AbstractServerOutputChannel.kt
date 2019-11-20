@@ -70,12 +70,14 @@ abstract class AbstractServerOutputChannel constructor(
 	 * [channel][AbstractServerOutputChannel] and the specified
 	 * [content][String].
 	 *
+	 * @param channel
+	 *   The [AvailServerChannel] the message is for.
 	 * @param data
 	 *   The content of the message.
 	 * @return
 	 *   A message.
 	 */
-	private fun newMessage(data: String): Message
+	private fun newMessage(channel: AvailServerChannel, data: String): Message
 	{
 		val writer = JSONWriter()
 		writer.writeObject {
@@ -84,7 +86,7 @@ abstract class AbstractServerOutputChannel constructor(
 			writer.write("content")
 			writer.write(data)
 		}
-		return Message(writer.toString())
+		return Message(writer.toString().toByteArray(), channel.state)
 	}
 
 	override fun <A> write(
@@ -106,7 +108,7 @@ abstract class AbstractServerOutputChannel constructor(
 
 		}
 		val limit = buffer.limit()
-		val message = newMessage(buffer.toString())
+		val message = newMessage(channel, buffer.toString())
 		channel.enqueueMessageThen(message) {
 			handler.completed(limit, attachment)
 		}
@@ -130,7 +132,7 @@ abstract class AbstractServerOutputChannel constructor(
 			}
 
 		}
-		val message = newMessage(data)
+		val message = newMessage(channel, data)
 		channel.enqueueMessageThen(message) {
 			handler.completed(data.length, attachment)
 		}
