@@ -101,7 +101,8 @@ class SubmitInputAction constructor(workbench: AvailWorkbench)
 						workbench,
 						"Choose the desired entry point:",
 						"Disambiguate",
-						JOptionPane.QUESTION_MESSAGE, null,
+						JOptionPane.QUESTION_MESSAGE,
+						null,
 						commands.toTypedArray(), null) as CompiledCommand
 					// There may not be a selection, in which case the
 					// command will not be run – but any necessary cleanup

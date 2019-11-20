@@ -1,5 +1,5 @@
 /*
- * P_TokenLexeme.kt
+ * Evaluation.avail
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,34 +29,44 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.primitive.phrases
 
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.TokenDescriptor
-import com.avail.descriptor.TupleTypeDescriptor.nonemptyStringType
-import com.avail.descriptor.TypeDescriptor.Types.TOKEN
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.*
+Module "Evaluation"
+Versions
+	"1.4.0"
+Extends
+	"Avail"
+Entries
+	"anonymous module uses«…$«=(««-»?…$«→…$»?‡,»,⁇«`…»?)»‡,»",
+	"compile_in_",
+	"evaluate_"
+Body
 
-/**
- * **Primitive:** Get the lexeme ([string][A_String]) associated with the
- * specified [token][TokenDescriptor].
- */
-object P_TokenLexeme : Primitive(1, CannotFail, CanFold, CanInline)
-{
-	override fun attempt(interpreter: Interpreter): Result
-	{
-		interpreter.checkArgumentCount(1)
-		val token = interpreter.argument(0)
-		return interpreter.primitiveSuccess(token.string())
-	}
 
-	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(
-			tuple(
-				TOKEN.o()),
-			nonemptyStringType())
-}
+Method 	"anonymous module using«_«=(««-»?_«→_»?‡,»,⁇«`…»?)»‡,»" is
+[
+	uses : <
+		nonempty string,  // imported module
+		<
+			<
+				boolean,  // negated import
+				nonempty string,  // imported name
+				nonempty string?…  // rename
+			|3>*,
+			boolean…  // wildcard
+		|2>?…
+	|2>+
+|
+	Primitive CreateAnonymousModule();
+
+];
+
+m ::= anonymous module uses
+	"Quiz" = (
+		-"Multiple Choice(_)._«A:_«✔»?»",
+		-"True«✔»?/False«✔»?(_)._",
+		…),
+	"CSV" = (
+		"«_‡,»"),
+	"Moose";
+
+Print: “m” ++ "\n";

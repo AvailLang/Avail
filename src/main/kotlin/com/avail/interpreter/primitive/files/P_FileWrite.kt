@@ -248,7 +248,8 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 			{
 				fileChannel.write<Void>(
 					currentBuffer.value,
-					nextPosition.value, null,
+					nextPosition.value,
+					null,
 					SimpleCompletionHandler(
 						{ bytesWritten ->
 							nextPosition.value += bytesWritten

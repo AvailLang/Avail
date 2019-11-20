@@ -1024,10 +1024,8 @@ public final class AvailRuntime
 		specials[87] = mostGeneralPojoArrayType();
 		specials[88] = pojoSelfTypeAtom();
 		specials[89] = pojoTypeForClass(Throwable.class);
-		specials[90] =
-			functionType(emptyTuple(), TOP.o());
-		specials[91] =
-			functionType(emptyTuple(), booleanType());
+		specials[90] = functionType(emptyTuple(), TOP.o());
+		specials[91] = functionType(emptyTuple(), booleanType());
 		specials[92] = variableTypeFor(mostGeneralContinuationType());
 		specials[93] = mapTypeForSizesKeyTypeValueType(
 			wholeNumbers(), ATOM.o(), ANY.o());
@@ -1044,19 +1042,16 @@ public final class AvailRuntime
 		specials[98] = instanceMeta(wholeNumbers());
 		specials[99] = setTypeForSizesContentType(naturalNumbers(), ANY.o());
 		specials[100] = tupleTypeForSizesTypesDefaultType(
-			wholeNumbers(), emptyTuple(),
-			mostGeneralTupleType());
+			wholeNumbers(), emptyTuple(), mostGeneralTupleType());
 		specials[101] = nybbles();
 		specials[102] = zeroOrMoreOf(nybbles());
 		specials[103] = unsignedShorts();
 		specials[104] = emptyTuple();
-		specials[105] =
-			functionType(tuple(bottom()), TOP.o());
+		specials[105] = functionType(tuple(bottom()), TOP.o());
 		specials[106] = instanceType(zero());
 		specials[107] = functionTypeReturning(topMeta());
 		specials[108] = tupleTypeForSizesTypesDefaultType(
-			wholeNumbers(), emptyTuple(),
-			functionTypeReturning(topMeta()));
+			wholeNumbers(), emptyTuple(), functionTypeReturning(topMeta()));
 		specials[109] = functionTypeReturning(PARSE_PHRASE.mostGeneralType());
 		specials[110] = instanceType(two());
 		specials[111] = fromDouble(Math.E);
@@ -1087,7 +1082,7 @@ public final class AvailRuntime
 		specials[130] = zeroOrMoreOf(zeroOrMoreOf(anyMeta()));
 		specials[131] = variableReadWriteType(extendedIntegers(), bottom());
 		specials[132] = fiberMeta();
-		specials[133] = oneOrMoreOf(CHARACTER.o());
+		specials[133] = nonemptyStringType();
 		specials[134] = setTypeForSizesContentType(
 			wholeNumbers(), exceptionType());
 		specials[135] = setTypeForSizesContentType(

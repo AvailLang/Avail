@@ -150,7 +150,8 @@ class SocketAdapter @Throws(IOException::class) constructor(
 		val transport = strongChannel.transport
 		val buffer = ByteBuffer.allocateDirect(4)
 		transport.read<Any>(
-			buffer, null,
+			buffer,
+			null,
 			SimpleCompletionHandler(
 				{ result, _, handler ->
 					if (remoteEndClosed(transport, result!!))
@@ -216,7 +217,8 @@ class SocketAdapter @Throws(IOException::class) constructor(
 			payload.content)
 		val transport = strongChannel.transport
 		transport.write<Any>(
-			buffer, null,
+			buffer,
+			null,
 			SimpleCompletionHandler(
 				{ _, _, handler ->
 					if (buffer.hasRemaining())
@@ -245,7 +247,8 @@ class SocketAdapter @Throws(IOException::class) constructor(
 		buffer.rewind()
 		val transport = strongChannel.transport
 		transport.write<Void>(
-			buffer, null,
+			buffer,
+			null,
 			SimpleCompletionHandler(
 				{ _, _, handler ->
 					if (buffer.hasRemaining())
@@ -279,7 +282,8 @@ class SocketAdapter @Throws(IOException::class) constructor(
 		buffer.rewind()
 		val transport = strongChannel.transport
 		transport.write<Void>(
-			buffer, null,
+			buffer,
+			null,
 			SimpleCompletionHandler(
 				{ _, _, handler ->
 					if (buffer.hasRemaining())
@@ -371,7 +375,8 @@ class SocketAdapter @Throws(IOException::class) constructor(
 			val buffer = ByteBuffer.allocate(payloadLength)
 			val transport = channel.transport
 			transport.read<Any>(
-				buffer, null,
+				buffer,
+				null,
 				SimpleCompletionHandler(
 					{ result, _, handler ->
 						if (remoteEndClosed(transport, result!!))

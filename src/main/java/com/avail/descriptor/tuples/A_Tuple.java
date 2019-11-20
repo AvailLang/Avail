@@ -689,4 +689,67 @@ extends A_BasicObject, Iterable<AvailObject>
 	 */
 	@ReferencedInGeneratedCode
 	int tupleSize ();
+
+	/**
+	 * As a convenience in Kotlin, allow deconstruction of short tuples.
+	 *
+	 * @return The first component for a Kotlin deconstructor.
+	 */
+	AvailObject component1 ();
+
+	/**
+	 * As a convenience in Kotlin, allow deconstruction of short tuples.
+	 *
+	 * @return The second component for a Kotlin deconstructor.
+	 */
+	AvailObject component2 ();
+
+	/**
+	 * As a convenience in Kotlin, allow deconstruction of short tuples.
+	 *
+	 * @return The third component for a Kotlin deconstructor.
+	 */
+	AvailObject component3 ();
+
+	/**
+	 * As a convenience in Kotlin, allow deconstruction of short tuples.
+	 *
+	 * @return The fourth component for a Kotlin deconstructor.
+	 */
+	AvailObject component4 ();
+
+	/**
+	 * As a convenience in Kotlin, allow deconstruction of short tuples.
+	 *
+	 * @return The fifth component for a Kotlin deconstructor.
+	 */
+	AvailObject component5 ();
+
+	/**
+	 * As a convenience in Kotlin, allow deconstruction of short tuples.
+	 *
+	 * @return The sixth component for a Kotlin deconstructor.
+	 */
+	AvailObject component6 ();
+
+	/**
+	 * As a convenience in Kotlin, allow deconstruction of short tuples.
+	 *
+	 * @return The seventh component for a Kotlin deconstructor.
+	 */
+	AvailObject component7 ();
+
+	/**
+	 * As a convenience in Kotlin, allow deconstruction of short tuples.
+	 *
+	 * @return The eighth component for a Kotlin deconstructor.
+	 */
+	AvailObject component8 ();
+
+	/**
+	 * As a convenience in Kotlin, allow deconstruction of short tuples.
+	 *
+	 * @return The ninth component for a Kotlin deconstructor.
+	 */
+	AvailObject component9 ();
 }

@@ -910,7 +910,7 @@ extends TypeDescriptor
 	}
 
 	/** The most general string type (i.e., tuples of characters). */
-	private static final A_Type stringTupleType =
+	private static final A_Type stringType =
 		zeroOrMoreOf(CHARACTER.o()).makeShared();
 
 	/**
@@ -921,7 +921,22 @@ extends TypeDescriptor
 	 */
 	public static A_Type stringType ()
 	{
-		return stringTupleType;
+		return stringType;
+	}
+
+	/** The most general string type (i.e., tuples of characters). */
+	private static final A_Type nonemptyStringType =
+		oneOrMoreOf(CHARACTER.o()).makeShared();
+
+	/**
+	 * Answer the non-empty string type.  This type subsumes strings of any
+	 * size ≥ 1.
+	 *
+	 * @return The non-empty string type.
+	 */
+	public static A_Type nonemptyStringType ()
+	{
+		return nonemptyStringType;
 	}
 
 	/** The metatype for all tuple types. */

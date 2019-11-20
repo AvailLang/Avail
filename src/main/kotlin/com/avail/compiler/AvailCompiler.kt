@@ -1328,7 +1328,8 @@ class AvailCompiler(
 						}
 						eventuallyParseRestOfSendNode(
 							start,
-							successor, null,
+							successor,
+							null,
 							initialTokenPosition,
 							consumedAnything,
 							consumedAnythingBeforeLatestArgument,
@@ -1392,7 +1393,8 @@ class AvailCompiler(
 				}
 				eventuallyParseRestOfSendNode(
 					start,
-					successor, null,
+					successor,
+					null,
 					initialTokenPosition,
 					consumedAnything,
 					consumedAnythingBeforeLatestArgument,
@@ -1528,7 +1530,8 @@ class AvailCompiler(
 							token.nextLexingState(), start.clientDataMap)
 						eventuallyParseRestOfSendNode(
 							afterToken,
-							successor, null,
+							successor,
+							null,
 							initialTokenPosition,
 							true, // Just consumed a token.
 							consumedAnythingBeforeLatestArgument,
@@ -2759,7 +2762,8 @@ class AvailCompiler(
 				val newArgsSoFar = append(argsSoFar, newArg)
 				eventuallyParseRestOfSendNode(
 					afterArg.withMap(start.clientDataMap),
-					successorTrees.tupleAt(1), null,
+					successorTrees.tupleAt(1),
+					null,
 					initialTokenPosition,
 					// The argument counts as something that was consumed if
 					// it's not a leading argument...
@@ -3620,39 +3624,37 @@ class AvailCompiler(
 		headerPhrase: A_Phrase,
 		stateAfterHeader: ParserState): Boolean
 	{
-		val header = moduleHeader
 		assert(headerPhrase.phraseKindIsUnder(SEND_PHRASE))
-		assert(headerPhrase.apparentSendName().equals(
-			MODULE_HEADER.atom))
+		assert(headerPhrase.apparentSendName().equals(MODULE_HEADER.atom))
 		val args = convertHeaderPhraseToValue(headerPhrase.argumentsListNode())
 		assert(args.tupleSize() == 6)
-		val moduleNameToken = args.tupleAt(1)
-		val optionalVersions = args.tupleAt(2)
-		val allImports = args.tupleAt(3)
-		val optionalNames = args.tupleAt(4)
-		val optionalEntries = args.tupleAt(5)
-		val optionalPragmas = args.tupleAt(6)
+		val (
+			moduleNameToken,
+			optionalVersionsPart,
+			allImportsPart,
+			optionalNamesPart,
+			optionalEntriesPart,
+			optionalPragmasPart) = args
 
 		// Module name was checked against file name in a prefix function.
 		val moduleName = stringFromToken(moduleNameToken)
 		assert(moduleName.asNativeString() == this.moduleName.localName)
 
 		// Module versions were already checked for duplicates.
-		if (optionalVersions.tupleSize() > 0)
+		if (optionalVersionsPart.tupleSize() > 0)
 		{
-			assert(optionalVersions.tupleSize() == 1)
-			for (versionStringToken in optionalVersions.tupleAt(1))
+			assert(optionalVersionsPart.tupleSize() == 1)
+			for (versionStringToken in optionalVersionsPart.tupleAt(1))
 			{
 				val versionString = stringFromToken(versionStringToken)
-				assert(!header.versions.contains(versionString))
-				header.versions.add(versionString)
+				assert(!moduleHeader.versions.contains(versionString))
+				moduleHeader.versions.add(versionString)
 			}
 		}
 
 		// Imports section (all Extends/Uses subsections)
-		for (importSection in allImports)
+		for ((importKindToken, importEntries) in allImportsPart)
 		{
-			val importKindToken = importSection.tupleAt(1)
 			assert(importKindToken.isInstanceOfKind(TOKEN.o()))
 			val importKind = importKindToken.literal()
 			assert(importKind.isInt)
@@ -3660,14 +3662,12 @@ class AvailCompiler(
 			assert(importKindInt in 1 .. 2)
 			val isExtension = importKindInt == 1
 
-			for (moduleImport in importSection.tupleAt(2))
+			for ((
+				importedModuleToken,
+				optionalImportVersions,
+				optionNameImports) in importEntries)
 			{
-				// <importedModule, optionalVersions, optionalNamesPart>
-				assert(moduleImport.tupleSize() == 3)
-				val importedModuleToken = moduleImport.tupleAt(1)
 				val importedModuleName = stringFromToken(importedModuleToken)
-
-				val optionalImportVersions = moduleImport.tupleAt(2)
 				assert(optionalImportVersions.isTuple)
 
 				var importVersions = emptySet()
@@ -3691,24 +3691,17 @@ class AvailCompiler(
 				var importedExcludes = emptySet()
 				var wildcard = true
 
-				val optionalNamesPart = moduleImport.tupleAt(3)
 				// <filterEntries, finalEllipsis>?
-				if (optionalNamesPart.tupleSize() > 0)
+				if (optionNameImports.tupleSize() > 0)
 				{
-					assert(optionalNamesPart.tupleSize() == 1)
-					val namesPart = optionalNamesPart.tupleAt(1)
-					assert(namesPart.tupleSize() == 2)
-					// <filterEntries, finalEllipsis>
-					for (filterEntry in namesPart.tupleAt(1))
+					assert(optionNameImports.tupleSize() == 1)
+					val namesPart = optionNameImports.tupleAt(1)
+					val (filterEntries, finalEllipsisToken) = namesPart
+					for ((negationToken, nameToken, optionalRename)
+						in filterEntries)
 					{
-						// <negation, name, rename>
-						assert(filterEntry.tupleSize() == 3)
-						val negationLiteralToken = filterEntry.tupleAt(1)
-						val negation =
-							negationLiteralToken.literal().extractBoolean()
-						val nameToken = filterEntry.tupleAt(2)
+						val negation = negationToken.literal().extractBoolean()
 						val name = stringFromToken(nameToken)
-						val optionalRename = filterEntry.tupleAt(3)
 						when
 						{
 							optionalRename.tupleSize() > 0 ->
@@ -3775,12 +3768,8 @@ class AvailCompiler(
 							}
 						}
 					}
-
 					// Check for the trailing ellipsis.
-					val finalEllipsisLiteralToken = namesPart.tupleAt(2)
-					val finalEllipsis = finalEllipsisLiteralToken.literal()
-					assert(finalEllipsis.isBoolean)
-					wildcard = finalEllipsis.extractBoolean()
+					wildcard = finalEllipsisToken.literal().extractBoolean()
 				}
 
 				try
@@ -3807,13 +3796,13 @@ class AvailCompiler(
 		}  // imports section
 
 		// Names section
-		if (optionalNames.tupleSize() > 0)
+		if (optionalNamesPart.tupleSize() > 0)
 		{
-			assert(optionalNames.tupleSize() == 1)
-			for (nameToken in optionalNames.tupleAt(1))
+			assert(optionalNamesPart.tupleSize() == 1)
+			for (nameToken in optionalNamesPart.tupleAt(1))
 			{
 				val nameString = stringFromToken(nameToken)
-				if (header.exportedNames.contains(nameString))
+				if (moduleHeader.exportedNames.contains(nameString))
 				{
 					compilationContext.diagnostics.reportError(
 						nameToken.nextLexingState(),
@@ -3823,32 +3812,32 @@ class AvailCompiler(
 							nameString))
 					return false
 				}
-				header.exportedNames.add(nameString)
+				moduleHeader.exportedNames.add(nameString)
 			}
 		}
 
 		// Entries section
-		if (optionalEntries.tupleSize() > 0)
+		if (optionalEntriesPart.tupleSize() > 0)
 		{
-			assert(optionalEntries.tupleSize() == 1)
-			for (entryToken in optionalEntries.tupleAt(1))
+			assert(optionalEntriesPart.tupleSize() == 1)
+			for (entryToken in optionalEntriesPart.tupleAt(1))
 			{
-				header.entryPoints.add(stringFromToken(entryToken))
+				moduleHeader.entryPoints.add(stringFromToken(entryToken))
 			}
 		}
 
 		// Pragmas section
-		if (optionalPragmas.tupleSize() > 0)
+		if (optionalPragmasPart.tupleSize() > 0)
 		{
-			assert(optionalPragmas.tupleSize() == 1)
-			for (pragmaToken in optionalPragmas.tupleAt(1))
+			assert(optionalPragmasPart.tupleSize() == 1)
+			for (pragmaToken in optionalPragmasPart.tupleAt(1))
 			{
 				val innerToken = pragmaToken.literal()
-				header.pragmas.add(innerToken)
+				moduleHeader.pragmas.add(innerToken)
 			}
 		}
-		header.startOfBodyPosition = stateAfterHeader.position
-		header.startOfBodyLineNumber = stateAfterHeader.lineNumber
+		moduleHeader.startOfBodyPosition = stateAfterHeader.position
+		moduleHeader.startOfBodyLineNumber = stateAfterHeader.lineNumber
 		return true
 	}
 
@@ -3922,8 +3911,7 @@ class AvailCompiler(
 				try
 				{
 					val ok = processHeaderMacro(
-						headerPhrase.expression(),
-						solution.endState)
+						headerPhrase.expression(), solution.endState)
 					if (ok)
 					{
 						onSuccess(solution.endState)
@@ -4180,14 +4168,14 @@ class AvailCompiler(
 		 *   A function that indicates whether to abort.
 		 * @param reporter
 		 *   The [CompilerProgressReporter] used to report progress.
-		 * @param succeed
-		 *   What to do with the resultant compiler in the event of success.
-		 *   This is a continuation that accepts the new compiler.
 		 * @param afterFail
 		 *   What to do after a failure that the [problem
 		 *   handler][ProblemHandler] does not choose to continue.
 		 * @param problemHandler
 		 *   A problem handler.
+		 * @param succeed
+		 *   What to do with the resultant compiler in the event of success.
+		 *   This is a continuation that accepts the new compiler.
 		 */
 		@JvmStatic
 		fun create(
@@ -4195,25 +4183,22 @@ class AvailCompiler(
 			textInterface: TextInterface,
 			pollForAbort: () -> Boolean,
 			reporter: CompilerProgressReporter,
-			succeed: (AvailCompiler)->Unit,
 			afterFail: ()->Unit,
-			problemHandler: ProblemHandler)
+			problemHandler: ProblemHandler,
+			succeed: (AvailCompiler)->Unit)
 		{
-			extractSourceThen(
-				resolvedName,
-				{ sourceText ->
-					succeed(
-						AvailCompiler(
-							ModuleHeader(resolvedName),
-							newModule(stringFrom(resolvedName.qualifiedName)),
-							stringFrom(sourceText),
-							textInterface,
-							pollForAbort,
-							reporter,
-							problemHandler))
-				},
-				afterFail,
-				problemHandler)
+			extractSourceThen(resolvedName, afterFail, problemHandler) {
+				sourceText ->
+				succeed(
+					AvailCompiler(
+						ModuleHeader(resolvedName),
+						newModule(stringFrom(resolvedName.qualifiedName)),
+						stringFrom(sourceText),
+						textInterface,
+						pollForAbort,
+						reporter,
+						problemHandler))
+			}
 		}
 
 		/**
@@ -4222,20 +4207,20 @@ class AvailCompiler(
 		 *
 		 * @param resolvedName
 		 *   The [resolved name][ResolvedModuleName] of the module.
-		 * @param continuation
-		 *   What to do after the source module has been completely read.
-		 *   Accepts the source text of the module.
 		 * @param fail
 		 *   What to do in the event of a failure that the [problem
 		 *   handler][ProblemHandler] does not wish to continue.
 		 * @param problemHandler
 		 *   A problem handler.
+		 * @param withSource
+		 *   What to do after the source module has been completely read.
+		 *   Accepts the source text of the module.
 		 */
 		private fun extractSourceThen(
 			resolvedName: ResolvedModuleName,
-			continuation: (String)->Unit,
 			fail: ()->Unit,
-			problemHandler: ProblemHandler)
+			problemHandler: ProblemHandler,
+			withSource: (String)->Unit)
 		{
 			val runtime = currentRuntime()
 			val ref = resolvedName.sourceReference
@@ -4276,7 +4261,8 @@ class AvailCompiler(
 			// Kick off the asynchronous read.
 			file.read<Any>(
 				input,
-				0L, null,
+				0L,
+				null,
 				SimpleCompletionHandler<Int, Any?>(
 					{ bytesRead, _, handler ->
 						try
@@ -4319,7 +4305,8 @@ class AvailCompiler(
 								output.clear()
 								file.read<Any>(
 									input,
-									filePosition.value, null,
+									filePosition.value,
+									null,
 									handler)
 							}
 							// Otherwise, close the file channel and queue the
@@ -4331,7 +4318,7 @@ class AvailCompiler(
 								file.close()
 								runtime.execute(
 									FiberDescriptor.compilerPriority
-								) { continuation(sourceBuilder.toString()) }
+								) { withSource(sourceBuilder.toString()) }
 							}
 						}
 						catch (e: IOException)

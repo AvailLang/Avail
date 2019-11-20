@@ -39,7 +39,11 @@ import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.CompiledCodeDescriptor.L1InstructionDecoder;
 import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
-import com.avail.descriptor.FiberDescriptor.*;
+import com.avail.descriptor.FiberDescriptor.ExecutionState;
+import com.avail.descriptor.FiberDescriptor.GeneralFlag;
+import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
+import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
+import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.descriptor.MapDescriptor.MapIterable;
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.descriptor.SetDescriptor.SetIterator;
@@ -6092,5 +6096,59 @@ implements
 	public void clearLexingState ()
 	{
 		descriptor().o_ClearLexingState(this);
+	}
+
+	@Override
+	public AvailObject component1 ()
+	{
+		return tupleAt(1);
+	}
+
+	@Override
+	public AvailObject component2 ()
+	{
+		return tupleAt(2);
+	}
+
+	@Override
+	public AvailObject component3 ()
+	{
+		return tupleAt(3);
+	}
+
+	@Override
+	public AvailObject component4 ()
+	{
+		return tupleAt(4);
+	}
+
+	@Override
+	public AvailObject component5 ()
+	{
+		return tupleAt(5);
+	}
+
+	@Override
+	public AvailObject component6 ()
+	{
+		return tupleAt(6);
+	}
+
+	@Override
+	public AvailObject component7 ()
+	{
+		return tupleAt(7);
+	}
+
+	@Override
+	public AvailObject component8 ()
+	{
+		return tupleAt(8);
+	}
+
+	@Override
+	public AvailObject component9 ()
+	{
+		return tupleAt(9);
 	}
 }

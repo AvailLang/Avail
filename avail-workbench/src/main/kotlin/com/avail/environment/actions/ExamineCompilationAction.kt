@@ -87,7 +87,8 @@ class ExamineCompilationAction constructor (
 							workbench,
 							"Select module compilation to examine",
 							"Examine compilation",
-							JOptionPane.PLAIN_MESSAGE, null,
+							JOptionPane.PLAIN_MESSAGE,
+							null,
 							compilationsArray,
 							if (compilationsArray.isNotEmpty())
 							{ compilationsArray[0] }

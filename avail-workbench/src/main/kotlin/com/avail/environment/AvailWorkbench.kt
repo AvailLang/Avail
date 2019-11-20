@@ -2002,7 +2002,8 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		menuBar.add(
 			menu(
 				"Document",
-				documentAction, null,
+				documentAction,
+				null,
 				setDocumentationPathAction))
 		menuBar.add(
 			menu("Run", insertEntryPointAction, null, clearTranscriptAction))
@@ -2016,22 +2017,30 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			menuBar.add(
 				menu(
 					"Developer",
-					showVMReportAction, resetVMReportDataAction, null,
-					showCCReportAction, resetCCReportDataAction, null,
+					showVMReportAction,
+					resetVMReportDataAction,
+					null,
+					showCCReportAction,
+					resetCCReportDataAction,
+					null,
 					JCheckBoxMenuItem(debugMacroExpansionsAction),
 					JCheckBoxMenuItem(debugCompilerAction),
 					JCheckBoxMenuItem(traceSummarizeStatementsAction),
 					JCheckBoxMenuItem(traceLoadedStatementsAction),
-					JCheckBoxMenuItem(toggleFastLoaderAction), null,
+					JCheckBoxMenuItem(toggleFastLoaderAction),
+					null,
 					JCheckBoxMenuItem(toggleDebugL1),
 					JCheckBoxMenuItem(toggleDebugL2),
 					JCheckBoxMenuItem(toggleL2SanityCheck),
 					JCheckBoxMenuItem(toggleDebugPrimitives),
-					JCheckBoxMenuItem(toggleDebugWorkUnits), null,
-					JCheckBoxMenuItem(toggleDebugJVM), null,
+					JCheckBoxMenuItem(toggleDebugWorkUnits),
+					null,
+					JCheckBoxMenuItem(toggleDebugJVM),
+					null,
 					parserIntegrityCheckAction,
 					examineRepositoryAction,
-					examineCompilationAction, null,
+					examineCompilationAction,
+					null,
 					graphAction))
 		}
 		jMenuBar = menuBar

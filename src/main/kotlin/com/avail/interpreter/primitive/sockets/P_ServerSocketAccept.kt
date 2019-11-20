@@ -45,8 +45,9 @@ import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.RawPojoDescriptor.identityPojo
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.StringDescriptor.formatString
-import com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf
-import com.avail.descriptor.TypeDescriptor.Types.*
+import com.avail.descriptor.TupleTypeDescriptor.nonemptyStringType
+import com.avail.descriptor.TypeDescriptor.Types.ATOM
+import com.avail.descriptor.TypeDescriptor.Types.TOP
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.SERVER_SOCKET_KEY
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.SOCKET_KEY
@@ -150,7 +151,7 @@ object P_ServerSocketAccept : Primitive(5, CanInline, HasSideEffect)
 		functionType(
 			tuple(
 				ATOM.o(),
-				oneOrMoreOf(CHARACTER.o()),
+				nonemptyStringType(),
 				functionType(
 					tuple(ATOM.o()),
 					TOP.o()),

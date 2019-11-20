@@ -73,9 +73,8 @@ object P_Alias : Primitive(2, CanInline, HasSideEffect)
 		val newString = interpreter.argument(0)
 		val oldAtom = interpreter.argument(1)
 
-		val loader =
-			interpreter.availLoaderOrNull()
-	             ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+		val loader = interpreter.availLoaderOrNull() ?:
+			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		if (!loader.phase().isExecuting)
 		{
 			return interpreter.primitiveFailure(

@@ -69,9 +69,8 @@ object P_SealMethod : Primitive(2, CanInline, HasSideEffect)
 		interpreter.checkArgumentCount(2)
 		val methodName = interpreter.argument(0)
 		val argumentTypes = interpreter.argument(1)
-		val loader =
-			interpreter.availLoaderOrNull()
-	             ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+		val loader = interpreter.availLoaderOrNull() ?:
+			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		if (!loader.phase().isExecuting)
 		{
 			return interpreter.primitiveFailure(

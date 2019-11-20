@@ -40,9 +40,8 @@ import com.avail.descriptor.ModuleDescriptor.currentModule
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.RawPojoDescriptor.identityPojo
 import com.avail.descriptor.SetDescriptor.set
-import com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf
+import com.avail.descriptor.TupleTypeDescriptor.nonemptyStringType
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
-import com.avail.descriptor.TypeDescriptor.Types.CHARACTER
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.SOCKET_KEY
 import com.avail.descriptor.atoms.AtomDescriptor.createAtom
@@ -78,7 +77,7 @@ object P_SocketOpen : Primitive(1, CanInline, HasSideEffect)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(oneOrMoreOf(CHARACTER.o())),
+			tuple(nonemptyStringType()),
 			ATOM.o())
 
 	override fun privateFailureVariableType(): A_Type =

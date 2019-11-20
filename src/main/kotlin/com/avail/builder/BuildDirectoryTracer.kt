@@ -342,25 +342,6 @@ internal class BuildDirectoryTracer constructor(
 			availBuilder.textInterface,
 			availBuilder.pollForAbort,
 			{ _, _, _ -> },
-			{ compiler ->
-				compiler.compilationContext.diagnostics
-					.setSuccessAndFailureReporters(
-						{},
-						completedAction)
-				compiler.parseModuleHeader {
-					val header = stripNull(
-						compiler.compilationContext.moduleHeader)
-					val importNames = header.importedModuleNames
-					val entryPoints = header.entryPointNames
-					val newVersion = repository.ModuleVersion(
-						sourceFile.length(),
-						importNames,
-						entryPoints)
-					availBuilder.serialize(header, newVersion)
-					archive.putVersion(versionKey, newVersion)
-					action(resolvedName, newVersion, completedAction)
-				}
-			},
 			completedAction,
 			object : BuilderProblemHandler(availBuilder, "")
 			{
@@ -373,7 +354,25 @@ internal class BuildDirectoryTracer constructor(
 					// modules.
 					decider(false)
 				}
-			})
+			}
+		) {
+			compiler ->
+			compiler.compilationContext.diagnostics
+				.setSuccessAndFailureReporters({}, completedAction)
+			compiler.parseModuleHeader {
+				val header = stripNull(
+					compiler.compilationContext.moduleHeader)
+				val importNames = header.importedModuleNames
+				val entryPoints = header.entryPointNames
+				val newVersion = repository.ModuleVersion(
+					sourceFile.length(),
+					importNames,
+					entryPoints)
+				availBuilder.serialize(header, newVersion)
+				archive.putVersion(versionKey, newVersion)
+				action(resolvedName, newVersion, completedAction)
+			}
+		}
 	}
 
 	/**

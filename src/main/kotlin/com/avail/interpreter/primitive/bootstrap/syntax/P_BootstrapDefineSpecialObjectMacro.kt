@@ -48,8 +48,9 @@ import com.avail.descriptor.SendPhraseDescriptor.newSendNode
 import com.avail.descriptor.SequencePhraseDescriptor.newSequence
 import com.avail.descriptor.SetDescriptor.emptySet
 import com.avail.descriptor.TupleDescriptor.emptyTuple
-import com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf
-import com.avail.descriptor.TypeDescriptor.Types.*
+import com.avail.descriptor.TupleTypeDescriptor.nonemptyStringType
+import com.avail.descriptor.TypeDescriptor.Types.ANY
+import com.avail.descriptor.TypeDescriptor.Types.TOP
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.parsing.BlockPhraseDescriptor.newBlockNode
 import com.avail.exceptions.AmbiguousNameException
@@ -168,7 +169,7 @@ object P_BootstrapDefineSpecialObjectMacro
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				LITERAL_PHRASE.create(oneOrMoreOf(CHARACTER.o())),
+				LITERAL_PHRASE.create(nonemptyStringType()),
 				LITERAL_PHRASE.create(ANY.o())),
 			SEQUENCE_PHRASE.mostGeneralType())
 }

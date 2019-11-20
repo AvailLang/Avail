@@ -336,7 +336,8 @@ enum class ParsingOperation constructor(
 				Con1(partialSubexpressionList) { solution ->
 					compiler.eventuallyParseRestOfSendNode(
 						solution.endState,
-						successorTree, null,
+						successorTree,
+						null,
 						initialTokenPosition,
 						// The argument counts as something that was consumed if
 						// it's not a leading argument...
@@ -397,7 +398,8 @@ enum class ParsingOperation constructor(
 				Con1(partialSubexpressionList) { solution ->
 					compiler.eventuallyParseRestOfSendNode(
 						solution.endState,
-						successorTrees.tupleAt(1), null,
+						successorTrees.tupleAt(1),
+						null,
 						initialTokenPosition,
 						// The argument counts as something that was consumed if
 						// it's not a leading argument...
@@ -501,7 +503,8 @@ enum class ParsingOperation constructor(
 							rawVariableReference
 					compiler.eventuallyParseRestOfSendNode(
 						afterUse,
-						successorTrees.tupleAt(1), null,
+						successorTrees.tupleAt(1),
+						null,
 						initialTokenPosition,
 						// The argument counts as something that was consumed if
 						// it's not a leading argument...
@@ -604,7 +607,8 @@ enum class ParsingOperation constructor(
 					append(argsSoFar, literalNodeFromToken(syntheticToken))
 				compiler.eventuallyParseRestOfSendNode(
 					ParserState(token.nextLexingState(), start.clientDataMap),
-					successorTrees.tupleAt(1), null,
+					successorTrees.tupleAt(1),
+					null,
 					initialTokenPosition,
 					true,
 					// Until we've passed the type test, we don't consider
@@ -683,7 +687,8 @@ enum class ParsingOperation constructor(
 				compiler.eventuallyParseRestOfSendNode(
 					ParserState(
 						token.nextLexingState(), start.clientDataMap),
-					successorTrees.tupleAt(1), null,
+					successorTrees.tupleAt(1),
+					null,
 					initialTokenPosition,
 					true,
 					// Until we've passed the type test, we don't consider
@@ -764,7 +769,8 @@ enum class ParsingOperation constructor(
 				compiler.eventuallyParseRestOfSendNode(
 					ParserState(
 						token.nextLexingState(), start.clientDataMap),
-					successorTrees.tupleAt(1), null,
+					successorTrees.tupleAt(1),
+					null,
 					initialTokenPosition,
 					true,
 					// Until we've passed the type test, we don't consider
@@ -847,7 +853,8 @@ enum class ParsingOperation constructor(
 				compiler.eventuallyParseRestOfSendNode(
 					ParserState(
 						token.nextLexingState(), start.clientDataMap),
-					successorTrees.tupleAt(1), null,
+					successorTrees.tupleAt(1),
+					null,
 					initialTokenPosition,
 					true,
 					// Until we've passed the type test, we don't consider
@@ -1157,7 +1164,8 @@ enum class ParsingOperation constructor(
 			assert(firstArgOrNull === null)
 			compiler.eventuallyParseRestOfSendNode(
 				start,
-				successorTrees.tupleAt(1), null,
+				successorTrees.tupleAt(1),
+				null,
 				initialTokenPosition,
 				consumedAnything,
 				consumedAnythingBeforeLatestArgument,

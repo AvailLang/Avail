@@ -125,7 +125,8 @@ class StacksOutputFile @Throws(IOException::class) constructor(
 		val pos = MutableLong(0L)
 		outputFile.write<Any>(
 			buffer,
-			pos.value, null,
+			pos.value,
+			null,
 			object: CompletionHandler<Int, Any>
 			{
 				override fun completed(result: Int?, attachment: Any?)

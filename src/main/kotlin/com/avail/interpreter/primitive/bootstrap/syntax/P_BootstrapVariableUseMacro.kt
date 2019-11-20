@@ -74,9 +74,8 @@ object P_BootstrapVariableUseMacro
 		interpreter.checkArgumentCount(1)
 		val variableNameLiteral = interpreter.argument(0)
 
-		val loader =
-			interpreter.availLoaderOrNull()
-	             ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+		val loader = interpreter.availLoaderOrNull() ?:
+			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		assert(variableNameLiteral.isInstanceOf(
 			LITERAL_PHRASE.mostGeneralType()))
 		val literalToken = variableNameLiteral.token()

@@ -923,7 +923,8 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 						decider: (Boolean)->Unit)
 					{
 						textInterface.errorChannel.write(
-							problem.toString(), null,
+							problem.toString(),
+							null,
 							SimpleCompletionHandler<Int, Any>(
 								{ handleGeneric(problem, decider) },
 								{ _ -> handleGeneric(problem, decider) }))
@@ -935,7 +936,8 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 					{
 						// Same as handleInternal (2015.04.24)
 						textInterface.errorChannel.write(
-							problem.toString(), null,
+							problem.toString(),
+							null,
 							SimpleCompletionHandler<Int, Any>(
 								{ handleGeneric(problem, decider) },
 								{ _ -> handleGeneric(problem, decider) }))

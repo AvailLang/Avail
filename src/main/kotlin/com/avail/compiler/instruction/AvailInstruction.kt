@@ -111,12 +111,10 @@ abstract class AvailInstruction constructor(var relevantTokens: A_Tuple)
 	val lineNumber: Int
 		get()
 		{
-			if (relevantTokens.tupleSize() == 0)
-			{
-				return -1
+			return when {
+				relevantTokens.tupleSize() == 0 -> -1
+				else -> relevantTokens.tupleAt(1).lineNumber()
 			}
-			val firstToken = relevantTokens.tupleAt(1)
-			return firstToken.lineNumber()
 		}
 
 	companion object

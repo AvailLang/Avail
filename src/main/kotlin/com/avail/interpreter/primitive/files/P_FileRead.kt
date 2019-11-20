@@ -260,7 +260,8 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 		val buffer = ByteBuffer.allocateDirect(size)
 		fileChannel.read<Void>(
 			buffer,
-			oneBasedPositionLong - 1, null,
+			oneBasedPositionLong - 1,
+			null,
 			SimpleCompletionHandler(
 				// completion
 				{ bytesRead ->

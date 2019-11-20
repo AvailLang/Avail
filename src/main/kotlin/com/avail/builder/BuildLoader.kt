@@ -469,9 +469,31 @@ internal class BuildLoader constructor(
 		val versionKey = ModuleVersionKey(moduleName, digest)
 		val lastPosition = MutableLong(0L)
 		val ranOnce = AtomicBoolean(false)
-		val continuation = { compiler: AvailCompiler ->
+		AvailCompiler.create(
+			moduleName,
+			availBuilder.textInterface,
+			availBuilder.pollForAbort,
+			{ moduleName2, moduleSize, position ->
+				assert(moduleName == moduleName2)
+				// Don't reach the full module size yet.  A separate update at
+				// 100% will be sent after post-loading actions are complete.
+				localTracker(
+					moduleName, moduleSize, min(position, moduleSize - 1))
+				globalTracker(
+					bytesCompiled.addAndGet(position - lastPosition.value),
+					globalCodeSize)
+				lastPosition.value = position
+			},
+			{
+				postLoad(moduleName, lastPosition.value)
+				completionAction()
+			},
+			problemHandler
+		) {
+			compiler: AvailCompiler ->
 			compiler.parseModule(
-				{ module ->
+				{
+					module ->
 					val old = ranOnce.getAndSet(true)
 					assert(!old) { "Completed module compilation twice!" }
 					val stream =
@@ -479,8 +501,7 @@ internal class BuildLoader constructor(
 					// This is the moment of compilation.
 					val compilationTime = System.currentTimeMillis()
 					val compilation = repository.ModuleCompilation(
-						compilationTime,
-						appendCRC(stream.toByteArray()))
+						compilationTime, appendCRC(stream.toByteArray()))
 					archive.putCompilation(
 						versionKey, compilationKey, compilation)
 
@@ -488,8 +509,8 @@ internal class BuildLoader constructor(
 					val out = ByteArrayOutputStream(5000)
 					val serializer = Serializer(out, module)
 					// TODO MvG - Capture "/**" comments for Stacks.
-					//						final A_Tuple comments = fromList(
-					//                          module.commentTokens());
+					//		final A_Tuple comments = fromList(
+					//         module.commentTokens());
 					val comments = emptyTuple()
 					serializer.serialize(comments)
 					val version = stripNull(archive.getVersion(versionKey))
@@ -513,27 +534,6 @@ internal class BuildLoader constructor(
 					completionAction()
 				})
 		}
-		AvailCompiler.create(
-			moduleName,
-			availBuilder.textInterface,
-			availBuilder.pollForAbort,
-			{ moduleName2, moduleSize, position ->
-				assert(moduleName == moduleName2)
-				// Don't reach the full module size yet.  A separate update at
-				// 100% will be sent after post-loading actions are complete.
-				localTracker(
-					moduleName, moduleSize, min(position, moduleSize - 1))
-				globalTracker(
-					bytesCompiled.addAndGet(position - lastPosition.value),
-					globalCodeSize)
-				lastPosition.value = position
-			},
-			continuation,
-			{
-				postLoad(moduleName, lastPosition.value)
-				completionAction()
-			},
-			problemHandler)
 	}
 
 	/**

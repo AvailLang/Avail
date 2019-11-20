@@ -368,7 +368,8 @@ internal class GraphTracer constructor(
 		val position = MutableInt(0)
 		channel.write<Any>(
 			buffer,
-			0, null,
+			0,
+			null,
 			SimpleCompletionHandler(
 				{ result, _, handler ->
 					position.value += stripNull<Int>(result)
@@ -376,7 +377,8 @@ internal class GraphTracer constructor(
 					{
 						channel.write<Any>(
 							buffer,
-							position.value.toLong(), null,
+							position.value.toLong(),
+							null,
 							handler)
 					}
 				},

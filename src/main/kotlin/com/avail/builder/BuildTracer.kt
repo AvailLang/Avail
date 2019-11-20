@@ -40,7 +40,6 @@ import com.avail.descriptor.FiberDescriptor.tracerPriority
 import com.avail.descriptor.ModuleDescriptor
 import com.avail.io.SimpleCompletionHandler
 import com.avail.persistence.IndexedRepositoryManager.ModuleVersionKey
-import com.avail.utility.Nulls.stripNull
 import java.util.*
 import java.util.logging.Level
 
@@ -235,7 +234,9 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 			availBuilder.textInterface,
 			availBuilder.pollForAbort,
 			{ _, _, _ -> },
-			{ compiler ->
+			this::indicateTraceCompleted,
+			problemHandler) {
+				compiler ->
 				compiler.compilationContext.diagnostics
 					.setSuccessAndFailureReporters(
 						{
@@ -245,8 +246,7 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 						},
 						this::indicateTraceCompleted)
 				compiler.parseModuleHeader {
-					val header = stripNull(
-						compiler.compilationContext.moduleHeader)
+					val header = compiler.compilationContext.moduleHeader!!
 					val importNames = header.importedModuleNames
 					val entryPoints = header.entryPointNames
 					val newVersion = repository.ModuleVersion(
@@ -260,9 +260,7 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 						problemHandler)
 					indicateTraceCompleted()
 				}
-			},
-			this::indicateTraceCompleted,
-			problemHandler)
+			}
 	}
 
 	/**
