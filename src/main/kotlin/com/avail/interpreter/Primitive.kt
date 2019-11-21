@@ -66,7 +66,6 @@ import com.avail.optimizer.values.L2SemanticValue
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
 import com.avail.serialization.Serializer
-import com.avail.utility.Nulls.stripNull
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes.*
@@ -187,13 +186,15 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 * The [Statistic] for abandoning the stack due to a primitive attempt
 	 * answering [Result.CONTINUATION_CHANGED].
 	 */
-	private var reificationAbandonmentStat: Statistic? = null
+	var reificationAbandonmentStat: Statistic? = null
+		private set
 
 	/**
 	 * The [Statistic] for reification prior to invoking a primitive that
 	 * *does not* have [Flag.CanInline] set.
 	 */
-	private var reificationForNoninlineStat: Statistic? = null
+	var reificationForNoninlineStat: Statistic? = null
+		private set
 
 	/** Capture the name of the primitive class once for performance.  */
 	private var name = ""
@@ -656,25 +657,6 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	}
 
 	/**
-	 * Answer the [Statistic] for abandoning the stack due to a primitive
-	 * attempt answering [Result.CONTINUATION_CHANGED].  The primitive
-	 * must have [Flag.CanSwitchContinuations] set.
-	 *
-	 * @return The [Statistic].
-	 */
-	fun reificationAbandonmentStat(): Statistic =
-		stripNull(reificationAbandonmentStat)
-
-	/**
-	 * Answer the [Statistic] for reification prior to invoking a primitive that
-	 * *does not* have [Flag.CanInline] set.
-	 *
-	 * @return The [Statistic].
-	 */
-	fun reificationForNoninlineStat(): Statistic =
-		stripNull(reificationForNoninlineStat)
-
-	/**
 	 * Answer whether a raw function using this primitive can/should have
 	 * nybblecode instructions.
 	 *
@@ -1023,7 +1005,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 			arguments: List<A_Phrase>): String?
 		{
 			val primitive =
-				stripNull(byPrimitiveNumberOrNull(primitiveNumber))
+				byPrimitiveNumberOrNull(primitiveNumber)!!
 			val expected = primitive.argCount
 			if (expected == -1)
 			{

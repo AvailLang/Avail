@@ -35,7 +35,6 @@ package com.avail.builder
 import com.avail.builder.ModuleNameResolver.Companion.availExtension
 import com.avail.descriptor.ModuleDescriptor
 import com.avail.persistence.IndexedRepositoryManager
-import com.avail.utility.Nulls.stripNull
 import java.io.File
 
 /**
@@ -85,7 +84,7 @@ internal constructor(
 		get()
 		{
 			val builder = StringBuilder(100)
-			val sourceDirectory = stripNull(moduleRoot.sourceDirectory)
+			val sourceDirectory = moduleRoot.sourceDirectory!!
 			builder.append(sourceDirectory)
 			for (part in rootRelativeName.split("/"))
 			{

@@ -48,7 +48,6 @@ import com.avail.descriptor.TypeDescriptor.Types.TOP
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
-import com.avail.utility.Nulls.stripNull
 import java.util.*
 
 /**
@@ -79,7 +78,7 @@ object P_Sleep : Primitive(1, CannotFail, CanSuspend, Unknown)
 		// the fiber to resume later. If the delay is too big, then the fiber
 		// will only awaken due to interruption.
 		val runtime = interpreter.runtime()
-		val primitiveFunction = stripNull(interpreter.function)
+		val primitiveFunction = interpreter.function!!
 		if (sleepMillis.isLong)
 		{
 			// Otherwise, delay the resumption of this task.

@@ -66,7 +66,6 @@ import com.avail.interpreter.levelOne.L1InstructionWriter
 import com.avail.interpreter.levelOne.L1Operation
 import com.avail.io.TextInterface
 import com.avail.serialization.Serializer
-import com.avail.utility.Nulls.stripNull
 import com.avail.utility.StackPrinter.trace
 import java.io.ByteArrayOutputStream
 import java.lang.String.format
@@ -435,7 +434,7 @@ class CompilationContext(
 				{
 					try
 					{
-						val noMore = stripNull(noMoreWorkUnits)
+						val noMore = noMoreWorkUnits!!
 						noMoreWorkUnits = null
 						noMore()
 					}

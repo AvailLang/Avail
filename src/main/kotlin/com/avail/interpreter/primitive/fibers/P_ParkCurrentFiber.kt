@@ -45,7 +45,6 @@ import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 import com.avail.utility.MutableOrNull
-import com.avail.utility.Nulls.stripNull
 
 /**
  * **Primitive:** Attempt to acquire the
@@ -73,7 +72,7 @@ object P_ParkCurrentFiber : Primitive(0, CannotFail, CanSuspend, Unknown)
 			result.value =
 				if (fiber.getAndSetSynchronizationFlag(PERMIT_UNAVAILABLE, true))
 				{
-					interpreter.primitivePark(stripNull(interpreter.function))
+					interpreter.primitivePark(interpreter.function!!)
 				}
 				else
 				{

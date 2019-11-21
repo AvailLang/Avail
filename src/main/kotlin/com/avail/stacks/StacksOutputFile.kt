@@ -133,7 +133,7 @@ class StacksOutputFile @Throws(IOException::class) constructor(
 				{
 					if (buffer.hasRemaining())
 					{
-						pos.value += Nulls.stripNull(result).toLong()
+						pos.value += result!!.toLong()
 						outputFile.write<Any>(buffer, pos.value, null, this)
 					}
 					else

@@ -48,7 +48,6 @@ import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Interpreter.resumeFromSuccessfulPrimitive
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
-import com.avail.utility.Nulls.stripNull
 
 /**
  * **Primitive:** Unpark the specified [fiber][FiberDescriptor]. If the
@@ -77,7 +76,7 @@ object P_UnparkFiber : Primitive(1, CannotFail, CanInline, HasSideEffect)
 				// Wake up the fiber.
 				fiber.executionState(SUSPENDED)
 				val suspendingPrimitive =
-					stripNull(fiber.suspendingFunction().code().primitive())
+					fiber.suspendingFunction().code().primitive()!!
 				assert(suspendingPrimitive === P_ParkCurrentFiber
 				       || suspendingPrimitive === P_AttemptJoinFiber)
 				resumeFromSuccessfulPrimitive(

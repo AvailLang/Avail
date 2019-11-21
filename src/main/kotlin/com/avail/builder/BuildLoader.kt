@@ -61,7 +61,6 @@ import com.avail.serialization.Deserializer
 import com.avail.serialization.MalformedSerialStreamException
 import com.avail.serialization.Serializer
 import com.avail.utility.MutableLong
-import com.avail.utility.Nulls.stripNull
 import com.avail.utility.evaluation.Combinator.recurse
 import java.io.ByteArrayOutputStream
 import java.lang.String.format
@@ -317,7 +316,7 @@ internal class BuildLoader constructor(
 		// Read the module header from the repository.
 		try
 		{
-			val bytes = stripNull(version.moduleHeader)
+			val bytes = version.moduleHeader
 			val inputStream = AvailBuilder.validatedBytesFrom(bytes)
 			val deserializer = Deserializer(inputStream, availBuilder.runtime)
 			val header = ModuleHeader(moduleName)
@@ -343,7 +342,7 @@ internal class BuildLoader constructor(
 		try
 		{
 			// Read the module data from the repository.
-			val bytes = stripNull(compilation.bytes)
+			val bytes = compilation.bytes!!
 			val inputStream = AvailBuilder.validatedBytesFrom(bytes)
 			deserializer = Deserializer(inputStream, availBuilder.runtime)
 			deserializer.currentModule = module
@@ -513,7 +512,7 @@ internal class BuildLoader constructor(
 					//         module.commentTokens());
 					val comments = emptyTuple()
 					serializer.serialize(comments)
-					val version = stripNull(archive.getVersion(versionKey))
+					val version = archive.getVersion(versionKey)!!
 					version.putComments(appendCRC(out.toByteArray()))
 
 					repository.commitIfStaleChanges(

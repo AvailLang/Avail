@@ -45,7 +45,6 @@ import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanSuspend
 import com.avail.interpreter.Primitive.Flag.CanSwitchContinuations
-import com.avail.utility.Nulls.stripNull
 
 /**
  * **Primitive:** Raise an exception. Scan the stack of
@@ -70,7 +69,7 @@ object P_RaiseException : Primitive(1, CanSuspend, CanSwitchContinuations)
 		val fieldMap = exception.fieldMap()
 		val newFieldMap = fieldMap.mapAtPuttingCanDestroy(
 			stackDumpAtom(),
-			stripNull(interpreter.reifiedContinuation).makeImmutable(),
+			interpreter.reifiedContinuation!!.makeImmutable(),
 			false)
 		val newException = objectFromMap(newFieldMap)
 		// Search for an applicable exception handler, and invoke it if found.

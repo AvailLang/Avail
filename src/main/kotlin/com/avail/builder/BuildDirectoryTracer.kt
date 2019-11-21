@@ -37,7 +37,6 @@ import com.avail.compiler.AvailCompiler
 import com.avail.compiler.problems.Problem
 import com.avail.persistence.IndexedRepositoryManager.ModuleVersion
 import com.avail.persistence.IndexedRepositoryManager.ModuleVersionKey
-import com.avail.utility.Nulls.stripNull
 import java.io.IOException
 import java.nio.file.*
 import java.nio.file.FileVisitResult.CONTINUE
@@ -131,7 +130,7 @@ internal class BuildDirectoryTracer constructor(
 		val moduleRoots = availBuilder.runtime.moduleRoots()
 		for (moduleRoot in moduleRoots)
 		{
-			val rootDirectory = stripNull(moduleRoot.sourceDirectory)
+			val rootDirectory = moduleRoot.sourceDirectory!!
 			val rootPath = rootDirectory.toPath()
 			val visitor = object : FileVisitor<Path>
 			{
@@ -360,8 +359,7 @@ internal class BuildDirectoryTracer constructor(
 			compiler.compilationContext.diagnostics
 				.setSuccessAndFailureReporters({}, completedAction)
 			compiler.parseModuleHeader {
-				val header = stripNull(
-					compiler.compilationContext.moduleHeader)
+				val header = compiler.compilationContext.moduleHeader!!
 				val importNames = header.importedModuleNames
 				val entryPoints = header.entryPointNames
 				val newVersion = repository.ModuleVersion(

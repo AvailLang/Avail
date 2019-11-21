@@ -35,7 +35,6 @@ package com.avail.environment.actions
 import com.avail.builder.AvailBuilder
 import com.avail.environment.AvailWorkbench
 import com.avail.environment.tasks.GraphTask
-import com.avail.utility.Nulls.stripNull
 import java.awt.Cursor.WAIT_CURSOR
 import java.awt.Cursor.getPredefinedCursor
 import java.awt.event.ActionEvent
@@ -57,7 +56,7 @@ class GenerateGraphAction constructor(workbench: AvailWorkbench)
 	override fun actionPerformed(event: ActionEvent?)
 	{
 		assert(workbench.backgroundTask == null)
-		val selectedModule = stripNull(workbench.selectedModule())
+		val selectedModule = workbench.selectedModule()!!
 
 		// Update the UI.
 		workbench.cursor = getPredefinedCursor(WAIT_CURSOR)

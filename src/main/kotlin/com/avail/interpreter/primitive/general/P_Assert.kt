@@ -56,7 +56,6 @@ import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_EQUALS_CONSTANT
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
 import com.avail.optimizer.L2Generator.edgeTo
-import com.avail.utility.Nulls.stripNull
 import java.lang.String.format
 
 /**
@@ -80,8 +79,8 @@ object P_Assert : Primitive(2, Unknown, CanSuspend, CannotFail)
 		}
 
 		val fiber = interpreter.fiber()
-		val continuation = stripNull(interpreter.reifiedContinuation)
-		interpreter.primitiveSuspend(stripNull(interpreter.function))
+		val continuation = interpreter.reifiedContinuation!!
+		interpreter.primitiveSuspend(interpreter.function!!)
 		dumpStackThen(interpreter.runtime(), fiber.textInterface(), continuation)
 			{ stack ->
 				val builder = StringBuilder()

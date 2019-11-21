@@ -34,7 +34,6 @@ package com.avail.persistence
 import com.avail.persistence.IndexedRepositoryManager.Companion.log
 import com.avail.utility.Casts.cast
 import com.avail.utility.LRUCache
-import com.avail.utility.Nulls.stripNull
 import java.io.DataOutputStream
 import java.io.File
 import java.io.IOException
@@ -618,7 +617,7 @@ abstract class IndexedFile
 
 		// Write the master blocks.
 		var m = MasterNode(1, fileLimit)
-		val b = stripNull(masterNodeBuffer)
+		val b = masterNodeBuffer!!
 		m.writeTo(b)
 		buffer.put(b)
 		assert(buffer.position().toLong() == masterPosition)
@@ -697,7 +696,7 @@ abstract class IndexedFile
 	{
 		// Verify the CRC32.
 		channel!!.position(nodePosition)
-		val b = stripNull(masterNodeBuffer)
+		val b = masterNodeBuffer!!
 		b.rewind()
 		channel!!.read(b)
 		val encoder = CRC32()

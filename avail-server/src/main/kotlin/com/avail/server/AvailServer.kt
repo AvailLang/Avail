@@ -57,7 +57,6 @@ import com.avail.server.io.WebSocketAdapter
 import com.avail.server.messages.*
 import com.avail.utility.Mutable
 import com.avail.utility.MutableOrNull
-import com.avail.utility.Nulls.stripNull
 import com.avail.utility.configuration.ConfigurationException
 import com.avail.utility.evaluation.Continuation0
 import com.avail.utility.evaluation.Continuation3NotNull
@@ -1399,13 +1398,13 @@ class AvailServer constructor(
 						val localName = fileName.substring(
 							0, fileName.length - extension.length)
 						val node = ModuleNode(localName)
-						stripNull(stack.peekFirst()).addModule(node)
+						stack.peekFirst()!!.addModule(node)
 						stack.addFirst(node)
 						return FileVisitResult.CONTINUE
 					}
 					// This is a resource.
 					val node = ModuleNode(fileName)
-					stripNull(stack.peekFirst()).addResource(node)
+					stack.peekFirst()!!.addResource(node)
 					stack.addFirst(node)
 					return FileVisitResult.CONTINUE
 				}
@@ -1435,12 +1434,12 @@ class AvailServer constructor(
 						val localName = fileName.substring(
 							0, fileName.length - extension.length)
 						val node = ModuleNode(localName)
-						stripNull(stack.peekFirst()).addModule(node)
+						stack.peekFirst()!!.addModule(node)
 					}
 					else
 					{
 						val node = ModuleNode(fileName)
-						stripNull(stack.peekFirst()).addResource(node)
+						stack.peekFirst()!!.addResource(node)
 					}
 					return FileVisitResult.CONTINUE
 				}
@@ -1457,13 +1456,13 @@ class AvailServer constructor(
 							0, fileName.length - extension.length)
 						val node = ModuleNode(localName)
 						node.exception = e
-						stripNull(stack.peekFirst()).addModule(node)
+						stack.peekFirst()!!.addModule(node)
 					}
 					else
 					{
 						val node = ModuleNode(fileName)
 						node.exception = e
-						stripNull(stack.peekFirst()).addResource(node)
+						stack.peekFirst()!!.addResource(node)
 					}
 					return FileVisitResult.CONTINUE
 				}

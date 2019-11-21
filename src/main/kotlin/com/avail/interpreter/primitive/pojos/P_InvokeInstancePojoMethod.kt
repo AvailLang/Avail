@@ -48,7 +48,6 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.Private
 import com.avail.interpreter.primitive.pojos.PrimitiveHelper.marshalValues
 import com.avail.utility.MutableOrNull
-import com.avail.utility.Nulls.stripNull
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 
@@ -73,7 +72,7 @@ object P_InvokeInstancePojoMethod : Primitive(-1, Private)
 	{
 		val methodArgs = tupleFromList(interpreter.argsBuffer)
 
-		val primitiveFunction = stripNull(interpreter.function)
+		val primitiveFunction = interpreter.function!!
 		val primitiveRawFunction = primitiveFunction.code()
 		assert(primitiveRawFunction.primitive() === this)
 

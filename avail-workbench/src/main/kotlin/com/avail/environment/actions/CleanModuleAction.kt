@@ -35,7 +35,6 @@ package com.avail.environment.actions
 import com.avail.environment.AvailWorkbench
 import com.avail.environment.AvailWorkbench.StreamStyle.INFO
 import com.avail.persistence.IndexedFileException
-import com.avail.utility.Nulls.stripNull
 import java.awt.event.ActionEvent
 import java.lang.String.format
 import javax.swing.Action
@@ -79,7 +78,7 @@ class CleanModuleAction constructor(workbench: AvailWorkbench)
 
 		// Delete a module or package (and everything inside it).
 		val selectedModule =
-			stripNull(workbench.selectedModule())
+			workbench.selectedModule()!!
 		val rootRelative = selectedModule.rootRelativeName
 		val repository = selectedModule.repository
 		repository.cleanModulesUnder(rootRelative)

@@ -38,7 +38,6 @@ import com.avail.environment.AvailWorkbench
 import com.avail.persistence.IndexedRepositoryManager.ModuleCompilation
 import com.avail.persistence.IndexedRepositoryManagerDescriber
 import com.avail.utility.Casts.nullableCast
-import com.avail.utility.Nulls.stripNull
 import java.awt.event.ActionEvent
 import javax.swing.Action
 import javax.swing.JOptionPane
@@ -68,7 +67,7 @@ class ExamineCompilationAction constructor (
 		runtime.execute(FiberDescriptor.commandPriority)
 		execute@{
 			val moduleName =
-				stripNull(workbench.selectedModule())
+				workbench.selectedModule()!!
 			moduleName.repository.use { repository ->
 				repository.reopenIfNecessary()
 				val compilations = ArrayList<ModuleCompilation>()

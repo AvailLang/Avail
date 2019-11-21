@@ -50,7 +50,6 @@ import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
 import com.avail.utility.Casts.cast
-import com.avail.utility.Nulls.stripNull
 import java.lang.String.format
 
 /**
@@ -76,8 +75,8 @@ object P_EmergencyExit : Primitive(
 		interpreter.checkArgumentCount(1)
 		val errorMessageProducer = interpreter.argument(0)
 		val fiber = interpreter.fiber()
-		val continuation = stripNull(interpreter.reifiedContinuation)
-		interpreter.primitiveSuspend(stripNull(interpreter.function))
+		val continuation = interpreter.reifiedContinuation!!
+		interpreter.primitiveSuspend(interpreter.function!!)
 		dumpStackThen(
 			interpreter.runtime(),
 			fiber.textInterface(),

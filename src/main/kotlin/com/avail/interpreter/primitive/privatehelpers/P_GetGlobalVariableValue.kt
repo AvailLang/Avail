@@ -42,7 +42,6 @@ import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operation.L2_GET_VARIABLE
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
-import com.avail.utility.Nulls.stripNull
 
 /**
  * **Primitive:** A global variable's value is being returned.
@@ -52,7 +51,7 @@ object P_GetGlobalVariableValue : Primitive(
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
-		val code = stripNull(interpreter.function).code()
+		val code = interpreter.function!!.code()
 		val literalVariable = code.literalAt(1)
 		try
 		{

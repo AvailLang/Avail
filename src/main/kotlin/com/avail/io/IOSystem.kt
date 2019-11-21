@@ -43,7 +43,6 @@ import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.utility.LRUCache
 import com.avail.utility.MutableOrNull
-import com.avail.utility.Nulls.stripNull
 import com.avail.utility.SimpleThreadFactory
 import java.io.IOException
 import java.nio.channels.AsynchronousChannelGroup
@@ -331,8 +330,7 @@ class IOSystem constructor(val runtime: AvailRuntime)
 	 * @return
 	 *   A container for a buffer, possibly empty.
 	 */
-	fun getBuffer(key: BufferKey): MutableOrNull<A_Tuple> =
-		stripNull(cachedBuffers[key])
+	fun getBuffer(key: BufferKey): MutableOrNull<A_Tuple> = cachedBuffers[key]
 
 	/**
 	 * Discard the [container][MutableOrNull] responsible for the

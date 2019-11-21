@@ -56,7 +56,6 @@ import com.avail.exceptions.MalformedMessageException
 import com.avail.serialization.Deserializer
 import com.avail.serialization.MalformedSerialStreamException
 import com.avail.serialization.Serializer
-import com.avail.utility.Nulls.stripNull
 import java.util.*
 
 /**
@@ -216,26 +215,26 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 	@Throws(MalformedSerialStreamException::class)
 	fun deserializeHeaderFrom(deserializer: Deserializer)
 	{
-		val name = stripNull(deserializer.deserialize())
+		val name = deserializer.deserialize()!!
 		if (name.asNativeString() != moduleName.qualifiedName)
 		{
 			throw RuntimeException(
 				"Incorrect module name.  Expected: "
 				+ "${moduleName.qualifiedName} but found $name")
 		}
-		val theVersions = stripNull(deserializer.deserialize())
+		val theVersions = deserializer.deserialize()!!
 		versions.clear()
 		versions.addAll(toList(theVersions))
-		val theExtended = stripNull(deserializer.deserialize())
+		val theExtended = deserializer.deserialize()!!
 		importedModules.clear()
 		importedModules.addAll(moduleImportsFromTuple(theExtended))
-		val theExported = stripNull(deserializer.deserialize())
+		val theExported = deserializer.deserialize()!!
 		exportedNames.clear()
 		exportedNames.addAll(toList(theExported))
-		val theEntryPoints = stripNull(deserializer.deserialize())
+		val theEntryPoints = deserializer.deserialize()!!
 		entryPoints.clear()
 		entryPoints.addAll(toList(theEntryPoints))
-		val thePragmas = stripNull(deserializer.deserialize())
+		val thePragmas = deserializer.deserialize()!!
 		pragmas.clear()
 		// Synthesize fake tokens for the pragma strings.
 		for (pragmaString in thePragmas)
@@ -247,9 +246,9 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 					0,
 					pragmaString))
 		}
-		val positionInteger = stripNull(deserializer.deserialize())
+		val positionInteger = deserializer.deserialize()!!
 		startOfBodyPosition = positionInteger.extractInt()
-		val lineNumberInteger = stripNull(deserializer.deserialize())
+		val lineNumberInteger = deserializer.deserialize()!!
 		startOfBodyLineNumber = lineNumberInteger.extractInt()
 	}
 

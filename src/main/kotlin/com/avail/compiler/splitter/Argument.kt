@@ -41,7 +41,6 @@ import com.avail.descriptor.objects.A_BasicObject
 import com.avail.descriptor.parsing.A_Phrase
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import com.avail.exceptions.SignatureException
-import com.avail.utility.Nulls.stripNull
 import java.util.*
 
 /**
@@ -121,7 +120,7 @@ internal open class Argument constructor(
 		builder: StringBuilder,
 		indent: Int)
 	{
-		stripNull(arguments).next().printOnAvoidingIndent(
+		arguments!!.next().printOnAvoidingIndent(
 			builder,
 			IdentityHashMap<A_BasicObject, Void>(),
 			indent + 1)

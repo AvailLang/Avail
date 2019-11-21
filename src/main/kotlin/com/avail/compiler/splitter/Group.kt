@@ -55,7 +55,6 @@ import com.avail.descriptor.parsing.A_Phrase
 import com.avail.exceptions.AvailErrorCode.*
 import com.avail.exceptions.MalformedMessageException
 import com.avail.exceptions.SignatureException
-import com.avail.utility.Nulls.stripNull
 import java.util.*
 import kotlin.math.max
 import kotlin.math.min
@@ -858,7 +857,7 @@ internal class Group : Expression
 		indent: Int)
 	{
 		val needsDouble = needsDoubleWrapping
-		val groupArguments = stripNull(arguments).next()
+		val groupArguments = arguments!!.next()
 		val occurrenceProvider = groupArguments.expressionsTuple().iterator()
 		while (occurrenceProvider.hasNext())
 		{

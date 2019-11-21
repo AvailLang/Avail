@@ -32,7 +32,6 @@
 
 package com.avail.utility.configuration
 
-import com.avail.utility.Nulls.stripNull
 import org.xml.sax.Attributes
 import org.xml.sax.SAXException
 import org.xml.sax.helpers.DefaultHandler
@@ -123,7 +122,7 @@ where
 	@Throws(SAXException::class)
 	override fun endElement(uri: String?, localName: String?, qName: String)
 	{
-		val element = stripNull(model.elementWithQName(qName))
+		val element = model.elementWithQName(qName)!!
 		assert(element === state.peek())
 		element.endElement(state)
 		state.pop()

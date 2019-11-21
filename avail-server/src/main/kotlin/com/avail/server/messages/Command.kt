@@ -43,7 +43,6 @@ import com.avail.server.AvailServer
 import com.avail.server.io.AvailServerChannel
 import com.avail.server.messages.Command.TrieNode
 import com.avail.server.messages.Command.TrieNode.Companion.trie
-import com.avail.utility.Nulls.stripNull
 import java.lang.String.format
 import java.util.*
 
@@ -284,7 +283,7 @@ enum class Command
 			// This method should be overridden by any member that requires
 			// special parsing.
 			assert(!requiresSpecialParsing)
-			val tokens = stripNull(syntax)
+			val tokens = syntax!!
 			val builder = StringBuilder()
 			var first = true
 			for (token in tokens)

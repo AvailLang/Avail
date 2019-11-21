@@ -33,7 +33,6 @@
 package com.avail.test.utility.json
 
 import com.avail.test.utility.json.TestJSONKeyValue.*
-import com.avail.utility.Nulls.stripNull
 import com.avail.utility.json.JSONException
 import com.avail.utility.json.JSONObject
 import com.avail.utility.json.JSONReader
@@ -125,9 +124,9 @@ class JSONWriterTest
 		writer.endObject()
 		val content = getJsonData(writer)
 		Companion.test(
-			stripNull(content), IMASTRING, IMANINT, IMALONG, IMAFLOAT,
+			content!!, IMASTRING, IMANINT, IMALONG, IMAFLOAT,
 			IMATRUE, IMAFALSE, IMANULL, IMACOMPACTARRAY, IMANOBJECT)
-		val objContent = content!!.getObject(IMANOBJECT.key)
+		val objContent = content.getObject(IMANOBJECT.key)
 		Companion.test(objContent, OBJSTRING, OBJINT)
 		displayTestPayload(writer, false)
 	}

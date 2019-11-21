@@ -137,7 +137,6 @@ import com.avail.performance.StatisticReport.RUNNING_PARSING_INSTRUCTIONS
 import com.avail.persistence.IndexedRepositoryManager
 import com.avail.utility.*
 import com.avail.utility.Locks.lockWhile
-import com.avail.utility.Nulls.stripNull
 import com.avail.utility.PrefixSharingList.append
 import com.avail.utility.PrefixSharingList.last
 import com.avail.utility.StackPrinter.trace
@@ -2458,7 +2457,7 @@ class AvailCompiler(
 				// Failed lookup.
 				if (errorCode !== E_NO_METHOD_DEFINITION)
 				{
-					val finalErrorCode = stripNull(errorCode)
+					val finalErrorCode = errorCode!!
 					stateAfterCall.expected(MEDIUM) {
 						it(
 							if (finalErrorCode === E_AMBIGUOUS_METHOD_DEFINITION)
@@ -3043,7 +3042,7 @@ class AvailCompiler(
 	{
 		val availName = stringFrom(methodName)
 		val nameLiteral = syntheticLiteralNodeFor(availName)
-		val primitive = stripNull(primitiveByName(primitiveName))
+		val primitive = primitiveByName(primitiveName)!!
 		val function = createFunction(
 			newPrimitiveRawFunction(
 				primitive,
@@ -3102,7 +3101,7 @@ class AvailCompiler(
 		{
 			for (primitiveName in primitiveNames)
 			{
-				val prim = stripNull(primitiveByName(primitiveName))
+				val prim = primitiveByName(primitiveName)!!
 				functionLiterals.add(
 					syntheticLiteralNodeFor(
 						createFunction(

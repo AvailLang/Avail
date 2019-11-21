@@ -40,7 +40,6 @@ import com.avail.interpreter.Primitive.Flag.*
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
-import com.avail.utility.Nulls.stripNull
 
 /**
  * **Primitive:** The sole outer value is being returned.
@@ -50,7 +49,7 @@ object P_PushLastOuter : Primitive(
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
-		val function = stripNull(interpreter.function)
+		val function = interpreter.function!!
 		assert(function.code().primitive() === this)
 		return interpreter.primitiveSuccess(function.outerVarAt(1))
 	}

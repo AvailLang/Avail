@@ -35,7 +35,6 @@ package com.avail.builder
 import com.avail.annotations.ThreadSafe
 import com.avail.builder.RenamesFileParser.Token
 import com.avail.descriptor.ModuleDescriptor
-import com.avail.utility.Nulls.stripNull
 import java.io.EOFException
 import java.io.File
 import java.io.IOException
@@ -437,7 +436,7 @@ class RenamesFileParser @ThreadSafe constructor(
 				"module path ($modulePath) must not bind an empty file path")
 		}
 
-		val theResolver = stripNull(resolver)
+		val theResolver = resolver!!
 		if (theResolver.hasRenameRuleFor(modulePath))
 		{
 			throw RenamesFileParserException(

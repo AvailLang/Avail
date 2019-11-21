@@ -34,7 +34,6 @@ package com.avail.environment.actions
 
 import com.avail.environment.AvailWorkbench
 import com.avail.environment.tasks.BuildTask
-import com.avail.utility.Nulls.stripNull
 import java.awt.Cursor.WAIT_CURSOR
 import java.awt.Cursor.getPredefinedCursor
 import java.awt.event.ActionEvent
@@ -64,10 +63,10 @@ class InsertEntryPointAction constructor(workbench: AvailWorkbench)
 		// character adjacent to the underscore is also a word character.
 		// We could do more, but this should be sufficient for now.
 		val entryPointText =
-			stripNull(selectedEntryPoint
-				.replace("`".toRegex(), "")
-				.replace("\\B_".toRegex(), " _")
-				.replace("_\\B".toRegex(), "_ "))
+			selectedEntryPoint
+							.replace("`".toRegex(), "")
+							.replace("\\B_".toRegex(), " _")
+							.replace("_\\B".toRegex(), "_ ")
 		workbench.inputField.text = entryPointText
 		val offsetToUnderscore = entryPointText.indexOf('_')
 		val offset: Int

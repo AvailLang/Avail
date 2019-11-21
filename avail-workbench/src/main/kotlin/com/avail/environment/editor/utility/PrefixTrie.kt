@@ -1,6 +1,5 @@
 package com.avail.environment.editor.utility
 
-import com.avail.utility.Nulls.stripNull
 import com.avail.utility.Pair
 
 /**
@@ -80,7 +79,7 @@ class PrefixTrie<T>
 	{
 		val wordTemplates = ArrayList<NodeContent<T>>()
 		root.words().forEach { word ->
-			val nodeContent = stripNull(searchNode(word)).content()
+			val nodeContent = searchNode(word)!!.content()
 			if (nodeContent != null)
 			{
 				wordTemplates.add(

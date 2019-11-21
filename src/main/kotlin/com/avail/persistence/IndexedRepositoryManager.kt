@@ -40,7 +40,6 @@ import com.avail.descriptor.CommentTokenDescriptor
 import com.avail.descriptor.ModuleDescriptor
 import com.avail.descriptor.TupleDescriptor
 import com.avail.serialization.Serializer
-import com.avail.utility.Nulls.stripNull
 import java.io.*
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
@@ -379,7 +378,7 @@ class IndexedRepositoryManager constructor(
 				compilationKey: ModuleCompilationKey,
 				compilation: ModuleCompilation) =
 			lock.withLock {
-				val version = stripNull(versions[versionKey])
+				val version = versions[versionKey]!!
 				assert(version.getCompilation(compilationKey) === null)
 				version.compilations[compilationKey] = compilation
 				markDirty()

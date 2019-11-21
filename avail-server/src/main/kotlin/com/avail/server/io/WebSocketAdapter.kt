@@ -40,7 +40,6 @@ import com.avail.server.AvailServer.Companion.logger
 import com.avail.server.messages.Message
 import com.avail.utility.IO
 import com.avail.utility.MutableOrNull
-import com.avail.utility.Nulls.stripNull
 import com.avail.utility.evaluation.Combinator.recurse
 import com.avail.utility.evaluation.Continuation1
 import java.io.ByteArrayOutputStream
@@ -1921,7 +1920,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 							buffer.flip()
 							if (frame.isMasked)
 							{
-								val mask = stripNull(frame.maskingKey)
+								val mask = frame.maskingKey!!
 								for (i in 0 until frame.payloadLength.toInt())
 								{
 									val j = i and 3

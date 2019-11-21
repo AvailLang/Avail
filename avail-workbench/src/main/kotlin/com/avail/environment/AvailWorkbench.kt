@@ -50,7 +50,6 @@ import com.avail.stacks.StacksGenerator
 import com.avail.utility.*
 import com.avail.utility.Casts.cast
 import com.avail.utility.Locks.lockWhile
-import com.avail.utility.Nulls.stripNull
 import com.bulenkov.darcula.DarculaLaf
 import java.awt.*
 import java.awt.event.*
@@ -137,7 +136,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	 * The documentation [path][Path] for the
 	 * [Stacks generator][StacksGenerator].
 	 */
-	var documentationPath = StacksGenerator.defaultDocumentationPath
+	var documentationPath: Path = StacksGenerator.defaultDocumentationPath
 
 	/** The [standard input stream][BuildInputStream].  */
 	private val inputStream: BuildInputStream?
@@ -434,7 +433,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		 * @return The non-null target module name.
 		 */
 		protected fun targetModuleName(): ResolvedModuleName =
-			stripNull(targetModuleName)
+			targetModuleName!!
 
 		/**
 		 * Report completion (and timing) to the [transcript][transcript].
@@ -603,7 +602,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			while (true)
 			{
 				val entry = if (removedSize < totalQueuedTextSize.get())
-					stripNull(updateQueue.poll())
+					updateQueue.poll()!!
 				else
 					null
 				if (entry == null || entry.style != currentStyle)
@@ -1015,21 +1014,21 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	 *
 	 * @return The input stream.
 	 */
-	fun inputStream(): BuildInputStream = stripNull(inputStream)
+	fun inputStream(): BuildInputStream = inputStream!!
 
 	/**
 	 * Answer the [standard error stream][PrintStream].
 	 *
 	 * @return The error stream.
 	 */
-	fun errorStream(): PrintStream = stripNull(errorStream)
+	fun errorStream(): PrintStream = errorStream!!
 
 	/**
 	 * Answer the [standard output stream][PrintStream].
 	 *
 	 * @return The output stream.
 	 */
-	fun outputStream(): PrintStream = stripNull(outputStream)
+	fun outputStream(): PrintStream = outputStream
 
 	/**
 	 * Enable or disable controls and menu items based on the current state.
@@ -1318,7 +1317,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		{
 			// Obtain the path associated with the module root.
 			root.repository.reopenIfNecessary()
-			val rootDirectory = stripNull(root.sourceDirectory)
+			val rootDirectory = root.sourceDirectory!!
 			try
 			{
 				Files.walkFileTree(
@@ -1697,7 +1696,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 					root.repository.fileName.path)
 				childNode.put(
 					moduleRootsSourceSubkeyString,
-					stripNull(root.sourceDirectory).path)
+					root.sourceDirectory!!.path)
 			}
 
 			val renamesNode =

@@ -48,7 +48,6 @@ import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.parsing.A_Phrase
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_BOOLEAN_GROUP
 import com.avail.exceptions.SignatureException
-import com.avail.utility.Nulls.stripNull
 import java.util.*
 
 /**
@@ -206,7 +205,7 @@ internal class Optional constructor(
 		builder: StringBuilder,
 		indent: Int)
 	{
-		val literal = stripNull(arguments).next()
+		val literal = arguments!!.next()
 		assert(
 			literal.isInstanceOf(
 				PhraseKind.LITERAL_PHRASE.mostGeneralType()))

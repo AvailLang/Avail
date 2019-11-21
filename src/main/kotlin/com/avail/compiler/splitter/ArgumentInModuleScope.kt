@@ -40,7 +40,6 @@ import com.avail.descriptor.LiteralPhraseDescriptor
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
 import com.avail.descriptor.objects.A_BasicObject
 import com.avail.descriptor.parsing.A_Phrase
-import com.avail.utility.Nulls.stripNull
 import java.util.*
 
 /**
@@ -120,7 +119,7 @@ internal class ArgumentInModuleScope constructor(
 		indent: Int)
 	{
 		// Describe the token that was parsed as this raw token argument.
-		stripNull(arguments).next().printOnAvoidingIndent(
+		arguments!!.next().printOnAvoidingIndent(
 			builder,
 			IdentityHashMap<A_BasicObject, Void>(),
 			indent + 1)

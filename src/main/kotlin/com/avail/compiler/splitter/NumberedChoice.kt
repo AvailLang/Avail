@@ -47,7 +47,6 @@ import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
 import com.avail.descriptor.parsing.A_Phrase
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_NUMBERED_CHOICE
 import com.avail.exceptions.SignatureException
-import com.avail.utility.Nulls.stripNull
 import java.util.*
 
 /**
@@ -189,7 +188,7 @@ internal class NumberedChoice constructor(private val alternation: Alternation)
 		builder: StringBuilder,
 		indent: Int)
 	{
-		val literal = stripNull(arguments).next()
+		val literal = arguments!!.next()
 		assert(
 			literal.isInstanceOf(
 				PhraseKind.LITERAL_PHRASE.mostGeneralType()))

@@ -36,7 +36,6 @@ import com.avail.builder.AvailBuilder.ModuleTree
 import com.avail.io.SimpleCompletionHandler
 import com.avail.utility.Graph
 import com.avail.utility.MutableInt
-import com.avail.utility.Nulls.stripNull
 import com.avail.utility.Strings.tab
 import com.avail.utility.dot.DotWriter
 import java.io.File
@@ -361,7 +360,7 @@ internal class GraphTracer constructor(
 			null,
 			SimpleCompletionHandler(
 				{ result, _, handler ->
-					position.value += stripNull<Int>(result)
+					position.value += result!!
 					if (buffer.hasRemaining()) {
 						channel.write<Any>(
 							buffer,

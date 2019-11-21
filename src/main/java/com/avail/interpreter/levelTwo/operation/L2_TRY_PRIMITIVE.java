@@ -228,7 +228,7 @@ extends L2Operation
 				final @Nullable AvailObject newReturnValue =
 					newReturnNow ? interpreter.latestResult() : null;
 				return interpreter.abandonStackThen(
-					primitive.reificationAbandonmentStat(),
+					stripNull(primitive.getReificationAbandonmentStat()),
 					() ->
 					{
 						interpreter.reifiedContinuation = newContinuation;
@@ -282,7 +282,7 @@ extends L2Operation
 		final AvailObject[] savedPointers = stepper.pointers;
 
 		return interpreter.reifyThen(
-			primitive.reificationForNoninlineStat(),
+			stripNull(primitive.getReificationForNoninlineStat()),
 			() ->
 			{
 				assert interpreter.unreifiedCallDepth() == 0

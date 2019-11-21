@@ -36,7 +36,6 @@ import com.avail.builder.AvailBuilder
 import com.avail.environment.AvailWorkbench
 import com.avail.environment.tasks.DocumentationTask
 import com.avail.stacks.StacksGenerator
-import com.avail.utility.Nulls.stripNull
 import java.awt.Cursor.WAIT_CURSOR
 import java.awt.Cursor.getPredefinedCursor
 import java.awt.event.ActionEvent
@@ -61,7 +60,7 @@ class GenerateDocumentationAction constructor (workbench: AvailWorkbench)
 	{
 		assert(workbench.backgroundTask == null)
 		val selectedModule =
-			stripNull(workbench.selectedModule())
+			workbench.selectedModule()!!
 
 		// Update the UI.
 		workbench.cursor = getPredefinedCursor(WAIT_CURSOR)

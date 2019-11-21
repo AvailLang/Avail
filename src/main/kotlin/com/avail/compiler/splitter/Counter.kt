@@ -49,7 +49,6 @@ import com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultTyp
 import com.avail.descriptor.parsing.A_Phrase
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_TYPE_FOR_COUNTING_GROUP
 import com.avail.exceptions.SignatureException
-import com.avail.utility.Nulls.stripNull
 import java.util.*
 
 /**
@@ -169,7 +168,7 @@ internal class Counter(
 		builder: StringBuilder,
 		indent: Int)
 	{
-		val countLiteral = stripNull(arguments).next()
+		val countLiteral = arguments!!.next()
 		assert(
 			countLiteral.isInstanceOf(
 				PhraseKind.LITERAL_PHRASE.mostGeneralType()))

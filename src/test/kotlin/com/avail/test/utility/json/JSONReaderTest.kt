@@ -33,7 +33,6 @@
 package com.avail.test.utility.json
 
 import com.avail.test.utility.json.TestJSONKeyValue.*
-import com.avail.utility.Nulls.stripNull
 import com.avail.utility.json.*
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.*
@@ -143,7 +142,7 @@ class JSONReaderTest
 		sb.append("}}")
 		val content = getJsonData(sb)
 		Companion.test(
-			stripNull(content), IMASTRING, IMANINT, IMALONG, IMAFLOAT,
+			content, IMASTRING, IMANINT, IMALONG, IMAFLOAT,
 			IMADOUBLE, IMATRUE, IMAFALSE, IMANULL, IMACOMPACTARRAY, IMANOBJECT)
 		val objContent = content.getObject(IMANOBJECT.key)
 		Companion.test(
@@ -172,7 +171,7 @@ class JSONReaderTest
 		sb.append("}}")
 		val content = getJsonData(sb)
 		Companion.test(
-			stripNull(content), IMASTRING, IMANINT, IMALONG, IMAFLOAT,
+			content, IMASTRING, IMANINT, IMALONG, IMAFLOAT,
 			IMADOUBLE, IMATRUE, IMAFALSE, IMANULL, IMANARRAY, IMANOBJECT)
 		val objContent = content.getObject(IMANOBJECT.key)
 		Companion.test(
@@ -227,7 +226,7 @@ class JSONReaderTest
 		assertTrue(content.containsKey("escapeMe"))
 		assertEquals(content.getString("escapeMe"), "fooo\nboo")
 		Companion.test(
-			stripNull(content), IMASTRING, IMANINT, IMALONG, IMAFLOAT,
+			content, IMASTRING, IMANINT, IMALONG, IMAFLOAT,
 			IMADOUBLE, IMATRUE)
 		displayTestPayload(sb, false)
 	}
@@ -288,7 +287,7 @@ class JSONReaderTest
 		assertTrue(content.containsKey("some space"))
 		assertEquals(content.getString("some space"), "foo")
 		Companion.test(
-			stripNull(content), IMASTRING, IMANINT, IMALONG, IMAFLOAT,
+			content, IMASTRING, IMANINT, IMALONG, IMAFLOAT,
 			IMADOUBLE, IMATRUE)
 		displayTestPayload(sb, false)
 	}

@@ -37,7 +37,6 @@ import com.avail.descriptor.FiberDescriptor
 import com.avail.environment.AvailWorkbench
 import com.avail.persistence.IndexedRepositoryManager
 import com.avail.persistence.IndexedRepositoryManagerDescriber
-import com.avail.utility.Nulls.stripNull
 import java.awt.event.ActionEvent
 import javax.swing.Action
 
@@ -65,7 +64,7 @@ class ExamineRepositoryAction constructor(
 		workbench.clearTranscript()
 		runtime.execute(FiberDescriptor.commandPriority)
 		{
-			val root = stripNull(workbench.selectedModuleRoot())
+			val root = workbench.selectedModuleRoot()!!
 			root.repository.use { repository ->
 				repository.reopenIfNecessary()
 				val describer = IndexedRepositoryManagerDescriber(repository)

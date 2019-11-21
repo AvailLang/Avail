@@ -50,7 +50,6 @@ import com.avail.descriptor.objects.A_BasicObject
 import com.avail.descriptor.parsing.A_Lexer
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.interpreter.Interpreter
-import com.avail.utility.Nulls.stripNull
 import com.avail.utility.evaluation.Describer
 import com.avail.utility.evaluation.SimpleDescriber
 import com.avail.utility.evaluation.Transformer1
@@ -236,7 +235,7 @@ class LexingState constructor(
 	@Synchronized
 	private fun evaluateLexers(applicableLexers: A_Tuple)
 	{
-		val theNextTokens = stripNull<List<A_Token>>(nextTokens)
+		val theNextTokens = nextTokens!!
 		if (applicableLexers.tupleSize() == 0)
 		{
 			// No applicable lexers.

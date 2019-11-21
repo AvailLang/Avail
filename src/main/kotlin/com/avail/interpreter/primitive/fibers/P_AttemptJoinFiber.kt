@@ -48,7 +48,6 @@ import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanSuspend
 import com.avail.interpreter.Primitive.Flag.Unknown
-import com.avail.utility.Nulls.stripNull
 
 /**
  * **Primitive:** If the [fiber][FiberDescriptor] has
@@ -122,7 +121,7 @@ object P_AttemptJoinFiber : Primitive(1, CanSuspend, Unknown)
 			if (current.getAndSetSynchronizationFlag(
 					PERMIT_UNAVAILABLE, true))
 			{
-				interpreter.primitivePark(stripNull(interpreter.function))
+				interpreter.primitivePark(interpreter.function!!)
 			}
 			else
 			{

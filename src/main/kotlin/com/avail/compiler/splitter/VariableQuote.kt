@@ -39,7 +39,6 @@ import com.avail.descriptor.ReferencePhraseDescriptor
 import com.avail.descriptor.VariableDescriptor
 import com.avail.descriptor.objects.A_BasicObject
 import com.avail.descriptor.parsing.A_Phrase
-import com.avail.utility.Nulls.stripNull
 import java.util.*
 
 /**
@@ -89,7 +88,7 @@ internal class VariableQuote constructor(
 		indent: Int)
 	{
 		// Describe the variable reference that was parsed as this argument.
-		stripNull(arguments).next().printOnAvoidingIndent(
+		arguments!!.next().printOnAvoidingIndent(
 			builder,
 			IdentityHashMap<A_BasicObject, Void>(),
 			indent + 1)

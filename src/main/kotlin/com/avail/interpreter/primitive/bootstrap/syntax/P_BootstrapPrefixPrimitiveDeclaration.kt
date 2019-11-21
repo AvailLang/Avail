@@ -53,7 +53,6 @@ import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
-import com.avail.utility.Nulls.stripNull
 import java.util.*
 
 /**
@@ -106,7 +105,7 @@ object P_BootstrapPrefixPrimitiveDeclaration
 				val name = namePhrase.token().literal().string()
 				assert(name.isString)
 				val declaration =
-					stripNull(FiberDescriptor.lookupBindingOrNull(name))
+					FiberDescriptor.lookupBindingOrNull(name)!!
 				blockArgumentPhrases.add(declaration)
 			}
 		}
