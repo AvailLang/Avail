@@ -42,7 +42,6 @@ import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.descriptor.tuples.A_String;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.Strings;
 import com.avail.utility.json.JSONWriter;
 
 import javax.annotation.Nullable;
@@ -64,6 +63,7 @@ import static com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUB
 import static com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.OBJECT_TYPE_NAME_PROPERTY_KEY;
 import static com.avail.descriptor.atoms.AtomDescriptor.createSpecialAtom;
 import static com.avail.descriptor.atoms.AtomDescriptor.trueObject;
+import static com.avail.utility.Strings.newlineTab;
 
 /**
  * {@code ObjectTypeDescriptor} represents an Avail object type. An object type
@@ -190,7 +190,7 @@ extends TypeDescriptor
 				{
 					builder.append(",");
 				}
-				Strings.newlineTab(builder, indent);
+				newlineTab(builder, indent);
 				builder.append(entry.key().atomName().asNativeString());
 				builder.append(" : ");
 				entry.value().printOnAvoidingIndent(

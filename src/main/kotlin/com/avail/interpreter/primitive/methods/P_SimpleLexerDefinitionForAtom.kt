@@ -32,8 +32,6 @@
 
 package com.avail.interpreter.primitive.methods
 
-import com.avail.AvailRuntime.currentRuntime
-import com.avail.AvailTask
 import com.avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
@@ -43,10 +41,9 @@ import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetDescriptor.set
-import com.avail.descriptor.StringDescriptor.formatString
+import com.avail.descriptor.StringDescriptor.stringFrom
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.TypeDescriptor.Types.TOP
-import com.avail.descriptor.bundles.A_Bundle
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import com.avail.exceptions.MalformedMessageException
@@ -55,9 +52,7 @@ import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanSuspend
 import com.avail.interpreter.Primitive.Flag.Unknown
-import com.avail.interpreter.Primitive.Result.FIBER_SUSPENDED
 import com.avail.interpreter.effects.LoadingEffectToRunPrimitive
-import com.avail.utility.Nulls.stripNull
 
 /**
  * **Primitive:** Simple lexer definition.  The first argument is the lexer name
@@ -81,54 +76,43 @@ object P_SimpleLexerDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 		val bodyFunction = interpreter.argument(2)
 
 		val fiber = interpreter.fiber()
-		val loader = fiber.availLoader()
-		             ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+		val loader = fiber.availLoader() ?:
+			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		if (!loader.phase().isExecuting)
 		{
 			return interpreter.primitiveFailure(
 				E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
-		val bundle: A_Bundle
-		try
-		{
-			bundle = atom.bundleOrCreate()
-		}
-		catch (e: MalformedMessageException)
-		{
+		val bundle = try {
+			atom.bundleOrCreate()
+		} catch (e: MalformedMessageException) {
 			return interpreter.primitiveFailure(e.errorCode)
 		}
-
 		val method = bundle.bundleMethod()
-		val lexer =
-			newLexer(filterFunction, bodyFunction, method, loader.module())
-		val primitiveFunction = stripNull(interpreter.function)
-		interpreter.primitiveSuspend(primitiveFunction)
-		interpreter.runtime().whenLevelOneSafeDo(
-			fiber.priority(),
-			AvailTask.forUnboundFiber(fiber)
+		val lexer = newLexer(
+			filterFunction, bodyFunction, method, loader.module())
+
+		return interpreter.suspendAndDoInLevelOneSafe {
+			toSucceed, _ ->
+			filterFunction.code().setMethodName(
+				stringFrom("Filter for lexer ${atom.atomName()}"))
+			bodyFunction.code().setMethodName(
+				stringFrom("Body for lexer ${atom.atomName()}"))
+			// Only update the loader's lexical scanner if we're
+			// actually compiling, NOT if we're loading.  The loader
+			// doesn't even have a lexical scanner during loading.
+			if (loader.phase() == EXECUTING_FOR_COMPILE)
 			{
-				filterFunction.code().setMethodName(
-					formatString("Filter for lexer %s",
-					             atom.atomName()))
-				bodyFunction.code().setMethodName(
-					formatString("Body for lexer %s", atom.atomName()))
-				// Only update the loader's lexical scanner if we're
-				// actually compiling, NOT if we're loading.  The loader
-				// doesn't even have a lexical scanner during loading.
-				if (loader.phase() == EXECUTING_FOR_COMPILE)
-				{
-					loader.lexicalScanner().addLexer(lexer)
-				}
-				loader.recordEffect(
-					LoadingEffectToRunPrimitive(
-						SpecialMethodAtom.LEXER_DEFINER.bundle,
-						atom,
-						filterFunction,
-						bodyFunction))
-				Interpreter.resumeFromSuccessfulPrimitive(
-					currentRuntime(), fiber, this, nil)
-			})
-		return FIBER_SUSPENDED
+				loader.lexicalScanner().addLexer(lexer)
+			}
+			loader.recordEffect(
+				LoadingEffectToRunPrimitive(
+					SpecialMethodAtom.LEXER_DEFINER.bundle,
+					atom,
+					filterFunction,
+					bodyFunction))
+			toSucceed.value(nil)
+		}
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

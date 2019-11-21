@@ -51,6 +51,7 @@ import com.avail.interpreter.primitive.controlflow.P_ExitContinuationWithResult;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments;
 import com.avail.io.TextInterface;
+import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.Continuation1NotNull;
@@ -68,6 +69,7 @@ import static com.avail.descriptor.ContinuationTypeDescriptor.continuationTypeFo
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.VariableDescriptor.newVariableWithContentType;
 import static com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk;
+import static com.avail.optimizer.jvm.CheckedMethod.instanceMethod;
 
 /**
  * A {@linkplain ContinuationDescriptor continuation} acts as an immutable
@@ -325,6 +327,10 @@ extends Descriptor
 	{
 		return object.slot(FUNCTION);
 	}
+
+	/** The {@link CheckedMethod} for {@link A_Continuation#function()}. */
+	public static final CheckedMethod continuationFunctionMethod =
+		instanceMethod(A_Continuation.class, "function", A_Function.class);
 
 	@Override @AvailMethod
 	protected int o_Hash (final AvailObject object)

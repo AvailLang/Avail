@@ -45,6 +45,7 @@ import com.avail.descriptor.parsing.PhraseDescriptor;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.interpreter.levelOne.L1InstructionWriter;
 import com.avail.interpreter.levelOne.L1Operation;
+import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
@@ -62,6 +63,7 @@ import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.descriptor.parsing.BlockPhraseDescriptor.newBlockNode;
 import static com.avail.interpreter.levelOne.L1Decompiler.decompile;
+import static com.avail.optimizer.jvm.CheckedMethod.instanceMethod;
 
 /**
  * A function associates {@linkplain CompiledCodeDescriptor compiled code} with
@@ -109,6 +111,10 @@ extends Descriptor
 	{
 		return object.slot(CODE);
 	}
+
+	/** The {@link CheckedMethod} for {@link A_Function#code()}. */
+	public static final CheckedMethod functionCodeMethod =
+		instanceMethod(A_Function.class, "code", A_RawFunction.class);
 
 	@Override
 	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)

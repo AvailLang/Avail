@@ -42,7 +42,11 @@ import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
-import com.avail.descriptor.FiberDescriptor.*;
+import com.avail.descriptor.FiberDescriptor.ExecutionState;
+import com.avail.descriptor.FiberDescriptor.GeneralFlag;
+import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
+import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
+import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.descriptor.MapDescriptor.MapIterable;
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.descriptor.SetDescriptor.SetIterator;
@@ -76,7 +80,6 @@ import com.avail.performance.Statistic;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.IteratorNotNull;
 import com.avail.utility.Pair;
-import com.avail.utility.Strings;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Transformer1;
@@ -101,6 +104,7 @@ import static com.avail.descriptor.Mutability.MUTABLE;
 import static com.avail.descriptor.Mutability.SHARED;
 import static com.avail.utility.Casts.cast;
 import static com.avail.utility.Nulls.stripNull;
+import static com.avail.utility.Strings.newlineTab;
 import static java.lang.Math.max;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.sort;
@@ -141,6 +145,7 @@ import static java.util.Collections.sort;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@SuppressWarnings("JavaDoc")
 public abstract class AbstractDescriptor
 {
 	/**
@@ -751,7 +756,7 @@ public abstract class AbstractDescriptor
 				&& getAnnotation((Enum<?>)slot, HideFieldJustForPrinting.class)
 					== null)
 			{
-				Strings.newlineTab(builder, indent);
+				newlineTab(builder, indent);
 				final String slotName = stripNull(slot.name());
 				final List<BitField> bitFields = bitFieldsFor(slot);
 				if (slotName.charAt(slotName.length() - 1) == '_')
@@ -803,7 +808,7 @@ public abstract class AbstractDescriptor
 				&& getAnnotation((Enum<?>)slot, HideFieldJustForPrinting.class)
 					== null)
 			{
-				Strings.newlineTab(builder, indent);
+				newlineTab(builder, indent);
 				final String slotName = stripNull(slot.name());
 				if (slotName.charAt(slotName.length() - 1) == '_')
 				{

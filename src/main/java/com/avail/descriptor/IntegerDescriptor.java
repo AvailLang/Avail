@@ -37,6 +37,7 @@ import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.exceptions.ArithmeticException;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MarshalingException;
+import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
@@ -59,6 +60,7 @@ import static com.avail.descriptor.IntegerDescriptor.IntegerSlots.RAW_LONG_SLOTS
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.singleInteger;
 import static com.avail.descriptor.Mutability.*;
 import static com.avail.descriptor.TypeDescriptor.Types.NUMBER;
+import static com.avail.optimizer.jvm.CheckedMethod.staticMethod;
 import static com.avail.utility.Locks.lockWhile;
 import static com.avail.utility.Locks.lockWhileNullable;
 import static java.lang.Math.*;
@@ -2014,6 +2016,10 @@ extends ExtendedIntegerDescriptor
 		result.setIntSlot(RAW_LONG_SLOTS_, 1, anInteger);
 		return result;
 	}
+
+	/** The {@link CheckedMethod} for {@link IntegerDescriptor#fromInt(int)}. */
+	public static final CheckedMethod fromIntMethod = staticMethod(
+		IntegerDescriptor.class, "fromInt", AvailObject.class, Integer.TYPE);
 
 	/**
 	 * Convert the specified byte-valued Java {@code short} into an Avail

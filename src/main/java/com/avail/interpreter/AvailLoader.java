@@ -506,9 +506,10 @@ public final class AvailLoader
 
 	/**
 	 * The macro-state of the loader.  During compilation from a file, a loader
-	 * will ratchet between {@link #COMPILING} for a top-level statement and
-	 * {@link #EXECUTING_FOR_COMPILE}.  Similarly, when loading from a file, the
-	 * loader's {@link #phase} alternates between {@link #LOADING} and {@link
+	 * will ratchet between {@link #COMPILING} while parsing a top-level
+	 * statement, and {@link #EXECUTING_FOR_COMPILE} while executing the
+	 * compiled statement.  Similarly, when loading from a file, the loader's
+	 * {@link #phase} alternates between {@link #LOADING} and {@link
 	 * #EXECUTING_FOR_LOAD}.
 	 */
 	public enum Phase
@@ -529,7 +530,19 @@ public final class AvailLoader
 		EXECUTING_FOR_LOAD,
 
 		/** The fully-loaded module is now being unloaded. */
-		UNLOADING;
+		UNLOADING,
+
+		/**
+		 * The [AvailLoader] is parsing an expression within some anonymous
+		 * module.  The current fiber is attempting to execute some Avail code
+		 * as requested by the compilation.
+		 *
+		 * Note that this is permitted after loading has completed, but also
+		 * during loading if the code being loaded explicitly creates an
+		 * anonymous module and uses it to compile an expression.  In both cases
+		 * the current loader will be tied to an anonymous module.
+		 */
+		COMPILING_FOR_EVAL;
 
 		@SuppressWarnings("BooleanMethodIsAlwaysInverted")
 		public boolean isExecuting ()

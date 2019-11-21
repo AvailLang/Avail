@@ -2822,7 +2822,9 @@ public final class L1Translator
 		if (primitive != null)
 		{
 			// Try the primitive, automatically returning if successful.
-			addInstruction(L2_TRY_PRIMITIVE.instance);
+			addInstruction(
+				L2_TRY_PRIMITIVE.instance,
+				new L2PrimitiveOperand(primitive));
 			if (primitive.hasFlag(CannotFail))
 			{
 				// Infallible primitives don't need any other L2 code.

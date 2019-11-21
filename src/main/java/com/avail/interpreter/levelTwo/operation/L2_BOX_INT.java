@@ -47,8 +47,6 @@ import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_INT;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
-import static org.objectweb.asm.Opcodes.INVOKESTATIC;
-import static org.objectweb.asm.Type.*;
 
 /**
  * Box an {@code int} into an {@link AvailObject}.
@@ -116,12 +114,7 @@ extends L2Operation
 
 		// :: destination = IntegerDescriptor.fromInt(source);
 		translator.load(method, source.register());
-		method.visitMethodInsn(
-			INVOKESTATIC,
-			getInternalName(IntegerDescriptor.class),
-			"fromInt",
-			getMethodDescriptor(getType(AvailObject.class), INT_TYPE),
-			false);
+		IntegerDescriptor.fromIntMethod.generateCall(method);
 		translator.store(method, destination.register());
 	}
 }

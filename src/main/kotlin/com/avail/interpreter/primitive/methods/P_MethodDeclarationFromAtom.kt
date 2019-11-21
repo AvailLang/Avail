@@ -32,8 +32,6 @@
 
 package com.avail.interpreter.primitive.methods
 
-import com.avail.AvailRuntime.currentRuntime
-import com.avail.AvailTask
 import com.avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
@@ -46,15 +44,11 @@ import com.avail.descriptor.StringDescriptor.stringFrom
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.*
-import com.avail.exceptions.MalformedMessageException
-import com.avail.exceptions.SignatureException
+import com.avail.exceptions.AvailException
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanSuspend
 import com.avail.interpreter.Primitive.Flag.Unknown
-import com.avail.interpreter.Primitive.Result.FIBER_SUSPENDED
-import com.avail.utility.Nulls.stripNull
-import java.util.*
 
 /**
  * **Primitive:** Define a concrete method implementation.
@@ -79,42 +73,24 @@ object P_MethodDeclarationFromAtom : Primitive(2, CanSuspend, Unknown)
 			return interpreter.primitiveFailure(
 				E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
-		val primitiveFunction = stripNull(interpreter.function)
-		assert(primitiveFunction.code().primitive() === this)
-		val copiedArgs = ArrayList(interpreter.argsBuffer)
-		interpreter.primitiveSuspend(primitiveFunction)
-		interpreter.runtime().whenLevelOneSafeDo(
-			fiber.priority(), AvailTask.forUnboundFiber(fiber)
-		{
-				try
-				{
-					loader.addMethodBody(atom, function)
-					// Quote the string to make the method name.
-					function.code().setMethodName(
-						stringFrom(atom.atomName().toString()))
-					Interpreter.resumeFromSuccessfulPrimitive(
-						currentRuntime(), fiber, this, nil)
-				}
-				catch (e: MalformedMessageException)
-				{
-					Interpreter.resumeFromFailedPrimitive(
-						currentRuntime(),
-						fiber,
-						e.numericCode(),
-						primitiveFunction,
-						copiedArgs)
-				}
-				catch (e: SignatureException)
-				{
-					Interpreter.resumeFromFailedPrimitive(
-						currentRuntime(),
-						fiber,
-						e.numericCode(),
-						primitiveFunction,
-						copiedArgs)
-				}
-			})
-		return FIBER_SUSPENDED
+
+		return interpreter.suspendAndDoInLevelOneSafe {
+			toSucceed, toFail ->
+			try
+			{
+				loader.addMethodBody(atom, function)
+				// Quote the string to make the method name.
+				function.code().setMethodName(
+					stringFrom(atom.atomName().toString()))
+				toSucceed.value(nil)
+			}
+			catch (e: AvailException)
+			{
+				// MalformedMessageException
+				// SignatureException
+				toFail.value(e.errorCode)
+			}
+		}
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

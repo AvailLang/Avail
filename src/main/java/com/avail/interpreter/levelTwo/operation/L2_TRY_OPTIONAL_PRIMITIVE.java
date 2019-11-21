@@ -32,8 +32,9 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.CompiledCodeDescriptor;
+import com.avail.descriptor.FunctionDescriptor;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
@@ -43,6 +44,7 @@ import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
+import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import org.objectweb.asm.Label;
@@ -54,8 +56,8 @@ import java.util.List;
 import static com.avail.interpreter.Primitive.Flag.CanInline;
 import static com.avail.interpreter.levelTwo.operation.L2_TRY_PRIMITIVE.attemptInlinePrimitive;
 import static com.avail.interpreter.levelTwo.operation.L2_TRY_PRIMITIVE.attemptNonInlinePrimitive;
+import static com.avail.optimizer.jvm.CheckedMethod.staticMethod;
 import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Type.*;
 
 /**
  * Expect the {@link AvailObject} (pointers) array and int array to still
@@ -125,7 +127,7 @@ extends L2Operation
 	 */
 	@SuppressWarnings("unused")
 	@ReferencedInGeneratedCode
-	public static @Nullable StackReifier attemptPrimitive (
+	public static @Nullable StackReifier attemptThePrimitive (
 		final Interpreter interpreter,
 		final A_Function function,
 		final Primitive primitive)
@@ -134,6 +136,18 @@ extends L2Operation
 			? attemptInlinePrimitive(interpreter, function, primitive)
 			: attemptNonInlinePrimitive(interpreter, function, primitive);
 	}
+
+	/**
+	 * The {@link CheckedMethod} for invoking
+	 * {@link #attemptThePrimitive(Interpreter, A_Function, Primitive)}.
+	 */
+	public static final CheckedMethod attemptThePrimitiveMethod = staticMethod(
+		L2_TRY_OPTIONAL_PRIMITIVE.class,
+		"attemptThePrimitive",
+		StackReifier.class,
+		Interpreter.class,
+		A_Function.class,
+		Primitive.class);
 
 	@Override
 	public void translateToJVM (
@@ -145,43 +159,20 @@ extends L2Operation
 		// ::    goto noPrimitive;
 		translator.loadInterpreter(method);
 		method.visitInsn(DUP);
-		method.visitFieldInsn(
-			GETFIELD,
-			getInternalName(Interpreter.class),
-			"function",
-			getDescriptor(A_Function.class));
+		Interpreter.interpreterFunctionField.generateRead(translator, method);
 		method.visitInsn(DUP);
-		method.visitMethodInsn(
-			INVOKEINTERFACE,
-			getInternalName(A_Function.class),
-			"code",
-			getMethodDescriptor(getType(A_RawFunction.class)),
-			true);
-		method.visitMethodInsn(
-			INVOKEINTERFACE,
-			getInternalName(A_RawFunction.class),
-			"primitive",
-			getMethodDescriptor(getType(Primitive.class)),
-			true);
+		FunctionDescriptor.functionCodeMethod.generateCall(method);
+		CompiledCodeDescriptor.codePrimitiveMethod.generateCall(method);
 		method.visitInsn(DUP);
 		final Label noPrimitive = new Label();
 		method.visitJumpInsn(IFNULL, noPrimitive);
-		// :: return L2_TRY_OPTIONAL_PRIMITIVE.attemptPrimitive(
+		// :: return L2_TRY_OPTIONAL_PRIMITIVE.attemptThePrimitive(
 		// ::    interpreter, function, primitive);
-		method.visitMethodInsn(
-			INVOKESTATIC,
-			getInternalName(L2_TRY_OPTIONAL_PRIMITIVE.class),
-			"attemptPrimitive",
-			getMethodDescriptor(
-				getType(StackReifier.class),
-				getType(Interpreter.class),
-				getType(A_Function.class),
-				getType(Primitive.class)),
-			false);
+		attemptThePrimitiveMethod.generateCall(method);
 		method.visitInsn(ARETURN);
 		method.visitLabel(noPrimitive);
 		// Pop the three Category-1 arguments that were waiting for
-		// attemptPrimitive().
+		// attemptThePrimitive().
 		method.visitInsn(POP2);
 		method.visitInsn(POP);
 	}

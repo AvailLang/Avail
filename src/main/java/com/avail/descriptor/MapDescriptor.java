@@ -41,7 +41,6 @@ import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MapException;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.Strings;
 import com.avail.utility.json.JSONWriter;
 
 import javax.annotation.Nullable;
@@ -63,6 +62,7 @@ import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
 import static com.avail.utility.Nulls.stripNull;
+import static com.avail.utility.Strings.newlineTab;
 
 /**
  * An Avail {@linkplain MapDescriptor map} refers to the root of a Bagwell
@@ -176,20 +176,20 @@ extends Descriptor
 				{
 					builder.append(',');
 				}
-				Strings.newlineTab(builder, indent + 1);
+				newlineTab(builder, indent + 1);
 				final int entryStart = builder.length();
 				entry.key().printOnAvoidingIndent(
 					builder, recursionMap, indent + 2);
 				if (builder.indexOf("\n", entryStart) != -1)
 				{
-					Strings.newlineTab(builder, indent + 1);
+					newlineTab(builder, indent + 1);
 				}
 				builder.append('→');
 				entry.value().printOnAvoidingIndent(
 					builder, recursionMap, indent + 1);
 				first = false;
 			}
-			Strings.newlineTab(builder, indent);
+			newlineTab(builder, indent);
 		}
 		builder.append('}');
 	}

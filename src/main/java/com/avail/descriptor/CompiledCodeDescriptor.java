@@ -32,8 +32,12 @@
 
 package com.avail.descriptor;
 
-import com.avail.annotations.*;
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.EnumField;
 import com.avail.annotations.EnumField.Converter;
+import com.avail.annotations.HideFieldInDebugger;
+import com.avail.annotations.HideFieldJustForPrinting;
+import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
 import com.avail.descriptor.atoms.A_Atom;
@@ -50,16 +54,20 @@ import com.avail.interpreter.levelOne.L1OperandType;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Chunk.Generation;
+import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.Strings;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.json.JSONWriter;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -82,6 +90,8 @@ import static com.avail.descriptor.TypeDescriptor.Types.MODULE;
 import static com.avail.descriptor.atoms.AtomDescriptor.createSpecialAtom;
 import static com.avail.descriptor.atoms.AtomWithPropertiesDescriptor.createAtomWithProperties;
 import static com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk;
+import static com.avail.optimizer.jvm.CheckedMethod.instanceMethod;
+import static com.avail.utility.Strings.newlineTab;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.Collections.newSetFromMap;
@@ -782,6 +792,10 @@ extends Descriptor
 		return object.slot(FUNCTION_TYPE);
 	}
 
+	/** The {@link CheckedMethod} for {@link A_RawFunction#primitive()}. */
+	public static final CheckedMethod codePrimitiveMethod =
+		instanceMethod(A_RawFunction.class, "primitive", Primitive.class);
+
 	@Override @AvailMethod
 	protected int o_Hash (final AvailObject object)
 	{
@@ -1242,7 +1256,7 @@ extends Descriptor
 		final int longCount = object.variableIntegerSlotsCount();
 		if (longCount > 0)
 		{
-			Strings.newlineTab(builder, indent);
+			newlineTab(builder, indent);
 			builder.append("Nybblecodes:\n");
 			L1Disassembler.disassemble(
 				object,

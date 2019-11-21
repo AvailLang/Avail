@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
@@ -49,6 +50,7 @@ import static com.avail.descriptor.InfinityDescriptor.negativeInfinity;
 import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
 import static com.avail.descriptor.IntegerDescriptor.*;
 import static com.avail.descriptor.TypeDescriptor.Types.DOUBLE;
+import static com.avail.optimizer.jvm.CheckedMethod.staticMethod;
 import static java.lang.Math.*;
 
 /**
@@ -242,6 +244,9 @@ extends AbstractNumberDescriptor
 		result.setSlot(LONG_BITS, castAsLong);
 		return result;
 	}
+	/** The {@link CheckedMethod} for {@link #fromDouble(double)}. */
+	public static final CheckedMethod fromDoubleMethod = staticMethod(
+		DoubleDescriptor.class, "fromDouble", A_Number.class, Double.TYPE);
 
 	/**
 	 * Construct an Avail boxed double-precision floating point object from the

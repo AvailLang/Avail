@@ -33,8 +33,8 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_Type;
+import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.TupleDescriptor;
-import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
@@ -53,9 +53,8 @@ import static com.avail.descriptor.ConcatenatedTupleTypeDescriptor.concatenating
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
-import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Opcodes.INVOKESTATIC;
-import static org.objectweb.asm.Type.*;
+import static org.objectweb.asm.Opcodes.CHECKCAST;
+import static org.objectweb.asm.Type.getInternalName;
 
 /**
  * Concatenate the tuples in the vector of object registers to produce a single
@@ -151,12 +150,7 @@ extends L2Operation
 		final int tupleCount = elements.size();
 		if (tupleCount == 0)
 		{
-			method.visitMethodInsn(
-				INVOKESTATIC,
-				getInternalName(TupleDescriptor.class),
-				"emptyTuple",
-				getMethodDescriptor(getType(A_Tuple.class)),
-				false);
+			translator.literal(method, emptyTuple());
 		}
 		else
 		{
@@ -164,17 +158,11 @@ extends L2Operation
 			for (int i = 1; i < tupleCount; i++)
 			{
 				translator.load(method, elements.get(i).register());
-				translator.intConstant(method, 1);
-				method.visitMethodInsn(
-					INVOKEINTERFACE,
-					getInternalName(A_Tuple.class),
-					"concatenateWith",
-					getMethodDescriptor(
-						getType(A_Tuple.class),
-						getType(A_Tuple.class),
-						BOOLEAN_TYPE),
-				true);
+				translator.intConstant(method, 1);  // canDestroy = true
+				TupleDescriptor.concatenateWithMethod.generateCall(method);
 			}
+			// Strengthen the final result to AvailObject.
+			method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
 		}
 		translator.store(method, output.register());
 	}

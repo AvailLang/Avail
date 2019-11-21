@@ -57,12 +57,13 @@ import com.avail.interpreter.primitive.fibers.P_ParkCurrentFiber;
 import com.avail.interpreter.primitive.variables.P_SetValue;
 import com.avail.io.TextInterface;
 import com.avail.optimizer.StackReifier;
+import com.avail.optimizer.jvm.CheckedField;
+import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.performance.PerInterpreterStatistic;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import com.avail.utility.MutableOrNull;
-import com.avail.utility.Strings;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1;
 import com.avail.utility.evaluation.Continuation1NotNull;
@@ -71,8 +72,13 @@ import com.avail.utility.evaluation.Continuation2NotNull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -84,7 +90,6 @@ import java.util.logging.Logger;
 import static com.avail.AvailRuntime.HookType.STRINGIFICATION;
 import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.AvailRuntimeSupport.captureNanos;
-import static com.avail.descriptor.CompiledCodeDescriptor.newPrimitiveRawFunction;
 import static com.avail.descriptor.FiberDescriptor.*;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
 import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.REIFICATION_REQUESTED;
@@ -92,12 +97,10 @@ import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.BOUND;
 import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE;
 import static com.avail.descriptor.FiberDescriptor.TraceFlag.TRACE_VARIABLE_READS_BEFORE_WRITES;
 import static com.avail.descriptor.FiberDescriptor.TraceFlag.TRACE_VARIABLE_WRITES;
-import static com.avail.descriptor.FunctionDescriptor.createFunction;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.StringDescriptor.formatString;
 import static com.avail.descriptor.StringDescriptor.stringFrom;
-import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleTypeDescriptor.stringType;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Interpreter.FakeStackTraceSlots.*;
@@ -105,8 +108,11 @@ import static com.avail.interpreter.Primitive.Flag.CanSuspend;
 import static com.avail.interpreter.Primitive.Flag.CannotFail;
 import static com.avail.interpreter.Primitive.Result.*;
 import static com.avail.interpreter.levelTwo.operation.L2_REIFY.StatisticCategory.ABANDON_BEFORE_RESTART_IN_L2;
-import static com.avail.interpreter.primitive.variables.P_SetValue.INSTANCE;
+import static com.avail.optimizer.jvm.CheckedField.instanceField;
+import static com.avail.optimizer.jvm.CheckedMethod.instanceMethod;
+import static com.avail.optimizer.jvm.CheckedMethod.javaLibraryInstanceMethod;
 import static com.avail.utility.Nulls.stripNull;
+import static com.avail.utility.Strings.tab;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -350,7 +356,7 @@ public final class Interpreter
 				{
 					// Log to the fiber.
 					final StringBuilder log = runningFiber.debugLog();
-					Strings.tab(log, interpreter.unreifiedCallDepth);
+					tab(log, interpreter.unreifiedCallDepth);
 					if (log.length() > maxFiberLogLength)
 					{
 						log.delete(0, maxFiberLogLength >> 4);
@@ -913,6 +919,10 @@ public final class Interpreter
 	@ReferencedInGeneratedCode
 	public @Nullable A_Function returningFunction;
 
+	/** The {@link CheckedField} for the field argsBuffer. */
+	public static final CheckedField interpreterReturningFunctionField =
+		instanceField(Interpreter.class, "returningFunction", A_Function.class);
+
 	/**
 	 * Some operations like {@link L2_INVOKE} instructions have statistics that
 	 * shouldn't include the {@link L2Instruction}s executed while the invoked
@@ -923,6 +933,35 @@ public final class Interpreter
 	 * prior value from the reported L2_INVOKE.
 	 */
 	public long nanosToExclude = 0L;
+
+	/**
+	 * Suspend the current fiber, evaluating the provided action.  The action is
+	 * passed two additional actions, one indicating how to resume from the
+	 * suspension in the future (taking the result of the primitive), and the
+	 * other indicating how to cause the primitive to fail (taking an
+	 * AvailErrorCode).
+	 *
+	 * @param action
+	 *        The action supplied by the client that itself takes two actions
+	 *        for succeeding and failing the primitive at a later time.
+	 * @return The value FIBER_SUSPENDED.
+	 */
+	public Result suspendAndDoInLevelOneSafe (
+		final Continuation2NotNull<
+			Continuation1NotNull<A_BasicObject>,
+			Continuation1NotNull<AvailErrorCode>>
+			action)
+	{
+		final AvailRuntime theRuntime = runtime();
+		final A_Fiber theFiber = stripNull(fiber);
+		final int priority = theFiber.priority();
+		return suspendAndDo(
+			(toSucceed, toFail) -> theRuntime.whenLevelOneSafeDo(
+				priority,
+				AvailTask.forUnboundFiber(
+					theFiber,
+					() -> action.value(toSucceed, toFail))));
+	}
 
 	/**
 	 * Suspend the current fiber, evaluating the provided action.  The action is
@@ -1336,6 +1375,14 @@ public final class Interpreter
 		return success;
 	}
 
+	/** The {@link CheckedMethod} for {@link #attemptPrimitive(Primitive)}. */
+	public static final CheckedMethod attemptPrimitiveMethod =
+		instanceMethod(
+			Interpreter.class,
+			"attemptPrimitive",
+			Result.class,
+			Primitive.class);
+
 	/**
 	 * Prepare to execute the given primitive.  Answer the current time in
 	 * nanoseconds.
@@ -1445,6 +1492,10 @@ public final class Interpreter
 	@ReferencedInGeneratedCode
 	public @Nullable A_Function function;
 
+	/** The {@link CheckedField} for the field argsBuffer. */
+	public static final CheckedField interpreterFunctionField = instanceField(
+		Interpreter.class, "function", A_Function.class);
+
 	/** The {@link L2Chunk} being executed. */
 	@ReferencedInGeneratedCode
 	public @Nullable L2Chunk chunk;
@@ -1473,6 +1524,24 @@ public final class Interpreter
 	 */
 	@ReferencedInGeneratedCode
 	public final List<AvailObject> argsBuffer = new ArrayList<>();
+
+	/** The {@link CheckedField} for the field {@link #argsBuffer}. */
+	public static final CheckedField argsBufferField = instanceField(
+		Interpreter.class, "argsBuffer", List.class);
+
+	/** The {@link CheckedMethod} for {@link List#get(int)}. */
+	public static final CheckedMethod listGetMethod =
+		javaLibraryInstanceMethod(
+			List.class, "get", Object.class, Integer.TYPE);
+
+	/** The {@link CheckedMethod} for {@link List#clear()}. */
+	public static final CheckedMethod listClearMethod =
+		javaLibraryInstanceMethod(List.class, "clear", Void.TYPE);
+
+	/** The {@link CheckedMethod} for {@link List#add(Object)}. */
+	public static final CheckedMethod listAddMethod =
+		javaLibraryInstanceMethod(
+			List.class, "add", Boolean.TYPE, Object.class);
 
 	/**
 	 * Assert that the number of arguments in the {@link #argsBuffer} agrees
@@ -2906,16 +2975,6 @@ public final class Interpreter
 	}
 
 	/**
-	 * The bootstrapped {@linkplain P_SetValue assignment function} used to
-	 * restart implicitly observed assignments.
-	 */
-	private static final A_Function assignmentFunction =
-		createFunction(
-			newPrimitiveRawFunction(INSTANCE, nil, 0),
-			emptyTuple()
-		).makeShared();
-
-	/**
 	 * Answer the bootstrapped {@linkplain P_SetValue assignment function}
 	 * used to restart implicitly observed assignments.
 	 *
@@ -2923,6 +2982,6 @@ public final class Interpreter
 	 */
 	public static A_Function assignmentFunction ()
 	{
-		return assignmentFunction;
+		return VariableDescriptor.bootstrapAssignmentFunction;
 	}
 }

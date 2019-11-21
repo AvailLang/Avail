@@ -32,7 +32,6 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_Continuation;
-import com.avail.descriptor.A_Function;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
@@ -48,6 +47,7 @@ import org.objectweb.asm.MethodVisitor;
 import java.util.List;
 import java.util.Set;
 
+import static com.avail.interpreter.Interpreter.interpreterReturningFunctionField;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.*;
@@ -146,11 +146,7 @@ extends L2ControlFlowOperation
 			BOOLEAN_TYPE.getDescriptor());
 		// :: interpreter.returningFunction = null;
 		method.visitInsn(ACONST_NULL);
-		method.visitFieldInsn(
-			PUTFIELD,
-			getInternalName(Interpreter.class),
-			"returningFunction",
-			getDescriptor(A_Function.class));
+		interpreterReturningFunctionField.generateWrite(translator, method);
 		method.visitVarInsn(ALOAD, translator.reifierLocal());
 		method.visitInsn(ARETURN);
 	}

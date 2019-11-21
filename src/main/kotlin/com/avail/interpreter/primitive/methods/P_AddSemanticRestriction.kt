@@ -41,7 +41,7 @@ import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SemanticRestrictionDescriptor.newSemanticRestriction
 import com.avail.descriptor.SetDescriptor.set
-import com.avail.descriptor.StringDescriptor.formatString
+import com.avail.descriptor.StringDescriptor.stringFrom
 import com.avail.descriptor.TupleTypeDescriptor.stringType
 import com.avail.descriptor.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AmbiguousNameException
@@ -101,7 +101,7 @@ object P_AddSemanticRestriction : Primitive(2, Unknown)
 		}
 
 		function.code().setMethodName(
-			formatString("Semantic restriction of %s", string))
+			stringFrom("Semantic restriction of $string"))
 		return interpreter.primitiveSuccess(nil)
 	}
 

@@ -38,6 +38,7 @@ import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.descriptor.tuples.A_String;
 import com.avail.descriptor.tuples.A_Tuple;
+import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.IteratorNotNull;
@@ -46,7 +47,12 @@ import com.avail.utility.json.JSONWriter;
 
 import javax.annotation.Nullable;
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.IdentityHashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -67,6 +73,7 @@ import static com.avail.descriptor.TupleDescriptor.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
+import static com.avail.optimizer.jvm.CheckedMethod.instanceMethod;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.String.format;
@@ -1318,6 +1325,14 @@ extends Descriptor
 		final AvailObject object,
 		final A_Tuple otherTuple,
 		final boolean canDestroy);
+
+	/** The {@link A_Tuple#concatenateWith(A_Tuple, boolean)} method. */
+	public static final CheckedMethod concatenateWithMethod = instanceMethod(
+		A_Tuple.class,
+		"concatenateWith",
+		A_Tuple.class,
+		A_Tuple.class,
+		Boolean.TYPE);
 
 	/**
 	 * Transfer the specified range of bytes into the provided {@link

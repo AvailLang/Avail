@@ -42,6 +42,8 @@ import com.avail.exceptions.VariableGetException;
 import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
+import com.avail.interpreter.primitive.variables.P_SetValue;
+import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
@@ -53,15 +55,19 @@ import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.avail.AvailRuntimeSupport.nextHash;
+import static com.avail.descriptor.CompiledCodeDescriptor.newPrimitiveRawFunction;
+import static com.avail.descriptor.FunctionDescriptor.createFunction;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.extendedIntegers;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.SetDescriptor.emptySet;
+import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.VariableDescriptor.IntegerSlots.HASH_AND_MORE;
 import static com.avail.descriptor.VariableDescriptor.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.VariableDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.optimizer.jvm.CheckedMethod.instanceMethod;
 
 /**
  * My {@linkplain AvailObject object instances} are variables which can hold
@@ -507,6 +513,10 @@ extends Descriptor
 		return oldMap.hasKey(key);
 	}
 
+	/** The {@link CheckedMethod} for {@link A_Variable#clearValue()}. */
+	public static final CheckedMethod clearVariableMethod = instanceMethod(
+		A_Variable.class, "clearValue", Void.TYPE);
+
 	@Override @AvailMethod
 	protected void o_ClearValue (final AvailObject object)
 	{
@@ -692,6 +702,16 @@ extends Descriptor
 		object.slot(KIND).writeSummaryTo(writer);
 		writer.endObject();
 	}
+
+	/**
+	 * The bootstrapped {@linkplain P_SetValue assignment function} used to
+	 * restart implicitly observed assignments.
+	 */
+	public static final A_Function bootstrapAssignmentFunction =
+		createFunction(
+			newPrimitiveRawFunction(P_SetValue.INSTANCE, nil, 0),
+			emptyTuple()
+		).makeShared();
 
 	/**
 	 * Create a {@code VariableDescriptor variable} which can only

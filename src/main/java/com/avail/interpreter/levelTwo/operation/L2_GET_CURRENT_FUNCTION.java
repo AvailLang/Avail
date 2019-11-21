@@ -32,7 +32,6 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_Function;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
@@ -46,8 +45,6 @@ import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
 import static org.objectweb.asm.Opcodes.CHECKCAST;
-import static org.objectweb.asm.Opcodes.GETFIELD;
-import static org.objectweb.asm.Type.getDescriptor;
 import static org.objectweb.asm.Type.getInternalName;
 
 /**
@@ -99,11 +96,7 @@ extends L2Operation
 
 		// :: register = interpreter.function;
 		translator.loadInterpreter(method);
-		method.visitFieldInsn(
-			GETFIELD,
-			getInternalName(Interpreter.class),
-			"function",
-			getDescriptor(A_Function.class));
+		Interpreter.interpreterFunctionField.generateRead(translator, method);
 		method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
 		translator.store(method, function.register());
 	}

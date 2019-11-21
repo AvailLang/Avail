@@ -37,7 +37,7 @@ import com.avail.io.SimpleCompletionHandler
 import com.avail.utility.Graph
 import com.avail.utility.MutableInt
 import com.avail.utility.Nulls.stripNull
-import com.avail.utility.Strings
+import com.avail.utility.Strings.tab
 import com.avail.utility.dot.DotWriter
 import java.io.File
 import java.io.IOException
@@ -233,138 +233,127 @@ internal class GraphTracer constructor(
 			}
 		}
 
-		val out = StringBuilder()
-		val tab = { count: Int -> Strings.tab(out, count) }
-		root.recursiveDo(
-			// Before the node.
-			{ node, depth ->
-				tab(depth)
-				when
-				{
-					node === root ->
-					{
-						out.append("digraph ")
-						out.append(node.node)
-						out.append("\n")
-						tab(depth)
-						out.append("{\n")
-						tab(depth + 1)
-						out.append("remincross = true;\n")
-						tab(depth + 1)
-						out.append("compound = true;\n")
-						tab(depth + 1)
-						out.append("splines = compound;\n")
-						tab(depth + 1)
-						out.append(
-							"node ["
-								+ "shape=box, "
-								+ "margin=\"0.1,0.1\", "
-								+ "width=0, "
-								+ "height=0, "
-								+ "style=filled, "
-								+ "fillcolor=moccasin "
-								+ "];\n")
-						tab(depth + 1)
-						out.append("edge [color=grey];\n")
-						tab(depth + 1)
-						out.append("label = ")
-						out.append(node.safeLabel)
-						out.append(";\n\n")
-					}
-					node.resolvedModuleName == null ->
-					{
-						out.append("subgraph cluster_")
-						out.append(node.node)
-						out.append('\n')
-						tab(depth)
-						out.append("{\n")
-						tab(depth + 1)
-						out.append("label = ")
-						out.append(node.safeLabel)
-						out.append(";\n")
-						tab(depth + 1)
-						out.append("penwidth = 2.0;\n")
-						tab(depth + 1)
-						out.append("fontsize = 18;\n")
-					}
-					else ->
-					{
-						out.append(node.node)
-						out.append(" [label=")
-						out.append(node.safeLabel)
-						out.append("];\n")
-					}
-				}
-			},
-			// After the node.
-			{ node, depth ->
-				if (node === root)
-				{
-					out.append("\n")
-					// Output *all* the edges.
-					for (from in reducedGraph.vertices())
-					{
-						val qualified = from.qualifiedName
-						val fromNode = trees[qualified]!!
-						val parts = qualified.split("/".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-						val fromPackage = parts[parts.size - 2] == parts[parts.size - 1]
-						for (to in reducedGraph.successorsOf(from))
-						{
-							val toName = asNodeName(to.qualifiedName)
+		val out = buildString {
+			root.recursiveDo(
+				// Before the node.
+				{ node, depth ->
+					tab(depth)
+					when {
+						node === root -> {
+							append("digraph ")
+							append(node.node)
+							append("\n")
+							tab(depth)
+							append("{\n")
 							tab(depth + 1)
-							out.append(fromNode.node)
-							out.append(" -> ")
-							out.append(toName)
-							val edgeStrings = ArrayList<String>()
-							if (fromPackage)
-							{
-								val parent = fromNode.parent!!
-								val parentName = "cluster_" + parent.node
-								edgeStrings.add("ltail=$parentName")
-							}
-							if (!spanningDag.includesEdge(from, to))
-							{
-								// This is a back-edge.
-								edgeStrings.add("constraint=false")
-								edgeStrings.add("color=crimson")
-								edgeStrings.add("penwidth=3.0")
-								edgeStrings.add("style=dashed")
-							}
-							if (edgeStrings.isNotEmpty())
-							{
-								out.append("[")
-								out.append(edgeStrings.joinToString(", "))
-								out.append("]")
-							}
-							out.append(";\n")
+							append("remincross = true;\n")
+							tab(depth + 1)
+							append("compound = true;\n")
+							tab(depth + 1)
+							append("splines = compound;\n")
+							tab(depth + 1)
+							append(
+								"node ["
+									+ "shape=box, "
+									+ "margin=\"0.1,0.1\", "
+									+ "width=0, "
+									+ "height=0, "
+									+ "style=filled, "
+									+ "fillcolor=moccasin "
+									+ "];\n")
+							tab(depth + 1)
+							append("edge [color=grey];\n")
+							tab(depth + 1)
+							append("label = ")
+							append(node.safeLabel)
+							append(";\n\n")
+						}
+						node.resolvedModuleName == null -> {
+							append("subgraph cluster_")
+							append(node.node)
+							append('\n')
+							tab(depth)
+							append("{\n")
+							tab(depth + 1)
+							append("label = ")
+							append(node.safeLabel)
+							append(";\n")
+							tab(depth + 1)
+							append("penwidth = 2.0;\n")
+							tab(depth + 1)
+							append("fontsize = 18;\n")
+						}
+						else -> {
+							append(node.node)
+							append(" [label=")
+							append(node.safeLabel)
+							append("];\n")
 						}
 					}
-					tab(depth)
-					out.append("}\n")
-				}
-				else if (node.resolvedModuleName == null)
-				{
-					tab(depth)
-					out.append("}\n")
-				}
-			},
-			0)
+				},
+				// After the node.
+				{ node, depth ->
+					if (node === root) {
+						append("\n")
+						// Output *all* the edges.
+						for (from in reducedGraph.vertices()) {
+							val qualified = from.qualifiedName
+							val fromNode = trees[qualified]!!
+							val parts = qualified
+								.split("/".toRegex())
+								.dropLastWhile { it.isEmpty() }
+								.toTypedArray()
+							val fromPackage = parts[parts.size - 2] ==
+								parts[parts.size - 1]
+							for (to in reducedGraph.successorsOf(from)) {
+								val toName = asNodeName(to.qualifiedName)
+								tab(depth + 1)
+								append(fromNode.node)
+								append(" -> ")
+								append(toName)
+								val edgeStrings = ArrayList<String>()
+								if (fromPackage) {
+									val parent = fromNode.parent!!
+									val parentName = "cluster_" + parent.node
+									edgeStrings.add("ltail=$parentName")
+								}
+								if (!spanningDag.includesEdge(from, to)) {
+									// This is a back-edge.
+									edgeStrings.add("constraint=false")
+									edgeStrings.add("color=crimson")
+									edgeStrings.add("penwidth=3.0")
+									edgeStrings.add("style=dashed")
+								}
+								if (edgeStrings.isNotEmpty()) {
+									append("[")
+									append(edgeStrings.joinToString(", "))
+									append("]")
+								}
+								append(";\n")
+							}
+						}
+						tab(depth)
+						append("}\n")
+					} else if (node.resolvedModuleName == null) {
+						tab(depth)
+						append("}\n")
+					}
+				},
+				0)
+		}
 		val channel: AsynchronousFileChannel
-		try
-		{
+		try {
 			channel = availBuilder.runtime.ioSystem().openFile(
 				outputFile.toPath(),
 				EnumSet.of(
 					StandardOpenOption.WRITE,
 					StandardOpenOption.CREATE,
 					StandardOpenOption.TRUNCATE_EXISTING))
-		}
-		catch (e: IOException)
-		{
+		} catch (e: IOException) {
 			throw RuntimeException(e)
 		}
 
-		val buffer = StandardCharsets.UTF_8.encode(out.toString())
+		val buffer = StandardCharsets.UTF_8.encode(out)
 		val position = MutableInt(0)
 		channel.write<Any>(
 			buffer,
@@ -373,8 +362,7 @@ internal class GraphTracer constructor(
 			SimpleCompletionHandler(
 				{ result, _, handler ->
 					position.value += stripNull<Int>(result)
-					if (buffer.hasRemaining())
-					{
+					if (buffer.hasRemaining()) {
 						channel.write<Any>(
 							buffer,
 							position.value.toLong(),

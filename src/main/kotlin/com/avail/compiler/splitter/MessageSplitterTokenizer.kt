@@ -107,7 +107,7 @@ class MessageSplitterTokenizer
 			// Add contextual text and rethrow it.
 			throw MalformedMessageException(e.errorCode)
 			{
-				with (StringBuilder()) {
+				buildString {
 					val annotated = tuple(
 						messageName.copyStringFromToCanDestroy(
 							1, positionInName, false),
@@ -120,7 +120,6 @@ class MessageSplitterTokenizer
 					append(errorIndicatorSymbol)
 					append(") in: ")
 					append(annotated.toString())
-					toString()
 				}
 			}
 		}
@@ -135,13 +134,13 @@ class MessageSplitterTokenizer
 	 * @return
 	 *   The [A_String] without backquotes.
 	 */
-	private fun stripBackquotes(range: IntRange) = with(StringBuilder()) {
-		for (i in range) {
-			val cp = messageName.tupleCodePointAt(i)
-			if (cp != '`'.toInt()) appendCodePoint(cp)
-		}
-		stringFrom(toString())
-	}
+	private fun stripBackquotes(range: IntRange) = stringFrom(
+		buildString {
+			for (i in range) {
+				val cp = messageName.tupleCodePointAt(i)
+				if (cp != '`'.toInt()) appendCodePoint(cp)
+			}
+		})
 
 	private fun atEnd(): Boolean = positionInName > messageNameSize
 

@@ -39,7 +39,6 @@ import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.Strings;
 import com.avail.utility.json.JSONWriter;
 
 import javax.annotation.Nullable;
@@ -57,6 +56,7 @@ import static com.avail.descriptor.IntegerRangeTypeDescriptor.singleInt;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.utility.Strings.newlineTab;
 
 /**
  * Function types are the types of {@linkplain FunctionDescriptor functions}.
@@ -173,7 +173,7 @@ extends TypeDescriptor
 				{
 					aStream.append(',');
 				}
-				Strings.newlineTab(aStream, indent);
+				newlineTab(aStream, indent);
 				final A_BasicObject item = objects.get(i);
 				if (item != null)
 				{

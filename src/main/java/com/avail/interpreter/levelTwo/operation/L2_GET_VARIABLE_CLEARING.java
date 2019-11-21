@@ -35,6 +35,7 @@ import com.avail.descriptor.A_Type;
 import com.avail.descriptor.A_Variable;
 import com.avail.descriptor.AbstractDescriptor;
 import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.VariableDescriptor;
 import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.exceptions.VariableGetException;
 import com.avail.exceptions.VariableSetException;
@@ -205,12 +206,7 @@ extends L2ControlFlowOperation
 		method.visitJumpInsn(IFEQ, elseLabel);
 		// ::       variable.clearValue();
 		translator.load(method, variable.register());
-		method.visitMethodInsn(
-			INVOKEINTERFACE,
-			getInternalName(A_Variable.class),
-			"clearValue",
-			getMethodDescriptor(VOID_TYPE),
-			true);
+		VariableDescriptor.clearVariableMethod.generateCall(method);
 		// ::       goto success;
 		method.visitJumpInsn(GOTO, translator.labelFor(success.offset()));
 		// ::    } else {

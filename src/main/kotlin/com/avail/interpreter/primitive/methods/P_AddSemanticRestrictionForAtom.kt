@@ -42,7 +42,7 @@ import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SemanticRestrictionDescriptor.newSemanticRestriction
 import com.avail.descriptor.SetDescriptor.set
-import com.avail.descriptor.StringDescriptor.formatString
+import com.avail.descriptor.StringDescriptor.stringFrom
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.*
@@ -98,7 +98,7 @@ object P_AddSemanticRestrictionForAtom : Primitive(2, Unknown)
 		}
 
 		function.code().setMethodName(
-			formatString("Semantic restriction of %s", atom.atomName()))
+			stringFrom("Semantic restriction of ${atom.atomName()}"))
 		return interpreter.primitiveSuccess(nil)
 	}
 

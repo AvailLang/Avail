@@ -34,12 +34,13 @@ package com.avail.optimizer.jvm;
 
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
-import com.avail.utility.Strings;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.logging.Level;
+
+import static com.avail.utility.Strings.traceFor;
 
 /**
  * A {@code JVMChunkClassLoader} is created for each generated {@link JVMChunk},
@@ -113,7 +114,7 @@ extends ClassLoader
 				"Failed to load JVMChunk ({0}) from L2Chunk ({1}): {2}",
 				className,
 				chunkName,
-				Strings.traceFor(e));
+				traceFor(e));
 			return null;
 		}
 	}

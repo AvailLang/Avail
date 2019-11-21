@@ -52,7 +52,6 @@ import com.avail.optimizer.L2ControlFlowGraph;
 import com.avail.optimizer.L2ControlFlowGraphVisualizer;
 import com.avail.optimizer.StackReifier;
 import com.avail.performance.Statistic;
-import com.avail.utility.Strings;
 import com.avail.utility.evaluation.Continuation1NotNull;
 import org.objectweb.asm.*;
 import org.objectweb.asm.util.CheckMethodAdapter;
@@ -66,8 +65,13 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.UUID;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -78,6 +82,7 @@ import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.optimizer.jvm.JVMTranslator.LiteralAccessor.invalidIndex;
 import static com.avail.performance.StatisticReport.FINAL_JVM_TRANSLATION_TIME;
 import static com.avail.utility.Nulls.stripNull;
+import static com.avail.utility.Strings.traceFor;
 import static java.util.stream.Collectors.toList;
 import static org.objectweb.asm.ClassWriter.COMPUTE_FRAMES;
 import static org.objectweb.asm.ClassWriter.COMPUTE_MAXS;
@@ -140,6 +145,10 @@ public final class JVMTranslator
 	private static final Pattern classNameForbiddenCharacters =
 		Pattern.compile("[\\[\\]()./\\\\ :;\"'\\p{Cntrl}]+");
 
+	/** A regex {@link Pattern} to strip the prefix of a module name. */
+	private static final Pattern moduleNameStripper =
+		Pattern.compile("^.*/([^/]+)$");
+
 	/**
 	 * Construct a new {@code JVMTranslator} to translate the specified array of
 	 * {@link L2Instruction}s to a {@link JVMChunk}.
@@ -169,8 +178,8 @@ public final class JVMTranslator
 		final A_Module module = code == null ? nil : code.module();
 		final String moduleName = module == nil
 			? "NoModule"
-			: module.moduleName().asNativeString()
-				.replaceAll("^.*/([^/]+)$", "$1");
+			: moduleNameStripper.matcher(module.moduleName().asNativeString())
+				.replaceAll("$1");
 		final String descriptiveName = code == null
 			? "DEFAULT"
 			: classNameForbiddenCharacters.matcher(
@@ -678,7 +687,7 @@ public final class JVMTranslator
 			// empty space reserved for per-instruction stack and locals to 5
 			// spaces each.
 			@SuppressWarnings("DynamicRegexReplaceableByCompiledPattern")
-			final String trace = Strings.traceFor(e).replaceAll(
+			final String trace = traceFor(e).replaceAll(
 				" {6,}", "     ");
 			final ByteBuffer buffer = StandardCharsets.UTF_8.encode(trace);
 			final byte[] bytes = new byte[buffer.limit()];
@@ -1794,6 +1803,12 @@ public final class JVMTranslator
 		}
 	}
 
+	/**
+	 * Actually load the generated class into the running JVM.  Note that a
+	 * special {@link JVMChunkClassLoader} must be used, so that the static
+	 * initialization has access to the necessary constants referenced from the
+	 * bytecodes.
+	 */
 	void loadClass ()
 	{
 		final Object[] parameters = new Object[literals.size()];
@@ -1813,15 +1828,32 @@ public final class JVMTranslator
 			parameters);
 	}
 
+	/** The JVM code generation phases, in order. */
 	enum GenerationPhase {
+		/** Prepare to generate the JVM translation. */
 		PREPARE(JVMTranslator::prepare),
+
+		/** Create the static &lt;clinit&gt; method for capturing constants. */
 		GENERATE_STATIC_INITIALIZER(JVMTranslator::generateStaticInitializer),
+
+		/** Prepare the default constructor, invoked once via reflection. */
 		GENERATE_CONSTRUCTOR_V(JVMTranslator::generateConstructorV),
+
+		/** Generate the name() method. */
 		GENERATE_NAME(JVMTranslator::generateName),
+
+		/** Generate the runChunk() method. */
 		GENERATE_RUN_CHUNK(JVMTranslator::generateRunChunk),
+
+		/** Indicate code emission has completed. */
 		VISIT_END(JVMTranslator::visitEnd),
+
+		/** Create a byte array that would be the content of a class file. */
 		CREATE_CLASS_BYTES(JVMTranslator::createClassBytes),
+
+		/** Load the class into the running system. */
 		LOAD_CLASS(JVMTranslator::loadClass);
+
 
 		/** The action to perform for this phase. */
 		private final Continuation1NotNull<JVMTranslator> action;
@@ -1830,6 +1862,11 @@ public final class JVMTranslator
 		private final Statistic statistic =
 			new Statistic(name(), FINAL_JVM_TRANSLATION_TIME);
 
+		/**
+		 * Initialize the enum value.
+		 *
+		 * @param action What to do for this phase.
+		 */
 		GenerationPhase (final Continuation1NotNull<JVMTranslator> action)
 		{
 			this.action = action;

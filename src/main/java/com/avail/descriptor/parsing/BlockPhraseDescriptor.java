@@ -44,13 +44,16 @@ import com.avail.exceptions.AvailRuntimeException;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.Strings;
 import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.json.JSONWriter;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Set;
 
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind.MODULE_CONSTANT;
@@ -65,6 +68,7 @@ import static com.avail.descriptor.parsing.BlockPhraseDescriptor.IntegerSlots.PR
 import static com.avail.descriptor.parsing.BlockPhraseDescriptor.IntegerSlots.STARTING_LINE_NUMBER;
 import static com.avail.descriptor.parsing.BlockPhraseDescriptor.ObjectSlots.*;
 import static com.avail.exceptions.AvailErrorCode.E_BLOCK_MUST_NOT_CONTAIN_OUTERS;
+import static com.avail.utility.Strings.newlineTab;
 import static com.avail.utility.evaluation.Combinator.recurse;
 
 /**
@@ -212,7 +216,7 @@ extends PhraseDescriptor
 			wroteAnything = true;
 			for (int argIndex = 1; argIndex <= argCount; argIndex++)
 			{
-				Strings.newlineTab(builder, indent);
+				newlineTab(builder, indent);
 				argumentsTuple.tupleAt(argIndex).printOnAvoidingIndent(
 					builder, recursionMap, indent);
 				if (argIndex < argCount)
@@ -220,14 +224,14 @@ extends PhraseDescriptor
 					builder.append(',');
 				}
 			}
-			Strings.newlineTab(builder, indent - 1);
+			newlineTab(builder, indent - 1);
 			builder.append('|');
 		}
 		boolean skipFailureDeclaration = false;
 		if (primitive != null && !primitive.hasFlag(Flag.SpecialForm))
 		{
 			wroteAnything = true;
-			Strings.newlineTab(builder, indent);
+			newlineTab(builder, indent);
 			builder.append("Primitive ");
 			builder.append(primitive.name());
 			if (!primitive.hasFlag(Flag.CannotFail))
@@ -252,7 +256,7 @@ extends PhraseDescriptor
 			else
 			{
 				wroteAnything = true;
-				Strings.newlineTab(builder, indent);
+				newlineTab(builder, indent);
 				statement.printOnAvoidingIndent(
 					builder, recursionMap, indent);
 				if (index < statementsSize || endsWithStatement)
@@ -263,7 +267,7 @@ extends PhraseDescriptor
 		}
 		if (wroteAnything)
 		{
-			Strings.newlineTab(builder, indent - 1);
+			newlineTab(builder, indent - 1);
 		}
 		builder.append(']');
 		if (explicitResultType != null)

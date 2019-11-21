@@ -43,7 +43,6 @@ import com.avail.descriptor.tuples.A_String;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.serialization.SerializerOperation;
-import com.avail.utility.Strings;
 import com.avail.utility.json.JSONWriter;
 
 import java.util.*;
@@ -61,6 +60,7 @@ import static com.avail.descriptor.ObjectTypeDescriptor.namesAndBaseTypesForObje
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
 import static com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY;
+import static com.avail.utility.Strings.newlineTab;
 
 /**
  * Avail {@linkplain ObjectTypeDescriptor user-defined object types} are novel.
@@ -553,7 +553,7 @@ extends Descriptor
 				{
 					builder.append(",");
 				}
-				Strings.newlineTab(builder, indent);
+				newlineTab(builder, indent);
 				builder.append(entry.key().atomName().asNativeString());
 				builder.append(" = ");
 				entry.value().printOnAvoidingIndent(

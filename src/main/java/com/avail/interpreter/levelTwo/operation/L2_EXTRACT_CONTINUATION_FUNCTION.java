@@ -33,7 +33,7 @@ package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.A_Function;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.ContinuationDescriptor;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
@@ -46,8 +46,6 @@ import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
-import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Type.*;
 
 /**
  * Extract the {@link A_Function} from an {@link A_Continuation}.
@@ -102,12 +100,7 @@ extends L2Operation
 
 		// :: function = continuation.function();
 		translator.load(method, continuation.register());
-		method.visitMethodInsn(
-			INVOKEINTERFACE,
-			getInternalName(A_Continuation.class),
-			"function",
-			getMethodDescriptor(getType(AvailObject.class)),
-			true);
+		ContinuationDescriptor.continuationFunctionMethod.generateCall(method);
 		translator.store(method, function.register());
 	}
 }

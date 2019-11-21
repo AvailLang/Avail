@@ -2639,14 +2639,14 @@ class AvailCompiler(
 					{
 						afterArgument.expected(WEAK) {
 							it(
-								with(StringBuilder(100)) {
+								buildString {
 									append(kindOfArgument)
 									append(" to have a type other than ")
 									append(badTypeName)
 									append(" in:")
 									describeOn(
 										continuation.superexpressions, this)
-								}.toString())
+								})
 						}
 						return@Con1
 					}

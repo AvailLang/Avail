@@ -54,7 +54,6 @@ import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import com.avail.utility.Mutable;
 import com.avail.utility.Pair;
-import com.avail.utility.Strings;
 
 import java.util.*;
 
@@ -79,6 +78,7 @@ import static com.avail.descriptor.bundles.MessageBundleTreeDescriptor.ObjectSlo
 import static com.avail.dispatch.TypeComparison.compareForParsing;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType;
+import static com.avail.utility.Strings.newlineTab;
 import static java.util.Collections.singletonList;
 
 /**
@@ -469,7 +469,7 @@ extends Descriptor
 				}
 				else
 				{
-					Strings.newlineTab(builder, indent);
+					newlineTab(builder, indent);
 				}
 				first = false;
 				builder.append(string);

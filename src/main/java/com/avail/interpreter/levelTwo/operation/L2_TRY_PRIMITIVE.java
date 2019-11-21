@@ -33,7 +33,6 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -43,9 +42,11 @@ import com.avail.interpreter.levelTwo.L1InstructionStepper;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
+import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import org.objectweb.asm.MethodVisitor;
@@ -55,9 +56,11 @@ import java.util.List;
 import java.util.logging.Level;
 
 import static com.avail.interpreter.Primitive.Flag.*;
+import static com.avail.interpreter.levelTwo.L2OperandType.PRIMITIVE;
+import static com.avail.optimizer.jvm.CheckedMethod.staticMethod;
 import static com.avail.utility.Nulls.stripNull;
-import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Type.*;
+import static org.objectweb.asm.Opcodes.ARETURN;
+import static org.objectweb.asm.Opcodes.DUP;
 
 /**
  * Expect the {@link AvailObject} (pointers) array and int array to still
@@ -80,7 +83,8 @@ extends L2Operation
 	 */
 	private L2_TRY_PRIMITIVE ()
 	{
-		// Prevent accidental construction due to code cloning.
+		super(
+			PRIMITIVE.is("primitive"));
 	}
 
 	/**
@@ -352,62 +356,60 @@ extends L2Operation
 			});
 	}
 
+	/**
+	 * The {@link CheckedMethod} for
+	 * {@link #attemptInlinePrimitive(Interpreter, A_Function, Primitive)}.
+	 */
+	public static final CheckedMethod attemptTheInlinePrimitiveMethod =
+		staticMethod(
+			L2_TRY_PRIMITIVE.class,
+			"attemptInlinePrimitive",
+			StackReifier.class,
+			Interpreter.class,
+			A_Function.class,
+			Primitive.class);
+
+	/**
+	 * The {@link CheckedMethod} for
+	 * {@link #attemptNonInlinePrimitive(Interpreter, A_Function, Primitive)}.
+	 */
+	public static final CheckedMethod attemptTheNonInlinePrimitiveMethod =
+		staticMethod(
+			L2_TRY_PRIMITIVE.class,
+			"attemptNonInlinePrimitive",
+			StackReifier.class,
+			Interpreter.class,
+			A_Function.class,
+			Primitive.class);
+
 	@Override
 	public void translateToJVM (
 		final JVMTranslator translator,
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
+		final L2PrimitiveOperand primitiveOperand = instruction.operand(0);
+
+		final Primitive primitive = primitiveOperand.primitive;
 		translator.loadInterpreter(method);
+		//interp
 		method.visitInsn(DUP);
-		method.visitFieldInsn(
-			GETFIELD,
-			getInternalName(Interpreter.class),
-			"function",
-			getDescriptor(A_Function.class));
-		method.visitInsn(DUP);
-		method.visitMethodInsn(
-			INVOKEINTERFACE,
-			getInternalName(A_Function.class),
-			"code",
-			getMethodDescriptor(getType(A_RawFunction.class)),
-			true);
-		method.visitMethodInsn(
-			INVOKEINTERFACE,
-			getInternalName(A_RawFunction.class),
-			"primitive",
-			getMethodDescriptor(getType(Primitive.class)),
-			true);
-		if (stripNull(stripNull(translator.code).primitive()).hasFlag(
-			CanInline))
+		//interp,interp
+		Interpreter.interpreterFunctionField.generateRead(translator, method);
+		//interp,fn
+		translator.literal(method, primitive);
+		//interp,fn,prim
+		if (primitive.hasFlag(CanInline))
 		{
 			// :: return L2_TRY_PRIMITIVE.attemptInlinePrimitive(
 			// ::    interpreter, function, primitive);
-			method.visitMethodInsn(
-				INVOKESTATIC,
-				getInternalName(L2_TRY_PRIMITIVE.class),
-				"attemptInlinePrimitive",
-				getMethodDescriptor(
-					getType(StackReifier.class),
-					getType(Interpreter.class),
-					getType(A_Function.class),
-					getType(Primitive.class)),
-				false);
+			attemptTheInlinePrimitiveMethod.generateCall(method);
 		}
 		else
 		{
 			// :: return L2_TRY_PRIMITIVE.attemptNonInlinePrimitive(
 			// ::    interpreter, function, primitive);
-			method.visitMethodInsn(
-				INVOKESTATIC,
-				getInternalName(L2_TRY_PRIMITIVE.class),
-				"attemptNonInlinePrimitive",
-				getMethodDescriptor(
-					getType(StackReifier.class),
-					getType(Interpreter.class),
-					getType(A_Function.class),
-					getType(Primitive.class)),
-				false);
+			attemptTheNonInlinePrimitiveMethod.generateCall(method);
 		}
 		method.visitInsn(ARETURN);
 	}

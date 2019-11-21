@@ -32,8 +32,6 @@
 
 package com.avail.interpreter.primitive.methods
 
-import com.avail.AvailRuntime.currentRuntime
-import com.avail.AvailTask
 import com.avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
 import com.avail.descriptor.A_Type
@@ -44,22 +42,19 @@ import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import com.avail.descriptor.SetDescriptor.set
-import com.avail.descriptor.StringDescriptor.formatString
+import com.avail.descriptor.StringDescriptor.stringFrom
 import com.avail.descriptor.TupleDescriptor
 import com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.TypeDescriptor.Types.TOP
 import com.avail.descriptor.parsing.PhraseDescriptor
 import com.avail.exceptions.AvailErrorCode.*
+import com.avail.exceptions.AvailException
 import com.avail.exceptions.MalformedMessageException
-import com.avail.exceptions.SignatureException
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanSuspend
 import com.avail.interpreter.Primitive.Flag.Unknown
-import com.avail.interpreter.Primitive.Result.FIBER_SUSPENDED
-import com.avail.utility.Nulls.stripNull
-import java.util.*
 
 /**
  * **Primitive:** Simple macro definition.  The first argument is the macro
@@ -81,8 +76,8 @@ object P_SimpleMacroDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 		val function = interpreter.argument(2)
 
 		val fiber = interpreter.fiber()
-		val loader = fiber.availLoader()
-		             ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+		val loader = fiber.availLoader() ?:
+			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		if (!loader.phase().isExecuting)
 		{
 			return interpreter.primitiveFailure(
@@ -95,8 +90,8 @@ object P_SimpleMacroDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 			val argsKind = kind.argsTupleType()
 			for (argIndex in 1 .. numArgs)
 			{
-				if (!argsKind.typeAtIndex(argIndex).isSubtypeOf(
-						PARSE_PHRASE.mostGeneralType()))
+				if (!argsKind.typeAtIndex(argIndex)
+						.isSubtypeOf(PARSE_PHRASE.mostGeneralType()))
 				{
 					return interpreter.primitiveFailure(
 						E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PARSE_NODE)
@@ -111,7 +106,8 @@ object P_SimpleMacroDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 		try
 		{
 			val splitter = atom.bundleOrCreate().messageSplitter()
-			if (prefixFunctions.tupleSize() != splitter.numberOfSectionCheckpoints)
+			if (prefixFunctions.tupleSize() !=
+				splitter.numberOfSectionCheckpoints)
 			{
 				return interpreter.primitiveFailure(
 					E_MACRO_PREFIX_FUNCTION_INDEX_OUT_OF_BOUNDS)
@@ -139,55 +135,29 @@ object P_SimpleMacroDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 			return interpreter.primitiveFailure(
 				E_MACRO_MUST_RETURN_A_PARSE_NODE)
 		}
-		val primitiveFunction = stripNull(interpreter.function)
-		assert(primitiveFunction.code().primitive() === this)
-		val copiedArgs = ArrayList(interpreter.argsBuffer)
-		interpreter.primitiveSuspend(primitiveFunction)
-		interpreter.runtime().whenLevelOneSafeDo(
-			fiber.priority(),
-			AvailTask.forUnboundFiber(fiber)
+
+		return interpreter.suspendAndDoInLevelOneSafe {
+			toSucceed, toFail ->
+			try
 			{
-				try
+				loader.addMacroBody(atom, function, prefixFunctions)
+				val atomName = atom.atomName()
+				for ((zeroIndex, prefixFunction) in prefixFunctions.withIndex())
 				{
-					loader.addMacroBody(
-						atom, function, prefixFunctions)
-					var counter = 1
-					for (prefixFunction in prefixFunctions)
-					{
-						prefixFunction.code().setMethodName(
-							formatString("Macro prefix #%d of %s",
-							             counter, atom.atomName()))
-						counter++
-					}
-					function.code().setMethodName(
-						formatString("Macro body of %s",
-						             atom.atomName()))
-					Interpreter.resumeFromSuccessfulPrimitive(
-						currentRuntime(),
-						fiber,
-						this,
-						nil)
+					prefixFunction.code().setMethodName(
+						stringFrom("Macro prefix #${zeroIndex+1} of $atomName"))
 				}
-				catch (e: MalformedMessageException)
-				{
-					Interpreter.resumeFromFailedPrimitive(
-						currentRuntime(),
-						fiber,
-						e.numericCode(),
-						primitiveFunction,
-						copiedArgs)
-				}
-				catch (e: SignatureException)
-				{
-					Interpreter.resumeFromFailedPrimitive(
-						currentRuntime(),
-						fiber,
-						e.numericCode(),
-						primitiveFunction,
-						copiedArgs)
-				}
-			})
-		return FIBER_SUSPENDED
+				function.code().setMethodName(
+					stringFrom("Macro body of $atomName"))
+				toSucceed.value(nil)
+			}
+			catch (e: AvailException)
+			{
+				// MalformedMessageException
+				// SignatureException
+				toFail.value(e.errorCode)
+			}
+		}
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

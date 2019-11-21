@@ -486,7 +486,7 @@ class MessageSplitter
 			// Add contextual text and rethrow it.
 			throw MalformedMessageException(e.errorCode)
 			{
-				with(StringBuilder()) {
+				buildString {
 					append(e.describeProblem())
 					append(". See arrow (")
 					append(CompilerDiagnostics.errorIndicatorSymbol)
@@ -505,7 +505,7 @@ class MessageSplitter
 					append(CompilerDiagnostics.errorIndicatorSymbol)
 					append(after.asNativeString())
 					append('"')
-				}.toString()
+				}
 			}
 		}
 	}

@@ -45,7 +45,7 @@ import java.lang.annotation.Target;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Target({ElementType.METHOD, ElementType.FIELD})
-@Retention(RetentionPolicy.SOURCE)
+@Retention(RetentionPolicy.RUNTIME)
 public @interface ReferencedInGeneratedCode
 {
 	// No implementation required.

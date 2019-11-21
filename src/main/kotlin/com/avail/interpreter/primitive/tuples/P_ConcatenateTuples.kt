@@ -43,9 +43,18 @@ import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.TupleDescriptor
 import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TupleTypeDescriptor.*
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.restriction
+import com.avail.interpreter.levelTwo.operation.L2_CONCATENATE_TUPLES
+import com.avail.interpreter.levelTwo.operation.L2_CREATE_TUPLE
+import com.avail.optimizer.L1Translator
+import com.avail.optimizer.L1Translator.CallSiteHelper
 
 /**
  * **Primitive:** Concatenate a [tuple][TupleDescriptor] of tuples together into
@@ -121,5 +130,68 @@ object P_ConcatenateTuples : Primitive(1, CannotFail, CanFold, CanInline)
 		}
 		// Too tricky to bother narrowing.
 		return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
+	}
+
+	override fun tryToGenerateSpecialPrimitiveInvocation(
+		functionToCallReg: L2ReadBoxedOperand,
+		rawFunction: A_RawFunction,
+		arguments: List<L2ReadBoxedOperand>,
+		argumentTypes: List<A_Type>,
+		translator: L1Translator,
+		callSiteHelper: CallSiteHelper
+	): Boolean {
+		assert(arguments.size == 1)
+		val tupleOfTuplesReg = arguments[0]
+		val def = tupleOfTuplesReg.definitionSkippingMoves(false)
+		if (def.operation() != L2_CREATE_TUPLE.instance)
+		{
+			return false
+		}
+		val sources = L2_CREATE_TUPLE.tupleSourceRegistersOf(def)
+		// Collapse together adjacent constants, dropping empties
+		var currentTuple: A_Tuple? = null
+		val adjustedSources = mutableListOf<L2ReadBoxedOperand>()
+		for (source in sources)
+		{
+			val restriction = source.restriction()
+			val sizeRange = restriction.type.sizeRange()
+			if (sizeRange.upperBound().equalsInt(0)) continue
+			val constant = restriction.constantOrNull
+			if (constant !== null) {
+				currentTuple =
+					if (currentTuple == null) constant
+					else currentTuple.concatenateWith(constant, false)
+			}
+			else {
+				if (currentTuple != null) {
+					adjustedSources.add(
+						translator.generator.boxedConstant(currentTuple))
+					currentTuple = null
+				}
+				adjustedSources.add(source)
+			}
+		}
+		if (currentTuple != null)
+		{
+			// Deal with the final one.
+			adjustedSources.add(
+				translator.generator.boxedConstant(currentTuple))
+		}
+		when (adjustedSources.size) {
+			0 -> callSiteHelper.useAnswer(
+				translator.generator.boxedConstant(emptyTuple()))
+			1 -> callSiteHelper.useAnswer(adjustedSources[0])
+			else -> {
+				val writer: L2WriteBoxedOperand =
+					translator.generator.boxedWriteTemp(
+						restriction(mostGeneralTupleType(), null))
+				translator.addInstruction(
+					L2_CONCATENATE_TUPLES.instance,
+					L2ReadBoxedVectorOperand(adjustedSources),
+					writer)
+				callSiteHelper.useAnswer(translator.readBoxed(writer))
+			}
+		}
+		return true
 	}
 }

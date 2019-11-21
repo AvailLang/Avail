@@ -56,11 +56,12 @@ Method 	"anonymous module using«_«=(««-»?_«→_»?‡,»,⁇«`…»?)»�
 		|2>?…
 	|2>+
 |
-	Primitive CreateAnonymousModule();
+	Primitive CreateAnonymousModule(code : {
+		loading-is-over code}ᵀ);
+	Raise an exception for code
+] : module;
 
-];
-
-m ::= anonymous module uses
+m ::= anonymous module using
 	"Quiz" = (
 		-"Multiple Choice(_)._«A:_«✔»?»",
 		-"True«✔»?/False«✔»?(_)._",

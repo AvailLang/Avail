@@ -42,13 +42,12 @@ import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
-import java.util.List;
 import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
-import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Type.*;
+import static org.objectweb.asm.Opcodes.CHECKCAST;
+import static org.objectweb.asm.Type.getInternalName;
 
 /**
  * Ask the {@link Interpreter} for its {@link Interpreter#argsBuffer}'s n-th
@@ -110,18 +109,9 @@ extends L2Operation
 
 		// :: argument = interpreter.argsBuffer.get(«subscript - 1»);
 		translator.loadInterpreter(method);
-		method.visitFieldInsn(
-			GETFIELD,
-			getInternalName(Interpreter.class),
-			"argsBuffer",
-			getDescriptor(List.class));
+		Interpreter.argsBufferField.generateRead(translator, method);
 		translator.literal(method, subscript.value - 1);
-		method.visitMethodInsn(
-			INVOKEINTERFACE,
-			getInternalName(List.class),
-			"get",
-			getMethodDescriptor(getType(Object.class), INT_TYPE),
-			true);
+		Interpreter.listGetMethod.generateCall(method);
 		method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
 		translator.store(method, argument.register());
 	}

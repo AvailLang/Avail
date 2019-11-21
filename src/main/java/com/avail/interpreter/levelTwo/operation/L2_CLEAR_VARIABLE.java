@@ -32,7 +32,7 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.A_Variable;
+import com.avail.descriptor.VariableDescriptor;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
@@ -47,8 +47,6 @@ import java.util.Set;
 
 import static com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
-import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Type.*;
 
 /**
  * Clear a variable; i.e., make it have no assigned value.
@@ -118,11 +116,6 @@ extends L2Operation
 		// TODO: [TLS/MvG] clearValue() can throw VariableSetException. Deal.
 		// :: variable.clearValue();
 		translator.load(method, variable.register());
-		method.visitMethodInsn(
-			INVOKEINTERFACE,
-			getInternalName(A_Variable.class),
-			"clearValue",
-			getMethodDescriptor(VOID_TYPE),
-			true);
+		VariableDescriptor.clearVariableMethod.generateCall(method);
 	}
 }

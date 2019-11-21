@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_Function;
 import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
@@ -46,6 +45,8 @@ import org.objectweb.asm.MethodVisitor;
 import java.util.List;
 import java.util.Set;
 
+import static com.avail.interpreter.Interpreter.interpreterFunctionField;
+import static com.avail.interpreter.Interpreter.interpreterReturningFunctionField;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.*;
@@ -134,16 +135,8 @@ extends L2ControlFlowOperation
 			BOOLEAN_TYPE.getDescriptor());
 		// interpreter.returningFunction = interpreter.function;
 		method.visitInsn(DUP);
-		method.visitFieldInsn(
-			GETFIELD,
-			getInternalName(Interpreter.class),
-			"function",
-			getDescriptor(A_Function.class));
-		method.visitFieldInsn(
-			PUTFIELD,
-			getInternalName(Interpreter.class),
-			"returningFunction",
-			getDescriptor(A_Function.class));
+		interpreterFunctionField.generateRead(translator, method);
+		interpreterReturningFunctionField.generateWrite(translator, method);
 		// :: return null;
 		method.visitInsn(ACONST_NULL);
 		method.visitInsn(ARETURN);

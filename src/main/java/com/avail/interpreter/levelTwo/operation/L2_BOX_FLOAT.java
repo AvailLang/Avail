@@ -32,7 +32,6 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_Number;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.DoubleDescriptor;
 import com.avail.interpreter.levelTwo.L2Instruction;
@@ -48,8 +47,6 @@ import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_FLOAT;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
-import static org.objectweb.asm.Opcodes.INVOKESTATIC;
-import static org.objectweb.asm.Type.*;
 
 /**
  * Box a {@code double} into an {@link AvailObject}.
@@ -117,12 +114,7 @@ extends L2Operation
 
 		// :: destination = IntegerDescriptor.fromInt(source);
 		translator.load(method, source.register());
-		method.visitMethodInsn(
-			INVOKESTATIC,
-			getInternalName(DoubleDescriptor.class),
-			"fromDouble",
-			getMethodDescriptor(getType(A_Number.class), DOUBLE_TYPE),
-			false);
+		DoubleDescriptor.fromDoubleMethod.generateCall(method);
 		translator.store(method, destinationReg.register());
 	}
 }

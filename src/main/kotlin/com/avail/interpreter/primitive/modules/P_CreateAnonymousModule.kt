@@ -104,8 +104,7 @@ object P_CreateAnonymousModule : Primitive(1, CanInline)
 										// Rename string.
 										nonemptyStringType()))),
 							// Wildcard for imported names.
-							booleanType())),
-					booleanType()))),
+							booleanType()))))),
 		MODULE.o())
 
 	override fun privateFailureVariableType(): A_Type = enumerationWith(

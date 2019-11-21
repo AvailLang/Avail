@@ -35,6 +35,7 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
+import com.avail.descriptor.FunctionDescriptor;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
@@ -218,12 +219,7 @@ extends L2Operation
 		// :: paramType = function.code().functionType().argsTupleType()
 		// ::    .typeAtIndex(param)
 		translator.load(method, function.register());
-		method.visitMethodInsn(
-			INVOKEINTERFACE,
-			getInternalName(A_Function.class),
-			"code",
-			getMethodDescriptor(getType(A_RawFunction.class)),
-			true);
+		FunctionDescriptor.functionCodeMethod.generateCall(method);
 		method.visitMethodInsn(
 			INVOKEINTERFACE,
 			getInternalName(A_RawFunction.class),

@@ -1103,23 +1103,14 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		// :: argsBuffer = interpreter.argsBuffer;
 		translator.loadInterpreter(method)
 		// [interp]
-		method.visitFieldInsn(
-			GETFIELD,
-			Type.getInternalName(Interpreter::class.java),
-			"argsBuffer",
-			Type.getDescriptor(MutableList::class.java))
+		Interpreter.argsBufferField.generateRead(translator, method)
 		// [argsBuffer]
 		// :: argsBuffer.clear();
 		if (arguments.elements().isNotEmpty()) {
 			method.visitInsn(DUP)
 		}
 		// [argsBuffer[, argsBuffer if #args > 0]]
-		method.visitMethodInsn(
-			INVOKEINTERFACE,
-			Type.getInternalName(MutableList::class.java),
-			"clear",
-			Type.getMethodDescriptor(Type.VOID_TYPE),
-			true)
+		Interpreter.listClearMethod.generateCall(method)
 		// [argsBuffer if #args > 0]
 		var i = 0
 		val limit = arguments.elements().size
@@ -1129,14 +1120,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 				method.visitInsn(DUP)
 			}
 			translator.load(method, arguments.elements()[i].register())
-			method.visitMethodInsn(
-				INVOKEINTERFACE,
-				Type.getInternalName(MutableList::class.java),
-				"add",
-				Type.getMethodDescriptor(
-					Type.BOOLEAN_TYPE,
-					Type.getType(Any::class.java)),
-				true)
+			Interpreter.listAddMethod.generateCall(method)
 			method.visitInsn(POP)
 			i++
 		}
