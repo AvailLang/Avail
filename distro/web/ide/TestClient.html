@@ -106,7 +106,7 @@ textarea { background-color: white; }
 .key { color: red; }
 </style>
 <script language="javascript" type="text/javascript">
-	var protocolVersion = 4;
+	var protocolVersion = 5;
 	var supportedProtocolVersions = [protocolVersion];
 	var availUri = 'ws://localhost:40000/avail';
 	var cmdOutput = null, ioOutput = null;
@@ -264,9 +264,13 @@ textarea { background-color: white; }
 						var content = response.content;
 						visitRoots(content, function (node)
 						{
+							node.text = node.label;
+							node.children = node.childNodes;
+							delete node.label;
+							delete node.childNodes;
 							if (node.isRoot)
 							{
-								// Do nothing — yet.
+								node.state = {opened: true};
 							}
 							else if (node.isPackage)
 							{
@@ -490,9 +494,9 @@ textarea { background-color: white; }
 
 	function visitTree (node, callback)
 	{
-		if (node.hasOwnProperty('children'))
+		if (node.hasOwnProperty('childNodes'))
 		{
-			var children = node.children.forEach(function (child)
+			node.childNodes.forEach(function (child)
 			{
 				visitTree(child, callback);
 			});

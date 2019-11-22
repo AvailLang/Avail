@@ -315,7 +315,7 @@ class AvailServer constructor(
 			writer: JSONWriter)
 		{
 			writer.writeObject {
-				writer.write("text")
+				writer.write("label")
 				writer.write(name)
 				if (isRoot)
 				{
@@ -337,13 +337,8 @@ class AvailServer constructor(
 				val res = resources
 				if (mods != null || res != null)
 				{
-					writer.write("state")
-					writer.writeObject {
-						writer.write("opened")
-						writer.write(isRoot)
-					}
 					var missingRepresentative = !isResource
-					writer.write("children")
+					writer.write("childNodes")
 					writer.writeArray {
 						if (mods != null)
 						{
@@ -1002,7 +997,7 @@ class AvailServer constructor(
 		val logger: Logger = Logger.getLogger(AvailServer::class.java.name)
 
 		/** The current server protocol version.  */
-		private const val protocolVersion = 4
+		private const val protocolVersion = 5
 
 		/** The supported client protocol versions.  */
 		private val supportedProtocolVersions: Set<Int> =
