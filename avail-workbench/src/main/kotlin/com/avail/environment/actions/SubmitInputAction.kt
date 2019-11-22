@@ -108,7 +108,6 @@ class SubmitInputAction constructor(workbench: AvailWorkbench)
 					// command will not be run – but any necessary cleanup
 					// will be run.
 					proceed.invoke(selection)
-					Unit
 				},
 				{ result, cleanup ->
 					val afterward = {
@@ -125,7 +124,6 @@ class SubmitInputAction constructor(workbench: AvailWorkbench)
 										workbench.errorStream())))
 							workbench.setEnablements()
 						}
-						Unit
 					}
 					if (result.equalsNil())
 					{
@@ -143,7 +141,6 @@ class SubmitInputAction constructor(workbench: AvailWorkbench)
 							.append("\n")
 						cleanup.invoke(afterward)
 					}
-					Unit
 				},
 				{
 					invokeLater {
@@ -159,7 +156,6 @@ class SubmitInputAction constructor(workbench: AvailWorkbench)
 									workbench.errorStream())))
 						workbench.setEnablements()
 					}
-					Unit
 				})
 		}
 	}

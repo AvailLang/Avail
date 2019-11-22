@@ -920,7 +920,6 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 							e)
 						close()
 					}
-					Unit
 				}))
 	}
 

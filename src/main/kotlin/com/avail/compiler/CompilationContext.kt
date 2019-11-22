@@ -568,11 +568,9 @@ class CompilationContext(
 				fiber,
 				{ value ->
 					finalAdjustedSuccess(value)
-					Unit
 				},
 				{ throwable ->
 					onFailure(throwable)
-					Unit
 				})
 		}
 		else

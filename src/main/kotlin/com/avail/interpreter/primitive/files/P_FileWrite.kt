@@ -254,7 +254,6 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 						{ bytesWritten ->
 							nextPosition.value += bytesWritten
 							continueWriting()
-							Unit
 						},
 						{
 							// Invalidate *all* pages for this file to
@@ -271,7 +270,6 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 								newFiber,
 								fail,
 								listOf(E_IO_ERROR.numericCode()))
-							Unit
 						}))
 			}
 			else

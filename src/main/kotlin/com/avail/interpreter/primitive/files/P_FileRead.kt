@@ -314,7 +314,6 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 						newFiber,
 						succeed,
 						listOf(bytesTuple))
-					Unit
 				},
 				// failed
 				{
@@ -323,7 +322,6 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 						newFiber,
 						fail,
 						listOf(E_IO_ERROR.numericCode()))
-					Unit
 				}))
 		return interpreter.primitiveSuccess(newFiber)
 	}

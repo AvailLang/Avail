@@ -189,7 +189,6 @@ internal class BuildDirectoryTracer constructor(
 								val oldRan = ran.getAndSet(true)
 								assert(!oldRan)
 								indicateFileCompleted(file)
-								Unit
 							})
 					}
 					return CONTINUE

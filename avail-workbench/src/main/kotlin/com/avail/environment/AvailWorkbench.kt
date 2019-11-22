@@ -1372,7 +1372,6 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 				}
 			}
 			after.invoke()
-			Unit
 		}
 		val mapKeys = moduleNodes.keys.toTypedArray()
 		Arrays.sort(mapKeys)
@@ -2203,7 +2202,6 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 				// Postpone repaints up to 250ms to avoid thrash.
 				entryPointsTree.repaint(250)
 			}
-			Unit
 		}
 
 		// Set up styles for the transcript.

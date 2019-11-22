@@ -145,7 +145,6 @@ object P_SocketWrite : Primitive(5, CanInline, HasSideEffect)
 							newFiber,
 							fail,
 							listOf(E_IO_ERROR.numericCode()))
-						Unit
 					}))
 			interpreter.primitiveSuccess(newFiber)
 		}
