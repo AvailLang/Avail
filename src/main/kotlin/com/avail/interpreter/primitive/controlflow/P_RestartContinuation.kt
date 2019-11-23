@@ -31,6 +31,7 @@
  */
 package com.avail.interpreter.primitive.controlflow
 
+import com.avail.descriptor.A_Continuation
 import com.avail.descriptor.A_RawFunction
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AvailObject
@@ -48,10 +49,10 @@ import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
 
 /**
- * **Primitive:** Restart the given [ ]. Make sure it's a label-like
- * continuation rather than a call-like, because a call-like continuation
- * requires a value to be stored on its stack in order to resume it, something
- * this primitive does not do.
+ * **Primitive:** Restart the given [continuation][A_Continuation]. Make sure
+ * it's a label-like continuation rather than a call-like, because a call-like
+ * continuation requires a value to be stored on its stack in order to resume
+ * it, something this primitive does not do.
  */
 object P_RestartContinuation : Primitive(
 	1,
@@ -108,6 +109,23 @@ object P_RestartContinuation : Primitive(
 		translator: L1Translator,
 		callSiteHelper: CallSiteHelper): Boolean
 	{
+		val continuationReg = arguments[0]
+
+		// Check for the common case that the continuation was created for this
+		// very frame.
+		val generator = translator.generator
+		val manifest = generator.currentManifest()
+		val synonym = manifest.semanticValueToSynonym(
+			continuationReg.semanticValue())
+		val label = generator.topFrame.label()
+		if (manifest.hasSemanticValue(label) &&
+			manifest.semanticValueToSynonym(label) == synonym)
+		{
+			translator.emitLocalRestartWithOriginalArguments()
+			return true
+		}
+
+
 		// A restart works with every continuation that is created by a label.
 		// First, pop out of the Java stack frames back into the outer L2 run
 		// loop (which saves/restores the current frame and continues at the

@@ -32,7 +32,12 @@
 
 package com.avail.optimizer;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_ChunkDependable;
+import com.avail.descriptor.A_Number;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Set;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.FunctionDescriptor;
 import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
@@ -166,6 +171,12 @@ public final class L2Generator
 
 	/** The block at which to resume execution after a failed primitive. */
 	@Nullable L2BasicBlock afterOptionalInitialPrimitiveBlock;
+
+	/**
+	 * The head of the loop formed when a P_RestartContinuation is invoked on
+	 * a label created for the current frame.
+	 */
+	public @Nullable L2BasicBlock restartLoopHeadBlock;
 
 	/**
 	 * An {@code int} used to quickly generate unique integers which serve to
@@ -835,6 +846,17 @@ public final class L2Generator
 	}
 
 	/**
+	 * Create an {@link L2BasicBlock}, and mark it as a loop head.
+	 *
+	 * @param name The name of the new loop head block.
+	 * @return The loop head block.
+	 */
+	public L2BasicBlock createLoopHeadBlock (final String name)
+	{
+		return new L2BasicBlock(name, true);
+	}
+
+	/**
 	 * Start code generation for the given {@link L2BasicBlock}.  This naive
 	 * translator doesn't create loops, so ensure all predecessor blocks have
 	 * already finished generation.
@@ -854,7 +876,7 @@ public final class L2Generator
 				currentBlock = null;
 				return;
 			}
-			if (block.predecessorEdgesCount() == 1)
+			if (!block.isLoopHead && block.predecessorEdgesCount() == 1)
 			{
 				final L2PcOperand predecessorEdge =
 					block.predecessorEdgesIterator().next();
@@ -869,7 +891,7 @@ public final class L2Generator
 					// the manifest from the jump edge.
 					currentManifest.clear();
 					currentManifest.populateFromIntersection(
-						singletonList(predecessorEdge.manifest()), this);
+						singletonList(predecessorEdge.manifest()), this, false);
 					predecessorBlock.instructions().remove(
 						predecessorBlock.instructions().size() - 1);
 					jump.justRemoved();
@@ -915,7 +937,22 @@ public final class L2Generator
 	public static L2PcOperand edgeTo (
 		final L2BasicBlock targetBlock)
 	{
-		return new L2PcOperand(targetBlock);
+		return new L2PcOperand(targetBlock, false);
+	}
+
+	/**
+	 * Create an {@link L2PcOperand} leading to the given {@link L2BasicBlock},
+	 * which must be {@link L2BasicBlock#isLoopHead}.
+	 *
+	 * @param targetBlock
+	 *        The target {@link L2BasicBlock}.
+	 * @return The new {@link L2PcOperand}.
+	 */
+	public static L2PcOperand backEdgeTo (
+		final L2BasicBlock targetBlock)
+	{
+		assert targetBlock.isLoopHead;
+		return new L2PcOperand(targetBlock, true);
 	}
 
 	/**

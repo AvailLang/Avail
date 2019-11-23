@@ -33,9 +33,12 @@
 package com.avail.optimizer;
 
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP;
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
+import com.avail.optimizer.values.L2SemanticValue;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -93,6 +96,9 @@ public final class L2BasicBlock
 	 * block.
 	 */
 	private boolean hasControlFlowAtEnd = false;
+
+	/** Whether this block is the head of a loop. */
+	public final boolean isLoopHead;
 
 	/**
 	 * Answer the descriptive name of this basic block.
@@ -211,6 +217,32 @@ public final class L2BasicBlock
 	{
 		assert predecessorEdge.sourceBlock().hasStartedCodeGeneration;
 		predecessorEdges.add(predecessorEdge);
+		if (isLoopHead && hasStartedCodeGeneration)
+		{
+			final L2ValueManifest predecessorManifest =
+				predecessorEdge.manifest();
+			for (int i = 0; i < instructions.size(); i++)
+			{
+				final L2Instruction instruction = instructions.get(i);
+				final L2Operation operation = instruction.operation();
+				if (!operation.isPhi())
+				{
+					// All the phi instructions are at the start.
+					break;
+				}
+				// The body of the loop is required to still have available
+				// every semantic value mentioned in the original phis.
+				final L2_PHI_PSEUDO_OPERATION<?, ?> phiOperation =
+					cast(instruction.operation());
+				final L2SemanticValue semanticValue =
+					phiOperation.sourceRegisterReads(instruction).get(0)
+						.semanticValue();
+				final L2ReadOperand<?> readOperand =
+					predecessorManifest.readBoxed(semanticValue);
+				phiOperation.withNewSource(
+					instruction, cast(readOperand), predecessorManifest);
+			}
+		}
 	}
 
 	/**
@@ -229,19 +261,16 @@ public final class L2BasicBlock
 			for (int i = 0; i < instructions.size(); i++)
 			{
 				final L2Instruction instruction = instructions.get(i);
-				if (instruction.operation().isPhi())
-				{
-					final L2_PHI_PSEUDO_OPERATION<?, ?> phiOperation =
-						cast(instruction.operation());
-					final L2Instruction replacement =
-						phiOperation.withoutIndex(instruction, index);
-					instructions.set(i, replacement);
-				}
-				else
+				if (!instruction.operation().isPhi())
 				{
 					// Phi functions are always at the start of a block.
 					break;
 				}
+				final L2_PHI_PSEUDO_OPERATION<?, ?> phiOperation =
+					cast(instruction.operation());
+				final L2Instruction replacement =
+					phiOperation.withoutIndex(instruction, index);
+				instructions.set(i, replacement);
 			}
 		}
 		predecessorEdges.remove(predecessorEdge);
@@ -367,7 +396,7 @@ public final class L2BasicBlock
 			manifests.add(predecessorEdge.manifest());
 		}
 		generator.currentManifest().populateFromIntersection(
-			manifests, generator);
+			manifests, generator, isLoopHead);
 	}
 
 	/**
@@ -463,19 +492,33 @@ public final class L2BasicBlock
 	}
 
 	/**
+	 * Create a new basic block, marking it as a loop head if requested.
+	 *
+	 * @param name
+	 *        A descriptive name for the block.
+	 * @param isLoopHead
+	 *        Whether this block should be marked as the head of a loop.
+	 */
+	public L2BasicBlock (final String name, final boolean isLoopHead)
+	{
+		this.name = name;
+		this.isLoopHead = isLoopHead;
+	}
+
+	/**
 	 * Create a new basic block.
 	 *
 	 * @param name A descriptive name for the block.
 	 */
 	public L2BasicBlock (final String name)
 	{
-		this.name = name;
+		this(name, false);
 	}
 
 	/**
 	 * Add this block's instructions to the given instruction list.  Also do
 	 * a special peephole optimization by removing any preceding {@link L2_JUMP}
-	 * if its target is this block.
+	 * if its target is this block, <em>unless</em> this block is a loop head.
 	 *
 	 * @param output
 	 *        The {@link List} of {@link L2Instruction}s in which to append this
@@ -483,28 +526,33 @@ public final class L2BasicBlock
 	 */
 	void generateOn (final List<L2Instruction> output)
 	{
-		// If the preceding instruction was a jump to here, remove it.  In fact,
-		// a null-jump might be on the end of the list, hiding another jump
-		// just behind it that leads here, making that one also be a null-jump.
-		boolean changed;
-		do
+		if (!isLoopHead)
 		{
-			changed = false;
-			if (!output.isEmpty())
+			// If the preceding instruction was a jump to here, remove it.  In
+			// fact, a null-jump might be on the end of the list, hiding another
+			// jump just behind it that leads here, making that one also be a
+			// null-jump.
+			boolean changed;
+			do
 			{
-				final L2Instruction previousInstruction =
-					output.get(output.size() - 1);
-				if (previousInstruction.operation() == L2_JUMP.instance)
+				changed = false;
+				if (!output.isEmpty())
 				{
-					if (L2_JUMP.jumpTarget(previousInstruction).targetBlock()
-						== this)
+					final L2Instruction previousInstruction =
+						output.get(output.size() - 1);
+					if (previousInstruction.operation() == L2_JUMP.instance)
 					{
-						output.remove(output.size() - 1);
-						changed = true;
+						if (L2_JUMP.jumpTarget(previousInstruction)
+							.targetBlock() == this)
+						{
+							output.remove(output.size() - 1);
+							changed = true;
+						}
 					}
 				}
 			}
-		} while (changed);
+			while (changed);
+		}
 
 		int counter = output.size();
 		offset = counter;

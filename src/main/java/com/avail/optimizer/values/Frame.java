@@ -129,6 +129,16 @@ public final class Frame
 	}
 
 	/**
+	 * Answer the {@link L2SemanticValue} representing this frame's label.
+	 *
+	 * @return This frame's {@link L2SemanticLabel}.
+	 */
+	public L2SemanticValue label ()
+	{
+		return new L2SemanticLabel(this);
+	}
+
+	/**
 	 * Answer the {@link L2SemanticValue} representing one of this frame's
 	 * function's captured outer values.
 	 *

@@ -36,7 +36,12 @@ import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.A_Variable;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.operand.*;
+import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
+import com.avail.interpreter.levelTwo.operand.L2Operand;
+import com.avail.interpreter.levelTwo.operand.L2PcOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.operation.L2ControlFlowOperation;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE;
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
@@ -628,5 +633,25 @@ public abstract class L2Operation
 		final L2Operand[] operands)
 	{
 		return operands;
+	}
+
+	/**
+	 * The given instruction has been declared dead code (the receiver is that
+	 * instruction's operation).  If there's an alternative form of that
+	 * instruction that should replace it, provide it.
+	 *
+	 * <p>Note that the old instruction will be removed and the new one added,
+	 * so now's a good time to switch {@link L2PcOperand}s that may need to be
+	 * moved between the instructions.</p>
+	 *
+	 * @param instruction
+	 *        The instruction about to be removed or replaced.
+	 * @return Either null or a replacement {@code L2Instruction} for the given
+	 *         dead one.
+	 */
+	public @Nullable L2Instruction optionalReplacementForDeadInstruction (
+		final L2Instruction instruction)
+	{
+		return null;
 	}
 }

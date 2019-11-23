@@ -39,7 +39,11 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.*;
-import com.avail.optimizer.*;
+import com.avail.optimizer.L1Translator;
+import com.avail.optimizer.L2BasicBlock;
+import com.avail.optimizer.L2ControlFlowGraph;
+import com.avail.optimizer.L2Generator;
+import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.values.Frame;
 import com.avail.optimizer.values.L2SemanticValue;
 
@@ -118,8 +122,8 @@ public final class L2Inliner
 			// There isn't a solid plan yet about how to narrow the types.
 			final L2ValueManifest oldManifest = operand.manifest();
 			currentOperand = new L2PcOperand(
-				operand,
 				mapBlock(operand.targetBlock()),
+				operand.isBackward(),
 				mapManifest(oldManifest));
 		}
 

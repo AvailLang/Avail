@@ -212,7 +212,7 @@ public class L2ControlFlowGraphVisualizer
 				return String.format(
 					"%s %s",
 					prefix,
-					basicBlock.name());
+					basicBlock.name().replaceAll("[\\\"\\\\]", ""));
 			});
 	}
 
@@ -340,6 +340,11 @@ public class L2ControlFlowGraphVisualizer
 		else if (first != null && first.operation().isEntryPoint(first))
 		{
 			bgcolor = "#ffd394";
+			fontcolor = "#000000";
+		}
+		else if (basicBlock.isLoopHead)
+		{
+			bgcolor = "#9070ff";
 			fontcolor = "#000000";
 		}
 		else
@@ -549,6 +554,11 @@ public class L2ControlFlowGraphVisualizer
 						{
 							attr.attribute("color", "#804040");
 							attr.attribute("style", "dotted");
+						}
+						else if (edge.isBackward())
+						{
+							attr.attribute("color", "#9070ff");
+							attr.attribute("style", "dashed");
 						}
 						else
 						{

@@ -35,7 +35,11 @@ package com.avail.optimizer;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.*;
+import com.avail.interpreter.levelTwo.operand.L2Operand;
+import com.avail.interpreter.levelTwo.operand.L2PcOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteOperand;
 import com.avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE;
@@ -200,16 +204,29 @@ public final class L2Optimizer
 		final Set<L2Instruction> neededInstructions = findNeededInstructions();
 		for (final L2BasicBlock block : blocks)
 		{
-			final Iterator<L2Instruction> iterator =
-				block.instructions().iterator();
+			final ListIterator<L2Instruction> iterator =
+				block.instructions().listIterator();
 			while (iterator.hasNext())
 			{
 				final L2Instruction instruction = iterator.next();
 				if (!neededInstructions.contains(instruction))
 				{
 					anyRemoved = true;
+					final @Nullable L2Instruction replacement =
+						instruction.optionalReplacementForDeadInstruction();
+
 					iterator.remove();
 					instruction.justRemoved();
+					if (replacement != null)
+					{
+						iterator.add(replacement);
+						if (replacement.operation() == L2_JUMP.instance)
+						{
+							final L2PcOperand target =
+								L2_JUMP.jumpTarget(replacement);
+							replacement.justInserted(target.manifest());
+						}
+					}
 				}
 			}
 		}
@@ -1045,8 +1062,7 @@ public final class L2Optimizer
 	{
 		final Deque<Pair<L2BasicBlock, UsedRegisters>> blocksToCheck =
 			new ArrayDeque<>();
-		blocksToCheck.add(
-			new Pair<>(blocks.get(0), new UsedRegisters()));
+		blocksToCheck.add(new Pair<>(blocks.get(0), new UsedRegisters()));
 		final Map<L2BasicBlock, UsedRegisters> inSets = new HashMap<>();
 		while (!blocksToCheck.isEmpty())
 		{

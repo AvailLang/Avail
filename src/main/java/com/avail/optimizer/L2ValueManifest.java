@@ -822,10 +822,16 @@ public final class L2ValueManifest
 	 * @param generator
 	 *        The {@link L2Generator} on which to write any necessary phi
 	 *        functions.
+	 * @param forcePhis
+	 *        Whether to force creation of every possible phi instruction at
+	 *        this point, even if the values always come from the same source.
+	 *        This is needed for loop heads, where the back-edges only show up
+	 *        after that basic block has already produced instructions.
 	 */
 	void populateFromIntersection (
 		final List<L2ValueManifest> manifests,
-		final L2Generator generator)
+		final L2Generator generator,
+		final boolean forcePhis)
 	{
 		assert semanticValueToSynonym.isEmpty();
 		assert synonymRestrictions.isEmpty();
@@ -836,7 +842,7 @@ public final class L2ValueManifest
 			// Unreachable, or an entry point where no registers are set.
 			return;
 		}
-		if (manifestsSize == 1)
+		if (manifestsSize == 1 && !forcePhis)
 		{
 			final L2ValueManifest soleManifest = manifests.get(0);
 			semanticValueToSynonym.putAll(soleManifest.semanticValueToSynonym);
@@ -892,6 +898,7 @@ public final class L2ValueManifest
 					generatePhi(
 						generator,
 						relatedSemanticValues,
+						forcePhis,
 						restriction,
 						new L2ReadBoxedVectorOperand(sources),
 						L2_PHI_PSEUDO_OPERATION.boxed,
@@ -908,6 +915,7 @@ public final class L2ValueManifest
 					generatePhi(
 						generator,
 						relatedSemanticValues,
+						forcePhis,
 						restriction,
 						new L2ReadIntVectorOperand(sources),
 						L2_PHI_PSEUDO_OPERATION.unboxedInt,
@@ -924,6 +932,7 @@ public final class L2ValueManifest
 					generatePhi(
 						generator,
 						relatedSemanticValues,
+						forcePhis,
 						restriction,
 						new L2ReadFloatVectorOperand(sources),
 						L2_PHI_PSEUDO_OPERATION.unboxedFloat,
@@ -947,6 +956,9 @@ public final class L2ValueManifest
 	 *        the predecessor manifests, but within each manifest there must be
 	 *        a synonym for that manifest that contains all of these semantic
 	 *        values.
+	 * @param forcePhiCreation
+	 *        Whether to force creation of a phi instruction, even if all
+	 *        incoming sources of the value are the same.
 	 * @param restriction
 	 *        The {@link TypeRestriction} to bound the synonym.
 	 * @param sources
@@ -974,6 +986,7 @@ public final class L2ValueManifest
 	void generatePhi (
 		final L2Generator generator,
 		final Collection<L2SemanticValue> relatedSemanticValues,
+		final boolean forcePhiCreation,
 		final TypeRestriction restriction,
 		final RV sources,
 		final L2_PHI_PSEUDO_OPERATION<RR, R> phiOperation,
@@ -987,6 +1000,7 @@ public final class L2ValueManifest
 			.distinct()
 			.collect(toList());
 		if (distinctDefs.size() == 1
+			&& !forcePhiCreation
 			&& relatedSemanticValues.contains(
 				distinctDefs.get(0).semanticValue()))
 		{

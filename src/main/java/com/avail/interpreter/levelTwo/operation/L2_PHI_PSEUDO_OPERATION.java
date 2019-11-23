@@ -40,11 +40,19 @@ import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.interpreter.levelTwo.register.L2FloatRegister;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
-import com.avail.optimizer.*;
+import com.avail.optimizer.L2BasicBlock;
+import com.avail.optimizer.L2ControlFlowGraph;
+import com.avail.optimizer.L2Generator;
+import com.avail.optimizer.L2ValueManifest;
+import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 
@@ -234,6 +242,28 @@ extends L2Operation
 			this,
 			oldVector.clone(newSources),
 			destinationReg);
+	}
+
+	/**
+	 * Directly alter this phi to include a new source, which should be added to
+	 * the end of the inputs.  Do not attempt to normalize the phi to a move.
+	 *
+	 * @param instruction
+	 *        The {@link L2Instruction} whose operation has this type.
+	 * @param newRead
+	 *        The {@link L2ReadOperand} to add.
+	 * @param newManifest
+	 *        The {@link L2ValueManifest} active along the edge being added.
+	 */
+	public void withNewSource (
+		final L2Instruction instruction,
+		final RR newRead,
+		final L2ValueManifest newManifest)
+	{
+		instruction.updateVectorOperand(
+			0,  // Phi input vector's operand number
+			newManifest,
+			(List<RR> mutableSources) -> mutableSources.add(newRead));
 	}
 
 	/**

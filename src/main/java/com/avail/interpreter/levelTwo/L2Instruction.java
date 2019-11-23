@@ -35,6 +35,8 @@ package com.avail.interpreter.levelTwo;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2ControlFlowGraph;
@@ -44,7 +46,9 @@ import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.optimizer.reoptimizer.L2Inliner;
 import org.objectweb.asm.MethodVisitor;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -300,6 +304,66 @@ public final class L2Instruction
 	public boolean hasSideEffect ()
 	{
 		return operation().hasSideEffect(this);
+	}
+
+	/**
+	 * The receiver has been declared dead code.  If there's an alternative form
+	 * of this instruction that should replace it, provide it.
+	 *
+	 * <p>Note that the old instruction will be removed and the new one added,
+	 * so now's a good time to switch {@link L2PcOperand}s that may need to be
+	 * moved between the instructions.</p>
+	 *
+	 * @return Either null or a replacement {@code L2Instruction} for the given
+	 *         dead one.
+	 */
+	public @Nullable L2Instruction optionalReplacementForDeadInstruction ()
+	{
+		return operation().optionalReplacementForDeadInstruction(this);
+	}
+
+	/**
+	 * Alter a vector operand, updating the instruction's internals as needed.
+	 *
+	 * @param operandIndex
+	 *        Which operand to update.
+	 * @param newManifest
+	 *        The manifest at this position.
+	 * @param updater
+	 *        What to do to a copied mutable {@link List} of read operands that
+	 *        starts out having all of the vector operand's elements.
+	 * @param <R> The {@link L2Register} subtype.
+	 * @param <RR> The {@link L2ReadOperand} subtype.
+	 */
+	public <R extends L2Register, RR extends L2ReadOperand<R>>
+	void updateVectorOperand(
+		final int operandIndex,
+		final L2ValueManifest newManifest,
+		final Consumer<List<RR>> updater)
+	{
+		final L2ReadVectorOperand<RR, R> vectorOperand = operand(operandIndex);
+		final List<RR> originalElements = vectorOperand.elements();
+		final List<RR> passedCopy = new ArrayList<>(originalElements);
+		updater.accept(passedCopy);
+		final List<RR> finalCopy = new ArrayList<>(passedCopy);
+		operands[operandIndex] = vectorOperand.clone(finalCopy);
+		originalElements.stream()
+			.filter(e -> !finalCopy.contains(e))
+			.forEach(e -> e.instructionWasRemoved(this));
+		// Assume new inputs don't affect the manifest types.  Currently, this
+		// method is only used for phi instructions, to add back-edges to a loop
+		// head.  In this circumstance, the back edge can't broaden the phi's
+		// output type, since loops are only generated as a consequence of a
+		// call of P_RestartContinuation[WithArguments], which constrains the
+		// replacement arguments to what the function expects, which is what the
+		// loop head initially set the phi types to.
+		finalCopy.stream()
+			.filter(e -> !originalElements.contains(e))
+			.forEach(e -> e.instructionWasAdded(this, newManifest));
+		// Rebuild the instruction's list of sourceRegisters.
+		sourceRegisters.clear();
+		Arrays.stream(operands).forEach(
+			operand -> operand.addSourceRegistersTo(sourceRegisters));
 	}
 
 	/**

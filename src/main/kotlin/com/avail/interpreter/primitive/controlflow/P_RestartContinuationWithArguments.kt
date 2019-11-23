@@ -46,11 +46,17 @@ import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 import com.avail.interpreter.Primitive.Result.CONTINUATION_CHANGED
+import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import com.avail.interpreter.levelTwo.operand.TypeRestriction
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED
+import com.avail.interpreter.levelTwo.operation.L2_JUMP
 import com.avail.interpreter.levelTwo.operation.L2_RESTART_CONTINUATION_WITH_ARGUMENTS
+import com.avail.interpreter.levelTwo.operation.L2_TUPLE_AT_CONSTANT
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
+import com.avail.optimizer.L2Generator.edgeTo
 
 /**
  * **Primitive:** Restart the given [continuation][ContinuationDescriptor], but
@@ -138,6 +144,53 @@ object P_RestartContinuationWithArguments : Primitive(
 		val continuationReg = arguments[0]
 		val argumentsTupleReg = arguments[1]
 
+		// Check for the common case that the continuation was created for this
+		// very frame.
+		val generator = translator.generator
+		val manifest = generator.currentManifest()
+		val synonym = manifest.semanticValueToSynonym(
+			continuationReg.semanticValue())
+		val label = generator.topFrame.label()
+		if (manifest.hasSemanticValue(label) &&
+			manifest.semanticValueToSynonym(label) == synonym)
+		{
+			// We're restarting the current frame.  First set up the semantic
+			// arguments for phis at the loop head to converge.
+			val code: A_RawFunction = translator.code
+			val numArgs = code.numArgs()
+			val argsType = argumentsTupleReg.type()
+			val argsSizeRange = argsType.sizeRange()
+
+			if (!argsSizeRange.lowerBound().equalsInt(numArgs)
+				|| !argsSizeRange.upperBound().equalsInt(numArgs))
+			{
+				// Couldn't guarantee the argument count matches.
+				return false
+			}
+			val argTypesTuple = argsType.tupleOfTypesFromTo(1, numArgs)
+			if (!code.functionType().acceptsTupleOfArgTypes(argTypesTuple))
+			{
+				// Couldn't guarantee the argument types matched.
+				return false
+			}
+			for ((index, type) in argTypesTuple.withIndex())
+			{
+				val writer = generator.boxedWrite(
+					generator.topFrame.slot(index, 1),
+					TypeRestriction.restrictionForType(type, BOXED))
+				translator.addInstruction(
+					L2_TUPLE_AT_CONSTANT.instance,
+					argumentsTupleReg,
+					L2IntImmediateOperand(index),
+					writer)
+			}
+			generator.addInstruction(
+				L2_JUMP.instance,
+				edgeTo(generator.restartLoopHeadBlock!!))
+			return true
+		}
+
+
 		// A restart works with every continuation that is created by a label.
 		// First, pop out of the Java stack frames back into the outer L2 run
 		// loop (which saves/restores the current frame and continues at the
@@ -160,7 +213,7 @@ object P_RestartContinuationWithArguments : Primitive(
 		val explodedArgumentRegs = translator.explodeTupleIfPossible(
 			argumentsTupleReg,
 			toList(functionArgsType.tupleOfTypesFromTo(1, argsSize)))
-		                           ?: return false
+		explodedArgumentRegs ?: return false
 
 		translator.addInstruction(
 			L2_RESTART_CONTINUATION_WITH_ARGUMENTS.instance,

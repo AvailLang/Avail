@@ -48,6 +48,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 
+import static com.avail.utility.Casts.cast;
 import static com.avail.utility.Casts.nullableCast;
 import static com.avail.utility.Nulls.stripNull;
 
@@ -296,6 +297,47 @@ extends L2Operand
 				continue;
 			}
 			return other;
+		}
+	}
+
+	/**
+	 * Answer the {@link L2WriteBoxedOperand} which produces the value that will
+	 * populate this register. Skip over move instructions. Also skip over
+	 * boxing and unboxing operations that don't alter the value. The containing
+	 * graph must be in SSA form.
+	 *
+	 * @param bypassImmutables
+	 *        Whether to bypass instructions that force a value to become
+	 *        immutable.
+	 * @return The requested {@code L2Instruction}.
+	 */
+	public L2WriteBoxedOperand originalBoxedWriteSkippingMoves (
+		final boolean bypassImmutables)
+	{
+		L2WriteOperand<?> def = definition;
+		L2WriteBoxedOperand earliestBoxed = cast(def);
+		while (true)
+		{
+			if (def instanceof L2WriteBoxedOperand)
+			{
+				earliestBoxed = cast(def);
+			}
+			final L2Instruction instruction = def.instruction();
+			final L2Operation operation = instruction.operation();
+			if (operation.isMove())
+			{
+				def = L2_MOVE.sourceOf(instruction).definition();
+				continue;
+			}
+			//TODO: Trace back through L2_[BOX|UNBOX]_[INT|FLOAT], etc.
+			if (bypassImmutables
+				&& operation instanceof L2_MAKE_IMMUTABLE)
+			{
+				def = L2_MAKE_IMMUTABLE.sourceOfImmutable(instruction)
+					.definition();
+				continue;
+			}
+			return earliestBoxed;
 		}
 	}
 }

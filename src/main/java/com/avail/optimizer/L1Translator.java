@@ -79,6 +79,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
+import java.util.stream.IntStream;
 
 import static com.avail.AvailRuntime.HookType.*;
 import static com.avail.AvailRuntimeSupport.captureNanos;
@@ -112,6 +113,7 @@ import static com.avail.optimizer.L2Generator.*;
 import static com.avail.optimizer.L2Generator.OptimizationLevel.UNOPTIMIZED;
 import static com.avail.performance.StatisticReport.L2_OPTIMIZATION_TIME;
 import static com.avail.performance.StatisticReport.L2_TRANSLATION_VALUES;
+import static com.avail.utility.Nulls.stripNull;
 import static java.lang.Boolean.TRUE;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -144,7 +146,7 @@ public final class L1Translator
 	 * The {@linkplain CompiledCodeDescriptor raw function} to transliterate
 	 * into level two code.
 	 */
-	final A_RawFunction code;
+	public final A_RawFunction code;
 
 	/**
 	 * The number of slots in the virtualized continuation.  This includes the
@@ -328,7 +330,7 @@ public final class L1Translator
 	 *        The {@link L2ReadBoxedOperand} that should now be considered the
 	 *        current register-read representing that slot.
 	 */
-	void forceSlotRegister (
+	public void forceSlotRegister (
 		final int slotIndex,
 		final int effectivePc,
 		final L2ReadBoxedOperand registerRead)
@@ -745,6 +747,51 @@ public final class L1Translator
 			L2_GET_INVALID_MESSAGE_RESULT_FUNCTION.instance,
 			invalidResultFunction);
 		return readBoxed(invalidResultFunction);
+	}
+
+	/**
+	 * Write instructions to restart the continuation represented by the top
+	 * frame.
+	 */
+	public void emitLocalRestartWithOriginalArguments ()
+	{
+		// Make sure all semantic arguments are set up for pc=1, so that phis
+		// will be created at the restartLoopHeadBlock.
+		final List<L2ReadBoxedOperand> arguments =
+			IntStream.rangeClosed(1, code.numArgs())
+				.mapToObj(index -> generator.readBoxed(semanticSlot(index)))
+				.collect(toList());
+		emitLocalRestartWithArguments(arguments);
+	}
+
+	/**
+	 * Write instructions to restart the continuation represented by the top
+	 * frame, passing the given registers as arguments.
+	 *
+	 * @param replacementArguments
+	 *        The sources of the arguments to supply to the restarted current
+	 *        continuation.
+	 */
+	public void emitLocalRestartWithArguments (
+		final List<L2ReadBoxedOperand> replacementArguments)
+	{
+		// Make sure all semantic arguments are set up for pc=1, so that phis
+		// will be created at the restartLoopHeadBlock.
+		final int numArgs = code.numArgs();
+		assert replacementArguments.size() == numArgs;
+		for (int index = 1; index <= numArgs; index++)
+		{
+			final L2ReadBoxedOperand reader =
+				replacementArguments.get(index - 1);
+			final L2WriteBoxedOperand writer = writeSlot(
+				index,
+				1,  // set up the "initial" value of the argument.
+				currentManifest().restrictionFor(reader.semanticValue()));
+			generator.addInstruction(L2_MOVE.boxed, reader, writer);
+		}
+		generator.addInstruction(
+			L2_JUMP.instance,
+			backEdgeTo(stripNull(generator.restartLoopHeadBlock)));
 	}
 
 	/**
@@ -1638,7 +1685,7 @@ public final class L1Translator
 	 * @param failEdge
 	 *        Where to go if the register's value does not equal the constant.
 	 */
-	private void generateJumpIfEqualsConstant (
+	public void generateJumpIfEqualsConstant (
 		final L2ReadBoxedOperand registerToTest,
 		final A_BasicObject constantValue,
 		final L2PcOperand passEdge,
@@ -2890,6 +2937,14 @@ public final class L1Translator
 			}
 		}
 
+		// Here's where a local P_RestartContinuation jumps to.
+		generator.restartLoopHeadBlock = generator.createLoopHeadBlock(
+			"Loop head for: " + code.methodName());
+		addInstruction(
+			L2_JUMP.instance,
+			edgeTo(generator.restartLoopHeadBlock));
+		generator.startBlock(generator.restartLoopHeadBlock);
+
 		// Create the locals.
 		final int numLocals = code.numLocals();
 		for (int local = 1; local <= numLocals; local++)
@@ -3428,11 +3483,10 @@ public final class L1Translator
 		stackp = oldStackp - 1;
 		final A_Type continuationType =
 			continuationTypeForFunctionType(code.functionType());
+		final L2SemanticValue label = topFrame().label();
 		final L2WriteBoxedOperand destinationRegister =
-			writeSlot(
-				stackp,
-				instructionDecoder.pc(),
-				restriction(continuationType, null));
+			generator.boxedWrite(label, restriction(continuationType, null));
+
 		final L2BasicBlock afterCreation =
 			generator.createBasicBlock("after creating label");
 		addInstruction(
@@ -3449,6 +3503,8 @@ public final class L1Translator
 
 		// Continue, with the label having been pushed.
 		generator.startBlock(afterCreation);
+		forceSlotRegister(
+			stackp, instructionDecoder.pc(), currentManifest().read(label));
 	}
 
 	@Override

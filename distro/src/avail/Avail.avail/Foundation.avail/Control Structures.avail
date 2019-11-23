@@ -65,6 +65,7 @@ Names
 	"Do_while_",
 	"Do_while_alternate with_",
 	"Exit_",
+	"Exit_if_",
 	"For each…from_to_§do_",
 	"For each…from_to_by_§do_",
 	"From_to_by_do_",
@@ -224,6 +225,33 @@ Public method "Exit_" is
 ] : ⊥;
 
 /**
+ * Exit the continuation conditionally. If the condition is true, Execution
+ * proceeds as though the continuation had just returned from its current
+ * function, and the current continuation is completely replaced by the
+ * specified continuation's resumed caller.
+ *
+ * If the condition is false, do nothing.
+ *
+ * @method "Exit_if_"
+ * @param "aContinuation" "$[…]→⊤"
+ *        The continuation to exit.
+ * @param "condition" "boolean"
+ *        Whether to exit.
+ * @returns "⊥"
+ * @category "Control Structures" "Continuations"
+ */
+Public method "Exit_if_" is
+[
+	aContinuation : $[…]→⊤,
+	condition : boolean
+|
+	/* Since the continuation's return type is ⊤, the primitive will discard
+	 * the argument, so it can be anything.
+	 */
+	Exit aContinuation with <> if condition;
+] : ⊤;
+
+/**
  * Reject the current parse unless the value supplied upon exit of a
  * continuation conforms to its function type's return type.
  *
@@ -247,6 +275,33 @@ Semantic restriction "Exit_with_" is
 			++ ")"
 	];
 	⊥
+];
+
+/**
+ * Reject the current parse unless the value supplied upon exit of a
+ * continuation conforms to its function type's return type.
+ *
+ * @method "Exit_with_if_"
+ * @restricts "continuation meta"
+ * @restricts "any meta"
+ */
+Semantic restriction "Exit_with_if_" is
+[
+	continuationType : continuation meta,
+	exitType : any meta,
+	conditionType : boolean's type
+|
+	functionType ::= continuationType's function type;
+	If ¬exitType ⊆ functionType's return type then
+	[
+		Reject parse, expected:
+			"continuation ("
+			++ “continuationType”
+			++ ") to accept value ("
+			++ “exitType”
+			++ ")"
+	];
+	⊤
 ];
 
 /* These are error messages. */

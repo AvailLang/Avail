@@ -41,7 +41,11 @@ import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.*;
+import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
+import com.avail.interpreter.levelTwo.operand.L2PcOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
@@ -106,6 +110,29 @@ extends L2ControlFlowOperation
 		assert instruction.operation() == instance;
 		final L2ReadBoxedVectorOperand vector = instruction.operand(5);
 		return vector.elements();
+	}
+
+	/**
+	 * This kind of instruction can be declared dead if its output is never
+	 * used, but we have to convert it to an {@link L2_JUMP} to the fall-through
+	 * PC for correctness.
+	 *
+	 * @param instruction The instruction about to be replaced.
+	 * @return A replacement {@link L2_JUMP} instruction.
+	 */
+	@Override
+	public L2Instruction optionalReplacementForDeadInstruction (
+		final L2Instruction instruction)
+	{
+		// The fall-through PC.
+		final L2PcOperand fallthrough = instruction.operand(7);
+		return new L2Instruction(
+			instruction.basicBlock,
+			L2_JUMP.instance,
+			new L2PcOperand(
+				fallthrough.targetBlock(),
+				false,
+				fallthrough.manifest()));
 	}
 
 	@Override

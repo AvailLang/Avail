@@ -73,6 +73,12 @@ extends L2Operand
 	private @Nullable L2ValueManifest manifest = null;
 
 	/**
+	 * Whether this edge points backward to a block marked as
+	 * {@link L2BasicBlock#isLoopHead}, thereby closing a loop.
+	 */
+	private final boolean isBackward;
+
+	/**
 	 * The {@link Set} of {@link L2Register}s that are written in all pasts, and
 	 * are consumed along all future paths after the start of this block.  This
 	 * is only populated during optimization, while the control flow graph is
@@ -93,36 +99,42 @@ extends L2Operand
 	public final Set<L2Register> sometimesLiveInRegisters = new HashSet<>();
 
 	/**
-	 * Construct a new {@code L2PcOperand} that leads to the specified {@link
-	 * L2BasicBlock}.
+	 * Construct a new {@code L2PcOperand} that leads to the specified
+	 * {@link L2BasicBlock}.  Set {@link #isBackward} to true if this is a
+	 * back-link to a {@linkplain L2BasicBlock#isLoopHead loop head},
 	 *
 	 * @param targetBlock
 	 *        The {@link L2BasicBlock} The target basic block.
+	 * @param isBackward
+	 *        Whether this edge is a back-link to a loop head.
 	 */
 	public L2PcOperand (
-		final L2BasicBlock targetBlock)
+		final L2BasicBlock targetBlock,
+		final boolean isBackward)
 	{
 		this.targetBlock = targetBlock;
+		this.isBackward = isBackward;
 	}
 
 	/**
 	 * Create a remapped {@code L2PcOperand} from the original operand, the new
 	 * target {@link L2BasicBlock}, and the transformed {@link L2ValueManifest}.
+	 * Set {@link #isBackward} to true if this is a back-link to a
+	 * {@linkplain L2BasicBlock#isLoopHead loop head}.
 	 *
-	 * @param originalOperand
-	 *        The original {@code L2PcOperand} that we're producing a
-	 *        transformation of.
 	 * @param newTargetBlock
 	 *        The transformed target {@link L2BasicBlock} of the new edge.
+	 * @param isBackward
+	 *        Whether this edge is a back-link to a loop head.
 	 * @param newManifest
 	 *        The transformed {@link L2ValueManifest} for the new edge.
 	 */
 	public L2PcOperand (
-		final L2PcOperand originalOperand,
 		final L2BasicBlock newTargetBlock,
+		final boolean isBackward,
 		final L2ValueManifest newManifest)
 	{
-		this(newTargetBlock);
+		this(newTargetBlock, isBackward);
 		manifest = newManifest;
 	}
 
@@ -130,6 +142,15 @@ extends L2Operand
 	public L2OperandType operandType ()
 	{
 		return L2OperandType.PC;
+	}
+
+	/**
+	 * Answer whether this edge points backward to a block marked as
+	 * {@link L2BasicBlock#isLoopHead}, thereby closing a loop.
+	 */
+	public boolean isBackward ()
+	{
+		return isBackward;
 	}
 
 	/**
@@ -157,8 +178,8 @@ extends L2Operand
 		assert this.instruction == null;
 		this.instruction = theInstruction;
 		instruction.basicBlock.addSuccessorEdge(this);
-		targetBlock.addPredecessorEdge(this);
 		manifest = new L2ValueManifest(theManifest);
+		targetBlock.addPredecessorEdge(this);
 		super.instructionWasAdded(theInstruction, theManifest);
 	}
 
@@ -251,7 +272,7 @@ extends L2Operand
 		// also establishes bi-directional links through L2PcOperands.  We
 		// bypass that after construction.
 		final L2BasicBlock garbageBlock = new L2BasicBlock("garbage block");
-		final L2PcOperand jumpEdge = new L2PcOperand(garbageBlock);
+		final L2PcOperand jumpEdge = new L2PcOperand(garbageBlock, isBackward);
 		jumpEdge.manifest = manifest;
 		final L2Instruction jump = new L2Instruction(
 			newBlock,
@@ -264,7 +285,7 @@ extends L2Operand
 		newBlock.addSuccessorEdge(this);
 
 		// Create a new edge from the original source to the new block.
-		final L2PcOperand newEdge = new L2PcOperand(newBlock);
+		final L2PcOperand newEdge = new L2PcOperand(newBlock, false);
 		newEdge.manifest = manifest;
 		newEdge.instruction = originalSource;
 		newBlock.addPredecessorEdge(newEdge);
