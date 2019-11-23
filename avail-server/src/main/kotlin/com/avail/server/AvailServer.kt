@@ -317,22 +317,14 @@ class AvailServer constructor(
 			writer.writeObject {
 				writer.write("label")
 				writer.write(name)
-				if (isRoot)
-				{
-					writer.write("isRoot")
-					writer.write(true)
-				}
 				val mods = modules
-				val isPackage = !isRoot && mods != null
-				if (isPackage)
+				writer.write("type")
+				when
 				{
-					writer.write("isPackage")
-					writer.write(true)
-				}
-				if (isResource)
-				{
-					writer.write("isResource")
-					writer.write(true)
+					isRoot -> writer.write("root")
+					!isRoot && mods != null -> writer.write("package")
+					isResource -> writer.write("resource")
+					else -> writer.write("module")
 				}
 				val res = resources
 				if (mods != null || res != null)

@@ -268,21 +268,22 @@ textarea { background-color: white; }
 							node.children = node.childNodes;
 							delete node.label;
 							delete node.childNodes;
-							if (node.isRoot)
+							switch (node.type)
 							{
-								node.state = {opened: true};
-							}
-							else if (node.isPackage)
-							{
-								node.icon = 'images/PackageInTree.png';
-							}
-							else if (node.isResource)
-							{
-								// Do nothing — yet.
-							}
-							else
-							{
-								node.icon = 'images/ModuleInTree.png';
+								case "root":
+									node.state = {opened: true};
+									break;
+								case "package":
+									node.icon = 'images/PackageInTree.png';
+									break;
+								case "module":
+									node.icon = 'images/ModuleInTree.png';
+									break;
+								case "resource":
+									// Do nothing — yet.
+									break;
+								default:
+									// Unexpected!
 							}
 						});
 						moduleTree.jstree(true).settings.core.data =
