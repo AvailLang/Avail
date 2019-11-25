@@ -264,7 +264,7 @@ textarea { background-color: white; }
 						var content = response.content;
 						visitRoots(content, function (node)
 						{
-							node.text = node.label;
+							node.text = node.localName;
 							node.children = node.childNodes;
 							delete node.label;
 							delete node.childNodes;
@@ -279,6 +279,7 @@ textarea { background-color: white; }
 								case "module":
 									node.icon = 'images/ModuleInTree.png';
 									break;
+								case "directory":
 								case "resource":
 									// Do nothing — yet.
 									break;
