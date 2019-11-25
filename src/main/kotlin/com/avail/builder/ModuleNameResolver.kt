@@ -384,7 +384,7 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 	@Throws(UnresolvedDependencyException::class)
 	fun resolve(
 		qualifiedName: ModuleName,
-		dependent: ResolvedModuleName?): ResolvedModuleName
+		dependent: ResolvedModuleName? = null): ResolvedModuleName
 	{
 		val result = resolutionCache[qualifiedName]
 		if (!result.isResolved)

@@ -1223,7 +1223,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 					val resolved: ResolvedModuleName
 					try
 					{
-						resolved = resolver.resolve(moduleName, null)
+						resolved = resolver.resolve(moduleName)
 					}
 					catch (e: UnresolvedDependencyException)
 					{
@@ -1274,7 +1274,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 					try
 					{
 						val resolved =
-							resolver.resolve(moduleName, null)
+							resolver.resolve(moduleName)
 						val node = ModuleOrPackageNode(
 							availBuilder, moduleName, resolved, false)
 						if (resolved.isRename || !resolved.isPackage)

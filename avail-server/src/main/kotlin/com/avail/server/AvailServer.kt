@@ -41,6 +41,7 @@ import com.avail.builder.ModuleRoots
 import com.avail.builder.RenamesFileParserException
 import com.avail.builder.ResolvedModuleName
 import com.avail.builder.UnresolvedDependencyException
+import com.avail.builder.UnresolvedModuleException
 import com.avail.descriptor.A_Fiber
 import com.avail.descriptor.A_Module
 import com.avail.descriptor.FiberDescriptor.ExecutionState
@@ -50,6 +51,7 @@ import com.avail.persistence.IndexedRepositoryManager
 import com.avail.server.AvailServer.ModuleNodeType.DIRECTORY
 import com.avail.server.AvailServer.ModuleNodeType.MODULE
 import com.avail.server.AvailServer.ModuleNodeType.PACKAGE
+import com.avail.server.AvailServer.ModuleNodeType.REPRESENTATIVE
 import com.avail.server.AvailServer.ModuleNodeType.RESOURCE
 import com.avail.server.AvailServer.ModuleNodeType.ROOT
 import com.avail.server.configuration.AvailServerConfiguration
@@ -265,6 +267,9 @@ class AvailServer constructor(
 		/** Represents an ordinary Avail module. */
 		MODULE,
 
+		/** Represents an Avail package representative. */
+		REPRESENTATIVE,
+
 		/** Represents an Avail package. */
 		PACKAGE,
 
@@ -303,7 +308,7 @@ class AvailServer constructor(
 	 * @property type
 	 *   The type associated with the node. Defaults to `"module"`.
 	 */
-	internal class ModuleNode constructor(
+	internal inner class ModuleNode constructor(
 		val localName: String,
 		val qualifiedName: String,
 		val type: ModuleNodeType = MODULE)
@@ -332,37 +337,84 @@ class AvailServer constructor(
 		 */
 		private fun recursivelyWriteOn(writer: JSONWriter)
 		{
-			writer.writeObject {
-				writer.write("localName")
-				writer.write(localName)
-				writer.write("qualifiedName")
-				writer.write(qualifiedName)
-				writer.write("type")
-				writer.write(type.label)
-				if (type === PACKAGE)
-				{
-					if (exception === null
-						&& modules.none { it.localName == localName})
-					{
+			// Representatives should not have a visible footprint in the tree;
+			// we want their enclosing packages to represent them.
+			if (type !== REPRESENTATIVE)
+			{
+				writer.writeObject {
+					writer.write("localName")
+					writer.write(localName)
+					writer.write("qualifiedName")
+					writer.write(qualifiedName)
+					writer.write("type")
+					writer.write(type.label)
+					exception?.let {
 						writer.write("error")
-						writer.write("Missing representative")
+						writer.write(it.localizedMessage)
 					}
-				}
-				exception?.let {
-					writer.write("error")
-					writer.write(it.localizedMessage)
-				}
-				if (modules.isNotEmpty() || resources.isNotEmpty())
-				{
-					writer.write("childNodes")
-					writer.writeArray {
-						for (module in modules)
+					// Capture loading status and renaming information for
+					// modules and packages.
+					when (type)
+					{
+						PACKAGE ->
 						{
-							module.recursivelyWriteOn(writer)
+							// Handle a missing representative as a special
+							// kind of error, but only if another error hasn't
+							// already been reported.
+							if (exception === null
+								&& modules.none { it.localName == localName })
+							{
+								writer.write("error")
+								writer.write("Missing representative")
+							}
+							writer.write("status")
+							val loaded =
+								try
+								{
+									val resolved =
+										runtime.moduleNameResolver().resolve(
+											ModuleName(qualifiedName))
+									builder.getLoadedModule(resolved) !== null
+								}
+								catch (e: UnresolvedModuleException)
+								{
+									false
+								}
+							writer.write(
+								if (loaded) "loaded" else "not loaded")
 						}
-						for (resource in resources)
+						MODULE ->
 						{
-							resource.recursivelyWriteOn(writer)
+							writer.write("status")
+							val loaded =
+								try
+								{
+									val resolved =
+										runtime.moduleNameResolver().resolve(
+											ModuleName(qualifiedName))
+									builder.getLoadedModule(resolved) !== null
+								}
+								catch (e: UnresolvedModuleException)
+								{
+									false
+								}
+							writer.write(
+								if (loaded) "loaded" else "not loaded")
+						}
+						else -> {}
+					}
+					if (modules.isNotEmpty() || resources.isNotEmpty())
+					{
+						writer.write("childNodes")
+						writer.writeArray {
+							for (module in modules)
+							{
+								module.recursivelyWriteOn(writer)
+							}
+							for (resource in resources)
+							{
+								resource.recursivelyWriteOn(writer)
+							}
 						}
 					}
 				}
@@ -378,6 +430,144 @@ class AvailServer constructor(
 		fun writeOn(writer: JSONWriter)
 		{
 			recursivelyWriteOn(writer)
+		}
+	}
+
+	/**
+	 * Answer a [visitor][FileVisitor] able to visit every source module
+	 * beneath the specified [module root][ModuleRoot].
+	 *
+	 * @param root
+	 *   A module root.
+	 * @param tree
+	 *   The [holder][MutableOrNull] for the resultant tree of
+	 *   [modules][ModuleNode].
+	 * @return
+	 *   A `FileVisitor`.
+	 */
+	private fun sourceModuleVisitor(
+		root: ModuleRoot,
+		tree: MutableOrNull<ModuleNode>): FileVisitor<Path>
+	{
+		val extension = ModuleNameResolver.availExtension
+		var isRoot = true
+		val stack = ArrayDeque<ModuleNode>()
+		return object : FileVisitor<Path>
+		{
+			override fun preVisitDirectory(
+				dir: Path,
+				attrs: BasicFileAttributes): FileVisitResult
+			{
+				// If this directory is a root, then create its node now and
+				// then recurse into it. Turn off the isRoot flag.
+				if (isRoot)
+				{
+					isRoot = false
+					val node = ModuleNode(root.name, "/${root.name}", ROOT)
+					tree.value = node
+					stack.add(node)
+					return FileVisitResult.CONTINUE
+				}
+				val parent = stack.peekFirst()!!
+				// The directory is not a root. If it has an Avail
+				// extension, then it is a package.
+				val fileName = dir.fileName.toString()
+				if (fileName.endsWith(extension))
+				{
+					val localName = fileName.substring(
+						0, fileName.length - extension.length)
+					val node = ModuleNode(
+						localName,
+						"${parent.qualifiedName}/$localName",
+						PACKAGE)
+					parent.modules.add(node)
+					stack.addFirst(node)
+					return FileVisitResult.CONTINUE
+				}
+				// This is an ordinary directory.
+				val node = ModuleNode(
+					fileName,
+					"${parent.qualifiedName}/$fileName",
+					DIRECTORY)
+				parent.resources.add(node)
+				stack.addFirst(node)
+				return FileVisitResult.CONTINUE
+			}
+
+			override fun postVisitDirectory(
+				dir: Path,
+				e: IOException?): FileVisitResult
+			{
+				stack.removeFirst()
+				return FileVisitResult.CONTINUE
+			}
+
+			override fun visitFile(
+				file: Path,
+				attrs: BasicFileAttributes): FileVisitResult
+			{
+				// The root should be a directory, not a file.
+				if (isRoot)
+				{
+					throw IOException("alleged root is not a directory")
+				}
+				// A file with an Avail extension is an Avail module.
+				val parent = stack.peekFirst()!!
+				val fileName = file.fileName.toString()
+				if (fileName.endsWith(extension))
+				{
+					val localName = fileName.substring(
+						0, fileName.length - extension.length)
+					val type =
+						if (parent.localName == localName) REPRESENTATIVE
+						else MODULE
+					val node = ModuleNode(
+						localName,
+						"${parent.qualifiedName}/$localName",
+						type)
+					parent.modules.add(node)
+				}
+				// Otherwise, it is a resource.
+				else
+				{
+					val node = ModuleNode(
+						fileName,
+						"${parent.qualifiedName}/$fileName",
+						RESOURCE)
+					parent.resources.add(node)
+				}
+				return FileVisitResult.CONTINUE
+			}
+
+			override fun visitFileFailed(
+				file: Path,
+				e: IOException): FileVisitResult
+			{
+				val parent = stack.peekFirst()!!
+				val isDirectory = file.toFile().isDirectory
+				val fileName = file.fileName.toString()
+				if (fileName.endsWith(extension))
+				{
+					val localName = fileName.substring(
+						0, fileName.length - extension.length)
+					val node = ModuleNode(
+						localName,
+						"${parent.qualifiedName}/$localName",
+						if (isDirectory) PACKAGE else MODULE)
+					node.exception = e
+					parent.modules.add(node)
+				}
+				else
+				{
+					val node = ModuleNode(
+						fileName,
+						"${parent.qualifiedName}/$fileName",
+						if (isDirectory) DIRECTORY else RESOURCE)
+					node.exception = e
+					parent.resources.add(node)
+				}
+				return FileVisitResult.CONTINUE
+			}
 		}
 	}
 
@@ -1346,141 +1536,6 @@ class AvailServer constructor(
 				}
 			}
 			channel.enqueueMessageThen(message, continuation)
-		}
-
-		/**
-		 * Answer a [visitor][FileVisitor] able to visit every source module
-		 * beneath the specified [module root][ModuleRoot].
-		 *
-		 * @param root
-		 *   A module root.
-		 * @param tree
-		 *   The [holder][MutableOrNull] for the resultant tree of
-		 *   [modules][ModuleNode].
-		 * @return
-		 *   A `FileVisitor`.
-		 */
-		internal fun sourceModuleVisitor(
-			root: ModuleRoot,
-			tree: MutableOrNull<ModuleNode>): FileVisitor<Path>
-		{
-			val extension = ModuleNameResolver.availExtension
-			var isRoot = true
-			val stack = ArrayDeque<ModuleNode>()
-			return object : FileVisitor<Path>
-			{
-				override fun preVisitDirectory(
-					dir: Path,
-					attrs: BasicFileAttributes): FileVisitResult
-				{
-					// If this directory is a root, then create its node now and
-					// then recurse into it. Turn off the isRoot flag.
-					if (isRoot)
-					{
-						isRoot = false
-						val node = ModuleNode(root.name, "/${root.name}", ROOT)
-						tree.value = node
-						stack.add(node)
-						return FileVisitResult.CONTINUE
-					}
-					val parent = stack.peekFirst()!!
-					// The directory is not a root. If it has an Avail
-					// extension, then it is a package.
-					val fileName = dir.fileName.toString()
-					if (fileName.endsWith(extension))
-					{
-						val localName = fileName.substring(
-							0, fileName.length - extension.length)
-						val node = ModuleNode(
-							localName,
-							"${parent.qualifiedName}/$localName",
-							PACKAGE)
-						parent.modules.add(node)
-						stack.addFirst(node)
-						return FileVisitResult.CONTINUE
-					}
-					// This is an ordinary directory.
-					val node = ModuleNode(
-						fileName,
-						"${parent.qualifiedName}/$fileName",
-						DIRECTORY)
-					parent.resources.add(node)
-					stack.addFirst(node)
-					return FileVisitResult.CONTINUE
-				}
-
-				override fun postVisitDirectory(
-					dir: Path,
-					e: IOException?): FileVisitResult
-				{
-					stack.removeFirst()
-					return FileVisitResult.CONTINUE
-				}
-
-				override fun visitFile(
-					file: Path,
-					attrs: BasicFileAttributes): FileVisitResult
-				{
-					// The root should be a directory, not a file.
-					if (isRoot)
-					{
-						throw IOException("alleged root is not a directory")
-					}
-					// A file with an Avail extension is an Avail module.
-					val parent = stack.peekFirst()!!
-					val fileName = file.fileName.toString()
-					if (fileName.endsWith(extension))
-					{
-						val localName = fileName.substring(
-							0, fileName.length - extension.length)
-						val node = ModuleNode(
-							localName,
-							"${parent.qualifiedName}/$localName",
-							MODULE)
-						parent.modules.add(node)
-					}
-					// Otherwise, it is a resource.
-					else
-					{
-						val node = ModuleNode(
-							fileName,
-							"${parent.qualifiedName}/$fileName",
-							RESOURCE)
-						parent.resources.add(node)
-					}
-					return FileVisitResult.CONTINUE
-				}
-
-				override fun visitFileFailed(
-					file: Path,
-					e: IOException): FileVisitResult
-				{
-					val parent = stack.peekFirst()!!
-					val isDirectory = file.toFile().isDirectory
-					val fileName = file.fileName.toString()
-					if (fileName.endsWith(extension))
-					{
-						val localName = fileName.substring(
-							0, fileName.length - extension.length)
-						val node = ModuleNode(
-							localName,
-							"${parent.qualifiedName}/$localName",
-							if (isDirectory) PACKAGE else MODULE)
-						node.exception = e
-						parent.modules.add(node)
-					}
-					else
-					{
-						val node = ModuleNode(
-							fileName,
-							"${parent.qualifiedName}/$fileName",
-							if (isDirectory) DIRECTORY else RESOURCE)
-						node.exception = e
-						parent.resources.add(node)
-					}
-					return FileVisitResult.CONTINUE
-				}
-			}
 		}
 
 		/**
