@@ -100,8 +100,13 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 			10000, 100, { privateResolve(it) })
 
 	/** An immutable [Map] of all the module path renames. */
-	val renameRules: MutableMap<String, String>
-		get() = Collections.unmodifiableMap(renames)
+	val renameRules: Map<String, String>
+		get () = Collections.unmodifiableMap(renames)
+
+	/** An immutable [Map] from module rename targets to sources. */
+	val renameRulesInverted: Map<String, List<String>> by lazy {
+		renames.entries.groupBy({ it.value }) { it.key }
+	}
 
 	/**
 	 * Does the resolver have a transformation rule for the specified

@@ -352,8 +352,6 @@ class AvailServer constructor(
 						writer.write("error")
 						writer.write(it.localizedMessage)
 					}
-					// Capture loading status and renaming information for
-					// modules and packages.
 					when (type)
 					{
 						PACKAGE ->
@@ -367,39 +365,11 @@ class AvailServer constructor(
 								writer.write("error")
 								writer.write("Missing representative")
 							}
-							writer.write("status")
-							val loaded =
-								try
-								{
-									val resolved =
-										runtime.moduleNameResolver().resolve(
-											ModuleName(qualifiedName))
-									builder.getLoadedModule(resolved) !== null
-								}
-								catch (e: UnresolvedModuleException)
-								{
-									false
-								}
-							writer.write(
-								if (loaded) "loaded" else "not loaded")
+							writeResolutionInformationOn(writer)
 						}
 						MODULE ->
 						{
-							writer.write("status")
-							val loaded =
-								try
-								{
-									val resolved =
-										runtime.moduleNameResolver().resolve(
-											ModuleName(qualifiedName))
-									builder.getLoadedModule(resolved) !== null
-								}
-								catch (e: UnresolvedModuleException)
-								{
-									false
-								}
-							writer.write(
-								if (loaded) "loaded" else "not loaded")
+							writeResolutionInformationOn(writer)
 						}
 						else -> {}
 					}
@@ -416,6 +386,53 @@ class AvailServer constructor(
 								resource.recursivelyWriteOn(writer)
 							}
 						}
+					}
+				}
+			}
+		}
+
+		/**
+		 * Write information that requires [module
+		 * resolution][ModuleNameResolver].
+		 *
+		 * @param writer
+		 *   A `JSONWriter`.
+		 */
+		private fun writeResolutionInformationOn(writer: JSONWriter)
+		{
+			writer.write("status")
+			val resolver = runtime.moduleNameResolver()
+			var resolved: ResolvedModuleName? = null
+			var resolutionException: Throwable? = null
+			val loaded =
+				try
+				{
+					resolved = resolver.resolve(ModuleName(qualifiedName))
+					builder.getLoadedModule(resolved) !== null
+				}
+				catch (e: UnresolvedModuleException)
+				{
+					resolutionException = e
+					false
+				}
+			writer.write(if (loaded) "loaded" else "not loaded")
+			if (resolved?.isRename == true)
+			{
+				writer.write("resolvedName")
+				writer.write(resolved.qualifiedName)
+			}
+			else if (exception === null && resolutionException !== null)
+			{
+				writer.write("error")
+				writer.write(
+					resolutionException.localizedMessage)
+			}
+			resolver.renameRulesInverted[qualifiedName]?.let {
+				writer.write("redirectedNames")
+				writer.writeArray {
+					for (name in it)
+					{
+						writer.write(name)
 					}
 				}
 			}
