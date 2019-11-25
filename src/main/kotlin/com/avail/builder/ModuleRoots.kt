@@ -199,15 +199,7 @@ class ModuleRoots(modulePath: String) : Iterable<ModuleRoot>
 	 * the Avail [module][ModuleDescriptor] path.
 	 */
 	val roots: Set<ModuleRoot>
-		get()
-		{
-			val roots = LinkedHashSet<ModuleRoot>()
-			for ((_, value) in rootMap)
-			{
-				roots.add(value)
-			}
-			return unmodifiableSet(roots)
-		}
+		get() = unmodifiableSet(LinkedHashSet(rootMap.values))
 
 	override fun iterator(): Iterator<ModuleRoot> =
 		unmodifiableSet(roots).iterator()

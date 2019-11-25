@@ -609,11 +609,8 @@ Public method "Remove_[_]else_" is
 	Clear ↑subtrie's payload;
 	For each i from |key| to 2 by -1 do
 	[
-		If path[i]'s next tries is empty then
-		[
-			path[i-1]'s next tries := path[i-1]'s next tries - (key[i]);
-		]
-		else [Exit body];
+		Exit body if ¬path[i]'s next tries is empty;
+		path[i-1]'s next tries := path[i-1]'s next tries - (key[i]);
 	];
 ];
 

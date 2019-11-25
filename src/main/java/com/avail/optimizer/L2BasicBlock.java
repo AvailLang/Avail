@@ -98,7 +98,7 @@ public final class L2BasicBlock
 	private boolean hasControlFlowAtEnd = false;
 
 	/** Whether this block is the head of a loop. */
-	public final boolean isLoopHead;
+	public boolean isLoopHead;
 
 	/**
 	 * Answer the descriptive name of this basic block.
@@ -526,33 +526,30 @@ public final class L2BasicBlock
 	 */
 	void generateOn (final List<L2Instruction> output)
 	{
-		if (!isLoopHead)
+		// If the preceding instruction was a jump to here, remove it.  In
+		// fact, a null-jump might be on the end of the list, hiding another
+		// jump just behind it that leads here, making that one also be a
+		// null-jump.
+		boolean changed;
+		do
 		{
-			// If the preceding instruction was a jump to here, remove it.  In
-			// fact, a null-jump might be on the end of the list, hiding another
-			// jump just behind it that leads here, making that one also be a
-			// null-jump.
-			boolean changed;
-			do
+			changed = false;
+			if (!output.isEmpty())
 			{
-				changed = false;
-				if (!output.isEmpty())
+				final L2Instruction previousInstruction =
+					output.get(output.size() - 1);
+				if (previousInstruction.operation() == L2_JUMP.instance)
 				{
-					final L2Instruction previousInstruction =
-						output.get(output.size() - 1);
-					if (previousInstruction.operation() == L2_JUMP.instance)
+					if (L2_JUMP.jumpTarget(previousInstruction).targetBlock()
+						== this)
 					{
-						if (L2_JUMP.jumpTarget(previousInstruction)
-							.targetBlock() == this)
-						{
-							output.remove(output.size() - 1);
-							changed = true;
-						}
+						output.remove(output.size() - 1);
+						changed = true;
 					}
 				}
 			}
-			while (changed);
 		}
+		while (changed);
 
 		int counter = output.size();
 		offset = counter;

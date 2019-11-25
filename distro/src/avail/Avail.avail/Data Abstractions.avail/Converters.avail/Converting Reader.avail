@@ -146,10 +146,7 @@ Method "_is exhausted" is
 	aReader : converting reader
 |
 	$thisMethod : boolean;
-	If |aReader's buffer| > 0 then
-	[
-		Exit thisMethod with false
-	];
+	Exit thisMethod with false if |aReader's buffer| > 0;
 	base ::= aReader's base reader;
 	If base is exhausted then
 	[

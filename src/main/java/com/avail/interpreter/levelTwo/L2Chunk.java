@@ -32,6 +32,9 @@
 
 package com.avail.interpreter.levelTwo;
 
+import com.avail.builder.ModuleName;
+import com.avail.builder.ResolvedModuleName;
+import com.avail.builder.UnresolvedDependencyException;
 import com.avail.descriptor.*;
 import com.avail.descriptor.tuples.A_String;
 import com.avail.interpreter.Interpreter;
@@ -54,7 +57,12 @@ import com.avail.performance.StatisticReport;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.List;
+import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -186,7 +194,7 @@ implements ExecutableChunk
 		 * time.  When there are significantly more chunks than this, the ones
 		 * in the oldest generations will be invalidated.
 		 */
-		private static final int maximumTotalChunkCount = 1000;
+		private static final int maximumTotalChunkCount = 2000;
 
 		/**
 		 * The weak set of {@link L2Chunk}s in this generation.
@@ -669,9 +677,31 @@ implements ExecutableChunk
 		final A_Set contingentValues)
 	{
 		assert offsetAfterInitialTryPrimitive >= 0;
+		@Nullable String sourceFileName = null;
+		if (code != null)
+		{
+			final A_Module module = code.module();
+			if (!module.equalsNil())
+			{
+				try
+				{
+					final ResolvedModuleName resolved =
+						currentRuntime().moduleNameResolver().resolve(
+							new ModuleName(
+								module.moduleName().asNativeString()),
+							null);
+					sourceFileName = resolved.getSourceReference().getPath();
+				}
+				catch (final UnresolvedDependencyException e)
+				{
+					// Maybe the file was deleted.  Play nice.
+				}
+			}
+		}
 		final JVMTranslator jvmTranslator = new JVMTranslator(
 			code,
 			name(code),
+			sourceFileName,
 			controlFlowGraph,
 			theInstructions.toArray(new L2Instruction[0]));
 		jvmTranslator.translate();
@@ -867,8 +897,8 @@ implements ExecutableChunk
 	@SuppressWarnings({"unused", "AssignmentToStaticFieldFromInstanceMethod"})
 	public String dumpChunk ()
 	{
-		final JVMTranslator translator =
-			new JVMTranslator(code, name(), controlFlowGraph, instructions);
+		final JVMTranslator translator = new JVMTranslator(
+			code, name(), null, controlFlowGraph, instructions);
 		final boolean savedDebugFlag = JVMTranslator.debugJVM;
 		JVMTranslator.debugJVM = true;
 		try
@@ -905,7 +935,7 @@ implements ExecutableChunk
 		final L2BasicBlock reenterFromRestartBlock =
 			new L2BasicBlock("Default restart");
 		final L2BasicBlock loopBlock =
-			new L2BasicBlock("Default loop");
+			new L2BasicBlock("Default loop", true);
 		final L2BasicBlock reenterFromCallBlock =
 			new L2BasicBlock("Default return from call");
 		final L2BasicBlock reenterFromInterruptBlock =

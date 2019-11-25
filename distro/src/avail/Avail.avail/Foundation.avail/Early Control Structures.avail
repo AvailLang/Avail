@@ -335,6 +335,35 @@ Semantic restriction "Invoke|invoke_with_" is
 ];
 
 /**
+ * Reject the current parse unless the value supplied upon exit of a
+ * continuation conforms to its function type's return type.
+ *
+ * @method "Exit_with_if_"
+ * @restricts "continuation meta"
+ * @restricts "any meta"
+ */
+Semantic restriction "Exit_with_if_" is
+[
+	continuationType : continuation meta,
+	exitType : any meta,
+	conditionType : boolean's type
+|
+	functionType ::= continuationType's function type;
+	Unless exitType ⊆ functionType's return type then
+	[
+		Reject parse, expected:
+			cast concatenate <
+				"continuation (",
+				“continuationType”,
+				") to accept value (",
+				“exitType”,
+				")"
+			> into [s : string | s]
+	];
+	⊤
+];
+
+/**
  * Basic counting loop with early exit support. Invoke {@param "action"} once
  * with each consecutive number in the range established by {@param "start"} and
  * {@param "end"}.
@@ -357,20 +386,17 @@ Public method "From_to_do_" is
 	end : integer range from 0 (inclusive=true) to ∞ (inclusive=true),
 	action : function accepting <⊥> and returning boolean
 |
-	$loop;
-	If start ≤ end then
-	[
-		continue ::= invoke action with <start>;
-		If continue then
-		[
-			Restart loop with
-			<
-				cast start + 1 into [ i : natural number | i ],
-				end,
-				action
-			>
-		];
-	];
+	$loop : ⊤;
+	Exit loop with 123 if end < start;
+	continue ::= invoke action with <start>;
+	Exit loop with 123 if continue = false;
+	newArgs :: =
+		<
+			cast start + 1 into [ i : natural number | i ],
+			end,
+			action
+		>;
+	Restart loop with newArgs
 ] : ⊤;
 
 /**

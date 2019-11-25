@@ -65,8 +65,8 @@ Test "continuations" in control structure test suite is
 	end := 3;
 	[
 		$loop : ⊤;
-		continue ::= action2(1);
-		If continue then [Exit loop] else [Restart loop]
+		Exit loop if action2(1);
+		Restart loop
 	] : ⊤ ();
 	Require: value = 4;
 
@@ -76,7 +76,7 @@ Test "continuations" in control structure test suite is
 		t : <integer…|3..>
 	|
 		$find : boolean;
-		For each i of t do [If i = queryValue then [Exit find with true];];
+		For each i of t do [Exit find with true if i = queryValue;];
 		false
 	]:boolean;
 	Require: locate(5,<1,4,5,7>);
@@ -87,8 +87,8 @@ Test "continuations" in control structure test suite is
 		checkValue : integer
 	|
 		$check : boolean;
-		If checkValue = 2 then [Exit check with true]
-		else [Restart check with <2>]
+		Exit check with true if checkValue = 2;
+		Restart check with <2>
 	]:boolean;
 	Require: checkFunction(1);
 ];

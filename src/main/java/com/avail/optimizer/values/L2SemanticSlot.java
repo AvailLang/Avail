@@ -76,6 +76,7 @@ extends L2FrameSpecificSemanticValue
 		final int pcAfter)
 	{
 		super(frame);
+		assert slotIndex >= 1;
 		this.slotIndex = slotIndex;
 		this.pcAfter = pcAfter;
 		int h = slotIndex * multiplier ^ pcAfter;

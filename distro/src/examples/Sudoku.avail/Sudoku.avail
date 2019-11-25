@@ -356,15 +356,15 @@ Private stable method "_is inconsistent" is
 	For each x from 1 to 9 do
 	[
 		xs ::= group 1 to 9 by [y : Sudoku value | b @ (x, y)] - 0;
-		If any v of xs' values satisfies [|v| ≠ 1] then [Exit body with true];
+		Exit body with true if any v of xs' values satisfies [|v| ≠ 1];
 		ys ::= group 1 to 9 by [y : Sudoku value | b @ (y, x)] - 0;
-		If any v of ys' values satisfies [|v| ≠ 1] then [Exit body with true];
+		Exit body with true if any v of ys' values satisfies [|v| ≠ 1];
 	];
 	For each c of centers do
 	[
 		region ::= points in same region as c + c;
 		vs ::= group region by [xy : point | b @ xy] - 0;
-		If any v of vs' values satisfies [|v| ≠ 1] then [Exit body with true];
+		Exit body with true if any v of vs' values satisfies [|v| ≠ 1];
 	];
 	false
 ];

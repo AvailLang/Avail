@@ -139,11 +139,25 @@ public final class JVMTranslator
 	private @Nullable byte[] classBytes = null;
 
 	/**
+	 * A regex {@link Pattern} to rewrite function names like '"foo_"[1][3]' to
+	 * 'foo_#1#3'.
+	 */
+	private static final Pattern subblockRewriter =
+		Pattern.compile("\\[(\\d+)]");
+
+	/**
+	 * A regex {@link Pattern} to strip out leading and trailing quotes from
+	 * a potential class name.
+	 */
+	private static final Pattern classNameUnquoter =
+		Pattern.compile("^[\"](.*)[\"]([^\"]*)$");
+
+	/**
 	 * A regex {@link Pattern} to find runs of characters that are forbidden in
 	 * a class name, and will be replaced with a single {@code '%'}.
 	 */
 	private static final Pattern classNameForbiddenCharacters =
-		Pattern.compile("[\\[\\]()./\\\\ :;\"'\\p{Cntrl}]+");
+		Pattern.compile("[\\[\\]\\\\/.;\"'\\p{Cntrl}]+");
 
 	/** A regex {@link Pattern} to strip the prefix of a module name. */
 	private static final Pattern moduleNameStripper =
@@ -156,6 +170,9 @@ public final class JVMTranslator
 	 * @param code
 	 *        The source {@linkplain A_RawFunction L1 code}, or {@code null} for
 	 *        the {@linkplain L2Chunk#unoptimizedChunk unoptimized chunk}.
+	 * @param sourceFileName
+	 *        The name of the Avail source file that produced the {@link #code}.
+	 *        Use {@code null} if no such file exists.
 	 * @param controlFlowGraph
 	 *        The {@link L2ControlFlowGraph} which produced the sequence of
 	 *        instructions.
@@ -167,6 +184,7 @@ public final class JVMTranslator
 	public JVMTranslator (
 		final @Nullable A_RawFunction code,
 		final String chunkName,
+		final @Nullable String sourceFileName,
 		final L2ControlFlowGraph controlFlowGraph,
 		final L2Instruction[] instructions)
 	{
@@ -175,20 +193,32 @@ public final class JVMTranslator
 		this.chunkName = chunkName;
 		this.instructions = instructions.clone();
 		classWriter = new ClassWriter(COMPUTE_MAXS | COMPUTE_FRAMES);
+		classWriter.visitSource(sourceFileName, null);
 		final A_Module module = code == null ? nil : code.module();
 		final String moduleName = module == nil
 			? "NoModule"
 			: moduleNameStripper.matcher(module.moduleName().asNativeString())
 				.replaceAll("$1");
-		final String descriptiveName = code == null
+		final String originalFunctionName = code == null
 			? "DEFAULT"
-			: classNameForbiddenCharacters.matcher(
-				code.methodName().asNativeString())
-					.replaceAll("\\$");
+			: code.methodName().asNativeString();
+		String cleanFunctionName =
+			subblockRewriter.matcher(originalFunctionName).replaceAll("#$1");
+		cleanFunctionName =
+			classNameUnquoter.matcher(cleanFunctionName).replaceAll("$1$2");
+		cleanFunctionName =
+			classNameForbiddenCharacters.matcher(cleanFunctionName)
+				.replaceAll("\\%");
+		final String safeUID = UUID.randomUUID().toString().replace('-', '_');
 		className = "com.avail.optimizer.jvm.generated."
-			+ moduleName + "-"
-			+ descriptiveName + "_"
-			+ UUID.randomUUID().toString().replace('-', '_');
+			+ moduleName
+			+ "."
+			+ cleanFunctionName
+			+ " - "
+			+ safeUID
+			+ "."
+			+ moduleName + " - "
+			+ cleanFunctionName;
 		classInternalName = className.replace('.', '/');
 	}
 

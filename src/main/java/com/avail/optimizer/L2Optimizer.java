@@ -57,6 +57,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.Consumer;
 import java.util.function.ToIntFunction;
+import java.util.stream.Collectors;
 
 import static com.avail.AvailRuntimeSupport.captureNanos;
 import static com.avail.utility.Casts.cast;
@@ -118,14 +119,9 @@ public final class L2Optimizer
 	 */
 	boolean removeUnreachableBlocks ()
 	{
-		final Deque<L2BasicBlock> blocksToVisit = new ArrayDeque<>();
-		for (final L2BasicBlock block : blocks)
-		{
-			if (block.isIrremovable())
-			{
-				blocksToVisit.add(block);
-			}
-		}
+		final Deque<L2BasicBlock> blocksToVisit = blocks.stream()
+			.filter(L2BasicBlock::isIrremovable)
+			.collect(Collectors.toCollection(ArrayDeque::new));
 		final Set<L2BasicBlock> reachableBlocks = new HashSet<>();
 		while (!blocksToVisit.isEmpty())
 		{
@@ -141,7 +137,6 @@ public final class L2Optimizer
 				}
 			}
 		}
-
 		final Set<L2BasicBlock> unreachableBlocks = new HashSet<>(blocks);
 		unreachableBlocks.removeAll(reachableBlocks);
 		for (final L2BasicBlock block : unreachableBlocks)
@@ -149,7 +144,19 @@ public final class L2Optimizer
 			block.instructions().forEach(L2Instruction::justRemoved);
 			block.instructions().clear();
 		}
-		return blocks.retainAll(reachableBlocks);
+		final boolean changed = blocks.retainAll(reachableBlocks);
+		// See if any blocks no longer need to be a loop head.
+		for (final L2BasicBlock block : blocks)
+		{
+			if (block.isLoopHead
+				&& block.predecessorEdgesCopy().stream()
+					.noneMatch(L2PcOperand::isBackward))
+			{
+				// It's a loop head that has no back-edges pointing to it.
+				block.isLoopHead = false;
+			}
+		}
+		return changed;
 	}
 
 	/**
@@ -215,11 +222,15 @@ public final class L2Optimizer
 					final @Nullable L2Instruction replacement =
 						instruction.optionalReplacementForDeadInstruction();
 
-					iterator.remove();
-					instruction.justRemoved();
-					if (replacement != null)
+					if (replacement == null)
 					{
-						iterator.add(replacement);
+						iterator.remove();
+						instruction.justRemoved();
+					}
+					else
+					{
+						iterator.set(replacement);
+						instruction.justRemoved();
 						if (replacement.operation() == L2_JUMP.instance)
 						{
 							final L2PcOperand target =
@@ -725,6 +736,8 @@ public final class L2Optimizer
 	/**
 	 * Any control flow edges that land on jumps should be redirected to the
 	 * ultimate target of the jump, taking into account chains of jumps.
+	 *
+	 * <p>Don't adjust jumps that land on a jump inside a loop head block.</p>
 	 */
 	void adjustEdgesLeadingToJumps ()
 	{
@@ -736,27 +749,32 @@ public final class L2Optimizer
 			while (blockIterator.hasNext())
 			{
 				final L2BasicBlock block = blockIterator.next();
-				if (block.instructions().size() == 1
-					&& block.finalInstruction().operation() == L2_JUMP.instance)
+				if (block.isLoopHead || block.instructions().size() != 1)
 				{
-					// Redirect all predecessors through the jump.
-					final L2PcOperand jumpEdge =
-						block.finalInstruction().targetEdges().get(0);
-					final L2BasicBlock jumpTarget = jumpEdge.targetBlock();
-					for (final L2PcOperand inEdge
-						: block.predecessorEdgesCopy())
-					{
-						changed = true;
-						inEdge.switchTargetBlockNonSSA(jumpTarget);
-					}
-					// Eliminate the block, unless it has to be there for
-					// external reasons (i.e., it's an L2 entry point).
-					assert block.predecessorEdgesCount() == 0;
-					if (!block.isIrremovable())
-					{
-						jumpTarget.removePredecessorEdge(jumpEdge);
-						blockIterator.remove();
-					}
+					continue;
+				}
+				final L2Instruction soleInstruction = block.finalInstruction();
+				if (soleInstruction.operation() != L2_JUMP.instance)
+				{
+					continue;
+				}
+				// Redirect all predecessors through the jump.
+				final L2PcOperand jumpEdge =
+					L2_JUMP.jumpTarget(block.finalInstruction());
+				final L2BasicBlock jumpTarget = jumpEdge.targetBlock();
+				final boolean isBackward = jumpEdge.isBackward();
+				for (final L2PcOperand inEdge : block.predecessorEdgesCopy())
+				{
+					changed = true;
+					inEdge.switchTargetBlockNonSSA(jumpTarget, isBackward);
+				}
+				// Eliminate the block, unless it has to be there for
+				// external reasons (i.e., it's an L2 entry point).
+				assert block.predecessorEdgesCount() == 0;
+				if (!block.isIrremovable())
+				{
+					jumpTarget.removePredecessorEdge(jumpEdge);
+					blockIterator.remove();
 				}
 			}
 		}
@@ -1032,6 +1050,7 @@ public final class L2Optimizer
 			{
 				assert edge.sourceBlock() == block;
 				final L2BasicBlock targetBlock = edge.targetBlock();
+				assert !edge.isBackward() || targetBlock.isLoopHead;
 				assert blocks.contains(targetBlock);
 				assert targetBlock.predecessorEdgesCopy().contains(edge);
 			}

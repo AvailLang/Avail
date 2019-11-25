@@ -683,10 +683,7 @@ Method "any of_satisfies_" is
 	$body : boolean;
 	For each key → value of aMap do
 	[
-		If predicate(key, value) then
-		[
-			Exit body with true
-		];
+		Exit body with true if predicate(key, value);
 	];
 	false
 ] : boolean;
@@ -728,10 +725,7 @@ Method "each of_satisfies_" is
 	$body : boolean;
 	For each key → value of aMap do
 	[
-		Unless predicate(key, value) then
-		[
-			Exit body with false
-		];
+		Exit body with false if ¬predicate(key, value);
 	];
 	true
 ] : boolean;

@@ -789,9 +789,8 @@ public final class L1Translator
 				currentManifest().restrictionFor(reader.semanticValue()));
 			generator.addInstruction(L2_MOVE.boxed, reader, writer);
 		}
-		generator.addInstruction(
-			L2_JUMP.instance,
-			backEdgeTo(stripNull(generator.restartLoopHeadBlock)));
+		final L2BasicBlock loopHead = stripNull(generator.restartLoopHeadBlock);
+		generator.addInstruction(L2_JUMP.instance, backEdgeTo(loopHead));
 	}
 
 	/**
@@ -2878,10 +2877,6 @@ public final class L1Translator
 				return;
 			}
 		}
-		// Fallible primitives and non-primitives need this additional entry
-		// point.
-		generator.afterOptionalInitialPrimitiveBlock =
-			generator.createBasicBlock("after optional primitive");
 		generator.afterOptionalInitialPrimitiveBlock.makeIrremovable();
 		addInstruction(
 			L2_JUMP.instance,
@@ -3062,6 +3057,9 @@ public final class L1Translator
 		generator.startBlock(initialBlock);
 		generator.addInstruction(
 			L2_TRY_OPTIONAL_PRIMITIVE.instance);
+		generator.addInstruction(
+			L2_JUMP.instance,
+			edgeTo(reenterFromRestartBlock));
 		// Only if the primitive fails should we even consider optimizing the
 		// fallback code.
 
@@ -3090,7 +3088,7 @@ public final class L1Translator
 			L2_REENTER_L1_CHUNK_FROM_CALL.instance);
 		generator.addInstruction(
 			L2_JUMP.instance,
-			edgeTo(loopBlock));
+			backEdgeTo(loopBlock));
 
 		// 6,7. If reified, interrupts return here.
 		generator.startBlock(reenterFromInterruptBlock);
@@ -3098,7 +3096,7 @@ public final class L1Translator
 			L2_REENTER_L1_CHUNK_FROM_INTERRUPT.instance);
 		generator.addInstruction(
 			L2_JUMP.instance,
-			edgeTo(loopBlock));
+			backEdgeTo(loopBlock));
 
 		// 8. Unreachable.
 		generator.startBlock(unreachableBlock);
@@ -3497,7 +3495,7 @@ public final class L1Translator
 			new L2IntImmediateOperand(numSlots + 1),  // empty stack
 			new L2ReadBoxedVectorOperand(slotsForLabel),  // each immutable
 			destinationRegister,
-			edgeTo(generator.initialBlock),
+			backEdgeTo(stripNull(generator.afterOptionalInitialPrimitiveBlock)),
 			edgeTo(afterCreation),
 			new L2CommentOperand("Create a label continuation."));
 

@@ -9,6 +9,7 @@
       <w>enqueuer</w>
       <w>hasher</w>
       <w>inet</w>
+      <w>lexes</w>
       <w>noninline</w>
       <w>nonprimitive</w>
       <w>precompute</w>

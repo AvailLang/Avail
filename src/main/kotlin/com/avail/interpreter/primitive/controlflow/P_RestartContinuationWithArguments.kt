@@ -56,7 +56,7 @@ import com.avail.interpreter.levelTwo.operation.L2_RESTART_CONTINUATION_WITH_ARG
 import com.avail.interpreter.levelTwo.operation.L2_TUPLE_AT_CONSTANT
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
-import com.avail.optimizer.L2Generator.edgeTo
+import com.avail.optimizer.L2Generator.backEdgeTo
 
 /**
  * **Primitive:** Restart the given [continuation][ContinuationDescriptor], but
@@ -173,20 +173,20 @@ object P_RestartContinuationWithArguments : Primitive(
 				// Couldn't guarantee the argument types matched.
 				return false
 			}
-			for ((index, type) in argTypesTuple.withIndex())
+			for ((zeroIndex, type) in argTypesTuple.withIndex())
 			{
 				val writer = generator.boxedWrite(
-					generator.topFrame.slot(index, 1),
+					generator.topFrame.slot(zeroIndex + 1, 1),
 					TypeRestriction.restrictionForType(type, BOXED))
 				translator.addInstruction(
 					L2_TUPLE_AT_CONSTANT.instance,
 					argumentsTupleReg,
-					L2IntImmediateOperand(index),
+					L2IntImmediateOperand(zeroIndex + 1),
 					writer)
 			}
 			generator.addInstruction(
 				L2_JUMP.instance,
-				edgeTo(generator.restartLoopHeadBlock!!))
+				backEdgeTo(generator.restartLoopHeadBlock!!))
 			return true
 		}
 

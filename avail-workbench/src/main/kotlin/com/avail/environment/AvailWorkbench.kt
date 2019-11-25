@@ -547,11 +547,13 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	}
 
 	/**
-	 * Discard entries from the [updateQueue] without updating the [totalQueuedTextSize] until no more can be discarded.  The [dequeLock] must be acquired before calling this.  The caller should decrease the [totalQueuedTextSize] by the returned amount before releasing the [dequeLock].
-	 *
+	 * Discard entries from the [updateQueue] without updating the
+	 * [totalQueuedTextSize] until no more can be discarded.  The [dequeLock]
+	 * must be acquired before calling this.  The caller should decrease the
+	 * [totalQueuedTextSize] by the returned amount before releasing the
+	 * [dequeLock].
 	 *
 	 * Assume the [totalQueuedTextSize] is accurate prior to the call.
-	 *
 	 *
 	 * @return The number of characters removed from the queue.
 	 */

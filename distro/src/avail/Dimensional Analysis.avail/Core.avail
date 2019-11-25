@@ -2082,13 +2082,10 @@ Public stable method "_converted to_" is
 	key ::= <quantity's metric, targetUnit>;
 	converter ::= all converters[key] else
 		[
-			If quantity's metric = targetUnit then [Exit body with quantity]
-			else
-			[
-				Raise a no-such-conversion exception with
-					source unit ::= key[1],
-					target unit ::= key[2]
-			]
+			Exit body with quantity if quantity's metric = targetUnit;
+			Raise a no-such-conversion exception with
+				source unit ::= key[1],
+				target unit ::= key[2]
 		];
 	converter(quantity, targetUnit)
 ] : dimensioned quantity;
@@ -2220,10 +2217,7 @@ Semantic restriction "Conversion method is_,⁇inverse is_" is
 	inverseType : unit conversion function's type
 |
 	$body : ⊤'s type;
-	If ⊥ ∈ {functionType[1], functionType[2]} then
-	[
-		Exit body with ⊤
-	];
+	Exit body with ⊤ if ⊥ ∈ {functionType[1], functionType[2]};
 	Unless functionType[1] ⊆ dimensioned quantity ∧ functionType[2] ⊆ unit then
 	[
 		Reject parse, expected:

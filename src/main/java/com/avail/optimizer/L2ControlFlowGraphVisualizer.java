@@ -337,14 +337,14 @@ public class L2ControlFlowGraphVisualizer
 			bgcolor = "#400000";
 			fontcolor = "#ffffff";
 		}
-		else if (first != null && first.operation().isEntryPoint(first))
-		{
-			bgcolor = "#ffd394";
-			fontcolor = "#000000";
-		}
 		else if (basicBlock.isLoopHead)
 		{
 			bgcolor = "#9070ff";
+			fontcolor = "#000000";
+		}
+		else if (first != null && first.operation().isEntryPoint(first))
+		{
+			bgcolor = "#ffd394";
 			fontcolor = "#000000";
 		}
 		else

@@ -1176,10 +1176,7 @@ Method "any of_satisfies_" is
 	$body : boolean;
 	For each element of aTuple do
 	[
-		If predicate(element) then
-		[
-			Exit body with true
-		];
+		Exit body with true if predicate(element);
 	];
 	false
 ] : boolean;
@@ -1207,10 +1204,7 @@ Method "any of_satisfies_" is
 	$body : boolean;
 	For each element, index of aTuple do
 	[
-		If predicate(element, index) then
-		[
-			Exit body with true
-		];
+		Exit body with true if predicate(element, index);
 	];
 	false
 ] : boolean;
@@ -1254,10 +1248,7 @@ Method "each of_satisfies_" is
 	$body : boolean;
 	For each element of aTuple do
 	[
-		Unless predicate(element) then
-		[
-			Exit body with false
-		];
+		Exit body with false if ¬predicate(element);
 	];
 	true
 ] : boolean;
@@ -1285,10 +1276,7 @@ Method "each of_satisfies_" is
 	$body : boolean;
 	For each element, index of aTuple do
 	[
-		Unless predicate(element, index) then
-		[
-			Exit body with false
-		];
+		Exit body with false if ¬predicate(element, index);
 	];
 	true
 ] : boolean;
@@ -1802,10 +1790,7 @@ Public method "first index of_where_" is
 	$body : natural number;
 	For each index from 1 to |aTuple| do
 	[
-		If predicate(aTuple[index]) then
-		[
-			Exit body with index
-		];
+		Exit body with index if predicate(aTuple[index]);
 	];
 	0
 ] : whole number;
@@ -1868,10 +1853,7 @@ Public method "last index of_where_" is
 	$body : natural number;
 	For each index from |aTuple| to 1 by -1 do
 	[
-		If predicate(aTuple[index]) then
-		[
-			Exit body with index
-		];
+		Exit body with index if predicate(aTuple[index]);
 	];
 	0
 ] : whole number;
@@ -2067,7 +2049,7 @@ Semantic restriction "_to_" is
 	/* If the arguments are instance types, then bail immediately; let the
 	 * stable semantic restriction produce an instance type.
 	 */
-	If {|start|, |end|} = {1} then [Exit body with ⊤];
+	Exit body with ⊤ if {|start|, |end|} = {1};
 	min ::= ⎣start⎦;
 	max ::= ⎡end⎤;
 	uncertainty ::= ⎡start⎤ - ⎣start⎦;

@@ -169,9 +169,6 @@ public final class L2Generator
 	 */
 	A_Set contingentValues = emptySet();
 
-	/** The block at which to resume execution after a failed primitive. */
-	@Nullable L2BasicBlock afterOptionalInitialPrimitiveBlock;
-
 	/**
 	 * The head of the loop formed when a P_RestartContinuation is invoked on
 	 * a label created for the current frame.
@@ -211,6 +208,10 @@ public final class L2Generator
 	 * just been invoked.
 	 */
 	final L2BasicBlock initialBlock = createBasicBlock("START");
+
+	/** The block at which to resume execution after a failed primitive. */
+	final L2BasicBlock afterOptionalInitialPrimitiveBlock =
+		createLoopHeadBlock("After optional primitive");
 
 	/** The {@link L2BasicBlock} that code is currently being generated into. */
 	private @Nullable L2BasicBlock currentBlock = initialBlock;
@@ -937,6 +938,8 @@ public final class L2Generator
 	public static L2PcOperand edgeTo (
 		final L2BasicBlock targetBlock)
 	{
+		// Only back-edges may reach a block that has already been generated.
+		assert targetBlock.instructions().isEmpty();
 		return new L2PcOperand(targetBlock, false);
 	}
 

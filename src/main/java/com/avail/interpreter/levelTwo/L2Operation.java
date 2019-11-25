@@ -249,6 +249,26 @@ public abstract class L2Operation
 	}
 
 	/**
+	 * Answer whether the {@link L2Instruction}, which has this
+	 * {@code L2Operation} as its operation, is sufficient cause to consider
+	 * an {@link L2Chunk} containing it to not be considered a simple leaf.
+	 *
+	 * <p>A simple leaf must not invoke other chunks, loop, or originate
+	 * reification for any reason other than an interrupt.  Simple leaves may
+	 * have their interrupt check elided for performance.</p>
+	 *
+	 * @param instruction
+	 *        The instruction to check, which has this as its operation.
+	 * @return Whether to disqualify an {@link L2Chunk} containing the given
+	 *         instruction from being treated as a simple leaf.
+	 */
+	public boolean makesChunkNotSimpleLeaf (final L2Instruction instruction)
+	{
+		assert instruction.operation() == this;
+		return false;
+	}
+
+	/**
 	 * Answer whether execution of this instruction can divert the flow of
 	 * control from the next instruction.  An L2Operation either always falls
 	 * through or always alters control.

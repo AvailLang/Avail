@@ -76,7 +76,7 @@ extends L2Operand
 	 * Whether this edge points backward to a block marked as
 	 * {@link L2BasicBlock#isLoopHead}, thereby closing a loop.
 	 */
-	private final boolean isBackward;
+	private boolean isBackward;
 
 	/**
 	 * The {@link Set} of {@link L2Register}s that are written in all pasts, and
@@ -302,12 +302,16 @@ extends L2Operand
 	 * and converted to moves, switch the target of this edge.
 	 *
 	 * @param newTarget The new target {@link L2BasicBlock} of this edge.
+	 * @param isBackwardFlag Whether to also mark it as a backward edge.
 	 */
-	public void switchTargetBlockNonSSA (final L2BasicBlock newTarget)
+	public void switchTargetBlockNonSSA (
+		final L2BasicBlock newTarget,
+		final boolean isBackwardFlag)
 	{
 		final L2BasicBlock oldTarget = targetBlock;
 		targetBlock = newTarget;
 		oldTarget.removePredecessorEdge(this);
 		newTarget.addPredecessorEdge(this);
+		isBackward = isBackwardFlag;
 	}
 }
