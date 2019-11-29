@@ -927,11 +927,13 @@ class AvailServer constructor(
 		builder.textInterface = ioChannel.textInterface!!
 		builder.buildTarget(
 			command.target,
-			{ name, _, position ->
+			{ name, size, position ->
 				val writer = JSONWriter()
 				writer.writeObject {
 					writer.write("module")
 					writer.write(name.qualifiedName)
+					writer.write("size")
+					writer.write(size)
 					writer.write("position")
 					writer.write(position)
 				}
@@ -1558,7 +1560,7 @@ class AvailServer constructor(
 		/**
 		 * The progress interval for [building][loadModule], in milliseconds.
 		 */
-		private const val buildProgressIntervalMillis = 100
+		private const val buildProgressIntervalMillis = 50
 
 		/**
 		 * Obtain the [configuration][AvailServerConfiguration] of the
