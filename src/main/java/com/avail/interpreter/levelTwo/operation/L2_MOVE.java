@@ -38,9 +38,7 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2NamedOperandType;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteOperand;
+import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.interpreter.levelTwo.register.L2FloatRegister;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
@@ -67,46 +65,66 @@ import static com.avail.interpreter.levelTwo.L2OperandType.*;
  * </p>
  *
  * @param <R> The kind of {@link L2Register} to be moved.
+ * @param <RR> The kind of {@link L2ReadOperand} to use for reading.
+ * @param <WR> The kind of {@link L2WriteOperand} to use for writing.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_MOVE <R extends L2Register>
+public final class L2_MOVE <
+	R extends L2Register,
+	RR extends L2ReadOperand<R>,
+	WR extends L2WriteOperand<R>>
 extends L2Operation
 {
 	/**
 	 * Construct an {@code L2_MOVE} operation.
 	 *
+	 * @param kindName
+	 *        A short string describing the kind of things this operation moves.
 	 * @param theNamedOperandTypes
 	 *        An array of {@link L2NamedOperandType}s that describe this
 	 *        particular L2Operation, allowing it to be specialized by register
 	 *        type.
 	 */
-	L2_MOVE (final L2NamedOperandType... theNamedOperandTypes)
+	L2_MOVE (final String kindName, final L2NamedOperandType... theNamedOperandTypes)
 	{
 		super(theNamedOperandTypes);
+		this.kindName = kindName;
 	}
 
 	/**
 	 * Initialize the move operation for boxed values.
 	 */
-	public static final L2_MOVE<L2BoxedRegister> boxed = new L2_MOVE<>(
-		READ_BOXED.is("source boxed"),
-		WRITE_BOXED.is("destination boxed"));
+	public static final
+	L2_MOVE<L2BoxedRegister, L2ReadBoxedOperand, L2WriteBoxedOperand>
+		boxed = new L2_MOVE<>(
+			"boxed",
+			READ_BOXED.is("source boxed"),
+			WRITE_BOXED.is("destination boxed"));
 
 	/**
 	 * Initialize the move operation for int values.
 	 */
-	public static final L2_MOVE<L2IntRegister> unboxedInt = new L2_MOVE<>(
-		READ_INT.is("source int"),
-		WRITE_INT.is("destination int"));
+	public static final
+	L2_MOVE<L2IntRegister, L2ReadIntOperand, L2WriteIntOperand>
+		unboxedInt = new L2_MOVE<>(
+			"int",
+			READ_INT.is("source int"),
+			WRITE_INT.is("destination int"));
 
 	/**
 	 * Initialize the move operation for float values.
 	 */
-	public static final L2_MOVE<L2FloatRegister> unboxedFloat = new L2_MOVE<>(
-		READ_FLOAT.is("source float"),
-		WRITE_FLOAT.is("destination float"));
+	public static final
+	L2_MOVE<L2FloatRegister, L2ReadFloatOperand, L2WriteFloatOperand>
+		unboxedFloat = new L2_MOVE<>(
+			"float",
+			READ_FLOAT.is("source float"),
+			WRITE_FLOAT.is("destination float"));
+
+	/** A short word describing the kind of things moved by this operation. */
+	public final String kindName;
 
 	@Override
 	protected void propagateTypes (
@@ -185,7 +203,7 @@ extends L2Operation
 		final L2Instruction instruction)
 	{
 		assert instruction.operation() == boxed;
-		final L2ReadBoxedOperand source = sourceOf(instruction);
+		final RR source = sourceOf(instruction);
 		final L2Instruction producer = source.register().definition();
 		return producer.operation().getConstantCodeFrom(producer);
 	}
@@ -207,26 +225,33 @@ extends L2Operation
 	}
 
 	/**
+	 * Given an {@link L2Instruction} using an operation of this class, extract
+	 * the source {@link L2ReadOperand} that is moved by the instruction.
+	 *
+	 * @param instruction
+	 *        The move instruction to examine.
+	 * @return The move's source {@link L2ReadOperand}.
+	 */
+	public RR sourceOf (
+		final L2Instruction instruction)
+	{
+		assert instruction.operation() instanceof L2_MOVE;
+		return instruction.operand(0);
+	}
+
+	/**
 	 * Given an {@link L2Instruction} using this operation, extract the source
 	 * {@link L2ReadOperand} that is moved by the instruction.
 	 *
 	 * @param instruction
 	 *        The move instruction to examine.
-	 * @param <RR>
-	 *        The subtype of {@link L2ReadOperand} to return.  This is only
-	 *        checked at runtime.
-	 * @param <R>
-	 *        The type of {@link L2Register} that is being read.
-	 * @return The move's source {@link L2ReadOperand}.
+	 * @return The move's source {@link L2WriteOperand}.
 	 */
-	public static <
-		RR extends L2ReadOperand<R>,
-		R extends L2Register>
-	RR sourceOf (
+	public WR destinationOf (
 		final L2Instruction instruction)
 	{
-		assert instruction.operation() instanceof L2_MOVE;
-		return instruction.operand(0);
+		assert instruction.operation() == this;
+		return instruction.operand(1);
 	}
 
 	@Override
@@ -249,15 +274,7 @@ extends L2Operation
 	@Override
 	public String toString ()
 	{
-		final String kind =
-			(this == boxed)
-				? "boxed"
-				: (this == unboxedInt)
-					? "int"
-					: (this == unboxedFloat)
-						? "float"
-						: "unknown";
-		return super.toString() + "(" + kind + ")";
+		return super.toString() + "(" + kindName + ")";
 	}
 
 	@Override

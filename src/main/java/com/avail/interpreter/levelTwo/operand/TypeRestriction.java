@@ -1135,7 +1135,7 @@ public final class TypeRestriction
 	{
 		if ((flags & flagEncoding.mask) == 0)
 		{
-			// Flag is already set.
+			// Flag is already clear.
 			return this;
 		}
 		return restriction(
@@ -1144,6 +1144,29 @@ public final class TypeRestriction
 			excludedTypes,
 			excludedValues,
 			flags & ~flagEncoding.mask);
+	}
+
+	/**
+	 * Answer a restriction like the receiver, but with the unboxed register
+	 * types excluded.  If they're already excluded, answer the receiver.
+	 *
+	 * @return The new {@code TypeRestriction}, or the receiver.
+	 */
+	public TypeRestriction butBoxedOnly ()
+	{
+
+		final int unboxedFlags = UNBOXED_INT.mask | UNBOXED_FLOAT.mask;
+		if ((flags & unboxedFlags) == 0)
+		{
+			// Flags are already clear.
+			return this;
+		}
+		return restriction(
+			type,
+			constantOrNull,
+			excludedTypes,
+			excludedValues,
+			flags & ~unboxedFlags);
 	}
 
 	/**

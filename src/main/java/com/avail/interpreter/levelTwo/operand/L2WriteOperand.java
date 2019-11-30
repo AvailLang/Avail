@@ -262,4 +262,11 @@ extends L2Operand
 	{
 		return "→" + registerString();
 	}
+
+	@Override
+	public void adjustCloneForInstruction (final L2Instruction theInstruction)
+	{
+		super.adjustCloneForInstruction(theInstruction);
+		instruction = null;
+	}
 }

@@ -72,12 +72,14 @@ import static com.avail.interpreter.levelTwo.L2OperandType.*;
  *
  * @param <R> The kind of {@link L2Register} to merge.
  * @param <RR> The kind of {@link L2ReadOperand}s to merge.
+ * @param <WR> The kind of {@link L2WriteOperand}s to write the result to.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public final class L2_PHI_PSEUDO_OPERATION <
+	R extends L2Register,
 	RR extends L2ReadOperand<R>,
-	R extends L2Register>
+	WR extends L2WriteOperand<R>>
 extends L2Operation
 {
 	/**
@@ -92,7 +94,7 @@ extends L2Operation
 	 *        type.
 	 */
 	private L2_PHI_PSEUDO_OPERATION (
-		final L2_MOVE<R> moveOperation,
+		final L2_MOVE<R, RR, WR> moveOperation,
 		final L2NamedOperandType... theNamedOperandTypes)
 	{
 		super(theNamedOperandTypes);
@@ -103,13 +105,13 @@ extends L2Operation
 	 * The {@link L2_MOVE} operation to substitute for this instruction on
 	 * incoming split edges.
 	 */
-	public final L2_MOVE<R> moveOperation;
+	public final L2_MOVE<R, RR, WR> moveOperation;
 
 	/**
 	 * Initialize the instance used for merging boxed values.
 	 */
 	public static final L2_PHI_PSEUDO_OPERATION<
-			L2ReadBoxedOperand, L2BoxedRegister>
+		L2BoxedRegister, L2ReadBoxedOperand, L2WriteBoxedOperand>
 		boxed = new L2_PHI_PSEUDO_OPERATION<>(
 			L2_MOVE.boxed,
 			READ_BOXED_VECTOR.is("potential boxed sources"),
@@ -119,7 +121,7 @@ extends L2Operation
 	 * Initialize the instance used for merging boxed values.
 	 */
 	public static final L2_PHI_PSEUDO_OPERATION<
-			L2ReadIntOperand, L2IntRegister>
+		L2IntRegister, L2ReadIntOperand, L2WriteIntOperand>
 		unboxedInt = new L2_PHI_PSEUDO_OPERATION<>(
 			L2_MOVE.unboxedInt,
 			READ_INT_VECTOR.is("potential int sources"),
@@ -129,7 +131,7 @@ extends L2Operation
 	 * Initialize the instance used for merging boxed values.
 	 */
 	public static final L2_PHI_PSEUDO_OPERATION<
-			L2ReadFloatOperand, L2FloatRegister>
+		L2FloatRegister, L2ReadFloatOperand, L2WriteFloatOperand>
 		unboxedFloat = new L2_PHI_PSEUDO_OPERATION<>(
 			L2_MOVE.unboxedFloat,
 			READ_FLOAT_VECTOR.is("potential float sources"),
@@ -340,15 +342,7 @@ extends L2Operation
 	@Override
 	public String toString ()
 	{
-		final String kind =
-			(this == boxed)
-				? "boxed"
-				: (this == unboxedInt)
-					? "int"
-					: (this == unboxedFloat)
-						? "float"
-						: "unknown";
-		return super.toString() + "(" + kind + ")";
+		return super.toString() + "(" + moveOperation.kindName + ")";
 	}
 
 	@Override

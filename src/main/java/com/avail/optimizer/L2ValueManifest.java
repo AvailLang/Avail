@@ -51,6 +51,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.bottomRestriction;
@@ -58,6 +59,7 @@ import static com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.*;
 import static com.avail.utility.Casts.cast;
 import static com.avail.utility.Nulls.stripNull;
 import static java.util.Collections.singleton;
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -135,6 +137,26 @@ public final class L2ValueManifest
 		final L2SemanticValue semanticValue)
 	{
 		return stripNull(semanticValueToSynonym.get(semanticValue));
+	}
+
+	/**
+	 * Look up the given {@link L2SemanticValue}, answering the {@link
+	 * L2Synonym} that's bound to it.  If not found, evaluate the {@link
+	 * Supplier} to produce an optional {@code Supplier} or {@code null}.
+	 *
+	 * @param semanticValue
+	 *        The semantic value to look up.
+	 * @param elseSupplier
+	 *        The code to run if the semantic value was not found.
+	 * @return The {@link L2Synonym} bound to that semantic value, or
+	 *         {@code null}.
+	 */
+	public @Nullable L2Synonym semanticValueToSynonymOrElse (
+		final L2SemanticValue semanticValue,
+		final Supplier<L2Synonym> elseSupplier)
+	{
+		final L2Synonym synonym = semanticValueToSynonym.get(semanticValue);
+		return synonym != null ? synonym : elseSupplier.get();
 	}
 
 	/**
@@ -333,19 +355,10 @@ public final class L2ValueManifest
 		// synonyms.  Repeat as necessary, alternating collection of newly
 		// matched pairs of synonyms with merging them.
 		final Map<Primitive, List<L2SemanticPrimitiveInvocation>>
-			allSemanticPrimitives = new HashMap<>();
-		semanticValueToSynonym.keySet().forEach(
-			sv -> {
-				if (sv instanceof L2SemanticPrimitiveInvocation)
-				{
-					final L2SemanticPrimitiveInvocation invocation = cast(sv);
-					final List<L2SemanticPrimitiveInvocation> list =
-						allSemanticPrimitives.computeIfAbsent(
-							invocation.primitive,
-							p -> new ArrayList<>());
-					list.add(invocation);
-				}
-			});
+			allSemanticPrimitives = semanticValueToSynonym.keySet().stream()
+			.filter(L2SemanticPrimitiveInvocation.class::isInstance)
+			.<L2SemanticPrimitiveInvocation>map(Casts::cast)
+			.collect(groupingBy(invocation -> invocation.primitive));
 		if (allSemanticPrimitives.size() == 0)
 		{
 			// There are no primitive invocations visible.
@@ -355,45 +368,50 @@ public final class L2ValueManifest
 		{
 			final List<Pair<L2SemanticValue, L2SemanticValue>> followupMerges =
 				new ArrayList<>();
-			allSemanticPrimitives.values().forEach(
-				invocations ->
+			for (final List<L2SemanticPrimitiveInvocation> invocations :
+				allSemanticPrimitives.values())
+			{
+				// It takes at least two primitive invocations (of the same
+				// primitive) for there to be a potential merge.
+				if (invocations.size() <= 1)
 				{
-					// It takes at least two primitive invocations (of the
-					// same primitive) for there to be a potential merge.
-					if (invocations.size() > 1)
+					continue;
+				}
+				// Create a map from each distinct input list of synonyms to the
+				// set of invocation synonyms.
+				final Map<List<L2Synonym>, Set<L2Synonym>> map =
+					new HashMap<>();
+				for (final L2SemanticPrimitiveInvocation invocation :
+					invocations)
+				{
+					// Note that sometimes an L2SemanticPrimitiveInvocation will
+					// be in the manifest, even though some of its argument
+					// semantic values are no longer accessible.  Create a
+					// singleton synonym for such a semantic value, but don't
+					// register it in the manifest.
+					final List<L2Synonym> argumentSynonyms =
+						invocation.argumentSemanticValues.stream()
+							.map(sv -> semanticValueToSynonymOrElse(
+								sv, () -> new L2Synonym(singleton(sv))))
+							.collect(toList());
+					final Set<L2Synonym> primitiveSynonyms =
+						map.computeIfAbsent(
+							argumentSynonyms, p -> new HashSet<>());
+					final L2Synonym invocationSynonym =
+						semanticValueToSynonym.get(invocation);
+					if (!primitiveSynonyms.isEmpty()
+						&& !primitiveSynonyms.contains(invocationSynonym))
 					{
-						// Create a map from each distinct input list of
-						// synonyms to the set of invocation synonyms.
-						final Map<List<L2Synonym>, Set<L2Synonym>> map =
-							new HashMap<>();
-						invocations.forEach(invocation ->
-						{
-							final List<L2Synonym> argumentSynonyms =
-								invocation.argumentSemanticValues.stream()
-									.map(this::semanticValueToSynonym)
-									.collect(toList());
-							final Set<L2Synonym> primitiveSynonyms =
-								map.computeIfAbsent(
-									argumentSynonyms, p -> new HashSet<>());
-							final L2Synonym invocationSynonym =
-								semanticValueToSynonym.get(invocation);
-							if (!primitiveSynonyms.isEmpty()
-								&& !primitiveSynonyms.contains(
-								invocationSynonym))
-							{
-								final L2Synonym sampleSynonym =
-									primitiveSynonyms.iterator().next();
-								final L2SemanticValue sampleInvocation =
-									sampleSynonym.pickSemanticValue();
-								followupMerges.add(
-									new Pair<>(
-										invocation,
-										sampleInvocation));
-							}
-							primitiveSynonyms.add(invocationSynonym);
-						});
+						final L2Synonym sampleSynonym =
+							primitiveSynonyms.iterator().next();
+						final L2SemanticValue sampleInvocation =
+							sampleSynonym.pickSemanticValue();
+						followupMerges.add(
+							new Pair<>(invocation, sampleInvocation));
 					}
-				});
+					primitiveSynonyms.add(invocationSynonym);
+				}
+			}
 			if (followupMerges.isEmpty())
 			{
 				break;
@@ -972,24 +990,27 @@ public final class L2ValueManifest
 	 *        A {@link BiFunction} taking an {@link L2SemanticValue} and a
 	 *        {@link TypeRestriction}, and producing a suitable {@link
 	 *        L2WriteOperand}.
-	 * @param <RV>
-	 *        The {@link L2ReadVectorOperand} supplying values.
-	 * @param <RR>
-	 *        The {@link L2ReadOperand} type supplying each value.
 	 * @param <R>
 	 *        The kind of {@link L2Register}s to merge.
+	 * @param <RR>
+	 *        The {@link L2ReadOperand} type supplying each value.
+	 * @param <WR>
+	 *        The kind of {@link L2WriteOperand} used to write the result.
+	 * @param <RV>
+	 *        The {@link L2ReadVectorOperand} supplying values.
 	 */
 	private <
-		RV extends L2ReadVectorOperand<RR, R>,
+		R extends L2Register,
 		RR extends L2ReadOperand<R>,
-		R extends L2Register>
+		WR extends L2WriteOperand<R>,
+		RV extends L2ReadVectorOperand<RR, R>>
 	void generatePhi (
 		final L2Generator generator,
 		final Collection<L2SemanticValue> relatedSemanticValues,
 		final boolean forcePhiCreation,
 		final TypeRestriction restriction,
 		final RV sources,
-		final L2_PHI_PSEUDO_OPERATION<RR, R> phiOperation,
+		final L2_PHI_PSEUDO_OPERATION<R, RR, WR> phiOperation,
 		final Function<L2SemanticValue, RR> createReader,
 		final BiFunction<L2SemanticValue, TypeRestriction, L2WriteOperand<R>>
 			createWriter)

@@ -363,6 +363,54 @@ Semantic restriction "Exit_with_if_" is
 	⊤
 ];
 
+/*
+ * Simplified addition, with a strong enough semantic restriction to avoid
+ * runtime checks for finite integers.
+ */
+Primitive "_plus_" is
+[
+	augend : number,
+	addend : number
+|
+	Primitive Addition (failureCode :
+		cannot-add-unlike-infinities code's type);
+	/* Let "_+_" handle the failure. */
+	augend + addend
+] : number;
+
+/* Keep the result within extended integers, to simplify the subsequent code. */
+Semantic restriction "_plus_" is
+[
+	augend : extended integer's type,
+	addend : extended integer's type
+|
+	extended integer
+];
+
+/* Group on left. */
+restrictions ::= <∅, {"_plus_"}>;
+Grammatical restriction "_plus_" is restrictions;
+
+/* Use a constant for its strong static type. */
+minusOne ::= 0 - 1;
+
+/* Now make it precise for extended integers. */
+Semantic restriction "_plus_" is
+[
+	augend : integer's type,
+	addend : integer's type
+|
+	integer range from
+		augend's genuine lower bound
+			plus addend's genuine lower bound
+			plus minusOne
+		(inclusive = -∞ ∈ augend ∪ addend)
+		to augend's genuine upper bound
+			plus addend's genuine upper bound
+			plus 1
+		(inclusive = ∞ ∈ augend ∪ addend)
+];
+
 /**
  * Basic counting loop with early exit support. Invoke {@param "action"} once
  * with each consecutive number in the range established by {@param "start"} and
@@ -390,13 +438,7 @@ Public method "From_to_do_" is
 	Exit loop with 123 if end < start;
 	continue ::= invoke action with <start>;
 	Exit loop with 123 if continue = false;
-	newArgs :: =
-		<
-			cast start + 1 into [ i : natural number | i ],
-			end,
-			action
-		>;
-	Restart loop with newArgs
+	Restart loop with <start plus 1, end, action>
 ] : ⊤;
 
 /**
@@ -417,8 +459,7 @@ Semantic restriction "From_to_do_" is
 	lower ::= start's genuine lower bound;
 	If lower ≤ end's genuine upper bound then
 	[
-		upper ::= cast end's genuine upper bound + 1
-			into [ t : extended integer | t ];
+		upper ::= end's genuine upper bound plus 1;
 		subscripts ::= integer range
 			from lower (inclusive = lower's type ⊆ start)
 			to upper (inclusive = false);

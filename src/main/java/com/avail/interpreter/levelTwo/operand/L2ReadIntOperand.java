@@ -101,7 +101,8 @@ extends L2ReadOperand<L2IntRegister>
 	}
 
 	@Override
-	public L2_MOVE<L2IntRegister> phiMoveOperation ()
+	public L2_MOVE<L2IntRegister, L2ReadIntOperand, L2WriteIntOperand>
+	phiMoveOperation ()
 	{
 		return L2_MOVE.unboxedInt;
 	}

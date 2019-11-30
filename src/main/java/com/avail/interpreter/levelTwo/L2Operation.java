@@ -44,6 +44,7 @@ import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.operation.L2ControlFlowOperation;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE;
+import com.avail.interpreter.levelTwo.operation.L2_PC_TO_INT;
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
 import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2Generator;
@@ -135,6 +136,10 @@ public abstract class L2Operation
 	/**
 	 * Protect the constructor so the subclasses can maintain a fly-weight
 	 * pattern (or arguably a singleton).
+	 *
+	 * @param theNamedOperandTypes
+	 *        The {@link L2NamedOperandType}s that describe the layout of
+	 *        operands for my instructions.
 	 */
 	protected L2Operation (final L2NamedOperandType... theNamedOperandTypes)
 	{
@@ -147,6 +152,7 @@ public abstract class L2Operation
 		// The number of targets won't be large, so don't worry about the
 		// quadratic cost.  An N-way dispatch would be a different story.
 		assert this instanceof L2ControlFlowOperation
+			|| this instanceof L2_PC_TO_INT
 			|| Arrays.stream(namedOperandTypes).noneMatch(
 				x -> x.operandType() == L2OperandType.PC);
 	}
@@ -205,6 +211,7 @@ public abstract class L2Operation
 	 * the same finalIndex can be left out during code generation, although it
 	 * can't actually be removed before then.
 	 *
+	 * @param instruction The instruction containing this operation.
 	 * @return A {@code boolean} indicating if this operation should be emitted.
 	 */
 	public boolean shouldEmit (final L2Instruction instruction)

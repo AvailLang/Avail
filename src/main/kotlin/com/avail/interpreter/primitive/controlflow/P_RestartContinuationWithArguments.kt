@@ -46,14 +46,13 @@ import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 import com.avail.interpreter.Primitive.Result.CONTINUATION_CHANGED
-import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
+import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
-import com.avail.interpreter.levelTwo.operand.TypeRestriction
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import com.avail.interpreter.levelTwo.operation.L2_JUMP
+import com.avail.interpreter.levelTwo.operation.L2_MOVE
 import com.avail.interpreter.levelTwo.operation.L2_RESTART_CONTINUATION_WITH_ARGUMENTS
-import com.avail.interpreter.levelTwo.operation.L2_TUPLE_AT_CONSTANT
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
 import com.avail.optimizer.L2Generator.backEdgeTo
@@ -173,23 +172,47 @@ object P_RestartContinuationWithArguments : Primitive(
 				// Couldn't guarantee the argument types matched.
 				return false
 			}
-			for ((zeroIndex, type) in argTypesTuple.withIndex())
-			{
-				val writer = generator.boxedWrite(
-					generator.topFrame.slot(zeroIndex + 1, 1),
-					TypeRestriction.restrictionForType(type, BOXED))
-				translator.addInstruction(
-					L2_TUPLE_AT_CONSTANT.instance,
-					argumentsTupleReg,
-					L2IntImmediateOperand(zeroIndex + 1),
-					writer)
+			val explodedTupleRegs = translator.explodeTupleIfPossible(
+				argumentsTupleReg, argTypesTuple.toList())
+			// First, move these values into fresh temps.
+			val moveToTempInstructions = explodedTupleRegs!!.map { read ->
+				val instruction = L2Instruction(
+					generator,
+					L2_MOVE.boxed,
+					read,
+					generator.boxedWriteTemp(read.restriction()))
+				generator.addInstruction(instruction)
+				instruction
 			}
+			// Now make everything but the new temps invisible in the manifest.
+			with(generator.currentManifest()) {
+				clear()
+				moveToTempInstructions.forEach {
+					val destinationOf =
+						L2_MOVE.boxed.destinationOf(it)
+					recordDefinition(destinationOf)
+				}
+			}
+			// Now move them into semantic slots n@1, so the phis at the
+			// restartLoopHeadBlock will know what to do with them.
+			moveToTempInstructions.forEachIndexed {
+				zeroIndex, moveToTempInstruction ->
+				val tempWrite: L2WriteBoxedOperand =
+					moveToTempInstruction.operand(1)
+				generator.addInstruction(
+					L2_MOVE.boxed,
+					generator.readBoxed(tempWrite.semanticValue()),
+					generator.boxedWrite(
+						generator.topFrame.slot(zeroIndex + 1, 1),
+						tempWrite.restriction()))
+			}
+			// Finally, jump to the restartLoopHeadBlock, where the n@1 semantic
+			// slots will be added to the phis.
 			generator.addInstruction(
 				L2_JUMP.instance,
 				backEdgeTo(generator.restartLoopHeadBlock!!))
 			return true
 		}
-
 
 		// A restart works with every continuation that is created by a label.
 		// First, pop out of the Java stack frames back into the outer L2 run

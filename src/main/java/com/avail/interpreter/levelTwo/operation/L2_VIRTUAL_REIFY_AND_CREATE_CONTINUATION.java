@@ -1,21 +1,21 @@
 /*
- * L2_CREATE_CONTINUATION.java
+ * L2_VIRTUAL_REIFY_AND_CREATE_CONTINUATION.java
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice, this
+ *     list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice, this
+ *     list of conditions and the following disclaimer in the documentation
+ *     and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
- *   without specific prior written permission.
+ *  * Neither the name of the copyright holder nor the names of the contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -42,36 +42,41 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
+import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Set;
 
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.ON_RAMP;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.*;
 
 /**
- * Create a continuation from scratch, using the specified caller, function,
- * constant level one program counter, constant stack pointer, continuation
- * slot values, and level two program counter.  Write the new continuation
- * into the specified register.
+ * This is a placeholder instruction, which is replaced after data flow
+ * optimizations by {@link L2_REIFY}, {@link L2_CREATE_CONTINUATION}, and
+ * {@link L2_RETURN_FROM_REIFICATION_HANDLER}.  It's treated as having no
+ * side-effects, so that it's free to migrate to paths where it's definitely
+ * needed.
+ *
+ * <p>The reference to </p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
- * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_CREATE_CONTINUATION
+public final class L2_VIRTUAL_REIFY_AND_CREATE_CONTINUATION
 extends L2Operation
 {
 	/**
 	 * Construct an {@code L2_CREATE_CONTINUATION}.
 	 */
-	private L2_CREATE_CONTINUATION ()
+	private L2_VIRTUAL_REIFY_AND_CREATE_CONTINUATION ()
 	{
 		super(
 			READ_BOXED.is("function"),
@@ -80,15 +85,57 @@ extends L2Operation
 			INT_IMMEDIATE.is("stack pointer"),
 			READ_BOXED_VECTOR.is("slot values"),
 			WRITE_BOXED.is("destination"),
-			READ_INT.is("label address"),
+			PC.is("on-ramp", ON_RAMP),
+			PC.is("fall through after creation", OFF_RAMP),
 			COMMENT.is("usage comment"));
 	}
 
 	/**
 	 * Initialize the sole instance.
 	 */
-	public static final L2_CREATE_CONTINUATION instance =
-		new L2_CREATE_CONTINUATION();
+	public static final L2_VIRTUAL_REIFY_AND_CREATE_CONTINUATION instance =
+		new L2_VIRTUAL_REIFY_AND_CREATE_CONTINUATION();
+
+	/**
+	 * Extract the {@link List} of slot registers ({@link
+	 * L2ReadBoxedOperand}s) that fed the given {@link L2Instruction} whose
+	 * {@link L2Operation} is an {@code L2_CREATE_CONTINUATION}.
+	 *
+	 * @param instruction
+	 *        The create-continuation instruction.
+	 * @return The slots that were provided to the instruction for populating an
+	 *         {@link ContinuationDescriptor continuation}.
+	 */
+	public static List<L2ReadBoxedOperand> slotRegistersFor (
+		final L2Instruction instruction)
+	{
+		assert instruction.operation() == instance;
+		final L2ReadBoxedVectorOperand vector = instruction.operand(5);
+		return vector.elements();
+	}
+
+	/**
+	 * This kind of instruction can be declared dead if its output is never
+	 * used, but we have to convert it to an {@link L2_JUMP} to the fall-through
+	 * PC for correctness.
+	 *
+	 * @param instruction The instruction about to be replaced.
+	 * @return A replacement {@link L2_JUMP} instruction.
+	 */
+	@Override
+	public L2Instruction optionalReplacementForDeadInstruction (
+		final L2Instruction instruction)
+	{
+		// The fall-through PC.
+		final L2PcOperand fallthrough = instruction.operand(7);
+		return new L2Instruction(
+			instruction.basicBlock,
+			L2_JUMP.instance,
+			new L2PcOperand(
+				fallthrough.targetBlock(),
+				false,
+				fallthrough.manifest()));
+	}
 
 	@Override
 	public void toString (
@@ -103,7 +150,8 @@ extends L2Operation
 		final L2IntImmediateOperand levelOneStackp = instruction.operand(3);
 		final L2ReadBoxedVectorOperand slots = instruction.operand(4);
 		final L2WriteBoxedOperand destReg = instruction.operand(5);
-		final L2ReadIntOperand labelIntReg = instruction.operand(6);
+//		final L2PcOperand onRamp = instruction.operand(6);
+//		final L2PcOperand fallThrough = instruction.operand(7);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
@@ -137,14 +185,14 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		assert this == instruction.operation();
 		final L2ReadBoxedOperand function = instruction.operand(0);
 		final L2ReadBoxedOperand caller = instruction.operand(1);
 		final L2IntImmediateOperand levelOnePC = instruction.operand(2);
 		final L2IntImmediateOperand levelOneStackp = instruction.operand(3);
 		final L2ReadBoxedVectorOperand slots = instruction.operand(4);
 		final L2WriteBoxedOperand destReg = instruction.operand(5);
-		final L2ReadIntOperand labelIntReg = instruction.operand(6);
+		final L2PcOperand onRamp = instruction.operand(6);
+		final L2PcOperand fallThrough = instruction.operand(7);
 
 		// :: continuation = createContinuationExceptFrame(
 		// ::    function,
@@ -163,7 +211,7 @@ extends L2Operation
 			getInternalName(Interpreter.class),
 			"chunk",
 			getDescriptor(L2Chunk.class));
-		translator.load(method, labelIntReg.register());
+		translator.intConstant(method, onRamp.offset());
 		method.visitMethodInsn(
 			INVOKESTATIC,
 			getInternalName(ContinuationDescriptor.class),
@@ -203,5 +251,7 @@ extends L2Operation
 			}
 		}
 		translator.store(method, destReg.register());
+		// :: goto fallThrough;
+		translator.jump(method, instruction, fallThrough);
 	}
 }

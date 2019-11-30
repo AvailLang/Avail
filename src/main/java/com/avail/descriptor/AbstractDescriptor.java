@@ -6881,7 +6881,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract LookupTree<A_Definition, A_Tuple, Boolean> o_TestingTree (
+	abstract LookupTree<A_Definition, A_Tuple> o_TestingTree (
 		final AvailObject object);
 
 	/**

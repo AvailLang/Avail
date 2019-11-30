@@ -99,12 +99,17 @@ import kotlin.math.min
  *   block comments.
  * @param accumulator
  *   The accumulator for the generated source code.
+ * @param darkMode
+ *   If true, draw with light colors on a dark background.
+ * @param copyrightOwner
+ *   This name is embedded in a copyright claim within the document.
  */
 class DotWriter constructor(
 	private val name: String,
 	internal val isDirected: Boolean,
 	internal val charactersPerLine: Int,
 	internal val accumulator: Appendable,
+	private val darkMode: Boolean = false,
 	val copyrightOwner: String = System.getProperty("user.name"))
 {
 	/**
@@ -437,12 +442,43 @@ class DotWriter constructor(
 		@Throws(IOException::class)
 		fun attribute(lhs: String, rhs: String)
 		{
+			val isColor = lhs.contains("color")
 			indent()
 			identifier(lhs)
 			emit(" = ")
-			identifier(rhs)
+			identifier(if (isColor) adjust(rhs) else rhs)
 			linefeed()
 		}
+
+		/**
+		 * Answer an adjusted rhs (right hand side), taking into account which
+		 * format the rhs takes, and whether dark mode is active.
+		 */
+		fun adjust(rhs: String): String {
+			// Look for #xxxxxx/xxxxxx (light/dark) notation first.
+			val multiMatcher = multicolorPattern.matcher(rhs)
+			if (multiMatcher.find()) {
+				return "#" + multiMatcher.group(if (darkMode) 2 else 1)
+			}
+			if (!darkMode) {
+				return rhs
+			}
+			val uniMatcher = unicolorPattern.matcher(rhs)
+			if (uniMatcher.find()) {
+				val original = Integer.parseInt(uniMatcher.group(1), 16)
+				var r = original shr 16
+				var g = original shr 16 and 255
+				var b = original and 255
+				// Compress each component into the upper 1/2 range.
+				r = 255 - ((255 - r) shr 1)
+				g = 255 - ((255 - g) shr 1)
+				b = 255 - ((255 - b) shr 1)
+				return String.format("#%02x%02x%02x", r, g, b)
+			}
+			// Maybe a symbolic color name.  Leave it alone.
+			return rhs
+		}
+
 	}
 
 	/**
@@ -1086,5 +1122,13 @@ class DotWriter constructor(
 				port: String,
 				compassPoint: CompassPoint) =
 			DecoratedNode(name, port, compassPoint)
+
+		/** The pattern to match for light/dark bimodal colors. */
+		val multicolorPattern =
+			Pattern.compile("^#([0-9a-fA-F]{6})/#?([0-9a-fA-F]{6})$")
+
+		/** The pattern to match for light-only colors. */
+		val unicolorPattern =
+			Pattern.compile("^#([0-9a-fA-F]{6})$")
 	}
 }

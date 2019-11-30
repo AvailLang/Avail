@@ -68,6 +68,10 @@ extends L2ControlFlowOperation
 	 *
 	 * <p>Two additional operands are automatically appended here to track the
 	 * number of times the branch instruction is taken versus not taken.</p>
+	 *
+	 * @param theNamedOperandTypes
+	 *        The vararg array of {@link L2NamedOperandType}s that describe the
+	 *        operands of such an instruction.
 	 */
 	protected L2ConditionalJump (
 		final L2NamedOperandType... theNamedOperandTypes)

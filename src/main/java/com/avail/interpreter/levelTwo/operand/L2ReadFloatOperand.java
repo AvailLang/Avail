@@ -101,7 +101,8 @@ extends L2ReadOperand<L2FloatRegister>
 	}
 
 	@Override
-	public L2_MOVE<L2FloatRegister> phiMoveOperation ()
+	public L2_MOVE<L2FloatRegister, L2ReadFloatOperand, L2WriteFloatOperand>
+	phiMoveOperation ()
 	{
 		return L2_MOVE.unboxedFloat;
 	}

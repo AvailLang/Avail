@@ -6073,7 +6073,7 @@ implements
 	}
 
 	@Override
-	public LookupTree<A_Definition, A_Tuple, Boolean> testingTree ()
+	public LookupTree<A_Definition, A_Tuple> testingTree ()
 	{
 		return descriptor().o_TestingTree(this);
 	}

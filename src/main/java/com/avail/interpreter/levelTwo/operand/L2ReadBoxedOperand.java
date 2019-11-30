@@ -108,11 +108,11 @@ extends L2ReadOperand<L2BoxedRegister>
 	}
 
 	@Override
-	public L2_MOVE<L2BoxedRegister> phiMoveOperation ()
+	public L2_MOVE<L2BoxedRegister, L2ReadBoxedOperand, L2WriteBoxedOperand>
+	phiMoveOperation ()
 	{
 		return L2_MOVE.boxed;
 	}
-
 
 	/**
 	 * See if we can determine the exact type required as the first argument of

@@ -233,6 +233,7 @@ public final class L2Instruction
 		for (int i = 0; i < operands.length; i++)
 		{
 			final L2Operand operand = augmentedOperands[i].clone();
+			operand.adjustCloneForInstruction(this);
 			this.operands[i] = operand;
 			operand.addSourceRegistersTo(sourceRegisters);
 			operand.addDestinationRegistersTo(destinationRegisters);

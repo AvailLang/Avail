@@ -48,6 +48,7 @@ import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
+import com.avail.optimizer.ExecutableChunk;
 import com.avail.optimizer.L2ControlFlowGraph;
 import com.avail.optimizer.L2ControlFlowGraphVisualizer;
 import com.avail.optimizer.StackReifier;
@@ -79,6 +80,7 @@ import java.util.regex.Pattern;
 
 import static com.avail.AvailRuntimeSupport.captureNanos;
 import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.optimizer.jvm.CheckedMethod.staticMethod;
 import static com.avail.optimizer.jvm.JVMTranslator.LiteralAccessor.invalidIndex;
 import static com.avail.performance.StatisticReport.FINAL_JVM_TRANSLATION_TIME;
 import static com.avail.utility.Nulls.stripNull;
@@ -162,6 +164,46 @@ public final class JVMTranslator
 	/** A regex {@link Pattern} to strip the prefix of a module name. */
 	private static final Pattern moduleNameStripper =
 		Pattern.compile("^.*/([^/]+)$");
+
+	/**
+	 * Whether to emit JVM instructions to invoke
+	 * {@link #traceL2(ExecutableChunk, int, String, Object)} before each
+	 * {@link L2Instruction}.
+	 */
+	public static final boolean callTraceL2AfterEveryCall = true;
+
+	/**
+	 * If {@link #callTraceL2AfterEveryCall} was true during code generation,
+	 * this method is invoked just prior to each L2 instruction.
+	 *
+	 * @param executableChunk The L2 executable chunk being executed.
+	 * @param offset The current L2 offset.
+	 * @param description A one-line textual description of this instruction.
+	 * @param firstReadOperandValue The value of the first read operand.
+	 */
+	@ReferencedInGeneratedCode
+	public static void traceL2 (
+		final ExecutableChunk executableChunk,
+		final int offset,
+		final String description,
+		final Object firstReadOperandValue)
+	{
+		@SuppressWarnings("unused")
+		final int x = offset;  // Somewhere to hang a breakpoint.
+	}
+
+	/**
+	 * The {@link CheckedMethod} referring to the static method
+	 * {@link #traceL2(ExecutableChunk, int, String, Object)}.
+	 */
+	final CheckedMethod traceL2Method = staticMethod(
+		JVMTranslator.class,
+		"traceL2",
+		Void.TYPE,
+		ExecutableChunk.class,
+		Integer.TYPE,
+		String.class,
+		Object.class);
 
 	/**
 	 * Construct a new {@code JVMTranslator} to translate the specified array of
@@ -1597,7 +1639,9 @@ public final class JVMTranslator
 	}
 
 	/**
-	 * {@code true} to enable JVM debugging, {@code false} otherwise.
+	 * {@code true} to enable JVM debugging, {@code false} otherwise.  When
+	 * enabled, the generated JVM code dumps verbose information just prior to
+	 * each L2 instruction.
 	 */
 	public static boolean debugJVM = false;
 
@@ -1695,6 +1739,46 @@ public final class JVMTranslator
 			if (label != null)
 			{
 				method.visitLabel(label);
+			}
+			if (callTraceL2AfterEveryCall)
+			{
+				loadReceiver(method);  // this, the executable chunk.
+				intConstant(method, instruction.offset());
+				// First line of the instruction toString
+				//noinspection DynamicRegexReplaceableByCompiledPattern
+				method.visitLdcInsn(instruction.toString().split("\\n", 2)[0]);
+				// Output the first read operand's value, as an Object, or null.
+				pushOneObject:
+				{
+					for (final L2Operand operand : instruction.operands())
+					{
+						if (operand instanceof L2ReadBoxedOperand)
+						{
+							load(
+								method,
+								((L2ReadBoxedOperand) operand).register());
+							break pushOneObject;
+						}
+						if (operand instanceof L2ReadIntOperand)
+						{
+							load(
+								method,
+								((L2ReadIntOperand) operand).register());
+							method.visitMethodInsn(
+								INVOKESTATIC,
+								getInternalName(Integer.class),
+								"valueOf",
+								getMethodDescriptor(
+									getType(Integer.class),
+									INT_TYPE),
+								false);
+							break pushOneObject;
+						}
+					}
+					// No suitable operands were found.  Use null.
+					method.visitInsn(ACONST_NULL);
+				}
+				traceL2Method.generateCall(method);
 			}
 			final long beforeTranslation = captureNanos();
 			instruction.translateToJVM(this, method);

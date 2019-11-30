@@ -368,7 +368,7 @@ public final class L2Optimizer
 				for (int i = lastPhiIndex; i >= 0; i--)
 				{
 					final L2Instruction phiInstruction = instructions.get(i);
-					final L2_PHI_PSEUDO_OPERATION<?, ?> phiOperation =
+					final L2_PHI_PSEUDO_OPERATION<?, ?, ?> phiOperation =
 						cast(phiInstruction.operation());
 					assert phiInstruction.operation().isPhi();
 					edgeSometimesLiveIn.removeAll(
@@ -436,12 +436,18 @@ public final class L2Optimizer
 					new HashSet<>();
 				final List<L2Instruction> instructions =
 					new ArrayList<>(block.instructions());
+				// As we move backward through the instructions, accumulate
+				// reachable edges that earlier instructions might yet be pushed
+				// through.
+				final Set<L2PcOperand> reachableTargetEdges = new HashSet<>();
 				for (int i = instructions.size() - 1; i >= 0; i--)
 				{
 					final L2Instruction instruction = instructions.get(i);
-					final @Nullable List<L2PcOperand> edgesToMoveThrough =
+					final @Nullable Set<L2PcOperand> edgesToMoveThrough =
 						successorEdgesToMoveThrough(
-							instruction, registersConsumedLaterInBlock);
+							instruction,
+							registersConsumedLaterInBlock,
+							reachableTargetEdges);
 					if (edgesToMoveThrough != null)
 					{
 						assert !edgesToMoveThrough.isEmpty();
@@ -479,6 +485,10 @@ public final class L2Optimizer
 						// can't be moved out of the block.
 						registersConsumedLaterInBlock.addAll(
 							instruction.sourceRegisters());
+						// Also record any mid-block exit edges, so that prior
+						// instructions can decide whether to replicate there as
+						// well.
+						reachableTargetEdges.addAll(instruction.targetEdges());
 					}
 				}
 			}
@@ -498,12 +508,17 @@ public final class L2Optimizer
 	 *        given one within the same block.  If the given instruction
 	 *        produces an output consumed by a later instruction, the given
 	 *        instruction cannot be moved forward out of its basic block.
+	 * @param candidateTargetEdges
+	 *        The edges that this instruction might be moved through.  These are
+	 *        all outbound edges in instructions that occur later in the current
+	 *        basic block.
 	 * @return The successor {@link L2PcOperand}s through which the instruction
 	 *         can be moved, or {@code null} if the instruction should not move.
 	 */
-	private static @Nullable List<L2PcOperand> successorEdgesToMoveThrough (
+	private static @Nullable Set<L2PcOperand> successorEdgesToMoveThrough (
 		final L2Instruction instruction,
-		final Set<L2Register> registersConsumedLaterInSameBlock)
+		final Set<L2Register> registersConsumedLaterInSameBlock,
+		final Set<L2PcOperand> candidateTargetEdges)
 	{
 		if (instruction.hasSideEffect()
 			|| instruction.altersControlFlow()
@@ -523,8 +538,7 @@ public final class L2Optimizer
 			// the given instruction into later blocks.
 			return null;
 		}
-		final L2BasicBlock block = instruction.basicBlock;
-		if (block.successorEdgesCount() == 1)
+		if (candidateTargetEdges.size() == 1)
 		{
 			// There's only one successor edge.  Since the CFG is in edge-split
 			// form, the successor might have multiple predecessors.  Don't move
@@ -533,18 +547,16 @@ public final class L2Optimizer
 			// splitting is eventually implemented, it should clean up this case
 			// by duplicating the successor block just for this edge.
 			final L2BasicBlock successor =
-				block.successorEdgeAt(0).targetBlock();
+				candidateTargetEdges.iterator().next().targetBlock();
 			if (successor.predecessorEdgesCount() > 1)
 			{
 				return null;
 			}
 		}
-		final List<L2PcOperand> destinations = new ArrayList<>();
+		final Set<L2PcOperand> destinations = new HashSet<>();
 		boolean shouldMoveInstruction = false;
-		final Iterator<L2PcOperand> iterator = block.successorEdgesIterator();
-		while (iterator.hasNext())
+		for (final L2PcOperand edge : candidateTargetEdges)
 		{
-			final L2PcOperand edge = iterator.next();
 			final L2BasicBlock targetBlock = edge.targetBlock();
 			assert targetBlock.predecessorEdgesCount() == 1
 				: "CFG is not in edge-split form";
@@ -589,7 +601,7 @@ public final class L2Optimizer
 					// them, if any.
 					break;
 				}
-				final L2_PHI_PSEUDO_OPERATION<?, ?> phiOperation =
+				final L2_PHI_PSEUDO_OPERATION<?, ?, ?> phiOperation =
 					cast(instruction.operation());
 				final L2WriteOperand<?> targetWriter =
 					phiOperation.destinationRegisterWrite(instruction);
@@ -1036,16 +1048,17 @@ public final class L2Optimizer
 	{
 		for (final L2BasicBlock block : blocks)
 		{
+			final List<L2PcOperand> allEdgesFromBlock = new ArrayList<>();
 			for (final L2Instruction instruction : block.instructions())
 			{
 				assert !instruction.operation().isPhi()
 					|| instruction.sourceRegisters().size()
 					== block.predecessorEdgesCount();
+				allEdgesFromBlock.addAll(instruction.targetEdges());
 			}
 			// Check edges going forward.
-			final L2Instruction lastInstruction = block.finalInstruction();
-			assert lastInstruction.targetEdges().equals(
-				block.successorEdgesCopy());
+			assert new HashSet<>(allEdgesFromBlock).equals(
+				new HashSet<> (block.successorEdgesCopy()));
 			for (final L2PcOperand edge : block.successorEdgesCopy())
 			{
 				assert edge.sourceBlock() == block;

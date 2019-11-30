@@ -138,6 +138,17 @@ extends L2Operand
 		manifest = newManifest;
 	}
 
+	/**
+	 * Answer this edge's source {@link L2Instruction}.  Fail if this edge has
+	 * not yet been installed in an instruction.
+	 *
+	 * @return The {@link L2Instruction} that's the source of this edge.
+	 */
+	public L2Instruction sourceInstruction ()
+	{
+		return stripNull(instruction);
+	}
+
 	@Override
 	public L2OperandType operandType ()
 	{
@@ -191,7 +202,10 @@ extends L2Operand
 		sourceBlock.removeSuccessorEdge(this);
 		targetBlock.removePredecessorEdge(this);
 		this.instruction = null;
-		sourceBlock.removedControlFlowInstruction();
+		if (theInstruction.operation().altersControlFlow())
+		{
+			sourceBlock.removedControlFlowInstruction();
+		}
 		super.instructionWasRemoved(theInstruction);
 	}
 
@@ -235,6 +249,13 @@ extends L2Operand
 				? "pc " + offset() + ": "
 				: "",
 			targetBlock.name());
+	}
+
+	@Override
+	public void adjustCloneForInstruction (final L2Instruction theInstruction)
+	{
+		super.adjustCloneForInstruction(theInstruction);
+		instruction = null;
 	}
 
 	/**

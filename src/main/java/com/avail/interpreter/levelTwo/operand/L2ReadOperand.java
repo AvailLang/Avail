@@ -266,7 +266,9 @@ extends L2Operand
 	 *
 	 * @return The requested instruction.
 	 */
-	public abstract L2_MOVE<? extends L2Register> phiMoveOperation ();
+	public abstract
+	L2_MOVE<R, ? extends L2ReadOperand<R>, ? extends L2WriteOperand<R>>
+	phiMoveOperation ();
 
 	/**
 	 * Answer the {@link L2Instruction} which generates the value that will
@@ -286,7 +288,8 @@ extends L2Operand
 		{
 			if (other.operation().isMove())
 			{
-				other = L2_MOVE.sourceOf(other).definition().instruction();
+				final L2_MOVE<?, ?, ?> operation = cast(other.operation());
+				other = operation.sourceOf(other).definition().instruction();
 				continue;
 			}
 			if (bypassImmutables
@@ -323,15 +326,16 @@ extends L2Operand
 				earliestBoxed = cast(def);
 			}
 			final L2Instruction instruction = def.instruction();
-			final L2Operation operation = instruction.operation();
-			if (operation.isMove())
+			if (instruction.operation().isMove())
 			{
-				def = L2_MOVE.sourceOf(instruction).definition();
+				final L2_MOVE<?, ?, ?> operation =
+					cast(instruction.operation());
+				def = operation.sourceOf(instruction).definition();
 				continue;
 			}
 			//TODO: Trace back through L2_[BOX|UNBOX]_[INT|FLOAT], etc.
 			if (bypassImmutables
-				&& operation instanceof L2_MAKE_IMMUTABLE)
+				&& instruction.operation() == L2_MAKE_IMMUTABLE.instance)
 			{
 				def = L2_MAKE_IMMUTABLE.sourceOfImmutable(instruction)
 					.definition();

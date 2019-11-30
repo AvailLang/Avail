@@ -163,4 +163,16 @@ extends PublicCloneable<L2Operand>
 
 	@Override
 	public abstract String toString ();
+
+	/**
+	 * This is a freshly cloned operand.  Adjust it for use in the given
+	 * {@link L2Instruction}.
+	 *
+	 * @param theInstruction
+	 *        The theInstruction that this operand is being installed in.
+	 */
+	public void adjustCloneForInstruction (final L2Instruction theInstruction)
+	{
+		// Do nothing by default.
+	}
 }

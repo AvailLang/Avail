@@ -205,14 +205,14 @@ public class L2ControlFlowGraphVisualizer
 			basicBlock,
 			b ->
 			{
-				final int offset = basicBlock.offset();
+				final int offset = b.offset();
 				final int id = offset == -1 ? ++blockId : offset;
 				final String prefix =
 					String.format(offset == -1 ? "[id: %d]" : "[pc: %d]", id);
 				return String.format(
 					"%s %s",
 					prefix,
-					basicBlock.name().replaceAll("[\\\"\\\\]", ""));
+					b.name().replaceAll("[\\\"\\\\]", ""));
 			});
 	}
 
@@ -265,9 +265,13 @@ public class L2ControlFlowGraphVisualizer
 	 *
 	 * @param instruction
 	 *        An {@code L2Instruction}.
+	 * @param writer
+	 *        A {@link GraphWriter} used to mediate the styling.
 	 * @return The requested description.
 	 */
-	private static String instruction (final L2Instruction instruction)
+	private static String instruction (
+		final L2Instruction instruction,
+		final GraphWriter writer)
 	{
 		final StringBuilder builder = new StringBuilder();
 		// Hoist a comment operand, if one is present.
@@ -284,7 +288,9 @@ public class L2ControlFlowGraphVisualizer
 				// In particular, Courier, Arial, Helvetica, and Times are
 				// supported.
 				builder.append(
-					"<font face=\"Helvetica\" color=\"#404040\"><i>");
+					String.format(
+						"<font face=\"Helvetica\" color=\"%s\"><i>",
+						writer.adjust("#404040/a0a0a0")));
 				builder.append(escape(operand.toString()));
 				builder.append("</i></font><br/>");
 			}
@@ -324,33 +330,33 @@ public class L2ControlFlowGraphVisualizer
 		final List<L2Instruction> instructions = basicBlock.instructions();
 		final @Nullable L2Instruction first =
 			!instructions.isEmpty() ? basicBlock.instructions().get(0) : null;
-		final String bgcolor;
+		final String fillcolor;
 		final String fontcolor;
 		if (!started)
 		{
-			bgcolor = "#202080";
-			fontcolor = "#ffffff";
+			fillcolor = "#202080/303000";
+			fontcolor = "#ffffff/e0e0e0";
 		}
 		else if (basicBlock.instructions().stream().anyMatch(
 			i -> i.operation() == L2_UNREACHABLE_CODE.instance))
 		{
-			bgcolor = "#400000";
-			fontcolor = "#ffffff";
+			fillcolor = "#400000/600000";
+			fontcolor = "#ffffff/ffffff";
 		}
 		else if (basicBlock.isLoopHead)
 		{
-			bgcolor = "#9070ff";
-			fontcolor = "#000000";
+			fillcolor = "#9070ff/302090";
+			fontcolor = "#000000/f0f0f0";
 		}
 		else if (first != null && first.operation().isEntryPoint(first))
 		{
-			bgcolor = "#ffd394";
-			fontcolor = "#000000";
+			fillcolor = "#ffd394/604000";
+			fontcolor = "#000000/e0e0e0";
 		}
 		else
 		{
-			bgcolor = "#c1f0f6";
-			fontcolor = "#000000";
+			fillcolor = "#c1f0f6/104048";
+			fontcolor = "#000000/e0e0e0";
 		}
 		// The selection of Helvetica as the font is important. Some
 		// renderers, like Viz.js, only seem to fully support a small number
@@ -363,24 +369,22 @@ public class L2ControlFlowGraphVisualizer
 			"<tr>"
 				+ "<td align=\"left\" balign=\"left\" border=\"1\" "
 				+ "bgcolor=\"%s\">"
-					+ "<font face=\"Helvetica\" color=\"%s\">%s</font>"
+					+ "<font face=\"Courier\" color=\"%s\">%s</font>"
 				+ "</td>"
 			+ "</tr>",
-			bgcolor,
-			fontcolor,
+			writer.adjust(fillcolor),
+			writer.adjust(fontcolor),
 			escape(basicBlock.name())));
 		if (!instructions.isEmpty())
 		{
-			int instructionId = 0;
+			int portId = 0;
 			for (final L2Instruction instruction : basicBlock.instructions())
 			{
-				final int offset = instruction.offset();
-				final int id = offset == -1 ? ++instructionId : offset;
 				builder.append(String.format(
 					"<tr><td align=\"left\" balign=\"left\" border=\"1\" "
 						+ "port=\"%d\" valign=\"top\">",
-					id));
-				builder.append(instruction(instruction));
+					++portId));
+				builder.append(instruction(instruction, writer));
 				builder.append("</td></tr>");
 			}
 		}
@@ -425,20 +429,18 @@ public class L2ControlFlowGraphVisualizer
 			targetBlock.instructions().stream()
 				.anyMatch(
 					instr -> instr.operation() == L2_UNREACHABLE_CODE.instance);
-		final Iterator<L2PcOperand> iterator =
-			targetBlock.predecessorEdgesIterator();
-		while (iterator.hasNext())
+		targetBlock.predecessorEdgesIterator().forEachRemaining(edge ->
 		{
-			final L2PcOperand edge = iterator.next();
 			final L2BasicBlock sourceBlock = edge.sourceBlock();
-			final L2Instruction last = sourceBlock.finalInstruction();
-			final L2NamedOperandType[] types = last.operation().operandTypes();
-			final L2Operand[] operands = last.operands();
+			final L2Instruction sourceInstruction = edge.sourceInstruction();
+			final L2NamedOperandType[] types =
+				sourceInstruction.operation().operandTypes();
+			final L2Operand[] operands = sourceInstruction.operands();
 			int i;
 			for (i = 0; i < operands.length; i++)
 			{
 				// Find the L2PcOperand corresponding to this edge.
-				final L2Operand operand = last.operand(i);
+				final L2Operand operand = sourceInstruction.operand(i);
 				if (operand.operandType() == PC
 					&& ((L2PcOperand) operand).targetBlock() == targetBlock)
 				{
@@ -529,35 +531,29 @@ public class L2ControlFlowGraphVisualizer
 			builder.append("</td></tr></table>");
 			try
 			{
+				final int sourceSubscript =
+					sourceBlock.instructions().indexOf(sourceInstruction) + 1;
 				writer.edge(
 					node(
 						basicBlockName(sourceBlock),
-						Integer.toString(
-							sourceBlock.finalInstruction().offset() != -1
-								? sourceBlock.finalInstruction().offset()
-								: sourceBlock.instructions().size())),
-					targetBlock.offset() != -1
-						? sourceBlock.offset() <= targetBlock.offset()
-							? node(basicBlockName(targetBlock))
-							: node(
-								basicBlockName(targetBlock),
-								Integer.toString(targetBlock.offset()))
-						: node(basicBlockName(targetBlock)),
+						Integer.toString(sourceSubscript)),
+					node(basicBlockName(targetBlock)),
 					attr ->
 					{
 						if (!started)
 						{
-							attr.attribute("color", "#4040ff");
+							attr.attribute("color", "#4040ff/8080ff");
 							attr.attribute("style", "dotted");
 						}
 						else if (isTargetTheUnreachableBlock)
 						{
-							attr.attribute("color", "#804040");
+							attr.attribute("color", "#804040/c06060");
 							attr.attribute("style", "dotted");
 						}
 						else if (edge.isBackward())
 						{
-							attr.attribute("color", "#9070ff");
+							attr.attribute("constraint", "false");
+							attr.attribute("color", "#9070ff/6050ff");
 							attr.attribute("style", "dashed");
 						}
 						else
@@ -570,7 +566,7 @@ public class L2ControlFlowGraphVisualizer
 									// Nothing. The default styling will be fine.
 									break;
 								case FAILURE:
-									attr.attribute("color", "#e54545");
+									attr.attribute("color", "#e54545/c03030");
 									break;
 								case OFF_RAMP:
 									attr.attribute("style", "dashed");
@@ -578,6 +574,10 @@ public class L2ControlFlowGraphVisualizer
 								case ON_RAMP:
 									attr.attribute("style", "dashed");
 									attr.attribute("color", "#6aaf6a");
+									break;
+								case REFERENCED_AS_INT:
+									attr.attribute("style", "dashed");
+									attr.attribute("color", "#6080ff");
 									break;
 							}
 						}
@@ -588,7 +588,7 @@ public class L2ControlFlowGraphVisualizer
 			{
 				throw new UncheckedIOException(e);
 			}
-		}
+		});
 	}
 
 	/**
@@ -603,6 +603,7 @@ public class L2ControlFlowGraphVisualizer
 			true,
 			charactersPerLine,
 			accumulator,
+			true,
 			"The Avail Foundation");
 		try
 		{
@@ -617,25 +618,28 @@ public class L2ControlFlowGraphVisualizer
 			// supported.
 			writer.graph(graph ->
 			{
+				graph.attribute("bgcolor", "#00ffff/000000");
 				graph.attribute("rankdir", "TB");
 				graph.attribute("newrank", "true");
 				graph.attribute("overlap", "false");
 				graph.attribute("splines", "true");
 				graph.defaultAttributeBlock(NODE, attr ->
 				{
+					attr.attribute("bgcolor", "#ffffff/a0a0a0a0");
+					attr.attribute("color", "#000000/b0b0b0");
 					attr.attribute("fixedsize", "false");
-					attr.attribute("fontname", "Courier");
-					attr.attribute("fontsize", "8");
-					attr.attribute("fontcolor", "#000000");
+					attr.attribute("fontname", "Helvetica");
+					attr.attribute("fontsize", "11");
+					attr.attribute("fontcolor", "#000000/d0d0d0");
 					attr.attribute("shape", "none");
 				});
 				graph.defaultAttributeBlock(EDGE, attr ->
 				{
-					attr.attribute("fontname", "Courier");
-					attr.attribute("fontsize", "6");
-					attr.attribute("fontcolor", "#000000");
+					attr.attribute("fontname", "Helvetica");
+					attr.attribute("fontsize", "8");
+					attr.attribute("fontcolor", "#000000/dddddd");
 					attr.attribute("style", "solid");
-					attr.attribute("color", "#000000");
+					attr.attribute("color", "#000000/e0e0e0");
 				});
 				final Set<L2BasicBlock> startedBlocks = new HashSet<>(
 					controlFlowGraph.basicBlockOrder);

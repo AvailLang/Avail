@@ -44,9 +44,11 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 import com.avail.interpreter.Primitive.Result.CONTINUATION_CHANGED
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operation.L2_JUMP
 import com.avail.interpreter.levelTwo.operation.L2_RESTART_CONTINUATION
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
+import com.avail.optimizer.L2Generator
 
 /**
  * **Primitive:** Restart the given [continuation][A_Continuation]. Make sure
@@ -121,20 +123,21 @@ object P_RestartContinuation : Primitive(
 		if (manifest.hasSemanticValue(label) &&
 			manifest.semanticValueToSynonym(label) == synonym)
 		{
-			translator.emitLocalRestartWithOriginalArguments()
+			// Simply jump to the restartLoopHeadBlock, where the n@1 semantic
+			// slots will be connected to the phis.
+			generator.addInstruction(
+				L2_JUMP.instance,
+				L2Generator.backEdgeTo(generator.restartLoopHeadBlock!!))
 			return true
 		}
-
 
 		// A restart works with every continuation that is created by a label.
 		// First, pop out of the Java stack frames back into the outer L2 run
 		// loop (which saves/restores the current frame and continues at the
 		// next L2 instruction).
-		translator.addInstruction(L2_RESTART_CONTINUATION.instance, arguments[0])
+		translator.addInstruction(
+			L2_RESTART_CONTINUATION.instance, continuationReg)
 		assert(!translator.generator.currentlyReachable())
-		//		translator.startBlock(
-		//			translator.createBasicBlock(
-		//				"unreachable after L2_RESTART_CONTINUATION"));
 		return true
 	}
 }

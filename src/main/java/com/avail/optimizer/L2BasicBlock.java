@@ -232,7 +232,7 @@ public final class L2BasicBlock
 				}
 				// The body of the loop is required to still have available
 				// every semantic value mentioned in the original phis.
-				final L2_PHI_PSEUDO_OPERATION<?, ?> phiOperation =
+				final L2_PHI_PSEUDO_OPERATION<?, ?, ?> phiOperation =
 					cast(instruction.operation());
 				final L2SemanticValue semanticValue =
 					phiOperation.sourceRegisterReads(instruction).get(0)
@@ -266,7 +266,7 @@ public final class L2BasicBlock
 					// Phi functions are always at the start of a block.
 					break;
 				}
-				final L2_PHI_PSEUDO_OPERATION<?, ?> phiOperation =
+				final L2_PHI_PSEUDO_OPERATION<?, ?, ?> phiOperation =
 					cast(instruction.operation());
 				final L2Instruction replacement =
 					phiOperation.withoutIndex(instruction, index);

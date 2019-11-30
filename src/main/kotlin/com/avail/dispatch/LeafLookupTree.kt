@@ -46,10 +46,6 @@ import java.lang.String.format
  * @param Result
  *   What we expect to produce from a lookup activity, such as the tuple of
  *   most-specific matching method definitions for some arguments.
- * @param AdaptorMemento
- *   The adaptor for interpreting the values in the tree, and deciding how to
- *   narrow the elements that are still applicable at each internal node of the
- *   tree.
  * @property finalResult
  *   The result of the lookup.
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
@@ -65,54 +61,53 @@ import java.lang.String.format
  */
 internal class LeafLookupTree<
 	Element : A_BasicObject,
-	Result : A_BasicObject,
-	AdaptorMemento>
+	Result : A_BasicObject>
 internal constructor(private val finalResult: Result)
-: LookupTree<Element, Result, AdaptorMemento>()
+: LookupTree<Element, Result>()
 {
 	override val solutionOrNull: Result?
 		get() = finalResult
 
-	override fun lookupStepByTypes(
+	override fun <AdaptorMemento>lookupStepByTypes(
 		argTypes: List<A_Type>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
-		memento: AdaptorMemento): LookupTree<Element, Result, AdaptorMemento>
+		memento: AdaptorMemento): LookupTree<Element, Result>
 	{
 		error("Attempting to lookup past leaf of decision tree")
 		return this
 	}
 
-	override fun lookupStepByTypes(
+	override fun <AdaptorMemento>lookupStepByTypes(
 		argTypes: A_Tuple,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
-		memento: AdaptorMemento): LookupTree<Element, Result, AdaptorMemento>
+		memento: AdaptorMemento): LookupTree<Element, Result>
 	{
 		error("Attempting to lookup past leaf of decision tree")
 		return this
 	}
 
-	override fun lookupStepByValues(
+	override fun <AdaptorMemento>lookupStepByValues(
 		argValues: List<A_BasicObject>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
-		memento: AdaptorMemento): LookupTree<Element, Result, AdaptorMemento>
+		memento: AdaptorMemento): LookupTree<Element, Result>
 	{
 		error("Attempting to lookup past leaf of decision tree")
 		return this
 	}
 
-	override fun lookupStepByValues(
+	override fun <AdaptorMemento>lookupStepByValues(
 		argValues: A_Tuple,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
-		memento: AdaptorMemento): LookupTree<Element, Result, AdaptorMemento>
+		memento: AdaptorMemento): LookupTree<Element, Result>
 	{
 		error("Attempting to lookup past leaf of decision tree")
 		return this
 	}
 
-	override fun lookupStepByValue(
+	override fun <AdaptorMemento>lookupStepByValue(
 		probeValue: A_BasicObject,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
-		memento: AdaptorMemento): LookupTree<Element, Result, AdaptorMemento>
+		memento: AdaptorMemento): LookupTree<Element, Result>
 	{
 		error("Attempting to lookup past leaf of decision tree")
 		return this

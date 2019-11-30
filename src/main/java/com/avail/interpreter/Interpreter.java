@@ -1879,7 +1879,6 @@ public final class Interpreter
 	 *        The {@link A_Continuation} to restart.
 	 * @return The requested {@code StackReifier}.
 	 */
-	@SuppressWarnings("unused")
 	@ReferencedInGeneratedCode
 	public StackReifier reifierToRestart (
 		final A_Continuation continuation)
@@ -1979,7 +1978,6 @@ public final class Interpreter
 	 *        The arguments with which to restart the continuation.
 	 * @return The requested {@code StackReifier}.
 	 */
-	@SuppressWarnings("unused")
 	@ReferencedInGeneratedCode
 	public StackReifier reifierToRestartWithArguments (
 		final A_Continuation continuation,

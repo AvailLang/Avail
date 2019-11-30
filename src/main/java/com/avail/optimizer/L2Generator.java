@@ -725,20 +725,27 @@ public final class L2Generator
 	 * and destination are effectively merged.  This is justified by virtue of
 	 * SSA (static-single-assignment) being in effect.
 	 *
-	 * @param <R>
-	 *        The kind of L2Register to move.
 	 * @param moveOperation
 	 *        The {@link L2_MOVE} operation to generate.
 	 * @param sourceRead
 	 *        Which {@link L2ReadBoxedOperand} to read.
 	 * @param destinationWrite
 	 *        Which {@link L2WriteBoxedOperand} to write.
+	 * @param <R>
+	 *        The kind of {@link L2Register} to move.
+	 * @param <RR>
+	 *        The kind of {@link L2ReadOperand} for reading.
+	 * @param <WR>
+	 *        The kind of {@link L2WriteOperand} for writing.
 	 */
-	<R extends L2Register>
+	<
+		R extends L2Register,
+		RR extends L2ReadOperand<R>,
+		WR extends L2WriteOperand<R>>
 	void moveRegister (
-		final L2_MOVE<R> moveOperation,
-		final L2ReadOperand<R> sourceRead,
-		final L2WriteOperand<R> destinationWrite)
+		final L2_MOVE<R, RR, WR> moveOperation,
+		final RR sourceRead,
+		final WR destinationWrite)
 	{
 		assert !currentManifest.hasSemanticValue(
 			destinationWrite.semanticValue());
@@ -821,6 +828,7 @@ public final class L2Generator
 	 *        primitive.
 	 * @return The semantic value representing the primitive result.
 	 */
+	@SuppressWarnings("MethodMayBeStatic")
 	public L2SemanticValue primitiveInvocation (
 		final Primitive primitive,
 		final List<L2ReadBoxedOperand> argumentReads)
@@ -852,6 +860,7 @@ public final class L2Generator
 	 * @param name The name of the new loop head block.
 	 * @return The loop head block.
 	 */
+	@SuppressWarnings("MethodMayBeStatic")
 	public L2BasicBlock createLoopHeadBlock (final String name)
 	{
 		return new L2BasicBlock(name, true);
@@ -1030,9 +1039,7 @@ public final class L2Generator
 		}
 
 		final int afterPrimitiveOffset =
-			afterOptionalInitialPrimitiveBlock == null
-				? stripNull(initialBlock).offset()
-				: afterOptionalInitialPrimitiveBlock.offset();
+			afterOptionalInitialPrimitiveBlock.offset();
 		assert afterPrimitiveOffset >= 0;
 
 		chunk = L2Chunk.allocate(
@@ -1080,11 +1087,19 @@ public final class L2Generator
 	static final Statistic finalGenerationStat = new Statistic(
 		"Final chunk generation", L2_OPTIMIZATION_TIME);
 
+	/**
+	 * A class for finding the highest numbered register of each time.
+	 */
 	public static class RegisterCounter
 	implements L2OperandDispatcher
 	{
+		/** The highest numbered boxed register encountered so far. */
 		int objectMax = -1;
+
+		/** The highest numbered int register encountered so far. */
 		int intMax = -1;
+
+		/** The highest numbered float register encountered so far. */
 		int floatMax = -1;
 
 		@Override
