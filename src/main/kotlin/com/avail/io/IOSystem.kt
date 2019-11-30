@@ -209,7 +209,7 @@ class IOSystem constructor(val runtime: AvailRuntime)
 				path, options, fileExecutor, *attributes)
 
 	/**
-	 * A `BufferKey` identifies a file buffer in the [ ][cachedBuffers].
+	 * A `BufferKey` identifies a file buffer in the [cache][cachedBuffers].
 	 *
 	 * @property fileHandle
 	 *   The [file handle][FileHandle] that represents the provenance of the
@@ -230,7 +230,8 @@ class IOSystem constructor(val runtime: AvailRuntime)
 	 *   is measured in bytes, and need not be aligned.
 	 */
 	class BufferKey constructor(
-		private val fileHandle: FileHandle, private val startPosition: Long)
+		private val fileHandle: FileHandle,
+		private val startPosition: Long)
 	{
 		override fun equals(other: Any?): Boolean
 		{

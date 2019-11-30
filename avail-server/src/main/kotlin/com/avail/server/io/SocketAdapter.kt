@@ -257,7 +257,6 @@ class SocketAdapter @Throws(IOException::class) constructor(
 					{
 						strongChannel.closeTransport()
 					}
-					Unit
 				},
 				{ e, _, _ ->
 					logger.log(
@@ -266,7 +265,6 @@ class SocketAdapter @Throws(IOException::class) constructor(
 						e)
 					strongChannel.closeImmediately(
 						CommunicationErrorDisconnect(e))
-					Unit
 				}))
 	}
 
@@ -292,7 +290,6 @@ class SocketAdapter @Throws(IOException::class) constructor(
 					{
 						strongChannel.closeImmediately(reason)
 					}
-					Unit
 				},
 				{ e, _, _ ->
 					logger.log(
@@ -301,7 +298,6 @@ class SocketAdapter @Throws(IOException::class) constructor(
 						e)
 					strongChannel.closeImmediately(
 						CommunicationErrorDisconnect(e))
-					Unit
 				}))
 	}
 
@@ -390,7 +386,6 @@ class SocketAdapter @Throws(IOException::class) constructor(
 							buffer.flip()
 							continuation(buffer)
 						}
-						Unit
 					},
 					{ e, _, _ ->
 						logger.log(

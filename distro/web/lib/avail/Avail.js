@@ -93,7 +93,7 @@ function Avail (hostParam, portParam)
 	{
 		get: function ()
 		{
-			return 4;
+			return 5;
 		}
 	});
 

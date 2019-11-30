@@ -284,7 +284,7 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 			{
 				ref = resolver.resolve(
 					moduleName.asSibling(
-						moduleImport.moduleName.asNativeString()), null)
+						moduleImport.moduleName.asNativeString()))
 			}
 			catch (e: UnresolvedDependencyException)
 			{

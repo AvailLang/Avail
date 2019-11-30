@@ -33,20 +33,34 @@
 package com.avail.server
 
 import com.avail.AvailRuntime
-import com.avail.builder.*
+import com.avail.builder.AvailBuilder
+import com.avail.builder.ModuleName
+import com.avail.builder.ModuleNameResolver
+import com.avail.builder.ModuleRoot
+import com.avail.builder.ModuleRoots
+import com.avail.builder.RenamesFileParserException
+import com.avail.builder.ResolvedModuleName
+import com.avail.builder.UnresolvedDependencyException
+import com.avail.builder.UnresolvedModuleException
 import com.avail.descriptor.A_Fiber
 import com.avail.descriptor.A_Module
 import com.avail.descriptor.FiberDescriptor.ExecutionState
 import com.avail.interpreter.Interpreter
 import com.avail.persistence.IndexedFileException
 import com.avail.persistence.IndexedRepositoryManager
+import com.avail.server.AvailServer.ModuleNodeType.DIRECTORY
+import com.avail.server.AvailServer.ModuleNodeType.MODULE
+import com.avail.server.AvailServer.ModuleNodeType.PACKAGE
+import com.avail.server.AvailServer.ModuleNodeType.REPRESENTATIVE
+import com.avail.server.AvailServer.ModuleNodeType.RESOURCE
+import com.avail.server.AvailServer.ModuleNodeType.ROOT
 import com.avail.server.configuration.AvailServerConfiguration
 import com.avail.server.configuration.CommandLineConfigurator
 import com.avail.server.configuration.EnvironmentConfigurator
 import com.avail.server.io.AvailServerChannel
+import com.avail.server.io.AvailServerChannel.ProtocolState.BINARY
 import com.avail.server.io.AvailServerChannel.ProtocolState.COMMAND
 import com.avail.server.io.AvailServerChannel.ProtocolState.ELIGIBLE_FOR_UPGRADE
-import com.avail.server.io.AvailServerChannel.ProtocolState.BINARY
 import com.avail.server.io.AvailServerChannel.ProtocolState.IO
 import com.avail.server.io.AvailServerChannel.ProtocolState.VERSION_NEGOTIATION
 import com.avail.server.io.RunCompletionDisconnect
@@ -54,8 +68,16 @@ import com.avail.server.io.RunFailureDisconnect
 import com.avail.server.io.ServerInputChannel
 import com.avail.server.io.ServerMessageDisconnect
 import com.avail.server.io.WebSocketAdapter
-import com.avail.server.messages.*
-import com.avail.utility.Mutable
+import com.avail.server.messages.Command
+import com.avail.server.messages.CommandMessage
+import com.avail.server.messages.CommandParseException
+import com.avail.server.messages.LoadModuleCommandMessage
+import com.avail.server.messages.Message
+import com.avail.server.messages.RunEntryPointCommandMessage
+import com.avail.server.messages.SimpleCommandMessage
+import com.avail.server.messages.UnloadModuleCommandMessage
+import com.avail.server.messages.UpgradeCommandMessage
+import com.avail.server.messages.VersionCommandMessage
 import com.avail.utility.MutableOrNull
 import com.avail.utility.configuration.ConfigurationException
 import com.avail.utility.evaluation.Continuation0
@@ -64,23 +86,22 @@ import com.avail.utility.json.JSONWriter
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.net.InetSocketAddress
-import java.nio.file.*
+import java.nio.file.FileVisitOption
+import java.nio.file.FileVisitResult
+import java.nio.file.FileVisitor
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.*
-import java.util.Collections.*
+import java.util.Collections.sort
+import java.util.Collections.synchronizedMap
+import java.util.Collections.unmodifiableSet
 import java.util.concurrent.Semaphore
 import java.util.logging.Level
 import java.util.logging.Logger
-
-import kotlin.collections.List
-import kotlin.collections.Map
-import kotlin.collections.MutableList
-import kotlin.collections.Set
 import kotlin.collections.component1
 import kotlin.collections.component2
-import kotlin.collections.isNotEmpty
-import kotlin.collections.iterator
-import kotlin.collections.listOf
 import kotlin.collections.set
 
 /**
@@ -237,26 +258,70 @@ class AvailServer constructor(
 	}
 
 	/**
+	 * A `ModuleNodeType` represents the type of a [ModuleNode].
+	 *
+	 * @author Todd L Smith &lt;todd@availlang.org&gt;
+	 */
+	internal enum class ModuleNodeType
+	{
+		/** Represents an ordinary Avail module. */
+		MODULE,
+
+		/** Represents an Avail package representative. */
+		REPRESENTATIVE,
+
+		/** Represents an Avail package. */
+		PACKAGE,
+
+		/** Represents an Avail root. */
+		ROOT,
+
+		/** Represents an arbitrary directory. */
+		DIRECTORY,
+
+		/** Represents an arbitrary resource. */
+		RESOURCE;
+
+		/** A short description of the receiver. */
+		val label get () = name.toLowerCase()
+	}
+
+	/**
 	 * A `ModuleNode` represents a node in a module tree.
 	 *
-	 * @property name
-	 *   The name associated with the [node][ModuleNode].
+	 * @property localName
+	 *   The local name associated with the [node][ModuleNode].
+	 * @property qualifiedName
+	 *   The fully qualified name associated with the [node][ModuleNode].
+	 * @property type
+	 *   The type associated with the [node][ModuleNode].
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 *
 	 * @constructor
 	 *
 	 * Construct a new `ModuleNode`.
 	 *
-	 * @param name
-	 *   The name.
+	 * @property localName
+	 *   The local name associated with the node.
+	 * @property qualifiedName
+	 *   The fully qualified name associated with the node.
+	 * @property type
+	 *   The type associated with the node. Defaults to `"module"`.
 	 */
-	internal class ModuleNode constructor(val name: String)
+	internal inner class ModuleNode constructor(
+		val localName: String,
+		val qualifiedName: String,
+		val type: ModuleNodeType = MODULE)
 	{
 		/** The children of the [node][ModuleNode]. */
-		private var modules: MutableList<ModuleNode>? = null
+		val modules: MutableList<ModuleNode> by lazy {
+			ArrayList<ModuleNode>()
+		}
 
 		/** The resources of the [node][ModuleNode]. */
-		private var resources: MutableList<ModuleNode>? = null
+		val resources: MutableList<ModuleNode> by lazy {
+			ArrayList<ModuleNode>()
+		}
 
 		/**
 		 * The [exception][Throwable] that prevented evaluation of this
@@ -265,116 +330,110 @@ class AvailServer constructor(
 		var exception: Throwable? = null
 
 		/**
-		 * Add the specified `ModuleNode` as a module.
+		 * Recursively write the receiver to the supplied [JSONWriter].
 		 *
-		 * @param node
-		 *   The child node.
-		 */
-		fun addModule(node: ModuleNode)
-		{
-			var list: MutableList<ModuleNode>? = modules
-			if (list == null)
-			{
-				list = ArrayList()
-				modules = list
-			}
-			list.add(node)
-		}
-
-		/**
-		 * Add the specified `ModuleNode` as a resource.
-		 *
-		 * @param node
-		 *   The child node.
-		 */
-		fun addResource(node: ModuleNode)
-		{
-			var list: MutableList<ModuleNode>? = resources
-			if (list == null)
-			{
-				list = ArrayList()
-				resources = list
-			}
-			list.add(node)
-		}
-
-		/**
-		 * Recursively write the `ModuleNode` to the supplied [JSONWriter].
-		 *
-		 * @param isRoot
-		 *   `true` if the receiver represents a [module root][ModuleRoot],
-		 *   `false` otherwise.
-		 * @param isResource
-		 *   `true` if the receiver represents a resource, `false` otherwise.
 		 * @param writer
 		 *   A `JSONWriter`.
 		 */
-		private fun recursivelyWriteOn(
-			isRoot: Boolean,
-			isResource: Boolean,
-			writer: JSONWriter)
+		private fun recursivelyWriteOn(writer: JSONWriter)
 		{
-			writer.writeObject {
-				writer.write("text")
-				writer.write(name)
-				if (isRoot)
-				{
-					writer.write("isRoot")
-					writer.write(true)
-				}
-				val mods = modules
-				val isPackage = !isRoot && mods != null
-				if (isPackage)
-				{
-					writer.write("isPackage")
-					writer.write(true)
-				}
-				if (isResource)
-				{
-					writer.write("isResource")
-					writer.write(true)
-				}
-				val res = resources
-				if (mods != null || res != null)
-				{
-					writer.write("state")
-					writer.writeObject {
-						writer.write("opened")
-						writer.write(isRoot)
+			// Representatives should not have a visible footprint in the tree;
+			// we want their enclosing packages to represent them.
+			if (type !== REPRESENTATIVE)
+			{
+				writer.writeObject {
+					writer.write("localName")
+					writer.write(localName)
+					writer.write("qualifiedName")
+					writer.write(qualifiedName)
+					writer.write("type")
+					writer.write(type.label)
+					exception?.let {
+						writer.write("error")
+						writer.write(it.localizedMessage)
 					}
-					var missingRepresentative = !isResource
-					writer.write("children")
-					writer.writeArray {
-						if (mods != null)
-						{
-							for (mod in mods)
-							{
-								mod.recursivelyWriteOn(false, false, writer)
-								if (mod.name == name)
-								{
-									missingRepresentative = false
-								}
-							}
-						}
-						if (res != null)
-						{
-							for (r in res)
-							{
-								r.recursivelyWriteOn(false, true, writer)
-							}
-						}
-					}
-					if (missingRepresentative)
+					when (type)
 					{
-						writer.write("missingRepresentative")
-						writer.write(true)
+						PACKAGE ->
+						{
+							// Handle a missing representative as a special
+							// kind of error, but only if another error hasn't
+							// already been reported.
+							if (exception === null
+								&& modules.none { it.localName == localName })
+							{
+								writer.write("error")
+								writer.write("Missing representative")
+							}
+							writeResolutionInformationOn(writer)
+						}
+						MODULE ->
+						{
+							writeResolutionInformationOn(writer)
+						}
+						else -> {}
+					}
+					if (modules.isNotEmpty() || resources.isNotEmpty())
+					{
+						writer.write("childNodes")
+						writer.writeArray {
+							for (module in modules)
+							{
+								module.recursivelyWriteOn(writer)
+							}
+							for (resource in resources)
+							{
+								resource.recursivelyWriteOn(writer)
+							}
+						}
 					}
 				}
-				val e = exception
-				if (e != null)
+			}
+		}
+
+		/**
+		 * Write information that requires [module
+		 * resolution][ModuleNameResolver].
+		 *
+		 * @param writer
+		 *   A `JSONWriter`.
+		 */
+		private fun writeResolutionInformationOn(writer: JSONWriter)
+		{
+			writer.write("status")
+			val resolver = runtime.moduleNameResolver()
+			var resolved: ResolvedModuleName? = null
+			var resolutionException: Throwable? = null
+			val loaded =
+				try
 				{
-					writer.write("error")
-					writer.write(e.localizedMessage)
+					resolved = resolver.resolve(ModuleName(qualifiedName))
+					builder.getLoadedModule(resolved) !== null
+				}
+				catch (e: UnresolvedModuleException)
+				{
+					resolutionException = e
+					false
+				}
+			writer.write(if (loaded) "loaded" else "not loaded")
+			if (resolved?.isRename == true)
+			{
+				writer.write("resolvedName")
+				writer.write(resolved.qualifiedName)
+			}
+			else if (exception === null && resolutionException !== null)
+			{
+				writer.write("error")
+				writer.write(
+					resolutionException.localizedMessage)
+			}
+			resolver.renameRulesInverted[qualifiedName]?.let {
+				writer.write("redirectedNames")
+				writer.writeArray {
+					for (name in it)
+					{
+						writer.write(name)
+					}
 				}
 			}
 		}
@@ -387,7 +446,145 @@ class AvailServer constructor(
 		 */
 		fun writeOn(writer: JSONWriter)
 		{
-			recursivelyWriteOn(true, false, writer)
+			recursivelyWriteOn(writer)
+		}
+	}
+
+	/**
+	 * Answer a [visitor][FileVisitor] able to visit every source module
+	 * beneath the specified [module root][ModuleRoot].
+	 *
+	 * @param root
+	 *   A module root.
+	 * @param tree
+	 *   The [holder][MutableOrNull] for the resultant tree of
+	 *   [modules][ModuleNode].
+	 * @return
+	 *   A `FileVisitor`.
+	 */
+	private fun sourceModuleVisitor(
+		root: ModuleRoot,
+		tree: MutableOrNull<ModuleNode>): FileVisitor<Path>
+	{
+		val extension = ModuleNameResolver.availExtension
+		var isRoot = true
+		val stack = ArrayDeque<ModuleNode>()
+		return object : FileVisitor<Path>
+		{
+			override fun preVisitDirectory(
+				dir: Path,
+				attrs: BasicFileAttributes): FileVisitResult
+			{
+				// If this directory is a root, then create its node now and
+				// then recurse into it. Turn off the isRoot flag.
+				if (isRoot)
+				{
+					isRoot = false
+					val node = ModuleNode(root.name, "/${root.name}", ROOT)
+					tree.value = node
+					stack.add(node)
+					return FileVisitResult.CONTINUE
+				}
+				val parent = stack.peekFirst()!!
+				// The directory is not a root. If it has an Avail
+				// extension, then it is a package.
+				val fileName = dir.fileName.toString()
+				if (fileName.endsWith(extension))
+				{
+					val localName = fileName.substring(
+						0, fileName.length - extension.length)
+					val node = ModuleNode(
+						localName,
+						"${parent.qualifiedName}/$localName",
+						PACKAGE)
+					parent.modules.add(node)
+					stack.addFirst(node)
+					return FileVisitResult.CONTINUE
+				}
+				// This is an ordinary directory.
+				val node = ModuleNode(
+					fileName,
+					"${parent.qualifiedName}/$fileName",
+					DIRECTORY)
+				parent.resources.add(node)
+				stack.addFirst(node)
+				return FileVisitResult.CONTINUE
+			}
+
+			override fun postVisitDirectory(
+				dir: Path,
+				e: IOException?): FileVisitResult
+			{
+				stack.removeFirst()
+				return FileVisitResult.CONTINUE
+			}
+
+			override fun visitFile(
+				file: Path,
+				attrs: BasicFileAttributes): FileVisitResult
+			{
+				// The root should be a directory, not a file.
+				if (isRoot)
+				{
+					throw IOException("alleged root is not a directory")
+				}
+				// A file with an Avail extension is an Avail module.
+				val parent = stack.peekFirst()!!
+				val fileName = file.fileName.toString()
+				if (fileName.endsWith(extension))
+				{
+					val localName = fileName.substring(
+						0, fileName.length - extension.length)
+					val type =
+						if (parent.localName == localName) REPRESENTATIVE
+						else MODULE
+					val node = ModuleNode(
+						localName,
+						"${parent.qualifiedName}/$localName",
+						type)
+					parent.modules.add(node)
+				}
+				// Otherwise, it is a resource.
+				else
+				{
+					val node = ModuleNode(
+						fileName,
+						"${parent.qualifiedName}/$fileName",
+						RESOURCE)
+					parent.resources.add(node)
+				}
+				return FileVisitResult.CONTINUE
+			}
+
+			override fun visitFileFailed(
+				file: Path,
+				e: IOException): FileVisitResult
+			{
+				val parent = stack.peekFirst()!!
+				val isDirectory = file.toFile().isDirectory
+				val fileName = file.fileName.toString()
+				if (fileName.endsWith(extension))
+				{
+					val localName = fileName.substring(
+						0, fileName.length - extension.length)
+					val node = ModuleNode(
+						localName,
+						"${parent.qualifiedName}/$localName",
+						if (isDirectory) PACKAGE else MODULE)
+					node.exception = e
+					parent.modules.add(node)
+				}
+				else
+				{
+					val node = ModuleNode(
+						fileName,
+						"${parent.qualifiedName}/$fileName",
+						if (isDirectory) DIRECTORY else RESOURCE)
+					node.exception = e
+					parent.resources.add(node)
+				}
+				return FileVisitResult.CONTINUE
+			}
 		}
 	}
 
@@ -730,11 +927,13 @@ class AvailServer constructor(
 		builder.textInterface = ioChannel.textInterface!!
 		builder.buildTarget(
 			command.target,
-			{ name, _, position ->
+			{ name, size, position ->
 				val writer = JSONWriter()
 				writer.writeObject {
 					writer.write("module")
 					writer.write(name.qualifiedName)
+					writer.write("size")
+					writer.write(size)
 					writer.write("position")
 					writer.write(position)
 				}
@@ -1002,7 +1201,7 @@ class AvailServer constructor(
 		val logger: Logger = Logger.getLogger(AvailServer::class.java.name)
 
 		/** The current server protocol version.  */
-		private const val protocolVersion = 4
+		private const val protocolVersion = 5
 
 		/** The supported client protocol versions.  */
 		private val supportedProtocolVersions: Set<Int> =
@@ -1359,120 +1558,9 @@ class AvailServer constructor(
 		}
 
 		/**
-		 * Answer a [visitor][FileVisitor] able to visit every source module
-		 * beneath the specified [module root][ModuleRoot].
-		 *
-		 * @param root
-		 *   A module root.
-		 * @param tree
-		 *   The [holder][MutableOrNull] for the resultant tree of
-		 *   [modules][ModuleNode].
-		 * @return
-		 *   A `FileVisitor`.
-		 */
-		internal fun sourceModuleVisitor(
-			root: ModuleRoot,
-			tree: MutableOrNull<ModuleNode>): FileVisitor<Path>
-		{
-			val extension = ModuleNameResolver.availExtension
-			val isRoot = Mutable(true)
-			val stack = ArrayDeque<ModuleNode>()
-			return object : FileVisitor<Path>
-			{
-				override fun preVisitDirectory(
-					dir: Path?,
-					attrs: BasicFileAttributes?): FileVisitResult
-				{
-					assert(dir != null)
-					if (isRoot.value)
-					{
-						isRoot.value = false
-						val node = ModuleNode(root.name)
-						tree.value = node
-						stack.add(node)
-						return FileVisitResult.CONTINUE
-					}
-					val fileName = dir!!.fileName.toString()
-					if (fileName.endsWith(extension))
-					{
-						val localName = fileName.substring(
-							0, fileName.length - extension.length)
-						val node = ModuleNode(localName)
-						stack.peekFirst()!!.addModule(node)
-						stack.addFirst(node)
-						return FileVisitResult.CONTINUE
-					}
-					// This is a resource.
-					val node = ModuleNode(fileName)
-					stack.peekFirst()!!.addResource(node)
-					stack.addFirst(node)
-					return FileVisitResult.CONTINUE
-				}
-
-				override fun postVisitDirectory(
-					dir: Path?,
-					e: IOException?): FileVisitResult
-				{
-					stack.removeFirst()
-					return FileVisitResult.CONTINUE
-				}
-
-				override fun visitFile(
-					file: Path?,
-					attrs: BasicFileAttributes?): FileVisitResult
-				{
-					assert(file != null)
-					// The root should be a directory, not a file.
-					if (isRoot.value)
-					{
-						tree.value = ModuleNode(root.name)
-						return FileVisitResult.TERMINATE
-					}
-					val fileName = file!!.fileName.toString()
-					if (fileName.endsWith(extension))
-					{
-						val localName = fileName.substring(
-							0, fileName.length - extension.length)
-						val node = ModuleNode(localName)
-						stack.peekFirst()!!.addModule(node)
-					}
-					else
-					{
-						val node = ModuleNode(fileName)
-						stack.peekFirst()!!.addResource(node)
-					}
-					return FileVisitResult.CONTINUE
-				}
-
-				override fun visitFileFailed(
-					file: Path?,
-					e: IOException?): FileVisitResult
-				{
-					assert(file != null)
-					val fileName = file!!.fileName.toString()
-					if (fileName.endsWith(extension))
-					{
-						val localName = fileName.substring(
-							0, fileName.length - extension.length)
-						val node = ModuleNode(localName)
-						node.exception = e
-						stack.peekFirst()!!.addModule(node)
-					}
-					else
-					{
-						val node = ModuleNode(fileName)
-						node.exception = e
-						stack.peekFirst()!!.addResource(node)
-					}
-					return FileVisitResult.CONTINUE
-				}
-			}
-		}
-
-		/**
 		 * The progress interval for [building][loadModule], in milliseconds.
 		 */
-		private const val buildProgressIntervalMillis = 100
+		private const val buildProgressIntervalMillis = 50
 
 		/**
 		 * Obtain the [configuration][AvailServerConfiguration] of the

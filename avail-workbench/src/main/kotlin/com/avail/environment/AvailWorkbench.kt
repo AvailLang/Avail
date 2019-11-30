@@ -1225,7 +1225,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 					val resolved: ResolvedModuleName
 					try
 					{
-						resolved = resolver.resolve(moduleName, null)
+						resolved = resolver.resolve(moduleName)
 					}
 					catch (e: UnresolvedDependencyException)
 					{
@@ -1276,7 +1276,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 					try
 					{
 						val resolved =
-							resolver.resolve(moduleName, null)
+							resolver.resolve(moduleName)
 						val node = ModuleOrPackageNode(
 							availBuilder, moduleName, resolved, false)
 						if (resolved.isRename || !resolved.isPackage)
@@ -1374,7 +1374,6 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 				}
 			}
 			after.invoke()
-			Unit
 		}
 		val mapKeys = moduleNodes.keys.toTypedArray()
 		Arrays.sort(mapKeys)
@@ -2205,7 +2204,6 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 				// Postpone repaints up to 250ms to avoid thrash.
 				entryPointsTree.repaint(250)
 			}
-			Unit
 		}
 
 		// Set up styles for the transcript.

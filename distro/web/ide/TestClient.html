@@ -106,7 +106,7 @@ textarea { background-color: white; }
 .key { color: red; }
 </style>
 <script language="javascript" type="text/javascript">
-	var protocolVersion = 4;
+	var protocolVersion = 5;
 	var supportedProtocolVersions = [protocolVersion];
 	var availUri = 'ws://localhost:40000/avail';
 	var cmdOutput = null, ioOutput = null;
@@ -264,21 +264,27 @@ textarea { background-color: white; }
 						var content = response.content;
 						visitRoots(content, function (node)
 						{
-							if (node.isRoot)
+							node.text = node.localName;
+							node.children = node.childNodes;
+							delete node.label;
+							delete node.childNodes;
+							switch (node.type)
 							{
-								// Do nothing — yet.
-							}
-							else if (node.isPackage)
-							{
-								node.icon = 'images/PackageInTree.png';
-							}
-							else if (node.isResource)
-							{
-								// Do nothing — yet.
-							}
-							else
-							{
-								node.icon = 'images/ModuleInTree.png';
+								case "root":
+									node.state = {opened: true};
+									break;
+								case "package":
+									node.icon = 'images/PackageInTree.png';
+									break;
+								case "module":
+									node.icon = 'images/ModuleInTree.png';
+									break;
+								case "directory":
+								case "resource":
+									// Do nothing — yet.
+									break;
+								default:
+									// Unexpected!
 							}
 						});
 						moduleTree.jstree(true).settings.core.data =
@@ -490,9 +496,9 @@ textarea { background-color: white; }
 
 	function visitTree (node, callback)
 	{
-		if (node.hasOwnProperty('children'))
+		if (node.hasOwnProperty('childNodes'))
 		{
-			var children = node.children.forEach(function (child)
+			node.childNodes.forEach(function (child)
 			{
 				visitTree(child, callback);
 			});

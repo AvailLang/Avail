@@ -131,7 +131,6 @@ object P_SocketRead : Primitive(5, CanInline, HasSideEffect)
 							listOf(
 								tupleForByteBuffer(buffer),
 								objectFromBoolean(bytesRead == -1)))
-						Unit
 					},
 					{
 						Interpreter.runOutermostFunction(
@@ -139,7 +138,6 @@ object P_SocketRead : Primitive(5, CanInline, HasSideEffect)
 							newFiber,
 							fail,
 							listOf(E_IO_ERROR.numericCode()))
-						Unit
 					}))
 			interpreter.primitiveSuccess(newFiber)
 		}
