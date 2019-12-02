@@ -1560,7 +1560,7 @@ class AvailServer constructor(
 		/**
 		 * The progress interval for [building][loadModule], in milliseconds.
 		 */
-		private const val buildProgressIntervalMillis = 50
+		private const val buildProgressIntervalMillis = 200
 
 		/**
 		 * Obtain the [configuration][AvailServerConfiguration] of the
