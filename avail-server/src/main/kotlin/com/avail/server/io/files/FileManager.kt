@@ -99,7 +99,7 @@ object FileManager
 				}
 			}
 			// TODO what happens if never found? Should be an error as that
-			//  should not happen, hence bad UUID
+			//  should not happen, hence bad UUID from direct request?
 			val file = openFile(Paths.get(path), fileOptions)
 			ServerFileWrapper(path, file)
 		},
@@ -119,6 +119,42 @@ object FileManager
 	 * associated file from disk and placed back in the `fileCache`.
 	 */
 	private val pathToIdMap = mutableMapOf<String, UUID>()
+
+	/**
+	 * Retrieve the [ServerFileWrapper] and provide it with a request to obtain
+	 * the [raw file bytes][AvailServerFile.rawContent].
+	 *
+	 * @param path
+	 *   The String path location of the file.
+	 * @param consumer
+	 *   A function that accepts the [raw bytes][AvailServerFile.rawContent] of
+	 *   an [AvailServerFile].
+	 * @param failureHandler
+	 *   A function that accepts TODO figure out how error handling will happen
+	 * @return The [UUID] that uniquely identifies the open file on the Avail
+	 *   Server.
+	 */
+	fun readFile (
+		path: String,
+		consumer: (ByteArray) -> Unit,
+		failureHandler: () -> Unit): UUID
+	{
+		val uuid: UUID
+		synchronized(pathToIdMap)
+		{
+			uuid = pathToIdMap.getOrPut(path) {
+				val id = UUID.randomUUID()
+				id
+			}
+		}
+		val fileWrapper = fileCache[uuid]
+		fileWrapper.provide(consumer, failureHandler)
+		return uuid
+	}
+
+	// TODO create requests to interact with file. This includes editing,
+	//  reading, closing, etc. Any Edit actions should be tracked and made
+	//  reversible in preserved local history for file.
 
 	/**
 	 * Schedule the specified [task][Runnable] for eventual execution

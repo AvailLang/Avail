@@ -75,6 +75,9 @@ internal class AvailServerTextFile constructor(
 
 	override val rawContent: ByteArray get() = content.toByteArray(charset)
 
+	// TODO add log of local history to account for undo's and a way of keeping
+	//  historical versions of the files.
+
 	init
 	{
 		val sourceBuilder = StringBuilder(4096)

@@ -55,17 +55,9 @@ import java.util.concurrent.ConcurrentLinkedQueue
  *   The String path to the target file on disk.
  * @param fileChannel
  *   The [AsynchronousFileChannel] used to access the file.
- * @param requestConsumer
- *   A function that accepts the [raw bytes][AvailServerFile.rawContent] of an
- *   [AvailServerFile].
- * @param failureHandler
- *   A function that accepts TODO figure out how error handling will happen
  */
 internal class ServerFileWrapper constructor(
-	val path: String,
-	fileChannel: AsynchronousFileChannel,
-	requestConsumer: ((ByteArray) -> Unit)? = null,
-	failureHandler: (() -> Unit)? = null) // TODO accept an input!
+	val path: String, fileChannel: AsynchronousFileChannel)
 {
 	/**
 	 * The [AvailServerFile] wrapped by this [ServerFileWrapper].
@@ -93,11 +85,6 @@ internal class ServerFileWrapper constructor(
 		FileManager.executeFileTask (Runnable {
 			val p = Paths.get(path)
 			val mimeType = Tika().detect(p)
-			if (requestConsumer != null && failureHandler != null)
-			{
-				handlerQueue.add(FileRequestHandler(
-					requestConsumer, failureHandler))
-			}
 			file = createFile(path, fileChannel, mimeType, this)
 		})
 	}
@@ -117,6 +104,8 @@ internal class ServerFileWrapper constructor(
 	 */
 	fun provide(consumer: (ByteArray) -> Unit, failureHandler: () -> Unit)
 	{
+		// TODO should be run on a separate thread or is that handled inside the
+		//  consumer?
 		if (!isLoadingFile)
 		{
 			// Opportunistic
@@ -145,6 +134,8 @@ internal class ServerFileWrapper constructor(
 		{
 			isLoadingFile = false
 		}
+		// TODO should each be run on a separate thread or is that handled
+		//  inside the consumer?
 		handlerQueue.forEach { file.provideContent(it.requestConsumer) }
 	}
 
