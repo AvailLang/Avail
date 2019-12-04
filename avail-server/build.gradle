@@ -76,6 +76,9 @@ dependencies {
 	implementation group: 'com.google.code.findbugs',
 		name: 'jsr305',
 		version: "$jsr_version"
+
+	// https://tika.apache.org for file MIME type detection
+	implementation 'org.apache.tika:tika-core:1.22'
 }
 
 // Capture the time at which the build began and record it into a resource file.
