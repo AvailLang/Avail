@@ -77,7 +77,7 @@ internal abstract class AvailServerFile constructor(
 	fun close () = file.close()
 
 	/**
-	 * Save the [rawContent] to disk.
+	 * Save the entire [rawContent] to disk.
 	 *
 	 * @param handler
 	 *   The [CompletionHandler] to use when save either completes or fails.
@@ -86,9 +86,96 @@ internal abstract class AvailServerFile constructor(
 		file.write(ByteBuffer.wrap(rawContent), 0, null, handler)
 
 	/**
+	 * Save the [rawContent] to disk.
+	 *
+	 * @param writePosition
+	 *   The position in the file to start writing to.
+	 * @param from
+	 *   The position in the [rawContent] to start writing from into the file.
+	 *   Anything before this position will not be written.
+	 * @param handler
+	 *   The [CompletionHandler] to use when save either completes or fails.
+	 */
+	fun save (
+		writePosition: Long,
+		from: Int,
+		handler: CompletionHandler<Int, Any?>)
+	{
+		val data = ByteBuffer.wrap(rawContent)
+		data.position(from)
+		file.write(ByteBuffer.wrap(rawContent), writePosition, null, handler)
+	}
+
+	/**
 	 * Accepts a function that accepts the [rawContent] of this
 	 * [AvailServerFile].
 	 */
 	fun provideContent(consumer: (ByteArray) -> Unit) =
 		consumer(rawContent)
+
+	/**
+	 * Insert the [ByteArray] data into the file at the specified location. This
+	 * should add data without removing any existing data from the file.
+	 *
+	 * @param data
+	 *   The `ByteArray` data to add to this [AvailServerFile].
+	 * @param position
+	 *   The location in the file to insert the data.
+	 * @param timestamp
+	 *   The time in milliseconds since the Unix Epoch UTC the update occurred.
+	 * @return The [List] of [EditAction]s that would reverse this insert.
+	 */
+	abstract fun insert (
+		data: ByteArray,
+		position: Int,
+		timestamp: Long = System.currentTimeMillis()): List<EditAction>
+
+	/**
+	 * Remove file data from the specified range.
+	 *
+	 * @param start
+	 *   The location in the file to inserting/overwriting the data.
+	 * @param end
+	 *   The location in the file to stop overwriting, exclusive. All data from
+	 *   this point should be preserved.
+	 * @param timestamp
+	 *   The time in milliseconds since the Unix Epoch UTC the update occurred.
+	 * @return The [List] of [EditAction]s that would reverse this removal.
+	 */
+	abstract fun removeRange (
+		start: Int,
+		end: Int,
+		timestamp: Long = System.currentTimeMillis()): List<EditAction>
+
+	/**
+	 * Insert the [ByteArray] data into the file at the specified location. This
+	 * should remove existing data in the file in this range and replace it
+	 * with the provided data. This should preserve all data outside of this
+	 * range. This is equivalent to calling [removeRange] with `start` and `end`
+	 * then calling [insert] with `data` and `start` as inputs.
+	 *
+	 * @param data
+	 *   The `ByteArray` data to add to this [AvailServerFile].
+	 * @param start
+	 *   The location in the file to inserting/overwriting the data, exclusive.
+	 * @param end
+	 *   The location in the file to stop overwriting. All data after this point
+	 *   should be preserved.
+	 * @param timestamp
+	 *   The time in milliseconds since the Unix Epoch UTC the update occurred.
+	 * @return The [List] of [EditAction]s that would reverse this insert range.
+	 */
+	fun insertRange (
+		data: ByteArray,
+		start: Int,
+		end: Int,
+		timestamp: Long = System.currentTimeMillis()): List<EditAction>
+	{
+		val removeInverse = removeRange(start, end, timestamp)
+		val insertInverse = insert(data, start, timestamp)
+		val actions = mutableListOf<EditAction>()
+		actions.addAll(insertInverse)
+		actions.addAll(removeInverse)
+		return actions
+	}
 }

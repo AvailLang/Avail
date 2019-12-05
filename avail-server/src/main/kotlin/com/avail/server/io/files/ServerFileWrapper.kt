@@ -32,10 +32,14 @@
 
 package com.avail.server.io.files
 
+import com.avail.compiler.problems.SimpleProblemHandler
+import com.avail.io.SimpleCompletionHandler
 import org.apache.tika.Tika
 import java.nio.channels.AsynchronousFileChannel
 import java.nio.file.Paths
+import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * A `ServerFileWrapper` holds an [AvailServerFile]. The purpose of this is to
@@ -79,6 +83,92 @@ internal class ServerFileWrapper constructor(
 	 * [raw bytes][AvailServerFile.rawContent].
 	 */
 	private val handlerQueue = ConcurrentLinkedQueue<FileRequestHandler>()
+
+	/**
+	 * The [Stack] of [EditAction] that when applied in Stack order reverts
+	 * `EditAction`s applied to the [AvailServerFile] to get it to its current
+	 * state. This represents the _undo_ stack.
+	 */
+	private val revertUpdateStack = Stack<EditAction>()
+
+	/**
+	 * The next position in the [revertUpdateStack] to begin saving to disk the
+	 * next time the [file]'s local history is saved.
+	 */
+	private var revertUpdateStackSavePointer: Int = 0
+
+	/**
+	 * Save the [revertUpdateStack] to local history starting from the position
+	 * at [revertUpdateStackSavePointer].
+	 */
+	fun conditionallySaveToLocalHistory ()
+	{
+		val currentSize = revertUpdateStack.size
+		if (revertUpdateStackSavePointer < currentSize)
+		{
+			val start = revertUpdateStackSavePointer
+			for (i in start until  currentSize)
+			{
+				// TODO write this somewhere!
+				revertUpdateStack[i]
+			}
+			revertUpdateStackSavePointer = currentSize
+		}
+	}
+
+	/**
+	 * The [queue][ConcurrentLinkedQueue] of [EditAction]s that are waiting to
+	 * be applied to the contained [AvailServerFile].
+	 */
+	private val updateQueue = ConcurrentLinkedQueue<EditAction>()
+
+	/**
+	 * Is the [file] being updated from the [updateQueue]? `true` indicates it
+	 * is; `false` otherwise.
+	 */
+	private val isReadyToUpdate = AtomicBoolean(true)
+
+	/**
+	 * Remove all the [EditAction]s from the [updateQueue] and perform them
+	 * in FIFO order if this [ServerFileWrapper] [is ready][isReadyToUpdate]
+	 * to update.
+	 */
+	private fun performEdits ()
+	{
+		if (isReadyToUpdate.getAndSet(false))
+		{
+			var action = updateQueue.poll()
+			while (action != null)
+			{
+				action.update(file).forEach {reverse ->
+					revertUpdateStack.push(reverse)
+				}
+				action = updateQueue.poll()
+			}
+			// TODO is this safe
+			synchronized(updateQueue)
+			{
+				isReadyToUpdate.set(true)
+			}
+			// TODO Save file
+		}
+	}
+
+	/**
+	 * [Update][EditAction.update] the wrapped [AvailServerFile] with the
+	 * provided [EditAction].
+	 *
+	 * @param editAction
+	 *   The `EditAction` to perform.
+	 */
+	fun update (editAction: EditAction)
+	{
+		synchronized(updateQueue)
+		{
+			updateQueue.add(editAction)
+		}
+		performEdits()
+	}
 
 	init
 	{
@@ -181,7 +271,8 @@ internal class ServerFileWrapper constructor(
 }
 
 /**
- * A
+ * A `FileRequestHandler` handles success and failure cases for requesting a
+ * file's raw binary data.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *

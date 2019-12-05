@@ -148,4 +148,22 @@ internal class AvailServerTextFile constructor(
 					TODO("Handle AvailServerTextFile read fail")
 				}))
 	}
+
+	override fun insert (
+		data: ByteArray, position: Int, timestamp: Long): List<EditAction>
+	{
+		val text = String(data, charset)
+		content = content.substring(0, position) +
+		          text + content.substring(position, content.length)
+		return listOf(RemoveRange(timestamp, position, text.length))
+	}
+
+	override fun removeRange(
+		start: Int, end: Int, timestamp: Long): List<EditAction>
+	{
+		val data = content.substring(start, end)
+		content = content.substring(0, start + 1) +
+			content.substring(end, content.length)
+		return listOf(Insert(timestamp, data.toByteArray(charset), start))
+	}
 }
