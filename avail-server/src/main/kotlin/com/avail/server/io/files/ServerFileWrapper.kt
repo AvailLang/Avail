@@ -32,8 +32,6 @@
 
 package com.avail.server.io.files
 
-import com.avail.compiler.problems.SimpleProblemHandler
-import com.avail.io.SimpleCompletionHandler
 import org.apache.tika.Tika
 import java.nio.channels.AsynchronousFileChannel
 import java.nio.file.Paths
@@ -85,34 +83,35 @@ internal class ServerFileWrapper constructor(
 	private val handlerQueue = ConcurrentLinkedQueue<FileRequestHandler>()
 
 	/**
-	 * The [Stack] of [EditAction] that when applied in Stack order reverts
-	 * `EditAction`s applied to the [AvailServerFile] to get it to its current
-	 * state. This represents the _undo_ stack.
+	 * The [Stack] of [TracedAction] that tracks the [EditAction]s applied in
+	 * Stack order. To revert, pop the `TracedAction`s and apply
+	 * [TracedAction.reverseAction] to the [AvailServerFile]. This represents
+	 * the _undo_ stack.
 	 */
-	private val revertUpdateStack = Stack<EditAction>()
+	private val tracedActionStack = Stack<TracedAction>()
 
 	/**
-	 * The next position in the [revertUpdateStack] to begin saving to disk the
+	 * The next position in the [tracedActionStack] to begin saving to disk the
 	 * next time the [file]'s local history is saved.
 	 */
-	private var revertUpdateStackSavePointer: Int = 0
+	private var tracedActionStackSavePointer: Int = 0
 
 	/**
-	 * Save the [revertUpdateStack] to local history starting from the position
-	 * at [revertUpdateStackSavePointer].
+	 * Save the [tracedActionStack] to local history starting from the position
+	 * at [tracedActionStackSavePointer].
 	 */
 	fun conditionallySaveToLocalHistory ()
 	{
-		val currentSize = revertUpdateStack.size
-		if (revertUpdateStackSavePointer < currentSize)
+		val currentSize = tracedActionStack.size
+		if (tracedActionStackSavePointer < currentSize)
 		{
-			val start = revertUpdateStackSavePointer
+			val start = tracedActionStackSavePointer
 			for (i in start until  currentSize)
 			{
 				// TODO write this somewhere!
-				revertUpdateStack[i]
+				tracedActionStack[i]
 			}
-			revertUpdateStackSavePointer = currentSize
+			tracedActionStackSavePointer = currentSize
 		}
 	}
 
@@ -140,9 +139,21 @@ internal class ServerFileWrapper constructor(
 			var action = updateQueue.poll()
 			while (action != null)
 			{
-				action.update(file).forEach {reverse ->
-					revertUpdateStack.push(reverse)
+				val tracedAction =
+					action.update(file, System.currentTimeMillis())
+
+				if (undoStackDepth > 0)
+				{
+					// Must remove all TracedActions above the undoStackDepth
+					// pointer as they are no longer valid.
+					do
+					{
+						val ta = tracedActionStack.pop()
+						// TODO remove ta from the project cache?
+					}
+					while (--undoStackDepth > 0)
 				}
+				tracedActionStack.push(tracedAction)
 				action = updateQueue.poll()
 			}
 			// TODO is this safe
@@ -168,6 +179,47 @@ internal class ServerFileWrapper constructor(
 			updateQueue.add(editAction)
 		}
 		performEdits()
+	}
+
+	/**
+	 * The number of places from the top of the [tracedActionStack] that have
+	 * been undone.
+	 */
+	var undoStackDepth = 0
+
+	/**
+	 * [Undo][TracedAction.revert] the [EditAction] performed on the [file] from
+	 * the [TracedAction] that is [undoStackDepth] + 1 from the top of the
+	 * stack.
+	 */
+	fun undo ()
+	{
+		if (tracedActionStack.size < undoStackDepth + 1)
+		{
+			// We are at the bottom of the stack; there are no TracedActions
+			// eligible to be reverted.
+			return
+		}
+		tracedActionStack[tracedActionStack.size + ++undoStackDepth].revert(file)
+	}
+
+	/**
+	 * If an [undo] resulted in a [revert][TracedAction.reverseAction] on the
+	 * [file] and no other [EditAction] has occurred since,
+	 * [redo][TracedAction.redo] the previously reverted action.
+	 */
+	// TODO make thread safe?
+	fun redo ()
+	{
+		if (undoStackDepth == 0)
+		{
+			// There have been no TracedActions undone.
+			return
+		}
+		val index = tracedActionStack.size - undoStackDepth
+		// TODO validate in range
+		tracedActionStack[index].redo(file)
+		undoStackDepth--
 	}
 
 	init
@@ -226,7 +278,8 @@ internal class ServerFileWrapper constructor(
 		}
 		// TODO should each be run on a separate thread or is that handled
 		//  inside the consumer?
-		handlerQueue.forEach { file.provideContent(it.requestConsumer) }
+		val fileBytes = file.rawContent
+		handlerQueue.forEach { it.requestConsumer(fileBytes) }
 	}
 
 	/**

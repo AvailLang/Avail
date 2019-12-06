@@ -123,12 +123,13 @@ internal abstract class AvailServerFile constructor(
 	 *   The location in the file to insert the data.
 	 * @param timestamp
 	 *   The time in milliseconds since the Unix Epoch UTC the update occurred.
-	 * @return The [List] of [EditAction]s that would reverse this insert.
+	 * @return The [TracedAction] that preserves this edit and how to reverse
+	 *   it.
 	 */
 	abstract fun insert (
 		data: ByteArray,
 		position: Int,
-		timestamp: Long = System.currentTimeMillis()): List<EditAction>
+		timestamp: Long = System.currentTimeMillis()): TracedAction
 
 	/**
 	 * Remove file data from the specified range.
@@ -140,12 +141,13 @@ internal abstract class AvailServerFile constructor(
 	 *   this point should be preserved.
 	 * @param timestamp
 	 *   The time in milliseconds since the Unix Epoch UTC the update occurred.
-	 * @return The [List] of [EditAction]s that would reverse this removal.
+	 * @return The [TracedAction] that preserves this edit and how to reverse
+	 *   it.
 	 */
 	abstract fun removeRange (
 		start: Int,
 		end: Int,
-		timestamp: Long = System.currentTimeMillis()): List<EditAction>
+		timestamp: Long = System.currentTimeMillis()): TracedAction
 
 	/**
 	 * Insert the [ByteArray] data into the file at the specified location. This
@@ -163,19 +165,12 @@ internal abstract class AvailServerFile constructor(
 	 *   should be preserved.
 	 * @param timestamp
 	 *   The time in milliseconds since the Unix Epoch UTC the update occurred.
-	 * @return The [List] of [EditAction]s that would reverse this insert range.
+	 * @return The [TracedAction] that preserves this edit and how to reverse
+	 *   it.
 	 */
-	fun insertRange (
+	abstract fun insertRange (
 		data: ByteArray,
 		start: Int,
 		end: Int,
-		timestamp: Long = System.currentTimeMillis()): List<EditAction>
-	{
-		val removeInverse = removeRange(start, end, timestamp)
-		val insertInverse = insert(data, start, timestamp)
-		val actions = mutableListOf<EditAction>()
-		actions.addAll(insertInverse)
-		actions.addAll(removeInverse)
-		return actions
-	}
+		timestamp: Long = System.currentTimeMillis()): TracedAction
 }

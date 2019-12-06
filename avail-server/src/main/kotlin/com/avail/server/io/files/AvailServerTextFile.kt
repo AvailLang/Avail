@@ -32,7 +32,11 @@
 
 package com.avail.server.io.files
 
+import com.avail.descriptor.StringDescriptor
+import com.avail.descriptor.tuples.A_String
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.io.SimpleCompletionHandler
+import com.avail.utility.Casts
 import com.avail.utility.MutableLong
 import java.io.IOException
 import java.nio.ByteBuffer
@@ -71,12 +75,10 @@ internal class AvailServerTextFile constructor(
 	: AvailServerFile(path, file, mimeType, serverFileWrapper)
 {
 	/** The String content of the file. */
-	private lateinit var content: String
+	private lateinit var content: A_String
 
-	override val rawContent: ByteArray get() = content.toByteArray(charset)
-
-	// TODO add log of local history to account for undo's and a way of keeping
-	//  historical versions of the files.
+	override val rawContent: ByteArray get() =
+		content.asNativeString().toByteArray(Charsets.UTF_16BE)
 
 	init
 	{
@@ -135,7 +137,8 @@ internal class AvailServerTextFile constructor(
 						{
 							decoder.flush(output)
 							sourceBuilder.append(output)
-							content = sourceBuilder.toString()
+							content = StringDescriptor.stringWithSurrogatesFrom(
+								sourceBuilder.toString())
 							serverFileWrapper.notifyReady()
 						}
 					}
@@ -149,21 +152,168 @@ internal class AvailServerTextFile constructor(
 				}))
 	}
 
+	/**
+	 * Insert the [ByteArray] data into the file at the specified location. This
+	 * should add data without removing any existing data from the file.
+	 *
+	 * The client will use 0-based indexing in its request, so we must adjust by
+	 * one. The file, in zero-based indexing must be split before the requested
+	 * `position`. Shifting to Avail's one-based indexing and utilizing the
+	 * [A_Tuple.copyTupleFromToCanDestroy]'s inclusive range requires the insert
+	 * happen after the requested `position`. Because the `position` is shifted
+	 * and correctly inclusive in the first half of the file, the 2nd half of
+	 * the file must start at the index one place beyond `position`
+	 * (`position + 1`).
+	 *
+	 * @param data
+	 *   The `ByteArray` data to add to this [AvailServerFile].
+	 * @param position
+	 *   The location in the file to insert the data.
+	 * @param timestamp
+	 *   The time in milliseconds since the Unix Epoch UTC the update occurred.
+	 * @return The [TracedAction] that preserves this edit and how to reverse
+	 *   it.
+	 */
 	override fun insert (
-		data: ByteArray, position: Int, timestamp: Long): List<EditAction>
+		data: ByteArray, position: Int, timestamp: Long): TracedAction
 	{
-		val text = String(data, charset)
-		content = content.substring(0, position) +
-		          text + content.substring(position, content.length)
-		return listOf(RemoveRange(timestamp, position, text.length))
+		// Use as this is how the String is represented by the client
+		val text =
+			StringDescriptor.stringWithSurrogatesFrom(
+				String(data, Charsets.UTF_16BE))
+
+		// The client will use 0-based indexing in its request, so we must
+		// adjust by one. Here using the position as inclusive is good enough to
+		// offset by 1.
+		val first = content
+			.copyTupleFromToCanDestroy(1, position, false)
+
+		// As stated above, must add 1 to position to keep from repeating the
+		// character.
+		val third = content.copyTupleFromToCanDestroy(
+			position + 1, content.tupleSize(), false)
+		content = Casts.cast(
+			first.concatenateWith(text, false)
+				.concatenateWith(third, false))
+
+		return TracedAction(
+			timestamp,
+			Insert(data, position),
+			RemoveRange(position + 1, data.size))
 	}
 
+	/**
+	 * Remove file data from the specified range.
+	 *
+	 * The client will use 0-based indexing in its request, so we must adjust by
+	 * one. The file, in zero-based indexing must be prefixed before the
+	 * requested `start`. Shifting to Avail's one-based indexing and utilizing
+	 * the [A_Tuple.copyTupleFromToCanDestroy]'s inclusive range requires the
+	 * remove being after the requested `start`. Because the `start` is shifted
+	 * and correctly inclusive in the first half of the file, the 2nd half of
+	 * the file, the `end` must begin at the index one place beyond `end`
+	 * (`end + 1`).
+	 *
+	 * @param start
+	 *   The location in the file to inserting/overwriting the data.
+	 * @param end
+	 *   The location in the file to stop overwriting, exclusive. All data from
+	 *   this point should be preserved.
+	 * @param timestamp
+	 *   The time in milliseconds since the Unix Epoch UTC the update occurred.
+	 * @return The [TracedAction] that preserves this edit and how to reverse
+	 *   it.
+	 */
 	override fun removeRange(
-		start: Int, end: Int, timestamp: Long): List<EditAction>
+		start: Int, end: Int, timestamp: Long): TracedAction
 	{
-		val data = content.substring(start, end)
-		content = content.substring(0, start + 1) +
-			content.substring(end, content.length)
-		return listOf(Insert(timestamp, data.toByteArray(charset), start))
+		// The text to remove from the file. The offset for one-based indexing
+		// requires we begin removing from 1 beyond start.
+		val removed =
+			content.copyStringFromToCanDestroy(start + 1, end, false)
+
+		// The client will use 0-based indexing in its request, so we must
+		// adjust by 1. Here using the start as inclusive is good enough to
+		// offset by 1.
+		val first =
+			content.copyTupleFromToCanDestroy(1, start, false)
+
+		// As stated above, must add 1 to end to keep from preserving the last
+		// character marked for removal.
+		val second = content.copyTupleFromToCanDestroy(
+			end + 1, content.tupleSize(), false)
+		content = Casts.cast(
+			first.concatenateWith(second, false))
+		return TracedAction(
+			timestamp,
+			RemoveRange(start, end),
+			Insert(
+				removed.asNativeString().toByteArray(Charsets.UTF_16BE),
+				start))
+	}
+
+	/**
+	 * Insert the [ByteArray] data into the file at the specified location. This
+	 * should remove existing data in the file in this range and replace it
+	 * with the provided data. This should preserve all data outside of this
+	 * range. This is equivalent to calling [removeRange] with `start` and `end`
+	 * then calling [insert] with `data` and `start` as inputs.
+	 *
+	 * The client will use 0-based indexing in its request, so we must adjust by
+	 * one. The file, in zero-based indexing must be prefixed before the
+	 * requested `start`. Shifting to Avail's one-based indexing and utilizing
+	 * the [A_Tuple.copyTupleFromToCanDestroy]'s inclusive range requires the
+	 * remove being after the requested `start`. Because the `start` is shifted
+	 * and correctly inclusive in the first half of the file, the 2nd half of
+	 * the file, the `end` must begin at the index one place beyond `end`
+	 * (`end + 1`). Thus the inserted text happens after the `start` position.
+	 *
+	 * @param data
+	 *   The `ByteArray` data to add to this [AvailServerFile].
+	 * @param start
+	 *   The location in the file to inserting/overwriting the data, exclusive.
+	 * @param end
+	 *   The location in the file to stop overwriting. All data after this point
+	 *   should be preserved.
+	 * @param timestamp
+	 *   The time in milliseconds since the Unix Epoch UTC the update occurred.
+	 * @return The [TracedAction] that preserves this edit and how to reverse
+	 *   it.
+	 */
+	override fun insertRange(
+		data: ByteArray, start: Int, end: Int, timestamp: Long): TracedAction
+	{
+		// The text to insert in the file
+		val text =
+			StringDescriptor.stringWithSurrogatesFrom(
+				String(data, Charsets.UTF_16BE))
+
+		// The text to remove from the file. The offset for one-based indexing
+		// requires we begin removing from 1 beyond start.
+		val removed =
+			content.copyStringFromToCanDestroy(start + 1, end, false)
+
+		// The client will use 0-based indexing in its request, so we must
+		// adjust by 1. Here using the start as inclusive is good enough to
+		// offset by 1.
+		val first = content
+			.copyTupleFromToCanDestroy(1, start, false)
+
+		// As stated above, must add 1 to end to keep from preserving the last
+		// character marked for removal.
+		val third = content.copyTupleFromToCanDestroy(
+			end + 1, content.tupleSize(), false)
+
+		content = Casts.cast(
+			first.concatenateWith(text, false)
+				.concatenateWith(third, false))
+
+		return TracedAction(
+			timestamp,
+			InsertRange(data, start, end),
+			InsertRange(
+				removed.asNativeString().toByteArray(Charsets.UTF_16BE),
+				start,
+				start + text.tupleSize()))
 	}
 }

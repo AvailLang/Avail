@@ -123,20 +123,34 @@ internal class AvailServerBinaryFile constructor(
 	}
 
 	override fun insert (
-		data: ByteArray, position: Int, timestamp: Long): List<EditAction>
+		data: ByteArray, position: Int, timestamp: Long): TracedAction
 	{
 		// TODO validate range
 		content = content.copyOfRange(0, position) +
 		          data + content.copyOfRange(position, content.size)
-		return listOf(RemoveRange(timestamp, position, data.size))
+		return TracedAction(
+			timestamp, Insert(data, position), RemoveRange(position, data.size))
 	}
 
 	override fun removeRange(
-		start: Int, end: Int, timestamp: Long): List<EditAction>
+		start: Int, end: Int, timestamp: Long): TracedAction
 	{
-		val data = content.copyOfRange(start, end)
+		val removed = content.copyOfRange(start, end)
 		content = content.copyOfRange(0, start) +
 			content.copyOfRange(end, content.size)
-		return listOf(Insert(timestamp, data, start))
+		return TracedAction(
+			timestamp, RemoveRange(start, end), Insert(removed, start))
+	}
+
+	override fun insertRange(
+		data: ByteArray, start: Int, end: Int, timestamp: Long): TracedAction
+	{
+		val removed = content.copyOfRange(start, end)
+		content = content.copyOfRange(0, start) +
+			data + content.copyOfRange(end, content.size)
+		return TracedAction(
+			timestamp,
+			InsertRange(data, start, end),
+			InsertRange(removed, start, start + data.size))
 	}
 }

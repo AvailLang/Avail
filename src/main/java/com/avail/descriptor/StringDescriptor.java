@@ -29,9 +29,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
 package com.avail.descriptor;
-
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.TypeDescriptor.Types;
@@ -39,14 +37,12 @@ import com.avail.descriptor.tuples.A_String;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.MutableInt;
 import com.avail.utility.json.JSONWriter;
-
 import javax.annotation.Nullable;
-
 import static com.avail.descriptor.ByteStringDescriptor.mutableObjectFromNativeByteString;
 import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
 import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
+import static com.avail.descriptor.TwoByteStringDescriptor.generateTwoByteString;
 import static com.avail.descriptor.TwoByteStringDescriptor.mutableObjectFromNativeTwoByteString;
-
 /**
  * {@code StringDescriptor} has Avail strings as its instances. The actual
  * representation of Avail strings is determined by subclasses.
@@ -56,14 +52,13 @@ import static com.avail.descriptor.TwoByteStringDescriptor.mutableObjectFromNati
  * @see TwoByteStringDescriptor
  */
 public abstract class StringDescriptor
-extends TupleDescriptor
+	extends TupleDescriptor
 {
 	@Override @AvailMethod
 	protected boolean o_IsString (final AvailObject object)
 	{
 		return true;
 	}
-
 	@Override @AvailMethod @ThreadSafe
 	protected SerializerOperation o_SerializerOperation (
 		final AvailObject object)
@@ -79,11 +74,9 @@ extends TupleDescriptor
 		}
 		return SerializerOperation.BYTE_STRING;
 	}
-
 	@Override
 	protected abstract int o_TupleCodePointAt (
 		final AvailObject object, final int index);
-
 	@Override
 	protected boolean o_TupleElementsInRangeAreInstancesOf (
 		final AvailObject object,
@@ -93,21 +86,62 @@ extends TupleDescriptor
 	{
 		return Types.CHARACTER.o().isSubtypeOf(type)
 			|| super.o_TupleElementsInRangeAreInstancesOf(
-				object, startIndex, endIndex, type);
+			object, startIndex, endIndex, type);
 	}
-
 	@Override @AvailMethod
 	protected final int o_TupleIntAt (final AvailObject object, final int index)
 	{
 		throw unsupportedOperationException();
 	}
-
 	@Override
 	protected final void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.write(object.asNativeString());
 	}
-
+	/**
+	 * Convert the specified Java {@link String} to an Avail {@link A_String},
+	 * but keeping any Java surrogate pairs as two distinct values in the Avail
+	 * string.  Note that such a string is semantically different from what
+	 * would be produced by {@link #stringFrom(String)}, and isn't even
+	 * necessarily the same length.  This operation is intended for
+	 * compatibility with Java (and JavaScript) strings.
+	 *
+	 * <p>NB: The {@linkplain AbstractDescriptor descriptor} type of the actual
+	 * instance returned varies with the contents of the Java {@code String}. If
+	 * the Java {@code String} contains only Latin-1 characters, then the
+	 * descriptor will be {@link ByteStringDescriptor}; otherwise it will be
+	 * {@link TwoByteStringDescriptor}.</p>
+	 *
+	 * @param aNativeString
+	 *        A Java {@link String}.
+	 * @return An Avail {@code StringDescriptor string} having the same length,
+	 *         but with surrogate pairs (D800-DBFF and DC00-DFFF) preserved in
+	 *         the Avail string.
+	 */
+	public static A_String stringWithSurrogatesFrom (final String aNativeString)
+	{
+		final int charCount = aNativeString.length();
+		if (charCount == 0)
+		{
+			return emptyTuple();
+		}
+		int maxChar = 0;
+		int index = 0;
+		while (index < charCount)
+		{
+			final char aChar = aNativeString.charAt(index);
+			maxChar = Math.max(maxChar, aChar);
+			index ++;
+		}
+		if (maxChar <= 255)
+		{
+			return mutableObjectFromNativeByteString(aNativeString);
+		}
+		// Pack it into a TwoByteString, preserving surrogates.
+		return generateTwoByteString(
+			aNativeString.length(),
+			i -> aNativeString.charAt(i - 1));
+	}
 	/**
 	 * Convert the specified Java {@link String} to an Avail {@link A_String}.
 	 *
@@ -157,7 +191,6 @@ extends TupleDescriptor
 				return fromCodePoint(codePoint);
 			});
 	}
-
 	/**
 	 * Given a Java {@link String} containing a {@linkplain String#format(
 	 * String, Object...) substitution format} and its arguments, perform
@@ -174,7 +207,6 @@ extends TupleDescriptor
 	{
 		return stringFrom(String.format(pattern, args));
 	}
-
 	/**
 	 * Construct a new {@code StringDescriptor}.
 	 *

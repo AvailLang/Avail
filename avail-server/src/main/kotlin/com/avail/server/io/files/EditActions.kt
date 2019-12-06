@@ -57,7 +57,18 @@ internal enum class EditActionType
 	 * Remove the data in the specified range from the file. The file size is
 	 * decreased as a result of this action.
 	 */
-	REMOVE_RANGE
+	REMOVE_RANGE,
+
+	/**
+	 * Undo the most recently performed [INSERT], [INSERT_RANGE], or
+	 * [REMOVE_RANGE].
+	 */
+	UNDO,
+
+	/**
+	 * Redo the most recently [undone][UNDO] [EditAction].
+	 */
+	REDO
 }
 
 /**
@@ -74,20 +85,17 @@ internal interface EditAction
 	 *
 	 * @param file
 	 *   The `AvailServerFile` to update.
+	 * @param timestamp
+	 *   The time when this [EditAction] request was received.
 	 * @return The [List] of `EditActions`, when applied in order, will reverse
 	 *   this `EditAction`.
 	 */
-	fun update (file: AvailServerFile): List<EditAction>
+	fun update (file: AvailServerFile, timestamp: Long): TracedAction
 
 	/**
 	 * The [EditActionType] that represents this [EditAction].
 	 */
 	val type: EditActionType
-
-	/**
-	 * The time when this [EditAction] request was received.
-	 */
-	val timestamp: Long
 }
 
 /**
@@ -95,8 +103,6 @@ internal interface EditAction
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
- * @property timestamp
- *   The time when this [EditAction] request was received.
  * @property data
  *   The [ByteArray] that is to be inserted in the file.
  * @property position
@@ -105,20 +111,17 @@ internal interface EditAction
  * @constructor
  * Construct an [Insert].
  *
- * @param timestamp
- *   The time when this [EditAction] request was received.
  * @param data
  *   The [ByteArray] that is to be inserted in the file.
  * @param position
  *   The location in the file to insert the data.
  */
 internal class Insert constructor(
-	override val timestamp: Long,
 	val data: ByteArray,
 	private val position: Int) : EditAction
 {
-	override fun update(file: AvailServerFile): List<EditAction> =
-		file.insert(data, position)
+	override fun update(file: AvailServerFile, timestamp: Long): TracedAction =
+		file.insert(data, position, timestamp)
 
 	override val type: EditActionType = EditActionType.INSERT
 }
@@ -129,8 +132,6 @@ internal class Insert constructor(
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
- * @property timestamp
- *   The time when this [EditAction] request was received.
  * @property start
  *   The location in the file to inserting/overwriting the data.
  * @property end
@@ -140,8 +141,6 @@ internal class Insert constructor(
  * @constructor
  * Construct a [RemoveRange].
  *
- * @param timestamp
- *   The time when this [EditAction] request was received.
  * @param start
  *   The location in the file to inserting/overwriting the data.
  * @param end
@@ -149,12 +148,11 @@ internal class Insert constructor(
  *   this point should be preserved.
  */
 internal class RemoveRange constructor(
-	override val timestamp: Long,
 	private val start: Int,
 	private val end: Int) : EditAction
 {
-	override fun update(file: AvailServerFile): List<EditAction> =
-		file.removeRange(start, end)
+	override fun update(file: AvailServerFile, timestamp: Long): TracedAction =
+		file.removeRange(start, end, timestamp)
 
 	override val type: EditActionType = EditActionType.REMOVE_RANGE
 }
@@ -166,8 +164,6 @@ internal class RemoveRange constructor(
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
- * @property timestamp
- *   The time when this [EditAction] request was received.
  * @property data
  *   The [ByteArray] that is to be inserted in the file.
  * @property start
@@ -179,8 +175,6 @@ internal class RemoveRange constructor(
  * @constructor
  * Construct an [InsertRange].
  *
- * @param timestamp
- *   The time when this [EditAction] request was received.
  * @param data
  *   The [ByteArray] that is to be inserted in the file.
  * @param start
@@ -190,15 +184,63 @@ internal class RemoveRange constructor(
  *   this point should be preserved.
  */
 internal class InsertRange constructor(
-	override val timestamp: Long,
 	val data: ByteArray,
 	private val start: Int,
 	private val end: Int): EditAction
 {
-	override fun update(file: AvailServerFile): List<EditAction> =
-		file.insertRange(data, start, end)
+	override fun update(file: AvailServerFile, timestamp: Long): TracedAction =
+		file.insertRange(data, start, end, timestamp)
 
 	override val type: EditActionType = EditActionType.INSERT_RANGE
 }
 
+/**
+ * A `TracedAction` records an [EditAction] that was performed on a file and
+ * the `EditAction`s required to undo the initial `EditAction`.
+ *
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ *
+ * @property timestamp
+ *   The time when this [EditAction] request was received.
+ * @property forwardAction
+ *   The originally requested [EditAction] that was made to a file.
+ * @property reverseAction
+ *   The [EditAction] that reverses the [forwardAction].
+ *
+ * @constructor
+ * Construct a [TracedAction].
+ *
+ * @param timestamp
+ *   The time when this [EditAction] request was performed.
+ * @property forwardAction
+ *   The originally requested [EditAction] that was made to a file.
+ * @property reverseAction
+ *   The [EditAction] that reverses the `forwardAction`.
+ */
+internal class TracedAction constructor(
+	private val timestamp: Long,
+	private val forwardAction: EditAction,
+	private val reverseAction: EditAction)
+{
+	/**
+	 * Run the [reverseAction] on the provided [AvailServerFile].
+	 *
+	 * @param file
+	 *   The [AvailServerFile] to reverse.
+	 */
+	fun revert (file: AvailServerFile)
+	{
+		reverseAction.update(file, timestamp)
+	}
 
+	/**
+	 * Run the [forwardAction] on the provided [AvailServerFile].
+	 *
+	 * @param file
+	 *   The [AvailServerFile] to redo.
+	 */
+	fun redo (file: AvailServerFile)
+	{
+		forwardAction.update(file, timestamp)
+	}
+}
