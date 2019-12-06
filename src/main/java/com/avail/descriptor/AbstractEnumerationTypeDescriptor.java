@@ -465,6 +465,12 @@ extends AbstractTypeDescriptor
 		final AvailObject object);
 
 	@Override @AvailMethod
+	protected abstract A_Tuple o_TupleOfTypesFromTo (
+		final AvailObject object,
+		final int startIndex,
+		final int endIndex);
+
+	@Override @AvailMethod
 	protected abstract boolean o_IsSubtypeOf (
 		final AvailObject object,
 		final A_Type aType);

@@ -102,23 +102,20 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 			TOP.o())
 
 	override fun fallibilityForArgumentTypes(argumentTypes: List<A_Type>)
-		: Primitive.Fallibility
+		: Fallibility
 	{
 		val functionType = argumentTypes[0]
 		val argTupleType = argumentTypes[1]
 		val paramsType = functionType.argsTupleType()
 		val fixedSize = argTupleType.sizeRange().upperBound().equals(
 			argTupleType.sizeRange().lowerBound())
-		return if (fixedSize
-		           && paramsType.sizeRange().equals(argTupleType.sizeRange())
-		           && argTupleType.isSubtypeOf(paramsType))
-			{
-				CallSiteCannotFail
-			}
-			else
-			{
-				CallSiteCanFail
-			}
+		if (fixedSize
+			&& paramsType.sizeRange().equals(argTupleType.sizeRange())
+			&& argTupleType.isSubtypeOf(paramsType))
+		{
+			return CallSiteCannotFail
+		}
+		return CallSiteCanFail
 	}
 
 	override fun returnTypeGuaranteedByVM(

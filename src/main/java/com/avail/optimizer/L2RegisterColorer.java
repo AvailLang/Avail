@@ -34,7 +34,6 @@ package com.avail.optimizer;
 
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK;
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.utility.Graph;
@@ -248,8 +247,6 @@ public final class L2RegisterColorer
 		{
 			// Process live-out for this instruction.
 			final L2Instruction instruction = instructions.get(index);
-			assert instruction.operation() != L2_ENTER_L2_CHUNK.instance
-				: "Liveness trace must not reach an L2_ENTER_L2_CHUNK";
 			boolean definesCurrentRegister = false;
 			for (final L2Register written
 				: instruction.destinationRegisters())

@@ -50,7 +50,8 @@ import com.avail.interpreter.Primitive.Flag.*
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_SetFiberName : Primitive(2, CannotFail, CanInline, HasSideEffect)
+object P_SetFiberName : Primitive(
+	2, CannotFail, CanInline, HasSideEffect, WritesToHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{

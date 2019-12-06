@@ -44,7 +44,7 @@ import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.operation.L2ControlFlowOperation;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE;
-import com.avail.interpreter.levelTwo.operation.L2_PC_TO_INT;
+import com.avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT;
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
 import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2Generator;
@@ -79,6 +79,62 @@ import static java.util.Collections.emptyList;
  */
 public abstract class L2Operation
 {
+	/**
+	 * A brief hierarchy of classes for sensibly parameterizing the
+	 * {@link ReadsHiddenVariable} and {@link WritesHiddenVariable} annotations
+	 * on an {@code L2Operation}s.  We'd use an {@code enum} here, but they
+	 * don't play at all nicely with annotations in Java.
+	 */
+	@SuppressWarnings("AbstractClassWithoutAbstractMethods")
+	public abstract static class HiddenVariable
+	{
+		/** How the current continuation field is affected. */
+		@HiddenVariableShift(0)
+		public static class CURRENT_CONTINUATION extends HiddenVariable { }
+
+		/** How the current function field is affected. */
+		@HiddenVariableShift(1)
+		public static class CURRENT_FUNCTION extends HiddenVariable { }
+
+		/** How the current arguments of this frame are affected. */
+		@HiddenVariableShift(2)
+		public static class CURRENT_ARGUMENTS extends HiddenVariable { }
+
+		/** How the latest return value field is affected. */
+		@HiddenVariableShift(3)
+		public static class LATEST_RETURN_VALUE extends HiddenVariable { }
+
+		/** How the current stack reifier field is affected. */
+		@HiddenVariableShift(4)
+		public static class STACK_REIFIER extends HiddenVariable { }
+
+		/** How the registerDump field is affected. */
+		@HiddenVariableShift(5)
+		public static class REGISTER_DUMP extends HiddenVariable { }
+
+		/**
+		 * How any other global variables are affected.  This includes things
+		 * like the global exception reporter, the stringification function,
+		 * observerless setup, etc.
+		 */
+		@HiddenVariableShift(6)
+		public static class GLOBAL_STATE extends HiddenVariable { }
+	}
+
+	/**
+	 * The bitwise-or of the masks of {@link HiddenVariable}s that are read by
+	 * {@link L2Instruction}s using this operation.  Note that all reads are
+	 * considered to happen before all writes.
+	 */
+	public final int readsHiddenVariablesMask;
+
+	/**
+	 * The bitwise-or of the masks of {@link HiddenVariable}s that are
+	 * overwritten by {@link L2Instruction}s using this operation.  Note that
+	 * all reads are considered to happen before all writes.
+	 */
+	public final int writesHiddenVariablesMask;
+
 	/**
 	 * Is the enclosing {@link L2Instruction} an entry point into its {@link
 	 * L2Chunk}?
@@ -149,12 +205,42 @@ public abstract class L2Operation
 			className, StatisticReport.L2_TO_JVM_TRANSLATION_TIME);
 		namedOperandTypes = theNamedOperandTypes.clone();
 
-		// The number of targets won't be large, so don't worry about the
-		// quadratic cost.  An N-way dispatch would be a different story.
 		assert this instanceof L2ControlFlowOperation
-			|| this instanceof L2_PC_TO_INT
+			|| this instanceof L2_SAVE_ALL_AND_PC_TO_INT
 			|| Arrays.stream(namedOperandTypes).noneMatch(
 				x -> x.operandType() == L2OperandType.PC);
+
+		final @Nullable ReadsHiddenVariable readsAnnotation =
+			getClass().getAnnotation(ReadsHiddenVariable.class);
+		int readMask = 0;
+		if (readsAnnotation != null)
+		{
+			for (final Class<? extends HiddenVariable> hiddenVariableSubclass :
+				readsAnnotation.value())
+			{
+				final HiddenVariableShift shiftAnnotation =
+					hiddenVariableSubclass.getAnnotation(
+						HiddenVariableShift.class);
+				readMask |= 1 << shiftAnnotation.value();
+			}
+		}
+		this.readsHiddenVariablesMask = readMask;
+
+		final @Nullable WritesHiddenVariable writesAnnotation =
+			getClass().getAnnotation(WritesHiddenVariable.class);
+		int writeMask = 0;
+		if (writesAnnotation != null)
+		{
+			for (final Class<? extends HiddenVariable> hiddenVariableSubclass :
+				writesAnnotation.value())
+			{
+				final HiddenVariableShift shiftAnnotation =
+					hiddenVariableSubclass.getAnnotation(
+						HiddenVariableShift.class);
+				writeMask |= 1 << shiftAnnotation.value();
+			}
+		}
+		this.writesHiddenVariablesMask = writeMask;
 	}
 
 	/**
@@ -288,6 +374,30 @@ public abstract class L2Operation
 	}
 
 	/**
+	 * Answer true if this instruction leads to multiple targets, *multiple* of
+	 * which can be reached.  This is not the same as a branch, in which only
+	 * one will be reached for any circumstance of reaching this instruction.
+	 * In particular, a {@link L2_SAVE_ALL_AND_PC_TO_INT} instruction jumps to
+	 * its fall-through label, but after reification has saved the live register
+	 * state, it gets restored again and winds up traversing the other edge.
+	 *
+	 * <p>This is an important distinction, in that this type of instruction
+	 * should act as a barrier against redundancy elimination.  Otherwise an
+	 * object with identity (i.e., a variable) created in the first branch won't
+	 * be the same as the one produced in the second branch.</p>
+	 *
+	 * <p>Also, we must treat as always-live-in to this instruction any values
+	 * that are used in <em>either</em> branch, since they'll both be taken.</p>
+	 *
+	 * @return Whether multiple branches may be taken following the circumstance
+	 *         of arriving at this instruction.
+	 */
+	public boolean goesMultipleWays ()
+	{
+		return false;
+	}
+
+	/**
 	 * Answer whether execution of this instruction causes a {@linkplain
 	 * A_Variable variable} to be read.
 	 *
@@ -347,12 +457,10 @@ public abstract class L2Operation
 		final L2ValueManifest manifest)
 	{
 		assert !isEntryPoint(instruction)
-				|| instruction.basicBlock.instructions().get(0) == instruction
+			|| instruction.basicBlock.instructions().get(0) == instruction
 			: "Entry point instruction must be at start of a block";
-		for (final L2Operand operand : instruction.operands())
-		{
-			operand.instructionWasAdded(instruction, manifest);
-		}
+		instruction.operandsDo(
+			operand -> operand.instructionWasAdded(instruction, manifest));
 	}
 
 	/**

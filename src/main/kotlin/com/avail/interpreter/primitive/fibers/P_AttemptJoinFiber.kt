@@ -46,8 +46,7 @@ import com.avail.descriptor.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_FIBER_CANNOT_JOIN_ITSELF
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.CanSuspend
-import com.avail.interpreter.Primitive.Flag.Unknown
+import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive:** If the [fiber][FiberDescriptor] has
@@ -69,7 +68,13 @@ import com.avail.interpreter.Primitive.Flag.Unknown
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object P_AttemptJoinFiber : Primitive(1, CanSuspend, Unknown)
+object P_AttemptJoinFiber : Primitive(
+	1,
+	CanSuspend,
+	Unknown,
+	// Don't re-order primitives around a join, in case it creates deadlocks.
+	WritesToHiddenGlobalState,
+	ReadsFromHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{

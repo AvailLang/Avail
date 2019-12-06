@@ -34,7 +34,6 @@ package com.avail.interpreter.primitive.controlflow
 import com.avail.descriptor.A_RawFunction
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.AvailObject
 import com.avail.descriptor.ContinuationDescriptor
 import com.avail.descriptor.ContinuationTypeDescriptor.mostGeneralContinuationType
 import com.avail.descriptor.EnumerationTypeDescriptor.booleanType
@@ -70,9 +69,7 @@ object P_ExitContinuationWithResultIf : Primitive(
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
-		val con = interpreter.argument(0)
-		val result = interpreter.argument(1)
-		val condition = interpreter.argument(2)
+		val (con, result, condition) = interpreter.argsBuffer
 
 		if (!condition.extractBoolean())
 		{
@@ -89,12 +86,12 @@ object P_ExitContinuationWithResultIf : Primitive(
 				E_CONTINUATION_EXPECTED_STRONGER_TYPE)
 		}
 
-		interpreter.reifiedContinuation = con.caller() as AvailObject
+		interpreter.setReifiedContinuation(con.caller())
 		interpreter.function = null
 		interpreter.chunk = null
 		interpreter.offset = Integer.MAX_VALUE
 		interpreter.returnNow = true
-		interpreter.latestResult(result)
+		interpreter.setLatestResult(result)
 		return CONTINUATION_CHANGED
 	}
 

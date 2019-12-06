@@ -35,12 +35,12 @@ package com.avail.optimizer;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteOperand;
-import com.avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE;
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
@@ -419,8 +419,7 @@ public final class L2Optimizer
 	 * <p>This process is repeated until no more instructions are eligible to
 	 * move forward.</p>
 	 *
-	 * <p>This requires edge-split SSA form as input, but the duplicated
-	 * defining instructions break SSA.</p>
+	 * <p>This requires edge-split form.  It does not preserve SSA.</p>
 	 */
 	void postponeConditionallyUsedValues ()
 	{
@@ -434,19 +433,34 @@ public final class L2Optimizer
 				// from it as we iterate.
 				final Set<L2Register> registersConsumedLaterInBlock =
 					new HashSet<>();
+				int dependentReadsLaterInBlock = 0;
+				int allWritesLaterInBlock = 0;
 				final List<L2Instruction> instructions =
 					new ArrayList<>(block.instructions());
 				// As we move backward through the instructions, accumulate
 				// reachable edges that earlier instructions might yet be pushed
-				// through.
+				// through.  At the moment, all edges occur at the ends of
+				// blocks, but this could change.
 				final Set<L2PcOperand> reachableTargetEdges = new HashSet<>();
 				for (int i = instructions.size() - 1; i >= 0; i--)
 				{
 					final L2Instruction instruction = instructions.get(i);
+					final L2Operation operation = instruction.operation();
+					if (operation.goesMultipleWays()) {
+						// Don't move anything past an instruction that goes
+						// multiple ways from the same circumstance.  Otherwise,
+						// any value produced in the first edge would be
+						// redundant with (and maybe even disagree with, in the
+						// case of identity) the values that would be produced
+						// later in the second edge.
+						break;
+					}
 					final @Nullable Set<L2PcOperand> edgesToMoveThrough =
 						successorEdgesToMoveThrough(
 							instruction,
 							registersConsumedLaterInBlock,
+							dependentReadsLaterInBlock,
+							allWritesLaterInBlock,
 							reachableTargetEdges);
 					if (edgesToMoveThrough != null)
 					{
@@ -459,10 +473,13 @@ public final class L2Optimizer
 							final L2Instruction newInstruction =
 								new L2Instruction(
 									destinationBlock,
-									instruction.operation(),
+									operation,
 									instruction.operands());
 							destinationBlock.insertInstruction(
-								0, newInstruction, edge.manifest());
+								destinationBlock.instructions().get(0)
+									.isEntryPoint() ? 1 : 0,
+								newInstruction,
+								edge.manifest());
 							// None of the registers defined by the instruction
 							// should be live-in any more at the edge.
 							edge.sometimesLiveInRegisters.removeAll(
@@ -476,6 +493,11 @@ public final class L2Optimizer
 						}
 						block.instructions().remove(instruction);
 						instruction.justRemoved();
+						// We moved the instruction *just* out of the block, so
+						// when we move prior instructions, they'll still end up
+						// before this one.  Therefore, don't track its reads.
+						// Similarly, its writes have also moved past where any
+						// new instructions might get moved.
 					}
 					else
 					{
@@ -485,11 +507,21 @@ public final class L2Optimizer
 						// can't be moved out of the block.
 						registersConsumedLaterInBlock.addAll(
 							instruction.sourceRegisters());
+						// It might read values that prior instructions write,
+						// so we should prevent those instructions from moving.
+						dependentReadsLaterInBlock |=
+							operation.readsHiddenVariablesMask;
+						// It might overwrite values needed by prior
+						// instructions, so prevent those readers from moving.
+						allWritesLaterInBlock |=
+							operation.writesHiddenVariablesMask;
+
 						// Also record any mid-block exit edges, so that prior
 						// instructions can decide whether to replicate there as
-						// well.
+						// well.  At the moment, these don't exist.
 						reachableTargetEdges.addAll(instruction.targetEdges());
 					}
+
 				}
 			}
 		}
@@ -508,6 +540,16 @@ public final class L2Optimizer
 	 *        given one within the same block.  If the given instruction
 	 *        produces an output consumed by a later instruction, the given
 	 *        instruction cannot be moved forward out of its basic block.
+	 * @param readMaskLaterInSameBlock
+	 *        A mask of {@link HiddenVariable} dependencies that instructions
+	 *        later in the block will read.  Writes to these hidden variables
+	 *        must not be moved past those reads, or the reads won't be able to
+	 *        access the values.
+	 * @param writeMaskLaterInSameBlock
+	 *        A mask of {@link HiddenVariable} dependencies that instructions
+	 *        later in the block will write.  Reads of these hidden variables
+	 *        must not be moved past those writes, or the reads won't be able to
+	 *        access the values.
 	 * @param candidateTargetEdges
 	 *        The edges that this instruction might be moved through.  These are
 	 *        all outbound edges in instructions that occur later in the current
@@ -518,15 +560,38 @@ public final class L2Optimizer
 	private static @Nullable Set<L2PcOperand> successorEdgesToMoveThrough (
 		final L2Instruction instruction,
 		final Set<L2Register> registersConsumedLaterInSameBlock,
+		final int readMaskLaterInSameBlock,
+		final int writeMaskLaterInSameBlock,
 		final Set<L2PcOperand> candidateTargetEdges)
 	{
-		if (instruction.hasSideEffect()
-			|| instruction.altersControlFlow()
+		if (instruction.altersControlFlow()
 			|| instruction.operation().isPhi()
-			|| instruction.operation().isEntryPoint(instruction))
+			|| instruction.isEntryPoint())
 		{
 			return null;
 		}
+		// TODO Until we've eliminated this flag...
+		if (instruction.hasSideEffect())
+		{
+			return null;
+		}
+		final int writeMask = instruction.operation().writesHiddenVariablesMask;
+		if ((writeMask & readMaskLaterInSameBlock) != 0
+			|| (writeMask & writeMaskLaterInSameBlock) != 0)
+		{
+			// Either the instruction writes something that a later instruction
+			// reads, or there are multiple writes that should maintain their
+			// order in case a later block has a dependent read.  Don't move it.
+			return null;
+		}
+		final int readMask = instruction.operation().readsHiddenVariablesMask;
+		if ((readMask & writeMaskLaterInSameBlock) != 0)
+		{
+			// The instruction reads something that a later instruction would
+			// clobber.  Don't move it.
+			return null;
+		}
+
 		final List<L2Register> written = instruction.destinationRegisters();
 		assert !written.isEmpty()
 			: "Every instruction should either have side effects or write to "
@@ -911,6 +976,14 @@ public final class L2Optimizer
 			return changed;
 		}
 
+		/**
+		 * Record a register being read.
+		 *
+		 * @param register
+		 *        The register being read.
+		 * @param registerIdFunction
+		 *        How to extract an id from the register.
+		 */
 		void readRegister (
 			final L2Register register,
 			final ToIntFunction<L2Register> registerIdFunction)
@@ -919,6 +992,14 @@ public final class L2Optimizer
 				.get(registerIdFunction.applyAsInt(register));
 		}
 
+		/**
+		 * Process a register being written.
+		 *
+		 * @param register
+		 *        The register being written.
+		 * @param registerIdFunction
+		 *        How to extract an id from the register.
+		 */
 		void writeRegister (
 			final L2Register register,
 			final ToIntFunction<L2Register> registerIdFunction)
@@ -927,6 +1008,9 @@ public final class L2Optimizer
 				.set(registerIdFunction.applyAsInt(register));
 		}
 
+		/**
+		 * Clear usage information about all registers.
+		 */
 		void clearAll ()
 		{
 			//noinspection ForLoopReplaceableByForEach
@@ -936,6 +1020,7 @@ public final class L2Optimizer
 			}
 		}
 
+		/** Create an instance with no tracking information. */
 		UsedRegisters ()
 		{
 			liveRegistersByKind = new BitSet[RegisterKind.all.length];
@@ -945,13 +1030,18 @@ public final class L2Optimizer
 			}
 		}
 
+		/**
+		 * Duplicate an existing instance.
+		 *
+		 * @param original The existing instance to duplicate.
+		 */
 		UsedRegisters (final UsedRegisters original)
 		{
 			liveRegistersByKind = new BitSet[RegisterKind.all.length];
 			for (int i = 0; i < liveRegistersByKind.length; i++)
 			{
 				liveRegistersByKind[i] =
-					(BitSet) original.liveRegistersByKind[i].clone();
+					cast(original.liveRegistersByKind[i].clone());
 			}
 		}
 	}
@@ -1121,11 +1211,6 @@ public final class L2Optimizer
 			final UsedRegisters workingSet = new UsedRegisters(checked);
 			for (final L2Instruction instruction : block.instructions())
 			{
-				if (instruction.operation() == L2_ENTER_L2_CHUNK.instance)
-				{
-					// Wipe all registers.
-					workingSet.clearAll();
-				}
 				if (!instruction.operation().isPhi())
 				{
 					for (final L2Register register :
@@ -1177,8 +1262,9 @@ public final class L2Optimizer
 	}
 
 	/**
-	 * Ensure each instruction that's an {@linkplain L2Operation#isEntryPoint(
-	 * L2Instruction) entry point} occurs at the start of a block.
+	 * Ensure each instruction that's an
+	 * {@linkplain L2Instruction#isEntryPoint() entry point} occurs at the start
+	 * of a block.
 	 */
 	private void checkEntryPoints ()
 	{
@@ -1186,8 +1272,7 @@ public final class L2Optimizer
 			b -> b.instructions().forEach(
 				i ->
 				{
-					assert !i.operation().isEntryPoint(i)
-						|| b.instructions().get(0) == i;
+					assert !i.isEntryPoint() || b.instructions().get(0) == i;
 				}
 		));
 	}

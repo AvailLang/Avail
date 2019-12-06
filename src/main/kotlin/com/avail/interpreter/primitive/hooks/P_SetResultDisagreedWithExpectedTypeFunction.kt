@@ -47,8 +47,7 @@ import com.avail.descriptor.TypeDescriptor.Types.TOP
 import com.avail.descriptor.VariableTypeDescriptor.variableTypeFor
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.CannotFail
-import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive:** Set the [function][FunctionDescriptor] to invoke whenever the
@@ -58,7 +57,8 @@ import com.avail.interpreter.Primitive.Flag.HasSideEffect
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_SetResultDisagreedWithExpectedTypeFunction : Primitive(1, CannotFail, HasSideEffect)
+object P_SetResultDisagreedWithExpectedTypeFunction : Primitive(
+	1, CannotFail, HasSideEffect, WritesToHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{

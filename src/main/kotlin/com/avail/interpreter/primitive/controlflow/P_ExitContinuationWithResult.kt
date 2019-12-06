@@ -33,7 +33,6 @@ package com.avail.interpreter.primitive.controlflow
 
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.AvailObject
 import com.avail.descriptor.BottomTypeDescriptor.bottom
 import com.avail.descriptor.ContinuationDescriptor
 import com.avail.descriptor.ContinuationTypeDescriptor.mostGeneralContinuationType
@@ -73,12 +72,12 @@ object P_ExitContinuationWithResult : Primitive(
 				E_CONTINUATION_EXPECTED_STRONGER_TYPE)
 		}
 
-		interpreter.reifiedContinuation = con.caller() as AvailObject
+		interpreter.setReifiedContinuation(con.caller())
 		interpreter.function = null
 		interpreter.chunk = null
 		interpreter.offset = Integer.MAX_VALUE
 		interpreter.returnNow = true
-		interpreter.latestResult(result)
+		interpreter.setLatestResult(result)
 		return CONTINUATION_CHANGED
 	}
 

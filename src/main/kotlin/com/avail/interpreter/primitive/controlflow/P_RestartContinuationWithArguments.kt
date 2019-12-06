@@ -114,12 +114,12 @@ object P_RestartContinuationWithArguments : Primitive(
 		}
 		// The restart entry point expects the interpreter's reifiedContinuation
 		// to be the label continuation's *caller*.
-		interpreter.reifiedContinuation = originalCon.caller() as AvailObject
+		interpreter.setReifiedContinuation(originalCon.caller())
 		interpreter.function = originalCon.function()
 		interpreter.chunk = code.startingChunk()
 		interpreter.offset = 0
 		interpreter.returnNow = false
-		interpreter.latestResult(null)
+		interpreter.setLatestResult(null)
 		return CONTINUATION_CHANGED
 	}
 

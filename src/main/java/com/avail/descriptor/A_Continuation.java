@@ -210,4 +210,13 @@ extends A_BasicObject
 	 * @return The line number within the defining module.
 	 */
 	int currentLineNumber ();
+
+	/**
+	 * Answer the {@link ContinuationRegisterDumpDescriptor} object that was
+	 * secretly stashed inside this continuation for an {@link L2Chunk}'s use.
+	 *
+	 * @return An {@link AvailObject} with a
+	 *         {@link ContinuationRegisterDumpDescriptor} descriptor.
+	 */
+	AvailObject registerDump ();
 }

@@ -50,11 +50,10 @@ import java.util.Set;
 
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
+import static com.avail.descriptor.TupleTypeDescriptor.tupleTypesForTypesArrayMethod;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
-import static org.objectweb.asm.Opcodes.INVOKESTATIC;
-import static org.objectweb.asm.Type.*;
 
 /**
  * Create a fixed sized {@link TupleTypeDescriptor tuple type} from the
@@ -160,12 +159,7 @@ extends L2Operation
 
 		// :: tupleType = TupleTypeDescriptor.tupleTypeForTypes(types);
 		translator.objectArray(method, types.elements(), A_Type.class);
-		method.visitMethodInsn(
-			INVOKESTATIC,
-			getInternalName(TupleTypeDescriptor.class),
-			"tupleTypeForTypes",
-			getMethodDescriptor(getType(A_Type.class), getType(A_Type[].class)),
-			false);
+		tupleTypesForTypesArrayMethod.generateCall(method);
 		translator.store(method, tupleType.register());
 	}
 }

@@ -45,6 +45,7 @@ import com.avail.exceptions.AvailErrorCode.E_FIBER_RESULT_UNAVAILABLE
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
 import com.avail.utility.MutableOrNull
 
 /**
@@ -53,7 +54,8 @@ import com.avail.utility.MutableOrNull
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_FiberResult : Primitive(1, CanInline)
+object P_FiberResult : Primitive(
+	1, CanInline, ReadsFromHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{

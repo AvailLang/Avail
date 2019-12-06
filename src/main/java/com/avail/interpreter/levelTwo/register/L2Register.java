@@ -41,12 +41,14 @@ import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEnc
 import com.avail.optimizer.L2ControlFlowGraph;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.reoptimizer.L2Inliner;
+import org.objectweb.asm.Type;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
 import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Type.*;
 
 /**
  * {@code L2Register} models the conceptual use of a register by a {@linkplain
@@ -66,6 +68,8 @@ public abstract class L2Register
 		 * The kind of register that holds an {@link AvailObject}.
 		 */
 		BOXED(
+			"r",
+			getDescriptor(AvailObject.class),
 			ALOAD,
 			ASTORE,
 			RestrictionFlagEncoding.BOXED),
@@ -74,6 +78,8 @@ public abstract class L2Register
 		 * The kind of register that holds an {@code int}.
 		 */
 		INTEGER(
+			"i",
+			INT_TYPE.getDescriptor(),
 			ILOAD,
 			ISTORE,
 			RestrictionFlagEncoding.UNBOXED_INT),
@@ -82,6 +88,8 @@ public abstract class L2Register
 		 * The kind of register that holds a {@code double}.
 		 */
 		FLOAT(
+			"f",
+			DOUBLE_TYPE.getDescriptor(),
 			DLOAD,
 			DSTORE,
 			RestrictionFlagEncoding.UNBOXED_FLOAT),
@@ -92,6 +100,12 @@ public abstract class L2Register
 // 		 */
 //		UNESCAPED_VARIABLE_VALUE
 		;
+
+		/** The prefix to use for registers of this kind. */
+		public final String prefix;
+
+		/** The JVM {@link Type} string. */
+		public final String jvmTypeString;
 
 		/** The JVM instruction that loads a register of this kind. */
 		public final int loadInstruction;
@@ -108,6 +122,11 @@ public abstract class L2Register
 		/**
 		 * Create an instance of the enum.
 		 *
+		 * @param prefix
+		 *        The prefix to use when naming registers of this kind.
+		 * @param jvmTypeString
+		 *        The canonical {@link String} used to identify this
+		 *        {@link Type} of register to the JVM.
 		 * @param loadInstruction
 		 *        The JVM instruction for loading.
 		 * @param storeInstruction
@@ -116,10 +135,14 @@ public abstract class L2Register
 		 *        The corresponding {@link RestrictionFlagEncoding}.
 		 */
 		RegisterKind(
+			final String prefix,
+			final String jvmTypeString,
 			final int loadInstruction,
 			final int storeInstruction,
 			final RestrictionFlagEncoding restrictionFlag)
 		{
+			this.prefix = prefix;
+			this.jvmTypeString = jvmTypeString;
 			this.loadInstruction = loadInstruction;
 			this.storeInstruction = storeInstruction;
 			this.restrictionFlag = restrictionFlag;
@@ -331,7 +354,10 @@ public abstract class L2Register
 	 *
 	 * @return The prefix.
 	 */
-	public abstract String namePrefix ();
+	public String namePrefix ()
+	{
+		return registerKind().prefix;
+	}
 
 	@Override
 	public final String toString ()

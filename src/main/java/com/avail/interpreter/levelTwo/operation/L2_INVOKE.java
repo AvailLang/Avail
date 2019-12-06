@@ -37,6 +37,13 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_ARGUMENTS;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.REGISTER_DUMP;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.STACK_REIFIER;
+import com.avail.interpreter.levelTwo.WritesHiddenVariable;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
@@ -49,11 +56,13 @@ import org.objectweb.asm.MethodVisitor;
 import java.util.List;
 import java.util.Set;
 
+import static com.avail.interpreter.Interpreter.*;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Type.*;
+import static org.objectweb.asm.Type.getDescriptor;
+import static org.objectweb.asm.Type.getInternalName;
 
 /**
  * The given function is invoked.  The function may be a primitive, and the
@@ -61,16 +70,25 @@ import static org.objectweb.asm.Type.*;
  * reifying the stack).  It may also trigger reification of this frame by
  * Java-returning a {@link StackReifier} instead of null.
  *
- * <p>The return value can be picked up from {@link Interpreter#latestResult()
- * latestResult} in a subsequent {@link L2_GET_LATEST_RETURN_VALUE} instruction.
- * Note that the value that was returned has not been dynamically type-checked
- * yet, so if its validity can't be proven statically by the VM, the calling
- * function should check the type against its expectation (prior to the value
- * getting captured in any continuation).</p>
+ * <p>The return value can be picked up from
+ * {@link Interpreter#getLatestResult()} in a subsequent
+ * {@link L2_GET_LATEST_RETURN_VALUE} instruction. Note that the value that was
+ * returned has not been dynamically type-checked yet, so if its validity can't
+ * be proven statically by the VM, the calling function should check the type
+ * against its expectation (prior to the value getting captured in any
+ * continuation).</p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@WritesHiddenVariable({
+	CURRENT_CONTINUATION.class,
+	CURRENT_FUNCTION.class,
+	CURRENT_ARGUMENTS.class,
+	LATEST_RETURN_VALUE.class,
+	STACK_REIFIER.class,
+	REGISTER_DUMP.class
+})
 public final class L2_INVOKE
 extends L2ControlFlowOperation
 {
@@ -201,44 +219,20 @@ extends L2ControlFlowOperation
 		{
 			case 0:
 			{
-				method.visitMethodInsn(
-					INVOKEVIRTUAL,
-					getInternalName(Interpreter.class),
-					"preinvoke0",
-					getMethodDescriptor(
-						getType(A_Function.class),
-						getType(A_Function.class)),
-					false);
+				preinvoke0Method.generateCall(method);
 				break;
 			}
 			case 1:
 			{
 				translator.load(method, argsRegsList.get(0).register());
-				method.visitMethodInsn(
-					INVOKEVIRTUAL,
-					getInternalName(Interpreter.class),
-					"preinvoke1",
-					getMethodDescriptor(
-						getType(A_Function.class),
-						getType(A_Function.class),
-						getType(AvailObject.class)),
-					false);
+				preinvoke1Method.generateCall(method);
 				break;
 			}
 			case 2:
 			{
 				translator.load(method, argsRegsList.get(0).register());
 				translator.load(method, argsRegsList.get(1).register());
-				method.visitMethodInsn(
-					INVOKEVIRTUAL,
-					getInternalName(Interpreter.class),
-					"preinvoke2",
-					getMethodDescriptor(
-						getType(A_Function.class),
-						getType(A_Function.class),
-						getType(AvailObject.class),
-						getType(AvailObject.class)),
-					false);
+				preinvoke2Method.generateCall(method);
 				break;
 			}
 			case 3:
@@ -246,55 +240,22 @@ extends L2ControlFlowOperation
 				translator.load(method, argsRegsList.get(0).register());
 				translator.load(method, argsRegsList.get(1).register());
 				translator.load(method, argsRegsList.get(2).register());
-				method.visitMethodInsn(
-					INVOKEVIRTUAL,
-					getInternalName(Interpreter.class),
-					"preinvoke3",
-					getMethodDescriptor(
-						getType(A_Function.class),
-						getType(A_Function.class),
-						getType(AvailObject.class),
-						getType(AvailObject.class),
-						getType(AvailObject.class)),
-					false);
+				preinvoke3Method.generateCall(method);
 				break;
 			}
 			default:
 			{
 				translator.objectArray(method, argsRegsList, AvailObject.class);
-				method.visitMethodInsn(
-					INVOKEVIRTUAL,
-					getInternalName(Interpreter.class),
-					"preinvoke",
-					getMethodDescriptor(
-						getType(A_Function.class),
-						getType(A_Function.class),
-						getType(AvailObject[].class)),
-					false);
+				preinvokeMethod.generateCall(method);
 				break;
 			}
 		}
 		// :: [interpreter, callingChunk, callingFunction]
 		translator.loadInterpreter(method);
 		// :: -> [interpreter, callingChunk, callingFunction, interpreter]
-		method.visitMethodInsn(
-			INVOKEVIRTUAL,
-			getInternalName(Interpreter.class),
-			"runChunk",
-			getMethodDescriptor(
-				getType(StackReifier.class)),
-			false);
+		interpreterRunChunkMethod.generateCall(method);
 		// :: [interpreter, callingChunk, callingFunction, reifier]
-		method.visitMethodInsn(
-			INVOKEVIRTUAL,
-			getInternalName(Interpreter.class),
-			"postinvoke",
-			getMethodDescriptor(
-				getType(StackReifier.class),
-				getType(L2Chunk.class),
-				getType(A_Function.class),
-				getType(StackReifier.class)),
-			false);
+		postinvokeMethod.generateCall(method);
 		// :: [reifier]
 		method.visitInsn(DUP);
 		method.visitVarInsn(ASTORE, translator.reifierLocal());

@@ -34,7 +34,11 @@ package com.avail.interpreter.levelTwo;
 
 import com.avail.AvailRuntime;
 import com.avail.AvailRuntime.HookType;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Continuation;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.A_Variable;
+import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.CompiledCodeDescriptor.L1InstructionDecoder;
 import com.avail.descriptor.TypeDescriptor.Types;
 import com.avail.descriptor.bundles.A_Bundle;
@@ -80,6 +84,7 @@ import static com.avail.interpreter.Interpreter.assignmentFunction;
 import static com.avail.interpreter.Interpreter.debugL1;
 import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.*;
 import static com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk;
+import static com.avail.utility.Casts.cast;
 import static com.avail.utility.Nulls.stripNull;
 import static java.util.Arrays.asList;
 
@@ -305,8 +310,8 @@ public final class L1InstructionStepper
 					}
 
 					// The call returned normally, without reifications, with
-					// the resulting value in the interpreter's latestResult().
-					final AvailObject result = interpreter.latestResult();
+					// the resulting value in the interpreter's latestResult.
+					final AvailObject result = interpreter.getLatestResult();
 					if (debugL1)
 					{
 						Interpreter.log(
@@ -542,7 +547,20 @@ public final class L1InstructionStepper
 					final int savedPc = instructionDecoder.pc();
 					final int savedStackp = stackp;
 
-					return interpreter.reifyThen(
+					// The Java stack has been reified into Avail
+					// continuations.  Run this before continuing the L2
+					// interpreter.
+					// Note that the locals are not present in the new
+					// continuation, just arguments.  The locals will be
+					// created by offsetToRestartUnoptimizedChunk()
+					// when the continuation is restarted.
+					// Freeze all fields of the new object, including
+					// its caller, function, and args.
+					// ...always a fresh copy, always mutable (uniquely
+					// owned).
+					// ...and continue running the chunk.
+					return new StackReifier(
+						true,
 						reificationBeforeLabelCreationStat,
 						() ->
 						{
@@ -566,7 +584,8 @@ public final class L1InstructionStepper
 							final A_Continuation newContinuation =
 								createLabelContinuation(
 									savedFunction,
-									stripNull(interpreter.reifiedContinuation),
+									stripNull(
+										interpreter.getReifiedContinuation()),
 									unoptimizedChunk,
 									TO_RESTART.offsetInDefaultChunk,
 									args);
@@ -691,8 +710,8 @@ public final class L1InstructionStepper
 					}
 
 					// The call returned normally, without reifications, with
-					// the resulting value in the interpreter's latestResult().
-					final AvailObject result = interpreter.latestResult();
+					// the resulting value in the interpreter's latestResult.
+					final AvailObject result = interpreter.getLatestResult();
 					if (debugL1)
 					{
 						Interpreter.log(
@@ -726,7 +745,7 @@ public final class L1InstructionStepper
 		// It ran off the end of the nybblecodes, which is how a function
 		// returns in Level One.  Capture the result and return to the Java
 		// caller.
-		interpreter.latestResult(pop());
+		interpreter.setLatestResult(pop());
 		assert stackp == pointers.length;
 		interpreter.returnNow = true;
 		interpreter.returningFunction = function;
@@ -763,6 +782,7 @@ public final class L1InstructionStepper
 			createContinuationWithFrame(
 				function,
 				nil,
+				nil,
 				instructionDecoder.pc(),   // Right after the set-variable.
 				stackp,
 				unoptimizedChunk,
@@ -778,7 +798,10 @@ public final class L1InstructionStepper
 				interpreter.debugModeString,
 				continuation.function().code().methodName());
 		}
-		reifier.pushContinuation(continuation);
+		reifier.pushAction(theInterpreter ->
+			theInterpreter.setReifiedContinuation(
+				continuation.replacingCaller(
+					stripNull(theInterpreter.getReifiedContinuation()))));
 	}
 
 	/**
@@ -999,7 +1022,6 @@ public final class L1InstructionStepper
 		}
 		if (!checkOk)
 		{
-			result.isInstanceOf(expectedReturnType); // TODO delete
 			final A_Function savedFunction = stripNull(interpreter.function);
 			assert interpreter.chunk == unoptimizedChunk;
 			final int savedOffset = interpreter.offset;
@@ -1060,12 +1082,22 @@ public final class L1InstructionStepper
 		final A_Method method,
 		final AvailErrorCode errorCode)
 	{
-		return interpreter.reifyThenCall3(
-			interpreter.runtime().invalidMessageSendFunction(),
+		final A_Function functionToCall =
+			interpreter.runtime().invalidMessageSendFunction();
+		return new StackReifier(
+			true,
 			reificationForFailedLookupStat,
-			false,
-			errorCode.numericCode(),
-			method,
-			tupleFromList(interpreter.argsBuffer));
+			() ->
+			{
+				interpreter.argsBuffer.clear();
+				interpreter.argsBuffer.add(cast(errorCode.numericCode()));
+				interpreter.argsBuffer.add(cast(method));
+				interpreter.argsBuffer.add(
+					cast(tupleFromList(interpreter.argsBuffer)));
+				interpreter.function = functionToCall;
+				interpreter.chunk = functionToCall.code().startingChunk();
+				interpreter.offset = 0;
+				interpreter.returnNow = false;
+			});
 	}
 }

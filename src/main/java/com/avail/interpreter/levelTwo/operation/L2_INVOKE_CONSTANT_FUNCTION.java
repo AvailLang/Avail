@@ -35,6 +35,12 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_ARGUMENTS;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.REGISTER_DUMP;
+import com.avail.interpreter.levelTwo.WritesHiddenVariable;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
@@ -60,16 +66,24 @@ import static org.objectweb.asm.Type.getInternalName;
  * (after reifying the stack).  It may also trigger reification of this frame by
  * Java-returning a {@link StackReifier} instead of null.
  *
- * <p>The return value can be picked up from {@link Interpreter#latestResult()
- * latestResult} in a subsequent {@link L2_GET_LATEST_RETURN_VALUE} instruction.
- * Note that the value that was returned has not been dynamically type-checked
- * yet, so if its validity can't be proven statically by the VM, the calling
- * function should check the type against its expectation (prior to the value
- * getting captured in any continuation).</p>
+ * <p>The return value can be picked up from
+ * {@link Interpreter#getLatestResult() latestResult} in a subsequent
+ * {@link L2_GET_LATEST_RETURN_VALUE} instruction. Note that the value that was
+ * returned has not been dynamically type-checked yet, so if its validity can't
+ * be proven statically by the VM, the calling function should check the type
+ * against its expectation (prior to the value getting captured in any
+ * continuation).</p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@WritesHiddenVariable({
+	CURRENT_CONTINUATION.class,
+	CURRENT_FUNCTION.class,
+	CURRENT_ARGUMENTS.class,
+	LATEST_RETURN_VALUE.class,
+	REGISTER_DUMP.class
+})
 public final class L2_INVOKE_CONSTANT_FUNCTION
 extends L2ControlFlowOperation
 {

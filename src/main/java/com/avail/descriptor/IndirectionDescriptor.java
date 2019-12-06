@@ -5192,4 +5192,10 @@ extends AbstractDescriptor
 	{
 		return o_Traversed(object).lastExpression();
 	}
+
+	@Override
+	AvailObject o_RegisterDump (final AvailObject object)
+	{
+		return o_Traversed(object).registerDump();
+	}
 }

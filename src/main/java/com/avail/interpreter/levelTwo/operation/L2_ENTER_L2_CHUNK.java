@@ -35,17 +35,27 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.REGISTER_DUMP;
+import com.avail.interpreter.levelTwo.ReadsHiddenVariable;
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
+import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
+import javax.annotation.Nullable;
+import java.util.EnumMap;
+import java.util.List;
 import java.util.Set;
 
+import static com.avail.descriptor.AvailObject.registerDumpMethod;
+import static com.avail.descriptor.ContinuationRegisterDumpDescriptor.extractLongAtMethod;
+import static com.avail.descriptor.ContinuationRegisterDumpDescriptor.extractObjectAtMethod;
+import static com.avail.interpreter.Interpreter.getReifiedContinuationMethod;
 import static com.avail.interpreter.levelTwo.L2OperandType.COMMENT;
 import static com.avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE;
 import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Type.*;
 
 /**
  * This marks the entry point into optimized (level two) code.  At entry, the
@@ -56,6 +66,11 @@ import static org.objectweb.asm.Type.*;
  * re-entered, such as returning into it, restarting it, or continuing it after
  * an interrupt has been handled.</p>
  */
+@ReadsHiddenVariable({
+	CURRENT_CONTINUATION.class,
+	REGISTER_DUMP.class,
+
+})
 public final class L2_ENTER_L2_CHUNK
 extends L2Operation
 {
@@ -113,14 +128,7 @@ extends L2Operation
 		// :: if (!checkValidity()) {
 		translator.loadInterpreter(method);
 		translator.literal(method, offsetInDefaultChunk.value);
-		method.visitMethodInsn(
-			INVOKEVIRTUAL,
-			getInternalName(Interpreter.class),
-			"checkValidity",
-			getMethodDescriptor(
-				BOOLEAN_TYPE,
-				INT_TYPE),
-			false);
+		Interpreter.checkValidityMethod.generateCall(method);
 		final Label isValidLabel = new Label();
 		method.visitJumpInsn(IFNE, isValidLabel);
 		// ::    return null;
@@ -128,5 +136,79 @@ extends L2Operation
 		method.visitInsn(ARETURN);
 		// :: }
 		method.visitLabel(isValidLabel);
+
+		// Extract register values that were saved in a register dump by the
+		// corresponding L2_SAVE_ALL_AND_PC_TO_INT instruction, which nicely set
+		// up for us the lists of registers that were saved.  The interpreter
+		// should have extracted the registerDump for us already.
+		final @Nullable EnumMap<RegisterKind, List<Integer>>
+			localNumberLists =
+				translator.liveLocalNumbersByKindPerEntryPoint.get(instruction);
+		if (localNumberLists != null)
+		{
+			final List<Integer> boxedList =
+				localNumberLists.get(RegisterKind.BOXED);
+			final List<Integer> intsList =
+				localNumberLists.get(RegisterKind.INTEGER);
+			final List<Integer> floatsList =
+				localNumberLists.get(RegisterKind.FLOAT);
+			final int boxedCount = boxedList.size();
+			final int intsCount = intsList.size();
+			final int floatsCount = floatsList.size();
+
+			int countdown = boxedCount + intsCount + floatsCount;
+			if (countdown > 0)
+			{
+				// Extract the register dump from the current continuation.
+				translator.loadInterpreter(method);
+				getReifiedContinuationMethod.generateCall(method);
+				registerDumpMethod.generateCall(method);
+				// Stack now has the registerDump.
+				for (int i = 0; i < boxedCount; i++)
+				{
+					if (--countdown > 0)
+					{
+						method.visitInsn(DUP);
+						// Stack has two registerDumps if needed.
+					}
+					translator.intConstant(method, i + 1);  //one-based
+					extractObjectAtMethod.generateCall(method);
+					method.visitVarInsn(
+						RegisterKind.BOXED.storeInstruction,
+						boxedList.get(i));
+				}
+				int i;
+				for (i = 0; i < intsCount; i++)
+				{
+					if (--countdown > 0)
+					{
+						method.visitInsn(DUP);
+						// Stack has two registerDumps if needed.
+					}
+					translator.intConstant(method, i + 1);  //one-based
+					extractLongAtMethod.generateCall(method);
+					method.visitInsn(L2I);
+					method.visitVarInsn(
+						RegisterKind.INTEGER.storeInstruction,
+						intsList.get(i));
+				}
+				for (int j = 0; j < floatsCount; j++, i++)
+				{
+					if (--countdown > 0)
+					{
+						method.visitInsn(DUP);
+						// Stack has two registerDumps if needed.
+					}
+					translator.intConstant(method, i + 1);  //one-based
+					extractLongAtMethod.generateCall(method);
+					method.visitInsn(L2D);
+					method.visitVarInsn(
+						RegisterKind.FLOAT.storeInstruction,
+						floatsList.get(j));
+				}
+				assert countdown == 0;
+				// The last copy of registerDumps was popped.
+			}
+		}
 	}
 }

@@ -515,7 +515,7 @@ extends Descriptor
 
 	/** The {@link CheckedMethod} for {@link A_Variable#clearValue()}. */
 	public static final CheckedMethod clearVariableMethod = instanceMethod(
-		A_Variable.class, "clearValue", Void.TYPE);
+		A_Variable.class, "clearValue", void.class);
 
 	@Override @AvailMethod
 	protected void o_ClearValue (final AvailObject object)

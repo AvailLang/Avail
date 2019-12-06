@@ -73,6 +73,7 @@ import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.io.TextInterface;
+import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.performance.Statistic;
 import com.avail.serialization.SerializerOperation;
@@ -94,6 +95,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.optimizer.jvm.CheckedMethod.instanceMethod;
 import static com.avail.utility.Casts.cast;
 import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.StackPrinter.trace;
@@ -6097,6 +6099,19 @@ implements
 	{
 		descriptor().o_ClearLexingState(this);
 	}
+
+	@ReferencedInGeneratedCode
+	@Override
+	public AvailObject registerDump()
+	{
+		return descriptor().o_RegisterDump(this);
+	}
+
+	/** Access the {@link #registerDump()} method. */
+	public static final CheckedMethod registerDumpMethod = instanceMethod(
+		AvailObject.class,
+		"registerDump",
+		AvailObject.class);
 
 	@Override
 	public AvailObject component1 ()

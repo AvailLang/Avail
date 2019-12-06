@@ -41,12 +41,13 @@ import com.avail.descriptor.TypeDescriptor.Types.TOP
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 
 /**
  * **Primitive:** Set the priority of a fiber.
  */
 @Suppress("unused")
-object P_SetFiberPriority : Primitive(2, CannotFail)
+object P_SetFiberPriority : Primitive(2, CannotFail, WritesToHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{

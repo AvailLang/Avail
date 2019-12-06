@@ -78,6 +78,13 @@ extends L2Operation
 		new L2_GET_IMPLICIT_OBSERVE_FUNCTION();
 
 	@Override
+	public boolean hasSideEffect ()
+	{
+		// Keep this instruction pinned in place for safety during inlining.
+		return true;
+	}
+
+	@Override
 	protected void propagateTypes (
 		final L2Instruction instruction,
 		final RegisterSet registerSet,

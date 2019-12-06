@@ -32,28 +32,29 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE;
+import com.avail.interpreter.levelTwo.ReadsHiddenVariable;
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
 
+import static com.avail.interpreter.Interpreter.getLatestResultMethod;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
-import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
-import static org.objectweb.asm.Type.*;
 
 /**
- * Ask the {@link Interpreter} for its {@link Interpreter#latestResult()}, which
- * is how functions return values.
+ * Ask the {@link Interpreter} for its {@link Interpreter#getLatestResult()},
+ * which is how functions return values.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@ReadsHiddenVariable(LATEST_RETURN_VALUE.class)
 public final class L2_GET_LATEST_RETURN_VALUE
 extends L2Operation
 {
@@ -94,14 +95,9 @@ extends L2Operation
 	{
 		final L2WriteBoxedOperand value = instruction.operand(0);
 
-		// :: target = interpreter.latestResult();
+		// :: target = interpreter.getLatestResult();
 		translator.loadInterpreter(method);
-		method.visitMethodInsn(
-			INVOKEVIRTUAL,
-			getInternalName(Interpreter.class),
-			"latestResult",
-			getMethodDescriptor(getType(AvailObject.class)),
-			false);
+		getLatestResultMethod.generateCall(method);
 		translator.store(method, value.register());
 	}
 }

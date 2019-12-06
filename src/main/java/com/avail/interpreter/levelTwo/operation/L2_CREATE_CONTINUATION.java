@@ -32,15 +32,13 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_Continuation;
-import com.avail.descriptor.A_Function;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ContinuationDescriptor;
 import com.avail.descriptor.objects.A_BasicObject;
-import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.REGISTER_DUMP;
+import com.avail.interpreter.levelTwo.ReadsHiddenVariable;
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
@@ -52,8 +50,12 @@ import org.objectweb.asm.MethodVisitor;
 import javax.annotation.Nullable;
 import java.util.Set;
 
+import static com.avail.descriptor.ContinuationDescriptor.createContinuationExceptFrameMethod;
+import static com.avail.interpreter.Interpreter.chunkField;
+import static com.avail.interpreter.Interpreter.registerDumpField;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Opcodes.DUP;
+import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
 import static org.objectweb.asm.Type.*;
 
 /**
@@ -65,6 +67,7 @@ import static org.objectweb.asm.Type.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@ReadsHiddenVariable(REGISTER_DUMP.class)
 public final class L2_CREATE_CONTINUATION
 extends L2Operation
 {
@@ -149,35 +152,21 @@ extends L2Operation
 		// :: continuation = createContinuationExceptFrame(
 		// ::    function,
 		// ::    caller,
+		// ::    registerDump
 		// ::    levelOnePC,
 		// ::    levelOneStackp,
 		// ::    interpreter.chunk,
 		// ::    onRampOffset);
 		translator.load(method, function.register());
 		translator.load(method, caller.register());
+		translator.loadInterpreter(method);
+		registerDumpField.generateRead(method);
 		translator.literal(method, levelOnePC.value);
 		translator.literal(method, levelOneStackp.value);
 		translator.loadInterpreter(method);
-		method.visitFieldInsn(
-			GETFIELD,
-			getInternalName(Interpreter.class),
-			"chunk",
-			getDescriptor(L2Chunk.class));
+		chunkField.generateRead(method);
 		translator.load(method, labelIntReg.register());
-		method.visitMethodInsn(
-			INVOKESTATIC,
-			getInternalName(ContinuationDescriptor.class),
-			"createContinuationExceptFrame",
-			getMethodDescriptor(
-				getType(A_Continuation.class),
-				getType(A_Function.class),
-				getType(A_Continuation.class),
-				INT_TYPE,
-				INT_TYPE,
-				getType(L2Chunk.class),
-				INT_TYPE),
-			false);
-		method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
+		createContinuationExceptFrameMethod.generateCall(method);
 		final int slotCount = slots.elements().size();
 		for (int i = 0; i < slotCount; i++)
 		{

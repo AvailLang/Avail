@@ -619,7 +619,7 @@ public final class L1Translator
 			generator.boxedWriteTemp(
 				restrictionForType(mostGeneralContinuationType(), BOXED));
 		final L2BasicBlock onReturnIntoReified =
-			generator.createBasicBlock("return into reified continuation");
+			generator.createBasicBlock("Return into reified continuation");
 		// Create readSlots for constructing the continuation.  Also create
 		// writeSemanticValues and writeRestrictions for restoring the state
 		// from the continuation when it's resumed.
@@ -656,10 +656,14 @@ public final class L1Translator
 		// the slot registers are the new ones we just created.
 		final L2WriteIntOperand writeOffset = generator.intWriteTemp(
 			restrictionForType(int32(), UNBOXED_INT));
+		final L2BasicBlock fallThrough = generator.createBasicBlock("Off-ramp");
 		addInstruction(
-			L2_PC_TO_INT.instance,
+			L2_SAVE_ALL_AND_PC_TO_INT.instance,
+			edgeTo(fallThrough),
 			edgeTo(onReturnIntoReified),
 			writeOffset);
+
+		generator.startBlock(fallThrough);
 		addInstruction(
 			L2_CREATE_CONTINUATION.instance,
 			getCurrentFunction(),
@@ -673,9 +677,6 @@ public final class L1Translator
 				generator.unreachablePcOperand().targetBlock()),
 			new L2CommentOperand("Create a reification continuation."));
 
-		final L2ValueManifest manifestBeforeReification =
-			new L2ValueManifest(currentManifest());
-
 		// Right after creating the continuation.
 		addInstruction(
 			L2_RETURN_FROM_REIFICATION_HANDLER.instance,
@@ -684,7 +685,6 @@ public final class L1Translator
 
 		// Here it's returning into the reified continuation.
 		generator.startBlock(onReturnIntoReified);
-		currentManifest().clear();
 		addInstruction(
 			L2_ENTER_L2_CHUNK.instance,
 			new L2IntImmediateOperand(typeOfEntryPoint.offsetInDefaultChunk),
@@ -698,77 +698,7 @@ public final class L1Translator
 		}
 		else
 		{
-			final L2ReadBoxedOperand popped = popCurrentContinuation();
-			for (int i = 1; i <= numSlots; i++)
-			{
-				final @Nullable L2SemanticValue writeSemanticValue =
-					writeSemanticValues[i - 1];
-				if (writeSemanticValue == null)
-				{
-					continue;
-				}
-				final TypeRestriction restriction = writeRestrictions[i - 1];
-				final L2SemanticValue semanticValue;
-				final L2WriteBoxedOperand writer;
-				if (restriction.constantOrNull != null)
-				{
-					// We know the slot contains a particular constant, so
-					// don't read it from the continuation.
-					final L2ReadBoxedOperand constantRead =
-						generator.boxedConstant(restriction.constantOrNull);
-					semanticValue = semanticSlot(i);
-					writer = generator.boxedWrite(
-						semanticValue, constantRead.restriction());
-					// A previously encountered slot may have already populated
-					// this slot as a synonym.
-					if (!currentManifest().hasSemanticValue(semanticValue))
-					{
-						generator.moveRegister(
-							L2_MOVE.boxed,
-							constantRead,
-							writer);
-					}
-				}
-				else
-				{
-					semanticValue = writeSemanticValue;
-					writer = generator.boxedWrite(semanticValue, restriction);
-					addInstruction(
-						L2_EXTRACT_CONTINUATION_SLOT.instance,
-						popped,
-						new L2IntImmediateOperand(i),
-						writer);
-				}
-				// Add in any semantic values that were synonymous with it
-				// before reification.
-				final L2Synonym previousSynonym =
-					manifestBeforeReification.semanticValueToSynonym(
-						semanticValue);
-				final TypeRestriction previousRestriction =
-					manifestBeforeReification.restrictionFor(semanticValue);
-				final TypeRestriction boxedOnly =
-					previousRestriction.butBoxedOnly();
-				for (final L2SemanticValue otherValue :
-					previousSynonym.semanticValues())
-				{
-					if (otherValue.equals(semanticValue))
-					{
-						continue;
-					}
-					if (currentManifest().hasSemanticValue(otherValue))
-					{
-						currentManifest().mergeExistingSemanticValues(
-							semanticValue, otherValue);
-					}
-					else
-					{
-						generator.moveRegister(
-							L2_MOVE.boxed,
-							readBoxed(writer),
-							generator.boxedWrite(otherValue, boxedOnly));
-					}
-				}
-			}
+			popCurrentContinuation();
 		}
 	}
 
@@ -1717,7 +1647,7 @@ public final class L1Translator
 				constantValue.equals(AtomDescriptor.trueObject());
 			final L2Instruction boolSource =
 				registerToTest.definitionSkippingMoves(true);
-			if (boolSource.operation() == L2_RUN_INFALLIBLE_PRIMITIVE.instance)
+			if (boolSource.operation() instanceof L2_RUN_INFALLIBLE_PRIMITIVE)
 			{
 				final Primitive primitive =
 					L2_RUN_INFALLIBLE_PRIMITIVE.primitiveOf(boolSource);
@@ -1911,6 +1841,8 @@ public final class L1Translator
 			if (primitive != null)
 			{
 				final boolean generated;
+				final A_Type argsTupleType =
+					rawFunction.functionType().argsTupleType();
 				if (tryToGenerateSpecialPrimitiveInvocation)
 				{
 					// We are not recursing here from a primitive override of
@@ -1919,8 +1851,6 @@ public final class L1Translator
 					// lookup was monomorphic *in the event of success*, so we
 					// can safely tighten the argument types here to conform to
 					// the only possible found function.
-					final A_Type argsTupleType =
-						rawFunction.functionType().argsTupleType();
 					final List<L2ReadBoxedOperand> strongArguments =
 						new ArrayList<>(argumentCount);
 					final L2ValueManifest manifest = currentManifest();
@@ -1954,8 +1884,6 @@ public final class L1Translator
 					// tryToGenerateSpecialPrimitiveInvocation(), so do not
 					// recurse again; just generate the best invocation possible
 					// given what we know.
-					final A_Type signatureTupleType =
-						rawFunction.functionType().argsTupleType();
 					final List<A_Type> argumentTypes =
 						new ArrayList<>(argumentCount);
 					for (int i = 0; i < argumentCount; i++)
@@ -1963,7 +1891,7 @@ public final class L1Translator
 						final L2ReadBoxedOperand argument = arguments.get(i);
 						final A_Type narrowedType =
 							argument.type().typeIntersection(
-								signatureTupleType.typeAtIndex(i + 1));
+								argsTupleType.typeAtIndex(i + 1));
 						argumentTypes.add(narrowedType);
 					}
 					if (primitive.fallibilityForArgumentTypes(argumentTypes)
@@ -1978,7 +1906,7 @@ public final class L1Translator
 									primitive.returnTypeGuaranteedByVM(
 										rawFunction, argumentTypes), BOXED));
 						addInstruction(
-							L2_RUN_INFALLIBLE_PRIMITIVE.instance,
+							L2_RUN_INFALLIBLE_PRIMITIVE.forPrimitive(primitive),
 							new L2ConstantOperand(rawFunction),
 							new L2PrimitiveOperand(primitive),
 							new L2ReadBoxedVectorOperand(arguments),
@@ -2256,7 +2184,7 @@ public final class L1Translator
 				{
 					callSiteHelper.useAnswer(
 						generator.boxedConstant(
-							interpreter.latestResult().makeImmutable()));
+							interpreter.getLatestResult().makeImmutable()));
 					return true;
 				}
 				// The primitive failed with the supplied arguments,
@@ -2698,7 +2626,7 @@ public final class L1Translator
 
 		// Reify everybody else, starting at the caller.
 		final L2BasicBlock onReification =
-			generator.createBasicBlock("on reification");
+			generator.createBasicBlock("On reification");
 		addInstruction(
 			L2_REIFY.instance,
 			new L2IntImmediateOperand(1),
@@ -2957,7 +2885,7 @@ public final class L1Translator
 		// to jump to. It's expected to place the replacement arguments into
 		// semantic slots n@1.
 		generator.restartLoopHeadBlock = generator.createLoopHeadBlock(
-			"Loop head for: " + code.methodName());
+			"Loop head for " + code.methodName().asNativeString());
 		addInstruction(
 			L2_JUMP.instance,
 			edgeTo(generator.restartLoopHeadBlock));
@@ -3073,7 +3001,9 @@ public final class L1Translator
 		unreachableBlock.makeIrremovable();
 
 		final L2Generator generator = new L2Generator(
-			UNOPTIMIZED, new Frame(null, nil, "top frame"));
+			UNOPTIMIZED,
+			new Frame(null, nil, "top frame"),
+			"default chunk");
 
 		// 0. First try to run it as a primitive.
 //		final L2ControlFlowGraph controlFlowGraph = new L2ControlFlowGraph();
@@ -3172,7 +3102,8 @@ public final class L1Translator
 
 		final L2Generator generator = new L2Generator(
 			optimizationLevel,
-			new Frame(null, code, "top frame"));
+			new Frame(null, code, "top frame"),
+			code.methodName().asNativeString());
 		final L1Translator translator =
 			new L1Translator(generator, interpreter, code);
 		translator.translate();
@@ -3181,7 +3112,7 @@ public final class L1Translator
 		interpreter.function = savedFunction;
 		interpreter.argsBuffer.clear();
 		interpreter.argsBuffer.addAll(savedArguments);
-		interpreter.latestResult(savedFailureValue);
+		interpreter.setLatestResult(savedFailureValue);
 		translationSizeStat.record(
 			chunk.instructions.length,
 			interpreter.interpreterIndex);
@@ -3513,10 +3444,14 @@ public final class L1Translator
 		// the slot registers are the new ones we just created.
 		final L2WriteIntOperand writeOffset = generator.intWriteTemp(
 			restrictionForType(int32(), UNBOXED_INT));
+		final L2BasicBlock fallThrough = generator.createBasicBlock("Off-ramp");
 		addInstruction(
-			L2_PC_TO_INT.instance,
+			L2_SAVE_ALL_AND_PC_TO_INT.instance,
+			edgeTo(fallThrough),
 			backEdgeTo(generator.afterOptionalInitialPrimitiveBlock),
 			writeOffset);
+
+		generator.startBlock(fallThrough);
 		addInstruction(
 			L2_CREATE_CONTINUATION.instance,
 			generator.makeImmutable(getCurrentFunction()),

@@ -59,12 +59,13 @@ public interface ExecutableChunk
 	 * invocation, the {@linkplain Interpreter#argsBuffer} will have been set up
 	 * for the call. For a return into this continuation, the offset will refer
 	 * to code that will rebuild the register set from the top reified
-	 * continuation, using the {@link Interpreter#latestResult()}. For resuming
-	 * the continuation, the offset will point to code that also rebuilds the
-	 * register set from the top reified continuation, but it won't expect a
-	 * return value. These re-entry points should perform validity checks on the
-	 * chunk, allowing an orderly off-ramp into the {@link
-	 * L2Chunk#unoptimizedChunk} (which simply interprets the L1 nybblecodes).
+	 * continuation, using the {@link Interpreter#getLatestResult()}. For
+	 * resuming the continuation, the offset will point to code that also
+	 * rebuilds the register set from the top reified continuation, but it won't
+	 * expect a return value. These re-entry points should perform validity
+	 * checks on the chunk, allowing an orderly off-ramp into the
+	 * {@link L2Chunk#unoptimizedChunk} (which simply interprets the L1
+	 * nybblecodes).
 	 *
 	 * @param interpreter
 	 *        An interpreter that is appropriately setup to execute the

@@ -37,6 +37,8 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION;
+import com.avail.interpreter.levelTwo.ReadsHiddenVariable;
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
@@ -54,6 +56,7 @@ import static org.objectweb.asm.Type.getInternalName;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@ReadsHiddenVariable(CURRENT_FUNCTION.class)
 public final class L2_GET_CURRENT_FUNCTION
 extends L2Operation
 {
@@ -71,6 +74,13 @@ extends L2Operation
 	 */
 	public static final L2_GET_CURRENT_FUNCTION instance =
 		new L2_GET_CURRENT_FUNCTION();
+
+	@Override
+	public boolean hasSideEffect ()
+	{
+		// Keep this instruction pinned in place for safety during inlining.
+		return true;
+	}
 
 	@Override
 	public void toString (
@@ -96,7 +106,7 @@ extends L2Operation
 
 		// :: register = interpreter.function;
 		translator.loadInterpreter(method);
-		Interpreter.interpreterFunctionField.generateRead(translator, method);
+		Interpreter.interpreterFunctionField.generateRead(method);
 		method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
 		translator.store(method, function.register());
 	}

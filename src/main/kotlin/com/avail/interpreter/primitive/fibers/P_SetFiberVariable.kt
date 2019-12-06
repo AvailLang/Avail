@@ -49,7 +49,8 @@ import com.avail.interpreter.Primitive.Flag.*
  * [fiber][FiberDescriptor].
  */
 @Suppress("unused")
-object P_SetFiberVariable : Primitive(2, CannotFail, CanInline, HasSideEffect)
+object P_SetFiberVariable : Primitive(
+	2, CannotFail, CanInline, HasSideEffect, WritesToHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{

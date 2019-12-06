@@ -42,8 +42,7 @@ import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.atoms.AtomDescriptor.objectFromBoolean
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive:** Has the specified [fiber][FiberDescriptor]
@@ -52,7 +51,8 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_HasTerminated : Primitive(1, CannotFail, CanInline)
+object P_HasTerminated : Primitive(
+	1, CannotFail, CanInline, ReadsFromHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{

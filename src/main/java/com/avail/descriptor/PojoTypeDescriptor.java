@@ -843,35 +843,35 @@ extends TypeDescriptor
 		assert aClass != null;
 		if (aClass.isPrimitive())
 		{
-			if (aClass.equals(Boolean.TYPE))
+			if (aClass.equals(boolean.class))
 			{
 				return Boolean.class;
 			}
-			else if (aClass.equals(Byte.TYPE))
+			else if (aClass.equals(byte.class))
 			{
 				return Byte.class;
 			}
-			else if (aClass.equals(Short.TYPE))
+			else if (aClass.equals(short.class))
 			{
 				return Short.class;
 			}
-			else if (aClass.equals(Integer.TYPE))
+			else if (aClass.equals(int.class))
 			{
 				return Integer.class;
 			}
-			else if (aClass.equals(Long.TYPE))
+			else if (aClass.equals(long.class))
 			{
 				return Long.class;
 			}
-			else if (aClass.equals(Float.TYPE))
+			else if (aClass.equals(float.class))
 			{
 				return Float.class;
 			}
-			else if (aClass.equals(Double.TYPE))
+			else if (aClass.equals(double.class))
 			{
 				return Double.class;
 			}
-			else if (aClass.equals(Character.TYPE))
+			else if (aClass.equals(char.class))
 			{
 				return Character.class;
 			}
@@ -985,39 +985,39 @@ extends TypeDescriptor
 			if (aClass.isPrimitive())
 			{
 				// If type represents Java void, then answer top.
-				if (aClass.equals(Void.TYPE))
+				if (aClass.equals(void.class))
 				{
 					return TOP.o();
 				}
-				else if (aClass.equals(Boolean.TYPE))
+				else if (aClass.equals(boolean.class))
 				{
 					return booleanType();
 				}
-				else if (aClass.equals(Byte.TYPE))
+				else if (aClass.equals(byte.class))
 				{
 					return byteRange();
 				}
-				else if (aClass.equals(Short.TYPE))
+				else if (aClass.equals(short.class))
 				{
 					return shortRange();
 				}
-				else if (aClass.equals(Integer.TYPE))
+				else if (aClass.equals(int.class))
 				{
 					return intRange();
 				}
-				else if (aClass.equals(Long.TYPE))
+				else if (aClass.equals(long.class))
 				{
 					return longRange();
 				}
-				else if (aClass.equals(Float.TYPE))
+				else if (aClass.equals(float.class))
 				{
 					return FLOAT.o();
 				}
-				else if (aClass.equals(Double.TYPE))
+				else if (aClass.equals(double.class))
 				{
 					return DOUBLE.o();
 				}
-				else if (aClass.equals(Character.TYPE))
+				else if (aClass.equals(char.class))
 				{
 					return charRange();
 				}

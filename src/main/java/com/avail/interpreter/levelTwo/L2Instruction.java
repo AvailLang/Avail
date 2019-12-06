@@ -37,6 +37,7 @@ import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
+import com.avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2ControlFlowGraph;
@@ -305,6 +306,17 @@ public final class L2Instruction
 	public boolean hasSideEffect ()
 	{
 		return operation().hasSideEffect(this);
+	}
+
+	/**
+	 * Answer whether this instruction is an entry point, which uses the
+	 * operation {@link L2_ENTER_L2_CHUNK}.
+	 *
+	 * @return Whether the instruction is an entry point.
+	 */
+	public boolean isEntryPoint ()
+	{
+		return operation().isEntryPoint(this);
 	}
 
 	/**

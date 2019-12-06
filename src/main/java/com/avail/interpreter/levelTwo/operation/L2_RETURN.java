@@ -36,6 +36,11 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_ARGUMENTS;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE;
+import com.avail.interpreter.levelTwo.WritesHiddenVariable;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
@@ -45,20 +50,25 @@ import org.objectweb.asm.MethodVisitor;
 import java.util.List;
 import java.util.Set;
 
-import static com.avail.interpreter.Interpreter.interpreterFunctionField;
-import static com.avail.interpreter.Interpreter.interpreterReturningFunctionField;
+import static com.avail.interpreter.Interpreter.*;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
 import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Type.*;
 
 /**
  * Return from the current {@link L2Chunk} with the given return value.  The
- * value to return will be stored in {@link Interpreter#latestResult(
- * A_BasicObject)}, so the caller will need to look there.
+ * value to return will be stored in
+ * {@link Interpreter#setLatestResult( A_BasicObject)}, so the caller will need
+ * to look there.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
 */
+@WritesHiddenVariable({
+	CURRENT_CONTINUATION.class,
+	CURRENT_FUNCTION.class,
+	CURRENT_ARGUMENTS.class,
+	LATEST_RETURN_VALUE.class
+})
 public final class L2_RETURN
 extends L2ControlFlowOperation
 {
@@ -115,28 +125,19 @@ extends L2ControlFlowOperation
 	{
 		final L2ReadBoxedOperand value = instruction.operand(0);
 
-		// :: interpreter.latestResult(value);
+		// :: interpreter.setLatestResult(value);
 		translator.loadInterpreter(method);
 		method.visitInsn(DUP);
 		translator.load(method, value.register());
-		method.visitMethodInsn(
-			INVOKEVIRTUAL,
-			getInternalName(Interpreter.class),
-			"latestResult",
-			getMethodDescriptor(VOID_TYPE, getType(A_BasicObject.class)),
-			false);
+		setLatestResultMethod.generateCall(method);
 		// :: interpreter.returnNow = true;
 		method.visitInsn(DUP);
 		translator.intConstant(method, 1);
-		method.visitFieldInsn(
-			PUTFIELD,
-			getInternalName(Interpreter.class),
-			"returnNow",
-			BOOLEAN_TYPE.getDescriptor());
+		returnNowField.generateWrite(method);
 		// interpreter.returningFunction = interpreter.function;
 		method.visitInsn(DUP);
-		interpreterFunctionField.generateRead(translator, method);
-		interpreterReturningFunctionField.generateWrite(translator, method);
+		interpreterFunctionField.generateRead(method);
+		interpreterReturningFunctionField.generateWrite(method);
 		// :: return null;
 		method.visitInsn(ACONST_NULL);
 		method.visitInsn(ARETURN);

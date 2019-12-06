@@ -32,21 +32,22 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_Continuation;
-import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.REGISTER_DUMP;
+import com.avail.interpreter.levelTwo.ReadsHiddenVariable;
+import com.avail.interpreter.levelTwo.WritesHiddenVariable;
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
 
+import static com.avail.interpreter.Interpreter.popContinuationMethod;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
-import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Type.*;
 
 /**
  * Ask the {@link Interpreter} for the current continuation, writing it into the
@@ -56,6 +57,12 @@ import static org.objectweb.asm.Type.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@ReadsHiddenVariable(
+	CURRENT_CONTINUATION.class)
+@WritesHiddenVariable({
+	CURRENT_CONTINUATION.class,
+	REGISTER_DUMP.class
+})
 public final class L2_POP_CURRENT_CONTINUATION
 extends L2Operation
 {
@@ -103,32 +110,9 @@ extends L2Operation
 	{
 		final L2WriteBoxedOperand continuation = instruction.operand(0);
 
-		// :: continuation = interpreter.reifiedContinuation;
+		// :: continuation = interpreter.popContinuation();
 		translator.loadInterpreter(method);
-		method.visitFieldInsn(
-			GETFIELD,
-			getInternalName(Interpreter.class),
-			"reifiedContinuation",
-			getDescriptor(AvailObject.class));
-		method.visitInsn(DUP);
-		// :: interpreter.reifiedContinuation = continuation.caller();
-		method.visitMethodInsn(
-			INVOKEINTERFACE,
-			getInternalName(A_Continuation.class),
-			"caller",
-			getMethodDescriptor(getType(A_Continuation.class)),
-			true);
-		method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
-		translator.loadInterpreter(method);
-		// Stack order is: reifiedContinuation caller interpreter ->
-		// Need: reifiedContinuation interpreter caller ->
-		method.visitInsn(SWAP);
-		method.visitFieldInsn(
-			PUTFIELD,
-			getInternalName(Interpreter.class),
-			"reifiedContinuation",
-			getDescriptor(AvailObject.class));
-		// :: target = continuation;
+		popContinuationMethod.generateCall(method);
 		translator.store(method, continuation.register());
 	}
 }

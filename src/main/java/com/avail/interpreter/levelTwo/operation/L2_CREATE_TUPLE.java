@@ -57,6 +57,7 @@ import java.util.Set;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromArrayMethod;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
@@ -240,14 +241,7 @@ extends L2Operation
 		}
 		// :: destination = TupleDescriptor.tupleFromArray(elements);
 		translator.objectArray(method, elements, A_BasicObject.class);
-		method.visitMethodInsn(
-			INVOKESTATIC,
-			getInternalName(ObjectTupleDescriptor.class),
-			"tupleFromArray",
-			getMethodDescriptor(
-				getType(A_Tuple.class),
-				getType(A_BasicObject[].class)),
-			false);
+		tupleFromArrayMethod.generateCall(method);
 		method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
 		translator.store(method, tuple.register());
 	}

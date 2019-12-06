@@ -163,23 +163,17 @@ Public method "Cast|cast_into_" is
 	value : any,
 	accept : function accepting <⊥> and returning ⊤
 |
-	if value's type ⊆ accept's type[1] then
-	[
-		invoke accept with <value>;
-	]
-	else
-	[
-		valueDescription ::= primitive description of value;
-		acceptedDescription ::= primitive description of accept's type[1];
-		t : tuple := concatenate <
-			"Failed run-time cast: ",
-			valueDescription,
-			" was not an instance of ",
-			acceptedDescription>;
-		s : string;
-		s ?= t;
-		Assert: false (s)
-	];
+	Primitive CastInto (failureCode : natural number);
+	valueDescription ::= primitive description of value;
+	acceptedDescription ::= primitive description of accept's type[1];
+	t : tuple := concatenate <
+		"Failed run-time cast: ",
+		valueDescription,
+		" was not an instance of ",
+		acceptedDescription>;
+	s : string;
+	s ?= t;
+	Assert: false (s)
 ] : ⊤;
 
 /**

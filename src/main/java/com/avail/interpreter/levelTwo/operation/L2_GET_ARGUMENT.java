@@ -37,6 +37,8 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_ARGUMENTS;
+import com.avail.interpreter.levelTwo.ReadsHiddenVariable;
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
 import com.avail.optimizer.jvm.JVMTranslator;
@@ -56,6 +58,7 @@ import static org.objectweb.asm.Type.getInternalName;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@ReadsHiddenVariable(CURRENT_ARGUMENTS.class)
 public final class L2_GET_ARGUMENT
 extends L2Operation
 {
@@ -109,7 +112,7 @@ extends L2Operation
 
 		// :: argument = interpreter.argsBuffer.get(«subscript - 1»);
 		translator.loadInterpreter(method);
-		Interpreter.argsBufferField.generateRead(translator, method);
+		Interpreter.argsBufferField.generateRead(method);
 		translator.literal(method, subscript.value - 1);
 		Interpreter.listGetMethod.generateCall(method);
 		method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));

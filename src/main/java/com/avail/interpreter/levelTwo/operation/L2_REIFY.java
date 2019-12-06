@@ -36,6 +36,8 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2NamedOperandType;
 import com.avail.interpreter.levelTwo.L2OperandType;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.STACK_REIFIER;
+import com.avail.interpreter.levelTwo.WritesHiddenVariable;
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
@@ -62,11 +64,17 @@ import static org.objectweb.asm.Type.*;
  * reify the entire Java stack (or discard it if "capture frames" is false).
  * If "process interrupt" is true, then process an interrupt as soon as the
  * reification is complete.  Otherwise continue running at "on reification" with
- * the reified state captured in the {@link Interpreter#reifiedContinuation}.
+ * the reified state captured in the
+ * {@link Interpreter#getReifiedContinuation()}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@WritesHiddenVariable({
+	// The instruction just sets up a new StackReifier.  It's the subsequent
+	// operations that manipulate the state.
+	STACK_REIFIER.class
+})
 public final class L2_REIFY
 extends L2ControlFlowOperation
 {

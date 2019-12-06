@@ -34,7 +34,6 @@ package com.avail.interpreter.primitive.controlflow
 import com.avail.descriptor.A_Continuation
 import com.avail.descriptor.A_RawFunction
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.AvailObject
 import com.avail.descriptor.BottomTypeDescriptor.bottom
 import com.avail.descriptor.ContinuationTypeDescriptor.mostGeneralContinuationType
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
@@ -91,12 +90,12 @@ object P_RestartContinuation : Primitive(
 		}
 		// The restart entry point expects the interpreter's reifiedContinuation
 		// to be the label continuation's *caller*.
-		interpreter.reifiedContinuation = originalCon.caller() as AvailObject
+		interpreter.setReifiedContinuation(originalCon.caller())
 		interpreter.function = originalCon.function()
 		interpreter.chunk = code.startingChunk()
 		interpreter.offset = 0
 		interpreter.returnNow = false
-		interpreter.latestResult(null)
+		interpreter.setLatestResult(null)
 		return CONTINUATION_CHANGED
 	}
 

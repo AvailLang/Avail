@@ -60,6 +60,7 @@ import static com.avail.utility.dot.DotWriter.DefaultAttributeBlockType.EDGE;
 import static com.avail.utility.dot.DotWriter.DefaultAttributeBlockType.NODE;
 import static com.avail.utility.dot.DotWriter.node;
 import static java.util.Comparator.comparing;
+import static java.util.Comparator.comparingInt;
 
 /**
  * An {@code L2ControlFlowGraphVisualizer} generates a {@code dot} source file
@@ -348,7 +349,7 @@ public class L2ControlFlowGraphVisualizer
 			fillcolor = "#9070ff/302090";
 			fontcolor = "#000000/f0f0f0";
 		}
-		else if (first != null && first.operation().isEntryPoint(first))
+		else if (first != null && first.isEntryPoint())
 		{
 			fillcolor = "#ffd394/604000";
 			fontcolor = "#000000/e0e0e0";
@@ -472,7 +473,7 @@ public class L2ControlFlowGraphVisualizer
 						"<font face=\"Helvetica\"><i>always live-in:</i></font>"
 							+ "<br/><b>&nbsp;&nbsp;&nbsp;&nbsp;");
 					edge.alwaysLiveInRegisters.stream()
-						.sorted(Comparator.comparingInt(L2Register::finalIndex))
+						.sorted(comparingInt(L2Register::finalIndex))
 						.forEach(
 							r -> builder
 								.append(escape(r.toString()))
@@ -489,7 +490,7 @@ public class L2ControlFlowGraphVisualizer
 						"<font face=\"Helvetica\"><i>sometimes live-in:</i></font>"
 							+ "<br/><b>&nbsp;&nbsp;&nbsp;&nbsp;");
 					notAlwaysLiveInRegisters.stream()
-						.sorted(Comparator.comparingInt(L2Register::finalIndex))
+						.sorted(comparingInt(L2Register::finalIndex))
 						.forEach(
 							r -> builder
 								.append(escape(r.toString()))

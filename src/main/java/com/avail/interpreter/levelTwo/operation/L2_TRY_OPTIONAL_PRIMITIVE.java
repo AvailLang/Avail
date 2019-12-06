@@ -35,12 +35,18 @@ import com.avail.descriptor.A_Function;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.CompiledCodeDescriptor;
 import com.avail.descriptor.FunctionDescriptor;
+import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_ARGUMENTS;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE;
+import com.avail.interpreter.levelTwo.ReadsHiddenVariable;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
@@ -65,14 +71,21 @@ import static org.objectweb.asm.Opcodes.*;
  * loaded with the arguments to this possible primitive function, and expect the
  * code/function/chunk to have been updated for this primitive function.
  * Try to execute a potential primitive, setting the {@link
- * Interpreter#returnNow} flag and {@link Interpreter#latestResult()
- * latestResult} if successful.  The caller always has the responsibility of
- * checking the return value, if applicable at that call site.  Used only by the
- * {@linkplain L2Chunk#unoptimizedChunk unoptimized chunk}.
+ * Interpreter#returnNow} flag and
+ * {@link Interpreter#setLatestResult(A_BasicObject) latestResult} if
+ * successful.  The caller always has the responsibility of checking the return
+ * value, if applicable at that call site.  Used only by the
+ * {@link L2Chunk#unoptimizedChunk}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@ReadsHiddenVariable({
+	CURRENT_CONTINUATION.class,
+	CURRENT_FUNCTION.class,
+	CURRENT_ARGUMENTS.class,
+	LATEST_RETURN_VALUE.class,
+})
 public final class L2_TRY_OPTIONAL_PRIMITIVE
 extends L2Operation
 {
@@ -159,7 +172,7 @@ extends L2Operation
 		// ::    goto noPrimitive;
 		translator.loadInterpreter(method);
 		method.visitInsn(DUP);
-		Interpreter.interpreterFunctionField.generateRead(translator, method);
+		Interpreter.interpreterFunctionField.generateRead(method);
 		method.visitInsn(DUP);
 		FunctionDescriptor.functionCodeMethod.generateCall(method);
 		CompiledCodeDescriptor.codePrimitiveMethod.generateCall(method);

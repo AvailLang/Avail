@@ -916,6 +916,28 @@ Primitive "function from_and_" is
 ] : function;
 
 /**
+ * Answer the {@param "index"}-th parameter type of the specified function type.
+ *
+ * @category "Primitives" "Types" "Functions" "Queries"
+ * @method "_[_]"
+ * @param "functionType" "function meta"
+ *        A function type.
+ * @param "index" "natural number"
+ *        The one-based index of the desired parameter type.
+ * @returns "(any)'s type"
+ *    The {@param "index"}-th parameter type of the argument.
+ */
+Primitive "_[_]" is
+[
+	functionType : function meta,
+	index : natural number
+|
+	Primitive ParamTypeAt (failureCode : {
+		subscript-out-of-bounds code}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : any meta;
+
+/**
  * Mark the standard input stream to allow at least {@param "count"}
  * characters of read ahead.
  *

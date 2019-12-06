@@ -194,7 +194,7 @@ implements ExecutableChunk
 		 * time.  When there are significantly more chunks than this, the ones
 		 * in the oldest generations will be invalidated.
 		 */
-		private static final int maximumTotalChunkCount = 2000;
+		private static final int maximumTotalChunkCount = 1000;
 
 		/**
 		 * The weak set of {@link L2Chunk}s in this generation.

@@ -5025,4 +5025,11 @@ extends AbstractDescriptor
 	{
 		throw unsupportedOperationException();
 	}
+
+	@Override
+	protected AvailObject o_RegisterDump (
+		final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
 }

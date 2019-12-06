@@ -100,19 +100,19 @@ extends Descriptor
 		// its primitive types ...
 		if (fieldType.isPrimitive())
 		{
-			if (fieldType.equals(Boolean.TYPE))
+			if (fieldType.equals(boolean.class))
 			{
 				defaultValue = Boolean.FALSE;
 			}
-			else if (fieldType.equals(Float.TYPE))
+			else if (fieldType.equals(float.class))
 			{
 				defaultValue = 0.0f;
 			}
-			else if (fieldType.equals(Double.TYPE))
+			else if (fieldType.equals(double.class))
 			{
 				defaultValue = 0.0d;
 			}
-			else if (fieldType.equals(Character.TYPE))
+			else if (fieldType.equals(char.class))
 			{
 				defaultValue = (char) 0;
 			}

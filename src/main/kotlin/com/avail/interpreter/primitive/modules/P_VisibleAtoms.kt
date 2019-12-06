@@ -47,6 +47,7 @@ import com.avail.interpreter.AvailLoader
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
 
 /**
  * **Primitive**: Answer every [true name][A_Atom] visible in the
@@ -55,7 +56,7 @@ import com.avail.interpreter.Primitive.Flag.CanInline
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_VisibleAtoms : Primitive(0, CanInline)
+object P_VisibleAtoms : Primitive(0, CanInline, ReadsFromHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{

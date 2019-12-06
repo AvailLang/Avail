@@ -36,6 +36,7 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.descriptor.tuples.A_Tuple;
+import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.utility.IteratorNotNull;
 
@@ -51,6 +52,7 @@ import static com.avail.descriptor.ObjectTupleDescriptor.IntegerSlots.HASH_OR_ZE
 import static com.avail.descriptor.ObjectTupleDescriptor.ObjectSlots.TUPLE_AT_;
 import static com.avail.descriptor.TreeTupleDescriptor.concatenateAtLeastOneTree;
 import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;
+import static com.avail.optimizer.jvm.CheckedMethod.staticMethod;
 
 /**
  * This is a representation for {@linkplain TupleDescriptor tuples} that can
@@ -606,6 +608,13 @@ extends TupleDescriptor
 		result.setSlotsFromArray(TUPLE_AT_, 1, elements, 0, size);
 		return result;
 	}
+
+	/** Access to the {@link #tupleFromArray(A_BasicObject...)} method. */
+	public static CheckedMethod tupleFromArrayMethod = staticMethod(
+		ObjectTupleDescriptor.class,
+		"tupleFromArray",
+		A_Tuple.class,
+		A_BasicObject[].class);
 
 	/**
 	 * Create a tuple with the specified sole element. The element is not made

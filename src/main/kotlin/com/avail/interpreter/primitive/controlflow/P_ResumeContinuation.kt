@@ -61,12 +61,12 @@ object P_ResumeContinuation : Primitive(
 		interpreter.checkArgumentCount(1)
 		val con = interpreter.argument(0)
 
-		interpreter.reifiedContinuation = con
+		interpreter.setReifiedContinuation(con)
 		interpreter.function = con.function()
 		interpreter.chunk = con.levelTwoChunk()
 		interpreter.offset = con.levelTwoOffset()
 		interpreter.returnNow = false
-		interpreter.latestResult(null)
+		interpreter.setLatestResult(null)
 		return CONTINUATION_CHANGED
 	}
 

@@ -1332,7 +1332,7 @@ extends Descriptor
 		"concatenateWith",
 		A_Tuple.class,
 		A_Tuple.class,
-		Boolean.TYPE);
+		boolean.class);
 
 	/**
 	 * Transfer the specified range of bytes into the provided {@link

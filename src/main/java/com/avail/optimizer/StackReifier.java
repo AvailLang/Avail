@@ -35,25 +35,30 @@ package com.avail.optimizer;
 import com.avail.AvailThread;
 import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ContinuationDescriptor;
 import com.avail.descriptor.NilDescriptor;
 import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.levelTwo.L2Chunk;
+import com.avail.optimizer.jvm.CheckedMethod;
+import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.performance.Statistic;
 import com.avail.utility.evaluation.Continuation0;
+import com.avail.utility.evaluation.Continuation1NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 import static com.avail.AvailRuntimeSupport.captureNanos;
+import static com.avail.optimizer.jvm.CheckedMethod.instanceMethod;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * The level two execution machinery allows limited use of the Java stack during
  * ordinary execution, but when exceptional conditions arise, the Java stack is
  * unwound with a {@code StackReifier} and converted into level one
  * continuations.  This happens when the stack gets too deep, when tricky code
- * like exceptions and backtracking happen, when taking an off-ramp to reify the
- * level one state, or when attempting to continue invalidated level two code.
+ * like exceptions and backtracking happen, or when running a suspending
+ * primitive, including to add or remove methods.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -67,12 +72,6 @@ public final class StackReifier
 	private final boolean actuallyReify;
 
 	/**
-	 * The number of entries we expect to see in {@link
-	 * #continuationsNewestFirst} after reifying the Java stack.
-	 */
-	private final int expectedDepth;
-
-	/**
 	 * A {@link Continuation0} that should be executed once the {@link
 	 * Interpreter}'s stack has been fully reified.  For example, this might set
 	 * up a function/chunk/offset in the interpreter.  The interpreter will then
@@ -81,14 +80,15 @@ public final class StackReifier
 	private final Continuation0 postReificationAction;
 
 	/**
-	 * The list of mutable level one continuations that have been reified so
-	 * far.  They are added to the end during repeated throws until the
-	 * interpreter catches the outermost throw and links the continuations
-	 * together by making each continuation point to its predecessor in the
-	 * list.
+	 * The stack of lambdas that's accumulated as the call stack is popped.
+	 * After the call stack is empty, the outer {@link Interpreter} loop will
+	 * execute them in reverse order.  The typical action is to invoke some
+	 * L2Chunk at an entry point, and the L2 code will cause one or more stack
+	 * frames to be generated and pushed onto the {@link
+	 * Interpreter#setReifiedContinuation(A_Continuation)}.
 	 */
-	private final List<A_Continuation> continuationsNewestFirst =
-		new ArrayList<>();
+	private final Deque<Continuation1NotNull<Interpreter>> actionStack =
+		new ArrayDeque<>();
 
 	/** The {@link System#nanoTime()} when this stack reifier was created. */
 	public final long startNanos;
@@ -101,10 +101,6 @@ public final class StackReifier
 	 *
 	 * @param actuallyReify
 	 *        Whether to reify the Java frames (rather than simply drop them).
-	 * @param expectedDepth
-	 *        The number of reified continuations that we expect to collect.
-	 *        This should be zero if actuallyReify is false, otherwise the
-	 *        number of entries we expect in {@link #continuationsNewestFirst}.
 	 * @param reificationStatistic
 	 *        The {@link Statistic} under which to record this reification once
 	 *        it completes.  The timing of this event spans from this creation
@@ -114,12 +110,10 @@ public final class StackReifier
 	 */
 	public StackReifier (
 		final boolean actuallyReify,
-		final int expectedDepth,
 		final Statistic reificationStatistic,
 		final Continuation0 postReificationAction)
 	{
 		this.actuallyReify = actuallyReify;
-		this.expectedDepth = expectedDepth;
 		this.postReificationAction = postReificationAction;
 		this.startNanos = captureNanos();
 		this.reificationStatistic = reificationStatistic;
@@ -137,52 +131,77 @@ public final class StackReifier
 	}
 
 	/**
-	 * Link together the mutable level one continuations that have already been
-	 * pushed onto the {@link #continuationsNewestFirst} list.
+	 * Run the actions in <em>reverse</em> order to populate the
+	 * {@link Interpreter#getReifiedContinuation()} stack.
 	 *
-	 * @param alreadyReifiedContinuation
-	 *        The previously reified continuation just beyond the current layers
-	 *        being reified.  Can be {@linkplain NilDescriptor#nil} to indicate
-	 *        the outermost execution frame.
-	 * @return The fully assembled reified continuation.
+	 * @param interpreter
+	 *        The {@link Interpreter} with which to run the actions, in reverse
+	 *        order.
 	 */
-	public AvailObject assembleContinuation (
-		final A_Continuation alreadyReifiedContinuation)
+	public void runActions (
+		final Interpreter interpreter)
 	{
-		assert continuationsNewestFirst.size() == expectedDepth;
-		A_Continuation current = alreadyReifiedContinuation;
-		for (
-			int index = continuationsNewestFirst.size() - 1;
-			index >= 0;
-			index--)
+		while (!actionStack.isEmpty())
 		{
-			final A_Continuation next = continuationsNewestFirst.get(index);
-			assert next.descriptor().isMutable();
-			assert next.caller().equalsNil();
-			current = next.replacingCaller(current);
+			actionStack.removeLast().value(interpreter);
 		}
-		continuationsNewestFirst.clear();
-		return (AvailObject) current;
 	}
 
 	/**
-	 * Push a mutable level one {@linkplain ContinuationDescriptor continuation}
-	 * in such a way that anything pushed <em>after</em> this push will appear
-	 * as this continuation's caller after calling {@link
-	 * #assembleContinuation(A_Continuation)}.  The passed continuation must not
-	 * only be mutable, but must have a {@linkplain A_Continuation#caller()
-	 * caller} of {@linkplain NilDescriptor#nil nil}.
+	 * Push an action on the {@link #actionStack}.  These will be executed in
+	 * reverse order, after the Java call stack has been emptied.
 	 *
-	 * @param mutableContinuation The mutable continuation to push.
+	 * @param action The {@link Continuation1NotNull} to push.
+	 */
+	public void pushAction (
+		final Continuation1NotNull<Interpreter> action)
+	{
+		actionStack.addLast(action);
+	}
+
+	/**
+	 * Given a mutable continuation, presumably with {@link NilDescriptor#nil}
+	 * as its caller, push an action which, when run, will replace its caller
+	 * with the {@link Interpreter#getReifiedContinuation()}, then replace the
+	 * {@code reifiedContinuation} with the new continuation.
+	 *
+	 * @param mutableContinuation
+	 *        A mutable continuation to add to the stack when more recently
+	 *        pushed actions have completed (thereby fully reifying the caller).
 	 */
 	@ReferencedInGeneratedCode
-	public void pushContinuation (
-		final A_Continuation mutableContinuation)
+	public void pushContinuationAction (
+		final AvailObject mutableContinuation)
 	{
-		assert mutableContinuation.descriptor().isMutable();
-		assert mutableContinuation.caller().equalsNil();
-		continuationsNewestFirst.add(mutableContinuation);
+		actionStack.addLast(
+			interpreter ->
+			{
+				final A_Continuation continuation =
+					mutableContinuation.replacingCaller(
+						stripNull(interpreter.getReifiedContinuation()));
+				interpreter.setReifiedContinuation(continuation);
+				interpreter.registerDump = null;  // Nobody should read it.
+				if (JVMTranslator.debugJVM)
+				{
+					Interpreter.traceL2(
+						interpreter.chunk != null
+							? interpreter.chunk
+							: L2Chunk.unoptimizedChunk,
+						-999999,
+						"NULLED register dump for push action",
+						"");
+				}
+			});
 	}
+
+	/** Access the {@link #pushContinuationAction(AvailObject)} method. */
+	public static final CheckedMethod pushContinuationActionMethod =
+		instanceMethod(
+			StackReifier.class,
+			"pushContinuationAction",
+			void.class,
+			AvailObject.class);
+
 
 	/**
 	 * Answer the {@link Continuation0} that should be executed after all frames

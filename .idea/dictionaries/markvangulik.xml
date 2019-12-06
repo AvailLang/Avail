@@ -12,7 +12,9 @@
       <w>lexes</w>
       <w>noninline</w>
       <w>nonprimitive</w>
+      <w>postinvoke</w>
       <w>precompute</w>
+      <w>preinvoke</w>
       <w>retranslator</w>
       <w>rewriter</w>
       <w>seminumerical</w>
@@ -27,6 +29,7 @@
       <w>subtable</w>
       <w>unboundedly</w>
       <w>unparameterized</w>
+      <w>unparks</w>
       <w>unquoter</w>
       <w>unreturnable</w>
       <w>unsynchronized</w>

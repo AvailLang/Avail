@@ -31,16 +31,16 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_Continuation;
-import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.STACK_REIFIER;
+import com.avail.interpreter.levelTwo.ReadsHiddenVariable;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.StackReifier;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
@@ -48,9 +48,10 @@ import java.util.List;
 import java.util.Set;
 
 import static com.avail.interpreter.Interpreter.interpreterReturningFunctionField;
+import static com.avail.interpreter.Interpreter.returnNowField;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR;
+import static com.avail.optimizer.StackReifier.pushContinuationActionMethod;
 import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Type.*;
 
 /**
  * Return from the reification clause of the current {@link L2Chunk}.  This
@@ -62,6 +63,10 @@ import static org.objectweb.asm.Type.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@ReadsHiddenVariable({
+	CURRENT_CONTINUATION.class,
+	STACK_REIFIER.class,
+})
 public final class L2_RETURN_FROM_REIFICATION_HANDLER
 extends L2ControlFlowOperation
 {
@@ -122,31 +127,22 @@ extends L2ControlFlowOperation
 		method.visitVarInsn(ALOAD, translator.reifierLocal());
 		for (int i = 0, limit = continuations.elements().size(); i < limit; i++)
 		{
-			// :: reifier.pushContinuation(«register»);
+			// :: reifier.pushContinuationAction(«register»);
 			if (i < limit - 1)
 			{
 				method.visitInsn(DUP);
 			}
 			translator.load(method, continuations.elements().get(i).register());
-			method.visitMethodInsn(
-				INVOKEVIRTUAL,
-				getInternalName(StackReifier.class),
-				"pushContinuation",
-				getMethodDescriptor(VOID_TYPE, getType(A_Continuation.class)),
-				false);
+			pushContinuationActionMethod.generateCall(method);
 		}
 		// :: interpreter.returnNow = true;
 		translator.loadInterpreter(method);
 		method.visitInsn(DUP);
 		method.visitInsn(ICONST_1);
-		method.visitFieldInsn(
-			PUTFIELD,
-			getInternalName(Interpreter.class),
-			"returnNow",
-			BOOLEAN_TYPE.getDescriptor());
+		returnNowField.generateWrite(method);
 		// :: interpreter.returningFunction = null;
 		method.visitInsn(ACONST_NULL);
-		interpreterReturningFunctionField.generateWrite(translator, method);
+		interpreterReturningFunctionField.generateWrite(method);
 		method.visitVarInsn(ALOAD, translator.reifierLocal());
 		method.visitInsn(ARETURN);
 	}

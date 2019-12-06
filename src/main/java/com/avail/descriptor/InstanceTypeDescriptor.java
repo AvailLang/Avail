@@ -50,6 +50,7 @@ import static com.avail.descriptor.InstanceTypeDescriptor.ObjectSlots.INSTANCE;
 import static com.avail.descriptor.IntegerDescriptor.one;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.singleInt;
 import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
 import static com.avail.descriptor.SetDescriptor.generateSetFrom;
 import static com.avail.descriptor.SetDescriptor.singletonSet;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
@@ -642,6 +643,26 @@ extends AbstractEnumerationTypeDescriptor
 		final AvailObject object)
 	{
 		return SerializerOperation.INSTANCE_TYPE;
+	}
+
+	@Override @AvailMethod
+	protected A_Tuple o_TupleOfTypesFromTo (
+		final AvailObject object,
+		final int startIndex,
+		final int endIndex)
+	{
+		// Answer the tuple of types over the given range of indices.  Any
+		// indices out of range for this tuple type will be ⊥.
+		assert startIndex >= 1;
+		final int size = endIndex - startIndex + 1;
+		assert size >= 0;
+		final A_Tuple tuple = getInstance(object);
+		final int tupleSize = tuple.tupleSize();
+		return generateObjectTupleFrom(
+			size,
+			i -> i <= tupleSize
+				? instanceTypeOrMetaOn(tuple.tupleAt(i)).makeImmutable()
+				: bottom());
 	}
 
 	@Override

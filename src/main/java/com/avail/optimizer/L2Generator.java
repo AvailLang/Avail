@@ -207,14 +207,14 @@ public final class L2Generator
 	 * The {@link L2BasicBlock} which is the entry point for a function that has
 	 * just been invoked.
 	 */
-	final L2BasicBlock initialBlock = createBasicBlock("START");
+	final L2BasicBlock initialBlock;
 
 	/** The block at which to resume execution after a failed primitive. */
 	final L2BasicBlock afterOptionalInitialPrimitiveBlock =
 		createLoopHeadBlock("After optional primitive");
 
 	/** The {@link L2BasicBlock} that code is currently being generated into. */
-	private @Nullable L2BasicBlock currentBlock = initialBlock;
+	private @Nullable L2BasicBlock currentBlock;
 
 	/**
 	 * Use this {@link L2ValueManifest} to track which {@link L2Register} holds
@@ -1071,13 +1071,18 @@ public final class L2Generator
 	 *        The {@link OptimizationLevel} for controlling code generation.
 	 * @param topFrame
 	 *        The topmost {@link Frame} for code generation.
+	 * @param codeName
+	 *        The descriptive name of the code being generated.
 	 */
 	L2Generator (
 		final OptimizationLevel optimizationLevel,
-		final Frame topFrame)
+		final Frame topFrame,
+		final String codeName)
 	{
 		this.optimizationLevel = optimizationLevel;
 		this.topFrame = topFrame;
+		this.initialBlock = createBasicBlock("START for " + codeName);
+		this.currentBlock = this.initialBlock;
 	}
 
 	/**

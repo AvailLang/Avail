@@ -43,11 +43,13 @@ import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
-import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.*;
+import com.avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK;
+import com.avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT;
 import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
+import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
 import com.avail.optimizer.ExecutableChunk;
 import com.avail.optimizer.L2ControlFlowGraph;
 import com.avail.optimizer.L2ControlFlowGraphVisualizer;
@@ -66,26 +68,23 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.IdentityHashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.UUID;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
 import static com.avail.AvailRuntimeSupport.captureNanos;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.optimizer.jvm.CheckedMethod.staticMethod;
 import static com.avail.optimizer.jvm.JVMTranslator.LiteralAccessor.invalidIndex;
 import static com.avail.performance.StatisticReport.FINAL_JVM_TRANSLATION_TIME;
 import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.Strings.traceFor;
+import static java.util.Comparator.comparingInt;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 import static org.objectweb.asm.ClassWriter.COMPUTE_FRAMES;
 import static org.objectweb.asm.ClassWriter.COMPUTE_MAXS;
 import static org.objectweb.asm.Opcodes.*;
@@ -159,7 +158,7 @@ public final class JVMTranslator
 	 * a class name, and will be replaced with a single {@code '%'}.
 	 */
 	private static final Pattern classNameForbiddenCharacters =
-		Pattern.compile("[\\[\\]\\\\/.;\"'\\p{Cntrl}]+");
+		Pattern.compile("[\\[\\]\\\\/.:;\"'\\p{Cntrl}]+");
 
 	/** A regex {@link Pattern} to strip the prefix of a module name. */
 	private static final Pattern moduleNameStripper =
@@ -167,43 +166,10 @@ public final class JVMTranslator
 
 	/**
 	 * Whether to emit JVM instructions to invoke
-	 * {@link #traceL2(ExecutableChunk, int, String, Object)} before each
-	 * {@link L2Instruction}.
+	 * {@link Interpreter#traceL2(ExecutableChunk, int, String, Object)} before
+	 * each {@link L2Instruction}.
 	 */
-	public static final boolean callTraceL2AfterEveryCall = true;
-
-	/**
-	 * If {@link #callTraceL2AfterEveryCall} was true during code generation,
-	 * this method is invoked just prior to each L2 instruction.
-	 *
-	 * @param executableChunk The L2 executable chunk being executed.
-	 * @param offset The current L2 offset.
-	 * @param description A one-line textual description of this instruction.
-	 * @param firstReadOperandValue The value of the first read operand.
-	 */
-	@ReferencedInGeneratedCode
-	public static void traceL2 (
-		final ExecutableChunk executableChunk,
-		final int offset,
-		final String description,
-		final Object firstReadOperandValue)
-	{
-		@SuppressWarnings("unused")
-		final int x = offset;  // Somewhere to hang a breakpoint.
-	}
-
-	/**
-	 * The {@link CheckedMethod} referring to the static method
-	 * {@link #traceL2(ExecutableChunk, int, String, Object)}.
-	 */
-	final CheckedMethod traceL2Method = staticMethod(
-		JVMTranslator.class,
-		"traceL2",
-		Void.TYPE,
-		ExecutableChunk.class,
-		Integer.TYPE,
-		String.class,
-		Object.class);
+	public static final boolean callTraceL2AfterEveryInstruction = true;
 
 	/**
 	 * Construct a new {@code JVMTranslator} to translate the specified array of
@@ -265,10 +231,31 @@ public final class JVMTranslator
 	}
 
 	/**
-	 * The {@link L2Operation#isEntryPoint(L2Instruction) entry points} into the
+	 * The {@link L2Instruction#isEntryPoint() entry points} into the
 	 * {@link L2Chunk}, mapped to their {@link Label}s.
 	 */
 	private final Map<Integer, Label> entryPoints = new LinkedHashMap<>();
+
+	/**
+	 * As the code is being generated and we encounter an
+	 * {@link L2_SAVE_ALL_AND_PC_TO_INT}, we examine its corresponding target
+	 * block to figure out which registers actually have to be captured at the
+	 * save, and restored at the {@link L2_ENTER_L2_CHUNK}.  At that point, we
+	 * look up the <em>local numbers</em> from the {@link JVMTranslator} and
+	 * record them by {@link RegisterKind} in this field.
+	 *
+	 * <p>During optimization, an edge from an {@link L2_SAVE_ALL_AND_PC_TO_INT}
+	 * to its target {@link L2_ENTER_L2_CHUNK} is treated as though the jump
+	 * happens immediately, so that liveness information can be kept accurate.
+	 * The final code generation knows better, and simply saves and restores the
+	 * locals that back registers that are considered live across this gap.</p>
+	 *
+	 * <p>The key of this map is the target {@link L2_ENTER_L2_CHUNK}
+	 * instruction, and the value is a map from {@link RegisterKind} to the
+	 * {@link List} of live <em>local numbers</em>.
+	 */
+	public final Map<L2Instruction, EnumMap<RegisterKind, List<Integer>>>
+		liveLocalNumbersByKindPerEntryPoint = new HashMap<>();
 
 	/**
 	 * A {@code LiteralAccessor} aggregates means of accessing a literal {@link
@@ -291,7 +278,7 @@ public final class JVMTranslator
 		 * corresponding literal is located, or {@link #invalidIndex} if no slot
 		 * is required.
 		 */
-		final int classLoaderIndex;
+		public final int classLoaderIndex;
 
 		/**
 		 * The name of the {@code private static final} field of the generated
@@ -435,10 +422,18 @@ public final class JVMTranslator
 	}
 
 	/**
+	 * The mapping of registers to locals, partitioned by kind.
+	 *
 	 * The {@link L2Register}s used by the {@link L2Chunk}, mapped to their
 	 * JVM local indices.
 	 */
-	final Map<L2Register, Integer> locals = new HashMap<>();
+	final EnumMap<RegisterKind, Map<Integer, Integer>> locals =
+		Arrays.stream(RegisterKind.values()).collect(
+			toMap(
+				Function.identity(),
+				k -> new HashMap<>(),
+				(a, b) -> { throw new RuntimeException("Impossible"); },
+				() -> new EnumMap<>(RegisterKind.class)));
 
 	/**
 	 * Answer the next JVM local. The initial value is chosen to skip over the
@@ -463,6 +458,18 @@ public final class JVMTranslator
 	}
 
 	/**
+	 * Answer the JVM local number for this register.  This is the position
+	 * within the actual JVM stack frame layout.
+	 *
+	 * @param register The {@link L2Register}
+	 * @return Its position in the JVM frame.
+	 */
+	public int localNumberFromRegister (final L2Register register)
+	{
+		return locals.get(register.registerKind()).get(register.finalIndex());
+	}
+
+	/**
 	 * Generate a load of the local associated with the specified {@link
 	 * L2Register}.
 	 *
@@ -478,7 +485,7 @@ public final class JVMTranslator
 	{
 		method.visitVarInsn(
 			register.registerKind().loadInstruction,
-			stripNull(locals.get(register)));
+			localNumberFromRegister(register));
 	}
 
 	/**
@@ -498,7 +505,7 @@ public final class JVMTranslator
 	{
 		method.visitVarInsn(
 			register.registerKind().storeInstruction,
-			stripNull(locals.get(register)));
+			localNumberFromRegister(register));
 	}
 
 	/**
@@ -580,58 +587,43 @@ public final class JVMTranslator
 		@Override
 		public void doOperand (final L2ReadIntOperand operand)
 		{
-			locals.computeIfAbsent(
-				operand.register(),
-				register -> nextLocal(INT_TYPE));
+			locals.get(RegisterKind.INTEGER).computeIfAbsent(
+				operand.register().finalIndex(),
+				i -> nextLocal(INT_TYPE));
 		}
 
 		@Override
 		public void doOperand (final L2ReadFloatOperand operand)
 		{
-			locals.computeIfAbsent(
-				operand.register(),
-				register -> nextLocal(DOUBLE_TYPE));
+			locals.get(RegisterKind.FLOAT).computeIfAbsent(
+				operand.register().finalIndex(),
+				i -> nextLocal(DOUBLE_TYPE));
 		}
 
 		@Override
 		public void doOperand (final L2ReadBoxedOperand operand)
 		{
-			locals.computeIfAbsent(
-				operand.register(),
-				register -> nextLocal(getType(AvailObject.class)));
+			locals.get(RegisterKind.BOXED).computeIfAbsent(
+				operand.register().finalIndex(),
+				i -> nextLocal(getType(AvailObject.class)));
 		}
 
 		@Override
 		public void doOperand (final L2ReadBoxedVectorOperand vector)
 		{
-			for (final L2ReadBoxedOperand operand : vector.elements())
-			{
-				locals.computeIfAbsent(
-					operand.register(),
-					register -> nextLocal(getType(AvailObject.class)));
-			}
+			vector.elements().forEach(this::doOperand);
 		}
 
 		@Override
 		public void doOperand (final L2ReadIntVectorOperand vector)
 		{
-			for (final L2ReadIntOperand operand : vector.elements())
-			{
-				locals.computeIfAbsent(
-					operand.register(),
-					register -> nextLocal(INT_TYPE));
-			}
+			vector.elements().forEach(this::doOperand);
 		}
 
 		@Override
 		public void doOperand (final L2ReadFloatVectorOperand vector)
 		{
-			for (final L2ReadFloatOperand operand : vector.elements())
-			{
-				locals.computeIfAbsent(
-					operand.register(),
-					register -> nextLocal(FLOAT_TYPE));
-			}
+			vector.elements().forEach(this::doOperand);
 		}
 
 		@Override
@@ -643,25 +635,25 @@ public final class JVMTranslator
 		@Override
 		public void doOperand (final L2WriteIntOperand operand)
 		{
-			locals.computeIfAbsent(
-				operand.register(),
-				register -> nextLocal(INT_TYPE));
+			locals.get(RegisterKind.INTEGER).computeIfAbsent(
+				operand.register().finalIndex(),
+				i -> nextLocal(INT_TYPE));
 		}
 
 		@Override
 		public void doOperand (final L2WriteFloatOperand operand)
 		{
-			locals.computeIfAbsent(
-				operand.register(),
-				register -> nextLocal(DOUBLE_TYPE));
+			locals.get(RegisterKind.FLOAT).computeIfAbsent(
+				operand.register().finalIndex(),
+				i -> nextLocal(DOUBLE_TYPE));
 		}
 
 		@Override
 		public void doOperand (final L2WriteBoxedOperand operand)
 		{
-			locals.computeIfAbsent(
-				operand.register(),
-				register -> nextLocal(getType(AvailObject.class)));
+			locals.get(RegisterKind.BOXED).computeIfAbsent(
+				operand.register().finalIndex(),
+				i -> nextLocal(getType(AvailObject.class)));
 		}
 
 		/**
@@ -721,7 +713,7 @@ public final class JVMTranslator
 		final JVMTranslationPreparer preparer = new JVMTranslationPreparer();
 		for (final L2Instruction instruction : instructions)
 		{
-			if (instruction.operation().isEntryPoint(instruction))
+			if (instruction.isEntryPoint())
 			{
 				final Label label = new Label();
 				entryPoints.put(instruction.offset(), label);
@@ -854,6 +846,7 @@ public final class JVMTranslator
 			getInternalName(JVMChunkClassLoader.class));
 		final List<LiteralAccessor> accessors =
 			literals.values().stream()
+				.sorted(comparingInt(accessor -> accessor.classLoaderIndex))
 				.filter(accessor -> accessor.setter != null)
 				.collect(toList());
 		if (!accessors.isEmpty())
@@ -1739,8 +1732,9 @@ public final class JVMTranslator
 			if (label != null)
 			{
 				method.visitLabel(label);
+				method.visitLineNumber(instruction.offset(), label);
 			}
-			if (callTraceL2AfterEveryCall)
+			if (callTraceL2AfterEveryInstruction)
 			{
 				loadReceiver(method);  // this, the executable chunk.
 				intConstant(method, instruction.offset());
@@ -1778,7 +1772,7 @@ public final class JVMTranslator
 					// No suitable operands were found.  Use null.
 					method.visitInsn(ACONST_NULL);
 				}
-				traceL2Method.generateCall(method);
+				Interpreter.traceL2Method.generateCall(method);
 			}
 			final long beforeTranslation = captureNanos();
 			instruction.translateToJVM(this, method);
@@ -1797,20 +1791,23 @@ public final class JVMTranslator
 		// register names. At present, we just claim that every variable is live
 		// from the beginning of the method until the badOffsetLabel, but we can
 		// always tighten this up later if we care.
-		for (final Entry<L2Register, Integer> entry : locals.entrySet())
+		for (final Entry<RegisterKind, Map<Integer, Integer>> outerEntry :
+			locals.entrySet())
 		{
-			final L2Register register = entry.getKey();
-			final int local = entry.getValue();
-			final boolean isIntRegister = register instanceof L2IntRegister;
-			method.visitLocalVariable(
-				register.namePrefix() + local,
-				isIntRegister
-					? INT_TYPE.getDescriptor()
-					: getDescriptor(AvailObject.class),
-				null,
-				entries[0],
-				badOffsetLabel,
-				local);
+			final RegisterKind kind = outerEntry.getKey();
+			for (final Entry<Integer, Integer> innerEntry :
+				outerEntry.getValue().entrySet())
+			{
+				final int finalIndex = innerEntry.getKey();
+				final int localIndex = innerEntry.getValue();
+				method.visitLocalVariable(
+					kind.prefix + finalIndex,
+					kind.jvmTypeString,
+					null,
+					entries[0],
+					badOffsetLabel,
+					localIndex);
+			}
 		}
 		// :: JVMChunk.badOffset(interpreter.offset);
 		method.visitVarInsn(ALOAD, interpreterLocal());

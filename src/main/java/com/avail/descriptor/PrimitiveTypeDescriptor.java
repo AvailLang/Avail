@@ -382,9 +382,9 @@ extends TypeDescriptor
 					case ANY:
 						return Object.class;
 					case DOUBLE:
-						return Double.TYPE;
+						return double.class;
 					case FLOAT:
-						return Float.TYPE;
+						return float.class;
 					case ABSTRACT_DEFINITION:
 					case ATOM:
 					case CHARACTER:

@@ -32,58 +32,78 @@
 package com.avail.interpreter.primitive.functions
 
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.BottomTypeDescriptor.bottom
+import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FunctionTypeDescriptor.functionMeta
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceMetaDescriptor.anyMeta
-import com.avail.descriptor.IntegerRangeTypeDescriptor.int32
 import com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.SetDescriptor.set
+import com.avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail
-import com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
-import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Fallibility.*
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
  * **Primitive:** Answer the type of the parameter at the given index within the
  * given functionType.
  */
 @Suppress("unused")
-object P_ParamTypeAt : Primitive(2, CannotFail, CanFold, CanInline)
+object P_ParamTypeAt : Primitive(2, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
 		val functionType = interpreter.argument(0)
 		val indexObject = interpreter.argument(1)
+
 		val parametersType = functionType.argsTupleType()
-		if (!indexObject.isInt)
-		{
-			// Note that it's already restricted statically to natural numbers.
-			return if (parametersType.upperBound().lessThan(indexObject))
-			{
-				interpreter.primitiveSuccess(bottom())
-			}
-			else
-			{
-				interpreter.primitiveSuccess(parametersType.defaultType())
-			}
+		val sizeRange = parametersType.sizeRange()
+		if (sizeRange.upperBound().lessThan(indexObject)) {
+			return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
+		}
+		if (!indexObject.isInt) {
+			// The function type must accept a very large number of arguments.
+			return interpreter.primitiveSuccess(parametersType.defaultType())
 		}
 		val index = indexObject.extractInt()
-		val argumentType = functionType.argsTupleType().typeAtIndex(index)
-		return interpreter.primitiveSuccess(argumentType)
+		return interpreter.primitiveSuccess(
+			functionType.argsTupleType().typeAtIndex(index))
 	}
 
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_SUBSCRIPT_OUT_OF_BOUNDS))
+
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(functionMeta(), naturalNumbers()), anyMeta())
+		functionType(
+			tuple(
+				functionMeta(),
+				naturalNumbers()),
+			anyMeta())
 
 	override fun fallibilityForArgumentTypes(
-		argumentTypes: List<A_Type>): Primitive.Fallibility
+		argumentTypes: List<A_Type>): Fallibility
 	{
-		//		val functionType : A_Type = argumentTypes[0]
+		val functionMeta : A_Type = argumentTypes[0]
 		val indexType = argumentTypes[1]
-		return if (indexType.isSubtypeOf(int32())) { CallSiteCannotFail }
-		else { CallSiteCanFail }
+
+		val functionType = functionMeta.instance()
+		val sizeRange = functionType.argsTupleType().sizeRange()
+		if (sizeRange.isBottom)
+		{
+			// We know nothing about the actual function's parameter count.
+			return CallSiteCanFail
+		}
+		if (indexType.upperBound().lessOrEqual(sizeRange.lowerBound()))
+		{
+			return CallSiteCannotFail
+		}
+		if (indexType.lowerBound().greaterThan(sizeRange.upperBound()))
+		{
+			return CallSiteMustFail
+		}
+		return CallSiteCannotFail
 	}
 }

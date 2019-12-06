@@ -1260,26 +1260,6 @@ Primitive "_'s⁇outer variables" is
 ] : tuple;
 
 /**
- * Answer the {@param "index"}-th parameter type of the specified function type.
- *
- * @category "Primitives" "Types" "Functions" "Queries"
- * @method "_[_]"
- * @param "functionType" "function meta"
- *        A function type.
- * @param "index" "natural number"
- *        The one-based index of the desired parameter type.
- * @returns "(any)'s type"
- *    The {@param "index"}-th parameter type of the argument.
- */
-Primitive "_[_]" is
-[
-	functionType : function meta,
-	index : natural number
-|
-	Primitive ParamTypeAt;
-] : any meta;
-
-/**
  * Answer a tuple type that describes the parameter types of the specified
  * function type.
  *
