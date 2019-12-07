@@ -31,9 +31,11 @@
  */
 package com.avail.server.io.files
 
+import com.avail.io.SimpleCompletionHandler
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousFileChannel
 import java.nio.channels.CompletionHandler
+import java.util.*
 
 /**
  * `AvailSeverFile` is an interface for declaring behavior and state for a file
@@ -106,12 +108,22 @@ internal abstract class AvailServerFile constructor(
 		file.write(ByteBuffer.wrap(rawContent), writePosition, null, handler)
 	}
 
+	// TODO create error on save, make sure all bytes written!
+	fun save() = save(
+		SimpleCompletionHandler(
+			{ result, _, _ ->
+				println("wrote $result")
+			})
+			{ _, _, _ ->
+				println("write failed!")
+			})
+
 	/**
 	 * Accepts a function that accepts the [rawContent] of this
 	 * [AvailServerFile].
 	 */
-	fun provideContent(consumer: (ByteArray) -> Unit) =
-		consumer(rawContent)
+	fun provideContent(id: UUID, consumer: (UUID, ByteArray) -> Unit) =
+		consumer(id, rawContent)
 
 	/**
 	 * Insert the [ByteArray] data into the file at the specified location. This

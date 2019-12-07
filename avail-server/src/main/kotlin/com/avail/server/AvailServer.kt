@@ -68,6 +68,8 @@ import com.avail.server.io.RunFailureDisconnect
 import com.avail.server.io.ServerInputChannel
 import com.avail.server.io.ServerMessageDisconnect
 import com.avail.server.io.WebSocketAdapter
+import com.avail.server.io.files.FileManager
+import com.avail.server.io.files.Insert
 import com.avail.server.messages.Command
 import com.avail.server.messages.CommandMessage
 import com.avail.server.messages.CommandParseException
@@ -1626,6 +1628,20 @@ class AvailServer constructor(
 					server,
 					InetSocketAddress(configuration.serverPort),
 					configuration.serverAuthority)
+				val id = FileManager.readFile(
+					"/Users/Rich/Desktop/test.txt",
+					{ id, bytes ->
+						println("I got it!")
+						FileManager.update(
+							id,
+							Insert(
+								"Food for thought".toByteArray(Charsets.UTF_16BE),
+								3))
+						FileManager.save(id)
+					})
+				{
+					println("It didn't go!!!")
+				}
 				// Prevent the Avail server from exiting.
 				Semaphore(0).acquire()
 			}

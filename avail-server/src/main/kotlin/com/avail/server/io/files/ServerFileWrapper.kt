@@ -238,20 +238,26 @@ internal class ServerFileWrapper constructor(
 	 * Provide the [raw bytes][AvailServerFile.rawContent] of the enclosed
 	 * [AvailServerFile] to the requesting consumer.
 	 *
+	 * @param id
+	 *   The [FileManager.fileCache] [UUID] that uniquely identifies the file.
 	 * @param consumer
-	 *   A function that accepts the [raw bytes][AvailServerFile.rawContent] of
-	 *   an [AvailServerFile].
+	 *   A function that accepts the [FileManager.fileCache] [UUID] that
+	 *   uniquely identifies the file and the
+	 *   [raw bytes][AvailServerFile.rawContent] of an [AvailServerFile].
 	 * @param failureHandler
 	 *   A function that accepts TODO figure out how error handling will happen
 	 */
-	fun provide(consumer: (ByteArray) -> Unit, failureHandler: () -> Unit)
+	fun provide(
+		id: UUID,
+		consumer: (UUID, ByteArray) -> Unit,
+		failureHandler: () -> Unit)
 	{
 		// TODO should be run on a separate thread or is that handled inside the
 		//  consumer?
 		if (!isLoadingFile)
 		{
 			// Opportunistic
-			file.provideContent(consumer)
+			file.provideContent(id, consumer)
 			return
 		}
 		synchronized(this)
@@ -259,10 +265,11 @@ internal class ServerFileWrapper constructor(
 			if (!isLoadingFile)
 			{
 				// Opportunistic
-				file.provideContent(consumer)
+				file.provideContent(id, consumer)
 				return
 			}
-			handlerQueue.add(FileRequestHandler(consumer, failureHandler))
+			handlerQueue.add(
+				FileRequestHandler(id, consumer, failureHandler))
 		}
 	}
 
@@ -279,7 +286,7 @@ internal class ServerFileWrapper constructor(
 		// TODO should each be run on a separate thread or is that handled
 		//  inside the consumer?
 		val fileBytes = file.rawContent
-		handlerQueue.forEach { it.requestConsumer(fileBytes) }
+		handlerQueue.forEach { it.requestConsumer(it.id, fileBytes) }
 	}
 
 	/**
@@ -329,21 +336,28 @@ internal class ServerFileWrapper constructor(
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
+ * @property id
+ *   The [FileManager.fileCache] [UUID] that uniquely identifies the file.
  * @property requestConsumer
- *   A function that accepts the [raw bytes][AvailServerFile.rawContent] of an
- *   [AvailServerFile].
+ *   A function that accepts the [FileManager.fileCache] [UUID] that
+ *   uniquely identifies the file and the
+ *   [raw bytes][AvailServerFile.rawContent] of an [AvailServerFile].
  * @property failureHandler
  *   A function that accepts TODO figure out how error handling will happen
  *
  * @constructor
  * Construct a [FileRequestHandler].
  *
+ * @param id
+ *   The [FileManager.fileCache] [UUID] that uniquely identifies the file.
  * @param requestConsumer
- *   A function that accepts the [raw bytes][AvailServerFile.rawContent] of an
- *   [AvailServerFile].
+ *   A function that accepts the [FileManager.fileCache] [UUID] that
+ *   uniquely identifies the file and the
+ *   [raw bytes][AvailServerFile.rawContent] of an [AvailServerFile].
  * @param failureHandler
  *   A function that accepts TODO figure out how error handling will happen
  */
 internal class FileRequestHandler constructor(
-	val requestConsumer: (ByteArray) -> Unit,
+	val id: UUID,
+	val requestConsumer: (UUID, ByteArray) -> Unit,
 	val failureHandler: () -> Unit)

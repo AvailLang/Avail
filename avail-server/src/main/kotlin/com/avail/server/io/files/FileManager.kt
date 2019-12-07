@@ -59,7 +59,7 @@ import java.util.concurrent.TimeUnit
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-object FileManager
+internal object FileManager
 {
 	/**
 	 * The [EnumSet] of [StandardOpenOption]s used when opening files.
@@ -127,8 +127,9 @@ object FileManager
 	 * @param path
 	 *   The String path location of the file.
 	 * @param consumer
-	 *   A function that accepts the [raw bytes][AvailServerFile.rawContent] of
-	 *   an [AvailServerFile].
+	 *   A function that accepts the [FileManager.fileCache] [UUID] that
+	 *   uniquely identifies the file and the
+	 *   [raw bytes][AvailServerFile.rawContent] of an [AvailServerFile].
 	 * @param failureHandler
 	 *   A function that accepts TODO figure out how error handling will happen
 	 * @return The [UUID] that uniquely identifies the open file on the Avail
@@ -136,7 +137,7 @@ object FileManager
 	 */
 	fun readFile (
 		path: String,
-		consumer: (ByteArray) -> Unit,
+		consumer: (UUID, ByteArray) -> Unit,
 		failureHandler: () -> Unit): UUID
 	{
 		val uuid: UUID
@@ -148,13 +149,23 @@ object FileManager
 			}
 		}
 		val fileWrapper = fileCache[uuid]
-		fileWrapper.provide(consumer, failureHandler)
+		fileWrapper.provide(uuid, consumer, failureHandler)
 		return uuid
 	}
 
 	// TODO create requests to interact with file. This includes editing,
 	//  reading, closing, etc. Any Edit actions should be tracked and made
 	//  reversible in preserved local history for file.
+	fun update(fileId: UUID, editAction: EditAction)
+	{
+		fileCache[fileId].update(editAction)
+	}
+
+	// TODO redo this as this is just test code.
+	fun save (fileId: UUID)
+	{
+		fileCache[fileId].file.save()
+	}
 
 	/**
 	 * Schedule the specified [task][Runnable] for eventual execution
