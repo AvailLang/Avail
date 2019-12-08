@@ -36,8 +36,8 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION;
-import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.REGISTER_DUMP;
 import com.avail.interpreter.levelTwo.ReadsHiddenVariable;
+import com.avail.interpreter.levelTwo.WritesHiddenVariable;
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
 import com.avail.optimizer.jvm.JVMTranslator;
@@ -53,6 +53,7 @@ import static com.avail.descriptor.AvailObject.registerDumpMethod;
 import static com.avail.descriptor.ContinuationRegisterDumpDescriptor.extractLongAtMethod;
 import static com.avail.descriptor.ContinuationRegisterDumpDescriptor.extractObjectAtMethod;
 import static com.avail.interpreter.Interpreter.getReifiedContinuationMethod;
+import static com.avail.interpreter.Interpreter.popContinuationMethod;
 import static com.avail.interpreter.levelTwo.L2OperandType.COMMENT;
 import static com.avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE;
 import static org.objectweb.asm.Opcodes.*;
@@ -66,11 +67,10 @@ import static org.objectweb.asm.Opcodes.*;
  * re-entered, such as returning into it, restarting it, or continuing it after
  * an interrupt has been handled.</p>
  */
-@ReadsHiddenVariable({
-	CURRENT_CONTINUATION.class,
-	REGISTER_DUMP.class,
-
-})
+@ReadsHiddenVariable(
+	CURRENT_CONTINUATION.class)
+@WritesHiddenVariable(
+	CURRENT_CONTINUATION.class)
 public final class L2_ENTER_L2_CHUNK
 extends L2Operation
 {
@@ -209,6 +209,10 @@ extends L2Operation
 				assert countdown == 0;
 				// The last copy of registerDumps was popped.
 			}
+
+			// :: interpreter.popContinuation();
+			translator.loadInterpreter(method);
+			popContinuationMethod.generateCall(method);
 		}
 	}
 }

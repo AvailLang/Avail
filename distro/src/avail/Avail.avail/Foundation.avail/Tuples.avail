@@ -175,17 +175,12 @@ Method "For each of⁇_do_" is
 	aTuple : tuple,
 	action : [⊥]→⊤
 |
-	index : natural number := 1;
-	end ::= |aTuple|;
+	From 1 to |aTuple| do
 	[
-		$loop;
-		If index ≤ end then
-		[
-			action(aTuple[index]);
-			index++;
-			Restart loop
-		];
-	]();
+		index : natural number
+	|
+		action(aTuple[index]);
+	];
 ] : ⊤;
 
 /**
@@ -204,17 +199,12 @@ Method "For each of⁇_do_" is
 	aTuple : tuple,
 	action : [⊥, ⊥]→⊤
 |
-	index : natural number := 1;
-	end ::= |aTuple|;
+	From 1 to |aTuple| do
 	[
-		$loop;
-		If index ≤ end then
-		[
-			action(aTuple[index], index);
-			index++;
-			Restart loop
-		];
-	]();
+		index : natural number
+	|
+		action(aTuple[index], index);
+	];
 ] : ⊤;
 
 /**
@@ -571,18 +561,13 @@ Method "map_through_" is
 	aTuple : tuple,
 	transformer : [⊥]→any
 |
-	index : natural number := 1;
 	result : tuple := <>;
-	end ::= |aTuple|;
+	From 1 to |aTuple| do
 	[
-		$loop;
-		If index ≤ end then
-		[
-			result := eject result ++ <transformer(aTuple[index])>;
-			index++;
-			Restart loop
-		];
-	]();
+		index : natural number
+	|
+		result ++= <transformer(aTuple[index])>;
+	];
 	result
 ] : tuple;
 
@@ -606,18 +591,13 @@ Method "map_through_" is
 	aTuple : tuple,
 	transformer : [⊥, ⊥]→any
 |
-	index : natural number := 1;
 	result : tuple := <>;
-	end ::= |aTuple|;
+	From 1 to |aTuple| do
 	[
-		$loop;
-		If index ≤ end then
-		[
-			result := eject result ++ <transformer(aTuple[index], index)>;
-			index++;
-			Restart loop
-		];
-	]();
+		index : natural number
+	|
+		result ++= <transformer(aTuple[index], index)>;
+	];
 	result
 ] : tuple;
 

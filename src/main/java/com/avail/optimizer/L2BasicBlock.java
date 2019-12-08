@@ -100,6 +100,9 @@ public final class L2BasicBlock
 	/** Whether this block is the head of a loop. */
 	public boolean isLoopHead;
 
+	/** Whether this block is part of a reification handler. */
+	public boolean isInReificationHandler;
+
 	/**
 	 * Answer the descriptive name of this basic block.
 	 *
@@ -498,11 +501,17 @@ public final class L2BasicBlock
 	 *        A descriptive name for the block.
 	 * @param isLoopHead
 	 *        Whether this block should be marked as the head of a loop.
+	 * @param isInReificationHandler
+	 *        Whether this block is part of a reification handler.
 	 */
-	public L2BasicBlock (final String name, final boolean isLoopHead)
+	public L2BasicBlock (
+		final String name,
+		final boolean isLoopHead,
+		final boolean isInReificationHandler)
 	{
 		this.name = name;
 		this.isLoopHead = isLoopHead;
+		this.isInReificationHandler = isInReificationHandler;
 	}
 
 	/**
@@ -512,7 +521,7 @@ public final class L2BasicBlock
 	 */
 	public L2BasicBlock (final String name)
 	{
-		this(name, false);
+		this(name, false, false);
 	}
 
 	/**

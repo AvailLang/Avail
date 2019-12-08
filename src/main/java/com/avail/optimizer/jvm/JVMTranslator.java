@@ -38,6 +38,7 @@ import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.L1Disassembler;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Chunk;
@@ -77,7 +78,11 @@ import java.util.logging.Level;
 import java.util.regex.Pattern;
 
 import static com.avail.AvailRuntimeSupport.captureNanos;
+import static com.avail.descriptor.ContinuationDescriptor.createDummyContinuationMethod;
 import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.interpreter.Interpreter.chunkField;
+import static com.avail.interpreter.Interpreter.interpreterFunctionField;
+import static com.avail.optimizer.StackReifier.pushContinuationActionMethod;
 import static com.avail.optimizer.jvm.JVMTranslator.LiteralAccessor.invalidIndex;
 import static com.avail.performance.StatisticReport.FINAL_JVM_TRANSLATION_TIME;
 import static com.avail.utility.Nulls.stripNull;
@@ -169,7 +174,7 @@ public final class JVMTranslator
 	 * {@link Interpreter#traceL2(ExecutableChunk, int, String, Object)} before
 	 * each {@link L2Instruction}.
 	 */
-	public static final boolean callTraceL2AfterEveryInstruction = true;
+	public static final boolean callTraceL2AfterEveryInstruction = false;
 
 	/**
 	 * Construct a new {@code JVMTranslator} to translate the specified array of
@@ -256,6 +261,56 @@ public final class JVMTranslator
 	 */
 	public final Map<L2Instruction, EnumMap<RegisterKind, List<Integer>>>
 		liveLocalNumbersByKindPerEntryPoint = new HashMap<>();
+
+	/**
+	 * We're at a point where reification has been requested.  A
+	 * {@link StackReifier} has already been stashed in the {@link Interpreter},
+	 * and already-popped calls may have already queued actions in the reifier,
+	 * to be executed in reverse order.
+	 *
+	 * <p>First, we stash the live registers in a bogus continuation that will
+	 * resume at the specified target (onReification's target), which must be an
+	 * {@link L2_ENTER_L2_CHUNK}. Then we create an action to invoke that
+	 * continuation, and push that action onto the current StackReifier's action
+	 * stack. Finally, we exit with the current reifier. When the
+	 * {@link L2_ENTER_L2_CHUNK} is reached later, it will restore the registers
+	 * and continue constructing the real continuation, with the knowledge that
+	 * the {@link Interpreter#getReifiedContinuation()} represents the
+	 * caller.</p>
+	 *
+	 * @param method
+	 *        The JVM method being written.
+	 * @param onReification
+	 *        Where to jump to after everything below this frame has been fully
+	 *        reified.
+	 */
+	public void generateReificationPreamble (
+		final MethodVisitor method,
+		final L2PcOperand onReification)
+	{
+		method.visitVarInsn(ALOAD, reifierLocal());
+		// [reifier]
+		method.visitInsn(DUP);
+		// [reifier. reifier]
+		loadInterpreter(method);
+		interpreterFunctionField.generateRead(method);
+		// [reifier. reifier, function]
+		onReification.createAndPushRegisterDump(this, method);
+		// [reifier. reifier, function, regDump]
+		loadInterpreter(method);
+		chunkField.generateRead(method);
+		// [reifier. reifier, function, regDump, chunk]
+		intConstant(method, onReification.offset());
+		// [reifier. reifier, function, regDump, chunk, offset]
+		createDummyContinuationMethod.generateCall(method);
+		// [reifier. reifier, dummyContinuation]
+		// Push an action to the current StackReifier which will run the dummy
+		// continuation.
+		pushContinuationActionMethod.generateCall(method);
+		// [reifier]
+		// Now return the same reifier to the next level out on the stack.
+		method.visitInsn(ARETURN);
+	}
 
 	/**
 	 * A {@code LiteralAccessor} aggregates means of accessing a literal {@link
@@ -669,7 +724,21 @@ public final class JVMTranslator
 				{
 					// Choose an index and name for the literal.
 					final int index = nextClassLoaderIndex++;
-					final String name = "literal_" + index;
+					final String description;
+					if (value instanceof AvailObject)
+					{
+						description = ((AvailObject) value).typeTag().name()
+							.replaceAll("_TAG$", "");
+					}
+					else if (value instanceof Primitive)
+					{
+						description = ((Primitive) value).name();
+					}
+					else
+					{
+						description = value.getClass().getSimpleName();
+					}
+					final String name = "literal_" + index + "_" + description;
 					final Class<?> type = object.getClass();
 					// Generate a field that will hold the literal at runtime.
 					final FieldVisitor field = classWriter.visitField(

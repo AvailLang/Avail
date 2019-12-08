@@ -863,13 +863,25 @@ public final class L2Generator
 	@SuppressWarnings("MethodMayBeStatic")
 	public L2BasicBlock createLoopHeadBlock (final String name)
 	{
-		return new L2BasicBlock(name, true);
+		return new L2BasicBlock(name, true, false);
 	}
 
 	/**
-	 * Start code generation for the given {@link L2BasicBlock}.  This naive
-	 * translator doesn't create loops, so ensure all predecessor blocks have
-	 * already finished generation.
+	 * Create an {@link L2BasicBlock}, and mark it as used for reification.
+	 *
+	 * @param name The name of the new block.
+	 * @return The new block.
+	 */
+	@SuppressWarnings("MethodMayBeStatic")
+	public L2BasicBlock createReificationBlock (final String name)
+	{
+		return new L2BasicBlock(name, false, true);
+	}
+
+	/**
+	 * Start code generation for the given {@link L2BasicBlock}.  Unless this is
+	 * a loop head, ensure all predecessor blocks have already finished
+	 * generation.
 	 *
 	 * <p>Also, reconcile the live {@link L2SemanticValue}s and how they're
 	 * grouped into {@link L2Synonym}s in each predecessor edge, creating

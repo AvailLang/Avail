@@ -149,19 +149,10 @@ Method "For each of⁇_do_" is
 	aMap : map,
 	action : [⊥, ⊥]→⊤
 |
-	index : natural number := 1;
-	bindings ::= aMap's bindings;
-	end ::= |aMap|;
+	For each binding of aMap's bindings do
 	[
-		$loop;
-		If index ≤ end then
-		[
-			binding ::= bindings[index];
-			action(binding[1], binding[2]);
-			index++;
-			Restart loop
-		];
-	]();
+		action(binding[1], binding[2]);
+	];
 ] : ⊤;
 
 /**
@@ -349,20 +340,12 @@ Method "map_through_" is
 	aMap : map,
 	transformer : [⊥, ⊥]→any
 |
-	index : natural number := 1;
-	bindings ::= aMap's bindings;
-	end ::= |aMap|;
 	result : map := {};
+	For each binding of aMap's bindings do
 	[
-		$loop;
-		If index ≤ end then
-		[
-			key, value ::= bindings[index];
-			result := eject result + key→transformer(key, value);
-			index++;
-			Restart loop
-		];
-	]();
+		key, value ::= binding;
+		result := eject result + key→transformer(key, value);
+	];
 	result
 ] : map;
 
@@ -440,23 +423,15 @@ Method "filter_by_" is
 	aMap : map,
 	predicate : [⊥, ⊥]→boolean
 |
-	bindings ::= aMap's bindings;
-	index : natural number := 1;
-	end ::= |bindings|;
 	result : map := {};
+	For each binding of aMap's bindings do
 	[
-		$loop;
-		If index ≤ end then
+		key, value ::= binding;
+		If predicate(key, value) then
 		[
-			key, value ::= bindings[index];
-			If predicate(key, value) then
-			[
-				result := eject result + key→value;
-			];
-			index++;
-			Restart loop
+			result := eject result + key→value;
 		];
-	]();
+	];
 	result
 ] : map;
 
@@ -608,33 +583,22 @@ Method "map and filter_by_" is
 	aMap : map,
 	accumulator : [⊥, ⊥, ⊥]→⊤
 |
-	bindings ::= aMap's bindings;
-	index : natural number := 1;
-	end ::= |bindings|;
 	result : map := {};
+	For each binding of aMap's bindings do
 	[
-		$loop;
-		If index ≤ end then
-		[
-			hasAlreadyKept : boolean := false;
-			key, value ::= bindings[index];
-			accumulator(
-				key,
-				value,
-				[
-					transformed : any
-				|
-					If ¬hasAlreadyKept then
-					[
-						result := eject result + key→transformed;
-						hasAlreadyKept := true;
-					];
-				]
-			);
-			index++;
-			Restart loop
-		];
-	]();
+		key, value ::= binding;
+		hasAlreadyKept : boolean := false;
+		accumulator(
+			key,
+			value,
+			[
+				transformed : any
+			|
+				Assert: ¬hasAlreadyKept ("Invoked accumulator twice");
+				result := eject result + key→transformed;
+				hasAlreadyKept := true;
+			]);
+	];
 	result
 ] : map;
 
@@ -680,12 +644,19 @@ Method "any of_satisfies_" is
 	aMap : map,
 	predicate : [⊥, ⊥]→boolean
 |
-	$body : boolean;
-	For each key → value of aMap do
+	bindings ::= aMap's bindings;
+	limit ::= |bindings|;
 	[
-		Exit body with true if predicate(key, value);
-	];
-	false
+		index : natural number
+	|
+		$loop : boolean;
+		done ::= index > limit;
+		Exit loop with false if done;
+		key, value ::= bindings[index];
+		success ::= predicate(key, value);
+		Exit loop with true if success;
+		Restart loop with <index + 1>
+	](1)
 ] : boolean;
 
 /**
@@ -722,12 +693,19 @@ Method "each of_satisfies_" is
 	aMap : map,
 	predicate : [⊥, ⊥]→boolean
 |
-	$body : boolean;
-	For each key → value of aMap do
+	bindings ::= aMap's bindings;
+	limit ::= |bindings|;
 	[
-		Exit body with false if ¬predicate(key, value);
-	];
-	true
+		index : natural number
+	|
+		$loop : boolean;
+		done ::= index > limit;
+		Exit loop with true if done;
+		key, value ::= bindings[index];
+		failure ::= ¬predicate(key, value);
+		Exit loop with false if failure;
+		Restart loop with <index + 1>
+	](1)
 ] : boolean;
 
 /**

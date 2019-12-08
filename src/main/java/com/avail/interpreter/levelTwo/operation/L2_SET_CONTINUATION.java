@@ -1,5 +1,5 @@
 /*
- * L2_POP_CURRENT_CONTINUATION.java
+ * L2_SET_CONTINUATION.java
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,54 +32,47 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
+import com.avail.descriptor.A_Continuation;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION;
-import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.REGISTER_DUMP;
-import com.avail.interpreter.levelTwo.ReadsHiddenVariable;
 import com.avail.interpreter.levelTwo.WritesHiddenVariable;
-import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
 
-import static com.avail.interpreter.Interpreter.popContinuationMethod;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
+import static com.avail.interpreter.Interpreter.setReifiedContinuationMethod;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
 
 /**
- * Ask the {@link Interpreter} for the current continuation, writing it into the
- * provided register.  Write its caller back into the interpreter's current
- * continuation field.
+ * Set the {@link Interpreter#setReifiedContinuation(A_Continuation)}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@ReadsHiddenVariable(
+@WritesHiddenVariable(
 	CURRENT_CONTINUATION.class)
-@WritesHiddenVariable({
-	CURRENT_CONTINUATION.class,
-	REGISTER_DUMP.class
-})
-public final class L2_POP_CURRENT_CONTINUATION
+public final class L2_SET_CONTINUATION
 extends L2Operation
 {
 	/**
-	 * Construct an {@code L2_POP_CURRENT_CONTINUATION}.
+	 * Construct an {@code L2_SET_CONTINUATION}.
 	 */
-	private L2_POP_CURRENT_CONTINUATION ()
+	private L2_SET_CONTINUATION ()
 	{
 		super(
-			WRITE_BOXED.is("current continuation"));
+			READ_BOXED.is("replacement continuation"));
 	}
 
 	/**
 	 * Initialize the sole instance.
 	 */
-	public static final L2_POP_CURRENT_CONTINUATION instance =
-		new L2_POP_CURRENT_CONTINUATION();
+	public static final L2_SET_CONTINUATION instance =
+		new L2_SET_CONTINUATION();
 
 	@Override
 	public boolean hasSideEffect ()
@@ -95,7 +88,7 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final L2WriteBoxedOperand continuation = instruction.operand(0);
+		final L2ReadBoxedOperand continuation = instruction.operand(0);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
@@ -108,11 +101,11 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2WriteBoxedOperand continuation = instruction.operand(0);
+		final L2ReadBoxedOperand continuation = instruction.operand(0);
 
-		// :: continuation = interpreter.popContinuation();
+		// :: interpreter.setReifiedContinuation(aContinuation);
 		translator.loadInterpreter(method);
-		popContinuationMethod.generateCall(method);
-		translator.store(method, continuation.register());
+		translator.load(method, continuation.register());
+		setReifiedContinuationMethod.generateCall(method);
 	}
 }

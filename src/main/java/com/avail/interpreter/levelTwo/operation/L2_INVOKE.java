@@ -41,7 +41,6 @@ import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_ARGUMEN
 import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION;
 import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION;
 import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE;
-import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.REGISTER_DUMP;
 import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.STACK_REIFIER;
 import com.avail.interpreter.levelTwo.WritesHiddenVariable;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
@@ -61,8 +60,6 @@ import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Type.getDescriptor;
-import static org.objectweb.asm.Type.getInternalName;
 
 /**
  * The given function is invoked.  The function may be a primitive, and the
@@ -86,8 +83,7 @@ import static org.objectweb.asm.Type.getInternalName;
 	CURRENT_FUNCTION.class,
 	CURRENT_ARGUMENTS.class,
 	LATEST_RETURN_VALUE.class,
-	STACK_REIFIER.class,
-	REGISTER_DUMP.class
+	STACK_REIFIER.class
 })
 public final class L2_INVOKE
 extends L2ControlFlowOperation
@@ -160,18 +156,13 @@ extends L2ControlFlowOperation
 
 		translator.loadInterpreter(method);
 		translator.loadInterpreter(method);
-		method.visitFieldInsn(
-			GETFIELD,
-			getInternalName(Interpreter.class),
-			"chunk",
-			getDescriptor(L2Chunk.class));
+		chunkField.generateRead(method);
 		translator.loadInterpreter(method);
 		translator.load(method, function.register());
 		// :: [interpreter, callingChunk, interpreter, function]
 		generatePushArgumentsAndInvoke(
 			translator,
 			method,
-			instruction,
 			arguments.elements(),
 			onReturn,
 			onReification);
@@ -187,8 +178,6 @@ extends L2ControlFlowOperation
 	 *        The translator on which to generate the invocation.
 	 * @param method
 	 *        The {@link MethodVisitor} controlling the method being written.
-	 * @param instruction
-	 *        The {@link L2Instruction} being translated.
 	 * @param argsRegsList
 	 *        The {@link List} of {@link L2ReadBoxedOperand} arguments.
 	 * @param onNormalReturn
@@ -199,7 +188,6 @@ extends L2ControlFlowOperation
 	static void generatePushArgumentsAndInvoke (
 		final JVMTranslator translator,
 		final MethodVisitor method,
-		final L2Instruction instruction,
 		final List<L2ReadBoxedOperand> argsRegsList,
 		final L2PcOperand onNormalReturn,
 		final L2PcOperand onReification)
@@ -261,11 +249,8 @@ extends L2ControlFlowOperation
 		method.visitVarInsn(ASTORE, translator.reifierLocal());
 		// :: if (reifier != null) goto onNormalReturn;
 		// :: else goto onReification;
-		translator.branch(
-			method,
-			instruction,
-			IFNULL,
-			onNormalReturn,
-			onReification);
+		method.visitJumpInsn(
+			IFNULL, translator.labelFor(onNormalReturn.offset()));
+		translator.generateReificationPreamble(method, onReification);
 	}
 }

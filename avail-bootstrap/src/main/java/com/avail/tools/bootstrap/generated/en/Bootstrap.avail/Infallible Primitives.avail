@@ -52,6 +52,7 @@ Uses
 		"Breakpoint",
 		"Cast|cast_into_else_",
 		"Crash:_",
+		"Exit_if_",
 		"Park current fiber",
 		"Request termination of_",
 		"Restart_",
@@ -454,6 +455,28 @@ Primitive "`$_" is
 |
 	Primitive FunctionTypeToContinuationType;
 ] : continuation meta;
+
+/**
+ * If the provided boolean is true, exit the ⊤-producing continuation. Execution
+ * proceeds as though the continuation had just returned normally. The current
+ * continuation (in which this primitive was invoked) is completely replaced by
+ * the specified continuation's resumed caller.  If the provided boolean is
+ * false, do nothing.
+ *
+ * @category "Primitives" "Continuations" "Control Structures"
+ * @method "Exit_if_"
+ * @param "aContinuation" "continuation returning top"
+ *        The continuation to exit.
+ * @param "condition" "boolean"
+ *        Whether to exit.
+ */
+Primitive "Exit_if_" is
+[
+	aContinuation : continuation returning top,
+	condition : boolean
+|
+	Primitive ExitContinuationIf;
+] : ⊤;
 
 /**
  * Restart the continuation with its original arguments. Execution proceeds as

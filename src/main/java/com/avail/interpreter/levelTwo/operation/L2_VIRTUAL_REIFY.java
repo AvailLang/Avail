@@ -1,5 +1,5 @@
 /*
- * L2_VIRTUAL_REIFY_AND_CREATE_CONTINUATION.java
+ * L2_VIRTUAL_REIFY.java
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,12 +32,9 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_Continuation;
-import com.avail.descriptor.A_Function;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ContinuationDescriptor;
 import com.avail.descriptor.objects.A_BasicObject;
-import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
@@ -53,48 +50,51 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.ON_RAMP;
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static com.avail.descriptor.ContinuationDescriptor.createContinuationExceptFrameMethod;
+import static com.avail.interpreter.Interpreter.chunkField;
+import static com.avail.interpreter.levelTwo.L2OperandType.COMMENT;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.*;
 
 /**
  * This is a placeholder instruction, which is replaced after data flow
- * optimizations by {@link L2_REIFY}, {@link L2_CREATE_CONTINUATION}, and
- * {@link L2_RETURN_FROM_REIFICATION_HANDLER}.  It's treated as having no
- * side-effects, so that it's free to migrate to paths where it's definitely
- * needed.
+ * optimizations by:
  *
- * <p>The reference to </p>
+ * <ol>
+ *    <li>{@link L2_REIFY},</li>
+ *    <li>{@link L2_SAVE_ALL_AND_PC_TO_INT},</li>
+ *    <li>{@link L2_CREATE_CONTINUATION},</li>
+ *    <li>{@link L2_RETURN_FROM_REIFICATION_HANDLER}, and</li>
+ *    <li>{@link L2_ENTER_L2_CHUNK}.</li>
+ * </ol>
+ *
+ * <p>The {@link L2_CREATE_CONTINUATION}'s level one pc is set to an arbitrary
+ * value, since it isn't used or ever exposed to level one code.</p>
+ *
+ * <p>This instruction is allowed to commute past any other instructions except
+ * {@link L2_SAVE_ALL_AND_PC_TO_INT}.  Since these usually end up in off-ramps,
+ * where reification is already happening, TODO We have to be careful.
+ * </p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class L2_VIRTUAL_REIFY_AND_CREATE_CONTINUATION
+public final class L2_VIRTUAL_REIFY
 extends L2Operation
 {
 	/**
 	 * Construct an {@code L2_CREATE_CONTINUATION}.
 	 */
-	private L2_VIRTUAL_REIFY_AND_CREATE_CONTINUATION ()
+	private L2_VIRTUAL_REIFY ()
 	{
 		super(
-			READ_BOXED.is("function"),
-			READ_BOXED.is("caller"),
-			INT_IMMEDIATE.is("level one pc"),
-			INT_IMMEDIATE.is("stack pointer"),
-			READ_BOXED_VECTOR.is("slot values"),
-			WRITE_BOXED.is("destination"),
-			PC.is("on-ramp", ON_RAMP),
-			PC.is("fall through after creation", OFF_RAMP),
 			COMMENT.is("usage comment"));
 	}
 
 	/**
 	 * Initialize the sole instance.
 	 */
-	public static final L2_VIRTUAL_REIFY_AND_CREATE_CONTINUATION instance =
-		new L2_VIRTUAL_REIFY_AND_CREATE_CONTINUATION();
+	public static final L2_VIRTUAL_REIFY instance =
+		new L2_VIRTUAL_REIFY();
 
 	/**
 	 * Extract the {@link List} of slot registers ({@link
@@ -206,25 +206,9 @@ extends L2Operation
 		translator.literal(method, levelOnePC.value);
 		translator.literal(method, levelOneStackp.value);
 		translator.loadInterpreter(method);
-		method.visitFieldInsn(
-			GETFIELD,
-			getInternalName(Interpreter.class),
-			"chunk",
-			getDescriptor(L2Chunk.class));
+		chunkField.generateRead(method);
 		translator.intConstant(method, onRamp.offset());
-		method.visitMethodInsn(
-			INVOKESTATIC,
-			getInternalName(ContinuationDescriptor.class),
-			"createContinuationExceptFrame",
-			getMethodDescriptor(
-				getType(A_Continuation.class),
-				getType(A_Function.class),
-				getType(A_Continuation.class),
-				INT_TYPE,
-				INT_TYPE,
-				getType(L2Chunk.class),
-				INT_TYPE),
-			false);
+		createContinuationExceptFrameMethod.generateCall(method);
 		method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
 		final int slotCount = slots.elements().size();
 		for (int i = 0; i < slotCount; i++)

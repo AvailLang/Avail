@@ -196,6 +196,7 @@ extends L2Operation
 					asList(stepper.pointers),
 					1);
 			// Push the continuation from above onto the reified stack.
+			interpreter.isReifying = true;
 			return new StackReifier(
 				true,
 				reificationForInterruptInL1Stat,
@@ -208,6 +209,7 @@ extends L2Operation
 							stripNull(interpreter.getReifiedContinuation())));
 					interpreter.processInterrupt(
 						interpreter.getReifiedContinuation());
+					interpreter.isReifying = false;
 				});
 		}
 		return null;

@@ -35,20 +35,20 @@ package com.avail.optimizer;
 import com.avail.AvailThread;
 import com.avail.descriptor.A_Continuation;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.NilDescriptor;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.optimizer.jvm.CheckedMethod;
-import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.performance.Statistic;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1NotNull;
 
+import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
 import static com.avail.AvailRuntimeSupport.captureNanos;
+import static com.avail.interpreter.Interpreter.debugL2;
+import static com.avail.interpreter.Interpreter.traceL2;
 import static com.avail.optimizer.jvm.CheckedMethod.instanceMethod;
 import static com.avail.utility.Nulls.stripNull;
 
@@ -77,7 +77,7 @@ public final class StackReifier
 	 * up a function/chunk/offset in the interpreter.  The interpreter will then
 	 * determine if it should continue running.
 	 */
-	private final Continuation0 postReificationAction;
+	public final Continuation0 postReificationAction;
 
 	/**
 	 * The stack of lambdas that's accumulated as the call stack is popped.
@@ -160,35 +160,64 @@ public final class StackReifier
 	}
 
 	/**
-	 * Given a mutable continuation, presumably with {@link NilDescriptor#nil}
-	 * as its caller, push an action which, when run, will replace its caller
-	 * with the {@link Interpreter#getReifiedContinuation()}, then replace the
-	 * {@code reifiedContinuation} with the new continuation.
+	 * Push an action on the reifier's stack of actions.  The action should run
+	 * after previously run (but subsequently pushed) actions have had a chance
+	 * to set up a caller's reified state.  Take the supplied dummy continuation
+	 * and push it on the reified stack, then run it.  The run must complete
+	 * normally – i.e., it must not trigger more reifications, or try to fall
+	 * back to the default chunk.
 	 *
-	 * @param mutableContinuation
+	 * <p>The code in the dummy continuation will restore register state, pop
+	 * the dummy continuation, then assemble and push whatever new
+	 * continuation(s) are needed to make the stack reflect some new state,
+	 * prior to running any previously pushed actions.</p>
+	 *
+	 * @param dummyContinuation
 	 *        A mutable continuation to add to the stack when more recently
 	 *        pushed actions have completed (thereby fully reifying the caller).
 	 */
 	@ReferencedInGeneratedCode
 	public void pushContinuationAction (
-		final AvailObject mutableContinuation)
+		final AvailObject dummyContinuation)
 	{
+		assert dummyContinuation.caller().equalsNil();
 		actionStack.addLast(
 			interpreter ->
 			{
-				final A_Continuation continuation =
-					mutableContinuation.replacingCaller(
-						stripNull(interpreter.getReifiedContinuation()));
-				interpreter.setReifiedContinuation(continuation);
-				interpreter.registerDump = null;  // Nobody should read it.
-				if (JVMTranslator.debugJVM)
+				if (debugL2)
 				{
-					Interpreter.traceL2(
-						interpreter.chunk != null
-							? interpreter.chunk
-							: L2Chunk.unoptimizedChunk,
-						-999999,
-						"NULLED register dump for push action",
+					traceL2(
+						dummyContinuation.levelTwoChunk(),
+						dummyContinuation.levelTwoOffset(),
+						"Starting a reifier action",
+						"");
+				}
+				// The call stack reflects what the dummyContinuation expects to
+				// see reified so far.  Push the dummyContinuation.
+				final A_Continuation newDummy =
+					dummyContinuation.replacingCaller(
+						stripNull(interpreter.getReifiedContinuation()));
+				interpreter.setReifiedContinuation(newDummy);
+				// Now run it, which will pop itself and push anything that it
+				// is supposed to.
+				interpreter.function = newDummy.function();
+				interpreter.chunk = newDummy.levelTwoChunk();
+				interpreter.offset = newDummy.levelTwoOffset();
+
+				final @Nullable StackReifier result =
+					interpreter.chunk.runChunk(interpreter, interpreter.offset);
+
+				assert result == null : "Must not reify in dummy continuation!";
+				// The dummy's code will have cleaned up the stack.  Let the
+				// next action run, or if exhausted, run the reifier's
+				// postReificationAction, or resume the top continuation.
+				if (debugL2)
+				{
+					traceL2(
+						dummyContinuation.levelTwoChunk(),
+						dummyContinuation.levelTwoOffset(),
+						"Finished a reifier action (offset is for instruction "
+							+ "that queued it)",
 						"");
 				}
 			});
@@ -201,19 +230,6 @@ public final class StackReifier
 			"pushContinuationAction",
 			void.class,
 			AvailObject.class);
-
-
-	/**
-	 * Answer the {@link Continuation0} that should be executed after all frames
-	 * have been reified.
-	 *
-	 * @return The post-reification action, captured when this
-	 *         {@code StackReifier} was created.
-	 */
-	public Continuation0 postReificationAction ()
-	{
-		return postReificationAction;
-	}
 
 	/**
 	 * Record the fact that a reification has completed.  The specific {@link

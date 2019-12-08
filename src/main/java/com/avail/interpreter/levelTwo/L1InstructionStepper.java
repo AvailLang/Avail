@@ -559,6 +559,7 @@ public final class L1InstructionStepper
 					// ...always a fresh copy, always mutable (uniquely
 					// owned).
 					// ...and continue running the chunk.
+					interpreter.isReifying = true;
 					return new StackReifier(
 						true,
 						reificationBeforeLabelCreationStat,
@@ -603,6 +604,7 @@ public final class L1InstructionStepper
 							push(newContinuation);
 							interpreter.returnNow = false;
 							// ...and continue running the chunk.
+							interpreter.isReifying = false;
 						});
 					// break;
 				}
@@ -1084,6 +1086,7 @@ public final class L1InstructionStepper
 	{
 		final A_Function functionToCall =
 			interpreter.runtime().invalidMessageSendFunction();
+		interpreter.isReifying = true;
 		return new StackReifier(
 			true,
 			reificationForFailedLookupStat,
@@ -1098,6 +1101,7 @@ public final class L1InstructionStepper
 				interpreter.chunk = functionToCall.code().startingChunk();
 				interpreter.offset = 0;
 				interpreter.returnNow = false;
+				interpreter.isReifying = false;
 			});
 	}
 }

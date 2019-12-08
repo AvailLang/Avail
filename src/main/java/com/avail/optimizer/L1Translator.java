@@ -117,7 +117,6 @@ import static com.avail.performance.StatisticReport.L2_TRANSLATION_VALUES;
 import static java.lang.Boolean.TRUE;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -485,25 +484,6 @@ public final class L1Translator
 	}
 
 	/**
-	 * Write instructions to extract the current reified continuation, and
-	 * answer an {@link L2ReadBoxedOperand} for the register that will hold
-	 * the continuation afterward.  Move the caller of this continuation back
-	 * into the interpreter's current reified continuation field.
-	 *
-	 * @return The {@link L2ReadBoxedOperand} where the continuation is written.
-	 */
-	private L2ReadBoxedOperand popCurrentContinuation ()
-	{
-		final L2WriteBoxedOperand continuationTempReg =
-			generator.boxedWriteTemp(
-				restrictionForType(mostGeneralContinuationType(), BOXED));
-		addInstruction(
-			L2_POP_CURRENT_CONTINUATION.instance,
-			continuationTempReg);
-		return readBoxed(continuationTempReg);
-	}
-
-	/**
 	 * Capture the latest value returned by the {@link L2_RETURN} instruction in
 	 * this {@link Interpreter}.
 	 *
@@ -619,7 +599,8 @@ public final class L1Translator
 			generator.boxedWriteTemp(
 				restrictionForType(mostGeneralContinuationType(), BOXED));
 		final L2BasicBlock onReturnIntoReified =
-			generator.createBasicBlock("Return into reified continuation");
+			generator.createReificationBlock(
+				"Return into reified continuation");
 		// Create readSlots for constructing the continuation.  Also create
 		// writeSemanticValues and writeRestrictions for restoring the state
 		// from the continuation when it's resumed.
@@ -656,18 +637,21 @@ public final class L1Translator
 		// the slot registers are the new ones we just created.
 		final L2WriteIntOperand writeOffset = generator.intWriteTemp(
 			restrictionForType(int32(), UNBOXED_INT));
+		final L2WriteBoxedOperand writeRegisterDump = generator.boxedWriteTemp(
+			restrictionForType(ANY.o(), BOXED));
 		final L2BasicBlock fallThrough = generator.createBasicBlock("Off-ramp");
 		addInstruction(
 			L2_SAVE_ALL_AND_PC_TO_INT.instance,
 			edgeTo(fallThrough),
 			edgeTo(onReturnIntoReified),
-			writeOffset);
+			writeOffset,
+			writeRegisterDump);
 
 		generator.startBlock(fallThrough);
 		addInstruction(
 			L2_CREATE_CONTINUATION.instance,
 			getCurrentFunction(),
-			generator.boxedConstant(nil),
+			getCurrentContinuation(),
 			new L2IntImmediateOperand(instructionDecoder.pc()),
 			new L2IntImmediateOperand(stackp),
 			new L2ReadBoxedVectorOperand(asList(readSlotsBefore)),
@@ -675,13 +659,14 @@ public final class L1Translator
 			generator.readInt(
 				writeOffset.semanticValue(),
 				generator.unreachablePcOperand().targetBlock()),
+			generator.readBoxed(writeRegisterDump),
 			new L2CommentOperand("Create a reification continuation."));
+		addInstruction(
+			L2_SET_CONTINUATION.instance,
+			generator.readBoxed(newContinuationWrite));
 
 		// Right after creating the continuation.
-		addInstruction(
-			L2_RETURN_FROM_REIFICATION_HANDLER.instance,
-			new L2ReadBoxedVectorOperand(
-				singletonList(readBoxed(newContinuationWrite))));
+		addInstruction(L2_RETURN_FROM_REIFICATION_HANDLER.instance);
 
 		// Here it's returning into the reified continuation.
 		generator.startBlock(onReturnIntoReified);
@@ -691,14 +676,9 @@ public final class L1Translator
 			new L2CommentOperand(
 				"If invalid, reenter «default» at "
 					+ typeOfEntryPoint.name() + "."));
-		if (expectedValueOrNull != null
-			&& expectedValueOrNull.isVacuousType())
+		if (expectedValueOrNull != null && expectedValueOrNull.isVacuousType())
 		{
 			generator.addUnreachableCode();
-		}
-		else
-		{
-			popCurrentContinuation();
 		}
 	}
 
@@ -1945,6 +1925,8 @@ public final class L1Translator
 			: skipCheck
 				? callSiteHelper.onReificationNoCheck
 				: callSiteHelper.onReificationWithCheck;
+		final L2BasicBlock reificationTarget = generator.createBasicBlock(
+			"invoke reification target");
 		if (constantFunction != null)
 		{
 			addInstruction(
@@ -1954,7 +1936,7 @@ public final class L1Translator
 				canReturn
 					? edgeTo(successBlock)
 					: generator.unreachablePcOperand(),
-				edgeTo(targetBlock));
+				edgeTo(reificationTarget));
 		}
 		else
 		{
@@ -1965,8 +1947,16 @@ public final class L1Translator
 				canReturn
 					? edgeTo(successBlock)
 					: generator.unreachablePcOperand(),
-				edgeTo(targetBlock));
+				edgeTo(reificationTarget));
 		}
+		generator.startBlock(reificationTarget);
+		generator.addInstruction(
+			L2_ENTER_L2_CHUNK.instance,
+			new L2IntImmediateOperand(TRANSIENT.offsetInDefaultChunk),
+			new L2CommentOperand(
+				"Transient - cannot be invalid."));
+		generator.addInstruction(L2_JUMP.instance, edgeTo(targetBlock));
+
 		generator.startBlock(successBlock);
 		if (generator.currentlyReachable())
 		{
@@ -2086,6 +2076,11 @@ public final class L1Translator
 
 		// Reification has been requested while the call is in progress.
 		generator.startBlock(onReificationInHandler);
+		generator.addInstruction(
+			L2_ENTER_L2_CHUNK.instance,
+			new L2IntImmediateOperand(TRANSIENT.offsetInDefaultChunk),
+			new L2CommentOperand(
+				"Transient - cannot be invalid."));
 		reify(bottom(), TO_RETURN_INTO);
 
 		// Generate the much more likely passed-check flow.
@@ -2592,6 +2587,11 @@ public final class L1Translator
 		// Reification has been requested while the failure call is in
 		// progress.
 		generator.startBlock(onReificationDuringFailure);
+		generator.addInstruction(
+			L2_ENTER_L2_CHUNK.instance,
+			new L2IntImmediateOperand(TRANSIENT.offsetInDefaultChunk),
+			new L2CommentOperand(
+				"Transient - cannot be invalid."));
 		reify(bottom(), TO_RETURN_INTO);
 	}
 
@@ -2635,6 +2635,11 @@ public final class L1Translator
 				StatisticCategory.INTERRUPT_OFF_RAMP_IN_L2.ordinal()),
 			edgeTo(onReification));
 		generator.startBlock(onReification);
+		generator.addInstruction(
+			L2_ENTER_L2_CHUNK.instance,
+			new L2IntImmediateOperand(TRANSIENT.offsetInDefaultChunk),
+			new L2CommentOperand(
+				"Transient, for interrupt - cannot be invalid."));
 
 		// When the lambda below runs, it's generating code at the point where
 		// continuationReg will have the new continuation.
@@ -2707,6 +2712,11 @@ public final class L1Translator
 
 		// Reification has been requested while the failure call is in progress.
 		generator.startBlock(onReificationDuringFailure);
+		generator.addInstruction(
+			L2_ENTER_L2_CHUNK.instance,
+			new L2IntImmediateOperand(TRANSIENT.offsetInDefaultChunk),
+			new L2CommentOperand(
+				"Transient - cannot be invalid."));
 		reify(bottom(), TO_RETURN_INTO);
 
 		// End with the success path.
@@ -2781,6 +2791,11 @@ public final class L1Translator
 			edgeTo(onReificationDuringFailure));
 
 		generator.startBlock(onReificationDuringFailure);
+		generator.addInstruction(
+			L2_ENTER_L2_CHUNK.instance,
+			new L2IntImmediateOperand(TRANSIENT.offsetInDefaultChunk),
+			new L2CommentOperand(
+				"Transient - cannot be invalid."));
 		reify(TOP.o(), TO_RETURN_INTO);
 		addInstruction(
 			L2_JUMP.instance,
@@ -3413,6 +3428,11 @@ public final class L1Translator
 			edgeTo(onReification));
 
 		generator.startBlock(onReification);
+		generator.addInstruction(
+			L2_ENTER_L2_CHUNK.instance,
+			new L2IntImmediateOperand(TRANSIENT.offsetInDefaultChunk),
+			new L2CommentOperand(
+				"Transient, before label creation - cannot be invalid."));
 		reify(null, UNREACHABLE);
 
 		// We just continued the reified continuation, having exploded the
@@ -3444,12 +3464,15 @@ public final class L1Translator
 		// the slot registers are the new ones we just created.
 		final L2WriteIntOperand writeOffset = generator.intWriteTemp(
 			restrictionForType(int32(), UNBOXED_INT));
+		final L2WriteBoxedOperand writeRegisterDump = generator.boxedWriteTemp(
+			restrictionForType(ANY.o(), BOXED));
 		final L2BasicBlock fallThrough = generator.createBasicBlock("Off-ramp");
 		addInstruction(
 			L2_SAVE_ALL_AND_PC_TO_INT.instance,
 			edgeTo(fallThrough),
 			backEdgeTo(generator.afterOptionalInitialPrimitiveBlock),
-			writeOffset);
+			writeOffset,
+			writeRegisterDump);
 
 		generator.startBlock(fallThrough);
 		addInstruction(
@@ -3463,6 +3486,7 @@ public final class L1Translator
 			generator.readInt(
 				writeOffset.semanticValue(),
 				generator.unreachablePcOperand().targetBlock()),
+			generator.readBoxed(writeRegisterDump),
 			new L2CommentOperand("Create a label continuation."));
 		// Continue, with the label having been pushed.
 		forceSlotRegister(

@@ -70,11 +70,11 @@ import static org.objectweb.asm.Type.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@WritesHiddenVariable({
+@WritesHiddenVariable(
 	// The instruction just sets up a new StackReifier.  It's the subsequent
 	// operations that manipulate the state.
 	STACK_REIFIER.class
-})
+)
 public final class L2_REIFY
 extends L2ControlFlowOperation
 {
@@ -226,7 +226,8 @@ extends L2ControlFlowOperation
 				INT_TYPE),
 			false);
 		method.visitVarInsn(ASTORE, translator.reifierLocal());
-		// :: goto reify;
-		translator.jump(method, instruction, onReification);
+		// Arrange to arrive at the onReification target, which must be an
+		// L2_ENTER_L2_CHUNK.
+		translator.generateReificationPreamble(method, onReification);
 	}
 }

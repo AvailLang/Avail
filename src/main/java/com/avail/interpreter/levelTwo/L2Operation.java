@@ -108,16 +108,12 @@ public abstract class L2Operation
 		@HiddenVariableShift(4)
 		public static class STACK_REIFIER extends HiddenVariable { }
 
-		/** How the registerDump field is affected. */
-		@HiddenVariableShift(5)
-		public static class REGISTER_DUMP extends HiddenVariable { }
-
 		/**
 		 * How any other global variables are affected.  This includes things
 		 * like the global exception reporter, the stringification function,
 		 * observerless setup, etc.
 		 */
-		@HiddenVariableShift(6)
+		@HiddenVariableShift(5)
 		public static class GLOBAL_STATE extends HiddenVariable { }
 	}
 

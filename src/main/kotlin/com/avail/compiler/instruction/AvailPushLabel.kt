@@ -38,7 +38,7 @@ import com.avail.descriptor.ContinuationDescriptor
 import com.avail.descriptor.FunctionDescriptor
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.interpreter.levelOne.L1Operation.L1Ext_doPushLabel
-import com.avail.interpreter.primitive.controlflow.P_ExitContinuationWithResult
+import com.avail.interpreter.primitive.controlflow.P_ExitContinuationWithResultIf
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
 import com.avail.io.NybbleOutputStream
@@ -52,7 +52,7 @@ import com.avail.io.NybbleOutputStream
  *
  * The new continuation can subsequently be [restart][P_RestartContinuation],
  * [restarted with new arguments][P_RestartContinuationWithArguments], or
- * [exited][P_ExitContinuationWithResult].
+ * [exited][P_ExitContinuationWithResultIf].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *

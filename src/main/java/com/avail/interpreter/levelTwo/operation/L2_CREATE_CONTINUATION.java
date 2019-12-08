@@ -37,8 +37,6 @@ import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.REGISTER_DUMP;
-import com.avail.interpreter.levelTwo.ReadsHiddenVariable;
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
@@ -52,7 +50,6 @@ import java.util.Set;
 
 import static com.avail.descriptor.ContinuationDescriptor.createContinuationExceptFrameMethod;
 import static com.avail.interpreter.Interpreter.chunkField;
-import static com.avail.interpreter.Interpreter.registerDumpField;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static org.objectweb.asm.Opcodes.DUP;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
@@ -67,7 +64,6 @@ import static org.objectweb.asm.Type.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@ReadsHiddenVariable(REGISTER_DUMP.class)
 public final class L2_CREATE_CONTINUATION
 extends L2Operation
 {
@@ -84,6 +80,7 @@ extends L2Operation
 			READ_BOXED_VECTOR.is("slot values"),
 			WRITE_BOXED.is("destination"),
 			READ_INT.is("label address"),
+			READ_BOXED.is("register dump"),
 			COMMENT.is("usage comment"));
 	}
 
@@ -106,7 +103,8 @@ extends L2Operation
 		final L2IntImmediateOperand levelOneStackp = instruction.operand(3);
 		final L2ReadBoxedVectorOperand slots = instruction.operand(4);
 		final L2WriteBoxedOperand destReg = instruction.operand(5);
-		final L2ReadIntOperand labelIntReg = instruction.operand(6);
+//		final L2ReadIntOperand labelIntReg = instruction.operand(6);
+//		final L2ReadBoxedOperand registerDumpReg = instruction.operand(7);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
@@ -148,6 +146,7 @@ extends L2Operation
 		final L2ReadBoxedVectorOperand slots = instruction.operand(4);
 		final L2WriteBoxedOperand destReg = instruction.operand(5);
 		final L2ReadIntOperand labelIntReg = instruction.operand(6);
+		final L2ReadBoxedOperand registerDumpReg = instruction.operand(7);
 
 		// :: continuation = createContinuationExceptFrame(
 		// ::    function,
@@ -159,8 +158,7 @@ extends L2Operation
 		// ::    onRampOffset);
 		translator.load(method, function.register());
 		translator.load(method, caller.register());
-		translator.loadInterpreter(method);
-		registerDumpField.generateRead(method);
+		translator.load(method, registerDumpReg.register());
 		translator.literal(method, levelOnePC.value);
 		translator.literal(method, levelOneStackp.value);
 		translator.loadInterpreter(method);

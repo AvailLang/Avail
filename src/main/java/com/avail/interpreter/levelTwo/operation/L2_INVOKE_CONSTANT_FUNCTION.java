@@ -32,14 +32,12 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_ARGUMENTS;
 import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION;
 import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION;
 import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE;
-import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.REGISTER_DUMP;
 import com.avail.interpreter.levelTwo.WritesHiddenVariable;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
@@ -53,12 +51,10 @@ import org.objectweb.asm.MethodVisitor;
 import java.util.List;
 import java.util.Set;
 
+import static com.avail.interpreter.Interpreter.chunkField;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static org.objectweb.asm.Opcodes.GETFIELD;
-import static org.objectweb.asm.Type.getDescriptor;
-import static org.objectweb.asm.Type.getInternalName;
 
 /**
  * The given (constant) function is invoked.  The function may be a primitive,
@@ -81,8 +77,7 @@ import static org.objectweb.asm.Type.getInternalName;
 	CURRENT_CONTINUATION.class,
 	CURRENT_FUNCTION.class,
 	CURRENT_ARGUMENTS.class,
-	LATEST_RETURN_VALUE.class,
-	REGISTER_DUMP.class
+	LATEST_RETURN_VALUE.class
 })
 public final class L2_INVOKE_CONSTANT_FUNCTION
 extends L2ControlFlowOperation
@@ -156,18 +151,13 @@ extends L2ControlFlowOperation
 
 		translator.loadInterpreter(method);
 		translator.loadInterpreter(method);
-		method.visitFieldInsn(
-			GETFIELD,
-			getInternalName(Interpreter.class),
-			"chunk",
-			getDescriptor(L2Chunk.class));
+		chunkField.generateRead(method);
 		translator.loadInterpreter(method);
 		translator.literal(method, constantFunction.object);
 		// :: [interpreter, callingChunk, interpreter, function]
 		L2_INVOKE.generatePushArgumentsAndInvoke(
 			translator,
 			method,
-			instruction,
 			arguments.elements(),
 			onReturn,
 			onReification);

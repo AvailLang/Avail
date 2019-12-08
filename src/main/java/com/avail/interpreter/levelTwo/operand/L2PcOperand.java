@@ -32,23 +32,39 @@
 
 package com.avail.interpreter.levelTwo.operand;
 
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.ContinuationRegisterDumpDescriptor;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
+import com.avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP;
 import com.avail.interpreter.levelTwo.register.L2Register;
+import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
 import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2ControlFlowGraph;
 import com.avail.optimizer.L2ValueManifest;
+import com.avail.optimizer.jvm.JVMChunk;
+import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.optimizer.values.L2SemanticValue;
+import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
+import static com.avail.descriptor.ContinuationRegisterDumpDescriptor.createRegisterDumpMethod;
+import static com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.BOXED;
+import static com.avail.utility.CollectionExtensions.populatedEnumMap;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
+import static java.util.Comparator.comparingInt;
+import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Type.getInternalName;
 
 /**
  * An {@code L2PcOperand} is an operand of type {@link L2OperandType#PC}.
@@ -334,5 +350,106 @@ extends L2Operand
 		oldTarget.removePredecessorEdge(this);
 		newTarget.addPredecessorEdge(this);
 		isBackward = isBackwardFlag;
+	}
+
+	/**
+	 * Write JVM bytecodes to the JVMTranslator which will create and push a
+	 * {@link ContinuationRegisterDumpDescriptor} instance containing all live
+	 * registers.  Also, associate within the {@link JVMTranslator} the
+	 * information needed to extract these live registers when the target
+	 * {@link L2_ENTER_L2_CHUNK} is reached.
+	 *
+	 * @param translator
+	 *        The {@link JVMTranslator} in which to record the saved register
+	 *        layout.
+	 * @param method
+	 *        The {@link MethodVisitor} on which to write code to push the
+	 *        register dump.
+	 */
+	public void createAndPushRegisterDump (
+		final JVMTranslator translator,
+		final MethodVisitor method)
+	{
+		// Capture both the constant L2 offset of the target, and a register
+		// dump containing the state of all live registers.  A subsequent
+		// L2_CREATE_CONTINUATION will use both, and the L2_ENTER_L2_CHUNK at
+		// the target will restore the register dump found in the continuation.
+		final L2Instruction targetInstruction =
+			targetBlock.instructions().get(0);
+		assert targetInstruction.operation() == L2_ENTER_L2_CHUNK.instance;
+		final EnumMap<RegisterKind, List<Integer>> liveMap =
+			populatedEnumMap(RegisterKind.class, k -> new ArrayList<>());
+		final Set<L2Register> liveRegistersSet =
+			new HashSet<>(alwaysLiveInRegisters);
+		liveRegistersSet.addAll(sometimesLiveInRegisters);
+		final List<L2Register> liveRegistersList =
+			new ArrayList<>(liveRegistersSet);
+		liveRegistersList.sort(comparingInt(L2Register::finalIndex));
+		liveRegistersList.forEach(reg ->
+			liveMap.get(reg.registerKind()).add(
+				translator.localNumberFromRegister(reg)));
+
+		translator.liveLocalNumbersByKindPerEntryPoint.put(
+			targetInstruction, liveMap);
+
+		// Emit code to save those registers' values.  Start with the objects.
+		// :: array = new «arrayClass»[«limit»];
+		// :: array[0] = ...; array[1] = ...;
+		final List<Integer> boxedLocalNumbers = liveMap.get(BOXED);
+		if (boxedLocalNumbers.isEmpty())
+		{
+			JVMChunk.noObjectsField.generateRead(method);
+		}
+		else
+		{
+			translator.intConstant(method, boxedLocalNumbers.size());
+			method.visitTypeInsn(ANEWARRAY, getInternalName(AvailObject.class));
+			for (int i = 0; i < boxedLocalNumbers.size(); i++)
+			{
+				method.visitInsn(DUP);
+				translator.intConstant(method, i);
+				method.visitVarInsn(
+					BOXED.loadInstruction,
+					boxedLocalNumbers.get(i));
+				method.visitInsn(AASTORE);
+			}
+		}
+		// Now create the array of longs, including both ints and doubles.
+		final List<Integer> intLocalNumbers = liveMap.get(RegisterKind.INTEGER);
+		final List<Integer> floatLocalNumbers = liveMap.get(RegisterKind.FLOAT);
+		if (intLocalNumbers.size() + floatLocalNumbers.size() == 0)
+		{
+			JVMChunk.noLongsField.generateRead(method);
+		}
+		else
+		{
+			translator.intConstant(
+				method, intLocalNumbers.size() + floatLocalNumbers.size());
+			method.visitIntInsn(NEWARRAY, T_LONG);
+			int i;
+			for (i = 0; i < intLocalNumbers.size(); i++)
+			{
+				method.visitInsn(DUP);
+				translator.intConstant(method, i);
+				method.visitVarInsn(
+					RegisterKind.INTEGER.loadInstruction,
+					intLocalNumbers.get(i));
+				method.visitInsn(I2L);
+				method.visitInsn(LASTORE);
+			}
+			for (int j = 0; j < floatLocalNumbers.size(); j++, i++)
+			{
+				method.visitInsn(DUP);
+				translator.intConstant(method, i);
+				method.visitVarInsn(
+					RegisterKind.FLOAT.loadInstruction,
+					floatLocalNumbers.get(i));
+				method.visitInsn(D2L);
+				method.visitInsn(LASTORE);
+			}
+		}
+		// The stack is now AvailObject[], long[].
+		createRegisterDumpMethod.generateCall(method);
+		// Now the stack has the register dump object on it.
 	}
 }

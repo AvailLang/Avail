@@ -1274,13 +1274,10 @@ Private method "_positive range pairs" is
 			/* Range is [0..n]. */
 			lowBits := high;
 			[
-				$here;
-				If lowBits bit∧ (lowBits + 1) ≠ 0 then
-				[
-					/* Not yet of the form 2^n-1 */
-					lowBits := lowBits bit∨ (lowBits << -1);
-					Restart here
-				];
+				$here : ⊤;
+				Exit here if lowBits bit∧ (lowBits + 1) = 0;
+				lowBits := lowBits bit∨ (lowBits << -1);
+				Restart here
 			]();
 		]
 		else
@@ -1290,30 +1287,21 @@ Private method "_positive range pairs" is
 	]
 	else
 	[
-		If ⎡range⎤ = 0 then
-		[
-			Assert: range = [0..0];
-			Exit outer with <range>
-		];
+		Exit outer with <range> if ⎡range⎤ = 0;
 		Assert: ⎡range⎤ = ∞;
-		If low = 0 then
-		[
-			Assert: range = [0..∞);
-			Exit outer with <range>
-		];
+		Exit outer with <range> if low = 0;
 		/* Find the next higher power of two. */
 		boundary : integer := low;
 		[
-			$here;
-			If boundary bit∧ (boundary + 1) ≠ 0 then
-			[
-				boundary := boundary bit∨ (boundary << -1);
-				Restart here
-			];
+			$here : ⊤;
+			Exit here if boundary bit∧ (boundary + 1) = 0;
+			boundary := boundary bit∨ (boundary << -1);
+			Restart here
 		]();
+		last ::= Cast [boundary + 1..∞)
+			into [t : whole number's type | t];
 		Exit outer with
-			[low .. boundary] positive range pairs
-				++ <[boundary + 1..∞)>
+			[low .. boundary] positive range pairs ++ <last>
 	];
 	strongLowBits : whole number :=
 		cast lowBits into [x : whole number | x];
@@ -1363,7 +1351,7 @@ Private method "_range pairs" is
 	[
 		n : natural number
 	|
-		subcomplement ::= Cast (-1)'s type - subranges[n]
+		subcomplement ::= cast (-1)'s type - subranges[n]
 			into [x : integer's type | x];
 		pairs := <subcomplement> ++ pairs;
 		true
@@ -1396,7 +1384,7 @@ Semantic restriction "_bit∧_" is
 			moreValues : {extended integer|0..∞}
 		|
 			values := eject values ∪ moreValues;
-			Exit includeLabel with <>  /* "Exit_" is not yet defined. */
+			Exit includeLabel
 		];
 		If x = ∞ then
 		[

@@ -41,7 +41,6 @@ import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINU
 import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION;
 import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.GLOBAL_STATE;
 import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE;
-import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.REGISTER_DUMP;
 import com.avail.interpreter.levelTwo.ReadsHiddenVariable;
 import com.avail.interpreter.levelTwo.WritesHiddenVariable;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
@@ -86,8 +85,7 @@ extends L2Operation
 		CURRENT_CONTINUATION.class,
 		CURRENT_FUNCTION.class,
 		CURRENT_ARGUMENTS.class,
-		LATEST_RETURN_VALUE.class,
-		REGISTER_DUMP.class
+		LATEST_RETURN_VALUE.class
 	})
 	private static class L2_RUN_INFALLIBLE_PRIMITIVE_no_dependency
 	extends L2_RUN_INFALLIBLE_PRIMITIVE { }
@@ -98,8 +96,7 @@ extends L2Operation
 		CURRENT_CONTINUATION.class,
 		CURRENT_FUNCTION.class,
 		CURRENT_ARGUMENTS.class,
-		LATEST_RETURN_VALUE.class,
-		REGISTER_DUMP.class
+		LATEST_RETURN_VALUE.class
 	})
 	private static class L2_RUN_INFALLIBLE_PRIMITIVE_read_dependency
 	extends L2_RUN_INFALLIBLE_PRIMITIVE { }
@@ -110,7 +107,6 @@ extends L2Operation
 		CURRENT_FUNCTION.class,
 		CURRENT_ARGUMENTS.class,
 		LATEST_RETURN_VALUE.class,
-		REGISTER_DUMP.class,
 		GLOBAL_STATE.class
 	})
 	private static class L2_RUN_INFALLIBLE_PRIMITIVE_write_dependency
@@ -123,7 +119,6 @@ extends L2Operation
 		CURRENT_FUNCTION.class,
 		CURRENT_ARGUMENTS.class,
 		LATEST_RETURN_VALUE.class,
-		REGISTER_DUMP.class,
 		GLOBAL_STATE.class
 	})
 	private static class L2_RUN_INFALLIBLE_PRIMITIVE_readwrite_dependency

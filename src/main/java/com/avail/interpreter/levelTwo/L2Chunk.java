@@ -555,7 +555,13 @@ implements ExecutableChunk
 		 * <p>It's hard-coded, but checked against the default chunk in {@link
 		 * #createDefaultChunk()} when that chunk is created.</p>
 		 */
-		TO_RESTART(1);
+		TO_RESTART(1),
+
+		/**
+		 * This chunk containing this entry point <em>can't</em> be invalid when
+		 * it's entered.
+		 */
+		TRANSIENT(-1);
 
 		/**
 		 * The offset within the default chunk at which to continue if a chunk
@@ -818,15 +824,11 @@ implements ExecutableChunk
 	{
 		if (Interpreter.debugL2)
 		{
-			final String className = executableChunk.getClass().getSimpleName();
-			final String[] parts = className.split("_");
-			final String uuidStart = parts.length >= 2 ? parts[1] : className;
 			Interpreter.log(
 				Interpreter.loggerDebugL2,
 				Level.INFO,
-				"Running chunk {0} ({1}) at offset {2}.",
+				"Running chunk {0} at offset {1}.",
 				name(),
-				uuidStart,
 				offset);
 		}
 		return executableChunk.runChunk(interpreter, offset);
@@ -935,11 +937,11 @@ implements ExecutableChunk
 		final L2BasicBlock reenterFromRestartBlock =
 			new L2BasicBlock("Default restart");
 		final L2BasicBlock loopBlock =
-			new L2BasicBlock("Default loop", true);
+			new L2BasicBlock("Default loop", true, false);
 		final L2BasicBlock reenterFromCallBlock =
-			new L2BasicBlock("Default return from call");
+			new L2BasicBlock("Default return from call", false, true);
 		final L2BasicBlock reenterFromInterruptBlock =
-			new L2BasicBlock("Default reentry from interrupt");
+			new L2BasicBlock("Default reentry from interrupt", false, true);
 		final L2BasicBlock unreachableBlock =
 			new L2BasicBlock("Unreachable");
 

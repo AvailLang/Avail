@@ -31,41 +31,24 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ContinuationRegisterDumpDescriptor;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.REGISTER_DUMP;
-import com.avail.interpreter.levelTwo.WritesHiddenVariable;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
-import com.avail.interpreter.levelTwo.register.L2Register;
-import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
-import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2ValueManifest;
-import com.avail.optimizer.jvm.JVMChunk;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.EnumMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Function;
 
-import static com.avail.interpreter.Interpreter.saveRegistersMethod;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.REFERENCED_AS_INT;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.PC;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_INT;
-import static com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.BOXED;
-import static java.util.Comparator.comparingInt;
-import static java.util.stream.Collectors.toMap;
-import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Type.getInternalName;
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
 
 /**
  * Extract the given "reference" edge's target level two offset as an {@code
@@ -81,8 +64,6 @@ import static org.objectweb.asm.Type.getInternalName;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-@WritesHiddenVariable(
-	REGISTER_DUMP.class)
 public final class L2_SAVE_ALL_AND_PC_TO_INT
 extends L2Operation
 {
@@ -94,14 +75,15 @@ extends L2Operation
 		super(
 			PC.is("fall-through", SUCCESS),
 			PC.is("reference", REFERENCED_AS_INT),
-			WRITE_INT.is("L2 address"));
+			WRITE_INT.is("L2 address"),
+			WRITE_BOXED.is("register dump"));
 	}
 
 	/**
 	 * Initialize the sole instance.
 	 */
-	public static final L2_SAVE_ALL_AND_PC_TO_INT
-		instance = new L2_SAVE_ALL_AND_PC_TO_INT();
+	public static final L2_SAVE_ALL_AND_PC_TO_INT instance =
+		new L2_SAVE_ALL_AND_PC_TO_INT();
 
 	@Override
 	public List<L2PcOperand> targetEdges (final L2Instruction instruction)
@@ -169,12 +151,14 @@ extends L2Operation
 		final L2PcOperand fallThrough = instruction.operand(0);
 		final L2PcOperand target = instruction.operand(1);
 		final L2WriteIntOperand targetAsInt = instruction.operand(2);
+		final L2WriteBoxedOperand registerDump = instruction.operand(3);
 
 		// Install the operands in this order.  First target, which will not be
-		// able to access targetAsInt.  Then targetAsInt.  Then fallThrough,
-		// which will be able to see targetAsInt.
+		// able to access targetAsInt.  Then targetAsInt and registerDump.  Then
+		// fallThrough, which will be able to see targetAsInt and registerDump.
 		target.instructionWasAdded(instruction, manifest);
 		targetAsInt.instructionWasAdded(instruction, manifest);
+		registerDump.instructionWasAdded(instruction, manifest);
 		fallThrough.instructionWasAdded(instruction, manifest);
 	}
 
@@ -188,17 +172,20 @@ extends L2Operation
 		// final L2PcOperand fallThrough = instruction.operand(0);
 		final L2PcOperand target = instruction.operand(1);
 		final L2WriteIntOperand targetAsInt = instruction.operand(2);
+		final L2WriteBoxedOperand registerDump = instruction.operand(3);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
 		builder.append(targetAsInt);
 		builder.append(" ← address of label $[");
 		builder.append(target.targetBlock().name());
+		builder.append("]");
 		if (target.offset() != -1)
 		{
 			builder.append("(=").append(target.offset()).append(")");
 		}
-		builder.append("]");
+		builder.append(",\n\tdump registers ");
+		builder.append(registerDump);
 	}
 
 	@Override
@@ -211,96 +198,10 @@ extends L2Operation
 		final L2PcOperand fallThrough = instruction.operand(0);
 		final L2PcOperand target = instruction.operand(1);
 		final L2WriteIntOperand targetAsInt = instruction.operand(2);
+		final L2WriteBoxedOperand registerDump = instruction.operand(3);
 
-		// Even though it looks like we're just capturing the constant L2 offset
-		// here, we also capture the live register state and stash it for
-		// continuation construction to use.  We also use it to restore the live
-		// register state at the L2_ENTER_L2_CHUNK at the end of this edge.
-		final L2BasicBlock targetBlock = target.targetBlock();
-		final L2Instruction targetInstruction =
-			targetBlock.instructions().get(0);
-		assert targetInstruction.operation() == L2_ENTER_L2_CHUNK.instance;
-
-		final EnumMap<RegisterKind, List<Integer>> liveMap =
-			Arrays.stream(RegisterKind.values()).collect(
-				toMap(
-					Function.identity(),
-					k -> new ArrayList<>(),
-					(a, b) -> { throw new RuntimeException("Impossible"); },
-					() -> new EnumMap<>(RegisterKind.class)));
-		final Set<L2Register> liveRegistersSet =
-			new HashSet<>(target.alwaysLiveInRegisters);
-		liveRegistersSet.addAll(target.sometimesLiveInRegisters);
-		final List<L2Register> liveRegistersList =
-			new ArrayList<>(liveRegistersSet);
-		liveRegistersList.sort(comparingInt(L2Register::finalIndex));
-		liveRegistersList.forEach(reg ->
-			liveMap.get(reg.registerKind()).add(
-				translator.localNumberFromRegister(reg)));
-
-		translator.liveLocalNumbersByKindPerEntryPoint.put(
-			targetInstruction, liveMap);
-
-		// Push the interpreter for later...
-		translator.loadInterpreter(method);
-		// Emit code to save those registers' values.  Start with the objects.
-		// :: array = new «arrayClass»[«limit»];
-		// :: array[0] = ...; array[1] = ...;
-		final List<Integer> boxedLocalNumbers = liveMap.get(BOXED);
-		if (boxedLocalNumbers.isEmpty())
-		{
-			JVMChunk.noObjectsField.generateRead(method);
-		}
-		else
-		{
-			translator.intConstant(method, boxedLocalNumbers.size());
-			method.visitTypeInsn(ANEWARRAY, getInternalName(AvailObject.class));
-			for (int i = 0; i < boxedLocalNumbers.size(); i++)
-			{
-				method.visitInsn(DUP);
-				translator.intConstant(method, i);
-				method.visitVarInsn(
-					BOXED.loadInstruction,
-					boxedLocalNumbers.get(i));
-				method.visitInsn(AASTORE);
-			}
-		}
-		// Now create the array of longs, including both ints and doubles.
-		final List<Integer> intLocalNumbers = liveMap.get(RegisterKind.INTEGER);
-		final List<Integer> floatLocalNumbers = liveMap.get(RegisterKind.FLOAT);
-		if (intLocalNumbers.size() + floatLocalNumbers.size() == 0)
-		{
-			JVMChunk.noLongsField.generateRead(method);
-		}
-		else
-		{
-			translator.intConstant(
-				method, intLocalNumbers.size() + floatLocalNumbers.size());
-			method.visitIntInsn(NEWARRAY, T_LONG);
-			int i;
-			for (i = 0; i < intLocalNumbers.size(); i++)
-			{
-				method.visitInsn(DUP);
-				translator.intConstant(method, i);
-				method.visitVarInsn(
-					RegisterKind.INTEGER.loadInstruction,
-					intLocalNumbers.get(i));
-				method.visitInsn(I2L);
-				method.visitInsn(LASTORE);
-			}
-			for (int j = 0; j < floatLocalNumbers.size(); j++, i++)
-			{
-				method.visitInsn(DUP);
-				translator.intConstant(method, i);
-				method.visitVarInsn(
-					RegisterKind.FLOAT.loadInstruction,
-					floatLocalNumbers.get(i));
-				method.visitInsn(D2L);
-				method.visitInsn(LASTORE);
-			}
-		}
-		// The stack is now interpreter, AvailObject[], long[].
-		saveRegistersMethod.generateCall(method);
+		target.createAndPushRegisterDump(translator, method);
+		translator.store(method, registerDump.register());
 		// Stack is empty
 
 		translator.intConstant(method, target.offset());

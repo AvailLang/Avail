@@ -239,6 +239,7 @@ extends L2Operation
 				final boolean newReturnNow = interpreter.returnNow;
 				final @Nullable AvailObject newReturnValue =
 					newReturnNow ? interpreter.getLatestResult() : null;
+				interpreter.isReifying = true;
 				return new StackReifier(
 					false,
 					stripNull(primitive.getReificationAbandonmentStat()),
@@ -250,6 +251,7 @@ extends L2Operation
 						interpreter.offset = newOffset;
 						interpreter.returnNow = newReturnNow;
 						interpreter.setLatestResult(newReturnValue);
+						interpreter.isReifying = false;
 					});
 			}
 			case FIBER_SUSPENDED:
@@ -304,6 +306,7 @@ extends L2Operation
 		// will wind down correctly.  It should be in a state
 		// where all frames have been reified, so returnNow
 		// would be unnecessary.
+		interpreter.isReifying = true;
 		return new StackReifier(
 			true,
 			stripNull(primitive.getReificationForNoninlineStat()),
@@ -377,6 +380,7 @@ extends L2Operation
 						break;
 					}
 				}
+				interpreter.isReifying = false;
 			});
 	}
 

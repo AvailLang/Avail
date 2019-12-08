@@ -35,9 +35,16 @@ package com.avail.utility;
 import com.avail.utility.Multigraph.Edge;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.avail.utility.Nulls.stripNull;
+import static java.util.Collections.emptySet;
+import static java.util.Collections.unmodifiableSet;
 
 /**
  * This is an implementation of a directed multigraph.  A graph consists of a
@@ -189,7 +196,7 @@ public class Multigraph<V, E extends Edge<V>>
 		new HashMap<>();
 
 	/**
-	 * Construct a new {@link Multigraph} based on an existing one.  The two
+	 * Construct a new {@code Multigraph} based on an existing one.  The two
 	 * multigraphs will have the same vertices and edges.
 	 *
 	 * @param original The multigraph to copy.
@@ -415,7 +422,7 @@ public class Multigraph<V, E extends Edge<V>>
 		{
 			return new HashSet<>(sourceInGraph.outbound.get(destInGraph));
 		}
-		return Collections.emptySet();
+		return emptySet();
 	}
 
 	/**
@@ -434,7 +441,7 @@ public class Multigraph<V, E extends Edge<V>>
 		{
 			if (sourceInGraph.outbound.size() == 1)
 			{
-				return Collections.unmodifiableSet(
+				return unmodifiableSet(
 					sourceInGraph.outbound.values().iterator().next());
 			}
 			final Set<E> edges = new HashSet<>(sourceInGraph.outbound.size());
@@ -442,9 +449,9 @@ public class Multigraph<V, E extends Edge<V>>
 			{
 				edges.addAll(submap);
 			}
-			return Collections.unmodifiableSet(edges);
+			return unmodifiableSet(edges);
 		}
-		return Collections.emptySet();
+		return emptySet();
 	}
 
 	/**
@@ -463,7 +470,7 @@ public class Multigraph<V, E extends Edge<V>>
 		{
 			if (destinationInGraph.inbound.size() == 1)
 			{
-				return Collections.unmodifiableSet(
+				return unmodifiableSet(
 					destinationInGraph.inbound.values().iterator().next());
 			}
 			final Set<E> edges = new HashSet<>(
@@ -472,9 +479,9 @@ public class Multigraph<V, E extends Edge<V>>
 			{
 				edges.addAll(submap);
 			}
-			return Collections.unmodifiableSet(edges);
+			return unmodifiableSet(edges);
 		}
-		return Collections.emptySet();
+		return emptySet();
 	}
 
 	/**
@@ -485,7 +492,7 @@ public class Multigraph<V, E extends Edge<V>>
 	 */
 	Set<V> vertices ()
 	{
-		return Collections.unmodifiableSet(vertices.keySet());
+		return unmodifiableSet(vertices.keySet());
 	}
 
 	/**

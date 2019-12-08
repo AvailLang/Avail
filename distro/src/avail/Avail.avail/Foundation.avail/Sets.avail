@@ -208,18 +208,13 @@ Method "For each of⁇_do_" is
 	aSet : set,
 	action : [⊥]→⊤
 |
-	index : natural number := 1;
 	aTuple ::= aSet→tuple;
-	end ::= |aTuple|;
+	From 1 to |aTuple| do
 	[
-		$loop;
-		If index ≤ end then
-		[
-			action(aTuple[index]);
-			index++;
-			Restart loop
-		];
-	]();
+		index : natural number
+	|
+		action(aTuple[index]);
+	];
 ] : ⊤;
 
 /**

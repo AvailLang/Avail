@@ -42,9 +42,11 @@ Uses
 	"Early Literals",
 	"Early Variables"
 Names
-	"Ignore:_",
-	"From_to_do_",
 	"Cast|cast_into_",
+	"Exit_",
+	"Exit_with_",
+	"From_to_do_",
+	"Ignore:_",
 	"(_)",
 	"((_))"
 Body
@@ -357,6 +359,87 @@ Semantic restriction "Exit_with_if_" is
 	⊤
 ];
 
+exitIfAtom ::= atom for "Exit_if_";
+
+/**
+ * Exit the continuation unconditionally. Execution proceeds as though the
+ * continuation had just returned from its current function, and the current
+ * continuation is completely replaced by the specified continuation's resumed
+ * caller.
+ *
+ * @method "Exit_"
+ * @param "aContinuation" "$[…]→⊤"
+ *        The continuation to exit.
+ * @returns "⊥"
+ * @category "Control Structures" "Continuations"
+ */
+Public macro "Exit_" is
+[
+	aContinuation : expression phrase ⇒ $[…]→⊤
+|
+	trueLiteral ::= `true`("true")@0:0 → literal phrase;
+	sendPhrase ::= restricted send exitIfAtom
+		with <aContinuation, trueLiteral> → list phrase
+		: ⊥;
+	cast sendPhrase into [x : send phrase ⇒ ⊥ | x]
+] : send phrase ⇒ ⊥;
+
+exitWithIfAtom ::= atom for "Exit_with_if_";
+
+/**
+ * Exit the continuation unconditionally. Execution proceeds as though the
+ * continuation had just returned from its current function, and the current
+ * continuation is completely replaced by the specified continuation's resumed
+ * caller.
+ *
+ * @method "Exit_with_"
+ * @param "aContinuation" "$[…]→⊤"
+ *        The continuation to exit.
+ * @param "value" "any"
+          The value to return from the continuation.
+ * @returns "⊥"
+ * @category "Control Structures" "Continuations"
+ */
+Public macro "Exit_with_" is
+[
+	aContinuation : expression phrase ⇒ continuation,
+	value : expression phrase ⇒ any
+|
+	trueLiteral ::= `true`("true")@0:0 → literal phrase;
+	sendPhrase ::= restricted send exitWithIfAtom
+		with <aContinuation, value, trueLiteral> → list phrase
+		: ⊥;
+	cast sendPhrase into [x : send phrase ⇒ ⊥ | x]
+] : send phrase ⇒ ⊥;
+
+/**
+ * Reject the current parse unless the value supplied upon exit of a
+ * continuation conforms to its function type's return type.
+ *
+ * @method "Exit_with_"
+ * @restricts "continuation meta"
+ * @restricts "any meta"
+ */
+Semantic restriction "Exit_with_" is
+[
+	continuationType : continuation meta,
+	exitType : any meta
+|
+	functionType ::= continuationType's function type;
+	Unless exitType ⊆ functionType's return type then
+	[
+		Reject parse, expected:
+			cast concatenate <
+				"continuation (",
+				“continuationType”,
+				") to accept value (",
+				“exitType”,
+				")"
+			> into [s : string | s]
+	];
+	⊥
+];
+
 /*
  * Simplified addition, with a strong enough semantic restriction to avoid
  * runtime checks for finite integers.
@@ -429,10 +512,12 @@ Public method "From_to_do_" is
 	action : function accepting <⊥> and returning boolean
 |
 	$loop : ⊤;
-	Exit loop with 123 if end < start;
-	continue ::= invoke action with <start>;
-	Exit loop with 123 if continue = false;
-	Restart loop with <start plus 1, end, action>
+	exit1 ::= end < start;
+	Exit loop if exit1;
+	exit2 ::= invoke action with <start> = 2;
+	Exit loop if exit2;
+	newArguments ::= <start plus 1, end, action>;
+	Restart loop with newArguments
 ] : ⊤;
 
 /**

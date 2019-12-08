@@ -109,6 +109,14 @@ extends Descriptor
 		return dump;
 	}
 
+	/** Access the method {@link #createRegisterDump(AvailObject[], long[])}. */
+	public static CheckedMethod createRegisterDumpMethod = staticMethod(
+		ContinuationRegisterDumpDescriptor.class,
+		"createRegisterDump",
+		AvailObject.class,
+		AvailObject[].class,
+		long[].class);
+
 	/**
 	 * Given a continuation register dump, extract the object at the given slot
 	 * index.
