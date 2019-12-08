@@ -53,11 +53,11 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.function.Predicate;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.COMMENT;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
-import static com.avail.utility.dot.DotWriter.DefaultAttributeBlockType.EDGE;
-import static com.avail.utility.dot.DotWriter.DefaultAttributeBlockType.NODE;
+import static com.avail.utility.dot.DotWriter.DefaultAttributeBlockType.*;
 import static com.avail.utility.dot.DotWriter.node;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.comparingInt;
@@ -592,6 +592,101 @@ public class L2ControlFlowGraphVisualizer
 		});
 	}
 
+	/** The subgraphs that have been discovered so far. */
+	Map<L2BasicBlock, Set<L2BasicBlock>> blocksToClusters = new HashMap<>();
+
+	/**
+	 * Calculate how the basic blocks form clusters for reification sections.
+	 *
+	 * @param blocks A collection of {@link L2BasicBlock}s to classify.
+	 */
+	private void computeClusters (final Iterable<L2BasicBlock> blocks)
+	{
+		for (final L2BasicBlock block : blocks)
+		{
+			if (block.isInReificationHandler)
+			{
+				final Set<L2BasicBlock> set1 = clusterFor(block);
+				block.successorEdgesIterator().forEachRemaining(
+					successor ->
+					{
+						final L2BasicBlock target = successor.targetBlock();
+						if (target.isInReificationHandler)
+						{
+							final Set<L2BasicBlock> set2 = clusterFor(target);
+							if (set1 != set2)
+							{
+								// Merge set2 into set1.  They're tiny sets.
+								for (final L2BasicBlock b : set2)
+								{
+									set1.add(b);
+									blocksToClusters.put(b, set1);
+								}
+							}
+						}
+					});
+			}
+		}
+	}
+
+	/**
+	 * Fetch the cluster for this block, creating one if necessary.  The block
+	 * must have {@link L2BasicBlock#isInReificationHandler} set.
+	 *
+	 * @param block The block to look up.
+	 * @return The block's cluster.
+	 */
+	private Set<L2BasicBlock> clusterFor (
+		final L2BasicBlock block)
+	{
+		assert block.isInReificationHandler;
+		return blocksToClusters.computeIfAbsent(
+			block,
+			b ->
+			{
+				final Set<L2BasicBlock> set = new HashSet<>();
+				set.add(b);
+				return set;
+			});
+	}
+
+	/** A counter for uniquely naming subgraphs. */
+	private int subgraphNumber = 1;
+
+	/**
+	 * Render the nodes in this subgraph.
+	 *
+	 * @param cluster
+	 *        The nodes to render.
+	 * @param graph
+	 *        The {@link GraphWriter} to render them.
+	 * @param isStarted
+	 *        A test to tell if a block has started to be generated.
+	 * @throws IOException If it can't write.
+	 */
+	private void cluster(
+		final Iterable<L2BasicBlock> cluster,
+		final GraphWriter graph,
+		final Predicate<L2BasicBlock> isStarted)
+	throws IOException
+	{
+		graph.subgraph(
+			"cluster_" + subgraphNumber++,
+			gw ->
+			{
+				gw.attribute("color", "#c0e0c0/10a010");
+				gw.attribute("bgcolor", "#e0ffe0/103010");
+				gw.defaultAttributeBlock(GRAPH, attr ->
+				{
+					attr.attribute("style", "rounded");
+					attr.attribute("penwidth", "5");
+				});
+				cluster.forEach(
+					block -> basicBlock(
+						block, gw, isStarted.test(block)));
+			});
+	}
+
 	/**
 	 * Visualize the {@link L2ControlFlowGraph} by {@linkplain DotWriter
 	 * writing} an appropriate {@code dot} source file to the {@linkplain
@@ -651,13 +746,26 @@ public class L2ControlFlowGraphVisualizer
 						.filter(b -> !startedBlocks.contains(b))
 						.forEach(unstartedBlocks::add));
 
-				controlFlowGraph.basicBlockOrder.forEach(
-					block -> basicBlock(block, graph, true));
-				unstartedBlocks.forEach(
-					block -> basicBlock(block, graph, false));
+				computeClusters(startedBlocks);
+				computeClusters(unstartedBlocks);
+				final Set<Set<L2BasicBlock>> distinctClusters =
+					new HashSet<>(blocksToClusters.values());
+				for (final Set<L2BasicBlock> cluster : distinctClusters)
+				{
+					cluster(cluster, graph, b -> !unstartedBlocks.contains(b));
+				}
+
+				controlFlowGraph.basicBlockOrder.stream()
+					.filter(block -> !blocksToClusters.containsKey(block))
+					.forEach(block -> basicBlock(block, graph, true));
+				unstartedBlocks.stream()
+					.filter(block -> !blocksToClusters.containsKey(block))
+					.forEach(block -> basicBlock(block, graph, false));
+
 				controlFlowGraph.basicBlockOrder.forEach(
 					block -> edges(block, graph, true));
-				unstartedBlocks.forEach(block -> edges(block, graph, false));
+				unstartedBlocks.forEach(
+					block -> edges(block, graph, false));
 			});
 		}
 		catch (final IOException e)
