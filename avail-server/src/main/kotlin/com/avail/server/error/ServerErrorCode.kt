@@ -42,19 +42,22 @@ import com.avail.server.AvailServer
  */
 enum class ServerErrorCode constructor(val code: Int)
 {
+	/** An unspecified error has occurred. */
+	UNSPECIFIED(0),
+
 	/**
 	 * Indicates a file that was attempted to be created already exists.
 	 */
-	FILE_ALREADY_EXISTS (0),
+	FILE_ALREADY_EXISTS (1),
 
 	/** Could not locate a file at specified location. */
-	FILE_NOT_FOUND(1),
+	FILE_NOT_FOUND(2),
 
 	/**
 	 * The cache id provided to refer to a file did not refer to any file.
 	 */
-	BAD_FILE_ID(2),
+	BAD_FILE_ID(3),
 
 	/** A general IO exception. */
-	IO_EXCEPTION(3)
+	IO_EXCEPTION(4)
 }

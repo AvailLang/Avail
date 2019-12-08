@@ -32,6 +32,7 @@
 package com.avail.server.io.files
 
 import com.avail.io.SimpleCompletionHandler
+import com.avail.server.error.ServerErrorCode
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousFileChannel
 import java.nio.channels.CompletionHandler
@@ -79,51 +80,63 @@ internal abstract class AvailServerFile constructor(
 	fun close () = file.close()
 
 	/**
-	 * Save the entire [rawContent] to disk.
+	 * Save the data to disk starting at the specified write location.
 	 *
-	 * @param handler
-	 *   The [CompletionHandler] to use when save either completes or fails.
+	 * @param data
+	 *   The [ByteBuffer] to save to disk for this [AvailServerFile].
+	 * @param writePosition
+	 *   The position in the file to start writing to.
+	 * @param failure
+	 *   A function that accepts a [ServerErrorCode] that describes the nature
+	 *   of the failure and an optional [Throwable]. TODO refine error handling
 	 */
-	fun save (handler: CompletionHandler<Int, Any?>) =
-		file.write(ByteBuffer.wrap(rawContent), 0, null, handler)
+	private fun save (
+		data: ByteBuffer,
+		writePosition: Long,
+		failure: (ServerErrorCode, Throwable?) -> Unit)
+	{
+		file.write(
+			data,
+			writePosition,
+			null,
+			SimpleCompletionHandler<Int, ServerErrorCode?>(
+				{ result, _, _ ->
+					if (data.hasRemaining())
+					{
+						save(data, data.position().toLong(), failure)
+					}
+				})
+			{ e, code, _ ->
+				failure(code ?: ServerErrorCode.UNSPECIFIED, e)
+			})
+	}
 
 	/**
 	 * Save the [rawContent] to disk.
 	 *
-	 * @param writePosition
-	 *   The position in the file to start writing to.
-	 * @param from
-	 *   The position in the [rawContent] to start writing from into the file.
-	 *   Anything before this position will not be written.
-	 * @param handler
-	 *   The [CompletionHandler] to use when save either completes or fails.
+	 * @param failure
+	 *   A function that accepts a [ServerErrorCode] that describes the nature
+	 *   of the failure and an optional [Throwable]. TODO refine error handling
 	 */
-	fun save (
-		writePosition: Long,
-		from: Int,
-		handler: CompletionHandler<Int, Any?>)
+	fun save(failure: (ServerErrorCode, Throwable?) -> Unit)
 	{
-		val data = ByteBuffer.wrap(rawContent)
-		data.position(from)
-		file.write(ByteBuffer.wrap(rawContent), writePosition, null, handler)
+		val content = rawContent
+		val data = ByteBuffer.wrap(content)
+		file.write(
+			data,
+			0,
+			null,
+			SimpleCompletionHandler<Int, ServerErrorCode?>(
+				{ _, _, _ ->
+					if (data.hasRemaining())
+					{
+						save(data, data.position().toLong(), failure)
+					}
+				})
+			{ e, code, _ ->
+				failure(code ?: ServerErrorCode.UNSPECIFIED, e)
+			})
 	}
-
-	// TODO create error on save, make sure all bytes written!
-	fun save() = save(
-		SimpleCompletionHandler(
-			{ result, _, _ ->
-				println("wrote $result")
-			})
-			{ _, _, _ ->
-				println("write failed!")
-			})
-
-	/**
-	 * Accepts a function that accepts the [rawContent] of this
-	 * [AvailServerFile].
-	 */
-	fun provideContent(id: UUID, consumer: (UUID, ByteArray) -> Unit) =
-		consumer(id, rawContent)
 
 	/**
 	 * Insert the [ByteArray] data into the file at the specified location. This

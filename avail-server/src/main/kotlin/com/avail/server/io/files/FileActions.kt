@@ -32,6 +32,7 @@
 
 package com.avail.server.io.files
 
+import com.avail.server.error.ServerErrorCode
 import com.avail.server.io.files.RedoAction.execute
 import com.avail.server.io.files.UndoAction.execute
 
@@ -270,12 +271,24 @@ internal object RedoAction: FileAction
  * `SaveAction` is a [FileAction] that saves an [AvailServerFile] to disk.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ *
+ * @property failureHandler
+ *   A function that accepts a [ServerErrorCode] that describes the nature
+ *   of the failure and an optional [Throwable]. TODO refine error handling
+ *
+ * @constructor
+ * Construct a [SaveAction].
+ *
+ * @param failureHandler
+ *   A function that accepts a [ServerErrorCode] that describes the nature
+ *   of the failure and an optional [Throwable]. TODO refine error handling
  */
-internal object SaveAction: FileAction
+internal class SaveAction constructor(
+	private val failureHandler: (ServerErrorCode, Throwable?) -> Unit): FileAction
 {
 	override fun execute(file: AvailServerFile, timestamp: Long): TracedAction
 	{
-		file.save()
+		file.save(failureHandler)
 		return NoAction.tracedAction
 	}
 

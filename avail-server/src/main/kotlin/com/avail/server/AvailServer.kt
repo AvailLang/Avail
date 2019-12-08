@@ -68,8 +68,6 @@ import com.avail.server.io.RunFailureDisconnect
 import com.avail.server.io.ServerInputChannel
 import com.avail.server.io.ServerMessageDisconnect
 import com.avail.server.io.WebSocketAdapter
-import com.avail.server.io.files.FileManager
-import com.avail.server.io.files.Insert
 import com.avail.server.messages.Command
 import com.avail.server.messages.CommandMessage
 import com.avail.server.messages.CommandParseException

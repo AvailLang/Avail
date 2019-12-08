@@ -259,7 +259,7 @@ internal class ServerFileWrapper constructor(
 		if (!isLoadingFile)
 		{
 			// Opportunistic
-			file.provideContent(id, consumer)
+			consumer(id, file.rawContent)
 			return
 		}
 		synchronized(this)
@@ -267,7 +267,7 @@ internal class ServerFileWrapper constructor(
 			if (!isLoadingFile)
 			{
 				// Opportunistic
-				file.provideContent(id, consumer)
+				consumer(id, file.rawContent)
 				return
 			}
 			handlerQueue.add(
