@@ -44,6 +44,7 @@ import java.nio.channels.AsynchronousFileChannel
 import java.nio.file.FileAlreadyExistsException
 import java.nio.file.FileSystem
 import java.nio.file.FileSystems
+import java.nio.file.Files
 import java.nio.file.OpenOption
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -123,8 +124,64 @@ internal object FileManager
 
 		},
 		{ _, value ->
-			value.value?.close()
+			try
+			{
+				value.value?.close()
+			}
+			catch (e: IOException)
+			{
+				// Do nothing
+			}
 		})
+
+	/**
+	 * Fully remove the file associated with the provided [fileCache] id. This
+	 * also removes it from [pathToIdMap].
+	 *
+	 * @param id
+	 *   The [UUID] that uniquely identifies the target file in the cache.
+	 */
+	fun remove (id: UUID)
+	{
+		fileCache[id].value?.let {
+			fileCache.remove(id)
+			pathToIdMap.remove(it.path)
+		} ?: {
+			var path = ""
+			pathToIdMap.forEach { (k, v) ->
+				if (v == id)
+				{
+					path = k
+					return@forEach
+				}
+			}
+			pathToIdMap.remove(path)
+		}.invoke()
+
+	}
+
+	/**
+	 * Delete the file at the provided path.
+	 *
+	 * @param path
+	 *   The String path to the file to be deleted.
+	 * @param failure
+	 *   A function that accepts a [ServerErrorCode] that describes the nature
+	 *   of the failure and an optional [Throwable]. TODO refine error handling
+	 */
+	fun delete (path: String, failure: (ServerErrorCode, Throwable?) -> Unit)
+	{
+		pathToIdMap[path]?.let {id ->
+			fileCache[id].value?.let{
+				it.delete(id, failure)
+			}
+		} ?: {
+			if (!Files.deleteIfExists(Paths.get(path)))
+			{
+				failure(FILE_NOT_FOUND, null)
+			}
+		}.invoke()
+	}
 
 	/**
 	 * A [Map] from the String [Path] location of a [file][AvailServerFile] to

@@ -35,8 +35,6 @@ import com.avail.io.SimpleCompletionHandler
 import com.avail.server.error.ServerErrorCode
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousFileChannel
-import java.nio.channels.CompletionHandler
-import java.util.*
 
 /**
  * `AvailSeverFile` is an interface for declaring behavior and state for a file
@@ -78,6 +76,11 @@ internal abstract class AvailServerFile constructor(
 
 	/** Close the backing channel [file]. */
 	fun close () = file.close()
+
+	/**
+	 * `true` indicates the [file] is open; `false` indicates it is closed.
+	 */
+	val isOpen: Boolean get() = file.isOpen
 
 	/**
 	 * Save the data to disk starting at the specified write location.

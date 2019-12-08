@@ -34,7 +34,9 @@ package com.avail.server.io.files
 
 import com.avail.server.error.ServerErrorCode
 import org.apache.tika.Tika
+import java.io.IOException
 import java.nio.channels.AsynchronousFileChannel
+import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -138,7 +140,10 @@ internal class ServerFileWrapper constructor(
 		if (isReady.getAndSet(false))
 		{
 			var action = actionQueue.poll()
-			while (action != null)
+
+			// Check if an action is available and that the file hasn't been
+			// marked as being not ready before proceeding
+			while (action != null && isReady.get())
 			{
 				val tracedAction =
 					action.execute(file, System.currentTimeMillis())
@@ -221,6 +226,43 @@ internal class ServerFileWrapper constructor(
 		// TODO validate in range
 		tracedActionStack[index].redo(file)
 		undoStackDepth--
+	}
+
+	/**
+	 * Delete the [file] from disk.
+	 *
+	 * @param id
+	 *   The [FileManager] cache id for this file.
+	 * @param failure
+	 *   A function that accepts a [ServerErrorCode] that describes the nature
+	 *   of the failure and an optional [Throwable]. TODO refine error handling
+	 */
+	fun delete(id: UUID, failure: (ServerErrorCode, Throwable?) -> Unit)
+	{
+		isReady.set(false)
+		try
+		{
+			FileManager.remove(id)
+			if (file.isOpen)
+			{
+				try
+				{
+					file.close()
+				}
+				catch (e: IOException)
+				{
+					// Do nothing
+				}
+			}
+			if (!Files.deleteIfExists(Paths.get(path)))
+			{
+				failure(ServerErrorCode.FILE_NOT_FOUND, null)
+			}
+		}
+		catch (e: IOException)
+		{
+			failure(ServerErrorCode.IO_EXCEPTION, e)
+		}
 	}
 
 	init
