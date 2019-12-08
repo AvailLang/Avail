@@ -68,7 +68,7 @@ internal abstract class AvailServerFile constructor(
 	protected val path: String,
 	protected val file: AsynchronousFileChannel,
 	protected val mimeType: String,
-	protected val serverFileWrapper: ServerFileWrapper)
+	val serverFileWrapper: ServerFileWrapper)
 {
 	/**
      * The raw bytes of the file.

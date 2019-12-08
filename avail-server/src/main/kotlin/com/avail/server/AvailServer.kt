@@ -1628,20 +1628,7 @@ class AvailServer constructor(
 					server,
 					InetSocketAddress(configuration.serverPort),
 					configuration.serverAuthority)
-//				val id = FileManager.readFile(
-//					"/Users/Rich/Desktop/test.txt",
-//					{ id, bytes ->
-//						println("I got it!")
-//						FileManager.update(
-//							id,
-//							Insert(
-//								"Food for thought".toByteArray(Charsets.UTF_16BE),
-//								3))
-//						FileManager.save(id)
-//					})
-//				{
-//					println("It didn't go!!!")
-//				}
+
 				// Prevent the Avail server from exiting.
 				Semaphore(0).acquire()
 			}

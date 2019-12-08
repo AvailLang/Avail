@@ -34,13 +34,16 @@ package com.avail.server.io.files
 
 import com.avail.AvailRuntimeConfiguration
 import com.avail.AvailThread
+import com.avail.server.error.ServerErrorCode
+import com.avail.server.error.ServerErrorCode.*
 import com.avail.utility.LRUCache
+import com.avail.utility.MutableOrNull
 import com.avail.utility.SimpleThreadFactory
 import java.io.IOException
 import java.nio.channels.AsynchronousFileChannel
+import java.nio.file.FileAlreadyExistsException
 import java.nio.file.FileSystem
 import java.nio.file.FileSystems
-import java.nio.file.LinkOption
 import java.nio.file.OpenOption
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -64,8 +67,17 @@ internal object FileManager
 	/**
 	 * The [EnumSet] of [StandardOpenOption]s used when opening files.
 	 */
-	private val fileOptions =
+	private val fileOpenOptions =
 		EnumSet.of(StandardOpenOption.READ, StandardOpenOption.WRITE)
+
+	/**
+	 * The [EnumSet] of [StandardOpenOption]s used when creating files.
+	 */
+	private val fileCreateOptions =
+		EnumSet.of(
+			StandardOpenOption.READ,
+			StandardOpenOption.WRITE,
+			StandardOpenOption.CREATE_NEW)
 
 	/**
 	 * The [thread pool executor][ThreadPoolExecutor] for asynchronous file
@@ -86,7 +98,7 @@ internal object FileManager
 	 * This cache works in conjunction with [pathToIdMap] to maintain links
 	 * between
 	 */
-	private val fileCache = LRUCache<UUID, ServerFileWrapper>(
+	private val fileCache = LRUCache<UUID, MutableOrNull<ServerFileWrapper>>(
 		10000,
 		10,
 		{
@@ -98,13 +110,20 @@ internal object FileManager
 					return@forEach
 				}
 			}
-			// TODO what happens if never found? Should be an error as that
-			//  should not happen, hence bad UUID from direct request?
-			val file = openFile(Paths.get(path), fileOptions)
-			ServerFileWrapper(path, file)
+			MutableOrNull(
+				if (path.isEmpty())
+				{
+					null
+				}
+				else
+				{
+					ServerFileWrapper(
+						path, openFile(Paths.get(path), fileOpenOptions))
+				})
+
 		},
 		{ _, value ->
-			value.close()
+			value.value?.close()
 		})
 
 	/**
@@ -131,14 +150,16 @@ internal object FileManager
 	 *   uniquely identifies the file and the
 	 *   [raw bytes][AvailServerFile.rawContent] of an [AvailServerFile].
 	 * @param failureHandler
-	 *   A function that accepts TODO figure out how error handling will happen
+	 *   A function that accepts a [ServerErrorCode] that describes the nature
+	 *   of the failure and an optional [Throwable].
+	 *   TODO refine error handling
 	 * @return The [UUID] that uniquely identifies the open file on the Avail
 	 *   Server.
 	 */
 	fun readFile (
 		path: String,
 		consumer: (UUID, ByteArray) -> Unit,
-		failureHandler: () -> Unit): UUID
+		failureHandler: (ServerErrorCode, Throwable?) -> Unit)
 	{
 		val uuid: UUID
 		synchronized(pathToIdMap)
@@ -148,23 +169,71 @@ internal object FileManager
 				id
 			}
 		}
-		val fileWrapper = fileCache[uuid]
-		fileWrapper.provide(uuid, consumer, failureHandler)
-		return uuid
+		val value = fileCache[uuid]
+		value.value?.provide(uuid, consumer, failureHandler)
+			?: failureHandler(FILE_NOT_FOUND, null) // TODO refine
 	}
 
-	// TODO create requests to interact with file. This includes editing,
-	//  reading, closing, etc. Any Edit actions should be tracked and made
-	//  reversible in preserved local history for file.
-	fun update(fileId: UUID, editAction: EditAction)
+	/**
+	 * Retrieve the [ServerFileWrapper] and provide it with a request to obtain
+	 * the [raw file bytes][AvailServerFile.rawContent].
+	 *
+	 * @param id
+	 *   The [ServerFileWrapper] cache id of the file to act upon.
+	 * @param fileAction
+	 *   The [FileAction] to execute.
+	 * @param failureHandler
+	 *   A function that accepts a [ServerErrorCode] that describes the nature of
+	 *   the failure and an optional [Throwable]. TODO refine error handling.
+	 */
+	fun executeAction (
+		id: UUID,
+		fileAction: FileAction,
+		failureHandler: (ServerErrorCode, Throwable?) -> Unit)
 	{
-		fileCache[fileId].update(editAction)
+		fileCache[id].value?.execute(fileAction)
+			?: failureHandler(BAD_FILE_ID, null)
+		// TODO do some better error reporting?
 	}
 
-	// TODO redo this as this is just test code. Possibly need to queue a save?
-	fun save (fileId: UUID)
+	/**
+	 * Retrieve the [ServerFileWrapper] and provide it with a request to obtain
+	 * the [raw file bytes][AvailServerFile.rawContent].
+	 *
+	 * @param path
+	 *   The String path location of the file.
+	 * @param consumer
+	 *   A function that accepts the [FileManager.fileCache] [UUID] that
+	 *   uniquely identifies the file and the
+	 *   [raw bytes][AvailServerFile.rawContent] of an [AvailServerFile].
+	 * @param failureHandler
+	 *   A function that accepts a [ServerErrorCode] that describes the failure
+	 *   and an optional [Throwable]. TODO refine error reporting
+	 * @return The [UUID] that uniquely identifies the open file on the Avail
+	 *   Server.
+	 */
+	fun createFile (
+		path: String,
+		consumer: (UUID, ByteArray) -> Unit,
+		failureHandler: (ServerErrorCode, Throwable?) -> Unit)
 	{
-		fileCache[fileId].file.save()
+		// TODO check to see if this is reasonable?
+		try
+		{
+			val file = AsynchronousFileChannel.open(
+				Paths.get(path), fileCreateOptions, fileExecutor)
+			file.force(false)
+			file.close()
+			readFile(path, consumer, failureHandler)
+		}
+		catch (e: FileAlreadyExistsException)
+		{
+			failureHandler(FILE_ALREADY_EXISTS, e)
+		}
+		catch (e: IOException)
+		{
+			failureHandler(IO_EXCEPTION, e)
+		}
 	}
 
 	/**
@@ -219,31 +288,6 @@ internal object FileManager
 	/** The default [file system][FileSystem].  */
 	@JvmStatic
 	val fileSystem: FileSystem = FileSystems.getDefault()
-
-	/**
-	 * The [link options][LinkOption] for following symbolic links.
-	 */
-	private val followSymlinks = arrayOf<LinkOption>()
-
-	/**
-	 * The [link options][LinkOption] for forbidding traversal of
-	 * symbolic links.
-	 */
-	private val doNotFollowSymbolicLinks =
-		arrayOf(LinkOption.NOFOLLOW_LINKS)
-
-	/**
-	 * Answer the appropriate [link options][LinkOption] for
-	 * following, or not following, symbolic links.
-	 *
-	 * @param shouldFollow
-	 * `true` for an array that permits symbolic link traversal,
-	 * `false` for an array that forbids symbolic link traversal.
-	 * @return An array of link options.
-	 */
-	@JvmStatic
-	fun followSymlinks(shouldFollow: Boolean): Array<LinkOption> =
-		if (shouldFollow) followSymlinks else doNotFollowSymbolicLinks
 
 	/**
 	 * The [POSIX file permissions][PosixFilePermission]. *The order of

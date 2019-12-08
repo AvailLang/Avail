@@ -1,5 +1,5 @@
 /*
- * EditActions.kt
+ * FileActions.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,14 +32,23 @@
 
 package com.avail.server.io.files
 
+import com.avail.server.io.files.RedoAction.execute
+import com.avail.server.io.files.UndoAction.execute
+
 /**
- * `EditActionType` is an enum that describes the types of edits that can occur
- * on an [AvailServerFile].
+ * `FileActionType` is an enum that describes the types of actions that can be
+ * requested occur when interacting with an [AvailServerFile].
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-internal enum class EditActionType
+internal enum class FileActionType
 {
+	/** Represents the canonical non-action when nothing is to be done. */
+	NO_ACTION,
+
+	/** Save the [AvailServerFile] to disk. */
+	SAVE,
+	
 	/**
 	 * Insertion of text at a position causing the file to grow. This preserves
 	 * the file data before and after the insertion.
@@ -65,41 +74,44 @@ internal enum class EditActionType
 	 */
 	UNDO,
 
-	/**
-	 * Redo the most recently [undone][UNDO] [EditAction].
-	 */
+	/** Redo the most recently [undone][UNDO] [FileAction]. */
 	REDO
 }
 
 /**
- * `EditAction` declares the methods and states for a editing an
- * [AvailServerFile] according to one of the [EditActionType]s.
+ * `FileAction` declares the methods and states for a performing a
+ * [FileActionType] on an [AvailServerFile].
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-internal interface EditAction
+internal interface FileAction
 {
 	/**
-	 * Updates the provided [AvailServerFile] and answer the ordered list of
-	 * [EditAction]s required to reverse this `EditAction` update.
+	 * Executes the action on the provided [AvailServerFile] and answer the
+	 * [TracedAction] required to reverse this `FileAction` update.
 	 *
 	 * @param file
 	 *   The `AvailServerFile` to update.
 	 * @param timestamp
-	 *   The time when this [EditAction] request was received.
-	 * @return The [List] of `EditActions`, when applied in order, will reverse
-	 *   this `EditAction`.
+	 *   The time when this [FileAction] request was received.
+	 * @return The [TracedAction], when applied, will reverse this `FileAction`.
 	 */
-	fun update (file: AvailServerFile, timestamp: Long): TracedAction
+	fun execute (file: AvailServerFile, timestamp: Long): TracedAction
 
 	/**
-	 * The [EditActionType] that represents this [EditAction].
+	 * The [FileActionType] that represents this [FileAction].
 	 */
-	val type: EditActionType
+	val type: FileActionType
+
+	/**
+	 * `true` indicates this [FileAction] is traced in a [TracedAction]; `false`
+	 * otherwise.
+	 */
+	val isTraced: Boolean  get() = false
 }
 
 /**
- * `Insert` is an [EditAction]
+ * `Insert` is a [FileAction]
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
@@ -118,16 +130,18 @@ internal interface EditAction
  */
 internal class Insert constructor(
 	val data: ByteArray,
-	private val position: Int) : EditAction
+	private val position: Int) : FileAction
 {
-	override fun update(file: AvailServerFile, timestamp: Long): TracedAction =
+	override fun execute(file: AvailServerFile, timestamp: Long): TracedAction =
 		file.insert(data, position, timestamp)
 
-	override val type: EditActionType = EditActionType.INSERT
+	override val type: FileActionType = FileActionType.INSERT
+
+	override val isTraced: Boolean = true
 }
 
 /**
- * `RemoveRange` is an [EditAction] that removes data from file for a range with
+ * `RemoveRange` is a [FileAction] that removes data from file for a range with
  * an exclusive upper bound.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
@@ -149,16 +163,18 @@ internal class Insert constructor(
  */
 internal class RemoveRange constructor(
 	private val start: Int,
-	private val end: Int) : EditAction
+	private val end: Int) : FileAction
 {
-	override fun update(file: AvailServerFile, timestamp: Long): TracedAction =
+	override fun execute(file: AvailServerFile, timestamp: Long): TracedAction =
 		file.removeRange(start, end, timestamp)
 
-	override val type: EditActionType = EditActionType.REMOVE_RANGE
+	override val type: FileActionType = FileActionType.REMOVE_RANGE
+
+	override val isTraced: Boolean = true
 }
 
 /**
- * `InsertRange` is an [EditAction] that first removes data with from the range
+ * `InsertRange` is a [FileAction] that first removes data with from the range
  * with an exclusive upper bound, then inserts the new data at the position
  * where the first element was removed.
  *
@@ -186,41 +202,113 @@ internal class RemoveRange constructor(
 internal class InsertRange constructor(
 	val data: ByteArray,
 	private val start: Int,
-	private val end: Int): EditAction
+	private val end: Int): FileAction
 {
-	override fun update(file: AvailServerFile, timestamp: Long): TracedAction =
+	override fun execute(file: AvailServerFile, timestamp: Long): TracedAction =
 		file.insertRange(data, start, end, timestamp)
 
-	override val type: EditActionType = EditActionType.INSERT_RANGE
+	override val type: FileActionType = FileActionType.INSERT_RANGE
+
+	override val isTraced: Boolean = true
 }
 
 /**
- * A `TracedAction` records an [EditAction] that was performed on a file and
- * the `EditAction`s required to undo the initial `EditAction`.
+ * `NoAction` is a [FileAction] indicates no action should/could be taken.
+ * 
+ * Some `FileAction`s have an inverse action. `NoAction` is used as the inverse
+ * action to `FileAction`s that have no meaningful inverse.
+ *
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ */
+internal object NoAction: FileAction
+{
+	val tracedAction = TracedAction(0, NoAction, NoAction)
+
+	override fun execute(file: AvailServerFile, timestamp: Long): TracedAction =
+		tracedAction
+
+	override val type: FileActionType = FileActionType.NO_ACTION
+}
+
+
+/**
+ * `UndoAction` is a [FileAction] that [executes][execute] the
+ * [inverse][TracedAction.reverseAction] for a `FileAction` that is traced as a
+ * [TracedAction].
+ *
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ */
+internal object UndoAction: FileAction
+{
+	override fun execute(file: AvailServerFile, timestamp: Long): TracedAction
+	{
+		file.serverFileWrapper.undo()
+		return NoAction.tracedAction
+	}
+
+	override val type: FileActionType = FileActionType.UNDO
+}
+
+/**
+ * `RedoAction` is a [FileAction] that [re-executes][execute] a recently
+ * [undone][UndoAction] [traced][TracedAction] `FileAction`.
+ *
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ */
+internal object RedoAction: FileAction
+{
+	override fun execute(file: AvailServerFile, timestamp: Long): TracedAction
+	{
+		file.serverFileWrapper.redo()
+		return NoAction.tracedAction
+	}
+
+	override val type: FileActionType = FileActionType.REDO
+}
+
+/**
+ * `SaveAction` is a [FileAction] that saves an [AvailServerFile] to disk.
+ *
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ */
+internal object SaveAction: FileAction
+{
+	override fun execute(file: AvailServerFile, timestamp: Long): TracedAction
+	{
+		file.save()
+		return NoAction.tracedAction
+	}
+
+	override val type: FileActionType = FileActionType.SAVE
+}
+
+/**
+ * A `TracedAction` records a [FileAction] that was performed on a file and
+ * the `FileAction`s required to undo the initial `FileAction`.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
  * @property timestamp
- *   The time when this [EditAction] request was received.
+ *   The time when this [FileAction] request was received.
  * @property forwardAction
- *   The originally requested [EditAction] that was made to a file.
+ *   The originally requested [FileAction] that was made to a file.
  * @property reverseAction
- *   The [EditAction] that reverses the [forwardAction].
+ *   The [FileAction] that reverses the [forwardAction].
  *
  * @constructor
  * Construct a [TracedAction].
  *
  * @param timestamp
- *   The time when this [EditAction] request was performed.
+ *   The time when this [FileAction] request was performed.
  * @property forwardAction
- *   The originally requested [EditAction] that was made to a file.
+ *   The originally requested [FileAction] that was made to a file.
  * @property reverseAction
- *   The [EditAction] that reverses the `forwardAction`.
+ *   The [FileAction] that reverses the `forwardAction`.
  */
 internal class TracedAction constructor(
 	private val timestamp: Long,
-	private val forwardAction: EditAction,
-	private val reverseAction: EditAction)
+	private val forwardAction: FileAction,
+	private val reverseAction: FileAction)
 {
 	/**
 	 * Run the [reverseAction] on the provided [AvailServerFile].
@@ -230,7 +318,7 @@ internal class TracedAction constructor(
 	 */
 	fun revert (file: AvailServerFile)
 	{
-		reverseAction.update(file, timestamp)
+		reverseAction.execute(file, timestamp)
 	}
 
 	/**
@@ -241,6 +329,6 @@ internal class TracedAction constructor(
 	 */
 	fun redo (file: AvailServerFile)
 	{
-		forwardAction.update(file, timestamp)
+		forwardAction.execute(file, timestamp)
 	}
 }

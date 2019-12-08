@@ -32,6 +32,7 @@
 
 package com.avail.server.io.files
 
+import com.avail.server.error.ServerErrorCode
 import org.apache.tika.Tika
 import java.nio.channels.AsynchronousFileChannel
 import java.nio.file.Paths
@@ -83,7 +84,7 @@ internal class ServerFileWrapper constructor(
 	private val handlerQueue = ConcurrentLinkedQueue<FileRequestHandler>()
 
 	/**
-	 * The [Stack] of [TracedAction] that tracks the [EditAction]s applied in
+	 * The [Stack] of [TracedAction] that tracks the [FileAction]s applied in
 	 * Stack order. To revert, pop the `TracedAction`s and apply
 	 * [TracedAction.reverseAction] to the [AvailServerFile]. This represents
 	 * the _undo_ stack.
@@ -116,31 +117,31 @@ internal class ServerFileWrapper constructor(
 	}
 
 	/**
-	 * The [queue][ConcurrentLinkedQueue] of [EditAction]s that are waiting to
-	 * be applied to the contained [AvailServerFile].
+	 * The [queue][ConcurrentLinkedQueue] of [FileAction]s that are waiting to
+	 * be executed for the contained [AvailServerFile].
 	 */
-	private val updateQueue = ConcurrentLinkedQueue<EditAction>()
+	private val actionQueue = ConcurrentLinkedQueue<FileAction>()
 
 	/**
-	 * Is the [file] being updated from the [updateQueue]? `true` indicates it
-	 * is; `false` otherwise.
+	 * Is the [file] being available for [FileAction]a from the [actionQueue]?
+	 * `true` indicates it is; `false` otherwise.
 	 */
-	private val isReadyToUpdate = AtomicBoolean(true)
+	private val isReady = AtomicBoolean(true)
 
 	/**
-	 * Remove all the [EditAction]s from the [updateQueue] and perform them
-	 * in FIFO order if this [ServerFileWrapper] [is ready][isReadyToUpdate]
+	 * Remove all the [FileAction]s from the [actionQueue] and perform them
+	 * in FIFO order if this [ServerFileWrapper] [is ready][isReady]
 	 * to update.
 	 */
-	private fun performEdits ()
+	private fun executeActions ()
 	{
-		if (isReadyToUpdate.getAndSet(false))
+		if (isReady.getAndSet(false))
 		{
-			var action = updateQueue.poll()
+			var action = actionQueue.poll()
 			while (action != null)
 			{
 				val tracedAction =
-					action.update(file, System.currentTimeMillis())
+					action.execute(file, System.currentTimeMillis())
 
 				if (undoStackDepth > 0)
 				{
@@ -154,31 +155,31 @@ internal class ServerFileWrapper constructor(
 					while (--undoStackDepth > 0)
 				}
 				tracedActionStack.push(tracedAction)
-				action = updateQueue.poll()
+				action = actionQueue.poll()
 			}
 			// TODO is this safe
-			synchronized(updateQueue)
+			synchronized(actionQueue)
 			{
-				isReadyToUpdate.set(true)
+				isReady.set(true)
 			}
 			// TODO Save file
 		}
 	}
 
 	/**
-	 * [Update][EditAction.update] the wrapped [AvailServerFile] with the
-	 * provided [EditAction].
+	 * [Update][FileAction.execute] the wrapped [AvailServerFile] with the
+	 * provided [FileAction].
 	 *
-	 * @param editAction
-	 *   The `EditAction` to perform.
+	 * @param fileAction
+	 *   The `FileAction` to perform.
 	 */
-	fun update (editAction: EditAction)
+	fun execute (fileAction: FileAction)
 	{
-		synchronized(updateQueue)
+		synchronized(actionQueue)
 		{
-			updateQueue.add(editAction)
+			actionQueue.add(fileAction)
 		}
-		performEdits()
+		executeActions()
 	}
 
 	/**
@@ -188,7 +189,7 @@ internal class ServerFileWrapper constructor(
 	var undoStackDepth = 0
 
 	/**
-	 * [Undo][TracedAction.revert] the [EditAction] performed on the [file] from
+	 * [Undo][TracedAction.revert] the [FileAction] performed on the [file] from
 	 * the [TracedAction] that is [undoStackDepth] + 1 from the top of the
 	 * stack.
 	 */
@@ -205,7 +206,7 @@ internal class ServerFileWrapper constructor(
 
 	/**
 	 * If an [undo] resulted in a [revert][TracedAction.reverseAction] on the
-	 * [file] and no other [EditAction] has occurred since,
+	 * [file] and no other [FileAction] has occurred since,
 	 * [redo][TracedAction.redo] the previously reverted action.
 	 */
 	// TODO make thread safe?
@@ -245,12 +246,13 @@ internal class ServerFileWrapper constructor(
 	 *   uniquely identifies the file and the
 	 *   [raw bytes][AvailServerFile.rawContent] of an [AvailServerFile].
 	 * @param failureHandler
-	 *   A function that accepts TODO figure out how error handling will happen
+	 *   A function that accepts a [ServerErrorCode] that describes the nature
+	 *   of the failure and an optional [Throwable]. TODO refine error handling
 	 */
 	fun provide(
 		id: UUID,
 		consumer: (UUID, ByteArray) -> Unit,
-		failureHandler: () -> Unit)
+		failureHandler: (ServerErrorCode, Throwable?) -> Unit)
 	{
 		// TODO should be run on a separate thread or is that handled inside the
 		//  consumer?
@@ -343,7 +345,8 @@ internal class ServerFileWrapper constructor(
  *   uniquely identifies the file and the
  *   [raw bytes][AvailServerFile.rawContent] of an [AvailServerFile].
  * @property failureHandler
- *   A function that accepts TODO figure out how error handling will happen
+ *   A function that accepts a [ServerErrorCode] that describes the nature of
+ *   the failure and an optional [Throwable]. TODO refine error handling.
  *
  * @constructor
  * Construct a [FileRequestHandler].
@@ -355,9 +358,10 @@ internal class ServerFileWrapper constructor(
  *   uniquely identifies the file and the
  *   [raw bytes][AvailServerFile.rawContent] of an [AvailServerFile].
  * @param failureHandler
- *   A function that accepts TODO figure out how error handling will happen
+ *   A function that accepts a [ServerErrorCode] that describes the nature of
+ *   the failure and an optional [Throwable]. TODO refine error handling.
  */
 internal class FileRequestHandler constructor(
 	val id: UUID,
 	val requestConsumer: (UUID, ByteArray) -> Unit,
-	val failureHandler: () -> Unit)
+	val failureHandler: (ServerErrorCode, Throwable?) -> Unit)
