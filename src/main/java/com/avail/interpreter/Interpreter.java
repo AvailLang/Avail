@@ -580,6 +580,25 @@ public final class Interpreter
 	}
 
 	/**
+	 * Answer whether the current frame's caller has been fully reified at this
+	 * time, and is therefore at the top of the {@link #reifiedContinuation}
+	 * call stack.
+	 *
+	 * @return Whether the caller is already reified.
+	 */
+	@ReferencedInGeneratedCode
+	public boolean callerIsReified ()
+	{
+		return unreifiedCallDepth == 0;
+	}
+
+	/** Access the {@link #callerIsReified()} method. */
+	public static final CheckedMethod callerIsReifiedMethod = instanceMethod(
+		Interpreter.class,
+		"callerIsReified",
+		boolean.class);
+
+	/**
 	 * Add the delta to the current count of how many frames would be reified
 	 * into continuations at the current execution point.
 	 *

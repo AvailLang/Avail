@@ -1,5 +1,5 @@
 /*
- * L2_JUMP.java
+ * L2_JUMP_IF_ALREADY_REIFIED.java
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,61 +29,55 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
 package com.avail.interpreter.levelTwo.operation;
 
+import com.avail.descriptor.A_Continuation;
+import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
+import static com.avail.interpreter.Interpreter.callerIsReifiedMethod;
+import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
+import static org.objectweb.asm.Opcodes.IFNE;
 
 /**
- * Unconditionally jump to the level two offset in my only operand.
+ * Reification of the stack into a chain of {@link A_Continuation}s is powerful,
+ * and provides backtracking, exceptions, readable stack traces, and reliable
+ * debugger support.  However, it's also expensive.
+ *
+ * <p>To avoid the cost of a null reification, this operation checks to see if
+ * we're already at the bottom of the Java call stack – we track the depth of
+ * unreified calls in {@link Interpreter#unreifiedCallDepth()}.</p>
+ *
+ * <p>If we're already reified (depth = 0), that means the
+ * {@link Interpreter#getReifiedContinuation()} represents our caller's fully
+ * reified state, so take the "already reified" branch.  Otherwise, take the
+ * "not yet reified" branch.</p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
- * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_JUMP
-extends L2ControlFlowOperation
+public final class L2_JUMP_IF_ALREADY_REIFIED
+extends L2ConditionalJump
 {
 	/**
-	 * Construct an {@code L2_JUMP}.
+	 * Construct an {@code L2_JUMP_IF_ALREADY_REIFIED}.
 	 */
-	private L2_JUMP ()
+	private L2_JUMP_IF_ALREADY_REIFIED ()
 	{
 		super(
-			PC.is("target", SUCCESS));
+			PC.is("already reified", SUCCESS),
+			PC.is("not yet interrupt", FAILURE));
 	}
 
 	/**
 	 * Initialize the sole instance.
 	 */
-	public static final L2_JUMP instance = new L2_JUMP();
-
-	@Override
-	public boolean hasSideEffect ()
-	{
-		// It jumps, which counts as a side effect.
-		return true;
-	}
-
-	/**
-	 * Extract the target of the given jump instruction.
-	 *
-	 * @param instruction
-	 *        The {@link L2Instruction} to examine.  Its {@link L2Operation}
-	 *        must be an {@code L2_Jump}.
-	 * @return The {@link L2PcOperand} to which the instruction jumps.
-	 */
-	public static L2PcOperand jumpTarget (final L2Instruction instruction)
-	{
-		assert instruction.operation() == instance;
-		return instruction.operand(0);
-	}
+	public static final L2_JUMP_IF_ALREADY_REIFIED instance =
+		new L2_JUMP_IF_ALREADY_REIFIED();
 
 	@Override
 	public void translateToJVM (
@@ -91,9 +85,19 @@ extends L2ControlFlowOperation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2PcOperand target = instruction.operand(0);
+		final L2PcOperand alreadyReified = instruction.operand(0);
+		final L2PcOperand notYetReified = instruction.operand(1);
 
-		// :: goto offset;
-		translator.jump(method, instruction, target);
+		// :: if (interpreter.isInterruptRequested()) goto ifInterrupt;
+		// :: else goto ifNotInterrupt;
+		translator.loadInterpreter(method);
+		callerIsReifiedMethod.generateCall(method);
+		emitBranch(
+			translator,
+			method,
+			instruction,
+			IFNE,
+			alreadyReified,
+			notYetReified);
 	}
 }

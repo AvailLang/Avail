@@ -3418,6 +3418,16 @@ public final class L1Translator
 		// The initially constructed continuation is always immediately resumed,
 		// so this should never be observed.
 		stackp = Integer.MAX_VALUE;
+		final L2BasicBlock callerIsReified =
+			generator.createBasicBlock("caller is reified");
+		final L2BasicBlock notYetReified =
+			generator.createBasicBlock("not yet reified");
+		addInstruction(
+			L2_JUMP_IF_ALREADY_REIFIED.instance,
+			edgeTo(callerIsReified),
+			edgeTo(notYetReified));
+
+		generator.startBlock(notYetReified);
 		final L2BasicBlock onReification =
 			generator.createReificationBlock("on reification");
 		addInstruction(
@@ -3435,10 +3445,12 @@ public final class L1Translator
 			new L2CommentOperand(
 				"Transient, before label creation - cannot be invalid."));
 		reify(null, UNREACHABLE);
-
 		// We just continued the reified continuation, having exploded the
 		// continuation into slot registers.  Create a label based on it, but
 		// capturing only the arguments (with pc=0, stack=empty).
+		generator.addInstruction(L2_JUMP.instance, edgeTo(callerIsReified));
+
+		generator.startBlock(callerIsReified);
 		assert code.primitive() == null;
 		final int numArgs = code.numArgs();
 		final List<L2ReadBoxedOperand> slotsForLabel =
@@ -3467,7 +3479,9 @@ public final class L1Translator
 			restrictionForType(int32(), UNBOXED_INT));
 		final L2WriteBoxedOperand writeRegisterDump = generator.boxedWriteTemp(
 			restrictionForType(ANY.o(), BOXED));
-		final L2BasicBlock fallThrough = generator.createBasicBlock("Off-ramp");
+
+		final L2BasicBlock fallThrough =
+			generator.createBasicBlock("Caller is reified");
 		addInstruction(
 			L2_SAVE_ALL_AND_PC_TO_INT.instance,
 			edgeTo(fallThrough),

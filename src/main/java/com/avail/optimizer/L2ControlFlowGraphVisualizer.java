@@ -40,6 +40,7 @@ import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
+import com.avail.interpreter.levelTwo.operation.L2_JUMP;
 import com.avail.interpreter.levelTwo.operation.L2_UNREACHABLE_CODE;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.optimizer.values.L2SemanticValue;
@@ -54,6 +55,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.COMMENT;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
@@ -191,6 +193,9 @@ public class L2ControlFlowGraphVisualizer
 	 */
 	private final Map<L2BasicBlock, String> basicBlockNames = new HashMap<>();
 
+	/** Characters that should be removed outright from class names. */
+	private static final Pattern matchUglies = Pattern.compile("[\"\\\\]");
+
 	/**
 	 * Compute a unique name for the specified {@link L2BasicBlock}.
 	 *
@@ -213,7 +218,7 @@ public class L2ControlFlowGraphVisualizer
 				return String.format(
 					"%s %s",
 					prefix,
-					b.name().replaceAll("[\\\"\\\\]", ""));
+					matchUglies.matcher(b.name()).replaceAll(""));
 			});
 	}
 
@@ -301,7 +306,25 @@ public class L2ControlFlowGraphVisualizer
 		final int escapeIndex = builder.length();
 		final Set<L2OperandType> desiredTypes =
 			EnumSet.complementOf(EnumSet.of(PC, COMMENT));
-		instruction.operation().toString(instruction, desiredTypes, builder);
+		if (instruction.operation() == L2_JUMP.instance
+			&& L2_JUMP.jumpTarget(instruction).offset()
+				== instruction.offset() + 1)
+		{
+			// Show fall-through jumps in grey.
+			builder.append(
+				String.format(
+					"<font color=\"%s\"><i>",
+					writer.adjust("#303030/b0b0b0")));
+			instruction.operation().toString(
+				instruction, desiredTypes, builder);
+			builder.append("</i></font><br/>");
+
+		}
+		else
+		{
+			instruction.operation().toString(
+				instruction, desiredTypes, builder);
+		}
 		// Escape everything since the saved position.
 		return builder.replace(
 			escapeIndex,

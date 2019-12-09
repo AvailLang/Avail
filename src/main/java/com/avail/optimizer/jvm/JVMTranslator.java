@@ -58,7 +58,6 @@ import com.avail.optimizer.StackReifier;
 import com.avail.performance.Statistic;
 import com.avail.utility.evaluation.Continuation1NotNull;
 import org.objectweb.asm.*;
-import org.objectweb.asm.util.CheckMethodAdapter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -91,7 +90,6 @@ import static java.util.Comparator.comparingInt;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static org.objectweb.asm.ClassWriter.COMPUTE_FRAMES;
-import static org.objectweb.asm.ClassWriter.COMPUTE_MAXS;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.*;
 
@@ -113,6 +111,9 @@ public final class JVMTranslator
 
 	/** The descriptive (non-unique) name of this chunk. */
 	private final String chunkName;
+
+	/** The optional name of the source file associated with the new class. */
+	private final @Nullable String sourceFileName;
 
 	/**
 	 * The {@link L2ControlFlowGraph} containing the instructions that are
@@ -204,9 +205,9 @@ public final class JVMTranslator
 		this.code = code;
 		this.controlFlowGraph = controlFlowGraph;
 		this.chunkName = chunkName;
+		this.sourceFileName = sourceFileName;
 		this.instructions = instructions.clone();
-		classWriter = new ClassWriter(COMPUTE_MAXS | COMPUTE_FRAMES);
-		classWriter.visitSource(sourceFileName, null);
+		classWriter = new ClassWriter(COMPUTE_FRAMES);
 		final A_Module module = code == null ? nil : code.module();
 		final String moduleName = module == nil
 			? "NoModule"
@@ -851,14 +852,14 @@ public final class JVMTranslator
 	 */
 	private void finishMethod (final MethodVisitor method)
 	{
-		if (debugJVM)
+		method.visitMaxs(0, 0);
+		try
 		{
-			try
-			{
-				method.visitMaxs(Short.MAX_VALUE << 1, nextLocal);
-				method.visitEnd();
-			}
-			catch (final Exception e)
+			method.visitEnd();
+		}
+		catch (final Exception e)
+		{
+			if (debugJVM)
 			{
 				Interpreter.log(
 					Interpreter.loggerDebugJVM,
@@ -867,11 +868,7 @@ public final class JVMTranslator
 					className);
 				dumpTraceToFile(e);
 			}
-		}
-		else
-		{
-			method.visitMaxs(0, 0);
-			method.visitEnd();
+			throw e;
 		}
 	}
 
@@ -884,23 +881,12 @@ public final class JVMTranslator
 	 */
 	void generateStaticInitializer ()
 	{
-		MethodVisitor method = classWriter.visitMethod(
+		final MethodVisitor method = classWriter.visitMethod(
 			ACC_STATIC | ACC_PUBLIC,
 			"<clinit>",
 			getMethodDescriptor(VOID_TYPE),
 			null,
 			null);
-		if (debugJVM)
-		{
-			final CheckMethodAdapter checker = new CheckMethodAdapter(
-				ACC_STATIC | ACC_PUBLIC,
-				"<clinit>",
-				getMethodDescriptor(VOID_TYPE),
-				method,
-				new HashMap<>());
-			checker.version = V1_8;
-			method = checker;
-		}
 		method.visitCode();
 		// :: «generated JVMChunk».class.getClassLoader()
 		method.visitLdcInsn(getType("L" + classInternalName + ";"));
@@ -1722,20 +1708,6 @@ public final class JVMTranslator
 				INT_TYPE),
 			null,
 			null);
-		if (debugJVM)
-		{
-			final CheckMethodAdapter checker = new CheckMethodAdapter(
-				ACC_PUBLIC,
-				"runChunk",
-				getMethodDescriptor(
-					getType(StackReifier.class),
-					getType(Interpreter.class),
-					INT_TYPE),
-				method,
-				new HashMap<>());
-			checker.version = V1_8;
-			method = checker;
-		}
 		method.visitParameter("interpreter", ACC_FINAL);
 		method.visitParameterAnnotation(
 			0,
@@ -1921,7 +1893,7 @@ public final class JVMTranslator
 	}
 
 	/** The final phase of JVM code generation. */
-	void visitEnd ()
+	void classVisitEnd ()
 	{
 		classWriter.visitEnd();
 	}
@@ -2026,7 +1998,7 @@ public final class JVMTranslator
 		GENERATE_RUN_CHUNK(JVMTranslator::generateRunChunk),
 
 		/** Indicate code emission has completed. */
-		VISIT_END(JVMTranslator::visitEnd),
+		VISIT_END(JVMTranslator::classVisitEnd),
 
 		/** Create a byte array that would be the content of a class file. */
 		CREATE_CLASS_BYTES(JVMTranslator::createClassBytes),
@@ -2090,6 +2062,7 @@ public final class JVMTranslator
 			null,
 			JVMChunk.class.getName().replace('.', '/'),
 			null);
+		classWriter.visitSource(sourceFileName, null);
 		GenerationPhase.executeAll(this);
 	}
 }
