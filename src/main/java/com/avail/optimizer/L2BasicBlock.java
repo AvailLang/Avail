@@ -38,8 +38,10 @@ import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP;
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
+import com.avail.optimizer.L2ControlFlowGraph.Zone;
 import com.avail.optimizer.values.L2SemanticValue;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -100,8 +102,11 @@ public final class L2BasicBlock
 	/** Whether this block is the head of a loop. */
 	public boolean isLoopHead;
 
-	/** Whether this block is part of a reification handler. */
-	public boolean isInReificationHandler;
+	/**
+	 * The block's optional {@link Zone}, a mechanism to visually group blocks
+	 * in the {@link L2ControlFlowGraphVisualizer}.
+	 */
+	public @Nullable Zone zone;
 
 	/**
 	 * Answer the descriptive name of this basic block.
@@ -501,17 +506,19 @@ public final class L2BasicBlock
 	 *        A descriptive name for the block.
 	 * @param isLoopHead
 	 *        Whether this block should be marked as the head of a loop.
-	 * @param isInReificationHandler
-	 *        Whether this block is part of a reification handler.
+	 * @param zone
+	 *        A mechanism to visually group blocks in the
+	 *        {@link L2ControlFlowGraphVisualizer}, indicating the purpose of
+	 *        that group.
 	 */
 	public L2BasicBlock (
 		final String name,
 		final boolean isLoopHead,
-		final boolean isInReificationHandler)
+		final @Nullable Zone zone)
 	{
 		this.name = name;
 		this.isLoopHead = isLoopHead;
-		this.isInReificationHandler = isInReificationHandler;
+		this.zone = zone;
 	}
 
 	/**
@@ -521,7 +528,7 @@ public final class L2BasicBlock
 	 */
 	public L2BasicBlock (final String name)
 	{
-		this(name, false, false);
+		this(name, false, null);
 	}
 
 	/**

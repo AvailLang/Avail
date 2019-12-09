@@ -53,19 +53,26 @@ import java.util.Set;
 import static com.avail.descriptor.ContinuationDescriptor.createContinuationExceptFrameMethod;
 import static com.avail.interpreter.Interpreter.chunkField;
 import static com.avail.interpreter.levelTwo.L2OperandType.COMMENT;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.*;
 
 /**
- * This is a placeholder instruction, which is replaced after data flow
- * optimizations by:
+ * This is a placeholder instruction, which is replaced if still live after data
+ * flow optimizations by:
  *
  * <ol>
  *    <li>{@link L2_REIFY},</li>
- *    <li>{@link L2_SAVE_ALL_AND_PC_TO_INT},</li>
+ *    <li>{@link L2_ENTER_L2_CHUNK} (start of reification area),</li>
+ *    <li>{@link L2_SAVE_ALL_AND_PC_TO_INT}, falling through to</li>
+ *    <li>{@link L2_GET_CURRENT_CONTINUATION},</li>
  *    <li>{@link L2_CREATE_CONTINUATION},</li>
- *    <li>{@link L2_RETURN_FROM_REIFICATION_HANDLER}, and</li>
+ *    <li>{@link L2_SET_CONTINUATION},</li>
+ *    <li>{@link L2_RETURN_FROM_REIFICATION_HANDLER}, then outside the
+ *        reification area,</li>
  *    <li>{@link L2_ENTER_L2_CHUNK}.</li>
+ *    <li>{@link L2_GET_CURRENT_CONTINUATION}, which gets the reified
+ *        caller.</li>
  * </ol>
  *
  * <p>The {@link L2_CREATE_CONTINUATION}'s level one pc is set to an arbitrary
@@ -87,7 +94,8 @@ extends L2Operation
 	private L2_VIRTUAL_REIFY ()
 	{
 		super(
-			COMMENT.is("usage comment"));
+			COMMENT.is("usage comment"),
+			WRITE_BOXED.is("caller continuation"));
 	}
 
 	/**

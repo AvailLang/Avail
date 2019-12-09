@@ -32,12 +32,21 @@
 
 package com.avail.optimizer;
 
+import com.avail.descriptor.A_Continuation;
 import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
+import com.avail.interpreter.levelTwo.operation.L2_INVOKE;
+import com.avail.interpreter.levelTwo.operation.L2_INVOKE_CONSTANT_FUNCTION;
 import com.avail.interpreter.levelTwo.register.L2Register;
 
-import java.util.*;
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 import static com.avail.utility.Strings.increaseIndentation;
 
@@ -49,6 +58,93 @@ import static com.avail.utility.Strings.increaseIndentation;
  */
 public final class L2ControlFlowGraph
 {
+	/**
+	 * {@link L2BasicBlock}s can be grouped into zones for better visualization
+	 * of the control flow graph by the {@link L2ControlFlowGraphVisualizer}.
+	 * This class is instantiated from the {@link ZoneType#createZone(String)}
+	 * factory method.
+	 */
+	public static class Zone
+	{
+		/** The nature of this zone. */
+		final ZoneType zoneType;
+
+		/** The optional name of this zone, which is not necessarily unique. */
+		final @Nullable String zoneName;
+
+		/**
+		 * Create a now Zone with the given optional name.  Clients should use
+		 * the {@link ZoneType#createZone(String)} factor method.
+		 *
+		 * @param zoneType The {@link ZoneType} of this zone.
+		 * @param zoneName The zone's optional (non-unique) descriptive name.
+		 */
+		Zone (
+			final ZoneType zoneType,
+			final @Nullable String zoneName)
+		{
+			this.zoneType = zoneType;
+			this.zoneName = zoneName;
+		}
+	}
+
+	/**
+	 * A categorization of kinds of {@link Zone}s that will be shown as
+	 * subgraphs (clusters) by the {@link L2ControlFlowGraphVisualizer}.
+	 */
+	public enum ZoneType
+	{
+		/** A zone used for reifying to handle a fiber interrupt. */
+		BEGIN_REIFICATION_FOR_INTERRUPT("#c0c0ff/505090", "#d8d8ff/282850"),
+
+		/**
+		 * A zone used for reifying the call stack to create an
+		 * {@link A_Continuation} to be used as a
+		 * {@linkplain L1Operation#L1Ext_doPushLabel label}.
+		 */
+		BEGIN_REIFICATION_FOR_LABEL("#e0d090/604010", "#ffe0b0/302010"),
+
+		/**
+		 * The target of an on-reification branch from an {@link L2_INVOKE} or
+		 * {@link L2_INVOKE_CONSTANT_FUNCTION}.  A reification is already in
+		 * progress when this zone is entered, and the invoke logic ensures the
+		 * callers have already been reified by the time this zone runs.
+		 */
+		PROPAGATE_REIFICATION_FOR_INVOKE("#c0e0c0/10a010", "#e0ffe0/103010");
+
+		/** A string indicating the boundary color for this zone. */
+		public final String color;
+
+		/** A string indicating the fill color for this zone. */
+		public final String bgcolor;
+
+		/**
+		 * Create a {@code ZoneType} enum value.  Capture the boundary color and
+		 * fill color, for use by the {@link L2ControlFlowGraphVisualizer}.
+		 *
+		 * @param color A string indicating the boundary color.
+		 * @param bgcolor A string indicating the fill color.
+		 */
+		ZoneType(final String color, final String bgcolor)
+		{
+			this.color = color;
+			this.bgcolor = bgcolor;
+		}
+
+		/**
+		 * Create a new {@link Zone} of this type, with an optional descriptive
+		 * (non-unique) name.
+		 *
+		 * @param zoneName The optional descriptive name of the {@link Zone}.
+		 * @return A new {@link Zone}.
+		 */
+		public final Zone createZone (final @Nullable String zoneName)
+		{
+			return new Zone(this, zoneName);
+		}
+	}
+
+
 	/**
 	 * The basic blocks of the graph.  They're either in the order they were
 	 * generated, or in a suitable order for final L2 instruction emission.

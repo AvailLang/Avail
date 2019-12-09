@@ -50,6 +50,7 @@ import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.interpreter.levelTwo.register.L2FloatRegister;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
+import com.avail.optimizer.L2ControlFlowGraph.Zone;
 import com.avail.optimizer.values.Frame;
 import com.avail.optimizer.values.L2SemanticValue;
 import com.avail.performance.Statistic;
@@ -863,19 +864,25 @@ public final class L2Generator
 	@SuppressWarnings("MethodMayBeStatic")
 	public L2BasicBlock createLoopHeadBlock (final String name)
 	{
-		return new L2BasicBlock(name, true, false);
+		return new L2BasicBlock(name, true, null);
 	}
 
 	/**
 	 * Create an {@link L2BasicBlock}, and mark it as used for reification.
 	 *
-	 * @param name The name of the new block.
+	 * @param name
+	 *        The name of the new block.
+	 * @param zone
+	 *        The {@link Zone} (or {@code null}) into which to group this block
+	 *        in the {@link L2ControlFlowGraphVisualizer}.
 	 * @return The new block.
 	 */
 	@SuppressWarnings("MethodMayBeStatic")
-	public L2BasicBlock createReificationBlock (final String name)
+	public L2BasicBlock createBasicBlock (
+		final String name,
+		final @Nullable Zone zone)
 	{
-		return new L2BasicBlock(name, false, true);
+		return new L2BasicBlock(name, false, zone);
 	}
 
 	/**

@@ -937,11 +937,11 @@ implements ExecutableChunk
 		final L2BasicBlock reenterFromRestartBlock =
 			new L2BasicBlock("Default restart");
 		final L2BasicBlock loopBlock =
-			new L2BasicBlock("Default loop", true, false);
+			new L2BasicBlock("Default loop", true, null);
 		final L2BasicBlock reenterFromCallBlock =
-			new L2BasicBlock("Default return from call", false, true);
+			new L2BasicBlock("Default return from call", false, null);
 		final L2BasicBlock reenterFromInterruptBlock =
-			new L2BasicBlock("Default reentry from interrupt", false, true);
+			new L2BasicBlock("Default reentry from interrupt", false, null);
 		final L2BasicBlock unreachableBlock =
 			new L2BasicBlock("Unreachable");
 

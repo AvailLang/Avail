@@ -64,6 +64,7 @@ import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
 import com.avail.interpreter.primitive.general.P_Equality;
+import com.avail.optimizer.L2ControlFlowGraph.Zone;
 import com.avail.optimizer.values.Frame;
 import com.avail.optimizer.values.L2SemanticValue;
 import com.avail.performance.Statistic;
@@ -110,6 +111,7 @@ import static com.avail.interpreter.Primitive.Result.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.*;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.*;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.*;
+import static com.avail.optimizer.L2ControlFlowGraph.ZoneType.*;
 import static com.avail.optimizer.L2Generator.*;
 import static com.avail.optimizer.L2Generator.OptimizationLevel.UNOPTIMIZED;
 import static com.avail.performance.StatisticReport.L2_OPTIMIZATION_TIME;
@@ -595,12 +597,14 @@ public final class L1Translator
 		final @Nullable A_Type expectedValueOrNull,
 		final ChunkEntryPoint typeOfEntryPoint)
 	{
+		// Use the current block's zone for subsequent nodes that are inside
+		// this reification handler.
+		final @Nullable Zone zone = generator.currentBlock().zone;
 		final L2WriteBoxedOperand newContinuationWrite =
 			generator.boxedWriteTemp(
 				restrictionForType(mostGeneralContinuationType(), BOXED));
 		final L2BasicBlock onReturnIntoReified =
-			generator.createBasicBlock(
-				"Return into reified continuation");
+			generator.createBasicBlock("Return into reified continuation");
 		// Create readSlots for constructing the continuation.  Also create
 		// writeSemanticValues and writeRestrictions for restoring the state
 		// from the continuation when it's resumed.
@@ -640,7 +644,7 @@ public final class L1Translator
 		final L2WriteBoxedOperand writeRegisterDump = generator.boxedWriteTemp(
 			restrictionForType(ANY.o(), BOXED));
 		final L2BasicBlock fallThrough =
-			generator.createReificationBlock("Off-ramp");
+			generator.createBasicBlock("Off-ramp", zone);
 		addInstruction(
 			L2_SAVE_ALL_AND_PC_TO_INT.instance,
 			edgeTo(fallThrough),
@@ -929,12 +933,18 @@ public final class L1Translator
 			this.quotedBundleName = bundle.message().atomName().toString();
 			this.onFallBackToSlowLookup = generator.createBasicBlock(
 				"fall back to slow lookup during " + quotedBundleName);
-			this.onReificationWithCheck = generator.createReificationBlock(
-				"reify with check during " + quotedBundleName);
-			this.onReificationNoCheck = generator.createReificationBlock(
-				"reify no check during " + quotedBundleName);
-			this.onReificationUnreturnable = generator.createReificationBlock(
-				"reify unreturnable " + quotedBundleName);
+			this.onReificationWithCheck = generator.createBasicBlock(
+				"reify with check during " + quotedBundleName,
+				PROPAGATE_REIFICATION_FOR_INVOKE.createZone(
+					"Continue reification leading to return check"));
+			this.onReificationNoCheck = generator.createBasicBlock(
+				"reify no check during " + quotedBundleName,
+				PROPAGATE_REIFICATION_FOR_INVOKE.createZone(
+					"Continue reification without return check"));
+			this.onReificationUnreturnable = generator.createBasicBlock(
+				"reify unreturnable " + quotedBundleName,
+				PROPAGATE_REIFICATION_FOR_INVOKE.createZone(
+					"Continue reification for unreturnable"));
 			final String string2 = isSuper
 				? "after super no-check call of " + quotedBundleName
 				: "after call no-check of " + quotedBundleName;
@@ -1926,8 +1936,9 @@ public final class L1Translator
 			: skipCheck
 				? callSiteHelper.onReificationNoCheck
 				: callSiteHelper.onReificationWithCheck;
-		final L2BasicBlock reificationTarget = generator.createReificationBlock(
-			"invoke reification target");
+		final L2BasicBlock reificationTarget = generator.createBasicBlock(
+			"invoke reification target",
+			targetBlock.zone);
 		if (constantFunction != null)
 		{
 			addInstruction(
@@ -2062,8 +2073,10 @@ public final class L1Translator
 		// bottom-valued, and can therefore skip the result check, the recursive
 		// call won't exceed two levels deep.
 		final L2BasicBlock onReificationInHandler =
-			generator.createReificationBlock(
-				"reification in failed return check handler");
+			generator.createBasicBlock(
+				"continue reification for failed return check",
+				PROPAGATE_REIFICATION_FOR_INVOKE.createZone(
+					"Reification while handling failed return check"));
 		addInstruction(
 			L2_INVOKE.instance,
 			getInvalidResultFunctionRegister(),
@@ -2571,9 +2584,11 @@ public final class L1Translator
 			new L2ReadBoxedVectorOperand(argumentReads),
 			argumentsTupleWrite);
 		final L2BasicBlock onReificationDuringFailure =
-			generator.createReificationBlock(
+			generator.createBasicBlock(
 				"reify in method lookup failure handler for "
-					+ callSiteHelper.quotedBundleName);
+					+ callSiteHelper.quotedBundleName,
+				PROPAGATE_REIFICATION_FOR_INVOKE.createZone(
+					"Continue reification during lookup failure handler"));
 		addInstruction(
 			L2_INVOKE.instance,
 			readBoxed(invalidSendReg),
@@ -2627,7 +2642,10 @@ public final class L1Translator
 
 		// Reify everybody else, starting at the caller.
 		final L2BasicBlock onReification =
-			generator.createReificationBlock("On reification");
+			generator.createBasicBlock(
+				"On reification for interrupt",
+				BEGIN_REIFICATION_FOR_INTERRUPT.createZone(
+					"Start reification and run interrupt"));
 		addInstruction(
 			L2_REIFY.instance,
 			new L2IntImmediateOperand(1),
@@ -2635,6 +2653,7 @@ public final class L1Translator
 			new L2IntImmediateOperand(
 				StatisticCategory.INTERRUPT_OFF_RAMP_IN_L2.ordinal()),
 			edgeTo(onReification));
+
 		generator.startBlock(onReification);
 		generator.addInstruction(
 			L2_ENTER_L2_CHUNK.instance,
@@ -2679,8 +2698,10 @@ public final class L1Translator
 		final L2BasicBlock failure =
 			generator.createBasicBlock("failed to read variable");
 		final L2BasicBlock onReificationDuringFailure =
-			generator.createReificationBlock(
-				"reify in read variable failure handler");
+			generator.createBasicBlock(
+				"reify in read variable failure handler",
+				PROPAGATE_REIFICATION_FOR_INVOKE.createZone(
+					"Continue reification for read-variable failure handler"));
 
 		// Emit the specified get-variable instruction variant.
 		final L2WriteBoxedOperand valueWrite =
@@ -2752,7 +2773,10 @@ public final class L1Translator
 		final L2BasicBlock failure =
 			generator.createBasicBlock("set local failure");
 		final L2BasicBlock onReificationDuringFailure =
-			generator.createReificationBlock("reify during set local failure");
+			generator.createBasicBlock(
+				"reify during set local failure",
+				PROPAGATE_REIFICATION_FOR_INVOKE.createZone(
+					"Continue reification for set-variable failure handler"));
 		// Emit the set-variable instruction.
 		addInstruction(
 			setOperation,
@@ -3428,8 +3452,10 @@ public final class L1Translator
 			edgeTo(notYetReified));
 
 		generator.startBlock(notYetReified);
-		final L2BasicBlock onReification =
-			generator.createReificationBlock("on reification");
+		final L2BasicBlock onReification = generator.createBasicBlock(
+			"on reification",
+			BEGIN_REIFICATION_FOR_LABEL.createZone(
+				"Reify caller for pushing label"));
 		addInstruction(
 			L2_REIFY.instance,
 			new L2IntImmediateOperand(1),
