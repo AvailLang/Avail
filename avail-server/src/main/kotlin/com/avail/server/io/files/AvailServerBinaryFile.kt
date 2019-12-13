@@ -63,9 +63,9 @@ internal class AvailServerBinaryFile constructor(
 	: AvailServerFile(path, file, mimeType, serverFileWrapper)
 {
 	/** The String content of the file. */
-	private var content: ByteArray = ByteArray(0)
+	private var content = ByteArray(0)
 
-	override val rawContent: ByteArray get() = content
+	override val rawContent get() = content
 
 	init
 	{
