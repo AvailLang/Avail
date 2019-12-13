@@ -42,7 +42,9 @@ import com.avail.descriptor.FunctionDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceTypeDescriptor.instanceType
 import com.avail.descriptor.IntegerRangeTypeDescriptor
-import com.avail.descriptor.IntegerRangeTypeDescriptor.*
+import com.avail.descriptor.IntegerRangeTypeDescriptor.bytes
+import com.avail.descriptor.IntegerRangeTypeDescriptor.singleInt
+import com.avail.descriptor.IntegerRangeTypeDescriptor.unsignedShorts
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray
 import com.avail.descriptor.SetDescriptor.set
@@ -51,9 +53,14 @@ import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.TypeDescriptor.Types.TOP
+import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.SOCKET_KEY
 import com.avail.exceptions.AvailErrorCode
-import com.avail.exceptions.AvailErrorCode.*
+import com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
+import com.avail.exceptions.AvailErrorCode.E_INVALID_HANDLE
+import com.avail.exceptions.AvailErrorCode.E_IO_ERROR
+import com.avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
+import com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Interpreter.runOutermostFunction
 import com.avail.interpreter.Primitive
@@ -70,7 +77,7 @@ import java.util.Collections.emptyList
 
 /**
  * **Primitive:** Connect the [AsynchronousSocketChannel] referenced by the
- * specified [handle][AtomDescriptor] to an [IPv4&#32;address][Inet4Address] and
+ * specified [handle][A_Atom] to an [IPv4&#32;address][Inet4Address] and
  * port. Create a new [fiber][FiberDescriptor] to respond to the asynchronous
  * completion of the operation; the fiber will run at the specified
  * [priority][IntegerRangeTypeDescriptor.bytes]. If the operation succeeds, then
@@ -82,6 +89,7 @@ import java.util.Collections.emptyList
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_SocketIPv6Connect : Primitive(6, CanInline, HasSideEffect)
 {
 	override fun attempt(interpreter: Interpreter): Result
@@ -112,10 +120,6 @@ object P_SocketIPv6Connect : Primitive(6, CanInline, HasSideEffect)
 			InetSocketAddress(
 				getByAddress(addressBytes) as Inet6Address,
 				port.extractUnsignedShort())
-		}
-		catch (e: IllegalStateException)
-		{
-			return interpreter.primitiveFailure(E_INVALID_HANDLE)
 		}
 		catch (e: UnknownHostException)
 		{
@@ -167,14 +171,6 @@ object P_SocketIPv6Connect : Primitive(6, CanInline, HasSideEffect)
 							listOf(E_IO_ERROR.numericCode()))
 					}))
 			interpreter.primitiveSuccess(newFiber)
-		}
-		catch (e: IllegalArgumentException)
-		{
-			interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE)
-		}
-		catch (e: IllegalStateException)
-		{
-			interpreter.primitiveFailure(E_INVALID_HANDLE)
 		}
 		catch (e: SecurityException)
 		{

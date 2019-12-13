@@ -31,6 +31,7 @@
  */
 package com.avail.interpreter.primitive.general
 
+import com.avail.descriptor.A_Fiber
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.CharacterDescriptor.fromCodePoint
@@ -55,7 +56,7 @@ import java.nio.CharBuffer
 @Suppress("unused")
 object P_ReadFromStandardInput : Primitive(0, CanSuspend, Unknown)
 {
-
+	@Suppress("RedundantLambdaArrow")
 	override fun attempt(
 		interpreter: Interpreter): Result
 	{
@@ -63,14 +64,13 @@ object P_ReadFromStandardInput : Primitive(0, CanSuspend, Unknown)
 		val fiber = interpreter.fiber()
 		return interpreter.suspendAndDo { toSucceed, toFail ->
 			val buffer = CharBuffer.allocate(1)
-			fiber.textInterface().inputChannel.read(
+			SimpleCompletionHandler<Int, A_Fiber?>(
+				{ _ -> toSucceed.value(fromCodePoint(buffer.get(0).toInt())) },
+				{ toFail.value(E_IO_ERROR) }
+			).guardedDo(
+				fiber.textInterface().inputChannel::read,
 				buffer,
-				fiber,
-				SimpleCompletionHandler(
-					{ _ ->
-						toSucceed.value(fromCodePoint(buffer.get(0).toInt()))
-					},
-					{ toFail.value(E_IO_ERROR) }))
+				fiber)
 		}
 	}
 

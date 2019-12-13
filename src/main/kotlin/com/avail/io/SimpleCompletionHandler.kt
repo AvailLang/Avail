@@ -104,4 +104,85 @@ class SimpleCompletionHandler<V, A> : CompletionHandler<V, A>
 
 	override fun failed(exc: Throwable, attachment: A) =
 		failed.invoke(exc, attachment)
+
+	/**
+	 * Perform the specified I/O operation, guarded by a `try/catch` that
+	 * invokes the same failure handler as the operation itself would in the
+	 * event of an asynchronous failure.
+	 *
+	 * @param op
+	 *   The I/O operation.
+	 * @param attachment
+	 *   The attachment.
+	 */
+	fun guardedDo(
+		op: (A, CompletionHandler<V, A>)->Unit,
+		attachment: A)
+	{
+		try
+		{
+			op(attachment, this)
+		}
+		catch (e: Throwable)
+		{
+			failed(e, attachment)
+		}
+	}
+
+	/**
+	 * Perform the specified I/O operation, guarded by a `try/catch` that
+	 * invokes the same failure handler as the operation itself would in the
+	 * event of an asynchronous failure.
+	 *
+	 * @param op
+	 *   The I/O operation.
+	 * @param arg
+	 *   The principal argument for the operation.
+	 * @param attachment
+	 *   The attachment.
+	 */
+	fun <T> guardedDo(
+		op: (T, A, CompletionHandler<V, A>)->Unit,
+		arg: T,
+		attachment: A)
+	{
+		try
+		{
+			op(arg, attachment, this)
+		}
+		catch (e: Throwable)
+		{
+			failed(e, attachment)
+		}
+	}
+
+	/**
+	 * Perform the specified I/O operation, guarded by a `try/catch` that
+	 * invokes the same failure handler as the operation itself would in the
+	 * event of an asynchronous failure.
+	 *
+	 * @param op
+	 *   The I/O operation.
+	 * @param arg1
+	 *   A principal argument for the operation.
+	 * @param arg2
+	 *   A principal argument for the operation.
+	 * @param attachment
+	 *   The attachment.
+	 */
+	fun <T, U> guardedDo(
+		op: (T, U, A, CompletionHandler<V, A>)->Unit,
+		arg1: T,
+		arg2: U,
+		attachment: A)
+	{
+		try
+		{
+			op(arg1, arg2, attachment, this)
+		}
+		catch (e: Throwable)
+		{
+			failed(e, attachment)
+		}
+	}
 }

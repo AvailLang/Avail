@@ -246,31 +246,30 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 			}
 			if (currentBuffer.value.hasRemaining())
 			{
-				fileChannel.write<Void>(
+				SimpleCompletionHandler<Int, Any?>(
+					{ bytesWritten ->
+						nextPosition.value += bytesWritten
+						continueWriting()
+					},
+					{
+						// Invalidate *all* pages for this file to ensure
+						// subsequent I/O has a proper opportunity to
+						// re-encounter problems like read faults and whatnot.
+						for (key in ArrayList(handle.bufferKeys.keys))
+						{
+							ioSystem.discardBuffer(key)
+						}
+						runOutermostFunction(
+							runtime,
+							newFiber,
+							fail,
+							listOf(E_IO_ERROR.numericCode()))
+					}
+				).guardedDo(
+					fileChannel::write,
 					currentBuffer.value,
 					nextPosition.value,
-					null,
-					SimpleCompletionHandler(
-						{ bytesWritten ->
-							nextPosition.value += bytesWritten
-							continueWriting()
-						},
-						{
-							// Invalidate *all* pages for this file to
-							// ensure subsequent I/O has a proper
-							// opportunity to re-encounter problems like
-							// read faults and whatnot.
-							for (key in ArrayList(
-								handle.bufferKeys.keys))
-							{
-								ioSystem.discardBuffer(key)
-							}
-							runOutermostFunction(
-								runtime,
-								newFiber,
-								fail,
-								listOf(E_IO_ERROR.numericCode()))
-						}))
+					null)
 			}
 			else
 			{

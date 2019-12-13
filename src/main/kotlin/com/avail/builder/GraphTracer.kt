@@ -354,21 +354,15 @@ internal class GraphTracer constructor(
 
 		val buffer = StandardCharsets.UTF_8.encode(out)
 		val position = MutableInt(0)
-		channel.write<Any>(
-			buffer,
-			0,
-			null,
-			SimpleCompletionHandler(
-				{ result, _, handler ->
-					position.value += result!!
-					if (buffer.hasRemaining()) {
-						channel.write<Any>(
-							buffer,
-							position.value.toLong(),
-							null,
-							handler)
-					}
-				},
-				{ _, _, _ -> }))
+		SimpleCompletionHandler<Int, Any?>(
+			{ result, _, handler ->
+				position.value += result
+				if (buffer.hasRemaining()) {
+					handler.guardedDo(
+						channel::write, buffer, position.value.toLong(), null)
+				}
+			},
+			{ _, _, _ -> }
+		).guardedDo(channel::write, buffer, 0L, null)
 	}
 }
