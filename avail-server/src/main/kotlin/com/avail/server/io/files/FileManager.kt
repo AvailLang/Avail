@@ -99,6 +99,7 @@ internal object FileManager
 	 * This cache works in conjunction with [pathToIdMap] to maintain links
 	 * between
 	 */
+	// TODO make the softCapacity and strongCapacity configurable and not magic numbers
 	private val fileCache = LRUCache<UUID, MutableOrNull<ServerFileWrapper>>(
 		10000,
 		10,
@@ -146,18 +147,8 @@ internal object FileManager
 		fileCache[id].value?.let {
 			fileCache.remove(id)
 			pathToIdMap.remove(it.path)
-		} ?: {
-			var path = ""
-			pathToIdMap.forEach { (k, v) ->
-				if (v == id)
-				{
-					path = k
-					return@forEach
-				}
-			}
-			pathToIdMap.remove(path)
-		}.invoke()
-
+			idToPathMap.remove(id)
+		} ?: idToPathMap.remove(id)?.let { pathToIdMap.remove(it) }
 	}
 
 	/**
@@ -172,9 +163,8 @@ internal object FileManager
 	fun delete (path: String, failure: (ServerErrorCode, Throwable?) -> Unit)
 	{
 		pathToIdMap[path]?.let {id ->
-			fileCache[id].value?.let{
-				it.delete(id, failure)
-			}
+			fileCache[id].value?.delete(id, failure)
+			idToPathMap.remove(id)
 		} ?: {
 			if (!Files.deleteIfExists(Paths.get(path)))
 			{
@@ -197,6 +187,20 @@ internal object FileManager
 	private val pathToIdMap = mutableMapOf<String, UUID>()
 
 	/**
+	 * A [Map] from the file cache [id][UUID] that uniquely identifies that file
+	 * in the [fileCache] to the String [Path] location of a
+	 * [file][AvailServerFile].
+	 *
+	 * This map will never be cleared of values as cached files that have been
+	 * removed from the `fileCache` must maintain association with the
+	 * server-assigned [UUID] that identifies the file for all interested
+	 * clients. If a client requests a file action with a given UUID and it is
+	 * not found in the `fileCache`, this map will be used to retrieve the
+	 * associated file from disk and placed back in the `fileCache`.
+	 */
+	private val idToPathMap = mutableMapOf<UUID, String>()
+
+	/**
 	 * Retrieve the [ServerFileWrapper] and provide it with a request to obtain
 	 * the [raw file bytes][AvailServerFile.rawContent].
 	 *
@@ -210,8 +214,6 @@ internal object FileManager
 	 *   A function that accepts a [ServerErrorCode] that describes the nature
 	 *   of the failure and an optional [Throwable].
 	 *   TODO refine error handling
-	 * @return The [UUID] that uniquely identifies the open file on the Avail
-	 *   Server.
 	 */
 	fun readFile (
 		path: String,
@@ -222,9 +224,9 @@ internal object FileManager
 		synchronized(pathToIdMap)
 		{
 			uuid = pathToIdMap.getOrPut(path) {
-				val id = UUID.randomUUID()
-				id
+				UUID.randomUUID()
 			}
+			idToPathMap[uuid] = path
 		}
 		val value = fileCache[uuid]
 		value.value?.provide(uuid, consumer, failureHandler)
@@ -254,7 +256,7 @@ internal object FileManager
 	}
 
 	/**
-	 * Retrieve the [ServerFileWrapper] and provide it with a request to obtain
+	 * Create a [ServerFileWrapper] and provide it with a request to obtain
 	 * the [raw file bytes][AvailServerFile.rawContent].
 	 *
 	 * @param path
@@ -266,8 +268,6 @@ internal object FileManager
 	 * @param failureHandler
 	 *   A function that accepts a [ServerErrorCode] that describes the failure
 	 *   and an optional [Throwable]. TODO refine error reporting
-	 * @return The [UUID] that uniquely identifies the open file on the Avail
-	 *   Server.
 	 */
 	fun createFile (
 		path: String,

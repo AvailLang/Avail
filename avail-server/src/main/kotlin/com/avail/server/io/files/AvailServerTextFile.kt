@@ -37,7 +37,6 @@ import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.io.SimpleCompletionHandler
 import com.avail.utility.Casts
-import com.avail.utility.MutableLong
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.CharBuffer
@@ -83,7 +82,7 @@ internal class AvailServerTextFile constructor(
 	init
 	{
 		val sourceBuilder = StringBuilder(4096)
-		val filePosition = MutableLong(0L)
+		var filePosition = 0L
 		val input = ByteBuffer.allocateDirect(4096)
 		val decoder = charset.newDecoder()
 		val output = CharBuffer.allocate(4096)
@@ -102,7 +101,7 @@ internal class AvailServerTextFile constructor(
 						}
 						else
 						{
-							filePosition.value += bytesRead.toLong()
+							filePosition += bytesRead.toLong()
 						}
 						input.flip()
 
@@ -128,7 +127,7 @@ internal class AvailServerTextFile constructor(
 							output.clear()
 							this.file.read<Any>(
 								input,
-								filePosition.value,
+								filePosition,
 								null,
 								handler)
 						}
@@ -179,7 +178,7 @@ internal class AvailServerTextFile constructor(
 	 * @return The [TracedAction] that preserves this edit and how to reverse
 	 *   it.
 	 */
-	override fun insertRange(
+	override fun editRange(
 		data: ByteArray, start: Int, end: Int, timestamp: Long): TracedAction
 	{
 		// The text to insert in the file
@@ -209,8 +208,8 @@ internal class AvailServerTextFile constructor(
 
 		return TracedAction(
 			timestamp,
-			InsertRange(data, start, end),
-			InsertRange(
+			EditRange(data, start, end),
+			EditRange(
 				removed.asNativeString().toByteArray(Charsets.UTF_16BE),
 				start,
 				start + text.tupleSize()))

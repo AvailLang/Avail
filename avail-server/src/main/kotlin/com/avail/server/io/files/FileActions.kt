@@ -56,10 +56,10 @@ internal enum class FileActionType
 	 * inserting the data and appending the remainder of the file after the
 	 * inserted data.
 	 */
-	INSERT_RANGE,
+	EDIT_RANGE,
 
 	/**
-	 * Undo the most recently performed [INSERT_RANGE].
+	 * Undo the most recently performed [EDIT_RANGE].
 	 */
 	UNDO,
 
@@ -83,7 +83,8 @@ internal interface FileAction
 	 *   The `AvailServerFile` to update.
 	 * @param timestamp
 	 *   The time when this [FileAction] request was received.
-	 * @return The [TracedAction], when applied, will reverse this `FileAction`.
+	 * @return
+	 *   The [TracedAction], when applied, will reverse this `FileAction`.
 	 */
 	fun execute (file: AvailServerFile, timestamp: Long): TracedAction
 
@@ -100,9 +101,9 @@ internal interface FileAction
 }
 
 /**
- * `InsertRange` is a [FileAction] that first removes data with from the range
- * with an exclusive upper bound, then inserts the new data at the position
- * where the first element was removed.
+ * `EditRange` is a [FileAction] that effectively first removes data from the
+ * stated range (with an exclusive upper bound), then splits the file and
+ * inserts the new data at the position where the first element was removed.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
@@ -115,25 +116,25 @@ internal interface FileAction
  *   this point should be preserved.
  *
  * @constructor
- * Construct an [InsertRange].
+ * Construct an [EditRange].
  *
  * @param data
  *   The [ByteArray] that is to be inserted in the file.
  * @param start
- *   The location in the file to inserting/overwriting the data.
+ *   The location in the file to insert/overwrite the data.
  * @param end
  *   The location in the file to stop overwriting, exclusive. All data from
  *   this point should be preserved.
  */
-internal class InsertRange constructor(
+internal class EditRange constructor(
 	val data: ByteArray,
 	private val start: Int,
 	private val end: Int): FileAction
 {
 	override fun execute(file: AvailServerFile, timestamp: Long): TracedAction =
-		file.insertRange(data, start, end, timestamp)
+		file.editRange(data, start, end, timestamp)
 
-	override val type: FileActionType = FileActionType.INSERT_RANGE
+	override val type: FileActionType = FileActionType.EDIT_RANGE
 
 	override val isTraced: Boolean = true
 }
@@ -254,7 +255,7 @@ internal class TracedAction constructor(
 	 * @param file
 	 *   The [AvailServerFile] to reverse.
 	 */
-	fun revert (file: AvailServerFile)
+	fun undo (file: AvailServerFile)
 	{
 		reverseAction.execute(file, timestamp)
 	}

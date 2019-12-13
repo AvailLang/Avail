@@ -37,8 +37,8 @@ import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousFileChannel
 
 /**
- * `AvailSeverFile` is an interface for declaring behavior and state for a file
- * that has been opened by the Avail Server.
+ * `AvailSeverFile` is a specification for declaring behavior and state for a
+ * file that has been opened by the Avail Server.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
@@ -156,10 +156,10 @@ internal abstract class AvailServerFile constructor(
 	 *   should be preserved.
 	 * @param timestamp
 	 *   The time in milliseconds since the Unix Epoch UTC the update occurred.
-	 * @return The [TracedAction] that preserves this edit and how to reverse
-	 *   it.
+	 * @return
+	 *   The [TracedAction] that preserves this edit and how to reverse it.
 	 */
-	abstract fun insertRange (
+	abstract fun editRange (
 		data: ByteArray,
 		start: Int,
 		end: Int,

@@ -56,10 +56,10 @@ import java.nio.channels.AsynchronousFileChannel
  *   The [ServerFileWrapper] that wraps this [AvailServerFile].
  */
 internal class AvailServerBinaryFile constructor(
-	path: String,
-	file: AsynchronousFileChannel,
-	mimeType: String,
-	serverFileWrapper: ServerFileWrapper)
+		path: String,
+		file: AsynchronousFileChannel,
+		mimeType: String,
+		serverFileWrapper: ServerFileWrapper)
 	: AvailServerFile(path, file, mimeType, serverFileWrapper)
 {
 	/** The String content of the file. */
@@ -121,7 +121,7 @@ internal class AvailServerBinaryFile constructor(
 				}))
 	}
 
-	override fun insertRange(
+	override fun editRange(
 		data: ByteArray, start: Int, end: Int, timestamp: Long): TracedAction
 	{
 		val removed = content.copyOfRange(start, end)
@@ -129,7 +129,7 @@ internal class AvailServerBinaryFile constructor(
 			data + content.copyOfRange(end, content.size)
 		return TracedAction(
 			timestamp,
-			InsertRange(data, start, end),
-			InsertRange(removed, start, start + data.size))
+			EditRange(data, start, end),
+			EditRange(removed, start, start + data.size))
 	}
 }

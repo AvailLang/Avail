@@ -194,7 +194,7 @@ internal class ServerFileWrapper constructor(
 	var undoStackDepth = 0
 
 	/**
-	 * [Undo][TracedAction.revert] the [FileAction] performed on the [file] from
+	 * [Undo][TracedAction.undo] the [FileAction] performed on the [file] from
 	 * the [TracedAction] that is [undoStackDepth] + 1 from the top of the
 	 * stack.
 	 */
@@ -204,7 +204,7 @@ internal class ServerFileWrapper constructor(
 		{
 			// We are not at the bottom of the stack; there are TracedActions
 			// eligible to be reverted.
-			tracedActionStack[tracedActionStack.size + ++undoStackDepth].revert(file)
+			tracedActionStack[tracedActionStack.size + ++undoStackDepth].undo(file)
 		}
 	}
 
