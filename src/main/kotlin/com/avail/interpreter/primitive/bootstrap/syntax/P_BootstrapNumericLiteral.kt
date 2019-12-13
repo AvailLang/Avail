@@ -1,5 +1,5 @@
 /*
- * P_BootstrapIntegerLiteral.kt
+ * P_BootstrapNumericLiteral.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -33,41 +33,40 @@ package com.avail.interpreter.primitive.bootstrap.syntax
 
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.LiteralPhraseDescriptor.literalNodeFromToken
 import com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
+import com.avail.descriptor.TypeDescriptor.Types.NUMBER
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Create a non-negative integer literal phrase from a
- * non-negative integer literal constant token (already wrapped as a literal
+ * **Primitive:** Create a non-negative numeric literal phrase from a
+ * non-negative numeric literal constant token (already wrapped as a literal
  * phrase).  This is a bootstrapped macro because not all subsets of the core
- * Avail syntax should allow non-negative integer literal phrases.
+ * Avail syntax should allow non-negative numeric literal phrases.
  */
 @Suppress("unused")
-object P_BootstrapIntegerLiteral :
+object P_BootstrapNumericLiteral :
 	Primitive(1, CanInline, CannotFail, Bootstrap)
 {
 
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
-		val integerTokenLiteral = interpreter.argument(0)
+		val numericTokenLiteral = interpreter.argument(0)
 
-		val outerToken = integerTokenLiteral.token()
+		val outerToken = numericTokenLiteral.token()
 		val innerToken = outerToken.literal()
-		assert(innerToken.literal().isInstanceOfKind(wholeNumbers()))
-		val integerLiteral = literalNodeFromToken(innerToken)
-		return interpreter.primitiveSuccess(integerLiteral)
+		val numericLiteral = literalNodeFromToken(innerToken)
+		return interpreter.primitiveSuccess(numericLiteral)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				LITERAL_PHRASE.create(literalTokenType(wholeNumbers()))),
-			LITERAL_PHRASE.create(wholeNumbers()))
+				LITERAL_PHRASE.create(literalTokenType(NUMBER.o()))),
+			LITERAL_PHRASE.create(NUMBER.o()))
 }

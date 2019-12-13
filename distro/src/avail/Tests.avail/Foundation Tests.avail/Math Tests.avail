@@ -540,7 +540,8 @@ Test "float representation reinterpretation" in math test suite is
 		1.0e38f, 1.0e-38f,
 		0.0f ÷ 0.0f,
 		1.0f ÷ 0.0f,
-		-1.0f ÷ 0.0f
+		-1.0f ÷ 0.0f,
+		0_1.0_0e0_1f
 	>;
 	For each f in floats do
 	[
@@ -554,6 +555,7 @@ Test "float representation reinterpretation" in math test suite is
 	Require: (-2.0f) reinterpreted as bits = 0xC0000000 - 2^32;
 	Require: 1.0f reinterpreted as bits = 0x3F800000;
 	Require: (-1.0f) reinterpreted as bits = 0xBF800000 - 2^32;
+	Require: 0_1.0_0e0_1f reinterpreted as bits = 0x3F800000;
 ];
 
 Test "double representation reinterpretation" in math test suite is
@@ -563,7 +565,8 @@ Test "double representation reinterpretation" in math test suite is
 		1.0e38, 1.0e-38,
 		0.0 ÷ 0.0,
 		1.0 ÷ 0.0,
-		-1.0 ÷ 0.0
+		-1.0 ÷ 0.0,
+		0_1.0_0e0_1
 	>;
 	For each d in doubles do
 	[
@@ -577,5 +580,5 @@ Test "double representation reinterpretation" in math test suite is
 	Require: (-2.0) reinterpreted as bits = 0xC000000000000000 - 2^64;
 	Require: 1.0 reinterpreted as bits = 0x3FF0000000000000;
 	Require: (-1.0) reinterpreted as bits = 0xBFF0000000000000 - 2^64;
+	Require: 0_1.0_0e0_1 reinterpreted as bits = 0x3FF0000000000000;
 ];
-

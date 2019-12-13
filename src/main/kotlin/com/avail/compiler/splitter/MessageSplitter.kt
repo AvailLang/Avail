@@ -273,9 +273,9 @@ class MessageSplitter
 		 *  * If left unadorned, it creates a [RawKeywordTokenArgument], which
 		 *    matches a single [A_Token] of kind [TokenType.KEYWORD].
 		 *  * If followed by an [OCTOTHORP] (#), it creates a
-		 *    [RawWholeNumberLiteralTokenArgument], which matches a single
-		 *    [A_Token] of kind [TokenType.LITERAL] which yields an integer in
-		 *    the range [0..∞).
+		 *    [RawNumericLiteralTokenArgument], which matches a single
+		 *    [A_Token] of kind [TokenType.LITERAL] which yields a positive
+		 *    number.
 		 *  * If followed by a [DOLLAR_SIGN] ($), it creates a
 		 *    [RawStringLiteralTokenArgument], which matches a single [A_Token]
 		 *    of kind [TokenType.LITERAL] which yields a string.
@@ -318,7 +318,7 @@ class MessageSplitter
 		 * An octothorp (#) after an [ELLIPSIS] (…) indicates that a
 		 * whole-number-valued literal token should be consumed from the Avail
 		 * source code at this position.  This is accomplished through the use
-		 * of a [RawWholeNumberLiteralTokenArgument].
+		 * of a [RawNumericLiteralTokenArgument].
 		 */
 		OCTOTHORP("#"),
 
@@ -1092,7 +1092,7 @@ class MessageSplitter
 		return when {
 			peekFor(EXCLAMATION_MARK) -> RawTokenArgument(
 				tokenStart, leafArgumentCount)
-			peekFor(OCTOTHORP) -> RawWholeNumberLiteralTokenArgument(
+			peekFor(OCTOTHORP) -> RawNumericLiteralTokenArgument(
 				tokenStart, leafArgumentCount)
 			peekFor(DOLLAR_SIGN) -> RawStringLiteralTokenArgument(
 				tokenStart, leafArgumentCount)

@@ -377,7 +377,7 @@ public final class MessageSplitterTest
 				List(1, 1, Phrase(LiteralToken(wholeNumbers()))),
 				A("…", "#"),
 				A(
-					PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN.getEncoding(),
+					PARSE_RAW_NUMERIC_LITERAL_TOKEN.getEncoding(),
 					typeCheckEncodingForPhrase(LiteralToken(wholeNumbers())),
 					APPEND_ARGUMENT.getEncoding())),
 			C(

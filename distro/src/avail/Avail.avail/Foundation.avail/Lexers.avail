@@ -38,15 +38,17 @@ Uses
 	"Characters",
 	"Control Structures",
 	"Early Conditionals",
+	"Early Functions",
 	"Exceptions",
 	"Format",
-	"Literals",
+	"Literals" = (-"…#.…#«f»?", -"…#.…#…", -"…#.…#e|E«+|-»!…#«f»?",…),
 	"Logic",
 	"Math",
 	"Phrases",
 	"Sets",
 	"Strings",
 	"Tuples",
+	"Types",
 	"Variables"
 Names
 	"end of line comment lexer",
@@ -54,6 +56,7 @@ Names
 	"binary integer lexer",
 	"octal integer lexer",
 	"hexadecimal integer lexer",
+	"floating point number lexer",
 	"raw string lexer"
 Body
 
@@ -292,7 +295,7 @@ hexadecimalAlphabet ::= (radixIntegerAlphabet[1..16] ++ "abcdef")→set;
 /**
  * Upon encountering a {@code "0"}, attempt to scan a subsequent {@code "x"}
  * followed by a sequence of hexadecimal digits, i.e., {@type "character"}s in
- * {@code "01234567ABCDEFabcdef"}.
+ * {@code "0123456789ABCDEFabcdef"}.
  *
  * @lexer "hexadecimal integer lexer"
  * @param "source" "string"
@@ -339,6 +342,110 @@ is
 ];
 
 /**
+ * Upon encountering an {@code "Arabic numeral"} digit, attempt to scan
+ * forward past all digit groups (optionally separated with single {@code "_"}
+ * digit group separator) until a single {@code "."} is encountered. Then
+ * require one or more digit groups. Allow an exponent signifier {@code "e"}
+ * before the final digit group, which may be prefixed with a sign. Allow an
+ * {@code "f"} in the final position to indicate that the value should be stored
+ * as a double.
+ *
+ * Note that a floating point number literal MUST have a digit in the integer
+ * part; 0 is acceptable.
+ *
+ * Regex: /[0-9]+(_[0-9]+)*\.([0-9]+_)*[0-9]+(e[+-]?([0-9]+_)*[0-9]+)?f?/
+ *
+ * @lexer "floating point number lexer"
+ * @param "source" "string"
+ *        The complete source text.
+ * @param "position" "real source position"
+ *        The position of the leading {@type "character"}.
+ * @param "line" "real source line number"
+ *        The line number of the leading {@type "character"}.
+ * @returns "{token+|}"
+ *          The possible lexes discovered at {@code "position"}, potentially
+ *          conforming to a single {@type "integer"} {@type "literal token"}.
+ */
+Lexer $"floating point number lexer"
+when [c : character | c is an Arabic numeral]
+is
+[
+	source : string,
+	position : real source position,
+	line : real source line number
+|
+	$body : {token+|};
+	i : real source position := position;
+	size ::= |source|;
+
+	getDigits ::= [
+		start ::= i;
+		While i ≤ size ∧ source[i] is an Arabic numeral do [i++;];
+		digits ::= source[start..i-1];
+		Exit body with ∅ if digits is empty;
+		cast digits into [s : Arabic numeral+ | s]
+	];
+
+	// A digit group matches regex: /[0-9]+(_[0-9]+)*/
+	getDigitGroup ::= [
+		allDigits : Arabic numeral+ := getDigits();
+		While i ≤ size ∧ source[i] = ¢_ do
+		[
+			i++; // to consume ¢_
+			allDigits ++= getDigits();
+		];
+		allDigits
+	];
+
+	// Collect the integer part.
+	integerDigits ::= getDigitGroup();
+	Exit body with ∅ if i > size ∨ source[i] ≠ ¢.; // Check condition for reaching EOF
+
+	// Collect the fractional part.
+	i++; // to consume ¢.
+	fractionalDigits ::= getDigitGroup();
+
+	// Collect the exponent part, if any. Default to exponent value 0. If a
+	// value is supplied but no sign is prefixed, default to positive.
+	exponentIsNegative : boolean := false;
+	exponentDigits ::= if i > size ∨ source[i] ≠ ¢e then ["0"] else
+	[
+		i++; // to consume ¢e
+		If i ≤ size ∧ source[i] = ¢+ then
+		[
+			i++; // to consume ¢+
+		]
+		else if i ≤ size ∧ source[i] = ¢- then
+		[
+			exponentIsNegative := true;
+			i++; // to consume ¢-
+		];
+		getDigitGroup()
+	];
+
+	isFloat : boolean := false;
+	If i ≤ size ∧ source[i] = ¢f then
+	[
+		isFloat := true;
+		i++; // to consume ¢f
+	];
+
+	doubleValueFunction ::= [
+		wholePart : Arabic numeral+,
+		fractionPart : Arabic numeral+,
+		exponentIsPositive : boolean,
+		exponentPart : Arabic numeral+
+	|
+		Primitive DoubleFromParts;
+	] : double;
+	doubleValue ::= doubleValueFunction(
+		integerDigits, fractionalDigits, ¬exponentIsNegative, exponentDigits);
+	value ::= if isFloat then [doubleValue → float] else [doubleValue];
+	retval ::= {<`value` (source[position..i-1]) @ position:line>};
+	retval
+];
+
+/**
  * Upon encountering {@code "r"} followed by three (3) or more identical {@type
  * "character"}s, attempt to scan arbitrary text followed by a corresponding end
  * delimiter of the same length. The arbitrary text is understood as the content
@@ -358,7 +465,7 @@ is
  * {@type "character"}s, then the end delimiter must comprise those same {@type
  * "character"}s.
  *
- * @lexer "hexadecimal integer lexer"
+ * @lexer "raw string lexer"
  * @param "source" "string"
  *        The complete source text.
  * @param "position" "real source position"

@@ -964,6 +964,7 @@ Extends
 		"binary integer lexer",
 		"octal integer lexer",
 		"hexadecimal integer lexer",
+		"floating point number lexer",
 		"raw string lexer"
 	),
 	"Literals" =
@@ -974,10 +975,7 @@ Extends
 		"{«_→_‡,»}",
 		"`$…",
 		"`$…$",
-		"¢…!",
-		"…#.…#«f»?",
-		"…#.…#…",
-		"…#.…#e|E«+|-»!…#«f»?"
+		"¢…!"
 	),
 	"Logic" =
 	(

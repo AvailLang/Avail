@@ -98,7 +98,7 @@ Names
 	/* String literals. */
 	"…$",
 
-	/* Integer literals. */
+	/* Numeric literals. */
 	"…#",
 
 	/* Variable use. */
