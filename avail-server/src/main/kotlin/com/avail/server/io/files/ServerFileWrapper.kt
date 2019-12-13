@@ -200,13 +200,12 @@ internal class ServerFileWrapper constructor(
 	 */
 	fun undo ()
 	{
-		if (tracedActionStack.size < undoStackDepth + 1)
+		if (tracedActionStack.size >= undoStackDepth + 1)
 		{
-			// We are at the bottom of the stack; there are no TracedActions
+			// We are not at the bottom of the stack; there are TracedActions
 			// eligible to be reverted.
-			return
+			tracedActionStack[tracedActionStack.size + ++undoStackDepth].revert(file)
 		}
-		tracedActionStack[tracedActionStack.size + ++undoStackDepth].revert(file)
 	}
 
 	/**
@@ -300,21 +299,16 @@ internal class ServerFileWrapper constructor(
 		//  consumer?
 		if (!isLoadingFile)
 		{
-			// Opportunistic
-			consumer(id, file.rawContent)
-			return
-		}
-		synchronized(this)
-		{
-			if (!isLoadingFile)
+			synchronized(this)
 			{
-				// Opportunistic
-				consumer(id, file.rawContent)
-				return
+				if (!isLoadingFile)
+				{
+					consumer(id, file.rawContent)
+					return
+				}
 			}
-			handlerQueue.add(
-				FileRequestHandler(id, consumer, failureHandler))
 		}
+
 	}
 
 	/**
@@ -365,7 +359,7 @@ internal class ServerFileWrapper constructor(
 		{
 			return when (mimeType)
 			{
-				"text/plain", "text/json" ->
+				"text/avail", "text/plain", "text/json" ->
 					AvailServerTextFile(path, file, mimeType, serverFileWrapper)
 				else ->
 					AvailServerBinaryFile(path, file, mimeType, serverFileWrapper)

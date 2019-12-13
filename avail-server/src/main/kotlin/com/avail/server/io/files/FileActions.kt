@@ -49,29 +49,17 @@ internal enum class FileActionType
 
 	/** Save the [AvailServerFile] to disk. */
 	SAVE,
-	
-	/**
-	 * Insertion of text at a position causing the file to grow. This preserves
-	 * the file data before and after the insertion.
-	 */
-	INSERT,
 
 	/**
-	 * A combination of [REMOVE_RANGE] and [Insert]. It removes data equal to
-	 * the size of the insert data starting at the start point. Then it inserts
-	 * the data at the removed range start point.
+	 * Effectively, it removes data from the insertion start position until the
+	 * insertion end point. Then it splits the file at insertion start point,
+	 * inserting the data and appending the remainder of the file after the
+	 * inserted data.
 	 */
 	INSERT_RANGE,
 
 	/**
-	 * Remove the data in the specified range from the file. The file size is
-	 * decreased as a result of this action.
-	 */
-	REMOVE_RANGE,
-
-	/**
-	 * Undo the most recently performed [INSERT], [INSERT_RANGE], or
-	 * [REMOVE_RANGE].
+	 * Undo the most recently performed [INSERT_RANGE].
 	 */
 	UNDO,
 
@@ -109,69 +97,6 @@ internal interface FileAction
 	 * otherwise.
 	 */
 	val isTraced: Boolean  get() = false
-}
-
-/**
- * `Insert` is a [FileAction]
- *
- * @author Richard Arriaga &lt;rich@availlang.org&gt;
- *
- * @property data
- *   The [ByteArray] that is to be inserted in the file.
- * @property position
- *   The location in the file to insert the data.
- *
- * @constructor
- * Construct an [Insert].
- *
- * @param data
- *   The [ByteArray] that is to be inserted in the file.
- * @param position
- *   The location in the file to insert the data.
- */
-internal class Insert constructor(
-	val data: ByteArray,
-	private val position: Int) : FileAction
-{
-	override fun execute(file: AvailServerFile, timestamp: Long): TracedAction =
-		file.insert(data, position, timestamp)
-
-	override val type: FileActionType = FileActionType.INSERT
-
-	override val isTraced: Boolean = true
-}
-
-/**
- * `RemoveRange` is a [FileAction] that removes data from file for a range with
- * an exclusive upper bound.
- *
- * @author Richard Arriaga &lt;rich@availlang.org&gt;
- *
- * @property start
- *   The location in the file to inserting/overwriting the data.
- * @property end
- *   The location in the file to stop overwriting, exclusive. All data from
- *   this point should be preserved.
- *
- * @constructor
- * Construct a [RemoveRange].
- *
- * @param start
- *   The location in the file to inserting/overwriting the data.
- * @param end
- *   The location in the file to stop overwriting, exclusive. All data from
- *   this point should be preserved.
- */
-internal class RemoveRange constructor(
-	private val start: Int,
-	private val end: Int) : FileAction
-{
-	override fun execute(file: AvailServerFile, timestamp: Long): TracedAction =
-		file.removeRange(start, end, timestamp)
-
-	override val type: FileActionType = FileActionType.REMOVE_RANGE
-
-	override val isTraced: Boolean = true
 }
 
 /**

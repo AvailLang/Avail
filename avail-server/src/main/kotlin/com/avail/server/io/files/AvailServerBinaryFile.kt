@@ -33,7 +33,6 @@
 package com.avail.server.io.files
 
 import com.avail.io.SimpleCompletionHandler
-import com.avail.utility.MutableLong
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousFileChannel
@@ -70,7 +69,7 @@ internal class AvailServerBinaryFile constructor(
 
 	init
 	{
-		val filePosition = MutableLong(0L)
+		var filePosition = 0L
 		val input = ByteBuffer.allocateDirect(4096)
 		this.file.read<Any>(
 			input,
@@ -87,7 +86,7 @@ internal class AvailServerBinaryFile constructor(
 						}
 						else
 						{
-							filePosition.value += bytesRead.toLong()
+							filePosition += bytesRead.toLong()
 						}
 						input.flip()
 						val data = ByteArray(input.limit())
@@ -98,7 +97,7 @@ internal class AvailServerBinaryFile constructor(
 						{
 							this.file.read<Any>(
 								input,
-								filePosition.value,
+								filePosition,
 								null,
 								handler)
 						}
@@ -120,26 +119,6 @@ internal class AvailServerBinaryFile constructor(
 					serverFileWrapper.notifyFailure()
 					TODO("Handle AvailServerTextFile read fail")
 				}))
-	}
-
-	override fun insert (
-		data: ByteArray, position: Int, timestamp: Long): TracedAction
-	{
-		// TODO validate range
-		content = content.copyOfRange(0, position) +
-		          data + content.copyOfRange(position, content.size)
-		return TracedAction(
-			timestamp, Insert(data, position), RemoveRange(position, data.size))
-	}
-
-	override fun removeRange(
-		start: Int, end: Int, timestamp: Long): TracedAction
-	{
-		val removed = content.copyOfRange(start, end)
-		content = content.copyOfRange(0, start) +
-			content.copyOfRange(end, content.size)
-		return TracedAction(
-			timestamp, RemoveRange(start, end), Insert(removed, start))
 	}
 
 	override fun insertRange(

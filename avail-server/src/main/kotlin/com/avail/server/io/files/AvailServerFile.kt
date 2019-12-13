@@ -143,46 +143,9 @@ internal abstract class AvailServerFile constructor(
 
 	/**
 	 * Insert the [ByteArray] data into the file at the specified location. This
-	 * should add data without removing any existing data from the file.
-	 *
-	 * @param data
-	 *   The `ByteArray` data to add to this [AvailServerFile].
-	 * @param position
-	 *   The location in the file to insert the data.
-	 * @param timestamp
-	 *   The time in milliseconds since the Unix Epoch UTC the update occurred.
-	 * @return The [TracedAction] that preserves this edit and how to reverse
-	 *   it.
-	 */
-	abstract fun insert (
-		data: ByteArray,
-		position: Int,
-		timestamp: Long = System.currentTimeMillis()): TracedAction
-
-	/**
-	 * Remove file data from the specified range.
-	 *
-	 * @param start
-	 *   The location in the file to inserting/overwriting the data.
-	 * @param end
-	 *   The location in the file to stop overwriting, exclusive. All data from
-	 *   this point should be preserved.
-	 * @param timestamp
-	 *   The time in milliseconds since the Unix Epoch UTC the update occurred.
-	 * @return The [TracedAction] that preserves this edit and how to reverse
-	 *   it.
-	 */
-	abstract fun removeRange (
-		start: Int,
-		end: Int,
-		timestamp: Long = System.currentTimeMillis()): TracedAction
-
-	/**
-	 * Insert the [ByteArray] data into the file at the specified location. This
 	 * should remove existing data in the file in this range and replace it
 	 * with the provided data. This should preserve all data outside of this
-	 * range. This is equivalent to calling [removeRange] with `start` and `end`
-	 * then calling [insert] with `data` and `start` as inputs.
+	 * range.
 	 *
 	 * @param data
 	 *   The `ByteArray` data to add to this [AvailServerFile].
