@@ -3519,11 +3519,6 @@ public final class L1Translator
 		// caller is known to be reified, and simple label construction can take
 		// place without further reification.  Push that label continuation on
 		// the virtual stack.
-		final int oldStackp = stackp;
-		// The initially constructed continuation is always immediately resumed,
-		// so this should never be observed.
-		stackp = Integer.MAX_VALUE;
-
 		final L2ReadBoxedOperand reifiedCaller = getCurrentContinuation();
 
 		// We just ensured the caller is reified, and captured in reifiedCaller.
@@ -3532,57 +3527,30 @@ public final class L1Translator
 
 		assert code.primitive() == null;
 		final int numArgs = code.numArgs();
-		final List<L2ReadBoxedOperand> slotsForLabel =
-			new ArrayList<>(numSlots);
+		final List<L2ReadBoxedOperand> argumentsForLabel =
+			new ArrayList<>(numArgs);
 		for (int i = 1; i <= numArgs; i++)
 		{
-			slotsForLabel.add(generator.makeImmutable(readSlot(i)));
+			argumentsForLabel.add(generator.makeImmutable(readSlot(i)));
 		}
-		final L2ReadBoxedOperand nilTemp = generator.boxedConstant(nil);
-		for (int i = numArgs + 1; i <= numSlots; i++)
-		{
-			slotsForLabel.add(nilTemp);  // already immutable
-		}
+
 		// Now create the actual label continuation and push it.
-		stackp = oldStackp - 1;
 		final A_Type continuationType =
 			continuationTypeForFunctionType(code.functionType());
 		final L2SemanticValue label = topFrame().label();
 		final L2WriteBoxedOperand destinationRegister =
 			generator.boxedWrite(label, restriction(continuationType, null));
 
-		// Now generate the reification instructions, ensuring that when
-		// returning into the resulting continuation it will enter a block where
-		// the slot registers are the new ones we just created.
-		final L2WriteIntOperand writeOffset = generator.intWriteTemp(
-			restrictionForType(int32(), UNBOXED_INT));
-		final L2WriteBoxedOperand writeRegisterDump = generator.boxedWriteTemp(
-			restrictionForType(ANY.o(), BOXED));
-
-		final L2BasicBlock fallThrough =
-			generator.createBasicBlock("Caller is reified");
 		addInstruction(
-			L2_SAVE_ALL_AND_PC_TO_INT.instance,
-			edgeTo(fallThrough),
-			backEdgeTo(generator.afterOptionalInitialPrimitiveBlock),
-			writeOffset,
-			writeRegisterDump);
-
-		generator.startBlock(fallThrough);
-		addInstruction(
-			L2_CREATE_CONTINUATION.instance,
-			generator.makeImmutable(getCurrentFunction()),
-			generator.makeImmutable(reifiedCaller),  // the caller
-			new L2IntImmediateOperand(0),  // indicates a label.
-			new L2IntImmediateOperand(numSlots + 1),  // empty stack
-			new L2ReadBoxedVectorOperand(slotsForLabel),  // each immutable
+			L2_VIRTUAL_CREATE_LABEL.instance,
 			destinationRegister,
-			generator.readInt(
-				writeOffset.semanticValue(),
-				generator.unreachablePcOperand().targetBlock()),
-			generator.readBoxed(writeRegisterDump),
-			new L2CommentOperand("Create a label continuation."));
+			reifiedCaller,
+			getCurrentFunction(),
+			new L2ReadBoxedVectorOperand(argumentsForLabel),
+			new L2IntImmediateOperand(code.numSlots()));
+
 		// Continue, with the label having been pushed.
+		stackp--;
 		forceSlotRegister(
 			stackp, instructionDecoder.pc(), currentManifest().read(label));
 	}

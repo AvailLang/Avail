@@ -31,18 +31,38 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
+import com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2CommentOperand;
+import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
+import com.avail.interpreter.levelTwo.operation.L2_REIFY.StatisticCategory;
+import com.avail.optimizer.L2BasicBlock;
+import com.avail.optimizer.L2ControlFlowGraph;
+import com.avail.optimizer.L2ControlFlowGraph.Zone;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
 
+import static com.avail.descriptor.ContinuationTypeDescriptor.mostGeneralContinuationType;
+import static com.avail.descriptor.FunctionTypeDescriptor.mostGeneralFunctionType;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
+import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.levelTwo.L2OperandType.COMMENT;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType;
+import static com.avail.optimizer.L2ControlFlowGraph.ZoneType.BEGIN_REIFICATION_FOR_LABEL;
+import static com.avail.optimizer.L2Generator.edgeTo;
+import static java.util.Collections.emptyList;
 
 /**
  * This is a placeholder instruction, which is replaced if still live after data
@@ -67,8 +87,9 @@ import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
  *
  * <p>This instruction is allowed to commute past any other instructions except
  * {@link L2_SAVE_ALL_AND_PC_TO_INT}.  Since these usually end up in off-ramps,
- * where reification is already happening, TODO We have to be careful.
- * </p>
+ * where reification is already happening, we're often able to postpone the
+ * reification until we're already in an off-ramp, which is expected to be a low
+ * frequency path in the {@link L2ControlFlowGraph}.</p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -76,7 +97,7 @@ public final class L2_VIRTUAL_REIFY
 extends L2Operation
 {
 	/**
-	 * Construct an {@code L2_CREATE_CONTINUATION}.
+	 * Construct an {@code L2_VIRTUAL_REIFY}.
 	 */
 	private L2_VIRTUAL_REIFY ()
 	{
@@ -90,6 +111,12 @@ extends L2Operation
 	 */
 	public static final L2_VIRTUAL_REIFY instance =
 		new L2_VIRTUAL_REIFY();
+
+	@Override
+	public boolean isPlaceholder ()
+	{
+		return true;
+	}
 
 	/**
 	 * Extract the reified caller {@link L2WriteBoxedOperand} from this virtual
@@ -123,6 +150,43 @@ extends L2Operation
 		builder.append(reifiedCaller);
 	}
 
+	/**
+	 * Since an {@code L2_VIRTUAL_REIFY} and its transformed form are each
+	 * idempotent, it's legal to introduce a computational redundancy whereby
+	 * the value might be computed multiple times along some paths, even if the
+	 * original {@link L2ControlFlowGraph} didn't have that redundancy.
+	 *
+	 * <p>In particular, for an {@code L2_VIRTUAL_REIFY}, it's not worth
+	 * avoiding redundant computation, since a common situation is that all of
+	 * these instructions end up migrating into reification {@link Zone}s, which
+	 * are off the high-frequency track, and therefore not particularly relevant
+	 * for performance.  It's better to replicate these instructions downward in
+	 * the hope of moving them all off the high-speed track, even if some of the
+	 * low-frequency tracks end up reifying multiple times, and even if there's
+	 * a chance some of the reifications end up along a high frequency path.
+	 * It's still worth stopping whenever the value is always-live-in.</p>
+	 *
+	 * <p>We can also "look ahead" in the graph to see if any of the subsequent
+	 * uses are actually outside reification zones, and avoid introducing extra
+	 * redundancy in that case.  We approximate that by looking at all uses of
+	 * this instruction's output register, and if they're all inside reification
+	 * zones we allow the replication.</p>
+	 *
+	 * @param instruction
+	 *        The {@link L2Instruction} using this operation.
+	 * @return Whether to replicate this instruction into multiple successor
+	 *         blocks, even if some successors have multiple incoming edges
+	 *         (and which might not need the value).
+	 */
+	@Override
+	public boolean shouldReplicateIdempotently (final L2Instruction instruction)
+	{
+		final L2WriteBoxedOperand write = callerWriteOperandOf(instruction);
+		final Set<L2ReadOperand<?>> uses = write.register().uses();
+		return uses.stream()
+			.allMatch(use -> use.instruction().basicBlock().zone != null);
+	}
+
 	@Override
 	public void generateReplacement (
 		final L2Instruction instruction, final L2Generator generator)
@@ -138,108 +202,114 @@ extends L2Operation
 				originalRegisterWrite);
 			return;
 		}
-		// Replace it with real reification code.
-		System.out.println("NOT YET IMPLEMENTED");
 
+		// Force reification of a dummy continuation that captures all live
+		// register state.  When reification of the whole stack has completed,
+		// resume it, which reenters this chunk at an L2_ENTER_L2_CHUNK which
+		// explodes the register dump back into the registers.  Then fetch the
+		// reified caller and continue running right after where the original
+		// placeholder instruction was.
 
-//
-//		// Force reification of the current continuation and all callers, then
-//		// resume that continuation right away, which also makes it available.
-//		// Create a new continuation like it, with only the caller, function,
-//		// and arguments present, and having an empty stack and an L1 pc of 0.
-//		// Then push that new continuation on the virtual stack.
-//		final int oldStackp = stackp;
-//		// The initially constructed continuation is always immediately resumed,
-//		// so this should never be observed.
-//		stackp = Integer.MAX_VALUE;
-//
-//		getCurrentContinuationAs();
-//
-//
-//***TODO Move to optimization phase.
-//
-//
-//		final L2BasicBlock onReification = generator.createBasicBlock(
-//			"on reification",
-//			BEGIN_REIFICATION_FOR_LABEL.createZone(
-//				"Reify caller for pushing label"));
-//		addInstruction(
-//			L2_REIFY.instance,
-//			new L2IntImmediateOperand(1),
-//			new L2IntImmediateOperand(0),
-//			new L2IntImmediateOperand(
-//				StatisticCategory.PUSH_LABEL_IN_L2.ordinal()),
-//			edgeTo(onReification));
-//
-//		generator.startBlock(onReification);
-//		generator.addInstruction(
-//			L2_ENTER_L2_CHUNK.instance,
-//			new L2IntImmediateOperand(TRANSIENT.offsetInDefaultChunk),
-//			new L2CommentOperand(
-//				"Transient, before label creation - cannot be invalid."));
-//		reify(null, UNREACHABLE);
-//		// We just continued the reified continuation, having exploded the
-//		// continuation into slot registers.  Create a label based on it, but
-//		// capturing only the arguments (with pc=0, stack=empty).
-//		generator.addInstruction(L2_JUMP.instance, edgeTo(callerIsReified));
-//
-//		generator.startBlock(callerIsReified);
-//		assert code.primitive() == null;
-//		final int numArgs = code.numArgs();
-//		final List<L2ReadBoxedOperand> slotsForLabel =
-//			new ArrayList<>(numSlots);
-//		for (int i = 1; i <= numArgs; i++)
-//		{
-//			slotsForLabel.add(generator.makeImmutable(readSlot(i)));
-//		}
-//		final L2ReadBoxedOperand nilTemp = generator.boxedConstant(nil);
-//		for (int i = numArgs + 1; i <= numSlots; i++)
-//		{
-//			slotsForLabel.add(nilTemp);  // already immutable
-//		}
-//		// Now create the actual label continuation and push it.
-//		stackp = oldStackp - 1;
-//		final A_Type continuationType =
-//			continuationTypeForFunctionType(code.functionType());
-//		final L2SemanticValue label = topFrame().label();
-//		final L2WriteBoxedOperand destinationRegister =
-//			generator.boxedWrite(label, restriction(continuationType, null));
-//
-//		// Now generate the reification instructions, ensuring that when
-//		// returning into the resulting continuation it will enter a block where
-//		// the slot registers are the new ones we just created.
-//		final L2WriteIntOperand writeOffset = generator.intWriteTemp(
-//			restrictionForType(int32(), UNBOXED_INT));
-//		final L2WriteBoxedOperand writeRegisterDump = generator.boxedWriteTemp(
-//			restrictionForType(ANY.o(), BOXED));
-//
-//		final L2BasicBlock fallThrough =
-//			generator.createBasicBlock("Caller is reified");
-//		addInstruction(
-//			L2_SAVE_ALL_AND_PC_TO_INT.instance,
-//			edgeTo(fallThrough),
-//			backEdgeTo(generator.afterOptionalInitialPrimitiveBlock),
-//			writeOffset,
-//			writeRegisterDump);
-//
-//		generator.startBlock(fallThrough);
-//		addInstruction(
-//			L2_CREATE_CONTINUATION.instance,
-//			generator.makeImmutable(getCurrentFunction()),
-//			generator.makeImmutable(getCurrentContinuation()),  // the caller
-//			new L2IntImmediateOperand(0),  // indicates a label.
-//			new L2IntImmediateOperand(numSlots + 1),  // empty stack
-//			new L2ReadBoxedVectorOperand(slotsForLabel),  // each immutable
-//			destinationRegister,
-//			generator.readInt(
-//				writeOffset.semanticValue(),
-//				generator.unreachablePcOperand().targetBlock()),
-//			generator.readBoxed(writeRegisterDump),
-//			new L2CommentOperand("Create a label continuation."));
-//		// Continue, with the label having been pushed.
-//		forceSlotRegister(
-//			stackp, instructionDecoder.pc(), currentManifest().read(label));
+		final Zone zone =
+			BEGIN_REIFICATION_FOR_LABEL.createZone("Reify caller");
+		final L2BasicBlock alreadyReifiedEdgeSplit = generator.createBasicBlock(
+			"already reified (edge split)");
+		final L2BasicBlock startReification = generator.createBasicBlock(
+			"start reification");
+		final L2BasicBlock onReification = generator.createBasicBlock(
+			"on reification", zone);
+		final L2BasicBlock reificationOfframp = generator.createBasicBlock(
+			"reification off-ramp", zone);
+		final L2BasicBlock afterReification = generator.createBasicBlock(
+			"after reification");
+		final L2BasicBlock callerIsReified = generator.createBasicBlock(
+			"caller is reified");
 
+		generator.addInstruction(
+			L2_JUMP_IF_ALREADY_REIFIED.instance,
+			edgeTo(alreadyReifiedEdgeSplit),
+			edgeTo(startReification));
+
+		generator.startBlock(alreadyReifiedEdgeSplit);
+		generator.addInstruction(
+			L2_JUMP.instance,
+			edgeTo(callerIsReified));
+
+		generator.startBlock(startReification);
+		generator.addInstruction(
+			L2_REIFY.instance,
+			new L2IntImmediateOperand(1),
+			new L2IntImmediateOperand(0),
+			new L2IntImmediateOperand(
+				StatisticCategory.PUSH_LABEL_IN_L2.ordinal()),
+			edgeTo(onReification));
+
+		generator.startBlock(onReification);
+		generator.addInstruction(
+			L2_ENTER_L2_CHUNK.instance,
+			new L2IntImmediateOperand(
+				ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
+			new L2CommentOperand(
+				"Transient, cannot be invalid."));
+		final L2WriteIntOperand tempOffset = generator.intWriteTemp(
+			restrictionForType(int32(), UNBOXED_INT));
+		final L2WriteBoxedOperand tempRegisterDump = generator.boxedWriteTemp(
+			restrictionForType(ANY.o(), BOXED));
+		generator.addInstruction(
+			L2_SAVE_ALL_AND_PC_TO_INT.instance,
+			edgeTo(reificationOfframp),
+			edgeTo(afterReification),
+			tempOffset,
+			tempRegisterDump);
+
+		generator.startBlock(reificationOfframp);
+		final L2WriteBoxedOperand tempCaller = generator.boxedWrite(
+			generator.topFrame.reifiedCaller(),
+			restrictionForType(mostGeneralContinuationType(), BOXED));
+		final L2WriteBoxedOperand tempFunction = generator.boxedWrite(
+			generator.topFrame.function(),
+			restrictionForType(mostGeneralFunctionType(), BOXED));
+		final L2WriteBoxedOperand dummyContinuation = generator.boxedWriteTemp(
+			restrictionForType(mostGeneralContinuationType(), BOXED));
+		generator.addInstruction(
+			L2_GET_CURRENT_CONTINUATION.instance,
+			tempCaller);
+		generator.addInstruction(
+			L2_GET_CURRENT_FUNCTION.instance,
+			tempFunction);
+		generator.addInstruction(
+			L2_CREATE_CONTINUATION.instance,
+			generator.readBoxed(tempFunction),
+			generator.readBoxed(tempCaller),
+			new L2IntImmediateOperand(Integer.MAX_VALUE),
+			new L2IntImmediateOperand(Integer.MAX_VALUE),
+			new L2ReadBoxedVectorOperand(emptyList()),
+			dummyContinuation,
+			generator.readInt(
+				tempOffset.semanticValue(),
+				generator.unreachablePcOperand().targetBlock()),
+			generator.readBoxed(tempRegisterDump),
+			new L2CommentOperand("Dummy reification continuation."));
+		generator.addInstruction(
+			L2_SET_CONTINUATION.instance,
+			generator.readBoxed(dummyContinuation));
+		generator.addInstruction(L2_RETURN_FROM_REIFICATION_HANDLER.instance);
+
+		generator.startBlock(afterReification);
+		generator.addInstruction(
+			L2_ENTER_L2_CHUNK.instance,
+			new L2IntImmediateOperand(
+				ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
+			new L2CommentOperand(
+				"Transient, cannot be invalid."));
+		generator.addInstruction(
+			L2_JUMP.instance,
+			edgeTo(callerIsReified));
+
+		generator.startBlock(callerIsReified);
+		generator.addInstruction(
+			L2_GET_CURRENT_CONTINUATION.instance,
+			originalRegisterWrite);
 	}
 
 	@Override

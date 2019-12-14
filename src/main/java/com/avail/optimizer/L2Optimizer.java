@@ -41,6 +41,7 @@ import com.avail.interpreter.levelTwo.operation.L2_JUMP;
 import com.avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE;
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
+import com.avail.interpreter.levelTwo.operation.L2_VIRTUAL_CREATE_LABEL;
 import com.avail.interpreter.levelTwo.operation.L2_VIRTUAL_REIFY;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
@@ -88,7 +89,7 @@ public final class L2Optimizer
 	 * Whether any {@link L2_VIRTUAL_REIFY} instructions were replaced since the
 	 * last time we cleared the flag.
 	 */
-	public boolean replacedAnyVirtualReifies = false;
+	public boolean replacedAnyPlaceholders = false;
 
 	/** Whether to sanity-check the graph between optimization steps. */
 	public static boolean shouldSanityCheck = false;
@@ -573,12 +574,15 @@ public final class L2Optimizer
 						// well.  At the moment, these don't exist.
 						reachableTargetEdges.addAll(instruction.targetEdges());
 					}
-
 				}
+			}
+			if (changed)
+			{
+				updateAllManifests();
+				computeLivenessAtEachEdge();
 			}
 		}
 		while (changed);
-		updateAllManifests();
 	}
 
 	/**
@@ -668,6 +672,16 @@ public final class L2Optimizer
 				candidateTargetEdges.iterator().next().targetBlock();
 			if (successor.predecessorEdgesCount() > 1)
 			{
+				// One last chance to postpone this instruction.  Some
+				// idempotent operations prefer to be replicated in this
+				// situation, to increase the chance that they can migrate
+				// somewhere that their cost is lower to compute.  See
+				// L2_VIRTUAL_REIFY.
+				if (instruction.operation().shouldReplicateIdempotently(
+					instruction))
+				{
+					return new HashSet<>(candidateTargetEdges);
+				}
 				return null;
 			}
 		}
@@ -700,19 +714,21 @@ public final class L2Optimizer
 	}
 
 	/**
-	 * Find any remaining occurrences of {@link L2_VIRTUAL_REIFY} and replace
-	 * each with a code sequence that reifies as needed, then produces the
-	 * caller.
+	 * Find any remaining occurrences of {@link L2_VIRTUAL_REIFY} or
+	 * {@link L2_VIRTUAL_CREATE_LABEL}, or any other {@link L2Instruction} using
+	 * an {@link L2Operation} that says it {@link L2Operation#isPlaceholder()}.
 	 *
-	 * If any {@link L2_VIRTUAL_REIFY} instructions were found and replaced, set
-	 * {@link #replacedAnyVirtualReifies}
+	 * <p>Replace the instruction with code it produces via
+	 * {@link L2Generator#replaceInstructionByGenerating(L2Instruction)}.</p>
+	 *
+	 * <p>If any placeholder instructions were found and replaced, set
+	 * {@link #replacedAnyPlaceholders}.</p>
 	 */
-	void replaceRemainingVirtualReifications ()
+	void replaceVirtualInstructions ()
 	{
-		replacedAnyVirtualReifies = false;
-		// Since each expansion of an L2_VIRTUAL_REIFY introduces multiple basic
-		// blocks, it's best to start the search at the beginning again after a
-		// substitution.
+		replacedAnyPlaceholders = false;
+		// Since placeholder expansions can introduce new basic blocks, it's
+		// best to start the search at the beginning again after a substitution.
 		outer:
 		while (true)
 		{
@@ -720,10 +736,10 @@ public final class L2Optimizer
 			{
 				for (final L2Instruction instruction : block.instructions())
 				{
-					if (instruction.operation() == L2_VIRTUAL_REIFY.instance)
+					if (instruction.operation().isPlaceholder())
 					{
-						devirtualizeReificationAt(instruction);
-						replacedAnyVirtualReifies = true;
+						generator.replaceInstructionByGenerating(instruction);
+						replacedAnyPlaceholders = true;
 						continue outer;
 					}
 				}
@@ -731,17 +747,6 @@ public final class L2Optimizer
 			// There were no replacements this round, so we're done.
 			break;
 		}
-	}
-
-	/**
-	 * Find all remaining occurrences of {@link L2_VIRTUAL_REIFY} instructions
-	 * and replace them with suitable substitutes.
-	 *
-	 * @param instruction T
-	 */
-	private void devirtualizeReificationAt (final L2Instruction instruction)
-	{
-		generator.replaceInstructionByGenerating(instruction);
 	}
 
 	/**
@@ -1413,13 +1418,15 @@ public final class L2Optimizer
 		 * Start by eliminating debris created during the initial L1 → L2
 		 * translation.
 		 */
-		REMOVE_DEAD_CODE_1(L2Optimizer::removeDeadCode),
+		REMOVE_DEAD_CODE_1(
+			L2Optimizer::removeDeadCode),
 
 		/**
 		 * Transform into SSA edge-split form, to avoid inserting redundant
 		 * phi-moves.
 		 */
-		BECOME_EDGE_SPLIT_SSA(L2Optimizer::transformToEdgeSplitSSA),
+		BECOME_EDGE_SPLIT_SSA(
+			L2Optimizer::transformToEdgeSplitSSA),
 
 		/**
 		 * Determine which registers are sometimes-live-in and/or always-live-in
@@ -1427,7 +1434,8 @@ public final class L2Optimizer
 		 * have their outputs consumed in the same block, and aren't
 		 * always-live-in in every successor.
 		 */
-		COMPUTE_LIVENESS_AT_EDGES(L2Optimizer::computeLivenessAtEachEdge),
+		COMPUTE_LIVENESS_AT_EDGES(
+			L2Optimizer::computeLivenessAtEachEdge),
 
 		/**
 		 * Try to move any side-effect-less instructions to later points in the
@@ -1447,12 +1455,28 @@ public final class L2Optimizer
 		 * If there are any {@link L2_VIRTUAL_REIFY} instructions still extant,
 		 * replace them with code that will actually produce the reified caller.
 		 */
-		REPLACE_REMAINING_VIRTUAL_REIFICATIONS(
-			L2Optimizer::replaceRemainingVirtualReifications),
+		REPLACE_PLACEHOLDER_INSTRUCTIONS(
+			L2Optimizer::replaceVirtualInstructions),
 
 		/**
-		 * If {@link #REPLACE_REMAINING_VIRTUAL_REIFICATIONS} made any changes,
-		 * give another try at pushing conditionally used values.  Otherwise do
+		 * Placeholder instructions may have been replaced with new subgraphs of
+		 * generated code.  Some of that might be dead, so clean it up,
+		 * otherwise the {@link #postponeConditionallyUsedValues()} might get
+		 * upset about an instruction being in a place with no downstream uses.
+		 */
+		REMOVE_DEAD_CODE_AFTER_REPLACEMENTS(
+			L2Optimizer::removeDeadCode),
+
+		/**
+		 * Recompute liveness information about all registers, now that dead
+		 * code has been eliminated after placeholder replacements.
+		 */
+		COMPUTE_LIVENESS_AT_EDGES_2(
+			L2Optimizer::computeLivenessAtEachEdge),
+
+		/**
+		 * If {@link #REPLACE_PLACEHOLDER_INSTRUCTIONS} made any changes,
+		 * give one more try at pushing conditionally used values.  Otherwise do
 		 * nothing.
 		 */
 		POSTPONE_CONDITIONALLY_USED_VALUES_2(

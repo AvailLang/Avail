@@ -295,7 +295,7 @@ extends L2Operand
 			new L2Instruction(
 				newBlock,
 				L2_JUMP.instance,
-				new L2PcOperand(newBlock, false, manifestCopy)));
+				new L2PcOperand(newBlock, isBackward, manifestCopy)));
 		final L2Instruction newJump = newBlock.instructions().get(0);
 		final L2PcOperand jumpEdge = L2_JUMP.jumpTarget(newJump);
 
@@ -306,6 +306,7 @@ extends L2Operand
 		final L2BasicBlock finalTarget = targetBlock;
 		targetBlock = jumpEdge.targetBlock;
 		jumpEdge.targetBlock = finalTarget;
+		isBackward = false;
 
 		// Fix up the blocks' predecessors edges.
 		newBlock.replacePredecessorEdge(jumpEdge, this);

@@ -231,7 +231,8 @@ extends L2ControlFlowOperation
 		final L2Operand[] operands,
 		final L2Instruction instruction)
 	{
-		assert operands.length == explicitNamedOperandTypes.length;
+		assert operands.length == explicitNamedOperandTypes.length
+			|| operands.length == namedOperandTypes.length;
 		final int newSize = namedOperandTypes.length;  // Includes counters
 		final L2Operand[] newOperands = copyOf(operands, newSize);
 		for (int i = operands.length; i < newSize; i++)

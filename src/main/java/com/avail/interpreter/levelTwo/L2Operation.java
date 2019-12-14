@@ -451,6 +451,18 @@ public abstract class L2Operation
 	}
 
 	/**
+	 * Answer whether this operation is a placeholder, and should be replaced
+	 * using {@link L2Generator#replaceInstructionByGenerating(L2Instruction)}.
+	 *
+	 * @return Whether the {@link L2Instruction} using this operation is a
+	 *         placeholder, subject to later substitution.
+	 */
+	public boolean isPlaceholder ()
+	{
+		return false;
+	}
+
+	/**
 	 * This is the operation for the given instruction, which was just added to
 	 * its basic block.  Do any post-processing appropriate for having added
 	 * the instruction.
@@ -778,6 +790,26 @@ public abstract class L2Operation
 		final L2Instruction instruction)
 	{
 		return operands;
+	}
+
+	/**
+	 * Some instructions are idempotent, meaning that they have the same effect
+	 * if run two or more times as if they had run only once.  There are cases
+	 * where it might be profitable to introduce redundant computation of the
+	 * value, versus a policy of strict avoidance of any redundancy.  This
+	 * method decides when that should happen.
+	 *
+	 * @param instruction
+	 *        The {@link L2Instruction} using this operation.
+	 * @return Whether to replicate this instruction into multiple successor
+	 *         blocks, even if some successors have multiple incoming edges
+	 *         which might not all need the value.
+	 */
+	public boolean shouldReplicateIdempotently (final L2Instruction instruction)
+	{
+		// Normally, respect the importance of partial redundancy elimination.
+		// Also, plenty of operations aren't idempotent.
+		return false;
 	}
 
 	/**

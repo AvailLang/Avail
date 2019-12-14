@@ -211,7 +211,7 @@ public final class L2Generator
 	final L2BasicBlock initialBlock;
 
 	/** The block at which to resume execution after a failed primitive. */
-	final L2BasicBlock afterOptionalInitialPrimitiveBlock =
+	public final L2BasicBlock afterOptionalInitialPrimitiveBlock =
 		createLoopHeadBlock("After optional primitive");
 
 	/** The {@link L2BasicBlock} that code is currently being generated into. */
