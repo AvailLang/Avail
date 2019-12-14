@@ -34,6 +34,8 @@ package com.avail.optimizer;
 
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteOperand;
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.utility.Graph;
@@ -184,8 +186,9 @@ public final class L2RegisterColorer
 			// ensuring interference between a register and its move-buddy's
 			// interfering neighbors.
 			registerBeingTraced = reg;
-			for (final L2Instruction instruction : reg.uses())
+			for (final L2ReadOperand<?> read : reg.uses())
 			{
+				final L2Instruction instruction = read.instruction();
 				if (instruction.operation().isPhi())
 				{
 					final L2_PHI_PSEUDO_OPERATION<?, ?, ?> phiOperation =
@@ -203,8 +206,8 @@ public final class L2RegisterColorer
 				else
 				{
 					processLiveInAtStatement(
-						instruction.basicBlock,
-						instruction.basicBlock.instructions().indexOf(
+						instruction.basicBlock(),
+						instruction.basicBlock().instructions().indexOf(
 							instruction));
 				}
 				// Process the queue until empty.
@@ -314,8 +317,9 @@ public final class L2RegisterColorer
 	{
 		for (final L2Register reg : allRegisters)
 		{
-			for (final L2Instruction instruction : reg.definitions())
+			for (final L2WriteOperand<?> write : reg.definitions())
 			{
+				final L2Instruction instruction = write.instruction();
 				if (instruction.operation().isMove())
 				{
 					// The source and destination registers shouldn't be

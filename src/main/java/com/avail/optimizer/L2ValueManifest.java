@@ -485,6 +485,7 @@ public final class L2ValueManifest
 		final L2SemanticValue semanticValue,
 		final RegisterKind registerKind)
 	{
+		//noinspection unchecked
 		return definitions.get(semanticValueToSynonym(semanticValue)).stream()
 			.filter(writer -> writer.registerKind() == registerKind)
 			.findFirst()
@@ -722,8 +723,6 @@ public final class L2ValueManifest
 	public void recordDefinitionForInsertion (
 		final L2WriteOperand<?> writer)
 	{
-		assert writer.instructionHasBeenEmitted();
-
 		final L2SemanticValue semanticValue = writer.semanticValue();
 		if (hasSemanticValue(semanticValue))
 		{
@@ -845,15 +844,25 @@ public final class L2ValueManifest
 	 *        this point, even if the values always come from the same source.
 	 *        This is needed for loop heads, where the back-edges only show up
 	 *        after that basic block has already produced instructions.
+	 * @param suppressAllPhis
+	 *        Whether to suppress creation of phis.  This is only used during
+	 *        splicing of new code into an existing graph via
+	 *        {@link L2Generator#replaceInstructionByGenerating(L2Instruction)},
+	 *        which takes responsibility for replaying existing phis to
+	 *        reconstitute the {@code L2ValueManifest} at the position that the
+	 *        new code is being inserted. This flag and {@code forcePhis} are
+	 *        mutually exclusive.
 	 */
 	void populateFromIntersection (
 		final List<L2ValueManifest> manifests,
 		final L2Generator generator,
-		final boolean forcePhis)
+		final boolean forcePhis,
+		final boolean suppressAllPhis)
 	{
 		assert semanticValueToSynonym.isEmpty();
 		assert synonymRestrictions.isEmpty();
 		assert definitions.isEmpty();
+		assert !forcePhis || !suppressAllPhis;
 		final int manifestsSize = manifests.size();
 		if (manifestsSize == 0)
 		{
@@ -1089,5 +1098,99 @@ public final class L2ValueManifest
 					restriction);
 			});
 		return newManifest;
+	}
+
+	/**
+	 * Replace all <em>{@link #definitions}</em> present as keys in the given
+	 * map with their associated values.
+	 *
+	 * @param writesMap
+	 *        The replacement mapping between {@link L2WriteOperand}s.
+	 */
+	public void replaceWriteDefinitions (
+		final Map<L2WriteOperand<?>, L2WriteOperand<?>> writesMap)
+	{
+		definitions.values().forEach(
+			definitionList ->
+			{
+				for (int i = 0, limit = definitionList.size(); i < limit; i++)
+				{
+					final L2WriteOperand<?> def = definitionList.get(i);
+					if (writesMap.containsKey(def))
+					{
+						definitionList.set(i, writesMap.get(def));
+					}
+				}
+			}
+		);
+	}
+
+	/**
+	 * Produce all live definitions of the synonym having this semantic value.
+	 *
+	 * @param pickSemanticValue
+	 *        The {@link L2SemanticValue} used to look up an {@link L2Synonym},
+	 *        which is then used to look up all visible {@link L2WriteOperand}s
+	 *        that supply the value for the synonym.
+	 * @return A sequence of {@link L2WriteOperand}s that are visible
+	 *         definitions of the semantic value's synonym.
+	 */
+	public Iterable<L2WriteOperand<?>> definitionsForDescribing (
+		final L2SemanticValue pickSemanticValue)
+	{
+		return definitions.get(semanticValueToSynonym.get(pickSemanticValue));
+	}
+
+	/**
+	 * Remove these {@link L2WriteOperand}s as definitions from this manifest.
+	 *
+	 * @param writesToRemove
+	 *        The {@link L2WriteOperand}s that should no longer be listed in
+	 *        my {@link #definitions}.
+	 */
+	public void removeDefinitions (final Set<L2WriteOperand<?>> writesToRemove)
+	{
+		// Iterate over a copy of the map, so we can remove from it.
+		new HashMap<>(definitions).forEach(
+			(synonym, definitionList) ->
+			{
+				definitionList.removeAll(writesToRemove);
+				if (definitionList.isEmpty())
+				{
+					// Remove this synonym and any semantic values within it.
+					definitions.remove(synonym);
+					synonymRestrictions.remove(synonym);
+					semanticValueToSynonym.keySet().removeAll(
+						synonym.semanticValues());
+				}
+			}
+		);
+	}
+
+	/**
+	 * Retain as definitions only those {@link L2WriteOperand}s that are in the
+	 * given {@link Set}, removing the rest.
+	 *
+	 * @param writesToRetain
+	 *        The {@link L2WriteOperand}s that can be retained by the list of
+	 *        definitions as all others are removed.
+	 */
+	public void retainDefinitions (final Set<L2WriteOperand<?>> writesToRetain)
+	{
+		// Iterate over a copy of the map, so we can remove from it.
+		new HashMap<>(definitions).forEach(
+			(synonym, definitionList) ->
+			{
+				definitionList.retainAll(writesToRetain);
+				if (definitionList.isEmpty())
+				{
+					// Remove this synonym and any semantic values within it.
+					definitions.remove(synonym);
+					synonymRestrictions.remove(synonym);
+					semanticValueToSynonym.keySet().removeAll(
+						synonym.semanticValues());
+				}
+			}
+		);
 	}
 }

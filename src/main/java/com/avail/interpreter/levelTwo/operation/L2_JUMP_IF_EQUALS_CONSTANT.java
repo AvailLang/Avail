@@ -98,10 +98,10 @@ extends L2ConditionalJump
 		final L2PcOperand ifNotEqual = instruction.operand(3);
 
 		// Ensure the new write ends up in the same synonym as the source.
-		reader.instructionWasAdded(instruction, manifest);
-		constant.instructionWasAdded(instruction, manifest);
-		ifEqual.instructionWasAdded(instruction, manifest);
-		ifNotEqual.instructionWasAdded(instruction, manifest);
+		reader.instructionWasAdded(manifest);
+		constant.instructionWasAdded(manifest);
+		ifEqual.instructionWasAdded(manifest);
+		ifNotEqual.instructionWasAdded(manifest);
 
 		// Restrict the value to the constant along the ifEqual branch, and
 		// exclude the constant along the ifNotEqual branch.

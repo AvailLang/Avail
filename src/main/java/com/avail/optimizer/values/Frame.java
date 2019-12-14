@@ -196,6 +196,18 @@ public final class Frame
 	}
 
 	/**
+	 * Answer an {@link L2SemanticValue} that represents the reified caller
+	 * continuation.
+	 *
+	 * @return The reified caller (an {@link A_Continuation} at runtime) of this
+	 *         frame.
+	 */
+	public L2SemanticValue reifiedCaller ()
+	{
+		return new L2SemanticCaller(this);
+	}
+
+	/**
 	 * Transform the receiver via the given {@link Function}.
 	 *
 	 * @param topFrameReplacement

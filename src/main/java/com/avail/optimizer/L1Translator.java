@@ -111,7 +111,8 @@ import static com.avail.interpreter.Primitive.Result.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.*;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.*;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.*;
-import static com.avail.optimizer.L2ControlFlowGraph.ZoneType.*;
+import static com.avail.optimizer.L2ControlFlowGraph.ZoneType.BEGIN_REIFICATION_FOR_INTERRUPT;
+import static com.avail.optimizer.L2ControlFlowGraph.ZoneType.PROPAGATE_REIFICATION_FOR_INVOKE;
 import static com.avail.optimizer.L2Generator.*;
 import static com.avail.optimizer.L2Generator.OptimizationLevel.UNOPTIMIZED;
 import static com.avail.performance.StatisticReport.L2_OPTIMIZATION_TIME;
@@ -473,16 +474,44 @@ public final class L1Translator
 	 * Write instructions to extract the current reified continuation, and
 	 * answer an {@link L2ReadBoxedOperand} for the register that will hold
 	 * the continuation afterward.
+	 *
+	 * <p>Since the current reified continuation is sometimes for the current
+	 * frame and sometimes for the caller, the passed semanticValue indicates
+	 * which {@link Frame} it's the {@link Frame#reifiedCaller()} of, if
+	 * any.</p>
+	 *
+	 * <p>If reification is needed here, output an {@link L2_VIRTUAL_REIFY}. If
+	 * this survives optimization by virtue of its result (the reified caller)
+	 * still being consumed, it will be transformed into several basic blocks
+	 * and several instructions by one of the optimization passes.</p>
+	 *
+	 * @return An {@link L2ReadBoxedOperand} that produces the reified caller.
 	 */
 	private L2ReadBoxedOperand getCurrentContinuation ()
 	{
-		final L2WriteBoxedOperand continuationTempReg =
-			generator.boxedWriteTemp(
+		final L2SemanticValue reifiedCaller = topFrame().reifiedCaller();
+		final @Nullable L2SemanticValue equivalent =
+			currentManifest().equivalentSemanticValue(reifiedCaller);
+		if (equivalent != null)
+		{
+			// No need to extract it again, just answer the one we already have.
+			// That's because stack reification is idempotent.  HOWEVER, since
+			// we might reuse the same label it's crucial to make it immutable
+			// at its creation site, below.
+			return generator.readBoxed(equivalent);
+		}
+		// We need to reify to extract it.
+		final L2WriteBoxedOperand continuationWrite =
+			generator.boxedWrite(
+				reifiedCaller,
 				restrictionForType(mostGeneralContinuationType(), BOXED));
 		addInstruction(
-			L2_GET_CURRENT_CONTINUATION.instance,
-			continuationTempReg);
-		return readBoxed(continuationTempReg);
+			L2_VIRTUAL_REIFY.instance,
+			new L2CommentOperand("Get reified caller"),
+			continuationWrite);
+		// Force the caller to be immutable, in case it's reused by a subsequent
+		// call to getCurrentContinuation.
+		return generator.makeImmutable(readBoxed(continuationWrite));
 	}
 
 	/**
@@ -653,19 +682,63 @@ public final class L1Translator
 			writeRegisterDump);
 
 		generator.startBlock(fallThrough);
-		addInstruction(
-			L2_CREATE_CONTINUATION.instance,
-			getCurrentFunction(),
-			getCurrentContinuation(),
-			new L2IntImmediateOperand(instructionDecoder.pc()),
-			new L2IntImmediateOperand(stackp),
-			new L2ReadBoxedVectorOperand(asList(readSlotsBefore)),
-			newContinuationWrite,
-			generator.readInt(
-				writeOffset.semanticValue(),
-				generator.unreachablePcOperand().targetBlock()),
-			generator.readBoxed(writeRegisterDump),
-			new L2CommentOperand("Create a reification continuation."));
+		if (typeOfEntryPoint == TRANSIENT)
+		{
+			// L1 can never see this continuation, so it can be minimal.  Also,
+			// we're guaranteed to be in a reification handler at this point, so
+			// we can just fetch the reifiedContinuation without worrying about
+			// triggering another reification (which would be wrong).
+			final L2ReadBoxedOperand readReifiedCaller =
+				getCurrentContinuation();
+			addInstruction(
+				L2_CREATE_CONTINUATION.instance,
+				getCurrentFunction(),
+				readReifiedCaller,
+				new L2IntImmediateOperand(Integer.MAX_VALUE),
+				new L2IntImmediateOperand(Integer.MAX_VALUE),
+				new L2ReadBoxedVectorOperand(emptyList()),
+				newContinuationWrite,
+				generator.readInt(
+					writeOffset.semanticValue(),
+					generator.unreachablePcOperand().targetBlock()),
+				generator.readBoxed(writeRegisterDump),
+				new L2CommentOperand(
+					"Create a dummy reification continuation."));
+		}
+		else
+		{
+			// We're in a reification handler, so the reifiedContinuation in the
+			// interpreter reflects the current frame's caller's continuation.
+			// Even though the caller might be in some register from a previous
+			// reification, decrease the register pressure by just grabbing it
+			// from the interpreter again.
+			final L2WriteBoxedOperand writeReifiedCaller =
+				generator.boxedWrite(
+					topFrame().reifiedCaller(),
+					restrictionForType(mostGeneralContinuationType(), BOXED));
+			addInstruction(
+				L2_GET_CURRENT_CONTINUATION.instance,
+				writeReifiedCaller);
+			final L2ReadBoxedOperand readReifiedCaller =
+				readBoxed(writeReifiedCaller);
+
+			// Make an L1-complete continuation, since an invalidation can cause
+			// it to resume in the L2Chunk#unoptimizedChunk, which can only see
+			// L1 content.
+			addInstruction(
+				L2_CREATE_CONTINUATION.instance,
+				getCurrentFunction(),
+				readReifiedCaller,
+				new L2IntImmediateOperand(instructionDecoder.pc()),
+				new L2IntImmediateOperand(stackp),
+				new L2ReadBoxedVectorOperand(asList(readSlotsBefore)),
+				newContinuationWrite,
+				generator.readInt(
+					writeOffset.semanticValue(),
+					generator.unreachablePcOperand().targetBlock()),
+				generator.readBoxed(writeRegisterDump),
+				new L2CommentOperand("Create a reification continuation."));
+		}
 		addInstruction(
 			L2_SET_CONTINUATION.instance,
 			generator.readBoxed(newContinuationWrite));
@@ -3179,7 +3252,8 @@ public final class L1Translator
 			captureNanos() - beforeL1Naive,
 			interpreter.interpreterIndex);
 
-		generator.controlFlowGraph.optimize(interpreter);
+		final L2Optimizer optimizer = new L2Optimizer(generator);
+		optimizer.optimize(interpreter);
 
 		final long beforeChunkGeneration = captureNanos();
 		generator.createChunk(code);
@@ -3433,50 +3507,29 @@ public final class L1Translator
 	@Override
 	public void L1Ext_doPushLabel ()
 	{
-		// Force reification of the current continuation and all callers, then
-		// resume that continuation right away, which also makes it available.
-		// Create a new continuation like it, with only the caller, function,
-		// and arguments present, and having an empty stack and an L1 pc of 0.
-		// Then push that new continuation on the virtual stack.
+		// Force reification of the current continuation and all callers, if
+		// they're not already known to be reified.  The continuation built for
+		// the current frame is a dummy with no L1 content (i.e., no stack
+		// slots). When the callers have all been reified, the dummy
+		// continuation is resumed, restoring all live registers.  It then
+		// creates another continuation to exit the reification, once again
+		// using a dummy continuation.  When it exits the reification call, the
+		// next thing the fiber will do is continue at the second dummy's target
+		// offset, having restored all live registers again.  At that point, the
+		// caller is known to be reified, and simple label construction can take
+		// place without further reification.  Push that label continuation on
+		// the virtual stack.
 		final int oldStackp = stackp;
 		// The initially constructed continuation is always immediately resumed,
 		// so this should never be observed.
 		stackp = Integer.MAX_VALUE;
-		final L2BasicBlock callerIsReified =
-			generator.createBasicBlock("caller is reified");
-		final L2BasicBlock notYetReified =
-			generator.createBasicBlock("not yet reified");
-		addInstruction(
-			L2_JUMP_IF_ALREADY_REIFIED.instance,
-			edgeTo(callerIsReified),
-			edgeTo(notYetReified));
 
-		generator.startBlock(notYetReified);
-		final L2BasicBlock onReification = generator.createBasicBlock(
-			"on reification",
-			BEGIN_REIFICATION_FOR_LABEL.createZone(
-				"Reify caller for pushing label"));
-		addInstruction(
-			L2_REIFY.instance,
-			new L2IntImmediateOperand(1),
-			new L2IntImmediateOperand(0),
-			new L2IntImmediateOperand(
-				StatisticCategory.PUSH_LABEL_IN_L2.ordinal()),
-			edgeTo(onReification));
+		final L2ReadBoxedOperand reifiedCaller = getCurrentContinuation();
 
-		generator.startBlock(onReification);
-		generator.addInstruction(
-			L2_ENTER_L2_CHUNK.instance,
-			new L2IntImmediateOperand(TRANSIENT.offsetInDefaultChunk),
-			new L2CommentOperand(
-				"Transient, before label creation - cannot be invalid."));
-		reify(null, UNREACHABLE);
-		// We just continued the reified continuation, having exploded the
-		// continuation into slot registers.  Create a label based on it, but
-		// capturing only the arguments (with pc=0, stack=empty).
-		generator.addInstruction(L2_JUMP.instance, edgeTo(callerIsReified));
+		// We just ensured the caller is reified, and captured in reifiedCaller.
+		// Create a label continuation whose caller is the reified caller, but
+		// only capturing arguments (with pc=0 and stack=empty).
 
-		generator.startBlock(callerIsReified);
 		assert code.primitive() == null;
 		final int numArgs = code.numArgs();
 		final List<L2ReadBoxedOperand> slotsForLabel =
@@ -3519,7 +3572,7 @@ public final class L1Translator
 		addInstruction(
 			L2_CREATE_CONTINUATION.instance,
 			generator.makeImmutable(getCurrentFunction()),
-			generator.makeImmutable(getCurrentContinuation()),  // the caller
+			generator.makeImmutable(reifiedCaller),  // the caller
 			new L2IntImmediateOperand(0),  // indicates a label.
 			new L2IntImmediateOperand(numSlots + 1),  // empty stack
 			new L2ReadBoxedVectorOperand(slotsForLabel),  // each immutable

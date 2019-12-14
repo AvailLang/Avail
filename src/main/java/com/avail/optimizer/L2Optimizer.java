@@ -36,14 +36,12 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable;
-import com.avail.interpreter.levelTwo.operand.L2Operand;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteOperand;
+import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP;
+import com.avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE;
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
+import com.avail.interpreter.levelTwo.operation.L2_VIRTUAL_REIFY;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
 import com.avail.performance.Statistic;
@@ -63,8 +61,7 @@ import static com.avail.AvailRuntimeSupport.captureNanos;
 import static com.avail.utility.Casts.cast;
 import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.Strings.increaseIndentation;
-import static java.util.Collections.disjoint;
-import static java.util.Collections.emptySet;
+import static java.util.Collections.*;
 
 /**
  * An {@code L2Optimizer} optimizes its {@link L2ControlFlowGraph}.
@@ -75,11 +72,23 @@ import static java.util.Collections.emptySet;
  */
 public final class L2Optimizer
 {
+	/**
+	 * An {@link L2Generator} used for splicing short sequences of code as part
+	 * of optimization.
+	 */
+	public final L2Generator generator;
+
 	/** The {@link L2ControlFlowGraph} to optimize. */
 	private final L2ControlFlowGraph controlFlowGraph;
 
 	/** The mutable list of blocks taken from the {@link #controlFlowGraph}. */
 	public final List<L2BasicBlock> blocks;
+
+	/**
+	 * Whether any {@link L2_VIRTUAL_REIFY} instructions were replaced since the
+	 * last time we cleared the flag.
+	 */
+	public boolean replacedAnyVirtualReifies = false;
 
 	/** Whether to sanity-check the graph between optimization steps. */
 	public static boolean shouldSanityCheck = false;
@@ -96,19 +105,15 @@ public final class L2Optimizer
 	 * Create an optimizer for the given {@link L2ControlFlowGraph} and its
 	 * mutable {@link List} of {@link L2BasicBlock}s.
 	 *
-	 * @param controlFlowGraph
-	 *        The {@link L2ControlFlowGraph} to optimize.
-	 * @param blocks
-	 *        The mutable {@link List} of {@link L2BasicBlock}s from the control
-	 *        flow graph.
+	 * @param generator
+	 *        An {@link L2Generator} used for splicing in short sequences of new
+	 *        code as part of optimization.
 	 */
-	L2Optimizer (
-		final L2ControlFlowGraph controlFlowGraph,
-		final List<L2BasicBlock> blocks)
+	L2Optimizer (final L2Generator generator)
 	{
-		this.controlFlowGraph = controlFlowGraph;
-		//noinspection AssignmentOrReturnOfFieldWithMutableType
-		this.blocks = blocks;
+		this.generator = generator;
+		this.controlFlowGraph = generator.controlFlowGraph;
+		this.blocks = controlFlowGraph.basicBlockOrder;
 	}
 
 	/**
@@ -146,14 +151,17 @@ public final class L2Optimizer
 		}
 		final boolean changed = blocks.retainAll(reachableBlocks);
 		// See if any blocks no longer need to be a loop head.
-		for (final L2BasicBlock block : blocks)
+		if (changed)
 		{
-			if (block.isLoopHead
-				&& block.predecessorEdgesCopy().stream()
-					.noneMatch(L2PcOperand::isBackward))
+			for (final L2BasicBlock block : blocks)
 			{
-				// It's a loop head that has no back-edges pointing to it.
-				block.isLoopHead = false;
+				if (block.isLoopHead
+					&& block.predecessorEdgesCopy().stream()
+						.noneMatch(L2PcOperand::isBackward))
+				{
+					// It's a loop head that has no back-edges pointing to it.
+					block.isLoopHead = false;
+				}
 			}
 		}
 		return changed;
@@ -188,12 +196,13 @@ public final class L2Optimizer
 			if (!neededInstructions.contains(instruction))
 			{
 				neededInstructions.add(instruction);
-				for (final L2Register sourceRegister
-					: instruction.sourceRegisters())
+				for (final L2Register sourceRegister :
+					instruction.sourceRegisters())
 				{
 					// Assume all definitions are needed, regardless of control
 					// flow.
-					instructionsToVisit.addAll(sourceRegister.definitions());
+					sourceRegister.definitions().forEach(
+						write -> instructionsToVisit.add(write.instruction()));
 				}
 			}
 		}
@@ -233,15 +242,35 @@ public final class L2Optimizer
 						instruction.justRemoved();
 						if (replacement.operation() == L2_JUMP.instance)
 						{
-							final L2PcOperand target =
-								L2_JUMP.jumpTarget(replacement);
-							replacement.justInserted(target.manifest());
+							replacement.justInserted();
 						}
 					}
 				}
 			}
 		}
+		if (anyRemoved)
+		{
+			updateAllManifests();
+		}
 		return anyRemoved;
+	}
+
+	/**
+	 * Visit all manifests, retaining only the definitions that are still
+	 * written to by live code.
+	 */
+	private void updateAllManifests ()
+	{
+		// Visit each edge's manifest, removing from its definitions lists all
+		// writes from removed instructions.
+		final Set<L2WriteOperand<?>> writesToKeep = new HashSet<>(100);
+		blocks.forEach(
+			block -> block.instructions().forEach(
+				instruction ->
+					writesToKeep.addAll(instruction.writeOperands())));
+		blocks.forEach(
+			block -> block.successorEdgesIterator().forEachRemaining(
+				edge -> edge.manifest().retainDefinitions(writesToKeep)));
 	}
 
 	/**
@@ -429,8 +458,6 @@ public final class L2Optimizer
 			changed = false;
 			for (final L2BasicBlock block : blocks)
 			{
-				// Copy the instructions list, since instructions may be removed
-				// from it as we iterate.
 				final Set<L2Register> registersConsumedLaterInBlock =
 					new HashSet<>();
 				int dependentReadsLaterInBlock = 0;
@@ -466,8 +493,36 @@ public final class L2Optimizer
 					{
 						assert !edgesToMoveThrough.isEmpty();
 						changed = true;
+						block.instructions().remove(instruction);
+						instruction.justRemoved();
+						final List<L2WriteOperand<?>> writesList =
+							instruction.writeOperands();
+						final Set<L2WriteOperand<?>> writesSet =
+							writesList.isEmpty()
+								? emptySet()
+								: writesList.size() == 1
+									? singleton(writesList.get(0))
+									: new HashSet<>(writesList);
 						for (final L2PcOperand edge : edgesToMoveThrough)
 						{
+							if (!writesSet.isEmpty())
+							{
+								edge.manifest().removeDefinitions(writesSet);
+							}
+							if (operation == L2_MAKE_IMMUTABLE.instance)
+							{
+								// The makeImmutable caused the writes that feed
+								// it to be made inaccessible.  Now that it has
+								// moved across the edge, make those writes
+								// accessible again along the edge.
+								final L2ReadBoxedOperand mutableRead =
+									L2_MAKE_IMMUTABLE.sourceOfImmutable(
+										instruction);
+								final L2WriteBoxedOperand mutableDefinition =
+									cast(mutableRead.definition());
+								edge.manifest().recordDefinitionForInsertion(
+									mutableDefinition);
+							}
 							final L2BasicBlock destinationBlock =
 								edge.targetBlock();
 							final L2Instruction newInstruction =
@@ -478,8 +533,7 @@ public final class L2Optimizer
 							destinationBlock.insertInstruction(
 								destinationBlock.instructions().get(0)
 									.isEntryPoint() ? 1 : 0,
-								newInstruction,
-								edge.manifest());
+								newInstruction);
 							// None of the registers defined by the instruction
 							// should be live-in any more at the edge.
 							edge.sometimesLiveInRegisters.removeAll(
@@ -491,8 +545,6 @@ public final class L2Optimizer
 							edge.alwaysLiveInRegisters.addAll(
 								newInstruction.sourceRegisters());
 						}
-						block.instructions().remove(instruction);
-						instruction.justRemoved();
 						// We moved the instruction *just* out of the block, so
 						// when we move prior instructions, they'll still end up
 						// before this one.  Therefore, don't track its reads.
@@ -526,6 +578,7 @@ public final class L2Optimizer
 			}
 		}
 		while (changed);
+		updateAllManifests();
 	}
 
 	/**
@@ -627,10 +680,13 @@ public final class L2Optimizer
 				: "CFG is not in edge-split form";
 			if (!edge.alwaysLiveInRegisters.containsAll(written))
 			{
+				// There's an edge that it shouldn't flow to.
 				shouldMoveInstruction = true;
 			}
 			if (!disjoint(edge.sometimesLiveInRegisters, written))
 			{
+				// There's an edge that's only sometimes live-in.
+				shouldMoveInstruction = true;
 				destinations.add(edge);
 			}
 		}
@@ -641,6 +697,51 @@ public final class L2Optimizer
 		}
 		assert !destinations.isEmpty();
 		return destinations;
+	}
+
+	/**
+	 * Find any remaining occurrences of {@link L2_VIRTUAL_REIFY} and replace
+	 * each with a code sequence that reifies as needed, then produces the
+	 * caller.
+	 *
+	 * If any {@link L2_VIRTUAL_REIFY} instructions were found and replaced, set
+	 * {@link #replacedAnyVirtualReifies}
+	 */
+	void replaceRemainingVirtualReifications ()
+	{
+		replacedAnyVirtualReifies = false;
+		// Since each expansion of an L2_VIRTUAL_REIFY introduces multiple basic
+		// blocks, it's best to start the search at the beginning again after a
+		// substitution.
+		outer:
+		while (true)
+		{
+			for (final L2BasicBlock block : blocks)
+			{
+				for (final L2Instruction instruction : block.instructions())
+				{
+					if (instruction.operation() == L2_VIRTUAL_REIFY.instance)
+					{
+						devirtualizeReificationAt(instruction);
+						replacedAnyVirtualReifies = true;
+						continue outer;
+					}
+				}
+			}
+			// There were no replacements this round, so we're done.
+			break;
+		}
+	}
+
+	/**
+	 * Find all remaining occurrences of {@link L2_VIRTUAL_REIFY} instructions
+	 * and replace them with suitable substitutes.
+	 *
+	 * @param instruction T
+	 */
+	private void devirtualizeReificationAt (final L2Instruction instruction)
+	{
+		generator.replaceInstructionByGenerating(instruction);
 	}
 
 	/**
@@ -688,11 +789,11 @@ public final class L2Optimizer
 					final L2Instruction move =
 						new L2Instruction(
 							predecessor,
-							sourceRead.phiMoveOperation(),
+							phiOperation.moveOperation,
 							sourceRead,
 							targetWriter.clone());
 					predecessor.insertInstruction(
-						instructions.size() - 1, move, edge.manifest());
+						instructions.size() - 1, move);
 				}
 				// Eliminate the phi function itself.
 				instructionIterator.remove();
@@ -1067,27 +1168,31 @@ public final class L2Optimizer
 
 	/**
 	 * Check that each instruction of each block has that block set for its
-	 * {@link L2Instruction#basicBlock} field.  Also check that every
+	 * {@link L2Instruction#basicBlock()} field.  Also check that every
 	 * instruction's applicable operands are listed as uses or definitions of
 	 * the register that they access, and that there are no other uses or
 	 * definitions.
 	 */
 	private void checkBlocksAndInstructions ()
 	{
-		final Map<L2Register, Set<L2Instruction>> uses = new HashMap<>();
-		final Map<L2Register, Set<L2Instruction>> definitions = new HashMap<>();
+		final Map<L2Register, Set<L2ReadOperand<?>>> uses = new HashMap<>();
+		final Map<L2Register, Set<L2WriteOperand<?>>> definitions =
+			new HashMap<>();
 		blocks.forEach(
 			block -> block.instructions().forEach(
 				instruction ->
 				{
-					assert instruction.basicBlock == block;
-					instruction.sourceRegisters().forEach(
-						reg -> uses.computeIfAbsent(reg, r -> new HashSet<>())
-							.add(instruction));
-					instruction.destinationRegisters().forEach(
-						reg -> definitions.computeIfAbsent(
-								reg, r -> new HashSet<>())
-							.add(instruction));
+					instruction.assertHasBeenEmitted();
+					instruction.readOperands().forEach(read ->
+						uses
+							.computeIfAbsent(
+								read.register(), x -> new HashSet<>())
+							.add(read));
+					instruction.writeOperands().forEach(write ->
+						definitions
+							.computeIfAbsent(
+								write.register(), x -> new HashSet<>())
+							.add(write));
 				}));
 		final Set<L2Register> mentionedRegs = new HashSet<>(uses.keySet());
 		mentionedRegs.addAll(definitions.keySet());
@@ -1335,7 +1440,22 @@ public final class L2Optimizer
 		 * <p>Note that this breaks SSA by duplicating defining instructions.
 		 * </p>
 		 */
-		POSTPONE_CONDITIONALLY_USED_VALUES(
+		POSTPONE_CONDITIONALLY_USED_VALUES_1(
+			L2Optimizer::postponeConditionallyUsedValues),
+
+		/**
+		 * If there are any {@link L2_VIRTUAL_REIFY} instructions still extant,
+		 * replace them with code that will actually produce the reified caller.
+		 */
+		REPLACE_REMAINING_VIRTUAL_REIFICATIONS(
+			L2Optimizer::replaceRemainingVirtualReifications),
+
+		/**
+		 * If {@link #REPLACE_REMAINING_VIRTUAL_REIFICATIONS} made any changes,
+		 * give another try at pushing conditionally used values.  Otherwise do
+		 * nothing.
+		 */
+		POSTPONE_CONDITIONALLY_USED_VALUES_2(
 			L2Optimizer::postponeConditionallyUsedValues),
 
 		/**
@@ -1444,6 +1564,7 @@ public final class L2Optimizer
 	 */
 	public void optimize (final Interpreter interpreter)
 	{
+		sanityCheck(interpreter);
 		for (final OptimizationPhase phase : OptimizationPhase.values())
 		{
 			final long before = captureNanos();

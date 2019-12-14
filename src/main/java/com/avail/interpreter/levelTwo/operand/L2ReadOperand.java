@@ -36,18 +36,19 @@ import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
 import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.values.L2SemanticValue;
+import com.avail.utility.Casts;
 
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 
+import static com.avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE.sourceOfImmutable;
 import static com.avail.utility.Casts.cast;
 import static com.avail.utility.Casts.nullableCast;
 import static com.avail.utility.Nulls.stripNull;
@@ -209,24 +210,33 @@ extends L2Operand
 
 	@Override
 	public void instructionWasAdded (
-		final L2Instruction instruction,
 		final L2ValueManifest manifest)
 	{
+		super.instructionWasAdded(manifest);
 		definition = manifest.getDefinition(semanticValue, registerKind());
 		manifest.setRestriction(semanticValue, restriction);
-		register().addUse(instruction);
+		register().addUse(this);
 	}
 
 	@Override
-	public final void instructionWasRemoved (final L2Instruction instruction)
+	public void instructionWasInserted (
+		final L2Instruction newInstruction)
 	{
-		register().removeUse(instruction);
+		super.instructionWasInserted(newInstruction);
+		register().addUse(this);
+	}
+
+	@Override
+	public final void instructionWasRemoved ()
+	{
+		super.instructionWasRemoved();
+		register().removeUse(this);
 	}
 
 	@Override
 	public final void replaceRegisters (
 		final Map<L2Register, L2Register> registerRemap,
-		final L2Instruction instruction)
+		final L2Instruction theInstruction)
 	{
 		final @Nullable R replacement =
 			nullableCast(registerRemap.get(register));
@@ -234,9 +244,22 @@ extends L2Operand
 		{
 			return;
 		}
-		register().removeUse(instruction);
-		replacement.addUse(instruction);
+		register().removeUse(this);
+		replacement.addUse(this);
 		register = replacement;
+	}
+
+	@Override
+	public void replaceWriteDefinitions (
+		final Map<L2WriteOperand<?>, L2WriteOperand<?>> writesMap)
+	{
+		final L2WriteOperand<?> replacementDefinition =
+			writesMap.get(definition);
+		if (replacementDefinition != null)
+		{
+			definition = Casts.<L2WriteOperand<?>, L2WriteOperand<R>>cast(
+				replacementDefinition);
+		}
 	}
 
 	@Override
@@ -259,16 +282,6 @@ extends L2Operand
 		}
 		return builder.toString();
 	}
-
-	/**
-	 * Answer an {@link L2Operation} that implements a phi move for the
-	 * receiver.
-	 *
-	 * @return The requested instruction.
-	 */
-	public abstract
-	L2_MOVE<R, ? extends L2ReadOperand<R>, ? extends L2WriteOperand<R>>
-	phiMoveOperation ();
 
 	/**
 	 * Answer the {@link L2Instruction} which generates the value that will
@@ -295,7 +308,7 @@ extends L2Operand
 			if (bypassImmutables
 				&& other.operation() instanceof L2_MAKE_IMMUTABLE)
 			{
-				other = L2_MAKE_IMMUTABLE.sourceOfImmutable(other).definition()
+				other = sourceOfImmutable(other).definition()
 					.instruction();
 				continue;
 			}
@@ -318,12 +331,12 @@ extends L2Operand
 		final boolean bypassImmutables)
 	{
 		L2WriteOperand<?> def = definition;
-		L2WriteBoxedOperand earliestBoxed = cast(def);
+		@Nullable L2WriteBoxedOperand earliestBoxed = null;
 		while (true)
 		{
 			if (def instanceof L2WriteBoxedOperand)
 			{
-				earliestBoxed = cast(def);
+				earliestBoxed = (L2WriteBoxedOperand) def;
 			}
 			final L2Instruction instruction = def.instruction();
 			if (instruction.operation().isMove())
@@ -337,11 +350,10 @@ extends L2Operand
 			if (bypassImmutables
 				&& instruction.operation() == L2_MAKE_IMMUTABLE.instance)
 			{
-				def = L2_MAKE_IMMUTABLE.sourceOfImmutable(instruction)
-					.definition();
+				def = sourceOfImmutable(instruction).definition();
 				continue;
 			}
-			return earliestBoxed;
+			return stripNull(earliestBoxed);
 		}
 	}
 }

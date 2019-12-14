@@ -39,6 +39,7 @@ import com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteOperand;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP;
 import com.avail.interpreter.levelTwo.operation.L2_UNREACHABLE_CODE;
@@ -457,7 +458,7 @@ public class L2ControlFlowGraphVisualizer
 		targetBlock.predecessorEdgesIterator().forEachRemaining(edge ->
 		{
 			final L2BasicBlock sourceBlock = edge.sourceBlock();
-			final L2Instruction sourceInstruction = edge.sourceInstruction();
+			final L2Instruction sourceInstruction = edge.instruction();
 			final L2NamedOperandType[] types =
 				sourceInstruction.operation().operandTypes();
 			final L2Operand[] operands = sourceInstruction.operands();
@@ -543,13 +544,30 @@ public class L2ControlFlowGraphVisualizer
 							{
 								builder.append(
 									"<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
-									+ "&nbsp;&nbsp;"
-									+ ":&nbsp;");
+										+ "&nbsp;&nbsp;"
+										+ ":&nbsp;");
 								final TypeRestriction restriction =
 									manifest.restrictionFor(
 										synonym.pickSemanticValue());
 								builder.append(escape(restriction.toString()));
 							}
+							builder.append(
+								"<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
+								+"&nbsp;&nbsp;"
+								+ "in {");
+							final Iterator<L2WriteOperand<?>> defs =
+								manifest.definitionsForDescribing(
+									synonym.pickSemanticValue())
+									.iterator();
+							if (defs.hasNext())
+							{
+								builder.append(defs.next().register());
+							}
+							defs.forEachRemaining(
+								d -> builder
+									.append(", ")
+									.append(defs.next().register()));
+							builder.append("}");
 						});
 				}
 			}
@@ -562,7 +580,9 @@ public class L2ControlFlowGraphVisualizer
 					node(
 						basicBlockName(sourceBlock),
 						Integer.toString(sourceSubscript)),
-					node(basicBlockName(targetBlock)),
+					edge.isBackward()
+						? node(basicBlockName(targetBlock), "1")
+						: node(basicBlockName(targetBlock)),
 					attr ->
 					{
 						if (!started)
@@ -617,8 +637,7 @@ public class L2ControlFlowGraphVisualizer
 	}
 
 	/** The subgraphs ({@link Zone}s) that have been discovered so far. */
-	Map<Zone, Set<L2BasicBlock>> blocksByZone =
-		new HashMap<>();
+	Map<Zone, Set<L2BasicBlock>> blocksByZone = new HashMap<>();
 
 	/**
 	 * Calculate how the basic blocks form clusters for reification sections.

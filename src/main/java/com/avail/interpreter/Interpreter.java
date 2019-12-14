@@ -442,29 +442,22 @@ public final class Interpreter
 		{
 			if (mainLogger.isLoggable(Level.SEVERE))
 			{
-				try
-				{
-					final String str =
-						"L2 = "
-							+ offset
-							+ " of "
-							+ executableChunk.name()
-							+ " "
-							+ description
-							+ " <- " + firstReadOperandValue;
-					final @Nullable A_Fiber fiber = current().fiberOrNull();
-					log(
-						fiber,
-						mainLogger,
-						Level.SEVERE,
-						// Force logging when the switches are enabled.
-						"{0}",
-						str);
-				}
-				catch (final OutOfMemoryError e)
-				{
-					throw e;  // Breakpoint it here.
-				}
+				final String str =
+					"L2 = "
+						+ offset
+						+ " of "
+						+ executableChunk.name()
+						+ " "
+						+ description
+						+ " <- " + firstReadOperandValue;
+				final @Nullable A_Fiber fiber = current().fiberOrNull();
+				log(
+					fiber,
+					mainLogger,
+					Level.SEVERE,
+					// Force logging when the switches are enabled.
+					"{0}",
+					str);
 			}
 		}
 	}
@@ -2112,6 +2105,7 @@ public final class Interpreter
 		boolean.class,
 		int.class);
 
+	/** An indication that a reification action is running. */
 	public boolean isReifying = false;
 
 	/**

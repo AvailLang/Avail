@@ -66,11 +66,6 @@ extends L2Operand
 	private final L2SemanticValue semanticValue;
 
 	/**
-	 * The {@link L2Instruction} that this operand is part of.
-	 */
-	private @Nullable L2Instruction instruction;
-
-	/**
 	 * The {@link TypeRestriction} that indicates what values may be written to
 	 * the destination register.
 	 */
@@ -164,54 +159,27 @@ extends L2Operand
 		return register + "[" + semanticValue + "]";
 	}
 
-	/**
-	 * Answer the {@link L2Instruction} containing this operand.
-	 *
-	 * @return An {@link L2Instruction}
-	 */
-	public L2Instruction instruction ()
-	{
-		return stripNull(instruction);
-	}
-
-	/**
-	 * Answer whether this write operand has been written yet as the destination
-	 * of some instruction.
-	 *
-	 * @return {@code true} if this operand has been written inside an
-	 *         {@link L2Instruction}, otherwise {@code false}.
-	 */
-	public boolean instructionHasBeenEmitted ()
-	{
-		return instruction != null;
-	}
-
 	@Override
 	public final void instructionWasAdded (
-		final L2Instruction theInstruction,
 		final L2ValueManifest manifest)
 	{
-		instruction = theInstruction;
-		register.addDefinition(theInstruction);
+		super.instructionWasAdded(manifest);
+		register.addDefinition(this);
 		manifest.recordDefinition(this);
 	}
 
 	@Override
 	public final void instructionWasInserted (
-		final L2Instruction theInstruction,
-		final L2ValueManifest manifest)
+		final L2Instruction newInstruction)
 	{
-		instruction = theInstruction;
-		register.addDefinition(theInstruction);
-		manifest.recordDefinitionForInsertion(this);
+		super.instructionWasInserted(newInstruction);
+		register.addDefinition(this);
 	}
 
 	/**
 	 * This operand is a write of a move-like operation.  Make the semantic
 	 * value a synonym of the given {@link L2ReadOperand}'s semantic value.
 	 *
-	 * @param theInstruction
-	 *        The move-like {@link L2Instruction} of which this is an operand.
 	 * @param sourceSemanticValue
 	 *        The {@link L2SemanticValue} that already holds the value.
 	 * @param manifest
@@ -219,20 +187,19 @@ extends L2Operand
 	 *        the source and destination.
 	 */
 	public final void instructionWasAddedForMove (
-		final L2Instruction theInstruction,
 		final L2SemanticValue sourceSemanticValue,
 		final L2ValueManifest manifest)
 	{
-		instruction = theInstruction;
-		register.addDefinition(theInstruction);
+		super.instructionWasAdded(manifest);
+		register.addDefinition(this);
 		manifest.recordDefinitionForMove(this, sourceSemanticValue);
 	}
 
 	@Override
-	public final void instructionWasRemoved (
-		final L2Instruction theInstruction)
+	public final void instructionWasRemoved ()
 	{
-		register().removeDefinition(theInstruction);
+		super.instructionWasRemoved();
+		register().removeDefinition(this);
 	}
 
 	@Override
@@ -245,8 +212,8 @@ extends L2Operand
 		{
 			return;
 		}
-		register().removeDefinition(theInstruction);
-		replacement.addDefinition(theInstruction);
+		register().removeDefinition(this);
+		replacement.addDefinition(this);
 		register = cast(replacement);
 	}
 
@@ -261,12 +228,5 @@ extends L2Operand
 	public final String toString ()
 	{
 		return "→" + registerString();
-	}
-
-	@Override
-	public void adjustCloneForInstruction (final L2Instruction theInstruction)
-	{
-		super.adjustCloneForInstruction(theInstruction);
-		instruction = null;
 	}
 }

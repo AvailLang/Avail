@@ -96,6 +96,21 @@ extends L2Operation
 	}
 
 	@Override
+	public boolean hasSideEffect (
+		final L2Instruction instruction)
+	{
+		// Don't let it be removed if either edge crosses a zone boundary.
+		assert this == instruction.operation();
+		final L2PcOperand fallThrough = instruction.operand(0);
+		final L2PcOperand target = instruction.operand(1);
+//		final L2WriteIntOperand targetAsInt = instruction.operand(2);
+//		final L2WriteBoxedOperand registerDump = instruction.operand(3);
+
+		return instruction.basicBlock().zone != fallThrough.targetBlock().zone
+			|| instruction.basicBlock().zone != target.targetBlock(). zone;
+	}
+
+	@Override
 	public boolean altersControlFlow ()
 	{
 		return true;
@@ -137,7 +152,7 @@ extends L2Operation
 		// along the fallThrough edge.
 		final L2PcOperand fallThroughEdge = instruction.operand(0);
 		return new L2Instruction(
-			instruction.basicBlock,
+			instruction.basicBlock(),
 			L2_JUMP.instance,
 			fallThroughEdge);
 	}
@@ -156,10 +171,10 @@ extends L2Operation
 		// Install the operands in this order.  First target, which will not be
 		// able to access targetAsInt.  Then targetAsInt and registerDump.  Then
 		// fallThrough, which will be able to see targetAsInt and registerDump.
-		target.instructionWasAdded(instruction, manifest);
-		targetAsInt.instructionWasAdded(instruction, manifest);
-		registerDump.instructionWasAdded(instruction, manifest);
-		fallThrough.instructionWasAdded(instruction, manifest);
+		target.instructionWasAdded(manifest);
+		targetAsInt.instructionWasAdded(manifest);
+		registerDump.instructionWasAdded(manifest);
+		fallThrough.instructionWasAdded(manifest);
 	}
 
 	@Override

@@ -134,12 +134,12 @@ extends L2ControlFlowOperation
 		final L2PcOperand lookupSucceeded = instruction.operand(4);
 		final L2PcOperand lookupFailed = instruction.operand(5);
 
-		bundleOperand.instructionWasAdded(instruction, manifest);
-		argTypeRegs.instructionWasAdded(instruction, manifest);
-		functionReg.instructionWasAdded(instruction, manifest);
-		errorCodeReg.instructionWasAdded(instruction, manifest);
-		lookupSucceeded.instructionWasAdded(instruction, manifest);
-		lookupFailed.instructionWasAdded(instruction, manifest);
+		bundleOperand.instructionWasAdded(manifest);
+		argTypeRegs.instructionWasAdded(manifest);
+		functionReg.instructionWasAdded(manifest);
+		errorCodeReg.instructionWasAdded(manifest);
+		lookupSucceeded.instructionWasAdded(manifest);
+		lookupFailed.instructionWasAdded(manifest);
 
 		// If the lookup failed, it supplies the reason to the errorCodeReg.
 		lookupFailed.manifest().setRestriction(
@@ -161,7 +161,8 @@ extends L2ControlFlowOperation
 		if (functionType.isEnumeration())
 		{
 			final int numArgs = argumentTypeRegs.size();
-			final Set<A_Function> functions = toSet(functionType.instances());
+			final Set<? extends A_Function> functions =
+				toSet(functionType.instances());
 			final A_Type argumentTupleUnionType = functions.stream()
 				.map(f -> f.code().functionType().argsTupleType())
 				.reduce(A_Type::typeUnion)

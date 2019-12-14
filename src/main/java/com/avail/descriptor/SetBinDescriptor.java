@@ -37,6 +37,7 @@ import com.avail.annotations.HideFieldInDebugger;
 import com.avail.descriptor.SetDescriptor.SetIterator;
 import com.avail.descriptor.atoms.AtomWithPropertiesDescriptor;
 import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.utility.Casts;
 
 import javax.annotation.Nullable;
 import java.util.function.IntFunction;
@@ -46,7 +47,6 @@ import static com.avail.descriptor.HashedSetBinDescriptor.numberOfLevels;
 import static com.avail.descriptor.LinearSetBinDescriptor.generateLinearSetBinFrom;
 import static com.avail.descriptor.LinearSetBinDescriptor.thresholdToHash;
 import static com.avail.descriptor.SetBinDescriptor.IntegerSlots.BIN_HASH;
-import static com.avail.utility.Casts.cast;
 
 /**
  * This abstract class organizes the idea of nodes in a Bagwell Ideal Hash Tree
@@ -169,7 +169,7 @@ extends Descriptor
 		if (size == 1)
 		{
 			// Special case, exactly one value occurs, so return it.
-			return cast(generator.apply(1));
+			return Casts.<A_BasicObject, AvailObject>cast(generator.apply(1));
 		}
 		if (size < thresholdToHash || level >= numberOfLevels - 1)
 		{

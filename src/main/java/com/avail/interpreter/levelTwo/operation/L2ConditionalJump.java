@@ -218,19 +218,26 @@ extends L2ControlFlowOperation
 	 * Augment the array of operands with any that are supposed to be supplied
 	 * implicitly by this class.
 	 *
-	 * @param operands The original array of {@link L2Operand}s.
+	 * @param operands
+	 *        The original array of {@link L2Operand}s.
+	 * @param instruction
+	 *        The <em>uninitialized</em> {@link L2Instruction} for which we are
+	 *        creating the augmented array of operands.
 	 * @return The augmented array of {@link L2Operand}s, which may be the same
 	 *         as the given array.
 	 */
 	@Override
 	public L2Operand[] augment (
-		final L2Operand[] operands)
+		final L2Operand[] operands,
+		final L2Instruction instruction)
 	{
-		final L2Operand[] parentOperands = super.augment(operands);
-		final L2Operand[] newOperands =
-			copyOf(parentOperands, parentOperands.length + 2);
-		newOperands[newOperands.length - 2] = new L2InternalCounterOperand();
-		newOperands[newOperands.length - 1] = new L2InternalCounterOperand();
+		assert operands.length == explicitNamedOperandTypes.length;
+		final int newSize = namedOperandTypes.length;  // Includes counters
+		final L2Operand[] newOperands = copyOf(operands, newSize);
+		for (int i = operands.length; i < newSize; i++)
+		{
+			newOperands[i] = new L2InternalCounterOperand();
+		}
 		return newOperands;
 	}
 }

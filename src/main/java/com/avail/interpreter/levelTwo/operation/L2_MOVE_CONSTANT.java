@@ -137,19 +137,19 @@ extends L2Operation
 		final WR destination = instruction.operand(1);
 
 		// Ensure the new write ends up in the same synonym as the source.
-		source.instructionWasAdded(instruction, manifest);
+		source.instructionWasAdded(manifest);
 		if (manifest.hasSemanticValue(destination.semanticValue()))
 		{
 			// The constant semantic value exists, but for another register
 			// kind.
 			destination.instructionWasAddedForMove(
-				instruction, destination.semanticValue(), manifest);
+				destination.semanticValue(), manifest);
 		}
 		else
 		{
 			// The constant semantic value has not been encountered for any
 			// register kinds yet.
-			destination.instructionWasAdded(instruction, manifest);
+			destination.instructionWasAdded(manifest);
 		}
 	}
 

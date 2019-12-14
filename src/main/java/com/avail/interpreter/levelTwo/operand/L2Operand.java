@@ -35,13 +35,18 @@ package com.avail.interpreter.levelTwo.operand;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
+import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2ValueManifest;
 import com.avail.utility.PublicCloneable;
 
+import javax.annotation.Nullable;
+import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.util.List;
 import java.util.Map;
+
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * An {@code L2Operand} knows its {@link L2OperandType} and any specific value
@@ -52,6 +57,45 @@ import java.util.Map;
 public abstract class L2Operand
 extends PublicCloneable<L2Operand>
 {
+	/**
+	 * A backpointer to the {@link L2Instruction} that this operand is part of.
+	 * This is only populated for instructions that have already been emitted to
+	 * an {@link L2BasicBlock}.
+	 */
+	private @Nullable L2Instruction instruction = null;
+
+	/**
+	 * Answer the {@link L2Instruction} containing this operand.
+	 *
+	 * @return An {@link L2Instruction}
+	 */
+	public L2Instruction instruction ()
+	{
+		return stripNull(instruction);
+	}
+
+	/**
+	 * Answer whether this write operand has been written yet as the destination
+	 * of some instruction.
+	 *
+	 * @return {@code true} if this operand has been written inside an
+	 *         {@link L2Instruction}, otherwise {@code false}.
+	 */
+	public boolean instructionHasBeenEmitted ()
+	{
+		return instruction != null;
+	}
+
+	/**
+	 * Assert that this operand knows its instruction, which should always be
+	 * the case if the instruction has already been emitted.
+	 */
+	@OverridingMethodsMustInvokeSuper
+	public void assertHasBeenEmitted ()
+	{
+		assert instruction != null;
+	}
+
 	/**
 	 * Answer this operand's {@link L2OperandType}.
 	 *
@@ -71,51 +115,72 @@ extends PublicCloneable<L2Operand>
 
 	/**
 	 * This is an operand of the given instruction, which was just added to its
-	 * basic block.
+	 * basic block.  Its instruction was just set.
 	 *
-	 * @param instruction
-	 *        The {@link L2Instruction} that was just added.
 	 * @param manifest
 	 *        The {@link L2ValueManifest} that is active where this {@link
 	 *        L2Instruction} was just added to its {@link L2BasicBlock}.
 	 */
-	@SuppressWarnings("EmptyMethod")
+	@OverridingMethodsMustInvokeSuper
 	public void instructionWasAdded (
-		final L2Instruction instruction,
 		final L2ValueManifest manifest)
 	{
-		// Do nothing by default.
+		assert instruction != null;
+	}
+
+	/**
+	 * This vector operand is the input to a {@link L2_PHI_PSEUDO_OPERATION}
+	 * instruction that has just been added.  Update it specially, to take into
+	 * account the correspondence between vector elements and predecessor edges.
+	 *
+	 * @param readVector
+	 *        The {@link L2ReadVectorOperand} for which we're noting that the
+	 *        containing instruction has just been added.
+	 * @param predecessorEdges
+	 *        The {@link List} of predecessor edges ({@link L2PcOperand}s) that
+	 *        correspond positionally with the elements of the vector.
+	 */
+	public static void instructionWasAddedForPhi (
+		final L2ReadVectorOperand<?, ?> readVector,
+		final List<L2PcOperand> predecessorEdges)
+	{
+		assert readVector.instruction().operation()
+			instanceof L2_PHI_PSEUDO_OPERATION;
+
+		final int fanIn = readVector.elements.size();
+		assert fanIn == predecessorEdges.size();
+		for (int i = 0; i < fanIn; i++)
+		{
+			// The read operand should use the corresponding incoming manifest.
+			readVector.elements.get(i).instructionWasAdded(
+				predecessorEdges.get(i).manifest());
+		}
 	}
 
 	/**
 	 * This is an operand of the given instruction, which was just inserted into
 	 * its basic block as part of an optimization pass.
 	 *
-	 * @param instruction
+	 * @param newInstruction
 	 *        The {@link L2Instruction} that was just inserted.
-	 * @param manifest
-	 *        The {@link L2ValueManifest} that is active where this {@link
-	 *        L2Instruction} was just inserted into its {@link L2BasicBlock}.
 	 */
+	@OverridingMethodsMustInvokeSuper
 	public void instructionWasInserted (
-		final L2Instruction instruction,
-		final L2ValueManifest manifest)
+		final L2Instruction newInstruction)
 	{
-		instructionWasAdded(instruction, manifest);
+		// Nothing by default.  The L2Instruction already set my instruction
+		// field in a previous pass.
 	}
 
 	/**
 	 * This is an operand of the given instruction, which was just removed from
 	 * its basic block.
-	 *
-	 * @param instruction
-	 *        The {@link L2Instruction} that was just added.
 	 */
-	@SuppressWarnings("EmptyMethod")
-	public void instructionWasRemoved (
-		final L2Instruction instruction)
+	@OverridingMethodsMustInvokeSuper
+	public void instructionWasRemoved ()
 	{
-		// Do nothing by default.
+		// Nothing by default.  The L2Instruction already set my instruction
+		// field in a previous pass.
 	}
 
 	/**
@@ -126,13 +191,29 @@ extends PublicCloneable<L2Operand>
 	 *
 	 * @param registerRemap
 	 *        A mapping to transform registers in-place.
-	 * @param instruction
+	 * @param theInstruction
 	 *        The instruction containing this operand.
 	 */
 	@SuppressWarnings({"unused", "EmptyMethod"})
 	public void replaceRegisters (
 		final Map<L2Register, L2Register> registerRemap,
-		final L2Instruction instruction)
+		final L2Instruction theInstruction)
+	{
+		// By default do nothing.
+	}
+
+	/**
+	 * Replace occurrences within this operand of {@link L2WriteOperand}s that
+	 * are keys of the given {@link Map}.  Only update {@link L2ReadOperand}s
+	 * and {@link L2PcOperand}s, since those capture (through an
+	 * {@link L2ValueManifest} for the latter) defining writes that need to be
+	 * updated.  Specifically <em>DO NOT</em> update {@link L2WriteOperand}s.
+	 *
+	 * @param writesMap
+	 *        A mapping between {@link L2WriteOperand}s
+	 */
+	public void replaceWriteDefinitions (
+		final Map<L2WriteOperand<?>, L2WriteOperand<?>> writesMap)
 	{
 		// By default do nothing.
 	}
@@ -166,13 +247,28 @@ extends PublicCloneable<L2Operand>
 
 	/**
 	 * This is a freshly cloned operand.  Adjust it for use in the given
-	 * {@link L2Instruction}.
+	 * {@link L2Instruction}.  Note that the new instruction has not yet been
+	 * installed into an {@link L2BasicBlock}.
 	 *
 	 * @param theInstruction
 	 *        The theInstruction that this operand is being installed in.
 	 */
+	@OverridingMethodsMustInvokeSuper
 	public void adjustCloneForInstruction (final L2Instruction theInstruction)
 	{
-		// Do nothing by default.
+		// The instruction will be set correctly when this instruction is
+		// emitted to an L2BasicBlock.
+		setInstruction(null);
+	}
+
+	/**
+	 * Set the {@link #instruction} field.
+	 *
+	 * @param theInstruction
+	 *        The {@link L2Instruction} or {@code null}.
+	 */
+	public void setInstruction (final @Nullable L2Instruction theInstruction)
+	{
+		this.instruction = theInstruction;
 	}
 }

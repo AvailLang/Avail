@@ -35,7 +35,6 @@ package com.avail.interpreter.levelTwo.operand;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.operation.L2_MOVE;
 import com.avail.interpreter.levelTwo.register.L2FloatRegister;
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
 import com.avail.optimizer.L2ValueManifest;
@@ -88,6 +87,27 @@ extends L2ReadOperand<L2FloatRegister>
 		assert restriction.isUnboxedFloat();
 	}
 
+	/**
+	 * Construct a new {@code L2ReadFloatOperand} with an explicit definition
+	 * register {@link L2WriteFloatOperand}.
+	 *
+	 * @param semanticValue
+	 *        The {@link L2SemanticValue} that is being read when an
+	 *        {@link L2Instruction} uses this {@link L2Operand}.
+	 * @param restriction
+	 *        The {@link TypeRestriction} that bounds the value being read.
+	 * @param definition
+	 *        The earliest known defining {@link L2WriteFloatOperand} of the
+	 *        {@link L2SemanticValue}.
+	 */
+	public L2ReadFloatOperand (
+		final L2SemanticValue semanticValue,
+		final TypeRestriction restriction,
+		final L2WriteFloatOperand definition)
+	{
+		super(semanticValue, restriction, definition);
+	}
+
 	@Override
 	public void dispatchOperand (final L2OperandDispatcher dispatcher)
 	{
@@ -98,12 +118,5 @@ extends L2ReadOperand<L2FloatRegister>
 	public RegisterKind registerKind ()
 	{
 		return FLOAT;
-	}
-
-	@Override
-	public L2_MOVE<L2FloatRegister, L2ReadFloatOperand, L2WriteFloatOperand>
-	phiMoveOperation ()
-	{
-		return L2_MOVE.unboxedFloat;
 	}
 }

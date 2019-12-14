@@ -31,8 +31,6 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_Continuation;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
@@ -48,12 +46,11 @@ import org.objectweb.asm.MethodVisitor;
 import javax.annotation.Nullable;
 import java.util.Set;
 
+import static com.avail.descriptor.AvailObject.argOrLocalOrStackAtPutMethod;
 import static com.avail.descriptor.ContinuationDescriptor.createContinuationExceptFrameMethod;
 import static com.avail.interpreter.Interpreter.chunkField;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static org.objectweb.asm.Opcodes.DUP;
-import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Type.*;
 
 /**
  * Create a continuation from scratch, using the specified caller, function,
@@ -111,9 +108,9 @@ extends L2Operation
 		builder.append(destReg);
 		builder.append(" ← $[");
 		builder.append(function);
-		builder.append("]:pc=");
+		builder.append("]\n\tpc=");
 		builder.append(levelOnePC);
-		builder.append(" stack=[");
+		builder.append("\n\tstack=[");
 		boolean first = true;
 		for (final L2ReadBoxedOperand slot : slots.elements())
 		{
@@ -125,9 +122,9 @@ extends L2Operation
 			builder.append("\n\t\t");
 			builder.append(slot);
 		}
-		builder.append("]\n\t[");
+		builder.append("]\n\t[stackp=");
 		builder.append(levelOneStackp);
-		builder.append("] caller=");
+		builder.append("]\n\tcaller=");
 		builder.append(caller);
 		renderOperandsStartingAt(instruction, 6, desiredTypes, builder);
 	}
@@ -178,15 +175,7 @@ extends L2Operation
 				method.visitInsn(DUP);
 				translator.intConstant(method, i + 1);
 				translator.load(method, slots.elements().get(i).register());
-				method.visitMethodInsn(
-					INVOKEINTERFACE,
-					getInternalName(A_Continuation.class),
-					"argOrLocalOrStackAtPut",
-					getMethodDescriptor(
-						VOID_TYPE,
-						INT_TYPE,
-						getType(AvailObject.class)),
-					true);
+				argOrLocalOrStackAtPutMethod.generateCall(method);
 			}
 		}
 		translator.store(method, destReg.register());

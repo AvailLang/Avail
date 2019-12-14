@@ -91,11 +91,11 @@ extends L2ControlFlowOperation
 		final L2PcOperand inRange = instruction.operand(3);
 		final L2PcOperand outOfRange = instruction.operand(4);
 
-		augendReg.instructionWasAdded(instruction, manifest);
-		addendReg.instructionWasAdded(instruction, manifest);
-		sumReg.instructionWasAdded(instruction, manifest);
-		inRange.instructionWasAdded(instruction, manifest);
-		outOfRange.instructionWasAdded(instruction, manifest);
+		augendReg.instructionWasAdded(manifest);
+		addendReg.instructionWasAdded(manifest);
+		sumReg.instructionWasAdded(manifest);
+		inRange.instructionWasAdded(manifest);
+		outOfRange.instructionWasAdded(manifest);
 
 		inRange.manifest().intersectType(sumReg.semanticValue(), int32());
 		outOfRange.manifest().subtractType(sumReg.semanticValue(), int32());

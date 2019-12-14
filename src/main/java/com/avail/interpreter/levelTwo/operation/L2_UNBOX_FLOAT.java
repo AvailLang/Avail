@@ -100,9 +100,9 @@ extends L2Operation
 		final L2WriteFloatOperand destination = instruction.operand(1);
 
 		// Ensure the new write ends up in the same synonym as the source.
-		source.instructionWasAdded(instruction, manifest);
+		source.instructionWasAdded(manifest);
 		destination.instructionWasAddedForMove(
-			instruction, source.semanticValue(), manifest);
+			source.semanticValue(), manifest);
 	}
 
 	@Override

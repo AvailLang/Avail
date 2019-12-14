@@ -43,13 +43,16 @@ import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.interpreter.levelTwo.register.L2FloatRegister;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
+import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
+import com.avail.utility.Casts;
 import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
+import java.util.EnumMap;
 import java.util.Set;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
@@ -78,19 +81,31 @@ public final class L2_MOVE <
 extends L2Operation
 {
 	/**
+	 * A map from the {@link RegisterKind}s to the appropriate {@code L2_MOVE}
+	 * operations.
+	 */
+	private static final EnumMap<RegisterKind, L2_MOVE<?, ?, ?>> movesByKind =
+		new EnumMap<>(RegisterKind.class);
+
+	/**
 	 * Construct an {@code L2_MOVE} operation.
 	 *
-	 * @param kindName
-	 *        A short string describing the kind of things this operation moves.
+	 * @param kind
+	 *        The {@link RegisterKind} serviced by this operation.
 	 * @param theNamedOperandTypes
 	 *        An array of {@link L2NamedOperandType}s that describe this
 	 *        particular L2Operation, allowing it to be specialized by register
 	 *        type.
 	 */
-	L2_MOVE (final String kindName, final L2NamedOperandType... theNamedOperandTypes)
+	L2_MOVE (
+		final RegisterKind kind,
+		final L2NamedOperandType... theNamedOperandTypes)
 	{
 		super(theNamedOperandTypes);
-		this.kindName = kindName;
+		this.kind = kind;
+		assert movesByKind.get(kind) == null;
+		//noinspection ThisEscapedInObjectConstruction
+		movesByKind.put(kind, this);
 	}
 
 	/**
@@ -99,7 +114,7 @@ extends L2Operation
 	public static final
 	L2_MOVE<L2BoxedRegister, L2ReadBoxedOperand, L2WriteBoxedOperand>
 		boxed = new L2_MOVE<>(
-			"boxed",
+			RegisterKind.BOXED,
 			READ_BOXED.is("source boxed"),
 			WRITE_BOXED.is("destination boxed"));
 
@@ -109,7 +124,7 @@ extends L2Operation
 	public static final
 	L2_MOVE<L2IntRegister, L2ReadIntOperand, L2WriteIntOperand>
 		unboxedInt = new L2_MOVE<>(
-			"int",
+			RegisterKind.INTEGER,
 			READ_INT.is("source int"),
 			WRITE_INT.is("destination int"));
 
@@ -119,12 +134,36 @@ extends L2Operation
 	public static final
 	L2_MOVE<L2FloatRegister, L2ReadFloatOperand, L2WriteFloatOperand>
 		unboxedFloat = new L2_MOVE<>(
-			"float",
+			RegisterKind.FLOAT,
 			READ_FLOAT.is("source float"),
 			WRITE_FLOAT.is("destination float"));
 
-	/** A short word describing the kind of things moved by this operation. */
-	public final String kindName;
+	/**
+	 * Answer an {@code L2_MOVE} suitable for transferring data of the given
+	 * {@link RegisterKind}.
+	 *
+	 * @param <R>
+	 *        The subtype of {@link L2Register} to use.
+	 * @param <RR>
+	 *        The subtype of {@link L2ReadOperand} to use.
+	 * @param <WR>
+	 *        The subtype of {@link L2WriteOperand} to use.
+	 * @param registerKind
+	 *        The {@link RegisterKind} to be transferred by the move.
+	 * @return The requested {@code L2_MOVE} operation.
+	 */
+	public static <
+		R extends L2Register,
+		RR extends L2ReadOperand<R>,
+		WR extends L2WriteOperand<R>>
+	L2_MOVE<R, RR, WR> moveByKind (final RegisterKind registerKind)
+	{
+		return Casts.<L2_MOVE<?, ?, ?>, L2_MOVE<R, RR, WR>>cast(
+			movesByKind.get(registerKind));
+	}
+
+	/** The kind of data moved by this operation. */
+	public final RegisterKind kind;
 
 	@Override
 	protected void propagateTypes (
@@ -170,9 +209,9 @@ extends L2Operation
 		final L2WriteOperand<R> destination = instruction.operand(1);
 
 		// Ensure the new write ends up in the same synonym as the source.
-		source.instructionWasAdded(instruction, manifest);
+		source.instructionWasAdded(manifest);
 		destination.instructionWasAddedForMove(
-			instruction, source.semanticValue(), manifest);
+			source.semanticValue(), manifest);
 	}
 
 	@Override
@@ -204,7 +243,8 @@ extends L2Operation
 	{
 		assert instruction.operation() == boxed;
 		final RR source = sourceOf(instruction);
-		final L2Instruction producer = source.register().definition();
+		final L2Instruction producer =
+			source.register().definition().instruction();
 		return producer.operation().getConstantCodeFrom(producer);
 	}
 
@@ -274,7 +314,7 @@ extends L2Operation
 	@Override
 	public String toString ()
 	{
-		return super.toString() + "(" + kindName + ")";
+		return super.toString() + "(" + kind.kindName + ")";
 	}
 
 	@Override

@@ -2633,6 +2633,7 @@ implements
 		return descriptor().o_LiteralAt(this, index);
 	}
 
+	@ReferencedInGeneratedCode
 	@Override
 	public AvailObject argOrLocalOrStackAt (
 		final int index)
@@ -2640,16 +2641,31 @@ implements
 		return descriptor().o_ArgOrLocalOrStackAt(this, index);
 	}
 
+	/** Access the {@link #argOrLocalOrStackAt(int)} method. */
+	public static final CheckedMethod argOrLocalOrStackAtMethod =
+		instanceMethod(
+			AvailObject.class,
+			"argOrLocalOrStackAt",
+			AvailObject.class,
+			int.class);
+
+	@ReferencedInGeneratedCode
 	@Override
 	public void argOrLocalOrStackAtPut (
 		final int index,
 		final AvailObject value)
 	{
-		descriptor().o_ArgOrLocalOrStackAtPut(
-			this,
-			index,
-			value);
+		descriptor().o_ArgOrLocalOrStackAtPut(this, index, value);
 	}
+
+	/** Access the {@link #argOrLocalOrStackAtPut(int, AvailObject)} method. */
+	public static final CheckedMethod argOrLocalOrStackAtPutMethod =
+		instanceMethod(
+			AvailObject.class,
+			"argOrLocalOrStackAtPut",
+			void.class,
+			int.class,
+			AvailObject.class);
 
 	@Override
 	public A_Type localTypeAt (

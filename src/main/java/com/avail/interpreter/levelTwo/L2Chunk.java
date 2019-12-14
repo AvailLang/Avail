@@ -559,7 +559,9 @@ implements ExecutableChunk
 
 		/**
 		 * This chunk containing this entry point <em>can't</em> be invalid when
-		 * it's entered.
+		 * it's entered.  Note that continuations that are created with this
+		 * entry point type don't have to have any slots filled in, and can just
+		 * contain a caller, function, chunk, offset, and register dump.
 		 */
 		TRANSIENT(-1);
 

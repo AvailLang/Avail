@@ -269,9 +269,9 @@ extends TokenDescriptor
 		{
 			// We're wrapping another token, so share that token's
 			// nextLexingState pojo, if set.
-			final A_Token innerToken = cast(literal.traversed());
+			final AvailObject innerToken = cast(literal.traversed());
 			final A_BasicObject pojo =
-				((AvailObject) innerToken).slot(NEXT_LEXING_STATE_POJO);
+				innerToken.slot(NEXT_LEXING_STATE_POJO);
 			instance.setSlot(NEXT_LEXING_STATE_POJO, pojo);
 			// Also add this token to the same CompilationContext that the
 			// inner token might also be inside.  Even if it isn't, the new

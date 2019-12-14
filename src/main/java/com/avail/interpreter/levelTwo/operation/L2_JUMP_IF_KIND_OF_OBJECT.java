@@ -95,10 +95,10 @@ extends L2ConditionalJump
 		final L2PcOperand ifNotKind = instruction.operand(3);
 
 		// Ensure the new write ends up in the same synonym as the source.
-		value.instructionWasAdded(instruction, manifest);
-		type.instructionWasAdded(instruction, manifest);
-		ifKind.instructionWasAdded(instruction, manifest);
-		ifNotKind.instructionWasAdded(instruction, manifest);
+		value.instructionWasAdded(manifest);
+		type.instructionWasAdded(manifest);
+		ifKind.instructionWasAdded(manifest);
+		ifNotKind.instructionWasAdded(manifest);
 
 		// Restrict the value to the type along the ifKind branch, but because
 		// the provided type can be more specific at runtime, we can't restrict

@@ -115,13 +115,13 @@ extends L2ConditionalJump
 		final L2PcOperand ifNotUnboxed = instruction.operand(3);
 
 		// Ensure the new write ends up in the same synonym as the source.
-		source.instructionWasAdded(instruction, manifest);
-		ifUnboxed.instructionWasAdded(instruction, manifest);
-		ifNotUnboxed.instructionWasAdded(instruction, manifest);
+		source.instructionWasAdded(manifest);
+		ifUnboxed.instructionWasAdded(manifest);
+		ifNotUnboxed.instructionWasAdded(manifest);
 
 		// Merge the source and destination only along the ifUnboxed branch.
 		destination.instructionWasAddedForMove(
-			instruction, source.semanticValue(), ifUnboxed.manifest());
+			source.semanticValue(), ifUnboxed.manifest());
 		final TypeRestriction sourceRestriction = source.restriction();
 		ifUnboxed.manifest().setRestriction(
 			destination.semanticValue(),

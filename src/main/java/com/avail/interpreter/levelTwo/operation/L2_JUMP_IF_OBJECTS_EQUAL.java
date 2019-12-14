@@ -96,10 +96,10 @@ extends L2ConditionalJump
 		final L2PcOperand ifNotEqual = instruction.operand(3);
 
 		// Ensure the new write ends up in the same synonym as the source.
-		first.instructionWasAdded(instruction, manifest);
-		second.instructionWasAdded(instruction, manifest);
-		ifEqual.instructionWasAdded(instruction, manifest);
-		ifNotEqual.instructionWasAdded(instruction, manifest);
+		first.instructionWasAdded(manifest);
+		second.instructionWasAdded(manifest);
+		ifEqual.instructionWasAdded(manifest);
+		ifNotEqual.instructionWasAdded(manifest);
 		// Merge the source and destination only along the ifEqual branch.
 		ifEqual.manifest().mergeExistingSemanticValues(
 			first.semanticValue(), second.semanticValue());

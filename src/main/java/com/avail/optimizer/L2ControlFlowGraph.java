@@ -33,7 +33,6 @@
 package com.avail.optimizer;
 
 import com.avail.descriptor.A_Continuation;
-import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
@@ -219,17 +218,6 @@ public final class L2ControlFlowGraph
 			builder.append("\n");
 		}
 		return builder.toString();
-	}
-
-	/**
-	 * Optimize the graph of instructions.
-	 *
-	 * @param interpreter The current running {@link Interpreter}.
-	 */
-	public void optimize (final Interpreter interpreter)
-	{
-		final L2Optimizer optimizer = new L2Optimizer(this, basicBlockOrder);
-		optimizer.optimize(interpreter);
 	}
 
 	/**

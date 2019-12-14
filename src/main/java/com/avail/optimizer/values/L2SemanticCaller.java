@@ -1,5 +1,5 @@
 /*
- * L2SemanticTemp.java
+ * L2SemanticCaller.java
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -33,79 +33,53 @@ package com.avail.optimizer.values;
 
 import java.util.function.UnaryOperator;
 
-import static com.avail.utility.Casts.cast;
-
 /**
- * A semantic value which holds a temporary value in a {@link Frame}.  The scope
- * of this value is usually local to a section of Java code that both produces
- * and consumes the value, and it might have no meaning beyond this simple
- * correlation of production and use.
+ * A semantic value which represents the fully reified caller of the current
+ * {@link Frame}.  When inlining, it can be equated with parent frame's
+ * {@link L2SemanticLabel}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-final class L2SemanticTemp
+final class L2SemanticCaller
 extends L2FrameSpecificSemanticValue
 {
 	/**
-	 * An integer which should be unique across all other instances for the
-	 * same {@link Frame}.
-	 */
-	final int uniqueId;
-
-	/**
-	 * Create a new {@code L2SemanticTemp} semantic value.
+	 * Create a new {@code L2SemanticCaller} semantic value.
 	 *
 	 * @param frame
-	 *        The frame for which this represents a temporary value.
-	 * @param uniqueId
-	 *        An integer which should be unique across all other instances of
-	 *        this class created for this {@link Frame}.
+	 *        The frame for which this represents the reified caller.
 	 */
-	L2SemanticTemp (final Frame frame, final int uniqueId)
+	L2SemanticCaller (final Frame frame)
 	{
 		super(frame);
-		this.uniqueId = uniqueId;
 	}
 
 	@Override
 	public boolean equals (final Object obj)
 	{
-		if (!(obj instanceof L2SemanticTemp))
-		{
-			return false;
-		}
-		final L2SemanticTemp other = cast(obj);
-		return frame().equals(other.frame())
-			&& uniqueId == other.uniqueId;
+		return obj instanceof L2SemanticCaller
+			&& frame().equals(((L2SemanticCaller) obj).frame());
 	}
 
 	@Override
 	public int hashCode ()
 	{
-		return frame().hashCode() ^ 0x4B69A947;
+		return frame().hashCode() + 0x5A9556AA;
 	}
 
 	@Override
-	public L2SemanticTemp transform (
+	public L2SemanticCaller transform (
 		final UnaryOperator<L2SemanticValue> semanticValueTransformer,
 		final UnaryOperator<Frame> frameTransformer)
 	{
 		final Frame newFrame = frameTransformer.apply(frame);
-		return newFrame.equals(frame)
-			? this
-			: new L2SemanticTemp(newFrame, uniqueId);
+		return newFrame.equals(frame) ? this : new L2SemanticCaller(newFrame);
 	}
 
 	@Override
 	public String toString ()
 	{
-		if (frame.depth() == 1)
-		{
-			return "Temp#" + uniqueId;
-		}
-		else
-		{
-			return "Temp#" + uniqueId + " in " + frame;
-		}
+		return "ReifiedCaller" +
+			(frame.depth() == 1 ? "" : "[of " + frame + "]");
 	}
 }

@@ -38,11 +38,12 @@ import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.optimizer.L2ValueManifest;
 
-import java.util.ArrayList;
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 
 import static java.util.Collections.unmodifiableList;
+import static java.util.stream.Collectors.toList;
 
 /**
  * An {@code L2ReadVectorOperand} is an operand of type {@link
@@ -93,6 +94,13 @@ extends L2Operand
 		List<RR> replacementElements);
 
 	@Override
+	public void assertHasBeenEmitted ()
+	{
+		super.assertHasBeenEmitted();
+		elements.forEach(L2ReadOperand::assertHasBeenEmitted);
+	}
+
+	@Override
 	public abstract L2OperandType operandType ();
 
 	/**
@@ -112,12 +120,9 @@ extends L2Operand
 	 */
 	public List<R> registers ()
 	{
-		final List<R> registers = new ArrayList<>(elements.size());
-		for (final RR rr : elements)
-		{
-			registers.add(rr.register());
-		}
-		return registers;
+		return elements.stream()
+			.map(L2ReadOperand::register)
+			.collect(toList());
 	}
 
 	@Override
@@ -125,53 +130,58 @@ extends L2Operand
 
 	@Override
 	public void instructionWasAdded (
-		final L2Instruction instruction,
 		final L2ValueManifest manifest)
 	{
-		for (final RR element : elements)
-		{
-			element.instructionWasAdded(instruction, manifest);
-		}
+		super.instructionWasAdded(manifest);
+		elements.forEach(
+			element -> element.instructionWasAdded(manifest));
 	}
 
 	@Override
 	public void instructionWasInserted (
-		final L2Instruction instruction,
-		final L2ValueManifest manifest)
+		final L2Instruction newInstruction)
 	{
-		for (final RR element : elements)
-		{
-			element.instructionWasInserted(instruction, manifest);
-		}
+		super.instructionWasInserted(newInstruction);
+		elements.forEach(
+			element -> element.instructionWasInserted(newInstruction));
 	}
 
 	@Override
-	public void instructionWasRemoved (final L2Instruction instruction)
+	public void instructionWasRemoved ()
 	{
-		for (final RR element : elements)
-		{
-			element.instructionWasRemoved(instruction);
-		}
+		super.instructionWasRemoved();
+		elements.forEach(rr -> rr.instructionWasRemoved());
 	}
 
 	@Override
 	public void replaceRegisters (
 		final Map<L2Register, L2Register> registerRemap,
-		final L2Instruction instruction)
+		final L2Instruction theInstruction)
 	{
-		for (final RR read : elements)
-		{
-			read.replaceRegisters(registerRemap, instruction);
-		}
+		elements.forEach(
+			read -> read.replaceRegisters(registerRemap, theInstruction));
+	}
+
+	@Override
+	public void replaceWriteDefinitions (
+		final Map<L2WriteOperand<?>, L2WriteOperand<?>> writesMap)
+	{
+		elements.forEach(read -> read.replaceWriteDefinitions(writesMap));
 	}
 
 	@Override
 	public void addSourceRegistersTo (final List<L2Register> sourceRegisters)
 	{
-		for (final RR read : elements)
-		{
-			read.addSourceRegistersTo(sourceRegisters);
-		}
+		elements.forEach(read -> read.addSourceRegistersTo(sourceRegisters));
+	}
+
+	@Override
+	public void setInstruction (
+		@Nullable final L2Instruction theInstruction)
+	{
+		super.setInstruction(theInstruction);
+		// Also update the instruction fields of its L2ReadOperands.
+		elements.forEach(element -> element.setInstruction(theInstruction));
 	}
 
 	@Override

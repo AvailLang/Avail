@@ -42,7 +42,12 @@ import com.avail.exceptions.AvailException;
 import com.avail.exceptions.MethodDefinitionException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.operand.*;
+import com.avail.interpreter.levelTwo.operand.L2PcOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
+import com.avail.interpreter.levelTwo.operand.L2SelectorOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.RegisterSet;
@@ -127,12 +132,12 @@ extends L2ControlFlowOperation
 		final L2PcOperand lookupSucceeded = instruction.operand(4);
 		final L2PcOperand lookupFailed = instruction.operand(5);
 
-		bundle.instructionWasAdded(instruction, manifest);
-		argRegs.instructionWasAdded(instruction, manifest);
-		functionReg.instructionWasAdded(instruction, manifest);
-		errorCodeReg.instructionWasAdded(instruction, manifest);
-		lookupSucceeded.instructionWasAdded(instruction, manifest);
-		lookupFailed.instructionWasAdded(instruction, manifest);
+		bundle.instructionWasAdded(manifest);
+		argRegs.instructionWasAdded(manifest);
+		functionReg.instructionWasAdded(manifest);
+		errorCodeReg.instructionWasAdded(manifest);
+		lookupSucceeded.instructionWasAdded(manifest);
+		lookupFailed.instructionWasAdded(manifest);
 
 		// If the lookup failed, it supplies the reason to the errorCodeReg.
 		lookupFailed.manifest().setRestriction(
@@ -153,7 +158,8 @@ extends L2ControlFlowOperation
 		if (functionType.isEnumeration())
 		{
 			final int numArgs = arguments.size();
-			final Set<A_Function> functions = toSet(functionType.instances());
+			final Set<? extends A_Function> functions =
+				toSet(functionType.instances());
 			final A_Type argumentTupleUnionType = functions.stream()
 				.map(f -> f.code().functionType().argsTupleType())
 				.reduce(A_Type::typeUnion)

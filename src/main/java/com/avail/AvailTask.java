@@ -161,6 +161,11 @@ implements Comparable<AvailTask>, Runnable
 				fiber.executionState(RETIRED);
 				interpreter.runtime().unregisterFiber(fiber);
 			}
+			catch (Throwable e)
+			{
+				System.out.println("An unrecoverable VM error has occurred.");
+				throw e;
+			}
 			finally
 			{
 				// This is the first point at which *some other* Thread may have

@@ -31,31 +31,18 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_Continuation;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ContinuationDescriptor;
-import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
+import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
-import javax.annotation.Nullable;
-import java.util.List;
 import java.util.Set;
 
-import static com.avail.descriptor.ContinuationDescriptor.createContinuationExceptFrameMethod;
-import static com.avail.interpreter.Interpreter.chunkField;
 import static com.avail.interpreter.levelTwo.L2OperandType.COMMENT;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
-import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Type.*;
 
 /**
  * This is a placeholder instruction, which is replaced if still live after data
@@ -95,7 +82,7 @@ extends L2Operation
 	{
 		super(
 			COMMENT.is("usage comment"),
-			WRITE_BOXED.is("caller continuation"));
+			WRITE_BOXED.is("reified caller"));
 	}
 
 	/**
@@ -105,44 +92,20 @@ extends L2Operation
 		new L2_VIRTUAL_REIFY();
 
 	/**
-	 * Extract the {@link List} of slot registers ({@link
-	 * L2ReadBoxedOperand}s) that fed the given {@link L2Instruction} whose
-	 * {@link L2Operation} is an {@code L2_CREATE_CONTINUATION}.
+	 * Extract the reified caller {@link L2WriteBoxedOperand} from this virtual
+	 * reification instruction.
 	 *
 	 * @param instruction
-	 *        The create-continuation instruction.
-	 * @return The slots that were provided to the instruction for populating an
-	 *         {@link ContinuationDescriptor continuation}.
+	 *        The {@link L2Instruction} to examine, which must have this class
+	 *        as its operation.
+	 * @return The {@link L2WriteBoxedOperand} into which the calling
+	 *         continuation will be written.
 	 */
-	public static List<L2ReadBoxedOperand> slotRegistersFor (
+	public static L2WriteBoxedOperand callerWriteOperandOf (
 		final L2Instruction instruction)
 	{
 		assert instruction.operation() == instance;
-		final L2ReadBoxedVectorOperand vector = instruction.operand(5);
-		return vector.elements();
-	}
-
-	/**
-	 * This kind of instruction can be declared dead if its output is never
-	 * used, but we have to convert it to an {@link L2_JUMP} to the fall-through
-	 * PC for correctness.
-	 *
-	 * @param instruction The instruction about to be replaced.
-	 * @return A replacement {@link L2_JUMP} instruction.
-	 */
-	@Override
-	public L2Instruction optionalReplacementForDeadInstruction (
-		final L2Instruction instruction)
-	{
-		// The fall-through PC.
-		final L2PcOperand fallthrough = instruction.operand(7);
-		return new L2Instruction(
-			instruction.basicBlock,
-			L2_JUMP.instance,
-			new L2PcOperand(
-				fallthrough.targetBlock(),
-				false,
-				fallthrough.manifest()));
+		return instruction.operand(1);
 	}
 
 	@Override
@@ -152,39 +115,131 @@ extends L2Operation
 		final StringBuilder builder)
 	{
 		assert this == instruction.operation();
-		final L2ReadBoxedOperand function = instruction.operand(0);
-		final L2ReadBoxedOperand caller = instruction.operand(1);
-		final L2IntImmediateOperand levelOnePC = instruction.operand(2);
-		final L2IntImmediateOperand levelOneStackp = instruction.operand(3);
-		final L2ReadBoxedVectorOperand slots = instruction.operand(4);
-		final L2WriteBoxedOperand destReg = instruction.operand(5);
-//		final L2PcOperand onRamp = instruction.operand(6);
-//		final L2PcOperand fallThrough = instruction.operand(7);
+		// final L2CommentOperand usageComment = instruction.operand(0);
+		final L2WriteBoxedOperand reifiedCaller = instruction.operand(1);
 
 		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(destReg);
-		builder.append(" ← $[");
-		builder.append(function);
-		builder.append("]:pc=");
-		builder.append(levelOnePC);
-		builder.append(" stack=[");
-		boolean first = true;
-		for (final L2ReadBoxedOperand slot : slots.elements())
+		builder.append(" ");
+		builder.append(reifiedCaller);
+	}
+
+	@Override
+	public void generateReplacement (
+		final L2Instruction instruction, final L2Generator generator)
+	{
+		final L2WriteBoxedOperand originalRegisterWrite =
+			callerWriteOperandOf(instruction);
+		if (generator.currentBlock().zone != null)
 		{
-			if (!first)
-			{
-				builder.append(",");
-			}
-			first = false;
-			builder.append("\n\t\t");
-			builder.append(slot);
+			// The instruction is already within a reification zone, so the
+			// caller is necessarily already reified.  Just get it.
+			generator.addInstruction(
+				L2_GET_CURRENT_CONTINUATION.instance,
+				originalRegisterWrite);
+			return;
 		}
-		builder.append("]\n\t[");
-		builder.append(levelOneStackp);
-		builder.append("] caller=");
-		builder.append(caller);
-		renderOperandsStartingAt(instruction, 6, desiredTypes, builder);
+		// Replace it with real reification code.
+		System.out.println("NOT YET IMPLEMENTED");
+
+
+//
+//		// Force reification of the current continuation and all callers, then
+//		// resume that continuation right away, which also makes it available.
+//		// Create a new continuation like it, with only the caller, function,
+//		// and arguments present, and having an empty stack and an L1 pc of 0.
+//		// Then push that new continuation on the virtual stack.
+//		final int oldStackp = stackp;
+//		// The initially constructed continuation is always immediately resumed,
+//		// so this should never be observed.
+//		stackp = Integer.MAX_VALUE;
+//
+//		getCurrentContinuationAs();
+//
+//
+//***TODO Move to optimization phase.
+//
+//
+//		final L2BasicBlock onReification = generator.createBasicBlock(
+//			"on reification",
+//			BEGIN_REIFICATION_FOR_LABEL.createZone(
+//				"Reify caller for pushing label"));
+//		addInstruction(
+//			L2_REIFY.instance,
+//			new L2IntImmediateOperand(1),
+//			new L2IntImmediateOperand(0),
+//			new L2IntImmediateOperand(
+//				StatisticCategory.PUSH_LABEL_IN_L2.ordinal()),
+//			edgeTo(onReification));
+//
+//		generator.startBlock(onReification);
+//		generator.addInstruction(
+//			L2_ENTER_L2_CHUNK.instance,
+//			new L2IntImmediateOperand(TRANSIENT.offsetInDefaultChunk),
+//			new L2CommentOperand(
+//				"Transient, before label creation - cannot be invalid."));
+//		reify(null, UNREACHABLE);
+//		// We just continued the reified continuation, having exploded the
+//		// continuation into slot registers.  Create a label based on it, but
+//		// capturing only the arguments (with pc=0, stack=empty).
+//		generator.addInstruction(L2_JUMP.instance, edgeTo(callerIsReified));
+//
+//		generator.startBlock(callerIsReified);
+//		assert code.primitive() == null;
+//		final int numArgs = code.numArgs();
+//		final List<L2ReadBoxedOperand> slotsForLabel =
+//			new ArrayList<>(numSlots);
+//		for (int i = 1; i <= numArgs; i++)
+//		{
+//			slotsForLabel.add(generator.makeImmutable(readSlot(i)));
+//		}
+//		final L2ReadBoxedOperand nilTemp = generator.boxedConstant(nil);
+//		for (int i = numArgs + 1; i <= numSlots; i++)
+//		{
+//			slotsForLabel.add(nilTemp);  // already immutable
+//		}
+//		// Now create the actual label continuation and push it.
+//		stackp = oldStackp - 1;
+//		final A_Type continuationType =
+//			continuationTypeForFunctionType(code.functionType());
+//		final L2SemanticValue label = topFrame().label();
+//		final L2WriteBoxedOperand destinationRegister =
+//			generator.boxedWrite(label, restriction(continuationType, null));
+//
+//		// Now generate the reification instructions, ensuring that when
+//		// returning into the resulting continuation it will enter a block where
+//		// the slot registers are the new ones we just created.
+//		final L2WriteIntOperand writeOffset = generator.intWriteTemp(
+//			restrictionForType(int32(), UNBOXED_INT));
+//		final L2WriteBoxedOperand writeRegisterDump = generator.boxedWriteTemp(
+//			restrictionForType(ANY.o(), BOXED));
+//
+//		final L2BasicBlock fallThrough =
+//			generator.createBasicBlock("Caller is reified");
+//		addInstruction(
+//			L2_SAVE_ALL_AND_PC_TO_INT.instance,
+//			edgeTo(fallThrough),
+//			backEdgeTo(generator.afterOptionalInitialPrimitiveBlock),
+//			writeOffset,
+//			writeRegisterDump);
+//
+//		generator.startBlock(fallThrough);
+//		addInstruction(
+//			L2_CREATE_CONTINUATION.instance,
+//			generator.makeImmutable(getCurrentFunction()),
+//			generator.makeImmutable(getCurrentContinuation()),  // the caller
+//			new L2IntImmediateOperand(0),  // indicates a label.
+//			new L2IntImmediateOperand(numSlots + 1),  // empty stack
+//			new L2ReadBoxedVectorOperand(slotsForLabel),  // each immutable
+//			destinationRegister,
+//			generator.readInt(
+//				writeOffset.semanticValue(),
+//				generator.unreachablePcOperand().targetBlock()),
+//			generator.readBoxed(writeRegisterDump),
+//			new L2CommentOperand("Create a label continuation."));
+//		// Continue, with the label having been pushed.
+//		forceSlotRegister(
+//			stackp, instructionDecoder.pc(), currentManifest().read(label));
+
 	}
 
 	@Override
@@ -193,57 +248,8 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2ReadBoxedOperand function = instruction.operand(0);
-		final L2ReadBoxedOperand caller = instruction.operand(1);
-		final L2IntImmediateOperand levelOnePC = instruction.operand(2);
-		final L2IntImmediateOperand levelOneStackp = instruction.operand(3);
-		final L2ReadBoxedVectorOperand slots = instruction.operand(4);
-		final L2WriteBoxedOperand destReg = instruction.operand(5);
-		final L2PcOperand onRamp = instruction.operand(6);
-		final L2PcOperand fallThrough = instruction.operand(7);
-
-		// :: continuation = createContinuationExceptFrame(
-		// ::    function,
-		// ::    caller,
-		// ::    levelOnePC,
-		// ::    levelOneStackp,
-		// ::    interpreter.chunk,
-		// ::    onRampOffset);
-		translator.load(method, function.register());
-		translator.load(method, caller.register());
-		translator.literal(method, levelOnePC.value);
-		translator.literal(method, levelOneStackp.value);
-		translator.loadInterpreter(method);
-		chunkField.generateRead(method);
-		translator.intConstant(method, onRamp.offset());
-		createContinuationExceptFrameMethod.generateCall(method);
-		method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
-		final int slotCount = slots.elements().size();
-		for (int i = 0; i < slotCount; i++)
-		{
-			final L2ReadBoxedOperand regRead = slots.elements().get(i);
-			final @Nullable A_BasicObject constant = regRead.constantOrNull();
-			// Skip if it's always nil, since the continuation was already
-			// initialized with nils.
-			if (constant == null || !constant.equalsNil())
-			{
-				// :: continuation.argOrLocalOrStackAtPut(«i + 1», «slots[i]»);
-				method.visitInsn(DUP);
-				translator.intConstant(method, i + 1);
-				translator.load(method, slots.elements().get(i).register());
-				method.visitMethodInsn(
-					INVOKEINTERFACE,
-					getInternalName(A_Continuation.class),
-					"argOrLocalOrStackAtPut",
-					getMethodDescriptor(
-						VOID_TYPE,
-						INT_TYPE,
-						getType(AvailObject.class)),
-					true);
-			}
-		}
-		translator.store(method, destReg.register());
-		// :: goto fallThrough;
-		translator.jump(method, instruction, fallThrough);
+		throw new RuntimeException(
+			getClass().getSimpleName()
+				+ " should have been replaced during optimization");
 	}
 }

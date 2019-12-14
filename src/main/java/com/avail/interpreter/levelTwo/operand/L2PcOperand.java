@@ -54,6 +54,7 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static com.avail.descriptor.ContinuationRegisterDumpDescriptor.createRegisterDumpMethod;
@@ -61,7 +62,6 @@ import static com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.BO
 import static com.avail.utility.CollectionExtensions.populatedEnumMap;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.String.format;
-import static java.util.Arrays.asList;
 import static java.util.Comparator.comparingInt;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.getInternalName;
@@ -78,9 +78,6 @@ extends L2Operand
 {
 	/** The {@link L2BasicBlock} that this operand leads to. */
 	private L2BasicBlock targetBlock;
-
-	/** The instruction that this operand is part of. */
-	private @Nullable L2Instruction instruction;
 
 	/**
 	 * The manifest linking semantic values and registers at this control flow
@@ -154,17 +151,6 @@ extends L2Operand
 		manifest = newManifest;
 	}
 
-	/**
-	 * Answer this edge's source {@link L2Instruction}.  Fail if this edge has
-	 * not yet been installed in an instruction.
-	 *
-	 * @return The {@link L2Instruction} that's the source of this edge.
-	 */
-	public L2Instruction sourceInstruction ()
-	{
-		return stripNull(instruction);
-	}
-
 	@Override
 	public L2OperandType operandType ()
 	{
@@ -199,30 +185,35 @@ extends L2Operand
 
 	@Override
 	public void instructionWasAdded (
-		final L2Instruction theInstruction,
 		final L2ValueManifest theManifest)
 	{
-		assert this.instruction == null;
-		this.instruction = theInstruction;
-		instruction.basicBlock.addSuccessorEdge(this);
+		super.instructionWasAdded(theManifest);
+		instruction().basicBlock().addSuccessorEdge(this);
 		manifest = new L2ValueManifest(theManifest);
 		targetBlock.addPredecessorEdge(this);
-		super.instructionWasAdded(theInstruction, theManifest);
 	}
 
 	@Override
-	public void instructionWasRemoved (
-		final L2Instruction theInstruction)
+	public void instructionWasInserted (
+		final L2Instruction newInstruction)
 	{
-		final L2BasicBlock sourceBlock = stripNull(instruction).basicBlock;
+		super.instructionWasInserted(newInstruction);
+		newInstruction.basicBlock().addSuccessorEdge(this);
+		manifest = new L2ValueManifest(manifest());
+		targetBlock.addPredecessorEdge(this);
+	}
+
+	@Override
+	public void instructionWasRemoved ()
+	{
+		final L2BasicBlock sourceBlock = instruction().basicBlock();
 		sourceBlock.removeSuccessorEdge(this);
 		targetBlock.removePredecessorEdge(this);
-		this.instruction = null;
-		if (theInstruction.operation().altersControlFlow())
+		if (instruction().operation().altersControlFlow())
 		{
 			sourceBlock.removedControlFlowInstruction();
 		}
-		super.instructionWasRemoved(theInstruction);
+		super.instructionWasRemoved();
 	}
 
 	/**
@@ -253,7 +244,7 @@ extends L2Operand
 	 */
 	public L2BasicBlock sourceBlock ()
 	{
-		return stripNull(instruction).basicBlock;
+		return instruction().basicBlock();
 	}
 
 	@Override
@@ -265,13 +256,6 @@ extends L2Operand
 				? "pc " + offset() + ": "
 				: "",
 			targetBlock.name());
-	}
-
-	@Override
-	public void adjustCloneForInstruction (final L2Instruction theInstruction)
-	{
-		super.adjustCloneForInstruction(theInstruction);
-		instruction = null;
 	}
 
 	/**
@@ -289,48 +273,44 @@ extends L2Operand
 	public L2BasicBlock splitEdgeWith (
 		final L2ControlFlowGraph controlFlowGraph)
 	{
-		assert instruction != null;
+		assert instructionHasBeenEmitted();
 
 		// Capture where this edge originated.
-		final L2Instruction originalSource = instruction;
+		final L2Instruction source = instruction();
 
-		// Create a new intermediary block.
+		// Create a new intermediary block that initially just contains a jump
+		// to itself.
 		final L2BasicBlock newBlock = new L2BasicBlock(
 			"edge-split ["
-				+ originalSource.basicBlock.name()
+				+ source.basicBlock().name()
 				+ " / "
 				+ targetBlock.name()
-				+ "]");
+				+ "]",
+			false,
+			source.basicBlock().zone);
 		controlFlowGraph.startBlock(newBlock);
+		final L2ValueManifest manifestCopy = new L2ValueManifest(manifest());
+		newBlock.insertInstruction(
+			0,
+			new L2Instruction(
+				newBlock,
+				L2_JUMP.instance,
+				new L2PcOperand(newBlock, false, manifestCopy)));
+		final L2Instruction newJump = newBlock.instructions().get(0);
+		final L2PcOperand jumpEdge = L2_JUMP.jumpTarget(newJump);
 
-		// Create a jump instruction, reusing this edge.  That way we don't have
-		// to do anything to the target block where the phi stuff is.  Currently
-		// the L2Instruction constructor copies the operands for safety, and
-		// also establishes bi-directional links through L2PcOperands.  We
-		// bypass that after construction.
-		final L2BasicBlock garbageBlock = new L2BasicBlock("garbage block");
-		final L2PcOperand jumpEdge = new L2PcOperand(garbageBlock, isBackward);
-		jumpEdge.manifest = manifest;
-		final L2Instruction jump = new L2Instruction(
-			newBlock,
-			L2_JUMP.instance,
-			jumpEdge);
-		jump.operands()[0] = this;
-		instruction = jump;
-		newBlock.justAddInstruction(jump);
-		assert newBlock.successorEdgesCount() == 0;
-		newBlock.addSuccessorEdge(this);
+		// Now swap my target with the new jump's target.  I'll end up pointing
+		// to the new block, which will contain a jump pointing to the block I
+		// used to point to.
 
-		// Create a new edge from the original source to the new block.
-		final L2PcOperand newEdge = new L2PcOperand(newBlock, false);
-		newEdge.manifest = manifest;
-		newEdge.instruction = originalSource;
-		newBlock.addPredecessorEdge(newEdge);
+		final L2BasicBlock finalTarget = targetBlock;
+		targetBlock = jumpEdge.targetBlock;
+		jumpEdge.targetBlock = finalTarget;
 
-		// Wire in the new edge.
-		asList(originalSource.operands()).replaceAll(
-			x -> x == this ? newEdge : x);
-		originalSource.basicBlock.replaceSuccessorEdge(this, newEdge);
+		// Fix up the blocks' predecessors edges.
+		newBlock.replacePredecessorEdge(jumpEdge, this);
+		finalTarget.replacePredecessorEdge(this, jumpEdge);
+
 		return newBlock;
 	}
 
@@ -451,5 +431,15 @@ extends L2Operand
 		// The stack is now AvailObject[], long[].
 		createRegisterDumpMethod.generateCall(method);
 		// Now the stack has the register dump object on it.
+	}
+
+	@Override
+	public void replaceWriteDefinitions (
+		final Map<L2WriteOperand<?>, L2WriteOperand<?>> writesMap)
+	{
+		if (manifest != null)
+		{
+			manifest.replaceWriteDefinitions(writesMap);
+		}
 	}
 }

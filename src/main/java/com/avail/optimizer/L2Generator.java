@@ -788,10 +788,6 @@ public final class L2Generator
 		final L2SemanticValue temp = topFrame.temp(nextUnique());
 		final TypeRestriction immutableRestriction =
 			restriction.withFlag(IMMUTABLE);
-		addInstruction(
-			L2_MAKE_IMMUTABLE.instance,
-			read,
-			boxedWrite(temp, immutableRestriction));
 		// If there is an unboxed form, preserve the first definition of that
 		// unboxed kind.
 		final List<L2WriteOperand<?>> unboxedDefinitions = new ArrayList<>(1);
@@ -807,7 +803,13 @@ public final class L2Generator
 		}
 		final L2Synonym synonym =
 			currentManifest.semanticValueToSynonym(semanticValue);
-		currentManifest.forget(synonym);
+		// L2_MAKE_IMMUTABLE.instructionWasAdded(instr, manifest) will run when
+		// the instruction is added.  The subsequent moves take care of
+		// themselves.
+		addInstruction(
+			L2_MAKE_IMMUTABLE.instance,
+			read,
+			boxedWrite(temp, immutableRestriction));
 		synonym.semanticValues().forEach(sv ->
 			moveRegister(
 				L2_MOVE.boxed,
@@ -920,7 +922,10 @@ public final class L2Generator
 					// the manifest from the jump edge.
 					currentManifest.clear();
 					currentManifest.populateFromIntersection(
-						singletonList(predecessorEdge.manifest()), this, false);
+						singletonList(predecessorEdge.manifest()),
+						this,
+						false,
+						false);
 					predecessorBlock.instructions().remove(
 						predecessorBlock.instructions().size() - 1);
 					jump.justRemoved();
@@ -1020,6 +1025,89 @@ public final class L2Generator
 		{
 			currentBlock.addInstruction(instruction, currentManifest);
 		}
+	}
+
+	/**
+	 * Replace the already-generated instruction with a code sequence produced
+	 * by setting up conditions, asking the instruction to
+	 * {@link L2Operation#generateReplacement(L2Instruction, L2Generator)}
+	 * itself, then cleaning up afterward.
+	 *
+	 * @param instruction
+	 *        The {@link L2Instruction} to replace.  Any registers that it
+	 *        writes must be replaced by suitable writes in the generated
+	 *        replacement.
+	 */
+	public void replaceInstructionByGenerating (
+		final L2Instruction instruction)
+	{
+		assert !instruction.altersControlFlow();
+		final L2BasicBlock startingBlock = instruction.basicBlock();
+		final List<L2Instruction> originalInstructions =
+			startingBlock.instructions();
+		final int instructionIndex = originalInstructions.indexOf(instruction);
+		// Stash the instructions before the doomed one, as well as the ones
+		// after the doomed one.
+		final List<L2Instruction> startInstructions = new ArrayList<>(
+			originalInstructions.subList(0, instructionIndex));
+		final List<L2Instruction> endInstructions = new ArrayList<>(
+			originalInstructions.subList(
+				instructionIndex + 1, originalInstructions.size()));
+		// Remove all instructions from the block.
+		originalInstructions.clear();
+		instruction.justRemoved();
+		startingBlock.removedControlFlowInstruction();
+
+		// Regenerate the start instructions.
+		currentBlock = startingBlock;
+		// Reconstruct the manifest at the start of the block.
+		currentManifest.clear();
+		// Keep semantic values that are common to all incoming paths.
+		final List<L2ValueManifest> manifests = new ArrayList<>();
+		startingBlock.predecessorEdgesIterator().forEachRemaining(
+			edge -> manifests.add(edge.manifest()));
+		currentManifest.populateFromIntersection(manifests, this, false, true);
+		// Replay the effects on the manifest of the leading instructions.
+		startInstructions.forEach(
+			originalInstruction ->
+			{
+				originalInstruction.justRemoved();
+				addInstruction(
+					originalInstruction.operation(),
+					originalInstruction.operands());
+			});
+
+		// Let the instruction regenerate its replacement code.  It must write
+		// to all of the write operand *registers* of the original instruction.
+		// Writing to the same semantic value isn't good enough.
+		instruction.operation().generateReplacement(instruction, this);
+
+		// Make sure every L2WriteOperand in the replaced instruction has been
+		// written to by the replacement code.
+		instruction.writeOperands().forEach(writeOp ->
+		{
+			assert !writeOp.register().definitions().isEmpty();
+		});
+
+		if (!currentlyReachable())
+		{
+			// This regenerated code should no longer reach the old flow.
+			// Still, clean up the old instructions.
+			endInstructions.forEach(L2Instruction::justRemoved);
+			return;
+		}
+
+		// Finally, add duplicates of the instructions that came after the
+		// doomed one in the original block.  Since the regenerated code writes
+		// to all the same L2Registers, no special provisions are needed for
+		// translating registers or fiddling with the manifest.
+		endInstructions.forEach(originalInstruction ->
+		{
+			originalInstruction.justRemoved();
+			addInstruction(
+				originalInstruction.operation(),
+				originalInstruction.operands());
+		});
 	}
 
 	/**

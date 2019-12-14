@@ -37,6 +37,7 @@ import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteOperand;
 import com.avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.optimizer.L2BasicBlock;
@@ -56,6 +57,8 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 import static com.avail.utility.Casts.cast;
+import static com.avail.utility.Nulls.stripNull;
+import static java.util.Collections.emptyList;
 
 /**
  * {@code L2Instruction} is the foundation for all instructions understood by
@@ -92,7 +95,7 @@ public final class L2Instruction
 	/**
 	 * The {@link L2BasicBlock} to which the instruction belongs.
 	 */
-	public final L2BasicBlock basicBlock;
+	private @Nullable L2BasicBlock basicBlock;
 
 	/**
 	 * The source {@link L2Register}s.
@@ -102,8 +105,7 @@ public final class L2Instruction
 	/**
 	 * The destination {@link L2Register}s.
 	 */
-	final List<L2Register> destinationRegisters =
-		new ArrayList<>();
+	final List<L2Register> destinationRegisters = new ArrayList<>();
 
 	/**
 	 * The {@link L2Operation} whose execution this instruction represents.
@@ -133,10 +135,7 @@ public final class L2Instruction
 	 */
 	public void operandsDo (final Consumer<L2Operand> consumer)
 	{
-		for (final L2Operand operand : operands)
-		{
-			consumer.accept(operand);
-		}
+		Arrays.stream(operands).forEach(consumer);
 	}
 
 	/**
@@ -220,7 +219,9 @@ public final class L2Instruction
 		final L2Operation operation,
 		final L2Operand... theOperands)
 	{
-		final L2Operand[] augmentedOperands = operation.augment(theOperands);
+		//noinspection ThisEscapedInObjectConstruction
+		final L2Operand[] augmentedOperands =
+			operation.augment(theOperands, this);
 		final L2NamedOperandType[] operandTypes = operation.namedOperandTypes;
 		assert operandTypes.length == augmentedOperands.length;
 		for (int i = 0; i < augmentedOperands.length; i++)
@@ -234,6 +235,7 @@ public final class L2Instruction
 		for (int i = 0; i < operands.length; i++)
 		{
 			final L2Operand operand = augmentedOperands[i].clone();
+			//noinspection ThisEscapedInObjectConstruction
 			operand.adjustCloneForInstruction(this);
 			this.operands[i] = operand;
 			operand.addSourceRegistersTo(sourceRegisters);
@@ -242,8 +244,18 @@ public final class L2Instruction
 	}
 
 	/**
-	 * Answer the {@linkplain List list} of {@linkplain L2Register registers}
-	 * read by this {@code L2Instruction instruction}.
+	 * Check that this instruction's {@link #basicBlock} has been set, and that
+	 * each operand's instruction field has also been set.
+	 */
+	public void assertHasBeenEmitted ()
+	{
+		assert basicBlock != null;
+		operandsDo(L2Operand::assertHasBeenEmitted);
+	}
+
+	/**
+	 * Answer the {@linkplain List list} of {@link L2Register}s read by this
+	 * {@code L2Instruction instruction}.
 	 *
 	 * @return The source {@linkplain L2Register registers}.
 	 */
@@ -254,7 +266,7 @@ public final class L2Instruction
 	}
 
 	/**
-	 * Answer the {@link List list} of {@link L2Register} modified by this
+	 * Answer the {@link List list} of {@link L2Register}s modified by this
 	 * {@code L2Instruction instruction}.
 	 *
 	 * @return The source {@linkplain L2Register}s.
@@ -263,6 +275,62 @@ public final class L2Instruction
 	{
 		//noinspection AssignmentOrReturnOfFieldWithMutableType
 		return destinationRegisters;
+	}
+
+	/**
+	 * Answer a {@link List} of this instruction's {@link L2ReadOperand}s.
+	 *
+	 * @return The list of read operands.
+	 */
+	public List<L2ReadOperand<?>> readOperands ()
+	{
+		@Nullable List<L2ReadOperand<?>> list = null;
+		for (final L2Operand operand : operands)
+		{
+			if (operand instanceof L2ReadOperand)
+			{
+				if (list == null)
+				{
+					list = new ArrayList<>();
+				}
+				list.add(cast(operand));
+			}
+			else if (operand instanceof L2ReadVectorOperand)
+			{
+				final L2ReadVectorOperand<?, ?> vector = cast(operand);
+				if (list == null)
+				{
+					list = new ArrayList<>(vector.elements());
+				}
+				else
+				{
+					list.addAll(vector.elements());
+				}
+			}
+		}
+		return list != null ? list : emptyList();
+	}
+
+	/**
+	 * Answer a {@link List} of this instruction's {@link L2WriteOperand}s.
+	 *
+	 * @return The list of write operands.
+	 */
+	public List<L2WriteOperand<?>> writeOperands ()
+	{
+		@Nullable List<L2WriteOperand<?>> list = null;
+		for (final L2Operand operand : operands)
+		{
+			if (operand instanceof L2WriteOperand)
+			{
+				if (list == null)
+				{
+					list = new ArrayList<>();
+				}
+				list.add(cast(operand));
+			}
+		}
+		return list != null ? list : emptyList();
 	}
 
 	/**
@@ -336,50 +404,6 @@ public final class L2Instruction
 	}
 
 	/**
-	 * Alter a vector operand, updating the instruction's internals as needed.
-	 *
-	 * @param operandIndex
-	 *        Which operand to update.
-	 * @param newManifest
-	 *        The manifest at this position.
-	 * @param updater
-	 *        What to do to a copied mutable {@link List} of read operands that
-	 *        starts out having all of the vector operand's elements.
-	 * @param <R> The {@link L2Register} subtype.
-	 * @param <RR> The {@link L2ReadOperand} subtype.
-	 */
-	public <R extends L2Register, RR extends L2ReadOperand<R>>
-	void updateVectorOperand(
-		final int operandIndex,
-		final L2ValueManifest newManifest,
-		final Consumer<List<RR>> updater)
-	{
-		final L2ReadVectorOperand<RR, R> vectorOperand = operand(operandIndex);
-		final List<RR> originalElements = vectorOperand.elements();
-		final List<RR> passedCopy = new ArrayList<>(originalElements);
-		updater.accept(passedCopy);
-		final List<RR> finalCopy = new ArrayList<>(passedCopy);
-		operands[operandIndex] = vectorOperand.clone(finalCopy);
-		originalElements.stream()
-			.filter(e -> !finalCopy.contains(e))
-			.forEach(e -> e.instructionWasRemoved(this));
-		// Assume new inputs don't affect the manifest types.  Currently, this
-		// method is only used for phi instructions, to add back-edges to a loop
-		// head.  In this circumstance, the back edge can't broaden the phi's
-		// output type, since loops are only generated as a consequence of a
-		// call of P_RestartContinuation[WithArguments], which constrains the
-		// replacement arguments to what the function expects, which is what the
-		// loop head initially set the phi types to.
-		finalCopy.stream()
-			.filter(e -> !originalElements.contains(e))
-			.forEach(e -> e.instructionWasAdded(this, newManifest));
-		// Rebuild the instruction's list of sourceRegisters.
-		sourceRegisters.clear();
-		Arrays.stream(operands).forEach(
-			operand -> operand.addSourceRegistersTo(sourceRegisters));
-	}
-
-	/**
 	 * Replace all registers in this instruction using the registerRemap.  If a
 	 * register is not present as a key of that map, leave it alone.  Do not
 	 * assume SSA form.
@@ -410,20 +434,22 @@ public final class L2Instruction
 	 */
 	public void justAdded (final L2ValueManifest manifest)
 	{
+		assert !isEntryPoint()
+			|| basicBlock().instructions().get(0) == this
+			: "Entry point instruction must be at start of a block";
+
+		operandsDo(operand -> operand.setInstruction(this));
 		operation().instructionWasAdded(this, manifest);
 	}
 
 	/**
 	 * This instruction was just added to its {@link L2BasicBlock} as part of an
 	 * optimization pass.
-	 *
-	 * @param manifest
-	 *        The {@link L2ValueManifest} that is active where this instruction
-	 *        wos just added to its {@link L2BasicBlock}.
 	 */
-	public void justInserted (final L2ValueManifest manifest)
+	public void justInserted ()
 	{
-		operation().instructionWasInserted(this, manifest);
+		operandsDo(operand -> operand.setInstruction(this));
+		operation().instructionWasInserted(this);
 	}
 
 	/**
@@ -431,7 +457,9 @@ public final class L2Instruction
 	 */
 	public void justRemoved ()
 	{
-		operandsDo(operand -> operand.instructionWasRemoved(this));
+		operandsDo(L2Operand::instructionWasRemoved);
+		operandsDo(operand -> operand.setInstruction(null));
+		basicBlock = null;
 	}
 
 	/**
@@ -451,8 +479,7 @@ public final class L2Instruction
 	public String toString ()
 	{
 		final StringBuilder builder = new StringBuilder();
-		operation().toString(
-			this, EnumSet.allOf(L2OperandType.class), builder);
+		operation().toString(this, EnumSet.allOf(L2OperandType.class), builder);
 		return builder.toString();
 	}
 
@@ -504,5 +531,15 @@ public final class L2Instruction
 		final MethodVisitor method)
 	{
 		operation().translateToJVM(translator, method, this);
+	}
+
+	/**
+	 * Anwser the {@link L2BasicBlock} to which this instruction belongs.
+	 *
+	 * @return This instruction's {@link L2BasicBlock}.
+	 */
+	public L2BasicBlock basicBlock ()
+	{
+		return stripNull(basicBlock);
 	}
 }

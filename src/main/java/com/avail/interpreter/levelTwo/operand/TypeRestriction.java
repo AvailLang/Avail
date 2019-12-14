@@ -578,7 +578,7 @@ public final class TypeRestriction
 		final A_Type type,
 		final @Nullable A_BasicObject constantOrNull,
 		final Set<A_Type> givenExcludedTypes,
-		final Set<A_BasicObject> givenExcludedValues,
+		final Set<? extends A_BasicObject> givenExcludedValues,
 		final int flags)
 	{
 		if (constantOrNull == null
@@ -589,7 +589,8 @@ public final class TypeRestriction
 			// (or bottom's type, which has only one instance, bottom).  See if
 			// excluding disallowed types and values happens to leave exactly
 			// zero or one possibility.
-			final Set<A_BasicObject> instances = toSet(type.instances());
+			final Set<AvailObject> instances = toSet(type.instances());
+			//noinspection SuspiciousMethodCalls
 			instances.removeAll(givenExcludedValues);
 			instances.removeIf(
 				instance -> givenExcludedTypes.stream().anyMatch(
@@ -1144,29 +1145,6 @@ public final class TypeRestriction
 			excludedTypes,
 			excludedValues,
 			flags & ~flagEncoding.mask);
-	}
-
-	/**
-	 * Answer a restriction like the receiver, but with the unboxed register
-	 * types excluded.  If they're already excluded, answer the receiver.
-	 *
-	 * @return The new {@code TypeRestriction}, or the receiver.
-	 */
-	public TypeRestriction butBoxedOnly ()
-	{
-
-		final int unboxedFlags = UNBOXED_INT.mask | UNBOXED_FLOAT.mask;
-		if ((flags & unboxedFlags) == 0)
-		{
-			// Flags are already clear.
-			return this;
-		}
-		return restriction(
-			type,
-			constantOrNull,
-			excludedTypes,
-			excludedValues,
-			flags & ~unboxedFlags);
 	}
 
 	/**

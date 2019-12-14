@@ -45,6 +45,7 @@ import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.operation.L2ControlFlowOperation;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE;
 import com.avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT;
+import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
 import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2Generator;
@@ -152,6 +153,14 @@ public abstract class L2Operation
 	protected final L2NamedOperandType[] namedOperandTypes;
 
 	/**
+	 * The <em>explicitly</em> {@linkplain L2NamedOperandType named operand
+	 * types} that this {@linkplain L2Operation operation} expects.  There may
+	 * be additional implicit operands that will be supplied automatically
+	 * during {@link L2Instruction} creation.
+	 */
+	protected final L2NamedOperandType[] explicitNamedOperandTypes;
+
+	/**
 	 * Answer the {@linkplain L2NamedOperandType named operand types} that this
 	 * {@code L2Operation operation} expects.
 	 *
@@ -200,6 +209,9 @@ public abstract class L2Operation
 		jvmTranslationTime = new Statistic(
 			className, StatisticReport.L2_TO_JVM_TRANSLATION_TIME);
 		namedOperandTypes = theNamedOperandTypes.clone();
+		explicitNamedOperandTypes = Arrays.stream(namedOperandTypes)
+			.filter(op -> op.operandType() != L2OperandType.INTERNAL_COUNTER)
+			.toArray(L2NamedOperandType[]::new);
 
 		assert this instanceof L2ControlFlowOperation
 			|| this instanceof L2_SAVE_ALL_AND_PC_TO_INT
@@ -452,11 +464,10 @@ public abstract class L2Operation
 		final L2Instruction instruction,
 		final L2ValueManifest manifest)
 	{
-		assert !isEntryPoint(instruction)
-			|| instruction.basicBlock.instructions().get(0) == instruction
-			: "Entry point instruction must be at start of a block";
+		// Setting up the instruction fields of the operands is already done,
+		// so subclasses can focus on manifest manipulation.
 		instruction.operandsDo(
-			operand -> operand.instructionWasAdded(instruction, manifest));
+			operand -> operand.instructionWasAdded(manifest));
 	}
 
 	/**
@@ -466,18 +477,16 @@ public abstract class L2Operation
 	 *
 	 * @param instruction
 	 *        The {@link L2Instruction} that was just inserted.
-	 * @param manifest
-	 *        The {@link L2ValueManifest} that is active at this instruction.
 	 */
 	public void instructionWasInserted (
-		final L2Instruction instruction,
-		final L2ValueManifest manifest)
+		final L2Instruction instruction)
 	{
 		assert !isEntryPoint(instruction)
-			|| instruction.basicBlock.instructions().get(0) == instruction
+			|| instruction.basicBlock().instructions().get(0) == instruction
 			: "Entry point instruction must be at start of a block";
+
 		instruction.operandsDo(
-			operand -> operand.instructionWasInserted(instruction, manifest));
+			operand -> operand.instructionWasInserted(instruction));
 	}
 
 	/**
@@ -756,14 +765,44 @@ public abstract class L2Operation
 	 * Augment the array of operands with any that are supposed to be supplied
 	 * implicitly by this class.
 	 *
-	 * @param operands The original array of {@link L2Operand}s.
+	 * @param operands
+	 *        The original array of {@link L2Operand}s.
+	 * @param instruction
+	 *        The <em>uninitialized</em> {@link L2Instruction} for which we are
+	 *        creating the augmented array of operands.
 	 * @return The augmented array of {@link L2Operand}s, which may be the same
 	 *         as the given array.
 	 */
 	public L2Operand[] augment (
-		final L2Operand[] operands)
+		final L2Operand[] operands,
+		final L2Instruction instruction)
 	{
 		return operands;
+	}
+
+	/**
+	 * Generate code to replace this {@link L2Instruction}.  The instruction has
+	 * already been removed.  Leave the generator in a state that ensures any
+	 * {@link L2Register}s that would have been written by the old instruction
+	 * are instead written by the new code.
+	 *
+	 * <p>Leave the code generation at the point where subsequent instructions
+	 * of the rebuilt block will be re-emitted, whether that's in the same block
+	 * or not.</p>
+	 *
+	 * @param instruction
+	 *        The {@link L2Instruction} being replaced.
+	 * @param generator
+	 *        An {@link L2Generator} that has been configured for writing
+	 *        arbitrary replacement code for this instruction.
+	 */
+	public void generateReplacement (
+		final L2Instruction instruction,
+		final L2Generator generator)
+	{
+		throw new RuntimeException(
+			"A " + instruction.operation()
+				+ " cannot be transformed by regeneration");
 	}
 
 	/**

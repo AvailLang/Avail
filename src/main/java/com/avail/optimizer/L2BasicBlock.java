@@ -35,11 +35,9 @@ package com.avail.optimizer;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP;
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
 import com.avail.optimizer.L2ControlFlowGraph.Zone;
-import com.avail.optimizer.values.L2SemanticValue;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -47,6 +45,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import static com.avail.utility.Casts.cast;
+import static com.avail.utility.PrefixSharingList.last;
 
 /**
  * This is a traditional basic block, consisting of a sequence of {@link
@@ -216,7 +215,8 @@ public final class L2BasicBlock
 
 	/**
 	 * Add a predecessor, due to an earlier basic block adding an instruction
-	 * that reaches this basic block.
+	 * that reaches this basic block.  Also allow backward edges to attach to
+	 * a loop head after code generation has already taken place in the target.
 	 *
 	 * @param predecessorEdge The {@link L2PcOperand} that leads here.
 	 */
@@ -235,20 +235,17 @@ public final class L2BasicBlock
 				final L2Operation operation = instruction.operation();
 				if (!operation.isPhi())
 				{
-					// All the phi instructions are at the start.
+					// All the phi instructions are at the start, so we've
+					// exhausted them.
 					break;
 				}
+				final L2_PHI_PSEUDO_OPERATION<?, ?, ?> phiOperation =
+					cast(operation);
+
 				// The body of the loop is required to still have available
 				// every semantic value mentioned in the original phis.
-				final L2_PHI_PSEUDO_OPERATION<?, ?, ?> phiOperation =
-					cast(instruction.operation());
-				final L2SemanticValue semanticValue =
-					phiOperation.sourceRegisterReads(instruction).get(0)
-						.semanticValue();
-				final L2ReadOperand<?> readOperand =
-					predecessorManifest.readBoxed(semanticValue);
-				phiOperation.withNewSource(
-					instruction, cast(readOperand), predecessorManifest);
+				phiOperation.updateLoopHeadPhi(
+					predecessorManifest, instruction);
 			}
 		}
 	}
@@ -404,7 +401,7 @@ public final class L2BasicBlock
 			manifests.add(predecessorEdge.manifest());
 		}
 		generator.currentManifest().populateFromIntersection(
-			manifests, generator, isLoopHead);
+			manifests, generator, isLoopHead, false);
 	}
 
 	/**
@@ -437,7 +434,7 @@ public final class L2BasicBlock
 	public void justAddInstruction (final L2Instruction instruction)
 	{
 		assert !hasControlFlowAtEnd;
-		assert instruction.basicBlock == this;
+		assert instruction.basicBlock() == this;
 		if (instruction.operation().isPhi())
 		{
 			// For simplicity, phi functions are routed to the *start* of the
@@ -460,20 +457,33 @@ public final class L2BasicBlock
 	 *        The index at which to insert the instruction.
 	 * @param instruction
 	 *        The {@link L2Instruction} to insert.
-	 * @param manifest
-	 *        The {@link L2ValueManifest} that is active where this instruction
-	 *        wos just added to its {@code L2BasicBlock}.
 	 */
 	public void insertInstruction (
 		final int index,
-		final L2Instruction instruction,
-		final L2ValueManifest manifest)
+		final L2Instruction instruction)
 	{
-		assert isIrremovable() || predecessorEdgesCount() > 0;
-		assert instruction.basicBlock == this;
+		assert instruction.basicBlock() == this;
 		instructions.add(index, instruction);
 		hasStartedCodeGeneration = true;
-		instruction.justInserted(manifest);
+		instruction.justInserted();
+	}
+
+	/**
+	 * One of my predecessors has been replaced.  Update my list of predecessors
+	 * to account for this change.
+	 *
+	 * @param oldPredecessorEdge
+	 *        The {@link L2PcOperand} that used to point here.
+	 * @param newPredecessorEdge
+	 *        The {@link L2PcOperand} that points here instead.
+	 */
+	public void replacePredecessorEdge (
+		final L2PcOperand oldPredecessorEdge,
+		final L2PcOperand newPredecessorEdge)
+	{
+		predecessorEdges.set(
+			predecessorEdges.indexOf(oldPredecessorEdge),
+			newPredecessorEdge);
 	}
 
 	/**
@@ -582,6 +592,16 @@ public final class L2BasicBlock
 	@Override
 	public String toString ()
 	{
-		return "BasicBlock(" + name + ')';
+		String suffix = "";
+		if (instructions.size() > 0)
+		{
+			final int firstOffset = instructions.get(0).offset();
+			final int lastOffset = last(instructions).offset();
+			if (firstOffset != -1 && lastOffset != -1)
+			{
+				suffix = "[" + firstOffset + ".." + lastOffset;
+			}
+		}
+		return "BasicBlock(" + name + ')' + suffix;
 	}
 }

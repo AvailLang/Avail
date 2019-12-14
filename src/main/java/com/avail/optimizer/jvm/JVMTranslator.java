@@ -1699,7 +1699,7 @@ public final class JVMTranslator
 	 */
 	void generateRunChunk ()
 	{
-		MethodVisitor method = classWriter.visitMethod(
+		final MethodVisitor method = classWriter.visitMethod(
 			ACC_PUBLIC,
 			"runChunk",
 			getMethodDescriptor(
