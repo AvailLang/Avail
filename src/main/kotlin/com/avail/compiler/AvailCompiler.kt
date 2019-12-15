@@ -4258,97 +4258,70 @@ class AvailCompiler(
 			val sourceBuilder = StringBuilder(4096)
 			val filePosition = MutableLong(0L)
 			// Kick off the asynchronous read.
-			file.read<Any>(
-				input,
-				0L,
-				null,
-				SimpleCompletionHandler<Int, Any?>(
-					{ bytesRead, _, handler ->
-						try
+			SimpleCompletionHandler<Int, Any?>(
+				{ bytesRead, _, handler ->
+					try
+					{
+						var moreInput = true
+						if (bytesRead == -1)
 						{
-							var moreInput = true
-							if (bytesRead == -1)
-							{
-								moreInput = false
-							}
-							else
-							{
-								filePosition.value += bytesRead.toLong()
-							}
-							input.flip()
-							val result = decoder.decode(
-								input, output, !moreInput)
-							// UTF-8 never compresses data, so the number of
-							// characters encoded can be no greater than the
-							// number of bytes encoded. The input buffer and the
-							// output buffer are equally sized (in units), so an
-							// overflow cannot occur.
-							assert(!result.isOverflow)
-							assert(!result.isError)
-							// If the decoder didn't consume all of the bytes,
-							// then preserve the unconsumed bytes in the next
-							// buffer (for decoding).
-							if (input.hasRemaining())
-							{
-								input.compact()
-							}
-							else
-							{
-								input.clear()
-							}
-							output.flip()
+							moreInput = false
+						}
+						else
+						{
+							filePosition.value += bytesRead.toLong()
+						}
+						input.flip()
+						val result = decoder.decode(
+							input, output, !moreInput)
+						// UTF-8 never compresses data, so the number of
+						// characters encoded can be no greater than the number
+						// of bytes encoded. The input buffer and the output
+						// buffer are equally sized (in units), so an overflow
+						// cannot occur.
+						assert(!result.isOverflow)
+						assert(!result.isError)
+						// If the decoder didn't consume all of the bytes, then
+						// preserve the unconsumed bytes in the next buffer (for
+						// decoding).
+						if (input.hasRemaining())
+						{
+							input.compact()
+						}
+						else
+						{
+							input.clear()
+						}
+						output.flip()
+						sourceBuilder.append(output)
+						// If more input remains, then queue another read.
+						if (moreInput)
+						{
+							output.clear()
+							handler.guardedDo(
+								file::read, input, filePosition.value, null)
+						}
+						// Otherwise, close the file channel and queue the
+						// original continuation.
+						else
+						{
+							decoder.flush(output)
 							sourceBuilder.append(output)
-							// If more input remains, then queue another read.
-							if (moreInput)
-							{
-								output.clear()
-								file.read<Any>(
-									input,
-									filePosition.value,
-									null,
-									handler)
-							}
-							// Otherwise, close the file channel and queue the
-							// original continuation.
-							else
-							{
-								decoder.flush(output)
-								sourceBuilder.append(output)
-								file.close()
-								runtime.execute(
-									FiberDescriptor.compilerPriority
-								) { withSource(sourceBuilder.toString()) }
-							}
+							file.close()
+							runtime.execute(
+								FiberDescriptor.compilerPriority
+							) { withSource(sourceBuilder.toString()) }
 						}
-						catch (e: IOException)
-						{
-							val problem = object : Problem(
-								resolvedName,
-								1,
-								0,
-								PARSE,
-								"Invalid UTF-8 encoding in source module "
-									+ "\"{0}\": {1}\n{2}",
-								resolvedName,
-								e.localizedMessage,
-								trace(e))
-							{
-								override fun abortCompilation()
-								{
-									fail()
-								}
-							}
-							problemHandler.handle(problem)
-						}
-					},
-					// failure
-					{ e, _, _ ->
+					}
+					catch (e: IOException)
+					{
 						val problem = object : Problem(
 							resolvedName,
 							1,
 							0,
-							EXTERNAL,
-							"Unable to read source module \"{0}\": {1}\n{2}",
+							PARSE,
+							"Invalid UTF-8 encoding in source module "
+								+ "\"{0}\": {1}\n{2}",
 							resolvedName,
 							e.localizedMessage,
 							trace(e))
@@ -4359,7 +4332,28 @@ class AvailCompiler(
 							}
 						}
 						problemHandler.handle(problem)
-					}))
+					}
+				},
+				// failure
+				{ e, _, _ ->
+					val problem = object : Problem(
+						resolvedName,
+						1,
+						0,
+						EXTERNAL,
+						"Unable to read source module \"{0}\": {1}\n{2}",
+						resolvedName,
+						e.localizedMessage,
+						trace(e))
+					{
+						override fun abortCompilation()
+						{
+							fail()
+						}
+					}
+					problemHandler.handle(problem)
+				}
+			).guardedDo(file::read, input, 0L, null)
 		}
 
 		/**

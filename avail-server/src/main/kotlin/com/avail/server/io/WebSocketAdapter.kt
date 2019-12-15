@@ -356,29 +356,27 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 				val bytes = StandardCharsets.US_ASCII.encode(
 					formatter.toString())
 				val transport = channel.transport
-				transport.write<Any>(
-					bytes,
-					null,
-					SimpleCompletionHandler(
-						{ _, _, handler ->
-							if (bytes.hasRemaining())
-							{
-								transport.write<Any>(bytes, null, handler)
-							}
-							else
-							{
-								channel.scheduleClose(BadMessageDisconnect)
-							}
-						},
-						{ e, _, _ ->
+				SimpleCompletionHandler<Int, Any?>(
+					{ _, _, handler ->
+						if (bytes.hasRemaining())
+						{
+							handler.guardedDo(transport::write, bytes, null)
+						}
+						else
+						{
+							channel.scheduleClose(BadMessageDisconnect)
+						}
+					},
+					{ e, _, _ ->
 
-							logger.log(
-								Level.WARNING,
-								"unable to write HTTP response to $channel",
-								e)
-							channel.closeImmediately(
-								CommunicationErrorDisconnect(e))
-						}))
+						logger.log(
+							Level.WARNING,
+							"unable to write HTTP response to $channel",
+							e)
+						channel.closeImmediately(
+							CommunicationErrorDisconnect(e))
+					}
+				).guardedDo(transport::write, bytes, null)
 			}
 
 			/**
@@ -501,64 +499,62 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 				val buffer = ByteBuffer.allocate(1024)
 				val state = MutableOrNull(HttpHeaderState.START)
 				val transport = channel.transport
-				transport.read<Any>(
-					buffer,
-					null,
-					SimpleCompletionHandler(
-						{ bytesRead, _, handler ->
-							if (remoteEndClosed(transport, bytesRead))
+				SimpleCompletionHandler<Int, Any?>(
+					{ bytesRead, _, handler ->
+						if (remoteEndClosed(transport, bytesRead))
+						{
+							return@SimpleCompletionHandler
+						}
+						buffer.flip()
+						while (buffer.hasRemaining()
+							&& !state.value().isAcceptState)
+						{
+							state.value = state.value().nextState(
+								buffer.get().toInt())
+						}
+						if (buffer.hasRemaining())
+						{
+							badRequest(
+								channel,
+								HttpStatusCode.BAD_REQUEST,
+								"Data Following Headers")
+						}
+						else
+						{
+							buffer.rewind()
+							bytes.write(
+								buffer.array(),
+								buffer.position(),
+								buffer.remaining())
+							if (!state.value().isAcceptState)
 							{
-								return@SimpleCompletionHandler
-							}
-							buffer.flip()
-							while (buffer.hasRemaining()
-								&& !state.value().isAcceptState)
-							{
-								state.value = state.value().nextState(
-									buffer.get().toInt())
-							}
-							if (buffer.hasRemaining())
-							{
-								badRequest(
-									channel,
-									HttpStatusCode.BAD_REQUEST,
-									"Data Following Headers")
+								buffer.clear()
+								handler.guardedDo(transport::read, buffer, null)
 							}
 							else
 							{
-								buffer.rewind()
-								bytes.write(
-									buffer.array(),
-									buffer.position(),
-									buffer.remaining())
-								if (!state.value().isAcceptState)
+								val request = readRequest(
+									channel,
+									adapter,
+									String(
+										bytes.toByteArray(),
+										StandardCharsets.US_ASCII))
+								if (request != null)
 								{
-									buffer.clear()
-									transport.read<Any>(buffer, null, handler)
-								}
-								else
-								{
-									val request = readRequest(
-										channel,
-										adapter,
-										String(
-											bytes.toByteArray(),
-											StandardCharsets.US_ASCII))
-									if (request != null)
-									{
-										continuation(request)
-									}
+									continuation(request)
 								}
 							}
-						},
-						{ e, _, _ ->
-							logger.log(
-								Level.WARNING,
-								"failed while attempting to read client handshake",
-								e)
-							channel.closeImmediately(
-								CommunicationErrorDisconnect(e))
-						}))
+						}
+					},
+					{ e, _, _ ->
+						logger.log(
+							Level.WARNING,
+							"failed while attempting to read client handshake",
+							e)
+						channel.closeImmediately(
+							CommunicationErrorDisconnect(e))
+					}
+				).guardedDo(transport::read, buffer, null)
 			}
 		}
 	}
@@ -719,29 +715,27 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 				val bytes = StandardCharsets.US_ASCII.encode(
 					formatter.toString())
 				val transport = channel.transport
-				transport.write<Any>(
-					bytes,
-					null,
-					SimpleCompletionHandler(
-						{ _, _, handler ->
-							if (bytes.hasRemaining())
-							{
-								transport.write<Any>(bytes, null, handler)
-							}
-							else
-							{
-								channel.scheduleClose(MismatchDisconnect)
-							}
-						},
-						{ e, _, _ ->
+				SimpleCompletionHandler<Int, Any?>(
+					{ _, _, handler ->
+						if (bytes.hasRemaining())
+						{
+							handler.guardedDo(transport::write, bytes, null)
+						}
+						else
+						{
+							channel.scheduleClose(MismatchDisconnect)
+						}
+					},
+					{ e, _, _ ->
 
-							logger.log(
-								Level.WARNING,
-								"unable to write HTTP response to $channel",
-								e)
-							channel.closeImmediately(
-								CommunicationErrorDisconnect(e))
-						}))
+						logger.log(
+							Level.WARNING,
+							"unable to write HTTP response to $channel",
+							e)
+						channel.closeImmediately(
+							CommunicationErrorDisconnect(e))
+					}
+				).guardedDo(transport::write, bytes, null)
 			}
 		}
 	}
@@ -861,27 +855,25 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 			formatter.format("\r\n")
 			val bytes = StandardCharsets.US_ASCII.encode(
 				formatter.toString())
-			channel.write<Any>(
-				bytes,
-				null,
-				SimpleCompletionHandler(
-					{ _, _, handler ->
-						if (bytes.hasRemaining())
-						{
-							channel.write<Any>(bytes, null, handler)
-						}
-						else
-						{
-							continuation()
-						}
-					},
-					{ e, _, _ ->
-						logger.log(
-							Level.WARNING,
-							"unable to write HTTP response to $channel",
-							e)
-						IO.close(channel)
-					}))
+			SimpleCompletionHandler<Int, Any?>(
+				{ _, _, handler ->
+					if (bytes.hasRemaining())
+					{
+						handler.guardedDo(channel::write, bytes, null)
+					}
+					else
+					{
+						continuation()
+					}
+				},
+				{ e, _, _ ->
+					logger.log(
+						Level.WARNING,
+						"unable to write HTTP response to $channel",
+						e)
+					IO.close(channel)
+				}
+			).guardedDo(channel::write, bytes, null)
 		}
 	}
 
@@ -890,37 +882,36 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 	 */
 	private fun acceptConnections()
 	{
-		serverChannel.accept<Any>(
-			null,
-			SimpleCompletionHandler(
-				{ transport, _, handler ->
-					// Asynchronously accept a subsequent connection.
-					serverChannel.accept<Any>(null, handler)
-					val channel =
-						WebSocketChannel(
-							this,
-							transport,
-							heartbeatFailureThreshold,
-							heartbeatInterval,
-							heartbeatTimeout,
-							onChannelCloseAction)
-					// Process the client request.
-					ClientRequest.receiveThen(channel,this) { request ->
-						processRequest(request, channel)
-					}
-				},
-				{ e, _, _ ->
-					// If there was a race between two accepts, then simply
-					// ignore one of them.
-					if (e !is AcceptPendingException)
-					{
-						logger.log(
-							Level.WARNING,
-							"accept failed on $adapterAddress",
-							e)
-						close()
-					}
-				}))
+		SimpleCompletionHandler<AsynchronousSocketChannel, Any?>(
+			{ transport, _, handler ->
+				// Asynchronously accept a subsequent connection.
+				handler.guardedDo(serverChannel::accept, null)
+				val channel =
+					WebSocketChannel(
+						this,
+						transport,
+						heartbeatFailureThreshold,
+						heartbeatInterval,
+						heartbeatTimeout,
+						onChannelCloseAction)
+				// Process the client request.
+				ClientRequest.receiveThen(channel,this) { request ->
+					processRequest(request, channel)
+				}
+			},
+			{ e, _, _ ->
+				// If there was a race between two accepts, then simply
+				// ignore one of them.
+				if (e !is AcceptPendingException)
+				{
+					logger.log(
+						Level.WARNING,
+						"accept failed on $adapterAddress",
+						e)
+					close()
+				}
+			}
+		).guardedDo(serverChannel::accept, null)
 	}
 
 	/**
@@ -1583,37 +1574,35 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 		{
 			val buffer = ByteBuffer.allocateDirect(1)
 			val transport = channel.transport
-			transport.read<Any>(
-				buffer,
-				null,
-				SimpleCompletionHandler(
-					{ bytesRead, _, handler ->
-						if (remoteEndClosed(transport, bytesRead))
-						{
-							return@SimpleCompletionHandler
-						}
-						if (buffer.hasRemaining())
-						{
-							transport.read<Any>(buffer, null, handler)
-						}
-						else
-						{
-							buffer.flip()
-							val b = buffer.get().toInt()
-							assert(!buffer.hasRemaining())
-							frame.isFinalFragment = b and 0x80 == 0x80
-							frame.opcode = Opcode.all[b and 0x0F]
-							readPayloadLengthThen(channel, frame, continuation)
-						}
-					},
-					{ e, _, _ ->
-						logger.log(
-							Level.WARNING,
-							"failed while attempting to read opcode",
-							e)
-						channel.closeImmediately(
-							CommunicationErrorDisconnect(e))
-					}))
+			SimpleCompletionHandler<Int, Any?>(
+				{ bytesRead, _, handler ->
+					if (remoteEndClosed(transport, bytesRead))
+					{
+						return@SimpleCompletionHandler
+					}
+					if (buffer.hasRemaining())
+					{
+						handler.guardedDo(transport::read, buffer, null)
+					}
+					else
+					{
+						buffer.flip()
+						val b = buffer.get().toInt()
+						assert(!buffer.hasRemaining())
+						frame.isFinalFragment = b and 0x80 == 0x80
+						frame.opcode = Opcode.all[b and 0x0F]
+						readPayloadLengthThen(channel, frame, continuation)
+					}
+				},
+				{ e, _, _ ->
+					logger.log(
+						Level.WARNING,
+						"failed while attempting to read opcode",
+						e)
+					channel.closeImmediately(
+						CommunicationErrorDisconnect(e))
+				}
+			).guardedDo(transport::read, buffer, null)
 		}
 
 		/**
@@ -1633,56 +1622,54 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 		{
 			val buffer = ByteBuffer.allocateDirect(1)
 			val transport = channel.transport
-			transport.read<Any>(
-				buffer,
-				null,
-				SimpleCompletionHandler(
-					{ bytesRead, _, handler ->
-						if (remoteEndClosed(transport, bytesRead))
+			SimpleCompletionHandler<Int, Any?>(
+				{ bytesRead, _, handler ->
+					if (remoteEndClosed(transport, bytesRead))
+					{
+						return@SimpleCompletionHandler
+					}
+					if (buffer.hasRemaining())
+					{
+						handler.guardedDo(transport::read, buffer, null)
+					}
+					else
+					{
+						buffer.flip()
+						val b = buffer.get().toInt()
+						assert(!buffer.hasRemaining())
+						frame.isMasked = b and 0x80 == 0x80
+						when (val len = b and 0x7F)
 						{
-							return@SimpleCompletionHandler
-						}
-						if (buffer.hasRemaining())
-						{
-							transport.read<Any>(buffer, null, handler)
-						}
-						else
-						{
-							buffer.flip()
-							val b = buffer.get().toInt()
-							assert(!buffer.hasRemaining())
-							frame.isMasked = b and 0x80 == 0x80
-							when (val len = b and 0x7F)
+							126 -> readPayloadLength2ByteExtensionThen(
+								channel, frame, continuation)
+							127 -> readPayloadLength8ByteExtensionThen(
+								channel, frame, continuation)
+							else ->
 							{
-								126 -> readPayloadLength2ByteExtensionThen(
-									channel, frame, continuation)
-								127 -> readPayloadLength8ByteExtensionThen(
-									channel, frame, continuation)
-								else ->
+								frame.payloadLength = len.toLong()
+								if (frame.isMasked)
 								{
-									frame.payloadLength = len.toLong()
-									if (frame.isMasked)
-									{
-										readMaskingKeyThen(
-											channel, frame, continuation)
-									}
-									else
-									{
-										readPayloadDataThen(
-											channel, frame, continuation)
-									}
+									readMaskingKeyThen(
+										channel, frame, continuation)
+								}
+								else
+								{
+									readPayloadDataThen(
+										channel, frame, continuation)
 								}
 							}
 						}
-					},
-					{ e, _, _ ->
-						logger.log(
-							Level.WARNING,
-							"failed while attempting to read payload size",
-							e)
-						channel.closeImmediately(
-							CommunicationErrorDisconnect(e))
-					}))
+					}
+				},
+				{ e, _, _ ->
+					logger.log(
+						Level.WARNING,
+						"failed while attempting to read payload size",
+						e)
+					channel.closeImmediately(
+						CommunicationErrorDisconnect(e))
+				}
+			).guardedDo(transport::read, buffer, null)
 		}
 
 		/**
@@ -1702,56 +1689,54 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 		{
 			val buffer = ByteBuffer.allocateDirect(2)
 			val transport = channel.transport
-			transport.read<Any>(
-				buffer,
-				null,
-				SimpleCompletionHandler(
-					{ bytesRead, _, handler ->
-						if (remoteEndClosed(transport, bytesRead))
+			SimpleCompletionHandler<Int, Any?>(
+				{ bytesRead, _, handler ->
+					if (remoteEndClosed(transport, bytesRead))
+					{
+						return@SimpleCompletionHandler
+					}
+					if (buffer.hasRemaining())
+					{
+						handler.guardedDo(transport::read, buffer, null)
+					}
+					else
+					{
+						buffer.flip()
+						val len = buffer.short and 0xFFFF.toShort()
+						assert(!buffer.hasRemaining())
+						if (len < 126)
 						{
-							return@SimpleCompletionHandler
-						}
-						if (buffer.hasRemaining())
-						{
-							transport.read<Any>(buffer, null, handler)
+							fail(
+								channel,
+								WebSocketStatusCode.PROTOCOL_ERROR,
+								"2-byte encoding for length=$len")
 						}
 						else
 						{
-							buffer.flip()
-							val len = buffer.short and 0xFFFF.toShort()
-							assert(!buffer.hasRemaining())
-							if (len < 126)
+							frame.payloadLength = len.toLong()
+							if (frame.isMasked)
 							{
-								fail(
-									channel,
-									WebSocketStatusCode.PROTOCOL_ERROR,
-									"2-byte encoding for length=$len")
+								readMaskingKeyThen(
+									channel, frame, continuation)
 							}
 							else
 							{
-								frame.payloadLength = len.toLong()
-								if (frame.isMasked)
-								{
-									readMaskingKeyThen(
-										channel, frame, continuation)
-								}
-								else
-								{
-									readPayloadDataThen(
-										channel, frame, continuation)
-								}
+								readPayloadDataThen(
+									channel, frame, continuation)
 							}
 						}
-					},
-					{ e, _, _ ->
-						logger.log(
-							Level.WARNING,
-							"failed while attempting to read 2-byte "
-							+ "payload size",
-							e)
-						channel.closeImmediately(
-							CommunicationErrorDisconnect(e))
-					}))
+					}
+				},
+				{ e, _, _ ->
+					logger.log(
+						Level.WARNING,
+						"failed while attempting to read 2-byte "
+						+ "payload size",
+						e)
+					channel.closeImmediately(
+						CommunicationErrorDisconnect(e))
+				}
+			).guardedDo(transport::read, buffer, null)
 		}
 
 		/**
@@ -1771,68 +1756,66 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 		{
 			val buffer = ByteBuffer.allocateDirect(8)
 			val transport = channel.transport
-			transport.read<Any>(
-				buffer,
-				null,
-				SimpleCompletionHandler(
-					{ bytesRead, _, handler ->
-						if (remoteEndClosed(transport, bytesRead))
+			SimpleCompletionHandler<Int, Any?>(
+				{ bytesRead, _, handler ->
+					if (remoteEndClosed(transport, bytesRead))
+					{
+						return@SimpleCompletionHandler
+					}
+					if (buffer.hasRemaining())
+					{
+						handler.guardedDo(transport::read, buffer, null)
+					}
+					else
+					{
+						buffer.flip()
+						val len = buffer.long
+						assert(!buffer.hasRemaining())
+						if (len < 65536)
 						{
-							return@SimpleCompletionHandler
+							// Note that this covers the case where the MSB
+							// is set (which is forbidden).
+							fail(
+								channel,
+								WebSocketStatusCode.PROTOCOL_ERROR,
+								"8-byte encoding for length=$len")
 						}
-						if (buffer.hasRemaining())
+						else if (len > Message.MAX_SIZE)
 						{
-							transport.read<Any>(buffer, null, handler)
+							fail(
+								channel,
+								WebSocketStatusCode.MESSAGE_TOO_BIG,
+								"length="
+								+ len
+								+ " exceeds maximum length of "
+								+ Message.MAX_SIZE)
 						}
 						else
 						{
-							buffer.flip()
-							val len = buffer.long
-							assert(!buffer.hasRemaining())
-							if (len < 65536)
+							frame.payloadLength = len
+							if (frame.isMasked)
 							{
-								// Note that this covers the case where the MSB
-								// is set (which is forbidden).
-								fail(
-									channel,
-									WebSocketStatusCode.PROTOCOL_ERROR,
-									"8-byte encoding for length=$len")
-							}
-							else if (len > Message.MAX_SIZE)
-							{
-								fail(
-									channel,
-									WebSocketStatusCode.MESSAGE_TOO_BIG,
-									"length="
-									+ len
-									+ " exceeds maximum length of "
-									+ Message.MAX_SIZE)
+								readMaskingKeyThen(
+									channel, frame, continuation)
 							}
 							else
 							{
-								frame.payloadLength = len
-								if (frame.isMasked)
-								{
-									readMaskingKeyThen(
-										channel, frame, continuation)
-								}
-								else
-								{
-									readPayloadDataThen(
-										channel, frame, continuation)
-								}
+								readPayloadDataThen(
+									channel, frame, continuation)
 							}
 						}
-					},
-					{ e, _, _ ->
-						logger.log(
-							Level.WARNING,
-							"failed while attempting to read 8-byte "
-							+ "payload size",
-							e)
-						channel.closeImmediately(
-							CommunicationErrorDisconnect(e))
-					}))
+					}
+				},
+				{ e, _, _ ->
+					logger.log(
+						Level.WARNING,
+						"failed while attempting to read 8-byte "
+						+ "payload size",
+						e)
+					channel.closeImmediately(
+						CommunicationErrorDisconnect(e))
+				}
+			).guardedDo(transport::read, buffer, null)
 		}
 
 		/**
@@ -1852,34 +1835,32 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 		{
 			val buffer = ByteBuffer.allocateDirect(4)
 			val transport = channel.transport
-			transport.read<Any>(
-				buffer,
-				null,
-				SimpleCompletionHandler(
-					{ bytesRead, _, handler ->
-						if (remoteEndClosed(transport, bytesRead))
-						{
-							return@SimpleCompletionHandler
-						}
-						if (buffer.hasRemaining())
-						{
-							transport.read<Any>(buffer, null, handler)
-						}
-						else
-						{
-							buffer.flip()
-							frame.maskingKey = buffer
-							readPayloadDataThen(channel, frame, continuation)
-						}
-					},
-					{ e, _, _ ->
-						logger.log(
-							Level.WARNING,
-							"failed while attempting to read masking key",
-							e)
-						channel.closeImmediately(
-							CommunicationErrorDisconnect(e))
-					}))
+			SimpleCompletionHandler<Int, Any?>(
+				{ bytesRead, _, handler ->
+					if (remoteEndClosed(transport, bytesRead))
+					{
+						return@SimpleCompletionHandler
+					}
+					if (buffer.hasRemaining())
+					{
+						handler.guardedDo(transport::read, buffer, null)
+					}
+					else
+					{
+						buffer.flip()
+						frame.maskingKey = buffer
+						readPayloadDataThen(channel, frame, continuation)
+					}
+				},
+				{ e, _, _ ->
+					logger.log(
+						Level.WARNING,
+						"failed while attempting to read masking key",
+						e)
+					channel.closeImmediately(
+						CommunicationErrorDisconnect(e))
+				}
+			).guardedDo(transport::read, buffer, null)
 		}
 
 		/**
@@ -1901,47 +1882,45 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 			assert(len.toLong() == frame.payloadLength)
 			val buffer = ByteBuffer.allocate(len)
 			val transport = channel.transport
-			transport.read<Any>(
-				buffer,
-				null,
-				SimpleCompletionHandler(
-					{ bytesRead, _, handler ->
-						if (remoteEndClosed(transport, bytesRead))
+			SimpleCompletionHandler<Int, Any?>(
+				{ bytesRead, _, handler ->
+					if (remoteEndClosed(transport, bytesRead))
+					{
+						return@SimpleCompletionHandler
+					}
+					if (buffer.hasRemaining())
+					{
+						handler.guardedDo(transport::read, buffer, null)
+					}
+					else
+					{
+						buffer.flip()
+						if (frame.isMasked)
 						{
-							return@SimpleCompletionHandler
-						}
-						if (buffer.hasRemaining())
-						{
-							transport.read<Any>(buffer, null, handler)
-						}
-						else
-						{
-							buffer.flip()
-							if (frame.isMasked)
+							val mask = frame.maskingKey!!
+							for (i in 0 until frame.payloadLength.toInt())
 							{
-								val mask = frame.maskingKey!!
-								for (i in 0 until frame.payloadLength.toInt())
-								{
-									val j = i and 3
-									buffer.put(
-										i, (buffer.get(i) xor mask.get(j)))
-								}
+								val j = i and 3
+								buffer.put(
+									i, (buffer.get(i) xor mask.get(j)))
 							}
-							assert(buffer.position() == 0)
-							frame.payloadData = buffer
-							// The complete frame has been read, so invoke the
-							// continuation now.
-							continuation()
 						}
-					},
-					{ e, _, _ ->
-						logger.log(
-							Level.WARNING,
-							"failed while attempting to read payload",
-							e)
-						channel.closeImmediately(
-							CommunicationErrorDisconnect(e))
-					}))
+						assert(buffer.position() == 0)
+						frame.payloadData = buffer
+						// The complete frame has been read, so invoke the
+						// continuation now.
+						continuation()
+					}
+				},
+				{ e, _, _ ->
+					logger.log(
+						Level.WARNING,
+						"failed while attempting to read payload",
+						e)
+					channel.closeImmediately(
+						CommunicationErrorDisconnect(e))
+				}
+			).guardedDo(transport::read, buffer, null)
 		}
 
 		/**
@@ -1976,25 +1955,24 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 			frame.payloadLength = payload.limit().toLong()
 			val buffer = frame.asByteBuffer()
 			val transport = channel.transport
-			transport.write<Any>(
-				buffer,
-				null,
-				SimpleCompletionHandler(
-					{ _, _, handler ->
-						if (buffer.hasRemaining())
-						{
-							transport.write<Any>(buffer, null, handler)
-						}
-						else success?.invoke()
-					},
-					{ e, _, _ ->
-						logger.log(
-							Level.WARNING,
-							"failed while attempting to send $opcode",
-							e)
-						channel.closeImmediately(CommunicationErrorDisconnect(e))
-						failure?.invoke(e)
-					}))
+			SimpleCompletionHandler<Int, Any?>(
+				{ _, _, handler ->
+					if (buffer.hasRemaining())
+					{
+						handler.guardedDo(transport::write, buffer, null)
+					}
+					else success?.invoke()
+				},
+				{ e, _, _ ->
+					logger.log(
+						Level.WARNING,
+						"failed while attempting to send $opcode",
+						e)
+					channel.closeImmediately(
+						CommunicationErrorDisconnect(e))
+					failure?.invoke(e)
+				}
+			).guardedDo(transport::write, buffer, null)
 		}
 
 		/**

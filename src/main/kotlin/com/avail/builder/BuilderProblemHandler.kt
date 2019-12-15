@@ -71,6 +71,7 @@ internal open class BuilderProblemHandler constructor(
 	private val availBuilder: AvailBuilder,
 	val pattern: String) : ProblemHandler
 {
+	@Suppress("RedundantLambdaArrow")
 	override fun handleGeneric(problem: Problem, decider: (Boolean)->Unit)
 	{
 		availBuilder.stopBuildReason = "Build failed"
@@ -80,11 +81,12 @@ internal open class BuilderProblemHandler constructor(
 			problem.moduleName,
 			problem.lineNumber,
 			problem.toString())
-		availBuilder.textInterface.errorChannel.write(
+		SimpleCompletionHandler<Int, Void?>(
+			{ decider(false) },
+			{ _ -> decider(false) }
+		).guardedDo(
+			availBuilder.textInterface.errorChannel::write,
 			formatted,
-			null,
-			SimpleCompletionHandler<Int, Void>(
-				{ decider(false) },
-				{ _ -> decider(false) }))
+			null)
 	}
 }

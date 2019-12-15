@@ -66,7 +66,7 @@ import java.nio.channels.AsynchronousSocketChannel
 /**
  * **Primitive:** Accept an incoming connection on the
  * [asynchronous&#32;server&#32;socket][AsynchronousServerSocketChannel]
- * referenced by the specified [handle][AtomDescriptor], using the supplied
+ * referenced by the specified [handle][A_Atom], using the supplied
  * [name][StringDescriptor] for a newly connected
  * [socket][AsynchronousSocketChannel]. Create a new [fiber][FiberDescriptor] to
  * respond to the asynchronous completion of the operation; the fiber will run
@@ -80,6 +80,7 @@ import java.nio.channels.AsynchronousSocketChannel
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_ServerSocketAccept : Primitive(5, CanInline, HasSideEffect)
 {
 	override fun attempt(interpreter: Interpreter): Result
@@ -141,9 +142,9 @@ object P_ServerSocketAccept : Primitive(5, CanInline, HasSideEffect)
 					}))
 			interpreter.primitiveSuccess(newFiber)
 		}
-		catch (e: IllegalStateException)
+		catch (e: Throwable)
 		{
-			interpreter.primitiveFailure(E_INVALID_HANDLE)
+			interpreter.primitiveFailure(E_IO_ERROR)
 		}
 	}
 

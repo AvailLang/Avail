@@ -41,6 +41,7 @@ import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.StringDescriptor
 import com.avail.descriptor.TupleTypeDescriptor.stringType
 import com.avail.descriptor.TypeDescriptor.Types.TOP
+import com.avail.descriptor.objects.A_BasicObject
 import com.avail.exceptions.AvailErrorCode.E_IO_ERROR
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
@@ -58,6 +59,7 @@ import com.avail.io.TextOutputChannel
 @Suppress("unused")
 object P_PrintToConsole : Primitive(1, CanSuspend, Unknown)
 {
+	@Suppress("RedundantLambdaArrow")
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
@@ -68,12 +70,13 @@ object P_PrintToConsole : Primitive(1, CanSuspend, Unknown)
 
 		val textInterface = interpreter.fiber().textInterface()
 		return interpreter.suspendAndDo { toSucceed, toFail ->
-			textInterface.outputChannel.write(
+			SimpleCompletionHandler<Int, A_BasicObject?>(
+				{ _ -> toSucceed.value(nil) },
+				{ toFail.value(E_IO_ERROR) }
+			).guardedDo(
+				textInterface.outputChannel::write,
 				string.asNativeString(),
-				nil,
-				SimpleCompletionHandler(
-					{ _ -> toSucceed.value(nil) },
-					{ toFail.value(E_IO_ERROR) }))
+				nil)
 		}
 	}
 
