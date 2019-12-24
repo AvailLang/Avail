@@ -1402,9 +1402,21 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 		failure: ((Throwable)->Unit)?)
 	{
 		val strongChannel = channel as WebSocketChannel
-		val content = payload.stringContent
-		val buffer = StandardCharsets.UTF_8.encode(content)
-		sendFrame(strongChannel, Opcode.TEXT, buffer, success, failure)
+		if (strongChannel.state.generalBinary)
+		{
+			sendFrame(
+				strongChannel,
+				Opcode.BINARY,
+				ByteBuffer.wrap(payload.content),
+				success,
+				failure)
+		}
+		else
+		{
+			val content = payload.stringContent
+			val buffer = StandardCharsets.UTF_8.encode(content)
+			sendFrame(strongChannel, Opcode.TEXT, buffer, success, failure)
+		}
 	}
 
 	/**

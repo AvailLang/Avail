@@ -66,7 +66,7 @@ import java.nio.channels.AsynchronousFileChannel
 internal abstract class AvailServerFile constructor(
 	protected val path: String,
 	protected val file: AsynchronousFileChannel,
-	protected val mimeType: String,
+	val mimeType: String,
 	val serverFileWrapper: ServerFileWrapper)
 {
 	/**

@@ -208,29 +208,29 @@ internal object FileManager
 	 *   The String path location of the file.
 	 * @param consumer
 	 *   A function that accepts the [FileManager.fileCache] [UUID] that
-	 *   uniquely identifies the file and the
+	 *   uniquely identifies the file, the String mime type, and the
 	 *   [raw bytes][AvailServerFile.rawContent] of an [AvailServerFile].
 	 * @param failureHandler
 	 *   A function that accepts a [ServerErrorCode] that describes the nature
 	 *   of the failure and an optional [Throwable].
-	 *   TODO refine error handling
+	 * @return
+	 *   The [FileManager] file id for the file.
 	 */
 	fun readFile (
 		path: String,
-		consumer: (UUID, ByteArray) -> Unit,
-		failureHandler: (ServerErrorCode, Throwable?) -> Unit)
+		consumer: (UUID, String, ByteArray) -> Unit,
+		failureHandler: (ServerErrorCode, Throwable?) -> Unit): UUID
 	{
 		val uuid: UUID
 		synchronized(pathToIdMap)
 		{
-			uuid = pathToIdMap.getOrPut(path) {
-				UUID.randomUUID()
-			}
+			uuid = pathToIdMap.getOrPut(path) { UUID.randomUUID() }
 			idToPathMap[uuid] = path
 		}
 		val value = fileCache[uuid]
 		value.value?.provide(uuid, consumer, failureHandler)
-			?: failureHandler(FILE_NOT_FOUND, null) // TODO refine
+			?: failureHandler(FILE_NOT_FOUND, null)
+		return uuid
 	}
 
 	/**
@@ -263,16 +263,18 @@ internal object FileManager
 	 *   The String path location of the file.
 	 * @param consumer
 	 *   A function that accepts the [FileManager.fileCache] [UUID] that
-	 *   uniquely identifies the file and the
+	 *   uniquely identifies the file, the String mime type, and the
 	 *   [raw bytes][AvailServerFile.rawContent] of an [AvailServerFile].
 	 * @param failureHandler
 	 *   A function that accepts a [ServerErrorCode] that describes the failure
 	 *   and an optional [Throwable]. TODO refine error reporting
+	 * @return
+	 *   The [FileManager] file id for the file.
 	 */
 	fun createFile (
 		path: String,
-		consumer: (UUID, ByteArray) -> Unit,
-		failureHandler: (ServerErrorCode, Throwable?) -> Unit)
+		consumer: (UUID, String, ByteArray) -> Unit,
+		failureHandler: (ServerErrorCode, Throwable?) -> Unit): UUID?
 	{
 		// TODO check to see if this is reasonable?
 		try
@@ -281,7 +283,7 @@ internal object FileManager
 				Paths.get(path), fileCreateOptions, fileExecutor)
 			file.force(false)
 			file.close()
-			readFile(path, consumer, failureHandler)
+			return readFile(path, consumer, failureHandler)
 		}
 		catch (e: FileAlreadyExistsException)
 		{
@@ -291,6 +293,7 @@ internal object FileManager
 		{
 			failureHandler(IO_EXCEPTION, e)
 		}
+		return null
 	}
 
 	/**
@@ -337,7 +340,7 @@ internal object FileManager
 		IOException::class)
 	fun openFile(
 		path: Path,
-		options: Set<OpenOption>,
+		options: Set<OpenOption> = fileOpenOptions,
 		vararg attributes: FileAttribute<*>): AsynchronousFileChannel =
 		AsynchronousFileChannel.open(
 			path, options, fileExecutor, *attributes)

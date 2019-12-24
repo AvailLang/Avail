@@ -244,7 +244,14 @@ enum class Command
 	 * View all [fibers][A_Fiber] associated with the [server][AvailServer]'s
 	 * [runtime][AvailRuntime].
 	 */
-	ALL_FIBERS;
+	ALL_FIBERS,
+
+	/**
+	 * Open a new [channel][AvailServerChannel] that is to be
+	 * [upgraded][UPGRADE] to a binary channel that will be used for interacting
+	 * with files.
+	 */
+	OPEN_EDITOR;
 
 	/**
 	 * The tokenized syntax of the [command][Command], or `null` if the command

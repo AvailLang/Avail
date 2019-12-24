@@ -32,7 +32,12 @@
 
 package com.avail.server.error
 
+import com.avail.builder.ModuleRoot
+import com.avail.builder.ModuleRoots
 import com.avail.server.AvailServer
+import com.avail.server.messages.Command
+import com.avail.server.messages.Message
+import com.avail.server.messages.binary.BinaryCommand
 
 /**
  * `ServerErrorCode` is an enumeration of all possible failures that can occur
@@ -59,5 +64,50 @@ enum class ServerErrorCode constructor(val code: Int)
 	BAD_FILE_ID(3),
 
 	/** A general IO exception. */
-	IO_EXCEPTION(4)
+	IO_EXCEPTION(4),
+
+	/**
+	 * Indicates the request made by the client does not correspond with any
+	 * command ([Command] nor [BinaryCommand]).
+	 */
+	INVALID_REQUEST(5),
+
+	/** Indicates a received [Message] is of an improper format. */
+	MALFORMED_MESSAGE(6),
+
+	/** Could not [find][ModuleRoots.moduleRootFor] [ModuleRoot]. */
+	BAD_MODULE_ROOT(7),
+
+	/**
+	 * Located [ModuleRoot] has no
+	 * [source directory][ModuleRoot.sourceDirectory].
+	 */
+	NO_SOURCE_DIRECTORY(8);
+
+	companion object
+	{
+		/**
+		 * Answer the [ServerErrorCode] for the provided [ServerErrorCode.code].
+		 *
+		 * @param code
+		 *   The integer value used to identify the `ServerErrorCode`.
+		 * @return
+		 *   The associated `ServerErrorCode` or [ServerErrorCode.UNSPECIFIED]
+		 *   if the id is not found.
+		 */
+		fun code (code: Int): ServerErrorCode =
+			when(code)
+			{
+				0 -> UNSPECIFIED
+				1 -> FILE_ALREADY_EXISTS
+				2 -> FILE_NOT_FOUND
+				3 -> BAD_FILE_ID
+				4 -> IO_EXCEPTION
+				5 -> INVALID_REQUEST
+				6 -> MALFORMED_MESSAGE
+				7 -> BAD_MODULE_ROOT
+				8 -> NO_SOURCE_DIRECTORY
+				else -> UNSPECIFIED
+			}
+	}
 }

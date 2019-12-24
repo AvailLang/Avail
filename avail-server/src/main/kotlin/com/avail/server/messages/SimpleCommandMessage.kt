@@ -80,6 +80,8 @@ class SimpleCommandMessage internal constructor(
 					channel, this, continuation)
 			ALL_FIBERS ->
 				server.allFibersThen(channel, this, continuation)
+			OPEN_EDITOR ->
+				server.requestEditorThen(channel, this, continuation)
 			VERSION,
 			UPGRADE,
 			LOAD_MODULE,

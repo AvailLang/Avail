@@ -57,6 +57,7 @@ import com.avail.server.AvailServer.ModuleNodeType.ROOT
 import com.avail.server.configuration.AvailServerConfiguration
 import com.avail.server.configuration.CommandLineConfigurator
 import com.avail.server.configuration.EnvironmentConfigurator
+import com.avail.server.error.ServerErrorCode
 import com.avail.server.io.AvailServerChannel
 import com.avail.server.io.AvailServerChannel.ProtocolState.BINARY
 import com.avail.server.io.AvailServerChannel.ProtocolState.COMMAND
@@ -78,6 +79,8 @@ import com.avail.server.messages.SimpleCommandMessage
 import com.avail.server.messages.UnloadModuleCommandMessage
 import com.avail.server.messages.UpgradeCommandMessage
 import com.avail.server.messages.VersionCommandMessage
+import com.avail.server.messages.binary.BinaryCommand
+import com.avail.server.messages.binary.ErrorBinaryMessage
 import com.avail.utility.MutableOrNull
 import com.avail.utility.configuration.ConfigurationException
 import com.avail.utility.evaluation.Continuation0
@@ -86,6 +89,7 @@ import com.avail.utility.json.JSONWriter
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.net.InetSocketAddress
+import java.nio.ByteBuffer
 import java.nio.file.FileVisitOption
 import java.nio.file.FileVisitResult
 import java.nio.file.FileVisitor
@@ -643,6 +647,54 @@ class AvailServer constructor(
 	 *   The [channel][AvailServerChannel] on which the
 	 *   [response][CommandMessage] should be sent.
 	 * @param command
+	 *   A [SOURCE_MODULES][Command.SOURCE_MODULES] command message.
+	 * @param continuation
+	 *   What to do when sufficient processing has occurred (and the
+	 *   `AvailServer` wishes to begin receiving messages again).
+	 */
+	fun openFileThen(
+		channel: AvailServerChannel,
+		command: SimpleCommandMessage,
+		continuation: ()->Unit)
+	{
+		assert(command.command === Command.SOURCE_MODULES)
+		val message = newSuccessMessage(channel, command) { writer ->
+			val roots = runtime.moduleRoots()
+			writer.writeArray {
+				for (root in roots)
+				{
+					val tree = MutableOrNull<ModuleNode>()
+					val directory = root.sourceDirectory
+					if (directory != null)
+					{
+						try
+						{
+							Files.walkFileTree(
+								Paths.get(directory.absolutePath),
+								EnumSet.of(FileVisitOption.FOLLOW_LINKS),
+								Integer.MAX_VALUE,
+								sourceModuleVisitor(root, tree))
+						}
+						catch (e: IOException)
+						{
+							// This shouldn't happen, since we never raise any
+							// exceptions in the visitor.
+						}
+					}
+					tree.value().writeOn(writer)
+				}
+			}
+		}
+		channel.enqueueMessageThen(message, continuation)
+	}
+
+	/**
+	 * List all source modules reachable from the [module roots][ModuleRoots].
+	 *
+	 * @param channel
+	 *   The [channel][AvailServerChannel] on which the
+	 *   [response][CommandMessage] should be sent.
+	 * @param command
 	 *   A [ENTRY_POINTS][Command.ENTRY_POINTS] command message.
 	 * @param continuation
 	 *   What to do when sufficient processing has occurred (and the
@@ -793,27 +845,23 @@ class AvailServer constructor(
 	}
 
 	/**
-	 * Request new file editing [channels][AvailServerChannel].
+	 * Request new file-editing [channel][AvailServerChannel].
 	 *
 	 * @param channel
 	 *   The [channel][AvailServerChannel] on which the
 	 *   [response][CommandMessage] should be sent.
 	 * @param command
-	 *   The [command][CommandMessage] on whose behalf the upgrade should be
-	 *   requested.
-	 * @param afterUpgraded
-	 *   What to do after the upgrades have been completed by the client. The
-	 *   argument is the upgraded channel.
+	 *   An [OPEN_EDITOR][Command.OPEN_EDITOR] command message.
 	 * @param afterEnqueuing
 	 *   What to do when sufficient processing has occurred (and the
 	 *   `AvailServer` wishes to begin receiving messages again).
 	 */
-	fun requestEditFileUpgradesThen(
+	fun requestEditorThen(
 		channel: AvailServerChannel,
 		command: CommandMessage,
-		afterUpgraded: (AvailServerChannel)->Unit,
 		afterEnqueuing: ()->Unit)
 	{
+		assert(command.command === Command.OPEN_EDITOR)
 		val uuid = UUID.randomUUID()
 		recordUpgradeRequest(channel,uuid) {
 			upgradedChannel, receivedUUID, resumeUpgrader ->
@@ -823,7 +871,6 @@ class AvailServer constructor(
 			upgradedChannel.parentId = channel.id
 			upgradedChannel.state = BINARY
 			resumeUpgrader()
-			afterUpgraded(upgradedChannel)
 			logger.log(
 				Level.FINEST,
 				"Channel [$oldId] upgraded to [$upgradedChannel]")
@@ -1458,7 +1505,30 @@ class AvailServer constructor(
 				}
 				BINARY ->
 				{
-					// TODO!
+					if (message.content.size < 8)
+					{
+
+						channel.enqueueMessageThen(
+							ErrorBinaryMessage(
+									0, // No transaction id available
+									ServerErrorCode.MALFORMED_MESSAGE,
+									true,
+									"Only received ${message.content.size} bytes.")
+								.message) {}
+					}
+					else
+					{
+						val buffer = ByteBuffer.wrap(message.content)
+						val id = buffer.int
+						val commandId = buffer.long
+						BinaryCommand.command(id).receiveThen(
+							id,
+							commandId,
+							buffer,
+							channel,
+							receiveNext)
+					}
+
 				}
 			}
 		}

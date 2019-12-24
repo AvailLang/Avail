@@ -33,6 +33,7 @@
 package com.avail.server.io.files
 
 import com.avail.io.SimpleCompletionHandler
+import com.avail.server.error.ServerErrorCode
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousFileChannel
@@ -111,13 +112,13 @@ internal class AvailServerBinaryFile constructor(
 					}
 					catch (e: IOException)
 					{
-						serverFileWrapper.notifyFailure()
-						TODO("Handle AvailServerTextFile read decode bytes fail")
+						serverFileWrapper.notifyFailure(
+							ServerErrorCode.IO_EXCEPTION, e)
 					}
 				},
 				{ e, _, _ ->
-					serverFileWrapper.notifyFailure()
-					TODO("Handle AvailServerTextFile read fail")
+					serverFileWrapper.notifyFailure(
+						ServerErrorCode.IO_EXCEPTION, e)
 				}))
 	}
 

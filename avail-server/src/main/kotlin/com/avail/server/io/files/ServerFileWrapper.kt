@@ -284,7 +284,7 @@ internal class ServerFileWrapper constructor(
 	 *   The [FileManager.fileCache] [UUID] that uniquely identifies the file.
 	 * @param consumer
 	 *   A function that accepts the [FileManager.fileCache] [UUID] that
-	 *   uniquely identifies the file and the
+	 *   uniquely identifies the file, the String mime type, and the
 	 *   [raw bytes][AvailServerFile.rawContent] of an [AvailServerFile].
 	 * @param failureHandler
 	 *   A function that accepts a [ServerErrorCode] that describes the nature
@@ -292,23 +292,24 @@ internal class ServerFileWrapper constructor(
 	 */
 	fun provide(
 		id: UUID,
-		consumer: (UUID, ByteArray) -> Unit,
+		consumer: (UUID, String, ByteArray) -> Unit,
 		failureHandler: (ServerErrorCode, Throwable?) -> Unit)
 	{
 		// TODO should be run on a separate thread or is that handled inside the
 		//  consumer?
-		if (!isLoadingFile)
+		synchronized(this)
 		{
-			synchronized(this)
+			if (!isLoadingFile)
 			{
-				if (!isLoadingFile)
-				{
-					consumer(id, file.rawContent)
-					return
-				}
+				consumer(id, file.mimeType, file.rawContent)
+				return
+			}
+			else
+			{
+				handlerQueue.add(FileRequestHandler(
+					id, consumer, failureHandler))
 			}
 		}
-
 	}
 
 	/**
@@ -324,16 +325,19 @@ internal class ServerFileWrapper constructor(
 		// TODO should each be run on a separate thread or is that handled
 		//  inside the consumer?
 		val fileBytes = file.rawContent
-		handlerQueue.forEach { it.requestConsumer(it.id, fileBytes) }
+		handlerQueue.forEach {
+			it.requestConsumer(it.id, file.mimeType, fileBytes)
+		}
 	}
 
 	/**
-	 * Notify this [ServerFileWrapper]
+	 * Notify the [FileRequestHandler]s in [ServerFileWrapper.handlerQueue] that
+	 *
 	 */
-	fun notifyFailure ()
+	fun notifyFailure (errorCode: ServerErrorCode, e: Throwable?)
 	{
-		// TODO figure out input and how to handle this
-		//  this includes handling new requests...
+		// TODO fix this up
+		handlerQueue.forEach { it.failureHandler(errorCode, e) }
 	}
 
 	companion object
@@ -391,7 +395,7 @@ internal class ServerFileWrapper constructor(
  *   The [FileManager.fileCache] [UUID] that uniquely identifies the file.
  * @param requestConsumer
  *   A function that accepts the [FileManager.fileCache] [UUID] that
- *   uniquely identifies the file and the
+ *   uniquely identifies the file, the String mime type, and the
  *   [raw bytes][AvailServerFile.rawContent] of an [AvailServerFile].
  * @param failureHandler
  *   A function that accepts a [ServerErrorCode] that describes the nature of
@@ -399,5 +403,5 @@ internal class ServerFileWrapper constructor(
  */
 internal class FileRequestHandler constructor(
 	val id: UUID,
-	val requestConsumer: (UUID, ByteArray) -> Unit,
+	val requestConsumer: (UUID, String, ByteArray) -> Unit,
 	val failureHandler: (ServerErrorCode, Throwable?) -> Unit)
