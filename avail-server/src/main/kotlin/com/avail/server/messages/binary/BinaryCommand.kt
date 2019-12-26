@@ -32,14 +32,20 @@
 
 package com.avail.server.messages.binary
 
-import com.apple.eio.FileManager
+import com.avail.builder.ModuleName
+import com.avail.server.AvailServer
+import com.avail.server.io.files.FileManager
 import com.avail.server.error.ServerErrorCode
 import com.avail.server.io.AvailServerChannel
 import com.avail.server.io.files.EditRange
 import com.avail.server.io.files.RedoAction
 import com.avail.server.io.files.UndoAction
+import com.avail.server.messages.Message
 import java.lang.UnsupportedOperationException
 import java.nio.ByteBuffer
+import java.nio.file.Paths
+import java.util.*
+import java.util.logging.Level
 
 /**
  * `BinaryCommand` enumerates the set of possible commands available for use
@@ -125,7 +131,70 @@ enum class BinaryCommand constructor(val id: Int)
 	CREATE_FILE(2),
 
 	/** Request to open a file in the [FileManager]. */
-	OPEN_FILE(3),
+	OPEN_FILE(3)
+	{
+		override fun receiveThen(
+			id: Int,
+			commandId: Long,
+			buffer: ByteBuffer,
+			channel: AvailServerChannel,
+			continuation: () -> Unit)
+		{
+			val raw = ByteArray(buffer.remaining())
+			buffer.get(raw)
+			val relativePath = String(raw, Charsets.UTF_8)
+			assert(relativePath.isNotEmpty())
+			val target = ModuleName(relativePath)
+			channel.server.runtime.moduleRoots()
+				.moduleRootFor(target.rootName)?.let { mr ->
+					mr.sourceDirectory?.let {
+						val path =
+							Paths.get(it.path, target.rootRelativeName).toString()
+
+						FileManager.readFile(
+							path,
+							{ uuid, mime, bytes ->
+								FileOpenedMessage(commandId, uuid, bytes.size, mime)
+									.processThen(channel)
+									{
+										FileStreamMessage(commandId, uuid, bytes)
+											.processThen(channel)
+									}
+							}) { code, throwable ->
+							throwable?.let { e ->
+								AvailServer.logger.log(Level.SEVERE, e) {
+									"Could not read file, $path" }
+							}
+							channel.enqueueMessageThen(
+								ErrorBinaryMessage(commandId, code).message) {}
+						}
+						// Request is asynchronous, so continue
+						continuation()
+					} ?: {
+						// No source directory
+						channel.enqueueMessageThen(
+							ErrorBinaryMessage(
+								commandId,
+								ServerErrorCode.NO_SOURCE_DIRECTORY,
+								false,
+								"No source directory found for " +
+								target.rootName
+							).message,
+							continuation)
+					}()
+				} ?: {
+				// No module root found
+				channel.enqueueMessageThen(
+					ErrorBinaryMessage(
+						commandId,
+						ServerErrorCode.BAD_MODULE_ROOT,
+						false,
+						"${target.rootName} not found"
+					).message,
+					continuation)
+			}()
+		}
+	},
 
 	/** Request to close a file in the [FileManager]. */
 	CLOSE_FILE(4),
@@ -140,18 +209,160 @@ enum class BinaryCommand constructor(val id: Int)
 	FILE_STREAM(7),
 
 	/** An [EditRange] request. */
-	EDIT_FILE_RANGE(8),
+	EDIT_FILE_RANGE(8)
+	{
+		/**
+		 * Process the
+		 * @param id
+		 *   The [BinaryCommand.id].
+		 * @param commandId
+		 *   The identifier of the [message][BinaryMessage]. This identifier should
+		 *   appear in any responses to this message.
+		 * @param buffer
+		 *   The [ByteBuffer] that contains the [Message].
+		 * @param channel
+		 *   The channel that is associated with this message.
+		 * @param continuation
+		 *   What to do when sufficient processing has occurred.
+		 */
+		override fun receiveThen(
+			id: Int,
+			commandId: Long,
+			buffer: ByteBuffer,
+			channel: AvailServerChannel,
+			continuation: () -> Unit)
+		{
+			val mostSig = buffer.long
+			val leastSig = buffer.long
+			val uuid = UUID(mostSig, leastSig)
+			val start = buffer.int
+			val end = buffer.int
+			val data = ByteArray(buffer.remaining())
+			buffer.get(data)
+			val edit = EditRange(data, start, end)
+			FileManager.executeAction(uuid, edit) { code, e ->
+				ErrorBinaryMessage(commandId, code, false)
+					.processThen(channel)
+			}
+			continuation()
+		}
+	},
 
 	/** An [UndoAction] request. */
-	UNDO_FILE_EDIT(9),
+	UNDO_FILE_EDIT(9)
+	{
+		override fun receiveThen(
+			id: Int,
+			commandId: Long,
+			buffer: ByteBuffer,
+			channel: AvailServerChannel,
+			continuation: () -> Unit)
+		{
+			val mostSig = buffer.long
+			val leastSig = buffer.long
+			val uuid = UUID(mostSig, leastSig)
+			FileManager.executeAction(uuid, UndoAction) { code, e ->
+				ErrorBinaryMessage(commandId, code, false)
+					.processThen(channel)
+			}
+			continuation()
+		}
+	},
 
 	/** A [RedoAction] request. */
-	REDO_FILE_EDIT(10);
+	REDO_FILE_EDIT(10)
+	{
+		override fun receiveThen(
+			id: Int,
+			commandId: Long,
+			buffer: ByteBuffer,
+			channel: AvailServerChannel,
+			continuation: () -> Unit)
+		{
+			val mostSig = buffer.long
+			val leastSig = buffer.long
+			val uuid = UUID(mostSig, leastSig)
+			FileManager.executeAction(uuid, RedoAction) { code, e ->
+				ErrorBinaryMessage(commandId, code, false)
+					.processThen(channel)
+			}
+			continuation()
+		}
+	},
+
+	/** A request to delete a file. */
+	DELETE_FILE(11)
+	{
+		override fun receiveThen(
+			id: Int,
+			commandId: Long,
+			buffer: ByteBuffer,
+			channel: AvailServerChannel,
+			continuation: () -> Unit)
+		{
+			val raw = ByteArray(buffer.remaining())
+			buffer.get(raw)
+			val relativePath = String(raw, Charsets.UTF_8)
+			assert(relativePath.isNotEmpty())
+			val target = ModuleName(relativePath)
+			channel.server.runtime.moduleRoots()
+				.moduleRootFor(target.rootName)?.let { mr ->
+					mr.sourceDirectory?.let {
+						val path =
+							Paths.get(it.path, target.rootRelativeName).toString()
+
+						FileManager.delete(
+							path,
+							{
+								OkMessage(commandId)
+									.processThen(channel, continuation)
+							}) { code, throwable ->
+							throwable?.let { e ->
+								AvailServer.logger.log(Level.SEVERE, e) {
+									"Could not delete file, $path" }
+							}
+							channel.enqueueMessageThen(
+								ErrorBinaryMessage(commandId, code).message) {}
+						}
+						// Request is asynchronous, so continue
+						continuation()
+					} ?: {
+						// No source directory
+						channel.enqueueMessageThen(
+							ErrorBinaryMessage(
+								commandId,
+								ServerErrorCode.NO_SOURCE_DIRECTORY,
+								false,
+								"No source directory found for " +
+								target.rootName
+							).message,
+							continuation)
+					}()
+				} ?: {
+				// No module root found
+				channel.enqueueMessageThen(
+					ErrorBinaryMessage(
+						commandId,
+						ServerErrorCode.BAD_MODULE_ROOT,
+						false,
+						"${target.rootName} not found"
+					).message,
+					continuation)
+			}()
+		}
+	};
 
 	/**
 	 * Process this [binary message][BinaryMessage] on behalf of the specified
 	 * [channel][AvailServerChannel].
 	 *
+	 * @param id
+	 *   The [BinaryCommand.id].
+	 * @param commandId
+	 *   The identifier of the [message][BinaryMessage]. This identifier should
+	 *   appear in any responses to this message.
+	 * @param buffer
+	 *   The [ByteBuffer] that contains the [Message].
 	 * @param channel
 	 *   The channel that is associated with this message.
 	 * @param continuation
@@ -192,6 +403,7 @@ enum class BinaryCommand constructor(val id: Int)
 				8 -> EDIT_FILE_RANGE
 				9 -> UNDO_FILE_EDIT
 				10 -> REDO_FILE_EDIT
+				11 -> DELETE_FILE
 				else -> INVALID
 			}
 	}

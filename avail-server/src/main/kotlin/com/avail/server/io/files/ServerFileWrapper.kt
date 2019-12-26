@@ -236,7 +236,10 @@ internal class ServerFileWrapper constructor(
 	 *   A function that accepts a [ServerErrorCode] that describes the nature
 	 *   of the failure and an optional [Throwable]. TODO refine error handling
 	 */
-	fun delete(id: UUID, failure: (ServerErrorCode, Throwable?) -> Unit)
+	fun delete(
+		id: UUID,
+		success: () -> Unit,
+		failure: (ServerErrorCode, Throwable?) -> Unit)
 	{
 		isReady.set(false)
 		try
@@ -256,6 +259,10 @@ internal class ServerFileWrapper constructor(
 			if (!Files.deleteIfExists(Paths.get(path)))
 			{
 				failure(ServerErrorCode.FILE_NOT_FOUND, null)
+			}
+			else
+			{
+				success()
 			}
 		}
 		catch (e: IOException)

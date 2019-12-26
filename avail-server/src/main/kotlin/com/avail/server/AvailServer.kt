@@ -647,54 +647,6 @@ class AvailServer constructor(
 	 *   The [channel][AvailServerChannel] on which the
 	 *   [response][CommandMessage] should be sent.
 	 * @param command
-	 *   A [SOURCE_MODULES][Command.SOURCE_MODULES] command message.
-	 * @param continuation
-	 *   What to do when sufficient processing has occurred (and the
-	 *   `AvailServer` wishes to begin receiving messages again).
-	 */
-	fun openFileThen(
-		channel: AvailServerChannel,
-		command: SimpleCommandMessage,
-		continuation: ()->Unit)
-	{
-		assert(command.command === Command.SOURCE_MODULES)
-		val message = newSuccessMessage(channel, command) { writer ->
-			val roots = runtime.moduleRoots()
-			writer.writeArray {
-				for (root in roots)
-				{
-					val tree = MutableOrNull<ModuleNode>()
-					val directory = root.sourceDirectory
-					if (directory != null)
-					{
-						try
-						{
-							Files.walkFileTree(
-								Paths.get(directory.absolutePath),
-								EnumSet.of(FileVisitOption.FOLLOW_LINKS),
-								Integer.MAX_VALUE,
-								sourceModuleVisitor(root, tree))
-						}
-						catch (e: IOException)
-						{
-							// This shouldn't happen, since we never raise any
-							// exceptions in the visitor.
-						}
-					}
-					tree.value().writeOn(writer)
-				}
-			}
-		}
-		channel.enqueueMessageThen(message, continuation)
-	}
-
-	/**
-	 * List all source modules reachable from the [module roots][ModuleRoots].
-	 *
-	 * @param channel
-	 *   The [channel][AvailServerChannel] on which the
-	 *   [response][CommandMessage] should be sent.
-	 * @param command
 	 *   A [ENTRY_POINTS][Command.ENTRY_POINTS] command message.
 	 * @param continuation
 	 *   What to do when sufficient processing has occurred (and the

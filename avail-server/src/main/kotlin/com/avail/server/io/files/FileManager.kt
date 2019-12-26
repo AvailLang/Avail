@@ -160,15 +160,22 @@ internal object FileManager
 	 *   A function that accepts a [ServerErrorCode] that describes the nature
 	 *   of the failure and an optional [Throwable]. TODO refine error handling
 	 */
-	fun delete (path: String, failure: (ServerErrorCode, Throwable?) -> Unit)
+	fun delete (
+		path: String,
+		success: () -> Unit,
+		failure: (ServerErrorCode, Throwable?) -> Unit)
 	{
 		pathToIdMap[path]?.let {id ->
-			fileCache[id].value?.delete(id, failure)
+			fileCache[id].value?.delete(id, success, failure)
 			idToPathMap.remove(id)
 		} ?: {
 			if (!Files.deleteIfExists(Paths.get(path)))
 			{
 				failure(FILE_NOT_FOUND, null)
+			}
+			else
+			{
+				success()
 			}
 		}.invoke()
 	}

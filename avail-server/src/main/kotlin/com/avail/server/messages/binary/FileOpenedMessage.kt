@@ -40,45 +40,52 @@ import java.nio.charset.StandardCharsets
 import java.util.*
 
 /**
- * `FileStreamMessage` is a [BinaryMessage] that contains the contents of a
- * file.
+ * `FileOpenMessage` is a [BinaryMessage] response to an open file request.
+ * It provides information about the file requested to be open.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
  * @constructor
- * Construct an [FileStreamMessage].
+ * Construct an [FileOpenedMessage].
  *
  * @param commandId
  *   The identifier of the [message][BinaryMessage]. This identifier should
  *   appear in any responses to this message.
  * @param fileId
  *   The [UUID] that uniquely identifies the target file in the [FileManager].
- * @param file
- *   The [ByteArray] that represents the file to send to the client.
- *
+ * @param fileSize
+ *   The size of the file in byte count.
+ * @param mime
+ *   The String that identifies the MIME type of the represented file.
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-internal class FileStreamMessage constructor(
+internal class FileOpenedMessage constructor(
 	override var commandId: Long,
 	fileId: UUID,
-	file: ByteArray): BinaryMessage()
+	fileSize: Int,
+	mime: String): BinaryMessage()
 {
-	override val command = BinaryCommand.FILE_STREAM
+	override val command = BinaryCommand.FILE_OPENED
 	override val message: Message
 
 	init
 	{
-		// Base size of payload is 28 byes broken down as:
+		val mimeBytes = mime.toByteArray(StandardCharsets.UTF_8)
+		// Base size of payload is 32 byes broken down as:
 		//   BinaryCommand.id = 4
 		//   commandId = 8
 		//   UUID = 16
-		val bufferSize = 28 + file.size
+		//   mimeSize = 4
+		// file size = 4
+		val bufferSize = 32 + mimeBytes.size
 		val buffer = ByteBuffer.allocate(bufferSize)
 		buffer.putInt(command.id)
 		buffer.putLong(commandId)
 		buffer.putLong(fileId.mostSignificantBits)
 		buffer.putLong(fileId.leastSignificantBits)
-		buffer.put(file)
+		buffer.putInt(fileSize)
+		buffer.putInt(mimeBytes.size)
+		buffer.put(mimeBytes)
 		buffer.flip()
 		val content = ByteArray(bufferSize)
 		buffer.get(content)

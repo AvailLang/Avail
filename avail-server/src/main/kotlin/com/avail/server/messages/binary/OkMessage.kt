@@ -1,5 +1,5 @@
 /*
- * FileStreamMessage.kt
+ * OkMessage.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -33,54 +33,37 @@
 package com.avail.server.messages.binary
 
 import com.avail.server.io.AvailServerChannel
-import com.avail.server.io.files.FileManager
 import com.avail.server.messages.Message
 import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets
-import java.util.*
 
 /**
- * `FileStreamMessage` is a [BinaryMessage] that contains the contents of a
- * file.
+ * `OkMessage` is a [BinaryMessage] used to affirm a request to the client.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
  * @constructor
- * Construct an [FileStreamMessage].
+ * Construct an `OkMessage`.
  *
  * @param commandId
  *   The identifier of the [message][BinaryMessage]. This identifier should
  *   appear in any responses to this message.
- * @param fileId
- *   The [UUID] that uniquely identifies the target file in the [FileManager].
- * @param file
- *   The [ByteArray] that represents the file to send to the client.
- *
- * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-internal class FileStreamMessage constructor(
-	override var commandId: Long,
-	fileId: UUID,
-	file: ByteArray): BinaryMessage()
+internal class OkMessage constructor(
+	override var commandId: Long): BinaryMessage()
 {
-	override val command = BinaryCommand.FILE_STREAM
+	override val command = BinaryCommand.OK
 	override val message: Message
 
 	init
 	{
-		// Base size of payload is 28 byes broken down as:
+		// Base size of payload is 12 byes broken down as:
 		//   BinaryCommand.id = 4
 		//   commandId = 8
-		//   UUID = 16
-		val bufferSize = 28 + file.size
-		val buffer = ByteBuffer.allocate(bufferSize)
+		val buffer = ByteBuffer.allocate(12)
 		buffer.putInt(command.id)
 		buffer.putLong(commandId)
-		buffer.putLong(fileId.mostSignificantBits)
-		buffer.putLong(fileId.leastSignificantBits)
-		buffer.put(file)
 		buffer.flip()
-		val content = ByteArray(bufferSize)
+		val content = ByteArray(12)
 		buffer.get(content)
 		this.message = Message(content, AvailServerChannel.ProtocolState.BINARY)
 	}
