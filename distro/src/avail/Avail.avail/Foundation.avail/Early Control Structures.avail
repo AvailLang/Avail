@@ -512,12 +512,9 @@ Public method "From_to_do_" is
 	action : function accepting <⊥> and returning boolean
 |
 	$loop : ⊤;
-	exit1 ::= end < start;
-	Exit loop if exit1;
-	exit2 ::= invoke action with <start> = 2;
-	Exit loop if exit2;
-	newArguments ::= <start plus 1, end, action>;
-	Restart loop with newArguments
+	Exit loop if end < start;
+	Exit loop if invoke action with <start> = false;
+	Restart loop with <start plus 1, end, action>
 ] : ⊤;
 
 /**

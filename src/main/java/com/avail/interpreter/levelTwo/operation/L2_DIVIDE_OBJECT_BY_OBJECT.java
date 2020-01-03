@@ -44,6 +44,7 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
@@ -70,8 +71,8 @@ extends L2ControlFlowOperation
 		super(
 			READ_BOXED.is("dividend"),
 			READ_BOXED.is("divisor"),
-			WRITE_BOXED.is("quotient"),
-			WRITE_BOXED.is("remainder"),
+			WRITE_BOXED.is("quotient", SUCCESS),
+			WRITE_BOXED.is("remainder", SUCCESS),
 			PC.is("if undefined", OFF_RAMP),
 			PC.is("success", SUCCESS));
 	}
@@ -90,10 +91,11 @@ extends L2ControlFlowOperation
 	}
 
 	@Override
-	public void toString (
+	public void appendToWithWarnings (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
-		final StringBuilder builder)
+		final StringBuilder builder,
+		final Consumer<Boolean> warningStyleChange)
 	{
 		assert this == instruction.operation();
 		final L2ReadBoxedOperand dividend = instruction.operand(0);

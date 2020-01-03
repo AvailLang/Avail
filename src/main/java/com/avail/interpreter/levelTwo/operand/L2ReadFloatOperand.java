@@ -96,16 +96,23 @@ extends L2ReadOperand<L2FloatRegister>
 	 *        {@link L2Instruction} uses this {@link L2Operand}.
 	 * @param restriction
 	 *        The {@link TypeRestriction} that bounds the value being read.
-	 * @param definition
-	 *        The earliest known defining {@link L2WriteFloatOperand} of the
-	 *        {@link L2SemanticValue}.
+	 * @param register
+	 *        The {@link L2FloatRegister} being read by this operand.
 	 */
 	public L2ReadFloatOperand (
 		final L2SemanticValue semanticValue,
 		final TypeRestriction restriction,
-		final L2WriteFloatOperand definition)
+		final L2FloatRegister register)
 	{
-		super(semanticValue, restriction, definition);
+		super(semanticValue, restriction, register);
+	}
+
+	@Override
+	public L2ReadFloatOperand copyForSemanticValue (
+		final L2SemanticValue newSemanticValue)
+	{
+		return new L2ReadFloatOperand(
+			newSemanticValue, restriction(), register());
 	}
 
 	@Override

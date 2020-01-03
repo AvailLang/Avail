@@ -43,6 +43,7 @@ import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
 import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2ControlFlowGraph;
+import com.avail.optimizer.L2Entity;
 import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.jvm.JVMChunk;
 import com.avail.optimizer.jvm.JVMTranslator;
@@ -50,18 +51,12 @@ import com.avail.optimizer.values.L2SemanticValue;
 import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.avail.descriptor.ContinuationRegisterDumpDescriptor.createRegisterDumpMethod;
 import static com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.BOXED;
 import static com.avail.utility.CollectionExtensions.populatedEnumMap;
 import static com.avail.utility.Nulls.stripNull;
-import static java.lang.String.format;
 import static java.util.Comparator.comparingInt;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.getInternalName;
@@ -110,6 +105,12 @@ extends L2Operand
 	 * <p>This is a subset of {@link #alwaysLiveInRegisters}.</p>
 	 */
 	public final Set<L2Register> sometimesLiveInRegisters = new HashSet<>();
+
+	/**
+	 * Either {@code null}, the normal case, or a set with each {@link L2Entity}
+	 * that is allowed to pass along this edge.
+	 */
+	public @Nullable Set<L2Entity> forcedClampedEntities = null;
 
 	/**
 	 * Construct a new {@code L2PcOperand} that leads to the specified
@@ -216,6 +217,27 @@ extends L2Operand
 		super.instructionWasRemoved();
 	}
 
+	@Override
+	public void replaceRegisters (
+		final Map<L2Register, L2Register> registerRemap,
+		final L2Instruction theInstruction)
+	{
+		if (forcedClampedEntities != null)
+		{
+			new ArrayList<>(forcedClampedEntities).forEach(entity ->
+			{
+				//noinspection SuspiciousMethodCalls
+				if (registerRemap.containsKey(entity))
+				{
+					forcedClampedEntities.remove(entity);
+					//noinspection SuspiciousMethodCalls
+					forcedClampedEntities.add(registerRemap.get(entity));
+				}
+			});
+		}
+		super.replaceRegisters(registerRemap, theInstruction);
+	}
+
 	/**
 	 * Answer the target {@link L2BasicBlock} that this operand refers to.
 	 *
@@ -248,14 +270,14 @@ extends L2Operand
 	}
 
 	@Override
-	public String toString ()
+	public void appendTo (final StringBuilder builder)
 	{
 		// Show the basic block's name.
-		return format("%s%s",
-			offset() != -1
-				? "pc " + offset() + ": "
-				: "",
-			targetBlock.name());
+		if (offset() != -1)
+		{
+			builder.append("pc ").append(offset()).append(": ");
+		}
+		builder.append(targetBlock.name());
 	}
 
 	/**
@@ -434,13 +456,36 @@ extends L2Operand
 		// Now the stack has the register dump object on it.
 	}
 
-	@Override
-	public void replaceWriteDefinitions (
-		final Map<L2WriteOperand<?>, L2WriteOperand<?>> writesMap)
+	/**
+	 * Erase all information about the given registers from this edge's
+	 * manifest, and in the manifests of any edges recursively reachable from
+	 * this edge. Terminate the recursion if an edge already doesn't know any of
+	 * these registers.  Ignore back-edges, as their manifests are explicitly
+	 * created to contain only the function's arguments.
+	 *
+	 * <p>Also fix up synonyms that no longer have backing registers, or that
+	 * have lost their last register of a particular {@link RegisterKind}.</p>
+	 *
+	 * @param registersToForget
+	 *        The {@link Set} of {@link L2Register}s that we must erase all
+	 *        knowledge about in manifests reachable from here.
+	 */
+	public void forgetRegistersInManifestsRecursively (
+		final Set<L2Register> registersToForget)
 	{
-		if (manifest != null)
+		final Deque<L2PcOperand> workQueue = new ArrayDeque<>();
+		workQueue.add(this);
+		while (!workQueue.isEmpty())
 		{
-			manifest.replaceWriteDefinitions(writesMap);
+			final L2PcOperand edge = workQueue.remove();
+			if (edge.isBackward())
+			{
+				continue;
+			}
+			if (edge.manifest().forgetRegisters(registersToForget))
+			{
+				workQueue.addAll(edge.targetBlock().successorEdgesCopy());
+			}
 		}
 	}
 }

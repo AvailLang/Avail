@@ -47,15 +47,15 @@ import org.objectweb.asm.MethodVisitor;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
+import static com.avail.descriptor.AvailObject.equalsMethod;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
 import static com.avail.interpreter.levelTwo.operation.L2ConditionalJump.BranchReduction.*;
 import static org.objectweb.asm.Opcodes.IFNE;
-import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Type.*;
 
 /**
  * Branch based on whether the two values are equal to each other.
@@ -95,11 +95,8 @@ extends L2ConditionalJump
 		final L2PcOperand ifEqual = instruction.operand(2);
 		final L2PcOperand ifNotEqual = instruction.operand(3);
 
-		// Ensure the new write ends up in the same synonym as the source.
-		first.instructionWasAdded(manifest);
-		second.instructionWasAdded(manifest);
-		ifEqual.instructionWasAdded(manifest);
-		ifNotEqual.instructionWasAdded(manifest);
+		super.instructionWasAdded(instruction, manifest);
+
 		// Merge the source and destination only along the ifEqual branch.
 		ifEqual.manifest().mergeExistingSemanticValues(
 			first.semanticValue(), second.semanticValue());
@@ -176,10 +173,11 @@ extends L2ConditionalJump
 	}
 
 	@Override
-	public void toString (
+	public void appendToWithWarnings (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
-		final StringBuilder builder)
+		final StringBuilder builder,
+		final Consumer<Boolean> warningStyleChange)
 	{
 		assert this == instruction.operation();
 		final L2ReadBoxedOperand first = instruction.operand(0);
@@ -210,12 +208,7 @@ extends L2ConditionalJump
 		// :: else goto notEqual;
 		translator.load(method, first.register());
 		translator.load(method, second.register());
-		method.visitMethodInsn(
-			INVOKEINTERFACE,
-			getInternalName(A_BasicObject.class),
-			"equals",
-			getMethodDescriptor(BOOLEAN_TYPE, getType(A_BasicObject.class)),
-			true);
+		equalsMethod.generateCall(method);
 		emitBranch(translator, method, instruction, IFNE, ifEqual, ifNotEqual);
 	}
 }

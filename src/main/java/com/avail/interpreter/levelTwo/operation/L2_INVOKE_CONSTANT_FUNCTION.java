@@ -35,7 +35,6 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_ARGUMENTS;
-import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION;
 import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION;
 import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE;
 import com.avail.interpreter.levelTwo.WritesHiddenVariable;
@@ -50,6 +49,7 @@ import org.objectweb.asm.MethodVisitor;
 
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static com.avail.interpreter.Interpreter.chunkField;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
@@ -74,7 +74,6 @@ import static com.avail.interpreter.levelTwo.L2OperandType.*;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @WritesHiddenVariable({
-	CURRENT_CONTINUATION.class,
 	CURRENT_FUNCTION.class,
 	CURRENT_ARGUMENTS.class,
 	LATEST_RETURN_VALUE.class
@@ -118,10 +117,11 @@ extends L2ControlFlowOperation
 	}
 
 	@Override
-	public void toString (
+	public void appendToWithWarnings (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
-		final StringBuilder builder)
+		final StringBuilder builder,
+		final Consumer<Boolean> warningStyleChange)
 	{
 		assert this == instruction.operation();
 		final L2ConstantOperand constantFunction = instruction.operand(0);

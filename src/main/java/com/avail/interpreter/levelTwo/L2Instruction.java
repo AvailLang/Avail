@@ -54,6 +54,7 @@ import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import static com.avail.utility.Casts.cast;
@@ -430,7 +431,7 @@ public final class L2Instruction
 	 *
 	 * @param manifest
 	 *        The {@link L2ValueManifest} that is active where this instruction
-	 *        wos just added to its {@link L2BasicBlock}.
+	 *        was just added to its {@link L2BasicBlock}.
 	 */
 	public void justAdded (final L2ValueManifest manifest)
 	{
@@ -479,8 +480,41 @@ public final class L2Instruction
 	public String toString ()
 	{
 		final StringBuilder builder = new StringBuilder();
-		operation().toString(this, EnumSet.allOf(L2OperandType.class), builder);
+		appendToWithWarnings(
+			builder, EnumSet.allOf(L2OperandType.class), b -> {});
 		return builder.toString();
+	}
+
+	/**
+	 * Output this instruction to the given builder, invoking the given
+	 * {@link Consumer} with a boolean to turn warning style on or off, if
+	 * tracked by the caller.
+	 *
+	 * @param builder
+	 *        Where to write the description of this instruction.
+	 * @param operandTypes
+	 *        Which {@link L2OperandType}s to include.
+	 * @param warningStyleChange
+	 *        A {@link Consumer} that takes {@code true} to start the warning
+	 *        style at the current builder position, and {@code false} to end
+	 *        it.  It must be invoked in (true, false) pairs.
+	 */
+	public void appendToWithWarnings (
+		final StringBuilder builder,
+		final Set<L2OperandType> operandTypes,
+		final Consumer<Boolean> warningStyleChange)
+	{
+		if (basicBlock == null)
+		{
+			warningStyleChange.accept(true);
+			builder.append("DEAD: ");
+			warningStyleChange.accept(false);
+		}
+		operation().appendToWithWarnings(
+			this,
+			operandTypes,
+			builder,
+			warningStyleChange);
 	}
 
 	/**

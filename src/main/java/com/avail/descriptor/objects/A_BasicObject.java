@@ -262,7 +262,6 @@ extends JSONFriendly
 	 */
 	@Override
 	@Deprecated
-	@ReferencedInGeneratedCode
 	boolean equals (@Nullable Object another);
 
 	/**
@@ -281,6 +280,7 @@ extends JSONFriendly
 	 *         otherwise.
 	 */
 	@SuppressWarnings("OverloadedMethodsWithSameNumberOfParameters")
+	@ReferencedInGeneratedCode
 	boolean equals (A_BasicObject another);
 
 	/**

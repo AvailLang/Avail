@@ -1,5 +1,5 @@
 /*
- * L2PrimitiveOperand.java
+ * L2Entity.java
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,53 +29,18 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.optimizer;
 
-package com.avail.interpreter.levelTwo.operand;
-
-import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.L2OperandDispatcher;
-import com.avail.interpreter.levelTwo.L2OperandType;
+import com.avail.interpreter.levelTwo.L2Instruction;
 
 /**
- * An {@code L2PrimitiveOperand} is an operand of type {@link
- * L2OperandType#PRIMITIVE}.  The specific {@link Primitive} is captured.
+ * An {@code L2Entity} is an abstraction for things that have reads and writes
+ * within the {@link L2Instruction}s of an {@link L2BasicBlock} of an
+ * {@link L2ControlFlowGraph}.
  *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @see DataCouplingMode
  */
-public class L2PrimitiveOperand
-extends L2Operand
+public interface L2Entity
 {
-	/**
-	 * The actual {@link Primitive}.
-	 */
-	public final Primitive primitive;
-
-	/**
-	 * Construct a new {@code L2PrimitiveOperand} for the specified {@link
-	 * Primitive primitive}.
-	 *
-	 * @param primitive The primitive to invoke.
-	 */
-	public L2PrimitiveOperand (final Primitive primitive)
-	{
-		this.primitive = primitive;
-	}
-
-	@Override
-	public L2OperandType operandType ()
-	{
-		return L2OperandType.PRIMITIVE;
-	}
-
-	@Override
-	public void dispatchOperand (final L2OperandDispatcher dispatcher)
-	{
-		dispatcher.doOperand(this);
-	}
-
-	@Override
-	public void appendTo (final StringBuilder builder)
-	{
-		builder.append("*").append(primitive.name());
-	}
+	// No methods are needed, beyond equals() and hashCode().
 }

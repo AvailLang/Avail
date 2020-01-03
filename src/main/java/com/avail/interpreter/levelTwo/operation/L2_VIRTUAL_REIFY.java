@@ -35,6 +35,8 @@ import com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE;
+import com.avail.interpreter.levelTwo.WritesHiddenVariable;
 import com.avail.interpreter.levelTwo.operand.L2CommentOperand;
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
@@ -50,6 +52,7 @@ import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static com.avail.descriptor.ContinuationTypeDescriptor.mostGeneralContinuationType;
 import static com.avail.descriptor.FunctionTypeDescriptor.mostGeneralFunctionType;
@@ -93,6 +96,14 @@ import static java.util.Collections.emptyList;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@WritesHiddenVariable({
+	// potentially clobbered
+//	CURRENT_ARGUMENTS.class,
+	// potentially clobbered
+	LATEST_RETURN_VALUE.class,
+	// potentially clobbered
+//	STACK_REIFIER.class
+})
 public final class L2_VIRTUAL_REIFY
 extends L2Operation
 {
@@ -136,10 +147,11 @@ extends L2Operation
 	}
 
 	@Override
-	public void toString (
+	public void appendToWithWarnings (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
-		final StringBuilder builder)
+		final StringBuilder builder,
+		final Consumer<Boolean> warningStyleChange)
 	{
 		assert this == instruction.operation();
 		// final L2CommentOperand usageComment = instruction.operand(0);
@@ -257,10 +269,10 @@ extends L2Operation
 			restrictionForType(ANY.o(), BOXED));
 		generator.addInstruction(
 			L2_SAVE_ALL_AND_PC_TO_INT.instance,
-			edgeTo(reificationOfframp),
 			edgeTo(afterReification),
 			tempOffset,
-			tempRegisterDump);
+			tempRegisterDump,
+			edgeTo(reificationOfframp));
 
 		generator.startBlock(reificationOfframp);
 		final L2WriteBoxedOperand tempCaller = generator.boxedWrite(
@@ -286,7 +298,7 @@ extends L2Operation
 			new L2ReadBoxedVectorOperand(emptyList()),
 			dummyContinuation,
 			generator.readInt(
-				tempOffset.semanticValue(),
+				tempOffset.onlySemanticValue(),
 				generator.unreachablePcOperand().targetBlock()),
 			generator.readBoxed(tempRegisterDump),
 			new L2CommentOperand("Dummy reification continuation."));

@@ -160,5 +160,6 @@ public class L2NamedOperandType
 		this.operandType = operandType;
 		this.name = name;
 		this.purpose = purpose;
+		assert purpose == null || operandType.canHavePurpose;
 	}
 }

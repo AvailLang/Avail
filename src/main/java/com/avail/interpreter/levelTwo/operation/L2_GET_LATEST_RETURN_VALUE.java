@@ -43,6 +43,7 @@ import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static com.avail.interpreter.Interpreter.getLatestResultMethod;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
@@ -74,10 +75,11 @@ extends L2Operation
 		new L2_GET_LATEST_RETURN_VALUE();
 
 	@Override
-	public void toString (
+	public void appendToWithWarnings (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
-		final StringBuilder builder)
+		final StringBuilder builder,
+		final Consumer<Boolean> warningStyleChange)
 	{
 		assert this == instruction.operation();
 		final L2WriteBoxedOperand value = instruction.operand(0);
@@ -85,6 +87,16 @@ extends L2Operation
 		renderPreamble(instruction, builder);
 		builder.append(' ');
 		builder.append(value.registerString());
+	}
+
+	@Override
+	public boolean shouldReplicateIdempotently (
+		final L2Instruction instruction)
+	{
+		// By allowing these to migrate more easily through the CFG, we reduce
+		// the amount of replicated code.  It's really not likely this
+		// instruction will lead to redundant execution, which is safe anyhow.
+		return true;
 	}
 
 	@Override

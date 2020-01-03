@@ -120,4 +120,11 @@ extends L2FrameSpecificSemanticValue
 		return "Slot#" + slotIndex + "@" + pcAfter +
 			(frame.depth() == 1 ? "" : "[" + frame + "]");
 	}
+
+	@Override
+	public String toStringForSynonym ()
+	{
+		return slotIndex + "@" + pcAfter +
+			(frame.depth() == 1 ? "" : "[" + frame + "]");
+	}
 }

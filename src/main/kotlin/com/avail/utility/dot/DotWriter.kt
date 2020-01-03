@@ -258,42 +258,36 @@ class DotWriter constructor(
 			var whiteRun = 0
 			var i = 0
 			val lineLimit = min(s.length, max)
-			while (i < max)
+			while (i < lineLimit)
 			{
-				var codePoint = s.codePointAt(i)
-				if (codePoint == '\n'.toInt())
+				var cp = s.codePointAt(i)
+				if (cp == '\n'.toInt())
 				{
 					// Upon discovery of a linefeed, compute the next line and
 					// the residue.
 					return Pair(s.substring(0, i), s.substring(i + 1))
 				}
-				if (Character.isWhitespace(codePoint))
+				if (Character.isWhitespace(cp))
 				{
 					// Note the first whitespace character discovered. Skip any
 					// subsequent whitespace characters — if they occur at the
 					// end of a line, then they will be omitted.
 					whiteIndex = i
-					var sz = Character.charCount(codePoint)
-					whiteRun = sz
-					while (true)
+					whiteRun = 0
+					do
 					{
+						val sz = Character.charCount(cp)
 						i += sz
-						if (i < lineLimit)
-						{
-							codePoint = s.codePointAt(i)
-							if (!Character.isWhitespace(codePoint))
-							{
-								break
-							}
-							sz = Character.charCount(codePoint)
-							whiteRun += sz
-						}
+						whiteRun += sz
+						cp =
+							if (i < s.length) s.codePointAt(i) else 'x'.toInt()
 					}
+					while (Character.isWhitespace(cp))
 				}
 				else
 				{
 					// Otherwise, just move on to the next character.
-					i += Character.charCount(codePoint)
+					i += Character.charCount(cp)
 				}
 			}
 			if (whiteIndex > 0)
@@ -304,49 +298,44 @@ class DotWriter constructor(
 					s.substring(0, whiteIndex),
 					s.substring(whiteIndex + whiteRun))
 			}
-			else
+			// If no whitespace was discovered, then we cannot honor the
+			// character limit strictly. Look for the next whitespace
+			// character and terminate the line there.
+			val wideLimit = s.length
+			while (i < wideLimit)
 			{
-				// If no whitespace was discovered, then we cannot honor the
-				// character limit strictly. Look for the next whitespace
-				// character and terminate the line there.
-				val wideLimit = s.length
-				outer@ while (i < wideLimit)
+				var cp = s.codePointAt(i)
+				if (Character.isWhitespace(cp))
 				{
-					var cp = s.codePointAt(i)
-					if (Character.isWhitespace(cp))
+					whiteIndex = i
+					whiteRun = 0
+					do
 					{
-						whiteIndex = i
-						var sz = Character.charCount(cp)
-						whiteRun = sz
-						while (true)
-						{
-							i += sz
-							if (i < wideLimit)
-							{
-								cp = s.codePointAt(i)
-								if (!Character.isWhitespace(cp))
-								{
-									break@outer
-								}
-								sz = Character.charCount(cp)
-								whiteRun += sz
-							}
-						}
+						val sz = Character.charCount(cp)
+						i += sz
+						whiteRun += sz
+						cp =
+							if (i < wideLimit) s.codePointAt(i) else 'x'.toInt()
 					}
+					while (Character.isWhitespace(cp))
+					break
+				}
+				else
+				{
 					i += Character.charCount(cp)
 				}
-				if (whiteIndex == 0)
-				{
-					// If no whitespace characters were ever discovered and the
-					// limit was exceeded, then answer the entire string as the
-					// line and empty residue.
-					assert(whiteRun == 0)
-					return Pair(s, "")
-				}
-				return Pair(
-					s.substring(0, whiteIndex),
-					s.substring(whiteIndex + whiteRun))
 			}
+			if (whiteIndex == 0)
+			{
+				// If no whitespace characters were ever discovered and the
+				// limit was exceeded, then answer the entire string as the
+				// line and empty residue.
+				assert(whiteRun == 0)
+				return Pair(s, "")
+			}
+			return Pair(
+				s.substring(0, whiteIndex),
+				s.substring(whiteIndex + whiteRun))
 		}
 
 		/**
@@ -479,6 +468,16 @@ class DotWriter constructor(
 			return rhs
 		}
 
+		/**
+		 * Answer an adjusted rhs (right hand side), taking into account which
+		 * format the rhs takes, and whether dark mode is active.  This method
+		 * takes a boolean, which if true processes the second argument,
+		 * otherwise the third.
+		 */
+		fun adjust(
+			condition: Boolean, trueString: String, falseString: String
+		): String =
+			adjust(if (condition) trueString else falseString)
 	}
 
 	/**

@@ -35,6 +35,7 @@ package com.avail.interpreter.levelTwo.operand;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
+import com.avail.interpreter.levelTwo.register.L2FloatRegister;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
 import com.avail.optimizer.L2ValueManifest;
@@ -96,16 +97,23 @@ extends L2ReadOperand<L2IntRegister>
 	 *        {@link L2Instruction} uses this {@link L2Operand}.
 	 * @param restriction
 	 *        The {@link TypeRestriction} that bounds the value being read.
-	 * @param definition
-	 *        The earliest known defining {@link L2WriteIntOperand} of the
-	 *        {@link L2SemanticValue}.
+	 * @param register
+	 *        The {@link L2FloatRegister} being read by this operand.
 	 */
 	public L2ReadIntOperand (
 		final L2SemanticValue semanticValue,
 		final TypeRestriction restriction,
-		final L2WriteIntOperand definition)
+		final L2IntRegister register)
 	{
-		super(semanticValue, restriction, definition);
+		super(semanticValue, restriction, register);
+	}
+
+	@Override
+	public L2ReadIntOperand copyForSemanticValue (
+		final L2SemanticValue newSemanticValue)
+	{
+		return new L2ReadIntOperand(
+			newSemanticValue, restriction(), register());
 	}
 
 	@Override

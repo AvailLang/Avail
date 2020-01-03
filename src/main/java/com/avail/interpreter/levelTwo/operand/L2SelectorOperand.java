@@ -83,8 +83,8 @@ extends L2Operand
 	}
 
 	@Override
-	public String toString ()
+	public void appendTo (final StringBuilder builder)
 	{
-		return "$" + bundle.message().atomName();
+		builder.append("$").append(bundle.message().atomName());
 	}
 }

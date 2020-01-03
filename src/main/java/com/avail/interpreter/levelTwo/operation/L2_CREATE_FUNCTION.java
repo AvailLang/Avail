@@ -52,6 +52,7 @@ import com.avail.optimizer.values.L2SemanticValue;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static com.avail.descriptor.FunctionDescriptor.*;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
@@ -169,7 +170,7 @@ extends L2Operation
 			new L2IntImmediateOperand(outerIndex),
 			functionRegister,
 			tempWrite);
-		return generator.readBoxed(tempWrite.semanticValue());
+		return generator.readBoxed(tempWrite);
 	}
 
 	/**
@@ -210,10 +211,11 @@ extends L2Operation
 	}
 
 	@Override
-	public void toString (
+	public void appendToWithWarnings (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
-		final StringBuilder builder)
+		final StringBuilder builder,
+		final Consumer<Boolean> warningStyleChange)
 	{
 		assert this == instruction.operation();
 		final L2ConstantOperand code = instruction.operand(0);

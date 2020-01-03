@@ -43,7 +43,6 @@ import com.avail.interpreter.levelTwo.L1InstructionStepper;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_ARGUMENTS;
 import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION;
 import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION;
 import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE;
@@ -84,7 +83,7 @@ import static org.objectweb.asm.Opcodes.DUP;
 @ReadsHiddenVariable({
 	CURRENT_CONTINUATION.class,
 	CURRENT_FUNCTION.class,
-	CURRENT_ARGUMENTS.class,
+//	CURRENT_ARGUMENTS.class,
 	LATEST_RETURN_VALUE.class,
 })
 public final class L2_TRY_PRIMITIVE

@@ -198,7 +198,7 @@ public final class L2Inliner
 		public void doOperand (final L2WriteIntOperand operand)
 		{
 			currentOperand = targetGenerator.intWrite(
-				mapSemanticValue(operand.semanticValue()),
+				mapSemanticValue(operand.pickSemanticValue()),
 				operand.restriction());
 		}
 
@@ -206,7 +206,7 @@ public final class L2Inliner
 		public void doOperand (final L2WriteFloatOperand operand)
 		{
 			currentOperand = targetGenerator.floatWrite(
-				mapSemanticValue(operand.semanticValue()),
+				mapSemanticValue(operand.pickSemanticValue()),
 				operand.restriction());
 		}
 
@@ -214,7 +214,7 @@ public final class L2Inliner
 		public void doOperand (final L2WriteBoxedOperand operand)
 		{
 			currentOperand = targetGenerator.boxedWrite(
-				mapSemanticValue(operand.semanticValue()),
+				mapSemanticValue(operand.pickSemanticValue()),
 				operand.restriction());
 		}
 	}

@@ -48,6 +48,7 @@ import javax.annotation.Nullable;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static com.avail.descriptor.AvailObject.registerDumpMethod;
 import static com.avail.descriptor.ContinuationRegisterDumpDescriptor.extractLongAtMethod;
@@ -102,10 +103,11 @@ extends L2Operation
 	}
 
 	@Override
-	public void toString (
+	public void appendToWithWarnings (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
-		final StringBuilder builder)
+		final StringBuilder builder,
+		final Consumer<Boolean> warningStyleChange)
 	{
 		assert this == instruction.operation();
 //		final L2IntImmediateOperand offsetInDefaultChunk =

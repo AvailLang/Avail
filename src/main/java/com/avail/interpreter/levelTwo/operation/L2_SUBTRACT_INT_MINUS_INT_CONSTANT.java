@@ -43,6 +43,7 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
@@ -67,7 +68,7 @@ extends L2ControlFlowOperation
 		super(
 			READ_INT.is("minuend"),
 			INT_IMMEDIATE.is("subtrahend"),
-			WRITE_INT.is("difference"),
+			WRITE_INT.is("difference", SUCCESS),
 			PC.is("in range", SUCCESS),
 			PC.is("out of range", FAILURE));
 	}
@@ -85,10 +86,11 @@ extends L2ControlFlowOperation
 	}
 
 	@Override
-	public void toString (
+	public void appendToWithWarnings (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
-		final StringBuilder builder)
+		final StringBuilder builder,
+		final Consumer<Boolean> warningStyleChange)
 	{
 		assert this == instruction.operation();
 		final L2ReadIntOperand minuend = instruction.operand(0);

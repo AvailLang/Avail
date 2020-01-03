@@ -80,9 +80,8 @@ extends L2Operand
 	}
 
 	@Override
-	public String toString ()
+	public void appendTo (final StringBuilder builder)
 	{
-		final StringBuilder builder = new StringBuilder();
 		builder.append("$(");
 		if (object.isInstanceOf(mostGeneralCompiledCodeType()))
 		{
@@ -93,6 +92,5 @@ extends L2Operand
 			builder.append(object);
 		}
 		builder.append(")");
-		return builder.toString();
 	}
 }

@@ -35,6 +35,7 @@ package com.avail.optimizer;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
+import com.avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP;
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
 import com.avail.optimizer.L2ControlFlowGraph.Zone;
@@ -225,7 +226,7 @@ public final class L2BasicBlock
 	{
 		assert predecessorEdge.sourceBlock().hasStartedCodeGeneration;
 		predecessorEdges.add(predecessorEdge);
-		if (isLoopHead && hasStartedCodeGeneration)
+		if (hasStartedCodeGeneration)
 		{
 			final L2ValueManifest predecessorManifest =
 				predecessorEdge.manifest();
@@ -275,7 +276,9 @@ public final class L2BasicBlock
 					cast(instruction.operation());
 				final L2Instruction replacement =
 					phiOperation.withoutIndex(instruction, index);
+				instruction.justRemoved();
 				instructions.set(i, replacement);
+				replacement.justInserted();
 			}
 		}
 		predecessorEdges.remove(predecessorEdge);
@@ -413,7 +416,7 @@ public final class L2BasicBlock
 	 *        The {@link L2Instruction} to append.
 	 * @param manifest
 	 *        The {@link L2ValueManifest} that is active where this instruction
-	 *        wos just added to its {@code L2BasicBlock}.
+	 *        was just added to its {@code L2BasicBlock}.
 	 */
 	public void addInstruction (
 		final L2Instruction instruction,
@@ -447,6 +450,29 @@ public final class L2BasicBlock
 		}
 		hasStartedCodeGeneration = true;
 		hasControlFlowAtEnd = instruction.altersControlFlow();
+	}
+
+	/**
+	 * Answer the zero-based index of the first index beyond any
+	 * {@link L2_ENTER_L2_CHUNK} or {@link L2_PHI_PSEUDO_OPERATION}s.  It might
+	 * be just past the last valid index (i.e., equal to the size).
+	 *
+	 * @return The index of the first instruction that isn't an entry point or
+	 *         phi.
+	 */
+	public int indexAfterEntryPointAndPhis ()
+	{
+		int i = 0;
+		while (i < instructions.size())
+		{
+			final L2Instruction instruction = instructions.get(i);
+			if (!instruction.isEntryPoint() && !instruction.operation().isPhi())
+			{
+				return i;
+			}
+			i++;
+		}
+		return i;
 	}
 
 	/**

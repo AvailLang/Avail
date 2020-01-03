@@ -48,6 +48,7 @@ import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArgu
 import com.avail.optimizer.ExecutableChunk;
 import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2ControlFlowGraph;
+import com.avail.optimizer.L2ControlFlowGraph.Zone;
 import com.avail.optimizer.StackReifier;
 import com.avail.optimizer.jvm.JVMChunk;
 import com.avail.optimizer.jvm.JVMTranslator;
@@ -74,6 +75,7 @@ import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.*;
 import static com.avail.optimizer.L1Translator.generateDefaultChunkControlFlowGraph;
+import static com.avail.optimizer.L2ControlFlowGraph.ZoneType.PROPAGATE_REIFICATION_FOR_INVOKE;
 import static java.lang.String.format;
 import static java.util.Collections.newSetFromMap;
 import static java.util.Collections.synchronizedSet;
@@ -935,17 +937,23 @@ implements ExecutableChunk
 	 */
 	private static L2Chunk createDefaultChunk ()
 	{
+		final Zone returnFromCallZone =
+			PROPAGATE_REIFICATION_FOR_INVOKE.createZone(
+				"Return into L1 reified continuation from call");
+		final Zone resumeAfterInterruptZone =
+			PROPAGATE_REIFICATION_FOR_INVOKE.createZone(
+				"Resume L1 reified continuation after interrupt");
 		final L2BasicBlock initialBlock = new L2BasicBlock("Default entry");
-		final L2BasicBlock reenterFromRestartBlock =
-			new L2BasicBlock("Default restart");
-		final L2BasicBlock loopBlock =
-			new L2BasicBlock("Default loop", true, null);
-		final L2BasicBlock reenterFromCallBlock =
-			new L2BasicBlock("Default return from call", false, null);
-		final L2BasicBlock reenterFromInterruptBlock =
-			new L2BasicBlock("Default reentry from interrupt", false, null);
-		final L2BasicBlock unreachableBlock =
-			new L2BasicBlock("Unreachable");
+		final L2BasicBlock reenterFromRestartBlock = new L2BasicBlock(
+			"Default restart");
+		final L2BasicBlock loopBlock = new L2BasicBlock(
+			"Default loop", true, null);
+		final L2BasicBlock reenterFromCallBlock = new L2BasicBlock(
+			"Default return from call", false, returnFromCallZone);
+		final L2BasicBlock reenterFromInterruptBlock = new L2BasicBlock(
+			"Default reentry from interrupt", false, resumeAfterInterruptZone);
+		final L2BasicBlock unreachableBlock = new L2BasicBlock(
+			"Unreachable");
 
 		final L2ControlFlowGraph controlFlowGraph =
 			generateDefaultChunkControlFlowGraph(

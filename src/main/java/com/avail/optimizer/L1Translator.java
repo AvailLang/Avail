@@ -279,12 +279,16 @@ public final class L1Translator
 	 * continuation slot. The slots are the arguments, then the locals, then the
 	 * stack entries. The slots are numbered starting at 1.
 	 *
+	 * <p>This is only public to allow primitives like
+	 * {@link P_RestartContinuation} to be able to fetch the current
+	 * arguments.</p>
+	 *
 	 * @param slotIndex
 	 *        The index into the continuation's slots.
 	 * @return An {@link L2ReadBoxedOperand} representing that continuation
 	 *         slot.
 	 */
-	private L2ReadBoxedOperand readSlot (final int slotIndex)
+	public L2ReadBoxedOperand readSlot (final int slotIndex)
 	{
 		return generator.readBoxed(semanticSlot(slotIndex));
 	}
@@ -372,8 +376,9 @@ public final class L1Translator
 		semanticSlots[slotIndex - 1] = slotSemanticValue;
 		generator.moveRegister(
 			L2_MOVE.boxed,
-			generator.readBoxed(sourceSemanticValue),
-			generator.boxedWrite(slotSemanticValue, restriction));
+			sourceSemanticValue,
+			slotSemanticValue);
+		currentManifest().setRestriction(slotSemanticValue, restriction);
 	}
 
 	/**
@@ -676,10 +681,10 @@ public final class L1Translator
 			generator.createBasicBlock("Off-ramp", zone);
 		addInstruction(
 			L2_SAVE_ALL_AND_PC_TO_INT.instance,
-			edgeTo(fallThrough),
 			edgeTo(onReturnIntoReified),
 			writeOffset,
-			writeRegisterDump);
+			writeRegisterDump,
+			edgeTo(fallThrough));
 
 		generator.startBlock(fallThrough);
 		if (typeOfEntryPoint == TRANSIENT)
@@ -699,7 +704,7 @@ public final class L1Translator
 				new L2ReadBoxedVectorOperand(emptyList()),
 				newContinuationWrite,
 				generator.readInt(
-					writeOffset.semanticValue(),
+					writeOffset.onlySemanticValue(),
 					generator.unreachablePcOperand().targetBlock()),
 				generator.readBoxed(writeRegisterDump),
 				new L2CommentOperand(
@@ -734,7 +739,7 @@ public final class L1Translator
 				new L2ReadBoxedVectorOperand(asList(readSlotsBefore)),
 				newContinuationWrite,
 				generator.readInt(
-					writeOffset.semanticValue(),
+					writeOffset.onlySemanticValue(),
 					generator.unreachablePcOperand().targetBlock()),
 				generator.readBoxed(writeRegisterDump),
 				new L2CommentOperand("Create a reification continuation."));
@@ -3076,6 +3081,10 @@ public final class L1Translator
 			// Generate the unreachable block.
 			generator.startBlock(generator.unreachableBlock);
 			addInstruction(L2_UNREACHABLE_CODE.instance);
+			// Now make it a loop head, just so code generated later from
+			// placeholders (L2Operation#isPlaceholder()) can still connect to
+			// it, as long as it uses a back-edge.
+			generator.unreachableBlock.isLoopHead = true;
 		}
 	}
 
@@ -3140,6 +3149,10 @@ public final class L1Translator
 		// failure value, if any.
 		generator.addInstruction(
 			L2_PREPARE_NEW_FRAME_FOR_L1.instance);
+
+		generator.addInstruction(
+			L2_JUMP.instance,
+			edgeTo(loopBlock));
 
 		// 3. The main L1 interpreter loop.
 		generator.startBlock(loopBlock);
@@ -3552,7 +3565,7 @@ public final class L1Translator
 		// Continue, with the label having been pushed.
 		stackp--;
 		forceSlotRegister(
-			stackp, instructionDecoder.pc(), currentManifest().read(label));
+			stackp, instructionDecoder.pc(), currentManifest().readBoxed(label));
 	}
 
 	@Override
@@ -3621,25 +3634,21 @@ public final class L1Translator
 		final A_Tuple permutation = code.literalAt(
 			instructionDecoder.getOperand());
 		final int size = permutation.tupleSize();
-		final L2WriteBoxedOperand[] temps = new L2WriteBoxedOperand[size];
+		final L2SemanticValue[] temps = new L2SemanticValue[size];
 		for (int i = size; i >= 1; i--)
 		{
-			final L2ReadBoxedOperand source = readSlot(stackp + size - i);
-			final L2WriteBoxedOperand temp =
-				generator.boxedWriteTemp(source.restriction());
+			final L2SemanticValue source = semanticSlot(stackp + size - i);
+			final L2SemanticValue temp =
+				generator.topFrame.temp(generator.nextUnique());
 			generator.moveRegister(L2_MOVE.boxed, source, temp);
 			temps[permutation.tupleIntAt(i) - 1] = temp;
 		}
 		for (int i = size; i >= 1; i--)
 		{
-			final L2ReadBoxedOperand temp = readBoxed(temps[i - 1]);
-			generator.moveRegister(
-				L2_MOVE.boxed,
-				temp,
-				writeSlot(
-					stackp + size - i,
-					instructionDecoder.pc(),
-					temp.restriction()));
+			forceSlotRegister(
+				stackp + size - i,
+				instructionDecoder.pc(),
+				currentManifest().readBoxed(temps[i - 1]));
 		}
 	}
 

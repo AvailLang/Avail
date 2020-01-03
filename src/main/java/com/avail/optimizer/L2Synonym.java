@@ -124,7 +124,7 @@ public final class L2Synonym
 	public String toString ()
 	{
 		final List<String> sortedStrings = semanticValues.stream()
-			.map(Object::toString)
+			.map(L2SemanticValue::toStringForSynonym)
 			.sorted(String::compareTo)
 			.collect(toCollection(ArrayList::new));
 		final StringBuilder builder = new StringBuilder();

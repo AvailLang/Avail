@@ -1527,6 +1527,13 @@ implements
 		return true;
 	}
 
+	/** Access to the {@link A_BasicObject#equals(A_BasicObject)} method. */
+	public static final CheckedMethod equalsMethod = instanceMethod(
+		A_BasicObject.class,
+		"equals",
+		boolean.class,
+		A_BasicObject.class);
+
 	/**
 	 * Answer whether the receiver, an {@code AvailObject object}, and the
 	 * argument, a {@linkplain TupleDescriptor tuple}, are equal in value.

@@ -333,9 +333,8 @@ extends L2Operation
 	}
 
 	/**
-	 * Answer the {@link List} of {@link L2ReadBoxedOperand}s for this phi
-	 * function.  The order is correlated to the instruction's blocks
-	 * predecessorEdges.
+	 * Answer the {@link List} of {@link L2ReadOperand}s for this phi function.
+	 * The order is correlated to the instruction's blocks predecessorEdges.
 	 *
 	 * @param instruction
 	 *        The phi instruction.
@@ -381,10 +380,11 @@ extends L2Operation
 	}
 
 	@Override
-	public void toString (
+	public void appendToWithWarnings (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
-		final StringBuilder builder)
+		final StringBuilder builder,
+		final Consumer<Boolean> warningStyleChange)
 	{
 		assert this == instruction.operation();
 		final L2Operand vector = instruction.operand(0);

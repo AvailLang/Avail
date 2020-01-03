@@ -38,13 +38,13 @@ import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
-import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.REFERENCED_AS_INT;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
@@ -73,10 +73,10 @@ extends L2Operation
 	private L2_SAVE_ALL_AND_PC_TO_INT ()
 	{
 		super(
-			PC.is("fall-through", SUCCESS),
 			PC.is("reference", REFERENCED_AS_INT),
-			WRITE_INT.is("L2 address"),
-			WRITE_BOXED.is("register dump"));
+			WRITE_INT.is("L2 address", SUCCESS),
+			WRITE_BOXED.is("register dump", SUCCESS),
+			PC.is("fall-through", SUCCESS));
 	}
 
 	/**
@@ -85,13 +85,19 @@ extends L2Operation
 	public static final L2_SAVE_ALL_AND_PC_TO_INT instance =
 		new L2_SAVE_ALL_AND_PC_TO_INT();
 
+	public static L2PcOperand referenceOf (final L2Instruction instruction)
+	{
+		assert instruction.operation() instanceof L2_SAVE_ALL_AND_PC_TO_INT;
+		return instruction.operand(0);
+	}
+
 	@Override
 	public List<L2PcOperand> targetEdges (final L2Instruction instruction)
 	{
 		assert this == instruction.operation();
 		final List<L2PcOperand> edges = new ArrayList<>(2);
 		edges.add(instruction.operand(0));
-		edges.add(instruction.operand(1));
+		edges.add(instruction.operand(3));
 		return edges;
 	}
 
@@ -101,10 +107,10 @@ extends L2Operation
 	{
 		// Don't let it be removed if either edge crosses a zone boundary.
 		assert this == instruction.operation();
-		final L2PcOperand fallThrough = instruction.operand(0);
-		final L2PcOperand target = instruction.operand(1);
-//		final L2WriteIntOperand targetAsInt = instruction.operand(2);
-//		final L2WriteBoxedOperand registerDump = instruction.operand(3);
+		final L2PcOperand target = instruction.operand(0);
+//		final L2WriteIntOperand targetAsInt = instruction.operand(1);
+//		final L2WriteBoxedOperand registerDump = instruction.operand(2);
+		final L2PcOperand fallThrough = instruction.operand(3);
 
 		return instruction.basicBlock().zone != fallThrough.targetBlock().zone
 			|| instruction.basicBlock().zone != target.targetBlock(). zone;
@@ -150,7 +156,7 @@ extends L2Operation
 		// continuation that could ever resume, so nobody needs to capture the
 		// live register state.  Turn the instruction into an unconditional jump
 		// along the fallThrough edge.
-		final L2PcOperand fallThroughEdge = instruction.operand(0);
+		final L2PcOperand fallThroughEdge = instruction.operand(3);
 		return new L2Instruction(
 			instruction.basicBlock(),
 			L2_JUMP.instance,
@@ -158,36 +164,17 @@ extends L2Operation
 	}
 
 	@Override
-	public void instructionWasAdded (
-		final L2Instruction instruction,
-		final L2ValueManifest manifest)
-	{
-		assert this == instruction.operation();
-		final L2PcOperand fallThrough = instruction.operand(0);
-		final L2PcOperand target = instruction.operand(1);
-		final L2WriteIntOperand targetAsInt = instruction.operand(2);
-		final L2WriteBoxedOperand registerDump = instruction.operand(3);
-
-		// Install the operands in this order.  First target, which will not be
-		// able to access targetAsInt.  Then targetAsInt and registerDump.  Then
-		// fallThrough, which will be able to see targetAsInt and registerDump.
-		target.instructionWasAdded(manifest);
-		targetAsInt.instructionWasAdded(manifest);
-		registerDump.instructionWasAdded(manifest);
-		fallThrough.instructionWasAdded(manifest);
-	}
-
-	@Override
-	public void toString (
+	public void appendToWithWarnings (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
-		final StringBuilder builder)
+		final StringBuilder builder,
+		final Consumer<Boolean> warningStyleChange)
 	{
 		assert this == instruction.operation();
-		// final L2PcOperand fallThrough = instruction.operand(0);
-		final L2PcOperand target = instruction.operand(1);
-		final L2WriteIntOperand targetAsInt = instruction.operand(2);
-		final L2WriteBoxedOperand registerDump = instruction.operand(3);
+		final L2PcOperand target = instruction.operand(0);
+		final L2WriteIntOperand targetAsInt = instruction.operand(1);
+		final L2WriteBoxedOperand registerDump = instruction.operand(2);
+//		final L2PcOperand fallThrough = instruction.operand(3);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
@@ -210,10 +197,10 @@ extends L2Operation
 		final L2Instruction instruction)
 	{
 		assert this == instruction.operation();
-		final L2PcOperand fallThrough = instruction.operand(0);
-		final L2PcOperand target = instruction.operand(1);
-		final L2WriteIntOperand targetAsInt = instruction.operand(2);
-		final L2WriteBoxedOperand registerDump = instruction.operand(3);
+		final L2PcOperand target = instruction.operand(0);
+		final L2WriteIntOperand targetAsInt = instruction.operand(1);
+		final L2WriteBoxedOperand registerDump = instruction.operand(2);
+		final L2PcOperand fallThrough = instruction.operand(3);
 
 		target.createAndPushRegisterDump(translator, method);
 		translator.store(method, registerDump.register());

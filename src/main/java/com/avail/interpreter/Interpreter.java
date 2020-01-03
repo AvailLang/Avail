@@ -582,7 +582,7 @@ public final class Interpreter
 	@ReferencedInGeneratedCode
 	public boolean callerIsReified ()
 	{
-		return unreifiedCallDepth == 0;
+		return unreifiedCallDepth == 1;
 	}
 
 	/** Access the {@link #callerIsReified()} method. */
@@ -1829,6 +1829,13 @@ public final class Interpreter
 			|| runtime.clock.get() - startTick >= timeSliceTicks
 			|| fiber().interruptRequestFlag(REIFICATION_REQUESTED);
 	}
+
+	/** Access the {@link #isInterruptRequested()} method. */
+	public static final CheckedMethod isInterruptRequestedMethod =
+		instanceMethod(
+			Interpreter.class,
+			"isInterruptRequested",
+			boolean.class);
 
 	/**
 	 * The {@linkplain #fiber() current} {@linkplain FiberDescriptor fiber} has

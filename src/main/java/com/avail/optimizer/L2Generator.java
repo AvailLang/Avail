@@ -54,9 +54,12 @@ import com.avail.optimizer.L2ControlFlowGraph.Zone;
 import com.avail.optimizer.values.Frame;
 import com.avail.optimizer.values.L2SemanticValue;
 import com.avail.performance.Statistic;
+import com.avail.utility.Casts;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static com.avail.descriptor.DoubleDescriptor.fromDouble;
@@ -74,6 +77,7 @@ import static com.avail.utility.Nulls.stripNull;
 import static java.lang.Math.max;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
+import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -261,12 +265,15 @@ public final class L2Generator
 	{
 		if (unreachableBlock == null)
 		{
+			// Create it as a normal node, so L1 translation can produce simple
+			// edges to it, then switch it to be a loop head so that placeholder
+			// instructions can still connect to it with back-edges when they
+			// get they generate their replacement code.
 			unreachableBlock = createBasicBlock("UNREACHABLE");
-			// Because we generate the initial code in control flow order, we
-			// have to wait until later to generate the instructions.  We strip
-			// out all phi information here.
 		}
-		return edgeTo(unreachableBlock);
+		return unreachableBlock.isLoopHead
+			? backEdgeTo(unreachableBlock)
+			: edgeTo(unreachableBlock);
 	}
 
 	/**
@@ -303,7 +310,9 @@ public final class L2Generator
 	{
 		assert restriction.isBoxed();
 		return new L2WriteBoxedOperand(
-			semanticValue, restriction, new L2BoxedRegister(nextUnique()));
+			singleton(semanticValue),
+			restriction,
+			new L2BoxedRegister(nextUnique()));
 	}
 
 	/**
@@ -338,7 +347,9 @@ public final class L2Generator
 	{
 		assert restriction.isUnboxedInt();
 		return new L2WriteIntOperand(
-			semanticValue, restriction, new L2IntRegister(nextUnique()));
+			singleton(semanticValue),
+			restriction,
+			new L2IntRegister(nextUnique()));
 	}
 
 	/**
@@ -373,7 +384,9 @@ public final class L2Generator
 	{
 		assert restriction.isUnboxedFloat();
 		return new L2WriteFloatOperand(
-			semanticValue, restriction, new L2FloatRegister(nextUnique()));
+			singleton(semanticValue),
+			restriction,
+			new L2FloatRegister(nextUnique()));
 	}
 
 	/**
@@ -499,7 +512,7 @@ public final class L2Generator
 	public L2ReadBoxedOperand readBoxed (
 		final L2WriteBoxedOperand write)
 	{
-		return currentManifest.read(write.semanticValue());
+		return currentManifest.readBoxed(write.pickSemanticValue());
 	}
 
 	/**
@@ -523,7 +536,11 @@ public final class L2Generator
 		final TypeRestriction boxedRestriction = restriction.withFlag(BOXED);
 		currentManifest.setRestriction(semanticValue, boxedRestriction);
 		final L2WriteBoxedOperand writer =
-			boxedWrite(semanticValue, boxedRestriction);
+			new L2WriteBoxedOperand(
+				currentManifest.semanticValueToSynonym(semanticValue)
+					.semanticValues(),
+				boxedRestriction,
+				new L2BoxedRegister(nextUnique()));
 		if (restriction.isUnboxedInt())
 		{
 			addInstruction(
@@ -595,12 +612,15 @@ public final class L2Generator
 			// Make it available as a constant in an int register.
 			return unboxedIntConstant(restriction.constantOrNull.extractInt());
 		}
-		// Write it to this temp along the success path.
-		final L2WriteIntOperand intWrite = intWriteTemp(
-			restriction
-				.intersectionWithType(int32())
-				.withFlag(UNBOXED_INT)
-				.withoutFlag(BOXED));
+		// Write it to a new int register.
+		final L2WriteIntOperand intWrite =
+			new L2WriteIntOperand(
+				currentManifest.semanticValueToSynonym(semanticValue)
+					.semanticValues(),
+				restriction
+					.intersectionWithType(int32())
+					.withFlag(UNBOXED_INT),
+				new L2IntRegister(nextUnique()));
 		final L2ReadBoxedOperand boxedRead =
 			currentManifest.readBoxed(semanticValue);
 		if (restriction.containedByType(int32()))
@@ -619,8 +639,8 @@ public final class L2Generator
 				L2_JUMP_IF_UNBOX_INT.instance,
 				boxedRead,
 				intWrite,
-				edgeTo(onSuccess),
-				edgeTo(onFailure));
+				edgeTo(onFailure),
+				edgeTo(onSuccess));
 			startBlock(onSuccess);
 		}
 		// This is the success path.  The operations have already ensured the
@@ -685,12 +705,15 @@ public final class L2Generator
 			return unboxedFloatConstant(
 				restriction.constantOrNull.extractDouble());
 		}
-		// Write it to this temp along the success path.
-		final L2WriteFloatOperand floatWrite = floatWriteTemp(
-			restriction
-				.intersectionWithType(DOUBLE.o())
-				.withFlag(UNBOXED_FLOAT)
-				.withoutFlag(BOXED));
+		// Write it to a new float register.
+		final L2WriteFloatOperand floatWrite =
+			new L2WriteFloatOperand(
+				currentManifest.semanticValueToSynonym(semanticValue)
+					.semanticValues(),
+				restriction
+					.intersectionWithType(DOUBLE.o())
+					.withFlag(UNBOXED_FLOAT),
+				new L2FloatRegister(nextUnique()));
 		final L2ReadBoxedOperand boxedRead =
 			currentManifest.readBoxed(semanticValue);
 		if (restriction.containedByType(DOUBLE.o()))
@@ -721,37 +744,95 @@ public final class L2Generator
 	}
 
 	/**
-	 * Generate instructions to move from an {@link L2ReadBoxedOperand} to an
-	 * {@link L2WriteBoxedOperand}.  After the move, the synonyms for the source
-	 * and destination are effectively merged.  This is justified by virtue of
-	 * SSA (static-single-assignment) being in effect.
+	 * Generate instructions to arrange for the value in the given {@link
+	 * L2ReadOperand} to end up in an {@link L2Register} associated in the
+	 * {@link L2ValueManifest} with the new {@link L2SemanticValue}.  After the
+	 * move, the synonyms for the source and destination are effectively merged,
+	 * which is justified by virtue of SSA (static-single-assignment) being in
+	 * effect.
 	 *
-	 * @param moveOperation
-	 *        The {@link L2_MOVE} operation to generate.
-	 * @param sourceRead
-	 *        Which {@link L2ReadBoxedOperand} to read.
-	 * @param destinationWrite
-	 *        Which {@link L2WriteBoxedOperand} to write.
 	 * @param <R>
 	 *        The kind of {@link L2Register} to move.
 	 * @param <RR>
 	 *        The kind of {@link L2ReadOperand} for reading.
 	 * @param <WR>
 	 *        The kind of {@link L2WriteOperand} for writing.
+	 * @param moveOperation
+	 *        The {@link L2_MOVE} operation to generate.
+	 * @param sourceSemanticValue
+	 *        Which {@link L2SemanticValue} to read.
+	 * @param targetSemanticValue
+	 *        Which {@link L2SemanticValue} will have the same value as the
+	 *        source semantic value.
 	 */
-	<
+	public <
 		R extends L2Register,
 		RR extends L2ReadOperand<R>,
 		WR extends L2WriteOperand<R>>
 	void moveRegister (
 		final L2_MOVE<R, RR, WR> moveOperation,
-		final RR sourceRead,
-		final WR destinationWrite)
+		final L2SemanticValue sourceSemanticValue,
+		final L2SemanticValue targetSemanticValue)
 	{
-		assert !currentManifest.hasSemanticValue(
-			destinationWrite.semanticValue());
-
-		addInstruction(moveOperation, sourceRead, destinationWrite);
+		assert !currentManifest.hasSemanticValue(targetSemanticValue);
+		final L2BasicBlock block = currentBlock();
+		final List<L2Register> sourceRegisters = currentManifest.getDefinitions(
+			sourceSemanticValue, moveOperation.kind);
+		final List<WR> sourceWritesInBlock =
+			sourceRegisters.stream()
+				.flatMap(reg -> reg.definitions().stream())
+				.filter(w -> w.instruction().basicBlock() == block)
+				.map(Casts::<L2WriteOperand<?>, WR>cast)
+				.collect(toList());
+		if (!sourceWritesInBlock.isEmpty())
+		{
+			// Find the latest equivalent write in this block.
+			final WR latestWrite = Collections.max(
+				sourceWritesInBlock,
+				comparing(
+					w -> w.instruction().basicBlock().instructions().indexOf(
+						w.instruction())));
+			// Walk backward through instructions until the latest equivalent
+			// write, watching for disqualifying pitfalls.
+			for (int i = block.instructions().size() - 1; i >= 0; i--)
+			{
+				final L2Instruction eachInstruction =
+					block.instructions().get(i);
+				if (eachInstruction == latestWrite.instruction())
+				{
+					// We reached the writing instruction without trouble.
+					// Augment the write's semantic values retroactively to
+					// include the targetSemanticValue.
+					final L2SemanticValue pickedSemanticValue =
+						latestWrite.pickSemanticValue();
+					// This line must be after we pick a representative semantic
+					// value, otherwise it might choose the new one.
+					latestWrite.retroactivelyIncludeSemanticValue(
+						targetSemanticValue);
+					currentManifest.extendSynonym(
+						currentManifest.semanticValueToSynonym(
+							pickedSemanticValue),
+						targetSemanticValue);
+					return;
+				}
+				// Here's where we would check eachInstruction to see if it's a
+				// pitfall that prevents us from retroactively updating an
+				// earlier write.  Break if this happens.
+			}
+			// Fall through, due to a break from a pitfall.
+		}
+		// Note that even though we couldn't avoid the move in this case, this
+		// move can still be updated by subsequent moves from the same synonym.
+		final TypeRestriction restriction =
+			currentManifest.restrictionFor(sourceSemanticValue);
+		addInstruction(
+			moveOperation,
+			moveOperation.kind.readOperand(
+				sourceSemanticValue,
+				restriction,
+				currentManifest.getDefinition(
+					sourceSemanticValue, moveOperation.kind)),
+			moveOperation.createWrite(this, targetSemanticValue, restriction));
 	}
 
 	/**
@@ -790,15 +871,15 @@ public final class L2Generator
 			restriction.withFlag(IMMUTABLE);
 		// If there is an unboxed form, preserve the first definition of that
 		// unboxed kind.
-		final List<L2WriteOperand<?>> unboxedDefinitions = new ArrayList<>(1);
+		final List<L2Register> unboxedRegisters = new ArrayList<>(1);
 		if (immutableRestriction.isUnboxedInt())
 		{
-			unboxedDefinitions.add(
+			unboxedRegisters.add(
 				currentManifest.getDefinition(semanticValue, INTEGER));
 		}
 		if (immutableRestriction.isUnboxedFloat())
 		{
-			unboxedDefinitions.add(
+			unboxedRegisters.add(
 				currentManifest.getDefinition(semanticValue, FLOAT));
 		}
 		final L2Synonym synonym =
@@ -811,13 +892,14 @@ public final class L2Generator
 			read,
 			boxedWrite(temp, immutableRestriction));
 		synonym.semanticValues().forEach(sv ->
-			moveRegister(
-				L2_MOVE.boxed,
-				readBoxed(temp),
-				boxedWrite(sv, immutableRestriction)));
+		{
+			moveRegister(L2_MOVE.boxed, temp, sv);
+			currentManifest.setRestriction(sv, immutableRestriction);
+		});
 		// Now restore each kind of unboxed definition, if there were any.
-		unboxedDefinitions.forEach(currentManifest::recordDefinitionForNewKind);
-		return currentManifest.read(temp);
+		unboxedRegisters.forEach(reg ->
+			currentManifest.recordDefinitionForNewKind(reg.definition()));
+		return currentManifest.readBoxed(temp);
 	}
 
 	/**
@@ -1028,6 +1110,35 @@ public final class L2Generator
 	}
 
 	/**
+	 * Create and add an {@link L2Instruction} with the given {@link
+	 * L2Operation} and variable number of {@link L2Operand}s.  However, this
+	 * may happen after dead code has been eliminated, including moves into
+	 * semantic values that propagated into synonyms and were subsequently
+	 * looked up by reads.  If necessary, fall back on using the register itself
+	 * to identify a suitable semantic value.
+	 *
+	 * @param operation
+	 *        The operation to invoke.
+	 * @param operands
+	 *        The operands of the instruction.
+	 */
+	public void reinsertInstruction (
+		final L2Operation operation,
+		final L2Operand... operands)
+	{
+		if (currentBlock == null)
+		{
+			return;
+		}
+		final L2Operand[] replacementOperands = Arrays.stream(operands)
+			.map(op -> op.adjustedForReinsertion(currentManifest))
+			.toArray(L2Operand[]::new);
+		currentBlock.addInstruction(
+			new L2Instruction(currentBlock, operation, replacementOperands),
+			currentManifest);
+	}
+
+	/**
 	 * Replace the already-generated instruction with a code sequence produced
 	 * by setting up conditions, asking the instruction to
 	 * {@link L2Operation#generateReplacement(L2Instruction, L2Generator)}
@@ -1053,9 +1164,12 @@ public final class L2Generator
 		final List<L2Instruction> endInstructions = new ArrayList<>(
 			originalInstructions.subList(
 				instructionIndex + 1, originalInstructions.size()));
-		// Remove all instructions from the block.
+		// Remove all instructions from the block.  Each will get sent a
+		// justRemoved() just *after* a replacement has been generated.  This
+		// ensures there is always a definition of every register, and allows
+		// phis in the target blocks of the final instruction's edges to stay as
+		// consistent phis, rather than collapsing to inappropriate moves.
 		originalInstructions.clear();
-		instruction.justRemoved();
 		startingBlock.removedControlFlowInstruction();
 
 		// Regenerate the start instructions.
@@ -1068,19 +1182,27 @@ public final class L2Generator
 			edge -> manifests.add(edge.manifest()));
 		currentManifest.populateFromIntersection(manifests, this, false, true);
 		// Replay the effects on the manifest of the leading instructions.
-		startInstructions.forEach(
-			originalInstruction ->
+		startInstructions.forEach(originalInstruction ->
 			{
-				originalInstruction.justRemoved();
-				addInstruction(
+				reinsertInstruction(
 					originalInstruction.operation(),
 					originalInstruction.operands());
+				originalInstruction.justRemoved();
 			});
 
 		// Let the instruction regenerate its replacement code.  It must write
 		// to all of the write operand *registers* of the original instruction.
 		// Writing to the same semantic value isn't good enough.
 		instruction.operation().generateReplacement(instruction, this);
+		instruction.justRemoved();
+
+		if (!currentlyReachable())
+		{
+			// This regenerated code should no longer reach the old flow.
+			// Clean up the rest of the original instructions.
+			endInstructions.forEach(L2Instruction::justRemoved);
+			return;
+		}
 
 		// Make sure every L2WriteOperand in the replaced instruction has been
 		// written to by the replacement code.
@@ -1089,24 +1211,16 @@ public final class L2Generator
 			assert !writeOp.register().definitions().isEmpty();
 		});
 
-		if (!currentlyReachable())
-		{
-			// This regenerated code should no longer reach the old flow.
-			// Still, clean up the old instructions.
-			endInstructions.forEach(L2Instruction::justRemoved);
-			return;
-		}
-
 		// Finally, add duplicates of the instructions that came after the
 		// doomed one in the original block.  Since the regenerated code writes
 		// to all the same L2Registers, no special provisions are needed for
 		// translating registers or fiddling with the manifest.
 		endInstructions.forEach(originalInstruction ->
 		{
-			originalInstruction.justRemoved();
-			addInstruction(
+			reinsertInstruction(
 				originalInstruction.operation(),
 				originalInstruction.operands());
+			originalInstruction.justRemoved();
 		});
 	}
 

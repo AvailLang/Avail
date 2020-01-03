@@ -77,8 +77,8 @@ extends L2Operand
 	}
 
 	@Override
-	public String toString ()
+	public void appendTo (final StringBuilder builder)
 	{
-		return "CTR:" + counter.longValue();
+		builder.append("CTR:").append(counter.longValue());
 	}
 }

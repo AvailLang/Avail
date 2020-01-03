@@ -38,10 +38,12 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operation.L2_INVOKE;
 import com.avail.interpreter.levelTwo.operation.L2_INVOKE_CONSTANT_FUNCTION;
+import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
 import com.avail.interpreter.levelTwo.register.L2Register;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -57,6 +59,23 @@ import static com.avail.utility.Strings.increaseIndentation;
  */
 public final class L2ControlFlowGraph
 {
+	/**
+	 * Flags that indicate the current state of the graph.
+	 */
+	public enum StateFlags
+	{
+		/**
+		 * Indicates that every {@link L2_PHI_PSEUDO_OPERATION} has been
+		 * replaced by moves to the same {@link L2Register} along each (split)
+		 * incoming edge.
+		 */
+		HasEliminatedPhis;
+	}
+
+	/** The current state of the graph. */
+	public final EnumSet<StateFlags> state =
+		EnumSet.noneOf(StateFlags.class);
+
 	/**
 	 * {@link L2BasicBlock}s can be grouped into zones for better visualization
 	 * of the control flow graph by the {@link L2ControlFlowGraphVisualizer}.

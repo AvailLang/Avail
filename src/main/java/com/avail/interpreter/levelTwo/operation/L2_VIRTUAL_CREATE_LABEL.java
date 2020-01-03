@@ -45,6 +45,7 @@ import org.objectweb.asm.MethodVisitor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
 import static com.avail.descriptor.NilDescriptor.nil;
@@ -55,6 +56,8 @@ import static com.avail.interpreter.levelTwo.operand.TypeRestriction.Restriction
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType;
 import static com.avail.optimizer.L2Generator.backEdgeTo;
 import static com.avail.optimizer.L2Generator.edgeTo;
+import static com.avail.utility.PrefixSharingList.last;
+import static java.util.Collections.emptySet;
 
 /**
  * This is a placeholder instruction, which is replaced if still live after data
@@ -68,6 +71,9 @@ import static com.avail.optimizer.L2Generator.edgeTo;
  *    <li>{@link L2_MAKE_IMMUTABLE} for the current caller, which must already
  *        be in a visible register,</li>
  *    <li>{@link L2_CREATE_CONTINUATION}.</li>
+ *    <li>The target of the {@link L2_SAVE_ALL_AND_PC_TO_INT} is in another
+ *        block, which contains an unconditional {@link L2_JUMP_BACK} to the
+ *        {@link L2Generator#afterOptionalInitialPrimitiveBlock}.</li>
  * </ol>
  *
  * <p>The {@link L2_SAVE_ALL_AND_PC_TO_INT} captures the offset of the
@@ -115,10 +121,11 @@ extends L2Operation
 	}
 
 	@Override
-	public void toString (
+	public void appendToWithWarnings (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
-		final StringBuilder builder)
+		final StringBuilder builder,
+		final Consumer<Boolean> warningStyleChange)
 	{
 		assert this == instruction.operation();
 		final L2WriteBoxedOperand outputLabel = instruction.operand(0);
@@ -198,10 +205,18 @@ extends L2Operation
 			restrictionForType(ANY.o(), BOXED));
 		generator.addInstruction(
 			L2_SAVE_ALL_AND_PC_TO_INT.instance,
-			edgeTo(fallThrough),
 			backEdgeTo(generator.afterOptionalInitialPrimitiveBlock),
 			writeOffset,
-			writeRegisterDump);
+			writeRegisterDump,
+			edgeTo(fallThrough));
+
+		// Force there to be nothing considered live in the edge leading to the
+		// label's entry point.
+		final L2Instruction saveInstruction =
+			last(generator.currentBlock().instructions());
+		final L2PcOperand referenceEdge =
+			L2_SAVE_ALL_AND_PC_TO_INT.referenceOf(saveInstruction);
+		referenceEdge.forcedClampedEntities = emptySet();
 
 		generator.startBlock(fallThrough);
 		final int frameSizeInt = frameSize.value;
@@ -221,7 +236,7 @@ extends L2Operation
 			new L2ReadBoxedVectorOperand(slots),  // each immutable
 			outputLabel,
 			generator.readInt(
-				writeOffset.semanticValue(),
+				writeOffset.onlySemanticValue(),
 				generator.unreachablePcOperand().targetBlock()),
 			generator.readBoxed(writeRegisterDump),
 			new L2CommentOperand("Create label."));

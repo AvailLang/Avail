@@ -48,12 +48,14 @@ import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
+import com.avail.optimizer.values.L2SemanticValue;
 import com.avail.utility.Casts;
 import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
 import java.util.EnumMap;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 
@@ -74,7 +76,7 @@ import static com.avail.interpreter.levelTwo.L2OperandType.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_MOVE <
+public abstract class L2_MOVE <
 	R extends L2Register,
 	RR extends L2ReadOperand<R>,
 	WR extends L2WriteOperand<R>>
@@ -113,30 +115,80 @@ extends L2Operation
 	 */
 	public static final
 	L2_MOVE<L2BoxedRegister, L2ReadBoxedOperand, L2WriteBoxedOperand>
-		boxed = new L2_MOVE<>(
+		boxed = new L2_MOVE<
+				L2BoxedRegister, L2ReadBoxedOperand, L2WriteBoxedOperand>(
 			RegisterKind.BOXED,
 			READ_BOXED.is("source boxed"),
-			WRITE_BOXED.is("destination boxed"));
+			WRITE_BOXED.is("destination boxed"))
+	{
+		@Override
+		public L2WriteBoxedOperand createWrite (
+			final L2Generator generator,
+			final L2SemanticValue semanticValue,
+			final TypeRestriction restriction)
+		{
+			return generator.boxedWrite(semanticValue, restriction);
+		}
+	};
 
 	/**
 	 * Initialize the move operation for int values.
 	 */
 	public static final
 	L2_MOVE<L2IntRegister, L2ReadIntOperand, L2WriteIntOperand>
-		unboxedInt = new L2_MOVE<>(
+		unboxedInt = new L2_MOVE<
+				L2IntRegister, L2ReadIntOperand, L2WriteIntOperand>(
 			RegisterKind.INTEGER,
 			READ_INT.is("source int"),
-			WRITE_INT.is("destination int"));
+			WRITE_INT.is("destination int"))
+	{
+		@Override
+		public L2WriteIntOperand createWrite (
+			final L2Generator generator,
+			final L2SemanticValue semanticValue,
+			final TypeRestriction restriction)
+		{
+			return generator.intWrite(semanticValue, restriction);
+		}
+	};
 
 	/**
 	 * Initialize the move operation for float values.
 	 */
 	public static final
 	L2_MOVE<L2FloatRegister, L2ReadFloatOperand, L2WriteFloatOperand>
-		unboxedFloat = new L2_MOVE<>(
+		unboxedFloat = new L2_MOVE<
+				L2FloatRegister, L2ReadFloatOperand, L2WriteFloatOperand>(
 			RegisterKind.FLOAT,
 			READ_FLOAT.is("source float"),
-			WRITE_FLOAT.is("destination float"));
+			WRITE_FLOAT.is("destination float"))
+	{
+		@Override
+		public L2WriteFloatOperand createWrite (
+			final L2Generator generator,
+			final L2SemanticValue semanticValue,
+			final TypeRestriction restriction)
+		{
+			return generator.floatWrite(semanticValue, restriction);
+		}
+	};
+
+	/**
+	 * Synthesize an {@link L2WriteOperand} of the appropriately strengthened
+	 * type {@link WR}.
+	 *
+	 * @param generator
+	 *        The {@link L2Generator} used for creating the write.
+	 * @param semanticValue
+	 *        The {@link L2SemanticValue} to populate.
+	 * @param restriction
+	 *        The {@link TypeRestriction} that the stored values will satisfy.
+	 * @return A new {@link L2WriteOperand} of the appropriate type {@link WR}.
+	 */
+	public abstract WR createWrite (
+		final L2Generator generator,
+		final L2SemanticValue semanticValue,
+		final TypeRestriction restriction);
 
 	/**
 	 * Answer an {@code L2_MOVE} suitable for transferring data of the given
@@ -243,8 +295,7 @@ extends L2Operation
 	{
 		assert instruction.operation() == boxed;
 		final RR source = sourceOf(instruction);
-		final L2Instruction producer =
-			source.register().definition().instruction();
+		final L2Instruction producer = source.definition().instruction();
 		return producer.operation().getConstantCodeFrom(producer);
 	}
 
@@ -295,10 +346,20 @@ extends L2Operation
 	}
 
 	@Override
-	public void toString (
+	public boolean shouldReplicateIdempotently (
+		final L2Instruction instruction)
+	{
+		// Moves should always be replicated to children – if the current basic
+		// block isn't using the value itself.
+		return true;
+	}
+
+	@Override
+	public void appendToWithWarnings (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
-		final StringBuilder builder)
+		final StringBuilder builder,
+		final Consumer<Boolean> warningStyleChange)
 	{
 		assert this == instruction.operation();
 		final L2ReadOperand<R> source = instruction.operand(0);
@@ -306,15 +367,21 @@ extends L2Operation
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(destination.registerString());
+		destination.appendWithWarningsTo(builder, 0, warningStyleChange);
 		builder.append(" ← ");
-		builder.append(source.registerString());
+		source.appendWithWarningsTo(builder, 0, warningStyleChange);
+	}
+
+	@Override
+	public String name ()
+	{
+		return "MOVE(" + kind.kindName + ")";
 	}
 
 	@Override
 	public String toString ()
 	{
-		return super.toString() + "(" + kind.kindName + ")";
+		return name();
 	}
 
 	@Override

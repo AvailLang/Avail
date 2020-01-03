@@ -36,11 +36,6 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_ARGUMENTS;
-import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION;
-import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION;
-import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE;
-import com.avail.interpreter.levelTwo.WritesHiddenVariable;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
@@ -49,6 +44,7 @@ import org.objectweb.asm.MethodVisitor;
 
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static com.avail.interpreter.Interpreter.*;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
@@ -63,12 +59,6 @@ import static org.objectweb.asm.Opcodes.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
 */
-@WritesHiddenVariable({
-	CURRENT_CONTINUATION.class,
-	CURRENT_FUNCTION.class,
-	CURRENT_ARGUMENTS.class,
-	LATEST_RETURN_VALUE.class
-})
 public final class L2_RETURN
 extends L2ControlFlowOperation
 {
@@ -104,10 +94,11 @@ extends L2ControlFlowOperation
 	}
 
 	@Override
-	public void toString (
+	public void appendToWithWarnings (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
-		final StringBuilder builder)
+		final StringBuilder builder,
+		final Consumer<Boolean> warningStyleChange)
 	{
 		assert this == instruction.operation();
 		final L2ReadBoxedOperand value = instruction.operand(0);

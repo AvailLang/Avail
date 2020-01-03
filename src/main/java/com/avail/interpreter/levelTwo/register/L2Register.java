@@ -36,10 +36,16 @@ import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.*;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadFloatOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteOperand;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE;
 import com.avail.optimizer.L2ControlFlowGraph;
+import com.avail.optimizer.L2Entity;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.reoptimizer.L2Inliner;
 import com.avail.optimizer.values.L2SemanticValue;
@@ -60,7 +66,7 @@ import static org.objectweb.asm.Type.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public abstract class L2Register
+public abstract class L2Register implements L2Entity
 {
 	/**
 	 * One of the kinds of registers that Level Two supports.
@@ -81,18 +87,17 @@ public abstract class L2Register
 			@Override
 			public <
 				R extends L2Register,
-				RR extends L2ReadOperand<R>,
-				WR extends L2WriteOperand<R>>
+				RR extends L2ReadOperand<R>>
 			RR readOperand (
 				final L2SemanticValue semanticValue,
 				final TypeRestriction restriction,
-				final WR definition)
+				final R register)
 			{
 				return Casts.<L2ReadOperand<?>, RR>cast(
 					new L2ReadBoxedOperand(
 						semanticValue,
 						restriction,
-						(L2WriteBoxedOperand) definition));
+						(L2BoxedRegister) register));
 			}
 		},
 
@@ -110,18 +115,17 @@ public abstract class L2Register
 			@Override
 			public <
 				R extends L2Register,
-				RR extends L2ReadOperand<R>,
-				WR extends L2WriteOperand<R>>
+				RR extends L2ReadOperand<R>>
 			RR readOperand (
 				final L2SemanticValue semanticValue,
 				final TypeRestriction restriction,
-				final WR definition)
+				final R register)
 			{
 				return Casts.<L2ReadOperand<?>, RR>cast(
 					new L2ReadIntOperand(
 						semanticValue,
 						restriction,
-						(L2WriteIntOperand) definition));
+						(L2IntRegister) register));
 			}
 		},
 
@@ -139,18 +143,17 @@ public abstract class L2Register
 				@Override
 				public <
 					R extends L2Register,
-					RR extends L2ReadOperand<R>,
-					WR extends L2WriteOperand<R>>
+					RR extends L2ReadOperand<R>>
 				RR readOperand (
 					final L2SemanticValue semanticValue,
 					final TypeRestriction restriction,
-					final WR definition)
+					final R register)
 				{
 					return Casts.<L2ReadOperand<?>, RR>cast(
 						new L2ReadFloatOperand(
 							semanticValue,
 							restriction,
-							(L2WriteFloatOperand) definition));
+							(L2FloatRegister) register));
 				}
 			};
 
@@ -192,22 +195,20 @@ public abstract class L2Register
 		 *        {@link L2ReadOperand}.
 		 * @param restriction
 		 *        The {@link TypeRestriction} relevant to this read.
-		 * @param definition
-		 *        The earliest known defining {@link L2WriteOperand} of the
+		 * @param register
+		 *        The earliest known defining {@link L2Register} of the
 		 *        {@link L2SemanticValue}.
 		 * @return The new {@link L2ReadOperand}.
 		 * @param <R> The {@link L2Register} subclass.
 		 * @param <RR> The {@link L2ReadOperand} subclass.
-		 * @param <WR> The {@link L2WriteOperand} subclass.
 		 */
 		public abstract <
 			R extends L2Register,
-			RR extends L2ReadOperand<R>,
-			WR extends L2WriteOperand<R>>
+			RR extends L2ReadOperand<R>>
 		RR readOperand (
 			final L2SemanticValue semanticValue,
 			final TypeRestriction restriction,
-			final WR definition);
+			final R register);
 
 		/**
 		 * Answer a suitable {@link L2_MOVE} operation for transferring values

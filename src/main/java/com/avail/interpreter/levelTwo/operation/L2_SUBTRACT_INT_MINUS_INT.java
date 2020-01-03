@@ -37,14 +37,13 @@ import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
-import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
+import java.util.function.Consumer;
 
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
@@ -70,9 +69,9 @@ extends L2ControlFlowOperation
 		super(
 			READ_INT.is("minuend"),
 			READ_INT.is("subtrahend"),
-			WRITE_INT.is("difference"),
-			PC.is("in range", SUCCESS),
-			PC.is("out of range", FAILURE));
+			WRITE_INT.is("difference", SUCCESS),
+			PC.is("out of range", FAILURE),
+			PC.is("in range", SUCCESS));
 	}
 
 	/**
@@ -82,28 +81,6 @@ extends L2ControlFlowOperation
 		new L2_SUBTRACT_INT_MINUS_INT();
 
 	@Override
-	public void instructionWasAdded (
-		final L2Instruction instruction,
-		final L2ValueManifest manifest)
-	{
-		assert this == instruction.operation();
-		final L2ReadIntOperand minuend = instruction.operand(0);
-		final L2ReadIntOperand subtrahend= instruction.operand(1);
-		final L2WriteIntOperand difference = instruction.operand(2);
-		final L2PcOperand inRange = instruction.operand(3);
-		final L2PcOperand outOfRange = instruction.operand(4);
-
-		minuend.instructionWasAdded(manifest);
-		subtrahend.instructionWasAdded(manifest);
-		difference.instructionWasAdded(manifest);
-		inRange.instructionWasAdded(manifest);
-		outOfRange.instructionWasAdded(manifest);
-
-		inRange.manifest().intersectType(difference.semanticValue(), int32());
-		outOfRange.manifest().subtractType(difference.semanticValue(), int32());
-	}
-
-	@Override
 	public boolean hasSideEffect ()
 	{
 		// It jumps if the result doesn't fit in an int.
@@ -111,17 +88,18 @@ extends L2ControlFlowOperation
 	}
 
 	@Override
-	public void toString (
+	public void appendToWithWarnings (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
-		final StringBuilder builder)
+		final StringBuilder builder,
+		final Consumer<Boolean> warningStyleChange)
 	{
 		assert this == instruction.operation();
 		final L2ReadIntOperand minuend = instruction.operand(0);
 		final L2ReadIntOperand subtrahend= instruction.operand(1);
 		final L2WriteIntOperand difference = instruction.operand(2);
-//		final L2PcOperand inRange = instruction.operand(3);
-//		final L2PcOperand outOfRange = instruction.operand(4);
+//		final L2PcOperand outOfRange = instruction.operand(3);
+//		final L2PcOperand inRange = instruction.operand(4);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
@@ -142,8 +120,8 @@ extends L2ControlFlowOperation
 		final L2ReadIntOperand minuend = instruction.operand(0);
 		final L2ReadIntOperand subtrahend= instruction.operand(1);
 		final L2WriteIntOperand difference = instruction.operand(2);
-		final L2PcOperand inRange = instruction.operand(3);
-		final L2PcOperand outOfRange = instruction.operand(4);
+		final L2PcOperand outOfRange = instruction.operand(3);
+		final L2PcOperand inRange = instruction.operand(4);
 
 		// :: longDifference = (long) minuend - (long) subtrahend;
 		translator.load(method, minuend.register());

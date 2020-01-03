@@ -37,14 +37,19 @@ import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding;
+import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
+import java.util.function.Consumer;
 
+import static com.avail.descriptor.IntegerDescriptor.zero;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.*;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForConstant;
 import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.LONG_TYPE;
 
@@ -68,8 +73,8 @@ extends L2ControlFlowOperation
 		super(
 			READ_INT.is("dividend"),
 			READ_INT.is("divisor"),
-			WRITE_INT.is("quotient"),
-			WRITE_INT.is("remainder"),
+			WRITE_INT.is("quotient", SUCCESS),
+			WRITE_INT.is("remainder", SUCCESS),
 			PC.is("out of range", FAILURE),
 			PC.is("zero divisor", OFF_RAMP),
 			PC.is("success", SUCCESS));
@@ -89,18 +94,43 @@ extends L2ControlFlowOperation
 	}
 
 	@Override
-	public void toString (
+	public void instructionWasAdded (
+		final L2Instruction instruction,
+		final L2ValueManifest manifest)
+	{
+		assert this == instruction.operation();
+//		final L2ReadIntOperand dividend = instruction.operand(0);
+		final L2ReadIntOperand divisor = instruction.operand(1);
+//		final L2WriteIntOperand quotient = instruction.operand(2);
+//		final L2WriteIntOperand remainder = instruction.operand(3);
+//		final L2PcOperand outOfRange = instruction.operand(4);
+		final L2PcOperand zeroDivisor = instruction.operand(5);
+//		final L2PcOperand success = instruction.operand(6);
+
+		super.instructionWasAdded(instruction, manifest);
+
+		// On the zeroDivisor edge, the divisor is definitely zero.
+		zeroDivisor.manifest().setRestriction(
+			divisor.semanticValue(),
+			restrictionForConstant(
+				zero(), RestrictionFlagEncoding.UNBOXED_INT));
+	}
+
+	@Override
+	public void appendToWithWarnings (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
-		final StringBuilder builder)
+		final StringBuilder builder,
+		final Consumer<Boolean> warningStyleChange)
 	{
 		assert this == instruction.operation();
 		final L2ReadIntOperand dividend = instruction.operand(0);
 		final L2ReadIntOperand divisor = instruction.operand(1);
 		final L2WriteIntOperand quotient = instruction.operand(2);
 		final L2WriteIntOperand remainder = instruction.operand(3);
-//		final L2PcOperand zeroDivisor = instruction.operand(4);
-//		final L2PcOperand success = instruction.operand(5);
+//		final L2PcOperand outOfRange = instruction.operand(4);
+//		final L2PcOperand zeroDivisor = instruction.operand(5);
+//		final L2PcOperand success = instruction.operand(6);
 
 		renderPreamble(instruction, builder);
 		builder.append("quo=");
@@ -124,8 +154,9 @@ extends L2ControlFlowOperation
 		final L2ReadIntOperand divisor = instruction.operand(1);
 		final L2WriteIntOperand quotient = instruction.operand(2);
 		final L2WriteIntOperand remainder = instruction.operand(3);
-		final L2PcOperand zeroDivisor = instruction.operand(4);
-		final L2PcOperand success = instruction.operand(5);
+		final L2PcOperand outOfRange = instruction.operand(4);
+		final L2PcOperand zeroDivisor = instruction.operand(5);
+		final L2PcOperand success = instruction.operand(6);
 
 		// :: if (divisor == 0) goto zeroDivisorIndex;
 		translator.load(method, divisor.register());
@@ -193,14 +224,14 @@ extends L2ControlFlowOperation
 		method.visitInsn(L2I);
 		method.visitInsn(I2L);
 		method.visitInsn(LCMP);
-		method.visitJumpInsn(IFNE, translator.labelFor(zeroDivisor.offset()));
+		method.visitJumpInsn(IFNE, translator.labelFor(outOfRange.offset()));
 		// ::  if (remainder != (int) remainder) goto outOfRange;
 		method.visitVarInsn(LLOAD, remainderLong);
 		method.visitInsn(DUP);
 		method.visitInsn(L2I);
 		method.visitInsn(I2L);
 		method.visitInsn(LCMP);
-		method.visitJumpInsn(IFNE, translator.labelFor(zeroDivisor.offset()));
+		method.visitJumpInsn(IFNE, translator.labelFor(outOfRange.offset()));
 		// ::    intQuotient = (int) quotient;
 		method.visitVarInsn(LLOAD, quotientLong);
 		method.visitInsn(L2I);

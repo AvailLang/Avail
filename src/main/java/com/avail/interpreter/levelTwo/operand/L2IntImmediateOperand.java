@@ -74,8 +74,8 @@ extends L2Operand
 	}
 
 	@Override
-	public String toString ()
+	public void appendTo (final StringBuilder builder)
 	{
-		return "#" + value;
+		builder.append("#").append(value);
 	}
 }

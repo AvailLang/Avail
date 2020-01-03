@@ -103,16 +103,23 @@ extends L2ReadOperand<L2BoxedRegister>
 	 *        {@link L2Instruction} uses this {@link L2Operand}.
 	 * @param restriction
 	 *        The {@link TypeRestriction} that bounds the value being read.
-	 * @param definition
-	 *        The earliest known defining {@link L2WriteBoxedOperand} of the
-	 *        {@link L2SemanticValue}.
+	 * @param register
+	 *        The {@link L2BoxedRegister} being read by this operand.
 	 */
 	public L2ReadBoxedOperand (
 		final L2SemanticValue semanticValue,
 		final TypeRestriction restriction,
-		final L2WriteBoxedOperand definition)
+		final L2BoxedRegister register)
 	{
-		super(semanticValue, restriction, definition);
+		super(semanticValue, restriction, register);
+	}
+
+	@Override
+	public L2ReadBoxedOperand copyForSemanticValue (
+		final L2SemanticValue newSemanticValue)
+	{
+		return new L2ReadBoxedOperand(
+			newSemanticValue, restriction(), register());
 	}
 
 	@Override

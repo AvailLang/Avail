@@ -36,12 +36,8 @@ import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.A_Variable;
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
-import com.avail.interpreter.levelTwo.operand.L2Operand;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
-import com.avail.interpreter.levelTwo.operand.TypeRestriction;
+import com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose;
+import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.operation.L2ControlFlowOperation;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE;
 import com.avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT;
@@ -58,12 +54,15 @@ import com.avail.performance.StatisticReport;
 import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType;
+import static com.avail.utility.Casts.cast;
 import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.Strings.increaseIndentation;
 import static java.util.Collections.emptyList;
@@ -463,9 +462,26 @@ public abstract class L2Operation
 	}
 
 	/**
+	 * Answer whether this operation causes unconditional control flow jump to
+	 * another {@link L2BasicBlock}.
+	 *
+	 * @return {@code true} iff this is an unconditional jump.
+	 */
+	public boolean isUnconditionalJump ()
+	{
+		return false;
+	}
+
+	/**
 	 * This is the operation for the given instruction, which was just added to
 	 * its basic block.  Do any post-processing appropriate for having added
 	 * the instruction.
+	 *
+	 * <p>Automatically handle {@link L2WriteOperand}s that list a
+	 * {@link Purpose} in their corresponding {@link L2NamedOperandType},
+	 * ensuring the write is only considered to happen along the edge
+	 * ({@link L2PcOperand}) having the same purpose.  Subclasses may want to do
+	 * additional postprocessing.</p>
 	 *
 	 * @param instruction
 	 *        The {@link L2Instruction} that was just added.
@@ -478,8 +494,45 @@ public abstract class L2Operation
 	{
 		// Setting up the instruction fields of the operands is already done,
 		// so subclasses can focus on manifest manipulation.
-		instruction.operandsDo(
-			operand -> operand.instructionWasAdded(manifest));
+		final List<Integer> edgeIndexOrder = new ArrayList<>();
+		final L2Operand[] operands = instruction.operands();
+		for (int i = 0; i < operands.length; i++)
+		{
+			final L2NamedOperandType namedOperandType = namedOperandTypes[i];
+			final @Nullable Purpose purpose = namedOperandType.purpose();
+			final L2Operand operand = operands[i];
+			if (purpose == null)
+			{
+				// Process all operands without a purpose first.
+				operand.instructionWasAdded(manifest);
+			}
+			else
+			{
+				if (operand instanceof L2PcOperand)
+				{
+					edgeIndexOrder.add(i);
+				}
+			}
+		}
+		// Create separate copies of the manifest for each outgoing edge.
+		for (final int operandIndex : edgeIndexOrder)
+		{
+			final L2PcOperand edge = cast(operands[operandIndex]);
+			final Purpose purpose =
+				stripNull(namedOperandTypes[operandIndex].purpose());
+			final L2ValueManifest manifestCopy = new L2ValueManifest(manifest);
+			for (int i = 0; i < operands.length; i++)
+			{
+				final L2NamedOperandType namedOperandType =
+					namedOperandTypes[i];
+				if (namedOperandType.purpose() == purpose
+					&& !(operands[i] instanceof L2PcOperand))
+				{
+					operands[i].instructionWasAdded(manifestCopy);
+				}
+			}
+			edge.instructionWasAdded(manifestCopy);
+		}
 	}
 
 	/**
@@ -543,6 +596,7 @@ public abstract class L2Operation
 	 * @return Whether the regenerated instructions are different enough to
 	 *         warrant another pass of flow analysis.
 	 */
+	@Deprecated
 	public boolean regenerate (
 		final L2Instruction instruction,
 		final RegisterSet registerSet,
@@ -590,7 +644,7 @@ public abstract class L2Operation
 			new L2IntImmediateOperand(outerIndex),
 			functionRegister,
 			writer);
-		return generator.readBoxed(writer.semanticValue());
+		return generator.readBoxed(writer);
 	}
 
 	/**
@@ -731,11 +785,16 @@ public abstract class L2Operation
 	 * @param builder
 	 *        The {@link StringBuilder} to which the rendition should be
 	 *        written.
+	 * @param warningStyleChange
+	 *        A mechanism to turn on and off a warning style, which the caller
+	 *        may listen to, to track regions of the builder to highlight in its
+	 *        own warning style.  This must be invoked in (true, false) pairs.
 	 */
-	public void toString (
+	public void appendToWithWarnings (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
-		final StringBuilder builder)
+		final StringBuilder builder,
+		final Consumer<Boolean> warningStyleChange)
 	{
 		assert this == instruction.operation();
 		renderPreamble(instruction, builder);
@@ -751,7 +810,7 @@ public abstract class L2Operation
 				assert operand.operandType() == type.operandType();
 				builder.append(type.name());
 				builder.append(" = ");
-				builder.append(increaseIndentation(operand.toString(), 1));
+				operand.appendWithWarningsTo(builder, 1, warningStyleChange);
 			}
 		}
 	}

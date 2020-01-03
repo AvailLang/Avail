@@ -47,10 +47,12 @@ import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.jvm.JVMTranslator;
+import com.avail.optimizer.values.L2SemanticValue;
 import com.avail.utility.evaluation.Continuation3NotNull;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 
@@ -138,12 +140,12 @@ extends L2Operation
 
 		// Ensure the new write ends up in the same synonym as the source.
 		source.instructionWasAdded(manifest);
-		if (manifest.hasSemanticValue(destination.semanticValue()))
+		final L2SemanticValue semanticValue = destination.pickSemanticValue();
+		if (manifest.hasSemanticValue(semanticValue))
 		{
 			// The constant semantic value exists, but for another register
 			// kind.
-			destination.instructionWasAddedForMove(
-				destination.semanticValue(), manifest);
+			destination.instructionWasAddedForMove(semanticValue, manifest);
 		}
 		else
 		{
@@ -184,10 +186,11 @@ extends L2Operation
 	}
 
 	@Override
-	public void toString (
+	public void appendToWithWarnings (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
-		final StringBuilder builder)
+		final StringBuilder builder,
+		final Consumer<Boolean> warningStyleChange)
 	{
 		assert this == instruction.operation();
 		final C constant = instruction.operand(0);
@@ -195,7 +198,7 @@ extends L2Operation
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(destination.register());
+		destination.appendWithWarningsTo(builder, 0, warningStyleChange);
 		builder.append(" ← ");
 		builder.append(constant);
 	}
@@ -212,6 +215,15 @@ extends L2Operation
 						? "float"
 						: "unknown";
 		return super.toString() + "(" + kind + ")";
+	}
+
+	@Override
+	public boolean shouldReplicateIdempotently (
+		final L2Instruction instruction)
+	{
+		// Constant moves should always be replicated to children – if the
+		// current basic block isn't using the value itself.
+		return true;
 	}
 
 	@Override

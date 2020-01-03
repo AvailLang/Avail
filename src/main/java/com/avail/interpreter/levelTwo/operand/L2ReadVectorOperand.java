@@ -37,8 +37,10 @@ import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.optimizer.L2ValueManifest;
+import com.avail.utility.Casts;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -138,6 +140,20 @@ extends L2Operand
 	}
 
 	@Override
+	public L2ReadVectorOperand<RR, R> adjustedForReinsertion (
+		final L2ValueManifest manifest)
+	{
+		final List<RR> newElements = new ArrayList<>(elements.size());
+		for (final RR element : elements)
+		{
+			final RR newElement = Casts.<L2ReadOperand<?>, RR>cast(
+				element.adjustedForReinsertion(manifest));
+			newElements.add(newElement);
+		}
+		return clone(newElements);
+	}
+
+	@Override
 	public void instructionWasInserted (
 		final L2Instruction newInstruction)
 	{
@@ -150,7 +166,7 @@ extends L2Operand
 	public void instructionWasRemoved ()
 	{
 		super.instructionWasRemoved();
-		elements.forEach(rr -> rr.instructionWasRemoved());
+		elements.forEach(L2ReadOperand::instructionWasRemoved);
 	}
 
 	@Override
@@ -160,13 +176,6 @@ extends L2Operand
 	{
 		elements.forEach(
 			read -> read.replaceRegisters(registerRemap, theInstruction));
-	}
-
-	@Override
-	public void replaceWriteDefinitions (
-		final Map<L2WriteOperand<?>, L2WriteOperand<?>> writesMap)
-	{
-		elements.forEach(read -> read.replaceWriteDefinitions(writesMap));
 	}
 
 	@Override
@@ -185,9 +194,8 @@ extends L2Operand
 	}
 
 	@Override
-	public String toString ()
+	public void appendTo (final StringBuilder builder)
 	{
-		final StringBuilder builder = new StringBuilder();
 		builder.append("@<");
 		boolean first = true;
 		for (final RR read : elements)
@@ -207,6 +215,5 @@ extends L2Operand
 			first = false;
 		}
 		builder.append(">");
-		return builder.toString();
 	}
 }

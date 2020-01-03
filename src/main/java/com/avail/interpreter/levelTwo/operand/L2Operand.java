@@ -45,8 +45,11 @@ import javax.annotation.Nullable;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
+import static com.avail.utility.Casts.cast;
 import static com.avail.utility.Nulls.stripNull;
+import static com.avail.utility.Strings.increaseIndentation;
 
 /**
  * An {@code L2Operand} knows its {@link L2OperandType} and any specific value
@@ -129,6 +132,25 @@ extends PublicCloneable<L2Operand>
 	}
 
 	/**
+	 * This is an operand of the given instruction, which was once emitted, then
+	 * removed, and has just now been added again to a basic block.  Its
+	 * instruction was just set.
+	 *
+	 * <p>Since this operation can take place after initial code generation, we
+	 * have to compensate for reads of semantic values that no longer exist,
+	 * due to elision of moves that would have augmented a synonym.</p>
+	 *
+	 * @param manifest
+	 *        The {@link L2ValueManifest} that is active where this {@link
+	 *        L2Instruction} was just added to its {@link L2BasicBlock}.
+	 * @return The replacement {@link L2Operand}, possibly the receiver.
+	 */
+	public L2Operand adjustedForReinsertion (final L2ValueManifest manifest)
+	{
+		return this;
+	}
+
+	/**
 	 * This vector operand is the input to a {@link L2_PHI_PSEUDO_OPERATION}
 	 * instruction that has just been added.  Update it specially, to take into
 	 * account the correspondence between vector elements and predecessor edges.
@@ -194,26 +216,9 @@ extends PublicCloneable<L2Operand>
 	 * @param theInstruction
 	 *        The instruction containing this operand.
 	 */
-	@SuppressWarnings({"unused", "EmptyMethod"})
 	public void replaceRegisters (
 		final Map<L2Register, L2Register> registerRemap,
 		final L2Instruction theInstruction)
-	{
-		// By default do nothing.
-	}
-
-	/**
-	 * Replace occurrences within this operand of {@link L2WriteOperand}s that
-	 * are keys of the given {@link Map}.  Only update {@link L2ReadOperand}s
-	 * and {@link L2PcOperand}s, since those capture (through an
-	 * {@link L2ValueManifest} for the latter) defining writes that need to be
-	 * updated.  Specifically <em>DO NOT</em> update {@link L2WriteOperand}s.
-	 *
-	 * @param writesMap
-	 *        A mapping between {@link L2WriteOperand}s
-	 */
-	public void replaceWriteDefinitions (
-		final Map<L2WriteOperand<?>, L2WriteOperand<?>> writesMap)
 	{
 		// By default do nothing.
 	}
@@ -223,7 +228,6 @@ extends PublicCloneable<L2Operand>
 	 *
 	 * @param sourceRegisters The {@link List} to update.
 	 */
-	@SuppressWarnings({"unused", "EmptyMethod"})
 	public void addSourceRegistersTo (
 		final List<L2Register> sourceRegisters)
 	{
@@ -235,7 +239,6 @@ extends PublicCloneable<L2Operand>
 	 *
 	 * @param destinationRegisters The {@link List} to update.
 	 */
-	@SuppressWarnings({"unused", "EmptyMethod"})
 	public void addDestinationRegistersTo (
 		final List<L2Register> destinationRegisters)
 	{
@@ -243,7 +246,91 @@ extends PublicCloneable<L2Operand>
 	}
 
 	@Override
-	public abstract String toString ();
+	public final String toString ()
+	{
+		final StringBuilder builder = new StringBuilder();
+		appendWithWarningsTo(builder, 0, flag -> { /* ignored */ });
+		return builder.toString();
+	}
+
+	/**
+	 * Append a textual representation of this operand to the provided
+	 * {@link StringBuilder}.  If a style change is appropriate while building
+	 * the string, invoke the warningStyleChange {@link Consumer} with
+	 * {@code true} to enable the warning style, and {@code false} to turn it
+	 * off again.
+	 *
+	 * @param builder
+	 *        The {@link StringBuilder} on which to describe this operand.
+	 * @param indent
+	 *        How much additional indentation to add to successive lines.
+	 * @param warningStyleChange
+	 *        A {@link Consumer} to invoke to turn the warning style on or off,
+	 *        with a mechanism specified (or ignored) by the caller.
+	 */
+	public final void appendWithWarningsTo (
+		final StringBuilder builder,
+		final int indent,
+		final Consumer<Boolean> warningStyleChange)
+	{
+		if (instruction == null)
+		{
+			warningStyleChange.accept(true);
+			builder.append("DEAD-OPERAND: ");
+			warningStyleChange.accept(false);
+		}
+		else if (isMisconnected())
+		{
+			warningStyleChange.accept(true);
+			builder.append("MISCONNECTED: ");
+			warningStyleChange.accept(false);
+		}
+		// Call the inner method that can be overridden.
+		final StringBuilder temp = new StringBuilder();
+		appendTo(temp);
+		builder.append(increaseIndentation(temp.toString(), indent));
+	}
+
+	/**
+	 * Answer whether this operand is misconnected to its {@link L2Instruction}.
+	 *
+	 * @return {@code false} if the operand is connected correctly, otherwise
+	 *         {@code true}.
+	 */
+	public boolean isMisconnected ()
+	{
+		if (instruction == null)
+		{
+			return true;
+		}
+		final L2Operand[] operands = instruction.operands();
+		for (int i = 0, limit = operands.length; i < limit; i++)
+		{
+			final L2Operand operand = operands[i];
+			if (operand == this)
+			{
+				return false;
+			}
+			if (operand instanceof L2ReadVectorOperand)
+			{
+				final L2ReadVectorOperand<?, ?> vectorOperand = cast(operand);
+				if (vectorOperand.elements.contains(this))
+				{
+					return false;
+				}
+			}
+		}
+		// Operand wasn't found inside the instruction.
+		return true;
+	}
+
+	/**
+	 * Write a description of this operand to the given {@link StringBuilder}.
+	 *
+	 * @param builder
+	 *        The {@link StringBuilder} on which to describe this operand.
+	 */
+	public abstract void appendTo (final StringBuilder builder);
 
 	/**
 	 * This is a freshly cloned operand.  Adjust it for use in the given

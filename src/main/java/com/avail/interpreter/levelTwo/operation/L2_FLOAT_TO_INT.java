@@ -41,6 +41,7 @@ import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_FLOAT;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_INT;
@@ -69,10 +70,11 @@ extends L2Operation
 	public static final L2_FLOAT_TO_INT instance = new L2_FLOAT_TO_INT();
 
 	@Override
-	public void toString (
+	public void appendToWithWarnings (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
-		final StringBuilder builder)
+		final StringBuilder builder,
+		final Consumer<Boolean> warningStyleChange)
 	{
 		final L2ReadFloatOperand source = instruction.operand(0);
 		final L2WriteIntOperand destination = instruction.operand(1);

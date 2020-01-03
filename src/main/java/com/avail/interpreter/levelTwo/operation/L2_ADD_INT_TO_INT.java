@@ -43,6 +43,7 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
@@ -69,9 +70,9 @@ extends L2ControlFlowOperation
 		super(
 			READ_INT.is("augend"),
 			READ_INT.is("addend"),
-			WRITE_INT.is("sum"),
-			PC.is("in range", SUCCESS),
-			PC.is("out of range", FAILURE));
+			WRITE_INT.is("sum", SUCCESS),
+			PC.is("out of range", FAILURE),
+			PC.is("in range", SUCCESS));
 	}
 
 	/**
@@ -85,20 +86,14 @@ extends L2ControlFlowOperation
 		final L2ValueManifest manifest)
 	{
 		assert this == instruction.operation();
-		final L2ReadIntOperand augendReg = instruction.operand(0);
-		final L2ReadIntOperand addendReg = instruction.operand(1);
+//		final L2ReadIntOperand augendReg = instruction.operand(0);
+//		final L2ReadIntOperand addendReg = instruction.operand(1);
 		final L2WriteIntOperand sumReg = instruction.operand(2);
-		final L2PcOperand inRange = instruction.operand(3);
-		final L2PcOperand outOfRange = instruction.operand(4);
+//		final L2PcOperand outOfRange = instruction.operand(3);
+		final L2PcOperand inRange = instruction.operand(4);
 
-		augendReg.instructionWasAdded(manifest);
-		addendReg.instructionWasAdded(manifest);
-		sumReg.instructionWasAdded(manifest);
-		inRange.instructionWasAdded(manifest);
-		outOfRange.instructionWasAdded(manifest);
-
-		inRange.manifest().intersectType(sumReg.semanticValue(), int32());
-		outOfRange.manifest().subtractType(sumReg.semanticValue(), int32());
+		super.instructionWasAdded(instruction, manifest);
+		inRange.manifest().intersectType(sumReg.pickSemanticValue(), int32());
 	}
 
 	@Override
@@ -109,17 +104,18 @@ extends L2ControlFlowOperation
 	}
 
 	@Override
-	public void toString (
+	public void appendToWithWarnings (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
-		final StringBuilder builder)
+		final StringBuilder builder,
+		final Consumer<Boolean> warningStyleChange)
 	{
 		assert this == instruction.operation();
 		final L2ReadIntOperand augend = instruction.operand(0);
 		final L2ReadIntOperand addend = instruction.operand(1);
 		final L2WriteIntOperand sum = instruction.operand(2);
-//		final L2PcOperand inRange = instruction.operand(3);
-//		final L2PcOperand outOfRange = instruction.operand(4);
+//		final L2PcOperand outOfRange = instruction.operand(3);
+//		final L2PcOperand inRange = instruction.operand(4);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
@@ -140,8 +136,8 @@ extends L2ControlFlowOperation
 		final L2ReadIntOperand augendReg = instruction.operand(0);
 		final L2ReadIntOperand addendReg = instruction.operand(1);
 		final L2WriteIntOperand sumReg = instruction.operand(2);
-		final L2PcOperand inRange = instruction.operand(3);
-		final L2PcOperand outOfRange = instruction.operand(4);
+		final L2PcOperand outOfRange = instruction.operand(3);
+		final L2PcOperand inRange = instruction.operand(4);
 
 		// :: longSum = (long) augend + (long) addend;
 		translator.load(method, augendReg.register());

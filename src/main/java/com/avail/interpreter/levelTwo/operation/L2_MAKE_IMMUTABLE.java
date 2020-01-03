@@ -38,7 +38,6 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
 import com.avail.optimizer.L2ControlFlowGraph.Zone;
 import com.avail.optimizer.L2Generator;
@@ -48,6 +47,7 @@ import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
@@ -166,10 +166,11 @@ extends L2Operation
 	}
 
 	@Override
-	public void toString (
+	public void appendToWithWarnings (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
-		final StringBuilder builder)
+		final StringBuilder builder,
+		final Consumer<Boolean> warningStyleChange)
 	{
 		assert this == instruction.operation();
 		final L2ReadBoxedOperand read = instruction.operand(0);
@@ -199,10 +200,10 @@ extends L2Operation
 	@Override
 	public boolean shouldReplicateIdempotently (final L2Instruction instruction)
 	{
-		final L2WriteBoxedOperand write = destinationOfImmutable(instruction);
-		final Set<L2ReadOperand<?>> uses = write.register().uses();
-		return uses.stream()
-			.allMatch(use -> use.instruction().basicBlock().zone != null);
+		return true;
+		// TODO Does this need to adjust the type in the manifest of the edges
+		// it's moving across, so placeholder-replacement code won't use the
+		// old, not necessarily immutable values?
 	}
 
 	@Override

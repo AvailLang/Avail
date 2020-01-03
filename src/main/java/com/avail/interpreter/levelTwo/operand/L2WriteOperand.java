@@ -40,18 +40,21 @@ import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.values.L2SemanticValue;
 
 import javax.annotation.Nullable;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.avail.utility.Casts.cast;
 import static com.avail.utility.Nulls.stripNull;
+import static java.util.Collections.unmodifiableSet;
 
 /**
  * {@code L2WriteOperand} abstracts the capabilities of actual register write
  * operands.
  *
  * @param <R>
- *        The subclass of {@link L2Register}.
+ *        The subclass of {@link L2Register} that this writes to.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -60,10 +63,10 @@ public abstract class L2WriteOperand<R extends L2Register>
 extends L2Operand
 {
 	/**
-	 * The {@link L2SemanticValue} being written when an {@link L2Instruction}
+	 * The {@link L2SemanticValue}s being written when an {@link L2Instruction}
 	 * uses this {@link L2Operand}.
 	 */
-	private final L2SemanticValue semanticValue;
+	private final Set<L2SemanticValue> semanticValues;
 
 	/**
 	 * The {@link TypeRestriction} that indicates what values may be written to
@@ -81,9 +84,9 @@ extends L2Operand
 	 * Construct a new {@code L2WriteOperand} for the specified {@link
 	 * L2SemanticValue}.
 	 *
-	 * @param semanticValue
-	 *        The {@link L2SemanticValue} that this operand is effectively
-	 *        producing.
+	 * @param semanticValues
+	 *        The {@link Set} of {@link L2SemanticValue} that this operand is
+	 *        effectively producing.
 	 * @param restriction
 	 *        The {@link TypeRestriction} that indicates what values are allowed
 	 *        to be written into the register.
@@ -91,23 +94,46 @@ extends L2Operand
 	 *        The {@link L2Register} to write.
 	 */
 	public L2WriteOperand (
-		final L2SemanticValue semanticValue,
+		final Set<L2SemanticValue> semanticValues,
 		final TypeRestriction restriction,
 		final R register)
 	{
-		this.semanticValue = semanticValue;
+		this.semanticValues = new HashSet<>(semanticValues);
 		this.restriction = restriction;
 		this.register = register;
 	}
 
 	/**
-	 * Answer this write's {@link L2SemanticValue}.
+	 * Answer this write's immutable set of {@link L2SemanticValue}s.
 	 *
 	 * @return The semantic value being written.
 	 */
-	public final L2SemanticValue semanticValue ()
+	public final Set<L2SemanticValue> semanticValues ()
 	{
-		return semanticValue;
+		return unmodifiableSet(semanticValues);
+	}
+
+	/**
+	 * Answer this write's sole {@link L2SemanticValue}, failing if there isn't
+	 * exactly one.
+	 *
+	 * @return The write operand's {@link L2SemanticValue}.
+	 */
+	public L2SemanticValue onlySemanticValue ()
+	{
+		assert semanticValues.size() == 1;
+		return semanticValues.iterator().next();
+	}
+
+	/**
+	 * Choose an arbitrary one of the {@link L2SemanticValue}s that this operand
+	 * writes.
+	 *
+	 * @return The write operand's {@link L2SemanticValue}.
+	 */
+	public L2SemanticValue pickSemanticValue ()
+	{
+		return semanticValues.iterator().next();
 	}
 
 	/**
@@ -156,7 +182,7 @@ extends L2Operand
 	 */
 	public final String registerString ()
 	{
-		return register + "[" + semanticValue + "]";
+		return register.toString() + semanticValues;
 	}
 
 	@Override
@@ -202,6 +228,21 @@ extends L2Operand
 		register().removeDefinition(this);
 	}
 
+	/**
+	 * Add the given {@link L2SemanticValue} to this write operand's set of
+	 * semantic values.  DO NOT update any other structures to reflect this
+	 * change, as this is the caller's responsibility.
+	 *
+	 * @param newSemanticValue
+	 *        The new {@link L2SemanticValue} to add to the write operand's set
+	 *        of semantic values.
+	 */
+	public void retroactivelyIncludeSemanticValue (
+		final L2SemanticValue newSemanticValue)
+	{
+		semanticValues.add(newSemanticValue);
+	}
+
 	@Override
 	public final void replaceRegisters (
 		final Map<L2Register, L2Register> registerRemap,
@@ -225,8 +266,8 @@ extends L2Operand
 	}
 
 	@Override
-	public final String toString ()
+	public void appendTo (final StringBuilder builder)
 	{
-		return "→" + registerString();
+		builder.append("→").append(registerString());
 	}
 }

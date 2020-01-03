@@ -36,7 +36,6 @@ import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_ARGUMENTS;
 import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION;
 import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION;
 import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.GLOBAL_STATE;
@@ -56,6 +55,7 @@ import org.objectweb.asm.MethodVisitor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
@@ -82,9 +82,9 @@ extends L2Operation
 {
 	/** The subclass for primitives that have no global dependency. */
 	@WritesHiddenVariable({
-		CURRENT_CONTINUATION.class,
-		CURRENT_FUNCTION.class,
-		CURRENT_ARGUMENTS.class,
+//		CURRENT_CONTINUATION.class,
+//		CURRENT_FUNCTION.class,
+//		CURRENT_ARGUMENTS.class,
 		LATEST_RETURN_VALUE.class
 	})
 	private static class L2_RUN_INFALLIBLE_PRIMITIVE_no_dependency
@@ -95,7 +95,7 @@ extends L2Operation
 	@WritesHiddenVariable({
 		CURRENT_CONTINUATION.class,
 		CURRENT_FUNCTION.class,
-		CURRENT_ARGUMENTS.class,
+//		CURRENT_ARGUMENTS.class,
 		LATEST_RETURN_VALUE.class
 	})
 	private static class L2_RUN_INFALLIBLE_PRIMITIVE_read_dependency
@@ -105,7 +105,7 @@ extends L2Operation
 	@WritesHiddenVariable({
 		CURRENT_CONTINUATION.class,
 		CURRENT_FUNCTION.class,
-		CURRENT_ARGUMENTS.class,
+//		CURRENT_ARGUMENTS.class,
 		LATEST_RETURN_VALUE.class,
 		GLOBAL_STATE.class
 	})
@@ -117,7 +117,7 @@ extends L2Operation
 	@WritesHiddenVariable({
 		CURRENT_CONTINUATION.class,
 		CURRENT_FUNCTION.class,
-		CURRENT_ARGUMENTS.class,
+//		CURRENT_ARGUMENTS.class,
 		LATEST_RETURN_VALUE.class,
 		GLOBAL_STATE.class
 	})
@@ -280,10 +280,11 @@ extends L2Operation
 	}
 
 	@Override
-	public void toString (
+	public void appendToWithWarnings (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
-		final StringBuilder builder)
+		final StringBuilder builder,
+		final Consumer<Boolean> warningStyleChange)
 	{
 		assert this == instruction.operation();
 //		final L2ConstantOperand rawFunction = instruction.operand(0);
