@@ -259,70 +259,66 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 		size = buffers.size * alignment
 		// Now start the asynchronous read.
 		val buffer = ByteBuffer.allocateDirect(size)
-		fileChannel.read<Void>(
-			buffer,
-			oneBasedPositionLong - 1,
-			null,
-			SimpleCompletionHandler(
-				// completion
-				{ bytesRead ->
-					buffer.flip()
-					val bytesTuple: A_Tuple
-					if (bytesRead == -1)
-					{
-						// We started reading after the last byte of the file.
-						// Avail expects an empty buffer in this case.
-						assert(buffer.remaining() == 0)
-						bytesTuple = emptyTuple()
-					}
-					else
-					{
-						assert(buffer.remaining() == bytesRead)
-						bytesTuple = tupleForByteBuffer(buffer).makeShared()
-						assert(bytesTuple.tupleSize() == bytesRead)
-						// Seed the file cache, except for the final partial
-						// buffer.
-						val lastPosition =
-							oneBasedPositionLong + bytesRead!! - 1
-						val lastFullBufferStart =
-							lastPosition / alignment * alignment - alignment + 1
-						var offsetInBuffer = 1
-						for (bufferStart in
-							oneBasedPositionLong..lastFullBufferStart step
-								alignment.toLong())
-						{
-							val subtuple =
-								bytesTuple.copyTupleFromToCanDestroy(
-									offsetInBuffer,
-									offsetInBuffer + alignment - 1,
-									false
-								).makeShared()
-							assert(subtuple.tupleSize() == alignment)
-							val key = BufferKey(handle, bufferStart)
-							val bufferHolder = ioSystem.getBuffer(key)
-							// The getBuffer() used a lock, so all writes have
-							// now happened-before.
-							bufferHolder.value = subtuple
-							// Do one more lookup of the key to ensure that
-							// everything happens-after the above write.
-							ioSystem.getBuffer(key)
-							offsetInBuffer += alignment
-						}
-					}
-					runOutermostFunction(
-						runtime,
-						newFiber,
-						succeed,
-						listOf(bytesTuple))
-				},
-				// failed
+		SimpleCompletionHandler<Int, Any?>(
+			// completion
+			{ bytesRead ->
+				buffer.flip()
+				val bytesTuple: A_Tuple
+				if (bytesRead == -1)
 				{
-					runOutermostFunction(
-						runtime,
-						newFiber,
-						fail,
-						listOf(E_IO_ERROR.numericCode()))
-				}))
+					// We started reading after the last byte of the file. Avail
+					// expects an empty buffer in this case.
+					assert(buffer.remaining() == 0)
+					bytesTuple = emptyTuple()
+				}
+				else
+				{
+					assert(buffer.remaining() == bytesRead)
+					bytesTuple = tupleForByteBuffer(buffer).makeShared()
+					assert(bytesTuple.tupleSize() == bytesRead)
+					// Seed the file cache, except for the final partial buffer.
+					val lastPosition =
+						oneBasedPositionLong + bytesRead - 1
+					val lastFullBufferStart =
+						lastPosition / alignment * alignment - alignment + 1
+					var offsetInBuffer = 1
+					for (bufferStart in
+						oneBasedPositionLong..lastFullBufferStart step
+							alignment.toLong())
+					{
+						val subtuple =
+							bytesTuple.copyTupleFromToCanDestroy(
+								offsetInBuffer,
+								offsetInBuffer + alignment - 1,
+								false
+							).makeShared()
+						assert(subtuple.tupleSize() == alignment)
+						val key = BufferKey(handle, bufferStart)
+						val bufferHolder = ioSystem.getBuffer(key)
+						// The getBuffer() used a lock, so all writes have now
+						// happened-before.
+						bufferHolder.value = subtuple
+						// Do one more lookup of the key to ensure that
+						// everything happens-after the above write.
+						ioSystem.getBuffer(key)
+						offsetInBuffer += alignment
+					}
+				}
+				runOutermostFunction(
+					runtime,
+					newFiber,
+					succeed,
+					listOf(bytesTuple))
+			},
+			// failed
+			{
+				runOutermostFunction(
+					runtime,
+					newFiber,
+					fail,
+					listOf(E_IO_ERROR.numericCode()))
+			}
+		).guardedDo(fileChannel::read, buffer, oneBasedPositionLong - 1, null)
 		return interpreter.primitiveSuccess(newFiber)
 	}
 

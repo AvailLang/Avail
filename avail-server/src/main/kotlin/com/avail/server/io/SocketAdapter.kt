@@ -114,27 +114,26 @@ class SocketAdapter @Throws(IOException::class) constructor(
 	 */
 	private fun acceptConnections()
 	{
-		serverChannel.accept<Any>(
-			null,
-			SimpleCompletionHandler(
-				{ transport, _, handler ->
-					// Asynchronously accept a subsequent connection.
-					serverChannel.accept<Any>(null, handler)
-					val channel = SocketChannel(this, transport)
-					readMessage(channel)
-				},
-				{ e, _, _ ->
-					// If there was a race between two accepts, then simply
-					// ignore one of them.
-					if (e !is AcceptPendingException)
-					{
-						logger.log(
-							Level.WARNING,
-							"accept failed on $adapterAddress",
-							e)
-						close()
-					}
-				}))
+		SimpleCompletionHandler<AsynchronousSocketChannel, Any?>(
+			{ transport, _, handler ->
+				// Asynchronously accept a subsequent connection.
+				handler.guardedDo(serverChannel::accept, null)
+				val channel = SocketChannel(this, transport)
+				readMessage(channel)
+			},
+			{ e, _, _ ->
+				// If there was a race between two accepts, then simply
+				// ignore one of them.
+				if (e !is AcceptPendingException)
+				{
+					logger.log(
+						Level.WARNING,
+						"accept failed on $adapterAddress",
+						e)
+					close()
+				}
+			}
+		).guardedDo(serverChannel::accept, null)
 	}
 
 	/**
@@ -149,59 +148,57 @@ class SocketAdapter @Throws(IOException::class) constructor(
 		val strongChannel = channel as SocketChannel
 		val transport = strongChannel.transport
 		val buffer = ByteBuffer.allocateDirect(4)
-		transport.read<Any>(
-			buffer,
-			null,
-			SimpleCompletionHandler(
-				{ result, _, handler ->
-					if (remoteEndClosed(transport, result!!))
+		SimpleCompletionHandler<Int, Any?>(
+			{ result, _, handler ->
+				if (remoteEndClosed(transport, result))
+				{
+					return@SimpleCompletionHandler
+				}
+				if (buffer.hasRemaining())
+				{
+					handler.guardedDo(transport::read, buffer, null)
+				}
+				else
+				{
+					buffer.flip()
+					val payloadLength = buffer.int
+					// A payload length of zero means that the client has
+					// done a polite shutdown.
+					when
 					{
-						return@SimpleCompletionHandler
-					}
-					if (buffer.hasRemaining())
-					{
-						transport.read<Any>(buffer, null, handler)
-					}
-					else
-					{
-						buffer.flip()
-						val payloadLength = buffer.int
-						// A payload length of zero means that the client has
-						// done a polite shutdown.
-						when
+						payloadLength == 0 ->
 						{
-							payloadLength == 0 ->
-							{
-								strongChannel.closeImmediately(ClientDisconnect)
-							}
-							payloadLength > Message.MAX_SIZE ->
-							{
-								// If the message is too big, then close the
-								// transport.
-								strongChannel
-									.closeImmediately(BadMessageDisconnect)
-							}
-							else ->
-								readPayloadThen(strongChannel, payloadLength) {
-									content ->
-									// The buffer should have been flipped
-									// already.
-									assert(content.position() == 0)
-									val message =
-										Message(content.array(), channel.state)
-									strongChannel.receiveMessage(message)
-								}
+							strongChannel.closeImmediately(ClientDisconnect)
 						}
+						payloadLength > Message.MAX_SIZE ->
+						{
+							// If the message is too big, then close the
+							// transport.
+							strongChannel
+								.closeImmediately(BadMessageDisconnect)
+						}
+						else ->
+							readPayloadThen(strongChannel, payloadLength) {
+								content ->
+								// The buffer should have been flipped
+								// already.
+								assert(content.position() == 0)
+								val message =
+									Message(content.array(), channel.state)
+								strongChannel.receiveMessage(message)
+							}
 					}
-				},
-				{ e, _, _ ->
-					logger.log(
-						Level.WARNING,
-						"failed while attempting to read payload length",
-						e)
-					strongChannel.closeImmediately(
-						CommunicationErrorDisconnect(e))
-				}))
+				}
+			},
+			{ e, _, _ ->
+				logger.log(
+					Level.WARNING,
+					"failed while attempting to read payload length",
+					e)
+				strongChannel.closeImmediately(
+					CommunicationErrorDisconnect(e))
+			}
+		).guardedDo(transport::read, buffer, null)
 	}
 
 	override fun sendUserData(
@@ -214,26 +211,24 @@ class SocketAdapter @Throws(IOException::class) constructor(
 		val buffer = StandardCharsets.UTF_8.encode(
 			payload.stringContent)
 		val transport = strongChannel.transport
-		transport.write<Any>(
-			buffer,
-			null,
-			SimpleCompletionHandler(
-				{ _, _, handler ->
-					if (buffer.hasRemaining())
-					{
-						transport.write<Any>(buffer, null, handler)
-					}
-					else success?.invoke()
-				},
-				{ e, _, _ ->
-					logger.log(
-						Level.WARNING,
-						"failed while attempting to send message",
-						e)
-					strongChannel.closeImmediately(
-						CommunicationErrorDisconnect(e))
-					failure?.invoke(e)
-				}))
+		SimpleCompletionHandler<Int, Any?>(
+			{ _, _, handler ->
+				if (buffer.hasRemaining())
+				{
+					handler.guardedDo(transport::write, buffer, null)
+				}
+				else success?.invoke()
+			},
+			{ e, _, _ ->
+				logger.log(
+					Level.WARNING,
+					"failed while attempting to send message",
+					e)
+				strongChannel.closeImmediately(
+					CommunicationErrorDisconnect(e))
+				failure?.invoke(e)
+			}
+		).guardedDo(transport::write, buffer, null)
 	}
 
 	override fun sendClose(
@@ -244,28 +239,26 @@ class SocketAdapter @Throws(IOException::class) constructor(
 		buffer.putInt(0)
 		buffer.rewind()
 		val transport = strongChannel.transport
-		transport.write<Void>(
-			buffer,
-			null,
-			SimpleCompletionHandler(
-				{ _, _, handler ->
-					if (buffer.hasRemaining())
-					{
-						transport.write<Void>(buffer, null, handler)
-					}
-					else
-					{
-						strongChannel.closeTransport()
-					}
-				},
-				{ e, _, _ ->
-					logger.log(
-						Level.WARNING,
-						"failed while attempting to send close notification",
-						e)
-					strongChannel.closeImmediately(
-						CommunicationErrorDisconnect(e))
-				}))
+		SimpleCompletionHandler<Int, Any?>(
+			{ _, _, handler ->
+				if (buffer.hasRemaining())
+				{
+					handler.guardedDo(transport::write, buffer, null)
+				}
+				else
+				{
+					strongChannel.closeTransport()
+				}
+			},
+			{ e, _, _ ->
+				logger.log(
+					Level.WARNING,
+					"failed while attempting to send close notification",
+					e)
+				strongChannel.closeImmediately(
+					CommunicationErrorDisconnect(e))
+			}
+		).guardedDo(transport::write, buffer, null)
 	}
 
 	override fun sendClose(
@@ -277,28 +270,26 @@ class SocketAdapter @Throws(IOException::class) constructor(
 		buffer.putInt(0)
 		buffer.rewind()
 		val transport = strongChannel.transport
-		transport.write<Void>(
-			buffer,
-			null,
-			SimpleCompletionHandler(
-				{ _, _, handler ->
-					if (buffer.hasRemaining())
-					{
-						transport.write<Void>(buffer, null, handler)
-					}
-					else
-					{
-						strongChannel.closeImmediately(reason)
-					}
-				},
-				{ e, _, _ ->
-					logger.log(
-						Level.WARNING,
-						"failed while attempting to send close notification",
-						e)
-					strongChannel.closeImmediately(
-						CommunicationErrorDisconnect(e))
-				}))
+		SimpleCompletionHandler<Int, Any?>(
+			{ _, _, handler ->
+				if (buffer.hasRemaining())
+				{
+					handler.guardedDo(transport::write, buffer, null)
+				}
+				else
+				{
+					strongChannel.closeImmediately(reason)
+				}
+			},
+			{ e, _, _ ->
+				logger.log(
+					Level.WARNING,
+					"failed while attempting to send close notification",
+					e)
+				strongChannel.closeImmediately(
+					CommunicationErrorDisconnect(e))
+			}
+		).guardedDo(transport::write, buffer, null)
 	}
 
 	override fun receiveClose(
@@ -368,33 +359,31 @@ class SocketAdapter @Throws(IOException::class) constructor(
 		{
 			val buffer = ByteBuffer.allocate(payloadLength)
 			val transport = channel.transport
-			transport.read<Any>(
-				buffer,
-				null,
-				SimpleCompletionHandler(
-					{ result, _, handler ->
-						if (remoteEndClosed(transport, result!!))
-						{
-							return@SimpleCompletionHandler
-						}
-						if (buffer.hasRemaining())
-						{
-							transport.read<Any>(buffer, null, handler)
-						}
-						else
-						{
-							buffer.flip()
-							continuation(buffer)
-						}
-					},
-					{ e, _, _ ->
-						logger.log(
-							Level.WARNING,
-							"failed while attempting to read payload",
-							e)
-						channel.closeImmediately(
-							CommunicationErrorDisconnect(e))
-					}))
+			SimpleCompletionHandler<Int, Any?>(
+				{ result, _, handler ->
+					if (remoteEndClosed(transport, result))
+					{
+						return@SimpleCompletionHandler
+					}
+					if (buffer.hasRemaining())
+					{
+						handler.guardedDo(transport::read, buffer, null)
+					}
+					else
+					{
+						buffer.flip()
+						continuation(buffer)
+					}
+				},
+				{ e, _, _ ->
+					logger.log(
+						Level.WARNING,
+						"failed while attempting to read payload",
+						e)
+					channel.closeImmediately(
+						CommunicationErrorDisconnect(e))
+				}
+			).guardedDo(transport::read, buffer, null)
 		}
 	}
 }

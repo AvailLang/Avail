@@ -335,6 +335,7 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 	 * @param afterAll
 	 *   What to do after the entire trace completes.
 	 */
+	@Suppress("RedundantLambdaArrow")
 	fun traceThen(
 		target: ModuleName,
 		problemHandler: ProblemHandler,
@@ -365,12 +366,13 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 		}
 		if (availBuilder.shouldStopBuild)
 		{
-			availBuilder.textInterface.errorChannel.write(
+			SimpleCompletionHandler<Int, Void?>(
+				{ },
+				{ _ -> }
+			).guardedDo(
+				availBuilder.textInterface.errorChannel::write,
 				"Load failed.\n",
-				null,
-				SimpleCompletionHandler<Int, Void>(
-					{ },
-					{ _ -> }))
+				null)
 		}
 		else
 		{

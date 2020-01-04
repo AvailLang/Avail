@@ -918,29 +918,33 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 						decider(false)
 					}
 
+					@Suppress("RedundantLambdaArrow")
 					override fun handleInternal(
 						problem: Problem,
 						decider: (Boolean)->Unit)
 					{
-						textInterface.errorChannel.write(
+						SimpleCompletionHandler<Int, Void?>(
+							{ handleGeneric(problem, decider) },
+							{ _ -> handleGeneric(problem, decider) }
+						).guardedDo(
+							textInterface.errorChannel::write,
 							problem.toString(),
-							null,
-							SimpleCompletionHandler<Int, Any>(
-								{ handleGeneric(problem, decider) },
-								{ _ -> handleGeneric(problem, decider) }))
+							null)
 					}
 
+					@Suppress("RedundantLambdaArrow")
 					override fun handleExternal(
 						problem: Problem,
 						decider: (Boolean)->Unit)
 					{
 						// Same as handleInternal (2015.04.24)
-						textInterface.errorChannel.write(
+						SimpleCompletionHandler<Int, Void?>(
+							{ handleGeneric(problem, decider) },
+							{ _ -> handleGeneric(problem, decider) }
+						).guardedDo(
+							textInterface.errorChannel::write,
 							problem.toString(),
-							null,
-							SimpleCompletionHandler<Int, Any>(
-								{ handleGeneric(problem, decider) },
-								{ _ -> handleGeneric(problem, decider) }))
+							null)
 					}
 				})
 			compiler.parseCommand(

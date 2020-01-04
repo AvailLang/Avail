@@ -33,12 +33,16 @@
 package com.avail.interpreter.primitive.sockets
 
 import com.avail.AvailRuntime.currentRuntime
-import com.avail.descriptor.*
+import com.avail.descriptor.A_Type
 import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.FiberDescriptor
 import com.avail.descriptor.FiberDescriptor.newFiber
 import com.avail.descriptor.FiberTypeDescriptor.mostGeneralFiberType
+import com.avail.descriptor.FunctionDescriptor
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.InstanceTypeDescriptor.instanceType
+import com.avail.descriptor.IntegerDescriptor
+import com.avail.descriptor.IntegerRangeTypeDescriptor
 import com.avail.descriptor.IntegerRangeTypeDescriptor.bytes
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetDescriptor.set
@@ -47,9 +51,12 @@ import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.TypeDescriptor.Types.TOP
+import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.SOCKET_KEY
 import com.avail.exceptions.AvailErrorCode
-import com.avail.exceptions.AvailErrorCode.*
+import com.avail.exceptions.AvailErrorCode.E_INVALID_HANDLE
+import com.avail.exceptions.AvailErrorCode.E_IO_ERROR
+import com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
@@ -63,10 +70,10 @@ import java.util.Collections.emptyList
 /**
  * **Primitive:** Initiate an asynchronous write from the
  * [socket][AsynchronousSocketChannel] referenced by the specified
- * [handle][AtomDescriptor]. Create a new [fiber][FiberDescriptor] to respond to
- * the asynchronous completion of the operation; the fiber will run at the
- * specified [priority][IntegerRangeTypeDescriptor.bytes]. If the operation
- * succeeds, then eventually start the new fiber to apply the
+ * [handle][A_Atom]. Create a new [fiber][FiberDescriptor] to respond to the
+ * asynchronous completion of the operation; the fiber will run at the specified
+ * [priority][IntegerRangeTypeDescriptor.bytes]. If the operation succeeds, then
+ * eventually start the new fiber to apply the
  * [success&#32;function][FunctionDescriptor]. If the operation fails, then
  * eventually start the new fiber to apply the
  * [failure&#32;function][FunctionDescriptor] to the
@@ -75,6 +82,7 @@ import java.util.Collections.emptyList
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("unused")
 object P_SocketWrite : Primitive(5, CanInline, HasSideEffect)
 {
 	override fun attempt(interpreter: Interpreter): Result
@@ -148,9 +156,9 @@ object P_SocketWrite : Primitive(5, CanInline, HasSideEffect)
 					}))
 			interpreter.primitiveSuccess(newFiber)
 		}
-		catch (e: IllegalStateException)
+		catch (e: Throwable)
 		{
-			interpreter.primitiveFailure(E_INVALID_HANDLE)
+			interpreter.primitiveFailure(E_IO_ERROR)
 		}
 	}
 
