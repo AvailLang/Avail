@@ -508,7 +508,8 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 * @param problemHandler
 	 *   How to handle or report [Problem]s that arise during the build.
 	 */
-	private fun buildTargetThen(
+	@Suppress("MemberVisibilityCanBePrivate")
+	fun buildTargetThen(
 		target: ModuleName,
 		localTracker: CompilerProgressReporter,
 		globalTracker: GlobalProgressReporter,
