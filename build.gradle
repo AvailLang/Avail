@@ -33,6 +33,7 @@
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
 	id 'java'
@@ -45,26 +46,19 @@ version '1.4'
 
 sourceCompatibility = 1.8
 
-compileKotlin {
-	kotlinOptions {
-		jvmTarget = "1.8"
-		freeCompilerArgs = ['-Xjvm-default=compatibility']
-	}
-}
-
-compileTestKotlin {
-	kotlinOptions {
-		jvmTarget = "1.8"
-		freeCompilerArgs = ['-Xjvm-default=compatibility']
-	}
-}
-
 repositories {
 	mavenCentral()
 }
 
 tasks.withType(JavaCompile) {
 	options.encoding = 'UTF-8'
+}
+
+tasks.withType(KotlinCompile) {
+	kotlinOptions {
+		jvmTarget = '1.8'
+		freeCompilerArgs = ['-Xjvm-default=compatibility']
+	}
 }
 
 dependencies {
