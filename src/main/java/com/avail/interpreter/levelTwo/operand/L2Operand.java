@@ -61,7 +61,7 @@ public abstract class L2Operand
 extends PublicCloneable<L2Operand>
 {
 	/**
-	 * A backpointer to the {@link L2Instruction} that this operand is part of.
+	 * A back-pointer to the {@link L2Instruction} that this operand is part of.
 	 * This is only populated for instructions that have already been emitted to
 	 * an {@link L2BasicBlock}.
 	 */
@@ -138,12 +138,14 @@ extends PublicCloneable<L2Operand>
 	 *
 	 * <p>Since this operation can take place after initial code generation, we
 	 * have to compensate for reads of semantic values that no longer exist,
-	 * due to elision of moves that would have augmented a synonym.</p>
+	 * due to elision of moves that would have augmented a synonym.  This logic
+	 * is in {@link L2ReadOperand#adjustedForReinsertion(L2ValueManifest)} and
+	 * {@link L2ReadVectorOperand#adjustedForReinsertion(L2ValueManifest)}.</p>
 	 *
 	 * @param manifest
 	 *        The {@link L2ValueManifest} that is active where this {@link
 	 *        L2Instruction} was just added to its {@link L2BasicBlock}.
-	 * @return The replacement {@link L2Operand}, possibly the receiver.
+	 * @return The replacement {@code L2Operand}, possibly the receiver.
 	 */
 	public L2Operand adjustedForReinsertion (final L2ValueManifest manifest)
 	{
@@ -151,7 +153,7 @@ extends PublicCloneable<L2Operand>
 	}
 
 	/**
-	 * This vector operand is the input to a {@link L2_PHI_PSEUDO_OPERATION}
+	 * This vector operand is the input to an {@link L2_PHI_PSEUDO_OPERATION}
 	 * instruction that has just been added.  Update it specially, to take into
 	 * account the correspondence between vector elements and predecessor edges.
 	 *
@@ -221,6 +223,32 @@ extends PublicCloneable<L2Operand>
 		final L2Instruction theInstruction)
 	{
 		// By default do nothing.
+	}
+
+	/**
+	 * Capture all {@link L2ReadOperand}s within this operand into the provided
+	 * {@link List}.
+	 *
+	 * @param readOperands
+	 *        The mutable {@link List} of {@link L2ReadOperand}s being
+	 *        populated.
+	 */
+	public void addReadsTo (final List<L2ReadOperand<?>> readOperands)
+	{
+		// Do nothing by default.
+	}
+
+	/**
+	 * Capture all {@link L2WriteOperand}s within this operand into the provided
+	 * {@link List}.
+	 *
+	 * @param writeOperands
+	 *        The mutable {@link List} of {@link L2WriteOperand}s being
+	 *        populated.
+	 */
+	public void addWritesTo (final List<L2WriteOperand<?>> writeOperands)
+	{
+		// Do nothing by default.
 	}
 
 	/**

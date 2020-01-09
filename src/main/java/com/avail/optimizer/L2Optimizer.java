@@ -40,13 +40,12 @@ import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.operation.*;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
+import com.avail.optimizer.L2ControlFlowGraph.StateFlag;
 import com.avail.optimizer.values.L2SemanticValue;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
 import com.avail.utility.MutableInt;
 import com.avail.utility.Pair;
-import com.avail.utility.evaluation.Continuation1;
-import com.avail.utility.evaluation.Continuation2;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -55,9 +54,6 @@ import java.util.function.Consumer;
 import java.util.function.ToIntFunction;
 
 import static com.avail.AvailRuntimeSupport.captureNanos;
-import static com.avail.optimizer.DataCouplingMode.FOLLOW_REGISTERS;
-import static com.avail.optimizer.DataCouplingMode.FOLLOW_SEMANTIC_VALUES_AND_REGISTERS;
-import static com.avail.optimizer.L2ControlFlowGraph.StateFlags.HasEliminatedPhis;
 import static com.avail.utility.Casts.cast;
 import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.Strings.increaseIndentation;
@@ -119,6 +115,54 @@ public final class L2Optimizer
 	}
 
 	/**
+	 * Set each of the specified {@link StateFlag}s in the
+	 * {@link #controlFlowGraph}.
+	 *
+	 * @param flags
+	 *        The collection of {@link StateFlag}s to add.
+	 */
+	public void set (final Collection<Class<? extends StateFlag>> flags)
+	{
+		controlFlowGraph.set(flags);
+	}
+
+	/**
+	 * Clear each of the specified {@link StateFlag}s from the
+	 * {@link #controlFlowGraph}.
+	 *
+	 * @param flags
+	 *        The collection of {@link StateFlag}s to remove.
+	 */
+	public void clear (final Collection<Class<? extends StateFlag>> flags)
+	{
+		controlFlowGraph.clear(flags);
+	}
+
+	/**
+	 * Assert that each of the specified {@link StateFlag}s has been set in the
+	 * {@link #controlFlowGraph}.
+	 *
+	 * @param flags
+	 *        The collection of {@link StateFlag}s to check.
+	 */
+	public void check (final Collection<Class<? extends StateFlag>> flags)
+	{
+		controlFlowGraph.check(flags);
+	}
+
+	/**
+	 * Assert that each of the specified {@link StateFlag}s has been cleared
+	 * in the {@link #controlFlowGraph}.
+	 *
+	 * @param flags
+	 *        The collection of {@link StateFlag}s to check for absence.
+	 */
+	public void checkNot (final Collection<Class<? extends StateFlag>> flags)
+	{
+		controlFlowGraph.checkNot(flags);
+	}
+
+	/**
 	 * Find the {@link L2BasicBlock} that are actually reachable recursively
 	 * from the blocks marked as {@link L2BasicBlock#isIrremovable()}.
 	 *
@@ -176,7 +220,7 @@ public final class L2Optimizer
 	 *        The {@link DataCouplingMode} that chooses how to trace liveness.
 	 * @return Whether any dead instructions were removed or changed.
 	 */
-	private boolean removeDeadInstructions (
+	boolean removeDeadInstructions (
 		final DataCouplingMode dataCouplingMode)
 	{
 		final DeadCodeAnalyzer analyzer =
@@ -228,14 +272,16 @@ public final class L2Optimizer
 	 */
 	private void updateAllManifests ()
 	{
-		// Visit each edge's manifest, removing from its definitions lists all
-		// writes from removed instructions.
+		// Visit all L2WriteOperands, recording which L2Registers are written.
 		final Set<L2Register> registersToKeep = new HashSet<>(100);
 		blocks.forEach(
 			block -> block.instructions().forEach(
 				instruction -> instruction.writeOperands().forEach(
 					writeOperand ->
 						registersToKeep.add(writeOperand.register()))));
+		// Visit each edge's manifest.  In the manifest's definitions map's
+		// values (which are lists of L2Registers), retain only those registers
+		// for which writes were found above.
 		blocks.forEach(
 			block -> block.successorEdgesIterator().forEachRemaining(
 				edge -> edge.manifest().retainRegisters(registersToKeep)));
@@ -498,10 +544,9 @@ public final class L2Optimizer
 				int allWritesLaterInBlock = 0;
 				final List<L2Instruction> instructions =
 					new ArrayList<>(block.instructions());
-				// As we move backward through the instructions, accumulate
-				// reachable edges that earlier instructions might yet be pushed
-				// through.  At the moment, all edges occur at the ends of
-				// blocks, but this could change.
+				// This set is populated right away by the last instruction of
+				// the block, which is the only place control flow can be
+				// altered.
 				final Set<L2PcOperand> reachableTargetEdges = new HashSet<>();
 				for (int i = instructions.size() - 1; i >= 0; i--)
 				{
@@ -621,10 +666,8 @@ public final class L2Optimizer
 						// instructions, so prevent those readers from moving.
 						allWritesLaterInBlock |=
 							operation.writesHiddenVariablesMask;
-
-						// Also record any mid-block exit edges, so that prior
-						// instructions can decide whether to replicate there as
-						// well.  At the moment, these don't exist.
+						// The last instruction of the block can alter the
+						// control flow, so capture its edges.
 						reachableTargetEdges.addAll(instruction.targetEdges());
 					}
 				}
@@ -688,7 +731,6 @@ public final class L2Optimizer
 		{
 			return null;
 		}
-		// TODO Until we've eliminated this flag...
 		if (instruction.hasSideEffect())
 		{
 			return null;
@@ -737,59 +779,16 @@ public final class L2Optimizer
 			// There's only one successor edge.  Since the CFG is in edge-split
 			// form, the successor might have multiple predecessors.  Don't move
 			// across the edge in that case, since it may cause the instruction
-			// to run in situations that it doesn't need to.  When code
-			// splitting is eventually implemented, it should clean up this case
-			// by duplicating the successor block just for this edge.
+			// to run in situations that it doesn't need to.
+			//
+			// TODO When code splitting is eventually implemented, it should
+			// clean up this case by duplicating the successor block just for
+			// this edge.
 			final L2PcOperand successorEdge =
 				candidateTargetEdges.iterator().next();
 			final L2BasicBlock successor = successorEdge.targetBlock();
 			if (successor.predecessorEdgesCount() > 1)
 			{
-				// One last chance to postpone this instruction.  Some
-				// idempotent operations prefer to be replicated in this
-				// situation, to increase the chance that they can migrate
-				// somewhere that their cost is lower to compute.  See
-				// L2_VIRTUAL_REIFY.
-				if (false) //TODO enable this when it works.
-				{
-					// But for now, only if there are no phis at the destination
-					// block.  Phis would be at the start.
-					if (successor.instructions().get(0).operation().isPhi())
-					{
-						// There are phis at the destination, but we might be
-						// able to slip past them.
-						final int incomingEdgeIndex =
-							successor.predecessorEdgesCopy().indexOf(
-								successorEdge);
-						for (final L2Instruction phi : successor.instructions())
-						{
-							if (!phi.operation().isPhi())
-							{
-								// Done with the phis for the sole target block,
-								// and none of them consume the instruction's
-								// output.  Do the move.
-								return candidateTargetEdges;
-							}
-							// See if the phi for this edge consumes any of our
-							// outputs.
-							final L2_PHI_PSEUDO_OPERATION<?, ?, ?>
-								phiOperation = cast(phi.operation());
-							final L2ReadOperand<?> phiSource =
-								phiOperation.sourceRegisterReads(phi).get(
-									incomingEdgeIndex);
-							if (written.contains(phiSource.register()))
-							{
-								// We can't move the instruction because a phi
-								// in this target block consumes its output.
-								return null;
-							}
-						}
-					}
-					else
-					{
-						return new HashSet<>(candidateTargetEdges);
-					}
-				}
 				return null;
 			}
 		}
@@ -872,7 +871,6 @@ public final class L2Optimizer
 	 */
 	void insertPhiMoves ()
 	{
-		assert !controlFlowGraph.state.contains(HasEliminatedPhis);
 		for (final L2BasicBlock block : blocks)
 		{
 			final Iterator<L2Instruction> instructionIterator =
@@ -944,7 +942,6 @@ public final class L2Optimizer
 				instruction.justRemoved();
 			}
 		}
-		controlFlowGraph.state.add(HasEliminatedPhis);
 	}
 
 	/**
@@ -1494,7 +1491,7 @@ public final class L2Optimizer
 					targetBlock.predecessorEdgesCopy().indexOf(edge);
 				if (predecessorIndex == -1)
 				{
-					System.out.println("Phi predecessor not found");
+					System.err.println("Phi predecessor not found");
 					assert false : "Phi predecessor not found";
 				}
 				for (final L2Instruction phiInTarget
@@ -1556,209 +1553,6 @@ public final class L2Optimizer
 	}
 
 	/**
-	 * The collection of phases of optimization, in sequence.
-	 */
-	enum OptimizationPhase
-	{
-		/**
-		 * Start by eliminating debris created during the initial L1 → L2
-		 * translation.
-		 */
-		REMOVE_DEAD_CODE_1(
-			L2Optimizer::removeDeadCode, FOLLOW_SEMANTIC_VALUES_AND_REGISTERS),
-
-		/**
-		 * Transform into SSA edge-split form, to avoid inserting redundant
-		 * phi-moves.
-		 */
-		BECOME_EDGE_SPLIT_SSA(
-			L2Optimizer::transformToEdgeSplitSSA),
-
-		/**
-		 * Determine which registers are sometimes-live-in and/or always-live-in
-		 * at each edge, in preparation for postponing instructions that don't
-		 * have their outputs consumed in the same block, and aren't
-		 * always-live-in in every successor.
-		 */
-		COMPUTE_LIVENESS_AT_EDGES(
-			L2Optimizer::computeLivenessAtEachEdge),
-
-		/**
-		 * Try to move any side-effect-less instructions to later points in the
-		 * control flow graph.  If such an instruction defines a register that's
-		 * used in the same basic block, don't bother moving it.  Also don't
-		 * attempt to move it if it's always-live-in at each successor block,
-		 * since the point of moving it forward is to avoid inessential
-		 * computations.
-		 *
-		 * <p>Note that this breaks SSA by duplicating defining instructions.
-		 * It also always recomputes liveness after each change, so there's no
-		 * need to recompute it after this phase.</p>
-		 */
-		POSTPONE_CONDITIONALLY_USED_VALUES_1(
-			L2Optimizer::postponeConditionallyUsedValues),
-
-		/**
-		 * Postponing conditionally used values can introduce idempotent
-		 * redundancies, which are dead code.  Remove them for clarity before we
-		 * replace placeholder instructions.
-		 */
-		REMOVE_DEAD_CODE_AFTER_POSTPONEMENTS(
-			L2Optimizer::removeDeadCode, FOLLOW_SEMANTIC_VALUES_AND_REGISTERS),
-
-		/**
-		 * If there are any {@link L2_VIRTUAL_REIFY} instructions still extant,
-		 * replace them with code that will actually produce the reified caller.
-		 */
-		REPLACE_PLACEHOLDER_INSTRUCTIONS(
-			L2Optimizer::replacePlaceholderInstructions),
-
-		/**
-		 * Placeholder instructions may have been replaced with new subgraphs of
-		 * generated code.  Some of that might be dead, so clean it up,
-		 * otherwise the {@link #postponeConditionallyUsedValues()} might get
-		 * upset about an instruction being in a place with no downstream uses.
-		 */
-		REMOVE_DEAD_CODE_AFTER_REPLACEMENTS(
-			L2Optimizer::removeDeadCode, FOLLOW_SEMANTIC_VALUES_AND_REGISTERS),
-
-		/**
-		 * Recompute liveness information about all registers, now that dead
-		 * code has been eliminated after placeholder replacements.
-		 */
-		COMPUTE_LIVENESS_AT_EDGES_2(
-			L2Optimizer::computeLivenessAtEachEdge),
-
-		/**
-		 * If {@link #REPLACE_PLACEHOLDER_INSTRUCTIONS} made any changes,
-		 * give one more try at pushing conditionally used values.  Otherwise do
-		 * nothing.
-		 */
-		POSTPONE_CONDITIONALLY_USED_VALUES_2(
-			L2Optimizer::postponeConditionallyUsedValues),
-
-		/**
-		 * Insert phi moves along preceding edges.  This requires the CFG to be
-		 * in edge-split form, although strict SSA isn't required.
-		 */
-		INSERT_PHI_MOVES(L2Optimizer::insertPhiMoves),
-
-		/**
-		 * Remove constant moves made unnecessary by the introduction of new
-		 * constant moves after phis (the ones that are constant-valued).
-		 */
-		REMOVE_DEAD_CODE_AFTER_PHI_MOVES(
-			L2Optimizer::removeDeadCode, FOLLOW_REGISTERS),
-
-		/**
-		 * Compute the register-coloring interference graph while we're just
-		 * out of SSA form – phis have been replaced by moves on incoming edges.
-		 */
-		COMPUTE_INTERFERENCE_GRAPH(L2Optimizer::computeInterferenceGraph),
-
-		/**
-		 * Color all registers, using the previously computed interference
-		 * graph.  This creates a dense finalIndex numbering for the registers
-		 * in such a way that no two registers that have to maintain distinct
-		 * values at the same time will have the same number.
-		 */
-		COALESCE_REGISTERS_IN_NONINTERFERING_MOVES(
-			L2Optimizer::coalesceNoninterferingMoves),
-
-		/** Computed and assign final register colors. */
-		ASSIGN_REGISTER_COLORS(L2Optimizer::computeColors),
-
-		/**
-		 * Create a replacement register for each used color (of each kind).
-		 * Transform each reference to an old register into a reference to the
-		 * replacement, updating structures as needed.
-		 */
-		REPLACE_REGISTERS_BY_COLOR(L2Optimizer::replaceRegistersByColor),
-
-		/**
-		 * Remove any remaining moves between two registers of the same color.
-		 */
-		REMOVE_SAME_COLOR_MOVES(L2Optimizer::removeSameColorMoves),
-
-		/**
-		 * Every L2PcOperand that leads to an L2_JUMP should now be redirected
-		 * to the target of the jump (transitively, if the jump leads to another
-		 * jump).  We specifically do this after inserting phi moves to ensure
-		 * we don't jump past irremovable phi moves.
-		 */
-		ADJUST_EDGES_LEADING_TO_JUMPS(L2Optimizer::adjustEdgesLeadingToJumps),
-
-		/**
-		 * Having adjusted edges to avoid landing on L2_JUMPs, some blocks may
-		 * have become unreachable.
-		 */
-		REMOVE_UNREACHABLE_BLOCKS(L2Optimizer::removeUnreachableBlocks),
-
-		/**
-		 * Choose an order for the blocks.  This isn't important while we're
-		 * interpreting L2Chunks, but it will ultimately affect the quality of
-		 * JVM translation.  Prefer to have the target block of an unconditional
-		 * jump to follow the jump, since final code generation elides the jump.
-		 */
-		ORDER_BLOCKS(L2Optimizer::orderBlocks);
-
-		// Additional optimization ideas:
-		//    -Strengthen the types of all registers and register uses.
-		//    -Ask instructions to regenerate if they want.
-		//    -When optimizing, keep track of when a TypeRestriction on a phi
-		//     register is too weak to qualify, but the types of some of the phi
-		//     source registers would qualify it for a reasonable expectation of
-		//     better performance.  Write a hint into such phis.  If we have a
-		//     high enough requested optimization level, apply code-splitting.
-		//     The block that defines that phi can be duplicated for each
-		//     interesting incoming edge.  That way the duplicated blocks will
-		//     get more specific types to work with.
-		//    -Splitting for int32s.
-		//    -Leverage more inter-primitive identities.
-		//    -JVM target.
-
-		/** The optimization action to perform for this pass. */
-		final Continuation1<L2Optimizer> action;
-
-		/** The {@link Statistic} for tracking this pass's cost. */
-		final Statistic stat;
-
-		/**
-		 * Create the enumeration value.
-		 *
-		 * @param action The action to perform for this pass.
-		 */
-		OptimizationPhase (final Continuation1<L2Optimizer> action)
-		{
-			this.action = action;
-			this.stat = new Statistic(
-				name(),
-				StatisticReport.L2_OPTIMIZATION_TIME);
-		}
-
-		/**
-		 * Create the enumeration value, capturing a parameter to pass to the
-		 * optimization lambda.
-		 *
-		 * @param <V>
-		 *        The type of value to pass to the action.
-		 * @param action
-		 *        The action to perform.
-		 * @param value
-		 *        The actual value to pass to the action.
-		 */
-		<V> OptimizationPhase (
-			final Continuation2<L2Optimizer, V> action,
-			final V value)
-		{
-			this.action = optimizer -> action.value(optimizer, value);
-			this.stat = new Statistic(
-				name(),
-				StatisticReport.L2_OPTIMIZATION_TIME);
-		}
-	}
-
-	/**
 	 * Optimize the graph of instructions.
 	 *
 	 * @param interpreter The current {@link Interpreter}.
@@ -1771,7 +1565,7 @@ public final class L2Optimizer
 			for (final OptimizationPhase phase : OptimizationPhase.values())
 			{
 				final long before = captureNanos();
-				phase.action.value(this);
+				phase.run(this);
 				final long after = captureNanos();
 				phase.stat.record(after - before, interpreter.interpreterIndex);
 				sanityCheck(interpreter);
@@ -1781,7 +1575,7 @@ public final class L2Optimizer
 		{
 			// Here's a good place for a breakpoint, to allow L2 translation to
 			// restart, since the outer catch is already too late.
-			System.out.println("Unrecoverable problem during optimization.");
+			System.err.println("Unrecoverable problem during optimization.");
 			throw e;
 		}
 	}

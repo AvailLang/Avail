@@ -39,6 +39,8 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.GLOBAL_STATE;
+import com.avail.interpreter.levelTwo.ReadsHiddenVariable;
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
 import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.optimizer.L2Generator;
@@ -73,6 +75,7 @@ import static org.objectweb.asm.Type.*;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@ReadsHiddenVariable(GLOBAL_STATE.class)
 public final class L2_GET_INVALID_MESSAGE_RESULT_FUNCTION
 extends L2Operation
 {

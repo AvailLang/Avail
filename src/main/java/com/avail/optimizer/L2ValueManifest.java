@@ -471,7 +471,7 @@ public final class L2ValueManifest
 	 * equivalent, but having the given {@link RegisterKind}.
 	 *
 	 * @param <R>
-	 *        The kind of {@link L2Register} to return..
+	 *        The kind of {@link L2Register} to return.
 	 * @param semanticValue
 	 *        The {@link L2SemanticValue} being examined.
 	 * @param registerKind
@@ -500,7 +500,7 @@ public final class L2ValueManifest
 	 * {@link L2SemanticValue}, but having the given {@link RegisterKind}.
 	 *
 	 * @param <R>
-	 *        The kind of {@link L2Register} to return..
+	 *        The kind of {@link L2Register} to return.
 	 * @param semanticValue
 	 *        The {@link L2SemanticValue} being examined.
 	 * @param registerKind
@@ -842,7 +842,7 @@ public final class L2ValueManifest
 	/**
 	 * Create an {@link L2ReadBoxedOperand} for the {@link L2SemanticValue} of
 	 * the earliest known boxed write for any semantic values in the same {@link
-	 * L2Synonym} as the given semantic value..
+	 * L2Synonym} as the given semantic value.
 	 *
 	 * @param semanticValue
 	 *        The {@link L2SemanticValue} to read as a boxed value.
@@ -861,7 +861,7 @@ public final class L2ValueManifest
 	/**
 	 * Create an {@link L2ReadIntOperand} for the {@link L2SemanticValue} of
 	 * the earliest known unboxed int write for any semantic values in the
-	 * same {@link L2Synonym} as the given semantic value..
+	 * same {@link L2Synonym} as the given semantic value.
 	 *
 	 * @param semanticValue
 	 *        The {@link L2SemanticValue} to read as an unboxed int value.
@@ -880,7 +880,7 @@ public final class L2ValueManifest
 	/**
 	 * Create an {@link L2ReadFloatOperand} for the {@link L2SemanticValue} of
 	 * the earliest known unboxed float write for any semantic values in the
-	 * same {@link L2Synonym} as the given semantic value..
+	 * same {@link L2Synonym} as the given semantic value.
 	 *
 	 * @param semanticValue
 	 *        The {@link L2SemanticValue} to read as an unboxed int value.

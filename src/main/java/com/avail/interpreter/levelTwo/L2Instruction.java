@@ -36,7 +36,6 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteOperand;
 import com.avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK;
 import com.avail.interpreter.levelTwo.register.L2Register;
@@ -59,7 +58,6 @@ import java.util.function.Consumer;
 
 import static com.avail.utility.Casts.cast;
 import static com.avail.utility.Nulls.stripNull;
-import static java.util.Collections.emptyList;
 
 /**
  * {@code L2Instruction} is the foundation for all instructions understood by
@@ -189,9 +187,7 @@ public final class L2Instruction
 	 * @param theOperands
 	 *        The array of {@link L2Operand}s on which this instruction
 	 *        operates.  These must agree with the operation's array of {@link
-	 *        L2NamedOperandType}s.  The operation is given an opportunity to
-	 *        augment this array, just as it may be given the opportunity to
-	 *        augment the named operand types.
+	 *        L2NamedOperandType}s.
 	 */
 	public L2Instruction (
 		final L2Generator generator,
@@ -209,9 +205,7 @@ public final class L2Instruction
 	 * @param theOperands
 	 *        The array of {@link L2Operand}s on which this instruction
 	 *        operates.  These must agree with the operation's array of {@link
-	 *        L2NamedOperandType}s.  The operation is given an opportunity to
-	 *        augment this array, just as it may be given the opportunity to
-	 *        augment the named operand types.
+	 *        L2NamedOperandType}s.
 	 * @param basicBlock
 	 *        The {@link L2BasicBlock} which will contain this instruction.
 	 */
@@ -220,22 +214,19 @@ public final class L2Instruction
 		final L2Operation operation,
 		final L2Operand... theOperands)
 	{
-		//noinspection ThisEscapedInObjectConstruction
-		final L2Operand[] augmentedOperands =
-			operation.augment(theOperands, this);
 		final L2NamedOperandType[] operandTypes = operation.namedOperandTypes;
-		assert operandTypes.length == augmentedOperands.length;
-		for (int i = 0; i < augmentedOperands.length; i++)
+		assert operandTypes.length == theOperands.length;
+		for (int i = 0; i < theOperands.length; i++)
 		{
-			assert augmentedOperands[i].operandType()
+			assert theOperands[i].operandType()
 				== operandTypes[i].operandType();
 		}
 		this.operation = operation;
-		this.operands = new L2Operand[augmentedOperands.length];
+		this.operands = new L2Operand[theOperands.length];
 		this.basicBlock = basicBlock;
 		for (int i = 0; i < operands.length; i++)
 		{
-			final L2Operand operand = augmentedOperands[i].clone();
+			final L2Operand operand = theOperands[i].clone();
 			//noinspection ThisEscapedInObjectConstruction
 			operand.adjustCloneForInstruction(this);
 			this.operands[i] = operand;
@@ -285,31 +276,12 @@ public final class L2Instruction
 	 */
 	public List<L2ReadOperand<?>> readOperands ()
 	{
-		@Nullable List<L2ReadOperand<?>> list = null;
+		final List<L2ReadOperand<?>> list = new ArrayList<>();
 		for (final L2Operand operand : operands)
 		{
-			if (operand instanceof L2ReadOperand)
-			{
-				if (list == null)
-				{
-					list = new ArrayList<>();
-				}
-				list.add(cast(operand));
-			}
-			else if (operand instanceof L2ReadVectorOperand)
-			{
-				final L2ReadVectorOperand<?, ?> vector = cast(operand);
-				if (list == null)
-				{
-					list = new ArrayList<>(vector.elements());
-				}
-				else
-				{
-					list.addAll(vector.elements());
-				}
-			}
+			operand.addReadsTo(list);
 		}
-		return list != null ? list : emptyList();
+		return list;
 	}
 
 	/**
@@ -319,19 +291,12 @@ public final class L2Instruction
 	 */
 	public List<L2WriteOperand<?>> writeOperands ()
 	{
-		@Nullable List<L2WriteOperand<?>> list = null;
+		final List<L2WriteOperand<?>> list = new ArrayList<>();
 		for (final L2Operand operand : operands)
 		{
-			if (operand instanceof L2WriteOperand)
-			{
-				if (list == null)
-				{
-					list = new ArrayList<>();
-				}
-				list.add(cast(operand));
-			}
+			operand.addWritesTo(list);
 		}
-		return list != null ? list : emptyList();
+		return list;
 	}
 
 	/**
@@ -454,7 +419,10 @@ public final class L2Instruction
 	}
 
 	/**
-	 * This instruction was just removed from its {@link L2BasicBlock}.
+	 * This instruction was just removed from its {@link L2BasicBlock}'s list of
+	 * instructions, and needs to finish its removal by breaking back-pointers,
+	 * plus whatever else specific operands need to do when they're no longer
+	 * considered part of the code.
 	 */
 	public void justRemoved ()
 	{

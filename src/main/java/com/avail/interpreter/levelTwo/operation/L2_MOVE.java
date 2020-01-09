@@ -346,15 +346,6 @@ extends L2Operation
 	}
 
 	@Override
-	public boolean shouldReplicateIdempotently (
-		final L2Instruction instruction)
-	{
-		// Moves should always be replicated to children – if the current basic
-		// block isn't using the value itself.
-		return true;
-	}
-
-	@Override
 	public void appendToWithWarnings (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,

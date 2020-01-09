@@ -36,8 +36,6 @@ import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.optimizer.L2BasicBlock;
-import com.avail.optimizer.L2ControlFlowGraph;
-import com.avail.optimizer.L2ControlFlowGraph.Zone;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
@@ -142,49 +140,6 @@ extends L2Operation
 		builder.append("\n\tframeSize = ").append(frameSize);
 	}
 
-	/**
-	 * Since an {@code L2_VIRTUAL_REIFY} and its transformed form are each
-	 * idempotent, it's legal to introduce a computational redundancy whereby
-	 * the value might be computed multiple times along some paths, even if the
-	 * original {@link L2ControlFlowGraph} didn't have that redundancy.
-	 *
-	 * <p>In particular, for an {@code L2_VIRTUAL_REIFY}, it's not worth
-	 * avoiding redundant computation, since a common situation is that all of
-	 * these instructions end up migrating into reification {@link Zone}s, which
-	 * are off the high-frequency track, and therefore not particularly relevant
-	 * for performance.  It's better to replicate these instructions downward in
-	 * the hope of moving them all off the high-speed track, even if some of the
-	 * low-frequency tracks end up reifying multiple times, and even if there's
-	 * a chance some of the reifications end up along a high frequency path.
-	 * It's still worth stopping whenever the value is always-live-in.</p>
-	 *
-	 * <p>We can also "look ahead" in the graph to see if any of the subsequent
-	 * uses are actually outside reification zones, and avoid introducing extra
-	 * redundancy in that case.  We approximate that by looking at all uses of
-	 * this instruction's output register, and if they're all inside reification
-	 * zones we allow the replication.</p>
-	 *
-	 * @param instruction
-	 *        The {@link L2Instruction} using this operation.
-	 * @return Whether to replicate this instruction into multiple successor
-	 *         blocks, even if some successors have multiple incoming edges
-	 *         (and which might not need the value).
-	 */
-	@Override
-	public boolean shouldReplicateIdempotently (final L2Instruction instruction)
-	{
-		assert this == instruction.operation();
-		final L2WriteBoxedOperand outputLabel = instruction.operand(0);
-//		final L2ReadBoxedOperand reifiedCaller = instruction.operand(1);
-//		final L2ReadBoxedOperand function = instruction.operand(2);
-//		final L2ReadBoxedVectorOperand arguments = instruction.operand(3);
-//		final L2IntImmediateOperand frameSize = instruction.operand(4);
-
-		final Set<L2ReadOperand<?>> uses = outputLabel.register().uses();
-		return uses.stream()
-			.allMatch(use -> use.instruction().basicBlock().zone != null);
-	}
-
 	@Override
 	public void generateReplacement (
 		final L2Instruction instruction, final L2Generator generator)
@@ -248,7 +203,7 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		throw new RuntimeException(
+		throw new UnsupportedOperationException(
 			getClass().getSimpleName()
 				+ " should have been replaced during optimization");
 	}

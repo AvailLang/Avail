@@ -771,6 +771,8 @@ implements A_BasicObject
 	 * consecutive slots of the receiver.  It's the client's responsibility to
 	 * ensure the values are suitably immutable or shared.
 	 *
+	 * @param <T>
+	 *        The type of array to copy from.
 	 * @param targetField
 	 *        The field of the receiver into which to write values.
 	 * @param startTargetSubscript
@@ -783,8 +785,6 @@ implements A_BasicObject
 	 *        reading.
 	 * @param count
 	 *        How many values to transfer.
-	 * @param <T>
-	 *        The type of array to copy from.
 	 */
 	public final <T extends A_BasicObject> void setSlotsFromArray (
 		final ObjectSlotsEnum targetField,

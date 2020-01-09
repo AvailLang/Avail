@@ -51,8 +51,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 import static com.avail.descriptor.AvailObject.registerDumpMethod;
-import static com.avail.descriptor.ContinuationRegisterDumpDescriptor.extractLongAtMethod;
-import static com.avail.descriptor.ContinuationRegisterDumpDescriptor.extractObjectAtMethod;
+import static com.avail.descriptor.ContinuationRegisterDumpDescriptor.*;
 import static com.avail.interpreter.Interpreter.getReifiedContinuationMethod;
 import static com.avail.interpreter.Interpreter.popContinuationMethod;
 import static com.avail.interpreter.levelTwo.L2OperandType.COMMENT;
@@ -203,7 +202,7 @@ extends L2Operation
 					}
 					translator.intConstant(method, i + 1);  //one-based
 					extractLongAtMethod.generateCall(method);
-					method.visitInsn(L2D);
+					bitCastLongToDoubleMethod.generateCall(method);
 					method.visitVarInsn(
 						RegisterKind.FLOAT.storeInstruction,
 						floatsList.get(j));

@@ -43,13 +43,15 @@ import com.avail.interpreter.levelTwo.register.L2Register;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.EnumSet;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import static com.avail.optimizer.L2ControlFlowGraph.StateFlag.IS_SSA;
 import static com.avail.utility.Strings.increaseIndentation;
+import static java.util.Collections.disjoint;
 
 /**
  * This is a control graph.  The vertices are {@link L2BasicBlock}s, which are
@@ -62,19 +64,85 @@ public final class L2ControlFlowGraph
 	/**
 	 * Flags that indicate the current state of the graph.
 	 */
-	public enum StateFlags
+	@SuppressWarnings("AbstractClassWithoutAbstractMethods")
+	public abstract static class StateFlag
 	{
+		/**
+		 * Whether the control flow graph is in static single-assignment form.
+		 * In this form, every register has a single instruction that writes to
+		 * it.  Where control flow merges, the target {@link L2BasicBlock} can
+		 * contain "phi" ({@link L2_PHI_PSEUDO_OPERATION}) instructions.  Such
+		 * an instruction writes to its output register the value corresponding
+		 * to the numbered predecessor edge by which the block was reached.
+		 */
+		public static final class IS_SSA extends StateFlag { }
+
+		/**
+		 * Whether the control flow graph is in edge-split form, which ensures
+		 * that no edge both leads from a node with multiple successor edges and
+		 * leads to a node with multiple predecessor edges.
+ 		 */
+		public static final class IS_EDGE_SPLIT extends StateFlag { }
+
 		/**
 		 * Indicates that every {@link L2_PHI_PSEUDO_OPERATION} has been
 		 * replaced by moves to the same {@link L2Register} along each (split)
 		 * incoming edge.
 		 */
-		HasEliminatedPhis;
+		public static final class HAS_ELIMINATED_PHIS extends StateFlag { }
 	}
 
 	/** The current state of the graph. */
-	public final EnumSet<StateFlags> state =
-		EnumSet.noneOf(StateFlags.class);
+	public final Set<Class <? extends StateFlag>> state = new HashSet<>();
+
+	{
+		// New control flow graphs are expected to be in SSA form.
+		state.add(IS_SSA.class);
+	}
+
+	/**
+	 * Set each of the specified {@link StateFlag}s.
+	 *
+	 * @param flags
+	 *        The collection of {@link StateFlag}s to add.
+	 */
+	public void set (final Collection<Class<? extends StateFlag>> flags)
+	{
+		state.addAll(flags);
+	}
+
+	/**
+	 * Clear each of the specified {@link StateFlag}s.
+	 *
+	 * @param flags
+	 *        The collection of {@link StateFlag}s to remove.
+	 */
+	public void clear (final Collection<Class<? extends StateFlag>> flags)
+	{
+		state.removeAll(flags);
+	}
+
+	/**
+	 * Assert that each of the specified {@link StateFlag}s has been set.
+	 *
+	 * @param flags
+	 *        The collection of {@link StateFlag}s to check.
+	 */
+	public void check (final Collection<Class<? extends StateFlag>> flags)
+	{
+		assert state.containsAll(flags);
+	}
+
+	/**
+	 * Assert that each of the specified {@link StateFlag}s has been cleared.
+	 *
+	 * @param flags
+	 *        The collection of {@link StateFlag}s to check for absence.
+	 */
+	public void checkNot (final Collection<Class<? extends StateFlag>> flags)
+	{
+		assert disjoint(state, flags);
+	}
 
 	/**
 	 * {@link L2BasicBlock}s can be grouped into zones for better visualization
@@ -161,7 +229,6 @@ public final class L2ControlFlowGraph
 			return new Zone(this, zoneName);
 		}
 	}
-
 
 	/**
 	 * The basic blocks of the graph.  They're either in the order they were

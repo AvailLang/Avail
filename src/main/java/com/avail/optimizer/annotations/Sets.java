@@ -1,6 +1,6 @@
 /*
- * WritesHiddenVariable.java
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Sets.java
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,10 +30,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.levelTwo;
+package com.avail.optimizer.annotations;
 
-import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable;
-import com.avail.optimizer.L2Optimizer;
+import com.avail.optimizer.L2ControlFlowGraph;
+import com.avail.optimizer.L2ControlFlowGraph.StateFlag;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -41,20 +41,20 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * {@code WritesHiddenVariable} indicates that an {@link L2Instruction} using
- * the annotated {@link L2Operation} will finish by writing to a particular kind
- * of {@link HiddenVariable}(s).  This annotation is used to restrict code
- * motion by the {@link L2Optimizer}.
+ * {@code Sets} indicates which {@link StateFlag}s to set automatically in the
+ * {@link L2ControlFlowGraph} upon completion of the annotated optimization
+ * phase.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-@Target(ElementType.TYPE)
+@Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface WritesHiddenVariable
+public @interface Sets
 {
 	/**
-	 * @return The classes of {@link HiddenVariable} written by an
-	 *         {@link L2Instruction} using the annotated {@link L2Operation}.
+	 * The {@link StateFlag}s to set in the {@link L2ControlFlowGraph}.
+	 *
+	 * @return An array of {@link StateFlag} subclasses.
 	 */
-	Class<? extends HiddenVariable>[] value ();
+	Class<? extends StateFlag>[] value ();
 }

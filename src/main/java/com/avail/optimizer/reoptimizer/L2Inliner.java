@@ -100,13 +100,6 @@ public final class L2Inliner
 		@Override
 		public void doOperand (final L2ConstantOperand operand) { }
 
-		@Override
-		public void doOperand (final L2InternalCounterOperand operand)
-		{
-			// Create a new counter.
-			currentOperand = new L2InternalCounterOperand();
-		}
-
 		@SuppressWarnings("EmptyMethod")
 		@Override
 		public void doOperand (final L2IntImmediateOperand operand) { }

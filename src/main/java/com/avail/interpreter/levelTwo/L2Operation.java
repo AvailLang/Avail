@@ -36,14 +36,18 @@ import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.A_Variable;
 import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose;
 import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.operation.L2ControlFlowOperation;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE;
 import com.avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT;
+import com.avail.interpreter.levelTwo.operation.L2_VIRTUAL_REIFY;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
 import com.avail.optimizer.L2BasicBlock;
+import com.avail.optimizer.L2ControlFlowGraph.Zone;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.RegisterSet;
@@ -112,6 +116,11 @@ public abstract class L2Operation
 		 * How any other global variables are affected.  This includes things
 		 * like the global exception reporter, the stringification function,
 		 * observerless setup, etc.
+		 *
+		 * <p>{@link Primitive}s are annotated with the
+		 * {@link Flag#ReadsFromHiddenGlobalState} and
+		 * {@link Flag#WritesToHiddenGlobalState} flags in their constructors to
+		 * indicate that {@code GLOBAL_STATE} is affected.</p>
 		 */
 		@HiddenVariableShift(5)
 		public static class GLOBAL_STATE extends HiddenVariable { }
@@ -150,14 +159,6 @@ public abstract class L2Operation
 	 * {@linkplain L2Operation operation} expects.
 	 */
 	protected final L2NamedOperandType[] namedOperandTypes;
-
-	/**
-	 * The <em>explicitly</em> {@linkplain L2NamedOperandType named operand
-	 * types} that this {@linkplain L2Operation operation} expects.  There may
-	 * be additional implicit operands that will be supplied automatically
-	 * during {@link L2Instruction} creation.
-	 */
-	protected final L2NamedOperandType[] explicitNamedOperandTypes;
 
 	/**
 	 * Answer the {@linkplain L2NamedOperandType named operand types} that this
@@ -208,9 +209,6 @@ public abstract class L2Operation
 		jvmTranslationTime = new Statistic(
 			className, StatisticReport.L2_TO_JVM_TRANSLATION_TIME);
 		namedOperandTypes = theNamedOperandTypes.clone();
-		explicitNamedOperandTypes = Arrays.stream(namedOperandTypes)
-			.filter(op -> op.operandType() != L2OperandType.INTERNAL_COUNTER)
-			.toArray(L2NamedOperandType[]::new);
 
 		assert this instanceof L2ControlFlowOperation
 			|| this instanceof L2_SAVE_ALL_AND_PC_TO_INT
@@ -384,7 +382,7 @@ public abstract class L2Operation
 	 * Answer true if this instruction leads to multiple targets, *multiple* of
 	 * which can be reached.  This is not the same as a branch, in which only
 	 * one will be reached for any circumstance of reaching this instruction.
-	 * In particular, a {@link L2_SAVE_ALL_AND_PC_TO_INT} instruction jumps to
+	 * In particular, an {@link L2_SAVE_ALL_AND_PC_TO_INT} instruction jumps to
 	 * its fall-through label, but after reification has saved the live register
 	 * state, it gets restored again and winds up traversing the other edge.
 	 *
@@ -452,6 +450,12 @@ public abstract class L2Operation
 	/**
 	 * Answer whether this operation is a placeholder, and should be replaced
 	 * using {@link L2Generator#replaceInstructionByGenerating(L2Instruction)}.
+	 * Placeholder instructions (like {@link L2_VIRTUAL_REIFY}) are free to be
+	 * moved through much of the control flow graph, even though the subgraphs
+	 * they eventually get replaced by would be too complex to move.  The
+	 * mobility of placeholder instructions is essential to postponing
+	 * stack reification and label creation into off-ramps (reification
+	 * {@link Zone}s) as much as possible.
 	 *
 	 * @return Whether the {@link L2Instruction} using this operation is a
 	 *         placeholder, subject to later substitution.
@@ -475,7 +479,8 @@ public abstract class L2Operation
 	/**
 	 * This is the operation for the given instruction, which was just added to
 	 * its basic block.  Do any post-processing appropriate for having added
-	 * the instruction.
+	 * the instruction.  Its operands have already had their instruction fields
+	 * set to the given instruction.
 	 *
 	 * <p>Automatically handle {@link L2WriteOperand}s that list a
 	 * {@link Purpose} in their corresponding {@link L2NamedOperandType},
@@ -492,8 +497,6 @@ public abstract class L2Operation
 		final L2Instruction instruction,
 		final L2ValueManifest manifest)
 	{
-		// Setting up the instruction fields of the operands is already done,
-		// so subclasses can focus on manifest manipulation.
 		final List<Integer> edgeIndexOrder = new ArrayList<>();
 		final L2Operand[] operands = instruction.operands();
 		for (int i = 0; i < operands.length; i++)
@@ -831,45 +834,6 @@ public abstract class L2Operation
 		JVMTranslator translator,
 		MethodVisitor method,
 		L2Instruction instruction);
-
-	/**
-	 * Augment the array of operands with any that are supposed to be supplied
-	 * implicitly by this class.
-	 *
-	 * @param operands
-	 *        The original array of {@link L2Operand}s.
-	 * @param instruction
-	 *        The <em>uninitialized</em> {@link L2Instruction} for which we are
-	 *        creating the augmented array of operands.
-	 * @return The augmented array of {@link L2Operand}s, which may be the same
-	 *         as the given array.
-	 */
-	public L2Operand[] augment (
-		final L2Operand[] operands,
-		final L2Instruction instruction)
-	{
-		return operands;
-	}
-
-	/**
-	 * Some instructions are idempotent, meaning that they have the same effect
-	 * if run two or more times as if they had run only once.  There are cases
-	 * where it might be profitable to introduce redundant computation of the
-	 * value, versus a policy of strict avoidance of any redundancy.  This
-	 * method decides when that should happen.
-	 *
-	 * @param instruction
-	 *        The {@link L2Instruction} using this operation.
-	 * @return Whether to replicate this instruction into multiple successor
-	 *         blocks, even if some successors have multiple incoming edges
-	 *         which might not all need the value.
-	 */
-	public boolean shouldReplicateIdempotently (final L2Instruction instruction)
-	{
-		// Normally, respect the importance of partial redundancy elimination.
-		// Also, plenty of operations aren't idempotent.
-		return false;
-	}
 
 	/**
 	 * Generate code to replace this {@link L2Instruction}.  The instruction has

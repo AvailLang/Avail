@@ -286,6 +286,12 @@ extends L2Operand
 	}
 
 	@Override
+	public void addReadsTo (final List<L2ReadOperand<?>> readOperands)
+	{
+		readOperands.add(this);
+	}
+
+	@Override
 	public final void addSourceRegistersTo (
 		final List<L2Register> sourceRegisters)
 	{

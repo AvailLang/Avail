@@ -69,7 +69,7 @@ internal abstract class LookupTree<
 	 * @return
 	 *   The next `LookupTree` to search.
 	 */
-	abstract fun <AdaptorMemento>lookupStepByTypes(
+	abstract fun <AdaptorMemento> lookupStepByTypes(
 		argTypes: List<A_Type>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento): LookupTree<Element, Result>
@@ -91,7 +91,7 @@ internal abstract class LookupTree<
 	 * @return
 	 *   The next `LookupTree` to search.
 	 */
-	abstract fun <AdaptorMemento>lookupStepByTypes(
+	abstract fun <AdaptorMemento> lookupStepByTypes(
 		argTypes: A_Tuple,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento): LookupTree<Element, Result>
@@ -113,7 +113,7 @@ internal abstract class LookupTree<
 	 * @return
 	 *   The next `LookupTree` to search.
 	 */
-	abstract fun <AdaptorMemento>lookupStepByValues(
+	abstract fun <AdaptorMemento> lookupStepByValues(
 		argValues: List<A_BasicObject>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento): LookupTree<Element, Result>
@@ -135,7 +135,7 @@ internal abstract class LookupTree<
 	 * @return
 	 *   The next `LookupTree` to search.
 	 */
-	abstract fun <AdaptorMemento>lookupStepByValues(
+	abstract fun <AdaptorMemento> lookupStepByValues(
 		argValues: A_Tuple,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento): LookupTree<Element, Result>
@@ -156,7 +156,7 @@ internal abstract class LookupTree<
 	 *   A memento for the adaptor to use.
 	 * @return The next `LookupTree` to search.
 	 */
-	abstract fun <AdaptorMemento>lookupStepByValue(
+	abstract fun <AdaptorMemento> lookupStepByValue(
 		probeValue: A_BasicObject,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento): LookupTree<Element, Result>

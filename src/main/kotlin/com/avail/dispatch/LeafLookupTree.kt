@@ -68,7 +68,7 @@ internal constructor(private val finalResult: Result)
 	override val solutionOrNull: Result?
 		get() = finalResult
 
-	override fun <AdaptorMemento>lookupStepByTypes(
+	override fun <AdaptorMemento> lookupStepByTypes(
 		argTypes: List<A_Type>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento): LookupTree<Element, Result>
@@ -77,7 +77,7 @@ internal constructor(private val finalResult: Result)
 		return this
 	}
 
-	override fun <AdaptorMemento>lookupStepByTypes(
+	override fun <AdaptorMemento> lookupStepByTypes(
 		argTypes: A_Tuple,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento): LookupTree<Element, Result>
@@ -86,7 +86,7 @@ internal constructor(private val finalResult: Result)
 		return this
 	}
 
-	override fun <AdaptorMemento>lookupStepByValues(
+	override fun <AdaptorMemento> lookupStepByValues(
 		argValues: List<A_BasicObject>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento): LookupTree<Element, Result>
@@ -95,7 +95,7 @@ internal constructor(private val finalResult: Result)
 		return this
 	}
 
-	override fun <AdaptorMemento>lookupStepByValues(
+	override fun <AdaptorMemento> lookupStepByValues(
 		argValues: A_Tuple,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento): LookupTree<Element, Result>
@@ -104,7 +104,7 @@ internal constructor(private val finalResult: Result)
 		return this
 	}
 
-	override fun <AdaptorMemento>lookupStepByValue(
+	override fun <AdaptorMemento> lookupStepByValue(
 		probeValue: A_BasicObject,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento): LookupTree<Element, Result>

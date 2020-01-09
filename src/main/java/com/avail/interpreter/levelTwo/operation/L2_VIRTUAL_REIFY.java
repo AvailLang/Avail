@@ -40,7 +40,6 @@ import com.avail.interpreter.levelTwo.WritesHiddenVariable;
 import com.avail.interpreter.levelTwo.operand.L2CommentOperand;
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
 import com.avail.interpreter.levelTwo.operation.L2_REIFY.StatisticCategory;
@@ -160,43 +159,6 @@ extends L2Operation
 		renderPreamble(instruction, builder);
 		builder.append(" ");
 		builder.append(reifiedCaller);
-	}
-
-	/**
-	 * Since an {@code L2_VIRTUAL_REIFY} and its transformed form are each
-	 * idempotent, it's legal to introduce a computational redundancy whereby
-	 * the value might be computed multiple times along some paths, even if the
-	 * original {@link L2ControlFlowGraph} didn't have that redundancy.
-	 *
-	 * <p>In particular, for an {@code L2_VIRTUAL_REIFY}, it's not worth
-	 * avoiding redundant computation, since a common situation is that all of
-	 * these instructions end up migrating into reification {@link Zone}s, which
-	 * are off the high-frequency track, and therefore not particularly relevant
-	 * for performance.  It's better to replicate these instructions downward in
-	 * the hope of moving them all off the high-speed track, even if some of the
-	 * low-frequency tracks end up reifying multiple times, and even if there's
-	 * a chance some of the reifications end up along a high frequency path.
-	 * It's still worth stopping whenever the value is always-live-in.</p>
-	 *
-	 * <p>We can also "look ahead" in the graph to see if any of the subsequent
-	 * uses are actually outside reification zones, and avoid introducing extra
-	 * redundancy in that case.  We approximate that by looking at all uses of
-	 * this instruction's output register, and if they're all inside reification
-	 * zones we allow the replication.</p>
-	 *
-	 * @param instruction
-	 *        The {@link L2Instruction} using this operation.
-	 * @return Whether to replicate this instruction into multiple successor
-	 *         blocks, even if some successors have multiple incoming edges
-	 *         (and which might not need the value).
-	 */
-	@Override
-	public boolean shouldReplicateIdempotently (final L2Instruction instruction)
-	{
-		final L2WriteBoxedOperand write = callerWriteOperandOf(instruction);
-		final Set<L2ReadOperand<?>> uses = write.register().uses();
-		return uses.stream()
-			.allMatch(use -> use.instruction().basicBlock().zone != null);
 	}
 
 	@Override

@@ -560,7 +560,7 @@ implements ExecutableChunk
 		TO_RESTART(1),
 
 		/**
-		 * This chunk containing this entry point <em>can't</em> be invalid when
+		 * The chunk containing this entry point <em>can't</em> be invalid when
 		 * it's entered.  Note that continuations that are created with this
 		 * entry point type don't have to have any slots filled in, and can just
 		 * contain a caller, function, chunk, offset, and register dump.

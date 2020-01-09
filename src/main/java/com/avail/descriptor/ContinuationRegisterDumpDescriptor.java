@@ -39,6 +39,7 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import static com.avail.descriptor.AvailObject.newObjectIndexedIntegerIndexedDescriptor;
 import static com.avail.descriptor.ContinuationRegisterDumpDescriptor.IntegerSlots.INTEGER_SLOTS_;
 import static com.avail.descriptor.ContinuationRegisterDumpDescriptor.ObjectSlots.OBJECT_SLOTS_;
+import static com.avail.optimizer.jvm.CheckedMethod.javaLibraryStaticMethod;
 import static com.avail.optimizer.jvm.CheckedMethod.staticMethod;
 
 /**
@@ -174,6 +175,22 @@ extends Descriptor
 		long.class,
 		AvailObject.class,
 		int.class);
+
+	/** Static method to cast from {@code long} to {@code double}. */
+	public static CheckedMethod bitCastLongToDoubleMethod =
+		javaLibraryStaticMethod(
+			Double.class,
+			"longBitsToDouble",
+			double.class,
+			long.class);
+
+	/** Static method to cast from {@code double} to {@code long}. */
+	public static CheckedMethod bitCastDoubleToLongMethod =
+		javaLibraryStaticMethod(
+			Double.class,
+			"doubleToRawLongBits",
+			long.class,
+			double.class);
 
 	/**
 	 * Construct a new {@code ContinuationDescriptor}.

@@ -90,16 +90,6 @@ extends L2Operation
 	}
 
 	@Override
-	public boolean shouldReplicateIdempotently (
-		final L2Instruction instruction)
-	{
-		// By allowing these to migrate more easily through the CFG, we reduce
-		// the amount of replicated code.  It's really not likely this
-		// instruction will lead to redundant execution, which is safe anyhow.
-		return true;
-	}
-
-	@Override
 	public void translateToJVM (
 		final JVMTranslator translator,
 		final MethodVisitor method,

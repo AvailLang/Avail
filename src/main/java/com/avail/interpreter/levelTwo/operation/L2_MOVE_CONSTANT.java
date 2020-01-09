@@ -218,15 +218,6 @@ extends L2Operation
 	}
 
 	@Override
-	public boolean shouldReplicateIdempotently (
-		final L2Instruction instruction)
-	{
-		// Constant moves should always be replicated to children – if the
-		// current basic block isn't using the value itself.
-		return true;
-	}
-
-	@Override
 	public void translateToJVM (
 		final JVMTranslator translator,
 		final MethodVisitor method,

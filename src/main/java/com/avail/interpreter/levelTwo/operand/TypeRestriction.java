@@ -153,7 +153,7 @@ public final class TypeRestriction
 		 * flags.
 		 */
 		public static final int allKindsMask =
-			BOXED.mask + UNBOXED_INT.mask + UNBOXED_FLOAT.mask;
+			BOXED.mask | UNBOXED_INT.mask | UNBOXED_FLOAT.mask;
 	}
 
 	/**
@@ -304,9 +304,9 @@ public final class TypeRestriction
 			excludedTypes,
 			excludedValues,
 			(isImmutable ? IMMUTABLE.mask : 0)
-				+ (isBoxed ? BOXED.mask : 0)
-				+ (isUnboxedInt ? UNBOXED_INT.mask : 0)
-				+ (isUnboxedFloat ? UNBOXED_FLOAT.mask : 0));
+				| (isBoxed ? BOXED.mask : 0)
+				| (isUnboxedInt ? UNBOXED_INT.mask : 0)
+				| (isUnboxedFloat ? UNBOXED_FLOAT.mask : 0));
 	}
 
 	/**
@@ -556,9 +556,9 @@ public final class TypeRestriction
 	{
 		final int flags =
 			(isImmutable ? IMMUTABLE.mask : 0)
-				+ (isBoxed ? BOXED.mask : 0)
-				+ (isUnboxedInt ? UNBOXED_INT.mask : 0)
-				+ (isUnboxedFloat ? UNBOXED_FLOAT.mask : 0);
+				| (isBoxed ? BOXED.mask : 0)
+				| (isUnboxedInt ? UNBOXED_INT.mask : 0)
+				| (isUnboxedFloat ? UNBOXED_FLOAT.mask : 0);
 		return restriction(
 			type,
 			constantOrNull,

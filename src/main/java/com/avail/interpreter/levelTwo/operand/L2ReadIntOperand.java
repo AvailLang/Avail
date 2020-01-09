@@ -35,7 +35,6 @@ package com.avail.interpreter.levelTwo.operand;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.register.L2FloatRegister;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
 import com.avail.optimizer.L2ValueManifest;
@@ -98,7 +97,7 @@ extends L2ReadOperand<L2IntRegister>
 	 * @param restriction
 	 *        The {@link TypeRestriction} that bounds the value being read.
 	 * @param register
-	 *        The {@link L2FloatRegister} being read by this operand.
+	 *        The {@link L2IntRegister} being read by this operand.
 	 */
 	public L2ReadIntOperand (
 		final L2SemanticValue semanticValue,

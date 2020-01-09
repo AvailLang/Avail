@@ -109,7 +109,7 @@ class DotWriter constructor(
 	internal val isDirected: Boolean,
 	internal val charactersPerLine: Int,
 	internal val accumulator: Appendable,
-	private val darkMode: Boolean = false,
+	private val darkMode: Boolean = true,
 	val copyrightOwner: String = System.getProperty("user.name"))
 {
 	/**

@@ -1347,9 +1347,6 @@ public final class L2Generator
 		public void doOperand (final L2PrimitiveOperand operand) { }
 
 		@Override
-		public void doOperand (final L2InternalCounterOperand operand) { }
-
-		@Override
 		public void doOperand (final L2ReadIntOperand operand)
 		{
 			intMax = max(intMax, operand.finalIndex());

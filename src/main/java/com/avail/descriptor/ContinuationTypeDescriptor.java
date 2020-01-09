@@ -275,16 +275,17 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Create a {@code continuation type} based on the passed
-	 * {@link FunctionTypeDescriptor function type}. Ignore the function type's
-	 * exception set.
+	 * Create a continuation type based on the passed
+	 * {@linkplain FunctionTypeDescriptor function type}. Ignore the function
+	 * type's exception set.
 	 *
 	 * @param functionType
 	 *        A {@linkplain FunctionTypeDescriptor function type} on which to
 	 *        base the new continuation type.
 	 * @return A new continuation type.
 	 */
-	public static A_Type continuationTypeForFunctionType (final A_Type functionType)
+	public static A_Type continuationTypeForFunctionType (
+		final A_Type functionType)
 	{
 		final AvailObject result = mutable.create();
 		result.setSlot(FUNCTION_TYPE, functionType.makeImmutable());

@@ -59,7 +59,9 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static com.avail.interpreter.levelTwo.L2OperandType.COMMENT;
+import static com.avail.interpreter.levelTwo.L2OperandType.PC;
+import static com.avail.utility.Strings.repeated;
 import static com.avail.utility.dot.DotWriter.DefaultAttributeBlockType.*;
 import static com.avail.utility.dot.DotWriter.node;
 import static java.util.Arrays.asList;
@@ -260,7 +262,7 @@ public class L2ControlFlowGraphVisualizer
 			}
 			else if (cp == '\t')
 			{
-				builder.append("&nbsp;&nbsp;&nbsp;&nbsp;");
+				builder.append(repeated("&nbsp;", 4));
 			}
 			else
 			{
@@ -316,7 +318,7 @@ public class L2ControlFlowGraphVisualizer
 		// escape everything after this point.
 		final int escapeIndex = builder.length();
 		final Set<L2OperandType> desiredTypes =
-			EnumSet.complementOf(EnumSet.of(PC, COMMENT, INTERNAL_COUNTER));
+			EnumSet.complementOf(EnumSet.of(PC, COMMENT));
 		if (instruction.operation() == L2_JUMP.instance
 			&& instruction.offset() != -1
 			&& L2_JUMP.jumpTarget(instruction).offset()
@@ -541,20 +543,22 @@ public class L2ControlFlowGraphVisualizer
 			// and act as the (cycle breaking) end-roots for dead code analysis.
 			if (edge.forcedClampedEntities != null)
 			{
-				builder.append(
-					"<font face=\"Helvetica\"><i>CLAMPED:</i></font>"
-						+ "<br/><b>&nbsp;&nbsp;&nbsp;&nbsp;");
-				builder.append(edge.forcedClampedEntities);
-				builder.append("</b><br/>");
+				builder
+					.append("<font face=\"Helvetica\"><i>CLAMPED:</i></font>")
+					.append("<br/><b>")
+					.append(repeated("&nbsp;", 4))
+					.append(edge.forcedClampedEntities)
+					.append("</b><br/>");
 			}
 		}
 		if (visualizeLiveness)
 		{
 			if (!edge.alwaysLiveInRegisters.isEmpty())
 			{
-				builder.append(
-					"<font face=\"Helvetica\"><i>always live-in:</i></font>"
-						+ "<br/><b>&nbsp;&nbsp;&nbsp;&nbsp;");
+				builder
+					.append("<font face=\"Helvetica\">")
+					.append("<i>always live-in:</i></font><br/><b>")
+					.append(repeated("&nbsp;", 4));
 				edge.alwaysLiveInRegisters.stream()
 					.sorted(comparingInt(L2Register::finalIndex))
 					.forEach(
@@ -569,9 +573,10 @@ public class L2ControlFlowGraphVisualizer
 			notAlwaysLiveInRegisters.removeAll(edge.alwaysLiveInRegisters);
 			if (!notAlwaysLiveInRegisters.isEmpty())
 			{
-				builder.append(
-					"<font face=\"Helvetica\"><i>sometimes live-in:</i></font>"
-						+ "<br/><b>&nbsp;&nbsp;&nbsp;&nbsp;");
+				builder
+					.append("<font face=\"Helvetica\">")
+					.append("<i>sometimes live-in:</i></font><br/><b>")
+					.append(repeated("&nbsp;", 4));
 				notAlwaysLiveInRegisters.stream()
 					.sorted(comparingInt(L2Register::finalIndex))
 					.forEach(
@@ -595,20 +600,21 @@ public class L2ControlFlowGraphVisualizer
 				synonyms.forEach(
 					synonym ->
 					{
-						builder.append("<br/>&nbsp;&nbsp;&nbsp;&nbsp;");
-						builder.append(escape(synonym.toString()));
-						builder.append(
-							"<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
-								+ "&nbsp;&nbsp;"
-								+ ":&nbsp;");
+						builder
+							.append("<br/>")
+							.append(repeated("&nbsp;", 4))
+							.append(escape(synonym.toString()))
+							.append("<br/>")
+							.append(repeated("&nbsp;", 8))
+							.append(":&nbsp;");
 						final TypeRestriction restriction =
 							manifest.restrictionFor(
 								synonym.pickSemanticValue());
-						builder.append(escape(restriction.toString()));
-						builder.append(
-							"<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
-							+"&nbsp;&nbsp;"
-							+ "in {");
+						builder
+							.append(escape(restriction.toString()))
+							.append("<br/>")
+							.append(repeated("&nbsp;", 8))
+							.append("in {");
 						final Iterator<L2Register> defs =
 							manifest
 								.definitionsForDescribing(

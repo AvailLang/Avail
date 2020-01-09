@@ -42,7 +42,6 @@ import com.avail.interpreter.levelTwo.register.L2FloatRegister;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
 
 import java.util.List;
-import java.util.concurrent.atomic.LongAdder;
 
 
 /**
@@ -145,13 +144,6 @@ public enum L2OperandType
 	 * L2ReadBoxedOperand}s which will be read.
 	 */
 	READ_FLOAT_VECTOR,
-
-	/**
-	 * The {@link L2InternalCounterOperand} holds a {@link LongAdder} that will
-	 * be incremented when a specific condition happens, such as taking or not
-	 * taking a branch.
-	 */
-	INTERNAL_COUNTER,
 
 	/**
 	 * The {@link L2CommentOperand} holds descriptive text that does not affect

@@ -259,6 +259,12 @@ extends L2Operand
 	}
 
 	@Override
+	public void addWritesTo (final List<L2WriteOperand<?>> writeOperands)
+	{
+		writeOperands.add(this);
+	}
+
+	@Override
 	public final void addDestinationRegistersTo (
 		final List<L2Register> destinationRegisters)
 	{

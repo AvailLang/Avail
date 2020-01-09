@@ -34,6 +34,7 @@ package com.avail.interpreter.levelTwo.operand;
 
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ContinuationRegisterDumpDescriptor;
+import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
@@ -52,7 +53,9 @@ import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.concurrent.atomic.LongAdder;
 
+import static com.avail.descriptor.ContinuationRegisterDumpDescriptor.bitCastDoubleToLongMethod;
 import static com.avail.descriptor.ContinuationRegisterDumpDescriptor.createRegisterDumpMethod;
 import static com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.BOXED;
 import static com.avail.utility.CollectionExtensions.populatedEnumMap;
@@ -108,9 +111,26 @@ extends L2Operand
 
 	/**
 	 * Either {@code null}, the normal case, or a set with each {@link L2Entity}
-	 * that is allowed to pass along this edge.
+	 * that is allowed to pass along this edge.  This mechanism is used to break
+	 * control flow cycles, allowing a simple liveness algorithm to be used,
+	 * instead of iterating (backward) through loops until the live set has
+	 * converged.
 	 */
 	public @Nullable Set<L2Entity> forcedClampedEntities = null;
+
+	/**
+	 * A counter of how many times this edge has been traversed.  This will be
+	 * used to determine the amount of effort to apply to subsequent
+	 * re-optimization attempts, modulating inlining, order of tests, whether to
+	 * optimize for space, run time, or compile time; that sort of thing.  The
+	 * counter itself (a {@link LongAdder}) is passed as a constant through a
+	 * special class loader, and captured as a final constant within the
+	 * {@link L2Chunk}'s class.
+	 *
+	 * <p>Most edges don't benefit from having a counter, and a final optimizaed
+	 * form has no need for any counters, so this field can be {@code null}.</p>
+	 */
+	public @Nullable LongAdder counter = null;
 
 	/**
 	 * Construct a new {@code L2PcOperand} that leads to the specified
@@ -150,6 +170,14 @@ extends L2Operand
 	{
 		this(newTargetBlock, isBackward);
 		manifest = newManifest;
+	}
+
+	@Override
+	public void adjustCloneForInstruction (
+		final L2Instruction theInstruction)
+	{
+		super.adjustCloneForInstruction(theInstruction);
+		counter = null;
 	}
 
 	@Override
@@ -447,7 +475,7 @@ extends L2Operand
 				method.visitVarInsn(
 					RegisterKind.FLOAT.loadInstruction,
 					floatLocalNumbers.get(i));
-				method.visitInsn(D2L);
+				bitCastDoubleToLongMethod.generateCall(method);
 				method.visitInsn(LASTORE);
 			}
 		}
@@ -487,5 +515,15 @@ extends L2Operand
 				workQueue.addAll(edge.targetBlock().successorEdgesCopy());
 			}
 		}
+	}
+
+	/**
+	 * Create and install a {@link LongAdder} to count visits through this edge
+	 * in the final JVM code.
+	 */
+	public void installCounter ()
+	{
+		assert counter == null;  // Don't install twice.
+		counter = new LongAdder();
 	}
 }

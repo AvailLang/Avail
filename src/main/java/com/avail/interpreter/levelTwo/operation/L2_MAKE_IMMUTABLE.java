@@ -39,7 +39,6 @@ import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
-import com.avail.optimizer.L2ControlFlowGraph.Zone;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.L2Synonym;
 import com.avail.optimizer.L2ValueManifest;
@@ -181,29 +180,6 @@ extends L2Operation
 		builder.append(write.registerString());
 		builder.append(" ← ");
 		builder.append(read.registerString());
-	}
-
-	/**
-	 * {@code L2_MAKE_IMMUTABLE} is idempotent, so we have a choice whether to
-	 * introduce a partial redundancy.  An easy answer is to check if the result
-	 * is ever used outside a reification {@link Zone}, and if so, avoid the
-	 * creation of the redundancy.  Otherwise all uses are in reification zones,
-	 * which are low-frequency code, so it doesn't matter much if we introduce
-	 * some redundancy along paths running through these zones.
-	 *
-	 * @param instruction
-	 *        The {@link L2Instruction} using this operation.
-	 * @return Whether to replicate this instruction into multiple successor
-	 *         blocks, even if some successors have multiple incoming edges
-	 *         (and which might not need the computation).
-	 */
-	@Override
-	public boolean shouldReplicateIdempotently (final L2Instruction instruction)
-	{
-		return true;
-		// TODO Does this need to adjust the type in the manifest of the edges
-		// it's moving across, so placeholder-replacement code won't use the
-		// old, not necessarily immutable values?
 	}
 
 	@Override

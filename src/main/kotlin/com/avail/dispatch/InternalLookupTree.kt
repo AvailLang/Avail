@@ -112,7 +112,7 @@ internal constructor(
 	 * about this node's [argumentTypeToTest], [argumentPositionToTest], and
 	 * [ifCheckHolds], and [ifCheckFails].
 	 */
-	internal fun <AdaptorMemento>expandIfNecessary(
+	internal fun <AdaptorMemento> expandIfNecessary(
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento)
 	{
@@ -161,7 +161,7 @@ internal constructor(
 	 * @param adaptor
 	 *   The [LookupTreeAdaptor] to use for expanding the tree.
 	 */
-	private fun <AdaptorMemento>chooseCriterion(
+	private fun <AdaptorMemento> chooseCriterion(
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento)
 	{
@@ -346,7 +346,7 @@ internal constructor(
 	 * @param typeToTest
 	 *   The [A_Type] that this node should test for.
 	 */
-	private fun <AdaptorMemento>buildChildren(
+	private fun <AdaptorMemento> buildChildren(
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento,
 		argumentIndex: Int,
@@ -427,7 +427,7 @@ internal constructor(
 	override val solutionOrNull: Result?
 		get() = null
 
-	override fun <AdaptorMemento>lookupStepByValues(
+	override fun <AdaptorMemento> lookupStepByValues(
 		argValues: List<A_BasicObject>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento): LookupTree<Element, Result>
@@ -443,7 +443,7 @@ internal constructor(
 		else ifCheckFails!!
 	}
 
-	override fun <AdaptorMemento>lookupStepByValues(
+	override fun <AdaptorMemento> lookupStepByValues(
 		argValues: A_Tuple,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento): LookupTree<Element, Result>
@@ -459,7 +459,7 @@ internal constructor(
 		else ifCheckFails!!
 	}
 
-	override fun <AdaptorMemento>lookupStepByTypes(
+	override fun <AdaptorMemento> lookupStepByTypes(
 		argTypes: List<A_Type>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento): LookupTree<Element, Result>
@@ -475,7 +475,7 @@ internal constructor(
 		else ifCheckFails!!
 	}
 
-	override fun <AdaptorMemento>lookupStepByTypes(
+	override fun <AdaptorMemento> lookupStepByTypes(
 		argTypes: A_Tuple,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento): LookupTree<Element, Result>
@@ -491,7 +491,7 @@ internal constructor(
 		else ifCheckFails!!
 	}
 
-	override fun <AdaptorMemento>lookupStepByValue(
+	override fun <AdaptorMemento> lookupStepByValue(
 		probeValue: A_BasicObject,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento): LookupTree<Element, Result>

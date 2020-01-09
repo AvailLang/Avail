@@ -167,6 +167,21 @@ object Strings {
 		}
 	}
 
+	/**
+	 * Answer a [String] consisting of [count] repetitions of [string],
+	 * concatenated.
+	 */
+	@JvmStatic
+	fun repeated (string: String, count: Int): String
+	{
+		assert(count >= 0)
+		return buildString(string.length * count) {
+			repeat(count) {
+				append(string)
+			}
+		}
+	}
+
 	/** A regex [Pattern] containing just a line break.  */
 	val lineBreakPattern: Pattern = Pattern.compile("\n", Pattern.LITERAL)
 

@@ -78,6 +78,7 @@ import java.util.regex.Pattern;
 
 import static com.avail.AvailRuntimeSupport.captureNanos;
 import static com.avail.descriptor.ContinuationDescriptor.createDummyContinuationMethod;
+import static com.avail.descriptor.IntegerDescriptor.javaUnboxIntegerMethod;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.interpreter.Interpreter.chunkField;
 import static com.avail.interpreter.Interpreter.interpreterFunctionField;
@@ -564,6 +565,9 @@ public final class JVMTranslator
 			localNumberFromRegister(register));
 	}
 
+	/** Helper for stripping "_TAG" from end of tag names. */
+	static final Pattern tagEndPattern = Pattern.compile("_TAG$");
+
 	/**
 	 * A {@code JVMTranslationPreparer} acts upon its enclosing {@link
 	 * JVMTranslator} and an {@link L2Operand} to map {@link L2Register}s to JVM
@@ -597,12 +601,6 @@ public final class JVMTranslator
 		}
 
 		@Override
-		public void doOperand (final L2InternalCounterOperand operand)
-		{
-			recordLiteralObject(operand.counter);
-		}
-
-		@Override
 		public void doOperand (final L2IntImmediateOperand operand)
 		{
 			literals.computeIfAbsent(
@@ -629,6 +627,10 @@ public final class JVMTranslator
 		@Override
 		public void doOperand (final L2PcOperand operand)
 		{
+			if (operand.counter != null)
+			{
+				recordLiteralObject(operand.counter);
+			}
 			labels.computeIfAbsent(
 				operand.offset(),
 				pc -> new Label());
@@ -728,8 +730,9 @@ public final class JVMTranslator
 					final String description;
 					if (value instanceof AvailObject)
 					{
-						description = ((AvailObject) value).typeTag().name()
-							.replaceAll("_TAG$", "");
+						description = tagEndPattern
+							.matcher(((AvailObject) value).typeTag().name())
+							.replaceAll("");
 					}
 					else if (value instanceof Primitive)
 					{
@@ -1147,7 +1150,7 @@ public final class JVMTranslator
 	}
 
 	/**
-	 * Emit the effect of loading a constant {@code float} to the specified
+	 * Emit the effect of loading a constant {@code double} to the specified
 	 * {@link MethodVisitor}.
 	 *
 	 * @param method
@@ -1799,14 +1802,7 @@ public final class JVMTranslator
 							load(
 								method,
 								((L2ReadIntOperand) operand).register());
-							method.visitMethodInsn(
-								INVOKESTATIC,
-								getInternalName(Integer.class),
-								"valueOf",
-								getMethodDescriptor(
-									getType(Integer.class),
-									INT_TYPE),
-								false);
+							javaUnboxIntegerMethod.generateCall(method);
 							break pushOneObject;
 						}
 					}

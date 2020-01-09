@@ -163,7 +163,7 @@ implements Comparable<AvailTask>, Runnable
 			}
 			catch (final Throwable e)
 			{
-				System.out.println("An unrecoverable VM error has occurred.");
+				System.err.println("An unrecoverable VM error has occurred.");
 				throw e;
 			}
 			finally
