@@ -40,6 +40,7 @@ import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.FunctionTypeDescriptor.mostGeneralFunctionType
 import com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers
 import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
+import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TupleDescriptor.toList
@@ -87,6 +88,7 @@ object P_CreateContinuation : Primitive(5, CanFold, CanInline)
 		val cont = createContinuationWithFrame(
 			function,
 			callerHolder.value(),
+			nil,
 			pc.extractInt(),
 			stackp.extractInt(),
 			unoptimizedChunk,

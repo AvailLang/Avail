@@ -42,7 +42,6 @@ import com.avail.interpreter.levelTwo.register.L2FloatRegister;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
 
 import java.util.List;
-import java.util.concurrent.atomic.LongAdder;
 
 
 /**
@@ -77,7 +76,7 @@ public enum L2OperandType
 	 * presumably for the purpose of branching there at some time and under some
 	 * condition.
 	 */
-	PC,
+	PC(true),
 
 	/**
 	 * An {@link L2PrimitiveOperand} holds a {@link Primitive} to be invoked.
@@ -102,7 +101,7 @@ public enum L2OperandType
 	 * The {@link L2WriteBoxedOperand} holds the {@link L2BoxedRegister} that
 	 * will be written.
 	 */
-	WRITE_BOXED,
+	WRITE_BOXED(true),
 
 	/**
 	 * The {@link L2ReadIntOperand} holds the {@link L2IntRegister} that
@@ -114,7 +113,7 @@ public enum L2OperandType
 	 * The {@link L2WriteIntOperand} holds the {@link L2IntRegister} that
 	 * will be written.
 	 */
-	WRITE_INT,
+	WRITE_INT(true),
 
 	/**
 	 * The {@link L2WriteFloatOperand} holds the {@link L2FloatRegister} that
@@ -126,7 +125,7 @@ public enum L2OperandType
 	 * The {@link L2WriteFloatOperand} holds the {@link L2FloatRegister} that
 	 * will be written.
 	 */
-	WRITE_FLOAT,
+	WRITE_FLOAT(true),
 
 	/**
 	 * The {@link L2ReadVectorOperand} holds a {@link List} of {@link
@@ -147,18 +146,34 @@ public enum L2OperandType
 	READ_FLOAT_VECTOR,
 
 	/**
-	 * The {@link L2InternalCounterOperand} holds a {@link LongAdder} that will
-	 * be incremented when a specific condition happens, such as taking or not
-	 * taking a branch.
-	 */
-	INTERNAL_COUNTER,
-
-	/**
 	 * The {@link L2CommentOperand} holds descriptive text that does not affect
 	 * analysis or execution of level two code.  It is for diagnostic purposes
 	 * only.
 	 */
 	COMMENT;
+
+	/**
+	 * Whether this kind of operand can have a {@link Purpose} associated with
+	 * it.
+	 */
+	public final boolean canHavePurpose;
+
+	/**
+	 * Create an instance of the enum.
+	 *
+	 * @param canHavePurpose
+	 *        Whether this kind of operand can have a {@link Purpose}.
+	 */
+	L2OperandType (final boolean canHavePurpose)
+	{
+		this.canHavePurpose = canHavePurpose;
+	}
+
+	/** Create an instance of the enum, disallowing a {@link Purpose} for it. */
+	L2OperandType ()
+	{
+		this.canHavePurpose = false;
+	}
 
 	/**
 	 * Create a {@link L2NamedOperandType} from the receiver and a {@link
@@ -187,6 +202,7 @@ public enum L2OperandType
 	 */
 	public L2NamedOperandType is (final String roleName, final Purpose purpose)
 	{
+		assert canHavePurpose;
 		return new L2NamedOperandType(this, roleName, purpose);
 	}
 }

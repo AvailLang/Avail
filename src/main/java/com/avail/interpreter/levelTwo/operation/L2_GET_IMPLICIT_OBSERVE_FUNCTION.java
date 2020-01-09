@@ -46,6 +46,7 @@ import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static com.avail.AvailRuntime.HookType.IMPLICIT_OBSERVE;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
@@ -78,6 +79,13 @@ extends L2Operation
 		new L2_GET_IMPLICIT_OBSERVE_FUNCTION();
 
 	@Override
+	public boolean hasSideEffect ()
+	{
+		// Keep this instruction pinned in place for safety during inlining.
+		return true;
+	}
+
+	@Override
 	protected void propagateTypes (
 		final L2Instruction instruction,
 		final RegisterSet registerSet,
@@ -91,10 +99,11 @@ extends L2Operation
 	}
 
 	@Override
-	public void toString (
+	public void appendToWithWarnings (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
-		final StringBuilder builder)
+		final StringBuilder builder,
+		final Consumer<Boolean> warningStyleChange)
 	{
 		assert this == instruction.operation();
 		final L2WriteBoxedOperand function = instruction.operand(0);

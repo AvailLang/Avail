@@ -53,10 +53,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromArrayMethod;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
@@ -161,10 +163,11 @@ extends L2Operation
 	}
 
 	@Override
-	public void toString (
+	public void appendToWithWarnings (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
-		final StringBuilder builder)
+		final StringBuilder builder,
+		final Consumer<Boolean> warningStyleChange)
 	{
 		assert this == instruction.operation();
 		final L2ReadBoxedVectorOperand values = instruction.operand(0);
@@ -240,14 +243,7 @@ extends L2Operation
 		}
 		// :: destination = TupleDescriptor.tupleFromArray(elements);
 		translator.objectArray(method, elements, A_BasicObject.class);
-		method.visitMethodInsn(
-			INVOKESTATIC,
-			getInternalName(ObjectTupleDescriptor.class),
-			"tupleFromArray",
-			getMethodDescriptor(
-				getType(A_Tuple.class),
-				getType(A_BasicObject[].class)),
-			false);
+		tupleFromArrayMethod.generateCall(method);
 		method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
 		translator.store(method, tuple.register());
 	}

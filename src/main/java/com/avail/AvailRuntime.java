@@ -93,8 +93,7 @@ import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.BottomTypeDescriptor.bottomMeta;
 import static com.avail.descriptor.CompiledCodeDescriptor.newPrimitiveRawFunction;
 import static com.avail.descriptor.CompiledCodeTypeDescriptor.mostGeneralCompiledCodeType;
-import static com.avail.descriptor.ContinuationTypeDescriptor.continuationMeta;
-import static com.avail.descriptor.ContinuationTypeDescriptor.mostGeneralContinuationType;
+import static com.avail.descriptor.ContinuationTypeDescriptor.*;
 import static com.avail.descriptor.DoubleDescriptor.fromDouble;
 import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
 import static com.avail.descriptor.FiberTypeDescriptor.fiberMeta;
@@ -872,7 +871,7 @@ public final class AvailRuntime
 	 * AvailRuntime runtime}.
 	 */
 	private static final AvailObject[] specialObjects =
-		new AvailObject[180];
+		new AvailObject[190];
 
 	/**
 	 * An unmodifiable {@link List} of the {@linkplain AvailRuntime runtime}'s
@@ -1127,6 +1126,8 @@ public final class AvailRuntime
 		specials[167] = inclusive(0, (1L << 28) - 1);
 		specials[168] = inclusive(1L, 4L);
 		specials[169] = inclusive(0L, 31L);
+		specials[170] =
+			continuationTypeForFunctionType(functionTypeReturning(TOP.o()));
 
 		// DO NOT CHANGE THE ORDER OF THESE ENTRIES!  Serializer compatibility
 		// depends on the order of this list.

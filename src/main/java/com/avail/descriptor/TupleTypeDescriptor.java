@@ -36,6 +36,7 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.descriptor.tuples.A_Tuple;
+import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.Transformer1;
@@ -55,6 +56,7 @@ import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleTypeDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
+import static com.avail.optimizer.jvm.CheckedMethod.staticMethod;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 
@@ -742,6 +744,13 @@ extends TypeDescriptor
 			bottom());
 	}
 
+	/** Access the method {@link #tupleTypeForTypes(A_Type...)}. */
+	public static CheckedMethod tupleTypesForTypesArrayMethod = staticMethod(
+		TupleTypeDescriptor.class,
+		"tupleTypeForTypes",
+		A_Type.class,
+		A_Type[].class);
+
 	/**
 	 * Answer a fixed size tuple type consisting of the given element types.
 	 *
@@ -759,6 +768,13 @@ extends TypeDescriptor
 			tupleFromList(types),
 			bottom());
 	}
+
+	/** Access the method {@link #tupleTypeForTypes(List)}. */
+	public static CheckedMethod tupleTypesForTypesListMethod = staticMethod(
+		TupleTypeDescriptor.class,
+		"tupleTypeForTypes",
+		A_Type.class,
+		List.class);
 
 	/**
 	 * Transform a tuple type into another tuple type by {@linkplain

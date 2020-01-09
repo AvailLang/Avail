@@ -53,15 +53,15 @@ import static org.objectweb.asm.Type.*;
  * This is the first instruction of the L1 interpreter's on-ramp for resuming
  * after a callee returns.  The reified {@link A_Continuation} that was captured
  * (and is now being resumed) pointed to this {@link L2Instruction}.  That
- * continuation is current in the {@link Interpreter#reifiedContinuation}.  Pop
- * it from that continuation chain, create suitable pointer and integer
+ * continuation is current in the {@link Interpreter#getReifiedContinuation()}.
+ * Pop it from that continuation chain, create suitable pointer and integer
  * registers as expected by {@link L2_INTERPRET_LEVEL_ONE}, then explode the
  * continuation's slots into those registers.  The {@link Interpreter#function}
  * should also have already been set up to agree with the continuation's
  * function.
  *
- * <p>The value being returned is in {@link Interpreter#latestResult()}, and the
- * top-of-stack of the continuation contains the type to check it against.
+ * <p>The value being returned is in {@link Interpreter#getLatestResult()}, and
+ * the top-of-stack of the continuation contains the type to check it against.
  * Whether to skip the return check is up to the generated L2 code after an
  * entry point.  In this case (reentering L1), we always do the check.</p>
  *
@@ -116,9 +116,9 @@ extends L2Operation
 				interpreter.debugModeString);
 		}
 		final A_Continuation continuation =
-			stripNull(interpreter.reifiedContinuation);
-		interpreter.reifiedContinuation = (AvailObject) continuation.caller();
-		final AvailObject returnValue = interpreter.latestResult();
+			stripNull(interpreter.getReifiedContinuation());
+		interpreter.setReifiedContinuation(continuation.caller());
+		final AvailObject returnValue = interpreter.getLatestResult();
 
 		final A_Function returneeFunction = stripNull(interpreter.function);
 		assert returneeFunction == continuation.function();

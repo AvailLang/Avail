@@ -1099,7 +1099,7 @@ public abstract class AbstractDescriptor
 				// required to be an IntegerEnumSlotDescriptionEnum in this
 				// case, not necessarily an Enum.
 				final Method lookupMethod =
-					describingClass.getMethod(lookupName, Integer.TYPE);
+					describingClass.getMethod(lookupName, int.class);
 				final IntegerEnumSlotDescriptionEnum lookedUp =
 					(IntegerEnumSlotDescriptionEnum) lookupMethod.invoke(
 						null, (int) value);
@@ -6881,7 +6881,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract LookupTree<A_Definition, A_Tuple, Boolean> o_TestingTree (
+	abstract LookupTree<A_Definition, A_Tuple> o_TestingTree (
 		final AvailObject object);
 
 	/**
@@ -6914,5 +6914,12 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 */
 	abstract void o_ClearLexingState (
+		final AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	abstract AvailObject o_RegisterDump (
 		final AvailObject object);
 }

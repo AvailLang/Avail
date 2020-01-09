@@ -37,6 +37,8 @@ Extends
 	"Early Control Structures" =
 	(
 		"Cast|cast_into_",
+		"Exit_",
+		"Exit_with_",
 		"Ignore:_",
 		"(_)",
 		"((_))"
@@ -65,6 +67,7 @@ Names
 	"Do_while_",
 	"Do_while_alternate with_",
 	"Exit_",
+	"Exit_if_",
 	"For each…from_to_§do_",
 	"For each…from_to_by_§do_",
 	"From_to_by_do_",
@@ -202,53 +205,6 @@ Public macro "If|if_then_«else if_then_»«else_»?" is
 		else finalElseBlock
 ] : send phrase ⇒ ⊤;
 
-/**
- * Exit the continuation. Execution proceeds as though the continuation had just
- * returned from its current function. The current continuation is completely
- * replaced by the specified continuation's resumed caller.
- *
- * @method "Exit_"
- * @param "aContinuation" "$[…]→⊤"
- *        The continuation to exit.
- * @returns "⊥"
- * @category "Control Structures" "Continuations"
- */
-Public method "Exit_" is
-[
-	aContinuation : $[…]→⊤
-|
-	/* Since the continuation's return type is ⊤, the primitive will discard
-	 * the argument, so it can be anything.
-	 */
-	Exit aContinuation with <>
-] : ⊥;
-
-/**
- * Reject the current parse unless the value supplied upon exit of a
- * continuation conforms to its function type's return type.
- *
- * @method "Exit_with_"
- * @restricts "continuation meta"
- * @restricts "any meta"
- */
-Semantic restriction "Exit_with_" is
-[
-	continuationType : continuation meta,
-	exitType : any meta
-|
-	functionType ::= continuationType's function type;
-	If ¬exitType ⊆ functionType's return type then
-	[
-		Reject parse, expected:
-			"continuation ("
-			++ “continuationType”
-			++ ") to accept value ("
-			++ “exitType”
-			++ ")"
-	];
-	⊥
-];
-
 /* These are error messages. */
 sizesIncompatibleMessage ::=
 	"size of argument tuple to be compatible with size of\
@@ -339,12 +295,13 @@ Public method "Repeat__times" is
 	action : []→⊤,
 	count : [0..∞]
 |
-	$loop;
-	If count > 0 then
-	[
-		action();
-		Restart loop with <action, cast count - 1 into [i : [0..∞] | i]>
-	];
+	$loop : ⊤;
+	/* Tweak for optimizer.  Avoid pushing loop while predicate runs. */
+	exit ::= count < 1;
+	Exit loop if exit;
+	action();
+	newArguments ::= <action, cast count - 1 into [i : [0..∞] | i]>;
+	Restart loop with newArguments
 ] : ⊤;
 
 /**
@@ -419,14 +376,15 @@ Public method "From_to_by_do_" is
 	step : [0..∞),
 	action : [⊥]→boolean
 |
-	$loop;
-	If start ≤ end then
-	[
-		If action(start) then
-		[
-			Restart loop with <start + step, end, step, action>
-		];
-	];
+	$loop : ⊤;
+	/* Tweak for optimizer.  Avoid pushing loop while predicate runs. */
+	exit1 ::= end < start;
+	Exit loop if exit1;
+	/* Tweak for optimizer.  Avoid pushing loop while predicate runs. */
+	exit2 ::= action(start) = false;
+	Exit loop if exit2;
+	newArguments ::= <start + step, end, step, action>;
+	Restart loop with newArguments
 ] : ⊤;
 
 /**
@@ -456,14 +414,15 @@ Public method "From_to_by_do_" is
 	step : (-∞..-1],
 	action : [⊥]→boolean
 |
-	$loop;
-	If start ≥ end then
-	[
-		If action(start) then
-		[
-			Restart loop with <start + step, end, step, action>
-		];
-	];
+	$loop : ⊤;
+	/* Tweak for optimizer.  Avoid pushing loop while predicate runs. */
+	exit1 ::= start < end;
+	Exit loop if exit1;
+	/* Tweak for optimizer.  Avoid pushing loop while predicate runs. */
+	exit2 ::= action(start) = false;
+	Exit loop if exit2;
+	newArguments ::= <start + step, end, step, action>;
+	Restart loop with newArguments
 ] : ⊤;
 
 /**
@@ -582,12 +541,10 @@ Public method "From_to_by_do_" is
 	step : [0..∞),
 	action : [⊥]→⊤
 |
-	$loop;
-	If start ≤ end then
-	[
-		action(start);
-		Restart loop with <start + step, end, step, action>
-	];
+	$loop : ⊤;
+	Exit loop if end < start;
+	action(start);
+	Restart loop with <start + step, end, step, action>
 ];
 
 /**
@@ -613,12 +570,10 @@ Public method "From_to_by_do_" is
 	step : (-∞..-1],
 	action : [⊥]→⊤
 |
-	$loop;
-	If start ≥ end then
-	[
-		action(start);
-		Restart loop with <start + step, end, step, action>
-	];
+	$loop : ⊤;
+	Exit loop if start < end;
+	action(start);
+	Restart loop with <start + step, end, step, action>
 ];
 
 /**
@@ -814,14 +769,10 @@ Public method "From_to_do_" is
 	end : extended integer,
 	action : [⊥]→boolean
 |
-	$loop;
-	If start ≤ end then
-	[
-		If action(start) then
-		[
-			Restart loop with <start + 1, end, action>
-		];
-	];
+	$loop : ⊤;
+	Exit loop if end < start;
+	Exit loop if ¬action(start);
+	Restart loop with <start + 1, end, action>
 ];
 
 /**
@@ -869,12 +820,10 @@ Public method "From_to_do_" is
 	end : extended integer,
 	action : [⊥]→⊤
 |
-	$loop;
-	If start ≤ end then
-	[
-		action(start);
-		Restart loop with <start + 1, end, action>
-	];
+	$loop : ⊤;
+	Exit loop if end < start;
+	action(start);
+	Restart loop with <start + 1, end, action>
 ];
 
 /**
@@ -1612,11 +1561,9 @@ Public method "While_" is
 [
 	action : []→boolean
 |
-	$loop;
-	If action() then
-	[
-		Restart loop
-	];
+	$loop : ⊤;
+	Exit loop if action() = false;
+	Restart loop
 ] : ⊤;
 
 /**
@@ -1655,11 +1602,9 @@ Public method "Until_" is
 [
 	action : []→boolean
 |
-	$loop;
-	Unless action() then
-	[
-		Restart loop
-	];
+	$loop : ⊤;
+	Exit loop if action();
+	Restart loop
 ] : ⊤;
 
 /**
@@ -1701,12 +1646,12 @@ Public method "While_do_" is
 	predicate : []→boolean,
 	action : []→⊤
 |
-	$loop;
-	If predicate() then
-	[
-		action();
-		Restart loop
-	];
+	$loop : ⊤;
+	/* Tweak for optimizer.  Avoid pushing loop while predicate runs. */
+	shouldExit ::= predicate() = false;
+	Exit loop if shouldExit;
+	action();
+	Restart loop
 ] : ⊤;
 
 /**
@@ -1753,7 +1698,8 @@ Macro "While_do_" is
 |
 	restricted send $"While_do_" with
 		«<
-			«[<> | <expressionPhrase>] : boolean», action
+			«[<> | <expressionPhrase>] : boolean»,
+			action
 		>» : ⊤
 ] : send phrase ⇒ ⊤;
 
@@ -1775,12 +1721,12 @@ Public method "Until_do_" is
 	predicate : []→boolean,
 	action : []→⊤
 |
-	$loop;
-	Unless predicate() then
-	[
-		action();
-		Restart loop
-	];
+	$loop : ⊤;
+	/* Tweak for optimizer.  Avoid pushing loop while predicate runs. */
+	exit ::= predicate();
+	Exit loop if exit;
+	action();
+	Restart loop
 ] : ⊤;
 
 /**
@@ -1849,12 +1795,12 @@ Public method "Do_while_" is
 	action : []→⊤,
 	predicate : []→boolean
 |
-	$loop;
+	$loop : ⊤;
 	action();
-	If predicate() then
-	[
-		Restart loop
-	];
+	/* Tweak for optimizer.  Avoid pushing loop while predicate runs. */
+	shouldExit ::= predicate() = false;
+	Exit loop if shouldExit;
+	Restart loop
 ] : ⊤;
 
 /**
@@ -1922,13 +1868,13 @@ Public method "Do_while_alternate with_" is
 	predicate : []→boolean,
 	between : []→⊤
 |
-	$loop;
+	$loop : ⊤;
 	action();
-	If predicate() then
-	[
-		between();
-		Restart loop
-	];
+	/* Tweak for optimizer.  Avoid pushing loop while predicate runs. */
+	shouldExit ::= predicate() = false;
+	Exit loop if shouldExit;
+	between();
+	Restart loop
 ];
 
 /**
@@ -2002,13 +1948,13 @@ Public method "While_do_alternate with_" is
 |
 	If predicate() then
 	[
-		$loop;
+		$loop : ⊤;
 		action();
-		If predicate() then
-		[
-			between();
-			Restart loop
-		];
+		/* Tweak for optimizer.  Avoid pushing loop while predicate runs. */
+		exit ::= predicate() = false;
+		Exit loop if exit;
+		between();
+		Restart loop
 	];
 ];
 
@@ -2076,12 +2022,12 @@ Public method "Do_until_" is
 	action : []→⊤,
 	predicate : []→boolean
 |
-	$loop;
+	$loop : ⊤;
 	action();
-	Unless predicate() then
-	[
-		Restart loop
-	];
+	/* Tweak for optimizer.  Avoid pushing loop while predicate runs. */
+	exit ::= predicate();
+	Exit loop if exit;
+	Restart loop
 ] : ⊤;
 
 /**
@@ -2149,13 +2095,13 @@ Public method "Do_until_alternate with_" is
 	predicate : []→boolean,
 	between : []→⊤
 |
-	$loop;
+	$loop : ⊤;
 	action();
-	Unless predicate() then
-	[
-		between();
-		Restart loop
-	];
+	/* Tweak for optimizer.  Avoid pushing loop while predicate runs. */
+	exit ::= predicate();
+	Exit loop if exit;
+	between();
+	Restart loop
 ];
 
 /**
@@ -2229,13 +2175,13 @@ Public method "Until_do_alternate with_" is
 |
 	Unless predicate() then
 	[
-		$loop;
+		$loop : ⊤;
 		action();
-		Unless predicate() then
-		[
-			between();
-			Restart loop
-		];
+		/* Tweak for optimizer.  Avoid pushing loop while predicate runs. */
+		exit ::= predicate();
+		Exit loop if exit;
+		between();
+		Restart loop
 	];
 ];
 
@@ -2310,23 +2256,19 @@ Public method "Cast|cast_into«_‡,»«else_»" is
 	caseTuple : <[⊥]→⊤…|2..>,
 	else : ([]→⊤)?
 |
-	index : natural number := 1;
-	[
-		$body;
-		if index > |caseTuple| then
-		[
-			(else[1] else [[]])();
-		]
-		else if value ∈ caseTuple[index]'s type[1] then
-		[
-			caseTuple[index](value);
-		]
-		else
-		[
-			index++;
-			Restart body
-		];
-	]();
+	case ::= [
+		index : natural number
+	|
+		$body : [⊥]→⊤;
+		Exit body
+			with [x : any | (else[1] else [[]])();]
+			if index > |caseTuple|;
+		Exit body
+			with caseTuple[index]
+			if value ∈ caseTuple[index]'s type[1];
+		Restart body with <index + 1>
+	](1);
+	case(value);
 ] : ⊤;
 
 /**

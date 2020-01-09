@@ -35,12 +35,8 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
-
-import java.util.List;
 
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
@@ -69,18 +65,15 @@ extends L2ControlFlowOperation
 	public static final L2_JUMP instance = new L2_JUMP();
 
 	@Override
-	protected void propagateTypes (
-		final L2Instruction instruction,
-		final List<RegisterSet> registerSets,
-		final L2Generator generator)
-	{
-		// No effect on registers; it just jumps unconditionally.
-	}
-
-	@Override
 	public boolean hasSideEffect ()
 	{
 		// It jumps, which counts as a side effect.
+		return true;
+	}
+
+	@Override
+	public boolean isUnconditionalJump ()
+	{
 		return true;
 	}
 
@@ -89,7 +82,7 @@ extends L2ControlFlowOperation
 	 *
 	 * @param instruction
 	 *        The {@link L2Instruction} to examine.  Its {@link L2Operation}
-	 *        must be an {@code L2_Jump}.
+	 *        must be an {@code L2_JUMP}.
 	 * @return The {@link L2PcOperand} to which the instruction jumps.
 	 */
 	public static L2PcOperand jumpTarget (final L2Instruction instruction)

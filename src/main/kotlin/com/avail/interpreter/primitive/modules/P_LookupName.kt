@@ -48,6 +48,7 @@ import com.avail.interpreter.AvailLoader
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
 
 /**
  * **Primitive:** Look up the [true][AtomDescriptor] bound to the specified
@@ -55,7 +56,7 @@ import com.avail.interpreter.Primitive.Flag.CanInline
  * [loaded][AvailLoader], creating the true name if necessary.
  */
 @Suppress("unused")
-object P_LookupName : Primitive(1, CanInline)
+object P_LookupName : Primitive(1, CanInline, ReadsFromHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{

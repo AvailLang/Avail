@@ -73,6 +73,7 @@ import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.io.TextInterface;
+import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.performance.Statistic;
 import com.avail.serialization.SerializerOperation;
@@ -94,6 +95,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.optimizer.jvm.CheckedMethod.instanceMethod;
 import static com.avail.utility.Casts.cast;
 import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.StackPrinter.trace;
@@ -1525,6 +1527,13 @@ implements
 		return true;
 	}
 
+	/** Access to the {@link A_BasicObject#equals(A_BasicObject)} method. */
+	public static final CheckedMethod equalsMethod = instanceMethod(
+		A_BasicObject.class,
+		"equals",
+		boolean.class,
+		A_BasicObject.class);
+
 	/**
 	 * Answer whether the receiver, an {@code AvailObject object}, and the
 	 * argument, a {@linkplain TupleDescriptor tuple}, are equal in value.
@@ -2631,6 +2640,7 @@ implements
 		return descriptor().o_LiteralAt(this, index);
 	}
 
+	@ReferencedInGeneratedCode
 	@Override
 	public AvailObject argOrLocalOrStackAt (
 		final int index)
@@ -2638,16 +2648,31 @@ implements
 		return descriptor().o_ArgOrLocalOrStackAt(this, index);
 	}
 
+	/** Access the {@link #argOrLocalOrStackAt(int)} method. */
+	public static final CheckedMethod argOrLocalOrStackAtMethod =
+		instanceMethod(
+			AvailObject.class,
+			"argOrLocalOrStackAt",
+			AvailObject.class,
+			int.class);
+
+	@ReferencedInGeneratedCode
 	@Override
 	public void argOrLocalOrStackAtPut (
 		final int index,
 		final AvailObject value)
 	{
-		descriptor().o_ArgOrLocalOrStackAtPut(
-			this,
-			index,
-			value);
+		descriptor().o_ArgOrLocalOrStackAtPut(this, index, value);
 	}
+
+	/** Access the {@link #argOrLocalOrStackAtPut(int, AvailObject)} method. */
+	public static final CheckedMethod argOrLocalOrStackAtPutMethod =
+		instanceMethod(
+			AvailObject.class,
+			"argOrLocalOrStackAtPut",
+			void.class,
+			int.class,
+			AvailObject.class);
 
 	@Override
 	public A_Type localTypeAt (
@@ -6073,7 +6098,7 @@ implements
 	}
 
 	@Override
-	public LookupTree<A_Definition, A_Tuple, Boolean> testingTree ()
+	public LookupTree<A_Definition, A_Tuple> testingTree ()
 	{
 		return descriptor().o_TestingTree(this);
 	}
@@ -6097,6 +6122,19 @@ implements
 	{
 		descriptor().o_ClearLexingState(this);
 	}
+
+	@ReferencedInGeneratedCode
+	@Override
+	public AvailObject registerDump()
+	{
+		return descriptor().o_RegisterDump(this);
+	}
+
+	/** Access the {@link #registerDump()} method. */
+	public static final CheckedMethod registerDumpMethod = instanceMethod(
+		AvailObject.class,
+		"registerDump",
+		AvailObject.class);
 
 	@Override
 	public AvailObject component1 ()

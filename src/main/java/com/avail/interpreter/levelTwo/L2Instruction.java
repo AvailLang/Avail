@@ -35,6 +35,9 @@ package com.avail.interpreter.levelTwo;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteOperand;
+import com.avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2ControlFlowGraph;
@@ -44,13 +47,17 @@ import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.optimizer.reoptimizer.L2Inliner;
 import org.objectweb.asm.MethodVisitor;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import static com.avail.utility.Casts.cast;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * {@code L2Instruction} is the foundation for all instructions understood by
@@ -87,7 +94,7 @@ public final class L2Instruction
 	/**
 	 * The {@link L2BasicBlock} to which the instruction belongs.
 	 */
-	public final L2BasicBlock basicBlock;
+	private @Nullable L2BasicBlock basicBlock;
 
 	/**
 	 * The source {@link L2Register}s.
@@ -97,8 +104,7 @@ public final class L2Instruction
 	/**
 	 * The destination {@link L2Register}s.
 	 */
-	final List<L2Register> destinationRegisters =
-		new ArrayList<>();
+	final List<L2Register> destinationRegisters = new ArrayList<>();
 
 	/**
 	 * The {@link L2Operation} whose execution this instruction represents.
@@ -128,10 +134,7 @@ public final class L2Instruction
 	 */
 	public void operandsDo (final Consumer<L2Operand> consumer)
 	{
-		for (final L2Operand operand : operands)
-		{
-			consumer.accept(operand);
-		}
+		Arrays.stream(operands).forEach(consumer);
 	}
 
 	/**
@@ -184,9 +187,7 @@ public final class L2Instruction
 	 * @param theOperands
 	 *        The array of {@link L2Operand}s on which this instruction
 	 *        operates.  These must agree with the operation's array of {@link
-	 *        L2NamedOperandType}s.  The operation is given an opportunity to
-	 *        augment this array, just as it may be given the opportunity to
-	 *        augment the named operand types.
+	 *        L2NamedOperandType}s.
 	 */
 	public L2Instruction (
 		final L2Generator generator,
@@ -204,9 +205,7 @@ public final class L2Instruction
 	 * @param theOperands
 	 *        The array of {@link L2Operand}s on which this instruction
 	 *        operates.  These must agree with the operation's array of {@link
-	 *        L2NamedOperandType}s.  The operation is given an opportunity to
-	 *        augment this array, just as it may be given the opportunity to
-	 *        augment the named operand types.
+	 *        L2NamedOperandType}s.
 	 * @param basicBlock
 	 *        The {@link L2BasicBlock} which will contain this instruction.
 	 */
@@ -215,20 +214,21 @@ public final class L2Instruction
 		final L2Operation operation,
 		final L2Operand... theOperands)
 	{
-		final L2Operand[] augmentedOperands = operation.augment(theOperands);
 		final L2NamedOperandType[] operandTypes = operation.namedOperandTypes;
-		assert operandTypes.length == augmentedOperands.length;
-		for (int i = 0; i < augmentedOperands.length; i++)
+		assert operandTypes.length == theOperands.length;
+		for (int i = 0; i < theOperands.length; i++)
 		{
-			assert augmentedOperands[i].operandType()
+			assert theOperands[i].operandType()
 				== operandTypes[i].operandType();
 		}
 		this.operation = operation;
-		this.operands = new L2Operand[augmentedOperands.length];
+		this.operands = new L2Operand[theOperands.length];
 		this.basicBlock = basicBlock;
 		for (int i = 0; i < operands.length; i++)
 		{
-			final L2Operand operand = augmentedOperands[i].clone();
+			final L2Operand operand = theOperands[i].clone();
+			//noinspection ThisEscapedInObjectConstruction
+			operand.adjustCloneForInstruction(this);
 			this.operands[i] = operand;
 			operand.addSourceRegistersTo(sourceRegisters);
 			operand.addDestinationRegistersTo(destinationRegisters);
@@ -236,8 +236,18 @@ public final class L2Instruction
 	}
 
 	/**
-	 * Answer the {@linkplain List list} of {@linkplain L2Register registers}
-	 * read by this {@code L2Instruction instruction}.
+	 * Check that this instruction's {@link #basicBlock} has been set, and that
+	 * each operand's instruction field has also been set.
+	 */
+	public void assertHasBeenEmitted ()
+	{
+		assert basicBlock != null;
+		operandsDo(L2Operand::assertHasBeenEmitted);
+	}
+
+	/**
+	 * Answer the {@linkplain List list} of {@link L2Register}s read by this
+	 * {@code L2Instruction instruction}.
 	 *
 	 * @return The source {@linkplain L2Register registers}.
 	 */
@@ -248,7 +258,7 @@ public final class L2Instruction
 	}
 
 	/**
-	 * Answer the {@link List list} of {@link L2Register} modified by this
+	 * Answer the {@link List list} of {@link L2Register}s modified by this
 	 * {@code L2Instruction instruction}.
 	 *
 	 * @return The source {@linkplain L2Register}s.
@@ -257,6 +267,36 @@ public final class L2Instruction
 	{
 		//noinspection AssignmentOrReturnOfFieldWithMutableType
 		return destinationRegisters;
+	}
+
+	/**
+	 * Answer a {@link List} of this instruction's {@link L2ReadOperand}s.
+	 *
+	 * @return The list of read operands.
+	 */
+	public List<L2ReadOperand<?>> readOperands ()
+	{
+		final List<L2ReadOperand<?>> list = new ArrayList<>();
+		for (final L2Operand operand : operands)
+		{
+			operand.addReadsTo(list);
+		}
+		return list;
+	}
+
+	/**
+	 * Answer a {@link List} of this instruction's {@link L2WriteOperand}s.
+	 *
+	 * @return The list of write operands.
+	 */
+	public List<L2WriteOperand<?>> writeOperands ()
+	{
+		final List<L2WriteOperand<?>> list = new ArrayList<>();
+		for (final L2Operand operand : operands)
+		{
+			operand.addWritesTo(list);
+		}
+		return list;
 	}
 
 	/**
@@ -303,6 +343,33 @@ public final class L2Instruction
 	}
 
 	/**
+	 * Answer whether this instruction is an entry point, which uses the
+	 * operation {@link L2_ENTER_L2_CHUNK}.
+	 *
+	 * @return Whether the instruction is an entry point.
+	 */
+	public boolean isEntryPoint ()
+	{
+		return operation().isEntryPoint(this);
+	}
+
+	/**
+	 * The receiver has been declared dead code.  If there's an alternative form
+	 * of this instruction that should replace it, provide it.
+	 *
+	 * <p>Note that the old instruction will be removed and the new one added,
+	 * so now's a good time to switch {@link L2PcOperand}s that may need to be
+	 * moved between the instructions.</p>
+	 *
+	 * @return Either null or a replacement {@code L2Instruction} for the given
+	 *         dead one.
+	 */
+	public @Nullable L2Instruction optionalReplacementForDeadInstruction ()
+	{
+		return operation().optionalReplacementForDeadInstruction(this);
+	}
+
+	/**
 	 * Replace all registers in this instruction using the registerRemap.  If a
 	 * register is not present as a key of that map, leave it alone.  Do not
 	 * assume SSA form.
@@ -329,32 +396,39 @@ public final class L2Instruction
 	 *
 	 * @param manifest
 	 *        The {@link L2ValueManifest} that is active where this instruction
-	 *        wos just added to its {@link L2BasicBlock}.
+	 *        was just added to its {@link L2BasicBlock}.
 	 */
 	public void justAdded (final L2ValueManifest manifest)
 	{
+		assert !isEntryPoint()
+			|| basicBlock().instructions().get(0) == this
+			: "Entry point instruction must be at start of a block";
+
+		operandsDo(operand -> operand.setInstruction(this));
 		operation().instructionWasAdded(this, manifest);
 	}
 
 	/**
 	 * This instruction was just added to its {@link L2BasicBlock} as part of an
 	 * optimization pass.
-	 *
-	 * @param manifest
-	 *        The {@link L2ValueManifest} that is active where this instruction
-	 *        wos just added to its {@link L2BasicBlock}.
 	 */
-	public void justInserted (final L2ValueManifest manifest)
+	public void justInserted ()
 	{
-		operation().instructionWasInserted(this, manifest);
+		operandsDo(operand -> operand.setInstruction(this));
+		operation().instructionWasInserted(this);
 	}
 
 	/**
-	 * This instruction was just removed from its {@link L2BasicBlock}.
+	 * This instruction was just removed from its {@link L2BasicBlock}'s list of
+	 * instructions, and needs to finish its removal by breaking back-pointers,
+	 * plus whatever else specific operands need to do when they're no longer
+	 * considered part of the code.
 	 */
 	public void justRemoved ()
 	{
-		operandsDo(operand -> operand.instructionWasRemoved(this));
+		operandsDo(L2Operand::instructionWasRemoved);
+		operandsDo(operand -> operand.setInstruction(null));
+		basicBlock = null;
 	}
 
 	/**
@@ -374,9 +448,41 @@ public final class L2Instruction
 	public String toString ()
 	{
 		final StringBuilder builder = new StringBuilder();
-		operation().toString(
-			this, EnumSet.allOf(L2OperandType.class), builder);
+		appendToWithWarnings(
+			builder, EnumSet.allOf(L2OperandType.class), b -> {});
 		return builder.toString();
+	}
+
+	/**
+	 * Output this instruction to the given builder, invoking the given
+	 * {@link Consumer} with a boolean to turn warning style on or off, if
+	 * tracked by the caller.
+	 *
+	 * @param builder
+	 *        Where to write the description of this instruction.
+	 * @param operandTypes
+	 *        Which {@link L2OperandType}s to include.
+	 * @param warningStyleChange
+	 *        A {@link Consumer} that takes {@code true} to start the warning
+	 *        style at the current builder position, and {@code false} to end
+	 *        it.  It must be invoked in (true, false) pairs.
+	 */
+	public void appendToWithWarnings (
+		final StringBuilder builder,
+		final Set<L2OperandType> operandTypes,
+		final Consumer<Boolean> warningStyleChange)
+	{
+		if (basicBlock == null)
+		{
+			warningStyleChange.accept(true);
+			builder.append("DEAD: ");
+			warningStyleChange.accept(false);
+		}
+		operation().appendToWithWarnings(
+			this,
+			operandTypes,
+			builder,
+			warningStyleChange);
 	}
 
 	/**
@@ -427,5 +533,15 @@ public final class L2Instruction
 		final MethodVisitor method)
 	{
 		operation().translateToJVM(translator, method, this);
+	}
+
+	/**
+	 * Anwser the {@link L2BasicBlock} to which this instruction belongs.
+	 *
+	 * @return This instruction's {@link L2BasicBlock}.
+	 */
+	public L2BasicBlock basicBlock ()
+	{
+		return stripNull(basicBlock);
 	}
 }

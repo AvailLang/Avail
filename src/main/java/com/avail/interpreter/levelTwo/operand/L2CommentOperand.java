@@ -73,8 +73,8 @@ extends L2Operand
 	}
 
 	@Override
-	public String toString ()
+	public void appendTo (final StringBuilder builder)
 	{
-		return "// " + comment;
+		builder.append("// ").append(comment);
 	}
 }

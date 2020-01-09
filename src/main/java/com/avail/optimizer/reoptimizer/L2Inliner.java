@@ -39,7 +39,11 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.*;
-import com.avail.optimizer.*;
+import com.avail.optimizer.L1Translator;
+import com.avail.optimizer.L2BasicBlock;
+import com.avail.optimizer.L2ControlFlowGraph;
+import com.avail.optimizer.L2Generator;
+import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.values.Frame;
 import com.avail.optimizer.values.L2SemanticValue;
 
@@ -96,13 +100,6 @@ public final class L2Inliner
 		@Override
 		public void doOperand (final L2ConstantOperand operand) { }
 
-		@Override
-		public void doOperand (final L2InternalCounterOperand operand)
-		{
-			// Create a new counter.
-			currentOperand = new L2InternalCounterOperand();
-		}
-
 		@SuppressWarnings("EmptyMethod")
 		@Override
 		public void doOperand (final L2IntImmediateOperand operand) { }
@@ -118,8 +115,8 @@ public final class L2Inliner
 			// There isn't a solid plan yet about how to narrow the types.
 			final L2ValueManifest oldManifest = operand.manifest();
 			currentOperand = new L2PcOperand(
-				operand,
 				mapBlock(operand.targetBlock()),
+				operand.isBackward(),
 				mapManifest(oldManifest));
 		}
 
@@ -194,7 +191,7 @@ public final class L2Inliner
 		public void doOperand (final L2WriteIntOperand operand)
 		{
 			currentOperand = targetGenerator.intWrite(
-				mapSemanticValue(operand.semanticValue()),
+				mapSemanticValue(operand.pickSemanticValue()),
 				operand.restriction());
 		}
 
@@ -202,7 +199,7 @@ public final class L2Inliner
 		public void doOperand (final L2WriteFloatOperand operand)
 		{
 			currentOperand = targetGenerator.floatWrite(
-				mapSemanticValue(operand.semanticValue()),
+				mapSemanticValue(operand.pickSemanticValue()),
 				operand.restriction());
 		}
 
@@ -210,7 +207,7 @@ public final class L2Inliner
 		public void doOperand (final L2WriteBoxedOperand operand)
 		{
 			currentOperand = targetGenerator.boxedWrite(
-				mapSemanticValue(operand.semanticValue()),
+				mapSemanticValue(operand.pickSemanticValue()),
 				operand.restriction());
 		}
 	}

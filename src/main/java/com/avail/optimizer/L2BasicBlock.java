@@ -33,15 +33,20 @@
 package com.avail.optimizer;
 
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
+import com.avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP;
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
+import com.avail.optimizer.L2ControlFlowGraph.Zone;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 import static com.avail.utility.Casts.cast;
+import static com.avail.utility.PrefixSharingList.last;
 
 /**
  * This is a traditional basic block, consisting of a sequence of {@link
@@ -93,6 +98,15 @@ public final class L2BasicBlock
 	 * block.
 	 */
 	private boolean hasControlFlowAtEnd = false;
+
+	/** Whether this block is the head of a loop. */
+	public boolean isLoopHead;
+
+	/**
+	 * The block's optional {@link Zone}, a mechanism to visually group blocks
+	 * in the {@link L2ControlFlowGraphVisualizer}.
+	 */
+	public @Nullable Zone zone;
 
 	/**
 	 * Answer the descriptive name of this basic block.
@@ -202,7 +216,8 @@ public final class L2BasicBlock
 
 	/**
 	 * Add a predecessor, due to an earlier basic block adding an instruction
-	 * that reaches this basic block.
+	 * that reaches this basic block.  Also allow backward edges to attach to
+	 * a loop head after code generation has already taken place in the target.
 	 *
 	 * @param predecessorEdge The {@link L2PcOperand} that leads here.
 	 */
@@ -211,6 +226,29 @@ public final class L2BasicBlock
 	{
 		assert predecessorEdge.sourceBlock().hasStartedCodeGeneration;
 		predecessorEdges.add(predecessorEdge);
+		if (hasStartedCodeGeneration)
+		{
+			final L2ValueManifest predecessorManifest =
+				predecessorEdge.manifest();
+			for (int i = 0; i < instructions.size(); i++)
+			{
+				final L2Instruction instruction = instructions.get(i);
+				final L2Operation operation = instruction.operation();
+				if (!operation.isPhi())
+				{
+					// All the phi instructions are at the start, so we've
+					// exhausted them.
+					break;
+				}
+				final L2_PHI_PSEUDO_OPERATION<?, ?, ?> phiOperation =
+					cast(operation);
+
+				// The body of the loop is required to still have available
+				// every semantic value mentioned in the original phis.
+				phiOperation.updateLoopHeadPhi(
+					predecessorManifest, instruction);
+			}
+		}
 	}
 
 	/**
@@ -229,19 +267,18 @@ public final class L2BasicBlock
 			for (int i = 0; i < instructions.size(); i++)
 			{
 				final L2Instruction instruction = instructions.get(i);
-				if (instruction.operation().isPhi())
-				{
-					final L2_PHI_PSEUDO_OPERATION<?, ?> phiOperation =
-						cast(instruction.operation());
-					final L2Instruction replacement =
-						phiOperation.withoutIndex(instruction, index);
-					instructions.set(i, replacement);
-				}
-				else
+				if (!instruction.operation().isPhi())
 				{
 					// Phi functions are always at the start of a block.
 					break;
 				}
+				final L2_PHI_PSEUDO_OPERATION<?, ?, ?> phiOperation =
+					cast(instruction.operation());
+				final L2Instruction replacement =
+					phiOperation.withoutIndex(instruction, index);
+				instruction.justRemoved();
+				instructions.set(i, replacement);
+				replacement.justInserted();
 			}
 		}
 		predecessorEdges.remove(predecessorEdge);
@@ -367,7 +404,7 @@ public final class L2BasicBlock
 			manifests.add(predecessorEdge.manifest());
 		}
 		generator.currentManifest().populateFromIntersection(
-			manifests, generator);
+			manifests, generator, isLoopHead, false);
 	}
 
 	/**
@@ -379,7 +416,7 @@ public final class L2BasicBlock
 	 *        The {@link L2Instruction} to append.
 	 * @param manifest
 	 *        The {@link L2ValueManifest} that is active where this instruction
-	 *        wos just added to its {@code L2BasicBlock}.
+	 *        was just added to its {@code L2BasicBlock}.
 	 */
 	public void addInstruction (
 		final L2Instruction instruction,
@@ -400,7 +437,7 @@ public final class L2BasicBlock
 	public void justAddInstruction (final L2Instruction instruction)
 	{
 		assert !hasControlFlowAtEnd;
-		assert instruction.basicBlock == this;
+		assert instruction.basicBlock() == this;
 		if (instruction.operation().isPhi())
 		{
 			// For simplicity, phi functions are routed to the *start* of the
@@ -416,6 +453,29 @@ public final class L2BasicBlock
 	}
 
 	/**
+	 * Answer the zero-based index of the first index beyond any
+	 * {@link L2_ENTER_L2_CHUNK} or {@link L2_PHI_PSEUDO_OPERATION}s.  It might
+	 * be just past the last valid index (i.e., equal to the size).
+	 *
+	 * @return The index of the first instruction that isn't an entry point or
+	 *         phi.
+	 */
+	public int indexAfterEntryPointAndPhis ()
+	{
+		int i = 0;
+		while (i < instructions.size())
+		{
+			final L2Instruction instruction = instructions.get(i);
+			if (!instruction.isEntryPoint() && !instruction.operation().isPhi())
+			{
+				return i;
+			}
+			i++;
+		}
+		return i;
+	}
+
+	/**
 	 * Insert an instruction in this basic block at the specified instruction
 	 * index, notifying the operands that the instruction was just added.
 	 *
@@ -423,20 +483,33 @@ public final class L2BasicBlock
 	 *        The index at which to insert the instruction.
 	 * @param instruction
 	 *        The {@link L2Instruction} to insert.
-	 * @param manifest
-	 *        The {@link L2ValueManifest} that is active where this instruction
-	 *        wos just added to its {@code L2BasicBlock}.
 	 */
 	public void insertInstruction (
 		final int index,
-		final L2Instruction instruction,
-		final L2ValueManifest manifest)
+		final L2Instruction instruction)
 	{
-		assert isIrremovable() || predecessorEdgesCount() > 0;
-		assert instruction.basicBlock == this;
+		assert instruction.basicBlock() == this;
 		instructions.add(index, instruction);
 		hasStartedCodeGeneration = true;
-		instruction.justInserted(manifest);
+		instruction.justInserted();
+	}
+
+	/**
+	 * One of my predecessors has been replaced.  Update my list of predecessors
+	 * to account for this change.
+	 *
+	 * @param oldPredecessorEdge
+	 *        The {@link L2PcOperand} that used to point here.
+	 * @param newPredecessorEdge
+	 *        The {@link L2PcOperand} that points here instead.
+	 */
+	public void replacePredecessorEdge (
+		final L2PcOperand oldPredecessorEdge,
+		final L2PcOperand newPredecessorEdge)
+	{
+		predecessorEdges.set(
+			predecessorEdges.indexOf(oldPredecessorEdge),
+			newPredecessorEdge);
 	}
 
 	/**
@@ -463,19 +536,41 @@ public final class L2BasicBlock
 	}
 
 	/**
+	 * Create a new basic block, marking it as a loop head if requested.
+	 *
+	 * @param name
+	 *        A descriptive name for the block.
+	 * @param isLoopHead
+	 *        Whether this block should be marked as the head of a loop.
+	 * @param zone
+	 *        A mechanism to visually group blocks in the
+	 *        {@link L2ControlFlowGraphVisualizer}, indicating the purpose of
+	 *        that group.
+	 */
+	public L2BasicBlock (
+		final String name,
+		final boolean isLoopHead,
+		final @Nullable Zone zone)
+	{
+		this.name = name;
+		this.isLoopHead = isLoopHead;
+		this.zone = zone;
+	}
+
+	/**
 	 * Create a new basic block.
 	 *
 	 * @param name A descriptive name for the block.
 	 */
 	public L2BasicBlock (final String name)
 	{
-		this.name = name;
+		this(name, false, null);
 	}
 
 	/**
 	 * Add this block's instructions to the given instruction list.  Also do
 	 * a special peephole optimization by removing any preceding {@link L2_JUMP}
-	 * if its target is this block.
+	 * if its target is this block, <em>unless</em> this block is a loop head.
 	 *
 	 * @param output
 	 *        The {@link List} of {@link L2Instruction}s in which to append this
@@ -483,9 +578,10 @@ public final class L2BasicBlock
 	 */
 	void generateOn (final List<L2Instruction> output)
 	{
-		// If the preceding instruction was a jump to here, remove it.  In fact,
-		// a null-jump might be on the end of the list, hiding another jump
-		// just behind it that leads here, making that one also be a null-jump.
+		// If the preceding instruction was a jump to here, remove it.  In
+		// fact, a null-jump might be on the end of the list, hiding another
+		// jump just behind it that leads here, making that one also be a
+		// null-jump.
 		boolean changed;
 		do
 		{
@@ -504,7 +600,8 @@ public final class L2BasicBlock
 					}
 				}
 			}
-		} while (changed);
+		}
+		while (changed);
 
 		int counter = output.size();
 		offset = counter;
@@ -521,6 +618,16 @@ public final class L2BasicBlock
 	@Override
 	public String toString ()
 	{
-		return "BasicBlock(" + name + ')';
+		String suffix = "";
+		if (instructions.size() > 0)
+		{
+			final int firstOffset = instructions.get(0).offset();
+			final int lastOffset = last(instructions).offset();
+			if (firstOffset != -1 && lastOffset != -1)
+			{
+				suffix = "[" + firstOffset + ".." + lastOffset;
+			}
+		}
+		return "BasicBlock(" + name + ')' + suffix;
 	}
 }

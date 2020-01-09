@@ -47,8 +47,7 @@ import com.avail.descriptor.TypeDescriptor.Types.TOP
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.CannotFail
-import com.avail.interpreter.Primitive.Flag.Private
+import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive:** This private primitive is used to ensure that a module can
@@ -61,7 +60,8 @@ import com.avail.interpreter.Primitive.Flag.Private
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object P_DeclareAllExportedAtoms : Primitive(2, CannotFail, Private)
+object P_DeclareAllExportedAtoms : Primitive(
+	2, CannotFail, Private, HasSideEffect, WritesToHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{

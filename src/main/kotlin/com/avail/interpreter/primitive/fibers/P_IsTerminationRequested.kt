@@ -48,7 +48,8 @@ import com.avail.interpreter.Primitive.Flag.*
  * interrupt flag and simultaneously clear it.
  */
 @Suppress("unused")
-object P_IsTerminationRequested : Primitive(0, CannotFail, CanInline, HasSideEffect)
+object P_IsTerminationRequested : Primitive(
+	0, CannotFail, CanInline, HasSideEffect, ReadsFromHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{

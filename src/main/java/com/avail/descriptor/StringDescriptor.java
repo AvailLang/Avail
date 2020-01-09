@@ -45,6 +45,7 @@ import javax.annotation.Nullable;
 import static com.avail.descriptor.ByteStringDescriptor.mutableObjectFromNativeByteString;
 import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
 import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
+import static com.avail.descriptor.TwoByteStringDescriptor.generateTwoByteString;
 import static com.avail.descriptor.TwoByteStringDescriptor.mutableObjectFromNativeTwoByteString;
 
 /**
@@ -106,6 +107,51 @@ extends TupleDescriptor
 	protected final void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.write(object.asNativeString());
+	}
+
+	/**
+	 * Convert the specified Java {@link String} to an Avail {@link A_String},
+	 * but keeping any Java surrogate pairs as two distinct values in the Avail
+	 * string.  Note that such a string is semantically different from what
+	 * would be produced by {@link #stringFrom(String)}, and isn't even
+	 * necessarily the same length.  This operation is intended for
+	 * compatibility with Java (and JavaScript) strings.
+	 *
+	 * <p>NB: The {@linkplain AbstractDescriptor descriptor} type of the actual
+	 * instance returned varies with the contents of the Java {@code String}. If
+	 * the Java {@code String} contains only Latin-1 characters, then the
+	 * descriptor will be {@link ByteStringDescriptor}; otherwise it will be
+	 * {@link TwoByteStringDescriptor}.</p>
+	 *
+	 * @param aNativeString
+	 *        A Java {@link String}.
+	 * @return An Avail {@code StringDescriptor string} having the same length,
+	 *         but with surrogate pairs (D800-DBFF and DC00-DFFF) preserved in
+	 *         the Avail string.
+	 */
+	public static A_String stringWithSurrogatesFrom (final String aNativeString)
+	{
+		final int charCount = aNativeString.length();
+		if (charCount == 0)
+		{
+			return emptyTuple();
+		}
+		int maxChar = 0;
+		int index = 0;
+		while (index < charCount)
+		{
+			final char aChar = aNativeString.charAt(index);
+			maxChar = Math.max(maxChar, aChar);
+			index ++;
+		}
+		if (maxChar <= 255)
+		{
+			return mutableObjectFromNativeByteString(aNativeString);
+		}
+		// Pack it into a TwoByteString, preserving surrogates.
+		return generateTwoByteString(
+			aNativeString.length(),
+			i -> aNativeString.charAt(i - 1));
 	}
 
 	/**

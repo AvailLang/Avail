@@ -1132,8 +1132,8 @@ Method "_≤_" is
 	[
 		cp1 ::= s1[index]'s code point;
 		cp2 ::= s2[index]'s code point;
-		If cp1 < cp2 then [Exit body with true]
-		else if cp1 > cp2 then [Exit body with false];
+		Exit body with true if cp1 < cp2;
+		Exit body with false if cp1 > cp2;
 	];
 	|s1| ≤ |s2|
 ] : boolean;
@@ -1178,8 +1178,8 @@ Method "_≥_" is
 	[
 		cp1 ::= s1[index]'s code point;
 		cp2 ::= s2[index]'s code point;
-		If cp1 > cp2 then [Exit body with true]
-		else if cp1 < cp2 then [Exit body with false];
+		Exit body with true if cp1 > cp2;
+		Exit body with false if cp1 < cp2;
 	];
 	|s1| ≥ |s2|
 ] : boolean;

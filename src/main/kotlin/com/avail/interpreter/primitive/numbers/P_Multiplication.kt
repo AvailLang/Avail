@@ -249,7 +249,7 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 	}
 
 	override fun fallibilityForArgumentTypes(argumentTypes: List<A_Type>)
-		: Primitive.Fallibility
+		: Fallibility
 	{
 		val aType = argumentTypes[0]
 		val bType = argumentTypes[1]
@@ -339,8 +339,8 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 					intA,
 					intB,
 					tempWriter,
-					edgeTo(success),
-					edgeTo(fallback))
+					edgeTo(fallback),
+					edgeTo(success))
 				generator.startBlock(success)
 			}
 			// Even though we're just using the boxed value again, the unboxed

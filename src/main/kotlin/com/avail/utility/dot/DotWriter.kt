@@ -99,12 +99,17 @@ import kotlin.math.min
  *   block comments.
  * @param accumulator
  *   The accumulator for the generated source code.
+ * @param darkMode
+ *   If true, draw with light colors on a dark background.
+ * @param copyrightOwner
+ *   This name is embedded in a copyright claim within the document.
  */
 class DotWriter constructor(
 	private val name: String,
 	internal val isDirected: Boolean,
 	internal val charactersPerLine: Int,
 	internal val accumulator: Appendable,
+	private val darkMode: Boolean = true,
 	val copyrightOwner: String = System.getProperty("user.name"))
 {
 	/**
@@ -253,42 +258,36 @@ class DotWriter constructor(
 			var whiteRun = 0
 			var i = 0
 			val lineLimit = min(s.length, max)
-			while (i < max)
+			while (i < lineLimit)
 			{
-				var codePoint = s.codePointAt(i)
-				if (codePoint == '\n'.toInt())
+				var cp = s.codePointAt(i)
+				if (cp == '\n'.toInt())
 				{
 					// Upon discovery of a linefeed, compute the next line and
 					// the residue.
 					return Pair(s.substring(0, i), s.substring(i + 1))
 				}
-				if (Character.isWhitespace(codePoint))
+				if (Character.isWhitespace(cp))
 				{
 					// Note the first whitespace character discovered. Skip any
 					// subsequent whitespace characters — if they occur at the
 					// end of a line, then they will be omitted.
 					whiteIndex = i
-					var sz = Character.charCount(codePoint)
-					whiteRun = sz
-					while (true)
+					whiteRun = 0
+					do
 					{
+						val sz = Character.charCount(cp)
 						i += sz
-						if (i < lineLimit)
-						{
-							codePoint = s.codePointAt(i)
-							if (!Character.isWhitespace(codePoint))
-							{
-								break
-							}
-							sz = Character.charCount(codePoint)
-							whiteRun += sz
-						}
+						whiteRun += sz
+						cp =
+							if (i < s.length) s.codePointAt(i) else 'x'.toInt()
 					}
+					while (Character.isWhitespace(cp))
 				}
 				else
 				{
 					// Otherwise, just move on to the next character.
-					i += Character.charCount(codePoint)
+					i += Character.charCount(cp)
 				}
 			}
 			if (whiteIndex > 0)
@@ -299,49 +298,44 @@ class DotWriter constructor(
 					s.substring(0, whiteIndex),
 					s.substring(whiteIndex + whiteRun))
 			}
-			else
+			// If no whitespace was discovered, then we cannot honor the
+			// character limit strictly. Look for the next whitespace
+			// character and terminate the line there.
+			val wideLimit = s.length
+			while (i < wideLimit)
 			{
-				// If no whitespace was discovered, then we cannot honor the
-				// character limit strictly. Look for the next whitespace
-				// character and terminate the line there.
-				val wideLimit = s.length
-				outer@ while (i < wideLimit)
+				var cp = s.codePointAt(i)
+				if (Character.isWhitespace(cp))
 				{
-					var cp = s.codePointAt(i)
-					if (Character.isWhitespace(cp))
+					whiteIndex = i
+					whiteRun = 0
+					do
 					{
-						whiteIndex = i
-						var sz = Character.charCount(cp)
-						whiteRun = sz
-						while (true)
-						{
-							i += sz
-							if (i < wideLimit)
-							{
-								cp = s.codePointAt(i)
-								if (!Character.isWhitespace(cp))
-								{
-									break@outer
-								}
-								sz = Character.charCount(cp)
-								whiteRun += sz
-							}
-						}
+						val sz = Character.charCount(cp)
+						i += sz
+						whiteRun += sz
+						cp =
+							if (i < wideLimit) s.codePointAt(i) else 'x'.toInt()
 					}
+					while (Character.isWhitespace(cp))
+					break
+				}
+				else
+				{
 					i += Character.charCount(cp)
 				}
-				if (whiteIndex == 0)
-				{
-					// If no whitespace characters were ever discovered and the
-					// limit was exceeded, then answer the entire string as the
-					// line and empty residue.
-					assert(whiteRun == 0)
-					return Pair(s, "")
-				}
-				return Pair(
-					s.substring(0, whiteIndex),
-					s.substring(whiteIndex + whiteRun))
 			}
+			if (whiteIndex == 0)
+			{
+				// If no whitespace characters were ever discovered and the
+				// limit was exceeded, then answer the entire string as the
+				// line and empty residue.
+				assert(whiteRun == 0)
+				return Pair(s, "")
+			}
+			return Pair(
+				s.substring(0, whiteIndex),
+				s.substring(whiteIndex + whiteRun))
 		}
 
 		/**
@@ -437,12 +431,53 @@ class DotWriter constructor(
 		@Throws(IOException::class)
 		fun attribute(lhs: String, rhs: String)
 		{
+			val isColor = lhs.contains("color")
 			indent()
 			identifier(lhs)
 			emit(" = ")
-			identifier(rhs)
+			identifier(if (isColor) adjust(rhs) else rhs)
 			linefeed()
 		}
+
+		/**
+		 * Answer an adjusted rhs (right hand side), taking into account which
+		 * format the rhs takes, and whether dark mode is active.
+		 */
+		fun adjust(rhs: String): String {
+			// Look for #xxxxxx/xxxxxx (light/dark) notation first.
+			val multiMatcher = multicolorPattern.matcher(rhs)
+			if (multiMatcher.find()) {
+				return "#" + multiMatcher.group(if (darkMode) 2 else 1)
+			}
+			if (!darkMode) {
+				return rhs
+			}
+			val uniMatcher = unicolorPattern.matcher(rhs)
+			if (uniMatcher.find()) {
+				val original = Integer.parseInt(uniMatcher.group(1), 16)
+				var r = original shr 16
+				var g = original shr 16 and 255
+				var b = original and 255
+				// Compress each component into the upper 1/2 range.
+				r = 255 - ((255 - r) shr 1)
+				g = 255 - ((255 - g) shr 1)
+				b = 255 - ((255 - b) shr 1)
+				return String.format("#%02x%02x%02x", r, g, b)
+			}
+			// Maybe a symbolic color name.  Leave it alone.
+			return rhs
+		}
+
+		/**
+		 * Answer an adjusted rhs (right hand side), taking into account which
+		 * format the rhs takes, and whether dark mode is active.  This method
+		 * takes a boolean, which if true processes the second argument,
+		 * otherwise the third.
+		 */
+		fun adjust(
+			condition: Boolean, trueString: String, falseString: String
+		): String =
+			adjust(if (condition) trueString else falseString)
 	}
 
 	/**
@@ -1086,5 +1121,13 @@ class DotWriter constructor(
 				port: String,
 				compassPoint: CompassPoint) =
 			DecoratedNode(name, port, compassPoint)
+
+		/** The pattern to match for light/dark bimodal colors. */
+		val multicolorPattern =
+			Pattern.compile("^#([0-9a-fA-F]{6})/#?([0-9a-fA-F]{6})$")
+
+		/** The pattern to match for light-only colors. */
+		val unicolorPattern =
+			Pattern.compile("^#([0-9a-fA-F]{6})$")
 	}
 }

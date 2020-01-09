@@ -102,23 +102,20 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 			TOP.o())
 
 	override fun fallibilityForArgumentTypes(argumentTypes: List<A_Type>)
-		: Primitive.Fallibility
+		: Fallibility
 	{
 		val functionType = argumentTypes[0]
 		val argTupleType = argumentTypes[1]
 		val paramsType = functionType.argsTupleType()
 		val fixedSize = argTupleType.sizeRange().upperBound().equals(
 			argTupleType.sizeRange().lowerBound())
-		return if (fixedSize
-		           && paramsType.sizeRange().equals(argTupleType.sizeRange())
-		           && argTupleType.isSubtypeOf(paramsType))
-			{
-				CallSiteCannotFail
-			}
-			else
-			{
-				CallSiteCanFail
-			}
+		if (fixedSize
+			&& paramsType.sizeRange().equals(argTupleType.sizeRange())
+			&& argTupleType.isSubtypeOf(paramsType))
+		{
+			return CallSiteCannotFail
+		}
+		return CallSiteCanFail
 	}
 
 	override fun returnTypeGuaranteedByVM(
@@ -194,7 +191,6 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 	 * of (two) argument registers by the list of registers that supplied
 	 * entries for the tuple.
 	 *
-	 *
 	 * If, however, the exact constant function cannot be determined, and it
 	 * cannot be proven that the function's type is adequate to accept the
 	 * arguments (each of whose type must be known here for safety), then don't
@@ -216,9 +212,10 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 		val functionArgsType = functionType.argsTupleType()
 		val functionTypeSizes = functionArgsType.sizeRange()
 		val upperBound = functionTypeSizes.upperBound()
-		if (!upperBound.isInt || !functionTypeSizes.lowerBound().equals(upperBound))
+		if (!upperBound.isInt ||
+			!functionTypeSizes.lowerBound().equals(upperBound))
 		{
-			// The exact function signature is not known.  Give up.
+			// The exact function arity is not known.  Give up.
 			return false
 		}
 		val argsSize = upperBound.extractInt()
@@ -227,8 +224,10 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 			translator.explodeTupleIfPossible(
 				tupleReg,
 				toList(functionArgsType.tupleOfTypesFromTo(1, argsSize)))
-                  ?: return false
-
+		if (explodedArgumentRegisters == null)
+		{
+			return false
+		}
 		// Fold out the call of this primitive, replacing it with an invoke of
 		// the supplied function, instead.  The client will generate any needed
 		// type strengthening, so don't do it here.

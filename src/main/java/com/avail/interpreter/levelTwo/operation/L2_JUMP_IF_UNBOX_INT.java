@@ -40,18 +40,16 @@ import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
-import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
+import java.util.function.Consumer;
 
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT;
 import static org.objectweb.asm.Opcodes.IFEQ;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
 import static org.objectweb.asm.Type.*;
@@ -72,9 +70,9 @@ extends L2ConditionalJump
 	{
 		super(
 			READ_BOXED.is("source"),
-			WRITE_INT.is("destination"),
-			PC.is("if unboxed", SUCCESS),
-			PC.is("if not unboxed", FAILURE));
+			WRITE_INT.is("destination", SUCCESS),
+			PC.is("if not unboxed", FAILURE),
+			PC.is("if unboxed", SUCCESS));
 	}
 
 	/**
@@ -84,16 +82,17 @@ extends L2ConditionalJump
 		new L2_JUMP_IF_UNBOX_INT();
 
 	@Override
-	public void toString (
+	public void appendToWithWarnings (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
-		final StringBuilder builder)
+		final StringBuilder builder,
+		final Consumer<Boolean> warningStyleChange)
 	{
 		assert this == instruction.operation();
 		final L2ReadBoxedOperand source = instruction.operand(0);
 		final L2WriteIntOperand destination = instruction.operand(1);
-//		final L2PcOperand ifUnboxed = instruction.operand(2);
-//		final L2PcOperand ifNotUnboxed = instruction.operand(3);
+//		final L2PcOperand ifNotUnboxed = instruction.operand(2);
+//		final L2PcOperand ifUnboxed = instruction.operand(3);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
@@ -111,28 +110,16 @@ extends L2ConditionalJump
 		assert this == instruction.operation();
 		final L2ReadBoxedOperand source = instruction.operand(0);
 		final L2WriteIntOperand destination = instruction.operand(1);
-		final L2PcOperand ifUnboxed = instruction.operand(2);
-		final L2PcOperand ifNotUnboxed = instruction.operand(3);
+		final L2PcOperand ifNotUnboxed = instruction.operand(2);
+		final L2PcOperand ifUnboxed = instruction.operand(3);
 
-		// Ensure the new write ends up in the same synonym as the source.
-		source.instructionWasAdded(instruction, manifest);
-		ifUnboxed.instructionWasAdded(instruction, manifest);
-		ifNotUnboxed.instructionWasAdded(instruction, manifest);
-
-		// Merge the source and destination only along the ifUnboxed branch.
+		source.instructionWasAdded(manifest);
+		ifNotUnboxed.instructionWasAdded(manifest);
+		// Ensure the new write ends up in the same synonym as the source, along
+		// the success edge.
 		destination.instructionWasAddedForMove(
-			instruction, source.semanticValue(), ifUnboxed.manifest());
-		final TypeRestriction sourceRestriction = source.restriction();
-		ifUnboxed.manifest().setRestriction(
-			destination.semanticValue(),
-			sourceRestriction
-				.intersectionWithType(int32())
-				.withFlag(UNBOXED_INT));
-		ifNotUnboxed.manifest().setRestriction(
-			source.semanticValue(),
-			sourceRestriction
-				.minusType(int32())
-				.withoutFlag(UNBOXED_INT));
+			source.semanticValue(), manifest);
+		ifUnboxed.instructionWasAdded(manifest);
 	}
 
 	@Override
@@ -143,8 +130,8 @@ extends L2ConditionalJump
 	{
 		final L2ReadBoxedOperand source = instruction.operand(0);
 		final L2WriteIntOperand destination = instruction.operand(1);
-		final L2PcOperand ifUnboxed = instruction.operand(2);
-		final L2PcOperand ifNotUnboxed = instruction.operand(3);
+		final L2PcOperand ifNotUnboxed = instruction.operand(2);
+		final L2PcOperand ifUnboxed = instruction.operand(3);
 
 		// :: if (!source.isInt()) goto ifNotUnboxed;
 		translator.load(method, source.register());

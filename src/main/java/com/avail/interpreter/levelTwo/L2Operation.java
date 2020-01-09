@@ -36,11 +36,18 @@ import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.A_Variable;
 import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.Primitive;
+import com.avail.interpreter.Primitive.Flag;
+import com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose;
 import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.operation.L2ControlFlowOperation;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE;
+import com.avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT;
+import com.avail.interpreter.levelTwo.operation.L2_VIRTUAL_REIFY;
+import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
 import com.avail.optimizer.L2BasicBlock;
+import com.avail.optimizer.L2ControlFlowGraph.Zone;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.RegisterSet;
@@ -51,12 +58,15 @@ import com.avail.performance.StatisticReport;
 import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType;
+import static com.avail.utility.Casts.cast;
 import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.Strings.increaseIndentation;
 import static java.util.Collections.emptyList;
@@ -73,6 +83,63 @@ import static java.util.Collections.emptyList;
  */
 public abstract class L2Operation
 {
+	/**
+	 * A brief hierarchy of classes for sensibly parameterizing the
+	 * {@link ReadsHiddenVariable} and {@link WritesHiddenVariable} annotations
+	 * on an {@code L2Operation}s.  We'd use an {@code enum} here, but they
+	 * don't play at all nicely with annotations in Java.
+	 */
+	@SuppressWarnings("AbstractClassWithoutAbstractMethods")
+	public abstract static class HiddenVariable
+	{
+		/** How the current continuation field is affected. */
+		@HiddenVariableShift(0)
+		public static class CURRENT_CONTINUATION extends HiddenVariable { }
+
+		/** How the current function field is affected. */
+		@HiddenVariableShift(1)
+		public static class CURRENT_FUNCTION extends HiddenVariable { }
+
+		/** How the current arguments of this frame are affected. */
+		@HiddenVariableShift(2)
+		public static class CURRENT_ARGUMENTS extends HiddenVariable { }
+
+		/** How the latest return value field is affected. */
+		@HiddenVariableShift(3)
+		public static class LATEST_RETURN_VALUE extends HiddenVariable { }
+
+		/** How the current stack reifier field is affected. */
+		@HiddenVariableShift(4)
+		public static class STACK_REIFIER extends HiddenVariable { }
+
+		/**
+		 * How any other global variables are affected.  This includes things
+		 * like the global exception reporter, the stringification function,
+		 * observerless setup, etc.
+		 *
+		 * <p>{@link Primitive}s are annotated with the
+		 * {@link Flag#ReadsFromHiddenGlobalState} and
+		 * {@link Flag#WritesToHiddenGlobalState} flags in their constructors to
+		 * indicate that {@code GLOBAL_STATE} is affected.</p>
+		 */
+		@HiddenVariableShift(5)
+		public static class GLOBAL_STATE extends HiddenVariable { }
+	}
+
+	/**
+	 * The bitwise-or of the masks of {@link HiddenVariable}s that are read by
+	 * {@link L2Instruction}s using this operation.  Note that all reads are
+	 * considered to happen before all writes.
+	 */
+	public final int readsHiddenVariablesMask;
+
+	/**
+	 * The bitwise-or of the masks of {@link HiddenVariable}s that are
+	 * overwritten by {@link L2Instruction}s using this operation.  Note that
+	 * all reads are considered to happen before all writes.
+	 */
+	public final int writesHiddenVariablesMask;
+
 	/**
 	 * Is the enclosing {@link L2Instruction} an entry point into its {@link
 	 * L2Chunk}?
@@ -130,6 +197,10 @@ public abstract class L2Operation
 	/**
 	 * Protect the constructor so the subclasses can maintain a fly-weight
 	 * pattern (or arguably a singleton).
+	 *
+	 * @param theNamedOperandTypes
+	 *        The {@link L2NamedOperandType}s that describe the layout of
+	 *        operands for my instructions.
 	 */
 	protected L2Operation (final L2NamedOperandType... theNamedOperandTypes)
 	{
@@ -139,11 +210,42 @@ public abstract class L2Operation
 			className, StatisticReport.L2_TO_JVM_TRANSLATION_TIME);
 		namedOperandTypes = theNamedOperandTypes.clone();
 
-		// The number of targets won't be large, so don't worry about the
-		// quadratic cost.  An N-way dispatch would be a different story.
 		assert this instanceof L2ControlFlowOperation
+			|| this instanceof L2_SAVE_ALL_AND_PC_TO_INT
 			|| Arrays.stream(namedOperandTypes).noneMatch(
 				x -> x.operandType() == L2OperandType.PC);
+
+		final @Nullable ReadsHiddenVariable readsAnnotation =
+			getClass().getAnnotation(ReadsHiddenVariable.class);
+		int readMask = 0;
+		if (readsAnnotation != null)
+		{
+			for (final Class<? extends HiddenVariable> hiddenVariableSubclass :
+				readsAnnotation.value())
+			{
+				final HiddenVariableShift shiftAnnotation =
+					hiddenVariableSubclass.getAnnotation(
+						HiddenVariableShift.class);
+				readMask |= 1 << shiftAnnotation.value();
+			}
+		}
+		this.readsHiddenVariablesMask = readMask;
+
+		final @Nullable WritesHiddenVariable writesAnnotation =
+			getClass().getAnnotation(WritesHiddenVariable.class);
+		int writeMask = 0;
+		if (writesAnnotation != null)
+		{
+			for (final Class<? extends HiddenVariable> hiddenVariableSubclass :
+				writesAnnotation.value())
+			{
+				final HiddenVariableShift shiftAnnotation =
+					hiddenVariableSubclass.getAnnotation(
+						HiddenVariableShift.class);
+				writeMask |= 1 << shiftAnnotation.value();
+			}
+		}
+		this.writesHiddenVariablesMask = writeMask;
 	}
 
 	/**
@@ -200,6 +302,7 @@ public abstract class L2Operation
 	 * the same finalIndex can be left out during code generation, although it
 	 * can't actually be removed before then.
 	 *
+	 * @param instruction The instruction containing this operation.
 	 * @return A {@code boolean} indicating if this operation should be emitted.
 	 */
 	public boolean shouldEmit (final L2Instruction instruction)
@@ -244,6 +347,26 @@ public abstract class L2Operation
 	}
 
 	/**
+	 * Answer whether the {@link L2Instruction}, which has this
+	 * {@code L2Operation} as its operation, is sufficient cause to consider
+	 * an {@link L2Chunk} containing it to not be considered a simple leaf.
+	 *
+	 * <p>A simple leaf must not invoke other chunks, loop, or originate
+	 * reification for any reason other than an interrupt.  Simple leaves may
+	 * have their interrupt check elided for performance.</p>
+	 *
+	 * @param instruction
+	 *        The instruction to check, which has this as its operation.
+	 * @return Whether to disqualify an {@link L2Chunk} containing the given
+	 *         instruction from being treated as a simple leaf.
+	 */
+	public boolean makesChunkNotSimpleLeaf (final L2Instruction instruction)
+	{
+		assert instruction.operation() == this;
+		return false;
+	}
+
+	/**
 	 * Answer whether execution of this instruction can divert the flow of
 	 * control from the next instruction.  An L2Operation either always falls
 	 * through or always alters control.
@@ -251,6 +374,30 @@ public abstract class L2Operation
 	 * @return Whether this operation alters the flow of control.
 	 */
 	public boolean altersControlFlow ()
+	{
+		return false;
+	}
+
+	/**
+	 * Answer true if this instruction leads to multiple targets, *multiple* of
+	 * which can be reached.  This is not the same as a branch, in which only
+	 * one will be reached for any circumstance of reaching this instruction.
+	 * In particular, an {@link L2_SAVE_ALL_AND_PC_TO_INT} instruction jumps to
+	 * its fall-through label, but after reification has saved the live register
+	 * state, it gets restored again and winds up traversing the other edge.
+	 *
+	 * <p>This is an important distinction, in that this type of instruction
+	 * should act as a barrier against redundancy elimination.  Otherwise an
+	 * object with identity (i.e., a variable) created in the first branch won't
+	 * be the same as the one produced in the second branch.</p>
+	 *
+	 * <p>Also, we must treat as always-live-in to this instruction any values
+	 * that are used in <em>either</em> branch, since they'll both be taken.</p>
+	 *
+	 * @return Whether multiple branches may be taken following the circumstance
+	 *         of arriving at this instruction.
+	 */
+	public boolean goesMultipleWays ()
 	{
 		return false;
 	}
@@ -301,9 +448,45 @@ public abstract class L2Operation
 	}
 
 	/**
+	 * Answer whether this operation is a placeholder, and should be replaced
+	 * using {@link L2Generator#replaceInstructionByGenerating(L2Instruction)}.
+	 * Placeholder instructions (like {@link L2_VIRTUAL_REIFY}) are free to be
+	 * moved through much of the control flow graph, even though the subgraphs
+	 * they eventually get replaced by would be too complex to move.  The
+	 * mobility of placeholder instructions is essential to postponing
+	 * stack reification and label creation into off-ramps (reification
+	 * {@link Zone}s) as much as possible.
+	 *
+	 * @return Whether the {@link L2Instruction} using this operation is a
+	 *         placeholder, subject to later substitution.
+	 */
+	public boolean isPlaceholder ()
+	{
+		return false;
+	}
+
+	/**
+	 * Answer whether this operation causes unconditional control flow jump to
+	 * another {@link L2BasicBlock}.
+	 *
+	 * @return {@code true} iff this is an unconditional jump.
+	 */
+	public boolean isUnconditionalJump ()
+	{
+		return false;
+	}
+
+	/**
 	 * This is the operation for the given instruction, which was just added to
 	 * its basic block.  Do any post-processing appropriate for having added
-	 * the instruction.
+	 * the instruction.  Its operands have already had their instruction fields
+	 * set to the given instruction.
+	 *
+	 * <p>Automatically handle {@link L2WriteOperand}s that list a
+	 * {@link Purpose} in their corresponding {@link L2NamedOperandType},
+	 * ensuring the write is only considered to happen along the edge
+	 * ({@link L2PcOperand}) having the same purpose.  Subclasses may want to do
+	 * additional postprocessing.</p>
 	 *
 	 * @param instruction
 	 *        The {@link L2Instruction} that was just added.
@@ -314,12 +497,44 @@ public abstract class L2Operation
 		final L2Instruction instruction,
 		final L2ValueManifest manifest)
 	{
-		assert !isEntryPoint(instruction)
-				|| instruction.basicBlock.instructions().get(0) == instruction
-			: "Entry point instruction must be at start of a block";
-		for (final L2Operand operand : instruction.operands())
+		final List<Integer> edgeIndexOrder = new ArrayList<>();
+		final L2Operand[] operands = instruction.operands();
+		for (int i = 0; i < operands.length; i++)
 		{
-			operand.instructionWasAdded(instruction, manifest);
+			final L2NamedOperandType namedOperandType = namedOperandTypes[i];
+			final @Nullable Purpose purpose = namedOperandType.purpose();
+			final L2Operand operand = operands[i];
+			if (purpose == null)
+			{
+				// Process all operands without a purpose first.
+				operand.instructionWasAdded(manifest);
+			}
+			else
+			{
+				if (operand instanceof L2PcOperand)
+				{
+					edgeIndexOrder.add(i);
+				}
+			}
+		}
+		// Create separate copies of the manifest for each outgoing edge.
+		for (final int operandIndex : edgeIndexOrder)
+		{
+			final L2PcOperand edge = cast(operands[operandIndex]);
+			final Purpose purpose =
+				stripNull(namedOperandTypes[operandIndex].purpose());
+			final L2ValueManifest manifestCopy = new L2ValueManifest(manifest);
+			for (int i = 0; i < operands.length; i++)
+			{
+				final L2NamedOperandType namedOperandType =
+					namedOperandTypes[i];
+				if (namedOperandType.purpose() == purpose
+					&& !(operands[i] instanceof L2PcOperand))
+				{
+					operands[i].instructionWasAdded(manifestCopy);
+				}
+			}
+			edge.instructionWasAdded(manifestCopy);
 		}
 	}
 
@@ -330,18 +545,16 @@ public abstract class L2Operation
 	 *
 	 * @param instruction
 	 *        The {@link L2Instruction} that was just inserted.
-	 * @param manifest
-	 *        The {@link L2ValueManifest} that is active at this instruction.
 	 */
 	public void instructionWasInserted (
-		final L2Instruction instruction,
-		final L2ValueManifest manifest)
+		final L2Instruction instruction)
 	{
 		assert !isEntryPoint(instruction)
-			|| instruction.basicBlock.instructions().get(0) == instruction
+			|| instruction.basicBlock().instructions().get(0) == instruction
 			: "Entry point instruction must be at start of a block";
+
 		instruction.operandsDo(
-			operand -> operand.instructionWasInserted(instruction, manifest));
+			operand -> operand.instructionWasInserted(instruction));
 	}
 
 	/**
@@ -386,6 +599,7 @@ public abstract class L2Operation
 	 * @return Whether the regenerated instructions are different enough to
 	 *         warrant another pass of flow analysis.
 	 */
+	@Deprecated
 	public boolean regenerate (
 		final L2Instruction instruction,
 		final RegisterSet registerSet,
@@ -433,7 +647,7 @@ public abstract class L2Operation
 			new L2IntImmediateOperand(outerIndex),
 			functionRegister,
 			writer);
-		return generator.readBoxed(writer.semanticValue());
+		return generator.readBoxed(writer);
 	}
 
 	/**
@@ -574,11 +788,16 @@ public abstract class L2Operation
 	 * @param builder
 	 *        The {@link StringBuilder} to which the rendition should be
 	 *        written.
+	 * @param warningStyleChange
+	 *        A mechanism to turn on and off a warning style, which the caller
+	 *        may listen to, to track regions of the builder to highlight in its
+	 *        own warning style.  This must be invoked in (true, false) pairs.
 	 */
-	public void toString (
+	public void appendToWithWarnings (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
-		final StringBuilder builder)
+		final StringBuilder builder,
+		final Consumer<Boolean> warningStyleChange)
 	{
 		assert this == instruction.operation();
 		renderPreamble(instruction, builder);
@@ -594,7 +813,7 @@ public abstract class L2Operation
 				assert operand.operandType() == type.operandType();
 				builder.append(type.name());
 				builder.append(" = ");
-				builder.append(increaseIndentation(operand.toString(), 1));
+				operand.appendWithWarningsTo(builder, 1, warningStyleChange);
 			}
 		}
 	}
@@ -617,16 +836,47 @@ public abstract class L2Operation
 		L2Instruction instruction);
 
 	/**
-	 * Augment the array of operands with any that are supposed to be supplied
-	 * implicitly by this class.
+	 * Generate code to replace this {@link L2Instruction}.  The instruction has
+	 * already been removed.  Leave the generator in a state that ensures any
+	 * {@link L2Register}s that would have been written by the old instruction
+	 * are instead written by the new code.
 	 *
-	 * @param operands The original array of {@link L2Operand}s.
-	 * @return The augmented array of {@link L2Operand}s, which may be the same
-	 *         as the given array.
+	 * <p>Leave the code generation at the point where subsequent instructions
+	 * of the rebuilt block will be re-emitted, whether that's in the same block
+	 * or not.</p>
+	 *
+	 * @param instruction
+	 *        The {@link L2Instruction} being replaced.
+	 * @param generator
+	 *        An {@link L2Generator} that has been configured for writing
+	 *        arbitrary replacement code for this instruction.
 	 */
-	public L2Operand[] augment (
-		final L2Operand[] operands)
+	public void generateReplacement (
+		final L2Instruction instruction,
+		final L2Generator generator)
 	{
-		return operands;
+		throw new RuntimeException(
+			"A " + instruction.operation()
+				+ " cannot be transformed by regeneration");
+	}
+
+	/**
+	 * The given instruction has been declared dead code (the receiver is that
+	 * instruction's operation).  If there's an alternative form of that
+	 * instruction that should replace it, provide it.
+	 *
+	 * <p>Note that the old instruction will be removed and the new one added,
+	 * so now's a good time to switch {@link L2PcOperand}s that may need to be
+	 * moved between the instructions.</p>
+	 *
+	 * @param instruction
+	 *        The instruction about to be removed or replaced.
+	 * @return Either null or a replacement {@code L2Instruction} for the given
+	 *         dead one.
+	 */
+	public @Nullable L2Instruction optionalReplacementForDeadInstruction (
+		final L2Instruction instruction)
+	{
+		return null;
 	}
 }

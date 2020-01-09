@@ -208,18 +208,13 @@ Method "For each of⁇_do_" is
 	aSet : set,
 	action : [⊥]→⊤
 |
-	index : natural number := 1;
 	aTuple ::= aSet→tuple;
-	end ::= |aTuple|;
+	From 1 to |aTuple| do
 	[
-		$loop;
-		If index ≤ end then
-		[
-			action(aTuple[index]);
-			index++;
-			Restart loop
-		];
-	]();
+		index : natural number
+	|
+		action(aTuple[index]);
+	];
 ] : ⊤;
 
 /**
@@ -696,10 +691,7 @@ Method "any of_satisfies_" is
 	$body : boolean;
 	For each element of aSet do
 	[
-		If predicate(element) then
-		[
-			Exit body with true
-		];
+		Exit body with true if predicate(element);
 	];
 	false
 ] : boolean;
@@ -741,10 +733,7 @@ Method "each of_satisfies_" is
 	$body : boolean;
 	For each element of aSet do
 	[
-		Unless predicate(element) then
-		[
-			Exit body with false
-		];
+		Exit body with false if ¬predicate(element);
 	];
 	true
 ] : boolean;

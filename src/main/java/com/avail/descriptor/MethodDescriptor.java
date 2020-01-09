@@ -84,7 +84,12 @@ import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Locks.Auto;
 import com.avail.utility.json.JSONWriter;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.WeakHashMap;
 
 import static com.avail.AvailRuntimeSupport.nextHash;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
@@ -578,7 +583,7 @@ extends Descriptor
 		final A_Tuple argumentTypeTuple)
 	throws MethodDefinitionException
 	{
-		final LookupTree<A_Definition, A_Tuple, Boolean> tree =
+		final LookupTree<A_Definition, A_Tuple> tree =
 			object.slot(PRIVATE_TESTING_TREE).javaObjectNotNull();
 		final A_Tuple resultTuple =
 			runtimeDispatcher.lookupByTypes(tree, argumentTypeTuple, TRUE);
@@ -596,7 +601,7 @@ extends Descriptor
 		final List<? extends A_BasicObject> argumentList)
 	throws MethodDefinitionException
 	{
-		final LookupTree<A_Definition, A_Tuple, Boolean> tree =
+		final LookupTree<A_Definition, A_Tuple> tree =
 			object.slot(PRIVATE_TESTING_TREE).javaObjectNotNull();
 		final A_Tuple results =
 			runtimeDispatcher.lookupByValues(tree, argumentList, TRUE);
@@ -620,7 +625,7 @@ extends Descriptor
 		final AvailObject object,
 		final A_Tuple argumentPhraseTuple)
 	{
-		final LookupTree<A_Definition, A_Tuple, Boolean> tree =
+		final LookupTree<A_Definition, A_Tuple> tree =
 			object.slot(MACRO_TESTING_TREE).javaObjectNotNull();
 		return runtimeDispatcher.lookupByValues(
 			tree, argumentPhraseTuple, TRUE);
@@ -841,7 +846,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected LookupTree<A_Definition, A_Tuple, Boolean> o_TestingTree (
+	protected LookupTree<A_Definition, A_Tuple> o_TestingTree (
 		final AvailObject object)
 	{
 		return object.slot(PRIVATE_TESTING_TREE).javaObjectNotNull();
@@ -911,13 +916,13 @@ extends Descriptor
 		result.setSlot(
 			DEPENDENT_CHUNKS_WEAK_SET_POJO,
 			identityPojo(chunkSet).makeShared());
-		final LookupTree<A_Definition, A_Tuple, Boolean> definitionsTree =
+		final LookupTree<A_Definition, A_Tuple> definitionsTree =
 			runtimeDispatcher.createRoot(
 				emptyList(), nCopiesOfAnyRestriction(numArgs), TRUE);
 		result.setSlot(
 			PRIVATE_TESTING_TREE,
 			identityPojo(definitionsTree).makeShared());
-		final LookupTree<A_Definition, A_Tuple, Boolean> macrosTree =
+		final LookupTree<A_Definition, A_Tuple> macrosTree =
 			runtimeDispatcher.createRoot(
 				emptyList(),
 				nCopies(
@@ -995,7 +1000,7 @@ extends Descriptor
 		final int numArgs = object.slot(NUM_ARGS);
 		final List<TypeRestriction> initialTypes =
 			nCopiesOfAnyRestriction(numArgs);
-		final LookupTree<A_Definition, A_Tuple, Boolean> definitionsTree =
+		final LookupTree<A_Definition, A_Tuple> definitionsTree =
 			runtimeDispatcher.createRoot(
 				TupleDescriptor.toList(object.slot(DEFINITIONS_TUPLE)),
 				initialTypes,
@@ -1003,7 +1008,7 @@ extends Descriptor
 		object.setSlot(
 			PRIVATE_TESTING_TREE,
 			identityPojo(definitionsTree).makeShared());
-		final LookupTree<A_Definition, A_Tuple, Boolean> macrosTree =
+		final LookupTree<A_Definition, A_Tuple> macrosTree =
 			runtimeDispatcher.createRoot(
 				TupleDescriptor.toList(object.slot(MACRO_DEFINITIONS_TUPLE)),
 				initialTypes,

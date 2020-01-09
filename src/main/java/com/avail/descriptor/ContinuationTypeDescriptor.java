@@ -34,7 +34,7 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.objects.A_BasicObject;
-import com.avail.interpreter.primitive.controlflow.P_ExitContinuationWithResult;
+import com.avail.interpreter.primitive.controlflow.P_ExitContinuationWithResultIf;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
@@ -60,7 +60,7 @@ import static com.avail.descriptor.SetDescriptor.emptySet;
  * arguments}, so continuation types are contravariant with respect to their
  * function types' argument types.  Surprisingly, continuation types are also
  * contravariant with respect to their function types' return types.  This is
- * due to the capability to {@linkplain P_ExitContinuationWithResult exit} a
+ * due to the capability to {@linkplain P_ExitContinuationWithResultIf exit} a
  * continuation with a specific value.
  * </p>
  *
@@ -275,17 +275,17 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Create a {@linkplain ContinuationTypeDescriptor continuation type} based
-	 * on the passed {@linkplain FunctionTypeDescriptor function type}. Ignore
-	 * the function type's exception set.
+	 * Create a continuation type based on the passed
+	 * {@linkplain FunctionTypeDescriptor function type}. Ignore the function
+	 * type's exception set.
 	 *
 	 * @param functionType
 	 *        A {@linkplain FunctionTypeDescriptor function type} on which to
-	 *        base the new {@linkplain ContinuationTypeDescriptor continuation
-	 *        type}.
-	 * @return A new {@linkplain ContinuationTypeDescriptor}.
+	 *        base the new continuation type.
+	 * @return A new continuation type.
 	 */
-	public static A_Type continuationTypeForFunctionType (final A_Type functionType)
+	public static A_Type continuationTypeForFunctionType (
+		final A_Type functionType)
 	{
 		final AvailObject result = mutable.create();
 		result.setSlot(FUNCTION_TYPE, functionType.makeImmutable());
@@ -294,7 +294,7 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Construct a new {@link ContinuationTypeDescriptor}.
+	 * Construct a new {@code ContinuationTypeDescriptor}.
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
@@ -347,11 +347,10 @@ extends TypeDescriptor
 			functionTypeReturning(bottom())).makeShared();
 
 	/**
-	 * Answer the most general {@linkplain ContinuationTypeDescriptor
-	 * continuation type}.
+	 * Answer the most general continuation type}.
 	 *
-	 * @return A {@linkplain ContinuationTypeDescriptor continuation type} which
-	 *         has no supertypes that are themselves continuation types.
+	 * @return A continuation type which has no supertypes that are themselves
+	 *         continuation types.
 	 */
 	public static A_Type mostGeneralContinuationType ()
 	{
@@ -360,8 +359,8 @@ extends TypeDescriptor
 
 	/**
 	 * The metatype for all continuation types.  In particular, it's just the
-	 * {@linkplain InstanceTypeDescriptor instance type} for the {@linkplain
-	 * #mostGeneralType most general continuation type}.
+	 * {@linkplain InstanceTypeDescriptor instance type} for the
+	 * {@link #mostGeneralContinuationType()}.
 	 */
 	private static final A_Type meta =
 		instanceMeta(mostGeneralType).makeShared();

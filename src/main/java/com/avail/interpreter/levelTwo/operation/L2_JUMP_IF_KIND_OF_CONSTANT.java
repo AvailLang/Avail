@@ -49,6 +49,7 @@ import org.objectweb.asm.MethodVisitor;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
@@ -96,11 +97,7 @@ extends L2ConditionalJump
 		final L2PcOperand ifKind = instruction.operand(2);
 		final L2PcOperand ifNotKind = instruction.operand(3);
 
-		// Ensure the new write ends up in the same synonym as the source.
-		value.instructionWasAdded(instruction, manifest);
-		constantType.instructionWasAdded(instruction, manifest);
-		ifKind.instructionWasAdded(instruction, manifest);
-		ifNotKind.instructionWasAdded(instruction, manifest);
+		super.instructionWasAdded(instruction, manifest);
 
 		// Restrict to the intersection along the ifKind branch, and exclude the
 		// type along the ifNotKind branch.
@@ -170,10 +167,11 @@ extends L2ConditionalJump
 	}
 
 	@Override
-	public void toString (
+	public void appendToWithWarnings (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
-		final StringBuilder builder)
+		final StringBuilder builder,
+		final Consumer<Boolean> warningStyleChange)
 	{
 		assert this == instruction.operation();
 		final L2ReadBoxedOperand value = instruction.operand(0);

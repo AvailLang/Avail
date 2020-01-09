@@ -199,12 +199,11 @@ internal class BuildLoader constructor(
 		else
 		{
 			val repository = moduleName.repository
-			val archive = repository.getArchive(
-				moduleName.rootRelativeName)
+			val archive = repository.getArchive(moduleName.rootRelativeName)
 			val digest = archive.digestForFile(moduleName)
 			val versionKey = ModuleVersionKey(moduleName, digest)
-			val version = archive.getVersion(versionKey)
-				?: error("Version should have been populated during tracing")
+			val version = archive.getVersion(versionKey) ?: error(
+				"Version should have been populated during tracing")
 			val imports = version.imports
 			val resolver = availBuilder.runtime.moduleNameResolver()
 			val loadedModulesByName = HashMap<String, LoadedModule>()

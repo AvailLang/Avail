@@ -103,8 +103,8 @@ extends L2Operation
 	public static void reenter (final Interpreter interpreter)
 	{
 		final A_Continuation continuation =
-			stripNull(interpreter.reifiedContinuation);
-		interpreter.reifiedContinuation = (AvailObject) continuation.caller();
+			stripNull(interpreter.getReifiedContinuation());
+		interpreter.setReifiedContinuation(continuation.caller());
 		if (debugL1)
 		{
 			Interpreter.log(

@@ -44,8 +44,11 @@ import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_CONSTANT;
 import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.interpreter.levelTwo.register.L2FloatRegister;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
+import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
+import com.avail.optimizer.L2Synonym;
 
 import javax.annotation.Nullable;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Objects;
@@ -144,6 +147,13 @@ public final class TypeRestriction
 
 		/** A pre-computed bit mask for this flag. */
 		public final int mask = 1 << ordinal();
+
+		/**
+		 * A pre-computed bit mask for just the {@link RegisterKind}-related
+		 * flags.
+		 */
+		public static final int allKindsMask =
+			BOXED.mask | UNBOXED_INT.mask | UNBOXED_FLOAT.mask;
 	}
 
 	/**
@@ -294,9 +304,9 @@ public final class TypeRestriction
 			excludedTypes,
 			excludedValues,
 			(isImmutable ? IMMUTABLE.mask : 0)
-				+ (isBoxed ? BOXED.mask : 0)
-				+ (isUnboxedInt ? UNBOXED_INT.mask : 0)
-				+ (isUnboxedFloat ? UNBOXED_FLOAT.mask : 0));
+				| (isBoxed ? BOXED.mask : 0)
+				| (isUnboxedInt ? UNBOXED_INT.mask : 0)
+				| (isUnboxedFloat ? UNBOXED_FLOAT.mask : 0));
 	}
 
 	/**
@@ -546,9 +556,9 @@ public final class TypeRestriction
 	{
 		final int flags =
 			(isImmutable ? IMMUTABLE.mask : 0)
-				+ (isBoxed ? BOXED.mask : 0)
-				+ (isUnboxedInt ? UNBOXED_INT.mask : 0)
-				+ (isUnboxedFloat ? UNBOXED_FLOAT.mask : 0);
+				| (isBoxed ? BOXED.mask : 0)
+				| (isUnboxedInt ? UNBOXED_INT.mask : 0)
+				| (isUnboxedFloat ? UNBOXED_FLOAT.mask : 0);
 		return restriction(
 			type,
 			constantOrNull,
@@ -578,7 +588,7 @@ public final class TypeRestriction
 		final A_Type type,
 		final @Nullable A_BasicObject constantOrNull,
 		final Set<A_Type> givenExcludedTypes,
-		final Set<A_BasicObject> givenExcludedValues,
+		final Set<? extends A_BasicObject> givenExcludedValues,
 		final int flags)
 	{
 		if (constantOrNull == null
@@ -589,7 +599,8 @@ public final class TypeRestriction
 			// (or bottom's type, which has only one instance, bottom).  See if
 			// excluding disallowed types and values happens to leave exactly
 			// zero or one possibility.
-			final Set<A_BasicObject> instances = toSet(type.instances());
+			final Set<AvailObject> instances = toSet(type.instances());
+			//noinspection SuspiciousMethodCalls
 			instances.removeAll(givenExcludedValues);
 			instances.removeIf(
 				instance -> givenExcludedTypes.stream().anyMatch(
@@ -846,13 +857,11 @@ public final class TypeRestriction
 	{
 		if (constantOrNull != null
 			&& other.constantOrNull != null
-			&& constantOrNull.equals(other.constantOrNull))
+			&& constantOrNull.equals(other.constantOrNull)
+			&& flags == other.flags)
 		{
-			// The two restrictions are for the same constant value.
-			return constantOrNull.equalsNil()
-				? nilRestriction
-				: restriction(
-					instanceTypeOrMetaOn(constantOrNull), constantOrNull);
+			// The two restrictions are equivalent, for the same constant value.
+			return this;
 		}
 		// We can only exclude types that were excluded in both restrictions.
 		// Therefore find each intersection of an excluded type from the first
@@ -1135,7 +1144,7 @@ public final class TypeRestriction
 	{
 		if ((flags & flagEncoding.mask) == 0)
 		{
-			// Flag is already set.
+			// Flag is already clear.
 			return this;
 		}
 		return restriction(
@@ -1145,6 +1154,33 @@ public final class TypeRestriction
 			excludedValues,
 			flags & ~flagEncoding.mask);
 	}
+
+	/**
+	 * Answer a restriction like the receiver, but excluding
+	 * {@link RegisterKind}-related flags that aren't set in the given
+	 * {@code kindFlagEncoding}.
+	 *
+	 * @param kindFlagEncoding
+	 *        The {@link RestrictionFlagEncoding} to clear.
+	 * @return The new {@code TypeRestriction}, or the receiver.
+	 */
+	public TypeRestriction restrictingKindsTo (
+		final int kindFlagEncoding)
+	{
+		assert (kindFlagEncoding & ~allKindsMask) == 0;
+		final int newFlags = (flags & ~allKindsMask) | kindFlagEncoding;
+		if (newFlags == flags)
+		{
+			return this;
+		}
+		return restriction(
+			type,
+			constantOrNull,
+			excludedTypes,
+			excludedValues,
+			newFlags);
+	}
+
 
 	/**
 	 * If this restriction has only a finite set of possible values, and the
@@ -1174,6 +1210,32 @@ public final class TypeRestriction
 			return type.instances();
 		}
 		return null;
+	}
+
+	/**
+	 * Answer an {@link EnumSet} indicating which {@link RegisterKind}s are
+	 * present in this restriction.
+	 *
+	 * @return The {@link EnumSet} of {@link RegisterKind}s known to be
+	 *         available at some place when an {@link L2Synonym} has this
+	 *         restriction.
+	 */
+	public EnumSet<RegisterKind> kinds ()
+	{
+		final EnumSet<RegisterKind> set = EnumSet.noneOf(RegisterKind.class);
+		if (isBoxed())
+		{
+			set.add(RegisterKind.BOXED);
+		}
+		if (isUnboxedInt())
+		{
+			set.add(RegisterKind.INTEGER);
+		}
+		if (isUnboxedFloat())
+		{
+			set.add(RegisterKind.FLOAT);
+		}
+		return set;
 	}
 
 	@Override
@@ -1275,7 +1337,16 @@ public final class TypeRestriction
 		if (constantOrNull != null)
 		{
 			builder.append("c=");
-			builder.append(constantOrNull);
+			String valueString = constantOrNull.toString();
+			if (valueString.length() > 50)
+			{
+				valueString = valueString.substring(0, 50) + '…';
+			}
+			//noinspection DynamicRegexReplaceableByCompiledPattern
+			valueString = valueString
+				.replace("\n", "\\n")
+				.replace("\t", "\\t");
+			builder.append(valueString);
 		}
 		else
 		{

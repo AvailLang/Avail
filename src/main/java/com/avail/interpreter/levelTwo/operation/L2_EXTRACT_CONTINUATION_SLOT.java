@@ -31,8 +31,6 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_Continuation;
-import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
@@ -43,10 +41,10 @@ import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
+import java.util.function.Consumer;
 
+import static com.avail.descriptor.AvailObject.argOrLocalOrStackAtMethod;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Type.*;
 
 /**
  * Extract a single slot from a continuation.
@@ -75,10 +73,11 @@ extends L2Operation
 		new L2_EXTRACT_CONTINUATION_SLOT();
 
 	@Override
-	public void toString (
+	public void appendToWithWarnings (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
-		final StringBuilder builder)
+		final StringBuilder builder,
+		final Consumer<Boolean> warningStyleChange)
 	{
 		assert this == instruction.operation();
 		final L2ReadBoxedOperand continuation = instruction.operand(0);
@@ -109,12 +108,7 @@ extends L2Operation
 		// :: «slot[i]» = continuation.argOrLocalOrStackAt(«slotIndex»);
 		translator.load(method, continuation.register());
 		translator.intConstant(method, slotIndex.value);
-		method.visitMethodInsn(
-			INVOKEINTERFACE,
-			getInternalName(A_Continuation.class),
-			"argOrLocalOrStackAt",
-			getMethodDescriptor(getType(AvailObject.class), INT_TYPE),
-			true);
+		argOrLocalOrStackAtMethod.generateCall(method);
 		translator.store(method, slotValue.register());
 	}
 }

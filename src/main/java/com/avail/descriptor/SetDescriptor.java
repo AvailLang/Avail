@@ -56,7 +56,6 @@ import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
 import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
-import static com.avail.utility.Casts.cast;
 import static java.lang.String.format;
 
 /**
@@ -733,16 +732,15 @@ extends Descriptor
 	 *
 	 * @param set
 	 *        An Avail set.
-	 * @return The corresponding Java {@link Set} of objects.
-	 * @param <X> The type of elements in the resulting {@link Set}.
+	 * @return The corresponding Java {@link Set} of {@link AvailObject}s.
 	 */
-	public static <X extends A_BasicObject> Set<X> toSet (
+	public static Set<AvailObject> toSet (
 		final A_Set set)
 	{
-		final Set<X> nativeSet = new HashSet<>(set.setSize());
+		final Set<AvailObject> nativeSet = new HashSet<>(set.setSize());
 		for (final AvailObject element : set)
 		{
-			nativeSet.add(cast(element));
+			nativeSet.add(element);
 		}
 		return nativeSet;
 	}

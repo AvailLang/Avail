@@ -36,17 +36,28 @@ import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadFloatOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteOperand;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding;
+import com.avail.interpreter.levelTwo.operation.L2_MOVE;
 import com.avail.optimizer.L2ControlFlowGraph;
+import com.avail.optimizer.L2Entity;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.reoptimizer.L2Inliner;
+import com.avail.optimizer.values.L2SemanticValue;
+import com.avail.utility.Casts;
+import org.objectweb.asm.Type;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
 import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Type.*;
 
 /**
  * {@code L2Register} models the conceptual use of a register by a {@linkplain
@@ -55,7 +66,7 @@ import static org.objectweb.asm.Opcodes.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public abstract class L2Register
+public abstract class L2Register implements L2Entity
 {
 	/**
 	 * One of the kinds of registers that Level Two supports.
@@ -66,25 +77,86 @@ public abstract class L2Register
 		 * The kind of register that holds an {@link AvailObject}.
 		 */
 		BOXED(
+			"boxed",
+			"r",
+			getDescriptor(AvailObject.class),
 			ALOAD,
 			ASTORE,
-			RestrictionFlagEncoding.BOXED),
+			RestrictionFlagEncoding.BOXED)
+		{
+			@Override
+			public <
+				R extends L2Register,
+				RR extends L2ReadOperand<R>>
+			RR readOperand (
+				final L2SemanticValue semanticValue,
+				final TypeRestriction restriction,
+				final R register)
+			{
+				return Casts.<L2ReadOperand<?>, RR>cast(
+					new L2ReadBoxedOperand(
+						semanticValue,
+						restriction,
+						(L2BoxedRegister) register));
+			}
+		},
 
 		/**
 		 * The kind of register that holds an {@code int}.
 		 */
 		INTEGER(
+			"int",
+			"i",
+			INT_TYPE.getDescriptor(),
 			ILOAD,
 			ISTORE,
-			RestrictionFlagEncoding.UNBOXED_INT),
+			RestrictionFlagEncoding.UNBOXED_INT)
+		{
+			@Override
+			public <
+				R extends L2Register,
+				RR extends L2ReadOperand<R>>
+			RR readOperand (
+				final L2SemanticValue semanticValue,
+				final TypeRestriction restriction,
+				final R register)
+			{
+				return Casts.<L2ReadOperand<?>, RR>cast(
+					new L2ReadIntOperand(
+						semanticValue,
+						restriction,
+						(L2IntRegister) register));
+			}
+		},
 
 		/**
 		 * The kind of register that holds a {@code double}.
 		 */
 		FLOAT(
+			"float",
+			"f",
+			DOUBLE_TYPE.getDescriptor(),
 			DLOAD,
 			DSTORE,
-			RestrictionFlagEncoding.UNBOXED_FLOAT),
+			RestrictionFlagEncoding.UNBOXED_FLOAT)
+			{
+				@Override
+				public <
+					R extends L2Register,
+					RR extends L2ReadOperand<R>>
+				RR readOperand (
+					final L2SemanticValue semanticValue,
+					final TypeRestriction restriction,
+					final R register)
+				{
+					return Casts.<L2ReadOperand<?>, RR>cast(
+						new L2ReadFloatOperand(
+							semanticValue,
+							restriction,
+							(L2FloatRegister) register));
+				}
+			};
+
 
 //		/**
 //		 * The kind of register that holds the value of some variable prior to
@@ -93,6 +165,15 @@ public abstract class L2Register
 //		UNESCAPED_VARIABLE_VALUE
 		;
 
+		/** The prefix to use for registers of this kind. */
+		public final String prefix;
+
+		/** The descriptive name of this register kind. */
+		public final String kindName;
+
+		/** The JVM {@link Type} string. */
+		public final String jvmTypeString;
+
 		/** The JVM instruction that loads a register of this kind. */
 		public final int loadInstruction;
 
@@ -100,14 +181,64 @@ public abstract class L2Register
 		public final int storeInstruction;
 
 		/**
-±		 * The {@link RestrictionFlagEncoding} used to indicate a {@link
-		 * TypeRestriction} has an available register of this kind.
+		 * The {@link RestrictionFlagEncoding} used to indicate a
+		 * {@link TypeRestriction} has an available register of this kind.
 		 */
 		public final RestrictionFlagEncoding restrictionFlag;
 
 		/**
+		 * Answer a suitable {@link L2ReadOperand} for extracting the indicated
+		 * {@link L2SemanticValue} of this kind.
+		 *
+		 * @param semanticValue
+		 *        The {@link L2SemanticValue} to consume via an
+		 *        {@link L2ReadOperand}.
+		 * @param restriction
+		 *        The {@link TypeRestriction} relevant to this read.
+		 * @param register
+		 *        The earliest known defining {@link L2Register} of the
+		 *        {@link L2SemanticValue}.
+		 * @return The new {@link L2ReadOperand}.
+		 * @param <R> The {@link L2Register} subclass.
+		 * @param <RR> The {@link L2ReadOperand} subclass.
+		 */
+		public abstract <
+			R extends L2Register,
+			RR extends L2ReadOperand<R>>
+		RR readOperand (
+			final L2SemanticValue semanticValue,
+			final TypeRestriction restriction,
+			final R register);
+
+		/**
+		 * Answer a suitable {@link L2_MOVE} operation for transferring values
+		 * of this kind.
+		 *
+		 * @return The new {@link L2ReadOperand}.
+		 * @param <R> The {@link L2Register} subclass.
+		 * @param <RR> The {@link L2ReadOperand} subclass.
+		 * @param <WR> The {@link L2WriteOperand} subclass.
+		 */
+		public <
+			R extends L2Register,
+			RR extends L2ReadOperand<R>,
+			WR extends L2WriteOperand<R>>
+		L2_MOVE<R, RR, WR> move ()
+		{
+			return Casts.<L2_MOVE<?, ?, ?>, L2_MOVE<R, RR, WR>>cast (
+				L2_MOVE.moveByKind(this));
+		}
+
+		/**
 		 * Create an instance of the enum.
 		 *
+		 * @param kindName
+		 *        A descriptive name for this kind of register.
+		 * @param prefix
+		 *        The prefix to use when naming registers of this kind.
+		 * @param jvmTypeString
+		 *        The canonical {@link String} used to identify this
+		 *        {@link Type} of register to the JVM.
 		 * @param loadInstruction
 		 *        The JVM instruction for loading.
 		 * @param storeInstruction
@@ -116,10 +247,16 @@ public abstract class L2Register
 		 *        The corresponding {@link RestrictionFlagEncoding}.
 		 */
 		RegisterKind(
+			final String kindName,
+			final String prefix,
+			final String jvmTypeString,
 			final int loadInstruction,
 			final int storeInstruction,
 			final RestrictionFlagEncoding restrictionFlag)
 		{
+			this.kindName = kindName;
+			this.prefix = prefix;
+			this.jvmTypeString = jvmTypeString;
 			this.loadInstruction = loadInstruction;
 			this.storeInstruction = storeInstruction;
 			this.restrictionFlag = restrictionFlag;
@@ -201,97 +338,101 @@ public abstract class L2Register
 	}
 
 	/**
-	 * The instructions that assigns to this register. While the {@link
-	 * L2ControlFlowGraph} is in SSA form, there should be exactly one.
+	 * The {@link L2WriteOperand}s that assign to this register.  While the
+	 * {@link L2ControlFlowGraph} is in SSA form, there should be exactly one.
 	 */
-	private final Set<L2Instruction> definitions = new HashSet<>();
+	private final Set<L2WriteOperand<?>> definitions = new HashSet<>();
 
 	/**
-	 * Record this {@link L2Instruction} in my set of defining instructions.
+	 * Record this {@link L2WriteOperand} in my set of defining write operands.
 	 *
-	 * @param instruction
-	 *        An instruction that writes to this register in the control flow
-	 *        graph of basic blocks.
+	 * @param write
+	 *        An {@link L2WriteOperand} that's an operand of an instruction that
+	 *        writes to this register in the control flow graph of basic blocks.
 	 */
-	public void addDefinition (final L2Instruction instruction)
+	public void addDefinition (final L2WriteOperand<?> write)
 	{
-		definitions.add(instruction);
+		definitions.add(write);
 	}
 
 	/**
-	 * Remove the given {@link L2Instruction} as one of the writers to this
+	 * Remove the given {@link L2WriteOperand} as one of the writers to this
 	 * register.
 	 *
-	 * @param instruction
-	 *        The {@link L2Instruction} to remove from my set of defining
-	 *        instructions.
+	 * @param write
+	 *        The {@link L2WriteOperand} to remove from my set of defining
+	 *        write operands.
 	 */
-	public void removeDefinition (final L2Instruction instruction)
+	public void removeDefinition (final L2WriteOperand<?> write)
 	{
-		definitions.remove(instruction);
+		definitions.remove(write);
 	}
 
 	/**
-	 * Answer the {@link L2Instruction} which assigns this register in the SSA
-	 * control flow graph. It must have been assigned already, and there must be
-	 * exactly one (this is a property of SSA).
+	 * Answer the {@link L2WriteOperand} of an {@link L2Instruction} which
+	 * assigns this register in the SSA control flow graph. It must have been
+	 * assigned already, and there must be exactly one (when the control flow
+	 * graph is in SSA form).
 	 *
-	 * @return The requested {@code L2Instruction}.
+	 * @return The requested {@code L2WriteOperand}.
 	 */
-	public L2Instruction definition ()
+	public L2WriteOperand<?> definition ()
 	{
 		assert definitions.size() == 1;
 		return definitions.iterator().next();
 	}
 
 	/**
-	 * Answer the {@link L2Instruction}s which assign this register in the
+	 * Answer the {@link L2WriteOperand}s which assign this register in the
 	 * control flow graph, which is not necessarily in SSA form. It must be
 	 * non-empty.
 	 *
-	 * @return This register's defining instructions.
+	 * @return This register's defining {@link L2WriteOperand}s.
 	 */
-	public Collection<L2Instruction> definitions ()
+	public Collection<L2WriteOperand<?>> definitions ()
 	{
 		//noinspection AssignmentOrReturnOfFieldWithMutableType
 		return definitions;
 	}
 
 	/**
-	 * The instructions that read from this register. This is a {@link Set}, so
-	 * that an instruction that uses the same register twice only counts once.
+	 * The {@link L2ReadOperand}s of emitted {@link L2Instruction}s that read
+	 * from this register.
 	 */
-	private final Set<L2Instruction> uses = new HashSet<>();
+	private final Set<L2ReadOperand<?>> uses = new HashSet<>();
 
 	/**
-	 * Capture another instruction that uses this register.
+	 * Capture another {@link L2ReadOperand} of an emitted {@link L2Instruction}
+	 * that uses this register.
 	 *
-	 * @param instruction
-	 *        An instruction that reads from this register.
+	 * @param read
+	 *        The {@link L2ReadOperand} that reads from this register.
 	 */
-	public void addUse (final L2Instruction instruction)
+	public void addUse (final L2ReadOperand<?> read)
 	{
-		uses.add(instruction);
+		uses.add(read);
 	}
 
 	/**
-	 * Drop a use of this register by an instruction that is now dead.
+	 * Drop a use of this register by an {@link L2ReadOperand} of an
+	 * {@link L2Instruction} that is now dead.
 	 *
-	 * @param instruction
-	 *        An instruction that reads from this register.
+	 * @param read
+	 *        An {@link L2ReadOperand} that no longer reads from this register
+	 *        because its instruction has been removed.
 	 */
-	public void removeUse (final L2Instruction instruction)
+	public void removeUse (final L2ReadOperand<?> read)
 	{
-		uses.remove(instruction);
+		uses.remove(read);
 	}
 
 	/**
-	 * Answer the set of instructions that read from this register. Do not
-	 * modify the returned collection.
+	 * Answer the {@link Set} of {@link L2ReadOperand}s that read from this
+	 * register. Callers must not modify the returned collection.
 	 *
-	 * @return A {@link Set} of {@link L2Instruction}s.
+	 * @return A {@link Set} of {@link L2ReadOperand}s.
 	 */
-	public Set<L2Instruction> uses ()
+	public Set<L2ReadOperand<?>> uses ()
 	{
 		//noinspection AssignmentOrReturnOfFieldWithMutableType
 		return uses;
@@ -331,7 +472,10 @@ public abstract class L2Register
 	 *
 	 * @return The prefix.
 	 */
-	public abstract String namePrefix ();
+	public String namePrefix ()
+	{
+		return registerKind().prefix;
+	}
 
 	@Override
 	public final String toString ()

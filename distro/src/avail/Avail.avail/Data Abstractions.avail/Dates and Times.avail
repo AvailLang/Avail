@@ -347,7 +347,7 @@ Public stable method "«_‡«=|≤|<»!»" is
 	[
 		arg ::= args[index];
 		predicate ::= predicates[4 - arg[2]];
-		If ¬predicate(arg[1], args[index + 1][1]) then [Exit body with false];
+		Exit body with false if ¬predicate(arg[1], args[index + 1][1]);
 	];
 	true
 ];
@@ -385,7 +385,7 @@ Public stable method "«_‡«=|≥|>»!»" is
 	[
 		arg ::= args[index];
 		predicate ::= predicates[2 + arg[2]];
-		If ¬predicate(arg[1], args[index + 1][1]) then [Exit body with false];
+		Exit body with false if ¬predicate(arg[1], args[index + 1][1]);
 	];
 	true
 ];

@@ -41,6 +41,7 @@ Uses
 	(
 		"For each…from_to_§do_",
 		"If|if_then_«else if_then_»«else_»?",
+		"Repeat__times",
 		"(_)"
 	),
 	"Definers",
@@ -216,29 +217,29 @@ Public method "Cast|cast_into«_‡,»«else_»" is
 	caseTuple : <[⊥]→⊤…|2..>,
 	else : ([]→⊤)?
 |
-	index : natural number := 1;
-	[
-		$body;
-		If index > |caseTuple| then
-		[
-			(else[1] else
-			[
+	block ::= [
+		index : natural number
+	|
+		$body : [⊥]→⊤;
+		pastEnd ::= |caseTuple| < index;
+		Exit body
+			with
 				[
-					Raise a bad-multiway-cast exception with
-						source type ::= value's type
+					v : any
+				|
+					(else[1] else
+						[
+							Raise a bad-multiway-cast exception with
+								source type ::= v's type
+						]
+					)();
 				]
-			])();
-		]
-		else if value ∈ caseTuple[index]'s type[1] then
-		[
-			caseTuple[index](value);
-		]
-		else
-		[
-			index++;
-			Restart body
-		];
-	]();
+			if pastEnd;
+		typeMatches ::= value ∈ caseTuple[index]'s type[1];
+		Exit body with caseTuple[index] if typeMatches;
+		Restart body with <index + 1>
+	](1);
+	invoke block with <value>;
 ] : ⊤;
 
 /**

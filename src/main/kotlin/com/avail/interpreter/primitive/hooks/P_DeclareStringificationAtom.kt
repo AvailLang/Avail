@@ -58,7 +58,8 @@ import com.avail.interpreter.levelOne.L1Operation
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_DeclareStringificationAtom : Primitive(1, CannotFail, HasSideEffect, Private)
+object P_DeclareStringificationAtom : Primitive(
+	1, CannotFail, HasSideEffect, Private, WritesToHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{

@@ -563,6 +563,19 @@ extends AbstractEnumerationTypeDescriptor
 		return TOP.o();
 	}
 
+	@Override @AvailMethod
+	protected A_Tuple o_TupleOfTypesFromTo (
+		final AvailObject object,
+		final int startIndex,
+		final int endIndex)
+	{
+		// Answer the tuple of types over the given range of indices.  Any
+		// indices out of range for this tuple type will be ⊥.
+		return RepeatedElementTupleDescriptor.createRepeatedElementTuple(
+			endIndex - startIndex + 1,
+			object);
+	}
+
 	@Override
 	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{

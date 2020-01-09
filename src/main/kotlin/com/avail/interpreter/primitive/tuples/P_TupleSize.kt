@@ -103,7 +103,7 @@ object P_TupleSize : Primitive(1, CannotFail, CanFold, CanInline)
 					L2_TUPLE_SIZE.instance,
 					tupleReg,
 					writer)
-				translator.currentManifest().readInt(writer.semanticValue())
+				translator.currentManifest().readInt(writer.onlySemanticValue())
 			}
 		}
 		val boxed = translator.generator.readBoxed(unboxedValue.semanticValue())

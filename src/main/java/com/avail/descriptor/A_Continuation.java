@@ -60,7 +60,6 @@ extends A_BasicObject
 	 * @param index The one-based index into this frame data.
 	 * @return The continuation's slot at the specified index.
 	 */
-	@ReferencedInGeneratedCode
 	AvailObject argOrLocalOrStackAt (int index);
 
 	/**
@@ -72,7 +71,6 @@ extends A_BasicObject
 	 * @param index The one-based index into this frame data.
 	 * @param value The value to write at that index.
 	 */
-	@ReferencedInGeneratedCode
 	void argOrLocalOrStackAtPut (int index, AvailObject value);
 
 	/**
@@ -210,4 +208,13 @@ extends A_BasicObject
 	 * @return The line number within the defining module.
 	 */
 	int currentLineNumber ();
+
+	/**
+	 * Answer the {@link ContinuationRegisterDumpDescriptor} object that was
+	 * secretly stashed inside this continuation for an {@link L2Chunk}'s use.
+	 *
+	 * @return An {@link AvailObject} with a
+	 *         {@link ContinuationRegisterDumpDescriptor} descriptor.
+	 */
+	AvailObject registerDump ();
 }

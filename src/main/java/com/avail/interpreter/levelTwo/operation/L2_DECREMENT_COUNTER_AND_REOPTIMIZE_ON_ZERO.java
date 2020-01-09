@@ -94,6 +94,17 @@ extends L2Operation
 		return immediate.value != 0;
 	}
 
+	/**
+	 * Decrement the counter associated with the code.  If this thread was
+	 * responsible for decrementing it to zero, (re)optimize the code by
+	 * producing a new chunk.  Return whether the chunk was replaced.
+	 *
+	 * @param interpreter
+	 *        The interpreter for the current thread.
+	 * @param targetOptimizationLevel
+	 *        What level of optimization to apply if reoptimization occurs.
+	 * @return Whether a new chunk was created.
+	 */
 	@ReferencedInGeneratedCode
 	public static boolean decrement (
 		final Interpreter interpreter,

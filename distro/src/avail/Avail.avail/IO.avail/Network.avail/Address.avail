@@ -174,17 +174,17 @@ is
 	i : real source position := firstOctetPosition;
 	size ::= |source|;
 	While i ≤ size ∧ source[i] is an Arabic numeral do [i++;];
-	If i > size ∨ source[i] ≠ ¢. then [Exit body with ∅];
+	Exit body with ∅ if i > size ∨ source[i] ≠ ¢.;
 	firstOctetText ::= source[firstOctetPosition..i-1];
 
 	secondOctetPosition ::= i + 1;
 	Do [i++;] while i ≤ size ∧ source[i] is an Arabic numeral;
-	If i > size ∨ source[i] ≠ ¢. then [Exit body with ∅];
+	Exit body with ∅ if i > size ∨ source[i] ≠ ¢.;
 	secondOctetText ::= source[secondOctetPosition..i-1];
 
 	thirdOctetPosition ::= i + 1;
 	Do [i++;] while i ≤ size ∧ source[i] is an Arabic numeral;
-	If i > size ∨ source[i] ≠ ¢. then [Exit body with ∅];
+	Exit body with ∅ if i > size ∨ source[i] ≠ ¢.;
 	thirdOctetText ::= source[thirdOctetPosition..i-1];
 
 	fourthOctetPosition ::= i + 1;

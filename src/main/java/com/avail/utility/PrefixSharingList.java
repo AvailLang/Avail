@@ -36,6 +36,7 @@ import javax.annotation.Nullable;
 import java.util.*;
 
 import static com.avail.utility.Nulls.stripNull;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
 /**
@@ -320,7 +321,7 @@ public final class PrefixSharingList<E>
 		assert originalList.size() > 0;
 		if (originalList.size() == 1)
 		{
-			return Collections.emptyList();
+			return emptyList();
 		}
 		if (originalList instanceof PrefixSharingList<?>)
 		{

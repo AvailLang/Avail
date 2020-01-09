@@ -39,7 +39,6 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operation.L2_CREATE_FUNCTION;
-import com.avail.interpreter.levelTwo.operation.L2_MOVE;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT;
 import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
@@ -95,6 +94,34 @@ extends L2ReadOperand<L2BoxedRegister>
 		assert restriction.isBoxed();
 	}
 
+	/**
+	 * Construct a new {@code L2ReadBoxedOperand} with an explicit definition
+	 * register {@link L2WriteBoxedOperand}.
+	 *
+	 * @param semanticValue
+	 *        The {@link L2SemanticValue} that is being read when an
+	 *        {@link L2Instruction} uses this {@link L2Operand}.
+	 * @param restriction
+	 *        The {@link TypeRestriction} that bounds the value being read.
+	 * @param register
+	 *        The {@link L2BoxedRegister} being read by this operand.
+	 */
+	public L2ReadBoxedOperand (
+		final L2SemanticValue semanticValue,
+		final TypeRestriction restriction,
+		final L2BoxedRegister register)
+	{
+		super(semanticValue, restriction, register);
+	}
+
+	@Override
+	public L2ReadBoxedOperand copyForSemanticValue (
+		final L2SemanticValue newSemanticValue)
+	{
+		return new L2ReadBoxedOperand(
+			newSemanticValue, restriction(), register());
+	}
+
 	@Override
 	public void dispatchOperand (final L2OperandDispatcher dispatcher)
 	{
@@ -106,13 +133,6 @@ extends L2ReadOperand<L2BoxedRegister>
 	{
 		return BOXED;
 	}
-
-	@Override
-	public L2_MOVE<L2BoxedRegister> phiMoveOperation ()
-	{
-		return L2_MOVE.boxed;
-	}
-
 
 	/**
 	 * See if we can determine the exact type required as the first argument of

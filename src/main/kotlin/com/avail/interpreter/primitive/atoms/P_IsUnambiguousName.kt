@@ -47,6 +47,7 @@ import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
 
 /**
  * **Primitive:** Is the specified [name][A_String] ambiguous?
@@ -54,7 +55,8 @@ import com.avail.interpreter.Primitive.Flag.CanInline
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_IsUnambiguousName : Primitive(1, CanInline)
+object P_IsUnambiguousName : Primitive(
+	1, CanInline, ReadsFromHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{

@@ -175,17 +175,12 @@ Method "For each of⁇_do_" is
 	aTuple : tuple,
 	action : [⊥]→⊤
 |
-	index : natural number := 1;
-	end ::= |aTuple|;
+	From 1 to |aTuple| do
 	[
-		$loop;
-		If index ≤ end then
-		[
-			action(aTuple[index]);
-			index++;
-			Restart loop
-		];
-	]();
+		index : natural number
+	|
+		action(aTuple[index]);
+	];
 ] : ⊤;
 
 /**
@@ -204,17 +199,12 @@ Method "For each of⁇_do_" is
 	aTuple : tuple,
 	action : [⊥, ⊥]→⊤
 |
-	index : natural number := 1;
-	end ::= |aTuple|;
+	From 1 to |aTuple| do
 	[
-		$loop;
-		If index ≤ end then
-		[
-			action(aTuple[index], index);
-			index++;
-			Restart loop
-		];
-	]();
+		index : natural number
+	|
+		action(aTuple[index], index);
+	];
 ] : ⊤;
 
 /**
@@ -571,18 +561,13 @@ Method "map_through_" is
 	aTuple : tuple,
 	transformer : [⊥]→any
 |
-	index : natural number := 1;
 	result : tuple := <>;
-	end ::= |aTuple|;
+	From 1 to |aTuple| do
 	[
-		$loop;
-		If index ≤ end then
-		[
-			result := eject result ++ <transformer(aTuple[index])>;
-			index++;
-			Restart loop
-		];
-	]();
+		index : natural number
+	|
+		result ++= <transformer(aTuple[index])>;
+	];
 	result
 ] : tuple;
 
@@ -606,18 +591,13 @@ Method "map_through_" is
 	aTuple : tuple,
 	transformer : [⊥, ⊥]→any
 |
-	index : natural number := 1;
 	result : tuple := <>;
-	end ::= |aTuple|;
+	From 1 to |aTuple| do
 	[
-		$loop;
-		If index ≤ end then
-		[
-			result := eject result ++ <transformer(aTuple[index], index)>;
-			index++;
-			Restart loop
-		];
-	]();
+		index : natural number
+	|
+		result ++= <transformer(aTuple[index], index)>;
+	];
 	result
 ] : tuple;
 
@@ -1176,10 +1156,7 @@ Method "any of_satisfies_" is
 	$body : boolean;
 	For each element of aTuple do
 	[
-		If predicate(element) then
-		[
-			Exit body with true
-		];
+		Exit body with true if predicate(element);
 	];
 	false
 ] : boolean;
@@ -1207,10 +1184,7 @@ Method "any of_satisfies_" is
 	$body : boolean;
 	For each element, index of aTuple do
 	[
-		If predicate(element, index) then
-		[
-			Exit body with true
-		];
+		Exit body with true if predicate(element, index);
 	];
 	false
 ] : boolean;
@@ -1254,10 +1228,7 @@ Method "each of_satisfies_" is
 	$body : boolean;
 	For each element of aTuple do
 	[
-		Unless predicate(element) then
-		[
-			Exit body with false
-		];
+		Exit body with false if ¬predicate(element);
 	];
 	true
 ] : boolean;
@@ -1285,10 +1256,7 @@ Method "each of_satisfies_" is
 	$body : boolean;
 	For each element, index of aTuple do
 	[
-		Unless predicate(element, index) then
-		[
-			Exit body with false
-		];
+		Exit body with false if ¬predicate(element, index);
 	];
 	true
 ] : boolean;
@@ -1802,10 +1770,7 @@ Public method "first index of_where_" is
 	$body : natural number;
 	For each index from 1 to |aTuple| do
 	[
-		If predicate(aTuple[index]) then
-		[
-			Exit body with index
-		];
+		Exit body with index if predicate(aTuple[index]);
 	];
 	0
 ] : whole number;
@@ -1868,10 +1833,7 @@ Public method "last index of_where_" is
 	$body : natural number;
 	For each index from |aTuple| to 1 by -1 do
 	[
-		If predicate(aTuple[index]) then
-		[
-			Exit body with index
-		];
+		Exit body with index if predicate(aTuple[index]);
 	];
 	0
 ] : whole number;
@@ -2067,7 +2029,7 @@ Semantic restriction "_to_" is
 	/* If the arguments are instance types, then bail immediately; let the
 	 * stable semantic restriction produce an instance type.
 	 */
-	If {|start|, |end|} = {1} then [Exit body with ⊤];
+	Exit body with ⊤ if {|start|, |end|} = {1};
 	min ::= ⎣start⎦;
 	max ::= ⎡end⎤;
 	uncertainty ::= ⎡start⎤ - ⎣start⎦;

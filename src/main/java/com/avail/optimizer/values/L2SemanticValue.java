@@ -33,6 +33,7 @@ package com.avail.optimizer.values;
 
 import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.interpreter.Primitive;
+import com.avail.optimizer.L2Entity;
 
 import java.util.List;
 import java.util.function.Function;
@@ -45,7 +46,7 @@ import java.util.function.UnaryOperator;
  * sequence of L2 instructions, or the result of a non-primitive call to another
  * function.
  */
-public abstract class L2SemanticValue
+public abstract class L2SemanticValue implements L2Entity
 {
 	/**
 	 * Answer the semantic value representing a particular constant value.
@@ -104,4 +105,15 @@ public abstract class L2SemanticValue
 	public abstract L2SemanticValue transform (
 		final UnaryOperator<L2SemanticValue> semanticValueTransformer,
 		final UnaryOperator<Frame> frameTransformer);
+
+	/**
+	 * Produce a compact textual representation suitable for displaying within
+	 * a synonym in a debugger or visualized control flow graph.
+	 *
+	 * @return A short string representation of this semantic value.
+	 */
+	public String toStringForSynonym ()
+	{
+		return toString();
+	}
 }

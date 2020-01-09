@@ -40,13 +40,25 @@ import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.interpreter.levelTwo.register.L2FloatRegister;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
-import com.avail.optimizer.*;
+import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
+import com.avail.optimizer.L2BasicBlock;
+import com.avail.optimizer.L2ControlFlowGraph;
+import com.avail.optimizer.L2Generator;
+import com.avail.optimizer.L2ValueManifest;
+import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
+import com.avail.optimizer.values.L2SemanticValue;
 import org.objectweb.asm.MethodVisitor;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Consumer;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static com.avail.interpreter.levelTwo.operand.L2Operand.instructionWasAddedForPhi;
 
 /**
  * The {@code L2_PHI_PSEUDO_OPERATION} occurs at the start of a {@link
@@ -64,12 +76,14 @@ import static com.avail.interpreter.levelTwo.L2OperandType.*;
  *
  * @param <R> The kind of {@link L2Register} to merge.
  * @param <RR> The kind of {@link L2ReadOperand}s to merge.
+ * @param <WR> The kind of {@link L2WriteOperand}s to write the result to.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 public final class L2_PHI_PSEUDO_OPERATION <
+	R extends L2Register,
 	RR extends L2ReadOperand<R>,
-	R extends L2Register>
+	WR extends L2WriteOperand<R>>
 extends L2Operation
 {
 	/**
@@ -84,7 +98,7 @@ extends L2Operation
 	 *        type.
 	 */
 	private L2_PHI_PSEUDO_OPERATION (
-		final L2_MOVE<R> moveOperation,
+		final L2_MOVE<R, RR, WR> moveOperation,
 		final L2NamedOperandType... theNamedOperandTypes)
 	{
 		super(theNamedOperandTypes);
@@ -95,13 +109,13 @@ extends L2Operation
 	 * The {@link L2_MOVE} operation to substitute for this instruction on
 	 * incoming split edges.
 	 */
-	public final L2_MOVE<R> moveOperation;
+	public final L2_MOVE<R, RR, WR> moveOperation;
 
 	/**
 	 * Initialize the instance used for merging boxed values.
 	 */
 	public static final L2_PHI_PSEUDO_OPERATION<
-			L2ReadBoxedOperand, L2BoxedRegister>
+		L2BoxedRegister, L2ReadBoxedOperand, L2WriteBoxedOperand>
 		boxed = new L2_PHI_PSEUDO_OPERATION<>(
 			L2_MOVE.boxed,
 			READ_BOXED_VECTOR.is("potential boxed sources"),
@@ -111,7 +125,7 @@ extends L2Operation
 	 * Initialize the instance used for merging boxed values.
 	 */
 	public static final L2_PHI_PSEUDO_OPERATION<
-			L2ReadIntOperand, L2IntRegister>
+		L2IntRegister, L2ReadIntOperand, L2WriteIntOperand>
 		unboxedInt = new L2_PHI_PSEUDO_OPERATION<>(
 			L2_MOVE.unboxedInt,
 			READ_INT_VECTOR.is("potential int sources"),
@@ -121,7 +135,7 @@ extends L2Operation
 	 * Initialize the instance used for merging boxed values.
 	 */
 	public static final L2_PHI_PSEUDO_OPERATION<
-			L2ReadFloatOperand, L2FloatRegister>
+		L2FloatRegister, L2ReadFloatOperand, L2WriteFloatOperand>
 		unboxedFloat = new L2_PHI_PSEUDO_OPERATION<>(
 			L2_MOVE.unboxedFloat,
 			READ_FLOAT_VECTOR.is("potential float sources"),
@@ -175,17 +189,9 @@ extends L2Operation
 		final L2WriteOperand<R> destination = instruction.operand(1);
 
 		final List<L2PcOperand> predecessorEdges =
-			instruction.basicBlock.predecessorEdgesCopy();
-		final int fanIn = sources.elements().size();
-		assert fanIn == predecessorEdges.size();
-		for (int i = 0; i < fanIn; i++)
-		{
-			// The read operand should use the corresponding incoming manifest.
-			sources.elements().get(i).instructionWasAdded(
-				instruction,
-				predecessorEdges.get(i).manifest());
-		}
-		destination.instructionWasAdded(instruction, manifest);
+			instruction.basicBlock().predecessorEdgesCopy();
+		instructionWasAddedForPhi(sources, predecessorEdges);
+		destination.instructionWasAdded(manifest);
 	}
 
 	@Override
@@ -224,16 +230,51 @@ extends L2Operation
 		{
 			// Replace the phi function with a simple move.
 			return new L2Instruction(
-				instruction.basicBlock,
+				instruction.basicBlock(),
 				moveOperation,
 				newSources.get(0),
 				destinationReg);
 		}
 		return new L2Instruction(
-			instruction.basicBlock,
+			instruction.basicBlock(),
 			this,
 			oldVector.clone(newSources),
 			destinationReg);
+	}
+
+	/**
+	 * Replace this phi by providing a lambda that alters a copy of the list of
+	 * {@link L2ReadOperand}s that it's passed.  The predecessor edges are
+	 * expected to correspond with the inputs.  Do not attempt to normalize the
+	 * phi to a move.
+	 *
+	 * @param instruction
+	 *        The phi instruction to augment.
+	 * @param updater
+	 *        What to do to a copied mutable {@link List} of read operands that
+	 *        starts out having all of the vector operand's elements.
+	 */
+	public void updateVectorOperand(
+		final L2Instruction instruction,
+		final Consumer<List<RR>> updater)
+	{
+		assert instruction.operation() == this;
+		final L2BasicBlock block = instruction.basicBlock();
+		final int instructionIndex = block.instructions().indexOf(instruction);
+		final L2ReadVectorOperand<RR, R> vectorOperand = instruction.operand(0);
+		final L2WriteOperand<R> writeOperand = instruction.operand(1);
+
+		instruction.justRemoved();
+		final List<RR> originalElements = vectorOperand.elements();
+		final List<RR> passedCopy = new ArrayList<>(originalElements);
+		updater.accept(passedCopy);
+		final List<RR> finalCopy = new ArrayList<>(passedCopy);
+
+		final L2Instruction replacementInstruction = new L2Instruction(
+			block, this, vectorOperand.clone(finalCopy), writeOperand);
+
+		block.instructions().set(instructionIndex, replacementInstruction);
+		replacementInstruction.justInserted();
 	}
 
 	/**
@@ -257,9 +298,9 @@ extends L2Operation
 //		final L2WriteOperand<R> destination = instruction.operand(1);
 
 		assert sources.elements().size()
-			== instruction.basicBlock.predecessorEdgesCount();
+			== instruction.basicBlock().predecessorEdgesCount();
 		final Iterator<L2PcOperand> predecessorEdgesIterator =
-			instruction.basicBlock.predecessorEdgesIterator();
+			instruction.basicBlock().predecessorEdgesIterator();
 		final List<L2BasicBlock> list = new ArrayList<>();
 		int i = 0;
 		while (predecessorEdgesIterator.hasNext())
@@ -292,9 +333,8 @@ extends L2Operation
 	}
 
 	/**
-	 * Answer the {@link List} of {@link L2ReadBoxedOperand}s for this phi
-	 * function.  The order is correlated to the instruction's blocks
-	 * predecessorEdges.
+	 * Answer the {@link List} of {@link L2ReadOperand}s for this phi function.
+	 * The order is correlated to the instruction's blocks predecessorEdges.
 	 *
 	 * @param instruction
 	 *        The phi instruction.
@@ -307,25 +347,44 @@ extends L2Operation
 		return vector.elements();
 	}
 
-	@Override
-	public String toString ()
+	/**
+	 * Update an {@code L2_PHI_PSEUDO_OPERATION} instruction that's in a loop
+	 * head basic block.
+	 *
+	 * @param predecessorManifest
+	 *        The {@link L2ValueManifest} in some predecessor edge.
+	 * @param instruction
+	 *        The phi instruction itself.
+	 */
+	public void updateLoopHeadPhi (
+		final L2ValueManifest predecessorManifest,
+		final L2Instruction instruction)
 	{
-		final String kind =
-			(this == boxed)
-				? "boxed"
-				: (this == unboxedInt)
-					? "int"
-					: (this == unboxedFloat)
-						? "float"
-						: "unknown";
-		return super.toString() + "(" + kind + ")";
+		assert instruction.operation() == this;
+		final L2SemanticValue semanticValue =
+			sourceRegisterReads(instruction).get(0).semanticValue();
+		final RegisterKind kind = moveOperation.kind;
+		final RR readOperand = kind.readOperand(
+			semanticValue,
+			predecessorManifest.restrictionFor(semanticValue),
+			predecessorManifest.getDefinition(semanticValue, kind));
+		updateVectorOperand(
+			instruction,
+			mutableSources -> mutableSources.add(readOperand));
 	}
 
 	@Override
-	public void toString (
+	public String toString ()
+	{
+		return super.toString() + "(" + moveOperation.kind.kindName + ")";
+	}
+
+	@Override
+	public void appendToWithWarnings (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
-		final StringBuilder builder)
+		final StringBuilder builder,
+		final Consumer<Boolean> warningStyleChange)
 	{
 		assert this == instruction.operation();
 		final L2Operand vector = instruction.operand(0);

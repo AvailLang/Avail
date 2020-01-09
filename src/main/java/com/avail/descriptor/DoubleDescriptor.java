@@ -246,7 +246,7 @@ extends AbstractNumberDescriptor
 	}
 	/** The {@link CheckedMethod} for {@link #fromDouble(double)}. */
 	public static final CheckedMethod fromDoubleMethod = staticMethod(
-		DoubleDescriptor.class, "fromDouble", A_Number.class, Double.TYPE);
+		DoubleDescriptor.class, "fromDouble", A_Number.class, double.class);
 
 	/**
 	 * Construct an Avail boxed double-precision floating point object from the

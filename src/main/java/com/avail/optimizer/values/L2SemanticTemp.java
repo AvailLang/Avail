@@ -37,8 +37,8 @@ import static com.avail.utility.Casts.cast;
 
 /**
  * A semantic value which holds a temporary value in a {@link Frame}.  The scope
- * of this value is usually local to section of Java code that both produces and
- * consumes the value, and it might have no meaning beyond this simple
+ * of this value is usually local to a section of Java code that both produces
+ * and consumes the value, and it might have no meaning beyond this simple
  * correlation of production and use.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
@@ -53,10 +53,10 @@ extends L2FrameSpecificSemanticValue
 	final int uniqueId;
 
 	/**
-	 * Create a new {@code L2SemanticFunction} semantic value.
+	 * Create a new {@code L2SemanticTemp} semantic value.
 	 *
 	 * @param frame
-	 *        The frame for which this represents the invoked function.
+	 *        The frame for which this represents a temporary value.
 	 * @param uniqueId
 	 *        An integer which should be unique across all other instances of
 	 *        this class created for this {@link Frame}.

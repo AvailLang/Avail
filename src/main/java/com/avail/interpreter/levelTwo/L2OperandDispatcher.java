@@ -67,14 +67,6 @@ public interface L2OperandDispatcher
 	void doOperand (L2ConstantOperand operand);
 
 	/**
-	 * Process an operand which is an internal counter.
-	 *
-	 * @param operand
-	 *        An {@link L2InternalCounterOperand}.
-	 */
-	void doOperand (L2InternalCounterOperand operand);
-
-	/**
 	 * Process an operand which is an {@code int} immediate value.
 	 *
 	 * @param operand

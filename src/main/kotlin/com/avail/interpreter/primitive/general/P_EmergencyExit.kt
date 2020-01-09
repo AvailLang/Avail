@@ -57,8 +57,7 @@ import java.lang.String.format
  * argument will be converted internally into a `string` and used to report an
  * error message.
  *
- *
- * It's marked with [Flag.CanSwitchContinuations] to force the stack to
+ * It's marked with [CanSwitchContinuations] to force the stack to
  * be reified, for debugging convenience.
  */
 @Suppress("unused")
@@ -111,7 +110,7 @@ object P_EmergencyExit : Primitive(
 			System.err.print(builder)
 			throw RuntimeException(killer)
 		}
-		return Primitive.Result.FIBER_SUSPENDED
+		return Result.FIBER_SUSPENDED
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

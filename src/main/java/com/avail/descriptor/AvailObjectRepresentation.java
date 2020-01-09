@@ -647,6 +647,13 @@ implements A_BasicObject
 	 * (potentially) {@linkplain Mutability#SHARED shared} object may hold a
 	 * non-shared object.
 	 *
+	 * <p>When we have our own memory manager with thread-specific arenas for
+	 * the unshared heap, those arenas will be associated with the fiber that
+	 * was running during their allocation.  When the fiber exits, if the fiber
+	 * was shared, the fiber's result will be copied out to shared space prior
+	 * to deletion of its arenas.  But prior to that time, the shared fiber
+	 * guards its unshared continuation from prying eyes.</p>
+	 *
 	 * @param field An enumeration value that defines the field ordering.
 	 * @param aContinuation The object to store at the specified slot.
 	 */
@@ -764,6 +771,8 @@ implements A_BasicObject
 	 * consecutive slots of the receiver.  It's the client's responsibility to
 	 * ensure the values are suitably immutable or shared.
 	 *
+	 * @param <T>
+	 *        The type of array to copy from.
 	 * @param targetField
 	 *        The field of the receiver into which to write values.
 	 * @param startTargetSubscript
@@ -1488,6 +1497,8 @@ implements A_BasicObject
 		int high = toIntIndex - 1;
 
 		while (low <= high) {
+			// Use a logical right shift to compensate for overflow in midpoint
+			// calculation.
 			final int mid = (low + high) >>> 1;
 			final long longMidVal = longSlots[mid >>> 1];
 			// The following shift maintains the little-Endian convention set up
@@ -1555,6 +1566,8 @@ implements A_BasicObject
 	 *
 	 * <p>It's usually sufficient to access this descriptor's typeTag, but
 	 * rarely it may be necessary to invoke computeTypeTag().</p>
+	 *
+	 * @return The {@link TypeTag} of this object.
 	 */
 	public final TypeTag typeTag ()
 	{

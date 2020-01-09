@@ -53,6 +53,7 @@ import org.objectweb.asm.MethodVisitor;
 
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
@@ -79,7 +80,7 @@ extends L2ControlFlowOperation
 	{
 		super(
 			READ_BOXED.is("variable"),
-			WRITE_BOXED.is("extracted value"),
+			WRITE_BOXED.is("extracted value", SUCCESS),
 			PC.is("read succeeded", SUCCESS),
 			PC.is("read failed", OFF_RAMP));
 	}
@@ -129,10 +130,11 @@ extends L2ControlFlowOperation
 	}
 
 	@Override
-	public void toString (
+	public void appendToWithWarnings (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
-		final StringBuilder builder)
+		final StringBuilder builder,
+		final Consumer<Boolean> warningStyleChange)
 	{
 		assert this == instruction.operation();
 		final L2ReadBoxedOperand variable = instruction.operand(0);

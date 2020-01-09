@@ -40,8 +40,7 @@ import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.CannotFail
-import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive:** Get the [function][FunctionDescriptor] to invoke to raise a
@@ -53,7 +52,7 @@ import com.avail.interpreter.Primitive.Flag.HasSideEffect
  */
 @Suppress("unused")
 object P_GetRaiseJavaExceptionInAvailFunction
-	: Primitive(0, CannotFail, HasSideEffect)
+	: Primitive(0, CannotFail, HasSideEffect, ReadsFromHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{

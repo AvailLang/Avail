@@ -76,6 +76,7 @@ extends L2FrameSpecificSemanticValue
 		final int pcAfter)
 	{
 		super(frame);
+		assert slotIndex >= 1;
 		this.slotIndex = slotIndex;
 		this.pcAfter = pcAfter;
 		int h = slotIndex * multiplier ^ pcAfter;
@@ -117,6 +118,13 @@ extends L2FrameSpecificSemanticValue
 	public String toString ()
 	{
 		return "Slot#" + slotIndex + "@" + pcAfter +
+			(frame.depth() == 1 ? "" : "[" + frame + "]");
+	}
+
+	@Override
+	public String toStringForSynonym ()
+	{
+		return slotIndex + "@" + pcAfter +
 			(frame.depth() == 1 ? "" : "[" + frame + "]");
 	}
 }

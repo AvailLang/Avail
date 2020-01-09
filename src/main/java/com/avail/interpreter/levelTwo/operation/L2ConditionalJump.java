@@ -34,19 +34,17 @@ package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2NamedOperandType;
-import com.avail.interpreter.levelTwo.operand.L2InternalCounterOperand;
-import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.optimizer.L2Generator;
+import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.List;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.INTERNAL_COUNTER;
 import static com.avail.interpreter.levelTwo.operation.L2ConditionalJump.BranchReduction.SometimesTaken;
-import static java.util.Arrays.copyOf;
+import static com.avail.utility.Nulls.stripNull;
 
 /**
  * Jump to {@code "if satisfied"} if some condition is met, otherwise jump to
@@ -66,33 +64,22 @@ extends L2ControlFlowOperation
 	 * the first of which is the "taken" branch, and the second of which is the
 	 * "not taken" branch.</p>
 	 *
-	 * <p>Two additional operands are automatically appended here to track the
-	 * number of times the branch instruction is taken versus not taken.</p>
+	 * @param theNamedOperandTypes
+	 *        The vararg array of {@link L2NamedOperandType}s that describe the
+	 *        operands of such an instruction.
 	 */
 	protected L2ConditionalJump (
 		final L2NamedOperandType... theNamedOperandTypes)
 	{
-		super(augment(theNamedOperandTypes));
+		super(theNamedOperandTypes);
 	}
 
-	/**
-	 * Add two {@link L2InternalCounterOperand}s to the given array of {@link
-	 * L2NamedOperandType}s, returning the new array.
-	 *
-	 * @param namedOperandTypes
-	 *        The original named operand types.
-	 * @return The augmented named operand types.
-	 */
-	private static L2NamedOperandType[] augment (
-		final L2NamedOperandType[] namedOperandTypes)
+	@Override
+	public void instructionWasAdded (
+		final L2Instruction instruction, final L2ValueManifest manifest)
 	{
-		final L2NamedOperandType[] newNames = copyOf(
-			namedOperandTypes, namedOperandTypes.length + 2);
-		// Number of times the branch is taken.
-		newNames[newNames.length - 2] = INTERNAL_COUNTER.is("branch taken");
-		// Number of times the branch is not taken.
-		newNames[newNames.length - 1] = INTERNAL_COUNTER.is("branch not taken");
-		return newNames;
+		super.instructionWasAdded(instruction, manifest);
+		targetEdges(instruction).forEach(L2PcOperand::installCounter);
 	}
 
 	/**
@@ -107,9 +94,9 @@ extends L2ControlFlowOperation
 	 *        The {@link L2Instruction} causing this code generation.
 	 * @param opcode
 	 *        The Java bytecode to emit for the branch instruction.
-	 * @param isSubtype
+	 * @param conditionHolds
 	 *        Where to jump if the condition holds.
-	 * @param notSubtype
+	 * @param conditionDoesNotHold
 	 *        Where to jump if the condition does not hold.
 	 */
 	protected static void emitBranch (
@@ -117,21 +104,17 @@ extends L2ControlFlowOperation
 		final MethodVisitor method,
 		final L2Instruction instruction,
 		final int opcode,
-		final L2PcOperand isSubtype,
-		final L2PcOperand notSubtype)
+		final L2PcOperand conditionHolds,
+		final L2PcOperand conditionDoesNotHold)
 	{
-		final L2InternalCounterOperand taken =
-			instruction.operand(instruction.operands().length - 2);
-		final L2InternalCounterOperand notTaken =
-			instruction.operand(instruction.operands().length - 1);
 		translator.branch(
 			method,
 			instruction,
 			opcode,
-			isSubtype,
-			notSubtype,
-			taken.counter,
-			notTaken.counter);
+			conditionHolds,
+			conditionDoesNotHold,
+			stripNull(conditionHolds.counter),
+			stripNull(conditionDoesNotHold.counter));
 	}
 
 	/**
@@ -208,25 +191,5 @@ extends L2ControlFlowOperation
 	{
 		// It jumps, which counts as a side effect.
 		return true;
-	}
-
-	/**
-	 * Augment the array of operands with any that are supposed to be supplied
-	 * implicitly by this class.
-	 *
-	 * @param operands The original array of {@link L2Operand}s.
-	 * @return The augmented array of {@link L2Operand}s, which may be the same
-	 *         as the given array.
-	 */
-	@Override
-	public L2Operand[] augment (
-		final L2Operand[] operands)
-	{
-		final L2Operand[] parentOperands = super.augment(operands);
-		final L2Operand[] newOperands =
-			copyOf(parentOperands, parentOperands.length + 2);
-		newOperands[newOperands.length - 2] = new L2InternalCounterOperand();
-		newOperands[newOperands.length - 1] = new L2InternalCounterOperand();
-		return newOperands;
 	}
 }

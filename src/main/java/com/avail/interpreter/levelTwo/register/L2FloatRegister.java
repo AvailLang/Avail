@@ -83,10 +83,4 @@ extends L2Register
 	{
 		return new L2FloatRegister(inliner.nextUnique());
 	}
-
-	@Override
-	public String namePrefix ()
-	{
-		return "f";
-	}
 }

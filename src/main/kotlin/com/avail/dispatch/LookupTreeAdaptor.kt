@@ -145,7 +145,7 @@ internal abstract class LookupTreeAdaptor<
 	fun createRoot(
 		allElements: Collection<Element>,
 		knownArgumentRestrictions: List<TypeRestriction>,
-		memento: Memento): LookupTree<Element, Result, Memento>
+		memento: Memento): LookupTree<Element, Result>
 	{
 		// Do all type testing intersected with the known type bounds.
 		val bound = extractBoundingType(knownArgumentRestrictions)
@@ -247,7 +247,7 @@ internal abstract class LookupTreeAdaptor<
 		positive: List<Element>,
 		undecided: List<Element>,
 		knownArgumentRestrictions: List<TypeRestriction>,
-		memento: Memento): LookupTree<Element, Result, Memento>
+		memento: Memento): LookupTree<Element, Result>
 	{
 		if (undecided.isEmpty())
 		{
@@ -320,7 +320,7 @@ internal abstract class LookupTreeAdaptor<
 	 * @return The [Result].
 	 */
 	@Suppress("unused") fun lookupByTypes(
-		root: LookupTree<Element, Result, Memento>,
+		root: LookupTree<Element, Result>,
 		argumentTypesList: List<A_Type>,
 		memento: Memento): Result
 	{
@@ -349,7 +349,7 @@ internal abstract class LookupTreeAdaptor<
 	 *   The [Result].
 	 */
 	fun lookupByTypes(
-		root: LookupTree<Element, Result, Memento>,
+		root: LookupTree<Element, Result>,
 		argumentTypesTuple: A_Tuple,
 		memento: Memento): Result
 	{
@@ -379,7 +379,7 @@ internal abstract class LookupTreeAdaptor<
 	 *   The [Result].
 	 */
 	fun lookupByValues(
-		root: LookupTree<Element, Result, Memento>,
+		root: LookupTree<Element, Result>,
 		argValues: List<A_BasicObject>,
 		memento: Memento): Result
 	{
@@ -409,7 +409,7 @@ internal abstract class LookupTreeAdaptor<
 	 *   The [Result].
 	 */
 	fun lookupByValues(
-		root: LookupTree<Element, Result, Memento>,
+		root: LookupTree<Element, Result>,
 		argValues: A_Tuple,
 		memento: Memento): Result
 	{
@@ -437,7 +437,7 @@ internal abstract class LookupTreeAdaptor<
 	 * @return The [Result].
 	 */
 	fun lookupByValue(
-		root: LookupTree<Element, Result, Memento>,
+		root: LookupTree<Element, Result>,
 		argValue: A_BasicObject,
 		memento: Memento): Result
 	{

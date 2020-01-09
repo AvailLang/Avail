@@ -31,7 +31,11 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Continuation;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Variable;
+import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
@@ -169,7 +173,7 @@ extends L2Operation
 			// latestResult().
 			assert !primitive.hasFlag(Flag.CannotFail);
 			final A_BasicObject primitiveFailureValue =
-				interpreter.latestResult();
+				interpreter.getLatestResult();
 			final A_Variable primitiveFailureVariable =
 				stepper.pointerAt(numArgs + 1);
 			primitiveFailureVariable.setValue(primitiveFailureValue);
@@ -184,23 +188,28 @@ extends L2Operation
 				createContinuationWithFrame(
 					function,
 					nil,
+					nil,
 					1,  // start of function
 					numSlots + 1,   // empty stack
 					unoptimizedChunk,
 					TO_RESUME.offsetInDefaultChunk,
 					asList(stepper.pointers),
 					1);
-			return interpreter.reifyThen(
+			// Push the continuation from above onto the reified stack.
+			interpreter.isReifying = true;
+			return new StackReifier(
+				true,
 				reificationForInterruptInL1Stat,
 				() ->
 				{
 					// Push the continuation from above onto the reified stack.
 					interpreter.returnNow = false;
-					interpreter.reifiedContinuation =
-						(AvailObject) continuation.replacingCaller(
-							stripNull(interpreter.reifiedContinuation));
+					interpreter.setReifiedContinuation(
+						continuation.replacingCaller(
+							stripNull(interpreter.getReifiedContinuation())));
 					interpreter.processInterrupt(
-						interpreter.reifiedContinuation);
+						interpreter.getReifiedContinuation());
+					interpreter.isReifying = false;
 				});
 		}
 		return null;

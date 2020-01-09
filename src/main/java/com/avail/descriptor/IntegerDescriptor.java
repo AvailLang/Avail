@@ -1783,7 +1783,7 @@ extends ExtendedIntegerDescriptor
 			return object.asBigInteger();
 		}
 		// Force marshaling to Java's primitive long type.
-		if (Long.TYPE.equals(classHint) || Long.class.equals(classHint))
+		if (long.class.equals(classHint) || Long.class.equals(classHint))
 		{
 			if (!object.isLong())
 			{
@@ -1792,7 +1792,7 @@ extends ExtendedIntegerDescriptor
 			return object.extractLong();
 		}
 		// Force marshaling to Java's primitive int type.
-		if (Integer.TYPE.equals(classHint) || Integer.class.equals(classHint))
+		if (int.class.equals(classHint) || Integer.class.equals(classHint))
 		{
 			if (!object.isInt())
 			{
@@ -1801,7 +1801,7 @@ extends ExtendedIntegerDescriptor
 			return object.extractInt();
 		}
 		// Force marshaling to Java's primitive short type.
-		if (Short.TYPE.equals(classHint) || Short.class.equals(classHint))
+		if (short.class.equals(classHint) || Short.class.equals(classHint))
 		{
 			if (!object.isSignedShort())
 			{
@@ -1810,7 +1810,7 @@ extends ExtendedIntegerDescriptor
 			return object.extractSignedShort();
 		}
 		// Force marshaling to Java's primitive byte type.
-		if (Byte.TYPE.equals(classHint) || Byte.class.equals(classHint))
+		if (byte.class.equals(classHint) || Byte.class.equals(classHint))
 		{
 			if (!object.isSignedByte())
 			{
@@ -2019,7 +2019,18 @@ extends ExtendedIntegerDescriptor
 
 	/** The {@link CheckedMethod} for {@link IntegerDescriptor#fromInt(int)}. */
 	public static final CheckedMethod fromIntMethod = staticMethod(
-		IntegerDescriptor.class, "fromInt", AvailObject.class, Integer.TYPE);
+		IntegerDescriptor.class, "fromInt", AvailObject.class, int.class);
+
+	/**
+	 * The {@link CheckedMethod} for <em>Java</em> {@link Integer#valueOf(int)}}
+	 * boxing.
+	 */
+	public static final CheckedMethod javaUnboxIntegerMethod =
+		CheckedMethod.javaLibraryStaticMethod(
+			Integer.class,
+			"valueOf",
+			Integer.class,
+			int.class);
 
 	/**
 	 * Convert the specified byte-valued Java {@code short} into an Avail

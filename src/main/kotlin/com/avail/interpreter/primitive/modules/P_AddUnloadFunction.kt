@@ -46,8 +46,7 @@ import com.avail.descriptor.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.Primitive.Flag.*
 import com.avail.interpreter.effects.LoadingEffectToRunPrimitive
 
 /**
@@ -56,7 +55,8 @@ import com.avail.interpreter.effects.LoadingEffectToRunPrimitive
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object P_AddUnloadFunction : Primitive(1, CanInline, HasSideEffect)
+object P_AddUnloadFunction : Primitive(
+	1, CanInline, HasSideEffect, WritesToHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{

@@ -100,7 +100,7 @@ Semantic restriction "«_‡=»" is
 		index : natural number
 	|
 		intersectionType := (eject intersectionType) ∩ (aTupleType[index]);
-		If intersectionType = ⊥ then [Exit body with false's type];
+		Exit body with false's type if intersectionType = ⊥;
 		true
 	];
 	⊤

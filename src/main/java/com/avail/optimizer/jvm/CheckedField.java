@@ -240,26 +240,16 @@ public final class CheckedField
 	 * Emit a read of this field.  The receiver, if this is not static, must
 	 * already be on the stack.
 	 *
-	 * @param translator The {@link JVMTranslator} doing code generation.
 	 * @param methodVisitor Which {@link MethodVisitor} to emit the read into.
 	 */
 	public void generateRead (
-		final JVMTranslator translator,
 		final MethodVisitor methodVisitor)
 	{
 		if (isStatic)
 		{
-			if (isFinal)
+			if (isFinal && valueIfFinalAndStatic == null)
 			{
-				// Use the actual literal value from this final, static field.
-				if (valueIfFinalAndStatic == null)
-				{
-					methodVisitor.visitInsn(ACONST_NULL);
-				}
-				else
-				{
-					translator.literal(methodVisitor, valueIfFinalAndStatic);
-				}
+				methodVisitor.visitInsn(ACONST_NULL);
 			}
 			else
 			{
@@ -286,11 +276,9 @@ public final class CheckedField
 	 * {@link MethodVisitor}.  The receiver, if any, and the new field value
 	 * must already be on the stack.  Fail right away if the field is final.
 	 *
-	 * @param translator The {@link JVMTranslator} doing code generation.
 	 * @param methodVisitor Which {@link MethodVisitor} to emit the read into.
 	 */
 	public void generateWrite (
-		final JVMTranslator translator,
 		final MethodVisitor methodVisitor)
 	{
 		assert !isFinal;
