@@ -2022,17 +2022,6 @@ extends ExtendedIntegerDescriptor
 		IntegerDescriptor.class, "fromInt", AvailObject.class, int.class);
 
 	/**
-	 * The {@link CheckedMethod} for <em>Java</em> {@link Integer#valueOf(int)}}
-	 * boxing.
-	 */
-	public static final CheckedMethod javaUnboxIntegerMethod =
-		CheckedMethod.javaLibraryStaticMethod(
-			Integer.class,
-			"valueOf",
-			Integer.class,
-			int.class);
-
-	/**
 	 * Convert the specified byte-valued Java {@code short} into an Avail
 	 * integer.
 	 *

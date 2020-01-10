@@ -34,6 +34,7 @@ package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.JavaLibrary;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
@@ -116,7 +117,7 @@ extends L2Operation
 		translator.loadInterpreter(method);
 		Interpreter.argsBufferField.generateRead(method);
 		translator.literal(method, subscript.value - 1);
-		Interpreter.listGetMethod.generateCall(method);
+		JavaLibrary.getListGetMethod().generateCall(method);
 		method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
 		translator.store(method, argument.register());
 	}

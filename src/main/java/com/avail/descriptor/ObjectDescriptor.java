@@ -41,6 +41,7 @@ import com.avail.descriptor.atoms.AtomDescriptor;
 import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.descriptor.tuples.A_String;
 import com.avail.descriptor.tuples.A_Tuple;
+import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
@@ -593,6 +594,16 @@ extends Descriptor
 		result.setSlot(HASH_OR_ZERO, 0);
 		return result;
 	}
+
+	/**
+	 * The {@link CheckedMethod} for {@link #objectFromMap(A_Map)}.
+	 */
+	public static final CheckedMethod objectFromMapMethod =
+		CheckedMethod.staticMethod(
+			ObjectDescriptor.class,
+			"objectFromMap",
+			AvailObject.class,
+			A_Map.class);
 
 	/**
 	 * Construct an object from the specified {@linkplain TupleDescriptor

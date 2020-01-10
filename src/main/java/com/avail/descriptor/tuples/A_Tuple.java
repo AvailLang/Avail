@@ -34,6 +34,7 @@ package com.avail.descriptor.tuples;
 
 import com.avail.descriptor.*;
 import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.nio.ByteBuffer;
@@ -446,6 +447,16 @@ extends A_BasicObject, Iterable<AvailObject>
 	A_Tuple concatenateWith (A_Tuple otherTuple, boolean canDestroy);
 
 	/**
+	 * The {@link CheckedMethod} for {@link #concatenateWith(A_Tuple, boolean)}.
+	 */
+	CheckedMethod concatenateWithMethod = CheckedMethod.instanceMethod(
+		A_Tuple.class,
+		"concatenateWith",
+		A_Tuple.class,
+		A_Tuple.class,
+		boolean.class);
+
+	/**
 	 * Make a mutable copy of the tuple but in a form that accepts any objects.
 	 *
 	 * @return The new mutable {@link ObjectTupleDescriptor object tuple}.
@@ -622,6 +633,13 @@ extends A_BasicObject, Iterable<AvailObject>
 	@ReferencedInGeneratedCode
 	AvailObject tupleAt (int index);
 
+	/** The {@link CheckedMethod} for {@link #tupleAt(int)}. */
+	CheckedMethod tupleAtMethod = CheckedMethod.instanceMethod(
+		A_Tuple.class,
+		"tupleAt",
+		AvailObject.class,
+		int.class);
+
 	/**
 	 * Answer a new tuple like the receiver but with a single element replaced
 	 * at the specified index.  If the receiver is mutable and canDestroy is
@@ -689,6 +707,12 @@ extends A_BasicObject, Iterable<AvailObject>
 	 */
 	@ReferencedInGeneratedCode
 	int tupleSize ();
+
+	/** The {@link CheckedMethod} for {@link #tupleSize()}. */
+	CheckedMethod tupleSizeMethod = CheckedMethod.instanceMethod(
+		A_Tuple.class,
+		"tupleSize",
+		int.class);
 
 	/**
 	 * As a convenience in Kotlin, allow deconstruction of short tuples.

@@ -31,8 +31,6 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.VariableDescriptor;
 import com.avail.descriptor.VariableTypeDescriptor;
 import com.avail.interpreter.levelTwo.L2Instruction;
@@ -50,8 +48,6 @@ import java.util.function.Consumer;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.CONSTANT;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
-import static org.objectweb.asm.Opcodes.INVOKESTATIC;
-import static org.objectweb.asm.Type.*;
 
 /**
  * Create a new {@linkplain VariableDescriptor variable object} of the
@@ -122,14 +118,7 @@ extends L2Operation
 
 		// :: newVar = newVariableWithOuterType(outerType);
 		translator.literal(method, outerType.object);
-		method.visitMethodInsn(
-			INVOKESTATIC,
-			getInternalName(VariableDescriptor.class),
-			"newVariableWithOuterType",
-			getMethodDescriptor(
-				getType(AvailObject.class),
-				getType(A_Type.class)),
-			false);
+		VariableDescriptor.newVariableWithOuterTypeMethod.generateCall(method);
 		translator.store(method, variable.register());
 	}
 }

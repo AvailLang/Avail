@@ -32,6 +32,7 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.JavaLibrary;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
@@ -202,7 +203,8 @@ extends L2Operation
 					}
 					translator.intConstant(method, i + 1);  //one-based
 					extractLongAtMethod.generateCall(method);
-					bitCastLongToDoubleMethod.generateCall(method);
+					JavaLibrary.getBitCastLongToDoubleMethod().generateCall(
+						method);
 					method.visitVarInsn(
 						RegisterKind.FLOAT.storeInstruction,
 						floatsList.get(j));

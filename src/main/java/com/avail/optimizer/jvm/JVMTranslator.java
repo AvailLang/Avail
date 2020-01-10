@@ -38,6 +38,7 @@ import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.JavaLibrary;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.L1Disassembler;
 import com.avail.interpreter.levelOne.L1Operation;
@@ -78,7 +79,6 @@ import java.util.regex.Pattern;
 
 import static com.avail.AvailRuntimeSupport.captureNanos;
 import static com.avail.descriptor.ContinuationDescriptor.createDummyContinuationMethod;
-import static com.avail.descriptor.IntegerDescriptor.javaUnboxIntegerMethod;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.interpreter.Interpreter.chunkField;
 import static com.avail.interpreter.Interpreter.interpreterFunctionField;
@@ -893,12 +893,7 @@ public final class JVMTranslator
 		method.visitCode();
 		// :: «generated JVMChunk».class.getClassLoader()
 		method.visitLdcInsn(getType("L" + classInternalName + ";"));
-		method.visitMethodInsn(
-			INVOKEVIRTUAL,
-			getInternalName(Class.class),
-			"getClassLoader",
-			getMethodDescriptor(getType(ClassLoader.class)),
-			false);
+		JavaLibrary.getGetClassLoader().generateCall(method);
 		method.visitTypeInsn(
 			CHECKCAST,
 			getInternalName(JVMChunkClassLoader.class));
@@ -1479,21 +1474,11 @@ public final class JVMTranslator
 		final Label logNotTaken = new Label();
 		method.visitJumpInsn(reverseOpcode(branchOpcode), logNotTaken);
 		literal(method, takenCounter);
-		method.visitMethodInsn(
-			INVOKEVIRTUAL,
-			getInternalName(LongAdder.class),
-			"increment",
-			getMethodDescriptor(VOID_TYPE),
-			false);
+		JavaLibrary.getLongAdderIncrement().generateCall(method);
 		method.visitJumpInsn(GOTO, labelFor(takenPc));
 		method.visitLabel(logNotTaken);
 		literal(method, notTakenCounter);
-		method.visitMethodInsn(
-			INVOKEVIRTUAL,
-			getInternalName(LongAdder.class),
-			"increment",
-			getMethodDescriptor(VOID_TYPE),
-			false);
+		JavaLibrary.getLongAdderIncrement().generateCall(method);
 	}
 
 	/**
@@ -1802,7 +1787,9 @@ public final class JVMTranslator
 							load(
 								method,
 								((L2ReadIntOperand) operand).register());
-							javaUnboxIntegerMethod.generateCall(method);
+							JavaLibrary
+								.getJavaUnboxIntegerMethod()
+								.generateCall(method);
 							break pushOneObject;
 						}
 					}

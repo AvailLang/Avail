@@ -37,6 +37,7 @@ import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.exceptions.AvailErrorCode;
+import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.IteratorNotNull;
@@ -816,7 +817,6 @@ extends Descriptor
 	}
 
 	/** The empty set. */
-	@ReferencedInGeneratedCode
 	private static final A_Set emptySet;
 
 	static
@@ -832,10 +832,20 @@ extends Descriptor
 	 *
 	 * @return The empty set.
 	 */
+	@ReferencedInGeneratedCode
 	public static A_Set emptySet ()
 	{
 		return emptySet;
 	}
+
+	/**
+	 * The {@link CheckedMethod} for {@link #emptySet()}.
+	 */
+	public static final CheckedMethod emptySetMethod =
+		CheckedMethod.staticMethod(
+			SetDescriptor.class,
+			"emptySet",
+			A_Set.class);
 
 	/**
 	 * Create an Avail set with exactly one element.  The element is not made

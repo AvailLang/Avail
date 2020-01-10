@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.descriptor.tuples.A_Tuple;
+import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.util.Iterator;
@@ -156,6 +157,14 @@ extends A_BasicObject, Iterable<AvailObject>
 	int setSize ();
 
 	/**
+	 * The {@link CheckedMethod} for {@link #setSize()}.
+	 */
+	CheckedMethod setSizeMethod = CheckedMethod.instanceMethod(
+		A_Set.class,
+		"setSize",
+		int.class);
+
+	/**
 	 * Answer a set containing all the elements of this set and all the elements
 	 * of the otherSet.
 	 *
@@ -184,6 +193,18 @@ extends A_BasicObject, Iterable<AvailObject>
 	A_Set setWithElementCanDestroy (
 		A_BasicObject newElementObject,
 		boolean canDestroy);
+
+	/**
+	 * The {@link CheckedMethod} for {@link #setWithElementCanDestroy(
+	 * A_BasicObject, boolean)}.
+	 */
+	CheckedMethod setWithElementCanDestroyMethod =
+		CheckedMethod.instanceMethod(
+			A_Set.class,
+			"setWithElementCanDestroy",
+			A_Set.class,
+			A_BasicObject.class,
+			boolean.class);
 
 	/**
 	 * Answer a set like this one but with elementObjectToExclude absent.  If it

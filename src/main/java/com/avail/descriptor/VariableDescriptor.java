@@ -750,6 +750,16 @@ extends Descriptor
 	}
 
 	/**
+	 * The {@link CheckedMethod} for {@link #newVariableWithOuterType(A_Type)}.
+	 */
+	public static final CheckedMethod newVariableWithOuterTypeMethod =
+		CheckedMethod.staticMethod(
+			VariableDescriptor.class,
+			"newVariableWithOuterType",
+			AvailObject.class,
+			A_Type.class);
+
+	/**
 	 * Construct a new {@code VariableDescriptor}.
 	 *
 	 * @param mutability

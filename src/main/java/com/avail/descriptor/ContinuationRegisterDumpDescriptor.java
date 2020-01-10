@@ -176,22 +176,6 @@ extends Descriptor
 		AvailObject.class,
 		int.class);
 
-	/** Static method to cast from {@code long} to {@code double}. */
-	public static CheckedMethod bitCastLongToDoubleMethod =
-		javaLibraryStaticMethod(
-			Double.class,
-			"longBitsToDouble",
-			double.class,
-			long.class);
-
-	/** Static method to cast from {@code double} to {@code long}. */
-	public static CheckedMethod bitCastDoubleToLongMethod =
-		javaLibraryStaticMethod(
-			Double.class,
-			"doubleToRawLongBits",
-			long.class,
-			double.class);
-
 	/**
 	 * Construct a new {@code ContinuationDescriptor}.
 	 *

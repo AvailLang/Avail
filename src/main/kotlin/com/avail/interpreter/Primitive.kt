@@ -1112,14 +1112,14 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		// :: argsBuffer = interpreter.argsBuffer;
 		translator.loadInterpreter(method)
 		// [interpreter]
-		Interpreter.argsBufferField.generateRead(method)
+		argsBufferField.generateRead(method)
 		// [argsBuffer]
 		// :: argsBuffer.clear();
 		if (arguments.elements().isNotEmpty()) {
 			method.visitInsn(DUP)
 		}
 		// [argsBuffer[, argsBuffer if #args > 0]]
-		Interpreter.listClearMethod.generateCall(method)
+		JavaLibrary.listClearMethod.generateCall(method)
 		// [argsBuffer if #args > 0]
 		var i = 0
 		val limit = arguments.elements().size
@@ -1129,7 +1129,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 				method.visitInsn(DUP)
 			}
 			translator.load(method, arguments.elements()[i].register())
-			Interpreter.listAddMethod.generateCall(method)
+			JavaLibrary.listAddMethod.generateCall(method)
 			method.visitInsn(POP)
 			i++
 		}

@@ -34,7 +34,6 @@ package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_Set;
 import com.avail.descriptor.SetDescriptor;
-import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
@@ -49,9 +48,6 @@ import java.util.function.Consumer;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
-import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Opcodes.INVOKESTATIC;
-import static org.objectweb.asm.Type.*;
 
 /**
  * Create a set from the values in the specified vector of object registers.
@@ -114,26 +110,13 @@ extends L2Operation
 		final L2WriteBoxedOperand set = instruction.operand(1);
 
 		// :: set = SetDescriptor.emptySet();
-		method.visitMethodInsn(
-			INVOKESTATIC,
-			getInternalName(SetDescriptor.class),
-			"emptySet",
-			getMethodDescriptor(getType(A_Set.class)),
-			false);
+		SetDescriptor.emptySetMethod.generateCall(method);
 		for (final L2ReadBoxedOperand operand : values.elements())
 		{
 			// :: set = set.setWithElementCanDestroy(«register», true);
 			translator.load(method, operand.register());
 			translator.intConstant(method, 1);
-			method.visitMethodInsn(
-				INVOKEINTERFACE,
-				getInternalName(A_Set.class),
-				"setWithElementCanDestroy",
-				getMethodDescriptor(
-					getType(A_Set.class),
-					getType(A_BasicObject.class),
-					BOOLEAN_TYPE),
-				true);
+			A_Set.setWithElementCanDestroyMethod.generateCall(method);
 		}
 		// :: destinationSet = set;
 		translator.store(method, set.register());

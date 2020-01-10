@@ -46,8 +46,6 @@ import java.util.function.Consumer;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_INT;
-import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Type.*;
 
 /**
  * Answer the {@linkplain A_Tuple#tupleSize() size} of the specified {@linkplain
@@ -102,12 +100,7 @@ extends L2Operation
 
 		// :: size = tuple.tupleSize();
 		translator.load(method, tuple.register());
-		method.visitMethodInsn(
-			INVOKEINTERFACE,
-			getInternalName(A_Tuple.class),
-			"tupleSize",
-			getMethodDescriptor(INT_TYPE),
-			true);
+		A_Tuple.tupleSizeMethod.generateCall(method);
 		translator.store(method, size.register());
 	}
 }

@@ -125,12 +125,7 @@ extends L2Operation
 		final L2WriteBoxedOperand object = instruction.operand(2);
 
 		// :: map = MapDescriptor.emptyMap();
-		method.visitMethodInsn(
-			INVOKESTATIC,
-			getInternalName(MapDescriptor.class),
-			"emptyMap",
-			getMethodDescriptor(getType(A_Map.class)),
-			false);
+		MapDescriptor.emptyMapMethod.generateCall(method);
 		final int limit = fieldKeys.elements().size();
 		assert limit == fieldValues.elements().size();
 		for (int i = 0; i < limit; i++)
@@ -140,26 +135,10 @@ extends L2Operation
 			translator.load(method, fieldKeys.elements().get(i).register());
 			translator.load(method, fieldValues.elements().get(i).register());
 			translator.intConstant(method, 1);
-			method.visitMethodInsn(
-				INVOKEINTERFACE,
-				getInternalName(A_Map.class),
-				"mapAtPuttingCanDestroy",
-				getMethodDescriptor(
-					getType(A_Map.class),
-					getType(A_BasicObject.class),
-					getType(A_BasicObject.class),
-					BOOLEAN_TYPE),
-				true);
+			A_Map.mapAtPuttingCanDestroyMethod.generateCall(method);
 		}
 		// :: destinationMap = ObjectDescriptor.objectFromMap(map);
-		method.visitMethodInsn(
-			INVOKESTATIC,
-			getInternalName(ObjectDescriptor.class),
-			"objectFromMap",
-			getMethodDescriptor(
-				getType(AvailObject.class),
-				getType(A_Map.class)),
-			true);
+		ObjectDescriptor.objectFromMapMethod.generateCall(method);
 		translator.store(method, object.register());
 	}
 }

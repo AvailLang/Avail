@@ -634,6 +634,15 @@ extends TupleDescriptor
 	}
 
 	/**
+	 * The {@link CheckedMethod} for {@link #tuple(A_BasicObject)}.
+	 */
+	public static final CheckedMethod tuple1Method = staticMethod(
+		ObjectTupleDescriptor.class,
+		"tuple",
+		A_Tuple.class,
+		A_BasicObject.class);
+
+	/**
 	 * Create a tuple with the specified two elements. The elements are not made
 	 * immutable first, nor is the new tuple.
 	 *
@@ -653,6 +662,17 @@ extends TupleDescriptor
 		result.setSlot(TUPLE_AT_, 2, element2);
 		return result;
 	}
+
+	/**
+	 * The {@link CheckedMethod} for {@link #tuple(A_BasicObject,
+	 * A_BasicObject)}.
+	 */
+	public static final CheckedMethod tuple2Method = staticMethod(
+		ObjectTupleDescriptor.class,
+		"tuple",
+		A_Tuple.class,
+		A_BasicObject.class,
+		A_BasicObject.class);
 
 	/**
 	 * Create a tuple with the specified three elements. The elements are not
@@ -678,6 +698,18 @@ extends TupleDescriptor
 		result.setSlot(TUPLE_AT_, 3, element3);
 		return result;
 	}
+
+	/**
+	 * The {@link CheckedMethod} for {@link #tuple(A_BasicObject,
+	 * A_BasicObject, A_BasicObject)}.
+	 */
+	public static final CheckedMethod tuple3Method = staticMethod(
+		ObjectTupleDescriptor.class,
+		"tuple",
+		A_Tuple.class,
+		A_BasicObject.class,
+		A_BasicObject.class,
+		A_BasicObject.class);
 
 	/**
 	 * Create a tuple with the specified four elements. The elements are not
@@ -707,6 +739,19 @@ extends TupleDescriptor
 		result.setSlot(TUPLE_AT_, 4, element4);
 		return result;
 	}
+
+	/**
+	 * The {@link CheckedMethod} for {@link #tuple(A_BasicObject,
+	 * A_BasicObject, A_BasicObject, A_BasicObject)}.
+	 */
+	public static final CheckedMethod tuple4Method = staticMethod(
+		ObjectTupleDescriptor.class,
+		"tuple",
+		A_Tuple.class,
+		A_BasicObject.class,
+		A_BasicObject.class,
+		A_BasicObject.class,
+		A_BasicObject.class);
 
 	/**
 	 * Create a tuple with the specified five elements. The elements are not
@@ -740,6 +785,20 @@ extends TupleDescriptor
 		result.setSlot(TUPLE_AT_, 5, element5);
 		return result;
 	}
+
+	/**
+	 * The {@link CheckedMethod} for {@link #tuple(A_BasicObject,
+	 * A_BasicObject, A_BasicObject, A_BasicObject, A_BasicObject)}.
+	 */
+	public static final CheckedMethod tuple5Method = staticMethod(
+		ObjectTupleDescriptor.class,
+		"tuple",
+		A_Tuple.class,
+		A_BasicObject.class,
+		A_BasicObject.class,
+		A_BasicObject.class,
+		A_BasicObject.class,
+		A_BasicObject.class);
 
 	/**
 	 * Construct a new tuple of arbitrary {@linkplain AvailObject Avail objects}

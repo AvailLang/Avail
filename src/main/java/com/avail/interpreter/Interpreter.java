@@ -1755,20 +1755,6 @@ public final class Interpreter
 	public static final CheckedField argsBufferField = instanceField(
 		Interpreter.class, "argsBuffer", List.class);
 
-	/** The {@link CheckedMethod} for {@link List#get(int)}. */
-	public static final CheckedMethod listGetMethod =
-		javaLibraryInstanceMethod(
-			List.class, "get", Object.class, int.class);
-
-	/** The {@link CheckedMethod} for {@link List#clear()}. */
-	public static final CheckedMethod listClearMethod =
-		javaLibraryInstanceMethod(List.class, "clear", void.class);
-
-	/** The {@link CheckedMethod} for {@link List#add(Object)}. */
-	public static final CheckedMethod listAddMethod =
-		javaLibraryInstanceMethod(
-			List.class, "add", boolean.class, Object.class);
-
 	/**
 	 * Assert that the number of arguments in the {@link #argsBuffer} agrees
 	 * with the given expected number.

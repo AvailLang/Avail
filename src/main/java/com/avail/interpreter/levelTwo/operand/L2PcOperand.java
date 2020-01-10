@@ -34,6 +34,7 @@ package com.avail.interpreter.levelTwo.operand;
 
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ContinuationRegisterDumpDescriptor;
+import com.avail.interpreter.JavaLibrary;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
@@ -55,7 +56,6 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.atomic.LongAdder;
 
-import static com.avail.descriptor.ContinuationRegisterDumpDescriptor.bitCastDoubleToLongMethod;
 import static com.avail.descriptor.ContinuationRegisterDumpDescriptor.createRegisterDumpMethod;
 import static com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.BOXED;
 import static com.avail.utility.CollectionExtensions.populatedEnumMap;
@@ -127,7 +127,7 @@ extends L2Operand
 	 * special class loader, and captured as a final constant within the
 	 * {@link L2Chunk}'s class.
 	 *
-	 * <p>Most edges don't benefit from having a counter, and a final optimizaed
+	 * <p>Most edges don't benefit from having a counter, and a final optimized
 	 * form has no need for any counters, so this field can be {@code null}.</p>
 	 */
 	public @Nullable LongAdder counter = null;
@@ -475,7 +475,7 @@ extends L2Operand
 				method.visitVarInsn(
 					RegisterKind.FLOAT.loadInstruction,
 					floatLocalNumbers.get(i));
-				bitCastDoubleToLongMethod.generateCall(method);
+				JavaLibrary.getBitCastDoubleToLongMethod().generateCall(method);
 				method.visitInsn(LASTORE);
 			}
 		}
