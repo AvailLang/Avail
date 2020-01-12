@@ -120,7 +120,7 @@ internal object FileManager
 				else
 				{
 					ServerFileWrapper(
-						path, openFile(Paths.get(path), fileOpenOptions))
+						it, path, openFile(Paths.get(path), fileOpenOptions))
 				})
 
 		},
@@ -149,6 +149,25 @@ internal object FileManager
 			pathToIdMap.remove(it.path)
 			idToPathMap.remove(id)
 		} ?: idToPathMap.remove(id)?.let { pathToIdMap.remove(it) }
+	}
+
+	/**
+	 * Deregister interest in the file associated with the provided [fileCache]
+	 * id. If the resulting [interest count][ServerFileWrapper.interestCount]
+	 * is 0, the file is closed and fully removed from the [fileCache].
+	 *
+	 * @param id
+	 *   The [UUID] that uniquely identifies the target file in the cache.
+	 */
+	fun deregisterInterest (id: UUID)
+	{
+		fileCache[id].value?.let {
+			if (it.interestCount.decrementAndGet() == 0)
+			{
+				remove(id)
+				it.close()
+			}
+		}
 	}
 
 	/**
@@ -235,7 +254,7 @@ internal object FileManager
 			idToPathMap[uuid] = path
 		}
 		val value = fileCache[uuid]
-		value.value?.provide(uuid, consumer, failureHandler)
+		value.value?.provide(consumer, failureHandler)
 			?: failureHandler(FILE_NOT_FOUND, null)
 		return uuid
 	}
@@ -283,6 +302,7 @@ internal object FileManager
 		consumer: (UUID, String, ByteArray) -> Unit,
 		failureHandler: (ServerErrorCode, Throwable?) -> Unit): UUID?
 	{
+		// TODO should the mime type be required?
 		// TODO check to see if this is reasonable?
 		try
 		{

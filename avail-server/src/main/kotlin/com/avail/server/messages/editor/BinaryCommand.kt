@@ -39,6 +39,7 @@ import com.avail.server.error.ServerErrorCode
 import com.avail.server.io.AvailServerChannel
 import com.avail.server.io.files.EditRange
 import com.avail.server.io.files.RedoAction
+import com.avail.server.io.files.SaveAction
 import com.avail.server.io.files.UndoAction
 import com.avail.server.messages.Message
 import java.lang.UnsupportedOperationException
@@ -128,7 +129,71 @@ enum class BinaryCommand constructor(val id: Int)
 		}
 	},
 
-	CREATE_FILE(2),
+	/** [Create][FileManager.createFile] a new file. */
+	CREATE_FILE(2)
+	{
+		override fun receiveThen(
+			id: Int,
+			commandId: Long,
+			buffer: ByteBuffer,
+			channel: AvailServerChannel,
+			continuation: () -> Unit)
+		{
+			val raw = ByteArray(buffer.remaining())
+			buffer.get(raw)
+			val relativePath = String(raw, Charsets.UTF_8)
+			assert(relativePath.isNotEmpty())
+			val target = ModuleName(relativePath)
+			channel.server.runtime.moduleRoots()
+				.moduleRootFor(target.rootName)?.let { mr ->
+					mr.sourceDirectory?.let {
+						val path =
+							Paths.get(it.path, target.rootRelativeName).toString()
+
+						FileManager.createFile(
+							path,
+							{ uuid, mime, bytes ->
+								FileOpenedMessage(commandId, uuid, bytes.size, mime)
+									.processThen(channel)
+									{
+										FileStreamMessage(commandId, uuid, bytes)
+											.processThen(channel)
+									}
+							}) { code, throwable ->
+								throwable?.let { e ->
+									AvailServer.logger.log(Level.SEVERE, e) {
+										"Could not create file, $path" }
+								}
+								channel.enqueueMessageThen(
+									ErrorBinaryMessage(commandId, code).message) {}
+							}
+						// Request is asynchronous, so continue
+						continuation()
+					} ?: {
+						// No source directory
+						channel.enqueueMessageThen(
+							ErrorBinaryMessage(
+								commandId,
+								ServerErrorCode.NO_SOURCE_DIRECTORY,
+								false,
+								"No source directory found for " +
+								target.rootName
+							).message,
+							continuation)
+					}()
+				} ?: {
+				// No module root found
+				channel.enqueueMessageThen(
+					ErrorBinaryMessage(
+						commandId,
+						ServerErrorCode.BAD_MODULE_ROOT,
+						false,
+						"${target.rootName} not found"
+					).message,
+					continuation)
+			}()
+		}
+	},
 
 	/** Request to open a file in the [FileManager]. */
 	OPEN_FILE(3)
@@ -161,13 +226,13 @@ enum class BinaryCommand constructor(val id: Int)
 											.processThen(channel)
 									}
 							}) { code, throwable ->
-							throwable?.let { e ->
-								AvailServer.logger.log(Level.SEVERE, e) {
-									"Could not read file, $path" }
+								throwable?.let { e ->
+									AvailServer.logger.log(Level.SEVERE, e) {
+										"Could not read file, $path" }
+								}
+								channel.enqueueMessageThen(
+									ErrorBinaryMessage(commandId, code).message) {}
 							}
-							channel.enqueueMessageThen(
-								ErrorBinaryMessage(commandId, code).message) {}
-						}
 						// Request is asynchronous, so continue
 						continuation()
 					} ?: {
@@ -197,15 +262,50 @@ enum class BinaryCommand constructor(val id: Int)
 	},
 
 	/** Request to close a file in the [FileManager]. */
-	CLOSE_FILE(4),
+	CLOSE_FILE(4)
+	{
+		override fun receiveThen(
+			id: Int,
+			commandId: Long,
+			buffer: ByteBuffer,
+			channel: AvailServerChannel,
+			continuation: () -> Unit)
+		{
+			val mostSig = buffer.long
+			val leastSig = buffer.long
+			val uuid = UUID(mostSig, leastSig)
+			FileManager.deregisterInterest(uuid)
+			OkMessage(commandId).processThen(channel, continuation)
+		}
+	},
 
 	/** Request to save a file in the [FileManager] to disk. */
-	SAVE_FILE(5),
+	SAVE_FILE(5)
+	{
+		override fun receiveThen(
+			id: Int,
+			commandId: Long,
+			buffer: ByteBuffer,
+			channel: AvailServerChannel,
+			continuation: () -> Unit)
+		{
+			val mostSig = buffer.long
+			val leastSig = buffer.long
+			val uuid = UUID(mostSig, leastSig)
+			val fail: (ServerErrorCode, Throwable?) -> Unit =
+				{ code, e ->
+					ErrorBinaryMessage(commandId, code, false)
+						.processThen(channel)
+				}
+			FileManager.executeAction(uuid, SaveAction(fail), fail)
+			continuation()
+		}
+	},
 
 	/** Response to open a file in the [FileManager]. */
 	FILE_OPENED(6),
 
-	/** Indicates a file following data is indicated file. */
+	/** Stream the contents of a file to the client. */
 	FILE_STREAM(7),
 
 	/** An [EditRange] request. */
@@ -317,13 +417,13 @@ enum class BinaryCommand constructor(val id: Int)
 								OkMessage(commandId)
 									.processThen(channel, continuation)
 							}) { code, throwable ->
-							throwable?.let { e ->
-								AvailServer.logger.log(Level.SEVERE, e) {
-									"Could not delete file, $path" }
+								throwable?.let { e ->
+									AvailServer.logger.log(Level.SEVERE, e) {
+										"Could not delete file, $path" }
+								}
+								channel.enqueueMessageThen(
+									ErrorBinaryMessage(commandId, code).message) {}
 							}
-							channel.enqueueMessageThen(
-								ErrorBinaryMessage(commandId, code).message) {}
-						}
 						// Request is asynchronous, so continue
 						continuation()
 					} ?: {

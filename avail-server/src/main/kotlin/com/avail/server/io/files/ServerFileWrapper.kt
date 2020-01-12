@@ -41,6 +41,7 @@ import java.nio.file.Paths
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * A `ServerFileWrapper` holds an [AvailServerFile]. The purpose of this is to
@@ -50,19 +51,23 @@ import java.util.concurrent.atomic.AtomicBoolean
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
+ * @property id
+ *   The [FileManager.fileCache] key.
  * @property path
  *   The String path to the target file on disk.
  *
  * @constructor
  * Construct a [ServerFileWrapper].
  *
+ * @param id
+ *   The [FileManager.fileCache] key.
  * @param path
  *   The String path to the target file on disk.
  * @param fileChannel
  *   The [AsynchronousFileChannel] used to access the file.
  */
 internal class ServerFileWrapper constructor(
-	val path: String, fileChannel: AsynchronousFileChannel)
+	val id: UUID, val path: String, fileChannel: AsynchronousFileChannel)
 {
 	/**
 	 * The [AvailServerFile] wrapped by this [ServerFileWrapper].
@@ -244,7 +249,6 @@ internal class ServerFileWrapper constructor(
 		isReady.set(false)
 		try
 		{
-			FileManager.remove(id)
 			if (file.isOpen)
 			{
 				try
@@ -262,6 +266,7 @@ internal class ServerFileWrapper constructor(
 			}
 			else
 			{
+				FileManager.remove(id)
 				success()
 			}
 		}
@@ -280,6 +285,11 @@ internal class ServerFileWrapper constructor(
 		})
 	}
 
+	/**
+	 * The number of clients that actively have this file open.
+	 */
+	val interestCount = AtomicInteger(0)
+
 	/** Close this [ServerFileWrapper]. */
 	fun close () { file.close() }
 
@@ -287,8 +297,6 @@ internal class ServerFileWrapper constructor(
 	 * Provide the [raw bytes][AvailServerFile.rawContent] of the enclosed
 	 * [AvailServerFile] to the requesting consumer.
 	 *
-	 * @param id
-	 *   The [FileManager.fileCache] [UUID] that uniquely identifies the file.
 	 * @param consumer
 	 *   A function that accepts the [FileManager.fileCache] [UUID] that
 	 *   uniquely identifies the file, the String mime type, and the
@@ -298,7 +306,6 @@ internal class ServerFileWrapper constructor(
 	 *   of the failure and an optional [Throwable]. TODO refine error handling
 	 */
 	fun provide(
-		id: UUID,
 		consumer: (UUID, String, ByteArray) -> Unit,
 		failureHandler: (ServerErrorCode, Throwable?) -> Unit)
 	{
@@ -306,6 +313,7 @@ internal class ServerFileWrapper constructor(
 		//  consumer?
 		synchronized(this)
 		{
+			interestCount.incrementAndGet()
 			if (!isLoadingFile)
 			{
 				consumer(id, file.mimeType, file.rawContent)
@@ -344,7 +352,10 @@ internal class ServerFileWrapper constructor(
 	fun notifyFailure (errorCode: ServerErrorCode, e: Throwable?)
 	{
 		// TODO fix this up
-		handlerQueue.forEach { it.failureHandler(errorCode, e) }
+		handlerQueue.forEach {
+			it.failureHandler(errorCode, e)
+
+		}
 	}
 
 	companion object

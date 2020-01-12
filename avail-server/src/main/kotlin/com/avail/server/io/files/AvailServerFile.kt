@@ -32,9 +32,12 @@
 package com.avail.server.io.files
 
 import com.avail.io.SimpleCompletionHandler
+import com.avail.server.AvailServer
 import com.avail.server.error.ServerErrorCode
+import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousFileChannel
+import java.util.logging.Level
 
 /**
  * `AvailSeverFile` is a specification for declaring behavior and state for a
@@ -75,7 +78,16 @@ internal abstract class AvailServerFile constructor(
 	abstract val rawContent: ByteArray
 
 	/** Close the backing channel [file]. */
-	fun close () = file.close()
+	fun close () =
+		try
+		{
+			file.close()
+		}
+		catch (e: IOException)
+		{
+			AvailServer.logger.log(Level.WARNING, e) {
+				"Could not close file, $path" }
+		}
 
 	/**
 	 * `true` indicates the [file] is open; `false` indicates it is closed.
