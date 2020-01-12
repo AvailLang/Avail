@@ -34,11 +34,13 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
+import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.utility.Mutable;
@@ -94,6 +96,17 @@ extends L2Operation
 		return immediate.value != 0;
 	}
 
+	/**
+	 * Decrement the counter associated with the code.  If this thread was
+	 * responsible for decrementing it to zero, (re)optimize the code by
+	 * producing a new chunk.  Return whether the chunk was replaced.
+	 *
+	 * @param interpreter
+	 *        The interpreter for the current thread.
+	 * @param targetOptimizationLevel
+	 *        What level of optimization to apply if reoptimization occurs.
+	 * @return Whether a new chunk was created.
+	 */
 	@ReferencedInGeneratedCode
 	public static boolean decrement (
 		final Interpreter interpreter,
@@ -121,6 +134,17 @@ extends L2Operation
 		return chunkChanged.value;
 	}
 
+	/**
+	 * The {@link CheckedMethod} for {@link #decrement(Interpreter, int)}.
+	 */
+	private static final CheckedMethod decrementMethod =
+		CheckedMethod.staticMethod(
+			L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO.class,
+			"decrement",
+			boolean.class,
+			Interpreter.class,
+			int.class);
+
 	@Override
 	public void translateToJVM (
 		final JVMTranslator translator,
@@ -134,15 +158,7 @@ extends L2Operation
 		// ::    interpreter, targetOptimizationLevel)) return null;
 		translator.loadInterpreter(method);
 		translator.literal(method, optimization.value);
-		method.visitMethodInsn(
-			INVOKESTATIC,
-			getInternalName(L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO.class),
-			"decrement",
-			getMethodDescriptor(
-				BOOLEAN_TYPE,
-				getType(Interpreter.class),
-				INT_TYPE),
-			false);
+		decrementMethod.generateCall(method);
 		final Label didNotOptimize = new Label();
 		method.visitJumpInsn(IFEQ, didNotOptimize);
 		method.visitInsn(ACONST_NULL);

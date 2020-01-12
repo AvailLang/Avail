@@ -182,9 +182,11 @@ object P_ConcatenateTuples : Primitive(1, CannotFail, CanFold, CanInline)
 				translator.generator.boxedConstant(emptyTuple()))
 			1 -> callSiteHelper.useAnswer(adjustedSources[0])
 			else -> {
+				val guaranteedType = returnTypeGuaranteedByVM(
+					rawFunction, argumentTypes)
 				val writer: L2WriteBoxedOperand =
 					translator.generator.boxedWriteTemp(
-						restriction(mostGeneralTupleType(), null))
+						restriction(guaranteedType, null))
 				translator.addInstruction(
 					L2_CONCATENATE_TUPLES.instance,
 					L2ReadBoxedVectorOperand(adjustedSources),

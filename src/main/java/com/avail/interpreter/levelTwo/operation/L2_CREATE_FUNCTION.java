@@ -31,11 +31,19 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Function;
+import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.A_Type;
+import com.avail.descriptor.FunctionDescriptor;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.*;
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
+import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
+import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.RegisterSet;
@@ -44,12 +52,12 @@ import com.avail.optimizer.values.L2SemanticValue;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
+import java.util.function.Consumer;
 
-import static com.avail.descriptor.FunctionDescriptor.createExceptOuters;
+import static com.avail.descriptor.FunctionDescriptor.*;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static com.avail.utility.Strings.increaseIndentation;
-import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Type.*;
+import static org.objectweb.asm.Opcodes.DUP;
 
 /**
  * Synthesize a new {@link FunctionDescriptor function} from the provided
@@ -162,7 +170,7 @@ extends L2Operation
 			new L2IntImmediateOperand(outerIndex),
 			functionRegister,
 			tempWrite);
-		return generator.readBoxed(tempWrite.semanticValue());
+		return generator.readBoxed(tempWrite);
 	}
 
 	/**
@@ -203,10 +211,11 @@ extends L2Operation
 	}
 
 	@Override
-	public void toString (
+	public void appendToWithWarnings (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
-		final StringBuilder builder)
+		final StringBuilder builder,
+		final Consumer<Boolean> warningStyleChange)
 	{
 		assert this == instruction.operation();
 		final L2ConstantOperand code = instruction.operand(0);
@@ -245,31 +254,14 @@ extends L2Operation
 			case 1:
 			{
 				translator.load(method, outerRegs.registers().get(0));
-				method.visitMethodInsn(
-					INVOKESTATIC,
-					getInternalName(FunctionDescriptor.class),
-					"createWithOuters1", // overload for 1 outer
-					getMethodDescriptor(
-						getType(AvailObject.class),
-						getType(A_RawFunction.class),
-						getType(AvailObject.class)),
-					false);
+				createWithOuters1Method.generateCall(method);
 				break;
 			}
 			case 2:
 			{
 				translator.load(method, outerRegs.registers().get(0));
 				translator.load(method, outerRegs.registers().get(1));
-				method.visitMethodInsn(
-					INVOKESTATIC,
-					getInternalName(FunctionDescriptor.class),
-					"createWithOuters2", // overload for 2 outers
-					getMethodDescriptor(
-						getType(AvailObject.class),
-						getType(A_RawFunction.class),
-						getType(AvailObject.class),
-						getType(AvailObject.class)),
-					false);
+				createWithOuters2Method.generateCall(method);
 				break;
 			}
 			case 3:
@@ -277,32 +269,14 @@ extends L2Operation
 				translator.load(method, outerRegs.registers().get(0));
 				translator.load(method, outerRegs.registers().get(1));
 				translator.load(method, outerRegs.registers().get(2));
-				method.visitMethodInsn(
-					INVOKESTATIC,
-					getInternalName(FunctionDescriptor.class),
-					"createWithOuters3", // overload for 3 outers
-					getMethodDescriptor(
-						getType(AvailObject.class),
-						getType(A_RawFunction.class),
-						getType(AvailObject.class),
-						getType(AvailObject.class),
-						getType(AvailObject.class)),
-					false);
+				createWithOuters3Method.generateCall(method);
 				break;
 			}
 			default:
 			{
 				// :: function = createExceptOuters(code, numOuters);
 				translator.intConstant(method, numOuters);
-				method.visitMethodInsn(
-					INVOKESTATIC,
-					getInternalName(FunctionDescriptor.class),
-					"createExceptOuters",
-					getMethodDescriptor(
-						getType(AvailObject.class),
-						getType(A_RawFunction.class),
-						INT_TYPE),
-					false);
+				createExceptOutersMethod.generateCall(method);
 				for (int i = 0; i < numOuters; i++)
 				{
 					// :: function.outerVarAtPut(«i + 1», «outerRegs[i]»);
@@ -310,15 +284,7 @@ extends L2Operation
 					translator.intConstant(method, i + 1);
 					translator.load(
 						method, outerRegs.elements().get(i).register());
-					method.visitMethodInsn(
-						INVOKEINTERFACE,
-						getInternalName(A_Function.class),
-						"outerVarAtPut",
-						getMethodDescriptor(
-							VOID_TYPE,
-							INT_TYPE,
-							getType(AvailObject.class)),
-						true);
+					outerVarAtPutMethod.generateCall(method);
 				}
 				break;
 			}

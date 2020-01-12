@@ -54,8 +54,7 @@ import com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Interpreter.runOutermostFunction
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.Primitive.Flag.*
 import java.util.*
 
 /**
@@ -66,7 +65,8 @@ import java.util.*
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_ForkOrphan : Primitive(3, CanInline, HasSideEffect)
+object P_ForkOrphan : Primitive(
+	3, CanInline, HasSideEffect, WritesToHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{

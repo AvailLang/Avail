@@ -33,10 +33,15 @@ package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_Type;
 import com.avail.interpreter.Primitive;
-import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.GLOBAL_STATE;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE;
+import com.avail.interpreter.levelTwo.ReadsHiddenVariable;
+import com.avail.interpreter.levelTwo.WritesHiddenVariable;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
@@ -50,7 +55,9 @@ import org.objectweb.asm.MethodVisitor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
+import static com.avail.interpreter.Primitive.Flag.*;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 
 /**
@@ -69,9 +76,54 @@ import static com.avail.interpreter.levelTwo.L2OperandType.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_RUN_INFALLIBLE_PRIMITIVE
+@SuppressWarnings("AbstractClassWithoutAbstractMethods")
+public abstract class L2_RUN_INFALLIBLE_PRIMITIVE
 extends L2Operation
 {
+	/** The subclass for primitives that have no global dependency. */
+	@WritesHiddenVariable({
+//		CURRENT_CONTINUATION.class,
+//		CURRENT_FUNCTION.class,
+//		CURRENT_ARGUMENTS.class,
+		LATEST_RETURN_VALUE.class
+	})
+	private static class L2_RUN_INFALLIBLE_PRIMITIVE_no_dependency
+	extends L2_RUN_INFALLIBLE_PRIMITIVE { }
+
+	/** The subclass for primitives that have global read dependency. */
+	@ReadsHiddenVariable(GLOBAL_STATE.class)
+	@WritesHiddenVariable({
+		CURRENT_CONTINUATION.class,
+		CURRENT_FUNCTION.class,
+//		CURRENT_ARGUMENTS.class,
+		LATEST_RETURN_VALUE.class
+	})
+	private static class L2_RUN_INFALLIBLE_PRIMITIVE_read_dependency
+	extends L2_RUN_INFALLIBLE_PRIMITIVE { }
+
+	/** The subclass for primitives that have global write dependency. */
+	@WritesHiddenVariable({
+		CURRENT_CONTINUATION.class,
+		CURRENT_FUNCTION.class,
+//		CURRENT_ARGUMENTS.class,
+		LATEST_RETURN_VALUE.class,
+		GLOBAL_STATE.class
+	})
+	private static class L2_RUN_INFALLIBLE_PRIMITIVE_write_dependency
+	extends L2_RUN_INFALLIBLE_PRIMITIVE { }
+
+	/** The subclass for primitives that have global read/write dependency. */
+	@ReadsHiddenVariable(GLOBAL_STATE.class)
+	@WritesHiddenVariable({
+		CURRENT_CONTINUATION.class,
+		CURRENT_FUNCTION.class,
+//		CURRENT_ARGUMENTS.class,
+		LATEST_RETURN_VALUE.class,
+		GLOBAL_STATE.class
+	})
+	private static class L2_RUN_INFALLIBLE_PRIMITIVE_readwrite_dependency
+	extends L2_RUN_INFALLIBLE_PRIMITIVE { }
+
 	/**
 	 * Construct an {@code L2_RUN_INFALLIBLE_PRIMITIVE}.
 	 */
@@ -84,11 +136,54 @@ extends L2Operation
 			WRITE_BOXED.is("primitive result"));
 	}
 
+	/** An instance for no global dependencies. */
+	@SuppressWarnings("SyntheticAccessorCall")
+	private static final L2_RUN_INFALLIBLE_PRIMITIVE noDependency =
+		new L2_RUN_INFALLIBLE_PRIMITIVE_no_dependency();
+
+	/** An instance for global read dependencies. */
+	@SuppressWarnings("SyntheticAccessorCall")
+	private static final L2_RUN_INFALLIBLE_PRIMITIVE readDependency =
+		new L2_RUN_INFALLIBLE_PRIMITIVE_read_dependency();
+
+	/** An instance for global write dependencies. */
+	@SuppressWarnings("SyntheticAccessorCall")
+	private static final L2_RUN_INFALLIBLE_PRIMITIVE writeDependency =
+		new L2_RUN_INFALLIBLE_PRIMITIVE_write_dependency();
+
+	/** An instance for global read/write dependencies. */
+	@SuppressWarnings("SyntheticAccessorCall")
+	private static final L2_RUN_INFALLIBLE_PRIMITIVE readWriteDependency =
+		new L2_RUN_INFALLIBLE_PRIMITIVE_readwrite_dependency();
+
 	/**
-	 * Initialize the sole instance.
+	 * Select an appropriate variant of the operation for the supplied
+	 * {@link Primitive}, based on its global interference declarations.
+	 *
+	 * @param primitive The primitive that this operation is for.
+	 * @return A suitable {@code L2_RUN_INFALLIBLE_PRIMITIVE} instance.
 	 */
-	public static final L2_RUN_INFALLIBLE_PRIMITIVE instance =
-		new L2_RUN_INFALLIBLE_PRIMITIVE();
+	public static L2_RUN_INFALLIBLE_PRIMITIVE forPrimitive(
+		final Primitive primitive)
+	{
+		// Until we have all primitives annotated with global read/write flags,
+		// pay attention to other flags that we expect to prevent commutation
+		// of invocations.
+		if (primitive.hasFlag(HasSideEffect) || primitive.hasFlag(Unknown))
+		{
+			return readWriteDependency;
+		}
+		final boolean read = primitive.hasFlag(ReadsFromHiddenGlobalState);
+		final boolean write = primitive.hasFlag(WritesToHiddenGlobalState);
+		return read
+			? write
+				? readWriteDependency
+				: readDependency
+			: write
+				? writeDependency
+				: noDependency;
+	}
+
 
 	@Override
 	protected void propagateTypes (
@@ -133,18 +228,20 @@ extends L2Operation
 
 
 		final Primitive prim = primitive.primitive;
-		return prim.hasFlag(Flag.HasSideEffect)
-			|| prim.hasFlag(Flag.CatchException)
-			|| prim.hasFlag(Flag.Invokes)
-			|| prim.hasFlag(Flag.CanSwitchContinuations)
-			|| prim.hasFlag(Flag.Unknown);
+		return prim.hasFlag(HasSideEffect)
+			|| prim.hasFlag(CatchException)
+			|| prim.hasFlag(Invokes)
+			|| prim.hasFlag(CanSwitchContinuations)
+			|| prim.hasFlag(ReadsFromHiddenGlobalState)
+			|| prim.hasFlag(WritesToHiddenGlobalState)
+			|| prim.hasFlag(Unknown);
 	}
 
 	@Override
 	public L2WriteBoxedOperand primitiveResultRegister (
 		final L2Instruction instruction)
 	{
-		assert instruction.operation() == instance;
+		assert instruction.operation() == this;
 		return instruction.operand(3);
 	}
 
@@ -159,7 +256,7 @@ extends L2Operation
 	public static Primitive primitiveOf (
 		final L2Instruction instruction)
 	{
-		assert instruction.operation() == instance;
+		assert instruction.operation() instanceof L2_RUN_INFALLIBLE_PRIMITIVE;
 		final L2PrimitiveOperand primitive = instruction.operand(1);
 		return primitive.primitive;
 	}
@@ -177,16 +274,17 @@ extends L2Operation
 	public static List<L2ReadBoxedOperand> argsOf (
 		final L2Instruction instruction)
 	{
-		assert instruction.operation() == instance;
+		assert instruction.operation() instanceof L2_RUN_INFALLIBLE_PRIMITIVE;
 		final L2ReadBoxedVectorOperand vector = instruction.operand(2);
 		return vector.elements();
 	}
 
 	@Override
-	public void toString (
+	public void appendToWithWarnings (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
-		final StringBuilder builder)
+		final StringBuilder builder,
+		final Consumer<Boolean> warningStyleChange)
 	{
 		assert this == instruction.operation();
 //		final L2ConstantOperand rawFunction = instruction.operand(0);

@@ -44,17 +44,17 @@ import org.objectweb.asm.MethodVisitor;
 
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
-import static com.avail.interpreter.Interpreter.interpreterFunctionField;
-import static com.avail.interpreter.Interpreter.interpreterReturningFunctionField;
+import static com.avail.interpreter.Interpreter.*;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
 import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Type.*;
 
 /**
  * Return from the current {@link L2Chunk} with the given return value.  The
- * value to return will be stored in {@link Interpreter#latestResult(
- * A_BasicObject)}, so the caller will need to look there.
+ * value to return will be stored in
+ * {@link Interpreter#setLatestResult( A_BasicObject)}, so the caller will need
+ * to look there.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -94,10 +94,11 @@ extends L2ControlFlowOperation
 	}
 
 	@Override
-	public void toString (
+	public void appendToWithWarnings (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
-		final StringBuilder builder)
+		final StringBuilder builder,
+		final Consumer<Boolean> warningStyleChange)
 	{
 		assert this == instruction.operation();
 		final L2ReadBoxedOperand value = instruction.operand(0);
@@ -115,28 +116,19 @@ extends L2ControlFlowOperation
 	{
 		final L2ReadBoxedOperand value = instruction.operand(0);
 
-		// :: interpreter.latestResult(value);
+		// :: interpreter.setLatestResult(value);
 		translator.loadInterpreter(method);
 		method.visitInsn(DUP);
 		translator.load(method, value.register());
-		method.visitMethodInsn(
-			INVOKEVIRTUAL,
-			getInternalName(Interpreter.class),
-			"latestResult",
-			getMethodDescriptor(VOID_TYPE, getType(A_BasicObject.class)),
-			false);
+		setLatestResultMethod.generateCall(method);
 		// :: interpreter.returnNow = true;
 		method.visitInsn(DUP);
 		translator.intConstant(method, 1);
-		method.visitFieldInsn(
-			PUTFIELD,
-			getInternalName(Interpreter.class),
-			"returnNow",
-			BOOLEAN_TYPE.getDescriptor());
+		returnNowField.generateWrite(method);
 		// interpreter.returningFunction = interpreter.function;
 		method.visitInsn(DUP);
-		interpreterFunctionField.generateRead(translator, method);
-		interpreterReturningFunctionField.generateWrite(translator, method);
+		interpreterFunctionField.generateRead(method);
+		interpreterReturningFunctionField.generateWrite(method);
 		// :: return null;
 		method.visitInsn(ACONST_NULL);
 		method.visitInsn(ARETURN);

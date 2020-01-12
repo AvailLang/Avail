@@ -40,10 +40,13 @@ import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
+import com.avail.interpreter.levelTwo.operation.L2_JUMP;
 import com.avail.interpreter.levelTwo.operation.L2_UNREACHABLE_CODE;
 import com.avail.interpreter.levelTwo.register.L2Register;
-import com.avail.optimizer.values.L2SemanticValue;
+import com.avail.optimizer.L2ControlFlowGraph.Zone;
+import com.avail.utility.MutableInt;
 import com.avail.utility.dot.DotWriter;
+import com.avail.utility.dot.DotWriter.CompassPoint;
 import com.avail.utility.dot.DotWriter.GraphWriter;
 
 import javax.annotation.Nullable;
@@ -53,13 +56,17 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.COMMENT;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
-import static com.avail.utility.dot.DotWriter.DefaultAttributeBlockType.EDGE;
-import static com.avail.utility.dot.DotWriter.DefaultAttributeBlockType.NODE;
+import static com.avail.utility.Strings.repeated;
+import static com.avail.utility.dot.DotWriter.DefaultAttributeBlockType.*;
 import static com.avail.utility.dot.DotWriter.node;
+import static java.util.Arrays.asList;
 import static java.util.Comparator.comparing;
+import static java.util.Comparator.comparingInt;
 
 /**
  * An {@code L2ControlFlowGraphVisualizer} generates a {@code dot} source file
@@ -68,6 +75,7 @@ import static java.util.Comparator.comparing;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@SuppressWarnings("SpellCheckingInspection")
 public class L2ControlFlowGraphVisualizer
 {
 	/**
@@ -87,6 +95,11 @@ public class L2ControlFlowGraphVisualizer
 	 */
 	private final int charactersPerLine;
 
+	/**
+	 * A color {@link String} suitable for {@link GraphWriter#adjust(String)},
+	 * specifying what foreground color to use for error text.
+	 */
+	private static final String errorTextColor = "#e04040/ff6060";
 	/**
 	 * The {@link L2ControlFlowGraph} that should be visualized by a {@code dot}
 	 * renderer.
@@ -190,6 +203,9 @@ public class L2ControlFlowGraphVisualizer
 	 */
 	private final Map<L2BasicBlock, String> basicBlockNames = new HashMap<>();
 
+	/** Characters that should be removed outright from class names. */
+	private static final Pattern matchUglies = Pattern.compile("[\"\\\\]");
+
 	/**
 	 * Compute a unique name for the specified {@link L2BasicBlock}.
 	 *
@@ -205,14 +221,14 @@ public class L2ControlFlowGraphVisualizer
 			basicBlock,
 			b ->
 			{
-				final int offset = basicBlock.offset();
+				final int offset = b.offset();
 				final int id = offset == -1 ? ++blockId : offset;
 				final String prefix =
 					String.format(offset == -1 ? "[id: %d]" : "[pc: %d]", id);
 				return String.format(
 					"%s %s",
 					prefix,
-					basicBlock.name());
+					matchUglies.matcher(b.name()).replaceAll(""));
 			});
 	}
 
@@ -246,7 +262,7 @@ public class L2ControlFlowGraphVisualizer
 			}
 			else if (cp == '\t')
 			{
-				builder.append("&nbsp;&nbsp;&nbsp;&nbsp;");
+				builder.append(repeated("&nbsp;", 4));
 			}
 			else
 			{
@@ -265,9 +281,13 @@ public class L2ControlFlowGraphVisualizer
 	 *
 	 * @param instruction
 	 *        An {@code L2Instruction}.
+	 * @param writer
+	 *        A {@link GraphWriter} used to mediate the styling.
 	 * @return The requested description.
 	 */
-	private static String instruction (final L2Instruction instruction)
+	private static String instruction (
+		final L2Instruction instruction,
+		final GraphWriter writer)
 	{
 		final StringBuilder builder = new StringBuilder();
 		// Hoist a comment operand, if one is present.
@@ -284,7 +304,12 @@ public class L2ControlFlowGraphVisualizer
 				// In particular, Courier, Arial, Helvetica, and Times are
 				// supported.
 				builder.append(
-					"<font face=\"Helvetica\" color=\"#404040\"><i>");
+					String.format(
+						"<font face=\"Helvetica\" color=\"%s\"><i>",
+						writer.adjust(
+							operand.isMisconnected(),
+							errorTextColor,
+							"#404040/a0a0a0")));
 				builder.append(escape(operand.toString()));
 				builder.append("</i></font><br/>");
 			}
@@ -294,12 +319,72 @@ public class L2ControlFlowGraphVisualizer
 		final int escapeIndex = builder.length();
 		final Set<L2OperandType> desiredTypes =
 			EnumSet.complementOf(EnumSet.of(PC, COMMENT));
-		instruction.operation().toString(instruction, desiredTypes, builder);
-		// Escape everything since the saved position.
-		return builder.replace(
-			escapeIndex,
-			builder.length(),
-			escape(builder.substring(escapeIndex))).toString();
+		if (instruction.operation() == L2_JUMP.instance
+			&& instruction.offset() != -1
+			&& L2_JUMP.jumpTarget(instruction).offset()
+				== instruction.offset())
+		{
+			// Show fall-through jumps in grey.
+			final L2PcOperand edge = L2_JUMP.jumpTarget(instruction);
+			builder
+				.append("<font color=\"")
+				.append(
+					writer.adjust(
+						edge.isMisconnected(),
+						errorTextColor,
+						"#404040/808080"))
+				.append("\"><i>");
+			final int escapableStart = builder.length();
+			instruction.operation().appendToWithWarnings(
+				instruction, desiredTypes, builder, b -> {});
+			builder.replace(
+				escapableStart,
+				builder.length(),
+				escape(builder.substring(escapableStart)));
+			builder.append("</i></font><br/>");
+			return builder.toString();
+		}
+		final Deque<Integer> styleChanges = new ArrayDeque<>();
+		instruction.appendToWithWarnings(
+			builder,
+			desiredTypes,
+			flag ->
+			{
+				assert flag == (styleChanges.size() % 2 == 0);
+				styleChanges.add(builder.length());
+			});
+
+		// Escape everything since the saved position.  Add a final sentinel to
+		// avoid duplicating code below.
+		styleChanges.add(builder.length());
+		final StringBuilder escaped = new StringBuilder();
+		boolean warningFlag = false;
+		int regionStart = escapeIndex;
+		while (!styleChanges.isEmpty())
+		{
+			final int here = styleChanges.remove();
+			escaped.append(escape(builder.substring(regionStart, here)));
+			if (!styleChanges.isEmpty())
+			{
+				warningFlag = !warningFlag;
+				if (warningFlag)
+				{
+					escaped
+						.append("<font color=\"")
+						.append(writer.adjust(errorTextColor))
+						.append("\"><i>");
+				}
+				else
+				{
+					escaped.append("</i></font>");
+				}
+			}
+			regionStart = here;
+		}
+		assert regionStart == builder.length();
+		assert !warningFlag;
+		builder.replace(escapeIndex, builder.length(), escaped.toString());
+		return builder.toString();
 	}
 
 	/**
@@ -324,28 +409,33 @@ public class L2ControlFlowGraphVisualizer
 		final List<L2Instruction> instructions = basicBlock.instructions();
 		final @Nullable L2Instruction first =
 			!instructions.isEmpty() ? basicBlock.instructions().get(0) : null;
-		final String bgcolor;
+		final String fillcolor;
 		final String fontcolor;
 		if (!started)
 		{
-			bgcolor = "#202080";
-			fontcolor = "#ffffff";
+			fillcolor = "#202080/303000";
+			fontcolor = "#ffffff/e0e0e0";
 		}
 		else if (basicBlock.instructions().stream().anyMatch(
 			i -> i.operation() == L2_UNREACHABLE_CODE.instance))
 		{
-			bgcolor = "#400000";
-			fontcolor = "#ffffff";
+			fillcolor = "#400000/600000";
+			fontcolor = "#ffffff/ffffff";
 		}
-		else if (first != null && first.operation().isEntryPoint(first))
+		else if (basicBlock.isLoopHead)
 		{
-			bgcolor = "#ffd394";
-			fontcolor = "#000000";
+			fillcolor = "#9070ff/302090";
+			fontcolor = "#000000/f0f0f0";
+		}
+		else if (first != null && first.isEntryPoint())
+		{
+			fillcolor = "#ffd394/604000";
+			fontcolor = "#000000/e0e0e0";
 		}
 		else
 		{
-			bgcolor = "#c1f0f6";
-			fontcolor = "#000000";
+			fillcolor = "#c1f0f6/104048";
+			fontcolor = "#000000/e0e0e0";
 		}
 		// The selection of Helvetica as the font is important. Some
 		// renderers, like Viz.js, only seem to fully support a small number
@@ -358,24 +448,26 @@ public class L2ControlFlowGraphVisualizer
 			"<tr>"
 				+ "<td align=\"left\" balign=\"left\" border=\"1\" "
 				+ "bgcolor=\"%s\">"
-					+ "<font face=\"Helvetica\" color=\"%s\">%s</font>"
+					+ "<font face=\"Courier\" color=\"%s\">%s</font>"
 				+ "</td>"
 			+ "</tr>",
-			bgcolor,
-			fontcolor,
+			writer.adjust(fillcolor),
+			writer.adjust(fontcolor),
 			escape(basicBlock.name())));
 		if (!instructions.isEmpty())
 		{
-			int instructionId = 0;
+			int portId = 0;
 			for (final L2Instruction instruction : basicBlock.instructions())
 			{
-				final int offset = instruction.offset();
-				final int id = offset == -1 ? ++instructionId : offset;
 				builder.append(String.format(
 					"<tr><td align=\"left\" balign=\"left\" border=\"1\" "
-						+ "port=\"%d\" valign=\"top\">",
-					id));
-				builder.append(instruction(instruction));
+						+ "port=\"%d\" valign=\"top\"%s>",
+					++portId,
+					instruction.operation().isPlaceholder()
+						? " bgcolor=\"" + writer.adjust("#ff9090/#500000")
+							+ "\""
+						: ""));
+				builder.append(instruction(instruction, writer));
 				builder.append("</td></tr>");
 			}
 		}
@@ -401,184 +493,276 @@ public class L2ControlFlowGraphVisualizer
 	}
 
 	/**
-	 * Emit all incoming control flow edges for the specified {@link
-	 * L2BasicBlock}.
+	 * Emit a control flow edge, which is an {@link L2PcOperand}.
 	 *
-	 * @param targetBlock
-	 *        An {@code L2BasicBlock}.
+	 * @param edge
+	 *        The {@link L2PcOperand} to visit.
 	 * @param writer
 	 *        The {@link GraphWriter} for emission.
 	 * @param started
 	 *        Whether code generation has started for the targetBlock.
+	 * @param edgeCounter
+	 *        A {@link MutableInt}, suitable for uniquely numbering edges.
 	 */
-	private void edges (
-		final L2BasicBlock targetBlock,
+	private void edge (
+		final L2PcOperand edge,
 		final GraphWriter writer,
-		final boolean started)
+		final boolean started,
+		final MutableInt edgeCounter)
 	{
+		final L2BasicBlock sourceBlock = edge.sourceBlock();
+		final L2Instruction sourceInstruction = edge.instruction();
+		final L2BasicBlock targetBlock = edge.targetBlock();
 		final boolean isTargetTheUnreachableBlock =
 			targetBlock.instructions().stream()
 				.anyMatch(
 					instr -> instr.operation() == L2_UNREACHABLE_CODE.instance);
-		final Iterator<L2PcOperand> iterator =
-			targetBlock.predecessorEdgesIterator();
-		while (iterator.hasNext())
+		final L2NamedOperandType[] types =
+			sourceInstruction.operation().operandTypes();
+		final L2Operand[] operands = sourceInstruction.operands();
+		final L2NamedOperandType type = types[asList(operands).indexOf(edge)];
+		// The selection of Helvetica as the font is important. Some
+		// renderers, like Viz.js, only seem to fully support a small number
+		// of standard, widely available fonts:
+		//
+		// https://github.com/mdaines/viz.js/issues/82
+		//
+		// In particular, Courier, Arial, Helvetica, and Times are
+		// supported.
+		final StringBuilder builder = new StringBuilder();
+		builder.append(
+			"<table border=\"0\" cellspacing=\"0\">"
+				+ "<tr><td balign=\"left\">"
+					+ "<font face=\"Helvetica\"><b>");
+		builder.append(type.name());
+		builder.append("</b></font><br/>");
+		if (visualizeLiveness || visualizeManifest)
 		{
-			final L2PcOperand edge = iterator.next();
-			final L2BasicBlock sourceBlock = edge.sourceBlock();
-			final L2Instruction last = sourceBlock.finalInstruction();
-			final L2NamedOperandType[] types = last.operation().operandTypes();
-			final L2Operand[] operands = last.operands();
-			int i;
-			for (i = 0; i < operands.length; i++)
+			// Show any clamped entities for this edge.  These are registers and
+			// semantic values that are declared always live along this edge,
+			// and act as the (cycle breaking) end-roots for dead code analysis.
+			if (edge.forcedClampedEntities != null)
 			{
-				// Find the L2PcOperand corresponding to this edge.
-				final L2Operand operand = last.operand(i);
-				if (operand.operandType() == PC
-					&& ((L2PcOperand) operand).targetBlock() == targetBlock)
-				{
-					break;
-				}
-			}
-			assert i < operands.length : "didn't find the control edge";
-			final L2NamedOperandType type = types[i];
-			// The selection of Helvetica as the font is important. Some
-			// renderers, like Viz.js, only seem to fully support a small number
-			// of standard, widely available fonts:
-			//
-			// https://github.com/mdaines/viz.js/issues/82
-			//
-			// In particular, Courier, Arial, Helvetica, and Times are
-			// supported.
-			final StringBuilder builder = new StringBuilder();
-			builder.append(
-				"<table border=\"0\" cellspacing=\"0\">"
-					+ "<tr><td balign=\"left\">"
-						+ "<font face=\"Helvetica\"><b>");
-			builder.append(type.name());
-			builder.append("</b></font><br/>");
-			if (visualizeLiveness)
-			{
-				if (!edge.alwaysLiveInRegisters.isEmpty())
-				{
-					builder.append(
-						"<font face=\"Helvetica\"><i>always live-in:</i></font>"
-							+ "<br/><b>&nbsp;&nbsp;&nbsp;&nbsp;");
-					edge.alwaysLiveInRegisters.stream()
-						.sorted(Comparator.comparingInt(L2Register::finalIndex))
-						.forEach(
-							r -> builder
-								.append(escape(r.toString()))
-								.append(", "));
-					builder.setLength(builder.length() - 2);
-					builder.append("</b><br/>");
-				}
-				final Set<L2Register> notAlwaysLiveInRegisters =
-					new HashSet<>(edge.sometimesLiveInRegisters);
-				notAlwaysLiveInRegisters.removeAll(edge.alwaysLiveInRegisters);
-				if (!notAlwaysLiveInRegisters.isEmpty())
-				{
-					builder.append(
-						"<font face=\"Helvetica\"><i>sometimes live-in:</i></font>"
-							+ "<br/><b>&nbsp;&nbsp;&nbsp;&nbsp;");
-					notAlwaysLiveInRegisters.stream()
-						.sorted(Comparator.comparingInt(L2Register::finalIndex))
-						.forEach(
-							r -> builder
-								.append(escape(r.toString()))
-								.append(", "));
-					builder.setLength(builder.length() - 2);
-					builder.append("</b><br/>");
-				}
-			}
-			if (visualizeManifest)
-			{
-				final L2ValueManifest manifest = edge.manifest();
-				final List<L2Synonym> synonyms =
-					new ArrayList<>(manifest.synonyms());
-				if (!synonyms.isEmpty())
-				{
-					builder.append(
-						"<font face=\"Helvetica\"><i>manifest:</i></font>");
-					synonyms.sort(comparing(L2Synonym::toString));
-					synonyms.forEach(
-						synonym ->
-						{
-							builder.append("<br/>&nbsp;&nbsp;&nbsp;&nbsp;");
-							builder.append(escape(synonym.toString()));
-							if (synonym.semanticValues().stream().noneMatch(
-								L2SemanticValue::isConstant))
-							{
-								builder.append(
-									"<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
-									+ "&nbsp;&nbsp;"
-									+ ":&nbsp;");
-								final TypeRestriction restriction =
-									manifest.restrictionFor(
-										synonym.pickSemanticValue());
-								builder.append(escape(restriction.toString()));
-							}
-						});
-				}
-			}
-			builder.append("</td></tr></table>");
-			try
-			{
-				writer.edge(
-					node(
-						basicBlockName(sourceBlock),
-						Integer.toString(
-							sourceBlock.finalInstruction().offset() != -1
-								? sourceBlock.finalInstruction().offset()
-								: sourceBlock.instructions().size())),
-					targetBlock.offset() != -1
-						? sourceBlock.offset() <= targetBlock.offset()
-							? node(basicBlockName(targetBlock))
-							: node(
-								basicBlockName(targetBlock),
-								Integer.toString(targetBlock.offset()))
-						: node(basicBlockName(targetBlock)),
-					attr ->
-					{
-						if (!started)
-						{
-							attr.attribute("color", "#4040ff");
-							attr.attribute("style", "dotted");
-						}
-						else if (isTargetTheUnreachableBlock)
-						{
-							attr.attribute("color", "#804040");
-							attr.attribute("style", "dotted");
-						}
-						else
-						{
-							final @Nullable Purpose purpose = type.purpose();
-							assert purpose != null;
-							switch (purpose)
-							{
-								case SUCCESS:
-									// Nothing. The default styling will be fine.
-									break;
-								case FAILURE:
-									attr.attribute("color", "#e54545");
-									break;
-								case OFF_RAMP:
-									attr.attribute("style", "dashed");
-									break;
-								case ON_RAMP:
-									attr.attribute("style", "dashed");
-									attr.attribute("color", "#6aaf6a");
-									break;
-							}
-						}
-						attr.attribute("label", builder.toString());
-					});
-			}
-			catch (final IOException e)
-			{
-				throw new UncheckedIOException(e);
+				builder
+					.append("<font face=\"Helvetica\"><i>CLAMPED:</i></font>")
+					.append("<br/><b>")
+					.append(repeated("&nbsp;", 4))
+					.append(edge.forcedClampedEntities)
+					.append("</b><br/>");
 			}
 		}
+		if (visualizeLiveness)
+		{
+			if (!edge.alwaysLiveInRegisters.isEmpty())
+			{
+				builder
+					.append("<font face=\"Helvetica\">")
+					.append("<i>always live-in:</i></font><br/><b>")
+					.append(repeated("&nbsp;", 4));
+				edge.alwaysLiveInRegisters.stream()
+					.sorted(comparingInt(L2Register::finalIndex))
+					.forEach(
+						r -> builder
+							.append(escape(r.toString()))
+							.append(", "));
+				builder.setLength(builder.length() - 2);
+				builder.append("</b><br/>");
+			}
+			final Set<L2Register> notAlwaysLiveInRegisters =
+				new HashSet<>(edge.sometimesLiveInRegisters);
+			notAlwaysLiveInRegisters.removeAll(edge.alwaysLiveInRegisters);
+			if (!notAlwaysLiveInRegisters.isEmpty())
+			{
+				builder
+					.append("<font face=\"Helvetica\">")
+					.append("<i>sometimes live-in:</i></font><br/><b>")
+					.append(repeated("&nbsp;", 4));
+				notAlwaysLiveInRegisters.stream()
+					.sorted(comparingInt(L2Register::finalIndex))
+					.forEach(
+						r -> builder
+							.append(escape(r.toString()))
+							.append(", "));
+				builder.setLength(builder.length() - 2);
+				builder.append("</b><br/>");
+			}
+		}
+		if (visualizeManifest)
+		{
+			final L2ValueManifest manifest = edge.manifest();
+			final List<L2Synonym> synonyms =
+				new ArrayList<>(manifest.synonyms());
+			if (!synonyms.isEmpty())
+			{
+				builder.append(
+					"<font face=\"Helvetica\"><i>manifest:</i></font>");
+				synonyms.sort(comparing(L2Synonym::toString));
+				synonyms.forEach(
+					synonym ->
+					{
+						builder
+							.append("<br/>")
+							.append(repeated("&nbsp;", 4))
+							.append(escape(synonym.toString()))
+							.append("<br/>")
+							.append(repeated("&nbsp;", 8))
+							.append(":&nbsp;");
+						final TypeRestriction restriction =
+							manifest.restrictionFor(
+								synonym.pickSemanticValue());
+						builder
+							.append(escape(restriction.toString()))
+							.append("<br/>")
+							.append(repeated("&nbsp;", 8))
+							.append("in {");
+						final Iterator<L2Register> defs =
+							manifest
+								.definitionsForDescribing(
+									synonym.pickSemanticValue())
+								.iterator();
+						if (defs.hasNext())
+						{
+							builder.append(defs.next());
+						}
+						defs.forEachRemaining(
+							d -> builder.append(", ").append(defs.next()));
+						builder.append("}");
+					});
+			}
+		}
+		builder.append("</td></tr></table>");
+		try
+		{
+			final int sourceSubscript =
+				sourceBlock.instructions().indexOf(sourceInstruction) + 1;
+			writer.edge(
+				edge.isBackward()
+					? node(
+						basicBlockName(sourceBlock),
+						Integer.toString(sourceSubscript),
+						CompassPoint.E)
+					: node(
+						basicBlockName(sourceBlock),
+						Integer.toString(sourceSubscript)),
+				edge.isBackward()
+					? node(basicBlockName(targetBlock), "1")
+					: node(basicBlockName(targetBlock)),
+				attr ->
+				{
+					// Number each edge uniquely, to allow a multigraph.
+					attr.attribute(
+						"id", Integer.toString(edgeCounter.value++));
+					if (!started)
+					{
+						attr.attribute("color", "#4040ff/8080ff");
+						attr.attribute("style", "dotted");
+					}
+					else if (isTargetTheUnreachableBlock)
+					{
+						attr.attribute("color", "#804040/c06060");
+						attr.attribute("style", "dotted");
+					}
+					else if (edge.isBackward())
+					{
+						attr.attribute("constraint", "false");
+						attr.attribute("color", "#9070ff/6050ff");
+						attr.attribute("style", "dashed");
+					}
+					else
+					{
+						final @Nullable Purpose purpose = type.purpose();
+						assert purpose != null;
+						switch (purpose)
+						{
+							case SUCCESS:
+								// Nothing. The default styling will be fine.
+								break;
+							case FAILURE:
+								attr.attribute("color", "#e54545/c03030");
+								break;
+							case OFF_RAMP:
+								attr.attribute("style", "dashed");
+								break;
+							case ON_RAMP:
+								attr.attribute("style", "dashed");
+								attr.attribute("color", "#6aaf6a");
+								break;
+							case REFERENCED_AS_INT:
+								attr.attribute("style", "dashed");
+								attr.attribute("color", "#6080ff");
+								break;
+						}
+					}
+					attr.attribute("label", builder.toString());
+				});
+		}
+		catch (final IOException e)
+		{
+			throw new UncheckedIOException(e);
+		}
+	}
+
+	/** The subgraphs ({@link Zone}s) that have been discovered so far. */
+	Map<Zone, Set<L2BasicBlock>> blocksByZone = new HashMap<>();
+
+	/**
+	 * Calculate how the basic blocks form clusters for reification sections.
+	 *
+	 * @param blocks A collection of {@link L2BasicBlock}s to classify.
+	 */
+	private void computeClusters (final Iterable<L2BasicBlock> blocks)
+	{
+		for (final L2BasicBlock block : blocks)
+		{
+			if (block.zone != null)
+			{
+				blocksByZone.computeIfAbsent(block.zone, z -> new HashSet<>())
+					.add(block);
+			}
+		}
+	}
+
+	/** A counter for uniquely naming subgraphs. */
+	private int subgraphNumber = 1;
+
+	/**
+	 * Render the nodes in this zone as a subgraph (cluster).
+	 *
+	 * @param zone
+	 *        The {@link Zone} to render.
+	 * @param graph
+	 *        The {@link GraphWriter} to render them.
+	 * @param isStarted
+	 *        A test to tell if a block has started to be generated.
+	 * @throws IOException If it can't write.
+	 */
+	private void cluster(
+		final Zone zone,
+		final GraphWriter graph,
+		final Predicate<L2BasicBlock> isStarted)
+	throws IOException
+	{
+		graph.subgraph(
+			"cluster_" + subgraphNumber++,
+			gw ->
+			{
+				if (zone.zoneName != null)
+				{
+					gw.attribute("fontcolor", "#000000/ffffff");
+					gw.attribute("labeljust", "l");  // Left-aligned.
+					gw.attribute("label", zone.zoneName);
+				}
+				gw.attribute("color", zone.zoneType.color);
+				gw.attribute("bgcolor", zone.zoneType.bgcolor);
+				gw.defaultAttributeBlock(GRAPH, attr ->
+				{
+					attr.attribute("style", "rounded");
+					attr.attribute("penwidth", "5");
+				});
+				blocksByZone.get(zone).forEach(
+					block -> basicBlock(
+						block, gw, isStarted.test(block)));
+			});
 	}
 
 	/**
@@ -593,6 +777,7 @@ public class L2ControlFlowGraphVisualizer
 			true,
 			charactersPerLine,
 			accumulator,
+			true,
 			"The Avail Foundation");
 		try
 		{
@@ -607,25 +792,28 @@ public class L2ControlFlowGraphVisualizer
 			// supported.
 			writer.graph(graph ->
 			{
+				graph.attribute("bgcolor", "#00ffff/000000");
 				graph.attribute("rankdir", "TB");
 				graph.attribute("newrank", "true");
 				graph.attribute("overlap", "false");
 				graph.attribute("splines", "true");
 				graph.defaultAttributeBlock(NODE, attr ->
 				{
+					attr.attribute("bgcolor", "#ffffff/a0a0a0");
+					attr.attribute("color", "#000000/b0b0b0");
 					attr.attribute("fixedsize", "false");
-					attr.attribute("fontname", "Courier");
-					attr.attribute("fontsize", "8");
-					attr.attribute("fontcolor", "#000000");
+					attr.attribute("fontname", "Helvetica");
+					attr.attribute("fontsize", "11");
+					attr.attribute("fontcolor", "#000000/d0d0d0");
 					attr.attribute("shape", "none");
 				});
 				graph.defaultAttributeBlock(EDGE, attr ->
 				{
-					attr.attribute("fontname", "Courier");
-					attr.attribute("fontsize", "6");
-					attr.attribute("fontcolor", "#000000");
+					attr.attribute("fontname", "Helvetica");
+					attr.attribute("fontsize", "8");
+					attr.attribute("fontcolor", "#000000/dddddd");
 					attr.attribute("style", "solid");
-					attr.attribute("color", "#000000");
+					attr.attribute("color", "#000000/e0e0e0");
 				});
 				final Set<L2BasicBlock> startedBlocks = new HashSet<>(
 					controlFlowGraph.basicBlockOrder);
@@ -636,13 +824,27 @@ public class L2ControlFlowGraphVisualizer
 						.filter(b -> !startedBlocks.contains(b))
 						.forEach(unstartedBlocks::add));
 
+				computeClusters(startedBlocks);
+				computeClusters(unstartedBlocks);
+				for (final Zone zone : blocksByZone.keySet())
+				{
+					cluster(zone, graph, b -> !unstartedBlocks.contains(b));
+				}
+
+				controlFlowGraph.basicBlockOrder.stream()
+					.filter(block -> block.zone == null)
+					.forEach(block -> basicBlock(block, graph, true));
+				unstartedBlocks.stream()
+					.filter(block -> block.zone == null)
+					.forEach(block -> basicBlock(block, graph, false));
+
+				final MutableInt edgeCounter = new MutableInt(1);
 				controlFlowGraph.basicBlockOrder.forEach(
-					block -> basicBlock(block, graph, true));
+					block -> block.predecessorEdgesIterator().forEachRemaining(
+						edge -> edge(edge, graph, true, edgeCounter)));
 				unstartedBlocks.forEach(
-					block -> basicBlock(block, graph, false));
-				controlFlowGraph.basicBlockOrder.forEach(
-					block -> edges(block, graph, true));
-				unstartedBlocks.forEach(block -> edges(block, graph, false));
+					block -> block.predecessorEdgesIterator().forEachRemaining(
+						edge -> edge(edge, graph, false, edgeCounter)));
 			});
 		}
 		catch (final IOException e)

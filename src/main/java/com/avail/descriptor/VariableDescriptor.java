@@ -515,7 +515,7 @@ extends Descriptor
 
 	/** The {@link CheckedMethod} for {@link A_Variable#clearValue()}. */
 	public static final CheckedMethod clearVariableMethod = instanceMethod(
-		A_Variable.class, "clearValue", Void.TYPE);
+		A_Variable.class, "clearValue", void.class);
 
 	@Override @AvailMethod
 	protected void o_ClearValue (final AvailObject object)
@@ -748,6 +748,16 @@ extends Descriptor
 		result.setSlot(WRITE_REACTORS, nil);
 		return result;
 	}
+
+	/**
+	 * The {@link CheckedMethod} for {@link #newVariableWithOuterType(A_Type)}.
+	 */
+	public static final CheckedMethod newVariableWithOuterTypeMethod =
+		CheckedMethod.staticMethod(
+			VariableDescriptor.class,
+			"newVariableWithOuterType",
+			AvailObject.class,
+			A_Type.class);
 
 	/**
 	 * Construct a new {@code VariableDescriptor}.

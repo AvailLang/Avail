@@ -42,6 +42,13 @@ Entries
 Body
 
 
+b ::= [x : boolean | $loop:⊤; Exit loop with <> if x; Restart loop]:⊤;
+Repeat [b(true);] 101 times;
+
+[Breakpoint; b(true)]();
+
+
+
 Method 	"anonymous module using«_«=(««-»?_«→_»?‡,»,⁇«`…»?)»‡,»" is
 [
 	uses : <

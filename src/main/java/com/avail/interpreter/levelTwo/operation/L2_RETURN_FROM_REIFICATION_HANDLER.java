@@ -31,26 +31,20 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_Continuation;
-import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.operand.L2Operand;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
-import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.StackReifier;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.STACK_REIFIER;
+import com.avail.interpreter.levelTwo.ReadsHiddenVariable;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
-import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
-import static com.avail.interpreter.Interpreter.interpreterReturningFunctionField;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR;
-import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Type.*;
+import static org.objectweb.asm.Opcodes.ACONST_NULL;
+import static org.objectweb.asm.Opcodes.ARETURN;
 
 /**
  * Return from the reification clause of the current {@link L2Chunk}.  This
@@ -62,6 +56,10 @@ import static org.objectweb.asm.Type.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@ReadsHiddenVariable({
+	CURRENT_CONTINUATION.class,
+	STACK_REIFIER.class,
+})
 public final class L2_RETURN_FROM_REIFICATION_HANDLER
 extends L2ControlFlowOperation
 {
@@ -70,8 +68,7 @@ extends L2ControlFlowOperation
 	 */
 	private L2_RETURN_FROM_REIFICATION_HANDLER ()
 	{
-		super(
-			READ_BOXED_VECTOR.is("returned continuations"));
+		super();
 	}
 
 	/**
@@ -81,16 +78,6 @@ extends L2ControlFlowOperation
 		new L2_RETURN_FROM_REIFICATION_HANDLER();
 
 	@Override
-	protected void propagateTypes (
-		final L2Instruction instruction,
-		final List<RegisterSet> registerSets,
-		final L2Generator generator)
-	{
-		// A return instruction doesn't mention where it might end up.
-		assert registerSets.size() == 0;
-	}
-
-	@Override
 	public boolean hasSideEffect ()
 	{
 		// Never remove this.
@@ -98,17 +85,14 @@ extends L2ControlFlowOperation
 	}
 
 	@Override
-	public void toString (
+	public void appendToWithWarnings (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
-		final StringBuilder builder)
+		final StringBuilder builder,
+		final Consumer<Boolean> warningStyleChange)
 	{
 		assert this == instruction.operation();
-		final L2Operand registers = instruction.operand(0);
-
 		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(registers);
 	}
 
 	@Override
@@ -117,37 +101,7 @@ extends L2ControlFlowOperation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2ReadBoxedVectorOperand continuations = instruction.operand(0);
-
-		method.visitVarInsn(ALOAD, translator.reifierLocal());
-		for (int i = 0, limit = continuations.elements().size(); i < limit; i++)
-		{
-			// :: reifier.pushContinuation(«register»);
-			if (i < limit - 1)
-			{
-				method.visitInsn(DUP);
-			}
-			translator.load(method, continuations.elements().get(i).register());
-			method.visitMethodInsn(
-				INVOKEVIRTUAL,
-				getInternalName(StackReifier.class),
-				"pushContinuation",
-				getMethodDescriptor(VOID_TYPE, getType(A_Continuation.class)),
-				false);
-		}
-		// :: interpreter.returnNow = true;
-		translator.loadInterpreter(method);
-		method.visitInsn(DUP);
-		method.visitInsn(ICONST_1);
-		method.visitFieldInsn(
-			PUTFIELD,
-			getInternalName(Interpreter.class),
-			"returnNow",
-			BOOLEAN_TYPE.getDescriptor());
-		// :: interpreter.returningFunction = null;
 		method.visitInsn(ACONST_NULL);
-		interpreterReturningFunctionField.generateWrite(translator, method);
-		method.visitVarInsn(ALOAD, translator.reifierLocal());
 		method.visitInsn(ARETURN);
 	}
 }

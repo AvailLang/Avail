@@ -153,7 +153,7 @@ protected constructor(
 	 * @param node
 	 *   The lookup tree node that was reached.
 	 */
-	private fun visit(node: LookupTree<Element, Result, AdaptorMemento>)
+	private fun visit(node: LookupTree<Element, Result>)
 	{
 		val solution = node.solutionOrNull
 		if (solution !== null)
@@ -161,7 +161,7 @@ protected constructor(
 			visitLeafNode(solution)
 			return
 		}
-		val internalNode: InternalLookupTree<Element, Result, AdaptorMemento> =
+		val internalNode: InternalLookupTree<Element, Result> =
 			cast(node)
 		if (expandAll)
 		{
@@ -196,7 +196,7 @@ protected constructor(
 	 * @param node
 	 *   The root node of the traversal.
 	 */
-	fun traverseEntireTree(node: LookupTree<Element, Result, AdaptorMemento>)
+	fun traverseEntireTree(node: LookupTree<Element, Result>)
 	{
 		visit(node)
 		while (actionStack.isNotEmpty())

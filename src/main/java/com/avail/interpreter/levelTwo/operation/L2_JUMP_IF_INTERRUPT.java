@@ -31,22 +31,16 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
-import java.util.List;
-
+import static com.avail.interpreter.Interpreter.isInterruptRequestedMethod;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 import static org.objectweb.asm.Opcodes.IFNE;
-import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
-import static org.objectweb.asm.Type.*;
 
 /**
  * Jump to the specified level two program counter if no interrupt has been
@@ -76,18 +70,6 @@ extends L2ConditionalJump
 		new L2_JUMP_IF_INTERRUPT();
 
 	@Override
-	protected void propagateTypes (
-		final L2Instruction instruction,
-		final List<RegisterSet> registerSets,
-		final L2Generator generator)
-	{
-		// If there's an interrupt then fall through, otherwise jump as
-		// indicated.  Neither transition directly affects registers, although
-		// the instruction sequence that deals with an interrupt may do plenty.
-		assert registerSets.size() == 2;
-	}
-
-	@Override
 	public void translateToJVM (
 		final JVMTranslator translator,
 		final MethodVisitor method,
@@ -99,12 +81,7 @@ extends L2ConditionalJump
 		// :: if (interpreter.isInterruptRequested()) goto ifInterrupt;
 		// :: else goto ifNotInterrupt;
 		translator.loadInterpreter(method);
-		method.visitMethodInsn(
-			INVOKEVIRTUAL,
-			getInternalName(Interpreter.class),
-			"isInterruptRequested",
-			getMethodDescriptor(BOOLEAN_TYPE),
-			false);
+		isInterruptRequestedMethod.generateCall(method);
 		emitBranch(
 			translator,
 			method,

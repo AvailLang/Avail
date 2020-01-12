@@ -40,7 +40,11 @@ import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
-import com.avail.descriptor.FiberDescriptor.*;
+import com.avail.descriptor.FiberDescriptor.ExecutionState;
+import com.avail.descriptor.FiberDescriptor.GeneralFlag;
+import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
+import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
+import com.avail.descriptor.FiberDescriptor.TraceFlag;
 import com.avail.descriptor.MapDescriptor.MapIterable;
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
 import com.avail.descriptor.SetDescriptor.SetIterator;
@@ -61,7 +65,12 @@ import com.avail.descriptor.parsing.A_Phrase;
 import com.avail.descriptor.tuples.A_String;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.dispatch.LookupTree;
-import com.avail.exceptions.*;
+import com.avail.exceptions.AvailException;
+import com.avail.exceptions.MalformedMessageException;
+import com.avail.exceptions.MethodDefinitionException;
+import com.avail.exceptions.SignatureException;
+import com.avail.exceptions.VariableGetException;
+import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.AvailLoader.LexicalScanner;
 import com.avail.interpreter.Primitive;
@@ -81,7 +90,11 @@ import com.avail.utility.visitor.AvailSubobjectVisitor;
 import javax.annotation.Nullable;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.Collection;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Spliterator;
+import java.util.TimerTask;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -5136,7 +5149,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	protected LookupTree<A_Definition, A_Tuple, Boolean> o_TestingTree (
+	protected LookupTree<A_Definition, A_Tuple> o_TestingTree (
 		final AvailObject object)
 	{
 		return o_Traversed(object).testingTree();
@@ -5178,5 +5191,11 @@ extends AbstractDescriptor
 	protected A_Phrase o_LastExpression (final AvailObject object)
 	{
 		return o_Traversed(object).lastExpression();
+	}
+
+	@Override
+	AvailObject o_RegisterDump (final AvailObject object)
+	{
+		return o_Traversed(object).registerDump();
 	}
 }

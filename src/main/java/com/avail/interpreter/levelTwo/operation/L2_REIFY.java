@@ -36,6 +36,8 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2NamedOperandType;
 import com.avail.interpreter.levelTwo.L2OperandType;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.STACK_REIFIER;
+import com.avail.interpreter.levelTwo.WritesHiddenVariable;
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
@@ -48,6 +50,7 @@ import com.avail.performance.StatisticReport;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
 import static com.avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE;
@@ -62,11 +65,17 @@ import static org.objectweb.asm.Type.*;
  * reify the entire Java stack (or discard it if "capture frames" is false).
  * If "process interrupt" is true, then process an interrupt as soon as the
  * reification is complete.  Otherwise continue running at "on reification" with
- * the reified state captured in the {@link Interpreter#reifiedContinuation}.
+ * the reified state captured in the
+ * {@link Interpreter#getReifiedContinuation()}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@WritesHiddenVariable(
+	// The instruction just sets up a new StackReifier.  It's the subsequent
+	// operations that manipulate the state.
+	STACK_REIFIER.class
+)
 public final class L2_REIFY
 extends L2ControlFlowOperation
 {
@@ -143,10 +152,11 @@ extends L2ControlFlowOperation
 	}
 
 	@Override
-	public void toString (
+	public void appendToWithWarnings (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
-		final StringBuilder builder)
+		final StringBuilder builder,
+		final Consumer<Boolean> warningStyleChange)
 	{
 		assert this == instruction.operation();
 		final L2IntImmediateOperand actuallyReify = instruction.operand(0);
@@ -218,7 +228,8 @@ extends L2ControlFlowOperation
 				INT_TYPE),
 			false);
 		method.visitVarInsn(ASTORE, translator.reifierLocal());
-		// :: goto reify;
-		translator.jump(method, instruction, onReification);
+		// Arrange to arrive at the onReification target, which must be an
+		// L2_ENTER_L2_CHUNK.
+		translator.generateReificationPreamble(method, onReification);
 	}
 }

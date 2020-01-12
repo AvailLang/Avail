@@ -227,8 +227,9 @@ Semantic restriction "_(««_»?«`_»?‡,»)" is
 	If ⎣paramTypes⎦ ≠ ⎣pairs⎦ then
 	[
 		Reject parse weakly, expected:
-			"agreement between number of supplied arguments and function \
-			\|parameters (for partial application)"
+			"agreement between number of supplied arguments ("
+				++ “⎣pairs⎦” ++ ") and function parameters ("
+				++ “⎣paramTypes⎦” ++ "), for partial application"
 	];
 
 	pairTypes ::= pairs[1..⎣pairs⎦];
@@ -274,7 +275,8 @@ Semantic restriction "_(««_»?«`_»?‡,»)" is
 	];
 	If |argumentTypes| = 0 then
 	[
-		Reject parse weakly, expected:
+		/* This is a *very* weak theory. */
+		Reject parse silently, expected:
 			"at least one underscore for partial function application"
 	];
 	If |argumentTypes| = |pairTypes| then

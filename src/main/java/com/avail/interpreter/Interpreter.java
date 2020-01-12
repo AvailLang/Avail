@@ -56,9 +56,11 @@ import com.avail.interpreter.primitive.fibers.P_AttemptJoinFiber;
 import com.avail.interpreter.primitive.fibers.P_ParkCurrentFiber;
 import com.avail.interpreter.primitive.variables.P_SetValue;
 import com.avail.io.TextInterface;
+import com.avail.optimizer.ExecutableChunk;
 import com.avail.optimizer.StackReifier;
 import com.avail.optimizer.jvm.CheckedField;
 import com.avail.optimizer.jvm.CheckedMethod;
+import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.performance.PerInterpreterStatistic;
 import com.avail.performance.Statistic;
@@ -107,10 +109,12 @@ import static com.avail.interpreter.Interpreter.FakeStackTraceSlots.*;
 import static com.avail.interpreter.Primitive.Flag.CanSuspend;
 import static com.avail.interpreter.Primitive.Flag.CannotFail;
 import static com.avail.interpreter.Primitive.Result.*;
+import static com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk;
 import static com.avail.interpreter.levelTwo.operation.L2_REIFY.StatisticCategory.ABANDON_BEFORE_RESTART_IN_L2;
 import static com.avail.optimizer.jvm.CheckedField.instanceField;
-import static com.avail.optimizer.jvm.CheckedMethod.instanceMethod;
-import static com.avail.optimizer.jvm.CheckedMethod.javaLibraryInstanceMethod;
+import static com.avail.optimizer.jvm.CheckedMethod.*;
+import static com.avail.utility.Casts.cast;
+import static com.avail.utility.Casts.nullableCast;
 import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.Strings.tab;
 import static java.lang.String.format;
@@ -325,7 +329,7 @@ public final class Interpreter
 	 * The approximate maximum number of bytes to log per fiber before throwing
 	 * away the earliest 25%.
 	 */
-	private static final int maxFiberLogLength = 1_000_000;
+	private static final int maxFiberLogLength = 50_000;
 
 	/**
 	 * Log a message.
@@ -356,10 +360,45 @@ public final class Interpreter
 				{
 					// Log to the fiber.
 					final StringBuilder log = runningFiber.debugLog();
+					if (interpreter.isReifying)
+					{
+						log.append("R! ");
+					}
 					tab(log, interpreter.unreifiedCallDepth);
 					if (log.length() > maxFiberLogLength)
 					{
-						log.delete(0, maxFiberLogLength >> 4);
+						log.delete(
+							0, log.length() - (maxFiberLogLength >> 2) * 3);
+					}
+					// Abbreviate potentially long arguments.
+					for (int i = 0; i < arguments.length; i++)
+					{
+						Object arg = arguments[i];
+						if (arg instanceof AvailObject)
+						{
+							final AvailObject obj = cast(arg);
+							if (obj.typeTag() == TypeTag.OBJECT_TAG)
+							{
+								// Avoid printing objects.  Some are huge.
+								arg = "(some object)";
+							}
+							else if (obj.isTuple())
+							{
+								if (obj.isString() && obj.tupleSize() > 200)
+								{
+									arg = obj.copyStringFromToCanDestroy(
+										1, 200, false
+									).asNativeString() + "...";
+								}
+								else if (!obj.isString()
+									&& obj.tupleSize() > 20)
+								{
+									arg = obj.copyTupleFromToCanDestroy(
+										1, 20, false) + "...";
+								}
+							}
+						}
+						arguments[i] = arg;
 					}
 					log.append(MessageFormat.format(message, arguments));
 					log.append('\n');
@@ -381,6 +420,60 @@ public final class Interpreter
 			logger.log(level, builder + message, arguments);
 		}
 	}
+
+	/**
+	 * If {@link JVMTranslator#callTraceL2AfterEveryInstruction} was true during
+	 * code generation, this method is invoked just prior to each L2
+	 * instruction.
+	 *
+	 * @param executableChunk The L2 executable chunk being executed.
+	 * @param offset The current L2 offset.
+	 * @param description A one-line textual description of this instruction.
+	 * @param firstReadOperandValue The value of the first read operand.
+	 */
+	@ReferencedInGeneratedCode
+	public static void traceL2 (
+		final ExecutableChunk executableChunk,
+		final int offset,
+		final String description,
+		final Object firstReadOperandValue)
+	{
+		if (debugL2)
+		{
+			if (mainLogger.isLoggable(Level.SEVERE))
+			{
+				final String str =
+					"L2 = "
+						+ offset
+						+ " of "
+						+ executableChunk.name()
+						+ " "
+						+ description
+						+ " <- " + firstReadOperandValue;
+				final @Nullable A_Fiber fiber = current().fiberOrNull();
+				log(
+					fiber,
+					mainLogger,
+					Level.SEVERE,
+					// Force logging when the switches are enabled.
+					"{0}",
+					str);
+			}
+		}
+	}
+
+	/**
+	 * The {@link CheckedMethod} referring to the static method
+	 * {@link #traceL2(ExecutableChunk, int, String, Object)}.
+	 */
+	public static final CheckedMethod traceL2Method = staticMethod(
+		Interpreter.class,
+		"traceL2",
+		void.class,
+		ExecutableChunk.class,
+		int.class,
+		String.class,
+		Object.class);
 
 	/**
 	 * Answer the Avail interpreter associated with the {@linkplain
@@ -480,6 +573,25 @@ public final class Interpreter
 	}
 
 	/**
+	 * Answer whether the current frame's caller has been fully reified at this
+	 * time, and is therefore at the top of the {@link #reifiedContinuation}
+	 * call stack.
+	 *
+	 * @return Whether the caller is already reified.
+	 */
+	@ReferencedInGeneratedCode
+	public boolean callerIsReified ()
+	{
+		return unreifiedCallDepth == 1;
+	}
+
+	/** Access the {@link #callerIsReified()} method. */
+	public static final CheckedMethod callerIsReifiedMethod = instanceMethod(
+		Interpreter.class,
+		"callerIsReified",
+		boolean.class);
+
+	/**
 	 * Add the delta to the current count of how many frames would be reified
 	 * into continuations at the current execution point.
 	 *
@@ -565,7 +677,7 @@ public final class Interpreter
 		outerArray[CURRENT_FUNCTION.ordinal()] = function;
 
 		// Build the stack frames...
-		@Nullable A_Continuation frame = reifiedContinuation;
+		@Nullable A_Continuation frame = getReifiedContinuation();
 		if (frame != null)
 		{
 			final List<A_Continuation> frames = new ArrayList<>(50);
@@ -731,7 +843,7 @@ public final class Interpreter
 		assert fiber == null ^ newFiber == null;
 		assert newFiber == null || newFiber.executionState() == RUNNING;
 		fiber = newFiber;
-		reifiedContinuation = null;
+		setReifiedContinuation(null);
 		if (newFiber != null)
 		{
 			availLoader = newFiber.availLoader();
@@ -852,7 +964,6 @@ public final class Interpreter
 	 * AvailErrorCode error code} produced by a {@linkplain Result#FAILURE
 	 * failed} primitive.
 	 */
-	@ReferencedInGeneratedCode
 	private @Nullable AvailObject latestResult;
 
 	/**
@@ -867,7 +978,7 @@ public final class Interpreter
 	 * @param newResult The latest result to record.
 	 */
 	@ReferencedInGeneratedCode
-	public void latestResult (final @Nullable A_BasicObject newResult)
+	public void setLatestResult (final @Nullable A_BasicObject newResult)
 	{
 		assert newResult != null || !returnNow;
 		latestResult = (AvailObject) newResult;
@@ -883,6 +994,14 @@ public final class Interpreter
 		}
 	}
 
+
+	/** Access the {@link #setLatestResult(A_BasicObject)} method. */
+	public static CheckedMethod setLatestResultMethod = instanceMethod(
+		Interpreter.class,
+		"setLatestResult",
+		void.class,
+		A_BasicObject.class);
+
 	/**
 	 * Answer the latest result produced by a {@linkplain Result#SUCCESS
 	 * successful} {@linkplain Primitive primitive}, or the latest {@linkplain
@@ -892,10 +1011,16 @@ public final class Interpreter
 	 * @return The latest result.
 	 */
 	@ReferencedInGeneratedCode
-	public AvailObject latestResult ()
+	public AvailObject getLatestResult ()
 	{
 		return stripNull(latestResult);
 	}
+
+	/** Access the {@link #getLatestResult()} method. */
+	public static CheckedMethod getLatestResultMethod = instanceMethod(
+		Interpreter.class,
+		"getLatestResult",
+		AvailObject.class);
 
 	/**
 	 * Answer the latest result produced by a {@linkplain Result#SUCCESS
@@ -1048,7 +1173,7 @@ public final class Interpreter
 	public Result primitiveSuccess (final A_BasicObject result)
 	{
 		assert fiber().executionState() == RUNNING;
-		latestResult(result);
+		setLatestResult(result);
 		return SUCCESS;
 	}
 
@@ -1064,7 +1189,7 @@ public final class Interpreter
 	public Result primitiveFailure (final AvailErrorCode code)
 	{
 		assert fiber().executionState() == RUNNING;
-		latestResult(code.numericCode());
+		setLatestResult(code.numericCode());
 		return FAILURE;
 	}
 
@@ -1081,7 +1206,7 @@ public final class Interpreter
 	public Result primitiveFailure (final AvailException exception)
 	{
 		assert fiber().executionState() == RUNNING;
-		latestResult(exception.numericCode());
+		setLatestResult(exception.numericCode());
 		return FAILURE;
 	}
 
@@ -1099,7 +1224,7 @@ public final class Interpreter
 	public Result primitiveFailure (final AvailRuntimeException exception)
 	{
 		assert fiber().executionState() == RUNNING;
-		latestResult(exception.numericCode());
+		setLatestResult(exception.numericCode());
 		return FAILURE;
 	}
 
@@ -1114,7 +1239,7 @@ public final class Interpreter
 	public Result primitiveFailure (final A_BasicObject result)
 	{
 		assert fiber().executionState() == RUNNING;
-		latestResult(result);
+		setLatestResult(result);
 		return FAILURE;
 	}
 
@@ -1126,6 +1251,10 @@ public final class Interpreter
 	 */
 	@ReferencedInGeneratedCode
 	public boolean returnNow = false;
+
+	/** Access the {@link #returnNow} field. */
+	public static final CheckedField returnNowField = instanceField(
+		Interpreter.class, "returnNow", boolean.class);
 
 	/**
 	 * Should the {@linkplain Interpreter interpreter} exit its {@linkplain
@@ -1187,8 +1316,8 @@ public final class Interpreter
 		{
 			assert aFiber.executionState() == RUNNING;
 			aFiber.executionState(state);
-			aFiber.continuation(stripNull(reifiedContinuation));
-			reifiedContinuation = null;
+			aFiber.continuation(stripNull(getReifiedContinuation()));
+			setReifiedContinuation(null);
 			final boolean bound = aFiber.getAndSetSynchronizationFlag(
 				BOUND, false);
 			assert bound;
@@ -1204,7 +1333,7 @@ public final class Interpreter
 				debugModeString);
 		}
 		exitNow = true;
-		latestResult(null);
+		setLatestResult(null);
 		levelOneStepper.wipeRegisters();
 		return FIBER_SUSPENDED;
 	}
@@ -1283,7 +1412,7 @@ public final class Interpreter
 				debugModeString
 					+ "Set exitNow and clear latestResult (exitFiber)");
 		}
-		latestResult(null);
+		setLatestResult(null);
 		levelOneStepper.wipeRegisters();
 		postExitContinuation(() ->
 		{
@@ -1350,40 +1479,6 @@ public final class Interpreter
 	}
 
 	/**
-	 * Invoke an Avail primitive.  The primitive is passed, and the arguments
-	 * are provided in {@link #argsBuffer}.  If the primitive fails, use {@link
-	 * Interpreter#primitiveFailure(A_BasicObject)} to set the primitiveResult
-	 * to some object indicating what the problem was, and return
-	 * primitiveFailed immediately.  If the primitive causes the continuation to
-	 * change (e.g., through block invocation, continuation restart, exception
-	 * throwing, etc), answer continuationChanged.  Otherwise the primitive
-	 * succeeded, and we simply capture the resulting value with {@link
-	 * Interpreter#primitiveSuccess(A_BasicObject)} and return {@link
-	 * Result#SUCCESS}.
-	 *
-	 * @param primitive
-	 *        The {@link Primitive} to invoke.
-	 * @return The resulting status of the primitive attempt.
-	 */
-	@ReferencedInGeneratedCode
-	public Result attemptPrimitive (
-		final Primitive primitive)
-	{
-		final long timeBefore = beforeAttemptPrimitive(primitive);
-		final Result success = primitive.attempt(this);
-		afterAttemptPrimitive(primitive, timeBefore, success);
-		return success;
-	}
-
-	/** The {@link CheckedMethod} for {@link #attemptPrimitive(Primitive)}. */
-	public static final CheckedMethod attemptPrimitiveMethod =
-		instanceMethod(
-			Interpreter.class,
-			"attemptPrimitive",
-			Result.class,
-			Primitive.class);
-
-	/**
 	 * Prepare to execute the given primitive.  Answer the current time in
 	 * nanoseconds.
 	 *
@@ -1404,10 +1499,17 @@ public final class Interpreter
 				primitive.name());
 		}
 		returnNow = false;
-		latestResult(null);
+		setLatestResult(null);
 		assert current() == this;
 		return captureNanos();
 	}
+
+	/** The method {@link #beforeAttemptPrimitive(Primitive)}. */
+	public static CheckedMethod beforeAttemptPrimitiveMethod = instanceMethod(
+		Interpreter.class,
+		"beforeAttemptPrimitive",
+		long.class,
+		Primitive.class);
 
 	/**
 	 * The given primitive has just executed; do any necessary post-processing.
@@ -1438,9 +1540,9 @@ public final class Interpreter
 				@Nullable AvailErrorCode errorCode = null;
 				if (success == FAILURE)
 				{
-					if (latestResult().isInt())
+					if (getLatestResult().isInt())
 					{
-						final int errorInt = latestResult().extractInt();
+						final int errorInt = getLatestResult().extractInt();
 						errorCode = byNumericCode(errorInt);
 					}
 				}
@@ -1469,13 +1571,133 @@ public final class Interpreter
 		return success;
 	}
 
+	/** The method {@link #afterAttemptPrimitive(Primitive, long, Result)}. */
+	public static CheckedMethod afterAttemptPrimitiveMethod = instanceMethod(
+		Interpreter.class,
+		"afterAttemptPrimitive",
+		Result.class,
+		Primitive.class,
+		long.class,
+		Result.class);
+
 	/**
-	 * The (bottom) portion of the call stack that has been reified.  This must
-	 * always be either an {@link A_Continuation} or {@code null}, but it's
-	 * typed as {@link AvailObject} to avoid potential JVM runtime checks.
+	 * The (bottom) portion of the call stack that has been reified. This must
+	 * always be either an {@link A_Continuation}, {@link NilDescriptor#nil}, or
+	 * {@code null}, but it's typed as {@link AvailObject} to avoid potential
+	 * JVM runtime checks.
+	 */
+	private @Nullable AvailObject reifiedContinuation = null;
+
+	/**
+	 * Answer the (bottom) portion of the call stack that has been reified.
+	 * This must always be either an {@link A_Continuation},
+	 * {@link NilDescriptor#nil}, or {@code null}, but it's typed as
+	 * {@link AvailObject} to avoid potential JVM runtime checks.
+	 *
+	 * @return The current reified {@link A_Continuation}.
 	 */
 	@ReferencedInGeneratedCode
-	public @Nullable AvailObject reifiedContinuation = null;
+	public @Nullable AvailObject getReifiedContinuation ()
+	{
+		return reifiedContinuation;
+	}
+
+	/** Access the {@link #getReifiedContinuation()} method. */
+	public static final CheckedMethod getReifiedContinuationMethod =
+		instanceMethod(
+			Interpreter.class,
+			"getReifiedContinuation",
+			AvailObject.class);
+
+	/**
+	 * Set the current {@link #reifiedContinuation}.
+	 *
+	 * @param continuation
+	 *        The {@link A_Continuation} or {@code null}.
+	 */
+	@ReferencedInGeneratedCode
+	public void setReifiedContinuation (
+		final @Nullable A_Continuation continuation)
+	{
+		reifiedContinuation = nullableCast(continuation);
+		if (debugL2)
+		{
+			final String text;
+			if (reifiedContinuation == null || reifiedContinuation.equalsNil())
+			{
+				text = String.valueOf(reifiedContinuation);
+			}
+			else
+			{
+				final L2Chunk theChunk = reifiedContinuation.levelTwoChunk();
+				if (theChunk == unoptimizedChunk)
+				{
+					text = reifiedContinuation.function().code().methodName()
+						+ " (unoptimized)";
+				}
+				else
+				{
+					text = theChunk.name() + ", offset= "
+						+ reifiedContinuation.levelTwoOffset();
+				}
+			}
+			traceL2(
+				chunk != null ? chunk : unoptimizedChunk,
+				-999999,
+				"Set continuation = ",
+				text);
+		}
+	}
+
+	/** Access the {@link #setReifiedContinuation(A_Continuation)} method. */
+	public static final CheckedMethod setReifiedContinuationMethod =
+		instanceMethod(
+			Interpreter.class,
+			"setReifiedContinuation",
+			void.class,
+			A_Continuation.class);
+
+	/**
+	 * Replace the {@link #reifiedContinuation} with its caller.
+	 */
+	@ReferencedInGeneratedCode
+	public void popContinuation ()
+	{
+		if (debugL2)
+		{
+			final StringBuilder builder = new StringBuilder();
+			A_Continuation ptr = stripNull(reifiedContinuation);
+			while (!ptr.equalsNil())
+			{
+				builder
+					.append("\n\t\toffset ")
+					.append(ptr.levelTwoOffset())
+					.append(" in ");
+				final L2Chunk ch = ptr.levelTwoChunk();
+				if (ch == unoptimizedChunk)
+				{
+					builder.append("(L1) - ")
+						.append(ptr.function().code().methodName());
+				}
+				else
+				{
+					builder.append(ptr.levelTwoChunk().name());
+				}
+				ptr = ptr.caller();
+			}
+			traceL2(
+				chunk != null ? chunk : unoptimizedChunk,
+				-100000,
+				"POPPING CONTINUATION from:",
+				builder);
+		}
+		setReifiedContinuation(
+			stripNull(getReifiedContinuation()).caller());
+	}
+
+	/** Access the {@link #popContinuation()} method. */
+	public static CheckedMethod popContinuationMethod = instanceMethod(
+		Interpreter.class, "popContinuation", void.class);
 
 	/**
 	 * The number of stack frames that reification would transform into
@@ -1499,6 +1721,10 @@ public final class Interpreter
 	/** The {@link L2Chunk} being executed. */
 	@ReferencedInGeneratedCode
 	public @Nullable L2Chunk chunk;
+
+	/** Access to the field {@link #chunk}. */
+	public static CheckedField chunkField = instanceField(
+		Interpreter.class, "chunk", L2Chunk.class);
 
 	/**
 	 * The current zero-based L2 offset within the current L2Chunk's
@@ -1528,20 +1754,6 @@ public final class Interpreter
 	/** The {@link CheckedField} for the field {@link #argsBuffer}. */
 	public static final CheckedField argsBufferField = instanceField(
 		Interpreter.class, "argsBuffer", List.class);
-
-	/** The {@link CheckedMethod} for {@link List#get(int)}. */
-	public static final CheckedMethod listGetMethod =
-		javaLibraryInstanceMethod(
-			List.class, "get", Object.class, Integer.TYPE);
-
-	/** The {@link CheckedMethod} for {@link List#clear()}. */
-	public static final CheckedMethod listClearMethod =
-		javaLibraryInstanceMethod(List.class, "clear", Void.TYPE);
-
-	/** The {@link CheckedMethod} for {@link List#add(Object)}. */
-	public static final CheckedMethod listAddMethod =
-		javaLibraryInstanceMethod(
-			List.class, "add", Boolean.TYPE, Object.class);
 
 	/**
 	 * Assert that the number of arguments in the {@link #argsBuffer} agrees
@@ -1604,6 +1816,13 @@ public final class Interpreter
 			|| fiber().interruptRequestFlag(REIFICATION_REQUESTED);
 	}
 
+	/** Access the {@link #isInterruptRequested()} method. */
+	public static final CheckedMethod isInterruptRequestedMethod =
+		instanceMethod(
+			Interpreter.class,
+			"isInterruptRequested",
+			boolean.class);
+
 	/**
 	 * The {@linkplain #fiber() current} {@linkplain FiberDescriptor fiber} has
 	 * been asked to pause for an inter-nybblecode interrupt for some reason. It
@@ -1655,7 +1874,7 @@ public final class Interpreter
 				debugModeString);
 		}
 		startTick = -1L;
-		latestResult(null);
+		setLatestResult(null);
 		levelOneStepper.wipeRegisters();
 		postExitContinuation(() ->
 		{
@@ -1692,7 +1911,7 @@ public final class Interpreter
 		assert argsBuffer.size() == 1;
 		argsBuffer.set(0, exceptionValue);
 		final int primNum = P_CatchException.INSTANCE.getPrimitiveNumber();
-		AvailObject continuation = stripNull(reifiedContinuation);
+		AvailObject continuation = stripNull(getReifiedContinuation());
 		int depth = 0;
 		while (!continuation.equalsNil())
 		{
@@ -1730,13 +1949,13 @@ public final class Interpreter
 							// fully reified, simply jump into the chunk.  Note
 							// that the argsBuffer was already set up with just
 							// the exceptionValue.
-							reifiedContinuation = continuation;
+							setReifiedContinuation(continuation);
 							function = handler;
 							chunk = handler.code().startingChunk();
 							offset = 0;  // Invocation
 							levelOneStepper.wipeRegisters();
 							returnNow = false;
-							latestResult(null);
+							setLatestResult(null);
 							return CONTINUATION_CHANGED;
 						}
 					}
@@ -1802,7 +2021,7 @@ public final class Interpreter
 	public Result markNearestGuard (final A_Number marker)
 	{
 		final int primNum = P_CatchException.INSTANCE.getPrimitiveNumber();
-		A_Continuation continuation = stripNull(reifiedContinuation);
+		A_Continuation continuation = stripNull(getReifiedContinuation());
 		int depth = 0;
 		while (!continuation.equalsNil())
 		{
@@ -1865,12 +2084,23 @@ public final class Interpreter
 		assert chunk != null;
 		if (!chunk.isValid())
 		{
-			chunk = L2Chunk.unoptimizedChunk;
+			chunk = unoptimizedChunk;
 			offset = offsetInDefaultChunkIfInvalid;
 			return false;
 		}
 		return true;
 	}
+
+	/** A method to access {@link #checkValidity(int)}. */
+	public static final CheckedMethod checkValidityMethod = instanceMethod(
+		Interpreter.class,
+		"checkValidity",
+		boolean.class,
+		int.class);
+
+	/** An indication that a reification action is running. */
+	public boolean isReifying = false;
+
 	/**
 	 * Obtain an appropriate {@link StackReifier} for restarting the specified
 	 * {@linkplain A_Continuation continuation}.
@@ -1879,12 +2109,13 @@ public final class Interpreter
 	 *        The {@link A_Continuation} to restart.
 	 * @return The requested {@code StackReifier}.
 	 */
-	@SuppressWarnings("unused")
 	@ReferencedInGeneratedCode
 	public StackReifier reifierToRestart (
 		final A_Continuation continuation)
 	{
-		return abandonStackThen(
+		isReifying = true;
+		return new StackReifier(
+			false,
 			ABANDON_BEFORE_RESTART_IN_L2.statistic,
 			() ->
 			{
@@ -1896,12 +2127,13 @@ public final class Interpreter
 					argsBuffer.add(
 						continuation.argOrLocalOrStackAt(i));
 				}
-				reifiedContinuation = (AvailObject) continuation.caller();
+				setReifiedContinuation(continuation.caller());
 				function = whichFunction;
 				chunk = continuation.levelTwoChunk();
 				offset = continuation.levelTwoOffset();
 				returnNow = false;
-				latestResult(null);
+				setLatestResult(null);
+				isReifying = false;
 			});
 	}
 
@@ -1931,14 +2163,15 @@ public final class Interpreter
 		if (processInterrupt)
 		{
 			// Reify-and-interrupt.
+			isReifying = true;
 			return new StackReifier(
 				actuallyReify,
-				unreifiedCallDepth(),
 				StatisticCategory.lookup(categoryIndex).statistic,
 				() ->
 				{
 					returnNow = false;
-					processInterrupt(stripNull(reifiedContinuation));
+					isReifying = false;
+					processInterrupt(stripNull(getReifiedContinuation()));
 				});
 		}
 		else
@@ -1948,23 +2181,24 @@ public final class Interpreter
 			final A_Function savedFunction = stripNull(function);
 			final boolean newReturnNow = returnNow;
 			final @Nullable AvailObject newReturnValue =
-				newReturnNow ? latestResult() : null;
+				newReturnNow ? getLatestResult() : null;
 
 			// Reify-and-continue.  The current frame is also reified.
+			isReifying = true;
 			return new StackReifier(
 				actuallyReify,
-				unreifiedCallDepth(),
 				StatisticCategory.lookup(categoryIndex).statistic,
 				() ->
 				{
 					final A_Continuation continuation =
-						stripNull(reifiedContinuation);
+						stripNull(getReifiedContinuation());
 					function = savedFunction;
 					chunk = continuation.levelTwoChunk();
 					offset = continuation.levelTwoOffset();
 					returnNow = newReturnNow;
-					latestResult(newReturnValue);
+					setLatestResult(newReturnValue);
 					// Return into the Interpreter's run loop.
+					isReifying = false;
 				});
 		}
 	}
@@ -1979,13 +2213,14 @@ public final class Interpreter
 	 *        The arguments with which to restart the continuation.
 	 * @return The requested {@code StackReifier}.
 	 */
-	@SuppressWarnings("unused")
 	@ReferencedInGeneratedCode
 	public StackReifier reifierToRestartWithArguments (
 		final A_Continuation continuation,
 		final AvailObject[] arguments)
 	{
-		return abandonStackThen(
+		isReifying = true;
+		return new StackReifier(
+			false,
 			ABANDON_BEFORE_RESTART_IN_L2.statistic,
 			() ->
 			{
@@ -1994,12 +2229,13 @@ public final class Interpreter
 				assert arguments.length == numArgs;
 				argsBuffer.clear();
 				Collections.addAll(argsBuffer, arguments);
-				reifiedContinuation = (AvailObject) continuation.caller();
+				setReifiedContinuation(continuation.caller());
 				function = whichFunction;
 				chunk = continuation.levelTwoChunk();
 				offset = continuation.levelTwoOffset();
 				returnNow = false;
-				latestResult(null);
+				setLatestResult(null);
+				isReifying = false;
 			});
 	}
 
@@ -2022,6 +2258,13 @@ public final class Interpreter
 		offset = 0;
 		return savedFunction;
 	}
+
+	/** Access the {@link #preinvoke0(A_Function)} method. */
+	public static CheckedMethod preinvoke0Method = instanceMethod(
+		Interpreter.class,
+		"preinvoke0",
+		A_Function.class,
+		A_Function.class);
 
 	/**
 	 * Prepare to run a {@link A_Function function} invocation with one
@@ -2046,6 +2289,14 @@ public final class Interpreter
 		offset = 0;
 		return savedFunction;
 	}
+
+	/** Access the {@link #preinvoke1(A_Function, AvailObject)} method. */
+	public static CheckedMethod preinvoke1Method = instanceMethod(
+		Interpreter.class,
+		"preinvoke1",
+		A_Function.class,
+		A_Function.class,
+		AvailObject.class);
 
 	/**
 	 * Prepare to run a {@link A_Function function} invocation with two
@@ -2074,6 +2325,18 @@ public final class Interpreter
 		offset = 0;
 		return savedFunction;
 	}
+
+	/**
+	 * Access the {@link #preinvoke2(A_Function, AvailObject, AvailObject)}
+	 * method.
+	 */
+	public static CheckedMethod preinvoke2Method = instanceMethod(
+		Interpreter.class,
+		"preinvoke2",
+		A_Function.class,
+		A_Function.class,
+		AvailObject.class,
+		AvailObject.class);
 
 	/**
 	 * Prepare to run a {@link A_Function function} invocation with three
@@ -2108,6 +2371,20 @@ public final class Interpreter
 	}
 
 	/**
+	 * Access the
+	 * {@link #preinvoke3(A_Function, AvailObject, AvailObject, AvailObject)}
+	 * method.
+	 */
+	public static CheckedMethod preinvoke3Method = instanceMethod(
+		Interpreter.class,
+		"preinvoke3",
+		A_Function.class,
+		A_Function.class,
+		AvailObject.class,
+		AvailObject.class,
+		AvailObject.class);
+
+	/**
 	 * Prepare to run a {@link A_Function function} invocation with an array of
 	 * arguments.
 	 *
@@ -2130,6 +2407,17 @@ public final class Interpreter
 		offset = 0;
 		return savedFunction;
 	}
+
+	/**
+	 * Access the {@link #preinvoke(A_Function, AvailObject[])}
+	 * method.
+	 */
+	public static CheckedMethod preinvokeMethod = instanceMethod(
+		Interpreter.class,
+		"preinvoke",
+		A_Function.class,
+		A_Function.class,
+		AvailObject[].class);
 
 	/**
 	 * Do what's necessary after a function invocation, leaving just the given
@@ -2155,6 +2443,18 @@ public final class Interpreter
 		assert !exitNow;
 		return reifier;
 	}
+
+	/**
+	 * Access the {@link #postinvoke(L2Chunk, A_Function, StackReifier)}
+	 * method.
+	 */
+	public static CheckedMethod postinvokeMethod = instanceMethod(
+		Interpreter.class,
+		"postinvoke",
+		StackReifier.class,
+		L2Chunk.class,
+		A_Function.class,
+		StackReifier.class);
 
 	/**
 	 * Prepare the {@code Interpreter} to execute the given {@link
@@ -2221,15 +2521,14 @@ public final class Interpreter
 			if (reifier != null)
 			{
 				// Reification has been requested, and the exception has already
-				// collected all the continuations.
-				reifiedContinuation =
-					reifier.actuallyReify()
-						? reifier.assembleContinuation(
-							stripNull(reifiedContinuation))
-						: nil;
+				// collected all the reification actions.
+				if (reifier.actuallyReify())
+				{
+					reifier.runActions(this);
+				}
 				reifier.recordCompletedReification(interpreterIndex);
 				chunk = null; // The postReificationAction should set this up.
-				reifier.postReificationAction().value();
+				reifier.postReificationAction.value();
 				if (exitNow)
 				{
 					// The fiber has been dealt with. Exit the interpreter loop.
@@ -2255,11 +2554,11 @@ public final class Interpreter
 			assert returnNow;
 			assert latestResult != null;
 			returnNow = false;
-			if (stripNull(reifiedContinuation).equalsNil())
+			if (stripNull(getReifiedContinuation()).equalsNil())
 			{
 				// The reified stack is empty, too.  We must have returned from
 				// the outermost frame.  The fiber runner will deal with it.
-				terminateFiber(latestResult());
+				terminateFiber(getLatestResult());
 				exitNow = true;
 				if (debugL2)
 				{
@@ -2276,7 +2575,7 @@ public final class Interpreter
 			// expects nothing of the current registers, but is able to create
 			// them and explode the current reified continuation into them
 			// (popping the continuation as it does so).
-			final A_Continuation frame = reifiedContinuation;
+			final A_Continuation frame = getReifiedContinuation();
 			function = frame.function();
 			chunk = frame.levelTwoChunk();
 			offset = frame.levelTwoOffset();
@@ -2289,7 +2588,7 @@ public final class Interpreter
 	 * at which to start executing.  For an initial invocation, the argsBuffer
 	 * will have been set up for the call.  For a return into this continuation,
 	 * the offset will refer to code that will rebuild the register set from the
-	 * top reified continuation, using the {@link Interpreter#latestResult()}.
+	 * top reified continuation, using the {@link Interpreter#latestResult}.
 	 * For resuming the continuation, the offset will point to code that also
 	 * rebuilds the register set from the top reified continuation, but it won't
 	 * expect a return value.  These re-entry points should perform validity
@@ -2314,97 +2613,13 @@ public final class Interpreter
 	}
 
 	/**
-	 * Throw a {@link StackReifier} to reify the Java stack into {@link
-	 * A_Continuation}s, then invoke the given {@link A_Function} with the given
-	 * three arguments.
-	 *
-	 * @param functionToCall
-	 *        What three-argument function to invoke after reification.
-	 * @param reificationStatistic
-	 *        The {@link Statistic} under which to record this reification.
-	 * @param shouldReturnNow
-	 *        Whether an Avail return should happen after reification.
-	 * @param arg1
-	 *        The first argument of the function.
-	 * @param arg2
-	 *        The second argument of the function.
-	 * @param arg3
-	 *        The third argument of the function.
-	 * @return The {@link StackReifier} that collects reified continuations on
-	 *         the way out to {@link #run()}.
+	 * Access the {@link #runChunk()} method.
 	 */
-	public StackReifier reifyThenCall3 (
-		final A_Function functionToCall,
-		final Statistic reificationStatistic,
-		final boolean shouldReturnNow,
-		final A_BasicObject arg1,
-		final A_BasicObject arg2,
-		final A_BasicObject arg3)
-	{
-		return reifyThen(
-			reificationStatistic,
-			() ->
-			{
-				argsBuffer.clear();
-				argsBuffer.add((AvailObject) arg1);
-				argsBuffer.add((AvailObject) arg2);
-				argsBuffer.add((AvailObject) arg3);
-				function = functionToCall;
-				chunk = functionToCall.code().startingChunk();
-				offset = 0;
-				returnNow = shouldReturnNow;
-			});
-	}
+	public static CheckedMethod interpreterRunChunkMethod = instanceMethod(
+		Interpreter.class,
+		"runChunk",
+		StackReifier.class);
 
-	/**
-	 * Create and return a {@link StackReifier}.  This will get returned all the
-	 * way out to the {@link #run()} method, accumulating reified stack frames
-	 * along the way.  The run() method will then invoke the given
-	 * postReificationAction and resume execution.
-	 *
-	 * @param reificationStatistic
-	 *        The {@link Statistic} under which to record this reification.
-	 * @param postReificationAction
-	 *        The action to perform (in the outer interpreter loop) after the
-	 *        entire stack is reified.
-	 * @return The {@link StackReifier} that collects reified continuations on
-	 *         the way out to {@link #run()}.
-	 */
-	public StackReifier reifyThen (
-		final Statistic reificationStatistic,
-		final Continuation0 postReificationAction)
-	{
-		// Note that the *current* frame isn't reified, so subtract one.
-		return new StackReifier(
-			true,
-			unreifiedCallDepth() - 1,
-			reificationStatistic,
-			postReificationAction);
-	}
-
-	/**
-	 * Immediately throw a {@link StackReifier} with its {@code actuallyReify}
-	 * flag set to false.  This abandons the Java stack (out to {@link #run()})
-	 * before running the postReificationAction, which should set up the
-	 * interpreter to continue running.
-	 *
-	 * @param reificationStatistic
-	 *        The {@link Statistic} under which to record this stack
-	 *        abandonment.
-	 * @param postReificationAction
-	 *        The action to perform (in the outer interpreter loop) after the
-	 *        entire stack is reified.
-	 * @return The {@link StackReifier} that <em>abandons</em> stack frames on
-	 *         the way out to {@link #run()}.
-	 */
-	@SuppressWarnings("MethodMayBeStatic")
-	public StackReifier abandonStackThen (
-		final Statistic reificationStatistic,
-		final Continuation0 postReificationAction)
-	{
-		return new StackReifier(
-			false, 0, reificationStatistic, postReificationAction);
-	}
 
 	/**
 	 * Schedule the specified {@linkplain ExecutionState#indicatesSuspension()
@@ -2444,9 +2659,10 @@ public final class Interpreter
 					continuation.value(interpreter);
 					if (interpreter.exitNow)
 					{
-						assert stripNull(interpreter.reifiedContinuation)
+						assert stripNull(interpreter.getReifiedContinuation())
 							.equalsNil();
-						interpreter.terminateFiber(interpreter.latestResult());
+						interpreter.terminateFiber(
+							interpreter.getLatestResult());
 					}
 					else
 					{
@@ -2512,7 +2728,7 @@ public final class Interpreter
 				// result continuation with the primitive's result.
 				interpreter.exitNow = false;
 				interpreter.returnNow = false;
-				interpreter.reifiedContinuation = nil;
+				interpreter.setReifiedContinuation(nil);
 				interpreter.function = function;
 				interpreter.argsBuffer.clear();
 				for (final A_BasicObject arg : arguments)
@@ -2554,9 +2770,9 @@ public final class Interpreter
 				assert !con.equalsNil();
 				interpreter.exitNow = false;
 				interpreter.returnNow = false;
-				interpreter.reifiedContinuation = (AvailObject) con;
+				interpreter.setReifiedContinuation(con);
 				interpreter.function = con.function();
-				interpreter.latestResult(null);
+				interpreter.setLatestResult(null);
 				interpreter.chunk = con.levelTwoChunk();
 				interpreter.offset = con.levelTwoOffset();
 				interpreter.levelOneStepper.wipeRegisters();
@@ -2600,8 +2816,8 @@ public final class Interpreter
 				assert aFiber.executionState() == RUNNING;
 
 				final A_Continuation continuation = aFiber.continuation();
-				interpreter.reifiedContinuation = (AvailObject) continuation;
-				interpreter.latestResult(result);
+				interpreter.setReifiedContinuation(continuation);
+				interpreter.setLatestResult(result);
 				interpreter.returningFunction = aFiber.suspendingFunction();
 				interpreter.exitNow = false;
 				if (continuation.equalsNil())
@@ -2664,14 +2880,13 @@ public final class Interpreter
 				assert !prim.hasFlag(CannotFail);
 				assert prim.hasFlag(CanSuspend);
 				assert args.size() == code.numArgs();
-				assert interpreter.reifiedContinuation == null;
-				interpreter.reifiedContinuation =
-					(AvailObject) aFiber.continuation();
+				assert interpreter.getReifiedContinuation() == null;
+				interpreter.setReifiedContinuation(aFiber.continuation());
 				aFiber.continuation(nil);
 				interpreter.function = failureFunction;
 				interpreter.argsBuffer.clear();
 				interpreter.argsBuffer.addAll(args);
-				interpreter.latestResult(failureValue);
+				interpreter.setLatestResult(failureValue);
 				final L2Chunk chunk = code.startingChunk();
 				interpreter.chunk = chunk;
 				interpreter.offset = chunk.offsetAfterInitialTryPrimitive();
@@ -2720,7 +2935,7 @@ public final class Interpreter
 			e -> continuation.value(format(
 				"(stringification failed [%s]) %s",
 				e.getClass().getSimpleName(),
-				value.toString())));
+				value)));
 		// Stringify!
 		Interpreter.runOutermostFunction(
 			runtime,
@@ -2813,11 +3028,11 @@ public final class Interpreter
 		else
 		{
 			builder.append(formatString(" [%s]", fiber.fiberName()));
-			if (reifiedContinuation == null)
+			if (getReifiedContinuation() == null)
 			{
 				builder.append(formatString("%n\t«null stack»"));
 			}
-			else if (reifiedContinuation.equalsNil())
+			else if (getReifiedContinuation().equalsNil())
 			{
 				builder.append(formatString("%n\t«empty call stack»"));
 			}

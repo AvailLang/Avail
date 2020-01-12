@@ -99,8 +99,8 @@ extends L2ControlFlowOperation
 		super(
 			SELECTOR.is("message bundle"),
 			READ_BOXED_VECTOR.is("argument types"),
-			WRITE_BOXED.is("looked up function"),
-			WRITE_BOXED.is("error code"),
+			WRITE_BOXED.is("looked up function", SUCCESS),
+			WRITE_BOXED.is("error code", FAILURE),
 			PC.is("lookup succeeded", SUCCESS),
 			PC.is("lookup failed", FAILURE));
 	}
@@ -127,30 +127,25 @@ extends L2ControlFlowOperation
 		final L2ValueManifest manifest)
 	{
 		assert this == instruction.operation();
-		final L2SelectorOperand bundleOperand = instruction.operand(0);
+//		final L2SelectorOperand bundle = instruction.operand(0);
 		final L2ReadBoxedVectorOperand argTypeRegs = instruction.operand(1);
 		final L2WriteBoxedOperand functionReg = instruction.operand(2);
 		final L2WriteBoxedOperand errorCodeReg = instruction.operand(3);
 		final L2PcOperand lookupSucceeded = instruction.operand(4);
 		final L2PcOperand lookupFailed = instruction.operand(5);
 
-		bundleOperand.instructionWasAdded(instruction, manifest);
-		argTypeRegs.instructionWasAdded(instruction, manifest);
-		functionReg.instructionWasAdded(instruction, manifest);
-		errorCodeReg.instructionWasAdded(instruction, manifest);
-		lookupSucceeded.instructionWasAdded(instruction, manifest);
-		lookupFailed.instructionWasAdded(instruction, manifest);
+		super.instructionWasAdded(instruction, manifest);
 
 		// If the lookup failed, it supplies the reason to the errorCodeReg.
 		lookupFailed.manifest().setRestriction(
-			errorCodeReg.semanticValue(),
+			errorCodeReg.pickSemanticValue(),
 			errorCodeReg.restriction());
 
 		// If the lookup succeeds, the functionReg will be set, and we can also
 		// conclude that the arguments satisfied at least one of the found
 		// function types.
 		lookupSucceeded.manifest().setRestriction(
-			functionReg.semanticValue(),
+			functionReg.pickSemanticValue(),
 			functionReg.restriction());
 		// The function type should be an enumeration, so we know that each
 		// argument type satisfied at least one of the functions' corresponding
@@ -161,7 +156,8 @@ extends L2ControlFlowOperation
 		if (functionType.isEnumeration())
 		{
 			final int numArgs = argumentTypeRegs.size();
-			final Set<A_Function> functions = toSet(functionType.instances());
+			final Set<? extends A_Function> functions =
+				toSet(functionType.instances());
 			final A_Type argumentTupleUnionType = functions.stream()
 				.map(f -> f.code().functionType().argsTupleType())
 				.reduce(A_Type::typeUnion)

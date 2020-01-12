@@ -42,11 +42,10 @@ import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_INT;
-import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Type.*;
 
 /**
  * Answer the {@linkplain A_Tuple#tupleSize() size} of the specified {@linkplain
@@ -73,10 +72,11 @@ extends L2Operation
 	public static final L2_TUPLE_SIZE instance = new L2_TUPLE_SIZE();
 
 	@Override
-	public void toString (
+	public void appendToWithWarnings (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
-		final StringBuilder builder)
+		final StringBuilder builder,
+		final Consumer<Boolean> warningStyleChange)
 	{
 		assert this == instruction.operation();
 		final L2ReadBoxedOperand tuple = instruction.operand(0);
@@ -100,12 +100,7 @@ extends L2Operation
 
 		// :: size = tuple.tupleSize();
 		translator.load(method, tuple.register());
-		method.visitMethodInsn(
-			INVOKEINTERFACE,
-			getInternalName(A_Tuple.class),
-			"tupleSize",
-			getMethodDescriptor(INT_TYPE),
-			true);
+		A_Tuple.tupleSizeMethod.generateCall(method);
 		translator.store(method, size.register());
 	}
 }

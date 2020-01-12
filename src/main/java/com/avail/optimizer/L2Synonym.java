@@ -34,7 +34,11 @@ package com.avail.optimizer;
 import com.avail.optimizer.values.Frame;
 import com.avail.optimizer.values.L2SemanticValue;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.function.UnaryOperator;
 
 import static java.util.Collections.singleton;
@@ -120,19 +124,27 @@ public final class L2Synonym
 	public String toString ()
 	{
 		final List<String> sortedStrings = semanticValues.stream()
-			.map(Object::toString)
+			.map(L2SemanticValue::toStringForSynonym)
 			.sorted(String::compareTo)
 			.collect(toCollection(ArrayList::new));
 		final StringBuilder builder = new StringBuilder();
 		builder.append('〖');
 		boolean first = true;
+		int column = 1;
 		for (final String string : sortedStrings)
 		{
+			if (column > 75)
+			{
+				builder.append("\n       ");
+				column = 8;
+			}
 			if (!first)
 			{
 				builder.append(" & ");
+				column += 3;
 			}
 			builder.append(string);
+			column += string.codePointCount(0, string.length());
 			first = false;
 		}
 		builder.append('〗');

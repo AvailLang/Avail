@@ -56,11 +56,16 @@ public abstract class L2ControlFlowOperation extends L2Operation
 	/**
 	 * The array of operand indices which have type {@link L2PcOperand}.
 	 */
-	private final int[] labelOperandIndices;
+	protected final int[] labelOperandIndices;
 
 	/**
 	 * Protect the constructor so the subclasses can maintain a fly-weight
 	 * pattern (or arguably a singleton).
+	 *
+	 * @param theNamedOperandTypes
+	 *        The vararg array of {@link L2NamedOperandType}s that defines the
+	 *        layout of operands for {@link L2Instruction}s this use this
+	 *        operation.
 	 */
 	protected L2ControlFlowOperation (
 		final L2NamedOperandType... theNamedOperandTypes)

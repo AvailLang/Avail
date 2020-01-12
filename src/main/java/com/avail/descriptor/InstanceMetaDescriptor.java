@@ -397,6 +397,15 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
+	protected A_Tuple o_TupleOfTypesFromTo (
+		final AvailObject object,
+		final int startIndex,
+		final int endIndex)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override @AvailMethod
 	protected A_Tuple o_TypeTuple (final AvailObject object)
 	{
 		throw unsupportedOperationException();

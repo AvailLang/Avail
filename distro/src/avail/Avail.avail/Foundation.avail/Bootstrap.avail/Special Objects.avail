@@ -66,6 +66,7 @@ Names
 	/* 164 */ "comment",
 	/*   9 */ "continuation",
 	/*  10 */ "continuation meta",
+	/* 170 */ "continuation returning top",
 	/*  92 */ "continuation variable",
 	/*  61 */ "declaration phrase",
 	/* 123 */ "declaration tuple",
@@ -2226,4 +2227,13 @@ Special object "parse rejection level" is special object 168;
  * @alias "character type number"
  */
 Special object "character type number" is special object 169;
+
+/**
+ * The continuation type for continuations based on ⊤-valued functions.
+ *
+ * @category "Primitives" "Types"
+ * @type "$[…]→⊤"
+ * @alias "continuation returning top"
+ */
+Special object "continuation returning top" is special object 170;
 

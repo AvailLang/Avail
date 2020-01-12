@@ -1257,7 +1257,7 @@ Method "_starts with_" is
 	[
 		value : any
 	|
-		If rest's head ≠ value then [ Exit body with false ];
+		Exit body with false if rest's head ≠ value;
 		rest := eject rest's tail;
 	];
 	true

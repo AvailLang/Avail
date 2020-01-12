@@ -54,7 +54,8 @@ import com.avail.interpreter.Primitive.Flag.*
  * [asleep][ExecutionState.ASLEEP], then unpark it.
  */
 @Suppress("unused")
-object P_RequestTermination : Primitive(1, CanInline, CannotFail, HasSideEffect)
+object P_RequestTermination : Primitive(
+	1, CanInline, CannotFail, HasSideEffect, WritesToHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
@@ -79,7 +80,8 @@ object P_RequestTermination : Primitive(1, CanInline, CannotFail, HasSideEffect)
 						fiber.wakeupTask(null)
 					}
 					fiber.executionState(SUSPENDED)
-					val fiberSuspendingPrimitive = fiber.suspendingFunction().code().primitive()!!
+					val fiberSuspendingPrimitive =
+						fiber.suspendingFunction().code().primitive()!!
 					resumeFromSuccessfulPrimitive(
 						currentRuntime(),
 						fiber,
@@ -93,7 +95,8 @@ object P_RequestTermination : Primitive(1, CanInline, CannotFail, HasSideEffect)
 						"Should not have been parked with a permit"
 					}
 					fiber.executionState(SUSPENDED)
-					val suspendingPrimitive = fiber.suspendingFunction().code().primitive()!!
+					val suspendingPrimitive =
+						fiber.suspendingFunction().code().primitive()!!
 					assert(suspendingPrimitive === P_ParkCurrentFiber
 						|| suspendingPrimitive === P_AttemptJoinFiber)
 					resumeFromSuccessfulPrimitive(

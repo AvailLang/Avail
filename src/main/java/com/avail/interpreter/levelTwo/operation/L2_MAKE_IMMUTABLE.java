@@ -40,10 +40,13 @@ import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
 import com.avail.optimizer.L2Generator;
+import com.avail.optimizer.L2Synonym;
+import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
@@ -100,6 +103,22 @@ extends L2Operation
 		return cast(instruction.operand(0));
 	}
 
+	/**
+	 * Given an {@link L2Instruction} using this operation, extract the
+	 * destination {@link L2WriteBoxedOperand} that receives the immutable value
+	 * produced by the instruction.
+	 *
+	 * @param instruction
+	 *        The make-immutable instruction to examine.
+	 * @return The instruction's destination {@link L2WriteBoxedOperand}.
+	 */
+	public static L2WriteBoxedOperand destinationOfImmutable (
+		final L2Instruction instruction)
+	{
+		assert instruction.operation() instanceof L2_MAKE_IMMUTABLE;
+		return cast(instruction.operand(1));
+	}
+
 	@Override
 	public L2ReadBoxedOperand extractFunctionOuter (
 		final L2Instruction instruction,
@@ -126,10 +145,31 @@ extends L2Operation
 	}
 
 	@Override
-	public void toString (
+	public void instructionWasAdded (
+		final L2Instruction instruction, final L2ValueManifest manifest)
+	{
+		final L2ReadBoxedOperand read = instruction.operand(0);
+		final L2WriteBoxedOperand write = instruction.operand(1);
+
+		read.instructionWasAdded(manifest);
+
+		// Only deal with the boxed form.  The unboxed values are dealt with by
+		// subsequent move instructions.
+		final L2Synonym synonym =
+			manifest.semanticValueToSynonym(read.semanticValue());
+
+		// Make inaccessible all places holding the mutable boxed value.
+		manifest.forget(synonym);
+
+		write.instructionWasAdded(manifest);
+	}
+
+	@Override
+	public void appendToWithWarnings (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
-		final StringBuilder builder)
+		final StringBuilder builder,
+		final Consumer<Boolean> warningStyleChange)
 	{
 		assert this == instruction.operation();
 		final L2ReadBoxedOperand read = instruction.operand(0);

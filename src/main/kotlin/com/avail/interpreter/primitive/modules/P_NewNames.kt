@@ -44,8 +44,7 @@ import com.avail.descriptor.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.TypeDescriptor.Types.MODULE
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive:** Answer the introduced public names of the specified
@@ -55,7 +54,8 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_NewNames : Primitive(1, CanInline, CannotFail)
+object P_NewNames : Primitive(
+	1, CanInline, CannotFail, ReadsFromHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{

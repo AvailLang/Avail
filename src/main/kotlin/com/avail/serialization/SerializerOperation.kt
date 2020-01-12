@@ -1502,6 +1502,7 @@ enum class SerializerOperation constructor(
 			val continuation = createContinuationWithFrame(
 				function,
 				caller,
+				nil,
 				pcInteger.extractInt(),
 				stackpInteger.extractInt(),
 				unoptimizedChunk,

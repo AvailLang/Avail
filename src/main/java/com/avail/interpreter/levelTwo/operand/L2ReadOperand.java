@@ -36,18 +36,26 @@ import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
+import com.avail.optimizer.L2BasicBlock;
+import com.avail.optimizer.L2Synonym;
 import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.values.L2SemanticValue;
+import com.avail.utility.Casts;
+import com.avail.utility.Pair;
 
 import javax.annotation.Nullable;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import static com.avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE.sourceOfImmutable;
+import static com.avail.utility.Casts.cast;
 import static com.avail.utility.Casts.nullableCast;
 import static com.avail.utility.Nulls.stripNull;
 
@@ -68,19 +76,13 @@ extends L2Operand
 	 * The {@link L2SemanticValue} that is being read when an {@link
 	 * L2Instruction} uses this {@link L2Operand}.
 	 */
-	private final L2SemanticValue semanticValue;
+	private L2SemanticValue semanticValue;
 
 	/**
 	 * A type restriction, certified by the VM, that this particular read of
 	 * this register is guaranteed to satisfy.
 	 */
 	private final TypeRestriction restriction;
-
-	/**
-	 * The {@link L2WriteOperand} that produced the value that this read is
-	 * consuming.
-	 */
-	private L2WriteOperand<R> definition;
 
 	/**
 	 * The actual {@link L2Register}.  This is only set during late optimization
@@ -98,19 +100,17 @@ extends L2Operand
 	 *        L2Instruction} uses this {@link L2Operand}.
 	 * @param restriction
 	 *        The {@link TypeRestriction} that bounds the value being read.
-	 * @param definition
-	 *        The earliest known defining {@link L2WriteOperand} of the {@link
-	 *        L2SemanticValue}.
+	 * @param register
+	 *        The {@link L2Register} being read by this operand.
 	 */
 	protected L2ReadOperand (
 		final L2SemanticValue semanticValue,
 		final TypeRestriction restriction,
-		final L2WriteOperand<R> definition)
+		final R register)
 	{
 		this.semanticValue = semanticValue;
 		this.restriction = restriction;
-		this.definition = definition;
-		this.register = definition.register;
+		this.register = register;
 	}
 
 	/**
@@ -197,35 +197,82 @@ extends L2Operand
 
 	/**
 	 * Answer the {@link L2WriteOperand} that provided the value that this
-	 * operand is reading.
+	 * operand is reading.  The control flow graph must be in SSA form.
 	 *
 	 * @return The defining {@link L2WriteOperand}.
 	 */
 	public L2WriteOperand<R> definition ()
 	{
-		return stripNull(definition);
+		return Casts.<L2WriteOperand<?>, L2WriteOperand<R>>cast(
+			register.definition());
 	}
 
 	@Override
 	public void instructionWasAdded (
-		final L2Instruction instruction,
 		final L2ValueManifest manifest)
 	{
-		definition = manifest.getDefinition(semanticValue, registerKind());
+		super.instructionWasAdded(manifest);
 		manifest.setRestriction(semanticValue, restriction);
-		register().addUse(instruction);
+		register().addUse(this);
 	}
 
 	@Override
-	public final void instructionWasRemoved (final L2Instruction instruction)
+	public L2ReadOperand<?> adjustedForReinsertion (
+		final L2ValueManifest manifest)
 	{
-		register().removeUse(instruction);
+		if (manifest.hasSemanticValue(semanticValue))
+		{
+			return this;
+		}
+		// Be lenient.  This gets called after (or just before) placeholder
+		// replacement, when reinserting instructions that preceded or followed
+		// the placeholder in its original basic block.  However, some of the
+		// instructions might reference valid registers via semantic values that
+		// were removed in a prior dead code elimination.  That's because moves
+		// that extend a synonym can disappear, even though subsequent code uses
+		// a semantic value introduced by that move.
+		//
+		// The good news is that the register is still valid, so we can simply
+		// rewrite this operation to use a semantic value that's still in the
+		// manifest, or even add a new one.
+		final List<L2Synonym> synonyms = manifest.synonymsForRegister(register);
+		final L2SemanticValue newSemanticValue;
+		assert !synonyms.isEmpty();
+		newSemanticValue = synonyms.get(0).pickSemanticValue();
+		return this.copyForSemanticValue(newSemanticValue);
+	}
+
+	/**
+	 * Create an {@link L2ReadOperand} like this one, but with a different
+	 * {@link #semanticValue}.
+	 *
+	 * @param newSemanticValue
+	 *        The {@link L2SemanticValue} to use in the copy.
+	 * @return A duplicate of the receiver, but with a different
+	 *         {@link L2SemanticValue}.
+	 */
+	public abstract L2ReadOperand copyForSemanticValue (
+		final L2SemanticValue newSemanticValue);
+
+	@Override
+	public void instructionWasInserted (
+		final L2Instruction newInstruction)
+	{
+		super.instructionWasInserted(newInstruction);
+		register().addUse(this);
+	}
+
+	@Override
+	public final void instructionWasRemoved ()
+	{
+		super.instructionWasRemoved();
+		register().removeUse(this);
 	}
 
 	@Override
 	public final void replaceRegisters (
 		final Map<L2Register, L2Register> registerRemap,
-		final L2Instruction instruction)
+		final L2Instruction theInstruction)
 	{
 		final @Nullable R replacement =
 			nullableCast(registerRemap.get(register));
@@ -233,9 +280,15 @@ extends L2Operand
 		{
 			return;
 		}
-		register().removeUse(instruction);
-		replacement.addUse(instruction);
+		register().removeUse(this);
+		replacement.addUse(this);
 		register = replacement;
+	}
+
+	@Override
+	public void addReadsTo (final List<L2ReadOperand<?>> readOperands)
+	{
+		readOperands.add(this);
 	}
 
 	@Override
@@ -246,26 +299,15 @@ extends L2Operand
 	}
 
 	@Override
-	public final String toString ()
+	public void appendTo (final StringBuilder builder)
 	{
-		final StringBuilder builder = new StringBuilder();
-		builder.append('@');
-		builder.append(registerString());
+		builder.append('@').append(registerString());
 		if (restriction.constantOrNull == null)
 		{
 			// Don't redundantly print restriction information for constants.
 			builder.append(restriction.suffixString());
 		}
-		return builder.toString();
 	}
-
-	/**
-	 * Answer an {@link L2Operation} that implements a phi move for the
-	 * receiver.
-	 *
-	 * @return The requested instruction.
-	 */
-	public abstract L2_MOVE<? extends L2Register> phiMoveOperation ();
 
 	/**
 	 * Answer the {@link L2Instruction} which generates the value that will
@@ -285,17 +327,141 @@ extends L2Operand
 		{
 			if (other.operation().isMove())
 			{
-				other = L2_MOVE.sourceOf(other).definition().instruction();
+				final L2_MOVE<?, ?, ?> operation = cast(other.operation());
+				other = operation.sourceOf(other).definition().instruction();
 				continue;
 			}
 			if (bypassImmutables
 				&& other.operation() instanceof L2_MAKE_IMMUTABLE)
 			{
-				other = L2_MAKE_IMMUTABLE.sourceOfImmutable(other).definition()
-					.instruction();
+				other = sourceOfImmutable(other).definition().instruction();
 				continue;
 			}
 			return other;
 		}
+	}
+
+	/**
+	 * Find the set of {@link L2SemanticValue}s and {@link TypeRestriction}
+	 * leading to this read operand.  The control flow graph is not necessarily
+	 * in SSA form, so the underlying register may have multiple definitions to
+	 * choose from, some of which are not in this read's history.
+	 *
+	 * <p>If there is a write of the register in the same block as the read,
+	 * extract the information from that.</p>
+	 *
+	 * <p>Otherwise each incoming edge must carry this information in its
+	 * manifest.  Note that there's no phi function to merge differing registers
+	 * into this one, otherwise the phi itself would have been considered the
+	 * nearest write.  We still have to take the union of the restrictions, and
+	 * the intersection of the synonyms' sets of {@link L2SemanticValue}s.</p>
+	 *
+	 * @return A {@link Pair} consisting of a {@link Set} of synonymous
+	 *         {@link L2SemanticValue}s, and the {@link TypeRestriction}
+	 *         guaranteed at this read.
+	 */
+	public Pair<Set<L2SemanticValue>, TypeRestriction> findSourceInformation ()
+	{
+		// Either the write must happen inside the block we're moving from, or
+		// it must have come in along the edges, and is therefore in each
+		// incoming edge's manifest.
+		final L2BasicBlock thisBlock = instruction().basicBlock();
+		for (final L2WriteOperand<?> def : register.definitions())
+		{
+			if (def.instruction().basicBlock() == thisBlock)
+			{
+				// Ignore ghost instructions that haven't been fully removed
+				// yet, during placeholder substitution.
+				if (thisBlock.instructions().contains(def.instruction()))
+				{
+					return new Pair<>(def.semanticValues(), def.restriction());
+				}
+			}
+		}
+
+		// Integrate the information from the block's incoming manifests.
+		final Iterator<L2PcOperand> incoming =
+			thisBlock.predecessorEdgesIterator();
+		assert incoming.hasNext();
+		final L2ValueManifest firstManifest = incoming.next().manifest();
+		final Set<L2SemanticValue> semanticValues = new HashSet<>();
+		@Nullable TypeRestriction restriction = null;
+		for (final L2Synonym syn : firstManifest.synonymsForRegister(register))
+		{
+			semanticValues.addAll(syn.semanticValues());
+			restriction = restriction == null
+				? firstManifest.restrictionFor(syn.pickSemanticValue())
+				: restriction.union(
+					firstManifest.restrictionFor(syn.pickSemanticValue()));
+		}
+		while (incoming.hasNext())
+		{
+			final L2ValueManifest nextManifest = incoming.next().manifest();
+			final Set<L2SemanticValue> newSemanticValues = new HashSet<>();
+			for (final L2Synonym syn : nextManifest.synonymsForRegister(register))
+			{
+				newSemanticValues.addAll(syn.semanticValues());
+				restriction = restriction.union(
+					nextManifest.restrictionFor(syn.pickSemanticValue()));
+			}
+			// Intersect with the newSemanticValues.
+			semanticValues.retainAll(newSemanticValues);
+		}
+		return new Pair<>(semanticValues, restriction);
+	}
+
+	/**
+	 * Answer the {@link L2WriteBoxedOperand} which produces the value that will
+	 * populate this register. Skip over move instructions. Also skip over
+	 * boxing and unboxing operations that don't alter the value. The containing
+	 * graph must be in SSA form.
+	 *
+	 * @param bypassImmutables
+	 *        Whether to bypass instructions that force a value to become
+	 *        immutable.
+	 * @return The requested {@code L2Instruction}.
+	 */
+	public L2WriteBoxedOperand originalBoxedWriteSkippingMoves (
+		final boolean bypassImmutables)
+	{
+		L2WriteOperand<?> def = definition();
+		@Nullable L2WriteBoxedOperand earliestBoxed = null;
+		while (true)
+		{
+			if (def instanceof L2WriteBoxedOperand)
+			{
+				earliestBoxed = (L2WriteBoxedOperand) def;
+			}
+			final L2Instruction instruction = def.instruction();
+			if (instruction.operation().isMove())
+			{
+				final L2_MOVE<?, ?, ?> operation =
+					cast(instruction.operation());
+				def = operation.sourceOf(instruction).definition();
+				continue;
+			}
+			//TODO: Trace back through L2_[BOX|UNBOX]_[INT|FLOAT], etc.
+			if (bypassImmutables
+				&& instruction.operation() == L2_MAKE_IMMUTABLE.instance)
+			{
+				def = sourceOfImmutable(instruction).definition();
+				continue;
+			}
+			return stripNull(earliestBoxed);
+		}
+	}
+
+	/**
+	 * To accomodate code motion, deletion, and replacement, we sometimes have
+	 * to adjust the {@link #semanticValue} to one we know is in scope.
+	 *
+	 * @param replacementSemanticValue
+	 *        The {@link L2SemanticValue} that should replace the current
+	 *        {@link #semanticValue}.
+	 */
+	public void updateSemanticValue (
+		final L2SemanticValue replacementSemanticValue)
+	{
+		semanticValue = replacementSemanticValue;
 	}
 }

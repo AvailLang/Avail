@@ -36,6 +36,7 @@ import com.avail.descriptor.MapDescriptor.Entry;
 import com.avail.descriptor.MapDescriptor.MapIterable;
 import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.descriptor.tuples.A_Tuple;
+import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.util.function.BiConsumer;
@@ -88,6 +89,18 @@ extends A_BasicObject
 		A_BasicObject keyObject,
 		A_BasicObject newValueObject,
 		boolean canDestroy);
+
+	/**
+	 * The {@link CheckedMethod} for {@link
+	 * #mapAtPuttingCanDestroy(A_BasicObject, A_BasicObject, boolean)}.
+	 */
+	CheckedMethod mapAtPuttingCanDestroyMethod = CheckedMethod.instanceMethod(
+		A_Map.class,
+		"mapAtPuttingCanDestroy",
+		A_Map.class,
+		A_BasicObject.class,
+		A_BasicObject.class,
+		boolean.class);
 
 	/**
 	 * Answer the number of key/value pairs in the map.

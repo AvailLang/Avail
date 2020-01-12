@@ -47,7 +47,9 @@ import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
 import java.util.Set;
+import java.util.function.Consumer;
 
+import static com.avail.descriptor.AvailObject.equalsMethod;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
@@ -55,8 +57,6 @@ import static com.avail.interpreter.levelTwo.operand.TypeRestriction.Restriction
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForConstant;
 import static com.avail.interpreter.levelTwo.operation.L2ConditionalJump.BranchReduction.*;
 import static org.objectweb.asm.Opcodes.IFNE;
-import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Type.*;
 
 /**
  * Jump to {@code "if equal"} if the value equals the constant, otherwise jump
@@ -97,11 +97,7 @@ extends L2ConditionalJump
 		final L2PcOperand ifEqual = instruction.operand(2);
 		final L2PcOperand ifNotEqual = instruction.operand(3);
 
-		// Ensure the new write ends up in the same synonym as the source.
-		reader.instructionWasAdded(instruction, manifest);
-		constant.instructionWasAdded(instruction, manifest);
-		ifEqual.instructionWasAdded(instruction, manifest);
-		ifNotEqual.instructionWasAdded(instruction, manifest);
+		super.instructionWasAdded(instruction, manifest);
 
 		// Restrict the value to the constant along the ifEqual branch, and
 		// exclude the constant along the ifNotEqual branch.
@@ -142,10 +138,11 @@ extends L2ConditionalJump
 	}
 
 	@Override
-	public void toString (
+	public void appendToWithWarnings (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
-		final StringBuilder builder)
+		final StringBuilder builder,
+		final Consumer<Boolean> warningStyleChange)
 	{
 		assert this == instruction.operation();
 		final L2ReadBoxedOperand value = instruction.operand(0);
@@ -176,12 +173,7 @@ extends L2ConditionalJump
 		// :: else goto ifUnequal;
 		translator.load(method, value.register());
 		translator.literal(method, constant.object);
-		method.visitMethodInsn(
-			INVOKEINTERFACE,
-			getInternalName(A_BasicObject.class),
-			"equals",
-			getMethodDescriptor(BOOLEAN_TYPE, getType(A_BasicObject.class)),
-			true);
+		equalsMethod.generateCall(method);
 		emitBranch(translator, method, instruction, IFNE, ifEqual, ifUnequal);
 	}
 }

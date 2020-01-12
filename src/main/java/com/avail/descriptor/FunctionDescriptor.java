@@ -64,6 +64,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.TOP;
 import static com.avail.descriptor.parsing.BlockPhraseDescriptor.newBlockNode;
 import static com.avail.interpreter.levelOne.L1Decompiler.decompile;
 import static com.avail.optimizer.jvm.CheckedMethod.instanceMethod;
+import static com.avail.optimizer.jvm.CheckedMethod.staticMethod;
 
 /**
  * A function associates {@linkplain CompiledCodeDescriptor compiled code} with
@@ -455,6 +456,16 @@ extends Descriptor
 	}
 
 	/**
+	 * Access the {@link #createExceptOuters(A_RawFunction, int)} method.
+	 */
+	public static final CheckedMethod createExceptOutersMethod = staticMethod(
+		FunctionDescriptor.class,
+		"createExceptOuters",
+		AvailObject.class,
+		A_RawFunction.class,
+		int.class);
+
+	/**
 	 * Construct a function with the given code and one outer variable.
 	 *
 	 * @param code The code with which to build the function.
@@ -470,6 +481,17 @@ extends Descriptor
 		function.setSlot(OUTER_VAR_AT_, 1, outer1);
 		return function;
 	}
+
+	/**
+	 * Access the {@link #createWithOuters1(A_RawFunction, AvailObject)}
+	 * method.
+	 */
+	public static final CheckedMethod createWithOuters1Method = staticMethod(
+		FunctionDescriptor.class,
+		"createWithOuters1",
+		AvailObject.class,
+		A_RawFunction.class,
+		AvailObject.class);
 
 	/**
 	 * Construct a function with the given code and two outer variables.
@@ -490,6 +512,19 @@ extends Descriptor
 		function.setSlot(OUTER_VAR_AT_, 2, outer2);
 		return function;
 	}
+
+	/**
+	 * Access the
+	 * {@link #createWithOuters2(A_RawFunction, AvailObject, AvailObject)}
+	 * method.
+	 */
+	public static final CheckedMethod createWithOuters2Method = staticMethod(
+		FunctionDescriptor.class,
+		"createWithOuters2",
+		AvailObject.class,
+		A_RawFunction.class,
+		AvailObject.class,
+		AvailObject.class);
 
 	/**
 	 * Construct a function with the given code and three outer variables.
@@ -513,6 +548,28 @@ extends Descriptor
 		function.setSlot(OUTER_VAR_AT_, 3, outer3);
 		return function;
 	}
+
+	/**
+	 * Access the
+	 * {@link #createWithOuters3(A_RawFunction, AvailObject, AvailObject, AvailObject)}
+	 * method.
+	 */
+	public static final CheckedMethod createWithOuters3Method = staticMethod(
+		FunctionDescriptor.class,
+		"createWithOuters3",
+		AvailObject.class,
+		A_RawFunction.class,
+		AvailObject.class,
+		AvailObject.class,
+		AvailObject.class);
+
+	/** Access the {@link A_Function#outerVarAtPut(int, AvailObject)} method. */
+	public static final CheckedMethod outerVarAtPutMethod = instanceMethod(
+		A_Function.class,
+		"outerVarAtPut",
+		void.class,
+		int.class,
+		AvailObject.class);
 
 	/**
 	 * Convert a {@link PhraseDescriptor phrase} into a zero-argument

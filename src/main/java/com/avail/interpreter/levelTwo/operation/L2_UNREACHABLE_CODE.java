@@ -34,16 +34,15 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
+import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import org.objectweb.asm.MethodVisitor;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
+import static com.avail.optimizer.jvm.CheckedMethod.staticMethod;
 import static org.objectweb.asm.Opcodes.ATHROW;
-import static org.objectweb.asm.Opcodes.INVOKESTATIC;
-import static org.objectweb.asm.Type.*;
 
 /**
  * This instruction should never be reached.  Stop the VM if it is.  We need the
@@ -105,11 +104,17 @@ extends L2ControlFlowOperation
 	 */
 	@SuppressWarnings("unused")
 	@ReferencedInGeneratedCode
-	public static @Nullable UnreachableCodeException
+	public static UnreachableCodeException
 	throwUnreachableCodeException ()
 	{
 		throw new UnreachableCodeException();
 	}
+
+	public static final CheckedMethod throwUnreachableCodeExceptionMethod =
+		staticMethod(
+			L2_UNREACHABLE_CODE.class,
+			"throwUnreachableCodeException",
+			UnreachableCodeException.class);
 
 	@Override
 	public void translateToJVM (
@@ -118,12 +123,7 @@ extends L2ControlFlowOperation
 		final L2Instruction instruction)
 	{
 		// :: throw throwUnreachableCodeException();
-		method.visitMethodInsn(
-			INVOKESTATIC,
-			getInternalName(L2_UNREACHABLE_CODE.class),
-			"throwUnreachableCodeException",
-			getMethodDescriptor(getType(UnreachableCodeException.class)),
-			false);
+		throwUnreachableCodeExceptionMethod.generateCall(method);
 		method.visitInsn(ATHROW);
 	}
 }

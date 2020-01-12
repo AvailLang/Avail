@@ -1354,7 +1354,7 @@ class AvailCompiler(
 				// type filtering.
 				val latestPhrase = last(argsSoFar)
 				val typeFilterTree = typeFilterTreePojo.javaObjectNotNull<
-					LookupTree<A_Tuple, A_BundleTree, A_BundleTree>>()
+					LookupTree<A_Tuple, A_BundleTree>>()
 				val timeBefore = captureNanos()
 				val successor =
 					MessageBundleTreeDescriptor.parserTypeChecker.lookupByValue(

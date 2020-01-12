@@ -225,23 +225,23 @@ extends TypeDescriptor
 	{
 		if (object.isSubtypeOf(byteRange()))
 		{
-			return Byte.TYPE;
+			return byte.class;
 		}
 		if (object.isSubtypeOf(charRange()))
 		{
-			return Character.TYPE;
+			return char.class;
 		}
 		if (object.isSubtypeOf(shortRange()))
 		{
-			return Short.TYPE;
+			return short.class;
 		}
 		if (object.isSubtypeOf(intRange()))
 		{
-			return Integer.TYPE;
+			return int.class;
 		}
 		if (object.isSubtypeOf(longRange()))
 		{
-			return Long.TYPE;
+			return long.class;
 		}
 		if (object.isSubtypeOf(integers()))
 		{

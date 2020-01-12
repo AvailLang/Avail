@@ -32,6 +32,8 @@
 
 package com.avail.interpreter.levelTwo;
 
+import com.avail.interpreter.levelTwo.operation.L2_CREATE_CONTINUATION;
+
 import javax.annotation.Nullable;
 
 /**
@@ -105,7 +107,14 @@ public class L2NamedOperandType
 		/**
 		 * Indicates that a {@link L2OperandType PC} codes for an on-ramp.
 		 */
-		ON_RAMP;
+		ON_RAMP,
+
+		/**
+		 * This target address is not directly used here, but is converted to an
+		 * integer constant so it can be passed elsewhere, typically to an
+		 * {@link L2_CREATE_CONTINUATION}.
+		 */
+		REFERENCED_AS_INT;
 	}
 
 	/**
@@ -151,5 +160,6 @@ public class L2NamedOperandType
 		this.operandType = operandType;
 		this.name = name;
 		this.purpose = purpose;
+		assert purpose == null || operandType.canHavePurpose;
 	}
 }

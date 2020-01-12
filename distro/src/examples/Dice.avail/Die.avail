@@ -679,7 +679,7 @@ Method "«using_,»roll_" is
 					if newRolls is empty then [eject details - aDie]
 					else [eject details + aDie → newRolls];
 				mustDrop := eject mustDrop - doomed;
-				If mustDrop is empty then [Exit loop];
+				Exit loop if mustDrop is empty;
 				intersection := mustDrop→set ∩ newRolls→set;
 			];
 		];

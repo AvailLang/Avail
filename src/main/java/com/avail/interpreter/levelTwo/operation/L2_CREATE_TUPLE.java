@@ -45,27 +45,29 @@ import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
+import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Type;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromArrayMethod;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
+import static com.avail.utility.Casts.cast;
 import static org.objectweb.asm.Opcodes.CHECKCAST;
-import static org.objectweb.asm.Opcodes.INVOKESTATIC;
-import static org.objectweb.asm.Type.*;
+import static org.objectweb.asm.Type.getInternalName;
 
 /**
  * Create a {@link TupleDescriptor tuple} from the {@linkplain AvailObject
@@ -161,10 +163,11 @@ extends L2Operation
 	}
 
 	@Override
-	public void toString (
+	public void appendToWithWarnings (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
-		final StringBuilder builder)
+		final StringBuilder builder,
+		final Consumer<Boolean> warningStyleChange)
 	{
 		assert this == instruction.operation();
 		final L2ReadBoxedVectorOperand values = instruction.operand(0);
@@ -224,30 +227,21 @@ extends L2Operation
 			{
 				translator.load(method, elements.get(i).register());
 			}
-			final Type[] callSignature = new Type[size];
-			Arrays.fill(callSignature, getType(A_BasicObject.class));
-			method.visitMethodInsn(
-				INVOKESTATIC,
-				getInternalName(ObjectTupleDescriptor.class),
+			final Class<A_BasicObject>[] callSignature = cast(new Class[size]);
+			Arrays.fill(callSignature, A_BasicObject.class);
+			final CheckedMethod tupleMethod = CheckedMethod.staticMethod(
+				ObjectTupleDescriptor.class,
 				"tuple",
-				getMethodDescriptor(
-					getType(A_Tuple.class),
-					callSignature),
-				false);
+				A_Tuple.class,
+				callSignature);
+			tupleMethod.generateCall(method);
 			method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
 			translator.store(method, tuple.register());
 			return;
 		}
 		// :: destination = TupleDescriptor.tupleFromArray(elements);
 		translator.objectArray(method, elements, A_BasicObject.class);
-		method.visitMethodInsn(
-			INVOKESTATIC,
-			getInternalName(ObjectTupleDescriptor.class),
-			"tupleFromArray",
-			getMethodDescriptor(
-				getType(A_Tuple.class),
-				getType(A_BasicObject[].class)),
-			false);
+		tupleFromArrayMethod.generateCall(method);
 		method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
 		translator.store(method, tuple.register());
 	}

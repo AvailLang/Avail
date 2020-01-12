@@ -47,8 +47,7 @@ import com.avail.exceptions.AvailErrorCode.E_NO_SUCH_FIBER_VARIABLE
 import com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive:** Disassociate the given [name][AtomDescriptor] (key) from the
@@ -57,7 +56,8 @@ import com.avail.interpreter.Primitive.Flag.HasSideEffect
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_RemoveFiberVariable : Primitive(1, CanInline, HasSideEffect)
+object P_RemoveFiberVariable : Primitive(
+	1, CanInline, HasSideEffect, WritesToHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{

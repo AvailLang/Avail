@@ -37,6 +37,7 @@ import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.exceptions.AvailErrorCode;
+import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.IteratorNotNull;
@@ -56,7 +57,6 @@ import static com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
 import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
-import static com.avail.utility.Casts.cast;
 import static java.lang.String.format;
 
 /**
@@ -733,16 +733,15 @@ extends Descriptor
 	 *
 	 * @param set
 	 *        An Avail set.
-	 * @return The corresponding Java {@link Set} of objects.
-	 * @param <X> The type of elements in the resulting {@link Set}.
+	 * @return The corresponding Java {@link Set} of {@link AvailObject}s.
 	 */
-	public static <X extends A_BasicObject> Set<X> toSet (
+	public static Set<AvailObject> toSet (
 		final A_Set set)
 	{
-		final Set<X> nativeSet = new HashSet<>(set.setSize());
+		final Set<AvailObject> nativeSet = new HashSet<>(set.setSize());
 		for (final AvailObject element : set)
 		{
-			nativeSet.add(cast(element));
+			nativeSet.add(element);
 		}
 		return nativeSet;
 	}
@@ -818,7 +817,6 @@ extends Descriptor
 	}
 
 	/** The empty set. */
-	@ReferencedInGeneratedCode
 	private static final A_Set emptySet;
 
 	static
@@ -834,10 +832,20 @@ extends Descriptor
 	 *
 	 * @return The empty set.
 	 */
+	@ReferencedInGeneratedCode
 	public static A_Set emptySet ()
 	{
 		return emptySet;
 	}
+
+	/**
+	 * The {@link CheckedMethod} for {@link #emptySet()}.
+	 */
+	public static final CheckedMethod emptySetMethod =
+		CheckedMethod.staticMethod(
+			SetDescriptor.class,
+			"emptySet",
+			A_Set.class);
 
 	/**
 	 * Create an Avail set with exactly one element.  The element is not made

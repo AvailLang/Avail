@@ -734,7 +734,7 @@ extends AbstractEnumerationTypeDescriptor
 	{
 		if (object.isSubtypeOf(booleanType()))
 		{
-			return Boolean.TYPE;
+			return boolean.class;
 		}
 		return super.o_MarshalToJava(object, ignoredClassHint);
 	}
@@ -773,6 +773,15 @@ extends AbstractEnumerationTypeDescriptor
 		final AvailObject object)
 	{
 		return SerializerOperation.ENUMERATION_TYPE;
+	}
+
+	@Override @AvailMethod
+	protected A_Tuple o_TupleOfTypesFromTo (
+		final AvailObject object,
+		final int startIndex,
+		final int endIndex)
+	{
+		return getSuperkind(object).tupleOfTypesFromTo(startIndex, endIndex);
 	}
 
 	@Override

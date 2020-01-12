@@ -47,6 +47,7 @@ import com.avail.dispatch.InternalLookupTree;
 import com.avail.dispatch.LookupTree;
 import com.avail.dispatch.LookupTreeTraverser;
 import com.avail.exceptions.AvailErrorCode;
+import com.avail.exceptions.MethodDefinitionException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Result;
@@ -63,6 +64,7 @@ import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
 import com.avail.interpreter.primitive.general.P_Equality;
+import com.avail.optimizer.L2ControlFlowGraph.Zone;
 import com.avail.optimizer.values.Frame;
 import com.avail.optimizer.values.L2SemanticValue;
 import com.avail.performance.Statistic;
@@ -91,6 +93,7 @@ import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
 import static com.avail.descriptor.FunctionTypeDescriptor.mostGeneralFunctionType;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
+import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
@@ -108,6 +111,8 @@ import static com.avail.interpreter.Primitive.Result.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.*;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.*;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.*;
+import static com.avail.optimizer.L2ControlFlowGraph.ZoneType.BEGIN_REIFICATION_FOR_INTERRUPT;
+import static com.avail.optimizer.L2ControlFlowGraph.ZoneType.PROPAGATE_REIFICATION_FOR_INVOKE;
 import static com.avail.optimizer.L2Generator.*;
 import static com.avail.optimizer.L2Generator.OptimizationLevel.UNOPTIMIZED;
 import static com.avail.performance.StatisticReport.L2_OPTIMIZATION_TIME;
@@ -115,7 +120,6 @@ import static com.avail.performance.StatisticReport.L2_TRANSLATION_VALUES;
 import static java.lang.Boolean.TRUE;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -144,7 +148,7 @@ public final class L1Translator
 	 * The {@linkplain CompiledCodeDescriptor raw function} to transliterate
 	 * into level two code.
 	 */
-	final A_RawFunction code;
+	public final A_RawFunction code;
 
 	/**
 	 * The number of slots in the virtualized continuation.  This includes the
@@ -275,12 +279,16 @@ public final class L1Translator
 	 * continuation slot. The slots are the arguments, then the locals, then the
 	 * stack entries. The slots are numbered starting at 1.
 	 *
+	 * <p>This is only public to allow primitives like
+	 * {@link P_RestartContinuation} to be able to fetch the current
+	 * arguments.</p>
+	 *
 	 * @param slotIndex
 	 *        The index into the continuation's slots.
 	 * @return An {@link L2ReadBoxedOperand} representing that continuation
 	 *         slot.
 	 */
-	private L2ReadBoxedOperand readSlot (final int slotIndex)
+	public L2ReadBoxedOperand readSlot (final int slotIndex)
 	{
 		return generator.readBoxed(semanticSlot(slotIndex));
 	}
@@ -328,7 +336,7 @@ public final class L1Translator
 	 *        The {@link L2ReadBoxedOperand} that should now be considered the
 	 *        current register-read representing that slot.
 	 */
-	void forceSlotRegister (
+	public void forceSlotRegister (
 		final int slotIndex,
 		final int effectivePc,
 		final L2ReadBoxedOperand registerRead)
@@ -368,8 +376,9 @@ public final class L1Translator
 		semanticSlots[slotIndex - 1] = slotSemanticValue;
 		generator.moveRegister(
 			L2_MOVE.boxed,
-			generator.readBoxed(sourceSemanticValue),
-			generator.boxedWrite(slotSemanticValue, restriction));
+			sourceSemanticValue,
+			slotSemanticValue);
+		currentManifest().setRestriction(slotSemanticValue, restriction);
 	}
 
 	/**
@@ -470,35 +479,44 @@ public final class L1Translator
 	 * Write instructions to extract the current reified continuation, and
 	 * answer an {@link L2ReadBoxedOperand} for the register that will hold
 	 * the continuation afterward.
+	 *
+	 * <p>Since the current reified continuation is sometimes for the current
+	 * frame and sometimes for the caller, the passed semanticValue indicates
+	 * which {@link Frame} it's the {@link Frame#reifiedCaller()} of, if
+	 * any.</p>
+	 *
+	 * <p>If reification is needed here, output an {@link L2_VIRTUAL_REIFY}. If
+	 * this survives optimization by virtue of its result (the reified caller)
+	 * still being consumed, it will be transformed into several basic blocks
+	 * and several instructions by one of the optimization passes.</p>
+	 *
+	 * @return An {@link L2ReadBoxedOperand} that produces the reified caller.
 	 */
 	private L2ReadBoxedOperand getCurrentContinuation ()
 	{
-		final L2WriteBoxedOperand continuationTempReg =
-			generator.boxedWriteTemp(
+		final L2SemanticValue reifiedCaller = topFrame().reifiedCaller();
+		final @Nullable L2SemanticValue equivalent =
+			currentManifest().equivalentSemanticValue(reifiedCaller);
+		if (equivalent != null)
+		{
+			// No need to extract it again, just answer the one we already have.
+			// That's because stack reification is idempotent.  HOWEVER, since
+			// we might reuse the same label it's crucial to make it immutable
+			// at its creation site, below.
+			return generator.readBoxed(equivalent);
+		}
+		// We need to reify to extract it.
+		final L2WriteBoxedOperand continuationWrite =
+			generator.boxedWrite(
+				reifiedCaller,
 				restrictionForType(mostGeneralContinuationType(), BOXED));
 		addInstruction(
-			L2_GET_CURRENT_CONTINUATION.instance,
-			continuationTempReg);
-		return readBoxed(continuationTempReg);
-	}
-
-	/**
-	 * Write instructions to extract the current reified continuation, and
-	 * answer an {@link L2ReadBoxedOperand} for the register that will hold
-	 * the continuation afterward.  Move the caller of this continuation back
-	 * into the interpreter's current reified continuation field.
-	 *
-	 * @return The {@link L2ReadBoxedOperand} where the continuation is written.
-	 */
-	private L2ReadBoxedOperand popCurrentContinuation ()
-	{
-		final L2WriteBoxedOperand continuationTempReg =
-			generator.boxedWriteTemp(
-				restrictionForType(mostGeneralContinuationType(), BOXED));
-		addInstruction(
-			L2_POP_CURRENT_CONTINUATION.instance,
-			continuationTempReg);
-		return readBoxed(continuationTempReg);
+			L2_VIRTUAL_REIFY.instance,
+			new L2CommentOperand("Get reified caller"),
+			continuationWrite);
+		// Force the caller to be immutable, in case it's reused by a subsequent
+		// call to getCurrentContinuation.
+		return generator.makeImmutable(readBoxed(continuationWrite));
 	}
 
 	/**
@@ -613,13 +631,14 @@ public final class L1Translator
 		final @Nullable A_Type expectedValueOrNull,
 		final ChunkEntryPoint typeOfEntryPoint)
 	{
+		// Use the current block's zone for subsequent nodes that are inside
+		// this reification handler.
+		final @Nullable Zone zone = generator.currentBlock().zone;
 		final L2WriteBoxedOperand newContinuationWrite =
 			generator.boxedWriteTemp(
 				restrictionForType(mostGeneralContinuationType(), BOXED));
 		final L2BasicBlock onReturnIntoReified =
-			generator.createBasicBlock("return into reified continuation");
-		final L2BasicBlock afterCreation = generator.createBasicBlock(
-			"after creation of reified continuation");
+			generator.createBasicBlock("Return into reified continuation");
 		// Create readSlots for constructing the continuation.  Also create
 		// writeSemanticValues and writeRestrictions for restoring the state
 		// from the continuation when it's resumed.
@@ -654,73 +673,95 @@ public final class L1Translator
 		// Now generate the reification instructions, ensuring that when
 		// returning into the resulting continuation it will enter a block where
 		// the slot registers are the new ones we just created.
+		final L2WriteIntOperand writeOffset = generator.intWriteTemp(
+			restrictionForType(int32(), UNBOXED_INT));
+		final L2WriteBoxedOperand writeRegisterDump = generator.boxedWriteTemp(
+			restrictionForType(ANY.o(), BOXED));
+		final L2BasicBlock fallThrough =
+			generator.createBasicBlock("Off-ramp", zone);
 		addInstruction(
-			L2_CREATE_CONTINUATION.instance,
-			getCurrentFunction(),
-			generator.boxedConstant(nil),
-			new L2IntImmediateOperand(instructionDecoder.pc()),
-			new L2IntImmediateOperand(stackp),
-			new L2ReadBoxedVectorOperand(asList(readSlotsBefore)),
-			newContinuationWrite,
+			L2_SAVE_ALL_AND_PC_TO_INT.instance,
 			edgeTo(onReturnIntoReified),
-			edgeTo(afterCreation),
-			new L2CommentOperand("Create a reification continuation."));
+			writeOffset,
+			writeRegisterDump,
+			edgeTo(fallThrough));
+
+		generator.startBlock(fallThrough);
+		if (typeOfEntryPoint == TRANSIENT)
+		{
+			// L1 can never see this continuation, so it can be minimal.  Also,
+			// we're guaranteed to be in a reification handler at this point, so
+			// we can just fetch the reifiedContinuation without worrying about
+			// triggering another reification (which would be wrong).
+			final L2ReadBoxedOperand readReifiedCaller =
+				getCurrentContinuation();
+			addInstruction(
+				L2_CREATE_CONTINUATION.instance,
+				getCurrentFunction(),
+				readReifiedCaller,
+				new L2IntImmediateOperand(Integer.MAX_VALUE),
+				new L2IntImmediateOperand(Integer.MAX_VALUE),
+				new L2ReadBoxedVectorOperand(emptyList()),
+				newContinuationWrite,
+				generator.readInt(
+					writeOffset.onlySemanticValue(),
+					generator.unreachablePcOperand().targetBlock()),
+				generator.readBoxed(writeRegisterDump),
+				new L2CommentOperand(
+					"Create a dummy reification continuation."));
+		}
+		else
+		{
+			// We're in a reification handler, so the reifiedContinuation in the
+			// interpreter reflects the current frame's caller's continuation.
+			// Even though the caller might be in some register from a previous
+			// reification, decrease the register pressure by just grabbing it
+			// from the interpreter again.
+			final L2WriteBoxedOperand writeReifiedCaller =
+				generator.boxedWrite(
+					topFrame().reifiedCaller(),
+					restrictionForType(mostGeneralContinuationType(), BOXED));
+			addInstruction(
+				L2_GET_CURRENT_CONTINUATION.instance,
+				writeReifiedCaller);
+			final L2ReadBoxedOperand readReifiedCaller =
+				readBoxed(writeReifiedCaller);
+
+			// Make an L1-complete continuation, since an invalidation can cause
+			// it to resume in the L2Chunk#unoptimizedChunk, which can only see
+			// L1 content.
+			addInstruction(
+				L2_CREATE_CONTINUATION.instance,
+				getCurrentFunction(),
+				readReifiedCaller,
+				new L2IntImmediateOperand(instructionDecoder.pc()),
+				new L2IntImmediateOperand(stackp),
+				new L2ReadBoxedVectorOperand(asList(readSlotsBefore)),
+				newContinuationWrite,
+				generator.readInt(
+					writeOffset.onlySemanticValue(),
+					generator.unreachablePcOperand().targetBlock()),
+				generator.readBoxed(writeRegisterDump),
+				new L2CommentOperand("Create a reification continuation."));
+		}
+		addInstruction(
+			L2_SET_CONTINUATION.instance,
+			generator.readBoxed(newContinuationWrite));
 
 		// Right after creating the continuation.
-		generator.startBlock(afterCreation);
-		addInstruction(
-			L2_RETURN_FROM_REIFICATION_HANDLER.instance,
-			new L2ReadBoxedVectorOperand(
-				singletonList(readBoxed(newContinuationWrite))));
+		addInstruction(L2_RETURN_FROM_REIFICATION_HANDLER.instance);
 
 		// Here it's returning into the reified continuation.
 		generator.startBlock(onReturnIntoReified);
-		currentManifest().clear();
 		addInstruction(
 			L2_ENTER_L2_CHUNK.instance,
 			new L2IntImmediateOperand(typeOfEntryPoint.offsetInDefaultChunk),
 			new L2CommentOperand(
 				"If invalid, reenter «default» at "
 					+ typeOfEntryPoint.name() + "."));
-		if (expectedValueOrNull != null
-			&& expectedValueOrNull.isVacuousType())
+		if (expectedValueOrNull != null && expectedValueOrNull.isVacuousType())
 		{
 			generator.addUnreachableCode();
-		}
-		else
-		{
-			final L2ReadBoxedOperand popped = popCurrentContinuation();
-			for (int i = 1; i <= numSlots; i++)
-			{
-				final @Nullable L2SemanticValue writeSemanticValue =
-					writeSemanticValues[i - 1];
-				if (writeSemanticValue != null)
-				{
-					final TypeRestriction restriction =
-						writeRestrictions[i - 1];
-					if (restriction.constantOrNull != null)
-					{
-						// We know the slot contains a particular constant, so
-						// don't read it from the continuation.
-						final L2ReadBoxedOperand constantRead =
-							generator.boxedConstant(restriction.constantOrNull);
-						generator.moveRegister(
-							L2_MOVE.boxed,
-							constantRead,
-							generator.boxedWrite(
-								semanticSlot(i), constantRead.restriction()));
-					}
-					else
-					{
-						addInstruction(
-							L2_EXTRACT_CONTINUATION_SLOT.instance,
-							popped,
-							new L2IntImmediateOperand(i),
-							generator.boxedWrite(
-								writeSemanticValue, restriction));
-					}
-				}
-			}
 		}
 	}
 
@@ -971,11 +1012,17 @@ public final class L1Translator
 			this.onFallBackToSlowLookup = generator.createBasicBlock(
 				"fall back to slow lookup during " + quotedBundleName);
 			this.onReificationWithCheck = generator.createBasicBlock(
-				"reify with check during " + quotedBundleName);
+				"reify with check during " + quotedBundleName,
+				PROPAGATE_REIFICATION_FOR_INVOKE.createZone(
+					"Continue reification leading to return check"));
 			this.onReificationNoCheck = generator.createBasicBlock(
-				"reify no check during " + quotedBundleName);
+				"reify no check during " + quotedBundleName,
+				PROPAGATE_REIFICATION_FOR_INVOKE.createZone(
+					"Continue reification without return check"));
 			this.onReificationUnreturnable = generator.createBasicBlock(
-				"reify unreturnable " + quotedBundleName);
+				"reify unreturnable " + quotedBundleName,
+				PROPAGATE_REIFICATION_FOR_INVOKE.createZone(
+					"Continue reification for unreturnable"));
 			final String string2 = isSuper
 				? "after super no-check call of " + quotedBundleName
 				: "after call no-check of " + quotedBundleName;
@@ -1036,18 +1083,37 @@ public final class L1Translator
 
 		// Determine which applicable definitions have already been expanded in
 		// the lookup tree.
-		final LookupTree<A_Definition, A_Tuple, Boolean> tree =
-			method.testingTree();
+		final LookupTree<A_Definition, A_Tuple> tree = method.testingTree();
 		final List<TypeRestriction> argumentRestrictions =
 			semanticArguments.stream()
-				.map(a -> currentManifest().restrictionFor(a))
+				.map(semValue -> currentManifest().restrictionFor(semValue))
 				.collect(toList());
-		final List<A_Definition> applicableExpandedLeaves = new ArrayList<>();
 
+		// Special case: If there's only one method definition and the type tree
+		// has not yet been expanded, go ahead and do so.  It takes less space
+		// in L2/JVM to store the simple invocation than a full lookup.
+		if (method.definitionsTuple().tupleSize() <= 1)
+		{
+			final List<A_Type> argTypes = argumentRestrictions.stream()
+				.map(restriction -> restriction.type)
+				.collect(toList());
+			try
+			{
+				final A_Definition result =
+					method.lookupByTypesFromTuple(tupleFromList(argTypes));
+				assert result.equals(method.definitionsTuple().tupleAt(1));
+			}
+			catch (final MethodDefinitionException e)
+			{
+				assert false : "Couldn't look up method by its own signature";
+			}
+			// The tree is now warmed up for a monomorphic inline.
+		}
+
+		final List<A_Definition> applicableExpandedLeaves = new ArrayList<>();
 		final LookupTreeTraverser<A_Definition, A_Tuple, Boolean, Boolean>
-			definitionCollector =
-			new LookupTreeTraverser<
-				A_Definition, A_Tuple, Boolean, Boolean>(
+			definitionCollector = new LookupTreeTraverser
+					<A_Definition, A_Tuple, Boolean, Boolean>(
 				MethodDescriptor.runtimeDispatcher, TRUE, false)
 			{
 				@Override
@@ -1638,7 +1704,7 @@ public final class L1Translator
 	 * @param failEdge
 	 *        Where to go if the register's value does not equal the constant.
 	 */
-	private void generateJumpIfEqualsConstant (
+	public void generateJumpIfEqualsConstant (
 		final L2ReadBoxedOperand registerToTest,
 		final A_BasicObject constantValue,
 		final L2PcOperand passEdge,
@@ -1650,7 +1716,7 @@ public final class L1Translator
 				constantValue.equals(AtomDescriptor.trueObject());
 			final L2Instruction boolSource =
 				registerToTest.definitionSkippingMoves(true);
-			if (boolSource.operation() == L2_RUN_INFALLIBLE_PRIMITIVE.instance)
+			if (boolSource.operation() instanceof L2_RUN_INFALLIBLE_PRIMITIVE)
 			{
 				final Primitive primitive =
 					L2_RUN_INFALLIBLE_PRIMITIVE.primitiveOf(boolSource);
@@ -1844,6 +1910,8 @@ public final class L1Translator
 			if (primitive != null)
 			{
 				final boolean generated;
+				final A_Type argsTupleType =
+					rawFunction.functionType().argsTupleType();
 				if (tryToGenerateSpecialPrimitiveInvocation)
 				{
 					// We are not recursing here from a primitive override of
@@ -1852,8 +1920,6 @@ public final class L1Translator
 					// lookup was monomorphic *in the event of success*, so we
 					// can safely tighten the argument types here to conform to
 					// the only possible found function.
-					final A_Type argsTupleType =
-						rawFunction.functionType().argsTupleType();
 					final List<L2ReadBoxedOperand> strongArguments =
 						new ArrayList<>(argumentCount);
 					final L2ValueManifest manifest = currentManifest();
@@ -1887,8 +1953,6 @@ public final class L1Translator
 					// tryToGenerateSpecialPrimitiveInvocation(), so do not
 					// recurse again; just generate the best invocation possible
 					// given what we know.
-					final A_Type signatureTupleType =
-						rawFunction.functionType().argsTupleType();
 					final List<A_Type> argumentTypes =
 						new ArrayList<>(argumentCount);
 					for (int i = 0; i < argumentCount; i++)
@@ -1896,7 +1960,7 @@ public final class L1Translator
 						final L2ReadBoxedOperand argument = arguments.get(i);
 						final A_Type narrowedType =
 							argument.type().typeIntersection(
-								signatureTupleType.typeAtIndex(i + 1));
+								argsTupleType.typeAtIndex(i + 1));
 						argumentTypes.add(narrowedType);
 					}
 					if (primitive.fallibilityForArgumentTypes(argumentTypes)
@@ -1911,7 +1975,7 @@ public final class L1Translator
 									primitive.returnTypeGuaranteedByVM(
 										rawFunction, argumentTypes), BOXED));
 						addInstruction(
-							L2_RUN_INFALLIBLE_PRIMITIVE.instance,
+							L2_RUN_INFALLIBLE_PRIMITIVE.forPrimitive(primitive),
 							new L2ConstantOperand(rawFunction),
 							new L2PrimitiveOperand(primitive),
 							new L2ReadBoxedVectorOperand(arguments),
@@ -1950,6 +2014,9 @@ public final class L1Translator
 			: skipCheck
 				? callSiteHelper.onReificationNoCheck
 				: callSiteHelper.onReificationWithCheck;
+		final L2BasicBlock reificationTarget = generator.createBasicBlock(
+			"invoke reification target",
+			targetBlock.zone);
 		if (constantFunction != null)
 		{
 			addInstruction(
@@ -1959,7 +2026,7 @@ public final class L1Translator
 				canReturn
 					? edgeTo(successBlock)
 					: generator.unreachablePcOperand(),
-				edgeTo(targetBlock));
+				edgeTo(reificationTarget));
 		}
 		else
 		{
@@ -1970,8 +2037,16 @@ public final class L1Translator
 				canReturn
 					? edgeTo(successBlock)
 					: generator.unreachablePcOperand(),
-				edgeTo(targetBlock));
+				edgeTo(reificationTarget));
 		}
+		generator.startBlock(reificationTarget);
+		generator.addInstruction(
+			L2_ENTER_L2_CHUNK.instance,
+			new L2IntImmediateOperand(TRANSIENT.offsetInDefaultChunk),
+			new L2CommentOperand(
+				"Transient - cannot be invalid."));
+		generator.addInstruction(L2_JUMP.instance, edgeTo(targetBlock));
+
 		generator.startBlock(successBlock);
 		if (generator.currentlyReachable())
 		{
@@ -2077,7 +2152,9 @@ public final class L1Translator
 		// call won't exceed two levels deep.
 		final L2BasicBlock onReificationInHandler =
 			generator.createBasicBlock(
-				"reification in failed return check handler");
+				"continue reification for failed return check",
+				PROPAGATE_REIFICATION_FOR_INVOKE.createZone(
+					"Reification while handling failed return check"));
 		addInstruction(
 			L2_INVOKE.instance,
 			getInvalidResultFunctionRegister(),
@@ -2091,6 +2168,11 @@ public final class L1Translator
 
 		// Reification has been requested while the call is in progress.
 		generator.startBlock(onReificationInHandler);
+		generator.addInstruction(
+			L2_ENTER_L2_CHUNK.instance,
+			new L2IntImmediateOperand(TRANSIENT.offsetInDefaultChunk),
+			new L2CommentOperand(
+				"Transient - cannot be invalid."));
 		reify(bottom(), TO_RETURN_INTO);
 
 		// Generate the much more likely passed-check flow.
@@ -2189,7 +2271,7 @@ public final class L1Translator
 				{
 					callSiteHelper.useAnswer(
 						generator.boxedConstant(
-							interpreter.latestResult().makeImmutable()));
+							interpreter.getLatestResult().makeImmutable()));
 					return true;
 				}
 				// The primitive failed with the supplied arguments,
@@ -2582,7 +2664,9 @@ public final class L1Translator
 		final L2BasicBlock onReificationDuringFailure =
 			generator.createBasicBlock(
 				"reify in method lookup failure handler for "
-					+ callSiteHelper.quotedBundleName);
+					+ callSiteHelper.quotedBundleName,
+				PROPAGATE_REIFICATION_FOR_INVOKE.createZone(
+					"Continue reification during lookup failure handler"));
 		addInstruction(
 			L2_INVOKE.instance,
 			readBoxed(invalidSendReg),
@@ -2597,6 +2681,11 @@ public final class L1Translator
 		// Reification has been requested while the failure call is in
 		// progress.
 		generator.startBlock(onReificationDuringFailure);
+		generator.addInstruction(
+			L2_ENTER_L2_CHUNK.instance,
+			new L2IntImmediateOperand(TRANSIENT.offsetInDefaultChunk),
+			new L2CommentOperand(
+				"Transient - cannot be invalid."));
 		reify(bottom(), TO_RETURN_INTO);
 	}
 
@@ -2631,7 +2720,10 @@ public final class L1Translator
 
 		// Reify everybody else, starting at the caller.
 		final L2BasicBlock onReification =
-			generator.createBasicBlock("on reification");
+			generator.createBasicBlock(
+				"On reification for interrupt",
+				BEGIN_REIFICATION_FOR_INTERRUPT.createZone(
+					"Start reification and run interrupt"));
 		addInstruction(
 			L2_REIFY.instance,
 			new L2IntImmediateOperand(1),
@@ -2639,7 +2731,13 @@ public final class L1Translator
 			new L2IntImmediateOperand(
 				StatisticCategory.INTERRUPT_OFF_RAMP_IN_L2.ordinal()),
 			edgeTo(onReification));
+
 		generator.startBlock(onReification);
+		generator.addInstruction(
+			L2_ENTER_L2_CHUNK.instance,
+			new L2IntImmediateOperand(TRANSIENT.offsetInDefaultChunk),
+			new L2CommentOperand(
+				"Transient, for interrupt - cannot be invalid."));
 
 		// When the lambda below runs, it's generating code at the point where
 		// continuationReg will have the new continuation.
@@ -2679,7 +2777,9 @@ public final class L1Translator
 			generator.createBasicBlock("failed to read variable");
 		final L2BasicBlock onReificationDuringFailure =
 			generator.createBasicBlock(
-				"reify in read variable failure handler");
+				"reify in read variable failure handler",
+				PROPAGATE_REIFICATION_FOR_INVOKE.createZone(
+					"Continue reification for read-variable failure handler"));
 
 		// Emit the specified get-variable instruction variant.
 		final L2WriteBoxedOperand valueWrite =
@@ -2712,6 +2812,11 @@ public final class L1Translator
 
 		// Reification has been requested while the failure call is in progress.
 		generator.startBlock(onReificationDuringFailure);
+		generator.addInstruction(
+			L2_ENTER_L2_CHUNK.instance,
+			new L2IntImmediateOperand(TRANSIENT.offsetInDefaultChunk),
+			new L2CommentOperand(
+				"Transient - cannot be invalid."));
 		reify(bottom(), TO_RETURN_INTO);
 
 		// End with the success path.
@@ -2746,7 +2851,10 @@ public final class L1Translator
 		final L2BasicBlock failure =
 			generator.createBasicBlock("set local failure");
 		final L2BasicBlock onReificationDuringFailure =
-			generator.createBasicBlock("reify during set local failure");
+			generator.createBasicBlock(
+				"reify during set local failure",
+				PROPAGATE_REIFICATION_FOR_INVOKE.createZone(
+					"Continue reification for set-variable failure handler"));
 		// Emit the set-variable instruction.
 		addInstruction(
 			setOperation,
@@ -2786,6 +2894,11 @@ public final class L1Translator
 			edgeTo(onReificationDuringFailure));
 
 		generator.startBlock(onReificationDuringFailure);
+		generator.addInstruction(
+			L2_ENTER_L2_CHUNK.instance,
+			new L2IntImmediateOperand(TRANSIENT.offsetInDefaultChunk),
+			new L2CommentOperand(
+				"Transient - cannot be invalid."));
 		reify(TOP.o(), TO_RETURN_INTO);
 		addInstruction(
 			L2_JUMP.instance,
@@ -2831,10 +2944,6 @@ public final class L1Translator
 				return;
 			}
 		}
-		// Fallible primitives and non-primitives need this additional entry
-		// point.
-		generator.afterOptionalInitialPrimitiveBlock =
-			generator.createBasicBlock("after optional primitive");
 		generator.afterOptionalInitialPrimitiveBlock.makeIrremovable();
 		addInstruction(
 			L2_JUMP.instance,
@@ -2889,6 +2998,16 @@ public final class L1Translator
 					argReg);
 			}
 		}
+
+		// Here's where a local P_RestartContinuationWithArguments is optimized
+		// to jump to. It's expected to place the replacement arguments into
+		// semantic slots n@1.
+		generator.restartLoopHeadBlock = generator.createLoopHeadBlock(
+			"Loop head for " + code.methodName().asNativeString());
+		addInstruction(
+			L2_JUMP.instance,
+			edgeTo(generator.restartLoopHeadBlock));
+		generator.startBlock(generator.restartLoopHeadBlock);
 
 		// Create the locals.
 		final int numLocals = code.numLocals();
@@ -2962,6 +3081,10 @@ public final class L1Translator
 			// Generate the unreachable block.
 			generator.startBlock(generator.unreachableBlock);
 			addInstruction(L2_UNREACHABLE_CODE.instance);
+			// Now make it a loop head, just so code generated later from
+			// placeholders (L2Operation#isPlaceholder()) can still connect to
+			// it, as long as it uses a back-edge.
+			generator.unreachableBlock.isLoopHead = true;
 		}
 	}
 
@@ -3000,13 +3123,18 @@ public final class L1Translator
 		unreachableBlock.makeIrremovable();
 
 		final L2Generator generator = new L2Generator(
-			UNOPTIMIZED, new Frame(null, nil, "top frame"));
+			UNOPTIMIZED,
+			new Frame(null, nil, "top frame"),
+			"default chunk");
 
 		// 0. First try to run it as a primitive.
 //		final L2ControlFlowGraph controlFlowGraph = new L2ControlFlowGraph();
 		generator.startBlock(initialBlock);
 		generator.addInstruction(
 			L2_TRY_OPTIONAL_PRIMITIVE.instance);
+		generator.addInstruction(
+			L2_JUMP.instance,
+			edgeTo(reenterFromRestartBlock));
 		// Only if the primitive fails should we even consider optimizing the
 		// fallback code.
 
@@ -3022,6 +3150,10 @@ public final class L1Translator
 		generator.addInstruction(
 			L2_PREPARE_NEW_FRAME_FOR_L1.instance);
 
+		generator.addInstruction(
+			L2_JUMP.instance,
+			edgeTo(loopBlock));
+
 		// 3. The main L1 interpreter loop.
 		generator.startBlock(loopBlock);
 		generator.addInstruction(
@@ -3035,7 +3167,7 @@ public final class L1Translator
 			L2_REENTER_L1_CHUNK_FROM_CALL.instance);
 		generator.addInstruction(
 			L2_JUMP.instance,
-			edgeTo(loopBlock));
+			backEdgeTo(loopBlock));
 
 		// 6,7. If reified, interrupts return here.
 		generator.startBlock(reenterFromInterruptBlock);
@@ -3043,7 +3175,7 @@ public final class L1Translator
 			L2_REENTER_L1_CHUNK_FROM_INTERRUPT.instance);
 		generator.addInstruction(
 			L2_JUMP.instance,
-			edgeTo(loopBlock));
+			backEdgeTo(loopBlock));
 
 		// 8. Unreachable.
 		generator.startBlock(unreachableBlock);
@@ -3096,7 +3228,8 @@ public final class L1Translator
 
 		final L2Generator generator = new L2Generator(
 			optimizationLevel,
-			new Frame(null, code, "top frame"));
+			new Frame(null, code, "top frame"),
+			code.methodName().asNativeString());
 		final L1Translator translator =
 			new L1Translator(generator, interpreter, code);
 		translator.translate();
@@ -3105,7 +3238,7 @@ public final class L1Translator
 		interpreter.function = savedFunction;
 		interpreter.argsBuffer.clear();
 		interpreter.argsBuffer.addAll(savedArguments);
-		interpreter.latestResult(savedFailureValue);
+		interpreter.setLatestResult(savedFailureValue);
 		translationSizeStat.record(
 			chunk.instructions.length,
 			interpreter.interpreterIndex);
@@ -3132,7 +3265,8 @@ public final class L1Translator
 			captureNanos() - beforeL1Naive,
 			interpreter.interpreterIndex);
 
-		generator.controlFlowGraph.optimize(interpreter);
+		final L2Optimizer optimizer = new L2Optimizer(generator);
+		optimizer.optimize(interpreter);
 
 		final long beforeChunkGeneration = captureNanos();
 		generator.createChunk(code);
@@ -3386,69 +3520,52 @@ public final class L1Translator
 	@Override
 	public void L1Ext_doPushLabel ()
 	{
-		// Force reification of the current continuation and all callers, then
-		// resume that continuation right away, which also makes it available.
-		// Create a new continuation like it, with only the caller, function,
-		// and arguments present, and having an empty stack and an L1 pc of 0.
-		// Then push that new continuation on the virtual stack.
-		final int oldStackp = stackp;
-		// The initially constructed continuation is always immediately resumed,
-		// so this should never be observed.
-		stackp = Integer.MAX_VALUE;
-		final L2BasicBlock onReification =
-			generator.createBasicBlock("on reification");
-		addInstruction(
-			L2_REIFY.instance,
-			new L2IntImmediateOperand(1),
-			new L2IntImmediateOperand(0),
-			new L2IntImmediateOperand(
-				StatisticCategory.PUSH_LABEL_IN_L2.ordinal()),
-			edgeTo(onReification));
+		// Force reification of the current continuation and all callers, if
+		// they're not already known to be reified.  The continuation built for
+		// the current frame is a dummy with no L1 content (i.e., no stack
+		// slots). When the callers have all been reified, the dummy
+		// continuation is resumed, restoring all live registers.  It then
+		// creates another continuation to exit the reification, once again
+		// using a dummy continuation.  When it exits the reification call, the
+		// next thing the fiber will do is continue at the second dummy's target
+		// offset, having restored all live registers again.  At that point, the
+		// caller is known to be reified, and simple label construction can take
+		// place without further reification.  Push that label continuation on
+		// the virtual stack.
+		final L2ReadBoxedOperand reifiedCaller = getCurrentContinuation();
 
-		generator.startBlock(onReification);
-		reify(null, UNREACHABLE);
+		// We just ensured the caller is reified, and captured in reifiedCaller.
+		// Create a label continuation whose caller is the reified caller, but
+		// only capturing arguments (with pc=0 and stack=empty).
 
-		// We just continued the reified continuation, having exploded the
-		// continuation into slot registers.  Create a label based on it, but
-		// capturing only the arguments (with pc=0, stack=empty).
 		assert code.primitive() == null;
 		final int numArgs = code.numArgs();
-		final List<L2ReadBoxedOperand> slotsForLabel =
-			new ArrayList<>(numSlots);
+		final List<L2ReadBoxedOperand> argumentsForLabel =
+			new ArrayList<>(numArgs);
 		for (int i = 1; i <= numArgs; i++)
 		{
-			slotsForLabel.add(generator.makeImmutable(readSlot(i)));
+			argumentsForLabel.add(generator.makeImmutable(readSlot(i)));
 		}
-		final L2ReadBoxedOperand nilTemp = generator.boxedConstant(nil);
-		for (int i = numArgs + 1; i <= numSlots; i++)
-		{
-			slotsForLabel.add(nilTemp);  // already immutable
-		}
+
 		// Now create the actual label continuation and push it.
-		stackp = oldStackp - 1;
 		final A_Type continuationType =
 			continuationTypeForFunctionType(code.functionType());
+		final L2SemanticValue label = topFrame().label();
 		final L2WriteBoxedOperand destinationRegister =
-			writeSlot(
-				stackp,
-				instructionDecoder.pc(),
-				restriction(continuationType, null));
-		final L2BasicBlock afterCreation =
-			generator.createBasicBlock("after creating label");
+			generator.boxedWrite(label, restriction(continuationType, null));
+
 		addInstruction(
-			L2_CREATE_CONTINUATION.instance,
-			generator.makeImmutable(getCurrentFunction()),
-			generator.makeImmutable(getCurrentContinuation()),  // the caller
-			new L2IntImmediateOperand(0),  // indicates a label.
-			new L2IntImmediateOperand(numSlots + 1),  // empty stack
-			new L2ReadBoxedVectorOperand(slotsForLabel),  // each immutable
+			L2_VIRTUAL_CREATE_LABEL.instance,
 			destinationRegister,
-			edgeTo(generator.initialBlock),
-			edgeTo(afterCreation),
-			new L2CommentOperand("Create a label continuation."));
+			reifiedCaller,
+			getCurrentFunction(),
+			new L2ReadBoxedVectorOperand(argumentsForLabel),
+			new L2IntImmediateOperand(code.numSlots()));
 
 		// Continue, with the label having been pushed.
-		generator.startBlock(afterCreation);
+		stackp--;
+		forceSlotRegister(
+			stackp, instructionDecoder.pc(), currentManifest().readBoxed(label));
 	}
 
 	@Override
@@ -3517,25 +3634,21 @@ public final class L1Translator
 		final A_Tuple permutation = code.literalAt(
 			instructionDecoder.getOperand());
 		final int size = permutation.tupleSize();
-		final L2WriteBoxedOperand[] temps = new L2WriteBoxedOperand[size];
+		final L2SemanticValue[] temps = new L2SemanticValue[size];
 		for (int i = size; i >= 1; i--)
 		{
-			final L2ReadBoxedOperand source = readSlot(stackp + size - i);
-			final L2WriteBoxedOperand temp =
-				generator.boxedWriteTemp(source.restriction());
+			final L2SemanticValue source = semanticSlot(stackp + size - i);
+			final L2SemanticValue temp =
+				generator.topFrame.temp(generator.nextUnique());
 			generator.moveRegister(L2_MOVE.boxed, source, temp);
 			temps[permutation.tupleIntAt(i) - 1] = temp;
 		}
 		for (int i = size; i >= 1; i--)
 		{
-			final L2ReadBoxedOperand temp = readBoxed(temps[i - 1]);
-			generator.moveRegister(
-				L2_MOVE.boxed,
-				temp,
-				writeSlot(
-					stackp + size - i,
-					instructionDecoder.pc(),
-					temp.restriction()));
+			forceSlotRegister(
+				stackp + size - i,
+				instructionDecoder.pc(),
+				currentManifest().readBoxed(temps[i - 1]));
 		}
 	}
 

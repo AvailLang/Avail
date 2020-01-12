@@ -46,16 +46,11 @@ import com.avail.descriptor.tuples.A_Tuple
  * @param Result
  *   What we expect to produce from a lookup activity, such as the tuple of
  *   most-specific matching method definitions for some arguments.
- * @param AdaptorMemento
- *   The adaptor for interpreting the values in the tree, and deciding how to
- *   narrow the elements that are still applicable at each internal node of the
- *   tree.
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 internal abstract class LookupTree<
 	Element : A_BasicObject,
-	Result : A_BasicObject,
-	AdaptorMemento>
+	Result : A_BasicObject>
 {
 	/**
 	 * Perform one step of looking up the most-specific [Result] that matches
@@ -65,13 +60,19 @@ internal abstract class LookupTree<
 	 *
 	 * @param argTypes
 	 *   The [list][List] of argument types being looked up.
+	 * @param adaptor
+	 *   The adaptor for interpreting the values in the tree, and deciding how
+	 *   to narrow the elements that are still applicable at each internal node
+	 *   of the tree.
+	 * @param memento
+	 *   A memento for the adaptor to use.
 	 * @return
 	 *   The next `LookupTree` to search.
 	 */
-	abstract fun lookupStepByTypes(
+	abstract fun <AdaptorMemento> lookupStepByTypes(
 		argTypes: List<A_Type>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
-		memento: AdaptorMemento): LookupTree<Element, Result, AdaptorMemento>
+		memento: AdaptorMemento): LookupTree<Element, Result>
 
 	/**
 	 * Perform one step of looking up the most-specific [Result] that matches
@@ -81,13 +82,19 @@ internal abstract class LookupTree<
 	 *
 	 * @param argTypes
 	 *   The [tuple][A_Tuple] of argument types being looked up.
+	 * @param adaptor
+	 *   The adaptor for interpreting the values in the tree, and deciding how
+	 *   to narrow the elements that are still applicable at each internal node
+	 *   of the tree.
+	 * @param memento
+	 *   A memento for the adaptor to use.
 	 * @return
 	 *   The next `LookupTree` to search.
 	 */
-	abstract fun lookupStepByTypes(
+	abstract fun <AdaptorMemento> lookupStepByTypes(
 		argTypes: A_Tuple,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
-		memento: AdaptorMemento): LookupTree<Element, Result, AdaptorMemento>
+		memento: AdaptorMemento): LookupTree<Element, Result>
 
 	/**
 	 * Perform one step of looking up the most-specific [Result] that matches
@@ -97,13 +104,19 @@ internal abstract class LookupTree<
 	 *
 	 * @param argValues
 	 *   The [List] of arguments being looked up.
+	 * @param adaptor
+	 *   The adaptor for interpreting the values in the tree, and deciding how
+	 *   to narrow the elements that are still applicable at each internal node
+	 *   of the tree.
+	 * @param memento
+	 *   A memento for the adaptor to use.
 	 * @return
 	 *   The next `LookupTree` to search.
 	 */
-	abstract fun lookupStepByValues(
+	abstract fun <AdaptorMemento> lookupStepByValues(
 		argValues: List<A_BasicObject>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
-		memento: AdaptorMemento): LookupTree<Element, Result, AdaptorMemento>
+		memento: AdaptorMemento): LookupTree<Element, Result>
 
 	/**
 	 * Perform one step of looking up the most-specific [Result] that matches
@@ -113,13 +126,19 @@ internal abstract class LookupTree<
 	 *
 	 * @param argValues
 	 *   The [tuple][A_Tuple] of arguments being looked up.
+	 * @param adaptor
+	 *   The adaptor for interpreting the values in the tree, and deciding how
+	 *   to narrow the elements that are still applicable at each internal node
+	 *   of the tree.
+	 * @param memento
+	 *   A memento for the adaptor to use.
 	 * @return
 	 *   The next `LookupTree` to search.
 	 */
-	abstract fun lookupStepByValues(
+	abstract fun <AdaptorMemento> lookupStepByValues(
 		argValues: A_Tuple,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
-		memento: AdaptorMemento): LookupTree<Element, Result, AdaptorMemento>
+		memento: AdaptorMemento): LookupTree<Element, Result>
 
 	/**
 	 * Perform one step of looking up the most-specific [Result] that matches
@@ -127,13 +146,20 @@ internal abstract class LookupTree<
 	 * the search.  Requires [solutionOrNull] to be null, indicating the search
 	 * has not concluded.
 	 *
-	 * @param probeValue The value being looked up.
+	 * @param probeValue
+	 *   The value being looked up.
+	 * @param adaptor
+	 *   The adaptor for interpreting the values in the tree, and deciding how
+	 *   to narrow the elements that are still applicable at each internal node
+	 *   of the tree.
+	 * @param memento
+	 *   A memento for the adaptor to use.
 	 * @return The next `LookupTree` to search.
 	 */
-	abstract fun lookupStepByValue(
+	abstract fun <AdaptorMemento> lookupStepByValue(
 		probeValue: A_BasicObject,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
-		memento: AdaptorMemento): LookupTree<Element, Result, AdaptorMemento>
+		memento: AdaptorMemento): LookupTree<Element, Result>
 
 	/**
 	 * Answer the lookup solution ([List] of [definitions][A_Definition] at this

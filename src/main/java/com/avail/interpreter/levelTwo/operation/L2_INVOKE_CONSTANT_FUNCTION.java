@@ -32,9 +32,12 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.interpreter.Interpreter;
-import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_ARGUMENTS;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE;
+import com.avail.interpreter.levelTwo.WritesHiddenVariable;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
@@ -46,13 +49,12 @@ import org.objectweb.asm.MethodVisitor;
 
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
+import static com.avail.interpreter.Interpreter.chunkField;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static org.objectweb.asm.Opcodes.GETFIELD;
-import static org.objectweb.asm.Type.getDescriptor;
-import static org.objectweb.asm.Type.getInternalName;
 
 /**
  * The given (constant) function is invoked.  The function may be a primitive,
@@ -60,16 +62,22 @@ import static org.objectweb.asm.Type.getInternalName;
  * (after reifying the stack).  It may also trigger reification of this frame by
  * Java-returning a {@link StackReifier} instead of null.
  *
- * <p>The return value can be picked up from {@link Interpreter#latestResult()
- * latestResult} in a subsequent {@link L2_GET_LATEST_RETURN_VALUE} instruction.
- * Note that the value that was returned has not been dynamically type-checked
- * yet, so if its validity can't be proven statically by the VM, the calling
- * function should check the type against its expectation (prior to the value
- * getting captured in any continuation).</p>
+ * <p>The return value can be picked up from
+ * {@link Interpreter#getLatestResult() latestResult} in a subsequent
+ * {@link L2_GET_LATEST_RETURN_VALUE} instruction. Note that the value that was
+ * returned has not been dynamically type-checked yet, so if its validity can't
+ * be proven statically by the VM, the calling function should check the type
+ * against its expectation (prior to the value getting captured in any
+ * continuation).</p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@WritesHiddenVariable({
+	CURRENT_FUNCTION.class,
+	CURRENT_ARGUMENTS.class,
+	LATEST_RETURN_VALUE.class
+})
 public final class L2_INVOKE_CONSTANT_FUNCTION
 extends L2ControlFlowOperation
 {
@@ -109,10 +117,11 @@ extends L2ControlFlowOperation
 	}
 
 	@Override
-	public void toString (
+	public void appendToWithWarnings (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
-		final StringBuilder builder)
+		final StringBuilder builder,
+		final Consumer<Boolean> warningStyleChange)
 	{
 		assert this == instruction.operation();
 		final L2ConstantOperand constantFunction = instruction.operand(0);
@@ -142,18 +151,13 @@ extends L2ControlFlowOperation
 
 		translator.loadInterpreter(method);
 		translator.loadInterpreter(method);
-		method.visitFieldInsn(
-			GETFIELD,
-			getInternalName(Interpreter.class),
-			"chunk",
-			getDescriptor(L2Chunk.class));
+		chunkField.generateRead(method);
 		translator.loadInterpreter(method);
 		translator.literal(method, constantFunction.object);
 		// :: [interpreter, callingChunk, interpreter, function]
 		L2_INVOKE.generatePushArgumentsAndInvoke(
 			translator,
 			method,
-			instruction,
 			arguments.elements(),
 			onReturn,
 			onReification);

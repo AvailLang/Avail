@@ -36,6 +36,7 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.descriptor.tuples.A_Tuple;
+import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.utility.IteratorNotNull;
 
@@ -51,6 +52,7 @@ import static com.avail.descriptor.ObjectTupleDescriptor.IntegerSlots.HASH_OR_ZE
 import static com.avail.descriptor.ObjectTupleDescriptor.ObjectSlots.TUPLE_AT_;
 import static com.avail.descriptor.TreeTupleDescriptor.concatenateAtLeastOneTree;
 import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;
+import static com.avail.optimizer.jvm.CheckedMethod.staticMethod;
 
 /**
  * This is a representation for {@linkplain TupleDescriptor tuples} that can
@@ -607,6 +609,13 @@ extends TupleDescriptor
 		return result;
 	}
 
+	/** Access to the {@link #tupleFromArray(A_BasicObject...)} method. */
+	public static CheckedMethod tupleFromArrayMethod = staticMethod(
+		ObjectTupleDescriptor.class,
+		"tupleFromArray",
+		A_Tuple.class,
+		A_BasicObject[].class);
+
 	/**
 	 * Create a tuple with the specified sole element. The element is not made
 	 * immutable first, nor is the new tuple.
@@ -623,6 +632,15 @@ extends TupleDescriptor
 		result.setSlot(TUPLE_AT_, 1, element1);
 		return result;
 	}
+
+	/**
+	 * The {@link CheckedMethod} for {@link #tuple(A_BasicObject)}.
+	 */
+	public static final CheckedMethod tuple1Method = staticMethod(
+		ObjectTupleDescriptor.class,
+		"tuple",
+		A_Tuple.class,
+		A_BasicObject.class);
 
 	/**
 	 * Create a tuple with the specified two elements. The elements are not made
@@ -644,6 +662,17 @@ extends TupleDescriptor
 		result.setSlot(TUPLE_AT_, 2, element2);
 		return result;
 	}
+
+	/**
+	 * The {@link CheckedMethod} for {@link #tuple(A_BasicObject,
+	 * A_BasicObject)}.
+	 */
+	public static final CheckedMethod tuple2Method = staticMethod(
+		ObjectTupleDescriptor.class,
+		"tuple",
+		A_Tuple.class,
+		A_BasicObject.class,
+		A_BasicObject.class);
 
 	/**
 	 * Create a tuple with the specified three elements. The elements are not
@@ -669,6 +698,18 @@ extends TupleDescriptor
 		result.setSlot(TUPLE_AT_, 3, element3);
 		return result;
 	}
+
+	/**
+	 * The {@link CheckedMethod} for {@link #tuple(A_BasicObject,
+	 * A_BasicObject, A_BasicObject)}.
+	 */
+	public static final CheckedMethod tuple3Method = staticMethod(
+		ObjectTupleDescriptor.class,
+		"tuple",
+		A_Tuple.class,
+		A_BasicObject.class,
+		A_BasicObject.class,
+		A_BasicObject.class);
 
 	/**
 	 * Create a tuple with the specified four elements. The elements are not
@@ -698,6 +739,19 @@ extends TupleDescriptor
 		result.setSlot(TUPLE_AT_, 4, element4);
 		return result;
 	}
+
+	/**
+	 * The {@link CheckedMethod} for {@link #tuple(A_BasicObject,
+	 * A_BasicObject, A_BasicObject, A_BasicObject)}.
+	 */
+	public static final CheckedMethod tuple4Method = staticMethod(
+		ObjectTupleDescriptor.class,
+		"tuple",
+		A_Tuple.class,
+		A_BasicObject.class,
+		A_BasicObject.class,
+		A_BasicObject.class,
+		A_BasicObject.class);
 
 	/**
 	 * Create a tuple with the specified five elements. The elements are not
@@ -731,6 +785,20 @@ extends TupleDescriptor
 		result.setSlot(TUPLE_AT_, 5, element5);
 		return result;
 	}
+
+	/**
+	 * The {@link CheckedMethod} for {@link #tuple(A_BasicObject,
+	 * A_BasicObject, A_BasicObject, A_BasicObject, A_BasicObject)}.
+	 */
+	public static final CheckedMethod tuple5Method = staticMethod(
+		ObjectTupleDescriptor.class,
+		"tuple",
+		A_Tuple.class,
+		A_BasicObject.class,
+		A_BasicObject.class,
+		A_BasicObject.class,
+		A_BasicObject.class,
+		A_BasicObject.class);
 
 	/**
 	 * Construct a new tuple of arbitrary {@linkplain AvailObject Avail objects}

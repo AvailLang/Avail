@@ -34,7 +34,8 @@ package com.avail.optimizer;
 
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK;
+import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
+import com.avail.interpreter.levelTwo.operand.L2WriteOperand;
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.utility.Graph;
@@ -58,16 +59,33 @@ public final class L2RegisterColorer
 	 */
 	static class RegisterGroup
 	{
+		/**
+		 * The {@link Set} of {@link L2Register}s that may have the same color
+		 * because they don't carry values at the same time.
+		 */
 		final Set<L2Register> registers = new HashSet<>();
 
+		/** This group's final coloring, or -1 during calculation. */
 		int finalIndex = -1;
 
+		/**
+		 * Set the {@link #finalIndex} to {@code newFinalIndex}.
+		 *
+		 * @param newFinalIndex
+		 *        The index that represents the final color for registers in
+		 *        this group.
+		 */
 		void setFinalIndex (final int newFinalIndex)
 		{
 			finalIndex = newFinalIndex;
 			registers.forEach(reg -> reg.setFinalIndex(newFinalIndex));
 		}
 
+		/**
+		 * Get the {@link #finalIndex}, which acts as a color for this group.
+		 *
+		 * @return The finalIndex, an {@code int}.
+		 */
 		int finalIndex ()
 		{
 			return finalIndex;
@@ -168,11 +186,12 @@ public final class L2RegisterColorer
 			// ensuring interference between a register and its move-buddy's
 			// interfering neighbors.
 			registerBeingTraced = reg;
-			for (final L2Instruction instruction : reg.uses())
+			for (final L2ReadOperand<?> read : reg.uses())
 			{
+				final L2Instruction instruction = read.instruction();
 				if (instruction.operation().isPhi())
 				{
-					final L2_PHI_PSEUDO_OPERATION<?, ?> phiOperation =
+					final L2_PHI_PSEUDO_OPERATION<?, ?, ?> phiOperation =
 						cast(instruction.operation());
 					for (final L2BasicBlock predBlock :
 						phiOperation.predecessorBlocksForUseOf(
@@ -187,8 +206,8 @@ public final class L2RegisterColorer
 				else
 				{
 					processLiveInAtStatement(
-						instruction.basicBlock,
-						instruction.basicBlock.instructions().indexOf(
+						instruction.basicBlock(),
+						instruction.basicBlock().instructions().indexOf(
 							instruction));
 				}
 				// Process the queue until empty.
@@ -231,8 +250,6 @@ public final class L2RegisterColorer
 		{
 			// Process live-out for this instruction.
 			final L2Instruction instruction = instructions.get(index);
-			assert instruction.operation() != L2_ENTER_L2_CHUNK.instance
-				: "Liveness trace must not reach an L2_ENTER_L2_CHUNK";
 			boolean definesCurrentRegister = false;
 			for (final L2Register written
 				: instruction.destinationRegisters())
@@ -300,8 +317,9 @@ public final class L2RegisterColorer
 	{
 		for (final L2Register reg : allRegisters)
 		{
-			for (final L2Instruction instruction : reg.definitions())
+			for (final L2WriteOperand<?> write : reg.definitions())
 			{
+				final L2Instruction instruction = write.instruction();
 				if (instruction.operation().isMove())
 				{
 					// The source and destination registers shouldn't be

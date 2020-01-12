@@ -38,6 +38,8 @@ import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
 import com.avail.optimizer.values.L2SemanticValue;
 
+import java.util.Set;
+
 import static com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.BOXED;
 
 /**
@@ -55,9 +57,9 @@ extends L2WriteOperand<L2BoxedRegister>
 	 * Construct a new {@code L2WriteBoxedOperand} for the specified {@link
 	 * L2SemanticValue}.
 	 *
-	 * @param semanticValue
-	 *        The {@link L2SemanticValue} that this operand is effectively
-	 *        producing.
+	 * @param semanticValues
+	 *        The {@link Set} of {@link L2SemanticValue} that this operand is
+	 *        effectively producing.
 	 * @param restriction
 	 *        The {@link TypeRestriction} that indicates what values are allowed
 	 *        to be written into the register.
@@ -65,11 +67,11 @@ extends L2WriteOperand<L2BoxedRegister>
 	 *        The initial {@link L2BoxedRegister} that backs this operand.
 	 */
 	public L2WriteBoxedOperand (
-		final L2SemanticValue semanticValue,
+		final Set<L2SemanticValue> semanticValues,
 		final TypeRestriction restriction,
 		final L2BoxedRegister register)
 	{
-		super(semanticValue, restriction, register);
+		super(semanticValues, restriction, register);
 		assert restriction.isBoxed();
 	}
 

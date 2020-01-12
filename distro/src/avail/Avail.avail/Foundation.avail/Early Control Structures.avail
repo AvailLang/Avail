@@ -42,9 +42,11 @@ Uses
 	"Early Literals",
 	"Early Variables"
 Names
-	"Ignore:_",
-	"From_to_do_",
 	"Cast|cast_into_",
+	"Exit_",
+	"Exit_with_",
+	"From_to_do_",
+	"Ignore:_",
 	"(_)",
 	"((_))"
 Body
@@ -163,23 +165,17 @@ Public method "Cast|cast_into_" is
 	value : any,
 	accept : function accepting <⊥> and returning ⊤
 |
-	if value's type ⊆ accept's type[1] then
-	[
-		invoke accept with <value>;
-	]
-	else
-	[
-		valueDescription ::= primitive description of value;
-		acceptedDescription ::= primitive description of accept's type[1];
-		t : tuple := concatenate <
-			"Failed run-time cast: ",
-			valueDescription,
-			" was not an instance of ",
-			acceptedDescription>;
-		s : string;
-		s ?= t;
-		Assert: false (s)
-	];
+	Primitive CastInto (failureCode : natural number);
+	valueDescription ::= primitive description of value;
+	acceptedDescription ::= primitive description of accept's type[1];
+	t : tuple := concatenate <
+		"Failed run-time cast: ",
+		valueDescription,
+		" was not an instance of ",
+		acceptedDescription>;
+	s : string;
+	s ?= t;
+	Assert: false (s)
 ] : ⊤;
 
 /**
@@ -335,6 +331,164 @@ Semantic restriction "Invoke|invoke_with_" is
 ];
 
 /**
+ * Reject the current parse unless the value supplied upon exit of a
+ * continuation conforms to its function type's return type.
+ *
+ * @method "Exit_with_if_"
+ * @restricts "continuation meta"
+ * @restricts "any meta"
+ */
+Semantic restriction "Exit_with_if_" is
+[
+	continuationType : continuation meta,
+	exitType : any meta,
+	conditionType : boolean's type
+|
+	functionType ::= continuationType's function type;
+	Unless exitType ⊆ functionType's return type then
+	[
+		Reject parse, expected:
+			cast concatenate <
+				"continuation (",
+				“continuationType”,
+				") to accept value (",
+				“exitType”,
+				")"
+			> into [s : string | s]
+	];
+	⊤
+];
+
+exitIfAtom ::= atom for "Exit_if_";
+
+/**
+ * Exit the continuation unconditionally. Execution proceeds as though the
+ * continuation had just returned from its current function, and the current
+ * continuation is completely replaced by the specified continuation's resumed
+ * caller.
+ *
+ * @method "Exit_"
+ * @param "aContinuation" "$[…]→⊤"
+ *        The continuation to exit.
+ * @returns "⊥"
+ * @category "Control Structures" "Continuations"
+ */
+Public macro "Exit_" is
+[
+	aContinuation : expression phrase ⇒ $[…]→⊤
+|
+	trueLiteral ::= `true`("true")@0:0 → literal phrase;
+	sendPhrase ::= restricted send exitIfAtom
+		with <aContinuation, trueLiteral> → list phrase
+		: ⊥;
+	cast sendPhrase into [x : send phrase ⇒ ⊥ | x]
+] : send phrase ⇒ ⊥;
+
+exitWithIfAtom ::= atom for "Exit_with_if_";
+
+/**
+ * Exit the continuation unconditionally. Execution proceeds as though the
+ * continuation had just returned from its current function, and the current
+ * continuation is completely replaced by the specified continuation's resumed
+ * caller.
+ *
+ * @method "Exit_with_"
+ * @param "aContinuation" "$[…]→⊤"
+ *        The continuation to exit.
+ * @param "value" "any"
+          The value to return from the continuation.
+ * @returns "⊥"
+ * @category "Control Structures" "Continuations"
+ */
+Public macro "Exit_with_" is
+[
+	aContinuation : expression phrase ⇒ continuation,
+	value : expression phrase ⇒ any
+|
+	trueLiteral ::= `true`("true")@0:0 → literal phrase;
+	sendPhrase ::= restricted send exitWithIfAtom
+		with <aContinuation, value, trueLiteral> → list phrase
+		: ⊥;
+	cast sendPhrase into [x : send phrase ⇒ ⊥ | x]
+] : send phrase ⇒ ⊥;
+
+/**
+ * Reject the current parse unless the value supplied upon exit of a
+ * continuation conforms to its function type's return type.
+ *
+ * @method "Exit_with_"
+ * @restricts "continuation meta"
+ * @restricts "any meta"
+ */
+Semantic restriction "Exit_with_" is
+[
+	continuationType : continuation meta,
+	exitType : any meta
+|
+	functionType ::= continuationType's function type;
+	Unless exitType ⊆ functionType's return type then
+	[
+		Reject parse, expected:
+			cast concatenate <
+				"continuation (",
+				“continuationType”,
+				") to accept value (",
+				“exitType”,
+				")"
+			> into [s : string | s]
+	];
+	⊥
+];
+
+/*
+ * Simplified addition, with a strong enough semantic restriction to avoid
+ * runtime checks for finite integers.
+ */
+Primitive "_plus_" is
+[
+	augend : number,
+	addend : number
+|
+	Primitive Addition (failureCode :
+		cannot-add-unlike-infinities code's type);
+	/* Let "_+_" handle the failure. */
+	augend + addend
+] : number;
+
+/* Keep the result within extended integers, to simplify the subsequent code. */
+Semantic restriction "_plus_" is
+[
+	augend : extended integer's type,
+	addend : extended integer's type
+|
+	extended integer
+];
+
+/* Group on left. */
+restrictions ::= <∅, {"_plus_"}>;
+Grammatical restriction "_plus_" is restrictions;
+
+/* Use a constant for its strong static type. */
+minusOne ::= 0 - 1;
+
+/* Now make it precise for extended integers. */
+Semantic restriction "_plus_" is
+[
+	augend : integer's type,
+	addend : integer's type
+|
+	integer range from
+		augend's genuine lower bound
+			plus addend's genuine lower bound
+			plus minusOne
+		(inclusive = -∞ ∈ augend ∪ addend)
+		to augend's genuine upper bound
+			plus addend's genuine upper bound
+			plus 1
+		(inclusive = ∞ ∈ augend ∪ addend)
+];
+
+/**
  * Basic counting loop with early exit support. Invoke {@param "action"} once
  * with each consecutive number in the range established by {@param "start"} and
  * {@param "end"}.
@@ -357,20 +511,10 @@ Public method "From_to_do_" is
 	end : integer range from 0 (inclusive=true) to ∞ (inclusive=true),
 	action : function accepting <⊥> and returning boolean
 |
-	$loop;
-	If start ≤ end then
-	[
-		continue ::= invoke action with <start>;
-		If continue then
-		[
-			Restart loop with
-			<
-				cast start + 1 into [ i : natural number | i ],
-				end,
-				action
-			>
-		];
-	];
+	$loop : ⊤;
+	Exit loop if end < start;
+	Exit loop if invoke action with <start> = false;
+	Restart loop with <start plus 1, end, action>
 ] : ⊤;
 
 /**
@@ -391,8 +535,7 @@ Semantic restriction "From_to_do_" is
 	lower ::= start's genuine lower bound;
 	If lower ≤ end's genuine upper bound then
 	[
-		upper ::= cast end's genuine upper bound + 1
-			into [ t : extended integer | t ];
+		upper ::= end's genuine upper bound plus 1;
 		subscripts ::= integer range
 			from lower (inclusive = lower's type ⊆ start)
 			to upper (inclusive = false);

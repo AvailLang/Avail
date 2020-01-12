@@ -47,8 +47,7 @@ import com.avail.exceptions.AmbiguousNameException
 import com.avail.exceptions.AvailErrorCode.*
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive:** Publish the [atom][AtomDescriptor] associated with the
@@ -58,7 +57,8 @@ import com.avail.interpreter.Primitive.Flag.HasSideEffect
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object P_PublishName : Primitive(1, CanInline, HasSideEffect)
+object P_PublishName : Primitive(
+	1, CanInline, HasSideEffect, WritesToHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{

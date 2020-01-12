@@ -52,7 +52,7 @@ public final class Casts
 	 * @param <O> The output type.
 	 */
 	@SuppressWarnings("unchecked")
-	public static <I, O> O cast (final I value)
+	public static <I, O extends I> O cast (final I value)
 	{
 		return (O) value;
 	}
@@ -67,7 +67,8 @@ public final class Casts
 	 * @param <O> The output type.
 	 */
 	@SuppressWarnings("unchecked")
-	public static @Nullable <I, O> O nullableCast (final @Nullable I value)
+	public static @Nullable <I, O extends I> O nullableCast (
+		final @Nullable I value)
 	{
 		return (O) value;
 	}

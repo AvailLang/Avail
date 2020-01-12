@@ -43,11 +43,12 @@ import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.L1Operation;
+import com.avail.interpreter.levelTwo.L1InstructionStepper;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Chunk.Generation;
 import com.avail.interpreter.primitive.continuations.P_ContinuationStackData;
 import com.avail.interpreter.primitive.controlflow.P_CatchException;
-import com.avail.interpreter.primitive.controlflow.P_ExitContinuationWithResult;
+import com.avail.interpreter.primitive.controlflow.P_ExitContinuationWithResultIf;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments;
 import com.avail.io.TextInterface;
@@ -70,6 +71,7 @@ import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.VariableDescriptor.newVariableWithContentType;
 import static com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk;
 import static com.avail.optimizer.jvm.CheckedMethod.instanceMethod;
+import static com.avail.optimizer.jvm.CheckedMethod.staticMethod;
 
 /**
  * A {@linkplain ContinuationDescriptor continuation} acts as an immutable
@@ -78,16 +80,13 @@ import static com.avail.optimizer.jvm.CheckedMethod.instanceMethod;
  * (i.e., one derived from the previous state by nybblecode execution rules),
  * performing necessary side-effects as it does so.
  *
- * <p>
- * A continuation can be {@linkplain
- * P_ExitContinuationWithResult exited}, which causes
- * the current fiber's continuation to be replaced by the specified
- * continuation's caller.  A return value is supplied to this caller.  A
- * continuation can also be {@linkplain
- * P_RestartContinuationWithArguments restarted},
- * either with a specified tuple of arguments or {@linkplain
- * P_RestartContinuation with the original arguments}.
- * </p>
+ * <p>A continuation can be
+ * {@linkplain P_ExitContinuationWithResultIf exited}, which causes the current
+ * fiber's continuation to be replaced by the specified continuation's caller.
+ * A return value is supplied to this caller.  A continuation can also be
+ * {@linkplain P_RestartContinuationWithArguments restarted}, either with a
+ * specified tuple of arguments or {@linkplain P_RestartContinuation with the
+ * original arguments}.</p>
  *
  * @author Mark van Gulik&lt;mark@availlang.org&gt;
  */
@@ -182,6 +181,18 @@ extends Descriptor
 		LEVEL_TWO_CHUNK,
 
 		/**
+		 * An instance of {@link ContinuationRegisterDumpDescriptor}, which
+		 * holds a collection of {@link AvailObject} and {@code long} values.
+		 * These values are stored in the continuation for an {@link L2Chunk} to
+		 * use as it wishes, but it's simply ignored when a chunk becomes
+		 * invalid, since the {@link L2Chunk#unoptimizedChunk} and its
+		 * {@link L1InstructionStepper} always rely solely on the pure L1 state.
+		 *
+		 * <p>This slot can be {@link NilDescriptor#nil} if it's not needed.</p>
+		 */
+		LEVEL_TWO_REGISTER_DUMP,
+
+		/**
 		 * The slots allocated for locals, arguments, and stack entries.  The
 		 * arguments are first, then the locals, and finally the stack entries
 		 * (growing downwards from the top).  At its deepest, the stack slots
@@ -191,7 +202,8 @@ extends Descriptor
 	}
 
 	@Override
-	protected boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
+	protected boolean allowsImmutableToMutableReferenceInField (
+		final AbstractSlotsEnum e)
 	{
 		return e == LEVEL_TWO_OFFSET_AND_OTHER
 			|| e == LEVEL_TWO_CHUNK;
@@ -430,6 +442,13 @@ extends Descriptor
 	}
 
 	@Override
+	protected AvailObject o_RegisterDump (
+		final AvailObject object)
+	{
+		return object.slot(LEVEL_TWO_REGISTER_DUMP);
+	}
+
+	@Override
 	protected A_Continuation o_ReplacingCaller (
 		final AvailObject object,
 		final A_Continuation newCaller)
@@ -500,6 +519,7 @@ extends Descriptor
 		final AvailObject cont = mutable.create(frameSize);
 		cont.setSlot(CALLER, caller);
 		cont.setSlot(FUNCTION, function);
+		cont.setSlot(LEVEL_TWO_REGISTER_DUMP, nil);
 		cont.setSlot(PROGRAM_COUNTER, 0); // Indicates this is a label.
 		cont.setSlot(STACK_POINTER, frameSize + 1);
 		cont.levelTwoChunkOffset(startingChunk, startingOffset);
@@ -522,23 +542,27 @@ extends Descriptor
 	 * frame slots with {@link NilDescriptor#nil}.
 	 *
 	 * @param function
-	 *            The function being invoked/resumed.
+	 *        The function being invoked/resumed.
 	 * @param caller
-	 *            The calling continuation of this continuation.
+	 *        The calling continuation of this continuation.
+	 * @param registerDump
+	 *        Either {@code nil} or a {@link ContinuationRegisterDumpDescriptor}
+	 *        instance that an {@link L2Chunk} will use upon resumption.
 	 * @param pc
-	 *            The level one program counter.
+	 *        The level one program counter.
 	 * @param stackp
-	 *            The level one operand stack depth.
+	 *        The level one operand stack depth.
 	 * @param levelTwoChunk
-	 *            The {@linkplain L2Chunk level two chunk} to execute.
+	 *        The {@linkplain L2Chunk level two chunk} to execute.
 	 * @param levelTwoOffset
-	 *            The level two chunk offset at which to resume.
+	 *        The level two chunk offset at which to resume.
 	 * @return A new mutable continuation.
 	 */
 	@ReferencedInGeneratedCode
-	public static A_Continuation createContinuationExceptFrame (
+	public static AvailObject createContinuationExceptFrame (
 		final A_Function function,
 		final A_Continuation caller,
+		final AvailObject registerDump,
 		final int pc,
 		final int stackp,
 		final L2Chunk levelTwoChunk,
@@ -549,6 +573,7 @@ extends Descriptor
 		final AvailObject continuation = mutable.create(frameSize);
 		continuation.setSlot(CALLER, caller);
 		continuation.setSlot(FUNCTION, function);
+		continuation.setSlot(LEVEL_TWO_REGISTER_DUMP, registerDump);
 		continuation.setSlot(PROGRAM_COUNTER, pc);
 		continuation.setSlot(STACK_POINTER, stackp);
 		continuation.setSlot(LEVEL_TWO_CHUNK, levelTwoChunk.chunkPojo);
@@ -557,27 +582,52 @@ extends Descriptor
 		return continuation;
 	}
 
+	/** The {@link CheckedMethod} for
+	 * {@link #createContinuationExceptFrame(A_Function, A_Continuation, AvailObject, int, int, L2Chunk, int)}.
+	 */
+	public static final CheckedMethod createContinuationExceptFrameMethod =
+		staticMethod(
+			ContinuationDescriptor.class,
+			"createContinuationExceptFrame",
+			AvailObject.class,
+			A_Function.class,
+			A_Continuation.class,
+			AvailObject.class,
+			int.class,
+			int.class,
+			L2Chunk.class,
+			int.class);
+
 	/**
 	 * Create a mutable continuation with the specified fields.  Initialize the
 	 * stack slot from the list of fields.
 	 *
 	 * @param function
-	 *            The function being invoked/resumed.
+	 *        The function being invoked/resumed.
 	 * @param caller
-	 *            The calling continuation of this continuation.
+	 *        The calling continuation of this continuation.
+	 * @param registerDump
+	 *        Either {@code nil} or a {@link ContinuationRegisterDumpDescriptor}
+	 *        instance that an {@link L2Chunk} will use upon resumption.
 	 * @param pc
-	 *            The level one program counter.
+	 *        The level one program counter.
 	 * @param stackp
-	 *            The level one operand stack depth.
+	 *        The level one operand stack depth.
 	 * @param levelTwoChunk
-	 *            The {@linkplain L2Chunk level two chunk} to execute.
+	 *        The {@linkplain L2Chunk level two chunk} to execute.
 	 * @param levelTwoOffset
-	 *            The level two chunk offset at which to resume.
+	 *        The level two chunk offset at which to resume.
+	 * @param frameValues
+	 *        The list of values that populate the frame slots.
+	 * @param zeroBasedStartIndex
+	 *        The zero-based slot number at which to start writing frame values.
+	 *
 	 * @return A new mutable continuation.
 	 */
 	public static A_Continuation createContinuationWithFrame (
 		final A_Function function,
 		final A_Continuation caller,
+		final AvailObject registerDump,
 		final int pc,
 		final int stackp,
 		final L2Chunk levelTwoChunk,
@@ -585,9 +635,14 @@ extends Descriptor
 		final List <? extends A_BasicObject> frameValues,
 		final int zeroBasedStartIndex)
 	{
-		final AvailObject continuation =
-			(AvailObject) createContinuationExceptFrame(
-				function, caller, pc, stackp, levelTwoChunk, levelTwoOffset);
+		final AvailObject continuation = createContinuationExceptFrame(
+			function,
+			caller,
+			registerDump,
+			pc,
+			stackp,
+			levelTwoChunk,
+			levelTwoOffset);
 		continuation.setSlotsFromList(
 			FRAME_AT_,
 			1,
@@ -596,6 +651,58 @@ extends Descriptor
 			continuation.numSlots());
 		return continuation;
 	}
+
+	/**
+	 * Create a private continuation with the specified fields.  The
+	 * continuation will never be visible to level one code, but is used to
+	 * carry register state (and L2 chunk & offset) during stack unwinding for a
+	 * reification.  It will be executed (in the reverse of stack order) to run
+	 * L2 code that reconstitutes a real continuation, which is pushed on the
+	 * {@link Interpreter#getReifiedContinuation()}s stack
+	 *
+	 * @param function
+	 *        The {@link A_Function} that was running when this dummy
+	 *        continuation was made.
+	 * @param registerDump
+	 *        Either {@code nil} or a {@link ContinuationRegisterDumpDescriptor}
+	 *        instance that an {@link L2Chunk} will use upon resumption.
+	 * @param levelTwoChunk
+	 *        The {@linkplain L2Chunk level two chunk} to execute.
+	 * @param levelTwoOffset
+	 *        The level two chunk offset at which to resume.
+	 * @return A new continuation, which can be resumed but is not reflectively
+	 *         meaningful.
+	 */
+	@ReferencedInGeneratedCode
+	public static AvailObject createDummyContinuation (
+		final A_Function function,
+		final AvailObject registerDump,
+		final L2Chunk levelTwoChunk,
+		final int levelTwoOffset)
+	{
+		final AvailObject continuation = mutable.create(0);
+		continuation.setSlot(CALLER, nil);
+		continuation.setSlot(FUNCTION, function);
+		continuation.setSlot(LEVEL_TWO_REGISTER_DUMP, registerDump);
+		continuation.setSlot(PROGRAM_COUNTER, -1);
+		continuation.setSlot(STACK_POINTER, -1);
+		continuation.setSlot(LEVEL_TWO_CHUNK, levelTwoChunk.chunkPojo);
+		continuation.setSlot(LEVEL_TWO_OFFSET, levelTwoOffset);
+		return continuation;
+	}
+
+	/** The {@link CheckedMethod} for
+	 * {@link #createDummyContinuation(A_Function, AvailObject, L2Chunk, int)}.
+	 */
+	public static final CheckedMethod createDummyContinuationMethod =
+		staticMethod(
+			ContinuationDescriptor.class,
+			"createDummyContinuation",
+			AvailObject.class,
+			A_Function.class,
+			AvailObject.class,
+			L2Chunk.class,
+			int.class);
 
 	/**
 	 * Construct a new {@code ContinuationDescriptor}.
@@ -742,7 +849,7 @@ extends Descriptor
 						"#%d: %s [%s] (%s:%d)",
 						lines - frameIndex,
 						code.methodName().asNativeString(),
-						signatureBuilder.toString(),
+						signatureBuilder,
 						module.equalsNil()
 							? "?"
 							: module.moduleName().asNativeString(),

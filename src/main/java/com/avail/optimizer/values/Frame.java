@@ -129,6 +129,16 @@ public final class Frame
 	}
 
 	/**
+	 * Answer the {@link L2SemanticValue} representing this frame's label.
+	 *
+	 * @return This frame's {@link L2SemanticLabel}.
+	 */
+	public L2SemanticValue label ()
+	{
+		return new L2SemanticLabel(this);
+	}
+
+	/**
 	 * Answer the {@link L2SemanticValue} representing one of this frame's
 	 * function's captured outer values.
 	 *
@@ -183,6 +193,18 @@ public final class Frame
 		final int uniqueId)
 	{
 		return new L2SemanticTemp(this, uniqueId);
+	}
+
+	/**
+	 * Answer an {@link L2SemanticValue} that represents the reified caller
+	 * continuation.
+	 *
+	 * @return The reified caller (an {@link A_Continuation} at runtime) of this
+	 *         frame.
+	 */
+	public L2SemanticValue reifiedCaller ()
+	{
+		return new L2SemanticCaller(this);
 	}
 
 	/**

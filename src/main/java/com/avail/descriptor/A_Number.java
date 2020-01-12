@@ -35,10 +35,14 @@ package com.avail.descriptor;
 import com.avail.descriptor.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.AbstractNumberDescriptor.Sign;
 import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.interpreter.primitive.numbers.P_LessOrEqual;
+import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.math.BigInteger;
+
+import static com.avail.optimizer.jvm.CheckedMethod.instanceMethod;
 
 /**
  * {@code A_Number} is an interface that specifies the number-specific
@@ -363,6 +367,17 @@ extends A_BasicObject
 		boolean canDestroy);
 
 	/**
+	 * The {@link CheckedMethod} for {@link #divideCanDestroy(A_Number,
+	 * boolean)}.
+	 */
+	CheckedMethod divideCanDestroyMethod = instanceMethod(
+		A_Number.class,
+		"divideCanDestroy",
+		A_Number.class,
+		A_Number.class,
+		boolean.class);
+
+	/**
 	 * Extract a signed byte from the {@linkplain AvailObject receiver}.
 	 *
 	 * @return A {@code byte}, which has the range [-128..127].
@@ -401,6 +416,14 @@ extends A_BasicObject
 	double extractDouble ();
 
 	/**
+	 * The {@link CheckedMethod} for {@link #extractDouble()}.
+	 */
+	CheckedMethod extractDoubleMethod = instanceMethod(
+		A_Number.class,
+		"extractDouble",
+		double.class);
+
+	/**
 	 * Extract a Java float from the {@linkplain AvailObject receiver}.
 	 *
 	 * @return A Java {@code float}.
@@ -415,6 +438,14 @@ extends A_BasicObject
 	 */
 	@ReferencedInGeneratedCode
 	int extractInt ();
+
+	/**
+	 * The {@link CheckedMethod} for {@link #extractInt()}.
+	 */
+	CheckedMethod extractIntMethod = instanceMethod(
+		A_Number.class,
+		"extractInt",
+		int.class);
 
 	/**
 	 * Extract a 64-bit signed Java {@code long} from the {@linkplain
@@ -488,6 +519,17 @@ extends A_BasicObject
 	 */
 	@ReferencedInGeneratedCode
 	A_Number minusCanDestroy (A_Number aNumber, boolean canDestroy);
+
+	/**
+	 * The {@link CheckedMethod} for {@link #minusCanDestroy(A_Number,
+	 * boolean)}.
+	 */
+	CheckedMethod minusCanDestroyMethod = instanceMethod(
+		A_Number.class,
+		"minusCanDestroy",
+		A_Number.class,
+		A_Number.class,
+		boolean.class);
 
 	/**
 	 * Multiply the receiver by the given {@linkplain DoubleDescriptor
@@ -664,6 +706,15 @@ extends A_BasicObject
 	 */
 	@ReferencedInGeneratedCode
 	Order numericCompare (A_Number another);
+
+	/**
+	 * The {@link CheckedMethod} for {@link #numericCompare(A_Number)}.
+	 */
+	CheckedMethod numericCompareMethod = instanceMethod(
+		A_Number.class,
+		"numericCompare",
+		Order.class,
+		A_Number.class);
 
 	/**
 	 * This produces the same value as {@link #numericCompare(A_Number)}, but
@@ -859,6 +910,17 @@ extends A_BasicObject
 	 */
 	@ReferencedInGeneratedCode
 	A_Number timesCanDestroy (A_Number aNumber, boolean canDestroy);
+
+	/**
+	 * The {@link CheckedMethod} for {@link #timesCanDestroy(A_Number,
+	 * boolean)}.
+	 */
+	CheckedMethod timesCanDestroyMethod = CheckedMethod.instanceMethod(
+		A_Number.class,
+		"timesCanDestroy",
+		A_Number.class,
+		A_Number.class,
+		boolean.class);
 
 	/**
 	 * Normalize the integer to have the minimum number of base 2^32 digits.

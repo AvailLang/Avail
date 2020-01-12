@@ -1,5 +1,5 @@
 /*
- * L2InternalCounterOperand.java
+ * L2Entity.java
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,56 +29,18 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
-package com.avail.interpreter.levelTwo.operand;
+package com.avail.optimizer;
 
 import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandDispatcher;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.L2Operation;
-
-import java.util.concurrent.atomic.LongAdder;
 
 /**
- * An {@code L2InternalCounterOperand} is an operand of type {@link
- * L2OperandType#INTERNAL_COUNTER}.  It holds a {@linkplain LongAdder} that will
- * be incremented when a particular situation happens, as specified by the
- * owning {@link L2Instruction} / {@link L2Operation}.
+ * An {@code L2Entity} is an abstraction for things that have reads and writes
+ * within the {@link L2Instruction}s of an {@link L2BasicBlock} of an
+ * {@link L2ControlFlowGraph}.
  *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @see DataCouplingMode
  */
-public class L2InternalCounterOperand
-extends L2Operand
+public interface L2Entity
 {
-	/**
-	 * The actual {@linkplain LongAdder} to embed.
-	 */
-	public final LongAdder counter;
-
-	/**
-	 * Construct a new {@code L2InternalCounterOperand} with a new {@link
-	 * LongAdder}.
-	 */
-	public L2InternalCounterOperand ()
-	{
-		this.counter = new LongAdder();
-	}
-
-	@Override
-	public L2OperandType operandType ()
-	{
-		return L2OperandType.INTERNAL_COUNTER;
-	}
-
-	@Override
-	public void dispatchOperand (final L2OperandDispatcher dispatcher)
-	{
-		dispatcher.doOperand(this);
-	}
-
-	@Override
-	public String toString ()
-	{
-		return "CTR:" + counter.longValue();
-	}
+	// No methods are needed, beyond equals() and hashCode().
 }

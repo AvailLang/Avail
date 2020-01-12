@@ -692,7 +692,7 @@ extends Descriptor
 			if (typeFilterPairs.value.tupleSize() != oldTypeFilterSize)
 			{
 				// Rebuild the type-checking lookup tree.
-				final LookupTree<A_Tuple, A_BundleTree, A_BundleTree> tree =
+				final LookupTree<A_Tuple, A_BundleTree> tree =
 					MessageBundleTreeDescriptor.parserTypeChecker.createRoot(
 						toList(typeFilterPairs.value),
 						singletonList(

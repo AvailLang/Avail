@@ -35,7 +35,6 @@ package com.avail.interpreter.levelTwo.operand;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.operation.L2_MOVE;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
 import com.avail.optimizer.L2ValueManifest;
@@ -88,6 +87,34 @@ extends L2ReadOperand<L2IntRegister>
 		assert restriction.isUnboxedInt();
 	}
 
+	/**
+	 * Construct a new {@code L2ReadIntOperand} with an explicit definition
+	 * register {@link L2WriteIntOperand}.
+	 *
+	 * @param semanticValue
+	 *        The {@link L2SemanticValue} that is being read when an
+	 *        {@link L2Instruction} uses this {@link L2Operand}.
+	 * @param restriction
+	 *        The {@link TypeRestriction} that bounds the value being read.
+	 * @param register
+	 *        The {@link L2IntRegister} being read by this operand.
+	 */
+	public L2ReadIntOperand (
+		final L2SemanticValue semanticValue,
+		final TypeRestriction restriction,
+		final L2IntRegister register)
+	{
+		super(semanticValue, restriction, register);
+	}
+
+	@Override
+	public L2ReadIntOperand copyForSemanticValue (
+		final L2SemanticValue newSemanticValue)
+	{
+		return new L2ReadIntOperand(
+			newSemanticValue, restriction(), register());
+	}
+
 	@Override
 	public void dispatchOperand (final L2OperandDispatcher dispatcher)
 	{
@@ -98,11 +125,5 @@ extends L2ReadOperand<L2IntRegister>
 	public RegisterKind registerKind ()
 	{
 		return INTEGER;
-	}
-
-	@Override
-	public L2_MOVE<L2IntRegister> phiMoveOperation ()
-	{
-		return L2_MOVE.unboxedInt;
 	}
 }

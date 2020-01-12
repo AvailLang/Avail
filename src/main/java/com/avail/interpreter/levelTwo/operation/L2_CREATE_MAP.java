@@ -34,7 +34,6 @@ package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_Map;
 import com.avail.descriptor.MapDescriptor;
-import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
@@ -45,12 +44,10 @@ import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
-import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Opcodes.INVOKESTATIC;
-import static org.objectweb.asm.Type.*;
 
 /**
  * Create a map from the specified key object registers and the corresponding
@@ -79,10 +76,11 @@ extends L2Operation
 	public static final L2_CREATE_MAP instance = new L2_CREATE_MAP();
 
 	@Override
-	public void toString (
+	public void appendToWithWarnings (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
-		final StringBuilder builder)
+		final StringBuilder builder,
+		final Consumer<Boolean> warningStyleChange)
 	{
 		assert this == instruction.operation();
 		final L2ReadBoxedVectorOperand keys = instruction.operand(0);
@@ -119,12 +117,7 @@ extends L2Operation
 		final L2WriteBoxedOperand map = instruction.operand(2);
 
 		// :: map = MapDescriptor.emptyMap();
-		method.visitMethodInsn(
-			INVOKESTATIC,
-			getInternalName(MapDescriptor.class),
-			"emptyMap",
-			getMethodDescriptor(getType(A_Map.class)),
-			false);
+		MapDescriptor.emptyMapMethod.generateCall(method);
 		final int limit = keys.elements().size();
 		assert limit == values.elements().size();
 		for (int i = 0; i < limit; i++)
@@ -134,16 +127,7 @@ extends L2Operation
 			translator.load(method, keys.elements().get(i).register());
 			translator.load(method, values.elements().get(i).register());
 			translator.intConstant(method, 1);
-			method.visitMethodInsn(
-				INVOKEINTERFACE,
-				getInternalName(A_Map.class),
-				"mapAtPuttingCanDestroy",
-				getMethodDescriptor(
-					getType(A_Map.class),
-					getType(A_BasicObject.class),
-					getType(A_BasicObject.class),
-					BOOLEAN_TYPE),
-				true);
+			A_Map.mapAtPuttingCanDestroyMethod.generateCall(method);
 		}
 		// :: destinationMap = map;
 		translator.store(method, map.register());

@@ -1,28 +1,43 @@
 <component name="ProjectDictionaryState">
   <dictionary name="markvangulik">
     <words>
+      <w>backpointer</w>
+      <w>bgcolor</w>
       <w>boundedly</w>
       <w>checkable</w>
       <w>darcula</w>
+      <w>devirtualize</w>
       <w>eawt</w>
       <w>enablements</w>
       <w>enqueuer</w>
       <w>hasher</w>
       <w>inet</w>
+      <w>lexes</w>
+      <w>misconnected</w>
       <w>noninline</w>
       <w>nonprimitive</w>
+      <w>observerless</w>
+      <w>postinvoke</w>
       <w>precompute</w>
+      <w>preinvoke</w>
+      <w>retranslator</w>
+      <w>rewriter</w>
       <w>seminumerical</w>
       <w>situ</w>
       <w>spliterate</w>
       <w>spliterated</w>
       <w>spliterating</w>
       <w>subbin</w>
+      <w>subblock</w>
+      <w>subgraphs</w>
       <w>subkey</w>
       <w>subregion</w>
       <w>subtable</w>
       <w>unboundedly</w>
       <w>unparameterized</w>
+      <w>unparks</w>
+      <w>unquoter</w>
+      <w>unreturnable</w>
       <w>unsynchronized</w>
       <w>untraced</w>
       <w>welford</w>

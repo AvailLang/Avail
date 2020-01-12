@@ -85,10 +85,4 @@ extends L2Register
 	{
 		return new L2BoxedRegister(inliner.nextUnique());
 	}
-
-	@Override
-	public String namePrefix ()
-	{
-		return "r";
-	}
 }

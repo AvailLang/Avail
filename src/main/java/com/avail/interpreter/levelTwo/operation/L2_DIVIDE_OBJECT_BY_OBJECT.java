@@ -44,12 +44,18 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Type.*;
+import static com.avail.interpreter.levelTwo.L2OperandType.PC;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
+import static org.objectweb.asm.Opcodes.DUP;
+import static org.objectweb.asm.Opcodes.GOTO;
+import static org.objectweb.asm.Opcodes.ICONST_0;
+import static org.objectweb.asm.Opcodes.POP;
+import static org.objectweb.asm.Type.getInternalName;
 
 /**
  * Divide the dividend value by the divisor value.  If the calculation causes an
@@ -70,8 +76,8 @@ extends L2ControlFlowOperation
 		super(
 			READ_BOXED.is("dividend"),
 			READ_BOXED.is("divisor"),
-			WRITE_BOXED.is("quotient"),
-			WRITE_BOXED.is("remainder"),
+			WRITE_BOXED.is("quotient", SUCCESS),
+			WRITE_BOXED.is("remainder", SUCCESS),
 			PC.is("if undefined", OFF_RAMP),
 			PC.is("success", SUCCESS));
 	}
@@ -90,10 +96,11 @@ extends L2ControlFlowOperation
 	}
 
 	@Override
-	public void toString (
+	public void appendToWithWarnings (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
-		final StringBuilder builder)
+		final StringBuilder builder,
+		final Consumer<Boolean> warningStyleChange)
 	{
 		assert this == instruction.operation();
 		final L2ReadBoxedOperand dividend = instruction.operand(0);
@@ -142,15 +149,7 @@ extends L2ControlFlowOperation
 		method.visitInsn(DUP);
 		translator.load(method, divisor.register());
 		method.visitInsn(ICONST_0);
-		method.visitMethodInsn(
-			INVOKEINTERFACE,
-			getInternalName(A_Number.class),
-			"divideCanDestroy",
-			getMethodDescriptor(
-				getType(A_Number.class),
-				getType(A_Number.class),
-				BOOLEAN_TYPE),
-			true);
+		A_Number.divideCanDestroyMethod.generateCall(method);
 		method.visitInsn(DUP);
 		translator.store(method, quotient.register());
 		// ::    remainder = dividend.minusCanDestroy(
@@ -158,25 +157,9 @@ extends L2ControlFlowOperation
 		// ::       false);
 		translator.load(method, divisor.register());
 		method.visitInsn(ICONST_0);
-		method.visitMethodInsn(
-			INVOKEINTERFACE,
-			getInternalName(A_Number.class),
-			"timesCanDestroy",
-			getMethodDescriptor(
-				getType(A_Number.class),
-				getType(A_Number.class),
-				BOOLEAN_TYPE),
-			true);
+		A_Number.timesCanDestroyMethod.generateCall(method);
 		method.visitInsn(ICONST_0);
-		method.visitMethodInsn(
-			INVOKEINTERFACE,
-			getInternalName(A_Number.class),
-			"minusCanDestroy",
-			getMethodDescriptor(
-				getType(A_Number.class),
-				getType(A_Number.class),
-				BOOLEAN_TYPE),
-			true);
+		A_Number.minusCanDestroyMethod.generateCall(method);
 		translator.store(method, remainder.register());
 		// ::    goto success;
 		// Note that we cannot potentially eliminate this branch with a

@@ -40,8 +40,7 @@ import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.CannotFail
-import com.avail.interpreter.Primitive.Flag.Unknown
+import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive:** Terminate the current [fiber][FiberDescriptor].
@@ -49,7 +48,8 @@ import com.avail.interpreter.Primitive.Flag.Unknown
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_TerminateCurrentFiber : Primitive(0, Unknown, CannotFail)
+object P_TerminateCurrentFiber : Primitive(
+	0, Unknown, CannotFail, WritesToHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{

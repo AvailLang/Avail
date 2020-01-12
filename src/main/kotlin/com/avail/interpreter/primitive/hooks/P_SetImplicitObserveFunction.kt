@@ -53,8 +53,7 @@ import com.avail.descriptor.VariableDescriptor.VariableAccessReactor
 import com.avail.descriptor.VariableTypeDescriptor.variableTypeFor
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.CannotFail
-import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.Primitive.Flag.*
 import com.avail.interpreter.levelOne.L1InstructionWriter
 import com.avail.interpreter.levelOne.L1Operation
 import com.avail.utility.Casts.cast
@@ -68,7 +67,8 @@ import com.avail.utility.Casts.cast
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_SetImplicitObserveFunction : Primitive(1, CannotFail, HasSideEffect)
+object P_SetImplicitObserveFunction : Primitive(
+	1, CannotFail, HasSideEffect, WritesToHiddenGlobalState)
 {
 	/** The [A_RawFunction] that wraps the supplied observe function.  */
 	private val rawFunction = createRawFunction()

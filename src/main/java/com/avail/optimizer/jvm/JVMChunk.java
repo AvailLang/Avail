@@ -49,6 +49,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import static com.avail.optimizer.jvm.CheckedField.staticField;
+
 /**
  * A {@code JVMChunk} is an {@link ExecutableChunk} for the Java Virtual
  * Machine. It is produced by a {@link JVMTranslator} on behalf of an {@link
@@ -70,15 +72,28 @@ import java.nio.file.Paths;
 public abstract class JVMChunk
 implements ExecutableChunk
 {
-	/** An empty {@code int} array. */
+	/** An empty {@code long} array. */
 	@SuppressWarnings("unused")
 	@ReferencedInGeneratedCode
-	public static final int[] noInts = new int[0];
+	public static final long[] noLongs = new long[0];
+
+	/** Access to the field {@link #noLongs} */
+	public static CheckedField noLongsField = staticField(
+		JVMChunk.class,
+		"noLongs",
+		long[].class);
+
 
 	/** An empty {@link AvailObject} array. */
 	@SuppressWarnings("unused")
 	@ReferencedInGeneratedCode
 	public static final AvailObject[] noObjects = new AvailObject[0];
+
+	/** Access to the field {@link #noObjects} */
+	public static CheckedField noObjectsField = staticField(
+		JVMChunk.class,
+		"noObjects",
+		AvailObject[].class);
 
 	/**
 	 * Throw a {@link RuntimeException} on account of a bad offset into the

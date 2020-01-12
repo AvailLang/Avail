@@ -44,13 +44,15 @@ import com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
 
 /**
  * **Primitive:** Answer whether the second [atom][AtomDescriptor] has a
  * property whose key is the first atom.
  */
 @Suppress("unused")
-object P_AtomHasProperty : Primitive(2, CanInline)
+object P_AtomHasProperty : Primitive(
+	2, CanInline, ReadsFromHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{

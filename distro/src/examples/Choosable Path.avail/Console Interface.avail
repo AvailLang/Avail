@@ -155,8 +155,8 @@ Public method "standard console interface" is
 		Repeat
 		[
 			line ::= next line from standard input;
-			If line = "quit" then [Exit body with a quit command];
-			If line = "restart" then [Exit body with a restart command];
+			Exit body with a quit command if line = "quit";
+			Exit body with a restart command if line = "restart";
 			Guard
 			[
 				transitionOrdinal ::= line→integer;

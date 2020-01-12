@@ -42,8 +42,7 @@ import com.avail.descriptor.SetDescriptor.set
 import com.avail.exceptions.AvailErrorCode.E_FIBER_IS_TERMINATED
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.CanSuspend
-import com.avail.interpreter.Primitive.Flag.Unknown
+import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive:** Ask another fiber what it's doing.  Fail if the fiber's
@@ -52,7 +51,15 @@ import com.avail.interpreter.Primitive.Flag.Unknown
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_GetContinuationOfOtherFiber : Primitive(1, CanSuspend, Unknown)
+object P_GetContinuationOfOtherFiber : Primitive(
+	1,
+	CanSuspend,
+	HasSideEffect,
+	Unknown,
+	// Both writes and reads global state, once to request the other fiber to
+	// produce its continuation, and once to read it.
+	WritesToHiddenGlobalState,
+	ReadsFromHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{

@@ -32,6 +32,7 @@
 
 package com.avail.interpreter
 
+import com.avail.AvailRuntime.HookType.IMPLICIT_OBSERVE
 import com.avail.descriptor.*
 import com.avail.descriptor.BottomTypeDescriptor.bottom
 import com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers
@@ -40,6 +41,7 @@ import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.TypeDescriptor.Types.TOP
 import com.avail.descriptor.VariableTypeDescriptor.variableTypeFor
 import com.avail.descriptor.parsing.A_Phrase
+import com.avail.interpreter.Interpreter.*
 import com.avail.interpreter.Primitive.Companion.holdersByClassName
 import com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail
 import com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
@@ -54,11 +56,14 @@ import com.avail.interpreter.levelTwo.operand.*
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType
 import com.avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
+import com.avail.interpreter.primitive.hooks.P_SetImplicitObserveFunction
 import com.avail.interpreter.primitive.privatehelpers.P_PushConstant
 import com.avail.optimizer.ExecutableChunk
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
 import com.avail.optimizer.L2Generator
+import com.avail.optimizer.jvm.CheckedMethod
+import com.avail.optimizer.jvm.CheckedMethod.instanceMethod
 import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.optimizer.values.L2SemanticPrimitiveInvocation
@@ -417,6 +422,20 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		PreserveArguments,
 
 		/**
+		 * The primitive writes to some global state that isn't directly
+		 * accessible with Avail code.  An example would be modifying the global
+		 * implicit observer function ([P_SetImplicitObserveFunction]).
+		 */
+		WritesToHiddenGlobalState,
+
+		/**
+		 * The primitive reads from some global state that isn't directly
+		 * accessible with Avail code.  An example would be fetching the global
+		 * implicit observer function ([IMPLICIT_OBSERVE]).
+		 */
+		ReadsFromHiddenGlobalState,
+
+		/**
 		 * The semantics of the primitive fall outside the usual capacity of the
 		 * [L2Generator]. The current continuation should be reified prior
 		 * to attempting the primitive. Do not attempt to fold or inline this
@@ -467,6 +486,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 * @return The [Result] code indicating success or failure (or special
 	 *   circumstance).
 	 */
+	@ReferencedInGeneratedCode
 	abstract fun attempt(interpreter: Interpreter): Result
 
 	/**
@@ -808,9 +828,8 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		{
 			semanticValue = generator.primitiveInvocation(this, arguments)
 			// See if we already have a value for an equivalent invocation.
-			val equivalent =
-				generator.currentManifest()
-					.equivalentSemanticValue(semanticValue)
+			val equivalent = generator.currentManifest()
+				.equivalentSemanticValue(semanticValue)
 			if (equivalent !== null)
 			{
 				// Reuse the previously computed result.
@@ -826,10 +845,9 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		{
 			semanticValue = generator.topFrame.temp(generator.nextUnique())
 		}
-		val writer =
-			generator.boxedWrite(semanticValue, restriction)
+		val writer = generator.boxedWrite(semanticValue, restriction)
 		translator.addInstruction(
-			L2_RUN_INFALLIBLE_PRIMITIVE.instance,
+			L2_RUN_INFALLIBLE_PRIMITIVE.forPrimitive(this),
 			L2ConstantOperand(rawFunction),
 			L2PrimitiveOperand(this),
 			L2ReadBoxedVectorOperand(arguments),
@@ -847,7 +865,6 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 
 	companion object
 	{
-
 		/** A map of all [PrimitiveHolder]s, by name.  */
 		private val holdersByName: Map<String, PrimitiveHolder>
 
@@ -890,7 +907,8 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		init
 		{
 			val byNumbers = ArrayList<PrimitiveHolder>()
-			byNumbers.add(NullPrimitiveHolder)  // Entry zero is reserved for not-a-primitive.
+			// Entry zero is reserved for not-a-primitive.
+			byNumbers.add(NullPrimitiveHolder)
 			var counter = 1
 			val byNames =
 				mutableMapOf<String, PrimitiveHolder>()
@@ -900,7 +918,8 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 				val resource =
 					Primitive::class.java.getResource(allPrimitivesFileName)
 				BufferedReader(
-					InputStreamReader(resource.openStream(), UTF_8)).use { input ->
+					InputStreamReader(resource.openStream(), UTF_8)).use {
+					input ->
 					while (true)
 					{
 						val className = input.readLine() ?: break
@@ -1021,7 +1040,8 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 			}
 			val expectedTypes =
 				primitive.blockTypeRestriction().argsTupleType()
-			assert(expectedTypes.sizeRange().upperBound().extractInt() == expected)
+			assert(expectedTypes.sizeRange().upperBound().extractInt()
+				== expected)
 			val builder = StringBuilder()
 			for (i in 1 .. expected)
 			{
@@ -1053,6 +1073,13 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 				builder.toString()
 			}
 		}
+
+		/** The method [attempt].  */
+		val attemptMethod: CheckedMethod = instanceMethod(
+			Primitive::class.java,
+			"attempt",
+			Result::class.java,
+			Interpreter::class.java)
 	}
 
 	/**
@@ -1084,15 +1111,15 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	) {
 		// :: argsBuffer = interpreter.argsBuffer;
 		translator.loadInterpreter(method)
-		// [interp]
-		Interpreter.argsBufferField.generateRead(translator, method)
+		// [interpreter]
+		argsBufferField.generateRead(method)
 		// [argsBuffer]
 		// :: argsBuffer.clear();
 		if (arguments.elements().isNotEmpty()) {
 			method.visitInsn(DUP)
 		}
 		// [argsBuffer[, argsBuffer if #args > 0]]
-		Interpreter.listClearMethod.generateCall(method)
+		JavaLibrary.listClearMethod.generateCall(method)
 		// [argsBuffer if #args > 0]
 		var i = 0
 		val limit = arguments.elements().size
@@ -1102,57 +1129,34 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 				method.visitInsn(DUP)
 			}
 			translator.load(method, arguments.elements()[i].register())
-			Interpreter.listAddMethod.generateCall(method)
+			JavaLibrary.listAddMethod.generateCall(method)
 			method.visitInsn(POP)
 			i++
 		}
 		// []
 		translator.loadInterpreter(method)
-		// [interp]
+		// [interpreter]
 		translator.literal(method, this)
-		// [interp, prim]
+		// [interpreter, prim]
 		method.visitInsn(DUP2)
-		// [interp, prim, interp, prim]
+		// [interpreter, prim, interpreter, prim]
 		method.visitInsn(DUP2)
-		// [interp, prim, interp, prim, interp, prim]
+		// [interpreter, prim, interpreter, prim, interpreter, prim]
 		// :: long timeBefore = beforeAttemptPrimitive(primitive);
-		method.visitMethodInsn(
-			INVOKEVIRTUAL,
-			Type.getInternalName(Interpreter::class.java),
-			"beforeAttemptPrimitive",
-			Type.getMethodDescriptor(
-				Type.getType(java.lang.Long.TYPE),
-				Type.getType(Primitive::class.java)),
-			false)
-		// [interp, prim, interp, prim, timeBeforeLong]
+		beforeAttemptPrimitiveMethod.generateCall(method)
+		// [interpreter, prim, interpreter, prim, timeBeforeLong]
 		method.visitInsn(DUP2_X2) // Form 2: v3,v2,v1x2 -> v1x2,v3,v2,v1x2
-		// [interp, prim, timeBeforeLong, interp, prim, timeBeforeLong]
+		// [interpreter, prim, timeBeforeLong, interpreter, prim, timeBeforeLong]
 		method.visitInsn(POP2) // Form 2: v1x2 -> empty
-		// [interp, prim, timeBeforeLong, interp, prim]
+		// [interpreter, prim, timeBeforeLong, interpreter, prim]
 		method.visitInsn(SWAP)
-		// [interp, prim, timeBeforeLong, prim, interp]
+		// [interpreter, prim, timeBeforeLong, prim, interpreter]
 		// :: Result success = primitive.attempt(interpreter)
-		method.visitMethodInsn(
-			INVOKEVIRTUAL,
-			Type.getInternalName(javaClass),
-			"attempt",
-			Type.getMethodDescriptor(
-				Type.getType(Result::class.java),
-				Type.getType(Interpreter::class.java)),
-			false)
-		// [interp, prim, timeBeforeLong, success]
+		attemptMethod.generateCall(method)
+		// [interpreter, prim, timeBeforeLong, success]
 
 		// :: afterAttemptPrimitive(primitive, timeBeforeLong, success);
-		method.visitMethodInsn(
-			INVOKEVIRTUAL,
-			Type.getInternalName(Interpreter::class.java),
-			"afterAttemptPrimitive",
-			Type.getMethodDescriptor(
-				Type.getType(Result::class.java),
-				Type.getType(Primitive::class.java),
-				Type.getType(java.lang.Long.TYPE),
-				Type.getType(Result::class.java)),
-			false)
+		afterAttemptPrimitiveMethod.generateCall(method)
 		// [success] (returned as a nicety by afterAttemptPrimitive)
 
 		// If the infallible primitive definitely switches continuations, then
@@ -1163,15 +1167,10 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 			method.visitInsn(ACONST_NULL)
 			method.visitInsn(ARETURN)
 		} else if (!hasFlag(CanSwitchContinuations)) {
-			// :: result = interpreter.latestResult();
+			// :: result = interpreter.getLatestResult();
 			method.visitInsn(POP)
 			translator.loadInterpreter(method)
-			method.visitMethodInsn(
-				INVOKEVIRTUAL,
-				Type.getInternalName(Interpreter::class.java),
-				"latestResult",
-				Type.getMethodDescriptor(Type.getType(AvailObject::class.java)),
-				false)
+			getLatestResultMethod.generateCall(method)
 			translator.store(method, result.register())
 		} else {
 			// :: if (res == Result.SUCCESS) {
@@ -1182,14 +1181,9 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 				Type.getDescriptor(Result::class.java))
 			val switchedContinuations = Label()
 			method.visitJumpInsn(IF_ACMPNE, switchedContinuations)
-			// ::    result = interpreter.latestResult();
+			// ::    result = interpreter.getLatestResult();
 			translator.loadInterpreter(method)
-			method.visitMethodInsn(
-				INVOKEVIRTUAL,
-				Type.getInternalName(Interpreter::class.java),
-				"latestResult",
-				Type.getMethodDescriptor(Type.getType(AvailObject::class.java)),
-				false)
+			getLatestResultMethod.generateCall(method)
 			translator.store(method, result.register())
 			// ::    goto success;
 			val success = Label()

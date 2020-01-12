@@ -39,6 +39,7 @@ import com.avail.descriptor.tuples.A_String;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MapException;
+import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
@@ -1011,7 +1012,6 @@ extends Descriptor
 	}
 
 	/** The empty map. */
-	@ReferencedInGeneratedCode
 	private static final A_Map emptyMap;
 
 	static
@@ -1026,8 +1026,16 @@ extends Descriptor
 	 *
 	 * @return The empty map.
 	 */
+	@ReferencedInGeneratedCode
 	public static A_Map emptyMap ()
 	{
 		return emptyMap;
 	}
+
+	/** The {@link CheckedMethod} for {@link #emptyMap()}. */
+	public static final CheckedMethod emptyMapMethod =
+		CheckedMethod.staticMethod(
+			MapDescriptor.class,
+			"emptyMap",
+			A_Map.class);
 }

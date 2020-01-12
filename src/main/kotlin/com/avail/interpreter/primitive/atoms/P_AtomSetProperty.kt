@@ -43,8 +43,7 @@ import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.Primitive.Flag.*
 import com.avail.interpreter.effects.LoadingEffectToRunPrimitive
 
 /**
@@ -53,7 +52,8 @@ import com.avail.interpreter.effects.LoadingEffectToRunPrimitive
  * operation.
  */
 @Suppress("unused")
-object P_AtomSetProperty : Primitive(3, CanInline, HasSideEffect)
+object P_AtomSetProperty : Primitive(
+	3, CanInline, HasSideEffect, WritesToHiddenGlobalState)
 {
 	override fun attempt(
 		interpreter: Interpreter): Result

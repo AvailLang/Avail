@@ -56,18 +56,15 @@ object P_PrivateCreateModuleVariable
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(5)
-		val module = interpreter.argument(0)
-		val name = interpreter.argument(1)
-		val varType = interpreter.argument(2)
-		val isConstant =
-			interpreter.argument(3).extractBoolean()
-		val stablyComputed =
-			interpreter.argument(4).extractBoolean()
+		val (module, name, varType, isConstantObject, stablyComputedObject) =
+			interpreter.argsBuffer;
+
+		val isConstant = isConstantObject.extractBoolean()
+		val stablyComputed = stablyComputedObject.extractBoolean()
 
 		assert(isConstant || !stablyComputed)
 
-		val variable =
-			createGlobal(varType, module, name, isConstant)
+		val variable = createGlobal(varType, module, name, isConstant)
 		if (stablyComputed)
 		{
 			variable.valueWasStablyComputed(true)

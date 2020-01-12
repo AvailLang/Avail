@@ -44,6 +44,7 @@ import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_INT;
@@ -74,10 +75,11 @@ extends L2Operation
 	public static final L2_UNBOX_INT instance = new L2_UNBOX_INT();
 
 	@Override
-	public void toString (
+	public void appendToWithWarnings (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
-		final StringBuilder builder)
+		final StringBuilder builder,
+		final Consumer<Boolean> warningStyleChange)
 	{
 		final L2ReadBoxedOperand source = instruction.operand(0);
 		final L2WriteIntOperand destination = instruction.operand(1);
@@ -99,9 +101,9 @@ extends L2Operation
 		final L2WriteIntOperand destination = instruction.operand(1);
 
 		// Ensure the new write ends up in the same synonym as the source.
-		source.instructionWasAdded(instruction, manifest);
+		source.instructionWasAdded(manifest);
 		destination.instructionWasAddedForMove(
-			instruction, source.semanticValue(), manifest);
+			source.semanticValue(), manifest);
 	}
 
 	@Override

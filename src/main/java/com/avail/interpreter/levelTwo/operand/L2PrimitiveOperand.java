@@ -51,7 +51,7 @@ extends L2Operand
 	public final Primitive primitive;
 
 	/**
-	 * Construct a new {@link L2PrimitiveOperand} for the specified {@link
+	 * Construct a new {@code L2PrimitiveOperand} for the specified {@link
 	 * Primitive primitive}.
 	 *
 	 * @param primitive The primitive to invoke.
@@ -74,8 +74,8 @@ extends L2Operand
 	}
 
 	@Override
-	public String toString ()
+	public void appendTo (final StringBuilder builder)
 	{
-		return "*" + primitive.name();
+		builder.append("*").append(primitive.name());
 	}
 }

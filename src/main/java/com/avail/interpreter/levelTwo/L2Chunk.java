@@ -32,6 +32,9 @@
 
 package com.avail.interpreter.levelTwo;
 
+import com.avail.builder.ModuleName;
+import com.avail.builder.ResolvedModuleName;
+import com.avail.builder.UnresolvedDependencyException;
 import com.avail.descriptor.*;
 import com.avail.descriptor.tuples.A_String;
 import com.avail.interpreter.Interpreter;
@@ -45,6 +48,7 @@ import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArgu
 import com.avail.optimizer.ExecutableChunk;
 import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2ControlFlowGraph;
+import com.avail.optimizer.L2ControlFlowGraph.Zone;
 import com.avail.optimizer.StackReifier;
 import com.avail.optimizer.jvm.JVMChunk;
 import com.avail.optimizer.jvm.JVMTranslator;
@@ -54,7 +58,12 @@ import com.avail.performance.StatisticReport;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.List;
+import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -66,6 +75,7 @@ import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.*;
 import static com.avail.optimizer.L1Translator.generateDefaultChunkControlFlowGraph;
+import static com.avail.optimizer.L2ControlFlowGraph.ZoneType.PROPAGATE_REIFICATION_FOR_INVOKE;
 import static java.lang.String.format;
 import static java.util.Collections.newSetFromMap;
 import static java.util.Collections.synchronizedSet;
@@ -547,7 +557,15 @@ implements ExecutableChunk
 		 * <p>It's hard-coded, but checked against the default chunk in {@link
 		 * #createDefaultChunk()} when that chunk is created.</p>
 		 */
-		TO_RESTART(1);
+		TO_RESTART(1),
+
+		/**
+		 * The chunk containing this entry point <em>can't</em> be invalid when
+		 * it's entered.  Note that continuations that are created with this
+		 * entry point type don't have to have any slots filled in, and can just
+		 * contain a caller, function, chunk, offset, and register dump.
+		 */
+		TRANSIENT(-1);
 
 		/**
 		 * The offset within the default chunk at which to continue if a chunk
@@ -669,9 +687,31 @@ implements ExecutableChunk
 		final A_Set contingentValues)
 	{
 		assert offsetAfterInitialTryPrimitive >= 0;
+		@Nullable String sourceFileName = null;
+		if (code != null)
+		{
+			final A_Module module = code.module();
+			if (!module.equalsNil())
+			{
+				try
+				{
+					final ResolvedModuleName resolved =
+						currentRuntime().moduleNameResolver().resolve(
+							new ModuleName(
+								module.moduleName().asNativeString()),
+							null);
+					sourceFileName = resolved.getSourceReference().getPath();
+				}
+				catch (final UnresolvedDependencyException e)
+				{
+					// Maybe the file was deleted.  Play nice.
+				}
+			}
+		}
 		final JVMTranslator jvmTranslator = new JVMTranslator(
 			code,
 			name(code),
+			sourceFileName,
 			controlFlowGraph,
 			theInstructions.toArray(new L2Instruction[0]));
 		jvmTranslator.translate();
@@ -788,15 +828,11 @@ implements ExecutableChunk
 	{
 		if (Interpreter.debugL2)
 		{
-			final String className = executableChunk.getClass().getSimpleName();
-			final String[] parts = className.split("_");
-			final String uuidStart = parts.length >= 2 ? parts[1] : className;
 			Interpreter.log(
 				Interpreter.loggerDebugL2,
 				Level.INFO,
-				"Running chunk {0} ({1}) at offset {2}.",
+				"Running chunk {0} at offset {1}.",
 				name(),
-				uuidStart,
 				offset);
 		}
 		return executableChunk.runChunk(interpreter, offset);
@@ -867,8 +903,8 @@ implements ExecutableChunk
 	@SuppressWarnings({"unused", "AssignmentToStaticFieldFromInstanceMethod"})
 	public String dumpChunk ()
 	{
-		final JVMTranslator translator =
-			new JVMTranslator(code, name(), controlFlowGraph, instructions);
+		final JVMTranslator translator = new JVMTranslator(
+			code, name(), null, controlFlowGraph, instructions);
 		final boolean savedDebugFlag = JVMTranslator.debugJVM;
 		JVMTranslator.debugJVM = true;
 		try
@@ -901,17 +937,23 @@ implements ExecutableChunk
 	 */
 	private static L2Chunk createDefaultChunk ()
 	{
+		final Zone returnFromCallZone =
+			PROPAGATE_REIFICATION_FOR_INVOKE.createZone(
+				"Return into L1 reified continuation from call");
+		final Zone resumeAfterInterruptZone =
+			PROPAGATE_REIFICATION_FOR_INVOKE.createZone(
+				"Resume L1 reified continuation after interrupt");
 		final L2BasicBlock initialBlock = new L2BasicBlock("Default entry");
-		final L2BasicBlock reenterFromRestartBlock =
-			new L2BasicBlock("Default restart");
-		final L2BasicBlock loopBlock =
-			new L2BasicBlock("Default loop");
-		final L2BasicBlock reenterFromCallBlock =
-			new L2BasicBlock("Default return from call");
-		final L2BasicBlock reenterFromInterruptBlock =
-			new L2BasicBlock("Default reentry from interrupt");
-		final L2BasicBlock unreachableBlock =
-			new L2BasicBlock("Unreachable");
+		final L2BasicBlock reenterFromRestartBlock = new L2BasicBlock(
+			"Default restart");
+		final L2BasicBlock loopBlock = new L2BasicBlock(
+			"Default loop", true, null);
+		final L2BasicBlock reenterFromCallBlock = new L2BasicBlock(
+			"Default return from call", false, returnFromCallZone);
+		final L2BasicBlock reenterFromInterruptBlock = new L2BasicBlock(
+			"Default reentry from interrupt", false, resumeAfterInterruptZone);
+		final L2BasicBlock unreachableBlock = new L2BasicBlock(
+			"Unreachable");
 
 		final L2ControlFlowGraph controlFlowGraph =
 			generateDefaultChunkControlFlowGraph(

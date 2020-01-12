@@ -45,6 +45,7 @@ import com.avail.exceptions.AvailErrorCode.E_ILLEGAL_TRACE_MODE
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 
 /**
  * **Primitive:** Enable [variable write tracing
@@ -54,12 +55,14 @@ import com.avail.interpreter.Primitive.Flag.HasSideEffect
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_TraceVariableWrites : Primitive(0, HasSideEffect)
+object P_TraceVariableWrites : Primitive(
+	0, HasSideEffect, WritesToHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(0)
-		if (interpreter.traceVariableReadsBeforeWrites() || interpreter.traceVariableWrites())
+		if (interpreter.traceVariableReadsBeforeWrites()
+			|| interpreter.traceVariableWrites())
 		{
 			return interpreter.primitiveFailure(E_ILLEGAL_TRACE_MODE)
 		}

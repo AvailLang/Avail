@@ -34,6 +34,7 @@ package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
@@ -42,6 +43,10 @@ import com.avail.interpreter.levelTwo.L1InstructionStepper;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE;
+import com.avail.interpreter.levelTwo.ReadsHiddenVariable;
 import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
@@ -68,13 +73,19 @@ import static org.objectweb.asm.Opcodes.DUP;
  * loaded with the arguments to this primitive function, and expect the
  * code/function/chunk to have been updated for this primitive function.
  * Try to execute a primitive, setting the {@link Interpreter#returnNow} flag
- * and {@link Interpreter#latestResult() latestResult} if successful.
- * The caller always has the responsibility of checking the return value, if
- * applicable at that call site.
+ * and {@link Interpreter#setLatestResult(A_BasicObject) latestResult} if
+ * successful. The caller always has the responsibility of checking the return
+ * value, if applicable at that call site.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@ReadsHiddenVariable({
+	CURRENT_CONTINUATION.class,
+	CURRENT_FUNCTION.class,
+//	CURRENT_ARGUMENTS.class,
+	LATEST_RETURN_VALUE.class,
+})
 public final class L2_TRY_PRIMITIVE
 extends L2Operation
 {
@@ -220,23 +231,26 @@ extends L2Operation
 				assert primitive.hasFlag(CanSwitchContinuations);
 
 				final AvailObject newContinuation =
-					stripNull(interpreter.reifiedContinuation);
+					stripNull(interpreter.getReifiedContinuation());
 				final @Nullable A_Function newFunction = interpreter.function;
 				final @Nullable L2Chunk newChunk = interpreter.chunk;
 				final int newOffset = interpreter.offset;
 				final boolean newReturnNow = interpreter.returnNow;
 				final @Nullable AvailObject newReturnValue =
-					newReturnNow ? interpreter.latestResult() : null;
-				return interpreter.abandonStackThen(
+					newReturnNow ? interpreter.getLatestResult() : null;
+				interpreter.isReifying = true;
+				return new StackReifier(
+					false,
 					stripNull(primitive.getReificationAbandonmentStat()),
 					() ->
 					{
-						interpreter.reifiedContinuation = newContinuation;
+						interpreter.setReifiedContinuation(newContinuation);
 						interpreter.function = newFunction;
 						interpreter.chunk = newChunk;
 						interpreter.offset = newOffset;
 						interpreter.returnNow = newReturnNow;
-						interpreter.latestResult(newReturnValue);
+						interpreter.setLatestResult(newReturnValue);
+						interpreter.isReifying = false;
 					});
 			}
 			case FIBER_SUSPENDED:
@@ -281,7 +295,19 @@ extends L2Operation
 		final int savedOffset = interpreter.offset;
 		final AvailObject[] savedPointers = stepper.pointers;
 
-		return interpreter.reifyThen(
+		// Continue in this frame where it left off, right after
+		// the L2_TRY_OPTIONAL_PRIMITIVE instruction.
+		// Inline and non-inline primitives are each allowed to
+		// change the continuation.  The stack has already been
+		// reified here, so just continue in whatever frame was
+		// set up by the continuation.
+		// The exitNow flag is set to ensure the interpreter
+		// will wind down correctly.  It should be in a state
+		// where all frames have been reified, so returnNow
+		// would be unnecessary.
+		interpreter.isReifying = true;
+		return new StackReifier(
+			true,
 			stripNull(primitive.getReificationForNoninlineStat()),
 			() ->
 			{
@@ -353,6 +379,7 @@ extends L2Operation
 						break;
 					}
 				}
+				interpreter.isReifying = false;
 			});
 	}
 
@@ -392,13 +419,13 @@ extends L2Operation
 
 		final Primitive primitive = primitiveOperand.primitive;
 		translator.loadInterpreter(method);
-		//interp
+		// interpreter
 		method.visitInsn(DUP);
-		//interp,interp
-		Interpreter.interpreterFunctionField.generateRead(translator, method);
-		//interp,fn
+		// interpreter, interpreter
+		Interpreter.interpreterFunctionField.generateRead(method);
+		// interpreter, fn
 		translator.literal(method, primitive);
-		//interp,fn,prim
+		// interpreter, fn, prim
 		if (primitive.hasFlag(CanInline))
 		{
 			// :: return L2_TRY_PRIMITIVE.attemptInlinePrimitive(
