@@ -50,10 +50,10 @@ import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
-import static com.avail.interpreter.levelTwo.operation.L2ConditionalJump.BranchReduction.*;
+import static com.avail.interpreter.levelTwo.operation.L2ConditionalJump.BranchReduction.AlwaysTaken;
+import static com.avail.interpreter.levelTwo.operation.L2ConditionalJump.BranchReduction.NeverTaken;
+import static com.avail.interpreter.levelTwo.operation.L2ConditionalJump.BranchReduction.SometimesTaken;
 import static org.objectweb.asm.Opcodes.IFNE;
-import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Type.*;
 
 /**
  * Conditionally jump, depending on whether the first type is a subtype of the
@@ -158,12 +158,7 @@ extends L2ConditionalJump
 		// :: else goto notSubtype;
 		translator.load(method, firstReg.register());
 		translator.load(method, secondReg.register());
-		method.visitMethodInsn(
-			INVOKEINTERFACE,
-			getInternalName(A_Type.class),
-			"isSubtypeOf",
-			getMethodDescriptor(BOOLEAN_TYPE, getType(A_Type.class)),
-			true);
+		A_Type.isSubtypeOfMethod.generateCall(method);
 		emitBranch(
 			translator, method, instruction, IFNE, isSubtype, notSubtype);
 	}

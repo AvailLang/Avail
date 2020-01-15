@@ -130,14 +130,7 @@ extends L2Operation
 		// :: unionType = firstInputType.typeUnion(secondInputType);
 		translator.load(method, firstType.register());
 		translator.load(method, secondType.register());
-		method.visitMethodInsn(
-			INVOKEINTERFACE,
-			getInternalName(A_Type.class),
-			"typeUnion",
-			getMethodDescriptor(
-				getType(A_Type.class),
-				getType(A_Type.class)),
-			true);
+		A_Type.typeUnionMethod.generateCall(method);
 		translator.store(method, outputType.register());
 	}
 }

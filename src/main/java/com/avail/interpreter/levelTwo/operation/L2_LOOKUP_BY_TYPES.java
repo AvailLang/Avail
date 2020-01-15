@@ -32,7 +32,6 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_Number;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.bundles.A_Bundle;
@@ -51,6 +50,7 @@ import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.RegisterSet;
+import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import org.objectweb.asm.Label;
@@ -67,17 +67,28 @@ import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumeration
 import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
-import static com.avail.descriptor.SetDescriptor.*;
+import static com.avail.descriptor.SetDescriptor.set;
+import static com.avail.descriptor.SetDescriptor.setFromCollection;
+import static com.avail.descriptor.SetDescriptor.toSet;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
-import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.exceptions.AvailErrorCode.E_ABSTRACT_METHOD_DEFINITION;
+import static com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_METHOD_DEFINITION;
+import static com.avail.exceptions.AvailErrorCode.E_FORWARD_METHOD_DEFINITION;
+import static com.avail.exceptions.AvailErrorCode.E_NO_METHOD;
+import static com.avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static com.avail.interpreter.levelTwo.L2OperandType.PC;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR;
+import static com.avail.interpreter.levelTwo.L2OperandType.SELECTOR;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType;
+import static com.avail.optimizer.jvm.CheckedMethod.staticMethod;
 import static java.util.stream.Collectors.toList;
-import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Type.*;
+import static org.objectweb.asm.Opcodes.CHECKCAST;
+import static org.objectweb.asm.Opcodes.GOTO;
+import static org.objectweb.asm.Type.getInternalName;
 
 /**
  * Look up the method to invoke. Use the provided vector of argument types to
@@ -292,6 +303,18 @@ extends L2ControlFlowOperation
 		return definitionToCall.bodyBlock();
 	}
 
+	/**
+	 * The {@link CheckedMethod} for {@link #lookup(Interpreter, A_Bundle,
+	 * AvailObject[])}.
+	 */
+	private static final CheckedMethod lookupMethod = staticMethod(
+		L2_LOOKUP_BY_TYPES.class,
+		"lookup",
+		A_Function.class,
+		Interpreter.class,
+		A_Bundle.class,
+		AvailObject[].class);
+
 	@Override
 	public void translateToJVM (
 		final JVMTranslator translator,
@@ -319,16 +342,7 @@ extends L2ControlFlowOperation
 		translator.literal(method, bundleOperand.bundle);
 		translator.objectArray(
 			method, argTypeRegs.elements(), AvailObject.class);
-		method.visitMethodInsn(
-			INVOKESTATIC,
-			getInternalName(L2_LOOKUP_BY_TYPES.class),
-			"lookup",
-			getMethodDescriptor(
-				getType(A_Function.class),
-				getType(Interpreter.class),
-				getType(A_Bundle.class),
-				getType(AvailObject[].class)),
-			false);
+		lookupMethod.generateCall(method);
 		translator.store(method, functionReg.register());
 		// ::    goto lookupSucceeded;
 		// Note that we cannot potentially eliminate this branch with a
@@ -340,12 +354,7 @@ extends L2ControlFlowOperation
 		// :: } catch (MethodDefinitionException e) {
 		method.visitLabel(catchStart);
 		// ::    errorCode = e.numericCode();
-		method.visitMethodInsn(
-			INVOKEVIRTUAL,
-			getInternalName(AvailException.class),
-			"numericCode",
-			getMethodDescriptor(getType(A_Number.class)),
-			false);
+		AvailException.getNumericCodeMethod().generateCall(method);
 		method.visitTypeInsn(
 			CHECKCAST,
 			getInternalName(AvailObject.class));

@@ -47,9 +47,10 @@ import java.util.function.Consumer;
 
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Type.*;
+import static com.avail.interpreter.levelTwo.L2OperandType.CONSTANT;
+import static com.avail.interpreter.levelTwo.L2OperandType.PC;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
+import static org.objectweb.asm.Opcodes.IFNE;
 
 /**
  * Jump to the target if the object is numerically greater than or equal to the
@@ -114,20 +115,10 @@ extends L2ConditionalJump
 		// :: comparison = first.numericCompare(second);
 		translator.load(method, value.register());
 		translator.literal(method, constant.object);
-		method.visitMethodInsn(
-			INVOKEINTERFACE,
-			getInternalName(A_Number.class),
-			"numericCompare",
-			getMethodDescriptor(getType(Order.class), getType(A_Number.class)),
-			true);
+		A_Number.numericCompareMethod.generateCall(method);
 		// :: if (comparison.isMoreOrEqual()) goto ifTrue;
 		// :: else goto ifFalse;
-		method.visitMethodInsn(
-			INVOKEVIRTUAL,
-			getInternalName(Order.class),
-			"isMoreOrEqual",
-			getMethodDescriptor(BOOLEAN_TYPE),
-			false);
+		Order.isMoreOrEqualMethod.generateCall(method);
 		emitBranch(
 			translator,
 			method,

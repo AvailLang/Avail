@@ -34,7 +34,10 @@ package com.avail.descriptor;
 
 import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.interpreter.Interpreter;
+import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+
+import static com.avail.optimizer.jvm.CheckedMethod.instanceMethod;
 
 /**
  * {@code A_Function} is an interface that specifies the operations specific to
@@ -58,6 +61,12 @@ extends A_BasicObject
 	 */
 	@ReferencedInGeneratedCode
 	A_RawFunction code ();
+
+	/** The {@link CheckedMethod} for {@link #code()}. */
+	CheckedMethod codeMethod = instanceMethod(
+		A_Function.class,
+		"code",
+		A_RawFunction.class);
 
 	/**
 	 * Answer the number of lexically captured variables or constants held by
@@ -90,6 +99,13 @@ extends A_BasicObject
 	@ReferencedInGeneratedCode
 	AvailObject outerVarAt (int index);
 
+	/** The {@link CheckedMethod} for {@link #outerVarAt(int)}. */
+	CheckedMethod outerVarAtMethod = instanceMethod(
+		A_Function.class,
+		"outerVarAt",
+		AvailObject.class,
+		int.class);
+
 	/**
 	 * Set the specified captured variable/constant slot to the given variable
 	 * or constant value.
@@ -99,4 +115,15 @@ extends A_BasicObject
 	 */
 	@ReferencedInGeneratedCode
 	void outerVarAtPut (int index, AvailObject value);
+
+	/**
+	 * The {@link CheckedMethod} for {@link #outerVarAtPut(int,
+	 * AvailObject)}.
+	 */
+	CheckedMethod outerVarAtPutMethod = instanceMethod(
+		A_Function.class,
+		"outerVarAtPut",
+		void.class,
+		int.class,
+		AvailObject.class);
 }

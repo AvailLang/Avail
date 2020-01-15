@@ -36,7 +36,6 @@ import com.avail.descriptor.AbstractEnumerationTypeDescriptor;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.InstanceMetaDescriptor;
 import com.avail.descriptor.InstanceTypeDescriptor;
-import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
@@ -57,8 +56,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
 import static org.objectweb.asm.Opcodes.CHECKCAST;
-import static org.objectweb.asm.Opcodes.INVOKESTATIC;
-import static org.objectweb.asm.Type.*;
+import static org.objectweb.asm.Type.getInternalName;
 
 /**
  * Extract the {@link InstanceTypeDescriptor exact type} of an object in a
@@ -166,41 +164,20 @@ extends L2Operation
 		if (value.restriction().containedByType(NONTYPE.o()))
 		{
 			// The value will *never* be a type.
-			method.visitMethodInsn(
-				INVOKESTATIC,
-				getInternalName(InstanceTypeDescriptor.class),
-				"instanceType",
-				getMethodDescriptor(
-					getType(AvailObject.class),
-					getType(A_BasicObject.class)),
-				false);
+			InstanceTypeDescriptor.instanceTypeMethod.generateCall(method);
 		}
 		else if (value.restriction().containedByType(topMeta()))
 		{
-			// The value will *always* be a type.
-			method.visitMethodInsn(
-				INVOKESTATIC,
-				getInternalName(InstanceMetaDescriptor.class),
-				"instanceMeta",
-				getMethodDescriptor(
-					getType(A_Type.class),
-					getType(A_Type.class)),
-				false);
-			// Strengthen to AvailObject
+			// The value will *always* be a type. Strengthen to AvailObject.
+			InstanceMetaDescriptor.instanceMetaMethod.generateCall(method);
 			method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
 		}
 		else
 		{
 			// The value could be either a type or a non-type.
-			method.visitMethodInsn(
-				INVOKESTATIC,
-				getInternalName(
-					AbstractEnumerationTypeDescriptor.class),
-				"instanceTypeOrMetaOn",
-				getMethodDescriptor(
-					getType(A_Type.class),
-					getType(A_BasicObject.class)),
-				false);
+			AbstractEnumerationTypeDescriptor
+				.instanceTypeOrMetaOnMethod
+				.generateCall(method);
 			// Strengthen to AvailObject
 			method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
 		}

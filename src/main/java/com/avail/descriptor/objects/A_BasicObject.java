@@ -40,6 +40,7 @@ import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.parsing.A_Phrase;
 import com.avail.descriptor.tuples.A_String;
 import com.avail.descriptor.tuples.A_Tuple;
+import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.Continuation0;
@@ -52,6 +53,8 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
+
+import static com.avail.optimizer.jvm.CheckedMethod.instanceMethod;
 
 /**
  * {@code A_BasicObject} is an interface that specifies all generally applicable
@@ -282,6 +285,13 @@ extends JSONFriendly
 	@SuppressWarnings("OverloadedMethodsWithSameNumberOfParameters")
 	@ReferencedInGeneratedCode
 	boolean equals (A_BasicObject another);
+
+	/** The {@link CheckedMethod} for {@link #equals(A_BasicObject)}. */
+	CheckedMethod equalsMethod = instanceMethod(
+		A_BasicObject.class,
+		"equals",
+		boolean.class,
+		A_BasicObject.class);
 
 	/**
 	 * Answer whether the receiver, an {@linkplain AvailObject object}, and the
@@ -655,6 +665,13 @@ extends JSONFriendly
 	@ReferencedInGeneratedCode
 	boolean isInstanceOf (A_Type aType);
 
+	/** The {@link CheckedMethod} for {@link #isInstanceOf(A_Type)}. */
+	CheckedMethod isInstanceOfMethod = instanceMethod(
+		A_BasicObject.class,
+		"isInstanceOf",
+		boolean.class,
+		A_Type.class);
+
 	/**
 	 * Dispatch to the descriptor.
 	 */
@@ -747,6 +764,12 @@ extends JSONFriendly
 	@ReferencedInGeneratedCode
 	AvailObject makeImmutable ();
 
+	/** The {@link CheckedMethod} for {@link #makeImmutable()}. */
+	CheckedMethod makeImmutableMethod = instanceMethod(
+		A_BasicObject.class,
+		"makeImmutable",
+		AvailObject.class);
+
 	/**
 	 * Dispatch to the descriptor.
 	 */
@@ -758,6 +781,12 @@ extends JSONFriendly
 	 */
 	@ReferencedInGeneratedCode
 	AvailObject makeSubobjectsImmutable ();
+
+	/** The {@link CheckedMethod} for {@link #makeSubobjectsImmutable()}. */
+	CheckedMethod makeSubobjectsImmutableMethod = instanceMethod(
+		A_BasicObject.class,
+		"makeSubobjectsImmutable",
+		AvailObject.class);
 
 	/**
 	 * Dispatch to the descriptor.
@@ -774,6 +803,12 @@ extends JSONFriendly
 	 */
 	@ReferencedInGeneratedCode
 	AvailObject traversed ();
+
+	/** The {@link CheckedMethod} for {@link #traversed()}. */
+	CheckedMethod traversedMethod = instanceMethod(
+		A_BasicObject.class,
+		"traversed",
+		AvailObject.class);
 
 	/**
 	 * Dispatch to the descriptor.
@@ -810,6 +845,12 @@ extends JSONFriendly
 	 */
 	@ReferencedInGeneratedCode
 	boolean isInt ();
+
+	/** The {@link CheckedMethod} for {@link #isInt()}. */
+	CheckedMethod isIntMethod = instanceMethod(
+		A_BasicObject.class,
+		"isInt",
+		boolean.class);
 
 	/**
 	 * @return
@@ -888,6 +929,12 @@ extends JSONFriendly
 	 */
 	@ReferencedInGeneratedCode
 	boolean isDouble ();
+
+	/** The {@link CheckedMethod} for {@link #isDouble()}. */
+	CheckedMethod isDoubleMethod = instanceMethod(
+		A_BasicObject.class,
+		"isDouble",
+		boolean.class);
 
 	/**
 	 * @return

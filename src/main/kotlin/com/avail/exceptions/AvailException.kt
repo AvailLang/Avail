@@ -34,6 +34,8 @@ package com.avail.exceptions
 
 import com.avail.descriptor.A_Number
 import com.avail.descriptor.AvailObject
+import com.avail.optimizer.jvm.CheckedMethod
+import com.avail.optimizer.jvm.CheckedMethod.instanceMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 
 /**
@@ -89,5 +91,16 @@ open class AvailException : Exception
 	constructor(errorCode: AvailErrorCode, cause: Throwable) : super(cause)
 	{
 		this.errorCode = errorCode
+	}
+
+	companion object
+	{
+		/** The [CheckedMethod] for [numericCode]. */
+		@JvmStatic
+		val numericCodeMethod: CheckedMethod = instanceMethod(
+			AvailException::class.java,
+			"numericCode",
+			A_Number::class.java)
+
 	}
 }

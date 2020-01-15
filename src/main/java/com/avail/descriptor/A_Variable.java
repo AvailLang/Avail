@@ -41,7 +41,10 @@ import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.AvailException;
 import com.avail.exceptions.VariableGetException;
 import com.avail.exceptions.VariableSetException;
+import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+
+import static com.avail.optimizer.jvm.CheckedMethod.instanceMethod;
 
 /**
  * {@code A_Variable} is an interface that specifies the behavior specific to
@@ -84,6 +87,12 @@ extends A_ChunkDependable
 	@ReferencedInGeneratedCode
 	AvailObject getValue () throws VariableGetException;
 
+	/** The {@link CheckedMethod} for {@link #getValue()}. */
+	CheckedMethod getValueMethod = instanceMethod(
+		A_Variable.class,
+		"getValue",
+		AvailObject.class);
+
 	/**
 	 * Answer {@code true} if the variable currently has a value, otherwise
 	 * answer {@code false}.  No value is typically represented by the
@@ -104,6 +113,13 @@ extends A_ChunkDependable
 	@ReferencedInGeneratedCode
 	void setValue (A_BasicObject newValue) throws VariableSetException;
 
+	/** The {@link CheckedMethod} for {@link #setValue(A_BasicObject)}. */
+	CheckedMethod setValueMethod = instanceMethod(
+		A_Variable.class,
+		"setValue",
+		void.class,
+		A_BasicObject.class);
+
 	/**
 	 * Assign the given value to the {@linkplain VariableDescriptor variable}.
 	 * The client should ensure that the value is acceptable for the variable.
@@ -112,6 +128,15 @@ extends A_ChunkDependable
 	 */
 	@ReferencedInGeneratedCode
 	void setValueNoCheck (A_BasicObject newValue);
+
+	/**
+	 * The {@link CheckedMethod} for {@link #setValueNoCheck(A_BasicObject)}.
+	 */
+	CheckedMethod setValueNoCheckMethod = instanceMethod(
+		A_Variable.class,
+		"setValueNoCheck",
+		void.class,
+		A_BasicObject.class);
 
 	/**
 	 * Read the variable's value and set it to the new value.  Answer the old
@@ -279,9 +304,9 @@ extends A_ChunkDependable
 	 *
 	 * @param key The key to look for in the map.
 	 * @throws VariableGetException If the variable is uninitialized.
+	 * @return {@code true} iff the map in this variable has the specified key.
 	 */
-	boolean variableMapHasKey (
-		final A_BasicObject key)
+	boolean variableMapHasKey (final A_BasicObject key)
 	throws VariableGetException;
 
 	/**

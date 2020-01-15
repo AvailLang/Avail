@@ -53,11 +53,13 @@ import java.util.function.Consumer;
 
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static com.avail.interpreter.levelTwo.operation.L2ConditionalJump.BranchReduction.*;
+import static com.avail.interpreter.levelTwo.L2OperandType.CONSTANT;
+import static com.avail.interpreter.levelTwo.L2OperandType.PC;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
+import static com.avail.interpreter.levelTwo.operation.L2ConditionalJump.BranchReduction.AlwaysTaken;
+import static com.avail.interpreter.levelTwo.operation.L2ConditionalJump.BranchReduction.NeverTaken;
+import static com.avail.interpreter.levelTwo.operation.L2ConditionalJump.BranchReduction.SometimesTaken;
 import static org.objectweb.asm.Opcodes.IFNE;
-import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Type.*;
 
 /**
  * Jump to the target if the object is an instance of the constant type.
@@ -202,12 +204,7 @@ extends L2ConditionalJump
 		// :: else goto notKind;
 		translator.load(method, value.register());
 		translator.literal(method, constantType.object);
-		method.visitMethodInsn(
-			INVOKEINTERFACE,
-			getInternalName(A_BasicObject.class),
-			"isInstanceOf",
-			getMethodDescriptor(BOOLEAN_TYPE, getType(A_Type.class)),
-			true);
+		A_BasicObject.isInstanceOfMethod.generateCall(method);
 		emitBranch(translator, method, instruction, IFNE, ifKind, ifNotKind);
 	}
 }

@@ -36,6 +36,7 @@
       <w>chevrons</w>
       <w>childless</w>
       <w>chromatic</w>
+      <w>clinit</w>
       <w>cloneable</w>
       <w>coda</w>
       <w>com</w>
@@ -132,8 +133,10 @@
       <w>keyhole</w>
       <w>lexeme</w>
       <w>lineage</w>
+      <w>liveness</w>
       <w>locale</w>
       <w>locales</w>
+      <w>lookupswitch</w>
       <w>lowercase</w>
       <w>magenta</w>
       <w>malformed</w>
@@ -165,6 +168,7 @@
       <w>noncontradiction</w>
       <w>nullary</w>
       <w>nulling</w>
+      <w>nullprimitiveholder</w>
       <w>nybble</w>
       <w>nybblecode</w>
       <w>nybblecodes</w>

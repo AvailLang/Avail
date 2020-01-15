@@ -43,7 +43,6 @@ import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments;
-import com.avail.optimizer.StackReifier;
 import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
@@ -57,8 +56,6 @@ import static com.avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 import static com.avail.utility.Strings.increaseIndentation;
 import static org.objectweb.asm.Opcodes.ASTORE;
-import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
-import static org.objectweb.asm.Type.*;
 
 /**
  * Create a StackReifier and jump to the "on reification" label.  This will
@@ -217,16 +214,7 @@ extends L2ControlFlowOperation
 		translator.literal(method, actuallyReify.value);
 		translator.literal(method, processInterrupt.value);
 		translator.literal(method, categoryIndex.value);
-		method.visitMethodInsn(
-			INVOKEVIRTUAL,
-			getInternalName(Interpreter.class),
-			"reify",
-			getMethodDescriptor(
-				getType(StackReifier.class),
-				BOOLEAN_TYPE,
-				BOOLEAN_TYPE,
-				INT_TYPE),
-			false);
+		Interpreter.reifyMethod.generateCall(method);
 		method.visitVarInsn(ASTORE, translator.reifierLocal());
 		// Arrange to arrive at the onReification target, which must be an
 		// L2_ENTER_L2_CHUNK.

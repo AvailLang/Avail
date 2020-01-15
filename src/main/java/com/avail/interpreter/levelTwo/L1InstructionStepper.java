@@ -56,6 +56,7 @@ import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint;
 import com.avail.interpreter.levelTwo.operation.L2_INTERPRET_LEVEL_ONE;
 import com.avail.optimizer.StackReifier;
+import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.performance.Statistic;
 import com.avail.performance.StatisticReport;
@@ -84,6 +85,7 @@ import static com.avail.interpreter.Interpreter.assignmentFunction;
 import static com.avail.interpreter.Interpreter.debugL1;
 import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.*;
 import static com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk;
+import static com.avail.optimizer.jvm.CheckedMethod.instanceMethod;
 import static com.avail.utility.Casts.cast;
 import static com.avail.utility.Nulls.stripNull;
 import static java.util.Arrays.asList;
@@ -761,6 +763,12 @@ public final class L1InstructionStepper
 		}
 		return null;
 	}
+
+	/** The {@link CheckedMethod} for {@link #run()}. */
+	public static final CheckedMethod runMethod = instanceMethod(
+		L1InstructionStepper.class,
+		"run",
+		StackReifier.class);
 
 	/**
 	 * Reify the current frame into the specified {@link StackReifier}.

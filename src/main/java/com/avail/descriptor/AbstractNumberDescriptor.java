@@ -34,13 +34,22 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.utility.MutableOrNull;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.EnumSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
-import static com.avail.descriptor.AbstractNumberDescriptor.Order.*;
+import static com.avail.descriptor.AbstractNumberDescriptor.Order.EQUAL;
+import static com.avail.descriptor.AbstractNumberDescriptor.Order.INCOMPARABLE;
+import static com.avail.descriptor.AbstractNumberDescriptor.Order.LESS;
+import static com.avail.descriptor.AbstractNumberDescriptor.Order.MORE;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.DoubleDescriptor.fromDouble;
 import static com.avail.descriptor.FloatDescriptor.fromFloat;
@@ -49,6 +58,7 @@ import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.extendedIntegers;
 import static com.avail.descriptor.TypeDescriptor.Types.DOUBLE;
 import static com.avail.descriptor.TypeDescriptor.Types.FLOAT;
+import static com.avail.optimizer.jvm.CheckedMethod.instanceMethod;
 import static com.avail.utility.Nulls.stripNull;
 
 /**
@@ -133,7 +143,7 @@ extends Descriptor
 		}
 
 		/**
-		 * Construct a new {@link Sign}.
+		 * Construct a new {@code Sign}.
 		 *
 		 * @param limitDouble The most extreme {@code double} with this sign.
 		 */
@@ -233,6 +243,12 @@ extends Descriptor
 			return this == LESS;
 		}
 
+		/** The {@link CheckedMethod} for {@link #isLess()}. */
+		public static final CheckedMethod isLessMethod = instanceMethod(
+			Order.class,
+			"isLess",
+			boolean.class);
+
 		/**
 		 * Answer whether the first value is less than or equivalent to the
 		 * second value.
@@ -246,6 +262,12 @@ extends Descriptor
 			return this == LESS || this == EQUAL;
 		}
 
+		/** The {@link CheckedMethod} for {@link #isLessOrEqual()}. */
+		public static final CheckedMethod isLessOrEqualMethod = instanceMethod(
+			Order.class,
+			"isLessOrEqual",
+			boolean.class);
+
 		/**
 		 * Answer whether the first value is more than the second value.
 		 *
@@ -256,6 +278,12 @@ extends Descriptor
 		{
 			return this == MORE;
 		}
+
+		/** The {@link CheckedMethod} for {@link #isMore()}. */
+		public static final CheckedMethod isMoreMethod = instanceMethod(
+			Order.class,
+			"isMore",
+			boolean.class);
 
 		/**
 		 * Answer whether the first value is more than or equivalent to the
@@ -269,6 +297,12 @@ extends Descriptor
 		{
 			return this == MORE || this == EQUAL;
 		}
+
+		/** The {@link CheckedMethod} for {@link #isMoreOrEqual()}. */
+		public static final CheckedMethod isMoreOrEqualMethod = instanceMethod(
+			Order.class,
+			"isMoreOrEqual",
+			boolean.class);
 
 		/**
 		 * Answer whether the first value is numerically equivalent to the
@@ -828,7 +862,7 @@ extends Descriptor
 	protected abstract boolean o_IsNumericallyIntegral (AvailObject object);
 
 	/**
-	 * Construct a new {@link AbstractNumberDescriptor}.
+	 * Construct a new {@code AbstractNumberDescriptor}.
 	 *
 	 * @param mutability
 	 *            The {@linkplain Mutability mutability} of the new descriptor.

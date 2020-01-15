@@ -135,24 +135,14 @@ extends L2ConditionalJump
 
 		// :: if (!source.isInt()) goto ifNotUnboxed;
 		translator.load(method, source.register());
-		method.visitMethodInsn(
-			INVOKEINTERFACE,
-			getInternalName(A_BasicObject.class),
-			"isInt",
-			getMethodDescriptor(BOOLEAN_TYPE),
-			true);
+		A_BasicObject.isIntMethod.generateCall(method);
 		method.visitJumpInsn(IFEQ, translator.labelFor(ifNotUnboxed.offset()));
 		// :: else {
 		// ::    destination = source.extractInt();
 		// ::    goto ifUnboxed;
 		// :: }
 		translator.load(method, source.register());
-		method.visitMethodInsn(
-			INVOKEINTERFACE,
-			getInternalName(A_Number.class),
-			"extractInt",
-			getMethodDescriptor(INT_TYPE),
-			true);
+		A_Number.extractIntMethod.generateCall(method);
 		translator.store(method, destination.register());
 		translator.jump(method, instruction, ifUnboxed);
 	}

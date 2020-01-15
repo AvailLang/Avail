@@ -48,8 +48,7 @@ import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
-import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Type.*;
+import static org.objectweb.asm.Opcodes.IFNE;
 
 /**
  * Jump to the target if the first value is numerically greater than the second
@@ -113,20 +112,10 @@ extends L2ConditionalJump
 		// :: comparison = first.numericCompare(second);
 		translator.load(method, first.register());
 		translator.load(method, second.register());
-		method.visitMethodInsn(
-			INVOKEINTERFACE,
-			getInternalName(A_Number.class),
-			"numericCompare",
-			getMethodDescriptor(getType(Order.class), getType(A_Number.class)),
-			true);
+		A_Number.numericCompareMethod.generateCall(method);
 		// :: if (comparison.isMore()) goto ifTrue;
 		// :: else goto ifFalse;
-		method.visitMethodInsn(
-			INVOKEVIRTUAL,
-			getInternalName(Order.class),
-			"isMore",
-			getMethodDescriptor(BOOLEAN_TYPE),
-			false);
+		Order.isMoreMethod.generateCall(method);
 		emitBranch(
 			translator, method, instruction, IFNE, ifGreater, ifNotGreater);
 	}

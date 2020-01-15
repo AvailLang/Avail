@@ -906,11 +906,7 @@ public final class JVMTranslator
 		{
 			// :: «generated JVMChunk».class.getClassLoader().parameters
 			method.visitInsn(DUP);
-			method.visitFieldInsn(
-				GETFIELD,
-				getInternalName(JVMChunkClassLoader.class),
-				"parameters",
-				getDescriptor(Object[].class));
+			JVMChunkClassLoader.parametersField.generateRead(method);
 			final int limit = accessors.size();
 			int i = 0;
 			for (final LiteralAccessor accessor : accessors)
@@ -928,11 +924,7 @@ public final class JVMTranslator
 		}
 		// :: «generated JVMChunk».class.getClassLoader().parameters = null;
 		method.visitInsn(ACONST_NULL);
-		method.visitFieldInsn(
-			PUTFIELD,
-			getInternalName(JVMChunkClassLoader.class),
-			"parameters",
-			getDescriptor(Object[].class));
+		JVMChunkClassLoader.parametersField.generateWrite(method);
 		method.visitInsn(RETURN);
 		finishMethod(method);
 	}
@@ -1213,11 +1205,7 @@ public final class JVMTranslator
 	{
 		if (operands.isEmpty())
 		{
-			method.visitFieldInsn(
-				GETSTATIC,
-				getInternalName(JVMChunk.class),
-				"noInts",
-				getDescriptor(int[].class));
+			JVMChunk.noIntsField.generateRead(method);
 		}
 		else
 		{
@@ -1255,11 +1243,7 @@ public final class JVMTranslator
 	{
 		if (operands.isEmpty())
 		{
-			method.visitFieldInsn(
-				GETSTATIC,
-				getInternalName(JVMChunk.class),
-				"noObjects",
-				getDescriptor(AvailObject[].class));
+			JVMChunk.noObjectsField.generateRead(method);
 		}
 		else
 		{
@@ -1546,12 +1530,7 @@ public final class JVMTranslator
 			null);
 		method.visitCode();
 		loadReceiver(method);
-		method.visitMethodInsn(
-			INVOKESPECIAL,
-			getInternalName(JVMChunk.class),
-			"<init>",
-			getMethodDescriptor(VOID_TYPE),
-			false);
+		JVMChunk.chunkConstructor.generateCall(method);
 		method.visitInsn(RETURN);
 		method.visitMaxs(0, 0);
 		method.visitEnd();
@@ -1835,19 +1814,8 @@ public final class JVMTranslator
 		}
 		// :: JVMChunk.badOffset(interpreter.offset);
 		method.visitVarInsn(ALOAD, interpreterLocal());
-		method.visitFieldInsn(
-			GETFIELD,
-			getInternalName(Interpreter.class),
-			"offset",
-			INT_TYPE.getDescriptor());
-		method.visitMethodInsn(
-			INVOKESTATIC,
-			getInternalName(JVMChunk.class),
-			"badOffset",
-			getMethodDescriptor(
-				getType(RuntimeException.class),
-				INT_TYPE),
-			false);
+		Interpreter.offsetField.generateRead(method);
+		JVMChunk.badOffsetMethod.generateCall(method);
 		method.visitInsn(ATHROW);
 		final Label endLabel = new Label();
 		method.visitLabel(endLabel);

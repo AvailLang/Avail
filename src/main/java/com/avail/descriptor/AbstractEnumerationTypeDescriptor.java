@@ -38,6 +38,7 @@ import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
+import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import javax.annotation.Nullable;
@@ -48,6 +49,7 @@ import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.optimizer.jvm.CheckedMethod.staticMethod;
 
 /**
  * I represent the abstract concept of enumerations. In particular, every object
@@ -834,6 +836,16 @@ extends AbstractTypeDescriptor
 		}
 		return instanceType(instance);
 	}
+
+	/**
+	 * The {@link CheckedMethod} for {@link
+	 * #instanceTypeOrMetaOn(A_BasicObject)}.
+	 */
+	public static final CheckedMethod instanceTypeOrMetaOnMethod = staticMethod(
+		AbstractEnumerationTypeDescriptor.class,
+		"instanceTypeOrMetaOn",
+		A_Type.class,
+		A_BasicObject.class);
 
 	/**
 	 * Construct a new {@code AbstractEnumerationTypeDescriptor}.

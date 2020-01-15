@@ -34,7 +34,10 @@ package com.avail.descriptor;
 
 
 import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+
+import static com.avail.optimizer.jvm.CheckedMethod.instanceMethod;
 
 /**
  * {@code AbstractAvailObject} specifies the essential layout and storage
@@ -46,7 +49,7 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Mark van Gulik &lt;todd@availlang.org&gt;
  */
-abstract class AbstractAvailObject
+public abstract class AbstractAvailObject
 {
 	/**
 	 * Check if the object's address is valid. Throw an {@link Error} if it
@@ -94,6 +97,12 @@ abstract class AbstractAvailObject
 	{
 		return descriptor;
 	}
+
+	/** The {@link CheckedMethod} for {@link #descriptor()}. */
+	public static final CheckedMethod descriptorMethod = instanceMethod(
+		AbstractAvailObject.class,
+		"descriptor",
+		AbstractDescriptor.class);
 
 	/**
 	 * Replace the object's {@linkplain #descriptor}, thereby changing its

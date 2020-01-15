@@ -722,6 +722,12 @@ public final class Interpreter
 		return runtime;
 	}
 
+	/** The {@link CheckedMethod} for {@link #runtime()}. */
+	public static final CheckedMethod runtimeMethod = instanceMethod(
+		Interpreter.class,
+		"runtime",
+		AvailRuntime.class);
+
 	/**
 	 * Capture a unique ID between 0 and {@link
 	 * AvailRuntimeConfiguration#maxInterpreters} minus one.
@@ -1046,7 +1052,7 @@ public final class Interpreter
 
 	/** The {@link CheckedField} for the field argsBuffer. */
 	public static final CheckedField interpreterReturningFunctionField =
-		instanceField(Interpreter.class, "returningFunction", A_Function.class);
+		instanceField(Interpreter.class,"returningFunction", A_Function.class);
 
 	/**
 	 * Some operations like {@link L2_INVOKE} instructions have statistics that
@@ -1733,6 +1739,10 @@ public final class Interpreter
 	@ReferencedInGeneratedCode
 	public int offset;
 
+	/** The {@link CheckedField} for {@link #offset}. */
+	public static final CheckedField offsetField = instanceField(
+		Interpreter.class, "offset", int.class);
+
 	/**
 	 * Jump to a new position in the L2 instruction stream.
 	 *
@@ -1788,6 +1798,10 @@ public final class Interpreter
 	@ReferencedInGeneratedCode
 	public final L1InstructionStepper levelOneStepper =
 		new L1InstructionStepper(this);
+
+	/** The {@link CheckedField} for {@link #levelOneStepper}. */
+	public static final CheckedField levelOneStepperField = instanceField(
+		Interpreter.class, "levelOneStepper", L1InstructionStepper.class);
 
 	/**
 	 * The value of the {@linkplain AvailRuntime#clock clock} when the
@@ -2138,6 +2152,16 @@ public final class Interpreter
 	}
 
 	/**
+	 * The {@link CheckedMethod} for {@link #reifierToRestart(
+	 * A_Continuation)}.
+	 */
+	public static final CheckedMethod reifierToRestartMethod = instanceMethod(
+		Interpreter.class,
+		"reifierToRestart",
+		StackReifier.class,
+		A_Continuation.class);
+
+	/**
 	 * Answer a {@link StackReifier} which can be used for reifying the current
 	 * stack by returning it out to Interpreter{@link #run()}.  When it reaches
 	 * there, a lambda embedded in this reifier will run, performing an action
@@ -2203,6 +2227,15 @@ public final class Interpreter
 		}
 	}
 
+	/** The {@link CheckedMethod} for {@link #reify(boolean, boolean, int)}. */
+	public static final CheckedMethod reifyMethod = instanceMethod(
+		Interpreter.class,
+		"reify",
+		StackReifier.class,
+		boolean.class,
+		boolean.class,
+		int.class);
+
 	/**
 	 * Obtain an appropriate {@link StackReifier} for restarting the specified
 	 * {@linkplain A_Continuation continuation} with the given arguments.
@@ -2238,6 +2271,18 @@ public final class Interpreter
 				isReifying = false;
 			});
 	}
+
+	/**
+	 * The {@link CheckedMethod} for {@link #reifierToRestartWithArguments(
+	 * A_Continuation, AvailObject[])}.
+	 */
+	public static final CheckedMethod reifierToRestartWithArgumentsMethod =
+		instanceMethod(
+			Interpreter.class,
+			"reifierToRestartWithArguments",
+			StackReifier.class,
+			A_Continuation.class,
+			AvailObject[].class);
 
 	/**
 	 * Prepare to run a {@link A_Function function} invocation with zero

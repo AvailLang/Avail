@@ -46,6 +46,7 @@ import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.StackReifier;
+import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.performance.Statistic;
@@ -60,10 +61,14 @@ import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.VariableDescriptor.newVariableWithOuterType;
 import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RESUME;
 import static com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk;
+import static com.avail.optimizer.jvm.CheckedMethod.staticMethod;
 import static com.avail.utility.Nulls.stripNull;
 import static java.util.Arrays.asList;
-import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Type.*;
+import static org.objectweb.asm.Opcodes.ALOAD;
+import static org.objectweb.asm.Opcodes.ARETURN;
+import static org.objectweb.asm.Opcodes.ASTORE;
+import static org.objectweb.asm.Opcodes.DUP;
+import static org.objectweb.asm.Opcodes.IFNULL;
 
 /**
  * This operation is only used when entering a function that uses the
@@ -215,6 +220,13 @@ extends L2Operation
 		return null;
 	}
 
+	/** The {@link CheckedMethod} for {@link #prepare(Interpreter)}. */
+	private static final CheckedMethod prepareMethod = staticMethod(
+		L2_PREPARE_NEW_FRAME_FOR_L1.class,
+		"prepare",
+		StackReifier.class,
+		Interpreter.class);
+
 	@Override
 	public void translateToJVM (
 		final JVMTranslator translator,
@@ -223,14 +235,7 @@ extends L2Operation
 	{
 		// :: reifier = L2_PREPARE_NEW_FRAME_FOR_L1.prepare(interpreter);
 		translator.loadInterpreter(method);
-		method.visitMethodInsn(
-			INVOKESTATIC,
-			getInternalName(L2_PREPARE_NEW_FRAME_FOR_L1.class),
-			"prepare",
-			getMethodDescriptor(
-				getType(StackReifier.class),
-				getType(Interpreter.class)),
-			false);
+		L2_PREPARE_NEW_FRAME_FOR_L1.prepareMethod.generateCall(method);
 		method.visitInsn(DUP);
 		method.visitVarInsn(ASTORE, translator.reifierLocal());
 		// :: if (reifier == null) goto noReification;

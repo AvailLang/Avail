@@ -32,7 +32,6 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.TupleDescriptor;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.interpreter.levelTwo.L2Instruction;
@@ -50,9 +49,9 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Type.*;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_INT;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
 
 /**
  * Extract an element at a subscript from a {@link TupleDescriptor tuple} that
@@ -135,12 +134,7 @@ extends L2Operation
 		// :: destination = tuple.tupleAt(subscript);
 		translator.load(method, tuple.register());
 		translator.load(method, subscript.register());
-		method.visitMethodInsn(
-			INVOKEINTERFACE,
-			getInternalName(A_Tuple.class),
-			"tupleAt",
-			getMethodDescriptor(getType(AvailObject.class), INT_TYPE),
-			true);
+		A_Tuple.tupleAtMethod.generateCall(method);
 		translator.store(method, destination.register());
 	}
 }

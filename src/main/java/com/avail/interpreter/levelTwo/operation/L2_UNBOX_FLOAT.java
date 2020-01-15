@@ -118,12 +118,7 @@ extends L2Operation
 
 		// :: destination = source.extractDouble();
 		translator.load(method, source.register());
-		method.visitMethodInsn(
-			INVOKEINTERFACE,
-			getInternalName(A_Number.class),
-			"extractDouble",
-			getMethodDescriptor(DOUBLE_TYPE),
-			true);
+		A_Number.extractDoubleMethod.generateCall(method);
 		translator.store(method, destination.register());
 	}
 }

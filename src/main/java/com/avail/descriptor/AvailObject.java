@@ -2574,6 +2574,14 @@ implements
 		return descriptor().o_Iterator(this);
 	}
 
+	/**
+	 * The {@link CheckedMethod} for {@link #iterator()}.
+	 */
+	public static final CheckedMethod iteratorMethod = instanceMethod(
+		AvailObject.class,
+		"iterator",
+		IteratorNotNull.class);
+
 	@Override
 	public Spliterator<AvailObject> spliterator ()
 	{

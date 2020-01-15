@@ -44,7 +44,7 @@ import java.lang.annotation.Target;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@Target({ElementType.METHOD, ElementType.FIELD})
+@Target({ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ReferencedInGeneratedCode
 {

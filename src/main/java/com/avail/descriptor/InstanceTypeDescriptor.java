@@ -37,6 +37,7 @@ import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
+import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
@@ -54,6 +55,7 @@ import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom
 import static com.avail.descriptor.SetDescriptor.generateSetFrom;
 import static com.avail.descriptor.SetDescriptor.singletonSet;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.optimizer.jvm.CheckedMethod.staticMethod;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 
@@ -751,4 +753,13 @@ extends AbstractEnumerationTypeDescriptor
 		result.setSlot(INSTANCE, instance);
 		return result;
 	}
+
+	/**
+	 * The {@link CheckedMethod} for {@link #instanceType(A_BasicObject)}.
+	 */
+	public static final CheckedMethod instanceTypeMethod = staticMethod(
+		InstanceTypeDescriptor.class,
+		"instanceType",
+		AvailObject.class,
+		A_BasicObject.class);
 }

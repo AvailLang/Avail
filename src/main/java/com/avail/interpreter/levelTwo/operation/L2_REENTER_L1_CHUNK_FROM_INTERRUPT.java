@@ -38,6 +38,7 @@ import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L1InstructionStepper;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import org.objectweb.asm.MethodVisitor;
@@ -45,6 +46,7 @@ import org.objectweb.asm.MethodVisitor;
 import java.util.logging.Level;
 
 import static com.avail.interpreter.Interpreter.debugL1;
+import static com.avail.optimizer.jvm.CheckedMethod.staticMethod;
 import static com.avail.utility.Nulls.stripNull;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Type.*;
@@ -130,6 +132,13 @@ extends L2Operation
 		stepper.stackp = continuation.stackp();
 	}
 
+	/** The {@link CheckedMethod} for {@link #reenter(Interpreter)}. */
+	private static final CheckedMethod reenterMethod = staticMethod(
+		L2_REENTER_L1_CHUNK_FROM_INTERRUPT.class,
+		"reenter",
+		void.class,
+		Interpreter.class);
+
 	@Override
 	public void translateToJVM (
 		final JVMTranslator translator,
@@ -138,11 +147,6 @@ extends L2Operation
 	{
 		// :: L2_REENTER_L1_CHUNK_FROM_INTERRUPT.reenter();
 		translator.loadInterpreter(method);
-		method.visitMethodInsn(
-			INVOKESTATIC,
-			getInternalName(L2_REENTER_L1_CHUNK_FROM_INTERRUPT.class),
-			"reenter",
-			getMethodDescriptor(VOID_TYPE, getType(Interpreter.class)),
-			false);
+		reenterMethod.generateCall(method);
 	}
 }

@@ -67,6 +67,7 @@ import com.avail.interpreter.primitive.general.P_EmergencyExit;
 import com.avail.interpreter.primitive.general.P_ToString;
 import com.avail.io.IOSystem;
 import com.avail.io.TextInterface;
+import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.performance.Statistic;
 import com.avail.utility.evaluation.Continuation0;
@@ -130,6 +131,7 @@ import static com.avail.descriptor.VariableTypeDescriptor.*;
 import static com.avail.descriptor.atoms.AtomDescriptor.falseObject;
 import static com.avail.descriptor.atoms.AtomDescriptor.trueObject;
 import static com.avail.exceptions.AvailErrorCode.*;
+import static com.avail.optimizer.jvm.CheckedMethod.instanceMethod;
 import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.StackPrinter.trace;
 import static java.lang.Math.min;
@@ -764,6 +766,16 @@ public final class AvailRuntime
 	}
 
 	/**
+	 * The {@link CheckedMethod} for
+	 * {@link #resultDisagreedWithExpectedTypeFunction()}.
+	 */
+	public static final CheckedMethod
+		resultDisagreedWithExpectedTypeFunctionMethod = instanceMethod(
+			AvailRuntime.class,
+			"resultDisagreedWithExpectedTypeFunction",
+			A_Function.class);
+
+	/**
 	 * Answer the {@linkplain FunctionDescriptor function} to invoke whenever
 	 * a {@linkplain VariableDescriptor variable} with {@linkplain
 	 * VariableAccessReactor write reactors} is written when {@linkplain
@@ -779,6 +791,15 @@ public final class AvailRuntime
 	}
 
 	/**
+	 * The {@link CheckedMethod} for {@link #implicitObserveFunction()}.
+	 */
+	public static final CheckedMethod implicitObserveFunctionMethod =
+		instanceMethod(
+			AvailRuntime.class,
+			"implicitObserveFunction",
+			A_Function.class);
+
+	/**
 	 * Answer the {@linkplain FunctionDescriptor function} to invoke whenever a
 	 * {@linkplain MethodDescriptor method} send fails for a definitional
 	 * reason.
@@ -792,6 +813,38 @@ public final class AvailRuntime
 	{
 		return INVALID_MESSAGE_SEND.get(this);
 	}
+
+	/**
+	 * The {@link CheckedMethod} for {@link #invalidMessageSendFunction()}.
+	 */
+	public static final CheckedMethod invalidMessageSendFunctionMethod =
+		instanceMethod(
+			AvailRuntime.class,
+			"invalidMessageSendFunction",
+			A_Function.class);
+
+	/**
+	 * Answer the {@link FunctionDescriptor function} to invoke whenever an
+	 * unassigned variable is read.
+	 *
+	 * @return The function to invoke whenever an attempt is made to read an
+	 *         unassigned variable.
+	 */
+	@ThreadSafe
+	@ReferencedInGeneratedCode
+	public A_Function unassignedVariableReadFunction ()
+	{
+		return READ_UNASSIGNED_VARIABLE.get(this);
+	}
+
+	/**
+	 * The {@link CheckedMethod} for {@link #unassignedVariableReadFunction()}.
+	 */
+	public static final CheckedMethod unassignedVariableReadFunctionMethod =
+		instanceMethod(
+			AvailRuntime.class,
+			"unassignedVariableReadFunction",
+			A_Function.class);
 
 	/**
 	 * All {@linkplain A_Fiber fibers} that have not yet {@link

@@ -34,7 +34,6 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.descriptor.A_Type;
 import com.avail.descriptor.A_Variable;
 import com.avail.descriptor.VariableDescriptor;
-import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
@@ -55,8 +54,9 @@ import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
-import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Type.*;
+import static org.objectweb.asm.Opcodes.GOTO;
+import static org.objectweb.asm.Opcodes.POP;
+import static org.objectweb.asm.Type.getInternalName;
 
 /**
  * Assign a value to a {@linkplain VariableDescriptor variable} <em>without</em>
@@ -163,12 +163,7 @@ extends L2ControlFlowOperation
 		// ::    variable.setValueNoCheck(value);
 		translator.load(method, variable.register());
 		translator.load(method, value.register());
-		method.visitMethodInsn(
-			INVOKEINTERFACE,
-			getInternalName(A_Variable.class),
-			"setValueNoCheck",
-			getMethodDescriptor(VOID_TYPE, getType(A_BasicObject.class)),
-			true);
+		A_Variable.setValueNoCheckMethod.generateCall(method);
 		// ::    goto success;
 		// Note that we cannot potentially eliminate this branch with a
 		// fall through, because the next instruction expects a
