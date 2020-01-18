@@ -49,7 +49,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import static com.avail.optimizer.jvm.CheckedConstructor.constructorMethod;
 import static com.avail.optimizer.jvm.CheckedField.staticField;
+import static com.avail.optimizer.jvm.CheckedMethod.staticMethod;
 
 /**
  * A {@code JVMChunk} is an {@link ExecutableChunk} for the Java Virtual
@@ -72,8 +74,32 @@ import static com.avail.optimizer.jvm.CheckedField.staticField;
 public abstract class JVMChunk
 implements ExecutableChunk
 {
+	/**
+	 * Construct a {@code JVMChunk}.
+	 */
+	@ReferencedInGeneratedCode
+	public JVMChunk ()
+	{
+		// No implementation required.
+	}
+
+	/**
+	 * The {@link CheckedMethod} for the default constructor.
+	 */
+	public static final CheckedConstructor chunkConstructor =
+		constructorMethod(JVMChunk.class);
+
+	/** An empty {@code int} array. */
+	@ReferencedInGeneratedCode
+	public static final int[] noInts = new int[0];
+
+	/** Access to the field {@link #noInts} */
+	public static CheckedField noIntsField = staticField(
+		JVMChunk.class,
+		"noInts",
+		int[].class);
+
 	/** An empty {@code long} array. */
-	@SuppressWarnings("unused")
 	@ReferencedInGeneratedCode
 	public static final long[] noLongs = new long[0];
 
@@ -83,9 +109,7 @@ implements ExecutableChunk
 		"noLongs",
 		long[].class);
 
-
 	/** An empty {@link AvailObject} array. */
-	@SuppressWarnings("unused")
 	@ReferencedInGeneratedCode
 	public static final AvailObject[] noObjects = new AvailObject[0];
 
@@ -107,11 +131,18 @@ implements ExecutableChunk
 	 */
 	@SuppressWarnings("unused")
 	@ReferencedInGeneratedCode
-	protected static RuntimeException badOffset (final int offset)
+	public static RuntimeException badOffset (final int offset)
 	{
 		throw new RuntimeException(
 			String.format("bad offset %d", offset));
 	}
+
+	/** The {@link CheckedMethod} for {@link #badOffset(int)}. */
+	public static final CheckedMethod badOffsetMethod = staticMethod(
+		JVMChunk.class,
+		"badOffset",
+		RuntimeException.class,
+		int.class);
 
 	/**
 	 * Answer the L1 source code, if any is available.

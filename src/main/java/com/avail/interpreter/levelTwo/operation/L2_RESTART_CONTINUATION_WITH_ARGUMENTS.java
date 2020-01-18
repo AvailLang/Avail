@@ -43,7 +43,6 @@ import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.StackReifier;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
@@ -54,8 +53,6 @@ import java.util.function.Consumer;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR;
 import static org.objectweb.asm.Opcodes.ARETURN;
-import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
-import static org.objectweb.asm.Type.*;
 
 /**
  * Restart the given {@link A_Continuation continuation}, which already has the
@@ -141,15 +138,7 @@ extends L2ControlFlowOperation
 		translator.loadInterpreter(method);
 		translator.load(method, continuation.register());
 		translator.objectArray(method, arguments.elements(), AvailObject.class);
-		method.visitMethodInsn(
-			INVOKEVIRTUAL,
-			getInternalName(Interpreter.class),
-			"reifierToRestartWithArguments",
-			getMethodDescriptor(
-				getType(StackReifier.class),
-				getType(A_Continuation.class),
-				getType(AvailObject[].class)),
-			false);
+		Interpreter.reifierToRestartWithArgumentsMethod.generateCall(method);
 		method.visitInsn(ARETURN);
 	}
 }

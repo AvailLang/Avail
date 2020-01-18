@@ -47,23 +47,23 @@ import java.util.concurrent.atomic.LongAdder
 object JavaLibrary
 {
 	// The Java primitive classes.
-	private val void = java.lang.Void::class.javaPrimitiveType!!
-	private val boolean = java.lang.Boolean::class.javaPrimitiveType!!
-	private val byte = java.lang.Byte::class.javaPrimitiveType!!
-	private val short = java.lang.Short::class.javaPrimitiveType!!
-	private val int = java.lang.Integer::class.javaPrimitiveType!!
-	private val long = java.lang.Long::class.javaPrimitiveType!!
-	private val float = java.lang.Float::class.javaPrimitiveType!!
-	private val double = java.lang.Double::class.javaPrimitiveType!!
+	val void = java.lang.Void::class.javaPrimitiveType!!
+	val boolean = java.lang.Boolean::class.javaPrimitiveType!!
+	val byte = java.lang.Byte::class.javaPrimitiveType!!
+	val short = java.lang.Short::class.javaPrimitiveType!!
+	val int = java.lang.Integer::class.javaPrimitiveType!!
+	val long = java.lang.Long::class.javaPrimitiveType!!
+	val float = java.lang.Float::class.javaPrimitiveType!!
+	val double = java.lang.Double::class.javaPrimitiveType!!
 
 	// The Java boxed primitive classes.
-	private val booleanBoxed = java.lang.Boolean::class.java
-	private val byteBoxed = java.lang.Byte::class.java
-	private val shortBoxed = java.lang.Short::class.java
-	private val intBoxed = java.lang.Integer::class.java
-	private val longBoxed = java.lang.Long::class.java
-	private val floatBoxed = java.lang.Float::class.java
-	private val doubleBoxed = java.lang.Double::class.java
+	val booleanBoxed = java.lang.Boolean::class.java
+	val byteBoxed = java.lang.Byte::class.java
+	val shortBoxed = java.lang.Short::class.java
+	val intBoxed = java.lang.Integer::class.java
+	val longBoxed = java.lang.Long::class.java
+	val floatBoxed = java.lang.Float::class.java
+	val doubleBoxed = java.lang.Double::class.java
 
 	/** Static method to cast from `long` to `double`.  */
 	@JvmStatic

@@ -53,8 +53,7 @@ import java.util.function.Consumer;
 import static com.avail.AvailRuntime.HookType.READ_UNASSIGNED_VARIABLE;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
 import static org.objectweb.asm.Opcodes.CHECKCAST;
-import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
-import static org.objectweb.asm.Type.*;
+import static org.objectweb.asm.Type.getInternalName;
 
 /**
  * Store the current {@link A_Function} from the {@linkplain
@@ -120,18 +119,8 @@ extends L2Operation
 
 		// :: register = interpreter.runtime().unassignedVariableReadFunction();
 		translator.loadInterpreter(method);
-		method.visitMethodInsn(
-			INVOKEVIRTUAL,
-			getInternalName(Interpreter.class),
-			"runtime",
-			getMethodDescriptor(getType(AvailRuntime.class)),
-			false);
-		method.visitMethodInsn(
-			INVOKEVIRTUAL,
-			getInternalName(AvailRuntime.class),
-			"unassignedVariableReadFunction",
-			getMethodDescriptor(getType(A_Function.class)),
-			false);
+		Interpreter.runtimeMethod.generateCall(method);
+		AvailRuntime.unassignedVariableReadFunctionMethod.generateCall(method);
 		method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
 		translator.store(method, function.register());
 	}

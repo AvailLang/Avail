@@ -34,7 +34,6 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.descriptor.A_Function;
 import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
@@ -50,9 +49,11 @@ import org.objectweb.asm.MethodVisitor;
 import static com.avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE;
 import static com.avail.optimizer.L1Translator.translateToLevelTwo;
 import static com.avail.optimizer.L2Generator.OptimizationLevel.optimizationLevel;
+import static com.avail.optimizer.jvm.CheckedMethod.staticMethod;
 import static com.avail.utility.Nulls.stripNull;
-import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Type.*;
+import static org.objectweb.asm.Opcodes.ACONST_NULL;
+import static org.objectweb.asm.Opcodes.ARETURN;
+import static org.objectweb.asm.Opcodes.IFEQ;
 
 /**
  * Explicitly decrement the current compiled code's countdown via {@link
@@ -138,7 +139,7 @@ extends L2Operation
 	 * The {@link CheckedMethod} for {@link #decrement(Interpreter, int)}.
 	 */
 	private static final CheckedMethod decrementMethod =
-		CheckedMethod.staticMethod(
+		staticMethod(
 			L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO.class,
 			"decrement",
 			boolean.class,

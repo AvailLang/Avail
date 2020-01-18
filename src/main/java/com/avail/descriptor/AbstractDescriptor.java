@@ -75,6 +75,7 @@ import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.io.TextInterface;
+import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.performance.Statistic;
 import com.avail.serialization.SerializerOperation;
@@ -102,6 +103,7 @@ import java.util.stream.Stream;
 
 import static com.avail.descriptor.Mutability.MUTABLE;
 import static com.avail.descriptor.Mutability.SHARED;
+import static com.avail.optimizer.jvm.CheckedMethod.instanceMethod;
 import static com.avail.utility.Casts.cast;
 import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.Strings.newlineTab;
@@ -195,6 +197,14 @@ public abstract class AbstractDescriptor
 	{
 		return mutability == MUTABLE;
 	}
+
+	/**
+	 * The {@link CheckedMethod} for {@link #isMutable()}.
+	 */
+	public static final CheckedMethod isMutableMethod = instanceMethod(
+		AbstractDescriptor.class,
+		"isMutable",
+		boolean.class);
 
 	/**
 	 * Answer the {@linkplain Mutability#MUTABLE mutable} version of this

@@ -33,7 +33,6 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.AvailRuntime;
-import com.avail.descriptor.A_Function;
 import com.avail.descriptor.AvailObject;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
@@ -60,8 +59,7 @@ import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
 import static org.objectweb.asm.Opcodes.CHECKCAST;
-import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
-import static org.objectweb.asm.Type.*;
+import static org.objectweb.asm.Type.getInternalName;
 
 /**
  * Store the {@linkplain AvailRuntime#resultDisagreedWithExpectedTypeFunction()
@@ -138,18 +136,10 @@ extends L2Operation
 		// :: destination = interpreter.runtime()
 		// ::    .resultDisagreedWithExpectedTypeFunction();
 		translator.loadInterpreter(method);
-		method.visitMethodInsn(
-			INVOKEVIRTUAL,
-			getInternalName(Interpreter.class),
-			"runtime",
-			getMethodDescriptor(getType(AvailRuntime.class)),
-			false);
-		method.visitMethodInsn(
-			INVOKEVIRTUAL,
-			getInternalName(AvailRuntime.class),
-			"resultDisagreedWithExpectedTypeFunction",
-			getMethodDescriptor(getType(A_Function.class)),
-			false);
+		Interpreter.runtimeMethod.generateCall(method);
+		AvailRuntime
+			.resultDisagreedWithExpectedTypeFunctionMethod
+			.generateCall(method);
 		method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
 		translator.store(method, function.register());
 	}

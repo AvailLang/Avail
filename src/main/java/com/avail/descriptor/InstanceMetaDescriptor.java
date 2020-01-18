@@ -38,6 +38,7 @@ import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
+import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
@@ -52,6 +53,7 @@ import static com.avail.descriptor.IntegerDescriptor.one;
 import static com.avail.descriptor.SetDescriptor.singletonSet;
 import static com.avail.descriptor.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.optimizer.jvm.CheckedMethod.staticMethod;
 
 /**
  * My instances are called <em>instance metas</em>, the types of types.  These
@@ -692,4 +694,13 @@ extends AbstractEnumerationTypeDescriptor
 		result.setSlot(INSTANCE, instance);
 		return result;
 	}
+
+	/**
+	 * The {@link CheckedMethod} for {@link #instanceMeta(A_Type)}.
+	 */
+	public static final CheckedMethod instanceMetaMethod = staticMethod(
+		InstanceMetaDescriptor.class,
+		"instanceMeta",
+		A_Type.class,
+		A_Type.class);
 }

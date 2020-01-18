@@ -33,7 +33,6 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.AvailRuntime;
-import com.avail.descriptor.A_Function;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
@@ -50,8 +49,6 @@ import java.util.function.Consumer;
 
 import static com.avail.AvailRuntime.HookType.IMPLICIT_OBSERVE;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
-import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
-import static org.objectweb.asm.Type.*;
 
 /**
  * Store the {@linkplain AvailRuntime#implicitObserveFunction() implicit
@@ -123,18 +120,8 @@ extends L2Operation
 
 		// :: register = interpreter.runtime().implicitObserveFunction();
 		translator.loadInterpreter(method);
-		method.visitMethodInsn(
-			INVOKEVIRTUAL,
-			getInternalName(Interpreter.class),
-			"runtime",
-			getMethodDescriptor(getType(AvailRuntime.class)),
-			false);
-		method.visitMethodInsn(
-			INVOKEVIRTUAL,
-			getInternalName(AvailRuntime.class),
-			"implicitObserveFunction",
-			getMethodDescriptor(getType(A_Function.class)),
-			false);
+		Interpreter.runtimeMethod.generateCall(method);
+		AvailRuntime.implicitObserveFunctionMethod.generateCall(method);
 		translator.store(method, function.register());
 	}
 }

@@ -47,8 +47,7 @@ import java.util.List;
 
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.ON_RAMP;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
-import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Type.*;
+import static org.objectweb.asm.Opcodes.ARETURN;
 
 /**
  * Use the {@link Interpreter#levelOneStepper} to execute the Level One
@@ -126,17 +125,8 @@ extends L2ControlFlowOperation
 
 		// :: return interpreter.levelOneStepper.run();
 		translator.loadInterpreter(method);
-		method.visitFieldInsn(
-			GETFIELD,
-			getInternalName(Interpreter.class),
-			"levelOneStepper",
-			getDescriptor(L1InstructionStepper.class));
-		method.visitMethodInsn(
-			INVOKEVIRTUAL,
-			getInternalName(L1InstructionStepper.class),
-			"run",
-			getMethodDescriptor(getType(StackReifier.class)),
-			false);
+		Interpreter.levelOneStepperField.generateRead(method);
+		L1InstructionStepper.runMethod.generateCall(method);
 		method.visitInsn(ARETURN);
 	}
 }

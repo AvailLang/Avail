@@ -41,9 +41,12 @@ import com.avail.descriptor.parsing.BlockPhraseDescriptor;
 import com.avail.descriptor.parsing.PhraseDescriptor;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
+import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.util.List;
+
+import static com.avail.optimizer.jvm.CheckedMethod.instanceMethod;
 
 /**
  * {@code A_Type} is an interface that specifies the operations specific to all
@@ -129,6 +132,12 @@ extends A_BasicObject
 	@ReferencedInGeneratedCode
 	A_Type argsTupleType ();
 
+	/** The {@link CheckedMethod} for {@link #argsTupleType()}. */
+	CheckedMethod argsTupleTypeMethod = instanceMethod(
+		A_Type.class,
+		"argsTupleType",
+		A_Type.class);
+
 	/**
 	 * Answer the type of elements that this set type's sets may hold.
 	 *
@@ -138,7 +147,9 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 *
 	 * @param argRestrictions
+	 * @return
 	 */
 	boolean couldEverBeInvokedWith (List<TypeRestriction> argRestrictions);
 
@@ -152,6 +163,8 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 *
+	 * @return
 	 */
 	A_Type defaultType ();
 
@@ -197,78 +210,116 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 *
+	 * @param aType
+	 * @return
 	 */
 	@ReferencedInGeneratedCode
 	boolean isSubtypeOf (A_Type aType);
 
+	/** The {@link CheckedMethod} for {@link #isSubtypeOf(A_Type)}. */
+	CheckedMethod isSubtypeOfMethod = instanceMethod(
+		A_Type.class,
+		"isSubtypeOf",
+		boolean.class,
+		A_Type.class);
+
 	/**
 	 * Dispatch to the descriptor.
+	 *
+	 * @param aVariableType
+	 * @return
 	 */
 	boolean isSupertypeOfVariableType (A_Type aVariableType);
 
 	/**
 	 * Dispatch to the descriptor.
+	 *
+	 * @param aContinuationType
+	 * @return
 	 */
 	boolean isSupertypeOfContinuationType (
 		A_Type aContinuationType);
 
 	/**
 	 * Dispatch to the descriptor.
+	 *
+	 * @param aFiberType
+	 * @return
 	 */
 	boolean isSupertypeOfFiberType (A_Type aFiberType);
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @param aFunctionType
+	 * @return
 	 */
 	boolean isSupertypeOfFunctionType (A_Type aFunctionType);
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @param anIntegerRangeType
+	 * @return
 	 */
 	boolean isSupertypeOfIntegerRangeType (
 		A_Type anIntegerRangeType);
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @param aTokenType
+	 * @return
 	 */
 	boolean isSupertypeOfTokenType (
 		A_Type aTokenType);
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @param aLiteralTokenType
+	 * @return
 	 */
 	boolean isSupertypeOfLiteralTokenType (
 		A_Type aLiteralTokenType);
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @param aMapType
+	 * @return
 	 */
 	boolean isSupertypeOfMapType (AvailObject aMapType);
 
 	/**
 	 * Dispatch to the descriptor.
 	 * @param anObjectType
+	 * @return
 	 */
 	boolean isSupertypeOfObjectType (AvailObject anObjectType);
 
 	/**
+	 * @param aPhraseType
+	 * @return
 	 */
 	boolean isSupertypeOfPhraseType (
 		A_Type aPhraseType);
 
 	/**
 	 * Dispatch to the descriptor
+	 * @param aPojoType
+	 * @return
 	 */
 	boolean isSupertypeOfPojoType (A_Type aPojoType);
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @param primitiveTypeEnum
+	 * @return
 	 */
 	boolean isSupertypeOfPrimitiveTypeEnum (
 		Types primitiveTypeEnum);
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @param aSetType
+	 * @return
 	 */
 	boolean isSupertypeOfSetType (AvailObject aSetType);
 
@@ -279,11 +330,15 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @param aTupleType
+	 * @return
 	 */
 	boolean isSupertypeOfTupleType (AvailObject aTupleType);
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @param anEnumerationType
+	 * @return
 	 */
 	boolean isSupertypeOfEnumerationType (
 		A_BasicObject anEnumerationType);
@@ -311,21 +366,25 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @return
 	 */
 	A_Type keyType ();
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @return
 	 */
 	A_Number lowerBound ();
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @return
 	 */
 	boolean lowerInclusive ();
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @return
 	 */
 	A_BasicObject parent ();
 
@@ -345,11 +404,13 @@ extends A_BasicObject
 	/**
 	 * Also declared in {@link A_Phrase} for {@linkplain BlockPhraseDescriptor
 	 * block phrases} and {@linkplain SendPhraseDescriptor send phrases}.
+	 * @return
 	 */
 	A_Type returnType ();
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @return
 	 */
 	A_Type sizeRange ();
 
@@ -364,12 +425,23 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @param index
+	 * @return
 	 */
 	@ReferencedInGeneratedCode
 	A_Type typeAtIndex (int index);
 
+	/** The {@link CheckedMethod} for {@link #typeAtIndex(int)}. */
+	CheckedMethod typeAtIndexMethod = instanceMethod(
+		A_Type.class,
+		"typeAtIndex",
+		A_Type.class,
+		int.class);
+
 	/**
 	 * Dispatch to the descriptor.
+	 *
+	 * @return
 	 */
 	A_Tuple typeTuple ();
 
@@ -438,6 +510,8 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @param another
+	 * @return
 	 */
 	A_Type typeIntersection (A_Type another);
 
@@ -450,48 +524,63 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @param aFiberType
+	 * @return
 	 */
 	A_Type typeIntersectionOfFiberType (
 		A_Type aFiberType);
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @param aFunctionType
+	 * @return
 	 */
 	A_Type typeIntersectionOfFunctionType (
 		A_Type aFunctionType);
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @param aListNodeType
+	 * @return
 	 */
 	A_Type typeIntersectionOfListNodeType (
 		A_Type aListNodeType);
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @param aVariableType
+	 * @return
 	 */
 	A_Type typeIntersectionOfVariableType (
 		A_Type aVariableType);
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @param aContinuationType
+	 * @return
 	 */
 	A_Type typeIntersectionOfContinuationType (
 		A_Type aContinuationType);
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @param anIntegerRangeType
+	 * @return
 	 */
 	A_Type typeIntersectionOfIntegerRangeType (
 		A_Type anIntegerRangeType);
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @param aMapType
+	 * @return
 	 */
 	A_Type typeIntersectionOfMapType (A_Type aMapType);
 
 	/**
 	 * Dispatch to the descriptor.
 	 * @param anObjectType
+	 * @return
 	 */
 	A_Type typeIntersectionOfObjectType (
 		AvailObject anObjectType);
@@ -518,65 +607,93 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @param aSetType
+	 * @return
 	 */
 	A_Type typeIntersectionOfSetType (A_Type aSetType);
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @param aTupleType
+	 * @return
 	 */
 	A_Type typeIntersectionOfTupleType (
 		A_Type aTupleType);
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @param another
+	 * @return
 	 */
 	@ReferencedInGeneratedCode
 	A_Type typeUnion (A_Type another);
 
+	/** The {@link CheckedMethod} for {@link #typeUnion(A_Type)}. */
+	CheckedMethod typeUnionMethod = instanceMethod(
+		A_Type.class,
+		"typeUnion",
+		A_Type.class,
+		A_Type.class);
+
 	/**
 	 * Dispatch to the descriptor.
+	 * @param aFiberType
+	 * @return
 	 */
 	A_Type typeUnionOfFiberType (
 		A_Type aFiberType);
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @param aFunctionType
+	 * @return
 	 */
 	A_Type typeUnionOfFunctionType (
 		A_Type aFunctionType);
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @param aVariableType
+	 * @return
 	 */
 	A_Type typeUnionOfVariableType (
 		A_Type aVariableType);
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @param aContinuationType
+	 * @return
 	 */
 	A_Type typeUnionOfContinuationType (
 		A_Type aContinuationType);
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @param anIntegerRangeType
+	 * @return
 	 */
 	A_Type typeUnionOfIntegerRangeType (
 		A_Type anIntegerRangeType);
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @param aListNodeType
+	 * @return
 	 */
 	A_Type typeUnionOfListNodeType (
 		A_Type aListNodeType);
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @param aMapType
+	 * @return
 	 */
 	A_Type typeUnionOfMapType (A_Type aMapType);
 
 	/**
 	 * Dispatch to the descriptor.
 	 * @param anObjectType
+	 * @return
 	 */
 	A_Type typeUnionOfObjectType (AvailObject anObjectType);
 
@@ -600,11 +717,15 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @param aSetType
+	 * @return
 	 */
 	A_Type typeUnionOfSetType (A_Type aSetType);
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @param aTupleType
+	 * @return
 	 */
 	A_Type typeUnionOfTupleType (A_Type aTupleType);
 
@@ -615,6 +736,9 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @param startIndex
+	 * @param endIndex
+	 * @return
 	 */
 	A_Type unionOfTypesAtThrough (
 		int startIndex,
@@ -622,11 +746,13 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @return
 	 */
 	A_Number upperBound ();
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @return
 	 */
 	boolean upperInclusive ();
 
@@ -663,6 +789,8 @@ extends A_BasicObject
 
 	/**
 	 * Dispatch to the descriptor.
+	 * @param potentialInstance
+	 * @return
 	 */
 	boolean hasObjectInstance (AvailObject potentialInstance);
 

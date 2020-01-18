@@ -45,6 +45,7 @@ import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.optimizer.L2Generator;
+import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.performance.Statistic;
 import com.avail.utility.evaluation.Continuation0;
@@ -106,6 +107,12 @@ extends A_BasicObject
 	 */
 	@ReferencedInGeneratedCode
 	A_Type functionType ();
+
+	/** The {@link CheckedMethod} for {@link #functionType()}. */
+	CheckedMethod functionTypeMethod = CheckedMethod.instanceMethod(
+		A_RawFunction.class,
+		"functionType",
+		A_Type.class);
 
 	/**
 	 * Answer the tuple of line number deltas for this ram function.  Each entry

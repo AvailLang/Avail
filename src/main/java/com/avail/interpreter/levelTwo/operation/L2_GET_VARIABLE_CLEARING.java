@@ -58,9 +58,13 @@ import java.util.function.Consumer;
 import static com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Type.*;
+import static com.avail.interpreter.levelTwo.L2OperandType.PC;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
+import static org.objectweb.asm.Opcodes.GOTO;
+import static org.objectweb.asm.Opcodes.IFEQ;
+import static org.objectweb.asm.Opcodes.POP;
+import static org.objectweb.asm.Type.getInternalName;
 
 /**
  * Extract the value of a variable, while simultaneously clearing it. If the
@@ -177,33 +181,13 @@ extends L2ControlFlowOperation
 		method.visitLabel(tryStart);
 		// ::    dest = variable.getValue();
 		translator.load(method, variable.register());
-		method.visitMethodInsn(
-			INVOKEINTERFACE,
-			getInternalName(A_Variable.class),
-			"getValue",
-			getMethodDescriptor(getType(AvailObject.class)),
-			true);
+		A_Variable.getValueMethod.generateCall(method);
 		translator.store(method, value.register());
 		// ::    if (variable.traversed().descriptor().isMutable()) {
 		translator.load(method, variable.register());
-		method.visitMethodInsn(
-			INVOKEINTERFACE,
-			getInternalName(A_BasicObject.class),
-			"traversed",
-			getMethodDescriptor(getType(AvailObject.class)),
-			true);
-		method.visitMethodInsn(
-			INVOKEVIRTUAL,
-			getInternalName(AvailObject.class),
-			"descriptor",
-			getMethodDescriptor(getType(AbstractDescriptor.class)),
-			false);
-		method.visitMethodInsn(
-			INVOKEVIRTUAL,
-			getInternalName(AbstractDescriptor.class),
-			"isMutable",
-			getMethodDescriptor(BOOLEAN_TYPE),
-			false);
+		A_BasicObject.traversedMethod.generateCall(method);
+		AvailObject.descriptorMethod.generateCall(method);
+		AbstractDescriptor.isMutableMethod.generateCall(method);
 		final Label elseLabel = new Label();
 		method.visitJumpInsn(IFEQ, elseLabel);
 		// ::       variable.clearValue();
@@ -215,12 +199,7 @@ extends L2ControlFlowOperation
 		method.visitLabel(elseLabel);
 		// ::       dest.makeImmutable();
 		translator.load(method, value.register());
-		method.visitMethodInsn(
-			INVOKEINTERFACE,
-			getInternalName(A_BasicObject.class),
-			"makeImmutable",
-			getMethodDescriptor(getType(AvailObject.class)),
-			true);
+		A_BasicObject.makeImmutableMethod.generateCall(method);
 		method.visitInsn(POP);
 		// ::       goto success;
 		// Note that we cannot potentially eliminate this branch with a

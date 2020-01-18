@@ -33,7 +33,6 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.AvailRuntime;
-import com.avail.descriptor.A_Function;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
@@ -52,8 +51,6 @@ import java.util.function.Consumer;
 
 import static com.avail.AvailRuntime.HookType.INVALID_MESSAGE_SEND;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
-import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
-import static org.objectweb.asm.Type.*;
 
 /**
  * Store the {@linkplain AvailRuntime#invalidMessageSendFunction() invalid
@@ -120,18 +117,8 @@ extends L2Operation
 
 		// :: destination = interpreter.runtime().invalidMessageSendFunction();
 		translator.loadInterpreter(method);
-		method.visitMethodInsn(
-			INVOKEVIRTUAL,
-			getInternalName(Interpreter.class),
-			"runtime",
-			getMethodDescriptor(getType(AvailRuntime.class)),
-			false);
-		method.visitMethodInsn(
-			INVOKEVIRTUAL,
-			getInternalName(AvailRuntime.class),
-			"invalidMessageSendFunction",
-			getMethodDescriptor(getType(A_Function.class)),
-			false);
+		Interpreter.runtimeMethod.generateCall(method);
+		AvailRuntime.invalidMessageSendFunctionMethod.generateCall(method);
 		translator.store(method, function.register());
 	}
 }

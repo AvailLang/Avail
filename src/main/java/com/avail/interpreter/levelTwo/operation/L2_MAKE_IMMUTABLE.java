@@ -32,7 +32,6 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
@@ -51,8 +50,6 @@ import java.util.function.Consumer;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
 import static com.avail.utility.Casts.cast;
-import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Type.*;
 
 /**
  * Force the specified object to be immutable.  Maintenance of conservative
@@ -193,12 +190,7 @@ extends L2Operation
 
 		// :: output = input.makeImmutable();
 		translator.load(method, read.register());
-		method.visitMethodInsn(
-			INVOKEINTERFACE,
-			getInternalName(A_BasicObject.class),
-			"makeImmutable",
-			getMethodDescriptor(getType(AvailObject.class)),
-			true);
+		A_BasicObject.makeImmutableMethod.generateCall(method);
 		translator.store(method, write.register());
 	}
 }

@@ -40,6 +40,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.logging.Level;
 
+import static com.avail.optimizer.jvm.CheckedField.instanceField;
 import static com.avail.utility.Strings.traceFor;
 
 /**
@@ -61,6 +62,12 @@ extends ClassLoader
 	 */
 	@ReferencedInGeneratedCode
 	public @Nullable Object[] parameters;
+
+	/** The {@link CheckedField} for {@link #parameters}. */
+	public static final CheckedField parametersField = instanceField(
+		JVMChunkClassLoader.class,
+		"parameters",
+		Object[].class);
 
 	/**
 	 * Answer an instance of a {@link JVMChunk} {@linkplain Class

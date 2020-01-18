@@ -38,7 +38,11 @@ import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
-import static org.objectweb.asm.Opcodes.*;
+import static org.objectweb.asm.Opcodes.ACONST_NULL;
+import static org.objectweb.asm.Opcodes.GETFIELD;
+import static org.objectweb.asm.Opcodes.GETSTATIC;
+import static org.objectweb.asm.Opcodes.PUTFIELD;
+import static org.objectweb.asm.Opcodes.PUTSTATIC;
 import static org.objectweb.asm.Type.getDescriptor;
 import static org.objectweb.asm.Type.getInternalName;
 
@@ -57,6 +61,9 @@ import static org.objectweb.asm.Type.getInternalName;
  * fields from changing or disappearing under maintenance.  It also keeps
  * field names out of the code generator, making it easier to find the real
  * uses of fields in generator code.</p>
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class CheckedField
 {
@@ -104,6 +111,27 @@ public final class CheckedField
 			receiverClass,
 			fieldName,
 			fieldClass);
+	}
+
+	/**
+	 * Create a {@code CheckedField} for accessing an {@code enum} instance that
+	 * has been annotated with {@link ReferencedInGeneratedCode}, failing if
+	 * there is a problem.
+	 *
+	 * @param <T> The {@code enum} type.
+	 * @param enumInstance The {@code enum} value.
+	 * @return The {@code CheckedField}.
+	 */
+	public static <T extends Enum<T>> CheckedField enumField (
+		final T enumInstance)
+	{
+		final Class<?> enumClass = enumInstance.getDeclaringClass();
+		return new CheckedField(
+			false,
+			true,
+			enumClass,
+			enumInstance.name(),
+			enumClass);
 	}
 
 	/**

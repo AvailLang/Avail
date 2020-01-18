@@ -49,10 +49,10 @@ import java.util.function.Consumer;
 
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static com.avail.interpreter.levelTwo.L2OperandType.PC;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_FLOAT;
 import static org.objectweb.asm.Opcodes.IFEQ;
-import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Type.*;
 
 /**
  * Jump to {@code "if unboxed"} if a {@code double} was unboxed from an {@link
@@ -135,12 +135,7 @@ extends L2ConditionalJump
 
 		// :: if (!source.isDouble()) goto ifNotUnboxed;
 		translator.load(method, source.register());
-		method.visitMethodInsn(
-			INVOKEINTERFACE,
-			getInternalName(A_BasicObject.class),
-			"isDouble",
-			getMethodDescriptor(BOOLEAN_TYPE),
-			true);
+		A_BasicObject.isDoubleMethod.generateCall(method);
 		method.visitJumpInsn(
 			IFEQ, translator.labelFor(ifNotUnboxed.offset()));
 		// :: else {
@@ -148,12 +143,7 @@ extends L2ConditionalJump
 		// ::    goto ifUnboxed;
 		// :: }
 		translator.load(method, source.register());
-		method.visitMethodInsn(
-			INVOKEINTERFACE,
-			getInternalName(A_Number.class),
-			"extractDouble",
-			getMethodDescriptor(DOUBLE_TYPE),
-			true);
+		A_Number.extractDoubleMethod.generateCall(method);
 		translator.store(method, destination.register());
 		translator.jump(method, instruction, ifUnboxed);
 	}

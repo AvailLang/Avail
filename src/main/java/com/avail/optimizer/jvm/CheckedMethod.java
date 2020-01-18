@@ -62,6 +62,9 @@ import static org.objectweb.asm.Type.getMethodDescriptor;
  *
  * <p>Factory methods that indicate the method is part of the Java library are
  * not expected to have the {@link ReferencedInGeneratedCode} annotation.</p>
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class CheckedMethod
 {

@@ -50,9 +50,9 @@ import org.objectweb.asm.MethodVisitor;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Type.*;
+import static com.avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
+import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
 
 /**
  * Extract a captured "outer" variable from a function.  If the outer
@@ -139,12 +139,7 @@ extends L2Operation
 		// :: destination = function.outerVarAt(outerIndex);
 		translator.load(method, function.register());
 		translator.literal(method, outerIndex.value);
-		method.visitMethodInsn(
-			INVOKEINTERFACE,
-			getInternalName(A_Function.class),
-			"outerVarAt",
-			getMethodDescriptor(getType(AvailObject.class), INT_TYPE),
-			true);
+		A_Function.outerVarAtMethod.generateCall(method);
 		translator.store(method, destination.register());
 	}
 }

@@ -222,25 +222,10 @@ extends L2Operation
 		// ::    .typeAtIndex(param)
 		translator.load(method, function.register());
 		FunctionDescriptor.functionCodeMethod.generateCall(method);
-		method.visitMethodInsn(
-			INVOKEINTERFACE,
-			getInternalName(A_RawFunction.class),
-			"functionType",
-			getMethodDescriptor(getType(A_Type.class)),
-			true);
-		method.visitMethodInsn(
-			INVOKEINTERFACE,
-			getInternalName(A_Type.class),
-			"argsTupleType",
-			getMethodDescriptor(getType(A_Type.class)),
-			true);
+		A_RawFunction.functionTypeMethod.generateCall(method);
+		A_Type.argsTupleTypeMethod.generateCall(method);
 		translator.literal(method, parameterIndex.value);
-		method.visitMethodInsn(
-			INVOKEINTERFACE,
-			getInternalName(A_Type.class),
-			"typeAtIndex",
-			getMethodDescriptor(getType(A_Type.class), INT_TYPE),
-			true);
+		A_Type.typeAtIndexMethod.generateCall(method);
 		translator.store(method, parameterType.register());
 	}
 }

@@ -52,11 +52,13 @@ import java.util.function.Consumer;
 import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static com.avail.interpreter.levelTwo.operation.L2ConditionalJump.BranchReduction.*;
+import static com.avail.interpreter.levelTwo.L2OperandType.CONSTANT;
+import static com.avail.interpreter.levelTwo.L2OperandType.PC;
+import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
+import static com.avail.interpreter.levelTwo.operation.L2ConditionalJump.BranchReduction.AlwaysTaken;
+import static com.avail.interpreter.levelTwo.operation.L2ConditionalJump.BranchReduction.NeverTaken;
+import static com.avail.interpreter.levelTwo.operation.L2ConditionalJump.BranchReduction.SometimesTaken;
 import static org.objectweb.asm.Opcodes.IFNE;
-import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Type.*;
 
 /**
  * Conditionally jump, depending on whether the type to check is a subtype of
@@ -190,12 +192,7 @@ extends L2ConditionalJump
 		// :: else goto notSubtype;
 		translator.load(method, typeToCheck.register());
 		translator.literal(method, constantType.object);
-		method.visitMethodInsn(
-			INVOKEINTERFACE,
-			getInternalName(A_Type.class),
-			"isSubtypeOf",
-			getMethodDescriptor(BOOLEAN_TYPE, getType(A_Type.class)),
-			true);
+		A_Type.isSubtypeOfMethod.generateCall(method);
 		emitBranch(
 			translator, method, instruction, IFNE, isSubtype, notSubtype);
 	}
