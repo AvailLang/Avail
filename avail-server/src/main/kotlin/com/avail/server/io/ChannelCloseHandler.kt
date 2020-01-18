@@ -73,9 +73,13 @@ class ChannelCloseHandler constructor(
 	var reason: DisconnectReason? = null
 		set(value)
 		{
-			logger.log(
-				Level.FINEST,
-				"Channel close reason changed from $reason to $value")
+			if (value != null)
+			{
+				logger.log(
+					Level.FINEST,
+					"Channel close reason changed from $reason " +
+					"to: ${value.logEntry}")
+			}
 			field = value
 		}
 
@@ -88,6 +92,16 @@ class ChannelCloseHandler constructor(
 		if (onCloseActionNotRun.getAndSet(false))
 		{
 			onChannelCloseAction(it, channel)
+			channel.parentId?.let { id ->
+				// Has command channel parent so should be part of a session
+				channel.server.sessions[id]?.removeChildChannel(channel)
+			} ?: {
+				// Is possibly a command channel with own session
+				channel.server.sessions[channel.id]?.close(it) ?: {
+					// Is possibly an unupgraded channel
+					channel.server.newChannels.remove(channel.id)
+				}.invoke()
+			}.invoke()
 			it.log(logger, Level.FINER, channel.toString())
 		}
 		else

@@ -36,8 +36,8 @@ import com.avail.server.io.AvailServerChannel
 import java.util.*
 
 /**
- * An `UpgradeCommandMessage` represents an [UPGRADE][Command.UPGRADE]
- * [command][Command], and carries a [UUID] that designates the desired upgrade.
+ * An `UpgradeCommandMessage` represents an [UPGRADE][TextCommand.UPGRADE]
+ * [command][TextCommand], and carries a [UUID] that designates the desired upgrade.
  *
  * @property uuid
  *   The [UUID] that designates the desired upgrade.
@@ -50,10 +50,9 @@ import java.util.*
  * @param uuid
  *   The [UUID] that designates the desired upgrade.
  */
-class UpgradeCommandMessage constructor(
-	val uuid: UUID) : CommandMessage()
+class UpgradeCommandMessage constructor(val uuid: UUID) : CommandMessage()
 {
-	override val command = Command.UPGRADE
+	override val command = TextCommand.UPGRADE
 
 	override fun processThen(
 		channel: AvailServerChannel,

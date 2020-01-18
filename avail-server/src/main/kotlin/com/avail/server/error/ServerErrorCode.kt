@@ -35,9 +35,9 @@ package com.avail.server.error
 import com.avail.builder.ModuleRoot
 import com.avail.builder.ModuleRoots
 import com.avail.server.AvailServer
-import com.avail.server.messages.Command
+import com.avail.server.messages.TextCommand
 import com.avail.server.messages.Message
-import com.avail.server.messages.binary.BinaryCommand
+import com.avail.server.messages.binary.editor.BinaryCommand
 
 /**
  * `ServerErrorCode` is an enumeration of all possible failures that can occur
@@ -68,7 +68,7 @@ enum class ServerErrorCode constructor(val code: Int)
 
 	/**
 	 * Indicates the request made by the client does not correspond with any
-	 * command ([Command] nor [BinaryCommand]).
+	 * command ([TextCommand] nor [BinaryCommand]).
 	 */
 	INVALID_REQUEST(5),
 

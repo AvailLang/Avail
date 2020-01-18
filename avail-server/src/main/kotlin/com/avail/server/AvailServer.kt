@@ -69,7 +69,7 @@ import com.avail.server.io.RunFailureDisconnect
 import com.avail.server.io.ServerInputChannel
 import com.avail.server.io.ServerMessageDisconnect
 import com.avail.server.io.WebSocketAdapter
-import com.avail.server.messages.Command
+import com.avail.server.messages.TextCommand
 import com.avail.server.messages.CommandMessage
 import com.avail.server.messages.CommandParseException
 import com.avail.server.messages.LoadModuleCommandMessage
@@ -79,8 +79,9 @@ import com.avail.server.messages.SimpleCommandMessage
 import com.avail.server.messages.UnloadModuleCommandMessage
 import com.avail.server.messages.UpgradeCommandMessage
 import com.avail.server.messages.VersionCommandMessage
-import com.avail.server.messages.binary.BinaryCommand
-import com.avail.server.messages.binary.ErrorBinaryMessage
+import com.avail.server.messages.binary.editor.BinaryCommand
+import com.avail.server.messages.binary.editor.ErrorBinaryMessage
+import com.avail.server.session.Session
 import com.avail.utility.MutableOrNull
 import com.avail.utility.configuration.ConfigurationException
 import com.avail.utility.evaluation.Continuation0
@@ -101,6 +102,7 @@ import java.util.*
 import java.util.Collections.sort
 import java.util.Collections.synchronizedMap
 import java.util.Collections.unmodifiableSet
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Semaphore
 import java.util.logging.Level
 import java.util.logging.Logger
@@ -152,8 +154,23 @@ class AvailServer constructor(
 		HashMap<UUID, (AvailServerChannel, UUID, ()->Unit)->Unit>()
 
 	/**
+	 * The [Map] from [Session.sessionId] to [Session]. It contains all open
+	 * `Session`s
+	 */
+	val sessions = ConcurrentHashMap<UUID, Session>()
+
+	/**
+	 * The [Map] from [AvailServerChannel.id]s to [AvailServerChannel]. It
+	 * contains all `AvailServerChannel`s that have not gone through the
+	 * [upgraded][upgradeThen] process to either become a
+	 * [command channel][AvailServerChannel.ProtocolState.COMMAND] or a child
+	 * channel of a `command channel`.
+	 */
+	val newChannels = ConcurrentHashMap<UUID, AvailServerChannel>()
+
+	/**
 	 * Record an upgrade request issued by this `AvailServer` in response to a
-	 * [command][Command].
+	 * [command][TextCommand].
 	 *
 	 * @param channel
 	 *   The [channel][AvailServerChannel] that requested the upgrade.
@@ -196,7 +213,7 @@ class AvailServer constructor(
 	 *   The [channel][AvailServerChannel] on which the
 	 *   [response][CommandMessage] should be sent.
 	 * @param command
-	 *   A [MODULE_ROOTS][Command.MODULE_ROOTS] command message.
+	 *   A [MODULE_ROOTS][TextCommand.MODULE_ROOTS] command message.
 	 * @param continuation
 	 *   What to do when sufficient processing has occurred (and the
 	 *   `AvailServer` wishes to begin receiving messages again).
@@ -206,7 +223,7 @@ class AvailServer constructor(
 		command: SimpleCommandMessage,
 		continuation: ()->Unit)
 	{
-		assert(command.command === Command.MODULE_ROOTS)
+		assert(command.command === TextCommand.MODULE_ROOTS)
 		val message = newSuccessMessage(channel, command) { writer ->
 			runtime.moduleRoots().writeOn(writer)
 		}
@@ -220,7 +237,7 @@ class AvailServer constructor(
 	 *   The [channel][AvailServerChannel] on which the
 	 *   [response][CommandMessage] should be sent.
 	 * @param command
-	 *   A [MODULE_ROOT_PATHS][Command.MODULE_ROOT_PATHS] command message.
+	 *   A [MODULE_ROOT_PATHS][TextCommand.MODULE_ROOT_PATHS] command message.
 	 * @param continuation
 	 *   What to do when sufficient processing has occurred (and the
 	 *   `AvailServer` wishes to begin receiving messages again).
@@ -230,7 +247,7 @@ class AvailServer constructor(
 		command: SimpleCommandMessage,
 		continuation: ()->Unit)
 	{
-		assert(command.command === Command.MODULE_ROOT_PATHS)
+		assert(command.command === TextCommand.MODULE_ROOT_PATHS)
 		val message = newSuccessMessage(channel, command) { writer ->
 			runtime.moduleRoots().writePathsOn(writer)
 		}
@@ -244,7 +261,7 @@ class AvailServer constructor(
 	 *   The [channel][AvailServerChannel] on which the
 	 *   [response][CommandMessage] should be sent.
 	 * @param command
-	 *   A [MODULE_ROOT_PATHS][Command.MODULE_ROOT_PATHS] command message.
+	 *   A [MODULE_ROOT_PATHS][TextCommand.MODULE_ROOT_PATHS] command message.
 	 * @param continuation
 	 *   What to do when sufficient processing has occurred (and the
 	 *   `AvailServer` wishes to begin receiving messages again).
@@ -254,7 +271,7 @@ class AvailServer constructor(
 		command: SimpleCommandMessage,
 		continuation: ()->Unit)
 	{
-		assert(command.command === Command.MODULE_ROOTS_PATH)
+		assert(command.command === TextCommand.MODULE_ROOTS_PATH)
 		val message = newSuccessMessage(channel, command) { writer ->
 			writer.write(runtime.moduleRoots().modulePath)
 		}
@@ -599,7 +616,7 @@ class AvailServer constructor(
 	 *   The [channel][AvailServerChannel] on which the
 	 *   [response][CommandMessage] should be sent.
 	 * @param command
-	 *   A [SOURCE_MODULES][Command.SOURCE_MODULES] command message.
+	 *   A [SOURCE_MODULES][TextCommand.SOURCE_MODULES] command message.
 	 * @param continuation
 	 *   What to do when sufficient processing has occurred (and the
 	 *   `AvailServer` wishes to begin receiving messages again).
@@ -609,7 +626,7 @@ class AvailServer constructor(
 		command: SimpleCommandMessage,
 		continuation: ()->Unit)
 	{
-		assert(command.command === Command.SOURCE_MODULES)
+		assert(command.command === TextCommand.SOURCE_MODULES)
 		val message = newSuccessMessage(channel, command) { writer ->
 			val roots = runtime.moduleRoots()
 			writer.writeArray {
@@ -647,7 +664,7 @@ class AvailServer constructor(
 	 *   The [channel][AvailServerChannel] on which the
 	 *   [response][CommandMessage] should be sent.
 	 * @param command
-	 *   A [ENTRY_POINTS][Command.ENTRY_POINTS] command message.
+	 *   A [ENTRY_POINTS][TextCommand.ENTRY_POINTS] command message.
 	 * @param continuation
 	 *   What to do when sufficient processing has occurred (and the
 	 *   `AvailServer` wishes to begin receiving messages again).
@@ -657,7 +674,7 @@ class AvailServer constructor(
 		command: SimpleCommandMessage,
 		continuation: ()->Unit)
 	{
-		assert(command.command === Command.ENTRY_POINTS)
+		assert(command.command === TextCommand.ENTRY_POINTS)
 		val message = newSuccessMessage(channel, command) { writer ->
 			val map = synchronizedMap(HashMap<String, List<String>>())
 			builder.traceDirectories { name, version, after ->
@@ -693,7 +710,7 @@ class AvailServer constructor(
 	 *   The [channel][AvailServerChannel] on which the
 	 *   [response][CommandMessage] should be sent.
 	 * @param command
-	 *   A [CLEAR_REPOSITORIES][Command.CLEAR_REPOSITORIES] command message.
+	 *   A [CLEAR_REPOSITORIES][TextCommand.CLEAR_REPOSITORIES] command message.
 	 * @param continuation
 	 *   What to do when sufficient processing has occurred (and the
 	 *   `AvailServer` wishes to begin receiving messages again).
@@ -703,7 +720,7 @@ class AvailServer constructor(
 		command: SimpleCommandMessage,
 		continuation: ()->Unit)
 	{
-		assert(command.command === Command.CLEAR_REPOSITORIES)
+		assert(command.command === TextCommand.CLEAR_REPOSITORIES)
 		val message = try
 		{
 			for (root in runtime.moduleNameResolver().moduleRoots.roots)
@@ -725,7 +742,7 @@ class AvailServer constructor(
 	 * @param channel
 	 *   The channel on which the [response][CommandMessage] should be sent.
 	 * @param command
-	 *   An [UPGRADE][Command.UPGRADE] command message.
+	 *   An [UPGRADE][TextCommand.UPGRADE] command message.
 	 * @param continuation
 	 *   What to do when sufficient processing has occurred (and the
 	 *   `AvailServer` wishes to begin receiving messages again).
@@ -785,6 +802,9 @@ class AvailServer constructor(
 			upgradedChannel.id = receivedUUID
 			upgradedChannel.parentId = channel.id
 			upgradedChannel.upgradeToIOChannel()
+			newChannels.remove(oldId)
+			// TODO [RAA] how to handle not found session?
+			sessions[channel.id]?.addChildChannel(upgradedChannel)
 			resumeUpgrader()
 			afterUpgraded(upgradedChannel)
 			logger.log(
@@ -803,7 +823,7 @@ class AvailServer constructor(
 	 *   The [channel][AvailServerChannel] on which the
 	 *   [response][CommandMessage] should be sent.
 	 * @param command
-	 *   An [OPEN_EDITOR][Command.OPEN_EDITOR] command message.
+	 *   An [OPEN_EDITOR][TextCommand.OPEN_EDITOR] command message.
 	 * @param afterEnqueuing
 	 *   What to do when sufficient processing has occurred (and the
 	 *   `AvailServer` wishes to begin receiving messages again).
@@ -813,7 +833,7 @@ class AvailServer constructor(
 		command: CommandMessage,
 		afterEnqueuing: ()->Unit)
 	{
-		assert(command.command === Command.OPEN_EDITOR)
+		assert(command.command === TextCommand.OPEN_EDITOR)
 		val uuid = UUID.randomUUID()
 		recordUpgradeRequest(channel,uuid) {
 			upgradedChannel, receivedUUID, resumeUpgrader ->
@@ -822,6 +842,8 @@ class AvailServer constructor(
 			upgradedChannel.id = receivedUUID
 			upgradedChannel.parentId = channel.id
 			upgradedChannel.state = BINARY
+			newChannels.remove(oldId)
+			sessions[channel.id]?.addChildChannel(upgradedChannel)
 			resumeUpgrader()
 			logger.log(
 				Level.FINEST,
@@ -840,7 +862,7 @@ class AvailServer constructor(
 	 *   The [channel][AvailServerChannel] on which the
 	 *   [response][CommandMessage] should be sent.
 	 * @param command
-	 *   A [LOAD_MODULE][Command.LOAD_MODULE] [command][Command].
+	 *   A [LOAD_MODULE][TextCommand.LOAD_MODULE] [command][TextCommand].
 	 * @param continuation
 	 *   What to do when sufficient processing has occurred (and the
 	 *   `AvailServer` wishes to begin receiving messages again).
@@ -866,7 +888,7 @@ class AvailServer constructor(
 	 * @param ioChannel
 	 *   The upgraded I/O channel.
 	 * @param command
-	 *   A [LOAD_MODULE][Command.LOAD_MODULE] command message.
+	 *   A [LOAD_MODULE][TextCommand.LOAD_MODULE] command message.
 	 */
 	internal fun loadModule(
 		channel: AvailServerChannel,
@@ -972,7 +994,7 @@ class AvailServer constructor(
 	 *   The [channel][AvailServerChannel] on which the
 	 *   [response][CommandMessage] should be sent.
 	 * @param command
-	 *   A [LOAD_MODULE][Command.LOAD_MODULE] command message.
+	 *   A [LOAD_MODULE][TextCommand.LOAD_MODULE] command message.
 	 * @param continuation
 	 *   What to do when sufficient processing has occurred (and the
 	 *   `AvailServer` wishes to begin receiving messages again).
@@ -1010,7 +1032,7 @@ class AvailServer constructor(
 	 *   The [channel][AvailServerChannel] on which the
 	 *   [response][CommandMessage] should be sent.
 	 * @param command
-	 *   An [UNLOAD_ALL_MODULES][Command.UNLOAD_ALL_MODULES] command message.
+	 *   An [UNLOAD_ALL_MODULES][TextCommand.UNLOAD_ALL_MODULES] command message.
 	 * @param continuation
 	 *   What to do when sufficient processing has occurred (and the
 	 *   `AvailServer` wishes to begin receiving messages again).
@@ -1020,7 +1042,7 @@ class AvailServer constructor(
 		command: SimpleCommandMessage,
 		continuation: ()->Unit)
 	{
-		assert(command.command === Command.UNLOAD_ALL_MODULES)
+		assert(command.command === TextCommand.UNLOAD_ALL_MODULES)
 		requestIOTextUpgradesThen(
 			channel,
 			command,
@@ -1037,8 +1059,8 @@ class AvailServer constructor(
 	 * @param ioChannel
 	 *   The upgraded I/O channel.
 	 * @param command
-	 *   An [UNLOAD_MODULE][Command.UNLOAD_MODULE] or
-	 *   [UNLOAD_ALL_MODULES][Command.UNLOAD_ALL_MODULES] command message.
+	 *   An [UNLOAD_MODULE][TextCommand.UNLOAD_MODULE] or
+	 *   [UNLOAD_ALL_MODULES][TextCommand.UNLOAD_ALL_MODULES] command message.
 	 * @param target
 	 *   The resolved name of the target [module][A_Module], or `null` if all
 	 *   modules should be unloaded.
@@ -1073,7 +1095,7 @@ class AvailServer constructor(
 	 *   The [channel][AvailServerChannel] on which the
 	 *   [response][CommandMessage] should be sent.
 	 * @param command
-	 *   A [RUN_ENTRY_POINT][Command.RUN_ENTRY_POINT] command message.
+	 *   A [RUN_ENTRY_POINT][TextCommand.RUN_ENTRY_POINT] command message.
 	 * @param continuation
 	 *   What to do when sufficient processing has occurred (and the
 	 *   `AvailServer` wishes to begin receiving messages again).
@@ -1099,7 +1121,7 @@ class AvailServer constructor(
 	 * @param ioChannel
 	 *   The upgraded I/O channel.
 	 * @param command
-	 *   A [RUN_ENTRY_POINT][Command.RUN_ENTRY_POINT] command message.
+	 *   A [RUN_ENTRY_POINT][TextCommand.RUN_ENTRY_POINT] command message.
 	 */
 	private fun run(
 		channel: AvailServerChannel,
@@ -1166,7 +1188,7 @@ class AvailServer constructor(
 	 *   The [channel][AvailServerChannel] on which the
 	 *   [response][CommandMessage] should be sent.
 	 * @param command
-	 *   A [ALL_FIBERS][Command.ALL_FIBERS] command message.
+	 *   A [ALL_FIBERS][TextCommand.ALL_FIBERS] command message.
 	 * @param continuation
 	 *   What to do when sufficient processing has occurred (and the
 	 *   `AvailServer` wishes to begin receiving messages again).
@@ -1176,7 +1198,7 @@ class AvailServer constructor(
 		command: SimpleCommandMessage,
 		continuation: ()->Unit)
 	{
-		assert(command.command === Command.ALL_FIBERS)
+		assert(command.command === TextCommand.ALL_FIBERS)
 		val allFibers = runtime.allFibers()
 		val message = newSuccessMessage(channel, command) { writer ->
 			writer.writeArray {
@@ -1224,11 +1246,11 @@ class AvailServer constructor(
 		 * Write a `"command"` field into the JSON object being written.
 		 *
 		 * @param command
-		 *   The [command][Command].
+		 *   The [command][TextCommand].
 		 * @param writer
 		 *   A [JSONWriter].
 		 */
-		private fun writeCommandOn(command: Command, writer: JSONWriter)
+		private fun writeCommandOn(command: TextCommand, writer: JSONWriter)
 		{
 			writer.write("command")
 			writer.write(command.name.toLowerCase().replace('_', ' '))
@@ -1391,7 +1413,7 @@ class AvailServer constructor(
 			{
 				VERSION_NEGOTIATION ->
 				{
-					val command = Command.VERSION.parse(
+					val command = TextCommand.VERSION.parse(
 						message.stringContent)
 					if (command != null)
 					{
@@ -1413,7 +1435,7 @@ class AvailServer constructor(
 				{
 					try
 					{
-						val command = Command.parse(message)
+						val command = TextCommand.parse(message)
 						command.commandId = channel.nextCommandId
 						command.processThen(channel, receiveNext)
 					}
@@ -1430,6 +1452,10 @@ class AvailServer constructor(
 						if (channel.state.eligibleForUpgrade)
 						{
 							channel.state = COMMAND
+							channel.server.newChannels.remove(channel.id)
+							Session(channel).let {
+								channel.server.sessions[it.sessionId] = it
+							}
 						}
 					}
 				}
@@ -1437,7 +1463,7 @@ class AvailServer constructor(
 				{
 					try
 					{
-						val command = Command.parse(message)
+						val command = TextCommand.parse(message)
 						command.commandId = channel.nextCommandId
 						command.processThen(channel, receiveNext)
 					}
@@ -1497,7 +1523,7 @@ class AvailServer constructor(
 		 *   The [channel][AvailServerChannel] on which the
 		 *   [response][CommandMessage] should be sent.
 		 * @param command
-		 *   A [VERSION][Command.VERSION] command message.
+		 *   A [VERSION][TextCommand.VERSION] command message.
 		 * @param continuation
 		 *   What to do when sufficient processing has occurred (and the
 		 *   `AvailServer` wishes to begin receiving messages again).
@@ -1543,14 +1569,14 @@ class AvailServer constructor(
 		}
 
 		/**
-		 * List syntax guides for all of the [commands][Command] understood by
+		 * List syntax guides for all of the [commands][TextCommand] understood by
 		 * the `AvailServer`.
 		 *
 		 * @param channel
 		 *   The [channel][AvailServerChannel] on which the
 		 *   [response][CommandMessage] should be sent.
 		 * @param command
-		 *   A [COMMANDS][Command.COMMANDS] command message.
+		 *   A [COMMANDS][TextCommand.COMMANDS] command message.
 		 * @param continuation
 		 *   What to do when sufficient processing has occurred (and the
 		 *   `AvailServer` wishes to begin receiving messages again).
@@ -1560,9 +1586,9 @@ class AvailServer constructor(
 			command: SimpleCommandMessage,
 			continuation: ()->Unit)
 		{
-			assert(command.command === Command.COMMANDS)
+			assert(command.command === TextCommand.COMMANDS)
 			val message = newSuccessMessage(channel, command) { writer ->
-				val commands = Command.all
+				val commands = TextCommand.all
 				val help = ArrayList<String>(commands.size)
 				for (c in commands)
 				{

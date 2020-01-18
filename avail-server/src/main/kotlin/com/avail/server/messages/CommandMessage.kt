@@ -35,7 +35,7 @@ package com.avail.server.messages
 import com.avail.server.io.AvailServerChannel
 
 /**
- * A `CommandMessage` represents a fully-parsed [command][Command]. Each command
+ * A `CommandMessage` represents a fully-parsed [command][TextCommand]. Each command
  * message knows the kind of command that it represents.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -48,8 +48,8 @@ abstract class CommandMessage
 	 */
 	var commandId: Long = 0
 
-	/** The encoded [command][Command]. */
-	abstract val command: Command
+	/** The encoded [command][TextCommand]. */
+	abstract val command: TextCommand
 
 	/**
 	 * Process this [command message][CommandMessage] on behalf of the specified

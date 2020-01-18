@@ -41,27 +41,26 @@ import com.avail.descriptor.A_Module
 import com.avail.persistence.IndexedRepositoryManager
 import com.avail.server.AvailServer
 import com.avail.server.io.AvailServerChannel
-import com.avail.server.messages.Command.TrieNode
-import com.avail.server.messages.Command.TrieNode.Companion.trie
+import com.avail.server.messages.TextCommand.TrieNode
+import com.avail.server.messages.TextCommand.TrieNode.Companion.trie
 import java.lang.String.format
 import java.util.*
 
 /**
  * To direct the activities of an [Avail server][AvailServer], a client sends
- * [command messages][CommandMessage] that encode `Command`s. The `Command`
- * `enum` codifies the set of possible commands, and each member specifies the
- * decoding logic.
+ * [command messages][CommandMessage] that encode `TextCommand`s. The
+ * `TextCommand` `enum` codifies the set of possible commands, and each member
+ * specifies the decoding logic.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
  * @constructor
- *
  * Construct a new `Command`. If it doesn't [require special
  * parsing][requiresSpecialParsing], then add it to the parsing [TrieNode.trie]
  * (treating the tokenization of its [name][name] on underscore boundaries as
  * its syntax).
  */
-enum class Command
+enum class TextCommand
 {
 	/**
 	 * Negotiate a protocol version.
@@ -121,7 +120,7 @@ enum class Command
 	},
 
 	/**
-	 * List all [commands][Command].
+	 * List all [commands][TextCommand].
 	 */
 	COMMANDS,
 
@@ -254,20 +253,20 @@ enum class Command
 	OPEN_EDITOR;
 
 	/**
-	 * The tokenized syntax of the [command][Command], or `null` if the command
+	 * The tokenized syntax of the [command][TextCommand], or `null` if the command
 	 * does not have fixed syntax.
 	 */
 	private val syntax: Array<String>?
 
 	/**
-	 * `true` iff [command messages][CommandMessage] of this [form][Command]
+	 * `true` iff [command messages][CommandMessage] of this [form][TextCommand]
 	 * require special parsing, `false` otherwise.
 	 */
 	internal open val requiresSpecialParsing get() = false
 
 	/**
 	 * Apply special parsing logic to produce a [command
-	 * message][CommandMessage] for this form of [command][Command].
+	 * message][CommandMessage] for this form of [command][TextCommand].
 	 *
 	 * @param source
 	 *   The source of the command.
@@ -281,7 +280,7 @@ enum class Command
 	}
 
 	/**
-	 * A [description][String] of the syntax of the [command][Command]. This
+	 * A [description][String] of the syntax of the [command][TextCommand]. This
 	 * description should be helpful to a human.
 	 */
 	open val syntaxHelp: String
@@ -306,15 +305,15 @@ enum class Command
 		}
 
 	/**
-	 * A `TrieNode` represents a [command][Command] prefix within the [trie].
+	 * A `TrieNode` represents a [command][TextCommand] prefix within the [trie].
 	 */
 	internal class TrieNode
 	{
 		/**
-		 * The [command][Command] indicated by the prefix leading up to this
+		 * The [command][TextCommand] indicated by the prefix leading up to this
 		 * [node][TrieNode], or `null` if no command is indicated.
 		 */
-		var command: Command? = null
+		var command: TextCommand? = null
 
 		/**
 		 * The transition [map][Map], indexed by following [token][String].
@@ -323,11 +322,11 @@ enum class Command
 
 		companion object
 		{
-			/** The root of the trie for parsing [commands][Command]. */
+			/** The root of the trie for parsing [commands][TextCommand]. */
 			private val trie = TrieNode()
 
 			/**
-			 * Add the specified [command][Command] to the parse [trie], using
+			 * Add the specified [command][TextCommand] to the parse [trie], using
 			 * the given array of [String]s as the tokenized syntax of the
 			 * command. All tokens are added as minuscule.
 			 *
@@ -336,7 +335,7 @@ enum class Command
 			 * @param syntax
 			 *   The tokenized syntax of the command.
 			 */
-			fun addCommand(command: Command, vararg syntax: String)
+			fun addCommand(command: TextCommand, vararg syntax: String)
 			{
 				var node = trie
 				for (token in syntax)
@@ -357,34 +356,34 @@ enum class Command
 			}
 
 			/**
-			 * The [commands][Command] that [require special
+			 * The [commands][TextCommand] that [require special
 			 * parsing][requiresSpecialParsing].
 			 */
-			private val speciallyParsedCommands = ArrayList<Command>(10)
+			private val speciallyParsedCommands = ArrayList<TextCommand>(10)
 
 			/**
-			 * Add the specified [command][Command] to the
+			 * Add the specified [command][TextCommand] to the
 			 * [list][speciallyParsedCommands] of [specially parsed
 			 * commands][requiresSpecialParsing].
 			 *
 			 * @param command
 			 *   A specially parsed command.
 			 */
-			fun addSpeciallyParsedCommand(command: Command)
+			fun addSpeciallyParsedCommand(command: TextCommand)
 			{
 				assert(command.requiresSpecialParsing)
 				speciallyParsedCommands.add(command)
 			}
 
 			/**
-			 * Parse a [command][Command] using the parsing [trie].
+			 * Parse a [command][TextCommand] using the parsing [trie].
 			 *
 			 * @param source
 			 *   The source of the command.
 			 * @return
 			 *   A command, or `null` if no command satisfied the given syntax.
 			 */
-			private fun parseSimpleCommand(source: String): Command?
+			private fun parseSimpleCommand(source: String): TextCommand?
 			{
 				var node = trie
 				val tokens = source.split("\\s+".toRegex())
@@ -456,7 +455,7 @@ enum class Command
 
 	companion object
 	{
-		/** An array of all [Command] enumeration values.  */
+		/** An array of all [TextCommand] enumeration values.  */
 		val all = values()
 
 		/**

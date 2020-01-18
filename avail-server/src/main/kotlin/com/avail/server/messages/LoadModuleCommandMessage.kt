@@ -38,8 +38,8 @@ import com.avail.descriptor.ModuleDescriptor
 import com.avail.server.io.AvailServerChannel
 
 /**
- * A `LoadModuleCommandMessage` represents a [LOAD_MODULE][Command.LOAD_MODULE]
- * [command][Command], and carries the [name][ModuleName] of the target
+ * A `LoadModuleCommandMessage` represents a [LOAD_MODULE][TextCommand.LOAD_MODULE]
+ * [command][TextCommand], and carries the [name][ModuleName] of the target
  * [module][A_Module].
  *
  * @property target
@@ -56,7 +56,7 @@ import com.avail.server.io.AvailServerChannel
 class LoadModuleCommandMessage constructor(
 	val target: ModuleName) : CommandMessage()
 {
-	override val command = Command.LOAD_MODULE
+	override val command = TextCommand.LOAD_MODULE
 
 	override fun processThen(
 		channel: AvailServerChannel,

@@ -33,7 +33,7 @@
 package com.avail.server.messages
 
 /**
- * A `CommandParseException` is raised by [Command.parse] in the event of a
+ * A `CommandParseException` is raised by [TextCommand.parse] in the event of a
  * failed parse.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;

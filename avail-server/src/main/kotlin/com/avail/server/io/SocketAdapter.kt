@@ -119,6 +119,7 @@ class SocketAdapter @Throws(IOException::class) constructor(
 				// Asynchronously accept a subsequent connection.
 				handler.guardedDo(serverChannel::accept, null)
 				val channel = SocketChannel(this, transport)
+				server.newChannels[channel.id] = channel
 				readMessage(channel)
 			},
 			{ e, _, _ ->

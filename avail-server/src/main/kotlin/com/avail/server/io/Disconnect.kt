@@ -214,7 +214,7 @@ object MismatchDisconnect: DisconnectReason
  *   The [Throwable] related to the error or `null` if none.
  *
  * @constructor
- * Construct a CommunicationErrorDisconnect.
+ * Construct a [CommunicationErrorDisconnect].
  *
  * @param e
  *   The [Throwable] related to the error or `null` if none.
@@ -255,7 +255,7 @@ object BadMessageDisconnect: DisconnectReason
  *   A message describing the format mismatch.
  *
  * @constructor
- * Construct a CommunicationErrorDisconnect.
+ * Construct a [UnsupportedFormatDisconnect].
  *
  * @param msg
  *   A message describing the format mismatch.
@@ -270,9 +270,9 @@ class UnsupportedFormatDisconnect constructor(private val msg: String)
 }
 
 /**
- * An `UnsupportedFormatDisconnect` is a [DisconnectReason] that indicates that
- * the disconnect originated from the server due to receiving a message in the
- * wrong format.
+ * A `ProtocolErrorDisconnect` is a [DisconnectReason] that indicates that
+ * the disconnect originated from the server due to receiving a message that
+ * did not comply with the communication protocol.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
@@ -280,10 +280,10 @@ class UnsupportedFormatDisconnect constructor(private val msg: String)
  *   A message describing the format mismatch.
  *
  * @constructor
- * Construct a CommunicationErrorDisconnect.
+ * Construct a [ProtocolErrorDisconnect].
  *
  * @param msg
- *   A message describing the format mismatch.
+ *   A message describing the error.
  */
 class ProtocolErrorDisconnect constructor(private val msg: String)
 	: DisconnectReason
@@ -292,4 +292,17 @@ class ProtocolErrorDisconnect constructor(private val msg: String)
 	override val code get () = -11
 
 	override val logEntry: String get() = "${super.logEntry} - $msg"
+}
+
+/**
+ * A `ParentChannelDisconnect` is a [DisconnectReason] that indicates that
+ * the disconnect originated from the server the parent [AvailServerChannel]
+ * having disconnected.
+ *
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ */
+object ParentChannelDisconnect : DisconnectReason
+{
+	override val origin get () = DisconnectOrigin.SERVER_ORIGIN
+	override val code get () = -12
 }

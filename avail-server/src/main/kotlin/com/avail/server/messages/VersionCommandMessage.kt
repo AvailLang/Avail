@@ -36,8 +36,8 @@ import com.avail.server.AvailServer.Companion.negotiateVersionThen
 import com.avail.server.io.AvailServerChannel
 
 /**
- * A `VersionCommandMessage` represents a [VERSION][Command.VERSION]
- * [command][Command], and carries the requested protocol version.
+ * A `VersionCommandMessage` represents a [VERSION][TextCommand.VERSION]
+ * [command][TextCommand], and carries the requested protocol version.
  *
  * @property version
  *   The requested protocol version.
@@ -53,7 +53,7 @@ import com.avail.server.io.AvailServerChannel
 class VersionCommandMessage constructor(
 	val version: Int) : CommandMessage()
 {
-	override val command = Command.VERSION
+	override val command = TextCommand.VERSION
 
 	override fun processThen(
 		channel: AvailServerChannel,

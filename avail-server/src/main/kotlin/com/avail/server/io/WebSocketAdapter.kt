@@ -894,6 +894,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 						heartbeatInterval,
 						heartbeatTimeout,
 						onChannelCloseAction)
+				server.newChannels[channel.id] = channel
 				// Process the client request.
 				ClientRequest.receiveThen(channel,this) { request ->
 					processRequest(request, channel)

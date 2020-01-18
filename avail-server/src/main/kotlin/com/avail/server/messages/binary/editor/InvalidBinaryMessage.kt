@@ -30,71 +30,64 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.server.messages.binary
+package com.avail.server.messages.binary.editor
 
 import com.avail.server.error.ServerErrorCode
 import com.avail.server.io.AvailServerChannel
 import com.avail.server.messages.Message
-import java.nio.charset.StandardCharsets
 import com.avail.server.AvailServer.Companion.logger
 import java.util.logging.Level
+import javax.xml.bind.DatatypeConverter
 
 /**
- * `ErrorBinaryMessage` is a [BinaryMessage] indicating that an error has
- * occurred. This message may be sent by either the Avail server or the client.
+ * `InvalidBinaryMessage` is a [BinaryMessage] that wraps a received [Message]
+ * with a bad [BinaryCommand.id].
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
- * @property error
- *   The [ServerErrorCode] that identifies the type of error.
- * @property description
- *   Optional String that describes the error or null if not described.
+ * @property id
+ *   The received invalid [BinaryCommand.id].
+ * @property content
+ *   The received [Message.content].
  *
  * @constructor
- * Construct an [ErrorBinaryMessage].
+ * Construct an [InvalidBinaryMessage].
  *
  * @param commandId
  *   The identifier of the [message][BinaryMessage]. This identifier should
  *   appear in any responses to this message.
- * @param error
- *   The [ServerErrorCode] that identifies the type of error.
- * @param closeAfterSending
- *   `true` if the [channel][AvailServerChannel] should be
- *   [closed][AvailServerChannel.scheduleClose] after transmitting this message.
- * @param description
- *   Optional String that describes the error or null if not described.
+ * @param id
+ *   The received invalid [BinaryCommand.id].
+ * @param content
+ *   The received [Message.content].
  */
-internal class ErrorBinaryMessage constructor(
-	override var commandId: Long,
-	val error: ServerErrorCode,
-	private val closeAfterSending: Boolean = false,
-	private val description: String? = null): BinaryMessage()
+internal class InvalidBinaryMessage constructor(
+		override var commandId: Long, val id: Int, val content: ByteArray)
+	: BinaryMessage()
 {
 	init
 	{
-		logger.log(Level.WARNING, "$error ($commandId): $description")
+		val prefix =
+			content.copyOfRange(0, minOf(content.size, PREFIX_SIZE))
+		logger.log(
+			Level.WARNING,
+			"InvalidBinaryMessage ($commandId): " +
+				DatatypeConverter.printHexBinary(prefix))
 	}
 
-	override val command: BinaryCommand get() = BinaryCommand.ERROR
+	override val command: BinaryCommand get() = BinaryCommand.INVALID
 
-	override val message: Message get()
-	{
-		val descBytes =
-			description?.toByteArray(StandardCharsets.UTF_8) ?: ByteArray(0)
-		// Allocate a buffer that can accommodate the payload; 4 bytes for the
-		// error and n bytes for the description.
-		val buffer = buffer(4 + descBytes.size)
-		buffer.putInt(error.code).put(descBytes)
-		buffer.flip()
-		val content = ByteArray(buffer.limit())
-		buffer.get(content)
-		return Message(
-			content, AvailServerChannel.ProtocolState.BINARY, closeAfterSending)
-	}
+	override val message =
+		Message(content, AvailServerChannel.ProtocolState.BINARY)
 
 	override fun processThen(
 		channel: AvailServerChannel, continuation: () -> Unit)
 	{
-		// TODO process a received error from the client.
+		channel.enqueueMessageThen(
+			ErrorBinaryMessage(
+				commandId,
+				ServerErrorCode.INVALID_REQUEST,
+				true,
+				"$id is not a valid command").message) {}
 	}
 }

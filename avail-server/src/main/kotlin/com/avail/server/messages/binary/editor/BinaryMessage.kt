@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.server.messages.binary
+package com.avail.server.messages.binary.editor
 
 import com.avail.server.io.AvailServerChannel
 import com.avail.server.messages.Message

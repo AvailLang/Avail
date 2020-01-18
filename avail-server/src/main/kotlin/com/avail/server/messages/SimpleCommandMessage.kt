@@ -34,29 +34,26 @@ package com.avail.server.messages
 
 import com.avail.server.AvailServer.Companion.commandsThen
 import com.avail.server.io.AvailServerChannel
-import com.avail.server.messages.Command.*
+import com.avail.server.messages.TextCommand.*
 
 /**
  * A `SimpleCommandMessage` contains no state beyond the style of
- * [command][Command].
+ * [command][TextCommand].
  *
  * @property command
- *   The [command][Command].
+ *   The [command][TextCommand].
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
  * @constructor
- *
  * Construct a new `SimpleCommandMessage`.
  *
  * @param command
- *   The [command][Command].
+ *   The [command][TextCommand].
  */
-class SimpleCommandMessage internal constructor(
-	override val command: Command) : CommandMessage()
+class SimpleCommandMessage internal constructor(override val command: TextCommand)
+	: CommandMessage()
 {
-	override fun processThen(
-		channel: AvailServerChannel,
-		continuation: ()->Unit)
+	override fun processThen(channel: AvailServerChannel, continuation: ()->Unit)
 	{
 		val server = channel.server
 		when (command)

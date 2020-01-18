@@ -34,7 +34,7 @@ package com.avail.server.io
 
 import com.avail.io.TextInterface
 import com.avail.server.AvailServer
-import com.avail.server.messages.Command
+import com.avail.server.messages.TextCommand
 import com.avail.server.messages.CommandMessage
 import com.avail.server.messages.Message
 import com.avail.server.messages.UpgradeCommandMessage
@@ -78,7 +78,7 @@ abstract class AvailServerChannel constructor(
 	 *
 	 * Only command channels will keep their UUID assigned upon construction.
 	 * All subordinate IO-channels will have their identifiers set to the
-	 * [Command.UPGRADE] token received from a client-sent
+	 * [TextCommand.UPGRADE] token received from a client-sent
 	 * [UpgradeCommandMessage].
 	 */
 	var id: UUID = UUID.randomUUID()
@@ -86,9 +86,15 @@ abstract class AvailServerChannel constructor(
 	/**
 	 * The [id] of the command [channel][AvailServerChannel] that is responsible
 	 * for spawning this channel if this channel was created through the
-	 * [upgrade][Command.UPGRADE] process.
+	 * [upgrade][TextCommand.UPGRADE] process.
 	 */
 	var parentId: UUID? = null
+
+	/**
+	 * The time in milliseconds since the Unix Epoch when this
+	 * [AvailServerChannel] was first created.
+	 */
+	val created = System.currentTimeMillis()
 
 	/**
 	 * `true` if this [AvailServerChannel] is an IO channel for a

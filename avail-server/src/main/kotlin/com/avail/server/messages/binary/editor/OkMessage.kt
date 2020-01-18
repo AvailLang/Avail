@@ -1,5 +1,5 @@
 /*
- * ErrorBinaryMessage.kt
+ * OkMessage.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,64 +30,46 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.server.messages.binary
+package com.avail.server.messages.binary.editor
 
-import com.avail.server.error.ServerErrorCode
 import com.avail.server.io.AvailServerChannel
 import com.avail.server.messages.Message
-import com.avail.server.AvailServer.Companion.logger
-import java.util.logging.Level
-import javax.xml.bind.DatatypeConverter
+import java.nio.ByteBuffer
 
 /**
- * `InvalidBinaryMessage` is a [BinaryMessage] that wraps a received [Message]
- * with a bad [BinaryCommand.id].
+ * `OkMessage` is a [BinaryMessage] used to affirm a request to the client.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
- * @property id
- *   The received invalid [BinaryCommand.id].
- * @property content
- *   The received [Message.content].
- *
  * @constructor
- * Construct an [InvalidBinaryMessage].
+ * Construct an `OkMessage`.
  *
  * @param commandId
  *   The identifier of the [message][BinaryMessage]. This identifier should
  *   appear in any responses to this message.
- * @param id
- *   The received invalid [BinaryCommand.id].
- * @param content
- *   The received [Message.content].
  */
-internal class InvalidBinaryMessage constructor(
-		override var commandId: Long, val id: Int, val content: ByteArray)
-	: BinaryMessage()
+internal class OkMessage constructor(
+	override var commandId: Long): BinaryMessage()
 {
+	override val command = BinaryCommand.OK
+	override val message: Message
+
 	init
 	{
-		val prefix =
-			content.copyOfRange(0, minOf(content.size, PREFIX_SIZE))
-		logger.log(
-			Level.WARNING,
-			"InvalidBinaryMessage ($commandId): " +
-				DatatypeConverter.printHexBinary(prefix))
+		// Base size of payload is 12 byes broken down as:
+		//   BinaryCommand.id = 4
+		//   commandId = 8
+		val buffer = ByteBuffer.allocate(12)
+		buffer.putInt(command.id)
+		buffer.putLong(commandId)
+		buffer.flip()
+		val content = ByteArray(12)
+		buffer.get(content)
+		this.message = Message(content, AvailServerChannel.ProtocolState.BINARY)
 	}
 
-	override val command: BinaryCommand get() = BinaryCommand.INVALID
-
-	override val message =
-		Message(content, AvailServerChannel.ProtocolState.BINARY)
-
-	override fun processThen(
-		channel: AvailServerChannel, continuation: () -> Unit)
+	override fun processThen(channel: AvailServerChannel, continuation: () -> Unit)
 	{
-		channel.enqueueMessageThen(
-			ErrorBinaryMessage(
-				commandId,
-				ServerErrorCode.INVALID_REQUEST,
-				true,
-				"$id is not a valid command").message) {}
+		channel.enqueueMessageThen(message, continuation)
 	}
 }

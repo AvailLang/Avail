@@ -1,5 +1,5 @@
 /*
- * FileStreamMessage.kt
+ * ErrorBinaryMessage.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,63 +30,71 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.server.messages.binary
+package com.avail.server.messages.binary.editor
 
+import com.avail.server.error.ServerErrorCode
 import com.avail.server.io.AvailServerChannel
-import com.avail.server.io.files.FileManager
 import com.avail.server.messages.Message
-import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
-import java.util.*
+import com.avail.server.AvailServer.Companion.logger
+import java.util.logging.Level
 
 /**
- * `FileStreamMessage` is a [BinaryMessage] that contains the contents of a
- * file.
+ * `ErrorBinaryMessage` is a [BinaryMessage] indicating that an error has
+ * occurred. This message may be sent by either the Avail server or the client.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
+ * @property error
+ *   The [ServerErrorCode] that identifies the type of error.
+ * @property description
+ *   Optional String that describes the error or null if not described.
+ *
  * @constructor
- * Construct an [FileStreamMessage].
+ * Construct an [ErrorBinaryMessage].
  *
  * @param commandId
  *   The identifier of the [message][BinaryMessage]. This identifier should
  *   appear in any responses to this message.
- * @param fileId
- *   The [UUID] that uniquely identifies the target file in the [FileManager].
- * @param file
- *   The [ByteArray] that represents the file to send to the client.
- *
- * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ * @param error
+ *   The [ServerErrorCode] that identifies the type of error.
+ * @param closeAfterSending
+ *   `true` if the [channel][AvailServerChannel] should be
+ *   [closed][AvailServerChannel.scheduleClose] after transmitting this message.
+ * @param description
+ *   Optional String that describes the error or null if not described.
  */
-internal class FileStreamMessage constructor(
+internal class ErrorBinaryMessage constructor(
 	override var commandId: Long,
-	fileId: UUID,
-	file: ByteArray): BinaryMessage()
+	val error: ServerErrorCode,
+	private val closeAfterSending: Boolean = false,
+	private val description: String? = null): BinaryMessage()
 {
-	override val command = BinaryCommand.FILE_STREAM
-	override val message: Message
-
 	init
 	{
-		// Base size of payload is 28 byes broken down as:
-		//   BinaryCommand.id = 4
-		//   commandId = 8
-		//   UUID = 16
-		val bufferSize = 28 + file.size
-		val buffer = ByteBuffer.allocate(bufferSize)
-		buffer.putInt(command.id)
-		buffer.putLong(commandId)
-		buffer.putLong(fileId.mostSignificantBits)
-		buffer.putLong(fileId.leastSignificantBits)
-		buffer.put(file)
-		buffer.flip()
-		val content = ByteArray(bufferSize)
-		buffer.get(content)
-		this.message = Message(content, AvailServerChannel.ProtocolState.BINARY)
+		logger.log(Level.WARNING, "$error ($commandId): $description")
 	}
 
-	override fun processThen(channel: AvailServerChannel, continuation: () -> Unit)
+	override val command: BinaryCommand get() = BinaryCommand.ERROR
+
+	override val message: Message get()
 	{
-		channel.enqueueMessageThen(message, continuation)
+		val descBytes =
+			description?.toByteArray(StandardCharsets.UTF_8) ?: ByteArray(0)
+		// Allocate a buffer that can accommodate the payload; 4 bytes for the
+		// error and n bytes for the description.
+		val buffer = buffer(4 + descBytes.size)
+		buffer.putInt(error.code).put(descBytes)
+		buffer.flip()
+		val content = ByteArray(buffer.limit())
+		buffer.get(content)
+		return Message(
+			content, AvailServerChannel.ProtocolState.BINARY, closeAfterSending)
+	}
+
+	override fun processThen(
+		channel: AvailServerChannel, continuation: () -> Unit)
+	{
+		// TODO process a received error from the client.
 	}
 }

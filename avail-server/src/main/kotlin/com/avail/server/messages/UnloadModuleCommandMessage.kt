@@ -38,7 +38,7 @@ import com.avail.server.io.AvailServerChannel
 
 /**
  * An `UnloadModuleCommandMessage` represents a
- * [LOAD_MODULE][Command.LOAD_MODULE] [command][Command], and carries the
+ * [LOAD_MODULE][TextCommand.LOAD_MODULE] [command][TextCommand], and carries the
  * [name][ModuleName] of the target [module][A_Module].
  *
  * @property target
@@ -55,7 +55,7 @@ import com.avail.server.io.AvailServerChannel
 class UnloadModuleCommandMessage constructor(
 	val target: ModuleName) : CommandMessage()
 {
-	override val command = Command.UNLOAD_MODULE
+	override val command = TextCommand.UNLOAD_MODULE
 
 	override fun processThen(
 		channel: AvailServerChannel,

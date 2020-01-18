@@ -36,7 +36,7 @@ import com.avail.server.io.AvailServerChannel
 
 /**
  * A `RunEntryPointCommandMessage` represents a
- * [RUN_ENTRY_POINT][Command.RUN_ENTRY_POINT] [command][Command], and carries
+ * [RUN_ENTRY_POINT][TextCommand.RUN_ENTRY_POINT] [command][TextCommand], and carries
  * the Avail command (i.e, entry point expression) that should be executed.
  *
  * @property expression
@@ -53,7 +53,7 @@ import com.avail.server.io.AvailServerChannel
 class RunEntryPointCommandMessage constructor(
 	val expression: String) : CommandMessage()
 {
-	override val command = Command.RUN_ENTRY_POINT
+	override val command = TextCommand.RUN_ENTRY_POINT
 
 	override fun processThen(
 		channel: AvailServerChannel,
