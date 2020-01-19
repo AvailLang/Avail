@@ -35,8 +35,8 @@ package com.avail.server.messages.binary.editor
 import com.avail.server.io.AvailServerChannel
 import com.avail.server.io.files.FileManager
 import com.avail.server.messages.Message
+import com.avail.server.session.Session
 import java.nio.ByteBuffer
-import java.util.*
 
 /**
  * `FileStreamMessage` is a [BinaryMessage] that contains the contents of a
@@ -51,7 +51,8 @@ import java.util.*
  *   The identifier of the [message][BinaryMessage]. This identifier should
  *   appear in any responses to this message.
  * @param fileId
- *   The [UUID] that uniquely identifies the target file in the [FileManager].
+ *   The [Session] file cache id that is linked to the [UUID ]that uniquely
+ *   identifies the target file in the [FileManager].
  * @param file
  *   The [ByteArray] that represents the file to send to the client.
  *
@@ -59,7 +60,7 @@ import java.util.*
  */
 internal class FileStreamMessage constructor(
 	override var commandId: Long,
-	fileId: UUID,
+	fileId: Int,
 	file: ByteArray): BinaryMessage()
 {
 	override val command = BinaryCommand.FILE_STREAM
@@ -67,16 +68,15 @@ internal class FileStreamMessage constructor(
 
 	init
 	{
-		// Base size of payload is 28 byes broken down as:
+		// Base size of payload is 16 byes broken down as:
 		//   BinaryCommand.id = 4
 		//   commandId = 8
-		//   UUID = 16
+		//   file id = 4
 		val bufferSize = 28 + file.size
 		val buffer = ByteBuffer.allocate(bufferSize)
 		buffer.putInt(command.id)
 		buffer.putLong(commandId)
-		buffer.putLong(fileId.mostSignificantBits)
-		buffer.putLong(fileId.leastSignificantBits)
+		buffer.putInt(fileId)
 		buffer.put(file)
 		buffer.flip()
 		val content = ByteArray(bufferSize)

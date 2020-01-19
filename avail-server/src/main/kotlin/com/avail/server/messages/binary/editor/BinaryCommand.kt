@@ -33,9 +33,10 @@
 package com.avail.server.messages.binary.editor
 
 import com.avail.builder.ModuleName
-import com.avail.server.AvailServer
+import com.avail.server.AvailServer.Companion.logger
 import com.avail.server.io.files.FileManager
 import com.avail.server.error.ServerErrorCode
+import com.avail.server.error.ServerErrorCode.*
 import com.avail.server.io.AvailServerChannel
 import com.avail.server.io.files.EditRange
 import com.avail.server.io.files.RedoAction
@@ -153,15 +154,24 @@ enum class BinaryCommand constructor(val id: Int)
 						FileManager.createFile(
 							path,
 							{ uuid, mime, bytes ->
-								FileOpenedMessage(commandId, uuid, bytes.size, mime)
-									.processThen(channel)
-									{
-										FileStreamMessage(commandId, uuid, bytes)
+								channel.sessionId?.let { sessionId ->
+									channel.server.sessions[sessionId]?.let { session ->
+										val fileId =
+											session.addFileCacheId(uuid)
+										FileOpenedMessage(
+											commandId, id, bytes.size, mime)
 											.processThen(channel)
+											{
+												FileStreamMessage(
+														commandId, fileId, bytes)
+													.processThen(channel)
+											}
 									}
+								}
+								// TODO [RAA] handle session not found
 							}) { code, throwable ->
 								throwable?.let { e ->
-									AvailServer.logger.log(Level.SEVERE, e) {
+									logger.log(Level.SEVERE, e) {
 										"Could not create file, $path" }
 								}
 								channel.enqueueMessageThen(
@@ -174,7 +184,7 @@ enum class BinaryCommand constructor(val id: Int)
 						channel.enqueueMessageThen(
 							ErrorBinaryMessage(
 								commandId,
-								ServerErrorCode.NO_SOURCE_DIRECTORY,
+								NO_SOURCE_DIRECTORY,
 								false,
 								"No source directory found for " +
 								target.rootName
@@ -186,7 +196,7 @@ enum class BinaryCommand constructor(val id: Int)
 				channel.enqueueMessageThen(
 					ErrorBinaryMessage(
 						commandId,
-						ServerErrorCode.BAD_MODULE_ROOT,
+						BAD_MODULE_ROOT,
 						false,
 						"${target.rootName} not found"
 					).message,
@@ -219,15 +229,20 @@ enum class BinaryCommand constructor(val id: Int)
 						FileManager.readFile(
 							path,
 							{ uuid, mime, bytes ->
-								FileOpenedMessage(commandId, uuid, bytes.size, mime)
-									.processThen(channel)
-									{
-										FileStreamMessage(commandId, uuid, bytes)
-											.processThen(channel)
-									}
+								channel.session?.let {session ->
+									val fileId = session.addFileCacheId(uuid)
+									FileOpenedMessage(
+											commandId, fileId, bytes.size, mime)
+										.processThen(channel)
+										{
+											FileStreamMessage(
+													commandId, fileId, bytes)
+												.processThen(channel)
+										}
+								}
 							}) { code, throwable ->
 								throwable?.let { e ->
-									AvailServer.logger.log(Level.SEVERE, e) {
+									logger.log(Level.SEVERE, e) {
 										"Could not read file, $path" }
 								}
 								channel.enqueueMessageThen(
@@ -240,7 +255,7 @@ enum class BinaryCommand constructor(val id: Int)
 						channel.enqueueMessageThen(
 							ErrorBinaryMessage(
 								commandId,
-								ServerErrorCode.NO_SOURCE_DIRECTORY,
+								NO_SOURCE_DIRECTORY,
 								false,
 								"No source directory found for " +
 								target.rootName
@@ -252,7 +267,7 @@ enum class BinaryCommand constructor(val id: Int)
 				channel.enqueueMessageThen(
 					ErrorBinaryMessage(
 						commandId,
-						ServerErrorCode.BAD_MODULE_ROOT,
+						BAD_MODULE_ROOT,
 						false,
 						"${target.rootName} not found"
 					).message,
@@ -289,11 +304,17 @@ enum class BinaryCommand constructor(val id: Int)
 			channel: AvailServerChannel,
 			continuation: () -> Unit)
 		{
-			val mostSig = buffer.long
-			val leastSig = buffer.long
-			val uuid = UUID(mostSig, leastSig)
+			val fileId = buffer.int
+			val uuid = channel.session?.getFile(fileId)
+			if (uuid == null)
+			{
+				ErrorBinaryMessage(commandId, NO_SESSION, false)
+					.processThen(channel)
+				return
+			}
 			val fail: (ServerErrorCode, Throwable?) -> Unit =
 				{ code, e ->
+					logger.log(Level.SEVERE, "Save file error: $code", e)
 					ErrorBinaryMessage(commandId, code, false)
 						.processThen(channel)
 				}
@@ -313,6 +334,7 @@ enum class BinaryCommand constructor(val id: Int)
 	{
 		/**
 		 * Process the
+		 *
 		 * @param id
 		 *   The [BinaryCommand.id].
 		 * @param commandId
@@ -332,15 +354,21 @@ enum class BinaryCommand constructor(val id: Int)
 			channel: AvailServerChannel,
 			continuation: () -> Unit)
 		{
-			val mostSig = buffer.long
-			val leastSig = buffer.long
-			val uuid = UUID(mostSig, leastSig)
+			val fileId = buffer.int
+			val uuid = channel.session?.getFile(fileId)
+			if (uuid == null)
+			{
+				ErrorBinaryMessage(commandId, NO_SESSION, false)
+					.processThen(channel)
+				return
+			}
 			val start = buffer.int
 			val end = buffer.int
 			val data = ByteArray(buffer.remaining())
 			buffer.get(data)
 			val edit = EditRange(data, start, end)
 			FileManager.executeAction(uuid, edit) { code, e ->
+				logger.log(Level.SEVERE, "Edit file range error: $code", e)
 				ErrorBinaryMessage(commandId, code, false)
 					.processThen(channel)
 			}
@@ -358,10 +386,16 @@ enum class BinaryCommand constructor(val id: Int)
 			channel: AvailServerChannel,
 			continuation: () -> Unit)
 		{
-			val mostSig = buffer.long
-			val leastSig = buffer.long
-			val uuid = UUID(mostSig, leastSig)
+			val fileId = buffer.int
+			val uuid = channel.session?.getFile(fileId)
+			if (uuid == null)
+			{
+				ErrorBinaryMessage(commandId, NO_SESSION, false)
+					.processThen(channel)
+				return
+			}
 			FileManager.executeAction(uuid, UndoAction) { code, e ->
+				logger.log(Level.SEVERE, "Undo edit error: $code", e)
 				ErrorBinaryMessage(commandId, code, false)
 					.processThen(channel)
 			}
@@ -379,10 +413,16 @@ enum class BinaryCommand constructor(val id: Int)
 			channel: AvailServerChannel,
 			continuation: () -> Unit)
 		{
-			val mostSig = buffer.long
-			val leastSig = buffer.long
-			val uuid = UUID(mostSig, leastSig)
+			val fileId = buffer.int
+			val uuid = channel.session?.getFile(fileId)
+			if (uuid == null)
+			{
+				ErrorBinaryMessage(commandId, NO_SESSION, false)
+					.processThen(channel)
+				return
+			}
 			FileManager.executeAction(uuid, RedoAction) { code, e ->
+				logger.log(Level.SEVERE, "Redo file error: $code", e)
 				ErrorBinaryMessage(commandId, code, false)
 					.processThen(channel)
 			}
@@ -418,7 +458,7 @@ enum class BinaryCommand constructor(val id: Int)
 									.processThen(channel, continuation)
 							}) { code, throwable ->
 								throwable?.let { e ->
-									AvailServer.logger.log(Level.SEVERE, e) {
+									logger.log(Level.SEVERE, e) {
 										"Could not delete file, $path" }
 								}
 								channel.enqueueMessageThen(
@@ -431,7 +471,7 @@ enum class BinaryCommand constructor(val id: Int)
 						channel.enqueueMessageThen(
 							ErrorBinaryMessage(
 								commandId,
-								ServerErrorCode.NO_SOURCE_DIRECTORY,
+								NO_SOURCE_DIRECTORY,
 								false,
 								"No source directory found for " +
 								target.rootName
@@ -443,7 +483,7 @@ enum class BinaryCommand constructor(val id: Int)
 				channel.enqueueMessageThen(
 					ErrorBinaryMessage(
 						commandId,
-						ServerErrorCode.BAD_MODULE_ROOT,
+						BAD_MODULE_ROOT,
 						false,
 						"${target.rootName} not found"
 					).message,

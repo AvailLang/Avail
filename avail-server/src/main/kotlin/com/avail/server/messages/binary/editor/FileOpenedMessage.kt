@@ -35,6 +35,7 @@ package com.avail.server.messages.binary.editor
 import com.avail.server.io.AvailServerChannel
 import com.avail.server.io.files.FileManager
 import com.avail.server.messages.Message
+import com.avail.server.session.Session
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import java.util.*
@@ -52,7 +53,8 @@ import java.util.*
  *   The identifier of the [message][BinaryMessage]. This identifier should
  *   appear in any responses to this message.
  * @param fileId
- *   The [UUID] that uniquely identifies the target file in the [FileManager].
+ *   The [Session] file cache id that is linked to the [UUID ]that uniquely
+ *   identifies the target file in the [FileManager].
  * @param fileSize
  *   The size of the file in byte count.
  * @param mime
@@ -61,7 +63,7 @@ import java.util.*
  */
 internal class FileOpenedMessage constructor(
 	override var commandId: Long,
-	fileId: UUID,
+	fileId: Int,
 	fileSize: Int,
 	mime: String): BinaryMessage()
 {
@@ -71,18 +73,17 @@ internal class FileOpenedMessage constructor(
 	init
 	{
 		val mimeBytes = mime.toByteArray(StandardCharsets.UTF_8)
-		// Base size of payload is 32 byes broken down as:
+		// Base size of payload is 24 byes broken down as:
 		//   BinaryCommand.id = 4
 		//   commandId = 8
-		//   UUID = 16
+		//   file id = 4
 		//   mimeSize = 4
 		// file size = 4
 		val bufferSize = 32 + mimeBytes.size
 		val buffer = ByteBuffer.allocate(bufferSize)
 		buffer.putInt(command.id)
 		buffer.putLong(commandId)
-		buffer.putLong(fileId.mostSignificantBits)
-		buffer.putLong(fileId.leastSignificantBits)
+		buffer.putInt(fileId)
 		buffer.putInt(fileSize)
 		buffer.putInt(mimeBytes.size)
 		buffer.put(mimeBytes)

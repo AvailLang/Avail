@@ -38,6 +38,7 @@ import com.avail.server.messages.TextCommand
 import com.avail.server.messages.CommandMessage
 import com.avail.server.messages.Message
 import com.avail.server.messages.UpgradeCommandMessage
+import com.avail.server.session.Session
 import com.avail.utility.evaluation.Continuation0
 import java.util.*
 import java.util.concurrent.atomic.AtomicLong
@@ -87,8 +88,39 @@ abstract class AvailServerChannel constructor(
 	 * The [id] of the command [channel][AvailServerChannel] that is responsible
 	 * for spawning this channel if this channel was created through the
 	 * [upgrade][TextCommand.UPGRADE] process.
+	 *
+	 * If the value is `null` that means that either one of two things has
+	 * happened:
+	 *
+	 *  1. This is a new channel that has not been upgraded to a specific type
+	 *     (e.g IO, Binary, or COMMAND).
+	 *  2. This is a COMMAND channel (ProtocolState = COMMAND)
+	 *
+	 * If this parent id is not null, then the parent id is the same as the
+	 * [Session.id] to which this channel belongs to.
 	 */
 	var parentId: UUID? = null
+
+	/**
+	 * The [Session.id] of the [Session] this [AvailServerChannel] belongs to;
+	 * `null` if this `AvailServerChannel` has not yet been assigned to a
+	 * session.
+	 */
+	val sessionId: UUID? get() =
+		when
+		{
+			state == ProtocolState.COMMAND -> id
+			parentId != null -> parentId
+			else -> null
+		}
+
+	/**
+	 * The [Session] this [AvailServerChannel] belongs to or `null` if not yet
+	 * assigned to a `Session`.
+ 	 */
+	val session: Session? get() = sessionId?.let {
+		server.sessions[it]
+	}
 
 	/**
 	 * The time in milliseconds since the Unix Epoch when this

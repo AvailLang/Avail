@@ -77,7 +77,7 @@ class Session constructor(val commandChannel: AvailServerChannel)
 	 * The [UUID] that uniquely identifies this [Session]. This is also the
 	 * [commandChannel]'s [AvailServerChannel.id].
 	 */
-	val sessionId: UUID = commandChannel.id
+	val id: UUID = commandChannel.id
 
 	/**
 	 * The [Map] from [AvailServerChannel.id] to [AvailServerChannel] for all
@@ -157,13 +157,15 @@ class Session constructor(val commandChannel: AvailServerChannel)
 		childChannels.values.forEach {
 			it.scheduleClose(ParentChannelDisconnect)
 		}
-		commandChannel.server.sessions.remove(sessionId)
-		AvailServer.logger.log(Level.INFO, "Session $sessionId closed")
+		commandChannel.server.sessions.remove(id)
+		AvailServer.logger.log(Level.INFO, "Session $id closed")
 	}
 
 	/**
 	 * Add the [FileManager] cache id to this [Session] and answer a
 	 * `Session`-specific cache key for the file.
+	 *
+	 * If there is already an id for this, the existing id is returned.
 	 *
 	 * @param uuid
 	 *   The `FileManager` cache id to add.
@@ -171,7 +173,10 @@ class Session constructor(val commandChannel: AvailServerChannel)
 	 *   The session id for the file that can be used to refer to the file.
 	 */
 	fun addFileCacheId (uuid: UUID): Int =
-		sessionFileCache.add(uuid).apply { fileCacheIdSessionId[uuid] = this }
+		fileCacheIdSessionId[uuid]
+			?: sessionFileCache.add(uuid).apply {
+				fileCacheIdSessionId[uuid] = this
+			}
 
 	/**
 	 * Add the [FileManager] cache id to this [Session] and answer a

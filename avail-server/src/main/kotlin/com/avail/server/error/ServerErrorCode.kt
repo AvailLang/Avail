@@ -38,6 +38,7 @@ import com.avail.server.AvailServer
 import com.avail.server.messages.TextCommand
 import com.avail.server.messages.Message
 import com.avail.server.messages.binary.editor.BinaryCommand
+import com.avail.server.session.Session
 
 /**
  * `ServerErrorCode` is an enumeration of all possible failures that can occur
@@ -82,7 +83,12 @@ enum class ServerErrorCode constructor(val code: Int)
 	 * Located [ModuleRoot] has no
 	 * [source directory][ModuleRoot.sourceDirectory].
 	 */
-	NO_SOURCE_DIRECTORY(8);
+	NO_SOURCE_DIRECTORY(8),
+
+	/**
+	 * Could not locate a [Session].
+	 */
+	NO_SESSION(9);
 
 	companion object
 	{

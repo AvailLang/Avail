@@ -154,7 +154,7 @@ class AvailServer constructor(
 		HashMap<UUID, (AvailServerChannel, UUID, ()->Unit)->Unit>()
 
 	/**
-	 * The [Map] from [Session.sessionId] to [Session]. It contains all open
+	 * The [Map] from [Session.id] to [Session]. It contains all open
 	 * `Session`s
 	 */
 	val sessions = ConcurrentHashMap<UUID, Session>()
@@ -1454,7 +1454,7 @@ class AvailServer constructor(
 							channel.state = COMMAND
 							channel.server.newChannels.remove(channel.id)
 							Session(channel).let {
-								channel.server.sessions[it.sessionId] = it
+								channel.server.sessions[it.id] = it
 							}
 						}
 					}
