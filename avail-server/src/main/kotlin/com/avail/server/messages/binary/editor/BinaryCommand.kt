@@ -46,7 +46,6 @@ import com.avail.server.messages.Message
 import java.lang.UnsupportedOperationException
 import java.nio.ByteBuffer
 import java.nio.file.Paths
-import java.util.*
 import java.util.logging.Level
 
 /**
@@ -150,7 +149,6 @@ enum class BinaryCommand constructor(val id: Int)
 					mr.sourceDirectory?.let {
 						val path =
 							Paths.get(it.path, target.rootRelativeName).toString()
-
 						FileManager.createFile(
 							path,
 							{ uuid, mime, bytes ->
@@ -225,7 +223,6 @@ enum class BinaryCommand constructor(val id: Int)
 					mr.sourceDirectory?.let {
 						val path =
 							Paths.get(it.path, target.rootRelativeName).toString()
-
 						FileManager.readFile(
 							path,
 							{ uuid, mime, bytes ->
@@ -286,9 +283,14 @@ enum class BinaryCommand constructor(val id: Int)
 			channel: AvailServerChannel,
 			continuation: () -> Unit)
 		{
-			val mostSig = buffer.long
-			val leastSig = buffer.long
-			val uuid = UUID(mostSig, leastSig)
+			val fileId = buffer.int
+			val uuid = channel.session?.getFile(fileId)
+			if (uuid == null)
+			{
+				ErrorBinaryMessage(commandId, NO_SESSION, false)
+					.processThen(channel)
+				return
+			}
 			FileManager.deregisterInterest(uuid)
 			OkMessage(commandId).processThen(channel, continuation)
 		}
