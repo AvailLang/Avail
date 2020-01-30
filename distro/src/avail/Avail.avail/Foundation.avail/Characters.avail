@@ -68,6 +68,7 @@ Names
 	"_is line terminator",
 	"_is punctuation start",
 	"_is punctuation end",
+	"_'s⁇character category",
 	"_'s⁇character type name",
 	"punctuation end for_",
 	"punctuation start for_",
@@ -78,6 +79,136 @@ Names
 	"lowercase_",
 	"titlecase_"
 Body
+
+/**
+ * Character type names.
+ */
+characterTypes ::= <
+	/** General category "Cn" */
+	<0, "Cn", "unassigned">,
+
+	/** General category "Lu" */
+	<1, "Lu", "uppercase letter">,
+
+	/** General category "Ll" */
+	<2, "Ll", "lowercase letter">,
+
+	/** General category "Lt" */
+	<3, "Lt", "titlecase letter">,
+
+	/** General category "Lm" */
+	<4, "Lm", "modifier letter">,
+
+	/** General category "Lo" */
+	<5, "Lo", "other letter">,
+
+	/** General category "Mn" */
+	<6, "Mn", "non-spacing mark">,
+
+	/** General category "Me" */
+	<7, "Me", "enclosing mark">,
+
+	/** General category "Mc" */
+	<8, "Mc", "combining spacing mark">,
+
+	/** General category "Nd" */
+	<9, "Nd", "decimal digit number">,
+
+	/** General category "Nl" */
+	<10, "Nl", "letter number">,
+
+	/** General category "No" */
+	<11, "No", "other number">,
+
+	/** General category "Zs" */
+	<12, "Zs", "space separator">,
+
+	/** General category "Zl" */
+	<13, "Zl", "line separator">,
+
+	/** General category "Zp" */
+	<14, "Zp", "paragraph separator">,
+
+	/** General category "Cc" */
+	<15, "Cc", "control">,
+
+	/** General category "Cf" */
+	<16, "Cf", "format">,
+
+	/** Invalid category */
+	<17, "", "invalid category 17">,
+
+	/** General category "Co" */
+	<18, "Co", "private use">,
+
+	/** General category "Cs" */
+	<19, "Cs", "surrogate">,
+
+	/** General category "Pd" */
+	<20, "Pd", "dash punctuation">,
+
+	/** General category "Ps" */
+	<21, "Ps", "start punctuation">,
+
+	/** General category "Pe" */
+	<22, "Pe", "end punctuation">,
+
+	/** General category "Pc" */
+	<23, "Pc", "connector punctuation">,
+
+	/** General category "Po" */
+	<24, "Po", "other punctuation">,
+
+	/** General category "Sm" */
+	<25, "Sm", "math symbol">,
+
+	/** General category "Sc" */
+	<26, "Sc", "currency symbol">,
+
+	/** General category "Sk" */
+	<27, "Sk", "modifier symbol">,
+
+	/** General category "So" */
+	<28, "So", "other symbol">,
+
+	/** General category "Pi" */
+	<29, "Pi", "initial quote punctuation">,
+
+	/** General category "Pf" */
+	<30, "Pf", "final quote punctuation">,
+
+	/** Invalid category */
+	<31, "", "invalid category 31">
+>;
+
+names, categories ::=
+	[
+		tempNames : string* := <>;
+		tempCategories : string* := <>;
+		For each triple, i in characterTypes do
+		[
+			value, category, name ::= triple;
+			Assert: value = i - 1 (
+				"Character types were not consecutively numbered");
+			tempNames ++= <name>;
+			tempCategories ++= <category>;
+		];
+		<tempNames, tempCategories>
+	]();
+
+Public stable method "_'s⁇character type name" is
+[
+	c : character
+|
+	names[c's character type number + 1]
+];
+
+Public stable method "_'s⁇character category" is
+[
+	c : character
+|
+	categories[c's character type number + 1]
+];
 
 /* Mark some character-related operations as stable. */
 Method "_'s⁇code point" is stable at [character]→code point;
@@ -1010,34 +1141,7 @@ Public stable method "_is a letter" is
 [
  	c : character
 |
-	cp ::= c's code point;
-
-	if cp < 128 then
-	[
-		65 ≤ cp ≤ 90 ∨ [97 ≤ cp ≤ 122]
-	]
-	else
-	[
-		if cp < 8192 then
-		[
-			192 ≤ cp ≤ 214 ∨ 216 ≤ cp ≤ 246 ∨ 248 ≤ cp ≤ 8191
-		]
-		else
-		[
-			12352 ≤ cp ≤ 12799
-				∨ 13312 ≤ cp ≤ 59391
-				∨ 65136 ≤ cp ≤ 65277
-				∨ 65313 ≤ cp ≤ 65338
-				∨ 65345 ≤ cp ≤ 65370
-				∨ 65377 ≤ cp ≤ 65503
-		]
-	]
-
-	/* TODO: [LAS] I believe this implementation (adapted from Mark's code) is
-	 * incomplete, however I have not yet been able to find a complete listing
-	 * of unicode "letters" by code point.
-	 */
-
+	c's character type number ∈ {"Lu", "Ll", "Lt", "Lm", "Lo"}
 ] : boolean;
 
 /**
@@ -1509,123 +1613,3 @@ Public stable method "_is a control character" is
 |
 	(c's code point) ∈ controlCharacters
 ] : boolean;
-
-/**
- * Character type names.
- */
-characterTypes ::= <
-	/** General category "Cn" */
-	<"unassigned", 0>,
-
-	/** General category "Lu" */
-	<"uppercase letter", 1>,
-
-	/** General category "Ll" */
-	<"lowercase letter", 2>,
-
-	/** General category "Lt" */
-	<"titlecase letter", 3>,
-
-	/** General category "Lm" */
-	<"modifier letter", 4>,
-
-	/** General category "Lo" */
-	<"other letter", 5>,
-
-	/** General category "Mn" */
-	<"non-spacing mark", 6>,
-
-	/** General category "Me" */
-	<"enclosing mark", 7>,
-
-	/** General category "Mc" */
-	<"combining spacing mark", 8>,
-
-	/** General category "Nd" */
-	<"decimal digit number", 9>,
-
-	/** General category "Nl" */
-	<"letter number", 10>,
-
-	/** General category "No" */
-	<"other number", 11>,
-
-	/** General category "Zs" */
-	<"space separator", 12>,
-
-	/** General category "Zl" */
-	<"line separator", 13>,
-
-	/** General category "Zp" */
-	<"paragraph separator", 14>,
-
-	/** General category "Cc" */
-	<"control", 15>,
-
-	/** General category "Cf" */
-	<"format", 16>,
-
-	/** Invalid category */
-	<"invalid category 31", 17>,
-
-	/** General category "Co" */
-	<"private use", 18>,
-
-	/** General category "Cs" */
-	<"surrogate", 19>,
-
-	/** General category "Pd" */
-	<"dash punctuation", 20>,
-
-	/** General category "Ps" */
-	<"start punctuation", 21>,
-
-	/** General category "Pe" */
-	<"end punctuation", 22>,
-
-	/** General category "Pc" */
-	<"connector punctuation", 23>,
-
-	/** General category "Po" */
-	<"other punctuation", 24>,
-
-	/** General category "Sm" */
-	<"math symbol", 25>,
-
-	/** General category "Sc" */
-	<"currency symbol", 26>,
-
-	/** General category "Sk" */
-	<"modifier symbol", 27>,
-
-	/** General category "So" */
-	<"other symbol", 28>,
-
-	/** General category "Pi" */
-	<"initial quote punctuation", 29>,
-
-	/** General category "Pf" */
-	<"final quote punctuation", 30>,
-
-	/** Invalid category */
-	<"invalid category 31", 31>
->;
-
-names ::=
-	[
-		tempNames : string* := <>;
-		For each pair, i in characterTypes do
-		[
-			name, value ::= pair;
-			Assert: value = i - 1 ("Character types were not consecutively numbered");
-			tempNames ++= <name>;
-		];
-		cast tempNames into [t : <string…|32> | t]
-	]();
-
-Public stable method "_'s⁇character type name" is
-[
-	c : character
-|
-	names[c's character type number + 1]
-];

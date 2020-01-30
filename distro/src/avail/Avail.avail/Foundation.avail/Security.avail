@@ -40,10 +40,10 @@ Uses
 	"Definers",
 	"Early Conditionals",
 	"Enumeration Support",
+	"Format",
 	"Functions",
 	"Literals",
 	"Logic",
-	"Strings",
 	"Tuples",
 	"Types",
 	"Variables"
