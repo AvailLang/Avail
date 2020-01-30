@@ -41,6 +41,7 @@ Uses
 	"Early Conditionals",
 	"Enumeration Support",
 	"Exceptions",
+	"Format",
 	"Literals",
 	"Logic",
 	"Strings",
