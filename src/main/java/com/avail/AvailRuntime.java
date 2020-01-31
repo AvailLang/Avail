@@ -1201,8 +1201,6 @@ public final class AvailRuntime
 			SpecialAtom.SOCKET_KEY.atom,
 			SpecialAtom.STATIC_TOKENS_KEY.atom,
 			SpecialAtom.TRUE.atom,
-			CompiledCodeDescriptor.lineNumberKeyAtom(),
-			CompiledCodeDescriptor.methodNameKeyAtom(),
 			SpecialMethodAtom.ABSTRACT_DEFINER.atom,
 			SpecialMethodAtom.ADD_TO_MAP_VARIABLE.atom,
 			SpecialMethodAtom.ALIAS.atom,

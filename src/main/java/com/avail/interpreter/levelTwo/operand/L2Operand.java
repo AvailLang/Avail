@@ -46,6 +46,7 @@ import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.UnaryOperator;
 
 import static com.avail.utility.Casts.cast;
 import static com.avail.utility.Nulls.stripNull;
@@ -223,6 +224,21 @@ extends PublicCloneable<L2Operand>
 		final L2Instruction theInstruction)
 	{
 		// By default do nothing.
+	}
+
+	/**
+	 * Transform each L2ReadOperand through the given {@link UnaryOperator},
+	 * producing either a new {@code L2Operand} of the same type, or the
+	 * receiver.
+	 *
+	 * @param transformer
+	 *        The {@link UnaryOperator} to transform {@link L2ReadOperand}s.
+	 * @return The transformed operand or the receiver.
+	 */
+	public L2Operand transformEachRead (
+		final UnaryOperator<L2ReadOperand<?>> transformer)
+	{
+		return this;
 	}
 
 	/**

@@ -43,12 +43,13 @@ import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.operation.L2ControlFlowOperation;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE;
 import com.avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT;
-import com.avail.interpreter.levelTwo.operation.L2_VIRTUAL_REIFY;
+import com.avail.interpreter.levelTwo.operation.L2_VIRTUAL_CREATE_LABEL;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
 import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2ControlFlowGraph.Zone;
 import com.avail.optimizer.L2Generator;
+import com.avail.optimizer.L2Optimizer;
 import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
@@ -450,17 +451,38 @@ public abstract class L2Operation
 	/**
 	 * Answer whether this operation is a placeholder, and should be replaced
 	 * using {@link L2Generator#replaceInstructionByGenerating(L2Instruction)}.
-	 * Placeholder instructions (like {@link L2_VIRTUAL_REIFY}) are free to be
-	 * moved through much of the control flow graph, even though the subgraphs
-	 * they eventually get replaced by would be too complex to move.  The
-	 * mobility of placeholder instructions is essential to postponing
-	 * stack reification and label creation into off-ramps (reification
-	 * {@link Zone}s) as much as possible.
+	 * Placeholder instructions (like {@link L2_VIRTUAL_CREATE_LABEL}) are free
+	 * to be moved through much of the control flow graph, even though the
+	 * subgraphs they eventually get replaced by would be too complex to move.
+	 * The mobility of placeholder instructions is essential to postponing stack
+	 * reification and label creation into off-ramps (reification {@link Zone}s)
+	 * as much as possible.
 	 *
 	 * @return Whether the {@link L2Instruction} using this operation is a
 	 *         placeholder, subject to later substitution.
 	 */
 	public boolean isPlaceholder ()
+	{
+		return false;
+	}
+
+	/**
+	 * Some kinds of instructions can be safely duplicated to positions just
+	 * before the values that they produce are consumed.  If this operation says
+	 * it's safe to move it, then the {@link L2Optimizer} is free to check if
+	 * values that are consumed by the instruction are still available at the
+	 * use sites, and if so, duplicate the instruction to each such site.
+	 *
+	 * <p>It's important that the instruction be idempotent, since not all uses
+	 * may be suitable places to duplicate the instruction, and the original may
+	 * stick around.  Multiple occurrences may also be generated along some
+	 * paths.</p>
+	 *
+	 * @param instruction
+	 *        The {@link L2Instruction} containing this {@code L2Operation}.
+	 * @return Whether it's safe to duplicate this {@link L2Instruction}.
+	 */
+	public boolean canBeDuplicatedToEachUse (final L2Instruction instruction)
 	{
 		return false;
 	}
@@ -509,12 +531,9 @@ public abstract class L2Operation
 				// Process all operands without a purpose first.
 				operand.instructionWasAdded(manifest);
 			}
-			else
+			else if (operand instanceof L2PcOperand)
 			{
-				if (operand instanceof L2PcOperand)
-				{
-					edgeIndexOrder.add(i);
-				}
+				edgeIndexOrder.add(i);
 			}
 		}
 		// Create separate copies of the manifest for each outgoing edge.
@@ -858,6 +877,46 @@ public abstract class L2Operation
 		throw new RuntimeException(
 			"A " + instruction.operation()
 				+ " cannot be transformed by regeneration");
+	}
+
+	/**
+	 * Update the given {@link L2ValueManifest} with the effect of the given
+	 * {@link L2Instruction}.  If a {@link Purpose} is given, alter the manifest
+	 * to agree with outbound edges having that purpose.
+	 *
+	 * @param instruction
+	 *        The {@link L2Instruction} having this operation.
+	 * @param manifest
+	 *        The {@link L2ValueManifest} to update with the effect of this
+	 *        instruction.
+	 * @param optionalPurpose
+	 *        If non-{@code null}, produce tha manifest that should be active
+	 *        along outbound edges having the indicated {@link Purpose}.
+	 */
+	public void updateManifest (
+		final L2Instruction instruction,
+		final L2ValueManifest manifest,
+		final @Nullable Purpose optionalPurpose)
+	{
+		assert this == instruction.operation();
+		final int count = namedOperandTypes.length;
+		final L2Operand[] operands = instruction.operands();
+		assert operands.length == count;
+		for (int i = 0; i < count; i++)
+		{
+			final L2Operand operand = instruction.operand(i);
+			if (operand instanceof L2WriteOperand)
+			{
+				final L2WriteOperand<?> write = cast(operand);
+				// Pay attention to purpose-less writes, or writes for the
+				// specified purpose.
+				if (namedOperandTypes[i].purpose() == null
+					|| namedOperandTypes[i].purpose() == optionalPurpose)
+				{
+					manifest.recordDefinition(write);
+				}
+			}
+		}
 	}
 
 	/**

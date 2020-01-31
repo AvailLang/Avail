@@ -32,6 +32,7 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
@@ -41,6 +42,7 @@ import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.optimizer.values.L2SemanticValue;
 import org.objectweb.asm.MethodVisitor;
 
+import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -100,6 +102,33 @@ extends L2Operation
 		manifest.retainRegisters(liveRegisters);
 
 		liveVector.instructionWasAdded(manifest);
+	}
+
+	@Override
+	public void updateManifest (
+		final L2Instruction instruction,
+		final L2ValueManifest manifest,
+		final @Nullable Purpose optionalPurpose)
+	{
+		assert this == instruction.operation();
+		// Update the given manifest with the effect of this instruction.  This
+		// is an {@code L2_STRIP_MANIFEST}, so it doesn't alter control flow, so
+		// it must not have a {@link Purpose} specified.
+		assert optionalPurpose == null;
+
+		final L2ReadBoxedVectorOperand liveVector = instruction.operand(0);
+
+		// Clear the manifest, other than the mentioned semantic values and
+		// registers.
+		final Set<L2SemanticValue> liveSemanticValues = new HashSet<>();
+		final Set<L2Register> liveRegisters = new HashSet<>();
+		for (final L2ReadBoxedOperand read : liveVector.elements())
+		{
+			liveSemanticValues.add(read.semanticValue());
+			liveRegisters.add(read.register());
+		}
+		manifest.retainSemanticValues(liveSemanticValues);
+		manifest.retainRegisters(liveRegisters);
 	}
 
 	@Override

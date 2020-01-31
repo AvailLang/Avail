@@ -112,7 +112,8 @@ import static com.avail.interpreter.Primitive.Result.*;
 import static com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk;
 import static com.avail.interpreter.levelTwo.operation.L2_REIFY.StatisticCategory.ABANDON_BEFORE_RESTART_IN_L2;
 import static com.avail.optimizer.jvm.CheckedField.instanceField;
-import static com.avail.optimizer.jvm.CheckedMethod.*;
+import static com.avail.optimizer.jvm.CheckedMethod.instanceMethod;
+import static com.avail.optimizer.jvm.CheckedMethod.staticMethod;
 import static com.avail.utility.Casts.cast;
 import static com.avail.utility.Casts.nullableCast;
 import static com.avail.utility.Nulls.stripNull;
@@ -1052,7 +1053,7 @@ public final class Interpreter
 
 	/** The {@link CheckedField} for the field argsBuffer. */
 	public static final CheckedField interpreterReturningFunctionField =
-		instanceField(Interpreter.class,"returningFunction", A_Function.class);
+		instanceField(Interpreter.class, "returningFunction", A_Function.class);
 
 	/**
 	 * Some operations like {@link L2_INVOKE} instructions have statistics that
@@ -2664,7 +2665,6 @@ public final class Interpreter
 		Interpreter.class,
 		"runChunk",
 		StackReifier.class);
-
 
 	/**
 	 * Schedule the specified {@linkplain ExecutionState#indicatesSuspension()

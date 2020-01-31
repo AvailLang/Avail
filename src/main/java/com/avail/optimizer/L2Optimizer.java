@@ -34,10 +34,17 @@ package com.avail.optimizer;
 
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2NamedOperandType;
+import com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable;
 import com.avail.interpreter.levelTwo.operand.*;
-import com.avail.interpreter.levelTwo.operation.*;
+import com.avail.interpreter.levelTwo.operation.L2_JUMP;
+import com.avail.interpreter.levelTwo.operation.L2_JUMP_BACK;
+import com.avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE;
+import com.avail.interpreter.levelTwo.operation.L2_MOVE;
+import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
+import com.avail.interpreter.levelTwo.operation.L2_VIRTUAL_CREATE_LABEL;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
 import com.avail.optimizer.L2ControlFlowGraph.StateFlag;
@@ -56,6 +63,7 @@ import java.util.function.ToIntFunction;
 import static com.avail.AvailRuntimeSupport.captureNanos;
 import static com.avail.utility.Casts.cast;
 import static com.avail.utility.Nulls.stripNull;
+import static com.avail.utility.PrefixSharingList.last;
 import static com.avail.utility.Strings.increaseIndentation;
 import static java.util.Collections.disjoint;
 import static java.util.Collections.emptySet;
@@ -83,13 +91,13 @@ public final class L2Optimizer
 	public final List<L2BasicBlock> blocks;
 
 	/**
-	 * Whether any {@link L2_VIRTUAL_REIFY} instructions were replaced since the
-	 * last time we cleared the flag.
+	 * Whether any {@link L2_VIRTUAL_CREATE_LABEL} instructions, or other
+	 * placeholders, were replaced since the last time we cleared the flag.
 	 */
 	public boolean replacedAnyPlaceholders = false;
 
 	/** Whether to sanity-check the graph between optimization steps. */
-	public static boolean shouldSanityCheck = false;
+	public static boolean shouldSanityCheck = true; //TODO false;
 
 	/** The register coloring algorithm. */
 	private @Nullable L2RegisterColorer colorer = null;
@@ -268,23 +276,100 @@ public final class L2Optimizer
 
 	/**
 	 * Visit all manifests, retaining only the {@link L2Register}s that are
-	 * still written to by live code.
+	 * written by live code along <em>all</em> of that manifest's histories.
+	 * Loop edges may have to be visited multiple times to ensure convergence
+	 * to a maximal fixed point.
 	 */
 	private void updateAllManifests ()
 	{
-		// Visit all L2WriteOperands, recording which L2Registers are written.
-		final Set<L2Register> registersToKeep = new HashSet<>(100);
-		blocks.forEach(
-			block -> block.instructions().forEach(
-				instruction -> instruction.writeOperands().forEach(
-					writeOperand ->
-						registersToKeep.add(writeOperand.register()))));
-		// Visit each edge's manifest.  In the manifest's definitions map's
-		// values (which are lists of L2Registers), retain only those registers
-		// for which writes were found above.
-		blocks.forEach(
-			block -> block.successorEdgesIterator().forEachRemaining(
-				edge -> edge.manifest().retainRegisters(registersToKeep)));
+		// Make sure all blocks get visited at least once, since we're trying to
+		// correct all the manifests, and the propagation stops when a correct
+		// manifest is reached.
+		final Deque<L2BasicBlock> blocksToVisit = new ArrayDeque<>(blocks);
+		while (!blocksToVisit.isEmpty())
+		{
+			final L2BasicBlock block = blocksToVisit.removeFirst();
+			final Set<L2Register> availableRegisters = new HashSet<>();
+			final Iterator<L2PcOperand> predecessors =
+				block.predecessorEdgesIterator();
+			if (predecessors.hasNext())
+			{
+				availableRegisters.addAll(
+					predecessors.next().manifest().allRegisters());
+				predecessors.forEachRemaining(pred ->
+					availableRegisters.retainAll(
+						pred.manifest().allRegisters()));
+			}
+			final List<L2Instruction> instructions = block.instructions();
+			for (int i = 0, limit = instructions.size() - 1; i < limit; i++)
+			{
+				//TODO deal with weird instructions like L2_MAKE_IMMUTABLE
+				//and L2_STRIP_MANIFEST.
+				final L2Instruction instruction = instructions.get(i);
+				assert instruction.operation().isPhi()
+					|| availableRegisters.containsAll(
+						instruction.sourceRegisters());
+//				instruction.updateManifest(manifest)
+				//TODO XXX Finish writing this!!! ...(availableRegisters);
+			}
+			// Process the last instruction, which may have writes that are
+			// conditionally active based on the edge that is taken.
+			final L2Instruction lastInstruction = last(instructions);
+			final L2Operation lastOperation = lastInstruction.operation();
+			final L2NamedOperandType[] operandTypes =
+				lastOperation.operandTypes();
+			final L2Operand[] operands = lastInstruction.operands();
+			assert operandTypes.length == operands.length;
+			// Process the unconditional writes first.
+			for (int i = 0; i < operands.length; i++)
+			{
+				if (operands[i] instanceof L2WriteOperand)
+				{
+					final L2WriteOperand<?> write = cast(operands[i]);
+					if (operandTypes[i].purpose() == null)
+					{
+						availableRegisters.add(write.register());
+					}
+				}
+			}
+			// Now process the conditional writes, if any.
+			final Map<Purpose, Set<L2Register>> byPurpose =
+				new EnumMap<>(Purpose.class);
+			for (int i = 0; i < operands.length; i++)
+			{
+				if (operands[i] instanceof L2WriteOperand)
+				{
+					final L2WriteOperand<?> write = cast(operands[i]);
+					final @Nullable Purpose purpose = operandTypes[i].purpose();
+					if (purpose != null)
+					{
+						byPurpose
+							.computeIfAbsent(
+								purpose,
+								p -> new HashSet<>(availableRegisters))
+							.add(write.register());
+					}
+				}
+			}
+			// Adjust each outgoing edge's manifest, queueing the destination
+			// block for a (re)visit if the manifest changed.
+			for (int i = 0; i < operands.length; i++)
+			{
+				if (operands[i] instanceof L2PcOperand)
+				{
+					final L2PcOperand edge = cast(operands[i]);
+					final @Nullable Purpose purpose = operandTypes[i].purpose();
+					final Set<L2Register> registers =
+						(purpose == null || !byPurpose.containsKey(purpose))
+							? availableRegisters
+							: byPurpose.get(purpose);
+					if (edge.manifest().retainRegisters(registers))
+					{
+						blocksToVisit.add(edge.targetBlock());
+					}
+				}
+			}
+		}
 	}
 
 	/**
@@ -361,6 +446,7 @@ public final class L2Optimizer
 		{
 			// Do nothing else.
 		}
+		updateAllManifests();
 	}
 
 	/**
@@ -512,6 +598,133 @@ public final class L2Optimizer
 	}
 
 	/**
+	 * Some {@link L2Instruction}s can be safely removed and duplicated just
+	 * before their uses.  Such instructions must be idempotent, and should
+	 * either have no side-effect or be nilpotent.
+	 *
+	 * <p>Note that this breaks SSA, although there are ways to avoid this.</p>
+	 *
+	 * <p>The graph must be in edge-split form, so that instructions can be
+	 * copied into the appropriate edges leading to
+	 * {@link L2_PHI_PSEUDO_OPERATION} instructions.</p>
+	 *
+	 * @return Whether any instructions were replicated.
+	 */
+	boolean replicateEligibleInstructionsJustBeforeUse ()
+	{
+		boolean anyChanged = false;
+		boolean changed;
+		do
+		{
+			changed = false;
+			for (final L2BasicBlock block : blocks)
+			{
+				// Copy the list of instructions, since it may be modified.
+				for (final L2Instruction instruction :
+					new ArrayList<>(block.instructions()))
+				{
+					if (instruction.operation().canBeDuplicatedToEachUse(
+						instruction))
+					{
+						final Set<L2Instruction> consumers =
+							new HashSet<>();
+						for (final L2Register writeRegister :
+							instruction.destinationRegisters())
+						{
+							writeRegister.uses().forEach(
+								read -> consumers.add(read.instruction()));
+						}
+						boolean allMoved = true;
+						for (final L2Instruction consumer : consumers)
+						{
+							if (consumer.operation().isPhi())
+							{
+								// If the consumer is a phi, don't try to insert
+								// a copy of the instruction before it.  In
+								// theory, we could write a copy along each edge
+								// corresponding with a read that consumes it.
+								allMoved = false;
+								continue;
+							}
+							final L2BasicBlock consumerBlock =
+								consumer.basicBlock();
+							if (consumerBlock == block)
+							{
+								// The consumer is already in the same basic
+								// block as the instruction.  Don't move it.
+								allMoved = false;
+								continue;
+							}
+							final Set<L2Register> relevantConsumedRegisters =
+								new HashSet<>(consumer.sourceRegisters());
+							relevantConsumedRegisters.retainAll(
+								instruction.destinationRegisters());
+							boolean alreadyThere = true;
+							//TODO - simplify
+							for (final L2Register reg : relevantConsumedRegisters)
+							{
+								boolean any = false;
+								for (final L2WriteOperand<?> def : reg.definitions())
+								{
+									if (def.instruction().basicBlock() == consumerBlock)
+									{
+										any = true;
+										break;
+									}
+								}
+								if (!any)
+								{
+									alreadyThere = false;
+									break;
+								}
+							}
+							if (alreadyThere)
+							{
+								// There's already a definition of all registers
+								// that the instruction (also) provides, and the
+								// consumer consumers, within the consumer's
+								// basic block.  Don't replicate the instruction
+								// here again.
+								allMoved = false;
+								continue;
+							}
+							final L2ValueManifest manifest =
+								consumer.recreateIncomingManifest();
+							final @Nullable L2Instruction copy =
+								instruction.copyInstructionForManifest(
+									consumerBlock, manifest);
+							if (copy == null)
+							{
+								allMoved = false;
+								continue;
+							}
+							consumerBlock.insertInstruction(
+								consumerBlock.instructions().indexOf(consumer),
+								copy);
+							changed = true;
+						}
+						if (allMoved)
+						{
+							// Remove the original instruction.
+							block.instructions().remove(instruction);
+							instruction.justRemoved();
+						}
+					}
+				}
+			}
+			sanityCheck(Interpreter.current());
+			if (changed)
+			{
+				anyChanged = true;
+				updateAllManifests();
+				computeLivenessAtEachEdge();
+			}
+		}
+		while (changed);
+		return anyChanged;
+	}
+
+	/**
 	 * Try to move any side-effect-less defining instructions to later points in
 	 * the control flow graph.  If such an instruction defines a register that's
 	 * used in the same basic block, don't bother moving it.  Also don't attempt
@@ -630,14 +843,11 @@ public final class L2Optimizer
 						// about hitting a block that does care about the value,
 						// because we already know it was never live-in anywhere
 						// after this edge.
-						reachableTargetEdges.forEach(edge ->
-						{
-							if (!edgesToMoveThrough.contains(edge))
-							{
+						reachableTargetEdges.stream()
+							.filter(edge -> !edgesToMoveThrough.contains(edge))
+							.forEach(edge ->
 								edge.forgetRegistersInManifestsRecursively(
-									writtenSet);
-							}
-						});
+									writtenSet));
 
 						// We moved the instruction *just* out of the block, so
 						// when we move prior instructions, they'll still end up
@@ -677,6 +887,7 @@ public final class L2Optimizer
 				updateAllManifests();
 				computeLivenessAtEachEdge();
 			}
+			changed |= replicateEligibleInstructionsJustBeforeUse();
 		}
 		while (changed);
 	}
@@ -826,9 +1037,9 @@ public final class L2Optimizer
 	}
 
 	/**
-	 * Find any remaining occurrences of {@link L2_VIRTUAL_REIFY} or
-	 * {@link L2_VIRTUAL_CREATE_LABEL}, or any other {@link L2Instruction} using
-	 * an {@link L2Operation} that says it {@link L2Operation#isPlaceholder()}.
+	 * Find any remaining occurrences of {@link L2_VIRTUAL_CREATE_LABEL}, or any
+	 * other {@link L2Instruction} using an {@link L2Operation} that says it
+	 * {@link L2Operation#isPlaceholder()}.
 	 *
 	 * <p>Replace the instruction with code it produces via
 	 * {@link L2Generator#replaceInstructionByGenerating(L2Instruction)}.</p>
@@ -851,6 +1062,8 @@ public final class L2Optimizer
 					if (instruction.operation().isPlaceholder())
 					{
 						generator.replaceInstructionByGenerating(instruction);
+						updateAllManifests();
+						computeLivenessAtEachEdge();
 						replacedAnyPlaceholders = true;
 						continue outer;
 					}

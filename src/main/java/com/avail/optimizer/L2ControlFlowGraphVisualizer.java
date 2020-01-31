@@ -665,7 +665,11 @@ public class L2ControlFlowGraphVisualizer
 					else if (edge.isBackward())
 					{
 						attr.attribute("constraint", "false");
-						attr.attribute("color", "#9070ff/6050ff");
+						attr.attribute(
+							"color",
+							sourceBlock.zone == null
+								? "#9070ff/6050ff"
+								: "#90f0a0/60ff70");
 						attr.attribute("style", "dashed");
 					}
 					else

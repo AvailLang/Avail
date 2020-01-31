@@ -41,6 +41,7 @@ import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operation.L2_CREATE_FUNCTION;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT;
 import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
+import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
 import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.values.L2SemanticValue;
@@ -120,6 +121,14 @@ extends L2ReadOperand<L2BoxedRegister>
 	{
 		return new L2ReadBoxedOperand(
 			newSemanticValue, restriction(), register());
+	}
+
+	@Override
+	public L2ReadBoxedOperand copyForRegister (
+		final L2Register newRegister)
+	{
+		return new L2ReadBoxedOperand(
+			semanticValue(), restriction(), (L2BoxedRegister) newRegister);
 	}
 
 	@Override

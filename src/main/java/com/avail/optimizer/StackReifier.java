@@ -175,9 +175,10 @@ public final class StackReifier
 	 * @param dummyContinuation
 	 *        A mutable continuation to add to the stack when more recently
 	 *        pushed actions have completed (thereby fully reifying the caller).
+	 * @return The receiver (a {@code StackReifier}), as a convenience.
 	 */
 	@ReferencedInGeneratedCode
-	public void pushContinuationAction (
+	public StackReifier pushContinuationAction (
 		final AvailObject dummyContinuation)
 	{
 		assert dummyContinuation.caller().equalsNil();
@@ -221,6 +222,7 @@ public final class StackReifier
 						"");
 				}
 			});
+		return this;
 	}
 
 	/** Access the {@link #pushContinuationAction(AvailObject)} method. */
@@ -228,7 +230,7 @@ public final class StackReifier
 		instanceMethod(
 			StackReifier.class,
 			"pushContinuationAction",
-			void.class,
+			StackReifier.class,
 			AvailObject.class);
 
 	/**

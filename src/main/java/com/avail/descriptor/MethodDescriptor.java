@@ -84,14 +84,13 @@ import com.avail.serialization.SerializerOperation;
 import com.avail.utility.Locks.Auto;
 import com.avail.utility.json.JSONWriter;
 
-import java.util.ArrayList;
-import java.util.IdentityHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.WeakHashMap;
+import javax.annotation.Nullable;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
+import java.util.stream.IntStream;
 
 import static com.avail.AvailRuntimeSupport.nextHash;
+import static com.avail.descriptor.AvailObject.newIndexedDescriptor;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.CompiledCodeDescriptor.newPrimitiveRawFunction;
 import static com.avail.descriptor.DefinitionParsingPlanDescriptor.newParsingPlan;
@@ -104,12 +103,14 @@ import static com.avail.descriptor.MethodDescriptor.CreateMethodOrMacroEnum.CREA
 import static com.avail.descriptor.MethodDescriptor.IntegerSlots.HASH;
 import static com.avail.descriptor.MethodDescriptor.IntegerSlots.NUM_ARGS;
 import static com.avail.descriptor.MethodDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.Mutability.MUTABLE;
+import static com.avail.descriptor.Mutability.SHARED;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE;
-import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.TupleDescriptor.toList;
 import static com.avail.descriptor.TupleDescriptor.tupleWithout;
 import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
 import static com.avail.descriptor.TypeDescriptor.Types.METHOD;
@@ -122,6 +123,7 @@ import static com.avail.utility.Locks.auto;
 import static java.lang.Boolean.TRUE;
 import static java.util.Arrays.asList;
 import static java.util.Collections.*;
+import static java.util.concurrent.atomic.AtomicReferenceFieldUpdater.newUpdater;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -144,6 +146,49 @@ import static java.util.stream.Collectors.toList;
 public final class MethodDescriptor
 extends Descriptor
 {
+	/**
+	 * A {@link LookupTree} used to determine the most specific method
+	 * definition that satisfies the supplied argument types.  A {@code null}
+	 * indicates the tree has not yet been constructed.
+	 */
+	private volatile @Nullable LookupTree<A_Definition, A_Tuple>
+		methodTestingTree = null;
+
+	/** Atomic access to {@link #methodTestingTree}. */
+	@SuppressWarnings("rawtypes")
+	private static final
+		AtomicReferenceFieldUpdater<MethodDescriptor, LookupTree>
+			methodTestingTreeUpdater = newUpdater(
+				MethodDescriptor.class,
+				LookupTree.class,
+				"methodTestingTree");
+
+	/**
+	 * A {@link LookupTree} used to determine the most specific
+	 * {@linkplain MacroDefinitionDescriptor macro definition} that satisfies
+	 * the supplied argument types.  A {@code null} indicates the tree has not
+	 * yet been constructed.
+	 */
+	private volatile @Nullable LookupTree<A_Definition, A_Tuple>
+		macroTestingTree = null;
+
+	/** Atomic access to {@link #macroTestingTree}. */
+	@SuppressWarnings("rawtypes")
+	private static final
+	AtomicReferenceFieldUpdater<MethodDescriptor, LookupTree>
+		macroTestingTreeUpdater = newUpdater(
+			MethodDescriptor.class,
+			LookupTree.class,
+			"macroTestingTree");
+
+	/**
+	 * A weak set (implemented as the {@linkplain Map#keySet() key set} of a
+	 * {@link WeakHashMap}) of {@link L2Chunk}s that depend on the membership of
+	 * this method.  A change to the membership will invalidate all such
+	 * chunks.  This field holds the {@code null} initially.
+	 */
+	private @Nullable Set<L2Chunk> dependentChunksWeakSet = null;
+
 	/**
 	 * The layout of integer slots for my instances.
 	 */
@@ -183,9 +228,6 @@ extends Descriptor
 		 * method itself has no intrinsic name, as its bundles completely
 		 * determine what it is called in various modules (based on the module
 		 * scope of the bundles' {@linkplain AtomDescriptor atomic names}).
-		 *
-		 * TODO [MvG] - Maybe this should be a weak set, and the members should
-		 * first be forced to be traversed (across indirections) and Shared.
 		 */
 		OWNING_BUNDLES,
 
@@ -194,15 +236,6 @@ extends Descriptor
 		 * DefinitionDescriptor definitions} that constitute this multimethod.
 		 */
 		DEFINITIONS_TUPLE,
-
-		/**
-		 * A {@linkplain RawPojoDescriptor raw pojo} holding a {@link
-		 * LookupTree} used to determine the most specific method definition
-		 * that satisfies the supplied argument types.  A {@linkplain
-		 * NilDescriptor#nil nil} indicates the tree has not yet been
-		 * constructed.
-		 */
-		PRIVATE_TESTING_TREE,
 
 		/**
 		 * A {@linkplain SetDescriptor set} of {@linkplain
@@ -230,30 +263,11 @@ extends Descriptor
 		SEALED_ARGUMENTS_TYPES_TUPLE,
 
 		/**
-		 * A {@linkplain RawPojoDescriptor raw pojo} holding a weak set
-		 * (implemented as the {@linkplain Map#keySet() key set} of a {@link
-		 * WeakHashMap}) of {@link L2Chunk}s that depend on the membership of
-		 * this method.  A change to the membership will invalidate all such
-		 * chunks.  This field holds the {@linkplain NilDescriptor#nil nil}
-		 * object initially.
-		 */
-		DEPENDENT_CHUNKS_WEAK_SET_POJO,
-
-		/**
 		 * The {@linkplain A_Tuple tuple} of {@linkplain
 		 * MacroDefinitionDescriptor macro definitions} that are defined for
 		 * this macro.
 		 */
 		MACRO_DEFINITIONS_TUPLE,
-
-		/**
-		 * A {@linkplain RawPojoDescriptor raw pojo} holding a {@link
-		 * LookupTree} used to determine the most specific {@linkplain
-		 * MacroDefinitionDescriptor macro definition} that satisfies the
-		 * supplied argument types.  A {@linkplain NilDescriptor#nil nil}
-		 * indicates the tree has not yet been constructed.
-		 */
-		MACRO_TESTING_TREE,
 
 		/**
 		 * The method's {@linkplain A_Lexer lexer} or {@link NilDescriptor#nil
@@ -277,8 +291,8 @@ extends Descriptor
 	 * LookupTree}s that implement runtime dispatching.  Also used for looking
 	 * up macros.
 	 *
-	 * @see ObjectSlots#PRIVATE_TESTING_TREE
-	 * @see ObjectSlots#MACRO_TESTING_TREE
+	 * @see #methodTestingTree
+	 * @see #macroTestingTree
 	 */
 	public static final LookupTreeAdaptor<A_Definition, A_Tuple, Boolean>
 		runtimeDispatcher = new LookupTreeAdaptor<
@@ -320,17 +334,80 @@ extends Descriptor
 		}
 	};
 
+	/**
+	 * Extract the current {@link #methodTestingTree}, creating one atomically,
+	 * if necessary.
+	 *
+	 * @param object
+	 *        The {@link A_Method} for which to answer the
+	 *        {@link #methodTestingTree}.
+	 * @return The {@link LookupTree} for looking up method definitions.
+	 */
+	private LookupTree<A_Definition, A_Tuple> methodTestingTree (
+		final AvailObject object)
+	{
+		@Nullable LookupTree<A_Definition, A_Tuple> tree = methodTestingTree;
+		if (tree == null)
+		{
+			final int numArgs = object.slot(NUM_ARGS);
+			final LookupTree<A_Definition, A_Tuple> newTree =
+				runtimeDispatcher.createRoot(
+					toList(object.slot(DEFINITIONS_TUPLE)),
+					nCopiesOfAnyRestriction(numArgs),
+					TRUE);
+			do
+			{
+				methodTestingTreeUpdater.compareAndSet(this, null, newTree);
+				tree = methodTestingTree;
+			}
+			while (tree == null);
+		}
+		return tree;
+	}
+
+	/**
+	 * Extract the current {@link #macroTestingTree}, creating one atomically,
+	 * if necessary.
+	 *
+	 * @param object
+	 *        The {@link A_Method} for which to answer the
+	 *        {@link #macroTestingTree}.
+	 * @return The {@link LookupTree} for looking up macro definitions.
+	 */
+	private LookupTree<A_Definition, A_Tuple> macroTestingTree (
+		final AvailObject object)
+	{
+		@Nullable LookupTree<A_Definition, A_Tuple> tree = macroTestingTree;
+		if (tree == null)
+		{
+			final int numArgs = object.slot(NUM_ARGS);
+			final LookupTree<A_Definition, A_Tuple> newTree =
+				runtimeDispatcher.createRoot(
+					toList(object.slot(MACRO_DEFINITIONS_TUPLE)),
+					nCopies(
+						numArgs,
+						restrictionForType(
+							PARSE_PHRASE.mostGeneralType(), BOXED)),
+					TRUE);
+			do
+			{
+				macroTestingTreeUpdater.compareAndSet(this, null, newTree);
+				tree = macroTestingTree;
+			}
+			while (tree == null);
+		}
+		return tree;
+	}
+
 	@Override
 	protected boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
 		return e == OWNING_BUNDLES
 			|| e == DEFINITIONS_TUPLE
-			|| e == PRIVATE_TESTING_TREE
 			|| e == SEMANTIC_RESTRICTIONS_SET
 			|| e == SEALED_ARGUMENTS_TYPES_TUPLE
 			|| e == MACRO_DEFINITIONS_TUPLE
-			|| e == MACRO_TESTING_TREE
 			|| e == LEXER_OR_NIL;
 	}
 
@@ -368,16 +445,16 @@ extends Descriptor
 		final AvailObject object,
 		final L2Chunk chunk)
 	{
-		// Record the fact that the given chunk depends on this object not
-		// changing.  Local synchronization is sufficient, since invalidation
-		// can't happen while L2 code is running (and therefore when the
-		// L2Generator could be calling this).
+		// The set of dependents is only ever accessed within the monitor.
 		synchronized (object)
 		{
-			final A_BasicObject pojo =
-				object.slot(DEPENDENT_CHUNKS_WEAK_SET_POJO);
-			final Set<L2Chunk> chunkSet = pojo.javaObjectNotNull();
-			chunkSet.add(chunk);
+			@Nullable Set<L2Chunk> set = dependentChunksWeakSet;
+			if (set == null)
+			{
+				set = synchronizedSet(newSetFromMap(new HashMap<>()));
+				dependentChunksWeakSet = set;
+			}
+			set.add(chunk);
 		}
 	}
 
@@ -393,7 +470,7 @@ extends Descriptor
 			final A_Tuple newTuple = oldTuple.appendCanDestroy(typeTuple, true);
 			object.setSlot(
 				SEALED_ARGUMENTS_TYPES_TUPLE,
-				newTuple.traversed().makeShared());
+				newTuple.makeShared());
 		}
 	}
 
@@ -479,7 +556,9 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (
+		final AvailObject object,
+		final A_BasicObject another)
 	{
 		return another.traversed().sameAddressAs(object);
 	}
@@ -540,21 +619,10 @@ extends Descriptor
 	{
 		synchronized (object)
 		{
-			final A_Tuple definitionsTuple = object.slot(DEFINITIONS_TUPLE);
-			if (definitionsTuple.tupleSize() > 0)
-			{
-				return false;
-			}
-			final A_Set semanticRestrictions =
-				object.slot(SEMANTIC_RESTRICTIONS_SET);
-			if (semanticRestrictions.setSize() > 0)
-			{
-				return false;
-			}
-			final A_Tuple sealedArgumentsTypesTuple =
-				object.slot(SEALED_ARGUMENTS_TYPES_TUPLE);
-			return sealedArgumentsTypesTuple.tupleSize() <= 0
-				&& object.slot(MACRO_DEFINITIONS_TUPLE).tupleSize() == 0;
+			return object.slot(DEFINITIONS_TUPLE).tupleSize() == 0
+				&& object.slot(MACRO_DEFINITIONS_TUPLE).tupleSize() == 0
+				&& object.slot(SEMANTIC_RESTRICTIONS_SET).setSize() == 0
+				&& object.slot(SEALED_ARGUMENTS_TYPES_TUPLE).tupleSize() == 0;
 		}
 	}
 
@@ -575,7 +643,7 @@ extends Descriptor
 
 	/**
 	 * Look up the definition to invoke, given a tuple of argument types.
-	 * Use the testingTree to find the definition to invoke.
+	 * Use the {@link #methodTestingTree} to find the definition to invoke.
 	 */
 	@Override @AvailMethod
 	protected A_Definition o_LookupByTypesFromTuple (
@@ -583,10 +651,8 @@ extends Descriptor
 		final A_Tuple argumentTypeTuple)
 	throws MethodDefinitionException
 	{
-		final LookupTree<A_Definition, A_Tuple> tree =
-			object.slot(PRIVATE_TESTING_TREE).javaObjectNotNull();
-		final A_Tuple resultTuple =
-			runtimeDispatcher.lookupByTypes(tree, argumentTypeTuple, TRUE);
+		final A_Tuple resultTuple = runtimeDispatcher.lookupByTypes(
+			methodTestingTree(object), argumentTypeTuple, TRUE);
 		return MethodDefinitionException.extractUniqueMethod(resultTuple);
 	}
 
@@ -601,19 +667,16 @@ extends Descriptor
 		final List<? extends A_BasicObject> argumentList)
 	throws MethodDefinitionException
 	{
-		final LookupTree<A_Definition, A_Tuple> tree =
-			object.slot(PRIVATE_TESTING_TREE).javaObjectNotNull();
-		final A_Tuple results =
-			runtimeDispatcher.lookupByValues(tree, argumentList, TRUE);
+		final A_Tuple results = runtimeDispatcher.lookupByValues(
+			methodTestingTree(object), argumentList, TRUE);
 		return MethodDefinitionException.extractUniqueMethod(results);
 	}
 
 	/**
 	 * Look up the macro definition to invoke, given an array of argument
-	 * phrases.  Use the {@linkplain ObjectSlots#MACRO_TESTING_TREE macro
-	 * testing tree} to find the macro definition to invoke.  Answer the tuple
-	 * of applicable macro definitions, ideally just one if there is an
-	 * unambiguous macro to invoke.
+	 * phrases.  Use the {@linkplain #macroTestingTree} to find the macro
+	 * definition to invoke.  Answer the tuple of applicable macro definitions,
+	 * ideally just one if there is an unambiguous macro to invoke.
 	 *
 	 * <p>Note that this testing tree approach is only applicable if all of the
 	 * macro definitions are visible (defined in the current module or an
@@ -625,10 +688,8 @@ extends Descriptor
 		final AvailObject object,
 		final A_Tuple argumentPhraseTuple)
 	{
-		final LookupTree<A_Definition, A_Tuple> tree =
-			object.slot(MACRO_TESTING_TREE).javaObjectNotNull();
 		return runtimeDispatcher.lookupByValues(
-			tree, argumentPhraseTuple, TRUE);
+			macroTestingTree(object), argumentPhraseTuple, TRUE);
 	}
 
 	@Override @AvailMethod
@@ -644,21 +705,19 @@ extends Descriptor
 	@Override @AvailMethod
 	protected AvailObject o_MakeImmutable (final AvailObject object)
 	{
-		if (isMutable())
-		{
-			// A method is always shared. Never make it immutable.
-			return object.makeShared();
-		}
+		// A method is always shared, except during construction.
+		assert isShared();
 		return object;
 	}
 
 	@Override @AvailMethod
-	protected void o_MethodAddBundle (final AvailObject object, final A_Bundle bundle)
+	protected void o_MethodAddBundle (
+		final AvailObject object,
+		final A_Bundle bundle)
 	{
 		A_Set bundles = object.slot(OWNING_BUNDLES);
 		bundles = bundles.setWithElementCanDestroy(bundle, false);
-		bundles.makeShared();
-		object.setSlot(OWNING_BUNDLES, bundles);
+		object.setSlot(OWNING_BUNDLES, bundles.makeShared());
 	}
 
 	@Override @AvailMethod
@@ -696,9 +755,7 @@ extends Descriptor
 				{
 					final A_Type sealType =
 						tupleTypeForSizesTypesDefaultType(
-							singleInt(seal.tupleSize()),
-							seal,
-							bottom());
+							singleInt(seal.tupleSize()), seal, bottom());
 					if (paramTypes.isSubtypeOf(sealType))
 					{
 						throw new SignatureException(
@@ -743,19 +800,17 @@ extends Descriptor
 		assert !definition.definitionModule().equalsNil();
 		// Method manipulation takes place while all fibers are L1-precise and
 		// suspended.  Use a global lock at the outermost calls to side-step
-		// deadlocks.  Because no fiber is running we don't have to protect
+		// deadlocks.  Because no fiber is running, we don't have to protect
 		// subsystems like the L2Generator from these changes.
 		L2Chunk.invalidationLock.lock();
 		try
 		{
-			final ObjectSlotsEnum slot =
-				!definition.isMacroDefinition()
-					? DEFINITIONS_TUPLE
-					: MACRO_DEFINITIONS_TUPLE;
+			final ObjectSlotsEnum slot = definition.isMacroDefinition()
+				? MACRO_DEFINITIONS_TUPLE
+				: DEFINITIONS_TUPLE;
 			A_Tuple definitionsTuple = object.slot(slot);
 			definitionsTuple = tupleWithout(definitionsTuple, definition);
-			object.setSlot(
-				slot, definitionsTuple.traversed().makeShared());
+			object.setSlot(slot, definitionsTuple.makeShared());
 			for (final A_Bundle bundle : object.slot(OWNING_BUNDLES))
 			{
 				bundle.removePlanForDefinition(definition);
@@ -779,9 +834,18 @@ extends Descriptor
 		final L2Chunk chunk)
 	{
 		assert L2Chunk.invalidationLock.isHeldByCurrentThread();
-		final A_BasicObject pojo = object.slot(DEPENDENT_CHUNKS_WEAK_SET_POJO);
-		final Set<L2Chunk> chunkSet = pojo.javaObjectNotNull();
-		chunkSet.remove(chunk);
+		synchronized (object)
+		{
+			final @Nullable Set<L2Chunk> set = dependentChunksWeakSet;
+			if (set != null)
+			{
+				set.remove(chunk);
+				if (set.isEmpty())
+				{
+					dependentChunksWeakSet = null;
+				}
+			}
+		}
 	}
 
 	@Override @AvailMethod
@@ -796,7 +860,7 @@ extends Descriptor
 			assert newTuple.tupleSize() == oldTuple.tupleSize() - 1;
 			object.setSlot(
 				SEALED_ARGUMENTS_TYPES_TUPLE,
-				newTuple.traversed().makeShared());
+				newTuple.makeShared());
 		}
 	}
 
@@ -849,7 +913,7 @@ extends Descriptor
 	protected LookupTree<A_Definition, A_Tuple> o_TestingTree (
 		final AvailObject object)
 	{
-		return object.slot(PRIVATE_TESTING_TREE).javaObjectNotNull();
+		return methodTestingTree(object);
 	}
 
 	@Override
@@ -902,38 +966,17 @@ extends Descriptor
 	public static AvailObject newMethod (
 		final int numArgs)
 	{
-		final AvailObject result = mutable.create();
+		final AvailObject result =
+			newIndexedDescriptor(0, initialMutableDescriptor);
 		result.setSlot(HASH, nextHash());
 		result.setSlot(NUM_ARGS, numArgs);
 		result.setSlot(OWNING_BUNDLES, emptySet());
 		result.setSlot(DEFINITIONS_TUPLE, emptyTuple());
 		result.setSlot(SEMANTIC_RESTRICTIONS_SET, emptySet());
-		result.setSlot(
-			SEALED_ARGUMENTS_TYPES_TUPLE, emptyTuple());
+		result.setSlot(SEALED_ARGUMENTS_TYPES_TUPLE, emptyTuple());
 		result.setSlot(MACRO_DEFINITIONS_TUPLE, emptyTuple());
-		final Set<L2Chunk> chunkSet =
-			synchronizedSet(newSetFromMap(new WeakHashMap<>()));
-		result.setSlot(
-			DEPENDENT_CHUNKS_WEAK_SET_POJO,
-			identityPojo(chunkSet).makeShared());
-		final LookupTree<A_Definition, A_Tuple> definitionsTree =
-			runtimeDispatcher.createRoot(
-				emptyList(), nCopiesOfAnyRestriction(numArgs), TRUE);
-		result.setSlot(
-			PRIVATE_TESTING_TREE,
-			identityPojo(definitionsTree).makeShared());
-		final LookupTree<A_Definition, A_Tuple> macrosTree =
-			runtimeDispatcher.createRoot(
-				emptyList(),
-				nCopies(
-					numArgs,
-					restrictionForType(PARSE_PHRASE.mostGeneralType(), BOXED)),
-				TRUE);
-		result.setSlot(
-			MACRO_TESTING_TREE,
-			identityPojo(macrosTree).makeShared());
 		result.setSlot(LEXER_OR_NIL, nil);
-		result.makeShared();
+		result.setDescriptor(new MethodDescriptor(SHARED));
 		return result;
 	}
 
@@ -947,16 +990,10 @@ extends Descriptor
 	 * A list of lists of increasing size consisting only of {@link
 	 * TypeRestriction}s to the type {@code any}.
 	 */
-	private static final List<List<TypeRestriction>> listsOfAny;
-
-	static
-	{
-		listsOfAny = new ArrayList<>(sizeOfListsOfAny);
-		for (int i = 0; i < sizeOfListsOfAny; i++)
-		{
-			listsOfAny.add(nCopies(i, anyRestriction));
-		}
-	}
+	private static final List<List<TypeRestriction>> listsOfAny =
+		IntStream.range(0, sizeOfListsOfAny)
+			.mapToObj(i -> nCopies(i, anyRestriction))
+			.collect(toList());
 
 	/**
 	 * Return a list of n copies of the type any.  N is required to be ≥ 0.
@@ -976,47 +1013,65 @@ extends Descriptor
 	/**
 	 * The membership of this {@code MethodDescriptor method} has changed.
 	 * Invalidate anything that depended on the previous membership, including
-	 * the {@linkplain ObjectSlots#PRIVATE_TESTING_TREE testing tree} and any
-	 * {@linkplain ObjectSlots#DEPENDENT_CHUNKS_WEAK_SET_POJO dependent}
-	 * {@link L2Chunk}s.
+	 * the {@link #methodTestingTree}, the {@link #macroTestingTree}, and any
+	 * {@link L2Chunk}s in the {@link #dependentChunksWeakSet}.
 	 *
 	 * @param object The method that changed.
 	 */
-	private static void membershipChanged (final AvailObject object)
+	private void membershipChanged (final AvailObject object)
 	{
 		assert L2Chunk.invalidationLock.isHeldByCurrentThread();
 		// Invalidate any affected level two chunks.
-		final A_BasicObject pojo = object.slot(DEPENDENT_CHUNKS_WEAK_SET_POJO);
 		// Copy the set of chunks to avoid modification during iteration.
-		final Set<L2Chunk> originalSet = pojo.javaObjectNotNull();
-		for (final L2Chunk chunk : new ArrayList<>(originalSet))
+		final List<L2Chunk> dependentsCopy;
+		synchronized (object)
+		{
+			final @Nullable Set<L2Chunk> set = dependentChunksWeakSet;
+			dependentsCopy = set == null
+				? emptyList()
+				: new ArrayList<>(dependentChunksWeakSet);
+		}
+		for (final L2Chunk chunk : dependentsCopy)
 		{
 			chunk.invalidate(invalidationsFromMethodChange);
 		}
-		// The chunk invalidations should have removed all dependencies.
-		assert originalSet.isEmpty();
+		synchronized (object)
+		{
+			// The chunk invalidations should have removed all dependencies.
+			assert dependentChunksWeakSet == null
+				|| dependentChunksWeakSet.isEmpty();
 
-		// Rebuild the roots of the lookup trees.
-		final int numArgs = object.slot(NUM_ARGS);
-		final List<TypeRestriction> initialTypes =
-			nCopiesOfAnyRestriction(numArgs);
-		final LookupTree<A_Definition, A_Tuple> definitionsTree =
-			runtimeDispatcher.createRoot(
-				TupleDescriptor.toList(object.slot(DEFINITIONS_TUPLE)),
-				initialTypes,
-				TRUE);
-		object.setSlot(
-			PRIVATE_TESTING_TREE,
-			identityPojo(definitionsTree).makeShared());
-		final LookupTree<A_Definition, A_Tuple> macrosTree =
-			runtimeDispatcher.createRoot(
-				TupleDescriptor.toList(object.slot(MACRO_DEFINITIONS_TUPLE)),
-				initialTypes,
-				TRUE);
-		object.setSlot(
-			MACRO_TESTING_TREE,
-			identityPojo(macrosTree).makeShared());
+			// Invalidate the roots of the lookup trees.
+			methodTestingTree = null;
+			macroTestingTree = null;
+		}
 	}
+
+	/**
+	 * Construct a new {@code MethodDescriptor}.
+	 *
+	 * @param mutability
+	 *        The {@link Mutability} of the resulting descriptor.  This should
+	 *        only be {@link Mutability#MUTABLE} for the
+	 *        {@link #initialMutableDescriptor}, and {@link Mutability#SHARED}
+	 *        for normal instances.
+	 */
+	private MethodDescriptor (
+		final Mutability mutability)
+	{
+		super(
+			mutability,
+			TypeTag.RAW_FUNCTION_TAG,
+			ObjectSlots.class,
+			IntegerSlots.class);
+	}
+
+	/**
+	 * The sole {@linkplain Mutability#MUTABLE mutable} descriptor, used only
+	 * while initializing a new {@link A_RawFunction}.
+	 */
+	private static final MethodDescriptor initialMutableDescriptor =
+		new MethodDescriptor(MUTABLE);
 
 	/**
 	 * {@link Statistic} for tracking the cost of invalidating chunks due to a
@@ -1026,48 +1081,6 @@ extends Descriptor
 		new Statistic(
 			"(invalidation from dependent method change)",
 			StatisticReport.L2_OPTIMIZATION_TIME);
-
-	/**
-	 * Construct a new {@code MethodDescriptor}.
-	 *
-	 * @param mutability
-	 *        The {@linkplain Mutability mutability} of the new descriptor.
-	 */
-	private MethodDescriptor (final Mutability mutability)
-	{
-		super(
-			mutability,
-			TypeTag.METHOD_TAG,
-			ObjectSlots.class,
-			IntegerSlots.class);
-	}
-
-	/** The mutable {@link MethodDescriptor}. */
-	private static final MethodDescriptor mutable =
-		new MethodDescriptor(Mutability.MUTABLE);
-
-	@Override
-	public MethodDescriptor mutable ()
-	{
-		return mutable;
-	}
-
-	/** The shared {@link MethodDescriptor}. */
-	private static final MethodDescriptor shared =
-		new MethodDescriptor(Mutability.SHARED);
-
-	@Override
-	protected MethodDescriptor immutable ()
-	{
-		// There is no immutable descriptor. Use the shared one.
-		return shared;
-	}
-
-	@Override
-	protected MethodDescriptor shared ()
-	{
-		return shared;
-	}
 
 	/**
 	 * {@code SpecialMethodAtom} enumerates {@linkplain A_Atom atoms} that are
@@ -1380,5 +1393,26 @@ extends Descriptor
 			assert atom.isAtomSpecial();
 			return atom;
 		}
+	}
+
+	@Deprecated
+	@Override
+	protected AbstractDescriptor mutable ()
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Deprecated
+	@Override
+	protected AbstractDescriptor immutable ()
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Deprecated
+	@Override
+	protected AbstractDescriptor shared ()
+	{
+		throw unsupportedOperationException();
 	}
 }

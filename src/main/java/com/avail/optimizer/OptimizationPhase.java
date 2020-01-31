@@ -32,7 +32,7 @@
 
 package com.avail.optimizer;
 
-import com.avail.interpreter.levelTwo.operation.L2_VIRTUAL_REIFY;
+import com.avail.interpreter.levelTwo.operation.L2_VIRTUAL_CREATE_LABEL;
 import com.avail.optimizer.L2ControlFlowGraph.StateFlag;
 import com.avail.optimizer.L2ControlFlowGraph.StateFlag.HAS_ELIMINATED_PHIS;
 import com.avail.optimizer.L2ControlFlowGraph.StateFlag.IS_EDGE_SPLIT;
@@ -111,8 +111,9 @@ enum OptimizationPhase
 		L2Optimizer::removeDeadCode, FOLLOW_SEMANTIC_VALUES_AND_REGISTERS),
 
 	/**
-	 * If there are any {@link L2_VIRTUAL_REIFY} instructions still extant,
-	 * replace them with code that will actually produce the reified caller.
+	 * If there are any {@link L2_VIRTUAL_CREATE_LABEL} instructions still
+	 * extant, replace them with the rather complex code that will reify the
+	 * caller if necessary, and create a label continuation.
 	 */
 	@Requires(IS_EDGE_SPLIT.class)
 	REPLACE_PLACEHOLDER_INSTRUCTIONS(
@@ -174,7 +175,7 @@ enum OptimizationPhase
 	COALESCE_REGISTERS_IN_NONINTERFERING_MOVES(
 		L2Optimizer::coalesceNoninterferingMoves),
 
-	/** Computed and assign final register colors. */
+	/** Compute and assign final register colors. */
 	ASSIGN_REGISTER_COLORS(L2Optimizer::computeColors),
 
 	/**

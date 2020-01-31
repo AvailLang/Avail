@@ -53,6 +53,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.UnaryOperator;
 
 import static com.avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE.sourceOfImmutable;
 import static com.avail.utility.Casts.cast;
@@ -254,6 +255,18 @@ extends L2Operand
 	public abstract L2ReadOperand copyForSemanticValue (
 		final L2SemanticValue newSemanticValue);
 
+	/**
+	 * Create an {@link L2ReadOperand} like this one, but with a different
+	 * {@link #register}.
+	 *
+	 * @param register
+	 *        The {@link L2Register} to use in the copy.
+	 * @return A duplicate of the receiver, but with a different
+	 *         {@link L2Register}.
+	 */
+	public abstract L2ReadOperand<R> copyForRegister (
+		final L2Register newRegister);
+
 	@Override
 	public void instructionWasInserted (
 		final L2Instruction newInstruction)
@@ -283,6 +296,13 @@ extends L2Operand
 		register().removeUse(this);
 		replacement.addUse(this);
 		register = replacement;
+	}
+
+	@Override
+	public final L2ReadOperand<?> transformEachRead (
+		final UnaryOperator<L2ReadOperand<?>> transformer)
+	{
+		return transformer.apply(this);
 	}
 
 	@Override

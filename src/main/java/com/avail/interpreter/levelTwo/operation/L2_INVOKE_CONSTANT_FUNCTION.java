@@ -41,13 +41,11 @@ import com.avail.interpreter.levelTwo.WritesHiddenVariable;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
-import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.RegisterSet;
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
 import com.avail.optimizer.StackReifier;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
-import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -89,6 +87,7 @@ extends L2ControlFlowOperation
 		super(
 			CONSTANT.is("constant function"),
 			READ_BOXED_VECTOR.is("arguments"),
+			WRITE_BOXED.is("result", SUCCESS),
 			PC.is("on return", SUCCESS),
 			PC.is("on reification", OFF_RAMP));
 	}
@@ -98,16 +97,6 @@ extends L2ControlFlowOperation
 	 */
 	public static final L2_INVOKE_CONSTANT_FUNCTION instance =
 		new L2_INVOKE_CONSTANT_FUNCTION();
-
-	@Override
-	protected void propagateTypes (
-		final L2Instruction instruction,
-		final List<RegisterSet> registerSets,
-		final L2Generator generator)
-	{
-		// Successful return or a reification off-ramp.
-		assert registerSets.size() == 2;
-	}
 
 	@Override
 	public boolean hasSideEffect ()
@@ -126,11 +115,13 @@ extends L2ControlFlowOperation
 		assert this == instruction.operation();
 		final L2ConstantOperand constantFunction = instruction.operand(0);
 		final L2ReadBoxedVectorOperand arguments = instruction.operand(1);
-//		final L2PcOperand onReturn = instruction.operand(2);
-//		final L2PcOperand onReification = instruction.operand(3);
+		final L2WriteBoxedOperand result = instruction.operand(2);
+//		final L2PcOperand onReturn = instruction.operand(3);
+//		final L2PcOperand onReification = instruction.operand(4);
 
 		renderPreamble(instruction, builder);
-		builder.append(' ');
+		builder.append(result.registerString());
+		builder.append(" ← ");
 		builder.append(constantFunction.object);
 		builder.append("(");
 		builder.append(arguments.elements());
@@ -146,19 +137,25 @@ extends L2ControlFlowOperation
 	{
 		final L2ConstantOperand constantFunction = instruction.operand(0);
 		final L2ReadBoxedVectorOperand arguments = instruction.operand(1);
-		final L2PcOperand onReturn = instruction.operand(2);
-		final L2PcOperand onReification = instruction.operand(3);
+		final L2WriteBoxedOperand result = instruction.operand(2);
+		final L2PcOperand onReturn = instruction.operand(3);
+		final L2PcOperand onReification = instruction.operand(4);
 
 		translator.loadInterpreter(method);
+		// :: [interpreter]
 		translator.loadInterpreter(method);
+		// :: [interpreter, interpreter]
 		chunkField.generateRead(method);
+		// :: [interpreter, callingChunk]
 		translator.loadInterpreter(method);
+		// :: [interpreter, callingChunk, interpreter]
 		translator.literal(method, constantFunction.object);
 		// :: [interpreter, callingChunk, interpreter, function]
 		L2_INVOKE.generatePushArgumentsAndInvoke(
 			translator,
 			method,
 			arguments.elements(),
+			result,
 			onReturn,
 			onReification);
 	}

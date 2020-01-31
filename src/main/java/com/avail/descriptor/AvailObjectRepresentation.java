@@ -1070,8 +1070,7 @@ implements A_BasicObject
 	private static final class VolatileSlotHelper
 	{
 		/**
-		 * This is used for atomic access to slots.  It's not allowed to be
-		 * used
+		 * This is used for atomic access to slots.  It's not allowed to be used
 		 * by non-system code in sand-boxed contexts, so we'll need a
 		 * poorer-performing solution there.
 		 */

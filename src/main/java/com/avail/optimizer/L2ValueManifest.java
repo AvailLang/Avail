@@ -44,7 +44,6 @@ import com.avail.optimizer.values.Frame;
 import com.avail.optimizer.values.L2SemanticPrimitiveInvocation;
 import com.avail.optimizer.values.L2SemanticValue;
 import com.avail.utility.Casts;
-import com.avail.utility.Mutable;
 import com.avail.utility.Pair;
 
 import javax.annotation.Nullable;
@@ -602,6 +601,19 @@ public final class L2ValueManifest
 	public Set<L2Synonym> synonyms ()
 	{
 		return new HashSet<>(semanticValueToSynonym.values());
+	}
+
+	/**
+	 * Answer a {@link Set} of all {@link L2Register}s available in this
+	 * manifest.
+	 *
+	 * @return A {@link Set} of {@link L2Register}s.
+	 */
+	public Set<L2Register> allRegisters ()
+	{
+		final Set<L2Register> registers = new HashSet<>();
+		definitions.values().forEach(registers::addAll);
+		return registers;
 	}
 
 	/**
@@ -1215,23 +1227,31 @@ public final class L2ValueManifest
 	 * @param registersToRetain
 	 *        The {@link L2Register}s that can be retained by the list of
 	 *        definitions as all others are removed.
+	 * @return Whether the manifest was modified.
 	 */
-	public void retainRegisters (final Set<L2Register> registersToRetain)
+	public boolean retainRegisters (final Set<L2Register> registersToRetain)
 	{
+		boolean changed = false;
 		// Iterate over a copy of the map, so we can remove from it.
-		new HashMap<>(definitions).forEach(
-			(synonym, definitionList) ->
+		for (final Entry<L2Synonym, List<L2Register>> entry :
+			new HashMap<>(definitions).entrySet())
+		{
+			final List<L2Register> definitionList = entry.getValue();
+			if (definitionList.retainAll(registersToRetain))
 			{
-				definitionList.retainAll(registersToRetain);
+				changed = true;
 				if (definitionList.isEmpty())
 				{
 					// Remove this synonym and any semantic values within it.
+					final L2Synonym synonym = entry.getKey();
 					definitions.remove(synonym);
 					synonymRestrictions.remove(synonym);
 					semanticValueToSynonym.keySet().removeAll(
 						synonym.semanticValues());
 				}
-			});
+			}
+		}
+		return changed;
 	}
 
 	/**
@@ -1297,13 +1317,16 @@ public final class L2ValueManifest
 	 */
 	public boolean forgetRegisters (final Set<L2Register> registersToForget)
 	{
-		final Mutable<Boolean> anyChanged = new Mutable<>(false);
+		boolean anyChanged = false;
 		// Iterate over a copy, because we're making changes.
-		new HashMap<>(definitions).forEach((synonym, registerList) ->
+		for (final Entry<L2Synonym, List<L2Register>> entry :
+			new HashMap<>(definitions).entrySet())
 		{
+			final L2Synonym synonym = entry.getKey();
+			final List<L2Register> registerList = entry.getValue();
 			if (registerList.removeAll(registersToForget))
 			{
-				anyChanged.value = true;
+				anyChanged = true;
 				if (registerList.isEmpty())
 				{
 					forget(synonym);
@@ -1329,7 +1352,7 @@ public final class L2ValueManifest
 					synonymRestrictions.put(synonym, restriction);
 				}
 			}
-		});
-		return anyChanged.value;
+		}
+		return anyChanged;
 	}
 }

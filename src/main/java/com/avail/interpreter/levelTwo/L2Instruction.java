@@ -33,6 +33,7 @@
 package com.avail.interpreter.levelTwo;
 
 import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
@@ -45,16 +46,14 @@ import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.optimizer.reoptimizer.L2Inliner;
+import com.avail.optimizer.values.L2SemanticValue;
+import com.avail.utility.Mutable;
 import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.UnaryOperator;
 
 import static com.avail.utility.Casts.cast;
 import static com.avail.utility.Nulls.stripNull;
@@ -429,6 +428,102 @@ public final class L2Instruction
 		operandsDo(L2Operand::instructionWasRemoved);
 		operandsDo(operand -> operand.setInstruction(null));
 		basicBlock = null;
+	}
+
+	/**
+	 * Recreate the {@link L2ValueManifest} that was in effect just prior to the
+	 * instruction that is the receiver.
+	 *
+	 * @return An {@link L2ValueManifest}.
+	 */
+	public L2ValueManifest recreateIncomingManifest ()
+	{
+		// Start with the intersection of the incoming manifests.
+		final Iterator<L2PcOperand> incomingEdges =
+			basicBlock().predecessorEdgesIterator();
+		final L2ValueManifest manifest;
+		if (!incomingEdges.hasNext())
+		{
+			// No incoming edges, so the manifest is empty.
+			manifest = new L2ValueManifest();
+		}
+		else
+		{
+			manifest = new L2ValueManifest(incomingEdges.next().manifest());
+			incomingEdges.forEachRemaining(edge ->
+				manifest.retainRegisters(edge.manifest().allRegisters()));
+		}
+		// Now record all writes until we reach the instruction.
+		for (final L2Instruction instruction : basicBlock().instructions())
+		{
+			if (instruction == this)
+			{
+				return manifest;
+			}
+			instruction.writeOperands().forEach(manifest::recordDefinition);
+		}
+		throw new RuntimeException("Instruction was not found in its block");
+	}
+
+	/**
+	 * Update the given manifest with the effect of this instruction.  If a
+	 * {@link Purpose} is given, alter the manifest to agree with outbound
+	 * edges having that purpose.
+	 *
+	 * @param manifest
+	 *        The {@link L2ValueManifest} to update with the effect of this
+	 *        instruction.
+	 * @param optionalPurpose
+	 *        If non-{@code null}, produce tha manifest that should be active
+	 *        along outbound edges having the indicated {@link Purpose}.
+	 */
+	public void updateManifest (
+		final L2ValueManifest manifest,
+		final @Nullable Purpose optionalPurpose)
+	{
+		operation.updateManifest(this, manifest, optionalPurpose);
+	}
+
+	/**
+	 * Attempt to create a copy of this instruction, but using the
+	 * {@link L2SemanticValue}s present in the given {@link L2ValueManifest}.
+	 * Answer {@code null} if the transformation won't work because of a missing
+	 * read operand.
+	 *
+	 * @param newBlock
+	 *        The {@link L2BasicBlock} in which the instruction will eventually
+	 *        be inserted.
+	 * @param manifest
+	 *        The {@link L2ValueManifest} that's active where the new
+	 *        instruction would be inserted.
+	 * @return The new instruction or {@code null}.
+	 */
+	public @Nullable L2Instruction copyInstructionForManifest (
+		final L2BasicBlock newBlock,
+		final L2ValueManifest manifest)
+	{
+		final Mutable<Boolean> failed = new Mutable<>(false);
+		final UnaryOperator<L2ReadOperand<?>> transform = read ->
+		{
+			final List<L2Register> registers = manifest.getDefinitions(
+				read.semanticValue(), read.registerKind());
+			if (registers.isEmpty())
+			{
+				failed.value = true;
+				return read;
+			}
+			return read.copyForRegister(registers.get(0));
+		};
+		final L2Operand[] operandsCopy = operands.clone();
+		for (int i = 0; i < operandsCopy.length; i++)
+		{
+			operandsCopy[i] = operandsCopy[i].transformEachRead(transform);
+		}
+		if (failed.value)
+		{
+			return null;
+		}
+		return new L2Instruction(newBlock, operation, operandsCopy);
 	}
 
 	/**
