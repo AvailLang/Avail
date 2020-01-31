@@ -56,7 +56,7 @@ internal class OkMessage constructor(
 
 	init
 	{
-		// Base size of payload is 12 byes broken down as:
+		// Base size of payload is 12 bytes broken down as:
 		//   BinaryCommand.id = 4
 		//   commandId = 8
 		val buffer = ByteBuffer.allocate(12)

@@ -69,11 +69,22 @@ import java.util.concurrent.atomic.AtomicInteger
 internal class ServerFileWrapper constructor(
 	val id: UUID, val path: String, fileChannel: AsynchronousFileChannel)
 {
+	private val lock = Object()
+
 	/**
 	 * The [AvailServerFile] wrapped by this [ServerFileWrapper].
 	 */
 	lateinit var file: AvailServerFile
 		private set
+
+	init
+	{
+		FileManager.executeFileTask (Runnable {
+			val p = Paths.get(path)
+			val mimeType = Tika().detect(p)
+			file = createFile(path, fileChannel, mimeType, this)
+		})
+	}
 
 	/**
 	 * `true` indicates the file is being loaded; `false` indicates the file
@@ -114,7 +125,7 @@ internal class ServerFileWrapper constructor(
 		if (tracedActionStackSavePointer < currentSize)
 		{
 			val start = tracedActionStackSavePointer
-			for (i in start until  currentSize)
+			for (i in start until currentSize)
 			{
 				// TODO write this somewhere!
 				tracedActionStack[i]
@@ -130,7 +141,7 @@ internal class ServerFileWrapper constructor(
 	private val actionQueue = ConcurrentLinkedQueue<FileAction>()
 
 	/**
-	 * Is the [file] being available for [FileAction]a from the [actionQueue]?
+	 * Is the [file] available for [FileAction]a from the [actionQueue]?
 	 * `true` indicates it is; `false` otherwise.
 	 */
 	private val isReady = AtomicBoolean(true)
@@ -148,7 +159,7 @@ internal class ServerFileWrapper constructor(
 
 			// Check if an action is available and that the file hasn't been
 			// marked as being not ready before proceeding
-			while (action != null && isReady.get())
+			while (action != null)
 			{
 				val tracedAction =
 					action.execute(file, System.currentTimeMillis())
@@ -167,11 +178,7 @@ internal class ServerFileWrapper constructor(
 				tracedActionStack.push(tracedAction)
 				action = actionQueue.poll()
 			}
-			// TODO is this safe
-			synchronized(actionQueue)
-			{
-				isReady.set(true)
-			}
+			isReady.set(true)
 			// TODO Save file
 		}
 	}
@@ -185,10 +192,7 @@ internal class ServerFileWrapper constructor(
 	 */
 	fun execute (fileAction: FileAction)
 	{
-		synchronized(actionQueue)
-		{
-			actionQueue.add(fileAction)
-		}
+		actionQueue.add(fileAction)
 		executeActions()
 	}
 
@@ -239,7 +243,7 @@ internal class ServerFileWrapper constructor(
 	 *   The [FileManager] cache id for this file.
 	 * @param failure
 	 *   A function that accepts a [ServerErrorCode] that describes the nature
-	 *   of the failure and an optional [Throwable]. TODO refine error handling
+	 *   of the failure and an optional [Throwable].
 	 */
 	fun delete(
 		id: UUID,
@@ -276,15 +280,6 @@ internal class ServerFileWrapper constructor(
 		}
 	}
 
-	init
-	{
-		FileManager.executeFileTask (Runnable {
-			val p = Paths.get(path)
-			val mimeType = Tika().detect(p)
-			file = createFile(path, fileChannel, mimeType, this)
-		})
-	}
-
 	/**
 	 * The number of clients that actively have this file open.
 	 */
@@ -311,7 +306,7 @@ internal class ServerFileWrapper constructor(
 	{
 		// TODO should be run on a separate thread or is that handled inside the
 		//  consumer?
-		synchronized(this)
+		synchronized(lock)
 		{
 			interestCount.incrementAndGet()
 			if (!isLoadingFile)
@@ -333,7 +328,7 @@ internal class ServerFileWrapper constructor(
 	 */
 	fun notifyReady ()
 	{
-		synchronized(this)
+		synchronized(lock)
 		{
 			isLoadingFile = false
 		}

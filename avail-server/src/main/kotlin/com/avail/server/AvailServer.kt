@@ -81,6 +81,7 @@ import com.avail.server.messages.UpgradeCommandMessage
 import com.avail.server.messages.VersionCommandMessage
 import com.avail.server.messages.binary.editor.BinaryCommand
 import com.avail.server.messages.binary.editor.ErrorBinaryMessage
+import com.avail.server.messages.binary.editor.OkMessage
 import com.avail.server.session.Session
 import com.avail.utility.MutableOrNull
 import com.avail.utility.configuration.ConfigurationException
@@ -844,10 +845,11 @@ class AvailServer constructor(
 			upgradedChannel.state = BINARY
 			newChannels.remove(oldId)
 			sessions[channel.id]?.addChildChannel(upgradedChannel)
-			resumeUpgrader()
 			logger.log(
 				Level.FINEST,
 				"Channel [$oldId] upgraded to [$upgradedChannel]")
+			// TODO um, figure out what to *actually* do
+			OkMessage(62L).processThen(upgradedChannel, resumeUpgrader)
 		}
 		channel.enqueueMessageThen(
 			newUpgradeRequestMessage(channel, command, uuid),
