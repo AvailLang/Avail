@@ -486,50 +486,6 @@ public final class L1Translator
 	}
 
 	/**
-	 * Write instructions to extract the current reified continuation, and
-	 * answer an {@link L2ReadBoxedOperand} for the register that will hold
-	 * the continuation afterward.
-	 *
-	 * <p>Since the current reified continuation is sometimes for the current
-	 * frame and sometimes for the caller, the passed semanticValue indicates
-	 * which {@link Frame} it's the {@link Frame#reifiedCaller()} of, if
-	 * any.</p>
-	 *
-	 * <p>If reification is needed here, output an {@link L2_VIRTUAL_REIFY}. If
-	 * this survives optimization by virtue of its result (the reified caller)
-	 * still being consumed, it will be transformed into several basic blocks
-	 * and several instructions by one of the optimization passes.</p>
-	 *
-	 * @return An {@link L2ReadBoxedOperand} that produces the reified caller.
-	 */
-	private L2ReadBoxedOperand getCurrentContinuation ()
-	{
-		final L2SemanticValue reifiedCaller = topFrame().reifiedCaller();
-		final @Nullable L2SemanticValue equivalent =
-			currentManifest().equivalentSemanticValue(reifiedCaller);
-		if (equivalent != null)
-		{
-			// No need to extract it again, just answer the one we already have.
-			// That's because stack reification is idempotent.  HOWEVER, since
-			// we might reuse the same label it's crucial to make it immutable
-			// at its creation site, below.
-			return generator.readBoxed(equivalent);
-		}
-		// We need to reify to extract it.
-		final L2WriteBoxedOperand continuationWrite =
-			generator.boxedWrite(
-				reifiedCaller,
-				restrictionForType(mostGeneralContinuationType(), BOXED));
-		addInstruction(
-			L2_VIRTUAL_REIFY.instance,
-			new L2CommentOperand("Get reified caller"),
-			continuationWrite);
-		// Force the caller to be immutable, in case it's reused by a subsequent
-		// call to getCurrentContinuation.
-		return generator.makeImmutable(readBoxed(continuationWrite));
-	}
-
-	/**
 	 * Capture the latest value returned by the {@link L2_RETURN} instruction in
 	 * this {@link Interpreter}.
 	 *
@@ -697,18 +653,22 @@ public final class L1Translator
 			edgeTo(fallThrough));
 
 		generator.startBlock(fallThrough);
+		// We're in a reification handler here, so the caller is guaranteed to
+		// contain the reified caller.
+		final L2WriteBoxedOperand writeReifiedCaller =
+			generator.boxedWrite(
+				topFrame().reifiedCaller(),
+				restrictionForType(mostGeneralContinuationType(), BOXED));
+		addInstruction(
+			L2_GET_CURRENT_CONTINUATION.instance,
+			writeReifiedCaller);
 		if (typeOfEntryPoint == TRANSIENT)
 		{
-			// L1 can never see this continuation, so it can be minimal.  Also,
-			// we're guaranteed to be in a reification handler at this point, so
-			// we can just fetch the reifiedContinuation without worrying about
-			// triggering another reification (which would be wrong).
-			final L2ReadBoxedOperand readReifiedCaller =
-				getCurrentContinuation();
+			// L1 can never see this continuation, so it can be minimal.
 			addInstruction(
 				L2_CREATE_CONTINUATION.instance,
 				getCurrentFunction(),
-				readReifiedCaller,
+				generator.readBoxed(writeReifiedCaller),
 				new L2IntImmediateOperand(Integer.MAX_VALUE),
 				new L2IntImmediateOperand(Integer.MAX_VALUE),
 				new L2ReadBoxedVectorOperand(emptyList()),
@@ -722,28 +682,13 @@ public final class L1Translator
 		}
 		else
 		{
-			// We're in a reification handler, so the reifiedContinuation in the
-			// interpreter reflects the current frame's caller's continuation.
-			// Even though the caller might be in some register from a previous
-			// reification, decrease the register pressure by just grabbing it
-			// from the interpreter again.
-			final L2WriteBoxedOperand writeReifiedCaller =
-				generator.boxedWrite(
-					topFrame().reifiedCaller(),
-					restrictionForType(mostGeneralContinuationType(), BOXED));
-			addInstruction(
-				L2_GET_CURRENT_CONTINUATION.instance,
-				writeReifiedCaller);
-			final L2ReadBoxedOperand readReifiedCaller =
-				readBoxed(writeReifiedCaller);
-
 			// Make an L1-complete continuation, since an invalidation can cause
 			// it to resume in the L2Chunk#unoptimizedChunk, which can only see
 			// L1 content.
 			addInstruction(
 				L2_CREATE_CONTINUATION.instance,
 				getCurrentFunction(),
-				readReifiedCaller,
+				readBoxed(writeReifiedCaller),
 				new L2IntImmediateOperand(instructionDecoder.pc()),
 				new L2IntImmediateOperand(stackp),
 				new L2ReadBoxedVectorOperand(asList(readSlotsBefore)),
@@ -2027,12 +1972,21 @@ public final class L1Translator
 		final L2BasicBlock reificationTarget = generator.createBasicBlock(
 			"invoke reification target",
 			targetBlock.zone);
+		final L2WriteBoxedOperand writeResult = writeSlot(
+			stackp,
+			instructionDecoder.pc() + (skipCheck ? 0 : -1),
+			restrictionForType(
+				guaranteedResultType.isBottom()
+					? ANY.o()  // unreachable
+					: guaranteedResultType,
+				BOXED));
 		if (constantFunction != null)
 		{
 			addInstruction(
 				L2_INVOKE_CONSTANT_FUNCTION.instance,
 				new L2ConstantOperand(constantFunction),
 				new L2ReadBoxedVectorOperand(arguments),
+				writeResult,
 				canReturn
 					? edgeTo(successBlock)
 					: generator.unreachablePcOperand(),
@@ -2044,6 +1998,7 @@ public final class L1Translator
 				L2_INVOKE.instance,
 				functionToCallReg,
 				new L2ReadBoxedVectorOperand(arguments),
+				writeResult,
 				canReturn
 					? edgeTo(successBlock)
 					: generator.unreachablePcOperand(),
@@ -2060,12 +2015,6 @@ public final class L1Translator
 		generator.startBlock(successBlock);
 		if (generator.currentlyReachable())
 		{
-			addInstruction(
-				L2_GET_LATEST_RETURN_VALUE.instance,
-				writeSlot(
-					stackp,
-					instructionDecoder.pc() + (skipCheck ? 0 : -1),
-					restrictionForType(guaranteedResultType, BOXED)));
 			addInstruction(
 				L2_JUMP.instance,
 				edgeTo(
@@ -2173,6 +2122,7 @@ public final class L1Translator
 					getReturningFunctionRegister(),
 					generator.boxedConstant(expectedType),
 					readBoxed(variableToHoldValueWrite))),
+			generator.boxedWriteTemp(anyRestriction), // unreachable
 			generator.unreachablePcOperand(),
 			edgeTo(onReificationInHandler));
 
@@ -2595,6 +2545,7 @@ public final class L1Translator
 					errorCodeRead,
 					generator.boxedConstant(method),
 					readBoxed(argumentsTupleWrite))),
+			generator.boxedWriteTemp(anyRestriction), // unreachable
 			generator.unreachablePcOperand(),
 			edgeTo(onReificationDuringFailure));
 
@@ -2727,6 +2678,7 @@ public final class L1Translator
 			L2_INVOKE.instance,
 			readBoxed(unassignedReadFunction),
 			new L2ReadBoxedVectorOperand(emptyList()),
+			generator.boxedWriteTemp(anyRestriction), // unreachable
 			generator.unreachablePcOperand(),
 			edgeTo(onReificationDuringFailure));
 
@@ -2810,6 +2762,7 @@ public final class L1Translator
 					generator
 						.boxedConstant(Interpreter.assignmentFunction()),
 					readBoxed(variableAndValueTupleReg))),
+			generator.boxedWriteTemp(anyRestriction), // unreachable
 			edgeTo(success),
 			edgeTo(onReificationDuringFailure));
 
@@ -3440,20 +3393,12 @@ public final class L1Translator
 	@Override
 	public void L1Ext_doPushLabel ()
 	{
-		// Force reification of the current continuation and all callers, if
-		// they're not already known to be reified.  The continuation built for
-		// the current frame is a dummy with no L1 content (i.e., no stack
-		// slots). When the callers have all been reified, the dummy
-		// continuation is resumed, restoring all live registers.  It then
-		// creates another continuation to exit the reification, once again
-		// using a dummy continuation.  When it exits the reification call, the
-		// next thing the fiber will do is continue at the second dummy's target
-		// offset, having restored all live registers again.  At that point, the
-		// caller is known to be reified, and simple label construction can take
-		// place without further reification.  Push that label continuation on
-		// the virtual stack.
-		final L2ReadBoxedOperand reifiedCaller = getCurrentContinuation();
-
+		// Use L2_VIRTUAL_CREATE_LABEL to simplify code motion in the common
+		// case that label creation can be postponed into an off-ramp (which is
+		// rarely invoked).  Since a label requires its caller to be reified,
+		// creating it in an off-ramp is trivial, since the caller will already
+		// have been reified by the StackReifier machinery.
+		//
 		// We just ensured the caller is reified, and captured in reifiedCaller.
 		// Create a label continuation whose caller is the reified caller, but
 		// only capturing arguments (with pc=0 and stack=empty).
@@ -3477,7 +3422,6 @@ public final class L1Translator
 		addInstruction(
 			L2_VIRTUAL_CREATE_LABEL.instance,
 			destinationRegister,
-			reifiedCaller,
 			getCurrentFunction(),
 			new L2ReadBoxedVectorOperand(argumentsForLabel),
 			new L2IntImmediateOperand(code.numSlots()));

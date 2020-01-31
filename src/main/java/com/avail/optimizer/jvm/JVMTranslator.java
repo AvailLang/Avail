@@ -292,25 +292,24 @@ public final class JVMTranslator
 	{
 		method.visitVarInsn(ALOAD, reifierLocal());
 		// [reifier]
-		method.visitInsn(DUP);
-		// [reifier. reifier]
 		loadInterpreter(method);
+		// [reifier, interpreter]
 		interpreterFunctionField.generateRead(method);
-		// [reifier. reifier, function]
+		// [reifier, function]
 		onReification.createAndPushRegisterDump(this, method);
-		// [reifier. reifier, function, regDump]
+		// [reifier, function, regDump]
 		loadInterpreter(method);
 		chunkField.generateRead(method);
-		// [reifier. reifier, function, regDump, chunk]
+		// [reifier, function, regDump, chunk]
 		intConstant(method, onReification.offset());
-		// [reifier. reifier, function, regDump, chunk, offset]
+		// [reifier, function, regDump, chunk, offset]
 		createDummyContinuationMethod.generateCall(method);
-		// [reifier. reifier, dummyContinuation]
+		// [reifier, dummyContinuation]
 		// Push an action to the current StackReifier which will run the dummy
 		// continuation.
 		pushContinuationActionMethod.generateCall(method);
 		// [reifier]
-		// Now return the same reifier to the next level out on the stack.
+		// Now return the reifier to the next level out on the stack.
 		method.visitInsn(ARETURN);
 	}
 

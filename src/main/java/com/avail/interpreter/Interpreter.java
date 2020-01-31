@@ -1072,7 +1072,7 @@ public final class Interpreter
 
 	/** The {@link CheckedField} for the field argsBuffer. */
 	public static final CheckedField interpreterReturningFunctionField =
-		instanceField(Interpreter.class,"returningFunction", A_Function.class);
+		instanceField(Interpreter.class, "returningFunction", A_Function.class);
 
 	/**
 	 * Some operations like {@link L2_INVOKE} instructions have statistics that
@@ -2684,7 +2684,6 @@ public final class Interpreter
 		Interpreter.class,
 		"runChunk",
 		StackReifier.class);
-
 
 	/**
 	 * Schedule the specified {@linkplain ExecutionState#indicatesSuspension()

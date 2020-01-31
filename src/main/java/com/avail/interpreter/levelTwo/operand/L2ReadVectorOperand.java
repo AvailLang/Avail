@@ -43,6 +43,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.UnaryOperator;
 
 import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.toList;
@@ -182,6 +183,17 @@ extends L2Operand
 	public void addReadsTo (final List<L2ReadOperand<?>> readOperands)
 	{
 		readOperands.addAll(elements);
+	}
+
+	@Override
+	public final L2ReadVectorOperand<RR, R> transformEachRead (
+		final UnaryOperator<L2ReadOperand<?>> transformer)
+	{
+		return clone(
+			elements.stream()
+				.map(r -> r.transformEachRead(transformer))
+				.map(Casts::<L2Operand, RR>cast)
+				.collect(toList()));
 	}
 
 	@Override
