@@ -158,6 +158,9 @@ class Session constructor(val commandChannel: AvailServerChannel)
 			it.scheduleClose(ParentChannelDisconnect)
 		}
 		commandChannel.server.sessions.remove(id)
+		fileCacheIdSessionId.keys.forEach {
+			commandChannel.server.fileManager.deregisterInterest(it)
+		}
 		AvailServer.logger.log(Level.INFO, "Session $id closed")
 	}
 
@@ -173,8 +176,14 @@ class Session constructor(val commandChannel: AvailServerChannel)
 	 *   The session id for the file that can be used to refer to the file.
 	 */
 	fun addFileCacheId (uuid: UUID): Int =
-		fileCacheIdSessionId[uuid]
-			?: sessionFileCache.add(uuid).apply {
+		fileCacheIdSessionId[uuid]?.let {
+			// If we got here, which we shouldn't unless the client "forgot"
+			// it had a file open and re-requested it, then this Session would
+			// have been double-counted in the ServerFileWrapper's
+			// interestCount, which needs to be adjusted.
+			commandChannel.server.fileManager.deregisterInterest(uuid)
+			it
+		} ?: sessionFileCache.add(uuid).apply {
 				fileCacheIdSessionId[uuid] = this
 			}
 
@@ -189,7 +198,10 @@ class Session constructor(val commandChannel: AvailServerChannel)
 	 *   or `null` if that location was invalid or empty.
 	 */
 	fun removeFileCacheId (id: Int) =
-		sessionFileCache.remove(id).let { fileCacheIdSessionId.remove(it) }
+		sessionFileCache.remove(id)?.let {
+			commandChannel.server.fileManager.deregisterInterest(it)
+			fileCacheIdSessionId.remove(it)
+		}
 
 	/**
 	 * Answer the [FileManager] id linked to the provided [FreeList] index id.

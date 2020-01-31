@@ -257,7 +257,7 @@ internal class TracedAction constructor(
 	 */
 	fun undo (file: AvailServerFile)
 	{
-		reverseAction.execute(file, timestamp)
+		reverseAction.execute(file, System.currentTimeMillis())
 	}
 
 	/**
@@ -268,6 +268,6 @@ internal class TracedAction constructor(
 	 */
 	fun redo (file: AvailServerFile)
 	{
-		forwardAction.execute(file, timestamp)
+		forwardAction.execute(file, System.currentTimeMillis())
 	}
 }

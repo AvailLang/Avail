@@ -43,7 +43,7 @@ package com.avail.server.session
  * @property next
  *   The index location in the [FreeList.list] of the next empty location if
  *   [value] is `null` and this [Link] not being the immediate next available
- *   storage location indicated by the [FreeList.freeSpace]. It may be null if
+ *   storage location indicated by the [FreeList.freeSpace]. It may be `null` if
  *   it is either the last available location not containing a [value] putting
  *   it in the location [FreeList.freeSpace] points to, or if the `value` is
  *   populated (not `null`).
@@ -57,7 +57,7 @@ package com.avail.server.session
  * @param next
  *   The index location in the [FreeList.list] of the next empty location if
  *   [value] is `null` and this [Link] not being the immediate next available
- *   storage location indicated by the [FreeList.freeSpace]. It may be null if
+ *   storage location indicated by the [FreeList.freeSpace]. It may be `null` if
  *   it is either the last available location not containing a [value] putting
  *   it in the location [FreeList.freeSpace] points to, or if the `value` is
  *   populated (not `null`).
@@ -71,7 +71,7 @@ internal class Link<Value> constructor(
 /**
  * A `FreeList` is a generic data structure for dynamic memory allocation for
  * storing objects and providing them a local memory location id for quick
- * retrieval
+ * retrieval.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *

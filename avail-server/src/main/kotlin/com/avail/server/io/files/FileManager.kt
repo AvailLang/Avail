@@ -32,29 +32,22 @@
 
 package com.avail.server.io.files
 
-import com.avail.AvailRuntimeConfiguration
+import com.avail.AvailRuntime
 import com.avail.AvailThread
+import com.avail.server.AvailServer
 import com.avail.server.error.ServerErrorCode
 import com.avail.server.error.ServerErrorCode.*
 import com.avail.utility.LRUCache
 import com.avail.utility.MutableOrNull
-import com.avail.utility.SimpleThreadFactory
 import java.io.IOException
 import java.nio.channels.AsynchronousFileChannel
 import java.nio.file.FileAlreadyExistsException
-import java.nio.file.FileSystem
-import java.nio.file.FileSystems
 import java.nio.file.Files
-import java.nio.file.OpenOption
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
-import java.nio.file.attribute.FileAttribute
-import java.nio.file.attribute.PosixFilePermission
 import java.util.*
-import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
-import java.util.concurrent.TimeUnit
 
 /**
  * `FileManager` manages the opened files of the Avail Server. It provides an
@@ -62,8 +55,17 @@ import java.util.concurrent.TimeUnit
  * control the number of open files in memory.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ *
+ * @property runtime
+ *   The [AvailRuntime] that is associated with the running [AvailServer].
+ *
+ * @constructor
+ * Construct a [FileManager].
+ *
+ * @param runtime
+ *   The [AvailRuntime] that is associated with the running [AvailServer].
  */
-internal object FileManager
+internal class FileManager constructor(private val runtime: AvailRuntime)
 {
 	/**
 	 * The [EnumSet] of [StandardOpenOption]s used when opening files.
@@ -84,14 +86,7 @@ internal object FileManager
 	 * The [thread pool executor][ThreadPoolExecutor] for asynchronous file
 	 * operations performed on behalf of this [FileManager].
 	 */
-	private val fileExecutor = ThreadPoolExecutor(
-		AvailRuntimeConfiguration.availableProcessors,
-		AvailRuntimeConfiguration.availableProcessors shl 2,
-		10L,
-		TimeUnit.SECONDS,
-		LinkedBlockingQueue(),
-		SimpleThreadFactory("AvailServerFileManager"),
-		ThreadPoolExecutor.CallerRunsPolicy())
+	private val fileExecutor = runtime.ioSystem().fileExecutor
 
 	/**
 	 * Maintain an [LRUCache] of [AvailServerFile]s opened by the Avail server.
@@ -99,7 +94,7 @@ internal object FileManager
 	 * This cache works in conjunction with [pathToIdMap] to maintain links
 	 * between
 	 */
-	// TODO make the softCapacity and strongCapacity configurable and not magic numbers
+	// TODO make the softCapacity and strongCapacity configurable, not magic numbers
 	private val fileCache = LRUCache<UUID, MutableOrNull<ServerFileWrapper>>(
 		10000,
 		10,
@@ -120,7 +115,11 @@ internal object FileManager
 				else
 				{
 					ServerFileWrapper(
-						it, path, openFile(Paths.get(path), fileOpenOptions))
+						it,
+						path,
+						this,
+						runtime.ioSystem().openFile(
+							Paths.get(path), fileOpenOptions))
 				})
 
 		},
@@ -254,9 +253,26 @@ internal object FileManager
 			idToPathMap[uuid] = path
 		}
 		val value = fileCache[uuid]
-		value.value?.provide(consumer, failureHandler)
+		executeFileTask {
+			value.value?.provide(consumer, failureHandler)
 			?: failureHandler(FILE_NOT_FOUND, null)
+		}
 		return uuid
+	}
+
+	/**
+	 * Schedule the specified task for eventual execution
+	 * by the [thread pool executor][ThreadPoolExecutor] for
+	 * asynchronous file operations. The implementation is free to run the task
+	 * immediately or delay its execution arbitrarily. The task will not execute
+	 * on an [Avail thread][AvailThread].
+	 *
+	 * @param task
+	 *   A task.
+	 */
+	fun executeFileTask(task: () -> Unit)
+	{
+		fileExecutor.execute(task)
 	}
 
 	/**
@@ -322,73 +338,4 @@ internal object FileManager
 		}
 		return null
 	}
-
-	/**
-	 * Schedule the specified [task][Runnable] for eventual execution
-	 * by the [thread pool executor][ThreadPoolExecutor] for
-	 * asynchronous file operations. The implementation is free to run the task
-	 * immediately or delay its execution arbitrarily. The task will not execute
-	 * on an [Avail thread][AvailThread].
-	 *
-	 * @param task
-	 *   A task.
-	 */
-	fun executeFileTask(task: Runnable)
-	{
-		fileExecutor.execute(task)
-	}
-
-	/**
-	 * Open an [asynchronous file channel][AsynchronousFileChannel] for the
-	 * specified [path][Path].
-	 *
-	 * @param path
-	 *   A path.
-	 * @param options
-	 *   The [open options][OpenOption].
-	 * @param attributes
-	 *   The [file attributes][FileAttribute] (for newly created files only).
-	 * @return
-	 *   An asynchronous file channel.
-	 * @throws IllegalArgumentException
-	 *   If the combination of options is invalid.
-	 * @throws UnsupportedOperationException
-	 *   If an option is invalid for the specified path.
-	 * @throws SecurityException
-	 *   If the [security manager][SecurityManager] denies permission to
-	 *   complete the operation.
-	 * @throws IOException
-	 *   If the open fails for any reason.
-	 */
-	@Throws(
-		IllegalArgumentException::class,
-		UnsupportedOperationException::class,
-		SecurityException::class,
-		IOException::class)
-	fun openFile(
-		path: Path,
-		options: Set<OpenOption> = fileOpenOptions,
-		vararg attributes: FileAttribute<*>): AsynchronousFileChannel =
-		AsynchronousFileChannel.open(
-			path, options, fileExecutor, *attributes)
-
-	/** The default [file system][FileSystem].  */
-	@JvmStatic
-	val fileSystem: FileSystem = FileSystems.getDefault()
-
-	/**
-	 * The [POSIX file permissions][PosixFilePermission]. *The order of
-	 * these elements should not be changed!*
-	 */
-	@JvmStatic
-	val posixPermissions = arrayOf(
-		PosixFilePermission.OWNER_READ,
-		PosixFilePermission.OWNER_WRITE,
-		PosixFilePermission.OWNER_EXECUTE,
-		PosixFilePermission.GROUP_READ,
-		PosixFilePermission.GROUP_WRITE,
-		PosixFilePermission.GROUP_EXECUTE,
-		PosixFilePermission.OTHERS_READ,
-		PosixFilePermission.OTHERS_WRITE,
-		PosixFilePermission.OTHERS_EXECUTE)
 }

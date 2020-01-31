@@ -33,6 +33,7 @@
 package com.avail.server.io.files
 
 import com.avail.server.error.ServerErrorCode
+import com.avail.server.session.Session
 import org.apache.tika.Tika
 import java.io.IOException
 import java.nio.channels.AsynchronousFileChannel
@@ -55,6 +56,8 @@ import java.util.concurrent.atomic.AtomicInteger
  *   The [FileManager.fileCache] key.
  * @property path
  *   The String path to the target file on disk.
+ * @property fileManager
+ *   The [FileManager] this [ServerFileWrapper] belongs to.
  *
  * @constructor
  * Construct a [ServerFileWrapper].
@@ -63,43 +66,49 @@ import java.util.concurrent.atomic.AtomicInteger
  *   The [FileManager.fileCache] key.
  * @param path
  *   The String path to the target file on disk.
+ * @param fileManager
+ *   The [FileManager] this [ServerFileWrapper] belongs to.
  * @param fileChannel
  *   The [AsynchronousFileChannel] used to access the file.
  */
 internal class ServerFileWrapper constructor(
-	val id: UUID, val path: String, fileChannel: AsynchronousFileChannel)
+	val id: UUID,
+	val path: String,
+	private val fileManager: FileManager,
+	fileChannel: AsynchronousFileChannel)
 {
-	private val lock = Object()
-
-	/**
-	 * The [AvailServerFile] wrapped by this [ServerFileWrapper].
-	 */
+	/** The [AvailServerFile] wrapped by this [ServerFileWrapper]. */
 	lateinit var file: AvailServerFile
 		private set
 
+	/**
+	 * `true` indicates that [file] is fully populated with the content of the
+	 * file located at the [path]; `false` indicates the file has not been
+	 * loaded into memory.
+	 */
+	private val isAvailable = AtomicBoolean(false)
+
+	/**
+	 * `true` indicates the file has been edited but it has not been
+	 * [saved][SaveAction]. `false` indicates the file is unchanged from disk.
+	 */
+	var isDirty = false
+
 	init
 	{
-		FileManager.executeFileTask (Runnable {
+		fileManager.executeFileTask {
 			val p = Paths.get(path)
 			val mimeType = Tika().detect(p)
 			file = createFile(path, fileChannel, mimeType, this)
-		})
+		}
 	}
-
-	/**
-	 * `true` indicates the file is being loaded; `false` indicates the file
-	 * has been loaded.
-	 */
-	@Volatile
-	var isLoadingFile: Boolean = true
-		private set
 
 	/**
 	 * The [queue][ConcurrentLinkedQueue] of [FileRequestHandler]s that are
 	 * requesting receipt of the [file]'s
 	 * [raw bytes][AvailServerFile.rawContent].
 	 */
-	private val handlerQueue = ConcurrentLinkedQueue<FileRequestHandler>()
+	private val fileRequestQueue = ConcurrentLinkedQueue<FileRequestHandler>()
 
 	/**
 	 * The [Stack] of [TracedAction] that tracks the [FileAction]s applied in
@@ -135,25 +144,37 @@ internal class ServerFileWrapper constructor(
 	}
 
 	/**
+	 * This is the gate through which [FileAction]
+	 * [execution][FileAction.execute] must pass through to start
+	 * [executing][executeActions] from the [actionQueue].
+	 *
+	 * `true` indicates the file is not currently performing any `FileAction`s
+	 * from the `actionQueue`. Any incoming `FileAction` in this state will
+	 * transition it to `false` and begin draining actions from the queue,
+	 * performing them synchronously. Any actions received during this state
+	 * will be added to the end of the queue.
+	 *
+	 * It should be impossible to receive a `FileAction` request before the
+	 * [file] is [available][isAvailable] as no [Session] file id's are provided
+	 * before the file is loaded. This makes it safe to indicate as idle
+	 */
+	private val isIdle = AtomicBoolean(true)
+
+	/**
 	 * The [queue][ConcurrentLinkedQueue] of [FileAction]s that are waiting to
 	 * be executed for the contained [AvailServerFile].
 	 */
 	private val actionQueue = ConcurrentLinkedQueue<FileAction>()
 
 	/**
-	 * Is the [file] available for [FileAction]a from the [actionQueue]?
-	 * `true` indicates it is; `false` otherwise.
-	 */
-	private val isReady = AtomicBoolean(true)
-
-	/**
 	 * Remove all the [FileAction]s from the [actionQueue] and perform them
-	 * in FIFO order if this [ServerFileWrapper] [is ready][isReady]
+	 * in FIFO order if this [ServerFileWrapper] [is ready][isIdle]
 	 * to update.
 	 */
 	private fun executeActions ()
 	{
-		if (isReady.getAndSet(false))
+
+		if (isIdle.getAndSet(false))
 		{
 			var action = actionQueue.poll()
 
@@ -178,8 +199,10 @@ internal class ServerFileWrapper constructor(
 				tracedActionStack.push(tracedAction)
 				action = actionQueue.poll()
 			}
-			isReady.set(true)
-			// TODO Save file
+			// TODO there is an opportunity here for a race where a FileAction
+			//  could be added to the queue before isIdle is set to true after
+			//  the queue has been observed to be drained.
+			isIdle.set(true)
 		}
 	}
 
@@ -187,12 +210,16 @@ internal class ServerFileWrapper constructor(
 	 * [Update][FileAction.execute] the wrapped [AvailServerFile] with the
 	 * provided [FileAction].
 	 *
+	 * This method is [Synchronized] to enforce performing actions
+	 * synchronously in received order.
+	 *
 	 * @param fileAction
 	 *   The `FileAction` to perform.
 	 */
 	fun execute (fileAction: FileAction)
 	{
 		actionQueue.add(fileAction)
+		// TODO a better trigger needs to be a performed
 		executeActions()
 	}
 
@@ -206,6 +233,9 @@ internal class ServerFileWrapper constructor(
 	 * [Undo][TracedAction.undo] the [FileAction] performed on the [file] from
 	 * the [TracedAction] that is [undoStackDepth] + 1 from the top of the
 	 * stack.
+	 *
+	 * This should only ever be called from [UndoAction.execute] to ensure it
+	 * is performed through the synchronized [execution][execute] path.
 	 */
 	fun undo ()
 	{
@@ -221,8 +251,10 @@ internal class ServerFileWrapper constructor(
 	 * If an [undo] resulted in a [revert][TracedAction.reverseAction] on the
 	 * [file] and no other [FileAction] has occurred since,
 	 * [redo][TracedAction.redo] the previously reverted action.
+	 *
+	 * This should only ever be called from [RedoAction.execute] to ensure it
+	 * is performed through the synchronized [execution][execute] path.
 	 */
-	// TODO make thread safe?
 	fun redo ()
 	{
 		if (undoStackDepth == 0)
@@ -250,7 +282,7 @@ internal class ServerFileWrapper constructor(
 		success: () -> Unit,
 		failure: (ServerErrorCode, Throwable?) -> Unit)
 	{
-		isReady.set(false)
+		isIdle.set(false)
 		try
 		{
 			if (file.isOpen)
@@ -270,7 +302,7 @@ internal class ServerFileWrapper constructor(
 			}
 			else
 			{
-				FileManager.remove(id)
+				fileManager.remove(id)
 				success()
 			}
 		}
@@ -304,21 +336,16 @@ internal class ServerFileWrapper constructor(
 		consumer: (UUID, String, ByteArray) -> Unit,
 		failureHandler: (ServerErrorCode, Throwable?) -> Unit)
 	{
-		// TODO should be run on a separate thread or is that handled inside the
-		//  consumer?
-		synchronized(lock)
+		interestCount.incrementAndGet()
+		if (isAvailable.get())
 		{
-			interestCount.incrementAndGet()
-			if (!isLoadingFile)
-			{
-				consumer(id, file.mimeType, file.rawContent)
-				return
-			}
-			else
-			{
-				handlerQueue.add(FileRequestHandler(
-					id, consumer, failureHandler))
-			}
+			consumer(id, file.mimeType, file.rawContent)
+			return
+		}
+		else
+		{
+			fileRequestQueue.add(FileRequestHandler(
+				id, consumer, failureHandler))
 		}
 	}
 
@@ -328,26 +355,33 @@ internal class ServerFileWrapper constructor(
 	 */
 	fun notifyReady ()
 	{
-		synchronized(lock)
+		// We only want to notify that this file is ready once.
+		if (!isAvailable.getAndSet(true))
 		{
-			isLoadingFile = false
-		}
-		// TODO should each be run on a separate thread or is that handled
-		//  inside the consumer?
-		val fileBytes = file.rawContent
-		handlerQueue.forEach {
-			it.requestConsumer(it.id, file.mimeType, fileBytes)
+			isIdle.set(true)
+			val fileBytes = file.rawContent
+			fileRequestQueue.forEach {
+				fileManager.executeFileTask {
+					it.requestConsumer(it.id, file.mimeType, fileBytes)
+				}
+			}
 		}
 	}
 
 	/**
-	 * Notify the [FileRequestHandler]s in [ServerFileWrapper.handlerQueue] that
+	 * Notify the [FileRequestHandler]s in [ServerFileWrapper.fileRequestQueue] that
+	 * the file action encountered a failure while opening.
 	 *
+	 * @param errorCode
+	 *   The [ServerErrorCode] describing the failure.
+	 * @param e
+	 *   The optional [Throwable] related to the failure if one exists; `null`
+	 *   otherwise.
 	 */
-	fun notifyFailure (errorCode: ServerErrorCode, e: Throwable?)
+	fun notifyOpenFailure (errorCode: ServerErrorCode, e: Throwable? = null)
 	{
 		// TODO fix this up
-		handlerQueue.forEach {
+		fileRequestQueue.forEach {
 			it.failureHandler(errorCode, e)
 
 		}
@@ -372,16 +406,16 @@ internal class ServerFileWrapper constructor(
 			path: String,
 			file: AsynchronousFileChannel,
 			mimeType: String,
-			serverFileWrapper: ServerFileWrapper): AvailServerFile
-		{
-			return when (mimeType)
-			{
-				"text/avail", "text/plain", "text/json" ->
-					AvailServerTextFile(path, file, mimeType, serverFileWrapper)
-				else ->
-					AvailServerBinaryFile(path, file, mimeType, serverFileWrapper)
-			}
-		}
+			serverFileWrapper: ServerFileWrapper): AvailServerFile =
+				when (mimeType)
+				{
+					"text/avail", "text/plain", "text/json" ->
+						AvailServerTextFile(
+							path, file, mimeType, serverFileWrapper)
+					else ->
+						AvailServerBinaryFile(
+							path, file, mimeType, serverFileWrapper)
+				}
 	}
 }
 

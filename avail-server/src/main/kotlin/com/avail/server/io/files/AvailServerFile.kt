@@ -72,10 +72,14 @@ internal abstract class AvailServerFile constructor(
 	val mimeType: String,
 	val serverFileWrapper: ServerFileWrapper)
 {
-	/**
-     * The raw bytes of the file.
-	 */
+	/** The raw bytes of the file. */
 	abstract val rawContent: ByteArray
+
+	/**
+	 * Time in milliseconds since the unix epoch UTC when this file was lasted
+	 * edited.
+	 */
+	var lastEdit = 0L
 
 	/** Close the backing channel [file]. */
 	fun close () =
@@ -137,6 +141,7 @@ internal abstract class AvailServerFile constructor(
 	{
 		val content = rawContent
 		val data = ByteBuffer.wrap(content)
+		val saveTimeStart = System.currentTimeMillis()
 		file.write(
 			data,
 			0,
@@ -146,6 +151,16 @@ internal abstract class AvailServerFile constructor(
 					if (data.hasRemaining())
 					{
 						save(data, data.position().toLong(), failure)
+					}
+					else
+					{
+						synchronized(this)
+						{
+							if (lastEdit < saveTimeStart)
+							{
+								serverFileWrapper.isDirty = false
+							}
+						}
 					}
 				})
 			{ e, code, _ ->

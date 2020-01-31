@@ -69,6 +69,7 @@ import com.avail.server.io.RunFailureDisconnect
 import com.avail.server.io.ServerInputChannel
 import com.avail.server.io.ServerMessageDisconnect
 import com.avail.server.io.WebSocketAdapter
+import com.avail.server.io.files.FileManager
 import com.avail.server.messages.TextCommand
 import com.avail.server.messages.CommandMessage
 import com.avail.server.messages.CommandParseException
@@ -142,6 +143,9 @@ class AvailServer constructor(
 	 */
 	private val builder: AvailBuilder = AvailBuilder(runtime)
 
+	/** The [FileManager] used to manage files by this [AvailServer]. */
+	internal val fileManager = FileManager(runtime)
+
 	/**
 	 * The catalog of pending upgrade requests, as a [map][Map] from [UUID]s to
 	 * the [continuations][Continuation3NotNull] that should be invoked to
@@ -163,7 +167,7 @@ class AvailServer constructor(
 	/**
 	 * The [Map] from [AvailServerChannel.id]s to [AvailServerChannel]. It
 	 * contains all `AvailServerChannel`s that have not gone through the
-	 * [upgraded][upgradeThen] process to either become a
+	 * [upgrade][upgradeThen] process to either become a
 	 * [command channel][AvailServerChannel.ProtocolState.COMMAND] or a child
 	 * channel of a `command channel`.
 	 */
@@ -1487,7 +1491,6 @@ class AvailServer constructor(
 				{
 					if (message.content.size < 8)
 					{
-
 						channel.enqueueMessageThen(
 							ErrorBinaryMessage(
 									0, // No transaction id available
@@ -1508,7 +1511,6 @@ class AvailServer constructor(
 							channel,
 							receiveNext)
 					}
-
 				}
 			}
 		}

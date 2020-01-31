@@ -79,7 +79,7 @@ class IOSystem constructor(val runtime: AvailRuntime)
 	 * The [thread pool executor][ThreadPoolExecutor] for asynchronous file
 	 * operations performed on behalf of this [Avail runtime][AvailRuntime].
 	 */
-	private val fileExecutor = ThreadPoolExecutor(
+	val fileExecutor = ThreadPoolExecutor(
 		availableProcessors,
 		availableProcessors shl 2,
 		10L,

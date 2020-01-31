@@ -103,21 +103,21 @@ internal class AvailServerBinaryFile constructor(
 								handler)
 						}
 						// Otherwise, close the file channel and notify the
-						// serverFileWrapper of completion
+						// serverFileWrapper of completion. No reason to keep
+						// it open as it cannot be edited.
 						else
 						{
-							this.file.close()
 							serverFileWrapper.notifyReady()
 						}
 					}
 					catch (e: IOException)
 					{
-						serverFileWrapper.notifyFailure(
+						serverFileWrapper.notifyOpenFailure(
 							ServerErrorCode.IO_EXCEPTION, e)
 					}
 				},
 				{ e, _, _ ->
-					serverFileWrapper.notifyFailure(
+					serverFileWrapper.notifyOpenFailure(
 						ServerErrorCode.IO_EXCEPTION, e)
 				}))
 	}

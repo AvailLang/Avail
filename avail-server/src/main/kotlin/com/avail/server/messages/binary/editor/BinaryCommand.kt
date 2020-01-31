@@ -149,7 +149,7 @@ enum class BinaryCommand constructor(val id: Int)
 					mr.sourceDirectory?.let {
 						val path =
 							Paths.get(it.path, target.rootRelativeName).toString()
-						FileManager.createFile(
+						channel.server.fileManager.createFile(
 							path,
 							{ uuid, mime, bytes ->
 								channel.sessionId?.let { sessionId ->
@@ -157,7 +157,7 @@ enum class BinaryCommand constructor(val id: Int)
 										val fileId =
 											session.addFileCacheId(uuid)
 										FileOpenedMessage(
-											commandId, id, bytes.size, mime)
+												commandId, id, bytes.size, mime)
 											.processThen(channel)
 											{
 												FileStreamMessage(
@@ -223,10 +223,10 @@ enum class BinaryCommand constructor(val id: Int)
 					mr.sourceDirectory?.let {
 						val path =
 							Paths.get(it.path, target.rootRelativeName).toString()
-						FileManager.readFile(
+						channel.server.fileManager.readFile(
 							path,
 							{ uuid, mime, bytes ->
-								channel.session?.let {session ->
+								channel.session?.let { session ->
 									val fileId = session.addFileCacheId(uuid)
 									FileOpenedMessage(
 											commandId, fileId, bytes.size, mime)
@@ -283,15 +283,15 @@ enum class BinaryCommand constructor(val id: Int)
 			channel: AvailServerChannel,
 			continuation: () -> Unit)
 		{
-			val fileId = buffer.int
-			val uuid = channel.session?.getFile(fileId)
-			if (uuid == null)
+			val session = channel.session
+			if (session == null)
 			{
 				ErrorBinaryMessage(commandId, NO_SESSION, false)
 					.processThen(channel)
 				return
 			}
-			FileManager.deregisterInterest(uuid)
+			val fileId = buffer.int
+			session.removeFileCacheId(fileId)
 			OkMessage(commandId).processThen(channel, continuation)
 		}
 	},
@@ -320,7 +320,8 @@ enum class BinaryCommand constructor(val id: Int)
 					ErrorBinaryMessage(commandId, code, false)
 						.processThen(channel)
 				}
-			FileManager.executeAction(uuid, SaveAction(fail), fail)
+			channel.server.fileManager.executeAction(
+				uuid, SaveAction(fail), fail)
 			continuation()
 		}
 	},
@@ -369,7 +370,7 @@ enum class BinaryCommand constructor(val id: Int)
 			val data = ByteArray(buffer.remaining())
 			buffer.get(data)
 			val edit = EditRange(data, start, end)
-			FileManager.executeAction(uuid, edit) { code, e ->
+			channel.server.fileManager.executeAction(uuid, edit) { code, e ->
 				logger.log(Level.SEVERE, "Edit file range error: $code", e)
 				ErrorBinaryMessage(commandId, code, false)
 					.processThen(channel)
@@ -396,7 +397,7 @@ enum class BinaryCommand constructor(val id: Int)
 					.processThen(channel)
 				return
 			}
-			FileManager.executeAction(uuid, UndoAction) { code, e ->
+			channel.server.fileManager.executeAction(uuid, UndoAction) { code, e ->
 				logger.log(Level.SEVERE, "Undo edit error: $code", e)
 				ErrorBinaryMessage(commandId, code, false)
 					.processThen(channel)
@@ -423,7 +424,7 @@ enum class BinaryCommand constructor(val id: Int)
 					.processThen(channel)
 				return
 			}
-			FileManager.executeAction(uuid, RedoAction) { code, e ->
+			channel.server.fileManager.executeAction(uuid, RedoAction) { code, e ->
 				logger.log(Level.SEVERE, "Redo file error: $code", e)
 				ErrorBinaryMessage(commandId, code, false)
 					.processThen(channel)
@@ -453,7 +454,7 @@ enum class BinaryCommand constructor(val id: Int)
 						val path =
 							Paths.get(it.path, target.rootRelativeName).toString()
 
-						FileManager.delete(
+						channel.server.fileManager.delete(
 							path,
 							{
 								OkMessage(commandId)
