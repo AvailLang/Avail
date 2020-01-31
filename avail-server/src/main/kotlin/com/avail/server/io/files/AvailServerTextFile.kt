@@ -206,11 +206,7 @@ internal class AvailServerTextFile constructor(
 			first.concatenateWith(text, false)
 				.concatenateWith(third, false))
 
-		synchronized(this)
-		{
-			lastEdit = timestamp
-			serverFileWrapper.isDirty = true
-		}
+		markDirty()
 		return TracedAction(
 			timestamp,
 			EditRange(data, start, end),

@@ -128,6 +128,7 @@ internal class AvailServerBinaryFile constructor(
 		val removed = content.copyOfRange(start, end)
 		content = content.copyOfRange(0, start) +
 			data + content.copyOfRange(end, content.size)
+		markDirty()
 		return TracedAction(
 			timestamp,
 			EditRange(data, start, end),

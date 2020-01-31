@@ -88,12 +88,6 @@ internal class ServerFileWrapper constructor(
 	 */
 	private val isAvailable = AtomicBoolean(false)
 
-	/**
-	 * `true` indicates the file has been edited but it has not been
-	 * [saved][SaveAction]. `false` indicates the file is unchanged from disk.
-	 */
-	var isDirty = false
-
 	init
 	{
 		fileManager.executeFileTask {

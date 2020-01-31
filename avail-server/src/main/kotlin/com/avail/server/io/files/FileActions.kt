@@ -245,7 +245,7 @@ internal class SaveAction constructor(
  *   The [FileAction] that reverses the `forwardAction`.
  */
 internal class TracedAction constructor(
-	private val timestamp: Long,
+	val timestamp: Long,
 	private val forwardAction: FileAction,
 	private val reverseAction: FileAction)
 {

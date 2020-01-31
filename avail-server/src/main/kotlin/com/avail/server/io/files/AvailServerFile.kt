@@ -79,7 +79,27 @@ internal abstract class AvailServerFile constructor(
 	 * Time in milliseconds since the unix epoch UTC when this file was lasted
 	 * edited.
 	 */
-	var lastEdit = 0L
+	private var lastEdit = 0L
+
+	/**
+	 * `true` indicates the file has been edited but it has not been
+	 * [saved][SaveAction]. `false` indicates the file is unchanged from disk.
+	 */
+	private var isDirty = false
+
+	/**
+	 * Indicate this file has been edited to be different than what is saved
+	 * to disk.
+	 *
+	 * @param timestamp
+	 *   The time in milliseconds since the unix epoch when this occurred.
+	 */
+	@Synchronized
+	fun markDirty ()
+	{
+		lastEdit = System.currentTimeMillis()
+		isDirty = true
+	}
 
 	/** Close the backing channel [file]. */
 	fun close () =
@@ -158,7 +178,7 @@ internal abstract class AvailServerFile constructor(
 						{
 							if (lastEdit < saveTimeStart)
 							{
-								serverFileWrapper.isDirty = false
+								isDirty = false
 							}
 						}
 					}
