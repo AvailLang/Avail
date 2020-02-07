@@ -31,11 +31,8 @@
  */
 package com.avail.server.io.files
 
-import com.avail.io.SimpleCompletionHandler
 import com.avail.server.AvailServer
-import com.avail.server.error.ServerErrorCode
 import java.io.IOException
-import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousFileChannel
 import java.util.logging.Level
 
@@ -67,7 +64,7 @@ import java.util.logging.Level
  *   The [ServerFileWrapper] that wraps this [AvailServerFile].
  */
 internal abstract class AvailServerFile constructor(
-	protected val path: String,
+	val path: String,
 	protected val file: AsynchronousFileChannel,
 	val mimeType: String,
 	val serverFileWrapper: ServerFileWrapper)
@@ -79,7 +76,7 @@ internal abstract class AvailServerFile constructor(
 	 * Time in milliseconds since the unix epoch UTC when this file was lasted
 	 * edited.
 	 */
-	private var lastEdit = 0L
+	var lastEdit = 0L
 
 	/**
 	 * `true` indicates the file has been edited but it has not been
@@ -90,15 +87,25 @@ internal abstract class AvailServerFile constructor(
 	/**
 	 * Indicate this file has been edited to be different than what is saved
 	 * to disk.
-	 *
-	 * @param timestamp
-	 *   The time in milliseconds since the unix epoch when this occurred.
 	 */
 	@Synchronized
 	fun markDirty ()
 	{
 		lastEdit = System.currentTimeMillis()
 		isDirty = true
+	}
+
+	/**
+	 * Indicate this file has been edited to be different than what is saved
+	 * to disk.
+	 */
+	@Synchronized
+	fun conditionallyClearDirty(saveTimeStart: Long)
+	{
+		if (lastEdit < saveTimeStart)
+		{
+			isDirty = false
+		}
 	}
 
 	/** Close the backing channel [file]. */
@@ -117,76 +124,6 @@ internal abstract class AvailServerFile constructor(
 	 * `true` indicates the [file] is open; `false` indicates it is closed.
 	 */
 	val isOpen: Boolean get() = file.isOpen
-
-	/**
-	 * Save the data to disk starting at the specified write location.
-	 *
-	 * @param data
-	 *   The [ByteBuffer] to save to disk for this [AvailServerFile].
-	 * @param writePosition
-	 *   The position in the file to start writing to.
-	 * @param failure
-	 *   A function that accepts a [ServerErrorCode] that describes the nature
-	 *   of the failure and an optional [Throwable]. TODO refine error handling
-	 */
-	private fun save (
-		data: ByteBuffer,
-		writePosition: Long,
-		failure: (ServerErrorCode, Throwable?) -> Unit)
-	{
-		file.write(
-			data,
-			writePosition,
-			null,
-			SimpleCompletionHandler<Int, ServerErrorCode?>(
-				{ result, _, _ ->
-					if (data.hasRemaining())
-					{
-						save(data, data.position().toLong(), failure)
-					}
-				})
-			{ e, code, _ ->
-				failure(code ?: ServerErrorCode.UNSPECIFIED, e)
-			})
-	}
-
-	/**
-	 * Save the [rawContent] to disk.
-	 *
-	 * @param failure
-	 *   A function that accepts a [ServerErrorCode] that describes the nature
-	 *   of the failure and an optional [Throwable]. TODO refine error handling
-	 */
-	fun save(failure: (ServerErrorCode, Throwable?) -> Unit)
-	{
-		val content = rawContent
-		val data = ByteBuffer.wrap(content)
-		val saveTimeStart = System.currentTimeMillis()
-		file.write(
-			data,
-			0,
-			null,
-			SimpleCompletionHandler<Int, ServerErrorCode?>(
-				{ _, _, _ ->
-					if (data.hasRemaining())
-					{
-						save(data, data.position().toLong(), failure)
-					}
-					else
-					{
-						synchronized(this)
-						{
-							if (lastEdit < saveTimeStart)
-							{
-								isDirty = false
-							}
-						}
-					}
-				})
-			{ e, code, _ ->
-				failure(code ?: ServerErrorCode.UNSPECIFIED, e)
-			})
-	}
 
 	/**
 	 * Insert the [ByteArray] data into the file at the specified location. This

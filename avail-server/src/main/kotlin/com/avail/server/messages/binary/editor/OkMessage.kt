@@ -54,6 +54,9 @@ internal class OkMessage constructor(
 	override val command = BinaryCommand.OK
 	override val message: Message
 
+	// TODO [RAA] get rid of this!
+	override val stringStuff: String
+
 	init
 	{
 		// Base size of payload is 12 bytes broken down as:
@@ -65,7 +68,10 @@ internal class OkMessage constructor(
 		buffer.flip()
 		val content = ByteArray(12)
 		buffer.get(content)
-		this.message = Message(content, AvailServerChannel.ProtocolState.BINARY)
+		//TODO [RAA] this is the real message!
+//		this.message = Message(content, AvailServerChannel.ProtocolState.BINARY)
+		this.stringStuff = "$command $commandId"
+		this.message = Message(stringStuff.toByteArray(), AvailServerChannel.ProtocolState.IO)
 	}
 
 	override fun processThen(channel: AvailServerChannel, continuation: () -> Unit)

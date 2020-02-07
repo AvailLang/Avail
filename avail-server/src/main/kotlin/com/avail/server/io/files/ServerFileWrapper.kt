@@ -33,11 +33,8 @@
 package com.avail.server.io.files
 
 import com.avail.server.error.ServerErrorCode
-import com.avail.server.session.Session
 import org.apache.tika.Tika
-import java.io.IOException
 import java.nio.channels.AsynchronousFileChannel
-import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -90,6 +87,7 @@ internal class ServerFileWrapper constructor(
 
 	init
 	{
+		// TODO handle this externally
 		fileManager.executeFileTask {
 			val p = Paths.get(path)
 			val mimeType = Tika().detect(p)
@@ -138,83 +136,43 @@ internal class ServerFileWrapper constructor(
 	}
 
 	/**
-	 * This is the gate through which [FileAction]
-	 * [execution][FileAction.execute] must pass through to start
-	 * [executing][executeActions] from the [actionQueue].
-	 *
-	 * `true` indicates the file is not currently performing any `FileAction`s
-	 * from the `actionQueue`. Any incoming `FileAction` in this state will
-	 * transition it to `false` and begin draining actions from the queue,
-	 * performing them synchronously. Any actions received during this state
-	 * will be added to the end of the queue.
-	 *
-	 * It should be impossible to receive a `FileAction` request before the
-	 * [file] is [available][isAvailable] as no [Session] file id's are provided
-	 * before the file is loaded. This makes it safe to indicate as idle
-	 */
-	private val isIdle = AtomicBoolean(true)
-
-	/**
-	 * The [queue][ConcurrentLinkedQueue] of [FileAction]s that are waiting to
-	 * be executed for the contained [AvailServerFile].
-	 */
-	private val actionQueue = ConcurrentLinkedQueue<FileAction>()
-
-	/**
-	 * Remove all the [FileAction]s from the [actionQueue] and perform them
-	 * in FIFO order if this [ServerFileWrapper] [is ready][isIdle]
-	 * to update.
-	 */
-	private fun executeActions ()
-	{
-
-		if (isIdle.getAndSet(false))
-		{
-			var action = actionQueue.poll()
-
-			// Check if an action is available and that the file hasn't been
-			// marked as being not ready before proceeding
-			while (action != null)
-			{
-				val tracedAction =
-					action.execute(file, System.currentTimeMillis())
-
-				if (undoStackDepth > 0)
-				{
-					// Must remove all TracedActions above the undoStackDepth
-					// pointer as they are no longer valid.
-					do
-					{
-						val ta = tracedActionStack.pop()
-						// TODO remove ta from the project cache?
-					}
-					while (--undoStackDepth > 0)
-				}
-				tracedActionStack.push(tracedAction)
-				action = actionQueue.poll()
-			}
-			// TODO there is an opportunity here for a race where a FileAction
-			//  could be added to the queue before isIdle is set to true after
-			//  the queue has been observed to be drained.
-			isIdle.set(true)
-		}
-	}
-
-	/**
 	 * [Update][FileAction.execute] the wrapped [AvailServerFile] with the
 	 * provided [FileAction].
 	 *
 	 * This method is [Synchronized] to enforce performing actions
-	 * synchronously in received order.
+	 * synchronously. All single-client edits are performed synchronously in
+	 * client sent order via the client connection I/O message handling.
+	 *
+	 * Concurrent edits by multiple clients cannot be synchronized other than
+	 * preventing concurrent edits. It is impossible for the server to reason
+	 * out the appropriate order of edits from different concurrently editing
+	 * clients.
 	 *
 	 * @param fileAction
 	 *   The `FileAction` to perform.
+	 * @param continuation
+	 *   What to do when sufficient processing has occurred.
 	 */
-	fun execute (fileAction: FileAction)
+	@Synchronized
+	fun execute (fileAction: FileAction, continuation: () -> Unit)
 	{
-		actionQueue.add(fileAction)
-		// TODO a better trigger needs to be a performed
-		executeActions()
+		val tracedAction =
+			fileAction.execute(file, System.currentTimeMillis())
+
+		if (undoStackDepth > 0)
+		{
+			// Must remove all TracedActions above the undoStackDepth
+			// pointer as they are no longer valid.
+			do
+			{
+				val ta = tracedActionStack.pop()
+				// TODO remove ta from the project cache?
+			}
+			while (--undoStackDepth > 0)
+		}
+		tracedActionStack.push(tracedAction)
+		// TODO update Avail VM somehow
+		continuation()
 	}
 
 	/**
@@ -263,50 +221,6 @@ internal class ServerFileWrapper constructor(
 	}
 
 	/**
-	 * Delete the [file] from disk.
-	 *
-	 * @param id
-	 *   The [FileManager] cache id for this file.
-	 * @param failure
-	 *   A function that accepts a [ServerErrorCode] that describes the nature
-	 *   of the failure and an optional [Throwable].
-	 */
-	fun delete(
-		id: UUID,
-		success: () -> Unit,
-		failure: (ServerErrorCode, Throwable?) -> Unit)
-	{
-		isIdle.set(false)
-		try
-		{
-			if (file.isOpen)
-			{
-				try
-				{
-					file.close()
-				}
-				catch (e: IOException)
-				{
-					// Do nothing
-				}
-			}
-			if (!Files.deleteIfExists(Paths.get(path)))
-			{
-				failure(ServerErrorCode.FILE_NOT_FOUND, null)
-			}
-			else
-			{
-				fileManager.remove(id)
-				success()
-			}
-		}
-		catch (e: IOException)
-		{
-			failure(ServerErrorCode.IO_EXCEPTION, e)
-		}
-	}
-
-	/**
 	 * The number of clients that actively have this file open.
 	 */
 	val interestCount = AtomicInteger(0)
@@ -352,7 +266,6 @@ internal class ServerFileWrapper constructor(
 		// We only want to notify that this file is ready once.
 		if (!isAvailable.getAndSet(true))
 		{
-			isIdle.set(true)
 			val fileBytes = file.rawContent
 			fileRequestQueue.forEach {
 				fileManager.executeFileTask {

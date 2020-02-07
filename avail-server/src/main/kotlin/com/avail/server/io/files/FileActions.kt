@@ -194,7 +194,8 @@ internal object RedoAction: FileAction
 }
 
 /**
- * `SaveAction` is a [FileAction] that saves an [AvailServerFile] to disk.
+ * `SaveAction` is a [FileAction] that forces a save of an [AvailServerFile] to
+ * disk outside of the normal save mechanism.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
@@ -207,14 +208,15 @@ internal object RedoAction: FileAction
  *
  * @param failureHandler
  *   A function that accepts a [ServerErrorCode] that describes the nature
- *   of the failure and an optional [Throwable]. TODO refine error handling
+ *   of the failure and an optional [Throwable].
  */
 internal class SaveAction constructor(
+	private val fileManager: FileManager,
 	private val failureHandler: (ServerErrorCode, Throwable?) -> Unit): FileAction
 {
 	override fun execute(file: AvailServerFile, timestamp: Long): TracedAction
 	{
-		file.save(failureHandler)
+		fileManager.saveFile(file, failureHandler)
 		return NoAction.tracedAction
 	}
 

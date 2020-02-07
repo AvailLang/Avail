@@ -65,6 +65,9 @@ internal class InvalidBinaryMessage constructor(
 		override var commandId: Long, val id: Int, val content: ByteArray)
 	: BinaryMessage()
 {
+
+	override val stringStuff: String
+
 	init
 	{
 		val prefix =
@@ -73,6 +76,7 @@ internal class InvalidBinaryMessage constructor(
 			Level.WARNING,
 			"InvalidBinaryMessage ($commandId): " +
 				DatatypeConverter.printHexBinary(prefix))
+		this.stringStuff = "InvalidBinaryMessage ($commandId): "
 	}
 
 	override val command: BinaryCommand get() = BinaryCommand.INVALID

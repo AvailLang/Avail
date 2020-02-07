@@ -40,9 +40,6 @@ import com.avail.server.error.ServerErrorCode.*
 import com.avail.utility.LRUCache
 import com.avail.utility.MutableOrNull
 import java.io.IOException
-import java.nio.channels.AsynchronousFileChannel
-import java.nio.file.FileAlreadyExistsException
-import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
@@ -65,7 +62,8 @@ import java.util.concurrent.ThreadPoolExecutor
  * @param runtime
  *   The [AvailRuntime] that is associated with the running [AvailServer].
  */
-internal class FileManager constructor(private val runtime: AvailRuntime)
+internal abstract class FileManager constructor(
+	protected val runtime: AvailRuntime)
 {
 	/**
 	 * The [EnumSet] of [StandardOpenOption]s used when opening files.
@@ -76,7 +74,7 @@ internal class FileManager constructor(private val runtime: AvailRuntime)
 	/**
 	 * The [EnumSet] of [StandardOpenOption]s used when creating files.
 	 */
-	private val fileCreateOptions =
+	protected val fileCreateOptions =
 		EnumSet.of(
 			StandardOpenOption.READ,
 			StandardOpenOption.WRITE,
@@ -86,7 +84,7 @@ internal class FileManager constructor(private val runtime: AvailRuntime)
 	 * The [thread pool executor][ThreadPoolExecutor] for asynchronous file
 	 * operations performed on behalf of this [FileManager].
 	 */
-	private val fileExecutor = runtime.ioSystem().fileExecutor
+	protected val fileExecutor = runtime.ioSystem().fileExecutor
 
 	/**
 	 * Maintain an [LRUCache] of [AvailServerFile]s opened by the Avail server.
@@ -95,7 +93,7 @@ internal class FileManager constructor(private val runtime: AvailRuntime)
 	 * between
 	 */
 	// TODO make the softCapacity and strongCapacity configurable, not magic numbers
-	private val fileCache = LRUCache<UUID, MutableOrNull<ServerFileWrapper>>(
+	protected val fileCache = LRUCache<UUID, MutableOrNull<ServerFileWrapper>>(
 		10000,
 		10,
 		{
@@ -114,6 +112,8 @@ internal class FileManager constructor(private val runtime: AvailRuntime)
 				}
 				else
 				{
+					// TODO make this not use an AsyncFileChannel, instead
+					//  inject the file somehow
 					ServerFileWrapper(
 						it,
 						path,
@@ -170,35 +170,6 @@ internal class FileManager constructor(private val runtime: AvailRuntime)
 	}
 
 	/**
-	 * Delete the file at the provided path.
-	 *
-	 * @param path
-	 *   The String path to the file to be deleted.
-	 * @param failure
-	 *   A function that accepts a [ServerErrorCode] that describes the nature
-	 *   of the failure and an optional [Throwable]. TODO refine error handling
-	 */
-	fun delete (
-		path: String,
-		success: () -> Unit,
-		failure: (ServerErrorCode, Throwable?) -> Unit)
-	{
-		pathToIdMap[path]?.let {id ->
-			fileCache[id].value?.delete(id, success, failure)
-			idToPathMap.remove(id)
-		} ?: {
-			if (!Files.deleteIfExists(Paths.get(path)))
-			{
-				failure(FILE_NOT_FOUND, null)
-			}
-			else
-			{
-				success()
-			}
-		}.invoke()
-	}
-
-	/**
 	 * A [Map] from the String [Path] location of a [file][AvailServerFile] to
 	 * the [UUID] that uniquely identifies that file in the [fileCache].
 	 *
@@ -209,7 +180,7 @@ internal class FileManager constructor(private val runtime: AvailRuntime)
 	 * not found in the `fileCache`, this map will be used to retrieve the
 	 * associated file from disk and placed back in the `fileCache`.
 	 */
-	private val pathToIdMap = mutableMapOf<String, UUID>()
+	protected val pathToIdMap = mutableMapOf<String, UUID>()
 
 	/**
 	 * A [Map] from the file cache [id][UUID] that uniquely identifies that file
@@ -223,42 +194,7 @@ internal class FileManager constructor(private val runtime: AvailRuntime)
 	 * not found in the `fileCache`, this map will be used to retrieve the
 	 * associated file from disk and placed back in the `fileCache`.
 	 */
-	private val idToPathMap = mutableMapOf<UUID, String>()
-
-	/**
-	 * Retrieve the [ServerFileWrapper] and provide it with a request to obtain
-	 * the [raw file bytes][AvailServerFile.rawContent].
-	 *
-	 * @param path
-	 *   The String path location of the file.
-	 * @param consumer
-	 *   A function that accepts the [FileManager.fileCache] [UUID] that
-	 *   uniquely identifies the file, the String mime type, and the
-	 *   [raw bytes][AvailServerFile.rawContent] of an [AvailServerFile].
-	 * @param failureHandler
-	 *   A function that accepts a [ServerErrorCode] that describes the nature
-	 *   of the failure and an optional [Throwable].
-	 * @return
-	 *   The [FileManager] file id for the file.
-	 */
-	fun readFile (
-		path: String,
-		consumer: (UUID, String, ByteArray) -> Unit,
-		failureHandler: (ServerErrorCode, Throwable?) -> Unit): UUID
-	{
-		val uuid: UUID
-		synchronized(pathToIdMap)
-		{
-			uuid = pathToIdMap.getOrPut(path) { UUID.randomUUID() }
-			idToPathMap[uuid] = path
-		}
-		val value = fileCache[uuid]
-		executeFileTask {
-			value.value?.provide(consumer, failureHandler)
-			?: failureHandler(FILE_NOT_FOUND, null)
-		}
-		return uuid
-	}
+	protected val idToPathMap = mutableMapOf<UUID, String>()
 
 	/**
 	 * Schedule the specified task for eventual execution
@@ -283,19 +219,65 @@ internal class FileManager constructor(private val runtime: AvailRuntime)
 	 *   The [ServerFileWrapper] cache id of the file to act upon.
 	 * @param fileAction
 	 *   The [FileAction] to execute.
+	 * @param continuation
+	 *   What to do when sufficient processing has occurred.
 	 * @param failureHandler
 	 *   A function that accepts a [ServerErrorCode] that describes the nature of
-	 *   the failure and an optional [Throwable]. TODO refine error handling.
+	 *   the failure and an optional [Throwable].
 	 */
 	fun executeAction (
 		id: UUID,
 		fileAction: FileAction,
+		continuation: () -> Unit,
 		failureHandler: (ServerErrorCode, Throwable?) -> Unit)
 	{
-		fileCache[id].value?.execute(fileAction)
+		fileCache[id].value?.execute(fileAction, continuation)
 			?: failureHandler(BAD_FILE_ID, null)
-		// TODO do some better error reporting?
 	}
+
+
+
+	/**
+	 * Save the file to d
+	 */
+	abstract fun saveFile (
+		availServerFile: AvailServerFile,
+		failureHandler: (ServerErrorCode, Throwable?) -> Unit)
+
+	/**
+	 * Delete the file at the provided path.
+	 *
+	 * @param path
+	 *   The String path to the file to be deleted.
+	 * @param failure
+	 *   A function that accepts a [ServerErrorCode] that describes the nature
+	 *   of the failure and an optional [Throwable].
+	 */
+	abstract fun delete (
+		path: String,
+		success: () -> Unit,
+		failure: (ServerErrorCode, Throwable?) -> Unit)
+
+	/**
+	 * Retrieve the [ServerFileWrapper] and provide it with a request to obtain
+	 * the [raw file bytes][AvailServerFile.rawContent].
+	 *
+	 * @param path
+	 *   The String path location of the file.
+	 * @param consumer
+	 *   A function that accepts the [FileManager.fileCache] [UUID] that
+	 *   uniquely identifies the file, the String mime type, and the
+	 *   [raw bytes][AvailServerFile.rawContent] of an [AvailServerFile].
+	 * @param failureHandler
+	 *   A function that accepts a [ServerErrorCode] that describes the nature
+	 *   of the failure and an optional [Throwable].
+	 * @return
+	 *   The [FileManager] file id for the file.
+	 */
+	abstract fun readFile (
+		path: String,
+		consumer: (UUID, String, ByteArray) -> Unit,
+		failureHandler: (ServerErrorCode, Throwable?) -> Unit): UUID
 
 	/**
 	 * Create a [ServerFileWrapper] and provide it with a request to obtain
@@ -309,33 +291,12 @@ internal class FileManager constructor(private val runtime: AvailRuntime)
 	 *   [raw bytes][AvailServerFile.rawContent] of an [AvailServerFile].
 	 * @param failureHandler
 	 *   A function that accepts a [ServerErrorCode] that describes the failure
-	 *   and an optional [Throwable]. TODO refine error reporting
+	 *   and an optional [Throwable].
 	 * @return
 	 *   The [FileManager] file id for the file.
 	 */
-	fun createFile (
+	abstract fun createFile (
 		path: String,
 		consumer: (UUID, String, ByteArray) -> Unit,
 		failureHandler: (ServerErrorCode, Throwable?) -> Unit): UUID?
-	{
-		// TODO should the mime type be required?
-		// TODO check to see if this is reasonable?
-		try
-		{
-			val file = AsynchronousFileChannel.open(
-				Paths.get(path), fileCreateOptions, fileExecutor)
-			file.force(false)
-			file.close()
-			return readFile(path, consumer, failureHandler)
-		}
-		catch (e: FileAlreadyExistsException)
-		{
-			failureHandler(FILE_ALREADY_EXISTS, e)
-		}
-		catch (e: IOException)
-		{
-			failureHandler(IO_EXCEPTION, e)
-		}
-		return null
-	}
 }

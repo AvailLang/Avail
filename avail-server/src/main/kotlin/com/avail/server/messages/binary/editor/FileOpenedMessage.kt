@@ -69,6 +69,7 @@ internal class FileOpenedMessage constructor(
 {
 	override val command = BinaryCommand.FILE_OPENED
 	override val message: Message
+	override val stringStuff: String
 
 	init
 	{
@@ -79,7 +80,7 @@ internal class FileOpenedMessage constructor(
 		//   file id = 4
 		//   mimeSize = 4
 		// file size = 4
-		val bufferSize = 32 + mimeBytes.size
+		val bufferSize = 24 + mimeBytes.size
 		val buffer = ByteBuffer.allocate(bufferSize)
 		buffer.putInt(command.id)
 		buffer.putLong(commandId)
@@ -90,7 +91,11 @@ internal class FileOpenedMessage constructor(
 		buffer.flip()
 		val content = ByteArray(bufferSize)
 		buffer.get(content)
-		this.message = Message(content, AvailServerChannel.ProtocolState.BINARY)
+		// TODO [RAA] uncomment the real message
+//		this.message =  Message( content, AvailServerChannel.ProtocolState.BINARY)
+		this.stringStuff =
+			"$command $commandId file id: $fileId, file size: $fileSize, mime: $mime"
+		this.message =  Message(stringStuff.toByteArray(), AvailServerChannel.ProtocolState.IO)
 	}
 
 	override fun processThen(channel: AvailServerChannel, continuation: () -> Unit)

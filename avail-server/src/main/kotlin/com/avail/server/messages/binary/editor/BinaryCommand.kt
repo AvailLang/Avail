@@ -321,8 +321,10 @@ enum class BinaryCommand constructor(val id: Int)
 						.processThen(channel)
 				}
 			channel.server.fileManager.executeAction(
-				uuid, SaveAction(fail), fail)
-			continuation()
+				uuid,
+				SaveAction(channel.server.fileManager, fail),
+				continuation,
+				fail)
 		}
 	},
 
@@ -370,12 +372,12 @@ enum class BinaryCommand constructor(val id: Int)
 			val data = ByteArray(buffer.remaining())
 			buffer.get(data)
 			val edit = EditRange(data, start, end)
-			channel.server.fileManager.executeAction(uuid, edit) { code, e ->
+			channel.server.fileManager.executeAction(uuid, edit, continuation)
+			{ code, e ->
 				logger.log(Level.SEVERE, "Edit file range error: $code", e)
 				ErrorBinaryMessage(commandId, code, false)
 					.processThen(channel)
 			}
-			continuation()
 		}
 	},
 
@@ -397,12 +399,12 @@ enum class BinaryCommand constructor(val id: Int)
 					.processThen(channel)
 				return
 			}
-			channel.server.fileManager.executeAction(uuid, UndoAction) { code, e ->
-				logger.log(Level.SEVERE, "Undo edit error: $code", e)
-				ErrorBinaryMessage(commandId, code, false)
-					.processThen(channel)
-			}
-			continuation()
+			channel.server.fileManager.executeAction(
+				uuid, UndoAction, continuation) { code, e ->
+					logger.log(Level.SEVERE, "Undo edit error: $code", e)
+					ErrorBinaryMessage(commandId, code, false)
+						.processThen(channel)
+				}
 		}
 	},
 
@@ -424,12 +426,12 @@ enum class BinaryCommand constructor(val id: Int)
 					.processThen(channel)
 				return
 			}
-			channel.server.fileManager.executeAction(uuid, RedoAction) { code, e ->
-				logger.log(Level.SEVERE, "Redo file error: $code", e)
-				ErrorBinaryMessage(commandId, code, false)
-					.processThen(channel)
-			}
-			continuation()
+			channel.server.fileManager.executeAction(
+				uuid, RedoAction, continuation) { code, e ->
+					logger.log(Level.SEVERE, "Redo file error: $code", e)
+					ErrorBinaryMessage(commandId, code, false)
+						.processThen(channel)
+				}
 		}
 	},
 

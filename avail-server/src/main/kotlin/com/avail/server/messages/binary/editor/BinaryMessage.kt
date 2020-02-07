@@ -63,6 +63,13 @@ internal abstract class BinaryMessage
 	abstract val message: Message
 
 	/**
+	 * Filthy Dev Hack To See Binary as Text. MUST BE DELETED and FIX
+	 * [AvailServerChannel.ProtocolState.BINARY.generalBinary] to return true.
+	 */
+	@Deprecated("Delete this Dev Hack!")
+	abstract val stringStuff: String
+
+	/**
 	 * Answer a [ByteBuffer] of a pre-determined size that contains the properly
 	 * ordered prefix content: [BinaryCommand.id], [commandId].
 	 *

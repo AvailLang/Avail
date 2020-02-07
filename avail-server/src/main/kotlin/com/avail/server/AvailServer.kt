@@ -70,6 +70,7 @@ import com.avail.server.io.ServerInputChannel
 import com.avail.server.io.ServerMessageDisconnect
 import com.avail.server.io.WebSocketAdapter
 import com.avail.server.io.files.FileManager
+import com.avail.server.io.files.LocalFileManager
 import com.avail.server.messages.TextCommand
 import com.avail.server.messages.CommandMessage
 import com.avail.server.messages.CommandParseException
@@ -144,7 +145,7 @@ class AvailServer constructor(
 	private val builder: AvailBuilder = AvailBuilder(runtime)
 
 	/** The [FileManager] used to manage files by this [AvailServer]. */
-	internal val fileManager = FileManager(runtime)
+	internal val fileManager = LocalFileManager(runtime)
 
 	/**
 	 * The catalog of pending upgrade requests, as a [map][Map] from [UUID]s to
@@ -1501,13 +1502,26 @@ class AvailServer constructor(
 					}
 					else
 					{
-						val buffer = ByteBuffer.wrap(message.content)
-						val id = buffer.int
-						val commandId = buffer.long
+//						val buffer = ByteBuffer.wrap(message.content)
+//						val id = buffer.int
+//						val commandId = buffer.long
+//						BinaryCommand.command(id).receiveThen(
+//							id,
+//							commandId,
+//							buffer,
+//							channel,
+//							receiveNext)
+
+						// TODO [RAA] put it back the way it was!!!
+						val content = String(message.content)
+						val end = content.indexOfFirst { it == ' ' }
+						val idString = content.substring(0, end);
+						val id = Integer.valueOf(idString)
+						val rest = content.substring(end + 1).toByteArray()
 						BinaryCommand.command(id).receiveThen(
 							id,
-							commandId,
-							buffer,
+							1,
+							ByteBuffer.wrap(rest),
 							channel,
 							receiveNext)
 					}
@@ -1665,6 +1679,11 @@ class AvailServer constructor(
 				return
 			}
 			catch (e: RenamesFileParserException)
+			{
+				System.err.println(e.message)
+				return
+			}
+			catch (e: Throwable)
 			{
 				System.err.println(e.message)
 				return
