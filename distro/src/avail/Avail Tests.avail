@@ -116,7 +116,8 @@ Entries
 	"Run all tests",
 	"Run all tests in_",
 	"Run all tests repeatedly",
-	"Run all tests in_repeatedly"
+	"Run all tests in_repeatedly",
+	"Time all tests_time|times"
 Body
 
 /**
@@ -152,6 +153,40 @@ Private method "Run all tests" is
 	Print: test suite-oriented “report”;
 	|bad results of report's metrics| = 0
 ] : boolean;
+
+
+/**
+ * Run all tests the specified number of times, producing a report of how long
+ * each successive run took.  Do not break this down by test suite or test.  If
+ * any test fails, print the report and abort the loop.
+ *
+ * @entry
+ * @method "Run all tests"
+ * @param "count" "natural number"
+          The number of times to run all tests.
+ * @returns "boolean"
+ */
+Private method "Time all tests_time|times" is
+[
+	count : natural number
+|
+	$escape : ⊤;
+	Repeat
+	[
+		startTime ::= high-precision timer value;
+		report ::= report on all tests;
+		elapsed ::= high-precision timer value - startTime;
+
+		metrics ::= report's metrics;
+		If any of metrics satisfies [m : unit test result |
+			m ∈ unit test failure] then
+		[
+			Print: test suite-oriented “report”;
+			Exit escape
+		];
+		Print: “elapsed ÷ 1000000” ++ " ms\n";
+	] count times;
+] : ⊤;
 
 /**
  * Generate a test suite-oriented report for the specified test suite. Emit it
