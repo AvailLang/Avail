@@ -41,9 +41,12 @@ import com.avail.utility.json.JSONWriter;
 import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 
+import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.CharacterDescriptor.IntegerSlots.CODE_POINT;
 import static com.avail.descriptor.IntegerDescriptor.computeHashOfInt;
 import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.StringDescriptor.stringFrom;
+import static com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf;
 import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
 
 /**
@@ -361,4 +364,12 @@ extends Descriptor
 
 	/** The maximum code point value as an {@code int}. */
 	public static final int maxCodePointInt = Character.MAX_CODE_POINT;
+
+	/** A type that contains all ASCII decimal digit characters. */
+	public static final A_Type digitsType =
+		enumerationWith(stringFrom("0123456789").asSet()).makeShared();
+
+	/** The type for non-empty strings of ASCII decimal digits. */
+	public static final A_Type nonemptyStringOfDigitsType =
+		oneOrMoreOf(digitsType);
 }

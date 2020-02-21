@@ -1061,8 +1061,7 @@ public final class AvailRuntime
 		specials[74] = zeroOrMoreOf(
 			setTypeForSizesContentType(wholeNumbers(), stringType()));
 		specials[75] = setTypeForSizesContentType(wholeNumbers(), stringType());
-		specials[76] =
-			functionType(tuple(naturalNumbers()), bottom());
+		specials[76] = functionType(tuple(naturalNumbers()), bottom());
 		specials[77] = emptySet();
 		specials[78] = negativeInfinity();
 		specials[79] = positiveInfinity();
@@ -1181,6 +1180,7 @@ public final class AvailRuntime
 		specials[169] = inclusive(0L, 31L);
 		specials[170] =
 			continuationTypeForFunctionType(functionTypeReturning(TOP.o()));
+		specials[171] = CharacterDescriptor.nonemptyStringOfDigitsType;
 
 		// DO NOT CHANGE THE ORDER OF THESE ENTRIES!  Serializer compatibility
 		// depends on the order of this list.
