@@ -2242,7 +2242,7 @@ Special object "continuation returning top" is special object 170;
  * The type for non-empty strings composed entirely of digit characters.
  *
  * @category "Primitives" "Types"
- * @type "¢[0-9]+"
+ * @type "¢[0-9]ᵀ+"
  * @alias "non-empty string of digits"
  */
 Special object "non-empty string of digits" is special object 171;
