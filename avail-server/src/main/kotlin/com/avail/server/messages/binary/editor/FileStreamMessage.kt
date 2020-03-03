@@ -65,7 +65,6 @@ internal class FileStreamMessage constructor(
 {
 	override val command = BinaryCommand.FILE_STREAM
 	override val message: Message
-	override val stringStuff: String
 
 	init
 	{
@@ -74,19 +73,13 @@ internal class FileStreamMessage constructor(
 		//   commandId = 8
 		//   file id = 4
 		val bufferSize = 16 + file.size
-		val buffer = ByteBuffer.allocate(bufferSize)
-		buffer.putInt(command.id)
-		buffer.putLong(commandId)
+		val buffer = buffer(bufferSize)
 		buffer.putInt(fileId)
 		buffer.put(file)
 		buffer.flip()
 		val content = ByteArray(bufferSize)
 		buffer.get(content)
-		//TODO [RAA] this is the real message!
-//		this.message = Message(content, AvailServerChannel.ProtocolState.BINARY)
-		this.stringStuff = "$command $commandId File ID: $fileId\n||||||||||\n"
-		val stringstuffpayload = stringStuff.toByteArray() + file
-		this.message = Message(stringstuffpayload, AvailServerChannel.ProtocolState.IO)
+		this.message = Message(content, AvailServerChannel.ProtocolState.BINARY)
 	}
 
 	override fun processThen(channel: AvailServerChannel, continuation: () -> Unit)

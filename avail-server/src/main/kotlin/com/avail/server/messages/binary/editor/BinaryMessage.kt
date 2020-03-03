@@ -35,6 +35,7 @@ package com.avail.server.messages.binary.editor
 import com.avail.server.io.AvailServerChannel
 import com.avail.server.messages.Message
 import java.nio.ByteBuffer
+import java.nio.ByteOrder
 
 /**
  * A `BinaryMessage` represents a fully parsed [BinaryCommand].
@@ -63,13 +64,6 @@ internal abstract class BinaryMessage
 	abstract val message: Message
 
 	/**
-	 * Filthy Dev Hack To See Binary as Text. MUST BE DELETED and FIX
-	 * [AvailServerChannel.ProtocolState.BINARY.generalBinary] to return true.
-	 */
-	@Deprecated("Delete this Dev Hack!")
-	abstract val stringStuff: String
-
-	/**
 	 * Answer a [ByteBuffer] of a pre-determined size that contains the properly
 	 * ordered prefix content: [BinaryCommand.id], [commandId].
 	 *
@@ -83,6 +77,7 @@ internal abstract class BinaryMessage
 	protected fun buffer (payloadSize: Int): ByteBuffer =
 		ByteBuffer.allocate(PREFIX_SIZE + payloadSize).apply {
 			this.putInt(command.id).putLong(commandId)
+			this.order(ByteOrder.LITTLE_ENDIAN)
 		}
 
 	/**

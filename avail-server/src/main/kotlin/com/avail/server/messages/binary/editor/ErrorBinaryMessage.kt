@@ -70,13 +70,9 @@ internal class ErrorBinaryMessage constructor(
 	private val closeAfterSending: Boolean = false,
 	private val description: String? = null): BinaryMessage()
 {
-
-	override val stringStuff: String
-
 	init
 	{
 		logger.log(Level.WARNING, "$error ($commandId): $description")
-		this.stringStuff = "$error ($commandId): $description"
 	}
 
 	override val command: BinaryCommand get() = BinaryCommand.ERROR
@@ -92,11 +88,8 @@ internal class ErrorBinaryMessage constructor(
 		buffer.flip()
 		val content = ByteArray(buffer.limit())
 		buffer.get(content)
-		// TODO [RAA] uncomment the real message
-//		return Message(
-//			content, AvailServerChannel.ProtocolState.BINARY, closeAfterSending)
 		return Message(
-			stringStuff.toByteArray(), AvailServerChannel.ProtocolState.IO, closeAfterSending)
+			content, AvailServerChannel.ProtocolState.BINARY, closeAfterSending)
 	}
 
 	override fun processThen(

@@ -35,6 +35,7 @@ package com.avail.server.messages.binary.editor
 import com.avail.server.io.AvailServerChannel
 import com.avail.server.messages.Message
 import java.nio.ByteBuffer
+import java.nio.ByteOrder
 
 /**
  * `OkMessage` is a [BinaryMessage] used to affirm a request to the client.
@@ -54,24 +55,16 @@ internal class OkMessage constructor(
 	override val command = BinaryCommand.OK
 	override val message: Message
 
-	// TODO [RAA] get rid of this!
-	override val stringStuff: String
-
 	init
 	{
 		// Base size of payload is 12 bytes broken down as:
 		//   BinaryCommand.id = 4
 		//   commandId = 8
-		val buffer = ByteBuffer.allocate(12)
-		buffer.putInt(command.id)
-		buffer.putLong(commandId)
+		val buffer = buffer(12)
 		buffer.flip()
 		val content = ByteArray(12)
 		buffer.get(content)
-		//TODO [RAA] this is the real message!
-//		this.message = Message(content, AvailServerChannel.ProtocolState.BINARY)
-		this.stringStuff = "$command $commandId"
-		this.message = Message(stringStuff.toByteArray(), AvailServerChannel.ProtocolState.IO)
+		this.message = Message(content, AvailServerChannel.ProtocolState.BINARY)
 	}
 
 	override fun processThen(channel: AvailServerChannel, continuation: () -> Unit)

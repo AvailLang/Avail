@@ -83,7 +83,6 @@ import com.avail.server.messages.UpgradeCommandMessage
 import com.avail.server.messages.VersionCommandMessage
 import com.avail.server.messages.binary.editor.BinaryCommand
 import com.avail.server.messages.binary.editor.ErrorBinaryMessage
-import com.avail.server.messages.binary.editor.OkMessage
 import com.avail.server.session.Session
 import com.avail.utility.MutableOrNull
 import com.avail.utility.configuration.ConfigurationException
@@ -847,14 +846,17 @@ class AvailServer constructor(
 			val oldId = upgradedChannel.id
 			upgradedChannel.id = receivedUUID
 			upgradedChannel.parentId = channel.id
-			upgradedChannel.state = BINARY
 			newChannels.remove(oldId)
 			sessions[channel.id]?.addChildChannel(upgradedChannel)
 			logger.log(
 				Level.FINEST,
 				"Channel [$oldId] upgraded to [$upgradedChannel]")
-			// TODO um, figure out what to *actually* do
-			OkMessage(62L).processThen(upgradedChannel, resumeUpgrader)
+			val message =
+				newSimpleSuccessMessage(upgradedChannel, command)
+			upgradedChannel.enqueueMessageThen(message) {
+				upgradedChannel.state = BINARY
+				resumeUpgrader()
+			}
 		}
 		channel.enqueueMessageThen(
 			newUpgradeRequestMessage(channel, command, uuid),
@@ -1502,26 +1504,13 @@ class AvailServer constructor(
 					}
 					else
 					{
-//						val buffer = ByteBuffer.wrap(message.content)
-//						val id = buffer.int
-//						val commandId = buffer.long
-//						BinaryCommand.command(id).receiveThen(
-//							id,
-//							commandId,
-//							buffer,
-//							channel,
-//							receiveNext)
-
-						// TODO [RAA] put it back the way it was!!!
-						val content = String(message.content)
-						val end = content.indexOfFirst { it == ' ' }
-						val idString = content.substring(0, end);
-						val id = Integer.valueOf(idString)
-						val rest = content.substring(end + 1).toByteArray()
+						val buffer = ByteBuffer.wrap(message.content)
+						val id = buffer.int
+						val commandId = buffer.long
 						BinaryCommand.command(id).receiveThen(
 							id,
-							1,
-							ByteBuffer.wrap(rest),
+							commandId,
+							buffer,
 							channel,
 							receiveNext)
 					}

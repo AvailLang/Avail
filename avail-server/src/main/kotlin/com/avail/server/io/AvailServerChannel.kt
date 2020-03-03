@@ -260,8 +260,7 @@ abstract class AvailServerChannel constructor(
 		{
 			override val allowedSuccessorStates: Set<ProtocolState>
 				get() = emptySet()
-			// TODO [RAA] uncomment me to get binary!
-//			override val generalBinary get() = true
+			override val generalBinary get() = true
 		};
 
 		/** The allowed successor [states][ProtocolState] of the receiver. */
