@@ -2878,6 +2878,14 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 										workbench.moduleTree
 											.getRowForPath(path))
 								}
+								else
+								{
+									workbench.writeText(
+										format(
+											"Command line argument '%s' was not a valid module path",
+											initial),
+										ERR)
+								}
 							}
 							workbench.backgroundTask = null
 							workbench.setEnablements()
