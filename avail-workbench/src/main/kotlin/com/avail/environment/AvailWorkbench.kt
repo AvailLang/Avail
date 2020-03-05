@@ -1403,7 +1403,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	fun modulePath(moduleName: String): TreePath?
 	{
 		val path = moduleName.split('/', '\\')
-		if (path.size < 2)
+		if (path.size < 2 || path[0] != "")
 		{
 			// Module paths start with a slash, so we need at least 2 segments
 			return null
