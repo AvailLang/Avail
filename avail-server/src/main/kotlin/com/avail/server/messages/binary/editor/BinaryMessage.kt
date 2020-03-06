@@ -77,7 +77,7 @@ internal abstract class BinaryMessage
 	protected fun buffer (payloadSize: Int): ByteBuffer =
 		ByteBuffer.allocate(PREFIX_SIZE + payloadSize).apply {
 			this.putInt(command.id).putLong(commandId)
-			this.order(ByteOrder.LITTLE_ENDIAN)
+//			this.order(ByteOrder.LITTLE_ENDIAN)
 		}
 
 	/**
