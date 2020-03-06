@@ -71,20 +71,93 @@ fi
 
 # Create the repository directory if necessary. Fix the permissions if it is
 # not readable and writable by the current user.
-REPOS=$AVAIL_USER/repos
-if [ ! -e "$REPOS" ]; then
-	install -d -m 700 "$REPOS"
-elif [ ! -d "$REPOS" ]; then
-	echo "Fatal error: $REPOS exists but is not a directory."
+REPO_DIR=$AVAIL_USER/repos
+if [ ! -e "$REPO_DIR" ]; then
+	install -d -m 700 "$REPO_DIR"
+elif [ ! -d "$REPO_DIR" ]; then
+	echo "Fatal error: $REPO_DIR exists but is not a directory."
 	exit 1
-elif [ ! -r "$REPOS" -o ! -w "$REPOS" ]; then
-	chmod u+rw "$REPOS"
+elif [ ! -r "$REPO_DIR" -o ! -w "$REPO_DIR" ]; then
+	chmod u+rw "$REPO_DIR"
 fi
+
+USE_EXAMPLE_ROOTS=true
+DRY_RUN=
+FORCE_FOREGROUND=
+declare -a ADDITIONAL_ROOTS
+
+# Read options
+while getopts ":a:cdDfh" opt; do
+  case ${opt} in
+	a )
+	  # [a]dd an entry to the AVAIL_ROOTS list
+	  ADDITIONAL_ROOTS+=( "$OPTARG" )
+	  ;;
+	c )
+	  # add the [c]urrent directory to the AVAIL_ROOTS list
+	  improvised_name="${PWD##*/}"
+	  improvised_name="${improvised_name%%.*}"
+	  improvised_name="local.$USER.${improvised_name// /}"
+	  # the root's name is given as local.username.directoryname
+	  ADDITIONAL_ROOTS+=( "$improvised_name=$REPO_DIR/$improvised_name.repo,$PWD" )
+	  ;;
+	d )
+	  # perform a [d]ry run and output the final command instead of running it
+	  DRY_RUN=true
+	  ;;
+    E )
+	  # omit the [E]xamples in the default roots
+      USE_EXAMPLE_ROOTS=
+      ;;
+	f )
+	  # run in the [f]oreground
+	  FORCE_FOREGROUND=true
+	  ;;
+	h )
+      # print the [h]elp
+	  echo "Usage:" 
+	  echo "  ANY -h"
+	  echo "  avail-dev [-a roots] [-c] [-d] [-E] [-f] [initial_module]"
+	  echo "  avail-server [-a roots] [-c] [-d] [-E] [-f]"
+	  echo "  availc [-a roots] [-c] [-d] [-E]"
+	  echo "Commands:"
+	  echo "  avail-dev    Launch the interactive workbench UI."
+	  echo "  avail-server Launch the avail web server."
+	  echo "  availc       Launch command line avail interface."
+	  echo "Options:"
+	  echo "  -h        Print this help"
+	  echo "  -a ROOTS  Append the given string to the avail roots list, either as set in"
+	  echo "            the corresponding environment variable or in this cmd's defaults."
+	  echo "  -c        Add the current working directory to the avail roots (see above),"
+	  echo "            using local.\$USER.DIRECTORY as its improvised root name."
+	  echo "  -d        Dry run - print the final Java VM invocation instead of running."
+	  echo "  -E        Omit the examples root from the default roots list."
+	  echo "  -f        Force the workbench command to run in the foreground."
+	  exit 0
+	  ;;
+    \? )
+      echo "Unknown option: $OPTARG" 1>&2
+      ;;
+    : )
+      echo "Invalid option: $OPTARG requires an argument" 1>&2
+      ;;
+  esac
+done
+# Remove the parsed arguments
+shift $((OPTIND - 1))
+
 
 # If AVAIL_ROOTS is not set, then default it.
 if [ "X$AVAIL_ROOTS" = "X" ]; then
-	AVAIL_ROOTS="avail=$REPOS/avail.repo,$AVAIL_HOME/src/avail"';'"examples=$REPOS/examples.repo,$AVAIL_HOME/src/examples"
+	AVAIL_ROOTS="avail=$REPO_DIR/avail.repo,$AVAIL_HOME/src/avail"
+	if [ "$USE_EXAMPLE_ROOTS" = true ]; then
+		AVAIL_ROOTS="$AVAIL_ROOTS"';'"examples=$REPO_DIR/examples.repo,$AVAIL_HOME/src/examples"
+	fi
 fi
+# add the additional roots specified by CLI flags
+for r in "${ADDITIONAL_ROOTS[@]}"; do
+	AVAIL_ROOTS="$AVAIL_ROOTS"';'"$r"
+done
 
 # If AVAIL_RENAMES is not set, then default it.
 if [ "X$AVAIL_RENAMES" = "X" ]; then
@@ -108,3 +181,8 @@ fi
 
 # These are the system arguments for the Java virtual machine.
 VMARGS=(-Xmx2g -classpath "$AVAIL_HOME/lib" $OSARGS "-Djava.util.logging.config.file=$HOME/.avail/logging.properties" "-DavailRoots=$AVAIL_ROOTS" "-DavailRenames=$AVAIL_RENAMES")
+
+if [ "$DRY_RUN" = true ]; then
+	printf '%b ' "$VM "${VMARGS[@]}" -jar $JAR $* \n\c"
+	exit 0
+fi

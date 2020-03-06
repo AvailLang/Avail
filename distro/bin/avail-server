@@ -31,10 +31,14 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
+JAR=$AVAIL_HOME/lib/avail-server-1.4-all.jar
+
 source avail-config
 
-# Launch the Avail server in the background.
-SERVJAR=$AVAIL_HOME/lib/avail-server-1.4-all.jar
-# shellcheck disable=SC2048
-# shellcheck disable=SC2086
-$VM "${VMARGS[@]}" -jar "$SERVJAR" $* &
+# Launch the Avail server
+if [ "$FORCE_FOREGROUND" = true ]; then
+    $VM "${VMARGS[@]}" -jar $JAR $*
+else
+	$VM "${VMARGS[@]}" -jar $JAR $* &
+fi
+

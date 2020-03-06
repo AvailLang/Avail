@@ -31,10 +31,9 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
+JAR=$AVAIL_HOME/lib/avail-cli-1.4-all.jar
+
 source avail-config
 
-# Launch the Avail development environment in the background.
-CLIJAR=$AVAIL_HOME/lib/avail-cli-1.4-all.jar
-# shellcheck disable=SC2048
-# shellcheck disable=SC2086
-$VM "${VMARGS[@]}" -jar "$CLIJAR" $*
+# Launch the Avail shell environment
+$VM "${VMARGS[@]}" -jar "$JAR" $*
