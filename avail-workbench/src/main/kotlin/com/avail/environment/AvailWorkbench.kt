@@ -1403,6 +1403,11 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	fun modulePath(moduleName: String): TreePath?
 	{
 		val path = moduleName.split('/', '\\')
+		if (path.size < 2 || path[0] != "")
+		{
+			// Module paths start with a slash, so we need at least 2 segments
+			return null
+		}
 		val model = moduleTree.model
 		val treeRoot = model.root as DefaultMutableTreeNode
 		var nodes: Enumeration<DefaultMutableTreeNode> =
@@ -2872,6 +2877,14 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 									workbench.moduleTree.scrollRowToVisible(
 										workbench.moduleTree
 											.getRowForPath(path))
+								}
+								else
+								{
+									workbench.writeText(
+										format(
+											"Command line argument '%s' was not a valid module path",
+											initial),
+										ERR)
 								}
 							}
 							workbench.backgroundTask = null
