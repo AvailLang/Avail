@@ -33,6 +33,7 @@
 
 JAR=$AVAIL_HOME/lib/avail-cli-1.4-all.jar
 
+SKIP_OPT=true
 source avail-config
 
 # Launch the Avail shell environment

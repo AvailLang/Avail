@@ -34,8 +34,8 @@
 
 # Make sure that AVAIL_HOME is set.
 if [ "X$AVAIL_HOME" = "X" ]; then
-	echo "Fatal error: AVAIL_HOME is not set."
-	exit 1
+    echo "Fatal error: AVAIL_HOME is not set."
+    exit 1
 fi
 
 # Create a configuration directory if necessary. Fix the permissions if it is
@@ -43,42 +43,42 @@ fi
 AVAIL_USER=$HOME/.avail
 CONFIG=$AVAIL_USER/etc
 if [ ! -e "$CONFIG" ]; then
-	install -d -m 700 "$CONFIG"
+    install -d -m 700 "$CONFIG"
 elif [ ! -d "$CONFIG" ]; then
-	echo "Fatal error: $CONFIG exists but is not a directory."
-	exit 1
+    echo "Fatal error: $CONFIG exists but is not a directory."
+    exit 1
 elif [ ! -r "$CONFIG" -o ! -w "$CONFIG" ]; then
-	chmod u+rw "$CONFIG"
+    chmod u+rw "$CONFIG"
 fi
 
 # Copy the standard configuration file for logging, but only if the user does
 # not already have one in place.
 if [ ! -e "$CONFIG/logging.properties" ]; then
-	cp "$AVAIL_HOME/etc/logging.properties" "$CONFIG/logging.properties"
+    cp "$AVAIL_HOME/etc/logging.properties" "$CONFIG/logging.properties"
 elif [ ! -f "$CONFIG/logging.properties" ]; then
-	echo "Fatal error: $CONFIG/logging.properties exists but is not a regular file"
-	exit 1
+    echo "Fatal error: $CONFIG/logging.properties exists but is not a regular file"
+    exit 1
 fi
 
 # Create an empty renames file, but only if the user does not already have an
 # existing one.
 if [ ! -e "$CONFIG/renames" ]; then
-	touch "$CONFIG/renames"
+    touch "$CONFIG/renames"
 elif [ ! -f "$CONFIG/renames" ]; then
-	echo "Fatal error: $CONFIG/renames exists but it is not a regular file"
-	exit 1
+    echo "Fatal error: $CONFIG/renames exists but it is not a regular file"
+    exit 1
 fi
 
 # Create the repository directory if necessary. Fix the permissions if it is
 # not readable and writable by the current user.
 REPO_DIR=$AVAIL_USER/repos
 if [ ! -e "$REPO_DIR" ]; then
-	install -d -m 700 "$REPO_DIR"
+  install -d -m 700 "$REPO_DIR"
 elif [ ! -d "$REPO_DIR" ]; then
-	echo "Fatal error: $REPO_DIR exists but is not a directory."
-	exit 1
+  echo "Fatal error: $REPO_DIR exists but is not a directory."
+  exit 1
 elif [ ! -r "$REPO_DIR" -o ! -w "$REPO_DIR" ]; then
-	chmod u+rw "$REPO_DIR"
+chmod u+rw "$REPO_DIR"
 fi
 
 USE_EXAMPLE_ROOTS=true
@@ -86,103 +86,110 @@ DRY_RUN=
 FORCE_FOREGROUND=
 declare -a ADDITIONAL_ROOTS
 
-# Read options
-while getopts ":a:cdDfh" opt; do
-  case ${opt} in
-	a )
-	  # [a]dd an entry to the AVAIL_ROOTS list
-	  ADDITIONAL_ROOTS+=( "$OPTARG" )
-	  ;;
-	c )
-	  # add the [c]urrent directory to the AVAIL_ROOTS list
-	  improvised_name="${PWD##*/}"
-	  improvised_name="${improvised_name%%.*}"
-	  improvised_name="local.$USER.${improvised_name// /}"
-	  # the root's name is given as local.username.directoryname
-	  ADDITIONAL_ROOTS+=( "$improvised_name=$REPO_DIR/$improvised_name.repo,$PWD" )
-	  ;;
-	d )
-	  # perform a [d]ry run and output the final command instead of running it
-	  DRY_RUN=true
-	  ;;
-    E )
-	  # omit the [E]xamples in the default roots
-      USE_EXAMPLE_ROOTS=
-      ;;
-	f )
-	  # run in the [f]oreground
-	  FORCE_FOREGROUND=true
-	  ;;
-	h )
-      # print the [h]elp
-	  echo "Usage:" 
-	  echo "  ANY -h"
-	  echo "  avail-dev [-a roots] [-c] [-d] [-E] [-f] [initial_module]"
-	  echo "  avail-server [-a roots] [-c] [-d] [-E] [-f]"
-	  echo "  availc [-a roots] [-c] [-d] [-E]"
-	  echo "Commands:"
-	  echo "  avail-dev    Launch the interactive workbench UI."
-	  echo "  avail-server Launch the avail web server."
-	  echo "  availc       Launch command line avail interface."
-	  echo "Options:"
-	  echo "  -h        Print this help"
-	  echo "  -a ROOTS  Append the given string to the avail roots list, either as set in"
-	  echo "            the corresponding environment variable or in this cmd's defaults."
-	  echo "  -c        Add the current working directory to the avail roots (see above),"
-	  echo "            using local.\$USER.DIRECTORY as its improvised root name."
-	  echo "  -d        Dry run - print the final Java VM invocation instead of running."
-	  echo "  -E        Omit the examples root from the default roots list."
-	  echo "  -f        Force the workbench command to run in the foreground."
-	  exit 0
-	  ;;
-    \? )
-      echo "Unknown option: $OPTARG" 1>&2
-      ;;
-    : )
-      echo "Invalid option: $OPTARG requires an argument" 1>&2
-      ;;
-  esac
-done
-# Remove the parsed arguments
-shift $((OPTIND - 1))
+if [ "$SKIP_OPT" = true ]; then
+    OPTIND=1
+else
+  # Read options
+  while getopts ":a:cdDf?" opt; do
+    case ${opt} in
+      a )
+        # [a]dd an entry to the AVAIL_ROOTS list
+        ADDITIONAL_ROOTS+=( "$OPTARG" )
+        ;;
+      c )
+        # add the [c]urrent directory to the AVAIL_ROOTS list
+        improvised_name="${PWD##*/}"
+        improvised_name="${improvised_name%%.*}"
+        improvised_name="local.$USER.${improvised_name// /}"
+        # the root's name is given as local.username.directoryname
+        ADDITIONAL_ROOTS+=( "$improvised_name=$REPO_DIR/$improvised_name.repo,$PWD" )
+        ;;
+      d )
+        # perform a [d]ry run and output the final command instead of running it
+        DRY_RUN=true
+        ;;
+      E )
+        # omit the [E]xamples in the default roots
+        USE_EXAMPLE_ROOTS=
+        ;;
+      f )
+        # run in the [f]oreground
+        FORCE_FOREGROUND=true
+        ;;
+      \? )
+        if [ "$OPTARG" != "?" ]; then
+          # getopts uses ? to indicate unknown option
+          echo "Unknown option: $OPTARG" 1>&2
+        else
+          # this is a "real" -? flag, so print the [h]elp
+          echo "Usage:" 
+          echo "  ANY -?"
+          echo "  avail-dev [-a roots] [-c] [-d] [-E] [-f] [initial_module]"
+          echo "  avail-server [-a roots] [-c] [-d] [-E] [-f]"
+          echo "  availc ..."
+          echo "Commands:"
+          echo "  avail-dev    Launch the interactive workbench UI."
+          echo "  avail-server Launch the avail web server."
+          echo "  availc       Launch the avail CLI compiler. This tool has its own command"
+          echo "               and argument syntax, viewable with the -? option."
+          echo "Options:"
+          echo "  -?        Print this help."
+          echo "  -a ROOTS  Append the given string to the avail roots list, either as set in"
+          echo "            the corresponding environment variable or in this cmd's defaults."
+          echo "  -c        Add the current working directory to the avail roots (see above),"
+          echo "            using local.\$USER.DIRECTORY as its improvised root name."
+          echo "  -d        Dry run - print the final Java VM invocation instead of running."
+          echo "  -E        Omit the examples root from the default roots list."
+          echo "  -f        Force the workbench command to run in the foreground."
+          exit 0
+        fi
+        ;;
+      : )
+        echo "Invalid option: $OPTARG requires an argument" 1>&2
+        ;;
+    esac
+  done
+  # Remove the parsed arguments
+  shift $((OPTIND - 1))
+fi
 
 
 # If AVAIL_ROOTS is not set, then default it.
 if [ "X$AVAIL_ROOTS" = "X" ]; then
-	AVAIL_ROOTS="avail=$REPO_DIR/avail.repo,$AVAIL_HOME/src/avail"
-	if [ "$USE_EXAMPLE_ROOTS" = true ]; then
-		AVAIL_ROOTS="$AVAIL_ROOTS"';'"examples=$REPO_DIR/examples.repo,$AVAIL_HOME/src/examples"
-	fi
+    AVAIL_ROOTS="avail=$REPO_DIR/avail.repo,$AVAIL_HOME/src/avail"
+    if [ "$USE_EXAMPLE_ROOTS" = true ]; then
+        AVAIL_ROOTS="$AVAIL_ROOTS"';'"examples=$REPO_DIR/examples.repo,$AVAIL_HOME/src/examples"
+    fi
 fi
 # add the additional roots specified by CLI flags
 for r in "${ADDITIONAL_ROOTS[@]}"; do
-	AVAIL_ROOTS="$AVAIL_ROOTS"';'"$r"
+    AVAIL_ROOTS="$AVAIL_ROOTS"';'"$r"
 done
 
 # If AVAIL_RENAMES is not set, then default it.
 if [ "X$AVAIL_RENAMES" = "X" ]; then
-	AVAIL_RENAMES="$CONFIG/renames"
+    AVAIL_RENAMES="$CONFIG/renames"
 fi
 
 # Find the Java virtual machine.
 VM=$(command -v java)
 if [ "X$VM" = "X" ]; then
-	echo "Fatal error: Could not locate the Java virtual machine (java)."
-	exit 1
+    echo "Fatal error: Could not locate the Java virtual machine (java)."
+    exit 1
 fi
 
 # The JVM for Mac OS X understands a few options that make for a prettier dock.
 OSNAME=$(uname -s)
 if [ "$OSNAME" = "Darwin" ]; then
-	OSARGS=-Xdock:name=$(basename "$0")\ -Xdock:icon=$AVAIL_HOME/images/AvailHammer.png
+    OSARGS=-Xdock:name=$(basename "$0")\ -Xdock:icon=$AVAIL_HOME/images/AvailHammer.png
 else
-	OSARGS=
+    OSARGS=
 fi
 
 # These are the system arguments for the Java virtual machine.
 VMARGS=(-Xmx2g -classpath "$AVAIL_HOME/lib" $OSARGS "-Djava.util.logging.config.file=$HOME/.avail/logging.properties" "-DavailRoots=$AVAIL_ROOTS" "-DavailRenames=$AVAIL_RENAMES")
 
 if [ "$DRY_RUN" = true ]; then
-	printf '%b ' "$VM "${VMARGS[@]}" -jar $JAR $* \n\c"
-	exit 0
+    printf '%b ' "$VM "${VMARGS[@]}" -jar $JAR $* \n\c"
+    exit 0
 fi
