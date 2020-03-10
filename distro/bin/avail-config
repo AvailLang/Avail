@@ -84,13 +84,14 @@ fi
 USE_EXAMPLE_ROOTS=true
 DRY_RUN=
 FORCE_FOREGROUND=
+ENABLE_ASSERTIONS=
 declare -a ADDITIONAL_ROOTS
 
 if [ "$SKIP_OPT" = true ]; then
     OPTIND=1
 else
   # Read options
-  while getopts ":a:cdDf?" opt; do
+  while getopts ":a:cdeEf?" opt; do
     case ${opt} in
       a )
         # [a]dd an entry to the AVAIL_ROOTS list
@@ -107,6 +108,10 @@ else
       d )
         # perform a [d]ry run and output the final command instead of running it
         DRY_RUN=true
+        ;;
+      e )
+        # Enable assertions
+        ENABLE_ASSERTIONS=true
         ;;
       E )
         # omit the [E]xamples in the default roots
@@ -139,6 +144,7 @@ else
           echo "  -c        Add the current working directory to the avail roots (see above),"
           echo "            using local.\$USER.DIRECTORY as its improvised root name."
           echo "  -d        Dry run - print the final Java VM invocation instead of running."
+          echo "  -e        Enable Java assertions (passes the -ea flag to the JVM)."
           echo "  -E        Omit the examples root from the default roots list."
           echo "  -f        Force the workbench command to run in the foreground."
           exit 0
@@ -188,6 +194,9 @@ fi
 
 # These are the system arguments for the Java virtual machine.
 VMARGS=(-Xmx2g -classpath "$AVAIL_HOME/lib" $OSARGS "-Djava.util.logging.config.file=$HOME/.avail/logging.properties" "-DavailRoots=$AVAIL_ROOTS" "-DavailRenames=$AVAIL_RENAMES")
+if [ "$ENABLE_ASSERTIONS" = true ]; then
+  VMARGS+=( -ea )
+fi
 
 if [ "$DRY_RUN" = true ]; then
     printf '%b ' "$VM "${VMARGS[@]}" -jar $JAR $* \n\c"
