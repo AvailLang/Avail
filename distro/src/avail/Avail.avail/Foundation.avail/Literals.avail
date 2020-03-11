@@ -88,7 +88,7 @@ Semantic restriction "`|_`|" is
 	aSetType : set meta
 |
 	sizes ::= ||aSetType||;
-	[⎣sizes⎦..⎡sizes⎤ + 1)
+	[⌊sizes⌋..⌈sizes⌉ + 1)
 ];
 
 Method "`|_`|" is stable at
@@ -104,68 +104,68 @@ Semantic restriction "`|_`|" is
 	aMapType : map meta
 |
 	sizes ::= ||aMapType||;
-	[⎣sizes⎦..⎡sizes⎤ + 1)
+	[⌊sizes⌋..⌈sizes⌉ + 1)
 ];
 
 /**
  * Answer the lower bound of the argument.
  *
- * @method "⎣_⎦"
+ * @method "⌊_⌋"
  * @param "aTupleType" "tuple meta"
  *        A tuple type.
  * @returns "whole number"
  *          The lower bound of the argument.
  * @category "Tuples" "Types" "Queries"
  */
-Method "⎣_⎦" is
+Method "⌊_⌋" is
 [
 	aTupleType : tuple meta
 |
-	⎣||aTupleType||⎦
+	⌊||aTupleType||⌋
 ] : whole number;
 
 /**
  * Answer the lower bound of the argument.
  *
- * @method "⎣_⎦"
+ * @method "⌊_⌋"
  * @param "aSetType" "set meta"
  *        A set type.
  * @returns "whole number"
  *          The lower bound of the argument.
  * @category "Sets" "Types" "Queries"
  */
-Method "⎣_⎦" is
+Method "⌊_⌋" is
 [
 	aSetType : set meta
 |
-	⎣||aSetType||⎦
+	⌊||aSetType||⌋
 ] : whole number;
 
 /**
  * Answer the lower bound of the argument.
  *
- * @method "⎣_⎦"
+ * @method "⌊_⌋"
  * @param "aMapType" "map meta"
  *        A map type.
  * @returns "whole number"
  *    The lower bound of the argument.
  * @category "Maps" "Types" "Queries"
  */
-Method "⎣_⎦" is
+Method "⌊_⌋" is
 [
 	aMapType : map meta
 |
-	⎣||aMapType||⎦
+	⌊||aMapType||⌋
 ] : whole number;
 
-Method "⎣_⎦" is
+Method "⌊_⌋" is
 [
 	bottom : ⊥'s type
 |
 	Shouldn't happen
 ];
 
-Method "⎡_⎤" is
+Method "⌈_⌉" is
 [
 	bottom : ⊥'s type
 |
@@ -173,87 +173,87 @@ Method "⎡_⎤" is
 ];
 
 /**
- * @method "⎣_⎦"
+ * @method "⌊_⌋"
  * @restricts "⊥'s type's type"
  */
-Semantic restriction "⎣_⎦" is
+Semantic restriction "⌊_⌋" is
 [
 	bottom : ⊥'s type's type
 |
 	Reject parse, expected:
-		"a value other than ⊥'s type for ⎣_⎦."
+		"a value other than ⊥'s type for ⌊_⌋."
 ];
 
 /**
- * @method "⎡_⎤"
+ * @method "⌈_⌉"
  * @restricts "⊥'s type's type"
  */
-Semantic restriction "⎡_⎤" is
+Semantic restriction "⌈_⌉" is
 [
 	bottom : ⊥'s type's type
 |
 	Reject parse, expected:
-		"a value other than ⊥'s type for ⎡_⎤."
+		"a value other than ⊥'s type for ⌈_⌉."
 ];
 
 /**
  * Answer the upper bound of the argument.
  *
- * @method "⎡_⎤"
+ * @method "⌈_⌉"
  * @param "aTupleType" "tuple meta"
  *        A tuple type.
  * @returns "[0..∞]"
  *          The upper bound of the argument.
  * @category "Tuples" "Types" "Queries"
  */
-Method "⎡_⎤" is
+Method "⌈_⌉" is
 [
 	aTupleType : tuple meta
 |
-	⎡||aTupleType||⎤
+	⌈||aTupleType||⌉
 ] : [0..∞];
 
 /**
  * Answer the upper bound of the argument.
  *
- * @method "⎡_⎤"
+ * @method "⌈_⌉"
  * @param "aSetType" "set meta"
  *        A set type.
  * @returns "[0..∞]"
  *          The upper bound of the argument.
  * @category "Sets" "Types" "Queries"
  */
-Method "⎡_⎤" is
+Method "⌈_⌉" is
 [
 	aSetType : set meta
 |
-	⎡||aSetType||⎤
+	⌈||aSetType||⌉
 ] : [0..∞];
 
 /**
  * Answer the upper bound of the argument.
  *
- * @method "⎡_⎤"
+ * @method "⌈_⌉"
  * @param "aMapType" "map meta"
  *        A map type.
  * @returns "[0..∞]"
  *          The upper bound of the argument.
  * @category "Maps" "Types" "Queries"
  */
-Method "⎡_⎤" is
+Method "⌈_⌉" is
 [
 	aMapType : map meta
 |
-	⎡||aMapType||⎤
+	⌈||aMapType||⌉
 ] : [0..∞];
 
 /**
  * Strengthen the lower bound for tuple types.
  *
- * @method "⎣_⎦"
+ * @method "⌊_⌋"
  * @restricts "tuple meta's type"
  */
-Semantic restriction "⎣_⎦" is
+Semantic restriction "⌊_⌋" is
 [
 	aTupleTypeType : tuple meta's type
 |
@@ -263,10 +263,10 @@ Semantic restriction "⎣_⎦" is
 /**
  * Strengthen the lower bound for set types.
  *
- * @method "⎣_⎦"
+ * @method "⌊_⌋"
  * @restricts "set meta's type"
  */
-Semantic restriction "⎣_⎦" is
+Semantic restriction "⌊_⌋" is
 [
 	aSetTypeType : set meta's type
 |
@@ -276,10 +276,10 @@ Semantic restriction "⎣_⎦" is
 /**
  * Strengthen the lower bound for map types.
  *
- * @method "⎣_⎦"
+ * @method "⌊_⌋"
  * @restricts "map meta's type"
  */
-Semantic restriction "⎣_⎦" is
+Semantic restriction "⌊_⌋" is
 [
 	aMapTypeType : map meta's type
 |
@@ -289,43 +289,43 @@ Semantic restriction "⎣_⎦" is
 /**
  * Strengthen the upper bound for tuple types.
  *
- * @method "⎡_⎤"
+ * @method "⌈_⌉"
  * @restricts "tuple meta's type"
  */
-Semantic restriction "⎡_⎤" is
+Semantic restriction "⌈_⌉" is
 [
 	aTupleTypeType : tuple meta's type
 |
 	instance ::= aTupleTypeType's instance;
-	[⎣instance⎦ .. ⎡instance⎤]
+	[⌊instance⌋ .. ⌈instance⌉]
 ];
 
 /**
  * Strengthen the upper bound for set types.
  *
- * @method "⎡_⎤"
+ * @method "⌈_⌉"
  * @restricts "set meta's type"
  */
-Semantic restriction "⎡_⎤" is
+Semantic restriction "⌈_⌉" is
 [
 	aSetTypeType : set meta's type
 |
 	instance ::= aSetTypeType's instance;
-	[⎣instance⎦ .. ⎡instance⎤]
+	[⌊instance⌋ .. ⌈instance⌉]
 ];
 
 /**
  * Strengthen the upper bound for map types.
  *
- * @method "⎡_⎤"
+ * @method "⌈_⌉"
  * @restricts "map meta's type"
  */
-Semantic restriction "⎡_⎤" is
+Semantic restriction "⌈_⌉" is
 [
 	aMapTypeType : map meta's type
 |
 	instance ::= aMapTypeType's instance;
-	[⎣instance⎦ .. ⎡instance⎤]
+	[⌊instance⌋ .. ⌈instance⌉]
 ];
 
 /**
@@ -452,17 +452,17 @@ Semantic restriction "_[_]" is
 	aTupleType : tuple meta,
 	index : natural number's type
 |
-	If ⎡aTupleType⎤ < ⎣index⎦ then
+	If ⌈aTupleType⌉ < ⌊index⌋ then
 	[
 		messageTuple ::= concatenate <
 			"a subscript (",
-			“⎣index⎦”,
+			“⌊index⌋”,
 			" ≤ theSubscript ≤ ",
-			“⎡index⎤”,
+			“⌈index⌉”,
 			") that could ever be valid (",
-			“⎣aTupleType⎦”,
+			“⌊aTupleType⌋”,
 			" ≤ |theTuple| ≤ ",
-			“⎡aTupleType⎤”,
+			“⌈aTupleType⌉”,
 			")">;
 		message ::= cast messageTuple into [ t : string | t ];
 		Reject parse, expected: message
@@ -470,8 +470,8 @@ Semantic restriction "_[_]" is
 	union : type := ⊥;
 	limit ::= cast |aTupleType's leading types| + 1
 		into [ t : natural number | t ];
-	startIndex ::= ⎣index⎦ min limit;
-	endIndex ::= ⎡index⎤ min limit;
+	startIndex ::= ⌊index⌋ min limit;
+	endIndex ::= ⌈index⌉ min limit;
 	From startIndex to endIndex do
 	[
 		i : natural number
@@ -499,17 +499,17 @@ Semantic restriction "_[_]" is
 	index : natural number's type
 |
 	aTupleType ::= aTupleMeta's instance;
-	If ⎡aTupleType⎤ < ⎣index⎦ then
+	If ⌈aTupleType⌉ < ⌊index⌋ then
 	[
 		messageTuple ::= concatenate <
 			"a subscript (",
-			“⎣index⎦”,
+			“⌊index⌋”,
 			" ≤ theSubscript ≤ ",
-			“⎡index⎤”,
+			“⌈index⌉”,
 			") that could ever be valid (",
-			“⎣aTupleType⎦”,
+			“⌊aTupleType⌋”,
 			" ≤ |theTuple| ≤ ",
-			“⎡aTupleType⎤”,
+			“⌈aTupleType⌉”,
 			")">;
 		message ::= cast messageTuple into [ t : string | t ];
 		Reject parse, expected: message
@@ -517,8 +517,8 @@ Semantic restriction "_[_]" is
 	union : type := ⊥;
 	limit ::= cast |aTupleType's leading types| + 1
 		into [ t : natural number | t ];
-	startIndex ::= ⎣index⎦ min limit;
-	endIndex ::= ⎡index⎤ min limit;
+	startIndex ::= ⌊index⌋ min limit;
+	endIndex ::= ⌈index⌉ min limit;
 	From startIndex to endIndex do
 	[
 		i : natural number
@@ -560,7 +560,7 @@ Semantic restriction "{«_‡,»}" is
 	 * value. Therefore asking for either the lower or upper bound would be
 	 * equivalent.
 	 */
-	limit ::= ⎡elements⎤;
+	limit ::= ⌈elements⌉;
 	accumulator : tuple := <>;
 	/* Check to see if the elements are instance types. */
 	From 1 to limit do
@@ -690,7 +690,7 @@ Semantic restriction "{«_→_‡,»}" is
 	 * value. Therefore asking for either the lower or upper bound would be
 	 * equivalent.
 	 */
-	limit ::= ⎡bindings⎤;
+	limit ::= ⌈bindings⌉;
 	accumulator : <<>, <<>, any…|[2..2]>… |whole number> := <>;
 	/* Check to see if keys and values are all instance types. */
 	From 1 to limit do
@@ -809,7 +809,7 @@ Semantic restriction "{«_→_‡,»}" is
 /* Forbid nesting the cardinality range accessor into the lower and upper
  * bounds operations.
  */
-Grammatical restriction {"⎣_⎦", "⎡_⎤"} is <{"`|`|_`|`|"}>;
+Grammatical restriction {"⌊_⌋", "⌈_⌉"} is <{"`|`|_`|`|"}>;
 
 /**
  * Attempt to produce a literal {@type "tuple"} from the specified lexical

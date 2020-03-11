@@ -44,22 +44,22 @@ New test suite math test suite extends foundation test suite;
 
 Test "integer range bounds" in math test suite is
 [
-	Require: -∞ = ⎣extended integer⎦;
-	Require: ⎣extended integer⎦ is inclusive;
-	Require: ∞ = ⎡extended integer⎤;
-	Require: ⎡extended integer⎤ is inclusive;
-	Require: -∞ = ⎣integer⎦;
-	Require: ¬⎣integer⎦ is inclusive;
-	Require: ∞ = ⎡integer⎤;
-	Require: ¬⎡integer⎤ is inclusive;
-	Require: 0 = ⎣whole number⎦;
-	Require: ⎣whole number⎦ is inclusive;
-	Require: ∞ = ⎡whole number⎤;
-	Require: ¬⎡whole number⎤ is inclusive;
-	Require: 1 = ⎣natural number⎦;
-	Require: ⎣natural number⎦ is inclusive;
-	Require: ∞ = ⎡natural number⎤;
-	Require: ¬⎡natural number⎤ is inclusive;
+	Require: -∞ = ⌊extended integer⌋;
+	Require: ⌊extended integer⌋ is inclusive;
+	Require: ∞ = ⌈extended integer⌉;
+	Require: ⌈extended integer⌉ is inclusive;
+	Require: -∞ = ⌊integer⌋;
+	Require: ¬⌊integer⌋ is inclusive;
+	Require: ∞ = ⌈integer⌉;
+	Require: ¬⌈integer⌉ is inclusive;
+	Require: 0 = ⌊whole number⌋;
+	Require: ⌊whole number⌋ is inclusive;
+	Require: ∞ = ⌈whole number⌉;
+	Require: ¬⌈whole number⌉ is inclusive;
+	Require: 1 = ⌊natural number⌋;
+	Require: ⌊natural number⌋ is inclusive;
+	Require: ∞ = ⌈natural number⌉;
+	Require: ¬⌈natural number⌉ is inclusive;
 	For each i from 1 to 10 do
 	[
 		For each j from 1 to 10 do
@@ -74,31 +74,31 @@ Test "integer range bounds" in math test suite is
 			]
 			else
 			[
-				Require: i = ⎣t1⎦;
-				Require: ⎣t1⎦ is inclusive;
-				Require: j = ⎡t1⎤;
-				Require: ⎡t1⎤ is inclusive;
+				Require: i = ⌊t1⌋;
+				Require: ⌊t1⌋ is inclusive;
+				Require: j = ⌈t1⌉;
+				Require: ⌈t1⌉ is inclusive;
 				If i = j then [ Require: t2 = t3 = t4 = ⊥; ]
 				else
 				[
 					Require: t2 ≠ ⊥;
 					Require: t3 ≠ ⊥;
-					Require: i = ⎣t2⎦;
-					Require: ⎣t2⎦ is inclusive;
-					Require: j - 1 = ⎡t2⎤;
-					Require: ⎡t2⎤ is inclusive;
-					Require: i + 1 = ⎣t3⎦;
-					Require: ⎣t3⎦ is inclusive;
-					Require: j = ⎡t3⎤;
-					Require: ⎡t3⎤ is inclusive;
+					Require: i = ⌊t2⌋;
+					Require: ⌊t2⌋ is inclusive;
+					Require: j - 1 = ⌈t2⌉;
+					Require: ⌈t2⌉ is inclusive;
+					Require: i + 1 = ⌊t3⌋;
+					Require: ⌊t3⌋ is inclusive;
+					Require: j = ⌈t3⌉;
+					Require: ⌈t3⌉ is inclusive;
 					If j - i = 1 then [ Require: t4 = ⊥; ]
 					else
 					[
 						Require: t4 ≠ ⊥;
-						Require: i + 1 = ⎣t4⎦;
-						Require: ⎣t4⎦ is inclusive;
-						Require: j - 1 = ⎡t4⎤;
-						Require: ⎡t4⎤ is inclusive;
+						Require: i + 1 = ⌊t4⌋;
+						Require: ⌊t4⌋ is inclusive;
+						Require: j - 1 = ⌈t4⌉;
+						Require: ⌈t4⌉ is inclusive;
 					];
 				];
 			];

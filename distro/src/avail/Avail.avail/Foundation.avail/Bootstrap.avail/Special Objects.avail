@@ -571,22 +571,22 @@ Special object "integer" is special object 17;
  *
  * <ul>
  * <li>The lower bound is an integer which specifies the smallest allowed value.
- * The floor operation, {@method "⎣_⎦"}, answers the lower bound of an integral
+ * The floor operation, {@method "⌊_⌋"}, answers the lower bound of an integral
  * type.</li>
  * <li>The lower bound inclusion indicator is a {@type "boolean"} value that
  * establishes whether the lower bound is a member of the integral type. When
  * this value is {@method "true"}, then the lower bound is included in the
  * type's membership. When this value is {@method "false"}, then it is not so
- * included. The method {@method "⎣_⎦is inclusive"} answers the lower bound
+ * included. The method {@method "⌊_⌋is inclusive"} answers the lower bound
  * inclusion indicator of an integral type.</li>
  * <li>The upper bound is an integer which specifies the largest allowed value.
- * The ceiling operation, {@method "⎡_⎤"}, answers the upper bound of an
+ * The ceiling operation, {@method "⌈_⌉"}, answers the upper bound of an
  * integral type.</li>
  * <li>The upper bound inclusion indicator is a {@type "boolean"} value that
  * establishes whether the upper bound is a member of the integral type. When
  * this value is {@method "true"}, then the upper bound is included in the
  * type's membership. When this value is {@method "false"}, then it is not so
- * included. The method {@method "⎡_⎤is inclusive"} answers the upper bound
+ * included. The method {@method "⌈_⌉is inclusive"} answers the upper bound
  * inclusion indicator of an integral type.</li>
  * </ul>
  *
@@ -614,8 +614,8 @@ Special object "extended integer meta" is special object 18;
  * <li>The cardinality restriction is an {@method "extended integer meta"
  * integral type} that specifies the range of sizes that describe instances. The
  * method {@method "`|`|_`|`|"} answers the cardinality restriction of a map
- * type. The floor operation, {@method "⎣_⎦"}, answers the lower bound of a
- * map type's cardinality restriction. The ceiling operation, {@method "⎡_⎤"},
+ * type. The floor operation, {@method "⌊_⌋"}, answers the lower bound of a
+ * map type's cardinality restriction. The ceiling operation, {@method "⌈_⌉"},
  * answers the upper bound of a map type's cardinality restriction.</li>
  * </ul>
  *
@@ -745,8 +745,8 @@ Special object "set" is special object 26;
  * <li>The cardinality restriction is an {@method "extended integer meta"
  * integral type} that specifies the range of sizes that describe instances. The
  * method {@method "`|`|_`|`|"} answers the cardinality restriction of a set
- * type. The floor operation, {@method "⎣_⎦"}, answers the lower bound of a set
- * type's cardinality restriction. The ceiling operation, {@method "⎡_⎤"},
+ * type. The floor operation, {@method "⌊_⌋"}, answers the lower bound of a set
+ * type's cardinality restriction. The ceiling operation, {@method "⌈_⌉"},
  * answers the upper bound of a set type's cardinality restriction.</li>
  * </ul>
  *

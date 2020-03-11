@@ -577,8 +577,8 @@ Semantic restriction "take«at most»?_from_" is
 		Reject parse, expected:
 			"'at most' clause to be specified when count may be ∞"
 	];
-	min ::= if isLax then [0] else [⎣count⎦ ?→ whole number];
-	<readerType's element type's instance… | min..⎡count⎤>
+	min ::= if isLax then [0] else [⌊count⌋ ?→ whole number];
+	<readerType's element type's instance… | min..⌈count⌉>
 ];
 
 /**

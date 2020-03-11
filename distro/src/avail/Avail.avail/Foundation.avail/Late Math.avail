@@ -327,26 +327,26 @@ Method "_^_" is
 	power : whole number's type
 |
 	interestingBases ::= {
-		⎣base⎦,
-		⎣base⎦ + 1,
+		⌊base⌋,
+		⌊base⌋ + 1,
 		-2,
 		-1,
 		0,
 		1,
 		2,
-		⎡base⎤ - 1,
-		⎡base⎤
+		⌈base⌉ - 1,
+		⌈base⌉
 	} → tuple;
 	interestingPowers ::= {
-		⎣power⎦,
-		⎣power⎦ + 1,
+		⌊power⌋,
+		⌊power⌋ + 1,
 		2,
 		3,
-		⎡power⎤ - 1 max 0,
-		⎡power⎤
+		⌈power⌉ - 1 max 0,
+		⌈power⌉
 	} → tuple;
-	augmentedBase ::= [⎣base⎦ .. ⎡base⎤];
-	augmentedPower ::= [⎣power⎦ .. ⎡power⎤];
+	augmentedBase ::= [⌊base⌋ .. ⌈base⌉];
+	augmentedPower ::= [⌊power⌋ .. ⌈power⌉];
 	range : extended integer's type := ⊥;
 	openLimits : extended integer's type := ⊥;
 	For each interestingBase of interestingBases do
@@ -383,10 +383,10 @@ Method "_^_" is
 			];
 		];
 	];
-	if range = ⊥ then [(⎣openLimits⎦..⎡openLimits⎤)]
+	if range = ⊥ then [(⌊openLimits⌋..⌈openLimits⌉)]
 	else if -∞ ∈ openLimits ∧ ∞ ∈ openLimits then [range ∪ integer]
-	else if -∞ ∈ openLimits then [range ∪ (-∞..⎡range⎤)]
-	else if ∞ ∈ openLimits then [range ∪ (⎣range⎦..∞)]
+	else if -∞ ∈ openLimits then [range ∪ (-∞..⌈range⌉)]
+	else if ∞ ∈ openLimits then [range ∪ (⌊range⌋..∞)]
 	else [range]
 ] : extended integer's type;
 
@@ -664,9 +664,9 @@ Semantic restriction "low_bits of_" is
 	bitsType : whole number's type,
 	integerType : integer's type
 |
-	max ::= cast ⎡bitsType⎤
+	max ::= cast ⌈bitsType⌉
 		into [maxBits : whole number | (1 << maxBits) - 1] else [∞];
-	if ⎣integerType⎦ < 0 then
+	if ⌊integerType⌋ < 0 then
 	[
 		/* It includes negatives, so let's assume pretty much any result is
 		 * possible.
@@ -678,7 +678,7 @@ Semantic restriction "low_bits of_" is
 		/* Number of output bits may be arbitrarily large. */
 		integerType
 	]
-	else if ⎡integerType⎤ ≤ max then
+	else if ⌈integerType⌉ ≤ max then
 	[
 		/* It falls within the range, so no truncation can happen. */
 		integerType
@@ -751,7 +751,7 @@ Semantic restriction "an integer from_" is
 [
 	bytesType : byte+'s type
 |
-	bits ::= ⎡bytesType⎤ × 8 - 1;
+	bits ::= ⌈bytesType⌉ × 8 - 1;
 	[-2^bits .. 2^bits)
 ];
 
@@ -779,7 +779,7 @@ Semantic restriction "an unsigned integer from_" is
 [
 	bytesType : byte+'s type
 |
-	bits ::= ⎡bytesType⎤ × 8;
+	bits ::= ⌈bytesType⌉ × 8;
 	[0 .. 2^bits)
 ];
 

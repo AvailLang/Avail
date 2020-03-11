@@ -84,7 +84,7 @@ Public stable forward method "-_" is [number]→number;
 	negation ::= {"-_"};
 	abs      ::= {"`|_`|"};
 	power    ::= {"_^_"};
-	bounds   ::= {"⎣_⎦", "⎡_⎤"};
+	bounds   ::= {"⌊_⌋", "⌈_⌉"};
 
 	sumAndProduct ::= sum ∪ product;
 
@@ -138,13 +138,13 @@ Public stable forward method "-_" is [number]→number;
 
 	/**
 	 * Forbid nesting of floor and ceiling.
-	 * @method "⎡_⎤"
-	 * @forbids "1" "⎣_⎦" "⎡_⎤"
+	 * @method "⌈_⌉"
+	 * @forbids "1" "⌊_⌋" "⌈_⌉"
 	 */
 	/**
 	 * Forbid nesting of floor and ceiling.
-	 * @method "⎡_⎤"
-	 * @forbids "1" "⎣_⎦" "⎡_⎤"
+	 * @method "⌈_⌉"
+	 * @forbids "1" "⌊_⌋" "⌈_⌉"
 	 */
 	Grammatical restriction bounds is <bounds>;
 
@@ -262,15 +262,15 @@ Semantic restriction "-_" is [a : number's type | -a];
 /**
  * Compute and answer the floor of the argument.
  *
- * @method "⎣_⎦"
+ * @method "⌊_⌋"
  * @param "value" "number"
  * @returns "extended integer"
  *          The floor of the argument.
  * @category "Mathematics" "Numbers"
  */
-Stable abstract method "⎣_⎦" is [number]→number;
+Stable abstract method "⌊_⌋" is [number]→number;
 
-Method "⎣_⎦" is
+Method "⌊_⌋" is
 [
 	value : extended integer
 |
@@ -280,10 +280,10 @@ Method "⎣_⎦" is
 /**
  * Integers and infinities are their own floors.
  *
- * @method "⎣_⎦"
+ * @method "⌊_⌋"
  * @restricts "extended integer's type"
  */
-Semantic restriction "⎣_⎦" is
+Semantic restriction "⌊_⌋" is
 [
 	valueType : extended integer's type
 |
@@ -293,15 +293,15 @@ Semantic restriction "⎣_⎦" is
 /**
  * Compute and answer the ceiling of the argument.
  *
- * @method "⎡_⎤"
+ * @method "⌈_⌉"
  * @param "value" "number"
  * @returns "extended integer"
  *          The ceiling of the argument.
  * @category "Mathematics" "Numbers"
  */
-Stable abstract method "⎡_⎤" is [number]→number;
+Stable abstract method "⌈_⌉" is [number]→number;
 
-Method "⎡_⎤" is
+Method "⌈_⌉" is
 [
 	value : extended integer
 |
@@ -311,10 +311,10 @@ Method "⎡_⎤" is
 /**
  * Integers and infinities are their own ceilings.
  *
- * @method "⎡_⎤"
+ * @method "⌈_⌉"
  * @restricts "extended integer's type"
  */
-Semantic restriction "⎡_⎤" is
+Semantic restriction "⌈_⌉" is
 [
 	valueType : extended integer's type
 |
@@ -337,7 +337,7 @@ Method "_mod_" is
 	dividend : number,
 	divisor : number
 |
-	dividend - divisor × ⎣dividend ÷ divisor⎦
+	dividend - divisor × ⌊dividend ÷ divisor⌋
 ] : number;
 
 Method "_mod_" is
@@ -398,7 +398,7 @@ Method "_+_" is
 	a : extended integer's type,
 	b : extended integer's type
 |
-	if {[⎣a⎦..⎡a⎤], [⎣b⎦..⎡b⎤]} = {[-∞..-∞],[∞..∞]} then
+	if {[⌊a⌋..⌈a⌉], [⌊b⌋..⌈b⌉]} = {[-∞..-∞],[∞..∞]} then
 	[
 		/* The addition will always fail at runtime due to attempting to add
 		 * infinities of unlike sign.
@@ -407,14 +407,14 @@ Method "_+_" is
 	]
 	else
 	[
-		lower ::= ⎣a⎦ + ⎣b⎦ - 1;
+		lower ::= ⌊a⌋ + ⌊b⌋ - 1;
 		lowerInclusive ::=
-			(⎣a⎦ is inclusive ∧ ⎣a⎦ is infinite)
-			∨ (⎣b⎦ is inclusive ∧ ⎣b⎦ is infinite);
-		upper ::= ⎡a⎤ + ⎡b⎤ + 1;
+			(⌊a⌋ is inclusive ∧ ⌊a⌋ is infinite)
+			∨ (⌊b⌋ is inclusive ∧ ⌊b⌋ is infinite);
+		upper ::= ⌈a⌉ + ⌈b⌉ + 1;
 		upperInclusive ::=
-			(⎡a⎤ is inclusive ∧ ⎡a⎤ is infinite)
-			∨ (⎡b⎤ is inclusive ∧ ⎡b⎤ is infinite);
+			(⌈a⌉ is inclusive ∧ ⌈a⌉ is infinite)
+			∨ (⌈b⌉ is inclusive ∧ ⌈b⌉ is infinite);
 		integer range
 			from lower (inclusive=lowerInclusive)
 			to upper (inclusive=upperInclusive)
@@ -440,8 +440,8 @@ Method "_×_" is
 |
 	bounds ::=
 	{
-		{⎣a⎦, ⎡a⎤},
-		{⎣b⎦, ⎡b⎤}
+		{⌊a⌋, ⌈a⌉},
+		{⌊b⌋, ⌈b⌉}
 	};
 	If bounds = {{0}, {∞}} ∨ bounds = {{0}, {-∞}} then
 	[
@@ -458,8 +458,8 @@ Method "_×_" is
 		[
 			If positiveB ≠ ⊥ then
 			[
-				lower ::= ⎣positiveA⎦ × ⎣positiveB⎦;
-				upper ::= ⎡positiveA⎤ × ⎡positiveB⎤;
+				lower ::= ⌊positiveA⌋ × ⌊positiveB⌋;
+				upper ::= ⌈positiveA⌉ × ⌈positiveB⌉;
 				isInfinite ::= ∞ ∈ positiveA ∨ ∞ ∈ positiveB;
 				range ::= integer range
 					from lower (inclusive=true)
@@ -468,9 +468,9 @@ Method "_×_" is
 			];
 			If negativeB ≠ ⊥ then
 			[
-				lower ::= ⎡positiveA⎤ × ⎣negativeB⎦;
+				lower ::= ⌈positiveA⌉ × ⌊negativeB⌋;
 				isInfinite ::= ∞ ∈ positiveA ∨ -∞ ∈ negativeB;
-				upper ::= ⎣positiveA⎦ × ⎡negativeB⎤;
+				upper ::= ⌊positiveA⌋ × ⌈negativeB⌉;
 				range ::= integer range
 					from lower - 1 (inclusive=isInfinite)
 					to upper (inclusive=true);
@@ -481,9 +481,9 @@ Method "_×_" is
 		[
 			If positiveB ≠ ⊥ then
 			[
-				lower ::= ⎣negativeA⎦ × ⎡positiveB⎤;
+				lower ::= ⌊negativeA⌋ × ⌈positiveB⌉;
 				isInfinite ::= -∞ ∈ negativeA ∨ ∞ ∈ positiveB;
-				upper ::= ⎡negativeA⎤ × ⎣positiveB⎦;
+				upper ::= ⌈negativeA⌉ × ⌊positiveB⌋;
 				range ::= integer range
 					from lower - 1 (inclusive=isInfinite)
 					to upper (inclusive=true);
@@ -491,8 +491,8 @@ Method "_×_" is
 			];
 			If negativeB ≠ ⊥ then
 			[
-				lower ::= ⎡negativeA⎤ × ⎡negativeB⎤;
-				upper ::= ⎣negativeA⎦ × ⎣negativeB⎦;
+				lower ::= ⌈negativeA⌉ × ⌈negativeB⌉;
+				upper ::= ⌊negativeA⌋ × ⌊negativeB⌋;
 				isInfinite ::= -∞ ∈ negativeA ∨ -∞ ∈ negativeB;
 				range ::= integer range
 					from lower (inclusive=true)
@@ -590,8 +590,8 @@ Semantic restriction "_+_" is
 |
 	bounds ::=
 	{
-		{⎣a⎦, ⎡a⎤},
-		{⎣b⎦, ⎡b⎤}
+		{⌊a⌋, ⌈a⌉},
+		{⌊b⌋, ⌈b⌉}
 	};
 	If bounds = {{-∞}, {∞}} then
 	[
@@ -616,8 +616,8 @@ Semantic restriction "_-_" is
 	negated ::= - b;
 	bounds ::=
 	{
-		{⎣a⎦, ⎡a⎤},
-		{⎣negated⎦, ⎡negated⎤}
+		{⌊a⌋, ⌈a⌉},
+		{⌊negated⌋, ⌈negated⌉}
 	};
 	If bounds = {{-∞}, {∞}} then
 	[
@@ -673,10 +673,10 @@ Method "_÷_" is[
 			/* The denominator is finite and nonzero. The numerator may be
 			 * either finite or infinite. The following handles all cases.
 			 */
-			numeratorMin ::= ⎣numeratorRange⎦ ÷ denominator;
-			lowerInclusive ::= ⎣numeratorRange⎦ is inclusive;
-			numeratorMax ::= ⎡numeratorRange⎤ ÷ denominator;
-			upperInclusive ::= ⎡numeratorRange⎤ is inclusive;
+			numeratorMin ::= ⌊numeratorRange⌋ ÷ denominator;
+			lowerInclusive ::= ⌊numeratorRange⌋ is inclusive;
+			numeratorMax ::= ⌈numeratorRange⌉ ÷ denominator;
+			upperInclusive ::= ⌈numeratorRange⌉ is inclusive;
 			if denominator < 0 then
 			[
 				integer range
@@ -709,12 +709,12 @@ Method "_÷_" is
 	a : extended integer's type,
 	b : extended integer's type
 |
-	denominatorSet ::= {⎣b⎦, ⎡b⎤};
+	denominatorSet ::= {⌊b⌋, ⌈b⌉};
 	If denominatorSet = {0} then
 	[
 		Reject parse, expected: cannotDivideByZeroMessage
 	];
-	numeratorSet ::= {⎣a⎦, ⎡a⎤};
+	numeratorSet ::= {⌊a⌋, ⌈a⌉};
 	infinities ::= {{∞}, {-∞}};
 	If numeratorSet ∈ infinities ∧ denominatorSet ∈ infinities then
 	[
@@ -769,28 +769,28 @@ Semantic restriction "_mod_" is
 	a : extended integer's type,
 	b : extended integer's type
 |
-	denominatorSet ::= {⎣b⎦, ⎡b⎤};
+	denominatorSet ::= {⌊b⌋, ⌈b⌉};
 	If denominatorSet = {0} then
 	[
 		Reject parse, expected: cannotDivideByZeroMessage
 	];
-	numeratorSet ::= {⎣a⎦, ⎡a⎤};
+	numeratorSet ::= {⌊a⌋, ⌈a⌉};
 	infinities ::= {{∞}, {-∞}};
 	If numeratorSet ∈ infinities ∧ denominatorSet ∈ infinities then
 	[
 		Reject parse, expected: cannotDivideTwoInfinitiesMessage
 	];
-	if ⎣b⎦ = ⎡b⎤
-		∧ ⎣a⎦ is finite
-		∧ ⎡a⎤ is finite
-		∧ ⎣a⎦ ÷ ⎣b⎦ = ⎡a⎤ ÷ ⎣b⎦
+	if ⌊b⌋ = ⌈b⌉
+		∧ ⌊a⌋ is finite
+		∧ ⌈a⌉ is finite
+		∧ ⌊a⌋ ÷ ⌊b⌋ = ⌈a⌉ ÷ ⌊b⌋
 	then
 	[
-		[⎣a⎦ mod ⎣b⎦ .. ⎡a⎤ mod ⎣b⎦]
+		[⌊a⌋ mod ⌊b⌋ .. ⌈a⌉ mod ⌊b⌋]
 	]
 	else
 	[
-		[0..⎡b⎤)
+		[0..⌈b⌉)
 	]
 ];
 
@@ -1115,15 +1115,15 @@ Stable method "_<<_" is
 		If 0 ∈ shiftFactorType then [innerBlock(base, 0);];
 		If -1 ∈ shiftFactorType then [innerBlock(base, -1);];
 		If 1 ∈ shiftFactorType then [innerBlock(base, 1);];
-		innerBlock(base, ⎣shiftFactorType⎦);
-		innerBlock(base, ⎡shiftFactorType⎤);
+		innerBlock(base, ⌊shiftFactorType⌋);
+		innerBlock(base, ⌈shiftFactorType⌉);
 	];
 
 	If 0 ∈ baseIntegerType then [outerBlock(0);];
 	If -1 ∈ baseIntegerType then [outerBlock(-1);];
 	If 1 ∈ baseIntegerType then [outerBlock(1);];
-	outerBlock(⎣baseIntegerType⎦);
-	outerBlock(⎡baseIntegerType⎤);
+	outerBlock(⌊baseIntegerType⌋);
+	outerBlock(⌈baseIntegerType⌉);
 	(low - 1 .. high + 1)
 ] : integer's type;
 
@@ -1179,8 +1179,8 @@ Private method "_positive range pairs" is
 	 * range.
 	 */
 	lowBits : integer;
-	low ::= ⎣range⎦;
-	Cast ⎡range⎤ into
+	low ::= ⌊range⌋;
+	Cast ⌈range⌉ into
 	[
 		high : [1..∞)
 	|
@@ -1202,8 +1202,8 @@ Private method "_positive range pairs" is
 	]
 	else
 	[
-		Exit outer with <range> if ⎡range⎤ = 0;
-		Assert: ⎡range⎤ = ∞;
+		Exit outer with <range> if ⌈range⌉ = 0;
+		Assert: ⌈range⌉ = ∞;
 		Exit outer with <range> if low = 0;
 		/* Find the next higher power of two. */
 		boundary : integer := low;
@@ -1227,7 +1227,7 @@ Private method "_positive range pairs" is
 		[
 			Exit outer with
 				<[low .. low + strongLowBits]>
-				++ (low + strongLowBits .. ⎡range⎤ + 1) positive range pairs
+				++ (low + strongLowBits .. ⌈range⌉ + 1) positive range pairs
 		];
 		Assert: strongLowBits ≠ 0;
 		strongLowBits := strongLowBits << -1;
@@ -1258,7 +1258,7 @@ Private method "_range pairs" is
 [
 	range : integer's type
 |
-	rangeKind ::= (⎣range⎦ - 1 .. ⎡range⎤ + 1);
+	rangeKind ::= (⌊range⌋ - 1 .. ⌈range⌉ + 1);
 	pairs : <integer's type…|> := <>;
 	complementOfNegative ::= ((-1)'s type - rangeKind) ∩ [0..∞);
 	subranges ::= complementOfNegative positive range pairs;
@@ -1388,16 +1388,16 @@ Semantic restriction "_bit∧_" is
 			i2 : natural number
 		|
 			subrange2 ::= arg2Ranges[i2];
-			include(⎣subrange1⎦, ⎣subrange2⎦);
-			include(⎣subrange1⎦, ⎡subrange2⎤);
-			include(⎡subrange1⎤, ⎣subrange2⎦);
-			include(⎡subrange1⎤, ⎡subrange2⎤);
+			include(⌊subrange1⌋, ⌊subrange2⌋);
+			include(⌊subrange1⌋, ⌈subrange2⌉);
+			include(⌈subrange1⌉, ⌊subrange2⌋);
+			include(⌈subrange1⌉, ⌈subrange2⌉);
 			true
 		];
 		true
 	];
 	contentType ::= values' type's element type;
-	(⎣contentType⎦ - 1 .. ⎡contentType⎤ + 1)
+	(⌊contentType⌋ - 1 .. ⌈contentType⌉ + 1)
 ] : integer's type;
 
 /**
@@ -1420,27 +1420,27 @@ Semantic restriction "_<<_keeping_bits" is
 	truncationBits : whole number's type
 |
 	high : [0..∞] := ∞;
-	If ⎡baseInteger⎤ ≠ ∞ ∧ ⎡shiftFactor⎤ ≠ ∞ then
+	If ⌈baseInteger⌉ ≠ ∞ ∧ ⌈shiftFactor⌉ ≠ ∞ then
 	[
 		finiteBaseMax : whole number;
-		finiteBaseMax ?= ⎡baseInteger⎤;
+		finiteBaseMax ?= ⌈baseInteger⌉;
 		finiteShiftMax : integer;
-		finiteShiftMax ?= ⎡shiftFactor⎤;
+		finiteShiftMax ?= ⌈shiftFactor⌉;
 		high := finiteBaseMax << finiteShiftMax;
 	];
 	finiteBaseMin : whole number;
-	finiteBaseMin ?= ⎣baseInteger⎦;
+	finiteBaseMin ?= ⌊baseInteger⌋;
 	finiteShiftMin : integer;
-	finiteShiftMin ?= ⎣shiftFactor⎦;
+	finiteShiftMin ?= ⌊shiftFactor⌋;
 	low : whole number := finiteBaseMin << finiteShiftMin;
-	If ⎡truncationBits⎤ ≠ ∞ then
+	If ⌈truncationBits⌉ ≠ ∞ then
 	[
 		finiteTruncationMax : whole number;
-		finiteTruncationMax ?= ⎡truncationBits⎤;
+		finiteTruncationMax ?= ⌈truncationBits⌉;
 		high := high min ((1 << finiteTruncationMax) - 1);
 	];
 	finiteTruncationMin : whole number;
-	finiteTruncationMin ?= ⎣truncationBits⎦;
+	finiteTruncationMin ?= ⌊truncationBits⌋;
 	mask : whole number := (1 << finiteTruncationMin) - 1;
 	low := low bit∧ mask;
 	[low..high+1)

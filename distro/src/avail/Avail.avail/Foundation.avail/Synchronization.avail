@@ -443,7 +443,7 @@ Semantic restriction "a non-reentrant mutex«named_»" is
 [
 	optionalName : nonempty string?'s type
 |
-	myName ::= if ⎣optionalName⎦ = 1
+	myName ::= if ⌊optionalName⌋ = 1
 		then [optionalName[1]]
 		else [defaultName's type];
 	extend non-reentrant mutex with mutex name : myName
@@ -643,7 +643,7 @@ Semantic restriction "a reentrant mutex«named_»" is
 [
 	optionalName : nonempty string?'s type
 |
-	myName ::= if ⎣optionalName⎦ = 1
+	myName ::= if ⌊optionalName⌋ = 1
 		then [optionalName[1]]
 		else [defaultName's type];
 	extend reentrant mutex with mutex name : myName
@@ -758,7 +758,7 @@ Semantic restriction "a monitor«named_»" is
 [
 	optionalName : nonempty string?'s type
 |
-	myName ::= if ⎣optionalName⎦ = 1
+	myName ::= if ⌊optionalName⌋ = 1
 		then [optionalName[1]]
 		else [defaultName's type];
 	extend monitor with mutex name : myName
@@ -1143,10 +1143,10 @@ Semantic restriction "a semaphore«named_»with_«out of_»permit|permits" is
 	permits : [0..∞]'s type,
 	optionalMaximumPermits : [0..∞]?'s type
 |
-	myName ::= if ⎣optionalName⎦ = 1
+	myName ::= if ⌊optionalName⌋ = 1
 		then [optionalName[1]]
 		else [defaultName's type];
-	maximumPermits ::= if ⎣optionalMaximumPermits⎦ = 1
+	maximumPermits ::= if ⌊optionalMaximumPermits⌋ = 1
 		then [optionalMaximumPermits[1]]
 		else [∞'s type];
 	extend semaphore with
