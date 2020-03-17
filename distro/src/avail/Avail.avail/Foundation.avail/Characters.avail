@@ -1141,7 +1141,7 @@ Public stable method "_is a letter" is
 [
  	c : character
 |
-	c's character type number ∈ {"Lu", "Ll", "Lt", "Lm", "Lo"}
+	c's character category ∈ {"Lu", "Ll", "Lt", "Lm", "Lo"}
 ] : boolean;
 
 /**
