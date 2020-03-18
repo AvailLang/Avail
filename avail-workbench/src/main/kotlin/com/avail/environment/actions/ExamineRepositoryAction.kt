@@ -35,14 +35,14 @@ package com.avail.environment.actions
 import com.avail.AvailRuntime
 import com.avail.descriptor.FiberDescriptor
 import com.avail.environment.AvailWorkbench
-import com.avail.persistence.IndexedRepositoryManager
-import com.avail.persistence.IndexedRepositoryManagerDescriber
+import com.avail.persistence.Repository
+import com.avail.persistence.RepositoryDescriber
 import java.awt.event.ActionEvent
 import javax.swing.Action
 
 /**
  * A `ExamineRepositoryAction` presents information about the content of the
- * [IndexedRepositoryManager] of the currently selected module root.
+ * [Repository] of the currently selected module root.
  *
  * @property runtime
  *   The active [AvailRuntime].
@@ -67,7 +67,7 @@ class ExamineRepositoryAction constructor(
 			val root = workbench.selectedModuleRoot()!!
 			root.repository.use { repository ->
 				repository.reopenIfNecessary()
-				val describer = IndexedRepositoryManagerDescriber(repository)
+				val describer = RepositoryDescriber(repository)
 				workbench.outputStream.println(describer.dumpAll())
 			}
 		}

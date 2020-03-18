@@ -34,7 +34,7 @@ package com.avail.builder
 
 import com.avail.annotations.ThreadSafe
 import com.avail.descriptor.ModuleDescriptor
-import com.avail.persistence.IndexedRepositoryManager.Companion.isIndexedRepositoryFile
+import com.avail.persistence.Repository.Companion.isIndexedRepositoryFile
 import com.avail.utility.json.JSONWriter
 import java.io.File
 import java.io.IOException

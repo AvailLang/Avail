@@ -1,5 +1,5 @@
 /*
- * IndexedRepositoryManager.kt
+ * Repository.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -55,32 +55,39 @@ import kotlin.concurrent.withLock
 import kotlin.streams.toList
 
 /**
- * An `IndexedRepositoryManager` manages a persistent [indexed
- * repository][IndexedRepository] of compiled [modules][ModuleDescriptor].
+ * An `Repository` manages a persistent [IndexedFile] of compiled
+ * [modules][ModuleDescriptor].
  *
  * @property rootName
- *   The name of the [Avail root][ModuleRoot] represented by this [indexed
- *   repository][IndexedRepository].
+ *   The name of the [Avail root][ModuleRoot] represented by this [IndexedFile].
  * @property fileName
- *   The [filename][File] of the [indexed repository][IndexedRepository].
+ *   The [filename][File] of the [IndexedFile].
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
  * @constructor
  *
- * Construct a new `IndexedRepositoryManager`.
+ * Construct a new `Repository`.
  *
  * @param rootName
- *   The name of the Avail root represented by the [indexed
- *   repository][IndexedRepository].
+ *   The name of the Avail root represented by the `Repository`.
  * @param fileName
  *   The [path][File] to the indexed repository.
  * @throws IndexedFileException
  *   If an [exception][Exception] occurs.
  */
-class IndexedRepositoryManager constructor(
+class Repository constructor(
 	private val rootName: String,
 	val fileName: File) : Closeable
 {
+	/**
+	 * `IndexedRepositoryBuilder` is a builder for opening the [IndexedFile]s
+	 * used to hold a collection of compiled Avail [modules][ModuleDescriptor].
+	 *
+	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
+	 */
+	private object IndexedRepositoryBuilder : IndexedFileBuilder(
+		"Avail compiled module repository\u0000")
+
 	/**
 	 * The [lock][ReentrantLock] responsible for guarding against unsafe
 	 * concurrent access.
@@ -88,11 +95,10 @@ class IndexedRepositoryManager constructor(
 	internal val lock = ReentrantLock()
 
 	/**
-	 * The [repository][IndexedRepository] that stores this
-	 * [manager][IndexedRepositoryManager]'s compiled
-	 * [modules][ModuleDescriptor].
+	 * The [repository][IndexedFile] that stores this
+	 * [Repository]'s compiled [modules][ModuleDescriptor].
 	 */
-	internal var repository: IndexedRepository? = null
+	internal var repository: IndexedFile? = null
 
 	/**
 	 * Keep track of whether changes have happened since the last commit, and
@@ -122,7 +128,7 @@ class IndexedRepositoryManager constructor(
 					.toList()
 			})
 
-	/** Is the [repository][IndexedRepository] open? */
+	/** Is the `Repository` open? */
 	private var isOpen = false
 
 	/**
@@ -1003,8 +1009,8 @@ class IndexedRepositoryManager constructor(
 		}
 
 	/**
-	 * Clear the underlying [repository][IndexedRepository] and discard any
-	 * cached data. Set up the repository for subsequent usage.
+	 * Clear the underlying `Repository` and discard any cached data. Set up the
+	 * repository for subsequent usage.
 	 *
 	 * @throws IndexedFileException
 	 *   If any other [exception][Exception] occurs.
@@ -1019,12 +1025,9 @@ class IndexedRepositoryManager constructor(
 			repository = null
 			try
 			{
-
 				fileName.delete()
-				repository = IndexedFile.newFile(
-					IndexedRepository::class.java,
-					fileName,
-					null)
+				repository =
+					IndexedRepositoryBuilder.openOrCreate(fileName, true)
 				isOpen = true
 			}
 			catch (e: Exception)
@@ -1063,8 +1066,7 @@ class IndexedRepositoryManager constructor(
 	}
 
 	/**
-	 * Write all pending data and metadata to the [indexed
-	 * repository][IndexedRepository].
+	 * Write all pending data and metadata to the `Repository`.
 	 *
 	 * @throws IndexedFileException
 	 *   If anything goes wrong.
@@ -1090,7 +1092,7 @@ class IndexedRepositoryManager constructor(
 					}
 					reopenIfNecessary()
 					val repo = repository!!
-					repo.metaData(byteStream.toByteArray())
+					repo.metadata = byteStream.toByteArray()
 					repo.commit()
 					dirtySince = 0L
 				}
@@ -1123,7 +1125,7 @@ class IndexedRepositoryManager constructor(
 		}
 
 	/**
-	 * Close the underlying [indexed repository][IndexedRepository].
+	 * Close the underlying [IndexedFile].
 	 */
 	override fun close()
 	{
@@ -1136,8 +1138,8 @@ class IndexedRepositoryManager constructor(
 	}
 
 	/**
-	 * Open the [repository][IndexedRepository] and initialize the
-	 * `IndexedRepositoryManager manager`'s internal data structures.
+	 * Open the underlying [IndexedFile] and initialize the `Repository`'s
+	 * internal data structures.
 	 *
 	 * @throws IndexedFileException
 	 *   If anything goes wrong.
@@ -1148,31 +1150,27 @@ class IndexedRepositoryManager constructor(
 		assert(!isOpen)
 		try
 		{
-			var repo =
-				try
-				{
-					IndexedFile.openFile(
-						IndexedRepository::class.java,
-						fileName,
-						true,
-						versionCheck)
-				}
-				catch (e: IndexedFileException)
-				{
-					log(
-						Level.INFO,
-						e,
-						"Deleting obsolete repository: %s",
-						fileName)
-					null
-				}
-
-			if (repo === null)
+			val repo = try
 			{
-				repo = IndexedFile.newFile(
-					IndexedRepository::class.java, fileName, null)
+				IndexedRepositoryBuilder.openOrCreate(
+					fileReference = fileName,
+					forWriting = true,
+					versionCheck = versionCheck)
 			}
-			val metadata = repo.metaData()
+			catch (e: IndexedFileException)
+			{
+				log(
+					Level.INFO,
+					e,
+					"Deleting obsolete repository: %s",
+					fileName)
+				fileName.delete()
+				IndexedRepositoryBuilder.openOrCreate(
+					fileReference = fileName,
+					forWriting = true,
+					versionCheck = versionCheck)
+			}
+			val metadata = repo.metadata
 			if (metadata !== null)
 			{
 				val byteStream = ByteArrayInputStream(metadata)
@@ -1196,8 +1194,7 @@ class IndexedRepositoryManager constructor(
 	}
 
 	/**
-	 * Reopen the [repository file][IndexedRepository] and reinitialize the
-	 * `IndexedRepositoryManager manager`.
+	 * Reopen the [IndexedFile] and reinitialize the `Repository`.
 	 */
 	fun reopenIfNecessary() =
 		lock.withLock {
@@ -1231,8 +1228,7 @@ class IndexedRepositoryManager constructor(
 	companion object
 	{
 		/** The [logger][Logger].  */
-		private val logger = Logger.getLogger(
-			IndexedRepositoryManager::class.java.name)
+		private val logger = Logger.getLogger(Repository::class.java.name)
 
 		/** The maximum number of versions to keep for each module. */
 		private const val MAX_RECORDED_VERSIONS_PER_MODULE = 10
@@ -1337,13 +1333,11 @@ class IndexedRepositoryManager constructor(
 			{ fileVersion, codeVersion -> fileVersion == codeVersion }
 
 		/**
-		 * Create a `IndexedRepositoryManager repository manager` for a
-		 * temporary [indexed file][IndexedFile]. The indexed file will be
-		 * deleted on exit.
+		 * Create a `Repository` for a temporary [IndexedFile]. The indexed file
+		 * will be deleted on exit.
 		 *
 		 * @param rootName
-		 *   The name of the Avail root represented by the [indexed
-		 *   repository][IndexedRepository].
+		 *   The name of the Avail root represented by the [IndexedFile].
 		 * @param prefix
 		 *   A prefix used in generation of the temporary file name.
 		 * @param suffix
@@ -1355,24 +1349,25 @@ class IndexedRepositoryManager constructor(
 		 */
 		@JvmStatic
 		fun createTemporary(
-				rootName: String,
-				prefix: String,
-				suffix: String?): IndexedRepositoryManager =
+			rootName: String,
+			prefix: String,
+			suffix: String?
+		): Repository =
 			try
 			{
 				val file = File.createTempFile(prefix, suffix)
 				file.deleteOnExit()
-				var indexedFile: IndexedRepository? = null
+				var indexedFile: IndexedFile? = null
 				try
 				{
-					indexedFile = IndexedFile.newFile(
-						IndexedRepository::class.java, file, null)
+					indexedFile = IndexedRepositoryBuilder.openOrCreate(
+						file, true)
 				}
 				finally
 				{
 					indexedFile?.close()
 				}
-				IndexedRepositoryManager(rootName, file)
+				Repository(rootName, file)
 			}
 			catch (e: Exception)
 			{
@@ -1380,13 +1375,12 @@ class IndexedRepositoryManager constructor(
 			}
 
 		/**
-		 * Is the specified [file][File] an [indexed
-		 * repository][IndexedRepository]?
+		 * Is the specified [file][File] an [IndexedFile] of this kind?
 		 *
 		 * @param path
 		 *   A path.
 		 * @return
-		 *   `true` if the path refers to an indexed repository, `false` otherwise.
+		 *   `true` if the path refers to a repository file, `false` otherwise.
 		 * @throws IOException
 		 *   If an [I/O exception][IOException] occurs.
 		 */
@@ -1398,7 +1392,7 @@ class IndexedRepositoryManager constructor(
 			if (path.isFile)
 			{
 				RandomAccessFile(path, "r").use { file ->
-					val repositoryHeader = IndexedRepository.header
+					val repositoryHeader = IndexedRepositoryBuilder.headerBytes
 					val buffer = ByteArray(repositoryHeader.size)
 					var pos = 0
 					while (true)

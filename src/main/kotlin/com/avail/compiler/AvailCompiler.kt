@@ -134,7 +134,7 @@ import com.avail.io.SimpleCompletionHandler
 import com.avail.io.TextInterface
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport.RUNNING_PARSING_INSTRUCTIONS
-import com.avail.persistence.IndexedRepositoryManager
+import com.avail.persistence.Repository
 import com.avail.utility.*
 import com.avail.utility.Locks.lockWhile
 import com.avail.utility.PrefixSharingList.append
@@ -208,7 +208,7 @@ class AvailCompiler(
 	/**
 	 * The [CompilationContext] for this compiler.  It tracks parsing and lexing
 	 * tasks, and handles serialization to a
-	 * [repository][IndexedRepositoryManager] if necessary.
+	 * [repository][Repository] if necessary.
 	 */
 	val compilationContext: CompilationContext = CompilationContext(
 		moduleHeader,

@@ -55,8 +55,8 @@ import com.avail.interpreter.AvailLoader
 import com.avail.interpreter.AvailLoader.Phase
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Interpreter.runOutermostFunction
-import com.avail.persistence.IndexedRepositoryManager
-import com.avail.persistence.IndexedRepositoryManager.*
+import com.avail.persistence.Repository
+import com.avail.persistence.Repository.*
 import com.avail.serialization.Deserializer
 import com.avail.serialization.MalformedSerialStreamException
 import com.avail.serialization.Serializer
@@ -163,7 +163,7 @@ internal class BuildLoader constructor(
 	/**
 	 * Load the specified [module][ModuleDescriptor] into the [Avail
 	 * runtime][AvailRuntime]. If a current compiled module is available from
-	 * the [repository][IndexedRepositoryManager], then simply load it.
+	 * the [repository][Repository], then simply load it.
 	 * Otherwise, [compile][AvailCompiler] the module, store it into the
 	 * repository, and then load it.
 	 *
@@ -262,7 +262,7 @@ internal class BuildLoader constructor(
 
 	/**
 	 * Load the specified [module][ModuleDescriptor] from the
-	 * [repository][IndexedRepositoryManager] and into the
+	 * [repository][Repository] and into the
 	 * [runtime][AvailRuntime].
 	 *
 	 * Note that the predecessors of this module must have already been loaded.
@@ -440,7 +440,7 @@ internal class BuildLoader constructor(
 
 	/**
 	 * Compile the specified [module][ModuleDescriptor], store it into the
-	 * [repository][IndexedRepositoryManager], and then load it into the [Avail
+	 * [repository][Repository], and then load it into the [Avail
 	 * runtime][AvailRuntime].
 	 *
 	 * Note that the predecessors of this module must have already been loaded.

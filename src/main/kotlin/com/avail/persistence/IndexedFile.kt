@@ -31,8 +31,6 @@
  */
 package com.avail.persistence
 
-import com.avail.persistence.IndexedRepositoryManager.Companion.log
-import com.avail.utility.Casts.cast
 import com.avail.utility.LRUCache
 import java.io.DataOutputStream
 import java.io.File
@@ -44,51 +42,90 @@ import java.nio.channels.FileChannel
 import java.nio.channels.FileLock
 import java.util.*
 import java.util.concurrent.locks.ReentrantReadWriteLock
-import java.util.logging.Level
 import java.util.zip.CRC32
 import java.util.zip.Deflater
+import java.util.zip.Deflater.BEST_COMPRESSION
 import java.util.zip.DeflaterOutputStream
 import java.util.zip.Inflater
 import kotlin.concurrent.read
 import kotlin.concurrent.write
 import kotlin.math.abs
 import kotlin.math.min
-import kotlin.math.pow
 
 /**
- * `IndexedFile`s are record journals. Records may be [added][add], explicitly
+ * `IndexedFile` is a record journal. Records may be [added][add], explicitly
  * [committed][commit], and [looked up by record number][get]. A single
- * arbitrary [metaData] metadata section can be [attached][metaData] to an
- * indexed file (and will be replaced by subsequent attachments). Concurrent
- * read access is supported for multiple [threads][Thread], drivers, and [OS
- * processes][Process]. Only one writer is permitted.
+ * arbitrary [metadata] section can be attached to an indexed file (and will be
+ * replaced by subsequent attachments). Concurrent read access is supported for
+ * multiple [threads][Thread], drivers, and external
+ * [OS&#32;processes][Process]. Only one writer is permitted.
  *
- * Only subclasses of `IndexedFile` are intended for direct use. A subclass must
- * implement [headerBytes][headerBytes].
+ * @param forWriting
+ *   Whether the file is intended for writing as well as reading.
+ * @param setupActionIfNew
+ *   An optional extension function, whose presence indicates the file should be
+ *   initialized to a valid state that contains no records.  At that point, the
+ *   extension function will run, and the [file] will be renamed to the given
+ *   [fileReference].
+ * @param headerBytes
+ *   The unique sequence of bytes that identifies the nature of the data in the
+ *   file's records.
+ * @param softCacheSize
+ *   The maximum number of data blocks to cache in memory.  Memory pressure can
+ *   remove some of these entries, down to the `strongCacheSize`
+ * @param strongCacheSize
+ *   The number of recently accessed data blocks that are guaranteed to be kept
+ *   resident in memory, even under memory pressure.
+ * @param versionCheck
+ *   A function that checks whether the version number found in the existing
+ *   file and the given [version] are compatible.
+ *
+ * @constructor
+ * @property fileReference
+ *   The [File] that names on OS file.
+ * @property file
+ *   The handle to an existing OS file.  If the provided `setupActionIfNew` is
+ *   not null, this file may be a temporary file on the same file system as the
+ *   [fileReference], and if so, will be renamed into place after the file has
+ *   been made valid and the setup action has completed.
+ * @property headerBytes
+ *   The NUL-terminated header bytes that uniquely identify a particular usage
+ *   of the core indexed file technology.
+ * @property pageSize
+ *   The page size for the file.  This must be a multiple of the disk's native
+ *   page size to ensure failures during writes don't corrupt the file.  Ignored
+ *   if the file already exists.
+ * @property compressionBlockSize
+ *   The number of bytes of adjacent records to collect before compressing them
+ *   and allowing them to start to be written (without blocking) to the file.
+ *   Ignored if the file already exists.
+ * @property version
+ *   The version of IndexedFile to create, if it does not yet exist.  If it does
+ *   exist, this is passed as the second argument to the `versionCheck`
+ *   extension function.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Skatje Myers &lt;skatje.myers@gmail.com&gt;
  */
-abstract class IndexedFile
+class IndexedFile internal constructor(
+	private val fileReference: File,
+	private var file: RandomAccessFile,
+	private val headerBytes: ByteArray,
+	forWriting: Boolean,
+	setupActionIfNew: (IndexedFile.() -> Unit)?,
+	softCacheSize: Int,
+	strongCacheSize: Int,
+	private var pageSize: Int,
+	private var compressionBlockSize: Int,
+	private var version: Int,
+	versionCheck: (Int, Int) -> Boolean)
 {
 	/**
 	 * The [lock][ReentrantReadWriteLock] that guards against unsafe concurrent
 	 * access.
 	 */
 	private val lock = ReentrantReadWriteLock()
-
-	/** The [file reference][File]. */
-	private var fileReference: File? = null
-
-	/** The underlying [file][RandomAccessFile]. */
-	private var file: RandomAccessFile? = null
-
-	/**
-	 * An open [channel][FileChannel] on the underlying
-	 * [file][RandomAccessFile].
-	 */
-	private var channel: FileChannel? = null
 
 	/**
 	 * A lock on the last indexable byte of the file.  Not the last byte of the
@@ -98,22 +135,17 @@ abstract class IndexedFile
 	private var longTermLock: FileLock? = null
 
 	/**
-	 * The page size of the `IndexedFile`. This should be a multiple of the disk
-	 * page size for good performance; for best performance, it should be a
-	 * common multiple of the disk page size and the memory page size.
+	 * The preferred index node fan-out for new files. The value is small enough
+	 * that the orphans all fit on a page (with a trillion records), while large
+	 * enough to keep the number of index levels from getting too high. A
+	 * fan-out of 2 would have 40 levels (for a trillion records), which is
+	 * probably too slow for random access. A fan-out of 100 would be 6 levels
+	 * high, but at 13 bytes per orphan pointer it would take 6*100*13=7800
+	 * bytes, which is more than the usual (4KB) page size. By using a fan-out
+	 * of 32 there are 8 levels (for a trillion), or 8*32*13 = 3328 bytes for
+	 * tracking orphans.
 	 */
-	internal var pageSize: Int = 0
-
-	/**
-	 * The minimum number of uncompressed bytes at the virtualized end of an
-	 * indexed file. Once this many uncompressed bytes have accumulated, then
-	 * they will be compressed. Since uncompressed data must be written to a
-	 * master node during a commit, this value should not be too large; but
-	 * since compression efficiency improves as block size increases, this value
-	 * should not be too small. A small multiple of the [page size][pageSize]
-	 * is optimal.
-	 */
-	internal var compressionBlockSize: Int = 0
+	private val defaultFanout get() = 32
 
 	/**
 	 * The index node arity of the indexed file. The index node arity is the
@@ -122,13 +154,17 @@ abstract class IndexedFile
 	 * master node, i.e. it will require more space dedicated to tracking
 	 * orphans at various levels of the index tree.
 	 */
-	private var fanout: Int = 0
-
-	/** The version of the [indexed file][IndexedFile]. */
-	private var version: Int = 0
+	private var fanout: Int = defaultFanout
 
 	/** The current [master node][MasterNode]. */
 	private var master: MasterNode? = null
+
+	/** The [FileChannel] used for accessing the [file] */
+	private val channel: FileChannel get() = file.channel
+
+	/** The [master node][masterNodeBuffer] size. */
+	internal val masterNodeSize: Int
+		get() = (pageSize shl 1) + compressionBlockSize
 
 	/**
 	 * A master node comprises, in sequence, the following:
@@ -156,7 +192,7 @@ abstract class IndexedFile
 	 *    * A compression block of size compressionBlockSize containing
 	 *      [positionInCompressionBlock] of valid data.
 	 */
-	private var masterNodeBuffer: ByteBuffer? = null
+	private var masterNodeBuffer: ByteBuffer
 
 	/** The absolute location of the current master node. */
 	private var masterPosition: Long = 0
@@ -166,12 +202,13 @@ abstract class IndexedFile
 
 	/** A [cache][LRUCache] of uncompressed records. */
 	private val blockCache = LRUCache<Long, ByteArray>(
-		DEFAULT_SOFT_CACHE_SIZE,
-		DEFAULT_STRONG_CACHE_SIZE,
-		{ argument ->
+		softCacheSize,
+		strongCacheSize,
+		{
+			blockPosition ->
 			try
 			{
-				val block = fetchSizedFromFile(argument)
+				val block = fetchSizedFromFile(blockPosition)
 				val inflater = Inflater()
 				inflater.setInput(block)
 				val buffers = ArrayList<ByteArray>(10)
@@ -199,12 +236,9 @@ abstract class IndexedFile
 			}
 		})
 
-	/** The client-provided metadata, as a byte array. */
-	private var metaData: ByteArray? = null
-
 	/**
-	 * `ByteArrayOutputStream` provides direct (unsafe) access to the
-	 * backing byte array (without requiring it to be copied).
+	 * `ByteArrayOutputStream` provides direct (unsafe) access to the backing
+	 * byte array (without requiring it to be copied).
 	 *
 	 * @constructor
 	 *
@@ -217,12 +251,11 @@ abstract class IndexedFile
 		: java.io.ByteArrayOutputStream(size)
 	{
 		/** The backing byte array. Do not copy it. */
-		val unsafeBytes: ByteArray
-			get() = buf
+		val unsafeBytes: ByteArray get() = buf
 	}
 
 	/**
-	 * `MasterNode` is a simple abstraction for a [indexed file][IndexedFile]
+	 * `MasterNode` is a simple abstraction for an [IndexedFile]
 	 * master node.
 	 *
 	 * @property serialNumber
@@ -241,23 +274,32 @@ abstract class IndexedFile
 	 *   The virtual end of file.
 	 */
 	internal inner class MasterNode constructor(
+		/**
+		 * The monotonically increasing serial number, used to determine which
+		 * of the two master nodes is more recent.
+		 */
 		var serialNumber: Int,
+
+		/**
+		 * The last written position in the file known to contain data, whether
+		 * committed or not.  It's always a multiple of the [pageSize].
+		 */
 		var fileLimit: Long)
 	{
 		/** The raw bytes of *uncompressed* data. */
 		val rawBytes = ByteArrayOutputStream(compressionBlockSize * 3 shr 1)
 
 		/** The *uncompressed* data. */
-		val uncompressedData: DataOutputStream
+		val uncompressedData: DataOutputStream = DataOutputStream(rawBytes)
 
 		/** The [coordinates][RecordCoordinates] of the metadata. */
-		var metaDataLocation: RecordCoordinates
+		var metadataLocation = RecordCoordinates.origin
 
 		/**
 		 * The list of orphans, with lists of orphans locations of orphan level
 		 * n, stored at index n.
 		 */
-		var orphansByLevel: MutableList<MutableList<RecordCoordinates>>
+		val orphansByLevel = mutableListOf<MutableList<RecordCoordinates>>()
 
 		/**
 		 * The last (partial) committed page of data. For transactional safety,
@@ -265,15 +307,7 @@ abstract class IndexedFile
 		 * backing store. This partial page will be transactionally written to
 		 * the current master node during a commit.
 		 */
-		var lastPartialBuffer: ByteArray
-
-		init
-		{
-			this.uncompressedData = DataOutputStream(rawBytes)
-			this.lastPartialBuffer = ByteArray(pageSize)
-			this.orphansByLevel = ArrayList()
-			this.metaDataLocation = RecordCoordinates.origin
-		}
+		var lastPartialBuffer = ByteArray(pageSize)
 
 		/**
 		 * Serialize the master node into the specified [ByteBuffer]. The
@@ -303,8 +337,8 @@ abstract class IndexedFile
 			buffer.putInt(serialNumber)
 			buffer.putLong(fileLimit)
 			buffer.putInt(rawBytes.size())
-			buffer.putLong(metaDataLocation.filePosition)
-			buffer.putInt(metaDataLocation.blockPosition)
+			buffer.putLong(metadataLocation.filePosition)
+			buffer.putInt(metadataLocation.blockPosition)
 			buffer.putInt(orphanCount)
 			for (level in orphansByLevel.indices)
 			{
@@ -335,10 +369,6 @@ abstract class IndexedFile
 		}
 	}
 
-	/** The [master node][masterNodeBuffer] size. */
-	internal val masterNodeSize: Int
-		get() = (pageSize shl 1) + compressionBlockSize
-
 	/**
 	 * `RecordCoordinates` are the two-dimension coordinates of an uncompressed
 	 * record within a [indexed file][IndexedFile]. The first axis is the
@@ -366,37 +396,49 @@ abstract class IndexedFile
 		val filePosition: Long,
 		val blockPosition: Int)
 	{
-		override fun equals(other: Any?): Boolean
-		{
-			if (other !is RecordCoordinates)
-			{
-				return false
-			}
-			val strongOther = other as RecordCoordinates?
-			return filePosition == strongOther!!.filePosition
-				&& blockPosition == strongOther.blockPosition
-		}
+		override fun equals(other: Any?): Boolean =
+			other is RecordCoordinates &&
+				filePosition == other.filePosition &&
+				blockPosition == other.blockPosition
 
 		override fun hashCode(): Int =
-			((filePosition xor 0x58FC0112)
-				* (blockPosition xor -0x3533880d) + 0x62B02A14).toInt()
+			((filePosition xor 0x58FC0112) * (blockPosition xor -0x3533880d)
+				+ 0x62B02A14).toInt()
 
 		companion object
 		{
-			/** The origin.  */
+			/** The origin, meaning no such record or metadata. */
 			val origin = RecordCoordinates(0L, 0)
 		}
 	}
 
 	/**
-	 * Answer the NUL-terminated header bytes that uniquely identify a
-	 * particular usage of the core `IndexedFile indexed file` technology.
+	 * Perform the rest of the initialization.  If `setupActionIfNew` is
+	 * present, initialize the `file`, run `setupActionIfNew`, then rename
+	 * the `file` to `fileReference` if it's not already called that.
 	 *
-	 * @return
-	 *   An array of bytes that uniquely identifies the purpose of the indexed
-	 *   file.
+	 * If `setupActionIfNew` is `null`, read configuration information from the
+	 * file instead.
 	 */
-	protected abstract val headerBytes: ByteArray
+	init {
+		if (setupActionIfNew == null)
+		{
+			// Open the existing file.
+			readHeaderData(versionCheck)
+			masterNodeBuffer = ByteBuffer.allocate(masterNodeSize)
+			if (forWriting)
+			{
+				longTermLock = acquireLockForWriting()
+			}
+			refresh()
+		}
+		else
+		{
+			// Overwrite the file.
+			masterNodeBuffer = ByteBuffer.allocate(masterNodeSize)
+			setUpNewFile(setupActionIfNew)
+		}
+	}
 
 	/**
 	 * Acquire an exclusive [file lock][FileLock] on the last byte of a logical
@@ -417,9 +459,9 @@ abstract class IndexedFile
 	@Throws(IOException::class)
 	private fun acquireLockForWriting(wait: Boolean = true): FileLock =
 		if (wait)
-			channel!!.lock(0x7FFFFFFFFFFFFFFEL, 1, false)
+			channel.lock(0x7FFFFFFFFFFFFFFEL, 1, false)
 		else
-			channel!!.tryLock(0x7FFFFFFFFFFFFFFEL, 1, false)
+			channel.tryLock(0x7FFFFFFFFFFFFFFEL, 1, false)
 
 	/**
 	 * Insert the given orphan location at the given height of the index tree.
@@ -492,7 +534,7 @@ abstract class IndexedFile
 			if (bufferPos >= pageSize)
 			{
 				assert(bufferPos == pageSize)
-				val c = channel!!
+				val c = channel
 				c.position(m.fileLimit / pageSize * pageSize)
 				c.write(ByteBuffer.wrap(m.lastPartialBuffer))
 				bufferPos = 0
@@ -557,21 +599,21 @@ abstract class IndexedFile
 			val compressedStream = ByteArrayOutputStream(compressionBlockSize)
 			DeflaterOutputStream(
 					compressedStream,
-					Deflater(Deflater.BEST_COMPRESSION)).use { stream ->
-				stream.write(
+					Deflater(BEST_COMPRESSION)).use {
+				it.write(
 					m.rawBytes.unsafeBytes,
 					0,
 					m.rawBytes.size())
 			}
 			while (
 				m.fileLimit + 4 + compressedStream.size().toLong()
-					>= file!!.length())
+					>= file.length())
 			{
-				channel!!.position(0)
+				channel.position(0)
 				val delta = (min(
 					m.fileLimit,
 					(5 shl 20).toLong()) + pageSize - 1) / pageSize * pageSize
-				file!!.setLength(file!!.length() + delta)
+				file.setLength(file.length() + delta)
 			}
 			appendSizedBytes(compressedStream.toByteArray())
 			m.rawBytes.reset()
@@ -581,10 +623,10 @@ abstract class IndexedFile
 	/**
 	 * Create the physical indexed file. The initial contents are created in
 	 * memory and then written to a temporary file. Once the header and master
-	 * blocks have been written, the argument action is performed. Finally the
-	 * temporary file is renamed to the canonical filename. When the call
-	 * returns, [file] and [channel] are live and a write lock is held on the
-	 * physical indexed file.
+	 * blocks have been written, the argument [action] is
+	 * performed. Finally the temporary file is renamed to the canonical
+	 * filename. When the call returns, [file] and [channel] are live and a
+	 * write lock is held on the physical indexed file.
 	 *
 	 * @param action
 	 *   An action to perform after the header and master blocks have been
@@ -593,7 +635,7 @@ abstract class IndexedFile
 	 *   If an [I/O exception][IOException] occurs.
 	 */
 	@Throws(IOException::class)
-	private fun createFile(action: (() -> Unit)?)
+	private fun setUpNewFile(action: (IndexedFile.() -> Unit))
 	{
 		// Write the header.
 		val headerBytes = headerBytes
@@ -607,7 +649,7 @@ abstract class IndexedFile
 		val buffer = ByteBuffer.allocateDirect(bufferSize.toInt())
 		buffer.order(ByteOrder.BIG_ENDIAN)
 		buffer.put(headerBytes)
-		buffer.putInt(currentVersion)
+		buffer.putInt(version)
 		buffer.putInt(pageSize)
 		buffer.putInt(compressionBlockSize)
 		buffer.putInt(fanout)
@@ -617,7 +659,7 @@ abstract class IndexedFile
 
 		// Write the master blocks.
 		var m = MasterNode(1, fileLimit)
-		val b = masterNodeBuffer!!
+		val b = masterNodeBuffer
 		m.writeTo(b)
 		buffer.put(b)
 		assert(buffer.position().toLong() == masterPosition)
@@ -633,28 +675,25 @@ abstract class IndexedFile
 			// Transfer the buffer to a temporary file. Perform the nullary
 			// action. Close the channel prior to renaming the temporary file.
 			val tempFilename = File.createTempFile(
-				"new indexed file", null, fileReference!!.parentFile)
+				"new indexed file", null, fileReference.parentFile)
 			tempFilename.deleteOnExit()
 			file = RandomAccessFile(tempFilename, "rw")
-			assert(file!!.length() == 0L) { "The file is not empty." }
-			file!!.setLength(pageSize * 100L)
-			channel = file!!.channel
+			assert(file.length() == 0L) { "The file is not empty." }
+			file.setLength(pageSize * 100L)
 			longTermLock = acquireLockForWriting()
-			channel!!.write(buffer)
-			channel!!.force(true)
-			action?.invoke()
+			channel.write(buffer)
+			channel.force(true)
+			action()
 			longTermLock!!.close()
-			channel!!.close()
+			channel.close()
 
 			// Rename the temporary file to the canonical target name. Reopen
 			// the file and reacquire the write lock.
-			val fileRef = fileReference!!
-			if (!tempFilename.renameTo(fileRef))
+			if (!tempFilename.renameTo(fileReference))
 			{
 				throw IOException("rename failed")
 			}
-			file = RandomAccessFile(fileRef, "rw")
-			channel = file!!.channel
+			file = RandomAccessFile(fileReference, "rw")
 			acquireLockForWriting()
 		}
 		catch (e: IOException)
@@ -662,23 +701,7 @@ abstract class IndexedFile
 			close()
 			throw e
 		}
-
 	}
-
-	/**
-	 * The current version of the indexed file technology used by the class.
-	 * This is the version that will be used for new persistent indexed files.
-	 */
-	protected val currentVersion: Int
-		get()
-		{
-			val myClass = javaClass
-			val currentVersion =
-				myClass.getAnnotation(IndexedFileVersion::class.java) ?: error(
-					"${myClass.name} does not declare current version; add " +
-						"@IndexedFileVersion")
-			return currentVersion.value
-		}
 
 	/**
 	 * Construct and answer a [master node][MasterNode] from the data at the
@@ -695,10 +718,10 @@ abstract class IndexedFile
 	private fun decodeMasterNode(nodePosition: Long): MasterNode?
 	{
 		// Verify the CRC32.
-		channel!!.position(nodePosition)
-		val b = masterNodeBuffer!!
+		channel.position(nodePosition)
+		val b = masterNodeBuffer
 		b.rewind()
-		channel!!.read(b)
+		channel.read(b)
 		val encoder = CRC32()
 		encoder.update(b.array(), 4, b.position() - 4)
 		b.rewind()
@@ -712,7 +735,7 @@ abstract class IndexedFile
 			b.int,
 			b.long)
 		val compressionBlockPosition = b.int
-		node.metaDataLocation = RecordCoordinates(
+		node.metadataLocation = RecordCoordinates(
 			b.long,
 			b.int)
 		val orphans = ArrayList<MutableList<RecordCoordinates>>()
@@ -731,7 +754,8 @@ abstract class IndexedFile
 		assert(b.position() <= pageSize) {
 			"Too much index orphan information for a page."
 		}
-		node.orphansByLevel = orphans
+		node.orphansByLevel.clear()
+		node.orphansByLevel.addAll(orphans)
 		b.position(pageSize)
 		val lastPageContents = ByteArray(pageSize)
 		b.get(lastPageContents)
@@ -789,19 +813,18 @@ abstract class IndexedFile
 		assert(endFilePosition <= m.fileLimit)
 		if (startFilePosition < writtenLimit)
 		{
-			val c = channel!!
-			c.position(startFilePosition)
+			channel.position(startFilePosition)
 			if (endFilePosition <= writtenLimit)
 			{
 				// Entirely within the file.
-				val bytesRead = c.read(ByteBuffer.wrap(bytes))
+				val bytesRead = channel.read(ByteBuffer.wrap(bytes))
 				assert(bytesRead == bytes.size)
 			}
 			else
 			{
 				// Split between file and unwritten buffer.
 				val split = (writtenLimit - startFilePosition).toInt()
-				val bytesRead = c.read(ByteBuffer.wrap(bytes, 0, split))
+				val bytesRead = channel.read(ByteBuffer.wrap(bytes, 0, split))
 				assert(bytesRead == split)
 				System.arraycopy(
 					m.lastPartialBuffer,
@@ -815,8 +838,10 @@ abstract class IndexedFile
 		{
 			// Entirely within the unwritten buffer.
 			val startInLastPartialBuffer = startFilePosition - writtenLimit
-			assert(startInLastPartialBuffer == startInLastPartialBuffer.toInt().toLong())
-			assert(startInLastPartialBuffer + bytes.size <= m.lastPartialBuffer.size)
+			assert(startInLastPartialBuffer ==
+				startInLastPartialBuffer.toInt().toLong())
+			assert(startInLastPartialBuffer + bytes.size
+				<= m.lastPartialBuffer.size)
 			System.arraycopy(
 				m.lastPartialBuffer,
 				startInLastPartialBuffer.toInt(),
@@ -843,25 +868,23 @@ abstract class IndexedFile
 		var finished = false
 		try
 		{
-			assert(file!!.length() > 0)
-			val expectedHeader = headerBytes
-			val bufferSize = expectedHeader.size + 16
+			assert(file.length() > 0)
+			val bufferSize = headerBytes.size + 16
 			val buffer = ByteBuffer.allocateDirect(bufferSize)
-			channel!!.read(buffer)
-			val header = ByteArray(expectedHeader.size)
+			channel.read(buffer)
+			val foundHeader = ByteArray(headerBytes.size)
 			buffer.rewind()
-			buffer.get(header)
-			if (!header.contentEquals(expectedHeader))
+			buffer.get(foundHeader)
+			if (!foundHeader.contentEquals(headerBytes))
 			{
 				throw IndexedFileException(
 					"indexed file header is not valid.")
 			}
-			version = buffer.int
-			val okVersion = versionCheck(version, currentVersion)
-			if (!okVersion)
+			val foundVersion = buffer.int
+			if (!versionCheck(foundVersion, version))
 			{
 				throw IndexedFileException(
-					"Unsupported indexed file version: $version")
+					"Unsupported indexed file version: $foundVersion")
 			}
 			pageSize = buffer.int
 			compressionBlockSize = buffer.int
@@ -878,6 +901,17 @@ abstract class IndexedFile
 				close()
 			}
 		}
+	}
+
+	/**
+	 * Utility to calculate [fanout]^[exponent] (as a [Long]).  The exponent
+	 * should be ≥ 0.
+	 */
+	private fun fanoutRaisedTo (exponent: Int): Long
+	{
+		var value = 1L
+		repeat(exponent) { value *= fanout }
+		return value
 	}
 
 	/**
@@ -898,8 +932,8 @@ abstract class IndexedFile
 		startingNodePosition: RecordCoordinates,
 		startingLevel: Int): ByteArray
 	{
-		var pow = fanout.toDouble().pow(startingLevel.toDouble()).toLong()
-		assert(startingIndex < pow) {
+		var power = fanoutRaisedTo(startingLevel)
+		assert(startingIndex < power) {
 			"Arithmetic error traversing perfect tree"
 		}
 		var node = RecordCoordinates(
@@ -912,9 +946,9 @@ abstract class IndexedFile
 		var level = startingLevel
 		while (level != 0)
 		{
-			pow /= fanout.toLong()
-			val zSubscript = (zIndex / pow).toInt()
-			zIndex %= pow
+			power /= fanout.toLong()
+			val zSubscript = (zIndex / power).toInt()
+			zIndex %= power
 			buffer.position(12 * zSubscript + node.blockPosition)
 			node = RecordCoordinates(buffer.long, buffer.int)
 			level--
@@ -947,8 +981,7 @@ abstract class IndexedFile
 	fun add(record: ByteArray, start: Int = 0, length: Int = record.size)
 	{
 		lock.write {
-			try
-			{
+			try {
 				val m = master!!
 				val coordinates = RecordCoordinates(
 					m.fileLimit, m.rawBytes.size())
@@ -956,9 +989,7 @@ abstract class IndexedFile
 				m.uncompressedData.write(record, start, length)
 				compressAndFlushIfFull()
 				addOrphan(coordinates, 0)
-			}
-			catch (e: IOException)
-			{
+			} catch (e: IOException) {
 				throw IndexedFileException(e)
 			}
 		}
@@ -969,62 +1000,32 @@ abstract class IndexedFile
 	 */
 	fun close()
 	{
-		log(Level.INFO, "Close: %s", fileReference!!)
 		lock.write {
-			if (longTermLock !== null)
-			{
-				try
-				{
+			if (longTermLock != null) {
+				try {
 					longTermLock!!.release()
-				}
-				catch (e: IOException)
-				{
+				} catch (e: IOException) {
 					// Ignore.
-				}
-				finally
-				{
+				} finally {
 					longTermLock = null
 				}
 			}
 
-			if (channel !== null)
-			{
-				try
-				{
-					channel!!.close()
-				}
-				catch (e: IOException)
-				{
-					// Ignore.
-				}
-				finally
-				{
-					channel = null
-				}
+			try {
+				channel.close()
+			} catch (e: IOException) {
+				// Ignore.
 			}
 
-			if (file !== null)
-			{
-				try
-				{
-					file!!.close()
-				}
-				catch (e: IOException)
-				{
-					// Ignore.
-				}
-				finally
-				{
-					file = null
-				}
+			try {
+				file.close()
+			} catch (e: IOException) {
+				// Ignore.
 			}
 
-			try
-			{
+			try {
 				blockCache.clear()
-			}
-			catch (e: InterruptedException)
-			{
+			} catch (e: InterruptedException) {
 				// Do nothing.
 			}
 		}
@@ -1039,12 +1040,11 @@ abstract class IndexedFile
 	 *   If an [I/O exception][IOException] occurs.
 	 */
 	@Throws(IOException::class)
-	fun commit()
-	{
+	fun commit() =
 		lock.write {
 			val m = master!!
-			val c = channel!!
-			val b = masterNodeBuffer!!
+			val c = channel
+			val b = masterNodeBuffer
 			c.force(true)
 			val exchange = masterPosition
 			masterPosition = previousMasterPosition
@@ -1053,18 +1053,14 @@ abstract class IndexedFile
 			m.writeTo(b)
 			val shortTermLock = c.lock(
 				pageSize.toLong(), masterNodeSize.toLong() shl 1, false)
-			try
-			{
+			try {
 				c.position(masterPosition)
 				c.write(b)
 				c.force(true)
-			}
-			finally
-			{
+			} finally {
 				shortTermLock.release()
 			}
 		}
-	}
 
 	/**
 	 * Answer the requested record.
@@ -1079,24 +1075,19 @@ abstract class IndexedFile
 	 *   If something else goes wrong.
 	 */
 	@Throws(IndexOutOfBoundsException::class, IndexedFileException::class)
-	operator fun get(index: Long): ByteArray
-	{
+	operator fun get(index: Long): ByteArray =
 		lock.read {
-			if (index < 0)
-			{
+			if (index < 0) {
 				throw IndexOutOfBoundsException()
 			}
 			val m = master!!
 			var residue = index
-			var power = fanout.toDouble().pow(
-				(m.orphansByLevel.size - 1).toDouble()).toLong()
-			for (level in m.orphansByLevel.indices.reversed())
-			{
+			var power = fanoutRaisedTo(m.orphansByLevel.size - 1)
+			for (level in m.orphansByLevel.indices.reversed()) {
 				val orphans = m.orphansByLevel[level]
 				val subscript = residue / power
-				if (subscript < orphans.size)
-				{
-					return recordAtZeroBasedIndex(
+				if (subscript < orphans.size) {
+					return@read recordAtZeroBasedIndex(
 						residue % power,
 						orphans[subscript.toInt()],
 						level)
@@ -1106,7 +1097,6 @@ abstract class IndexedFile
 			}
 			throw IndexOutOfBoundsException()
 		}
-	}
 
 	/**
 	 * Answer the size of the indexed file, in records.
@@ -1116,62 +1106,65 @@ abstract class IndexedFile
 	 */
 	val size: Long
 		get() = lock.read {
-			val m = master!!
-			var power: Long = 1
-			var sum: Long = 0
-			for (i in m.orphansByLevel.indices)
-			{
-				sum += m.orphansByLevel[i].size * power
-				power *= fanout.toLong()
+			master!!.run {
+				var power: Long = 1
+				var sum: Long = 0
+				for (i in orphansByLevel.indices) {
+					sum += orphansByLevel[i].size * power
+					power *= fanout
+				}
+				sum
 			}
-			sum
 		}
 
 	/**
-	 * Answer the client-provided metadata, as a byte array.
-	 *
-	 * @return
-	 *   The client-provided metadata, as a byte array, or `null` if no metadata
-	 *   has ever been specified.
+	 * The cached metadata, which is a nullable ByteArray.
 	 */
-	fun metaData(): ByteArray? =
-		// Note that it is okay for multiple readers to destructively update the
-		// metaData field: they will all write the same answer. This is why we
-		// only grab a read lock.
-		lock.read {
-			val m = master!!
-			RecordCoordinates.origin != m.metaDataLocation || return null
-			if (metaData === null)
-			{
-				val block = blockAtFilePosition(m.metaDataLocation.filePosition)
-				val buffer = ByteBuffer.wrap(block)
-				buffer.position(m.metaDataLocation.blockPosition)
-				val size = buffer.int
-				metaData = ByteArray(size)
-				buffer.get(metaData!!)
-			}
-			metaData
-		}
+	@Volatile
+	private var metadataCache: ByteArray? = null
 
 	/**
-	 * Set and write the new [metadata][metaData]. *Do not [commit][commit] the
-	 * new metadata.*
-	 *
-	 * @param newMetaData
-	 *   The new client-provided metadata, as a byte array.
-	 * @throws IOException
-	 *   If an [I/O exception][IOException] occurs.
+	 * The client-provided metadata, as a byte array, or `null` if no metadata
+	 * has ever been specified.
 	 */
-	@Throws(IOException::class)
-	fun metaData(newMetaData: ByteArray) =
-		lock.write {
-			val m = master!!
-			metaData = newMetaData.clone()
-			m.metaDataLocation = RecordCoordinates(
-				m.fileLimit, m.rawBytes.size())
-			m.uncompressedData.writeInt(newMetaData.size)
-			m.uncompressedData.write(newMetaData)
-			compressAndFlushIfFull()
+	var metadata: ByteArray?
+		get() = lock.read {
+			// Note that it is okay for multiple readers to destructively update
+			// the metadataCache: they will all write the same answer. This is
+			// why we only grab a read lock.
+			metadataCache ?: master!!.run {
+				when {
+					metadataCache != null -> metadataCache
+					metadataLocation == RecordCoordinates.origin -> null
+					else -> {
+						val block =
+							blockAtFilePosition(metadataLocation.filePosition)
+						val buffer = ByteBuffer.wrap(block)
+						buffer.position(metadataLocation.blockPosition)
+						val bytes = ByteArray(buffer.int)
+						buffer.get(bytes)
+						metadataCache = bytes
+						bytes
+					}
+				}
+			}
+		}
+		set(newMetadata) = lock.write {
+			// Note that the metadata is not committed by this write.
+			if (Arrays.equals(newMetadata, metadata)) return@write
+			master!!.run {
+				metadataCache = newMetadata?.clone()
+				when (newMetadata) {
+					null -> metadataLocation = RecordCoordinates.origin
+					else -> {
+						metadataLocation = RecordCoordinates(
+							fileLimit, rawBytes.size())
+						uncompressedData.writeInt(newMetadata.size)
+						uncompressedData.write(newMetadata)
+						compressAndFlushIfFull()
+					}
+				}
+			}
 		}
 
 	/**
@@ -1186,291 +1179,53 @@ abstract class IndexedFile
 	@Throws(IOException::class, IndexedFileException::class)
 	fun refresh() =
 		lock.write {
-			val fileLock = channel!!.lock(
+			val fileLock = channel.lock(
 				pageSize.toLong(), masterNodeSize.toLong() shl 1, false)
-			try
-			{
+			try {
 				// Determine the newest valid master node.
 				val previous = decodeMasterNode(previousMasterPosition)
 				var current = decodeMasterNode(masterPosition)
-				if (previous === null && current === null)
-				{
+				if (previous == null && current == null) {
 					throw IndexedFileException(
 						"Invalid indexed file -- both master nodes are " +
 							"corrupt.")
 				}
 				var delta: Int? = null
-				if (previous !== null && current !== null)
-				{
+				if (previous != null && current != null) {
 					delta = current.serialNumber - previous.serialNumber
-					if (abs(delta) != 1)
-					{
+					if (abs(delta) != 1) {
 						throw IndexedFileException(
 							"Invalid indexed file -- master nodes are valid " +
 								"but have non-consecutive serial numbers.")
 					}
 				}
 				// Swap the previous and current nodes if necessary.
-				if (previous !== null && Integer.valueOf(1) != delta)
-				{
+				if (previous != null && Integer.valueOf(1) != delta) {
 					current = previous
 					// previous is unused after this point.
 					val tempPos = previousMasterPosition
 					previousMasterPosition = masterPosition
 					masterPosition = tempPos
 				}
-				if (master !== null &&
-					master!!.serialNumber != current!!.serialNumber)
-				{
+				if (master != null &&
+					master!!.serialNumber != current!!.serialNumber) {
 					// Clear the cached metadata if it has changed.
-					if (master!!.metaDataLocation != current.metaDataLocation)
-					{
-						metaData = null
+					if (master!!.metadataLocation != current.metadataLocation) {
+						metadataCache = null
 					}
 				}
 				master = current
-			}
-			catch (e: IOException)
-			{
+			} catch (e: IOException) {
 				close()
 				throw e
-			}
-			catch (e: Throwable)
-			{
+			} catch (e: Throwable) {
 				close()
 				throw IndexedFileException(e)
-			}
-			finally
-			{
+			} finally {
 				fileLock.release()
 			}
 		}
 
 	override fun toString(): String =
 		"${javaClass.simpleName}[$size] (for $fileReference)"
-
-	companion object
-	{
-		/** The preferred page size of a [indexed file][IndexedFile].  */
-		private const val DEFAULT_PAGE_SIZE = 4096
-
-		/**
-		 * The preferred compression threshold of a [indexed][IndexedFile].
-		 */
-		private const val DEFAULT_COMPRESSION_THRESHOLD = 32768
-
-		/**
-		 * The preferred index node fan-out. The value is small enough that the
-		 * orphans all fit on a page (with a trillion records), while large
-		 * enough to keep the number of index levels from getting too high. A
-		 * fan-out of 2 would have 40 levels (for a trillion records), which is
-		 * probably too slow for random access. A fan-out of 100 would be 6
-		 * levels high, but at 13 bytes per orphan pointer it would take
-		 * 6*100*13=7800 bytes, which is more than the usual (4KB) page size. By
-		 * using a fan-out of 32 there are 8 levels (for a trillion), or 8*32*13
-		 * = 3328 bytes for tracking orphans.
-		 */
-		private const val DEFAULT_FANOUT = 32
-
-		/**
-		 * The capacity of the [cache][LRUCache] of uncompressed records. A
-		 * number of records equal to the delta between this value and that of
-		 * [DEFAULT_STRONG_CACHE_SIZE] will be discarded from the cache by the
-		 * garbage collector when a low-water mark is passed.
-		 */
-		private const val DEFAULT_SOFT_CACHE_SIZE = 200
-
-		/**
-		 * The memory-insensitive capacity of the [cache][LRUCache] of
-		 * uncompressed records.
-		 */
-		private const val DEFAULT_STRONG_CACHE_SIZE = 100
-
-		/**
-		 * Create a new `IndexedFile`. The resultant object is backed by a
-		 * physical (i.e., disk-based) indexed file.
-		 *
-		 * @param F
-		 *   The specialization of `IndexedFile` to create.
-		 * @param subclass
-		 *   The subclass of `IndexedFile` that should be created. This
-		 *   indicates the purpose of the indexed file.
-		 * @param fileReference
-		 *   The location of the backing store.
-		 * @param pageSize
-		 *   The page size. A good page size is a multiple of both the disk and
-		 *   memory page sizes.
-		 * @param compressionThreshold
-		 *   The compression threshold. A good compression threshold is a
-		 *   multiple of the page size.
-		 * @param initialMetaData
-		 *   Client-provided [metadata][metaData], or `null` for none.
-		 * @return
-		 *   The new indexed file.
-		 * @throws IOException
-		 *   If an [I/O exception][IOException] occurs.
-		 */
-		@Throws(IOException::class)
-		fun <F : IndexedFile> newFile(
-			subclass: Class<F>,
-			fileReference: File,
-			pageSize: Int,
-			compressionThreshold: Int,
-			initialMetaData: ByteArray?): F
-		{
-			log(Level.INFO, "New: %s", fileReference)
-			assert(compressionThreshold % pageSize == 0)
-			val indexedFile: IndexedFile
-			try
-			{
-				indexedFile = subclass.newInstance()
-			}
-			catch (e: InstantiationException)
-			{
-				assert(false) { "This should never happen!" }
-				throw RuntimeException(e)
-			}
-			catch (e: IllegalAccessException)
-			{
-				assert(false) { "This should never happen!" }
-				throw RuntimeException(e)
-			}
-
-			indexedFile.fileReference = fileReference
-			indexedFile.version = indexedFile.currentVersion
-			indexedFile.pageSize = pageSize
-			indexedFile.compressionBlockSize = compressionThreshold
-			indexedFile.fanout = DEFAULT_FANOUT
-			indexedFile.masterNodeBuffer = ByteBuffer.allocate(
-				indexedFile.masterNodeSize)
-			indexedFile.createFile {
-				if (initialMetaData !== null)
-				{
-					try
-					{
-						indexedFile.metaData(initialMetaData)
-						indexedFile.commit()
-					}
-					catch (e: IOException)
-					{
-						throw IndexedFileException(e)
-					}
-
-				}
-			}
-			return cast(indexedFile)
-		}
-
-		/**
-		 * Create a new `IndexedFile`, using reasonable defaults for [page
-		 * size][DEFAULT_PAGE_SIZE] and [compression
-		 * threshold][DEFAULT_COMPRESSION_THRESHOLD]. The resultant object is
-		 * backed by a physical (i.e., disk-based) indexed file.
-		 *
-		 * @param F
-		 *   The specialization of `IndexedFile` to create.
-		 * @param subclass
-		 *   The subclass of `IndexedFile` that should be created. This
-		 *   indicates the purpose of the indexed file.
-		 * @param fileReference
-		 *   The location of the backing store.
-		 * @param initialMetaData
-		 *   Client-provided [metadata][metaData], or `null` for none.
-		 * @return
-		 *   The new indexed file.
-		 * @throws IOException
-		 *   If an [I/O exception][IOException] occurs.
-		 */
-		@Throws(IOException::class)
-		fun <F : IndexedFile> newFile(
-				subclass: Class<F>,
-				fileReference: File,
-				initialMetaData: ByteArray?): F =
-			newFile(
-				subclass,
-				fileReference,
-				DEFAULT_PAGE_SIZE,
-				DEFAULT_COMPRESSION_THRESHOLD,
-				initialMetaData)
-
-		/**
-		 * Open the specified `IndexedFile`.
-		 *
-		 * Note that there may be any number of readers *and* up to one writer
-		 * accessing the file safely simultaneously.  Only the master blocks are
-		 * ever updated (all other blocks are written exactly once ever), and
-		 * those writes occur inside an exclusive lock of that region.  They're
-		 * also forced to disk before releasing the lock, to guarantee
-		 * coherence.  The reads of the master blocks happen inside a shared
-		 * lock of the same region.  A reader uses [refresh] to detect newly
-		 * appended records.
-		 *
-		 * @param F
-		 *   The specialization of `IndexedFile` to open.
-		 * @param subclass
-		 *   The subclass of `IndexedFile` that should be created. This
-		 *   indicates the purpose of the indexed file. The [headerBytes]
-		 *   contained within the file must agree with that specified by the
-		 *   subclass.
-		 * @param fileReference
-		 *   The location of the indexed file.
-		 * @param forWriting
-		 *   `true` if the indexed file should be opened for writing, `false`
-		 *   otherwise.
-		 * @param versionCheck
-		 *   How to check for a compatible version.
-		 * @return
-		 *   The indexed file.
-		 * @throws IOException
-		 *   If an [I/O exception][IOException] occurs.
-		 */
-		@Throws(IOException::class)
-		fun <F : IndexedFile> openFile(
-			subclass: Class<F>,
-			fileReference: File,
-			forWriting: Boolean,
-			versionCheck: (Int, Int) -> Boolean): F
-		{
-			log(Level.INFO, "Open: {0}", fileReference)
-			val strongIndexedFile: F
-			val indexedFile: IndexedFile
-			try
-			{
-				strongIndexedFile = subclass.newInstance()
-				indexedFile = strongIndexedFile
-			}
-			catch (e: InstantiationException)
-			{
-				assert(false) { "This should never happen!" }
-				throw RuntimeException(e)
-			}
-			catch (e: IllegalAccessException)
-			{
-				assert(false) { "This should never happen!" }
-				throw RuntimeException(e)
-			}
-
-			indexedFile.fileReference = fileReference
-			if (!fileReference.exists())
-			{
-				throw IndexedFileException("No such index file")
-			}
-			indexedFile.file = RandomAccessFile(
-				fileReference, if (forWriting) "rw" else "r")
-			if (fileReference.length() == 0L)
-			{
-				throw IndexedFileException("Index file has no header (0 bytes)")
-			}
-			indexedFile.channel = indexedFile.file!!.channel
-			indexedFile.readHeaderData(versionCheck)
-			indexedFile.masterNodeBuffer = ByteBuffer.allocate(
-				indexedFile.masterNodeSize)
-			if (forWriting)
-			{
-				indexedFile.longTermLock = indexedFile.acquireLockForWriting()
-			}
-			indexedFile.refresh()
-			return strongIndexedFile
-		}
-	}
 }
