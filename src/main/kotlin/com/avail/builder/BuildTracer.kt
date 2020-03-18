@@ -39,7 +39,7 @@ import com.avail.compiler.problems.ProblemType.TRACE
 import com.avail.descriptor.FiberDescriptor.tracerPriority
 import com.avail.descriptor.ModuleDescriptor
 import com.avail.io.SimpleCompletionHandler
-import com.avail.persistence.IndexedRepositoryManager.ModuleVersionKey
+import com.avail.persistence.Repository.ModuleVersionKey
 import java.util.*
 import java.util.logging.Level
 

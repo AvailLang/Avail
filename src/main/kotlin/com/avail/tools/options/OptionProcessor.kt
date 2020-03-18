@@ -318,8 +318,8 @@ class OptionProcessor<OptionKeyType : Enum<OptionKeyType>> internal constructor(
 			throw OptionProcessingException(String.format(
 				"%s: encountered %d time(s) (allowed at most %d time(s))",
 				key,
-				timesActuallyEncountered,
-				timesAllowed))
+				timesActuallyEncountered + 1, // Doesn't include latest one.
+				timesAllowed + 1))  // Doesn't include latest one.
 		}
 	}
 

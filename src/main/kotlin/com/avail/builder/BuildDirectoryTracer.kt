@@ -35,8 +35,8 @@ package com.avail.builder
 import com.avail.builder.ModuleNameResolver.Companion.availExtension
 import com.avail.compiler.AvailCompiler
 import com.avail.compiler.problems.Problem
-import com.avail.persistence.IndexedRepositoryManager.ModuleVersion
-import com.avail.persistence.IndexedRepositoryManager.ModuleVersionKey
+import com.avail.persistence.Repository.ModuleVersion
+import com.avail.persistence.Repository.ModuleVersionKey
 import java.io.IOException
 import java.nio.file.*
 import java.nio.file.FileVisitResult.CONTINUE

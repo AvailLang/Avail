@@ -35,8 +35,8 @@ package com.avail.environment.actions
 import com.avail.AvailRuntime
 import com.avail.descriptor.FiberDescriptor
 import com.avail.environment.AvailWorkbench
-import com.avail.persistence.IndexedRepositoryManager.ModuleCompilation
-import com.avail.persistence.IndexedRepositoryManagerDescriber
+import com.avail.persistence.Repository.ModuleCompilation
+import com.avail.persistence.RepositoryDescriber
 import com.avail.utility.Casts.nullableCast
 import java.awt.event.ActionEvent
 import javax.swing.Action
@@ -95,7 +95,7 @@ class ExamineCompilationAction constructor (
 							{ null }))
 					?: return@execute // Nothing was selected, so abort the command silently.
 
-				val describer = IndexedRepositoryManagerDescriber(repository)
+				val describer = RepositoryDescriber(repository)
 				val description = describer.describeCompilation(
 					selectedCompilation.recordNumber)
 				workbench.outputStream.println(description)
