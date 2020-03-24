@@ -522,8 +522,7 @@ textarea { background-color: white; }
 			var compatible = serverVersions.filter(
 				function (v)
 				{
-					return supportedProtocolVersions.indexOf(
-						v) != -1;
+					return supportedProtocolVersions.indexOf(v) !== -1;
 				});
 			if (compatible.length === 0)
 			{

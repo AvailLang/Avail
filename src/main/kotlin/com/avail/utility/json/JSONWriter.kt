@@ -57,7 +57,7 @@ class JSONWriter : AutoCloseable
 	 * The [stack][Deque] of [states][JSONState], to ensure correct usage of the
 	 * [writer][JSONWriter].
 	 */
-	internal val stack: Deque<JSONState> = LinkedList<JSONState>()
+	internal val stack = LinkedList<JSONState>()
 
 	/**
 	 * Answer the accumulated String contents of the [JSONWriter].
@@ -429,8 +429,7 @@ class JSONWriter : AutoCloseable
 	}
 
 	/** The current [JSONState] of this [JSONWriter]. */
-	internal val currentState: JSONState
-		get() = stack.peekFirst()
+	private val currentState: JSONState get() = stack.peekFirst()
 
 	/**
 	 * Write a JSON `null` to the underlying document [writer][Writer].

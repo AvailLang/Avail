@@ -42,6 +42,8 @@ import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.TupleTypeDescriptor.stringType
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.TypeDescriptor.Types.MODULE
+import com.avail.descriptor.atoms.A_Atom
+import com.avail.descriptor.tuples.A_String
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*

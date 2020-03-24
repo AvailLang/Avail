@@ -318,8 +318,7 @@ class IOSystem constructor(val runtime: AvailRuntime)
 		 * explicitly when the file is closed.  This weak set allows the cache
 		 * removals to happen efficiently.
 		 */
-		val bufferKeys: MutableMap<BufferKey, Void> =
-			synchronizedMap(WeakHashMap<BufferKey, Void>())
+		val bufferKeys = synchronizedMap<BufferKey, Void>(WeakHashMap())
 	}
 
 	/**

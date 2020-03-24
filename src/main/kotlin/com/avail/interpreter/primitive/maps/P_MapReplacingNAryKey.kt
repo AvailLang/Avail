@@ -177,14 +177,11 @@ object P_MapReplacingNAryKey : Primitive(3, CanInline, CanFold)
 		val map = interpreter.argument(0)
 		val pathTuple = interpreter.argument(1)
 		val newValue = interpreter.argument(2)
-		try
-		{
-			return interpreter.primitiveSuccess(recursivelyUpdateMap(
+		return try {
+			interpreter.primitiveSuccess(recursivelyUpdateMap(
 				map, pathTuple, 1, newValue))
-		}
-		catch (e: AvailException)
-		{
-			return interpreter.primitiveFailure(e)
+		} catch (e: AvailException) {
+			interpreter.primitiveFailure(e)
 		}
 
 	}

@@ -74,7 +74,7 @@ class CommentBuilder private constructor(
 	 * The alias keyword provides alias to which the method/macro is referred
 	 * to by.
 	 */
-	private val aliases: ArrayList<StacksAliasTag>
+	private val aliases = ArrayList<StacksAliasTag>(0)
 
 	/**
 	 * The author keyword indicates the method implementation author.
@@ -85,91 +85,90 @@ class CommentBuilder private constructor(
 	 * The category keyword provides a category to which the method
 	 * implementation belongs.
 	 */
-	private val categories: ArrayList<StacksCategoryTag>
+	private val categories = ArrayList<StacksCategoryTag>(1)
 
 	/**
 	 * The general description provided by the comment
 	 */
-	private var description: StacksDescription =
-		StacksDescription(listOf())
+	private var description: StacksDescription = StacksDescription(listOf())
 
 	/**
 	 * The field keyword indicates a field in the class implementation.
 	 */
-	private val fields: ArrayList<StacksFieldTag>
+	private val fields = ArrayList<StacksFieldTag>(0)
 
 	/**
 	 * The forbids keyword indicates the methods forbidden by a
 	 * Grammatical Restriction for the method implementation.
 	 */
-	private val forbids: TreeMap<Int, StacksForbidsTag>
+	private val forbids = TreeMap<Int, StacksForbidsTag>()
 
 	/**
 	 * The globals keyword indicates the name of the method implementation.
 	 */
-	private val globalVariables: ArrayList<StacksGlobalTag>
+	private val globalVariables = ArrayList<StacksGlobalTag>(0)
 
 	/**
 	 * The method keyword indicates the name of the method implementation.
 	 */
-	private val methods: ArrayList<StacksMethodTag>
+	private val methods = ArrayList<StacksMethodTag>(0)
 
 	/**
 	 * The method keyword indicates the name of the method implementation.
 	 */
-	private val modules: ArrayList<StacksModuleTag>
+	private val modules = ArrayList<StacksModuleTag>(0)
 
 	/**
 	 * The macro keyword indicates the name of the macro implementation.
 	 */
-	private val macros: ArrayList<StacksMacroTag>
+	private val macros = ArrayList<StacksMacroTag>(0)
 
 	/**
 	 * The parameter keyword indicates an input for the method
 	 * implementation.
 	 */
-	private val parameters: ArrayList<StacksParameterTag>
+	private val parameters = ArrayList<StacksParameterTag>(0)
 
 	/**
 	 * The raises keyword indicates the exceptions thrown by the method
 	 * implementation.
 	 */
-	private val raises: ArrayList<StacksRaisesTag>
+	private val raises = ArrayList<StacksRaisesTag>(0)
 
 	/**
 	 * The restricts keyword indicates the input types used by the method
 	 * implementation's semantic restriction.
 	 */
-	private val restricts: ArrayList<StacksRestrictsTag>
+	private val restricts = ArrayList<StacksRestrictsTag>(0)
 
 	/**
 	 * The returns keyword indicates the output for the method
 	 * implementation.
 	 */
-	private val returns: ArrayList<StacksReturnTag>
+	private val returns = ArrayList<StacksReturnTag>(0)
 
 	/**
 	 * The see keyword refers the reader to something else.  Not
 	 * inherently linked.
 	 */
-	private val sees: ArrayList<StacksSeeTag>
+	private val sees = ArrayList<StacksSeeTag>(0)
 
 	/**
 	 * The sticky keyword indicates an implementation should be documented
 	 * regardless of visibility.
 	 */
-	private val stickies: ArrayList<StacksStickyTag>
+	private val stickies = ArrayList<StacksStickyTag>(0)
 
 	/**
 	 * The supertype keyword indicates the supertype of the class
 	 * implementation.
 	 */
-	private val supertypes: ArrayList<StacksSuperTypeTag>
+	private val supertypes = ArrayList<StacksSuperTypeTag>(0)
 
 	/**
 	 * The type keyword indicates the name of the class implementation.
 	 */
-	private val types: ArrayList<StacksTypeTag>
+	private val types = ArrayList<StacksTypeTag>(0)
 
 	/**
 	 * The module file name without the path.
@@ -1042,27 +1041,9 @@ class CommentBuilder private constructor(
 
 	init
 	{
-		this.categories = ArrayList(1)
-		this.fields = ArrayList(0)
-		this.forbids = TreeMap()
-		this.globalVariables = ArrayList(0)
-		this.methods = ArrayList(0)
-		this.modules = ArrayList(0)
-		this.macros = ArrayList(0)
-		this.parameters = ArrayList(0)
-		this.raises = ArrayList(0)
-		this.restricts = ArrayList(0)
-		this.returns = ArrayList(0)
-		this.sees = ArrayList(0)
-		this.supertypes = ArrayList(0)
-		this.types = ArrayList(0)
-		this.aliases = ArrayList(0)
-		this.stickies = ArrayList(0)
 		val tempTokens = ArrayList<QuotedStacksToken>()
-
-		tempTokens
-			.add(QuotedStacksToken.create("Unclassified", 0, 0, 0, moduleName))
-
+		tempTokens.add(
+			QuotedStacksToken.create("Unclassified", 0, 0, 0, moduleName))
 		this.categories.add(StacksCategoryTag(tempTokens))
 	}
 

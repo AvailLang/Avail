@@ -933,12 +933,7 @@ class CompilerDiagnostics(
 				continuation(emptyToken.makeShared())
 				return
 			}
-			continuation(
-				candidates.stream()
-					.max(Comparator.comparing<A_Token, Int> {
-						t -> t.string().tupleSize()
-					})
-					.get())
+			continuation(candidates.maxBy { it.string().tupleSize() }!!)
 		}
 
 		/**

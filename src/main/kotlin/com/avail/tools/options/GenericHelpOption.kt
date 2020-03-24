@@ -32,8 +32,8 @@
 
 package com.avail.tools.options
 
+import com.avail.tools.options.OptionProcessorFactory.Cardinality.Companion.OPTIONAL
 import java.io.IOException
-import java.lang.String.format
 import kotlin.system.exitProcess
 
 /**
@@ -56,56 +56,28 @@ import kotlin.system.exitProcess
  * @param appendable
  *   The [Appendable] into which the help text should be written.
  */
-class GenericHelpOption<OptionKeyType : Enum<OptionKeyType>> constructor(
+internal class GenericHelpOption<OptionKeyType : Enum<OptionKeyType>>
+constructor(
 	optionKey: OptionKeyType,
 	preamble: String,
-	appendable: Appendable)
-: GenericOption<OptionKeyType>(
+	appendable: Appendable
+) : GenericOption<OptionKeyType>(
 	optionKey,
 	listOf("?"),
+	OPTIONAL,
 	"Display help text containing a description of the application and an "
 	+ "enumeration of its options.",
-	{ _, _ ->
+	{
 		try
 		{
-			writeHelpText(this, preamble, appendable)
+			appendable.append(preamble)
+			appendable.append("\n\n")
+			processor.writeOptionDescriptions(appendable)
 			exitProcess(0)
 		}
 		catch (e: IOException)
 		{
 			throw OptionProcessingException(e)
 		}
-	})
-{
-	companion object
-	{
-		/**
-		 * Write the specified preamble followed by the
-		 * [description][Option.description] of the [options][Option] defined by
-		 * the specified [option processor][OptionProcessor] into the specified
-		 * [Appendable].
-		 *
-		 * @param KeyType
-		 *   The type of the option.
-		 * @param optionProcessor
-		 *   The [option processor][OptionProcessor] whose [options][Option]
-		 *   should be described by the new [GenericHelpOption].
-		 * @param preamble
-		 *   The preamble, i.e. any text that should precede an enumeration of
-		 *   the [options][Option].
-		 * @param appendable
-		 *   The [Appendable] into which the help text should be written.
-		 * @throws IOException
-		 *   If an [I/O exception][IOException] occurs.
-		 */
-		@Throws(IOException::class)
-		internal fun <KeyType : Enum<KeyType>> writeHelpText(
-			optionProcessor: OptionProcessor<KeyType>,
-			preamble: String,
-			appendable: Appendable)
-		{
-			appendable.append(format("%s%n%n", preamble))
-			optionProcessor.writeOptionDescriptions(appendable)
-		}
-	}
-}
+	},
+	null)

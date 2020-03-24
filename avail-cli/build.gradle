@@ -103,7 +103,6 @@ jar {
 
 // Produce a fat JAR for the IndexFileAnalyzer.
 jar {
-
 	manifest {
 		attributes 'Main-Class': 'com.avail.tools.fileanalyzer.IndexedFileAnalyzer'
 	}

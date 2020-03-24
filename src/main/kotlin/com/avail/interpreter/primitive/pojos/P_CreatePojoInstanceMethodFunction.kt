@@ -49,6 +49,7 @@ import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TupleTypeDescriptor.*
 import com.avail.descriptor.TypeDescriptor.Types.RAW_POJO
 import com.avail.descriptor.TypeDescriptor.Types.TOP
+import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailErrorCode.E_JAVA_METHOD_NOT_AVAILABLE

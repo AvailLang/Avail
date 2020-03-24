@@ -94,27 +94,4 @@ class IndexedFileAnalyzerConfiguration : Configuration
 
 	/** The name of the [IndexedFile] to analyze. */
 	internal var inputFile: File? = null
-
-	override
-	val isValid: Boolean
-		get()
-		{
-			when {
-				inputFile == null -> {
-					// No input file was specified.
-					return false
-				}
-				explodeDirectory != null && binary && text -> {
-					// Since bytes are transferred verbatim during an explode, and
-					// the text flag only affects the file name, it would be
-					// misleading to allow both binary and text to be set.
-					return false
-				}
-				counts && !sizes && !binary && !text -> {
-					// Must not specify metadata.
-					return !metadata
-				}
-				else -> return true
-			}
-		}
 }

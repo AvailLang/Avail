@@ -39,6 +39,7 @@ import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.FIRST_OF_SEQUENCE_PHRASE
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*

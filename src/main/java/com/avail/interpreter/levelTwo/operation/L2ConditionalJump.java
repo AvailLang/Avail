@@ -41,8 +41,6 @@ import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
-import java.util.List;
-
 import static com.avail.interpreter.levelTwo.operation.L2ConditionalJump.BranchReduction.SometimesTaken;
 import static com.avail.utility.Nulls.stripNull;
 
@@ -152,38 +150,6 @@ extends L2ControlFlowOperation
 		final L2Generator generator)
 	{
 		return SometimesTaken;
-	}
-
-	@Override
-	public final boolean regenerate (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
-		final L2Generator generator)
-	{
-		final BranchReduction reduction =
-			branchReduction(instruction, registerSet, generator);
-		final List<L2PcOperand> edges = targetEdges(instruction);
-		assert edges.size() == 2;
-		switch (reduction)
-		{
-			case AlwaysTaken:
-			{
-				generator.addInstruction(
-					L2_JUMP.instance,
-					edges.get(0));
-				return true;
-			}
-			case NeverTaken:
-			{
-				generator.addInstruction(
-					L2_JUMP.instance,
-					edges.get(1));
-				return true;
-			}
-			case SometimesTaken:  // Fall-through
-		}
-		generator.addInstruction(instruction);
-		return false;
 	}
 
 	@Override

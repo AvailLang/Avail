@@ -4,6 +4,7 @@
       <w>backpointer</w>
       <w>bgcolor</w>
       <w>boundedly</w>
+      <w>cardinalities</w>
       <w>checkable</w>
       <w>darcula</w>
       <w>devirtualize</w>
@@ -34,6 +35,7 @@
       <w>subkey</w>
       <w>subregion</w>
       <w>subtable</w>
+      <w>synchronizer</w>
       <w>unboundedly</w>
       <w>unparameterized</w>
       <w>unparks</w>

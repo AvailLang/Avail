@@ -46,6 +46,7 @@ import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.TypeDescriptor.Types.TOP
 import com.avail.descriptor.VariableDescriptor.VariableAccessReactor
+import com.avail.descriptor.atoms.A_Atom
 import com.avail.exceptions.AvailErrorCode.E_ILLEGAL_TRACE_MODE
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive

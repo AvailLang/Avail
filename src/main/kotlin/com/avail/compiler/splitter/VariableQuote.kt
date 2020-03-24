@@ -37,7 +37,6 @@ import com.avail.compiler.splitter.MessageSplitter.Metacharacter
 import com.avail.descriptor.A_Type
 import com.avail.descriptor.ReferencePhraseDescriptor
 import com.avail.descriptor.VariableDescriptor
-import com.avail.descriptor.objects.A_BasicObject
 import com.avail.descriptor.parsing.A_Phrase
 import java.util.*
 
@@ -90,7 +89,7 @@ internal class VariableQuote constructor(
 		// Describe the variable reference that was parsed as this argument.
 		arguments!!.next().printOnAvoidingIndent(
 			builder,
-			IdentityHashMap<A_BasicObject, Void>(),
+			IdentityHashMap(),
 			indent + 1)
 		builder.append('↑')
 	}
