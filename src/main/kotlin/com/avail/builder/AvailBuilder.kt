@@ -541,7 +541,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 						TRACE,
 						"Cycle detected in ancestor modules: {0}",
 						moduleGraph.findCycle().stream()
-							.map<String> { it.qualifiedName }
+							.map { it.qualifiedName }
 							.collect(joining("\n\t", "\n\t", "")))
 					{
 						override fun abortCompilation()

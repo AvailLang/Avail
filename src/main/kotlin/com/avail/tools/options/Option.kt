@@ -32,6 +32,7 @@
 
 package com.avail.tools.options
 
+import com.avail.tools.options.OptionProcessorFactory.*
 import java.util.*
 
 /**
@@ -67,8 +68,27 @@ interface Option<OptionKeyType : Enum<OptionKeyType>>
 	val description: String
 
 	/**
-	 * The action that should be performed upon setting of this
-	 * [option][GenericOption].
+	 * The [Cardinality] of this option.  There may be stricter conditions that
+	 * can be further checked by [OptionProcessor.checkEncountered] or a custom
+	 * [OptionProcessorFactory.rule].
 	 */
-	val action: OptionProcessor<OptionKeyType>.(String, String?) -> Unit
+	val cardinality: Cardinality
+
+	/**
+	 * The action that should be performed upon setting of this
+	 * [option][GenericOption].  This action is provided when no argument is to
+	 * be supplied for the option.  Exactly one of [action] or [action2] should
+	 * be set to a non-`null` value.
+	 */
+	val action: (OptionInvocation<OptionKeyType>.() -> Unit)?
+
+	/**
+	 * The action that should be performed upon setting of this
+	 * [option][GenericOption].  This action is provided when an argument is
+	 * required for the option.  Exactly one of [action] or [action2] should be
+	 * set to a non-`null` value.
+	 */
+	val action2: (OptionInvocationWithArgument<OptionKeyType>.() -> Unit)?
+
+	val takesArgument: Boolean get() = action2 != null
 }

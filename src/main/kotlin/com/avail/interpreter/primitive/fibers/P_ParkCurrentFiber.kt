@@ -44,7 +44,6 @@ import com.avail.descriptor.TypeDescriptor.Types.TOP
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
-import com.avail.utility.MutableOrNull
 
 /**
  * **Primitive:** Attempt to acquire the
@@ -66,10 +65,10 @@ object P_ParkCurrentFiber : Primitive(0, CannotFail, CanSuspend, Unknown)
 	{
 		interpreter.checkArgumentCount(0)
 		val fiber = interpreter.fiber()
-		val result = MutableOrNull<Primitive.Result>()
+		lateinit var result: Result
 		fiber.lock {
 			// If permit is not available, then park this fiber.
-			result.value =
+			result =
 				if (fiber.getAndSetSynchronizationFlag(PERMIT_UNAVAILABLE, true))
 				{
 					interpreter.primitivePark(interpreter.function!!)
@@ -79,7 +78,7 @@ object P_ParkCurrentFiber : Primitive(0, CannotFail, CanSuspend, Unknown)
 					interpreter.primitiveSuccess(nil)
 				}
 		}
-		return result.value()
+		return result
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

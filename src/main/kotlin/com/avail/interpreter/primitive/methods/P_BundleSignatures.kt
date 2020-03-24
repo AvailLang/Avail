@@ -40,6 +40,8 @@ import com.avail.descriptor.SetDescriptor
 import com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType
 import com.avail.descriptor.TypeDescriptor.Types.DEFINITION
 import com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE
+import com.avail.descriptor.atoms.AtomDescriptor
+import com.avail.descriptor.bundles.MessageBundleDescriptor
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline

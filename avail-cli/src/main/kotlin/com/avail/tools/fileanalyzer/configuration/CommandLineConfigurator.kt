@@ -32,9 +32,13 @@
 
 package com.avail.tools.fileanalyzer.configuration
 
+import com.avail.tools.compiler.configuration.CommandLineConfigurator
 import com.avail.tools.fileanalyzer.IndexedFileAnalyzer
 import com.avail.tools.fileanalyzer.configuration.CommandLineConfigurator.OptionKey.*
-import com.avail.tools.options.*
+import com.avail.tools.options.OptionProcessingException
+import com.avail.tools.options.OptionProcessor
+import com.avail.tools.options.OptionProcessorFactory
+import com.avail.tools.options.OptionProcessorFactory.Cardinality
 import com.avail.utility.configuration.ConfigurationException
 import com.avail.utility.configuration.Configurator
 import java.io.File
@@ -106,9 +110,9 @@ class CommandLineConfigurator constructor(
 		 * string, and print that string.
 		 *
 		 * If combined with [BINARY], it shows 16 bytes of hex on the left, and
-		 * the corresponding decoded <em>ASCII</em> characters on the right,
-		 * using a '.' for anything outside the printable ASCII range (0x20
-		 * through 0x7E).
+		 * the corresponding decoded *ASCII* characters on the right, using a
+		 * '.' for anything outside the printable ASCII range (0x20 through
+		 * 0x7E).
 		 */
 		TEXT,
 
@@ -153,8 +157,11 @@ class CommandLineConfigurator constructor(
 		 */
 		UPPER,
 
+		/** The (standard) option to show help.  Invoked with '-?'. */
+		HELP,
+
 		/** The indexed file to operate on. */
-		INDEXED_FILE;
+		INDEXED_FILE
 	}
 
 	/**
@@ -165,11 +172,9 @@ class CommandLineConfigurator constructor(
 	 * @return
 	 *   An option processor.
 	 */
-	private fun createOptionProcessor(): OptionProcessor<OptionKey>
-	{
-		val factory = OptionProcessorFactory(OptionKey::class.java)
-		factory.configure {
-			addOption(GenericOption(
+	private fun createOptionProcessor() =
+		OptionProcessorFactory.create<OptionKey> {
+			option(
 				COUNTS,
 				listOf("c", "counts"),
 				"Whether to show 'Record=', the zero-based record number, and "
@@ -177,136 +182,145 @@ class CommandLineConfigurator constructor(
 				+ "-s nor -b nor -t is specified, only the undecorated count "
 				+ "of the number of eligible records is output.  In that case, "
 				+ "-m is forbidden.")
-			{ _ ->
-				checkEncountered(COUNTS, 0)
-				configuration.counts = true
-			})
-			addOption(GenericOption(
+				{
+					configuration.counts = true
+				}
+			option(
 				SIZES,
 				listOf("s", "sizes"),
 				"Whether to show record sizes prior to each record.")
-			{ _ ->
-				checkEncountered(SIZES, 0)
-				configuration.sizes = true
-			})
-			addOption(GenericOption(
+				{
+					configuration.sizes = true
+				}
+			option(
 				BINARY,
 				listOf("b", "binary"),
 				"Whether to show each byte of records and/or metadata in "
 				+ "hexadecimal.  Can be combined with -t.")
-			{ _ ->
-				checkEncountered(BINARY, 0)
-				configuration.binary = true
-			})
-			addOption(GenericOption(
+				{
+					configuration.binary = true
+				}
+			option(
 				TEXT,
 				listOf("t", "text"),
 				"Whether to treat each record as a UTF-8 encoded Unicode "
 				+ "string, and output it as text.  If combined with -b, the "
 				+ "left side contains hex bytes and the right side contains "
 				+ "printable ASCII characters (0x20-0x7E) or a '.'.")
-			{ _ ->
-				checkEncountered(TEXT, 0)
-				configuration.text = true
-			})
-			addOption(GenericOption(
+				{
+					configuration.text = true
+				}
+			optionWithArgument(
 				EXPLODE,
 				listOf("x", "explode"),
 				"A directory to use or create, into which records and/or "
 				+ "metadata will be written in separate files.  If -t is "
 				+ "specified, '.txt' will be appended to the filenames.")
-			{ _, directoryName ->
-				checkEncountered(EXPLODE, 0)
-				configuration.explodeDirectory = File(directoryName!!)
-			})
-			addOption(GenericOption(
+				{
+					configuration.explodeDirectory = File(argument)
+				}
+			option(
 				METADATA,
 				listOf("m", "metadata"),
 				"Whether to process metadata of the input file.  If specified, "
 				+ "and if the metadata is present and non-empty, the metadata "
 				+ "will be processed in the same way as the records, after the "
 				+ "last record, if any.")
-			{ _ ->
-				checkEncountered(METADATA, 0)
-				configuration.metadata = true
-			})
-			addOption(GenericOption(
+				{
+					configuration.metadata = true
+				}
+			optionWithArgument(
 				LOWER,
 				listOf("l", "lower"),
 				"The lowest zero-based record number that may be processed.")
-			{ keyword, recordNumberString ->
-				checkEncountered(LOWER, 0)
-				try
 				{
-					// Note: parseLong will (also) throw an exception if
-					// it tries to parse "" as a result of the illegal
-					// use of "=" without any items following.
-					val value = parseLong(recordNumberString)
-					if (value < 0L)
+					try
+					{
+						// Note: parseLong will (also) throw an exception if
+						// it tries to parse "" as a result of the illegal
+						// use of "=" without any items following.
+						val value = parseLong(argument)
+						if (value < 0L)
+						{
+							throw OptionProcessingException(
+								"$keyword: Argument must be ≥ 0")
+						}
+						configuration.lower = value
+					}
+					catch (e: NumberFormatException)
 					{
 						throw OptionProcessingException(
-							"$keyword: Argument must be ≥ 0")
+							"$keyword: Illegal argument.", e)
 					}
-					configuration.lower = value
 				}
-				catch (e: NumberFormatException)
-				{
-					throw OptionProcessingException(
-						"$keyword: Illegal argument.", e)
-				}
-			})
-			addOption(GenericOption(
+			optionWithArgument(
 				UPPER,
 				listOf("u", "upper"),
 				"The highest zero-based record number that may be processed.")
-			{ keyword, recordNumberString ->
-				checkEncountered(UPPER, 0)
-				try
 				{
-					// Note: parseLong will (also) throw an exception if
-					// it tries to parse "" as a result of the illegal
-					// use of "=" without any items following.
-					val value = parseLong(recordNumberString)
-					if (value < -1L)
+					try
+					{
+						// Note: parseLong will (also) throw an exception if
+						// it tries to parse "" as a result of the illegal
+						// use of "=" without any items following.
+						val value = parseLong(argument)
+						if (value < -1L)
+						{
+							throw OptionProcessingException(
+								"$keyword: Argument must be ≥ -1")
+						}
+						configuration.upper = value
+					}
+					catch (e: NumberFormatException)
 					{
 						throw OptionProcessingException(
-							"$keyword: Argument must be ≥ -1")
+							"$keyword: Illegal argument.", e)
 					}
-					configuration.upper = value
 				}
-				catch (e: NumberFormatException)
-				{
-					throw OptionProcessingException(
-						"$keyword: Illegal argument.", e)
-				}
-			})
-			addOption(DefaultOption(
+			helpOption(
+				HELP,
+				"The IndexedFileAnalyzer understands these options:",
+				helpStream)
+			defaultOption(
 				INDEXED_FILE,
-				"The indexed file to analyze.")
-			{ _, indexedFileName ->
-				try
+				"The indexed file to analyze.",
+				Cardinality.MANDATORY)
 				{
-					checkEncountered(INDEXED_FILE, 0)
-					assert(indexedFileName != null)
-					if (!File(indexedFileName!!).isFile)
+					try
+					{
+						if (!File(argument).isFile)
+						{
+							throw OptionProcessingException(
+								"File not found, or directory was specified")
+						}
+						configuration.inputFile = File(argument)
+					}
+					catch (e: OptionProcessingException)
 					{
 						throw OptionProcessingException(
-							"File not found, or directory was specified")
+							"«default»: ${e.message}",
+							e)
 					}
-					configuration.inputFile = File(indexedFileName)
 				}
-				catch (e: OptionProcessingException)
-				{
-					throw OptionProcessingException(
-						"«default»: ${e.message}",
-						e)
-				}
-
-
-			})
+			configuration.rule("No input file was specified"
+			) {
+				inputFile != null
+			}
+			configuration.rule(
+				"--explode cannot produce --binary + --text combination"
+			) {
+				// Since bytes are transferred verbatim during an explode, and
+				// the text flag only affects the file name, it would be
+				// misleading to allow both binary and text to be set.
+				explodeDirectory == null || !binary || !text
+			}
+			configuration.rule(
+				"If only --counts are requested (not --sizes, -binary, or "
+				+ "--text, then --metadata must not be specified"
+			) {
+				!(counts && !sizes && !binary && !text && metadata)
+			}
 		}
-		return factory.createOptionProcessor()
-	}
 
 	@Synchronized @Throws(ConfigurationException::class)
 	override fun updateConfiguration()

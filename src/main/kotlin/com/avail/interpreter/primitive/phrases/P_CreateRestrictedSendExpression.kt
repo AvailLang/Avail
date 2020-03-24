@@ -187,8 +187,8 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 					// There were problems.  Fail the primitive with a string
 					// describing them all.
 					@Suppress("UNUSED_VARIABLE")
-					val problemReport: A_String = when {
-						problems.size == 1 -> problems[0]
+					val problemReport: A_String = when (problems.size) {
+						1 -> problems[0]
 						else -> stringFrom(
 							buildString {
 								append(
@@ -201,7 +201,7 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 										increaseIndentation(
 											problem.asNativeString(), 1))
 								}
-						})
+							})
 					}
 					// TODO: Yeah, we went to the effort of assembling a pretty
 					// report about what went wrong, but the bootstrap logic can't

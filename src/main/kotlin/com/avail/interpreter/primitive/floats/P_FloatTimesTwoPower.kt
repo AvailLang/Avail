@@ -63,10 +63,11 @@ object P_FloatTimesTwoPower : Primitive(3, CannotFail, CanFold, CanInline)
 		//		final A_Token literalTwo = interpreter.argument(1);
 		val b = interpreter.argument(2)
 
-		val scale = if (b.isInt)
-			min(max(b.extractInt(), -10000), 10000)
-		else
-			if (b.greaterOrEqual(zero())) 10000 else -10000
+		val scale = when {
+			b.isInt -> min(max(b.extractInt(), -10000), 10000)
+			b.greaterOrEqual(zero()) -> 10000
+			else -> -10000
+		}
 		val f = scalb(a.extractFloat(), scale)
 		return interpreter.primitiveSuccess(fromFloatRecycling(f, a, true))
 	}

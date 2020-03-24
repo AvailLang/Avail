@@ -153,13 +153,10 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.StandardOpenOption
 import java.util.*
 import java.util.Collections.emptyList
-import java.util.Comparator.comparing
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.stream.Collectors.toList
-import java.util.stream.Collectors.toMap
-import java.util.stream.IntStream
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.streams.toList
@@ -321,10 +318,7 @@ class AvailCompiler(
 				// Reduce to the plans' unique bundles.
 				val bundlesMap = bundleTree.allParsingPlansInProgress()
 				val bundles = toList<A_Bundle>(bundlesMap.keysAsSet().asTuple())
-				bundles.sortWith(
-					comparing<A_Bundle, String> {
-						b -> b.message().atomName().asNativeString()
-					})
+				bundles.sortedBy { it.message().atomName().asNativeString() }
 				var first = true
 				val maxBundles = 3
 				for (bundle in bundles.subList(0, min(bundles.size,maxBundles)))
@@ -1659,43 +1653,35 @@ class AvailCompiler(
 			typeList
 		) { typeNamesList ->
 			assert(typeList.size == typeNamesList.size)
-			val typeMap = IntStream.range(0, typeList.size)
-				.boxed()
-				.collect(toMap(typeList::get, typeNamesList::get))
+			val typeMap = (typeList zip typeNamesList).toMap()
 			// Stitch the type names back onto the plan strings, prior to
 			// sorting by type name.
 			val entries: ArrayList<Map.Entry<String, Set<A_Type>>> =
 				ArrayList(typesByPlanString.entries)
-			entries.sortWith(
-				comparing<Map.Entry<String, Set<A_Type>>, String> { it.key })
-
-			val builder = StringBuilder(100)
-			builder.append("phrase to have a type other than ")
-			builder.append(actualTypeString)
-			builder.append(".  Expecting:")
-			for (entry in entries)
-			{
-				val planString = entry.key
-				val types = entry.value
-				builder.append("\n\t")
-				builder.append(planString)
-				builder.append("   ")
-				val typeNames = types.stream()
-					.map { typeMap[it] }
-					.sorted()
-					.collect(toList<String>())
-				var first = true
-				for (typeName in typeNames)
-				{
-					if (!first)
-					{
-						builder.append(", ")
+			entries.sortedBy { it.key }
+			val string = buildString {
+				append("phrase to have a type other than ")
+				append(actualTypeString)
+				append(".  Expecting:")
+				for ((planString, types) in entries) {
+					append("\n\t")
+					append(planString)
+					append("   ")
+					val typeNames = types.stream()
+						.map { typeMap[it] }
+						.sorted()
+						.collect(toList<String>())
+					var first = true
+					for (typeName in typeNames) {
+						if (!first) {
+							append(", ")
+						}
+						first = false
+						append(increaseIndentation(typeName, 2))
 					}
-					first = false
-					builder.append(increaseIndentation(typeName, 2))
 				}
 			}
-			continuation(builder.toString())
+			continuation(string)
 		}
 	}
 

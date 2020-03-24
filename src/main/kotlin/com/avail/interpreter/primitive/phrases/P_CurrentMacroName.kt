@@ -47,7 +47,7 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
- * **Primitive:** Answer the [atom]][A_Atom] for which a send phrase is being
+ * **Primitive:** Answer the [atom][A_Atom] for which a send phrase is being
  * macro-evaluated in the current fiber.  Fail if macro evaluation is not
  * happening in this fiber.
  */

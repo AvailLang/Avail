@@ -74,9 +74,9 @@ import java.util.*
  */
 class StacksParser private constructor(
 	private val tokens: List<AbstractStacksToken>,
-	val sectionStartLocations: List<Int>,
-	val moduleName: String,
-	val commentStartLine: Int,
+	private val sectionStartLocations: List<Int>,
+	private val moduleName: String,
+	private val commentStartLine: Int,
 	linkingFileMap: LinkingFileMap)
 {
 	/**
@@ -415,7 +415,6 @@ class StacksParser private constructor(
 
 		companion object
 		{
-
 			/** An array of all [StacksTagKeyword] enumeration values.  */
 			private val all = values()
 
@@ -431,13 +430,12 @@ class StacksParser private constructor(
 			 * A [mapping][Map] from the string lexeme of the keyword to
 			 * the [StacksKeywords][Enum]
 			 */
-			internal val keywordTable: MutableMap<String, StacksTagKeyword> =
-				HashMap()
+			internal val keywordTable = HashMap<String, StacksTagKeyword>()
 
 			// Learn the lexeme's of the keywords.
 			init
 			{
-				for (keyword in StacksTagKeyword.all())
+				for (keyword in all)
 				{
 					keywordTable[keyword.lexeme] = keyword
 				}

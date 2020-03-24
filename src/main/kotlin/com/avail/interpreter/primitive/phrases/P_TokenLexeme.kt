@@ -37,6 +37,7 @@ import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.TokenDescriptor
 import com.avail.descriptor.TupleTypeDescriptor.nonemptyStringType
 import com.avail.descriptor.TypeDescriptor.Types.TOKEN
+import com.avail.descriptor.tuples.A_String
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*

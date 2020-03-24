@@ -38,6 +38,7 @@ import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.DECLARATION_PHRASE
 import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
+import com.avail.descriptor.TokenDescriptor
 import com.avail.descriptor.TypeDescriptor.Types.TOKEN
 import com.avail.descriptor.VariableUsePhraseDescriptor
 import com.avail.descriptor.VariableUsePhraseDescriptor.newUse

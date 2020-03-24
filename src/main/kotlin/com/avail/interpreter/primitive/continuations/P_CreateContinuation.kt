@@ -46,7 +46,6 @@ import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TupleDescriptor.toList
 import com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType
 import com.avail.descriptor.VariableTypeDescriptor.variableTypeFor
-import com.avail.descriptor.objects.A_BasicObject
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_CREATE_CONTINUATION_FOR_INFALLIBLE_PRIMITIVE_FUNCTION
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_CONTINUATION_STACK_SIZE
 import com.avail.interpreter.Interpreter
@@ -93,7 +92,7 @@ object P_CreateContinuation : Primitive(5, CanFold, CanInline)
 			stackp.extractInt(),
 			unoptimizedChunk,
 			TO_RETURN_INTO.offsetInDefaultChunk,
-			toList<A_BasicObject>(stack),
+			toList(stack),
 			0)
 		return interpreter.primitiveSuccess(cont)
 	}
