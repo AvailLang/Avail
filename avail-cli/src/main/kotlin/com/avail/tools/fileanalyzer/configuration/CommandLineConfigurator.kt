@@ -161,7 +161,7 @@ class CommandLineConfigurator constructor(
 		HELP,
 
 		/** The indexed file to operate on. */
-		INDEXED_FILE;
+		INDEXED_FILE
 	}
 
 	/**
