@@ -34,6 +34,8 @@ package com.avail.tools.fileanalyzer
 
 import com.avail.persistence.IndexedFile
 import com.avail.persistence.IndexedFileBuilder
+import com.avail.tools.fileanalyzer.IndexedFileAnalyzer.ProcessResult.CONFIGURATION_ERROR
+import com.avail.tools.fileanalyzer.IndexedFileAnalyzer.ProcessResult.OTHER_ERROR
 import com.avail.tools.fileanalyzer.configuration.CommandLineConfigurator
 import com.avail.tools.fileanalyzer.configuration.CommandLineConfigurator.OptionKey
 import com.avail.tools.fileanalyzer.configuration.IndexedFileAnalyzerConfiguration
@@ -44,6 +46,7 @@ import java.nio.ByteBuffer
 import java.nio.charset.CodingErrorAction
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.system.exitProcess
 import kotlin.text.Charsets.UTF_8
 
 /**
@@ -274,6 +277,25 @@ object IndexedFileAnalyzer
 		return targetBuffer.array()
 	}
 
+	/** An enumeration of values that can be produced by this program. */
+	enum class ProcessResult(val value: Int) {
+		/**
+		 * The process completed normally.  This is what is automatically
+		 * returned by successful completion of Java's main().
+		 */
+		@Suppress("unused")
+		OK(0),
+
+		/**
+		 * The process detected a configuration error, and exited before
+		 * producing any normal output or side-effect.
+		 */
+		CONFIGURATION_ERROR(1),
+
+		/** The process failed during execution of the command. */
+		OTHER_ERROR(2)
+	}
+
 	/**
 	 * The entry point for command-line invocation of the indexed file analyzer.
 	 *
@@ -283,92 +305,90 @@ object IndexedFileAnalyzer
 	@JvmStatic
 	fun main(args: Array<String>)
 	{
-		// Configure the analyzer according to the command-line arguments and
-		// ensure that any supplied paths are syntactically valid.
-		configuration = try
-		{
-			configure(args)
+		try {
+			// Configure the analyzer according to the command-line arguments
+			// and ensure that any supplied paths are syntactically valid.
+			configuration = configure(args)
+			with(configuration) {
+				val builder = ArbitraryIndexedFileBuilder(inputFile!!)
+				indexedFile = builder.openOrCreate(inputFile!!, false)
+				val indices = indices()
+				when {
+					patchOutputFile != null -> {
+						// Patch the file into an output file by transforming
+						// each record, stripping one level of UTF-8 encoding.
+						// Fail and delete the destination file if any record
+						// decodes to a string with characters outside U+0000 -
+						// U+00FF.
+						assert(!patchOutputFile!!.exists())
+						val outputFile = builder.openOrCreate(
+							patchOutputFile!!, true)
+						try {
+							indices.forEach { recordNumber ->
+								val sourceRecord = indexedFile[recordNumber]
+								val targetRecord = try {
+									stripUTF8(sourceRecord)
+								} catch (e: Exception) {
+									throw Exception(
+										"In record $recordNumber, ${e.message}")
+								}
+								outputFile.add(targetRecord)
+							}
+							val metadata = indexedFile.metadata
+							if (metadata != null) {
+								outputFile.metadata = metadata
+							}
+							outputFile.commit()
+							outputFile.close()
+							// Success!
+						} catch (e: Exception) {
+							System.err.println(e.message)
+							outputFile.close()
+							patchOutputFile!!.delete()
+							throw e
+						}
+					}
+					explodeDirectory != null -> {
+						// Explode records into files.
+						val dir = explodeDirectory!!
+						val suffix = if (text) ".txt" else ""
+						dir.mkdirs()
+						indices.forEach {
+							dir.resolve("$it$suffix")
+								.writeBytes(indexedFile[it])
+						}
+						if (metadata) {
+							val metadataBytes = indexedFile.metadata
+							if (metadataBytes != null) {
+								dir.resolve("metadata$suffix")
+									.writeBytes(metadataBytes)
+							}
+						}
+					}
+					counts && !binary && !text && !sizes -> {
+						// Output a raw count, a linefeed, and nothing else.
+						assert(!metadata)
+						println(indices.count())
+					}
+					counts || sizes || binary || text -> {
+						// Output a stream of records.
+						indices().forEach {
+							writeRecord(it, System.out)
+						}
+						if (metadata) writeRecord(-1L, System.out)
+					}
+				}
+			}
 		}
-		catch (e: ConfigurationException)
-		{
+		catch (e: ConfigurationException) {
 			// The command-line arguments were malformed, or
 			// The arguments specified a missing file.
 			System.err.println(e.message)
-			return
+			exitProcess(CONFIGURATION_ERROR.value)
 		}
-		with (configuration) {
-			val builder = ArbitraryIndexedFileBuilder(inputFile!!)
-			indexedFile = builder.openOrCreate(inputFile!!, false)
-			val indices = indices()
-			when {
-				patchOutputFile != null -> {
-					// Patch the file into an output file by transforming each
-					// record, stripping one level of UTF-8 encoding.  Fail and
-					// delete the destination file if any record decodes to a
-					// string with characters outside U+0000 - U+00FF.
-					assert(!patchOutputFile!!.exists())
-					val outputFile = builder.openOrCreate(
-						patchOutputFile!!, true)
-					try {
-						indices.forEach { recordNumber ->
-							val sourceRecord = indexedFile[recordNumber]
-							val targetRecord = try {
-								stripUTF8(sourceRecord)
-							}
-							catch (e : Exception)
-							{
-								throw Exception(
-									"In record $recordNumber, ${e.message}")
-							}
-							outputFile.add(targetRecord)
-						}
-						val metadata = indexedFile.metadata
-						if (metadata != null)
-						{
-							outputFile.metadata = metadata
-						}
-						outputFile.commit()
-						outputFile.close()
-						// Success!
-					}
-					catch (e : Exception)
-					{
-						System.err.println(e.message)
-						outputFile.close()
-						patchOutputFile!!.delete()
-						throw e
-					}
-				}
-				explodeDirectory != null -> {
-					// Explode records into files.
-					val dir = explodeDirectory!!
-					val suffix = if (text) ".txt" else ""
-					dir.mkdirs()
-					indices.forEach {
-						dir.resolve("$it$suffix")
-							.writeBytes(indexedFile[it])
-					}
-					if (metadata) {
-						val metadataBytes = indexedFile.metadata
-						if (metadataBytes != null) {
-							dir.resolve("metadata$suffix")
-								.writeBytes(metadataBytes)
-						}
-					}
-				}
-				counts && !binary && !text && !sizes -> {
-					// Output a raw count, a linefeed, and nothing else.
-					assert(!metadata)
-					println(indices.count())
-				}
-				counts || sizes || binary || text -> {
-					// Output a stream of records.
-					indices().forEach {
-						writeRecord(it, System.out)
-					}
-					if (metadata) writeRecord(-1L, System.out)
-				}
-			}
+		catch (e: Exception) {
+			System.err.println(e.message)
+			exitProcess(OTHER_ERROR.value)
 		}
 	}
 }
