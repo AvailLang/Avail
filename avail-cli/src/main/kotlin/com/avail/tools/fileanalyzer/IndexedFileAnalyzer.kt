@@ -40,6 +40,8 @@ import com.avail.tools.fileanalyzer.configuration.IndexedFileAnalyzerConfigurati
 import com.avail.utility.configuration.ConfigurationException
 import java.io.File
 import java.io.PrintStream
+import java.nio.ByteBuffer
+import java.nio.charset.CodingErrorAction
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.text.Charsets.UTF_8
@@ -228,6 +230,51 @@ object IndexedFileAnalyzer
 	private lateinit var indexedFile: IndexedFile
 
 	/**
+	 * Given a [ByteArray] which accidentally double-encodes a string as UTF-8,
+	 * decode one layer, answering the resulting [ByteArray].  In particular,
+	 * decode the input bytes as UTF-8, make sure no char in the resulting
+	 * string is outside the range U+0000 – U+00FF, then output each char as a
+	 * byte in the output.
+	 *
+	 * @param input
+	 *   The input [ByteArray].
+	 * @return
+	 *   The output [ByteArray].
+	 * @throws Exception
+	 *   If the input [ByteArray] does not have the expected form.
+	 */
+	@Throws(Exception::class)
+	private fun stripUTF8(input: ByteArray): ByteArray {
+		val decoder = UTF_8.newDecoder()
+			.onMalformedInput(CodingErrorAction.REPORT)
+			.onUnmappableCharacter(CodingErrorAction.REPORT)
+		val sourceBuffer = ByteBuffer.wrap(input)
+		val string = try {
+			decoder.decode(sourceBuffer)
+		}
+		catch (e: Throwable) {
+			throw Exception(
+				"at position ${sourceBuffer.position()}, ${e.message}")
+		}
+		// Check that all characters are bytes (U+0000 – U+00FF), and write
+		// each character as an individual byte to the outputBuffer.
+		val targetBuffer = ByteBuffer.allocate(string.length)
+		for (i in string.indices) {
+			val ch = string[i]
+			if (ch > '\u00ff') {
+				// Figure out where it was in the input by back-translating
+				// the prefix.
+				val pos = string.substring(0, i).toByteArray(UTF_8).size
+				throw Exception(
+					"at position $pos, invalid encoding ($ch).")
+			}
+			targetBuffer.put(ch.toByte())
+		}
+		assert(targetBuffer.position() == string.length)
+		return targetBuffer.array()
+	}
+
+	/**
 	 * The entry point for command-line invocation of the indexed file analyzer.
 	 *
 	 * @param args
@@ -254,6 +301,44 @@ object IndexedFileAnalyzer
 			indexedFile = builder.openOrCreate(inputFile!!, false)
 			val indices = indices()
 			when {
+				patchOutputFile != null -> {
+					// Patch the file into an output file by transforming each
+					// record, stripping one level of UTF-8 encoding.  Fail and
+					// delete the destination file if any record decodes to a
+					// string with characters outside U+0000 - U+00FF.
+					assert(!patchOutputFile!!.exists())
+					val outputFile = builder.openOrCreate(
+						patchOutputFile!!, true)
+					try {
+						indices.forEach { recordNumber ->
+							val sourceRecord = indexedFile[recordNumber]
+							val targetRecord = try {
+								stripUTF8(sourceRecord)
+							}
+							catch (e : Exception)
+							{
+								throw Exception(
+									"In record $recordNumber, ${e.message}")
+							}
+							outputFile.add(targetRecord)
+						}
+						val metadata = indexedFile.metadata
+						if (metadata != null)
+						{
+							outputFile.metadata = metadata
+						}
+						outputFile.commit()
+						outputFile.close()
+						// Success!
+					}
+					catch (e : Exception)
+					{
+						System.err.println(e.message)
+						outputFile.close()
+						patchOutputFile!!.delete()
+						throw e
+					}
+				}
 				explodeDirectory != null -> {
 					// Explode records into files.
 					val dir = explodeDirectory!!
