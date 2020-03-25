@@ -157,6 +157,19 @@ class CommandLineConfigurator constructor(
 		 */
 		UPPER,
 
+		/**
+		 * This option corrects an existing indexed file in-place (by using a
+		 * temporary file and renaming).  The adjustment is to strip a layer of
+		 * UTF-8 encoding from each record.  In particular, each record has been
+		 * double-encoded as UTF-8, meaning the bytes of the record produce a
+		 * sequence of Unicode characters which all happen to be in the Latin-1
+		 * range (U+0000-U+00FF).  These bytes can themselves be interpreted as
+		 * a UTF-8 stream, producing an arbitrary Unicode string.  Strip off the
+		 * first encoding, and re-write each record with the correctly UTF-8
+		 * encoded string.
+		 */
+		PATCH_RECORDS_STRIPPING_UTF8,
+
 		/** The (standard) option to show help.  Invoked with '-?'. */
 		HELP,
 
@@ -277,6 +290,21 @@ class CommandLineConfigurator constructor(
 							"$keyword: Illegal argument.", e)
 					}
 				}
+			optionWithArgument(
+				PATCH_RECORDS_STRIPPING_UTF8,
+				listOf("patch-utf-8"),
+				"TEMPORARY FEATURE – Create a new file, named by the argument, "
+					+ "unwrapping a layer of UTF-8 by decoding it as UTF-8 to "
+					+ "a string, failing immediately if any character is not "
+					+ "Latin-1 (U+0000 - U+00FF).  With each such string, "
+					+ "write the characters with Latin-1 encoding, i.e., one "
+					+ "byte per character.")
+			{
+				val file = File(argument)
+				configuration.patchOutputFile = file
+				if (file.exists()) throw OptionProcessingException(
+					"Error - destination file ($argument) already exists.")
+			}
 			helpOption(
 				HELP,
 				"The IndexedFileAnalyzer understands these options:",
@@ -319,6 +347,18 @@ class CommandLineConfigurator constructor(
 				+ "--text, then --metadata must not be specified"
 			) {
 				!(counts && !sizes && !binary && !text && metadata)
+			}
+			configuration.rule(
+				"The '--patch-utf-8' option is incompatible with --counts, "
+				+ "--sizes, --binary, --text, --explode, or --metadata."
+			) {
+				patchOutputFile == null ||
+					(!counts
+						&& !sizes
+						&& !binary
+						&& !text
+						&& explodeDirectory == null
+						&& !metadata)
 			}
 		}
 

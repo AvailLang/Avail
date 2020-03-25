@@ -94,4 +94,7 @@ class IndexedFileAnalyzerConfiguration : Configuration
 
 	/** The name of the [IndexedFile] to analyze. */
 	internal var inputFile: File? = null
+
+	/** The destination file if stripping UTF-8 encoding from records. */
+	internal var patchOutputFile: File? = null
 }
