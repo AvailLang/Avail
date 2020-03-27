@@ -1,5 +1,5 @@
 /*
- * AbstractSlotsEnum.java
+ * AvailIntegerValueHelper.java
  * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,44 +29,22 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.descriptor.representation
 
-package com.avail.descriptor.representation;
-
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.Descriptor;
+import com.avail.descriptor.AvailObject
 
 /**
- * The {@code AbstractSlotsEnum} is an interface that helps ensure that object
- * representations and access are consistent and correct.  In particular, some
- * operations in AvailObject (such as {@link AvailObject#slot(ObjectSlotsEnum)})
- * are expected to operate on enumerations defined as inner classes within the
- * {@link Descriptor} class for which the slot layout is specified.
- *
- * <p>
- * There are two sub-interfaces, {@link ObjectSlotsEnum} and {@link
- * IntegerSlotsEnum}, and the representation access methods defined in {@link
- * AbstractAvailObject} typically restrict the passed enumerations to be of the
- * appropriate kind.
- * </p>
+ * A helper class used by Eclipse to show Logical Structures in the debugger.
+ * In particular, it shows long-valued slots in [AvailObject]s.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public interface AbstractSlotsEnum
-{
+class AvailIntegerValueHelper
+/** Construct a new `AvailIntegerValueHelper`.
+ *
+ * @param longValue The `long` value.
+ */(
 	/**
-	 * Answer the name of this enumeration value.
-	 *
-	 * @return A string that names this enumeration value.
+	 * The `long` value to present.
 	 */
-	String name ();
-
-	/**
-	 * Answer an integer that identifies this enumeration value uniquely within
-	 * this enumeration subclass (i.e., any enumeration class implementing this
-	 * interface).  These values are allocated sequentially to the enumeration
-	 * values, starting at zero.
-	 *
-	 * @return The enumeration value's ordinal number.
-	 */
-	int ordinal ();
-}
+	val longValue: Long)

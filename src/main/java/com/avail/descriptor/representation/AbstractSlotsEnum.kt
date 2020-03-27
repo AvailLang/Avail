@@ -1,5 +1,5 @@
 /*
- * IntegerSlotsEnum.java
+ * AbstractSlotsEnum.java
  * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,31 +29,40 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.descriptor.representation
 
-package com.avail.descriptor.representation;
-
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.Descriptor;
+import com.avail.descriptor.AvailObject
 
 /**
- * The {@code IntegerSlotsEnum} is an interface that helps ensure that object
+ * The `AbstractSlotsEnum` is an interface that helps ensure that object
  * representations and access are consistent and correct.  In particular, some
- * operations in AvailObject (such as {@link
- * AvailObject#slot(IntegerSlotsEnum)}) are expected to operate on enumerations
- * defined as inner classes within the {@link Descriptor} class for which the
- * slot layout is specified.
+ * operations in AvailObject (such as [AvailObject.slot])
+ * are expected to operate on enumerations defined as inner classes within the
+ * [Descriptor] class for which the slot layout is specified.
  *
- * <p>
- * Additionally, AvailObject is implemented with both object slots and integer
- * slots in such a way that the two should not be confused; i.e., their ordinals
- * are used as indices into either an array of {@link AvailObject} or an array
- * of {@code int}.  A related interface {@link ObjectSlotsEnum} helps to keep
- * these uses disjoint.
- * </p>
+ *
+ *
+ * There are two sub-interfaces, [ObjectSlotsEnum] and [ ], and the representation access methods defined in [ ] typically restrict the passed enumerations to be of the
+ * appropriate kind.
+ *
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public interface IntegerSlotsEnum extends AbstractSlotsEnum
-{
-	// It's all declared in the superinterface.
+interface AbstractSlotsEnum {
+	/**
+	 * Answer the name of this enumeration value.
+	 *
+	 * @return A string that names this enumeration value.
+	 */
+	fun name(): String
+
+	/**
+	 * Answer an integer that identifies this enumeration value uniquely within
+	 * this enumeration subclass (i.e., any enumeration class implementing this
+	 * interface).  These values are allocated sequentially to the enumeration
+	 * values, starting at zero.
+	 *
+	 * @return The enumeration value's ordinal number.
+	 */
+	fun ordinal(): Int
 }

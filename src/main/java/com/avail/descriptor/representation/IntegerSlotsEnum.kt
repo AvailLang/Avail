@@ -1,5 +1,5 @@
 /*
- * AvailIntegerValueHelper.java
+ * IntegerSlotsEnum.java
  * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,31 +29,27 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.descriptor.representation
 
-package com.avail.descriptor.representation;
-
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.AvailObject
 
 /**
- * A helper class used by Eclipse to show Logical Structures in the debugger.
- * In particular, it shows long-valued slots in {@link AvailObject}s.
+ * The `IntegerSlotsEnum` is an interface that helps ensure that object
+ * representations and access are consistent and correct.  In particular, some
+ * operations in AvailObject (such as [ ][AvailObject.slot]) are expected to operate on enumerations
+ * defined as inner classes within the [Descriptor] class for which the
+ * slot layout is specified.
+ *
+ *
+ *
+ * Additionally, AvailObject is implemented with both object slots and integer
+ * slots in such a way that the two should not be confused; i.e., their ordinals
+ * are used as indices into either an array of [AvailObject] or an array
+ * of `int`.  A related interface [ObjectSlotsEnum] helps to keep
+ * these uses disjoint.
+ *
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public class AvailIntegerValueHelper
-{
-	/**
-	 * The {@code long} value to present.
-	 */
-	public final long longValue;
-
-	/** Construct a new {@code AvailIntegerValueHelper}.
-	 *
-	 * @param longValue The {@code long} value.
-	 */
-	public AvailIntegerValueHelper (
-		final long longValue)
-	{
-		this.longValue = longValue;
-	}
+interface IntegerSlotsEnum : AbstractSlotsEnum { // It's all declared in the superinterface.
 }

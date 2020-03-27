@@ -93,7 +93,9 @@ import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationW
 import com.avail.descriptor.types.BottomPojoTypeDescriptor.pojoBottom
 import com.avail.descriptor.types.CompiledCodeTypeDescriptor.compiledCodeTypeForFunctionType
 import com.avail.descriptor.types.ContinuationTypeDescriptor.continuationTypeForFunctionType
+import com.avail.descriptor.types.FiberTypeDescriptor
 import com.avail.descriptor.types.FiberTypeDescriptor.fiberType
+import com.avail.descriptor.types.FunctionTypeDescriptor
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionTypeFromArgumentTupleType
 import com.avail.descriptor.types.InstanceMetaDescriptor.instanceMeta
 import com.avail.descriptor.types.InstanceTypeDescriptor.instanceType
@@ -2587,7 +2589,7 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [fiber type][FiberTypeDescriptor].
+	 * A [fiber&#32;type][FiberTypeDescriptor].
 	 */
 	FIBER_TYPE(80, OBJECT_REFERENCE.named("Result type"))
 	{
@@ -2608,7 +2610,7 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [function type][FunctionTypeDescriptor].
+	 * A [function&#32;type][FunctionTypeDescriptor].
 	 */
 	FUNCTION_TYPE(
 		81,

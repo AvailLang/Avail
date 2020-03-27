@@ -29,30 +29,29 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
-package com.avail.descriptor.representation;
+package com.avail.descriptor.representation
 
 /**
- * The {@code IntegerEnumSlotDescriptionEnum} is an interface that constrains an
+ * The `IntegerEnumSlotDescriptionEnum` is an interface that constrains an
  * enumeration used to describe the values that can occur in a particular
- * {@link IntegerSlotsEnum integer slot}.
+ * [integer slot][IntegerSlotsEnum].
  *
- * <p>
- * It includes the {@link #name()} and {@link #ordinal()} operations to ensure
+ *
+ *
+ * It includes the [.name] and [.ordinal] operations to ensure
  * they are statically available in the actual implementations, which are really
  * intended to be enums, but Java doesn't provide a way to subcategorize enums.
- * </p>
+ *
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public interface IntegerEnumSlotDescriptionEnum
-{
+interface IntegerEnumSlotDescriptionEnum {
 	/**
 	 * Answer the name of this enumeration value.
 	 *
 	 * @return A string that names this enumeration value.
 	 */
-	String name ();
+	fun name(): String?
 
 	/**
 	 * Answer an integer that identifies this enumeration value uniquely within
@@ -62,5 +61,5 @@ public interface IntegerEnumSlotDescriptionEnum
 	 *
 	 * @return The enumeration value's ordinal number.
 	 */
-	int ordinal ();
+	fun ordinal(): Int
 }
