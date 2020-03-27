@@ -34,12 +34,13 @@ package com.avail.descriptor.sets;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AbstractDescriptor;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.representation.BitField;
-import com.avail.descriptor.representation.IntegerSlotsEnum;
 import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.sets.SetDescriptor.SetIterator;
 import com.avail.descriptor.types.A_Type;
 import com.avail.descriptor.types.TypeTag;
@@ -69,8 +70,7 @@ extends SetBinDescriptor
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots
-	implements IntegerSlotsEnum
+	public enum IntegerSlots implements IntegerSlotsEnumJava
 	{
 		/**
 		 * The low 32 bits are used for the {@link #BIN_HASH}, but the upper
@@ -98,8 +98,7 @@ extends SetBinDescriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots
-	implements ObjectSlotsEnum
+	public enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
 		 * The elements of this bin.  The elements are never sub-bins, since

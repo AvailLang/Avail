@@ -35,7 +35,7 @@ package com.avail.descriptor.types;
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.representation.IntegerSlotsEnum;
+import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.tokens.TokenDescriptor;
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType;
@@ -63,8 +63,7 @@ extends TypeDescriptor
 	/**
 	 * My slots of type {@link AvailObject}.
 	 */
-	public enum IntegerSlots
-	implements IntegerSlotsEnum
+	public enum IntegerSlots implements IntegerSlotsEnumJava
 	{
 		/**
 		 * The {@linkplain TokenType type} constraint on a token's value.

@@ -45,8 +45,8 @@ import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.HERITABLE_KEY
-import com.avail.descriptor.atoms.AtomDescriptor.trueObject
-import com.avail.descriptor.atoms.AtomWithPropertiesDescriptor.createAtomWithProperties
+import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
+import com.avail.descriptor.atoms.AtomWithPropertiesDescriptor.Companion.createAtomWithProperties
 import com.avail.descriptor.bundles.MessageBundleDescriptor
 import com.avail.descriptor.functions.CompiledCodeDescriptor.newCompiledCode
 import com.avail.descriptor.functions.ContinuationDescriptor.createContinuationWithFrame

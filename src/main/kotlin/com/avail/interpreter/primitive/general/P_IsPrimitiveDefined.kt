@@ -31,7 +31,7 @@
  */
 package com.avail.interpreter.primitive.general
 
-import com.avail.descriptor.atoms.AtomDescriptor.objectFromBoolean
+import com.avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.EnumerationTypeDescriptor.booleanType

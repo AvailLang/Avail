@@ -32,8 +32,8 @@
 
 package com.avail.interpreter.primitive.methods
 
-import com.avail.descriptor.atoms.AtomDescriptor.falseObject
-import com.avail.descriptor.atoms.AtomDescriptor.trueObject
+import com.avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
+import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.sets.SetDescriptor.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple

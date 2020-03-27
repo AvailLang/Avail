@@ -35,7 +35,11 @@ package com.avail.descriptor.tuples;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.Descriptor;
+import com.avail.descriptor.IndirectionDescriptor;
+import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.representation.AbstractSlotsEnum;
 import com.avail.descriptor.representation.BitField;
 import com.avail.descriptor.representation.IntegerSlotsEnum;
@@ -103,8 +107,7 @@ extends Descriptor
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots
-	implements IntegerSlotsEnum
+	public enum IntegerSlots implements IntegerSlotsEnumJava
 	{
 		/**
 		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper

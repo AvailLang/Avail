@@ -35,7 +35,7 @@ import com.avail.AvailRuntime.currentRuntime
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.FILE_KEY
-import com.avail.descriptor.atoms.AtomDescriptor.createAtom
+import com.avail.descriptor.atoms.AtomDescriptor.Companion.createAtom
 import com.avail.descriptor.pojos.RawPojoDescriptor.identityPojo
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor

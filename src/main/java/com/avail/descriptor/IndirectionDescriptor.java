@@ -42,6 +42,8 @@ import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
+import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.bundles.A_Bundle;
 import com.avail.descriptor.bundles.A_BundleTree;
@@ -65,9 +67,7 @@ import com.avail.descriptor.phrases.A_Phrase;
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind;
 import com.avail.descriptor.representation.AbstractSlotsEnum;
 import com.avail.descriptor.representation.AvailObjectRepresentation;
-import com.avail.descriptor.representation.IntegerSlotsEnum;
 import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.sets.SetDescriptor.SetIterator;
 import com.avail.descriptor.tokens.A_Token;
@@ -166,8 +166,7 @@ extends AbstractDescriptor
 	 * equivalent to.  There may be other slots, depending on our mechanism for
 	 * conversion to an indirection object, but they should be ignored.
 	 */
-	enum ObjectSlots
-	implements ObjectSlotsEnum
+	enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
 		 * The target {@linkplain AvailObject object} to which my instance is
@@ -186,8 +185,7 @@ extends AbstractDescriptor
 	 * The integer slots of my {@link AvailObject} instances.  Always ignored
 	 * for an indirection object.
 	 */
-	enum IntegerSlots
-	implements IntegerSlotsEnum
+	enum IntegerSlots implements IntegerSlotsEnumJava
 	{
 		/**
 		 * Ignore all integer slots.

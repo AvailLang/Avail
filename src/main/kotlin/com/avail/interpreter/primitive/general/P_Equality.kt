@@ -31,7 +31,9 @@
  */
 package com.avail.interpreter.primitive.general
 
-import com.avail.descriptor.atoms.AtomDescriptor.*
+import com.avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
+import com.avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
+import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type

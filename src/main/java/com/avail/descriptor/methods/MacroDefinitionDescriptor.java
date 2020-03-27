@@ -35,14 +35,14 @@ package com.avail.descriptor.methods;
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.A_Module;
 import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.ModuleDescriptor;
-import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom;
 import com.avail.descriptor.functions.A_Function;
 import com.avail.descriptor.functions.FunctionDescriptor;
 import com.avail.descriptor.phrases.ListPhraseDescriptor;
 import com.avail.descriptor.phrases.PhraseDescriptor;
+import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.descriptor.types.A_Type;
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind;
@@ -86,7 +86,7 @@ extends DefinitionDescriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots implements ObjectSlotsEnum
+	public enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
 		 * Duplicated from parent.  The method in which this definition occurs.

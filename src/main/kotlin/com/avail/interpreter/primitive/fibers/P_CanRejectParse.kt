@@ -34,7 +34,7 @@ package com.avail.interpreter.primitive.fibers
 
 import com.avail.descriptor.FiberDescriptor
 import com.avail.descriptor.FiberDescriptor.GeneralFlag.CAN_REJECT_PARSE
-import com.avail.descriptor.atoms.AtomDescriptor.objectFromBoolean
+import com.avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.EnumerationTypeDescriptor.booleanType

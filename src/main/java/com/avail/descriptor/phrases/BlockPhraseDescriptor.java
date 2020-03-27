@@ -35,16 +35,19 @@ package com.avail.descriptor.phrases;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.EnumField;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
+import com.avail.descriptor.ModuleDescriptor;
 import com.avail.descriptor.functions.A_Function;
 import com.avail.descriptor.functions.A_RawFunction;
 import com.avail.descriptor.functions.FunctionDescriptor;
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind;
 import com.avail.descriptor.representation.AbstractSlotsEnum;
 import com.avail.descriptor.representation.BitField;
-import com.avail.descriptor.representation.IntegerSlotsEnum;
 import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.tokens.A_Token;
 import com.avail.descriptor.tuples.A_Tuple;
@@ -95,8 +98,7 @@ extends PhraseDescriptor
 	/**
 	 * My slots of type {@linkplain Integer int}.
 	 */
-	public enum IntegerSlots
-	implements IntegerSlotsEnum
+	public enum IntegerSlots implements IntegerSlotsEnumJava
 	{
 		/**
 		 * A slot containing multiple {@link BitField}s.
@@ -129,8 +131,7 @@ extends PhraseDescriptor
 	/**
 	 * My slots of type {@link AvailObject}.
 	 */
-	public enum ObjectSlots
-	implements ObjectSlotsEnum
+	public enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
 		 * The block's tuple of argument declarations.

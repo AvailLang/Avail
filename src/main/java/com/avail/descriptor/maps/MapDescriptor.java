@@ -36,10 +36,10 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.representation.AvailObjectFieldHelper;
 import com.avail.descriptor.Descriptor;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
+import com.avail.descriptor.representation.AvailObjectFieldHelper;
 import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.sets.SetDescriptor;
 import com.avail.descriptor.tuples.A_String;
@@ -107,8 +107,7 @@ extends Descriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots
-	implements ObjectSlotsEnum
+	public enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
 		 * The topmost bin of this {@linkplain MapDescriptor map}.  Unlike the
@@ -207,7 +206,7 @@ extends Descriptor
 	/**
 	 * Synthetic slots to display.
 	 */
-	enum FakeMapSlots implements ObjectSlotsEnum
+	enum FakeMapSlots implements ObjectSlotsEnumJava
 	{
 		/**
 		 * A fake slot to present in the debugging view for each key of the map.
@@ -248,7 +247,7 @@ extends Descriptor
 
 				fields[finalCounter - 1] = new AvailObjectFieldHelper(
 					object,
-					new ObjectSlotsEnum()
+					new ObjectSlotsEnumJava()
 					{
 						/** The cached entry name. */
 						private @Nullable

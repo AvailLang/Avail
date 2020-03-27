@@ -36,9 +36,9 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.representation.ObjectSlotsEnum;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.numbers.A_Number;
+import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.descriptor.tuples.TupleDescriptor;
 import com.avail.optimizer.jvm.CheckedMethod;
@@ -88,8 +88,7 @@ extends TypeDescriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots
-	implements ObjectSlotsEnum
+	public enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
 		 * An {@linkplain IntegerRangeTypeDescriptor integer range type} that

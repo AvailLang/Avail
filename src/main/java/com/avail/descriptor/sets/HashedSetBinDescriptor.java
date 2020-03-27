@@ -34,15 +34,17 @@ package com.avail.descriptor.sets;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.AbstractDescriptor;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
+import com.avail.descriptor.NilDescriptor;
 import com.avail.descriptor.maps.HashedMapBinDescriptor;
 import com.avail.descriptor.maps.MapDescriptor;
-import com.avail.descriptor.AbstractDescriptor;
 import com.avail.descriptor.representation.AbstractSlotsEnum;
 import com.avail.descriptor.representation.BitField;
-import com.avail.descriptor.representation.IntegerSlotsEnum;
 import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.sets.SetDescriptor.SetIterator;
 import com.avail.descriptor.types.A_Type;
 import com.avail.descriptor.types.TypeTag;
@@ -55,9 +57,9 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.function.IntFunction;
 
+import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.representation.AvailObjectRepresentation.newLike;
 import static com.avail.descriptor.representation.Mutability.*;
-import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.sets.HashedSetBinDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.sets.HashedSetBinDescriptor.ObjectSlots.BIN_ELEMENT_AT_;
 import static com.avail.descriptor.sets.HashedSetBinDescriptor.ObjectSlots.BIN_UNION_TYPE_OR_NIL;
@@ -96,8 +98,7 @@ extends SetBinDescriptor
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots
-	implements IntegerSlotsEnum
+	public enum IntegerSlots implements IntegerSlotsEnumJava
 	{
 		/**
 		 * The low 32 bits are used for the {@link #BIN_HASH}, but the upper
@@ -137,8 +138,7 @@ extends SetBinDescriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots
-	implements ObjectSlotsEnum
+	public enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
 		 * The union of the types of all elements recursively within this bin.

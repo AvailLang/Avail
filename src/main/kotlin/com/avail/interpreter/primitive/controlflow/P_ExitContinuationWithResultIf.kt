@@ -32,7 +32,7 @@
 package com.avail.interpreter.primitive.controlflow
 
 import com.avail.descriptor.NilDescriptor.nil
-import com.avail.descriptor.atoms.AtomDescriptor.trueObject
+import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.ContinuationDescriptor
 import com.avail.descriptor.sets.SetDescriptor.set

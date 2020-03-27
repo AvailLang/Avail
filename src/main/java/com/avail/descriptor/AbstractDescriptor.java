@@ -44,6 +44,7 @@ import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.bundles.A_Bundle;
 import com.avail.descriptor.bundles.A_BundleTree;
@@ -172,7 +173,7 @@ public abstract class AbstractDescriptor
 	 * A non-enum {@link ObjectSlotsEnum} that can be instantiated at will.
 	 * Useful for customizing debugger views of objects.
 	 */
-	public static final class DebuggerObjectSlots implements ObjectSlotsEnum
+	public static final class DebuggerObjectSlots implements ObjectSlotsEnumJava
 	{
 		/** The slot name. */
 		public final String name;
@@ -491,7 +492,7 @@ public abstract class AbstractDescriptor
 			: emptyDebugObjectSlots;
 		hasVariableObjectSlots =
 			objectSlots.length > 0
-			&& objectSlots[objectSlots.length - 1].name().endsWith("_");
+			&& objectSlots[objectSlots.length - 1].fieldName().endsWith("_");
 		numberOfFixedObjectSlots =
 			objectSlots.length - (hasVariableObjectSlots ? 1 : 0);
 
@@ -503,7 +504,7 @@ public abstract class AbstractDescriptor
 			: emptyDebugIntegerSlots;
 		hasVariableIntegerSlots =
 			integerSlots.length > 0
-			&& integerSlots[integerSlots.length - 1].name().endsWith("_");
+			&& integerSlots[integerSlots.length - 1].fieldName().endsWith("_");
 		numberOfFixedIntegerSlots =
 			integerSlots.length - (hasVariableIntegerSlots ? 1 : 0);
 	}
@@ -784,7 +785,7 @@ public abstract class AbstractDescriptor
 					== null)
 			{
 				newlineTab(builder, indent);
-				final String slotName = stripNull(slot.name());
+				final String slotName = stripNull(slot.fieldName());
 				final List<BitField> bitFields = bitFieldsFor(slot);
 				if (slotName.charAt(slotName.length() - 1) == '_')
 				{
@@ -836,7 +837,7 @@ public abstract class AbstractDescriptor
 					== null)
 			{
 				newlineTab(builder, indent);
-				final String slotName = stripNull(slot.name());
+				final String slotName = stripNull(slot.fieldName());
 				if (slotName.charAt(slotName.length() - 1) == '_')
 				{
 					final int subscript = i - objectSlots.length + 1;
@@ -949,7 +950,7 @@ public abstract class AbstractDescriptor
 	{
 		try
 		{
-			final String slotName = slot.name();
+			final String slotName = slot.fieldName();
 			if (bitFields.isEmpty())
 			{
 				final Field slotMirror = slot.getClass().getField(slotName);

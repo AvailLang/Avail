@@ -34,12 +34,13 @@ package com.avail.descriptor.phrases;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.representation.AbstractSlotsEnum;
 import com.avail.descriptor.representation.BitField;
-import com.avail.descriptor.representation.IntegerSlotsEnum;
 import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.tokens.A_Token;
 import com.avail.descriptor.tokens.TokenDescriptor;
 import com.avail.descriptor.tuples.A_Tuple;
@@ -76,7 +77,7 @@ extends PhraseDescriptor
 	/**
 	 * My slots of type {@linkplain Integer int}.
 	 */
-	public enum IntegerSlots implements IntegerSlotsEnum
+	public enum IntegerSlots implements IntegerSlotsEnumJava
 	{
 		/**
 		 * A flag indicating (with 0/1) whether this is the last use of the
@@ -94,8 +95,7 @@ extends PhraseDescriptor
 	/**
 	 * My slots of type {@link AvailObject}.
 	 */
-	public enum ObjectSlots
-	implements ObjectSlotsEnum
+	public enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
 		 * The {@linkplain TokenDescriptor token} that is a mention of the
@@ -111,7 +111,8 @@ extends PhraseDescriptor
 
 		}
 	@Override
-	protected boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
+	protected boolean allowsImmutableToMutableReferenceInField (
+		final AbstractSlotsEnum e)
 	{
 		return e == FLAGS;
 	}

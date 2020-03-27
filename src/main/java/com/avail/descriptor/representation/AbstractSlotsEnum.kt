@@ -36,33 +36,36 @@ import com.avail.descriptor.AvailObject
 /**
  * The `AbstractSlotsEnum` is an interface that helps ensure that object
  * representations and access are consistent and correct.  In particular, some
- * operations in AvailObject (such as [AvailObject.slot])
- * are expected to operate on enumerations defined as inner classes within the
- * [Descriptor] class for which the slot layout is specified.
+ * operations in AvailObject (such as [AvailObject.slot]) are expected to
+ * operate on enumerations defined as inner classes within the [Descriptor]
+ * class for which the slot layout is specified.
  *
- *
- *
- * There are two sub-interfaces, [ObjectSlotsEnum] and [ ], and the representation access methods defined in [ ] typically restrict the passed enumerations to be of the
- * appropriate kind.
- *
+ * There are two sub-interfaces, [ObjectSlotsEnum] and [IntegerSlotsEnum], and
+ * the representation access methods defined in [AvailObjectRepresentation]
+ * typically restrict the passed enumerations to be of the appropriate kind.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 interface AbstractSlotsEnum {
 	/**
-	 * Answer the name of this enumeration value.
-	 *
-	 * @return A string that names this enumeration value.
+	 * In Java it was possible to define this interface in such a way that the
+	 * `name()` method was abstract and implemented by each specific [Enum], but
+	 * Kotlin breaks this mechanism.  BUT – we're able to cast `this` to [Enum]
+	 * to get to that field.  I believe this code gets copied down into each
+	 * specific Enum subclass, so the dynamic type check for the cast is
+	 * trivially eliminated in each case.  And worst case, Hotspot will be able
+	 * to inline calls to this from sites that are known to be Enums.
 	 */
-	fun name(): String
+	fun fieldName() = (this as Enum<*>).name
 
 	/**
-	 * Answer an integer that identifies this enumeration value uniquely within
-	 * this enumeration subclass (i.e., any enumeration class implementing this
-	 * interface).  These values are allocated sequentially to the enumeration
-	 * values, starting at zero.
-	 *
-	 * @return The enumeration value's ordinal number.
+	 * In Java it was possible to define this interface in such a way that the
+	 * `ordinal()` method was abstract and implemented by each specific [Enum],
+	 * but Kotlin breaks this mechanism.  BUT – we're able to cast `this` to
+	 * [Enum] to get to that field.  I believe this code gets copied down into
+	 * each specific Enum subclass, so the dynamic type check for the cast is
+	 * trivially eliminated in each case.  And worst case, Hotspot will be able
+	 * to inline calls to this from sites that are known to be Enums.
 	 */
-	fun ordinal(): Int
+	fun fieldOrdinal() = (this as Enum<*>).ordinal
 }

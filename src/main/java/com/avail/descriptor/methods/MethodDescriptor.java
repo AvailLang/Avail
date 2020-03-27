@@ -35,7 +35,12 @@ package com.avail.descriptor.methods;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.Descriptor;
+import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
+import com.avail.descriptor.NilDescriptor;
 import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.atoms.AtomDescriptor;
 import com.avail.descriptor.bundles.A_Bundle;
@@ -47,8 +52,8 @@ import com.avail.descriptor.parsing.A_Lexer;
 import com.avail.descriptor.pojos.RawPojoDescriptor;
 import com.avail.descriptor.representation.AbstractSlotsEnum;
 import com.avail.descriptor.representation.BitField;
-import com.avail.descriptor.representation.IntegerSlotsEnum;
 import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.sets.SetDescriptor;
@@ -160,8 +165,7 @@ extends Descriptor
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots
-	implements IntegerSlotsEnum
+	public enum IntegerSlots implements IntegerSlotsEnumJava
 	{
 		/**
 		 * {@link BitField}s for the hash and the argument count.  See below.
@@ -187,8 +191,7 @@ extends Descriptor
 	/**
 	 * The fields that are of type {@code AvailObject}.
 	 */
-	public enum ObjectSlots
-	implements ObjectSlotsEnum
+	public enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
 		 * A {@linkplain SetDescriptor set} of {@linkplain

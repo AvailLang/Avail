@@ -33,9 +33,9 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
+import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.numbers.IntegerDescriptor;
 import com.avail.descriptor.representation.BitField;
-import com.avail.descriptor.representation.IntegerSlotsEnum;
 import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.types.A_Type;
 import com.avail.descriptor.types.TypeTag;
@@ -73,8 +73,7 @@ public final class CharacterDescriptor
 extends Descriptor
 {
 	/** The layout of integer slots for my instances. */
-	public enum IntegerSlots
-	implements IntegerSlotsEnum
+	public enum IntegerSlots implements IntegerSlotsEnumJava
 	{
 		/**
 		 * The Unicode code point.  Don't bother with a {@link BitField}, as all

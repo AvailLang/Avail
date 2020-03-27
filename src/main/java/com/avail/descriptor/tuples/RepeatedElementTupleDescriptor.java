@@ -34,12 +34,13 @@ package com.avail.descriptor.tuples;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AbstractDescriptor;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.representation.BitField;
-import com.avail.descriptor.representation.IntegerSlotsEnum;
 import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.types.A_Type;
 
 import javax.annotation.Nullable;
@@ -69,8 +70,7 @@ extends TupleDescriptor
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots
-	implements IntegerSlotsEnum
+	public enum IntegerSlots implements IntegerSlotsEnumJava
 	{
 
 		/**
@@ -113,8 +113,7 @@ extends TupleDescriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots
-	implements ObjectSlotsEnum
+	public enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/** The element to be repeated. */
 		ELEMENT

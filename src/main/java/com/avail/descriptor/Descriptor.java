@@ -41,6 +41,7 @@ import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.bundles.A_Bundle;
 import com.avail.descriptor.bundles.A_BundleTree;
@@ -63,8 +64,10 @@ import com.avail.descriptor.parsing.A_Lexer;
 import com.avail.descriptor.parsing.A_ParsingPlanInProgress;
 import com.avail.descriptor.phrases.A_Phrase;
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind;
+import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.representation.IntegerSlotsEnum;
 import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.sets.SetDescriptor.SetIterator;
@@ -172,7 +175,7 @@ extends AbstractDescriptor
 	 *
 	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
-	enum FakeObjectSlotsForScanning implements ObjectSlotsEnum
+	enum FakeObjectSlotsForScanning implements ObjectSlotsEnumJava
 	{
 		/**
 		 * An indexed object slot that makes it easy to visit all object slots.

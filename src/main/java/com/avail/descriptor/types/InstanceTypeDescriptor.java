@@ -34,14 +34,13 @@ package com.avail.descriptor.types;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.AbstractDescriptor;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.representation.ObjectSlotsEnum;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.maps.A_Map;
 import com.avail.descriptor.numbers.A_Number;
 import com.avail.descriptor.objects.ObjectDescriptor;
+import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
@@ -70,7 +69,7 @@ import static java.lang.Math.min;
 /**
  * My instances are called <em>instance types</em>, the types of individual
  * objects.  In particular, whenever an object is asked for its {@linkplain
- * AbstractDescriptor#o_Kind(AvailObject) type}, it creates an {@linkplain
+ * A_BasicObject#kind() type}, it creates an {@linkplain
  * InstanceTypeDescriptor instance type} that wraps that object.  Only that
  * object is a member of that instance type, except in the case that the object
  * is itself a type, in which case subtypes of that object are also considered
@@ -104,8 +103,7 @@ extends AbstractEnumerationTypeDescriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots
-	implements ObjectSlotsEnum
+	public enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
 		 * The {@linkplain AvailObject object} for which I am the {@linkplain

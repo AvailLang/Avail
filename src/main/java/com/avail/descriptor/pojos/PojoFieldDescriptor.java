@@ -36,8 +36,8 @@ import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.Descriptor;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.types.A_Type;
 import com.avail.descriptor.types.PojoTypeDescriptor;
 import com.avail.descriptor.types.TypeDescriptor;
@@ -77,8 +77,7 @@ public final class PojoFieldDescriptor
 extends Descriptor
 {
 	/** The layout of the object slots. */
-	public enum ObjectSlots
-	implements ObjectSlotsEnum
+	public enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
 		 * A {@linkplain RawPojoDescriptor raw pojo} that wraps a {@linkplain

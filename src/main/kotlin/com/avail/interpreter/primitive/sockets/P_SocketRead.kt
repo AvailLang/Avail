@@ -37,7 +37,7 @@ import com.avail.descriptor.FiberDescriptor
 import com.avail.descriptor.FiberDescriptor.newFiber
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.SOCKET_KEY
-import com.avail.descriptor.atoms.AtomDescriptor.objectFromBoolean
+import com.avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.sets.SetDescriptor.set
 import com.avail.descriptor.tuples.ByteBufferTupleDescriptor

@@ -34,17 +34,17 @@ package com.avail.descriptor.types;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.representation.AbstractSlotsEnum;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.NilDescriptor;
-import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.atoms.AtomDescriptor;
 import com.avail.descriptor.maps.A_Map;
 import com.avail.descriptor.numbers.A_Number;
 import com.avail.descriptor.objects.ObjectDescriptor;
 import com.avail.descriptor.phrases.A_Phrase;
+import com.avail.descriptor.representation.AbstractSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.sets.SetDescriptor;
 import com.avail.descriptor.tuples.A_Tuple;
@@ -112,8 +112,7 @@ public final class EnumerationTypeDescriptor
 extends AbstractEnumerationTypeDescriptor
 {
 	/** The layout of object slots for my instances. */
-	public enum ObjectSlots
-	implements ObjectSlotsEnum
+	public enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
 		 * The set of {@linkplain AvailObject objects} for which I am the

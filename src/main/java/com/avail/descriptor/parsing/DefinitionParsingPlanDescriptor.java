@@ -39,14 +39,14 @@ import com.avail.compiler.ParsingOperation;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.representation.AvailObjectFieldHelper;
 import com.avail.descriptor.Descriptor;
-import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.representation.ObjectSlotsEnum;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.bundles.A_Bundle;
 import com.avail.descriptor.bundles.MessageBundleTreeDescriptor;
 import com.avail.descriptor.methods.A_Definition;
 import com.avail.descriptor.methods.MacroDefinitionDescriptor;
+import com.avail.descriptor.representation.AvailObjectFieldHelper;
+import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.descriptor.types.A_Type;
 import com.avail.descriptor.types.TypeTag;
@@ -85,8 +85,7 @@ extends Descriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots
-	implements ObjectSlotsEnum
+	public enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
 		 * The {@link A_Bundle message bundle} that this will parse invocations
@@ -119,8 +118,7 @@ extends Descriptor
 	 * Used for describing logical aspects of the bundle in the Eclipse
 	 * debugger.
 	 */
-	private enum FakeSlots
-	implements ObjectSlotsEnum
+	private enum FakeSlots implements ObjectSlotsEnumJava
 	{
 		/** Used for showing the parsing instructions symbolically. */
 		SYMBOLIC_INSTRUCTIONS,

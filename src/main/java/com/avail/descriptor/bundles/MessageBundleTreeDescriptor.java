@@ -36,7 +36,12 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.compiler.ParsingOperation;
 import com.avail.compiler.splitter.MessageSplitter;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.Descriptor;
+import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.maps.A_Map;
 import com.avail.descriptor.maps.MapDescriptor;
 import com.avail.descriptor.maps.MapDescriptor.Entry;
@@ -50,9 +55,7 @@ import com.avail.descriptor.phrases.A_Phrase;
 import com.avail.descriptor.pojos.RawPojoDescriptor;
 import com.avail.descriptor.representation.AbstractSlotsEnum;
 import com.avail.descriptor.representation.BitField;
-import com.avail.descriptor.representation.IntegerSlotsEnum;
 import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.tuples.A_String;
 import com.avail.descriptor.tuples.A_Tuple;
@@ -131,8 +134,7 @@ extends Descriptor
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots
-	implements IntegerSlotsEnum
+	public enum IntegerSlots implements IntegerSlotsEnumJava
 	{
 		/**
 		 * {@link BitField}s for the hash and the parsing pc.  See below.
@@ -166,8 +168,7 @@ extends Descriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots
-	implements ObjectSlotsEnum
+	public enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
 		 * A {@linkplain MapDescriptor map} from {@link A_Bundle}s to maps,

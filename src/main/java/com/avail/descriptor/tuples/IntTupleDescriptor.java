@@ -36,10 +36,10 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.representation.BitField;
-import com.avail.descriptor.representation.IntegerSlotsEnum;
-import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.numbers.A_Number;
+import com.avail.descriptor.representation.BitField;
+import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.types.A_Type;
 import com.avail.utility.json.JSONWriter;
 
@@ -47,9 +47,9 @@ import java.nio.ByteBuffer;
 import java.util.function.IntUnaryOperator;
 
 import static com.avail.descriptor.AvailObject.*;
-import static com.avail.descriptor.representation.Mutability.*;
 import static com.avail.descriptor.numbers.IntegerDescriptor.computeHashOfInt;
 import static com.avail.descriptor.numbers.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.representation.Mutability.*;
 import static com.avail.descriptor.tuples.IntTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.tuples.IntTupleDescriptor.IntegerSlots.RAW_LONG_AT_;
 import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple;
@@ -72,7 +72,7 @@ extends NumericTupleDescriptor
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots implements IntegerSlotsEnum
+	public enum IntegerSlots implements IntegerSlotsEnumJava
 	{
 		/**
 		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper

@@ -35,7 +35,10 @@ package com.avail.descriptor.types;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.maps.A_Map;
 import com.avail.descriptor.maps.MapDescriptor;
 import com.avail.descriptor.maps.MapDescriptor.Entry;
@@ -43,9 +46,7 @@ import com.avail.descriptor.pojos.PojoDescriptor;
 import com.avail.descriptor.pojos.RawPojoDescriptor;
 import com.avail.descriptor.representation.AbstractSlotsEnum;
 import com.avail.descriptor.representation.BitField;
-import com.avail.descriptor.representation.IntegerSlotsEnum;
 import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.sets.SetDescriptor;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.descriptor.tuples.StringDescriptor;
@@ -79,8 +80,7 @@ final class UnfusedPojoTypeDescriptor
 extends PojoTypeDescriptor
 {
 	/** The layout of the integer slots. */
-	enum IntegerSlots
-	implements IntegerSlotsEnum
+	enum IntegerSlots implements IntegerSlotsEnumJava
 	{
 		/**
 		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper
@@ -97,8 +97,7 @@ extends PojoTypeDescriptor
 	}
 
 	/** The layout of the object slots. */
-	enum ObjectSlots
-	implements ObjectSlotsEnum
+	enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
 		 * A {@linkplain RawPojoDescriptor raw pojo} that wraps the {@linkplain

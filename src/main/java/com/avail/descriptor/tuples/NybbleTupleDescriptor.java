@@ -37,11 +37,11 @@ import com.avail.annotations.HideFieldInDebugger;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AbstractDescriptor;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.representation.BitField;
-import com.avail.descriptor.representation.IntegerSlotsEnum;
-import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.functions.CompiledCodeDescriptor;
 import com.avail.descriptor.numbers.A_Number;
+import com.avail.descriptor.representation.BitField;
+import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.types.A_Type;
 import com.avail.serialization.SerializerOperation;
 
@@ -49,10 +49,10 @@ import java.nio.ByteBuffer;
 import java.util.function.IntUnaryOperator;
 
 import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.representation.AvailObjectRepresentation.newLike;
-import static com.avail.descriptor.representation.Mutability.*;
 import static com.avail.descriptor.numbers.IntegerDescriptor.fromUnsignedByte;
 import static com.avail.descriptor.numbers.IntegerDescriptor.hashOfUnsignedByte;
+import static com.avail.descriptor.representation.AvailObjectRepresentation.newLike;
+import static com.avail.descriptor.representation.Mutability.*;
 import static com.avail.descriptor.tuples.ByteTupleDescriptor.generateByteTupleFrom;
 import static com.avail.descriptor.tuples.NybbleTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.tuples.NybbleTupleDescriptor.IntegerSlots.RAW_LONG_AT_;
@@ -81,8 +81,7 @@ extends NumericTupleDescriptor
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots
-	implements IntegerSlotsEnum
+	public enum IntegerSlots implements IntegerSlotsEnumJava
 	{
 		/**
 		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper

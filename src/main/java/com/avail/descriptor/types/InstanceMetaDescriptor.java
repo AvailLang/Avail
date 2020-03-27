@@ -36,11 +36,11 @@ import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.IndirectionDescriptor;
-import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.representation.ObjectSlotsEnum;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.maps.A_Map;
 import com.avail.descriptor.numbers.A_Number;
+import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.descriptor.types.TypeDescriptor.Types;
@@ -100,8 +100,7 @@ extends AbstractEnumerationTypeDescriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots
-	implements ObjectSlotsEnum
+	public enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
 		 * The {@linkplain TypeDescriptor type} for which I am the {@linkplain

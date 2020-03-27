@@ -37,7 +37,13 @@ import com.avail.AvailRuntime.HookType;
 import com.avail.AvailRuntimeConfiguration;
 import com.avail.AvailTask;
 import com.avail.AvailThread;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.FiberDescriptor;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
+import com.avail.descriptor.NilDescriptor;
 import com.avail.descriptor.bundles.A_Bundle;
 import com.avail.descriptor.bundles.MessageBundleDescriptor;
 import com.avail.descriptor.functions.A_Continuation;
@@ -49,8 +55,6 @@ import com.avail.descriptor.functions.FunctionDescriptor;
 import com.avail.descriptor.numbers.A_Number;
 import com.avail.descriptor.representation.AvailIntegerValueHelper;
 import com.avail.descriptor.representation.AvailObjectFieldHelper;
-import com.avail.descriptor.representation.IntegerSlotsEnum;
-import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.descriptor.types.TypeTag;
@@ -628,10 +632,9 @@ public final class Interpreter
 	}
 
 	/**
-	 * Fake slots used to show stack traces in the Eclipse Java debugger.
+	 * Fake slots used to show stack traces in the Java debugger.
 	 */
-	enum FakeStackTraceSlots
-	implements ObjectSlotsEnum, IntegerSlotsEnum
+	enum FakeStackTraceSlots implements ObjectSlotsEnumJava
 	{
 		/**
 		 * The offset of the current L2 instruction.

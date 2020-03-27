@@ -34,7 +34,7 @@ package com.avail.interpreter.primitive.atoms
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.AtomDescriptor
-import com.avail.descriptor.atoms.AtomDescriptor.createAtom
+import com.avail.descriptor.atoms.AtomDescriptor.Companion.createAtom
 import com.avail.descriptor.sets.SetDescriptor.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type

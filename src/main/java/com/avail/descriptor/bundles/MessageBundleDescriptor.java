@@ -35,11 +35,9 @@ package com.avail.descriptor.bundles;
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.representation.AbstractSlotsEnum;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.Descriptor;
-import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.representation.ObjectSlotsEnum;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.atoms.AtomDescriptor;
 import com.avail.descriptor.maps.A_Map;
@@ -50,6 +48,8 @@ import com.avail.descriptor.methods.GrammaticalRestrictionDescriptor;
 import com.avail.descriptor.methods.MethodDescriptor;
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan;
 import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor;
+import com.avail.descriptor.representation.AbstractSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.sets.SetDescriptor;
 import com.avail.descriptor.tuples.A_Tuple;
@@ -93,8 +93,7 @@ extends Descriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots
-	implements ObjectSlotsEnum
+	public enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
 		 * The {@linkplain MethodDescriptor method} for which this is a message

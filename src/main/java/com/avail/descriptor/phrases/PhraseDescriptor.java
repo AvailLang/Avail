@@ -34,7 +34,10 @@ package com.avail.descriptor.phrases;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.Descriptor;
+import com.avail.descriptor.NilDescriptor;
 import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.representation.IntegerSlotsEnum;
 import com.avail.descriptor.representation.Mutability;
@@ -53,8 +56,8 @@ import com.avail.utility.evaluation.Transformer1;
 import javax.annotation.Nullable;
 import java.util.List;
 
-import static com.avail.descriptor.representation.AvailObjectRepresentation.newLike;
 import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.representation.AvailObjectRepresentation.newLike;
 import static com.avail.descriptor.types.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE;
 

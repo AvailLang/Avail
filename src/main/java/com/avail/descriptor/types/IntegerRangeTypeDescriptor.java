@@ -38,11 +38,11 @@ import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AbstractDescriptor;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.CharacterDescriptor;
-import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.representation.ObjectSlotsEnum;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.numbers.A_Number;
 import com.avail.descriptor.numbers.InfinityDescriptor;
 import com.avail.descriptor.numbers.IntegerDescriptor;
+import com.avail.descriptor.representation.Mutability;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -74,20 +74,19 @@ extends TypeDescriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots
-	implements ObjectSlotsEnum
+	public enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
 		 * The extended integer which is the lower bound of this range. It is
 		 * either inclusive or exclusive depending on the {@linkplain
-		* IntegerRangeTypeDescriptor#o_LowerInclusive lowerInclusive} flag.
+		* A_Type#lowerInclusive()} flag.
 		 */
 		LOWER_BOUND,
 
 		/**
 		 * The extended integer which is the upper bound of this range. It is
 		 * either inclusive or exclusive depending on the {@linkplain
-		* IntegerRangeTypeDescriptor#o_UpperInclusive upperInclusive} flag.
+		* A_Type#upperInclusive()} flag.
 		 */
 		UPPER_BOUND
 	}

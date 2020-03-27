@@ -37,7 +37,8 @@ import com.avail.descriptor.ModuleDescriptor.currentModule
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.AtomDescriptor
-import com.avail.descriptor.atoms.AtomDescriptor.*
+import com.avail.descriptor.atoms.AtomDescriptor.Companion.createAtom
+import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.HERITABLE_KEY
 import com.avail.descriptor.sets.SetDescriptor.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
@@ -56,7 +57,7 @@ import com.avail.utility.MutableOrNull
 
 /**
  * **Primitive:** Create a new [atom][AtomDescriptor] with the given name that
- * represents a [heritable][SpecialAtom.HERITABLE_KEY] [fiber][FiberDescriptor]
+ * represents a [heritable][HERITABLE_KEY] [fiber][FiberDescriptor]
  * variable.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;

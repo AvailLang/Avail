@@ -33,11 +33,15 @@
 package com.avail.descriptor.methods;
 
 import com.avail.annotations.AvailMethod;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.Descriptor;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
+import com.avail.descriptor.ModuleDescriptor;
 import com.avail.descriptor.functions.A_Function;
 import com.avail.descriptor.functions.FunctionDescriptor;
 import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.types.TypeTag;
 import com.avail.interpreter.primitive.phrases.P_RejectParsing;
 
@@ -71,8 +75,7 @@ extends Descriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots
-	implements ObjectSlotsEnum
+	public enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
 		 * The {@link FunctionDescriptor function} to invoke to determine the

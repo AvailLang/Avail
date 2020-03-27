@@ -29,113 +29,106 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.descriptor.atoms
 
-package com.avail.descriptor.atoms;
-
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Module;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ModuleDescriptor;
-import com.avail.descriptor.NilDescriptor;
-import com.avail.descriptor.bundles.A_Bundle;
-import com.avail.descriptor.bundles.MessageBundleDescriptor;
-import com.avail.descriptor.tuples.A_String;
-import com.avail.exceptions.MalformedMessageException;
+import com.avail.descriptor.A_BasicObject
+import com.avail.descriptor.A_Module
+import com.avail.descriptor.AvailObject
+import com.avail.descriptor.NilDescriptor
+import com.avail.descriptor.bundles.A_Bundle
+import com.avail.descriptor.bundles.MessageBundleDescriptor
+import com.avail.descriptor.tuples.A_String
+import com.avail.exceptions.MalformedMessageException
 
 /**
- * {@code A_Atom} is an interface that specifies the atom-specific operations
- * that an {@link AvailObject} must implement.  It's a sub-interface of {@link
- * A_BasicObject}, the interface that defines the behavior that all AvailObjects
+ * `A_Atom` is an interface that specifies the atom-specific operations
+ * that an [AvailObject] must implement.  It's a sub-interface of [ ], the interface that defines the behavior that all AvailObjects
  * are required to support.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public interface A_Atom
-extends A_BasicObject
-{
+interface A_Atom : A_BasicObject {
 	/**
 	 * Answer the descriptive string that was supplied when this atom was
-	 * created.  The string didn't have to be unique within the {@link
-	 * #issuingModule()}, but certain operations might only work if it happens
+	 * created.  The string didn't have to be unique within the [ ][.issuingModule], but certain operations might only work if it happens
 	 * to be.
 	 *
-	 * @return The string within this {@linkplain AtomDescriptor atom}.
+	 * @return The string within this [atom][AtomDescriptor].
 	 */
-	A_String atomName ();
+	fun atomName(): A_String
 
 	/**
-	 * Answer the {@linkplain ModuleDescriptor module} within which this
-	 * {@linkplain AtomDescriptor atom} was created.
+	 * Answer the [module][ModuleDescriptor] within which this
+	 * [atom][AtomDescriptor] was created.
 	 *
 	 * @return The issuing module.
 	 */
-	A_Module issuingModule ();
+	fun issuingModule(): A_Module
 
 	/**
-	 * Extract a Java {@code boolean} from this atom.  The atom must be either
-	 * the object {@linkplain AtomDescriptor#trueObject()} or the object
-	 * {@linkplain AtomDescriptor#falseObject()}.
+	 * Extract a Java `boolean` from this atom.  The atom must be either
+	 * the object [AtomDescriptor.trueObject] or the object
+	 * [AtomDescriptor.falseObject].
 	 *
-	 * @return {@code true} if it's the trueObject(), {@code false} if it's the
-	 *         falseObject(), and otherwise fail.
+	 * @return `true` if it's the trueObject(), `false` if it's the
+	 * falseObject(), and otherwise fail.
 	 */
-	boolean extractBoolean ();
+	fun extractBoolean(): Boolean
 
 	/**
 	 * Set the specified property of this atom to the specified value.  Normal
 	 * atoms have properties that can be set and read in this way, but
-	 * specifically not <em>enumerated</em> by Avail code.  You can see anything
+	 * specifically not *enumerated* by Avail code.  You can see anything
 	 * that you know how to look for, but everything else is thereby
 	 * encapsulated.
 	 *
 	 * @param key
-	 *            The property key to affect, an {@linkplain AtomDescriptor
-	 *            atom}.
+	 * The property key to affect, an [            atom][AtomDescriptor].
 	 * @param value
-	 *            The value to associate with that property key within the
-	 *            receiver.
+	 * The value to associate with that property key within the
+	 * receiver.
 	 */
-	void setAtomProperty (A_Atom key, A_BasicObject value);
+	fun setAtomProperty(key: A_Atom, value: A_BasicObject)
 
 	/**
 	 * Look up a property of this atom.  Normal atoms have properties that can
-	 * be set and read in this way, but specifically not <em>enumerated</em> by
+	 * be set and read in this way, but specifically not *enumerated* by
 	 * Avail code.  You can see anything that you know how to look for, but
 	 * everything else is thereby encapsulated.
 	 *
 	 * @param key
-	 *            The property key to look up, an {@linkplain AtomDescriptor
-	 *            atom}.
+	 * The property key to look up, an [            atom][AtomDescriptor].
 	 * @return
-	 *            The value associated with that property key within the
-	 *            receiver.
+	 * The value associated with that property key within the
+	 * receiver.
 	 */
-	AvailObject getAtomProperty (A_Atom key);
+	fun getAtomProperty(key: A_Atom): AvailObject
 
 	/**
-	 * Answer the {@linkplain MessageBundleDescriptor message bundle} associated
+	 * Answer the [message bundle][MessageBundleDescriptor] associated
 	 * with this atom.  If the atom does not yet have a message bundle
 	 * associated with it, create one for that purpose and install it.
 	 *
 	 * @return The atom's message bundle.
 	 * @throws MalformedMessageException
-	 *         If anything is wrong with the message name.
+	 * If anything is wrong with the message name.
 	 */
-	A_Bundle bundleOrCreate () throws MalformedMessageException;
+	@Throws(MalformedMessageException::class)
+	fun bundleOrCreate(): A_Bundle
 
 	/**
-	 * Answer the {@linkplain MessageBundleDescriptor message bundle} associated
+	 * Answer the [message bundle][MessageBundleDescriptor] associated
 	 * with this atom.  If the atom does not yet have a message bundle
-	 * associated with it, answer {@linkplain NilDescriptor nil}.
+	 * associated with it, answer [nil][NilDescriptor].
 	 *
 	 * @return The atom's message bundle or nil.
 	 */
-	A_Bundle bundleOrNil ();
+	fun bundleOrNil(): A_Bundle
 
 	/**
 	 * Answer whether this atom is specially known to the Avail virtual machine.
 	 *
 	 * @return Whether this atom is special to the VM.
 	 */
-	boolean isAtomSpecial ();
+	val isAtomSpecial: Boolean
 }

@@ -172,7 +172,7 @@ class BitField(
 		this.integerSlot = integerSlot
 		this.shift = shift
 		this.bits = bits
-		integerSlotIndex = integerSlot.ordinal()
+		integerSlotIndex = integerSlot.fieldOrdinal()
 		lowMask = (1L shl bits) - 1
 		mask = lowMask shl shift
 		invertedMask = mask.inv()

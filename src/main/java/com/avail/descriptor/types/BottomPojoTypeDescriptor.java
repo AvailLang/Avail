@@ -36,8 +36,8 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.maps.A_Map;
+import com.avail.descriptor.representation.Mutability;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 

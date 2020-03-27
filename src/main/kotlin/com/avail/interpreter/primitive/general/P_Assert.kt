@@ -33,8 +33,8 @@ package com.avail.interpreter.primitive.general
 
 import com.avail.descriptor.FiberDescriptor.ExecutionState
 import com.avail.descriptor.NilDescriptor.nil
-import com.avail.descriptor.atoms.AtomDescriptor.falseObject
-import com.avail.descriptor.atoms.AtomDescriptor.trueObject
+import com.avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
+import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.ContinuationDescriptor.dumpStackThen
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple

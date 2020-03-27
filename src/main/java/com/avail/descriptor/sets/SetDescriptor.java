@@ -34,10 +34,14 @@ package com.avail.descriptor.sets;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Character;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.Descriptor;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
+import com.avail.descriptor.NilDescriptor;
 import com.avail.descriptor.representation.AvailObjectFieldHelper;
 import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.descriptor.types.A_Type;
 import com.avail.descriptor.types.TypeTag;
@@ -87,8 +91,7 @@ extends Descriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots
-	implements ObjectSlotsEnum
+	public enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
 		 * The topmost bin of this set.  If it's {@link NilDescriptor nil},
@@ -262,7 +265,7 @@ extends Descriptor
 	/**
 	 * Synthetic slots to display.
 	 */
-	enum FakeSetSlots implements ObjectSlotsEnum
+	enum FakeSetSlots implements ObjectSlotsEnumJava
 	{
 		/**
 		 * A fake slot to present in the debugging view for each of the elements

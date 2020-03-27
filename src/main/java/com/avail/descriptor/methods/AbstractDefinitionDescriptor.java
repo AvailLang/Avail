@@ -36,9 +36,9 @@ import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Module;
 import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.types.A_Type;
 import com.avail.descriptor.types.FunctionTypeDescriptor;
 import com.avail.descriptor.types.TypeDescriptor.Types;
@@ -60,8 +60,7 @@ extends DefinitionDescriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots
-	implements ObjectSlotsEnum
+	public enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
 		 * Duplicated from parent.  The method in which this definition occurs.

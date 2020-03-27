@@ -34,7 +34,13 @@ package com.avail.descriptor.functions;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.Descriptor;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
+import com.avail.descriptor.ModuleDescriptor;
+import com.avail.descriptor.NilDescriptor;
 import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.bundles.A_Bundle;
 import com.avail.descriptor.methods.A_Method;
@@ -43,7 +49,6 @@ import com.avail.descriptor.phrases.A_Phrase;
 import com.avail.descriptor.phrases.BlockPhraseDescriptor;
 import com.avail.descriptor.phrases.PhraseDescriptor;
 import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.descriptor.tuples.TupleDescriptor;
 import com.avail.descriptor.types.A_Type;
@@ -88,8 +93,7 @@ extends Descriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots
-	implements ObjectSlotsEnum
+	public enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/** The {@linkplain CompiledCodeDescriptor compiled code}. */
 		CODE,

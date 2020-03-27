@@ -33,13 +33,14 @@
 package com.avail.descriptor.types;
 
 import com.avail.annotations.AvailMethod;
-import com.avail.descriptor.*;
-import com.avail.descriptor.numbers.A_Number;
+import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AbstractDescriptor;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
+import com.avail.descriptor.numbers.A_Number;
 import com.avail.descriptor.representation.BitField;
-import com.avail.descriptor.representation.IntegerSlotsEnum;
 import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
@@ -69,8 +70,7 @@ extends TypeDescriptor
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots
-	implements IntegerSlotsEnum
+	public enum IntegerSlots implements IntegerSlotsEnumJava
 	{
 		/**
 		 * {@link BitField}s holding the tuple type complexity and other fields
@@ -90,8 +90,7 @@ extends TypeDescriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots
-	implements ObjectSlotsEnum
+	public enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
 		 * The type of the left tuple being concatenated.

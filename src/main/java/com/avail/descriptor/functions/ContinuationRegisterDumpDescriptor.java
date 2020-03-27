@@ -34,9 +34,9 @@ package com.avail.descriptor.functions;
 
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.Descriptor;
-import com.avail.descriptor.representation.IntegerSlotsEnum;
+import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.types.TypeTag;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.optimizer.jvm.CheckedMethod;
@@ -63,8 +63,7 @@ extends Descriptor
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots
-	implements IntegerSlotsEnum
+	public enum IntegerSlots implements IntegerSlotsEnumJava
 	{
 		/**
 		 * A vector of {@code long} slots, to be interpreted by the
@@ -76,8 +75,7 @@ extends Descriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots
-	implements ObjectSlotsEnum
+	public enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
 		 * A vector of {@code AvailObject} slots, to be interpreted by the

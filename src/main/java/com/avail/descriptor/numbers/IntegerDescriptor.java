@@ -36,7 +36,7 @@ import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.representation.AvailObjectFieldHelper;
-import com.avail.descriptor.representation.IntegerSlotsEnum;
+import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.types.A_Type;
 import com.avail.descriptor.types.TypeTag;
@@ -57,13 +57,13 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.representation.Mutability.*;
 import static com.avail.descriptor.numbers.AbstractNumberDescriptor.Order.*;
 import static com.avail.descriptor.numbers.DoubleDescriptor.*;
 import static com.avail.descriptor.numbers.FloatDescriptor.fromFloatRecycling;
 import static com.avail.descriptor.numbers.InfinityDescriptor.negativeInfinity;
 import static com.avail.descriptor.numbers.InfinityDescriptor.positiveInfinity;
 import static com.avail.descriptor.numbers.IntegerDescriptor.IntegerSlots.RAW_LONG_SLOTS_;
+import static com.avail.descriptor.representation.Mutability.*;
 import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.singleInteger;
 import static com.avail.descriptor.types.TypeDescriptor.Types.NUMBER;
 import static com.avail.optimizer.jvm.CheckedMethod.staticMethod;
@@ -106,8 +106,7 @@ extends ExtendedIntegerDescriptor
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots
-	implements IntegerSlotsEnum
+	public enum IntegerSlots implements IntegerSlotsEnumJava
 	{
 		/**
 		 * <p>

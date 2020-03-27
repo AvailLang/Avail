@@ -38,10 +38,10 @@ import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
-import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.representation.ObjectSlotsEnum;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.functions.ContinuationDescriptor;
 import com.avail.descriptor.functions.FunctionDescriptor;
+import com.avail.descriptor.representation.Mutability;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
@@ -70,8 +70,7 @@ extends TypeDescriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots
-	implements ObjectSlotsEnum
+	public enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
 		 * The {@linkplain FiberTypeDescriptor fiber type}'s result type.

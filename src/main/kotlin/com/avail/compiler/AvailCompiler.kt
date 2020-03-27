@@ -59,7 +59,10 @@ import com.avail.descriptor.FiberDescriptor.newLoaderFiber
 import com.avail.descriptor.ModuleDescriptor.newModule
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.atoms.A_Atom
-import com.avail.descriptor.atoms.AtomDescriptor.*
+import com.avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
+import com.avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
+import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
+import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.*
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_BundleTree

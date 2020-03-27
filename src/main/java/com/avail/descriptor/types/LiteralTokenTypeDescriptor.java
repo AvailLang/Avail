@@ -35,8 +35,8 @@ package com.avail.descriptor.types;
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.tokens.LiteralTokenDescriptor;
 import com.avail.descriptor.tokens.TokenDescriptor;
 import com.avail.serialization.SerializerOperation;
@@ -66,8 +66,7 @@ extends TypeDescriptor
 	/**
 	 * My slots of type {@link AvailObject}.
 	 */
-	public enum ObjectSlots
-	implements ObjectSlotsEnum
+	public enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
 		 * The type constraint on a literal token's value.

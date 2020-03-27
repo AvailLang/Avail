@@ -36,11 +36,11 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.representation.ObjectSlotsEnum;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.maps.A_Map;
 import com.avail.descriptor.pojos.PojoDescriptor;
 import com.avail.descriptor.pojos.RawPojoDescriptor;
+import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.sets.SetDescriptor;
 import com.avail.descriptor.tuples.A_String;
@@ -80,8 +80,7 @@ public final class SelfPojoTypeDescriptor
 extends PojoTypeDescriptor
 {
 	/** The layout of the object slots. */
-	enum ObjectSlots
-	implements ObjectSlotsEnum
+	enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
 		 * A {@linkplain RawPojoDescriptor raw pojo} that wraps the {@linkplain

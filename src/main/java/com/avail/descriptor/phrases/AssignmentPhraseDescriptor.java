@@ -36,11 +36,11 @@ import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.representation.BitField;
-import com.avail.descriptor.representation.IntegerSlotsEnum;
-import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.representation.ObjectSlotsEnum;
+import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind;
+import com.avail.descriptor.representation.BitField;
+import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.tokens.A_Token;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.descriptor.types.A_Type;
@@ -73,8 +73,7 @@ extends PhraseDescriptor
 	/**
 	 * My integer slots.
 	 */
-	public enum IntegerSlots
-	implements IntegerSlotsEnum
+	public enum IntegerSlots implements IntegerSlotsEnumJava
 	{
 		/**
 		 * The {@linkplain AssignmentPhraseDescriptor assignment phrase}'s
@@ -91,8 +90,7 @@ extends PhraseDescriptor
 	/**
 	 * My slots of type {@link AvailObject}.
 	 */
-	public enum ObjectSlots
-	implements ObjectSlotsEnum
+	public enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
 		 * The {@linkplain VariableUsePhraseDescriptor variable} being assigned.

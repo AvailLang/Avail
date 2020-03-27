@@ -35,7 +35,6 @@ import com.avail.descriptor.A_BasicObject
 import com.avail.descriptor.AbstractDescriptor
 import com.avail.descriptor.AvailObject
 import com.avail.utility.Casts
-import com.avail.utility.Nulls
 import com.avail.utility.StackPrinter
 
 /**
@@ -159,67 +158,45 @@ class AvailObjectFieldHelper
 	 *
 	 * @return A suitable [String] to present for this helper.
 	 */
-	private fun privateComputeNameForDebugger(): String {
-		val builder = StringBuilder()
-		if (subscript != -1) {
-			builder.append(slot.name(), 0, slot.name().length - 1)
-			builder.append('[')
-			builder.append(subscript)
-			builder.append(']')
-		} else {
-			builder.append(slot.name())
+	private fun privateComputeNameForDebugger() = buildString {
+		when {
+			subscript != -1 -> {
+				append(slot.fieldName(), 0, slot.fieldName().length - 1)
+				append("[$subscript]")
+			}
+			else -> append(slot.fieldName())
 		}
 		when (value) {
-			null -> {
-				builder.append(" = Java null")
-			}
-			is AvailObject -> {
-				builder.append(' ')
-				builder.append(value.nameForDebugger())
-			}
+			null -> append(" = Java null")
+			is AvailObject -> append(' ').append(value.nameForDebugger())
 			is AvailIntegerValueHelper -> {
 				try {
 					val strongSlot = Casts.cast<AbstractSlotsEnum, IntegerSlotsEnum>(slot)
 					val bitFields = AbstractDescriptor.bitFieldsFor(strongSlot)
 					if (bitFields.isNotEmpty()) {
 						// Remove the name.
-						builder.delete(0, builder.length)
+						delete(0, length)
 					}
 					AbstractDescriptor.describeIntegerSlot(
-						Nulls.stripNull(parentObject) as AvailObject,
+						parentObject as AvailObject,
 						value.longValue,
 						strongSlot,
 						bitFields,
-						builder)
+						this)
 				} catch (e: RuntimeException) {
-					builder.append(
-						"PROBLEM DESCRIBING INTEGER FIELD:\n")
-					builder.append(StackPrinter.trace(e))
+					append("PROBLEM DESCRIBING INTEGER FIELD:\n")
+					append(StackPrinter.trace(e))
 				}
 			}
-			is String -> {
-				builder.append(" = Java String: ")
-				builder.append(value as String?)
-			}
-			is Array<*> -> {
-				builder.append(" = Multi-line text")
-			}
-			else -> {
-				builder
-					.append(" = ")
-					.append(value.javaClass.canonicalName)
-			}
+			is String -> append(" = Java String: $value")
+			is Array<*> -> append(" = Multi-line text")
+			else -> append(" = ${value.javaClass.canonicalName}")
 		}
-		return builder.toString()
 	}
 
-	fun describeForDebugger(): Any? {
-		if (value is AvailObject) {
-			return value.describeForDebugger()
-		}
-		return if (value is AvailIntegerValueHelper) {
-			arrayOfNulls<Any>(0)
-		} else value
+	fun describeForDebugger(): Any? = when (value) {
+		is AvailObject -> value.describeForDebugger()
+		is AvailIntegerValueHelper -> arrayOfNulls<Any>(0)
+		else -> value
 	}
-
 }

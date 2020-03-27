@@ -32,24 +32,23 @@
 package com.avail.descriptor.representation
 
 import com.avail.descriptor.AvailObject
+import com.avail.descriptor.Descriptor
 
 /**
  * The `ObjectSlotsEnum` is an interface that helps ensure that object
  * representations and access are consistent and correct.  In particular, some
- * operations in AvailObject (such as [AvailObject.slot])
- * are expected to operate on enumerations defined as inner classes within the
- * [Descriptor] class for which the slot layout is specified.
- *
- *
+ * operations in AvailObject (such as [AvailObject.slot]) are expected to
+ * operate on enumerations defined as inner classes within the [Descriptor]
+ * class for which the slot layout is specified.
  *
  * Additionally, AvailObject is implemented with both object slots and integer
  * slots in such a way that the two should not be confused; i.e., their ordinals
- * are used as indices into either an array of [AvailObject] or an array
- * of `int`.  A related interface [IntegerSlotsEnum] helps to keep
- * these uses disjoint.
- *
+ * are used as indices into either an array of [AvailObject] or an array of
+ * `int`.  A related interface [IntegerSlotsEnum] helps to keep these uses
+ * disjoint.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-interface ObjectSlotsEnum : AbstractSlotsEnum { // It's all declared in the superinterface.
+interface ObjectSlotsEnum : AbstractSlotsEnum {
+	// It's all declared in the superinterface.
 }

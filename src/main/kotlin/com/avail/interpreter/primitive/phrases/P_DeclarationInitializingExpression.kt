@@ -33,7 +33,7 @@
 package com.avail.interpreter.primitive.phrases
 
 import com.avail.descriptor.atoms.AtomDescriptor
-import com.avail.descriptor.atoms.AtomDescriptor.objectFromBoolean
+import com.avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor
 import com.avail.descriptor.sets.SetDescriptor.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple

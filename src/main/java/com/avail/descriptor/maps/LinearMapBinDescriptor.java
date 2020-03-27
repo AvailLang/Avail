@@ -33,15 +33,17 @@
 package com.avail.descriptor.maps;
 
 import com.avail.annotations.AvailMethod;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.AbstractDescriptor;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
+import com.avail.descriptor.NilDescriptor;
 import com.avail.descriptor.maps.MapDescriptor.Entry;
 import com.avail.descriptor.maps.MapDescriptor.MapIterable;
-import com.avail.descriptor.AbstractDescriptor;
 import com.avail.descriptor.representation.AbstractSlotsEnum;
 import com.avail.descriptor.representation.BitField;
-import com.avail.descriptor.representation.IntegerSlotsEnum;
 import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.types.A_Type;
 import com.avail.descriptor.types.TypeTag;
 
@@ -50,13 +52,13 @@ import java.util.NoSuchElementException;
 import java.util.function.BiConsumer;
 
 import static com.avail.descriptor.AvailObject.newObjectIndexedIntegerIndexedDescriptor;
-import static com.avail.descriptor.representation.AvailObjectRepresentation.newLike;
-import static com.avail.descriptor.representation.Mutability.*;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.maps.HashedMapBinDescriptor.checkHashedMapBin;
 import static com.avail.descriptor.maps.HashedMapBinDescriptor.createLevelBitVector;
 import static com.avail.descriptor.maps.LinearMapBinDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.maps.LinearMapBinDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.representation.AvailObjectRepresentation.newLike;
+import static com.avail.descriptor.representation.Mutability.*;
 import static com.avail.descriptor.types.BottomTypeDescriptor.bottom;
 
 /**
@@ -73,8 +75,7 @@ extends MapBinDescriptor
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots
-	implements IntegerSlotsEnum
+	public enum IntegerSlots implements IntegerSlotsEnumJava
 	{
 		/**
 		 * A long holding {@link BitField}s containing the combined keys hash
@@ -116,8 +117,7 @@ extends MapBinDescriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots
-	implements ObjectSlotsEnum
+	public enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
 		 * The union of the types of all keys recursively within this bin.

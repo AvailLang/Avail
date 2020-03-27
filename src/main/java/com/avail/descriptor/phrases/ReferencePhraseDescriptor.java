@@ -36,9 +36,9 @@ import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.representation.ObjectSlotsEnum;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind;
+import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.descriptor.types.A_Type;
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind;
@@ -72,8 +72,7 @@ extends PhraseDescriptor
 	 *
 	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
-	public enum ObjectSlots
-	implements ObjectSlotsEnum
+	public enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
 		 * The {@linkplain VariableUsePhraseDescriptor variable use phrase} for

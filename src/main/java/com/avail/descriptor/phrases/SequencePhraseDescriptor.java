@@ -35,8 +35,8 @@ package com.avail.descriptor.phrases;
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.descriptor.tuples.TupleDescriptor;
 import com.avail.descriptor.types.A_Type;
@@ -67,8 +67,7 @@ extends PhraseDescriptor
 	/**
 	 * My slots of type {@link AvailObject}.
 	 */
-	public enum ObjectSlots
-	implements ObjectSlotsEnum
+	public enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
 		 * The {@linkplain PhraseDescriptor statements} that should be

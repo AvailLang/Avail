@@ -37,8 +37,8 @@ import com.avail.annotations.HideFieldInDebugger;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Character;
 import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.representation.BitField;
-import com.avail.descriptor.representation.IntegerSlotsEnum;
 import com.avail.descriptor.representation.Mutability;
 
 import javax.annotation.Nullable;
@@ -67,8 +67,7 @@ extends StringDescriptor
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	public enum IntegerSlots
-	implements IntegerSlotsEnum
+	public enum IntegerSlots implements IntegerSlotsEnumJava
 	{
 		/**
 		 * The low 32 bits are used for the {@link #HASH_OR_ZERO}, but the upper

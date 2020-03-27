@@ -33,11 +33,13 @@
 package com.avail.descriptor.pojos;
 
 import com.avail.annotations.AvailMethod;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AbstractDescriptor;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.Descriptor;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.representation.AvailObjectFieldHelper;
 import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.types.A_Type;
 import com.avail.descriptor.types.PojoTypeDescriptor;
 import com.avail.descriptor.types.TypeTag;
@@ -227,7 +229,7 @@ extends Descriptor
 	/**
 	 * A fake enumeration of slots for a nice description of this pojo.
 	 */
-	enum FakeSlots implements ObjectSlotsEnum
+	enum FakeSlots implements ObjectSlotsEnumJava
 	{
 		/** The sole (pseudo-)slot, the java object itself. */
 		JAVA_OBJECT

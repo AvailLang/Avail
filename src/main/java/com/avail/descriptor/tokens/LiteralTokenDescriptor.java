@@ -36,14 +36,15 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.HideFieldJustForPrinting;
 import com.avail.compiler.scanning.LexingState;
-import com.avail.descriptor.*;
-import com.avail.descriptor.pojos.RawPojoDescriptor;
+import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AbstractDescriptor;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
+import com.avail.descriptor.pojos.RawPojoDescriptor;
 import com.avail.descriptor.representation.AbstractSlotsEnum;
 import com.avail.descriptor.representation.BitField;
-import com.avail.descriptor.representation.IntegerSlotsEnum;
 import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.tuples.A_String;
 import com.avail.descriptor.tuples.StringDescriptor;
 import com.avail.descriptor.types.A_Type;
@@ -76,8 +77,7 @@ extends TokenDescriptor
 	/**
 	 * My class's slots of type int.
 	 */
-	public enum IntegerSlots
-	implements IntegerSlotsEnum
+	public enum IntegerSlots implements IntegerSlotsEnumJava
 	{
 		/**
 		 * {@link BitField}s for the token type code, the starting byte
@@ -118,8 +118,7 @@ extends TokenDescriptor
 	 * My slots of type {@link AvailObject}. Note that they have to start the
 	 * same as in my superclass {@link TokenDescriptor}.
 	 */
-	public enum ObjectSlots
-	implements ObjectSlotsEnum
+	public enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
 		 * The {@linkplain StringDescriptor string}, exactly as I appeared in

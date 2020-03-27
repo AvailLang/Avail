@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import com.avail.AvailRuntime;
 import com.avail.annotations.AvailMethod;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.atoms.AtomDescriptor;
 import com.avail.descriptor.bundles.A_Bundle;
@@ -52,7 +53,6 @@ import com.avail.descriptor.parsing.A_ParsingPlanInProgress;
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind;
 import com.avail.descriptor.representation.AbstractSlotsEnum;
 import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.sets.SetDescriptor;
 import com.avail.descriptor.tuples.A_String;
@@ -113,8 +113,7 @@ extends Descriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots
-	implements ObjectSlotsEnum
+	public enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
 		 * A {@linkplain StringDescriptor string} that names the {@linkplain

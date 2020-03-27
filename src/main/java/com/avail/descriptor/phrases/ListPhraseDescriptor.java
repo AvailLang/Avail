@@ -35,10 +35,10 @@ package com.avail.descriptor.phrases;
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.representation.AbstractSlotsEnum;
 import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
+import com.avail.descriptor.representation.AbstractSlotsEnum;
 import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.tokens.A_Token;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.descriptor.tuples.TupleDescriptor;
@@ -80,8 +80,7 @@ extends PhraseDescriptor
 	 *
 	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
-	public enum ObjectSlots
-	implements ObjectSlotsEnum
+	public enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
 		 * The {@linkplain TupleDescriptor tuple} of {@linkplain
