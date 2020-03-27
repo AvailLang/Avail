@@ -63,6 +63,9 @@ import com.avail.descriptor.parsing.A_Lexer;
 import com.avail.descriptor.parsing.A_ParsingPlanInProgress;
 import com.avail.descriptor.phrases.A_Phrase;
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind;
+import com.avail.descriptor.representation.IntegerSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.sets.SetDescriptor.SetIterator;
 import com.avail.descriptor.tokens.A_Token;
@@ -2170,7 +2173,8 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	public boolean o_Equals (
+		final AvailObject object, final A_BasicObject another)
 	{
 		throw unsupportedOperationException();
 	}
@@ -2492,7 +2496,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	protected int o_Hash (final AvailObject object)
+	public int o_Hash (final AvailObject object)
 	{
 		// Answer a 32-bit long that is always the same for equal objects, but
 		// statistically different for different objects.
@@ -4788,7 +4792,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	protected TypeTag o_ComputeTypeTag (final AvailObject object)
+	public TypeTag o_ComputeTypeTag (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}

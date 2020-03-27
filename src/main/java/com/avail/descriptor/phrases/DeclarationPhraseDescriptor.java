@@ -36,10 +36,10 @@ import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.IntegerEnumSlotDescriptionEnum;
-import com.avail.descriptor.Mutability;
+import com.avail.descriptor.representation.IntegerEnumSlotDescriptionEnum;
+import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.NilDescriptor;
-import com.avail.descriptor.ObjectSlotsEnum;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.tokens.A_Token;
 import com.avail.descriptor.tokens.TokenDescriptor;
 import com.avail.descriptor.tuples.A_String;
@@ -778,7 +778,7 @@ extends PhraseDescriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_Hash (final AvailObject object)
+	public int o_Hash (final AvailObject object)
 	{
 		return
 			((((object.token().hash() * multiplier

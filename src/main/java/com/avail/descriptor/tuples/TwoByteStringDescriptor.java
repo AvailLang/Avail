@@ -37,9 +37,9 @@ import com.avail.annotations.HideFieldInDebugger;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Character;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.BitField;
-import com.avail.descriptor.IntegerSlotsEnum;
-import com.avail.descriptor.Mutability;
+import com.avail.descriptor.representation.BitField;
+import com.avail.descriptor.representation.IntegerSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
 
 import javax.annotation.Nullable;
 import java.util.function.IntUnaryOperator;
@@ -48,7 +48,7 @@ import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.AvailObject.newLike;
 import static com.avail.descriptor.CharacterDescriptor.computeHashOfCharacterWithCodePoint;
 import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
-import static com.avail.descriptor.Mutability.*;
+import static com.avail.descriptor.representation.Mutability.*;
 import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.tuples.TreeTupleDescriptor.concatenateAtLeastOneTree;
 import static com.avail.descriptor.tuples.TreeTupleDescriptor.createTwoPartTreeTuple;
@@ -199,7 +199,7 @@ extends StringDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsTwoByteString(object);
 	}

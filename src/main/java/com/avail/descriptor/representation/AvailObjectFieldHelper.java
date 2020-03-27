@@ -1,21 +1,21 @@
 /*
  * AvailObjectFieldHelper.java
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice, this
+ *     list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice, this
+ *     list of conditions and the following disclaimer in the documentation
+ *     and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
- *   without specific prior written permission.
+ *  * Neither the name of the copyright holder nor the names of the contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -30,7 +30,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.descriptor;
+package com.avail.descriptor.representation;
+
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.AbstractDescriptor;
+import com.avail.descriptor.AvailObject;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -56,7 +60,7 @@ import static com.avail.utility.StackPrinter.trace;
  * <li>Preferences... &rarr; Java &rarr; Debug &rarr; Logical Structures &rarr;
  * Add:
  *   <ul>
- *   <li>Qualified name: com.avail.descriptor.AvailIntegerValueHelper</li>
+ *   <li>Qualified name: com.avail.descriptor.representation.AvailIntegerValueHelper</li>
  *   <li>Description: Hide integer value field</li>
  *   <li>Structure type: Single value</li>
  *   <li>Code: {@code return new Object[0];}</li>
@@ -83,7 +87,7 @@ import static com.avail.utility.StackPrinter.trace;
  * <li>Preferences... &rarr; Java &rarr; Debug &rarr; Logical Structures &rarr;
  * Add:
  *   <ul>
- *   <li>Qualified name: com.avail.descriptor.AvailObjectFieldHelper</li>
+ *   <li>Qualified name: com.avail.descriptor.representation.AvailObjectFieldHelper</li>
  *   <li>Description: Present helper's value's fields instead of the helper</li>
  *   <li>Structure type: Single value</li>
  *   <li>Code: {@code return value;}</li>
@@ -92,7 +96,7 @@ import static com.avail.utility.StackPrinter.trace;
  * <li>Preferences... &rarr; Java &rarr; Debug &rarr; Detail Formatters &rarr;
  * Add:
  *   <ul>
- *   <li>Qualified type name: com.avail.descriptor.AvailObjectFieldHelper</li>
+ *   <li>Qualified type name: com.avail.descriptor.representation.AvailObjectFieldHelper</li>
  *   <li>Detail formatter code snippet: {@code return name();}</li>
  *   <li>Enable this detail formatter: (checked)</li>
  *   <li>(after OK) Show variable details: As the label for all variables</li>

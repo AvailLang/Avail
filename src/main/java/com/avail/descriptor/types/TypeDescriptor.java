@@ -55,6 +55,9 @@ import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor;
 import com.avail.descriptor.parsing.LexerDescriptor;
 import com.avail.descriptor.parsing.ParsingPlanInProgressDescriptor;
 import com.avail.descriptor.pojos.PojoDescriptor;
+import com.avail.descriptor.representation.IntegerSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.tokens.LiteralTokenDescriptor;
 import com.avail.descriptor.tokens.TokenDescriptor;
@@ -559,7 +562,7 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected abstract boolean o_Equals (
+	public abstract boolean o_Equals (
 		final AvailObject object,
 		final A_BasicObject another);
 

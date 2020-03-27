@@ -36,8 +36,8 @@ import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.Descriptor;
-import com.avail.descriptor.Mutability;
-import com.avail.descriptor.ObjectSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.types.A_Type;
 import com.avail.descriptor.types.PojoTypeDescriptor;
 import com.avail.descriptor.types.TypeDescriptor;
@@ -151,7 +151,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_Equals (
+	public boolean o_Equals (
 		final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsPojoField(
@@ -191,7 +191,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_Hash (final AvailObject object)
+	public int o_Hash (final AvailObject object)
 	{
 		return object.slot(FIELD).hash()
 			* object.slot(RECEIVER).hash() ^ 0x2199C0C3;
@@ -317,7 +317,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected void printObjectOnAvoidingIndent (
+	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
 		final IdentityHashMap<A_BasicObject, Void> recursionMap,

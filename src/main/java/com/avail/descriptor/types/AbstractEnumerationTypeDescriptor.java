@@ -35,9 +35,9 @@ package com.avail.descriptor.types;
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.IntegerSlotsEnum;
-import com.avail.descriptor.Mutability;
-import com.avail.descriptor.ObjectSlotsEnum;
+import com.avail.descriptor.representation.IntegerSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.maps.A_Map;
 import com.avail.descriptor.numbers.A_Number;
@@ -82,7 +82,7 @@ extends AbstractTypeDescriptor
 	protected abstract A_Set o_Instances (final AvailObject object);
 
 	@Override @AvailMethod
-	protected abstract boolean o_Equals (
+	public abstract boolean o_Equals (
 		final AvailObject object,
 		final A_BasicObject another);
 
@@ -765,7 +765,7 @@ extends AbstractTypeDescriptor
 	}
 
 	@Override
-	protected abstract TypeTag o_ComputeTypeTag (final AvailObject object);
+	public abstract TypeTag o_ComputeTypeTag (final AvailObject object);
 
 	/**
 	 * Answer a new object instance of this descriptor based on the set of

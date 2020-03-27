@@ -35,11 +35,11 @@ package com.avail.descriptor.bundles;
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.AbstractSlotsEnum;
+import com.avail.descriptor.representation.AbstractSlotsEnum;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.Descriptor;
-import com.avail.descriptor.Mutability;
-import com.avail.descriptor.ObjectSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.atoms.AtomDescriptor;
 import com.avail.descriptor.maps.A_Map;
@@ -190,7 +190,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.traversed().sameAddressAs(object);
 	}
@@ -208,7 +208,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_Hash (final AvailObject object)
+	public int o_Hash (final AvailObject object)
 	{
 		return object.message().hash() ^ 0x0312CAB9;
 	}

@@ -36,7 +36,7 @@ import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AbstractDescriptor;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.Mutability;
+import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.types.A_Type;
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor;
 import com.avail.descriptor.types.TypeTag;
@@ -84,7 +84,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_Equals (
+	public boolean o_Equals (
 		final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsInfinity(sign);
@@ -135,7 +135,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_Hash (final AvailObject object)
+	public int o_Hash (final AvailObject object)
 	{
 		return sign == Sign.POSITIVE ? 0x14B326DA : 0xBF9302D;
 	}

@@ -48,6 +48,11 @@ import com.avail.descriptor.parsing.A_DefinitionParsingPlan;
 import com.avail.descriptor.parsing.A_ParsingPlanInProgress;
 import com.avail.descriptor.phrases.A_Phrase;
 import com.avail.descriptor.pojos.RawPojoDescriptor;
+import com.avail.descriptor.representation.AbstractSlotsEnum;
+import com.avail.descriptor.representation.BitField;
+import com.avail.descriptor.representation.IntegerSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.tuples.A_String;
 import com.avail.descriptor.tuples.A_Tuple;
@@ -427,7 +432,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected void printObjectOnAvoidingIndent (
+	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
 		final IdentityHashMap<A_BasicObject, Void> recursionMap,
@@ -558,7 +563,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.traversed().sameAddressAs(object);
 	}
@@ -852,7 +857,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_Hash (final AvailObject object)
+	public int o_Hash (final AvailObject object)
 	{
 		assert isShared();
 		int hash = object.slot(HASH_OR_ZERO);

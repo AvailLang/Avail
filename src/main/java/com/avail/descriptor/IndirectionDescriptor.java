@@ -63,6 +63,11 @@ import com.avail.descriptor.parsing.A_Lexer;
 import com.avail.descriptor.parsing.A_ParsingPlanInProgress;
 import com.avail.descriptor.phrases.A_Phrase;
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind;
+import com.avail.descriptor.representation.AbstractSlotsEnum;
+import com.avail.descriptor.representation.AvailObjectRepresentation;
+import com.avail.descriptor.representation.IntegerSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.sets.SetDescriptor.SetIterator;
 import com.avail.descriptor.tokens.A_Token;
@@ -199,7 +204,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	protected void printObjectOnAvoidingIndent (
+	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder aStream,
 		final IdentityHashMap<A_BasicObject, Void> recursionMap,
@@ -300,12 +305,12 @@ extends AbstractDescriptor
 		}
 	}
 
-	static IndirectionDescriptor mutable (final TypeTag typeTag)
+	public static IndirectionDescriptor mutable (final TypeTag typeTag)
 	{
 		return mutables[typeTag.ordinal()];
 	}
 
-	static IndirectionDescriptor immutable (final TypeTag typeTag)
+	public static IndirectionDescriptor immutable (final TypeTag typeTag)
 	{
 		return immutables[typeTag.ordinal()];
 	}
@@ -776,7 +781,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	protected boolean o_Equals (
+	public boolean o_Equals (
 		final AvailObject object,
 		final A_BasicObject another)
 	{
@@ -2258,7 +2263,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	protected int o_Hash (final AvailObject object)
+	public int o_Hash (final AvailObject object)
 	{
 		return o_Traversed(object).hash();
 	}
@@ -4885,7 +4890,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	TypeTag o_ComputeTypeTag (final AvailObject object)
+	public TypeTag o_ComputeTypeTag (final AvailObject object)
 	{
 		final TypeTag tag = o_Traversed(object).typeTag();
 		// Now that we know it, switch to a descriptor that has it cached...

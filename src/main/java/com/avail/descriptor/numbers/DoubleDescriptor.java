@@ -36,8 +36,8 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.IntegerSlotsEnum;
-import com.avail.descriptor.Mutability;
+import com.avail.descriptor.representation.IntegerSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.types.A_Type;
 import com.avail.descriptor.types.TypeTag;
 import com.avail.optimizer.jvm.CheckedMethod;
@@ -222,7 +222,7 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override
-	protected void printObjectOnAvoidingIndent (
+	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder aStream,
 		final IdentityHashMap<A_BasicObject, Void> recursionMap,
@@ -518,7 +518,7 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_Equals (
+	public boolean o_Equals (
 		final AvailObject object,
 		final A_BasicObject another)
 	{
@@ -564,7 +564,7 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_Hash (final AvailObject object)
+	public int o_Hash (final AvailObject object)
 	{
 		final long bits = object.slot(LONG_BITS);
 		final int low = (int) (bits >> 32);

@@ -36,10 +36,10 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.BitField;
-import com.avail.descriptor.IntegerSlotsEnum;
-import com.avail.descriptor.Mutability;
-import com.avail.descriptor.ObjectSlotsEnum;
+import com.avail.descriptor.representation.BitField;
+import com.avail.descriptor.representation.IntegerSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.utility.IteratorNotNull;
@@ -50,7 +50,7 @@ import java.util.NoSuchElementException;
 import java.util.function.IntFunction;
 
 import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.AvailObjectRepresentation.newLike;
+import static com.avail.descriptor.representation.AvailObjectRepresentation.newLike;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.tuples.ObjectTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.tuples.ObjectTupleDescriptor.ObjectSlots.TUPLE_AT_;
@@ -312,7 +312,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsObjectTuple(object);
 	}

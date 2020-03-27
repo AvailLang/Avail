@@ -35,9 +35,9 @@ package com.avail.descriptor.numbers;
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.AvailObjectFieldHelper;
-import com.avail.descriptor.IntegerSlotsEnum;
-import com.avail.descriptor.Mutability;
+import com.avail.descriptor.representation.AvailObjectFieldHelper;
+import com.avail.descriptor.representation.IntegerSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.types.A_Type;
 import com.avail.descriptor.types.TypeTag;
 import com.avail.exceptions.ArithmeticException;
@@ -57,7 +57,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.Mutability.*;
+import static com.avail.descriptor.representation.Mutability.*;
 import static com.avail.descriptor.numbers.AbstractNumberDescriptor.Order.*;
 import static com.avail.descriptor.numbers.DoubleDescriptor.*;
 import static com.avail.descriptor.numbers.FloatDescriptor.fromFloatRecycling;
@@ -295,7 +295,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsInteger(object);
 	}
@@ -380,7 +380,7 @@ extends ExtendedIntegerDescriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_Hash (final AvailObject object)
+	public int o_Hash (final AvailObject object)
 	{
 		if (object.isUnsignedByte())
 		{

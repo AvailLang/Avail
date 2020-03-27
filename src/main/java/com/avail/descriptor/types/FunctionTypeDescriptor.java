@@ -39,6 +39,12 @@ import com.avail.descriptor.*;
 import com.avail.descriptor.functions.FunctionDescriptor;
 import com.avail.descriptor.numbers.A_Number;
 import com.avail.descriptor.objects.ObjectTypeDescriptor;
+import com.avail.descriptor.AbstractDescriptor;
+import com.avail.descriptor.representation.AbstractSlotsEnum;
+import com.avail.descriptor.representation.BitField;
+import com.avail.descriptor.representation.IntegerSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.sets.SetDescriptor;
 import com.avail.descriptor.tuples.A_Tuple;
@@ -398,7 +404,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsFunctionType(object);
 	}
@@ -443,7 +449,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_Hash (final AvailObject object)
+	public int o_Hash (final AvailObject object)
 	{
 		if (isShared())
 		{

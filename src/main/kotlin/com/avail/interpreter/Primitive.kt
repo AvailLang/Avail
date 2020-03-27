@@ -34,7 +34,7 @@ package com.avail.interpreter
 
 import com.avail.AvailRuntime.HookType.IMPLICIT_OBSERVE
 import com.avail.descriptor.AvailObject
-import com.avail.descriptor.IntegerEnumSlotDescriptionEnum
+import com.avail.descriptor.representation.IntegerEnumSlotDescriptionEnum
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.CompiledCodeDescriptor

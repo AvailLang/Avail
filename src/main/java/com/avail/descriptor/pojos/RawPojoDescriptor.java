@@ -34,6 +34,10 @@ package com.avail.descriptor.pojos;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.*;
+import com.avail.descriptor.AbstractDescriptor;
+import com.avail.descriptor.representation.AvailObjectFieldHelper;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.types.A_Type;
 import com.avail.descriptor.types.PojoTypeDescriptor;
 import com.avail.descriptor.types.TypeTag;
@@ -68,7 +72,7 @@ extends Descriptor
 	final @Nullable Object javaObject;
 
 	@Override @AvailMethod
-	protected boolean o_Equals (
+	public boolean o_Equals (
 		final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsRawPojoFor(object, javaObject);
@@ -114,7 +118,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_Hash (final AvailObject object)
+	public int o_Hash (final AvailObject object)
 	{
 		// This ensures that mutations of the wrapped pojo do not corrupt hashed
 		// Avail data structures.

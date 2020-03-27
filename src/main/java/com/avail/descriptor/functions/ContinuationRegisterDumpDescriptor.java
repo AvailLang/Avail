@@ -34,9 +34,9 @@ package com.avail.descriptor.functions;
 
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.Descriptor;
-import com.avail.descriptor.IntegerSlotsEnum;
-import com.avail.descriptor.Mutability;
-import com.avail.descriptor.ObjectSlotsEnum;
+import com.avail.descriptor.representation.IntegerSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.types.TypeTag;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.optimizer.jvm.CheckedMethod;

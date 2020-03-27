@@ -35,7 +35,7 @@ package com.avail.descriptor.types;
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.Mutability;
+import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.maps.A_Map;
 import com.avail.descriptor.numbers.A_Number;
@@ -241,7 +241,7 @@ extends AbstractEnumerationTypeDescriptor
 	 * </p>
 	 */
 	@Override @AvailMethod
-	protected boolean o_Equals (
+	public boolean o_Equals (
 		final AvailObject object,
 		final A_BasicObject another)
 	{
@@ -299,7 +299,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_Hash (final AvailObject object)
+	public int o_Hash (final AvailObject object)
 	{
 		return 0x4a22a80a;
 	}
@@ -600,7 +600,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override
-	protected TypeTag o_ComputeTypeTag (final AvailObject object)
+	public TypeTag o_ComputeTypeTag (final AvailObject object)
 	{
 		return TypeTag.BOTTOM_TYPE_TAG;
 	}

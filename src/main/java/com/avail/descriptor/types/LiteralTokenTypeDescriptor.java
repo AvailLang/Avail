@@ -35,8 +35,8 @@ package com.avail.descriptor.types;
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.Mutability;
-import com.avail.descriptor.ObjectSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.tokens.LiteralTokenDescriptor;
 import com.avail.descriptor.tokens.TokenDescriptor;
 import com.avail.serialization.SerializerOperation;
@@ -90,7 +90,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsLiteralTokenType(object);
 	}
@@ -104,7 +104,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_Hash (final AvailObject object)
+	public int o_Hash (final AvailObject object)
 	{
 		return object.slot(LITERAL_TYPE).hash() ^ 0xF47FF1B1;
 	}

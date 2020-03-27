@@ -35,7 +35,7 @@ package com.avail.descriptor.pojos;
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.Mutability;
+import com.avail.descriptor.representation.Mutability;
 
 import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
@@ -53,7 +53,7 @@ final class EqualityRawPojoDescriptor
 extends RawPojoDescriptor
 {
 	@Override @AvailMethod
-	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsEqualityRawPojoFor(object, javaObject);
 	}
@@ -126,7 +126,7 @@ extends RawPojoDescriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_Hash (final AvailObject object)
+	public int o_Hash (final AvailObject object)
 	{
 		final @Nullable Object javaObject2 = javaObject;
 		return javaObject2 == null

@@ -35,10 +35,10 @@ package com.avail.descriptor.phrases;
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.AbstractSlotsEnum;
+import com.avail.descriptor.representation.AbstractSlotsEnum;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.Mutability;
-import com.avail.descriptor.ObjectSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.descriptor.tuples.TupleDescriptor;
 import com.avail.descriptor.types.A_Type;
@@ -133,7 +133,7 @@ extends PhraseDescriptor
 	}
 
 	@Override
-	protected void printObjectOnAvoidingIndent (
+	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
 		final IdentityHashMap<A_BasicObject, Void> recursionMap,
@@ -226,7 +226,7 @@ extends PhraseDescriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_Hash (final AvailObject object)
+	public int o_Hash (final AvailObject object)
 	{
 		return (object.slot(LIST).hash() ^ 0xC8FC27B2)
 			+ object.slot(PERMUTATION).hash();

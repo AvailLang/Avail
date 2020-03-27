@@ -47,6 +47,12 @@ import com.avail.descriptor.maps.A_Map;
 import com.avail.descriptor.phrases.A_Phrase;
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor;
 import com.avail.descriptor.pojos.RawPojoDescriptor;
+import com.avail.descriptor.representation.AbstractSlotsEnum;
+import com.avail.descriptor.representation.BitField;
+import com.avail.descriptor.representation.IntegerEnumSlotDescriptionEnum;
+import com.avail.descriptor.representation.IntegerSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.sets.SetDescriptor;
 import com.avail.descriptor.tuples.A_String;
@@ -1152,7 +1158,8 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	public boolean o_Equals (
+		final AvailObject object, final A_BasicObject another)
 	{
 		// Compare fibers by address (identity).
 		return another.traversed().sameAddressAs(object);
@@ -1186,7 +1193,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_Hash (final AvailObject object)
+	public int o_Hash (final AvailObject object)
 	{
 		if (isShared())
 		{

@@ -38,6 +38,12 @@ import com.avail.descriptor.*;
 import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.numbers.A_Number;
 import com.avail.descriptor.pojos.RawPojoDescriptor;
+import com.avail.descriptor.AbstractDescriptor;
+import com.avail.descriptor.representation.AbstractSlotsEnum;
+import com.avail.descriptor.representation.BitField;
+import com.avail.descriptor.representation.IntegerSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.types.A_Type;
 import com.avail.descriptor.types.TypeTag;
@@ -200,7 +206,7 @@ extends VariableDescriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_Hash (final AvailObject object)
+	public int o_Hash (final AvailObject object)
 	{
 		return object.slot(HASH_ALWAYS_SET);
 	}

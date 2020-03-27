@@ -36,8 +36,8 @@ import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.A_Module;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ModuleDescriptor;
-import com.avail.descriptor.Mutability;
-import com.avail.descriptor.ObjectSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.functions.A_Function;
 import com.avail.descriptor.functions.FunctionDescriptor;
 import com.avail.descriptor.types.A_Type;
@@ -100,7 +100,7 @@ extends DefinitionDescriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_Hash (final AvailObject object)
+	public int o_Hash (final AvailObject object)
 	{
 		return (object.bodyBlock().hash() * 19) ^ 0x70B2B1A9;
 	}

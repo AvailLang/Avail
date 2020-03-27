@@ -37,8 +37,8 @@ import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Module;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ModuleDescriptor;
-import com.avail.descriptor.Mutability;
-import com.avail.descriptor.ObjectSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.types.A_Type;
 import com.avail.descriptor.types.FunctionTypeDescriptor;
 import com.avail.descriptor.types.TypeDescriptor.Types;
@@ -95,7 +95,7 @@ extends DefinitionDescriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_Hash (final AvailObject object)
+	public int o_Hash (final AvailObject object)
 	{
 		return (object.slot(BODY_SIGNATURE).hash() * 19)
 			^ 0x201FE782;

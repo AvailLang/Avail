@@ -35,13 +35,18 @@ package com.avail.descriptor.tuples;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.descriptor.*;
+import com.avail.descriptor.AbstractDescriptor;
+import com.avail.descriptor.representation.BitField;
+import com.avail.descriptor.representation.IntegerSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.types.A_Type;
 
 import java.nio.ByteBuffer;
 
 import static com.avail.descriptor.AvailObject.newLike;
 import static com.avail.descriptor.AvailObject.newObjectIndexedIntegerIndexedDescriptor;
-import static com.avail.descriptor.Mutability.*;
+import static com.avail.descriptor.representation.Mutability.*;
 import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.tuples.TreeTupleDescriptor.IntegerSlots.CUMULATIVE_SIZES_AREA_;
 import static com.avail.descriptor.tuples.TreeTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
@@ -428,7 +433,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsAnyTuple(object);
 	}

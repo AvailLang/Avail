@@ -1,21 +1,21 @@
 /*
  * AbstractDescriptor.java
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice, this
+ *     list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice, this
+ *     list of conditions and the following disclaimer in the documentation
+ *     and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
- *   without specific prior written permission.
+ *  * Neither the name of the copyright holder nor the names of the contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -68,6 +68,7 @@ import com.avail.descriptor.parsing.A_Lexer;
 import com.avail.descriptor.parsing.A_ParsingPlanInProgress;
 import com.avail.descriptor.phrases.A_Phrase;
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind;
+import com.avail.descriptor.representation.*;
 import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.sets.SetDescriptor;
 import com.avail.descriptor.sets.SetDescriptor.SetIterator;
@@ -118,8 +119,8 @@ import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import static com.avail.descriptor.Mutability.MUTABLE;
-import static com.avail.descriptor.Mutability.SHARED;
+import static com.avail.descriptor.representation.Mutability.MUTABLE;
+import static com.avail.descriptor.representation.Mutability.SHARED;
 import static com.avail.optimizer.jvm.CheckedMethod.instanceMethod;
 import static com.avail.utility.Casts.cast;
 import static com.avail.utility.Nulls.stripNull;
@@ -265,7 +266,7 @@ public abstract class AbstractDescriptor
 	 * indexed slots possibly at the end. Populated automatically by the
 	 * constructor.
 	 */
-	protected final int numberOfFixedObjectSlots;
+	public final int numberOfFixedObjectSlots;
 
 	/**
 	 * Answer the minimum number of object slots an {@link AvailObject} can have
@@ -275,7 +276,7 @@ public abstract class AbstractDescriptor
 	 * @return The minimum number of object slots featured by an object using
 	 *         this descriptor.
 	 */
-	final int numberOfFixedObjectSlots ()
+	public final int numberOfFixedObjectSlots ()
 	{
 		return numberOfFixedObjectSlots;
 	}
@@ -285,7 +286,7 @@ public abstract class AbstractDescriptor
 	 * uses this descriptor. Does not include indexed slots possibly at the end.
 	 * Populated automatically by the constructor.
 	 */
-	protected final int numberOfFixedIntegerSlots;
+	public final int numberOfFixedIntegerSlots;
 
 	/**
 	 * Answer the minimum number of integer slots an {@link AvailObject} can
@@ -295,7 +296,7 @@ public abstract class AbstractDescriptor
 	 * @return The minimum number of integer slots featured by an object using
 	 *         this descriptor.
 	 */
-	final int numberOfFixedIntegerSlots ()
+	public final int numberOfFixedIntegerSlots ()
 	{
 		return numberOfFixedIntegerSlots;
 	}
@@ -306,7 +307,7 @@ public abstract class AbstractDescriptor
 	 * the constructor, based on the presence of an underscore at the end of its
 	 * final {@link ObjectSlotsEnum} name.
 	 */
-	final boolean hasVariableObjectSlots;
+	public final boolean hasVariableObjectSlots;
 
 	/**
 	 * Can an {@linkplain AvailObject object} using this descriptor have more
@@ -329,7 +330,7 @@ public abstract class AbstractDescriptor
 	 * the constructor, based on the presence of an underscore at the end of its
 	 * final {@link IntegerSlotsEnum} name.
 	 */
-	final boolean hasVariableIntegerSlots;
+	public final boolean hasVariableIntegerSlots;
 
 	/**
 	 * Can an {@linkplain AvailObject object} using this descriptor have more
@@ -667,7 +668,7 @@ public abstract class AbstractDescriptor
 	 *
 	 * @return The number of levels.
 	 */
-	protected int maximumIndent ()
+	public int maximumIndent ()
 	{
 		return 12;
 	}
@@ -677,7 +678,7 @@ public abstract class AbstractDescriptor
 	 *
 	 * @param e An {@code enum} value whose ordinal is the field position.
 	 */
-	final void checkWriteForField (final AbstractSlotsEnum e)
+	public final void checkWriteForField (final AbstractSlotsEnum e)
 	{
 		assert isMutable() || allowsImmutableToMutableReferenceInField(e);
 	}
@@ -710,10 +711,9 @@ public abstract class AbstractDescriptor
 	/**
 	 * Print the {@linkplain AvailObject object} to the {@link StringBuilder}.
 	 * By default show it as the descriptor's name and a line-by-line list of
-	 * fields. If the indent is beyond the {@link #maximumIndent()
-	 * maximumIndent}, indicate it's too deep without recursing. If the object
-	 * is in the specified recursion list, indicate a recursive print and
-	 * return.
+	 * fields. If the indent is beyond the {@link #maximumIndent}, indicate it's
+	 * too deep without recursing. If the object is in the specified recursion
+	 * list, indicate a recursive print and return.
 	 *
 	 * @param object The object to print (its descriptor is me).
 	 * @param builder Where to print the object.
@@ -722,7 +722,7 @@ public abstract class AbstractDescriptor
 	 */
 	@SuppressWarnings("unchecked")
 	@ThreadSafe
-	protected void printObjectOnAvoidingIndent (
+	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
 		final IdentityHashMap<A_BasicObject, Void> recursionMap,
@@ -940,7 +940,7 @@ public abstract class AbstractDescriptor
 	 * @param bitFields The slot's {@link BitField}s, if any.
 	 * @param builder Where to write the description.
 	 */
-	static void describeIntegerSlot (
+	public static void describeIntegerSlot (
 		final AvailObject object,
 		final long value,
 		final IntegerSlotsEnum slot,
@@ -1006,7 +1006,7 @@ public abstract class AbstractDescriptor
 	 * @param slot The integer slot.
 	 * @return The slot's bit fields.
 	 */
-	static List<BitField> bitFieldsFor (final IntegerSlotsEnum slot)
+	public static List<BitField> bitFieldsFor (final IntegerSlotsEnum slot)
 	{
 		bitFieldsLock.readLock().lock();
 		try
@@ -1789,7 +1789,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract TypeTag o_ComputeTypeTag (
+	public abstract TypeTag o_ComputeTypeTag (
 		AvailObject object);
 
 	/**
@@ -3664,7 +3664,7 @@ public abstract class AbstractDescriptor
 	 *         otherwise.
 	 * @see AvailObject#equals(A_BasicObject)
 	 */
-	abstract boolean o_Equals (
+	public abstract boolean o_Equals (
 		AvailObject object,
 		A_BasicObject another);
 
@@ -4075,7 +4075,8 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	abstract int o_Hash (AvailObject object);
+
+	public abstract int o_Hash (AvailObject object);
 
 	/**
 	 * Is the specified {@link AvailObject} an Avail function?

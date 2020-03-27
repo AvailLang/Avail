@@ -35,6 +35,11 @@ package com.avail.descriptor.types;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.descriptor.*;
+import com.avail.descriptor.AbstractDescriptor;
+import com.avail.descriptor.representation.BitField;
+import com.avail.descriptor.representation.IntegerSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.tuples.A_String;
 import com.avail.descriptor.tuples.StringDescriptor;
 import com.avail.serialization.SerializerOperation;
@@ -154,7 +159,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsPrimitiveType(object);
 	}
@@ -169,7 +174,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_Hash (final AvailObject object)
+	public int o_Hash (final AvailObject object)
 	{
 		return object.slot(HASH);
 	}

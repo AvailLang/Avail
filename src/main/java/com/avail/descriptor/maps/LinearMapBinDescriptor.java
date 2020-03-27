@@ -36,6 +36,12 @@ import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.*;
 import com.avail.descriptor.maps.MapDescriptor.Entry;
 import com.avail.descriptor.maps.MapDescriptor.MapIterable;
+import com.avail.descriptor.AbstractDescriptor;
+import com.avail.descriptor.representation.AbstractSlotsEnum;
+import com.avail.descriptor.representation.BitField;
+import com.avail.descriptor.representation.IntegerSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.types.A_Type;
 import com.avail.descriptor.types.TypeTag;
 
@@ -44,8 +50,8 @@ import java.util.NoSuchElementException;
 import java.util.function.BiConsumer;
 
 import static com.avail.descriptor.AvailObject.newObjectIndexedIntegerIndexedDescriptor;
-import static com.avail.descriptor.AvailObjectRepresentation.newLike;
-import static com.avail.descriptor.Mutability.*;
+import static com.avail.descriptor.representation.AvailObjectRepresentation.newLike;
+import static com.avail.descriptor.representation.Mutability.*;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.maps.HashedMapBinDescriptor.checkHashedMapBin;
 import static com.avail.descriptor.maps.HashedMapBinDescriptor.createLevelBitVector;

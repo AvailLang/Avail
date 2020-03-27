@@ -36,6 +36,10 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.*;
+import com.avail.descriptor.AbstractDescriptor;
+import com.avail.descriptor.representation.BitField;
+import com.avail.descriptor.representation.IntegerSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
 import com.avail.serialization.SerializerOperation;
 
 import javax.annotation.Nullable;
@@ -45,7 +49,7 @@ import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.AvailObject.newLike;
 import static com.avail.descriptor.CharacterDescriptor.fromByteCodePoint;
 import static com.avail.descriptor.CharacterDescriptor.hashOfByteCharacterWithCodePoint;
-import static com.avail.descriptor.Mutability.*;
+import static com.avail.descriptor.representation.Mutability.*;
 import static com.avail.descriptor.tuples.ByteStringDescriptor.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.tuples.ByteStringDescriptor.IntegerSlots.RAW_LONGS_;
 import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple;
@@ -216,7 +220,7 @@ extends StringDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsByteString(object);
 	}

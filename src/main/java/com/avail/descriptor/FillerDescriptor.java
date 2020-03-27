@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.types.TypeTag;
 
 import java.util.IdentityHashMap;
@@ -65,7 +66,7 @@ extends Descriptor
 	}
 
 	/** A shared {@link FillerDescriptor}. */
-	static final FillerDescriptor shared =
+	public static final FillerDescriptor shared =
 		new FillerDescriptor(Mutability.SHARED);
 
 	@Override

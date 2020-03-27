@@ -41,6 +41,12 @@ import com.avail.descriptor.atoms.AtomDescriptor;
 import com.avail.descriptor.maps.A_Map;
 import com.avail.descriptor.maps.MapDescriptor;
 import com.avail.descriptor.maps.MapDescriptor.Entry;
+import com.avail.descriptor.representation.AbstractSlotsEnum;
+import com.avail.descriptor.representation.AvailObjectFieldHelper;
+import com.avail.descriptor.representation.BitField;
+import com.avail.descriptor.representation.IntegerSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.tuples.A_String;
 import com.avail.descriptor.tuples.A_Tuple;
@@ -56,7 +62,7 @@ import com.avail.utility.json.JSONWriter;
 import java.util.*;
 
 import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.AvailObjectRepresentation.newLike;
+import static com.avail.descriptor.representation.AvailObjectRepresentation.newLike;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY;
 import static com.avail.descriptor.maps.MapDescriptor.emptyMap;
@@ -202,7 +208,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsObject(object);
 	}
@@ -375,7 +381,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_Hash (final AvailObject object)
+	public int o_Hash (final AvailObject object)
 	{
 		int hash = object.slot(HASH_OR_ZERO);
 		if (hash == 0)

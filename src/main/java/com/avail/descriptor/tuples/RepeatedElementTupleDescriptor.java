@@ -35,13 +35,18 @@ package com.avail.descriptor.tuples;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.descriptor.*;
+import com.avail.descriptor.AbstractDescriptor;
+import com.avail.descriptor.representation.BitField;
+import com.avail.descriptor.representation.IntegerSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.types.A_Type;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 
-import static com.avail.descriptor.AvailObjectRepresentation.newLike;
+import static com.avail.descriptor.representation.AvailObjectRepresentation.newLike;
 import static com.avail.descriptor.tuples.ByteStringDescriptor.generateByteString;
 import static com.avail.descriptor.tuples.ObjectTupleDescriptor.*;
 import static com.avail.descriptor.tuples.RepeatedElementTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
@@ -303,7 +308,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsRepeatedElementTuple(object);
 	}

@@ -35,10 +35,10 @@ package com.avail.descriptor.types;
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.IntegerSlotsEnum;
-import com.avail.descriptor.Mutability;
+import com.avail.descriptor.representation.IntegerSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.NilDescriptor;
-import com.avail.descriptor.ObjectSlotsEnum;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.atoms.AtomDescriptor;
 import com.avail.descriptor.maps.A_Map;
@@ -400,7 +400,7 @@ extends TypeDescriptor
 		new LRUCache<>(1000, 10, PojoTypeDescriptor::computeValue);
 
 	@Override @AvailMethod
-	protected final boolean o_Equals (
+	public final boolean o_Equals (
 		final AvailObject object,
 		final A_BasicObject another)
 	{
@@ -424,7 +424,7 @@ extends TypeDescriptor
 		AvailObject aPojoType);
 
 	@Override @AvailMethod
-	protected abstract int o_Hash (AvailObject object);
+	public abstract int o_Hash (AvailObject object);
 
 	@Override @AvailMethod
 	protected abstract boolean o_IsAbstract (AvailObject object);
@@ -781,7 +781,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	protected abstract void printObjectOnAvoidingIndent (
+	public abstract void printObjectOnAvoidingIndent (
 		AvailObject object,
 		StringBuilder builder,
 		IdentityHashMap<A_BasicObject, Void> recursionMap,

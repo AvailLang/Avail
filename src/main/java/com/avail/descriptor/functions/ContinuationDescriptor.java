@@ -39,6 +39,12 @@ import com.avail.annotations.EnumField.Converter;
 import com.avail.annotations.HideFieldJustForPrinting;
 import com.avail.descriptor.*;
 import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder;
+import com.avail.descriptor.representation.AbstractSlotsEnum;
+import com.avail.descriptor.representation.AvailObjectRepresentation;
+import com.avail.descriptor.representation.BitField;
+import com.avail.descriptor.representation.IntegerSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.descriptor.types.A_Type;
 import com.avail.descriptor.types.TypeTag;
@@ -295,7 +301,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsContinuation(object);
 	}
@@ -347,7 +353,7 @@ extends Descriptor
 		instanceMethod(A_Continuation.class, "function", A_Function.class);
 
 	@Override @AvailMethod
-	protected int o_Hash (final AvailObject object)
+	public int o_Hash (final AvailObject object)
 	{
 		int h = 0x593599A;
 		h ^= object.caller().hash();

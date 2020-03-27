@@ -34,6 +34,10 @@ package com.avail.descriptor.numbers;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.*;
+import com.avail.descriptor.representation.IntegerEnumSlotDescriptionEnum;
+import com.avail.descriptor.representation.IntegerSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.types.A_Type;
 import com.avail.descriptor.types.TypeTag;
 import com.avail.optimizer.jvm.CheckedMethod;
@@ -695,7 +699,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected abstract boolean o_Equals (
+	public abstract boolean o_Equals (
 		final AvailObject object,
 		final A_BasicObject another);
 
@@ -710,7 +714,8 @@ extends Descriptor
 		final A_Type aType);
 
 	@Override @AvailMethod
-	protected abstract int o_Hash (
+
+	public abstract int o_Hash (
 		final AvailObject object);
 
 	@Override @AvailMethod

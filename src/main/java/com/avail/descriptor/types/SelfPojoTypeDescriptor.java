@@ -36,8 +36,8 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.Mutability;
-import com.avail.descriptor.ObjectSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.maps.A_Map;
 import com.avail.descriptor.pojos.PojoDescriptor;
 import com.avail.descriptor.pojos.RawPojoDescriptor;
@@ -128,7 +128,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_Hash (final AvailObject object)
+	public int o_Hash (final AvailObject object)
 	{
 		// Note that this definition produces a value compatible with an unfused
 		// pojo type; this is necessary to permit comparison between an unfused
@@ -297,7 +297,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override
-	protected void printObjectOnAvoidingIndent (
+	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
 		final IdentityHashMap<A_BasicObject, Void> recursionMap,

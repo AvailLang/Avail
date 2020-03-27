@@ -40,6 +40,10 @@ import com.avail.descriptor.bundles.A_Bundle;
 import com.avail.descriptor.functions.A_Function;
 import com.avail.descriptor.methods.A_Method;
 import com.avail.descriptor.methods.MacroDefinitionDescriptor;
+import com.avail.descriptor.representation.BitField;
+import com.avail.descriptor.representation.IntegerSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.tokens.A_Token;
 import com.avail.descriptor.types.A_Type;
 import com.avail.descriptor.types.TypeTag;
@@ -206,7 +210,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		final AvailObject otherTraversed = another.traversed();
 		if (otherTraversed.sameAddressAs(object))
@@ -232,7 +236,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_Hash (final AvailObject object)
+	public int o_Hash (final AvailObject object)
 	{
 		return object.slot(HASH);
 	}

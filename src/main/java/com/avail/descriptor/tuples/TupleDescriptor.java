@@ -36,6 +36,11 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.*;
+import com.avail.descriptor.representation.AbstractSlotsEnum;
+import com.avail.descriptor.representation.BitField;
+import com.avail.descriptor.representation.IntegerSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.types.A_Type;
 import com.avail.descriptor.types.BottomTypeDescriptor;
@@ -255,7 +260,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected abstract boolean o_Equals (
+	public abstract boolean o_Equals (
 		AvailObject object,
 		A_BasicObject another);
 
@@ -486,7 +491,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected final int o_Hash (final AvailObject object)
+	public int o_Hash (final AvailObject object)
 	{
 		// We could synchronize if the object isShared(), but why bother?  The
 		// hash computation is stable, so we'll only compute and write what

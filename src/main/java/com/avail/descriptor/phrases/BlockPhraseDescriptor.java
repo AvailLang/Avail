@@ -40,6 +40,11 @@ import com.avail.descriptor.functions.A_Function;
 import com.avail.descriptor.functions.A_RawFunction;
 import com.avail.descriptor.functions.FunctionDescriptor;
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind;
+import com.avail.descriptor.representation.AbstractSlotsEnum;
+import com.avail.descriptor.representation.BitField;
+import com.avail.descriptor.representation.IntegerSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.tokens.A_Token;
 import com.avail.descriptor.tuples.A_Tuple;
@@ -163,7 +168,7 @@ extends PhraseDescriptor
 	}
 
 	@Override
-	protected void printObjectOnAvoidingIndent (
+	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
 		final IdentityHashMap<A_BasicObject, Void> recursionMap,
@@ -426,7 +431,7 @@ extends PhraseDescriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_Hash (final AvailObject object)
+	public int o_Hash (final AvailObject object)
 	{
 		final @Nullable Primitive prim = object.primitive();
 		int h = object.argumentsTuple().hash();

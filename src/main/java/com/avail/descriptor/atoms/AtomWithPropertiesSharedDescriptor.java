@@ -36,6 +36,10 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.descriptor.*;
 import com.avail.descriptor.bundles.A_Bundle;
+import com.avail.descriptor.representation.BitField;
+import com.avail.descriptor.representation.IntegerSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.types.TypeTag;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.serialization.Serializer;
@@ -153,7 +157,7 @@ extends AtomWithPropertiesDescriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_Hash (final AvailObject object)
+	public int o_Hash (final AvailObject object)
 	{
 		final int hash = object.slot(HASH_OR_ZERO);
 		if (hash == 0)

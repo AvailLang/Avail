@@ -36,10 +36,10 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.BitField;
-import com.avail.descriptor.IntegerSlotsEnum;
-import com.avail.descriptor.Mutability;
-import com.avail.descriptor.ObjectSlotsEnum;
+import com.avail.descriptor.representation.BitField;
+import com.avail.descriptor.representation.IntegerSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.numbers.A_Number;
 import com.avail.descriptor.types.A_Type;
 
@@ -47,7 +47,7 @@ import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
 
-import static com.avail.descriptor.AvailObjectRepresentation.newLike;
+import static com.avail.descriptor.representation.AvailObjectRepresentation.newLike;
 import static com.avail.descriptor.numbers.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.numbers.IntegerDescriptor.zero;
 import static com.avail.descriptor.tuples.IntegerIntervalTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
@@ -367,7 +367,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsIntegerIntervalTuple(object);
 	}

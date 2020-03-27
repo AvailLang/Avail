@@ -47,6 +47,8 @@ import com.avail.descriptor.objects.ObjectDescriptor;
 import com.avail.descriptor.objects.ObjectTypeDescriptor;
 import com.avail.descriptor.phrases.A_Phrase;
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind;
+import com.avail.descriptor.representation.AvailObjectFieldHelper;
+import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.sets.SetDescriptor;
 import com.avail.descriptor.sets.SetDescriptor.SetIterator;

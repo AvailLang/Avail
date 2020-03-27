@@ -42,6 +42,8 @@ import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom;
 import com.avail.descriptor.phrases.A_Phrase;
 import com.avail.descriptor.phrases.BlockPhraseDescriptor;
 import com.avail.descriptor.phrases.PhraseDescriptor;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.descriptor.tuples.TupleDescriptor;
 import com.avail.descriptor.types.A_Type;
@@ -123,7 +125,7 @@ extends Descriptor
 		instanceMethod(A_Function.class, "code", A_RawFunction.class);
 
 	@Override
-	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsFunction(object);
 	}
@@ -165,7 +167,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected int o_Hash (final AvailObject object)
+	public int o_Hash (final AvailObject object)
 	{
 		// Answer a 32-bit hash value. If outer vars of mutable functions can
 		// peel away when executed (last use of an outer var of a mutable

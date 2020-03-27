@@ -40,6 +40,11 @@ import com.avail.descriptor.maps.A_Map;
 import com.avail.descriptor.maps.MapDescriptor;
 import com.avail.descriptor.pojos.PojoDescriptor;
 import com.avail.descriptor.pojos.RawPojoDescriptor;
+import com.avail.descriptor.representation.AbstractSlotsEnum;
+import com.avail.descriptor.representation.BitField;
+import com.avail.descriptor.representation.IntegerSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.sets.SetDescriptor;
 import com.avail.descriptor.tuples.TupleDescriptor;
 import com.avail.serialization.SerializerOperation;
@@ -216,7 +221,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_Hash (final AvailObject object)
+	public int o_Hash (final AvailObject object)
 	{
 		if (isShared())
 		{
@@ -386,7 +391,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override
-	protected void printObjectOnAvoidingIndent (
+	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder builder,
 		final IdentityHashMap<A_BasicObject, Void> recursionMap,

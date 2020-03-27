@@ -40,6 +40,10 @@ import com.avail.descriptor.*;
 import com.avail.descriptor.bundles.MessageBundleTreeDescriptor;
 import com.avail.descriptor.methods.A_Definition;
 import com.avail.descriptor.methods.MacroDefinitionDescriptor;
+import com.avail.descriptor.representation.BitField;
+import com.avail.descriptor.representation.IntegerSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.descriptor.types.A_Type;
 import com.avail.descriptor.types.TypeTag;
@@ -113,7 +117,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		if (!another.kind().equals(PARSING_PLAN_IN_PROGRESS.o()))
 		{
@@ -126,7 +130,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_Hash (final AvailObject object)
+	public int o_Hash (final AvailObject object)
 	{
 		return (object.slot(PARSING_PC) ^ 0x92A26142) * multiplier
 			- object.slot(PARSING_PLAN).hash();

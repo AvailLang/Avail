@@ -36,6 +36,9 @@ import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.*;
 import com.avail.descriptor.atoms.A_Atom;
+import com.avail.descriptor.representation.IntegerSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.descriptor.types.A_Type;
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind;
@@ -50,7 +53,7 @@ import com.avail.utility.evaluation.Transformer1;
 import javax.annotation.Nullable;
 import java.util.List;
 
-import static com.avail.descriptor.AvailObjectRepresentation.newLike;
+import static com.avail.descriptor.representation.AvailObjectRepresentation.newLike;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.types.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE;
@@ -65,7 +68,7 @@ public abstract class PhraseDescriptor
 extends Descriptor
 {
 	@Override
-	protected int maximumIndent ()
+	public int maximumIndent ()
 	{
 		return Integer.MAX_VALUE;
 	}
@@ -169,7 +172,7 @@ extends Descriptor
 	 * @return Whether they are equal.
 	 */
 	@Override @AvailMethod
-	protected final boolean o_Equals (
+	public final boolean o_Equals (
 		final AvailObject object,
 		final A_BasicObject another)
 	{
@@ -206,7 +209,8 @@ extends Descriptor
 	 * @return The hash of the phrase.
 	 */
 	@Override @AvailMethod
-	protected abstract int o_Hash (final AvailObject object);
+
+	public abstract int o_Hash (final AvailObject object);
 
 	@Override
 	protected boolean o_HasSuperCast (final AvailObject object)

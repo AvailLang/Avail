@@ -35,6 +35,10 @@ package com.avail.descriptor.maps;
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.*;
 import com.avail.descriptor.maps.MapDescriptor.MapIterable;
+import com.avail.descriptor.representation.BitField;
+import com.avail.descriptor.representation.IntegerSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.types.TypeTag;
 
 import javax.annotation.Nullable;

@@ -38,8 +38,8 @@ import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AbstractDescriptor;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.CharacterDescriptor;
-import com.avail.descriptor.Mutability;
-import com.avail.descriptor.ObjectSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.numbers.A_Number;
 import com.avail.descriptor.numbers.InfinityDescriptor;
 import com.avail.descriptor.numbers.IntegerDescriptor;
@@ -113,7 +113,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsIntegerRangeType(object);
 	}
@@ -143,7 +143,7 @@ extends TypeDescriptor
 	 * </p>
 	 */
 	@Override @AvailMethod
-	protected int o_Hash (final AvailObject object)
+	public int o_Hash (final AvailObject object)
 	{
 		return computeHash(
 			object.slot(LOWER_BOUND).hash(),

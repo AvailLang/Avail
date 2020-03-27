@@ -37,9 +37,9 @@ import com.avail.annotations.HideFieldInDebugger;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AbstractDescriptor;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.BitField;
-import com.avail.descriptor.IntegerSlotsEnum;
-import com.avail.descriptor.Mutability;
+import com.avail.descriptor.representation.BitField;
+import com.avail.descriptor.representation.IntegerSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.functions.CompiledCodeDescriptor;
 import com.avail.descriptor.numbers.A_Number;
 import com.avail.descriptor.types.A_Type;
@@ -49,8 +49,8 @@ import java.nio.ByteBuffer;
 import java.util.function.IntUnaryOperator;
 
 import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.AvailObjectRepresentation.newLike;
-import static com.avail.descriptor.Mutability.*;
+import static com.avail.descriptor.representation.AvailObjectRepresentation.newLike;
+import static com.avail.descriptor.representation.Mutability.*;
 import static com.avail.descriptor.numbers.IntegerDescriptor.fromUnsignedByte;
 import static com.avail.descriptor.numbers.IntegerDescriptor.hashOfUnsignedByte;
 import static com.avail.descriptor.tuples.ByteTupleDescriptor.generateByteTupleFrom;
@@ -341,7 +341,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsNybbleTuple(object);
 	}

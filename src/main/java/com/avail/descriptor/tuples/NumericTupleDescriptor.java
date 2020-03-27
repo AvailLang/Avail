@@ -34,9 +34,9 @@ package com.avail.descriptor.tuples;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.IntegerSlotsEnum;
-import com.avail.descriptor.Mutability;
-import com.avail.descriptor.ObjectSlotsEnum;
+import com.avail.descriptor.representation.IntegerSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 
 import javax.annotation.Nullable;
 

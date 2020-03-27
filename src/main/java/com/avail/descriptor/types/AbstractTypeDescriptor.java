@@ -36,9 +36,9 @@ import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.Descriptor;
-import com.avail.descriptor.IntegerSlotsEnum;
-import com.avail.descriptor.Mutability;
-import com.avail.descriptor.ObjectSlotsEnum;
+import com.avail.descriptor.representation.IntegerSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.maps.A_Map;
 import com.avail.descriptor.numbers.A_Number;
@@ -115,7 +115,7 @@ extends Descriptor
 		final AvailObject object);
 
 	@Override @AvailMethod
-	protected abstract boolean o_Equals (
+	public abstract boolean o_Equals (
 		final AvailObject object,
 		final A_BasicObject another);
 
@@ -129,7 +129,8 @@ extends Descriptor
 		final AvailObject object);
 
 	@Override @AvailMethod
-	protected abstract int o_Hash (final AvailObject object);
+
+	public abstract int o_Hash (final AvailObject object);
 
 	@Override @AvailMethod
 	protected abstract boolean o_HasObjectInstance (

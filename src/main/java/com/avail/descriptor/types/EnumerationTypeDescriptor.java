@@ -34,11 +34,11 @@ package com.avail.descriptor.types;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.AbstractSlotsEnum;
+import com.avail.descriptor.representation.AbstractSlotsEnum;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.Mutability;
+import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.NilDescriptor;
-import com.avail.descriptor.ObjectSlotsEnum;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.atoms.AtomDescriptor;
 import com.avail.descriptor.maps.A_Map;
@@ -224,7 +224,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override
-	protected void printObjectOnAvoidingIndent (
+	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder aStream,
 		final IdentityHashMap<A_BasicObject, Void> recursionMap,
@@ -253,7 +253,7 @@ extends AbstractEnumerationTypeDescriptor
 	 * </p>
 	 */
 	@Override @AvailMethod
-	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		final boolean equal =
 			another.equalsEnumerationWithSet(getInstances(object));
@@ -297,7 +297,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_Hash (final AvailObject object)
+	public int o_Hash (final AvailObject object)
 	{
 		return (getInstances(object).hash() ^ 0x15b5b059) * multiplier;
 	}
@@ -817,7 +817,7 @@ extends AbstractEnumerationTypeDescriptor
 	}
 
 	@Override
-	protected TypeTag o_ComputeTypeTag (final AvailObject object)
+	public TypeTag o_ComputeTypeTag (final AvailObject object)
 	{
 		final Set<TypeTag> tags = EnumSet.noneOf(TypeTag.class);
 		for (final AvailObject instance : getInstances(object))

@@ -36,6 +36,8 @@ import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.*;
 import com.avail.descriptor.functions.A_Function;
 import com.avail.descriptor.functions.FunctionDescriptor;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.types.TypeTag;
 import com.avail.interpreter.primitive.phrases.P_RejectParsing;
 
@@ -93,7 +95,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_Hash (final AvailObject object)
+	public int o_Hash (final AvailObject object)
 	{
 		return (object.slot(FUNCTION).hash() ^ 0x0E0D9C10)
 			+ object.slot(DEFINITION_METHOD).hash();
@@ -118,7 +120,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		// Compare by identity.
 		return object.sameAddressAs(another);

@@ -39,10 +39,10 @@ import com.avail.compiler.ParsingOperation;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.AvailObjectFieldHelper;
+import com.avail.descriptor.representation.AvailObjectFieldHelper;
 import com.avail.descriptor.Descriptor;
-import com.avail.descriptor.Mutability;
-import com.avail.descriptor.ObjectSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.bundles.A_Bundle;
 import com.avail.descriptor.bundles.MessageBundleTreeDescriptor;
 import com.avail.descriptor.methods.A_Definition;
@@ -248,7 +248,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		if (!another.kind().equals(DEFINITION_PARSING_PLAN.o()))
 		{
@@ -261,7 +261,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_Hash (final AvailObject object)
+	public int o_Hash (final AvailObject object)
 	{
 		return object.slot(DEFINITION).hash() ^ 0x92A26142
 			- object.slot(BUNDLE).hash();

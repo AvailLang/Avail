@@ -35,6 +35,9 @@ package com.avail.descriptor.methods;
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.*;
 import com.avail.descriptor.maps.MapBinDescriptor;
+import com.avail.descriptor.representation.IntegerSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.tuples.A_String;
 import com.avail.descriptor.types.A_Type;
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind;
@@ -114,13 +117,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
 	{
 		return another.traversed().sameAddressAs(object);
 	}
 
 	@Override @AvailMethod
-	protected abstract int o_Hash (final AvailObject object);
+	public abstract int o_Hash (final AvailObject object);
 
 	@Override @AvailMethod
 	protected boolean o_IsAbstractDefinition (final AvailObject object)

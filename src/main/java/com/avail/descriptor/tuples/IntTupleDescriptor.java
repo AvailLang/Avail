@@ -36,9 +36,9 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.BitField;
-import com.avail.descriptor.IntegerSlotsEnum;
-import com.avail.descriptor.Mutability;
+import com.avail.descriptor.representation.BitField;
+import com.avail.descriptor.representation.IntegerSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.numbers.A_Number;
 import com.avail.descriptor.types.A_Type;
 import com.avail.utility.json.JSONWriter;
@@ -47,7 +47,7 @@ import java.nio.ByteBuffer;
 import java.util.function.IntUnaryOperator;
 
 import static com.avail.descriptor.AvailObject.*;
-import static com.avail.descriptor.Mutability.*;
+import static com.avail.descriptor.representation.Mutability.*;
 import static com.avail.descriptor.numbers.IntegerDescriptor.computeHashOfInt;
 import static com.avail.descriptor.numbers.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.tuples.IntTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
@@ -349,7 +349,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_Equals (
+	public boolean o_Equals (
 		final AvailObject object,
 		final A_BasicObject another)
 	{
