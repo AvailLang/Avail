@@ -31,7 +31,7 @@
  */
 package com.avail.optimizer.values;
 
-import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.A_BasicObject;
 import com.avail.interpreter.Primitive;
 import com.avail.optimizer.L2Entity;
 

@@ -31,21 +31,21 @@
  */
 package com.avail.interpreter.primitive.general
 
-import com.avail.descriptor.A_RawFunction
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.BottomTypeDescriptor.bottom
-import com.avail.descriptor.ContinuationDescriptor.dumpStackThen
-import com.avail.descriptor.EnumerationTypeDescriptor
-import com.avail.descriptor.EnumerationTypeDescriptor.booleanType
 import com.avail.descriptor.FiberDescriptor.ExecutionState
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.NilDescriptor.nil
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.TupleTypeDescriptor
-import com.avail.descriptor.TupleTypeDescriptor.stringType
-import com.avail.descriptor.TypeDescriptor.Types.TOP
 import com.avail.descriptor.atoms.AtomDescriptor.falseObject
 import com.avail.descriptor.atoms.AtomDescriptor.trueObject
+import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.ContinuationDescriptor.dumpStackThen
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.BottomTypeDescriptor.bottom
+import com.avail.descriptor.types.EnumerationTypeDescriptor
+import com.avail.descriptor.types.EnumerationTypeDescriptor.booleanType
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.TupleTypeDescriptor
+import com.avail.descriptor.types.TupleTypeDescriptor.stringType
+import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailAssertionFailedException
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive

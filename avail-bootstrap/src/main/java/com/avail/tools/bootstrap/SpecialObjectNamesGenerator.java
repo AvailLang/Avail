@@ -33,8 +33,8 @@
 package com.avail.tools.bootstrap;
 
 import com.avail.AvailRuntime;
+import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.objects.A_BasicObject;
 
 import java.io.PrintWriter;
 import java.text.MessageFormat;

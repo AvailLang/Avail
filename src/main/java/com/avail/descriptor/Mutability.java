@@ -34,6 +34,8 @@ package com.avail.descriptor;
 
 import com.avail.descriptor.atoms.AtomDescriptor;
 import com.avail.descriptor.bundles.MessageBundleTreeDescriptor;
+import com.avail.descriptor.functions.FunctionDescriptor;
+import com.avail.descriptor.methods.MethodDescriptor;
 
 /**
  * A description of the mutability of an {@linkplain AvailObject object}. This

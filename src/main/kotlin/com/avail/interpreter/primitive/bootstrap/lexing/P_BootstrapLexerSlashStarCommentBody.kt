@@ -34,12 +34,12 @@ package com.avail.interpreter.primitive.bootstrap.lexing
 
 import com.avail.compiler.AvailRejectedParseException
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.CommentTokenDescriptor.newCommentToken
-import com.avail.descriptor.LexerDescriptor.lexerBodyFunctionType
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.SetDescriptor.emptySet
-import com.avail.descriptor.SetDescriptor.set
+import com.avail.descriptor.parsing.LexerDescriptor.lexerBodyFunctionType
+import com.avail.descriptor.sets.SetDescriptor.emptySet
+import com.avail.descriptor.sets.SetDescriptor.set
+import com.avail.descriptor.tokens.CommentTokenDescriptor.newCommentToken
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.types.A_Type
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*

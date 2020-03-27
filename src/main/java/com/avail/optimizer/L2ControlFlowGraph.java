@@ -32,7 +32,7 @@
 
 package com.avail.optimizer;
 
-import com.avail.descriptor.A_Continuation;
+import com.avail.descriptor.functions.A_Continuation;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;

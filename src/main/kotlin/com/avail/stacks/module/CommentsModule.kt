@@ -37,12 +37,12 @@ import com.avail.builder.ModuleName
 import com.avail.builder.ModuleNameResolver
 import com.avail.builder.UnresolvedDependencyException
 import com.avail.compiler.ModuleHeader
-import com.avail.descriptor.CommentTokenDescriptor
-import com.avail.descriptor.SetDescriptor.emptySet
-import com.avail.descriptor.SetDescriptor.setFromCollection
-import com.avail.descriptor.StringDescriptor.stringFrom
+import com.avail.descriptor.sets.SetDescriptor.emptySet
+import com.avail.descriptor.sets.SetDescriptor.setFromCollection
+import com.avail.descriptor.tokens.CommentTokenDescriptor
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.StringDescriptor.stringFrom
 import com.avail.stacks.*
 import com.avail.stacks.comment.AvailComment
 import com.avail.stacks.exceptions.StacksCommentBuilderException

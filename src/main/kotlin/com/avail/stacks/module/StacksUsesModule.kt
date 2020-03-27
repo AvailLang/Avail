@@ -32,10 +32,10 @@
 
 package com.avail.stacks.module
 
-import com.avail.descriptor.A_Map
-import com.avail.descriptor.MapDescriptor
-import com.avail.descriptor.StringDescriptor
+import com.avail.descriptor.maps.A_Map
+import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.tuples.A_String
+import com.avail.descriptor.tuples.StringDescriptor
 import com.avail.stacks.CommentGroup
 import com.avail.stacks.StacksFilename
 import com.avail.stacks.comment.GrammaticalRestrictionComment

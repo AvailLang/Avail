@@ -42,8 +42,12 @@ import com.avail.descriptor.*;
 import com.avail.descriptor.bundles.A_Bundle;
 import com.avail.descriptor.bundles.MessageBundleDescriptor;
 import com.avail.descriptor.methods.A_Method;
-import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.objects.ObjectTypeDescriptor;
+import com.avail.descriptor.sets.SetDescriptor;
 import com.avail.descriptor.tuples.A_String;
+import com.avail.descriptor.types.A_Type;
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor;
+import com.avail.descriptor.types.TypeTag;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.io.IOSystem.FileHandle;
 import com.avail.serialization.Serializer;
@@ -56,17 +60,17 @@ import java.nio.channels.AsynchronousSocketChannel;
 import java.util.IdentityHashMap;
 import java.util.regex.Pattern;
 
-import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
-import static com.avail.descriptor.MethodDescriptor.newMethod;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.StringDescriptor.stringFrom;
-import static com.avail.descriptor.TypeDescriptor.Types.ATOM;
 import static com.avail.descriptor.atoms.AtomDescriptor.IntegerSlots.HASH_AND_MORE;
 import static com.avail.descriptor.atoms.AtomDescriptor.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.atoms.AtomDescriptor.ObjectSlots.ISSUING_MODULE;
 import static com.avail.descriptor.atoms.AtomDescriptor.ObjectSlots.NAME;
 import static com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.*;
 import static com.avail.descriptor.bundles.MessageBundleDescriptor.newBundle;
+import static com.avail.descriptor.methods.MethodDescriptor.newMethod;
+import static com.avail.descriptor.tuples.StringDescriptor.stringFrom;
+import static com.avail.descriptor.types.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.types.TypeDescriptor.Types.ATOM;
 
 /**
  * An {@code atom} is an object that has identity by fiat, i.e., it is
@@ -456,7 +460,7 @@ extends Descriptor
 			IntegerSlots.class);
 
 	@Override
-	protected AtomDescriptor mutable ()
+	public AtomDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -470,14 +474,14 @@ extends Descriptor
 			IntegerSlots.class);
 
 	@Override
-	protected AtomDescriptor immutable ()
+	public AtomDescriptor immutable ()
 	{
 		return immutable;
 	}
 
 	@Deprecated
 	@Override
-	protected final AtomDescriptor shared ()
+	public final AtomDescriptor shared ()
 	{
 		throw unsupportedOperationException();
 	}

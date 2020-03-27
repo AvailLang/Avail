@@ -33,9 +33,16 @@
 package com.avail.descriptor.bundles;
 
 import com.avail.compiler.ParsingOperation;
-import com.avail.descriptor.*;
-import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.NilDescriptor;
+import com.avail.descriptor.maps.A_Map;
+import com.avail.descriptor.numbers.IntegerDescriptor;
+import com.avail.descriptor.parsing.A_DefinitionParsingPlan;
 import com.avail.descriptor.parsing.A_ParsingPlanInProgress;
+import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor;
+import com.avail.descriptor.sets.A_Set;
 import com.avail.utility.Pair;
 
 import java.util.Collection;

@@ -36,9 +36,9 @@ import com.avail.builder.ModuleRoot
 import com.avail.builder.ResolvedModuleName
 import com.avail.compiler.ModuleHeader
 import com.avail.descriptor.AvailObject.multiplier
-import com.avail.descriptor.CommentTokenDescriptor
 import com.avail.descriptor.ModuleDescriptor
-import com.avail.descriptor.TupleDescriptor
+import com.avail.descriptor.tokens.CommentTokenDescriptor
+import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.serialization.Serializer
 import java.io.*
 import java.security.MessageDigest

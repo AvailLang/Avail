@@ -32,13 +32,13 @@
 
 package com.avail.optimizer;
 
+import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_ChunkDependable;
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.A_RawFunction;
-import com.avail.descriptor.A_Set;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.FunctionDescriptor;
-import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.functions.A_RawFunction;
+import com.avail.descriptor.functions.FunctionDescriptor;
+import com.avail.descriptor.numbers.A_Number;
+import com.avail.descriptor.sets.A_Set;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
@@ -62,11 +62,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static com.avail.descriptor.DoubleDescriptor.fromDouble;
-import static com.avail.descriptor.IntegerDescriptor.fromInt;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
-import static com.avail.descriptor.SetDescriptor.emptySet;
-import static com.avail.descriptor.TypeDescriptor.Types.DOUBLE;
+import static com.avail.descriptor.numbers.DoubleDescriptor.fromDouble;
+import static com.avail.descriptor.numbers.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.sets.SetDescriptor.emptySet;
+import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.int32;
+import static com.avail.descriptor.types.TypeDescriptor.Types.DOUBLE;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.*;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForConstant;
 import static com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.FLOAT;

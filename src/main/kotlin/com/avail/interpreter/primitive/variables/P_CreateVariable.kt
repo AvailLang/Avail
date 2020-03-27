@@ -31,13 +31,13 @@
  */
 package com.avail.interpreter.primitive.variables
 
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.A_Variable
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.InstanceMetaDescriptor.anyMeta
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.VariableDescriptor.newVariableWithContentType
-import com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.InstanceMetaDescriptor.anyMeta
+import com.avail.descriptor.types.VariableTypeDescriptor.mostGeneralVariableType
+import com.avail.descriptor.variables.A_Variable
+import com.avail.descriptor.variables.VariableDescriptor.newVariableWithContentType
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline

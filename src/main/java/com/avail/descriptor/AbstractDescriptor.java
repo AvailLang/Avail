@@ -39,34 +39,51 @@ import com.avail.annotations.ThreadSafe;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.compiler.scanning.LexingState;
 import com.avail.compiler.splitter.MessageSplitter;
-import com.avail.descriptor.AbstractNumberDescriptor.Order;
-import com.avail.descriptor.AbstractNumberDescriptor.Sign;
-import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
-import com.avail.descriptor.MapDescriptor.MapIterable;
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
-import com.avail.descriptor.SetDescriptor.SetIterator;
-import com.avail.descriptor.TokenDescriptor.TokenType;
-import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.bundles.A_Bundle;
 import com.avail.descriptor.bundles.A_BundleTree;
 import com.avail.descriptor.bundles.MessageBundleDescriptor;
-import com.avail.descriptor.methods.A_Definition;
-import com.avail.descriptor.methods.A_GrammaticalRestriction;
-import com.avail.descriptor.methods.A_Method;
-import com.avail.descriptor.methods.A_SemanticRestriction;
-import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.functions.A_Continuation;
+import com.avail.descriptor.functions.A_Function;
+import com.avail.descriptor.functions.A_RawFunction;
+import com.avail.descriptor.functions.CompiledCodeDescriptor;
+import com.avail.descriptor.functions.FunctionDescriptor;
+import com.avail.descriptor.maps.A_Map;
+import com.avail.descriptor.maps.A_MapBin;
+import com.avail.descriptor.maps.MapDescriptor.MapIterable;
+import com.avail.descriptor.methods.*;
+import com.avail.descriptor.numbers.A_Number;
+import com.avail.descriptor.numbers.AbstractNumberDescriptor;
+import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order;
+import com.avail.descriptor.numbers.AbstractNumberDescriptor.Sign;
+import com.avail.descriptor.numbers.InfinityDescriptor;
+import com.avail.descriptor.numbers.IntegerDescriptor;
+import com.avail.descriptor.parsing.A_DefinitionParsingPlan;
 import com.avail.descriptor.parsing.A_Lexer;
 import com.avail.descriptor.parsing.A_ParsingPlanInProgress;
-import com.avail.descriptor.parsing.A_Phrase;
-import com.avail.descriptor.tuples.A_String;
-import com.avail.descriptor.tuples.A_Tuple;
+import com.avail.descriptor.phrases.A_Phrase;
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind;
+import com.avail.descriptor.sets.A_Set;
+import com.avail.descriptor.sets.SetDescriptor;
+import com.avail.descriptor.sets.SetDescriptor.SetIterator;
+import com.avail.descriptor.tokens.A_Token;
+import com.avail.descriptor.tokens.TokenDescriptor.TokenType;
+import com.avail.descriptor.tuples.*;
+import com.avail.descriptor.types.A_Type;
+import com.avail.descriptor.types.FiberTypeDescriptor;
+import com.avail.descriptor.types.FunctionTypeDescriptor;
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind;
+import com.avail.descriptor.types.TypeDescriptor;
+import com.avail.descriptor.types.TypeDescriptor.Types;
+import com.avail.descriptor.types.TypeTag;
+import com.avail.descriptor.variables.A_Variable;
+import com.avail.descriptor.variables.VariableDescriptor;
+import com.avail.descriptor.variables.VariableDescriptor.VariableAccessReactor;
 import com.avail.dispatch.LookupTree;
 import com.avail.exceptions.*;
 import com.avail.interpreter.AvailLoader;
@@ -154,7 +171,7 @@ public abstract class AbstractDescriptor
 	 * A non-enum {@link ObjectSlotsEnum} that can be instantiated at will.
 	 * Useful for customizing debugger views of objects.
 	 */
-	static final class DebuggerObjectSlots implements ObjectSlotsEnum
+	public static final class DebuggerObjectSlots implements ObjectSlotsEnum
 	{
 		/** The slot name. */
 		public final String name;
@@ -164,7 +181,7 @@ public abstract class AbstractDescriptor
 		 *
 		 * @param name The name of the slot.
 		 */
-		DebuggerObjectSlots (final String name)
+		public DebuggerObjectSlots (final String name)
 		{
 			this.name = name;
 		}
@@ -183,7 +200,7 @@ public abstract class AbstractDescriptor
 	}
 
 	/** The {@linkplain Mutability mutability} of my instances. */
-	final Mutability mutability;
+	protected final Mutability mutability;
 
 	/**
 	 * Are {@linkplain AvailObject objects} using this {@linkplain
@@ -212,7 +229,7 @@ public abstract class AbstractDescriptor
 	 *
 	 * @return A mutable descriptor equivalent to the receiver.
 	 */
-	protected abstract AbstractDescriptor mutable ();
+	public abstract AbstractDescriptor mutable ();
 
 	/**
 	 * Answer the {@linkplain Mutability#IMMUTABLE immutable} version of this
@@ -220,7 +237,7 @@ public abstract class AbstractDescriptor
 	 *
 	 * @return An immutable descriptor equivalent to the receiver.
 	 */
-	protected abstract AbstractDescriptor immutable ();
+	public abstract AbstractDescriptor immutable ();
 
 	/**
 	 * Answer the {@linkplain Mutability#SHARED shared} version of this
@@ -228,7 +245,7 @@ public abstract class AbstractDescriptor
 	 *
 	 * @return A shared descriptor equivalent to the receiver.
 	 */
-	protected abstract AbstractDescriptor shared ();
+	public abstract AbstractDescriptor shared ();
 
 	/**
 	 * Are {@linkplain AvailObject objects} using this descriptor {@linkplain
@@ -528,7 +545,7 @@ public abstract class AbstractDescriptor
 	 *         logical parts of the given object.
 	 */
 	@SuppressWarnings("unchecked")
-	AvailObjectFieldHelper[] o_DescribeForDebugger (
+	protected AvailObjectFieldHelper[] o_DescribeForDebugger (
 		final AvailObject object)
 	{
 		final Class<Descriptor> cls = (Class<Descriptor>) this.getClass();
@@ -673,7 +690,7 @@ public abstract class AbstractDescriptor
 	 * @param indexedSlotCount The number of variable slots to include.
 	 * @return The new uninitialized {@linkplain AvailObject object}.
 	 */
-	final AvailObject create (final int indexedSlotCount)
+	public final AvailObject create (final int indexedSlotCount)
 	{
 		return AvailObject.newIndexedDescriptor(indexedSlotCount, this);
 	}

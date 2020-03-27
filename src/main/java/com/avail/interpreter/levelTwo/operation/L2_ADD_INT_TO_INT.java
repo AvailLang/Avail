@@ -45,7 +45,7 @@ import org.objectweb.asm.MethodVisitor;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
+import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.int32;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;

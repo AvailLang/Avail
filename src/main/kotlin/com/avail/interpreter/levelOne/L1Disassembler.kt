@@ -32,11 +32,11 @@
 
 package com.avail.interpreter.levelOne
 
-import com.avail.descriptor.A_RawFunction
+import com.avail.descriptor.A_BasicObject
 import com.avail.descriptor.AvailObject.error
-import com.avail.descriptor.CompiledCodeDescriptor
-import com.avail.descriptor.CompiledCodeDescriptor.L1InstructionDecoder
-import com.avail.descriptor.objects.A_BasicObject
+import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.CompiledCodeDescriptor
+import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
 import java.util.*
 
 /**

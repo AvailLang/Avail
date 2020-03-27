@@ -32,9 +32,9 @@
 
 package com.avail.optimizer;
 
-import com.avail.descriptor.A_Type;
+import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.types.A_Type;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
@@ -44,8 +44,8 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.Map.Entry;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
 import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
 import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.PrefixSharingList.append;
 

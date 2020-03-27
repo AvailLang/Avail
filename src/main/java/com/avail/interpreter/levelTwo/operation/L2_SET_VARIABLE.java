@@ -31,9 +31,9 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.A_Variable;
-import com.avail.descriptor.VariableDescriptor;
+import com.avail.descriptor.types.A_Type;
+import com.avail.descriptor.variables.A_Variable;
+import com.avail.descriptor.variables.VariableDescriptor;
 import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
@@ -49,7 +49,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import static com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType;
+import static com.avail.descriptor.types.VariableTypeDescriptor.mostGeneralVariableType;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;

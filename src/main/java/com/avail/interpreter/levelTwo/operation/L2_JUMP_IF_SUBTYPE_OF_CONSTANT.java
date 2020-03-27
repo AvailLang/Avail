@@ -32,8 +32,8 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.types.A_Type;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
@@ -49,15 +49,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
+import static com.avail.descriptor.types.InstanceMetaDescriptor.instanceMeta;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.CONSTANT;
-import static com.avail.interpreter.levelTwo.L2OperandType.PC;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
-import static com.avail.interpreter.levelTwo.operation.L2ConditionalJump.BranchReduction.AlwaysTaken;
-import static com.avail.interpreter.levelTwo.operation.L2ConditionalJump.BranchReduction.NeverTaken;
-import static com.avail.interpreter.levelTwo.operation.L2ConditionalJump.BranchReduction.SometimesTaken;
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static com.avail.interpreter.levelTwo.operation.L2ConditionalJump.BranchReduction.*;
 import static org.objectweb.asm.Opcodes.IFNE;
 
 /**

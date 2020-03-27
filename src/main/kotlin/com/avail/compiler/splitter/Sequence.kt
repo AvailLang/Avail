@@ -37,11 +37,11 @@ import com.avail.compiler.splitter.MessageSplitter.Companion.indexForPermutation
 import com.avail.compiler.splitter.MessageSplitter.Companion.throwMalformedMessageException
 import com.avail.compiler.splitter.MessageSplitter.Companion.throwSignatureException
 import com.avail.compiler.splitter.WrapState.*
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.ListPhraseTypeDescriptor.emptyListPhraseType
-import com.avail.descriptor.TupleDescriptor.tupleFromIntegerList
-import com.avail.descriptor.TupleTypeDescriptor
-import com.avail.descriptor.parsing.A_Phrase
+import com.avail.descriptor.phrases.A_Phrase
+import com.avail.descriptor.tuples.TupleDescriptor.tupleFromIntegerList
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.ListPhraseTypeDescriptor.emptyListPhraseType
+import com.avail.descriptor.types.TupleTypeDescriptor
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailErrorCode.*
 import com.avail.exceptions.MalformedMessageException

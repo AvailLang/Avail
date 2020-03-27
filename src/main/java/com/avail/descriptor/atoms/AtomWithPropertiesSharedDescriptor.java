@@ -36,7 +36,7 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.descriptor.*;
 import com.avail.descriptor.bundles.A_Bundle;
-import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.types.TypeTag;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.serialization.Serializer;
 

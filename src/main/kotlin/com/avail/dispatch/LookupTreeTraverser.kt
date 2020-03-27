@@ -32,8 +32,8 @@
 
 package com.avail.dispatch
 
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.objects.A_BasicObject
+import com.avail.descriptor.A_BasicObject
+import com.avail.descriptor.types.A_Type
 import com.avail.utility.Casts.cast
 import com.avail.utility.MutableOrNull
 import java.util.*

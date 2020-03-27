@@ -32,17 +32,20 @@
 
 package com.avail.interpreter.levelOne
 
-import com.avail.descriptor.*
-import com.avail.descriptor.BottomTypeDescriptor.bottom
-import com.avail.descriptor.CompiledCodeDescriptor.newCompiledCode
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.InstanceMetaDescriptor.topMeta
-import com.avail.descriptor.NybbleTupleDescriptor.generateNybbleTupleFrom
-import com.avail.descriptor.ObjectTupleDescriptor.tupleFromList
-import com.avail.descriptor.TupleDescriptor.tupleFromIntegerList
-import com.avail.descriptor.objects.A_BasicObject
-import com.avail.descriptor.parsing.A_Phrase
+import com.avail.descriptor.A_BasicObject
+import com.avail.descriptor.A_Module
+import com.avail.descriptor.AvailObject
+import com.avail.descriptor.NilDescriptor
+import com.avail.descriptor.functions.CompiledCodeDescriptor.newCompiledCode
+import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.NybbleTupleDescriptor.generateNybbleTupleFrom
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
+import com.avail.descriptor.tuples.TupleDescriptor.tupleFromIntegerList
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.BottomTypeDescriptor.bottom
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.InstanceMetaDescriptor.topMeta
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag
 import com.avail.interpreter.levelOne.L1Operation.L1_doExtension

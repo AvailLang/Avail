@@ -1,0 +1,303 @@
+/*
+ * BottomPojoTypeDescriptor.java
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *  * Redistributions of source code must retain the above copyright notice, this
+ *     list of conditions and the following disclaimer.
+ *
+ *  * Redistributions in binary form must reproduce the above copyright notice, this
+ *     list of conditions and the following disclaimer in the documentation
+ *     and/or other materials provided with the distribution.
+ *
+ *  * Neither the name of the copyright holder nor the names of the contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+package com.avail.descriptor.types;
+
+import com.avail.annotations.AvailMethod;
+import com.avail.annotations.ThreadSafe;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.Mutability;
+import com.avail.descriptor.maps.A_Map;
+import com.avail.serialization.SerializerOperation;
+import com.avail.utility.json.JSONWriter;
+
+import javax.annotation.Nullable;
+import java.util.IdentityHashMap;
+
+import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.pojos.RawPojoDescriptor.rawNullPojo;
+
+/**
+ * {@code BottomPojoTypeDescriptor} describes the type of Java {@code null},
+ * which is implicitly an instance of every Java reference type. It therefore
+ * describes the most specific Java reference type. Its only proper subtype is
+ * Avail's own {@linkplain BottomTypeDescriptor bottom type}.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ */
+public final class BottomPojoTypeDescriptor
+extends PojoTypeDescriptor
+{
+	@Override @AvailMethod
+	protected boolean o_EqualsPojoBottomType (final AvailObject object)
+	{
+		return true;
+	}
+
+	@Override @AvailMethod
+	protected boolean o_EqualsPojoType (
+		final AvailObject object,
+		final AvailObject aPojoType)
+	{
+		return aPojoType.equalsPojoBottomType();
+	}
+
+	@Override @AvailMethod
+	protected int o_Hash (final AvailObject object)
+	{
+		return 0x496FFE01;
+	}
+
+	@Override @AvailMethod
+	protected boolean o_IsAbstract (final AvailObject object)
+	{
+		// Pojo bottom has an instance: null.
+		return false;
+	}
+
+	@Override
+	protected boolean o_IsPojoArrayType (final AvailObject object)
+	{
+		// Pojo bottom is the most specific pojo type, so it is also a pojo
+		// array type.
+		return true;
+	}
+
+	@Override @AvailMethod
+	protected boolean o_IsPojoFusedType (final AvailObject object)
+	{
+		// Pojo bottom is the intersection of any two unrelated pojo types, so
+		// it is a pojo fusion type.
+		return true;
+	}
+
+	@Override @AvailMethod
+	protected boolean o_IsSubtypeOf (
+		final AvailObject object,
+		final A_Type aPojoType)
+	{
+		return aPojoType.isSupertypeOfPojoBottomType(object);
+	}
+
+	@Override @AvailMethod
+	protected boolean o_IsSupertypeOfPojoType (
+		final AvailObject object,
+		final A_Type aPojoType)
+	{
+		return aPojoType.equalsPojoBottomType();
+	}
+
+	@Override
+	protected AvailObject o_JavaAncestors (final AvailObject object)
+	{
+		return nil;
+	}
+
+	@Override @AvailMethod
+	protected AvailObject o_JavaClass (final AvailObject object)
+	{
+		return rawNullPojo();
+	}
+
+	@Override @AvailMethod
+	protected AvailObject o_MakeImmutable (final AvailObject object)
+	{
+		if (isMutable())
+		{
+			// There is no immutable descriptor.
+			object.setDescriptor(shared);
+		}
+		return object;
+	}
+
+	@Override @AvailMethod
+	protected AvailObject o_MakeShared (final AvailObject object)
+	{
+		if (!isShared())
+		{
+			object.setDescriptor(shared);
+		}
+		return object;
+	}
+
+	@Override @AvailMethod
+	protected A_Type o_PojoSelfType (final AvailObject object)
+	{
+		// The pojo bottom type is its own self type.
+		return object;
+	}
+
+	@Override
+	protected Object o_MarshalToJava (
+		final AvailObject object,
+		final @Nullable Class<?> ignoredClassHint)
+	{
+		return Object.class;
+	}
+
+	@Override @AvailMethod
+	protected A_Type o_TypeIntersectionOfPojoType (
+		final AvailObject object,
+		final A_Type aPojoType)
+	{
+		return object;
+	}
+
+	@Override
+	protected A_Type o_TypeIntersectionOfPojoFusedType (
+		final AvailObject object,
+		final A_Type aFusedPojoType)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	protected A_Type o_TypeIntersectionOfPojoUnfusedType (
+		final AvailObject object,
+		final A_Type anUnfusedPojoType)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override @AvailMethod
+	protected A_Type o_TypeUnionOfPojoType (
+		final AvailObject object,
+		final A_Type aPojoType)
+	{
+		return aPojoType;
+	}
+
+	@Override
+	protected A_Type o_TypeUnionOfPojoFusedType (
+		final AvailObject object,
+		final A_Type aFusedPojoType)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	protected A_Type o_TypeUnionOfPojoUnfusedType (
+		final AvailObject object,
+		final A_Type anUnfusedPojoType)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	protected A_Map o_TypeVariables (final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override @AvailMethod @ThreadSafe
+	protected SerializerOperation o_SerializerOperation (
+		final AvailObject object)
+	{
+		return SerializerOperation.BOTTOM_POJO_TYPE;
+	}
+
+	@Override
+	protected void printObjectOnAvoidingIndent (
+		final AvailObject object,
+		final StringBuilder builder,
+		final IdentityHashMap<A_BasicObject, Void> recursionMap,
+		final int indent)
+	{
+		builder.append("pojo ⊥");
+	}
+
+	@Override
+	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	{
+		writer.startObject();
+		writer.write("kind");
+		writer.write("pojo bottom type");
+		writer.endObject();
+	}
+
+	/**
+	 * Construct a new {@link BottomPojoTypeDescriptor}.
+	 *
+	 * @param mutability
+	 *        The {@linkplain Mutability mutability} of the new descriptor.
+	 */
+	public BottomPojoTypeDescriptor (final Mutability mutability)
+	{
+		super(mutability, null, null);
+	}
+
+	/** The mutable {@link BottomPojoTypeDescriptor}. */
+	static final BottomPojoTypeDescriptor mutable =
+		new BottomPojoTypeDescriptor(Mutability.MUTABLE);
+
+	@Override
+	public BottomPojoTypeDescriptor mutable ()
+	{
+		return mutable;
+	}
+
+	/** The shared {@link BottomPojoTypeDescriptor}. */
+	private static final BottomPojoTypeDescriptor shared =
+		new BottomPojoTypeDescriptor(Mutability.SHARED);
+
+	@Override
+	public BottomPojoTypeDescriptor immutable ()
+	{
+		// There is no immutable descriptor, just a shared one.
+		return shared;
+	}
+
+	@Override
+	public BottomPojoTypeDescriptor shared ()
+	{
+		return shared;
+	}
+
+	/**
+	 * The most specific {@linkplain PojoTypeDescriptor pojo type},
+	 * other than {@linkplain BottomTypeDescriptor#bottom() bottom}.
+	 */
+	private static final A_Type pojoBottom =
+		BottomPojoTypeDescriptor.mutable.create().makeShared();
+
+	/**
+	 * Answer the most specific {@linkplain PojoTypeDescriptor pojo
+	 * type}, other than {@linkplain BottomTypeDescriptor#bottom() bottom}.
+	 *
+	 * @return The most specific pojo type.
+	 */
+	public static A_Type pojoBottom ()
+	{
+		return pojoBottom;
+	}
+}

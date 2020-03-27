@@ -32,13 +32,13 @@
 
 package com.avail.descriptor.atoms;
 
+import com.avail.descriptor.A_BasicObject;
 import com.avail.descriptor.A_Module;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.descriptor.NilDescriptor;
 import com.avail.descriptor.bundles.A_Bundle;
 import com.avail.descriptor.bundles.MessageBundleDescriptor;
-import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.descriptor.tuples.A_String;
 import com.avail.exceptions.MalformedMessageException;
 

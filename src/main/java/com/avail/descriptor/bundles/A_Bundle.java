@@ -33,14 +33,22 @@
 package com.avail.descriptor.bundles;
 
 import com.avail.compiler.splitter.MessageSplitter;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.atoms.AtomDescriptor;
+import com.avail.descriptor.maps.A_Map;
 import com.avail.descriptor.methods.A_Definition;
 import com.avail.descriptor.methods.A_GrammaticalRestriction;
 import com.avail.descriptor.methods.A_Method;
-import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.methods.GrammaticalRestrictionDescriptor;
+import com.avail.descriptor.methods.MethodDescriptor;
+import com.avail.descriptor.parsing.A_DefinitionParsingPlan;
+import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor;
+import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.tuples.A_Tuple;
+import com.avail.descriptor.tuples.StringDescriptor;
+import com.avail.descriptor.tuples.TupleDescriptor;
 
 /**
  * {@code A_Bundle} is an interface that specifies the {@linkplain

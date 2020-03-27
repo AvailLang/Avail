@@ -32,8 +32,8 @@
 
 package com.avail.exceptions
 
-import com.avail.descriptor.MapBinDescriptor
-import com.avail.descriptor.MapDescriptor
+import com.avail.descriptor.maps.MapBinDescriptor
+import com.avail.descriptor.maps.MapDescriptor
 
 /**
  * A `MapException` is thrown by map operations.

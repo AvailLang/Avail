@@ -32,21 +32,23 @@
 
 package com.avail.interpreter.primitive.files
 
-import com.avail.descriptor.*
-import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.A_BasicObject
+import com.avail.descriptor.A_Fiber
 import com.avail.descriptor.FiberDescriptor.newFiber
-import com.avail.descriptor.FiberTypeDescriptor.fiberType
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.IntegerRangeTypeDescriptor.bytes
-import com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.SetDescriptor.set
-import com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType
-import com.avail.descriptor.StringDescriptor.formatString
-import com.avail.descriptor.TupleDescriptor.emptyTuple
-import com.avail.descriptor.TupleTypeDescriptor.stringType
-import com.avail.descriptor.TypeDescriptor.Types.TOP
-import com.avail.descriptor.objects.A_BasicObject
+import com.avail.descriptor.sets.A_Set
+import com.avail.descriptor.sets.SetDescriptor.set
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.StringDescriptor.formatString
+import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.types.FiberTypeDescriptor.fiberType
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.bytes
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.inclusive
+import com.avail.descriptor.types.SetTypeDescriptor.setTypeForSizesContentType
+import com.avail.descriptor.types.TupleTypeDescriptor.stringType
+import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.*
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive

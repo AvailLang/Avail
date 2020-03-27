@@ -32,8 +32,8 @@
 
 package com.avail.serialization
 
+import com.avail.descriptor.A_BasicObject
 import com.avail.descriptor.AvailObject
-import com.avail.descriptor.objects.A_BasicObject
 
 /**
  * A `SerializerInstruction` combines an [AvailObject] and a

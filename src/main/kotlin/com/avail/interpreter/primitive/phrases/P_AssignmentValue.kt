@@ -32,14 +32,14 @@
 
 package com.avail.interpreter.primitive.phrases
 
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.AssignmentPhraseDescriptor
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.ASSIGNMENT_PHRASE
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
-import com.avail.descriptor.TypeDescriptor.Types.ANY
+import com.avail.descriptor.phrases.AssignmentPhraseDescriptor
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.ASSIGNMENT_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
+import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*

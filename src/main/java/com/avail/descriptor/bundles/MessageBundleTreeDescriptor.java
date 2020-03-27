@@ -37,14 +37,24 @@ import com.avail.annotations.HideFieldInDebugger;
 import com.avail.compiler.ParsingOperation;
 import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.*;
-import com.avail.descriptor.MapDescriptor.Entry;
+import com.avail.descriptor.maps.A_Map;
+import com.avail.descriptor.maps.MapDescriptor;
+import com.avail.descriptor.maps.MapDescriptor.Entry;
 import com.avail.descriptor.methods.A_Definition;
 import com.avail.descriptor.methods.A_GrammaticalRestriction;
-import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.numbers.A_Number;
+import com.avail.descriptor.numbers.IntegerDescriptor;
+import com.avail.descriptor.parsing.A_DefinitionParsingPlan;
 import com.avail.descriptor.parsing.A_ParsingPlanInProgress;
-import com.avail.descriptor.parsing.A_Phrase;
+import com.avail.descriptor.phrases.A_Phrase;
+import com.avail.descriptor.pojos.RawPojoDescriptor;
+import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.tuples.A_String;
 import com.avail.descriptor.tuples.A_Tuple;
+import com.avail.descriptor.tuples.StringDescriptor;
+import com.avail.descriptor.types.A_Type;
+import com.avail.descriptor.types.PhraseTypeDescriptor;
+import com.avail.descriptor.types.TypeTag;
 import com.avail.dispatch.LookupTree;
 import com.avail.dispatch.LookupTreeAdaptor;
 import com.avail.dispatch.TypeComparison;
@@ -62,19 +72,19 @@ import static com.avail.AvailRuntimeSupport.nextHash;
 import static com.avail.compiler.ParsingOperation.PARSE_PART;
 import static com.avail.compiler.ParsingOperation.decode;
 import static com.avail.compiler.splitter.MessageSplitter.constantForIndex;
-import static com.avail.descriptor.IntegerDescriptor.fromInt;
-import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.ParsingPlanInProgressDescriptor.newPlanInProgress;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE;
-import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
-import static com.avail.descriptor.SetDescriptor.emptySet;
-import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.TupleDescriptor.toList;
-import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE_TREE;
 import static com.avail.descriptor.bundles.MessageBundleTreeDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.bundles.MessageBundleTreeDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.maps.MapDescriptor.emptyMap;
+import static com.avail.descriptor.numbers.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.parsing.ParsingPlanInProgressDescriptor.newPlanInProgress;
+import static com.avail.descriptor.pojos.RawPojoDescriptor.identityPojo;
+import static com.avail.descriptor.sets.SetDescriptor.emptySet;
+import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.tuples.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.tuples.TupleDescriptor.toList;
+import static com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE;
+import static com.avail.descriptor.types.TypeDescriptor.Types.MESSAGE_BUNDLE_TREE;
 import static com.avail.dispatch.TypeComparison.compareForParsing;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType;
@@ -1409,14 +1419,14 @@ extends Descriptor
 		new MessageBundleTreeDescriptor(Mutability.SHARED);
 
 	@Override
-	protected MessageBundleTreeDescriptor immutable ()
+	public MessageBundleTreeDescriptor immutable ()
 	{
 		// There is no immutable descriptor. Use the shared one.
 		return shared;
 	}
 
 	@Override
-	protected MessageBundleTreeDescriptor shared ()
+	public MessageBundleTreeDescriptor shared ()
 	{
 		return shared;
 	}

@@ -32,17 +32,28 @@
 package com.avail.optimizer;
 
 import com.avail.AvailRuntime;
-import com.avail.descriptor.*;
-import com.avail.descriptor.CompiledCodeDescriptor.L1InstructionDecoder;
-import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.atoms.AtomDescriptor;
 import com.avail.descriptor.bundles.A_Bundle;
 import com.avail.descriptor.bundles.MessageBundleDescriptor;
+import com.avail.descriptor.functions.A_Continuation;
+import com.avail.descriptor.functions.A_Function;
+import com.avail.descriptor.functions.A_RawFunction;
+import com.avail.descriptor.functions.CompiledCodeDescriptor;
+import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder;
 import com.avail.descriptor.methods.A_Definition;
 import com.avail.descriptor.methods.A_Method;
 import com.avail.descriptor.methods.A_SemanticRestriction;
-import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.methods.MethodDescriptor;
+import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.tuples.A_Tuple;
+import com.avail.descriptor.tuples.TupleDescriptor;
+import com.avail.descriptor.types.A_Type;
+import com.avail.descriptor.types.BottomTypeDescriptor;
+import com.avail.descriptor.types.TypeDescriptor;
+import com.avail.descriptor.variables.A_Variable;
+import com.avail.descriptor.variables.VariableDescriptor.VariableAccessReactor;
 import com.avail.dispatch.InternalLookupTree;
 import com.avail.dispatch.LookupTree;
 import com.avail.dispatch.LookupTreeTraverser;
@@ -84,24 +95,24 @@ import java.util.logging.Level;
 
 import static com.avail.AvailRuntime.HookType.*;
 import static com.avail.AvailRuntimeSupport.captureNanos;
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
-import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.ContinuationTypeDescriptor.continuationTypeForFunctionType;
-import static com.avail.descriptor.ContinuationTypeDescriptor.mostGeneralContinuationType;
-import static com.avail.descriptor.FunctionDescriptor.createFunction;
-import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.FunctionTypeDescriptor.mostGeneralFunctionType;
-import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
-import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
-import static com.avail.descriptor.SetDescriptor.setFromCollection;
-import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
-import static com.avail.descriptor.TypeDescriptor.Types.ANY;
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
+import static com.avail.descriptor.functions.FunctionDescriptor.createFunction;
+import static com.avail.descriptor.sets.SetDescriptor.setFromCollection;
+import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList;
+import static com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.types.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.types.ContinuationTypeDescriptor.continuationTypeForFunctionType;
+import static com.avail.descriptor.types.ContinuationTypeDescriptor.mostGeneralContinuationType;
+import static com.avail.descriptor.types.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.types.FunctionTypeDescriptor.mostGeneralFunctionType;
+import static com.avail.descriptor.types.InstanceMetaDescriptor.instanceMeta;
+import static com.avail.descriptor.types.InstanceMetaDescriptor.topMeta;
+import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.int32;
+import static com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForTypes;
+import static com.avail.descriptor.types.TypeDescriptor.Types.ANY;
+import static com.avail.descriptor.types.TypeDescriptor.Types.TOP;
+import static com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor;
 import static com.avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION;
 import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
@@ -180,7 +191,8 @@ public final class L1Translator
 	 * The exact function that we're translating, if known.  This is only
 	 * non-null if the function captures no outers.
 	 */
-	private final @Nullable A_Function exactFunctionOrNull;
+	private final @Nullable
+	A_Function exactFunctionOrNull;
 
 	/**
 	 * Return the top {@link Frame} for code generation.

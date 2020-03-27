@@ -31,14 +31,14 @@
  */
 package com.avail.interpreter.primitive.general
 
-import com.avail.descriptor.A_RawFunction
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.EnumerationTypeDescriptor
-import com.avail.descriptor.EnumerationTypeDescriptor.*
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.TypeDescriptor.Types.ANY
 import com.avail.descriptor.atoms.AtomDescriptor.*
+import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.EnumerationTypeDescriptor
+import com.avail.descriptor.types.EnumerationTypeDescriptor.*
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*

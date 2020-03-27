@@ -32,18 +32,20 @@
 
 package com.avail.interpreter.primitive.files
 
-import com.avail.descriptor.*
-import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.EnumerationTypeDescriptor.booleanType
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.IntegerDescriptor.fromInt
-import com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive
-import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.SetDescriptor.generateSetFrom
-import com.avail.descriptor.SetDescriptor.set
-import com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType
-import com.avail.descriptor.TupleTypeDescriptor.stringType
+import com.avail.descriptor.numbers.A_Number
+import com.avail.descriptor.numbers.IntegerDescriptor.fromInt
+import com.avail.descriptor.sets.A_Set
+import com.avail.descriptor.sets.SetDescriptor.generateSetFrom
+import com.avail.descriptor.sets.SetDescriptor.set
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.types.EnumerationTypeDescriptor.booleanType
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.inclusive
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.wholeNumbers
+import com.avail.descriptor.types.SetTypeDescriptor.setTypeForSizesContentType
+import com.avail.descriptor.types.TupleTypeDescriptor.stringType
 import com.avail.exceptions.AvailErrorCode.*
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive

@@ -32,9 +32,9 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.TupleDescriptor;
+import com.avail.descriptor.tuples.TupleDescriptor;
+import com.avail.descriptor.types.A_Type;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
@@ -50,8 +50,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import static com.avail.descriptor.ConcatenatedTupleTypeDescriptor.concatenatingAnd;
-import static com.avail.descriptor.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.tuples.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.types.ConcatenatedTupleTypeDescriptor.concatenatingAnd;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
 import static org.objectweb.asm.Opcodes.CHECKCAST;

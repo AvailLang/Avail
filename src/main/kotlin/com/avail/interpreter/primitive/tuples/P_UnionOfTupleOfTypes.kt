@@ -31,12 +31,12 @@
  */
 package com.avail.interpreter.primitive.tuples
 
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.BottomTypeDescriptor.bottom
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.InstanceMetaDescriptor.topMeta
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.BottomTypeDescriptor.bottom
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.InstanceMetaDescriptor.topMeta
+import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*

@@ -32,9 +32,21 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.FiberDescriptor.*;
-import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.FiberDescriptor.ExecutionState;
+import com.avail.descriptor.FiberDescriptor.GeneralFlag;
+import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
+import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
+import com.avail.descriptor.FiberDescriptor.TraceFlag;
+import com.avail.descriptor.functions.A_Continuation;
+import com.avail.descriptor.functions.A_Function;
+import com.avail.descriptor.functions.ContinuationDescriptor;
+import com.avail.descriptor.maps.A_Map;
+import com.avail.descriptor.sets.A_Set;
+import com.avail.descriptor.sets.SetDescriptor;
 import com.avail.descriptor.tuples.A_String;
+import com.avail.descriptor.types.A_Type;
+import com.avail.descriptor.variables.A_Variable;
+import com.avail.descriptor.variables.VariableDescriptor;
 import com.avail.interpreter.AvailLoader;
 import com.avail.io.TextInterface;
 import com.avail.utility.evaluation.Continuation1;

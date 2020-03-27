@@ -32,11 +32,20 @@
 
 package com.avail.descriptor.methods;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.A_ChunkDependable;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.NilDescriptor;
 import com.avail.descriptor.bundles.A_Bundle;
-import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.parsing.A_DefinitionParsingPlan;
 import com.avail.descriptor.parsing.A_Lexer;
+import com.avail.descriptor.parsing.LexerDescriptor;
+import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.tuples.A_Tuple;
+import com.avail.descriptor.types.A_Type;
+import com.avail.descriptor.types.TupleTypeDescriptor;
 import com.avail.dispatch.LookupTree;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MethodDefinitionException;

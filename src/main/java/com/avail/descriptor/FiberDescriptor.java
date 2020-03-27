@@ -40,9 +40,21 @@ import com.avail.annotations.EnumField;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.atoms.AtomDescriptor;
-import com.avail.descriptor.objects.A_BasicObject;
-import com.avail.descriptor.parsing.A_Phrase;
+import com.avail.descriptor.functions.A_Continuation;
+import com.avail.descriptor.functions.A_Function;
+import com.avail.descriptor.functions.ContinuationDescriptor;
+import com.avail.descriptor.maps.A_Map;
+import com.avail.descriptor.phrases.A_Phrase;
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor;
+import com.avail.descriptor.pojos.RawPojoDescriptor;
+import com.avail.descriptor.sets.A_Set;
+import com.avail.descriptor.sets.SetDescriptor;
 import com.avail.descriptor.tuples.A_String;
+import com.avail.descriptor.types.A_Type;
+import com.avail.descriptor.types.FiberTypeDescriptor;
+import com.avail.descriptor.types.TypeTag;
+import com.avail.descriptor.variables.A_Variable;
+import com.avail.descriptor.variables.VariableDescriptor;
 import com.avail.interpreter.AvailLoader;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive.Flag;
@@ -54,8 +66,13 @@ import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.json.JSONWriter;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TimerTask;
+import java.util.WeakHashMap;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
@@ -67,14 +84,14 @@ import static com.avail.descriptor.FiberDescriptor.ExecutionState.UNSTARTED;
 import static com.avail.descriptor.FiberDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.REIFICATION_REQUESTED;
 import static com.avail.descriptor.FiberDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.FiberTypeDescriptor.fiberType;
-import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
-import static com.avail.descriptor.SetDescriptor.emptySet;
-import static com.avail.descriptor.SetDescriptor.setFromCollection;
 import static com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY;
 import static com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY;
+import static com.avail.descriptor.maps.MapDescriptor.emptyMap;
+import static com.avail.descriptor.pojos.RawPojoDescriptor.identityPojo;
+import static com.avail.descriptor.sets.SetDescriptor.emptySet;
+import static com.avail.descriptor.sets.SetDescriptor.setFromCollection;
+import static com.avail.descriptor.types.FiberTypeDescriptor.fiberType;
 import static com.avail.utility.Nulls.stripNull;
 import static java.util.Collections.synchronizedMap;
 
@@ -1437,7 +1454,7 @@ extends Descriptor
 		new FiberDescriptor(Mutability.MUTABLE);
 
 	@Override
-	protected FiberDescriptor mutable ()
+	public FiberDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -1447,7 +1464,7 @@ extends Descriptor
 		new FiberDescriptor(Mutability.IMMUTABLE);
 
 	@Override
-	protected FiberDescriptor immutable ()
+	public FiberDescriptor immutable ()
 	{
 		return immutable;
 	}
@@ -1457,7 +1474,7 @@ extends Descriptor
 		new FiberDescriptor(Mutability.SHARED);
 
 	@Override
-	protected FiberDescriptor shared ()
+	public FiberDescriptor shared ()
 	{
 		return shared;
 	}

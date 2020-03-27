@@ -32,9 +32,12 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.CompiledCodeDescriptor.L1InstructionDecoder;
-import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.functions.A_Continuation;
+import com.avail.descriptor.functions.CompiledCodeDescriptor;
+import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder;
+import com.avail.descriptor.functions.ContinuationDescriptor;
 import com.avail.descriptor.tuples.A_Tuple;
+import com.avail.descriptor.types.TypeTag;
 import com.avail.utility.visitor.MarkUnreachableSubobjectVisitor;
 import sun.misc.Unsafe;
 
@@ -1330,7 +1333,7 @@ implements A_BasicObject
 	 * @param subscript The positive one-based subscript to apply.
 	 * @param anAvailObject The object to store unchecked in the slot.
 	 */
-	final void writeBackSlot (
+	public final void writeBackSlot (
 		final ObjectSlotsEnum field,
 		final int subscript,
 		final AvailObject anAvailObject)
@@ -1349,7 +1352,7 @@ implements A_BasicObject
 	 * array by replacing it.
  	 */
 	@Override
-	protected final void truncateWithFillerForNewIntegerSlotsCount (
+	public final void truncateWithFillerForNewIntegerSlotsCount (
 		final int newIntegerSlotsCount)
 	{
 		final int oldIntegerSlotsCount = integerSlotsCount();
@@ -1486,7 +1489,7 @@ implements A_BasicObject
 	 *            zero-based index of the leftmost int that is greater than the
 	 *            key.
 	 */
-	final int intBinarySearch (
+	public final int intBinarySearch (
 		final IntegerSlotsEnum slot,
 		final int slotCount,
 		final int key)

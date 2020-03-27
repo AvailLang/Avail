@@ -48,7 +48,7 @@ public final class OnceSupplier<T> implements Supplier<T>
 	 * The cached value produced by the {@link #innerSupplier}, or {@code null}
 	 * if it has not yet been evaluated.
 	 */
-	private @Nullable volatile T cachedValue;
+	private volatile @Nullable T cachedValue;
 
 	/**
 	 * The {@link Supplier} that should be evaluated at most once.

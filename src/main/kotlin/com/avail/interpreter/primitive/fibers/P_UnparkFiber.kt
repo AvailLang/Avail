@@ -33,17 +33,17 @@
 package com.avail.interpreter.primitive.fibers
 
 import com.avail.AvailRuntime.currentRuntime
-import com.avail.descriptor.A_Type
 import com.avail.descriptor.FiberDescriptor
 import com.avail.descriptor.FiberDescriptor.ExecutionState.PARKED
 import com.avail.descriptor.FiberDescriptor.ExecutionState.SUSPENDED
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE
-import com.avail.descriptor.FiberTypeDescriptor.mostGeneralFiberType
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.NilDescriptor.nil
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.TypeDescriptor.Types.TOP
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.FiberTypeDescriptor.mostGeneralFiberType
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Interpreter.resumeFromSuccessfulPrimitive
 import com.avail.interpreter.Primitive

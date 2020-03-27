@@ -35,8 +35,8 @@ package com.avail.descriptor.atoms;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.descriptor.*;
-import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.descriptor.tuples.A_String;
+import com.avail.descriptor.types.TypeTag;
 import com.avail.serialization.Serializer;
 
 import javax.annotation.Nullable;
@@ -45,10 +45,10 @@ import java.util.Map.Entry;
 import java.util.WeakHashMap;
 
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.atoms.AtomWithPropertiesDescriptor.IntegerSlots.HASH_AND_MORE;
 import static com.avail.descriptor.atoms.AtomWithPropertiesDescriptor.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.atoms.AtomWithPropertiesDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.pojos.RawPojoDescriptor.identityPojo;
 import static java.util.Collections.synchronizedMap;
 
 /**
@@ -317,7 +317,7 @@ extends AtomDescriptor
 			IntegerSlots.class);
 
 	@Override
-	protected AtomWithPropertiesDescriptor mutable ()
+	public AtomWithPropertiesDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -331,7 +331,7 @@ extends AtomDescriptor
 			IntegerSlots.class);
 
 	@Override
-	protected AtomWithPropertiesDescriptor immutable ()
+	public AtomWithPropertiesDescriptor immutable ()
 	{
 		return immutable;
 	}

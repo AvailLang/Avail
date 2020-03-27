@@ -33,8 +33,8 @@
 package com.avail.environment.actions
 
 import com.avail.AvailRuntime
-import com.avail.descriptor.CompiledCodeDescriptor.resetCodeCoverageDetailsThen
 import com.avail.descriptor.FiberDescriptor
+import com.avail.descriptor.functions.CompiledCodeDescriptor.resetCodeCoverageDetailsThen
 import com.avail.environment.AvailWorkbench
 import com.avail.environment.AvailWorkbench.StreamStyle.INFO
 import java.awt.event.ActionEvent

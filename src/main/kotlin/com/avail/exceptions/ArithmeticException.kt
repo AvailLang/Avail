@@ -32,8 +32,8 @@
 
 package com.avail.exceptions
 
-import com.avail.descriptor.InfinityDescriptor
-import com.avail.descriptor.IntegerDescriptor
+import com.avail.descriptor.numbers.InfinityDescriptor
+import com.avail.descriptor.numbers.IntegerDescriptor
 
 /**
  * An `ArithmeticException` is thrown by arithmetic operations.

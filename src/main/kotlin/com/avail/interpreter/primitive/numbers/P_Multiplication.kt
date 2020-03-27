@@ -31,21 +31,21 @@
  */
 package com.avail.interpreter.primitive.numbers
 
-import com.avail.descriptor.A_Number
-import com.avail.descriptor.A_RawFunction
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.AbstractNumberDescriptor.binaryNumericOperationTypeBound
-import com.avail.descriptor.BottomTypeDescriptor.bottom
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.InfinityDescriptor.negativeInfinity
-import com.avail.descriptor.InfinityDescriptor.positiveInfinity
-import com.avail.descriptor.IntegerDescriptor.*
-import com.avail.descriptor.IntegerRangeTypeDescriptor.*
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.SetDescriptor.emptySet
-import com.avail.descriptor.SetDescriptor.set
-import com.avail.descriptor.TypeDescriptor.Types.NUMBER
+import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.numbers.A_Number
+import com.avail.descriptor.numbers.AbstractNumberDescriptor.binaryNumericOperationTypeBound
+import com.avail.descriptor.numbers.InfinityDescriptor.negativeInfinity
+import com.avail.descriptor.numbers.InfinityDescriptor.positiveInfinity
+import com.avail.descriptor.numbers.IntegerDescriptor.*
+import com.avail.descriptor.sets.SetDescriptor.emptySet
+import com.avail.descriptor.sets.SetDescriptor.set
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.types.BottomTypeDescriptor.bottom
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.*
+import com.avail.descriptor.types.TypeDescriptor.Types.NUMBER
 import com.avail.exceptions.ArithmeticException
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_MULTIPLY_ZERO_AND_INFINITY
 import com.avail.interpreter.Interpreter

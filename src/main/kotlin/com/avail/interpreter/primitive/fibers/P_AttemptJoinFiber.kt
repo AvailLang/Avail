@@ -32,17 +32,17 @@
 
 package com.avail.interpreter.primitive.fibers
 
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.FiberDescriptor
 import com.avail.descriptor.FiberDescriptor.ExecutionState
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE
-import com.avail.descriptor.FiberTypeDescriptor.mostGeneralFiberType
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.NilDescriptor.nil
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.SetDescriptor.set
-import com.avail.descriptor.TypeDescriptor.Types.TOP
+import com.avail.descriptor.sets.SetDescriptor.set
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.types.FiberTypeDescriptor.mostGeneralFiberType
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_FIBER_CANNOT_JOIN_ITSELF
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive

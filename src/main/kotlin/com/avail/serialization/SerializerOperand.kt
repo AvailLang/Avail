@@ -33,7 +33,7 @@
 package com.avail.serialization
 
 import com.avail.descriptor.AvailObject
-import com.avail.descriptor.CompiledCodeDescriptor
+import com.avail.descriptor.functions.CompiledCodeDescriptor
 
 /**
  * A `SerializerOperand` is part of a [SerializerOperation].  It indicates how

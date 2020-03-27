@@ -35,35 +35,52 @@ package com.avail.descriptor;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.compiler.scanning.LexingState;
 import com.avail.compiler.splitter.MessageSplitter;
-import com.avail.descriptor.AbstractNumberDescriptor.Order;
-import com.avail.descriptor.AbstractNumberDescriptor.Sign;
-import com.avail.descriptor.CompiledCodeDescriptor.L1InstructionDecoder;
-import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
-import com.avail.descriptor.MapDescriptor.MapIterable;
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
-import com.avail.descriptor.SetDescriptor.SetIterator;
-import com.avail.descriptor.TokenDescriptor.TokenType;
-import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
 import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.bundles.A_Bundle;
 import com.avail.descriptor.bundles.A_BundleTree;
 import com.avail.descriptor.bundles.MessageBundleDescriptor;
-import com.avail.descriptor.methods.A_Definition;
-import com.avail.descriptor.methods.A_GrammaticalRestriction;
-import com.avail.descriptor.methods.A_Method;
-import com.avail.descriptor.methods.A_SemanticRestriction;
-import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.functions.A_Continuation;
+import com.avail.descriptor.functions.A_Function;
+import com.avail.descriptor.functions.A_RawFunction;
+import com.avail.descriptor.functions.CompiledCodeDescriptor;
+import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder;
+import com.avail.descriptor.functions.FunctionDescriptor;
+import com.avail.descriptor.maps.A_Map;
+import com.avail.descriptor.maps.A_MapBin;
+import com.avail.descriptor.maps.MapBinDescriptor;
+import com.avail.descriptor.maps.MapDescriptor.MapIterable;
+import com.avail.descriptor.methods.*;
+import com.avail.descriptor.numbers.A_Number;
+import com.avail.descriptor.numbers.AbstractNumberDescriptor;
+import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order;
+import com.avail.descriptor.numbers.AbstractNumberDescriptor.Sign;
+import com.avail.descriptor.numbers.InfinityDescriptor;
+import com.avail.descriptor.numbers.IntegerDescriptor;
+import com.avail.descriptor.parsing.A_DefinitionParsingPlan;
 import com.avail.descriptor.parsing.A_Lexer;
 import com.avail.descriptor.parsing.A_ParsingPlanInProgress;
-import com.avail.descriptor.parsing.A_Phrase;
-import com.avail.descriptor.tuples.A_String;
-import com.avail.descriptor.tuples.A_Tuple;
+import com.avail.descriptor.phrases.A_Phrase;
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind;
+import com.avail.descriptor.sets.A_Set;
+import com.avail.descriptor.sets.SetDescriptor;
+import com.avail.descriptor.sets.SetDescriptor.SetIterator;
+import com.avail.descriptor.tokens.A_Token;
+import com.avail.descriptor.tokens.TokenDescriptor.TokenType;
+import com.avail.descriptor.tuples.*;
+import com.avail.descriptor.types.A_Type;
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor;
+import com.avail.descriptor.types.FunctionTypeDescriptor;
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind;
+import com.avail.descriptor.types.TypeDescriptor;
+import com.avail.descriptor.types.TypeDescriptor.Types;
+import com.avail.descriptor.variables.A_Variable;
+import com.avail.descriptor.variables.VariableDescriptor;
+import com.avail.descriptor.variables.VariableDescriptor.VariableAccessReactor;
 import com.avail.dispatch.LookupTree;
 import com.avail.exceptions.ArithmeticException;
 import com.avail.exceptions.*;
@@ -122,28 +139,28 @@ implements
 	A_Bundle,
 	A_BundleTree,
 		A_Character,
-		A_Continuation,
+	A_Continuation,
 	A_Definition,
-		A_DefinitionParsingPlan,
+	A_DefinitionParsingPlan,
 		A_Fiber,
-		A_Function,
+	A_Function,
 	A_GrammaticalRestriction,
 	A_Lexer,
-		A_Map,
-		A_MapBin,
+	A_Map,
+	A_MapBin,
 	A_Method,
 		A_Module,
-		A_Number,
+	A_Number,
 	A_ParsingPlanInProgress,
 	A_Phrase,
-		A_RawFunction,
+	A_RawFunction,
 	A_SemanticRestriction,
-		A_Set,
-		A_Token,
+	A_Set,
+	A_Token,
 	A_Tuple,
 	A_String,
-		A_Type,
-		A_Variable
+	A_Type,
+	A_Variable
 {
 	/**
 	 * A good multiplier for a multiplicative random generator.  This constant
@@ -290,7 +307,7 @@ implements
 	 * @param descriptor A descriptor.
 	 * @return A new object.
 	 */
-	static AvailObject newIndexedDescriptor (
+	public static AvailObject newIndexedDescriptor (
 		final int size,
 		final AbstractDescriptor descriptor)
 	{
@@ -320,7 +337,7 @@ implements
 	 * @param descriptor A descriptor.
 	 * @return A new object.
 	 */
-	static AvailObject newObjectIndexedIntegerIndexedDescriptor (
+	public static AvailObject newObjectIndexedIntegerIndexedDescriptor (
 		final int variableObjectSlots,
 		final int variableIntegerSlots,
 		final AbstractDescriptor descriptor)
@@ -410,7 +427,7 @@ implements
 	 * Set up the object to report nice obvious errors if anyone ever accesses
 	 * it again.
 	 */
-	void assertObjectUnreachableIfMutable ()
+	public void assertObjectUnreachableIfMutable ()
 	{
 		checkValidAddress();
 		if (!descriptor().isMutable())

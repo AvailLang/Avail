@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.types.TypeTag;
 
 import java.util.IdentityHashMap;
 /**
@@ -69,19 +69,19 @@ extends Descriptor
 		new FillerDescriptor(Mutability.SHARED);
 
 	@Override
-	protected FillerDescriptor mutable ()
+	public FillerDescriptor mutable ()
 	{
 		return shared;
 	}
 
 	@Override
-	protected FillerDescriptor immutable ()
+	public FillerDescriptor immutable ()
 	{
 		return shared;
 	}
 
 	@Override
-	protected FillerDescriptor shared ()
+	public FillerDescriptor shared ()
 	{
 		return shared;
 	}

@@ -32,14 +32,14 @@
 
 package com.avail.interpreter.primitive.integers
 
-import com.avail.descriptor.A_RawFunction
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.IntegerDescriptor
-import com.avail.descriptor.IntegerDescriptor.fromLong
-import com.avail.descriptor.IntegerDescriptor.zero
-import com.avail.descriptor.IntegerRangeTypeDescriptor.*
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.numbers.IntegerDescriptor
+import com.avail.descriptor.numbers.IntegerDescriptor.fromLong
+import com.avail.descriptor.numbers.IntegerDescriptor.zero
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.*
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*

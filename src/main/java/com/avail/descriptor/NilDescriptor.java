@@ -34,12 +34,13 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.types.A_Type;
+import com.avail.descriptor.types.TypeTag;
 import com.avail.serialization.SerializerOperation;
 
 import java.util.IdentityHashMap;
 
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.descriptor.types.TypeDescriptor.Types.TOP;
 
 /**
  * {@code NilDescriptor} implements the Avail {@linkplain #nil} value, the sole
@@ -109,7 +110,7 @@ extends Descriptor
 		new NilDescriptor(Mutability.MUTABLE);
 
 	@Override
-	protected NilDescriptor mutable ()
+	public NilDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -119,7 +120,7 @@ extends Descriptor
 		new NilDescriptor(Mutability.IMMUTABLE);
 
 	@Override
-	protected NilDescriptor immutable ()
+	public NilDescriptor immutable ()
 	{
 		return immutable;
 	}
@@ -129,7 +130,7 @@ extends Descriptor
 		new NilDescriptor(Mutability.SHARED);
 
 	@Override
-	protected NilDescriptor shared ()
+	public NilDescriptor shared ()
 	{
 		return shared;
 	}

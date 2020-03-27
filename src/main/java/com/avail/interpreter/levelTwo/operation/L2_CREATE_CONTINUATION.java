@@ -31,7 +31,7 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.A_BasicObject;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
@@ -48,7 +48,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 import static com.avail.descriptor.AvailObject.argOrLocalOrStackAtPutMethod;
-import static com.avail.descriptor.ContinuationDescriptor.createContinuationExceptFrameMethod;
+import static com.avail.descriptor.functions.ContinuationDescriptor.createContinuationExceptFrameMethod;
 import static com.avail.interpreter.Interpreter.chunkField;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static org.objectweb.asm.Opcodes.DUP;

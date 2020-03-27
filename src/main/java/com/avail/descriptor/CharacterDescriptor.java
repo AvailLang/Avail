@@ -33,7 +33,9 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
-import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.numbers.IntegerDescriptor;
+import com.avail.descriptor.types.A_Type;
+import com.avail.descriptor.types.TypeTag;
 import com.avail.exceptions.MarshalingException;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
@@ -41,13 +43,13 @@ import com.avail.utility.json.JSONWriter;
 import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
 import static com.avail.descriptor.CharacterDescriptor.IntegerSlots.CODE_POINT;
-import static com.avail.descriptor.IntegerDescriptor.computeHashOfInt;
-import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.StringDescriptor.stringFrom;
-import static com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf;
-import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
+import static com.avail.descriptor.numbers.IntegerDescriptor.computeHashOfInt;
+import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.tuples.StringDescriptor.stringFrom;
+import static com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.types.TupleTypeDescriptor.oneOrMoreOf;
+import static com.avail.descriptor.types.TypeDescriptor.Types.CHARACTER;
 
 /**
  * {@code CharacterDescriptor} implements an Avail character. Avail characters
@@ -129,7 +131,7 @@ extends Descriptor
 	 * @param codePoint A Unicode code point.
 	 * @return A hash.
 	 */
-	static int computeHashOfCharacterWithCodePoint (final int codePoint)
+	public static int computeHashOfCharacterWithCodePoint (final int codePoint)
 	{
 		return computeHashOfInt(codePoint ^ 0xD68E9947);
 	}
@@ -141,7 +143,7 @@ extends Descriptor
 	 * @param codePoint An unsigned 8-bit Unicode code point.
 	 * @return A hash.
 	 */
-	static int hashOfByteCharacterWithCodePoint (final short codePoint)
+	public static int hashOfByteCharacterWithCodePoint (final short codePoint)
 	{
 		assert codePoint >= 0 && codePoint <= 255;
 		return hashesOfByteCharacters[codePoint];
@@ -283,7 +285,7 @@ extends Descriptor
 		new CharacterDescriptor(Mutability.MUTABLE);
 
 	@Override
-	protected CharacterDescriptor mutable ()
+	public CharacterDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -293,14 +295,14 @@ extends Descriptor
 		new CharacterDescriptor(Mutability.SHARED);
 
 	@Override
-	protected CharacterDescriptor immutable ()
+	public CharacterDescriptor immutable ()
 	{
 		// There is no immutable variant; answer the shared descriptor.
 		return shared;
 	}
 
 	@Override
-	protected CharacterDescriptor shared ()
+	public CharacterDescriptor shared ()
 	{
 		return shared;
 	}

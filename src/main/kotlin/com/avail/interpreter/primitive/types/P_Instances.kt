@@ -31,14 +31,14 @@
  */
 package com.avail.interpreter.primitive.types
 
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.InstanceMetaDescriptor
-import com.avail.descriptor.InstanceMetaDescriptor.topMeta
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.SetDescriptor.set
-import com.avail.descriptor.SetTypeDescriptor.mostGeneralSetType
+import com.avail.descriptor.sets.SetDescriptor.set
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.InstanceMetaDescriptor
+import com.avail.descriptor.types.InstanceMetaDescriptor.topMeta
+import com.avail.descriptor.types.SetTypeDescriptor.mostGeneralSetType
 import com.avail.exceptions.AvailErrorCode.E_NOT_AN_ENUMERATION
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive

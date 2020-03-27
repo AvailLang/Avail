@@ -32,8 +32,6 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.objects.A_BasicObject;
-
 /**
  * {@code A_Character} is an interface that specifies the {@linkplain
  * CharacterDescriptor character}-specific operations that an {@link

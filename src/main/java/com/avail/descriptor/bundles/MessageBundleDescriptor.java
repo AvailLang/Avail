@@ -34,25 +34,38 @@ package com.avail.descriptor.bundles;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.splitter.MessageSplitter;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.AbstractSlotsEnum;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.Descriptor;
+import com.avail.descriptor.Mutability;
+import com.avail.descriptor.ObjectSlotsEnum;
 import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.atoms.AtomDescriptor;
+import com.avail.descriptor.maps.A_Map;
 import com.avail.descriptor.methods.A_Definition;
 import com.avail.descriptor.methods.A_GrammaticalRestriction;
 import com.avail.descriptor.methods.A_Method;
-import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.methods.GrammaticalRestrictionDescriptor;
+import com.avail.descriptor.methods.MethodDescriptor;
+import com.avail.descriptor.parsing.A_DefinitionParsingPlan;
+import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor;
+import com.avail.descriptor.sets.A_Set;
+import com.avail.descriptor.sets.SetDescriptor;
 import com.avail.descriptor.tuples.A_Tuple;
+import com.avail.descriptor.types.A_Type;
+import com.avail.descriptor.types.TypeTag;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
 import java.util.IdentityHashMap;
 
-import static com.avail.descriptor.DefinitionParsingPlanDescriptor.newParsingPlan;
-import static com.avail.descriptor.MapDescriptor.emptyMap;
-import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
-import static com.avail.descriptor.SetDescriptor.emptySet;
-import static com.avail.descriptor.TypeDescriptor.Types.MESSAGE_BUNDLE;
 import static com.avail.descriptor.bundles.MessageBundleDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.maps.MapDescriptor.emptyMap;
+import static com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor.newParsingPlan;
+import static com.avail.descriptor.pojos.RawPojoDescriptor.identityPojo;
+import static com.avail.descriptor.sets.SetDescriptor.emptySet;
+import static com.avail.descriptor.types.TypeDescriptor.Types.MESSAGE_BUNDLE;
 
 /**
  * A message bundle is how a message name is bound to a {@linkplain
@@ -435,7 +448,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected MessageBundleDescriptor immutable ()
+	public MessageBundleDescriptor immutable ()
 	{
 		// There is no immutable variant.
 		return shared;
@@ -446,7 +459,7 @@ extends Descriptor
 		new MessageBundleDescriptor(Mutability.SHARED);
 
 	@Override
-	protected MessageBundleDescriptor shared ()
+	public MessageBundleDescriptor shared ()
 	{
 		return shared;
 	}
