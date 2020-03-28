@@ -59,6 +59,7 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
 import com.avail.interpreter.effects.LoadingEffectToRunPrimitive
+import com.avail.utility.evaluation.Continuation0
 
 /**
  * **Primitive:** Alias a [name][A_String] to another [name][A_Atom].
@@ -117,12 +118,12 @@ object P_Alias : Primitive(2, CanInline, HasSideEffect)
 		if (loader.phase() == EXECUTING_FOR_COMPILE)
 		{
 			val root = loader.rootBundleTree()
-			loader.module().lock {
-				for (entry in newBundle.definitionParsingPlans().mapIterable())
-				{
-					root.addPlanInProgress(newPlanInProgress(entry.value(), 1))
+			loader.module().lock(Continuation0 {
+				newBundle.definitionParsingPlans().mapIterable().forEach {
+					(_, value) ->
+					root.addPlanInProgress(newPlanInProgress(value, 1))
 				}
-			}
+			})
 		}
 		return interpreter.primitiveSuccess(nil)
 	}

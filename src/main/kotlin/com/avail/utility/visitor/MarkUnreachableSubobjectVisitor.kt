@@ -55,22 +55,19 @@ import com.avail.descriptor.AvailObject
 class MarkUnreachableSubobjectVisitor constructor (
 	private val exclusion: A_BasicObject) : AvailSubobjectVisitor
 {
-	override fun invoke(childObject: AvailObject): AvailObject
-	{
-		if (!childObject.descriptor().isMutable)
-		{
-			return childObject
+	override fun invoke(childObject: AvailObject): AvailObject = when {
+		!childObject.descriptor().isMutable -> childObject
+		// The excluded object was reached.
+		childObject.sameAddressAs(exclusion) -> childObject
+		else -> {
+			// Recursively invoke the iterator on the subobjects of
+			// subobject... Indicate the object is no longer valid and
+			// should not ever be used again.
+			childObject.scanSubobjects(this)
+			// Indicate the object is no longer valid and should not ever be used
+			// again.
+			childObject.destroy()
+			childObject
 		}
-		if (childObject.sameAddressAs(exclusion))
-		{
-			// The excluded object was reached.
-			return childObject
-		}
-		// Recursively invoke the iterator on the subobjects of subobject...
-		childObject.scanSubobjects(this)
-		// Indicate the object is no longer valid and should not ever be used
-		// again.
-		childObject.destroy()
-		return childObject
 	}
 }

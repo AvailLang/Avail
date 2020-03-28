@@ -105,7 +105,6 @@ import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.json.JSONWriter;
 import com.avail.utility.visitor.AvailSubobjectVisitor;
-import kotlin.collections.AbstractMutableCollection;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
@@ -159,7 +158,7 @@ import static java.util.Collections.sort;
  * invoke the non "o_" method in {@link AvailObject}.  This will show up as an
  * error, and one more quick fix can generate the corresponding method in
  * {@code AvailObject} whose implementation, like methods near it, extracts the
- * {@link AvailObject#descriptor() descriptor} and invokes upon it the
+ * {@link AvailObject#getCurrentDescriptor() descriptor} and invokes upon it the
  * original message (that started with "o_"), passing {@code this} as the first
  * argument.  Code generation will eventually make this relatively onerous task
  * more tractable and less error prone.</p>

@@ -46,6 +46,7 @@ import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
+import java.util.function.Supplier
 
 /**
  * **Primitive:** Answer the result of the specified [fiber][FiberDescriptor].
@@ -60,27 +61,20 @@ object P_FiberResult : Primitive(
 	{
 		interpreter.checkArgumentCount(1)
 		val fiber = interpreter.argument(0)
-		lateinit var result: Result
-		fiber.lock {
-			if (!fiber.executionState().indicatesTermination()
-			    || fiber.fiberResult().equalsNil())
-			{
-				result = interpreter.primitiveFailure(
-					E_FIBER_RESULT_UNAVAILABLE)
-			}
-			else
-			{
-				val fiberResult = fiber.fiberResult()
-				result =
-					if (!fiberResult.isInstanceOf(fiber.kind().resultType())) {
+		return with (fiber) {
+			lock(Supplier {
+				when {
+					!executionState().indicatesTermination()
+						|| fiberResult().equalsNil() ->
+						interpreter.primitiveFailure(
+							E_FIBER_RESULT_UNAVAILABLE)
+					!fiberResult().isInstanceOf(kind().resultType()) ->
 						interpreter.primitiveFailure(
 							E_FIBER_PRODUCED_INCORRECTLY_TYPED_RESULT)
-					} else {
-						interpreter.primitiveSuccess(fiber.fiberResult())
-					}
-			}
+					else -> interpreter.primitiveSuccess(fiberResult())
+				}
+			})
 		}
-		return result
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

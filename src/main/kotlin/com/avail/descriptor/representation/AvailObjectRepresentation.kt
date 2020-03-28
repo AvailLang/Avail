@@ -35,6 +35,7 @@ import com.avail.descriptor.*
 import com.avail.descriptor.functions.A_Continuation
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
+import com.avail.descriptor.functions.ContinuationDescriptor
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.types.TypeTag
 import com.avail.utility.visitor.MarkUnreachableSubobjectVisitor
@@ -50,20 +51,20 @@ import kotlin.math.min
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 abstract class AvailObjectRepresentation protected constructor(
-	descriptor: AbstractDescriptor,
+	initialDescriptor: AbstractDescriptor,
 	objectSlotsSize: Int,
 	integerSlotsCount: Int
-) : AbstractAvailObject(descriptor), A_BasicObject {
-	/** A `long` array encoding all of my digital state.  */
-	private var longSlots: LongArray = when (integerSlotsCount) {
-		0 -> emptyIntegerSlots
-		else -> LongArray(integerSlotsCount)
-	}
-
+) : AbstractAvailObject(initialDescriptor), A_BasicObject {
 	/** An array of all my references to other [AvailObject]s.  */
 	private var objectSlots: Array<AvailObject?> = when (objectSlotsSize) {
 		0 -> emptyObjectSlots
 		else -> arrayOfNulls(objectSlotsSize)
+	}
+
+	/** A `long` array encoding all of my digital state.  */
+	private var longSlots: LongArray = when (integerSlotsCount) {
+		0 -> emptyIntegerSlots
+		else -> LongArray(integerSlotsCount)
 	}
 
 	/**
@@ -95,7 +96,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	 * @param anotherObject An object.
 	 */
 	override fun becomeIndirectionTo(anotherObject: A_BasicObject) {
-		assert(!descriptor().isShared)
+		assert(!currentDescriptor.isShared)
 		// Yes, this is really gross, but it's the simplest way to ensure that
 		// objectSlots can remain private ...
 		val traversed = traversed()
@@ -110,19 +111,19 @@ abstract class AvailObjectRepresentation protected constructor(
 			objectSlots = arrayOfNulls(1)
 			objectSlots[0] = NilDescriptor.nil
 		}
-		if (descriptor().isMutable) {
+		if (currentDescriptor.isMutable) {
 			scanSubobjects(
 				MarkUnreachableSubobjectVisitor(anotherObject))
-			setDescriptor(IndirectionDescriptor.mutable(
-				anotherTraversed.descriptor().typeTag))
+			currentDescriptor = IndirectionDescriptor.mutable(
+				anotherTraversed.currentDescriptor.typeTag)
 			objectSlots[0] = anotherTraversed
 		} else {
 			anotherObject.makeImmutable()
-			setDescriptor(IndirectionDescriptor.mutable(
-				anotherTraversed.descriptor().typeTag))
+			currentDescriptor = IndirectionDescriptor.mutable(
+				anotherTraversed.currentDescriptor.typeTag)
 			objectSlots[0] = anotherTraversed
-			setDescriptor(IndirectionDescriptor.immutable(
-				anotherTraversed.descriptor().typeTag))
+			currentDescriptor = IndirectionDescriptor.immutable(
+				anotherTraversed.currentDescriptor.typeTag)
 		}
 	}
 
@@ -136,7 +137,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	 */
 	private fun checkSlot(field: ObjectSlotsEnum) {
 		if (shouldCheckSlots) {
-			val debugSlots = descriptor().debugObjectSlots
+			val debugSlots = currentDescriptor.debugObjectSlots
 			val permittedFields = debugSlots[field.fieldOrdinal()]
 			if (permittedFields != null) {
 				for (permittedField in permittedFields) {
@@ -147,7 +148,7 @@ abstract class AvailObjectRepresentation protected constructor(
 			}
 			// Check it the slow way.
 			val definitionClass = field.javaClass.enclosingClass
-			assert(definitionClass.isInstance(descriptor()))
+			assert(definitionClass.isInstance(currentDescriptor))
 			// Cache that field for next time.
 			val newPermittedFields: Array<ObjectSlotsEnum>
 			when (permittedFields) {
@@ -172,7 +173,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	 */
 	private fun checkSlot(field: IntegerSlotsEnum) {
 		if (shouldCheckSlots) {
-			val debugSlots = descriptor().debugIntegerSlots
+			val debugSlots = currentDescriptor.debugIntegerSlots
 			val permittedFields = debugSlots[field.fieldOrdinal()]
 			if (permittedFields != null) {
 				for (permittedField in permittedFields) {
@@ -183,7 +184,7 @@ abstract class AvailObjectRepresentation protected constructor(
 			}
 			// Check it the slow way.
 			val definitionClass = field.javaClass.enclosingClass
-			assert(definitionClass.isInstance(descriptor()))
+			assert(definitionClass.isInstance(currentDescriptor))
 			// Cache that field for next time.
 			val newPermittedFields: Array<IntegerSlotsEnum?>
 			when (permittedFields) {
@@ -431,7 +432,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	 */
 	fun mutableSlot(field: IntegerSlotsEnum): Long {
 		checkSlot(field)
-		return if (descriptor().isShared) {
+		return if (currentDescriptor.isShared) {
 			VolatileSlotHelper.volatileRead(longSlots, field.fieldOrdinal())
 		} else {
 			longSlots[field.fieldOrdinal()]
@@ -451,7 +452,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	) {
 		checkWriteForField(field)
 		checkSlot(field)
-		if (descriptor().isShared) {
+		if (currentDescriptor.isShared) {
 			VolatileSlotHelper.volatileWrite(
 				longSlots, field.fieldOrdinal(), anInteger)
 		} else {
@@ -486,7 +487,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	) {
 		checkWriteForField(bitField.integerSlot)
 		checkSlot(bitField.integerSlot)
-		if (descriptor().isShared) {
+		if (currentDescriptor.isShared) {
 			var oldFieldValue: Long
 			var newFieldValue: Long
 			do {
@@ -518,7 +519,7 @@ abstract class AvailObjectRepresentation protected constructor(
 		subscript: Int
 	): Long {
 		checkSlot(field)
-		return if (descriptor().isShared) {
+		return if (currentDescriptor.isShared) {
 			VolatileSlotHelper.volatileRead(
 				longSlots, field.fieldOrdinal() + subscript - 1)
 		} else {
@@ -541,7 +542,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	) {
 		checkWriteForField(field)
 		checkSlot(field)
-		if (descriptor().isShared) {
+		if (currentDescriptor.isShared) {
 			VolatileSlotHelper.volatileWrite(
 				longSlots, field.fieldOrdinal() + subscript - 1, anInteger)
 		} else {
@@ -580,7 +581,8 @@ abstract class AvailObjectRepresentation protected constructor(
 	) {
 		// If the receiver is shared, then the new value must become shared
 		// before it can be stored.
-		assert(!descriptor().isShared || anAvailObject.descriptor().isShared)
+		assert(!currentDescriptor.isShared
+			|| anAvailObject.descriptor().isShared)
 		checkSlot(field)
 		checkWriteForField(field)
 		objectSlots[field.fieldOrdinal()] = anAvailObject as AvailObject
@@ -647,7 +649,8 @@ abstract class AvailObjectRepresentation protected constructor(
 	) {
 		// If the receiver is shared, then the new value must become shared
 		// before it can be stored.
-		assert(!descriptor().isShared || anAvailObject.descriptor().isShared)
+		assert(!currentDescriptor.isShared
+			|| anAvailObject.descriptor().isShared)
 		checkSlot(field)
 		checkWriteForField(field)
 		objectSlots[field.fieldOrdinal() + subscript - 1] =
@@ -678,9 +681,7 @@ abstract class AvailObjectRepresentation protected constructor(
 		zeroBasedStartSourceSubscript: Int,
 		count: Int
 	) {
-
-
-		assert(!descriptor().isShared
+		assert(!currentDescriptor.isShared
 			|| sourceList.all { it.descriptor().isShared })
 		checkSlot(field)
 		checkWriteForField(field)
@@ -720,7 +721,7 @@ abstract class AvailObjectRepresentation protected constructor(
 		zeroBasedStartSourceSubscript: Int,
 		count: Int
 	) {
-		assert(!descriptor().isShared) { "Block-transfers into shared objects is not supported" }
+		assert(!currentDescriptor.isShared) { "Block-transfers into shared objects is not supported" }
 		checkSlot(targetField)
 		checkWriteForField(targetField)
 		System.arraycopy(
@@ -755,7 +756,7 @@ abstract class AvailObjectRepresentation protected constructor(
 		zeroBasedStartSourceSubscript: Int,
 		count: Int
 	) {
-		assert(!descriptor().isShared) {
+		assert(!currentDescriptor.isShared) {
 			"Block-transfers into shared objects is not supported"
 		}
 		checkSlot(targetField)
@@ -826,7 +827,7 @@ abstract class AvailObjectRepresentation protected constructor(
 		startSourceSubscript: Int,
 		count: Int
 	) {
-		assert(!descriptor().isShared) {
+		assert(!currentDescriptor.isShared) {
 			"Block-transfers into shared objects is not supported"
 		}
 		checkSlot(targetField)
@@ -866,7 +867,7 @@ abstract class AvailObjectRepresentation protected constructor(
 		startSourceSubscript: Int,
 		count: Int
 	) {
-		assert(!descriptor().isShared) {
+		assert(!currentDescriptor.isShared) {
 			"Block-transfers into shared objects is not supported"
 		}
 		checkSlot(targetField)
@@ -909,7 +910,7 @@ abstract class AvailObjectRepresentation protected constructor(
 		startSourceSubscript: Int,
 		count: Int
 	) {
-		assert(!descriptor().isShared) {
+		assert(!currentDescriptor.isShared) {
 			"Block-transfers into shared objects is not supported"
 		}
 		checkSlot(targetField)
@@ -947,7 +948,8 @@ abstract class AvailObjectRepresentation protected constructor(
 		if (count == 0) {
 			return
 		}
-		assert(!descriptor().isShared || anAvailObject.descriptor().isShared)
+		assert(!currentDescriptor.isShared
+			|| anAvailObject.descriptor().isShared)
 		checkSlot(field)
 		checkWriteForField(field)
 		val startSlotIndex = field.fieldOrdinal() + startSubscript - 1
@@ -968,7 +970,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	 */
 	fun mutableSlot(field: ObjectSlotsEnum): AvailObject {
 		checkSlot(field)
-		return if (descriptor().isShared) {
+		return if (currentDescriptor.isShared) {
 			VolatileSlotHelper.volatileRead(objectSlots, field.fieldOrdinal())
 		} else {
 			objectSlots[field.fieldOrdinal()]!!
@@ -996,7 +998,7 @@ abstract class AvailObjectRepresentation protected constructor(
 		 */
 		private val unsafe =
 			with(Unsafe::class.java.getDeclaredField("theUnsafe")) {
-				setAccessible(true)
+				isAccessible = true
 				get(null) as Unsafe
 			}
 
@@ -1105,7 +1107,7 @@ abstract class AvailObjectRepresentation protected constructor(
 		subscript: Int
 	): AvailObject {
 		checkSlot(field)
-		return if (descriptor().isShared) {
+		return if (currentDescriptor.isShared) {
 			VolatileSlotHelper.volatileRead(
 				objectSlots, field.fieldOrdinal() + subscript - 1)
 		} else {
@@ -1124,7 +1126,7 @@ abstract class AvailObjectRepresentation protected constructor(
 		field: ObjectSlotsEnum
 	): AvailObject {
 		checkSlot(field)
-		return if (descriptor().isShared) {
+		return if (currentDescriptor.isShared) {
 			VolatileSlotHelper.volatileRead(objectSlots, field.fieldOrdinal())
 		} else {
 			objectSlots[field.fieldOrdinal()]!!
@@ -1146,7 +1148,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	) {
 		checkSlot(field)
 		checkWriteForField(field)
-		if (descriptor().isShared) {
+		if (currentDescriptor.isShared) {
 			// The receiver is shared, so the new value must become shared
 			// before it can be stored.
 			VolatileSlotHelper.volatileWrite(
@@ -1172,7 +1174,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	) {
 		checkSlot(field)
 		checkWriteForField(field)
-		if (descriptor().isShared) {
+		if (currentDescriptor.isShared) {
 			// The receiver is shared, so the new value must become shared
 			// before it can be stored.
 			VolatileSlotHelper.volatileWrite(
@@ -1342,12 +1344,12 @@ abstract class AvailObjectRepresentation protected constructor(
 		replaceWith = ReplaceWith("equals(AvailObject)"))
 	override fun equals(other: Any?): Boolean {
 		return other is AvailObject
-			&& descriptor().o_Equals(
+			&& currentDescriptor.o_Equals(
 				this as AvailObject,
 				other)
 	}
 
-	override fun hashCode(): Int = descriptor().o_Hash(this as AvailObject)
+	override fun hashCode(): Int = currentDescriptor.o_Hash(this as AvailObject)
 
 	/**
 	 * Extract the type tag for this object.  Does not answer [ ][TypeTag.UNKNOWN_TAG].
@@ -1361,10 +1363,9 @@ abstract class AvailObjectRepresentation protected constructor(
 	fun typeTag(): TypeTag {
 		// First, directly access the descriptor's typeTag, which will be
 		// something other than UNKNOWN_TAG in the vast majority of attempts.
-		val tag = descriptor().typeTag
-		return when(tag) {
+		return when(val tag = currentDescriptor.typeTag) {
 			TypeTag.UNKNOWN_TAG ->
-				descriptor().o_ComputeTypeTag(this as AvailObject)
+				currentDescriptor.o_ComputeTypeTag(this as AvailObject)
 			else -> tag
 		}
 		// Fall back on computing the tag with a slower polymorphic method.
@@ -1416,7 +1417,7 @@ abstract class AvailObjectRepresentation protected constructor(
 		): AvailObject {
 			assert(deltaObjectSlots == 0 || descriptor.hasVariableObjectSlots)
 			assert(deltaIntegerSlots == 0 || descriptor.hasVariableIntegerSlots)
-			assert(descriptor.javaClass == objectToCopy.descriptor().javaClass)
+			assert(descriptor.javaClass == objectToCopy.currentDescriptor.javaClass)
 			val newObjectSlotCount = objectToCopy.objectSlots.size + deltaObjectSlots
 			assert(newObjectSlotCount >= descriptor.numberOfFixedObjectSlots)
 			val newIntegerSlotCount = objectToCopy.longSlots.size + deltaIntegerSlots

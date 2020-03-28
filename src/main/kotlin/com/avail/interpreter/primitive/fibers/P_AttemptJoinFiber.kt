@@ -47,6 +47,7 @@ import com.avail.exceptions.AvailErrorCode.E_FIBER_CANNOT_JOIN_ITSELF
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
+import java.util.function.Supplier
 
 /**
  * **Primitive:** If the [fiber][FiberDescriptor] has
@@ -86,10 +87,9 @@ object P_AttemptJoinFiber : Primitive(
 		{
 			return interpreter.primitiveFailure(E_FIBER_CANNOT_JOIN_ITSELF)
 		}
-		val succeed = joinee.lock<Boolean> joineelock@ {
-			if (joinee.executionState().indicatesTermination())
-			{
-				return@joineelock true
+		val succeed = joinee.lock( Supplier<Boolean> {
+			if (joinee.executionState().indicatesTermination()) {
+				return@Supplier true
 			}
 			// Add to the joinee's set of joining fibers.  To avoid deadlock,
 			// this step is done while holding only the joinee's lock, which
@@ -116,22 +116,18 @@ object P_AttemptJoinFiber : Primitive(
 				joinee.joiningFibers().setWithElementCanDestroy(
 					current, false))
 			false
-		}
-		return if (succeed)
-		{
-			interpreter.primitiveSuccess(nil)
-		}
-		else current.lock<Result> {
-			// If permit is not available, then park this fiber.
-			if (current.getAndSetSynchronizationFlag(
-					PERMIT_UNAVAILABLE, true))
-			{
-				interpreter.primitivePark(interpreter.function!!)
-			}
-			else
-			{
-				interpreter.primitiveSuccess(nil)
-			}
+		} as Supplier<Boolean>)
+		return when {
+			succeed -> interpreter.primitiveSuccess(nil)
+			else -> current.lock( Supplier {
+				// If permit is not available, then park this fiber.
+				when {
+					current.getAndSetSynchronizationFlag(
+							PERMIT_UNAVAILABLE, true) ->
+						interpreter.primitivePark(interpreter.function!!)
+					else -> interpreter.primitiveSuccess(nil)
+				}
+			})
 		}
 	}
 

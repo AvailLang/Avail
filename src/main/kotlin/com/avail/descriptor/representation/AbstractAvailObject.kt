@@ -36,79 +36,67 @@ import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 
 /**
- * `AbstractAvailObject` specifies the essential layout and storage
- * requirements of an Avail object, but does not specify a particular
- * representation. As such, it defines requirements for object and integer
- * storage capability, identity comparison by object address, indirection
- * capability, and descriptor access.
+ * `AbstractAvailObject` specifies the essential layout and storage requirements
+ * of an Avail object, but does not specify a particular representation. As
+ * such, it defines requirements for object and integer storage capability,
+ * identity comparison by object address, indirection capability, and descriptor
+ * access.
+ *
+ * @constructor
+ * @param initialDescriptor
+ *   The object's [descriptor][AbstractDescriptor] at creation time. Most
+ *   messages are redirected through the descriptor to allow the behavior and
+ *   representation to change, often without changing the observable semantics.
+ *   The descriptor essentially says how this object should behave, including
+ *   how its fields are laid out.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Mark van Gulik &lt;todd@availlang.org&gt;
  */
-abstract class AbstractAvailObject
-/**
- * Construct a new `AbstractAvailObject`.
- *
- * @param descriptor
- * The [descriptor][AbstractDescriptor] that initially
- * describes the format and behavior of this object.
- */ protected constructor(
+abstract class AbstractAvailObject protected constructor(
+	initialDescriptor: AbstractDescriptor)
+{
 	/**
-	 * The object's [descriptor][AbstractDescriptor]. Most messages
-	 * are redirected through the descriptor to allow the behavior and
+	 * The object's [descriptor][AbstractDescriptor]. Most messages are
+	 * redirected through the descriptor to allow the behavior and
 	 * representation to change, often without changing the observable
 	 * semantics. The descriptor essentially says how this object should behave,
 	 * including how its fields are laid out.
 	 */
-	@field:Volatile private var descriptor: AbstractDescriptor) {
+	protected @field:Volatile var currentDescriptor: AbstractDescriptor =
+		initialDescriptor
+
+	/** Retrieve this object's current [descriptor][AbstractDescriptor]. */
+	@ReferencedInGeneratedCode
+	fun descriptor() = currentDescriptor
+
+	/** Replace this object's current [currentDescriptor]AbstractDescriptor]. */
+	fun setDescriptor(newDescriptor: AbstractDescriptor) {
+		currentDescriptor = newDescriptor
+	}
+
 	/**
-	 * Check if the object's address is valid. Throw an [Error] if it
-	 * lies outside of all the currently allocated memory regions.
+	 * Check if the object's address is valid. Throw an [Error] if it lies
+	 * outside of all the currently allocated memory regions.
 	 *
-	 *
-	 * Not implemented meaningfully in the Java implementation.
+	 * Note: This is not meaningful in the Java/Kotlin implementation.
 	 *
 	 * @throws Error
-	 * If the address is invalid.
+	 *   If the address is invalid.
 	 */
 	@Throws(Error::class)
-	protected fun checkValidAddress() {
-	}
+	protected fun checkValidAddress() { }
 
 	/**
 	 * Answer whether the [objects][AvailObject] occupy the same
 	 * memory addresses.
 	 *
-	 * @param anotherObject Another object.
-	 * @return Whether the objects occupy the same storage.
+	 * @param anotherObject
+	 *   Another object.
+	 * @return
+	 *   Whether the receiver and the other object occupy the same storage.
 	 */
-	fun sameAddressAs(
-		anotherObject: A_BasicObject): Boolean {
-		return this === anotherObject
-	}
-
-	/**
-	 * Answer the object's [descriptor][AbstractDescriptor].
-	 *
-	 * @return A descriptor.
-	 */
-	@ReferencedInGeneratedCode
-	fun descriptor(): AbstractDescriptor {
-		return descriptor
-	}
-
-	/**
-	 * Replace the object's [.descriptor], thereby changing its
-	 * behavior.
-	 *
-	 * For example, making an object [Mutability.IMMUTABLE] or
-	 * [Mutability.SHARED] is accomplished by replacing the descriptor.
-	 *
-	 * @param descriptor The new [AbstractDescriptor].
-	 */
-	fun setDescriptor(descriptor: AbstractDescriptor) {
-		this.descriptor = descriptor
-	}
+	fun sameAddressAs(anotherObject: A_BasicObject) = this === anotherObject
 
 	/**
 	 * Replace the [descriptor][AbstractDescriptor] with a [ ]. This blows up for most messages,
@@ -116,7 +104,7 @@ abstract class AbstractAvailObject
 	 * incorrect by definition.
 	 */
 	fun destroy() {
-		setDescriptor(FillerDescriptor.shared)
+		currentDescriptor = FillerDescriptor.shared
 	}
 
 	/**
@@ -128,7 +116,7 @@ abstract class AbstractAvailObject
 	protected val isDestroyed: Boolean
 		get() {
 			checkValidAddress()
-			return descriptor() === FillerDescriptor.shared
+			return currentDescriptor === FillerDescriptor.shared
 		}
 
 	/**
@@ -145,9 +133,8 @@ abstract class AbstractAvailObject
 	 *
 	 * @return The number of variable integer slots.
 	 */
-	fun variableIntegerSlotsCount(): Int {
-		return integerSlotsCount() - descriptor().numberOfFixedIntegerSlots()
-	}
+	fun variableIntegerSlotsCount(): Int =
+		integerSlotsCount() - currentDescriptor.numberOfFixedIntegerSlots()
 
 	/**
 	 * Answer the number of object slots in this [AvailObject]. All
@@ -163,18 +150,16 @@ abstract class AbstractAvailObject
 	 *
 	 * @return The number of variable object slots.
 	 */
-	fun variableObjectSlotsCount(): Int {
-		return objectSlotsCount() - descriptor().numberOfFixedObjectSlots()
-	}
+	fun variableObjectSlotsCount(): Int =
+		objectSlotsCount() - currentDescriptor.numberOfFixedObjectSlots()
 
 	/**
 	 * Sanity check: ensure that the specified field is writable.
 	 *
 	 * @param e An `enum` value whose ordinal is the field position.
 	 */
-	fun checkWriteForField(e: AbstractSlotsEnum) {
-		descriptor().checkWriteForField(e)
-	}
+	fun checkWriteForField(e: AbstractSlotsEnum) =
+		currentDescriptor.checkWriteForField(e)
 
 	/**
 	 * Slice the current [object][AvailObject] into two objects, the

@@ -47,6 +47,7 @@ import org.objectweb.asm.MethodVisitor;
 import java.util.Set;
 import java.util.function.Consumer;
 
+import static com.avail.descriptor.A_BasicObject.makeImmutableMethod;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
 import static com.avail.utility.Casts.cast;
@@ -190,7 +191,7 @@ extends L2Operation
 
 		// :: output = input.makeImmutable();
 		translator.load(method, read.register());
-		A_BasicObject.makeImmutableMethod.generateCall(method);
+		makeImmutableMethod.generateCall(method);
 		translator.store(method, write.register());
 	}
 }

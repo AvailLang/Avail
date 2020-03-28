@@ -47,6 +47,7 @@ import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Interpreter.resumeFromSuccessfulPrimitive
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
+import com.avail.utility.evaluation.Continuation0
 
 /**
  * **Primitive:** Request termination of the given [fiber][FiberDescriptor]. If
@@ -61,52 +62,51 @@ object P_RequestTermination : Primitive(
 	{
 		interpreter.checkArgumentCount(1)
 		val fiber = interpreter.argument(0)
-		fiber.lock {
-			// Set the interrupt request flag.
-			fiber.setInterruptRequestFlag(TERMINATION_REQUESTED)
-			val oldState = fiber.executionState()
-			val hadPermit = !fiber.getAndSetSynchronizationFlag(
-				PERMIT_UNAVAILABLE, false)
-			when (oldState)
-			{
-				ASLEEP ->
-				{
-					// Try to cancel the task (if any). This is best
-					// effort only.
-					val task = fiber.wakeupTask()
-					if (task !== null)
-					{
-						task.cancel()
-						fiber.wakeupTask(null)
+		with (fiber) {
+			lock(Continuation0 {
+				// Set the interrupt request flag.
+				setInterruptRequestFlag(TERMINATION_REQUESTED)
+				val oldState = executionState()
+				val hadPermit =
+					!getAndSetSynchronizationFlag(PERMIT_UNAVAILABLE, false)
+				when (oldState) {
+					ASLEEP -> {
+						// Try to cancel the task (if any). This is best
+						// effort only.
+						val task = wakeupTask()
+						if (task !== null) {
+							task.cancel()
+							wakeupTask(null)
+						}
+						executionState(SUSPENDED)
+						val fiberSuspendingPrimitive =
+							suspendingFunction().code().primitive()!!
+						resumeFromSuccessfulPrimitive(
+							currentRuntime(),
+							fiber,
+							fiberSuspendingPrimitive,
+							nil)
 					}
-					fiber.executionState(SUSPENDED)
-					val fiberSuspendingPrimitive =
-						fiber.suspendingFunction().code().primitive()!!
-					resumeFromSuccessfulPrimitive(
-						currentRuntime(),
-						fiber,
-						fiberSuspendingPrimitive,
-						nil)
-				}
-				PARKED ->
-				{
-					// Resume the fiber.
-					assert(!hadPermit) {
-						"Should not have been parked with a permit"
+					PARKED -> {
+						// Resume the fiber.
+						assert(!hadPermit) {
+							"Should not have been parked with a permit"
+						}
+						executionState(SUSPENDED)
+						val suspendingPrimitive =
+							suspendingFunction().code().primitive()!!
+						assert(suspendingPrimitive === P_ParkCurrentFiber
+							|| suspendingPrimitive === P_AttemptJoinFiber)
+						resumeFromSuccessfulPrimitive(
+							currentRuntime(),
+							fiber,
+							suspendingPrimitive,
+							nil)
 					}
-					fiber.executionState(SUSPENDED)
-					val suspendingPrimitive =
-						fiber.suspendingFunction().code().primitive()!!
-					assert(suspendingPrimitive === P_ParkCurrentFiber
-						|| suspendingPrimitive === P_AttemptJoinFiber)
-					resumeFromSuccessfulPrimitive(
-						currentRuntime(),
-						fiber,
-						suspendingPrimitive,
-						nil)
+					else -> {
+					}
 				}
-				else -> { }
-			}
+			})
 		}
 		return interpreter.primitiveSuccess(nil)
 	}

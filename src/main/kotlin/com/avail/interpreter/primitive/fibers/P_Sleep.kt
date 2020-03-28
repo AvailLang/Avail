@@ -46,8 +46,10 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.inclusive
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Interpreter.resumeFromSuccessfulPrimitive
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
+import com.avail.utility.evaluation.Continuation0
 import java.util.*
 
 /**
@@ -86,7 +88,7 @@ object P_Sleep : Primitive(1, CannotFail, CanSuspend, Unknown)
 			{
 				override fun run()
 				{
-					fiber.lock {
+					fiber.lock(Continuation0 {
 						// Only resume the fiber if it's still asleep. A
 						// termination request may have already woken the
 						// fiber up, but so recently that it didn't manage
@@ -95,55 +97,50 @@ object P_Sleep : Primitive(1, CannotFail, CanSuspend, Unknown)
 						{
 							fiber.wakeupTask(null)
 							fiber.executionState(SUSPENDED)
-							Interpreter.resumeFromSuccessfulPrimitive(
-								runtime,
-								fiber,
-								this@P_Sleep,
-								nil)
+							resumeFromSuccessfulPrimitive(
+								runtime, fiber, this@P_Sleep, nil)
 						}
-					}
+					})
 				}
 			}
 			// Once the fiber has been unbound, transition it to sleeping and
 			// start the timer task.
 			interpreter.postExitContinuation {
-				fiber.lock fiberlock@ {
+				fiber.lock(Continuation0 {
 					// If termination has been requested, then schedule
 					// the resumption of this fiber.
-					if (fiber.interruptRequestFlag(TERMINATION_REQUESTED))
-					{
-						assert(fiber.executionState() === SUSPENDED)
-						Interpreter.resumeFromSuccessfulPrimitive(
-							runtime,
-							fiber,
-							this,
-							nil)
-						return@fiberlock
+					when {
+						fiber.interruptRequestFlag(TERMINATION_REQUESTED) -> {
+							assert(fiber.executionState() === SUSPENDED)
+							resumeFromSuccessfulPrimitive(
+								runtime, fiber, this, nil)
+						}
+						else -> {
+							fiber.wakeupTask(task)
+							fiber.executionState(ASLEEP)
+							runtime.timer.schedule(
+								task, sleepMillis.extractLong())
+						}
 					}
-					fiber.wakeupTask(task)
-					fiber.executionState(ASLEEP)
-					runtime.timer.schedule(
-						task,
-						sleepMillis.extractLong())
-				}
+				})
 			}
 		}
 		else
 		{
 			// Once the fiber has been unbound, transition it to sleeping.
 			interpreter.postExitContinuation {
-				fiber.lock fiberlock@{
+				fiber.lock(Continuation0 {
 					// If termination has been requested, then schedule
 					// the resumption of this fiber.
-					if (fiber.interruptRequestFlag(TERMINATION_REQUESTED))
-					{
-						assert(fiber.executionState() === SUSPENDED)
-						Interpreter.resumeFromSuccessfulPrimitive(
-							runtime, fiber, this, nil)
-						return@fiberlock
+					when {
+						fiber.interruptRequestFlag(TERMINATION_REQUESTED) -> {
+							assert(fiber.executionState() === SUSPENDED)
+							resumeFromSuccessfulPrimitive(
+								runtime, fiber, this, nil)
+						}
+						else -> fiber.executionState(ASLEEP)
 					}
-					fiber.executionState(ASLEEP)
-				}
+				})
 			}
 		}// The delay was too big, so put the fiber to sleep forever.
 		// Don't actually transition the fiber to the sleeping state, which

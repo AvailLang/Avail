@@ -46,6 +46,7 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail
 import java.lang.reflect.Array
+import java.util.function.Supplier
 
 /**
  * **Primitive:** Convert the specified
@@ -61,14 +62,14 @@ object P_CreateTupleFromPojoArray : Primitive(1, CanInline, CannotFail)
 		interpreter.checkArgumentCount(1)
 		val array = interpreter.argument(0)
 		// Hold a lock on the array while accessing it.
-		val tuple = array.lock<A_Tuple> {
+		val tuple = array.lock( Supplier {
 			val rawArray = array.rawPojo().javaObjectNotNull<Any>()
 			generateObjectTupleFrom(Array.getLength(rawArray)) {
 				unmarshal(
 					Array.get(rawArray, it - 1),
 					array.kind().contentType())
 			}
-		}
+		})
 		return interpreter.primitiveSuccess(tuple)
 	}
 

@@ -38,7 +38,6 @@ import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.NilDescriptor;
-import com.avail.descriptor.maps.LinearMapBinDescriptor.IntegerSlots;
 import com.avail.descriptor.maps.MapDescriptor.Entry;
 import com.avail.descriptor.maps.MapDescriptor.MapIterable;
 import com.avail.descriptor.representation.AbstractSlotsEnum;

@@ -36,13 +36,16 @@ import com.avail.annotations.AvailMethod
 import com.avail.annotations.ThreadSafe
 import com.avail.compiler.splitter.MessageSplitter
 import com.avail.descriptor.*
+import com.avail.descriptor.atoms.AtomWithPropertiesSharedDescriptor.Companion.sharedAndSpecial
+import com.avail.descriptor.atoms.AtomWithPropertiesSharedDescriptor.Companion.sharedAndSpecialForFalse
+import com.avail.descriptor.atoms.AtomWithPropertiesSharedDescriptor.Companion.sharedAndSpecialForTrue
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.MessageBundleDescriptor
 import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.representation.*
 import com.avail.descriptor.tuples.A_String
-import com.avail.descriptor.tuples.StringDescriptor
+import com.avail.descriptor.tuples.StringDescriptor.stringFrom
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.EnumerationTypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor
@@ -336,13 +339,11 @@ open class AtomDescriptor
 
 	override fun o_MarshalToJava(
 		self: AvailObject,
-		ignoredClassHint: Class<*>?): Any? {
-		if (self.equals(trueObject())) {
-			return java.lang.Boolean.TRUE
-		}
-		return if (self.equals(falseObject())) {
-			java.lang.Boolean.FALSE
-		} else super.o_MarshalToJava(self, ignoredClassHint)
+		ignoredClassHint: Class<*>?
+	): Any? = when {
+		self.equals(trueObject()) -> java.lang.Boolean.TRUE
+		self.equals(falseObject()) -> java.lang.Boolean.FALSE
+		else -> super.o_MarshalToJava(self, ignoredClassHint)
 	}
 
 	@Throws(MalformedMessageException::class)
@@ -561,13 +562,14 @@ open class AtomDescriptor
 		 */
 		@JvmStatic
 		fun createSpecialAtom(
-			name: String?): A_Atom {
+			name: String
+		): A_Atom {
 			var atom = mutable.create()
-			atom.setSlot(ObjectSlots.NAME, StringDescriptor.stringFrom(name).makeShared())
+			atom.setSlot(ObjectSlots.NAME, stringFrom(name).makeShared())
 			atom.setSlot(IntegerSlots.HASH_OR_ZERO, 0)
 			atom.setSlot(ObjectSlots.ISSUING_MODULE, NilDescriptor.nil)
 			atom = atom.makeShared()
-			atom.setDescriptor(AtomWithPropertiesSharedDescriptor.Companion.sharedAndSpecial)
+			atom.setDescriptor(sharedAndSpecial)
 			return atom
 		}
 
@@ -585,14 +587,17 @@ open class AtomDescriptor
 		 * was invoked.
 		 */
 		fun createSpecialBooleanAtom(
-			name: String?,
+			name: String,
 			booleanValue: Boolean): A_Atom {
 			var atom = mutable.create()
-			atom.setSlot(ObjectSlots.NAME, StringDescriptor.stringFrom(name).makeShared())
+			atom.setSlot(ObjectSlots.NAME, stringFrom(name).makeShared())
 			atom.setSlot(IntegerSlots.HASH_OR_ZERO, 0)
 			atom.setSlot(ObjectSlots.ISSUING_MODULE, NilDescriptor.nil)
 			atom = atom.makeShared()
-			atom.setDescriptor(if (booleanValue) AtomWithPropertiesSharedDescriptor.Companion.sharedAndSpecialForTrue else AtomWithPropertiesSharedDescriptor.Companion.sharedAndSpecialForFalse)
+			atom.setDescriptor(when {
+				booleanValue -> sharedAndSpecialForTrue
+				else -> sharedAndSpecialForFalse
+			})
 			return atom
 		}
 
