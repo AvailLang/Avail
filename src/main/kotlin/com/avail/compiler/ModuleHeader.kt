@@ -44,7 +44,7 @@ import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.MESSAGE_BUNDLE_KEY
 import com.avail.descriptor.atoms.AtomWithPropertiesDescriptor.Companion.createAtomWithProperties
 import com.avail.descriptor.bundles.A_Bundle
-import com.avail.descriptor.bundles.MessageBundleDescriptor.newBundle
+import com.avail.descriptor.bundles.MessageBundleDescriptor.Companion.newBundle
 import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.numbers.IntegerDescriptor.fromInt
 import com.avail.descriptor.sets.A_Set
@@ -409,8 +409,7 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 						+ "$oldString from \"${ref.qualifiedName}\"")
 				}
 
-				newAtom.setAtomProperty(
-					MESSAGE_BUNDLE_KEY.atom, newBundle)
+				newAtom.setAtomProperty(MESSAGE_BUNDLE_KEY.atom, newBundle)
 				atomsToImport = atomsToImport.setWithElementCanDestroy(
 					newAtom, true)
 			}

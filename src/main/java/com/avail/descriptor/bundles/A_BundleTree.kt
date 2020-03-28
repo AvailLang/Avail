@@ -29,42 +29,36 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.descriptor.bundles
 
-package com.avail.descriptor.bundles;
-
-import com.avail.compiler.ParsingOperation;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.A_Module;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.NilDescriptor;
-import com.avail.descriptor.maps.A_Map;
-import com.avail.descriptor.numbers.IntegerDescriptor;
-import com.avail.descriptor.parsing.A_DefinitionParsingPlan;
-import com.avail.descriptor.parsing.A_ParsingPlanInProgress;
-import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor;
-import com.avail.descriptor.sets.A_Set;
-import com.avail.utility.Pair;
-
-import java.util.Collection;
+import com.avail.compiler.ParsingOperation
+import com.avail.descriptor.A_BasicObject
+import com.avail.descriptor.A_Module
+import com.avail.descriptor.AvailObject
+import com.avail.descriptor.NilDescriptor
+import com.avail.descriptor.maps.A_Map
+import com.avail.descriptor.numbers.IntegerDescriptor
+import com.avail.descriptor.parsing.A_DefinitionParsingPlan
+import com.avail.descriptor.parsing.A_ParsingPlanInProgress
+import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor
+import com.avail.descriptor.sets.A_Set
+import com.avail.utility.Pair
+import java.util.*
 
 /**
- * {@code A_BundleTree} is an interface that specifies the {@linkplain
- * MessageBundleTreeDescriptor message-bundle-tree}-specific operations that an
- * {@link AvailObject} must implement.  It's a sub-interface of {@link
- * A_BasicObject}, the interface that defines the behavior that all AvailObjects
+ * `A_BundleTree` is an interface that specifies the [ ]-specific operations that an
+ * [AvailObject] must implement.  It's a sub-interface of [ ], the interface that defines the behavior that all AvailObjects
  * are required to support.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public interface A_BundleTree
-extends A_BasicObject
-{
+interface A_BundleTree : A_BasicObject {
 	/**
 	 * Answer the bundle tree's map of all plans.
 	 *
 	 * @return A map of type {bundle→{definition→plan|0..}|0..}.
 	 */
-	A_Map allParsingPlansInProgress ();
+	fun allParsingPlansInProgress(): A_Map
 
 	/**
 	 * Expand the bundle tree if there's anything currently unclassified in it.
@@ -72,9 +66,9 @@ extends A_BasicObject
 	 * the grammar is postponed until actually necessary.
 	 *
 	 * @param module
-	 *        The current module which this bundle tree is being used to parse.
+	 * The current module which this bundle tree is being used to parse.
 	 */
-	void expand (A_Module module);
+	fun expand(module: A_Module)
 
 	/**
 	 * A grammatical restriction has been added.  Update this bundle tree to
@@ -83,44 +77,42 @@ extends A_BasicObject
 	 * trees to visit as a consequence of visiting this tree.
 	 *
 	 * @param planInProgress
-	 *        The {@link A_DefinitionParsingPlan} along which to update the
-	 *        bundle tree (and extant successors).
+	 * The [A_DefinitionParsingPlan] along which to update the
+	 * bundle tree (and extant successors).
 	 * @param treesToVisit
-	 *        A collection of {@link Pair}s to visit.  Updated to include
-	 *        successors of this &lt;bundle, planInProgress&gt;.
+	 * A collection of [Pair]s to visit.  Updated to include
+	 * successors of this &lt;bundle, planInProgress&gt;.
 	 */
-	void updateForNewGrammaticalRestriction (
-		final A_ParsingPlanInProgress planInProgress,
-		final Collection<Pair<A_BundleTree, A_ParsingPlanInProgress>>
-			treesToVisit);
+	fun updateForNewGrammaticalRestriction(
+		planInProgress: A_ParsingPlanInProgress,
+		treesToVisit: Deque<Pair<A_BundleTree, A_ParsingPlanInProgress>>)
 
 	/**
-	 * Answer the {@link A_Set set} of {@link A_Bundle bundles}, an invocation
+	 * Answer the [set][A_Set] of [bundles][A_Bundle], an invocation
 	 * of which has been completely parsed when this bundle tree has been
 	 * reached.
 	 *
-	 * <p>This is only an authoritative set if an {@link #expand(A_Module)} has
-	 * been invoked since the last modification via methods like {@link
-	 * #addPlanInProgress(A_ParsingPlanInProgress)}.</p>
+	 *
+	 * This is only an authoritative set if an [.expand] has
+	 * been invoked since the last modification via methods like [ ][.addPlanInProgress].
 	 *
 	 * @return The bundles for which a send has been parsed at this point.
 	 */
-	A_Set lazyComplete ();
+	fun lazyComplete(): A_Set
 
 	/**
 	 * Answer the bundle trees that are waiting for a specific token to be
 	 * parsed.  These are organized as a map where each key is the string form
-	 * of an expected token, and the corresponding value is the successor {@link
-	 * A_BundleTree bundle tree} representing the situation where a token
+	 * of an expected token, and the corresponding value is the successor [ ] representing the situation where a token
 	 * matching the key was consumed.
 	 *
-	 * <p>This is only an authoritative map if an {@link #expand(A_Module)} has
-	 * been invoked since the last modification via methods like {@link
-	 * #addPlanInProgress(A_ParsingPlanInProgress)}.</p>
+	 *
+	 * This is only an authoritative map if an [.expand] has
+	 * been invoked since the last modification via methods like [ ][.addPlanInProgress].
 	 *
 	 * @return A map from strings to bundle trees.
 	 */
-	A_Map lazyIncomplete ();
+	fun lazyIncomplete(): A_Map
 
 	/**
 	 * Answer the bundle trees that are waiting for a specific case-insensitive
@@ -129,108 +121,107 @@ extends A_BasicObject
 	 * corresponding value is the successor bundle tree representing the
 	 * situation where a token case-insensitively matching the key was consumed.
 	 *
-	 * <p>This is only an authoritative map if an {@link #expand(A_Module)} has
-	 * been invoked since the last modification via methods like {@link
-	 * #addPlanInProgress(A_ParsingPlanInProgress)}.</p>
+	 *
+	 * This is only an authoritative map if an [.expand] has
+	 * been invoked since the last modification via methods like [ ][.addPlanInProgress].
 	 *
 	 * @return A map from lowercase strings to bundle trees.
 	 */
-	A_Map lazyIncompleteCaseInsensitive ();
+	fun lazyIncompleteCaseInsensitive(): A_Map
 
 	/**
 	 * Answer the bundle trees that will be reached when specific parse
 	 * instructions run.  During normal processing, all such instructions are
-	 * attempted in parallel.  Certain instructions like {@link
-	 * ParsingOperation#PARSE_PART} do not get added to this map, and are added
-	 * to other structures such as {@link #lazyIncomplete()}.
+	 * attempted in parallel.  Certain instructions like [ ][ParsingOperation.PARSE_PART] do not get added to this map, and are added
+	 * to other structures such as [.lazyIncomplete].
 	 *
-	 * <p>Each key is an {@link IntegerDescriptor integer} that encodes a
-	 * parsing instruction, and the value is a tuple of successor {@link
-	 * A_BundleTree bundle trees} that are reached after executing that parsing
+	 *
+	 * Each key is an [integer][IntegerDescriptor] that encodes a
+	 * parsing instruction, and the value is a tuple of successor [ ] that are reached after executing that parsing
 	 * instruction.  The tuples are typically of size one, but some instructions
 	 * require the parsings to diverge, for example when running macro prefix
-	 * functions.</p>
+	 * functions.
 	 *
-	 * <p>This is only an authoritative map if an {@link #expand(A_Module)} has
-	 * been invoked since the last modification via methods like {@link
-	 * #addPlanInProgress(A_ParsingPlanInProgress)}.</p>
+	 *
+	 * This is only an authoritative map if an [.expand] has
+	 * been invoked since the last modification via methods like [ ][.addPlanInProgress].
 	 *
 	 * @return A map from integer-encoded instructions to tuples of successor
-	 *         bundle trees.
+	 * bundle trees.
 	 */
-	A_Map lazyActions ();
+	fun lazyActions(): A_Map
 
 	/**
-	 * Answer a map used by the {@link ParsingOperation#CHECK_ARGUMENT}
+	 * Answer a map used by the [ParsingOperation.CHECK_ARGUMENT]
 	 * instruction to quickly eliminate arguments that are forbidden by
 	 * grammatical restrictions.  The map is from each restricted argument
-	 * {@link A_Bundle bundle} to the successor bundle tree that includes every
-	 * bundle that <em>is</em> allowed when an argument is an invocation of a
+	 * [bundle][A_Bundle] to the successor bundle tree that includes every
+	 * bundle that *is* allowed when an argument is an invocation of a
 	 * restricted argument bundle.  Each argument bundle that is restricted by
 	 * at least one parent bundle at this point (just after having parsed an
 	 * argument) has an entry in this map.  Argument bundles that are not
 	 * restricted do not occur in this map, and are instead dealt with by an
-	 * entry in the {@link #lazyActions()} map.
+	 * entry in the [.lazyActions] map.
 	 *
-	 * <p>This technique leads to an increase in the number of bundle trees, but
+	 *
+	 * This technique leads to an increase in the number of bundle trees, but
 	 * is very fast at eliminating illegal parses, even when expressions are
-	 * highly ambiguous (or highly ambiguous for their initial parts).</p>
+	 * highly ambiguous (or highly ambiguous for their initial parts).
 	 *
-	 * <p>This is only an authoritative map if an {@link #expand(A_Module)} has
-	 * been invoked since the last modification via methods like {@link
-	 * #addPlanInProgress(A_ParsingPlanInProgress)}.</p>
+	 *
+	 * This is only an authoritative map if an [.expand] has
+	 * been invoked since the last modification via methods like [ ][.addPlanInProgress].
 	 *
 	 * @return A map from potential child bundle to the successor bundle tree
-	 *         that should be visited if an invocation of that bundle has just
-	 *         been parsed as an argument.
+	 * that should be visited if an invocation of that bundle has just
+	 * been parsed as an argument.
 	 */
-	A_Map lazyPrefilterMap ();
+	fun lazyPrefilterMap(): A_Map
 
 	/**
 	 * If this message bundle tree has a type filter tree, return the raw pojo
-	 * holding it, otherwise {@link NilDescriptor#nil}.
+	 * holding it, otherwise [NilDescriptor.nil].
 	 *
-	 * <p>The type filter tree is used to quickly eliminate potential bundle
+	 *
+	 * The type filter tree is used to quickly eliminate potential bundle
 	 * invocations based on the type of an argument that has just been parsed.
 	 * The argument's expression type is looked up in the tree, and the result
 	 * is which bundle tree should be visited, having eliminated all parsing
-	 * possibilities where the argument was of an unacceptable type.</p>
+	 * possibilities where the argument was of an unacceptable type.
 	 *
-	 * <p>This is only authoritative if an {@link #expand(A_Module)} has been
-	 * invoked since the last modification via methods like {@link
-	 * #addPlanInProgress(A_ParsingPlanInProgress)}.</p>
+	 *
+	 * This is only authoritative if an [.expand] has been
+	 * invoked since the last modification via methods like [ ][.addPlanInProgress].
 	 *
 	 * @return The type filter tree pojo or nil.
 	 */
-	A_BasicObject lazyTypeFilterTreePojo ();
+	fun lazyTypeFilterTreePojo(): A_BasicObject
 
 	/**
-	 * Add a {@link DefinitionParsingPlanDescriptor definition parsing plan} to
+	 * Add a [definition parsing plan][DefinitionParsingPlanDescriptor] to
 	 * this bundle tree.  The corresponding bundle must already be present.
 	 *
 	 * @param planInProgress
-	 *        The definition parsing plan to add.
+	 * The definition parsing plan to add.
 	 */
-	void addPlanInProgress (A_ParsingPlanInProgress planInProgress);
+	fun addPlanInProgress(planInProgress: A_ParsingPlanInProgress)
 
 	/**
-	 * Remove information about this {@link A_DefinitionParsingPlan definition
-	 * parsing plan} from this bundle tree.
+	 * Remove information about this [definition][A_DefinitionParsingPlan] from this bundle tree.
 	 *
 	 * @param planInProgress
-	 *        The parsing plan to exclude.
+	 * The parsing plan to exclude.
 	 */
-	void removePlanInProgress (A_ParsingPlanInProgress planInProgress);
+	fun removePlanInProgress(planInProgress: A_ParsingPlanInProgress)
 
 	/**
-	 * Answer the nearest ancestor bundle tree that contained a {@link
-	 * ParsingOperation#JUMP_BACKWARD}.  There may be closer ancestor bundle
+	 * Answer the nearest ancestor bundle tree that contained a [ ][ParsingOperation.JUMP_BACKWARD].  There may be closer ancestor bundle
 	 * trees with a backward jump, but that jump wasn't present in the bundle
 	 * tree yet.
 	 *
 	 * @return The nearest ancestor backward-jump-containing bundle tree.
 	 */
-	A_BundleTree latestBackwardJump ();
+	fun latestBackwardJump(): A_BundleTree
 
 	/**
 	 * Answer whether there are any parsing-plans-in-progress which are at a
@@ -238,26 +229,25 @@ extends A_BasicObject
 	 *
 	 * @return Whether there are any backward jumps.
 	 */
-	boolean hasBackwardJump ();
+	fun hasBackwardJump(): Boolean
 
 	/**
 	 * Answer whether this bundle tree has been marked as the source of a cycle.
-	 * If so, the {@link #latestBackwardJump()} is the bundle tree at which to
+	 * If so, the [.latestBackwardJump] is the bundle tree at which to
 	 * continue processing.
 	 *
 	 * @return Whether the bundle tree is the source of a linkage to an
 	 * equivalent ancestor bundle tree.
 	 */
-	boolean isSourceOfCycle ();
+	val isSourceOfCycle: Boolean
 
 	/**
-	 * Set whether this bundle tree is the source of a cycle.  If so, the {@link
-	 * #latestBackwardJump()} must be the bundle tree at which to continue
+	 * Set whether this bundle tree is the source of a cycle.  If so, the [ ][.latestBackwardJump] must be the bundle tree at which to continue
 	 * processing.
 	 *
 	 * @param isSourceOfCycle
-	 *        Whether the bundle tree is the source of a linkage to an
-	 *        equivalent ancestor bundle tree.
+	 * Whether the bundle tree is the source of a linkage to an
+	 * equivalent ancestor bundle tree.
 	 */
-	void isSourceOfCycle (boolean isSourceOfCycle);
+	fun isSourceOfCycle(isSourceOfCycle: Boolean)
 }

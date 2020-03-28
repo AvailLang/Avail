@@ -48,7 +48,7 @@ import com.avail.descriptor.types.A_Type
  *   most-specific matching method definitions for some arguments.
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-internal abstract class LookupTree<
+abstract class LookupTree<
 	Element : A_BasicObject,
 	Result : A_BasicObject>
 {

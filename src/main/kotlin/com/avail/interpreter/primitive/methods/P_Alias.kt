@@ -38,7 +38,7 @@ import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.MESSAGE_BUNDLE_KEY
 import com.avail.descriptor.bundles.A_Bundle
-import com.avail.descriptor.bundles.MessageBundleDescriptor.newBundle
+import com.avail.descriptor.bundles.MessageBundleDescriptor.Companion.newBundle
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.parsing.ParsingPlanInProgressDescriptor.newPlanInProgress
 import com.avail.descriptor.sets.SetDescriptor.set
@@ -103,8 +103,7 @@ object P_Alias : Primitive(2, CanInline, HasSideEffect)
 		{
 			val oldBundle = oldAtom.bundleOrCreate()
 			val method = oldBundle.bundleMethod()
-			newBundle = newBundle(
-				newAtom, method, MessageSplitter(newString))
+			newBundle = newBundle(newAtom, method, MessageSplitter(newString))
 			loader.recordEffect(
 				LoadingEffectToRunPrimitive(
 					SpecialMethodAtom.ALIAS.bundle, newString, oldAtom))

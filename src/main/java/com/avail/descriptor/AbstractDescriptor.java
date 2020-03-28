@@ -105,6 +105,7 @@ import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.json.JSONWriter;
 import com.avail.utility.visitor.AvailSubobjectVisitor;
+import kotlin.collections.AbstractMutableCollection;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
@@ -5786,8 +5787,7 @@ public abstract class AbstractDescriptor
 	abstract void o_UpdateForNewGrammaticalRestriction (
 		final AvailObject object,
 		final A_ParsingPlanInProgress planInProgress,
-		final Collection<Pair<A_BundleTree, A_ParsingPlanInProgress>>
-			treesToVisit);
+		final Deque<Pair<A_BundleTree, A_ParsingPlanInProgress>> treesToVisit);
 
 	/**
 	 * @param object

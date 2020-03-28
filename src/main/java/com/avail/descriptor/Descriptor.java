@@ -105,16 +105,12 @@ import com.avail.utility.json.JSONWriter;
 import com.avail.utility.visitor.AvailSubobjectVisitor;
 import com.avail.utility.visitor.BeImmutableSubobjectVisitor;
 import com.avail.utility.visitor.BeSharedSubobjectVisitor;
+import kotlin.collections.AbstractMutableCollection;
 
 import javax.annotation.Nullable;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Spliterator;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -3997,7 +3993,7 @@ extends AbstractDescriptor
 	protected void o_UpdateForNewGrammaticalRestriction (
 		final AvailObject object,
 		final A_ParsingPlanInProgress planInProgress,
-		final Collection<Pair<A_BundleTree, A_ParsingPlanInProgress>> treesToVisit)
+		final Deque<Pair<A_BundleTree, A_ParsingPlanInProgress>> treesToVisit)
 	{
 		throw unsupportedOperationException();
 	}

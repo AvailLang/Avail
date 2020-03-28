@@ -141,18 +141,18 @@ implements
 	A_Atom,
 	A_Bundle,
 	A_BundleTree,
-		A_Character,
+	A_Character,
 	A_Continuation,
 	A_Definition,
 	A_DefinitionParsingPlan,
-		A_Fiber,
+	A_Fiber,
 	A_Function,
 	A_GrammaticalRestriction,
 	A_Lexer,
 	A_Map,
 	A_MapBin,
 	A_Method,
-		A_Module,
+	A_Module,
 	A_Number,
 	A_ParsingPlanInProgress,
 	A_Phrase,
@@ -5115,8 +5115,7 @@ implements
 	@Override
 	public void updateForNewGrammaticalRestriction (
 		final A_ParsingPlanInProgress planInProgress,
-		final Collection<Pair<A_BundleTree, A_ParsingPlanInProgress>>
-			treesToVisit)
+		final Deque<Pair<A_BundleTree, A_ParsingPlanInProgress>> treesToVisit)
 	{
 		descriptor().o_UpdateForNewGrammaticalRestriction(
 			this, planInProgress, treesToVisit);

@@ -103,11 +103,13 @@ import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.json.JSONWriter;
 import com.avail.utility.visitor.AvailSubobjectVisitor;
+import kotlin.collections.AbstractMutableCollection;
 
 import javax.annotation.Nullable;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.Collection;
+import java.util.Deque;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Spliterator;
@@ -4059,8 +4061,7 @@ extends AbstractDescriptor
 	protected void o_UpdateForNewGrammaticalRestriction (
 		final AvailObject object,
 		final A_ParsingPlanInProgress planInProgress,
-		final Collection<Pair<A_BundleTree, A_ParsingPlanInProgress>>
-			treesToVisit)
+		final Deque<Pair<A_BundleTree, A_ParsingPlanInProgress>> treesToVisit)
 	{
 		o_Traversed(object).updateForNewGrammaticalRestriction(
 			planInProgress,

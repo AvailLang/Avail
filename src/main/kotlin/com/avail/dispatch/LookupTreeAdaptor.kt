@@ -54,7 +54,7 @@ import kotlin.streams.toList
  *   A memento to supply arbitrary additional information.
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-internal abstract class LookupTreeAdaptor<
+abstract class LookupTreeAdaptor<
 	Element : A_BasicObject,
 	Result : A_BasicObject,
 	Memento>
