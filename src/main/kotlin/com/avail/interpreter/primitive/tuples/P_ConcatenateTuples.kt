@@ -159,11 +159,11 @@ object P_ConcatenateTuples : Primitive(1, CannotFail, CanFold, CanInline)
 			val constant = restriction.constantOrNull
 			if (constant !== null) {
 				currentTuple =
-					if (currentTuple == null) constant
+					if (currentTuple === null) constant
 					else currentTuple.concatenateWith(constant, false)
 			}
 			else {
-				if (currentTuple != null) {
+				if (currentTuple !== null) {
 					adjustedSources.add(
 						translator.generator.boxedConstant(currentTuple))
 					currentTuple = null
@@ -171,7 +171,7 @@ object P_ConcatenateTuples : Primitive(1, CannotFail, CanFold, CanInline)
 				adjustedSources.add(source)
 			}
 		}
-		if (currentTuple != null)
+		if (currentTuple !== null)
 		{
 			// Deal with the final one.
 			adjustedSources.add(

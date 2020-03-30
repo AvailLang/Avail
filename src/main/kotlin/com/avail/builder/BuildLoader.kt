@@ -380,7 +380,7 @@ internal class BuildLoader constructor(
 
 			when
 			{
-				function != null ->
+				function !== null ->
 				{
 					val fiber = newLoaderFiber(
 						function.kind().returnType(),

@@ -194,7 +194,7 @@ extends A_BasicObject
 	 *
 	 * @param definition The definition to add.
 	 */
-	void moduleAddDefinition (A_BasicObject definition);
+	void moduleAddDefinition (A_Definition definition);
 
 	/**
 	 * Add a grammatical restriction to this module.

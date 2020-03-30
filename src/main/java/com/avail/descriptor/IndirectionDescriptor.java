@@ -103,12 +103,10 @@ import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.json.JSONWriter;
 import com.avail.utility.visitor.AvailSubobjectVisitor;
-import kotlin.collections.AbstractMutableCollection;
 
 import javax.annotation.Nullable;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.util.Collection;
 import java.util.Deque;
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -437,10 +435,9 @@ extends AbstractDescriptor
 	@Override
 	protected void o_ModuleAddDefinition (
 		final AvailObject object,
-		final A_BasicObject definition)
+		final A_Definition definition)
 	{
-		o_Traversed(object).moduleAddDefinition(
-			definition);
+		o_Traversed(object).moduleAddDefinition(definition);
 	}
 
 	@Override
@@ -4830,9 +4827,9 @@ extends AbstractDescriptor
 	@Override
 	protected boolean o_EqualsListNodeType (
 		final AvailObject object,
-		final A_Type aListNodeType)
+		final A_Type listNodeType)
 	{
-		return o_Traversed(object).equalsListNodeType(aListNodeType);
+		return o_Traversed(object).equalsListNodeType(listNodeType);
 	}
 
 	@Override

@@ -33,7 +33,7 @@
 package com.avail.dispatch
 
 import com.avail.descriptor.A_BasicObject
-import com.avail.descriptor.AvailObject.error
+import com.avail.descriptor.AvailObject.Companion.error
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.types.A_Type
 import java.lang.String.format
@@ -74,7 +74,6 @@ internal constructor(private val finalResult: Result)
 		memento: AdaptorMemento): LookupTree<Element, Result>
 	{
 		error("Attempting to lookup past leaf of decision tree")
-		return this
 	}
 
 	override fun <AdaptorMemento> lookupStepByTypes(
@@ -83,7 +82,6 @@ internal constructor(private val finalResult: Result)
 		memento: AdaptorMemento): LookupTree<Element, Result>
 	{
 		error("Attempting to lookup past leaf of decision tree")
-		return this
 	}
 
 	override fun <AdaptorMemento> lookupStepByValues(
@@ -92,7 +90,6 @@ internal constructor(private val finalResult: Result)
 		memento: AdaptorMemento): LookupTree<Element, Result>
 	{
 		error("Attempting to lookup past leaf of decision tree")
-		return this
 	}
 
 	override fun <AdaptorMemento> lookupStepByValues(
@@ -101,7 +98,6 @@ internal constructor(private val finalResult: Result)
 		memento: AdaptorMemento): LookupTree<Element, Result>
 	{
 		error("Attempting to lookup past leaf of decision tree")
-		return this
 	}
 
 	override fun <AdaptorMemento> lookupStepByValue(
@@ -110,7 +106,6 @@ internal constructor(private val finalResult: Result)
 		memento: AdaptorMemento): LookupTree<Element, Result>
 	{
 		error("Attempting to lookup past leaf of decision tree")
-		return this
 	}
 
 	override fun toString(indent: Int): String

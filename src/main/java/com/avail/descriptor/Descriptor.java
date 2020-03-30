@@ -523,7 +523,7 @@ extends AbstractDescriptor
 	@Override
 	protected void o_ModuleAddDefinition (
 		final AvailObject object,
-		final A_BasicObject definition)
+		final A_Definition definition)
 	{
 		throw unsupportedOperationException();
 	}

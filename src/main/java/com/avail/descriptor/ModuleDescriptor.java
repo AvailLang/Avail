@@ -410,7 +410,7 @@ extends Descriptor
 	@Override @AvailMethod
 	protected void o_ModuleAddDefinition (
 		final AvailObject object,
-		final A_BasicObject definition)
+		final A_Definition definition)
 	{
 		synchronized (object)
 		{

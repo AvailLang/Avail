@@ -255,7 +255,7 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 		}
 		// We began with buffer misses, and we can figure out how many...
 		assert(firstMissingBufferStart == augmentedStart)
-		assert(buffers.all { it == null })
+		assert(buffers.all { it === null })
 		size = buffers.size * alignment
 		// Now start the asynchronous read.
 		val buffer = ByteBuffer.allocateDirect(size)

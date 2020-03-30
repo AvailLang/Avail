@@ -116,7 +116,7 @@ object P_AttemptJoinFiber : Primitive(
 				joinee.joiningFibers().setWithElementCanDestroy(
 					current, false))
 			false
-		} as Supplier<Boolean>)
+		})
 		return when {
 			succeed -> interpreter.primitiveSuccess(nil)
 			else -> current.lock( Supplier {

@@ -67,7 +67,6 @@ import java.util.function.Supplier
  * sub-interfaces define behavior that's applicable to tuples, sets, etc., and
  * AvailObject simply implements all of those interfaces.
  *
- *
  * The purpose for A_BasicObject and its sub-interfaces is to allow sincere
  * type annotations about the basic kinds of objects that support or may be
  * passed as arguments to various operations.  The VM implementor is free to
@@ -1139,7 +1138,7 @@ interface A_BasicObject : JSONFriendly {
 	 * @param field
 	 * @return
 	 */
-	fun fieldAt(field: A_Atom?): AvailObject
+	fun fieldAt(field: A_Atom): AvailObject
 
 	/**
 	 * Add or replace a field of an [object][ObjectDescriptor].

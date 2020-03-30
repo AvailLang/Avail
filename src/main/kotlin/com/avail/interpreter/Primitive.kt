@@ -537,7 +537,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		{
 			restriction = privateBlockTypeRestriction().makeShared()
 			cachedBlockTypeRestriction = restriction
-			val argsTupleType = restriction!!.argsTupleType()
+			val argsTupleType = restriction.argsTupleType()
 			val sizeRange = argsTupleType.sizeRange()
 			assert(restriction.isBottom
 			       || argCount == -1

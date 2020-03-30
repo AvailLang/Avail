@@ -282,14 +282,13 @@ extends A_BasicObject
 	/**
 	 * Record access of the specified {@linkplain VariableDescriptor variable}
 	 * by this {@linkplain FiberDescriptor fiber}.
-	 *
-	 * @param var
+	 *  @param variable
 	 *        A variable.
 	 * @param wasRead
 	 *        {@code true} if the variable was read, {@code false} otherwise.
 	 */
 	void recordVariableAccess (
-		final A_Variable var,
+		final A_Variable variable,
 		final boolean wasRead);
 
 	/**

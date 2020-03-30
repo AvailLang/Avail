@@ -33,7 +33,7 @@
 package com.avail.interpreter.levelOne
 
 import com.avail.descriptor.A_BasicObject
-import com.avail.descriptor.AvailObject.error
+import com.avail.descriptor.AvailObject.Companion.error
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder

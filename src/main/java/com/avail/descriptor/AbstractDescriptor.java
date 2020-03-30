@@ -1434,7 +1434,7 @@ public abstract class AbstractDescriptor
 	 */
 	abstract void o_ModuleAddDefinition (
 		AvailObject object,
-		A_BasicObject definition);
+		A_Definition definition);
 
 	/**
 	 * @param object

@@ -150,7 +150,9 @@ extends PhraseTypeDescriptor
 	 * and same tuple type of subexpressions.</p>
 	 */
 	@Override @AvailMethod
-	public boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	public boolean o_Equals (
+		final AvailObject object,
+		final A_BasicObject another)
 	{
 		assert object.phraseKindIsUnder(LIST_PHRASE);
 		return another.equalsListNodeType(object);

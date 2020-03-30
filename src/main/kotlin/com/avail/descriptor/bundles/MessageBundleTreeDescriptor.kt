@@ -39,8 +39,6 @@ import com.avail.compiler.ParsingOperation.Companion.decode
 import com.avail.compiler.splitter.MessageSplitter
 import com.avail.compiler.splitter.MessageSplitter.Companion.constantForIndex
 import com.avail.descriptor.*
-import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava
-import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava
 import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.methods.A_Definition
@@ -327,8 +325,8 @@ private constructor(mutability: Mutability) : Descriptor(
 		val bundleCount = allPlansInProgress.mapSize()
 		if (bundleCount <= 15) {
 			val strings: MutableMap<String, Int> = HashMap(bundleCount)
-			allPlansInProgress.forEach { bundle: A_Bundle?, value: A_Map ->
-				value.forEach { definition: A_Definition?, plansInProgress: A_Set ->
+			allPlansInProgress.forEach { _, value: A_Map ->
+				value.forEach { _, plansInProgress: A_Set ->
 					for (planInProgress in plansInProgress) {
 						val string = planInProgress.nameHighlightingPc()
 						if (strings.containsKey(string)) {
@@ -745,16 +743,19 @@ private constructor(mutability: Mutability) : Descriptor(
 		 * perform type filtering after parsing each leaf argument, and the phrase
 		 * type is the expected type of that latest argument.
 		 */
-		val parserTypeChecker = object : LookupTreeAdaptor<A_Tuple, A_BundleTree, A_BundleTree>() {
-			override fun extractSignature(pair: A_Tuple): A_Type {
-				// Extract the phrase type from the pair, and use it directly as the
-				// signature type for the tree.
-				return pair.tupleAt(1)
+		val parserTypeChecker =
+			object : LookupTreeAdaptor<A_Tuple, A_BundleTree, A_BundleTree>()
+		{
+			override fun extractSignature(element: A_Tuple): A_Type {
+				// Extract the phrase type from the pair, and use it directly as
+				// the signature type for the tree.
+				return element.tupleAt(1)
 			}
 
 			override fun constructResult(
 				elements: List<A_Tuple>,
-				latestBackwardJump: A_BundleTree): A_BundleTree {
+				latestBackwardJump: A_BundleTree
+			): A_BundleTree {
 				val newBundleTree: A_BundleTree = newBundleTree(latestBackwardJump)
 				for (pair in elements) {
 					val planInProgress: A_ParsingPlanInProgress = pair.tupleAt(2)
