@@ -34,17 +34,12 @@ package com.avail.descriptor.representation
 import com.avail.descriptor.AvailObject
 
 /**
- * A helper class used by Eclipse to show Logical Structures in the debugger.
- * In particular, it shows long-valued slots in [AvailObject]s.
+ * A helper class used by IntelliJ to show Logical Structures in the debugger.
+ * In particular, it shows long-valued slots within [AvailObject]s.
+ *
+ * @property longValue
+ *   The `long` value to present.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-class AvailIntegerValueHelper
-/** Construct a new `AvailIntegerValueHelper`.
- *
- * @param longValue The `long` value.
- */(
-	/**
-	 * The `long` value to present.
-	 */
-	val longValue: Long)
+class AvailIntegerValueHelper(val longValue: Long)

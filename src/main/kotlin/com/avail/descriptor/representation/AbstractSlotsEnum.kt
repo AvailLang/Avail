@@ -32,6 +32,7 @@
 package com.avail.descriptor.representation
 
 import com.avail.descriptor.AvailObject
+import com.avail.descriptor.Descriptor
 
 /**
  * The `AbstractSlotsEnum` is an interface that helps ensure that object
@@ -40,8 +41,8 @@ import com.avail.descriptor.AvailObject
  * operate on enumerations defined as inner classes within the [Descriptor]
  * class for which the slot layout is specified.
  *
- * There are two sub-interfaces, [ObjectSlotsEnum] and [IntegerSlotsEnum], and
- * the representation access methods defined in [AvailObjectRepresentation]
+ * There are two sub-interfaces, [ObjectSlotsEnum] and [IntegerSlotsEnum]. The
+ * representation access methods defined in [AvailObjectRepresentation]
  * typically restrict the passed enumerations to be of the appropriate kind.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
@@ -49,7 +50,7 @@ import com.avail.descriptor.AvailObject
 interface AbstractSlotsEnum {
 	/**
 	 * In Java it was possible to define this interface in such a way that the
-	 * `name()` method was abstract and implemented by each specific [Enum], but
+	 * `name` method was abstract and implemented by each specific [Enum], but
 	 * Kotlin breaks this mechanism.  BUT – we're able to cast `this` to [Enum]
 	 * to get to that field.  I believe this code gets copied down into each
 	 * specific Enum subclass, so the dynamic type check for the cast is

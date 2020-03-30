@@ -45,10 +45,18 @@ import java.util.*
 import kotlin.math.min
 
 /**
- * `AvailObjectRepresentation` is the representation used for all Avail
- * objects.
+ * `AvailObjectRepresentation` is the representation used for all Avail objects.
+ *
+ * @constructor
+ * @param initialDescriptor
+ *   The initial descriptor for the new object.
+ * @param objectSlotsSize
+ *   The total number of [AvailObject] slots to allocate.
+ * @param integerSlotsCount
+ *   The total number of [Long] slots to allocate.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 abstract class AvailObjectRepresentation protected constructor(
 	initialDescriptor: AbstractDescriptor,
@@ -61,7 +69,7 @@ abstract class AvailObjectRepresentation protected constructor(
 		else -> arrayOfNulls(objectSlotsSize)
 	}
 
-	/** A `long` array encoding all of my digital state.  */
+	/** A `LongArray` encoding all of my digital state.  */
 	private var longSlots: LongArray = when (integerSlotsCount) {
 		0 -> emptyIntegerSlots
 		else -> LongArray(integerSlotsCount)
@@ -72,28 +80,26 @@ abstract class AvailObjectRepresentation protected constructor(
 	 * [L1InstructionDecoder].  The receiver's descriptor must be a
 	 * [CompiledCodeDescriptor].
 	 *
-	 * @param instructionDecoder The [L1InstructionDecoder] to populate.
+	 * @param instructionDecoder
+	 *   The [L1InstructionDecoder] to populate.
 	 */
-	open fun setUpInstructionDecoder(
-		instructionDecoder: L1InstructionDecoder) {
+	open fun setUpInstructionDecoder(instructionDecoder: L1InstructionDecoder) {
 		// assert descriptor instanceof CompiledCodeDescriptor;
 		instructionDecoder.encodedInstructionsArray = longSlots
 	}
 
 	/**
-	 * Turn the receiver into an [indirection][IndirectionDescriptor]
-	 * to the specified [object][AvailObject].
+	 * Turn the receiver into an [indirection][IndirectionDescriptor] to the
+	 * specified [object][AvailObject].
 	 *
+	 * **WARNING:** This alters the receiver's slots and descriptor.
 	 *
-	 * **WARNING:** This alters the receiver's slots and
-	 * descriptor.
+	 * **WARNING:** A [shared][Mutability.SHARED] object may not become an
+	 * indirection. The caller must ensure that this method is not sent to a
+	 * shared object.
 	 *
-	 *
-	 * **WARNING:** A [shared][Mutability.SHARED]
-	 * object may not become an indirection. The caller must ensure that this
-	 * method is not sent to a shared object.
-	 *
-	 * @param anotherObject An object.
+	 * @param anotherObject
+	 *   The object that the receiver should become an indirection to.
 	 */
 	override fun becomeIndirectionTo(anotherObject: A_BasicObject) {
 		assert(!currentDescriptor.isShared)
@@ -104,16 +110,14 @@ abstract class AvailObjectRepresentation protected constructor(
 		if (traversed.sameAddressAs(anotherTraversed)) {
 			return
 		}
-		val oldSlotsSize = objectSlotsCount()
-		if (oldSlotsSize == 0) {
+		if (objectSlotsCount() == 0) {
 			// Java-specific mechanism for now.  Requires more complex solution
 			// when Avail starts using raw memory again.
 			objectSlots = arrayOfNulls(1)
 			objectSlots[0] = NilDescriptor.nil
 		}
 		if (currentDescriptor.isMutable) {
-			scanSubobjects(
-				MarkUnreachableSubobjectVisitor(anotherObject))
+			scanSubobjects(MarkUnreachableSubobjectVisitor(anotherObject))
 			currentDescriptor = IndirectionDescriptor.mutable(
 				anotherTraversed.currentDescriptor.typeTag)
 			objectSlots[0] = anotherTraversed
@@ -130,10 +134,11 @@ abstract class AvailObjectRepresentation protected constructor(
 	/**
 	 * Verify that the object slot is an appropriate way to access this object
 	 * (i.e., that the slot is defined in an enumeration within the class of
-	 * this object's descriptor).  It fails (an assertion) if it's
-	 * inappropriate, and if [.shouldCheckSlots] is enabled.
+	 * this object's descriptor).  It fails if it's inappropriate, and if
+	 * [shouldCheckSlots] is enabled.
 	 *
-	 * @param field The object slot to validate for the receiver.
+	 * @param field
+	 *   The object slot to validate for the receiver.
 	 */
 	private fun checkSlot(field: ObjectSlotsEnum) {
 		if (shouldCheckSlots) {
@@ -166,10 +171,11 @@ abstract class AvailObjectRepresentation protected constructor(
 	/**
 	 * Verify that the integer slot is an appropriate way to access this object
 	 * (i.e., that the slot is defined in an enumeration within the class of
-	 * this object's descriptor).  It fails (an assertion) if it's
-	 * inappropriate, and if [.shouldCheckSlots] is enabled.
+	 * this object's descriptor).  It fails if it's inappropriate, and if
+	 * [shouldCheckSlots] is enabled.
 	 *
-	 * @param field The integer slot to validate for the receiver.
+	 * @param field
+	 *   The integer slot to validate for the receiver.
 	 */
 	private fun checkSlot(field: IntegerSlotsEnum) {
 		if (shouldCheckSlots) {
@@ -200,13 +206,13 @@ abstract class AvailObjectRepresentation protected constructor(
 	}
 
 	/**
-	 * Extract the value of the [BitField] of the receiver.  Note that
-	 * it's an `int` even though the underlying longSlots array contains
-	 * `long`s.
+	 * Extract the value of the [BitField] of the receiver.  Note that it's an
+	 * `int` even though the underlying longSlots array contains `long`s.
 	 *
 	 * @param bitField
-	 * A `BitField` that defines the object's layout.
-	 * @return An `int` extracted from this object.
+	 *   A `BitField` that defines the object's layout.
+	 * @return
+	 *   An `int` extracted from this object.
 	 */
 	fun slot(bitField: BitField): Int {
 		checkSlot(bitField.integerSlot)
@@ -217,13 +223,12 @@ abstract class AvailObjectRepresentation protected constructor(
 	/**
 	 * Replace the value of the [BitField] within this object.
 	 *
-	 * @param bitField A `BitField` that defines the object's layout.
-	 * @param anInteger An `int` to store in the indicated bit field.
+	 * @param bitField
+	 *   A `BitField` that defines the object's layout.
+	 * @param anInteger
+	 *   An `int` to store in the indicated bit field.
 	 */
-	fun setSlot(
-		bitField: BitField,
-		anInteger: Int
-	) {
+	fun setSlot(bitField: BitField, anInteger: Int) {
 		checkWriteForField(bitField.integerSlot)
 		checkSlot(bitField.integerSlot)
 		var value = longSlots[bitField.integerSlotIndex]
@@ -235,14 +240,14 @@ abstract class AvailObjectRepresentation protected constructor(
 	 * Extract the byte at the given one-based byte subscript within the
 	 * specified field. Always use little-endian encoding.
 	 *
-	 * @param field An enumeration value representing an integer field.
-	 * @param byteSubscript Which byte to extract.
-	 * @return The unsigned byte as a short.
+	 * @param field
+	 *   An enumeration value representing an integer field.
+	 * @param byteSubscript
+	 *   Which byte to extract.
+	 * @return
+	 *   The unsigned byte as a short.
 	 */
-	fun byteSlot(
-		field: IntegerSlotsEnum,
-		byteSubscript: Int
-	): Short {
+	fun byteSlot(field: IntegerSlotsEnum, byteSubscript: Int): Short {
 		checkSlot(field)
 		val zeroBasedSubscript = byteSubscript - 1
 		val wordIndex = field.fieldOrdinal() + (zeroBasedSubscript shr 3)
@@ -255,9 +260,12 @@ abstract class AvailObjectRepresentation protected constructor(
 	 * Replace the byte at the given one-based byte subscript within the
 	 * specified field. Always use little endian encoding.
 	 *
-	 * @param field An enumeration value representing an integer field.
-	 * @param byteSubscript Which byte to extract.
-	 * @param aByte The unsigned byte to write, passed as a short.
+	 * @param field
+	 *   An enumeration value representing an integer field.
+	 * @param byteSubscript
+	 *   Which byte to extract.
+	 * @param aByte
+	 *   The unsigned byte to write, passed as a short.
 	 */
 	fun setByteSlot(
 		field: IntegerSlotsEnum,
@@ -280,15 +288,14 @@ abstract class AvailObjectRepresentation protected constructor(
 	 * Extract a (16-bit unsigned) `short` at the given short-index of the
 	 * receiver.
 	 *
-	 * @param field The enumeration value that identifies the base field.
-	 * @param shortIndex The one-base index in shorts.
-	 * @return The unsigned `short` (as an `int` found at the given
-	 * short-index.
+	 * @param field
+	 *   The enumeration value that identifies the base field.
+	 * @param shortIndex
+	 *   The one-base index in shorts.
+	 * @return
+	 *   The unsigned `short` (as an `int` found at the given short-index.
 	 */
-	fun shortSlot(
-		field: IntegerSlotsEnum,
-		shortIndex: Int
-	): Int {
+	fun shortSlot(field: IntegerSlotsEnum, shortIndex: Int): Int {
 		checkSlot(field)
 		val word = longSlots[field.fieldOrdinal() + (shortIndex - 1 ushr 2)]
 		return (word ushr (shortIndex - 1 and 3 shl 4) and 0xFFFF).toInt()
@@ -298,10 +305,13 @@ abstract class AvailObjectRepresentation protected constructor(
 	 * Store the (16-bit unsigned) `short` at the given short-index of the
 	 * receiver.
 	 *
-	 * @param field The enumeration value that identifies the base field.
-	 * @param shortIndex The one-based index in shorts.
-	 * @param aShort The `short` to store at the given short-index, passed
-	 * as an `int` for safety.
+	 * @param field
+	 *   The enumeration value that identifies the base field.
+	 * @param shortIndex
+	 *   The one-based index in shorts.
+	 * @param aShort
+	 *   The `short` to store at the given short-index, passed as an `int` for
+	 *   safety.
 	 */
 	fun setShortSlot(
 		field: IntegerSlotsEnum,
@@ -319,12 +329,14 @@ abstract class AvailObjectRepresentation protected constructor(
 	}
 
 	/**
-	 * Extract a (32-bit signed) `int` at the given int-index of the
-	 * receiver.
+	 * Extract a (32-bit signed) `int` at the given int-index of the receiver.
 	 *
-	 * @param field The enumeration value that identifies the base field.
-	 * @param intIndex The one-base index in ints.
-	 * @return The signed `int` found at the given int-index.
+	 * @param field
+	 *   The enumeration value that identifies the base field.
+	 * @param intIndex
+	 *   The one-base index in ints.
+	 * @return
+	 *   The signed `int` found at the given int-index.
 	 */
 	fun intSlot(
 		field: IntegerSlotsEnum,
@@ -336,12 +348,14 @@ abstract class AvailObjectRepresentation protected constructor(
 	}
 
 	/**
-	 * Store the (32-bit signed) `int` at the given int-index of the
-	 * receiver.
+	 * Store the (32-bit signed) `int` at the given int-index of the receiver.
 	 *
-	 * @param field The enumeration value that identifies the base field.
-	 * @param intIndex The one-based index in ints.
-	 * @param anInt The `int` to store at the given int-index.
+	 * @param field
+	 *   The enumeration value that identifies the base field.
+	 * @param intIndex
+	 *   The one-based index in ints.
+	 * @param anInt
+	 *   The `int` to store at the given int-index.
 	 */
 	fun setIntSlot(
 		field: IntegerSlotsEnum,
@@ -358,16 +372,19 @@ abstract class AvailObjectRepresentation protected constructor(
 		longSlots[wordIndex] = word
 	}
 
-	override fun integerSlotsCount(): Int {
-		return longSlots.size
-	}
+	/**
+	 * Answer the number of [Long] slots.
+	 */
+	override fun integerSlotsCount() = longSlots.size
 
 	/**
 	 * Extract the (signed 64-bit) integer for the given field `enum`
 	 * value.
 	 *
-	 * @param field An enumeration value that defines the field ordering.
-	 * @return A `long` extracted from this object.
+	 * @param field
+	 *   An enumeration value that defines the field ordering.
+	 * @return
+	 *   A [Long] extracted from this object.
 	 */
 	fun slot(field: IntegerSlotsEnum): Long {
 		checkSlot(field)
@@ -378,8 +395,10 @@ abstract class AvailObjectRepresentation protected constructor(
 	 * Store the (signed 64-bit) integer in the eight bytes starting at the
 	 * given field `enum` value.
 	 *
-	 * @param field An enumeration value that defines the field ordering.
-	 * @param anInteger A `long` to store in the indicated slot.
+	 * @param field
+	 *   An enumeration value that defines the field ordering.
+	 * @param anInteger
+	 *   A [Long] to store in the indicated slot.
 	 */
 	fun setSlot(
 		field: IntegerSlotsEnum,
@@ -393,9 +412,12 @@ abstract class AvailObjectRepresentation protected constructor(
 	/**
 	 * Extract the (signed 64-bit) integer at the given field enum value.
 	 *
-	 * @param field An enumeration value that defines the field ordering.
-	 * @param subscript The positive one-based subscript to apply.
-	 * @return A `long` extracted from this object.
+	 * @param field
+	 *   An enumeration value that defines the field ordering.
+	 * @param subscript
+	 *   The positive one-based subscript to apply.
+	 * @return
+	 *   A [Long] extracted from this object.
 	 */
 	fun slot(
 		field: IntegerSlotsEnum,
@@ -409,9 +431,12 @@ abstract class AvailObjectRepresentation protected constructor(
 	 * Store the (signed 64-bit) integer in the eight bytes starting at the
 	 * given field `enum` value.
 	 *
-	 * @param field An enumeration value that defines the field ordering.
-	 * @param subscript The positive one-based subscript to apply.
-	 * @param anInteger A `long` to store in the indicated slot.
+	 * @param field
+	 *   An enumeration value that defines the field ordering.
+	 * @param subscript
+	 *   The positive one-based subscript to apply.
+	 * @param anInteger
+	 *   A [Long] to store in the indicated slot.
 	 */
 	fun setSlot(
 		field: IntegerSlotsEnum,
@@ -427,8 +452,10 @@ abstract class AvailObjectRepresentation protected constructor(
 	 * Extract the (signed 64-bit) integer for the given field `enum`
 	 * value, using volatile-read semantics if the receiver is shared.
 	 *
-	 * @param field An enumeration value that defines the field ordering.
-	 * @return A `long` extracted from this object.
+	 * @param field
+	 *   An enumeration value that defines the field ordering.
+	 * @return
+	 *   A [Long] extracted from this object.
 	 */
 	fun mutableSlot(field: IntegerSlotsEnum): Long {
 		checkSlot(field)
@@ -441,10 +468,13 @@ abstract class AvailObjectRepresentation protected constructor(
 
 	/**
 	 * Store the (signed 64-bit) integer in the eight bytes starting at the
-	 * given field `enum` value. If the receiver is [ ][Mutability.SHARED], then acquire its monitor.
+	 * given field `enum` value. If the receiver is [Mutability.SHARED], then
+	 * acquire its monitor.
 	 *
-	 * @param field An enumeration value that defines the field ordering.
-	 * @param anInteger A `long` to store in the indicated slot.
+	 * @param field
+	 *   An enumeration value that defines the field ordering.
+	 * @param anInteger
+	 *   A [Long] to store in the indicated slot.
 	 */
 	fun setMutableSlot(
 		field: IntegerSlotsEnum,
@@ -461,12 +491,13 @@ abstract class AvailObjectRepresentation protected constructor(
 	}
 
 	/**
-	 * Extract an integer (at most 32 bits) from the given [BitField].
-	 * If the receiver is [shared][Mutability.SHARED], then
-	 * acquire its monitor.
+	 * Extract an integer (at most 32 bits) from the given [BitField]. If the
+	 * receiver is [shared][Mutability.SHARED], then acquire its monitor.
 	 *
-	 * @param bitField A [BitField].
-	 * @return An `int` extracted from this object.
+	 * @param bitField
+	 *   A [BitField] for accessing the object.
+	 * @return
+	 *   An [Int] extracted from this object.
 	 */
 	fun mutableSlot(bitField: BitField): Int {
 		val fieldValue = mutableSlot(bitField.integerSlot)
@@ -474,12 +505,15 @@ abstract class AvailObjectRepresentation protected constructor(
 	}
 
 	/**
-	 * Store the (signed 32-bit) integer into the specified [BitField].
-	 * If the receiver is [shared][Mutability.SHARED], then acquire
-	 * its monitor.
+	 * Store the signed 32-bit [Int] into the specified [BitField], trimming
+	 * upper bits beyond the `BitField`'s size. If the receiver is
+	 * [shared][Mutability.SHARED], then use [VolatileSlotHelper.compareAndSet]
+	 * to ensure only the intended bits are affected.
 	 *
-	 * @param bitField A [BitField].
-	 * @param anInteger An `int` to store in the indicated slot.
+	 * @param bitField
+	 *   A [BitField].
+	 * @param anInteger
+	 *   An [Int] to store in the indicated slot.
 	 */
 	fun setMutableSlot(
 		bitField: BitField,
@@ -488,11 +522,10 @@ abstract class AvailObjectRepresentation protected constructor(
 		checkWriteForField(bitField.integerSlot)
 		checkSlot(bitField.integerSlot)
 		if (currentDescriptor.isShared) {
-			var oldFieldValue: Long
-			var newFieldValue: Long
 			do {
-				oldFieldValue = mutableSlot(bitField.integerSlot)
-				newFieldValue = bitField.replaceBits(oldFieldValue, anInteger)
+				val oldFieldValue = mutableSlot(bitField.integerSlot)
+				val newFieldValue =
+					bitField.replaceBits(oldFieldValue, anInteger)
 			} while (!VolatileSlotHelper.compareAndSet(
 					longSlots,
 					bitField.integerSlotIndex,
@@ -507,33 +540,39 @@ abstract class AvailObjectRepresentation protected constructor(
 
 	/**
 	 * Extract the (signed 64-bit) integer at the given field enum value. If the
-	 * receiver is [shared][Mutability.SHARED], then acquire its
-	 * monitor.
+	 * receiver is [shared][Mutability.SHARED], then use
+	 * [VolatileSlotHelper.volatileRead] to acquire the value.
 	 *
-	 * @param field An enumeration value that defines the field ordering.
-	 * @param subscript The positive one-based subscript to apply.
-	 * @return A `long` extracted from this object.
+	 * @param field
+	 *   An enumeration value that defines the field ordering.
+	 * @param subscript
+	 *   The positive one-based subscript to apply.
+	 * @return
+	 *   A [Long] extracted from this object.
 	 */
 	fun mutableSlot(
 		field: IntegerSlotsEnum,
 		subscript: Int
 	): Long {
 		checkSlot(field)
-		return if (currentDescriptor.isShared) {
-			VolatileSlotHelper.volatileRead(
+		return when {
+			currentDescriptor.isShared -> VolatileSlotHelper.volatileRead(
 				longSlots, field.fieldOrdinal() + subscript - 1)
-		} else {
-			longSlots[field.fieldOrdinal() + subscript - 1]
+			else -> longSlots[field.fieldOrdinal() + subscript - 1]
 		}
 	}
 
 	/**
 	 * Store the (signed 64-bit) integer in the eight bytes starting at the
-	 * given field `enum` value. If the receiver is [ ][Mutability.SHARED], then acquire its monitor.
+	 * given field `enum` value. If the receiver is [shared][Mutability.SHARED],
+	 * then use [VolatileSlotHelper.volatileWrite] to write the value.
 	 *
-	 * @param field An enumeration value that defines the field ordering.
-	 * @param subscript The positive one-based subscript to apply.
-	 * @param anInteger A `long` to store in the indicated slot.
+	 * @param field
+	 *   An enumeration value that defines the field ordering.
+	 * @param subscript
+	 *   The positive one-based subscript to apply.
+	 * @param anInteger
+	 *   A [Long] to store in the indicated slot.
 	 */
 	fun setMutableSlot(
 		field: IntegerSlotsEnum,
@@ -542,24 +581,26 @@ abstract class AvailObjectRepresentation protected constructor(
 	) {
 		checkWriteForField(field)
 		checkSlot(field)
-		if (currentDescriptor.isShared) {
-			VolatileSlotHelper.volatileWrite(
-				longSlots, field.fieldOrdinal() + subscript - 1, anInteger)
-		} else {
-			longSlots[field.fieldOrdinal() + subscript - 1] = anInteger
+		when {
+			currentDescriptor.isShared ->
+				VolatileSlotHelper.volatileWrite(
+					longSlots, field.fieldOrdinal() + subscript - 1, anInteger)
+			else -> longSlots[field.fieldOrdinal() + subscript - 1] = anInteger
 		}
 	}
 
-	override fun objectSlotsCount(): Int {
-		return objectSlots.size
-	}
+	/**
+	 * Answer the number of [AvailObject] slots.
+	 */
+	override fun objectSlotsCount() = objectSlots.size
 
 	/**
-	 * Extract the [object][AvailObject] at the specified slot of the
-	 * receiver.
+	 * Extract the [AvailObject] from the specified object slot of the receiver.
 	 *
-	 * @param field An enumeration value that defines the field ordering.
-	 * @return The object found at the specified slot in the receiver.
+	 * @param field
+	 *   An enumeration value that defines the field ordering.
+	 * @return
+	 *   The object found at the specified slot in the receiver.
 	 */
 	fun slot(
 		field: ObjectSlotsEnum
@@ -569,11 +610,12 @@ abstract class AvailObjectRepresentation protected constructor(
 	}
 
 	/**
-	 * Store the [object][AvailObject] in the specified slot of the
-	 * receiver.
+	 * Store the [A_BasicObject] in the specified object slot of the receiver.
 	 *
-	 * @param field An enumeration value that defines the field ordering.
-	 * @param anAvailObject The object to store at the specified slot.
+	 * @param field
+	 *   An enumeration value that defines the field ordering.
+	 * @param anAvailObject
+	 *   The object to store at the specified slot.
 	 */
 	fun setSlot(
 		field: ObjectSlotsEnum,
@@ -589,29 +631,27 @@ abstract class AvailObjectRepresentation protected constructor(
 	}
 
 	/**
-	 * Store the specified [continuation][ContinuationDescriptor] in
-	 * the receiver, which must be a [fiber][FiberDescriptor].  This
-	 * is the only circumstance in all of Avail in which a field of a
-	 * (potentially) [shared][Mutability.SHARED] object may hold a
-	 * non-shared object.
+	 * Store the specified [continuation][ContinuationDescriptor] in the
+	 * receiver, which must be a [fiber][FiberDescriptor].  This is the only
+	 * circumstance in all of Avail in which a field of a (potentially)
+	 * [shared][Mutability.SHARED] object may hold a non-shared object.
 	 *
+	 * When we have our own memory manager with thread-specific arenas for the
+	 * unshared heap, those arenas will be associated with the fiber that was
+	 * running during their allocation.  When the fiber exits, if the fiber was
+	 * shared, the fiber's result will be copied out to shared space prior to
+	 * deletion of its arenas.  But prior to that time, the shared fiber guards
+	 * its unshared continuation from prying eyes.
 	 *
-	 * When we have our own memory manager with thread-specific arenas for
-	 * the unshared heap, those arenas will be associated with the fiber that
-	 * was running during their allocation.  When the fiber exits, if the fiber
-	 * was shared, the fiber's result will be copied out to shared space prior
-	 * to deletion of its arenas.  But prior to that time, the shared fiber
-	 * guards its unshared continuation from prying eyes.
-	 *
-	 * @param field An enumeration value that defines the field ordering.
-	 * @param aContinuation The object to store at the specified slot.
+	 * @param field
+	 *   An enumeration value that defines the field ordering.
+	 * @param aContinuation
+	 *   The object to store at the specified slot.
 	 */
 	fun setContinuationSlotOfFiber(
 		field: ObjectSlotsEnum,
 		aContinuation: A_Continuation
 	) {
-		// If the receiver is shared, then the new value must become shared
-		// before it can be stored.
 		assert(field === FiberDescriptor.ObjectSlots.CONTINUATION)
 		checkSlot(field)
 		checkWriteForField(field)
@@ -619,12 +659,14 @@ abstract class AvailObjectRepresentation protected constructor(
 	}
 
 	/**
-	 * Extract the [object][AvailObject] at the specified slot of the
-	 * receiver.
+	 * Extract the [AvailObject] at the specified slot of the receiver.
 	 *
-	 * @param field An enumeration value that defines the field ordering.
-	 * @param subscript The positive one-based subscript to apply.
-	 * @return The object found at the specified slot in the receiver.
+	 * @param field
+	 *   An enumeration value that defines the field ordering.
+	 * @param subscript
+	 *   The positive one-based subscript to apply.
+	 * @return
+	 *   The object found at the specified slot in the receiver.
 	 */
 	fun slot(
 		field: ObjectSlotsEnum,
@@ -635,12 +677,14 @@ abstract class AvailObjectRepresentation protected constructor(
 	}
 
 	/**
-	 * Store the [object][AvailObject] in the specified slot of the
-	 * receiver.
+	 * Store the [AvailObject] in the specified slot of the receiver.
 	 *
-	 * @param field An enumeration value that defines the field ordering.
-	 * @param subscript The positive one-based subscript to apply.
-	 * @param anAvailObject The object to store at the specified slot.
+	 * @param field
+	 *   An enumeration value that defines the field ordering.
+	 * @param subscript
+	 *   The positive one-based subscript to apply.
+	 * @param anAvailObject
+	 *   The object to store at the specified slot.
 	 */
 	fun setSlot(
 		field: ObjectSlotsEnum,
@@ -658,21 +702,22 @@ abstract class AvailObjectRepresentation protected constructor(
 	}
 
 	/**
-	 * Write elements from the given [List] into consecutively numbered
-	 * object slots.
+	 * Write elements from the given [List] into consecutively numbered object
+	 * slots. If the receiver is [Mutability.SHARED], then the new value must
+	 * also become shared (by the client) before it can be stored.
 	 *
 	 * @param field
-	 * The repeated object slot into which to write elements.
+	 *   The repeated object slot into which to write elements.
 	 * @param startSubscript
-	 * The positive one-based subscript at which to start writing
-	 * elements from the [List].
+	 *   The positive one-based subscript at which to start writing elements
+	 *   from the [List].
 	 * @param sourceList
-	 * The [List] of objects to write into the slots.
+	 *   The [List] of objects to write into the slots.
 	 * @param zeroBasedStartSourceSubscript
-	 * The zero-based subscript into the sourceList from which to start
-	 * reading.
+	 *   The zero-based subscript into the sourceList from which to start
+	 *   reading.
 	 * @param count
-	 * How many values to transfer.
+	 *   How many values to transfer.
 	 */
 	fun setSlotsFromList(
 		field: ObjectSlotsEnum,
@@ -685,8 +730,6 @@ abstract class AvailObjectRepresentation protected constructor(
 			|| sourceList.all { it.descriptor().isShared })
 		checkSlot(field)
 		checkWriteForField(field)
-		// If the receiver is shared, then the new value must become shared
-		// before it can be stored.
 		var slotIndex = field.fieldOrdinal() + startSubscript - 1
 		var listIndex = zeroBasedStartSourceSubscript
 		for (i in 0 until count) {
@@ -700,19 +743,19 @@ abstract class AvailObjectRepresentation protected constructor(
 	 * ensure the values are suitably immutable or shared.
 	 *
 	 * @param <T>
-	 * The type of array to copy from.
+	 *   The type of array to copy from.
 	 * @param targetField
-	 * The field of the receiver into which to write values.
+	 *   The field of the receiver into which to write values.
 	 * @param startTargetSubscript
-	 * The positive one-based subscript into the target field at which to
-	 * start writing.
+	 *   The positive one-based subscript into the target field at which to
+	 *   start writing.
 	 * @param sourceArray
-	 * The array supplying values for consecutive slots.
+	 *   The array supplying values for consecutive slots.
 	 * @param zeroBasedStartSourceSubscript
-	 * The zero-based subscript in the sourceArray from which to start
-	 * reading.
+	 *   The zero-based subscript in the sourceArray from which to start
+	 *   reading.
 	 * @param count
-	 * How many values to transfer.
+	 *   How many values to transfer.
 	</T> */
 	fun <T : A_BasicObject> setSlotsFromArray(
 		targetField: ObjectSlotsEnum,
@@ -721,7 +764,9 @@ abstract class AvailObjectRepresentation protected constructor(
 		zeroBasedStartSourceSubscript: Int,
 		count: Int
 	) {
-		assert(!currentDescriptor.isShared) { "Block-transfers into shared objects is not supported" }
+		assert(!currentDescriptor.isShared) {
+			"Block-transfers into shared objects is not supported"
+		}
 		checkSlot(targetField)
 		checkWriteForField(targetField)
 		System.arraycopy(
@@ -733,21 +778,21 @@ abstract class AvailObjectRepresentation protected constructor(
 	}
 
 	/**
-	 * Read elements from consecutive slots of a long array, writing them to
-	 * consecutive slots of the receiver.
+	 * Read elements from consecutive slots of a [LongArray], writing them to
+	 * consecutive `long` slots of the receiver.
 	 *
 	 * @param targetField
-	 * The integer field of the receiver into which to write longs.
+	 *   The integer field of the receiver into which to write longs.
 	 * @param startTargetSubscript
-	 * The positive one-based subscript into the target field at which to
-	 * start writing.
+	 *   The positive one-based subscript into the target field at which to
+	 *   start writing.
 	 * @param sourceArray
-	 * The long[] array supplying longs for consecutive slots.
+	 *   The long[] array supplying longs for consecutive slots.
 	 * @param zeroBasedStartSourceSubscript
-	 * The zero-based subscript in the sourceArray from which to start
-	 * reading.
+	 *   The zero-based subscript in the sourceArray from which to start
+	 *   reading.
 	 * @param count
-	 * How many longs to transfer.
+	 *   How many longs to transfer.
 	 */
 	fun setSlotsFromArray(
 		targetField: IntegerSlotsEnum,
@@ -774,17 +819,16 @@ abstract class AvailObjectRepresentation protected constructor(
 	 * a long array.
 	 *
 	 * @param sourceField
-	 * The integer field of the receiver from which to read longs.
+	 *   The integer field of the receiver from which to read longs.
 	 * @param startSourceSubscript
-	 * The positive one-based subscript in the target field at which to
-	 * start reading.
+	 *   The positive one-based subscript in the target field at which to start
+	 *   reading.
 	 * @param targetArray
-	 * The long[] array into which to write longs.
+	 *   The long[] array into which to write longs.
 	 * @param zeroBasedStartTargetSubscript
-	 * The zero-based subscript in the sourceArray at which to start
-	 * writing.
+	 *   The zero-based subscript in the sourceArray at which to start writing.
 	 * @param count
-	 * How many longs to transfer.
+	 *   How many longs to transfer.
 	 */
 	fun slotsIntoArray(
 		sourceField: IntegerSlotsEnum,
@@ -808,17 +852,17 @@ abstract class AvailObjectRepresentation protected constructor(
 	 * ensure the values are suitably immutable or shared.
 	 *
 	 * @param targetField
-	 * The field of the receiver into which to write values.
+	 *   The field of the receiver into which to write values.
 	 * @param startTargetSubscript
-	 * The positive one-based subscript into the target field at which to
-	 * start writing.
+	 *   The positive one-based subscript into the target field at which to
+	 *   start writing.
 	 * @param sourceTuple
-	 * The tuple supplying values in consecutive slots.
+	 *   The tuple supplying values in consecutive slots.
 	 * @param startSourceSubscript
-	 * The positive one-based subscript into the sourceTuple from which
-	 * to start reading.
+	 *   The positive one-based subscript into the sourceTuple from which to
+	 *   start reading.
 	 * @param count
-	 * How many values to transfer.
+	 *   How many values to transfer.
 	 */
 	fun setSlotsFromTuple(
 		targetField: ObjectSlotsEnum,
@@ -845,19 +889,19 @@ abstract class AvailObjectRepresentation protected constructor(
 	 * ensure the values are suitably immutable or shared.
 	 *
 	 * @param targetField
-	 * The field of the receiver into which to write values.
+	 *   The field of the receiver into which to write values.
 	 * @param startTargetSubscript
-	 * The positive one-based subscript into the target field at which to
-	 * start writing.
+	 *   The positive one-based subscript into the target field at which to
+	 *   start writing.
 	 * @param sourceObject
-	 * The object supplying values in consecutive slots.
+	 *   The object supplying values in consecutive slots.
 	 * @param sourceField
-	 * The repeating field of the sourceObject.
+	 *   The repeating field of the sourceObject.
 	 * @param startSourceSubscript
-	 * The positive one-based subscript into the sourceObject from which
-	 * to start reading.
+	 *   The positive one-based subscript into the sourceObject from which to
+	 *   start reading.
 	 * @param count
-	 * How many values to transfer.
+	 *   How many values to transfer.
 	 */
 	fun setSlotsFromObjectSlots(
 		targetField: ObjectSlotsEnum,
@@ -888,19 +932,19 @@ abstract class AvailObjectRepresentation protected constructor(
 	 * responsibility to ensure the values are suitably immutable or shared.
 	 *
 	 * @param targetField
-	 * The field of the receiver into which to write longs.
+	 *   The field of the receiver into which to write longs.
 	 * @param startTargetSubscript
-	 * The positive one-based subscript into the target field at which to
-	 * start writing.
+	 *   The positive one-based subscript into the target field at which to
+	 *   start writing.
 	 * @param sourceObject
-	 * The object supplying values in consecutive long slots.
+	 *   The object supplying values in consecutive long slots.
 	 * @param sourceField
-	 * The repeating integer field of the sourceObject.
+	 *   The repeating integer field of the sourceObject.
 	 * @param startSourceSubscript
-	 * The positive one-based subscript into the sourceObject from which
-	 * to start reading longs.
+	 *   The positive one-based subscript into the sourceObject from which to
+	 *   start reading longs.
 	 * @param count
-	 * How many longs to transfer.
+	 *   How many longs to transfer.
 	 */
 	fun setSlotsFromLongSlots(
 		targetField: IntegerSlotsEnum,
@@ -926,18 +970,18 @@ abstract class AvailObjectRepresentation protected constructor(
 	}
 
 	/**
-	 * Store the [object][AvailObject] in the specified slots of the
-	 * receiver.  The caller is responsible for ensuring the value has been
-	 * marked [Mutability.IMMUTABLE] if necessary.
+	 * Store the [object][AvailObject] in the specified slots of the receiver.
+	 * The caller is responsible for ensuring the value has been marked
+	 * [Mutability.IMMUTABLE] if necessary.
 	 *
 	 * @param field
-	 * An enumeration value that defines the field ordering.
+	 *   An enumeration value that defines the field ordering.
 	 * @param startSubscript
-	 * The positive one-based subscript to apply.
+	 *   The positive one-based subscript to apply.
 	 * @param count
-	 * The number of consecutive slots to write the value into.
+	 *   The number of consecutive slots to write the value into.
 	 * @param anAvailObject
-	 * The object to store in the specified slots.
+	 *   The object to store in the specified slots.
 	 */
 	fun fillSlots(
 		field: ObjectSlotsEnum,
@@ -961,19 +1005,21 @@ abstract class AvailObjectRepresentation protected constructor(
 	}
 
 	/**
-	 * Extract the [object][AvailObject] at the specified slot of the
-	 * receiver. If the receiver is [shared][Mutability.SHARED], then
-	 * acquire its monitor.
+	 * Extract the [object][AvailObject] at the specified slot of the receiver.
+	 * If the receiver is [shared][Mutability.SHARED], then acquire its monitor.
 	 *
-	 * @param field An enumeration value that defines the field ordering.
-	 * @return The object found at the specified slot in the receiver.
+	 * @param field
+	 *   An enumeration value that defines the field ordering.
+	 * @return
+	 *   The object found at the specified slot in the receiver.
 	 */
 	fun mutableSlot(field: ObjectSlotsEnum): AvailObject {
 		checkSlot(field)
-		return if (currentDescriptor.isShared) {
-			VolatileSlotHelper.volatileRead(objectSlots, field.fieldOrdinal())
-		} else {
-			objectSlots[field.fieldOrdinal()]!!
+		return when {
+			currentDescriptor.isShared ->
+				VolatileSlotHelper.volatileRead(
+					objectSlots, field.fieldOrdinal())
+			else -> objectSlots[field.fieldOrdinal()]!!
 		}
 	}
 
@@ -982,7 +1028,6 @@ abstract class AvailObjectRepresentation protected constructor(
 	 * Java left a huge implementation gap where you can't access normal array
 	 * slots with volatile access, but there are ways around it.  For now, use
 	 * Sun's Unsafe class.
-	 *
 	 *
 	 * In sand-boxed environments where this is not possible we'll need to
 	 * change this to use subclassing, and do volatile reads or nilpotent
@@ -1002,9 +1047,11 @@ abstract class AvailObjectRepresentation protected constructor(
 				get(null) as Unsafe
 			}
 
+		/** The offset of the 0th element of a [LongArray]. */
 		private val longArrayBaseOffset =
 			unsafe.arrayBaseOffset(LongArray::class.java)
 
+		/** The stride in bytes between consecutive [LongArray] elements. */
 		private val longArrayShift = with(unsafe) {
 			val delta = arrayIndexScale(LongArray::class.java)
 			assert(delta and delta - 1 == 0) {
@@ -1013,9 +1060,11 @@ abstract class AvailObjectRepresentation protected constructor(
 			numberOfTrailingZeros(delta)
 		}
 
+		/** The offset of the 0th element of an [Array] of objects. */
 		private val objectArrayBaseOffset =
 			unsafe.arrayBaseOffset(Array<AvailObject>::class.java)
 
+		/** The stride in bytes between consecutive [Array] elements. */
 		private val objectArrayShift = with(unsafe) {
 			val delta = arrayIndexScale(Array<AvailObject>::class.java)
 			assert(delta and delta - 1 == 0) {
@@ -1025,6 +1074,10 @@ abstract class AvailObjectRepresentation protected constructor(
 			numberOfTrailingZeros(delta)
 		}
 
+		/**
+		 * Perform a read with volatile semantics from the given [LongArray] and
+		 * index.
+		 */
 		fun volatileRead(
 			longs: LongArray,
 			subscript: Int
@@ -1035,6 +1088,10 @@ abstract class AvailObjectRepresentation protected constructor(
 			return unsafe.getLongVolatile(longs, byteOffset)
 		}
 
+		/**
+		 * Perform a write with volatile semantics to the given [LongArray] and
+		 * index.
+		 */
 		fun volatileWrite(
 			longs: LongArray,
 			subscript: Int,
@@ -1046,6 +1103,13 @@ abstract class AvailObjectRepresentation protected constructor(
 			unsafe.putLongVolatile(longs, byteOffset, value)
 		}
 
+		/**
+		 * Perform an atomic compare-and-set to the given [LongArray] and index,
+		 * replacing the [expected] value with the new [value].  If the value
+		 * that was read does not equal the expected value, answer `false` and
+		 * do not write the new value.  Otherwise write the new value and answer
+		 * `true`.
+		 */
 		fun compareAndSet(
 			longs: LongArray,
 			subscript: Int,
@@ -1059,6 +1123,7 @@ abstract class AvailObjectRepresentation protected constructor(
 				longs, byteOffset, expected, value)
 		}
 
+		/** Perform a read with volatile semantics from an [Array]. */
 		fun volatileRead(
 			objects: Array<AvailObject?>,
 			subscript: Int
@@ -1069,6 +1134,7 @@ abstract class AvailObjectRepresentation protected constructor(
 			return unsafe.getObjectVolatile(objects, byteOffset) as AvailObject
 		}
 
+		/** Perform a write with volatile semantics to an [Array]. */
 		fun volatileWrite(
 			objects: Array<AvailObject?>,
 			subscript: Int,
@@ -1080,6 +1146,13 @@ abstract class AvailObjectRepresentation protected constructor(
 			unsafe.putObjectVolatile(objects, byteOffset, value)
 		}
 
+		/**
+		 * Perform an atomic compare-and-set to the given [Array] and index,
+		 * replacing the [expected] value with the new [value].  If the value
+		 * that was read is not the same Kotlin object (under `===`) as the
+		 * expected value, answer `false` and do not write the new value.
+		 * Otherwise write the new value and answer `true`.
+		 */
 		fun compareAndSet(
 			objects: Array<AvailObject>,
 			subscript: Int,
@@ -1095,51 +1168,58 @@ abstract class AvailObjectRepresentation protected constructor(
 	}
 
 	/**
-	 * Extract the [object][AvailObject] at the specified slot of the
-	 * receiver.  Use volatile semantics for the read.
+	 * Extract the [AvailObject] at the specified slot of the receiver.  Use
+	 * volatile semantics for the read.
 	 *
-	 * @param field An enumeration value that defines the field ordering.
-	 * @param subscript The one-based subscript to offset the field.
-	 * @return The object found at the specified slot in the receiver.
+	 * @param field
+	 *   An enumeration value that defines the field ordering.
+	 * @param subscript
+	 *   The one-based subscript to offset the field.
+	 * @return
+	 *   The object found at the specified slot in the receiver.
 	 */
 	fun volatileSlot(
 		field: ObjectSlotsEnum,
 		subscript: Int
 	): AvailObject {
 		checkSlot(field)
-		return if (currentDescriptor.isShared) {
-			VolatileSlotHelper.volatileRead(
+		return when {
+			currentDescriptor.isShared -> VolatileSlotHelper.volatileRead(
 				objectSlots, field.fieldOrdinal() + subscript - 1)
-		} else {
-			objectSlots[field.fieldOrdinal() + subscript - 1]!!
+			else -> objectSlots[field.fieldOrdinal() + subscript - 1]!!
 		}
 	}
 
 	/**
-	 * Extract the [object][AvailObject] at the specified slot of the
-	 * receiver.  Use volatile semantics for the read.
+	 * Extract the [AvailObject] at the specified slot of the receiver.  Use
+	 * volatile semantics for the read.
 	 *
-	 * @param field An enumeration value that defines the field ordering.
-	 * @return The object found at the specified slot in the receiver.
+	 * @param field
+	 *   An enumeration value that defines the field ordering.
+	 * @return
+	 *   The object found at the specified slot in the receiver.
 	 */
 	fun volatileSlot(
 		field: ObjectSlotsEnum
 	): AvailObject {
 		checkSlot(field)
-		return if (currentDescriptor.isShared) {
-			VolatileSlotHelper.volatileRead(objectSlots, field.fieldOrdinal())
-		} else {
-			objectSlots[field.fieldOrdinal()]!!
+		return when {
+			currentDescriptor.isShared -> VolatileSlotHelper.volatileRead(
+				objectSlots, field.fieldOrdinal())
+			else -> objectSlots[field.fieldOrdinal()]!!
 		}
 	}
 
 	/**
-	 * Store the [object][AvailObject] in the specified slot of the
-	 * receiver.  Use volatile write semantics.
+	 * Store the [AvailObject] in the specified slot of the receiver.  Use
+	 * volatile write semantics.
 	 *
-	 * @param field An enumeration value that defines the field ordering.
-	 * @param subscript The one-based subscript to offset the field.
-	 * @param anAvailObject The object to store at the specified slot.
+	 * @param field
+	 *   An enumeration value that defines the field ordering.
+	 * @param subscript
+	 *   The one-based subscript to offset the field.
+	 * @param anAvailObject
+	 *   The object to store at the specified slot.
 	 */
 	fun setVolatileSlot(
 		field: ObjectSlotsEnum,
@@ -1162,11 +1242,13 @@ abstract class AvailObjectRepresentation protected constructor(
 	}
 
 	/**
-	 * Store the [object][AvailObject] in the specified slot of the
-	 * receiver.  Use volatile write semantics.
+	 * Store the [AvailObject] in the specified slot of the receiver.  Use
+	 * volatile write semantics.
 	 *
-	 * @param field An enumeration value that defines the field ordering.
-	 * @param anAvailObject The object to store at the specified slot.
+	 * @param field
+	 *   An enumeration value that defines the field ordering.
+	 * @param anAvailObject
+	 *   The object to store at the specified slot.
 	 */
 	fun setVolatileSlot(
 		field: ObjectSlotsEnum,
@@ -1185,11 +1267,13 @@ abstract class AvailObjectRepresentation protected constructor(
 	}
 
 	/**
-	 * Store the [object][AvailObject] in the specified slot of the
-	 * receiver, using volatile-write semantics if the receiver is shared.
+	 * Store the [AvailObject] in the specified slot of the receiver, using
+	 * volatile-write semantics if the receiver is shared.
 	 *
-	 * @param field An enumeration value that defines the field ordering.
-	 * @param anAvailObject The object to store at the specified slot.
+	 * @param field
+	 *   An enumeration value that defines the field ordering.
+	 * @param anAvailObject
+	 *   The object to store at the specified slot.
 	 */
 	fun setMutableSlot(
 		field: ObjectSlotsEnum,
@@ -1197,12 +1281,15 @@ abstract class AvailObjectRepresentation protected constructor(
 	) = setVolatileSlot(field, anAvailObject)
 
 	/**
-	 * Extract the [object][AvailObject] at the specified slot of the
-	 * receiver, using volatile-read semantics if the receiver is shared.
+	 * Extract the [AvailObject] at the specified slot of the receiver, using
+	 * volatile-read semantics if the receiver is shared.
 	 *
-	 * @param field An enumeration value that defines the field ordering.
-	 * @param subscript The positive one-based subscript to apply.
-	 * @return The object found at the specified slot in the receiver.
+	 * @param field
+	 *   An enumeration value that defines the field ordering.
+	 * @param subscript
+	 *   The positive one-based subscript to apply.
+	 * @return
+	 *   The object found at the specified slot in the receiver.
 	 */
 	fun mutableSlot(
 		field: ObjectSlotsEnum,
@@ -1216,9 +1303,12 @@ abstract class AvailObjectRepresentation protected constructor(
 	 * acquire a lock.  Any necessary write barriers and other memory
 	 * synchronizations are the responsibility of the caller.
 	 *
-	 * @param field An enumeration value that defines the field ordering.
-	 * @param subscript The positive one-based subscript to apply.
-	 * @param anAvailObject The object to store unchecked in the slot.
+	 * @param field
+	 *   An enumeration value that defines the field ordering.
+	 * @param subscript
+	 *   The positive one-based subscript to apply.
+	 * @param anAvailObject
+	 *   The object to store unchecked in the slot.
 	 */
 	fun writeBackSlot(
 		field: ObjectSlotsEnum,
@@ -1230,13 +1320,13 @@ abstract class AvailObjectRepresentation protected constructor(
 	}
 
 	/**
-	 * Reduce the number of `long` slots occupied by this object.  In a
-	 * raw memory model we would split the object representation into two
-	 * objects, one at the original address, and a separate filler object
-	 * occupying the long slots that were chopped off.
+	 * Reduce the number of `long` slots occupied by this object.  In a raw
+	 * memory model we would split the object representation into two objects,
+	 * one at the original address, and a separate filler object occupying the
+	 * long slots that were chopped off.
 	 *
-	 * In the current Java object implementation, we simply shorten the int
-	 * array by replacing it.
+	 * In the current Kotlin object implementation, we simply shorten the
+	 * [LongArray] by replacing it.
 	 */
 	override fun truncateWithFillerForNewIntegerSlotsCount(
 		newIntegerSlotsCount: Int
@@ -1249,13 +1339,13 @@ abstract class AvailObjectRepresentation protected constructor(
 	}
 
 	/**
-	 * Slice the current [object][AvailObject] into two objects, the
-	 * left one (at the same starting address as the input), and the right
-	 * one (a [filler object][FillerDescriptor] that nobody should
-	 * ever create a pointer to). The new Filler can have zero post-header slots
-	 * (i.e., just the header), but the left object must not, since it may turn
-	 * into an [indirection][IndirectionDescriptor] some day and will
-	 * require at least one slot for the target pointer.
+	 * Slice the current [[AvailObject] into two objects, the left one (at the
+	 * same starting address as the input), and the right one (a
+	 * [filler&#32;object][FillerDescriptor] that nobody should ever create a
+	 * pointer to). The new Filler can have zero post-header slots (i.e., just
+	 * the header), but the left object must not, since it may turn into an
+	 * [indirection][IndirectionDescriptor] some day and will require at least
+	 * one slot for the target pointer.
 	 */
 	override fun truncateWithFillerForNewObjectSlotsCount(
 		newObjectSlotsCount: Int
@@ -1276,8 +1366,8 @@ abstract class AvailObjectRepresentation protected constructor(
 	}
 
 	/**
-	 * Search for the key in the 32-bit ints encoded within the [longSlots] that
-	 * occur within those slots identified with the specified
+	 * Search for the key in the 32-bit [Int]s encoded within the [longSlots]
+	 * that occur within those slots identified with the specified
 	 * [IntegerSlotsEnum].  The int slots must be in ascending sorted order, and
 	 * must be distinct.  If the exact int is found, answer its zero-based index
 	 * within this repeated slot (i.e., ≥0).  If the exact int is not found,
@@ -1286,19 +1376,17 @@ abstract class AvailObjectRepresentation protected constructor(
 	 * "if found" case would have applied).
 	 *
 	 * @param slot
-	 * The final integer slot, which must be the variable-length part
-	 * of the longSlots array.
+	 *   The final integer slot, which must be the variable-length part of the
+	 *   longSlots array.
 	 * @param slotCount
-	 * The number of valid int-sized slots (starting at the specified
-	 * slot's ordinal).
+	 *   The number of valid int-sized slots (starting at the specified slot's
+	 *   ordinal).
 	 * @param key
-	 * The long value to seek in the designated region of the
-	 * longSlots array.
+	 *   The long value to seek in the designated region of the longSlots array.
 	 * @return
-	 * The zero-based index of the key within the variable-length
-	 * repeated slot if found, or else (-n-1) where n is the
-	 * zero-based index of the leftmost int that is greater than the
-	 * key.
+	 *   The zero-based index of the key within the variable-length repeated
+	 *   slot if found, or else (-n-1) where n is the zero-based index of the
+	 *   leftmost int that is greater than the key.
 	 */
 	fun intBinarySearch(
 		slot: IntegerSlotsEnum,
@@ -1349,16 +1437,19 @@ abstract class AvailObjectRepresentation protected constructor(
 				other)
 	}
 
+	/** Redirect Kotlin's [hashCode] to [AbstractDescriptor.o_Hash]. */
 	override fun hashCode(): Int = currentDescriptor.o_Hash(this as AvailObject)
 
 	/**
-	 * Extract the type tag for this object.  Does not answer [ ][TypeTag.UNKNOWN_TAG].
+	 * Extract the type tag for this object.  Does not answer
+	 * [TypeTag.UNKNOWN_TAG].
 	 *
+	 * It's usually sufficient to access this descriptor's
+	 * [AbstractDescriptor.typeTag], but rarely it may be necessary to invoke
+	 * computeTypeTag().
 	 *
-	 * It's usually sufficient to access this descriptor's typeTag, but
-	 * rarely it may be necessary to invoke computeTypeTag().
-	 *
-	 * @return The [TypeTag] of this object.
+	 * @return
+	 *   The [TypeTag] of this object.
 	 */
 	fun typeTag(): TypeTag {
 		// First, directly access the descriptor's typeTag, which will be
@@ -1374,39 +1465,37 @@ abstract class AvailObjectRepresentation protected constructor(
 	companion object {
 		/**
 		 * This static switch enables paranoid checks to ensure objects are only
-		 * being accessed via slot definitions appropriate for the object's actual
-		 * descriptor.  This check slows the system considerably, but it's
-		 * occasionally valuable to enable for a short time, especially right after
-		 * introducing new descriptor subclasses.
+		 * being accessed via slot definitions appropriate for the object's
+		 * actual descriptor.  This check slows the system considerably, but
+		 * it's occasionally valuable to enable for a short time, especially
+		 * right after introducing new descriptor subclasses.
 		 */
 		const val shouldCheckSlots = false
 
 		/**
-		 * Create a new [AvailObject] with the specified [ ], the specified number of object slots, and
-		 * the specified number of long slots.  Also copy the fields from the
-		 * specified object, which must have a descriptor of the same class.  If the
-		 * sizes of the long arrays differ, only transfer the minimum of the two
-		 * sizes; do the same for the object slots.
+		 * Create a new [AvailObject] with the specified
+		 * [descriptor]][AbstractDescriptor], the specified number of object
+		 * slots, and the specified number of long slots.  Also copy the fields
+		 * from the specified object, which must have a descriptor of the same
+		 * class.  If the sizes of the long arrays differ, only transfer the
+		 * minimum of the two sizes; do the same for the object slots.
 		 *
-		 *
-		 *
-		 * It is the client's responsibility to mark the shared fields as immutable
-		 * if necessary.  Also, any new `long` fields beyond the end of the
-		 * original array will be initialized to 0, and any new `AvailObject`
-		 * slots will contain a Java `null` (requiring initialization by the
-		 * client).
-		 *
+		 * It is the client's responsibility to mark the accessed fields as
+		 * immutable if necessary.  Also, any new `long` fields beyond the end
+		 * of the original array will be initialized to 0, and any new
+		 * `AvailObject` slots will contain a Java `null`, requiring
+		 * further initialization by the client.
 		 *
 		 * @param descriptor
-		 * A descriptor.
+		 *   A descriptor.
 		 * @param objectToCopy
-		 * The object from which to copy corresponding fields.
+		 *   The object from which to copy corresponding fields.
 		 * @param deltaObjectSlots
-		 * How many AvailObject fields to add (or if negative, to
-		 * subtract).
+		 *   How many AvailObject fields to add (or if negative, to subtract).
 		 * @param deltaIntegerSlots
-		 * How many long fields to add (or if negative, to subtract).
-		 * @return A new object.
+		 *   How many long fields to add (or if negative, to subtract).
+		 * @return
+		 *   A new object.
 		 */
 		@JvmStatic
 		fun newLike(

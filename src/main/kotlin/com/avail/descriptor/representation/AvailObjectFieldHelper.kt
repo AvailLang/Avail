@@ -34,124 +34,100 @@ package com.avail.descriptor.representation
 import com.avail.descriptor.A_BasicObject
 import com.avail.descriptor.AbstractDescriptor
 import com.avail.descriptor.AvailObject
-import com.avail.utility.Casts
+import com.avail.utility.Casts.cast
 import com.avail.utility.StackPrinter
 
 /**
- * This class assists with the presentation of [AvailObject]s in the
- * Eclipse debugger.  Since AvailObjects have a uniform structure consisting of
- * a descriptor, an array of AvailObjects, and an array of `int`s, it is
- * essential to the understanding of a hierarchy of Avail objects that they be
- * presented at the right level of abstraction, including the use of symbolic
- * names for conceptual subobjects.
+ * This class assists with the presentation of [AvailObject]s in the IntelliJ
+ * debugger.  Since AvailObjects have a uniform structure consisting of a
+ * [descriptor][AbstractDescriptor], an array of `AvailObject`s, and an array of
+ * `long`s, it is essential to the understanding of a hierarchy of Avail objects
+ * that they be presented at the right level of abstraction, including the use
+ * of symbolic names for conceptual subobjects.
  *
- *
+ * `[`The following steps are for Eclipse, but there's a similar mechanism for
+ * IntelliJ.]
  *
  * Eclipse is still kind of fiddly about these presentations, requiring explicit
  * manipulation through dialogs (well, maybe there's some way to hack around
  * with the Eclipse preference files).  Here are the minimum steps by which to
  * set up symbolic Avail descriptions:
  *
- *  1. Preferences...  Java  Debug  Logical Structures
- * Add:
+ * 1. Preferences...  Java  Debug  Logical Structures
  *
- *  * Qualified name: com.avail.descriptor.representation.AvailIntegerValueHelper
- *  * Description: Hide integer value field
- *  * Structure type: Single value
- *  * Code: `return new Object[0];`
+ *    Add:
+ *    * Qualified name:
+ *      com.avail.descriptor.representation.AvailIntegerValueHelper
+ *    * Description: Hide integer value field
+ *    * Structure type: Single value
+ *    * Code: `return new Object[0];`
  *
+ * 1. Preferences...  Java  Debug  Logical Structures
  *
- *  1. Preferences...  Java  Debug  Logical Structures
- * Add:
+ *     Add:
+ *    * Qualified name: com.avail.descriptor.AvailObject
+ *    * Description: Present Avail objects
+ *    * Structure type: Single value
+ *    * Code: `return describeForDebugger();`
  *
- *  * Qualified name: com.avail.descriptor.AvailObject
- *  * Description: Present Avail objects
- *  * Structure type: Single value
- *  * Code: `return describeForDebugger();`
+ * 1. Preferences...  Java  Debug  Logical Structures
  *
+ *    Add:
+ *    * Qualified name: com.avail.interpreter.Interpreter
+ *    * Description: Present Interpreter as stack frames
+ *    * Structure type: Single value
+ *    * Code: `return describeForDebugger();`
  *
- *  1. Preferences...  Java  Debug  Logical Structures
- * Add:
+ * 1. Preferences...  Java  Debug  Logical Structures
  *
- *  * Qualified name: com.avail.interpreter.Interpreter
- *  * Description: Present Interpreter as stack frames
- *  * Structure type: Single value
- *  * Code: `return describeForDebugger();`
+ *    Add:
+ *    * Qualified name:
+ *      com.avail.descriptor.representation.AvailObjectFieldHelper
+ *    * Description: Present helper's value's fields instead of the helper
+ *    * Structure type: Single value
+ *    * Code: `return value;`
  *
+ * 1. Preferences...  Java  Debug  Detail Formatters
  *
- *  1. Preferences...  Java  Debug  Logical Structures
- * Add:
+ *    Add:
+ *    * Qualified type name:
+ *      com.avail.descriptor.representation.AvailObjectFieldHelper
+ *    * Detail formatter code snippet: `return name();`
+ *    * Enable this detail formatter: (checked)
+ *    * (after OK) Show variable details: As the label for all variables
  *
- *  * Qualified name: com.avail.descriptor.representation.AvailObjectFieldHelper
- *  * Description: Present helper's value's fields instead of the helper
- *  * Structure type: Single value
- *  * Code: `return value;`
+ * 1. In the Debug perspective, go to the Variables view.  Select the tool bar
+ *    icon whose hover help is Show Logical Structure.
  *
- *
- *  1. Preferences...  Java  Debug  Detail Formatters
- * Add:
- *
- *  * Qualified type name: com.avail.descriptor.representation.AvailObjectFieldHelper
- *  * Detail formatter code snippet: `return name();`
- *  * Enable this detail formatter: (checked)
- *  * (after OK) Show variable details: As the label for all variables
- *
- *
- *  1. In the Debug perspective, go to the Variables view.  Select the tool bar
- * icon whose hover help is Show Logical Structure.
+ * @param parentObject
+ *   The object containing the value.
+ * @param slot
+ *   The [slot][AbstractSlotsEnum] in which the value occurs.
+ * @param subscript
+ *   The optional subscript for a repeating slot.  Uses -1 to indicate this is
+ *   not a repeating slot.
+ * @param value
+ *   The value being presented in that slot.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-class AvailObjectFieldHelper
-/** Construct a new `AvailObjectFieldHelper`.
- *
- * @param parentObject
- * The object containing the value.
- * @param slot
- * The [slot][AbstractSlotsEnum] in which the value
- * occurs.
- * @param subscript
- * The optional subscript for a repeating slot.  Uses -1 to
- * indicate this is not a repeating slot.
- * @param value
- * The value found in that slot of the object.
- */(
-	/**
-	 * The object containing this field.
-	 */
+class AvailObjectFieldHelper(
 	private val parentObject: A_BasicObject?,
-	/**
-	 * The slot of the parent object in which the value occurs.
-	 */
 	val slot: AbstractSlotsEnum,
-	/**
-	 * This value's subscript within a repeated slot, or -1 if not repeated.
-	 */
 	val subscript: Int,
-	/**
-	 * The actual value being presented with the given label.
-	 */
-	val value: Any?) {
-
+	val value: Any?
+) {
 	/**
 	 * The name to present for this field.
 	 */
-	private var name: String? = null
+	val name by lazy { privateComputeNameForDebugger() }
 
 	/**
 	 * Answer the string to display for this field.
 	 *
 	 * @return A [String].
 	 */
-	fun nameForDebugger(): String {
-		var string = name
-		if (string != null) {
-			return string
-		}
-		string = privateComputeNameForDebugger()
-		name = string
-		return string
-	}
+	fun nameForDebugger() = name
 
 	/**
 	 * Produce a name for this helper in the debugger.
@@ -171,7 +147,7 @@ class AvailObjectFieldHelper
 			is AvailObject -> append(' ').append(value.nameForDebugger())
 			is AvailIntegerValueHelper -> {
 				try {
-					val strongSlot = Casts.cast<AbstractSlotsEnum, IntegerSlotsEnum>(slot)
+					val strongSlot: IntegerSlotsEnum = cast(slot)
 					val bitFields = AbstractDescriptor.bitFieldsFor(strongSlot)
 					if (bitFields.isNotEmpty()) {
 						// Remove the name.
@@ -194,6 +170,7 @@ class AvailObjectFieldHelper
 		}
 	}
 
+	@Suppress("unused")
 	fun describeForDebugger(): Any? = when (value) {
 		is AvailObject -> value.describeForDebugger()
 		is AvailIntegerValueHelper -> arrayOfNulls<Any>(0)
