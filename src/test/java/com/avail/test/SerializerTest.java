@@ -37,7 +37,7 @@ import com.avail.builder.ModuleNameResolver;
 import com.avail.builder.ModuleRoots;
 import com.avail.builder.RenamesFileParser;
 import com.avail.builder.RenamesFileParserException;
-import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.A_Module;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.atoms.A_Atom;

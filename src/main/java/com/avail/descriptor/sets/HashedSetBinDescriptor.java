@@ -34,8 +34,7 @@ package com.avail.descriptor.sets;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.AbstractDescriptor;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
@@ -117,14 +116,14 @@ extends SetBinDescriptor
 		 * A slot to hold the bin's hash value, or zero if it has not been
 		 * computed.
 		 */
-		static final BitField BIN_HASH = AbstractDescriptor
-			.bitField(BIN_HASH_AND_MORE, 0, 32);
+		static final BitField BIN_HASH =
+			new BitField(BIN_HASH_AND_MORE, 0, 32);
 
 		/**
 		 * The total number of elements within this bin.
 		 */
-		static final BitField BIN_SIZE = AbstractDescriptor
-			.bitField(BIN_HASH_AND_MORE, 32, 32);
+		static final BitField BIN_SIZE =
+			new BitField(BIN_HASH_AND_MORE, 32, 32);
 
 		static
 		{

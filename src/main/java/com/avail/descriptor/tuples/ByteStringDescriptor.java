@@ -35,9 +35,8 @@ package com.avail.descriptor.tuples;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.A_Character;
-import com.avail.descriptor.AbstractDescriptor;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.representation.BitField;
@@ -94,8 +93,8 @@ extends StringDescriptor
 		 * case that the hash value actually equals zero, the hash value has to
 		 * be computed every time it is requested.
 		 */
-		static final BitField HASH_OR_ZERO = AbstractDescriptor
-			.bitField(HASH_AND_MORE, 0, 32);
+		static final BitField HASH_OR_ZERO =
+			new BitField(HASH_AND_MORE, 0, 32);
 
 		static
 		{

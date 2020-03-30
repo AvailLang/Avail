@@ -37,7 +37,7 @@ import com.avail.AvailRuntime.HookType;
 import com.avail.AvailRuntimeConfiguration;
 import com.avail.AvailTask;
 import com.avail.AvailThread;
-import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.A_Module;
 import com.avail.descriptor.AvailObject;

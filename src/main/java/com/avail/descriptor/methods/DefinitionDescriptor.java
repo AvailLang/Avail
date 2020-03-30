@@ -33,13 +33,12 @@
 package com.avail.descriptor.methods;
 
 import com.avail.annotations.AvailMethod;
-import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.A_Module;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.Descriptor;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.descriptor.maps.MapBinDescriptor;
-import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.representation.IntegerSlotsEnum;
 import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;

@@ -33,7 +33,7 @@
 package com.avail.descriptor.types;
 
 import com.avail.annotations.AvailMethod;
-import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.NilDescriptor;
 import com.avail.descriptor.atoms.A_Atom;
@@ -41,10 +41,8 @@ import com.avail.descriptor.atoms.AtomDescriptor;
 import com.avail.descriptor.maps.A_Map;
 import com.avail.descriptor.maps.MapDescriptor;
 import com.avail.descriptor.pojos.RawPojoDescriptor;
-import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.representation.IntegerSlotsEnum;
 import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.sets.SetDescriptor;

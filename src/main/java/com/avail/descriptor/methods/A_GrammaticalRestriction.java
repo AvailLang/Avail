@@ -32,7 +32,7 @@
 
 package com.avail.descriptor.methods;
 
-import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.A_Module;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.descriptor.bundles.A_Bundle;

@@ -97,6 +97,7 @@ import com.avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor.newMacroSu
 import com.avail.descriptor.phrases.MarkerPhraseDescriptor.newMarkerNode
 import com.avail.descriptor.phrases.SendPhraseDescriptor.newSendNode
 import com.avail.descriptor.phrases.VariableUsePhraseDescriptor.newUse
+import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.sets.SetDescriptor.emptySet

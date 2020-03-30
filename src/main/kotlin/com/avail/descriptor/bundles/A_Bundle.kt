@@ -32,7 +32,7 @@
 package com.avail.descriptor.bundles
 
 import com.avail.compiler.splitter.MessageSplitter
-import com.avail.descriptor.A_BasicObject
+import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.methods.A_Definition

@@ -32,7 +32,7 @@
 package com.avail.descriptor.atoms
 
 import com.avail.annotations.AvailMethod
-import com.avail.descriptor.A_BasicObject
+import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.AvailObject
 import com.avail.descriptor.ModuleDescriptor
 import com.avail.descriptor.bundles.A_Bundle
@@ -107,7 +107,7 @@ internal class AtomWithPropertiesSharedDescriptor
 			 * A slot to hold the hash value, or zero if it has not been computed.
 			 * The hash of an atom is a random number, computed once.
 			 */
-			val HASH_OR_ZERO: BitField = bitField(HASH_AND_MORE, 0, 32)
+			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 
 			init {
 				assert(AtomWithPropertiesDescriptor.IntegerSlots.HASH_AND_MORE

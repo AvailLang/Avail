@@ -34,7 +34,7 @@ package com.avail.descriptor.phrases;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
@@ -88,7 +88,7 @@ extends PhraseDescriptor
 		/**
 		 * Whether this is the last use of the mentioned entity.
 		 */
-		static final BitField LAST_USE = bitField(
+		static final BitField LAST_USE = new BitField(
 			FLAGS, 0, 1);
 	}
 

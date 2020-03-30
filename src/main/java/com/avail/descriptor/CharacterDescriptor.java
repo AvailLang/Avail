@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.numbers.IntegerDescriptor;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.representation.BitField;
 import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.types.A_Type;

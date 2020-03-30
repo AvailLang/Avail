@@ -33,7 +33,7 @@
 package com.avail.descriptor.parsing;
 
 import com.avail.compiler.ParsingOperation;
-import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.bundles.A_Bundle;
 import com.avail.descriptor.methods.A_Definition;
 import com.avail.descriptor.numbers.IntegerDescriptor;

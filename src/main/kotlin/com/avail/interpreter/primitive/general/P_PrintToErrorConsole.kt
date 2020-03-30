@@ -32,7 +32,7 @@
 
 package com.avail.interpreter.primitive.general
 
-import com.avail.descriptor.A_BasicObject
+import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.FiberDescriptor.ExecutionState
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.sets.SetDescriptor.set

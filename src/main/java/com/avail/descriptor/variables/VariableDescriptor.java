@@ -34,7 +34,7 @@ package com.avail.descriptor.variables;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.Descriptor;
@@ -162,7 +162,7 @@ extends Descriptor
 		/**
 		 * A slot to hold the cached hash value.  Zero if not yet computed.
 		 */
-		static final BitField HASH_OR_ZERO = bitField(HASH_AND_MORE, 0, 32);
+		static final BitField HASH_OR_ZERO = new BitField(HASH_AND_MORE, 0, 32);
 	}
 
 	/**

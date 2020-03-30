@@ -32,7 +32,7 @@
 
 package com.avail.interpreter.primitive.general
 
-import com.avail.descriptor.A_BasicObject
+import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.sets.SetDescriptor.set
 import com.avail.descriptor.tuples.ByteArrayTupleDescriptor.tupleForByteArray
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple

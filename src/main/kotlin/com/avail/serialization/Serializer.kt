@@ -33,7 +33,7 @@
 package com.avail.serialization
 
 import com.avail.AvailRuntime
-import com.avail.descriptor.A_BasicObject
+import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.A_Module
 import com.avail.descriptor.AvailObject
 import com.avail.descriptor.atoms.A_Atom

@@ -32,7 +32,7 @@
 
 package com.avail.descriptor.numbers;
 
-import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.numbers.AbstractNumberDescriptor.Sign;

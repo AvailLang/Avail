@@ -32,7 +32,7 @@
 
 package com.avail.descriptor.objects;
 
-import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.pojos.RawPojoDescriptor;
 import com.avail.descriptor.representation.Mutability;

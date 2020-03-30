@@ -130,14 +130,14 @@ private constructor(mutability: Mutability) : Descriptor(
 			 * The hash, or zero (`0`) if the hash has not yet been computed.
 			 */
 			@HideFieldInDebugger
-			val HASH_OR_ZERO = AbstractDescriptor.bitField(HASH_AND_MORE, 0, 32)
+			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 
 			/**
 			 * This flag is set when this bundle tree contains at least one
 			 * parsing-plan-in-progress at a [ParsingOperation.JUMP_BACKWARD]
 			 * instruction.
 			 */
-			val HAS_BACKWARD_JUMP_INSTRUCTION = AbstractDescriptor.bitField(HASH_AND_MORE, 32, 1)
+			val HAS_BACKWARD_JUMP_INSTRUCTION = BitField(HASH_AND_MORE, 32, 1)
 
 			/**
 			 * This flag is set when a bundle tree is redirected to an equivalent
@@ -145,7 +145,7 @@ private constructor(mutability: Mutability) : Descriptor(
 			 * #LATEST_BACKWARD_JUMP} is set directly to the target of the cycle
 			 * when this flag is set.
 			 */
-			val IS_SOURCE_OF_CYCLE = AbstractDescriptor.bitField(HASH_AND_MORE, 33, 1)
+			val IS_SOURCE_OF_CYCLE = BitField(HASH_AND_MORE, 33, 1)
 		}
 	}
 

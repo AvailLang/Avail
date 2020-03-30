@@ -32,7 +32,7 @@
 
 package com.avail.descriptor.variables;
 
-import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.A_ChunkDependable;
 import com.avail.descriptor.A_Module;
 import com.avail.descriptor.AvailObject;

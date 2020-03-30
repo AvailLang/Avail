@@ -37,7 +37,7 @@ import com.avail.compiler.AvailRejectedParseException
 import com.avail.compiler.CompilationContext
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
-import com.avail.descriptor.A_BasicObject
+import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.A_Fiber
 import com.avail.descriptor.AvailObject
 import com.avail.descriptor.CharacterDescriptor

@@ -32,7 +32,7 @@
 
 package com.avail.descriptor.methods;
 
-import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.A_ChunkDependable;
 import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.A_Module;

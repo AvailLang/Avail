@@ -36,8 +36,7 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.HideFieldJustForPrinting;
 import com.avail.compiler.scanning.LexingState;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.AbstractDescriptor;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
@@ -90,7 +89,7 @@ extends TokenDescriptor
 		 * should be plenty.
 		 */
 		static final BitField LINE_NUMBER =
-			AbstractDescriptor.bitField(START_AND_LINE, 4, 28);
+			new BitField(START_AND_LINE, 4, 28);
 
 		/**
 		 * The starting position in the source file. Currently signed 32 bits,
@@ -100,7 +99,7 @@ extends TokenDescriptor
 		 */
 		@HideFieldInDebugger
 		static final BitField START =
-			AbstractDescriptor.bitField(START_AND_LINE, 32, 32);
+			new BitField(START_AND_LINE, 32, 32);
 
 		static
 		{

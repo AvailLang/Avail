@@ -33,7 +33,7 @@
 package com.avail.descriptor.tokens;
 
 import com.avail.compiler.scanning.LexingState;
-import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType;
 import com.avail.descriptor.tuples.A_String;

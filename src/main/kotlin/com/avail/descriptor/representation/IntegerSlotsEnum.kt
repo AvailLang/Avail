@@ -43,9 +43,8 @@ import com.avail.descriptor.Descriptor
  *
  * Additionally, AvailObject is implemented with both object slots and integer
  * slots in such a way that the two should not be confused; i.e., their ordinals
- * are used as indices into either an array of [AvailObject] or an array
- * of `int`.  A related interface [ObjectSlotsEnum] helps to keep
- * these uses disjoint.
+ * are used as indices into either an [Array] of [AvailObject] or a [LongArray].
+ * A related interface [ObjectSlotsEnum] helps to keep these uses disjoint.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */

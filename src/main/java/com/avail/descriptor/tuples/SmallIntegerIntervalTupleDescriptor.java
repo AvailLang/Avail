@@ -34,8 +34,7 @@ package com.avail.descriptor.tuples;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.AbstractDescriptor;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.numbers.A_Number;
@@ -89,19 +88,16 @@ extends NumericTupleDescriptor
 		DELTA;
 
 		/** The number of elements in the tuple. */
-		static final BitField SIZE = AbstractDescriptor
-			.bitField(HASH_AND_MORE, 32, 32);
+		static final BitField SIZE = new BitField(HASH_AND_MORE, 32, 32);
 
 		/** The first value in the tuple, inclusive. */
-		static final BitField START = AbstractDescriptor
-			.bitField(START_AND_END, 32, 32);
+		static final BitField START = new BitField(START_AND_END, 32, 32);
 
 		/**
 		 * The last value in the tuple, inclusive. Within the constructor,
 		 * the supplied END is normalized to the actual last value.
 		 */
-		static final BitField END = AbstractDescriptor
-			.bitField(START_AND_END, 0, 32);
+		static final BitField END = new BitField(START_AND_END, 0, 32);
 
 		/**
 		 * A slot to hold the cached hash value of a tuple.  If zero, then the
@@ -109,8 +105,7 @@ extends NumericTupleDescriptor
 		 * case that the hash value actually equals zero, the hash value has to
 		 * be computed every time it is requested.
 		 */
-		static final BitField HASH_OR_ZERO = AbstractDescriptor
-			.bitField(HASH_AND_MORE, 0, 32);
+		static final BitField HASH_OR_ZERO = new BitField(HASH_AND_MORE, 0, 32);
 
 		static
 		{

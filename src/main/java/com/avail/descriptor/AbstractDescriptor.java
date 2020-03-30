@@ -1188,30 +1188,6 @@ public abstract class AbstractDescriptor
 	}
 
 	/**
-	 * Create a {@link BitField} for the specified {@link IntegerSlotsEnum
-	 * integer slot}.  The {@code BitField} should be stored back into a static
-	 * field of the {@link IntegerSlotsEnum} subclass in which the integer slot
-	 * is defined.  This method may be quite slow, so it should only be invoked
-	 * by static code during class loading.
-	 *
-	 * @param integerSlot
-	 *            The {@linkplain IntegerSlotsEnum integer slot} in which this
-	 *            {@link BitField} will occur.
-	 * @param shift
-	 *            The position of the lowest order bit of this {@code BitField}.
-	 * @param bits
-	 *            The number of bits occupied by this {@code BitField}.
-	 * @return A BitField
-	 */
-	public static BitField bitField (
-		final IntegerSlotsEnum integerSlot,
-		final int shift,
-		final int bits)
-	{
-		return new BitField(integerSlot, shift, bits);
-	}
-
-	/**
 	 * Answer an {@linkplain AvailUnsupportedOperationException unsupported
 	 * operation exception} suitable to be thrown by the sender.  We don't throw
 	 * it here, since Java sadly has no way of indicating that a method

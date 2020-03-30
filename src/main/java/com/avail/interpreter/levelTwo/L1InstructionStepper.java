@@ -34,7 +34,7 @@ package com.avail.interpreter.levelTwo;
 
 import com.avail.AvailRuntime;
 import com.avail.AvailRuntime.HookType;
-import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.bundles.A_Bundle;
 import com.avail.descriptor.functions.A_Continuation;

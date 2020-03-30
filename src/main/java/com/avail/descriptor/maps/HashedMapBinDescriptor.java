@@ -33,7 +33,7 @@
 package com.avail.descriptor.maps;
 
 import com.avail.annotations.AvailMethod;
-import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
@@ -151,14 +151,14 @@ extends MapBinDescriptor
 		/**
 		 * The sum of the hashes of the elements recursively within this bin.
 		 */
-		public static final BitField KEYS_HASH = bitField(
+		public static final BitField KEYS_HASH = new BitField(
 			COMBINED_HASHES, 0, 32);
 
 		/**
 		 * The sum of the hashes of the elements recursively within this bin,
 		 * or zero if not computed.
 		 */
-		public static final BitField VALUES_HASH_OR_ZERO = bitField(
+		public static final BitField VALUES_HASH_OR_ZERO = new BitField(
 			COMBINED_HASHES, 32, 32);
 
 		static

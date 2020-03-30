@@ -35,7 +35,7 @@ package com.avail.descriptor.methods;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.A_Module;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.Descriptor;
@@ -177,14 +177,14 @@ extends Descriptor
 		 * The hash of this method.  It's set to a random number during
 		 * construction.
 		 */
-		static final BitField HASH = bitField(
+		static final BitField HASH = new BitField(
 			HASH_AND_NUM_ARGS, 0, 32);
 
 		/**
 		 * The number of arguments expected by this method.  Set at construction
 		 * time.
 		 */
-		static final BitField NUM_ARGS = bitField(
+		static final BitField NUM_ARGS = new BitField(
 			HASH_AND_NUM_ARGS, 32, 32);
 	}
 

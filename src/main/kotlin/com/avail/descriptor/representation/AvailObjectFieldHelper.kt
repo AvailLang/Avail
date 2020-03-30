@@ -31,7 +31,6 @@
  */
 package com.avail.descriptor.representation
 
-import com.avail.descriptor.A_BasicObject
 import com.avail.descriptor.AbstractDescriptor
 import com.avail.descriptor.AvailObject
 import com.avail.utility.Casts.cast

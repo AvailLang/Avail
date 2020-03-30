@@ -37,7 +37,7 @@ import com.avail.compiler.AvailCompilerFragmentCache;
 import com.avail.compiler.ParsingConversionRule;
 import com.avail.compiler.ParsingOperation;
 import com.avail.compiler.splitter.MessageSplitter;
-import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.Descriptor;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;

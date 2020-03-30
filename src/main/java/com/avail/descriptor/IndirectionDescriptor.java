@@ -65,6 +65,7 @@ import com.avail.descriptor.parsing.A_Lexer;
 import com.avail.descriptor.parsing.A_ParsingPlanInProgress;
 import com.avail.descriptor.phrases.A_Phrase;
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.representation.AbstractSlotsEnum;
 import com.avail.descriptor.representation.AvailObjectRepresentation;
 import com.avail.descriptor.representation.Mutability;

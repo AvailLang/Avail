@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.types.TypeTag;
 

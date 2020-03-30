@@ -34,7 +34,7 @@ package com.avail.descriptor.phrases;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
@@ -84,7 +84,7 @@ extends PhraseDescriptor
 		/**
 		 * Is this an inline {@linkplain AssignmentPhraseDescriptor assignment}?
 		 */
-		static final BitField IS_INLINE = bitField(FLAGS, 0, 1);
+		static final BitField IS_INLINE = new BitField(FLAGS, 0, 1);
 	}
 
 	/**

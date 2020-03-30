@@ -36,7 +36,7 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.compiler.AvailCompilerFragmentCache;
 import com.avail.compiler.ParsingOperation;
-import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.Descriptor;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
@@ -88,7 +88,7 @@ extends Descriptor
 		PARSING_PC_AND_MORE;
 
 		/** The subscript into my parsing plan's parsing instructions. */
-		static final BitField PARSING_PC = bitField(
+		static final BitField PARSING_PC = new BitField(
 			PARSING_PC_AND_MORE, 0, 32);
 	}
 

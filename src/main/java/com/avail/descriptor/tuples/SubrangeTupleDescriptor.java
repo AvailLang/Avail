@@ -34,8 +34,7 @@ package com.avail.descriptor.tuples;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.AbstractDescriptor;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
@@ -94,22 +93,19 @@ extends TupleDescriptor
 		 * case that the hash value actually equals zero, the hash value has to
 		 * be computed every time it is requested.
 		 */
-		static final BitField HASH_OR_ZERO = AbstractDescriptor
-			.bitField(HASH_AND_MORE, 0, 32);
+		static final BitField HASH_OR_ZERO = new BitField(HASH_AND_MORE, 0, 32);
 
 		/**
 		 * The first index of the basis tuple that is within this subrange.
 		 */
-		static final BitField START_INDEX = AbstractDescriptor
-			.bitField(START_AND_SIZE, 0, 32);
+		static final BitField START_INDEX = new BitField(START_AND_SIZE, 0, 32);
 
 		/**
 		 * The number of elements in this subrange tuple, starting at the
 		 * {@link #START_INDEX}.  Must not be zero, and should probably be at
 		 * least some reasonable size to avoid time and space overhead.
 		 */
-		static final BitField SIZE = AbstractDescriptor
-			.bitField(START_AND_SIZE, 32, 32);
+		static final BitField SIZE = new BitField(START_AND_SIZE, 32, 32);
 
 		static
 		{

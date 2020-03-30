@@ -35,7 +35,7 @@ package com.avail.descriptor.numbers;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.representation.BitField;
@@ -77,7 +77,7 @@ extends AbstractNumberDescriptor
 		/**
 		 * The Java {@code float} value, packed into an {@code int} field.
 		 */
-		static final BitField RAW_INT = bitField(RAW_INT_AND_MORE, 0, 32);
+		static final BitField RAW_INT = new BitField(RAW_INT_AND_MORE, 0, 32);
 	}
 
 	/**

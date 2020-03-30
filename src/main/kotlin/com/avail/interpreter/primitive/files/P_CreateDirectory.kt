@@ -32,7 +32,7 @@
 
 package com.avail.interpreter.primitive.files
 
-import com.avail.descriptor.A_BasicObject
+import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.A_Fiber
 import com.avail.descriptor.FiberDescriptor.newFiber
 import com.avail.descriptor.sets.A_Set

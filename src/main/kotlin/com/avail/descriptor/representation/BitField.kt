@@ -50,12 +50,9 @@ import com.avail.descriptor.AbstractDescriptor
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 class BitField (
-	@JvmField
-	val integerSlot: IntegerSlotsEnum,
-	@JvmField
-	val shift: Int,
-	@JvmField
-	val bits: Int
+	@JvmField val integerSlot: IntegerSlotsEnum,
+	@JvmField val shift: Int,
+	@JvmField val bits: Int
 ) : Comparable<BitField?> {
 	init {
 		assert(shift == shift and 63)

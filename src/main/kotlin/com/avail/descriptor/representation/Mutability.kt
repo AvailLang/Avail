@@ -38,34 +38,31 @@ import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.methods.MethodDescriptor
 
 /**
- * A description of the mutability of an [object][AvailObject]. This
- * information is not maintained by an object itself, but rather by the
- * [descriptor][Descriptor] that specifies its representation and
- * behavior.
+ * A description of the mutability of an [AvailObject]. This information is not
+ * maintained by an object itself, but rather by the [AbstractDescriptor] that
+ * specifies its representation and behavior.
+ *
+ * Much code assumes these values are [MUTABLE], [IMMUTABLE], and [SHARED], in
+ * that exact order. Do not change it under any circumstances!
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 enum class Mutability {
-	/*
-	 * Much code assumes the exact ordering shown below. Do not change it under
-	 * any circumstances!
-	 */
 	/**
-	 * Indicates that instances of the [descriptor][Descriptor] are
-	 * *mutable*. An [object][AvailObject] can be
-	 * *mutable* only if there exists but a single reference to it. This
-	 * is a necessary condition, but not a sufficient condition for mutability.
-	 * Most objects begin existence in the *mutable* state. All slots of
-	 * a *mutable* object may be modified.
+	 * Indicates that instances of the [descriptor][Descriptor] are *mutable*.
+	 * An [object][AvailObject] can be *mutable* only if there exists but a
+	 * single reference to it. This is a necessary condition, but not a
+	 * sufficient condition for mutability. Most objects begin existence in the
+	 * *mutable* state. All slots of a *mutable* object may be modified.
 	 */
 	MUTABLE,
 
 	/**
-	 * Indicates that instances of the [descriptor][Descriptor] are
-	 * *immutable*. An [object][AvailObject] that is
-	 * *immutable* may have more than one reference, but must be
-	 * reachable only by a single [fiber][FiberDescriptor]. An
-	 * *immutable* object may not be modified, in general, though some
+	 * Indicates that instances of the [descriptor][Descriptor] are *immutable*.
+	 * An [object][AvailObject] that is *immutable* may have more than one
+	 * reference, but must be reachable only by a single
+	 * [fiber][FiberDescriptor]. An *immutable* object may not be modified, in
+	 * general, though some
 	 * [slots][AbstractDescriptor.allowsImmutableToMutableReferenceInField] may
 	 * remain mutable.
 	 */
@@ -85,17 +82,5 @@ enum class Mutability {
 	 * *shared* just before assignment to the [object&#32;slot][ObjectSlotsEnum]
 	 * of a *shared* object.
 	 */
-	SHARED;
-
-	companion object {
-		/*
-	 * Remember how we said you shouldn't change the order of these?  Let's
-	 * make sure everyone has read the comments before changing stuff.
-	 */
-		init {
-			assert(MUTABLE.ordinal == 0)
-			assert(IMMUTABLE.ordinal == 1)
-			assert(SHARED.ordinal == 2)
-		}
-	}
+	SHARED
 }

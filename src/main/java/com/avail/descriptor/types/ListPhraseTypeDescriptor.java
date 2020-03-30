@@ -34,7 +34,7 @@ package com.avail.descriptor.types;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.AbstractDescriptor;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
@@ -99,7 +99,7 @@ extends PhraseTypeDescriptor
 		 * The hash, or zero ({@code 0}) if the hash has not yet been computed.
 		 */
 		static final BitField
-			HASH_OR_ZERO = AbstractDescriptor.bitField(HASH_AND_MORE, 0, 32);
+			HASH_OR_ZERO = new BitField(HASH_AND_MORE, 0, 32);
 
 		static
 		{

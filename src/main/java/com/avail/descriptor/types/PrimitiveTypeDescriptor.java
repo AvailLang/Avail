@@ -34,8 +34,7 @@ package com.avail.descriptor.types;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.AbstractDescriptor;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.NilDescriptor;
 import com.avail.descriptor.representation.BitField;
@@ -106,8 +105,7 @@ extends TypeDescriptor
 		/**
 		 * The hash, populated during construction.
 		 */
-		static final BitField
-			HASH = AbstractDescriptor.bitField(HASH_AND_MORE, 0, 32);
+		static final BitField HASH = new BitField(HASH_AND_MORE, 0, 32);
 	}
 
 	/**

@@ -32,7 +32,7 @@
 
 package com.avail.descriptor.maps;
 
-import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.maps.MapDescriptor.Entry;
 import com.avail.descriptor.maps.MapDescriptor.MapIterable;

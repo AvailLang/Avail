@@ -33,7 +33,7 @@
 package com.avail.optimizer.jvm;
 
 import com.avail.AvailThread;
-import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.A_Module;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.functions.A_RawFunction;

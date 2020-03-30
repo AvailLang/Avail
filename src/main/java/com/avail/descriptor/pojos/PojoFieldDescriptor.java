@@ -33,7 +33,7 @@
 package com.avail.descriptor.pojos;
 
 import com.avail.annotations.AvailMethod;
-import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.Descriptor;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;

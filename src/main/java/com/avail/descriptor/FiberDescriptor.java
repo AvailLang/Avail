@@ -49,10 +49,10 @@ import com.avail.descriptor.maps.A_Map;
 import com.avail.descriptor.phrases.A_Phrase;
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor;
 import com.avail.descriptor.pojos.RawPojoDescriptor;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.representation.AbstractSlotsEnum;
 import com.avail.descriptor.representation.BitField;
 import com.avail.descriptor.representation.IntegerEnumSlotDescriptionEnum;
-import com.avail.descriptor.representation.IntegerSlotsEnum;
 import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.sets.SetDescriptor;
@@ -311,50 +311,50 @@ extends Descriptor
 		 * The hash of this fiber, which is chosen randomly on the first demand.
 		 */
 		static final BitField HASH_OR_ZERO =
-			bitField(FLAGS, 0, 32);
+			new BitField(FLAGS, 0, 32);
 
 		/**
 		 * The priority of this fiber, where processes with larger values get
 		 * at least as much opportunity to run as processes with lower values.
 		 */
 		static final BitField PRIORITY =
-			bitField(FLAGS, 32, 8);
+			new BitField(FLAGS, 32, 8);
 
 		/** See {@link InterruptRequestFlag#TERMINATION_REQUESTED}. */
 		static final BitField _TERMINATION_REQUESTED =
-			bitField(FLAGS, 40, 1);
+			new BitField(FLAGS, 40, 1);
 
 		/** See {@link InterruptRequestFlag#REIFICATION_REQUESTED}. */
 		static final BitField _REIFICATION_REQUESTED =
-			bitField(FLAGS, 41, 1);
+			new BitField(FLAGS, 41, 1);
 
 		/** See {@link SynchronizationFlag#BOUND}. */
 		static final BitField _BOUND =
-			bitField(FLAGS, 42, 1);
+			new BitField(FLAGS, 42, 1);
 
 		/** See {@link SynchronizationFlag#SCHEDULED}. */
 		static final BitField _SCHEDULED =
-			bitField(FLAGS, 43, 1);
+			new BitField(FLAGS, 43, 1);
 
 		/** See {@link SynchronizationFlag#PERMIT_UNAVAILABLE}. */
 		static final BitField _PERMIT_UNAVAILABLE =
-			bitField(FLAGS, 44, 1);
+			new BitField(FLAGS, 44, 1);
 
 		/** See {@link TraceFlag#TRACE_VARIABLE_READS_BEFORE_WRITES}. */
 		static final BitField _TRACE_VARIABLE_READS_BEFORE_WRITES =
-			bitField(FLAGS, 45, 1);
+			new BitField(FLAGS, 45, 1);
 
 		/** See {@link TraceFlag#TRACE_VARIABLE_WRITES}. */
 		static final BitField _TRACE_VARIABLE_WRITES =
-			bitField(FLAGS, 46, 1);
+			new BitField(FLAGS, 46, 1);
 
 		/** See {@link GeneralFlag#CAN_REJECT_PARSE}. */
 		static final BitField _CAN_REJECT_PARSE =
-			bitField(FLAGS, 47, 1);
+			new BitField(FLAGS, 47, 1);
 
 		/** See {@link GeneralFlag#CAN_REJECT_PARSE}. */
 		static final BitField _IS_EVALUATING_MACRO =
-			bitField(FLAGS, 48, 1);
+			new BitField(FLAGS, 48, 1);
 	}
 
 	/**

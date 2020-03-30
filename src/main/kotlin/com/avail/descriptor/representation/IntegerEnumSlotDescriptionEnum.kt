@@ -34,14 +34,11 @@ package com.avail.descriptor.representation
 /**
  * The `IntegerEnumSlotDescriptionEnum` is an interface that constrains an
  * enumeration used to describe the values that can occur in a particular
- * [integer slot][IntegerSlotsEnum].
+ * [integer slot][IntegerSlotsEnum] or [BitField].
  *
- *
- *
- * It includes the [.name] and [.ordinal] operations to ensure
- * they are statically available in the actual implementations, which are really
- * intended to be enums, but Java doesn't provide a way to subcategorize enums.
- *
+ * It includes the [name] and [ordinal] operations to ensure they are statically
+ * available in the actual implementations, which are really intended to be
+ * [Enum]s, but neither Java nor Kotlin provide a way to sub-categorize enums.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -49,9 +46,10 @@ interface IntegerEnumSlotDescriptionEnum {
 	/**
 	 * Answer the name of this enumeration value.
 	 *
-	 * @return A string that names this enumeration value.
+	 * @return
+	 *   A string that names this enumeration value.
 	 */
-	fun name(): String?
+	fun name(): String
 
 	/**
 	 * Answer an integer that identifies this enumeration value uniquely within
@@ -59,7 +57,8 @@ interface IntegerEnumSlotDescriptionEnum {
 	 * interface).  These values are allocated sequentially to the enumeration
 	 * values, starting at zero.
 	 *
-	 * @return The enumeration value's ordinal number.
+	 * @return
+	 *   The enumeration value's ordinal number.
 	 */
 	fun ordinal(): Int
 }

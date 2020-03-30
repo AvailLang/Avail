@@ -29,8 +29,12 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.descriptor
+package com.avail.descriptor.representation
 
+import com.avail.descriptor.AbstractDescriptor
+import com.avail.descriptor.AvailObject
+import com.avail.descriptor.FillerDescriptor
+import com.avail.descriptor.IndirectionDescriptor
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.functions.*
 import com.avail.descriptor.maps.A_Map
@@ -39,8 +43,6 @@ import com.avail.descriptor.objects.ObjectDescriptor
 import com.avail.descriptor.objects.ObjectTypeDescriptor
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
-import com.avail.descriptor.representation.AvailObjectFieldHelper
-import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor.SetIterator
 import com.avail.descriptor.tokens.A_Token

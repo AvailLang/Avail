@@ -34,7 +34,7 @@ package com.avail.descriptor.numbers;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.representation.Mutability;

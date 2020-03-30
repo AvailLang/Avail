@@ -31,13 +31,7 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.AbstractDescriptor;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.representation.AbstractAvailObject;
 import com.avail.descriptor.types.A_Type;
-import com.avail.descriptor.variables.A_Variable;
-import com.avail.descriptor.variables.VariableDescriptor;
 import com.avail.exceptions.VariableGetException;
 import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.Interpreter;
@@ -56,8 +50,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import static com.avail.descriptor.A_BasicObject.makeImmutableMethod;
-import static com.avail.descriptor.A_BasicObject.traversedMethod;
+import static com.avail.descriptor.representation.A_BasicObject.makeImmutableMethod;
+import static com.avail.descriptor.representation.A_BasicObject.traversedMethod;
 import static com.avail.descriptor.AbstractDescriptor.isMutableMethod;
 import static com.avail.descriptor.representation.AbstractAvailObject.descriptorMethod;
 import static com.avail.descriptor.types.VariableTypeDescriptor.mostGeneralVariableType;

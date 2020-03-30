@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.types.A_Type;
 import com.avail.descriptor.types.TypeTag;

@@ -32,7 +32,7 @@
 package com.avail.optimizer;
 
 import com.avail.AvailRuntime;
-import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.atoms.AtomDescriptor;
 import com.avail.descriptor.bundles.A_Bundle;

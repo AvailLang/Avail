@@ -33,7 +33,7 @@
 package com.avail.descriptor.types;
 
 import com.avail.annotations.AvailMethod;
-import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.functions.ContinuationDescriptor;

@@ -32,7 +32,7 @@
 
 package com.avail.interpreter.primitive.tuples
 
-import com.avail.descriptor.A_BasicObject
+import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.numbers.InfinityDescriptor.positiveInfinity

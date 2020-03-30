@@ -33,10 +33,9 @@ package com.avail.descriptor.bundles
 
 import com.avail.annotations.AvailMethod
 import com.avail.compiler.splitter.MessageSplitter
-import com.avail.descriptor.A_BasicObject
+import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.AvailObject
 import com.avail.descriptor.Descriptor
-import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.bundles.MessageBundleDescriptor.ObjectSlots
 import com.avail.descriptor.maps.A_Map

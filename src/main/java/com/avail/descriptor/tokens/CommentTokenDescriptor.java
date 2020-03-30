@@ -82,7 +82,7 @@ extends TokenDescriptor
 		 * should be plenty.
 		 */
 		static final BitField LINE_NUMBER =
-			bitField(START_AND_LINE, 4, 28);
+			new BitField(START_AND_LINE, 4, 28);
 
 		/**
 		 * The starting position in the source file. Currently signed 32 bits,
@@ -92,7 +92,7 @@ extends TokenDescriptor
 		 */
 		@HideFieldInDebugger
 		static final BitField START =
-			bitField(START_AND_LINE, 32, 32);
+			new BitField(START_AND_LINE, 32, 32);
 
 		static
 		{

@@ -45,7 +45,7 @@ import org.objectweb.asm.MethodVisitor;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import static com.avail.descriptor.A_BasicObject.makeImmutableMethod;
+import static com.avail.descriptor.representation.A_BasicObject.makeImmutableMethod;
 import static com.avail.descriptor.variables.A_Variable.getValueMethod;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;

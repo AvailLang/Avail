@@ -33,8 +33,7 @@
 package com.avail.descriptor.types;
 
 import com.avail.annotations.AvailMethod;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.AbstractDescriptor;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
@@ -84,7 +83,7 @@ extends TypeDescriptor
 		 * being coalesced with more direct representations.
 		 */
 		static final BitField TUPLE_TYPE_COMPLEXITY =
-			AbstractDescriptor.bitField(TUPLE_TYPE_COMPLEXITY_AND_MORE, 0, 32);
+			new BitField(TUPLE_TYPE_COMPLEXITY_AND_MORE, 0, 32);
 	}
 
 	/**

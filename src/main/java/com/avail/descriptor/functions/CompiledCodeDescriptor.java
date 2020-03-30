@@ -38,12 +38,13 @@ import com.avail.annotations.EnumField.Converter;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.HideFieldJustForPrinting;
 import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.A_Module;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.Descriptor;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.atoms.AtomDescriptor;
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom;
@@ -56,8 +57,6 @@ import com.avail.descriptor.representation.AbstractSlotsEnum;
 import com.avail.descriptor.representation.AvailObjectFieldHelper;
 import com.avail.descriptor.representation.BitField;
 import com.avail.descriptor.representation.Mutability;
-import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
-import com.avail.descriptor.representation.ObjectSlotsEnum;
 import com.avail.descriptor.tuples.A_String;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.descriptor.tuples.NybbleTupleDescriptor;
@@ -194,7 +193,7 @@ extends Descriptor
 		 * code object}.  It is computed at construction time.
 		 */
 		@HideFieldInDebugger
-		static final BitField HASH = bitField(
+		static final BitField HASH = new BitField(
 			HASH_AND_PRIMITIVE_AND_OUTERS, 32, 32);
 
 		/**
@@ -210,7 +209,7 @@ extends Descriptor
 		@EnumField(
 			describedBy=Primitive.class,
 			lookupMethodName="byPrimitiveNumberOrNull")
-		static final BitField PRIMITIVE = bitField(
+		static final BitField PRIMITIVE = new BitField(
 			HASH_AND_PRIMITIVE_AND_OUTERS, 16, 16);
 
 		/**
@@ -220,7 +219,7 @@ extends Descriptor
 		@EnumField(
 			describedBy = Converter.class,
 			lookupMethodName = "decimal")
-		static final BitField NUM_OUTERS = bitField(
+		static final BitField NUM_OUTERS = new BitField(
 			HASH_AND_PRIMITIVE_AND_OUTERS, 0, 16);
 
 		/**
@@ -231,7 +230,7 @@ extends Descriptor
 		@EnumField(
 			describedBy = Converter.class,
 			lookupMethodName = "decimal")
-		static final BitField FRAME_SLOTS = bitField(
+		static final BitField FRAME_SLOTS = new BitField(
 			NUM_SLOTS_ARGS_LOCALS_AND_CONSTANTS, 48, 16);
 
 		/**
@@ -241,7 +240,7 @@ extends Descriptor
 		@EnumField(
 			describedBy = Converter.class,
 			lookupMethodName = "decimal")
-		static final BitField NUM_ARGS = bitField(
+		static final BitField NUM_ARGS = new BitField(
 			NUM_SLOTS_ARGS_LOCALS_AND_CONSTANTS, 32, 16);
 
 		/**
@@ -251,7 +250,7 @@ extends Descriptor
 		@EnumField(
 			describedBy = Converter.class,
 			lookupMethodName = "decimal")
-		static final BitField NUM_LOCALS = bitField(
+		static final BitField NUM_LOCALS = new BitField(
 			NUM_SLOTS_ARGS_LOCALS_AND_CONSTANTS, 16, 16);
 
 		/**
@@ -261,7 +260,7 @@ extends Descriptor
 		@EnumField(
 			describedBy = Converter.class,
 			lookupMethodName = "decimal")
-		static final BitField NUM_CONSTANTS = bitField(
+		static final BitField NUM_CONSTANTS = new BitField(
 			NUM_SLOTS_ARGS_LOCALS_AND_CONSTANTS, 0, 16);
 	}
 

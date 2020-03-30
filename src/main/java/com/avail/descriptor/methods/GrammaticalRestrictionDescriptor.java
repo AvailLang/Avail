@@ -34,7 +34,7 @@ package com.avail.descriptor.methods;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.A_Module;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.Descriptor;
@@ -113,7 +113,7 @@ extends Descriptor
 		 * A slot to hold the hash value, a random value computed at
 		 * construction time.
 		 */
-		static final BitField HASH = bitField(HASH_AND_MORE, 0, 32);
+		static final BitField HASH = new BitField(HASH_AND_MORE, 0, 32);
 	}
 
 	/**

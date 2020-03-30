@@ -33,7 +33,7 @@
 package com.avail.descriptor.phrases;
 
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.A_Module;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.NilDescriptor;

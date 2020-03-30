@@ -55,6 +55,7 @@ import com.avail.descriptor.maps.MapDescriptor.Entry;
 import com.avail.descriptor.methods.*;
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom;
 import com.avail.descriptor.pojos.RawPojoDescriptor;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.sets.SetDescriptor;
 import com.avail.descriptor.tokens.TokenDescriptor.StaticInit;

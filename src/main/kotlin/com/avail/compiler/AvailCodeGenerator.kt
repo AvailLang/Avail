@@ -33,7 +33,7 @@
 package com.avail.compiler
 
 import com.avail.compiler.instruction.*
-import com.avail.descriptor.A_BasicObject
+import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.A_Module
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.bundles.A_Bundle

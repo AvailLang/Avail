@@ -38,7 +38,7 @@ import com.avail.annotations.EnumField.Converter;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.HideFieldJustForPrinting;
 import com.avail.compiler.scanning.LexingState;
-import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.Descriptor;
 import com.avail.descriptor.NilDescriptor;
@@ -107,7 +107,7 @@ extends Descriptor
 		 */
 		@EnumField(describedBy = TokenType.class)
 		static final BitField TOKEN_TYPE_CODE =
-			bitField(TOKEN_TYPE_AND_START_AND_LINE, 0, 4);
+			new BitField(TOKEN_TYPE_AND_START_AND_LINE, 0, 4);
 
 		/**
 		 * The line number in the source file. Currently signed 28 bits, which
@@ -117,7 +117,7 @@ extends Descriptor
 			describedBy = Converter.class,
 			lookupMethodName = "decimal")
 		static final BitField LINE_NUMBER =
-			bitField(TOKEN_TYPE_AND_START_AND_LINE, 4, 28);
+			new BitField(TOKEN_TYPE_AND_START_AND_LINE, 4, 28);
 
 		/**
 		 * The starting position in the source file. Currently signed 32 bits,
@@ -127,7 +127,7 @@ extends Descriptor
 		 */
 		@HideFieldInDebugger
 		static final BitField START =
-			bitField(TOKEN_TYPE_AND_START_AND_LINE, 32, 32);
+			new BitField(TOKEN_TYPE_AND_START_AND_LINE, 32, 32);
 	}
 
 	/**

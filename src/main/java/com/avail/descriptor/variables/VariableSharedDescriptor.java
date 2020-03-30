@@ -34,8 +34,7 @@ package com.avail.descriptor.variables;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.descriptor.A_BasicObject;
-import com.avail.descriptor.AbstractDescriptor;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.NilDescriptor;
 import com.avail.descriptor.atoms.A_Atom;
@@ -102,8 +101,8 @@ extends VariableDescriptor
 		 * A slot to hold the hash value.  Must be computed when (or before)
 		 * making a variable shared.
 		 */
-		static final BitField
-			HASH_ALWAYS_SET = AbstractDescriptor.bitField(HASH_AND_MORE, 0, 32);
+		static final BitField HASH_ALWAYS_SET =
+			new BitField(HASH_AND_MORE, 0, 32);
 
 		static
 		{

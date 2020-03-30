@@ -41,6 +41,7 @@ import com.avail.descriptor.*;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.representation.AbstractSlotsEnum;
 import com.avail.descriptor.representation.AvailObjectRepresentation;
 import com.avail.descriptor.representation.BitField;
@@ -126,7 +127,7 @@ extends Descriptor
 		@EnumField(
 			describedBy = Converter.class,
 			lookupMethodName = "decimal")
-		public static final BitField PROGRAM_COUNTER = bitField(
+		public static final BitField PROGRAM_COUNTER = new BitField(
 			PROGRAM_COUNTER_AND_STACK_POINTER,
 			32,
 			32);
@@ -139,7 +140,7 @@ extends Descriptor
 		@EnumField(
 			describedBy = Converter.class,
 			lookupMethodName = "decimal")
-		public static final BitField STACK_POINTER = bitField(
+		public static final BitField STACK_POINTER = new BitField(
 			PROGRAM_COUNTER_AND_STACK_POINTER,
 			0,
 			32);
@@ -151,7 +152,7 @@ extends Descriptor
 		@EnumField(
 			describedBy = Converter.class,
 			lookupMethodName = "decimal")
-		public static final BitField LEVEL_TWO_OFFSET = bitField(
+		public static final BitField LEVEL_TWO_OFFSET = new BitField(
 			LEVEL_TWO_OFFSET_AND_OTHER,
 			32,
 			32);

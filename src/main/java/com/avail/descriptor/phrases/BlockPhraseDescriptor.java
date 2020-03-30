@@ -35,7 +35,7 @@ package com.avail.descriptor.phrases;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.EnumField;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.descriptor.A_BasicObject;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.A_Module;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
@@ -114,7 +114,7 @@ extends PhraseDescriptor
 		@EnumField(
 			describedBy=Primitive.class,
 			lookupMethodName="byPrimitiveNumberOrNull")
-		static final BitField PRIMITIVE = bitField(
+		static final BitField PRIMITIVE = new BitField(
 			PRIMITIVE_AND_STARTING_LINE_NUMBER,
 			0,
 			32);
@@ -122,7 +122,7 @@ extends PhraseDescriptor
 		/**
 		 * The line number on which this block starts.
 		 */
-		static final BitField STARTING_LINE_NUMBER = bitField(
+		static final BitField STARTING_LINE_NUMBER = new BitField(
 			PRIMITIVE_AND_STARTING_LINE_NUMBER,
 			32,
 			32);
