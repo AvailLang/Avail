@@ -332,7 +332,7 @@ class AvailObject private constructor(
 	 * Answer whether the [argument&#32;types][AvailObject#argsTupleType]
 	 * supported by the specified [function&#32;type][FunctionTypeDescriptor]
 	 * are acceptable argument types for invoking a
-	 * [function][FunctionDescritor] whose type is the receiver.
+	 * [function][FunctionDescriptor] whose type is the receiver.
 	 *
 	 * @param functionType
 	 *   A function type.
@@ -1687,7 +1687,7 @@ class AvailObject private constructor(
 		descriptor().let {
 			when(it.mutability) {
 				Mutability.SHARED -> this
-				else -> it.o_MakeImmutable(this)
+				else -> it.o_MakeShared(this)
 			}
 		}
 

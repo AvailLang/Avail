@@ -33,6 +33,7 @@ package com.avail.descriptor.representation
 
 import com.avail.descriptor.*
 import com.avail.optimizer.jvm.CheckedMethod
+import com.avail.optimizer.jvm.CheckedMethod.*
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 
 /**
@@ -63,8 +64,7 @@ abstract class AbstractAvailObject protected constructor(
 	 * semantics. The descriptor essentially says how this object should behave,
 	 * including how its fields are laid out.
 	 */
-	protected @field:Volatile var currentDescriptor: AbstractDescriptor =
-		initialDescriptor
+	protected @field:Volatile var currentDescriptor = initialDescriptor
 
 	/** Retrieve this object's current [descriptor][AbstractDescriptor]. */
 	@ReferencedInGeneratedCode
@@ -88,8 +88,8 @@ abstract class AbstractAvailObject protected constructor(
 	protected fun checkValidAddress() { }
 
 	/**
-	 * Answer whether the [objects][AvailObject] occupy the same
-	 * memory addresses.
+	 * Answer whether the [objects][AvailObject] occupy the same memory
+	 * addresses.
 	 *
 	 * @param anotherObject
 	 *   Another object.
@@ -99,19 +99,20 @@ abstract class AbstractAvailObject protected constructor(
 	fun sameAddressAs(anotherObject: A_BasicObject) = this === anotherObject
 
 	/**
-	 * Replace the [descriptor][AbstractDescriptor] with a [ ]. This blows up for most messages,
-	 * catching further uses of this object; note that all further uses are
-	 * incorrect by definition.
+	 * Replace the [descriptor][AbstractDescriptor] with a
+	 * [filler][FillerDescriptor]. This blows up for most messages, catching
+	 * further uses of this object. Note that all further uses are incorrect by
+	 * definition.
 	 */
 	fun destroy() {
 		currentDescriptor = FillerDescriptor.shared
 	}
 
 	/**
-	 * Has this [object][AvailObject] been [ destroyed][.destroy]?
+	 * Has this [object][AvailObject] been [destroyed][destroy]?
 	 *
-	 * @return `true` if the object has been destroyed, `false`
-	 * otherwise.
+	 * @return
+	 *   `true` if the object has been destroyed, `false` otherwise.
 	 */
 	protected val isDestroyed: Boolean
 		get() {
@@ -123,7 +124,8 @@ abstract class AbstractAvailObject protected constructor(
 	 * Answer the number of integer slots. All variable integer slots occur
 	 * following the last fixed integer slot.
 	 *
-	 * @return The number of integer slots.
+	 * @return
+	 *   The number of integer slots.
 	 */
 	abstract fun integerSlotsCount(): Int
 
@@ -131,72 +133,76 @@ abstract class AbstractAvailObject protected constructor(
 	 * Answer the number of variable integer slots in this object. This does not
 	 * include the fixed integer slots.
 	 *
-	 * @return The number of variable integer slots.
+	 * @return
+	 *   The number of variable integer slots.
 	 */
-	fun variableIntegerSlotsCount(): Int =
+	fun variableIntegerSlotsCount() =
 		integerSlotsCount() - currentDescriptor.numberOfFixedIntegerSlots()
 
 	/**
-	 * Answer the number of object slots in this [AvailObject]. All
-	 * variable object slots occur following the last fixed object slot.
+	 * Answer the number of object slots in this [AvailObject]. All variable
+	 * object slots occur following the last fixed object slot.
 	 *
-	 * @return The number of object slots.
+	 * @return
+	 *   The number of object slots.
 	 */
 	abstract fun objectSlotsCount(): Int
 
 	/**
-	 * Answer the number of variable object slots in this [AvailObject].
-	 * This does not include the fixed object slots.
+	 * Answer the number of variable object slots in this [AvailObject]. This
+	 * does not include the fixed object slots.
 	 *
-	 * @return The number of variable object slots.
+	 * @return
+	 *   The number of variable object slots.
 	 */
-	fun variableObjectSlotsCount(): Int =
+	fun variableObjectSlotsCount() =
 		objectSlotsCount() - currentDescriptor.numberOfFixedObjectSlots()
 
 	/**
 	 * Sanity check: ensure that the specified field is writable.
 	 *
-	 * @param e An `enum` value whose ordinal is the field position.
+	 * @param e
+	 *   An `enum` value whose ordinal is the field position.
 	 */
 	fun checkWriteForField(e: AbstractSlotsEnum) =
 		currentDescriptor.checkWriteForField(e)
 
 	/**
-	 * Slice the current [object][AvailObject] into two objects, the
-	 * left one (at the same starting address as the input), and the right
-	 * one (a [filler object][FillerDescriptor] that nobody should
-	 * ever create a pointer to). The new Filler can have zero post-header slots
-	 * (i.e., just the header), but the left object must not, since it may turn
-	 * into an [indirection][IndirectionDescriptor] some day and will
-	 * require at least one slot for the target pointer.
+	 * Slice the current [object][AvailObject] into two objects, the left one
+	 * (at the same starting address as the input), and the right one (a
+	 * [filler][FillerDescriptor] object that nobody should ever create a
+	 * pointer to). The new filler can have zero post-header slots (i.e., just
+	 * the header), but the left object must not, since it may turn into an
+	 * [indirection][IndirectionDescriptor] some day and will require at least
+	 * one slot for the target pointer.
 	 *
 	 * @param newIntegerSlotsCount
-	 * The number of integer slots in the left object.
+	 *   The number of integer slots in the left object.
 	 */
 	abstract fun truncateWithFillerForNewIntegerSlotsCount(
 		newIntegerSlotsCount: Int)
 
 	/**
-	 * Slice the current [object][AvailObject] into two objects, the
-	 * left one (at the same starting address as the input), and the right
-	 * one (a [filler object][FillerDescriptor] that nobody should
-	 * ever create a pointer to). The new Filler can have zero post-header slots
-	 * (i.e., just the header), but the left object must not, since it may turn
-	 * into an [indirection][IndirectionDescriptor] some day and will
-	 * require at least one slot for the target pointer.
+	 * Slice the current [object][AvailObject] into two objects, the left one
+	 * (at the same starting address as the input), and the right one (a
+	 * [filler][FillerDescriptor] object that nobody should ever create a
+	 * pointer to). The new filler can have zero post-header slots (i.e., just
+	 * the header), but the left object must not, since it may turn into an
+	 * [indirection][IndirectionDescriptor] some day and will require at least
+	 * one slot for the target pointer.
 	 *
-	 * @param newObjectSlotsCount The number of object slots in the left object.
+	 * @param newObjectSlotsCount
+	 *   The number of object slots in the left object.
 	 */
 	abstract fun truncateWithFillerForNewObjectSlotsCount(
 		newObjectSlotsCount: Int)
 
 	companion object {
-		/** The [CheckedMethod] for [.descriptor].  */
+		/** The [CheckedMethod] for [descriptor].  */
 		@JvmField
-		val descriptorMethod = CheckedMethod.instanceMethod(
+		val descriptorMethod: CheckedMethod = instanceMethod(
 			AbstractAvailObject::class.java,
 			"descriptor",
 			AbstractDescriptor::class.java)
 	}
-
 }
