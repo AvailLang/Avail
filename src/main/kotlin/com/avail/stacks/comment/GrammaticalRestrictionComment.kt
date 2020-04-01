@@ -32,8 +32,8 @@
 
 package com.avail.stacks.comment
 
-import com.avail.descriptor.StringDescriptor.stringFrom
 import com.avail.descriptor.tuples.A_String
+import com.avail.descriptor.tuples.StringDescriptor.stringFrom
 import com.avail.stacks.CommentGroup
 import com.avail.stacks.LinkingFileMap
 import com.avail.stacks.StacksDescription

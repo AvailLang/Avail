@@ -31,12 +31,12 @@
  */
 package com.avail.interpreter.primitive.privatehelpers
 
-import com.avail.descriptor.A_RawFunction
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn
-import com.avail.descriptor.BottomTypeDescriptor.bottom
-import com.avail.descriptor.CompiledCodeDescriptor
-import com.avail.descriptor.TypeDescriptor.Types.TOP
+import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.CompiledCodeDescriptor
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn
+import com.avail.descriptor.types.BottomTypeDescriptor.bottom
+import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*

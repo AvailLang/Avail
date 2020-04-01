@@ -31,9 +31,9 @@
  */
 
 package com.avail;
-import com.avail.descriptor.A_Set;
-import com.avail.descriptor.MacroDefinitionDescriptor;
-import com.avail.descriptor.StringDescriptor;
+import com.avail.descriptor.methods.MacroDefinitionDescriptor;
+import com.avail.descriptor.sets.A_Set;
+import com.avail.descriptor.tuples.StringDescriptor;
 import com.avail.interpreter.Interpreter;
 
 import javax.annotation.Nullable;
@@ -41,7 +41,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Scanner;
 
-import static com.avail.descriptor.SetDescriptor.generateSetFrom;
+import static com.avail.descriptor.sets.SetDescriptor.generateSetFrom;
 
 /**
  * This class contains static state and methods related to the current running

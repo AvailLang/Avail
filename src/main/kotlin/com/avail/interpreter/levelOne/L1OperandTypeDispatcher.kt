@@ -32,7 +32,7 @@
 
 package com.avail.interpreter.levelOne
 
-import com.avail.descriptor.FunctionDescriptor
+import com.avail.descriptor.functions.FunctionDescriptor
 
 /**
  * A visitor for [L1OperandType]s.

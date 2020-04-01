@@ -32,19 +32,19 @@
 
 package com.avail.interpreter.primitive.modules
 
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.EnumerationTypeDescriptor
-import com.avail.descriptor.EnumerationTypeDescriptor.booleanType
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers
 import com.avail.descriptor.ModuleDescriptor.ObjectSlots
 import com.avail.descriptor.ModuleDescriptor.currentModule
 import com.avail.descriptor.NilDescriptor.nil
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType
-import com.avail.descriptor.TupleTypeDescriptor.stringType
-import com.avail.descriptor.TypeDescriptor.Types.TOP
 import com.avail.descriptor.atoms.AtomDescriptor
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.EnumerationTypeDescriptor
+import com.avail.descriptor.types.EnumerationTypeDescriptor.booleanType
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.naturalNumbers
+import com.avail.descriptor.types.SetTypeDescriptor.setTypeForSizesContentType
+import com.avail.descriptor.types.TupleTypeDescriptor.stringType
+import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
@@ -74,13 +74,9 @@ object P_DeclareAllAtomsExportedFromAnotherModule : Primitive(
 		importedModuleNames.forEach { importedModuleName ->
 			val importedModule = runtime.moduleAt(importedModuleName)
 			val names = importedModule.exportedNames()
-			if (isPublic.extractBoolean())
-			{
-				module.addImportedNames(names)
-			}
-			else
-			{
-				module.addPrivateNames(names)
+			when(isPublic.extractBoolean()) {
+				true -> module.addImportedNames(names)
+				else -> module.addPrivateNames(names)
 			}
 		}
 		return interpreter.primitiveSuccess(nil)

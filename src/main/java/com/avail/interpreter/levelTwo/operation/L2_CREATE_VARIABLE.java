@@ -31,8 +31,8 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.VariableDescriptor;
-import com.avail.descriptor.VariableTypeDescriptor;
+import com.avail.descriptor.types.VariableTypeDescriptor;
+import com.avail.descriptor.variables.VariableDescriptor;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;

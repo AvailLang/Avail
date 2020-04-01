@@ -30,9 +30,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.avail.optimizer.values;
-import com.avail.descriptor.A_Continuation;
-import com.avail.descriptor.A_RawFunction;
-import com.avail.descriptor.CompiledCodeDescriptor;
+import com.avail.descriptor.functions.A_Continuation;
+import com.avail.descriptor.functions.A_RawFunction;
+import com.avail.descriptor.functions.CompiledCodeDescriptor;
 import com.avail.interpreter.levelTwo.L2Chunk;
 
 import javax.annotation.Nullable;

@@ -31,14 +31,14 @@
  */
 package com.avail.interpreter.primitive.methods
 
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.DefinitionDescriptor
-import com.avail.descriptor.FunctionDescriptor
-import com.avail.descriptor.FunctionTypeDescriptor
-import com.avail.descriptor.FunctionTypeDescriptor.functionMeta
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.TypeDescriptor.Types.DEFINITION
+import com.avail.descriptor.functions.FunctionDescriptor
+import com.avail.descriptor.methods.DefinitionDescriptor
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.FunctionTypeDescriptor
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionMeta
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.TypeDescriptor.Types.DEFINITION
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*

@@ -46,7 +46,7 @@ import org.objectweb.asm.MethodVisitor;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import static com.avail.descriptor.IntegerDescriptor.zero;
+import static com.avail.descriptor.numbers.IntegerDescriptor.zero;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.*;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForConstant;

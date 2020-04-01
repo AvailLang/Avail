@@ -33,7 +33,7 @@
 package com.avail.stacks.scanner
 
 import com.avail.descriptor.CharacterDescriptor
-import com.avail.descriptor.CommentTokenDescriptor
+import com.avail.descriptor.tokens.CommentTokenDescriptor
 import com.avail.stacks.exceptions.StacksScannerException
 import com.avail.stacks.tokens.*
 

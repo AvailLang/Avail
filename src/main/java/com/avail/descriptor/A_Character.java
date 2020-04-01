@@ -32,7 +32,7 @@
 
 package com.avail.descriptor;
 
-import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.representation.A_BasicObject;
 
 /**
  * {@code A_Character} is an interface that specifies the {@linkplain

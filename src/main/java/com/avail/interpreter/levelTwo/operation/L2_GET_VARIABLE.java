@@ -31,8 +31,6 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_Variable;
-import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.exceptions.VariableGetException;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
@@ -47,11 +45,11 @@ import org.objectweb.asm.MethodVisitor;
 import java.util.Set;
 import java.util.function.Consumer;
 
+import static com.avail.descriptor.representation.A_BasicObject.makeImmutableMethod;
+import static com.avail.descriptor.variables.A_Variable.getValueMethod;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.PC;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static org.objectweb.asm.Opcodes.GOTO;
 import static org.objectweb.asm.Opcodes.POP;
 import static org.objectweb.asm.Type.getInternalName;
@@ -139,8 +137,8 @@ extends L2ControlFlowOperation
 		method.visitLabel(tryStart);
 		// ::    dest = variable.getValue().makeImmutable();
 		translator.load(method, variable.register());
-		A_Variable.getValueMethod.generateCall(method);
-		A_BasicObject.makeImmutableMethod.generateCall(method);
+		getValueMethod.generateCall(method);
+		makeImmutableMethod.generateCall(method);
 		translator.store(method, value.register());
 		// ::    goto success;
 		// Note that we cannot potentially eliminate this branch with a

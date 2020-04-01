@@ -32,16 +32,16 @@
 
 package com.avail.interpreter.primitive.bootstrap.lexing
 
-import com.avail.descriptor.A_Number
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.IntegerDescriptor
-import com.avail.descriptor.IntegerDescriptor.cachedSquareOfQuintillion
-import com.avail.descriptor.IntegerDescriptor.fromLong
-import com.avail.descriptor.LexerDescriptor.lexerBodyFunctionType
-import com.avail.descriptor.LiteralTokenDescriptor.literalToken
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.SetDescriptor.set
+import com.avail.descriptor.numbers.A_Number
+import com.avail.descriptor.numbers.IntegerDescriptor
+import com.avail.descriptor.numbers.IntegerDescriptor.cachedSquareOfQuintillion
+import com.avail.descriptor.numbers.IntegerDescriptor.fromLong
+import com.avail.descriptor.parsing.LexerDescriptor.lexerBodyFunctionType
+import com.avail.descriptor.sets.SetDescriptor.set
+import com.avail.descriptor.tokens.LiteralTokenDescriptor.literalToken
 import com.avail.descriptor.tuples.A_String
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.types.A_Type
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*

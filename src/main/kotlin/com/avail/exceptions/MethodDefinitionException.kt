@@ -32,11 +32,7 @@
 
 package com.avail.exceptions
 
-import com.avail.descriptor.AbstractDefinitionDescriptor
-import com.avail.descriptor.ForwardDefinitionDescriptor
-import com.avail.descriptor.MethodDefinitionDescriptor
-import com.avail.descriptor.MethodDescriptor
-import com.avail.descriptor.methods.A_Definition
+import com.avail.descriptor.methods.*
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.exceptions.AvailErrorCode.*
 

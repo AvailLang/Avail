@@ -33,8 +33,8 @@
 package com.avail.interpreter.levelOne
 
 import com.avail.descriptor.AvailObject
-import com.avail.descriptor.MethodDefinitionDescriptor
 import com.avail.descriptor.NilDescriptor
+import com.avail.descriptor.methods.MethodDefinitionDescriptor
 
 
 /**

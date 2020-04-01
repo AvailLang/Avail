@@ -31,17 +31,17 @@
  */
 package com.avail.interpreter.primitive.objects
 
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.InstanceMetaDescriptor.instanceMeta
-import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.NilDescriptor.nil
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.ObjectTypeDescriptor
-import com.avail.descriptor.ObjectTypeDescriptor.mostGeneralObjectType
-import com.avail.descriptor.ObjectTypeDescriptor.setNameForType
-import com.avail.descriptor.TupleTypeDescriptor.stringType
-import com.avail.descriptor.TypeDescriptor.Types.TOP
+import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
+import com.avail.descriptor.objects.ObjectTypeDescriptor
+import com.avail.descriptor.objects.ObjectTypeDescriptor.mostGeneralObjectType
+import com.avail.descriptor.objects.ObjectTypeDescriptor.setNameForType
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.InstanceMetaDescriptor.instanceMeta
+import com.avail.descriptor.types.TupleTypeDescriptor.stringType
+import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*

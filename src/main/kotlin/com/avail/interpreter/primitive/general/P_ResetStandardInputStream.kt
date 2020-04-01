@@ -32,13 +32,13 @@
 
 package com.avail.interpreter.primitive.general
 
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.NilDescriptor.nil
-import com.avail.descriptor.SetDescriptor.set
-import com.avail.descriptor.TupleDescriptor.emptyTuple
-import com.avail.descriptor.TypeDescriptor.Types.TOP
+import com.avail.descriptor.sets.SetDescriptor.set
+import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_IO_ERROR
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive

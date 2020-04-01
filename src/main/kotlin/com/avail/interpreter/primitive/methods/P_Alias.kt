@@ -34,22 +34,22 @@ package com.avail.interpreter.primitive.methods
 
 import com.avail.compiler.splitter.MessageSplitter
 import com.avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.NilDescriptor.nil
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.ParsingPlanInProgressDescriptor.newPlanInProgress
-import com.avail.descriptor.SetDescriptor.set
-import com.avail.descriptor.TupleTypeDescriptor.stringType
-import com.avail.descriptor.TypeDescriptor.Types.ATOM
-import com.avail.descriptor.TypeDescriptor.Types.TOP
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.MESSAGE_BUNDLE_KEY
 import com.avail.descriptor.bundles.A_Bundle
-import com.avail.descriptor.bundles.MessageBundleDescriptor.newBundle
+import com.avail.descriptor.bundles.MessageBundleDescriptor.Companion.newBundle
+import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
+import com.avail.descriptor.parsing.ParsingPlanInProgressDescriptor.newPlanInProgress
+import com.avail.descriptor.sets.SetDescriptor.set
 import com.avail.descriptor.tuples.A_String
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.TupleTypeDescriptor.stringType
+import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
+import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AmbiguousNameException
 import com.avail.exceptions.AvailErrorCode.*
 import com.avail.exceptions.MalformedMessageException
@@ -59,6 +59,7 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
 import com.avail.interpreter.effects.LoadingEffectToRunPrimitive
+import com.avail.utility.evaluation.Continuation0
 
 /**
  * **Primitive:** Alias a [name][A_String] to another [name][A_Atom].
@@ -103,8 +104,7 @@ object P_Alias : Primitive(2, CanInline, HasSideEffect)
 		{
 			val oldBundle = oldAtom.bundleOrCreate()
 			val method = oldBundle.bundleMethod()
-			newBundle = newBundle(
-				newAtom, method, MessageSplitter(newString))
+			newBundle = newBundle(newAtom, method, MessageSplitter(newString))
 			loader.recordEffect(
 				LoadingEffectToRunPrimitive(
 					SpecialMethodAtom.ALIAS.bundle, newString, oldAtom))
@@ -118,12 +118,12 @@ object P_Alias : Primitive(2, CanInline, HasSideEffect)
 		if (loader.phase() == EXECUTING_FOR_COMPILE)
 		{
 			val root = loader.rootBundleTree()
-			loader.module().lock {
-				for (entry in newBundle.definitionParsingPlans().mapIterable())
-				{
-					root.addPlanInProgress(newPlanInProgress(entry.value(), 1))
+			loader.module().lock(Continuation0 {
+				newBundle.definitionParsingPlans().mapIterable().forEach {
+					(_, value) ->
+					root.addPlanInProgress(newPlanInProgress(value, 1))
 				}
-			}
+			})
 		}
 		return interpreter.primitiveSuccess(nil)
 	}

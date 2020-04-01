@@ -34,17 +34,17 @@ package com.avail.compiler
 
 import com.avail.compiler.scanning.LexingState
 import com.avail.descriptor.AvailObject
-import com.avail.descriptor.IntegerDescriptor
-import com.avail.descriptor.IntegerDescriptor.fromInt
-import com.avail.descriptor.ListPhraseDescriptor
-import com.avail.descriptor.LiteralPhraseDescriptor
-import com.avail.descriptor.LiteralPhraseDescriptor.literalNodeFromToken
-import com.avail.descriptor.LiteralPhraseDescriptor.syntheticLiteralNodeFor
-import com.avail.descriptor.LiteralTokenDescriptor.literalToken
-import com.avail.descriptor.MacroSubstitutionPhraseDescriptor.newMacroSubstitution
-import com.avail.descriptor.StringDescriptor.stringFrom
-import com.avail.descriptor.parsing.A_Phrase
-import com.avail.descriptor.parsing.PhraseDescriptor
+import com.avail.descriptor.numbers.IntegerDescriptor
+import com.avail.descriptor.numbers.IntegerDescriptor.fromInt
+import com.avail.descriptor.phrases.A_Phrase
+import com.avail.descriptor.phrases.ListPhraseDescriptor
+import com.avail.descriptor.phrases.LiteralPhraseDescriptor
+import com.avail.descriptor.phrases.LiteralPhraseDescriptor.literalNodeFromToken
+import com.avail.descriptor.phrases.LiteralPhraseDescriptor.syntheticLiteralNodeFor
+import com.avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor.newMacroSubstitution
+import com.avail.descriptor.phrases.PhraseDescriptor
+import com.avail.descriptor.tokens.LiteralTokenDescriptor.literalToken
+import com.avail.descriptor.tuples.StringDescriptor.stringFrom
 
 /**
  * A `ParsingConversionRule` describes how to convert the argument at the

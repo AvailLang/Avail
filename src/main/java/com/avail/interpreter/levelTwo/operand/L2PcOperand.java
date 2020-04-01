@@ -33,7 +33,7 @@
 package com.avail.interpreter.levelTwo.operand;
 
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.ContinuationRegisterDumpDescriptor;
+import com.avail.descriptor.functions.ContinuationRegisterDumpDescriptor;
 import com.avail.interpreter.JavaLibrary;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
@@ -56,7 +56,7 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.atomic.LongAdder;
 
-import static com.avail.descriptor.ContinuationRegisterDumpDescriptor.createRegisterDumpMethod;
+import static com.avail.descriptor.functions.ContinuationRegisterDumpDescriptor.createRegisterDumpMethod;
 import static com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.BOXED;
 import static com.avail.utility.CollectionExtensions.populatedEnumMap;
 import static com.avail.utility.Nulls.stripNull;

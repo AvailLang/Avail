@@ -32,16 +32,16 @@
 
 package com.avail.interpreter.primitive.tuples
 
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.IntegerDescriptor.zero
-import com.avail.descriptor.IntegerIntervalTupleDescriptor
-import com.avail.descriptor.IntegerIntervalTupleDescriptor.createInterval
-import com.avail.descriptor.IntegerRangeTypeDescriptor.integers
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.SetDescriptor.set
-import com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf
+import com.avail.descriptor.numbers.IntegerDescriptor.zero
+import com.avail.descriptor.sets.SetDescriptor.set
+import com.avail.descriptor.tuples.IntegerIntervalTupleDescriptor
+import com.avail.descriptor.tuples.IntegerIntervalTupleDescriptor.createInterval
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.integers
+import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive

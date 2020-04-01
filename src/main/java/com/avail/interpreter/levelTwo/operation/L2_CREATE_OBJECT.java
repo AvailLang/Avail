@@ -32,8 +32,8 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.ObjectLayoutVariant;
 import com.avail.descriptor.atoms.A_Atom;
+import com.avail.descriptor.objects.ObjectLayoutVariant;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
@@ -48,8 +48,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import static com.avail.descriptor.ObjectDescriptor.createUninitializedObjectMethod;
-import static com.avail.descriptor.ObjectDescriptor.setFieldMethod;
+import static com.avail.descriptor.objects.ObjectDescriptor.createUninitializedObjectMethod;
+import static com.avail.descriptor.objects.ObjectDescriptor.setFieldMethod;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 
 /**
@@ -57,6 +57,7 @@ import static com.avail.interpreter.levelTwo.L2OperandType.*;
  * and a vector of values, in the order the variant lays them out as fields.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 public final class L2_CREATE_OBJECT
 extends L2Operation

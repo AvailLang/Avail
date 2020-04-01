@@ -31,10 +31,10 @@
  */
 package com.avail.interpreter.primitive.objects
 
-import com.avail.descriptor.A_RawFunction
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.BottomTypeDescriptor.bottom
-import com.avail.descriptor.ObjectDescriptor
+import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.BottomTypeDescriptor.bottom
+import com.avail.descriptor.objects.ObjectDescriptor
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive

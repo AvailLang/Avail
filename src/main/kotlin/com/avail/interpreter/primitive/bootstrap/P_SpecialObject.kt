@@ -32,15 +32,15 @@
 package com.avail.interpreter.primitive.bootstrap
 
 import com.avail.AvailRuntime
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
 import com.avail.descriptor.AvailObject
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers
-import com.avail.descriptor.LiteralPhraseDescriptor.syntheticLiteralNodeFor
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
-import com.avail.descriptor.SetDescriptor.set
+import com.avail.descriptor.phrases.LiteralPhraseDescriptor.syntheticLiteralNodeFor
+import com.avail.descriptor.sets.SetDescriptor.set
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.naturalNumbers
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import com.avail.exceptions.AvailErrorCode.E_NO_SPECIAL_OBJECT
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
@@ -83,6 +83,6 @@ object P_SpecialObject : Primitive(1, CanInline, Bootstrap)
 			tuple(LITERAL_PHRASE.create(naturalNumbers())),
 			LITERAL_PHRASE.mostGeneralType())
 
-	override fun privateFailureVariableType(): A_Type=
+	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_NO_SPECIAL_OBJECT))
 }

@@ -34,12 +34,12 @@ package com.avail.serialization
 
 import com.avail.AvailRuntime
 import com.avail.descriptor.A_Module
-import com.avail.descriptor.A_Variable
 import com.avail.descriptor.AvailObject
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.AtomDescriptor
-import com.avail.descriptor.objects.A_BasicObject
+import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.tuples.A_String
+import com.avail.descriptor.variables.A_Variable
 import com.avail.serialization.SerializerOperation.*
 import java.io.IOException
 import java.io.OutputStream

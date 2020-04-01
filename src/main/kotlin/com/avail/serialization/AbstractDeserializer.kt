@@ -37,8 +37,8 @@ import com.avail.descriptor.A_Module
 import com.avail.descriptor.AvailObject
 import com.avail.descriptor.ModuleDescriptor
 import com.avail.descriptor.NilDescriptor.nil
-import com.avail.descriptor.StringDescriptor
 import com.avail.descriptor.tuples.A_String
+import com.avail.descriptor.tuples.StringDescriptor
 import java.io.IOException
 import java.io.InputStream
 

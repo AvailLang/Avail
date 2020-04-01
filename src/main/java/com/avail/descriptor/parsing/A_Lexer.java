@@ -33,9 +33,12 @@
 package com.avail.descriptor.parsing;
 
 import com.avail.compiler.scanning.LexingState;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.functions.A_Function;
 import com.avail.descriptor.methods.A_Method;
-import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.representation.A_BasicObject;
+import com.avail.descriptor.tokens.A_Token;
 
 /**
  * {@code A_Lexer} is an interface that specifies the {@linkplain

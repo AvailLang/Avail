@@ -32,12 +32,12 @@
 
 package com.avail.interpreter.primitive.fibers
 
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.FiberTypeDescriptor
-import com.avail.descriptor.FiberTypeDescriptor.fiberMeta
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.InstanceMetaDescriptor.topMeta
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.FiberTypeDescriptor
+import com.avail.descriptor.types.FiberTypeDescriptor.fiberMeta
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.InstanceMetaDescriptor.topMeta
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*

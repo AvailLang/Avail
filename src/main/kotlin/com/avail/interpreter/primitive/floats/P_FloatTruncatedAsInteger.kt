@@ -31,16 +31,16 @@
  */
 package com.avail.interpreter.primitive.floats
 
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.DoubleDescriptor.doubleTruncatedToExtendedInteger
-import com.avail.descriptor.FloatDescriptor
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.IntegerDescriptor
-import com.avail.descriptor.IntegerRangeTypeDescriptor.extendedIntegers
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.SetDescriptor.set
-import com.avail.descriptor.TypeDescriptor.Types.FLOAT
+import com.avail.descriptor.numbers.DoubleDescriptor.doubleTruncatedToExtendedInteger
+import com.avail.descriptor.numbers.FloatDescriptor
+import com.avail.descriptor.numbers.IntegerDescriptor
+import com.avail.descriptor.sets.SetDescriptor.set
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.extendedIntegers
+import com.avail.descriptor.types.TypeDescriptor.Types.FLOAT
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive

@@ -32,8 +32,8 @@
 
 package com.avail.exceptions
 
-import com.avail.descriptor.A_Number
 import com.avail.descriptor.AvailObject
+import com.avail.descriptor.numbers.A_Number
 
 /**
  * `AvailRuntimeException` is the root of the hierarchy of
