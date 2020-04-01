@@ -104,8 +104,7 @@ class CompilerConfiguration : Configuration
 				reader = if (path === null) {
 					StringReader("")
 				} else {
-					BufferedReader(
-						InputStreamReader(FileInputStream(File(path)), UTF_8))
+					File(path).inputStream().reader(UTF_8).buffered()
 				}
 				val renameParser = RenamesFileParser(reader, availRoots!!)
 				resolver = renameParser.parse()
@@ -160,27 +159,4 @@ class CompilerConfiguration : Configuration
 
 	/** The level of verbosity specified for the compiler. */
 	internal var verbosityLevel = GLOBAL_LOCAL_PROGRESS
-
-	override
-	val isValid: Boolean
-		get()
-		{
-			try
-			{
-				// Just try to create a module name resolver. If this fails,
-				// then the configuration is invalid. Otherwise, it should be
-				// okay.
-				moduleNameResolver
-			}
-			catch (e: FileNotFoundException)
-			{
-				return false
-			}
-			catch (e: RenamesFileParserException)
-			{
-				return false
-			}
-
-			return compileModules || generateDocumentation || clearRepositories
-		}
 }

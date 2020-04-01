@@ -44,7 +44,7 @@ import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.interpreter.levelOne.L1InstructionWriter;
 import com.avail.interpreter.primitive.floats.P_FloatFloor;
-import com.avail.persistence.IndexedRepositoryManager;
+import com.avail.persistence.Repository;
 import com.avail.serialization.Deserializer;
 import com.avail.serialization.MalformedSerialStreamException;
 import com.avail.serialization.Serializer;
@@ -114,9 +114,8 @@ public final class SerializerTest
 	@BeforeAll
 	public void initializeAllWellKnownObjects ()
 	{
-		final IndexedRepositoryManager repository =
-			IndexedRepositoryManager.createTemporary(
-				"avail", "test repository", null);
+		final Repository repository =
+			Repository.createTemporary("avail", "test repository", null);
 		final File repositoryFile = repository.getFileName();
 		repository.close();
 		final ModuleRoots roots = new ModuleRoots(String.format(

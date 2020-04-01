@@ -102,7 +102,7 @@ object P_GetObjectTypeField : Primitive(2, CanFold, CanInline)
 	}
 
 	override fun fallibilityForArgumentTypes(argumentTypes: List<A_Type>)
-		: Primitive.Fallibility
+		: Fallibility
 	{
 		val objectMeta = argumentTypes[0]
 		val fieldType = argumentTypes[1]

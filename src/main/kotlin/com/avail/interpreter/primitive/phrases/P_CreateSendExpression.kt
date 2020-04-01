@@ -46,6 +46,7 @@ import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.bundles.A_Bundle
+import com.avail.descriptor.bundles.MessageBundleDescriptor
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import com.avail.exceptions.MalformedMessageException
 import com.avail.interpreter.Interpreter

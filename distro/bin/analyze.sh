@@ -1,7 +1,7 @@
 #!/bin/bash
 #
-# availc
-# Copyright © 1993-2020, The Avail Foundation, LLC.
+# analyze.sh
+# Copyright © 1993-2019, The Avail Foundation, LLC.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -31,10 +31,8 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
+# Assume the currently installed Java is adequate to run the IndexedFileAnalyzer.
+
 JAR=$AVAIL_HOME/lib/avail-cli-1.4-all.jar
 
-SKIP_OPT=true
-source avail-config
-
-# Launch the Avail shell environment
-$VM "${VMARGS[@]}" -jar "$JAR" $*
+java -cp $JAR com.avail.tools.fileanalyzer.IndexedFileAnalyzer $@

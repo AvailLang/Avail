@@ -35,12 +35,16 @@ package com.avail.tools.compiler.configuration
 import com.avail.builder.ModuleName
 import com.avail.builder.ModuleRoots
 import com.avail.builder.RenamesFileParser
+import com.avail.builder.RenamesFileParserException
 import com.avail.performance.StatisticReport
 import com.avail.tools.compiler.configuration.CommandLineConfigurator.OptionKey.*
-import com.avail.tools.options.*
+import com.avail.tools.options.OptionProcessingException
+import com.avail.tools.options.OptionProcessor
+import com.avail.tools.options.OptionProcessorFactory
 import com.avail.utility.configuration.ConfigurationException
 import com.avail.utility.configuration.Configurator
 import java.io.File
+import java.io.FileNotFoundException
 import java.nio.file.InvalidPathException
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -155,20 +159,17 @@ class CommandLineConfigurator constructor(
 	 * @return
 	 *   An option processor.
 	 */
-	private fun createOptionProcessor(): OptionProcessor<OptionKey>
-	{
-		val factory = OptionProcessorFactory(OptionKey::class.java)
-		factory.configure {
-			addOption(GenericOption(
+	private fun createOptionProcessor() =
+		OptionProcessorFactory.create<OptionKey> {
+			optionWithArgument(
 				AVAIL_RENAMES,
 				listOf("availRenames"),
 				"The path to the renames file. This option overrides "
 				+ "environment variables.")
-				{ _, renamesString ->
-					checkEncountered(AVAIL_RENAMES, 0)
-					configuration.renamesFilePath = renamesString
-				})
-			addOption(GenericOption(
+				{
+					configuration.renamesFilePath = argument
+				}
+			optionWithArgument(
 				AVAIL_ROOTS,
 				listOf("availRoots"),
 				"The Avail roots, as a semicolon (;) separated list of module root "
@@ -178,19 +179,17 @@ class CommandLineConfigurator constructor(
 				+ "path to a binary module repository, then optionally a comma "
 				+ "(,) and the absolute path to a source package. This option "
 				+ "overrides environment variables.")
-				{ _, rootsString ->
-					checkEncountered(AVAIL_ROOTS, 0)
-					  configuration.availRootsPath = rootsString!!
-				})
-			addOption(GenericOption(
+				{
+					configuration.availRootsPath = argument
+				}
+			option(
 				COMPILE_MODULES,
 				listOf("c", "compile"),
 				"Compile the target module and its ancestors.")
-				{ _ ->
-					checkEncountered(COMPILE_MODULES, 0)
+				{
 					configuration.compileModules = true
-				})
-			addOption(GenericOption(
+				}
+			option(
 				CLEAR_REPOSITORIES,
 				listOf("f", "clearRepositories"),
 				"Force removal of all repositories for which the Avail root path "
@@ -199,36 +198,33 @@ class CommandLineConfigurator constructor(
 				+ "emptied. In an invocation with a valid target module name, "
 				+ "the repositories will be cleared before compilation is "
 				+ "attempted. Mutually exclusive with -g.")
-				{ _ ->
-					checkEncountered(CLEAR_REPOSITORIES, 0)
-					checkEncountered(GENERATE_DOCUMENTATION, 0)
+				{
+					processor.checkEncountered(GENERATE_DOCUMENTATION, 0)
 					configuration.clearRepositories = true
-				})
-			addOption(GenericOption(
+				}
+			option(
 				GENERATE_DOCUMENTATION,
 				listOf("g", "generateDocumentation"),
 				"Generate Stacks documentation for the target module and its "
 				+ "ancestors. The relevant repositories must already contain "
 				+ "compilations for every module implied by the request. "
 				+ "Mutually exclusive with -f.")
-				{ _ ->
-					checkEncountered(GENERATE_DOCUMENTATION, 0)
-					checkEncountered(CLEAR_REPOSITORIES, 0)
-					checkEncountered(SHOW_STATISTICS, 0)
+				{
+					processor.checkEncountered(CLEAR_REPOSITORIES, 0)
+					processor.checkEncountered(SHOW_STATISTICS, 0)
 					configuration.generateDocumentation = true
-				})
-			addOption(GenericOption(
+				}
+			optionWithArgument(
 				DOCUMENTATION_PATH,
 				listOf("G", "documentationPath"),
 				"The path to the output directory where documentation and data "
 				+ "files will appear when Stacks documentation is generated. "
 				+ "Requires -g.")
-				{ keyword, pathString ->
-					checkEncountered(DOCUMENTATION_PATH, 0)
+				{
 					val path: Path
 					try
 					{
-						path = Paths.get(pathString!!)
+						path = Paths.get(argument)
 					}
 					catch (e: InvalidPathException)
 					{
@@ -236,81 +232,71 @@ class CommandLineConfigurator constructor(
 							"$keyword: invalid path: ${e.localizedMessage}")
 					}
 					configuration.documentationPath = path
-				})
-			addOption(GenericOption(
+				}
+			option(
 				QUIET,
 				listOf("q", "quiet"),
 				"Mute all output originating from user code.")
-				{ _ ->
-					checkEncountered(QUIET, 0)
+				{
 					configuration.quiet = true
-				})
-			addOption(GenericOption(
+				}
+			optionWithArgument(
 				SHOW_STATISTICS,
 				listOf("s", "showStatistics"),
 				"Request statistics about the most time-intensive operations in "
 				+ "all categories ( -s or --showStatistics ) or for specific "
 				+ "categories, using a comma-separated list of keywords "
-				+ "( --showStatistics=#,# ). Requires -c.\n"
-				+ "\nPossible values in # include:"
-				+ "\nL2Operations - The most time-intensive level-two "
-				+ "operations."
-				+ "\nDynamicLookups - The most time-intensive dynamic method "
-				+ "lookups."
-				+ "\nPrimitives - The primitives that are the most "
-				+ "time-intensive to run overall."
-				+ "\nPrimitiveReturnTypeChecks - The primitives that take the "
-				+ "most time checking return types.",
+				+ "( --showStatistics=#,# ). Requires -c.\n\n"
+				+ "Possible values in # include:\n"
+				+ "* - All statistics\n"
+				+ "L2Operations - The most time-intensive level-two "
+				+ "operations.\n"
+				+ "DynamicLookups - The most time-intensive dynamic method "
+				+ "lookups.\n"
+				+ "Primitives - The primitives that are the most "
+				+ "time-intensive to run overall.\n"
+				+ "PrimitiveReturnTypeChecks - The primitives that take the "
+				+ "most time checking return types.")
 				{
-					checkEncountered(SHOW_STATISTICS, 0)
-					checkEncountered(GENERATE_DOCUMENTATION, 0)
-					val reports = EnumSet.allOf(StatisticReport::class.java)
-					configuration.reports = reports
-				},
-				{ keyword, reportsString ->
-					checkEncountered(SHOW_STATISTICS, 0)
-					checkEncountered(GENERATE_DOCUMENTATION, 0)
-					val reportsArr = reportsString.split(",".toRegex())
-						.dropLastWhile { it.isEmpty() }.toTypedArray()
+					processor.checkEncountered(GENERATE_DOCUMENTATION, 0)
+					val reportsArr = argument
+						.split(",".toRegex())
+						.filter(String::isNotEmpty)
+						.ifEmpty { listOf("") }  // Triggers exception below.
 					val reports = EnumSet.noneOf(StatisticReport::class.java)
-					for (reportName in reportsArr)
-					{
-						val report = StatisticReport.reportFor(reportName)
-									 ?: throw OptionProcessingException(
-										 "$keyword: Illegal argument.")
-
-						// This will also catch the illegal use of "="
-						// without any items following.
-						reports.add(report)
+					for (reportName in reportsArr) {
+						if (reportName == "*") {
+							reports.addAll(
+								EnumSet.allOf(StatisticReport::class.java))
+						}
+						else {
+							reports.add(
+								StatisticReport.reportFor(reportName)
+									?: throw OptionProcessingException(
+										"$keyword: Illegal argument."))
+						}
 					}
 					configuration.reports = reports
-				}))
-			addOption(GenericOption(
+				}
+			optionWithArgument(
 				VERBOSE_MODE,
 				listOf("v", "verboseMode"),
-				"Request minimum verbosity ( -v or --verboseMode ) "
-				+ "or manually set the verbosity level ( --verboseMode=# ).\n"
-				+ "\nPossible values for # include:"
-				+ "\n0 - Zero extra verbosity. Only error messages will be "
+				"Request verbosity ( -v # or --verboseMode=# ).\n\n"
+				+ "Possible values for # include:\n"
+				+ "0 - Zero extra verbosity. Only error messages will be "
 				+ "output. This is the default level for the compiler and is "
-				+ "used when the verboseMode option is not used."
-				+ "\n1 - The minimum verbosity level. The global progress and "
-				+ "any error messages will be output. This is the default "
-				+ "level for this option when a level is not specified."
-				+ "\n2 - Global progress is output along with the local module "
-				+ "compilation progress and any error messages.",
+				+ "used when the verboseMode option is not used.\n"
+				+ "1 - The minimum verbosity level. The global progress and "
+				+ "any error messages will be output.\n"
+				+ "2 - Global progress is output along with the local module "
+				+ "compilation progress and any error messages.")
 				{
-					checkEncountered(VERBOSE_MODE, 0)
-					configuration.verbosityLevel = VerbosityLevel.atLevel(1)
-				},
-				{ keyword, verboseString ->
-					checkEncountered(VERBOSE_MODE, 0)
 					try
 					{
 						// This parseInt will (also) throw an exception if
 						// it tries to parse "" as a result of the illegal
 						// use of "=" without any items following.
-						val level = Integer.parseInt(verboseString)
+						val level = Integer.parseInt(argument)
 						configuration.verbosityLevel = VerbosityLevel.atLevel(level)
 					}
 					catch (e: NumberFormatException)
@@ -319,13 +305,12 @@ class CommandLineConfigurator constructor(
 							"$keyword: Illegal argument.",
 							e)
 					}
-				}))
-			addOption(
-				GenericHelpOption(
-					HELP,
-					"The Avail compiler understands the following options: ",
-					helpStream))
-			addOption(DefaultOption(
+				}
+			helpOption(
+				HELP,
+				"The Avail compiler understands the following options: ",
+				helpStream)
+			defaultOption(
 				TARGET_MODULE_NAME,
 				"The target module name for compilation and/or documentation "
 				+ "generation. The module is specified via a path relative to "
@@ -334,12 +319,11 @@ class CommandLineConfigurator constructor(
 				+ "/usr/local/avail/stuff/, and module \"frog\" is in the root "
 				+ "directory as /usr/local/avail/stuff/frog, the target module "
 				+ "name would be /foo/frog.")
-				{ _, targetModuleString ->
-					  checkEncountered(TARGET_MODULE_NAME, 0)
+				{
 					  try
 					  {
 						  configuration.targetModuleName =
-							  ModuleName(targetModuleString!!)
+							  ModuleName(argument)
 					  }
 					  catch (e: OptionProcessingException)
 					  {
@@ -347,10 +331,27 @@ class CommandLineConfigurator constructor(
 							  "«default»: ${e.message}",
 							  e)
 					  }
-				})
+				}
+			configuration.rule(
+				"Must include either --compile, --generateDocumentation, "
+					+ "--clearRepositories, or -?"
+			) {
+				compileModules || generateDocumentation || clearRepositories
+			}
+			configuration.rule("Could not resolve specified module") {
+				try {
+					// Just try to create a module name resolver. If this fails,
+					// then the configuration is invalid. Otherwise, it should
+					// be okay.
+					moduleNameResolver
+					true
+				} catch (e: FileNotFoundException) {
+					false
+				} catch (e: RenamesFileParserException) {
+					false
+				}
+			}
 		}
-		return factory.createOptionProcessor()
-	}
 
 	@Synchronized @Throws(ConfigurationException::class)
 	override fun updateConfiguration()

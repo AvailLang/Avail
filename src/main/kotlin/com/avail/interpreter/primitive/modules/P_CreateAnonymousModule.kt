@@ -44,7 +44,6 @@ import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TupleDescriptor
 import com.avail.descriptor.TupleTypeDescriptor.*
 import com.avail.descriptor.TypeDescriptor.Types.MODULE
-import com.avail.descriptor.tuples.A_Tuple
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
@@ -61,16 +60,16 @@ object P_CreateAnonymousModule : Primitive(1, CanInline)
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
-		val allUses: A_Tuple = interpreter.argument(0)
+//		val allUses: A_Tuple = interpreter.argument(0)
 
-		val loader = interpreter.availLoaderOrNull() ?:
-			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		val currentModule = currentModule()
 		val newModule = newModule(TupleDescriptor.emptyTuple())
-		for ((moduleName, importsForModule) in allUses) {
-			val importedModule = moduleName
-			//TODO finish this
-		}
+//		val loader = interpreter.availLoaderOrNull() ?:
+//			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+//		for ((moduleName, importsForModule) in allUses) {
+//			val importedModule = moduleName
+//			//TODO finish this
+//		}
 
 		if (currentModule.equalsNil())
 		{

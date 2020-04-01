@@ -57,7 +57,6 @@ import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 import java.util.*
-import java.util.Comparator.comparing
 
 /**
  * The `P_BootstrapVariableUseMacro` primitive is used to create
@@ -135,7 +134,7 @@ object P_BootstrapVariableUseMacro
 					.append(" to be in scope (local scope is: ")
 				val scope = ArrayList(
 					toList<A_String>(scopeMap.keysAsSet().asTuple()))
-				scope.sortWith(comparing<A_String, String> { it.asNativeString() })
+				scope.sortBy(A_String::asNativeString)
 				var first = true
 				for (eachVar in scope)
 				{

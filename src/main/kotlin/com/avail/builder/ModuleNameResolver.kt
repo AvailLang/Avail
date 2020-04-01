@@ -34,7 +34,7 @@ package com.avail.builder
 
 import com.avail.annotations.ThreadSafe
 import com.avail.descriptor.ModuleDescriptor
-import com.avail.persistence.IndexedRepositoryManager
+import com.avail.persistence.Repository
 import com.avail.utility.LRUCache
 import java.io.File
 import java.util.*
@@ -232,7 +232,7 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 
 		// If the source directory is available, then search the file system.
 		val checkedPaths = ArrayList<ModuleName>()
-		var repository: IndexedRepositoryManager? = null
+		var repository: Repository? = null
 		var sourceFile: File? = null
 		if (sourceDirectory != null)
 		{

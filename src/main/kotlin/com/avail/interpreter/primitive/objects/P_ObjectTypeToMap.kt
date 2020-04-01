@@ -44,6 +44,7 @@ import com.avail.descriptor.ObjectTypeDescriptor.mostGeneralObjectMeta
 import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TypeDescriptor
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
+import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.exceptions.AvailErrorCode.E_NO_SUCH_FIELD
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive

@@ -33,47 +33,27 @@
 package com.avail.interpreter
 
 import com.avail.AvailRuntime.HookType.IMPLICIT_OBSERVE
-import com.avail.descriptor.A_RawFunction
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.AvailObject
+import com.avail.descriptor.*
 import com.avail.descriptor.BottomTypeDescriptor.bottom
-import com.avail.descriptor.CompiledCodeDescriptor
-import com.avail.descriptor.FunctionTypeDescriptor
-import com.avail.descriptor.IntegerEnumSlotDescriptionEnum
 import com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers
 import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.NilDescriptor.nil
-import com.avail.descriptor.TypeDescriptor
 import com.avail.descriptor.TypeDescriptor.Types.TOP
 import com.avail.descriptor.VariableTypeDescriptor.variableTypeFor
 import com.avail.descriptor.parsing.A_Phrase
-import com.avail.interpreter.Interpreter.afterAttemptPrimitiveMethod
-import com.avail.interpreter.Interpreter.argsBufferField
-import com.avail.interpreter.Interpreter.beforeAttemptPrimitiveMethod
-import com.avail.interpreter.Interpreter.getLatestResultMethod
+import com.avail.interpreter.Interpreter.*
 import com.avail.interpreter.Primitive.Companion.holdersByClassName
 import com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail
 import com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
 import com.avail.interpreter.Primitive.Flag
-import com.avail.interpreter.Primitive.Flag.AlwaysSwitchesContinuation
-import com.avail.interpreter.Primitive.Flag.CanFold
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CanSuspend
-import com.avail.interpreter.Primitive.Flag.CanSwitchContinuations
-import com.avail.interpreter.Primitive.Flag.CannotFail
-import com.avail.interpreter.Primitive.Flag.Invokes
-import com.avail.interpreter.Primitive.Flag.SpecialForm
+import com.avail.interpreter.Primitive.Flag.*
 import com.avail.interpreter.Primitive.PrimitiveHolder
 import com.avail.interpreter.Primitive.Result.SUCCESS
 import com.avail.interpreter.levelOne.L1InstructionWriter
 import com.avail.interpreter.levelOne.L1Operation
 import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.interpreter.levelTwo.L2Instruction
-import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
-import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
-import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import com.avail.interpreter.levelTwo.operand.*
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType
 import com.avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
@@ -96,16 +76,7 @@ import com.avail.performance.StatisticReport
 import com.avail.serialization.Serializer
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
-import org.objectweb.asm.Opcodes.ACONST_NULL
-import org.objectweb.asm.Opcodes.ARETURN
-import org.objectweb.asm.Opcodes.DUP
-import org.objectweb.asm.Opcodes.DUP2
-import org.objectweb.asm.Opcodes.DUP2_X2
-import org.objectweb.asm.Opcodes.GOTO
-import org.objectweb.asm.Opcodes.IF_ACMPNE
-import org.objectweb.asm.Opcodes.POP
-import org.objectweb.asm.Opcodes.POP2
-import org.objectweb.asm.Opcodes.SWAP
+import org.objectweb.asm.Opcodes.*
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
@@ -958,13 +929,11 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 					while (true)
 					{
 						val className = input.readLine() ?: break
-						val parts =
-							className.split("\\.".toRegex())
-								.dropLastWhile { it.isEmpty() }
-								.toTypedArray()
-						val lastPart = parts[parts.size - 1]
-						val matcher =
-							primitiveNamePattern.matcher(lastPart)
+						val parts = className
+							.split("\\.".toRegex())
+							.dropLastWhile { it.isEmpty() }
+						val lastPart = parts.last()
+						val matcher = primitiveNamePattern.matcher(lastPart)
 						if (matcher.matches())
 						{
 							val name = matcher.group(1)

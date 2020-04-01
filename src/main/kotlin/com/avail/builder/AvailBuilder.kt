@@ -55,8 +55,8 @@ import com.avail.interpreter.Interpreter.debugWorkUnits
 import com.avail.interpreter.Interpreter.runOutermostFunction
 import com.avail.io.SimpleCompletionHandler
 import com.avail.io.TextInterface
-import com.avail.persistence.IndexedRepositoryManager
-import com.avail.persistence.IndexedRepositoryManager.*
+import com.avail.persistence.Repository
+import com.avail.persistence.Repository.*
 import com.avail.serialization.MalformedSerialStreamException
 import com.avail.serialization.Serializer
 import com.avail.utility.Graph
@@ -343,7 +343,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 * @property compilation
 	 *   The [ModuleCompilation] which was loaded for this module.  This
 	 *   indicates when the compilation happened, and where in the
-	 *   [repository][IndexedRepositoryManager] we can find the
+	 *   [repository][Repository] we can find the
 	 *   [serialized][Serializer] module content.
 	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 *
@@ -541,7 +541,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 						TRACE,
 						"Cycle detected in ancestor modules: {0}",
 						moduleGraph.findCycle().stream()
-							.map<String> { it.qualifiedName }
+							.map { it.qualifiedName }
 							.collect(joining("\n\t", "\n\t", "")))
 					{
 						override fun abortCompilation()

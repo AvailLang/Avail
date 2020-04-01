@@ -64,15 +64,12 @@ object P_IsUnambiguousName : Primitive(
 		val name = interpreter.argument(0)
 		val currentFiber = interpreter.fiber()
 		val loader = currentFiber.availLoader()
-		             ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
-		try
-		{
+			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+		return try {
 			loader.lookupName(name)
-			return interpreter.primitiveSuccess(trueObject())
-		}
-		catch (e: AmbiguousNameException)
-		{
-			return interpreter.primitiveSuccess(falseObject())
+			interpreter.primitiveSuccess(trueObject())
+		} catch (e: AmbiguousNameException) {
+			interpreter.primitiveSuccess(falseObject())
 		}
 	}
 

@@ -49,7 +49,7 @@ import com.avail.descriptor.TokenDescriptor.TokenType.WHITESPACE
 import com.avail.descriptor.TokenDescriptor.newToken
 import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.tuples.A_String
-import com.avail.persistence.IndexedRepositoryManager
+import com.avail.persistence.Repository
 import com.avail.utility.Locks.auto
 import com.avail.utility.Locks.lockWhile
 import com.avail.utility.Mutable
@@ -136,7 +136,7 @@ class CompilerDiagnostics(
 	 * This `boolean` is set when the [problemHandler] decides that an
 	 * encountered [Problem] is serious enough that code generation should be
 	 * suppressed.  In Avail, that means the serialized module should not be
-	 * written to its [repository][IndexedRepositoryManager].
+	 * written to its [repository][Repository].
 	 */
 	@Volatile
 	var compilationIsInvalid = false
@@ -933,12 +933,7 @@ class CompilerDiagnostics(
 				continuation(emptyToken.makeShared())
 				return
 			}
-			continuation(
-				candidates.stream()
-					.max(Comparator.comparing<A_Token, Int> {
-						t -> t.string().tupleSize()
-					})
-					.get())
+			continuation(candidates.maxBy { it.string().tupleSize() }!!)
 		}
 
 		/**

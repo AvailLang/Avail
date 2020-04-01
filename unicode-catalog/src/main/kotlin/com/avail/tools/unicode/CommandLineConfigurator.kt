@@ -32,8 +32,6 @@
 
 package com.avail.tools.unicode
 
-import com.avail.tools.options.DefaultOption
-import com.avail.tools.options.GenericHelpOption
 import com.avail.tools.options.OptionProcessor
 import com.avail.tools.options.OptionProcessorFactory
 import com.avail.tools.unicode.CommandLineConfigurator.OptionKey.HELP
@@ -97,27 +95,22 @@ internal class CommandLineConfigurator constructor(
 	 *
 	 * @return An option processor.
 	 */
-	private fun createOptionProcessor(): OptionProcessor<OptionKey>
-	{
-		val factory = OptionProcessorFactory(OptionKey::class.java)
-		factory.configure {
-			addOption(GenericHelpOption(
+	private fun createOptionProcessor() =
+		OptionProcessorFactory.create<OptionKey> {
+			helpOption(
 				HELP,
 				"The Unicode catalog generator understands the following "
 					+ "options: ",
-				helpStream))
-			addOption(DefaultOption(
+				helpStream)
+			defaultOption(
 				TARGET_PATH,
 				"The location of the target JSON file. If a regular file "
 					+ "already exists at this location, then it will be "
-					+ "overwritten.",
-				{ _, pathString ->
-					checkEncountered(TARGET_PATH, 0)
-					configuration.catalogPath = Paths.get(pathString!!)
-				}))
+					+ "overwritten.")
+				{
+					configuration.catalogPath = Paths.get(argument)
+				}
 		}
-		return factory.createOptionProcessor()
-	}
 
 	@Throws(ConfigurationException::class)
 	override fun updateConfiguration()

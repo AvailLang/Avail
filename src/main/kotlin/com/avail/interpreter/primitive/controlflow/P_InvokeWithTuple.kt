@@ -224,15 +224,14 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 			translator.generator.explodeTupleIfPossible(
 				tupleReg,
 				toList(functionArgsType.tupleOfTypesFromTo(1, argsSize)))
-		if (explodedArgumentRegisters == null)
-		{
-			return false
-		}
 		// Fold out the call of this primitive, replacing it with an invoke of
 		// the supplied function, instead.  The client will generate any needed
 		// type strengthening, so don't do it here.
 		translator.generateGeneralFunctionInvocation(
-			functionReg, explodedArgumentRegisters, true, callSiteHelper)
+			functionReg,
+			explodedArgumentRegisters ?: return false,
+			true,
+			callSiteHelper)
 		return true
 	}
 }

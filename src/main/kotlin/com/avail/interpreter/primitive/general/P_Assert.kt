@@ -50,6 +50,7 @@ import com.avail.exceptions.AvailAssertionFailedException
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.Primitive.Result.FIBER_SUSPENDED
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_EQUALS_CONSTANT
@@ -96,7 +97,7 @@ object P_Assert : Primitive(2, Unknown, CanSuspend, CannotFail)
 				fiber.executionState(ExecutionState.ABORTED)
 				fiber.failureContinuation().value(killer)
 			}
-		return Primitive.Result.FIBER_SUSPENDED
+		return FIBER_SUSPENDED
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

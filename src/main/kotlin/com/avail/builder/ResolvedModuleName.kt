@@ -34,7 +34,7 @@ package com.avail.builder
 
 import com.avail.builder.ModuleNameResolver.Companion.availExtension
 import com.avail.descriptor.ModuleDescriptor
-import com.avail.persistence.IndexedRepositoryManager
+import com.avail.persistence.Repository
 import java.io.File
 
 /**
@@ -73,7 +73,7 @@ internal constructor(
 
 	/**
 	 * The [resolved][ModuleNameResolver.resolve]
-	 * [repository][IndexedRepositoryManager].
+	 * [repository][Repository].
 	 */
 	val repository get() = moduleRoot.repository
 

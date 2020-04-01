@@ -39,7 +39,3 @@ package com.avail.utility.configuration
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 interface Configuration
-{
-	/** `true` if the configuration is valid, `false` otherwise. */
-	val isValid: Boolean
-}

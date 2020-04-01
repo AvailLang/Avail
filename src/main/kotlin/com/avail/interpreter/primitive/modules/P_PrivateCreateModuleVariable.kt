@@ -57,7 +57,7 @@ object P_PrivateCreateModuleVariable
 	{
 		interpreter.checkArgumentCount(5)
 		val (module, name, varType, isConstantObject, stablyComputedObject) =
-			interpreter.argsBuffer;
+			interpreter.argsBuffer
 
 		val isConstant = isConstantObject.extractBoolean()
 		val stablyComputed = stablyComputedObject.extractBoolean()

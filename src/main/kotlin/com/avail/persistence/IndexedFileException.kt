@@ -32,8 +32,8 @@
 package com.avail.persistence
 
 /**
- * A `IndexedFileException` is thrown when an exceptional circumstance occurs
- * during manipulation of a [indexed file][IndexedFile].
+ * An `IndexedFileException` is thrown when an exceptional circumstance occurs
+ * during manipulation of an [IndexedFile].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

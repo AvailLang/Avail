@@ -41,6 +41,7 @@ import com.avail.descriptor.SetDescriptor.set
 import com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf
 import com.avail.descriptor.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.TypeDescriptor.Types.DEFINITION
+import com.avail.descriptor.bundles.MessageBundleDescriptor
 import com.avail.exceptions.AvailErrorCode.*
 import com.avail.exceptions.MethodDefinitionException
 import com.avail.interpreter.Interpreter

@@ -34,12 +34,16 @@ package com.avail.server.configuration
 
 import com.avail.builder.ModuleRoots
 import com.avail.builder.RenamesFileParser
+import com.avail.builder.RenamesFileParserException
 import com.avail.server.AvailServer
 import com.avail.server.configuration.CommandLineConfigurator.OptionKey.*
-import com.avail.tools.options.*
+import com.avail.tools.options.OptionProcessingException
+import com.avail.tools.options.OptionProcessor
+import com.avail.tools.options.OptionProcessorFactory
 import com.avail.utility.configuration.ConfigurationException
 import com.avail.utility.configuration.Configurator
 import java.io.File
+import java.io.FileNotFoundException
 
 /**
  * Provides the [configuration][AvailServerConfiguration] for the [Avail
@@ -117,20 +121,17 @@ class CommandLineConfigurator constructor(
 	 * @return
 	 *   An option processor.
 	 */
-	private fun createOptionProcessor(): OptionProcessor<OptionKey>
-	{
-		val factory = OptionProcessorFactory(OptionKey::class.java)
-		factory.configure {
-			addOption(GenericOption(
+	private fun createOptionProcessor() =
+		OptionProcessorFactory.create<OptionKey> {
+			optionWithArgument(
 				AVAIL_RENAMES,
 				listOf("availRenames"),
-				"The path to the renames file. This option overrides environment "
-				+ "variables.",
-				{ _, renamesString ->
-					checkEncountered(AVAIL_RENAMES, 0)
-					configuration.renamesFilePath = renamesString
-				}))
-			factory.addOption(GenericOption(
+				"The path to the renames file. This option overrides "
+				+ "environment variables.")
+				{
+					configuration.renamesFilePath = argument
+				}
+			optionWithArgument(
 				AVAIL_ROOTS,
 				listOf("availRoots"),
 				"The Avail roots, as a semicolon (;) separated list of module "
@@ -139,31 +140,28 @@ class CommandLineConfigurator constructor(
 				+ "module root location. A module root location comprises the "
 				+ "absolute path to a binary module repository, then "
 				+ "optionally a comma (,) and the  absolute path to a source "
-				+ "package. This option overrides environment variables.",
-				{ _, rootsString ->
-					checkEncountered(AVAIL_ROOTS, 0)
-					configuration.availRootsPath = rootsString!!
-				}))
-			factory.addOption(GenericOption(
+				+ "package. This option overrides environment variables.")
+				{
+					configuration.availRootsPath = argument
+				}
+			optionWithArgument(
 				SERVER_AUTHORITY,
 				listOf("serverAuthority"),
 				"The server authority, i.e., the name of the Avail server. "
 				+ "If not specified, then the server authority defaults to "
-				+ "\"localhost\".",
-				{ _, nameString ->
-					checkEncountered(SERVER_AUTHORITY, 0)
-					configuration.serverAuthority = nameString!!
-				}))
-			factory.addOption(GenericOption(
+				+ "\"localhost\".")
+				{
+					configuration.serverAuthority = argument
+				}
+			optionWithArgument(
 				SERVER_PORT,
 				listOf("serverPort"),
 				"The server port. If not specified, then the server port "
-				+ "defaults to 40000.",
-				{ _, portString ->
-					checkEncountered(SERVER_PORT, 0)
+				+ "defaults to 40000.")
+				{
 					try
 					{
-						configuration.serverPort = Integer.parseInt(portString)
+						configuration.serverPort = Integer.parseInt(argument)
 					}
 					catch (e: NumberFormatException)
 					{
@@ -171,26 +169,36 @@ class CommandLineConfigurator constructor(
 							"expected an integer \"p\" where 0 ≤ p < 65535",
 							e)
 					}
-				}))
-			factory.addOption(GenericOption(
+				}
+			optionWithArgument(
 				DOCUMENT_ROOT,
 				listOf("documentRoot"),
 				"The document root, as a path to a directory. The document "
 				+ "root contains static files that should be served by the "
 				+ "Avail server. These files are available through GET "
 				+ "requests under the URI /doc. If not specified, then the "
-				+ "Avail server will reject all such requests.",
-				{ _, pathString ->
-					checkEncountered(DOCUMENT_ROOT, 0)
-					configuration.documentPath = pathString
-				}))
-			factory.addOption(GenericHelpOption(
+				+ "Avail server will reject all such requests.")
+				{
+					configuration.documentPath = argument
+				}
+			helpOption(
 				HELP,
 				"The Avail server understands the following options: ",
-				helpStream))
+				helpStream)
+			configuration.rule("Could not resolve specified module") {
+				try {
+					// Just try to create a module name resolver. If this fails,
+					// then the configuration is invalid. Otherwise, it should
+					// be okay.
+					moduleNameResolver()
+					true
+				} catch (e: FileNotFoundException) {
+					false
+				} catch (e: RenamesFileParserException) {
+					false
+				}
+			}
 		}
-		return factory.createOptionProcessor()
-	}
 
 	@Synchronized
 	@Throws(ConfigurationException::class)

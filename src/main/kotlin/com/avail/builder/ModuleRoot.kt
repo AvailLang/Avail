@@ -34,7 +34,7 @@ package com.avail.builder
 
 import com.avail.descriptor.ModuleDescriptor
 import com.avail.persistence.IndexedFileException
-import com.avail.persistence.IndexedRepositoryManager
+import com.avail.persistence.Repository
 import com.avail.utility.json.JSONWriter
 import java.io.File
 
@@ -56,7 +56,7 @@ import java.io.File
  * @param name
  *   The name of the module root.
  * @param repository
- *   The [path][File] to the [indexed repository][IndexedRepositoryManager] that
+ *   The [path][File] to the [indexed repository][Repository] that
  *   contains compiled [modules][ModuleDescriptor] for this root.
  * @param sourceDirectory
  *   The [path][File] to the directory that contains source
@@ -72,11 +72,10 @@ class ModuleRoot
 	val sourceDirectory: File?)
 {
 	/**
-	 * The [indexed repository][IndexedRepositoryManager] that contains compiled
+	 * The [indexed repository][Repository] that contains compiled
 	 * [modules][ModuleDescriptor] for this [root][ModuleRoot].
 	 */
-	val repository: IndexedRepositoryManager =
-		IndexedRepositoryManager(name, repository)
+	val repository: Repository = Repository(name, repository)
 
 	/**
 	 * Clear the content of the repository for this root.
@@ -84,7 +83,7 @@ class ModuleRoot
 	fun clearRepository() = repository.clear()
 
 	/**
-	 * Write the [binary][IndexedRepositoryManager.fileName] and the [source
+	 * Write the [binary][Repository.fileName] and the [source
 	 * module][sourceDirectory] (respectively) into a new JSON array.
 	 *
 	 * @param writer

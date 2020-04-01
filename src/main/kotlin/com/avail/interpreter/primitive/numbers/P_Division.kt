@@ -81,7 +81,7 @@ object P_Division : Primitive(2, CanFold, CanInline)
 			binaryNumericOperationTypeBound(argumentTypes[0], argumentTypes[1])
 
 	override fun fallibilityForArgumentTypes(argumentTypes: List<A_Type>)
-		: Primitive.Fallibility
+		: Fallibility
 	{
 		val aType = argumentTypes[0]
 		val bType = argumentTypes[1]

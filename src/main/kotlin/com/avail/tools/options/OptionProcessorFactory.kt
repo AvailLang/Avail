@@ -32,6 +32,8 @@
 
 package com.avail.tools.options
 
+import com.avail.tools.options.OptionProcessorFactory.Cardinality.Companion.OPTIONAL
+import com.avail.utility.configuration.Configuration
 import java.util.*
 
 /**
@@ -57,32 +59,137 @@ import java.util.*
  * @param optionKeyType
  *   The [type][Class] of option keys.
  */
-class OptionProcessorFactory<OptionKeyType : Enum<OptionKeyType>> constructor(
-	private val optionKeyType: Class<OptionKeyType>)
+class OptionProcessorFactory<OptionKeyType : Enum<OptionKeyType>>
+	private constructor (
+		private val optionKeyType: Class<OptionKeyType>)
 {
+	companion object {
+		inline fun <reified O : Enum<O>> create(
+			noinline setup: OptionProcessorFactory<O>.()->Unit
+		): OptionProcessor<O> = privateCreate(O::class.java, setup)
+
+		/**
+		 * A helper factory function.  Unfortunately, Kotlin's visibility rules
+		 * (effectively inherited from the JVM) for things accessed from inline
+		 * function bodies prevents this from being hidden entirely.
+		 */
+		fun <O : Enum<O>> privateCreate(
+			optionKeyType: Class<O>,
+			setup: OptionProcessorFactory<O>.()->Unit
+		): OptionProcessor<O> =
+			with(OptionProcessorFactory(optionKeyType)) {
+				setup()
+				createOptionProcessor()
+			}
+	}
+
 	/** The [set][Set] of all [options][Option].  */
 	private val allOptions = HashSet<Option<OptionKeyType>>()
 
-	/**
-	 * Configure the [receiver][OptionProcessorFactory].
-	 *
-	 * @param configurator
-	 *   A function that will configure the receiver.
-	 */
-	fun configure(
-			configurator: OptionProcessorFactory<OptionKeyType>.() -> Unit) =
-		configurator()
+	/** The rules to check, in order, for valid options and arguments. */
+	private val allRules =
+		mutableListOf<OptionProcessor<OptionKeyType>.()->Unit>()
+
+	/** A helper class to make option bodies more directly expressible. */
+	data class OptionInvocation<OptionKeyType : Enum<OptionKeyType>>(
+		val processor: OptionProcessor<OptionKeyType>,
+		val keyword: String)
 
 	/**
-	 * Add a new [option][Option].
-	 *
-	 * @param option
-	 *   An [option][Option].
+	 * A helper class to make bodies of options with arguments more directly
+	 * expressible.
 	 */
-	fun addOption(option: Option<OptionKeyType>)
-	{
-		assert(!allOptions.contains(option))
-		allOptions.add(option)
+	data class OptionInvocationWithArgument<OptionKeyType : Enum<OptionKeyType>>
+	(
+		val processor: OptionProcessor<OptionKeyType>,
+		val keyword: String,
+		val argument: String)
+
+	/**
+	 * An optional parameter when defining an [option] or [optionWithArgument],
+	 * to indicate how many occurrences of the option are permitted/required.
+	 * For more precise control, the option body can use
+	 * [OptionProcessor.checkEncountered] during processing, or define a [rule].
+	 */
+	@Suppress("unused")
+	data class Cardinality(val min: Int, val max: Int) {
+		companion object {
+			/** The option may occur zero or one times. */
+			val OPTIONAL = Cardinality(0, 1)
+
+			/** The option must be present. */
+			val MANDATORY = Cardinality(1, 1)
+
+			/** The option may occur zero or more times. */
+			val ZERO_OR_MORE = Cardinality(0, Int.MAX_VALUE)
+
+			/** The option must occur at least once. */
+			val ONE_OR_MORE = Cardinality(1, Int.MAX_VALUE)
+		}
+	}
+
+	/** Declare a generic option that takes no argument. */
+	fun option(
+		key: OptionKeyType,
+		keywords: Collection<String>,
+		description: String,
+		cardinality: Cardinality = OPTIONAL,
+		action: OptionInvocation<OptionKeyType>.() -> Unit
+	) = allOptions.add(
+		GenericOption(key, keywords, cardinality, description, action, null))
+
+	/** Declare a generic option that takes an argument. */
+	fun optionWithArgument(
+		key: OptionKeyType,
+		keywords: Collection<String>,
+		description: String,
+		cardinality: Cardinality = OPTIONAL,
+		action2: OptionInvocationWithArgument<OptionKeyType>.() -> Unit
+	) = allOptions.add(
+		GenericOption(key, keywords, cardinality, description, null, action2))
+
+	/**
+	 * Add the default option, which is what to do with bare arguments that have
+	 * no argument-requiring option preceding them.
+	 */
+	fun defaultOption(
+		key: OptionKeyType,
+		description: String,
+		cardinality: Cardinality = OPTIONAL,
+		action2: OptionInvocationWithArgument<OptionKeyType>.() -> Unit
+	) = allOptions.add(DefaultOption(key, cardinality, description, action2))
+
+	/**
+	 * Add the default help option, bound to '-?'.  After the preamble, it
+	 * outputs the keywords and description for each option.
+	 */
+	fun helpOption(
+		key: OptionKeyType,
+		preamble: String,
+		appendable: Appendable
+	) = allOptions.add(GenericHelpOption(key, preamble, appendable))
+
+	/**
+	 * Add a rule.  All rules run, in the order in which they were defined via
+	 * this method.  If a rule discovers an invalid combination of options and
+	 * arguments, it should throw a suitable [OptionProcessingException] whose
+	 * message text is the [ruleText], which will be reported to the user.
+	 *
+	 * Each option is first given the chance to report problems related to only
+	 * that option, but after that all rules run, allowing consistency checks
+	 * between options.
+	 *
+	 * @param
+	 *   The text to display if the rule fails.
+	 * @param
+	 *   The rule's body, which returns `true` iff the rule is satisfied.
+ 	 */
+	@Throws(OptionProcessingException::class)
+	fun <C : Configuration> C.rule(
+		ruleText: String,
+		rule: C.() -> Boolean
+	) = allRules.add {
+		if (!rule()) throw OptionProcessingException(ruleText)
 	}
 
 	/**
@@ -100,7 +207,7 @@ class OptionProcessorFactory<OptionKeyType : Enum<OptionKeyType>> constructor(
 	 *   for any reason.
 	 */
 	@Throws(ValidationException::class)
-	private fun validate()
+	private fun validateFactory()
 	{
 		val optionKeys = EnumSet.noneOf(optionKeyType)
 		allOptions.forEach {
@@ -154,15 +261,15 @@ class OptionProcessorFactory<OptionKeyType : Enum<OptionKeyType>> constructor(
 	 *   If validation fails.
 	 */
 	@Throws(ValidationException::class)
-	fun createOptionProcessor(): OptionProcessor<OptionKeyType>
+	private fun createOptionProcessor(): OptionProcessor<OptionKeyType>
 	{
-		validate()
+		validateFactory()
 		val keywords = HashMap<String, OptionKeyType>()
 		allOptions.forEach { option ->
 			option.keywords.forEach { keyword ->
 				keywords[keyword] = option.key
 			}
 		}
-		return OptionProcessor(optionKeyType, keywords, allOptions)
+		return OptionProcessor(optionKeyType, keywords, allOptions, allRules)
 	}
 }

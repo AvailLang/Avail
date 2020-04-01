@@ -1,5 +1,5 @@
 /*
- * IndexedRepositoryManagerDescriber.kt
+ * RepositoryDescriber.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -35,18 +35,18 @@ package com.avail.persistence
 import com.avail.AvailRuntime
 import com.avail.builder.AvailBuilder.Companion.validatedBytesFrom
 import com.avail.descriptor.A_Module
-import com.avail.persistence.IndexedRepositoryManager.ModuleCompilation
-import com.avail.persistence.IndexedRepositoryManager.ModuleVersion
+import com.avail.persistence.Repository.ModuleCompilation
+import com.avail.persistence.Repository.ModuleVersion
 import com.avail.serialization.DeserializerDescriber
 import com.avail.serialization.MalformedSerialStreamException
 
 /**
- * An `IndexedRepositoryManagerDescriber` provides a textual representation of
- * an [IndexedRepositoryManager], showing the contained [modules][A_Module],
+ * An `RepositoryDescriber` provides a textual representation of
+ * a [Repository], showing the contained [modules][A_Module],
  * [versions][ModuleVersion], and [compilations][ModuleCompilation].
  *
  * @property repository
- *   The open [repository][IndexedRepositoryManager] to be described.
+ *   The open [repository][Repository] to be described.
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
  * @constructor
@@ -54,10 +54,10 @@ import com.avail.serialization.MalformedSerialStreamException
  * Create a describer for the given repository.
  *
  * @param repository
- *   The [repository][IndexedRepositoryManager] to be described.
+ *   The [repository][Repository] to be described.
  */
-class IndexedRepositoryManagerDescriber constructor(
-	internal val repository: IndexedRepositoryManager)
+class RepositoryDescriber constructor(
+	internal val repository: Repository)
 {
 	/**
 	 * Produce a summary of the entire repository.

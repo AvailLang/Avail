@@ -75,21 +75,16 @@ object P_CreateFiberHeritableAtom : Primitive(1, CanInline)
 		{
 			module.lock {
 				val trueNames = module.trueNamesForStringName(name)
-				if (trueNames.setSize() == 0)
-				{
-					val newName = createAtom(name, module)
-					newName.setAtomProperty(
-						HERITABLE_KEY.atom, trueObject())
-					module.addPrivateName(newName)
-					trueName.value = newName
-				}
-				else if (trueNames.setSize() == 1)
-				{
-					errorCode.value = E_ATOM_ALREADY_EXISTS
-				}
-				else
-				{
-					errorCode.value = E_AMBIGUOUS_NAME
+				when (trueNames.setSize()) {
+					0 -> {
+						val newName = createAtom(name, module)
+						newName.setAtomProperty(
+							HERITABLE_KEY.atom, trueObject())
+						module.addPrivateName(newName)
+						trueName.value = newName
+					}
+					1 -> errorCode.value = E_ATOM_ALREADY_EXISTS
+					else -> errorCode.value = E_AMBIGUOUS_NAME
 				}
 			}
 		}

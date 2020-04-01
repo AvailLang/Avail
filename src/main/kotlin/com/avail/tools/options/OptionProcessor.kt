@@ -32,6 +32,8 @@
 
 package com.avail.tools.options
 
+import com.avail.tools.options.OptionProcessorFactory.*
+import com.avail.utility.CollectionExtensions.populatedEnumMap
 import com.avail.utility.MutableInt
 import com.avail.utility.ParagraphFormatter
 import com.avail.utility.ParagraphFormatterStream
@@ -89,34 +91,30 @@ import java.util.*
  *   The complete mapping of recognizable keywords to option keys.
  * @param options
  *   The complete [collection][Collection] of [options][Option].
+ * @param rules
+ *   The rules to run after all options have been processed, if each minimum
+ *   [Cardinality] is satisfied.
  */
 @Suppress("MemberVisibilityCanBePrivate")
 class OptionProcessor<OptionKeyType : Enum<OptionKeyType>> internal constructor(
 	optionKeyType: Class<OptionKeyType>,
 	keywords: Map<String, OptionKeyType>,
-	options: Collection<Option<OptionKeyType>>)
+	options: Collection<Option<OptionKeyType>>,
+	val rules: Collection<OptionProcessor<OptionKeyType>.()->Unit>)
 {
 	/**
 	 * A mapping between recognizable keywords and the option keys that they
 	 * indicate.
 	 */
-	private val allKeywords = HashMap<String, OptionKeyType>(keywords)
+	private val allKeywords = HashMap(keywords)
 
 	/** A mapping between option keys and [options][Option].  */
 	private val allOptions: EnumMap<OptionKeyType, Option<OptionKeyType>> =
-		EnumMap(optionKeyType)
+		options.associateByTo(EnumMap(optionKeyType)) { it.key }
 
 	/** A mapping from option key to times encountered during processing.  */
 	private val timesEncountered: EnumMap<OptionKeyType, MutableInt> =
-		EnumMap(optionKeyType)
-
-	init
-	{
-		options.forEach { option ->
-			allOptions[option.key] = option
-			timesEncountered[option.key] = MutableInt(0)
-		}
-	}
+		populatedEnumMap(optionKeyType) { MutableInt(0) }
 
 	/**
 	 * Perform the action associated with the option key bound to the specified
@@ -134,10 +132,27 @@ class OptionProcessor<OptionKeyType : Enum<OptionKeyType>> internal constructor(
 	@Throws(OptionProcessingException::class)
 	private fun performKeywordAction(keyword: String, argument: String? = null)
 	{
-		val optionKey =
-			allKeywords[keyword] ?: throw UnrecognizedKeywordException(keyword)
-		allOptions[optionKey]!!.action(this, keyword, argument)
+		val optionKey = allKeywords[keyword]
+			?: throw UnrecognizedKeywordException(keyword)
+		val option = allOptions[optionKey]!!
 		timesEncountered[optionKey]!!.value++
+		// Make sure we haven't exceeded the maximum count.
+		checkEncountered(optionKey, option.cardinality.max)
+		if (option.takesArgument) {
+			argument ?: throw MissingArgumentException(keyword)
+			with(OptionInvocationWithArgument(this, keyword, argument)) {
+				option.action2!!()
+			}
+		}
+		else {
+			if (argument != null)
+			{
+				throw InvalidArgumentException(keyword)
+			}
+			with(OptionInvocation(this, keyword)) {
+				option.action!!()
+			}
+		}
 	}
 
 	/**
@@ -186,14 +201,55 @@ class OptionProcessor<OptionKeyType : Enum<OptionKeyType>> internal constructor(
 	 *
 	 * @param keywords
 	 *   The keywords.
+	 * @param argumentIterator
+	 *   An iterator over the option and argument strings, to consume an
+	 *   argument if needed.
 	 * @throws OptionProcessingException
 	 *   If any exception occurs during option processing.
 	 */
 	@Throws(OptionProcessingException::class)
-	private fun processShortKeywords(keywords: String) =
-		keywords.indices.forEach { i ->
-			performKeywordAction(keywords.substring(i, i + 1), null)
+	private fun processShortKeywords(
+		keywords: String,
+		argumentIterator: Iterator<String>
+	) {
+		for (i in 0..keywords.length - 2) {
+			val keyword = keywords.substring(i, i + 1)
+			val optionKey = allKeywords[keyword]
+				?: throw UnrecognizedKeywordException(keyword)
+			val option = allOptions[optionKey]!!
+			if (option.takesArgument) {
+				throw OptionProcessingException(
+					"\"$keyword\" requires an argument, so it may only be at "
+						+ "the end of a grouped option set (e.g, the z in "
+						+ "'-xyz').  Perhaps two dashes were intended.")
+			}
+			performKeywordAction(keyword)
 		}
+		val keyword = keywords.takeLast(1)
+		val optionKey = allKeywords[keyword]
+			?: throw UnrecognizedKeywordException(keyword)
+		val option = allOptions[optionKey]!!
+		var argument: String? = null
+		if (option.takesArgument)
+		{
+			// The last single-character keyword in a group (e.g., the z
+			// keyword in "-xyz") may have an argument following it,
+			// after a space.  We diverge from GNU's awful practice of
+			// omitting the space if the argument is mandatory, leading
+			// to the need to know whether -f's argument is mandatory to
+			// know whether this means "-f ob" or "-f -o -b" (or even
+			// "-f -o b").
+			if (!argumentIterator.hasNext()) {
+				throw MissingArgumentException(keyword)
+			}
+			argument = argumentIterator.next()
+			if (argument.take(1) == "-")
+			{
+				throw MissingArgumentException(keyword)
+			}
+		}
+		performKeywordAction(keyword, argument)
+	}
 
 	/**
 	 * Perform the default action (associated with the empty keyword) with the
@@ -217,35 +273,26 @@ class OptionProcessor<OptionKeyType : Enum<OptionKeyType>> internal constructor(
 	 *   If any exception occurs during option processing.
 	 */
 	@Throws(OptionProcessingException::class)
-	private fun processString(string: String) =
-		when
-		{
-			string.isEmpty() ->
-				// Reject an empty string.
-				throw UnrecognizedKeywordException("")
-			string[0] == '-' ->
-				// A hyphen introduces an option keyword -- or terminates
-				// keyword processing.
-				when
-				{
-					string.length == 1 ->
-						// If there are no further characters, then the string
-						// is malformed.
-						throw OptionProcessingException(
-							"option syntax error -- bare hyphen encountered")
-					string[1] == '-' ->
-						// Two hyphens introduces a long option keyword.
-						processLongKeyword(string.substring(2))
-					else ->
-						// A single hyphen (followed by additional characters)
-						// introduces a set of short option keywords.
-						processShortKeywords(string.substring(1))
-				}
-			else ->
-				// Treat the string as implicitly associated with the default
-				// action.
-				performDefaultAction(string)
-		}
+	private fun processString(
+		string: String,
+		argumentIterator: Iterator<String>
+	) = when {
+		string.take(1) != "-" ->
+			// Treat the string as implicitly associated with the default
+			// action.
+			performDefaultAction(string)
+		string == "-" ->
+			// If there are no further characters, then the string is malformed.
+			throw OptionProcessingException(
+				"option syntax error -- bare hyphen encountered")
+		string.take(2) == "--" ->
+			// Two hyphens introduces a long option keyword.
+			processLongKeyword(string.substring(2))
+		else ->
+			// A single hyphen introduces a set of short option keywords, the
+			// last of which may take an argument.
+			processShortKeywords(string.substring(1), argumentIterator)
+	}
 
 	/**
 	 * Treat the specified array as containing option strings. Process each
@@ -266,16 +313,37 @@ class OptionProcessor<OptionKeyType : Enum<OptionKeyType>> internal constructor(
 		// single ThreadLocal to track keyword processing.
 		try
 		{
-			strings.forEach {
+			// First, parse all options (checking maximum cardinalities).
+			val iterator = strings.iterator()
+			iterator.forEach {
 				if (continueProcessingKeywords.get())
 				{
-					processString(it)
+					processString(it, iterator)
 				}
 				else
 				{
 					performDefaultAction(it)
 				}
 			}
+			// Check the minimum cardinality of each option.
+			allOptions.values.forEach {
+				val actual = timesEncountered(it.key)
+				with(it.cardinality) {
+					if (actual < min) {
+						val atLeast =
+							when (min) { max -> "exactly" else -> "at least " }
+						val actualTimes =
+							when (actual) { 1 -> "time" else -> "times" }
+						val minTimes =
+							when (min) { 1 -> "time" else -> "times" }
+						throw OptionProcessingException(
+							"${it.key}: encountered only $actual $actualTimes, "
+								+ "but must occur $atLeast $min $minTimes")
+					}
+				}
+			}
+			// Finally, run each rule.
+			rules.forEach { this.it() }
 		}
 		finally
 		{
@@ -294,13 +362,12 @@ class OptionProcessor<OptionKeyType : Enum<OptionKeyType>> internal constructor(
 	 * @return
 	 *   The number of times that the option has been processed.
 	 */
-	fun timesEncountered(key: OptionKeyType) =
-		timesEncountered[key]!!.value
+	fun timesEncountered(key: OptionKeyType) = timesEncountered[key]!!.value
 
 	/**
 	 * If the specified key was encountered more times than allowed, then throw
-	 * an [OptionProcessingException]. A key is considered encountered only once
-	 * it has been completely processed (and any user supplied action invoked).
+	 * an [OptionProcessingException]. A key is considered encountered *before*
+	 * running any user supplied action for it.
 	 *
 	 * @param key
 	 *   An option key.
@@ -316,10 +383,10 @@ class OptionProcessor<OptionKeyType : Enum<OptionKeyType>> internal constructor(
 		if (timesEncountered(key) > timesAllowed)
 		{
 			throw OptionProcessingException(String.format(
-				"%s: encountered %d time(s) (allowed at most %d time(s))",
+				"%s: encountered %d time(s), but allowed only %d time(s)",
 				key,
-				timesActuallyEncountered,
-				timesAllowed))
+				timesActuallyEncountered + 1, // Doesn't include latest one.
+				timesAllowed + 1))  // Doesn't include latest one.
 		}
 	}
 
@@ -351,8 +418,7 @@ class OptionProcessor<OptionKeyType : Enum<OptionKeyType>> internal constructor(
 			keywords.forEach { keyword ->
 				if (option is DefaultOption<*>)
 				{
-					keywordStream.append(String.format(
-						"<bareword>%n"))
+					keywordStream.append("<bareword>\n")
 				}
 				else
 				{
