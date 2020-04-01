@@ -1,5 +1,5 @@
 /*
- * RawWholeNumberLiteralTokenArgument.kt
+ * RawNumericLiteralTokenArgument.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -31,7 +31,7 @@
  */
 package com.avail.compiler.splitter
 
-import com.avail.compiler.ParsingOperation.PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN
+import com.avail.compiler.ParsingOperation.PARSE_RAW_NUMERIC_LITERAL_TOKEN
 import com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT
 import com.avail.compiler.splitter.MessageSplitter.Companion.indexForConstant
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
@@ -39,19 +39,19 @@ import com.avail.descriptor.A_Type
 import com.avail.descriptor.TokenDescriptor.TokenType
 
 /**
- * A `RawWholeNumberLiteralTokenArgument` is an occurrence of
+ * A `RawNumericLiteralTokenArgument` is an occurrence of
  * [ellipsis][Metacharacter.ELLIPSIS] (…) in a message name, followed by an
- * [octothorp][Metacharacter.OCTOTHORP] (#). It indicates where a raw whole
- * number literal token argument is expected. Like its superclass, the
+ * [octothorp][Metacharacter.OCTOTHORP] (#). It indicates where a raw numeric
+ * literal token argument is expected. Like its superclass, the
  * [RawTokenArgument], the token is captured after being placed in a literal
  * phrase, but in this case the token is restricted to be a [TokenType.LITERAL]
- * (currently positive integers, doubles, and strings).
+ * (currently positive numbers and strings).
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
  * @constructor
  *
- * Construct a `RawWholeNumberLiteralTokenArgument`, given the one-based
+ * Construct a `RawNumericLiteralTokenArgument`, given the one-based
  * position of the token in the name, and the absolute index of this argument in
  * the entire message name.
  *
@@ -61,7 +61,7 @@ import com.avail.descriptor.TokenDescriptor.TokenType
  *   The one-based index of this argument within the entire message name's list
  *   of arguments.
  */
-internal class RawWholeNumberLiteralTokenArgument constructor(
+internal class RawNumericLiteralTokenArgument constructor(
 	positionInName: Int,
 	absoluteUnderscoreIndex: Int)
 : RawTokenArgument(positionInName, absoluteUnderscoreIndex)
@@ -72,7 +72,7 @@ internal class RawWholeNumberLiteralTokenArgument constructor(
 		wrapState: WrapState): WrapState
 	{
 		generator.flushDelayed()
-		generator.emit(this, PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN)
+		generator.emit(this, PARSE_RAW_NUMERIC_LITERAL_TOKEN)
 		generator.emitDelayed(
 			this,
 			TYPE_CHECK_ARGUMENT,

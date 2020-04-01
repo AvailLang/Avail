@@ -172,7 +172,7 @@ object P_RestartContinuationWithArguments : Primitive(
 				// Couldn't guarantee the argument types matched.
 				return false
 			}
-			val explodedTupleRegs = translator.explodeTupleIfPossible(
+			val explodedTupleRegs = generator.explodeTupleIfPossible(
 				argumentsTupleReg, argTypesTuple.toList())
 			// First, move these values into fresh temps.
 			val tempSemanticValues = mutableSetOf<L2SemanticValue>()
@@ -270,7 +270,7 @@ object P_RestartContinuationWithArguments : Primitive(
 			return false
 		}
 		val argsSize = upperBound.extractInt()
-		val explodedArgumentRegs = translator.explodeTupleIfPossible(
+		val explodedArgumentRegs = generator.explodeTupleIfPossible(
 			argumentsTupleReg,
 			toList(functionArgsType.tupleOfTypesFromTo(1, argsSize)))
 		explodedArgumentRegs ?: return false
@@ -279,9 +279,10 @@ object P_RestartContinuationWithArguments : Primitive(
 			L2_RESTART_CONTINUATION_WITH_ARGUMENTS.instance,
 			continuationReg,
 			L2ReadBoxedVectorOperand(explodedArgumentRegs))
-		assert(!translator.generator.currentlyReachable())
-		translator.generator.startBlock(translator.generator.createBasicBlock(
-			"unreachable after L2_RESTART_CONTINUATION_WITH_ARGUMENTS"))
+		assert(!generator.currentlyReachable())
+		generator.startBlock(
+			generator.createBasicBlock(
+				"unreachable after L2_RESTART_CONTINUATION_WITH_ARGUMENTS"))
 		return true
 	}
 }

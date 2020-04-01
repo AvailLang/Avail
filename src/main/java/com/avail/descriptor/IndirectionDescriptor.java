@@ -96,6 +96,7 @@ import java.util.List;
 import java.util.Spliterator;
 import java.util.TimerTask;
 import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -255,6 +256,10 @@ extends AbstractDescriptor
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param typeTag
+	 *        The {@link TypeTag} that's in use at the target of this
+	 *        indirection.  Note that this will never change, even if the target
+	 *        is mutable.
 	 */
 	private IndirectionDescriptor (
 		final Mutability mutability,
@@ -288,16 +293,40 @@ extends AbstractDescriptor
 		}
 	}
 
+	/**
+	 * Answer a mutable {@code IndirectionDescriptor} suitable for pointing to
+	 * an object having the given {@link TypeTag}.
+	 *
+	 * @param typeTag
+	 *        The target's {@link TypeTag}.
+	 * @return An {@code IndirectionDescriptor}.
+	 */
 	static IndirectionDescriptor mutable (final TypeTag typeTag)
 	{
 		return mutables[typeTag.ordinal()];
 	}
 
+	/**
+	 * Answer an immutable {@code IndirectionDescriptor} suitable for pointing
+	 * to an object having the given {@link TypeTag}.
+	 *
+	 * @param typeTag
+	 *        The target's {@link TypeTag}.
+	 * @return An {@code IndirectionDescriptor}.
+	 */
 	static IndirectionDescriptor immutable (final TypeTag typeTag)
 	{
 		return immutables[typeTag.ordinal()];
 	}
 
+	/**
+	 * Answer a shared {@code IndirectionDescriptor} suitable for pointing to
+	 * an object having the given {@link TypeTag}.
+	 *
+	 * @param typeTag
+	 *        The target's {@link TypeTag}.
+	 * @return An {@code IndirectionDescriptor}.
+	 */
 	static IndirectionDescriptor shared (final TypeTag typeTag)
 	{
 		return shareds[typeTag.ordinal()];
@@ -1437,6 +1466,18 @@ extends AbstractDescriptor
 			keyObject,
 			newValueObject,
 			canDestroy);
+	}
+
+	@Override
+	public A_Map o_MapAtReplacingCanDestroy (
+		final AvailObject object,
+		final A_BasicObject key,
+		final A_BasicObject notFoundValue,
+		final BinaryOperator<A_BasicObject> transformer,
+		final boolean canDestroy)
+	{
+		return o_Traversed(object).mapAtReplacingCanDestroy(
+			key, notFoundValue, transformer, canDestroy);
 	}
 
 	@Override
@@ -3488,6 +3529,21 @@ extends AbstractDescriptor
 			keyHash,
 			canDestroy);
 	}
+
+	@Override
+	protected A_MapBin o_MapBinAtHashReplacingLevelCanDestroy (
+		final AvailObject object,
+		final A_BasicObject key,
+		final int keyHash,
+		final A_BasicObject notFoundValue,
+		final BinaryOperator<A_BasicObject> transformer,
+		final byte myLevel,
+		final boolean canDestroy)
+	{
+		return o_Traversed(object).mapBinAtHashReplacingLevelCanDestroy(
+			key, keyHash, notFoundValue, transformer, myLevel, canDestroy);
+	}
+
 
 	@Override
 	protected int o_MapBinSize (final AvailObject object)

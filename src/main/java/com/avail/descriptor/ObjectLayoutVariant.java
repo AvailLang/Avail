@@ -35,6 +35,7 @@ package com.avail.descriptor;
 import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.objects.A_BasicObject;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -45,6 +46,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
 import static com.avail.descriptor.TupleDescriptor.toList;
 import static com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY;
+import static java.util.Collections.unmodifiableList;
 
 /**
  * The {@link ObjectLayoutVariant}s capture field layouts for objects and object
@@ -61,12 +63,21 @@ import static com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUB
 public final class ObjectLayoutVariant
 {
 	/**
+	 * The {@link List} of {@link A_Atom}s for which to allocate slots in an
+	 * object or object type. This only includes the real fields, and excludes
+	 * the keys that were created solely for the purpose of explicit
+	 * subclassing.  These slots are in the same order that the slots should
+	 * have in the object or object type.
+	 */
+	public final List<A_Atom> realSlots;
+
+	/**
 	 * The number of slots to allocate in an object or object type to
 	 * accommodate the real fields.  This excludes the keys that were created
 	 * solely for the purpose of explicit subclassing.  This value is always the
 	 * largest value in fieldToSlotIndex.
 	 */
-	final int realSlotCount;
+	public final int realSlotCount;
 
 	/**
 	 * A unique int suitable for distinguishing variants.  This may become more
@@ -93,7 +104,7 @@ public final class ObjectLayoutVariant
 	 * ObjectLayoutVariant}.  Makes it convenient to capture the variant in an
 	 * object register in Level Two code.
 	 */
-	final A_BasicObject thisPojo;
+	public final A_BasicObject thisPojo;
 
 	/** The mutable object descriptor for this variant. */
 	final ObjectDescriptor mutableObjectDescriptor;
@@ -114,7 +125,7 @@ public final class ObjectLayoutVariant
 	final ObjectTypeDescriptor sharedObjectTypeDescriptor;
 
 	/**
-	 * Create a new {@link ObjectLayoutVariant} for the given set of fields.
+	 * Create a new {@code ObjectLayoutVariant} for the given set of fields.
 	 *
 	 * @param allFields
 	 *        The complete {@link A_Set set} of {@link A_Atom atom}s that are
@@ -136,12 +147,18 @@ public final class ObjectLayoutVariant
 			Comparator.comparing(atom -> atom.atomName().asNativeString()));
 		this.fieldToSlotIndex = new HashMap<>(sortedFields.size());
 		int slotCount = 0;
+		final List<A_Atom> realSlotsList = new ArrayList<>();
 		for (final A_Atom field : sortedFields)
 		{
 			final boolean isReal =
 				field.getAtomProperty(explicitSubclassingKey).equalsNil();
 			fieldToSlotIndex.put(field, isReal ? ++slotCount : 0);
+			if (isReal)
+			{
+				realSlotsList.add(field);
+			}
 		}
+		this.realSlots = unmodifiableList(realSlotsList);
 		this.realSlotCount = slotCount;
 		this.variantId = variantId;
 		thisPojo = identityPojo(this);
@@ -182,7 +199,7 @@ public final class ObjectLayoutVariant
 	 *        The set of fields for which a variant is requested.
 	 * @return The lookup for that set of fields.
 	 */
-	static ObjectLayoutVariant variantForFields (final A_Set allFields)
+	public static ObjectLayoutVariant variantForFields (final A_Set allFields)
 	{
 		variantsLock.readLock().lock();
 		try

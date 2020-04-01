@@ -40,6 +40,7 @@ import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
 
 /**
  * {@code A_Map} is an interface that specifies the map-specific operations
@@ -101,6 +102,36 @@ extends A_BasicObject
 		A_BasicObject.class,
 		A_BasicObject.class,
 		boolean.class);
+
+	/**
+	 * Look up the {@code key} in the map.  If present, use the key and the
+	 * looked up value as arguments to a call to the {@code transformer}.
+	 * Otherwise, use the key and the {@code notFoundValue} ({@link
+	 * NilDescriptor#nil} is convenient for this) as arguments to the
+	 * transformer.  Store the transformer's result in the map under the key,
+	 * destroying the original if {@code canDestroy} is true.  Answer the
+	 * resulting map.
+	 *
+	 * <p>The map must not change during evaluation of the transformer.</p>
+	 *
+	 * @param key
+	 *        The key to look up.
+	 * @param notFoundValue
+	 *        The value to use as the second argument to the transformer if the
+	 *        key was not found.
+	 * @param transformer
+	 *        The {@link BinaryOperator} that produces a replacement value to
+	 *        store into the map.
+	 * @param canDestroy
+	 *        Whether the map can be modified by this call.
+	 * @return The new map, possibly the mutated original map itself, if
+	 *         canDestroy is true.
+	 */
+	A_Map mapAtReplacingCanDestroy (
+		final A_BasicObject key,
+		final A_BasicObject notFoundValue,
+		final BinaryOperator<A_BasicObject> transformer,
+		final boolean canDestroy);
 
 	/**
 	 * Answer the number of key/value pairs in the map.

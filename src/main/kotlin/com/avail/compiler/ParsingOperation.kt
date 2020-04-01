@@ -41,7 +41,6 @@ import com.avail.compiler.splitter.MessageSplitter
 import com.avail.compiler.splitter.MessageSplitter.Companion.constantForIndex
 import com.avail.compiler.splitter.MessageSplitter.Companion.permutationAtIndex
 import com.avail.descriptor.*
-import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.ListPhraseDescriptor.emptyListNode
 import com.avail.descriptor.ListPhraseDescriptor.newListNode
 import com.avail.descriptor.LiteralPhraseDescriptor.literalNodeFromToken
@@ -56,6 +55,7 @@ import com.avail.descriptor.TokenDescriptor.TokenType
 import com.avail.descriptor.TokenDescriptor.TokenType.*
 import com.avail.descriptor.TupleDescriptor.toList
 import com.avail.descriptor.TupleTypeDescriptor.stringType
+import com.avail.descriptor.TypeDescriptor.Types.NUMBER
 import com.avail.descriptor.bundles.A_BundleTree
 import com.avail.descriptor.parsing.A_Phrase
 import com.avail.descriptor.parsing.PhraseDescriptor
@@ -790,7 +790,7 @@ enum class ParsingOperation constructor(
 	 * `12` - Parse a raw *[literal][TokenType.LITERAL]*
 	 * [token][TokenDescriptor], leaving it on the parse stack.
 	 */
-	PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN(12, false, false)
+	PARSE_RAW_NUMERIC_LITERAL_TOKEN(12, false, false)
 	{
 		override fun execute(
 			compiler: AvailCompiler,
@@ -822,7 +822,7 @@ enum class ParsingOperation constructor(
 			) { token ->
 				val tokenType = token.tokenType()
 				if (tokenType != LITERAL
-					|| !token.literal().isInstanceOf(wholeNumbers()))
+					|| !token.literal().isInstanceOf(NUMBER.o()))
 				{
 					if (consumedAnything)
 					{
@@ -831,7 +831,7 @@ enum class ParsingOperation constructor(
 							else STRONG
 						) {
 							it(
-								"a whole number literal token, not " +
+								"a numeric literal token, not " +
 									when (tokenType)
 									{
 										END_OF_FILE -> "end-of-file"

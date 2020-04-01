@@ -42,6 +42,7 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.NoSuchElementException;
 import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
 
 import static com.avail.descriptor.AvailObjectRepresentation.newLike;
 import static com.avail.descriptor.BottomTypeDescriptor.bottom;
@@ -354,10 +355,10 @@ extends MapBinDescriptor
 	{
 		assert myLevel == level;
 		checkHashedMapBin(object);
-		// First, grab the appropriate 6 bits from the hash.
 		final int oldKeysHash = object.mapBinKeysHash();
 		final int oldSize = object.mapBinSize();
 		final int objectEntryCount = object.variableObjectSlotsCount();
+		// Grab the appropriate 6 bits from the hash.
 		final int logicalIndex = (keyHash >>> shift) & 63;
 		final long vector = object.slot(BIT_VECTOR);
 		final long masked = vector & (1L << logicalIndex) - 1;
@@ -474,7 +475,7 @@ extends MapBinDescriptor
 		{
 			object.makeImmutable();
 		}
-		// First, grab the appropriate 6 bits from the hash.
+		// Grab the appropriate 6 bits from the hash.
 		final int logicalIndex = (keyHash >>> shift) & 63;
 		final long vector = object.slot(BIT_VECTOR);
 		if ((vector & (1L << logicalIndex)) == 0)
@@ -545,6 +546,67 @@ extends MapBinDescriptor
 		objectToModify.setSlot(BIN_SIZE, oldSize + delta);
 		objectToModify.setSlot(KEYS_HASH, oldKeysHash + deltaHash);
 		objectToModify.setSlot(VALUES_HASH_OR_ZERO, 0);
+		objectToModify.setSlot(BIN_KEY_UNION_KIND_OR_NIL, nil);
+		objectToModify.setSlot(BIN_VALUE_UNION_KIND_OR_NIL, nil);
+		checkHashedMapBin(objectToModify);
+		return objectToModify;
+	}
+
+	@Override
+	protected A_MapBin o_MapBinAtHashReplacingLevelCanDestroy (
+		final AvailObject object,
+		final A_BasicObject key,
+		final int keyHash,
+		final A_BasicObject notFoundValue,
+		final BinaryOperator<A_BasicObject> transformer,
+		final byte myLevel,
+		final boolean canDestroy)
+	{
+		checkHashedMapBin(object);
+		if (isMutable() && !canDestroy)
+		{
+			object.makeImmutable();
+		}
+		// First, grab the appropriate 6 bits from the hash.
+		final int logicalIndex = (keyHash >>> shift) & 63;
+		final long vector = object.slot(BIT_VECTOR);
+		if ((vector & (1L << logicalIndex)) == 0)
+		{
+			// Definitely not present, so add it.
+			return object.mapBinAtHashPutLevelCanDestroy(
+				key,
+				keyHash,
+				transformer.apply(key, notFoundValue),
+				level,
+				canDestroy);
+		}
+		// Sub-bin already exists for those hash bits.  Update the sub-bin.
+		final int oldSize = (int) object.slot(BIN_SIZE);
+		final int oldKeysHash = object.slot(KEYS_HASH);
+		final long masked = vector & (1L << logicalIndex) - 1;
+		final int physicalIndex = bitCount(masked) + 1;
+		final AvailObject oldSubBin = object.slot(SUB_BINS_, physicalIndex);
+		final int oldSubBinSize = oldSubBin.mapBinSize();
+		final int oldSubBinKeyHash = oldSubBin.mapBinKeysHash();
+		final A_MapBin newSubBin =
+			oldSubBin.mapBinAtHashReplacingLevelCanDestroy(
+				key,
+				keyHash,
+				notFoundValue,
+				transformer,
+				(byte)(myLevel + 1),
+				canDestroy);
+		final int delta = newSubBin.mapBinSize() - oldSubBinSize;
+		final int hashDelta = newSubBin.mapBinKeysHash() - oldSubBinKeyHash;
+		final AvailObject objectToModify =
+			canDestroy && isMutable()
+				? object
+				: newLike(descriptorFor(MUTABLE, level), object, 0, 0);
+		objectToModify.setSlot(SUB_BINS_, physicalIndex, newSubBin);
+		assert objectToModify.descriptor().isMutable();
+		objectToModify.setSlot(KEYS_HASH, oldKeysHash + hashDelta);
+		objectToModify.setSlot(VALUES_HASH_OR_ZERO, 0);
+		objectToModify.setSlot(BIN_SIZE, oldSize + delta);
 		objectToModify.setSlot(BIN_KEY_UNION_KIND_OR_NIL, nil);
 		objectToModify.setSlot(BIN_VALUE_UNION_KIND_OR_NIL, nil);
 		checkHashedMapBin(objectToModify);

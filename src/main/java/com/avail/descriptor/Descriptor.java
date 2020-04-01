@@ -98,6 +98,7 @@ import java.util.NoSuchElementException;
 import java.util.Spliterator;
 import java.util.TimerTask;
 import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -986,6 +987,17 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final A_BasicObject keyObject,
 		final A_BasicObject newValueObject,
+		final boolean canDestroy)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	public A_Map o_MapAtReplacingCanDestroy (
+		final AvailObject object,
+		final A_BasicObject key,
+		final A_BasicObject notFoundValue,
+		final BinaryOperator<A_BasicObject> transformer,
 		final boolean canDestroy)
 	{
 		throw unsupportedOperationException();
@@ -3429,6 +3441,19 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final A_BasicObject key,
 		final int keyHash,
+		final boolean canDestroy)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	protected A_MapBin o_MapBinAtHashReplacingLevelCanDestroy (
+		final AvailObject object,
+		final A_BasicObject key,
+		final int keyHash,
+		final A_BasicObject notFoundValue,
+		final BinaryOperator<A_BasicObject> transformer,
+		final byte myLevel,
 		final boolean canDestroy)
 	{
 		throw unsupportedOperationException();

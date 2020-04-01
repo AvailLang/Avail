@@ -70,8 +70,10 @@ import com.avail.interpreter.primitive.hooks.P_DeclareStringificationAtom;
 import com.avail.interpreter.primitive.hooks.P_GetRaiseJavaExceptionInAvailFunction;
 import com.avail.interpreter.primitive.methods.*;
 import com.avail.interpreter.primitive.modules.P_AddUnloadFunction;
+import com.avail.interpreter.primitive.modules.P_DeclareAllAtomsExportedFromAnotherModule;
 import com.avail.interpreter.primitive.modules.P_DeclareAllExportedAtoms;
 import com.avail.interpreter.primitive.modules.P_PrivateCreateModuleVariable;
+import com.avail.interpreter.primitive.modules.P_PublishName;
 import com.avail.interpreter.primitive.objects.P_RecordNewTypeName;
 import com.avail.interpreter.primitive.phrases.P_CreateLiteralExpression;
 import com.avail.interpreter.primitive.phrases.P_CreateLiteralToken;
@@ -1173,6 +1175,18 @@ extends Descriptor
 		PUBLISH_ATOMS(
 			"vm publish atom set_(public=_)",
 			P_DeclareAllExportedAtoms.INSTANCE),
+
+		/**
+		 * The special atom for publishing an atom created in the module body.
+		 */
+		PUBLISH_NEW_NAME(
+			"vm publish new atom_",
+			P_PublishName.INSTANCE),
+
+		/** The special atom for publishing all atoms imported from a module. */
+		PUBLISH_ALL_ATOMS_FROM_OTHER_MODULE(
+			"vm publish all atoms from modules named_(public=_)",
+			P_DeclareAllAtomsExportedFromAnotherModule.INSTANCE),
 
 		/** The special atom for recording a type's name. */
 		RECORD_TYPE_NAME(

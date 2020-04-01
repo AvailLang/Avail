@@ -160,6 +160,13 @@ extends Descriptor
 		VISIBLE_NAMES,
 
 		/**
+		 * A redundant cached {@link A_Set} of {@link A_Atom}s that have been
+		 * exported.  These are precisely the {@link #IMPORTED_NAMES} minus the
+		 * {@link #PRIVATE_NAMES}.
+		 */
+		EXPORTED_NAMES,
+
+		/**
 		 * A {@linkplain SetDescriptor set} of {@linkplain DefinitionDescriptor
 		 * definitions} which implement methods and macros (and forward
 		 * declarations, abstract declarations, etc.).
@@ -236,6 +243,7 @@ extends Descriptor
 			|| e == NEW_NAMES
 			|| e == IMPORTED_NAMES
 			|| e == PRIVATE_NAMES
+			|| e == EXPORTED_NAMES
 			|| e == VISIBLE_NAMES
 			|| e == METHOD_DEFINITIONS_SET
 			|| e == GRAMMATICAL_RESTRICTIONS
@@ -259,6 +267,13 @@ extends Descriptor
 		builder.append(object.moduleName());
 	}
 
+	@Override
+	protected String o_NameForDebugger (final AvailObject object)
+	{
+		return super.o_NameForDebugger(object) + " = "
+			+ object.moduleName().asNativeString();
+	}
+
 	@Override @AvailMethod
 	protected A_String o_ModuleName (final AvailObject object)
 	{
@@ -275,7 +290,8 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected void o_Versions (final AvailObject object, final A_Set versionStrings)
+	protected void o_Versions (
+		final AvailObject object, final A_Set versionStrings)
 	{
 		synchronized (object)
 		{
@@ -331,6 +347,9 @@ extends Descriptor
 	@Override @AvailMethod
 	protected A_Set o_ExportedNames (final AvailObject object)
 	{
+		//TODO Cleanup.
+		if (false) { return object.slot(EXPORTED_NAMES); }
+
 		A_Set exportedNames = emptySet();
 		synchronized (object)
 		{
@@ -476,12 +495,39 @@ extends Descriptor
 		synchronized (object)
 		{
 			final A_String string = trueName.atomName();
-			A_Map names = object.slot(IMPORTED_NAMES);
-			final A_Set set =
-				names.hasKey(string) ? names.mapAt(string) : emptySet();
-			names = names.mapAtPuttingCanDestroy(
-				string, set.setWithElementCanDestroy(trueName, false), true);
-			object.setSlot(IMPORTED_NAMES, names.makeShared());
+			A_Map importedNames = object.slot(IMPORTED_NAMES);
+			importedNames = importedNames.mapAtReplacingCanDestroy(
+				string,
+				emptySet(),
+				(str, set) -> ((A_Set) set).setWithElementCanDestroy(
+					trueName, true),
+				true);
+			object.setSlot(IMPORTED_NAMES, importedNames.makeShared());
+			A_Map privateNames = object.slot(PRIVATE_NAMES);
+			if (privateNames.hasKey(string)
+				&& privateNames.mapAt(string).hasElement(trueName))
+			{
+				// Inclusion has priority over exclusion, even along a
+				// different chain of modules.
+				final A_Set set = privateNames.mapAt(string);
+				if (set.setSize() == 1)
+				{
+					privateNames = privateNames.mapWithoutKeyCanDestroy(
+						string, true);
+				}
+				else
+				{
+					privateNames = privateNames.mapAtPuttingCanDestroy(
+						string,
+						set.setWithoutElementCanDestroy(trueName, true),
+						true);
+				}
+				object.setSlot(PRIVATE_NAMES, privateNames.makeShared());
+			}
+			A_Set exportedNames = object.slot(EXPORTED_NAMES);
+			exportedNames = exportedNames.setWithElementCanDestroy(
+				trueName, true);
+			object.setSlot(EXPORTED_NAMES, exportedNames.makeShared());
 			A_Set visibleNames = object.slot(VISIBLE_NAMES);
 			visibleNames = visibleNames.setWithElementCanDestroy(
 				trueName, true);
@@ -497,19 +543,42 @@ extends Descriptor
 		// Add the set of atoms to the current public scope.
 		synchronized (object)
 		{
-			A_Map names = object.slot(IMPORTED_NAMES);
+			A_Map importedNames = object.slot(IMPORTED_NAMES);
+			A_Map privateNames = object.slot(PRIVATE_NAMES);
 			for (final A_Atom trueName : trueNames)
 			{
 				final A_String string = trueName.atomName();
-				final A_Set set = names.hasKey(string)
-					? names.mapAt(string)
-					: emptySet();
-				names = names.mapAtPuttingCanDestroy(
+				importedNames = importedNames.mapAtReplacingCanDestroy(
 					string,
-					set.setWithElementCanDestroy(trueName, true),
+					emptySet(),
+					(str, set) -> ((A_Set) set).setWithElementCanDestroy(
+						trueName, true),
 					true);
+				if (privateNames.hasKey(string)
+					&& privateNames.mapAt(string).hasElement(trueName))
+				{
+					// Inclusion has priority over exclusion, even along a
+					// different chain of modules.
+					final A_Set set = privateNames.mapAt(string);
+					if (set.setSize() == 1)
+					{
+						privateNames = privateNames.mapWithoutKeyCanDestroy(
+							string, true);
+					}
+					else
+					{
+						privateNames = privateNames.mapAtPuttingCanDestroy(
+							string,
+							set.setWithoutElementCanDestroy(trueName, true),
+							true);
+					}
+				}
 			}
-			object.setSlot(IMPORTED_NAMES, names.makeShared());
+			object.setSlot(IMPORTED_NAMES, importedNames.makeShared());
+			object.setSlot(PRIVATE_NAMES, privateNames.makeShared());
+			A_Set exportedNames = object.slot(EXPORTED_NAMES);
+			exportedNames = exportedNames.setUnionCanDestroy(trueNames, true);
+			object.setSlot(EXPORTED_NAMES, exportedNames.makeShared());
 			A_Set visibleNames = object.slot(VISIBLE_NAMES);
 			visibleNames = visibleNames.setUnionCanDestroy(trueNames, true);
 			object.setSlot(VISIBLE_NAMES, visibleNames.makeShared());
@@ -547,17 +616,26 @@ extends Descriptor
 		{
 			final A_String string = trueName.atomName();
 			A_Map privateNames = object.slot(PRIVATE_NAMES);
-			A_Set set = privateNames.hasKey(string)
-				? privateNames.mapAt(string)
-				: emptySet();
-			set = set.setWithElementCanDestroy(trueName, false);
-			privateNames = privateNames.mapAtPuttingCanDestroy(
-				string, set, true);
+			privateNames = privateNames.mapAtReplacingCanDestroy(
+				string,
+				emptySet(),
+				(str, set) -> ((A_Set) set).setWithElementCanDestroy(
+					trueName, true),
+				true);
 			object.setSlot(PRIVATE_NAMES, privateNames.makeShared());
 			A_Set visibleNames = object.slot(VISIBLE_NAMES);
 			visibleNames = visibleNames.setWithElementCanDestroy(
 				trueName, true);
 			object.setSlot(VISIBLE_NAMES, visibleNames.makeShared());
+			final A_Map importedNames = object.slot(IMPORTED_NAMES);
+			if (!importedNames.hasKey(string)
+				|| !importedNames.mapAt(string).hasElement(trueName))
+			{
+				A_Set exportedNames = object.slot(EXPORTED_NAMES);
+				exportedNames = exportedNames.setWithoutElementCanDestroy(
+					trueName, true);
+				object.setSlot(EXPORTED_NAMES, exportedNames.makeShared());
+			}
 		}
 	}
 
@@ -570,20 +648,30 @@ extends Descriptor
 		synchronized (object)
 		{
 			A_Map privateNames = object.slot(PRIVATE_NAMES);
+			A_Set visibleNames = object.slot(VISIBLE_NAMES);
+			A_Set exportedNames = object.slot(EXPORTED_NAMES);
+			final A_Map importedNames = object.slot(IMPORTED_NAMES);
 			for (final A_Atom trueName : trueNames)
 			{
 				final A_String string = trueName.atomName();
-				A_Set set = privateNames.hasKey(string)
-					? privateNames.mapAt(string)
-					: emptySet();
-				set = set.setWithElementCanDestroy(trueName, true);
-				privateNames = privateNames.mapAtPuttingCanDestroy(
-					string, set, true);
+				privateNames = privateNames.mapAtReplacingCanDestroy(
+					string,
+					emptySet(),
+					(str, set) -> ((A_Set) set).setWithElementCanDestroy(
+						trueName, true),
+					true);
+				visibleNames = visibleNames.setWithElementCanDestroy(
+					trueName, true);
+				if (!importedNames.hasKey(string)
+					|| !importedNames.mapAt(string).hasElement(trueName))
+				{
+					exportedNames = exportedNames.setWithoutElementCanDestroy(
+						trueName, true);
+				}
 			}
 			object.setSlot(PRIVATE_NAMES, privateNames.makeShared());
-			A_Set visibleNames = object.slot(VISIBLE_NAMES);
-			visibleNames = visibleNames.setUnionCanDestroy(trueNames, true);
 			object.setSlot(VISIBLE_NAMES, visibleNames.makeShared());
+			object.setSlot(EXPORTED_NAMES, exportedNames.makeShared());
 		}
 	}
 
@@ -632,7 +720,8 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	protected boolean o_Equals (
+		final AvailObject object, final A_BasicObject another)
 	{
 		// Compare by address (identity).
 		return another.traversed().sameAddressAs(object);
@@ -1001,6 +1090,7 @@ extends Descriptor
 		module.setSlot(IMPORTED_NAMES, emptyMap());
 		module.setSlot(PRIVATE_NAMES, emptyMap());
 		module.setSlot(VISIBLE_NAMES, emptySet());
+		module.setSlot(EXPORTED_NAMES, emptySet());
 		module.setSlot(METHOD_DEFINITIONS_SET, emptySet());
 		module.setSlot(GRAMMATICAL_RESTRICTIONS, emptySet());
 		module.setSlot(VARIABLE_BINDINGS, emptyMap());

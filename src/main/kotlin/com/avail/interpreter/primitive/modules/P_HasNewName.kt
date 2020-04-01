@@ -1,5 +1,5 @@
 /*
- * P_BootstrapIntegerLiteral.kt
+ * P_HasNewName.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,45 +29,45 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.primitive.bootstrap.syntax
+
+package com.avail.interpreter.primitive.modules
 
 import com.avail.descriptor.A_Type
+import com.avail.descriptor.EnumerationTypeDescriptor.booleanType
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
-import com.avail.descriptor.LiteralPhraseDescriptor.literalNodeFromToken
-import com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType
+import com.avail.descriptor.ModuleDescriptor
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
+import com.avail.descriptor.StringDescriptor
+import com.avail.descriptor.TupleTypeDescriptor.stringType
+import com.avail.descriptor.TypeDescriptor.Types.MODULE
+import com.avail.descriptor.atoms.AtomDescriptor
+import com.avail.descriptor.atoms.AtomDescriptor.objectFromBoolean
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Create a non-negative integer literal phrase from a
- * non-negative integer literal constant token (already wrapped as a literal
- * phrase).  This is a bootstrapped macro because not all subsets of the core
- * Avail syntax should allow non-negative integer literal phrases.
+ * **Primitive:** Answer whether the given [module][ModuleDescriptor] introduced
+ * an [atom][AtomDescriptor] based on the given [string][StringDescriptor].
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_BootstrapIntegerLiteral :
-	Primitive(1, CanInline, CannotFail, Bootstrap)
+object P_HasNewName : Primitive(
+	2, CanInline, CannotFail, ReadsFromHiddenGlobalState)
 {
-
 	override fun attempt(interpreter: Interpreter): Result
 	{
-		interpreter.checkArgumentCount(1)
-		val integerTokenLiteral = interpreter.argument(0)
-
-		val outerToken = integerTokenLiteral.token()
-		val innerToken = outerToken.literal()
-		assert(innerToken.literal().isInstanceOfKind(wholeNumbers()))
-		val integerLiteral = literalNodeFromToken(innerToken)
-		return interpreter.primitiveSuccess(integerLiteral)
+		interpreter.checkArgumentCount(2)
+		val (module, nameString) = interpreter.argsBuffer
+		return interpreter.primitiveSuccess(
+			objectFromBoolean(module.newNames().hasKey(nameString)))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				LITERAL_PHRASE.create(literalTokenType(wholeNumbers()))),
-			LITERAL_PHRASE.create(wholeNumbers()))
+				MODULE.o(),
+				stringType()),
+			booleanType())
 }

@@ -1,6 +1,6 @@
 /*
- * L2_CREATE_OBJECT.java
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * L2_GET_OBJECT_FIELD.java
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,50 +32,48 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.ObjectLayoutVariant;
-import com.avail.descriptor.atoms.A_Atom;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
-import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import static com.avail.descriptor.ObjectDescriptor.createUninitializedObjectMethod;
-import static com.avail.descriptor.ObjectDescriptor.setFieldMethod;
+import static com.avail.descriptor.AvailObject.fieldAtMethod;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 
 /**
- * Create an object using a constant pojo holding an {@link ObjectLayoutVariant}
- * and a vector of values, in the order the variant lays them out as fields.
+ * Extract the specified field of the object.
+ *
+ * TODO - Eventually we should generate code to collect stats on which variants
+ * occur, then at reoptimization time inline tests for the likely ones, and use
+ * the field indices directly for those variants.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class L2_CREATE_OBJECT
+public final class L2_GET_OBJECT_FIELD
 extends L2Operation
 {
 	/**
 	 * Construct an {@code L2_CREATE_OBJECT}.
 	 */
-	private L2_CREATE_OBJECT ()
+	private L2_GET_OBJECT_FIELD ()
 	{
 		super(
-			CONSTANT.is("variant pojo"),
-			READ_BOXED_VECTOR.is("field values"),
-			WRITE_BOXED.is("new object"));
+			READ_BOXED.is("object"),
+			CONSTANT.is("field atom"),
+			WRITE_BOXED.is("field value"));
 	}
 
 	/**
 	 * Initialize the sole instance.
 	 */
-	public static final L2_CREATE_OBJECT instance = new L2_CREATE_OBJECT();
+	public static final L2_GET_OBJECT_FIELD instance = new L2_GET_OBJECT_FIELD();
 
 	@Override
 	public void appendToWithWarnings (
@@ -85,32 +83,18 @@ extends L2Operation
 		final Consumer<Boolean> warningStyleChange)
 	{
 		assert this == instruction.operation();
-		final L2ConstantOperand variantOperand = instruction.operand(0);
-		final L2ReadBoxedVectorOperand fieldsVector = instruction.operand(1);
-		final L2WriteBoxedOperand object = instruction.operand(2);
+		final L2ReadBoxedOperand objectRead = instruction.operand(0);
+		final L2ConstantOperand fieldAtom = instruction.operand(1);
+		final L2WriteBoxedOperand fieldValue = instruction.operand(2);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
-		builder.append(object.registerString());
-		builder.append(" ← {");
-		final ObjectLayoutVariant variant =
-			variantOperand.object.javaObjectNotNull();
-		final List<A_Atom> realSlots = variant.realSlots;
-		final List<L2ReadBoxedOperand> fieldSources = fieldsVector.elements();
-		assert realSlots.size() == fieldSources.size();
-		for (int i = 0; i < realSlots.size(); i++)
-		{
-			if (i > 0)
-			{
-				builder.append(", ");
-			}
-			final A_Atom key = realSlots.get(i);
-			final L2ReadBoxedOperand value = fieldSources.get(i);
-			builder.append(key);
-			builder.append(": ");
-			builder.append(value.registerString());
-		}
-		builder.append('}');
+		builder.append(fieldValue.registerString());
+		builder.append(" ← ");
+		builder.append(objectRead);
+		builder.append("[");
+		builder.append(fieldAtom);
+		builder.append("]");
 	}
 
 	@Override
@@ -120,21 +104,13 @@ extends L2Operation
 		final L2Instruction instruction)
 	{
 		assert this == instruction.operation();
-		final L2ConstantOperand variantOperand = instruction.operand(0);
-		final L2ReadBoxedVectorOperand fieldsVector = instruction.operand(1);
-		final L2WriteBoxedOperand object = instruction.operand(2);
+		final L2ReadBoxedOperand objectRead = instruction.operand(0);
+		final L2ConstantOperand fieldAtom = instruction.operand(1);
+		final L2WriteBoxedOperand fieldValue = instruction.operand(2);
 
-		final ObjectLayoutVariant variant =
-			variantOperand.object.javaObjectNotNull();
-		method.visitLdcInsn(variant);
-		createUninitializedObjectMethod.generateCall(method);
-		final List<L2ReadBoxedOperand> fieldSources = fieldsVector.elements();
-		for (int i = 0, limit = fieldSources.size(); i < limit; i++)
-		{
-			method.visitLdcInsn(i + 1);
-			translator.load(method, fieldSources.get(i).register());
-			setFieldMethod.generateCall(method); // Returns object for chaining.
-		}
-		translator.store(method, object.register());
+		translator.load(method, objectRead.register());
+		translator.literal(method, fieldAtom.object);
+		fieldAtMethod.generateCall(method);
+		translator.store(method, fieldValue.register());
 	}
 }

@@ -848,6 +848,24 @@ extends TypeDescriptor
 	}
 
 	/**
+	 * Create a mutable object type using the provided
+	 * {@link ObjectLayoutVariant}, but without initializing its fields.  The
+	 * caller is responsible for initializing the fields before use.
+	 *
+	 * @param variant
+	 *        The {@link ObjectLayoutVariant} to instantiate as an object type.
+	 * @return The new object type.
+	 */
+	public static AvailObject createUninitializedObjectType (
+		final ObjectLayoutVariant variant)
+	{
+		final AvailObject result = variant.mutableObjectTypeDescriptor.create(
+			variant.realSlotCount);
+		result.setSlot(HASH_OR_ZERO, 0);
+		return result;
+	}
+
+	/**
 	 * Given an {@link ObjectDescriptor object} whose variant is this mutable
 	 * object type descriptor's variant, create an object type whose fields are
 	 * populated with instance types based on the object's fields.

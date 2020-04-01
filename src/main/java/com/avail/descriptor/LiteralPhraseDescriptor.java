@@ -238,21 +238,42 @@ extends PhraseDescriptor
 	/**
 	 * Create a literal phrase from an {@link AvailObject}, the literal value
 	 * itself.  Automatically wrap the value inside a synthetic literal token.
+	 * If the literal is a string, use that as its string form, otherwise use
+	 * the {@link StringDescriptor#stringFrom(String)} of its Java
+	 * {@link #toString()}.
 	 *
-	 * @param literalValue The value that this literal phrase should produce.
+	 * @param literalValue
+	 *        The value that this literal phrase should produce.
 	 * @return The new literal phrase.
 	 */
 	public static A_Phrase syntheticLiteralNodeFor (
 		final A_BasicObject literalValue)
 	{
-		final AvailObject token = literalToken(
+		return syntheticLiteralNodeFor(
+			literalValue,
 			literalValue.isString()
 				? (A_String) literalValue
-				: stringFrom(literalValue.toString()),
-			0,
-			0,
-			literalValue);
-		return literalNodeFromToken(token);
+				: stringFrom(literalValue.toString()));
+	}
+
+	/**
+	 * Create a literal phrase from an {@link AvailObject}, the literal value
+	 * itself.  Automatically wrap the value inside a synthetic literal token.
+	 * Use the specified {@code literalAsString} as the string form of the
+	 * literal for printing.
+	 *
+	 * @param literalValue
+	 *        The value that this literal phrase should produce.
+	 * @param literalAsString
+	 *        The {@link A_String} used to describe this literal.
+	 * @return The new literal phrase.
+	 */
+	public static A_Phrase syntheticLiteralNodeFor (
+		final A_BasicObject literalValue,
+		final A_String literalAsString)
+	{
+		return literalNodeFromToken(
+			literalToken(literalAsString, 0, 0, literalValue));
 	}
 
 	/**

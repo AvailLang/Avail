@@ -37,6 +37,7 @@ import com.avail.descriptor.objects.A_BasicObject;
 
 import javax.annotation.Nullable;
 import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
 
 /**
  * {@code A_MapBin} is a collection of keys and their associated values, which
@@ -88,4 +89,35 @@ extends A_BasicObject
 
 	void forEachInMapBin (
 		final BiConsumer<? super AvailObject, ? super AvailObject> action);
+
+	/**
+	 * Transform an element of this map bin.  If there is an entry for the key,
+	 * use the corresponding value as the second argument to the transformer,
+	 * otherwise pass the notFoundValue.  Write the result back to the bin,
+	 * potentially recycling it if canDestroy is true.
+	 *
+	 * @param key
+	 *        The key to look up.
+	 * @param keyHash
+	 *        The already computed hash of that key, to avoid rehashing while
+	 *        traversing the tree structure.
+	 * @param notFoundValue
+	 *        What to pass the transformer if the key was not found.
+	 * @param transformer
+	 *        A {@link BinaryOperator} that takes the key and its value, or the
+	 *        notFoundValue, and produces a replacement value to associate with
+	 *        the key.
+	 * @param level
+	 *        The level of the map bin.
+	 * @param canDestroy
+	 *        Whether the original bin can be destroyed, if it's also mutable.
+	 * @return A replacement bin.
+	 */
+	A_MapBin mapBinAtHashReplacingLevelCanDestroy (
+		A_BasicObject key,
+		int keyHash,
+		A_BasicObject notFoundValue,
+		BinaryOperator<A_BasicObject> transformer,
+		byte level,
+		boolean canDestroy);
 }

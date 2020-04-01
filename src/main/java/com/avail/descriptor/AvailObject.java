@@ -91,6 +91,7 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -2771,6 +2772,17 @@ implements
 	}
 
 	@Override
+	public A_Map mapAtReplacingCanDestroy (
+		final A_BasicObject key,
+		final A_BasicObject notFoundValue,
+		final BinaryOperator<A_BasicObject> transformer,
+		final boolean canDestroy)
+	{
+		return descriptor().o_MapAtReplacingCanDestroy(
+			this, key, notFoundValue, transformer, canDestroy);
+	}
+
+	@Override
 	public int mapBinSize ()
 	{
 		return descriptor().o_MapBinSize(this);
@@ -4582,6 +4594,25 @@ implements
 	}
 
 	@Override
+	public A_MapBin mapBinAtHashReplacingLevelCanDestroy (
+		final A_BasicObject key,
+		final int keyHash,
+		final A_BasicObject notFoundValue,
+		final BinaryOperator<A_BasicObject> transformer,
+		final byte myLevel,
+		final boolean canDestroy)
+	{
+		return descriptor().o_MapBinAtHashReplacingLevelCanDestroy(
+			this,
+			key,
+			keyHash,
+			notFoundValue,
+			transformer,
+			myLevel,
+			canDestroy);
+	}
+
+	@Override
 	public A_Type mapBinKeyUnionKind ()
 	{
 		return descriptor().o_MapBinKeyUnionKind(this);
@@ -5879,10 +5910,18 @@ implements
 	}
 
 	@Override
+	@ReferencedInGeneratedCode
 	public AvailObject fieldAt (final A_Atom field)
 	{
 		return descriptor().o_FieldAt(this, field);
 	}
+
+	/** Access the {@link #fieldAt(A_Atom)} method. */
+	public static final CheckedMethod fieldAtMethod = instanceMethod(
+		AvailObject.class,
+		"fieldAt",
+		AvailObject.class,
+		A_Atom.class);
 
 	@Override
 	public A_BasicObject fieldAtPuttingCanDestroy (

@@ -1,5 +1,5 @@
 /*
- * Early Enumeration Support.avail
+ * P_BootstrapNumericLiteral.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,67 +29,44 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.primitive.bootstrap.syntax
 
-Module "Early Enumeration Support"
-Versions
-	"1.4.0"
-Uses
-	"Bootstrap",
-	"Early Assertions",
-	"Early Definers"
-Names
-	"_'s⁇instance"
-Body
-
-/**
- * Answer the sole instance of the specified enumeration.
- *
- * @method "_'s⁇instance"
- * @param "enum" "type"
- *        An enumeration. Anything answered by {@method "_'s⁇type"} satisfies
- *        this criterion.
- * @returns "any"
- *          The sole instance of the argument.
- * @category "Enumerations" "Types" "Queries"
- */
-Public method "_'s⁇instance" is
-[
-	enum : type
-|
-	Assert: |enum| = 1 ("|enum| ≠ 1");
-	enum's instances→tuple[1]
-] : any;
+import com.avail.descriptor.A_Type
+import com.avail.descriptor.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.LiteralPhraseDescriptor.literalNodeFromToken
+import com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType
+import com.avail.descriptor.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
+import com.avail.descriptor.TypeDescriptor.Types.NUMBER
+import com.avail.interpreter.Interpreter
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * Improve the bounds on metatypes.
- *
- * @method "_'s⁇instance"
- * @restricts "type's type"
+ * **Primitive:** Create a non-negative integer literal phrase from a
+ * non-negative integer literal constant token (already wrapped as a literal
+ * phrase).  This is a bootstrapped macro because not all subsets of the core
+ * Avail syntax should allow non-negative integer literal phrases.
  */
-Semantic restriction "_'s⁇instance" is
-[
-	aMeta : type's type
-|
-	result : type;
-	Cast aMeta's instance into [t : type | result := t;] else [];
-	result
-];
+@Suppress("unused")
+object P_BootstrapNumericLiteral :
+	Primitive(1, CanInline, CannotFail, Bootstrap)
+{
 
-/**
- * Is {@param "value"} an instance of {@param "aType"}?
- *
- * @method "_∈_"
- * @param "value" "any"
- * @param "aType" "type"
- * @returns "boolean"
- *          {@method "true"} if {@param "value"} is an instance of {@param
- *          "aType"}, {@method "false"} otherwise.
- * @category "Types" "Queries"
- */
-Method "_∈_" is
-[
-	value : any,
-	aType : type
-|
-	value's type ⊆ aType
-];
+	override fun attempt(interpreter: Interpreter): Result
+	{
+		interpreter.checkArgumentCount(1)
+		val numericTokenLiteral = interpreter.argument(0)
+
+		val outerToken = numericTokenLiteral.token()
+		val innerToken = outerToken.literal()
+		val numericLiteral = literalNodeFromToken(innerToken)
+		return interpreter.primitiveSuccess(numericLiteral)
+	}
+
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(
+				LITERAL_PHRASE.create(literalTokenType(NUMBER.o()))),
+			LITERAL_PHRASE.create(NUMBER.o()))
+}

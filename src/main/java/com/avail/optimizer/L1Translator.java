@@ -60,7 +60,6 @@ import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.operation.*;
 import com.avail.interpreter.levelTwo.operation.L2_REIFY.StatisticCategory;
-import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
 import com.avail.interpreter.primitive.general.P_Equality;
@@ -2340,96 +2339,6 @@ public final class L1Translator
 			functionToCallReg.definitionSkippingMoves(true);
 		return functionDefinition.operation().getConstantCodeFrom(
 			functionDefinition);
-	}
-
-	/**
-	 * Given a register that will hold a tuple, check that the tuple has the
-	 * number of elements and statically satisfies the corresponding provided
-	 * type constraints.  If so, generate code and answer a list of register
-	 * reads corresponding to the elements of the tuple; otherwise, generate no
-	 * code and answer null.
-	 *
-	 * <p>Depending on the source of the tuple, this may cause the creation of
-	 * the tuple to be entirely elided.</p>
-	 *
-	 * @param tupleReg
-	 *        The {@link L2BoxedRegister} containing the tuple.
-	 * @param requiredTypes
-	 *        The required {@linkplain A_Type types} against which to check the
-	 *        tuple's own type.
-	 * @return A {@link List} of {@link L2ReadBoxedOperand}s corresponding to
-	 *         the tuple's elements, or {@code null} if the tuple could not be
-	 *         proven to have the required shape and type.
-	 */
-	public @Nullable List<L2ReadBoxedOperand> explodeTupleIfPossible (
-		final L2ReadBoxedOperand tupleReg,
-		final List<A_Type> requiredTypes)
-	{
-		// First see if there's enough type information available about the
-		// tuple.
-		final A_Type tupleType = tupleReg.type();
-		final A_Type tupleTypeSizes = tupleType.sizeRange();
-		if (!tupleTypeSizes.upperBound().isInt()
-			|| !tupleTypeSizes.lowerBound().equals(tupleTypeSizes.upperBound()))
-		{
-			// The exact tuple size is not known.  Give up.
-			return null;
-		}
-		final int tupleSize = tupleTypeSizes.upperBound().extractInt();
-		if (tupleSize != requiredTypes.size())
-		{
-			// The tuple is the wrong size.
-			return null;
-		}
-
-		// Check the tuple element types against the required types.
-		for (int i = 1; i <= tupleSize; i++)
-		{
-			if (!tupleType.typeAtIndex(i).isSubtypeOf(requiredTypes.get(i - 1)))
-			{
-				// This tuple element's type isn't strong enough.
-				return null;
-			}
-		}
-
-		// At this point we know the tuple has the right type.  If we know where
-		// the tuple was created, use the registers that provided values to the
-		// creation.
-		final L2Instruction tupleDefinitionInstruction =
-			tupleReg.definitionSkippingMoves(false);
-		if (tupleDefinitionInstruction.operation() == L2_CREATE_TUPLE.instance)
-		{
-			// Use the registers that were used to assemble the tuple.
-			return L2_CREATE_TUPLE.tupleSourceRegistersOf(
-				tupleDefinitionInstruction);
-		}
-
-		if (tupleDefinitionInstruction.operation() == L2_MOVE_CONSTANT.boxed)
-		{
-			// Extract the elements of the constant tuple as constant elements.
-			final A_Tuple tuple =
-				L2_MOVE_CONSTANT.constantOf(tupleDefinitionInstruction);
-			return TupleDescriptor.toList(tuple).stream()
-				.map(generator::boxedConstant)
-				.collect(toList());
-		}
-
-		// We have to extract the elements.
-		final List<L2ReadBoxedOperand> elementReaders =
-			new ArrayList<>(tupleSize);
-		for (int i = 1; i <= tupleSize; i++)
-		{
-			final L2WriteBoxedOperand elementWriter =
-				generator.boxedWriteTemp(
-					restrictionForType(tupleType.typeAtIndex(i), BOXED));
-			addInstruction(
-				L2_TUPLE_AT_CONSTANT.instance,
-				tupleReg,
-				new L2IntImmediateOperand(i),
-				elementWriter);
-			elementReaders.add(readBoxed(elementWriter));
-		}
-		return elementReaders;
 	}
 
 	/**

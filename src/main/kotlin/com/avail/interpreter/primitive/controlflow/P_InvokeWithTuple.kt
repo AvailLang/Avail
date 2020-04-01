@@ -221,7 +221,7 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 		val argsSize = upperBound.extractInt()
 
 		val explodedArgumentRegisters =
-			translator.explodeTupleIfPossible(
+			translator.generator.explodeTupleIfPossible(
 				tupleReg,
 				toList(functionArgsType.tupleOfTypesFromTo(1, argsSize)))
 		if (explodedArgumentRegisters == null)

@@ -156,17 +156,16 @@ Semantic restriction "«Public»?_is a|an new⁇field⁇atom" is
 	publicType : boolean's type,
 	nameType : string's type
 |
-	public ::= cast publicType's instance into [t : boolean | t];
+	public ::= publicType's instance;
 	If public ∧ |nameType| ≠ 1 then
 	[
 		Reject parse, expected:
 			"public modifier to be provided only when the atom name \
 			\|is statically known"
 	];
-	publicNames ::= current module's public names;
 	If |nameType| = 1 then
 	[
-		name ::= cast nameType's instance into [t : string | t];
+		name ::= nameType's instance;
 		If |message name's parameters| ≠ 0 then
 		[
 			t : tuple := concatenate <
@@ -177,7 +176,7 @@ Semantic restriction "«Public»?_is a|an new⁇field⁇atom" is
 			s ?= t;
 			Reject parse, expected: s
 		];
-		If public ∧ ¬name ∈ publicNames then
+		If public ∧ ¬current module has public name name then
 		[
 			t : tuple := concatenate <
 				"\"",
@@ -221,17 +220,16 @@ Semantic restriction "«Public»?_is a new⁇heritable«fiber-local»⁇atom" is
 	publicType : boolean's type,
 	nameType : string's type
 |
-	public ::= cast publicType's instance into [t : boolean | t];
+	public ::= publicType's instance;
 	If public ∧ |nameType| ≠ 1 then
 	[
 		Reject parse, expected:
 			"public modifier to be provided only when the atom name \
 			\|is statically known"
 	];
-	publicNames ::= current module's public names;
 	If |nameType| = 1 then
 	[
-		name ::= cast nameType's instance into [t : string | t];
+		name ::= nameType's instance;
 		If |message name's parameters| ≠ 0 then
 		[
 			t : tuple := concatenate <
@@ -242,7 +240,7 @@ Semantic restriction "«Public»?_is a new⁇heritable«fiber-local»⁇atom" is
 			s ?= t;
 			Reject parse, expected: s
 		];
-		If public ∧ ¬name ∈ publicNames then
+		If public ∧ ¬current module has public name name then
 		[
 			t : tuple := concatenate <
 				"\"",

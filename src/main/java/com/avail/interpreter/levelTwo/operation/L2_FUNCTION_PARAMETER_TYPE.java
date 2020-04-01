@@ -39,25 +39,20 @@ import com.avail.descriptor.FunctionDescriptor;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.RegisterState;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
 import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Type.*;
 
 /**
  * Given an input register containing a function (not a function type), extract
@@ -131,59 +126,6 @@ extends L2Operation
 		// contravariant we can only assume it's some non-top type.
 		registerSet.typeAtPut(
 			outputParamTypeReg.register(), anyMeta(), instruction);
-	}
-
-	@Override
-	public boolean regenerate (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
-		final L2Generator generator)
-	{
-		final L2ReadBoxedOperand function = instruction.operand(0);
-		final L2IntImmediateOperand parameterIndex = instruction.operand(1);
-		final L2WriteBoxedOperand parameterType = instruction.operand(2);
-
-		@Nullable A_Type functionType = null;
-		if (registerSet.hasConstantAt(function.register()))
-		{
-			final A_Function constantFunction =
-				registerSet.constantAt(function.register());
-			functionType = constantFunction.code().functionType();
-		}
-		else
-		{
-			final RegisterState state =
-				registerSet.stateForReading(function.register());
-			final List<L2Instruction> sources = state.sourceInstructions();
-			if (sources.size() == 1)
-			{
-				// Exactly one instruction provides the function.
-				final L2Instruction closeInstruction = sources.get(0);
-				if (closeInstruction.operation() == L2_CREATE_FUNCTION.instance)
-				{
-					// The creation of the function is visible.  We can get to
-					// the code, which gives a precise functionType (a kind, not
-					// all the way down to the instance type).
-					final A_RawFunction code =
-						L2_CREATE_FUNCTION.constantRawFunctionOf(
-							closeInstruction);
-					functionType = code.functionType();
-				}
-			}
-		}
-		if (functionType != null)
-		{
-			// The exact function type (at least to kind) is known statically.
-			// Replace this instruction with a constant move.
-			final A_Type paramType =
-				functionType.argsTupleType().typeAtIndex(parameterIndex.value);
-			generator.addInstruction(
-				L2_MOVE_CONSTANT.boxed,
-				new L2ConstantOperand(paramType),
-				parameterType);
-			return true;
-		}
-		return super.regenerate(instruction, registerSet, generator);
 	}
 
 	@Override

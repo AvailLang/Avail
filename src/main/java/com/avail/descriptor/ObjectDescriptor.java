@@ -61,6 +61,7 @@ import static com.avail.descriptor.ObjectTypeDescriptor.namesAndBaseTypesForObje
 import static com.avail.descriptor.SetDescriptor.emptySet;
 import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
 import static com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY;
+import static com.avail.optimizer.jvm.CheckedMethod.staticMethod;
 import static com.avail.utility.Strings.newlineTab;
 
 /**
@@ -359,9 +360,11 @@ extends Descriptor
 				final Map.Entry<A_Atom, Integer> entry = fieldIterator.next();
 				final A_Atom field = entry.getKey();
 				final int slotIndex = entry.getValue();
-				return tuple(field, slotIndex == 0
-					? field
-					: object.slot(FIELD_VALUES_, slotIndex));
+				return tuple(
+					field,
+					slotIndex == 0
+						? field
+						: object.slot(FIELD_VALUES_, slotIndex));
 			});
 		assert !fieldIterator.hasNext();
 		return resultTuple;
@@ -491,6 +494,33 @@ extends Descriptor
 		return object.slot(FIELD_VALUES_, slotIndex);
 	}
 
+	/**
+	 * Update the field value at the specified slot index of the mutable object.
+	 *
+	 * @param object An object.
+	 * @param slotIndex The non-zero slot index.
+	 * @param value The value to write to the specified slot.
+	 * @return The given object, to facilitate chaining.
+	 */
+	@ReferencedInGeneratedCode
+	public static AvailObject setField (
+		final AvailObject object,
+		final int slotIndex,
+		final AvailObject value)
+	{
+		object.setSlot(FIELD_VALUES_, slotIndex, value);
+		return object;
+	}
+
+	/** Access the {@link #setField(AvailObject, int, AvailObject)} method. */
+	public static CheckedMethod setFieldMethod = staticMethod(
+		ObjectDescriptor.class,
+		"setField",
+		AvailObject.class,
+		AvailObject.class,
+		int.class,
+		AvailObject.class);
+
 	@Override
 	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
@@ -599,7 +629,7 @@ extends Descriptor
 	 * The {@link CheckedMethod} for {@link #objectFromMap(A_Map)}.
 	 */
 	public static final CheckedMethod objectFromMapMethod =
-		CheckedMethod.staticMethod(
+		staticMethod(
 			ObjectDescriptor.class,
 			"objectFromMap",
 			AvailObject.class,
@@ -626,6 +656,37 @@ extends Descriptor
 		}
 		return objectFromMap(map);
 	}
+
+
+	/**
+	 * Create a mutable object using the provided {@link ObjectLayoutVariant},
+	 * but without initializing its fields.  The caller is responsible for
+	 * initializing the fields before use.
+	 *
+	 * @param variant
+	 *        The {@link ObjectLayoutVariant} to instantiate as an object.
+	 * @return The new object.
+	 */
+	@ReferencedInGeneratedCode
+	public static AvailObject createUninitializedObject (
+		final ObjectLayoutVariant variant)
+	{
+		final AvailObject result = variant.mutableObjectDescriptor.create(
+			variant.realSlotCount);
+		result.setSlot(HASH_OR_ZERO, 0);
+		return result;
+	}
+
+	/**
+	 * Access the {@link #createUninitializedObject(ObjectLayoutVariant)} static
+	 * method.
+	 */
+	public static CheckedMethod createUninitializedObjectMethod =
+		staticMethod(
+			ObjectDescriptor.class,
+			"createUninitializedObject",
+			AvailObject.class,
+			ObjectLayoutVariant.class);
 
 	/** This descriptor's {@link ObjectLayoutVariant}. */
 	public final ObjectLayoutVariant variant;

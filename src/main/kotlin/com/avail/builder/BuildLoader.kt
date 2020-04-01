@@ -288,8 +288,7 @@ internal class BuildLoader constructor(
 		completionAction: ()->Unit)
 	{
 		localTracker(moduleName, moduleName.moduleSize, 0L)
-		val module = newModule(
-			stringFrom(moduleName.qualifiedName))
+		val module = newModule(stringFrom(moduleName.qualifiedName))
 		val availLoader = AvailLoader(module, availBuilder.textInterface)
 		availLoader.prepareForLoadingModuleBody()
 		val fail = { e: Throwable ->

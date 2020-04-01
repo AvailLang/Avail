@@ -269,13 +269,12 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 		val resolver = runtime.moduleNameResolver()
 		module.versions(setFromCollection(versions))
 
-		for (name in exportedNames)
-		{
-			assert(name.isString)
+		val newAtoms = exportedNames.fold(emptySet()) { set, name ->
 			val trueName = createAtomWithProperties(name, module)
 			module.introduceNewName(trueName)
-			module.addImportedName(trueName)
+			set.setWithElementCanDestroy(trueName, true)
 		}
+		module.addImportedNames(newAtoms)
 
 		for (moduleImport in importedModules)
 		{
@@ -350,10 +349,8 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 			}
 
 			// Perform renames.
-			for (entry in moduleImport.renames.mapIterable())
+			for ((newString, oldString) in moduleImport.renames.mapIterable())
 			{
-				val newString = entry.key()
-				val oldString = entry.value()
 				// Find the old atom.
 				if (!importedNamesMultimap.hasKey(oldString))
 				{

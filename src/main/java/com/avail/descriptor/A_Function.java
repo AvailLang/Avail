@@ -34,6 +34,7 @@ package com.avail.descriptor;
 
 import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE;
 import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 

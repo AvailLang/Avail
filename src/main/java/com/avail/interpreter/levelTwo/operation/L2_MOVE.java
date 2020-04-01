@@ -103,7 +103,7 @@ extends L2Operation
 		final RegisterKind kind,
 		final L2NamedOperandType... theNamedOperandTypes)
 	{
-		super(theNamedOperandTypes);
+		super("MOVE(" + kind.kindName + ")", theNamedOperandTypes);
 		this.kind = kind;
 		assert movesByKind.get(kind) == null;
 		//noinspection ThisEscapedInObjectConstruction
@@ -361,12 +361,6 @@ extends L2Operation
 		destination.appendWithWarningsTo(builder, 0, warningStyleChange);
 		builder.append(" ← ");
 		source.appendWithWarningsTo(builder, 0, warningStyleChange);
-	}
-
-	@Override
-	public String name ()
-	{
-		return "MOVE(" + kind.kindName + ")";
 	}
 
 	@Override

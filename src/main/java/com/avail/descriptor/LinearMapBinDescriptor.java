@@ -40,6 +40,7 @@ import com.avail.descriptor.objects.A_BasicObject;
 import javax.annotation.Nullable;
 import java.util.NoSuchElementException;
 import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
 
 import static com.avail.descriptor.AvailObject.newObjectIndexedIntegerIndexedDescriptor;
 import static com.avail.descriptor.AvailObjectRepresentation.newLike;
@@ -467,6 +468,66 @@ extends MapBinDescriptor
 		}
 		check(object);
 		return object;
+	}
+
+	@Override
+	protected A_MapBin o_MapBinAtHashReplacingLevelCanDestroy (
+		final AvailObject object,
+		final A_BasicObject key,
+		final int keyHash,
+		final A_BasicObject notFoundValue,
+		final BinaryOperator<A_BasicObject> transformer,
+		final byte myLevel,
+		final boolean canDestroy)
+	{
+		// Associate the key and value in this bin, potentially modifying it if
+		// canDestroy and it's mutable.  Answer the new bin.  Note that the
+		// client is responsible for marking the key and value as immutable if
+		// other references exist.
+		assert myLevel == level;
+		final int oldSize = entryCount(object);
+		for (int i = 1; i <= oldSize; i++)
+		{
+			if (object.intSlot(KEY_HASHES_AREA_, i) == keyHash
+				&& object.slot(BIN_SLOT_AT_, (i << 1) - 1).equals(key))
+			{
+				// The key is present.
+				final A_BasicObject oldValue =
+					object.slot(BIN_SLOT_AT_, i << 1);
+				final A_BasicObject newValue = transformer.apply(key, oldValue);
+				final AvailObject newBin;
+				if (canDestroy && isMutable())
+				{
+					newBin = object;
+				}
+				else
+				{
+					if (isMutable())
+					{
+						object.makeSubobjectsImmutable();
+					}
+					newBin = newLike(
+						descriptorFor(MUTABLE, level), object, 0, 0);
+				}
+				newBin.setSlot(BIN_SLOT_AT_, i << 1, newValue);
+				newBin.setSlot(VALUES_HASH_OR_ZERO, 0);
+				// The keys didn't change.
+				// newBin.setSlot(BIN_KEY_UNION_KIND_OR_NIL, nil);
+				newBin.setSlot(BIN_VALUE_UNION_KIND_OR_NIL, nil);
+				check(newBin);
+				return newBin;
+			}
+		}
+
+		// It's not present, so grow the list.  Keep it simple for now by always
+		// replacing the list.  This call will scan the linear bin one more
+		// time, but at least it's a leaf.
+		return object.mapBinAtHashPutLevelCanDestroy(
+			key,
+			keyHash,
+			transformer.apply(key, notFoundValue),
+			myLevel,
+			canDestroy);
 	}
 
 	/**

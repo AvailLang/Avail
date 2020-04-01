@@ -48,6 +48,7 @@ import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
 
 import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
 import static com.avail.descriptor.IntegerDescriptor.fromInt;
@@ -572,6 +573,35 @@ extends Descriptor
 			traversedKey,
 			traversedKey.hash(),
 			newValueObject,
+			(byte) 0,
+			canDestroy);
+		if (canDestroy && isMutable())
+		{
+			setRootBin(object, newRoot);
+			return object;
+		}
+		if (isMutable())
+		{
+			object.makeImmutable();
+		}
+		return createFromBin(newRoot);
+	}
+
+	@Override
+	public A_Map o_MapAtReplacingCanDestroy (
+		final AvailObject object,
+		final A_BasicObject key,
+		final A_BasicObject notFoundValue,
+		final BinaryOperator<A_BasicObject> transformer,
+		final boolean canDestroy)
+	{
+		final A_MapBin oldRoot = rootBin(object);
+		final A_BasicObject traversedKey = key.traversed();
+		final A_MapBin newRoot = oldRoot.mapBinAtHashReplacingLevelCanDestroy(
+			traversedKey,
+			traversedKey.hash(),
+			notFoundValue,
+			transformer,
 			(byte) 0,
 			canDestroy);
 		if (canDestroy && isMutable())

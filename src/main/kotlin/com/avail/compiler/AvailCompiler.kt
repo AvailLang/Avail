@@ -89,6 +89,7 @@ import com.avail.descriptor.SetDescriptor.generateSetFrom
 import com.avail.descriptor.StringDescriptor.formatString
 import com.avail.descriptor.StringDescriptor.stringFrom
 import com.avail.descriptor.TokenDescriptor.TokenType.*
+import com.avail.descriptor.TupleDescriptor.emptyTuple
 import com.avail.descriptor.TupleDescriptor.toList
 import com.avail.descriptor.TupleTypeDescriptor.stringType
 import com.avail.descriptor.TypeDescriptor.Types.TOKEN
@@ -322,8 +323,8 @@ class AvailCompiler(
 				val bundlesMap = bundleTree.allParsingPlansInProgress()
 				val bundles = toList<A_Bundle>(bundlesMap.keysAsSet().asTuple())
 				bundles.sortWith(
-					comparing<A_Bundle, String> {
-						b -> b.message().atomName().asNativeString()
+					comparing {
+						b: A_Bundle -> b.message().atomName().asNativeString()
 					})
 				var first = true
 				val maxBundles = 3
@@ -799,7 +800,7 @@ class AvailCompiler(
 						val innerType = instanceTypeOrMetaOn(value)
 						val varType = variableTypeFor(innerType)
 						val creationSend = newSendNode(
-							TupleDescriptor.emptyTuple(),
+							emptyTuple(),
 							CREATE_MODULE_VARIABLE.bundle,
 							newListNode(
 								tuple(
@@ -867,7 +868,7 @@ class AvailCompiler(
 				}
 				val varType = variableTypeFor(replacement.declaredType())
 				val creationSend = newSendNode(
-					TupleDescriptor.emptyTuple(),
+					emptyTuple(),
 					CREATE_MODULE_VARIABLE.bundle,
 					newListNode(
 						tuple(
@@ -1664,10 +1665,8 @@ class AvailCompiler(
 				.collect(toMap(typeList::get, typeNamesList::get))
 			// Stitch the type names back onto the plan strings, prior to
 			// sorting by type name.
-			val entries: ArrayList<Map.Entry<String, Set<A_Type>>> =
-				ArrayList(typesByPlanString.entries)
-			entries.sortWith(
-				comparing<Map.Entry<String, Set<A_Type>>, String> { it.key })
+			val entries = ArrayList(typesByPlanString.entries)
+			entries.sortWith(comparing { e: Map.Entry<String, *> -> e.key })
 
 			val builder = StringBuilder(100)
 			builder.append("phrase to have a type other than ")
@@ -3048,10 +3047,10 @@ class AvailCompiler(
 				primitive,
 				compilationContext.module,
 				token.lineNumber()),
-			TupleDescriptor.emptyTuple())
+			emptyTuple())
 		function.makeShared()
 		val send = newSendNode(
-			TupleDescriptor.emptyTuple(),
+			emptyTuple(),
 			METHOD_DEFINER.bundle,
 			newListNode(tuple(nameLiteral, syntheticLiteralNodeFor(function))),
 			TOP.o())
@@ -3109,7 +3108,7 @@ class AvailCompiler(
 								prim,
 								compilationContext.module,
 								token.lineNumber()),
-							TupleDescriptor.emptyTuple())))
+							emptyTuple())))
 			}
 		}
 		catch (e: RuntimeException)
@@ -3124,7 +3123,7 @@ class AvailCompiler(
 
 		val bodyLiteral = functionLiterals.removeAt(functionLiterals.size - 1)
 		val send = newSendNode(
-			TupleDescriptor.emptyTuple(),
+			emptyTuple(),
 			MACRO_DEFINER.bundle,
 			newListNode(
 				tuple(
@@ -3201,7 +3200,7 @@ class AvailCompiler(
 				filterPrimitive,
 				compilationContext.module,
 				token.lineNumber()),
-			TupleDescriptor.emptyTuple())
+			emptyTuple())
 
 		// Process the body primitive.
 		val bodyPrimitive = primitiveByName(bodyPrimitiveName)
@@ -3227,14 +3226,14 @@ class AvailCompiler(
 				bodyPrimitive,
 				compilationContext.module,
 				token.lineNumber()),
-			TupleDescriptor.emptyTuple())
+			emptyTuple())
 
 		// Process the lexer name.
 		val nameLiteral = syntheticLiteralNodeFor(lexerAtom)
 
 		// Build a phrase to define the lexer.
 		val send = newSendNode(
-			TupleDescriptor.emptyTuple(),
+			emptyTuple(),
 			LEXER_DEFINER.bundle,
 			newListNode(
 				tuple(
@@ -3550,9 +3549,9 @@ class AvailCompiler(
 			COMPILER_SCOPE_MAP_KEY.atom,
 			emptyMap(),
 			STATIC_TOKENS_KEY.atom,
-			TupleDescriptor.emptyTuple(),
+			emptyTuple(),
 			ALL_TOKENS_KEY.atom,
-			TupleDescriptor.emptyTuple())
+			emptyTuple())
 		val start = ParserState(
 			LexingState(compilationContext, 1, 1, emptyList()), clientData)
 		val solutions = ArrayList<A_Phrase>()
@@ -3863,7 +3862,7 @@ class AvailCompiler(
 			STATIC_TOKENS_KEY.atom,
 			emptyMap(),
 			ALL_TOKENS_KEY.atom,
-			TupleDescriptor.emptyTuple())
+			emptyTuple())
 		val state = ParserState(
 			LexingState(compilationContext, 1, 1, emptyList()), clientData)
 
@@ -4121,24 +4120,70 @@ class AvailCompiler(
 				compilationContext.module.importedNames()
 			else
 				compilationContext.module.privateNames()
-		var names = emptySet()
-		for (entry in sourceNames.mapIterable())
-		{
-			names = names.setUnionCanDestroy(
-				entry.value().makeImmutable(), true)
+		var namesByModule = emptyMap()
+		sourceNames.forEach { _, atoms ->
+			atoms.forEach { atom ->
+				namesByModule = namesByModule.mapAtReplacingCanDestroy(
+					atom.issuingModule(),
+					emptySet(),
+					{ _, set ->
+						(set as A_Set).setWithElementCanDestroy(atom, true)
+					},
+					true)
+			}
 		}
-		val send = newSendNode(
-			TupleDescriptor.emptyTuple(),
-			PUBLISH_ATOMS.bundle,
-			newListNode(
-				tuple(
-					syntheticLiteralNodeFor(names),
-					syntheticLiteralNodeFor(objectFromBoolean(isPublic)))),
-			TOP.o())
-		val function = createFunctionForPhrase(
-			send, compilationContext.module, 0)
-		function.makeImmutable()
-		privateSerializeFunction(function)
+		var completeModuleNames = emptySet()
+		var leftovers = emptySet()
+		namesByModule.forEach { module, names ->
+			if (!module.equals(compilationContext.module)
+				&& module.exportedNames().equals(names))
+			{
+				// All published names were imported from that module, which
+				// is a common case.
+				completeModuleNames =
+					completeModuleNames.setWithElementCanDestroy(
+						module.moduleName(), true)
+			}
+			else
+			{
+				leftovers = leftovers.setUnionCanDestroy(names, true)
+			}
+		}
+		if (completeModuleNames.setSize() > 0)
+		{
+			val send = newSendNode(
+				emptyTuple(),
+				PUBLISH_ALL_ATOMS_FROM_OTHER_MODULE.bundle,
+				newListNode(
+					tuple(
+						syntheticLiteralNodeFor(
+							completeModuleNames,
+							stringFrom("(complete module imports)")),
+						syntheticLiteralNodeFor(
+							objectFromBoolean(isPublic)))),
+				TOP.o())
+			val function = createFunctionForPhrase(
+				send, compilationContext.module, 0)
+			privateSerializeFunction(function.makeImmutable())
+		}
+		if (leftovers.setSize() > 0)
+		{
+			// Deal with every atom that was not part of a complete import of
+			// its defining module.
+			val send = newSendNode(
+				emptyTuple(),
+				PUBLISH_ATOMS.bundle,
+				newListNode(
+					tuple(
+						syntheticLiteralNodeFor(
+							leftovers, stringFrom("(other atoms)")),
+						syntheticLiteralNodeFor(objectFromBoolean(isPublic)))),
+				TOP.o())
+			val function = createFunctionForPhrase(
+				send, compilationContext.module, 0)
+			function.makeImmutable()
+			privateSerializeFunction(function)
+		}
 	}
 
 	/**

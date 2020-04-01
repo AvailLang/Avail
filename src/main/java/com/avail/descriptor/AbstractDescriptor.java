@@ -98,6 +98,7 @@ import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -2239,6 +2240,21 @@ public abstract class AbstractDescriptor
 		AvailObject object,
 		A_BasicObject keyObject,
 		A_BasicObject newValueObject,
+		boolean canDestroy);
+
+	/**
+	 * @param object
+	 * @param key
+	 * @param notFoundValue
+	 * @param transformer
+	 * @param canDestroy
+	 * @return
+	 */
+	public abstract A_Map o_MapAtReplacingCanDestroy (
+		AvailObject object,
+		A_BasicObject key,
+		A_BasicObject notFoundValue,
+		BinaryOperator<A_BasicObject> transformer,
 		boolean canDestroy);
 
 	/**
@@ -5134,6 +5150,25 @@ public abstract class AbstractDescriptor
 		final AvailObject object,
 		final A_BasicObject key,
 		final int keyHash,
+		final boolean canDestroy);
+
+	/**
+	 * @param object
+	 * @param key
+	 * @param keyHash
+	 * @param notFoundValue
+	 * @param transformer
+	 * @param myLevel
+	 * @param canDestroy
+	 * @return
+	 */
+	abstract A_MapBin o_MapBinAtHashReplacingLevelCanDestroy (
+		final AvailObject object,
+		final A_BasicObject key,
+		final int keyHash,
+		final A_BasicObject notFoundValue,
+		final BinaryOperator<A_BasicObject> transformer,
+		final byte myLevel,
 		final boolean canDestroy);
 
 	/**

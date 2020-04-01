@@ -1,5 +1,5 @@
 /*
- * P_PublishName.kt
+ * P_DeclareAllAtomsExportedFromAnotherModule.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -33,80 +33,65 @@
 package com.avail.interpreter.primitive.modules
 
 import com.avail.descriptor.A_Type
-import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.EnumerationTypeDescriptor
+import com.avail.descriptor.EnumerationTypeDescriptor.booleanType
 import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.PUBLISH_NEW_NAME
-import com.avail.descriptor.ModuleDescriptor
+import com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers
+import com.avail.descriptor.ModuleDescriptor.ObjectSlots
+import com.avail.descriptor.ModuleDescriptor.currentModule
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.SetDescriptor.set
-import com.avail.descriptor.StringDescriptor
+import com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType
 import com.avail.descriptor.TupleTypeDescriptor.stringType
 import com.avail.descriptor.TypeDescriptor.Types.TOP
 import com.avail.descriptor.atoms.AtomDescriptor
-import com.avail.exceptions.AmbiguousNameException
-import com.avail.exceptions.AvailErrorCode.*
-import com.avail.interpreter.AvailLoader.Phase.EXECUTING_FOR_COMPILE
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
-import com.avail.interpreter.effects.LoadingEffectToRunPrimitive
 
 /**
- * **Primitive:** Publish the [atom][AtomDescriptor] associated with the
- * specified [string][StringDescriptor] as a public name of the current
- * [module][ModuleDescriptor]. This has the same effect as listing the string in
- * the "Names" section of the current module. Fails if called at runtime.
+ * **Primitive:** This private primitive is used to ensure that a module can
+ * deserialize correctly. It's given a set of fully qualified module names, and
+ * each such module should have all of its exported names included in the
+ * current module's [public&nbsp;names][ObjectSlots.IMPORTED_NAMES] or
+ * [private&nbsp;names][ObjectSlots.PRIVATE_NAMES], depending on the value of
+ * the supplied [boolean][EnumerationTypeDescriptor.booleanType]
+ * ([true][AtomDescriptor.trueObject] for public,
+ * [false][AtomDescriptor.falseObject] for private).
  *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object P_PublishName : Primitive(
-	1, CanInline, HasSideEffect, WritesToHiddenGlobalState)
+object P_DeclareAllAtomsExportedFromAnotherModule : Primitive(
+	2, CannotFail, Private, HasSideEffect, WritesToHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
-		interpreter.checkArgumentCount(1)
-		val name = interpreter.argument(0)
-		val loader = interpreter.fiber().availLoader() ?:
-			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
-		val module = loader.module()
-		if (module.equalsNil())
-		{
-			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
-		}
-		if (!loader.phase().isExecuting)
-		{
-			return interpreter.primitiveFailure(
-				E_CANNOT_DEFINE_DURING_COMPILATION)
-		}
-		return try
-		{
-			val trueName = loader.lookupName(name)
-			module.introduceNewName(trueName)
-			module.addImportedName(trueName)
-			if (loader.phase() == EXECUTING_FOR_COMPILE)
+		interpreter.checkArgumentCount(2)
+		val (importedModuleNames, isPublic) = interpreter.argsBuffer
+		val module = currentModule()
+		assert(!module.equalsNil())
+		val runtime = interpreter.runtime()
+		importedModuleNames.forEach { importedModuleName ->
+			val importedModule = runtime.moduleAt(importedModuleName)
+			val names = importedModule.exportedNames()
+			if (isPublic.extractBoolean())
 			{
-				// Record the publication.
-				loader.recordEffect(
-					LoadingEffectToRunPrimitive(
-						PUBLISH_NEW_NAME.bundle,
-						name))
-
+				module.addImportedNames(names)
 			}
-			interpreter.primitiveSuccess(nil)
+			else
+			{
+				module.addPrivateNames(names)
+			}
 		}
-		catch (e: AmbiguousNameException)
-		{
-			interpreter.primitiveFailure(e)
-		}
+		return interpreter.primitiveSuccess(nil)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(stringType()), TOP.o())
-
-	override fun privateFailureVariableType(): A_Type =
-		enumerationWith(set(
-			E_LOADING_IS_OVER,
-			E_CANNOT_DEFINE_DURING_COMPILATION,
-		    E_AMBIGUOUS_NAME))
+		functionType(
+			tuple(
+				setTypeForSizesContentType(
+					naturalNumbers(),
+					stringType()),
+				booleanType()),
+			TOP.o())
 }

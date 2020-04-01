@@ -110,34 +110,6 @@ extends L2ControlFlowOperation
 	}
 
 	@Override
-	public boolean regenerate (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
-		final L2Generator generator)
-	{
-		final L2ReadBoxedOperand variable = instruction.operand(0);
-		final L2ReadBoxedOperand value = instruction.operand(1);
-//		final L2PcOperand success = instruction.operand(2);
-//		final L2PcOperand failure = instruction.operand(3);
-
-		final A_Type varType = registerSet.typeAt(variable.register());
-		final A_Type valueType = registerSet.typeAt(value.register());
-		if (valueType.isSubtypeOf(varType.writeType()))
-		{
-			// Type propagation has strengthened the value's type enough to
-			// be able to avoid the check.
-			generator.addInstruction(
-				L2_SET_VARIABLE_NO_CHECK.instance,
-				instruction.operand(0),
-				instruction.operand(1),
-				instruction.operand(2),
-				instruction.operand(3));
-			return true;
-		}
-		return super.regenerate(instruction, registerSet, generator);
-	}
-
-	@Override
 	public boolean isVariableSet ()
 	{
 		return true;

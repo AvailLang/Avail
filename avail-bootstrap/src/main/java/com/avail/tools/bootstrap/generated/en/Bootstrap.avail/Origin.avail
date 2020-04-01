@@ -108,7 +108,7 @@ Pragma
 	"macro=BootstrapSendAsStatementMacro=_!;",
 	"macro=BootstrapSuperCastMacro=(_::_†)",
 	"macro=BootstrapStringLiteral=…$",
-	"macro=BootstrapIntegerLiteral=…#"
+	"macro=BootstrapNumericLiteral=…#"
 Body
 
 /**

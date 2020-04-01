@@ -1037,39 +1037,45 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	 */
 	fun setEnablements()
 	{
-		val busy = backgroundTask != null || isRunning
-		buildProgress.isEnabled = busy
-		buildProgress.isVisible = backgroundTask is BuildTask
-		inputField.isEnabled = !busy || isRunning
-		retrievePreviousAction.isEnabled = !busy
-		retrieveNextAction.isEnabled = !busy
-		cancelAction.isEnabled = busy
-		buildAction.isEnabled = !busy && selectedModule() != null
-		unloadAction.isEnabled = !busy && selectedModuleIsLoaded()
-		unloadAllAction.isEnabled = !busy
-		cleanAction.isEnabled = !busy
-		cleanModuleAction.isEnabled =
-			!busy && (selectedModuleRoot() != null || selectedModule() != null)
-		refreshAction.isEnabled = !busy
-		setDocumentationPathAction.isEnabled = !busy
-		documentAction.isEnabled = !busy && selectedModule() != null
-		graphAction.isEnabled = !busy && selectedModule() != null
-		insertEntryPointAction.isEnabled = !busy && selectedEntryPoint() != null
-		val selectedEntryPointModule =
-			selectedEntryPointModule()
-		createProgramAction.isEnabled =
-			(!busy && selectedEntryPoint() != null
-				&& selectedEntryPointModule != null
-				&& availBuilder.getLoadedModule(selectedEntryPointModule) != null)
-		examineRepositoryAction.isEnabled = !busy && selectedModuleRootNode() != null
-		examineCompilationAction.isEnabled = !busy && selectedModule() != null
-		buildEntryPointModuleAction.isEnabled =
-			!busy && selectedEntryPointModule() != null
-		inputLabel.text = if (isRunning) "Console Input:" else "Command:"
-		inputField.background =
-			if (isRunning) inputBackgroundWhenRunning.color else null
-		inputField.foreground =
-			if (isRunning) inputForegroundWhenRunning.color else null
+		try {
+			val busy = backgroundTask != null || isRunning
+			buildProgress.isEnabled = busy
+			buildProgress.isVisible = backgroundTask is BuildTask
+			inputField.isEnabled = !busy || isRunning
+			retrievePreviousAction.isEnabled = !busy
+			retrieveNextAction.isEnabled = !busy
+			cancelAction.isEnabled = busy
+			buildAction.isEnabled = !busy && selectedModule() != null
+			unloadAction.isEnabled = !busy && selectedModuleIsLoaded()
+			unloadAllAction.isEnabled = !busy
+			cleanAction.isEnabled = !busy
+			cleanModuleAction.isEnabled =
+				!busy && (selectedModuleRoot() != null || selectedModule() != null)
+			refreshAction.isEnabled = !busy
+			setDocumentationPathAction.isEnabled = !busy
+			documentAction.isEnabled = !busy && selectedModule() != null
+			graphAction.isEnabled = !busy && selectedModule() != null
+			insertEntryPointAction.isEnabled = !busy && selectedEntryPoint() != null
+			val selectedEntryPointModule =
+				selectedEntryPointModule()
+			createProgramAction.isEnabled =
+				(!busy && selectedEntryPoint() != null
+					&& selectedEntryPointModule != null
+					&& availBuilder.getLoadedModule(selectedEntryPointModule) != null)
+			examineRepositoryAction.isEnabled = !busy && selectedModuleRootNode() != null
+			examineCompilationAction.isEnabled = !busy && selectedModule() != null
+			buildEntryPointModuleAction.isEnabled =
+				!busy && selectedEntryPointModule() != null
+			inputLabel.text = if (isRunning) "Console Input:" else "Command:"
+			inputField.background =
+				if (isRunning) inputBackgroundWhenRunning.color else null
+			inputField.foreground =
+				if (isRunning) inputForegroundWhenRunning.color else null
+		} catch (e: Throwable)
+		{
+			// Good place to put a breakpoint.
+			throw e
+		}
 	}
 
 	/**
@@ -1992,13 +1998,14 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			buildMenu,
 			buildAction, cancelAction, null,
 			unloadAction, unloadAllAction, cleanAction, null,
-			refreshAction)//	    		cleanModuleAction,  //TODO MvG Fix implementation and enable.
+//			cleanModuleAction,  //TODO MvG Fix implementation and enable.
+			refreshAction)
 		val menuBar = JMenuBar()
-		menuBar.add(buildMenu)
 		if (!runningOnMac)
 		{
 			augment(buildMenu, null, preferencesAction)
 		}
+		menuBar.add(buildMenu)
 		menuBar.add(
 			menu(
 				"Document",
@@ -2720,7 +2727,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		 *   A varargs array of [Action]s, [JMenuItem]s for submenus, and
 		 *   `null`s for separator lines.
 		 */
-		private fun augment(menu: JMenu,vararg actionsAndSubmenus: Any?)
+		private fun augment(menu: JMenu, vararg actionsAndSubmenus: Any?)
 		{
 			for (item in actionsAndSubmenus)
 			{
@@ -2728,7 +2735,9 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 					null -> menu.addSeparator()
 					is Action -> menu.add(item)
 					is JMenuItem -> menu.add(item)
-					else -> assert(false) { "Bad argument while building menu" }
+					else -> assert(false) {
+						"Bad argument while building menu"
+					}
 				}
 			}
 		}
