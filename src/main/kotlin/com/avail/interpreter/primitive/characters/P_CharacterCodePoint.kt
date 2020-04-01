@@ -31,14 +31,14 @@
  */
 package com.avail.interpreter.primitive.characters
 
-import com.avail.descriptor.A_Type
 import com.avail.descriptor.CharacterDescriptor
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.IntegerDescriptor
-import com.avail.descriptor.IntegerDescriptor.fromInt
-import com.avail.descriptor.IntegerRangeTypeDescriptor.characterCodePoints
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.TypeDescriptor.Types.CHARACTER
+import com.avail.descriptor.numbers.IntegerDescriptor
+import com.avail.descriptor.numbers.IntegerDescriptor.fromInt
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.characterCodePoints
+import com.avail.descriptor.types.TypeDescriptor.Types.CHARACTER
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*

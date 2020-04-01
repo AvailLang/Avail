@@ -31,9 +31,9 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_Continuation;
-import com.avail.descriptor.A_Function;
 import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.functions.A_Continuation;
+import com.avail.descriptor.functions.A_Function;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L1InstructionStepper;
 import com.avail.interpreter.levelTwo.L2Instruction;
@@ -48,15 +48,13 @@ import java.util.logging.Level;
 import static com.avail.interpreter.Interpreter.debugL1;
 import static com.avail.optimizer.jvm.CheckedMethod.staticMethod;
 import static com.avail.utility.Nulls.stripNull;
-import static org.objectweb.asm.Opcodes.INVOKESTATIC;
-import static org.objectweb.asm.Type.*;
 
 /**
  * This is the first instruction of the L1 interpreter's on-ramp for resuming
  * after an interrupt.  The reified {@link A_Continuation} that was captured
  * (and is now being resumed) pointed to this {@link L2Instruction}.  That
- * continuation is current in the {@link Interpreter#reifiedContinuation}.  Pop
- * it from that continuation chain, create suitable pointer and integer
+ * continuation is current in the {@link Interpreter#getReifiedContinuation}.
+ * Pop it from that continuation chain, create suitable pointer and integer
  * registers as expected by {@link L2_INTERPRET_LEVEL_ONE}, then explode the
  * continuation's slots into those registers.  The {@link Interpreter#function}
  * should also have already been set up to agree with the continuation's

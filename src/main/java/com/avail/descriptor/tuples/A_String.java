@@ -32,9 +32,8 @@
 
 package com.avail.descriptor.tuples;
 
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.StringDescriptor;
-import com.avail.descriptor.objects.A_BasicObject;
 
 /**
  * {@code A_String} is an interface that specifies the string-specific

@@ -31,12 +31,12 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_Continuation;
-import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_RawFunction;
-import com.avail.descriptor.A_Variable;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.functions.A_Continuation;
+import com.avail.descriptor.functions.A_Function;
+import com.avail.descriptor.functions.A_RawFunction;
+import com.avail.descriptor.variables.A_Variable;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
@@ -56,19 +56,15 @@ import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
 
-import static com.avail.descriptor.ContinuationDescriptor.createContinuationWithFrame;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.VariableDescriptor.newVariableWithOuterType;
+import static com.avail.descriptor.functions.ContinuationDescriptor.createContinuationWithFrame;
+import static com.avail.descriptor.variables.VariableDescriptor.newVariableWithOuterType;
 import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RESUME;
 import static com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk;
 import static com.avail.optimizer.jvm.CheckedMethod.staticMethod;
 import static com.avail.utility.Nulls.stripNull;
 import static java.util.Arrays.asList;
-import static org.objectweb.asm.Opcodes.ALOAD;
-import static org.objectweb.asm.Opcodes.ARETURN;
-import static org.objectweb.asm.Opcodes.ASTORE;
-import static org.objectweb.asm.Opcodes.DUP;
-import static org.objectweb.asm.Opcodes.IFNULL;
+import static org.objectweb.asm.Opcodes.*;
 
 /**
  * This operation is only used when entering a function that uses the

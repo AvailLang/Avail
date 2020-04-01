@@ -33,15 +33,15 @@
 package com.avail.interpreter.primitive.modules
 
 import com.avail.descriptor.A_Module
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
-import com.avail.descriptor.SetDescriptor.set
-import com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType
-import com.avail.descriptor.TupleDescriptor.emptyTuple
-import com.avail.descriptor.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.atoms.A_Atom
+import com.avail.descriptor.sets.SetDescriptor.set
+import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.wholeNumbers
+import com.avail.descriptor.types.SetTypeDescriptor.setTypeForSizesContentType
+import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import com.avail.interpreter.AvailLoader
 import com.avail.interpreter.Interpreter

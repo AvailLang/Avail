@@ -32,9 +32,9 @@
 
 package com.avail.compiler.instruction
 
-import com.avail.descriptor.A_Token
-import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind
-import com.avail.descriptor.parsing.BlockPhraseDescriptor
+import com.avail.descriptor.phrases.BlockPhraseDescriptor
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
+import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.io.NybbleOutputStream
 

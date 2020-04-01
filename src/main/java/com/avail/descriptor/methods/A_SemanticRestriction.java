@@ -32,8 +32,11 @@
 
 package com.avail.descriptor.methods;
 
-import com.avail.descriptor.*;
-import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.representation.A_BasicObject;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.ModuleDescriptor;
+import com.avail.descriptor.functions.A_Continuation;
+import com.avail.descriptor.functions.A_Function;
 
 /**
  * {@code A_SemanticRestriction} is an interface that specifies the operations

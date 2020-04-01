@@ -32,18 +32,18 @@
 
 package com.avail.interpreter.primitive.phrases
 
-import com.avail.descriptor.A_RawFunction
-import com.avail.descriptor.A_Token
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.IntegerRangeTypeDescriptor.inclusive
-import com.avail.descriptor.LiteralTokenDescriptor
-import com.avail.descriptor.LiteralTokenDescriptor.literalToken
-import com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType
-import com.avail.descriptor.LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.TupleTypeDescriptor.stringType
-import com.avail.descriptor.TypeDescriptor.Types.ANY
+import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.tokens.A_Token
+import com.avail.descriptor.tokens.LiteralTokenDescriptor
+import com.avail.descriptor.tokens.LiteralTokenDescriptor.literalToken
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.inclusive
+import com.avail.descriptor.types.LiteralTokenTypeDescriptor.literalTokenType
+import com.avail.descriptor.types.LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType
+import com.avail.descriptor.types.TupleTypeDescriptor.stringType
+import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*

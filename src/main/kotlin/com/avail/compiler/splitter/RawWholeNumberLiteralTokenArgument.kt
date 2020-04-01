@@ -35,8 +35,8 @@ import com.avail.compiler.ParsingOperation.PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN
 import com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT
 import com.avail.compiler.splitter.MessageSplitter.Companion.indexForConstant
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.TokenDescriptor.TokenType
+import com.avail.descriptor.tokens.TokenDescriptor.TokenType
+import com.avail.descriptor.types.A_Type
 
 /**
  * A `RawWholeNumberLiteralTokenArgument` is an occurrence of

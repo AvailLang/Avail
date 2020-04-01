@@ -32,13 +32,13 @@
 
 package com.avail.interpreter.primitive.phrases
 
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.ListPhraseDescriptor
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.PermutedListPhraseDescriptor
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PERMUTED_LIST_PHRASE
+import com.avail.descriptor.phrases.ListPhraseDescriptor
+import com.avail.descriptor.phrases.PermutedListPhraseDescriptor
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PERMUTED_LIST_PHRASE
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*

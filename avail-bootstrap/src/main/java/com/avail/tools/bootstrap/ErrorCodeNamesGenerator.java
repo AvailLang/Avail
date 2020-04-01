@@ -33,9 +33,9 @@
 package com.avail.tools.bootstrap;
 
 import com.avail.AvailRuntime;
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.A_Set;
-import com.avail.descriptor.A_Type;
+import com.avail.descriptor.numbers.A_Number;
+import com.avail.descriptor.sets.A_Set;
+import com.avail.descriptor.types.A_Type;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
@@ -44,8 +44,8 @@ import javax.annotation.Nullable;
 import java.io.PrintWriter;
 import java.util.*;
 
-import static com.avail.descriptor.SetDescriptor.emptySet;
-import static com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType;
+import static com.avail.descriptor.sets.SetDescriptor.emptySet;
+import static com.avail.descriptor.types.VariableTypeDescriptor.mostGeneralVariableType;
 import static com.avail.tools.bootstrap.Resources.*;
 
 /**

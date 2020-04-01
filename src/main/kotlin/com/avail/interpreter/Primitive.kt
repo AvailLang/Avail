@@ -33,14 +33,20 @@
 package com.avail.interpreter
 
 import com.avail.AvailRuntime.HookType.IMPLICIT_OBSERVE
-import com.avail.descriptor.*
-import com.avail.descriptor.BottomTypeDescriptor.bottom
-import com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers
-import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom
+import com.avail.descriptor.AvailObject
+import com.avail.descriptor.representation.IntegerEnumSlotDescriptionEnum
 import com.avail.descriptor.NilDescriptor.nil
-import com.avail.descriptor.TypeDescriptor.Types.TOP
-import com.avail.descriptor.VariableTypeDescriptor.variableTypeFor
-import com.avail.descriptor.parsing.A_Phrase
+import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.CompiledCodeDescriptor
+import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
+import com.avail.descriptor.phrases.A_Phrase
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.BottomTypeDescriptor.bottom
+import com.avail.descriptor.types.FunctionTypeDescriptor
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.naturalNumbers
+import com.avail.descriptor.types.TypeDescriptor
+import com.avail.descriptor.types.TypeDescriptor.Types.TOP
+import com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor
 import com.avail.interpreter.Interpreter.*
 import com.avail.interpreter.Primitive.Companion.holdersByClassName
 import com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail
@@ -531,7 +537,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		{
 			restriction = privateBlockTypeRestriction().makeShared()
 			cachedBlockTypeRestriction = restriction
-			val argsTupleType = restriction!!.argsTupleType()
+			val argsTupleType = restriction.argsTupleType()
 			val sizeRange = argsTupleType.sizeRange()
 			assert(restriction.isBottom
 			       || argCount == -1

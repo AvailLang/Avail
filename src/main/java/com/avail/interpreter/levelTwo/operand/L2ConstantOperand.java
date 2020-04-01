@@ -32,12 +32,12 @@
 
 package com.avail.interpreter.levelTwo.operand;
 
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.objects.A_BasicObject;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
 
-import static com.avail.descriptor.CompiledCodeTypeDescriptor.mostGeneralCompiledCodeType;
+import static com.avail.descriptor.types.CompiledCodeTypeDescriptor.mostGeneralCompiledCodeType;
 import static com.avail.interpreter.levelOne.L1Decompiler.decompile;
 
 /**

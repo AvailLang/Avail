@@ -33,9 +33,10 @@
 package com.avail.annotations;
 
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.BitField;
-import com.avail.descriptor.IntegerEnumSlotDescriptionEnum;
-import com.avail.descriptor.IntegerSlotsEnum;
+import com.avail.descriptor.representation.BitField;
+import com.avail.descriptor.representation.IntegerEnumSlotDescriptionEnum;
+import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
+import com.avail.descriptor.representation.IntegerSlotsEnum;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

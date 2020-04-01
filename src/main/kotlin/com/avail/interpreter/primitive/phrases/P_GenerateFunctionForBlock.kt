@@ -32,20 +32,20 @@
 
 package com.avail.interpreter.primitive.phrases
 
-import com.avail.descriptor.A_RawFunction
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.FunctionDescriptor
-import com.avail.descriptor.FunctionDescriptor.createFunction
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.FunctionTypeDescriptor.mostGeneralFunctionType
 import com.avail.descriptor.ModuleDescriptor.currentModule
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.BLOCK_PHRASE
-import com.avail.descriptor.SetDescriptor.set
-import com.avail.descriptor.TupleDescriptor.emptyTuple
-import com.avail.descriptor.parsing.BlockPhraseDescriptor
-import com.avail.descriptor.parsing.BlockPhraseDescriptor.recursivelyValidate
+import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.FunctionDescriptor
+import com.avail.descriptor.functions.FunctionDescriptor.createFunction
+import com.avail.descriptor.phrases.BlockPhraseDescriptor
+import com.avail.descriptor.phrases.BlockPhraseDescriptor.recursivelyValidate
+import com.avail.descriptor.sets.SetDescriptor.set
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.FunctionTypeDescriptor.mostGeneralFunctionType
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.BLOCK_PHRASE
 import com.avail.exceptions.AvailErrorCode.*
 import com.avail.exceptions.AvailRuntimeException
 import com.avail.interpreter.Interpreter

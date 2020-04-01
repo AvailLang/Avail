@@ -32,10 +32,10 @@
 
 package com.avail.dispatch
 
-import com.avail.descriptor.A_Type
+import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.methods.A_Definition
-import com.avail.descriptor.objects.A_BasicObject
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.types.A_Type
 
 /**
  * `LookupTree` is used to look up method definitions by argument types,
@@ -48,7 +48,7 @@ import com.avail.descriptor.tuples.A_Tuple
  *   most-specific matching method definitions for some arguments.
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-internal abstract class LookupTree<
+abstract class LookupTree<
 	Element : A_BasicObject,
 	Result : A_BasicObject>
 {

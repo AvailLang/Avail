@@ -33,11 +33,14 @@
 package com.avail.test;
 
 import com.avail.AvailRuntime;
-import com.avail.descriptor.*;
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
-import com.avail.descriptor.TokenDescriptor.TokenType;
+import com.avail.descriptor.representation.A_BasicObject;
+import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.atoms.AtomDescriptor;
-import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.numbers.IntegerDescriptor;
+import com.avail.descriptor.objects.ObjectTypeDescriptor;
+import com.avail.descriptor.tokens.TokenDescriptor.TokenType;
+import com.avail.descriptor.types.*;
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind;
 import com.avail.interpreter.Primitive.Result;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -48,35 +51,35 @@ import java.io.PrintStream;
 import java.lang.reflect.Array;
 import java.util.*;
 
-import static com.avail.descriptor.BottomPojoTypeDescriptor.pojoBottom;
-import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.BottomTypeDescriptor.bottomMeta;
-import static com.avail.descriptor.ContinuationTypeDescriptor.continuationMeta;
-import static com.avail.descriptor.FiberTypeDescriptor.Types;
-import static com.avail.descriptor.FiberTypeDescriptor.*;
-import static com.avail.descriptor.FunctionTypeDescriptor.*;
-import static com.avail.descriptor.InstanceMetaDescriptor.*;
-import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
-import static com.avail.descriptor.ListPhraseTypeDescriptor.createListNodeType;
-import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
-import static com.avail.descriptor.LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType;
-import static com.avail.descriptor.MapDescriptor.emptyMap;
-import static com.avail.descriptor.MapTypeDescriptor.mapMeta;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.ObjectTypeDescriptor.mostGeneralObjectType;
-import static com.avail.descriptor.ObjectTypeDescriptor.objectTypeFromMap;
-import static com.avail.descriptor.PojoTypeDescriptor.*;
-import static com.avail.descriptor.SetDescriptor.emptySet;
-import static com.avail.descriptor.SetTypeDescriptor.mostGeneralSetType;
-import static com.avail.descriptor.SetTypeDescriptor.setMeta;
-import static com.avail.descriptor.StringDescriptor.stringFrom;
-import static com.avail.descriptor.TokenTypeDescriptor.tokenType;
-import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.TupleTypeDescriptor.*;
-import static com.avail.descriptor.VariableTypeDescriptor.*;
 import static com.avail.descriptor.atoms.AtomDescriptor.createAtom;
+import static com.avail.descriptor.maps.MapDescriptor.emptyMap;
+import static com.avail.descriptor.objects.ObjectTypeDescriptor.mostGeneralObjectType;
+import static com.avail.descriptor.objects.ObjectTypeDescriptor.objectTypeFromMap;
+import static com.avail.descriptor.sets.SetDescriptor.emptySet;
+import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.tuples.StringDescriptor.stringFrom;
+import static com.avail.descriptor.tuples.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.types.BottomPojoTypeDescriptor.pojoBottom;
+import static com.avail.descriptor.types.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.types.BottomTypeDescriptor.bottomMeta;
+import static com.avail.descriptor.types.ContinuationTypeDescriptor.continuationMeta;
+import static com.avail.descriptor.types.FiberTypeDescriptor.Types;
+import static com.avail.descriptor.types.FiberTypeDescriptor.*;
+import static com.avail.descriptor.types.FunctionTypeDescriptor.*;
+import static com.avail.descriptor.types.InstanceMetaDescriptor.*;
+import static com.avail.descriptor.types.InstanceTypeDescriptor.instanceType;
+import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.*;
+import static com.avail.descriptor.types.ListPhraseTypeDescriptor.createListNodeType;
+import static com.avail.descriptor.types.LiteralTokenTypeDescriptor.literalTokenType;
+import static com.avail.descriptor.types.LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType;
+import static com.avail.descriptor.types.MapTypeDescriptor.mapMeta;
+import static com.avail.descriptor.types.PojoTypeDescriptor.*;
+import static com.avail.descriptor.types.SetTypeDescriptor.mostGeneralSetType;
+import static com.avail.descriptor.types.SetTypeDescriptor.setMeta;
+import static com.avail.descriptor.types.TokenTypeDescriptor.tokenType;
+import static com.avail.descriptor.types.TupleTypeDescriptor.*;
+import static com.avail.descriptor.types.VariableTypeDescriptor.*;
 import static com.avail.utility.Nulls.stripNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -1636,7 +1639,7 @@ public class TypeConsistencyTest
 		out.println(allTypesList.size());
 		for (int i1 = 0; i1 < allTypesList.size(); i1++)
 		{
-			out.println("\'" + names[i1] + "\'");
+			out.println("'" + names[i1] + "'");
 		}
 		for (int i1 = 0; i1 < allTypes.size(); i1++)
 		{

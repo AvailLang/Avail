@@ -32,9 +32,9 @@
 
 package com.avail.interpreter.effects
 
-import com.avail.descriptor.TypeDescriptor.Types
+import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.bundles.A_Bundle
-import com.avail.descriptor.objects.A_BasicObject
+import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.interpreter.levelOne.L1InstructionWriter
 import com.avail.interpreter.levelOne.L1Operation
 

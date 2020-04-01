@@ -31,14 +31,14 @@
  */
 package com.avail.interpreter.primitive.files
 
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.InstanceTypeDescriptor.instanceType
-import com.avail.descriptor.IntegerDescriptor.fromInt
-import com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.FILE_KEY
+import com.avail.descriptor.numbers.IntegerDescriptor.fromInt
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.InstanceTypeDescriptor.instanceType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.naturalNumbers
+import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
 import com.avail.exceptions.AvailErrorCode.E_INVALID_HANDLE
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive

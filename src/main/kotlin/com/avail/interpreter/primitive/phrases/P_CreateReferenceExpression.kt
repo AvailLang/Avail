@@ -31,15 +31,15 @@
  */
 package com.avail.interpreter.primitive.phrases
 
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*
-import com.avail.descriptor.ReferencePhraseDescriptor
-import com.avail.descriptor.ReferencePhraseDescriptor.referenceNodeFromUse
-import com.avail.descriptor.SetDescriptor.set
-import com.avail.descriptor.VariableUsePhraseDescriptor
+import com.avail.descriptor.phrases.ReferencePhraseDescriptor
+import com.avail.descriptor.phrases.ReferencePhraseDescriptor.referenceNodeFromUse
+import com.avail.descriptor.phrases.VariableUsePhraseDescriptor
+import com.avail.descriptor.sets.SetDescriptor.set
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.*
 import com.avail.exceptions.AvailErrorCode.E_DECLARATION_KIND_DOES_NOT_SUPPORT_REFERENCE
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive

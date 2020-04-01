@@ -34,8 +34,8 @@ package com.avail.environment.actions
 
 import com.avail.AvailRuntime
 import com.avail.builder.AvailBuilder
-import com.avail.descriptor.CompiledCodeDescriptor.codeCoverageReportsThen
 import com.avail.descriptor.FiberDescriptor
+import com.avail.descriptor.functions.CompiledCodeDescriptor.codeCoverageReportsThen
 import com.avail.environment.AvailWorkbench
 import com.avail.environment.AvailWorkbench.StreamStyle.INFO
 import java.awt.event.ActionEvent

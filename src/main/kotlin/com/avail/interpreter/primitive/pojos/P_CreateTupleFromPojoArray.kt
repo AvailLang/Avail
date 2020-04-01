@@ -32,20 +32,21 @@
 
 package com.avail.interpreter.primitive.pojos
 
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.PojoTypeDescriptor
-import com.avail.descriptor.PojoTypeDescriptor.mostGeneralPojoArrayType
-import com.avail.descriptor.PojoTypeDescriptor.unmarshal
-import com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.generateObjectTupleFrom
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.PojoTypeDescriptor
+import com.avail.descriptor.types.PojoTypeDescriptor.mostGeneralPojoArrayType
+import com.avail.descriptor.types.PojoTypeDescriptor.unmarshal
+import com.avail.descriptor.types.TupleTypeDescriptor.mostGeneralTupleType
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail
 import java.lang.reflect.Array
+import java.util.function.Supplier
 
 /**
  * **Primitive:** Convert the specified
@@ -61,14 +62,14 @@ object P_CreateTupleFromPojoArray : Primitive(1, CanInline, CannotFail)
 		interpreter.checkArgumentCount(1)
 		val array = interpreter.argument(0)
 		// Hold a lock on the array while accessing it.
-		val tuple = array.lock<A_Tuple> {
+		val tuple = array.lock( Supplier {
 			val rawArray = array.rawPojo().javaObjectNotNull<Any>()
 			generateObjectTupleFrom(Array.getLength(rawArray)) {
 				unmarshal(
 					Array.get(rawArray, it - 1),
 					array.kind().contentType())
 			}
-		}
+		})
 		return interpreter.primitiveSuccess(tuple)
 	}
 

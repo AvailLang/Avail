@@ -32,8 +32,8 @@
 
 package com.avail.optimizer.jvm;
 
-import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.functions.A_RawFunction;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.optimizer.ExecutableChunk;

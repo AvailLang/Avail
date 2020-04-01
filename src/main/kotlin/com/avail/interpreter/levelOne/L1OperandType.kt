@@ -33,8 +33,8 @@
 package com.avail.interpreter.levelOne
 
 import com.avail.descriptor.AvailObject
-import com.avail.descriptor.CompiledCodeDescriptor
-import com.avail.descriptor.FunctionDescriptor
+import com.avail.descriptor.functions.CompiledCodeDescriptor
+import com.avail.descriptor.functions.FunctionDescriptor
 
 
 /**

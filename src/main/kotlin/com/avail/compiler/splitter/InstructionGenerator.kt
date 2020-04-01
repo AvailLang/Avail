@@ -36,8 +36,8 @@ import com.avail.compiler.ParsingOperation
 import com.avail.compiler.ParsingOperation.*
 import com.avail.compiler.ParsingOperation.Companion.decode
 import com.avail.compiler.ParsingOperation.Companion.operand
-import com.avail.descriptor.TupleDescriptor.tupleFromIntegerList
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.TupleDescriptor.tupleFromIntegerList
 import com.avail.utility.Pair
 import java.util.*
 

@@ -32,8 +32,8 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_Map;
-import com.avail.descriptor.MapDescriptor;
+import com.avail.descriptor.maps.A_Map;
+import com.avail.descriptor.maps.MapDescriptor;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;

@@ -34,10 +34,10 @@ package com.avail.compiler.splitter
 import com.avail.compiler.ParsingOperation.*
 import com.avail.compiler.splitter.MessageSplitter.Companion.indexForConstant
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.ReferencePhraseDescriptor
-import com.avail.descriptor.VariableDescriptor
-import com.avail.descriptor.parsing.A_Phrase
+import com.avail.descriptor.phrases.A_Phrase
+import com.avail.descriptor.phrases.ReferencePhraseDescriptor
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.variables.VariableDescriptor
 import java.util.*
 
 /**

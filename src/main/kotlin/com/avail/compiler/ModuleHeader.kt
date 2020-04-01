@@ -37,21 +37,29 @@ import com.avail.builder.ModuleName
 import com.avail.builder.ResolvedModuleName
 import com.avail.builder.UnresolvedDependencyException
 import com.avail.compiler.splitter.MessageSplitter
-import com.avail.descriptor.*
-import com.avail.descriptor.IntegerDescriptor.fromInt
-import com.avail.descriptor.LiteralTokenDescriptor.literalToken
-import com.avail.descriptor.ObjectTupleDescriptor.tupleFromList
-import com.avail.descriptor.SetDescriptor.emptySet
-import com.avail.descriptor.SetDescriptor.setFromCollection
-import com.avail.descriptor.StringDescriptor.stringFrom
-import com.avail.descriptor.TupleDescriptor.toList
+import com.avail.descriptor.A_Module
+import com.avail.descriptor.AvailObject
+import com.avail.descriptor.ModuleDescriptor
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.MESSAGE_BUNDLE_KEY
-import com.avail.descriptor.atoms.AtomWithPropertiesDescriptor.createAtomWithProperties
+import com.avail.descriptor.atoms.AtomWithPropertiesDescriptor.Companion.createAtomWithProperties
 import com.avail.descriptor.bundles.A_Bundle
-import com.avail.descriptor.bundles.MessageBundleDescriptor.newBundle
+import com.avail.descriptor.bundles.MessageBundleDescriptor.Companion.newBundle
+import com.avail.descriptor.methods.MethodDescriptor
+import com.avail.descriptor.numbers.IntegerDescriptor.fromInt
+import com.avail.descriptor.sets.A_Set
+import com.avail.descriptor.sets.SetDescriptor.emptySet
+import com.avail.descriptor.sets.SetDescriptor.setFromCollection
+import com.avail.descriptor.tokens.A_Token
+import com.avail.descriptor.tokens.LiteralTokenDescriptor
+import com.avail.descriptor.tokens.LiteralTokenDescriptor.literalToken
+import com.avail.descriptor.tokens.TokenDescriptor
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
+import com.avail.descriptor.tuples.StringDescriptor
+import com.avail.descriptor.tuples.StringDescriptor.stringFrom
+import com.avail.descriptor.tuples.TupleDescriptor.toList
 import com.avail.exceptions.MalformedMessageException
 import com.avail.serialization.Deserializer
 import com.avail.serialization.MalformedSerialStreamException
@@ -401,8 +409,7 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 						+ "$oldString from \"${ref.qualifiedName}\"")
 				}
 
-				newAtom.setAtomProperty(
-					MESSAGE_BUNDLE_KEY.atom, newBundle)
+				newAtom.setAtomProperty(MESSAGE_BUNDLE_KEY.atom, newBundle)
 				atomsToImport = atomsToImport.setWithElementCanDestroy(
 					newAtom, true)
 			}

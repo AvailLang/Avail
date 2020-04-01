@@ -34,23 +34,36 @@ package com.avail.descriptor;
 
 import com.avail.AvailRuntime;
 import com.avail.annotations.AvailMethod;
-import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
-import com.avail.descriptor.MapDescriptor.Entry;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.atoms.AtomDescriptor;
 import com.avail.descriptor.bundles.A_Bundle;
 import com.avail.descriptor.bundles.A_BundleTree;
 import com.avail.descriptor.bundles.MessageBundleDescriptor;
 import com.avail.descriptor.bundles.MessageBundleTreeDescriptor;
-import com.avail.descriptor.methods.A_Definition;
-import com.avail.descriptor.methods.A_GrammaticalRestriction;
-import com.avail.descriptor.methods.A_Method;
-import com.avail.descriptor.methods.A_SemanticRestriction;
-import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.functions.A_Function;
+import com.avail.descriptor.functions.FunctionDescriptor;
+import com.avail.descriptor.maps.A_Map;
+import com.avail.descriptor.maps.MapDescriptor;
+import com.avail.descriptor.maps.MapDescriptor.Entry;
+import com.avail.descriptor.methods.*;
+import com.avail.descriptor.parsing.A_DefinitionParsingPlan;
 import com.avail.descriptor.parsing.A_Lexer;
 import com.avail.descriptor.parsing.A_ParsingPlanInProgress;
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind;
+import com.avail.descriptor.representation.A_BasicObject;
+import com.avail.descriptor.representation.AbstractSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.sets.A_Set;
+import com.avail.descriptor.sets.SetDescriptor;
 import com.avail.descriptor.tuples.A_String;
 import com.avail.descriptor.tuples.A_Tuple;
+import com.avail.descriptor.tuples.StringDescriptor;
+import com.avail.descriptor.tuples.TupleDescriptor;
+import com.avail.descriptor.types.A_Type;
+import com.avail.descriptor.types.TypeTag;
+import com.avail.descriptor.variables.A_Variable;
+import com.avail.descriptor.variables.VariableDescriptor;
 import com.avail.exceptions.AvailRuntimeException;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.AvailLoader;
@@ -65,17 +78,17 @@ import java.util.IdentityHashMap;
 import java.util.Set;
 
 import static com.avail.descriptor.FiberDescriptor.currentFiber;
-import static com.avail.descriptor.MapDescriptor.emptyMap;
 import static com.avail.descriptor.ModuleDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ParsingPlanInProgressDescriptor.newPlanInProgress;
-import static com.avail.descriptor.SetDescriptor.emptySet;
-import static com.avail.descriptor.SetDescriptor.set;
-import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.TypeDescriptor.Types.FORWARD_DEFINITION;
-import static com.avail.descriptor.TypeDescriptor.Types.MODULE;
-import static com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType;
 import static com.avail.descriptor.bundles.MessageBundleTreeDescriptor.newBundleTree;
+import static com.avail.descriptor.maps.MapDescriptor.emptyMap;
+import static com.avail.descriptor.parsing.ParsingPlanInProgressDescriptor.newPlanInProgress;
+import static com.avail.descriptor.sets.SetDescriptor.emptySet;
+import static com.avail.descriptor.sets.SetDescriptor.set;
+import static com.avail.descriptor.tuples.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.types.TypeDescriptor.Types.FORWARD_DEFINITION;
+import static com.avail.descriptor.types.TypeDescriptor.Types.MODULE;
+import static com.avail.descriptor.types.VariableTypeDescriptor.mostGeneralVariableType;
 
 /**
  * A {@linkplain ModuleDescriptor module} is the mechanism by which Avail code
@@ -101,8 +114,7 @@ extends Descriptor
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	public enum ObjectSlots
-	implements ObjectSlotsEnum
+	public enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
 		 * A {@linkplain StringDescriptor string} that names the {@linkplain
@@ -399,7 +411,7 @@ extends Descriptor
 	@Override @AvailMethod
 	protected void o_ModuleAddDefinition (
 		final AvailObject object,
-		final A_BasicObject definition)
+		final A_Definition definition)
 	{
 		synchronized (object)
 		{
@@ -632,14 +644,15 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	public boolean o_Equals (
+		final AvailObject object, final A_BasicObject another)
 	{
 		// Compare by address (identity).
 		return another.traversed().sameAddressAs(object);
 	}
 
 	@Override @AvailMethod
-	protected int o_Hash (final AvailObject object)
+	public int o_Hash (final AvailObject object)
 	{
 		return object.slot(NAME).hash() * 173 ^ 0xDF383F8C;
 	}
@@ -1035,7 +1048,7 @@ extends Descriptor
 		new ModuleDescriptor(Mutability.MUTABLE);
 
 	@Override
-	protected ModuleDescriptor mutable ()
+	public ModuleDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -1045,14 +1058,14 @@ extends Descriptor
 		new ModuleDescriptor(Mutability.SHARED);
 
 	@Override
-	protected ModuleDescriptor immutable ()
+	public ModuleDescriptor immutable ()
 	{
 		// There is no immutable descriptor. Use the shared one.
 		return shared;
 	}
 
 	@Override
-	protected ModuleDescriptor shared ()
+	public ModuleDescriptor shared ()
 	{
 		return shared;
 	}

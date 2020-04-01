@@ -31,15 +31,15 @@
  */
 package com.avail.interpreter.primitive.maps
 
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.InstanceMetaDescriptor.instanceMeta
-import com.avail.descriptor.IntegerRangeTypeDescriptor
-import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
-import com.avail.descriptor.MapDescriptor
-import com.avail.descriptor.MapTypeDescriptor
-import com.avail.descriptor.MapTypeDescriptor.mapMeta
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.maps.MapDescriptor
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.InstanceMetaDescriptor.instanceMeta
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.wholeNumbers
+import com.avail.descriptor.types.MapTypeDescriptor
+import com.avail.descriptor.types.MapTypeDescriptor.mapMeta
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*

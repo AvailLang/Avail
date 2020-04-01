@@ -33,10 +33,10 @@
 package com.avail.optimizer.jvm;
 
 import com.avail.AvailThread;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.A_Module;
-import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.functions.A_RawFunction;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.JavaLibrary;
 import com.avail.interpreter.Primitive;
@@ -78,8 +78,8 @@ import java.util.logging.Level;
 import java.util.regex.Pattern;
 
 import static com.avail.AvailRuntimeSupport.captureNanos;
-import static com.avail.descriptor.ContinuationDescriptor.createDummyContinuationMethod;
 import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.functions.ContinuationDescriptor.createDummyContinuationMethod;
 import static com.avail.interpreter.Interpreter.chunkField;
 import static com.avail.interpreter.Interpreter.interpreterFunctionField;
 import static com.avail.optimizer.StackReifier.pushContinuationActionMethod;

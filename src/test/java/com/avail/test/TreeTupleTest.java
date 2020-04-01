@@ -33,23 +33,23 @@
 package com.avail.test;
 
 
-import com.avail.descriptor.*;
-import com.avail.descriptor.tuples.A_Tuple;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.tuples.*;
 import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
 
-import static com.avail.descriptor.ByteArrayTupleDescriptor.tupleForByteArray;
-import static com.avail.descriptor.ByteBufferTupleDescriptor.tupleForByteBuffer;
-import static com.avail.descriptor.ByteTupleDescriptor.generateByteTupleFrom;
-import static com.avail.descriptor.ByteTupleDescriptor.mutableObjectOfSize;
 import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
-import static com.avail.descriptor.IntegerDescriptor.fromInt;
-import static com.avail.descriptor.IntegerIntervalTupleDescriptor.createInterval;
-import static com.avail.descriptor.SmallIntegerIntervalTupleDescriptor.createSmallInterval;
-import static com.avail.descriptor.StringDescriptor.stringFrom;
-import static com.avail.descriptor.TreeTupleDescriptor.createTwoPartTreeTuple;
-import static com.avail.descriptor.TupleDescriptor.toList;
+import static com.avail.descriptor.numbers.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.tuples.ByteArrayTupleDescriptor.tupleForByteArray;
+import static com.avail.descriptor.tuples.ByteBufferTupleDescriptor.tupleForByteBuffer;
+import static com.avail.descriptor.tuples.ByteTupleDescriptor.generateByteTupleFrom;
+import static com.avail.descriptor.tuples.ByteTupleDescriptor.mutableObjectOfSize;
+import static com.avail.descriptor.tuples.IntegerIntervalTupleDescriptor.createInterval;
+import static com.avail.descriptor.tuples.SmallIntegerIntervalTupleDescriptor.createSmallInterval;
+import static com.avail.descriptor.tuples.StringDescriptor.stringFrom;
+import static com.avail.descriptor.tuples.TreeTupleDescriptor.createTwoPartTreeTuple;
+import static com.avail.descriptor.tuples.TupleDescriptor.toList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**

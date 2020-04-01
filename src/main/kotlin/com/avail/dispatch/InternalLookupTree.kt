@@ -32,10 +32,10 @@
 
 package com.avail.dispatch
 
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.TupleDescriptor.toList
-import com.avail.descriptor.objects.A_BasicObject
+import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.TupleDescriptor.toList
+import com.avail.descriptor.types.A_Type
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import java.lang.String.format
 import java.util.*
