@@ -1540,6 +1540,26 @@ Public stable method "least common multiple of_and_" is
 		into [n : natural number | n]
 ] : natural number;
 
+/**
+* Respecting the sign of the result when enough type information is available
+* to prove the signs of the arguments.
+*
+* @method "_bit⊕_"
+* @restricts "integer's type"
+* @restricts "integer's type"
+*/
+Semantic restriction "_bit⊕_" is
+[
+  a : integer's type,
+  b : integer's type
+|
+  if (⌊a⌋≥0 ∧ ⌊b⌋≥0) ∨ (⌈a⌉<0 ∧ ⌈b⌉<0) then [whole number]
+  else
+  [
+     if (⌈a⌉<0 ∧ ⌊b⌋≥0) ∨ (⌊a⌋≥0 ∧ ⌈b⌉<0) then [negative integer] else [⊤]
+  ]
+];
+
 /*
  * Strengthen some stable primitive methods.
  */
