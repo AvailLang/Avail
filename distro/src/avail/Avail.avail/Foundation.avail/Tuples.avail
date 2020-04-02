@@ -3950,16 +3950,10 @@ Semantic restriction "_-_" is
 	tupleType : tuple meta,
 	element : any meta
 |
-	allDisjoint : boolean := true;
-	For each index from 1 to |tuple's leading types| + 1 do
-	[
-		If tupleType[index] ∩ element ≠ ⊥ then
-		[
-			allDisjoint := false;
-		];
-		allDisjoint
-	];
-	If allDisjoint then
+	if each of tupleType's leading types satisfies
+		[leadingType : type | leadingType ∩ element = ⊥] 
+		∧ tupleType's default type ∩ element = ⊥
+	then
 	[
 		Reject parse, expected:
 			"tuple subtraction to have a possible effect (but "
