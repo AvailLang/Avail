@@ -138,7 +138,9 @@ object P_BootstrapVariableUseMacro
 						when {
 							scope.isEmpty() -> append(" empty)")
 							else -> append(
-								scope.joinToString(prefix = ": ", postfix = ")"))
+								scope.sorted().joinToString(
+									prefix = ": ",
+									postfix = ")"))
 						}
 					})
 			}

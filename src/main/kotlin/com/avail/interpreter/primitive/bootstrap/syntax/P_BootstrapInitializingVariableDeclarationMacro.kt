@@ -109,7 +109,7 @@ object P_BootstrapInitializingVariableDeclarationMacro
 				"local variable $nameString to have a name that doesn't shadow "
 				    + "an existing "
 					+ conflictingDeclaration.declarationKind().nativeKindName()
-					+ "(from line ${conflictingDeclaration.token().lineNumber()})")
+					+ " (from line ${conflictingDeclaration.token().lineNumber()})")
 		}
 		return interpreter.primitiveSuccess(variableDeclaration)
 	}
