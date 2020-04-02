@@ -179,14 +179,18 @@ Private method "exponentiation type promotion function for_" is
 ];
 
 /**
- * Establish type promotion rules for exponentiation. Also handle instance
- * types.
+ * Compute and answer the integer range type of the exponentiation of the
+ * argument types.
  *
  * @method "_^_"
- * @restricts "number"
- * @restricts "number"
+ * @param "a" "number's type"
+ * @param "b" "number's type"
+ * @returns "number's type"
+ *          The narrowest number range type general enough to hold all possible
+ *          exponentiations of the arguments' instances.
+ * @category "Mathematics" "Types"
  */
-Semantic restriction "_^_" is exponentiation type promotion function for
+Method "_^_" is exponentiation type promotion function for
 [
 	a : number,
 	b : number
@@ -211,6 +215,17 @@ Semantic restriction "_^_" is exponentiation type promotion function for
 	];
 	a ^ b
 ];
+
+/**
+ * Establish type promotion rules for exponentiation. Also handle instance
+ * types.
+ *
+ * @method "_^_"
+ * @restricts "number"
+ * @restricts "number"
+ */
+Semantic restriction "_^_" is
+    [a : number's type, b : number's type | a ^ b];
 
 Method "_^_" is
 [
