@@ -757,14 +757,18 @@ Semantic restriction "_÷_" is
 ];
 
 /**
- * Compute and answer the integer range type of the remainder of the argument
+ * Compute and answer the integer range type of the moduli of the argument
  * types.
  *
  * @method "_mod_"
- * @restricts "extended integer's type"
- * @restricts "extended integer's type"
+ * @param "a" "extended integer's type"
+ * @param "b" "extended integer's type"
+ * @returns "extended integer's type"
+ *          The narrowest integer range type general enough to hold all possible
+ *          moduli of the argument's instances.
+ * @category "Mathematics" "Integers" "Types"
  */
-Semantic restriction "_mod_" is
+Method "_mod_" is
 [
 	a : extended integer's type,
 	b : extended integer's type
@@ -792,6 +796,22 @@ Semantic restriction "_mod_" is
 	[
 		[0..⌈b⌉)
 	]
+];
+
+/**
+ * Compute and answer the integer range type of the moduli of the argument
+ * types.
+ *
+ * @method "_mod_"
+ * @restricts "extended integer's type"
+ * @restricts "extended integer's type"
+ */
+Semantic restriction "_mod_" is
+[
+	a : extended integer's type,
+	b : extended integer's type
+|
+	a mod b
 ];
 
 /**
