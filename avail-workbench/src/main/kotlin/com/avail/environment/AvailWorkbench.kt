@@ -1993,14 +1993,14 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			buildMenu,
 			buildAction, cancelAction, null,
 			unloadAction, unloadAllAction, cleanAction, null,
-			refreshAction)
 //			cleanModuleAction,  //TODO MvG Fix implementation and enable.
+			refreshAction)
 		val menuBar = JMenuBar()
-		menuBar.add(buildMenu)
 		if (!runningOnMac)
 		{
 			augment(buildMenu, null, preferencesAction)
 		}
+		menuBar.add(buildMenu)
 		menuBar.add(
 			menu(
 				"Document",
@@ -2734,7 +2734,9 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 					null -> menu.addSeparator()
 					is Action -> menu.add(item)
 					is JMenuItem -> menu.add(item)
-					else -> assert(false) { "Bad argument while building menu" }
+					else -> assert(false) {
+						"Bad argument while building menu"
+					}
 				}
 			}
 		}

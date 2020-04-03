@@ -32,9 +32,9 @@
 
 package com.avail.interpreter.levelTwo.operand;
 
-import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.representation.A_BasicObject;
+import com.avail.descriptor.types.A_Type;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE;
 import com.avail.interpreter.levelTwo.operation.L2_MOVE;
@@ -236,9 +236,9 @@ extends L2Operand
 		// rewrite this operation to use a semantic value that's still in the
 		// manifest, or even add a new one.
 		final List<L2Synonym> synonyms = manifest.synonymsForRegister(register);
-		final L2SemanticValue newSemanticValue;
 		assert !synonyms.isEmpty();
-		newSemanticValue = synonyms.get(0).pickSemanticValue();
+		final L2SemanticValue newSemanticValue =
+			synonyms.get(0).pickSemanticValue();
 		return this.copyForSemanticValue(newSemanticValue);
 	}
 
@@ -251,7 +251,7 @@ extends L2Operand
 	 * @return A duplicate of the receiver, but with a different
 	 *         {@link L2SemanticValue}.
 	 */
-	public abstract L2ReadOperand copyForSemanticValue (
+	public abstract L2ReadOperand<R> copyForSemanticValue (
 		final L2SemanticValue newSemanticValue);
 
 	@Override

@@ -31,13 +31,13 @@
  */
 package com.avail.interpreter.primitive.bootstrap.syntax
 
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.LiteralPhraseDescriptor.literalNodeFromToken
-import com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
-import com.avail.descriptor.TypeDescriptor.Types.NUMBER
+import com.avail.descriptor.phrases.LiteralPhraseDescriptor.literalNodeFromToken
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.LiteralTokenTypeDescriptor.literalTokenType
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
+import com.avail.descriptor.types.TypeDescriptor.Types.NUMBER
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
@@ -52,7 +52,6 @@ import com.avail.interpreter.Primitive.Flag.*
 object P_BootstrapNumericLiteral :
 	Primitive(1, CanInline, CannotFail, Bootstrap)
 {
-
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)

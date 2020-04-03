@@ -115,19 +115,6 @@ Semantic restriction "_'s⁇instances" is
 ];
 
 /**
- * Improve the bounds on metatypes.
- *
- * @method "_'s⁇instance"
- * @restricts "type's type"
- */
-Semantic restriction "_'s⁇instance" is
-[
-	aMeta : type's type
-|
-	cast aMeta's instance into [t : type | t]
-];
-
-/**
  * Construct and answer an enumeration whose instances are the lexically
  * specified values.
  *

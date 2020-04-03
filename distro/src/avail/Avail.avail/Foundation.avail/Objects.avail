@@ -147,7 +147,7 @@ Semantic restriction "_→object type" is
 		/* We know one or more fields with which this type is associated, so
 		 * record this knowledge into `constraints`.
 		 */
-		else if  |atomType| ≠ ∞ then
+		else if |atomType| ≠ ∞ then
 		[
 			atoms ::= atomType's instances;
 			For each fieldAtom of atoms do
@@ -440,6 +440,16 @@ Semantic restriction "_'s⁇accessor name" is
 	nonempty string
 ];
 
+Private method "generate immutable read for_,_" is
+[
+	theObjectType : object meta,
+	fieldAtomType : atom
+|
+	Primitive CreateObjectFieldGetter(
+		failureCode : {no-such-field code}ᵀ);
+	Invoke early failure function with <failureCode>
+] : [⊥] → any;
+
 /**
  * Generate the field accessor for the specified field declaration.
  *
@@ -458,22 +468,29 @@ Private method "generate_field accessor for_:_(mutable=_)" is
 	fieldType : any meta,
 	mutable : boolean
 |
-	args ::= <arg «`"x"` : objectType»>;
-	objectPhrase ::= «↓args[1]»;
-	getFieldSend ::= send $"_[_]"
-		with «<objectPhrase, ‘fieldAtom’>» : fieldType;
-	resultType ::=
-		unless mutable then [fieldType]
-		else
-		[
-			varType ::= cast fieldType into [t : variable's type | t];
-			varType's read type
-		];
-	last ::=
-		unless mutable then [getFieldSend]
-		else [send  $"↓_" with «<getFieldSend>» : resultType];
-	newBlock ::= «[args | <last>] : resultType»;
-	newBlock→function
+	if ¬mutable then
+	[
+		generate immutable read for objectType, fieldAtom
+	]
+	else
+	[
+		args ::= <arg «(this token: obj) : objectType»>;
+		objectPhrase ::= «↓args[1]»;
+		getFieldSend ::= send $"_[_]"
+			with «<objectPhrase, ‘fieldAtom’>» : fieldType;
+		resultType ::=
+			unless mutable then [fieldType]
+			else
+			[
+				varType ::= cast fieldType into [t : variable's type | t];
+				varType's read type
+			];
+		last ::=
+			unless mutable then [getFieldSend]
+			else [send  $"↓_" with «<getFieldSend>» : resultType];
+		newBlock ::= «[args | <last>] : resultType»;
+		newBlock→function
+	]
 ];
 
 /**
@@ -495,7 +512,7 @@ Private method "generate_field accessor restriction for_:_(mutable=_)" is
 	fieldType : any meta,
 	mutable : boolean
 |
-	args ::= <arg «`"x"` : objectType's type»>;
+	args ::= <arg «(this token: obj) : objectType's type»>;
 	objectTypePhrase ::= «↓args[1]»;
 	getFieldTypeSend ::= send $"_[_]"
 		with «<objectTypePhrase, ‘fieldAtom’>» : fieldType's type;
@@ -768,7 +785,9 @@ Private method "Generate and install_mutator for mutable_" is
 	[
 		varType ::= cast fieldType into [t : variable's type | t];
 		readType ::= cast varType's read type into [t : any's type | t];
-		args ::= <arg «`"x"` : objectType», arg «`"v"` : readType»>;
+		objToken ::= this token: obj;
+		fieldToken ::= this token: field;
+		args ::= <arg «objToken : objectType», arg «fieldToken : readType»>;
 		objectPhrase ::= «↓args[1]»;
 		getFieldSend ::= send $"_[_]"
 			with «<objectPhrase, ‘fieldAtom’>» : varType;
@@ -940,8 +959,7 @@ Private method "Generate and install_reconstructor for_" is
  *        A field atoms.
  * @returns "⊤"
  */
-Private method
-	"Generate and install_reconstructor's semantic restriction for_"
+Private method "Generate and install_reconstructor's semantic restriction for_"
 is
 [
 	objectType : object meta,
@@ -1410,7 +1428,6 @@ is
 	optionalReconstructors : <boolean, atom+…|2>+?'s type
 |
 	public ::= publicType's instance;
-	publicNames ::= current module's public names;
 	If public ∧ |classNameType| ≠ 1 then
 	[
 		Reject parse, expected:
@@ -1420,7 +1437,7 @@ is
 	If |classNameType| = 1 then
 	[
 		className ::= classNameType's instance;
-		If public ∧ ¬className ∈ publicNames then
+		If public ∧ ¬current module has public name className then
 		[
 			Reject parse, expected:
 				"\""
@@ -1482,7 +1499,7 @@ is
 						++ extantName
 						++ ")"
 				];
-				If ¬accessorName ∈ publicNames then
+				If ¬current module has public name accessorName then
 				[
 					Reject parse, expected:
 						"\""
@@ -1493,7 +1510,7 @@ is
 				If reconstructible then
 				[
 					reconstructorName ::= reconstructor name for <accessorName>;
-					If ¬reconstructorName ∈ publicNames then
+					If ¬current module has public name reconstructorName then
 					[
 						Reject parse, expected:
 							"\""
@@ -1600,7 +1617,7 @@ is
 						++ extantAccessorName
 						++ ")"
 				];
-				If ¬accessorName ∈ publicNames then
+				If ¬current module has public name accessorName then
 				[
 					Reject parse, expected:
 						"\""
@@ -1638,7 +1655,7 @@ is
 							++ extantReferrerName
 							++ ")"
 					];
-					If ¬referrerName ∈ publicNames then
+					If ¬current module has public name referrerName then
 					[
 						Reject parse, expected:
 							"\""
@@ -1697,7 +1714,7 @@ is
 							++ extantMutatorName
 							++ ")"
 					];
-					If ¬mutatorName ∈ publicNames then
+					If ¬current module has public name mutatorName then
 					[
 						Reject parse, expected:
 							"\""
@@ -1758,7 +1775,7 @@ is
 					++ reconstructorName
 					++ "\" to be private (because the class is private)"
 			];
-			If ¬reconstructorName ∈ publicNames then
+			If ¬current module has public name reconstructorName then
 			[
 				Reject parse, expected:
 					"\""

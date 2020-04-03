@@ -31,17 +31,17 @@
  */
 package com.avail.interpreter.primitive.tuples
 
-import com.avail.descriptor.A_RawFunction
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers
-import com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.SetDescriptor.set
-import com.avail.descriptor.TupleDescriptor
-import com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType
-import com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType
+import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.sets.SetDescriptor.set
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.generateObjectTupleFrom
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.TupleDescriptor
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.naturalNumbers
+import com.avail.descriptor.types.TupleTypeDescriptor.mostGeneralTupleType
+import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType
 import com.avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive

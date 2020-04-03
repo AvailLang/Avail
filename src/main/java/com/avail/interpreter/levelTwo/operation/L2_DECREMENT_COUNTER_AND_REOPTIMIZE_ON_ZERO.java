@@ -31,9 +31,9 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_RawFunction;
 import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.functions.A_Function;
+import com.avail.descriptor.functions.A_RawFunction;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
@@ -51,9 +51,7 @@ import static com.avail.optimizer.L1Translator.translateToLevelTwo;
 import static com.avail.optimizer.L2Generator.OptimizationLevel.optimizationLevel;
 import static com.avail.optimizer.jvm.CheckedMethod.staticMethod;
 import static com.avail.utility.Nulls.stripNull;
-import static org.objectweb.asm.Opcodes.ACONST_NULL;
-import static org.objectweb.asm.Opcodes.ARETURN;
-import static org.objectweb.asm.Opcodes.IFEQ;
+import static org.objectweb.asm.Opcodes.*;
 
 /**
  * Explicitly decrement the current compiled code's countdown via {@link

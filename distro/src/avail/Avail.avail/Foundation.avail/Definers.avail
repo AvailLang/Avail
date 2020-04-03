@@ -1054,7 +1054,7 @@ Semantic restriction "Public variable_is_" is
 	Require: nameType is public;
 	If |nameType| = 1 then
 	[
-		accessorName ::= cast nameType's instance into [t : string | t];
+		accessorName ::= nameType's instance;
 		mutatorName ::= cast concatenate <accessorName, ":=_">
 			into [t : string | t];
 		Require: mutatorName's type is public;

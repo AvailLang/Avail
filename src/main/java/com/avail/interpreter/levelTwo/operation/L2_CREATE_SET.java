@@ -32,8 +32,8 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_Set;
-import com.avail.descriptor.SetDescriptor;
+import com.avail.descriptor.sets.A_Set;
+import com.avail.descriptor.sets.SetDescriptor;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;

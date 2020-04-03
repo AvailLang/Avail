@@ -32,10 +32,10 @@
 
 package com.avail.dispatch
 
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes
-import com.avail.descriptor.objects.A_BasicObject
+import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForTypes
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import java.util.*
 import java.util.Collections.emptyList
@@ -54,7 +54,7 @@ import kotlin.streams.toList
  *   A memento to supply arbitrary additional information.
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-internal abstract class LookupTreeAdaptor<
+abstract class LookupTreeAdaptor<
 	Element : A_BasicObject,
 	Result : A_BasicObject,
 	Memento>

@@ -31,14 +31,14 @@
  */
 package com.avail.interpreter.primitive.continuations
 
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.ContinuationDescriptor
-import com.avail.descriptor.ContinuationTypeDescriptor.mostGeneralContinuationType
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.VariableDescriptor
-import com.avail.descriptor.VariableDescriptor.newVariableWithContentType
-import com.avail.descriptor.VariableTypeDescriptor.variableTypeFor
+import com.avail.descriptor.functions.ContinuationDescriptor
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.ContinuationTypeDescriptor.mostGeneralContinuationType
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor
+import com.avail.descriptor.variables.VariableDescriptor
+import com.avail.descriptor.variables.VariableDescriptor.newVariableWithContentType
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*

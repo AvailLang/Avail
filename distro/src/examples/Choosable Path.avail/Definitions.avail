@@ -1160,7 +1160,6 @@ Private method "Generate scene transition constructors" is
 	/* For each combination of features, generate an appropriate constructor
 	 * method and semantic restriction.
 	 */
-	publicNames ::= current module's public names;
 	argNames ::= <"target", "predicate", "action", "description">;
 	For each combination of combinations do
 	[
@@ -1172,7 +1171,7 @@ Private method "Generate scene transition constructors" is
 			with
 				if combination[2] = ⊥ then [""] else ["contingent on_"],
 				if combination[3] = ⊥ then [""] else ["when chosen doing_"];
-		Assert: name ∈ publicNames;
+		Assert: current module has public name name;
 
 		/*
 		 * Construct the scene transition constructor method. Do not yet install

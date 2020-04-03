@@ -32,9 +32,9 @@
 
 package com.avail.interpreter.levelTwo;
 
-import com.avail.descriptor.A_RawFunction;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.A_Variable;
+import com.avail.descriptor.functions.A_RawFunction;
+import com.avail.descriptor.types.A_Type;
+import com.avail.descriptor.variables.A_Variable;
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
@@ -175,7 +175,7 @@ public abstract class L2Operation
 	 * The name of this level two operation.  This is initialized to be the
 	 * {@linkplain Class#getSimpleName() simple name} of the {@link Class}.
 	 */
-	private final @Nullable String name;
+	private final String name;
 
 	/**
 	 * Answer the name of this {@code L2Operation}.
@@ -183,9 +183,9 @@ public abstract class L2Operation
 	 * @return The operation name, suitable for symbolic debugging of level two
 	 *         generated code.
 	 */
-	public String name ()
+	public final String name ()
 	{
-		return stripNull(name);
+		return name;
 	}
 
 	/**
@@ -202,18 +202,51 @@ public abstract class L2Operation
 	 *        The {@link L2NamedOperandType}s that describe the layout of
 	 *        operands for my instructions.
 	 */
-	protected L2Operation (final L2NamedOperandType... theNamedOperandTypes)
+	protected L2Operation (
+		final L2NamedOperandType... theNamedOperandTypes)
 	{
-		final String className = this.getClass().getSimpleName();
-		name = className;
-		jvmTranslationTime = new Statistic(
-			className, StatisticReport.L2_TO_JVM_TRANSLATION_TIME);
+		final String simpleName = getClass().getSimpleName();
+		this.name = simpleName.startsWith("L2_")
+			? simpleName.substring(3)
+			: simpleName;
 		namedOperandTypes = theNamedOperandTypes.clone();
-
 		assert this instanceof L2ControlFlowOperation
 			|| this instanceof L2_SAVE_ALL_AND_PC_TO_INT
 			|| Arrays.stream(namedOperandTypes).noneMatch(
-				x -> x.operandType() == L2OperandType.PC);
+			x -> x.operandType() == L2OperandType.PC);
+		jvmTranslationTime = new Statistic(
+			name, StatisticReport.L2_TO_JVM_TRANSLATION_TIME);
+	}
+
+	/**
+	 * Protect the constructor so the subclasses can maintain a fly-weight
+	 * pattern (or arguably a singleton).  This is a supplementary constructor
+	 * that allows a specific name to be provided, rather than relying on the
+	 * class name.  This is useful for anonymous subclasses, or distinguishing
+	 * multiple instances of the same (non-singleton) class.
+	 *
+	 * @param name
+	 *        The {@link String} that names this operation.
+	 * @param theNamedOperandTypes
+	 *        The {@link L2NamedOperandType}s that describe the layout of
+	 *        operands for my instructions.
+	 */
+	protected L2Operation (
+		final String name,
+		final L2NamedOperandType... theNamedOperandTypes)
+	{
+		this.name = name;
+		namedOperandTypes = theNamedOperandTypes.clone();
+		assert this instanceof L2ControlFlowOperation
+			|| this instanceof L2_SAVE_ALL_AND_PC_TO_INT
+			|| Arrays.stream(namedOperandTypes).noneMatch(
+			x -> x.operandType() == L2OperandType.PC);
+		jvmTranslationTime = new Statistic(
+			name, StatisticReport.L2_TO_JVM_TRANSLATION_TIME);
+	}
+
+	// Do some more initialization for both constructors.
+	{
 
 		final @Nullable ReadsHiddenVariable readsAnnotation =
 			getClass().getAnnotation(ReadsHiddenVariable.class);
@@ -344,26 +377,6 @@ public abstract class L2Operation
 	{
 		assert instruction.operation() == this;
 		return hasSideEffect();
-	}
-
-	/**
-	 * Answer whether the {@link L2Instruction}, which has this
-	 * {@code L2Operation} as its operation, is sufficient cause to consider
-	 * an {@link L2Chunk} containing it to not be considered a simple leaf.
-	 *
-	 * <p>A simple leaf must not invoke other chunks, loop, or originate
-	 * reification for any reason other than an interrupt.  Simple leaves may
-	 * have their interrupt check elided for performance.</p>
-	 *
-	 * @param instruction
-	 *        The instruction to check, which has this as its operation.
-	 * @return Whether to disqualify an {@link L2Chunk} containing the given
-	 *         instruction from being treated as a simple leaf.
-	 */
-	public boolean makesChunkNotSimpleLeaf (final L2Instruction instruction)
-	{
-		assert instruction.operation() == this;
-		return false;
 	}
 
 	/**
@@ -579,36 +592,6 @@ public abstract class L2Operation
 	{
 		assert instruction.operation() == this;
 		retranslator.emitInstruction(this, transformedOperands);
-	}
-
-	/**
-	 * Write an alternative to this instruction into the given {@link List} of
-	 * instructions.  The state at the start of this instruction has been
-	 * provided, but should not be modified.  Answer whether a semantic change
-	 * has taken place that might require another pass of flow analysis.
-	 *
-	 * @param instruction
-	 *        The {@link L2Instruction} containing this operation.
-	 * @param registerSet
-	 *        A {@link RegisterSet} holding type and value information about all
-	 *        live registers upon arriving at this instruction.  This method
-	 *        should modify the registerSet in-place to indicate the effect on
-	 *        register types and values that this instruction will have.
-	 * @param generator
-	 *        Where to write the replacement instruction.
-	 * @return Whether the regenerated instructions are different enough to
-	 *         warrant another pass of flow analysis.
-	 */
-	@Deprecated
-	public boolean regenerate (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
-		final L2Generator generator)
-	{
-		// By default just produce the same instruction.
-		assert instruction.operation() == this;
-		generator.addInstruction(instruction);
-		return false;
 	}
 
 	/**

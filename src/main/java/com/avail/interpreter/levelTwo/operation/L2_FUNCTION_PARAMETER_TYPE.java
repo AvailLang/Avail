@@ -32,10 +32,10 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_RawFunction;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.FunctionDescriptor;
+import com.avail.descriptor.functions.A_Function;
+import com.avail.descriptor.functions.A_RawFunction;
+import com.avail.descriptor.functions.FunctionDescriptor;
+import com.avail.descriptor.types.A_Type;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
@@ -51,7 +51,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import static com.avail.descriptor.InstanceMetaDescriptor.anyMeta;
+import static com.avail.descriptor.types.InstanceMetaDescriptor.anyMeta;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 
 /**

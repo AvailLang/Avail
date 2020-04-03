@@ -32,17 +32,17 @@
 
 package com.avail.interpreter.primitive.variables
 
-import com.avail.descriptor.A_RawFunction
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.A_Variable
-import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.BottomTypeDescriptor.bottom
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.IntegerDescriptor
-import com.avail.descriptor.IntegerRangeTypeDescriptor.extendedIntegers
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.SetDescriptor.set
-import com.avail.descriptor.VariableTypeDescriptor.variableReadWriteType
+import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.numbers.IntegerDescriptor
+import com.avail.descriptor.sets.SetDescriptor.set
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.types.BottomTypeDescriptor.bottom
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.extendedIntegers
+import com.avail.descriptor.types.VariableTypeDescriptor.variableReadWriteType
+import com.avail.descriptor.variables.A_Variable
 import com.avail.exceptions.ArithmeticException
 import com.avail.exceptions.AvailErrorCode.*
 import com.avail.exceptions.VariableGetException

@@ -32,20 +32,20 @@
 
 package com.avail.interpreter.primitive.phrases
 
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.FirstOfSequencePhraseDescriptor
-import com.avail.descriptor.FirstOfSequencePhraseDescriptor.newFirstOfSequenceNode
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.FIRST_OF_SEQUENCE_PHRASE
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
-import com.avail.descriptor.PhraseTypeDescriptor.containsOnlyStatements
-import com.avail.descriptor.SetDescriptor.set
-import com.avail.descriptor.TupleDescriptor
-import com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf
-import com.avail.descriptor.TypeDescriptor.Types.TOP
-import com.avail.descriptor.parsing.A_Phrase
+import com.avail.descriptor.phrases.A_Phrase
+import com.avail.descriptor.phrases.FirstOfSequencePhraseDescriptor
+import com.avail.descriptor.phrases.FirstOfSequencePhraseDescriptor.newFirstOfSequenceNode
+import com.avail.descriptor.sets.SetDescriptor.set
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.TupleDescriptor
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.FIRST_OF_SEQUENCE_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.containsOnlyStatements
+import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf
+import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_SEQUENCE_CONTAINS_INVALID_STATEMENTS
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive

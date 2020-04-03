@@ -45,9 +45,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.int32;
+import static com.avail.descriptor.types.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT;

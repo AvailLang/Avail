@@ -53,10 +53,10 @@ import org.objectweb.asm.MethodVisitor;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import static com.avail.descriptor.ContinuationTypeDescriptor.mostGeneralContinuationType;
-import static com.avail.descriptor.FunctionTypeDescriptor.mostGeneralFunctionType;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
-import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.descriptor.types.ContinuationTypeDescriptor.mostGeneralContinuationType;
+import static com.avail.descriptor.types.FunctionTypeDescriptor.mostGeneralFunctionType;
+import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.int32;
+import static com.avail.descriptor.types.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.levelTwo.L2OperandType.COMMENT;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED;

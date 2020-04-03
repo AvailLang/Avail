@@ -32,8 +32,8 @@
 
 package com.avail.optimizer;
 
-import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.types.A_Type;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.register.L2Register;

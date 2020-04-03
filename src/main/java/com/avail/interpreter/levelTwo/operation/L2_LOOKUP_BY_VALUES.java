@@ -31,12 +31,12 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_Function;
-import com.avail.descriptor.A_Type;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.bundles.A_Bundle;
+import com.avail.descriptor.functions.A_Function;
 import com.avail.descriptor.methods.A_Definition;
 import com.avail.descriptor.methods.A_Method;
+import com.avail.descriptor.types.A_Type;
 import com.avail.exceptions.AvailException;
 import com.avail.exceptions.MethodDefinitionException;
 import com.avail.interpreter.Interpreter;
@@ -63,23 +63,14 @@ import java.util.Set;
 import java.util.logging.Level;
 
 import static com.avail.AvailRuntimeSupport.captureNanos;
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
-import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.SetDescriptor.set;
-import static com.avail.descriptor.SetDescriptor.setFromCollection;
-import static com.avail.descriptor.SetDescriptor.toSet;
-import static com.avail.descriptor.TypeDescriptor.Types.ANY;
-import static com.avail.exceptions.AvailErrorCode.E_ABSTRACT_METHOD_DEFINITION;
-import static com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_METHOD_DEFINITION;
-import static com.avail.exceptions.AvailErrorCode.E_FORWARD_METHOD_DEFINITION;
-import static com.avail.exceptions.AvailErrorCode.E_NO_METHOD;
-import static com.avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION;
+import static com.avail.descriptor.sets.SetDescriptor.*;
+import static com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.types.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.types.TypeDescriptor.Types.ANY;
+import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.PC;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR;
-import static com.avail.interpreter.levelTwo.L2OperandType.SELECTOR;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType;
 import static com.avail.optimizer.jvm.CheckedMethod.staticMethod;

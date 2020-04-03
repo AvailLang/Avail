@@ -33,7 +33,7 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.IntegerDescriptor;
+import com.avail.descriptor.numbers.IntegerDescriptor;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;

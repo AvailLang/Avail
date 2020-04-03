@@ -33,13 +33,13 @@ package com.avail.interpreter.primitive.pojos
 
 import com.avail.CallbackSystem
 import com.avail.CallbackSystem.*
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.BottomTypeDescriptor.bottom
-import com.avail.descriptor.ObjectTupleDescriptor.tupleFromList
-import com.avail.descriptor.PojoDescriptor
-import com.avail.descriptor.PojoDescriptor.newPojo
-import com.avail.descriptor.PojoTypeDescriptor.pojoTypeForClass
-import com.avail.descriptor.RawPojoDescriptor.identityPojo
+import com.avail.descriptor.pojos.PojoDescriptor
+import com.avail.descriptor.pojos.PojoDescriptor.newPojo
+import com.avail.descriptor.pojos.RawPojoDescriptor.identityPojo
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.BottomTypeDescriptor.bottom
+import com.avail.descriptor.types.PojoTypeDescriptor.pojoTypeForClass
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanSuspend

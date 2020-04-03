@@ -32,20 +32,20 @@
 
 package com.avail.interpreter.primitive.tuples
 
-import com.avail.descriptor.A_RawFunction
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.InstanceTypeDescriptor.instanceType
-import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.RepeatedElementTupleDescriptor
-import com.avail.descriptor.RepeatedElementTupleDescriptor.createRepeatedElementTuple
-import com.avail.descriptor.SetDescriptor.set
-import com.avail.descriptor.TupleDescriptor.emptyTuple
-import com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType
-import com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType
-import com.avail.descriptor.TypeDescriptor.Types.ANY
+import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.sets.SetDescriptor.set
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.RepeatedElementTupleDescriptor
+import com.avail.descriptor.tuples.RepeatedElementTupleDescriptor.createRepeatedElementTuple
+import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.InstanceTypeDescriptor.instanceType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.wholeNumbers
+import com.avail.descriptor.types.TupleTypeDescriptor.mostGeneralTupleType
+import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType
+import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.exceptions.AvailErrorCode.E_EXCEEDS_VM_LIMIT
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive

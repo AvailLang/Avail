@@ -136,6 +136,7 @@ Uses
 		"_bit∧_",
 		"_bit∨_",
 		"_bit⊕_",
+		"_has public name_",
 		"_has result",
 		"_has terminated",
 		"_is a primitive",
@@ -2029,6 +2030,26 @@ Primitive "_'s⁇entry points" is
 |
 	Primitive Entries;
 ] : set of string;
+
+/**
+ * Determine whether the provided module defines an atom with the given name.
+ *
+ * @category "Primitives"
+ * @method "_has public name_"
+ * @param "aModule" "module"
+ *        The module to examine.
+ * @param "aString" "string"
+ *        The name to look for in the modules new names.
+ * @returns "{5}"
+ *    Whether the name was defined in the module.
+ */
+Primitive "_has public name_" is
+[
+	aModule : module,
+	aString : string
+|
+	Primitive HasNewName;
+] : boolean;
 
 /**
  * Answer the fully qualified name of the specified module.

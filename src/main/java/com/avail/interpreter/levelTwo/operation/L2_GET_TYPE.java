@@ -31,11 +31,11 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.AbstractEnumerationTypeDescriptor;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.InstanceMetaDescriptor;
-import com.avail.descriptor.InstanceTypeDescriptor;
+import com.avail.descriptor.types.A_Type;
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor;
+import com.avail.descriptor.types.InstanceMetaDescriptor;
+import com.avail.descriptor.types.InstanceTypeDescriptor;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
@@ -49,10 +49,10 @@ import org.objectweb.asm.MethodVisitor;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
-import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
-import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
-import static com.avail.descriptor.TypeDescriptor.Types.NONTYPE;
+import static com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
+import static com.avail.descriptor.types.InstanceMetaDescriptor.instanceMeta;
+import static com.avail.descriptor.types.InstanceMetaDescriptor.topMeta;
+import static com.avail.descriptor.types.TypeDescriptor.Types.NONTYPE;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
 import static org.objectweb.asm.Opcodes.CHECKCAST;

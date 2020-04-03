@@ -32,8 +32,14 @@
 
 package com.avail;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.NilDescriptor;
+import com.avail.descriptor.functions.A_Function;
+import com.avail.descriptor.functions.A_RawFunction;
+import com.avail.descriptor.pojos.PojoDescriptor;
 import com.avail.descriptor.tuples.A_Tuple;
+import com.avail.descriptor.types.A_Type;
 import com.avail.interpreter.primitive.pojos.P_InvokeCallback;
 import com.avail.interpreter.primitive.pojos.PrimitiveHelper;
 import com.avail.utility.SimpleThreadFactory;
@@ -47,11 +53,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import static com.avail.AvailRuntimeConfiguration.availableProcessors;
-import static com.avail.descriptor.FunctionDescriptor.createWithOuters1;
-import static com.avail.descriptor.MapDescriptor.emptyMap;
-import static com.avail.descriptor.PojoDescriptor.newPojo;
-import static com.avail.descriptor.PojoTypeDescriptor.resolvePojoType;
-import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
+import static com.avail.descriptor.functions.FunctionDescriptor.createWithOuters1;
+import static com.avail.descriptor.maps.MapDescriptor.emptyMap;
+import static com.avail.descriptor.pojos.PojoDescriptor.newPojo;
+import static com.avail.descriptor.pojos.RawPojoDescriptor.identityPojo;
+import static com.avail.descriptor.types.PojoTypeDescriptor.resolvePojoType;
 import static java.util.Collections.synchronizedMap;
 
 /**

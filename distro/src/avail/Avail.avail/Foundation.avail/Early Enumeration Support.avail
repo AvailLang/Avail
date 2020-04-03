@@ -61,6 +61,21 @@ Public method "_'s⁇instance" is
 ] : any;
 
 /**
+ * Improve the bounds on metatypes.
+ *
+ * @method "_'s⁇instance"
+ * @restricts "type's type"
+ */
+Semantic restriction "_'s⁇instance" is
+[
+	aMeta : type's type
+|
+	result : type;
+	Cast aMeta's instance into [t : type | result := t;] else [];
+	result
+];
+
+/**
  * Is {@param "value"} an instance of {@param "aType"}?
  *
  * @method "_∈_"

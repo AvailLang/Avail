@@ -32,7 +32,7 @@
 
 package com.avail.exceptions
 
-import com.avail.descriptor.DefinitionDescriptor
+import com.avail.descriptor.methods.DefinitionDescriptor
 
 /**
  * A `SignatureException` is thrown when a [definition][DefinitionDescriptor] of

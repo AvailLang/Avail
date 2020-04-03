@@ -32,24 +32,33 @@
 
 package com.avail.interpreter.primitive.objects
 
-import com.avail.descriptor.A_RawFunction
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.MapDescriptor.emptyMap
-import com.avail.descriptor.ObjectDescriptor
-import com.avail.descriptor.ObjectDescriptor.objectFromTuple
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.ObjectTypeDescriptor.mostGeneralObjectType
-import com.avail.descriptor.ObjectTypeDescriptor.objectTypeFromMap
-import com.avail.descriptor.TupleDescriptor
-import com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes
-import com.avail.descriptor.TupleTypeDescriptor.zeroOrMoreOf
-import com.avail.descriptor.TypeDescriptor.Types.ANY
-import com.avail.descriptor.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.atoms.AtomDescriptor
+import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.maps.MapDescriptor.emptyMap
+import com.avail.descriptor.objects.ObjectDescriptor
+import com.avail.descriptor.objects.ObjectDescriptor.objectFromTuple
+import com.avail.descriptor.objects.ObjectLayoutVariant.variantForFields
+import com.avail.descriptor.objects.ObjectTypeDescriptor.mostGeneralObjectType
+import com.avail.descriptor.objects.ObjectTypeDescriptor.objectTypeFromMap
+import com.avail.descriptor.sets.SetDescriptor.setFromCollection
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.TupleDescriptor
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForTypes
+import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf
+import com.avail.descriptor.types.TypeDescriptor.Types.ANY
+import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType
+import com.avail.interpreter.levelTwo.operation.L2_CREATE_OBJECT
+import com.avail.optimizer.L1Translator
 
 /**
  * **Primitive:** Convert a [tuple][TupleDescriptor] of field assignment into an
@@ -111,5 +120,65 @@ object P_TupleToObject : Primitive(1, CannotFail, CanFold, CanInline)
 				fieldTypeMap.mapAtPuttingCanDestroy(keyValue, valueType, true)
 		}
 		return objectTypeFromMap(fieldTypeMap)
+	}
+
+	override fun tryToGenerateSpecialPrimitiveInvocation(
+		functionToCallReg: L2ReadBoxedOperand,
+		rawFunction: A_RawFunction,
+		arguments: List<L2ReadBoxedOperand>,
+		argumentTypes: List<A_Type>,
+		translator: L1Translator,
+		callSiteHelper: L1Translator.CallSiteHelper): Boolean
+	{
+		// If we know the exact keys, we can statically determine the
+		// ObjectLayoutVariant to populate, and write the fields into the fixed
+		// offsets.
+
+		val pairsReg = arguments[0]
+		val pairsType = argumentTypes[0]
+		val sizeRange = pairsType.sizeRange()
+
+		val generator = translator.generator
+
+		if (!sizeRange.lowerBound().isInt) return false
+		val size = sizeRange.lowerBound().extractInt()
+		if (!sizeRange.upperBound().equalsInt(size)) return false
+		// The tuple size is known.  See if the order of field atoms is known.
+		val atoms = (1..size).map {
+			val keyType = pairsType.typeAtIndex(it).typeAtIndex(1)
+			if (!keyType.isEnumeration || !keyType.instanceCount().equalsInt(1))
+			{
+				return false
+			}
+			// It's at known to be a particular atom, and not instanceMeta.
+			keyType.instance()
+		}
+		// Check that the atoms are unique.
+		val atomsSet = setFromCollection(atoms)
+		if (atomsSet.setSize() != size) return false
+		// Look up the ObjectLayoutVariant statically.
+		val variant = variantForFields(atomsSet)
+		val fieldMap = variant.fieldToSlotIndex
+		val sourcesByFieldIndex = arrayOfNulls<L2ReadBoxedOperand>(size)
+		val pairSources: List<L2ReadBoxedOperand> =
+			generator.explodeTupleIfPossible(pairsReg, argumentTypes)
+				?: return false
+		(atoms zip pairSources).forEach { (atom, pairSource) ->
+			val index = fieldMap[atom]!!
+			if (index != 0)
+			{
+				sourcesByFieldIndex[index - 1] =
+					generator.extractTupleElement(pairSource, 2)
+			}
+		}
+		val write = generator.boxedWriteTemp(
+			restrictionForType(callSiteHelper.expectedType, BOXED))
+		generator.addInstruction(
+			L2_CREATE_OBJECT.instance,
+			L2ConstantOperand(variant.thisPojo),
+			L2ReadBoxedVectorOperand(listOf(*sourcesByFieldIndex)),
+			write)
+		callSiteHelper.useAnswer(generator.readBoxed(write))
+		return true
 	}
 }

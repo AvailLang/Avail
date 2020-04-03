@@ -33,12 +33,15 @@
 package com.avail.optimizer;
 
 import com.avail.descriptor.A_ChunkDependable;
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.A_RawFunction;
-import com.avail.descriptor.A_Set;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.FunctionDescriptor;
-import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.functions.A_RawFunction;
+import com.avail.descriptor.functions.FunctionDescriptor;
+import com.avail.descriptor.numbers.A_Number;
+import com.avail.descriptor.representation.A_BasicObject;
+import com.avail.descriptor.sets.A_Set;
+import com.avail.descriptor.tuples.A_Tuple;
+import com.avail.descriptor.tuples.TupleDescriptor;
+import com.avail.descriptor.types.A_Type;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
@@ -62,13 +65,14 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static com.avail.descriptor.DoubleDescriptor.fromDouble;
-import static com.avail.descriptor.IntegerDescriptor.fromInt;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
-import static com.avail.descriptor.SetDescriptor.emptySet;
-import static com.avail.descriptor.TypeDescriptor.Types.DOUBLE;
+import static com.avail.descriptor.numbers.DoubleDescriptor.fromDouble;
+import static com.avail.descriptor.numbers.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.sets.SetDescriptor.emptySet;
+import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.int32;
+import static com.avail.descriptor.types.TypeDescriptor.Types.DOUBLE;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.*;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForConstant;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType;
 import static com.avail.optimizer.values.L2SemanticValue.constant;
 import static com.avail.performance.StatisticReport.L2_OPTIMIZATION_TIME;
 import static com.avail.utility.Nulls.stripNull;
@@ -869,6 +873,149 @@ public final class L2Generator
 			read,
 			boxedWrite(temp, immutableRestriction));
 		return currentManifest.readBoxed(temp);
+	}
+
+	/**
+	 * Given a register that will hold a tuple and a fixed index that is known
+	 * to be in range, generate code and answer a {@link L2ReadBoxedOperand}
+	 * that accesses that element.
+	 *
+	 * <p>Depending on the source of the tuple, this may cause the creation of
+	 * the tuple to be entirely elided.</p>
+	 *
+	 * @param tupleReg
+	 *        The {@link L2BoxedRegister} containing the tuple.
+	 * @param index
+	 *        The one-based subscript into the tuple.
+	 * @return A {@link L2ReadBoxedOperand}s that provides that element of the
+	 *         tuple, whether by tracing the source of the instruction that
+	 *         created the tuple or by extracting the value from the tuple.
+	 */
+	public L2ReadBoxedOperand extractTupleElement (
+		final L2ReadBoxedOperand tupleReg,
+		final int index)
+	{
+		final A_Type tupleType = tupleReg.type();
+
+		// The client assumes responsibility for ensuring the tuple is big
+		// enough.  If we know where the tuple was created, use the register
+		// that provided the value to the creation.
+		final L2Instruction tupleDefinitionInstruction =
+			tupleReg.definitionSkippingMoves(false);
+		if (tupleDefinitionInstruction.operation() == L2_CREATE_TUPLE.instance)
+		{
+			// Use the register that was provided to the tuple.
+			return L2_CREATE_TUPLE
+				.tupleSourceRegistersOf(tupleDefinitionInstruction)
+				.get(index);
+		}
+
+		if (tupleDefinitionInstruction.operation() == L2_MOVE_CONSTANT.boxed)
+		{
+			// Extract the element of the constant tuple as a constant.
+			final A_Tuple tuple =
+				L2_MOVE_CONSTANT.constantOf(tupleDefinitionInstruction);
+			return boxedConstant(tuple.tupleAt(index));
+		}
+
+		// We have to extract the element from the tuple.
+		final L2WriteBoxedOperand elementWriter = boxedWriteTemp(
+			restrictionForType(tupleType.typeAtIndex(index), BOXED));
+		addInstruction(
+			L2_TUPLE_AT_CONSTANT.instance,
+			tupleReg,
+			new L2IntImmediateOperand(index),
+			elementWriter);
+		return readBoxed(elementWriter);
+	}
+
+	/**
+	 * Given a register that will hold a tuple, check that the tuple has the
+	 * number of elements and statically satisfies the corresponding provided
+	 * type constraints.  If so, generate code and answer a list of register
+	 * reads corresponding to the elements of the tuple; otherwise, generate no
+	 * code and answer null.
+	 *
+	 * <p>Depending on the source of the tuple, this may cause the creation of
+	 * the tuple to be entirely elided.</p>
+	 *
+	 * @param tupleReg
+	 *        The {@link L2BoxedRegister} containing the tuple.
+	 * @param requiredTypes
+	 *        The required {@linkplain A_Type types} against which to check the
+	 *        tuple's own type.
+	 * @return A {@link List} of {@link L2ReadBoxedOperand}s corresponding to
+	 *         the tuple's elements, or {@code null} if the tuple could not be
+	 *         proven to have the required shape and type.
+	 */
+	public @Nullable List<L2ReadBoxedOperand> explodeTupleIfPossible (
+		final L2ReadBoxedOperand tupleReg,
+		final List<A_Type> requiredTypes)
+	{
+		// First see if there's enough type information available about the
+		// tuple.
+		final A_Type tupleType = tupleReg.type();
+		final A_Type tupleTypeSizes = tupleType.sizeRange();
+		if (!tupleTypeSizes.upperBound().isInt()
+			|| !tupleTypeSizes.lowerBound().equals(tupleTypeSizes.upperBound()))
+		{
+			// The exact tuple size is not known.  Give up.
+			return null;
+		}
+		final int tupleSize = tupleTypeSizes.upperBound().extractInt();
+		if (tupleSize != requiredTypes.size())
+		{
+			// The tuple is the wrong size.
+			return null;
+		}
+
+		// Check the tuple element types against the required types.
+		for (int i = 1; i <= tupleSize; i++)
+		{
+			if (!tupleType.typeAtIndex(i).isSubtypeOf(requiredTypes.get(i - 1)))
+			{
+				// This tuple element's type isn't strong enough.
+				return null;
+			}
+		}
+
+		// At this point we know the tuple has the right type.  If we know where
+		// the tuple was created, use the registers that provided values to the
+		// creation.
+		final L2Instruction tupleDefinitionInstruction =
+			tupleReg.definitionSkippingMoves(false);
+		if (tupleDefinitionInstruction.operation() == L2_CREATE_TUPLE.instance)
+		{
+			// Use the registers that were used to assemble the tuple.
+			return L2_CREATE_TUPLE.tupleSourceRegistersOf(
+				tupleDefinitionInstruction);
+		}
+
+		if (tupleDefinitionInstruction.operation() == L2_MOVE_CONSTANT.boxed)
+		{
+			// Extract the elements of the constant tuple as constant elements.
+			final A_Tuple tuple =
+				L2_MOVE_CONSTANT.constantOf(tupleDefinitionInstruction);
+			return TupleDescriptor.toList(tuple).stream()
+				.map(this::boxedConstant)
+				.collect(toList());
+		}
+
+		// We have to extract the elements.
+		final List<L2ReadBoxedOperand> elementReaders =
+			new ArrayList<>(tupleSize);
+		for (int i = 1; i <= tupleSize; i++)
+		{
+			final L2WriteBoxedOperand elementWriter = boxedWriteTemp(
+				restrictionForType(tupleType.typeAtIndex(i), BOXED));
+			addInstruction(
+				L2_TUPLE_AT_CONSTANT.instance,
+				tupleReg,
+				new L2IntImmediateOperand(i),
+				elementWriter);
+			elementReaders.add(readBoxed(elementWriter));
+		}
+		return elementReaders;
 	}
 
 	/**

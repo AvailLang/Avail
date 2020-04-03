@@ -32,22 +32,25 @@
 
 package com.avail.interpreter.primitive.modules
 
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.ModuleDescriptor
 import com.avail.descriptor.NilDescriptor.nil
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.SetDescriptor.set
-import com.avail.descriptor.StringDescriptor
-import com.avail.descriptor.TupleTypeDescriptor.stringType
-import com.avail.descriptor.TypeDescriptor.Types.TOP
 import com.avail.descriptor.atoms.AtomDescriptor
+import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.PUBLISH_NEW_NAME
+import com.avail.descriptor.sets.SetDescriptor.set
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.StringDescriptor
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.TupleTypeDescriptor.stringType
+import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AmbiguousNameException
 import com.avail.exceptions.AvailErrorCode.*
+import com.avail.interpreter.AvailLoader.Phase.EXECUTING_FOR_COMPILE
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.effects.LoadingEffectToRunPrimitive
 
 /**
  * **Primitive:** Publish the [atom][AtomDescriptor] associated with the
@@ -64,8 +67,8 @@ object P_PublishName : Primitive(
 	{
 		interpreter.checkArgumentCount(1)
 		val name = interpreter.argument(0)
-		val loader = interpreter.fiber().availLoader()
-		             ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+		val loader = interpreter.fiber().availLoader() ?:
+			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		val module = loader.module()
 		if (module.equalsNil())
 		{
@@ -81,6 +84,15 @@ object P_PublishName : Primitive(
 			val trueName = loader.lookupName(name)
 			module.introduceNewName(trueName)
 			module.addImportedName(trueName)
+			if (loader.phase() == EXECUTING_FOR_COMPILE)
+			{
+				// Record the publication.
+				loader.recordEffect(
+					LoadingEffectToRunPrimitive(
+						PUBLISH_NEW_NAME.bundle,
+						name))
+
+			}
 			interpreter.primitiveSuccess(nil)
 		}
 		catch (e: AmbiguousNameException)

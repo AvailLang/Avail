@@ -38,25 +38,42 @@ import com.avail.annotations.ThreadSafe;
 import com.avail.builder.ModuleNameResolver;
 import com.avail.builder.ModuleRoots;
 import com.avail.builder.ResolvedModuleName;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.CharacterDescriptor;
+import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
-import com.avail.descriptor.MapDescriptor.Entry;
-import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom;
-import com.avail.descriptor.TokenDescriptor.StaticInit;
-import com.avail.descriptor.TokenDescriptor.TokenType;
-import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
+import com.avail.descriptor.ModuleDescriptor;
 import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.atoms.AtomDescriptor;
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom;
 import com.avail.descriptor.bundles.A_Bundle;
-import com.avail.descriptor.methods.A_Definition;
-import com.avail.descriptor.methods.A_GrammaticalRestriction;
-import com.avail.descriptor.methods.A_Method;
-import com.avail.descriptor.methods.A_SemanticRestriction;
-import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.functions.A_Function;
+import com.avail.descriptor.functions.A_RawFunction;
+import com.avail.descriptor.functions.CompiledCodeDescriptor;
+import com.avail.descriptor.functions.FunctionDescriptor;
+import com.avail.descriptor.maps.A_Map;
+import com.avail.descriptor.maps.MapDescriptor;
+import com.avail.descriptor.maps.MapDescriptor.Entry;
+import com.avail.descriptor.methods.*;
+import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom;
+import com.avail.descriptor.pojos.RawPojoDescriptor;
+import com.avail.descriptor.representation.A_BasicObject;
+import com.avail.descriptor.sets.A_Set;
+import com.avail.descriptor.sets.SetDescriptor;
+import com.avail.descriptor.tokens.TokenDescriptor.StaticInit;
+import com.avail.descriptor.tokens.TokenDescriptor.TokenType;
 import com.avail.descriptor.tuples.A_String;
 import com.avail.descriptor.tuples.A_Tuple;
+import com.avail.descriptor.tuples.StringDescriptor;
+import com.avail.descriptor.tuples.TupleDescriptor;
+import com.avail.descriptor.types.A_Type;
+import com.avail.descriptor.types.TypeDescriptor;
+import com.avail.descriptor.variables.A_Variable;
+import com.avail.descriptor.variables.VariableDescriptor;
+import com.avail.descriptor.variables.VariableDescriptor.VariableAccessReactor;
 import com.avail.exceptions.AvailRuntimeException;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.interpreter.AvailLoader;
@@ -89,47 +106,47 @@ import java.util.function.Supplier;
 import static com.avail.AvailRuntime.HookType.*;
 import static com.avail.AvailRuntimeConfiguration.availableProcessors;
 import static com.avail.AvailRuntimeConfiguration.maxInterpreters;
-import static com.avail.descriptor.BottomPojoTypeDescriptor.pojoBottom;
-import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.BottomTypeDescriptor.bottomMeta;
-import static com.avail.descriptor.CompiledCodeDescriptor.newPrimitiveRawFunction;
-import static com.avail.descriptor.CompiledCodeTypeDescriptor.mostGeneralCompiledCodeType;
-import static com.avail.descriptor.ContinuationTypeDescriptor.*;
-import static com.avail.descriptor.DoubleDescriptor.fromDouble;
-import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
-import static com.avail.descriptor.FiberTypeDescriptor.fiberMeta;
-import static com.avail.descriptor.FiberTypeDescriptor.mostGeneralFiberType;
-import static com.avail.descriptor.FunctionDescriptor.createFunction;
-import static com.avail.descriptor.FunctionDescriptor.newCrashFunction;
-import static com.avail.descriptor.FunctionTypeDescriptor.*;
-import static com.avail.descriptor.InfinityDescriptor.negativeInfinity;
-import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
-import static com.avail.descriptor.InstanceMetaDescriptor.*;
-import static com.avail.descriptor.InstanceTypeDescriptor.instanceType;
-import static com.avail.descriptor.IntegerDescriptor.*;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
-import static com.avail.descriptor.LexerDescriptor.lexerBodyFunctionType;
-import static com.avail.descriptor.LexerDescriptor.lexerFilterFunctionType;
-import static com.avail.descriptor.LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType;
-import static com.avail.descriptor.MapDescriptor.emptyMap;
-import static com.avail.descriptor.MapTypeDescriptor.*;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ObjectTupleDescriptor.generateObjectTupleFrom;
-import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.ObjectTypeDescriptor.*;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*;
-import static com.avail.descriptor.PojoDescriptor.nullPojo;
-import static com.avail.descriptor.PojoTypeDescriptor.*;
-import static com.avail.descriptor.RawPojoDescriptor.identityPojo;
-import static com.avail.descriptor.SetDescriptor.emptySet;
-import static com.avail.descriptor.SetTypeDescriptor.*;
-import static com.avail.descriptor.StringDescriptor.stringFrom;
-import static com.avail.descriptor.TupleDescriptor.*;
-import static com.avail.descriptor.TupleTypeDescriptor.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
-import static com.avail.descriptor.VariableTypeDescriptor.*;
 import static com.avail.descriptor.atoms.AtomDescriptor.falseObject;
 import static com.avail.descriptor.atoms.AtomDescriptor.trueObject;
+import static com.avail.descriptor.functions.CompiledCodeDescriptor.newPrimitiveRawFunction;
+import static com.avail.descriptor.functions.FunctionDescriptor.createFunction;
+import static com.avail.descriptor.functions.FunctionDescriptor.newCrashFunction;
+import static com.avail.descriptor.maps.MapDescriptor.emptyMap;
+import static com.avail.descriptor.numbers.DoubleDescriptor.fromDouble;
+import static com.avail.descriptor.numbers.InfinityDescriptor.negativeInfinity;
+import static com.avail.descriptor.numbers.InfinityDescriptor.positiveInfinity;
+import static com.avail.descriptor.numbers.IntegerDescriptor.*;
+import static com.avail.descriptor.objects.ObjectTypeDescriptor.*;
+import static com.avail.descriptor.parsing.LexerDescriptor.lexerBodyFunctionType;
+import static com.avail.descriptor.parsing.LexerDescriptor.lexerFilterFunctionType;
+import static com.avail.descriptor.pojos.PojoDescriptor.nullPojo;
+import static com.avail.descriptor.pojos.RawPojoDescriptor.identityPojo;
+import static com.avail.descriptor.sets.SetDescriptor.emptySet;
+import static com.avail.descriptor.tuples.ObjectTupleDescriptor.generateObjectTupleFrom;
+import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.tuples.StringDescriptor.stringFrom;
+import static com.avail.descriptor.tuples.TupleDescriptor.*;
+import static com.avail.descriptor.types.BottomPojoTypeDescriptor.pojoBottom;
+import static com.avail.descriptor.types.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.types.BottomTypeDescriptor.bottomMeta;
+import static com.avail.descriptor.types.CompiledCodeTypeDescriptor.mostGeneralCompiledCodeType;
+import static com.avail.descriptor.types.ContinuationTypeDescriptor.*;
+import static com.avail.descriptor.types.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.types.FiberTypeDescriptor.fiberMeta;
+import static com.avail.descriptor.types.FiberTypeDescriptor.mostGeneralFiberType;
+import static com.avail.descriptor.types.FunctionTypeDescriptor.*;
+import static com.avail.descriptor.types.InstanceMetaDescriptor.*;
+import static com.avail.descriptor.types.InstanceTypeDescriptor.instanceType;
+import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.*;
+import static com.avail.descriptor.types.LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType;
+import static com.avail.descriptor.types.MapTypeDescriptor.*;
+import static com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.*;
+import static com.avail.descriptor.types.PojoTypeDescriptor.*;
+import static com.avail.descriptor.types.SetTypeDescriptor.*;
+import static com.avail.descriptor.types.TupleTypeDescriptor.*;
+import static com.avail.descriptor.types.TypeDescriptor.Types.*;
+import static com.avail.descriptor.types.VariableTypeDescriptor.*;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.optimizer.jvm.CheckedMethod.instanceMethod;
 import static com.avail.utility.Nulls.stripNull;
@@ -1221,12 +1238,14 @@ public final class AvailRuntime
 			SpecialMethodAtom.METHOD_DEFINER.atom,
 			SpecialMethodAtom.ADD_UNLOADER.atom,
 			SpecialMethodAtom.PUBLISH_ATOMS.atom,
+			SpecialMethodAtom.PUBLISH_ALL_ATOMS_FROM_OTHER_MODULE.atom,
 			SpecialMethodAtom.RESUME_CONTINUATION.atom,
 			SpecialMethodAtom.RECORD_TYPE_NAME.atom,
 			SpecialMethodAtom.CREATE_MODULE_VARIABLE.atom,
 			SpecialMethodAtom.SEAL.atom,
 			SpecialMethodAtom.SEMANTIC_RESTRICTION.atom,
 			SpecialMethodAtom.LEXER_DEFINER.atom,
+			SpecialMethodAtom.PUBLISH_NEW_NAME.atom,
 			exceptionAtom(),
 			stackDumpAtom(),
 			pojoSelfTypeAtom(),

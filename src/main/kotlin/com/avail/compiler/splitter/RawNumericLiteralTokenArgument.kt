@@ -35,8 +35,8 @@ import com.avail.compiler.ParsingOperation.PARSE_RAW_NUMERIC_LITERAL_TOKEN
 import com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT
 import com.avail.compiler.splitter.MessageSplitter.Companion.indexForConstant
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.TokenDescriptor.TokenType
+import com.avail.descriptor.tokens.TokenDescriptor.TokenType
+import com.avail.descriptor.types.A_Type
 
 /**
  * A `RawNumericLiteralTokenArgument` is an occurrence of
@@ -45,7 +45,7 @@ import com.avail.descriptor.TokenDescriptor.TokenType
  * literal token argument is expected. Like its superclass, the
  * [RawTokenArgument], the token is captured after being placed in a literal
  * phrase, but in this case the token is restricted to be a [TokenType.LITERAL]
- * (currently positive integers, doubles, floats, and strings).
+ * (currently positive numbers and strings).
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *

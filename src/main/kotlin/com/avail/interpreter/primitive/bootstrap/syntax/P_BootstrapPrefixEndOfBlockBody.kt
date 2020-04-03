@@ -32,22 +32,22 @@
 
 package com.avail.interpreter.primitive.bootstrap.syntax
 
-import com.avail.descriptor.A_Map
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.FunctionDescriptor
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.InstanceMetaDescriptor.anyMeta
-import com.avail.descriptor.InstanceMetaDescriptor.topMeta
 import com.avail.descriptor.NilDescriptor.nil
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*
-import com.avail.descriptor.SetDescriptor.set
-import com.avail.descriptor.TupleTypeDescriptor.*
-import com.avail.descriptor.TypeDescriptor.Types.*
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.*
-import com.avail.descriptor.parsing.BlockPhraseDescriptor
+import com.avail.descriptor.functions.FunctionDescriptor
+import com.avail.descriptor.maps.A_Map
+import com.avail.descriptor.phrases.BlockPhraseDescriptor
+import com.avail.descriptor.sets.SetDescriptor.set
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.InstanceMetaDescriptor.anyMeta
+import com.avail.descriptor.types.InstanceMetaDescriptor.topMeta
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.*
+import com.avail.descriptor.types.TupleTypeDescriptor.*
+import com.avail.descriptor.types.TypeDescriptor.Types.*
 import com.avail.exceptions.AvailErrorCode.E_INCONSISTENT_PREFIX_FUNCTION
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import com.avail.interpreter.Interpreter

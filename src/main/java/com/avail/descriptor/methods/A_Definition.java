@@ -32,10 +32,18 @@
 
 package com.avail.descriptor.methods;
 
-import com.avail.descriptor.*;
-import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.ModuleDescriptor;
+import com.avail.descriptor.functions.A_Function;
+import com.avail.descriptor.functions.FunctionDescriptor;
+import com.avail.descriptor.parsing.A_DefinitionParsingPlan;
+import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.tuples.A_String;
 import com.avail.descriptor.tuples.A_Tuple;
+import com.avail.descriptor.types.A_Type;
+import com.avail.descriptor.types.FunctionTypeDescriptor;
+import com.avail.descriptor.types.ListPhraseTypeDescriptor;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 /**

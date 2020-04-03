@@ -37,33 +37,51 @@ import com.avail.annotations.HideFieldInDebugger;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.compiler.scanning.LexingState;
 import com.avail.compiler.splitter.MessageSplitter;
-import com.avail.descriptor.AbstractNumberDescriptor.Order;
-import com.avail.descriptor.AbstractNumberDescriptor.Sign;
-import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
-import com.avail.descriptor.MapDescriptor.MapIterable;
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
-import com.avail.descriptor.SetDescriptor.SetIterator;
-import com.avail.descriptor.TokenDescriptor.TokenType;
-import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
+import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.bundles.A_Bundle;
 import com.avail.descriptor.bundles.A_BundleTree;
+import com.avail.descriptor.functions.A_Continuation;
+import com.avail.descriptor.functions.A_Function;
+import com.avail.descriptor.functions.A_RawFunction;
+import com.avail.descriptor.maps.A_Map;
+import com.avail.descriptor.maps.A_MapBin;
+import com.avail.descriptor.maps.MapDescriptor.MapIterable;
 import com.avail.descriptor.methods.A_Definition;
 import com.avail.descriptor.methods.A_GrammaticalRestriction;
 import com.avail.descriptor.methods.A_Method;
 import com.avail.descriptor.methods.A_SemanticRestriction;
-import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.numbers.A_Number;
+import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order;
+import com.avail.descriptor.numbers.AbstractNumberDescriptor.Sign;
+import com.avail.descriptor.parsing.A_DefinitionParsingPlan;
 import com.avail.descriptor.parsing.A_Lexer;
 import com.avail.descriptor.parsing.A_ParsingPlanInProgress;
-import com.avail.descriptor.parsing.A_Phrase;
+import com.avail.descriptor.phrases.A_Phrase;
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind;
+import com.avail.descriptor.representation.A_BasicObject;
+import com.avail.descriptor.representation.AbstractSlotsEnum;
+import com.avail.descriptor.representation.AvailObjectRepresentation;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.sets.A_Set;
+import com.avail.descriptor.sets.SetDescriptor.SetIterator;
+import com.avail.descriptor.tokens.A_Token;
+import com.avail.descriptor.tokens.TokenDescriptor.TokenType;
 import com.avail.descriptor.tuples.A_String;
 import com.avail.descriptor.tuples.A_Tuple;
+import com.avail.descriptor.tuples.StringDescriptor;
+import com.avail.descriptor.types.A_Type;
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind;
+import com.avail.descriptor.types.TypeDescriptor.Types;
+import com.avail.descriptor.types.TypeTag;
+import com.avail.descriptor.variables.A_Variable;
+import com.avail.descriptor.variables.VariableDescriptor.VariableAccessReactor;
 import com.avail.dispatch.LookupTree;
 import com.avail.exceptions.AvailException;
 import com.avail.exceptions.MalformedMessageException;
@@ -90,12 +108,13 @@ import com.avail.utility.visitor.AvailSubobjectVisitor;
 import javax.annotation.Nullable;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.util.Collection;
+import java.util.Deque;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Spliterator;
 import java.util.TimerTask;
 import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -149,8 +168,7 @@ extends AbstractDescriptor
 	 * equivalent to.  There may be other slots, depending on our mechanism for
 	 * conversion to an indirection object, but they should be ignored.
 	 */
-	enum ObjectSlots
-	implements ObjectSlotsEnum
+	enum ObjectSlots implements ObjectSlotsEnumJava
 	{
 		/**
 		 * The target {@linkplain AvailObject object} to which my instance is
@@ -169,8 +187,7 @@ extends AbstractDescriptor
 	 * The integer slots of my {@link AvailObject} instances.  Always ignored
 	 * for an indirection object.
 	 */
-	enum IntegerSlots
-	implements IntegerSlotsEnum
+	enum IntegerSlots implements IntegerSlotsEnumJava
 	{
 		/**
 		 * Ignore all integer slots.
@@ -187,7 +204,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	protected void printObjectOnAvoidingIndent (
+	public void printObjectOnAvoidingIndent (
 		final AvailObject object,
 		final StringBuilder aStream,
 		final IdentityHashMap<A_BasicObject, Void> recursionMap,
@@ -255,6 +272,10 @@ extends AbstractDescriptor
 	 *
 	 * @param mutability
 	 *        The {@linkplain Mutability mutability} of the new descriptor.
+	 * @param typeTag
+	 *        The {@link TypeTag} that's in use at the target of this
+	 *        indirection.  Note that this will never change, even if the target
+	 *        is mutable.
 	 */
 	private IndirectionDescriptor (
 		final Mutability mutability,
@@ -288,16 +309,24 @@ extends AbstractDescriptor
 		}
 	}
 
-	static IndirectionDescriptor mutable (final TypeTag typeTag)
+	public static IndirectionDescriptor mutable (final TypeTag typeTag)
 	{
 		return mutables[typeTag.ordinal()];
 	}
 
-	static IndirectionDescriptor immutable (final TypeTag typeTag)
+	public static IndirectionDescriptor immutable (final TypeTag typeTag)
 	{
 		return immutables[typeTag.ordinal()];
 	}
 
+	/**
+	 * Answer a shared {@code IndirectionDescriptor} suitable for pointing to
+	 * an object having the given {@link TypeTag}.
+	 *
+	 * @param typeTag
+	 *        The target's {@link TypeTag}.
+	 * @return An {@code IndirectionDescriptor}.
+	 */
 	static IndirectionDescriptor shared (final TypeTag typeTag)
 	{
 		return shareds[typeTag.ordinal()];
@@ -310,13 +339,13 @@ extends AbstractDescriptor
 	}
 
 	@Override @Deprecated
-	protected IndirectionDescriptor immutable ()
+	public IndirectionDescriptor immutable ()
 	{
 		return immutables[typeTag.ordinal()];
 	}
 
 	@Override @Deprecated
-	protected IndirectionDescriptor shared ()
+	public IndirectionDescriptor shared ()
 	{
 		return shareds[typeTag.ordinal()];
 	}
@@ -420,10 +449,9 @@ extends AbstractDescriptor
 	@Override
 	protected void o_ModuleAddDefinition (
 		final AvailObject object,
-		final A_BasicObject definition)
+		final A_Definition definition)
 	{
-		o_Traversed(object).moduleAddDefinition(
-			definition);
+		o_Traversed(object).moduleAddDefinition(definition);
 	}
 
 	@Override
@@ -764,7 +792,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	protected boolean o_Equals (
+	public boolean o_Equals (
 		final AvailObject object,
 		final A_BasicObject another)
 	{
@@ -1337,7 +1365,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	IteratorNotNull<AvailObject> o_Iterator (final AvailObject object)
+	protected IteratorNotNull<AvailObject> o_Iterator (final AvailObject object)
 	{
 		return o_Traversed(object).iterator();
 	}
@@ -1437,6 +1465,18 @@ extends AbstractDescriptor
 			keyObject,
 			newValueObject,
 			canDestroy);
+	}
+
+	@Override
+	public A_Map o_MapAtReplacingCanDestroy (
+		final AvailObject object,
+		final A_BasicObject key,
+		final A_BasicObject notFoundValue,
+		final BinaryOperator<A_BasicObject> transformer,
+		final boolean canDestroy)
+	{
+		return o_Traversed(object).mapAtReplacingCanDestroy(
+			key, notFoundValue, transformer, canDestroy);
 	}
 
 	@Override
@@ -2221,7 +2261,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	byte o_ExtractNybble (final AvailObject object)
+	protected byte o_ExtractNybble (final AvailObject object)
 	{
 		return o_Traversed(object).extractNybble();
 	}
@@ -2246,7 +2286,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	protected int o_Hash (final AvailObject object)
+	public int o_Hash (final AvailObject object)
 	{
 		return o_Traversed(object).hash();
 	}
@@ -3490,6 +3530,21 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	protected A_MapBin o_MapBinAtHashReplacingLevelCanDestroy (
+		final AvailObject object,
+		final A_BasicObject key,
+		final int keyHash,
+		final A_BasicObject notFoundValue,
+		final BinaryOperator<A_BasicObject> transformer,
+		final byte myLevel,
+		final boolean canDestroy)
+	{
+		return o_Traversed(object).mapBinAtHashReplacingLevelCanDestroy(
+			key, keyHash, notFoundValue, transformer, myLevel, canDestroy);
+	}
+
+
+	@Override
 	protected int o_MapBinSize (final AvailObject object)
 	{
 		return o_Traversed(object).mapBinSize();
@@ -3517,7 +3572,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	@Nullable AvailObject o_MapBinAtHash (
+	protected @Nullable AvailObject o_MapBinAtHash (
 		final AvailObject object,
 		final A_BasicObject key,
 		final int keyHash)
@@ -3649,7 +3704,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	byte o_ExtractSignedByte (final AvailObject object)
+	protected byte o_ExtractSignedByte (final AvailObject object)
 	{
 		return o_Traversed(object).extractSignedByte();
 	}
@@ -3670,7 +3725,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	@Nullable <T> T o_JavaObject (final AvailObject object)
+	protected @Nullable <T> T o_JavaObject (final AvailObject object)
 	{
 		return o_Traversed(object).javaObject();
 	}
@@ -4029,7 +4084,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	byte[] o_ByteArray (final AvailObject object)
+	protected byte[] o_ByteArray (final AvailObject object)
 	{
 		return o_Traversed(object).byteArray();
 	}
@@ -4044,8 +4099,7 @@ extends AbstractDescriptor
 	protected void o_UpdateForNewGrammaticalRestriction (
 		final AvailObject object,
 		final A_ParsingPlanInProgress planInProgress,
-		final Collection<Pair<A_BundleTree, A_ParsingPlanInProgress>>
-			treesToVisit)
+		final Deque<Pair<A_BundleTree, A_ParsingPlanInProgress>> treesToVisit)
 	{
 		o_Traversed(object).updateForNewGrammaticalRestriction(
 			planInProgress,
@@ -4222,7 +4276,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	ByteBuffer o_ByteBuffer (final AvailObject object)
+	protected ByteBuffer o_ByteBuffer (final AvailObject object)
 	{
 		return o_Traversed(object).byteBuffer();
 	}
@@ -4814,9 +4868,9 @@ extends AbstractDescriptor
 	@Override
 	protected boolean o_EqualsListNodeType (
 		final AvailObject object,
-		final A_Type aListNodeType)
+		final A_Type listNodeType)
 	{
-		return o_Traversed(object).equalsListNodeType(aListNodeType);
+		return o_Traversed(object).equalsListNodeType(listNodeType);
 	}
 
 	@Override
@@ -4873,7 +4927,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	TypeTag o_ComputeTypeTag (final AvailObject object)
+	public TypeTag o_ComputeTypeTag (final AvailObject object)
 	{
 		final TypeTag tag = o_Traversed(object).typeTag();
 		// Now that we know it, switch to a descriptor that has it cached...

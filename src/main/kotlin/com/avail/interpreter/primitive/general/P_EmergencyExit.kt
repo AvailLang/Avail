@@ -31,16 +31,16 @@
  */
 package com.avail.interpreter.primitive.general
 
-import com.avail.descriptor.A_Number
-import com.avail.descriptor.A_RawFunction
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.BottomTypeDescriptor.bottom
-import com.avail.descriptor.ContinuationDescriptor.dumpStackThen
 import com.avail.descriptor.FiberDescriptor
 import com.avail.descriptor.FiberDescriptor.ExecutionState
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.TypeDescriptor.Types.ANY
+import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.ContinuationDescriptor.dumpStackThen
+import com.avail.descriptor.numbers.A_Number
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.BottomTypeDescriptor.bottom
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.exceptions.AvailEmergencyExitException
 import com.avail.exceptions.AvailErrorCode
 import com.avail.interpreter.Interpreter

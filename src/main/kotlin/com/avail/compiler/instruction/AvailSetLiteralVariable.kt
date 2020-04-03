@@ -32,7 +32,7 @@
 
 package com.avail.compiler.instruction
 
-import com.avail.descriptor.A_Token
+import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.interpreter.levelOne.L1Operation.L1Ext_doSetLiteral
 import com.avail.io.NybbleOutputStream

@@ -54,64 +54,73 @@ import com.avail.compiler.scanning.LexingState
 import com.avail.compiler.splitter.MessageSplitter.Companion.constantForIndex
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
 import com.avail.descriptor.*
-import com.avail.descriptor.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn
-import com.avail.descriptor.AssignmentPhraseDescriptor.newAssignment
-import com.avail.descriptor.CompiledCodeDescriptor.newPrimitiveRawFunction
-import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_CONSTANT
-import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_VARIABLE
-import com.avail.descriptor.DeclarationPhraseDescriptor.newModuleConstant
-import com.avail.descriptor.DeclarationPhraseDescriptor.newModuleVariable
 import com.avail.descriptor.FiberDescriptor.GeneralFlag
 import com.avail.descriptor.FiberDescriptor.newLoaderFiber
-import com.avail.descriptor.FunctionDescriptor.createFunction
-import com.avail.descriptor.FunctionDescriptor.createFunctionForPhrase
-import com.avail.descriptor.LexerDescriptor.lexerBodyFunctionType
-import com.avail.descriptor.LexerDescriptor.lexerFilterFunctionType
-import com.avail.descriptor.ListPhraseDescriptor.emptyListNode
-import com.avail.descriptor.ListPhraseDescriptor.newListNode
-import com.avail.descriptor.LiteralPhraseDescriptor.literalNodeFromToken
-import com.avail.descriptor.LiteralPhraseDescriptor.syntheticLiteralNodeFor
-import com.avail.descriptor.LiteralTokenDescriptor.literalToken
-import com.avail.descriptor.MacroSubstitutionPhraseDescriptor.newMacroSubstitution
-import com.avail.descriptor.MapDescriptor.emptyMap
-import com.avail.descriptor.MapDescriptor.mapFromPairs
-import com.avail.descriptor.MarkerPhraseDescriptor.newMarkerNode
-import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom
-import com.avail.descriptor.MethodDescriptor.SpecialMethodAtom.*
 import com.avail.descriptor.ModuleDescriptor.newModule
 import com.avail.descriptor.NilDescriptor.nil
-import com.avail.descriptor.ObjectTupleDescriptor.*
-import com.avail.descriptor.ParsingPlanInProgressDescriptor.newPlanInProgress
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*
-import com.avail.descriptor.SendPhraseDescriptor.newSendNode
-import com.avail.descriptor.SetDescriptor.emptySet
-import com.avail.descriptor.SetDescriptor.generateSetFrom
-import com.avail.descriptor.StringDescriptor.formatString
-import com.avail.descriptor.StringDescriptor.stringFrom
-import com.avail.descriptor.TokenDescriptor.TokenType.*
-import com.avail.descriptor.TupleDescriptor.toList
-import com.avail.descriptor.TupleTypeDescriptor.stringType
-import com.avail.descriptor.TypeDescriptor.Types.TOKEN
-import com.avail.descriptor.TypeDescriptor.Types.TOP
-import com.avail.descriptor.VariableSharedGlobalDescriptor.createGlobal
-import com.avail.descriptor.VariableTypeDescriptor.variableTypeFor
-import com.avail.descriptor.VariableUsePhraseDescriptor.newUse
 import com.avail.descriptor.atoms.A_Atom
-import com.avail.descriptor.atoms.AtomDescriptor.*
+import com.avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
+import com.avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
+import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
+import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.*
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_BundleTree
 import com.avail.descriptor.bundles.MessageBundleDescriptor
 import com.avail.descriptor.bundles.MessageBundleTreeDescriptor
-import com.avail.descriptor.methods.A_Definition
-import com.avail.descriptor.methods.A_SemanticRestriction
-import com.avail.descriptor.objects.A_BasicObject
+import com.avail.descriptor.functions.A_Function
+import com.avail.descriptor.functions.CompiledCodeDescriptor.newPrimitiveRawFunction
+import com.avail.descriptor.functions.FunctionDescriptor
+import com.avail.descriptor.functions.FunctionDescriptor.createFunction
+import com.avail.descriptor.functions.FunctionDescriptor.createFunctionForPhrase
+import com.avail.descriptor.maps.A_Map
+import com.avail.descriptor.maps.MapDescriptor.emptyMap
+import com.avail.descriptor.maps.MapDescriptor.mapFromPairs
+import com.avail.descriptor.methods.*
+import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
+import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.*
 import com.avail.descriptor.parsing.A_Lexer
-import com.avail.descriptor.parsing.A_Phrase
-import com.avail.descriptor.parsing.BlockPhraseDescriptor
-import com.avail.descriptor.parsing.PhraseDescriptor
+import com.avail.descriptor.parsing.LexerDescriptor.lexerBodyFunctionType
+import com.avail.descriptor.parsing.LexerDescriptor.lexerFilterFunctionType
+import com.avail.descriptor.parsing.ParsingPlanInProgressDescriptor.newPlanInProgress
+import com.avail.descriptor.phrases.*
+import com.avail.descriptor.phrases.AssignmentPhraseDescriptor.newAssignment
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_CONSTANT
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_VARIABLE
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.newModuleConstant
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.newModuleVariable
+import com.avail.descriptor.phrases.ListPhraseDescriptor.emptyListNode
+import com.avail.descriptor.phrases.ListPhraseDescriptor.newListNode
+import com.avail.descriptor.phrases.LiteralPhraseDescriptor.literalNodeFromToken
+import com.avail.descriptor.phrases.LiteralPhraseDescriptor.syntheticLiteralNodeFor
+import com.avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor.newMacroSubstitution
+import com.avail.descriptor.phrases.MarkerPhraseDescriptor.newMarkerNode
+import com.avail.descriptor.phrases.SendPhraseDescriptor.newSendNode
+import com.avail.descriptor.phrases.VariableUsePhraseDescriptor.newUse
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.sets.A_Set
+import com.avail.descriptor.sets.SetDescriptor
+import com.avail.descriptor.sets.SetDescriptor.emptySet
+import com.avail.descriptor.sets.SetDescriptor.generateSetFrom
+import com.avail.descriptor.tokens.A_Token
+import com.avail.descriptor.tokens.LiteralTokenDescriptor.literalToken
+import com.avail.descriptor.tokens.TokenDescriptor
+import com.avail.descriptor.tokens.TokenDescriptor.TokenType.*
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.*
+import com.avail.descriptor.tuples.StringDescriptor.formatString
+import com.avail.descriptor.tuples.StringDescriptor.stringFrom
+import com.avail.descriptor.tuples.TupleDescriptor
+import com.avail.descriptor.tuples.TupleDescriptor.toList
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.*
+import com.avail.descriptor.types.TupleTypeDescriptor.stringType
+import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
+import com.avail.descriptor.types.TypeDescriptor.Types.TOP
+import com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor
+import com.avail.descriptor.variables.VariableSharedGlobalDescriptor.createGlobal
 import com.avail.dispatch.LookupTree
 import com.avail.exceptions.AvailAssertionFailedException
 import com.avail.exceptions.AvailEmergencyExitException
@@ -793,7 +802,7 @@ class AvailCompiler(
 						val innerType = instanceTypeOrMetaOn(value)
 						val varType = variableTypeFor(innerType)
 						val creationSend = newSendNode(
-							TupleDescriptor.emptyTuple(),
+							emptyTuple(),
 							CREATE_MODULE_VARIABLE.bundle,
 							newListNode(
 								tuple(
@@ -861,7 +870,7 @@ class AvailCompiler(
 				}
 				val varType = variableTypeFor(replacement.declaredType())
 				val creationSend = newSendNode(
-					TupleDescriptor.emptyTuple(),
+					emptyTuple(),
 					CREATE_MODULE_VARIABLE.bundle,
 					newListNode(
 						tuple(
@@ -3034,10 +3043,10 @@ class AvailCompiler(
 				primitive,
 				compilationContext.module,
 				token.lineNumber()),
-			TupleDescriptor.emptyTuple())
+			emptyTuple())
 		function.makeShared()
 		val send = newSendNode(
-			TupleDescriptor.emptyTuple(),
+			emptyTuple(),
 			METHOD_DEFINER.bundle,
 			newListNode(tuple(nameLiteral, syntheticLiteralNodeFor(function))),
 			TOP.o())
@@ -3095,7 +3104,7 @@ class AvailCompiler(
 								prim,
 								compilationContext.module,
 								token.lineNumber()),
-							TupleDescriptor.emptyTuple())))
+							emptyTuple())))
 			}
 		}
 		catch (e: RuntimeException)
@@ -3110,7 +3119,7 @@ class AvailCompiler(
 
 		val bodyLiteral = functionLiterals.removeAt(functionLiterals.size - 1)
 		val send = newSendNode(
-			TupleDescriptor.emptyTuple(),
+			emptyTuple(),
 			MACRO_DEFINER.bundle,
 			newListNode(
 				tuple(
@@ -3187,7 +3196,7 @@ class AvailCompiler(
 				filterPrimitive,
 				compilationContext.module,
 				token.lineNumber()),
-			TupleDescriptor.emptyTuple())
+			emptyTuple())
 
 		// Process the body primitive.
 		val bodyPrimitive = primitiveByName(bodyPrimitiveName)
@@ -3213,14 +3222,14 @@ class AvailCompiler(
 				bodyPrimitive,
 				compilationContext.module,
 				token.lineNumber()),
-			TupleDescriptor.emptyTuple())
+			emptyTuple())
 
 		// Process the lexer name.
 		val nameLiteral = syntheticLiteralNodeFor(lexerAtom)
 
 		// Build a phrase to define the lexer.
 		val send = newSendNode(
-			TupleDescriptor.emptyTuple(),
+			emptyTuple(),
 			LEXER_DEFINER.bundle,
 			newListNode(
 				tuple(
@@ -3536,9 +3545,9 @@ class AvailCompiler(
 			COMPILER_SCOPE_MAP_KEY.atom,
 			emptyMap(),
 			STATIC_TOKENS_KEY.atom,
-			TupleDescriptor.emptyTuple(),
+			emptyTuple(),
 			ALL_TOKENS_KEY.atom,
-			TupleDescriptor.emptyTuple())
+			emptyTuple())
 		val start = ParserState(
 			LexingState(compilationContext, 1, 1, emptyList()), clientData)
 		val solutions = ArrayList<A_Phrase>()
@@ -3849,7 +3858,7 @@ class AvailCompiler(
 			STATIC_TOKENS_KEY.atom,
 			emptyMap(),
 			ALL_TOKENS_KEY.atom,
-			TupleDescriptor.emptyTuple())
+			emptyTuple())
 		val state = ParserState(
 			LexingState(compilationContext, 1, 1, emptyList()), clientData)
 
@@ -4107,24 +4116,70 @@ class AvailCompiler(
 				compilationContext.module.importedNames()
 			else
 				compilationContext.module.privateNames()
-		var names = emptySet()
-		for (entry in sourceNames.mapIterable())
-		{
-			names = names.setUnionCanDestroy(
-				entry.value().makeImmutable(), true)
+		var namesByModule = emptyMap()
+		sourceNames.forEach { _, atoms ->
+			atoms.forEach { atom ->
+				namesByModule = namesByModule.mapAtReplacingCanDestroy(
+					atom.issuingModule(),
+					emptySet(),
+					{ _, set ->
+						(set as A_Set).setWithElementCanDestroy(atom, true)
+					},
+					true)
+			}
 		}
-		val send = newSendNode(
-			TupleDescriptor.emptyTuple(),
-			PUBLISH_ATOMS.bundle,
-			newListNode(
-				tuple(
-					syntheticLiteralNodeFor(names),
-					syntheticLiteralNodeFor(objectFromBoolean(isPublic)))),
-			TOP.o())
-		val function = createFunctionForPhrase(
-			send, compilationContext.module, 0)
-		function.makeImmutable()
-		privateSerializeFunction(function)
+		var completeModuleNames = emptySet()
+		var leftovers = emptySet()
+		namesByModule.forEach { module, names ->
+			if (!module.equals(compilationContext.module)
+				&& module.exportedNames().equals(names))
+			{
+				// All published names were imported from that module, which
+				// is a common case.
+				completeModuleNames =
+					completeModuleNames.setWithElementCanDestroy(
+						module.moduleName(), true)
+			}
+			else
+			{
+				leftovers = leftovers.setUnionCanDestroy(names, true)
+			}
+		}
+		if (completeModuleNames.setSize() > 0)
+		{
+			val send = newSendNode(
+				emptyTuple(),
+				PUBLISH_ALL_ATOMS_FROM_OTHER_MODULE.bundle,
+				newListNode(
+					tuple(
+						syntheticLiteralNodeFor(
+							completeModuleNames,
+							stringFrom("(complete module imports)")),
+						syntheticLiteralNodeFor(
+							objectFromBoolean(isPublic)))),
+				TOP.o())
+			val function = createFunctionForPhrase(
+				send, compilationContext.module, 0)
+			privateSerializeFunction(function.makeImmutable())
+		}
+		if (leftovers.setSize() > 0)
+		{
+			// Deal with every atom that was not part of a complete import of
+			// its defining module.
+			val send = newSendNode(
+				emptyTuple(),
+				PUBLISH_ATOMS.bundle,
+				newListNode(
+					tuple(
+						syntheticLiteralNodeFor(
+							leftovers, stringFrom("(other atoms)")),
+						syntheticLiteralNodeFor(objectFromBoolean(isPublic)))),
+				TOP.o())
+			val function = createFunctionForPhrase(
+				send, compilationContext.module, 0)
+			function.makeImmutable()
+			privateSerializeFunction(function)
+		}
 	}
 
 	/**

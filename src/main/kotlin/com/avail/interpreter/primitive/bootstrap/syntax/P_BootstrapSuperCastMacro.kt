@@ -34,14 +34,14 @@ package com.avail.interpreter.primitive.bootstrap.syntax
 
 import com.avail.compiler.AvailRejectedParseException
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.InstanceMetaDescriptor.anyMeta
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*
-import com.avail.descriptor.SuperCastPhraseDescriptor
-import com.avail.descriptor.SuperCastPhraseDescriptor.newSuperCastNode
-import com.avail.descriptor.TypeDescriptor.Types.ANY
+import com.avail.descriptor.phrases.SuperCastPhraseDescriptor
+import com.avail.descriptor.phrases.SuperCastPhraseDescriptor.newSuperCastNode
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.InstanceMetaDescriptor.anyMeta
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.*
+import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*

@@ -52,7 +52,8 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 import static com.avail.descriptor.AvailObject.registerDumpMethod;
-import static com.avail.descriptor.ContinuationRegisterDumpDescriptor.*;
+import static com.avail.descriptor.functions.ContinuationRegisterDumpDescriptor.extractLongAtMethod;
+import static com.avail.descriptor.functions.ContinuationRegisterDumpDescriptor.extractObjectAtMethod;
 import static com.avail.interpreter.Interpreter.getReifiedContinuationMethod;
 import static com.avail.interpreter.Interpreter.popContinuationMethod;
 import static com.avail.interpreter.levelTwo.L2OperandType.COMMENT;

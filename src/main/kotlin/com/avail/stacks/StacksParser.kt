@@ -32,8 +32,8 @@
 
 package com.avail.stacks
 
-import com.avail.descriptor.CommentTokenDescriptor
-import com.avail.descriptor.TokenDescriptor
+import com.avail.descriptor.tokens.CommentTokenDescriptor
+import com.avail.descriptor.tokens.TokenDescriptor
 import com.avail.stacks.comment.AvailComment
 import com.avail.stacks.comment.CommentBuilder
 import com.avail.stacks.exceptions.StacksCommentBuilderException

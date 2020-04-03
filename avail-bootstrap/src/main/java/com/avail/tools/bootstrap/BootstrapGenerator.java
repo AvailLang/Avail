@@ -34,9 +34,13 @@ package com.avail.tools.bootstrap;
 
 import com.avail.AvailRuntime;
 import com.avail.AvailRuntimeConfiguration;
-import com.avail.descriptor.*;
-import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.representation.A_BasicObject;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.ModuleDescriptor;
+import com.avail.descriptor.numbers.A_Number;
+import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.tuples.A_String;
+import com.avail.descriptor.types.A_Type;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
@@ -54,14 +58,14 @@ import java.io.PrintWriter;
 import java.text.MessageFormat;
 import java.util.*;
 
-import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers;
-import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.TypeDescriptor.Types.ANY;
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
+import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.tuples.TupleDescriptor.emptyTuple;
+import static com.avail.descriptor.types.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.types.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.types.InstanceMetaDescriptor.instanceMeta;
+import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.naturalNumbers;
+import static com.avail.descriptor.types.TypeDescriptor.Types.ANY;
+import static com.avail.descriptor.types.TypeDescriptor.Types.TOP;
 import static com.avail.tools.bootstrap.Resources.*;
 import static com.avail.tools.bootstrap.Resources.Key.*;
 

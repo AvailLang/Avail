@@ -31,12 +31,7 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.A_Variable;
-import com.avail.descriptor.AbstractDescriptor;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.VariableDescriptor;
-import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.types.A_Type;
 import com.avail.exceptions.VariableGetException;
 import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.Interpreter;
@@ -55,15 +50,17 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import static com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType;
+import static com.avail.descriptor.AbstractDescriptor.isMutableMethod;
+import static com.avail.descriptor.representation.A_BasicObject.makeImmutableMethod;
+import static com.avail.descriptor.representation.A_BasicObject.traversedMethod;
+import static com.avail.descriptor.representation.AbstractAvailObject.descriptorMethod;
+import static com.avail.descriptor.types.VariableTypeDescriptor.mostGeneralVariableType;
+import static com.avail.descriptor.variables.A_Variable.getValueMethod;
+import static com.avail.descriptor.variables.VariableDescriptor.clearVariableMethod;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.PC;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
-import static org.objectweb.asm.Opcodes.GOTO;
-import static org.objectweb.asm.Opcodes.IFEQ;
-import static org.objectweb.asm.Opcodes.POP;
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.getInternalName;
 
 /**
@@ -181,25 +178,25 @@ extends L2ControlFlowOperation
 		method.visitLabel(tryStart);
 		// ::    dest = variable.getValue();
 		translator.load(method, variable.register());
-		A_Variable.getValueMethod.generateCall(method);
+		getValueMethod.generateCall(method);
 		translator.store(method, value.register());
 		// ::    if (variable.traversed().descriptor().isMutable()) {
 		translator.load(method, variable.register());
-		A_BasicObject.traversedMethod.generateCall(method);
-		AvailObject.descriptorMethod.generateCall(method);
-		AbstractDescriptor.isMutableMethod.generateCall(method);
+		traversedMethod.generateCall(method);
+		descriptorMethod.generateCall(method);
+		isMutableMethod.generateCall(method);
 		final Label elseLabel = new Label();
 		method.visitJumpInsn(IFEQ, elseLabel);
 		// ::       variable.clearValue();
 		translator.load(method, variable.register());
-		VariableDescriptor.clearVariableMethod.generateCall(method);
+		clearVariableMethod.generateCall(method);
 		// ::       goto success;
 		method.visitJumpInsn(GOTO, translator.labelFor(success.offset()));
 		// ::    } else {
 		method.visitLabel(elseLabel);
 		// ::       dest.makeImmutable();
 		translator.load(method, value.register());
-		A_BasicObject.makeImmutableMethod.generateCall(method);
+		makeImmutableMethod.generateCall(method);
 		method.visitInsn(POP);
 		// ::       goto success;
 		// Note that we cannot potentially eliminate this branch with a

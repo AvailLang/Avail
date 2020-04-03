@@ -43,14 +43,14 @@ import com.avail.compiler.ModuleHeader
 import com.avail.compiler.problems.Problem
 import com.avail.compiler.problems.ProblemHandler
 import com.avail.compiler.problems.ProblemType.EXECUTION
-import com.avail.descriptor.A_Function
 import com.avail.descriptor.FiberDescriptor.loaderPriority
 import com.avail.descriptor.FiberDescriptor.newLoaderFiber
 import com.avail.descriptor.ModuleDescriptor
 import com.avail.descriptor.ModuleDescriptor.newModule
-import com.avail.descriptor.StringDescriptor.formatString
-import com.avail.descriptor.StringDescriptor.stringFrom
-import com.avail.descriptor.TupleDescriptor.emptyTuple
+import com.avail.descriptor.functions.A_Function
+import com.avail.descriptor.tuples.StringDescriptor.formatString
+import com.avail.descriptor.tuples.StringDescriptor.stringFrom
+import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
 import com.avail.interpreter.AvailLoader
 import com.avail.interpreter.AvailLoader.Phase
 import com.avail.interpreter.Interpreter
@@ -288,8 +288,7 @@ internal class BuildLoader constructor(
 		completionAction: ()->Unit)
 	{
 		localTracker(moduleName, moduleName.moduleSize, 0L)
-		val module = newModule(
-			stringFrom(moduleName.qualifiedName))
+		val module = newModule(stringFrom(moduleName.qualifiedName))
 		val availLoader = AvailLoader(module, availBuilder.textInterface)
 		availLoader.prepareForLoadingModuleBody()
 		val fail = { e: Throwable ->
@@ -380,7 +379,7 @@ internal class BuildLoader constructor(
 
 			when
 			{
-				function != null ->
+				function !== null ->
 				{
 					val fiber = newLoaderFiber(
 						function.kind().returnType(),

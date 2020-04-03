@@ -31,17 +31,17 @@
  */
 package com.avail.interpreter.primitive.pojos
 
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.InstanceMetaDescriptor.anyMeta
-import com.avail.descriptor.InstanceMetaDescriptor.instanceMeta
-import com.avail.descriptor.IntegerRangeTypeDescriptor
-import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.PojoTypeDescriptor
-import com.avail.descriptor.PojoTypeDescriptor.mostGeneralPojoArrayType
-import com.avail.descriptor.PojoTypeDescriptor.pojoArrayType
-import com.avail.descriptor.TypeDescriptor
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.InstanceMetaDescriptor.anyMeta
+import com.avail.descriptor.types.InstanceMetaDescriptor.instanceMeta
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.wholeNumbers
+import com.avail.descriptor.types.PojoTypeDescriptor
+import com.avail.descriptor.types.PojoTypeDescriptor.mostGeneralPojoArrayType
+import com.avail.descriptor.types.PojoTypeDescriptor.pojoArrayType
+import com.avail.descriptor.types.TypeDescriptor
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
