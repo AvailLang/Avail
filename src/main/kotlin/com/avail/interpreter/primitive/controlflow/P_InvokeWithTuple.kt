@@ -31,13 +31,14 @@
  */
 package com.avail.interpreter.primitive.controlflow
 
-import com.avail.descriptor.*
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.FunctionTypeDescriptor.mostGeneralFunctionType
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.TupleDescriptor.toList
-import com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType
-import com.avail.descriptor.TypeDescriptor.Types.TOP
+import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.TupleDescriptor.toList
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.FunctionTypeDescriptor.mostGeneralFunctionType
+import com.avail.descriptor.types.TupleTypeDescriptor.mostGeneralTupleType
+import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import com.avail.interpreter.Interpreter
@@ -221,18 +222,17 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 		val argsSize = upperBound.extractInt()
 
 		val explodedArgumentRegisters =
-			translator.explodeTupleIfPossible(
+			translator.generator.explodeTupleIfPossible(
 				tupleReg,
 				toList(functionArgsType.tupleOfTypesFromTo(1, argsSize)))
-		if (explodedArgumentRegisters == null)
-		{
-			return false
-		}
 		// Fold out the call of this primitive, replacing it with an invoke of
 		// the supplied function, instead.  The client will generate any needed
 		// type strengthening, so don't do it here.
 		translator.generateGeneralFunctionInvocation(
-			functionReg, explodedArgumentRegisters, true, callSiteHelper)
+			functionReg,
+			explodedArgumentRegisters ?: return false,
+			true,
+			callSiteHelper)
 		return true
 	}
 }

@@ -32,11 +32,11 @@
 
 package com.avail.test;
 
-import com.avail.descriptor.A_Number;
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.FloatDescriptor;
-import com.avail.descriptor.IntegerDescriptor;
-import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.numbers.A_Number;
+import com.avail.descriptor.numbers.FloatDescriptor;
+import com.avail.descriptor.numbers.IntegerDescriptor;
+import com.avail.descriptor.representation.A_BasicObject;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -46,10 +46,10 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static com.avail.descriptor.DoubleDescriptor.doubleTruncatedToExtendedInteger;
-import static com.avail.descriptor.FloatDescriptor.fromFloat;
-import static com.avail.descriptor.IntegerDescriptor.fromBigInteger;
-import static com.avail.descriptor.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.numbers.DoubleDescriptor.doubleTruncatedToExtendedInteger;
+import static com.avail.descriptor.numbers.FloatDescriptor.fromFloat;
+import static com.avail.descriptor.numbers.IntegerDescriptor.fromBigInteger;
+import static com.avail.descriptor.numbers.IntegerDescriptor.fromInt;
 import static java.util.Arrays.asList;
 import static org.junit.jupiter.api.Assertions.*;
 

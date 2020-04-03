@@ -31,16 +31,16 @@
  */
 package com.avail.interpreter.primitive.sets
 
-import com.avail.descriptor.A_RawFunction
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.SetDescriptor
-import com.avail.descriptor.SetTypeDescriptor.mostGeneralSetType
-import com.avail.descriptor.TupleDescriptor
-import com.avail.descriptor.TupleDescriptor.emptyTuple
-import com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType
-import com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType
+import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.sets.SetDescriptor
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.TupleDescriptor
+import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.SetTypeDescriptor.mostGeneralSetType
+import com.avail.descriptor.types.TupleTypeDescriptor.mostGeneralTupleType
+import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*

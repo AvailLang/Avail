@@ -31,15 +31,15 @@
  */
 package com.avail.interpreter.primitive.controlflow
 
-import com.avail.descriptor.A_RawFunction
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.FunctionDescriptor
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.TupleDescriptor.emptyTuple
-import com.avail.descriptor.TypeDescriptor.Types
-import com.avail.descriptor.TypeDescriptor.Types.ANY
-import com.avail.descriptor.TypeDescriptor.Types.TOP
+import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.FunctionDescriptor
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.TypeDescriptor.Types.ANY
+import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
@@ -65,7 +65,7 @@ object P_ShortCircuitHelper : Primitive(2, Invokes, CanInline, CannotFail)
 		// Function takes no arguments.
 		interpreter.argsBuffer.clear()
 		interpreter.function = function
-		return Primitive.Result.READY_TO_INVOKE
+		return Result.READY_TO_INVOKE
 	}
 
 	override fun returnTypeGuaranteedByVM(

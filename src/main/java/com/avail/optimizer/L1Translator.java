@@ -32,17 +32,27 @@
 package com.avail.optimizer;
 
 import com.avail.AvailRuntime;
-import com.avail.descriptor.*;
-import com.avail.descriptor.CompiledCodeDescriptor.L1InstructionDecoder;
-import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
+import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.atoms.AtomDescriptor;
 import com.avail.descriptor.bundles.A_Bundle;
 import com.avail.descriptor.bundles.MessageBundleDescriptor;
+import com.avail.descriptor.functions.A_Continuation;
+import com.avail.descriptor.functions.A_Function;
+import com.avail.descriptor.functions.A_RawFunction;
+import com.avail.descriptor.functions.CompiledCodeDescriptor;
+import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder;
 import com.avail.descriptor.methods.A_Definition;
 import com.avail.descriptor.methods.A_Method;
 import com.avail.descriptor.methods.A_SemanticRestriction;
-import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.methods.MethodDescriptor;
+import com.avail.descriptor.representation.A_BasicObject;
+import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.tuples.A_Tuple;
+import com.avail.descriptor.types.A_Type;
+import com.avail.descriptor.types.BottomTypeDescriptor;
+import com.avail.descriptor.types.TypeDescriptor;
+import com.avail.descriptor.variables.A_Variable;
+import com.avail.descriptor.variables.VariableDescriptor.VariableAccessReactor;
 import com.avail.dispatch.InternalLookupTree;
 import com.avail.dispatch.LookupTree;
 import com.avail.dispatch.LookupTreeTraverser;
@@ -60,7 +70,6 @@ import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.operation.*;
 import com.avail.interpreter.levelTwo.operation.L2_REIFY.StatisticCategory;
-import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
 import com.avail.interpreter.primitive.general.P_Equality;
@@ -84,24 +93,24 @@ import java.util.logging.Level;
 
 import static com.avail.AvailRuntime.HookType.*;
 import static com.avail.AvailRuntimeSupport.captureNanos;
-import static com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith;
-import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.ContinuationTypeDescriptor.continuationTypeForFunctionType;
-import static com.avail.descriptor.ContinuationTypeDescriptor.mostGeneralContinuationType;
-import static com.avail.descriptor.FunctionDescriptor.createFunction;
-import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.FunctionTypeDescriptor.mostGeneralFunctionType;
-import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
-import static com.avail.descriptor.InstanceMetaDescriptor.topMeta;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
-import static com.avail.descriptor.SetDescriptor.setFromCollection;
-import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
-import static com.avail.descriptor.TypeDescriptor.Types.ANY;
-import static com.avail.descriptor.TypeDescriptor.Types.TOP;
-import static com.avail.descriptor.VariableTypeDescriptor.variableTypeFor;
+import static com.avail.descriptor.functions.FunctionDescriptor.createFunction;
+import static com.avail.descriptor.sets.SetDescriptor.setFromCollection;
+import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList;
+import static com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.types.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.types.ContinuationTypeDescriptor.continuationTypeForFunctionType;
+import static com.avail.descriptor.types.ContinuationTypeDescriptor.mostGeneralContinuationType;
+import static com.avail.descriptor.types.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.types.FunctionTypeDescriptor.mostGeneralFunctionType;
+import static com.avail.descriptor.types.InstanceMetaDescriptor.instanceMeta;
+import static com.avail.descriptor.types.InstanceMetaDescriptor.topMeta;
+import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.int32;
+import static com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForTypes;
+import static com.avail.descriptor.types.TypeDescriptor.Types.ANY;
+import static com.avail.descriptor.types.TypeDescriptor.Types.TOP;
+import static com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor;
 import static com.avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION;
 import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
@@ -180,7 +189,8 @@ public final class L1Translator
 	 * The exact function that we're translating, if known.  This is only
 	 * non-null if the function captures no outers.
 	 */
-	private final @Nullable A_Function exactFunctionOrNull;
+	private final @Nullable
+	A_Function exactFunctionOrNull;
 
 	/**
 	 * Return the top {@link Frame} for code generation.
@@ -2340,96 +2350,6 @@ public final class L1Translator
 			functionToCallReg.definitionSkippingMoves(true);
 		return functionDefinition.operation().getConstantCodeFrom(
 			functionDefinition);
-	}
-
-	/**
-	 * Given a register that will hold a tuple, check that the tuple has the
-	 * number of elements and statically satisfies the corresponding provided
-	 * type constraints.  If so, generate code and answer a list of register
-	 * reads corresponding to the elements of the tuple; otherwise, generate no
-	 * code and answer null.
-	 *
-	 * <p>Depending on the source of the tuple, this may cause the creation of
-	 * the tuple to be entirely elided.</p>
-	 *
-	 * @param tupleReg
-	 *        The {@link L2BoxedRegister} containing the tuple.
-	 * @param requiredTypes
-	 *        The required {@linkplain A_Type types} against which to check the
-	 *        tuple's own type.
-	 * @return A {@link List} of {@link L2ReadBoxedOperand}s corresponding to
-	 *         the tuple's elements, or {@code null} if the tuple could not be
-	 *         proven to have the required shape and type.
-	 */
-	public @Nullable List<L2ReadBoxedOperand> explodeTupleIfPossible (
-		final L2ReadBoxedOperand tupleReg,
-		final List<A_Type> requiredTypes)
-	{
-		// First see if there's enough type information available about the
-		// tuple.
-		final A_Type tupleType = tupleReg.type();
-		final A_Type tupleTypeSizes = tupleType.sizeRange();
-		if (!tupleTypeSizes.upperBound().isInt()
-			|| !tupleTypeSizes.lowerBound().equals(tupleTypeSizes.upperBound()))
-		{
-			// The exact tuple size is not known.  Give up.
-			return null;
-		}
-		final int tupleSize = tupleTypeSizes.upperBound().extractInt();
-		if (tupleSize != requiredTypes.size())
-		{
-			// The tuple is the wrong size.
-			return null;
-		}
-
-		// Check the tuple element types against the required types.
-		for (int i = 1; i <= tupleSize; i++)
-		{
-			if (!tupleType.typeAtIndex(i).isSubtypeOf(requiredTypes.get(i - 1)))
-			{
-				// This tuple element's type isn't strong enough.
-				return null;
-			}
-		}
-
-		// At this point we know the tuple has the right type.  If we know where
-		// the tuple was created, use the registers that provided values to the
-		// creation.
-		final L2Instruction tupleDefinitionInstruction =
-			tupleReg.definitionSkippingMoves(false);
-		if (tupleDefinitionInstruction.operation() == L2_CREATE_TUPLE.instance)
-		{
-			// Use the registers that were used to assemble the tuple.
-			return L2_CREATE_TUPLE.tupleSourceRegistersOf(
-				tupleDefinitionInstruction);
-		}
-
-		if (tupleDefinitionInstruction.operation() == L2_MOVE_CONSTANT.boxed)
-		{
-			// Extract the elements of the constant tuple as constant elements.
-			final A_Tuple tuple =
-				L2_MOVE_CONSTANT.constantOf(tupleDefinitionInstruction);
-			return TupleDescriptor.toList(tuple).stream()
-				.map(generator::boxedConstant)
-				.collect(toList());
-		}
-
-		// We have to extract the elements.
-		final List<L2ReadBoxedOperand> elementReaders =
-			new ArrayList<>(tupleSize);
-		for (int i = 1; i <= tupleSize; i++)
-		{
-			final L2WriteBoxedOperand elementWriter =
-				generator.boxedWriteTemp(
-					restrictionForType(tupleType.typeAtIndex(i), BOXED));
-			addInstruction(
-				L2_TUPLE_AT_CONSTANT.instance,
-				tupleReg,
-				new L2IntImmediateOperand(i),
-				elementWriter);
-			elementReaders.add(readBoxed(elementWriter));
-		}
-		return elementReaders;
 	}
 
 	/**

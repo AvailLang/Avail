@@ -32,7 +32,7 @@
 
 package com.avail.annotations;
 
-import com.avail.descriptor.AvailObjectFieldHelper;
+import com.avail.descriptor.representation.AvailObjectFieldHelper;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

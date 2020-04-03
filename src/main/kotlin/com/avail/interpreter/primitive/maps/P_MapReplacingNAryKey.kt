@@ -32,19 +32,19 @@
 
 package com.avail.interpreter.primitive.maps
 
-import com.avail.descriptor.A_Map
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.MapDescriptor
-import com.avail.descriptor.MapTypeDescriptor.mostGeneralMapType
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.SetDescriptor.set
-import com.avail.descriptor.TupleDescriptor
-import com.avail.descriptor.TupleTypeDescriptor.oneOrMoreOf
-import com.avail.descriptor.TypeDescriptor.Types.ANY
-import com.avail.descriptor.objects.A_BasicObject
+import com.avail.descriptor.maps.A_Map
+import com.avail.descriptor.maps.MapDescriptor
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.sets.SetDescriptor.set
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.TupleDescriptor
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.MapTypeDescriptor.mostGeneralMapType
+import com.avail.descriptor.types.TupleTypeDescriptor.oneOrMoreOf
+import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.exceptions.AvailErrorCode.*
 import com.avail.exceptions.AvailException
 import com.avail.interpreter.Interpreter
@@ -177,14 +177,11 @@ object P_MapReplacingNAryKey : Primitive(3, CanInline, CanFold)
 		val map = interpreter.argument(0)
 		val pathTuple = interpreter.argument(1)
 		val newValue = interpreter.argument(2)
-		try
-		{
-			return interpreter.primitiveSuccess(recursivelyUpdateMap(
+		return try {
+			interpreter.primitiveSuccess(recursivelyUpdateMap(
 				map, pathTuple, 1, newValue))
-		}
-		catch (e: AvailException)
-		{
-			return interpreter.primitiveFailure(e)
+		} catch (e: AvailException) {
+			interpreter.primitiveFailure(e)
 		}
 
 	}

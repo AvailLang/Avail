@@ -31,9 +31,9 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.TupleDescriptor;
 import com.avail.descriptor.tuples.A_Tuple;
+import com.avail.descriptor.tuples.TupleDescriptor;
+import com.avail.descriptor.types.A_Type;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
@@ -48,10 +48,8 @@ import org.objectweb.asm.MethodVisitor;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.int32;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_INT;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
+import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.int32;
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
 
 /**
  * Extract an element at a subscript from a {@link TupleDescriptor tuple} that

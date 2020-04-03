@@ -31,16 +31,16 @@
  */
 package com.avail.interpreter.primitive.floats
 
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.FloatDescriptor
-import com.avail.descriptor.FloatDescriptor.fromFloatRecycling
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.InstanceTypeDescriptor.instanceType
-import com.avail.descriptor.IntegerDescriptor.two
-import com.avail.descriptor.IntegerDescriptor.zero
-import com.avail.descriptor.IntegerRangeTypeDescriptor.integers
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.TypeDescriptor.Types.FLOAT
+import com.avail.descriptor.numbers.FloatDescriptor
+import com.avail.descriptor.numbers.FloatDescriptor.fromFloatRecycling
+import com.avail.descriptor.numbers.IntegerDescriptor.two
+import com.avail.descriptor.numbers.IntegerDescriptor.zero
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.InstanceTypeDescriptor.instanceType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.integers
+import com.avail.descriptor.types.TypeDescriptor.Types.FLOAT
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
@@ -63,10 +63,11 @@ object P_FloatTimesTwoPower : Primitive(3, CannotFail, CanFold, CanInline)
 		//		final A_Token literalTwo = interpreter.argument(1);
 		val b = interpreter.argument(2)
 
-		val scale = if (b.isInt)
-			min(max(b.extractInt(), -10000), 10000)
-		else
-			if (b.greaterOrEqual(zero())) 10000 else -10000
+		val scale = when {
+			b.isInt -> min(max(b.extractInt(), -10000), 10000)
+			b.greaterOrEqual(zero()) -> 10000
+			else -> -10000
+		}
 		val f = scalb(a.extractFloat(), scale)
 		return interpreter.primitiveSuccess(fromFloatRecycling(f, a, true))
 	}

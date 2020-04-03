@@ -34,14 +34,17 @@ package com.avail.exceptions
 
 import com.avail.AvailRuntime
 import com.avail.compiler.splitter.MessageSplitter
-import com.avail.descriptor.*
-import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind
-import com.avail.descriptor.IntegerDescriptor.fromInt
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
+import com.avail.descriptor.AvailObject
+import com.avail.descriptor.FiberDescriptor
+import com.avail.descriptor.ModuleDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.bundles.A_Bundle
-import com.avail.descriptor.parsing.BlockPhraseDescriptor
-import com.avail.descriptor.parsing.PhraseDescriptor
+import com.avail.descriptor.numbers.A_Number
+import com.avail.descriptor.numbers.IntegerDescriptor.fromInt
+import com.avail.descriptor.phrases.BlockPhraseDescriptor
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
+import com.avail.descriptor.phrases.PhraseDescriptor
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import com.avail.interpreter.levelOne.L1Operation
 import com.avail.interpreter.primitive.phrases.P_AcceptParsing
 import com.avail.interpreter.primitive.phrases.P_CurrentMacroName

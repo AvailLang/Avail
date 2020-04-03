@@ -40,26 +40,28 @@ import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.WE
 import com.avail.compiler.splitter.MessageSplitter
 import com.avail.compiler.splitter.MessageSplitter.Companion.constantForIndex
 import com.avail.compiler.splitter.MessageSplitter.Companion.permutationAtIndex
-import com.avail.descriptor.*
-import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
-import com.avail.descriptor.ListPhraseDescriptor.emptyListNode
-import com.avail.descriptor.ListPhraseDescriptor.newListNode
-import com.avail.descriptor.LiteralPhraseDescriptor.literalNodeFromToken
-import com.avail.descriptor.LiteralTokenDescriptor.literalToken
-import com.avail.descriptor.MacroSubstitutionPhraseDescriptor.newMacroSubstitution
-import com.avail.descriptor.ObjectTupleDescriptor.tupleFromList
-import com.avail.descriptor.PermutedListPhraseDescriptor.newPermutedListNode
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
-import com.avail.descriptor.ReferencePhraseDescriptor.referenceNodeFromUse
-import com.avail.descriptor.StringDescriptor.stringFrom
-import com.avail.descriptor.TokenDescriptor.TokenType
-import com.avail.descriptor.TokenDescriptor.TokenType.*
-import com.avail.descriptor.TupleDescriptor.toList
-import com.avail.descriptor.TupleTypeDescriptor.stringType
+import com.avail.descriptor.AvailObject
+import com.avail.descriptor.FiberDescriptor
 import com.avail.descriptor.bundles.A_BundleTree
-import com.avail.descriptor.parsing.A_Phrase
-import com.avail.descriptor.parsing.PhraseDescriptor
+import com.avail.descriptor.phrases.A_Phrase
+import com.avail.descriptor.phrases.ListPhraseDescriptor.emptyListNode
+import com.avail.descriptor.phrases.ListPhraseDescriptor.newListNode
+import com.avail.descriptor.phrases.LiteralPhraseDescriptor.literalNodeFromToken
+import com.avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor.newMacroSubstitution
+import com.avail.descriptor.phrases.PermutedListPhraseDescriptor.newPermutedListNode
+import com.avail.descriptor.phrases.PhraseDescriptor
+import com.avail.descriptor.phrases.ReferencePhraseDescriptor.referenceNodeFromUse
+import com.avail.descriptor.tokens.A_Token
+import com.avail.descriptor.tokens.LiteralTokenDescriptor.literalToken
+import com.avail.descriptor.tokens.TokenDescriptor.TokenType
+import com.avail.descriptor.tokens.TokenDescriptor.TokenType.*
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
+import com.avail.descriptor.tuples.StringDescriptor.stringFrom
+import com.avail.descriptor.tuples.TupleDescriptor.toList
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
+import com.avail.descriptor.types.TupleTypeDescriptor.stringType
+import com.avail.descriptor.types.TypeDescriptor.Types.NUMBER
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport.EXPANDING_PARSING_INSTRUCTIONS
 import com.avail.performance.StatisticReport.RUNNING_PARSING_INSTRUCTIONS
@@ -790,7 +792,7 @@ enum class ParsingOperation constructor(
 	 * `12` - Parse a raw *[literal][TokenType.LITERAL]*
 	 * [token][TokenDescriptor], leaving it on the parse stack.
 	 */
-	PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN(12, false, false)
+	PARSE_RAW_NUMERIC_LITERAL_TOKEN(12, false, false)
 	{
 		override fun execute(
 			compiler: AvailCompiler,
@@ -822,7 +824,7 @@ enum class ParsingOperation constructor(
 			) { token ->
 				val tokenType = token.tokenType()
 				if (tokenType != LITERAL
-					|| !token.literal().isInstanceOf(wholeNumbers()))
+					|| !token.literal().isInstanceOf(NUMBER.o()))
 				{
 					if (consumedAnything)
 					{
@@ -831,7 +833,7 @@ enum class ParsingOperation constructor(
 							else STRONG
 						) {
 							it(
-								"a whole number literal token, not " +
+								"a numeric literal token, not " +
 									when (tokenType)
 									{
 										END_OF_FILE -> "end-of-file"

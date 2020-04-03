@@ -34,22 +34,22 @@ package com.avail.interpreter.primitive.bootstrap.syntax
 
 import com.avail.compiler.AvailRejectedParseException
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.AssignmentPhraseDescriptor.newAssignment
-import com.avail.descriptor.DeclarationPhraseDescriptor.newModuleConstant
-import com.avail.descriptor.DeclarationPhraseDescriptor.newModuleVariable
-import com.avail.descriptor.ExpressionAsStatementPhraseDescriptor.newExpressionAsStatement
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.NilDescriptor.nil
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.*
-import com.avail.descriptor.StringDescriptor.formatString
-import com.avail.descriptor.TokenDescriptor.TokenType
-import com.avail.descriptor.TypeDescriptor.Types.ANY
-import com.avail.descriptor.TypeDescriptor.Types.TOKEN
-import com.avail.descriptor.VariableUsePhraseDescriptor.newUse
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.*
-import com.avail.descriptor.parsing.A_Phrase
+import com.avail.descriptor.phrases.A_Phrase
+import com.avail.descriptor.phrases.AssignmentPhraseDescriptor.newAssignment
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.newModuleConstant
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.newModuleVariable
+import com.avail.descriptor.phrases.ExpressionAsStatementPhraseDescriptor.newExpressionAsStatement
+import com.avail.descriptor.phrases.VariableUsePhraseDescriptor.newUse
+import com.avail.descriptor.tokens.TokenDescriptor.TokenType
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.StringDescriptor.formatString
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.*
+import com.avail.descriptor.types.TypeDescriptor.Types.ANY
+import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
@@ -96,42 +96,34 @@ object P_BootstrapAssignmentStatementMacro
 			fiberGlobals.mapAt(CLIENT_DATA_GLOBAL_KEY.atom)
 		val scopeMap = clientData.mapAt(COMPILER_SCOPE_MAP_KEY.atom)
 		val module = loader.module()
-		var declaration: A_Phrase? = null
-		if (scopeMap.hasKey(variableNameString))
-		{
-			declaration = scopeMap.mapAt(variableNameString)
-		}
-		else if (module.variableBindings().hasKey(variableNameString))
-		{
-			val variableObject =
-				module.variableBindings().mapAt(variableNameString)
-			declaration =
+		val declaration: A_Phrase = when {
+			scopeMap.hasKey(variableNameString) -> {
+				scopeMap.mapAt(variableNameString)
+			}
+			module.variableBindings().hasKey(variableNameString) -> {
+				val variableObject =
+					module.variableBindings().mapAt(variableNameString)
 				newModuleVariable(actualToken, variableObject, nil, nil)
-		}
-		else if (module.constantBindings().hasKey(variableNameString))
-		{
-			val variableObject =
-				module.constantBindings().mapAt(variableNameString)
-			declaration = newModuleConstant(actualToken, variableObject, nil)
-		}
-
-		if (declaration === null)
-		{
-			throw AvailRejectedParseException(STRONG)
+			}
+			module.constantBindings().hasKey(variableNameString) -> {
+				val variableObject =
+					module.constantBindings().mapAt(variableNameString)
+				newModuleConstant(actualToken, variableObject, nil)
+			}
+			else -> throw AvailRejectedParseException(STRONG)
 			{
 				formatString(
 					"variable (%s) for assignment to be in scope",
 					variableNameString)
 			}
 		}
-		val declarationFinal = declaration
 		if (!declaration.declarationKind().isVariable)
 		{
 			throw AvailRejectedParseException(STRONG)
 			{
 				formatString(
 					"a name of a variable, not a %s",
-					declarationFinal.declarationKind().nativeKindName())
+					declaration.declarationKind().nativeKindName())
 			}
 		}
 		if (!valueExpression.expressionType().isSubtypeOf(
@@ -140,9 +132,10 @@ object P_BootstrapAssignmentStatementMacro
 			throw AvailRejectedParseException(STRONG)
 			{
 				formatString(
-					"assignment expression's type (%s) " + "to match variable type (%s)",
+					"assignment expression's type (%s) "
+						+ "to match variable type (%s)",
 					valueExpression.expressionType(),
-					declarationFinal.declaredType())
+					declaration.declaredType())
 			}
 		}
 		val tokens = clientData.mapAt(staticTokensKey)

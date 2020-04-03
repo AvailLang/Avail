@@ -31,15 +31,15 @@
  */
 package com.avail.interpreter.primitive.maps
 
-import com.avail.descriptor.A_RawFunction
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.MapTypeDescriptor.mostGeneralMapType
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.SetDescriptor.emptySet
-import com.avail.descriptor.SetDescriptor.set
-import com.avail.descriptor.TypeDescriptor.Types.ANY
+import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.sets.SetDescriptor.emptySet
+import com.avail.descriptor.sets.SetDescriptor.set
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.MapTypeDescriptor.mostGeneralMapType
+import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive

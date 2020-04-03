@@ -31,8 +31,8 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.TupleTypeDescriptor;
+import com.avail.descriptor.types.A_Type;
+import com.avail.descriptor.types.TupleTypeDescriptor;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
@@ -49,10 +49,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import static com.avail.descriptor.InstanceMetaDescriptor.instanceMeta;
-import static com.avail.descriptor.TupleTypeDescriptor.tupleTypeForTypes;
-import static com.avail.descriptor.TupleTypeDescriptor.tupleTypesForTypesArrayMethod;
-import static com.avail.descriptor.TypeDescriptor.Types.ANY;
+import static com.avail.descriptor.types.InstanceMetaDescriptor.instanceMeta;
+import static com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForTypes;
+import static com.avail.descriptor.types.TupleTypeDescriptor.tupleTypesForTypesArrayMethod;
+import static com.avail.descriptor.types.TypeDescriptor.Types.ANY;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
 

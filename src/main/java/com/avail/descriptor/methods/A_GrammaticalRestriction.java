@@ -32,11 +32,14 @@
 
 package com.avail.descriptor.methods;
 
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.ModuleDescriptor;
 import com.avail.descriptor.bundles.A_Bundle;
 import com.avail.descriptor.bundles.MessageBundleDescriptor;
-import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.representation.A_BasicObject;
+import com.avail.descriptor.sets.SetDescriptor;
 import com.avail.descriptor.tuples.A_Tuple;
+import com.avail.descriptor.tuples.TupleDescriptor;
 
 /**
  * {@code A_GrammaticalRestriction} is an interface that specifies the

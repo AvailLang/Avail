@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.avail.optimizer.values;
-import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.representation.A_BasicObject;
 
 import java.util.function.UnaryOperator;
 

@@ -31,12 +31,12 @@
  */
 package com.avail.interpreter.primitive.general
 
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.EnumerationTypeDescriptor.booleanType
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.TupleTypeDescriptor.stringType
-import com.avail.descriptor.atoms.AtomDescriptor.objectFromBoolean
+import com.avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.EnumerationTypeDescriptor.booleanType
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.TupleTypeDescriptor.stringType
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
@@ -52,7 +52,7 @@ object P_IsPrimitiveDefined : Primitive(1, CannotFail, CanFold, CanInline)
 		interpreter.checkArgumentCount(1)
 		val primitiveName = interpreter.argument(0)
 
-		val primitive = Primitive.primitiveByName(primitiveName.asNativeString())
+		val primitive = primitiveByName(primitiveName.asNativeString())
 		val defined = primitive !== null && !primitive.hasFlag(Private)
 		return interpreter.primitiveSuccess(objectFromBoolean(defined))
 	}

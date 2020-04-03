@@ -38,8 +38,10 @@ import com.avail.builder.RenamesFileParser
 import com.avail.builder.RenamesFileParserException
 import com.avail.server.AvailServer
 import com.avail.utility.configuration.Configuration
-import java.io.*
-import java.nio.charset.StandardCharsets
+import java.io.File
+import java.io.FileNotFoundException
+import java.io.StringReader
+import kotlin.text.Charsets.UTF_8
 
 /**
  * An `AvailServerConfiguration` specifies the operational parameters of an
@@ -102,28 +104,6 @@ class AvailServerConfiguration : Configuration
 	/** The server port.  */
 	var serverPort = 40000
 
-	override
-	val isValid: Boolean
-		get()
-		{
-			// Just try to create a module name resolver. If this fails, then
-			// the configuration is invalid. Otherwise, it should be okay.
-			try
-			{
-				moduleNameResolver()
-			}
-			catch (e: FileNotFoundException)
-			{
-				return false
-			}
-			catch (e: RenamesFileParserException)
-			{
-				return false
-			}
-
-			return true
-		}
-
 	/**
 	 * Answer the [module name resolver][ModuleNameResolver] correct for the
 	 * current configuration.
@@ -145,11 +125,7 @@ class AvailServerConfiguration : Configuration
 			val reader = when (val path = renamesFilePath)
 			{
 				null -> StringReader("")
-				else ->
-				{
-					BufferedReader(InputStreamReader(
-						FileInputStream(File(path)), StandardCharsets.UTF_8))
-				}
+				else -> File(path).inputStream().reader(UTF_8).buffered()
 			}
 			val renameParser = RenamesFileParser(reader, availRoots)
 			resolver = renameParser.parse()

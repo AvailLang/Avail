@@ -31,15 +31,16 @@
  */
 package com.avail.interpreter.primitive.controlflow
 
-import com.avail.descriptor.*
-import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.BottomTypeDescriptor.bottom
-import com.avail.descriptor.ContinuationTypeDescriptor.mostGeneralContinuationType
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.SetDescriptor.set
-import com.avail.descriptor.TupleDescriptor.toList
-import com.avail.descriptor.TupleTypeDescriptor.mostGeneralTupleType
+import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.sets.SetDescriptor.set
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.TupleDescriptor.toList
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.types.BottomTypeDescriptor.bottom
+import com.avail.descriptor.types.ContinuationTypeDescriptor.mostGeneralContinuationType
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.TupleTypeDescriptor.mostGeneralTupleType
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import com.avail.interpreter.Interpreter
@@ -172,7 +173,7 @@ object P_RestartContinuationWithArguments : Primitive(
 				// Couldn't guarantee the argument types matched.
 				return false
 			}
-			val explodedTupleRegs = translator.explodeTupleIfPossible(
+			val explodedTupleRegs = generator.explodeTupleIfPossible(
 				argumentsTupleReg, argTypesTuple.toList())
 			// First, move these values into fresh temps.
 			val tempSemanticValues = mutableSetOf<L2SemanticValue>()
@@ -270,7 +271,7 @@ object P_RestartContinuationWithArguments : Primitive(
 			return false
 		}
 		val argsSize = upperBound.extractInt()
-		val explodedArgumentRegs = translator.explodeTupleIfPossible(
+		val explodedArgumentRegs = generator.explodeTupleIfPossible(
 			argumentsTupleReg,
 			toList(functionArgsType.tupleOfTypesFromTo(1, argsSize)))
 		explodedArgumentRegs ?: return false
@@ -279,9 +280,10 @@ object P_RestartContinuationWithArguments : Primitive(
 			L2_RESTART_CONTINUATION_WITH_ARGUMENTS.instance,
 			continuationReg,
 			L2ReadBoxedVectorOperand(explodedArgumentRegs))
-		assert(!translator.generator.currentlyReachable())
-		translator.generator.startBlock(translator.generator.createBasicBlock(
-			"unreachable after L2_RESTART_CONTINUATION_WITH_ARGUMENTS"))
+		assert(!generator.currentlyReachable())
+		generator.startBlock(
+			generator.createBasicBlock(
+				"unreachable after L2_RESTART_CONTINUATION_WITH_ARGUMENTS"))
 		return true
 	}
 }

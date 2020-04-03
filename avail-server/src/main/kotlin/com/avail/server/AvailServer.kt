@@ -47,7 +47,7 @@ import com.avail.descriptor.A_Module
 import com.avail.descriptor.FiberDescriptor.ExecutionState
 import com.avail.interpreter.Interpreter
 import com.avail.persistence.IndexedFileException
-import com.avail.persistence.IndexedRepositoryManager
+import com.avail.persistence.Repository
 import com.avail.server.AvailServer.ModuleNodeType.DIRECTORY
 import com.avail.server.AvailServer.ModuleNodeType.MODULE
 import com.avail.server.AvailServer.ModuleNodeType.PACKAGE
@@ -709,7 +709,7 @@ class AvailServer constructor(
 	}
 
 	/**
-	 * Clear all [binary module repositories][IndexedRepositoryManager].
+	 * Clear all [binary module repositories][Repository].
 	 *
 	 * @param channel
 	 *   The [channel][AvailServerChannel] on which the

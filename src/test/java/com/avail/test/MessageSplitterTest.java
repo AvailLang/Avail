@@ -34,14 +34,14 @@ package com.avail.test;
 
 import com.avail.compiler.ParsingOperation;
 import com.avail.compiler.splitter.MessageSplitter;
-import com.avail.descriptor.A_DefinitionParsingPlan;
-import com.avail.descriptor.A_Number;
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.ListPhraseTypeDescriptor;
-import com.avail.descriptor.LiteralTokenTypeDescriptor;
-import com.avail.descriptor.PhraseTypeDescriptor;
+import com.avail.descriptor.numbers.A_Number;
+import com.avail.descriptor.parsing.A_DefinitionParsingPlan;
 import com.avail.descriptor.tuples.A_String;
 import com.avail.descriptor.tuples.A_Tuple;
+import com.avail.descriptor.types.A_Type;
+import com.avail.descriptor.types.ListPhraseTypeDescriptor;
+import com.avail.descriptor.types.LiteralTokenTypeDescriptor;
+import com.avail.descriptor.types.PhraseTypeDescriptor;
 import com.avail.exceptions.MalformedMessageException;
 import com.avail.exceptions.SignatureException;
 import org.junit.jupiter.api.DisplayName;
@@ -57,21 +57,21 @@ import java.util.stream.Stream;
 import static com.avail.compiler.ParsingConversionRule.LIST_TO_SIZE;
 import static com.avail.compiler.ParsingOperation.*;
 import static com.avail.compiler.splitter.MessageSplitter.*;
-import static com.avail.descriptor.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.EnumerationTypeDescriptor.booleanType;
-import static com.avail.descriptor.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.InfinityDescriptor.positiveInfinity;
-import static com.avail.descriptor.IntegerDescriptor.fromInt;
-import static com.avail.descriptor.IntegerDescriptor.fromLong;
-import static com.avail.descriptor.IntegerRangeTypeDescriptor.*;
-import static com.avail.descriptor.ListPhraseTypeDescriptor.createListNodeType;
-import static com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType;
-import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromArray;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE;
-import static com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE;
-import static com.avail.descriptor.StringDescriptor.stringFrom;
-import static com.avail.descriptor.TupleTypeDescriptor.*;
-import static com.avail.descriptor.TypeDescriptor.Types.*;
+import static com.avail.descriptor.numbers.InfinityDescriptor.positiveInfinity;
+import static com.avail.descriptor.numbers.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.numbers.IntegerDescriptor.fromLong;
+import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromArray;
+import static com.avail.descriptor.tuples.StringDescriptor.stringFrom;
+import static com.avail.descriptor.types.BottomTypeDescriptor.bottom;
+import static com.avail.descriptor.types.EnumerationTypeDescriptor.booleanType;
+import static com.avail.descriptor.types.FunctionTypeDescriptor.functionType;
+import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.*;
+import static com.avail.descriptor.types.ListPhraseTypeDescriptor.createListNodeType;
+import static com.avail.descriptor.types.LiteralTokenTypeDescriptor.literalTokenType;
+import static com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE;
+import static com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE;
+import static com.avail.descriptor.types.TupleTypeDescriptor.*;
+import static com.avail.descriptor.types.TypeDescriptor.Types.*;
 import static java.util.Arrays.stream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -377,7 +377,7 @@ public final class MessageSplitterTest
 				List(1, 1, Phrase(LiteralToken(wholeNumbers()))),
 				A("…", "#"),
 				A(
-					PARSE_RAW_WHOLE_NUMBER_LITERAL_TOKEN.getEncoding(),
+					PARSE_RAW_NUMERIC_LITERAL_TOKEN.getEncoding(),
 					typeCheckEncodingForPhrase(LiteralToken(wholeNumbers())),
 					APPEND_ARGUMENT.getEncoding())),
 			C(

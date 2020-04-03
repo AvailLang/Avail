@@ -4,15 +4,23 @@
       <w>backpointer</w>
       <w>bgcolor</w>
       <w>boundedly</w>
+      <w>cardinalities</w>
       <w>checkable</w>
       <w>darcula</w>
       <w>devirtualize</w>
+      <w>distro</w>
       <w>eawt</w>
       <w>enablements</w>
       <w>enqueuer</w>
+      <w>fileanalyzer</w>
+      <w>genericity</w>
       <w>hasher</w>
       <w>inet</w>
+      <w>intelli</w>
+      <w>joinee</w>
       <w>lexes</w>
+      <w>masse</w>
+      <w>metainvariance</w>
       <w>misconnected</w>
       <w>noninline</w>
       <w>nonprimitive</w>
@@ -33,8 +41,10 @@
       <w>subkey</w>
       <w>subregion</w>
       <w>subtable</w>
+      <w>synchronizer</w>
       <w>unboundedly</w>
       <w>unparameterized</w>
+      <w>unparking</w>
       <w>unparks</w>
       <w>unquoter</w>
       <w>unreturnable</w>

@@ -32,14 +32,14 @@
 
 package com.avail.interpreter.primitive.atoms
 
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.EnumerationTypeDescriptor.booleanType
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.atoms.A_Atom
-import com.avail.descriptor.atoms.AtomDescriptor.falseObject
-import com.avail.descriptor.atoms.AtomDescriptor.trueObject
+import com.avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
+import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.EnumerationTypeDescriptor.booleanType
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
 import com.avail.exceptions.MalformedMessageException
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
@@ -57,17 +57,14 @@ object P_IsCanonicalMessage : Primitive(1, CannotFail, CanInline, CanFold)
 	{
 		interpreter.checkArgumentCount(1)
 		val name = interpreter.argument(0)
-		try
-		{
+		return try {
 			// Ignore the return value. We just want to see if the name is
 			// canonical; attempting to create the bundle and its associated
 			// MessageSplitter should suffice.
 			name.bundleOrCreate()
-			return interpreter.primitiveSuccess(trueObject())
-		}
-		catch (e: MalformedMessageException)
-		{
-			return interpreter.primitiveSuccess(falseObject())
+			interpreter.primitiveSuccess(trueObject())
+		} catch (e: MalformedMessageException) {
+			interpreter.primitiveSuccess(falseObject())
 		}
 
 	}

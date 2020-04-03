@@ -36,33 +36,50 @@ import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.compiler.scanning.LexingState;
 import com.avail.compiler.splitter.MessageSplitter;
-import com.avail.descriptor.AbstractNumberDescriptor.Order;
-import com.avail.descriptor.AbstractNumberDescriptor.Sign;
-import com.avail.descriptor.DeclarationPhraseDescriptor.DeclarationKind;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
-import com.avail.descriptor.MapDescriptor.MapIterable;
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind;
-import com.avail.descriptor.SetDescriptor.SetIterator;
-import com.avail.descriptor.TokenDescriptor.TokenType;
-import com.avail.descriptor.TypeDescriptor.Types;
-import com.avail.descriptor.VariableDescriptor.VariableAccessReactor;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.bundles.A_Bundle;
 import com.avail.descriptor.bundles.A_BundleTree;
+import com.avail.descriptor.functions.A_Continuation;
+import com.avail.descriptor.functions.A_Function;
+import com.avail.descriptor.functions.A_RawFunction;
+import com.avail.descriptor.maps.A_Map;
+import com.avail.descriptor.maps.A_MapBin;
+import com.avail.descriptor.maps.MapDescriptor.MapIterable;
 import com.avail.descriptor.methods.A_Definition;
 import com.avail.descriptor.methods.A_GrammaticalRestriction;
 import com.avail.descriptor.methods.A_Method;
 import com.avail.descriptor.methods.A_SemanticRestriction;
-import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.numbers.A_Number;
+import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order;
+import com.avail.descriptor.numbers.AbstractNumberDescriptor.Sign;
+import com.avail.descriptor.numbers.IntegerDescriptor;
+import com.avail.descriptor.parsing.A_DefinitionParsingPlan;
 import com.avail.descriptor.parsing.A_Lexer;
 import com.avail.descriptor.parsing.A_ParsingPlanInProgress;
-import com.avail.descriptor.parsing.A_Phrase;
+import com.avail.descriptor.phrases.A_Phrase;
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind;
+import com.avail.descriptor.representation.A_BasicObject;
+import com.avail.descriptor.representation.IntegerSlotsEnum;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.ObjectSlotsEnum;
+import com.avail.descriptor.sets.A_Set;
+import com.avail.descriptor.sets.SetDescriptor.SetIterator;
+import com.avail.descriptor.tokens.A_Token;
+import com.avail.descriptor.tokens.TokenDescriptor.TokenType;
 import com.avail.descriptor.tuples.A_String;
 import com.avail.descriptor.tuples.A_Tuple;
+import com.avail.descriptor.types.A_Type;
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind;
+import com.avail.descriptor.types.TypeDescriptor.Types;
+import com.avail.descriptor.types.TypeTag;
+import com.avail.descriptor.variables.A_Variable;
+import com.avail.descriptor.variables.VariableDescriptor.VariableAccessReactor;
 import com.avail.dispatch.LookupTree;
 import com.avail.exceptions.AvailException;
 import com.avail.exceptions.MalformedMessageException;
@@ -91,18 +108,19 @@ import com.avail.utility.visitor.BeSharedSubobjectVisitor;
 import javax.annotation.Nullable;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.util.Collection;
+import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Spliterator;
 import java.util.TimerTask;
 import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import static com.avail.descriptor.LinearSetBinDescriptor.createLinearSetBinPair;
-import static com.avail.descriptor.LinearSetBinDescriptor.emptyLinearSetBin;
+import static com.avail.descriptor.sets.LinearSetBinDescriptor.createLinearSetBinPair;
+import static com.avail.descriptor.sets.LinearSetBinDescriptor.emptyLinearSetBin;
 import static java.lang.String.format;
 
 /**
@@ -157,7 +175,7 @@ extends AbstractDescriptor
 	 *
 	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
-	enum FakeObjectSlotsForScanning implements ObjectSlotsEnum
+	enum FakeObjectSlotsForScanning implements ObjectSlotsEnumJava
 	{
 		/**
 		 * An indexed object slot that makes it easy to visit all object slots.
@@ -512,7 +530,7 @@ extends AbstractDescriptor
 	@Override
 	protected void o_ModuleAddDefinition (
 		final AvailObject object,
-		final A_BasicObject definition)
+		final A_Definition definition)
 	{
 		throw unsupportedOperationException();
 	}
@@ -732,13 +750,15 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	protected void o_ExecutionState (final AvailObject object, final ExecutionState value)
+	protected void o_ExecutionState (
+		final AvailObject object, final ExecutionState value)
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override
-	byte o_ExtractNybbleFromTupleAt (final AvailObject object, final int index)
+	protected byte o_ExtractNybbleFromTupleAt (
+		final AvailObject object, final int index)
 	{
 		throw unsupportedOperationException();
 	}
@@ -986,6 +1006,17 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final A_BasicObject keyObject,
 		final A_BasicObject newValueObject,
+		final boolean canDestroy)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	public A_Map o_MapAtReplacingCanDestroy (
+		final AvailObject object,
+		final A_BasicObject key,
+		final A_BasicObject notFoundValue,
+		final BinaryOperator<A_BasicObject> transformer,
 		final boolean canDestroy)
 	{
 		throw unsupportedOperationException();
@@ -1762,7 +1793,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	byte o_ExtractNybble (final AvailObject object)
+	protected byte o_ExtractNybble (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -1844,7 +1875,7 @@ extends AbstractDescriptor
 
 	@Override
 	@AvailMethod
-	boolean o_IsInstanceMeta (final AvailObject object)
+	protected boolean o_IsInstanceMeta (final AvailObject object)
 	{
 		return false;
 	}
@@ -2156,7 +2187,8 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	public boolean o_Equals (
+		final AvailObject object, final A_BasicObject another)
 	{
 		throw unsupportedOperationException();
 	}
@@ -2478,7 +2510,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	protected int o_Hash (final AvailObject object)
+	public int o_Hash (final AvailObject object)
 	{
 		// Answer a 32-bit long that is always the same for equal objects, but
 		// statistically different for different objects.
@@ -2799,7 +2831,7 @@ extends AbstractDescriptor
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
 	@Override
-	IteratorNotNull<AvailObject> o_Iterator (final AvailObject object)
+	protected IteratorNotNull<AvailObject> o_Iterator (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -3318,19 +3350,19 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	Order o_NumericCompare (final AvailObject object, final A_Number another)
+	protected Order o_NumericCompare (final AvailObject object, final A_Number another)
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override
-	Order o_NumericCompareToInfinity (final AvailObject object, final Sign sign)
+	protected Order o_NumericCompareToInfinity (final AvailObject object, final Sign sign)
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override
-	Order o_NumericCompareToDouble (
+	protected Order o_NumericCompareToDouble (
 		final AvailObject object,
 		final double aDouble)
 	{
@@ -3338,7 +3370,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	Order o_NumericCompareToInteger (
+	protected Order o_NumericCompareToInteger (
 		final AvailObject object,
 		final AvailObject anInteger)
 	{
@@ -3435,6 +3467,19 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	protected A_MapBin o_MapBinAtHashReplacingLevelCanDestroy (
+		final AvailObject object,
+		final A_BasicObject key,
+		final int keyHash,
+		final A_BasicObject notFoundValue,
+		final BinaryOperator<A_BasicObject> transformer,
+		final byte myLevel,
+		final boolean canDestroy)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
 	protected A_Type o_MapBinKeyUnionKind (final AvailObject object)
 	{
 		throw unsupportedOperationException();
@@ -3453,7 +3498,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	@Nullable AvailObject o_MapBinAtHash (
+	protected @Nullable AvailObject o_MapBinAtHash (
 		final AvailObject object,
 		final A_BasicObject key,
 		final int keyHash)
@@ -3587,7 +3632,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	byte o_ExtractSignedByte (final AvailObject object)
+	protected byte o_ExtractSignedByte (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -3608,7 +3653,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	@Nullable <T> T o_JavaObject (final AvailObject object)
+	protected @Nullable <T> T o_JavaObject (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -3885,6 +3930,7 @@ extends AbstractDescriptor
 		// By default an object acts like a bin of size one.
 		return new SetIterator()
 		{
+			/** Whether there are more elements. */
 			private boolean hasNext = true;
 
 			@Override
@@ -3961,7 +4007,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	byte[] o_ByteArray (final AvailObject object)
+	protected byte[] o_ByteArray (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -3976,7 +4022,7 @@ extends AbstractDescriptor
 	protected void o_UpdateForNewGrammaticalRestriction (
 		final AvailObject object,
 		final A_ParsingPlanInProgress planInProgress,
-		final Collection<Pair<A_BundleTree, A_ParsingPlanInProgress>> treesToVisit)
+		final Deque<Pair<A_BundleTree, A_ParsingPlanInProgress>> treesToVisit)
 	{
 		throw unsupportedOperationException();
 	}
@@ -4038,7 +4084,7 @@ extends AbstractDescriptor
 
 	@Override
 	@AvailMethod
-	boolean o_CompareAndSwapValues (
+	protected boolean o_CompareAndSwapValues (
 		final AvailObject object,
 		final A_BasicObject reference,
 		final A_BasicObject newValue)
@@ -4049,7 +4095,7 @@ extends AbstractDescriptor
 
 	@Override
 	@AvailMethod
-	A_Number o_FetchAndAddValue (
+	protected A_Number o_FetchAndAddValue (
 		final AvailObject object,
 		final A_Number addend)
 	throws VariableGetException, VariableSetException
@@ -4173,7 +4219,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	ByteBuffer o_ByteBuffer (final AvailObject object)
+	protected ByteBuffer o_ByteBuffer (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -4774,7 +4820,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	protected TypeTag o_ComputeTypeTag (final AvailObject object)
+	public TypeTag o_ComputeTypeTag (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}

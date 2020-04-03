@@ -34,10 +34,10 @@ package com.avail.compiler.splitter
 import com.avail.compiler.ParsingOperation.*
 import com.avail.compiler.splitter.InstructionGenerator.Label
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.ListPhraseTypeDescriptor.emptyListPhraseType
-import com.avail.descriptor.TupleDescriptor.emptyTuple
-import com.avail.descriptor.parsing.A_Phrase
+import com.avail.descriptor.phrases.A_Phrase
+import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.ListPhraseTypeDescriptor.emptyListPhraseType
 
 /**
  * A `CompletelyOptional` is a special [expression][Expression] indicated by a

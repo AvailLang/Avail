@@ -38,7 +38,7 @@ import com.avail.builder.ModuleRoot
 import com.avail.builder.ModuleRoots
 import com.avail.descriptor.A_Fiber
 import com.avail.descriptor.A_Module
-import com.avail.persistence.IndexedRepositoryManager
+import com.avail.persistence.Repository
 import com.avail.server.AvailServer
 import com.avail.server.io.AvailServerChannel
 import com.avail.server.messages.TextCommand.TrieNode
@@ -150,7 +150,7 @@ enum class TextCommand
 	ENTRY_POINTS,
 
 	/**
-	 * Clear all [binary module repositories][IndexedRepositoryManager].
+	 * Clear all [binary module repositories][Repository].
 	 */
 	CLEAR_REPOSITORIES,
 

@@ -32,14 +32,14 @@
 
 package com.avail.interpreter.primitive.modules
 
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.ModuleDescriptor
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.SetTypeDescriptor.setTypeForSizesContentType
-import com.avail.descriptor.TupleTypeDescriptor.stringType
-import com.avail.descriptor.TypeDescriptor.Types.MODULE
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.wholeNumbers
+import com.avail.descriptor.types.SetTypeDescriptor.setTypeForSizesContentType
+import com.avail.descriptor.types.TupleTypeDescriptor.stringType
+import com.avail.descriptor.types.TypeDescriptor.Types.MODULE
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline

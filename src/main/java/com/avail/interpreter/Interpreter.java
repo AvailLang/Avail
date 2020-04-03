@@ -37,11 +37,29 @@ import com.avail.AvailRuntime.HookType;
 import com.avail.AvailRuntimeConfiguration;
 import com.avail.AvailTask;
 import com.avail.AvailThread;
-import com.avail.descriptor.*;
+import com.avail.descriptor.A_Fiber;
+import com.avail.descriptor.A_Module;
+import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.FiberDescriptor;
+import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
+import com.avail.descriptor.NilDescriptor;
 import com.avail.descriptor.bundles.A_Bundle;
 import com.avail.descriptor.bundles.MessageBundleDescriptor;
-import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.functions.A_Continuation;
+import com.avail.descriptor.functions.A_Function;
+import com.avail.descriptor.functions.A_RawFunction;
+import com.avail.descriptor.functions.CompiledCodeDescriptor;
+import com.avail.descriptor.functions.ContinuationDescriptor;
+import com.avail.descriptor.functions.FunctionDescriptor;
+import com.avail.descriptor.numbers.A_Number;
+import com.avail.descriptor.representation.A_BasicObject;
+import com.avail.descriptor.representation.AvailIntegerValueHelper;
+import com.avail.descriptor.representation.AvailObjectFieldHelper;
+import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.tuples.A_Tuple;
+import com.avail.descriptor.types.TypeTag;
+import com.avail.descriptor.variables.A_Variable;
+import com.avail.descriptor.variables.VariableDescriptor;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.AvailException;
 import com.avail.exceptions.AvailRuntimeException;
@@ -100,10 +118,10 @@ import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.PERMIT_UN
 import static com.avail.descriptor.FiberDescriptor.TraceFlag.TRACE_VARIABLE_READS_BEFORE_WRITES;
 import static com.avail.descriptor.FiberDescriptor.TraceFlag.TRACE_VARIABLE_WRITES;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.ObjectTupleDescriptor.tupleFromList;
-import static com.avail.descriptor.StringDescriptor.formatString;
-import static com.avail.descriptor.StringDescriptor.stringFrom;
-import static com.avail.descriptor.TupleTypeDescriptor.stringType;
+import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList;
+import static com.avail.descriptor.tuples.StringDescriptor.formatString;
+import static com.avail.descriptor.tuples.StringDescriptor.stringFrom;
+import static com.avail.descriptor.types.TupleTypeDescriptor.stringType;
 import static com.avail.exceptions.AvailErrorCode.*;
 import static com.avail.interpreter.Interpreter.FakeStackTraceSlots.*;
 import static com.avail.interpreter.Primitive.Flag.CanSuspend;
@@ -112,7 +130,8 @@ import static com.avail.interpreter.Primitive.Result.*;
 import static com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk;
 import static com.avail.interpreter.levelTwo.operation.L2_REIFY.StatisticCategory.ABANDON_BEFORE_RESTART_IN_L2;
 import static com.avail.optimizer.jvm.CheckedField.instanceField;
-import static com.avail.optimizer.jvm.CheckedMethod.*;
+import static com.avail.optimizer.jvm.CheckedMethod.instanceMethod;
+import static com.avail.optimizer.jvm.CheckedMethod.staticMethod;
 import static com.avail.utility.Casts.cast;
 import static com.avail.utility.Casts.nullableCast;
 import static com.avail.utility.Nulls.stripNull;
@@ -613,10 +632,9 @@ public final class Interpreter
 	}
 
 	/**
-	 * Fake slots used to show stack traces in the Eclipse Java debugger.
+	 * Fake slots used to show stack traces in the Java debugger.
 	 */
-	enum FakeStackTraceSlots
-	implements ObjectSlotsEnum, IntegerSlotsEnum
+	enum FakeStackTraceSlots implements ObjectSlotsEnumJava
 	{
 		/**
 		 * The offset of the current L2 instruction.

@@ -32,9 +32,9 @@
 
 package com.avail.exceptions
 
-import com.avail.descriptor.StringDescriptor
-import com.avail.descriptor.StringDescriptor.stringFrom
 import com.avail.descriptor.tuples.A_String
+import com.avail.descriptor.tuples.StringDescriptor
+import com.avail.descriptor.tuples.StringDescriptor.stringFrom
 import java.lang.String.format
 
 /**

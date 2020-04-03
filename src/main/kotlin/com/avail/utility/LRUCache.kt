@@ -537,7 +537,7 @@ class LRUCache<K, V> @JvmOverloads constructor(
 					// attempting to retrieve the result from the future will
 					// throw a CacheException.
 					result = future.get()
-					reference = SoftReference<V>(result, defunctReferences)
+					reference = SoftReference<V>(result!!, defunctReferences)
 
 					// Establish a binding between the key and its value in the
 					// cache's primary map. The eldest entry will be

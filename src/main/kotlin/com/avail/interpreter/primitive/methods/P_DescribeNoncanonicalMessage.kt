@@ -32,13 +32,13 @@
 package com.avail.interpreter.primitive.methods
 
 import com.avail.compiler.splitter.MessageSplitter
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.StringDescriptor.stringFrom
-import com.avail.descriptor.TupleDescriptor.emptyTuple
-import com.avail.descriptor.TupleTypeDescriptor.stringType
 import com.avail.descriptor.bundles.MessageBundleDescriptor
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.StringDescriptor.stringFrom
+import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.TupleTypeDescriptor.stringType
 import com.avail.exceptions.MalformedMessageException
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive

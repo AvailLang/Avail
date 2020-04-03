@@ -32,34 +32,29 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_Map;
-import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.MapDescriptor;
-import com.avail.descriptor.ObjectDescriptor;
-import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.atoms.A_Atom;
+import com.avail.descriptor.objects.ObjectLayoutVariant;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
+import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
-import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Opcodes.INVOKESTATIC;
-import static org.objectweb.asm.Type.*;
+import static com.avail.descriptor.objects.ObjectDescriptor.createUninitializedObjectMethod;
+import static com.avail.descriptor.objects.ObjectDescriptor.setFieldMethod;
+import static com.avail.interpreter.levelTwo.L2OperandType.*;
 
 /**
- * Create a map from the specified key object registers and the corresponding
- * value object registers, then convert the map to an Avail {@link
- * ObjectDescriptor user-defined object} and write it into the specified object
- * register.
+ * Create an object using a constant pojo holding an {@link ObjectLayoutVariant}
+ * and a vector of values, in the order the variant lays them out as fields.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -73,7 +68,7 @@ extends L2Operation
 	private L2_CREATE_OBJECT ()
 	{
 		super(
-			READ_BOXED_VECTOR.is("field keys"),
+			CONSTANT.is("variant pojo"),
 			READ_BOXED_VECTOR.is("field values"),
 			WRITE_BOXED.is("new object"));
 	}
@@ -91,24 +86,29 @@ extends L2Operation
 		final Consumer<Boolean> warningStyleChange)
 	{
 		assert this == instruction.operation();
-		final L2ReadBoxedVectorOperand fieldKeys = instruction.operand(0);
-		final L2ReadBoxedVectorOperand fieldValues = instruction.operand(1);
+		final L2ConstantOperand variantOperand = instruction.operand(0);
+		final L2ReadBoxedVectorOperand fieldsVector = instruction.operand(1);
 		final L2WriteBoxedOperand object = instruction.operand(2);
 
 		renderPreamble(instruction, builder);
 		builder.append(' ');
 		builder.append(object.registerString());
 		builder.append(" ← {");
-		for (int i = 0, limit = fieldKeys.elements().size(); i < limit; i++)
+		final ObjectLayoutVariant variant =
+			variantOperand.object.javaObjectNotNull();
+		final List<A_Atom> realSlots = variant.realSlots;
+		final List<L2ReadBoxedOperand> fieldSources = fieldsVector.elements();
+		assert realSlots.size() == fieldSources.size();
+		for (int i = 0; i < realSlots.size(); i++)
 		{
 			if (i > 0)
 			{
 				builder.append(", ");
 			}
-			final L2ReadBoxedOperand key = fieldKeys.elements().get(i);
-			final L2ReadBoxedOperand value = fieldValues.elements().get(i);
-			builder.append(key.registerString());
-			builder.append("←");
+			final A_Atom key = realSlots.get(i);
+			final L2ReadBoxedOperand value = fieldSources.get(i);
+			builder.append(key);
+			builder.append(": ");
 			builder.append(value.registerString());
 		}
 		builder.append('}');
@@ -120,25 +120,22 @@ extends L2Operation
 		final MethodVisitor method,
 		final L2Instruction instruction)
 	{
-		final L2ReadBoxedVectorOperand fieldKeys = instruction.operand(0);
-		final L2ReadBoxedVectorOperand fieldValues = instruction.operand(1);
+		assert this == instruction.operation();
+		final L2ConstantOperand variantOperand = instruction.operand(0);
+		final L2ReadBoxedVectorOperand fieldsVector = instruction.operand(1);
 		final L2WriteBoxedOperand object = instruction.operand(2);
 
-		// :: map = MapDescriptor.emptyMap();
-		MapDescriptor.emptyMapMethod.generateCall(method);
-		final int limit = fieldKeys.elements().size();
-		assert limit == fieldValues.elements().size();
-		for (int i = 0; i < limit; i++)
+		final ObjectLayoutVariant variant =
+			variantOperand.object.javaObjectNotNull();
+		method.visitLdcInsn(variant);
+		createUninitializedObjectMethod.generateCall(method);
+		final List<L2ReadBoxedOperand> fieldSources = fieldsVector.elements();
+		for (int i = 0, limit = fieldSources.size(); i < limit; i++)
 		{
-			// :: map = map.mapAtPuttingCanDestroy(
-			// ::    «keysVector[i]», «valuesVector[i]», true);
-			translator.load(method, fieldKeys.elements().get(i).register());
-			translator.load(method, fieldValues.elements().get(i).register());
-			translator.intConstant(method, 1);
-			A_Map.mapAtPuttingCanDestroyMethod.generateCall(method);
+			method.visitLdcInsn(i + 1);
+			translator.load(method, fieldSources.get(i).register());
+			setFieldMethod.generateCall(method); // Returns object for chaining.
 		}
-		// :: destinationMap = ObjectDescriptor.objectFromMap(map);
-		ObjectDescriptor.objectFromMapMethod.generateCall(method);
 		translator.store(method, object.register());
 	}
 }

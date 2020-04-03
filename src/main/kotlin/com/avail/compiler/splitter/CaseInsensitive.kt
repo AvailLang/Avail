@@ -33,8 +33,8 @@ package com.avail.compiler.splitter
 
 import com.avail.compiler.ParsingOperation
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.parsing.A_Phrase
+import com.avail.descriptor.phrases.A_Phrase
+import com.avail.descriptor.types.A_Type
 import com.avail.exceptions.SignatureException
 
 /**
@@ -96,8 +96,8 @@ internal class CaseInsensitive constructor(
 
 	@Throws(SignatureException::class)
 	override fun checkType(
-			argumentType: A_Type,
-			sectionNumber: Int) =
+		argumentType: A_Type,
+		sectionNumber: Int) =
 		expression.checkType(argumentType, sectionNumber)
 
 	override fun emitOn(

@@ -52,6 +52,23 @@ Names
 	"Require:_is private"
 Body
 
+Method "_'⁇s instance" is
+[
+	t : any's type
+|
+	Assert: |t| = 1 ("Expected single instance type");
+	t's instances→tuple[1]
+];
+
+Semantic restriction "_'⁇s instance" is
+[
+	tt : any's type's type
+|
+	result : any's type;
+	Cast tt's instance into [t : any's type | result := t;] else [];
+	result
+];
+
 /**
  * Reject the current parse is the argument is not included in the current
  * module's "Names" section. Do nothing if the name is not specifically known.
@@ -68,9 +85,8 @@ Method "Require:_is public" is
 |
 	If |nameType| = 1 then
 	[
-		publicNames ::= current module's public names;
-		methodName ::= nameType's instances→tuple[1];
-		If methodName ∈ publicNames then
+		methodName ::= nameType's instance;
+		If current module has public name methodName then
 		[
 			/* This is the happy path: do nothing. */
 		]
@@ -113,14 +129,13 @@ Method "Require:_is public" is
 |
 	If |nameType| = 1 then
 	[
-		publicNames ::= current module's public names;
-		methodAtom ::= nameType's instances→tuple[1];
+		methodAtom ::= nameType's instance;
 		Invoke
 		[
 			anAtom : atom
 		|
 			methodName ::= anAtom's name;
-			If methodName ∈ publicNames then
+			If current module has public name methodName then
 			[
 				/* This is the happy path: do nothing. */
 			]
@@ -165,9 +180,8 @@ Method "Require:_is private" is
 |
 	If |nameType| = 1 then
 	[
-		publicNames ::= current module's public names;
-		methodName ::= nameType's instances→tuple[1];
-		If methodName ∈ publicNames then
+		methodName ::= nameType's instance;
+		If current module has public name methodName then
 		[
 			Invoke
 			[
@@ -210,14 +224,13 @@ Method "Require:_is private" is
 |
 	If |nameType| = 1 then
 	[
-		publicNames ::= current module's public names;
-		methodAtom ::= nameType's instances→tuple[1];
+		methodAtom ::= nameType's instance;
 		Invoke
 		[
 			anAtom : atom
 		|
 			methodName ::= anAtom's name;
-			If methodName ∈ publicNames then
+			If current module has public name methodName then
 			[
 				Invoke
 				[

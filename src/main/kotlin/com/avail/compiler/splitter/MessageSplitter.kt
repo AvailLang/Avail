@@ -36,19 +36,27 @@ import com.avail.compiler.ParsingOperation
 import com.avail.compiler.problems.CompilerDiagnostics
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter.*
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter.Companion.canBeBackQuoted
-import com.avail.descriptor.*
-import com.avail.descriptor.ObjectTupleDescriptor.tupleFromList
-import com.avail.descriptor.SetDescriptor.set
-import com.avail.descriptor.StringDescriptor.stringFrom
-import com.avail.descriptor.TupleDescriptor.emptyTuple
-import com.avail.descriptor.atoms.AtomDescriptor.*
+import com.avail.descriptor.AvailObject
+import com.avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
+import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import com.avail.descriptor.bundles.A_BundleTree
 import com.avail.descriptor.methods.A_Definition
-import com.avail.descriptor.objects.A_BasicObject
 import com.avail.descriptor.parsing.A_Lexer
-import com.avail.descriptor.parsing.A_Phrase
+import com.avail.descriptor.phrases.A_Phrase
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.sets.A_Set
+import com.avail.descriptor.sets.SetDescriptor.set
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
+import com.avail.descriptor.tuples.StringDescriptor
+import com.avail.descriptor.tuples.StringDescriptor.stringFrom
+import com.avail.descriptor.tuples.TupleDescriptor
+import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.FunctionTypeDescriptor
+import com.avail.descriptor.types.PhraseTypeDescriptor
+import com.avail.descriptor.types.TupleTypeDescriptor
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailErrorCode.*
 import com.avail.exceptions.MalformedMessageException
@@ -273,7 +281,7 @@ class MessageSplitter
 		 *  * If left unadorned, it creates a [RawKeywordTokenArgument], which
 		 *    matches a single [A_Token] of kind [TokenType.KEYWORD].
 		 *  * If followed by an [OCTOTHORP] (#), it creates a
-		 *    [RawWholeNumberLiteralTokenArgument], which matches a single
+		 *    [RawNumericLiteralTokenArgument], which matches a single
 		 *    [A_Token] of kind [TokenType.LITERAL] which yields an integer in
 		 *    the range [0..∞).
 		 *  * If followed by a [DOLLAR_SIGN] ($), it creates a
@@ -318,7 +326,7 @@ class MessageSplitter
 		 * An octothorp (#) after an [ELLIPSIS] (…) indicates that a
 		 * whole-number-valued literal token should be consumed from the Avail
 		 * source code at this position.  This is accomplished through the use
-		 * of a [RawWholeNumberLiteralTokenArgument].
+		 * of a [RawNumericLiteralTokenArgument].
 		 */
 		OCTOTHORP("#"),
 
@@ -1092,7 +1100,7 @@ class MessageSplitter
 		return when {
 			peekFor(EXCLAMATION_MARK) -> RawTokenArgument(
 				tokenStart, leafArgumentCount)
-			peekFor(OCTOTHORP) -> RawWholeNumberLiteralTokenArgument(
+			peekFor(OCTOTHORP) -> RawNumericLiteralTokenArgument(
 				tokenStart, leafArgumentCount)
 			peekFor(DOLLAR_SIGN) -> RawStringLiteralTokenArgument(
 				tokenStart, leafArgumentCount)

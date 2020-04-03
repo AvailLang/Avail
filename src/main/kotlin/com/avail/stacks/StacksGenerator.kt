@@ -37,10 +37,10 @@ import com.avail.builder.ModuleName
 import com.avail.builder.ModuleNameResolver
 import com.avail.compiler.ModuleHeader
 import com.avail.compiler.ModuleImport
-import com.avail.descriptor.CommentTokenDescriptor
 import com.avail.descriptor.ModuleDescriptor
-import com.avail.descriptor.TupleDescriptor
+import com.avail.descriptor.tokens.CommentTokenDescriptor
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.stacks.module.CommentsModule
 import com.avail.utility.IO
 import com.avail.utility.Pair
@@ -48,7 +48,7 @@ import java.io.FileInputStream
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
-import java.nio.charset.StandardCharsets
+import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -82,18 +82,18 @@ import kotlin.collections.set
  *   If the output path exists but does not specify a directory.
  */
 class StacksGenerator @Throws(IllegalArgumentException::class) constructor(
-	val outputPath: Path,
+	private val outputPath: Path,
 	val resolver: ModuleNameResolver)
 {
 	/**
 	 * The path for documentation storage as provided by the user.
 	 */
-	var providedDocumentPath: Path
+	private var providedDocumentPath: Path
 
 	/**
 	 * The directory path for writing JSON Stacks data.
 	 */
-	var jsonPath: Path
+	private var jsonPath: Path
 
 	/**
 	 * An optional prefix to the stacks file link location in the website
@@ -103,7 +103,7 @@ class StacksGenerator @Throws(IllegalArgumentException::class) constructor(
 	/**
 	 * The location used for storing any log files such as error-logs.
 	 */
-	val logPath: Path
+	private val logPath: Path
 
 	/**
 	 * The error log file for the malformed comments.
@@ -120,7 +120,7 @@ class StacksGenerator @Throws(IllegalArgumentException::class) constructor(
 	 * A map of [module names][ModuleName] to a list of all the method
 	 * names exported from said module
 	 */
-	var moduleToComments: HashMap<String, CommentsModule>
+	private var moduleToComments: HashMap<String, CommentsModule>
 
 	init
 	{
@@ -188,7 +188,7 @@ class StacksGenerator @Throws(IllegalArgumentException::class) constructor(
 			String.format(
 				"</ol>\n<h4>Error Count: %d</h4>\n</body>\n</html>",
 				errorLog.errorCount())
-				.toByteArray(StandardCharsets.UTF_8))
+				.toByteArray(UTF_8))
 
 		errorLog.addLogEntry(closeHTML, 0)
 
@@ -254,7 +254,7 @@ class StacksGenerator @Throws(IllegalArgumentException::class) constructor(
 		 * The default path to the output directory for module-oriented
 		 * documentation and data files.
 		 */
-		val defaultDocumentationPath = Paths.get("resources/stacks")
+		val defaultDocumentationPath: Path = Paths.get("resources/stacks")
 
 		/**
 		 * Given a template file path, create a new file with the provided new
@@ -283,16 +283,14 @@ class StacksGenerator @Throws(IllegalArgumentException::class) constructor(
 						StandardOpenOption.TRUNCATE_EXISTING))
 				try
 				{
-					var newFileContent =
-						StacksGenerator.getOuterTemplate(templateFilePath)
+					var newFileContent = getOuterTemplate(templateFilePath)
 					for (pair in replacementPairs)
 					{
 						newFileContent =
 							newFileContent.replace(pair.first(), pair.second())
 					}
 					newFile.write(
-						ByteBuffer
-							.wrap(newFileContent.toByteArray(StandardCharsets.UTF_8)))
+						ByteBuffer.wrap(newFileContent.toByteArray(UTF_8)))
 				}
 				catch (e: IOException)
 				{
@@ -330,7 +328,7 @@ class StacksGenerator @Throws(IllegalArgumentException::class) constructor(
 			IO.close(channel)
 			IO.close(templateFile)
 
-			return String(buf.array(), StandardCharsets.UTF_8)
+			return String(buf.array(), UTF_8)
 		}
 	}
 }

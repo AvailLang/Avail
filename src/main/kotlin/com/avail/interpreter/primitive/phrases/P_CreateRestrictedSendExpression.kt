@@ -36,24 +36,26 @@ import com.avail.AvailRuntime.currentRuntime
 import com.avail.compiler.AvailAcceptedParseException
 import com.avail.compiler.AvailRejectedParseException
 import com.avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
-import com.avail.descriptor.*
-import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.AvailObject
 import com.avail.descriptor.FiberDescriptor.currentFiber
 import com.avail.descriptor.FiberDescriptor.newFiber
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.InstanceMetaDescriptor.topMeta
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
-import com.avail.descriptor.SendPhraseDescriptor.newSendNode
-import com.avail.descriptor.SetDescriptor.set
-import com.avail.descriptor.StringDescriptor.stringFrom
-import com.avail.descriptor.TupleDescriptor.emptyTuple
-import com.avail.descriptor.TupleDescriptor.toList
-import com.avail.descriptor.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.bundles.A_Bundle
+import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.phrases.SendPhraseDescriptor.newSendNode
+import com.avail.descriptor.sets.SetDescriptor.set
 import com.avail.descriptor.tuples.A_String
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.StringDescriptor.stringFrom
+import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.tuples.TupleDescriptor.toList
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.InstanceMetaDescriptor.topMeta
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
+import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
 import com.avail.exceptions.AvailErrorCode.*
 import com.avail.exceptions.MalformedMessageException
 import com.avail.interpreter.Interpreter
@@ -187,8 +189,8 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 					// There were problems.  Fail the primitive with a string
 					// describing them all.
 					@Suppress("UNUSED_VARIABLE")
-					val problemReport: A_String = when {
-						problems.size == 1 -> problems[0]
+					val problemReport: A_String = when (problems.size) {
+						1 -> problems[0]
 						else -> stringFrom(
 							buildString {
 								append(
@@ -201,7 +203,7 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 										increaseIndentation(
 											problem.asNativeString(), 1))
 								}
-						})
+							})
 					}
 					// TODO: Yeah, we went to the effort of assembling a pretty
 					// report about what went wrong, but the bootstrap logic can't

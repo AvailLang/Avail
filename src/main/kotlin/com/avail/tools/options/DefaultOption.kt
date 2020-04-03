@@ -32,10 +32,13 @@
 
 package com.avail.tools.options
 
+import com.avail.tools.options.OptionProcessorFactory.Cardinality
+import com.avail.tools.options.OptionProcessorFactory.OptionInvocationWithArgument
+
 /**
- * A `DefaultOption` is the [option][Option] that an [option
- * processor][OptionProcessor] recognizes bare arguments as being implicitly
- * associated with.
+ * A `DefaultOption` is the [option][Option] that an
+ * [option&#32;processor][OptionProcessor] recognizes bare arguments as being
+ * implicitly associated with.
  *
  * @param OptionKeyType
  *   The type of the option.
@@ -48,13 +51,17 @@ package com.avail.tools.options
  *
  * @param optionKey
  *   The option key.
+ * @param cardinality
+ *   The basic constraint on the number of occurrences of this option.
  * @param description
  *   A description of the `DefaultOption`.
- * @param action
+ * @param action2
  *   The action that should be performed upon setting of this `DefaultOption`.
  */
-class DefaultOption<OptionKeyType : Enum<OptionKeyType>>(
+internal class DefaultOption<OptionKeyType : Enum<OptionKeyType>>(
 	optionKey: OptionKeyType,
+	cardinality: Cardinality,
 	description: String,
-	action: OptionProcessor<OptionKeyType>.(String, String?) -> Unit)
-: GenericOption<OptionKeyType>(optionKey, listOf(""), description, action)
+	action2: OptionInvocationWithArgument<OptionKeyType>.() -> Unit
+) : GenericOption<OptionKeyType>(
+	optionKey, listOf(""), cardinality, description, null, action2)

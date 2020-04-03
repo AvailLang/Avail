@@ -1123,11 +1123,10 @@ class DotWriter constructor(
 			DecoratedNode(name, port, compassPoint)
 
 		/** The pattern to match for light/dark bimodal colors. */
-		val multicolorPattern =
+		val multicolorPattern: Pattern =
 			Pattern.compile("^#([0-9a-fA-F]{6})/#?([0-9a-fA-F]{6})$")
 
 		/** The pattern to match for light-only colors. */
-		val unicolorPattern =
-			Pattern.compile("^#([0-9a-fA-F]{6})$")
+		val unicolorPattern: Pattern = Pattern.compile("^#([0-9a-fA-F]{6})$")
 	}
 }

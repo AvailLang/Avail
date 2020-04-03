@@ -159,12 +159,14 @@ Public method "_(_)is an SI base unit" is
 			impl ::= «[ <> | <`aUnit` ("") → literal phrase> ]
 				: aUnit's type»→function;
 			Stable method longName is impl;
-			publicNames ::= current module's public names;
-			Unless longName ∈ publicNames then [Export longName as a new name;];
+			Unless current module has public name longName then
+			[
+				Export longName as a new name;
+			];
 			Unless longName = shortName then
 			[
 				Alias shortName to longName;
-				Unless shortName ∈ publicNames then
+				Unless current module has public name shortName then
 				[
 					Export shortName as a new name;
 				];
@@ -224,12 +226,14 @@ Public method "_(_)is an SI derived unit equivalent to_" is
 			impl ::= «[ <> | <`aUnit` ("")→literal phrase> ]
 				: aUnit's type»→function;
 			Stable method longName is impl;
-			publicNames ::= current module's public names;
-			Unless longName ∈ publicNames then [Export longName as a new name;];
+			Unless current module has public name longName then
+			[
+				Export longName as a new name;
+			];
 			Unless longName = shortName then
 			[
 				Alias shortName to longName;
-				Unless shortName ∈ publicNames then
+				Unless current module has public name shortName then
 				[
 					Export shortName as a new name;
 				];

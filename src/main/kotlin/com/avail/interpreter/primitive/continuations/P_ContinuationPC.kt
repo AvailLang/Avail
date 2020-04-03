@@ -31,12 +31,12 @@
  */
 package com.avail.interpreter.primitive.continuations
 
-import com.avail.descriptor.*
-import com.avail.descriptor.ContinuationTypeDescriptor.mostGeneralContinuationType
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.IntegerDescriptor.fromInt
-import com.avail.descriptor.IntegerRangeTypeDescriptor.naturalNumbers
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.numbers.IntegerDescriptor.fromInt
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.ContinuationTypeDescriptor.mostGeneralContinuationType
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.naturalNumbers
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*

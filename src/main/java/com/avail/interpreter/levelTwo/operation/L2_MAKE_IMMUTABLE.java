@@ -31,8 +31,7 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.types.A_Type;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
@@ -47,6 +46,7 @@ import org.objectweb.asm.MethodVisitor;
 import java.util.Set;
 import java.util.function.Consumer;
 
+import static com.avail.descriptor.representation.A_BasicObject.makeImmutableMethod;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
 import static com.avail.utility.Casts.cast;
@@ -190,7 +190,7 @@ extends L2Operation
 
 		// :: output = input.makeImmutable();
 		translator.load(method, read.register());
-		A_BasicObject.makeImmutableMethod.generateCall(method);
+		makeImmutableMethod.generateCall(method);
 		translator.store(method, write.register());
 	}
 }

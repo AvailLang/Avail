@@ -32,8 +32,8 @@
 
 package com.avail.stacks.scanner
 
-import com.avail.descriptor.CommentTokenDescriptor
-import com.avail.descriptor.TokenDescriptor
+import com.avail.descriptor.tokens.CommentTokenDescriptor
+import com.avail.descriptor.tokens.TokenDescriptor
 import com.avail.stacks.exceptions.StacksScannerException
 import com.avail.stacks.tokens.AbstractStacksToken
 import com.avail.stacks.tokens.BracketedStacksToken

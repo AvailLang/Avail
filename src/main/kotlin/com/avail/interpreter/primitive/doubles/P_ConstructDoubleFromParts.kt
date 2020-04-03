@@ -32,16 +32,16 @@
 
 package com.avail.interpreter.primitive.doubles
 
-import com.avail.descriptor.A_Number
-import com.avail.descriptor.A_Token
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.DoubleDescriptor.fromDouble
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.IntegerRangeTypeDescriptor.integers
-import com.avail.descriptor.IntegerRangeTypeDescriptor.wholeNumbers
-import com.avail.descriptor.LiteralTokenTypeDescriptor.literalTokenType
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.TypeDescriptor.Types.DOUBLE
+import com.avail.descriptor.numbers.A_Number
+import com.avail.descriptor.numbers.DoubleDescriptor.fromDouble
+import com.avail.descriptor.tokens.A_Token
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.integers
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.wholeNumbers
+import com.avail.descriptor.types.LiteralTokenTypeDescriptor.literalTokenType
+import com.avail.descriptor.types.TypeDescriptor.Types.DOUBLE
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*

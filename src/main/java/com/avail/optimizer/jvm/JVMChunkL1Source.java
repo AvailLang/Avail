@@ -32,7 +32,7 @@
 
 package com.avail.optimizer.jvm;
 
-import com.avail.descriptor.A_RawFunction;
+import com.avail.descriptor.functions.A_RawFunction;
 import com.avail.interpreter.Interpreter;
 import com.avail.optimizer.ExecutableChunk;
 

@@ -32,14 +32,14 @@
 
 package com.avail.interpreter.primitive.general
 
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.ByteBufferTupleDescriptor
-import com.avail.descriptor.ByteBufferTupleDescriptor.tupleForByteBuffer
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.IntegerRangeTypeDescriptor.bytes
-import com.avail.descriptor.IntegerRangeTypeDescriptor.singleInt
-import com.avail.descriptor.TupleDescriptor.emptyTuple
-import com.avail.descriptor.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType
+import com.avail.descriptor.tuples.ByteBufferTupleDescriptor
+import com.avail.descriptor.tuples.ByteBufferTupleDescriptor.tupleForByteBuffer
+import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.bytes
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.singleInt
+import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*

@@ -33,7 +33,13 @@
 package com.avail.descriptor;
 
 import com.avail.annotations.AvailMethod;
-import com.avail.descriptor.objects.A_BasicObject;
+import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
+import com.avail.descriptor.numbers.IntegerDescriptor;
+import com.avail.descriptor.representation.A_BasicObject;
+import com.avail.descriptor.representation.BitField;
+import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.types.A_Type;
+import com.avail.descriptor.types.TypeTag;
 import com.avail.exceptions.MarshalingException;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
@@ -42,9 +48,12 @@ import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.CharacterDescriptor.IntegerSlots.CODE_POINT;
-import static com.avail.descriptor.IntegerDescriptor.computeHashOfInt;
-import static com.avail.descriptor.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.TypeDescriptor.Types.CHARACTER;
+import static com.avail.descriptor.numbers.IntegerDescriptor.computeHashOfInt;
+import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple;
+import static com.avail.descriptor.tuples.StringDescriptor.stringFrom;
+import static com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith;
+import static com.avail.descriptor.types.TupleTypeDescriptor.oneOrMoreOf;
+import static com.avail.descriptor.types.TypeDescriptor.Types.CHARACTER;
 
 /**
  * {@code CharacterDescriptor} implements an Avail character. Avail characters
@@ -65,8 +74,7 @@ public final class CharacterDescriptor
 extends Descriptor
 {
 	/** The layout of integer slots for my instances. */
-	public enum IntegerSlots
-	implements IntegerSlotsEnum
+	public enum IntegerSlots implements IntegerSlotsEnumJava
 	{
 		/**
 		 * The Unicode code point.  Don't bother with a {@link BitField}, as all
@@ -126,7 +134,7 @@ extends Descriptor
 	 * @param codePoint A Unicode code point.
 	 * @return A hash.
 	 */
-	static int computeHashOfCharacterWithCodePoint (final int codePoint)
+	public static int computeHashOfCharacterWithCodePoint (final int codePoint)
 	{
 		return computeHashOfInt(codePoint ^ 0xD68E9947);
 	}
@@ -138,7 +146,7 @@ extends Descriptor
 	 * @param codePoint An unsigned 8-bit Unicode code point.
 	 * @return A hash.
 	 */
-	static int hashOfByteCharacterWithCodePoint (final short codePoint)
+	public static int hashOfByteCharacterWithCodePoint (final short codePoint)
 	{
 		assert codePoint >= 0 && codePoint <= 255;
 		return hashesOfByteCharacters[codePoint];
@@ -151,7 +159,8 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_Equals (final AvailObject object, final A_BasicObject another)
+	public boolean o_Equals (
+		final AvailObject object, final A_BasicObject another)
 	{
 		return another.equalsCharacterWithCodePoint(
 			(int) object.slot(CODE_POINT));
@@ -166,7 +175,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_Hash (final AvailObject object)
+	public int o_Hash (final AvailObject object)
 	{
 		final int codePoint = (int) object.slot(CODE_POINT);
 		if (codePoint >= 0 && codePoint <= 255)
@@ -280,7 +289,7 @@ extends Descriptor
 		new CharacterDescriptor(Mutability.MUTABLE);
 
 	@Override
-	protected CharacterDescriptor mutable ()
+	public CharacterDescriptor mutable ()
 	{
 		return mutable;
 	}
@@ -290,14 +299,14 @@ extends Descriptor
 		new CharacterDescriptor(Mutability.SHARED);
 
 	@Override
-	protected CharacterDescriptor immutable ()
+	public CharacterDescriptor immutable ()
 	{
 		// There is no immutable variant; answer the shared descriptor.
 		return shared;
 	}
 
 	@Override
-	protected CharacterDescriptor shared ()
+	public CharacterDescriptor shared ()
 	{
 		return shared;
 	}
@@ -361,4 +370,12 @@ extends Descriptor
 
 	/** The maximum code point value as an {@code int}. */
 	public static final int maxCodePointInt = Character.MAX_CODE_POINT;
+
+	/** A type that contains all ASCII decimal digit characters. */
+	public static final A_Type digitsType =
+		enumerationWith(stringFrom("0123456789").asSet()).makeShared();
+
+	/** The type for non-empty strings of ASCII decimal digits. */
+	public static final A_Type nonemptyStringOfDigitsType =
+		oneOrMoreOf(digitsType);
 }

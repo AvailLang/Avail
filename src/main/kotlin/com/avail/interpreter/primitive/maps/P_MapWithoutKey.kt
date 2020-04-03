@@ -31,17 +31,17 @@
  */
 package com.avail.interpreter.primitive.maps
 
-import com.avail.descriptor.A_RawFunction
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.IntegerDescriptor.one
-import com.avail.descriptor.IntegerDescriptor.zero
-import com.avail.descriptor.IntegerRangeTypeDescriptor.integerRangeType
-import com.avail.descriptor.MapDescriptor
-import com.avail.descriptor.MapTypeDescriptor.mapTypeForSizesKeyTypeValueType
-import com.avail.descriptor.MapTypeDescriptor.mostGeneralMapType
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.TypeDescriptor.Types.ANY
+import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.maps.MapDescriptor
+import com.avail.descriptor.numbers.IntegerDescriptor.one
+import com.avail.descriptor.numbers.IntegerDescriptor.zero
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.integerRangeType
+import com.avail.descriptor.types.MapTypeDescriptor.mapTypeForSizesKeyTypeValueType
+import com.avail.descriptor.types.MapTypeDescriptor.mostGeneralMapType
+import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*

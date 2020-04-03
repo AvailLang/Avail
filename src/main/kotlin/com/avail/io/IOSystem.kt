@@ -35,10 +35,10 @@ package com.avail.io
 import com.avail.AvailRuntime
 import com.avail.AvailRuntimeConfiguration.availableProcessors
 import com.avail.AvailThread
-import com.avail.descriptor.AvailObject.multiplier
-import com.avail.descriptor.PojoDescriptor
+import com.avail.descriptor.AvailObject.Companion.multiplier
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom
+import com.avail.descriptor.pojos.PojoDescriptor
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.utility.LRUCache
@@ -319,7 +319,7 @@ class IOSystem constructor(val runtime: AvailRuntime)
 		 * removals to happen efficiently.
 		 */
 		val bufferKeys: MutableMap<BufferKey, Void> =
-			synchronizedMap(WeakHashMap<BufferKey, Void>())
+			synchronizedMap(WeakHashMap())
 	}
 
 	/**

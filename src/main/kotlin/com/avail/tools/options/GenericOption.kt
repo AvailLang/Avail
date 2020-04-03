@@ -32,6 +32,7 @@
 
 package com.avail.tools.options
 
+import com.avail.tools.options.OptionProcessorFactory.*
 import java.util.*
 
 /**
@@ -46,11 +47,14 @@ import java.util.*
  *   An end-user comprehensible description of the [option][GenericOption].
  * @property action
  *   The action that should be performed upon setting of this
- *   [option][GenericOption].  The second parameter *may* be required to be
- *   `null` or required to be not `null`, depending on how this option was
- *   created.
+ *   [option][GenericOption] with no argument. Exactly one of [action] or
+ *   [action2] must be non-`null`.
+ * @param action2
+ *   The action that should be performed upon setting of this `GenericOption`
+ *   with an argument. Exactly one of [action] or [action2] must be non-`null`.
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
  * @constructor
  *
@@ -64,79 +68,28 @@ import java.util.*
  *   A description of the `GenericOption`.
  * @param action
  *   The action that should be performed upon setting of this `GenericOption`.
+ *   No argument must not be provided.  Exactly one of [action] or [action2]
+ *   must be non-`null`.
+ * @param action2
+ *   The action that should be performed upon setting of this `GenericOption`.
+ *   An argument must be provided. Exactly one of [action] or [action2] must
+ *   be non-`null`.
  */
-open class GenericOption<OptionKeyType : Enum<OptionKeyType>> constructor(
-	override val key: OptionKeyType,
-	keywords: Collection<String> = emptySet(),
-	override val description: String,
-	override val action:
-		OptionProcessor<OptionKeyType>.(String, String?) -> Unit)
-: Option<OptionKeyType>
+internal open class GenericOption<OptionKeyType : Enum<OptionKeyType>>
+	constructor(
+		override val key: OptionKeyType,
+		keywords: Collection<String>,
+		override val cardinality: Cardinality,
+		override val description: String,
+		override val action:
+			(OptionInvocation<OptionKeyType>.() -> Unit)?,
+		override val action2:
+			(OptionInvocationWithArgument<OptionKeyType>.() -> Unit)?)
+	: Option<OptionKeyType>
 {
 	/**
 	 * The [set][LinkedHashSet] of keywords that indicate this
 	 * [option][GenericOption].
 	 */
 	override val keywords: LinkedHashSet<String> = LinkedHashSet(keywords)
-
-	/**
-	 * Construct a new [GenericOption] that takes no argument.
-	 *
-	 * @param key
-	 *   The option key.
-	 * @param keywords
-	 *   The keywords that indicate this `GenericOption`.
-	 * @param description
-	 *   A description of the `GenericOption`.
-	 * @param action
-	 *   The action that should be performed upon setting of this
-	 *   `GenericOption`.
-	 */
-	constructor(
-		key: OptionKeyType,
-		keywords: Collection<String> = emptySet(),
-		description: String,
-		action: OptionProcessor<OptionKeyType>.(String) -> Unit)
-	: this(key, keywords, description, { keyword, forbidden ->
-		if (forbidden !== null)
-		{
-			throw OptionProcessingException(
-				"$keyword: An argument was specified, but none are "
-				+ "permitted.")
-		}
-		action(keyword)
-	})
-
-	/**
-	 * Construct a new {#code GenericOption} that takes no argument.
-	 *
-	 * @param key
-	 *   The option key.
-	 * @param keywords
-	 *   The keywords that indicate this `GenericOption`.
-	 * @param description
-	 *   A description of the `GenericOption`.
-	 * @param action1
-	 *   The action that should be performed upon setting of this
-	 *   `GenericOption` with no argument.
-	 * @param action2
-	 *   The action that should be performed upon setting of this
-	 *   `GenericOption` with an argument.
-	 */
-	constructor(
-		key: OptionKeyType,
-		keywords: Collection<String> = emptySet(),
-		description: String,
-		action1: OptionProcessor<OptionKeyType>.(String) -> Unit,
-		action2: OptionProcessor<OptionKeyType>.(String, String) -> Unit)
-	: this(key, keywords, description, { keyword, optionalArgument ->
-		if (optionalArgument === null)
-		{
-			action1(keyword)
-		}
-		else
-		{
-			action2(keyword, optionalArgument)
-		}
-	})
 }

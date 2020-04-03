@@ -31,9 +31,9 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.A_Type;
-import com.avail.descriptor.A_Variable;
-import com.avail.descriptor.VariableDescriptor;
+import com.avail.descriptor.types.A_Type;
+import com.avail.descriptor.variables.A_Variable;
+import com.avail.descriptor.variables.VariableDescriptor;
 import com.avail.exceptions.VariableSetException;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
@@ -49,7 +49,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import static com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType;
+import static com.avail.descriptor.types.VariableTypeDescriptor.mostGeneralVariableType;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;
@@ -107,34 +107,6 @@ extends L2ControlFlowOperation
 	public boolean hasSideEffect ()
 	{
 		return true;
-	}
-
-	@Override
-	public boolean regenerate (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
-		final L2Generator generator)
-	{
-		final L2ReadBoxedOperand variable = instruction.operand(0);
-		final L2ReadBoxedOperand value = instruction.operand(1);
-//		final L2PcOperand success = instruction.operand(2);
-//		final L2PcOperand failure = instruction.operand(3);
-
-		final A_Type varType = registerSet.typeAt(variable.register());
-		final A_Type valueType = registerSet.typeAt(value.register());
-		if (valueType.isSubtypeOf(varType.writeType()))
-		{
-			// Type propagation has strengthened the value's type enough to
-			// be able to avoid the check.
-			generator.addInstruction(
-				L2_SET_VARIABLE_NO_CHECK.instance,
-				instruction.operand(0),
-				instruction.operand(1),
-				instruction.operand(2),
-				instruction.operand(3));
-			return true;
-		}
-		return super.regenerate(instruction, registerSet, generator);
 	}
 
 	@Override

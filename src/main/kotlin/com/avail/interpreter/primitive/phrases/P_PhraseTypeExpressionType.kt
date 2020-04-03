@@ -31,15 +31,15 @@
  */
 package com.avail.interpreter.primitive.phrases
 
-import com.avail.descriptor.A_RawFunction
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
-import com.avail.descriptor.InstanceMetaDescriptor.instanceMeta
-import com.avail.descriptor.InstanceMetaDescriptor.topMeta
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.PhraseTypeDescriptor
-import com.avail.descriptor.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
-import com.avail.descriptor.TypeDescriptor
+import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.InstanceMetaDescriptor.instanceMeta
+import com.avail.descriptor.types.InstanceMetaDescriptor.topMeta
+import com.avail.descriptor.types.PhraseTypeDescriptor
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
+import com.avail.descriptor.types.TypeDescriptor
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*

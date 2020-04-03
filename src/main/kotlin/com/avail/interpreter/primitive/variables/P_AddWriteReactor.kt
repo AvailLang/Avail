@@ -32,19 +32,19 @@
 
 package com.avail.interpreter.primitive.variables
 
-import com.avail.descriptor.A_Type
-import com.avail.descriptor.AbstractEnumerationTypeDescriptor.enumerationWith
-import com.avail.descriptor.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.NilDescriptor.nil
-import com.avail.descriptor.ObjectTupleDescriptor.tuple
-import com.avail.descriptor.SetDescriptor.set
-import com.avail.descriptor.TupleDescriptor.emptyTuple
-import com.avail.descriptor.TypeDescriptor.Types.ATOM
-import com.avail.descriptor.TypeDescriptor.Types.TOP
-import com.avail.descriptor.VariableDescriptor
-import com.avail.descriptor.VariableDescriptor.VariableAccessReactor
-import com.avail.descriptor.VariableTypeDescriptor.mostGeneralVariableType
 import com.avail.descriptor.atoms.AtomDescriptor
+import com.avail.descriptor.sets.SetDescriptor.set
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
+import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
+import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
+import com.avail.descriptor.types.TypeDescriptor.Types.TOP
+import com.avail.descriptor.types.VariableTypeDescriptor.mostGeneralVariableType
+import com.avail.descriptor.variables.VariableDescriptor
+import com.avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
 import com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
