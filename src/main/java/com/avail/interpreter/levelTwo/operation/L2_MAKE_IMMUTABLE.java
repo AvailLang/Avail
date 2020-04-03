@@ -149,16 +149,8 @@ extends L2Operation
 		final L2WriteBoxedOperand write = instruction.operand(1);
 
 		read.instructionWasAdded(manifest);
-
-		// Only deal with the boxed form.  The unboxed values are dealt with by
-		// subsequent move instructions.
-		final L2Synonym synonym =
-			manifest.semanticValueToSynonym(read.semanticValue());
-
-		// Make inaccessible all places holding the mutable boxed value.
-		manifest.forget(synonym);
-
-		write.instructionWasAdded(manifest);
+		write.instructionWasAddedForMakeImmutable(
+			read.semanticValue(), manifest);
 	}
 
 	@Override

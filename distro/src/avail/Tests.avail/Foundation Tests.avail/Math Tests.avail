@@ -555,7 +555,7 @@ Test "float representation reinterpretation" in math test suite is
 	Require: (-2.0f) reinterpreted as bits = 0xC0000000 - 2^32;
 	Require: 1.0f reinterpreted as bits = 0x3F800000;
 	Require: (-1.0f) reinterpreted as bits = 0xBF800000 - 2^32;
-	Require: 0_1.0_0e0_1f reinterpreted as bits = 0x3F800000;
+	Require: 0_1.0_0e0_1f reinterpreted as bits = 0x41200000;
 ];
 
 Test "double representation reinterpretation" in math test suite is
@@ -580,5 +580,5 @@ Test "double representation reinterpretation" in math test suite is
 	Require: (-2.0) reinterpreted as bits = 0xC000000000000000 - 2^64;
 	Require: 1.0 reinterpreted as bits = 0x3FF0000000000000;
 	Require: (-1.0) reinterpreted as bits = 0xBFF0000000000000 - 2^64;
-	Require: 0_1.0_0e0_1 reinterpreted as bits = 0x3FF0000000000000;
+	Require: 0_1.0_0e0_1 reinterpreted as bits = 0x4024000000000000;
 ];
