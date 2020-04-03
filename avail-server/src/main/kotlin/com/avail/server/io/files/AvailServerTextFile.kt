@@ -32,9 +32,9 @@
 
 package com.avail.server.io.files
 
-import com.avail.descriptor.StringDescriptor
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.StringDescriptor
 import com.avail.io.SimpleCompletionHandler
 import com.avail.utility.Casts
 import java.io.IOException
