@@ -59,7 +59,7 @@ import com.avail.optimizer.L1Translator
  */
 @Suppress("unused")
 object P_PrivateGetSpecificObjectField : Primitive(
-	1, Private, CanFold, CanInline, CannotFail)
+	1, Private, CanInline, CannotFail)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{

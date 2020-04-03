@@ -627,8 +627,8 @@ implements ExecutableChunk
 	 */
 	public static int countdownForNewCode ()
 	{
-		return 100;
-	}
+		return 1;
+	} //TODO 100
 
 	/**
 	 * Return the number of times to invoke a {@linkplain CompiledCodeDescriptor
