@@ -64,7 +64,7 @@ import com.avail.descriptor.types.ContinuationTypeDescriptor.continuationTypeFor
 import com.avail.descriptor.types.FunctionTypeDescriptor.mostGeneralFunctionType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.*
 import com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor
-import com.avail.descriptor.variables.VariableDescriptor.newVariableWithOuterType
+import com.avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithOuterType
 import com.avail.utility.PrefixSharingList.last
 import java.util.*
 import java.util.function.Function

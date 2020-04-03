@@ -40,7 +40,7 @@ import com.avail.descriptor.types.TypeDescriptor.Types.MODULE
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.descriptor.types.VariableTypeDescriptor.variableMeta
 import com.avail.descriptor.variables.VariableSharedGlobalDescriptor
-import com.avail.descriptor.variables.VariableSharedGlobalDescriptor.createGlobal
+import com.avail.descriptor.variables.VariableSharedGlobalDescriptor.Companion.createGlobal
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*

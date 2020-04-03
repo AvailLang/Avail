@@ -827,7 +827,7 @@ public final class L1InstructionStepper
 	{
 		try
 		{
-			return variable.getValue();
+			return variable.value();
 		}
 		catch (final VariableGetException e)
 		{

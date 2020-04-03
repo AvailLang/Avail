@@ -114,7 +114,7 @@ import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForSizesTypesDefa
 import com.avail.descriptor.types.TypeDescriptor
 import com.avail.descriptor.types.VariableTypeDescriptor.variableReadWriteType
 import com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor
-import com.avail.descriptor.variables.VariableDescriptor.newVariableWithOuterType
+import com.avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithOuterType
 import com.avail.exceptions.AvailErrorCode.E_JAVA_METHOD_NOT_AVAILABLE
 import com.avail.exceptions.AvailRuntimeException
 import com.avail.exceptions.MalformedMessageException
@@ -1246,7 +1246,7 @@ enum class SerializerOperation constructor(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			assert(!obj.isGlobal)
+			assert(!obj.isGlobal())
 			return array(obj.kind())
 		}
 
@@ -1286,7 +1286,7 @@ enum class SerializerOperation constructor(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			assert(obj.isGlobal)
+			assert(obj.isGlobal())
 			val flags =
 				(if (obj.isInitializedWriteOnceVariable) 1 else 0) +
 					if (obj.valueWasStablyComputed()) 2 else 0

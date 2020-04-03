@@ -38,7 +38,7 @@ import com.avail.descriptor.types.ContinuationTypeDescriptor.mostGeneralContinua
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor
 import com.avail.descriptor.variables.VariableDescriptor
-import com.avail.descriptor.variables.VariableDescriptor.newVariableWithContentType
+import com.avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
