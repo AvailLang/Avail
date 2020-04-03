@@ -33,6 +33,7 @@ package com.avail.descriptor.atoms
 
 import com.avail.descriptor.A_Module
 import com.avail.descriptor.AvailObject
+import com.avail.descriptor.ModuleDescriptor
 import com.avail.descriptor.NilDescriptor
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.MessageBundleDescriptor
@@ -41,19 +42,21 @@ import com.avail.descriptor.tuples.A_String
 import com.avail.exceptions.MalformedMessageException
 
 /**
- * `A_Atom` is an interface that specifies the atom-specific operations
- * that an [AvailObject] must implement.  It's a sub-interface of [ ], the interface that defines the behavior that all AvailObjects
- * are required to support.
+ * `A_Atom` is an interface that specifies the atom-specific operations that an
+ * [AvailObject] must implement.  It's a sub-interface of [A_BasicObject], the
+ * interface that defines the behavior that all [AvailObject]s are required to
+ * support.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 interface A_Atom : A_BasicObject {
 	/**
 	 * Answer the descriptive string that was supplied when this atom was
-	 * created.  The string didn't have to be unique within the [ ][.issuingModule], but certain operations might only work if it happens
-	 * to be.
+	 * created.  The string didn't have to be unique within the [issuingModule],
+	 * but certain operations might only work if it happens to be.
 	 *
-	 * @return The string within this [atom][AtomDescriptor].
+	 * @return
+	 *   The string within this [atom][AtomDescriptor].
 	 */
 	fun atomName(): A_String
 
@@ -61,17 +64,19 @@ interface A_Atom : A_BasicObject {
 	 * Answer the [module][ModuleDescriptor] within which this
 	 * [atom][AtomDescriptor] was created.
 	 *
-	 * @return The issuing module.
+	 * @return
+	 *   The issuing module.
 	 */
 	fun issuingModule(): A_Module
 
 	/**
-	 * Extract a Java `boolean` from this atom.  The atom must be either
-	 * the object [AtomDescriptor.trueObject] or the object
+	 * Extract a Java `boolean` from this atom.  The atom must be either the
+	 * object [AtomDescriptor.trueObject] or the object
 	 * [AtomDescriptor.falseObject].
 	 *
-	 * @return `true` if it's the trueObject(), `false` if it's the
-	 * falseObject(), and otherwise fail.
+	 * @return
+	 *   `true` if it's the trueObject(), `false` if it's the falseObject(), and
+	 *   otherwise fail.
 	 */
 	fun extractBoolean(): Boolean
 
@@ -83,10 +88,9 @@ interface A_Atom : A_BasicObject {
 	 * encapsulated.
 	 *
 	 * @param key
-	 * The property key to affect, an [            atom][AtomDescriptor].
+	 *   The property key to affect, an [atom][AtomDescriptor].
 	 * @param value
-	 * The value to associate with that property key within the
-	 * receiver.
+	 *   The value to associate with that property key within the receiver.
 	 */
 	fun setAtomProperty(key: A_Atom, value: A_BasicObject)
 
@@ -97,38 +101,40 @@ interface A_Atom : A_BasicObject {
 	 * everything else is thereby encapsulated.
 	 *
 	 * @param key
-	 * The property key to look up, an [            atom][AtomDescriptor].
+	 *   The property key to look up, an [atom][AtomDescriptor].
 	 * @return
-	 * The value associated with that property key within the
-	 * receiver.
+	 *   The value associated with that property key within the receiver.
 	 */
 	fun getAtomProperty(key: A_Atom): AvailObject
 
 	/**
-	 * Answer the [message bundle][MessageBundleDescriptor] associated
-	 * with this atom.  If the atom does not yet have a message bundle
-	 * associated with it, create one for that purpose and install it.
+	 * Answer the [message&#32;bundle][MessageBundleDescriptor] associated with
+	 * this atom.  If the atom does not yet have a message bundle associated
+	 * with it, create one for that purpose and install it.
 	 *
-	 * @return The atom's message bundle.
+	 * @return
+	 *   The atom's message bundle.
 	 * @throws MalformedMessageException
-	 * If anything is wrong with the message name.
+	 *   If anything is wrong with the message name.
 	 */
 	@Throws(MalformedMessageException::class)
 	fun bundleOrCreate(): A_Bundle
 
 	/**
-	 * Answer the [message bundle][MessageBundleDescriptor] associated
-	 * with this atom.  If the atom does not yet have a message bundle
-	 * associated with it, answer [nil][NilDescriptor].
+	 * Answer the [message&#32;bundle][MessageBundleDescriptor] associated with
+	 * this atom.  If the atom does not yet have a message bundle associated
+	 * with it, answer [nil][NilDescriptor].
 	 *
-	 * @return The atom's message bundle or nil.
+	 * @return
+	 *   The atom's message bundle or nil.
 	 */
 	fun bundleOrNil(): A_Bundle
 
 	/**
 	 * Answer whether this atom is specially known to the Avail virtual machine.
 	 *
-	 * @return Whether this atom is special to the VM.
+	 * @return
+	 *   Whether this atom is special to the VM.
 	 */
 	val isAtomSpecial: Boolean
 }

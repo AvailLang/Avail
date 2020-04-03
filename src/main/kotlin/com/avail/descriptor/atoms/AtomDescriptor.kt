@@ -44,12 +44,10 @@ import com.avail.descriptor.bundles.MessageBundleDescriptor
 import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.representation.*
+import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.StringDescriptor.stringFrom
-import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.EnumerationTypeDescriptor
-import com.avail.descriptor.types.TypeDescriptor
-import com.avail.descriptor.types.TypeTag
+import com.avail.descriptor.types.*
 import com.avail.exceptions.MalformedMessageException
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
@@ -57,66 +55,54 @@ import java.util.*
 import java.util.regex.Pattern
 
 /**
- * An `atom` is an object that has identity by fiat, i.e., it is
+ * An [atom][A_Atom] is an object that has identity by fiat, i.e., it is
  * distinguished from all other objects by the fact of its creation event and
  * the history of what happens to its references.  Not all objects in Avail have
  * that property (hence the acronym Advanced Value And Identity Language),
  * unlike most object-oriented programming languages.
  *
- *
- *
- * When an atom is created, a string is supplied to act as the atom's name.
- * This name does not have to be unique among atoms, and is simply used to
- * describe the atom textually.
- *
- *
- *
+ * When an atom is created, a [string][A_String] is supplied to act as the
+ * atom's name. This name does not have to be unique among atoms, and is simply
+ * used to describe the atom textually.
  *
  * Atoms fill the role of enumerations commonly found in other languages.
  * They're not the only things that can fill that role, but they're a simple way
- * to do so.  In particular, [ enumerations][AbstractEnumerationTypeDescriptor] and multiply polymorphic method dispatch provide a phenomenally
- * powerful technique when combined with atoms.  A collection of atoms, say
- * named `red`, `green`, and `blue`, are added to a
- * [set][SetDescriptor] from which an enumeration is then constructed.
- * Such a type has exactly three instances: the three atoms.  Unlike the vast
- * majority of languages that support enumerations, Avail allows one to define
- * another enumeration containing the same three values plus `yellow`,
- * `cyan`, and `magenta`.  `red` is a member of both
- * enumerations, for example.
- *
- *
- *
+ * to do so.  In particular, [enumerations][AbstractEnumerationTypeDescriptor]
+ * and multiply polymorphic method dispatch provide a phenomenally powerful
+ * technique when combined with atoms.  A collection of atoms, say named `red`,
+ * `green`, and `blue`, are added to a [set][SetDescriptor] from which an
+ * enumeration is then constructed. Such a type has exactly three instances: the
+ * three atoms.  Unlike the vast majority of languages that support
+ * enumerations, Avail allows one to define another enumeration containing the
+ * same three values plus `yellow`, `cyan`, and `magenta`.  `red` is a member of
+ * both enumerations, for example.
  *
  * Booleans are implemented with exactly this technique, with an atom
- * representing `true` and another representing `false`.
- * The boolean type itself is merely an enumeration of these two values.  The
- * only thing special about booleans is that they are referenced by the Avail
- * virtual machine.  In fact, this very class, `AtomDescriptor`, contains
- * these references in [.trueObject] and [.falseObject].
+ * representing `true` and another representing `false`. The boolean type itself
+ * is merely an enumeration of these two values.  The only thing special about
+ * booleans is that they are referenced by the Avail virtual machine.  In fact,
+ * this very class, `AtomDescriptor`, contains these references in [trueObject]
+ * and [falseObject].
  *
+ * @constructor
+ * @param mutability
+ *   The [mutability][Mutability] of the new descriptor.
+ * @param typeTag
+ *   The [TypeTag] to embed in the new descriptor.
+ * @param objectSlotsEnumClass
+ *   The Java [Class] which is a subclass of [ObjectSlotsEnum] and defines this
+ *   object's object slots layout, or `null` if there are no object slots.
+ * @param integerSlotsEnumClass
+ *   The Java [Class] which is a subclass of [IntegerSlotsEnum] and defines this
+ *   object's integer slots layout, or `null` if there are no integer slots.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
- * @see AtomWithPropertiesDescriptor
  *
+ * @see AtomWithPropertiesDescriptor
  * @see AtomWithPropertiesSharedDescriptor
  */
-open class AtomDescriptor
-	/**
-	 * Construct a new `AtomDescriptor`.
-	 *
-	 * @param mutability
-	 * The [mutability][Mutability] of the new descriptor.
-	 * @param typeTag
-	 * The [TypeTag] to embed in the new descriptor.
-	 * @param objectSlotsEnumClass
-	 * The Java [Class] which is a subclass of [            ] and defines this object's object slots
-	 * layout, or null if there are no object slots.
-	 * @param integerSlotsEnumClass
-	 * The Java [Class] which is a subclass of [            ] and defines this object's object slots
-	 * layout, or null if there are no integer slots.
-	 */
-	protected constructor(
+open class AtomDescriptor protected constructor(
 		mutability: Mutability,
 		typeTag: TypeTag,
 		objectSlotsEnumClass: Class<out ObjectSlotsEnum>,
@@ -129,15 +115,15 @@ open class AtomDescriptor
 	 */
 	enum class IntegerSlots : IntegerSlotsEnum {
 		/**
-		 * The low 32 bits are used for the [.HASH_OR_ZERO], but the upper
-		 * 32 can be used by other [BitField]s in subclasses.
+		 * The low 32 bits are used for the [.HASH_OR_ZERO], but the upper 32
+		 * can be used by other [BitField]s in subclasses.
 		 */
 		HASH_AND_MORE;
 
 		companion object {
 			/**
-			 * A slot to hold the hash value, or zero if it has not been computed.
-			 * The hash of an atom is a random number, computed once.
+			 * A slot to hold the hash value, or zero if it has not been
+			 * computed. The hash of an atom is a random number, computed once.
 			 */
 			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 		}
