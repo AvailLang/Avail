@@ -88,8 +88,8 @@ extends Descriptor
 		PARSING_PC_AND_MORE;
 
 		/** The subscript into my parsing plan's parsing instructions. */
-		static final BitField PARSING_PC = new BitField(
-			PARSING_PC_AND_MORE, 0, 32);
+		public static final BitField PARSING_PC =
+			new BitField(PARSING_PC_AND_MORE, 0, 32);
 	}
 
 	/**

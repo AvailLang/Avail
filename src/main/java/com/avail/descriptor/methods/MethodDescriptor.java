@@ -179,14 +179,14 @@ extends Descriptor
 		 * The hash of this method.  It's set to a random number during
 		 * construction.
 		 */
-		static final BitField HASH = new BitField(
+		public static final BitField HASH = new BitField(
 			HASH_AND_NUM_ARGS, 0, 32);
 
 		/**
 		 * The number of arguments expected by this method.  Set at construction
 		 * time.
 		 */
-		static final BitField NUM_ARGS = new BitField(
+		public static final BitField NUM_ARGS = new BitField(
 			HASH_AND_NUM_ARGS, 32, 32);
 	}
 

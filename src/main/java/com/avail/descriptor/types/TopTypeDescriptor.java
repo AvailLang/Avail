@@ -67,7 +67,7 @@ extends PrimitiveTypeDescriptor
 		/**
 		 * The hash, populated during construction.
 		 */
-		static final BitField HASH = new BitField(HASH_AND_MORE, 0, 32);
+		public static final BitField HASH = new BitField(HASH_AND_MORE, 0, 32);
 
 		static
 		{

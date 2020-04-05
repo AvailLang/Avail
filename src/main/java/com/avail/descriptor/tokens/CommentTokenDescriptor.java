@@ -81,7 +81,7 @@ extends TokenDescriptor
 		 * The line number in the source file. Currently signed 28 bits, which
 		 * should be plenty.
 		 */
-		static final BitField LINE_NUMBER =
+		public static final BitField LINE_NUMBER =
 			new BitField(START_AND_LINE, 4, 28);
 
 		/**
@@ -91,7 +91,7 @@ extends TokenDescriptor
 		 * syntax.
 		 */
 		@HideFieldInDebugger
-		static final BitField START =
+		public static final BitField START =
 			new BitField(START_AND_LINE, 32, 32);
 
 		static

@@ -2977,7 +2977,7 @@ public final class L1Translator
 			captureNanos() - timeAtStartOfTranslation, interpreterIndex);
 
 		// Transliterate each level one nybblecode into L2Instructions.
-		while (!instructionDecoder.atEnd())
+		while (!instructionDecoder.atEnd() && generator.currentlyReachable())
 		{
 			final long before = captureNanos();
 			final L1Operation operation = instructionDecoder.getOperation();

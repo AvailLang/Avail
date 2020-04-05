@@ -310,50 +310,50 @@ extends Descriptor
 		/**
 		 * The hash of this fiber, which is chosen randomly on the first demand.
 		 */
-		static final BitField HASH_OR_ZERO =
+		public static final BitField HASH_OR_ZERO =
 			new BitField(FLAGS, 0, 32);
 
 		/**
 		 * The priority of this fiber, where processes with larger values get
 		 * at least as much opportunity to run as processes with lower values.
 		 */
-		static final BitField PRIORITY =
+		public static final BitField PRIORITY =
 			new BitField(FLAGS, 32, 8);
 
 		/** See {@link InterruptRequestFlag#TERMINATION_REQUESTED}. */
-		static final BitField _TERMINATION_REQUESTED =
+		public static final BitField _TERMINATION_REQUESTED =
 			new BitField(FLAGS, 40, 1);
 
 		/** See {@link InterruptRequestFlag#REIFICATION_REQUESTED}. */
-		static final BitField _REIFICATION_REQUESTED =
+		public static final BitField _REIFICATION_REQUESTED =
 			new BitField(FLAGS, 41, 1);
 
 		/** See {@link SynchronizationFlag#BOUND}. */
-		static final BitField _BOUND =
+		public static final BitField _BOUND =
 			new BitField(FLAGS, 42, 1);
 
 		/** See {@link SynchronizationFlag#SCHEDULED}. */
-		static final BitField _SCHEDULED =
+		public static final BitField _SCHEDULED =
 			new BitField(FLAGS, 43, 1);
 
 		/** See {@link SynchronizationFlag#PERMIT_UNAVAILABLE}. */
-		static final BitField _PERMIT_UNAVAILABLE =
+		public static final BitField _PERMIT_UNAVAILABLE =
 			new BitField(FLAGS, 44, 1);
 
 		/** See {@link TraceFlag#TRACE_VARIABLE_READS_BEFORE_WRITES}. */
-		static final BitField _TRACE_VARIABLE_READS_BEFORE_WRITES =
+		public static final BitField _TRACE_VARIABLE_READS_BEFORE_WRITES =
 			new BitField(FLAGS, 45, 1);
 
 		/** See {@link TraceFlag#TRACE_VARIABLE_WRITES}. */
-		static final BitField _TRACE_VARIABLE_WRITES =
+		public static final BitField _TRACE_VARIABLE_WRITES =
 			new BitField(FLAGS, 46, 1);
 
 		/** See {@link GeneralFlag#CAN_REJECT_PARSE}. */
-		static final BitField _CAN_REJECT_PARSE =
+		public static final BitField _CAN_REJECT_PARSE =
 			new BitField(FLAGS, 47, 1);
 
 		/** See {@link GeneralFlag#CAN_REJECT_PARSE}. */
-		static final BitField _IS_EVALUATING_MACRO =
+		public static final BitField _IS_EVALUATING_MACRO =
 			new BitField(FLAGS, 48, 1);
 	}
 

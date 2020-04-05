@@ -691,7 +691,7 @@ public abstract class L2Operation
 	public String toString ()
 	{
 		// Skip the L2_ prefix, as it is redundant in context.
-		return name().substring(3);
+		return name();
 	}
 
 	/**

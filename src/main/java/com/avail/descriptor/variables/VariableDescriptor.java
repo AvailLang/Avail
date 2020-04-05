@@ -162,7 +162,8 @@ extends Descriptor
 		/**
 		 * A slot to hold the cached hash value.  Zero if not yet computed.
 		 */
-		static final BitField HASH_OR_ZERO = new BitField(HASH_AND_MORE, 0, 32);
+		public static final BitField HASH_OR_ZERO =
+			new BitField(HASH_AND_MORE, 0, 32);
 	}
 
 	/**

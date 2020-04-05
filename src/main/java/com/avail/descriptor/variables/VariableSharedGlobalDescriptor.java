@@ -97,7 +97,7 @@ extends VariableSharedDescriptor
 		 * making a variable shared.
 		 */
 		@HideFieldInDebugger
-		static final BitField HASH_ALWAYS_SET =
+		public static final BitField HASH_ALWAYS_SET =
 			new BitField(HASH_AND_MORE, 0, 32);
 
 		/**
@@ -106,7 +106,7 @@ extends VariableSharedDescriptor
 		 * computation that does not disqualify {@link LoadingEffect}s set
 		 * being recorded in place of top level statements.
 		 */
-		static final BitField VALUE_IS_STABLE =
+		public static final BitField VALUE_IS_STABLE =
 			new BitField(HASH_AND_MORE, 32, 1);
 
 		static

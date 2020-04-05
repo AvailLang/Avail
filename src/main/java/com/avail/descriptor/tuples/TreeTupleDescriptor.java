@@ -93,7 +93,8 @@ extends TupleDescriptor
 		 * a way that the hash value of the concatenation of subtuples is easily
 		 * computable from the hashes of the subtuples and their lengths.
 		 */
-		static final BitField HASH_OR_ZERO = new BitField(HASH_AND_MORE, 0, 32);
+		public static final BitField HASH_OR_ZERO =
+			new BitField(HASH_AND_MORE, 0, 32);
 
 		static
 		{
