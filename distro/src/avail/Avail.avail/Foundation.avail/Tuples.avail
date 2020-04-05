@@ -66,6 +66,7 @@ Names
 	"drop…from_§where_",
 	"drop…from_§while_",
 	"drop_from_",
+	"explode_at element_«skipping empties»?",
 	"first index of_in_",
 	"first index of_where_",
 	"first index of…in_§where_",
@@ -2531,6 +2532,87 @@ Semantic restriction "split_before_" is
 			tuple type of tupleType[[1..⌈sizes⌉ + 1)..upper];
 		<firstType, secondType…|2>
 	]
+];
+
+/**
+* Break a tuple into a tuple of tuples at elements matching a provided
+* delimiter.
+*
+* @method "explode_at element_«skipping empties»?"
+* @param "aTuple" "tuple"
+* @param "delimiter" "any"
+* @param "skipEmpties" "boolean"
+*        Whether to include empty subtuples in the result, as caused by
+*        adjacent occurrences of the delimiter, or a delimiter in initial or
+*        final position.
+* @returns "tuple*"
+*          A tuple of the subtuples of the original, as broken up by the
+*          matching delimiter, with that delimiting element removed.
+* @category "Tuples" "Transformers"
+*/
+Public stable method "explode_at element_«skipping empties»?" is
+[
+  aTuple : tuple,
+  delimiter : any,
+  skipEmpties : boolean
+|
+  accumulator : tuple* := <>;
+  lastCut : natural number := 1;
+  For each item, index in aTuple do
+  [
+     If item = delimiter then
+     [
+        If index > lastCut ∨ ¬skipEmpties then
+        [
+           accumulator := accumulator ++ <aTuple[lastCut..index - 1]>;
+        ];
+        lastCut := index + 1;
+     ];
+  ];
+  if skipEmpties ∧ lastCut = |aTuple| then [accumulator] else
+     [accumulator ++ <aTuple[lastCut..]>]
+];
+
+/**
+* Construct a stronger result tuple type for the explosion of the given tuple
+* type. The result tuple's member types are tuple types of the smear (union)
+* of the original tuple type, with cardinality maximum equal to that of the
+* original tuple type, and cardinality minimum of 1 or 0, depending on whether
+* empties were skipped or not, respectively. The result tuple's cardinality is
+* 1 to the original tuple's max cardinality, or half of that maximum if empties
+* were skipped.
+*
+* @method "explode_at element_«skipping empties»?"
+* @restricts "tuple meta"
+* @restricts "any's type"
+* @restricts "boolean's type"
+*/
+Semantic restriction "explode_at element_«skipping empties»?" is
+[
+  tupleType : tuple meta,
+  delimiterType : any's type,
+  skipType : boolean's type
+|
+  Assert: |skipType| = 1;
+  tupleMemberType ::= ∪ tupleType[1..|tupleType's leading types| + 1];
+  Unless delimiterType ⊆ tupleMemberType then
+  [
+     Reject parse, expected:
+        "delimiter of type " ++ “delimiterType” ++
+        " to be a subtype of the smeared tuple union type" ++
+        “tupleMemberType”
+  ];
+  if skipType's instance then
+  [
+     /* Since we throw away delimiters, the maximum number of *non-empty*
+        sub-tuples is half the original tuple length rounded up. */
+     maxSlices ::= (⌈tupleType⌉ + 1) ÷ 2;
+     <<tupleMemberType…|1..⌈tupleType⌉>…|1..maxSlices>
+  ]
+  else
+  [
+     <<tupleMemberType…|0..⌈tupleType⌉>…|1..⌈tupleType⌉>
+  ]
 ];
 
 /**
