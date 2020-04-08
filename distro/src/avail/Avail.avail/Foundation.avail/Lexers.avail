@@ -41,7 +41,7 @@ Uses
 	"Early Functions",
 	"Exceptions",
 	"Format",
-	"Literals" = (-"…#.…#«f»?", -"…#.…#…", -"…#.…#e|E«+|-»!…#«f»?",…),
+	"Literals",
 	"Logic",
 	"Math",
 	"Phrases",
@@ -348,7 +348,7 @@ is
  * require one or more digit groups. Allow an exponent signifier {@code "e"}
  * before the final digit group, which may be prefixed with a sign. Allow an
  * {@code "f"} in the final position to indicate that the value should be stored
- * as a double.
+ * as a single-precision {@code "float"} rather than a {@code "double"}.
  *
  * Note that a floating point number literal MUST have a digit in the integer
  * part; 0 is acceptable.
@@ -438,6 +438,7 @@ is
 	|
 		Primitive DoubleFromParts;
 	] : double;
+
 	doubleValue ::= doubleValueFunction(
 		integerDigits, fractionalDigits, ¬exponentIsNegative, exponentDigits);
 	value ::= if isFloat then [doubleValue → float] else [doubleValue];

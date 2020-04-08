@@ -37,6 +37,7 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding;
+import com.avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE;
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
@@ -1364,6 +1365,11 @@ public final class L2ValueManifest
 	 * Forget only the {@link RegisterKind#BOXED} register definitions for this
 	 * synonym.  Keep the synonym around in all circumstances, even if there are
 	 * no remaining definitions.  Also, do not alter the synonym's restriction.
+	 *
+	 * <p>This mechanism is used by {@link L2_MAKE_IMMUTABLE} to ensure
+	 * registers holding the mutable form aren't still accessible, which under
+	 * code motion could lead to the makeImmutable being bypassed, or a value
+	 * being incorrectly modified in place prior to becoming immutable.</p>
 	 *
 	 * @param synonym
 	 *        The {@link L2Synonym} for which to forget all boxed definitions.
