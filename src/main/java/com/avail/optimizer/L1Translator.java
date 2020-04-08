@@ -741,7 +741,8 @@ public final class L1Translator
 							mostGeneralFunctionType(),
 							topMeta(),
 							variableTypeFor(ANY.o())),
-						bottom	 					BOXED));
+						bottom()),
+					BOXED));
 		addInstruction(
 			L2_GET_INVALID_MESSAGE_RESULT_FUNCTION.instance,
 			invalidResultFunction);
