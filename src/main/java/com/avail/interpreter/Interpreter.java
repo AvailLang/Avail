@@ -41,6 +41,7 @@ import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.A_Module;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FiberDescriptor;
+import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.NilDescriptor;
 import com.avail.descriptor.bundles.A_Bundle;
@@ -634,7 +635,8 @@ public final class Interpreter
 	/**
 	 * Fake slots used to show stack traces in the Java debugger.
 	 */
-	enum FakeStackTraceSlots implements ObjectSlotsEnumJava
+	enum FakeStackTraceSlots
+		implements ObjectSlotsEnumJava, IntegerSlotsEnumJava
 	{
 		/**
 		 * The offset of the current L2 instruction.

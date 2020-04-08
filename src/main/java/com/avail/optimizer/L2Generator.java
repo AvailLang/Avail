@@ -73,8 +73,6 @@ import static com.avail.descriptor.types.TypeDescriptor.Types.DOUBLE;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.*;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForConstant;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType;
-import static com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.FLOAT;
-import static com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.INTEGER;
 import static com.avail.optimizer.values.L2SemanticValue.constant;
 import static com.avail.performance.StatisticReport.L2_OPTIMIZATION_TIME;
 import static com.avail.utility.Nulls.stripNull;
@@ -841,9 +839,9 @@ public final class L2Generator
 
 	/**
 	 * Generate code to ensure an immutable version of the given register is
-	 * written to the returned register.  Update the {@link
-	 * L2Generator#currentManifest()} to indicate the returned register should
-	 * be used for all of the given register's semantic values after this point.
+	 * written to the returned register.  Update the {@link #currentManifest()}
+	 * to indicate that after this point, the returned register should be used
+	 * for reading the boxed form of the given register's semantic values.
 	 *
 	 * @param read
 	 *        The {@link L2ReadBoxedOperand} that was given.
@@ -857,52 +855,23 @@ public final class L2Generator
 		assert restriction.isBoxed();
 		if (restriction.isImmutable())
 		{
-			// The source read is definitely immutable.
+			// The source read is definitely already immutable.
 			return read;
 		}
 		// Pick a semantic value from the read's synonym.  Pass the original
 		// boxed value through an L2_MAKE_IMMUTABLE into that semantic value,
-		// then generate boxed moves from that semantic value into each of the
-		// other semantic values, effectively reforming a new synonym.  If there
-		// are int or float unboxed forms, move those directly as well, ensuring
-		// the unboxed forms remain available.  The unboxed moves will not act
-		// as *register level* data dependencies in the final L2 code, so the
-		// makeImmutable will be independently movable from the earlier unboxing
-		// operations and the potential later uses of the unboxed value.
-		final L2SemanticValue semanticValue = read.semanticValue();
+		// then augment the write to include all other semantic values from the
+		// same synonym.  Int and float unboxed registers are unaffected.
 		final L2SemanticValue temp = topFrame.temp(nextUnique());
 		final TypeRestriction immutableRestriction =
 			restriction.withFlag(IMMUTABLE);
-		// If there is an unboxed form, preserve the first definition of that
-		// unboxed kind.
-		final List<L2Register> unboxedRegisters = new ArrayList<>(1);
-		if (immutableRestriction.isUnboxedInt())
-		{
-			unboxedRegisters.add(
-				currentManifest.getDefinition(semanticValue, INTEGER));
-		}
-		if (immutableRestriction.isUnboxedFloat())
-		{
-			unboxedRegisters.add(
-				currentManifest.getDefinition(semanticValue, FLOAT));
-		}
-		final L2Synonym synonym =
-			currentManifest.semanticValueToSynonym(semanticValue);
 		// L2_MAKE_IMMUTABLE.instructionWasAdded(instr, manifest) will run when
-		// the instruction is added.  The subsequent moves take care of
-		// themselves.
+		// the instruction is added.
+		assert immutableRestriction.isBoxed();
 		addInstruction(
 			L2_MAKE_IMMUTABLE.instance,
 			read,
 			boxedWrite(temp, immutableRestriction));
-		synonym.semanticValues().forEach(sv ->
-		{
-			moveRegister(L2_MOVE.boxed, temp, sv);
-			currentManifest.setRestriction(sv, immutableRestriction);
-		});
-		// Now restore each kind of unboxed definition, if there were any.
-		unboxedRegisters.forEach(reg ->
-			currentManifest.recordDefinitionForNewKind(reg.definition()));
 		return currentManifest.readBoxed(temp);
 	}
 

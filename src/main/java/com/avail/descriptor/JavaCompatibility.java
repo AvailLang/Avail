@@ -33,6 +33,7 @@
 package com.avail.descriptor;
 
 import com.avail.descriptor.representation.A_BasicObject;
+import com.avail.descriptor.representation.AbstractSlotsEnum;
 import com.avail.descriptor.representation.IntegerSlotsEnum;
 import com.avail.descriptor.representation.ObjectSlotsEnum;
 
@@ -47,8 +48,8 @@ import com.avail.descriptor.representation.ObjectSlotsEnum;
  */
 public class JavaCompatibility
 {
-	/** Maintain temporary compatibility with Java descriptor slot classes. */
-	public interface IntegerSlotsEnumJava extends IntegerSlotsEnum
+	/** Temporary suppor for slot enums still coded in Java. */
+	public interface AbstractSlotsEnumJava extends AbstractSlotsEnum
 	{
 		String name();
 
@@ -65,25 +66,17 @@ public class JavaCompatibility
 		{
 			return ordinal();
 		}
+
+	}
+	/** Maintain temporary compatibility with Java descriptor slot classes. */
+	public interface IntegerSlotsEnumJava
+		extends IntegerSlotsEnum, AbstractSlotsEnumJava
+	{
 	}
 
 	/** Maintain temporary compatibility with Java descriptor slot classes. */
-	public interface ObjectSlotsEnumJava extends ObjectSlotsEnum
+	public interface ObjectSlotsEnumJava
+		extends ObjectSlotsEnum, AbstractSlotsEnumJava
 	{
-		String name();
-
-		int ordinal();
-
-		@Override
-		default String fieldName ()
-		{
-			return name();
-		}
-
-		@Override
-		default int fieldOrdinal ()
-		{
-			return ordinal();
-		}
 	}
 }

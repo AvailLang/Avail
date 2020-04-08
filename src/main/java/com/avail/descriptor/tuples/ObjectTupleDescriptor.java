@@ -86,7 +86,8 @@ extends TupleDescriptor
 		 * case that the hash value actually equals zero, the hash value has to
 		 * be computed every time it is requested.
 		 */
-		static final BitField HASH_OR_ZERO = new BitField(HASH_AND_MORE, 0, 32);
+		public static final BitField HASH_OR_ZERO =
+			new BitField(HASH_AND_MORE, 0, 32);
 
 		static
 		{

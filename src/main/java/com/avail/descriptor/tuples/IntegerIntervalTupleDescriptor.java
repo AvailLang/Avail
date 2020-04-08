@@ -92,7 +92,7 @@ extends NumericTupleDescriptor
 		 * problem limiting manually-constructed tuples to two billion elements.
 		 * This restriction will eventually be removed.
 		 */
-		static final BitField SIZE = new BitField(HASH_AND_MORE, 32, 32);
+		public static final BitField SIZE = new BitField(HASH_AND_MORE, 32, 32);
 
 		/**
 		 * A slot to hold the cached hash value of a tuple.  If zero, then the
@@ -100,7 +100,8 @@ extends NumericTupleDescriptor
 		 * case that the hash value actually equals zero, the hash value has to
 		 * be computed every time it is requested.
 		 */
-		static final BitField HASH_OR_ZERO = new BitField(HASH_AND_MORE, 0, 32);
+		public static final BitField HASH_OR_ZERO =
+			new BitField(HASH_AND_MORE, 0, 32);
 
 		static
 		{

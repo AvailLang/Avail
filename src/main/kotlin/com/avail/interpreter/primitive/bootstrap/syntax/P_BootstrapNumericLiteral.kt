@@ -43,10 +43,10 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Create a non-negative integer literal phrase from a
- * non-negative integer literal constant token (already wrapped as a literal
+ * **Primitive:** Create a non-negative numeric literal phrase from a
+ * non-negative numeric literal constant token (already wrapped as a literal
  * phrase).  This is a bootstrapped macro because not all subsets of the core
- * Avail syntax should allow non-negative integer literal phrases.
+ * Avail syntax should allow non-negative numeric literal phrases.
  */
 @Suppress("unused")
 object P_BootstrapNumericLiteral :

@@ -37,6 +37,7 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding;
+import com.avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE;
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
@@ -719,6 +720,33 @@ public final class L2ValueManifest
 
 	/**
 	 * Record the fact that an {@link L2Instruction} has been emitted, which
+	 * writes to the given {@link L2WriteOperand}.
+	 *
+	 * @param writer
+	 *        The operand that received the value.
+	 * @param sourceSemanticValue
+	 *        The {@link L2SemanticValue} that already holds the value.
+	 */
+	public void recordDefinitionForMakeImmutable (
+		final L2WriteOperand<?> writer,
+		final L2SemanticValue sourceSemanticValue)
+	{
+		final L2Synonym sourceSynonym =
+			semanticValueToSynonym(sourceSemanticValue);
+
+		// Make inaccessible all places holding the mutable boxed value.
+		forgetBoxedRegistersFor(sourceSynonym);
+
+		// Merge the new write target into the synonym.
+		final L2SemanticValue pickSemanticValue = writer.pickSemanticValue();
+		extendSynonym(sourceSynonym, pickSemanticValue);
+		final L2Synonym newSynonym = semanticValueToSynonym(pickSemanticValue);
+		definitions.get(newSynonym).add(writer.register());
+		setRestriction(pickSemanticValue, writer.restriction());
+	}
+
+	/**
+	 * Record the fact that an {@link L2Instruction} has been emitted, which
 	 * writes to the given {@link L2WriteOperand}.  The write is for a {@link
 	 * RegisterKind} which has not been written yet for this {@link
 	 * L2SemanticValue}, although there are definitions for other kinds for the
@@ -1331,5 +1359,30 @@ public final class L2ValueManifest
 			}
 		});
 		return anyChanged.value;
+	}
+
+	/**
+	 * Forget only the {@link RegisterKind#BOXED} register definitions for this
+	 * synonym.  Keep the synonym around in all circumstances, even if there are
+	 * no remaining definitions.  Also, do not alter the synonym's restriction.
+	 *
+	 * <p>This mechanism is used by {@link L2_MAKE_IMMUTABLE} to ensure
+	 * registers holding the mutable form aren't still accessible, which under
+	 * code motion could lead to the makeImmutable being bypassed, or a value
+	 * being incorrectly modified in place prior to becoming immutable.</p>
+	 *
+	 * @param synonym
+	 *        The {@link L2Synonym} for which to forget all boxed definitions.
+	 */
+	public void forgetBoxedRegistersFor (final L2Synonym synonym)
+	{
+		assert definitions.containsKey(synonym);
+		final List<L2Register> defs = definitions.get(synonym).stream()
+			.filter(def -> def.registerKind() != BOXED)
+			.collect(toCollection(ArrayList::new));
+		// There was at least one unboxed definition.  Keep the synonym,
+		// but make the boxed definitions inaccessible, while also removing
+		// the boxed flag from the restriction.
+		definitions.put(synonym, defs);
 	}
 }

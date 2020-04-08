@@ -38,7 +38,6 @@ import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
 import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.L2Synonym;
 import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
@@ -149,16 +148,8 @@ extends L2Operation
 		final L2WriteBoxedOperand write = instruction.operand(1);
 
 		read.instructionWasAdded(manifest);
-
-		// Only deal with the boxed form.  The unboxed values are dealt with by
-		// subsequent move instructions.
-		final L2Synonym synonym =
-			manifest.semanticValueToSynonym(read.semanticValue());
-
-		// Make inaccessible all places holding the mutable boxed value.
-		manifest.forget(synonym);
-
-		write.instructionWasAdded(manifest);
+		write.instructionWasAddedForMakeImmutable(
+			read.semanticValue(), manifest);
 	}
 
 	@Override

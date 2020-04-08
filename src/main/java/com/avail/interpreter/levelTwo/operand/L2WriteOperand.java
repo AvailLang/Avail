@@ -33,6 +33,7 @@
 package com.avail.interpreter.levelTwo.operand;
 
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE;
 import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
@@ -194,12 +195,25 @@ extends L2Operand
 		manifest.recordDefinition(this);
 	}
 
-	@Override
-	public final void instructionWasInserted (
-		final L2Instruction newInstruction)
+	/**
+	 * This operand is a write of an {@link L2_MAKE_IMMUTABLE} operation.  The
+	 * manifest has already had boxed definitions for the synonym removed from
+	 * it, even if it left the definition list empty.
+	 *
+	 * @param sourceSemanticValue
+	 *        The {@link L2SemanticValue} that already holds the value.
+	 * @param manifest
+	 *        The {@link L2ValueManifest} in which to capture the synonymy of
+	 *        the source and destination.
+	 */
+	public final void instructionWasAddedForMakeImmutable (
+		final L2SemanticValue sourceSemanticValue,
+		final L2ValueManifest manifest)
 	{
-		super.instructionWasInserted(newInstruction);
+		super.instructionWasAdded(manifest);
 		register.addDefinition(this);
+		assert manifest.hasSemanticValue(sourceSemanticValue);
+		manifest.recordDefinitionForMakeImmutable(this, sourceSemanticValue);
 	}
 
 	/**
@@ -219,6 +233,14 @@ extends L2Operand
 		super.instructionWasAdded(manifest);
 		register.addDefinition(this);
 		manifest.recordDefinitionForMove(this, sourceSemanticValue);
+	}
+
+	@Override
+	public final void instructionWasInserted (
+		final L2Instruction newInstruction)
+	{
+		super.instructionWasInserted(newInstruction);
+		register.addDefinition(this);
 	}
 
 	@Override

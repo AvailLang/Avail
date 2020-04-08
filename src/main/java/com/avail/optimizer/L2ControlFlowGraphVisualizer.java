@@ -43,6 +43,7 @@ import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.interpreter.levelTwo.operation.L2_JUMP;
 import com.avail.interpreter.levelTwo.operation.L2_UNREACHABLE_CODE;
 import com.avail.interpreter.levelTwo.register.L2Register;
+import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
 import com.avail.optimizer.L2ControlFlowGraph.Zone;
 import com.avail.utility.MutableInt;
 import com.avail.utility.dot.DotWriter;
@@ -600,6 +601,28 @@ public class L2ControlFlowGraphVisualizer
 				synonyms.forEach(
 					synonym ->
 					{
+						// If the restriction flags and the available register
+						// kinds disagree, show the synonym entry in red.
+						final TypeRestriction restriction =
+							manifest.restrictionFor(
+								synonym.pickSemanticValue());
+						final Iterable<L2Register> defs =
+							manifest.definitionsForDescribing(
+								synonym.pickSemanticValue());
+						final EnumSet<RegisterKind> kindsOfRegisters =
+							EnumSet.noneOf(RegisterKind.class);
+						for (final L2Register register : defs)
+						{
+							kindsOfRegisters.add(register.registerKind());
+						}
+						final boolean ok =
+							restriction.kinds().equals(kindsOfRegisters);
+						if (!ok) {
+							builder.append(
+								String.format(
+									"<font color=\"%s\">",
+									writer.adjust(errorTextColor)));
+						}
 						builder
 							.append("<br/>")
 							.append(repeated("&nbsp;", 4))
@@ -607,26 +630,22 @@ public class L2ControlFlowGraphVisualizer
 							.append("<br/>")
 							.append(repeated("&nbsp;", 8))
 							.append(":&nbsp;");
-						final TypeRestriction restriction =
-							manifest.restrictionFor(
-								synonym.pickSemanticValue());
 						builder
 							.append(escape(restriction.toString()))
 							.append("<br/>")
 							.append(repeated("&nbsp;", 8))
 							.append("in {");
-						final Iterator<L2Register> defs =
-							manifest
-								.definitionsForDescribing(
-									synonym.pickSemanticValue())
-								.iterator();
-						if (defs.hasNext())
+						final Iterator<L2Register> iterator = defs.iterator();
+						if (iterator.hasNext())
 						{
-							builder.append(defs.next());
+							builder.append(iterator.next());
 						}
-						defs.forEachRemaining(
-							d -> builder.append(", ").append(defs.next()));
+						iterator.forEachRemaining(
+							d -> builder.append(", ").append(iterator.next()));
 						builder.append("}");
+						if (!ok) {
+							builder.append("</font>");
+						}
 					});
 			}
 		}
