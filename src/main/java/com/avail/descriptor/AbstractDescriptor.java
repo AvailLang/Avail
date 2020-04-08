@@ -2161,7 +2161,7 @@ public abstract class AbstractDescriptor
 	 * @param index
 	 * @return
 	 */
-	abstract AvailObject o_ArgOrLocalOrStackAt (
+	abstract AvailObject o_FrameAt (
 		AvailObject object,
 		int index);
 
@@ -2169,8 +2169,9 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param index
 	 * @param value
+	 * @return
 	 */
-	abstract void o_ArgOrLocalOrStackAtPut (
+	abstract AvailObject o_FrameAtPut (
 		AvailObject object,
 		int index,
 		AvailObject value);

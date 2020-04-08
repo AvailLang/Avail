@@ -46,6 +46,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
+import static com.avail.descriptor.functions.ContinuationRegisterDumpDescriptor.createRegisterDumpMethod;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.REFERENCED_AS_INT;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
@@ -202,7 +203,10 @@ extends L2Operation
 		final L2WriteBoxedOperand registerDump = instruction.operand(2);
 		final L2PcOperand fallThrough = instruction.operand(3);
 
-		target.createAndPushRegisterDump(translator, method);
+		target.createAndPushRegisterDumpArrays(translator, method);
+		// :: AvailObject[], long[]
+		createRegisterDumpMethod.generateCall(method);
+		// :: registerDump
 		translator.store(method, registerDump.register());
 		// Stack is empty
 

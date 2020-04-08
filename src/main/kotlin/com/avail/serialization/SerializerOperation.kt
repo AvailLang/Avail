@@ -1489,7 +1489,7 @@ enum class SerializerOperation constructor(
 			val frameSlotsList = ArrayList<AvailObject>(frameSlotCount)
 			for (i in 1..frameSlotCount)
 			{
-				frameSlotsList.add(obj.argOrLocalOrStackAt(i))
+				frameSlotsList.add(obj.frameAt(i))
 			}
 			return array(
 				obj.caller(),

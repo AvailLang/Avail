@@ -135,6 +135,5 @@ object P_PrivateGetSpecificObjectField : Primitive(
 			}
 		}
 		return true
-
 	}
 }

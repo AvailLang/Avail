@@ -311,7 +311,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	protected AvailObject o_ArgOrLocalOrStackAt (
+	protected AvailObject o_FrameAt (
 		final AvailObject object,
 		final int index)
 	{
@@ -319,7 +319,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	protected void o_ArgOrLocalOrStackAtPut (
+	protected AvailObject o_FrameAtPut (
 		final AvailObject object,
 		final int index,
 		final AvailObject value)

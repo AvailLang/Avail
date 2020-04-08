@@ -34,8 +34,6 @@ package com.avail.optimizer;
 
 import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2NamedOperandType;
-import com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable;
 import com.avail.interpreter.levelTwo.operand.*;
@@ -63,7 +61,6 @@ import java.util.function.ToIntFunction;
 import static com.avail.AvailRuntimeSupport.captureNanos;
 import static com.avail.utility.Casts.cast;
 import static com.avail.utility.Nulls.stripNull;
-import static com.avail.utility.PrefixSharingList.last;
 import static com.avail.utility.Strings.increaseIndentation;
 import static java.util.Collections.disjoint;
 import static java.util.Collections.emptySet;
@@ -282,94 +279,19 @@ public final class L2Optimizer
 	 */
 	private void updateAllManifests ()
 	{
-		// Make sure all blocks get visited at least once, since we're trying to
-		// correct all the manifests, and the propagation stops when a correct
-		// manifest is reached.
-		final Deque<L2BasicBlock> blocksToVisit = new ArrayDeque<>(blocks);
-		while (!blocksToVisit.isEmpty())
-		{
-			final L2BasicBlock block = blocksToVisit.removeFirst();
-			final Set<L2Register> availableRegisters = new HashSet<>();
-			final Iterator<L2PcOperand> predecessors =
-				block.predecessorEdgesIterator();
-			if (predecessors.hasNext())
-			{
-				availableRegisters.addAll(
-					predecessors.next().manifest().allRegisters());
-				predecessors.forEachRemaining(pred ->
-					availableRegisters.retainAll(
-						pred.manifest().allRegisters()));
-			}
-			final List<L2Instruction> instructions = block.instructions();
-			for (int i = 0, limit = instructions.size() - 1; i < limit; i++)
-			{
-				//TODO deal with weird instructions like L2_MAKE_IMMUTABLE
-				//and L2_STRIP_MANIFEST.
-				final L2Instruction instruction = instructions.get(i);
-				assert instruction.operation().isPhi()
-					|| availableRegisters.containsAll(
-						instruction.sourceRegisters());
-//				instruction.updateManifest(manifest)
-				//TODO XXX Finish writing this!!! ...(availableRegisters);
-			}
-			// Process the last instruction, which may have writes that are
-			// conditionally active based on the edge that is taken.
-			final L2Instruction lastInstruction = last(instructions);
-			final L2Operation lastOperation = lastInstruction.operation();
-			final L2NamedOperandType[] operandTypes =
-				lastOperation.operandTypes();
-			final L2Operand[] operands = lastInstruction.operands();
-			assert operandTypes.length == operands.length;
-			// Process the unconditional writes first.
-			for (int i = 0; i < operands.length; i++)
-			{
-				if (operands[i] instanceof L2WriteOperand)
-				{
-					final L2WriteOperand<?> write = cast(operands[i]);
-					if (operandTypes[i].purpose() == null)
-					{
-						availableRegisters.add(write.register());
-					}
-				}
-			}
-			// Now process the conditional writes, if any.
-			final Map<Purpose, Set<L2Register>> byPurpose =
-				new EnumMap<>(Purpose.class);
-			for (int i = 0; i < operands.length; i++)
-			{
-				if (operands[i] instanceof L2WriteOperand)
-				{
-					final L2WriteOperand<?> write = cast(operands[i]);
-					final @Nullable Purpose purpose = operandTypes[i].purpose();
-					if (purpose != null)
-					{
-						byPurpose
-							.computeIfAbsent(
-								purpose,
-								p -> new HashSet<>(availableRegisters))
-							.add(write.register());
-					}
-				}
-			}
-			// Adjust each outgoing edge's manifest, queueing the destination
-			// block for a (re)visit if the manifest changed.
-			for (int i = 0; i < operands.length; i++)
-			{
-				if (operands[i] instanceof L2PcOperand)
-				{
-					final L2PcOperand edge = cast(operands[i]);
-					final @Nullable Purpose purpose = operandTypes[i].purpose();
-					final Set<L2Register> registers =
-						(purpose == null || !byPurpose.containsKey(purpose))
-							? availableRegisters
-							: byPurpose.get(purpose);
-					if (edge.manifest().retainRegisters(registers))
-					{
-						blocksToVisit.add(edge.targetBlock());
-					}
-				}
-			}
-		}
+		// Visit all L2WriteOperands, recording which L2Registers are written.
+		final Set<L2Register> registersToKeep = new HashSet<>(100);
+		blocks.forEach(
+			block -> block.instructions().forEach(
+				instruction -> instruction.writeOperands().forEach(
+					writeOperand ->
+						registersToKeep.add(writeOperand.register()))));
+		// Visit each edge's manifest.  In the manifest's definitions map's
+		// values (which are lists of L2Registers), retain only those registers
+		// for which writes were found above.
+		blocks.forEach(
+			block -> block.successorEdgesIterator().forEachRemaining(
+				edge -> edge.manifest().retainRegisters(registersToKeep)));
 	}
 
 	/**
@@ -441,12 +363,96 @@ public final class L2Optimizer
 	void removeDeadCode (
 		final DataCouplingMode dataCouplingMode)
 	{
-		while (removeUnreachableBlocks()
-			|| removeDeadInstructions(dataCouplingMode))
+		// Removing instructions won't cause blocks to be inaccessible, so just
+		// clean up unreachable blocks once at the start.
+		removeUnreachableBlocks();
+		if (!removeDeadInstructions(dataCouplingMode))
 		{
-			// Do nothing else.
+			// No instructions were removed, so don't bother cleaning up the
+			// manifests.
+			return;
 		}
-		updateAllManifests();
+		// Clean up all manifests so that they only mention registers that
+		// are guaranteed to have values at that point.
+		final Map<L2PcOperand, Set<L2Register>> visibleRegisters =
+			new HashMap<>();
+		final Map<L2PcOperand, Set<L2SemanticValue>> visibleSemanticValues =
+			new HashMap<>();
+		blocks.forEach(
+			b -> b.predecessorEdgesDo(e ->
+			{
+				visibleRegisters.put(e, new HashSet<>());
+				visibleSemanticValues.put(e, new HashSet<>());
+			}));
+		// These two collections should maintain the same membership.
+		final Deque<L2BasicBlock> toVisitQueue = new ArrayDeque<>(blocks);
+		final Set<L2BasicBlock> toVisitSet = new HashSet<>(blocks);
+		while (!toVisitQueue.isEmpty())
+		{
+			final L2BasicBlock block = toVisitQueue.removeFirst();
+			toVisitSet.remove(block);
+			final Set<L2Register> regs;
+			final Set<L2SemanticValue> values;
+			final Iterator<L2PcOperand> predecessors =
+				block.predecessorEdgesIterator();
+			if (predecessors.hasNext())
+			{
+				final L2PcOperand first = predecessors.next();
+				regs = new HashSet<>(visibleRegisters.get(first));
+				values = new HashSet<>(visibleSemanticValues.get(first));
+				predecessors.forEachRemaining(edge ->
+				{
+					regs.retainAll(visibleRegisters.get(edge));
+					values.retainAll(visibleSemanticValues.get(edge));
+				});
+			}
+			else
+			{
+				regs = new HashSet<>();
+				values = new HashSet<>();
+			}
+			for (final L2Instruction instruction : block.instructions())
+			{
+				if (!instruction.altersControlFlow())
+				{
+					instruction.writeOperands().forEach(write ->
+					{
+						regs.add(write.register());
+						values.addAll(write.semanticValues());
+					});
+				}
+				else
+				{
+					instruction.edgesAndPurposesDo((edge, purpose) ->
+					{
+						final Set<L2Register> regsForEdge =
+							new HashSet<>(regs);
+						final Set<L2SemanticValue> valuesForEdge =
+							new HashSet<>(values);
+						instruction.writesForPurposeDo(purpose, write ->
+							{
+								regsForEdge.add(write.register());
+								valuesForEdge.addAll(
+									write.semanticValues());
+							});
+						boolean changed = visibleRegisters.get(edge)
+							.addAll(regsForEdge);
+						changed |= visibleSemanticValues.get(edge)
+							.addAll(valuesForEdge);
+						if (changed && toVisitSet.add(edge.targetBlock()))
+						{
+							toVisitQueue.add(edge.targetBlock());
+						}
+					});
+				}
+			}
+		}
+		// Now that we have the complete registers available at each edge,
+		// narrow each edge's manifest accordingly.
+		visibleRegisters.forEach((edge, regs) ->
+			edge.manifest().retainRegisters(regs));
+		visibleSemanticValues.forEach((edge, values) ->
+			edge.manifest().retainSemanticValues(values));
 	}
 
 	/**
@@ -462,7 +468,7 @@ public final class L2Optimizer
 		{
 			if (sourceBlock.successorEdgesCount() > 1)
 			{
-				for (final L2PcOperand edge : sourceBlock.successorEdgesCopy())
+				sourceBlock.successorEdgesDo(edge ->
 				{
 					final L2BasicBlock targetBlock = edge.targetBlock();
 					if (targetBlock.predecessorEdgesCount() > 1)
@@ -473,7 +479,7 @@ public final class L2Optimizer
 						// although we'll order the blocks later.
 						blocks.add(blocks.indexOf(targetBlock), newBlock);
 					}
-				}
+				});
 			}
 		}
 	}
@@ -488,14 +494,11 @@ public final class L2Optimizer
 	{
 		for (final L2BasicBlock block : blocks)
 		{
-			final Iterator<L2PcOperand> iterator =
-				block.predecessorEdgesIterator();
-			while (iterator.hasNext())
+			block.predecessorEdgesDo(predecessor ->
 			{
-				final L2PcOperand predecessor = iterator.next();
 				predecessor.alwaysLiveInRegisters.clear();
 				predecessor.sometimesLiveInRegisters.clear();
-			}
+			});
 		}
 
 		// The deque and the set maintain the same membership.
@@ -548,18 +551,16 @@ public final class L2Optimizer
 
 			// Add in the predecessor-specific live-in information for each edge
 			// based on the corresponding positions inside phi instructions.
-			final Iterator<L2PcOperand> iterator =
-				block.predecessorEdgesIterator();
-			int edgeIndex = 0;
-			while (iterator.hasNext())
+			final int finalLastPhiIndex = lastPhiIndex;
+			final MutableInt edgeIndex = new MutableInt(0);
+			block.predecessorEdgesDo(edge ->
 			{
-				final L2PcOperand edge = iterator.next();
 				final Set<L2Register> edgeAlwaysLiveIn =
 					new HashSet<>(alwaysLive);
 				final Set<L2Register> edgeSometimesLiveIn =
 					new HashSet<>(sometimesLive);
 				// Add just the registers used along this edge.
-				for (int i = lastPhiIndex; i >= 0; i--)
+				for (int i = finalLastPhiIndex; i >= 0; i--)
 				{
 					final L2Instruction phiInstruction = instructions.get(i);
 					final L2_PHI_PSEUDO_OPERATION<?, ?, ?> phiOperation =
@@ -570,12 +571,13 @@ public final class L2Optimizer
 						phiInstruction.destinationRegisters());
 					final List<? extends L2ReadOperand<?>> sources =
 						phiOperation.sourceRegisterReads(phiInstruction);
-					final L2Register source = sources.get(edgeIndex).register();
+					final L2Register source =
+						sources.get(edgeIndex.value).register();
 					edgeSometimesLiveIn.add(source);
 					edgeAlwaysLiveIn.add(source);
 				}
 				final L2PcOperand predecessorEdge =
-					block.predecessorEdgeAt(edgeIndex);
+					block.predecessorEdgeAt(edgeIndex.value);
 				boolean changed =
 					predecessorEdge.sometimesLiveInRegisters.addAll(
 						edgeSometimesLiveIn);
@@ -592,136 +594,9 @@ public final class L2Optimizer
 						workSet.add(predecessor);
 					}
 				}
-				edgeIndex++;
-			}
+				edgeIndex.value++;
+			});
 		}
-	}
-
-	/**
-	 * Some {@link L2Instruction}s can be safely removed and duplicated just
-	 * before their uses.  Such instructions must be idempotent, and should
-	 * either have no side-effect or be nilpotent.
-	 *
-	 * <p>Note that this breaks SSA, although there are ways to avoid this.</p>
-	 *
-	 * <p>The graph must be in edge-split form, so that instructions can be
-	 * copied into the appropriate edges leading to
-	 * {@link L2_PHI_PSEUDO_OPERATION} instructions.</p>
-	 *
-	 * @return Whether any instructions were replicated.
-	 */
-	boolean replicateEligibleInstructionsJustBeforeUse ()
-	{
-		boolean anyChanged = false;
-		boolean changed;
-		do
-		{
-			changed = false;
-			for (final L2BasicBlock block : blocks)
-			{
-				// Copy the list of instructions, since it may be modified.
-				for (final L2Instruction instruction :
-					new ArrayList<>(block.instructions()))
-				{
-					if (instruction.operation().canBeDuplicatedToEachUse(
-						instruction))
-					{
-						final Set<L2Instruction> consumers =
-							new HashSet<>();
-						for (final L2Register writeRegister :
-							instruction.destinationRegisters())
-						{
-							writeRegister.uses().forEach(
-								read -> consumers.add(read.instruction()));
-						}
-						boolean allMoved = true;
-						for (final L2Instruction consumer : consumers)
-						{
-							if (consumer.operation().isPhi())
-							{
-								// If the consumer is a phi, don't try to insert
-								// a copy of the instruction before it.  In
-								// theory, we could write a copy along each edge
-								// corresponding with a read that consumes it.
-								allMoved = false;
-								continue;
-							}
-							final L2BasicBlock consumerBlock =
-								consumer.basicBlock();
-							if (consumerBlock == block)
-							{
-								// The consumer is already in the same basic
-								// block as the instruction.  Don't move it.
-								allMoved = false;
-								continue;
-							}
-							final Set<L2Register> relevantConsumedRegisters =
-								new HashSet<>(consumer.sourceRegisters());
-							relevantConsumedRegisters.retainAll(
-								instruction.destinationRegisters());
-							boolean alreadyThere = true;
-							//TODO - simplify
-							for (final L2Register reg : relevantConsumedRegisters)
-							{
-								boolean any = false;
-								for (final L2WriteOperand<?> def : reg.definitions())
-								{
-									if (def.instruction().basicBlock() == consumerBlock)
-									{
-										any = true;
-										break;
-									}
-								}
-								if (!any)
-								{
-									alreadyThere = false;
-									break;
-								}
-							}
-							if (alreadyThere)
-							{
-								// There's already a definition of all registers
-								// that the instruction (also) provides, and the
-								// consumer consumers, within the consumer's
-								// basic block.  Don't replicate the instruction
-								// here again.
-								allMoved = false;
-								continue;
-							}
-							final L2ValueManifest manifest =
-								consumer.recreateIncomingManifest();
-							final @Nullable L2Instruction copy =
-								instruction.copyInstructionForManifest(
-									consumerBlock, manifest);
-							if (copy == null)
-							{
-								allMoved = false;
-								continue;
-							}
-							consumerBlock.insertInstruction(
-								consumerBlock.instructions().indexOf(consumer),
-								copy);
-							changed = true;
-						}
-						if (allMoved)
-						{
-							// Remove the original instruction.
-							block.instructions().remove(instruction);
-							instruction.justRemoved();
-						}
-					}
-				}
-			}
-			sanityCheck(Interpreter.current());
-			if (changed)
-			{
-				anyChanged = true;
-				updateAllManifests();
-				computeLivenessAtEachEdge();
-			}
-		}
-		while (changed);
-		return anyChanged;
 	}
 
 	/**
@@ -843,11 +718,14 @@ public final class L2Optimizer
 						// about hitting a block that does care about the value,
 						// because we already know it was never live-in anywhere
 						// after this edge.
-						reachableTargetEdges.stream()
-							.filter(edge -> !edgesToMoveThrough.contains(edge))
-							.forEach(edge ->
+						reachableTargetEdges.forEach(edge ->
+						{
+							if (!edgesToMoveThrough.contains(edge))
+							{
 								edge.forgetRegistersInManifestsRecursively(
-									writtenSet));
+									writtenSet);
+							}
+						});
 
 						// We moved the instruction *just* out of the block, so
 						// when we move prior instructions, they'll still end up
@@ -887,7 +765,6 @@ public final class L2Optimizer
 				updateAllManifests();
 				computeLivenessAtEachEdge();
 			}
-			changed |= replicateEligibleInstructionsJustBeforeUse();
 		}
 		while (changed);
 	}
@@ -1062,7 +939,6 @@ public final class L2Optimizer
 					if (instruction.operation().isPlaceholder())
 					{
 						generator.replaceInstructionByGenerating(instruction);
-						updateAllManifests();
 						computeLivenessAtEachEdge();
 						replacedAnyPlaceholders = true;
 						continue outer;
@@ -1615,22 +1491,22 @@ public final class L2Optimizer
 			// Check edges going forward.
 			assert new HashSet<>(allEdgesFromBlock).equals(
 				new HashSet<> (block.successorEdgesCopy()));
-			for (final L2PcOperand edge : block.successorEdgesCopy())
+			block.successorEdgesDo(edge ->
 			{
 				assert edge.sourceBlock() == block;
 				final L2BasicBlock targetBlock = edge.targetBlock();
 				assert !edge.isBackward() || targetBlock.isLoopHead;
 				assert blocks.contains(targetBlock);
 				assert targetBlock.predecessorEdgesCopy().contains(edge);
-			}
-			// Also check edges going backward.
-			for (final L2PcOperand backEdge : block.predecessorEdgesCopy())
+			});
+			// Also check incoming edges.
+			block.predecessorEdgesDo(inEdge ->
 			{
-				assert backEdge.targetBlock() == block;
-				final L2BasicBlock predecessorBlock = backEdge.sourceBlock();
+				assert inEdge.targetBlock() == block;
+				final L2BasicBlock predecessorBlock = inEdge.sourceBlock();
 				assert blocks.contains(predecessorBlock);
-				assert predecessorBlock.successorEdgesCopy().contains(backEdge);
-			}
+				assert predecessorBlock.successorEdgesCopy().contains(inEdge);
+			});
 		}
 	}
 

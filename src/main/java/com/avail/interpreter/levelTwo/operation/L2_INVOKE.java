@@ -126,10 +126,9 @@ extends L2ControlFlowOperation
 //		final L2PcOperand onReification = instruction.operand(4);
 
 		renderPreamble(instruction, builder);
+		builder.append(' ');
 		builder.append(result.registerString());
 		builder.append(" ← ");
-		renderPreamble(instruction, builder);
-		builder.append(' ');
 		builder.append(function.registerString());
 		builder.append("(");
 		builder.append(arguments.elements());

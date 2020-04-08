@@ -46,6 +46,7 @@ import java.util.function.UnaryOperator;
  * semantic value doesn't have a notion of value or register <em>directly</em>
  * associated with it, only through a manifest.
  */
+@SuppressWarnings("EqualsAndHashcode")
 final class L2SemanticLabel extends L2FrameSpecificSemanticValue
 {
 	/**
@@ -56,20 +57,13 @@ final class L2SemanticLabel extends L2FrameSpecificSemanticValue
 	 */
 	L2SemanticLabel (final Frame frame)
 	{
-		super(frame);
+		super(frame, 0x36B34F3D);
 	}
 
 	@Override
 	public boolean equals (final Object obj)
 	{
-		return obj instanceof L2SemanticLabel
-			&& frame().equals(((L2SemanticLabel) obj).frame());
-	}
-
-	@Override
-	public int hashCode ()
-	{
-		return frame().hashCode() ^ 0x36B34F3D;
+		return obj instanceof L2SemanticLabel && super.equals(obj);
 	}
 
 	@Override

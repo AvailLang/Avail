@@ -33,7 +33,6 @@
 package com.avail.optimizer;
 
 import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
 import com.avail.interpreter.levelTwo.operand.L2WriteOperand;
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
@@ -298,15 +297,14 @@ public final class L2RegisterColorer
 		}
 		// We reached the start of the block without hitting the defining phi.
 		// Continue tracing in each predecessor block.
-		final Iterator<L2PcOperand> iterator = block.predecessorEdgesIterator();
-		while (iterator.hasNext())
+		block.predecessorEdgesDo(sourceEdge ->
 		{
-			final L2BasicBlock sourceBlock = iterator.next().sourceBlock();
+			final L2BasicBlock sourceBlock = sourceEdge.sourceBlock();
 			if (reachedBlocks.add(sourceBlock))
 			{
 				blocksToTrace.add(sourceBlock);
 			}
-		}
+		});
 	}
 
 	/**

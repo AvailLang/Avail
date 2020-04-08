@@ -318,12 +318,15 @@ public final class L2ValueManifest
 		final L2Synonym existingSynonym,
 		final L2SemanticValue semanticValue)
 	{
+		assert !hasSemanticValue(semanticValue);
 		final Set<L2SemanticValue> semanticValues =
 			new HashSet<>(existingSynonym.semanticValues());
-		assert !hasSemanticValue(semanticValue);
 		semanticValues.add(semanticValue);
 		final L2Synonym merged = new L2Synonym(semanticValues);
-		semanticValues.forEach(sv -> semanticValueToSynonym.put(sv, merged));
+		for (final L2SemanticValue sv : semanticValues)
+		{
+			semanticValueToSynonym.put(sv, merged);
+		}
 		synonymRestrictions.put(
 			merged, synonymRestrictions.remove(existingSynonym));
 		definitions.put(merged, definitions.remove(existingSynonym));
@@ -595,13 +598,14 @@ public final class L2ValueManifest
 	}
 
 	/**
-	 * Answer a copy of the set of {@link L2Synonym}s in this manifest.
+	 * Answer an arbitrarily ordered array of the {@link L2Synonym}s in this
+	 * manifest.
 	 *
-	 * @return The indicated {@link Set}.
+	 * @return An array of {@link L2Synonym}s.
 	 */
-	public Set<L2Synonym> synonyms ()
+	public L2Synonym[] synonymsArray ()
 	{
-		return new HashSet<>(semanticValueToSynonym.values());
+		return synonymRestrictions.keySet().toArray(new L2Synonym[0]);
 	}
 
 	/**
@@ -1145,13 +1149,6 @@ public final class L2ValueManifest
 			// All paths get the value from a common register, and at least one
 			// definition for that register includes a semantic value that's in
 			// relatedSemanticValues.
-//			final List<L2WriteOperand<R>> distinctDefs = sources.elements().stream()
-//				.map(L2ReadOperand::definition)
-//				.distinct()
-//				.collect(toList());
-//			final L2WriteOperand<R> onlySource = distinctDefs.iterator().next();
-//			final L2SemanticValue firstSemanticValue;
-//			firstSemanticValue = onlySource.pickSemanticValue();
 			final L2Register distinctRegister = distinctRegisters.get(0);
 			// Under the assumption that all the writes of this variable had at
 			// least some common purpose, find that purpose, in the form of the
@@ -1159,9 +1156,10 @@ public final class L2ValueManifest
 			// the new synonym.
 			final Set<L2SemanticValue> intersectedSemanticValues =
 				new HashSet<>(relatedSemanticValues);
-			distinctRegister.definitions().stream()
-				.map(L2WriteOperand::semanticValues)
-				.forEach(intersectedSemanticValues::retainAll);
+			for (final L2WriteOperand<?> write : distinctRegister.definitions())
+			{
+				intersectedSemanticValues.retainAll(write.semanticValues());
+			}
 			pickSemanticValue = intersectedSemanticValues.iterator().next();
 			if (semanticValueToSynonym.containsKey(pickSemanticValue))
 			{
@@ -1190,7 +1188,7 @@ public final class L2ValueManifest
 				createWriter.apply(pickSemanticValue, restriction));
 			otherSemanticValues.remove(pickSemanticValue);
 		}
-		otherSemanticValues.forEach(otherSemanticValue ->
+		for (final L2SemanticValue otherSemanticValue : otherSemanticValues)
 		{
 			// The other semantic value might already be in this synonym due to
 			// a previous phi instruction for a different register kind.  If so,
@@ -1202,7 +1200,7 @@ public final class L2ValueManifest
 					pickSemanticValue,
 					otherSemanticValue);
 			}
-		});
+		}
 	}
 
 	/**
@@ -1220,15 +1218,14 @@ public final class L2ValueManifest
 		final UnaryOperator<Frame> frameTransformer)
 	{
 		final L2ValueManifest newManifest = new L2ValueManifest();
-		synonyms().forEach(
-			oldSynonym ->
-			{
-				final TypeRestriction restriction =
-					restrictionFor(oldSynonym.pickSemanticValue());
-				newManifest.introduceSynonym(
-					oldSynonym.transform(semanticValueTransformer),
-					restriction);
-			});
+		for (final L2Synonym oldSynonym : synonymsArray())
+		{
+			final TypeRestriction restriction =
+				restrictionFor(oldSynonym.pickSemanticValue());
+			newManifest.introduceSynonym(
+				oldSynonym.transform(semanticValueTransformer),
+				restriction);
+		}
 		return newManifest;
 	}
 
@@ -1262,7 +1259,7 @@ public final class L2ValueManifest
 		boolean changed = false;
 		// Iterate over a copy of the map, so we can remove from it.
 		for (final Entry<L2Synonym, List<L2Register>> entry :
-			new HashMap<>(definitions).entrySet())
+			new ArrayList<>(definitions.entrySet()))
 		{
 			final List<L2Register> definitionList = entry.getValue();
 			if (definitionList.retainAll(registersToRetain))
@@ -1311,25 +1308,29 @@ public final class L2ValueManifest
 	public void retainSemanticValues (
 		final Set<L2SemanticValue> semanticValuesToRetain)
 	{
-		synonyms().forEach(syn ->
+		for (final L2Synonym syn : synonymsArray())
 		{
 			final Set<L2SemanticValue> values = syn.semanticValues();
-			final Set<L2SemanticValue> toRemove = new HashSet<>(values);
 			final Set<L2SemanticValue> toKeep = new HashSet<>(values);
-			toRemove.removeAll(semanticValuesToRetain);
-			toKeep.retainAll(semanticValuesToRetain);
-			final TypeRestriction restriction = synonymRestrictions.remove(syn);
-			final List<L2Register> defs = definitions.remove(syn);
-			semanticValueToSynonym.keySet().removeAll(toRemove);
-			if (!toKeep.isEmpty())
+			final boolean keepAll = toKeep.retainAll(semanticValuesToRetain);
+			if (!keepAll)
 			{
-				final L2Synonym newSynonym = new L2Synonym(toKeep);
-				toKeep.forEach(
-					sv -> semanticValueToSynonym.put(sv, newSynonym));
-				synonymRestrictions.put(newSynonym, restriction);
-				definitions.put(newSynonym, defs);
+				final Set<L2SemanticValue> toRemove = new HashSet<>(values);
+				toRemove.removeAll(semanticValuesToRetain);
+				final TypeRestriction restriction =
+					synonymRestrictions.remove(syn);
+				final List<L2Register> defs = definitions.remove(syn);
+				semanticValueToSynonym.keySet().removeAll(toRemove);
+				if (!toKeep.isEmpty())
+				{
+					final L2Synonym newSynonym = new L2Synonym(toKeep);
+					toKeep.forEach(
+						sv -> semanticValueToSynonym.put(sv, newSynonym));
+					synonymRestrictions.put(newSynonym, restriction);
+					definitions.put(newSynonym, defs);
+				}
 			}
-		});
+		}
 	}
 
 	/**
@@ -1348,7 +1349,7 @@ public final class L2ValueManifest
 		boolean anyChanged = false;
 		// Iterate over a copy, because we're making changes.
 		for (final Entry<L2Synonym, List<L2Register>> entry :
-			new HashMap<>(definitions).entrySet())
+			new ArrayList<>(definitions.entrySet()))
 		{
 			final L2Synonym synonym = entry.getKey();
 			final List<L2Register> registerList = entry.getValue();

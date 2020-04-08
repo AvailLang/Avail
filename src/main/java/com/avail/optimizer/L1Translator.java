@@ -118,8 +118,8 @@ import static com.avail.interpreter.Primitive.Flag.CannotFail;
 import static com.avail.interpreter.Primitive.Result.FAILURE;
 import static com.avail.interpreter.Primitive.Result.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.*;
-import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.*;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.*;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.*;
 import static com.avail.optimizer.L2ControlFlowGraph.ZoneType.BEGIN_REIFICATION_FOR_INTERRUPT;
 import static com.avail.optimizer.L2ControlFlowGraph.ZoneType.PROPAGATE_REIFICATION_FOR_INVOKE;
 import static com.avail.optimizer.L2Generator.*;
@@ -441,7 +441,8 @@ public final class L1Translator
 		// The exact function isn't known, but we know the raw function, so we
 		// statically know the function type.
 		final TypeRestriction restriction =
-			restrictionForType(code.functionType(), BOXED);
+			restrictionForType(code.functionType(),
+				BOXED);
 		final L2WriteBoxedOperand functionWrite =
 			generator.boxedWrite(semanticFunction, restriction);
 		addInstruction(L2_GET_CURRENT_FUNCTION.instance, functionWrite);
@@ -498,7 +499,8 @@ public final class L1Translator
 		final A_Type guaranteedType)
 	{
 		final L2WriteBoxedOperand writer =
-			generator.boxedWriteTemp(restrictionForType(guaranteedType, BOXED));
+			generator.boxedWriteTemp(restrictionForType(guaranteedType,
+				BOXED));
 		addInstruction(
 			L2_GET_LATEST_RETURN_VALUE.instance,
 			writer);
@@ -516,7 +518,8 @@ public final class L1Translator
 	{
 		final L2WriteBoxedOperand writer =
 			generator.boxedWriteTemp(
-				restrictionForType(mostGeneralFunctionType(), BOXED));
+				restrictionForType(mostGeneralFunctionType(),
+					BOXED));
 		addInstruction(
 			L2_GET_RETURNING_FUNCTION.instance,
 			writer);
@@ -602,7 +605,8 @@ public final class L1Translator
 		final @Nullable Zone zone = generator.currentBlock().zone;
 		final L2WriteBoxedOperand newContinuationWrite =
 			generator.boxedWriteTemp(
-				restrictionForType(mostGeneralContinuationType(), BOXED));
+				restrictionForType(mostGeneralContinuationType(),
+					BOXED));
 		final L2BasicBlock onReturnIntoReified =
 			generator.createBasicBlock("Return into reified continuation");
 		// Create readSlots for constructing the continuation.  Also create
@@ -731,12 +735,13 @@ public final class L1Translator
 	{
 		final L2WriteBoxedOperand invalidResultFunction =
 			generator.boxedWriteTemp(
-				restrictionForType(functionType(
-					tuple(
-						mostGeneralFunctionType(),
-						topMeta(),
-						variableTypeFor(ANY.o())),
-					bottom()), BOXED));
+				restrictionForType(
+					functionType(
+						tuple(
+							mostGeneralFunctionType(),
+							topMeta(),
+							variableTypeFor(ANY.o())),
+						bottom	 					BOXED));
 		addInstruction(
 			L2_GET_INVALID_MESSAGE_RESULT_FUNCTION.instance,
 			invalidResultFunction);
@@ -915,7 +920,7 @@ public final class L1Translator
 			{
 				// Capture it as the checked value L2SemanticSlot.
 				forceSlotRegister(stackp, instructionDecoder.pc(), answerReg);
-				addInstruction(L2_JUMP.instance, edgeTo(afterCallNoCheck));
+				generator.jumpTo(afterCallNoCheck);
 			}
 			else
 			{
@@ -923,7 +928,7 @@ public final class L1Translator
 				// using pc - 1.
 				forceSlotRegister(
 					stackp, instructionDecoder.pc() - 1, answerReg);
-				addInstruction(L2_JUMP.instance, edgeTo(afterCallWithCheck));
+				generator.jumpTo(afterCallWithCheck);
 			}
 		}
 
@@ -1151,9 +1156,7 @@ public final class L1Translator
 					// back to the slow dispatch.
 					if (generator.currentlyReachable())
 					{
-						addInstruction(
-							L2_JUMP.instance,
-							edgeTo(callSiteHelper.onFallBackToSlowLookup));
+						generator.jumpTo(callSiteHelper.onFallBackToSlowLookup);
 					}
 				}
 
@@ -1169,9 +1172,7 @@ public final class L1Translator
 		else
 		{
 			// Always fall back.
-			addInstruction(
-				L2_JUMP.instance,
-				edgeTo(callSiteHelper.onFallBackToSlowLookup));
+			generator.jumpTo(callSiteHelper.onFallBackToSlowLookup);
 		}
 		assert !generator.currentlyReachable();
 
@@ -1257,9 +1258,7 @@ public final class L1Translator
 					stackp,
 					instructionDecoder.pc() - 1,
 					getLatestReturnValue(unionOfPossibleResults));
-				addInstruction(
-					L2_JUMP.instance,
-					edgeTo(callSiteHelper.afterCallWithCheck));
+				generator.jumpTo(callSiteHelper.afterCallWithCheck);
 			}
 		}
 
@@ -1276,9 +1275,7 @@ public final class L1Translator
 					instructionDecoder.pc(),
 					getLatestReturnValue(
 						unionOfPossibleResults.typeIntersection(expectedType)));
-				addInstruction(
-					L2_JUMP.instance,
-					edgeTo(callSiteHelper.afterCallNoCheck));
+				generator.jumpTo(callSiteHelper.afterCallNoCheck);
 			}
 		}
 
@@ -1302,8 +1299,7 @@ public final class L1Translator
 			// call MINUS ONE.  Check it, moving it to a register that's bound
 			// to the L2SemanticSlot for the stackp and pc just after the call.
 			generateReturnTypeCheck(expectedType);
-			addInstruction(
-				L2_JUMP.instance, edgeTo(callSiteHelper.afterEverything));
+			generator.jumpTo(callSiteHelper.afterEverything);
 		}
 
 		// #6: After call without return check.
@@ -1313,8 +1309,7 @@ public final class L1Translator
 		{
 			// The value will have been put into a register bound to the
 			// L2SemanticSlot for the stackp and pc just after the call.
-			addInstruction(
-				L2_JUMP.instance, edgeTo(callSiteHelper.afterEverything));
+			generator.jumpTo(callSiteHelper.afterEverything);
 		}
 
 		// #7: After everything.  If it's possible to return a valid value from
@@ -1359,9 +1354,7 @@ public final class L1Translator
 		}
 		// Failed dispatches basically never happen, so jump to the fallback
 		// lookup, which will do its own problem reporting.
-		addInstruction(
-			L2_JUMP.instance,
-			edgeTo(callSiteHelper.onFallBackToSlowLookup));
+		generator.jumpTo(callSiteHelper.onFallBackToSlowLookup);
 	}
 
 	/**
@@ -1419,9 +1412,7 @@ public final class L1Translator
 		}
 		// Whether we just created this pair or found it, emit a jump to
 		// the block.
-		generator.addInstruction(
-			L2_JUMP.instance,
-			edgeTo(block));
+		generator.jumpTo(block);
 	}
 
 	/**
@@ -1537,16 +1528,14 @@ public final class L1Translator
 			if (intersection == bottomRestriction)
 			{
 				// It will always fail the test.
-				addInstruction(
-					L2_JUMP.instance, edgeTo(memento.failCheckBasicBlock));
+				generator.jumpTo(memento.failCheckBasicBlock);
 				return memento;
 			}
 
 			if (argRestriction.type.isSubtypeOf(typeToTest))
 			{
 				// It will always pass the test.
-				addInstruction(
-					L2_JUMP.instance, edgeTo(memento.passCheckBasicBlock));
+				generator.jumpTo(memento.passCheckBasicBlock);
 				return memento;
 			}
 
@@ -1565,28 +1554,25 @@ public final class L1Translator
 					final L2BasicBlock nextCheckOrFail =
 						generator.createBasicBlock(
 							"test next case of enumeration");
-					generateJumpIfEqualsConstant(
+					jumpIfEqualsConstant(
 						argRead,
 						instance,
-						edgeTo(memento.passCheckBasicBlock),
-						edgeTo(nextCheckOrFail));
+						memento.passCheckBasicBlock,
+						nextCheckOrFail);
 					generator.startBlock(nextCheckOrFail);
 					instance = iterator.next();
 				}
-				generateJumpIfEqualsConstant(
+				jumpIfEqualsConstant(
 					argRead,
 					instance,
-					edgeTo(memento.passCheckBasicBlock),
-					edgeTo(memento.failCheckBasicBlock));
+					memento.passCheckBasicBlock,
+					memento.failCheckBasicBlock);
 				return memento;
 			}
 			// A runtime test is needed, and it's not a small enumeration.
-			addInstruction(
-				L2_JUMP_IF_KIND_OF_CONSTANT.instance,
-				argRead,
-				new L2ConstantOperand(typeToTest),
-				edgeTo(memento.passCheckBasicBlock),
-				edgeTo(memento.failCheckBasicBlock));
+			jumpIfKindOfConstant(
+				argRead, typeToTest, memento.passCheckBasicBlock,
+				memento.failCheckBasicBlock);
 			return memento;
 		}
 
@@ -1597,12 +1583,10 @@ public final class L1Translator
 			// superUnion type, so the dispatch will always be decided by only
 			// the superUnion type, which does not vary at runtime.  Decide
 			// the branch direction right now.
-			addInstruction(
-				L2_JUMP.instance,
-				edgeTo(
-					superUnionElementType.isSubtypeOf(typeToTest)
-						? memento.passCheckBasicBlock
-						: memento.failCheckBasicBlock));
+			generator.jumpTo(
+				superUnionElementType.isSubtypeOf(typeToTest)
+					? memento.passCheckBasicBlock
+					: memento.failCheckBasicBlock);
 			return memento;
 		}
 
@@ -1623,7 +1607,8 @@ public final class L1Translator
 		final L2WriteBoxedOperand unionReg =
 			generator.boxedWriteTemp(
 				restrictionForType(
-					argMeta.typeUnion(superUnionReg.type()), BOXED));
+					argMeta.typeUnion(superUnionReg.type()),
+					BOXED));
 		addInstruction(
 			L2_TYPE_UNION.instance,
 			readBoxed(argTypeWrite),
@@ -1639,8 +1624,9 @@ public final class L1Translator
 	}
 
 	/**
-	 * Generate conditional branch to either passEdge or failEdge based on
-	 * whether the given register equals the given constant value.
+	 * Generate conditional branch to either {@code passBlock} or
+	 * {@code failBlock}, based on whether the given register equals the given
+	 * constant value.
 	 *
 	 * <p>If the constant to compare against is a boolean, check the provenance
 	 * of the register.  If it's the result of a suitable comparison primitive,
@@ -1654,16 +1640,16 @@ public final class L1Translator
 	 *        The register whose content should be compared.
 	 * @param constantValue
 	 *        The constant value to compare against.
-	 * @param passEdge
+	 * @param passBlock
 	 *        Where to go if the register's value equals the constant.
-	 * @param failEdge
+	 * @param failBlock
 	 *        Where to go if the register's value does not equal the constant.
 	 */
-	public void generateJumpIfEqualsConstant (
+	public void jumpIfEqualsConstant (
 		final L2ReadBoxedOperand registerToTest,
 		final A_BasicObject constantValue,
-		final L2PcOperand passEdge,
-		final L2PcOperand failEdge)
+		final L2BasicBlock passBlock,
+		final L2BasicBlock failBlock)
 	{
 		if (constantValue.isBoolean())
 		{
@@ -1698,11 +1684,11 @@ public final class L1Translator
 						// It's a comparison against a constant.  Recurse to
 						// deal with comparing the result of a prior comparison
 						// to a boolean.
-						generateJumpIfEqualsConstant(
+						jumpIfEqualsConstant(
 							previousRegister,
 							previousConstant,
-							constantBool ? passEdge : failEdge,
-							constantBool ? failEdge : passEdge);
+							constantBool ? passBlock : failBlock,
+							constantBool ? failBlock : passBlock);
 						return;
 					}
 					// Neither value is a constant, but we can still do the
@@ -1711,8 +1697,8 @@ public final class L1Translator
 						L2_JUMP_IF_OBJECTS_EQUAL.instance,
 						args.get(0),
 						args.get(1),
-						constantBool ? passEdge : failEdge,
-						constantBool ? failEdge : passEdge);
+						edgeTo(constantBool ? passBlock : failBlock),
+						edgeTo(constantBool ? failBlock : passBlock));
 					return;
 				}
 				else if (boolSource.operation()
@@ -1735,12 +1721,11 @@ public final class L1Translator
 						// branch-if-kind.
 						final L2ReadBoxedOperand valueSource =
 							L2_GET_TYPE.sourceValueOf(firstTypeSource);
-						addInstruction(
-							L2_JUMP_IF_KIND_OF_CONSTANT.instance,
+						jumpIfKindOfConstant(
 							valueSource,
-							secondConstantOperand,
-							constantBool ? passEdge : failEdge,
-							constantBool ? failEdge : passEdge);
+							secondConstantOperand.object,
+							constantBool ? passBlock : failBlock,
+							constantBool ? failBlock : passBlock);
 						return;
 					}
 					// Perform a branch-if-is-subtype-of instead of checking
@@ -1749,8 +1734,8 @@ public final class L1Translator
 						L2_JUMP_IF_SUBTYPE_OF_CONSTANT.instance,
 						firstTypeOperand,
 						secondConstantOperand,
-						constantBool ? passEdge : failEdge,
-						constantBool ? failEdge : passEdge);
+						edgeTo(constantBool ? passBlock : failBlock),
+						edgeTo(constantBool ? failBlock : passBlock));
 					return;
 				}
 				else if (boolSource.operation()
@@ -1777,8 +1762,8 @@ public final class L1Translator
 							L2_JUMP_IF_KIND_OF_OBJECT.instance,
 							valueSource,
 							secondTypeOperand,
-							constantBool ? passEdge : failEdge,
-							constantBool ? failEdge : passEdge);
+							edgeTo(constantBool ? passBlock : failBlock),
+							edgeTo(constantBool ? failBlock : passBlock));
 						return;
 					}
 					// Perform a branch-if-is-subtype-of instead of checking
@@ -1787,8 +1772,8 @@ public final class L1Translator
 						L2_JUMP_IF_SUBTYPE_OF_OBJECT.instance,
 						firstTypeOperand,
 						secondTypeOperand,
-						constantBool ? passEdge : failEdge,
-						constantBool ? failEdge : passEdge);
+						edgeTo(constantBool ? passBlock : failBlock),
+						edgeTo(constantBool ? failBlock : passBlock));
 					return;
 				}
 				// TODO MvG - We could check for other special cases here, like
@@ -1801,8 +1786,8 @@ public final class L1Translator
 			L2_JUMP_IF_EQUALS_CONSTANT.instance,
 			registerToTest,
 			new L2ConstantOperand(constantValue),
-			passEdge,
-			failEdge);
+			edgeTo(passBlock),
+			edgeTo(failBlock));
 	}
 
 	/**
@@ -1928,7 +1913,8 @@ public final class L1Translator
 							generator.boxedWriteTemp(
 								restrictionForType(
 									primitive.returnTypeGuaranteedByVM(
-										rawFunction, argumentTypes), BOXED));
+										rawFunction, argumentTypes),
+									BOXED));
 						addInstruction(
 							L2_RUN_INFALLIBLE_PRIMITIVE.forPrimitive(primitive),
 							new L2ConstantOperand(rawFunction),
@@ -2010,17 +1996,15 @@ public final class L1Translator
 			new L2IntImmediateOperand(TRANSIENT.offsetInDefaultChunk),
 			new L2CommentOperand(
 				"Transient - cannot be invalid."));
-		generator.addInstruction(L2_JUMP.instance, edgeTo(targetBlock));
+		generator.jumpTo(targetBlock);
 
 		generator.startBlock(successBlock);
 		if (generator.currentlyReachable())
 		{
-			addInstruction(
-				L2_JUMP.instance,
-				edgeTo(
-					skipCheck
-						? callSiteHelper.afterCallNoCheck
-						: callSiteHelper.afterCallWithCheck));
+			generator.jumpTo(
+				skipCheck
+					? callSiteHelper.afterCallNoCheck
+					: callSiteHelper.afterCallWithCheck);
 			assert !generator.currentlyReachable();
 		}
 	}
@@ -2069,20 +2053,14 @@ public final class L1Translator
 			// It's impossible to return a valid value here, since the value's
 			// type bound and the expected type don't intersect.  Always invoke
 			// the bad type handler.
-			addInstruction(
-				L2_JUMP.instance,
-				edgeTo(failedCheck));
+			generator.jumpTo(failedCheck);
 		}
 		else
 		{
 			assert !uncheckedValueRead.type().isSubtypeOf(expectedType)
 				: "Attempting to create unnecessary type check";
-			addInstruction(
-				L2_JUMP_IF_KIND_OF_CONSTANT.instance,
-				uncheckedValueRead,
-				new L2ConstantOperand(expectedType),
-				edgeTo(passedCheck),
-				edgeTo(failedCheck));
+			jumpIfKindOfConstant(
+				uncheckedValueRead, expectedType, passedCheck, failedCheck);
 		}
 
 		// The type check failed, so report it.
@@ -2146,6 +2124,68 @@ public final class L1Translator
 				uncheckedValueRead.restriction().intersection(
 					restrictionForType(expectedType, BOXED)));
 		}
+	}
+
+	/**
+	 * Generate code to test the value in {@code valueRead} against the constant
+	 * {@code expectedType}, jumping to {@code passedCheck} if it conforms, or
+	 * {@code failedCheck} otherwise.
+	 *
+	 * @param valueRead
+	 *        The {@link L2ReadBoxedOperand} that provides the value to check.
+	 * @param expectedType
+	 *        The exact {@link A_Type} to check the value against.
+	 * @param passedCheck
+	 *        Where to jump if the value's type is of the expected type.
+	 * @param failedCheck
+	 *        Where to jump if the value's type is not of the expected type.
+	 */
+	public void jumpIfKindOfConstant (
+		final L2ReadBoxedOperand valueRead,
+		final A_Type expectedType,
+		final L2BasicBlock passedCheck,
+		final L2BasicBlock failedCheck)
+	{
+		// Check for special cases.
+		if (valueRead.restriction().containedByType(expectedType))
+		{
+			generator.jumpTo(passedCheck);
+			return;
+		}
+		if (!valueRead.restriction().intersectsType(expectedType))
+		{
+			generator.jumpTo(failedCheck);
+			return;
+		}
+		// Trace back to the definition of the read's register, to see if it's
+		// a function that's created in the current chunk.
+		final @Nullable A_RawFunction rawFunction =
+			determineRawFunction(valueRead);
+		if (rawFunction != null)
+		{
+			final A_Type exactKind = rawFunction.functionType();
+			if (exactKind.isSubtypeOf(expectedType))
+			{
+				generator.jumpTo(passedCheck);
+				return;
+			}
+			if (!expectedType.isEnumeration())
+			{
+				// Don't check for vacuous type intersection here.  We know the
+				// exact kind, and it's specifically *not* a subtype of the
+				// expectedType, which is also a kind (i.e., not an
+				// enumeration).
+				generator.jumpTo(failedCheck);
+				return;
+			}
+		}
+		// We can't pin it down statically, so do the dynamic check.
+		addInstruction(
+			L2_JUMP_IF_KIND_OF_CONSTANT.instance,
+			valueRead,
+			new L2ConstantOperand(expectedType),
+			edgeTo(passedCheck),
+			edgeTo(failedCheck));
 	}
 
 	/**
@@ -2333,7 +2373,8 @@ public final class L1Translator
 				currentManifest().restrictionFor(semanticArguments.get(i - 1));
 			final TypeRestriction unionRestriction = argumentRestriction.union(
 				restrictionForType(
-					callSiteHelper.superUnionType.typeAtIndex(i), BOXED));
+					callSiteHelper.superUnionType.typeAtIndex(i),
+					BOXED));
 			argumentRestrictions.add(unionRestriction);
 		}
 
@@ -2360,7 +2401,7 @@ public final class L1Translator
 			// the lookup failure clause.  Don't generate the success case.
 			// For consistency, generate a jump to the lookupFailed exit point,
 			// then generate it immediately.
-			generator.addInstruction(L2_JUMP.instance, edgeTo(lookupFailed));
+			generator.jumpTo(lookupFailed);
 			generator.startBlock(lookupFailed);
 			generateLookupFailure(
 				method,
@@ -2613,9 +2654,7 @@ public final class L1Translator
 		// When the lambda below runs, it's generating code at the point where
 		// continuationReg will have the new continuation.
 		reify(null, TO_RESUME);
-		addInstruction(
-			L2_JUMP.instance,
-			edgeTo(merge));
+		generator.jumpTo(merge);
 		// Merge the flow (reified and continued, versus not reified).
 		generator.startBlock(merge);
 		// And now... either we're back or we never left.
@@ -2773,9 +2812,7 @@ public final class L1Translator
 			new L2CommentOperand(
 				"Transient - cannot be invalid."));
 		reify(TOP.o(), TO_RETURN_INTO);
-		addInstruction(
-			L2_JUMP.instance,
-			edgeTo(success));
+		generator.jumpTo(success);
 
 		// End with the success block.  Note that the failure path can lead here
 		// if the implicit-observe function returns.
@@ -2818,9 +2855,7 @@ public final class L1Translator
 			}
 		}
 		generator.afterOptionalInitialPrimitiveBlock.makeIrremovable();
-		addInstruction(
-			L2_JUMP.instance,
-			edgeTo(generator.afterOptionalInitialPrimitiveBlock));
+		generator.jumpTo(generator.afterOptionalInitialPrimitiveBlock);
 
 		generator.startBlock(generator.afterOptionalInitialPrimitiveBlock);
 		currentManifest().clear();
@@ -2877,9 +2912,7 @@ public final class L1Translator
 		// semantic slots n@1.
 		generator.restartLoopHeadBlock = generator.createLoopHeadBlock(
 			"Loop head for " + code.methodName().asNativeString());
-		addInstruction(
-			L2_JUMP.instance,
-			edgeTo(generator.restartLoopHeadBlock));
+		generator.jumpTo(generator.restartLoopHeadBlock);
 		generator.startBlock(generator.restartLoopHeadBlock);
 
 		// Create the locals.
@@ -3005,9 +3038,7 @@ public final class L1Translator
 		generator.startBlock(initialBlock);
 		generator.addInstruction(
 			L2_TRY_OPTIONAL_PRIMITIVE.instance);
-		generator.addInstruction(
-			L2_JUMP.instance,
-			edgeTo(reenterFromRestartBlock));
+		generator.jumpTo(reenterFromRestartBlock);
 		// Only if the primitive fails should we even consider optimizing the
 		// fallback code.
 
@@ -3023,9 +3054,7 @@ public final class L1Translator
 		generator.addInstruction(
 			L2_PREPARE_NEW_FRAME_FOR_L1.instance);
 
-		generator.addInstruction(
-			L2_JUMP.instance,
-			edgeTo(loopBlock));
+		generator.jumpTo(loopBlock);
 
 		// 3. The main L1 interpreter loop.
 		generator.startBlock(loopBlock);

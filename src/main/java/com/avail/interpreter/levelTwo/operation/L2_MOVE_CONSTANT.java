@@ -156,14 +156,6 @@ extends L2Operation
 	}
 
 	@Override
-	public boolean canBeDuplicatedToEachUse (
-		final L2Instruction instruction)
-	{
-		// Every move-constant should be duplicated just before its use.
-		return true;
-	}
-
-	@Override
 	public L2ReadBoxedOperand extractFunctionOuter (
 		final L2Instruction instruction,
 		final L2ReadBoxedOperand functionRegister,

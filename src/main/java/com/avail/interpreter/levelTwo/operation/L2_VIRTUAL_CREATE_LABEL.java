@@ -141,17 +141,6 @@ extends L2Operation
 	}
 
 	@Override
-	public boolean canBeDuplicatedToEachUse (
-		final L2Instruction instruction)
-	{
-		// Even though we might avoid reification and/or label creation in the
-		// case that multiple labels are unconditionally created, it's better to
-		// try to replicate this instruction just before its actual uses, which
-		// is often within reification zones.
-		return true;
-	}
-
-	@Override
 	public void appendToWithWarnings (
 		final L2Instruction instruction,
 		final Set<L2OperandType> desiredTypes,
@@ -221,9 +210,7 @@ extends L2Operation
 				edgeTo(startReification));
 
 			generator.startBlock(alreadyReifiedEdgeSplit);
-			generator.addInstruction(
-				L2_JUMP.instance,
-				edgeTo(callerIsReified));
+			generator.jumpTo(callerIsReified);
 
 			generator.startBlock(startReification);
 			generator.addInstruction(
@@ -294,9 +281,7 @@ extends L2Operation
 					ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
 				new L2CommentOperand(
 					"Transient, cannot be invalid."));
-			generator.addInstruction(
-				L2_JUMP.instance,
-				edgeTo(callerIsReified));
+			generator.jumpTo(callerIsReified);
 
 			generator.startBlock(callerIsReified);
 			// Caller has been reified, or checked to be already reified.

@@ -33,7 +33,6 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.AvailObject;
-import com.avail.descriptor.tuples.TupleDescriptor;
 import com.avail.descriptor.types.A_Type;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
@@ -50,6 +49,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
+import static com.avail.descriptor.tuples.A_Tuple.concatenateWithMethod;
 import static com.avail.descriptor.tuples.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.types.ConcatenatedTupleTypeDescriptor.concatenatingAnd;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR;
@@ -161,7 +161,7 @@ extends L2Operation
 			{
 				translator.load(method, elements.get(i).register());
 				translator.intConstant(method, 1);  // canDestroy = true
-				TupleDescriptor.concatenateWithMethod.generateCall(method);
+				concatenateWithMethod.generateCall(method);
 			}
 			// Strengthen the final result to AvailObject.
 			method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));

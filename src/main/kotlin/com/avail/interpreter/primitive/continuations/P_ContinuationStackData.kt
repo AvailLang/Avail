@@ -58,7 +58,7 @@ object P_ContinuationStackData : Primitive(1, CannotFail, CanFold, CanInline)
 		val tuple =
 			generateObjectTupleFrom(con.function().code().numSlots())
 			{ index ->
-				val entry = con.argOrLocalOrStackAt(index)
+				val entry = con.frameAt(index)
 				if (entry.equalsNil()) { nilSubstitute() }
 				else { entry }
 			}

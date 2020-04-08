@@ -52,6 +52,7 @@ import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
@@ -127,13 +128,90 @@ public final class L2Instruction
 	}
 
 	/**
-	 * Evaluate the given function with each operand.
+	 * Evaluate the given function with each {@link L2Operand}.
 	 *
 	 * @param consumer The {@link Consumer} to evaluate.
 	 */
 	public void operandsDo (final Consumer<L2Operand> consumer)
 	{
-		Arrays.stream(operands).forEach(consumer);
+		for (int i = 0; i < operands.length; i++)
+		{
+			consumer.accept(operands[i]);
+		}
+	}
+
+	/**
+	 * Evaluate the given function with each {@link L2Operand} and the
+	 * {@link L2NamedOperandType} that it occupies.
+	 *
+	 * @param consumer The {@link BiConsumer} to evaluate.
+	 */
+	public void operandsWithNamedTypesDo (
+		final BiConsumer<L2Operand, L2NamedOperandType> consumer)
+	{
+		for (int i = 0; i < operands.length; i++)
+		{
+			consumer.accept(operands[i], operation.namedOperandTypes[i]);
+		}
+	}
+
+	/**
+	 * Evaluate the given function with each {@link L2PcOperand edge} and its
+	 * corresponding {@link Purpose}.  An {@link L2WriteOperand} is only
+	 * considered to take place if its {@link Purpose} is null, or if it is the
+	 * same as the {@link L2PcOperand edge} that is taken by this
+	 * {@code L2Instruction}.
+	 *
+	 * <p>This is only applicable to an instruction which
+	 * {@link #altersControlFlow()}</p>
+	 *
+	 * @param consumer The {@link BiConsumer} to evaluate.
+	 */
+	public void edgesAndPurposesDo (
+		final BiConsumer<L2PcOperand, Purpose> consumer)
+	{
+		for (int i = 0; i < operands.length; i++)
+		{
+			final L2Operand operand = operands[i];
+			if (operand instanceof L2PcOperand)
+			{
+				consumer.accept(
+					cast(operand), operation.namedOperandTypes[i].purpose());
+			}
+		}
+	}
+
+	/**
+	 * Evaluate the given function with each {@link L2WriteOperand} having the
+	 * given {@link Purpose}, which correlates with the {@code Purpose} along
+	 * each outbound {@link L2PcOperand edge} to indicate which writes have
+	 * effect along which outbound edges.
+	 *
+	 * <p>This is only applicable to an instruction which
+	 * {@link #altersControlFlow()}</p>
+	 *
+	 * @param purpose
+	 *        The {@link Purpose} with which to filter {@link L2WriteOperand}s.
+	 * @param consumer
+	 *        The {@link Consumer} to evaluate with each {@link
+	 *        L2WriteOperand} having the given {@link Purpose}.
+	 */
+	public void writesForPurposeDo (
+		final Purpose purpose,
+		final Consumer<L2WriteOperand<?>> consumer)
+	{
+		assert altersControlFlow();
+		for (int i = 0; i < operands.length; i++)
+		{
+			final L2Operand operand = operands[i];
+			if (operand instanceof L2WriteOperand)
+			{
+				if (operation.namedOperandTypes[i].purpose() == purpose)
+				{
+					consumer.accept(cast(operand));
+				}
+			}
+		}
 	}
 
 	/**
@@ -631,7 +709,7 @@ public final class L2Instruction
 	}
 
 	/**
-	 * Anwser the {@link L2BasicBlock} to which this instruction belongs.
+	 * Answer the {@link L2BasicBlock} to which this instruction belongs.
 	 *
 	 * @return This instruction's {@link L2BasicBlock}.
 	 */

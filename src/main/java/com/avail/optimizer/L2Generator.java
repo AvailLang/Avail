@@ -57,7 +57,6 @@ import com.avail.optimizer.L2ControlFlowGraph.Zone;
 import com.avail.optimizer.values.Frame;
 import com.avail.optimizer.values.L2SemanticValue;
 import com.avail.performance.Statistic;
-import com.avail.utility.Casts;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -75,6 +74,7 @@ import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restriction
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType;
 import static com.avail.optimizer.values.L2SemanticValue.constant;
 import static com.avail.performance.StatisticReport.L2_OPTIMIZATION_TIME;
+import static com.avail.utility.Casts.cast;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.Math.max;
 import static java.util.Collections.singleton;
@@ -254,7 +254,7 @@ public final class L2Generator
 	 */
 	public void addUnreachableCode ()
 	{
-		addInstruction(L2_JUMP.instance, unreachablePcOperand());
+		jumpTo(stripNull(unreachableBlock));
 	}
 
 	/**
@@ -265,17 +265,23 @@ public final class L2Generator
 	 */
 	public L2PcOperand unreachablePcOperand ()
 	{
+		final L2BasicBlock unreachable;
 		if (unreachableBlock == null)
 		{
 			// Create it as a normal node, so L1 translation can produce simple
 			// edges to it, then switch it to be a loop head so that placeholder
 			// instructions can still connect to it with back-edges when they
 			// get they generate their replacement code.
-			unreachableBlock = createBasicBlock("UNREACHABLE");
+			unreachable = createBasicBlock("UNREACHABLE");
+			unreachableBlock = unreachable;
 		}
-		return unreachableBlock.isLoopHead
-			? backEdgeTo(unreachableBlock)
-			: edgeTo(unreachableBlock);
+		else
+		{
+			unreachable = unreachableBlock;
+		}
+		return unreachable.isLoopHead
+			? backEdgeTo(unreachable)
+			: edgeTo(unreachable);
 	}
 
 	/**
@@ -601,9 +607,7 @@ public final class L2Generator
 		{
 			// It's not an unboxed int, and it's either not boxed or it has a
 			// type that can never be an int32, so it must always fail.
-			addInstruction(
-				L2_JUMP.instance,
-				edgeTo(onFailure));
+			jumpTo(onFailure);
 			// Return a dummy, which should get suppressed or optimized away.
 			return unboxedIntConstant(-999);
 		}
@@ -693,9 +697,7 @@ public final class L2Generator
 		{
 			// It's not an unboxed float, and it's either not boxed or it has a
 			// type that can never be a float, so it must always fail.
-			addInstruction(
-				L2_JUMP.instance,
-				edgeTo(onFailure));
+			jumpTo(onFailure);
 			// Return a dummy, which should get suppressed or optimized away.
 			return unboxedFloatConstant(-99.9);
 		}
@@ -780,12 +782,19 @@ public final class L2Generator
 		final L2BasicBlock block = currentBlock();
 		final List<L2Register> sourceRegisters = currentManifest.getDefinitions(
 			sourceSemanticValue, moveOperation.kind);
-		final List<WR> sourceWritesInBlock =
-			sourceRegisters.stream()
-				.flatMap(reg -> reg.definitions().stream())
-				.filter(w -> w.instruction().basicBlock() == block)
-				.map(Casts::<L2WriteOperand<?>, WR>cast)
-				.collect(toList());
+		final List<WR> sourceWritesInBlock = new ArrayList<>(2);
+		for (final L2Register register : sourceRegisters)
+		{
+			for (final L2WriteOperand<?> def : register.definitions())
+			{
+				if (def.instruction().basicBlock() == block)
+				{
+					@SuppressWarnings("unchecked")
+					final WR write = cast(def);
+					sourceWritesInBlock.add(write);
+				}
+			}
+		}
 		if (!sourceWritesInBlock.isEmpty())
 		{
 			// Find the latest equivalent write in this block.
@@ -1100,12 +1109,13 @@ public final class L2Generator
 	{
 		if (!block.isIrremovable())
 		{
-			if (block.predecessorEdgesCount() == 0)
+			final int predecessorCount = block.predecessorEdgesCount();
+			if (predecessorCount == 0)
 			{
 				currentBlock = null;
 				return;
 			}
-			if (!block.isLoopHead && block.predecessorEdgesCount() == 1)
+			if (!block.isLoopHead && predecessorCount == 1)
 			{
 				final L2PcOperand predecessorEdge =
 					block.predecessorEdgesIterator().next();
@@ -1294,7 +1304,7 @@ public final class L2Generator
 		currentManifest.clear();
 		// Keep semantic values that are common to all incoming paths.
 		final List<L2ValueManifest> manifests = new ArrayList<>();
-		startingBlock.predecessorEdgesIterator().forEachRemaining(
+		startingBlock.predecessorEdgesDo(
 			edge -> manifests.add(edge.manifest()));
 		currentManifest.populateFromIntersection(manifests, this, false, true);
 		// Replay the effects on the manifest of the leading instructions.
@@ -1338,6 +1348,17 @@ public final class L2Generator
 				originalInstruction.operands());
 			originalInstruction.justRemoved();
 		});
+	}
+
+	/**
+	 * Emit an instruction to jump to the specified {@link L2BasicBlock}.
+	 *
+	 * @param targetBlock
+	 *        The target {@link L2BasicBlock}.
+	 */
+	public void jumpTo (final L2BasicBlock targetBlock)
+	{
+		addInstruction(L2_JUMP.instance, edgeTo(targetBlock));
 	}
 
 	/**

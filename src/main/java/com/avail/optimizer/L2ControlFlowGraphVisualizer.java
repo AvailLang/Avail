@@ -591,62 +591,60 @@ public class L2ControlFlowGraphVisualizer
 		if (visualizeManifest)
 		{
 			final L2ValueManifest manifest = edge.manifest();
-			final List<L2Synonym> synonyms =
-				new ArrayList<>(manifest.synonyms());
-			if (!synonyms.isEmpty())
+			final L2Synonym[] synonyms = manifest.synonymsArray();
+			if (synonyms.length > 0)
 			{
 				builder.append(
 					"<font face=\"Helvetica\"><i>manifest:</i></font>");
-				synonyms.sort(comparing(L2Synonym::toString));
-				synonyms.forEach(
-					synonym ->
+				Arrays.sort(synonyms, comparing(L2Synonym::toString));
+				for (final L2Synonym synonym : synonyms)
+				{
+					// If the restriction flags and the available register
+					// kinds disagree, show the synonym entry in red.
+					final TypeRestriction restriction =
+						manifest.restrictionFor(
+							synonym.pickSemanticValue());
+					final Iterable<L2Register> defs =
+						manifest.definitionsForDescribing(
+							synonym.pickSemanticValue());
+					final EnumSet<RegisterKind> kindsOfRegisters =
+						EnumSet.noneOf(RegisterKind.class);
+					for (final L2Register register : defs)
 					{
-						// If the restriction flags and the available register
-						// kinds disagree, show the synonym entry in red.
-						final TypeRestriction restriction =
-							manifest.restrictionFor(
-								synonym.pickSemanticValue());
-						final Iterable<L2Register> defs =
-							manifest.definitionsForDescribing(
-								synonym.pickSemanticValue());
-						final EnumSet<RegisterKind> kindsOfRegisters =
-							EnumSet.noneOf(RegisterKind.class);
-						for (final L2Register register : defs)
-						{
-							kindsOfRegisters.add(register.registerKind());
-						}
-						final boolean ok =
-							restriction.kinds().equals(kindsOfRegisters);
-						if (!ok) {
-							builder.append(
-								String.format(
-									"<font color=\"%s\">",
-									writer.adjust(errorTextColor)));
-						}
-						builder
-							.append("<br/>")
-							.append(repeated("&nbsp;", 4))
-							.append(escape(synonym.toString()))
-							.append("<br/>")
-							.append(repeated("&nbsp;", 8))
-							.append(":&nbsp;");
-						builder
-							.append(escape(restriction.toString()))
-							.append("<br/>")
-							.append(repeated("&nbsp;", 8))
-							.append("in {");
-						final Iterator<L2Register> iterator = defs.iterator();
-						if (iterator.hasNext())
-						{
-							builder.append(iterator.next());
-						}
-						iterator.forEachRemaining(
-							d -> builder.append(", ").append(iterator.next()));
-						builder.append("}");
-						if (!ok) {
-							builder.append("</font>");
-						}
-					});
+						kindsOfRegisters.add(register.registerKind());
+					}
+					final boolean ok =
+						restriction.kinds().equals(kindsOfRegisters);
+					if (!ok) {
+						builder.append(
+							String.format(
+								"<font color=\"%s\">",
+								writer.adjust(errorTextColor)));
+					}
+					builder
+						.append("<br/>")
+						.append(repeated("&nbsp;", 4))
+						.append(escape(synonym.toString()))
+						.append("<br/>")
+						.append(repeated("&nbsp;", 8))
+						.append(":&nbsp;");
+					builder
+						.append(escape(restriction.toString()))
+						.append("<br/>")
+						.append(repeated("&nbsp;", 8))
+						.append("in {");
+					final Iterator<L2Register> iterator = defs.iterator();
+					if (iterator.hasNext())
+					{
+						builder.append(iterator.next());
+					}
+					iterator.forEachRemaining(
+						d -> builder.append(", ").append(iterator.next()));
+					builder.append("}");
+					if (!ok) {
+						builder.append("</font>");
+					}
+				}
 			}
 		}
 		builder.append("</td></tr></table>");
@@ -841,11 +839,17 @@ public class L2ControlFlowGraphVisualizer
 				final Set<L2BasicBlock> startedBlocks = new HashSet<>(
 					controlFlowGraph.basicBlockOrder);
 				final Set<L2BasicBlock> unstartedBlocks = new HashSet<>();
-				startedBlocks.forEach(
-					startedBlock -> startedBlock.successorEdgesCopy().stream()
-						.map(L2PcOperand::targetBlock)
-						.filter(b -> !startedBlocks.contains(b))
-						.forEach(unstartedBlocks::add));
+				for (final L2BasicBlock startedBlock : startedBlocks)
+				{
+					startedBlock.successorEdgesDo(edge ->
+					{
+						final L2BasicBlock target = edge.targetBlock();
+						if (!startedBlocks.contains(target))
+						{
+							unstartedBlocks.add(target);
+						}
+					});
+				}
 
 				computeClusters(startedBlocks);
 				computeClusters(unstartedBlocks);
@@ -863,10 +867,10 @@ public class L2ControlFlowGraphVisualizer
 
 				final MutableInt edgeCounter = new MutableInt(1);
 				controlFlowGraph.basicBlockOrder.forEach(
-					block -> block.predecessorEdgesIterator().forEachRemaining(
+					block -> block.predecessorEdgesDo(
 						edge -> edge(edge, graph, true, edgeCounter)));
 				unstartedBlocks.forEach(
-					block -> block.predecessorEdgesIterator().forEachRemaining(
+					block -> block.predecessorEdgesDo(
 						edge -> edge(edge, graph, false, edgeCounter)));
 			});
 		}

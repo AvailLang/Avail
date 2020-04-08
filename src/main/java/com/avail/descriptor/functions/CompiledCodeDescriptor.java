@@ -45,7 +45,6 @@ import com.avail.descriptor.Descriptor;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
-import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom;
 import com.avail.descriptor.phrases.A_Phrase;
 import com.avail.descriptor.phrases.BlockPhraseDescriptor;
@@ -89,13 +88,13 @@ import java.util.concurrent.atomic.AtomicLong;
 import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.descriptor.AvailObject.newObjectIndexedIntegerIndexedDescriptor;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.atoms.AtomDescriptor.createSpecialAtom;
 import static com.avail.descriptor.functions.CompiledCodeDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.functions.CompiledCodeDescriptor.ObjectSlots.FUNCTION_TYPE;
 import static com.avail.descriptor.functions.CompiledCodeDescriptor.ObjectSlots.LITERAL_AT_;
 import static com.avail.descriptor.numbers.IntegerDescriptor.zero;
 import static com.avail.descriptor.representation.Mutability.MUTABLE;
 import static com.avail.descriptor.representation.Mutability.SHARED;
+import static com.avail.descriptor.tuples.A_Tuple.concatenate;
 import static com.avail.descriptor.tuples.NybbleTupleDescriptor.generateNybbleTupleFrom;
 import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.tuples.StringDescriptor.stringFrom;
@@ -512,6 +511,12 @@ extends Descriptor
 	 */
 	private enum FakeSlots implements ObjectSlotsEnumJava
 	{
+		/**
+		 * Used for exploring the descriptor, which contains instance-specific
+		 * fields.
+ 		 */
+		DESCRIPTOR,
+
 		/** Used for showing the types of captured variables and constants. */
 		OUTER_TYPE_,
 
@@ -545,6 +550,12 @@ extends Descriptor
 	{
 		final List<AvailObjectFieldHelper> fields =
 			new ArrayList<>(asList(super.o_DescribeForDebugger(object)));
+		fields.add(
+			new AvailObjectFieldHelper(
+				object,
+				FakeSlots.DESCRIPTOR,
+				-1,
+				this));
 		for (int i = 1, end = object.numOuters(); i <= end; i++)
 		{
 			fields.add(
@@ -1084,6 +1095,7 @@ extends Descriptor
 		final AvailObject object,
 		final A_String newMethodName)
 	{
+		assert mutability == SHARED;
 		assert newMethodName.isString();
 		newMethodName.makeShared();
 		methodName = newMethodName;
@@ -1110,9 +1122,9 @@ extends Descriptor
 			{
 				final String suffix = "[" + counter + "]";
 				counter++;
-				final A_Tuple newName = newMethodName.concatenateWith(
-					stringFrom(suffix), true);
-				subCode.setMethodName((A_String)newName);
+				final A_String newName = concatenate(
+					newMethodName, stringFrom(suffix), true);
+				subCode.setMethodName(newName);
 			}
 		}
 	}
@@ -1482,42 +1494,6 @@ extends Descriptor
 		this.module = module;
 		this.lineNumberEncodedDeltas = lineNumberEncodedDeltas;
 		this.lineNumber = lineNumber;
-	}
-
-	/**
-	 * The key used to track a method name associated with the code. This
-	 * name is presented in stack traces.
-	 */
-	private static final A_Atom methodNameKeyAtom =
-		createSpecialAtom("code method name key");
-
-	/**
-	 * Answer the key used to track a method name associated with the code. This
-	 * name is presented in stack traces.
-	 *
-	 * @return A special atom.
-	 */
-	public static A_Atom methodNameKeyAtom ()
-	{
-		return methodNameKeyAtom;
-	}
-
-	/**
-	 * The key used to track the first line number within the module on which
-	 * this code occurs.
-	 */
-	private static final A_Atom lineNumberKeyAtom =
-		createSpecialAtom("code line number key");
-
-	/**
-	 * Answer the key used to track the first line number within the module on
-	 * which this code occurs.
-	 *
-	 * @return A special atom.
-	 */
-	public static A_Atom lineNumberKeyAtom ()
-	{
-		return lineNumberKeyAtom;
 	}
 
 	/**

@@ -384,11 +384,20 @@ extends L2Operand
 	}
 
 	/**
-	 * Write JVM bytecodes to the JVMTranslator which will create and push a
-	 * {@link ContinuationRegisterDumpDescriptor} instance containing all live
-	 * registers.  Also, associate within the {@link JVMTranslator} the
-	 * information needed to extract these live registers when the target
-	 * {@link L2_ENTER_L2_CHUNK} is reached.
+	 * Write JVM bytecodes to the JVMTranslator which will push:
+	 * <ol>
+	 *     <li>An {@link AvailObject}[] containing the value of each live boxed
+	 *     register, and</li>
+	 *     <li>A {@code long[]} containing encoded data from each live unboxed
+	 *     register.</li>
+	 * </ol>
+	 *
+	 * <p>Also, associate within the {@link JVMTranslator} the information
+	 * needed to extract these live registers when the target {@link
+	 * L2_ENTER_L2_CHUNK} is reached.</p>
+	 *
+	 * <p>These arrays are suitable arguments for creating a
+	 * {@link ContinuationRegisterDumpDescriptor} instance.</p>
 	 *
 	 * @param translator
 	 *        The {@link JVMTranslator} in which to record the saved register
@@ -397,7 +406,7 @@ extends L2Operand
 	 *        The {@link MethodVisitor} on which to write code to push the
 	 *        register dump.
 	 */
-	public void createAndPushRegisterDump (
+	public void createAndPushRegisterDumpArrays (
 		final JVMTranslator translator,
 		final MethodVisitor method)
 	{
@@ -480,8 +489,6 @@ extends L2Operand
 			}
 		}
 		// The stack is now AvailObject[], long[].
-		createRegisterDumpMethod.generateCall(method);
-		// Now the stack has the register dump object on it.
 	}
 
 	/**

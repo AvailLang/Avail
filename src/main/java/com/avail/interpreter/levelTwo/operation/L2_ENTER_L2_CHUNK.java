@@ -56,6 +56,7 @@ import static com.avail.descriptor.functions.ContinuationRegisterDumpDescriptor.
 import static com.avail.descriptor.functions.ContinuationRegisterDumpDescriptor.extractObjectAtMethod;
 import static com.avail.interpreter.Interpreter.getReifiedContinuationMethod;
 import static com.avail.interpreter.Interpreter.popContinuationMethod;
+import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TRANSIENT;
 import static com.avail.interpreter.levelTwo.L2OperandType.COMMENT;
 import static com.avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE;
 import static org.objectweb.asm.Opcodes.*;
@@ -128,17 +129,22 @@ extends L2Operation
 			instruction.operand(0);
 //		final L2CommentOperand comment = instruction.operand(1);
 
-		// :: if (!checkValidity()) {
-		translator.loadInterpreter(method);
-		translator.literal(method, offsetInDefaultChunk.value);
-		Interpreter.checkValidityMethod.generateCall(method);
-		final Label isValidLabel = new Label();
-		method.visitJumpInsn(IFNE, isValidLabel);
-		// ::    return null;
-		method.visitInsn(ACONST_NULL);
-		method.visitInsn(ARETURN);
-		// :: }
-		method.visitLabel(isValidLabel);
+		// Skip the validity check for transient entry points, which can't
+		// become invalid during their lifetimes.
+		if (offsetInDefaultChunk.value != TRANSIENT.offsetInDefaultChunk)
+		{
+			// :: if (!checkValidity()) {
+			translator.loadInterpreter(method);
+			translator.literal(method, offsetInDefaultChunk.value);
+			Interpreter.checkValidityMethod.generateCall(method);
+			final Label isValidLabel = new Label();
+			method.visitJumpInsn(IFNE, isValidLabel);
+			// ::    return null;
+			method.visitInsn(ACONST_NULL);
+			method.visitInsn(ARETURN);
+			// :: }
+			method.visitLabel(isValidLabel);
+		}
 
 		// Extract register values that were saved in a register dump by the
 		// corresponding L2_SAVE_ALL_AND_PC_TO_INT instruction, which nicely set

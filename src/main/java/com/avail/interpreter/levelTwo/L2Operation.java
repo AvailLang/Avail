@@ -480,27 +480,6 @@ public abstract class L2Operation
 	}
 
 	/**
-	 * Some kinds of instructions can be safely duplicated to positions just
-	 * before the values that they produce are consumed.  If this operation says
-	 * it's safe to move it, then the {@link L2Optimizer} is free to check if
-	 * values that are consumed by the instruction are still available at the
-	 * use sites, and if so, duplicate the instruction to each such site.
-	 *
-	 * <p>It's important that the instruction be idempotent, since not all uses
-	 * may be suitable places to duplicate the instruction, and the original may
-	 * stick around.  Multiple occurrences may also be generated along some
-	 * paths.</p>
-	 *
-	 * @param instruction
-	 *        The {@link L2Instruction} containing this {@code L2Operation}.
-	 * @return Whether it's safe to duplicate this {@link L2Instruction}.
-	 */
-	public boolean canBeDuplicatedToEachUse (final L2Instruction instruction)
-	{
-		return false;
-	}
-
-	/**
 	 * Answer whether this operation causes unconditional control flow jump to
 	 * another {@link L2BasicBlock}.
 	 *
