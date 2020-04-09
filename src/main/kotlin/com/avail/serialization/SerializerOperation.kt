@@ -1386,7 +1386,7 @@ enum class SerializerOperation constructor(
 	 */
 	LITERAL_TOKEN(
 		43,
-		COMPRESSED_ARBITRARY_CHARACTER_TUPLE.named("token string"),
+		OBJECT_REFERENCE.named("token string"),
 		OBJECT_REFERENCE.named("literal value"),
 		SIGNED_INT.named("start position"),
 		SIGNED_INT.named("line number"))
@@ -1489,7 +1489,7 @@ enum class SerializerOperation constructor(
 			val frameSlotsList = ArrayList<AvailObject>(frameSlotCount)
 			for (i in 1..frameSlotCount)
 			{
-				frameSlotsList.add(obj.argOrLocalOrStackAt(i))
+				frameSlotsList.add(obj.frameAt(i))
 			}
 			return array(
 				obj.caller(),

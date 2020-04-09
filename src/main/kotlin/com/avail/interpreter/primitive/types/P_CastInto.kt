@@ -48,13 +48,11 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Fallibility.*
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.Invokes
-import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType
 import com.avail.interpreter.levelTwo.operation.L2_FUNCTION_PARAMETER_TYPE
-import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_CONSTANT
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
@@ -146,100 +144,68 @@ object P_CastInto : Primitive(2, Invokes, CanInline)
 		// does a type test for the type being cast to, then either invokes the
 		// first block with the value being cast or the second block with no
 		// arguments.
-		val valueRead = arguments[0]
-		val castFunctionRead = arguments[1]
+		val (valueRead, castFunctionRead) = arguments
 
-		val castBlock =
-			translator.generator.createBasicBlock("cast type matched")
-		val elseBlock =
-			translator.generator.createBasicBlock("cast type did not match")
+		val generator = translator.generator
+		val castBlock = generator.createBasicBlock("cast type matched")
+		val elseBlock = generator.createBasicBlock("cast type did not match")
 
+		val constantValue = valueRead.constantOrNull()
 		val typeTest = castFunctionRead.exactSoleArgumentType()
-		if (typeTest !== null)
-		{
-			// By tracing where the castBlock came from, we were able to
-			// determine the exact type to compare the value against.  This is
-			// the usual case for casts, typically where the castBlock phrase is
-			// simply a block phrase.  First see if we can eliminate the runtime
-			// test entirely.
-			val constant = valueRead.constantOrNull()
-			val passedTest: Boolean? = when {
-				constant !== null -> constant.isInstanceOf(typeTest)
+		val passedTest: Boolean? = typeTest?.run{
+			when {
+				constantValue !== null -> constantValue.isInstanceOf(typeTest)
 				valueRead.type().isSubtypeOf(typeTest) -> true
 				valueRead.type().typeIntersection(typeTest).isBottom -> false
 				else -> null
 			}
-			if (passedTest !== null)
-			{
-				// Go to the castBlock or elseBlock without having to do the
-				// runtime type test (since we just did it).  Don't do a type
-				// check on the result, because the client will deal with it.
-				if (passedTest)
-				{
-					translator.generateGeneralFunctionInvocation(
-						castFunctionRead,
-						listOf(valueRead),
-						true,
-						callSiteHelper)
-					return true
-				}
-				// In theory we could skip the check, but for simplicity just
-				// generate a regular invocation.  We expect the primitive to
-				// always fail, however.
-				super.tryToGenerateSpecialPrimitiveInvocation(
-					functionToCallReg,
-					rawFunction,
-					arguments,
-					argumentTypes,
-					translator,
-					callSiteHelper)
-				return true
+		}
+		when {
+			typeTest === null -> {
+				// We don't statically know the type to compare the value
+				// against, but we can get it at runtime by extracting the
+				// actual castFunction's argument type.  Note that we can't
+				// phi-strengthen the valueRead along the branches, since we
+				// don't statically know the type that it was compared to.
+				val parameterTypeWrite = generator.boxedWriteTemp(
+					restrictionForType(anyMeta(), BOXED))
+				translator.addInstruction(
+					L2_FUNCTION_PARAMETER_TYPE.instance,
+					castFunctionRead,
+					L2IntImmediateOperand(1),
+					parameterTypeWrite)
+				translator.addInstruction(
+					L2_JUMP_IF_KIND_OF_OBJECT.instance,
+					valueRead,
+					translator.readBoxed(parameterTypeWrite),
+					edgeTo(castBlock),
+					edgeTo(elseBlock))
 			}
-
-			// We know the exact type to compare the value against, but we
-			// couldn't statically eliminate the type test.  Emit a branch.
-			translator.addInstruction(
-				L2_JUMP_IF_KIND_OF_CONSTANT.instance,
-				valueRead,
-				L2ConstantOperand(typeTest),
-				edgeTo(castBlock),
-				edgeTo(elseBlock))
-		}
-		else
-		{
-			// We don't statically know the type to compare the value against,
-			// but we can get it at runtime by extracting the actual
-			// castFunction's argument type.  Note that we can't phi-strengthen
-			// the valueRead along the branches, since we don't statically know
-			// the type that it was compared to.
-			val parameterTypeWrite = translator.generator.boxedWriteTemp(
-				restrictionForType(anyMeta(), BOXED))
-			translator.addInstruction(
-				L2_FUNCTION_PARAMETER_TYPE.instance,
-				castFunctionRead,
-				L2IntImmediateOperand(1),
-				parameterTypeWrite)
-			translator.addInstruction(
-				L2_JUMP_IF_KIND_OF_OBJECT.instance,
-				valueRead,
-				translator.readBoxed(parameterTypeWrite),
-				edgeTo(castBlock),
-				edgeTo(elseBlock))
+			passedTest === null ->
+				// Couldn't prove or disprove type test, but we know statically
+				// the cast block's exact argument type.
+				translator.jumpIfKindOfConstant(
+					valueRead, typeTest, castBlock, elseBlock);
+			else ->
+				// We proved the test always passes or always fails.
+				translator.generator.jumpTo(
+					if (passedTest) castBlock else elseBlock)
 		}
 
-		// We couldn't skip the runtime type check, which takes us to either
-		// castBlock or elseBlock, after which we merge the control flow back.
-		// Start by generating the invocation of castFunction.
-		translator.generator.startBlock(castBlock)
-		translator.generateGeneralFunctionInvocation(
-			castFunctionRead, listOf(valueRead), true, callSiteHelper)
+		// In castBlock, generate the invocation of castFunction.
+		generator.startBlock(castBlock)
+		if (generator.currentlyReachable()) {
+			translator.generateGeneralFunctionInvocation(
+				castFunctionRead, listOf(valueRead), true, callSiteHelper)
+		}
 
-		// Now deal with invoking the elseBlock instead.  For simplicity, just
-		// invoke this primitive function, and the redundant type test will
-		// always fail.
-		translator.generator.startBlock(elseBlock)
-		translator.generateGeneralFunctionInvocation(
-			functionToCallReg, arguments, false, callSiteHelper)
+		// In elseBlock, generate the invocation of the actual block implemented
+		// with this primitive, which should always run the failure code.
+		generator.startBlock(elseBlock)
+		if (generator.currentlyReachable()) {
+			translator.generateGeneralFunctionInvocation(
+				functionToCallReg, arguments, false, callSiteHelper)
+		}
 		return true
 	}
 }

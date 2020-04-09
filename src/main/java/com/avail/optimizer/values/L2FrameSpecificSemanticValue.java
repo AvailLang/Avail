@@ -33,9 +33,12 @@ package com.avail.optimizer.values;
 
 import java.util.function.UnaryOperator;
 
+import static com.avail.descriptor.AvailObject.multiplier;
+
 /**
  * A semantic value which is specific to a {@link Frame}.
  */
+@SuppressWarnings("EqualsAndHashcode")
 abstract class L2FrameSpecificSemanticValue extends L2SemanticValue
 {
 	/** The frame in which this is a semantic value. */
@@ -46,9 +49,15 @@ abstract class L2FrameSpecificSemanticValue extends L2SemanticValue
 	 *
 	 * @param frame
 	 *        The frame for which this is a semantic value.
+	 * @param hash
+	 *        A hash value of this semantic value, which this constructor will
+	 *        combine with the frame's hash.
 	 */
-	L2FrameSpecificSemanticValue (final Frame frame)
+	L2FrameSpecificSemanticValue (
+		final Frame frame,
+		final int hash)
 	{
+		super(hash + frame.hashCode() * multiplier);
 		this.frame = frame;
 	}
 
@@ -67,12 +76,6 @@ abstract class L2FrameSpecificSemanticValue extends L2SemanticValue
 	{
 		return obj instanceof L2FrameSpecificSemanticValue
 			&& frame().equals(((L2FrameSpecificSemanticValue) obj).frame());
-	}
-
-	@Override
-	public int hashCode ()
-	{
-		return frame().hashCode() ^ 0x3D9D8132;
 	}
 
 	@Override

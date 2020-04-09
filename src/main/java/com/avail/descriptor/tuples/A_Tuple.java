@@ -42,12 +42,15 @@ import com.avail.descriptor.types.A_Type;
 import com.avail.descriptor.types.TypeDescriptor;
 import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
+import com.avail.utility.Casts;
 
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.Spliterator;
 import java.util.stream.Stream;
+
+import static com.avail.utility.Casts.cast;
 
 /**
  * {@code A_Tuple} is an interface that specifies the tuple-specific operations
@@ -451,6 +454,29 @@ extends A_BasicObject, Iterable<AvailObject>
 	 */
 	@ReferencedInGeneratedCode
 	A_Tuple concatenateWith (A_Tuple otherTuple, boolean canDestroy);
+
+	/**
+	 * Concatenate two {@code A_Tuple}s or {@link A_String}s, relying on type
+	 * deduction to decide which will be produced based on the arguments.
+	 *
+	 * @param firstTuple
+	 *        The first tuple or string to concatenate.
+	 * @param secondTuple
+	 *        The second tuple or string to concatenate.
+	 * @param canDestroy
+	 *        Whether either input tuple may be destroyed if it's also mutable.
+	 * @param <T>
+	 *        The kind of tuple to operate on ({@code A_Tuple} or a subclass}.
+	 * @return The concatenated tuple, with as strong a static type as can be
+	 *         determined from the input types.
+	 */
+	static <T extends A_Tuple> T concatenate (
+		final T firstTuple,
+		final T secondTuple,
+		final boolean canDestroy)
+	{
+		return cast(firstTuple.concatenateWith(secondTuple, canDestroy));
+	}
 
 	/**
 	 * The {@link CheckedMethod} for {@link #concatenateWith(A_Tuple, boolean)}.

@@ -62,7 +62,7 @@ extends A_BasicObject
 	 * @param index The one-based index into this frame data.
 	 * @return The continuation's slot at the specified index.
 	 */
-	AvailObject argOrLocalOrStackAt (int index);
+	AvailObject frameAt (int index);
 
 	/**
 	 * Update the continuation frame slot at the given index.  The continuation
@@ -70,10 +70,13 @@ extends A_BasicObject
 	 * the arguments, primitive failure variable (if defined), locals, and then
 	 * an operand stack that grows from the top down.
 	 *
+	 * <p>Answer the receiver to make generated chains more compact.</p>
+	 *
 	 * @param index The one-based index into this frame data.
 	 * @param value The value to write at that index.
+	 * @return The receiver.
 	 */
-	void argOrLocalOrStackAtPut (int index, AvailObject value);
+	AvailObject frameAtPut (int index, AvailObject value);
 
 	/**
 	 * The {@linkplain ContinuationDescriptor continuation} to which control

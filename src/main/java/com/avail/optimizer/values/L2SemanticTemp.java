@@ -33,8 +33,6 @@ package com.avail.optimizer.values;
 
 import java.util.function.UnaryOperator;
 
-import static com.avail.utility.Casts.cast;
-
 /**
  * A semantic value which holds a temporary value in a {@link Frame}.  The scope
  * of this value is usually local to a section of Java code that both produces
@@ -43,6 +41,7 @@ import static com.avail.utility.Casts.cast;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@SuppressWarnings("EqualsAndHashcode")
 final class L2SemanticTemp
 extends L2FrameSpecificSemanticValue
 {
@@ -63,7 +62,7 @@ extends L2FrameSpecificSemanticValue
 	 */
 	L2SemanticTemp (final Frame frame, final int uniqueId)
 	{
-		super(frame);
+		super(frame, uniqueId ^ 0xA29C9F1C);
 		this.uniqueId = uniqueId;
 	}
 
@@ -74,15 +73,8 @@ extends L2FrameSpecificSemanticValue
 		{
 			return false;
 		}
-		final L2SemanticTemp other = cast(obj);
-		return frame().equals(other.frame())
-			&& uniqueId == other.uniqueId;
-	}
-
-	@Override
-	public int hashCode ()
-	{
-		return frame().hashCode() ^ 0x4B69A947;
+		return super.equals(obj)
+			&& uniqueId == ((L2SemanticTemp) obj).uniqueId;
 	}
 
 	@Override

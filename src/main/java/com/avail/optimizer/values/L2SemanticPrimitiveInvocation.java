@@ -38,6 +38,7 @@ import java.util.function.UnaryOperator;
 
 import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
+import static com.avail.utility.Casts.cast;
 import static java.util.Collections.unmodifiableList;
 
 /**
@@ -49,6 +50,7 @@ import static java.util.Collections.unmodifiableList;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@SuppressWarnings("EqualsAndHashcode")
 public final class L2SemanticPrimitiveInvocation
 extends L2SemanticValue
 {
@@ -64,9 +66,29 @@ extends L2SemanticValue
 	public final List<L2SemanticValue> argumentSemanticValues;
 
 	/**
-	 * The hash value of the receiver, computed during construction.
+	 * Compute the permanent hash for this semantic value.  Note that it uses
+	 * the {@link Primitive#getPrimitiveNumber()}, which may have different
+	 * values on different runs of an Avail program.
+	 *
+	 * @param primitive
+	 *        The primitive that was invoked.
+	 * @param argumentSemanticValues
+	 *        The semantic values of arguments that were supplied to the
+	 *        primitive.
+	 * @return A hash of the inputs.
 	 */
-	private final int hash;
+	private static int computeHash (
+		final Primitive primitive,
+		final List<L2SemanticValue> argumentSemanticValues)
+	{
+		int h = primitive.getPrimitiveNumber() ^ 0x72C5FD8B;
+		for (final L2SemanticValue argument : argumentSemanticValues)
+		{
+			h *= multiplier;
+			h ^= argument.hashCode();
+		}
+		return h;
+	}
 
 	/**
 	 * Create a new {@code L2SemanticPrimitiveInvocation} semantic value.
@@ -80,18 +102,11 @@ extends L2SemanticValue
 		final Primitive primitive,
 		final List<L2SemanticValue> argumentSemanticValues)
 	{
+		super(computeHash(primitive, argumentSemanticValues));
 		assert primitive.hasFlag(CanFold);
 		this.primitive = primitive;
 		this.argumentSemanticValues =
 			unmodifiableList(new ArrayList<>(argumentSemanticValues));
-		// Compute the hash.
-		int h = primitive.getPrimitiveNumber() * multiplier;
-		for (final L2SemanticValue argument : argumentSemanticValues)
-		{
-			h ^= argument.hashCode();
-			h *= multiplier;
-		}
-		hash = h;
 	}
 
 	@Override
@@ -101,20 +116,9 @@ extends L2SemanticValue
 		{
 			return false;
 		}
-		if (hashCode() != obj.hashCode())
-		{
-			return false;
-		}
-		final L2SemanticPrimitiveInvocation
-			invocation = (L2SemanticPrimitiveInvocation) obj;
+		final L2SemanticPrimitiveInvocation invocation = cast(obj);
 		return primitive == invocation.primitive
 			&& argumentSemanticValues.equals(invocation.argumentSemanticValues);
-	}
-
-	@Override
-	public int hashCode ()
-	{
-		return hash;
 	}
 
 	@Override

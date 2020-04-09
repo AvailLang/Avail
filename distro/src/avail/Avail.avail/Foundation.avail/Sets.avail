@@ -383,13 +383,11 @@ Method "map_through_" is
 	end ::= |aTuple|;
 	result : set := ∅;
 	[
-		$loop;
-		If index ≤ end then
-		[
-			result := eject result + transformer(aTuple[index]);
-			index++;
-			Restart loop
-		];
+		$loop : ⊤;
+		Exit loop if end < index;
+		result := eject result + transformer(aTuple[index]);
+		index++;
+		Restart loop
 	]();
 	result
 ] : set;
@@ -470,17 +468,15 @@ Method "filter_by_" is
 	end ::= |aTuple|;
 	result : set := ∅;
 	[
-		$loop;
-		If index ≤ end then
+		$loop : ⊤;
+		Exit loop if end < index;
+		element ::= aTuple[index];
+		If predicate(element) then
 		[
-			element ::= aTuple[index];
-			If predicate(element) then
-			[
-				result := eject result + element;
-			];
-			index++;
-			Restart loop
+			result := eject result + element;
 		];
+		index++;
+		Restart loop
 	]();
 	result
 ] : set;
@@ -620,26 +616,22 @@ Method "map and filter_by_" is
 	end ::= |aTuple|;
 	result : set := ∅;
 	[
-		$loop;
-		If index ≤ end then
-		[
-			hasAlreadyKept : boolean := false;
-			accumulator
-			(
-				aTuple[index],
+		$loop : ⊤;
+		Exit loop if end < index;
+		hasAlreadyKept : boolean := false;
+		accumulator(
+			aTuple[index],
+			[
+				transformed : any
+			|
+				If ¬hasAlreadyKept then
 				[
-					transformed : any
-				|
-					If ¬hasAlreadyKept then
-					[
-						result := eject result + transformed;
-						hasAlreadyKept := true;
-					];
-				]
-			);
-			index++;
-			Restart loop
-		];
+					result := eject result + transformed;
+					hasAlreadyKept := true;
+				];
+			]);
+		index++;
+		Restart loop
 	]();
 	result
 ] : set;

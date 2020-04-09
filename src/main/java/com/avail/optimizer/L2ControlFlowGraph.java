@@ -35,7 +35,6 @@ package com.avail.optimizer;
 import com.avail.descriptor.functions.A_Continuation;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operation.L2_INVOKE;
 import com.avail.interpreter.levelTwo.operation.L2_INVOKE_CONSTANT_FUNCTION;
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
@@ -45,7 +44,6 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -280,11 +278,7 @@ public final class L2ControlFlowGraph
 		{
 			builder.append(block.name());
 			builder.append(":\n");
-			final Iterator<L2PcOperand> iterator =
-				block.predecessorEdgesIterator();
-			while (iterator.hasNext())
-			{
-				final L2PcOperand edge = iterator.next();
+			block.predecessorEdgesDo(edge ->
 				builder
 					.append("\t\tFrom: ")
 					.append(edge.sourceBlock().name())
@@ -293,8 +287,7 @@ public final class L2ControlFlowGraph
 					.append(edge.alwaysLiveInRegisters)
 					.append(", sometimes live-in: ")
 					.append(edge.sometimesLiveInRegisters)
-					.append("]\n");
-			}
+					.append("]\n"));
 			for (final L2Instruction instruction : block.instructions())
 			{
 				builder.append("\t");

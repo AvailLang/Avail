@@ -207,16 +207,14 @@ class DeadCodeAnalyzer
 					nCopies(predecessorCount, neededEntities);
 			}
 			// Propagate the remaining needs to predecessor edges.
-			if (block.predecessorEdgesCount() == 0 && !neededEntities.isEmpty())
-			{
-				assert false :
-					"Instruction consumes "
-						+ neededEntities
-						+ " but a preceding definition was not found";
-			}
+			assert block.predecessorEdgesCount() != 0
+					|| neededEntities.isEmpty()
+				: "Instruction consumes "
+					+ neededEntities
+					+ " but a preceding definition was not found";
 			final Iterator<Set<L2Entity>> entitySetIterator =
 				entitiesByPredecessor.iterator();
-			block.predecessorEdgesIterator().forEachRemaining(predecessor ->
+			block.predecessorEdgesDo(predecessor ->
 			{
 				// No need to copy it, as it won't be modified again.
 				final Set<L2Entity> entities = entitySetIterator.next();
@@ -227,8 +225,8 @@ class DeadCodeAnalyzer
 					edgeNeeds.put(predecessor, entities);
 					final L2BasicBlock predecessorBlock =
 						predecessor.instruction().basicBlock();
-					if (predecessorBlock.successorEdgesCopy().stream().allMatch(
-						edgeNeeds::containsKey))
+					if (predecessorBlock.successorEdgesCopy().stream()
+						.allMatch(edgeNeeds::containsKey))
 					{
 						toVisit.add(predecessorBlock);
 					}

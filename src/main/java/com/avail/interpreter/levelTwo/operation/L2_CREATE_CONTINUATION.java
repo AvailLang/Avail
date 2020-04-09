@@ -47,11 +47,10 @@ import javax.annotation.Nullable;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import static com.avail.descriptor.AvailObject.argOrLocalOrStackAtPutMethod;
+import static com.avail.descriptor.AvailObject.frameAtPutMethod;
 import static com.avail.descriptor.functions.ContinuationDescriptor.createContinuationExceptFrameMethod;
 import static com.avail.interpreter.Interpreter.chunkField;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static org.objectweb.asm.Opcodes.DUP;
 
 /**
  * Create a continuation from scratch, using the specified caller, function,
@@ -173,13 +172,16 @@ extends L2Operation
 			// initialized with nils.
 			if (constant == null || !constant.equalsNil())
 			{
-				// :: continuation.argOrLocalOrStackAtPut(«i + 1», «slots[i]»);
-				method.visitInsn(DUP);
+				// :: continuation.frameAtPut(«i + 1», «slots[i]»)...
+				// [continuation]
 				translator.intConstant(method, i + 1);
 				translator.load(method, slots.elements().get(i).register());
-				argOrLocalOrStackAtPutMethod.generateCall(method);
+				frameAtPutMethod.generateCall(method);
+				// Method returns continuation to simplify stack handling.
+				// [continuation]
 			}
 		}
+		// [continuation]
 		translator.store(method, destReg.register());
 	}
 }

@@ -53,6 +53,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.UnaryOperator;
 
 import static com.avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE.sourceOfImmutable;
 import static com.avail.utility.Casts.cast;
@@ -243,7 +244,7 @@ extends L2Operand
 	}
 
 	/**
-	 * Create an {@link L2ReadOperand} like this one, but with a different
+	 * Create an {@code L2ReadOperand} like this one, but with a different
 	 * {@link #semanticValue}.
 	 *
 	 * @param newSemanticValue
@@ -253,6 +254,18 @@ extends L2Operand
 	 */
 	public abstract L2ReadOperand<R> copyForSemanticValue (
 		final L2SemanticValue newSemanticValue);
+
+	/**
+	 * Create an {@code L2ReadOperand} like this one, but with a different
+	 * {@link #register}.
+	 *
+	 * @param newRegister
+	 *        The {@link L2Register} to use in the copy.
+	 * @return A duplicate of the receiver, but with a different
+	 *         {@link L2Register}.
+	 */
+	public abstract L2ReadOperand<R> copyForRegister (
+		final L2Register newRegister);
 
 	@Override
 	public void instructionWasInserted (
@@ -283,6 +296,13 @@ extends L2Operand
 		register().removeUse(this);
 		replacement.addUse(this);
 		register = replacement;
+	}
+
+	@Override
+	public final L2ReadOperand<?> transformEachRead (
+		final UnaryOperator<L2ReadOperand<?>> transformer)
+	{
+		return transformer.apply(this);
 	}
 
 	@Override
@@ -385,29 +405,30 @@ extends L2Operand
 		assert incoming.hasNext();
 		final L2ValueManifest firstManifest = incoming.next().manifest();
 		final Set<L2SemanticValue> semanticValues = new HashSet<>();
-		@Nullable TypeRestriction restriction = null;
+		@Nullable TypeRestriction typeRestriction = null;
 		for (final L2Synonym syn : firstManifest.synonymsForRegister(register))
 		{
 			semanticValues.addAll(syn.semanticValues());
-			restriction = restriction == null
+			typeRestriction = typeRestriction == null
 				? firstManifest.restrictionFor(syn.pickSemanticValue())
-				: restriction.union(
+				: typeRestriction.union(
 					firstManifest.restrictionFor(syn.pickSemanticValue()));
 		}
 		while (incoming.hasNext())
 		{
 			final L2ValueManifest nextManifest = incoming.next().manifest();
 			final Set<L2SemanticValue> newSemanticValues = new HashSet<>();
-			for (final L2Synonym syn : nextManifest.synonymsForRegister(register))
+			for (final L2Synonym syn :
+				nextManifest.synonymsForRegister(register))
 			{
 				newSemanticValues.addAll(syn.semanticValues());
-				restriction = restriction.union(
+				typeRestriction = stripNull(typeRestriction).union(
 					nextManifest.restrictionFor(syn.pickSemanticValue()));
 			}
 			// Intersect with the newSemanticValues.
 			semanticValues.retainAll(newSemanticValues);
 		}
-		return new Pair<>(semanticValues, restriction);
+		return new Pair<>(semanticValues, stripNull(typeRestriction));
 	}
 
 	/**
@@ -452,7 +473,7 @@ extends L2Operand
 	}
 
 	/**
-	 * To accomodate code motion, deletion, and replacement, we sometimes have
+	 * To accommodate code motion, deletion, and replacement, we sometimes have
 	 * to adjust the {@link #semanticValue} to one we know is in scope.
 	 *
 	 * @param replacementSemanticValue

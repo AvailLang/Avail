@@ -39,6 +39,7 @@ import java.util.function.UnaryOperator;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@SuppressWarnings("EqualsAndHashcode")
 final class L2SemanticResult
 extends L2FrameSpecificSemanticValue
 {
@@ -50,20 +51,13 @@ extends L2FrameSpecificSemanticValue
 	 */
 	L2SemanticResult (final Frame frame)
 	{
-		super(frame);
+		super(frame, 0x6ABDC9DB);
 	}
 
 	@Override
 	public boolean equals (final Object obj)
 	{
-		return obj instanceof L2SemanticResult
-			&& frame().equals(((L2SemanticResult) obj).frame());
-	}
-
-	@Override
-	public int hashCode ()
-	{
-		return frame().hashCode() ^ 0x6ABDC9DB;
+		return obj instanceof L2SemanticResult && super.equals(obj);
 	}
 
 	@Override

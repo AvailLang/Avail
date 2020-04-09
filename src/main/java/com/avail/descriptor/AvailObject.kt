@@ -1658,12 +1658,12 @@ class AvailObject private constructor(
 	override fun literalAt(index: Int) = descriptor().o_LiteralAt(this, index)
 
 	@ReferencedInGeneratedCode
-	override fun argOrLocalOrStackAt(index: Int) =
-		descriptor().o_ArgOrLocalOrStackAt(this, index)
+	override fun frameAt(index: Int) =
+		descriptor().o_FrameAt(this, index)
 
 	@ReferencedInGeneratedCode
-	override fun argOrLocalOrStackAtPut(index: Int, value: AvailObject) =
-		descriptor().o_ArgOrLocalOrStackAtPut(this, index, value)
+	override fun frameAtPut(index: Int, value: AvailObject): AvailObject =
+		descriptor().o_FrameAtPut(this, index, value)
 
 	override fun localTypeAt(index: Int) =
 		descriptor().o_LocalTypeAt(this, index)
@@ -3343,20 +3343,20 @@ class AvailObject private constructor(
 			"iterator",
 			IteratorNotNull::class.java)
 
-		/** Access the [argOrLocalOrStackAt] method.  */
+		/** Access the [frameAt] method.  */
 		@JvmField
-		val argOrLocalOrStackAtMethod: CheckedMethod = instanceMethod(
+		val frameAtMethod: CheckedMethod = instanceMethod(
 			AvailObject::class.java,
-			"argOrLocalOrStackAt",
+			"frameAt",
 			AvailObject::class.java,
 			Int::class.javaPrimitiveType)
 
-		/** Access the [argOrLocalOrStackAtPut] method.  */
+		/** Access the [frameAtPut] method.  */
 		@JvmField
-		val argOrLocalOrStackAtPutMethod: CheckedMethod = instanceMethod(
+		val frameAtPutMethod: CheckedMethod = instanceMethod(
 			AvailObject::class.java,
-			"argOrLocalOrStackAtPut",
-			Void.TYPE,
+			"frameAtPut",
+			AvailObject::class.java,
 			Int::class.javaPrimitiveType,
 			AvailObject::class.java)
 

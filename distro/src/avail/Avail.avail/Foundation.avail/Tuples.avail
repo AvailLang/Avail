@@ -1001,26 +1001,24 @@ Method "map and filter_by_" is
 	end ::= |aTuple|;
 	result : tuple := <>;
 	[
-		$loop;
-		If index ≤ end then
-		[
-			hasAlreadyKept : boolean := false;
-			accumulator
-			(
-				aTuple[index],
+		$loop : ⊤;
+		Exit loop if end < index;
+		hasAlreadyKept : boolean := false;
+		accumulator
+		(
+			aTuple[index],
+			[
+				transformed : any
+			|
+				If ¬hasAlreadyKept then
 				[
-					transformed : any
-				|
-					If ¬hasAlreadyKept then
-					[
-						result := eject result ++ <transformed>;
-						hasAlreadyKept := true;
-					];
-				]
-			);
-			index++;
-			Restart loop
-		];
+					result := eject result ++ <transformed>;
+					hasAlreadyKept := true;
+				];
+			]
+		);
+		index++;
+		Restart loop
 	]();
 	result
 ] : tuple;
@@ -1055,27 +1053,25 @@ Method "map and filter_by_" is
 	end ::= |aTuple|;
 	result : tuple := <>;
 	[
-		$loop;
-		If index ≤ end then
-		[
-			hasAlreadyKept : boolean := false;
-			accumulator
-			(
-				aTuple[index],
-				index,
+		$loop : ⊤;
+		Exit loop if end < index;
+		hasAlreadyKept : boolean := false;
+		accumulator
+		(
+			aTuple[index],
+			index,
+			[
+				transformed : any
+			|
+				If ¬hasAlreadyKept then
 				[
-					transformed : any
-				|
-					If ¬hasAlreadyKept then
-					[
-						result := eject result ++ <transformed>;
-						hasAlreadyKept := true;
-					];
-				]
-			);
-			index++;
-			Restart loop
-		];
+					result := eject result ++ <transformed>;
+					hasAlreadyKept := true;
+				];
+			]
+		);
+		index++;
+		Restart loop
 	]();
 	result
 ] : tuple;
