@@ -56,7 +56,6 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.atomic.LongAdder;
 
-import static com.avail.descriptor.functions.ContinuationRegisterDumpDescriptor.createRegisterDumpMethod;
 import static com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.BOXED;
 import static com.avail.utility.CollectionExtensions.populatedEnumMap;
 import static com.avail.utility.Nulls.stripNull;

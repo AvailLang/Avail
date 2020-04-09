@@ -49,7 +49,6 @@ import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
 import com.avail.optimizer.L2BasicBlock;
 import com.avail.optimizer.L2ControlFlowGraph.Zone;
 import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.L2Optimizer;
 import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;

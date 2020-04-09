@@ -264,7 +264,7 @@ implements Comparable<AvailTask>, Runnable
 			// allowed the error to propagate, it would cause an Interpreter to
 			// be silently lost, and the next creation could overflow the
 			// maximum number of Interpreters.
-			System.err.println("Unexpected internal failure in AvailTask:");
+			System.err.println("Unexpected internal failure in AvailTask:\n");
 			e.printStackTrace();
 		}
 	}

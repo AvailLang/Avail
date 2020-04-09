@@ -70,7 +70,7 @@ import static java.util.Collections.emptySet;
  *
  * <ol>
  *    <li>ensuring the caller is reified.  If we're not already in a reification
- *        {@link Zone Zone}, generate the following, with a dynamic
+ *        {@link Zone}, generate the following, with a dynamic
  *        {@link L2_JUMP_IF_ALREADY_REIFIED} check to skip past it:
  *      <ol type="a">
  *          <li>{@link L2_REIFY},</li>

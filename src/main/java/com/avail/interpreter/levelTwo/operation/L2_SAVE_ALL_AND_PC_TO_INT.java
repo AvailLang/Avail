@@ -86,6 +86,20 @@ extends L2Operation
 	public static final L2_SAVE_ALL_AND_PC_TO_INT instance =
 		new L2_SAVE_ALL_AND_PC_TO_INT();
 
+	/**
+	 * From the given {@link L2Instruction}, extract the
+	 * {@link L2PcOperand edge} that indicates the L2 offset to capture as an
+	 * {@code int} in the second argument.  The conversion of the edge to an int
+	 * occurs very late, in
+	 * {@link #translateToJVM(JVMTranslator, MethodVisitor, L2Instruction)}, as
+	 * does the decision about which registers should be captured in the
+	 * register dump – and restored when the {@link L2_ENTER_L2_CHUNK} at
+	 * the referenced edge's target is reached.
+	 *
+	 * @param instruction
+	 *        The instruction from which to extract the reference edge.
+	 * @return The referenced {@link L2PcOperand edge}.
+	 */
 	public static L2PcOperand referenceOf (final L2Instruction instruction)
 	{
 		assert instruction.operation() instanceof L2_SAVE_ALL_AND_PC_TO_INT;
@@ -204,11 +218,11 @@ extends L2Operation
 		final L2PcOperand fallThrough = instruction.operand(3);
 
 		target.createAndPushRegisterDumpArrays(translator, method);
-		// :: AvailObject[], long[]
+		// :: [AvailObject[], long[]]
 		createRegisterDumpMethod.generateCall(method);
-		// :: registerDump
+		// :: [registerDump]
 		translator.store(method, registerDump.register());
-		// Stack is empty
+		// :: []
 
 		translator.intConstant(method, target.offset());
 		translator.store(method, targetAsInt.register());
