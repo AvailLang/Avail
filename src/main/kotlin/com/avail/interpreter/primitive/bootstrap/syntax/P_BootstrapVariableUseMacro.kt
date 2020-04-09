@@ -56,7 +56,6 @@ import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
-import java.util.*
 
 /**
  * The `P_BootstrapVariableUseMacro` primitive is used to create
@@ -128,25 +127,22 @@ object P_BootstrapVariableUseMacro
 				// value of some variable that doesn't exist.
 				if (scopeMap.mapSize() == 0) SILENT else WEAK)
 			{
-				val builder = StringBuilder()
-					.append("variable ")
-					.append(variableNameString)
-					.append(" to be in scope (local scope is: ")
-				val scope = ArrayList(
-					toList<A_String>(scopeMap.keysAsSet().asTuple()))
-				scope.sortBy(A_String::asNativeString)
-				var first = true
-				for (eachVar in scope)
-				{
-					if (!first)
-					{
-						builder.append(", ")
-					}
-					builder.append(eachVar.asNativeString())
-					first = false
-				}
-				builder.append(")")
-				stringFrom(builder.toString())
+				stringFrom(
+					buildString {
+						val scope =
+							toList<A_String>(scopeMap.keysAsSet().asTuple())
+								.map(A_String::asNativeString)
+						append("potential variable ")
+						append(variableNameString)
+						append(" to be in scope (local scope is")
+						when {
+							scope.isEmpty() -> append(" empty)")
+							else -> append(
+								scope.sorted().joinToString(
+									prefix = ": ",
+									postfix = ")"))
+						}
+					})
 			}
 		}
 		val variableObject =

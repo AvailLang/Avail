@@ -149,7 +149,7 @@ object P_BootstrapPrefixLabelDeclaration : Primitive(3, CanInline, Bootstrap)
 				"label declaration ${labelName.string()} to have a name that "
 					+ "doesn't shadow an existing "
 					+ conflictingDeclaration.declarationKind().nativeKindName()
-					+ "(from line ${conflictingDeclaration.token().lineNumber()})")
+					+ " (from line ${conflictingDeclaration.token().lineNumber()})")
 		}
 		return interpreter.primitiveSuccess(nil)
 	}

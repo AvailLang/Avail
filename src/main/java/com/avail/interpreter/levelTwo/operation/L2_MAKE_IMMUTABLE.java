@@ -33,6 +33,7 @@ package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.types.A_Type;
 import com.avail.interpreter.levelTwo.L2Instruction;
+import com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
@@ -43,6 +44,7 @@ import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
+import javax.annotation.Nullable;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -149,6 +151,23 @@ extends L2Operation
 		final L2WriteBoxedOperand write = instruction.operand(1);
 
 		read.instructionWasAdded(manifest);
+		write.instructionWasAddedForMakeImmutable(
+			read.semanticValue(), manifest);
+	}
+
+	@Override
+	public void updateManifest (
+		final L2Instruction instruction,
+		final L2ValueManifest manifest,
+		final @Nullable Purpose optionalPurpose)
+	{
+		assert this == instruction.operation();
+		// Update the given manifest with the effect of this instruction.  This
+		// is an {@code L2_MAKE_IMMUTABLE}, so it doesn't alter control flow, so
+		// it must not have a {@link Purpose} specified.
+		assert optionalPurpose == null;
+		final L2ReadBoxedOperand read = sourceOfImmutable(instruction);
+		final L2WriteBoxedOperand write = destinationOfImmutable(instruction);
 
 		// Only deal with the boxed form.  The unboxed values are dealt with by
 		// subsequent move instructions.
@@ -158,7 +177,8 @@ extends L2Operation
 		// Make inaccessible all places holding the mutable boxed value.
 		manifest.forget(synonym);
 
-		write.instructionWasAdded(manifest);
+		// Add back the new definition, which is restricted to be immutable.
+		manifest.recordDefinition(write);
 	}
 
 	@Override

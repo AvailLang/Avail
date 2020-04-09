@@ -39,9 +39,11 @@ import java.util.function.UnaryOperator;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@SuppressWarnings("EqualsAndHashcode")
 final class L2SemanticConstant
 extends L2SemanticValue
 {
+	/** The constant Avail value represented by this semantic value. */
 	public final A_BasicObject value;
 
 	/**
@@ -51,6 +53,7 @@ extends L2SemanticValue
 	 */
 	L2SemanticConstant (final A_BasicObject value)
 	{
+		super(value.hashCode());
 		this.value = value.makeImmutable();
 	}
 
@@ -59,12 +62,6 @@ extends L2SemanticValue
 	{
 		return obj instanceof L2SemanticConstant
 			&& value.equals(((L2SemanticConstant) obj).value);
-	}
-
-	@Override
-	public int hashCode ()
-	{
-		return value.hashCode();
 	}
 
 	@Override

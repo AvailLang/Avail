@@ -77,7 +77,8 @@ extends AbstractNumberDescriptor
 		/**
 		 * The Java {@code float} value, packed into an {@code int} field.
 		 */
-		static final BitField RAW_INT = new BitField(RAW_INT_AND_MORE, 0, 32);
+		public static final BitField RAW_INT =
+			new BitField(RAW_INT_AND_MORE, 0, 32);
 	}
 
 	/**

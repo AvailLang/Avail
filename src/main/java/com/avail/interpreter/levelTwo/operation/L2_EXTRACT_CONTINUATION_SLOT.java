@@ -43,7 +43,7 @@ import org.objectweb.asm.MethodVisitor;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import static com.avail.descriptor.AvailObject.argOrLocalOrStackAtMethod;
+import static com.avail.descriptor.AvailObject.frameAtMethod;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 
 /**
@@ -105,10 +105,10 @@ extends L2Operation
 		final L2IntImmediateOperand slotIndex = instruction.operand(1);
 		final L2WriteBoxedOperand slotValue = instruction.operand(2);
 
-		// :: «slot[i]» = continuation.argOrLocalOrStackAt(«slotIndex»);
+		// :: «slot[i]» = continuation.frameAt(«slotIndex»);
 		translator.load(method, continuation.register());
 		translator.intConstant(method, slotIndex.value);
-		argOrLocalOrStackAtMethod.generateCall(method);
+		frameAtMethod.generateCall(method);
 		translator.store(method, slotValue.register());
 	}
 }

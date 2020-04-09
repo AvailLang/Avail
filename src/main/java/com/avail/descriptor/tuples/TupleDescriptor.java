@@ -49,7 +49,6 @@ import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.types.A_Type;
 import com.avail.descriptor.types.BottomTypeDescriptor;
 import com.avail.descriptor.types.TypeTag;
-import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.serialization.SerializerOperation;
 import com.avail.utility.IteratorNotNull;
@@ -84,7 +83,6 @@ import static com.avail.descriptor.types.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
 import static com.avail.descriptor.types.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.types.TypeDescriptor.Types.NONTYPE;
-import static com.avail.optimizer.jvm.CheckedMethod.instanceMethod;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.String.format;
@@ -123,7 +121,8 @@ extends Descriptor
 		 * case that the hash value actually equals zero, the hash value has to
 		 * be computed every time it is requested.
 		 */
-		static final BitField HASH_OR_ZERO = new BitField(HASH_AND_MORE, 0, 32);
+		public static final BitField HASH_OR_ZERO =
+			new BitField(HASH_AND_MORE, 0, 32);
 	}
 
 	@Override
@@ -1336,14 +1335,6 @@ extends Descriptor
 		final AvailObject object,
 		final A_Tuple otherTuple,
 		final boolean canDestroy);
-
-	/** The {@link A_Tuple#concatenateWith(A_Tuple, boolean)} method. */
-	public static final CheckedMethod concatenateWithMethod = instanceMethod(
-		A_Tuple.class,
-		"concatenateWith",
-		A_Tuple.class,
-		A_Tuple.class,
-		boolean.class);
 
 	/**
 	 * Transfer the specified range of bytes into the provided {@link

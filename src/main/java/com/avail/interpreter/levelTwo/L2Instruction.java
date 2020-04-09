@@ -33,6 +33,7 @@
 package com.avail.interpreter.levelTwo;
 
 import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose;
 import com.avail.interpreter.levelTwo.operand.L2Operand;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
@@ -45,16 +46,15 @@ import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.optimizer.reoptimizer.L2Inliner;
+import com.avail.optimizer.values.L2SemanticValue;
+import com.avail.utility.Mutable;
 import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.UnaryOperator;
 
 import static com.avail.utility.Casts.cast;
 import static com.avail.utility.Nulls.stripNull;
@@ -128,13 +128,90 @@ public final class L2Instruction
 	}
 
 	/**
-	 * Evaluate the given function with each operand.
+	 * Evaluate the given function with each {@link L2Operand}.
 	 *
 	 * @param consumer The {@link Consumer} to evaluate.
 	 */
 	public void operandsDo (final Consumer<L2Operand> consumer)
 	{
-		Arrays.stream(operands).forEach(consumer);
+		for (int i = 0; i < operands.length; i++)
+		{
+			consumer.accept(operands[i]);
+		}
+	}
+
+	/**
+	 * Evaluate the given function with each {@link L2Operand} and the
+	 * {@link L2NamedOperandType} that it occupies.
+	 *
+	 * @param consumer The {@link BiConsumer} to evaluate.
+	 */
+	public void operandsWithNamedTypesDo (
+		final BiConsumer<L2Operand, L2NamedOperandType> consumer)
+	{
+		for (int i = 0; i < operands.length; i++)
+		{
+			consumer.accept(operands[i], operation.namedOperandTypes[i]);
+		}
+	}
+
+	/**
+	 * Evaluate the given function with each {@link L2PcOperand edge} and its
+	 * corresponding {@link Purpose}.  An {@link L2WriteOperand} is only
+	 * considered to take place if its {@link Purpose} is null, or if it is the
+	 * same as the {@link L2PcOperand edge} that is taken by this
+	 * {@code L2Instruction}.
+	 *
+	 * <p>This is only applicable to an instruction which
+	 * {@link #altersControlFlow()}</p>
+	 *
+	 * @param consumer The {@link BiConsumer} to evaluate.
+	 */
+	public void edgesAndPurposesDo (
+		final BiConsumer<L2PcOperand, Purpose> consumer)
+	{
+		for (int i = 0; i < operands.length; i++)
+		{
+			final L2Operand operand = operands[i];
+			if (operand instanceof L2PcOperand)
+			{
+				consumer.accept(
+					cast(operand), operation.namedOperandTypes[i].purpose());
+			}
+		}
+	}
+
+	/**
+	 * Evaluate the given function with each {@link L2WriteOperand} having the
+	 * given {@link Purpose}, which correlates with the {@code Purpose} along
+	 * each outbound {@link L2PcOperand edge} to indicate which writes have
+	 * effect along which outbound edges.
+	 *
+	 * <p>This is only applicable to an instruction which
+	 * {@link #altersControlFlow()}</p>
+	 *
+	 * @param purpose
+	 *        The {@link Purpose} with which to filter {@link L2WriteOperand}s.
+	 * @param consumer
+	 *        The {@link Consumer} to evaluate with each {@link
+	 *        L2WriteOperand} having the given {@link Purpose}.
+	 */
+	public void writesForPurposeDo (
+		final Purpose purpose,
+		final Consumer<L2WriteOperand<?>> consumer)
+	{
+		assert altersControlFlow();
+		for (int i = 0; i < operands.length; i++)
+		{
+			final L2Operand operand = operands[i];
+			if (operand instanceof L2WriteOperand)
+			{
+				if (operation.namedOperandTypes[i].purpose() == purpose)
+				{
+					consumer.accept(cast(operand));
+				}
+			}
+		}
 	}
 
 	/**
@@ -432,6 +509,102 @@ public final class L2Instruction
 	}
 
 	/**
+	 * Recreate the {@link L2ValueManifest} that was in effect just prior to the
+	 * instruction that is the receiver.
+	 *
+	 * @return An {@link L2ValueManifest}.
+	 */
+	public L2ValueManifest recreateIncomingManifest ()
+	{
+		// Start with the intersection of the incoming manifests.
+		final Iterator<L2PcOperand> incomingEdges =
+			basicBlock().predecessorEdgesIterator();
+		final L2ValueManifest manifest;
+		if (!incomingEdges.hasNext())
+		{
+			// No incoming edges, so the manifest is empty.
+			manifest = new L2ValueManifest();
+		}
+		else
+		{
+			manifest = new L2ValueManifest(incomingEdges.next().manifest());
+			incomingEdges.forEachRemaining(edge ->
+				manifest.retainRegisters(edge.manifest().allRegisters()));
+		}
+		// Now record all writes until we reach the instruction.
+		for (final L2Instruction instruction : basicBlock().instructions())
+		{
+			if (instruction == this)
+			{
+				return manifest;
+			}
+			instruction.writeOperands().forEach(manifest::recordDefinition);
+		}
+		throw new RuntimeException("Instruction was not found in its block");
+	}
+
+	/**
+	 * Update the given manifest with the effect of this instruction.  If a
+	 * {@link Purpose} is given, alter the manifest to agree with outbound
+	 * edges having that purpose.
+	 *
+	 * @param manifest
+	 *        The {@link L2ValueManifest} to update with the effect of this
+	 *        instruction.
+	 * @param optionalPurpose
+	 *        If non-{@code null}, produce tha manifest that should be active
+	 *        along outbound edges having the indicated {@link Purpose}.
+	 */
+	public void updateManifest (
+		final L2ValueManifest manifest,
+		final @Nullable Purpose optionalPurpose)
+	{
+		operation.updateManifest(this, manifest, optionalPurpose);
+	}
+
+	/**
+	 * Attempt to create a copy of this instruction, but using the
+	 * {@link L2SemanticValue}s present in the given {@link L2ValueManifest}.
+	 * Answer {@code null} if the transformation won't work because of a missing
+	 * read operand.
+	 *
+	 * @param newBlock
+	 *        The {@link L2BasicBlock} in which the instruction will eventually
+	 *        be inserted.
+	 * @param manifest
+	 *        The {@link L2ValueManifest} that's active where the new
+	 *        instruction would be inserted.
+	 * @return The new instruction or {@code null}.
+	 */
+	public @Nullable L2Instruction copyInstructionForManifest (
+		final L2BasicBlock newBlock,
+		final L2ValueManifest manifest)
+	{
+		final Mutable<Boolean> failed = new Mutable<>(false);
+		final UnaryOperator<L2ReadOperand<?>> transform = read ->
+		{
+			final List<L2Register> registers = manifest.getDefinitions(
+				read.semanticValue(), read.registerKind());
+			if (registers.isEmpty())
+			{
+				failed.value = true;
+				return read;
+			}
+			return read.copyForRegister(registers.get(0));
+		};
+		final L2Operand[] operandsCopy = operands.clone();
+		for (int i = 0; i < operandsCopy.length; i++)
+		{
+			operandsCopy[i] = operandsCopy[i].transformEachRead(transform);
+		}
+		if (failed.value)
+		{
+			return null;
+		}
+		return new L2Instruction(newBlock, operation, operandsCopy);
+	}
+
+	/**
 	 * Answer whether this instruction should be emitted during final code
 	 * generation (from the non-SSA {@link L2ControlFlowGraph} into a flat
 	 * sequence of {@code L2Instruction}s.  Allow the operation to decide.
@@ -536,7 +709,7 @@ public final class L2Instruction
 	}
 
 	/**
-	 * Anwser the {@link L2BasicBlock} to which this instruction belongs.
+	 * Answer the {@link L2BasicBlock} to which this instruction belongs.
 	 *
 	 * @return This instruction's {@link L2BasicBlock}.
 	 */

@@ -103,20 +103,37 @@ object P_PrivateGetSpecificObjectField : Primitive(
 		val objectReg = arguments[0]
 		val objectType = argumentTypes[0]
 		val fieldAtom = function.outerVarAt(1)
-		assert(fieldAtom.isAtom)
+		val fieldType = objectType.fieldTypeAt(fieldAtom)
+		val constant = objectReg.restriction().constantOrNull
+		when {
+			// Do the folding here.  If we made this primitive CanFold, it would
+			// attempt to access the interpreter.function during evaluation,
+			// which is not available during folding.
+			constant !== null ->
+				callSiteHelper.useAnswer(
+					translator.generator.boxedConstant(
+						constant.fieldAt(fieldAtom)))
 
-		val write = translator.generator.boxedWriteTemp(
-			restrictionForType(objectType.fieldTypeAt(fieldAtom), BOXED))
-		translator.addInstruction(
-			L2_GET_OBJECT_FIELD.instance,
-			objectReg,
-			L2ConstantOperand(fieldAtom),
-			write)
-		callSiteHelper.useAnswer(translator.readBoxed(write))
+			fieldType.isEnumeration
+					&& !fieldType.isInstanceMeta
+					&& fieldType.instanceCount().equalsInt(1) ->
+				callSiteHelper.useAnswer(
+					translator.generator.boxedConstant(fieldType.instance()))
 
-		// TODO - Generate L2 code to collect statistics on the variants that
-		// are encountered, then at the next reoptimization, inline L2
-		// instructions that access the field by index.
+			else -> {
+				val write = translator.generator.boxedWriteTemp(
+					restrictionForType(fieldType, BOXED))
+				translator.addInstruction(
+					L2_GET_OBJECT_FIELD.instance,
+					objectReg,
+					L2ConstantOperand(fieldAtom),
+					write)
+				callSiteHelper.useAnswer(translator.readBoxed(write))
+				// TODO - Generate L2 code to collect statistics on the variants
+				// that are encountered, then at the next reoptimization, inline
+				// L2 instructions that access the field by index.
+			}
+		}
 		return true
 	}
 }

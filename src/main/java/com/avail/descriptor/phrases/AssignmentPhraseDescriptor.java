@@ -84,7 +84,7 @@ extends PhraseDescriptor
 		/**
 		 * Is this an inline {@linkplain AssignmentPhraseDescriptor assignment}?
 		 */
-		static final BitField IS_INLINE = new BitField(FLAGS, 0, 1);
+		public static final BitField IS_INLINE = new BitField(FLAGS, 0, 1);
 	}
 
 	/**

@@ -159,10 +159,10 @@ import static java.util.Collections.sort;
  * invoke the non "o_" method in {@link AvailObject}.  This will show up as an
  * error, and one more quick fix can generate the corresponding method in
  * {@code AvailObject} whose implementation, like methods near it, extracts the
- * {@link AvailObject#getCurrentDescriptor() descriptor} and invokes upon it the
- * original message (that started with "o_"), passing {@code this} as the first
- * argument.  Code generation will eventually make this relatively onerous task
- * more tractable and less error prone.</p>
+ * {@link AvailObject#descriptor()} and invokes upon it the original message
+ * (that started with "o_"), passing {@code this} as the first argument.  Code
+ * generation will eventually make this relatively onerous task more tractable
+ * and less error prone.</p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -2161,7 +2161,7 @@ public abstract class AbstractDescriptor
 	 * @param index
 	 * @return
 	 */
-	abstract AvailObject o_ArgOrLocalOrStackAt (
+	abstract AvailObject o_FrameAt (
 		AvailObject object,
 		int index);
 
@@ -2169,8 +2169,9 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @param index
 	 * @param value
+	 * @return
 	 */
-	abstract void o_ArgOrLocalOrStackAtPut (
+	abstract AvailObject o_FrameAtPut (
 		AvailObject object,
 		int index,
 		AvailObject value);

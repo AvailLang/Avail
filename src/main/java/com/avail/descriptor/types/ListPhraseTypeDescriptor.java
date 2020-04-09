@@ -98,7 +98,7 @@ extends PhraseTypeDescriptor
 		/**
 		 * The hash, or zero ({@code 0}) if the hash has not yet been computed.
 		 */
-		static final BitField
+		public static final BitField
 			HASH_OR_ZERO = new BitField(HASH_AND_MORE, 0, 32);
 
 		static

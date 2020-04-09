@@ -90,7 +90,7 @@ object P_RestartContinuation : Primitive(
 		interpreter.argsBuffer.clear()
 		for (i in 1 .. numArgs)
 		{
-			interpreter.argsBuffer.add(originalCon.argOrLocalOrStackAt(i))
+			interpreter.argsBuffer.add(originalCon.frameAt(i))
 		}
 		// The restart entry point expects the interpreter's reifiedContinuation
 		// to be the label continuation's *caller*.

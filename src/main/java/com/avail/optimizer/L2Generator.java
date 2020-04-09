@@ -57,7 +57,6 @@ import com.avail.optimizer.L2ControlFlowGraph.Zone;
 import com.avail.optimizer.values.Frame;
 import com.avail.optimizer.values.L2SemanticValue;
 import com.avail.performance.Statistic;
-import com.avail.utility.Casts;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -73,10 +72,9 @@ import static com.avail.descriptor.types.TypeDescriptor.Types.DOUBLE;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.*;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForConstant;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType;
-import static com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.FLOAT;
-import static com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.INTEGER;
 import static com.avail.optimizer.values.L2SemanticValue.constant;
 import static com.avail.performance.StatisticReport.L2_OPTIMIZATION_TIME;
+import static com.avail.utility.Casts.cast;
 import static com.avail.utility.Nulls.stripNull;
 import static java.lang.Math.max;
 import static java.util.Collections.singleton;
@@ -256,7 +254,7 @@ public final class L2Generator
 	 */
 	public void addUnreachableCode ()
 	{
-		addInstruction(L2_JUMP.instance, unreachablePcOperand());
+		jumpTo(stripNull(unreachableBlock));
 	}
 
 	/**
@@ -267,17 +265,23 @@ public final class L2Generator
 	 */
 	public L2PcOperand unreachablePcOperand ()
 	{
+		final L2BasicBlock unreachable;
 		if (unreachableBlock == null)
 		{
 			// Create it as a normal node, so L1 translation can produce simple
 			// edges to it, then switch it to be a loop head so that placeholder
 			// instructions can still connect to it with back-edges when they
 			// get they generate their replacement code.
-			unreachableBlock = createBasicBlock("UNREACHABLE");
+			unreachable = createBasicBlock("UNREACHABLE");
+			unreachableBlock = unreachable;
 		}
-		return unreachableBlock.isLoopHead
-			? backEdgeTo(unreachableBlock)
-			: edgeTo(unreachableBlock);
+		else
+		{
+			unreachable = unreachableBlock;
+		}
+		return unreachable.isLoopHead
+			? backEdgeTo(unreachable)
+			: edgeTo(unreachable);
 	}
 
 	/**
@@ -603,9 +607,7 @@ public final class L2Generator
 		{
 			// It's not an unboxed int, and it's either not boxed or it has a
 			// type that can never be an int32, so it must always fail.
-			addInstruction(
-				L2_JUMP.instance,
-				edgeTo(onFailure));
+			jumpTo(onFailure);
 			// Return a dummy, which should get suppressed or optimized away.
 			return unboxedIntConstant(-999);
 		}
@@ -695,9 +697,7 @@ public final class L2Generator
 		{
 			// It's not an unboxed float, and it's either not boxed or it has a
 			// type that can never be a float, so it must always fail.
-			addInstruction(
-				L2_JUMP.instance,
-				edgeTo(onFailure));
+			jumpTo(onFailure);
 			// Return a dummy, which should get suppressed or optimized away.
 			return unboxedFloatConstant(-99.9);
 		}
@@ -782,12 +782,19 @@ public final class L2Generator
 		final L2BasicBlock block = currentBlock();
 		final List<L2Register> sourceRegisters = currentManifest.getDefinitions(
 			sourceSemanticValue, moveOperation.kind);
-		final List<WR> sourceWritesInBlock =
-			sourceRegisters.stream()
-				.flatMap(reg -> reg.definitions().stream())
-				.filter(w -> w.instruction().basicBlock() == block)
-				.map(Casts::<L2WriteOperand<?>, WR>cast)
-				.collect(toList());
+		final List<WR> sourceWritesInBlock = new ArrayList<>(2);
+		for (final L2Register register : sourceRegisters)
+		{
+			for (final L2WriteOperand<?> def : register.definitions())
+			{
+				if (def.instruction().basicBlock() == block)
+				{
+					@SuppressWarnings("unchecked")
+					final WR write = cast(def);
+					sourceWritesInBlock.add(write);
+				}
+			}
+		}
 		if (!sourceWritesInBlock.isEmpty())
 		{
 			// Find the latest equivalent write in this block.
@@ -841,9 +848,9 @@ public final class L2Generator
 
 	/**
 	 * Generate code to ensure an immutable version of the given register is
-	 * written to the returned register.  Update the {@link
-	 * L2Generator#currentManifest()} to indicate the returned register should
-	 * be used for all of the given register's semantic values after this point.
+	 * written to the returned register.  Update the {@link #currentManifest()}
+	 * to indicate that after this point, the returned register should be used
+	 * for reading the boxed form of the given register's semantic values.
 	 *
 	 * @param read
 	 *        The {@link L2ReadBoxedOperand} that was given.
@@ -857,52 +864,23 @@ public final class L2Generator
 		assert restriction.isBoxed();
 		if (restriction.isImmutable())
 		{
-			// The source read is definitely immutable.
+			// The source read is definitely already immutable.
 			return read;
 		}
 		// Pick a semantic value from the read's synonym.  Pass the original
 		// boxed value through an L2_MAKE_IMMUTABLE into that semantic value,
-		// then generate boxed moves from that semantic value into each of the
-		// other semantic values, effectively reforming a new synonym.  If there
-		// are int or float unboxed forms, move those directly as well, ensuring
-		// the unboxed forms remain available.  The unboxed moves will not act
-		// as *register level* data dependencies in the final L2 code, so the
-		// makeImmutable will be independently movable from the earlier unboxing
-		// operations and the potential later uses of the unboxed value.
-		final L2SemanticValue semanticValue = read.semanticValue();
+		// then augment the write to include all other semantic values from the
+		// same synonym.  Int and float unboxed registers are unaffected.
 		final L2SemanticValue temp = topFrame.temp(nextUnique());
 		final TypeRestriction immutableRestriction =
 			restriction.withFlag(IMMUTABLE);
-		// If there is an unboxed form, preserve the first definition of that
-		// unboxed kind.
-		final List<L2Register> unboxedRegisters = new ArrayList<>(1);
-		if (immutableRestriction.isUnboxedInt())
-		{
-			unboxedRegisters.add(
-				currentManifest.getDefinition(semanticValue, INTEGER));
-		}
-		if (immutableRestriction.isUnboxedFloat())
-		{
-			unboxedRegisters.add(
-				currentManifest.getDefinition(semanticValue, FLOAT));
-		}
-		final L2Synonym synonym =
-			currentManifest.semanticValueToSynonym(semanticValue);
 		// L2_MAKE_IMMUTABLE.instructionWasAdded(instr, manifest) will run when
-		// the instruction is added.  The subsequent moves take care of
-		// themselves.
+		// the instruction is added.
+		assert immutableRestriction.isBoxed();
 		addInstruction(
 			L2_MAKE_IMMUTABLE.instance,
 			read,
 			boxedWrite(temp, immutableRestriction));
-		synonym.semanticValues().forEach(sv ->
-		{
-			moveRegister(L2_MOVE.boxed, temp, sv);
-			currentManifest.setRestriction(sv, immutableRestriction);
-		});
-		// Now restore each kind of unboxed definition, if there were any.
-		unboxedRegisters.forEach(reg ->
-			currentManifest.recordDefinitionForNewKind(reg.definition()));
 		return currentManifest.readBoxed(temp);
 	}
 
@@ -1131,12 +1109,13 @@ public final class L2Generator
 	{
 		if (!block.isIrremovable())
 		{
-			if (block.predecessorEdgesCount() == 0)
+			final int predecessorCount = block.predecessorEdgesCount();
+			if (predecessorCount == 0)
 			{
 				currentBlock = null;
 				return;
 			}
-			if (!block.isLoopHead && block.predecessorEdgesCount() == 1)
+			if (!block.isLoopHead && predecessorCount == 1)
 			{
 				final L2PcOperand predecessorEdge =
 					block.predecessorEdgesIterator().next();
@@ -1325,7 +1304,7 @@ public final class L2Generator
 		currentManifest.clear();
 		// Keep semantic values that are common to all incoming paths.
 		final List<L2ValueManifest> manifests = new ArrayList<>();
-		startingBlock.predecessorEdgesIterator().forEachRemaining(
+		startingBlock.predecessorEdgesDo(
 			edge -> manifests.add(edge.manifest()));
 		currentManifest.populateFromIntersection(manifests, this, false, true);
 		// Replay the effects on the manifest of the leading instructions.
@@ -1369,6 +1348,17 @@ public final class L2Generator
 				originalInstruction.operands());
 			originalInstruction.justRemoved();
 		});
+	}
+
+	/**
+	 * Emit an instruction to jump to the specified {@link L2BasicBlock}.
+	 *
+	 * @param targetBlock
+	 *        The target {@link L2BasicBlock}.
+	 */
+	public void jumpTo (final L2BasicBlock targetBlock)
+	{
+		addInstruction(L2_JUMP.instance, edgeTo(targetBlock));
 	}
 
 	/**

@@ -33,12 +33,11 @@ package com.avail.optimizer.values;
 
 import java.util.function.UnaryOperator;
 
-import static com.avail.descriptor.AvailObject.multiplier;
-
 /**
  * A semantic value which represents a numbered outer variable in the function
  * of some {@link Frame}.
  */
+@SuppressWarnings("EqualsAndHashcode")
 final class L2SemanticOuter
 extends L2FrameSpecificSemanticValue
 {
@@ -55,26 +54,16 @@ extends L2FrameSpecificSemanticValue
 	 */
 	L2SemanticOuter (final Frame frame, final int outerIndex)
 	{
-		super(frame);
+		super(frame, outerIndex ^ 0xDD03C87A);
 		this.outerIndex = outerIndex;
 	}
 
 	@Override
 	public boolean equals (final Object obj)
 	{
-		if (!(obj instanceof L2SemanticOuter))
-		{
-			return false;
-		}
-		final L2SemanticOuter outer = (L2SemanticOuter) obj;
-		return frame().equals(outer.frame())
-			&& outerIndex == outer.outerIndex;
-	}
-
-	@Override
-	public int hashCode ()
-	{
-		return (frame().hashCode() + outerIndex) * multiplier;
+		return obj instanceof L2SemanticOuter
+			&& super.equals(obj)
+			&& outerIndex == ((L2SemanticOuter) obj).outerIndex;
 	}
 
 	@Override

@@ -43,6 +43,7 @@ import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
 import static com.avail.descriptor.AvailObject.newObjectIndexedIntegerIndexedDescriptor;
+import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.functions.ContinuationRegisterDumpDescriptor.IntegerSlots.INTEGER_SLOTS_;
 import static com.avail.descriptor.functions.ContinuationRegisterDumpDescriptor.ObjectSlots.OBJECT_SLOTS_;
 import static com.avail.optimizer.jvm.CheckedMethod.staticMethod;
@@ -106,6 +107,10 @@ extends Descriptor
 		final AvailObject[] objects,
 		final long[] longs)
 	{
+		if (objects.length == 0 && longs.length == 0)
+		{
+			return nil;
+		}
 		final AvailObject dump = newObjectIndexedIntegerIndexedDescriptor(
 			objects.length, longs.length, mutable);
 		dump.setSlotsFromArray(OBJECT_SLOTS_, 1, objects, 0, objects.length);

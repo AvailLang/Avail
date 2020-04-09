@@ -48,6 +48,7 @@ import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.RegisterSet;
 import com.avail.optimizer.jvm.JVMTranslator;
 import com.avail.optimizer.values.L2SemanticValue;
+import com.avail.utility.MutableInt;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.ArrayList;
@@ -299,18 +300,15 @@ extends L2Operation
 
 		assert sources.elements().size()
 			== instruction.basicBlock().predecessorEdgesCount();
-		final Iterator<L2PcOperand> predecessorEdgesIterator =
-			instruction.basicBlock().predecessorEdgesIterator();
 		final List<L2BasicBlock> list = new ArrayList<>();
-		int i = 0;
-		while (predecessorEdgesIterator.hasNext())
+		final MutableInt i = new MutableInt(0);
+		instruction.basicBlock().predecessorEdgesDo(edge ->
 		{
-			if (sources.elements().get(i).register() == usedRegister)
+			if (sources.elements().get(i.value++).register() == usedRegister)
 			{
-				list.add(predecessorEdgesIterator.next().sourceBlock());
+				list.add(edge.sourceBlock());
 			}
-			i++;
-		}
+		});
 		return list;
 	}
 

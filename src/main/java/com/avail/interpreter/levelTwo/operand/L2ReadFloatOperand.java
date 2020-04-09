@@ -36,6 +36,7 @@ import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandDispatcher;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.register.L2FloatRegister;
+import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
 import com.avail.optimizer.L2ValueManifest;
 import com.avail.optimizer.values.L2SemanticValue;
@@ -113,6 +114,14 @@ extends L2ReadOperand<L2FloatRegister>
 	{
 		return new L2ReadFloatOperand(
 			newSemanticValue, restriction(), register());
+	}
+
+	@Override
+	public L2ReadFloatOperand copyForRegister (
+		final L2Register newRegister)
+	{
+		return new L2ReadFloatOperand(
+			semanticValue(), restriction(), (L2FloatRegister) newRegister);
 	}
 
 	@Override

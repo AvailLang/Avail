@@ -54,8 +54,10 @@ Uses
 	"Early Tuples",
 	"Enumeration Support",
 	"Exceptions",
+	"Lexers",
 	"Literals",
 	"Objects",
+	"Phrases",
 	"Sets",
 	"Strings",
 	"Tuples",
@@ -66,8 +68,10 @@ Names
 	"_→_bytes",
 	"an integer from_",
 	"an unsigned integer from_",
+	"log_of_",
 	"low_bits of_",
 	"_(decimal)",
+	"π",
 
 	/* Compound assignment. */
 	"_↑+=_", "_+=_",
@@ -401,6 +405,74 @@ Semantic restriction "_^_" is
 |
 	base ^ power
 ];
+
+/**
+ * Calculate the logarithm of the specified number to the specified base.
+ *
+ * @method "log_of_"
+ * @param "b" "float"
+ *        The logarithm base to use.
+ * @param "n" "float"
+ *        The number whose logarithm should be computed.
+ * @returns "float"
+ *          The logarithm of {@param "n"} to base {@param "b"}.
+ * @category "Mathematics" "Numbers"
+ */
+Public stable method "log_of_" is
+[
+	b : float,
+	n : float
+|
+	if b ≤ 0.0f then
+	[
+		Raise a	cannot-compute-logarithm-for-nonpositive-base exception
+	]
+	else
+	[
+		if n ≤ 0.0f then
+		[
+			Raise a cannot-compute-logarithm-of-nonpositive-number exception
+		]
+		else
+		[
+			(ln n) ÷ (ln b)
+		]
+	]
+] : float;
+
+/**
+ * Calculate the logarithm of the specified number to the specified base.
+ *
+ * @method "log_of_"
+ * @param "b" "double"
+ *        The logarithm base to use.
+ * @param "n" "double"
+ *        The number whose logarithm should be computed.
+ * @returns "double"
+ *          The logarithm of {@param "n"} to base {@param "b"}.
+ * @category "Mathematics" "Numbers"
+ */
+Stable method "log_of_" is
+[
+	b : double,
+	n : double
+|
+	if b ≤ 0.0 then
+	[
+		Raise a cannot-compute-logarithm-for-nonpositive-base exception
+	]
+	else
+	[
+		if n ≤ 0.0 then
+		[
+			Raise a	cannot-compute-logarithm-of-nonpositive-number exception
+		]
+		else
+		[
+			(ln n) ÷ (ln b)
+		]
+	]
+] : double;
 
 /**
  * Calculate the logarithm of the specified number to the specified base, using
@@ -763,3 +835,14 @@ Public stable method "_(decimal)" is
 		fraction=fractionalPart[2..] ?→ Arabic numeral*,
 		exponent=0
 ] : double;
+
+/**
+ * Answer an approximation of π, the ratio of the circumference of a circle to
+ * its diameter.
+ *
+ * @method "π"
+ * @returns "3.141592653589793's type"
+ *          {@code "3.141592653589793"}.
+ * @category "Mathematics" "Constants" "Numbers"
+ */
+Macro "π" is [`3.141592653589793` ("π") → literal phrase];
