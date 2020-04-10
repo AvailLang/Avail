@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Avail Workbench" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="com.avail.environment.AvailWorkbench" />
-    <module name="avail.avail-workbench.main" />
+    <module name="org.availlang.avail.avail-workbench.main" />
     <option name="PROGRAM_PARAMETERS" value="&quot;/avail/Avail Tests&quot;" />
     <option name="VM_PARAMETERS" value="-ea -Xmx10g -Djava.util.logging.config.file=$PROJECT_DIR$/distro/etc/logging.properties -DavailDeveloper=true -DavailRoots=avail=$PROJECT_DIR$/repositories/avail.repo,$PROJECT_DIR$/distro/src/avail;experimental=$PROJECT_DIR$/repositories/experimental.repo,$PROJECT_DIR$/experimental/even-newer-avail;examples=$PROJECT_DIR$/repositories/examples.repo,$PROJECT_DIR$/distro/src/examples;website=$PROJECT_DIR$/repositories/website.repo,$PROJECT_DIR$/distro/src/website" />
     <method v="2">

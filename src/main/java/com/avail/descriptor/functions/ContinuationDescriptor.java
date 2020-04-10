@@ -282,11 +282,12 @@ extends Descriptor
 		final L1InstructionDecoder instructionDecoder =
 			new L1InstructionDecoder();
 		code.setUpInstructionDecoder(instructionDecoder);
+		final int thisPc = object.pc();
 		instructionDecoder.pc(1);
 		int lineNumber = code.startingLineNumber();
 		int instructionCounter = 1;
 
-		while (!instructionDecoder.atEnd())
+		while (!instructionDecoder.atEnd() && instructionDecoder.pc() < thisPc)
 		{
 			final int encodedDelta =
 				encodedDeltas.tupleIntAt(instructionCounter++);

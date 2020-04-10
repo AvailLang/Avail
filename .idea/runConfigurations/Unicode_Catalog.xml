@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Unicode Catalog" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="com.avail.tools.unicode.CatalogGenerator" />
-    <module name="avail.unicode-catalog.main" />
+    <module name="org.availlang.avail.unicode-catalog.main" />
     <option name="VM_PARAMETERS" value="-ea" />
     <method v="2">
       <option name="Make" enabled="true" />
