@@ -102,13 +102,14 @@ open class VariableSharedDescriptor protected constructor(
 			 * A slot to hold the hash value.  Must be computed when (or before)
 			 * making a variable shared.
 			 */
+			@JvmStatic
 			val HASH_ALWAYS_SET = BitField(HASH_AND_MORE, 0, 32)
 
 			init
 			{
 				assert(VariableDescriptor.IntegerSlots.HASH_AND_MORE.ordinal
 					       == HASH_AND_MORE.ordinal)
-				assert(VariableDescriptor.IntegerSlots.Companion.HASH_OR_ZERO.isSamePlaceAs(
+				assert(VariableDescriptor.IntegerSlots.HASH_OR_ZERO.isSamePlaceAs(
 					HASH_ALWAYS_SET))
 			}
 		}

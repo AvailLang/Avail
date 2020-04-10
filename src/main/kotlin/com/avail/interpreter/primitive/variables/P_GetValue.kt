@@ -64,7 +64,7 @@ object P_GetValue : Primitive(1, CanInline, HasSideEffect)
 		interpreter.checkArgumentCount(1)
 		val variable = interpreter.argument(0)
 		return try {
-			interpreter.primitiveSuccess(variable.value())
+			interpreter.primitiveSuccess(variable.getValue())
 		} catch (e: VariableGetException) {
 			interpreter.primitiveFailure(e)
 		}

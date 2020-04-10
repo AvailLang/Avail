@@ -37,6 +37,7 @@ import com.avail.descriptor.A_Fiber
 import com.avail.descriptor.AvailObject
 import com.avail.descriptor.Descriptor
 import com.avail.descriptor.NilDescriptor
+import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.CompiledCodeDescriptor
@@ -105,22 +106,22 @@ open class VariableDescriptor protected constructor(
 	 * A `VariableAccessReactor` records a one-shot
 	 * [function][FunctionDescriptor]. It is cleared upon read.
 	 */
-	class VariableAccessReactor(function: A_Function)
+	class VariableAccessReactor(initialFunction: A_Function)
 	{
 		/** The [reactor function][FunctionDescriptor].  */
-		private val function = AtomicReference<A_Function>(NilDescriptor.nil)
+		private val function = AtomicReference(initialFunction)
 
 		/**
 		 * Atomically get and clear [reactor][FunctionDescriptor].
 		 *
 		 * @return
-		 *   The reactor function, or [nil][NilDescriptor.nil] if the reactor
+		 *   The reactor function, or [nil] if the reactor
 		 *   function has already been requested (and the reactor is therefore
 		 *   invalid).
 		 */
 		fun getAndClearFunction(): A_Function
 		{
-			return function.getAndSet(NilDescriptor.nil)
+			return function.getAndSet(nil)
 		}
 
 		/**
@@ -132,17 +133,6 @@ open class VariableDescriptor protected constructor(
 		fun isInvalid(): Boolean
 		{
 			return function.get().equalsNil()
-		}
-
-		/**
-		 * Construct a new `VariableAccessReactor`.
-		 *
-		 * @param function
-		 *   The reactor [function][AvailObject].
-		 */
-		init
-		{
-			this.function.set(function)
 		}
 	}
 
@@ -467,7 +457,7 @@ open class VariableDescriptor protected constructor(
 	override fun o_ClearValue(`object`: AvailObject)
 	{
 		handleVariableWriteTracing(`object`)
-		`object`.setSlot(ObjectSlots.VALUE, NilDescriptor.nil)
+		`object`.setSlot(ObjectSlots.VALUE, nil)
 	}
 
 	@AvailMethod
@@ -713,7 +703,7 @@ open class VariableDescriptor protected constructor(
 		val bootstrapAssignmentFunction: A_Function =
 			FunctionDescriptor.createFunction(
 				CompiledCodeDescriptor.newPrimitiveRawFunction(
-					P_SetValue, NilDescriptor.nil, 0),
+					P_SetValue, nil, 0),
 			TupleDescriptor.emptyTuple()).makeShared()
 
 		/**
@@ -750,8 +740,8 @@ open class VariableDescriptor protected constructor(
 			val result = mutable.create()
 			result.setSlot(ObjectSlots.KIND, variableType!!)
 			result.setSlot(IntegerSlots.HASH_OR_ZERO, 0)
-			result.setSlot(ObjectSlots.VALUE, NilDescriptor.nil)
-			result.setSlot(ObjectSlots.WRITE_REACTORS, NilDescriptor.nil)
+			result.setSlot(ObjectSlots.VALUE, nil)
+			result.setSlot(ObjectSlots.WRITE_REACTORS, nil)
 			return result
 		}
 

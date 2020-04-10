@@ -55,7 +55,7 @@ object P_GetGlobalVariableValue : Primitive(
 		val literalVariable = code.literalAt(1)
 		try
 		{
-			return interpreter.primitiveSuccess(literalVariable.value())
+			return interpreter.primitiveSuccess(literalVariable.getValue())
 		}
 		catch (e: VariableGetException)
 		{
@@ -98,7 +98,7 @@ object P_GetGlobalVariableValue : Primitive(
 		{
 			// The variable is permanently set to this value.
 			callSiteHelper.useAnswer(
-				translator.generator.boxedConstant(variable.value()))
+				translator.generator.boxedConstant(variable.getValue()))
 			return true
 		}
 		val valueReg = translator.emitGetVariableOffRamp(
@@ -108,5 +108,4 @@ object P_GetGlobalVariableValue : Primitive(
 		callSiteHelper.useAnswer(valueReg)
 		return true
 	}
-
 }
