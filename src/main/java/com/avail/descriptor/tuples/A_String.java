@@ -32,7 +32,7 @@
 
 package com.avail.descriptor.tuples;
 
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.representation.A_BasicObject;
 
 /**

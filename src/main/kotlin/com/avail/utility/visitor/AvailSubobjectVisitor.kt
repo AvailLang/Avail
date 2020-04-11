@@ -32,7 +32,7 @@
 
 package com.avail.utility.visitor
 
-import com.avail.descriptor.AvailObject
+import com.avail.descriptor.representation.AvailObject
 
 /**
  * I provide an [invoke] operation which supports the ability to visit the

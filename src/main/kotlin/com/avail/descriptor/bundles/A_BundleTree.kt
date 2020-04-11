@@ -33,7 +33,7 @@ package com.avail.descriptor.bundles
 
 import com.avail.compiler.ParsingOperation
 import com.avail.descriptor.A_Module
-import com.avail.descriptor.AvailObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.NilDescriptor
 import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.numbers.IntegerDescriptor

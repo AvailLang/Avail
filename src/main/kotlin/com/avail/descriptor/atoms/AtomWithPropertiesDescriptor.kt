@@ -33,7 +33,7 @@ package com.avail.descriptor.atoms
 
 import com.avail.annotations.AvailMethod
 import com.avail.descriptor.A_Module
-import com.avail.descriptor.AvailObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.IndirectionDescriptor
 import com.avail.descriptor.ModuleDescriptor
 import com.avail.descriptor.NilDescriptor.nil

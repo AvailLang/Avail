@@ -33,9 +33,10 @@ package com.avail.descriptor.bundles
 
 import com.avail.annotations.AvailMethod
 import com.avail.compiler.splitter.MessageSplitter
-import com.avail.descriptor.AvailObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.Descriptor
 import com.avail.descriptor.atoms.A_Atom
+import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.bundles.MessageBundleDescriptor.ObjectSlots
 import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.maps.MapDescriptor
@@ -271,7 +272,7 @@ private constructor(mutability: Mutability) : Descriptor(mutability, TypeTag.BUN
 		 * this bundle.  This is performed to make the bundle agree with the
 		 * method's definitions and macro definitions.
 		 *
-		 * @param object The affected message bundle.
+		 * @param self The affected message bundle.
 		 * @param plan A definition parsing plan.
 		 */
 		private fun addDefinitionParsingPlan(
@@ -288,7 +289,7 @@ private constructor(mutability: Mutability) : Descriptor(mutability, TypeTag.BUN
 		 * to make the bundle agree with the method's definitions and macro
 		 * definitions.
 		 *
-		 * @param object The affected message bundle.
+		 * @param self The affected message bundle.
 		 * @param definition A definition whose plan should be removed.
 		 */
 		private fun removePlanForDefinition(
@@ -303,7 +304,7 @@ private constructor(mutability: Mutability) : Descriptor(mutability, TypeTag.BUN
 		/**
 		 * Add a grammatical restriction to the specified [ ].
 		 *
-		 * @param object The affected message bundle.
+		 * @param self The affected message bundle.
 		 * @param grammaticalRestriction A grammatical restriction.
 		 */
 		private fun addGrammaticalRestriction(
@@ -318,7 +319,7 @@ private constructor(mutability: Mutability) : Descriptor(mutability, TypeTag.BUN
 		/**
 		 * Remove a grammatical restriction from this [ ].
 		 *
-		 * @param object A message bundle.
+		 * @param self A message bundle.
 		 * @param obsoleteRestriction The grammatical restriction to remove.
 		 */
 		private fun removeGrammaticalRestriction(

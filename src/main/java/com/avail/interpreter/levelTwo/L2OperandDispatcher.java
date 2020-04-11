@@ -32,7 +32,7 @@
 
 package com.avail.interpreter.levelTwo;
 
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.bundles.A_Bundle;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.operand.*;

@@ -38,7 +38,6 @@ import com.avail.annotations.EnumField.Converter;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.HideFieldJustForPrinting;
 import com.avail.compiler.scanning.LexingState;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.Descriptor;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
@@ -58,11 +57,11 @@ import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 import java.util.List;
 
-import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.atoms.AtomDescriptor.createSpecialAtom;
 import static com.avail.descriptor.numbers.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.pojos.RawPojoDescriptor.identityPojo;
+import static com.avail.descriptor.representation.AvailObject.multiplier;
 import static com.avail.descriptor.tokens.CommentTokenDescriptor.newCommentToken;
 import static com.avail.descriptor.tokens.TokenDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.tokens.TokenDescriptor.ObjectSlots.NEXT_LEXING_STATE_POJO;
@@ -204,7 +203,8 @@ extends Descriptor
 		TokenType ()
 		{
 			atom = createSpecialAtom(name().toLowerCase().replace('_', ' '));
-			atom.setAtomProperty(tokenTypeOrdinalKey, fromInt(ordinal()));
+			A_Atom.Companion.setAtomProperty(
+				atom, tokenTypeOrdinalKey, fromInt(ordinal()));
 		}
 
 		/**
@@ -237,7 +237,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
+	public boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
 	{
 		return e == NEXT_LEXING_STATE_POJO;
 	}
@@ -273,7 +273,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected void o_ClearLexingState (final AvailObject object)
+	public void o_ClearLexingState (final AvailObject object)
 	{
 		object.setSlot(NEXT_LEXING_STATE_POJO, nil);
 	}
@@ -285,7 +285,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_EqualsToken (final AvailObject object, final A_Token aToken)
+	public boolean o_EqualsToken (final AvailObject object, final A_Token aToken)
 	{
 		return object.string().equals(aToken.string())
 			&& object.start() == aToken.start()
@@ -306,13 +306,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_Kind (final AvailObject object)
+	public A_Type o_Kind (final AvailObject object)
 	{
 		return tokenType(object.tokenType());
 	}
 
 	@Override @AvailMethod
-	protected boolean o_IsInstanceOfKind (
+	public boolean o_IsInstanceOfKind (
 		final AvailObject object,
 		final A_Type aTypeObject)
 	{
@@ -322,25 +322,25 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_LineNumber (final AvailObject object)
+	public int o_LineNumber (final AvailObject object)
 	{
 		return object.slot(LINE_NUMBER);
 	}
 
 	@Override @AvailMethod
-	protected A_String o_LowerCaseString (final AvailObject object)
+	public A_String o_LowerCaseString (final AvailObject object)
 	{
 		return lowerCaseStringFrom(object);
 	}
 
 	@Override
-	protected LexingState o_NextLexingState (final AvailObject object)
+	public LexingState o_NextLexingState (final AvailObject object)
 	{
 		return object.slot(NEXT_LEXING_STATE_POJO).javaObjectNotNull();
 	}
 
 	@Override
-	protected void o_SetNextLexingStateFromPrior (
+	public void o_SetNextLexingStateFromPrior (
 		final AvailObject object,
 		final LexingState priorLexingState)
 	{
@@ -369,32 +369,32 @@ extends Descriptor
 	}
 
 	@Override
-	protected SerializerOperation o_SerializerOperation (
+	public SerializerOperation o_SerializerOperation (
 		final AvailObject object)
 	{
 		return SerializerOperation.TOKEN;
 	}
 
 	@Override @AvailMethod
-	protected int o_Start (final AvailObject object)
+	public int o_Start (final AvailObject object)
 	{
 		return object.slot(START);
 	}
 
 	@Override @AvailMethod
-	protected A_String o_String (final AvailObject object)
+	public A_String o_String (final AvailObject object)
 	{
 		return object.slot(STRING);
 	}
 
 	@Override @AvailMethod
-	protected TokenType o_TokenType (final AvailObject object)
+	public TokenType o_TokenType (final AvailObject object)
 	{
 		return lookupTokenType(object.slot(TOKEN_TYPE_CODE));
 	}
 
 	@Override
-	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	public void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");

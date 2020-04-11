@@ -35,6 +35,7 @@ package com.avail.test;
 import com.avail.AvailRuntime;
 import com.avail.builder.RenamesFileParserException;
 import com.avail.builder.UnresolvedDependencyException;
+import com.avail.descriptor.atoms.A_Atom;
 import com.avail.test.AvailRuntimeTestHelper.TestErrorChannel;
 import com.avail.utility.Mutable;
 import com.avail.utility.Nulls;
@@ -202,7 +203,7 @@ public class AvailTest
 			(result, cleanup) ->
 				cleanup.invoke((Function0<Unit>) () ->
 				{
-					ok.value = result.extractBoolean();
+					ok.value = A_Atom.Companion.extractBoolean(result);
 					semaphore.release();
 					return Unit.INSTANCE;
 				}),

@@ -32,8 +32,8 @@
 
 package com.avail.interpreter.levelOne
 
-import com.avail.descriptor.AvailObject
-import com.avail.descriptor.AvailObject.Companion.error
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.error
 import kotlin.math.max
 
 /**

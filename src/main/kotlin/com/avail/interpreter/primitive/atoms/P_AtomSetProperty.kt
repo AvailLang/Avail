@@ -32,6 +32,8 @@
 package com.avail.interpreter.primitive.atoms
 
 import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
+import com.avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.sets.SetDescriptor.set
@@ -62,7 +64,7 @@ object P_AtomSetProperty : Primitive(
 		val atom = interpreter.argument(0)
 		val propertyKey = interpreter.argument(1)
 		val propertyValue = interpreter.argument(2)
-		if (atom.isAtomSpecial || propertyKey.isAtomSpecial)
+		if (atom.isAtomSpecial() || propertyKey.isAtomSpecial())
 		{
 			return interpreter.primitiveFailure(E_SPECIAL_ATOM)
 		}

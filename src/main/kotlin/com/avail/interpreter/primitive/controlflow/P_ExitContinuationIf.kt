@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive.controlflow
 
 import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.ContinuationDescriptor
@@ -53,7 +54,6 @@ import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operation.L2_RETURN
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
-import com.avail.optimizer.L2Generator.edgeTo
 
 /**
  * **Primitive:** Exit the given [continuation][ContinuationDescriptor]

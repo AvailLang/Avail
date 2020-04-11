@@ -34,7 +34,7 @@ package com.avail.descriptor.methods;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.A_Module;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.descriptor.functions.A_Function;
@@ -87,13 +87,13 @@ extends DefinitionDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_BodySignature (final AvailObject object)
+	public A_Type o_BodySignature (final AvailObject object)
 	{
 		return object.bodyBlock().kind();
 	}
 
 	@Override @AvailMethod
-	protected A_Function o_BodyBlock (final AvailObject object)
+	public A_Function o_BodyBlock (final AvailObject object)
 	{
 		return object.slot(BODY_BLOCK);
 	}
@@ -105,26 +105,26 @@ extends DefinitionDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_Kind (final AvailObject object)
+	public A_Type o_Kind (final AvailObject object)
 	{
 		return METHOD_DEFINITION.o();
 	}
 
 	@Override @AvailMethod
-	protected boolean o_IsMethodDefinition (final AvailObject object)
+	public boolean o_IsMethodDefinition (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override
-	protected SerializerOperation o_SerializerOperation (
+	public SerializerOperation o_SerializerOperation (
 		final AvailObject object)
 	{
 		return SerializerOperation.METHOD_DEFINITION;
 	}
 
 	@Override
-	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	public void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -139,7 +139,7 @@ extends DefinitionDescriptor
 	}
 
 	@Override
-	protected void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	public void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");

@@ -31,7 +31,7 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.descriptor.tuples.ObjectTupleDescriptor;

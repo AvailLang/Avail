@@ -36,6 +36,7 @@ import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.numbers.IntegerDescriptor;
 import com.avail.descriptor.representation.A_BasicObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.representation.BitField;
 import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.types.A_Type;
@@ -153,7 +154,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_CodePoint (final AvailObject object)
+	public int o_CodePoint (final AvailObject object)
 	{
 		return (int) object.slot(CODE_POINT);
 	}
@@ -167,7 +168,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_EqualsCharacterWithCodePoint (
+	public boolean o_EqualsCharacterWithCodePoint (
 		final AvailObject object,
 		final int otherCodePoint)
 	{
@@ -186,13 +187,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_IsCharacter (final AvailObject object)
+	public boolean o_IsCharacter (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod
-	protected AvailObject o_MakeImmutable (final AvailObject object)
+	public AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		if (isMutable())
 		{
@@ -203,7 +204,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected AvailObject o_MakeShared (final AvailObject object)
+	public AvailObject o_MakeShared (final AvailObject object)
 	{
 		if (!isShared())
 		{
@@ -213,13 +214,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_Kind (final AvailObject object)
+	public A_Type o_Kind (final AvailObject object)
 	{
 		return CHARACTER.o();
 	}
 
 	@Override
-	protected Object o_MarshalToJava (
+	public Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> classHint)
 	{
@@ -252,7 +253,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected SerializerOperation o_SerializerOperation (
+	public SerializerOperation o_SerializerOperation (
 		final AvailObject object)
 	{
 		final int codePoint = (int) object.slot(CODE_POINT);
@@ -268,7 +269,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	public void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.write(tuple(object));
 	}

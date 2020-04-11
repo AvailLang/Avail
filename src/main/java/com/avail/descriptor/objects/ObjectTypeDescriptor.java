@@ -35,7 +35,6 @@ package com.avail.descriptor.objects;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.atoms.A_Atom;
@@ -44,6 +43,7 @@ import com.avail.descriptor.maps.A_Map;
 import com.avail.descriptor.maps.MapDescriptor.Entry;
 import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.representation.AbstractSlotsEnum;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.representation.AvailObjectFieldHelper;
 import com.avail.descriptor.representation.BitField;
 import com.avail.descriptor.representation.Mutability;
@@ -61,7 +61,6 @@ import com.avail.utility.json.JSONWriter;
 import javax.annotation.Nullable;
 import java.util.*;
 
-import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY;
 import static com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.OBJECT_TYPE_NAME_PROPERTY_KEY;
 import static com.avail.descriptor.atoms.AtomDescriptor.createSpecialAtom;
@@ -70,6 +69,7 @@ import static com.avail.descriptor.maps.MapDescriptor.emptyMap;
 import static com.avail.descriptor.objects.ObjectTypeDescriptor.IntegerSlots.HASH_AND_MORE;
 import static com.avail.descriptor.objects.ObjectTypeDescriptor.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.objects.ObjectTypeDescriptor.ObjectSlots.FIELD_TYPES_;
+import static com.avail.descriptor.representation.AvailObject.multiplier;
 import static com.avail.descriptor.sets.SetDescriptor.emptySet;
 import static com.avail.descriptor.tuples.ObjectTupleDescriptor.*;
 import static com.avail.descriptor.tuples.StringDescriptor.stringFrom;
@@ -126,7 +126,8 @@ extends TypeDescriptor
 	}
 
 	@Override
-	protected boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
+	public boolean allowsImmutableToMutableReferenceInField (
+		final AbstractSlotsEnum e)
 	{
 		return e == HASH_AND_MORE;
 	}
@@ -174,7 +175,9 @@ extends TypeDescriptor
 			{
 				final A_Atom atom = entry.key();
 				final A_Type type = entry.value();
-				if (!atom.getAtomProperty(explicitSubclassingKey).equalsNil())
+				if (!A_Atom.Companion
+					.getAtomProperty(atom, explicitSubclassingKey)
+					.equalsNil())
 				{
 					ignoreKeys = ignoreKeys.setWithElementCanDestroy(
 						atom, true);
@@ -204,7 +207,7 @@ extends TypeDescriptor
 					builder.append(",");
 				}
 				newlineTab(builder, indent);
-				builder.append(entry.key().atomName().asNativeString());
+				builder.append(A_Atom.Companion.atomName(entry.key()).asNativeString());
 				builder.append(" : ");
 				entry.value().printOnAvoidingIndent(
 					builder,
@@ -234,7 +237,7 @@ extends TypeDescriptor
 	 * Show the fields nicely.
 	 */
 	@Override
-	protected AvailObjectFieldHelper[] o_DescribeForDebugger (
+	public AvailObjectFieldHelper[] o_DescribeForDebugger (
 		final AvailObject object)
 	{
 		final List<AvailObjectFieldHelper> fields = new ArrayList<>();
@@ -254,7 +257,7 @@ extends TypeDescriptor
 					new AvailObjectFieldHelper(
 						object,
 						new DebuggerObjectSlots(
-							"FIELD TYPE " + fieldKey.atomName()),
+							"FIELD TYPE " + A_Atom.Companion.atomName(fieldKey)),
 						-1,
 						object.slot(FIELD_TYPES_, index)));
 			}
@@ -280,7 +283,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	protected boolean o_EqualsObjectType (
+	public boolean o_EqualsObjectType (
 		final AvailObject object,
 		final AvailObject anObjectType)
 	{
@@ -339,7 +342,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected AvailObject o_FieldTypeAt (final AvailObject object, final A_Atom field)
+	public AvailObject o_FieldTypeAt (final AvailObject object, final A_Atom field)
 	{
 		// Fails with NullPointerException if key is not found.
 		final int slotIndex = variant.fieldToSlotIndex.get(field);
@@ -351,7 +354,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Map o_FieldTypeMap (final AvailObject object)
+	public A_Map o_FieldTypeMap (final AvailObject object)
 	{
 		// Warning: May be much slower than it was before ObjectLayoutVariant.
 		A_Map fieldTypeMap = emptyMap();
@@ -371,7 +374,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Tuple o_FieldTypeTuple (final AvailObject object)
+	public A_Tuple o_FieldTypeTuple (final AvailObject object)
 	{
 		final Iterator<Map.Entry<A_Atom, Integer>> fieldIterator =
 			variant.fieldToSlotIndex.entrySet().iterator();
@@ -415,7 +418,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_HasObjectInstance (
+	public boolean o_HasObjectInstance (
 		final AvailObject object,
 		final AvailObject potentialInstance)
 	{
@@ -485,7 +488,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_IsSubtypeOf (
+	public boolean o_IsSubtypeOf (
 		final AvailObject object,
 		final A_Type aType)
 	{
@@ -493,7 +496,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_IsSupertypeOfObjectType (
+	public boolean o_IsSupertypeOfObjectType (
 		final AvailObject object,
 		final AvailObject anObjectType)
 	{
@@ -577,7 +580,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	protected boolean o_IsVacuousType (final AvailObject object)
+	public boolean o_IsVacuousType (final AvailObject object)
 	{
 		final int limit = object.variableObjectSlotsCount();
 		for (int i = 1; i <= limit; i++)
@@ -591,7 +594,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_TypeIntersection (
+	public A_Type o_TypeIntersection (
 		final AvailObject object,
 		final A_Type another)
 	{
@@ -611,7 +614,7 @@ extends TypeDescriptor
 	 * Here we're finding the nearest common descendant of two object types.
 	 */
 	@Override @AvailMethod
-	protected A_Type o_TypeIntersectionOfObjectType (
+	public A_Type o_TypeIntersectionOfObjectType (
 		final AvailObject object,
 		final AvailObject anObjectType)
 	{
@@ -688,7 +691,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_TypeUnion (
+	public A_Type o_TypeUnion (
 		final AvailObject object,
 		final A_Type another)
 	{
@@ -708,7 +711,7 @@ extends TypeDescriptor
 	 * Here we're finding the nearest common ancestor of two eager object types.
 	 */
 	@Override @AvailMethod
-	protected A_Type o_TypeUnionOfObjectType (
+	public A_Type o_TypeUnionOfObjectType (
 		final AvailObject object,
 		final AvailObject anObjectType)
 	{
@@ -764,14 +767,14 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	protected SerializerOperation o_SerializerOperation (
+	public SerializerOperation o_SerializerOperation (
 		final AvailObject object)
 	{
 		return SerializerOperation.OBJECT_TYPE;
 	}
 
 	@Override @AvailMethod
-	protected AvailObject o_MakeImmutable (final AvailObject object)
+	public AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		if (isMutable())
 		{
@@ -782,7 +785,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	public void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -790,14 +793,14 @@ extends TypeDescriptor
 		for (final Entry entry :
 			object.fieldTypeMap().mapIterable())
 		{
-			entry.key().atomName().writeTo(writer);
+			A_Atom.Companion.atomName(entry.key()).writeTo(writer);
 			entry.value().writeTo(writer);
 		}
 		writer.endObject();
 	}
 
 	@Override
-	protected void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	public void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -805,7 +808,7 @@ extends TypeDescriptor
 		for (final Entry entry :
 			object.fieldTypeMap().mapIterable())
 		{
-			entry.key().atomName().writeTo(writer);
+			A_Atom.Companion.atomName(entry.key()).writeTo(writer);
 			entry.value().writeSummaryTo(writer);
 		}
 		writer.endObject();
@@ -903,7 +906,7 @@ extends TypeDescriptor
 	/**
 	 * Assign a name to the specified {@code object type}.  If the only field
 	 * key {@link A_Atom}s in the object type are
-	 * {@linkplain A_Atom#isAtomSpecial() special atoms}, then the name will not
+	 * {@linkplain A_Atom.Companion#isAtomSpecial(A_Atom)} () special atoms}, then the name will not
 	 * be recorded (unless allowSpecialAtomsToHoldName is true, which is really
 	 * only for naming special object types like {@link #exceptionType}).  Note
 	 * that it is technically <em>legal</em> for there to be multiple names for
@@ -932,9 +935,11 @@ extends TypeDescriptor
 			for (final Entry entry : anObjectType.fieldTypeMap().mapIterable())
 			{
 				final A_Atom atom = entry.key();
-				if (allowSpecialAtomsToHoldName || !atom.isAtomSpecial())
+				if (allowSpecialAtomsToHoldName
+					|| !A_Atom.Companion.isAtomSpecial(atom))
 				{
-					final A_Map namesMap = atom.getAtomProperty(propertyKey);
+					final A_Map namesMap = A_Atom.Companion.getAtomProperty(
+						atom, propertyKey);
 					if (namesMap.equalsNil())
 					{
 						keyAtomWithLeastNames = atom;
@@ -958,8 +963,8 @@ extends TypeDescriptor
 				namesSet = namesSet.setWithElementCanDestroy(aString, false);
 				keyAtomNamesMap = keyAtomNamesMap.mapAtPuttingCanDestroy(
 					anObjectType, namesSet, true);
-				keyAtomWithLeastNames.setAtomProperty(
-					propertyKey, keyAtomNamesMap);
+				A_Atom.Companion.setAtomProperty(
+					keyAtomWithLeastNames, propertyKey, keyAtomNamesMap);
 			}
 		}
 	}
@@ -985,9 +990,10 @@ extends TypeDescriptor
 				: anObjectType.fieldTypeMap().mapIterable())
 			{
 				final A_Atom atom = entry.key();
-				if (!atom.isAtomSpecial())
+				if (!A_Atom.Companion.isAtomSpecial(atom))
 				{
-					A_Map namesMap = atom.getAtomProperty(propertyKey);
+					A_Map namesMap = A_Atom.Companion.getAtomProperty(
+						atom, propertyKey);
 					if (!namesMap.equalsNil() && namesMap.hasKey(anObjectType))
 					{
 						// In theory the user can give this type multiple names,
@@ -1005,7 +1011,8 @@ extends TypeDescriptor
 							namesMap = namesMap.mapAtPuttingCanDestroy(
 								anObjectType, namesSet, false);
 						}
-						atom.setAtomProperty(propertyKey, namesMap);
+						A_Atom.Companion.setAtomProperty(
+							atom, propertyKey, namesMap);
 					}
 				}
 			}
@@ -1031,7 +1038,8 @@ extends TypeDescriptor
 		{
 			for (final Entry entry : anObjectType.fieldTypeMap().mapIterable())
 			{
-				final A_Map map = entry.key().getAtomProperty(propertyKey);
+				final A_Map map =
+					A_Atom.Companion.getAtomProperty(entry.key(), propertyKey);
 				if (!map.equalsNil())
 				{
 					for (final Entry innerEntry : map.mapIterable())
@@ -1195,7 +1203,8 @@ extends TypeDescriptor
 
 	static
 	{
-		exceptionAtom.setAtomProperty(
+		A_Atom.Companion.setAtomProperty(
+			exceptionAtom,
 			EXPLICIT_SUBCLASSING_KEY.atom,
 			trueObject());
 	}

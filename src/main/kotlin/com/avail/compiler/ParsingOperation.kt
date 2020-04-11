@@ -40,8 +40,9 @@ import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.WE
 import com.avail.compiler.splitter.MessageSplitter
 import com.avail.compiler.splitter.MessageSplitter.Companion.constantForIndex
 import com.avail.compiler.splitter.MessageSplitter.Companion.permutationAtIndex
-import com.avail.descriptor.AvailObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.FiberDescriptor
+import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.bundles.A_BundleTree
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.ListPhraseDescriptor.emptyListNode

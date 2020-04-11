@@ -32,7 +32,7 @@
 package com.avail.interpreter.primitive.bootstrap
 
 import com.avail.AvailRuntime
-import com.avail.descriptor.AvailObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.phrases.LiteralPhraseDescriptor.syntheticLiteralNodeFor
 import com.avail.descriptor.sets.SetDescriptor.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple

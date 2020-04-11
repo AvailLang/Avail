@@ -39,7 +39,8 @@ import com.avail.AvailTask;
 import com.avail.AvailThread;
 import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.A_Module;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.atoms.A_Atom;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
@@ -3198,7 +3199,7 @@ public final class Interpreter
 							"Dynamic lookup time for size "
 								+ size
 								+ " (example: "
-								+ bundle.message().atomName()
+								+ A_Atom.Companion.atomName(bundle.message())
 								+ ")",
 							StatisticReport.DYNAMIC_LOOKUP_TIME);
 						dynamicLookupStatsByCount.put(size, globalStat);

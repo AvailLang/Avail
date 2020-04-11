@@ -33,7 +33,7 @@
 package com.avail.optimizer;
 
 import com.avail.AvailThread;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.functions.A_Continuation;
 import com.avail.interpreter.Interpreter;
 import com.avail.optimizer.jvm.CheckedMethod;

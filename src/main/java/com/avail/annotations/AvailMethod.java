@@ -33,7 +33,7 @@
 package com.avail.annotations;
 
 import com.avail.descriptor.AbstractDescriptor;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

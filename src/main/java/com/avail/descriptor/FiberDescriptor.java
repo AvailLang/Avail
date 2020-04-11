@@ -51,6 +51,7 @@ import com.avail.descriptor.phrases.DeclarationPhraseDescriptor;
 import com.avail.descriptor.pojos.RawPojoDescriptor;
 import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.representation.AbstractSlotsEnum;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.representation.BitField;
 import com.avail.descriptor.representation.IntegerEnumSlotDescriptionEnum;
 import com.avail.descriptor.representation.Mutability;
@@ -86,7 +87,7 @@ import java.util.function.Supplier;
 
 import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.AvailRuntimeSupport.nextFiberId;
-import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.representation.AvailObject.multiplier;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.UNSTARTED;
 import static com.avail.descriptor.FiberDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.REIFICATION_REQUESTED;
@@ -727,13 +728,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	ExecutionState o_ExecutionState (final AvailObject object)
+	public ExecutionState o_ExecutionState (final AvailObject object)
 	{
 		return ExecutionState.lookup((int) object.mutableSlot(EXECUTION_STATE));
 	}
 
 	@Override @AvailMethod
-	protected void o_ExecutionState (final AvailObject object, final ExecutionState value)
+	public void o_ExecutionState (final AvailObject object, final ExecutionState value)
 	{
 		synchronized (object)
 		{
@@ -746,25 +747,25 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_Priority (final AvailObject object)
+	public int o_Priority (final AvailObject object)
 	{
 		return object.mutableSlot(PRIORITY);
 	}
 
 	@Override @AvailMethod
-	protected void o_Priority (final AvailObject object, final int value)
+	public void o_Priority (final AvailObject object, final int value)
 	{
 		object.setMutableSlot(PRIORITY, value);
 	}
 
 	@Override @AvailMethod
-	protected long o_UniqueId (final AvailObject object)
+	public long o_UniqueId (final AvailObject object)
 	{
 		return object.slot(DEBUG_UNIQUE_ID);
 	}
 
 	@Override @AvailMethod
-	protected boolean o_InterruptRequestFlag (
+	public boolean o_InterruptRequestFlag (
 		final AvailObject object,
 		final InterruptRequestFlag flag)
 	{
@@ -775,7 +776,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected void o_SetInterruptRequestFlag (
+	public void o_SetInterruptRequestFlag (
 		final AvailObject object,
 		final InterruptRequestFlag flag)
 	{
@@ -786,7 +787,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_GetAndClearInterruptRequestFlag (
+	public boolean o_GetAndClearInterruptRequestFlag (
 		final AvailObject object,
 		final InterruptRequestFlag flag)
 	{
@@ -799,7 +800,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_GetAndSetSynchronizationFlag (
+	public boolean o_GetAndSetSynchronizationFlag (
 		final AvailObject object,
 		final SynchronizationFlag flag,
 		final boolean newValue)
@@ -815,7 +816,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_GeneralFlag (final AvailObject object, final GeneralFlag flag)
+	public boolean o_GeneralFlag (final AvailObject object, final GeneralFlag flag)
 	{
 		final int value;
 		synchronized (object)
@@ -826,7 +827,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected void o_SetGeneralFlag (
+	public void o_SetGeneralFlag (
 		final AvailObject object,
 		final GeneralFlag flag)
 	{
@@ -837,7 +838,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected void o_ClearGeneralFlag (
+	public void o_ClearGeneralFlag (
 		final AvailObject object,
 		final GeneralFlag flag)
 	{
@@ -848,7 +849,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_TraceFlag (final AvailObject object, final TraceFlag flag)
+	public boolean o_TraceFlag (final AvailObject object, final TraceFlag flag)
 	{
 		synchronized (object)
 		{
@@ -857,7 +858,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected void o_SetTraceFlag (
+	public void o_SetTraceFlag (
 		final AvailObject object,
 		final TraceFlag flag)
 	{
@@ -868,7 +869,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected void o_ClearTraceFlag (
+	public void o_ClearTraceFlag (
 		final AvailObject object,
 		final TraceFlag flag)
 	{
@@ -879,13 +880,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Continuation o_Continuation (final AvailObject object)
+	public A_Continuation o_Continuation (final AvailObject object)
 	{
 		return object.mutableSlot(CONTINUATION);
 	}
 
 	@Override @AvailMethod
-	protected void o_Continuation (final AvailObject object, final A_Continuation value)
+	public void o_Continuation (final AvailObject object, final A_Continuation value)
 	{
 		// Use a special setter mechanism that allows the continuation to be
 		// non-shared, even if the fiber it's to be plugged into is shared.
@@ -893,7 +894,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_String o_FiberName (final AvailObject object)
+	public A_String o_FiberName (final AvailObject object)
 	{
 		A_String name = object.slot(NAME_OR_NIL);
 		if (name.equalsNil())
@@ -909,7 +910,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected void o_FiberNameSupplier (
+	public void o_FiberNameSupplier (
 		final AvailObject object,
 		final Supplier<A_String> supplier)
 	{
@@ -921,37 +922,37 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected AvailObject o_FiberGlobals (final AvailObject object)
+	public AvailObject o_FiberGlobals (final AvailObject object)
 	{
 		return object.mutableSlot(FIBER_GLOBALS);
 	}
 
 	@Override @AvailMethod
-	protected void o_FiberGlobals (final AvailObject object, final A_Map globals)
+	public void o_FiberGlobals (final AvailObject object, final A_Map globals)
 	{
 		object.setMutableSlot(FIBER_GLOBALS, globals);
 	}
 
 	@Override @AvailMethod
-	protected AvailObject o_FiberResult (final AvailObject object)
+	public AvailObject o_FiberResult (final AvailObject object)
 	{
 		return object.mutableSlot(RESULT);
 	}
 
 	@Override @AvailMethod
-	protected void o_FiberResult (final AvailObject object, final A_BasicObject result)
+	public void o_FiberResult (final AvailObject object, final A_BasicObject result)
 	{
 		object.setMutableSlot(RESULT, result);
 	}
 
 	@Override @AvailMethod
-	protected A_Map o_HeritableFiberGlobals (final AvailObject object)
+	public A_Map o_HeritableFiberGlobals (final AvailObject object)
 	{
 		return object.mutableSlot(HERITABLE_FIBER_GLOBALS);
 	}
 
 	@Override @AvailMethod
-	protected void o_HeritableFiberGlobals (
+	public void o_HeritableFiberGlobals (
 		final AvailObject object,
 		final A_Map globals)
 	{
@@ -959,19 +960,19 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected AvailObject o_BreakpointBlock (final AvailObject object)
+	public AvailObject o_BreakpointBlock (final AvailObject object)
 	{
 		return object.mutableSlot(BREAKPOINT_BLOCK);
 	}
 
 	@Override @AvailMethod
-	protected void o_BreakpointBlock (final AvailObject object, final AvailObject value)
+	public void o_BreakpointBlock (final AvailObject object, final AvailObject value)
 	{
 		object.setMutableSlot(BREAKPOINT_BLOCK, value);
 	}
 
 	@Override @AvailMethod
-	protected @Nullable AvailLoader o_AvailLoader (final AvailObject object)
+	public @Nullable AvailLoader o_AvailLoader (final AvailObject object)
 	{
 		final AvailObject pojo = object.mutableSlot(LOADER);
 		if (!pojo.equalsNil())
@@ -982,7 +983,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected void o_AvailLoader (
+	public void o_AvailLoader (
 		final AvailObject object,
 		final @Nullable AvailLoader loader)
 	{
@@ -1006,7 +1007,7 @@ extends Descriptor
 				});
 
 	@Override @AvailMethod
-	Continuation1NotNull<AvailObject> o_ResultContinuation (
+	public Continuation1NotNull<AvailObject> o_ResultContinuation (
 		final AvailObject object)
 	{
 		final AvailObject pojo;
@@ -1021,7 +1022,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected void o_SetSuccessAndFailureContinuations (
+	public void o_SetSuccessAndFailureContinuations (
 		final AvailObject object,
 		final Continuation1NotNull<AvailObject> onSuccess,
 		final Continuation1NotNull<Throwable> onFailure)
@@ -1050,7 +1051,7 @@ extends Descriptor
 		});
 
 	@Override @AvailMethod
-	Continuation1NotNull<Throwable> o_FailureContinuation (
+	public Continuation1NotNull<Throwable> o_FailureContinuation (
 		final AvailObject object)
 	{
 		final AvailObject pojo;
@@ -1065,19 +1066,19 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Set o_JoiningFibers (final AvailObject object)
+	public A_Set o_JoiningFibers (final AvailObject object)
 	{
 		return object.mutableSlot(JOINING_FIBERS);
 	}
 
 	@Override @AvailMethod
-	protected void o_JoiningFibers (final AvailObject object, final A_Set joiners)
+	public void o_JoiningFibers (final AvailObject object, final A_Set joiners)
 	{
 		object.setMutableSlot(JOINING_FIBERS, joiners);
 	}
 
 	@Override @AvailMethod
-	@Nullable TimerTask o_WakeupTask (final AvailObject object)
+	public @Nullable TimerTask o_WakeupTask (final AvailObject object)
 	{
 		final AvailObject pojo = object.mutableSlot(WAKEUP_TASK);
 		if (!pojo.equalsNil())
@@ -1088,7 +1089,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected void o_WakeupTask (
+	public void o_WakeupTask (
 		final AvailObject object,
 		final @Nullable TimerTask task)
 	{
@@ -1097,13 +1098,13 @@ extends Descriptor
 	}
 
 	@Override
-	protected TextInterface o_TextInterface (final AvailObject object)
+	public TextInterface o_TextInterface (final AvailObject object)
 	{
 		return object.mutableSlot(TEXT_INTERFACE).javaObjectNotNull();
 	}
 
 	@Override
-	protected void o_TextInterface (
+	public void o_TextInterface (
 		final AvailObject object,
 		final TextInterface textInterface)
 	{
@@ -1112,7 +1113,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected void o_RecordVariableAccess (
+	public void o_RecordVariableAccess (
 		final AvailObject object,
 		final A_Variable var,
 		final boolean wasRead)
@@ -1128,7 +1129,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Set o_VariablesReadBeforeWritten (final AvailObject object)
+	public A_Set o_VariablesReadBeforeWritten (final AvailObject object)
 	{
 		assert object.mutableSlot(_TRACE_VARIABLE_READS_BEFORE_WRITES) != 1;
 		final AvailObject rawPojo = object.slot(TRACED_VARIABLES);
@@ -1146,7 +1147,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Set o_VariablesWritten (final AvailObject object)
+	public A_Set o_VariablesWritten (final AvailObject object)
 	{
 		assert object.mutableSlot(_TRACE_VARIABLE_WRITES) != 1;
 		final AvailObject rawPojo = object.slot(TRACED_VARIABLES);
@@ -1205,19 +1206,19 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_Kind (final AvailObject object)
+	public A_Type o_Kind (final AvailObject object)
 	{
 		return fiberType(object.slot(RESULT_TYPE));
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_FiberResultType (final AvailObject object)
+	public A_Type o_FiberResultType (final AvailObject object)
 	{
 		return object.slot(RESULT_TYPE);
 	}
 
 	@Override
-	protected void o_WhenContinuationIsAvailableDo (
+	public void o_WhenContinuationIsAvailableDo (
 		final AvailObject object,
 		final Continuation1NotNull<A_Continuation> whenReified)
 	{
@@ -1252,7 +1253,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected A_Set o_GetAndClearReificationWaiters (final AvailObject object)
+	public A_Set o_GetAndClearReificationWaiters (final AvailObject object)
 	{
 		final A_Set previousSet;
 		synchronized (object)
@@ -1264,7 +1265,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	public void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -1283,7 +1284,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	public void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -1296,7 +1297,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected void o_SuspendingFunction (
+	public void o_SuspendingFunction (
 		final AvailObject object,
 		final A_Function suspendingFunction)
 	{
@@ -1307,19 +1308,19 @@ extends Descriptor
 	}
 
 	@Override
-	protected A_Function o_SuspendingFunction (final AvailObject object)
+	public A_Function o_SuspendingFunction (final AvailObject object)
 	{
 		return object.slot(SUSPENDING_FUNCTION);
 	}
 
 	@Override
-	protected StringBuilder o_DebugLog (final AvailObject object)
+	public StringBuilder o_DebugLog (final AvailObject object)
 	{
 		return object.mutableSlot(DEBUG_LOG).javaObjectNotNull();
 	}
 
 	@Override
-	protected void o_Lock (final AvailObject object, final Continuation0 critical)
+	public void o_Lock (final AvailObject object, final Continuation0 critical)
 	{
 		final @Nullable Interpreter interpreter = Interpreter.currentOrNull();
 		if (interpreter != null)
@@ -1348,7 +1349,7 @@ extends Descriptor
 	}
 
 	@Override
-	<T> T o_Lock (final AvailObject object, final Supplier<T> supplier)
+	public <T> T o_Lock (final AvailObject object, final Supplier<T> supplier)
 	{
 		final @Nullable Interpreter interpreter = Interpreter.currentOrNull();
 		if (interpreter != null)

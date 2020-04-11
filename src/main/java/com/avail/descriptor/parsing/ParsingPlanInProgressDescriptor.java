@@ -36,7 +36,7 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.compiler.AvailCompilerFragmentCache;
 import com.avail.compiler.ParsingOperation;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.Descriptor;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
@@ -53,7 +53,7 @@ import com.avail.descriptor.types.TypeTag;
 import java.util.IdentityHashMap;
 
 import static com.avail.compiler.ParsingOperation.JUMP_BACKWARD;
-import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.representation.AvailObject.multiplier;
 import static com.avail.descriptor.parsing.ParsingPlanInProgressDescriptor.IntegerSlots.PARSING_PC;
 import static com.avail.descriptor.parsing.ParsingPlanInProgressDescriptor.ObjectSlots.PARSING_PLAN;
 import static com.avail.descriptor.types.TypeDescriptor.Types.PARSING_PLAN_IN_PROGRESS;
@@ -105,13 +105,13 @@ extends Descriptor
 	}
 
 	@Override
-	protected int o_ParsingPc (final AvailObject object)
+	public int o_ParsingPc (final AvailObject object)
 	{
 		return object.slot(PARSING_PC);
 	}
 
 	@Override
-	protected A_DefinitionParsingPlan o_ParsingPlan (final AvailObject object)
+	public A_DefinitionParsingPlan o_ParsingPlan (final AvailObject object)
 	{
 		return object.slot(PARSING_PLAN);
 	}
@@ -137,13 +137,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_Kind (final AvailObject object)
+	public A_Type o_Kind (final AvailObject object)
 	{
 		return PARSING_PLAN_IN_PROGRESS.o();
 	}
 
 	@Override
-	protected boolean o_IsBackwardJump (final AvailObject object)
+	public boolean o_IsBackwardJump (final AvailObject object)
 	{
 		final A_DefinitionParsingPlan plan = object.slot(PARSING_PLAN);
 		final A_Tuple instructions = plan.parsingInstructions();
@@ -166,7 +166,7 @@ extends Descriptor
 	 * @return The annotated method name, a Java {@code String}.
 	 */
 	@Override @AvailMethod
-	protected String o_NameHighlightingPc (final AvailObject object)
+	public String o_NameHighlightingPc (final AvailObject object)
 	{
 		final A_DefinitionParsingPlan plan = object.slot(PARSING_PLAN);
 		final int pc = object.slot(PARSING_PC);

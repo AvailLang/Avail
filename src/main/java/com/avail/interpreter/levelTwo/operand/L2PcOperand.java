@@ -32,7 +32,7 @@
 
 package com.avail.interpreter.levelTwo.operand;
 
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.functions.ContinuationRegisterDumpDescriptor;
 import com.avail.interpreter.JavaLibrary;
 import com.avail.interpreter.levelTwo.L2Chunk;

@@ -41,6 +41,7 @@ import com.avail.descriptor.methods.A_GrammaticalRestriction;
 import com.avail.descriptor.methods.A_SemanticRestriction;
 import com.avail.descriptor.parsing.A_Lexer;
 import com.avail.descriptor.representation.A_BasicObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.sets.SetDescriptor;
 import com.avail.descriptor.tuples.A_String;

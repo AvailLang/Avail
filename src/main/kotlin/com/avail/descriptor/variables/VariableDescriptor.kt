@@ -34,7 +34,7 @@ package com.avail.descriptor.variables
 import com.avail.AvailRuntimeSupport
 import com.avail.annotations.AvailMethod
 import com.avail.descriptor.A_Fiber
-import com.avail.descriptor.AvailObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.Descriptor
 import com.avail.descriptor.NilDescriptor
 import com.avail.descriptor.NilDescriptor.nil

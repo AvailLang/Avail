@@ -32,7 +32,7 @@
 
 package com.avail.descriptor.types;
 
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.functions.FunctionDescriptor;
 import com.avail.descriptor.maps.A_Map;
 import com.avail.descriptor.numbers.A_Number;

@@ -33,7 +33,7 @@
 package com.avail.compiler
 
 import com.avail.compiler.scanning.LexingState
-import com.avail.descriptor.AvailObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.numbers.IntegerDescriptor
 import com.avail.descriptor.numbers.IntegerDescriptor.fromInt
 import com.avail.descriptor.phrases.A_Phrase

@@ -34,7 +34,7 @@ package com.avail.descriptor.sets;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.representation.A_BasicObject;
@@ -140,13 +140,13 @@ extends SetBinDescriptor
 	}
 
 	@Override @AvailMethod
-	protected AvailObject o_BinElementAt (final AvailObject object, final int subscript)
+	public AvailObject o_BinElementAt (final AvailObject object, final int subscript)
 	{
 		return object.slot(BIN_ELEMENT_AT_, subscript);
 	}
 
 	@Override @AvailMethod
-	protected A_BasicObject o_SetBinAddingElementHashLevelCanDestroy (
+	public A_BasicObject o_SetBinAddingElementHashLevelCanDestroy (
 		final AvailObject object,
 		final A_BasicObject elementObject,
 		final int elementObjectHash,
@@ -232,7 +232,7 @@ extends SetBinDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_BinHasElementWithHash (
+	public boolean o_BinHasElementWithHash (
 		final AvailObject object,
 		final A_BasicObject elementObject,
 		final int elementObjectHash)
@@ -253,7 +253,7 @@ extends SetBinDescriptor
 	 * resulting bin. The bin may be modified if it's mutable and canDestroy.
 	 */
 	@Override @AvailMethod
-	protected AvailObject o_BinRemoveElementHashLevelCanDestroy (
+	public AvailObject o_BinRemoveElementHashLevelCanDestroy (
 		final AvailObject object,
 		final A_BasicObject elementObject,
 		final int elementObjectHash,
@@ -306,7 +306,7 @@ extends SetBinDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_IsBinSubsetOf (
+	public boolean o_IsBinSubsetOf (
 		final AvailObject object,
 		final A_Set potentialSuperset)
 	{
@@ -326,14 +326,14 @@ extends SetBinDescriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_SetBinSize (final AvailObject object)
+	public int o_SetBinSize (final AvailObject object)
 	{
 		// Answer how many elements this bin contains.
 		return object.variableObjectSlotsCount();
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_BinUnionKind (final AvailObject object)
+	public A_Type o_BinUnionKind (final AvailObject object)
 	{
 		// Answer the nearest kind of the union of the types of this bin's
 		// elements. I'm supposed to be small, so recalculate it per request.
@@ -348,7 +348,7 @@ extends SetBinDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_BinElementsAreAllInstancesOfKind (
+	public boolean o_BinElementsAreAllInstancesOfKind (
 		final AvailObject object,
 		final A_Type kind)
 	{
@@ -364,7 +364,7 @@ extends SetBinDescriptor
 	}
 
 	@Override
-	protected SetIterator o_SetBinIterator (final AvailObject object)
+	public SetIterator o_SetBinIterator (final AvailObject object)
 	{
 		return new SetIterator()
 		{

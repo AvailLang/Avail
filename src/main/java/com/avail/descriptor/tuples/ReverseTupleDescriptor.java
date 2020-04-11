@@ -34,7 +34,7 @@ package com.avail.descriptor.tuples;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.representation.A_BasicObject;
@@ -121,7 +121,7 @@ extends TupleDescriptor
 		new ReverseTupleDescriptor(Mutability.MUTABLE);
 
 	@Override @AvailMethod
-	protected A_Tuple o_AppendCanDestroy (
+	public A_Tuple o_AppendCanDestroy (
 		final AvailObject object,
 		final A_BasicObject newElement,
 		final boolean canDestroy)
@@ -136,7 +136,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_BitsPerEntry (final AvailObject object)
+	public int o_BitsPerEntry (final AvailObject object)
 	{
 		// Answer maximum integer value so that any other representation
 		// for comparison is used in favor of a Reverse Tuple representation.
@@ -144,7 +144,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Tuple o_ChildAt (final AvailObject object, final int childIndex)
+	public A_Tuple o_ChildAt (final AvailObject object, final int childIndex)
 	{
 		if (!object.descriptor().isShared())
 		{
@@ -164,13 +164,13 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_ChildCount (final AvailObject object)
+	public int o_ChildCount (final AvailObject object)
 	{
 		return object.slot(ORIGIN_TUPLE).childCount();
 	}
 
 	@Override @AvailMethod
-	protected boolean o_CompareFromToWithStartingAt (
+	public boolean o_CompareFromToWithStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -190,7 +190,7 @@ extends TupleDescriptor
 	}
 
 	@Override
-	protected A_Tuple o_ConcatenateWith (
+	public A_Tuple o_ConcatenateWith (
 		final AvailObject object,
 		final A_Tuple otherTuple,
 		final boolean canDestroy)
@@ -246,7 +246,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Tuple o_CopyTupleFromToCanDestroy (
+	public A_Tuple o_CopyTupleFromToCanDestroy (
 		final AvailObject object,
 		final int start,
 		final int end,
@@ -304,7 +304,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_EqualsAnyTuple (
+	public boolean o_EqualsAnyTuple (
 		final AvailObject object,
 		final A_Tuple aTuple)
 	{
@@ -350,7 +350,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_EqualsReverseTuple (final AvailObject object,
+	public boolean o_EqualsReverseTuple (final AvailObject object,
 		final A_Tuple aTuple)
 	{
 		return object.slot(ORIGIN_TUPLE).
@@ -358,13 +358,13 @@ extends TupleDescriptor
 	}
 
 	@Override
-	protected int o_TreeTupleLevel (final AvailObject object)
+	public int o_TreeTupleLevel (final AvailObject object)
 	{
 		return object.slot(ORIGIN_TUPLE).treeTupleLevel();
 	}
 
 	@Override @AvailMethod
-	protected AvailObject o_TupleAt (final AvailObject object, final int index)
+	public AvailObject o_TupleAt (final AvailObject object, final int index)
 	{
 		final int size = object.slot(ORIGIN_TUPLE).tupleSize();
 
@@ -374,7 +374,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Tuple o_TupleAtPuttingCanDestroy (
+	public A_Tuple o_TupleAtPuttingCanDestroy (
 		final AvailObject object,
 		final int index,
 		final A_BasicObject newValueObject,
@@ -399,7 +399,7 @@ extends TupleDescriptor
 	}
 
 	@Override
-	protected boolean o_TupleElementsInRangeAreInstancesOf (
+	public boolean o_TupleElementsInRangeAreInstancesOf (
 		final AvailObject object,
 		final int startIndex,
 		final int endIndex,
@@ -413,7 +413,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_TupleIntAt (final AvailObject object, final int index)
+	public int o_TupleIntAt (final AvailObject object, final int index)
 	{
 		final int size = object.slot(ORIGIN_TUPLE).tupleSize();
 
@@ -423,13 +423,13 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Tuple o_TupleReverse(final AvailObject object)
+	public A_Tuple o_TupleReverse(final AvailObject object)
 	{
 		return object.slot(ORIGIN_TUPLE);
 	}
 
 	@Override @AvailMethod
-	protected int o_TupleSize(final AvailObject object)
+	public int o_TupleSize(final AvailObject object)
 	{
 		return object.slot(SIZE);
 	}

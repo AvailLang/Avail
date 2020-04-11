@@ -37,7 +37,7 @@ import com.avail.compiler.AvailCompilerFragmentCache;
 import com.avail.compiler.ParsingConversionRule;
 import com.avail.compiler.ParsingOperation;
 import com.avail.compiler.splitter.MessageSplitter;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.Descriptor;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.bundles.A_Bundle;
@@ -136,7 +136,7 @@ extends Descriptor
 	 * Show the types of local variables and outer variables.
 	 */
 	@Override
-	protected AvailObjectFieldHelper[] o_DescribeForDebugger (
+	public AvailObjectFieldHelper[] o_DescribeForDebugger (
 		final AvailObject object)
 	{
 		// Weaken the plan's type to make sure we're not sending something it
@@ -234,13 +234,13 @@ extends Descriptor
 	}
 
 	@Override
-	protected A_Bundle o_Bundle (final AvailObject object)
+	public A_Bundle o_Bundle (final AvailObject object)
 	{
 		return object.slot(BUNDLE);
 	}
 
 	@Override
-	protected A_Definition o_Definition (final AvailObject object)
+	public A_Definition o_Definition (final AvailObject object)
 	{
 		return object.slot(DEFINITION);
 	}
@@ -266,13 +266,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_Kind (final AvailObject object)
+	public A_Type o_Kind (final AvailObject object)
 	{
 		return DEFINITION_PARSING_PLAN.o();
 	}
 
 	@Override @AvailMethod
-	protected A_Tuple o_ParsingInstructions (final AvailObject object)
+	public A_Tuple o_ParsingInstructions (final AvailObject object)
 	{
 		return object.slot(PARSING_INSTRUCTIONS);
 	}

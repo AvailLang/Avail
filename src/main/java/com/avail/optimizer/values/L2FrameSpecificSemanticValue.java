@@ -33,7 +33,7 @@ package com.avail.optimizer.values;
 
 import java.util.function.UnaryOperator;
 
-import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.representation.AvailObject.multiplier;
 
 /**
  * A semantic value which is specific to a {@link Frame}.

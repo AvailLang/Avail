@@ -34,7 +34,7 @@ package com.avail.descriptor.sets;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.NilDescriptor;
@@ -186,13 +186,13 @@ extends SetBinDescriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_SetBinSize (final AvailObject object)
+	public int o_SetBinSize (final AvailObject object)
 	{
 		return object.slot(BIN_SIZE);
 	}
 
 	@Override @AvailMethod
-	protected AvailObject o_BinElementAt (final AvailObject object, final int subscript)
+	public AvailObject o_BinElementAt (final AvailObject object, final int subscript)
 	{
 		return object.slot(BIN_ELEMENT_AT_, subscript);
 	}
@@ -226,7 +226,7 @@ extends SetBinDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_BinUnionKind (final AvailObject object)
+	public A_Type o_BinUnionKind (final AvailObject object)
 	{
 		if (isShared())
 		{
@@ -239,7 +239,7 @@ extends SetBinDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_BinElementsAreAllInstancesOfKind (
+	public boolean o_BinElementsAreAllInstancesOfKind (
 		final AvailObject object,
 		final A_Type kind)
 	{
@@ -253,7 +253,7 @@ extends SetBinDescriptor
 	 * exists.
 	 */
 	@Override @AvailMethod
-	protected A_BasicObject o_SetBinAddingElementHashLevelCanDestroy (
+	public A_BasicObject o_SetBinAddingElementHashLevelCanDestroy (
 		final AvailObject object,
 		final A_BasicObject elementObject,
 		final int elementObjectHash,
@@ -354,7 +354,7 @@ extends SetBinDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_BinHasElementWithHash (
+	public boolean o_BinHasElementWithHash (
 		final AvailObject object,
 		final A_BasicObject elementObject,
 		final int elementObjectHash)
@@ -381,7 +381,7 @@ extends SetBinDescriptor
 	 * resulting bin. The bin may be modified if it's mutable and canDestroy.
 	 */
 	@Override @AvailMethod
-	protected AvailObject o_BinRemoveElementHashLevelCanDestroy (
+	public AvailObject o_BinRemoveElementHashLevelCanDestroy (
 		final AvailObject object,
 		final A_BasicObject elementObject,
 		final int elementObjectHash,
@@ -479,7 +479,7 @@ extends SetBinDescriptor
 	 * Check if object, a bin, holds a subset of aSet's elements.
 	 */
 	@Override @AvailMethod
-	protected boolean o_IsBinSubsetOf (
+	public boolean o_IsBinSubsetOf (
 		final AvailObject object,
 		final A_Set potentialSuperset)
 	{
@@ -594,7 +594,7 @@ extends SetBinDescriptor
 	}
 
 	@Override
-	protected SetIterator o_SetBinIterator (final AvailObject object)
+	public SetIterator o_SetBinIterator (final AvailObject object)
 	{
 		return new HashedSetBinIterator(object);
 	}

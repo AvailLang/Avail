@@ -31,7 +31,7 @@
  */
 package com.avail.descriptor.representation
 
-import com.avail.descriptor.AvailObject
+import com.avail.descriptor.representation.AvailObject
 
 /**
  * A helper class used by IntelliJ to show Logical Structures in the debugger.

@@ -34,7 +34,7 @@ package com.avail.exceptions
 
 import com.avail.AvailRuntime
 import com.avail.compiler.splitter.MessageSplitter
-import com.avail.descriptor.AvailObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.FiberDescriptor
 import com.avail.descriptor.ModuleDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor

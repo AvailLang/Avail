@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.levelTwo.operand;
 
+import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.bundles.A_Bundle;
 import com.avail.descriptor.bundles.MessageBundleDescriptor;
 import com.avail.descriptor.methods.MethodDefinitionDescriptor;
@@ -85,6 +86,6 @@ extends L2Operand
 	@Override
 	public void appendTo (final StringBuilder builder)
 	{
-		builder.append("$").append(bundle.message().atomName());
+		builder.append("$").append(A_Atom.Companion.atomName(bundle.message()));
 	}
 }

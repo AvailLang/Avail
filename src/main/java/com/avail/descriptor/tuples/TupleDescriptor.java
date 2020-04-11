@@ -35,7 +35,7 @@ package com.avail.descriptor.tuples;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.Descriptor;
 import com.avail.descriptor.IndirectionDescriptor;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
@@ -67,7 +67,7 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.representation.AvailObject.multiplier;
 import static com.avail.descriptor.numbers.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.sets.SetDescriptor.generateSetFrom;
 import static com.avail.descriptor.tuples.ByteTupleDescriptor.generateByteTupleFrom;
@@ -133,14 +133,14 @@ extends Descriptor
 	}
 
 	@Override
-	protected String o_NameForDebugger (final AvailObject object)
+	public String o_NameForDebugger (final AvailObject object)
 	{
 		return super.o_NameForDebugger(object) + ": tupleSize="
 			+ object.tupleSize();
 	}
 
 	@Override @AvailMethod
-	protected final void o_HashOrZero (final AvailObject object, final int value)
+	public final void o_HashOrZero (final AvailObject object, final int value)
 	{
 		if (isShared())
 		{
@@ -158,7 +158,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected final int o_HashOrZero (final AvailObject object)
+	public final int o_HashOrZero (final AvailObject object)
 	{
 		// If the tuple is shared, its elements can't be in flux, so its hash is
 		// stably computed by any interested thread.  And seeing a zero when the
@@ -267,7 +267,7 @@ extends Descriptor
 		A_BasicObject another);
 
 	@Override @AvailMethod
-	protected boolean o_EqualsAnyTuple (
+	public boolean o_EqualsAnyTuple (
 		final AvailObject object,
 		final A_Tuple aTuple)
 	{
@@ -313,7 +313,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_EqualsByteString (
+	public boolean o_EqualsByteString (
 		final AvailObject object,
 		final A_String aByteString)
 	{
@@ -322,7 +322,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_EqualsByteTuple (
+	public boolean o_EqualsByteTuple (
 		final AvailObject object,
 		final A_Tuple aTuple)
 	{
@@ -331,7 +331,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_EqualsByteArrayTuple (
+	public boolean o_EqualsByteArrayTuple (
 		final AvailObject object,
 		final A_Tuple aTuple)
 	{
@@ -340,7 +340,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected boolean o_EqualsByteBufferTuple (
+	public boolean o_EqualsByteBufferTuple (
 		final AvailObject object,
 		final A_Tuple aTuple)
 	{
@@ -349,7 +349,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected boolean o_EqualsIntegerIntervalTuple (
+	public boolean o_EqualsIntegerIntervalTuple (
 		final AvailObject object,
 		final A_Tuple aTuple)
 	{
@@ -358,7 +358,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected boolean o_EqualsIntTuple (
+	public boolean o_EqualsIntTuple (
 		final AvailObject object,
 		final A_Tuple anIntTuple)
 	{
@@ -367,7 +367,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_EqualsReverseTuple (
+	public boolean o_EqualsReverseTuple (
 		final AvailObject object,
 		final A_Tuple aTuple)
 	{
@@ -376,7 +376,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected boolean o_EqualsSmallIntegerIntervalTuple (
+	public boolean o_EqualsSmallIntegerIntervalTuple (
 		final AvailObject object,
 		final A_Tuple aTuple)
 	{
@@ -385,7 +385,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected boolean o_EqualsRepeatedElementTuple (
+	public boolean o_EqualsRepeatedElementTuple (
 		final AvailObject object,
 		final A_Tuple aTuple)
 	{
@@ -394,7 +394,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_EqualsNybbleTuple (
+	public boolean o_EqualsNybbleTuple (
 		final AvailObject object,
 		final A_Tuple aTuple)
 	{
@@ -403,7 +403,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_EqualsObjectTuple (
+	public boolean o_EqualsObjectTuple (
 		final AvailObject object,
 		final A_Tuple aTuple)
 	{
@@ -412,7 +412,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_EqualsTwoByteString (
+	public boolean o_EqualsTwoByteString (
 		final AvailObject object,
 		final A_String aTwoByteString)
 	{
@@ -421,7 +421,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_IsBetterRepresentationThan (
+	public boolean o_IsBetterRepresentationThan (
 		final AvailObject object,
 		final A_BasicObject anotherObject)
 	{
@@ -433,7 +433,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_IsInstanceOfKind (
+	public boolean o_IsInstanceOfKind (
 		final AvailObject object,
 		final A_Type aTypeObject)
 	{
@@ -503,7 +503,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_Kind (final AvailObject object)
+	public A_Type o_Kind (final AvailObject object)
 	{
 		final A_Tuple tupleOfTypes = object.copyAsMutableObjectTuple();
 		final int tupleSize = object.tupleSize();
@@ -521,7 +521,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected abstract boolean o_CompareFromToWithStartingAt (
+	public abstract boolean o_CompareFromToWithStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -529,7 +529,7 @@ extends Descriptor
 		final int startIndex2);
 
 	@Override @AvailMethod
-	protected boolean o_CompareFromToWithAnyTupleStartingAt (
+	public boolean o_CompareFromToWithAnyTupleStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -550,7 +550,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_CompareFromToWithByteStringStartingAt (
+	public boolean o_CompareFromToWithByteStringStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -566,7 +566,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_CompareFromToWithByteTupleStartingAt (
+	public boolean o_CompareFromToWithByteTupleStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -582,7 +582,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_CompareFromToWithByteArrayTupleStartingAt (
+	public boolean o_CompareFromToWithByteArrayTupleStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -598,7 +598,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_CompareFromToWithByteBufferTupleStartingAt (
+	public boolean o_CompareFromToWithByteBufferTupleStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -615,7 +615,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_CompareFromToWithIntegerIntervalTupleStartingAt (
+	public boolean o_CompareFromToWithIntegerIntervalTupleStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -632,7 +632,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_CompareFromToWithIntTupleStartingAt (
+	public boolean o_CompareFromToWithIntTupleStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -645,7 +645,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_CompareFromToWithSmallIntegerIntervalTupleStartingAt (
+	public boolean o_CompareFromToWithSmallIntegerIntervalTupleStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -662,7 +662,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_CompareFromToWithRepeatedElementTupleStartingAt (
+	public boolean o_CompareFromToWithRepeatedElementTupleStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -679,7 +679,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_CompareFromToWithNybbleTupleStartingAt (
+	public boolean o_CompareFromToWithNybbleTupleStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -695,7 +695,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_CompareFromToWithObjectTupleStartingAt (
+	public boolean o_CompareFromToWithObjectTupleStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -712,7 +712,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_CompareFromToWithTwoByteStringStartingAt (
+	public boolean o_CompareFromToWithTwoByteStringStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -728,7 +728,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Tuple o_ConcatenateTuplesCanDestroy (
+	public A_Tuple o_ConcatenateTuplesCanDestroy (
 		final AvailObject object,
 		final boolean canDestroy)
 	{
@@ -766,7 +766,7 @@ extends Descriptor
 	 * SubrangeTupleDescriptor subrange tuple}.
 	 */
 	@Override @AvailMethod
-	protected A_Tuple o_CopyTupleFromToCanDestroy (
+	public A_Tuple o_CopyTupleFromToCanDestroy (
 		final AvailObject object,
 		final int start,
 		final int end,
@@ -795,7 +795,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected byte o_ExtractNybbleFromTupleAt (
+	public byte o_ExtractNybbleFromTupleAt (
 		final AvailObject object, final int index)
 	{
 		// Get the element at the given index in the tuple object, and extract a
@@ -807,7 +807,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_HashFromTo (
+	public int o_HashFromTo (
 		final AvailObject object,
 		final int startIndex,
 		final int endIndex)
@@ -821,43 +821,43 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected abstract AvailObject o_TupleAt (
+	public abstract AvailObject o_TupleAt (
 		final AvailObject object,
 		final int index);
 
 	@Override @AvailMethod
-	protected abstract A_Tuple o_TupleAtPuttingCanDestroy (
+	public abstract A_Tuple o_TupleAtPuttingCanDestroy (
 		final AvailObject object,
 		final int index,
 		final A_BasicObject newValueObject,
 		final boolean canDestroy);
 
 	@Override @AvailMethod
-	protected int o_TupleCodePointAt (final AvailObject object, final int index)
+	public int o_TupleCodePointAt (final AvailObject object, final int index)
 	{
 		return object.tupleAt(index).codePoint();
 	}
 
 	@Override @AvailMethod
-	protected int o_TupleIntAt (final AvailObject object, final int index)
+	public int o_TupleIntAt (final AvailObject object, final int index)
 	{
 		return object.tupleAt(index).extractInt();
 	}
 
 	@Override @AvailMethod
-	protected A_Set o_AsSet (final AvailObject object)
+	public A_Set o_AsSet (final AvailObject object)
 	{
 		return generateSetFrom(object.tupleSize(), object.iterator());
 	}
 
 	@Override @AvailMethod
-	protected boolean o_IsTuple (final AvailObject object)
+	public boolean o_IsTuple (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod
-	protected boolean o_IsString (final AvailObject object)
+	public boolean o_IsString (final AvailObject object)
 	{
 		final int limit = object.tupleSize();
 		for (int i = 1; i <= limit; i++)
@@ -871,16 +871,16 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Tuple o_TupleReverse(final AvailObject object)
+	public A_Tuple o_TupleReverse(final AvailObject object)
 	{
 		return createReverseTuple(object);
 	}
 
 	@Override @AvailMethod
-	protected abstract int o_TupleSize (final AvailObject object);
+	public abstract int o_TupleSize (final AvailObject object);
 
 	@Override @AvailMethod @ThreadSafe
-	protected SerializerOperation o_SerializerOperation (
+	public SerializerOperation o_SerializerOperation (
 		final AvailObject object)
 	{
 		final int size = object.tupleSize();
@@ -1056,7 +1056,7 @@ extends Descriptor
 	 *        The last index of elements to hash.
 	 */
 	@Override @AvailMethod
-	protected int o_ComputeHashFromTo (
+	public int o_ComputeHashFromTo (
 		final AvailObject object,
 		final int start,
 		final int end)
@@ -1071,7 +1071,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected String o_AsNativeString (final AvailObject object)
+	public String o_AsNativeString (final AvailObject object)
 	{
 		final int size = object.tupleSize();
 		final StringBuilder builder = new StringBuilder(size);
@@ -1086,7 +1086,7 @@ extends Descriptor
 	 * Answer a mutable copy of object that holds ints.
 	 */
 	@Override @AvailMethod
-	protected A_Tuple o_CopyAsMutableIntTuple (final AvailObject object)
+	public A_Tuple o_CopyAsMutableIntTuple (final AvailObject object)
 	{
 		final int size = object.tupleSize();
 		final AvailObject result = generateIntTupleFrom(
@@ -1099,7 +1099,7 @@ extends Descriptor
 	 * Answer a mutable copy of object that holds arbitrary objects.
 	 */
 	@Override @AvailMethod
-	protected A_Tuple o_CopyAsMutableObjectTuple (final AvailObject object)
+	public A_Tuple o_CopyAsMutableObjectTuple (final AvailObject object)
 	{
 		final int size = object.tupleSize();
 		final AvailObject result = generateObjectTupleFrom(
@@ -1109,7 +1109,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected boolean o_TupleElementsInRangeAreInstancesOf (
+	public boolean o_TupleElementsInRangeAreInstancesOf (
 		final AvailObject object,
 		final int startIndex,
 		final int endIndex,
@@ -1265,35 +1265,35 @@ extends Descriptor
 	}
 
 	@Override
-	protected IteratorNotNull<AvailObject> o_Iterator (final AvailObject object)
+	public IteratorNotNull<AvailObject> o_Iterator (final AvailObject object)
 	{
 		object.makeImmutable();
 		return new TupleIterator(object);
 	}
 
 	@Override
-	protected Spliterator<AvailObject> o_Spliterator (final AvailObject object)
+	public Spliterator<AvailObject> o_Spliterator (final AvailObject object)
 	{
 		object.makeImmutable();
 		return new TupleSpliterator(object, 1, object.tupleSize() + 1);
 	}
 
 	@Override
-	protected Stream<AvailObject> o_Stream (final AvailObject object)
+	public Stream<AvailObject> o_Stream (final AvailObject object)
 	{
 		object.makeImmutable();
 		return StreamSupport.stream(object.spliterator(), false);
 	}
 
 	@Override
-	protected Stream<AvailObject> o_ParallelStream (final AvailObject object)
+	public Stream<AvailObject> o_ParallelStream (final AvailObject object)
 	{
 		object.makeImmutable();
 		return StreamSupport.stream(object.spliterator(), true);
 	}
 
 	@Override
-	protected @Nullable Object o_MarshalToJava (
+	public @Nullable Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{
@@ -1305,7 +1305,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected boolean o_ShowValueInNameForDebugger (final AvailObject object)
+	public boolean o_ShowValueInNameForDebugger (final AvailObject object)
 	{
 		return object.isString();
 	}
@@ -1318,20 +1318,20 @@ extends Descriptor
 	 * one of the copies is not kept after the call.
 	 */
 	@Override @AvailMethod
-	protected abstract A_Tuple o_AppendCanDestroy (
+	public abstract A_Tuple o_AppendCanDestroy (
 		final AvailObject object,
 		final A_BasicObject newElement,
 		final boolean canDestroy);
 
 	@Override
-	protected int o_TreeTupleLevel (final AvailObject object)
+	public int o_TreeTupleLevel (final AvailObject object)
 	{
 		// TreeTupleDescriptor overrides this.
 		return 0;
 	}
 
 	@Override
-	protected abstract A_Tuple o_ConcatenateWith (
+	public abstract A_Tuple o_ConcatenateWith (
 		final AvailObject object,
 		final A_Tuple otherTuple,
 		final boolean canDestroy);
@@ -1342,7 +1342,7 @@ extends Descriptor
 	 * the required number of bytes.
 	 */
 	@Override @AvailMethod
-	protected void o_TransferIntoByteBuffer (
+	public void o_TransferIntoByteBuffer (
 		final AvailObject object,
 		final int startIndex,
 		final int endIndex,
@@ -1355,7 +1355,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	public void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		if (object.isString())
 		{
@@ -1373,7 +1373,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	public void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
 	{
 		if (object.isString())
 		{

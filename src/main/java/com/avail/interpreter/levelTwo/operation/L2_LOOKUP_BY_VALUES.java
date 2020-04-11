@@ -31,7 +31,8 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.atoms.A_Atom;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.bundles.A_Bundle;
 import com.avail.descriptor.functions.A_Function;
 import com.avail.descriptor.methods.A_Definition;
@@ -265,7 +266,7 @@ extends L2ControlFlowOperation
 				Level.FINER,
 				"{0}Lookup {1}",
 				interpreter.debugModeString,
-				bundle.message().atomName());
+				A_Atom.Companion.atomName(bundle.message()));
 		}
 
 		final List<AvailObject> valuesList = new ArrayList<>(values.length);

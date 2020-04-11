@@ -34,7 +34,7 @@ package com.avail.descriptor.methods;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.A_Module;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.Descriptor;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.ModuleDescriptor;
@@ -89,7 +89,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected abstract A_Type o_BodySignature (final AvailObject object);
+	public abstract A_Type o_BodySignature (final AvailObject object);
 
 	@Override @AvailMethod
 	public A_Method o_DefinitionMethod (final AvailObject object)
@@ -130,34 +130,34 @@ extends Descriptor
 	public abstract int o_Hash (final AvailObject object);
 
 	@Override @AvailMethod
-	protected boolean o_IsAbstractDefinition (final AvailObject object)
+	public boolean o_IsAbstractDefinition (final AvailObject object)
 	{
 		return false;
 	}
 
 	@Override @AvailMethod
-	protected boolean o_IsForwardDefinition (final AvailObject object)
+	public boolean o_IsForwardDefinition (final AvailObject object)
 	{
 		return false;
 	}
 
 	@Override @AvailMethod
-	protected boolean o_IsMethodDefinition (final AvailObject object)
+	public boolean o_IsMethodDefinition (final AvailObject object)
 	{
 		return false;
 	}
 
 	@Override @AvailMethod
-	protected boolean o_IsMacroDefinition (final AvailObject object)
+	public boolean o_IsMacroDefinition (final AvailObject object)
 	{
 		return false;
 	}
 
 	@Override @AvailMethod
-	protected abstract A_Type o_Kind (final AvailObject object);
+	public abstract A_Type o_Kind (final AvailObject object);
 
 	@Override @AvailMethod
-	protected A_Type o_ParsingSignature (final AvailObject object)
+	public A_Type o_ParsingSignature (final AvailObject object)
 	{
 		// Non-macro definitions have a signature derived from the
 		// bodySignature.  We can safely make it a list phrase type.
@@ -176,7 +176,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected abstract SerializerOperation o_SerializerOperation (
+	public abstract SerializerOperation o_SerializerOperation (
 		final AvailObject object);
 
 	/**

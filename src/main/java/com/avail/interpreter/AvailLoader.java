@@ -39,7 +39,7 @@ import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.A_Character;
 import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.A_Module;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.descriptor.atoms.A_Atom;
@@ -85,7 +85,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static com.avail.AvailRuntime.currentRuntime;
-import static com.avail.descriptor.AvailObject.error;
+import static com.avail.descriptor.representation.AvailObject.error;
 import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
 import static com.avail.descriptor.FiberDescriptor.newFiber;
 import static com.avail.descriptor.FiberDescriptor.newLoaderFiber;
@@ -437,8 +437,9 @@ public final class AvailLoader
 					loader,
 					() -> formatString(
 						"Check lexer filter %s for U+%04x",
-						lexer.lexerMethod().chooseBundle(loader.module())
-							.message().atomName(),
+						A_Atom.Companion.atomName(
+							lexer.lexerMethod().chooseBundle(loader.module())
+								.message()),
 						codePoint));
 				fiber.textInterface(loader.textInterface);
 				lexingState.setFiberContinuationsTrackingWork(
@@ -450,7 +451,7 @@ public final class AvailLoader
 							joinLock.writeLock(),
 							() ->
 							{
-								if (boolValue.extractBoolean())
+								if (A_Atom.Companion.extractBoolean(boolValue))
 								{
 									applicableLexers.add(lexer);
 								}
@@ -896,7 +897,7 @@ public final class AvailLoader
 	{
 		methodName.makeShared();
 		bodySignature.makeShared();
-		final A_Bundle bundle = methodName.bundleOrCreate();
+		final A_Bundle bundle = A_Atom.Companion.bundleOrCreate(methodName);
 		final MessageSplitter splitter = bundle.messageSplitter();
 		splitter.checkImplementationSignature(bodySignature);
 		final A_Type bodyArgsTupleType = bodySignature.argsTupleType();
@@ -973,7 +974,7 @@ public final class AvailLoader
 		assert methodName.isAtom();
 		assert bodyBlock.isFunction();
 
-		final A_Bundle bundle = methodName.bundleOrCreate();
+		final A_Bundle bundle = A_Atom.Companion.bundleOrCreate(methodName);
 		final MessageSplitter splitter = bundle.messageSplitter();
 		splitter.checkImplementationSignature(bodyBlock.kind());
 		final int numArgs = splitter.getNumberOfArguments();
@@ -1007,7 +1008,7 @@ public final class AvailLoader
 		final A_Type bodySignature)
 	throws MalformedMessageException, SignatureException
 	{
-		final A_Bundle bundle = methodName.bundleOrCreate();
+		final A_Bundle bundle = A_Atom.Companion.bundleOrCreate(methodName);
 		final MessageSplitter splitter = bundle.messageSplitter();
 		final int numArgs = splitter.getNumberOfArguments();
 		final A_Type bodyArgsSizes = bodySignature.argsTupleType().sizeRange();
@@ -1102,7 +1103,7 @@ public final class AvailLoader
 					for (final A_Bundle bundle : method.bundles())
 					{
 						if (ancestorModules.hasElement(
-							bundle.message().issuingModule()))
+							A_Atom.Companion.issuingModule(bundle.message())))
 						{
 							// Remove the appropriate forwarder plan from the
 							// bundle tree.
@@ -1129,7 +1130,7 @@ public final class AvailLoader
 				for (final A_Bundle bundle : method.bundles())
 				{
 					if (ancestorModules.hasElement(
-						bundle.message().issuingModule()))
+						A_Atom.Companion.issuingModule(bundle.message())))
 					{
 						final A_DefinitionParsingPlan plan =
 							bundle.definitionParsingPlans()
@@ -1184,7 +1185,7 @@ public final class AvailLoader
 		assert methodName.isAtom();
 		assert macroBody.isFunction();
 
-		final A_Bundle bundle = methodName.bundleOrCreate();
+		final A_Bundle bundle = A_Atom.Companion.bundleOrCreate(methodName);
 		final MessageSplitter splitter = bundle.messageSplitter();
 		final int numArgs = splitter.getNumberOfArguments();
 		if (macroBody.code().numArgs() != numArgs)
@@ -1284,7 +1285,7 @@ public final class AvailLoader
 	{
 		assert methodName.isAtom();
 		assert seal.isTuple();
-		final A_Bundle bundle = methodName.bundleOrCreate();
+		final A_Bundle bundle = A_Atom.Companion.bundleOrCreate(methodName);
 		final MessageSplitter splitter = bundle.messageSplitter();
 		if (seal.tupleSize() != splitter.getNumberOfArguments())
 		{
@@ -1337,14 +1338,14 @@ public final class AvailLoader
 			for (final A_Atom atom : atomsSet)
 			{
 				bundleSet = bundleSet.setWithElementCanDestroy(
-					atom.bundleOrCreate(), true);
+					A_Atom.Companion.bundleOrCreate(atom), true);
 			}
 			bundleSetList.add(bundleSet.makeShared());
 		}
 		final A_Tuple bundleSetTuple = tupleFromList(bundleSetList);
 		for (final A_Atom parentAtom : parentAtoms)
 		{
-			final A_Bundle bundle = parentAtom.bundleOrCreate();
+			final A_Bundle bundle = A_Atom.Companion.bundleOrCreate(parentAtom);
 			final MessageSplitter splitter = bundle.messageSplitter();
 			final int numArgs = splitter.getLeafArgumentCount();
 			if (illegalArgumentMessages.tupleSize() != numArgs)
@@ -1507,7 +1508,8 @@ public final class AvailLoader
 					final A_Atom trueName = createAtom(stringName, module);
 					if (isExplicitSubclassAtom)
 					{
-						trueName.setAtomProperty(
+						A_Atom.Companion.setAtomProperty(
+							trueName,
 							EXPLICIT_SUBCLASSING_KEY.atom,
 							EXPLICIT_SUBCLASSING_KEY.atom);
 					}
@@ -1626,7 +1628,7 @@ public final class AvailLoader
 		final A_Bundle headerMethodBundle;
 		try
 		{
-			headerMethodBundle = headerMethodName.bundleOrCreate();
+			headerMethodBundle = A_Atom.Companion.bundleOrCreate(headerMethodName);
 		}
 		catch (final MalformedMessageException e)
 		{
@@ -1672,7 +1674,7 @@ public final class AvailLoader
 		final A_Bundle bundle;
 		try
 		{
-			bundle = atom.bundleOrCreate();
+			bundle = A_Atom.Companion.bundleOrCreate(atom);
 		}
 		catch (final MalformedMessageException e)
 		{

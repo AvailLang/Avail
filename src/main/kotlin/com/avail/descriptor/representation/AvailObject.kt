@@ -1,21 +1,21 @@
 /*
- * AvailObject.java
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * AvailObject.kt
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice, this
+ *     list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice, this
+ *     list of conditions and the following disclaimer in the documentation
+ *     and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
- *   without specific prior written permission.
+ *  * Neither the name of the copyright holder nor the names of the contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -29,10 +29,11 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.descriptor
+package com.avail.descriptor.representation
 
 import com.avail.compiler.AvailCodeGenerator
 import com.avail.compiler.scanning.LexingState
+import com.avail.descriptor.*
 import com.avail.descriptor.FiberDescriptor.*
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.atoms.A_Atom
@@ -53,10 +54,6 @@ import com.avail.descriptor.parsing.A_DefinitionParsingPlan
 import com.avail.descriptor.parsing.A_Lexer
 import com.avail.descriptor.parsing.A_ParsingPlanInProgress
 import com.avail.descriptor.phrases.A_Phrase
-import com.avail.descriptor.representation.A_BasicObject
-import com.avail.descriptor.representation.AvailObjectFieldHelper
-import com.avail.descriptor.representation.AvailObjectRepresentation
-import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.tokens.A_Token
@@ -1324,8 +1321,6 @@ class AvailObject private constructor(
 
 	override fun expand(module: A_Module) = descriptor().o_Expand(this, module)
 
-	override fun extractBoolean() = descriptor().o_ExtractBoolean(this)
-
 	override fun extractUnsignedByte() =
 		descriptor().o_ExtractUnsignedByte(this)
 
@@ -1820,8 +1815,6 @@ class AvailObject private constructor(
 		canDestroy: Boolean
 	) = descriptor().o_MultiplyByIntegerCanDestroy(this, anInteger, canDestroy)
 
-	override fun atomName() = descriptor().o_AtomName(this)
-
 	override fun importedNames() = descriptor().o_ImportedNames(this)
 
 	override fun nameVisible(trueName: A_Atom) =
@@ -2098,7 +2091,7 @@ class AvailObject private constructor(
 		} catch (e: ArithmeticException) {
 			// This had better not happen, otherwise the caller has violated the
 			// intention of this method.
-			error("noFailTimesCanDestroy failed!")
+		error("noFailTimesCanDestroy failed!")
 		}
 
 	override fun tokenType(): TokenType = descriptor().o_TokenType(this)
@@ -2378,12 +2371,6 @@ class AvailObject private constructor(
 	override fun typeUnionOfCompiledCodeType(aCompiledCodeType: A_Type) =
 		descriptor().o_TypeUnionOfCompiledCodeType(this, aCompiledCodeType)
 
-	override fun setAtomProperty(key: A_Atom, value: A_BasicObject) =
-		descriptor().o_SetAtomProperty(this, key, value)
-
-	override fun getAtomProperty(key: A_Atom) =
-		descriptor().o_GetAtomProperty(this, key)
-
 	override fun equalsEnumerationType(anEnumerationType: A_BasicObject) =
 		descriptor().o_EqualsEnumerationType(this, anEnumerationType)
 
@@ -2569,8 +2556,6 @@ class AvailObject private constructor(
 	override fun mapBinKeysHash() = descriptor().o_MapBinKeysHash(this)
 
 	override fun mapBinValuesHash() = descriptor().o_MapBinValuesHash(this)
-
-	override fun issuingModule() = descriptor().o_IssuingModule(this)
 
 	override val isPojoFusedType get() = descriptor().o_IsPojoFusedType(this)
 
@@ -2910,11 +2895,6 @@ class AvailObject private constructor(
 	override fun definitionModuleName() =
 		descriptor().o_DefinitionModuleName(this)
 
-	@Throws(MalformedMessageException::class)
-	override fun bundleOrCreate() = descriptor().o_BundleOrCreate(this)
-
-	override fun bundleOrNil() = descriptor().o_BundleOrNil(this)
-
 	override fun entryPoints() = descriptor().o_EntryPoints(this)
 
 	override fun addEntryPoint(stringName: A_String, trueName: A_Atom) =
@@ -2992,8 +2972,6 @@ class AvailObject private constructor(
 	override fun isVacuousType() = descriptor().o_IsVacuousType(this)
 
 	override fun isTop() = descriptor().o_IsTop(this)
-
-	override val isAtomSpecial get() = descriptor().o_IsAtomSpecial(this)
 
 	override fun addPrivateNames(trueNames: A_Set) =
 		descriptor().o_AddPrivateNames(this, trueNames)
@@ -3329,8 +3307,8 @@ class AvailObject private constructor(
 			variableIntegerSlots: Int,
 			descriptor: AbstractDescriptor
 		): AvailObject = with(descriptor) {
-			assert(hasVariableObjectSlots || variableObjectSlots == 0)
-			assert(hasVariableIntegerSlots || variableIntegerSlots == 0)
+			assert(hasVariableObjectSlots() || variableObjectSlots == 0)
+			assert(hasVariableIntegerSlots() || variableIntegerSlots == 0)
 			return AvailObject(
 				descriptor,
 				numberOfFixedObjectSlots() + variableObjectSlots,

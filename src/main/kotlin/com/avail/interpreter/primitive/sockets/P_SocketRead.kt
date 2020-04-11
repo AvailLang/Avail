@@ -35,6 +35,9 @@ package com.avail.interpreter.primitive.sockets
 import com.avail.AvailRuntime.currentRuntime
 import com.avail.descriptor.FiberDescriptor
 import com.avail.descriptor.FiberDescriptor.newFiber
+import com.avail.descriptor.atoms.A_Atom.Companion.atomName
+import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
+import com.avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.SOCKET_KEY
@@ -100,7 +103,7 @@ object P_SocketRead : Primitive(5, CanInline, HasSideEffect)
 		if (pojo.equalsNil())
 		{
 			return interpreter.primitiveFailure(
-				if (handle.isAtomSpecial) E_SPECIAL_ATOM else E_INVALID_HANDLE)
+				if (handle.isAtomSpecial()) E_SPECIAL_ATOM else E_INVALID_HANDLE)
 		}
 		val socket = pojo.javaObjectNotNull<AsynchronousSocketChannel>()
 		val buffer = ByteBuffer.allocateDirect(size.extractInt())

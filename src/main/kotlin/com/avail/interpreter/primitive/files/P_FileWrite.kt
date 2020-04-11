@@ -33,6 +33,8 @@ package com.avail.interpreter.primitive.files
 
 import com.avail.AvailRuntime.currentRuntime
 import com.avail.descriptor.FiberDescriptor.newFiber
+import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
+import com.avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.FILE_KEY
 import com.avail.descriptor.functions.FunctionDescriptor
@@ -111,7 +113,7 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 		if (pojo.equalsNil())
 		{
 			return interpreter.primitiveFailure(
-				if (atom.isAtomSpecial)
+				if (atom.isAtomSpecial())
 				{
 					E_SPECIAL_ATOM
 				}

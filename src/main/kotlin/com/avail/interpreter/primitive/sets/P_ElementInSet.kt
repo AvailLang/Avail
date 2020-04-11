@@ -31,7 +31,7 @@
  */
 package com.avail.interpreter.primitive.sets
 
-import com.avail.descriptor.AvailObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple

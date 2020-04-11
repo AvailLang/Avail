@@ -32,7 +32,7 @@
 
 package com.avail.exceptions
 
-import com.avail.descriptor.AvailObject
+import com.avail.descriptor.representation.AvailObject
 
 /**
  * `VariableGetException` is thrown when [AvailObject.getValue] fails for any

@@ -33,7 +33,7 @@
 package com.avail.descriptor.types;
 
 import com.avail.annotations.AvailMethod;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.representation.Mutability;
@@ -120,13 +120,13 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_ContentType (final AvailObject object)
+	public A_Type o_ContentType (final AvailObject object)
 	{
 		return object.slot(CONTENT_TYPE);
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_SizeRange (final AvailObject object)
+	public A_Type o_SizeRange (final AvailObject object)
 	{
 		return object.slot(SIZE_RANGE);
 	}
@@ -138,7 +138,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_EqualsSetType (
+	public boolean o_EqualsSetType (
 		final AvailObject object,
 		final A_Type aSetType)
 	{
@@ -160,7 +160,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_IsSubtypeOf (
+	public boolean o_IsSubtypeOf (
 		final AvailObject object,
 		final A_Type aType)
 	{
@@ -170,7 +170,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_IsSupertypeOfSetType (
+	public boolean o_IsSupertypeOfSetType (
 		final AvailObject object,
 		final AvailObject aSetType)
 	{
@@ -184,7 +184,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	protected boolean o_IsVacuousType (final AvailObject object)
+	public boolean o_IsVacuousType (final AvailObject object)
 	{
 		return
 			!object.slot(SIZE_RANGE).lowerBound().equalsInt(0)
@@ -192,7 +192,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_TypeIntersection (
+	public A_Type o_TypeIntersection (
 		final AvailObject object,
 		final A_Type another)
 	{
@@ -210,7 +210,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_TypeIntersectionOfSetType (
+	public A_Type o_TypeIntersectionOfSetType (
 		final AvailObject object,
 		final A_Type aSetType)
 	{
@@ -220,7 +220,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_TypeUnion (
+	public A_Type o_TypeUnion (
 		final AvailObject object,
 		final A_Type another)
 	{
@@ -240,7 +240,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_TypeUnionOfSetType (
+	public A_Type o_TypeUnionOfSetType (
 		final AvailObject object,
 		final A_Type aSetType)
 	{
@@ -250,20 +250,20 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_IsSetType (final AvailObject object)
+	public boolean o_IsSetType (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override
-	protected SerializerOperation o_SerializerOperation (
+	public SerializerOperation o_SerializerOperation (
 		final AvailObject object)
 	{
 		return SerializerOperation.SET_TYPE;
 	}
 
 	@Override
-	protected AvailObject o_MakeImmutable (final AvailObject object)
+	public AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		if (isMutable())
 		{
@@ -274,7 +274,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	public void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -287,7 +287,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	protected void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	public void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");

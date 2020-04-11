@@ -36,7 +36,7 @@ import com.avail.AvailRuntime.currentRuntime
 import com.avail.compiler.problems.CompilerDiagnostics
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel
 import com.avail.compiler.scanning.LexingState
-import com.avail.descriptor.AvailObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.representation.A_BasicObject

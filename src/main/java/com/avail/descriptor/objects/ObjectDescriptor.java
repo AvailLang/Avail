@@ -35,7 +35,7 @@ package com.avail.descriptor.objects;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.Descriptor;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
@@ -63,7 +63,7 @@ import com.avail.utility.json.JSONWriter;
 
 import java.util.*;
 
-import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.representation.AvailObject.multiplier;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY;
 import static com.avail.descriptor.maps.MapDescriptor.emptyMap;
@@ -158,7 +158,8 @@ extends Descriptor
 	}
 
 	@Override
-	protected boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
+	public boolean allowsImmutableToMutableReferenceInField (
+		final AbstractSlotsEnum e)
 	{
 		return e == HASH_AND_MORE
 			|| e == KIND;
@@ -170,7 +171,7 @@ extends Descriptor
 	 * Show the fields nicely.
 	 */
 	@Override
-	protected AvailObjectFieldHelper[] o_DescribeForDebugger (
+	public AvailObjectFieldHelper[] o_DescribeForDebugger (
 		final AvailObject object)
 	{
 		final List<AvailObjectFieldHelper> fields = new ArrayList<>();
@@ -190,7 +191,7 @@ extends Descriptor
 					new AvailObjectFieldHelper(
 						object,
 						new DebuggerObjectSlots(
-							"FIELD " + fieldKey.atomName()),
+							"FIELD " + A_Atom.Companion.atomName(fieldKey)),
 						-1,
 						object.slot(FIELD_VALUES_, index)));
 			}
@@ -216,7 +217,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_EqualsObject (
+	public boolean o_EqualsObject (
 		final AvailObject object,
 		final AvailObject anObject)
 	{
@@ -275,7 +276,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected AvailObject o_FieldAt (final AvailObject object, final A_Atom field)
+	public AvailObject o_FieldAt (final AvailObject object, final A_Atom field)
 	{
 		// Fails with NullPointerException if key is not found.
 		final int slotIndex = variant.fieldToSlotIndex.get(field);
@@ -287,7 +288,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_BasicObject o_FieldAtPuttingCanDestroy (
+	public A_BasicObject o_FieldAtPuttingCanDestroy (
 		final AvailObject object,
 		final A_Atom field,
 		final A_BasicObject value,
@@ -343,7 +344,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Map o_FieldMap (final AvailObject object)
+	public A_Map o_FieldMap (final AvailObject object)
 	{
 		// Warning: May be much slower than it was before ObjectLayoutVariant.
 		A_Map fieldMap = emptyMap();
@@ -363,7 +364,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Tuple o_FieldTuple (final AvailObject object)
+	public A_Tuple o_FieldTuple (final AvailObject object)
 	{
 		final Iterator<Map.Entry<A_Atom, Integer>> fieldIterator =
 			variant.fieldToSlotIndex.entrySet().iterator();
@@ -407,7 +408,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_IsInstanceOfKind (
+	public boolean o_IsInstanceOfKind (
 		final AvailObject object,
 		final A_Type aTypeObject)
 	{
@@ -416,7 +417,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_Kind (final AvailObject object)
+	public A_Type o_Kind (final AvailObject object)
 	{
 		AvailObject kind = object.slot(KIND);
 		if (kind.equalsNil())
@@ -436,7 +437,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	protected SerializerOperation o_SerializerOperation (
+	public SerializerOperation o_SerializerOperation (
 		final AvailObject object)
 	{
 		return SerializerOperation.OBJECT;
@@ -449,7 +450,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	public void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -464,7 +465,7 @@ extends Descriptor
 			final A_BasicObject value = slotIndex == 0
 				? field
 				: object.slot(FIELD_VALUES_, slotIndex);
-			field.atomName().writeTo(writer);
+			A_Atom.Companion.atomName(field).writeTo(writer);
 			value.writeTo(writer);
 		}
 		writer.endObject();
@@ -472,7 +473,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	public void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -487,7 +488,7 @@ extends Descriptor
 			final A_BasicObject value = slotIndex == 0
 				? field
 				: object.slot(FIELD_VALUES_, slotIndex);
-			field.atomName().writeTo(writer);
+			A_Atom.Companion.atomName(field).writeTo(writer);
 			value.writeSummaryTo(writer);
 		}
 		writer.endObject();
@@ -576,7 +577,8 @@ extends Descriptor
 			final A_Map fieldTypes = baseType.fieldTypeMap();
 			for (final Entry entry : fieldTypes.mapIterable())
 			{
-				if (!entry.key().getAtomProperty(explicitSubclassingKey)
+				if (!A_Atom.Companion
+					.getAtomProperty(entry.key(), explicitSubclassingKey)
 					.equalsNil())
 				{
 					ignoreKeys = ignoreKeys.setWithElementCanDestroy(
@@ -599,7 +601,7 @@ extends Descriptor
 					builder.append(",");
 				}
 				newlineTab(builder, indent);
-				builder.append(entry.key().atomName().asNativeString());
+				builder.append(A_Atom.Companion.atomName(entry.key()).asNativeString());
 				builder.append(" = ");
 				entry.value().printOnAvoidingIndent(
 					builder, recursionMap, indent + 1);

@@ -35,7 +35,7 @@ package com.avail.descriptor.sets;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.A_Character;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.Descriptor;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.NilDescriptor;
@@ -256,7 +256,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected String o_NameForDebugger (final AvailObject object)
+	public String o_NameForDebugger (final AvailObject object)
 	{
 		return super.o_NameForDebugger(object) + ": setSize="
 			+ object.setSize();
@@ -281,7 +281,7 @@ extends Descriptor
 	 * (in arbitrary order).  Hide the bin structure.
 	 */
 	@Override
-	protected AvailObjectFieldHelper[] o_DescribeForDebugger (
+	public AvailObjectFieldHelper[] o_DescribeForDebugger (
 		final AvailObject object)
 	{
 		final AvailObjectFieldHelper[] fields =
@@ -303,7 +303,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_EqualsSet (final AvailObject object, final A_Set aSet)
+	public boolean o_EqualsSet (final AvailObject object, final A_Set aSet)
 	{
 		// Check if either the sets or the bins are the same objects.
 		if (object.sameAddressAs(aSet)
@@ -347,7 +347,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_HasElement (
+	public boolean o_HasElement (
 		final AvailObject object,
 		final A_BasicObject elementObject)
 	{
@@ -364,7 +364,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_IsInstanceOfKind (
+	public boolean o_IsInstanceOfKind (
 		final AvailObject object,
 		final A_Type aTypeObject)
 	{
@@ -399,20 +399,20 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_IsSet (final AvailObject object)
+	public boolean o_IsSet (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod
-	protected boolean o_IsSubsetOf (final AvailObject object, final A_Set another)
+	public boolean o_IsSubsetOf (final AvailObject object, final A_Set another)
 	{
 		return object.setSize() <= another.setSize()
 			&& rootBin(object).isBinSubsetOf(another);
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_Kind (final AvailObject object)
+	public A_Type o_Kind (final AvailObject object)
 	{
 		final int size = object.setSize();
 		final AvailObject sizeRange = instanceType(fromInt(size));
@@ -423,7 +423,7 @@ extends Descriptor
 	 * Answer whether all my elements are instances of the specified kind.
 	 */
 	@Override @AvailMethod
-	protected boolean o_SetElementsAreAllInstancesOfKind (
+	public boolean o_SetElementsAreAllInstancesOfKind (
 		final AvailObject object,
 		final AvailObject kind)
 	{
@@ -431,7 +431,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Set o_SetIntersectionCanDestroy (
+	public A_Set o_SetIntersectionCanDestroy (
 		final AvailObject object,
 		final A_Set otherSet,
 		final boolean canDestroy)
@@ -469,7 +469,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected boolean o_SetIntersects (
+	public boolean o_SetIntersects (
 		final AvailObject object,
 		final A_Set otherSet)
 	{
@@ -496,7 +496,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Set o_SetMinusCanDestroy (
+	public A_Set o_SetMinusCanDestroy (
 		final AvailObject object,
 		final A_Set otherSet,
 		final boolean canDestroy)
@@ -521,7 +521,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Set o_SetUnionCanDestroy (
+	public A_Set o_SetUnionCanDestroy (
 		final AvailObject object,
 		final A_Set otherSet,
 		final boolean canDestroy)
@@ -559,7 +559,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Set o_SetWithElementCanDestroy (
+	public A_Set o_SetWithElementCanDestroy (
 		final AvailObject object,
 		final A_BasicObject newElementObject,
 		final boolean canDestroy)
@@ -597,7 +597,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Set o_SetWithoutElementCanDestroy (
+	public A_Set o_SetWithoutElementCanDestroy (
 		final AvailObject object,
 		final A_BasicObject elementObjectToExclude,
 		final boolean canDestroy)
@@ -655,13 +655,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected SetIterator o_Iterator (final AvailObject object)
+	public SetIterator o_Iterator (final AvailObject object)
 	{
 		return rootBin(object).setBinIterator();
 	}
 
 	@Override @AvailMethod
-	protected A_Tuple o_AsTuple (final AvailObject object)
+	public A_Tuple o_AsTuple (final AvailObject object)
 	{
 		final int size = object.setSize();
 		if (size == 0)
@@ -674,21 +674,21 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_SetSize (final AvailObject object)
+	public int o_SetSize (final AvailObject object)
 	{
 		// Answer how many elements are in the set. Delegate to the rootBin.
 		return rootBin(object).setBinSize();
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	protected SerializerOperation o_SerializerOperation (
+	public SerializerOperation o_SerializerOperation (
 		final AvailObject object)
 	{
 		return SerializerOperation.SET;
 	}
 
 	@Override
-	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	public void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -704,7 +704,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	public void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");

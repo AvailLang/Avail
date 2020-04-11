@@ -34,7 +34,7 @@ package com.avail.descriptor.methods;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.A_Module;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.Descriptor;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.ModuleDescriptor;
@@ -105,19 +105,19 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Function o_Function(final AvailObject object)
+	public A_Function o_Function(final AvailObject object)
 	{
 		return object.slot(FUNCTION);
 	}
 
 	@Override
-	protected A_Method o_DefinitionMethod (final AvailObject object)
+	public A_Method o_DefinitionMethod (final AvailObject object)
 	{
 		return object.slot(DEFINITION_METHOD);
 	}
 
 	@Override @AvailMethod
-	protected A_Module o_DefinitionModule (final AvailObject object)
+	public A_Module o_DefinitionModule (final AvailObject object)
 	{
 		return object.slot(DEFINITION_MODULE);
 	}

@@ -34,7 +34,7 @@ package com.avail.descriptor.pojos;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.AbstractDescriptor;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.Descriptor;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.representation.A_BasicObject;
@@ -81,7 +81,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_EqualsEqualityRawPojo (
+	public boolean o_EqualsEqualityRawPojo (
 		final AvailObject object,
 		final AvailObject otherEqualityRawPojo,
 		final @Nullable Object otherJavaObject)
@@ -90,7 +90,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_EqualsRawPojoFor (
+	public boolean o_EqualsRawPojoFor (
 		final AvailObject object,
 		final AvailObject otherRawPojo,
 		final @Nullable Object otherJavaObject)
@@ -128,20 +128,20 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected final boolean o_IsRawPojo (final AvailObject object)
+	public final boolean o_IsRawPojo (final AvailObject object)
 	{
 		return true;
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override @AvailMethod
-	protected final @Nullable <T> T o_JavaObject (final AvailObject object)
+	public final @Nullable <T> T o_JavaObject (final AvailObject object)
 	{
 		return (T) javaObject;
 	}
 
 	@Override @AvailMethod
-	protected final A_Type o_Kind (final AvailObject object)
+	public final A_Type o_Kind (final AvailObject object)
 	{
 		return RAW_POJO.o();
 	}
@@ -151,7 +151,7 @@ extends Descriptor
 	 * {@link #javaObject} but is {@linkplain Mutability#IMMUTABLE immutable}.
 	 */
 	@Override @AvailMethod
-	protected AvailObject o_MakeImmutable (final AvailObject object)
+	public AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		if (isMutable())
 		{
@@ -167,7 +167,7 @@ extends Descriptor
 	 * {@link #javaObject} but is {@linkplain Mutability#SHARED shared}.
 	 */
 	@Override @AvailMethod
-	protected AvailObject o_MakeShared (final AvailObject object)
+	public AvailObject o_MakeShared (final AvailObject object)
 	{
 		if (!isShared())
 		{
@@ -179,7 +179,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected final @Nullable Object o_MarshalToJava (
+	public final @Nullable Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{
@@ -187,7 +187,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected SerializerOperation o_SerializerOperation (
+	public SerializerOperation o_SerializerOperation (
 		final AvailObject object)
 	{
 		if (javaObject == null)
@@ -243,7 +243,7 @@ extends Descriptor
 	 * the Eclipse Java debugger.
 	 */
 	@Override
-	protected AvailObjectFieldHelper[] o_DescribeForDebugger (
+	public AvailObjectFieldHelper[] o_DescribeForDebugger (
 		final AvailObject object)
 	{
 		final List<AvailObjectFieldHelper> fields = new ArrayList<>();

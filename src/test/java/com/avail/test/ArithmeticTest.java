@@ -32,7 +32,7 @@
 
 package com.avail.test;
 
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.numbers.A_Number;
 import com.avail.descriptor.numbers.FloatDescriptor;
 import com.avail.descriptor.numbers.IntegerDescriptor;

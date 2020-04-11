@@ -33,6 +33,7 @@
 package com.avail.interpreter.primitive.atoms
 
 import com.avail.descriptor.atoms.A_Atom
+import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple

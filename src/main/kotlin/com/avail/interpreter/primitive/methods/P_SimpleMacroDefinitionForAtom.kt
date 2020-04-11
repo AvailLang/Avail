@@ -35,6 +35,8 @@ package com.avail.interpreter.primitive.methods
 import com.avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
 import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.atoms.A_Atom.Companion.atomName
+import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.phrases.PhraseDescriptor
 import com.avail.descriptor.sets.SetDescriptor.set

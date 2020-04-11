@@ -38,9 +38,12 @@ import com.avail.builder.ResolvedModuleName
 import com.avail.builder.UnresolvedDependencyException
 import com.avail.compiler.splitter.MessageSplitter
 import com.avail.descriptor.A_Module
-import com.avail.descriptor.AvailObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.ModuleDescriptor
 import com.avail.descriptor.atoms.A_Atom
+import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
+import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrNil
+import com.avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.MESSAGE_BUNDLE_KEY
 import com.avail.descriptor.atoms.AtomWithPropertiesDescriptor.Companion.createAtomWithProperties
 import com.avail.descriptor.bundles.A_Bundle

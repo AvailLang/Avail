@@ -36,6 +36,10 @@ import com.avail.compiler.splitter.MessageSplitter
 import com.avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.atoms.A_Atom
+import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
+import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrNil
+import com.avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
+import com.avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.MESSAGE_BUNDLE_KEY
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.MessageBundleDescriptor.Companion.newBundle
@@ -81,7 +85,7 @@ object P_Alias : Primitive(2, CanInline, HasSideEffect)
 			return interpreter.primitiveFailure(
 				E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
-		if (oldAtom.isAtomSpecial)
+		if (oldAtom.isAtomSpecial())
 		{
 			return interpreter.primitiveFailure(E_SPECIAL_ATOM)
 		}

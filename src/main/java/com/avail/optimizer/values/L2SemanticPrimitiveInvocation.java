@@ -36,7 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.UnaryOperator;
 
-import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.representation.AvailObject.multiplier;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
 import static com.avail.utility.Casts.cast;
 import static java.util.Collections.unmodifiableList;

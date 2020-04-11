@@ -47,7 +47,7 @@ import javax.annotation.Nullable;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import static com.avail.descriptor.AvailObject.frameAtPutMethod;
+import static com.avail.descriptor.representation.AvailObject.frameAtPutMethod;
 import static com.avail.descriptor.functions.ContinuationDescriptor.createContinuationExceptFrameMethod;
 import static com.avail.interpreter.Interpreter.chunkField;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;

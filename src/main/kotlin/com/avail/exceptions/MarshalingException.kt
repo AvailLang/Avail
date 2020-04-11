@@ -32,7 +32,7 @@
 
 package com.avail.exceptions
 
-import com.avail.descriptor.AvailObject
+import com.avail.descriptor.representation.AvailObject
 
 import com.avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED
 

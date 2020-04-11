@@ -34,12 +34,18 @@ package com.avail.serialization
 
 import com.avail.AvailRuntime
 import com.avail.AvailRuntime.specialObject
-import com.avail.descriptor.AvailObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.CharacterDescriptor
 import com.avail.descriptor.CharacterDescriptor.fromCodePoint
 import com.avail.descriptor.NilDescriptor
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.atoms.A_Atom
+import com.avail.descriptor.atoms.A_Atom.Companion.atomName
+import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
+import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrNil
+import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
+import com.avail.descriptor.atoms.A_Atom.Companion.issuingModule
+import com.avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom

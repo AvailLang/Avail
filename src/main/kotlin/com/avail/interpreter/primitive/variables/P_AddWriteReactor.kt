@@ -33,6 +33,7 @@
 package com.avail.interpreter.primitive.variables
 
 import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.sets.SetDescriptor.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
@@ -67,7 +68,7 @@ object P_AddWriteReactor : Primitive(3, HasSideEffect)
 		val key = interpreter.argument(1)
 		val reactorFunction = interpreter.argument(2)
 		// Forbid special atoms.
-		if (key.isAtomSpecial)
+		if (key.isAtomSpecial())
 		{
 			return interpreter.primitiveFailure(E_SPECIAL_ATOM)
 		}
@@ -98,8 +99,8 @@ object P_AddWriteReactor : Primitive(3, HasSideEffect)
 		//		final A_Type functionType = argumentTypes.get(2);
 		if (keyType.isEnumeration)
 		{
-			val allSpecial = keyType.instance().all { it.isAtomSpecial }
-			val noneSpecial = keyType.instance().none { it.isAtomSpecial }
+			val allSpecial = keyType.instance().all { it.isAtomSpecial() }
+			val noneSpecial = keyType.instance().none { it.isAtomSpecial() }
 			// The aggregate booleans can only both be true in the degenerate
 			// case that keyType is ⊥, which should be impossible.
 			when {

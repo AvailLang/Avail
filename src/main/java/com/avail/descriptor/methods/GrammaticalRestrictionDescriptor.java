@@ -35,7 +35,7 @@ package com.avail.descriptor.methods;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.descriptor.A_Module;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.Descriptor;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
@@ -151,13 +151,13 @@ extends Descriptor
 	}
 
 	@Override
-	protected A_Bundle o_RestrictedBundle (final AvailObject object)
+	public A_Bundle o_RestrictedBundle (final AvailObject object)
 	{
 		return object.slot(RESTRICTED_BUNDLE);
 	}
 
 	@Override
-	protected A_Tuple o_ArgumentRestrictionSets (final AvailObject object)
+	public A_Tuple o_ArgumentRestrictionSets (final AvailObject object)
 	{
 		return object.slot(ARGUMENT_RESTRICTION_SETS);
 	}
@@ -170,7 +170,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Module o_DefinitionModule (final AvailObject object)
+	public A_Module o_DefinitionModule (final AvailObject object)
 	{
 		return object.slot(DEFINITION_MODULE);
 	}

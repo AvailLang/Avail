@@ -34,7 +34,7 @@ package com.avail.descriptor.tuples;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.numbers.A_Number;
 import com.avail.descriptor.representation.A_BasicObject;
@@ -146,7 +146,7 @@ extends NumericTupleDescriptor
 	private static final int maximumCopySize = 32;
 
 	@Override @AvailMethod
-	protected A_Tuple o_AppendCanDestroy (
+	public A_Tuple o_AppendCanDestroy (
 		final AvailObject object,
 		final A_BasicObject newElement,
 		final boolean canDestroy)
@@ -191,7 +191,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override
-	protected int o_BitsPerEntry (final AvailObject object)
+	public int o_BitsPerEntry (final AvailObject object)
 	{
 		// Consider a billion element tuple. Since a small interval tuple
 		// requires only O(1) storage, irrespective of its size, the average
@@ -200,7 +200,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_CompareFromToWithStartingAt (
+	public boolean o_CompareFromToWithStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -216,7 +216,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_CompareFromToWithSmallIntegerIntervalTupleStartingAt (
+	public boolean o_CompareFromToWithSmallIntegerIntervalTupleStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -265,7 +265,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override
-	protected A_Tuple o_ConcatenateWith (
+	public A_Tuple o_ConcatenateWith (
 		final AvailObject object,
 		final A_Tuple otherTuple,
 		final boolean canDestroy)
@@ -327,7 +327,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Tuple o_CopyTupleFromToCanDestroy (
+	public A_Tuple o_CopyTupleFromToCanDestroy (
 		final AvailObject object,
 		final int start,
 		final int end,
@@ -375,7 +375,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_EqualsSmallIntegerIntervalTuple (
+	public boolean o_EqualsSmallIntegerIntervalTuple (
 		final AvailObject object,
 		final A_Tuple aSmallIntegerIntervalTuple)
 	{
@@ -433,7 +433,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected AvailObject o_TupleAt (final AvailObject object, final int index)
+	public AvailObject o_TupleAt (final AvailObject object, final int index)
 	{
 		// Answer the value at the given index in the tuple object.
 		// START + (index-1) × DELTA
@@ -444,7 +444,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Tuple o_TupleAtPuttingCanDestroy (
+	public A_Tuple o_TupleAtPuttingCanDestroy (
 		final AvailObject object,
 		final int index,
 		final A_BasicObject newValueObject,
@@ -499,7 +499,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override
-	protected boolean o_TupleElementsInRangeAreInstancesOf (
+	public boolean o_TupleElementsInRangeAreInstancesOf (
 		final AvailObject object,
 		final int startIndex,
 		final int endIndex,
@@ -525,7 +525,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_TupleIntAt (final AvailObject object, final int index)
+	public int o_TupleIntAt (final AvailObject object, final int index)
 	{
 		// Answer the value at the given index in the tuple object.
 		// START + (index-1) × DELTA
@@ -538,7 +538,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Tuple o_TupleReverse(final AvailObject object)
+	public A_Tuple o_TupleReverse(final AvailObject object)
 	{
 		final long newDelta = 0 - object.slot(DELTA);
 		// If tuple is small enough or is immutable, create a new interval.
@@ -560,7 +560,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_TupleSize (final AvailObject object)
+	public int o_TupleSize (final AvailObject object)
 	{
 		return object.slot(SIZE);
 	}

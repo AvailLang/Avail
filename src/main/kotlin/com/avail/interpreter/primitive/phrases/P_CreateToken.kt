@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.primitive.phrases
 
+import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.sets.SetDescriptor.set
 import com.avail.descriptor.tokens.TokenDescriptor.StaticInit.tokenTypeOrdinalKey

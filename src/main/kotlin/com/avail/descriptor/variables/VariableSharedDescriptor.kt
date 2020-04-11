@@ -32,7 +32,7 @@
 package com.avail.descriptor.variables
 
 import com.avail.annotations.AvailMethod
-import com.avail.descriptor.AvailObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.NilDescriptor
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.numbers.A_Number

@@ -34,7 +34,7 @@ package com.avail.descriptor.types;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.phrases.*;
@@ -46,7 +46,7 @@ import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 import java.util.List;
 
-import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.representation.AvailObject.multiplier;
 import static com.avail.descriptor.types.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.types.FunctionTypeDescriptor.mostGeneralFunctionType;
 import static com.avail.descriptor.types.ListPhraseTypeDescriptor.createListNodeType;
@@ -676,7 +676,7 @@ extends TypeDescriptor
 	 *         that will be produced by a phrase of this type.
 	 */
 	@Override @AvailMethod
-	protected A_Type o_ExpressionType (final AvailObject object)
+	public A_Type o_ExpressionType (final AvailObject object)
 	{
 		return object.slot(EXPRESSION_TYPE);
 	}
@@ -700,7 +700,7 @@ extends TypeDescriptor
 	 * same expression type.</p>
 	 */
 	@Override @AvailMethod
-	protected boolean o_EqualsPhraseType (
+	public boolean o_EqualsPhraseType (
 		final AvailObject object,
 		final A_Type aPhraseType)
 	{
@@ -727,14 +727,14 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
+	public boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
 	{
 		return aType.isSupertypeOfPhraseType(object);
 	}
 
 	@Override
 	@AvailMethod
-	protected boolean o_IsSupertypeOfListNodeType (
+	public boolean o_IsSupertypeOfListNodeType (
 		final AvailObject object,
 		final A_Type aListNodeType)
 	{
@@ -745,7 +745,7 @@ extends TypeDescriptor
 
 	@Override
 	@AvailMethod
-	protected boolean o_IsSupertypeOfPhraseType (
+	public boolean o_IsSupertypeOfPhraseType (
 		final AvailObject object,
 		final A_Type aPhraseType)
 	{
@@ -762,13 +762,13 @@ extends TypeDescriptor
 	 * @return The {@linkplain PhraseKind kind} of phrase that the object is.
 	 */
 	@Override @AvailMethod
-	protected PhraseKind o_PhraseKind (final AvailObject object)
+	public PhraseKind o_PhraseKind (final AvailObject object)
 	{
 		return kind;
 	}
 
 	@Override @AvailMethod
-	protected boolean o_PhraseKindIsUnder (
+	public boolean o_PhraseKindIsUnder (
 		final AvailObject object,
 		final PhraseKind expectedPhraseKind)
 	{
@@ -776,14 +776,14 @@ extends TypeDescriptor
 	}
 
 	@Override
-	protected SerializerOperation o_SerializerOperation (
+	public SerializerOperation o_SerializerOperation (
 		final AvailObject object)
 	{
 		return SerializerOperation.PARSE_NODE_TYPE;
 	}
 
 	@Override
-	protected A_Type o_SubexpressionsTupleType (final AvailObject object)
+	public A_Type o_SubexpressionsTupleType (final AvailObject object)
 	{
 		// Only applicable if the expression type is a tuple type.
 		return tupleTypeFromTupleOfTypes(
@@ -791,7 +791,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_TypeIntersection (
+	public A_Type o_TypeIntersection (
 		final AvailObject object,
 		final A_Type another)
 	{
@@ -799,7 +799,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	protected A_Type o_TypeIntersectionOfListNodeType (
+	public A_Type o_TypeIntersectionOfListNodeType (
 		final AvailObject object,
 		final A_Type aListNodeType)
 	{
@@ -820,7 +820,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_TypeIntersectionOfPhraseType (
+	public A_Type o_TypeIntersectionOfPhraseType (
 		final AvailObject object,
 		final A_Type aPhraseType)
 	{
@@ -839,7 +839,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_TypeUnion (
+	public A_Type o_TypeUnion (
 		final AvailObject object,
 		final A_Type another)
 	{
@@ -847,7 +847,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	protected A_Type o_TypeUnionOfListNodeType (
+	public A_Type o_TypeUnionOfListNodeType (
 		final AvailObject object,
 		final A_Type aListNodeType)
 	{
@@ -862,7 +862,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_TypeUnionOfPhraseType (
+	public A_Type o_TypeUnionOfPhraseType (
 		final AvailObject object,
 		final A_Type aPhraseType)
 	{
@@ -875,7 +875,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	public void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");

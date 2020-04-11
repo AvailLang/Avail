@@ -31,7 +31,7 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.types.A_Type;
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor;
 import com.avail.descriptor.types.InstanceMetaDescriptor;

@@ -32,7 +32,7 @@
 
 package com.avail.dispatch
 
-import com.avail.descriptor.AvailObject.Companion.error
+import com.avail.descriptor.representation.AvailObject.Companion.error
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.types.A_Type

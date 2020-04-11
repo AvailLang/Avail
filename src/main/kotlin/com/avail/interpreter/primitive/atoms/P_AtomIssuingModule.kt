@@ -33,6 +33,8 @@
 package com.avail.interpreter.primitive.atoms
 
 import com.avail.descriptor.ModuleDescriptor
+import com.avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
+import com.avail.descriptor.atoms.A_Atom.Companion.issuingModule
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.sets.SetDescriptor.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
@@ -60,7 +62,7 @@ object P_AtomIssuingModule : Primitive(1, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val atom = interpreter.argument(0)
-		if (atom.isAtomSpecial)
+		if (atom.isAtomSpecial())
 		{
 			return interpreter.primitiveFailure(E_SPECIAL_ATOM)
 		}

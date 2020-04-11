@@ -36,7 +36,7 @@ import com.avail.compiler.ParsingOperation
 import com.avail.compiler.problems.CompilerDiagnostics
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter.*
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter.Companion.canBeBackQuoted
-import com.avail.descriptor.AvailObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import com.avail.descriptor.bundles.A_BundleTree

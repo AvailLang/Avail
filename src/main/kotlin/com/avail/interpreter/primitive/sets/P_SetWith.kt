@@ -31,7 +31,7 @@
  */
 package com.avail.interpreter.primitive.sets
 
-import com.avail.descriptor.AvailObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.numbers.IntegerDescriptor.one
 import com.avail.descriptor.numbers.IntegerDescriptor.two

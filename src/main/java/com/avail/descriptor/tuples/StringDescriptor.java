@@ -35,7 +35,7 @@ package com.avail.descriptor.tuples;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.AbstractDescriptor;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.representation.IntegerSlotsEnum;
 import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.representation.ObjectSlotsEnum;
@@ -65,13 +65,13 @@ public abstract class StringDescriptor
 extends TupleDescriptor
 {
 	@Override @AvailMethod
-	protected boolean o_IsString (final AvailObject object)
+	public boolean o_IsString (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	protected SerializerOperation o_SerializerOperation (
+	public SerializerOperation o_SerializerOperation (
 		final AvailObject object)
 	{
 		final int size = object.tupleSize();
@@ -87,11 +87,11 @@ extends TupleDescriptor
 	}
 
 	@Override
-	protected abstract int o_TupleCodePointAt (
+	public abstract int o_TupleCodePointAt (
 		final AvailObject object, final int index);
 
 	@Override
-	protected boolean o_TupleElementsInRangeAreInstancesOf (
+	public boolean o_TupleElementsInRangeAreInstancesOf (
 		final AvailObject object,
 		final int startIndex,
 		final int endIndex,
@@ -103,13 +103,13 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected final int o_TupleIntAt (final AvailObject object, final int index)
+	public final int o_TupleIntAt (final AvailObject object, final int index)
 	{
 		throw unsupportedOperationException();
 	}
 
 	@Override
-	protected final void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	public final void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.write(object.asNativeString());
 	}

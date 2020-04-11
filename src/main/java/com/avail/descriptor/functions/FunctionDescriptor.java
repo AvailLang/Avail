@@ -35,7 +35,7 @@ package com.avail.descriptor.functions;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.A_Module;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.Descriptor;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.ModuleDescriptor;
@@ -119,7 +119,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected A_RawFunction o_Code (final AvailObject object)
+	public A_RawFunction o_Code (final AvailObject object)
 	{
 		return object.slot(CODE);
 	}
@@ -135,7 +135,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected boolean o_EqualsFunction (
+	public boolean o_EqualsFunction (
 		final AvailObject object,
 		final A_Function aFunction)
 	{
@@ -192,7 +192,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected boolean o_IsFunction (final AvailObject object)
+	public boolean o_IsFunction (final AvailObject object)
 	{
 		return true;
 	}
@@ -203,13 +203,13 @@ extends Descriptor
 	 * FunctionTypeDescriptor function type}.
 	 */
 	@Override
-	protected A_Type o_Kind (final AvailObject object)
+	public A_Type o_Kind (final AvailObject object)
 	{
 		return object.slot(CODE).functionType();
 	}
 
 	@Override
-	protected String o_NameForDebugger (final AvailObject object)
+	public String o_NameForDebugger (final AvailObject object)
 	{
 		return super.o_NameForDebugger(object) + " /* "
 			+ object.code().methodName().asNativeString()
@@ -220,13 +220,13 @@ extends Descriptor
 	 * Answer how many outer vars I've copied.
 	 */
 	@Override
-	protected int o_NumOuterVars (final AvailObject object)
+	public int o_NumOuterVars (final AvailObject object)
 	{
 		return object.variableObjectSlotsCount();
 	}
 
 	@Override
-	protected boolean o_OptionallyNilOuterVar (
+	public boolean o_OptionallyNilOuterVar (
 		final AvailObject object,
 		final int index)
 	{
@@ -239,14 +239,14 @@ extends Descriptor
 	}
 
 	@Override
-	protected AvailObject o_OuterVarAt (
+	public AvailObject o_OuterVarAt (
 		final AvailObject object, final int subscript)
 	{
 		return object.slot(OUTER_VAR_AT_, subscript);
 	}
 
 	@Override
-	protected void o_OuterVarAtPut (
+	public void o_OuterVarAtPut (
 		final AvailObject object,
 		final int subscript,
 		final AvailObject value)
@@ -256,7 +256,7 @@ extends Descriptor
 
 	@Override
 	@AvailMethod @ThreadSafe
-	protected SerializerOperation o_SerializerOperation (
+	public SerializerOperation o_SerializerOperation (
 		final AvailObject object)
 	{
 		if (object.numOuterVars() == 0)
@@ -267,13 +267,7 @@ extends Descriptor
 	}
 
 	@Override
-	public boolean o_ShowValueInNameForDebugger (final AvailObject object)
-	{
-		return true;
-	}
-
-	@Override
-	protected void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	public void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -293,7 +287,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	public void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -380,7 +374,7 @@ extends Descriptor
 		final A_Type functionType,
 		final A_Atom atom)
 	{
-		final A_Bundle bundle = atom.bundleOrNil();
+		final A_Bundle bundle = A_Atom.Companion.bundleOrNil(atom);
 		if (bundle.equalsNil())
 		{
 			throw new IllegalArgumentException("Atom to invoke has no method");

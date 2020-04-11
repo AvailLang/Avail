@@ -32,7 +32,7 @@
 
 package com.avail.utility.visitor
 
-import com.avail.descriptor.AvailObject
+import com.avail.descriptor.representation.AvailObject
 
 /**
  * Provide the ability to iterate over an object's fields, marking each child

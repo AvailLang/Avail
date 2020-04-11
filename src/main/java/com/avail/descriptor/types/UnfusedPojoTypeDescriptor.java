@@ -35,7 +35,7 @@ package com.avail.descriptor.types;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.maps.A_Map;
@@ -141,7 +141,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_EqualsPojoType (
+	public boolean o_EqualsPojoType (
 		final AvailObject object,
 		final AvailObject aPojoType)
 	{
@@ -227,38 +227,38 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_IsAbstract (final AvailObject object)
+	public boolean o_IsAbstract (final AvailObject object)
 	{
 		final Class<?> javaClass = object.slot(JAVA_CLASS).javaObjectNotNull();
 		return isAbstract(javaClass.getModifiers());
 	}
 
 	@Override @AvailMethod
-	protected boolean o_IsPojoArrayType (final AvailObject object)
+	public boolean o_IsPojoArrayType (final AvailObject object)
 	{
 		return false;
 	}
 
 	@Override @AvailMethod
-	protected boolean o_IsPojoFusedType (final AvailObject object)
+	public boolean o_IsPojoFusedType (final AvailObject object)
 	{
 		return false;
 	}
 
 	@Override @AvailMethod
-	protected AvailObject o_JavaAncestors (final AvailObject object)
+	public AvailObject o_JavaAncestors (final AvailObject object)
 	{
 		return object.slot(JAVA_ANCESTORS);
 	}
 
 	@Override @AvailMethod
-	protected AvailObject o_JavaClass (final AvailObject object)
+	public AvailObject o_JavaClass (final AvailObject object)
 	{
 		return object.slot(JAVA_CLASS);
 	}
 
 	@Override
-	protected @Nullable Object o_MarshalToJava (
+	public @Nullable Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{
@@ -290,7 +290,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_PojoSelfType (final AvailObject object)
+	public A_Type o_PojoSelfType (final AvailObject object)
 	{
 		if (isShared())
 		{
@@ -303,14 +303,14 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	protected SerializerOperation o_SerializerOperation (
+	public SerializerOperation o_SerializerOperation (
 		final AvailObject object)
 	{
 		return SerializerOperation.UNFUSED_POJO_TYPE;
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_TypeIntersectionOfPojoType (
+	public A_Type o_TypeIntersectionOfPojoType (
 		final AvailObject object,
 		final A_Type aPojoType)
 	{
@@ -330,7 +330,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_TypeIntersectionOfPojoFusedType (
+	public A_Type o_TypeIntersectionOfPojoFusedType (
 		final AvailObject object,
 		final A_Type aFusedPojoType)
 	{
@@ -376,7 +376,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_TypeIntersectionOfPojoUnfusedType (
+	public A_Type o_TypeIntersectionOfPojoUnfusedType (
 		final AvailObject object,
 		final A_Type anUnfusedPojoType)
 	{
@@ -410,7 +410,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_TypeUnionOfPojoType (
+	public A_Type o_TypeUnionOfPojoType (
 		final AvailObject object,
 		final A_Type aPojoType)
 	{
@@ -424,7 +424,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_TypeUnionOfPojoFusedType (
+	public A_Type o_TypeUnionOfPojoFusedType (
 		final AvailObject object,
 		final A_Type aFusedPojoType)
 	{
@@ -440,7 +440,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_TypeUnionOfPojoUnfusedType (
+	public A_Type o_TypeUnionOfPojoUnfusedType (
 		final AvailObject object,
 		final A_Type anUnfusedPojoType)
 	{
@@ -494,7 +494,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Map o_TypeVariables (final AvailObject object)
+	public A_Map o_TypeVariables (final AvailObject object)
 	{
 		if (isShared())
 		{
@@ -535,7 +535,7 @@ extends PojoTypeDescriptor
 	}
 
 	@Override
-	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	public void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");

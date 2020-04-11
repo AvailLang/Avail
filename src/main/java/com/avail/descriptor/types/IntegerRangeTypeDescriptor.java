@@ -35,7 +35,7 @@ package com.avail.descriptor.types;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.AbstractDescriptor;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.CharacterDescriptor;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.numbers.A_Number;
@@ -50,7 +50,7 @@ import javax.annotation.Nullable;
 import java.math.BigInteger;
 import java.util.IdentityHashMap;
 
-import static com.avail.descriptor.AvailObject.error;
+import static com.avail.descriptor.representation.AvailObject.error;
 import static com.avail.descriptor.numbers.InfinityDescriptor.negativeInfinity;
 import static com.avail.descriptor.numbers.InfinityDescriptor.positiveInfinity;
 import static com.avail.descriptor.numbers.IntegerDescriptor.*;
@@ -118,7 +118,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_EqualsIntegerRangeType (
+	public boolean o_EqualsIntegerRangeType (
 		final AvailObject object,
 		final A_Type another)
 	{
@@ -152,13 +152,13 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_IsIntegerRangeType (final AvailObject object)
+	public boolean o_IsIntegerRangeType (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod
-	protected boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
+	public boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
 	{
 		return aType.isSupertypeOfIntegerRangeType(object);
 	}
@@ -175,7 +175,7 @@ extends TypeDescriptor
 	 * at range type creation time.
 	 */
 	@Override @AvailMethod
-	protected boolean o_IsSupertypeOfIntegerRangeType (
+	public boolean o_IsSupertypeOfIntegerRangeType (
 		final AvailObject object,
 		final A_Type possibleSub)
 	{
@@ -203,19 +203,19 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Number o_LowerBound (final AvailObject object)
+	public A_Number o_LowerBound (final AvailObject object)
 	{
 		return object.slot(LOWER_BOUND);
 	}
 
 	@Override @AvailMethod
-	protected boolean o_LowerInclusive (final AvailObject object)
+	public boolean o_LowerInclusive (final AvailObject object)
 	{
 		return lowerInclusive;
 	}
 
 	@Override @AvailMethod
-	protected AvailObject o_MakeImmutable (final AvailObject object)
+	public AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		if (isMutable())
 		{
@@ -226,7 +226,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	protected @Nullable Object o_MarshalToJava (
+	public @Nullable Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{
@@ -260,7 +260,7 @@ extends TypeDescriptor
 	}
 
 	@Override
-	protected boolean o_RangeIncludesInt (
+	public boolean o_RangeIncludesInt (
 		final AvailObject object,
 		final int anInt)
 	{
@@ -309,14 +309,14 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	protected SerializerOperation o_SerializerOperation (
+	public SerializerOperation o_SerializerOperation (
 		final AvailObject object)
 	{
 		return SerializerOperation.INTEGER_RANGE_TYPE;
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_TypeIntersection (
+	public A_Type o_TypeIntersection (
 		final AvailObject object,
 		final A_Type another)
 	{
@@ -332,7 +332,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_TypeIntersectionOfIntegerRangeType (
+	public A_Type o_TypeIntersectionOfIntegerRangeType (
 		final AvailObject object,
 		final A_Type another)
 	{
@@ -367,7 +367,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_TypeIntersectionOfPrimitiveTypeEnum (
+	public A_Type o_TypeIntersectionOfPrimitiveTypeEnum (
 		final AvailObject object,
 		final Types primitiveTypeEnum)
 	{
@@ -377,7 +377,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_TypeUnion (
+	public A_Type o_TypeUnion (
 		final AvailObject object,
 		final A_Type another)
 	{
@@ -393,7 +393,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_TypeUnionOfIntegerRangeType (
+	public A_Type o_TypeUnionOfIntegerRangeType (
 		final AvailObject object,
 		final A_Type another)
 	{
@@ -423,7 +423,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_TypeUnionOfPrimitiveTypeEnum (
+	public A_Type o_TypeUnionOfPrimitiveTypeEnum (
 		final AvailObject object,
 		final Types primitiveTypeEnum)
 	{
@@ -431,19 +431,19 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Number o_UpperBound (final AvailObject object)
+	public A_Number o_UpperBound (final AvailObject object)
 	{
 		return object.slot(UPPER_BOUND);
 	}
 
 	@Override @AvailMethod
-	protected boolean o_UpperInclusive (final AvailObject object)
+	public boolean o_UpperInclusive (final AvailObject object)
 	{
 		return upperInclusive;
 	}
 
 	@Override
-	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	public void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");

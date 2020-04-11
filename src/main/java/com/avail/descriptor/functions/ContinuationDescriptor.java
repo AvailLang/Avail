@@ -40,7 +40,7 @@ import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.HideFieldJustForPrinting;
 import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.A_Module;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.Descriptor;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
@@ -80,7 +80,7 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 
-import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.representation.AvailObject.multiplier;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.functions.ContinuationDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.functions.ContinuationDescriptor.ObjectSlots.*;
@@ -240,7 +240,7 @@ extends Descriptor
 	 * Set both my level one program counter and level one stack pointer.
 	 */
 	@Override @AvailMethod
-	protected void o_AdjustPcAndStackp (
+	public void o_AdjustPcAndStackp (
 		final AvailObject object,
 		final int pc,
 		final int stackp)
@@ -251,7 +251,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected AvailObject o_FrameAt (
+	public AvailObject o_FrameAt (
 		final AvailObject object,
 		final int subscript)
 	{
@@ -259,7 +259,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected AvailObject o_FrameAtPut (
+	public AvailObject o_FrameAtPut (
 		final AvailObject object,
 		final int subscript,
 		final AvailObject value)
@@ -269,13 +269,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Continuation o_Caller (final AvailObject object)
+	public A_Continuation o_Caller (final AvailObject object)
 	{
 		return object.slot(CALLER);
 	}
 
 	@Override
-	protected int o_CurrentLineNumber (final AvailObject object)
+	public int o_CurrentLineNumber (final AvailObject object)
 	{
 		final A_RawFunction code = object.function().code();
 		final A_Tuple encodedDeltas = code.lineNumberEncodedDeltas();
@@ -312,7 +312,7 @@ extends Descriptor
 	 * is therefore always able to directly modify it.
 	 */
 	@Override @AvailMethod
-	protected A_Continuation o_EnsureMutable (final AvailObject object)
+	public A_Continuation o_EnsureMutable (final AvailObject object)
 	{
 		if (isMutable())
 		{
@@ -328,7 +328,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_EqualsContinuation (
+	public boolean o_EqualsContinuation (
 		final AvailObject object,
 		final A_Continuation aContinuation)
 	{
@@ -363,7 +363,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Function o_Function (final AvailObject object)
+	public A_Function o_Function (final AvailObject object)
 	{
 		return object.slot(FUNCTION);
 	}
@@ -425,7 +425,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_Kind (final AvailObject object)
+	public A_Type o_Kind (final AvailObject object)
 	{
 		return continuationTypeForFunctionType(object.function().kind());
 	}
@@ -434,7 +434,7 @@ extends Descriptor
 	 * Set both my chunk index and the offset into it.
 	 */
 	@Override @AvailMethod
-	protected void o_LevelTwoChunkOffset (
+	public void o_LevelTwoChunkOffset (
 		final AvailObject object,
 		final L2Chunk chunk,
 		final int offset)
@@ -455,7 +455,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected L2Chunk o_LevelTwoChunk (final AvailObject object)
+	public L2Chunk o_LevelTwoChunk (final AvailObject object)
 	{
 		final L2Chunk chunk =
 			object.mutableSlot(LEVEL_TWO_CHUNK).javaObjectNotNull();
@@ -467,13 +467,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_LevelTwoOffset (final AvailObject object)
+	public int o_LevelTwoOffset (final AvailObject object)
 	{
 		return object.mutableSlot(LEVEL_TWO_OFFSET);
 	}
 
 	@Override
-	protected String o_NameForDebugger (final AvailObject object)
+	public String o_NameForDebugger (final AvailObject object)
 	{
 		final StringBuilder builder = new StringBuilder();
 		builder.append(super.o_NameForDebugger(object));
@@ -497,26 +497,26 @@ extends Descriptor
 	 * entries.
 	 */
 	@Override @AvailMethod
-	protected int o_NumSlots (final AvailObject object)
+	public int o_NumSlots (final AvailObject object)
 	{
 		return object.variableObjectSlotsCount();
 	}
 
 	@Override @AvailMethod
-	protected int o_Pc (final AvailObject object)
+	public int o_Pc (final AvailObject object)
 	{
 		return object.slot(PROGRAM_COUNTER);
 	}
 
 	@Override
-	protected AvailObject o_RegisterDump (
+	public AvailObject o_RegisterDump (
 		final AvailObject object)
 	{
 		return object.slot(LEVEL_TWO_REGISTER_DUMP);
 	}
 
 	@Override
-	protected A_Continuation o_ReplacingCaller (
+	public A_Continuation o_ReplacingCaller (
 		final AvailObject object,
 		final A_Continuation newCaller)
 	{
@@ -528,7 +528,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected SerializerOperation o_SerializerOperation (
+	public SerializerOperation o_SerializerOperation (
 		final AvailObject object)
 	{
 		return SerializerOperation.CONTINUATION;
@@ -545,7 +545,7 @@ extends Descriptor
 	 * based on just the stack area.
 	 */
 	@Override @AvailMethod
-	protected AvailObject o_StackAt (
+	public AvailObject o_StackAt (
 		final AvailObject object,
 		final int subscript)
 	{
@@ -553,7 +553,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_Stackp (final AvailObject object)
+	public int o_Stackp (final AvailObject object)
 	{
 		return object.slot(STACK_POINTER);
 	}

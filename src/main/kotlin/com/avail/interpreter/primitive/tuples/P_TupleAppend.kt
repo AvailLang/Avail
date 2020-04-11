@@ -32,7 +32,7 @@
 
 package com.avail.interpreter.primitive.tuples
 
-import com.avail.descriptor.AvailObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.tuples.TupleDescriptor

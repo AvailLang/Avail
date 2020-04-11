@@ -33,6 +33,8 @@
 package com.avail.interpreter.primitive.sockets
 
 import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
+import com.avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.SOCKET_KEY
 import com.avail.descriptor.sets.SetDescriptor.set
@@ -67,7 +69,8 @@ object P_SocketShutdownInput : Primitive(1, CanInline, HasSideEffect)
 		if (pojo.equalsNil())
 		{
 			return interpreter.primitiveFailure(
-				if (handle.isAtomSpecial) E_SPECIAL_ATOM else E_INVALID_HANDLE)
+				if (handle.isAtomSpecial()) E_SPECIAL_ATOM
+				else E_INVALID_HANDLE)
 		}
 		val socket = pojo.javaObjectNotNull<AsynchronousSocketChannel>()
 		return try {

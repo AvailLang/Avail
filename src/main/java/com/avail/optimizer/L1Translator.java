@@ -32,7 +32,8 @@
 package com.avail.optimizer;
 
 import com.avail.AvailRuntime;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.atoms.A_Atom;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.atoms.AtomDescriptor;
 import com.avail.descriptor.bundles.A_Bundle;
 import com.avail.descriptor.bundles.MessageBundleDescriptor;
@@ -969,7 +970,7 @@ public final class L1Translator
 			this.expectedType = expectedType;
 			this.superUnionType = superUnionType;
 			this.isSuper = !superUnionType.isBottom();
-			this.quotedBundleName = bundle.message().atomName().toString();
+			this.quotedBundleName = A_Atom.Companion.atomName(bundle.message()).toString();
 			this.onFallBackToSlowLookup = generator.createBasicBlock(
 				"fall back to slow lookup during " + quotedBundleName);
 			this.onReificationWithCheck = generator.createBasicBlock(

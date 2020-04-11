@@ -37,7 +37,7 @@ import com.avail.builder.ResolvedModuleName;
 import com.avail.builder.UnresolvedDependencyException;
 import com.avail.descriptor.A_ChunkDependable;
 import com.avail.descriptor.A_Module;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.functions.A_Continuation;
 import com.avail.descriptor.functions.A_RawFunction;

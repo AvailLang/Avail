@@ -32,7 +32,7 @@
 
 package com.avail.descriptor.functions;
 
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.NilDescriptor;
 import com.avail.descriptor.functions.ContinuationDescriptor.IntegerSlots;
 import com.avail.descriptor.functions.ContinuationDescriptor.ObjectSlots;

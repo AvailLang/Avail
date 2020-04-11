@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.primitive.bootstrap.syntax
 
+import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.*
 import com.avail.descriptor.numbers.IntegerDescriptor.fromInt

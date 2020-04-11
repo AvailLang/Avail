@@ -34,7 +34,7 @@ package com.avail.descriptor.sets;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.Descriptor;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.atoms.AtomWithPropertiesDescriptor;
@@ -88,13 +88,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_SetBinHash (final AvailObject object)
+	public int o_SetBinHash (final AvailObject object)
 	{
 		return object.slot(BIN_HASH);
 	}
 
 	@Override @AvailMethod
-	protected boolean o_IsSetBin (final AvailObject object)
+	public boolean o_IsSetBin (final AvailObject object)
 	{
 		return true;
 	}
@@ -105,7 +105,7 @@ extends Descriptor
 	 * answer nil.
 	 */
 	@Override @AvailMethod
-	protected abstract boolean o_BinElementsAreAllInstancesOfKind (
+	public abstract boolean o_BinElementsAreAllInstancesOfKind (
 		final AvailObject object, A_Type kind);
 
 	@Override
@@ -115,7 +115,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected abstract SetIterator o_SetBinIterator (
+	public abstract SetIterator o_SetBinIterator (
 		final AvailObject object);
 
 	/**

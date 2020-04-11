@@ -31,6 +31,7 @@
  */
 package com.avail.interpreter.primitive.files
 
+import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.FILE_KEY
 import com.avail.descriptor.numbers.IntegerDescriptor.fromLong
@@ -52,7 +53,8 @@ import java.io.IOException
 import java.io.RandomAccessFile
 
 /**
- * **Primitive:** Answer the size of the [file][RandomAccessFile] associated with the specified [handle][AtomDescriptor]. Supports 64-bit file sizes.
+ * **Primitive:** Answer the size of the [file][RandomAccessFile] associated
+ * with the specified [handle][AtomDescriptor]. Supports 64-bit file sizes.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

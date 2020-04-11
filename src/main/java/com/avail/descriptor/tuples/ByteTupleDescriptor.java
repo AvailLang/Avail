@@ -34,7 +34,7 @@ package com.avail.descriptor.tuples;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.numbers.A_Number;
 import com.avail.descriptor.representation.A_BasicObject;
@@ -47,8 +47,8 @@ import com.avail.utility.json.JSONWriter;
 import java.nio.ByteBuffer;
 import java.util.function.IntUnaryOperator;
 
-import static com.avail.descriptor.AvailObject.multiplier;
-import static com.avail.descriptor.AvailObject.newLike;
+import static com.avail.descriptor.representation.AvailObject.multiplier;
+import static com.avail.descriptor.representation.AvailObject.newLike;
 import static com.avail.descriptor.numbers.IntegerDescriptor.fromUnsignedByte;
 import static com.avail.descriptor.numbers.IntegerDescriptor.hashOfUnsignedByte;
 import static com.avail.descriptor.representation.Mutability.*;
@@ -123,7 +123,7 @@ extends NumericTupleDescriptor
 	private final int unusedBytesOfLastLong;
 
 	@Override @AvailMethod
-	protected A_Tuple o_AppendCanDestroy (
+	public A_Tuple o_AppendCanDestroy (
 		final AvailObject object,
 		final A_BasicObject newElement,
 		final boolean canDestroy)
@@ -161,7 +161,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_BitsPerEntry (
+	public int o_BitsPerEntry (
 		final AvailObject object)
 	{
 		// Answer approximately how many bits per entry are taken up by this
@@ -170,7 +170,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_CompareFromToWithByteTupleStartingAt (
+	public boolean o_CompareFromToWithByteTupleStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -196,7 +196,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_CompareFromToWithStartingAt (
+	public boolean o_CompareFromToWithStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -211,7 +211,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_ComputeHashFromTo (
+	public int o_ComputeHashFromTo (
 		final AvailObject object,
 		final int start,
 		final int end)
@@ -228,7 +228,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override
-	protected A_Tuple o_ConcatenateWith (
+	public A_Tuple o_ConcatenateWith (
 		final AvailObject object,
 		final A_Tuple otherTuple,
 		final boolean canDestroy)
@@ -294,7 +294,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override
-	protected A_Tuple o_CopyTupleFromToCanDestroy (
+	public A_Tuple o_CopyTupleFromToCanDestroy (
 		final AvailObject object,
 		final int start,
 		final int end,
@@ -337,7 +337,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_EqualsByteTuple (
+	public boolean o_EqualsByteTuple (
 		final AvailObject object,
 		final A_Tuple aByteTuple)
 	{
@@ -379,13 +379,13 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_IsByteTuple (final AvailObject object)
+	public boolean o_IsByteTuple (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod
-	protected boolean o_IsInstanceOfKind (
+	public boolean o_IsInstanceOfKind (
 		final AvailObject object,
 		final A_Type aType)
 	{
@@ -428,7 +428,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected AvailObject o_MakeImmutable (final AvailObject object)
+	public AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		if (isMutable())
 		{
@@ -438,7 +438,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected AvailObject o_MakeShared (final AvailObject object)
+	public AvailObject o_MakeShared (final AvailObject object)
 	{
 		if (!isShared())
 		{
@@ -448,7 +448,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override
-	protected void o_TransferIntoByteBuffer (
+	public void o_TransferIntoByteBuffer (
 		final AvailObject object,
 		final int startIndex,
 		final int endIndex,
@@ -461,7 +461,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected AvailObject o_TupleAt (
+	public AvailObject o_TupleAt (
 		final AvailObject object,
 		final int index)
 	{
@@ -471,7 +471,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Tuple o_TupleAtPuttingCanDestroy (
+	public A_Tuple o_TupleAtPuttingCanDestroy (
 		final AvailObject object,
 		final int index,
 		final A_BasicObject newValueObject,
@@ -504,7 +504,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override
-	protected boolean o_TupleElementsInRangeAreInstancesOf (
+	public boolean o_TupleElementsInRangeAreInstancesOf (
 		final AvailObject object,
 		final int startIndex,
 		final int endIndex,
@@ -516,7 +516,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_TupleIntAt (
+	public int o_TupleIntAt (
 		final AvailObject object,
 		final int index)
 	{
@@ -526,7 +526,7 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Tuple o_TupleReverse(final AvailObject object)
+	public A_Tuple o_TupleReverse(final AvailObject object)
 	{
 		final int tupleSize = object.tupleSize();
 		if (tupleSize > 0 && tupleSize < maximumCopySize)
@@ -541,14 +541,14 @@ extends NumericTupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_TupleSize (final AvailObject object)
+	public int o_TupleSize (final AvailObject object)
 	{
 		return
 			(object.variableIntegerSlotsCount() << 3) - unusedBytesOfLastLong;
 	}
 
 	@Override
-	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	public void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startArray();
 		for (int i = 1, limit = object.tupleSize(); i <= limit; i++)

@@ -33,7 +33,7 @@ package com.avail.descriptor.variables
 
 import com.avail.descriptor.A_ChunkDependable
 import com.avail.descriptor.A_Module
-import com.avail.descriptor.AvailObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.FiberDescriptor
 import com.avail.descriptor.NilDescriptor
 import com.avail.descriptor.atoms.A_Atom

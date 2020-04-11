@@ -34,7 +34,7 @@ import com.avail.descriptor.functions.A_Continuation;
 
 import java.util.function.UnaryOperator;
 
-import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.representation.AvailObject.multiplier;
 
 /**
  * A semantic value which represents a slot of some {@link Frame}'s effective

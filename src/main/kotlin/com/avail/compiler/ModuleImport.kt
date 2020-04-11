@@ -36,6 +36,7 @@ import com.avail.builder.ModuleName
 import com.avail.compiler.ModuleImport.Companion.fromSerializedTuple
 import com.avail.descriptor.A_Module
 import com.avail.descriptor.NilDescriptor
+import com.avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.maps.MapDescriptor.emptyMap

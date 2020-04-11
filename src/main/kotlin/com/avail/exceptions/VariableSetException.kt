@@ -32,7 +32,7 @@
 
 package com.avail.exceptions
 
-import com.avail.descriptor.AvailObject
+import com.avail.descriptor.representation.AvailObject
 
 /**
  * `VariableSetException` is thrown when [AvailObject.setValue] fails for any

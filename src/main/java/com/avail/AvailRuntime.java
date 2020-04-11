@@ -40,7 +40,7 @@ import com.avail.builder.ModuleRoots;
 import com.avail.builder.ResolvedModuleName;
 import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.A_Module;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.CharacterDescriptor;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
@@ -52,7 +52,6 @@ import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom;
 import com.avail.descriptor.bundles.A_Bundle;
 import com.avail.descriptor.functions.A_Function;
 import com.avail.descriptor.functions.A_RawFunction;
-import com.avail.descriptor.functions.CompiledCodeDescriptor;
 import com.avail.descriptor.functions.FunctionDescriptor;
 import com.avail.descriptor.maps.A_Map;
 import com.avail.descriptor.maps.MapDescriptor;
@@ -345,7 +344,7 @@ public final class AvailRuntime
 			final Set<A_Method> methods = new HashSet<>();
 			for (final A_Atom atom : atoms)
 			{
-				final A_Bundle bundle = atom.bundleOrNil();
+				final A_Bundle bundle = A_Atom.Companion.bundleOrNil(atom);
 				if (!bundle.equalsNil())
 				{
 					methods.add(bundle.bundleMethod());
@@ -1257,7 +1256,7 @@ public final class AvailRuntime
 
 		for (final A_Atom atom : specialAtomsList)
 		{
-			assert atom.isAtomSpecial();
+			assert A_Atom.Companion.isAtomSpecial(atom);
 		}
 
 		// Make sure all special objects are shared, and also make sure all
@@ -1268,7 +1267,7 @@ public final class AvailRuntime
 			if (object != null)
 			{
 				specialObjects[i] = object.makeShared();
-				assert !object.isAtom() || object.isAtomSpecial();
+				assert !object.isAtom() || A_Atom.Companion.isAtomSpecial(object);
 			}
 		}
 	}
@@ -1416,7 +1415,8 @@ public final class AvailRuntime
 				{
 					// Remove the desiccated message bundle from its atom.
 					final A_Atom atom = bundle.message();
-					atom.setAtomProperty(
+					A_Atom.Companion.setAtomProperty(
+						atom,
 						SpecialAtom.MESSAGE_BUNDLE_KEY.atom,
 						nil);
 				}
@@ -1520,7 +1520,7 @@ public final class AvailRuntime
 		runtimeLock.writeLock().lock();
 		try
 		{
-			final A_Bundle bundle = methodName.bundleOrCreate();
+			final A_Bundle bundle = A_Atom.Companion.bundleOrCreate(methodName);
 			final A_Method method = bundle.bundleMethod();
 			assert method.numArgs() == sealSignature.tupleSize();
 			method.addSealedArgumentsType(sealSignature);
@@ -1550,7 +1550,7 @@ public final class AvailRuntime
 		runtimeLock.writeLock().lock();
 		try
 		{
-			final A_Bundle bundle = methodName.bundleOrCreate();
+			final A_Bundle bundle = A_Atom.Companion.bundleOrCreate(methodName);
 			final A_Method method = bundle.bundleMethod();
 			method.removeSealedArgumentsType(sealSignature);
 		}

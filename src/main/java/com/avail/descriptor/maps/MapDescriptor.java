@@ -34,7 +34,7 @@ package com.avail.descriptor.maps;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.Descriptor;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.representation.A_BasicObject;
@@ -229,7 +229,7 @@ extends Descriptor
 	 * and values to present.  Hide the bin structure.
 	 */
 	@Override
-	protected AvailObjectFieldHelper[] o_DescribeForDebugger (
+	public AvailObjectFieldHelper[] o_DescribeForDebugger (
 		final AvailObject object)
 	{
 		if (object.isInstanceOfKind(
@@ -313,7 +313,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected String o_NameForDebugger (final AvailObject object)
+	public String o_NameForDebugger (final AvailObject object)
 	{
 		return super.o_NameForDebugger(object) + ": mapSize="
 			+ object.mapSize();
@@ -326,7 +326,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_EqualsMap (final AvailObject object, final A_Map aMap)
+	public boolean o_EqualsMap (final AvailObject object, final A_Map aMap)
 	{
 		if (object.sameAddressAs(aMap)
 			|| rootBin(object).sameAddressAs(rootBin(aMap)))
@@ -376,7 +376,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected void o_ForEach (
+	public void o_ForEach (
 		final AvailObject object,
 		final BiConsumer<? super AvailObject, ? super AvailObject> action)
 	{
@@ -384,7 +384,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_IsInstanceOfKind (
+	public boolean o_IsInstanceOfKind (
 		final AvailObject object,
 		final A_Type aTypeObject)
 	{
@@ -524,13 +524,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_IsMap (final AvailObject object)
+	public boolean o_IsMap (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_Kind (final AvailObject object)
+	public A_Type o_Kind (final AvailObject object)
 	{
 		final int size = object.mapSize();
 		final A_Type sizeRange = instanceType(fromInt(size));
@@ -542,7 +542,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected AvailObject o_MapAt (
+	public AvailObject o_MapAt (
 		final AvailObject object,
 		final A_BasicObject keyObject)
 	{
@@ -569,7 +569,7 @@ extends Descriptor
 	 * @return The new map, possibly the given one if canDestroy is true.
 	 */
 	@Override @AvailMethod
-	protected A_Map o_MapAtPuttingCanDestroy (
+	public A_Map o_MapAtPuttingCanDestroy (
 		final AvailObject object,
 		final A_BasicObject keyObject,
 		final A_BasicObject newValueObject,
@@ -625,7 +625,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Set o_KeysAsSet (final AvailObject object)
+	public A_Set o_KeysAsSet (final AvailObject object)
 	{
 		// Answer a set with all my keys.  Mark the keys as immutable because
 		// they'll be shared with the new set.
@@ -640,7 +640,7 @@ extends Descriptor
 	 * they'll be shared with the new tuple.
 	 */
 	@Override @AvailMethod
-	protected A_Tuple o_ValuesAsTuple (final AvailObject object)
+	public A_Tuple o_ValuesAsTuple (final AvailObject object)
 	{
 		final int size = object.mapSize();
 		final MapIterable mapIterable = object.mapIterable();
@@ -649,7 +649,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Map o_MapWithoutKeyCanDestroy (
+	public A_Map o_MapWithoutKeyCanDestroy (
 		final AvailObject object,
 		final A_BasicObject keyObject,
 		final boolean canDestroy)
@@ -676,27 +676,27 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_HasKey (final AvailObject object, final A_BasicObject key)
+	public boolean o_HasKey (final AvailObject object, final A_BasicObject key)
 	{
 		// Answer whether the map has the given key.
 		return rootBin(object).mapBinAtHash(key, key.hash()) != null;
 	}
 
 	@Override @AvailMethod
-	protected int o_MapSize (final AvailObject object)
+	public int o_MapSize (final AvailObject object)
 	{
 		// Answer how many elements are in the map. Delegate to the rootBin.
 		return rootBin(object).mapBinSize();
 	}
 
 	@Override @AvailMethod
-	protected MapIterable o_MapIterable (final AvailObject object)
+	public MapIterable o_MapIterable (final AvailObject object)
 	{
 		return rootBin(object).mapBinIterable();
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	protected SerializerOperation o_SerializerOperation (
+	public SerializerOperation o_SerializerOperation (
 		final AvailObject object)
 	{
 		return SerializerOperation.MAP;
@@ -709,7 +709,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	public void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -742,7 +742,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	public void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");

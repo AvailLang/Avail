@@ -34,8 +34,10 @@ package com.avail.serialization
 
 import com.avail.AvailRuntime
 import com.avail.descriptor.A_Module
-import com.avail.descriptor.AvailObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.atoms.A_Atom
+import com.avail.descriptor.atoms.A_Atom.Companion.atomName
+import com.avail.descriptor.atoms.A_Atom.Companion.issuingModule
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.tuples.A_String
@@ -360,7 +362,7 @@ class Serializer
 	companion object
 	{
 		/**
-		 * The inverse of the [AvailRuntime]'s [special
+		 * The inverse of the [AvailRuntime]'s [special&#32;
 		 * objects][AvailRuntime.specialObjects] list.  Entries that are `null`
 		 * (i.e., unused entries} are not included.
 		 */
@@ -381,7 +383,7 @@ class Serializer
 			HashMap(100)
 
 		/**
-		 * Look up the object.  If it is a [special
+		 * Look up the object.  If it is a [special&#32;
 		 * object][AvailRuntime.specialObjects], then answer which special
 		 * object it is, otherwise answer -1.
 		 *
@@ -394,7 +396,7 @@ class Serializer
 			specialObjects[obj] ?: -1
 
 		/**
-		 * Look up the object.  If it is a [special
+		 * Look up the object.  If it is a [special&#32;
 		 * atom][AvailRuntime.specialAtoms], then answer which special atom it
 		 * is, otherwise answer -1.
 		 *
@@ -403,28 +405,20 @@ class Serializer
 		 * @return
 		 *   The object's zero-based index in `encounteredObjects`.
 		 */
-		internal fun indexOfSpecialAtom(obj: A_Atom): Int =
-			specialAtoms[obj] ?: -1
+		internal fun indexOfSpecialAtom(obj: A_Atom) = specialAtoms[obj] ?: -1
 
 		init
 		{
 			// Build the inverse of AvailRuntime#specialObjects().
-			val objectList = AvailRuntime.specialObjects()
-			for (i in objectList.indices)
-			{
-				val specialObject = objectList[i]
+			AvailRuntime.specialObjects().forEachIndexed { i, specialObject ->
 				if (specialObject !== null)
 				{
 					specialObjects[specialObject] = i
 				}
 			}
 			// And build the inverse of AvailRuntime#specialAtoms().
-			val atomList = AvailRuntime.specialAtoms()
-			for (i in atomList.indices)
-			{
-				val specialAtom = atomList[i]
-				if (specialAtom !== null)
-				{
+			AvailRuntime.specialAtoms().forEachIndexed { i, specialAtom ->
+				if (specialAtom !== null) {
 					specialAtoms[specialAtom] = i
 					specialAtomsByName[specialAtom.atomName()] = specialAtom
 				}

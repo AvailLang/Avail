@@ -59,6 +59,10 @@ import com.avail.descriptor.FiberDescriptor.newLoaderFiber
 import com.avail.descriptor.ModuleDescriptor.newModule
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.atoms.A_Atom
+import com.avail.descriptor.atoms.A_Atom.Companion.atomName
+import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrNil
+import com.avail.descriptor.atoms.A_Atom.Companion.extractBoolean
+import com.avail.descriptor.atoms.A_Atom.Companion.issuingModule
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
@@ -98,6 +102,7 @@ import com.avail.descriptor.phrases.MarkerPhraseDescriptor.newMarkerNode
 import com.avail.descriptor.phrases.SendPhraseDescriptor.newSendNode
 import com.avail.descriptor.phrases.VariableUsePhraseDescriptor.newUse
 import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.sets.SetDescriptor.emptySet
@@ -1317,7 +1322,8 @@ class AvailCompiler(
 				if (latestArgument.isMacroSubstitutionNode || latestArgument
 						.isInstanceOfKind(SEND_PHRASE.mostGeneralType()))
 				{
-					val argumentBundle = latestArgument.apparentSendName().bundleOrNil()
+					val argumentBundle =
+						latestArgument.apparentSendName().bundleOrNil()
 					assert(!argumentBundle.equalsNil())
 					if (prefilter.hasKey(argumentBundle))
 					{

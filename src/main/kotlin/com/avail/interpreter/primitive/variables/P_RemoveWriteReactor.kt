@@ -33,6 +33,7 @@
 package com.avail.interpreter.primitive.variables
 
 import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.sets.SetDescriptor.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
@@ -65,7 +66,7 @@ object P_RemoveWriteReactor : Primitive(2, HasSideEffect)
 		val variable = interpreter.argument(0)
 		val key = interpreter.argument(1)
 		// Forbid special atoms.
-		if (key.isAtomSpecial)
+		if (key.isAtomSpecial())
 		{
 			return interpreter.primitiveFailure(E_SPECIAL_ATOM)
 		}

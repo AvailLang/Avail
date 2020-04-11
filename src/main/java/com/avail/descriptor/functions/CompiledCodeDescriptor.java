@@ -40,7 +40,7 @@ import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.A_Module;
 import com.avail.descriptor.AbstractDescriptor;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.Descriptor;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
@@ -86,7 +86,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import static com.avail.AvailRuntime.currentRuntime;
-import static com.avail.descriptor.AvailObject.newObjectIndexedIntegerIndexedDescriptor;
+import static com.avail.descriptor.representation.AvailObject.newObjectIndexedIntegerIndexedDescriptor;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.functions.CompiledCodeDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.functions.CompiledCodeDescriptor.ObjectSlots.FUNCTION_TYPE;
@@ -545,7 +545,7 @@ extends Descriptor
 	 * Show the types of local variables and outer variables.
 	 */
 	@Override
-	protected AvailObjectFieldHelper[] o_DescribeForDebugger (
+	public AvailObjectFieldHelper[] o_DescribeForDebugger (
 		final AvailObject object)
 	{
 		final List<AvailObjectFieldHelper> fields =
@@ -799,7 +799,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected void o_CountdownToReoptimize (
+	public void o_CountdownToReoptimize (
 		final AvailObject object,
 		final int value)
 	{
@@ -807,19 +807,19 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected long o_TotalInvocations (final AvailObject object)
+	public long o_TotalInvocations (final AvailObject object)
 	{
 		return invocationStatistic.totalInvocations.get();
 	}
 
 	@Override @AvailMethod
-	protected AvailObject o_LiteralAt (final AvailObject object, final int subscript)
+	public AvailObject o_LiteralAt (final AvailObject object, final int subscript)
 	{
 		return object.slot(LITERAL_AT_, subscript);
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_FunctionType (final AvailObject object)
+	public A_Type o_FunctionType (final AvailObject object)
 	{
 		return object.slot(FUNCTION_TYPE);
 	}
@@ -835,7 +835,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected void o_DecrementCountdownToReoptimize (
+	public void o_DecrementCountdownToReoptimize (
 		final AvailObject object,
 		final Continuation1NotNull<Boolean> continuation)
 	{
@@ -860,7 +860,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_NumNybbles (final AvailObject object)
+	public int o_NumNybbles (final AvailObject object)
 	{
 		final int longCount = object.variableIntegerSlotsCount();
 		if (longCount == 0)
@@ -874,7 +874,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Tuple o_Nybbles (final AvailObject object)
+	public A_Tuple o_Nybbles (final AvailObject object)
 	{
 		// Extract a tuple of nybbles.
 		final int longCount = object.variableIntegerSlotsCount();
@@ -898,7 +898,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_EqualsCompiledCode (
+	public boolean o_EqualsCompiledCode (
 		final AvailObject object,
 		final A_RawFunction aCompiledCode)
 	{
@@ -908,13 +908,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_Kind (final AvailObject object)
+	public A_Type o_Kind (final AvailObject object)
 	{
 		return compiledCodeTypeForFunctionType(object.functionType());
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_ConstantTypeAt (final AvailObject object, final int index)
+	public A_Type o_ConstantTypeAt (final AvailObject object, final int index)
 	{
 		assert 1 <= index && index <= object.numConstants();
 		return object.literalAt(
@@ -924,7 +924,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_LocalTypeAt (final AvailObject object, final int index)
+	public A_Type o_LocalTypeAt (final AvailObject object, final int index)
 	{
 		assert 1 <= index && index <= object.numLocals();
 		return object.literalAt(
@@ -935,7 +935,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_OuterTypeAt (final AvailObject object, final int index)
+	public A_Type o_OuterTypeAt (final AvailObject object, final int index)
 	{
 		assert 1 <= index && index <= object.numOuters();
 		return object.literalAt(
@@ -947,7 +947,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected void o_SetStartingChunkAndReoptimizationCountdown (
+	public void o_SetStartingChunkAndReoptimizationCountdown (
 		final AvailObject object,
 		final L2Chunk chunk,
 		final long countdown)
@@ -962,7 +962,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_MaxStackDepth (final AvailObject object)
+	public int o_MaxStackDepth (final AvailObject object)
 	{
 		return
 			object.numSlots()
@@ -971,7 +971,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_NumArgs (final AvailObject object)
+	public int o_NumArgs (final AvailObject object)
 	{
 		return object.slot(NUM_ARGS);
 	}
@@ -985,43 +985,43 @@ extends Descriptor
 	 * </p>
 	 */
 	@Override @AvailMethod
-	protected int o_NumSlots (final AvailObject object)
+	public int o_NumSlots (final AvailObject object)
 	{
 		return object.slot(FRAME_SLOTS);
 	}
 
 	@Override @AvailMethod
-	protected int o_NumLiterals (final AvailObject object)
+	public int o_NumLiterals (final AvailObject object)
 	{
 		return object.variableObjectSlotsCount();
 	}
 
 	@Override @AvailMethod
-	protected int o_NumConstants (final AvailObject object)
+	public int o_NumConstants (final AvailObject object)
 	{
 		return object.slot(NUM_CONSTANTS);
 	}
 
 	@Override @AvailMethod
-	protected int o_NumLocals (final AvailObject object)
+	public int o_NumLocals (final AvailObject object)
 	{
 		return object.slot(NUM_LOCALS);
 	}
 
 	@Override @AvailMethod
-	protected int o_NumOuters (final AvailObject object)
+	public int o_NumOuters (final AvailObject object)
 	{
 		return object.slot(NUM_OUTERS);
 	}
 
 	@Override @AvailMethod
-	protected @Nullable Primitive o_Primitive (final AvailObject object)
+	public @Nullable Primitive o_Primitive (final AvailObject object)
 	{
 		return primitive;
 	}
 
 	@Override @AvailMethod
-	protected int o_PrimitiveNumber (final AvailObject object)
+	public int o_PrimitiveNumber (final AvailObject object)
 	{
 		// Answer the primitive number I should try before falling back on the
 		// Avail code.  Zero indicates not-a-primitive.
@@ -1029,7 +1029,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected L2Chunk o_StartingChunk (final AvailObject object)
+	public L2Chunk o_StartingChunk (final AvailObject object)
 	{
 		final L2Chunk chunk = startingChunk;
 		if (chunk != unoptimizedChunk)
@@ -1040,7 +1040,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected void o_TallyInvocation (final AvailObject object)
+	public void o_TallyInvocation (final AvailObject object)
 	{
 		invocationStatistic.totalInvocations.incrementAndGet();
 		invocationStatistic.hasRun = true;
@@ -1050,7 +1050,7 @@ extends Descriptor
 	 * Answer the starting line number for this block of code.
 	 */
 	@Override @AvailMethod
-	protected int o_StartingLineNumber (final AvailObject object)
+	public int o_StartingLineNumber (final AvailObject object)
 	{
 		return lineNumber;
 	}
@@ -1062,14 +1062,14 @@ extends Descriptor
 	 * @return The tuple of encoded line number deltas, or nil.
 	 */
 	@Override
-	protected A_Tuple o_LineNumberEncodedDeltas (
+	public A_Tuple o_LineNumberEncodedDeltas (
 		final AvailObject object)
 	{
 		return lineNumberEncodedDeltas;
 	}
 
 	@Override @AvailMethod
-	protected A_Phrase o_OriginatingPhrase (final AvailObject object)
+	public A_Phrase o_OriginatingPhrase (final AvailObject object)
 	{
 		return originatingPhrase;
 	}
@@ -1078,20 +1078,20 @@ extends Descriptor
 	 * Answer the module in which this code occurs.
 	 */
 	@Override @AvailMethod
-	protected A_Module o_Module (final AvailObject object)
+	public A_Module o_Module (final AvailObject object)
 	{
 		return module;
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	protected SerializerOperation o_SerializerOperation (
+	public SerializerOperation o_SerializerOperation (
 		final AvailObject object)
 	{
 		return SerializerOperation.COMPILED_CODE;
 	}
 
 	@Override @AvailMethod
-	protected void o_SetMethodName (
+	public void o_SetMethodName (
 		final AvailObject object,
 		final A_String newMethodName)
 	{
@@ -1134,13 +1134,13 @@ extends Descriptor
 		stringFrom("Unknown function").makeShared();
 
 	@Override @AvailMethod
-	protected A_String o_MethodName (final AvailObject object)
+	public A_String o_MethodName (final AvailObject object)
 	{
 		return methodName;
 	}
 
 	@Override
-	protected String o_NameForDebugger (final AvailObject object)
+	public String o_NameForDebugger (final AvailObject object)
 	{
 		return super.o_NameForDebugger(object) + ": " + methodName;
 	}
@@ -1152,7 +1152,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	public void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -1197,7 +1197,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	public void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -1526,7 +1526,7 @@ extends Descriptor
 	 * @return A {@link Statistic}, creating one if necessary.
 	 */
 	@Override
-	protected Statistic o_ReturnerCheckStat (
+	public Statistic o_ReturnerCheckStat (
 		final AvailObject object)
 	{
 		@Nullable Statistic returnerStat =
@@ -1562,7 +1562,7 @@ extends Descriptor
 	 * @return A {@link Statistic}, creating one if necessary.
 	 */
 	@Override
-	protected Statistic o_ReturneeCheckStat (
+	public Statistic o_ReturneeCheckStat (
 		final AvailObject object)
 	{
 		@Nullable Statistic returneeStat =

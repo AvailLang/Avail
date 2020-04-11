@@ -35,7 +35,7 @@ package com.avail.descriptor.types;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.NilDescriptor;
@@ -104,7 +104,7 @@ extends PrimitiveTypeDescriptor
 
 	@Override
 	@AvailMethod @ThreadSafe
-	protected boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
+	public boolean o_IsSubtypeOf (final AvailObject object, final A_Type aType)
 	{
 		// Check if object (the type top) is a subtype of aType (may also be
 		// top).
@@ -115,7 +115,7 @@ extends PrimitiveTypeDescriptor
 	@Override
 	@AvailMethod
 	@ThreadSafe
-	protected boolean o_IsSupertypeOfPrimitiveTypeEnum (
+	public boolean o_IsSupertypeOfPrimitiveTypeEnum (
 		final AvailObject object,
 		final Types primitiveTypeEnum)
 	{
@@ -126,13 +126,13 @@ extends PrimitiveTypeDescriptor
 
 	@Override
 	@AvailMethod @ThreadSafe
-	protected boolean o_IsTop (final AvailObject object)
+	public boolean o_IsTop (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override
-	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	public void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");

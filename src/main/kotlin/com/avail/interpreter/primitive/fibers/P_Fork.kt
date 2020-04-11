@@ -32,7 +32,7 @@
 
 package com.avail.interpreter.primitive.fibers
 
-import com.avail.descriptor.AvailObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.FiberDescriptor
 import com.avail.descriptor.FiberDescriptor.newFiber
 import com.avail.descriptor.functions.FunctionDescriptor

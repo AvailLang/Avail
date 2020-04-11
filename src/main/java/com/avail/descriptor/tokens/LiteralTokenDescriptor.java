@@ -36,7 +36,7 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.HideFieldJustForPrinting;
 import com.avail.compiler.scanning.LexingState;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.pojos.RawPojoDescriptor;
@@ -145,7 +145,8 @@ extends TokenDescriptor
 	}
 
 	@Override
-	protected boolean allowsImmutableToMutableReferenceInField (final AbstractSlotsEnum e)
+	public boolean allowsImmutableToMutableReferenceInField (
+		final AbstractSlotsEnum e)
 	{
 		return e == NEXT_LEXING_STATE_POJO
 			|| super.allowsImmutableToMutableReferenceInField(e);
@@ -173,25 +174,25 @@ extends TokenDescriptor
 	}
 
 	@Override @AvailMethod
-	protected TokenType o_TokenType (final AvailObject object)
+	public TokenType o_TokenType (final AvailObject object)
 	{
 		return TokenType.LITERAL;
 	}
 
 	@Override @AvailMethod
-	protected AvailObject o_Literal (final AvailObject object)
+	public AvailObject o_Literal (final AvailObject object)
 	{
 		return object.slot(LITERAL);
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_Kind (final AvailObject object)
+	public A_Type o_Kind (final AvailObject object)
 	{
 		return literalTokenType(instanceType(object));
 	}
 
 	@Override @AvailMethod
-	protected boolean o_IsInstanceOfKind (
+	public boolean o_IsInstanceOfKind (
 		final AvailObject object,
 		final A_Type aTypeObject)
 	{
@@ -201,20 +202,20 @@ extends TokenDescriptor
 	}
 
 	@Override
-	protected boolean o_IsLiteralToken (final AvailObject object)
+	public boolean o_IsLiteralToken (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override
-	protected SerializerOperation o_SerializerOperation (
+	public SerializerOperation o_SerializerOperation (
 		final AvailObject object)
 	{
 		return SerializerOperation.LITERAL_TOKEN;
 	}
 
 	@Override
-	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	public void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -234,7 +235,7 @@ extends TokenDescriptor
 	}
 
 	@Override
-	protected void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	public void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");

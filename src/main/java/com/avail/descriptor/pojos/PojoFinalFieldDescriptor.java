@@ -33,7 +33,7 @@
 package com.avail.descriptor.pojos;
 
 import com.avail.annotations.AvailMethod;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.Descriptor;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.representation.A_BasicObject;
@@ -106,7 +106,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected void o_ClearValue (final AvailObject object)
+	public void o_ClearValue (final AvailObject object)
 	{
 		throw new VariableSetException(
 			AvailErrorCode.E_CANNOT_MODIFY_FINAL_JAVA_FIELD);
@@ -120,7 +120,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_EqualsPojoField (
+	public boolean o_EqualsPojoField (
 		final AvailObject object,
 		final AvailObject field,
 		final AvailObject receiver)
@@ -130,7 +130,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected AvailObject o_GetValue (final AvailObject object)
+	public AvailObject o_GetValue (final AvailObject object)
 	{
 		return object.slot(CACHED_VALUE);
 	}
@@ -143,20 +143,20 @@ extends Descriptor
 	}
 
 	@Override
-	protected boolean o_HasValue (final AvailObject object)
+	public boolean o_HasValue (final AvailObject object)
 	{
 		// A pojo final field has a value by definition.
 		return true;
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_Kind (final AvailObject object)
+	public A_Type o_Kind (final AvailObject object)
 	{
 		return object.slot(KIND);
 	}
 
 	@Override
-	protected SerializerOperation o_SerializerOperation (
+	public SerializerOperation o_SerializerOperation (
 		final AvailObject object)
 	{
 		final Field field = object.slot(FIELD).javaObjectNotNull();
@@ -168,14 +168,14 @@ extends Descriptor
 	}
 
 	@Override
-	protected void o_SetValue (final AvailObject object, final A_BasicObject newValue)
+	public void o_SetValue (final AvailObject object, final A_BasicObject newValue)
 	{
 		throw new VariableSetException(
 			AvailErrorCode.E_CANNOT_MODIFY_FINAL_JAVA_FIELD);
 	}
 
 	@Override
-	protected void o_SetValueNoCheck (
+	public void o_SetValueNoCheck (
 		final AvailObject object,
 		final A_BasicObject newValue)
 	{
@@ -184,13 +184,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected AvailObject o_Value (final AvailObject object)
+	public AvailObject o_Value (final AvailObject object)
 	{
 		return object.slot(CACHED_VALUE);
 	}
 
 	@Override
-	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	public void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -203,7 +203,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	public void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");

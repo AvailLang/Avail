@@ -36,6 +36,9 @@ import com.avail.AvailRuntime.currentRuntime
 import com.avail.descriptor.FiberDescriptor
 import com.avail.descriptor.FiberDescriptor.newFiber
 import com.avail.descriptor.atoms.A_Atom
+import com.avail.descriptor.atoms.A_Atom.Companion.atomName
+import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
+import com.avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.SOCKET_KEY
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.numbers.IntegerDescriptor
@@ -95,7 +98,7 @@ object P_SocketWrite : Primitive(5, CanInline, HasSideEffect)
 		if (pojo.equalsNil())
 		{
 			return interpreter.primitiveFailure(
-				if (handle.isAtomSpecial) E_SPECIAL_ATOM else E_INVALID_HANDLE)
+				if (handle.isAtomSpecial()) E_SPECIAL_ATOM else E_INVALID_HANDLE)
 		}
 		val socket = pojo.javaObjectNotNull<AsynchronousSocketChannel>()
 		// Obtain a buffer for writing.

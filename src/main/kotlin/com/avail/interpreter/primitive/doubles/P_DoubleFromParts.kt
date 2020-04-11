@@ -33,6 +33,7 @@
 package com.avail.interpreter.primitive.doubles
 
 import com.avail.descriptor.CharacterDescriptor.nonemptyStringOfDigitsType
+import com.avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.DoubleDescriptor.fromDouble
 import com.avail.descriptor.tuples.A_String

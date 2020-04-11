@@ -42,6 +42,7 @@ import com.avail.descriptor.functions.A_Function;
 import com.avail.descriptor.functions.ContinuationDescriptor;
 import com.avail.descriptor.maps.A_Map;
 import com.avail.descriptor.representation.A_BasicObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.sets.SetDescriptor;
 import com.avail.descriptor.tuples.A_String;

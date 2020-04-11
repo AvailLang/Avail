@@ -33,7 +33,7 @@
 package com.avail.descriptor.pojos;
 
 import com.avail.annotations.AvailMethod;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.representation.Mutability;
 
@@ -59,7 +59,7 @@ extends RawPojoDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_EqualsEqualityRawPojo (
+	public boolean o_EqualsEqualityRawPojo (
 		final AvailObject object,
 		final AvailObject otherEqualityRawPojo,
 		final @Nullable Object otherJavaObject)
@@ -117,7 +117,7 @@ extends RawPojoDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_EqualsRawPojoFor (
+	public boolean o_EqualsRawPojoFor (
 		final AvailObject object,
 		final AvailObject otherRawPojo,
 		final @Nullable Object aRawPojo)
@@ -139,7 +139,7 @@ extends RawPojoDescriptor
 	 * {@link #javaObject} but is {@linkplain Mutability#IMMUTABLE immutable}.
 	 */
 	@Override @AvailMethod
-	protected AvailObject o_MakeImmutable (final AvailObject object)
+	public AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		if (isMutable())
 		{
@@ -155,7 +155,7 @@ extends RawPojoDescriptor
 	 * {@link #javaObject} but is {@linkplain Mutability#SHARED shared}.
 	 */
 	@Override @AvailMethod
-	protected AvailObject o_MakeShared (final AvailObject object)
+	public AvailObject o_MakeShared (final AvailObject object)
 	{
 		if (!isShared())
 		{

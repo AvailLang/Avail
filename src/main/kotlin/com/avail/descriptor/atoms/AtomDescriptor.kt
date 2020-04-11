@@ -38,6 +38,10 @@ import com.avail.compiler.ParserState
 import com.avail.compiler.splitter.MessageSplitter
 import com.avail.descriptor.*
 import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.atoms.A_Atom.Companion.atomName
+import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
+import com.avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
+import com.avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
 import com.avail.descriptor.atoms.AtomDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import com.avail.descriptor.atoms.AtomDescriptor.ObjectSlots.ISSUING_MODULE
 import com.avail.descriptor.atoms.AtomDescriptor.ObjectSlots.NAME
@@ -46,10 +50,8 @@ import com.avail.descriptor.atoms.AtomWithPropertiesSharedDescriptor.Companion.s
 import com.avail.descriptor.atoms.AtomWithPropertiesSharedDescriptor.Companion.sharedAndSpecialForFalse
 import com.avail.descriptor.atoms.AtomWithPropertiesSharedDescriptor.Companion.sharedAndSpecialForTrue
 import com.avail.descriptor.bundles.A_Bundle
-import com.avail.descriptor.bundles.MessageBundleDescriptor
 import com.avail.descriptor.bundles.MessageBundleDescriptor.Companion.newBundle
 import com.avail.descriptor.methods.A_Method
-import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.methods.MethodDescriptor.newMethod
 import com.avail.descriptor.objects.ObjectTypeDescriptor
 import com.avail.descriptor.representation.*
@@ -59,7 +61,6 @@ import com.avail.descriptor.tuples.StringDescriptor.stringFrom
 import com.avail.descriptor.types.*
 import com.avail.descriptor.types.EnumerationTypeDescriptor.booleanType
 import com.avail.exceptions.MalformedMessageException
-import com.avail.io.IOSystem
 import com.avail.io.IOSystem.FileHandle
 import com.avail.serialization.Serializer
 import com.avail.serialization.SerializerOperation
@@ -177,7 +178,7 @@ open class AtomDescriptor protected constructor(
 			val nativeName = self.atomName().asNativeString()
 			// Some atoms print nicer than others.
 			when {
-				self.isAtomSpecial -> {
+				self.isAtomSpecial() -> {
 					append(nativeName)
 					return
 				}
@@ -295,7 +296,7 @@ open class AtomDescriptor protected constructor(
 	@AvailMethod
 	@ThreadSafe
 	override fun o_SerializerOperation(self: AvailObject) = when {
-		self.isAtomSpecial -> SerializerOperation.SPECIAL_ATOM
+		self.isAtomSpecial() -> SerializerOperation.SPECIAL_ATOM
 		!self.getAtomProperty(HERITABLE_KEY.atom).equalsNil() ->
 			SerializerOperation.HERITABLE_ATOM
 		!self.getAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom).equalsNil() ->

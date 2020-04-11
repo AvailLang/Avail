@@ -34,7 +34,7 @@ package com.avail.descriptor.tuples;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.representation.A_BasicObject;
@@ -44,8 +44,8 @@ import com.avail.descriptor.types.A_Type;
 
 import java.nio.ByteBuffer;
 
-import static com.avail.descriptor.AvailObject.newLike;
-import static com.avail.descriptor.AvailObject.newObjectIndexedIntegerIndexedDescriptor;
+import static com.avail.descriptor.representation.AvailObject.newLike;
+import static com.avail.descriptor.representation.AvailObject.newObjectIndexedIntegerIndexedDescriptor;
 import static com.avail.descriptor.representation.Mutability.*;
 import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.tuples.TreeTupleDescriptor.IntegerSlots.CUMULATIVE_SIZES_AREA_;
@@ -120,7 +120,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Tuple o_AppendCanDestroy (
+	public A_Tuple o_AppendCanDestroy (
 		final AvailObject object,
 		final A_BasicObject newElement,
 		final boolean canDestroy)
@@ -136,19 +136,19 @@ extends TupleDescriptor
 	 * <p>Make this always seem a little worse than flat representations.</p>
 	 */
 	@Override @AvailMethod
-	protected int o_BitsPerEntry (final AvailObject object)
+	public int o_BitsPerEntry (final AvailObject object)
 	{
 		return 65;
 	}
 
 	@Override @AvailMethod
-	protected A_Tuple o_ChildAt (final AvailObject object, final int childIndex)
+	public A_Tuple o_ChildAt (final AvailObject object, final int childIndex)
 	{
 		return object.slot(SUBTUPLE_AT_, childIndex);
 	}
 
 	@Override @AvailMethod
-	protected int o_ChildCount (final AvailObject object)
+	public int o_ChildCount (final AvailObject object)
 	{
 		return object.variableObjectSlotsCount();
 	}
@@ -161,7 +161,7 @@ extends TupleDescriptor
 	 * </p>
 	 */
 	@Override @AvailMethod
-	protected boolean o_CompareFromToWithStartingAt (
+	public boolean o_CompareFromToWithStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -225,7 +225,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_CompareFromToWithByteStringStartingAt (
+	public boolean o_CompareFromToWithByteStringStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -237,7 +237,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_CompareFromToWithByteTupleStartingAt (
+	public boolean o_CompareFromToWithByteTupleStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -249,7 +249,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_CompareFromToWithNybbleTupleStartingAt (
+	public boolean o_CompareFromToWithNybbleTupleStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -269,7 +269,7 @@ extends TupleDescriptor
 	 * </p>
 	 */
 	@Override @AvailMethod
-	protected boolean o_CompareFromToWithObjectTupleStartingAt (
+	public boolean o_CompareFromToWithObjectTupleStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -284,7 +284,7 @@ extends TupleDescriptor
 	 * Hash part of the tuple object.
 	 */
 	@Override @AvailMethod
-	protected int o_ComputeHashFromTo (
+	public int o_ComputeHashFromTo (
 		final AvailObject object,
 		final int startIndex,
 		final int endIndex)
@@ -323,7 +323,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Tuple o_ConcatenateWith (
+	public A_Tuple o_ConcatenateWith (
 		final AvailObject object,
 		final A_Tuple otherTuple,
 		final boolean canDestroy)
@@ -336,7 +336,7 @@ extends TupleDescriptor
 	 * tuple.  Optimized here to take advantage of the tree structure.
 	 */
 	@Override @AvailMethod
-	protected A_Tuple o_CopyTupleFromToCanDestroy (
+	public A_Tuple o_CopyTupleFromToCanDestroy (
 		final AvailObject object,
 		final int start,
 		final int end,
@@ -437,7 +437,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_EqualsAnyTuple (
+	public boolean o_EqualsAnyTuple (
 		final AvailObject object,
 		final A_Tuple anotherTuple)
 	{
@@ -468,7 +468,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Tuple o_ReplaceFirstChild (
+	public A_Tuple o_ReplaceFirstChild (
 		final AvailObject object,
 		final A_Tuple replacementChild)
 	{
@@ -506,7 +506,7 @@ extends TupleDescriptor
 	}
 
 	@Override
-	protected void o_TransferIntoByteBuffer (
+	public void o_TransferIntoByteBuffer (
 		final AvailObject object,
 		final int startIndex,
 		final int endIndex,
@@ -550,7 +550,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_TreeTupleLevel (final AvailObject object)
+	public int o_TreeTupleLevel (final AvailObject object)
 	{
 		return level;
 	}
@@ -559,7 +559,7 @@ extends TupleDescriptor
 	 * Answer the element at the given index in the tuple object.
 	 */
 	@Override @AvailMethod
-	protected AvailObject o_TupleAt (final AvailObject object, final int index)
+	public AvailObject o_TupleAt (final AvailObject object, final int index)
 	{
 		final int childSubscript = childSubscriptForIndex(object, index);
 		final int offset = offsetForChildSubscript(object, childSubscript);
@@ -573,7 +573,7 @@ extends TupleDescriptor
 	 * canDestroy is true.
 	 */
 	@Override @AvailMethod
-	protected A_Tuple o_TupleAtPuttingCanDestroy (
+	public A_Tuple o_TupleAtPuttingCanDestroy (
 		final AvailObject object,
 		final int index,
 		final A_BasicObject newValueObject,
@@ -626,7 +626,7 @@ extends TupleDescriptor
 	}
 
 	@Override
-	protected boolean o_TupleElementsInRangeAreInstancesOf (
+	public boolean o_TupleElementsInRangeAreInstancesOf (
 		final AvailObject object,
 		final int startIndex,
 		final int endIndex,
@@ -666,7 +666,7 @@ extends TupleDescriptor
 	 * Answer the integer element at the given index in the tuple object.
 	 */
 	@Override @AvailMethod
-	protected int o_TupleIntAt (final AvailObject object, final int index)
+	public int o_TupleIntAt (final AvailObject object, final int index)
 	{
 		final int childSubscript = childSubscriptForIndex(object, index);
 		final int offset = offsetForChildSubscript(object, childSubscript);
@@ -678,7 +678,7 @@ extends TupleDescriptor
 	 * Answer the number of elements in the tuple as an int.
 	 */
 	@Override @AvailMethod
-	protected int o_TupleSize (final AvailObject object)
+	public int o_TupleSize (final AvailObject object)
 	{
 		return object.intSlot(
 			CUMULATIVE_SIZES_AREA_,

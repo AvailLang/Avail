@@ -32,7 +32,7 @@
 
 package com.avail.annotations;
 
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.representation.BitField;
 import com.avail.descriptor.representation.IntegerEnumSlotDescriptionEnum;
 import com.avail.descriptor.representation.IntegerSlotsEnum;

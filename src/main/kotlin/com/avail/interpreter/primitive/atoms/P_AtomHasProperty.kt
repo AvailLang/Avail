@@ -31,6 +31,8 @@
  */
 package com.avail.interpreter.primitive.atoms
 
+import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
+import com.avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import com.avail.descriptor.sets.SetDescriptor.set
@@ -59,7 +61,7 @@ object P_AtomHasProperty : Primitive(
 		interpreter.checkArgumentCount(2)
 		val propertyKey = interpreter.argument(0)
 		val atom = interpreter.argument(1)
-		if (atom.isAtomSpecial)
+		if (atom.isAtomSpecial())
 		{
 			return interpreter.primitiveFailure(E_SPECIAL_ATOM)
 		}

@@ -34,7 +34,7 @@ package com.avail.descriptor.phrases;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.Descriptor;
 import com.avail.descriptor.NilDescriptor;
 import com.avail.descriptor.atoms.A_Atom;
@@ -83,7 +83,7 @@ extends Descriptor
 	 * {@link NilDescriptor#nil nil}.
 	 */
 	@Override @AvailMethod
-	protected A_Atom o_ApparentSendName (final AvailObject object)
+	public A_Atom o_ApparentSendName (final AvailObject object)
 	{
 		return nil;
 	}
@@ -98,7 +98,7 @@ extends Descriptor
 	 *        The {@linkplain Continuation1 action} to perform with each of
 	 */
 	@Override @AvailMethod
-	protected abstract void o_ChildrenDo (
+	public abstract void o_ChildrenDo (
 		final AvailObject object,
 		final Continuation1NotNull<A_Phrase> action);
 
@@ -114,7 +114,7 @@ extends Descriptor
 	 *        to recursively map the phrase.
 	 */
 	@Override @AvailMethod
-	protected abstract void o_ChildrenMap (
+	public abstract void o_ChildrenMap (
 		final AvailObject object,
 		final Transformer1<A_Phrase, A_Phrase> transformer);
 
@@ -128,7 +128,7 @@ extends Descriptor
 	 *         possibly the same object.
 	 */
 	@Override @AvailMethod
-	protected A_Phrase o_CopyMutablePhrase (final AvailObject object)
+	public A_Phrase o_CopyMutablePhrase (final AvailObject object)
 	{
 		object.makeSubobjectsImmutable();
 		if (isMutable())
@@ -146,7 +146,7 @@ extends Descriptor
 	 * @param codeGenerator Where to emit the code.
 	 */
 	@Override @AvailMethod
-	protected void o_EmitEffectOn (
+	public void o_EmitEffectOn (
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
@@ -162,7 +162,7 @@ extends Descriptor
 	 * @param codeGenerator Where to emit the code.
 	 */
 	@Override @AvailMethod
-	protected abstract void o_EmitValueOn (
+	public abstract void o_EmitValueOn (
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator);
 
@@ -183,7 +183,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected abstract boolean o_EqualsPhrase (
+	public abstract boolean o_EqualsPhrase (
 		final AvailObject object,
 		final A_Phrase aPhrase);
 
@@ -195,10 +195,10 @@ extends Descriptor
 	 *         that will be produced by evaluating this phrase.
 	 */
 	@Override @AvailMethod
-	protected abstract A_Type o_ExpressionType (final AvailObject object);
+	public abstract A_Type o_ExpressionType (final AvailObject object);
 
 	@Override @AvailMethod
-	protected void o_FlattenStatementsInto (
+	public void o_FlattenStatementsInto (
 		final AvailObject object,
 		final List<A_Phrase> accumulatedStatements)
 	{
@@ -216,7 +216,7 @@ extends Descriptor
 	public abstract int o_Hash (final AvailObject object);
 
 	@Override
-	protected boolean o_HasSuperCast (final AvailObject object)
+	public boolean o_HasSuperCast (final AvailObject object)
 	{
 		// Terminate the recursion through the recursive list structure.  If
 		// this isn't overridden in a subclass then it must be a bottom-level
@@ -225,7 +225,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_IsInstanceOfKind (
+	public boolean o_IsInstanceOfKind (
 		final AvailObject object,
 		final A_Type aType)
 	{
@@ -239,19 +239,19 @@ extends Descriptor
 	}
 
 	@Override
-	protected boolean o_IsMacroSubstitutionNode (final AvailObject object)
+	public boolean o_IsMacroSubstitutionNode (final AvailObject object)
 	{
 		return false;
 	}
 
 	@Override @AvailMethod
-	protected final A_Type o_Kind (final AvailObject object)
+	public final A_Type o_Kind (final AvailObject object)
 	{
 		return object.phraseKind().create(object.expressionType());
 	}
 
 	@Override
-	protected final AvailObject o_MakeImmutable (final AvailObject object)
+	public final AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		if (isMutable())
 		{
@@ -270,10 +270,10 @@ extends Descriptor
 	 *         would be.
 	 */
 	@Override @AvailMethod
-	protected abstract PhraseKind o_PhraseKind (final AvailObject object);
+	public abstract PhraseKind o_PhraseKind (final AvailObject object);
 
 	@Override @AvailMethod
-	protected boolean o_PhraseKindIsUnder (
+	public boolean o_PhraseKindIsUnder (
 		final AvailObject object,
 		final PhraseKind expectedPhraseKind)
 	{
@@ -281,7 +281,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected abstract SerializerOperation o_SerializerOperation (
+	public abstract SerializerOperation o_SerializerOperation (
 		final AvailObject object);
 
 	@Override
@@ -291,24 +291,24 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected abstract void o_StatementsDo (
+	public abstract void o_StatementsDo (
 		final AvailObject object,
 		final Continuation1NotNull<A_Phrase> continuation);
 
 	@Override @AvailMethod
-	protected A_Phrase o_StripMacro (final AvailObject object)
+	public A_Phrase o_StripMacro (final AvailObject object)
 	{
 		return object;
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_SuperUnionType (final AvailObject object)
+	public A_Type o_SuperUnionType (final AvailObject object)
 	{
 		return bottom();
 	}
 
 	@Override
-	protected abstract A_Tuple o_Tokens (final AvailObject object);
+	public abstract A_Tuple o_Tokens (final AvailObject object);
 
 	/**
 	 * Validate this phrase, throwing an exception if there is a problem.
@@ -320,7 +320,7 @@ extends Descriptor
 	 *        subphrase.
 	 */
 	@Override @AvailMethod
-	protected abstract void o_ValidateLocally (
+	public abstract void o_ValidateLocally (
 		final AvailObject object,
 		final @Nullable A_Phrase parent);
 

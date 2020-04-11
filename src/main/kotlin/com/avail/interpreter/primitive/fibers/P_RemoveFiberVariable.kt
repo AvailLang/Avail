@@ -34,6 +34,8 @@ package com.avail.interpreter.primitive.fibers
 
 import com.avail.descriptor.FiberDescriptor
 import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
+import com.avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.HERITABLE_KEY
 import com.avail.descriptor.sets.SetDescriptor.set
@@ -63,7 +65,7 @@ object P_RemoveFiberVariable : Primitive(
 	{
 		interpreter.checkArgumentCount(1)
 		val key = interpreter.argument(0)
-		if (key.isAtomSpecial)
+		if (key.isAtomSpecial())
 		{
 			return interpreter.primitiveFailure(E_SPECIAL_ATOM)
 		}

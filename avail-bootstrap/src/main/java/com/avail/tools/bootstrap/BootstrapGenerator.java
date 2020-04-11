@@ -35,7 +35,7 @@ package com.avail.tools.bootstrap;
 import com.avail.AvailRuntime;
 import com.avail.AvailRuntimeConfiguration;
 import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.descriptor.numbers.A_Number;
 import com.avail.descriptor.sets.A_Set;

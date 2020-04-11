@@ -44,7 +44,7 @@ import org.objectweb.asm.MethodVisitor;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import static com.avail.descriptor.AvailObject.fieldAtMethod;
+import static com.avail.descriptor.representation.AvailObject.fieldAtMethod;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 
 /**

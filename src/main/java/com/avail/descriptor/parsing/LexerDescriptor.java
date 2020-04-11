@@ -36,7 +36,7 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.compiler.scanning.LexingState;
 import com.avail.descriptor.A_Module;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.Descriptor;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
@@ -54,7 +54,7 @@ import com.avail.utility.json.JSONWriter;
 
 import java.util.IdentityHashMap;
 
-import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.representation.AvailObject.multiplier;
 import static com.avail.descriptor.parsing.LexerDescriptor.IntegerSlots.HASH;
 import static com.avail.descriptor.parsing.LexerDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple;
@@ -187,25 +187,25 @@ extends Descriptor
 	}
 
 	@Override
-	protected A_Module o_DefinitionModule (final AvailObject object)
+	public A_Module o_DefinitionModule (final AvailObject object)
 	{
 		return object.slot(DEFINITION_MODULE);
 	}
 
 	@Override
-	protected A_Method o_LexerMethod (final AvailObject object)
+	public A_Method o_LexerMethod (final AvailObject object)
 	{
 		return object.slot(LEXER_METHOD);
 	}
 
 	@Override
-	protected A_Function o_LexerFilterFunction (final AvailObject object)
+	public A_Function o_LexerFilterFunction (final AvailObject object)
 	{
 		return object.slot(LEXER_FILTER_FUNCTION);
 	}
 
 	@Override
-	protected A_Function o_LexerBodyFunction (final AvailObject object)
+	public A_Function o_LexerBodyFunction (final AvailObject object)
 	{
 		return object.slot(LEXER_BODY_FUNCTION);
 	}
@@ -243,13 +243,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_Kind (final AvailObject object)
+	public A_Type o_Kind (final AvailObject object)
 	{
 		return LEXER.o();
 	}
 
 	@Override @AvailMethod
-	protected AvailObject o_MakeImmutable (final AvailObject object)
+	public AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		if (isMutable())
 		{
@@ -260,7 +260,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	public void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -277,7 +277,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	public void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");

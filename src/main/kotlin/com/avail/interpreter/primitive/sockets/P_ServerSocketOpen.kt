@@ -34,6 +34,7 @@ package com.avail.interpreter.primitive.sockets
 
 import com.avail.AvailRuntime.currentRuntime
 import com.avail.descriptor.ModuleDescriptor.currentModule
+import com.avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.createAtom
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.SERVER_SOCKET_KEY

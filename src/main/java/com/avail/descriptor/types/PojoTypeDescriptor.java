@@ -33,7 +33,7 @@
 package com.avail.descriptor.types;
 
 import com.avail.annotations.AvailMethod;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.NilDescriptor;
 import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.atoms.AtomDescriptor;
@@ -419,7 +419,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected abstract boolean o_EqualsPojoType (
+	public abstract boolean o_EqualsPojoType (
 		AvailObject object,
 		AvailObject aPojoType);
 
@@ -427,28 +427,28 @@ extends TypeDescriptor
 	public abstract int o_Hash (AvailObject object);
 
 	@Override @AvailMethod
-	protected abstract boolean o_IsAbstract (AvailObject object);
+	public abstract boolean o_IsAbstract (AvailObject object);
 
 	@Override @AvailMethod
-	protected abstract boolean o_IsPojoArrayType (AvailObject object);
+	public abstract boolean o_IsPojoArrayType (AvailObject object);
 
 	@Override @AvailMethod
-	protected abstract boolean o_IsPojoFusedType (AvailObject object);
+	public abstract boolean o_IsPojoFusedType (AvailObject object);
 
 	@Override @AvailMethod
-	protected boolean o_IsPojoSelfType (final AvailObject object)
+	public boolean o_IsPojoSelfType (final AvailObject object)
 	{
 		return false;
 	}
 
 	@Override @AvailMethod
-	protected final boolean o_IsPojoType (final AvailObject object)
+	public final boolean o_IsPojoType (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod
-	protected boolean o_IsSubtypeOf (
+	public boolean o_IsSubtypeOf (
 		final AvailObject object,
 		final A_Type aType)
 	{
@@ -456,7 +456,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected final boolean o_IsSupertypeOfPojoBottomType (
+	public final boolean o_IsSupertypeOfPojoBottomType (
 		final AvailObject object,
 		final A_Type aPojoType)
 	{
@@ -465,7 +465,7 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_IsSupertypeOfPojoType (
+	public boolean o_IsSupertypeOfPojoType (
 		final AvailObject object,
 		final A_Type aPojoType)
 	{
@@ -517,22 +517,22 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected abstract AvailObject o_JavaAncestors (AvailObject object);
+	public abstract AvailObject o_JavaAncestors (AvailObject object);
 
 	@Override @AvailMethod
-	protected abstract AvailObject o_JavaClass (AvailObject object);
+	public abstract AvailObject o_JavaClass (AvailObject object);
 
 	@Override @AvailMethod
-	protected abstract @Nullable Object o_MarshalToJava (
+	public abstract @Nullable Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint);
 
 	@Override @AvailMethod
-	protected abstract A_Type o_PojoSelfType (
+	public abstract A_Type o_PojoSelfType (
 		AvailObject object);
 
 	@Override @AvailMethod
-	protected final A_Type o_TypeIntersection (
+	public final A_Type o_TypeIntersection (
 		final AvailObject object,
 		final A_Type another)
 	{
@@ -548,22 +548,22 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected abstract A_Type o_TypeIntersectionOfPojoType (
+	public abstract A_Type o_TypeIntersectionOfPojoType (
 		AvailObject object,
 		A_Type aPojoType);
 
 	@Override
-	protected abstract A_Type o_TypeIntersectionOfPojoFusedType (
+	public abstract A_Type o_TypeIntersectionOfPojoFusedType (
 		AvailObject object,
 		A_Type aFusedPojoType);
 
 	@Override
-	protected abstract A_Type o_TypeIntersectionOfPojoUnfusedType (
+	public abstract A_Type o_TypeIntersectionOfPojoUnfusedType (
 		AvailObject object,
 		A_Type anUnfusedPojoType);
 
 	@Override
-	protected final A_Type o_TypeUnion (
+	public final A_Type o_TypeUnion (
 		final AvailObject object,
 		final A_Type another)
 	{
@@ -579,22 +579,22 @@ extends TypeDescriptor
 	}
 
 	@Override @AvailMethod
-	protected abstract A_Type o_TypeUnionOfPojoType (
+	public abstract A_Type o_TypeUnionOfPojoType (
 		AvailObject object,
 		A_Type aPojoType);
 
 	@Override @AvailMethod
-	protected abstract A_Type o_TypeUnionOfPojoFusedType (
+	public abstract A_Type o_TypeUnionOfPojoFusedType (
 		AvailObject object,
 		A_Type aFusedPojoType);
 
 	@Override @AvailMethod
-	protected abstract A_Type o_TypeUnionOfPojoUnfusedType (
+	public abstract A_Type o_TypeUnionOfPojoUnfusedType (
 		AvailObject object,
 		A_Type anUnfusedPojoType);
 
 	@Override @AvailMethod
-	protected abstract A_Map o_TypeVariables (
+	public abstract A_Map o_TypeVariables (
 		AvailObject object);
 
 	/**

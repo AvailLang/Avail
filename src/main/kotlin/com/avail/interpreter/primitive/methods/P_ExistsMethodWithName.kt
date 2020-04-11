@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.primitive.methods
 
+import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrNil
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import com.avail.descriptor.methods.MethodDescriptor

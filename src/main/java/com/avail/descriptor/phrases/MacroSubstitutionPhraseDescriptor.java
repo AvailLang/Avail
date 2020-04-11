@@ -35,7 +35,7 @@ package com.avail.descriptor.phrases;
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.descriptor.A_Module;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.bundles.A_Bundle;
@@ -60,7 +60,7 @@ import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 import java.util.List;
 
-import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.representation.AvailObject.multiplier;
 import static com.avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor.ObjectSlots.MACRO_ORIGINAL_SEND;
 import static com.avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor.ObjectSlots.OUTPUT_PARSE_NODE;
 
@@ -116,25 +116,25 @@ extends PhraseDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Atom o_ApparentSendName (final AvailObject object)
+	public A_Atom o_ApparentSendName (final AvailObject object)
 	{
 		return object.slot(MACRO_ORIGINAL_SEND).apparentSendName();
 	}
 
 	@Override
-	protected A_Phrase o_ArgumentsListNode (final AvailObject object)
+	public A_Phrase o_ArgumentsListNode (final AvailObject object)
 	{
 		return object.slot(OUTPUT_PARSE_NODE).argumentsListNode();
 	}
 
 	@Override
-	protected A_Tuple o_ArgumentsTuple (final AvailObject object)
+	public A_Tuple o_ArgumentsTuple (final AvailObject object)
 	{
 		return object.slot(OUTPUT_PARSE_NODE).argumentsTuple();
 	}
 
 	@Override
-	protected A_Bundle o_Bundle (final AvailObject object)
+	public A_Bundle o_Bundle (final AvailObject object)
 	{
 		// Reach into the output phrase.  If you want the macro name, use the
 		// apparentSendName instead.
@@ -142,7 +142,7 @@ extends PhraseDescriptor
 	}
 
 	@Override @AvailMethod
-	protected void o_ChildrenDo (
+	public void o_ChildrenDo (
 		final AvailObject object,
 		final Continuation1NotNull<A_Phrase> action)
 	{
@@ -150,7 +150,7 @@ extends PhraseDescriptor
 	}
 
 	@Override @AvailMethod
-	protected void o_ChildrenMap (
+	public void o_ChildrenMap (
 		final AvailObject object,
 		final Transformer1<A_Phrase, A_Phrase> transformer)
 	{
@@ -161,7 +161,7 @@ extends PhraseDescriptor
 	}
 
 	@Override
-	protected A_Phrase o_CopyWith (
+	public A_Phrase o_CopyWith (
 		final AvailObject object, final A_Phrase newPhrase)
 	{
 		// Create a copy the list, not this macro substitution.
@@ -169,7 +169,7 @@ extends PhraseDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Phrase o_CopyConcatenating (
+	public A_Phrase o_CopyConcatenating (
 		final AvailObject object, final A_Phrase newListPhrase)
 	{
 		// Create a copy the list, not this macro substitution.
@@ -177,25 +177,25 @@ extends PhraseDescriptor
 	}
 
 	@Override
-	protected A_Phrase o_Declaration (final AvailObject object)
+	public A_Phrase o_Declaration (final AvailObject object)
 	{
 		return object.slot(OUTPUT_PARSE_NODE).declaration();
 	}
 
 	@Override
-	protected A_Set o_DeclaredExceptions (final AvailObject object)
+	public A_Set o_DeclaredExceptions (final AvailObject object)
 	{
 		return object.slot(OUTPUT_PARSE_NODE).declaredExceptions();
 	}
 
 	@Override
-	protected A_Type o_DeclaredType (final AvailObject object)
+	public A_Type o_DeclaredType (final AvailObject object)
 	{
 		return object.slot(OUTPUT_PARSE_NODE).declaredType();
 	}
 
 	@Override
-	protected void o_EmitAllValuesOn (
+	public void o_EmitAllValuesOn (
 		final AvailObject object, final AvailCodeGenerator codeGenerator)
 	{
 		codeGenerator.setTokensWhile(
@@ -208,7 +208,7 @@ extends PhraseDescriptor
 	}
 
 	@Override @AvailMethod
-	protected void o_EmitEffectOn (
+	public void o_EmitEffectOn (
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
@@ -222,7 +222,7 @@ extends PhraseDescriptor
 	}
 
 	@Override @AvailMethod
-	protected void o_EmitValueOn (
+	public void o_EmitValueOn (
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
@@ -236,7 +236,7 @@ extends PhraseDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_EqualsPhrase (
+	public boolean o_EqualsPhrase (
 		final AvailObject object,
 		final A_Phrase aPhrase)
 	{
@@ -248,37 +248,37 @@ extends PhraseDescriptor
 	}
 
 	@Override
-	protected A_Phrase o_Expression (final AvailObject object)
+	public A_Phrase o_Expression (final AvailObject object)
 	{
 		return object.slot(OUTPUT_PARSE_NODE).expression();
 	}
 
 	@Override
-	protected A_Phrase o_ExpressionAt (final AvailObject object, final int index)
+	public A_Phrase o_ExpressionAt (final AvailObject object, final int index)
 	{
 		return object.slot(OUTPUT_PARSE_NODE).expressionAt(index);
 	}
 
 	@Override
-	protected int o_ExpressionsSize (final AvailObject object)
+	public int o_ExpressionsSize (final AvailObject object)
 	{
 		return object.slot(OUTPUT_PARSE_NODE).expressionsSize();
 	}
 
 	@Override
-	protected A_Tuple o_ExpressionsTuple (final AvailObject object)
+	public A_Tuple o_ExpressionsTuple (final AvailObject object)
 	{
 		return object.slot(OUTPUT_PARSE_NODE).expressionsTuple();
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_ExpressionType (final AvailObject object)
+	public A_Type o_ExpressionType (final AvailObject object)
 	{
 		return object.slot(OUTPUT_PARSE_NODE).expressionType();
 	}
 
 	@Override @AvailMethod
-	protected void o_FlattenStatementsInto (
+	public void o_FlattenStatementsInto (
 		final AvailObject object,
 		final List<A_Phrase> accumulatedStatements)
 	{
@@ -287,7 +287,7 @@ extends PhraseDescriptor
 	}
 
 	@Override
-	protected A_RawFunction o_GenerateInModule (
+	public A_RawFunction o_GenerateInModule (
 		final AvailObject object, final A_Module module)
 	{
 		return object.slot(OUTPUT_PARSE_NODE).generateInModule(module);
@@ -302,93 +302,93 @@ extends PhraseDescriptor
 	}
 
 	@Override
-	protected boolean o_HasSuperCast (final AvailObject object)
+	public boolean o_HasSuperCast (final AvailObject object)
 	{
 		return object.slot(OUTPUT_PARSE_NODE).hasSuperCast();
 	}
 
 	@Override
-	protected AvailObject o_InitializationExpression (final AvailObject object)
+	public AvailObject o_InitializationExpression (final AvailObject object)
 	{
 		return object.slot(OUTPUT_PARSE_NODE).initializationExpression();
 	}
 
 	@Override
-	protected void o_IsLastUse (final AvailObject object, final boolean isLastUse)
+	public void o_IsLastUse (final AvailObject object, final boolean isLastUse)
 	{
 		object.slot(OUTPUT_PARSE_NODE).isLastUse(isLastUse);
 	}
 
 	@Override
-	protected boolean o_IsLastUse (final AvailObject object)
+	public boolean o_IsLastUse (final AvailObject object)
 	{
 		return object.slot(OUTPUT_PARSE_NODE).isLastUse();
 	}
 
 	@Override
-	protected boolean o_IsMacroSubstitutionNode (final AvailObject object)
+	public boolean o_IsMacroSubstitutionNode (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override
-	protected A_Phrase o_LastExpression (final AvailObject object)
+	public A_Phrase o_LastExpression (final AvailObject object)
 	{
 		return object.slot(OUTPUT_PARSE_NODE).lastExpression();
 	}
 
 	@Override
-	protected A_Phrase o_List (final AvailObject object)
+	public A_Phrase o_List (final AvailObject object)
 	{
 		return object.slot(OUTPUT_PARSE_NODE).list();
 	}
 
 	@Override
-	protected AvailObject o_LiteralObject (final AvailObject object)
+	public AvailObject o_LiteralObject (final AvailObject object)
 	{
 		return object.slot(OUTPUT_PARSE_NODE).literalObject();
 	}
 
 	@Override
-	protected A_Phrase o_MacroOriginalSendNode (final AvailObject object)
+	public A_Phrase o_MacroOriginalSendNode (final AvailObject object)
 	{
 		return object.slot(MACRO_ORIGINAL_SEND);
 	}
 
 	@Override
-	protected AvailObject o_MarkerValue (final AvailObject object)
+	public AvailObject o_MarkerValue (final AvailObject object)
 	{
 		return object.slot(OUTPUT_PARSE_NODE).markerValue();
 	}
 
 	@Override
-	protected A_Tuple o_NeededVariables (final AvailObject object)
+	public A_Tuple o_NeededVariables (final AvailObject object)
 	{
 		return object.slot(OUTPUT_PARSE_NODE).neededVariables();
 	}
 
 	@Override
-	protected void o_NeededVariables (
+	public void o_NeededVariables (
 		final AvailObject object, final A_Tuple neededVariables)
 	{
 		object.slot(OUTPUT_PARSE_NODE).neededVariables(neededVariables);
 	}
 
 	@Override @AvailMethod
-	protected A_Phrase o_OutputPhrase (final AvailObject object)
+	public A_Phrase o_OutputPhrase (final AvailObject object)
 	{
 		return object.slot(OUTPUT_PARSE_NODE);
 	}
 
 	@Override
-	protected PhraseKind o_PhraseKind (final AvailObject object)
+	public PhraseKind o_PhraseKind (final AvailObject object)
 	{
 		// Answer the output phrase's kind, not this macro substitution's kind.
 		return object.slot(OUTPUT_PARSE_NODE).phraseKind();
 	}
 
 	@Override
-	protected boolean o_PhraseKindIsUnder (
+	public boolean o_PhraseKindIsUnder (
 		final AvailObject object, final PhraseKind expectedPhraseKind)
 	{
 		// Use the output phrase's kind, not this macro substitution's kind.
@@ -397,38 +397,38 @@ extends PhraseDescriptor
 	}
 
 	@Override
-	protected A_Tuple o_Permutation (final AvailObject object)
+	public A_Tuple o_Permutation (final AvailObject object)
 	{
 		return object.slot(OUTPUT_PARSE_NODE).permutation();
 	}
 
 	@Override
-	protected @Nullable Primitive o_Primitive (final AvailObject object)
+	public @Nullable Primitive o_Primitive (final AvailObject object)
 	{
 		return object.slot(OUTPUT_PARSE_NODE).primitive();
 	}
 
 	@Override
-	protected SerializerOperation o_SerializerOperation (
+	public SerializerOperation o_SerializerOperation (
 		final AvailObject object)
 	{
 		return SerializerOperation.MACRO_SUBSTITUTION_PHRASE;
 	}
 
 	@Override
-	protected int o_StartingLineNumber (final AvailObject object)
+	public int o_StartingLineNumber (final AvailObject object)
 	{
 		return object.slot(OUTPUT_PARSE_NODE).startingLineNumber();
 	}
 
 	@Override
-	protected A_Tuple o_Statements (final AvailObject object)
+	public A_Tuple o_Statements (final AvailObject object)
 	{
 		return object.slot(OUTPUT_PARSE_NODE).statements();
 	}
 
 	@Override
-	protected void o_StatementsDo (
+	public void o_StatementsDo (
 		final AvailObject object,
 		final Continuation1NotNull<A_Phrase> continuation)
 	{
@@ -436,43 +436,43 @@ extends PhraseDescriptor
 	}
 
 	@Override
-	protected A_Tuple o_StatementsTuple (final AvailObject object)
+	public A_Tuple o_StatementsTuple (final AvailObject object)
 	{
 		return object.slot(OUTPUT_PARSE_NODE).statementsTuple();
 	}
 
 	@Override
-	protected A_Phrase o_StripMacro (final AvailObject object)
+	public A_Phrase o_StripMacro (final AvailObject object)
 	{
 		return object.slot(OUTPUT_PARSE_NODE);
 	}
 
 	@Override
-	protected A_Type o_SuperUnionType (final AvailObject object)
+	public A_Type o_SuperUnionType (final AvailObject object)
 	{
 		return object.slot(OUTPUT_PARSE_NODE).superUnionType();
 	}
 
 	@Override
-	protected A_Token o_Token (final AvailObject object)
+	public A_Token o_Token (final AvailObject object)
 	{
 		return object.slot(OUTPUT_PARSE_NODE).token();
 	}
 
 	@Override
-	protected A_Tuple o_Tokens (final AvailObject object)
+	public A_Tuple o_Tokens (final AvailObject object)
 	{
 		return object.slot(MACRO_ORIGINAL_SEND).tokens();
 	}
 
 	@Override
-	protected A_Phrase o_TypeExpression (final AvailObject object)
+	public A_Phrase o_TypeExpression (final AvailObject object)
 	{
 		return object.slot(OUTPUT_PARSE_NODE).typeExpression();
 	}
 
 	@Override @AvailMethod
-	protected void o_ValidateLocally (
+	public void o_ValidateLocally (
 		final AvailObject object,
 		final @Nullable A_Phrase parent)
 	{
@@ -480,13 +480,13 @@ extends PhraseDescriptor
 	}
 
 	@Override
-	protected A_Phrase o_Variable (final AvailObject object)
+	public A_Phrase o_Variable (final AvailObject object)
 	{
 		return object.slot(OUTPUT_PARSE_NODE).variable();
 	}
 
 	@Override
-	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	public void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");

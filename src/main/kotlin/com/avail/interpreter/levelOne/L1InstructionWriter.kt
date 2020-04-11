@@ -33,7 +33,7 @@
 package com.avail.interpreter.levelOne
 
 import com.avail.descriptor.A_Module
-import com.avail.descriptor.AvailObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.NilDescriptor
 import com.avail.descriptor.functions.CompiledCodeDescriptor.newCompiledCode
 import com.avail.descriptor.phrases.A_Phrase

@@ -32,7 +32,7 @@
 
 package com.avail.interpreter.levelTwo.register;
 
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.optimizer.L2Generator;
 import com.avail.optimizer.reoptimizer.L2Inliner;
 

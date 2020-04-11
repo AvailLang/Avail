@@ -33,7 +33,7 @@
 package com.avail;
 
 import com.avail.descriptor.A_Fiber;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
 import com.avail.exceptions.PrimitiveThrownException;

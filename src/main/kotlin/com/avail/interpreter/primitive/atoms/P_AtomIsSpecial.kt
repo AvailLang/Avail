@@ -33,6 +33,7 @@
 package com.avail.interpreter.primitive.atoms
 
 import com.avail.descriptor.atoms.A_Atom
+import com.avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
@@ -57,7 +58,7 @@ object P_AtomIsSpecial : Primitive(1, CannotFail, CanFold, CanInline)
 		interpreter.checkArgumentCount(1)
 		val atom = interpreter.argument(0)
 		return interpreter.primitiveSuccess(
-			objectFromBoolean(atom.isAtomSpecial))
+			objectFromBoolean(atom.isAtomSpecial()))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

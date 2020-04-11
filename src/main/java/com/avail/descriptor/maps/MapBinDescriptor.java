@@ -33,7 +33,7 @@
 package com.avail.descriptor.maps;
 
 import com.avail.annotations.AvailMethod;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.Descriptor;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.maps.MapDescriptor.MapIterable;
@@ -84,27 +84,27 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_MapBinKeysHash (final AvailObject object)
+	public int o_MapBinKeysHash (final AvailObject object)
 	{
 		return object.slot(KEYS_HASH);
 	}
 
 	@Override @AvailMethod
-	protected abstract void o_ForEachInMapBin (
+	public abstract void o_ForEachInMapBin (
 		final AvailObject object,
 		final BiConsumer<? super AvailObject, ? super AvailObject> action);
 
 	@Override @AvailMethod
-	protected abstract int o_MapBinValuesHash (final AvailObject object);
+	public abstract int o_MapBinValuesHash (final AvailObject object);
 
 	@Override
-	protected boolean o_IsHashedMapBin (final AvailObject object)
+	public boolean o_IsHashedMapBin (final AvailObject object)
 	{
 		return false;
 	}
 
 	@Override
-	protected abstract @Nullable AvailObject o_MapBinAtHash (
+	public abstract @Nullable AvailObject o_MapBinAtHash (
 		final AvailObject object,
 		final A_BasicObject key,
 		final int keyHash);
@@ -117,7 +117,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected abstract MapIterable o_MapBinIterable (final AvailObject object);
+	public abstract MapIterable o_MapBinIterable (final AvailObject object);
 
 	/**
 	 * The level of my objects in their enclosing bin trees. The top node is

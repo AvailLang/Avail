@@ -33,7 +33,7 @@
 package com.avail.exceptions
 
 import com.avail.descriptor.AbstractDescriptor
-import com.avail.descriptor.AvailObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.Descriptor
 
 /**

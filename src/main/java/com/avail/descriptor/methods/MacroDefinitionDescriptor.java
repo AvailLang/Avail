@@ -34,7 +34,7 @@ package com.avail.descriptor.methods;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.A_Module;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom;
@@ -124,7 +124,7 @@ extends DefinitionDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Function o_BodyBlock (
+	public A_Function o_BodyBlock (
 		final AvailObject object)
 	{
 		return object.slot(BODY_BLOCK);
@@ -134,7 +134,7 @@ extends DefinitionDescriptor
 	 * Answer my signature.
 	 */
 	@Override @AvailMethod
-	protected A_Type o_BodySignature (
+	public A_Type o_BodySignature (
 		final AvailObject object)
 	{
 		return object.slot(BODY_BLOCK).kind();
@@ -148,21 +148,21 @@ extends DefinitionDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_IsMacroDefinition (
+	public boolean o_IsMacroDefinition (
 		final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_Kind (
+	public A_Type o_Kind (
 		final AvailObject object)
 	{
 		return MACRO_DEFINITION.o();
 	}
 
 	@Override
-	protected A_Type o_ParsingSignature (final AvailObject object)
+	public A_Type o_ParsingSignature (final AvailObject object)
 	{
 		// A macro definition's parsing signature is a list phrase type whose
 		// covariant subexpressions type is the body block's kind's arguments
@@ -183,20 +183,20 @@ extends DefinitionDescriptor
 	}
 
 	@Override
-	protected A_Tuple o_PrefixFunctions (final AvailObject object)
+	public A_Tuple o_PrefixFunctions (final AvailObject object)
 	{
 		return object.slot(MACRO_PREFIX_FUNCTIONS);
 	}
 
 	@Override
-	protected SerializerOperation o_SerializerOperation (
+	public SerializerOperation o_SerializerOperation (
 		final AvailObject object)
 	{
 		return SerializerOperation.MACRO_DEFINITION;
 	}
 
 	@Override
-	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	public void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -213,7 +213,7 @@ extends DefinitionDescriptor
 	}
 
 	@Override
-	protected void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	public void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");

@@ -43,7 +43,7 @@ import org.objectweb.asm.MethodVisitor;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import static com.avail.descriptor.AvailObject.frameAtMethod;
+import static com.avail.descriptor.representation.AvailObject.frameAtMethod;
 import static com.avail.interpreter.levelTwo.L2OperandType.*;
 
 /**

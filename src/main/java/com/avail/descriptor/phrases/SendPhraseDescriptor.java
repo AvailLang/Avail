@@ -34,7 +34,7 @@ package com.avail.descriptor.phrases;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.bundles.A_Bundle;
@@ -57,7 +57,7 @@ import com.avail.utility.json.JSONWriter;
 import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 
-import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.representation.AvailObject.multiplier;
 import static com.avail.descriptor.phrases.SendPhraseDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE;
 import static com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE;
@@ -115,26 +115,26 @@ extends PhraseDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Atom o_ApparentSendName (final AvailObject object)
+	public A_Atom o_ApparentSendName (final AvailObject object)
 	{
 		final A_Bundle bundle = object.slot(BUNDLE);
 		return bundle.message();
 	}
 
 	@Override @AvailMethod
-	protected A_Phrase o_ArgumentsListNode (final AvailObject object)
+	public A_Phrase o_ArgumentsListNode (final AvailObject object)
 	{
 		return object.slot(ARGUMENTS_LIST_NODE);
 	}
 
 	@Override @AvailMethod
-	protected A_Bundle o_Bundle (final AvailObject object)
+	public A_Bundle o_Bundle (final AvailObject object)
 	{
 		return object.slot(BUNDLE);
 	}
 
 	@Override @AvailMethod
-	protected void o_ChildrenDo (
+	public void o_ChildrenDo (
 		final AvailObject object,
 		final Continuation1NotNull<A_Phrase> action)
 	{
@@ -142,7 +142,7 @@ extends PhraseDescriptor
 	}
 
 	@Override @AvailMethod
-	protected void o_ChildrenMap (
+	public void o_ChildrenMap (
 		final AvailObject object,
 		final Transformer1<A_Phrase, A_Phrase> transformer)
 	{
@@ -152,7 +152,7 @@ extends PhraseDescriptor
 	}
 
 	@Override @AvailMethod
-	protected void o_EmitValueOn (
+	public void o_EmitValueOn (
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
@@ -178,7 +178,7 @@ extends PhraseDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_EqualsPhrase (
+	public boolean o_EqualsPhrase (
 		final AvailObject object,
 		final A_Phrase aPhrase)
 	{
@@ -191,7 +191,7 @@ extends PhraseDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_ExpressionType (final AvailObject object)
+	public A_Type o_ExpressionType (final AvailObject object)
 	{
 		return object.slot(RETURN_TYPE);
 	}
@@ -207,20 +207,20 @@ extends PhraseDescriptor
 	}
 
 	@Override
-	protected PhraseKind o_PhraseKind (final AvailObject object)
+	public PhraseKind o_PhraseKind (final AvailObject object)
 	{
 		return SEND_PHRASE;
 	}
 
 	@Override
-	protected SerializerOperation o_SerializerOperation (
+	public SerializerOperation o_SerializerOperation (
 		final AvailObject object)
 	{
 		return SerializerOperation.SEND_PHRASE;
 	}
 
 	@Override
-	protected void o_StatementsDo (
+	public void o_StatementsDo (
 		final AvailObject object,
 		final Continuation1NotNull<A_Phrase> continuation)
 	{
@@ -228,13 +228,13 @@ extends PhraseDescriptor
 	}
 
 	@Override
-	protected A_Tuple o_Tokens (final AvailObject object)
+	public A_Tuple o_Tokens (final AvailObject object)
 	{
 		return object.slot(TOKENS);
 	}
 
 	@Override @AvailMethod
-	protected void o_ValidateLocally (
+	public void o_ValidateLocally (
 		final AvailObject object,
 		final @Nullable A_Phrase parent)
 	{
@@ -242,7 +242,7 @@ extends PhraseDescriptor
 	}
 
 	@Override
-	protected void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	public void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -257,7 +257,7 @@ extends PhraseDescriptor
 	}
 
 	@Override
-	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	public void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");

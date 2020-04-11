@@ -32,7 +32,7 @@
 
 package com.avail.descriptor.functions;
 
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.Descriptor;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
@@ -42,7 +42,7 @@ import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 
-import static com.avail.descriptor.AvailObject.newObjectIndexedIntegerIndexedDescriptor;
+import static com.avail.descriptor.representation.AvailObject.newObjectIndexedIntegerIndexedDescriptor;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.functions.ContinuationRegisterDumpDescriptor.IntegerSlots.INTEGER_SLOTS_;
 import static com.avail.descriptor.functions.ContinuationRegisterDumpDescriptor.ObjectSlots.OBJECT_SLOTS_;

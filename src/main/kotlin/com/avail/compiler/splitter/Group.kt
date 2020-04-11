@@ -38,7 +38,7 @@ import com.avail.compiler.splitter.MessageSplitter.Companion.circledNumberCodePo
 import com.avail.compiler.splitter.MessageSplitter.Companion.indexForPermutation
 import com.avail.compiler.splitter.MessageSplitter.Companion.throwSignatureException
 import com.avail.compiler.splitter.WrapState.*
-import com.avail.descriptor.AvailObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.numbers.InfinityDescriptor.positiveInfinity
 import com.avail.descriptor.numbers.IntegerDescriptor.fromInt
 import com.avail.descriptor.numbers.IntegerDescriptor.zero

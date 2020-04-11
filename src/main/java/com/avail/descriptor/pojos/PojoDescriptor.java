@@ -33,7 +33,7 @@
 package com.avail.descriptor.pojos;
 
 import com.avail.annotations.AvailMethod;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.Descriptor;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.representation.A_BasicObject;
@@ -46,7 +46,7 @@ import com.avail.utility.json.JSONWriter;
 import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 
-import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.representation.AvailObject.multiplier;
 import static com.avail.descriptor.pojos.PojoDescriptor.ObjectSlots.KIND;
 import static com.avail.descriptor.pojos.PojoDescriptor.ObjectSlots.RAW_POJO;
 import static com.avail.descriptor.pojos.RawPojoDescriptor.rawNullPojo;
@@ -86,7 +86,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_EqualsPojo (final AvailObject object, final AvailObject aPojo)
+	public boolean o_EqualsPojo (final AvailObject object, final AvailObject aPojo)
 	{
 		if (!object.slot(RAW_POJO).equals(aPojo.slot(RAW_POJO)))
 		{
@@ -118,19 +118,19 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_IsPojo (final AvailObject object)
+	public boolean o_IsPojo (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_Kind (final AvailObject object)
+	public A_Type o_Kind (final AvailObject object)
 	{
 		return object.slot(KIND);
 	}
 
 	@Override
-	protected @Nullable Object o_MarshalToJava (
+	public @Nullable Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{
@@ -138,13 +138,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected AvailObject o_RawPojo (final AvailObject object)
+	public AvailObject o_RawPojo (final AvailObject object)
 	{
 		return object.slot(RAW_POJO);
 	}
 
 	@Override @AvailMethod
-	protected @Nullable <T> T o_JavaObject (final AvailObject object)
+	public @Nullable <T> T o_JavaObject (final AvailObject object)
 	{
 		return object.slot(RAW_POJO).javaObject();
 	}
@@ -156,7 +156,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	public void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -169,7 +169,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	public void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");

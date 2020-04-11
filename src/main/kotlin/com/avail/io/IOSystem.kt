@@ -35,7 +35,7 @@ package com.avail.io
 import com.avail.AvailRuntime
 import com.avail.AvailRuntimeConfiguration.availableProcessors
 import com.avail.AvailThread
-import com.avail.descriptor.AvailObject.Companion.multiplier
+import com.avail.descriptor.representation.AvailObject.Companion.multiplier
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom
 import com.avail.descriptor.pojos.PojoDescriptor

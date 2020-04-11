@@ -34,7 +34,7 @@ package com.avail.descriptor.tuples;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.representation.A_BasicObject;
@@ -49,7 +49,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.function.IntFunction;
 
-import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.representation.AvailObject.multiplier;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.representation.AvailObjectRepresentation.newLike;
 import static com.avail.descriptor.tuples.ObjectTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
@@ -117,7 +117,7 @@ extends TupleDescriptor
 	public static final int maximumCopySize = 32;
 
 	@Override @AvailMethod
-	protected A_Tuple o_AppendCanDestroy (
+	public A_Tuple o_AppendCanDestroy (
 		final AvailObject object,
 		final A_BasicObject newElement,
 		final boolean canDestroy)
@@ -147,7 +147,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_BitsPerEntry (final AvailObject object)
+	public int o_BitsPerEntry (final AvailObject object)
 	{
 		// Answer approximately how many bits per entry are taken up by this
 		// object.
@@ -155,7 +155,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_CompareFromToWithObjectTupleStartingAt (
+	public boolean o_CompareFromToWithObjectTupleStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -182,7 +182,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_CompareFromToWithStartingAt (
+	public boolean o_CompareFromToWithStartingAt (
 		final AvailObject object,
 		final int startIndex1,
 		final int endIndex1,
@@ -197,7 +197,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_ComputeHashFromTo (
+	public int o_ComputeHashFromTo (
 		final AvailObject object,
 		final int start,
 		final int end)
@@ -213,7 +213,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Tuple o_ConcatenateWith (
+	public A_Tuple o_ConcatenateWith (
 		final AvailObject object,
 		final A_Tuple otherTuple,
 		final boolean canDestroy)
@@ -264,7 +264,7 @@ extends TupleDescriptor
 	 * Answer a mutable copy of object that holds arbitrary objects.
 	 */
 	@Override @AvailMethod
-	protected A_Tuple o_CopyAsMutableObjectTuple (final AvailObject object)
+	public A_Tuple o_CopyAsMutableObjectTuple (final AvailObject object)
 	{
 		return newLike(mutable, object, 0, 0);
 	}
@@ -278,7 +278,7 @@ extends TupleDescriptor
 	 * with many others, I'm sure.
 	 */
 	@Override @AvailMethod
-	protected A_Tuple o_CopyTupleFromToCanDestroy (
+	public A_Tuple o_CopyTupleFromToCanDestroy (
 		final AvailObject object,
 		final int start,
 		final int end,
@@ -317,7 +317,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_EqualsObjectTuple (
+	public boolean o_EqualsObjectTuple (
 		final AvailObject object,
 		final A_Tuple anObjectTuple)
 	{
@@ -361,7 +361,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_IsByteTuple (final AvailObject object)
+	public boolean o_IsByteTuple (final AvailObject object)
 	{
 		// If it's cheap to check my elements, just do it.  This can help keep
 		// representations smaller and faster when concatenating short, quickly
@@ -383,7 +383,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_IsIntTuple (final AvailObject object)
+	public boolean o_IsIntTuple (final AvailObject object)
 	{
 		// If it's cheap to check my elements, just do it.  This can help keep
 		// representations smaller and faster when concatenating short, quickly
@@ -467,20 +467,20 @@ extends TupleDescriptor
 	}
 
 	@Override
-	protected IteratorNotNull<AvailObject> o_Iterator (final AvailObject object)
+	public IteratorNotNull<AvailObject> o_Iterator (final AvailObject object)
 	{
 		object.makeImmutable();
 		return new ObjectTupleIterator(object);
 	}
 
 	@Override @AvailMethod
-	protected AvailObject o_TupleAt (final AvailObject object, final int subscript)
+	public AvailObject o_TupleAt (final AvailObject object, final int subscript)
 	{
 		return object.slot(TUPLE_AT_, subscript);
 	}
 
 	@Override @AvailMethod
-	protected A_Tuple o_TupleAtPuttingCanDestroy (
+	public A_Tuple o_TupleAtPuttingCanDestroy (
 		final AvailObject object,
 		final int index,
 		final A_BasicObject newValueObject,
@@ -510,7 +510,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Tuple o_TupleReverse (final AvailObject object)
+	public A_Tuple o_TupleReverse (final AvailObject object)
 	{
 		final int size = object.tupleSize();
 		if (size >= maximumCopySize)
@@ -522,7 +522,7 @@ extends TupleDescriptor
 	}
 
 	@Override @AvailMethod
-	protected int o_TupleSize (final AvailObject object)
+	public int o_TupleSize (final AvailObject object)
 	{
 		// Answer the number of elements in the object (as a Java int).
 		return object.variableObjectSlotsCount();

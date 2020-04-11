@@ -32,7 +32,7 @@
 package com.avail.descriptor.representation
 
 import com.avail.descriptor.AbstractDescriptor
-import com.avail.descriptor.AvailObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.utility.Casts.cast
 import com.avail.utility.StackPrinter
 
@@ -64,7 +64,7 @@ import com.avail.utility.StackPrinter
  * 1. Preferences...  Java  Debug  Logical Structures
  *
  *     Add:
- *    * Qualified name: com.avail.descriptor.AvailObject
+ *    * Qualified name: com.avail.descriptor.representation.AvailObject
  *    * Description: Present Avail objects
  *    * Structure type: Single value
  *    * Code: `return describeForDebugger();`

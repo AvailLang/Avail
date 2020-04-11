@@ -39,6 +39,7 @@ import com.avail.compiler.splitter.MessageSplitter.Companion.indexForTrue
 import com.avail.compiler.splitter.MessageSplitter.Companion.throwSignatureException
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
 import com.avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS
+import com.avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.types.A_Type

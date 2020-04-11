@@ -35,7 +35,7 @@ package com.avail.descriptor.numbers;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.representation.BitField;
@@ -48,7 +48,7 @@ import com.avail.utility.json.JSONWriter;
 import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 
-import static com.avail.descriptor.AvailObject.multiplier;
+import static com.avail.descriptor.representation.AvailObject.multiplier;
 import static com.avail.descriptor.numbers.AbstractNumberDescriptor.Sign.*;
 import static com.avail.descriptor.numbers.DoubleDescriptor.*;
 import static com.avail.descriptor.numbers.FloatDescriptor.IntegerSlots.RAW_INT;
@@ -244,7 +244,7 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Number o_AddToInfinityCanDestroy (
+	public A_Number o_AddToInfinityCanDestroy (
 		final AvailObject object,
 		final Sign sign,
 		final boolean canDestroy)
@@ -256,7 +256,7 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Number o_AddToIntegerCanDestroy (
+	public A_Number o_AddToIntegerCanDestroy (
 		final AvailObject object,
 		final AvailObject anInteger,
 		final boolean canDestroy)
@@ -269,7 +269,7 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Number o_AddToDoubleCanDestroy (
+	public A_Number o_AddToDoubleCanDestroy (
 		final AvailObject object,
 		final A_Number doubleObject,
 		final boolean canDestroy)
@@ -281,7 +281,7 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Number o_AddToFloatCanDestroy (
+	public A_Number o_AddToFloatCanDestroy (
 		final AvailObject object,
 		final A_Number floatObject,
 		final boolean canDestroy)
@@ -294,7 +294,7 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Number o_DivideCanDestroy (
+	public A_Number o_DivideCanDestroy (
 		final AvailObject object,
 		final A_Number aNumber,
 		final boolean canDestroy)
@@ -305,7 +305,7 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Number o_DivideIntoInfinityCanDestroy (
+	public A_Number o_DivideIntoInfinityCanDestroy (
 		final AvailObject object,
 		final Sign sign,
 		final boolean canDestroy)
@@ -317,7 +317,7 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Number o_DivideIntoIntegerCanDestroy (
+	public A_Number o_DivideIntoIntegerCanDestroy (
 		final AvailObject object,
 		final AvailObject anInteger,
 		final boolean canDestroy)
@@ -359,13 +359,13 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override @AvailMethod
-	protected float o_ExtractFloat (final AvailObject object)
+	public float o_ExtractFloat (final AvailObject object)
 	{
 		return getFloat(object);
 	}
 
 	@Override @AvailMethod
-	protected double o_ExtractDouble (final AvailObject object)
+	public double o_ExtractDouble (final AvailObject object)
 	{
 		return getDouble(object);
 	}
@@ -393,7 +393,7 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_EqualsFloat (
+	public boolean o_EqualsFloat (
 		final AvailObject object,
 		final float aFloat)
 	{
@@ -410,13 +410,13 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_IsFloat (final AvailObject object)
+	public boolean o_IsFloat (final AvailObject object)
 	{
 		return true;
 	}
 
 	@Override @AvailMethod
-	protected boolean o_IsInstanceOfKind (
+	public boolean o_IsInstanceOfKind (
 		final AvailObject object,
 		final A_Type aType)
 	{
@@ -424,7 +424,7 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override
-	protected boolean o_IsNumericallyIntegral (final AvailObject object)
+	public boolean o_IsNumericallyIntegral (final AvailObject object)
 	{
 		final float value = getFloat(object);
 		if (Float.isInfinite(value) || Float.isNaN(value))
@@ -436,13 +436,13 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_Kind (final AvailObject object)
+	public A_Type o_Kind (final AvailObject object)
 	{
 		return FLOAT.o();
 	}
 
 	@Override
-	protected Object o_MarshalToJava (
+	public Object o_MarshalToJava (
 		final AvailObject object,
 		final @Nullable Class<?> ignoredClassHint)
 	{
@@ -450,7 +450,7 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Number o_MinusCanDestroy (
+	public A_Number o_MinusCanDestroy (
 		final AvailObject object,
 		final A_Number aNumber,
 		final boolean canDestroy)
@@ -461,7 +461,7 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Number o_MultiplyByInfinityCanDestroy (
+	public A_Number o_MultiplyByInfinityCanDestroy (
 		final AvailObject object,
 		final Sign sign,
 		final boolean canDestroy)
@@ -473,7 +473,7 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Number o_MultiplyByIntegerCanDestroy (
+	public A_Number o_MultiplyByIntegerCanDestroy (
 		final AvailObject object,
 		final AvailObject anInteger,
 		final boolean canDestroy)
@@ -513,14 +513,14 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override @AvailMethod
-	protected Order o_NumericCompare (
+	public Order o_NumericCompare (
 		final AvailObject object, final A_Number another)
 	{
 		return another.numericCompareToDouble(getDouble(object)).reverse();
 	}
 
 	@Override @AvailMethod
-	protected Order o_NumericCompareToDouble (
+	public Order o_NumericCompareToDouble (
 		final AvailObject object,
 		final double double1)
 	{
@@ -542,7 +542,7 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override @AvailMethod
-	protected Order o_NumericCompareToInfinity (
+	public Order o_NumericCompareToInfinity (
 		final AvailObject object,
 		final Sign sign)
 	{
@@ -564,7 +564,7 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override @AvailMethod
-	protected Order o_NumericCompareToInteger (
+	public Order o_NumericCompareToInteger (
 		final AvailObject object,
 		final AvailObject anInteger)
 	{
@@ -573,7 +573,7 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Number o_PlusCanDestroy (
+	public A_Number o_PlusCanDestroy (
 		final AvailObject object,
 		final A_Number aNumber,
 		final boolean canDestroy)
@@ -585,14 +585,14 @@ extends AbstractNumberDescriptor
 
 	@Override
 	@AvailMethod @ThreadSafe
-	protected SerializerOperation o_SerializerOperation (
+	public SerializerOperation o_SerializerOperation (
 		final AvailObject object)
 	{
 		return SerializerOperation.FLOAT;
 	}
 
 	@Override @AvailMethod
-	protected A_Number o_SubtractFromInfinityCanDestroy (
+	public A_Number o_SubtractFromInfinityCanDestroy (
 		final AvailObject object,
 		final Sign sign,
 		final boolean canDestroy)
@@ -604,7 +604,7 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Number o_SubtractFromIntegerCanDestroy (
+	public A_Number o_SubtractFromIntegerCanDestroy (
 		final AvailObject object,
 		final AvailObject anInteger,
 		final boolean canDestroy)
@@ -642,7 +642,7 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Number o_TimesCanDestroy (
+	public A_Number o_TimesCanDestroy (
 		final AvailObject object,
 		final A_Number aNumber,
 		final boolean canDestroy)
@@ -653,7 +653,7 @@ extends AbstractNumberDescriptor
 	}
 
 	@Override
-	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	public void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.write(getFloat(object));
 	}

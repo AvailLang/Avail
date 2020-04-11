@@ -32,7 +32,7 @@
 
 package com.avail;
 import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.FiberDescriptor;
 
 import java.util.Random;

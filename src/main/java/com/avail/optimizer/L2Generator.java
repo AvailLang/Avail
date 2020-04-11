@@ -33,7 +33,7 @@
 package com.avail.optimizer;
 
 import com.avail.descriptor.A_ChunkDependable;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.functions.A_RawFunction;
 import com.avail.descriptor.functions.FunctionDescriptor;
 import com.avail.descriptor.numbers.A_Number;

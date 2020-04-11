@@ -32,7 +32,7 @@
 package com.avail.descriptor.atoms
 
 import com.avail.descriptor.A_Module
-import com.avail.descriptor.AvailObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
@@ -41,6 +41,7 @@ import com.avail.descriptor.bundles.MessageBundleDescriptor
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.tuples.A_String
 import com.avail.exceptions.MalformedMessageException
+import com.avail.utility.Casts.cast
 
 /**
  * `A_Atom` is an interface that specifies the atom-specific operations that an
@@ -51,88 +52,100 @@ import com.avail.exceptions.MalformedMessageException
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 interface A_Atom : A_BasicObject {
-	/**
-	 * Answer the descriptive string that was supplied when this atom was
-	 * created.  The string didn't have to be unique within the [issuingModule],
-	 * but certain operations might only work if it happens to be.
-	 *
-	 * @return
-	 *   The string within this [atom][AtomDescriptor].
-	 */
-	fun atomName(): A_String
 
-	/**
-	 * Answer the [module][A_Module] within which this atom was created.
-	 *
-	 * @return
-	 *   The issuing module.
-	 */
-	fun issuingModule(): A_Module
+	companion object {
+		/**
+		 * Answer the descriptive string that was supplied when this atom was
+		 * created.  The string didn't have to be unique within the
+		 * [issuingModule], but certain operations might only work if it happens
+		 * to be.
+		 *
+		 * @return
+		 *   The string within this [atom][AtomDescriptor].
+		 */
+		fun A_Atom.atomName(): A_String =
+			descriptor().o_AtomName(cast(this))
 
-	/**
-	 * Extract a Java `boolean` from this atom.  The atom must be either
-	 * the [trueObject] or the [falseObject].
-	 *
-	 * @return
-	 *   `true` if it's the [trueObject], `false` if it's the [falseObject], and
-	 *   otherwise fail.
-	 */
-	fun extractBoolean(): Boolean
+		/**
+		 * Answer the [module][A_Module] within which this atom was created.
+		 *
+		 * @return
+		 *   The issuing module.
+		 */
+		fun A_Atom.issuingModule(): A_Module =
+			descriptor().o_IssuingModule(cast(this))
 
-	/**
-	 * Set the specified property of this atom to the specified value.  Normal
-	 * atoms have properties that can be set and read in this way, but
-	 * specifically not *enumerated* by Avail code.  You can see anything that
-	 * you know how to look for, but everything else is thereby encapsulated.
-	 *
-	 * @param key
-	 *   The property key to affect, an [atom][AtomDescriptor].
-	 * @param value
-	 *   The value to associate with that property key within the receiver.
-	 */
-	fun setAtomProperty(key: A_Atom, value: A_BasicObject)
+		/**
+		 * Extract a Java `boolean` from this atom.  The atom must be either
+		 * the [trueObject] or the [falseObject].
+		 *
+		 * @return
+		 *   `true` if it's the [trueObject], `false` if it's the [falseObject], and
+		 *   otherwise fail.
+		 */
+		fun A_Atom.extractBoolean(): Boolean =
+			descriptor().o_ExtractBoolean(cast(this))
 
-	/**
-	 * Look up a property of this atom.  Normal atoms have properties that can
-	 * be set and read in this way, but specifically not *enumerated* by
-	 * Avail code.  You can see anything that you know how to look for, but
-	 * everything else is thereby encapsulated.
-	 *
-	 * @param key
-	 *   The property key to look up, an [atom][AtomDescriptor].
-	 * @return
-	 *   The value associated with that property key within the receiver.
-	 */
-	fun getAtomProperty(key: A_Atom): AvailObject
+		/**
+		 * Set the specified property of this atom to the specified value.  Normal
+		 * atoms have properties that can be set and read in this way, but
+		 * specifically not *enumerated* by Avail code.  You can see anything that
+		 * you know how to look for, but everything else is thereby encapsulated.
+		 *
+		 * @param key
+		 *   The property key to affect, an [atom][AtomDescriptor].
+		 * @param value
+		 *   The value to associate with that property key within the receiver.
+		 */
+		fun A_Atom.setAtomProperty(key: A_Atom, value: A_BasicObject) =
+			descriptor().o_SetAtomProperty(cast(this), key, value)
 
-	/**
-	 * Answer the [message&#32;bundle][MessageBundleDescriptor] associated with
-	 * this atom.  If the atom does not yet have a message bundle associated
-	 * with it, create one for that purpose and install it.
-	 *
-	 * @return
-	 *   The atom's message bundle.
-	 * @throws MalformedMessageException
-	 *   If anything is wrong with the message name.
-	 */
-	@Throws(MalformedMessageException::class)
-	fun bundleOrCreate(): A_Bundle
+		/**
+		 * Look up a property of this atom.  Normal atoms have properties that can
+		 * be set and read in this way, but specifically not *enumerated* by
+		 * Avail code.  You can see anything that you know how to look for, but
+		 * everything else is thereby encapsulated.
+		 *
+		 * @param key
+		 *   The property key to look up, an [atom][AtomDescriptor].
+		 * @return
+		 *   The value associated with that property key within the receiver.
+		 */
+		fun A_Atom.getAtomProperty(key: A_Atom): AvailObject =
+			descriptor().o_GetAtomProperty(cast(this), key)
 
-	/**
-	 * Answer the [message&#32;bundle][MessageBundleDescriptor] associated with
-	 * this atom.  If the atom does not yet have a message bundle associated
-	 * with it, answer [nil].
-	 *
-	 * @return
-	 *   The atom's message bundle or nil.
-	 */
-	fun bundleOrNil(): A_Bundle
+		/**
+		 * Answer the [message&#32;bundle][MessageBundleDescriptor] associated with
+		 * this atom.  If the atom does not yet have a message bundle associated
+		 * with it, create one for that purpose and install it.
+		 *
+		 * @return
+		 *   The atom's message bundle.
+		 * @throws MalformedMessageException
+		 *   If anything is wrong with the message name.
+		 */
+		@Throws(MalformedMessageException::class)
+		fun A_Atom.bundleOrCreate(): A_Bundle =
+			descriptor().o_BundleOrCreate(cast(this))
 
-	/**
-	 * Answer whether this atom is specially known to the Avail virtual machine.
-	 *
-	 * @return
-	 *   Whether this atom is special to the VM.
-	 */
-	val isAtomSpecial: Boolean
+		/**
+		 * Answer the [message&#32;bundle][MessageBundleDescriptor] associated with
+		 * this atom.  If the atom does not yet have a message bundle associated
+		 * with it, answer [nil].
+		 *
+		 * @return
+		 *   The atom's message bundle or nil.
+		 */
+		fun A_Atom.bundleOrNil(): A_Bundle =
+			descriptor().o_BundleOrNil(cast(this))
+
+		/**
+		 * Answer whether this atom is specially known to the Avail virtual machine.
+		 *
+		 * @return
+		 *   Whether this atom is special to the VM.
+		 */
+		fun A_Atom.isAtomSpecial(): Boolean =
+			descriptor().o_IsAtomSpecial(cast(this))
+	}
 }

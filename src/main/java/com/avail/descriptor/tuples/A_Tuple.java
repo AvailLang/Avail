@@ -33,7 +33,7 @@
 package com.avail.descriptor.tuples;
 
 import com.avail.descriptor.A_Character;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.IndirectionDescriptor;
 import com.avail.descriptor.numbers.IntegerDescriptor;
 import com.avail.descriptor.representation.A_BasicObject;
@@ -42,7 +42,6 @@ import com.avail.descriptor.types.A_Type;
 import com.avail.descriptor.types.TypeDescriptor;
 import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-import com.avail.utility.Casts;
 
 import java.nio.ByteBuffer;
 import java.util.Iterator;

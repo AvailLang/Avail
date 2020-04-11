@@ -53,6 +53,7 @@ import com.avail.descriptor.parsing.A_ParsingPlanInProgress;
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind;
 import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.representation.AbstractSlotsEnum;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.sets.SetDescriptor;
@@ -280,20 +281,20 @@ extends Descriptor
 	}
 
 	@Override
-	protected String o_NameForDebugger (final AvailObject object)
+	public String o_NameForDebugger (final AvailObject object)
 	{
 		return super.o_NameForDebugger(object) + " = "
 			+ object.moduleName().asNativeString();
 	}
 
 	@Override @AvailMethod
-	protected A_String o_ModuleName (final AvailObject object)
+	public A_String o_ModuleName (final AvailObject object)
 	{
 		return object.slot(NAME);
 	}
 
 	@Override @AvailMethod
-	protected A_Set o_Versions (final AvailObject object)
+	public A_Set o_Versions (final AvailObject object)
 	{
 		synchronized (object)
 		{
@@ -302,7 +303,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected void o_Versions (
+	public void o_Versions (
 		final AvailObject object, final A_Set versionStrings)
 	{
 		synchronized (object)
@@ -312,7 +313,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Map o_NewNames (final AvailObject object)
+	public A_Map o_NewNames (final AvailObject object)
 	{
 		synchronized (object)
 		{
@@ -321,7 +322,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Map o_ImportedNames (final AvailObject object)
+	public A_Map o_ImportedNames (final AvailObject object)
 	{
 		synchronized (object)
 		{
@@ -330,7 +331,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Map o_PrivateNames (final AvailObject object)
+	public A_Map o_PrivateNames (final AvailObject object)
 	{
 		synchronized (object)
 		{
@@ -339,7 +340,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Map o_EntryPoints (final AvailObject object)
+	public A_Map o_EntryPoints (final AvailObject object)
 	{
 		synchronized (object)
 		{
@@ -348,7 +349,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Set o_VisibleNames (final AvailObject object)
+	public A_Set o_VisibleNames (final AvailObject object)
 	{
 		synchronized (object)
 		{
@@ -357,7 +358,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Set o_ExportedNames (final AvailObject object)
+	public A_Set o_ExportedNames (final AvailObject object)
 	{
 		//TODO Cleanup.
 		if (false) { return object.slot(EXPORTED_NAMES); }
@@ -382,7 +383,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Set o_MethodDefinitions (final AvailObject object)
+	public A_Set o_MethodDefinitions (final AvailObject object)
 	{
 		synchronized (object)
 		{
@@ -391,7 +392,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Map o_VariableBindings (final AvailObject object)
+	public A_Map o_VariableBindings (final AvailObject object)
 	{
 		synchronized (object)
 		{
@@ -400,7 +401,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Map o_ConstantBindings (final AvailObject object)
+	public A_Map o_ConstantBindings (final AvailObject object)
 	{
 		synchronized (object)
 		{
@@ -409,7 +410,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected void o_AddConstantBinding (
+	public void o_AddConstantBinding (
 		final AvailObject object,
 		final A_String name,
 		final A_Variable constantBinding)
@@ -428,7 +429,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected void o_ModuleAddDefinition (
+	public void o_ModuleAddDefinition (
 		final AvailObject object,
 		final A_Definition definition)
 	{
@@ -441,7 +442,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected void o_AddSeal (
+	public void o_AddSeal (
 		final AvailObject object,
 		final A_Atom methodName,
 		final A_Tuple argumentTypes)
@@ -465,7 +466,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected void o_ModuleAddSemanticRestriction (
+	public void o_ModuleAddSemanticRestriction (
 		final AvailObject object,
 		final A_SemanticRestriction semanticRestriction)
 	{
@@ -480,7 +481,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected void o_AddVariableBinding (
+	public void o_AddVariableBinding (
 		final AvailObject object,
 		final A_String name,
 		final A_Variable variableBinding)
@@ -499,14 +500,14 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected void o_AddImportedName (
+	public void o_AddImportedName (
 		final AvailObject object,
 		final A_Atom trueName)
 	{
 		// Add the atom to the current public scope.
 		synchronized (object)
 		{
-			final A_String string = trueName.atomName();
+			final A_String string = A_Atom.Companion.atomName(trueName);
 			A_Map importedNames = object.slot(IMPORTED_NAMES);
 			importedNames = importedNames.mapAtReplacingCanDestroy(
 				string,
@@ -548,7 +549,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected void o_AddImportedNames (
+	public void o_AddImportedNames (
 		final AvailObject object,
 		final A_Set trueNames)
 	{
@@ -559,7 +560,7 @@ extends Descriptor
 			A_Map privateNames = object.slot(PRIVATE_NAMES);
 			for (final A_Atom trueName : trueNames)
 			{
-				final A_String string = trueName.atomName();
+				final A_String string = A_Atom.Companion.atomName(trueName);
 				importedNames = importedNames.mapAtReplacingCanDestroy(
 					string,
 					emptySet(),
@@ -598,14 +599,14 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected void o_IntroduceNewName (
+	public void o_IntroduceNewName (
 		final AvailObject object,
 		final A_Atom trueName)
 	{
 		// Set up this true name, which is local to the module.
 		synchronized (object)
 		{
-			final A_String string = trueName.atomName();
+			final A_String string = A_Atom.Companion.atomName(trueName);
 			A_Map newNames = object.slot(NEW_NAMES);
 			assert !newNames.hasKey(string)
 				: "Can't define a new true name twice in a module";
@@ -619,14 +620,14 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected void o_AddPrivateName (
+	public void o_AddPrivateName (
 		final AvailObject object,
 		final A_Atom trueName)
 	{
 		// Add the atom to the current private scope.
 		synchronized (object)
 		{
-			final A_String string = trueName.atomName();
+			final A_String string = A_Atom.Companion.atomName(trueName);
 			A_Map privateNames = object.slot(PRIVATE_NAMES);
 			privateNames = privateNames.mapAtReplacingCanDestroy(
 				string,
@@ -652,7 +653,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected void o_AddPrivateNames (
+	public void o_AddPrivateNames (
 		final AvailObject object,
 		final A_Set trueNames)
 	{
@@ -665,7 +666,7 @@ extends Descriptor
 			final A_Map importedNames = object.slot(IMPORTED_NAMES);
 			for (final A_Atom trueName : trueNames)
 			{
-				final A_String string = trueName.atomName();
+				final A_String string = A_Atom.Companion.atomName(trueName);
 				privateNames = privateNames.mapAtReplacingCanDestroy(
 					string,
 					emptySet(),
@@ -688,7 +689,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected void o_AddEntryPoint (
+	public void o_AddEntryPoint (
 		final AvailObject object,
 		final A_String stringName,
 		final A_Atom trueName)
@@ -705,7 +706,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected void o_AddLexer (
+	public void o_AddLexer (
 		final AvailObject object,
 		final A_Lexer lexer)
 	{
@@ -718,7 +719,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected void o_AddUnloadFunction (
+	public void o_AddUnloadFunction (
 		final AvailObject object,
 		final A_Function unloadFunction)
 	{
@@ -746,13 +747,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_Kind (final AvailObject object)
+	public A_Type o_Kind (final AvailObject object)
 	{
 		return MODULE.o();
 	}
 
 	@Override
-	protected AvailObject o_MakeImmutable (final AvailObject object)
+	public AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		if (isMutable())
 		{
@@ -763,7 +764,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected void o_ModuleAddGrammaticalRestriction (
+	public void o_ModuleAddGrammaticalRestriction (
 		final AvailObject object,
 		final A_GrammaticalRestriction grammaticalRestriction)
 	{
@@ -780,26 +781,26 @@ extends Descriptor
 	}
 
 	@Override
-	protected A_Set o_ModuleGrammaticalRestrictions (final AvailObject object)
+	public A_Set o_ModuleGrammaticalRestrictions (final AvailObject object)
 	{
 		return object.slot(GRAMMATICAL_RESTRICTIONS);
 	}
 
 	@Override
-	protected A_Set o_ModuleSemanticRestrictions (final AvailObject object)
+	public A_Set o_ModuleSemanticRestrictions (final AvailObject object)
 	{
 		return object.slot(SEMANTIC_RESTRICTIONS);
 	}
 
 	@Override @AvailMethod
-	protected boolean o_NameVisible (final AvailObject object, final A_Atom trueName)
+	public boolean o_NameVisible (final AvailObject object, final A_Atom trueName)
 	{
 		// Check if the given trueName is visible in this module.
 		return object.visibleNames().hasElement(trueName);
 	}
 
 	@Override @AvailMethod
-	protected void o_RemoveFrom (
+	public void o_RemoveFrom (
 		final AvailObject object,
 		final AvailLoader loader,
 		final Continuation0 afterRemoval)
@@ -892,7 +893,7 @@ extends Descriptor
 	 *        to be removed.
 	 */
 	@Override @AvailMethod
-	protected void o_ResolveForward (
+	public void o_ResolveForward (
 		final AvailObject object,
 		final A_BasicObject forwardDeclaration)
 	{
@@ -926,7 +927,7 @@ extends Descriptor
 	 *         and are visible in this module.
 	 */
 	@Override @AvailMethod
-	protected A_Set o_TrueNamesForStringName (
+	public A_Set o_TrueNamesForStringName (
 		final AvailObject object,
 		final A_String stringName)
 	{
@@ -939,25 +940,25 @@ extends Descriptor
 					object.slot(NEW_NAMES).mapAt(stringName),
 					false);
 			}
-			final A_Set publics;
+			final A_Set publicNames;
 			if (object.slot(IMPORTED_NAMES).hasKey(stringName))
 			{
-				publics = object.slot(IMPORTED_NAMES).mapAt(stringName);
+				publicNames = object.slot(IMPORTED_NAMES).mapAt(stringName);
 			}
 			else
 			{
-				publics = emptySet();
+				publicNames = emptySet();
 			}
 			if (!object.slot(PRIVATE_NAMES).hasKey(stringName))
 			{
-				return publics;
+				return publicNames;
 			}
 			final A_Set privates = object.slot(PRIVATE_NAMES).mapAt(stringName);
-			if (publics.setSize() == 0)
+			if (publicNames.setSize() == 0)
 			{
 				return privates;
 			}
-			return publics.setUnionCanDestroy(privates, false);
+			return publicNames.setUnionCanDestroy(privates, false);
 		}
 	}
 
@@ -969,7 +970,7 @@ extends Descriptor
 	 * @param object The module.
 	 */
 	@Override @AvailMethod
-	protected A_BundleTree o_BuildFilteredBundleTree (
+	public A_BundleTree o_BuildFilteredBundleTree (
 		final AvailObject object)
 	{
 		final A_BundleTree filteredBundleTree = newBundleTree(nil);
@@ -978,7 +979,7 @@ extends Descriptor
 			final A_Set ancestors = object.slot(ALL_ANCESTORS);
 			for (final A_Atom visibleName : object.visibleNames())
 			{
-				final A_Bundle bundle = visibleName.bundleOrNil();
+				final A_Bundle bundle = A_Atom.Companion.bundleOrNil(visibleName);
 				if (!bundle.equalsNil())
 				{
 					for (final Entry definitionEntry
@@ -1012,7 +1013,7 @@ extends Descriptor
 	 * @param object The module.
 	 */
 	@Override @AvailMethod
-	protected LexicalScanner o_CreateLexicalScanner (
+	public LexicalScanner o_CreateLexicalScanner (
 		final AvailObject object)
 	{
 		final Set<A_Lexer> lexers = new HashSet<>();
@@ -1020,7 +1021,7 @@ extends Descriptor
 		{
 			for (final A_Atom visibleName : object.visibleNames())
 			{
-				final A_Bundle bundle = visibleName.bundleOrNil();
+				final A_Bundle bundle = A_Atom.Companion.bundleOrNil(visibleName);
 				if (!bundle.equalsNil())
 				{
 					final A_Method method = bundle.bundleMethod();
@@ -1041,7 +1042,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected A_Set o_AllAncestors (final AvailObject object)
+	public A_Set o_AllAncestors (final AvailObject object)
 	{
 		synchronized (object)
 		{
@@ -1050,7 +1051,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected void o_AddAncestors (final AvailObject object, final A_Set moreAncestors)
+	public void o_AddAncestors (final AvailObject object, final A_Set moreAncestors)
 	{
 		synchronized (object)
 		{
@@ -1062,14 +1063,14 @@ extends Descriptor
 	}
 
 	@Override
-	protected SerializerOperation o_SerializerOperation (
+	public SerializerOperation o_SerializerOperation (
 		final AvailObject object)
 	{
 		return SerializerOperation.MODULE;
 	}
 
 	@Override
-	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	public void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");

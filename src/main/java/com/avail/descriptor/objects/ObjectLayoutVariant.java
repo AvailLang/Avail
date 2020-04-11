@@ -147,14 +147,16 @@ public final class ObjectLayoutVariant
 		// don't have to be lexicographically unique.
 		final List<A_Atom> sortedFields = toList(allFields.asTuple());
 		sortedFields.sort(
-			Comparator.comparing(atom -> atom.atomName().asNativeString()));
+			Comparator.comparing(atom -> A_Atom.Companion.atomName(atom).asNativeString()));
 		this.fieldToSlotIndex = new HashMap<>(sortedFields.size());
 		int slotCount = 0;
 		final List<A_Atom> realSlotsList = new ArrayList<>();
 		for (final A_Atom field : sortedFields)
 		{
 			final boolean isReal =
-				field.getAtomProperty(explicitSubclassingKey).equalsNil();
+				A_Atom.Companion
+					.getAtomProperty(field, explicitSubclassingKey)
+					.equalsNil();
 			fieldToSlotIndex.put(field, isReal ? ++slotCount : 0);
 			if (isReal)
 			{

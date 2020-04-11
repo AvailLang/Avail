@@ -34,7 +34,7 @@ package com.avail.descriptor.numbers;
 
 
 import com.avail.annotations.AvailMethod;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.representation.IntegerSlotsEnum;
 import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.representation.ObjectSlotsEnum;
@@ -54,7 +54,7 @@ public abstract class ExtendedIntegerDescriptor
 extends AbstractNumberDescriptor
 {
 	@Override @AvailMethod
-	protected boolean o_IsExtendedInteger (final AvailObject object)
+	public boolean o_IsExtendedInteger (final AvailObject object)
 	{
 		return true;
 	}

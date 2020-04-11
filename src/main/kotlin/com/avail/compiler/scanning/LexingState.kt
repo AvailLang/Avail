@@ -38,7 +38,7 @@ import com.avail.compiler.CompilationContext
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
 import com.avail.descriptor.A_Fiber
-import com.avail.descriptor.AvailObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.CharacterDescriptor
 import com.avail.descriptor.FiberDescriptor.GeneralFlag
 import com.avail.descriptor.FiberDescriptor.newLoaderFiber

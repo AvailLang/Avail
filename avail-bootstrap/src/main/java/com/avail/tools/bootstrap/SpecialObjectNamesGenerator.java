@@ -34,7 +34,7 @@ package com.avail.tools.bootstrap;
 
 import com.avail.AvailRuntime;
 import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 
 import java.io.PrintWriter;
 import java.text.MessageFormat;

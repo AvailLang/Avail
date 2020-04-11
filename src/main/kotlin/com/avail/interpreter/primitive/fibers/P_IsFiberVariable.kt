@@ -33,6 +33,8 @@
 package com.avail.interpreter.primitive.fibers
 
 import com.avail.descriptor.FiberDescriptor
+import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
+import com.avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.HERITABLE_KEY
@@ -61,7 +63,7 @@ object P_IsFiberVariable : Primitive(1, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val key = interpreter.argument(0)
-		if (key.isAtomSpecial)
+		if (key.isAtomSpecial())
 		{
 			return interpreter.primitiveFailure(E_SPECIAL_ATOM)
 		}

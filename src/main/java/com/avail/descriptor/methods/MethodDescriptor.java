@@ -37,7 +37,7 @@ import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.A_Module;
 import com.avail.descriptor.AbstractDescriptor;
-import com.avail.descriptor.AvailObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.Descriptor;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
@@ -110,7 +110,7 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import java.util.stream.IntStream;
 
 import static com.avail.AvailRuntimeSupport.nextHash;
-import static com.avail.descriptor.AvailObject.newIndexedDescriptor;
+import static com.avail.descriptor.representation.AvailObject.newIndexedDescriptor;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.atoms.AtomDescriptor.createSpecialAtom;
 import static com.avail.descriptor.functions.CompiledCodeDescriptor.newPrimitiveRawFunction;
@@ -459,7 +459,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected void o_AddDependentChunk (
+	public void o_AddDependentChunk (
 		final AvailObject object,
 		final L2Chunk chunk)
 	{
@@ -477,7 +477,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected void o_AddSealedArgumentsType (
+	public void o_AddSealedArgumentsType (
 		final AvailObject object,
 		final A_Tuple typeTuple)
 	{
@@ -493,7 +493,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected void o_AddSemanticRestriction (
+	public void o_AddSemanticRestriction (
 		final AvailObject object,
 		final A_SemanticRestriction restriction)
 	{
@@ -506,13 +506,13 @@ extends Descriptor
 	}
 
 	@Override
-	protected A_Set o_Bundles (final AvailObject object)
+	public A_Set o_Bundles (final AvailObject object)
 	{
 		return object.slot(OWNING_BUNDLES);
 	}
 
 	@Override
-	protected A_Bundle o_ChooseBundle (
+	public A_Bundle o_ChooseBundle (
 		final AvailObject object,
 		final A_Module currentModule)
 	{
@@ -520,7 +520,8 @@ extends Descriptor
 		final A_Set bundles = object.slot(OWNING_BUNDLES);
 		for (final A_Bundle bundle : bundles)
 		{
-			if (visibleModules.hasElement(bundle.message().issuingModule()))
+			if (visibleModules.hasElement(
+				A_Atom.Companion.issuingModule(bundle.message())))
 			{
 				return bundle;
 			}
@@ -544,7 +545,7 @@ extends Descriptor
 	 * other day.</p>
 	 */
 	@Override @AvailMethod
-	protected List<A_Definition> o_DefinitionsAtOrBelow (
+	public List<A_Definition> o_DefinitionsAtOrBelow (
 		final AvailObject object,
 		final List<TypeRestriction> argRestrictions)
 	{
@@ -564,7 +565,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Tuple o_DefinitionsTuple (final AvailObject object)
+	public A_Tuple o_DefinitionsTuple (final AvailObject object)
 	{
 		assert isShared();
 		synchronized (object)
@@ -587,7 +588,7 @@ extends Descriptor
 	 * MethodDefinitionDescriptor method signatures}.
 	 */
 	@Override @AvailMethod
-	protected List<A_Definition> o_FilterByTypes (
+	public List<A_Definition> o_FilterByTypes (
 		final AvailObject object,
 		final List<? extends A_Type> argTypes)
 	{
@@ -616,7 +617,7 @@ extends Descriptor
 	 * Test if the definition is present within this method.
 	 */
 	@Override @AvailMethod
-	protected boolean o_IncludesDefinition (
+	public boolean o_IncludesDefinition (
 		final AvailObject object,
 		final A_Definition definition)
 	{
@@ -633,7 +634,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected boolean o_IsMethodEmpty (final AvailObject object)
+	public boolean o_IsMethodEmpty (final AvailObject object)
 	{
 		synchronized (object)
 		{
@@ -645,13 +646,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Type o_Kind (final AvailObject object)
+	public A_Type o_Kind (final AvailObject object)
 	{
 		return METHOD.o();
 	}
 
 	@Override @AvailMethod
-	protected A_Lexer o_Lexer (final AvailObject object)
+	public A_Lexer o_Lexer (final AvailObject object)
 	{
 		synchronized (object)
 		{
@@ -664,7 +665,7 @@ extends Descriptor
 	 * Use the {@link #methodTestingTree} to find the definition to invoke.
 	 */
 	@Override @AvailMethod
-	protected A_Definition o_LookupByTypesFromTuple (
+	public A_Definition o_LookupByTypesFromTuple (
 		final AvailObject object,
 		final A_Tuple argumentTypeTuple)
 	throws MethodDefinitionException
@@ -680,7 +681,7 @@ extends Descriptor
 	 * a lookup error occurs).
 	 */
 	@Override @AvailMethod
-	protected A_Definition o_LookupByValuesFromList (
+	public A_Definition o_LookupByValuesFromList (
 		final AvailObject object,
 		final List<? extends A_BasicObject> argumentList)
 	throws MethodDefinitionException
@@ -702,7 +703,7 @@ extends Descriptor
 	 * macros, but when it isn't, other lookup approaches are necessary.</p>
 	 */
 	@Override @AvailMethod
-	protected A_Tuple o_LookupMacroByPhraseTuple (
+	public A_Tuple o_LookupMacroByPhraseTuple (
 		final AvailObject object,
 		final A_Tuple argumentPhraseTuple)
 	{
@@ -711,7 +712,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Tuple o_MacroDefinitionsTuple (final AvailObject object)
+	public A_Tuple o_MacroDefinitionsTuple (final AvailObject object)
 	{
 		assert isShared();
 		synchronized (object)
@@ -721,7 +722,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected AvailObject o_MakeImmutable (final AvailObject object)
+	public AvailObject o_MakeImmutable (final AvailObject object)
 	{
 		// A method is always shared, except during construction.
 		assert isShared();
@@ -729,7 +730,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected void o_MethodAddBundle (
+	public void o_MethodAddBundle (
 		final AvailObject object,
 		final A_Bundle bundle)
 	{
@@ -739,7 +740,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected void o_MethodAddDefinition (
+	public void o_MethodAddDefinition (
 		final AvailObject object,
 		final A_Definition definition)
 	throws SignatureException
@@ -795,13 +796,14 @@ extends Descriptor
 	}
 
 	@Override
-	protected A_String o_MethodName (final AvailObject object)
+	public A_String o_MethodName (final AvailObject object)
 	{
-		return object.chooseBundle(object.module()).message().atomName();
+		return A_Atom.Companion.atomName(
+			object.chooseBundle(object.module()).message());
 	}
 
 	@Override @AvailMethod
-	protected int o_NumArgs (final AvailObject object)
+	public int o_NumArgs (final AvailObject object)
 	{
 		return object.slot(NUM_ARGS);
 	}
@@ -811,7 +813,7 @@ extends Descriptor
 	 * invalidated.
 	 */
 	@Override @AvailMethod
-	protected void o_RemoveDefinition (
+	public void o_RemoveDefinition (
 		final AvailObject object,
 		final A_Definition definition)
 	{
@@ -847,7 +849,7 @@ extends Descriptor
 	 * the chunk is contingent.
 	 */
 	@Override @AvailMethod
-	protected void o_RemoveDependentChunk (
+	public void o_RemoveDependentChunk (
 		final AvailObject object,
 		final L2Chunk chunk)
 	{
@@ -867,7 +869,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected void o_RemoveSealedArgumentsType (
+	public void o_RemoveSealedArgumentsType (
 		final AvailObject object,
 		final A_Tuple typeTuple)
 	{
@@ -883,7 +885,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected void o_RemoveSemanticRestriction (
+	public void o_RemoveSemanticRestriction (
 		final AvailObject object,
 		final A_SemanticRestriction restriction)
 	{
@@ -896,13 +898,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected A_Tuple o_SealedArgumentsTypesTuple (final AvailObject object)
+	public A_Tuple o_SealedArgumentsTypesTuple (final AvailObject object)
 	{
 		return object.slot(SEALED_ARGUMENTS_TYPES_TUPLE);
 	}
 
 	@Override @AvailMethod
-	protected A_Set o_SemanticRestrictions (final AvailObject object)
+	public A_Set o_SemanticRestrictions (final AvailObject object)
 	{
 		synchronized (object)
 		{
@@ -911,14 +913,14 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod @ThreadSafe
-	protected SerializerOperation o_SerializerOperation (
+	public SerializerOperation o_SerializerOperation (
 		final AvailObject object)
 	{
 		return SerializerOperation.METHOD;
 	}
 
 	@Override
-	protected void o_SetLexer (
+	public void o_SetLexer (
 		final AvailObject object, final A_Lexer lexer)
 	{
 		synchronized (object)
@@ -928,14 +930,14 @@ extends Descriptor
 	}
 
 	@Override
-	protected LookupTree<A_Definition, A_Tuple> o_TestingTree (
+	public LookupTree<A_Definition, A_Tuple> o_TestingTree (
 		final AvailObject object)
 	{
 		return methodTestingTree(object);
 	}
 
 	@Override
-	protected void o_WriteTo (final AvailObject object, final JSONWriter writer)
+	public void o_WriteTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -950,7 +952,7 @@ extends Descriptor
 	}
 
 	@Override
-	protected void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
+	public void o_WriteSummaryTo (final AvailObject object, final JSONWriter writer)
 	{
 		writer.startObject();
 		writer.write("kind");
@@ -1301,7 +1303,7 @@ extends Descriptor
 		{
 			this.atom = createSpecialMethodAtom(
 				name, CREATE_MACRO, prefixFunctions, primitives);
-			this.bundle = atom.bundleOrNil();
+			this.bundle = A_Atom.Companion.bundleOrNil(atom);
 		}
 
 		/**
@@ -1322,7 +1324,7 @@ extends Descriptor
 		{
 			this.atom = createSpecialMethodAtom(
 				name, CREATE_METHOD, emptyList(), primitives);
-			this.bundle = atom.bundleOrNil();
+			this.bundle = A_Atom.Companion.bundleOrNil(atom);
 		}
 
 		/**
@@ -1360,7 +1362,7 @@ extends Descriptor
 			final A_Bundle bundle;
 			try
 			{
-				bundle = atom.bundleOrCreate();
+				bundle = A_Atom.Companion.bundleOrCreate(atom);
 			}
 			catch (final MalformedMessageException e)
 			{
@@ -1420,7 +1422,7 @@ extends Descriptor
 				}
 			}
 			assert atom.descriptor().isShared();
-			assert atom.isAtomSpecial();
+			assert A_Atom.Companion.isAtomSpecial(atom);
 			return atom;
 		}
 	}
