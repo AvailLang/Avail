@@ -164,7 +164,7 @@ object P_BootstrapPrefixPrimitiveDeclaration
 							+ "have a name that doesn't shadow an existing "
 							+ conflictingDeclaration.declarationKind()
 								.nativeKindName()
-							+  "(from line "
+							+  " (from line "
 							+ "${conflictingDeclaration.token().lineNumber()})")
 			}
 			return interpreter.primitiveSuccess(nil)

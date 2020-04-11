@@ -650,11 +650,9 @@ Method "any of_satisfies_" is
 		index : natural number
 	|
 		$loop : boolean;
-		done ::= index > limit;
-		Exit loop with false if done;
+		Exit loop with false if index > limit;
 		key, value ::= bindings[index];
-		success ::= predicate(key, value);
-		Exit loop with true if success;
+		Exit loop with true if predicate(key, value);
 		Restart loop with <index + 1>
 	](1)
 ] : boolean;
@@ -699,11 +697,9 @@ Method "each of_satisfies_" is
 		index : natural number
 	|
 		$loop : boolean;
-		done ::= index > limit;
-		Exit loop with true if done;
+		Exit loop with true if index > limit;
 		key, value ::= bindings[index];
-		failure ::= ¬predicate(key, value);
-		Exit loop with false if failure;
+		Exit loop with false if ¬predicate(key, value);
 		Restart loop with <index + 1>
 	](1)
 ] : boolean;

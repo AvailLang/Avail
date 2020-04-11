@@ -44,10 +44,11 @@ import com.avail.interpreter.levelTwo.WritesHiddenVariable;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
-import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.RegisterSet;
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
 import com.avail.optimizer.StackReifier;
+import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.JVMTranslator;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.List;
@@ -93,6 +94,7 @@ extends L2ControlFlowOperation
 		super(
 			READ_BOXED.is("called function"),
 			READ_BOXED_VECTOR.is("arguments"),
+			WRITE_BOXED.is("result", SUCCESS),
 			PC.is("on return", SUCCESS),
 			PC.is("on reification", OFF_RAMP));
 	}
@@ -101,16 +103,6 @@ extends L2ControlFlowOperation
 	 * Initialize the sole instance.
 	 */
 	public static final L2_INVOKE instance = new L2_INVOKE();
-
-	@Override
-	protected void propagateTypes (
-		final L2Instruction instruction,
-		final List<RegisterSet> registerSets,
-		final L2Generator generator)
-	{
-		// Successful return or a reification off-ramp.
-		assert registerSets.size() == 2;
-	}
 
 	@Override
 	public boolean hasSideEffect ()
@@ -126,14 +118,17 @@ extends L2ControlFlowOperation
 		final StringBuilder builder,
 		final Consumer<Boolean> warningStyleChange)
 	{
+		assert this == instruction.operation();
 		final L2ReadBoxedOperand function = instruction.operand(0);
 		final L2ReadBoxedVectorOperand arguments = instruction.operand(1);
-//		final L2PcOperand onReturn = instruction.operand(2);
-//		final L2PcOperand onReification = instruction.operand(3);
+		final L2WriteBoxedOperand result = instruction.operand(2);
+//		final L2PcOperand onReturn = instruction.operand(3);
+//		final L2PcOperand onReification = instruction.operand(4);
 
-		assert this == instruction.operation();
 		renderPreamble(instruction, builder);
 		builder.append(' ');
+		builder.append(result.registerString());
+		builder.append(" ← ");
 		builder.append(function.registerString());
 		builder.append("(");
 		builder.append(arguments.elements());
@@ -149,22 +144,40 @@ extends L2ControlFlowOperation
 	{
 		final L2ReadBoxedOperand function = instruction.operand(0);
 		final L2ReadBoxedVectorOperand arguments = instruction.operand(1);
-		final L2PcOperand onReturn = instruction.operand(2);
-		final L2PcOperand onReification = instruction.operand(3);
+		final L2WriteBoxedOperand result = instruction.operand(2);
+		final L2PcOperand onReturn = instruction.operand(3);
+		final L2PcOperand onReification = instruction.operand(4);
 
 		translator.loadInterpreter(method);
+		// :: [interpreter]
 		translator.loadInterpreter(method);
+		// :: [interpreter, interpreter]
 		chunkField.generateRead(method);
+		// :: [interpreter, callingChunk]
 		translator.loadInterpreter(method);
+		// :: [interpreter, callingChunk, interpreter]
 		translator.load(method, function.register());
 		// :: [interpreter, callingChunk, interpreter, function]
 		generatePushArgumentsAndInvoke(
 			translator,
 			method,
 			arguments.elements(),
+			result,
 			onReturn,
 			onReification);
 	}
+
+	/**
+	 * An array of {@link Interpreter#preinvokeMethod} variants, where the
+	 * index in the array is the number of arguments.
+	 */
+	private static final CheckedMethod[] preinvokeMethods =
+	{
+		preinvoke0Method,
+		preinvoke1Method,
+		preinvoke2Method,
+		preinvoke3Method
+	};
 
 	/**
 	 * Generate code to push the arguments and invoke.  This expects the stack
@@ -178,6 +191,9 @@ extends L2ControlFlowOperation
 	 *        The {@link MethodVisitor} controlling the method being written.
 	 * @param argsRegsList
 	 *        The {@link List} of {@link L2ReadBoxedOperand} arguments.
+	 * @param result
+	 *        Where to write the return result if the call returns without
+	 *        reification.
 	 * @param onNormalReturn
 	 *        Where to jump if the call completes.
 	 * @param onReification
@@ -187,68 +203,50 @@ extends L2ControlFlowOperation
 		final JVMTranslator translator,
 		final MethodVisitor method,
 		final List<L2ReadBoxedOperand> argsRegsList,
+		final L2WriteBoxedOperand result,
 		final L2PcOperand onNormalReturn,
 		final L2PcOperand onReification)
 	{
-		// Generate special code for common cases of 0-3 arguments.
-		//
 		// :: caller set up [interpreter, callingChunk, interpreter, function]
-		// :: [interpreter, callingChunk, interpreter, function, [args...]]
-		// :: interpreter.preinvoke[0-3]?(function, [args...])
-		// :: [interpreter, callingChunk, callingFunction]
-		// :: -> [interpreter, callingChunk, callingFunction, interpreter]
-		// :: interpreter.runChunk()
-		// :: [interpreter, callingChunk, callingFunction, reifier]
-		// :: interpreter.postinvoke(callingChunk, callingFunction, reifier)
-		// :: [reifier]
-		switch (argsRegsList.size())
+		final int numArgs = argsRegsList.size();
+		if (numArgs < preinvokeMethods.length)
 		{
-			case 0:
-			{
-				preinvoke0Method.generateCall(method);
-				break;
-			}
-			case 1:
-			{
-				translator.load(method, argsRegsList.get(0).register());
-				preinvoke1Method.generateCall(method);
-				break;
-			}
-			case 2:
-			{
-				translator.load(method, argsRegsList.get(0).register());
-				translator.load(method, argsRegsList.get(1).register());
-				preinvoke2Method.generateCall(method);
-				break;
-			}
-			case 3:
-			{
-				translator.load(method, argsRegsList.get(0).register());
-				translator.load(method, argsRegsList.get(1).register());
-				translator.load(method, argsRegsList.get(2).register());
-				preinvoke3Method.generateCall(method);
-				break;
-			}
-			default:
-			{
-				translator.objectArray(method, argsRegsList, AvailObject.class);
-				preinvokeMethod.generateCall(method);
-				break;
-			}
+			argsRegsList.forEach(
+				arg -> translator.load(method, arg.register()));
+			// :: [interpreter, callingChunk, interpreter, function, [args...]]
+			preinvokeMethods[numArgs].generateCall(method);
+		}
+		else
+		{
+			translator.objectArray(method, argsRegsList, AvailObject.class);
+			// :: [interpreter, callingChunk, interpreter, function, argsArray]
+			preinvokeMethod.generateCall(method);
 		}
 		// :: [interpreter, callingChunk, callingFunction]
 		translator.loadInterpreter(method);
-		// :: -> [interpreter, callingChunk, callingFunction, interpreter]
+		// :: [interpreter, callingChunk, callingFunction, interpreter]
 		interpreterRunChunkMethod.generateCall(method);
 		// :: [interpreter, callingChunk, callingFunction, reifier]
 		postinvokeMethod.generateCall(method);
 		// :: [reifier]
-		method.visitInsn(DUP);
 		method.visitVarInsn(ASTORE, translator.reifierLocal());
-		// :: if (reifier != null) goto onNormalReturn;
-		// :: else goto onReification;
+		// :: []
+		method.visitVarInsn(ALOAD, translator.reifierLocal());
+		// :: if (reifier != null) goto onReificationPreamble;
+		// :: result = interpreter.getLatestResult();
+		// :: goto onNormalReturn;
+		// :: onReificationPreamble: ...
+		final Label onReificationPreamble = new Label();
+		method.visitJumpInsn(IFNONNULL, onReificationPreamble);
+		translator.loadInterpreter(method);
+		// :: [interpreter]
+		getLatestResultMethod.generateCall(method);
+		// :: [latestResult]
+		translator.store(method, result.register());
+		// :: []
 		method.visitJumpInsn(
-			IFNULL, translator.labelFor(onNormalReturn.offset()));
+			GOTO, translator.labelFor(onNormalReturn.offset()));
+		method.visitLabel(onReificationPreamble);
 		translator.generateReificationPreamble(method, onReification);
 	}
 }

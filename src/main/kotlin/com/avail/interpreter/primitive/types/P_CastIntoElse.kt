@@ -168,12 +168,8 @@ object P_CastIntoElse : Primitive(3, Invokes, CanInline, CannotFail)
 
 			// We know the exact type to compare the value against, but we
 			// couldn't statically eliminate the type test.  Emit a branch.
-			translator.addInstruction(
-				L2_JUMP_IF_KIND_OF_CONSTANT.instance,
-				valueRead,
-				L2ConstantOperand(typeTest),
-				edgeTo(castBlock),
-				edgeTo(elseBlock))
+			translator.jumpIfKindOfConstant(
+				valueRead, typeTest, castBlock, elseBlock);
 		}
 		else
 		{

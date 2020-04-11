@@ -101,7 +101,7 @@ extends VariableDescriptor
 		 * A slot to hold the hash value.  Must be computed when (or before)
 		 * making a variable shared.
 		 */
-		static final BitField HASH_ALWAYS_SET =
+		public static final BitField HASH_ALWAYS_SET =
 			new BitField(HASH_AND_MORE, 0, 32);
 
 		static

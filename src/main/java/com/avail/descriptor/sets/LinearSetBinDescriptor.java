@@ -82,7 +82,7 @@ extends SetBinDescriptor
 		 * A slot to hold the bin's hash value, or zero if it has not been
 		 * computed.
 		 */
-		static final BitField BIN_HASH =
+		public static final BitField BIN_HASH =
 			new BitField(BIN_HASH_AND_MORE, 0, 32);
 
 		static

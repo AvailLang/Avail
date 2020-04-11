@@ -42,8 +42,11 @@ import com.avail.descriptor.A_Module
 import com.avail.descriptor.AvailObject
 import com.avail.descriptor.Descriptor
 import com.avail.descriptor.NilDescriptor
+import com.avail.descriptor.NilDescriptor.*
+import com.avail.descriptor.bundles.MessageBundleTreeDescriptor.ObjectSlots.*
 import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.maps.MapDescriptor
+import com.avail.descriptor.maps.MapDescriptor.*
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_GrammaticalRestriction
 import com.avail.descriptor.numbers.A_Number
@@ -55,10 +58,12 @@ import com.avail.descriptor.pojos.RawPojoDescriptor
 import com.avail.descriptor.representation.*
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor
+import com.avail.descriptor.sets.SetDescriptor.*
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor
+import com.avail.descriptor.tuples.TupleDescriptor.*
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import com.avail.descriptor.types.TypeDescriptor
@@ -315,7 +320,7 @@ private constructor(mutability: Mutability) : Descriptor(
 
 	override fun allowsImmutableToMutableReferenceInField(
 		e: AbstractSlotsEnum): Boolean {
-		return e === IntegerSlots.HASH_AND_MORE || e === ObjectSlots.ALL_PLANS_IN_PROGRESS || e === ObjectSlots.UNCLASSIFIED || e === ObjectSlots.LAZY_COMPLETE || e === ObjectSlots.LAZY_INCOMPLETE || e === ObjectSlots.LAZY_INCOMPLETE_CASE_INSENSITIVE || e === ObjectSlots.LAZY_ACTIONS || e === ObjectSlots.LAZY_PREFILTER_MAP || e === ObjectSlots.LAZY_TYPE_FILTER_PAIRS_TUPLE || e === ObjectSlots.LAZY_TYPE_FILTER_TREE_POJO || e === ObjectSlots.LATEST_BACKWARD_JUMP
+		return e === IntegerSlots.HASH_AND_MORE || e === ALL_PLANS_IN_PROGRESS || e === UNCLASSIFIED || e === LAZY_COMPLETE || e === LAZY_INCOMPLETE || e === LAZY_INCOMPLETE_CASE_INSENSITIVE || e === LAZY_ACTIONS || e === LAZY_PREFILTER_MAP || e === LAZY_TYPE_FILTER_PAIRS_TUPLE || e === LAZY_TYPE_FILTER_TREE_POJO || e === LATEST_BACKWARD_JUMP
 	}
 
 	override fun printObjectOnAvoidingIndent(
@@ -324,7 +329,7 @@ private constructor(mutability: Mutability) : Descriptor(
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int) {
 		builder.append("BundleTree(")
-		val allPlansInProgress: A_Map = self.slot(ObjectSlots.ALL_PLANS_IN_PROGRESS)
+		val allPlansInProgress: A_Map = self.slot(ALL_PLANS_IN_PROGRESS)
 		val bundleCount = allPlansInProgress.mapSize()
 		if (bundleCount <= 15) {
 			val strings: MutableMap<String, Int> = HashMap(bundleCount)
@@ -373,11 +378,11 @@ private constructor(mutability: Mutability) : Descriptor(
 		self: AvailObject,
 		planInProgress: A_ParsingPlanInProgress) {
 		synchronized(self) {
-			self.setSlot(ObjectSlots.ALL_PLANS_IN_PROGRESS,
+			self.setSlot(ALL_PLANS_IN_PROGRESS,
 				layeredMapWithPlan(
-					self.slot(ObjectSlots.ALL_PLANS_IN_PROGRESS), planInProgress))
-			self.setSlot(ObjectSlots.UNCLASSIFIED,
-				layeredMapWithPlan(self.slot(ObjectSlots.UNCLASSIFIED), planInProgress))
+					self.slot(ALL_PLANS_IN_PROGRESS), planInProgress))
+			self.setSlot(UNCLASSIFIED,
+				layeredMapWithPlan(self.slot(UNCLASSIFIED), planInProgress))
 			if (planInProgress.isBackwardJump) {
 				self.setSlot(IntegerSlots.HAS_BACKWARD_JUMP_INSTRUCTION, 1)
 			}
@@ -385,7 +390,7 @@ private constructor(mutability: Mutability) : Descriptor(
 	}
 
 	override fun o_AllParsingPlansInProgress(self: AvailObject): A_Map {
-		return self.slot(ObjectSlots.ALL_PLANS_IN_PROGRESS)
+		return self.slot(ALL_PLANS_IN_PROGRESS)
 	}
 
 	@AvailMethod
@@ -400,32 +405,32 @@ private constructor(mutability: Mutability) : Descriptor(
 	override fun o_Expand(
 		self: AvailObject,
 		module: A_Module) {
-		var unclassified: A_Map = self.volatileSlot(ObjectSlots.UNCLASSIFIED)
+		var unclassified: A_Map = self.volatileSlot(UNCLASSIFIED)
 		if (unclassified.mapSize() == 0) {
 			return
 		}
 		synchronized(self) {
-			unclassified = self.volatileSlot(ObjectSlots.UNCLASSIFIED)
+			unclassified = self.volatileSlot(UNCLASSIFIED)
 			if (unclassified.mapSize() == 0) {
 				// Someone else expanded it since we checked outside the
 				// monitor, above.
 				return
 			}
 			val complete = Mutable<A_Set>(
-				self.slot(ObjectSlots.LAZY_COMPLETE))
+				self.slot(LAZY_COMPLETE))
 			val incomplete = Mutable<A_Map>(
-				self.slot(ObjectSlots.LAZY_INCOMPLETE))
+				self.slot(LAZY_INCOMPLETE))
 			val caseInsensitive = Mutable<A_Map>(
-				self.slot(ObjectSlots.LAZY_INCOMPLETE_CASE_INSENSITIVE))
+				self.slot(LAZY_INCOMPLETE_CASE_INSENSITIVE))
 			val actionMap = Mutable<A_Map>(
-				self.slot(ObjectSlots.LAZY_ACTIONS))
+				self.slot(LAZY_ACTIONS))
 			val prefilterMap = Mutable<A_Map>(
-				self.slot(ObjectSlots.LAZY_PREFILTER_MAP))
+				self.slot(LAZY_PREFILTER_MAP))
 			val typeFilterPairs = Mutable<A_Tuple>(
-				self.slot(ObjectSlots.LAZY_TYPE_FILTER_PAIRS_TUPLE))
+				self.slot(LAZY_TYPE_FILTER_PAIRS_TUPLE))
 			val oldTypeFilterSize = typeFilterPairs.value.tupleSize()
 			val allAncestorModules = module.allAncestors()
-			val allPlansInProgress: A_Map = self.slot(ObjectSlots.ALL_PLANS_IN_PROGRESS)
+			val allPlansInProgress: A_Map = self.slot(ALL_PLANS_IN_PROGRESS)
 
 			// Figure out what the latestBackwardJump will be for any successor
 			// bundle trees that need to be created.
@@ -439,7 +444,7 @@ private constructor(mutability: Mutability) : Descriptor(
 				}
 				// It's not already the source of a cycle.  See if we can
 				// find an equivalent ancestor to cycle back to.
-				var ancestor: A_BundleTree? = self.slot(ObjectSlots.LATEST_BACKWARD_JUMP)
+				var ancestor: A_BundleTree? = self.slot(LATEST_BACKWARD_JUMP)
 				while (!ancestor!!.equalsNil()) {
 					if (ancestor.allParsingPlansInProgress().equals(
 							allPlansInProgress)) {
@@ -447,7 +452,7 @@ private constructor(mutability: Mutability) : Descriptor(
 						// a backward cyclic link and plug that exact
 						// ancestor into the LATEST_BACKWARD_JUMP slot.
 						self.setSlot(IntegerSlots.IS_SOURCE_OF_CYCLE, 1)
-						self.setSlot(ObjectSlots.LATEST_BACKWARD_JUMP, ancestor)
+						self.setSlot(LATEST_BACKWARD_JUMP, ancestor)
 						// The caller will deal with fully expanding the
 						// ancestor.
 						return
@@ -460,7 +465,7 @@ private constructor(mutability: Mutability) : Descriptor(
 			} else {
 				// This bundle tree doesn't have a backward jump, so any new
 				// descendants should use the same LATEST_BACKWARD_JUMP as me.
-				latestBackwardJump = self.slot(ObjectSlots.LATEST_BACKWARD_JUMP)
+				latestBackwardJump = self.slot(LATEST_BACKWARD_JUMP)
 			}
 
 			// Update my components.
@@ -500,27 +505,27 @@ private constructor(mutability: Mutability) : Descriptor(
 				}
 			}
 			// Write back the updates.
-			self.setSlot(ObjectSlots.LAZY_COMPLETE, complete.value.makeShared())
-			self.setSlot(ObjectSlots.LAZY_INCOMPLETE, incomplete.value.makeShared())
-			self.setSlot(ObjectSlots.LAZY_INCOMPLETE_CASE_INSENSITIVE,
+			self.setSlot(LAZY_COMPLETE, complete.value.makeShared())
+			self.setSlot(LAZY_INCOMPLETE, incomplete.value.makeShared())
+			self.setSlot(LAZY_INCOMPLETE_CASE_INSENSITIVE,
 				caseInsensitive.value.makeShared())
-			self.setSlot(ObjectSlots.LAZY_ACTIONS, actionMap.value.makeShared())
-			self.setSlot(ObjectSlots.LAZY_PREFILTER_MAP, prefilterMap.value.makeShared())
-			self.setSlot(ObjectSlots.LAZY_TYPE_FILTER_PAIRS_TUPLE,
+			self.setSlot(LAZY_ACTIONS, actionMap.value.makeShared())
+			self.setSlot(LAZY_PREFILTER_MAP, prefilterMap.value.makeShared())
+			self.setSlot(LAZY_TYPE_FILTER_PAIRS_TUPLE,
 				typeFilterPairs.value.makeShared())
 			if (typeFilterPairs.value.tupleSize() != oldTypeFilterSize) {
 				// Rebuild the type-checking lookup tree.
 				val tree = parserTypeChecker.createRoot(
-					TupleDescriptor.toList(typeFilterPairs.value),
+					toList(typeFilterPairs.value),
 					listOf(
 						TypeRestriction.restrictionForType(
 							PhraseKind.PARSE_PHRASE.mostGeneralType(), RestrictionFlagEncoding.BOXED)),
 					latestBackwardJump)
 				val pojo: A_BasicObject = RawPojoDescriptor.identityPojo(tree)
-				self.setSlot(ObjectSlots.LAZY_TYPE_FILTER_TREE_POJO, pojo.makeShared())
+				self.setSlot(LAZY_TYPE_FILTER_TREE_POJO, pojo.makeShared())
 			}
 			// Do this volatile write last for correctness.
-			self.setVolatileSlot(ObjectSlots.UNCLASSIFIED, MapDescriptor.emptyMap())
+			self.setVolatileSlot(UNCLASSIFIED, emptyMap())
 		}
 	}
 
@@ -535,7 +540,7 @@ private constructor(mutability: Mutability) : Descriptor(
 	) {
 		synchronized(self) {
 			val plan = planInProgress.parsingPlan()
-			if (self.slot(ObjectSlots.UNCLASSIFIED).hasKey(plan.bundle())) {
+			if (self.slot(UNCLASSIFIED).hasKey(plan.bundle())) {
 				// The plan (or another plan with the same bundle) is still
 				// unclassified, so do nothing.
 				return
@@ -570,7 +575,7 @@ private constructor(mutability: Mutability) : Descriptor(
 						// Look it up in LAZY_INCOMPLETE.
 						val keywordIndex = op.keywordIndex(instruction)
 						val keyword: A_String = plan.bundle().messageParts().tupleAt(keywordIndex)
-						val successor: A_BundleTree = self.slot(ObjectSlots.LAZY_INCOMPLETE).mapAt(keyword)
+						val successor: A_BundleTree = self.slot(LAZY_INCOMPLETE).mapAt(keyword)
 						treesToVisit.add(
 							Pair(
 								successor, ParsingPlanInProgressDescriptor.newPlanInProgress(plan, pc + 1)))
@@ -580,7 +585,7 @@ private constructor(mutability: Mutability) : Descriptor(
 						// Look it up in LAZY_INCOMPLETE_CASE_INSENSITIVE.
 						val keywordIndex = op.keywordIndex(instruction)
 						val keyword: A_String = plan.bundle().messageParts().tupleAt(keywordIndex)
-						val successor: A_BundleTree = self.slot(ObjectSlots.LAZY_INCOMPLETE_CASE_INSENSITIVE).mapAt(
+						val successor: A_BundleTree = self.slot(LAZY_INCOMPLETE_CASE_INSENSITIVE).mapAt(
 							keyword)
 						treesToVisit.add(
 							Pair(
@@ -590,7 +595,7 @@ private constructor(mutability: Mutability) : Descriptor(
 
 						// It's an ordinary action.  Each JUMP and BRANCH was
 						// already dealt with in a previous case.
-						val successors: A_Tuple = self.slot(ObjectSlots.LAZY_ACTIONS).mapAt(
+						val successors: A_Tuple = self.slot(LAZY_ACTIONS).mapAt(
 							instructions.tupleAt(pc))
 						for (successor in successors) {
 							treesToVisit.add(
@@ -637,38 +642,38 @@ private constructor(mutability: Mutability) : Descriptor(
 	@AvailMethod
 	override fun o_LazyActions(self: AvailObject): A_Map {
 		assert(isShared)
-		synchronized(self) { return self.slot(ObjectSlots.LAZY_ACTIONS) }
+		synchronized(self) { return self.slot(LAZY_ACTIONS) }
 	}
 
 	@AvailMethod
 	override fun o_LazyComplete(self: AvailObject): A_Set {
 		assert(isShared)
-		synchronized(self) { return self.slot(ObjectSlots.LAZY_COMPLETE) }
+		synchronized(self) { return self.slot(LAZY_COMPLETE) }
 	}
 
 	@AvailMethod
 	override fun o_LazyIncomplete(self: AvailObject): A_Map {
 		assert(isShared)
-		synchronized(self) { return self.slot(ObjectSlots.LAZY_INCOMPLETE) }
+		synchronized(self) { return self.slot(LAZY_INCOMPLETE) }
 	}
 
 	@AvailMethod
 	override fun o_LazyIncompleteCaseInsensitive(self: AvailObject): A_Map {
 		assert(isShared)
-		synchronized(self) { return self.slot(ObjectSlots.LAZY_INCOMPLETE_CASE_INSENSITIVE) }
+		synchronized(self) { return self.slot(LAZY_INCOMPLETE_CASE_INSENSITIVE) }
 	}
 
 	@AvailMethod
 	override fun o_LazyPrefilterMap(self: AvailObject): A_Map {
 		assert(isShared)
-		synchronized(self) { return self.slot(ObjectSlots.LAZY_PREFILTER_MAP) }
+		synchronized(self) { return self.slot(LAZY_PREFILTER_MAP) }
 	}
 
 	//	lazyTypeFilterPairs
 	@AvailMethod
 	override fun o_LazyTypeFilterTreePojo(self: AvailObject): A_BasicObject {
 		assert(isShared)
-		synchronized(self) { return self.slot(ObjectSlots.LAZY_TYPE_FILTER_TREE_POJO) }
+		synchronized(self) { return self.slot(LAZY_TYPE_FILTER_TREE_POJO) }
 	}
 
 	@AvailMethod
@@ -690,12 +695,12 @@ private constructor(mutability: Mutability) : Descriptor(
 		self: AvailObject,
 		planInProgress: A_ParsingPlanInProgress) {
 		synchronized(self) {
-			self.setSlot(ObjectSlots.ALL_PLANS_IN_PROGRESS,
+			self.setSlot(ALL_PLANS_IN_PROGRESS,
 				layeredMapWithoutPlan(
-					self.slot(ObjectSlots.ALL_PLANS_IN_PROGRESS), planInProgress))
-			self.setSlot(ObjectSlots.UNCLASSIFIED,
+					self.slot(ALL_PLANS_IN_PROGRESS), planInProgress))
+			self.setSlot(UNCLASSIFIED,
 				layeredMapWithoutPlan(
-					self.slot(ObjectSlots.UNCLASSIFIED), planInProgress))
+					self.slot(UNCLASSIFIED), planInProgress))
 		}
 	}
 
@@ -707,7 +712,7 @@ private constructor(mutability: Mutability) : Descriptor(
 	 * @return A predecessor bundle tree or nil.
 	 */
 	override fun o_LatestBackwardJump(self: AvailObject): A_BundleTree {
-		return self.slot(ObjectSlots.LATEST_BACKWARD_JUMP)
+		return self.slot(LATEST_BACKWARD_JUMP)
 	}
 
 	override fun o_HasBackwardJump(self: AvailObject): Boolean {
@@ -757,15 +762,13 @@ private constructor(mutability: Mutability) : Descriptor(
 
 			override fun constructResult(
 				elements: List<A_Tuple>,
-				latestBackwardJump: A_BundleTree
-			): A_BundleTree {
-				val newBundleTree: A_BundleTree = newBundleTree(latestBackwardJump)
-				for (pair in elements) {
-					val planInProgress: A_ParsingPlanInProgress = pair.tupleAt(2)
-					newBundleTree.addPlanInProgress(planInProgress)
+				memento: A_BundleTree
+			): A_BundleTree =
+				newBundleTree(latestBackwardJump = memento).apply {
+					elements.forEach { (_, planInProgress) ->
+						addPlanInProgress(planInProgress)
+					}
 				}
-				return newBundleTree
-			}
 
 			override fun compareTypes(
 				argumentRestrictions: List<TypeRestriction>,
@@ -797,8 +800,8 @@ private constructor(mutability: Mutability) : Descriptor(
 			val plan = planInProgress.parsingPlan()
 			val bundle = plan.bundle()
 			val definition = plan.definition()
-			var submap = if (outerMap.hasKey(bundle)) outerMap.mapAt(bundle) else MapDescriptor.emptyMap()
-			var inProgressSet = if (submap.hasKey(definition)) submap.mapAt(definition) else SetDescriptor.emptySet()
+			var submap = if (outerMap.hasKey(bundle)) outerMap.mapAt(bundle) else emptyMap()
+			var inProgressSet = if (submap.hasKey(definition)) submap.mapAt(definition) else emptySet()
 			inProgressSet = inProgressSet.setWithElementCanDestroy(
 				planInProgress, true)
 			submap = submap.mapAtPuttingCanDestroy(definition, inProgressSet, true)
@@ -817,19 +820,19 @@ private constructor(mutability: Mutability) : Descriptor(
 		 * which happens mutually exclusive of parsing, so we don't really need to
 		 * use a lock.
 		 *
-		 * @param object Which [A_BundleTree] to invalidate.
+		 * @param self Which [A_BundleTree] to invalidate.
 		 */
 		private fun invalidate(self: AvailObject) {
 			val timeBefore = AvailRuntimeSupport.captureNanos()
 			synchronized(self) {
-				self.setSlot(ObjectSlots.LAZY_COMPLETE, SetDescriptor.emptySet())
-				self.setSlot(ObjectSlots.LAZY_INCOMPLETE, MapDescriptor.emptyMap())
-				self.setSlot(ObjectSlots.LAZY_INCOMPLETE_CASE_INSENSITIVE, MapDescriptor.emptyMap())
-				self.setSlot(ObjectSlots.LAZY_ACTIONS, MapDescriptor.emptyMap())
-				self.setSlot(ObjectSlots.LAZY_PREFILTER_MAP, MapDescriptor.emptyMap())
-				self.setSlot(ObjectSlots.LAZY_TYPE_FILTER_PAIRS_TUPLE, TupleDescriptor.emptyTuple())
-				self.setSlot(ObjectSlots.LAZY_TYPE_FILTER_TREE_POJO, NilDescriptor.nil)
-				self.setSlot(ObjectSlots.UNCLASSIFIED, self.slot(ObjectSlots.ALL_PLANS_IN_PROGRESS))
+				self.setSlot(LAZY_COMPLETE, emptySet())
+				self.setSlot(LAZY_INCOMPLETE, emptyMap())
+				self.setSlot(LAZY_INCOMPLETE_CASE_INSENSITIVE, emptyMap())
+				self.setSlot(LAZY_ACTIONS, emptyMap())
+				self.setSlot(LAZY_PREFILTER_MAP, emptyMap())
+				self.setSlot(LAZY_TYPE_FILTER_PAIRS_TUPLE, emptyTuple())
+				self.setSlot(LAZY_TYPE_FILTER_TREE_POJO, nil)
+				self.setSlot(UNCLASSIFIED, self.slot(ALL_PLANS_IN_PROGRESS))
 			}
 			val timeAfter = AvailRuntimeSupport.captureNanos()
 			invalidationsStat.record(
@@ -932,15 +935,14 @@ private constructor(mutability: Mutability) : Descriptor(
 			prefilterMap: Mutable<A_Map>,
 			typeFilterTuples: Mutable<A_Tuple>) {
 			val hasBackwardJump = bundleTree.slot(IntegerSlots.HAS_BACKWARD_JUMP_INSTRUCTION) != 0
-			val latestBackwardJump: A_BundleTree = if (hasBackwardJump) bundleTree else bundleTree.slot(ObjectSlots.LATEST_BACKWARD_JUMP)
+			val latestBackwardJump: A_BundleTree = if (hasBackwardJump) bundleTree else bundleTree.slot(LATEST_BACKWARD_JUMP)
 			val instructions = plan.parsingInstructions()
 			if (pc == instructions.tupleSize() + 1) {
 				complete.value = complete.value.setWithElementCanDestroy(plan.bundle(), true)
 				return
 			}
 			val instruction = plan.parsingInstructions().tupleIntAt(pc)
-			val op = decode(instruction)
-			when (op) {
+			when (val op = decode(instruction)) {
 				ParsingOperation.JUMP_BACKWARD -> {
 					run {
 						if (!hasBackwardJump) {
@@ -1017,7 +1019,7 @@ private constructor(mutability: Mutability) : Descriptor(
 					val newTarget: A_BundleTree = newBundleTree(latestBackwardJump)
 					newTarget.addPlanInProgress(ParsingPlanInProgressDescriptor.newPlanInProgress(plan, pc + 1))
 					val instructionObject: A_Number = IntegerDescriptor.fromInt(instruction)
-					var successors: A_Tuple = if (actionMap.value.hasKey(instructionObject)) actionMap.value.mapAt(instructionObject) else TupleDescriptor.emptyTuple()
+					var successors: A_Tuple = if (actionMap.value.hasKey(instructionObject)) actionMap.value.mapAt(instructionObject) else emptyTuple()
 					successors = successors.appendCanDestroy(newTarget, true)
 					actionMap.value = actionMap.value.mapAtPuttingCanDestroy(
 						instructionObject, successors, true)
@@ -1053,7 +1055,7 @@ private constructor(mutability: Mutability) : Descriptor(
 							actionMap.value = actionMap.value.mapAtPuttingCanDestroy(
 								instructionObject, ObjectTupleDescriptor.tuple(successor), true)
 						}
-						var forbiddenBundles = SetDescriptor.emptySet()
+						var forbiddenBundles = emptySet()
 						for (restriction in plan.bundle().grammaticalRestrictions()) {
 							// Exclude grammatical restrictions that aren't defined in
 							// an ancestor module.
@@ -1162,16 +1164,16 @@ private constructor(mutability: Mutability) : Descriptor(
 			latestBackwardJump: A_BundleTree?): AvailObject {
 			val result = mutable.create()
 			result.setSlot(IntegerSlots.HASH_OR_ZERO, 0)
-			result.setSlot(ObjectSlots.ALL_PLANS_IN_PROGRESS, MapDescriptor.emptyMap())
-			result.setSlot(ObjectSlots.UNCLASSIFIED, MapDescriptor.emptyMap())
-			result.setSlot(ObjectSlots.LAZY_COMPLETE, SetDescriptor.emptySet())
-			result.setSlot(ObjectSlots.LAZY_INCOMPLETE, MapDescriptor.emptyMap())
-			result.setSlot(ObjectSlots.LAZY_INCOMPLETE_CASE_INSENSITIVE, MapDescriptor.emptyMap())
-			result.setSlot(ObjectSlots.LAZY_ACTIONS, MapDescriptor.emptyMap())
-			result.setSlot(ObjectSlots.LAZY_PREFILTER_MAP, MapDescriptor.emptyMap())
-			result.setSlot(ObjectSlots.LAZY_TYPE_FILTER_PAIRS_TUPLE, TupleDescriptor.emptyTuple())
-			result.setSlot(ObjectSlots.LAZY_TYPE_FILTER_TREE_POJO, NilDescriptor.nil)
-			result.setSlot(ObjectSlots.LATEST_BACKWARD_JUMP, latestBackwardJump!!)
+			result.setSlot(ALL_PLANS_IN_PROGRESS, emptyMap())
+			result.setSlot(UNCLASSIFIED, emptyMap())
+			result.setSlot(LAZY_COMPLETE, emptySet())
+			result.setSlot(LAZY_INCOMPLETE, emptyMap())
+			result.setSlot(LAZY_INCOMPLETE_CASE_INSENSITIVE, emptyMap())
+			result.setSlot(LAZY_ACTIONS, emptyMap())
+			result.setSlot(LAZY_PREFILTER_MAP, emptyMap())
+			result.setSlot(LAZY_TYPE_FILTER_PAIRS_TUPLE, emptyTuple())
+			result.setSlot(LAZY_TYPE_FILTER_TREE_POJO, nil)
+			result.setSlot(LATEST_BACKWARD_JUMP, latestBackwardJump!!)
 			return result.makeShared()
 		}
 

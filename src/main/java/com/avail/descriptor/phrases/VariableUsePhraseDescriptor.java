@@ -88,8 +88,7 @@ extends PhraseDescriptor
 		/**
 		 * Whether this is the last use of the mentioned entity.
 		 */
-		static final BitField LAST_USE = new BitField(
-			FLAGS, 0, 1);
+		public static final BitField LAST_USE = new BitField(FLAGS, 0, 1);
 	}
 
 	/**

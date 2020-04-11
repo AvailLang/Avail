@@ -130,12 +130,12 @@ object P_ExitContinuationWithResultIf : Primitive(
 			// We're conditionally exiting the current frame.
 			val exit = generator.createBasicBlock("Exit")
 			val dontExit = generator.createBasicBlock("Don't exit")
-			translator.generateJumpIfEqualsConstant(
+			translator.jumpIfEqualsConstant(
 				generator.readBoxed(
 					conditionReg.originalBoxedWriteSkippingMoves(true)),
 				trueObject(),
-				edgeTo(exit),
-				edgeTo(dontExit))
+				exit,
+				dontExit)
 			generator.startBlock(exit)
 			generator.addInstruction(
 				L2_RETURN.instance,

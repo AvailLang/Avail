@@ -1404,20 +1404,20 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	AvailObject o_ArgOrLocalOrStackAt (
+	AvailObject o_FrameAt (
 		final AvailObject object,
 		final int index)
 	{
-		return o_Traversed(object).argOrLocalOrStackAt(index);
+		return o_Traversed(object).frameAt(index);
 	}
 
 	@Override
-	protected void o_ArgOrLocalOrStackAtPut (
+	protected AvailObject o_FrameAtPut (
 		final AvailObject object,
 		final int index,
 		final AvailObject value)
 	{
-		o_Traversed(object).argOrLocalOrStackAtPut(index, value);
+		return o_Traversed(object).frameAtPut(index, value);
 	}
 
 	@Override

@@ -41,6 +41,7 @@ import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.A_Module;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.FiberDescriptor;
+import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.NilDescriptor;
 import com.avail.descriptor.bundles.A_Bundle;
@@ -634,7 +635,8 @@ public final class Interpreter
 	/**
 	 * Fake slots used to show stack traces in the Java debugger.
 	 */
-	enum FakeStackTraceSlots implements ObjectSlotsEnumJava
+	enum FakeStackTraceSlots
+		implements ObjectSlotsEnumJava, IntegerSlotsEnumJava
 	{
 		/**
 		 * The offset of the current L2 instruction.
@@ -1070,7 +1072,7 @@ public final class Interpreter
 
 	/** The {@link CheckedField} for the field argsBuffer. */
 	public static final CheckedField interpreterReturningFunctionField =
-		instanceField(Interpreter.class,"returningFunction", A_Function.class);
+		instanceField(Interpreter.class, "returningFunction", A_Function.class);
 
 	/**
 	 * Some operations like {@link L2_INVOKE} instructions have statistics that
@@ -1952,12 +1954,12 @@ public final class Interpreter
 			{
 				assert code.numArgs() == 3;
 				final A_Variable failureVariable =
-					continuation.argOrLocalOrStackAt(4);
+					continuation.frameAt(4);
 				// Scan a currently unmarked frame.
 				if (failureVariable.value().value().equalsInt(0))
 				{
 					final A_Tuple handlerTuple =
-						continuation.argOrLocalOrStackAt(2);
+						continuation.frameAt(2);
 					assert handlerTuple.isTuple();
 					for (final A_Function handler : handlerTuple)
 					{
@@ -2062,7 +2064,7 @@ public final class Interpreter
 			{
 				assert code.numArgs() == 3;
 				final A_Variable failureVariable =
-					continuation.argOrLocalOrStackAt(4);
+					continuation.frameAt(4);
 				final A_Variable guardVariable = failureVariable.value();
 				final int oldState = guardVariable.value().extractInt();
 				// Only allow certain state transitions.
@@ -2156,8 +2158,7 @@ public final class Interpreter
 				argsBuffer.clear();
 				for (int i = 1; i <= numArgs; i++)
 				{
-					argsBuffer.add(
-						continuation.argOrLocalOrStackAt(i));
+					argsBuffer.add(continuation.frameAt(i));
 				}
 				setReifiedContinuation(continuation.caller());
 				function = whichFunction;
@@ -2682,7 +2683,6 @@ public final class Interpreter
 		Interpreter.class,
 		"runChunk",
 		StackReifier.class);
-
 
 	/**
 	 * Schedule the specified {@linkplain ExecutionState#indicatesSuspension()

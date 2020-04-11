@@ -152,12 +152,8 @@ object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 			val xInstanceRead = L2_GET_TYPE.sourceValueOf(xDef)
 			if (constantYType !== null)
 			{
-				translator.addInstruction(
-					L2_JUMP_IF_KIND_OF_CONSTANT.instance,
-					xInstanceRead,
-					L2ConstantOperand(constantYType),
-					edgeTo(ifSubtype),
-					edgeTo(ifNotSubtype))
+				translator.jumpIfKindOfConstant(
+					xInstanceRead, constantYType, ifSubtype, ifNotSubtype);
 			}
 			else
 			{

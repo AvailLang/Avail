@@ -36,6 +36,7 @@ import com.avail.AvailRuntime;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.EnumField;
 import com.avail.annotations.EnumField.Converter;
+import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.HideFieldJustForPrinting;
 import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.A_Module;
@@ -72,20 +73,25 @@ import com.avail.serialization.SerializerOperation;
 import com.avail.utility.evaluation.Continuation1NotNull;
 
 import javax.annotation.Nullable;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.List;
 
+import static com.avail.descriptor.AvailObject.multiplier;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.functions.ContinuationDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.functions.ContinuationDescriptor.ObjectSlots.*;
+import static com.avail.descriptor.functions.ContinuationRegisterDumpDescriptor.*;
 import static com.avail.descriptor.types.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.types.ContinuationTypeDescriptor.continuationTypeForFunctionType;
 import static com.avail.descriptor.variables.VariableDescriptor.newVariableWithContentType;
 import static com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk;
 import static com.avail.optimizer.jvm.CheckedMethod.instanceMethod;
 import static com.avail.optimizer.jvm.CheckedMethod.staticMethod;
+import static com.avail.utility.Casts.cast;
 
 /**
  * A {@linkplain ContinuationDescriptor continuation} acts as an immutable
@@ -120,9 +126,9 @@ extends Descriptor
 
 		/**
 		 * A composite field containing the {@linkplain #LEVEL_TWO_OFFSET level
-		 * two offset}, and perhaps more later.
+		 * two offset}, and the cached hash of this object.
 		 */
-		LEVEL_TWO_OFFSET_AND_OTHER;
+		LEVEL_TWO_OFFSET_AND_HASH;
 
 		/**
 		 * The index into the current continuation's {@linkplain
@@ -158,8 +164,17 @@ extends Descriptor
 			describedBy = Converter.class,
 			lookupMethodName = "decimal")
 		public static final BitField LEVEL_TWO_OFFSET = new BitField(
-			LEVEL_TWO_OFFSET_AND_OTHER,
+			LEVEL_TWO_OFFSET_AND_HASH,
 			32,
+			32);
+
+		/**
+		 * Either zero or the hash of this {@link A_Continuation}.
+		 */
+		@HideFieldInDebugger
+		public static final BitField HASH_OR_ZERO = new BitField(
+			LEVEL_TWO_OFFSET_AND_HASH,
+			0,
 			32);
 	}
 
@@ -217,7 +232,7 @@ extends Descriptor
 	protected boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
 	{
-		return e == LEVEL_TWO_OFFSET_AND_OTHER
+		return e == LEVEL_TWO_OFFSET_AND_HASH
 			|| e == LEVEL_TWO_CHUNK;
 	}
 
@@ -236,7 +251,7 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected AvailObject o_ArgOrLocalOrStackAt (
+	protected AvailObject o_FrameAt (
 		final AvailObject object,
 		final int subscript)
 	{
@@ -244,12 +259,13 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected void o_ArgOrLocalOrStackAtPut (
+	protected AvailObject o_FrameAtPut (
 		final AvailObject object,
 		final int subscript,
 		final AvailObject value)
 	{
 		object.setSlot(FRAME_AT_, subscript, value);
+		return object;
 	}
 
 	@Override @AvailMethod
@@ -266,11 +282,12 @@ extends Descriptor
 		final L1InstructionDecoder instructionDecoder =
 			new L1InstructionDecoder();
 		code.setUpInstructionDecoder(instructionDecoder);
+		final int thisPc = object.pc();
 		instructionDecoder.pc(1);
 		int lineNumber = code.startingLineNumber();
 		int instructionCounter = 1;
 
-		while (!instructionDecoder.atEnd())
+		while (!instructionDecoder.atEnd() && instructionDecoder.pc() < thisPc)
 		{
 			final int encodedDelta =
 				encodedDeltas.tupleIntAt(instructionCounter++);
@@ -337,8 +354,7 @@ extends Descriptor
 		}
 		for (int i = object.numSlots(); i >= 1; i--)
 		{
-			if (!object.argOrLocalOrStackAt(i).equals(
-				aContinuation.argOrLocalOrStackAt(i)))
+			if (!object.frameAt(i).equals(aContinuation.frameAt(i)))
 			{
 				return false;
 			}
@@ -359,14 +375,53 @@ extends Descriptor
 	@Override @AvailMethod
 	public int o_Hash (final AvailObject object)
 	{
-		int h = 0x593599A;
-		h ^= object.caller().hash();
-		h += object.function().hash() + object.pc() * object.stackp();
-		for (int i = object.numSlots(); i >= 1; i--)
+		// Hashing a continuation isn't expected to be common, but it's
+		// sufficiently expensive that we need to cache the hash value in the
+		// rare case that we do need it.
+		int hash = object.slot(HASH_OR_ZERO);
+		if (hash == 0)
 		{
-			h = h * 23 + 0x221C9 ^ object.argOrLocalOrStackAt(i).hash();
+			final AvailObject caller = cast(object.caller().traversed());
+			int callerHash = 0;
+			if (!caller.equalsNil() && caller.slot(HASH_OR_ZERO) == 0)
+			{
+				// The caller isn't hashed yet either.  Iteratively hash the
+				// call chain bottom-up to avoid potentially deep recursion.
+				final Deque<AvailObject> chain = new ArrayDeque<>();
+				AvailObject ancestor = caller;
+				do
+				{
+					chain.addFirst(ancestor);
+					ancestor = ancestor.caller().traversed();
+				}
+				while (!ancestor.equalsNil()
+					&& ancestor.slot(HASH_OR_ZERO) == 0);
+				for (final AvailObject c : chain)
+				{
+					callerHash = c.hashCode();
+				}
+			}
+			hash = 0x0593599A ^ callerHash;
+			hash += object.function().hash();
+			hash *= multiplier;
+			hash += object.pc();
+			hash *= multiplier;
+			hash ^= object.stackp();
+			for (int i = object.numSlots(); i >= 1; i--)
+			{
+				hash *= multiplier;
+				hash += 0xDC34ADD8 ^ object.frameAt(i).hash();
+			}
+			if (hash == 0)
+			{
+				// Using this substitute for 0 is not strictly necessary, but
+				// there's always a tiny chance that some pattern of components
+				// tends to produce zero.  May as well play this one safely.
+				hash = 0x4693F664;
+			}
+			object.setSlot(HASH_OR_ZERO, hash);
 		}
-		return h;
+		return hash;
 	}
 
 	@Override @AvailMethod
@@ -432,7 +487,7 @@ extends Descriptor
 		if (primitive == P_CatchException.INSTANCE)
 		{
 			builder.append(", CATCH var = ");
-			builder.append(object.argOrLocalOrStackAt(4).value().value());
+			builder.append(object.frameAt(4).value().value());
 		}
 		return builder.toString();
 	}
@@ -490,7 +545,9 @@ extends Descriptor
 	 * based on just the stack area.
 	 */
 	@Override @AvailMethod
-	protected AvailObject o_StackAt (final AvailObject object, final int subscript)
+	protected AvailObject o_StackAt (
+		final AvailObject object,
+		final int subscript)
 	{
 		return object.slot(FRAME_AT_, subscript);
 	}
@@ -675,9 +732,11 @@ extends Descriptor
 	 * @param function
 	 *        The {@link A_Function} that was running when this dummy
 	 *        continuation was made.
-	 * @param registerDump
-	 *        Either {@code nil} or a {@link ContinuationRegisterDumpDescriptor}
-	 *        instance that an {@link L2Chunk} will use upon resumption.
+	 * @param boxedRegisters
+	 *        An {@link AvailObject}[] containing values to save in a register
+	 *        dump.
+	 * @param unboxedRegisters
+	 *        A {@code long[]} containing values to save in a register dump.
 	 * @param levelTwoChunk
 	 *        The {@linkplain L2Chunk level two chunk} to execute.
 	 * @param levelTwoOffset
@@ -688,14 +747,17 @@ extends Descriptor
 	@ReferencedInGeneratedCode
 	public static AvailObject createDummyContinuation (
 		final A_Function function,
-		final AvailObject registerDump,
+		final AvailObject[] boxedRegisters,
+		final long[] unboxedRegisters,
 		final L2Chunk levelTwoChunk,
 		final int levelTwoOffset)
 	{
 		final AvailObject continuation = mutable.create(0);
 		continuation.setSlot(CALLER, nil);
 		continuation.setSlot(FUNCTION, function);
-		continuation.setSlot(LEVEL_TWO_REGISTER_DUMP, registerDump);
+		continuation.setSlot(
+			LEVEL_TWO_REGISTER_DUMP,
+			createRegisterDump(boxedRegisters, unboxedRegisters));
 		continuation.setSlot(PROGRAM_COUNTER, -1);
 		continuation.setSlot(STACK_POINTER, -1);
 		continuation.setSlot(LEVEL_TWO_CHUNK, levelTwoChunk.chunkPojo);
@@ -704,7 +766,7 @@ extends Descriptor
 	}
 
 	/** The {@link CheckedMethod} for
-	 * {@link #createDummyContinuation(A_Function, AvailObject, L2Chunk, int)}.
+	 * {@link #createDummyContinuation(A_Function, AvailObject[], long[], L2Chunk, int)}.
 	 */
 	public static final CheckedMethod createDummyContinuationMethod =
 		staticMethod(
@@ -712,7 +774,8 @@ extends Descriptor
 			"createDummyContinuation",
 			AvailObject.class,
 			A_Function.class,
-			AvailObject.class,
+			AvailObject[].class,
+			long[].class,
 			L2Chunk.class,
 			int.class);
 

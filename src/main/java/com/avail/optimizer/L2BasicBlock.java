@@ -44,6 +44,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static com.avail.utility.Casts.cast;
 import static com.avail.utility.PrefixSharingList.last;
@@ -193,6 +194,19 @@ public final class L2BasicBlock
 	}
 
 	/**
+	 * Invoke the given {@link Consumer} with each incoming
+	 * {@link L2PcOperand edge}.
+	 *
+	 * @param consumer
+	 *        What to do with each edge.
+	 */
+	public void predecessorEdgesDo (
+		final Consumer<L2PcOperand> consumer)
+	{
+		predecessorEdges.forEach(consumer);
+	}
+
+	/**
 	 * Answer a copy of the list of predecessor edges.
 	 *
 	 * @return The predecessor edges, copied to a new list.
@@ -306,6 +320,19 @@ public final class L2BasicBlock
 	}
 
 	/**
+	 * Invoke the given {@link Consumer} with each outgoing
+	 * {@link L2PcOperand edge}.
+	 *
+	 * @param consumer
+	 *        What to do with each edge.
+	 */
+	public void successorEdgesDo (
+		final Consumer<L2PcOperand> consumer)
+	{
+		successorEdges.forEach(consumer);
+	}
+
+	/**
 	 * Answer a copy of the list of successor edges.
 	 *
 	 * @return The successor edges, copied to a new list.
@@ -350,23 +377,6 @@ public final class L2BasicBlock
 	{
 		final boolean success = successorEdges.remove(successorEdge);
 		assert success;
-	}
-
-	/**
-	 * Replace a successor edge with a replacement edge.
-	 *
-	 * @param oldSuccessorEdge
-	 *        The {@link L2PcOperand} to remove.
-	 * @param newSuccessorEdge
-	 *        The {@link L2PcOperand} to add in its place.
-	 */
-	public void replaceSuccessorEdge (
-		final L2PcOperand oldSuccessorEdge,
-		final L2PcOperand newSuccessorEdge)
-	{
-		assert newSuccessorEdge.sourceBlock() == this;
-		final int index = successorEdges.indexOf(oldSuccessorEdge);
-		successorEdges.set(index, newSuccessorEdge);
 	}
 
 	/**

@@ -100,7 +100,7 @@ extends Descriptor
 		 * reserved for this purpose.
 		 */
 		@EnumField(describedBy = TokenType.class)
-		static final BitField TOKEN_TYPE_CODE =
+		public static final BitField TOKEN_TYPE_CODE =
 			new BitField(TOKEN_TYPE_AND_START_AND_LINE, 0, 4);
 
 		/**
@@ -110,7 +110,7 @@ extends Descriptor
 		@EnumField(
 			describedBy = Converter.class,
 			lookupMethodName = "decimal")
-		static final BitField LINE_NUMBER =
+		public static final BitField LINE_NUMBER =
 			new BitField(TOKEN_TYPE_AND_START_AND_LINE, 4, 28);
 
 		/**
@@ -120,7 +120,7 @@ extends Descriptor
 		 * syntax.
 		 */
 		@HideFieldInDebugger
-		static final BitField START =
+		public static final BitField START =
 			new BitField(TOKEN_TYPE_AND_START_AND_LINE, 32, 32);
 	}
 

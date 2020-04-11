@@ -49,7 +49,6 @@ import com.avail.interpreter.levelTwo.operand.*;
 import com.avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK;
 import com.avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT;
 import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
-import com.avail.interpreter.levelTwo.register.L2IntRegister;
 import com.avail.interpreter.levelTwo.register.L2Register;
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
 import com.avail.optimizer.ExecutableChunk;
@@ -292,25 +291,24 @@ public final class JVMTranslator
 	{
 		method.visitVarInsn(ALOAD, reifierLocal());
 		// [reifier]
-		method.visitInsn(DUP);
-		// [reifier. reifier]
 		loadInterpreter(method);
+		// [reifier, interpreter]
 		interpreterFunctionField.generateRead(method);
-		// [reifier. reifier, function]
-		onReification.createAndPushRegisterDump(this, method);
-		// [reifier. reifier, function, regDump]
+		// [reifier, function]
+		onReification.createAndPushRegisterDumpArrays(this, method);
+		// [reifier, function, AvailObject[], long[]]
 		loadInterpreter(method);
 		chunkField.generateRead(method);
-		// [reifier. reifier, function, regDump, chunk]
+		// [reifier, function, AvailObject[], long[], chunk]
 		intConstant(method, onReification.offset());
-		// [reifier. reifier, function, regDump, chunk, offset]
+		// [reifier, function, AvailObject[], long[], chunk, offset]
 		createDummyContinuationMethod.generateCall(method);
-		// [reifier. reifier, dummyContinuation]
+		// [reifier, dummyContinuation]
 		// Push an action to the current StackReifier which will run the dummy
 		// continuation.
 		pushContinuationActionMethod.generateCall(method);
 		// [reifier]
-		// Now return the same reifier to the next level out on the stack.
+		// Now return the reifier to the next level out on the stack.
 		method.visitInsn(ARETURN);
 	}
 
@@ -1185,42 +1183,6 @@ public final class JVMTranslator
 			// This should emit an ldc2_w instruction, whose result type is
 			// double; no conversion instruction is required.
 			method.visitLdcInsn(value);
-		}
-	}
-
-	/**
-	 * Emit code to store each of the {@link L2IntRegister}s into a new
-	 * {@code int} array. Leave the new array on top of the stack.
-	 *
-	 * @param method
-	 *        The {@linkplain MethodVisitor method} into which the generated JVM
-	 *        instructions will be written.
-	 * @param operands
-	 *        The {@link L2ReadIntOperand}s that hold the registers.
-	 */
-	@SuppressWarnings("unused")
-	public void integerArray (
-		final MethodVisitor method,
-		final List<L2ReadIntOperand> operands)
-	{
-		if (operands.isEmpty())
-		{
-			JVMChunk.noIntsField.generateRead(method);
-		}
-		else
-		{
-			// :: array = new int[«limit»];
-			final int limit = operands.size();
-			intConstant(method, limit);
-			method.visitIntInsn(NEWARRAY, T_INT);
-			for (int i = 0; i < limit; i++)
-			{
-				// :: array[«i»] = «operands[i]»;
-				method.visitInsn(DUP);
-				intConstant(method, i);
-				load(method, operands.get(i).register());
-				method.visitInsn(IASTORE);
-			}
 		}
 	}
 

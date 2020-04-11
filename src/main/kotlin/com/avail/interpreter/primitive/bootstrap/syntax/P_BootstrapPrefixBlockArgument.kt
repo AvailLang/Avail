@@ -116,7 +116,7 @@ object P_BootstrapPrefixBlockArgument : Primitive(1, CanInline, Bootstrap)
 				"block argument declaration $argName to have a name that doesn't "
 					+ "shadow an existing "
 					+ conflictingDeclaration.declarationKind().nativeKindName()
-					+ "(from line ${conflictingDeclaration.token().lineNumber()}")
+					+ " (from line ${conflictingDeclaration.token().lineNumber()})")
 		}
 		return interpreter.primitiveSuccess(nil)
 	}

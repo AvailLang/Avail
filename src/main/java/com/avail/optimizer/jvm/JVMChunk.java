@@ -89,16 +89,6 @@ implements ExecutableChunk
 	public static final CheckedConstructor chunkConstructor =
 		constructorMethod(JVMChunk.class);
 
-	/** An empty {@code int} array. */
-	@ReferencedInGeneratedCode
-	public static final int[] noInts = new int[0];
-
-	/** Access to the field {@link #noInts} */
-	public static CheckedField noIntsField = staticField(
-		JVMChunk.class,
-		"noInts",
-		int[].class);
-
 	/** An empty {@code long} array. */
 	@ReferencedInGeneratedCode
 	public static final long[] noLongs = new long[0];

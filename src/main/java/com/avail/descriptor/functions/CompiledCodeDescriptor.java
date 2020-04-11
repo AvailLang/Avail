@@ -32,28 +32,24 @@
 
 package com.avail.descriptor.functions;
 
+import com.avail.AvailRuntimeSupport;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.EnumField;
 import com.avail.annotations.EnumField.Converter;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.annotations.HideFieldJustForPrinting;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.A_Module;
+import com.avail.descriptor.AbstractDescriptor;
 import com.avail.descriptor.AvailObject;
 import com.avail.descriptor.Descriptor;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
-import com.avail.descriptor.atoms.A_Atom;
-import com.avail.descriptor.atoms.AtomDescriptor;
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom;
-import com.avail.descriptor.numbers.A_Number;
 import com.avail.descriptor.phrases.A_Phrase;
+import com.avail.descriptor.phrases.BlockPhraseDescriptor;
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind;
-import com.avail.descriptor.phrases.PhraseDescriptor;
-import com.avail.descriptor.pojos.RawPojoDescriptor;
 import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.descriptor.representation.AbstractSlotsEnum;
 import com.avail.descriptor.representation.AvailObjectFieldHelper;
 import com.avail.descriptor.representation.BitField;
 import com.avail.descriptor.representation.Mutability;
@@ -63,6 +59,7 @@ import com.avail.descriptor.tuples.NybbleTupleDescriptor;
 import com.avail.descriptor.types.A_Type;
 import com.avail.descriptor.types.FunctionTypeDescriptor;
 import com.avail.descriptor.types.TypeTag;
+import com.avail.interpreter.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.L1Disassembler;
 import com.avail.interpreter.levelOne.L1InstructionWriter;
@@ -91,13 +88,13 @@ import java.util.concurrent.atomic.AtomicLong;
 import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.descriptor.AvailObject.newObjectIndexedIntegerIndexedDescriptor;
 import static com.avail.descriptor.NilDescriptor.nil;
-import static com.avail.descriptor.atoms.AtomDescriptor.createSpecialAtom;
-import static com.avail.descriptor.atoms.AtomWithPropertiesDescriptor.createAtomWithProperties;
 import static com.avail.descriptor.functions.CompiledCodeDescriptor.IntegerSlots.*;
-import static com.avail.descriptor.functions.CompiledCodeDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.numbers.IntegerDescriptor.fromInt;
+import static com.avail.descriptor.functions.CompiledCodeDescriptor.ObjectSlots.FUNCTION_TYPE;
+import static com.avail.descriptor.functions.CompiledCodeDescriptor.ObjectSlots.LITERAL_AT_;
 import static com.avail.descriptor.numbers.IntegerDescriptor.zero;
-import static com.avail.descriptor.pojos.RawPojoDescriptor.identityPojo;
+import static com.avail.descriptor.representation.Mutability.MUTABLE;
+import static com.avail.descriptor.representation.Mutability.SHARED;
+import static com.avail.descriptor.tuples.A_Tuple.concatenate;
 import static com.avail.descriptor.tuples.NybbleTupleDescriptor.generateNybbleTupleFrom;
 import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList;
 import static com.avail.descriptor.tuples.StringDescriptor.stringFrom;
@@ -107,6 +104,7 @@ import static com.avail.descriptor.types.CompiledCodeTypeDescriptor.mostGeneralC
 import static com.avail.descriptor.types.TypeDescriptor.Types.MODULE;
 import static com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk;
 import static com.avail.optimizer.jvm.CheckedMethod.instanceMethod;
+import static com.avail.utility.Casts.cast;
 import static com.avail.utility.Strings.newlineTab;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
@@ -153,6 +151,56 @@ public final class CompiledCodeDescriptor
 extends Descriptor
 {
 	/**
+	 * The {@linkplain L2Chunk level two chunk} that should be invoked whenever
+	 * this code is started. The chunk may no longer be {@link L2Chunk#isValid()
+	 * valid}, in which case the {@link L2Chunk#unoptimizedChunk} will be
+	 * used instead until the next reoptimization.
+	 */
+	private volatile L2Chunk startingChunk = unoptimizedChunk;
+
+	/**
+	 * The {@link A_Phrase} from which this {@link A_RawFunction} was created.
+	 */
+	private final A_Phrase originatingPhrase;
+
+	/**
+	 * A descriptive {@link A_String} that names this {@link A_RawFunction}.
+	 */
+	private A_String methodName = unknownFunctionName;
+
+	/**
+	 * The optional {@link Primitive} that should run when this code is invoked.
+	 * If the primitive {@linkplain Interpreter#primitiveFailure(A_BasicObject)
+	 * fails}, this {@link A_RawFunction}'s nybblecodes will be executed
+	 * instead, as determined by the current {@link L2Chunk}.
+	 */
+	private final @Nullable Primitive primitive;
+
+	/**
+	 * An {@link InvocationStatistic} for tracking invocations of this
+	 * {@link A_RawFunction}.
+	 */
+	private final InvocationStatistic invocationStatistic =
+		new InvocationStatistic();
+
+	/**
+	 * The {@link A_Module} in which this code was defined.
+	 */
+	private final A_Module module;
+
+	/**
+	 * An encoded {@link A_Tuple} of line number deltas, one per instruction.
+	 * This is {@code nil} if the line number information is not available.
+	 */
+	private final A_Tuple lineNumberEncodedDeltas;
+
+	/**
+	 * The starting line number of this {@link A_RawFunction}, if known,
+	 * otherwise {@code 0}.
+	 */
+	private final int lineNumber;
+
+	/**
 	 * The layout of integer slots for my instances.
 	 */
 	public enum IntegerSlots implements IntegerSlotsEnumJava
@@ -193,7 +241,7 @@ extends Descriptor
 		 * code object}.  It is computed at construction time.
 		 */
 		@HideFieldInDebugger
-		static final BitField HASH = new BitField(
+		public static final BitField HASH = new BitField(
 			HASH_AND_PRIMITIVE_AND_OUTERS, 32, 32);
 
 		/**
@@ -209,17 +257,17 @@ extends Descriptor
 		@EnumField(
 			describedBy=Primitive.class,
 			lookupMethodName="byPrimitiveNumberOrNull")
-		static final BitField PRIMITIVE = new BitField(
+		public static final BitField PRIMITIVE = new BitField(
 			HASH_AND_PRIMITIVE_AND_OUTERS, 16, 16);
 
 		/**
-		 * The number of outer variables that must captured by my {@linkplain
+		 * The number of outer variables that must be captured by my {@linkplain
 		 * FunctionDescriptor functions}.
 		 */
 		@EnumField(
 			describedBy = Converter.class,
 			lookupMethodName = "decimal")
-		static final BitField NUM_OUTERS = new BitField(
+		public static final BitField NUM_OUTERS = new BitField(
 			HASH_AND_PRIMITIVE_AND_OUTERS, 0, 16);
 
 		/**
@@ -230,7 +278,7 @@ extends Descriptor
 		@EnumField(
 			describedBy = Converter.class,
 			lookupMethodName = "decimal")
-		static final BitField FRAME_SLOTS = new BitField(
+		public static final BitField FRAME_SLOTS = new BitField(
 			NUM_SLOTS_ARGS_LOCALS_AND_CONSTANTS, 48, 16);
 
 		/**
@@ -240,7 +288,7 @@ extends Descriptor
 		@EnumField(
 			describedBy = Converter.class,
 			lookupMethodName = "decimal")
-		static final BitField NUM_ARGS = new BitField(
+		public static final BitField NUM_ARGS = new BitField(
 			NUM_SLOTS_ARGS_LOCALS_AND_CONSTANTS, 32, 16);
 
 		/**
@@ -250,7 +298,7 @@ extends Descriptor
 		@EnumField(
 			describedBy = Converter.class,
 			lookupMethodName = "decimal")
-		static final BitField NUM_LOCALS = new BitField(
+		public static final BitField NUM_LOCALS = new BitField(
 			NUM_SLOTS_ARGS_LOCALS_AND_CONSTANTS, 16, 16);
 
 		/**
@@ -260,7 +308,7 @@ extends Descriptor
 		@EnumField(
 			describedBy = Converter.class,
 			lookupMethodName = "decimal")
-		static final BitField NUM_CONSTANTS = new BitField(
+		public static final BitField NUM_CONSTANTS = new BitField(
 			NUM_SLOTS_ARGS_LOCALS_AND_CONSTANTS, 0, 16);
 	}
 
@@ -274,31 +322,6 @@ extends Descriptor
 		 * based on this {@linkplain CompiledCodeDescriptor compiled code}.
 		 */
 		FUNCTION_TYPE,
-
-		/**
-		 * The {@linkplain L2Chunk level two chunk} that should be invoked
-		 * whenever this code is started. The chunk may no longer be {@link
-		 * L2Chunk#isValid() valid}, in which case the {@link
-		 * L2Chunk#unoptimizedChunk} will be substituted until
-		 * the next reoptimization.
-		 */
-//		@HideFieldJustForPrinting
-		STARTING_CHUNK,
-
-		/**
-		 * An {@link AtomDescriptor atom} unique to this {@linkplain
-		 * CompiledCodeDescriptor compiled code}, in which to record information
-		 * such as the file and line number of source code.
-		 */
-		@HideFieldJustForPrinting
-		PROPERTY_ATOM,
-
-		/**
-		 * A {@link RawPojoDescriptor raw pojo} holding an {@link
-		 * InvocationStatistic} that tracks invocations of this code.
-		 */
-		@HideFieldInDebugger
-		INVOCATION_STATISTIC,
 
 		/**
 		 * The literal objects that are referred to numerically by some of the
@@ -333,7 +356,8 @@ extends Descriptor
 		 * take place before the corresponding {@link L2Chunk} should be
 		 * re-optimized.
 		 */
-		final AtomicLong countdownToReoptimize = new AtomicLong(0);
+		final AtomicLong countdownToReoptimize =
+			new AtomicLong(L2Chunk.countdownForNewCode());
 
 		/** A statistic for all functions that return. */
 		volatile @Nullable Statistic returnerCheckStat = null;
@@ -482,18 +506,17 @@ extends Descriptor
 		}
 	}
 
-	@Override
-	protected boolean allowsImmutableToMutableReferenceInField (
-		final AbstractSlotsEnum e)
-	{
-		return e == STARTING_CHUNK;
-	}
-
 	/**
 	 * Used for describing logical aspects of the code in the Eclipse debugger.
 	 */
 	private enum FakeSlots implements ObjectSlotsEnumJava
 	{
+		/**
+		 * Used for exploring the descriptor, which contains instance-specific
+		 * fields.
+ 		 */
+		DESCRIPTOR,
+
 		/** Used for showing the types of captured variables and constants. */
 		OUTER_TYPE_,
 
@@ -527,6 +550,12 @@ extends Descriptor
 	{
 		final List<AvailObjectFieldHelper> fields =
 			new ArrayList<>(asList(super.o_DescribeForDebugger(object)));
+		fields.add(
+			new AvailObjectFieldHelper(
+				object,
+				FakeSlots.DESCRIPTOR,
+				-1,
+				this));
 		for (int i = 1, end = object.numOuters(); i <= end; i++)
 		{
 			fields.add(
@@ -578,21 +607,6 @@ extends Descriptor
 		return fields.toArray(new AvailObjectFieldHelper[0]);
 	}
 
-	/**
-	 * Answer the {@link InvocationStatistic} associated with the
-	 * specified {@link A_RawFunction}.
-	 *
-	 * @param object
-	 *        The {@link A_RawFunction} from which to extract the invocation
-	 *        statistics helper.
-	 * @return The code's invocation statistics.
-	 */
-	static InvocationStatistic getInvocationStatistic (
-		final AvailObject object)
-	{
-		return object.slot(INVOCATION_STATISTIC).javaObjectNotNull();
-	}
-
 	/** The set of all active {@link CompiledCodeDescriptor raw functions}. */
 	static final Set<A_RawFunction> activeRawFunctions =
 		synchronizedSet(newSetFromMap(new WeakHashMap<>()));
@@ -618,13 +632,15 @@ extends Descriptor
 				{
 					// Loop over each instance, setting the touched flag to
 					// false and discarding optimizations.
-					for (final A_RawFunction function : activeRawFunctions)
+					for (final A_RawFunction rawFunction : activeRawFunctions)
 					{
-						final AvailObject object = (AvailObject) function;
-						getInvocationStatistic(object).hasRun = false;
-						if (!function.module().equalsNil())
+						final AvailObject object = cast(rawFunction);
+						final CompiledCodeDescriptor descriptor =
+							cast(object.descriptor());
+						descriptor.invocationStatistic.hasRun = false;
+						if (!descriptor.module.equalsNil())
 						{
-							object.startingChunk().invalidate(
+							descriptor.startingChunk.invalidate(
 								invalidationForCodeCoverage);
 						}
 					}
@@ -755,20 +771,21 @@ extends Descriptor
 					new ArrayList<>(activeRawFunctions.size());
 
 				// Loop over each instance, creating its report object.
-				for (final A_RawFunction function : activeRawFunctions)
+				for (final A_RawFunction rawFunction : activeRawFunctions)
 				{
-					final A_Module module = function.module();
+					final AvailObject object = cast(rawFunction);
+					final CompiledCodeDescriptor descriptor =
+						cast(object.descriptor());
+					final A_Module module = descriptor.module;
 					if (!module.equalsNil())
 					{
 						final CodeCoverageReport report =
 							new CodeCoverageReport(
-								getInvocationStatistic(
-									(AvailObject) function).hasRun,
-								function.startingChunk()
-									!= unoptimizedChunk,
-								function.startingLineNumber(),
+								descriptor.invocationStatistic.hasRun,
+								descriptor.startingChunk != unoptimizedChunk,
+								descriptor.lineNumber,
 								module.moduleName().asNativeString(),
-								function.methodName().asNativeString());
+								descriptor.methodName.asNativeString());
 						if (!reports.contains(report))
 						{
 							reports.add(report);
@@ -782,15 +799,17 @@ extends Descriptor
 	}
 
 	@Override @AvailMethod
-	protected void o_CountdownToReoptimize (final AvailObject object, final int value)
+	protected void o_CountdownToReoptimize (
+		final AvailObject object,
+		final int value)
 	{
-		getInvocationStatistic(object).countdownToReoptimize.set(value);
+		invocationStatistic.countdownToReoptimize.set(value);
 	}
 
 	@Override @AvailMethod
 	protected long o_TotalInvocations (final AvailObject object)
 	{
-		return getInvocationStatistic(object).totalInvocations.get();
+		return invocationStatistic.totalInvocations.get();
 	}
 
 	@Override @AvailMethod
@@ -820,8 +839,6 @@ extends Descriptor
 		final AvailObject object,
 		final Continuation1NotNull<Boolean> continuation)
 	{
-		final InvocationStatistic invocationStatistic =
-			getInvocationStatistic(object);
 		final long newCount =
 			invocationStatistic.countdownToReoptimize.decrementAndGet();
 		if (newCount <= 0)
@@ -935,23 +952,13 @@ extends Descriptor
 		final L2Chunk chunk,
 		final long countdown)
 	{
-		final AtomicLong atomicCounter =
-			getInvocationStatistic(object).countdownToReoptimize;
-		if (isShared())
+		synchronized (object)
 		{
-			synchronized (object)
-			{
-				object.setSlot(STARTING_CHUNK, chunk.chunkPojo);
-			}
-			// Must be outside the synchronized section to ensure the write of
-			// the new chunk is committed before the counter reset is visible.
-			atomicCounter.set(countdown);
+			startingChunk = chunk;
 		}
-		else
-		{
-			object.setSlot(STARTING_CHUNK, chunk.chunkPojo);
-			atomicCounter.set(countdown);
-		}
+		// Must be outside the synchronized section to ensure the write of
+		// the new chunk is committed before the counter reset is visible.
+		invocationStatistic.countdownToReoptimize.set(countdown);
 	}
 
 	@Override @AvailMethod
@@ -1010,7 +1017,7 @@ extends Descriptor
 	@Override @AvailMethod
 	protected @Nullable Primitive o_Primitive (final AvailObject object)
 	{
-		return Primitive.Companion.byNumber(object.slot(PRIMITIVE));
+		return primitive;
 	}
 
 	@Override @AvailMethod
@@ -1018,14 +1025,13 @@ extends Descriptor
 	{
 		// Answer the primitive number I should try before falling back on the
 		// Avail code.  Zero indicates not-a-primitive.
-		return object.slot(PRIMITIVE);
+		return primitive != null ? primitive.getPrimitiveNumber() : 0;
 	}
 
 	@Override @AvailMethod
 	protected L2Chunk o_StartingChunk (final AvailObject object)
 	{
-		final L2Chunk chunk =
-			object.mutableSlot(STARTING_CHUNK).javaObjectNotNull();
+		final L2Chunk chunk = startingChunk;
 		if (chunk != unoptimizedChunk)
 		{
 			Generation.usedChunk(chunk);
@@ -1036,8 +1042,6 @@ extends Descriptor
 	@Override @AvailMethod
 	protected void o_TallyInvocation (final AvailObject object)
 	{
-		final InvocationStatistic invocationStatistic =
-			getInvocationStatistic(object);
 		invocationStatistic.totalInvocations.incrementAndGet();
 		invocationStatistic.hasRun = true;
 	}
@@ -1048,12 +1052,7 @@ extends Descriptor
 	@Override @AvailMethod
 	protected int o_StartingLineNumber (final AvailObject object)
 	{
-		final A_Atom properties = object.mutableSlot(PROPERTY_ATOM);
-		final A_Number lineInteger =
-			properties.getAtomProperty(lineNumberKeyAtom());
-		return lineInteger.equalsNil()
-			? 0
-			: lineInteger.extractInt();
+		return lineNumber;
 	}
 
 	/**
@@ -1066,15 +1065,13 @@ extends Descriptor
 	protected A_Tuple o_LineNumberEncodedDeltas (
 		final AvailObject object)
 	{
-		final A_Atom properties = object.mutableSlot(PROPERTY_ATOM);
-		return properties.getAtomProperty(lineNumberEncodedDeltasKeyAtom());
+		return lineNumberEncodedDeltas;
 	}
 
 	@Override @AvailMethod
 	protected A_Phrase o_OriginatingPhrase (final AvailObject object)
 	{
-		final A_Atom properties = object.mutableSlot(PROPERTY_ATOM);
-		return properties.getAtomProperty(originatingPhraseKeyAtom());
+		return originatingPhrase;
 	}
 
 	/**
@@ -1083,8 +1080,7 @@ extends Descriptor
 	@Override @AvailMethod
 	protected A_Module o_Module (final AvailObject object)
 	{
-		final A_Atom properties = object.mutableSlot(PROPERTY_ATOM);
-		return properties.issuingModule();
+		return module;
 	}
 
 	@Override @AvailMethod @ThreadSafe
@@ -1097,12 +1093,12 @@ extends Descriptor
 	@Override @AvailMethod
 	protected void o_SetMethodName (
 		final AvailObject object,
-		final A_String methodName)
+		final A_String newMethodName)
 	{
-		assert methodName.isString();
-		methodName.makeImmutable();
-		final A_Atom propertyAtom = object.mutableSlot(PROPERTY_ATOM);
-		propertyAtom.setAtomProperty(methodNameKeyAtom(), methodName);
+		assert mutability == SHARED;
+		assert newMethodName.isString();
+		newMethodName.makeShared();
+		methodName = newMethodName;
 		// Now scan all sub-blocks. Some literals will be functions and some
 		// will be compiled code objects.
 		int counter = 1;
@@ -1124,11 +1120,11 @@ extends Descriptor
 			}
 			if (subCode != null)
 			{
-				final String suffix = format("[%d]", counter);
+				final String suffix = "[" + counter + "]";
 				counter++;
-				final A_Tuple newName = methodName.concatenateWith(
-					stringFrom(suffix), true);
-				subCode.setMethodName((A_String)newName);
+				final A_String newName = concatenate(
+					newMethodName, stringFrom(suffix), true);
+				subCode.setMethodName(newName);
 			}
 		}
 	}
@@ -1140,20 +1136,13 @@ extends Descriptor
 	@Override @AvailMethod
 	protected A_String o_MethodName (final AvailObject object)
 	{
-		final A_Atom propertyAtom = object.mutableSlot(PROPERTY_ATOM);
-		final A_String methodName =
-			propertyAtom.getAtomProperty(methodNameKeyAtom());
-		if (methodName.equalsNil())
-		{
-			return unknownFunctionName;
-		}
 		return methodName;
 	}
 
 	@Override
 	protected String o_NameForDebugger (final AvailObject object)
 	{
-		return super.o_NameForDebugger(object) + ": " + object.methodName();
+		return super.o_NameForDebugger(object) + ": " + methodName;
 	}
 
 	@Override
@@ -1184,7 +1173,6 @@ extends Descriptor
 		object.slot(FUNCTION_TYPE).writeTo(writer);
 		writer.write("method");
 		object.methodName().writeTo(writer);
-		final A_Module module = object.module();
 		if (!module.equalsNil())
 		{
 			writer.write("module");
@@ -1230,7 +1218,6 @@ extends Descriptor
 		object.slot(FUNCTION_TYPE).writeSummaryTo(writer);
 		writer.write("method");
 		object.methodName().writeTo(writer);
-		final A_Module module = object.module();
 		if (!module.equalsNil())
 		{
 			writer.write("module");
@@ -1262,10 +1249,7 @@ extends Descriptor
 		final int indent)
 	{
 		super.printObjectOnAvoidingIndent(
-			object,
-			builder,
-			recursionMap,
-			indent);
+			object, builder, recursionMap, indent);
 		final int longCount = object.variableIntegerSlotsCount();
 		if (longCount > 0)
 		{
@@ -1366,10 +1350,7 @@ extends Descriptor
 		final AvailObject code = newObjectIndexedIntegerIndexedDescriptor(
 			numLiterals + numOuters + numLocals + numConstants,
 			nybbleCount == 0 ? 0 : (nybbleCount + 16) >> 4,
-			mutable);
-
-		final InvocationStatistic statistic = new InvocationStatistic();
-		statistic.countdownToReoptimize.set(L2Chunk.countdownForNewCode());
+			initialMutableDescriptor);
 
 		code.setSlot(FRAME_SLOTS, numSlots);
 		code.setSlot(NUM_ARGS, numArgs);
@@ -1378,10 +1359,7 @@ extends Descriptor
 		code.setSlot(
 			PRIMITIVE, primitive == null ? 0 : primitive.getPrimitiveNumber());
 		code.setSlot(NUM_OUTERS, numOuters);
-		code.setSlot(FUNCTION_TYPE, functionType);
-		code.setSlot(PROPERTY_ATOM, nil);
-		code.setSlot(STARTING_CHUNK, unoptimizedChunk.chunkPojo);
-		code.setSlot(INVOCATION_STATISTIC, identityPojo(statistic));
+		code.setSlot(FUNCTION_TYPE, functionType.makeShared());
 
 		// Fill in the nybblecodes.
 		if (nybbleCount > 0)
@@ -1409,27 +1387,30 @@ extends Descriptor
 			literals, outerTypes, localVariableTypes, localConstantTypes))
 		{
 			code.setSlotsFromTuple(
-				LITERAL_AT_, literalIndex, tuple, 1, tuple.tupleSize());
+				LITERAL_AT_,
+				literalIndex,
+				tuple.makeShared(),
+				1,
+				tuple.tupleSize());
 			literalIndex += tuple.tupleSize();
 		}
 
-		final A_Atom propertyAtom = createAtomWithProperties(
-			emptyTuple(), module);
-		propertyAtom.setAtomProperty(lineNumberKeyAtom(), fromInt(lineNumber));
-		if (!lineNumberEncodedDeltas.equalsNil())
+		int hash;
+		do
 		{
-			propertyAtom.setAtomProperty(
-				lineNumberEncodedDeltasKeyAtom(), lineNumberEncodedDeltas);
+			hash = AvailRuntimeSupport.nextHash();
 		}
-		if (!originatingPhrase.equalsNil())
-		{
-			propertyAtom.setAtomProperty(
-				originatingPhraseKeyAtom(), originatingPhrase);
-		}
-		code.setSlot(PROPERTY_ATOM, propertyAtom.makeShared());
-		final int hash = propertyAtom.hash() ^ -0x3087B215;
+		while (hash == 0);
 		code.setSlot(HASH, hash);
-		code.makeShared();
+
+		code.setDescriptor(
+			new CompiledCodeDescriptor(
+				SHARED,
+				primitive,
+				originatingPhrase.makeShared(),
+				module.makeShared(),
+				lineNumber,
+				lineNumberEncodedDeltas.makeShared()));
 
 		// Add the newborn raw function to the weak set being used for code
 		// coverage tracking.
@@ -1478,117 +1459,55 @@ extends Descriptor
 	 * Construct a new {@code CompiledCodeDescriptor}.
 	 *
 	 * @param mutability
-	 *        The {@linkplain Mutability mutability} of the new descriptor.
+	 *        The {@link Mutability} of the resulting descriptor.  This should
+	 *        only be {@link Mutability#MUTABLE} for the
+	 *        {@link #initialMutableDescriptor}, and {@link Mutability#SHARED}
+	 *        for normal instances.
+	 * @param primitive
+	 *        The optional {@link Primitive} associated with this raw function.
+	 * @param originatingPhrase
+	 *        The {@linkplain BlockPhraseDescriptor block phrase} from which
+	 *        this raw function was generated.
+	 * @param module
+	 *        The {@link A_Module module} making this primitive function.
+	 * @param lineNumber
+	 *        The starting {@link #lineNumber} of this function.
+	 * @param lineNumberEncodedDeltas
+	 *        An encoded {@link A_Tuple} of line number deltas, one per
+	 *        nybblecode instruction.
 	 */
-	private CompiledCodeDescriptor (final Mutability mutability)
+	private CompiledCodeDescriptor (
+		final Mutability mutability,
+		final @Nullable Primitive primitive,
+		final A_Phrase originatingPhrase,
+		final A_Module module,
+		final int lineNumber,
+		final A_Tuple lineNumberEncodedDeltas)
 	{
 		super(
 			mutability,
 			TypeTag.RAW_FUNCTION_TAG,
 			ObjectSlots.class,
 			IntegerSlots.class);
-	}
-
-	/** The mutable {@link CompiledCodeDescriptor}. */
-	private static final CompiledCodeDescriptor mutable =
-		new CompiledCodeDescriptor(Mutability.MUTABLE);
-
-	@Override
-	public CompiledCodeDescriptor mutable ()
-	{
-		return mutable;
-	}
-
-	/** The immutable {@link CompiledCodeDescriptor}. */
-	private static final CompiledCodeDescriptor immutable =
-		new CompiledCodeDescriptor(Mutability.IMMUTABLE);
-
-	@Override
-	public CompiledCodeDescriptor immutable ()
-	{
-		return immutable;
-	}
-
-	/** The shared {@link CompiledCodeDescriptor}. */
-	private static final CompiledCodeDescriptor shared =
-		new CompiledCodeDescriptor(Mutability.SHARED);
-
-	@Override
-	public CompiledCodeDescriptor shared ()
-	{
-		return shared;
+		this.primitive = primitive;
+		this.originatingPhrase = originatingPhrase;
+		this.module = module;
+		this.lineNumberEncodedDeltas = lineNumberEncodedDeltas;
+		this.lineNumber = lineNumber;
 	}
 
 	/**
-	 * The key used to track a method name associated with the code. This
-	 * name is presented in stack traces.
+	 * The sole {@linkplain Mutability#MUTABLE mutable} descriptor, used only
+	 * while initializing a new {@link A_RawFunction}.
 	 */
-	private static final A_Atom methodNameKeyAtom =
-		createSpecialAtom("code method name key");
-
-	/**
-	 * Answer the key used to track a method name associated with the code. This
-	 * name is presented in stack traces.
-	 *
-	 * @return A special atom.
-	 */
-	public static A_Atom methodNameKeyAtom ()
-	{
-		return methodNameKeyAtom;
-	}
-
-	/**
-	 * The key used to track the first line number within the module on which
-	 * this code occurs.
-	 */
-	private static final A_Atom lineNumberKeyAtom =
-		createSpecialAtom("code line number key");
-
-	/**
-	 * Answer the key used to track the first line number within the module on
-	 * which this code occurs.
-	 *
-	 * @return A special atom.
-	 */
-	public static A_Atom lineNumberKeyAtom ()
-	{
-		return lineNumberKeyAtom;
-	}
-
-	/**
-	 * The key used to track the encoded line number deltas for a raw function.
-	 */
-	private static final A_Atom lineNumberEncodedDeltasKeyAtom =
-		createSpecialAtom("encoded line number deltas");
-
-	/**
-	 * Answer the key used to track the encoded line number deltas for a raw
-	 * function.
-	 *
-	 * @return A special atom.
-	 */
-	public static A_Atom lineNumberEncodedDeltasKeyAtom ()
-	{
-		return lineNumberEncodedDeltasKeyAtom;
-	}
-
-	/**
-	 * The key used to track the {@link PhraseDescriptor phrase} that a raw
-	 * function was created from.
-	 */
-	private static final A_Atom originatingPhraseKeyAtom =
-		createSpecialAtom("originating phrase key");
-
-	/**
-	 * Answer the key used to track the {@link PhraseDescriptor phrase} that
-	 * a raw function was created from.
-	 *
-	 * @return A special atom.
-	 */
-	public static A_Atom originatingPhraseKeyAtom ()
-	{
-		return originatingPhraseKeyAtom;
-	}
+	private static final CompiledCodeDescriptor initialMutableDescriptor =
+		new CompiledCodeDescriptor(
+			MUTABLE,
+			null,
+			nil,
+			nil,
+			-1,
+			nil);
 
 	/**
 	 * A {@link ConcurrentMap} from A_String to Statistic, used to record type
@@ -1610,9 +1529,8 @@ extends Descriptor
 	protected Statistic o_ReturnerCheckStat (
 		final AvailObject object)
 	{
-		final InvocationStatistic invocationStat =
-			getInvocationStatistic(object);
-		@Nullable Statistic returnerStat = invocationStat.returnerCheckStat;
+		@Nullable Statistic returnerStat =
+			invocationStatistic.returnerCheckStat;
 		if (returnerStat == null)
 		{
 			// Look it up by name, creating it if necessary.
@@ -1622,7 +1540,7 @@ extends Descriptor
 				string -> new Statistic(
 					"Checked return from " + name.asNativeString(),
 					StatisticReport.NON_PRIMITIVE_RETURNER_TYPE_CHECKS));
-			invocationStat.returnerCheckStat = returnerStat;
+			invocationStatistic.returnerCheckStat = returnerStat;
 		}
 		return returnerStat;
 	}
@@ -1647,9 +1565,8 @@ extends Descriptor
 	protected Statistic o_ReturneeCheckStat (
 		final AvailObject object)
 	{
-		final InvocationStatistic invocationStat =
-			getInvocationStatistic(object);
-		@Nullable Statistic returneeStat = invocationStat.returneeCheckStat;
+		@Nullable Statistic returneeStat =
+			invocationStatistic.returneeCheckStat;
 		if (returneeStat == null)
 		{
 			// Look it up by name, creating it if necessary.
@@ -1659,8 +1576,29 @@ extends Descriptor
 				string -> new Statistic(
 					"Checked return into " + name.asNativeString(),
 					StatisticReport.NON_PRIMITIVE_RETURNEE_TYPE_CHECKS));
-			invocationStat.returneeCheckStat = returneeStat;
+			invocationStatistic.returneeCheckStat = returneeStat;
 		}
 		return returneeStat;
+	}
+
+	@Deprecated
+	@Override
+	public AbstractDescriptor mutable ()
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Deprecated
+	@Override
+	public AbstractDescriptor immutable ()
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Deprecated
+	@Override
+	public AbstractDescriptor shared ()
+	{
+		throw unsupportedOperationException();
 	}
 }

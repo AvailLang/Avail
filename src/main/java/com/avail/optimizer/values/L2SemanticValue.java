@@ -46,8 +46,29 @@ import java.util.function.UnaryOperator;
  * sequence of L2 instructions, or the result of a non-primitive call to another
  * function.
  */
+@SuppressWarnings("EqualsAndHashcode")
 public abstract class L2SemanticValue implements L2Entity
 {
+	/** The permanent hash value of this {@code L2SemanticValue}. */
+	public final int hash;
+
+	/**
+	 * Create a new instance, with the given pre-computed hash.
+	 *
+	 * @param hash
+	 *        The pre-computed hash value to use for this semantic value.
+	 */
+	protected L2SemanticValue (final int hash)
+	{
+		this.hash = hash;
+	}
+
+	@Override
+	public final int hashCode ()
+	{
+		return hash;
+	}
+
 	/**
 	 * Answer the semantic value representing a particular constant value.
 	 *

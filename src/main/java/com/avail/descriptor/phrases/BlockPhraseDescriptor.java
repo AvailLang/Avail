@@ -114,7 +114,7 @@ extends PhraseDescriptor
 		@EnumField(
 			describedBy=Primitive.class,
 			lookupMethodName="byPrimitiveNumberOrNull")
-		static final BitField PRIMITIVE = new BitField(
+		public static final BitField PRIMITIVE = new BitField(
 			PRIMITIVE_AND_STARTING_LINE_NUMBER,
 			0,
 			32);
@@ -122,7 +122,7 @@ extends PhraseDescriptor
 		/**
 		 * The line number on which this block starts.
 		 */
-		static final BitField STARTING_LINE_NUMBER = new BitField(
+		public static final BitField STARTING_LINE_NUMBER = new BitField(
 			PRIMITIVE_AND_STARTING_LINE_NUMBER,
 			32,
 			32);

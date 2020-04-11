@@ -42,6 +42,7 @@ import static com.avail.descriptor.AvailObject.multiplier;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@SuppressWarnings("EqualsAndHashcode")
 final class L2SemanticSlot
 extends L2FrameSpecificSemanticValue
 {
@@ -57,11 +58,6 @@ extends L2FrameSpecificSemanticValue
 	private final int pcAfter;
 
 	/**
-	 * The previously computed hash value.
-	 */
-	private final int hash;
-
-	/**
 	 * Create a new {@code L2SemanticSlot} semantic value.
 	 *
 	 * @param frame
@@ -69,19 +65,19 @@ extends L2FrameSpecificSemanticValue
 	 *        continuation.
 	 * @param slotIndex
 	 *        The one-based index of the slot in that frame.
+	 * @param pcAfter
+	 *        The L1 program counter just after the instruction responsible for
+	 *        effectively writing this value in the frame's slot.
 	 */
 	L2SemanticSlot (
 		final Frame frame,
 		final int slotIndex,
 		final int pcAfter)
 	{
-		super(frame);
+		super(frame, slotIndex * multiplier ^ pcAfter);
 		assert slotIndex >= 1;
 		this.slotIndex = slotIndex;
 		this.pcAfter = pcAfter;
-		int h = slotIndex * multiplier ^ pcAfter;
-		h = h * multiplier ^ frame.hashCode();
-		this.hash = h;
 	}
 
 	@Override
@@ -95,12 +91,6 @@ extends L2FrameSpecificSemanticValue
 		return frame().equals(slot.frame())
 			&& slotIndex == slot.slotIndex
 			&& pcAfter == slot.pcAfter;
-	}
-
-	@Override
-	public int hashCode ()
-	{
-		return hash;
 	}
 
 	@Override

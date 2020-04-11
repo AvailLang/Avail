@@ -54,13 +54,11 @@ Uses
 Names
 	"greatest common denominator of_and_",
 	"least common multiple of_and_",
-	"log_of_",
 	"negative integer",
 	"nonpositive integer",
 	"_is odd",
 	"_is even",
 	"-_",
-	"π",
 	"«_‡«=|≤|<»!»",
 	"«_‡«=|≥|>»!»",
 	"comparison chain semantic restriction function"
@@ -1037,89 +1035,6 @@ Public stable method "«_‡«=|≥|>»!»" is
  */
 Semantic restriction "«_‡«=|≥|>»!»" is
 	comparison chain semantic restriction function;
-
-/**
- * Calculate the logarithm of the specified number to the specified base.
- *
- * @method "log_of_"
- * @param "b" "float"
- *        The logarithm base to use.
- * @param "n" "float"
- *        The number whose logarithm should be computed.
- * @returns "float"
- *          The logarithm of {@param "n"} to base {@param "b"}.
- * @category "Mathematics" "Numbers"
- */
-Public stable method "log_of_" is
-[
-	b : float,
-	n : float
-|
-	if b ≤ 0.0f then
-	[
-		early failure function(
-			cannot-compute-logarithm-for-nonpositive-base code)
-	]
-	else
-	[
-		if n ≤ 0.0f then
-		[
-			early failure function(
-				cannot-compute-logarithm-of-nonpositive-number code)
-		]
-		else
-		[
-			(ln n) ÷ (ln b)
-		]
-	]
-] : float;
-
-/**
- * Calculate the logarithm of the specified number to the specified base.
- *
- * @method "log_of_"
- * @param "b" "double"
- *        The logarithm base to use.
- * @param "n" "double"
- *        The number whose logarithm should be computed.
- * @returns "double"
- *          The logarithm of {@param "n"} to base {@param "b"}.
- * @category "Mathematics" "Numbers"
- */
-Stable method "log_of_" is
-[
-	b : double,
-	n : double
-|
-	if b ≤ 0.0 then
-	[
-		early failure function(
-			cannot-compute-logarithm-for-nonpositive-base code)
-	]
-	else
-	[
-		if n ≤ 0.0 then
-		[
-			early failure function(
-				cannot-compute-logarithm-of-nonpositive-number code)
-		]
-		else
-		[
-			(ln n) ÷ (ln b)
-		]
-	]
-] : double;
-
-/**
- * Answer an approximation of π, the ratio of the circumference of a circle to
- * its diameter.
- *
- * @method "π"
- * @returns "3.141592653589793's type"
- *          {@code "3.141592653589793"}.
- * @category "Mathematics" "Constants" "Numbers"
- */
-Macro "π" is [`3.141592653589793` ("π") → literal phrase];
 
 /**
  * Helper for strengthening the result type of bit shifts.

@@ -82,7 +82,7 @@ extends TypeDescriptor
 		 * This may become a conservatively large estimate due to my subobjects
 		 * being coalesced with more direct representations.
 		 */
-		static final BitField TUPLE_TYPE_COMPLEXITY =
+		public static final BitField TUPLE_TYPE_COMPLEXITY =
 			new BitField(TUPLE_TYPE_COMPLEXITY_AND_MORE, 0, 32);
 	}
 

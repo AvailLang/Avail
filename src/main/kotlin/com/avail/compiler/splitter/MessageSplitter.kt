@@ -282,8 +282,8 @@ class MessageSplitter
 		 *    matches a single [A_Token] of kind [TokenType.KEYWORD].
 		 *  * If followed by an [OCTOTHORP] (#), it creates a
 		 *    [RawNumericLiteralTokenArgument], which matches a single
-		 *    [A_Token] of kind [TokenType.LITERAL] which yields an integer in
-		 *    the range [0..∞).
+		 *    [A_Token] of kind [TokenType.LITERAL] which yields a positive
+		 *    number.
 		 *  * If followed by a [DOLLAR_SIGN] ($), it creates a
 		 *    [RawStringLiteralTokenArgument], which matches a single [A_Token]
 		 *    of kind [TokenType.LITERAL] which yields a string.

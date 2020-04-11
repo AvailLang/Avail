@@ -296,12 +296,9 @@ Public method "Repeat__times" is
 	count : [0..∞]
 |
 	$loop : ⊤;
-	/* Tweak for optimizer.  Avoid pushing loop while predicate runs. */
-	exit ::= count < 1;
-	Exit loop if exit;
+	Exit loop if count < 1;
 	action();
-	newArguments ::= <action, cast count - 1 into [i : [0..∞] | i]>;
-	Restart loop with newArguments
+	Restart loop with <action, cast count - 1 into [i : [0..∞] | i]>
 ] : ⊤;
 
 /**
@@ -377,14 +374,9 @@ Public method "From_to_by_do_" is
 	action : [⊥]→boolean
 |
 	$loop : ⊤;
-	/* Tweak for optimizer.  Avoid pushing loop while predicate runs. */
-	exit1 ::= end < start;
-	Exit loop if exit1;
-	/* Tweak for optimizer.  Avoid pushing loop while predicate runs. */
-	exit2 ::= action(start) = false;
-	Exit loop if exit2;
-	newArguments ::= <start + step, end, step, action>;
-	Restart loop with newArguments
+	Exit loop if end < start;
+	Exit loop if action(start) = false;
+	Restart loop with <start + step, end, step, action>
 ] : ⊤;
 
 /**
@@ -415,14 +407,9 @@ Public method "From_to_by_do_" is
 	action : [⊥]→boolean
 |
 	$loop : ⊤;
-	/* Tweak for optimizer.  Avoid pushing loop while predicate runs. */
-	exit1 ::= start < end;
-	Exit loop if exit1;
-	/* Tweak for optimizer.  Avoid pushing loop while predicate runs. */
-	exit2 ::= action(start) = false;
-	Exit loop if exit2;
-	newArguments ::= <start + step, end, step, action>;
-	Restart loop with newArguments
+	Exit loop if start < end;
+	Exit loop if action(start) = false;
+	Restart loop with <start + step, end, step, action>
 ] : ⊤;
 
 /**
@@ -1647,9 +1634,7 @@ Public method "While_do_" is
 	action : []→⊤
 |
 	$loop : ⊤;
-	/* Tweak for optimizer.  Avoid pushing loop while predicate runs. */
-	shouldExit ::= predicate() = false;
-	Exit loop if shouldExit;
+	Exit loop if predicate() = false;
 	action();
 	Restart loop
 ] : ⊤;
@@ -1722,9 +1707,7 @@ Public method "Until_do_" is
 	action : []→⊤
 |
 	$loop : ⊤;
-	/* Tweak for optimizer.  Avoid pushing loop while predicate runs. */
-	exit ::= predicate();
-	Exit loop if exit;
+	Exit loop if predicate();
 	action();
 	Restart loop
 ] : ⊤;
@@ -1797,9 +1780,7 @@ Public method "Do_while_" is
 |
 	$loop : ⊤;
 	action();
-	/* Tweak for optimizer.  Avoid pushing loop while predicate runs. */
-	shouldExit ::= predicate() = false;
-	Exit loop if shouldExit;
+	Exit loop if predicate() = false;
 	Restart loop
 ] : ⊤;
 
@@ -1870,9 +1851,7 @@ Public method "Do_while_alternate with_" is
 |
 	$loop : ⊤;
 	action();
-	/* Tweak for optimizer.  Avoid pushing loop while predicate runs. */
-	shouldExit ::= predicate() = false;
-	Exit loop if shouldExit;
+	Exit loop if predicate() = false;
 	between();
 	Restart loop
 ];
@@ -1950,9 +1929,7 @@ Public method "While_do_alternate with_" is
 	[
 		$loop : ⊤;
 		action();
-		/* Tweak for optimizer.  Avoid pushing loop while predicate runs. */
-		exit ::= predicate() = false;
-		Exit loop if exit;
+		Exit loop if predicate() = false;
 		between();
 		Restart loop
 	];
@@ -2024,9 +2001,7 @@ Public method "Do_until_" is
 |
 	$loop : ⊤;
 	action();
-	/* Tweak for optimizer.  Avoid pushing loop while predicate runs. */
-	exit ::= predicate();
-	Exit loop if exit;
+	Exit loop if predicate();
 	Restart loop
 ] : ⊤;
 
@@ -2097,9 +2072,7 @@ Public method "Do_until_alternate with_" is
 |
 	$loop : ⊤;
 	action();
-	/* Tweak for optimizer.  Avoid pushing loop while predicate runs. */
-	exit ::= predicate();
-	Exit loop if exit;
+	Exit loop if predicate();
 	between();
 	Restart loop
 ];
@@ -2177,9 +2150,7 @@ Public method "Until_do_alternate with_" is
 	[
 		$loop : ⊤;
 		action();
-		/* Tweak for optimizer.  Avoid pushing loop while predicate runs. */
-		exit ::= predicate();
-		Exit loop if exit;
+		Exit loop if predicate();
 		between();
 		Restart loop
 	];

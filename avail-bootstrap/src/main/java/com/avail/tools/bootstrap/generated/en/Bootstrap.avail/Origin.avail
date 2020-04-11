@@ -314,12 +314,12 @@ Body
 
 /**
  * Construct and answer a literal phrase based on the parsed non-negative
- * integer literal token.
+ * numeric literal token.
  *
  * @macro "…#"
- * @param "integerLiteralPhrase" "literal phrase⇒literal token⇒whole number"
+ * @param "numericLiteralPhrase" "literal phrase⇒literal token⇒number"
  *        The {@type "literal phrase"} built by parsing the argument denoted
  *        by the macro metacharacters '…#'.
- * @returns "literal phrase→whole number"
+ * @returns "literal phrase→number"
  * @category "Avail Syntax"
  */
