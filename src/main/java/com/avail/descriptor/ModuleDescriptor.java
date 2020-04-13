@@ -983,7 +983,7 @@ extends Descriptor
 				if (!bundle.equalsNil())
 				{
 					for (final Entry definitionEntry
-						: bundle.definitionParsingPlans().mapIterable())
+						: A_Bundle.Companion.definitionParsingPlans(bundle).mapIterable())
 					{
 						if (ancestors.hasElement(
 							definitionEntry.key().definitionModule()))
@@ -992,8 +992,8 @@ extends Descriptor
 								definitionEntry.value();
 							final A_ParsingPlanInProgress planInProgress =
 								newPlanInProgress(plan, 1);
-							filteredBundleTree.addPlanInProgress(
-								planInProgress);
+							A_BundleTree.Companion.addPlanInProgress(
+								filteredBundleTree, planInProgress);
 						}
 					}
 				}
@@ -1024,7 +1024,7 @@ extends Descriptor
 				final A_Bundle bundle = A_Atom.Companion.bundleOrNil(visibleName);
 				if (!bundle.equalsNil())
 				{
-					final A_Method method = bundle.bundleMethod();
+					final A_Method method = A_Bundle.Companion.bundleMethod(bundle);
 					final A_Lexer lexer = method.lexer();
 					if (!lexer.equalsNil())
 					{

@@ -172,7 +172,7 @@ extends Descriptor
 						{
 							builder.append(" Part = '");
 							builder.append(
-								object.bundle().messageParts().tupleAt(operand)
+								A_Bundle.Companion.messageParts(object.bundle()).tupleAt(operand)
 									.asNativeString());
 							builder.append("'");
 							break;
@@ -288,7 +288,7 @@ extends Descriptor
 		// distinguish polymorphism from occurrences of non-polymorphic
 		// homonyms.
 		aStream.append("plan for ");
-		aStream.append(object.bundle().message());
+		aStream.append(A_Bundle.Companion.message(object.bundle()));
 		aStream.append(" at ");
 		aStream.append(object.definition().parsingSignature());
 	}
@@ -310,7 +310,7 @@ extends Descriptor
 		result.setSlot(DEFINITION, definition);
 		result.setSlot(
 			PARSING_INSTRUCTIONS,
-			bundle.messageSplitter().instructionsTupleFor(
+			A_Bundle.Companion.messageSplitter(bundle).instructionsTupleFor(
 				definition.parsingSignature()));
 		return result;
 	}

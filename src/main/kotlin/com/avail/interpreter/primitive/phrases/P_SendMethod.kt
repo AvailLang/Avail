@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.primitive.phrases
 
+import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.phrases.SendPhraseDescriptor
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple

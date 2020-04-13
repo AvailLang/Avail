@@ -37,7 +37,6 @@ import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.A_Module;
 import com.avail.descriptor.AbstractDescriptor;
-import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.Descriptor;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
@@ -52,6 +51,7 @@ import com.avail.descriptor.parsing.A_DefinitionParsingPlan;
 import com.avail.descriptor.parsing.A_Lexer;
 import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.representation.AbstractSlotsEnum;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.representation.BitField;
 import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.representation.ObjectSlotsEnum;
@@ -110,7 +110,6 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import java.util.stream.IntStream;
 
 import static com.avail.AvailRuntimeSupport.nextHash;
-import static com.avail.descriptor.representation.AvailObject.newIndexedDescriptor;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.atoms.AtomDescriptor.createSpecialAtom;
 import static com.avail.descriptor.functions.CompiledCodeDescriptor.newPrimitiveRawFunction;
@@ -123,6 +122,7 @@ import static com.avail.descriptor.methods.MethodDescriptor.IntegerSlots.HASH;
 import static com.avail.descriptor.methods.MethodDescriptor.IntegerSlots.NUM_ARGS;
 import static com.avail.descriptor.methods.MethodDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor.newParsingPlan;
+import static com.avail.descriptor.representation.AvailObject.newIndexedDescriptor;
 import static com.avail.descriptor.representation.Mutability.MUTABLE;
 import static com.avail.descriptor.representation.Mutability.SHARED;
 import static com.avail.descriptor.sets.SetDescriptor.emptySet;
@@ -453,7 +453,7 @@ extends Descriptor
 			{
 				aStream.append(" a.k.a. ");
 			}
-			aStream.append(eachBundle.message());
+			aStream.append(A_Bundle.Companion.message(eachBundle));
 			first = false;
 		}
 	}
@@ -521,7 +521,8 @@ extends Descriptor
 		for (final A_Bundle bundle : bundles)
 		{
 			if (visibleModules.hasElement(
-				A_Atom.Companion.issuingModule(bundle.message())))
+				A_Atom.Companion.issuingModule(
+					A_Bundle.Companion.message(bundle))))
 			{
 				return bundle;
 			}
@@ -789,7 +790,7 @@ extends Descriptor
 			{
 				final A_DefinitionParsingPlan plan =
 					newParsingPlan(bundle, definition);
-				bundle.addDefinitionParsingPlan(plan);
+				A_Bundle.Companion.addDefinitionParsingPlan(bundle, plan);
 			}
 			membershipChanged(object);
 		}
@@ -799,7 +800,7 @@ extends Descriptor
 	public A_String o_MethodName (final AvailObject object)
 	{
 		return A_Atom.Companion.atomName(
-			object.chooseBundle(object.module()).message());
+			A_Bundle.Companion.message(object.chooseBundle(object.module())));
 	}
 
 	@Override @AvailMethod
@@ -833,7 +834,7 @@ extends Descriptor
 			object.setSlot(slot, definitionsTuple.makeShared());
 			for (final A_Bundle bundle : object.slot(OWNING_BUNDLES))
 			{
-				bundle.removePlanForDefinition(definition);
+				A_Bundle.Companion.removePlanForDefinition(bundle, definition);
 			}
 			membershipChanged(object);
 		}
@@ -1370,7 +1371,7 @@ extends Descriptor
 				throw new RuntimeException(
 					"VM method name is invalid: " + name, e);
 			}
-			final A_Method method = bundle.bundleMethod();
+			final A_Method method = A_Bundle.Companion.bundleMethod(bundle);
 			for (final Primitive primitive : primitives)
 			{
 				final A_Function function =

@@ -347,7 +347,7 @@ public final class AvailRuntime
 				final A_Bundle bundle = A_Atom.Companion.bundleOrNil(atom);
 				if (!bundle.equalsNil())
 				{
-					methods.add(bundle.bundleMethod());
+					methods.add(A_Bundle.Companion.bundleMethod(bundle));
 				}
 			}
 			for (final A_Method method : methods)
@@ -358,7 +358,7 @@ public final class AvailRuntime
 					toList(method.macroDefinitionsTuple()));
 				for (final A_Bundle bundle : method.bundles())
 				{
-					final A_Map bundlePlans = bundle.definitionParsingPlans();
+					final A_Map bundlePlans = A_Bundle.Companion.definitionParsingPlans(bundle);
 					if (bundlePlans.mapSize() != bundleDefinitions.size())
 					{
 						System.out.println(
@@ -1414,7 +1414,7 @@ public final class AvailRuntime
 				for (final A_Bundle bundle : method.bundles())
 				{
 					// Remove the desiccated message bundle from its atom.
-					final A_Atom atom = bundle.message();
+					final A_Atom atom = A_Bundle.Companion.message(bundle);
 					A_Atom.Companion.setAtomProperty(
 						atom,
 						SpecialAtom.MESSAGE_BUNDLE_KEY.atom,
@@ -1492,7 +1492,7 @@ public final class AvailRuntime
 		try
 		{
 			final A_Bundle bundle = restriction.restrictedBundle();
-			bundle.removeGrammaticalRestriction(restriction);
+			A_Bundle.Companion.removeGrammaticalRestriction(bundle, restriction);
 		}
 		finally
 		{
@@ -1521,7 +1521,7 @@ public final class AvailRuntime
 		try
 		{
 			final A_Bundle bundle = A_Atom.Companion.bundleOrCreate(methodName);
-			final A_Method method = bundle.bundleMethod();
+			final A_Method method = A_Bundle.Companion.bundleMethod(bundle);
 			assert method.numArgs() == sealSignature.tupleSize();
 			method.addSealedArgumentsType(sealSignature);
 		}
@@ -1551,7 +1551,7 @@ public final class AvailRuntime
 		try
 		{
 			final A_Bundle bundle = A_Atom.Companion.bundleOrCreate(methodName);
-			final A_Method method = bundle.bundleMethod();
+			final A_Method method = A_Bundle.Companion.bundleMethod(bundle);
 			method.removeSealedArgumentsType(sealSignature);
 		}
 		finally

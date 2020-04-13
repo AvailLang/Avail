@@ -181,7 +181,7 @@ extends Descriptor
 			{
 				aStream.append(" a.k.a. ");
 			}
-			aStream.append(eachBundle.message());
+			aStream.append(A_Bundle.Companion.message(eachBundle));
 			first = false;
 		}
 	}

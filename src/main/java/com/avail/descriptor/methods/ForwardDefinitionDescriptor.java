@@ -34,6 +34,7 @@ package com.avail.descriptor.methods;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.A_Module;
+import com.avail.descriptor.bundles.A_Bundle;
 import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.ModuleDescriptor;
@@ -104,8 +105,8 @@ extends DefinitionDescriptor
 		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
-		object.slot(DEFINITION_METHOD).chooseBundle(object.slot(MODULE))
-			.message()
+		A_Bundle.Companion.message(
+			object.slot(DEFINITION_METHOD).chooseBundle(object.slot(MODULE)))
 			.printOnAvoidingIndent(builder, recursionMap, indent);
 		builder.append(' ');
 		object.slot(BODY_SIGNATURE).printOnAvoidingIndent(

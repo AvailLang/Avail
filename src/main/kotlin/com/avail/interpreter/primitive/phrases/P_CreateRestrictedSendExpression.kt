@@ -36,13 +36,15 @@ import com.avail.AvailRuntime.currentRuntime
 import com.avail.compiler.AvailAcceptedParseException
 import com.avail.compiler.AvailRejectedParseException
 import com.avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
-import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.FiberDescriptor.currentFiber
 import com.avail.descriptor.FiberDescriptor.newFiber
 import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
 import com.avail.descriptor.bundles.A_Bundle
+import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
+import com.avail.descriptor.bundles.A_Bundle.Companion.messageSplitter
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.phrases.SendPhraseDescriptor.newSendNode
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.sets.SetDescriptor.set
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple

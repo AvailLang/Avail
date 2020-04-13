@@ -69,7 +69,19 @@ import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.*
 import com.avail.descriptor.bundles.A_Bundle
+import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
+import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.bundles.A_BundleTree
+import com.avail.descriptor.bundles.A_BundleTree.Companion.allParsingPlansInProgress
+import com.avail.descriptor.bundles.A_BundleTree.Companion.expand
+import com.avail.descriptor.bundles.A_BundleTree.Companion.isSourceOfCycle
+import com.avail.descriptor.bundles.A_BundleTree.Companion.latestBackwardJump
+import com.avail.descriptor.bundles.A_BundleTree.Companion.lazyActions
+import com.avail.descriptor.bundles.A_BundleTree.Companion.lazyComplete
+import com.avail.descriptor.bundles.A_BundleTree.Companion.lazyIncomplete
+import com.avail.descriptor.bundles.A_BundleTree.Companion.lazyIncompleteCaseInsensitive
+import com.avail.descriptor.bundles.A_BundleTree.Companion.lazyPrefilterMap
+import com.avail.descriptor.bundles.A_BundleTree.Companion.lazyTypeFilterTreePojo
 import com.avail.descriptor.bundles.MessageBundleDescriptor
 import com.avail.descriptor.bundles.MessageBundleTreeDescriptor
 import com.avail.descriptor.functions.A_Function
@@ -1236,7 +1248,7 @@ class AvailCompiler(
 		// there and it'll never have to expand the current node.  However, it's
 		// the expand() that might set up the cycle in the first place...
 		tempBundleTree.expand(compilationContext.module)
-		while (tempBundleTree.isSourceOfCycle)
+		while (tempBundleTree.isSourceOfCycle())
 		{
 			// Jump to its (once-)equivalent ancestor.
 			tempBundleTree = tempBundleTree.latestBackwardJump()
@@ -1319,8 +1331,9 @@ class AvailCompiler(
 			if (prefilter.mapSize() > 0)
 			{
 				val latestArgument = last(argsSoFar)
-				if (latestArgument.isMacroSubstitutionNode || latestArgument
-						.isInstanceOfKind(SEND_PHRASE.mostGeneralType()))
+				if (latestArgument.isMacroSubstitutionNode
+					|| latestArgument.isInstanceOfKind(
+						SEND_PHRASE.mostGeneralType()))
 				{
 					val argumentBundle =
 						latestArgument.apparentSendName().bundleOrNil()
@@ -1435,7 +1448,7 @@ class AvailCompiler(
 				if (firstArgOrNull === null || op.canRunIfHasFirstArgument)
 				{
 					start.workUnitDo(
-						{ value ->
+						{
 							runParsingInstructionThen(
 								start,
 								keyInt,
@@ -1446,7 +1459,7 @@ class AvailCompiler(
 								consumedAnything,
 								consumedAnythingBeforeLatestArgument,
 								consumedTokens,
-								value,
+								it,
 								continuation)
 						},
 						entry.value())

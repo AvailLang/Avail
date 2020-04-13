@@ -38,6 +38,7 @@ import com.avail.builder.RenamesFileParserException;
 import com.avail.builder.UnresolvedDependencyException;
 import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.A_Module;
+import com.avail.descriptor.bundles.A_Bundle;
 import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.functions.A_Function;
@@ -219,7 +220,7 @@ public final class CallbackTest
 		final A_Map entryPointsNames = module.entryPoints();
 		final A_Atom atom = entryPointsNames.mapAt(entryPointMethodName);
 		final A_Tuple definitions =
-			A_Atom.Companion.bundleOrNil(atom).bundleMethod().definitionsTuple();
+			A_Bundle.Companion.bundleMethod(A_Atom.Companion.bundleOrNil(atom)).definitionsTuple();
 		assert definitions.tupleSize() == 1;
 		return definitions.tupleAt(1).bodyBlock();
 	}

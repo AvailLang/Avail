@@ -32,7 +32,6 @@
 package com.avail.descriptor.representation
 
 import com.avail.descriptor.AbstractDescriptor
-import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.FillerDescriptor
 import com.avail.descriptor.IndirectionDescriptor
 import com.avail.descriptor.atoms.A_Atom
@@ -43,6 +42,7 @@ import com.avail.descriptor.objects.ObjectDescriptor
 import com.avail.descriptor.objects.ObjectTypeDescriptor
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor.SetIterator
 import com.avail.descriptor.tokens.A_Token
@@ -55,6 +55,7 @@ import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.instanceMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
+import com.avail.utility.Casts.cast
 import com.avail.utility.evaluation.Continuation0
 import com.avail.utility.json.JSONFriendly
 import com.avail.utility.json.JSONWriter
@@ -1164,6 +1165,41 @@ interface A_BasicObject : JSONFriendly {
 	fun fieldTypeAt(field: A_Atom): A_Type
 
 	companion object {
+		/**
+		 * Dispatcher helper function for zero arguments.
+		 *
+		 * @param R
+		 *   The result type of this call.
+		 * @param f
+		 *   The [AbstractDescriptor] method to invoke, with the receiver cast
+		 *   to [AvailObject] as an additional first argument.
+		 */
+		inline fun <R> A_BasicObject.dispatch(
+			f: AbstractDescriptor.(AvailObject) -> R
+		): R = descriptor().f(cast(this))
+
+		/**
+		 * If the provided condition is true, synchronize with the receiver's
+		 * monitor around the execution of the body function.  Otherwise, run
+		 * the body function without synchronization.
+		 *
+		 * @param R
+		 *   The type of result produced by the body, if any.
+		 * @param syncCondition
+		 *   Whether to synchronize on the receiver's monitor.
+		 * @param body
+		 *   The body to run, either synchronized or unsynchronized.
+		 * @receiver
+		 *   The result of running the body.
+		 */
+		inline fun <R> A_BasicObject.synchronizeIf(
+			syncCondition: Boolean,
+			body: A_BasicObject.() -> R
+		): R = when {
+			syncCondition -> synchronized(this) { body() }
+			else -> body()
+		}
+
 		/** The [CheckedMethod] for [.equals].  */
 		@JvmField
 		val equalsMethod: CheckedMethod = instanceMethod(

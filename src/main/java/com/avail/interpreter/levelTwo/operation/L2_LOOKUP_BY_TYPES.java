@@ -210,7 +210,7 @@ extends L2ControlFlowOperation
 		// type constraints.
 		final List<A_Function> possibleFunctions = new ArrayList<>();
 		final List<A_Definition> possibleDefinitions =
-			bundleOperand.bundle.bundleMethod().definitionsAtOrBelow(
+			A_Bundle.Companion.bundleMethod(bundleOperand.bundle).definitionsAtOrBelow(
 				argRestrictions);
 		for (final A_Definition definition : possibleDefinitions)
 		{
@@ -265,13 +265,13 @@ extends L2ControlFlowOperation
 				Level.FINER,
 				"{0}Lookup-by-types {1}",
 				interpreter.debugModeString,
-				A_Atom.Companion.atomName(bundle.message()));
+				A_Atom.Companion.atomName(A_Bundle.Companion.message(bundle)));
 		}
 
 		final List<AvailObject> typesList = new ArrayList<>(types.length);
 		Collections.addAll(typesList, types);
 
-		final A_Method method = bundle.bundleMethod();
+		final A_Method method = A_Bundle.Companion.bundleMethod(bundle);
 		final long before = captureNanos();
 		final A_Definition definitionToCall;
 		try

@@ -173,36 +173,32 @@ open class AtomDescriptor protected constructor(
 		aStream: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int
-	) {
-		with(aStream) {
-			val nativeName = self.atomName().asNativeString()
-			// Some atoms print nicer than others.
-			when {
-				self.isAtomSpecial() -> {
-					append(nativeName)
-					return
-				}
-				wordPattern.matcher(nativeName).matches() ->
-					append("\$$nativeName")
-				else -> append("\$\"$nativeName\"")
+	) = with(aStream) {
+		val nativeName = self.atomName().asNativeString()
+		// Some atoms print nicer than others.
+		when {
+			self.isAtomSpecial() -> {
+				append(nativeName)
+				return
 			}
-			val issuer: A_Module = self.slot(ISSUING_MODULE)
-			if (!issuer.equalsNil()) {
-				val issuerName = issuer.moduleName().asNativeString()
-				val localIssuer =
-					issuerName.substring(issuerName.lastIndexOf('/') + 1)
-				append(" (from $localIssuer)")
-			}
+			wordPattern.matcher(nativeName).matches() ->
+				append("\$$nativeName")
+			else -> append("\$\"$nativeName\"")
+		}
+		val issuer: A_Module = self.slot(ISSUING_MODULE)
+		if (!issuer.equalsNil()) {
+			val issuerName = issuer.moduleName().asNativeString()
+			val localIssuer =
+				issuerName.substring(issuerName.lastIndexOf('/') + 1)
+			append(" (from $localIssuer)")
 		}
 	}
 
 	@AvailMethod
-	override fun o_AtomName(self: AvailObject): A_String =
-		self.slot(NAME)
+	override fun o_AtomName(self: AvailObject): A_String = self.slot(NAME)
 
 	@AvailMethod
-	override fun o_IssuingModule(self: AvailObject) =
-		self.slot(ISSUING_MODULE)
+	override fun o_IssuingModule(self: AvailObject) = self.slot(ISSUING_MODULE)
 
 	@AvailMethod
 	override fun o_Equals(
@@ -285,13 +281,9 @@ open class AtomDescriptor protected constructor(
 
 	/**
 	 * This atom has no properties, so always answer [nil].
-	 *
 	 */
 	@AvailMethod
-	override fun o_GetAtomProperty(
-		self: AvailObject,
-		key: A_Atom
-	) = nil
+	override fun o_GetAtomProperty(self: AvailObject, key: A_Atom) = nil
 
 	@AvailMethod
 	@ThreadSafe

@@ -42,6 +42,9 @@ import com.avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import com.avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.MESSAGE_BUNDLE_KEY
 import com.avail.descriptor.bundles.A_Bundle
+import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
+import com.avail.descriptor.bundles.A_Bundle.Companion.definitionParsingPlans
+import com.avail.descriptor.bundles.A_BundleTree.Companion.addPlanInProgress
 import com.avail.descriptor.bundles.MessageBundleDescriptor.Companion.newBundle
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.parsing.ParsingPlanInProgressDescriptor.newPlanInProgress

@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.primitive.methods
 
+import com.avail.descriptor.bundles.A_Bundle.Companion.messageSplitter
 import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.numbers.IntegerDescriptor.fromInt
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple

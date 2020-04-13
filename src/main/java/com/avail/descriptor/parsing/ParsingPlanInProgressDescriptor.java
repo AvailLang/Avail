@@ -36,6 +36,7 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.compiler.AvailCompilerFragmentCache;
 import com.avail.compiler.ParsingOperation;
+import com.avail.descriptor.bundles.A_Bundle;
 import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.Descriptor;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
@@ -174,7 +175,7 @@ extends Descriptor
 		{
 			return "(any method invocation)";
 		}
-		return plan.bundle().messageSplitter().highlightedNameFor(
+		return A_Bundle.Companion.messageSplitter(plan.bundle()).highlightedNameFor(
 			plan.definition().parsingSignature(), pc);
 	}
 

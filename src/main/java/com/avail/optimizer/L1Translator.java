@@ -970,7 +970,9 @@ public final class L1Translator
 			this.expectedType = expectedType;
 			this.superUnionType = superUnionType;
 			this.isSuper = !superUnionType.isBottom();
-			this.quotedBundleName = A_Atom.Companion.atomName(bundle.message()).toString();
+			this.quotedBundleName = A_Atom.Companion.atomName(
+				A_Bundle.Companion.message(bundle)
+			).toString();
 			this.onFallBackToSlowLookup = generator.createBasicBlock(
 				"fall back to slow lookup during " + quotedBundleName);
 			this.onReificationWithCheck = generator.createBasicBlock(
@@ -1022,7 +1024,7 @@ public final class L1Translator
 	{
 		final CallSiteHelper callSiteHelper = new CallSiteHelper(
 			bundle, superUnionType, expectedType);
-		final A_Method method = bundle.bundleMethod();
+		final A_Method method = A_Bundle.Companion.bundleMethod(bundle);
 		generator.addContingentValue(method);
 		final int nArgs = method.numArgs();
 		final List<L2SemanticValue> semanticArguments = new ArrayList<>(nArgs);
@@ -2360,7 +2362,7 @@ public final class L1Translator
 		final List<L2SemanticValue> semanticArguments)
 	{
 		final A_Bundle bundle = callSiteHelper.bundle;
-		final A_Method method = bundle.bundleMethod();
+		final A_Method method = A_Bundle.Companion.bundleMethod(bundle);
 		final int nArgs = method.numArgs();
 		final L2BasicBlock lookupSucceeded = generator.createBasicBlock(
 			"lookup succeeded for " + callSiteHelper.quotedBundleName);
@@ -2382,7 +2384,7 @@ public final class L1Translator
 
 		final List<A_Function> possibleFunctions = new ArrayList<>();
 		for (final A_Definition definition :
-			bundle.bundleMethod().definitionsAtOrBelow(argumentRestrictions))
+			A_Bundle.Companion.bundleMethod(bundle).definitionsAtOrBelow(argumentRestrictions))
 		{
 			if (definition.isMethodDefinition())
 			{

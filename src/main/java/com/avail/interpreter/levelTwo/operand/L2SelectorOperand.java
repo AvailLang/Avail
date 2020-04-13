@@ -86,6 +86,6 @@ extends L2Operand
 	@Override
 	public void appendTo (final StringBuilder builder)
 	{
-		builder.append("$").append(A_Atom.Companion.atomName(bundle.message()));
+		builder.append("$").append(A_Atom.Companion.atomName(A_Bundle.Companion.message(bundle)));
 	}
 }

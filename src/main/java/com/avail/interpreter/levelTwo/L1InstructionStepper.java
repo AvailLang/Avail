@@ -264,7 +264,7 @@ public final class L1InstructionStepper
 						code.literalAt(instructionDecoder.getOperand());
 					final A_Type expectedReturnType =
 						code.literalAt(instructionDecoder.getOperand());
-					final int numArgs = bundle.bundleMethod().numArgs();
+					final int numArgs = A_Bundle.Companion.bundleMethod(bundle).numArgs();
 					if (debugL1)
 					{
 						Interpreter.log(
@@ -272,7 +272,7 @@ public final class L1InstructionStepper
 							Level.FINER,
 							"{0}         L1 call ({1})",
 							interpreter.debugModeString,
-							A_Atom.Companion.atomName(bundle.message()));
+							A_Atom.Companion.atomName(A_Bundle.Companion.message(bundle)));
 					}
 					interpreter.argsBuffer.clear();
 					for (int i = stackp + numArgs - 1; i >= stackp; i--)
@@ -285,7 +285,7 @@ public final class L1InstructionStepper
 					// stack with the actual value when the call completes
 					// (after ensuring it complies).
 					push(expectedReturnType);
-					final A_Method method = bundle.bundleMethod();
+					final A_Method method = A_Bundle.Companion.bundleMethod(bundle);
 					final A_Definition matching;
 					final long beforeLookup = captureNanos();
 					try
@@ -660,7 +660,7 @@ public final class L1InstructionStepper
 						code.literalAt(instructionDecoder.getOperand());
 					final A_Type superUnionType =
 						code.literalAt(instructionDecoder.getOperand());
-					final int numArgs = bundle.bundleMethod().numArgs();
+					final int numArgs = A_Bundle.Companion.bundleMethod(bundle).numArgs();
 					if (debugL1)
 					{
 						Interpreter.log(
@@ -668,7 +668,7 @@ public final class L1InstructionStepper
 							Level.FINER,
 							"{0}L1 supercall: {1}",
 							interpreter.debugModeString,
-							A_Atom.Companion.atomName(bundle.message()));
+							A_Atom.Companion.atomName(A_Bundle.Companion.message(bundle)));
 					}
 					interpreter.argsBuffer.clear();
 					final MutableInt reversedStackp =
@@ -688,7 +688,7 @@ public final class L1InstructionStepper
 					// stack with the actual value when the call completes
 					// (after ensuring it complies).
 					push(expectedReturnType);
-					final A_Method method = bundle.bundleMethod();
+					final A_Method method = A_Bundle.Companion.bundleMethod(bundle);
 					final A_Definition matching;
 					final long beforeLookup = captureNanos();
 					try

@@ -110,7 +110,7 @@ extends PhraseDescriptor
 		final IdentityHashMap<A_BasicObject, Void> recursionMap,
 		final int indent)
 	{
-		object.bundle().messageSplitter().printSendNodeOnIndent(
+		A_Bundle.Companion.messageSplitter(object.bundle()).printSendNodeOnIndent(
 			object, builder, indent);
 	}
 
@@ -118,7 +118,7 @@ extends PhraseDescriptor
 	public A_Atom o_ApparentSendName (final AvailObject object)
 	{
 		final A_Bundle bundle = object.slot(BUNDLE);
-		return bundle.message();
+		return A_Bundle.Companion.message(bundle);
 	}
 
 	@Override @AvailMethod
@@ -157,7 +157,7 @@ extends PhraseDescriptor
 		final AvailCodeGenerator codeGenerator)
 	{
 		final A_Bundle bundle = object.slot(BUNDLE);
-		final int argCount = bundle.bundleMethod().numArgs();
+		final int argCount = A_Bundle.Companion.bundleMethod(bundle).numArgs();
 		final A_Phrase arguments = object.slot(ARGUMENTS_LIST_NODE);
 		arguments.emitAllValuesOn(codeGenerator);
 		final A_Type superUnionType = arguments.superUnionType();

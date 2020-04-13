@@ -43,26 +43,33 @@ import com.avail.compiler.splitter.MessageSplitter.Companion.permutationAtIndex
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.FiberDescriptor
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
+import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.bundles.A_BundleTree
+import com.avail.descriptor.bundles.A_BundleTree.Companion.allParsingPlansInProgress
 import com.avail.descriptor.phrases.A_Phrase
+import com.avail.descriptor.phrases.ListPhraseDescriptor
 import com.avail.descriptor.phrases.ListPhraseDescriptor.emptyListNode
 import com.avail.descriptor.phrases.ListPhraseDescriptor.newListNode
 import com.avail.descriptor.phrases.LiteralPhraseDescriptor.literalNodeFromToken
 import com.avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor.newMacroSubstitution
 import com.avail.descriptor.phrases.PermutedListPhraseDescriptor.newPermutedListNode
 import com.avail.descriptor.phrases.PhraseDescriptor
+import com.avail.descriptor.phrases.ReferencePhraseDescriptor
 import com.avail.descriptor.phrases.ReferencePhraseDescriptor.referenceNodeFromUse
 import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tokens.LiteralTokenDescriptor.literalToken
+import com.avail.descriptor.tokens.TokenDescriptor
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.*
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
 import com.avail.descriptor.tuples.StringDescriptor.stringFrom
+import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.toList
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
 import com.avail.descriptor.types.TupleTypeDescriptor.stringType
 import com.avail.descriptor.types.TypeDescriptor.Types.NUMBER
+import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport.EXPANDING_PARSING_INSTRUCTIONS
 import com.avail.performance.StatisticReport.RUNNING_PARSING_INSTRUCTIONS
@@ -1865,7 +1872,8 @@ enum class ParsingOperation constructor(
 		private fun describeWhyVariableUseIsExpected(
 				successorTree: A_BundleTree): Describer =
 			{ continuation ->
-				val bundles = successorTree.allParsingPlansInProgress().keysAsSet()
+				val bundles =
+					successorTree.allParsingPlansInProgress().keysAsSet()
 				val builder = StringBuilder()
 				builder.append("a variable use, for one of:")
 				if (bundles.setSize() > 2)

@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.effects
 
+import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.methods.DefinitionDescriptor

@@ -39,7 +39,6 @@ import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_BundleTree
-import com.avail.descriptor.bundles.MessageBundleDescriptor
 import com.avail.descriptor.functions.*
 import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
 import com.avail.descriptor.maps.A_Map
@@ -80,7 +79,6 @@ import com.avail.optimizer.jvm.CheckedMethod.instanceMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.utility.Casts
 import com.avail.utility.IteratorNotNull
-import com.avail.utility.Pair
 import com.avail.utility.StackPrinter
 import com.avail.utility.evaluation.Continuation0
 import com.avail.utility.evaluation.Continuation1NotNull
@@ -511,17 +509,6 @@ class AvailObject private constructor(
 	override fun asTuple() = descriptor().o_AsTuple(this)
 
 	/**
-	 * Add a [grammatical&32;restriction][GrammaticalRestrictionDescriptor] to
-	 * this [message&#32;bundle][MessageBundleDescriptor].
-	 *
-	 * @param grammaticalRestriction
-	 *   The set of grammatical restrictions to be added.
-	 */
-	override fun addGrammaticalRestriction(
-		grammaticalRestriction: A_GrammaticalRestriction
-	) = descriptor().o_AddGrammaticalRestriction(this, grammaticalRestriction)
-
-	/**
  	 * Add a [definition][DefinitionDescriptor] to this
  	 * [module][ModuleDescriptor].
 	 *
@@ -530,9 +517,6 @@ class AvailObject private constructor(
 	 */
 	override fun moduleAddDefinition(definition: A_Definition) =
 		descriptor().o_ModuleAddDefinition(this, definition)
-
-	override fun addDefinitionParsingPlan(plan: A_DefinitionParsingPlan) =
-		descriptor().o_AddDefinitionParsingPlan(this, plan)
 
 	override fun addImportedName(trueName: A_Atom) =
 		descriptor().o_AddImportedName(this, trueName)
@@ -883,8 +867,6 @@ class AvailObject private constructor(
 		startIndex2: Int
 	) = descriptor().o_CompareFromToWithTwoByteStringStartingAt(
 		this, startIndex1, endIndex1, aTwoByteString, startIndex2)
-
-	override fun lazyComplete() = descriptor().o_LazyComplete(this)
 
 	override fun computeHashFromTo(start: Int, end: Int) =
 		descriptor().o_ComputeHashFromTo(this, start, end)
@@ -1319,8 +1301,6 @@ class AvailObject private constructor(
 	override fun executionState(value: ExecutionState) =
 		descriptor().o_ExecutionState(this, value)
 
-	override fun expand(module: A_Module) = descriptor().o_Expand(this, module)
-
 	override fun extractUnsignedByte() =
 		descriptor().o_ExtractUnsignedByte(this)
 
@@ -1377,9 +1357,6 @@ class AvailObject private constructor(
 	override fun hasObjectInstance(potentialInstance: AvailObject) =
 		descriptor().o_HasObjectInstance(this, potentialInstance)
 
-	override fun hasGrammaticalRestrictions() =
-		descriptor().o_HasGrammaticalRestrictions(this)
-
 	override fun definitionsAtOrBelow(argRestrictions: List<TypeRestriction>) =
 		descriptor().o_DefinitionsAtOrBelow(this, argRestrictions)
 
@@ -1387,8 +1364,6 @@ class AvailObject private constructor(
 
 	override fun includesDefinition(imp: A_Definition) =
 		descriptor().o_IncludesDefinition(this, imp)
-
-	override fun lazyIncomplete() = descriptor().o_LazyIncomplete(this)
 
 	override fun setInterruptRequestFlag(flag: InterruptRequestFlag) =
 		descriptor().o_SetInterruptRequestFlag(this, flag)
@@ -1727,10 +1702,6 @@ class AvailObject private constructor(
 
 	override fun maxStackDepth() = descriptor().o_MaxStackDepth(this)
 
-	override fun message() = descriptor().o_Message(this)
-
-	override fun messageParts() = descriptor().o_MessageParts(this)
-
 	override fun methodDefinitions() = descriptor().o_MethodDefinitions(this)
 
 	/**
@@ -1939,15 +1910,8 @@ class AvailObject private constructor(
 	override fun removeDefinition(definition: A_Definition) =
 		descriptor().o_RemoveDefinition(this, definition)
 
-	override fun removeGrammaticalRestriction(
-		obsoleteRestriction: A_GrammaticalRestriction
-	) = descriptor().o_RemoveGrammaticalRestriction(this, obsoleteRestriction)
-
 	override fun resolveForward(forwardDefinition: A_BasicObject) =
 		descriptor().o_ResolveForward(this, forwardDefinition)
-
-	override fun grammaticalRestrictions() =
-		descriptor().o_GrammaticalRestrictions(this)
 
 	override fun returnType() = descriptor().o_ReturnType(this)
 
@@ -1987,8 +1951,6 @@ class AvailObject private constructor(
 		this, elementObjectToExclude, canDestroy)
 
 	override fun sizeRange() = descriptor().o_SizeRange(this)
-
-	override fun lazyActions() = descriptor().o_LazyActions(this)
 
 	override fun stackAt(slotIndex: Int) =
 		descriptor().o_StackAt(this, slotIndex)
@@ -2320,9 +2282,6 @@ class AvailObject private constructor(
 
 	override fun lineNumber() = descriptor().o_LineNumber(this)
 
-	override fun allParsingPlansInProgress() =
-		descriptor().o_AllParsingPlansInProgress(this)
-
 	override val isSetBin get() = descriptor().o_IsSetBin(this)
 
 	override fun mapIterable() = descriptor().o_MapIterable(this)
@@ -2501,8 +2460,6 @@ class AvailObject private constructor(
 		canDestroy: Boolean
 	) = descriptor().o_DivideIntoFloatCanDestroy(this, floatObject, canDestroy)
 
-	override fun lazyPrefilterMap() = descriptor().o_LazyPrefilterMap(this)
-
 	override fun serializerOperation() =
 		descriptor().o_SerializerOperation(this)
 
@@ -2614,9 +2571,6 @@ class AvailObject private constructor(
 		newElement: A_BasicObject,
 		canDestroy: Boolean
 	) = descriptor().o_AppendCanDestroy(this, newElement, canDestroy)
-
-	override fun lazyIncompleteCaseInsensitive() =
-		descriptor().o_LazyIncompleteCaseInsensitive(this)
 
 	override fun lowerCaseString() = descriptor().o_LowerCaseString(this)
 
@@ -2743,12 +2697,6 @@ class AvailObject private constructor(
 
 	override val isByteArrayTuple get() = descriptor().o_IsByteArrayTuple(this)
 
-	override fun updateForNewGrammaticalRestriction(
-		planInProgress: A_ParsingPlanInProgress,
-		treesToVisit: Deque<Pair<A_BundleTree, A_ParsingPlanInProgress>>
-	) = descriptor().o_UpdateForNewGrammaticalRestriction(
-		this, planInProgress, treesToVisit)
-
 	override fun lock(critical: Continuation0) =
 		descriptor().o_Lock(this, critical)
 
@@ -2770,8 +2718,6 @@ class AvailObject private constructor(
 		descriptor().o_AvailLoader(this, loader)
 
 	override fun moduleName() = descriptor().o_ModuleName(this)
-
-	override fun bundleMethod() = descriptor().o_BundleMethod(this)
 
 	/**
 	 * Answer the [continuation][Continuation1NotNull] that accepts the result
@@ -3053,8 +2999,6 @@ class AvailObject private constructor(
 	override fun isMacroSubstitutionNode() =
 		descriptor().o_IsMacroSubstitutionNode(this)
 
-	override fun messageSplitter() = descriptor().o_MessageSplitter(this)
-
 	override fun statementsDo(continuation: Continuation1NotNull<A_Phrase>) =
 		descriptor().o_StatementsDo(this, continuation)
 
@@ -3084,28 +3028,13 @@ class AvailObject private constructor(
 	override fun setIntersects(otherSet: A_Set) =
 		descriptor().o_SetIntersects(this, otherSet)
 
-	override fun removePlanForDefinition(definition: A_Definition) =
-		descriptor().o_RemovePlanForDefinition(this, definition)
-
-	override fun definitionParsingPlans() =
-		descriptor().o_DefinitionParsingPlans(this)
-
 	override fun equalsListNodeType(listNodeType: A_Type) =
 		descriptor().o_EqualsListNodeType(this, listNodeType)
 
 	override fun subexpressionsTupleType() =
 		descriptor().o_SubexpressionsTupleType(this)
 
-	override fun lazyTypeFilterTreePojo() =
-		descriptor().o_LazyTypeFilterTreePojo(this)
-
-	override fun addPlanInProgress(planInProgress: A_ParsingPlanInProgress) =
-		descriptor().o_AddPlanInProgress(this, planInProgress)
-
 	override fun parsingSignature() = descriptor().o_ParsingSignature(this)
-
-	override fun removePlanInProgress(planInProgress: A_ParsingPlanInProgress) =
-		descriptor().o_RemovePlanInProgress(this, planInProgress)
 
 	override fun moduleSemanticRestrictions() =
 		descriptor().o_ModuleSemanticRestrictions(this)
@@ -3175,15 +3104,6 @@ class AvailObject private constructor(
 	override fun suspendingFunction() = descriptor().o_SuspendingFunction(this)
 
 	override fun isBackwardJump() = descriptor().o_IsBackwardJump(this)
-
-	override fun latestBackwardJump() = descriptor().o_LatestBackwardJump(this)
-
-	override fun hasBackwardJump() = descriptor().o_HasBackwardJump(this)
-
-	override val isSourceOfCycle get() = descriptor().o_IsSourceOfCycle(this)
-
-	override fun isSourceOfCycle(isSourceOfCycle: Boolean) =
-		descriptor().o_IsSourceOfCycle(this, isSourceOfCycle)
 
 	override fun debugLog() = descriptor().o_DebugLog(this)
 

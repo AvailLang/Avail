@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.levelOne
 
+import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObject.Companion.error
 import kotlin.math.max

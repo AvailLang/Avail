@@ -438,8 +438,9 @@ public final class AvailLoader
 					() -> formatString(
 						"Check lexer filter %s for U+%04x",
 						A_Atom.Companion.atomName(
-							lexer.lexerMethod().chooseBundle(loader.module())
-								.message()),
+							A_Bundle.Companion.message(
+								lexer.lexerMethod()
+									.chooseBundle(loader.module()))),
 						codePoint));
 				fiber.textInterface(loader.textInterface);
 				lexingState.setFiberContinuationsTrackingWork(
@@ -898,11 +899,11 @@ public final class AvailLoader
 		methodName.makeShared();
 		bodySignature.makeShared();
 		final A_Bundle bundle = A_Atom.Companion.bundleOrCreate(methodName);
-		final MessageSplitter splitter = bundle.messageSplitter();
+		final MessageSplitter splitter = A_Bundle.Companion.messageSplitter(bundle);
 		splitter.checkImplementationSignature(bodySignature);
 		final A_Type bodyArgsTupleType = bodySignature.argsTupleType();
 		// Add the stubbed method definition.
-		final A_Method method = bundle.bundleMethod();
+		final A_Method method = A_Bundle.Companion.bundleMethod(bundle);
 		for (final A_Definition definition : method.definitionsTuple())
 		{
 			final A_Type existingType = definition.bodySignature();
@@ -945,10 +946,10 @@ public final class AvailLoader
 				pendingForwards = pendingForwards.setWithElementCanDestroy(
 					newForward, true);
 				final A_DefinitionParsingPlan plan =
-					bundle.definitionParsingPlans().mapAt(newForward);
+					A_Bundle.Companion.definitionParsingPlans(bundle).mapAt(newForward);
 				final A_ParsingPlanInProgress planInProgress =
 					newPlanInProgress(plan, 1);
-				root.addPlanInProgress(planInProgress);
+				A_BundleTree.Companion.addPlanInProgress(root, planInProgress);
 			});
 		}
 	}
@@ -975,7 +976,7 @@ public final class AvailLoader
 		assert bodyBlock.isFunction();
 
 		final A_Bundle bundle = A_Atom.Companion.bundleOrCreate(methodName);
-		final MessageSplitter splitter = bundle.messageSplitter();
+		final MessageSplitter splitter = A_Bundle.Companion.messageSplitter(bundle);
 		splitter.checkImplementationSignature(bodyBlock.kind());
 		final int numArgs = splitter.getNumberOfArguments();
 		if (bodyBlock.code().numArgs() != numArgs)
@@ -986,7 +987,7 @@ public final class AvailLoader
 		methodName.makeShared();
 		bodyBlock.makeShared();
 		addDefinition(
-			newMethodDefinition(bundle.bundleMethod(), module, bodyBlock));
+			newMethodDefinition(A_Bundle.Companion.bundleMethod(bundle), module, bodyBlock));
 	}
 
 	/**
@@ -1009,7 +1010,7 @@ public final class AvailLoader
 	throws MalformedMessageException, SignatureException
 	{
 		final A_Bundle bundle = A_Atom.Companion.bundleOrCreate(methodName);
-		final MessageSplitter splitter = bundle.messageSplitter();
+		final MessageSplitter splitter = A_Bundle.Companion.messageSplitter(bundle);
 		final int numArgs = splitter.getNumberOfArguments();
 		final A_Type bodyArgsSizes = bodySignature.argsTupleType().sizeRange();
 		if (!bodyArgsSizes.lowerBound().equalsInt(numArgs)
@@ -1024,7 +1025,7 @@ public final class AvailLoader
 		bodySignature.makeShared();
 		addDefinition(
 			newAbstractDefinition(
-				bundle.bundleMethod(), module, bodySignature));
+				A_Bundle.Companion.bundleMethod(bundle), module, bodySignature));
 	}
 
 	/**
@@ -1103,16 +1104,17 @@ public final class AvailLoader
 					for (final A_Bundle bundle : method.bundles())
 					{
 						if (ancestorModules.hasElement(
-							A_Atom.Companion.issuingModule(bundle.message())))
+							A_Atom.Companion.issuingModule(
+								A_Bundle.Companion.message(bundle))))
 						{
 							// Remove the appropriate forwarder plan from the
 							// bundle tree.
 							final A_DefinitionParsingPlan plan =
-								bundle.definitionParsingPlans()
+								A_Bundle.Companion.definitionParsingPlans(bundle)
 									.mapAt(finalForward);
 							final A_ParsingPlanInProgress planInProgress =
 								newPlanInProgress(plan, 1);
-							root.removePlanInProgress(planInProgress);
+							A_BundleTree.Companion.removePlanInProgress(root, planInProgress);
 						}
 					}
 					removeForward(finalForward);
@@ -1130,14 +1132,15 @@ public final class AvailLoader
 				for (final A_Bundle bundle : method.bundles())
 				{
 					if (ancestorModules.hasElement(
-						A_Atom.Companion.issuingModule(bundle.message())))
+						A_Atom.Companion.issuingModule(
+							A_Bundle.Companion.message(bundle))))
 					{
 						final A_DefinitionParsingPlan plan =
-							bundle.definitionParsingPlans()
+							A_Bundle.Companion.definitionParsingPlans(bundle)
 								.mapAt(newDefinition);
 						final A_ParsingPlanInProgress planInProgress =
 							newPlanInProgress(plan, 1);
-						root.addPlanInProgress(planInProgress);
+						A_BundleTree.Companion.addPlanInProgress(root, planInProgress);
 					}
 				}
 				finalModule.moduleAddDefinition(newDefinition);
@@ -1186,7 +1189,7 @@ public final class AvailLoader
 		assert macroBody.isFunction();
 
 		final A_Bundle bundle = A_Atom.Companion.bundleOrCreate(methodName);
-		final MessageSplitter splitter = bundle.messageSplitter();
+		final MessageSplitter splitter = A_Bundle.Companion.messageSplitter(bundle);
 		final int numArgs = splitter.getNumberOfArguments();
 		if (macroBody.code().numArgs() != numArgs)
 		{
@@ -1201,7 +1204,7 @@ public final class AvailLoader
 		methodName.makeShared();
 		macroBody.makeShared();
 		// Add the macro definition.
-		final A_Method method = bundle.bundleMethod();
+		final A_Method method = A_Bundle.Companion.bundleMethod(bundle);
 		final AvailObject macroDefinition = newMacroDefinition(
 			method, module, macroBody, prefixFunctions);
 		module.moduleAddDefinition(macroDefinition);
@@ -1228,10 +1231,10 @@ public final class AvailLoader
 			module.lock(() ->
 			{
 				final A_DefinitionParsingPlan plan =
-					bundle.definitionParsingPlans().mapAt(macroDefinition);
+					A_Bundle.Companion.definitionParsingPlans(bundle).mapAt(macroDefinition);
 				final A_ParsingPlanInProgress planInProgress =
 					newPlanInProgress(plan, 1);
-				root.addPlanInProgress(planInProgress);
+				A_BundleTree.Companion.addPlanInProgress(root, planInProgress);
 			});
 		}
 	}
@@ -1260,7 +1263,7 @@ public final class AvailLoader
 		recordEffect(
 			new LoadingEffectToRunPrimitive(
 				SpecialMethodAtom.SEMANTIC_RESTRICTION.bundle,
-				method.chooseBundle(module).message(),
+				A_Bundle.Companion.message(method.chooseBundle(module)),
 				restriction.function()));
 		final A_Module theModule = module;
 		theModule.lock(() -> theModule.moduleAddSemanticRestriction(restriction));
@@ -1286,7 +1289,7 @@ public final class AvailLoader
 		assert methodName.isAtom();
 		assert seal.isTuple();
 		final A_Bundle bundle = A_Atom.Companion.bundleOrCreate(methodName);
-		final MessageSplitter splitter = bundle.messageSplitter();
+		final MessageSplitter splitter = A_Bundle.Companion.messageSplitter(bundle);
 		if (seal.tupleSize() != splitter.getNumberOfArguments())
 		{
 			throw new SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS);
@@ -1346,7 +1349,7 @@ public final class AvailLoader
 		for (final A_Atom parentAtom : parentAtoms)
 		{
 			final A_Bundle bundle = A_Atom.Companion.bundleOrCreate(parentAtom);
-			final MessageSplitter splitter = bundle.messageSplitter();
+			final MessageSplitter splitter = A_Bundle.Companion.messageSplitter(bundle);
 			final int numArgs = splitter.getLeafArgumentCount();
 			if (illegalArgumentMessages.tupleSize() != numArgs)
 			{
@@ -1358,7 +1361,7 @@ public final class AvailLoader
 			final A_Module theModule = module;
 			theModule.lock(() ->
 			{
-				bundle.addGrammaticalRestriction(grammaticalRestriction);
+				A_Bundle.Companion.addGrammaticalRestriction(bundle, grammaticalRestriction);
 				theModule.moduleAddGrammaticalRestriction(
 					grammaticalRestriction);
 				if (phase == EXECUTING_FOR_COMPILE)
@@ -1368,7 +1371,7 @@ public final class AvailLoader
 					final Deque<Pair<A_BundleTree, A_ParsingPlanInProgress>>
 						treesToVisit = new ArrayDeque<>();
 					for (final Entry planEntry
-						: bundle.definitionParsingPlans().mapIterable())
+						: A_Bundle.Companion.definitionParsingPlans(bundle).mapIterable())
 					{
 						final A_DefinitionParsingPlan plan = planEntry.value();
 						treesToVisit.addLast(
@@ -1380,8 +1383,8 @@ public final class AvailLoader
 							final A_BundleTree tree = pair.first();
 							final A_ParsingPlanInProgress planInProgress =
 								pair.second();
-							tree.updateForNewGrammaticalRestriction(
-								planInProgress, treesToVisit);
+							A_BundleTree.Companion.updateForNewGrammaticalRestriction(
+								tree, planInProgress, treesToVisit);
 						}
 					}
 				}
@@ -1636,11 +1639,11 @@ public final class AvailLoader
 			throw new RuntimeException(e);
 		}
 		final A_DefinitionParsingPlan headerPlan =
-			headerMethodBundle.definitionParsingPlans().mapIterable().next()
+			A_Bundle.Companion.definitionParsingPlans(headerMethodBundle).mapIterable().next()
 				.value();
 		final A_ParsingPlanInProgress headerPlanInProgress =
 			newPlanInProgress(headerPlan, 1);
-		moduleHeaderBundleRoot.addPlanInProgress(headerPlanInProgress);
+		A_BundleTree.Companion.addPlanInProgress(moduleHeaderBundleRoot, headerPlanInProgress);
 	}
 
 	/**
@@ -1681,7 +1684,7 @@ public final class AvailLoader
 			assert false : "Invalid special lexer name: " + atomName;
 			throw new RuntimeException(e);
 		}
-		final A_Method method = bundle.bundleMethod();
+		final A_Method method = A_Bundle.Companion.bundleMethod(bundle);
 		final A_Lexer lexer = newLexer(
 			stringLexerFilter, stringLexerBody, method, nil);
 		moduleHeaderLexicalScanner.addLexer(lexer);

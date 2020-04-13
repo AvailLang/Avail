@@ -379,7 +379,7 @@ extends Descriptor
 		{
 			throw new IllegalArgumentException("Atom to invoke has no method");
 		}
-		final A_Method method = bundle.bundleMethod();
+		final A_Method method = A_Bundle.Companion.bundleMethod(bundle);
 		final A_Type argTypes = functionType.argsTupleType();
 		// Check that there's a definition, even abstract, that will catch all
 		// invocations for the given function type's argument types.

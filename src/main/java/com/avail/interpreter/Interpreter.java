@@ -3166,7 +3166,7 @@ public final class Interpreter
 		final A_Bundle bundle,
 		final double nanos)
 	{
-		final int size = bundle.bundleMethod().definitionsTuple().tupleSize();
+		final int size = A_Bundle.Companion.bundleMethod(bundle).definitionsTuple().tupleSize();
 		@Nullable PerInterpreterStatistic perInterpreterStat =
 			dynamicLookupPerInterpreterStat.get(size);
 		if (perInterpreterStat == null)
@@ -3199,7 +3199,7 @@ public final class Interpreter
 							"Dynamic lookup time for size "
 								+ size
 								+ " (example: "
-								+ A_Atom.Companion.atomName(bundle.message())
+								+ A_Atom.Companion.atomName(A_Bundle.Companion.message(bundle))
 								+ ")",
 							StatisticReport.DYNAMIC_LOOKUP_TIME);
 						dynamicLookupStatsByCount.put(size, globalStat);

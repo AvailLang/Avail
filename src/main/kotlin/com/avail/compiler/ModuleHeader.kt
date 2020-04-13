@@ -47,6 +47,7 @@ import com.avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.MESSAGE_BUNDLE_KEY
 import com.avail.descriptor.atoms.AtomWithPropertiesDescriptor.Companion.createAtomWithProperties
 import com.avail.descriptor.bundles.A_Bundle
+import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import com.avail.descriptor.bundles.MessageBundleDescriptor.Companion.newBundle
 import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.numbers.IntegerDescriptor.fromInt

@@ -32,16 +32,16 @@
 package com.avail.descriptor.atoms
 
 import com.avail.descriptor.A_Module
-import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.MessageBundleDescriptor
 import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.A_BasicObject.Companion.dispatch
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.tuples.A_String
 import com.avail.exceptions.MalformedMessageException
-import com.avail.utility.Casts.cast
 
 /**
  * `A_Atom` is an interface that specifies the atom-specific operations that an
@@ -63,8 +63,7 @@ interface A_Atom : A_BasicObject {
 		 * @return
 		 *   The string within this [atom][AtomDescriptor].
 		 */
-		fun A_Atom.atomName(): A_String =
-			descriptor().o_AtomName(cast(this))
+		fun A_Atom.atomName(): A_String = dispatch { o_AtomName(it) }
 
 		/**
 		 * Answer the [module][A_Module] within which this atom was created.
@@ -72,8 +71,7 @@ interface A_Atom : A_BasicObject {
 		 * @return
 		 *   The issuing module.
 		 */
-		fun A_Atom.issuingModule(): A_Module =
-			descriptor().o_IssuingModule(cast(this))
+		fun A_Atom.issuingModule(): A_Module = dispatch { o_IssuingModule(it) }
 
 		/**
 		 * Extract a Java `boolean` from this atom.  The atom must be either
@@ -83,8 +81,7 @@ interface A_Atom : A_BasicObject {
 		 *   `true` if it's the [trueObject], `false` if it's the [falseObject], and
 		 *   otherwise fail.
 		 */
-		fun A_Atom.extractBoolean(): Boolean =
-			descriptor().o_ExtractBoolean(cast(this))
+		fun A_Atom.extractBoolean(): Boolean = dispatch { o_ExtractBoolean(it) }
 
 		/**
 		 * Set the specified property of this atom to the specified value.  Normal
@@ -98,7 +95,7 @@ interface A_Atom : A_BasicObject {
 		 *   The value to associate with that property key within the receiver.
 		 */
 		fun A_Atom.setAtomProperty(key: A_Atom, value: A_BasicObject) =
-			descriptor().o_SetAtomProperty(cast(this), key, value)
+			dispatch { o_SetAtomProperty(it, key, value) }
 
 		/**
 		 * Look up a property of this atom.  Normal atoms have properties that can
@@ -112,7 +109,7 @@ interface A_Atom : A_BasicObject {
 		 *   The value associated with that property key within the receiver.
 		 */
 		fun A_Atom.getAtomProperty(key: A_Atom): AvailObject =
-			descriptor().o_GetAtomProperty(cast(this), key)
+			dispatch { o_GetAtomProperty(it, key) }
 
 		/**
 		 * Answer the [message&#32;bundle][MessageBundleDescriptor] associated with
@@ -126,7 +123,7 @@ interface A_Atom : A_BasicObject {
 		 */
 		@Throws(MalformedMessageException::class)
 		fun A_Atom.bundleOrCreate(): A_Bundle =
-			descriptor().o_BundleOrCreate(cast(this))
+			dispatch { o_BundleOrCreate(it) }
 
 		/**
 		 * Answer the [message&#32;bundle][MessageBundleDescriptor] associated with
@@ -136,8 +133,7 @@ interface A_Atom : A_BasicObject {
 		 * @return
 		 *   The atom's message bundle or nil.
 		 */
-		fun A_Atom.bundleOrNil(): A_Bundle =
-			descriptor().o_BundleOrNil(cast(this))
+		fun A_Atom.bundleOrNil(): A_Bundle = dispatch { o_BundleOrNil(it) }
 
 		/**
 		 * Answer whether this atom is specially known to the Avail virtual machine.
@@ -145,7 +141,6 @@ interface A_Atom : A_BasicObject {
 		 * @return
 		 *   Whether this atom is special to the VM.
 		 */
-		fun A_Atom.isAtomSpecial(): Boolean =
-			descriptor().o_IsAtomSpecial(cast(this))
+		fun A_Atom.isAtomSpecial(): Boolean = dispatch { o_IsAtomSpecial(it) }
 	}
 }

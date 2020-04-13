@@ -141,7 +141,7 @@ internal class AtomWithPropertiesSharedDescriptor private constructor(
 		}
 	}
 
-	public override fun o_MakeImmutable(self: AvailObject) = self
+	override fun o_MakeImmutable(self: AvailObject) = self
 
 	@AvailMethod
 	override fun o_MakeShared(self: AvailObject): AvailObject = self
@@ -170,12 +170,8 @@ internal class AtomWithPropertiesSharedDescriptor private constructor(
 		self: AvailObject,
 		key: A_Atom,
 		value: A_BasicObject
-	) {
-		val sharedKey: A_Atom = key.makeShared()
-		val sharedValue: A_BasicObject = value.makeShared()
-		synchronized(self) {
-			super.o_SetAtomProperty(self, sharedKey, sharedValue)
-		}
+	) = synchronized(self) {
+		super.o_SetAtomProperty(self, key.makeShared(), value.makeShared())
 	}
 
 	@AvailMethod
@@ -203,7 +199,7 @@ internal class AtomWithPropertiesSharedDescriptor private constructor(
 
 		/**
 		 * The descriptor reserved for the
-		 * [true&#32;][AtomDescriptor.trueObject].
+		 * [true&#32;atom][AtomDescriptor.trueObject].
 		 */
 		val sharedAndSpecialForTrue = AtomWithPropertiesSharedDescriptor(
 			true, TypeTag.TRUE_TAG)

@@ -414,7 +414,7 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final A_GrammaticalRestriction grammaticalRestriction)
 	{
-		o_Traversed(object).addGrammaticalRestriction(grammaticalRestriction);
+		A_Bundle.Companion.addGrammaticalRestriction(o_Traversed(object), grammaticalRestriction);
 	}
 
 	@Override
@@ -460,7 +460,7 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final A_DefinitionParsingPlan plan)
 	{
-		o_Traversed(object).addDefinitionParsingPlan(plan);
+		A_Bundle.Companion.addDefinitionParsingPlan(o_Traversed(object), plan);
 	}
 
 	@Override
@@ -1671,7 +1671,7 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final A_GrammaticalRestriction obsoleteRestriction)
 	{
-		o_Traversed(object).removeGrammaticalRestriction(obsoleteRestriction);
+		A_Bundle.Companion.removeGrammaticalRestriction(o_Traversed(object), obsoleteRestriction);
 	}
 
 	@Override
@@ -2163,7 +2163,7 @@ extends AbstractDescriptor
 	@Override
 	public A_Set o_LazyComplete (final AvailObject object)
 	{
-		return o_Traversed(object).lazyComplete();
+		return A_BundleTree.Companion.lazyComplete(o_Traversed(object));
 	}
 
 	@Override
@@ -2219,7 +2219,7 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final A_Module module)
 	{
-		o_Traversed(object).expand(module);
+		A_BundleTree.Companion.expand(o_Traversed(object), module);
 	}
 
 	@Override
@@ -2301,7 +2301,7 @@ extends AbstractDescriptor
 	@Override
 	public boolean o_HasGrammaticalRestrictions (final AvailObject object)
 	{
-		return o_Traversed(object).hasGrammaticalRestrictions();
+		return A_Bundle.Companion.hasGrammaticalRestrictions(o_Traversed(object));
 	}
 
 	@Override
@@ -2313,7 +2313,7 @@ extends AbstractDescriptor
 	@Override
 	public A_Map o_LazyIncomplete (final AvailObject object)
 	{
-		return o_Traversed(object).lazyIncomplete();
+		return A_BundleTree.Companion.lazyIncomplete(o_Traversed(object));
 	}
 
 	@Override
@@ -2549,13 +2549,13 @@ extends AbstractDescriptor
 	@Override
 	public A_Atom o_Message (final AvailObject object)
 	{
-		return o_Traversed(object).message();
+		return A_Bundle.Companion.message(o_Traversed(object));
 	}
 
 	@Override
 	public A_Tuple o_MessageParts (final AvailObject object)
 	{
-		return o_Traversed(object).messageParts();
+		return A_Bundle.Companion.messageParts(o_Traversed(object));
 	}
 
 	@Override
@@ -2651,7 +2651,7 @@ extends AbstractDescriptor
 	@Override
 	public A_Set o_GrammaticalRestrictions (final AvailObject object)
 	{
-		return o_Traversed(object).grammaticalRestrictions();
+		return A_Bundle.Companion.grammaticalRestrictions(o_Traversed(object));
 	}
 
 	@Override
@@ -2687,7 +2687,7 @@ extends AbstractDescriptor
 	@Override
 	public A_Map o_LazyActions (final AvailObject object)
 	{
-		return o_Traversed(object).lazyActions();
+		return A_BundleTree.Companion.lazyActions(o_Traversed(object));
 	}
 
 	@Override
@@ -3065,7 +3065,7 @@ extends AbstractDescriptor
 	@Override
 	public A_Map o_AllParsingPlansInProgress (final AvailObject object)
 	{
-		return o_Traversed(object).allParsingPlansInProgress();
+		return A_BundleTree.Companion.allParsingPlansInProgress(o_Traversed(object));
 	}
 
 	@Override
@@ -3490,7 +3490,7 @@ extends AbstractDescriptor
 	public A_Map o_LazyPrefilterMap (
 		final AvailObject object)
 	{
-		return o_Traversed(object).lazyPrefilterMap();
+		return A_BundleTree.Companion.lazyPrefilterMap(o_Traversed(object));
 	}
 
 	@Override
@@ -3751,7 +3751,7 @@ extends AbstractDescriptor
 	public A_Map o_LazyIncompleteCaseInsensitive (
 		final AvailObject object)
 	{
-		return o_Traversed(object).lazyIncompleteCaseInsensitive();
+		return A_BundleTree.Companion.lazyIncompleteCaseInsensitive(o_Traversed(object));
 	}
 
 	@Override
@@ -4102,7 +4102,8 @@ extends AbstractDescriptor
 		final A_ParsingPlanInProgress planInProgress,
 		final Deque<Pair<A_BundleTree, A_ParsingPlanInProgress>> treesToVisit)
 	{
-		o_Traversed(object).updateForNewGrammaticalRestriction(
+		A_BundleTree.Companion.updateForNewGrammaticalRestriction(
+			o_Traversed(object),
 			planInProgress,
 			treesToVisit);
 	}
@@ -4128,7 +4129,7 @@ extends AbstractDescriptor
 	@Override
 	public A_Method o_BundleMethod (final AvailObject object)
 	{
-		return o_Traversed(object).bundleMethod();
+		return A_Bundle.Companion.bundleMethod(o_Traversed(object));
 	}
 
 	@Override
@@ -4775,7 +4776,7 @@ extends AbstractDescriptor
 	@Override
 	public MessageSplitter o_MessageSplitter (final AvailObject object)
 	{
-		return o_Traversed(object).messageSplitter();
+		return A_Bundle.Companion.messageSplitter(o_Traversed(object));
 	}
 
 	@Override
@@ -4857,13 +4858,13 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final A_Definition definition)
 	{
-		o_Traversed(object).removePlanForDefinition(definition);
+		A_Bundle.Companion.removePlanForDefinition(o_Traversed(object), definition);
 	}
 
 	@Override
 	public A_Map o_DefinitionParsingPlans (final AvailObject object)
 	{
-		return o_Traversed(object).definitionParsingPlans();
+		return A_Bundle.Companion.definitionParsingPlans(o_Traversed(object));
 	}
 
 	@Override
@@ -4891,7 +4892,7 @@ extends AbstractDescriptor
 	@Override
 	public A_BasicObject o_LazyTypeFilterTreePojo (final AvailObject object)
 	{
-		return o_Traversed(object).lazyTypeFilterTreePojo();
+		return A_BundleTree.Companion.lazyTypeFilterTreePojo(o_Traversed(object));
 	}
 
 	@Override
@@ -4899,7 +4900,7 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final A_ParsingPlanInProgress planInProgress)
 	{
-		o_Traversed(object).addPlanInProgress(planInProgress);
+		A_BundleTree.Companion.addPlanInProgress(o_Traversed(object), planInProgress);
 	}
 
 	@Override
@@ -4912,7 +4913,7 @@ extends AbstractDescriptor
 	public void o_RemovePlanInProgress (
 		final AvailObject object, final A_ParsingPlanInProgress planInProgress)
 	{
-		o_Traversed(object).removePlanInProgress(planInProgress);
+		A_BundleTree.Companion.removePlanInProgress(o_Traversed(object), planInProgress);
 	}
 
 	@Override
@@ -5126,19 +5127,19 @@ extends AbstractDescriptor
 	public A_BundleTree o_LatestBackwardJump (
 		final AvailObject object)
 	{
-		return o_Traversed(object).latestBackwardJump();
+		return A_BundleTree.Companion.latestBackwardJump(o_Traversed(object));
 	}
 
 	@Override
 	public boolean o_HasBackwardJump (final AvailObject object)
 	{
-		return o_Traversed(object).hasBackwardJump();
+		return A_BundleTree.Companion.hasBackwardJump(o_Traversed(object));
 	}
 
 	@Override
 	public boolean o_IsSourceOfCycle (final AvailObject object)
 	{
-		return o_Traversed(object).isSourceOfCycle();
+		return A_BundleTree.Companion.isSourceOfCycle(o_Traversed(object));
 	}
 
 	@Override
@@ -5146,7 +5147,7 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final boolean isSourceOfCycle)
 	{
-		o_Traversed(object).isSourceOfCycle(isSourceOfCycle);
+		A_BundleTree.Companion.isSourceOfCycle(o_Traversed(object), isSourceOfCycle);
 	}
 
 	@Override
