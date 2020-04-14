@@ -34,10 +34,10 @@ package com.avail.descriptor.sets;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.representation.A_BasicObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.representation.BitField;
 import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.sets.SetDescriptor.SetIterator;
@@ -461,7 +461,7 @@ extends SetBinDescriptor
 		int target = 0;
 		for (int level = 0; level < numberOfLevels; level++)
 		{
-			for (final Mutability mut : values())
+			for (final Mutability mut : Mutability.values())
 			{
 				descriptors[target++] =
 					new LinearSetBinDescriptor(mut, level);

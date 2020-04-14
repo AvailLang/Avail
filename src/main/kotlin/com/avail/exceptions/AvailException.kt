@@ -99,7 +99,7 @@ open class AvailException : Exception
 		@JvmStatic
 		val numericCodeMethod: CheckedMethod = instanceMethod(
 			AvailException::class.java,
-			"numericCode",
+			AvailException::numericCode.name,
 			A_Number::class.java)
 
 	}

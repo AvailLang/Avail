@@ -31,6 +31,7 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
+import com.avail.descriptor.functions.FunctionDescriptor;
 import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.functions.A_Function;
 import com.avail.descriptor.variables.VariableDescriptor;
@@ -137,7 +138,7 @@ extends L2Operation
 		// :: destination = function.outerVarAt(outerIndex);
 		translator.load(method, function.register());
 		translator.literal(method, outerIndex.value);
-		A_Function.outerVarAtMethod.generateCall(method);
+		FunctionDescriptor.outerVarAtMethod.generateCall(method);
 		translator.store(method, destination.register());
 	}
 }

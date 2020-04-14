@@ -37,7 +37,7 @@ import com.avail.descriptor.FiberDescriptor.TraceFlag
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.FunctionDescriptor
-import com.avail.descriptor.functions.FunctionDescriptor.createWithOuters1
+import com.avail.descriptor.functions.FunctionDescriptor.Companion.createWithOuters1
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.tuples.StringDescriptor.stringFrom

@@ -33,12 +33,12 @@
 package com.avail.interpreter
 
 import com.avail.AvailRuntime.HookType.IMPLICIT_OBSERVE
-import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.phrases.A_Phrase
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.IntegerEnumSlotDescriptionEnum
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.BottomTypeDescriptor.bottom
@@ -1087,7 +1087,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		/** The method [attempt].  */
 		val attemptMethod: CheckedMethod = instanceMethod(
 			Primitive::class.java,
-			"attempt",
+			Primitive::attempt.name,
 			Result::class.java,
 			Interpreter::class.java)
 	}

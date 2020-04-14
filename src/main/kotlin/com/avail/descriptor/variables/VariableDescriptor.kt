@@ -34,9 +34,7 @@ package com.avail.descriptor.variables
 import com.avail.AvailRuntimeSupport
 import com.avail.annotations.AvailMethod
 import com.avail.descriptor.A_Fiber
-import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.Descriptor
-import com.avail.descriptor.NilDescriptor
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.functions.A_Function
@@ -45,12 +43,7 @@ import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.pojos.RawPojoDescriptor
-import com.avail.descriptor.representation.A_BasicObject
-import com.avail.descriptor.representation.AbstractSlotsEnum
-import com.avail.descriptor.representation.BitField
-import com.avail.descriptor.representation.IntegerSlotsEnum
-import com.avail.descriptor.representation.Mutability
-import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.representation.*
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor
@@ -58,6 +51,7 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor
 import com.avail.descriptor.types.TypeTag
 import com.avail.descriptor.types.VariableTypeDescriptor
+import com.avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailException
 import com.avail.exceptions.VariableGetException
@@ -66,6 +60,8 @@ import com.avail.interpreter.Interpreter
 import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.interpreter.primitive.variables.P_SetValue
 import com.avail.optimizer.jvm.CheckedMethod
+import com.avail.optimizer.jvm.CheckedMethod.instanceMethod
+import com.avail.optimizer.jvm.CheckedMethod.staticMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
@@ -96,11 +92,11 @@ import java.util.concurrent.atomic.AtomicReference
  *   object's object slots layout, or null if there are no integer slots.
  */
 open class VariableDescriptor protected constructor(
-		mutability: Mutability?,
-		typeTag: TypeTag?,
-		objectSlotsEnumClass: Class<out ObjectSlotsEnum>,
-		integerSlotsEnumClass: Class<out IntegerSlotsEnum>)
-	: Descriptor(mutability, typeTag, objectSlotsEnumClass, integerSlotsEnumClass)
+		mutability: Mutability,
+		typeTag: TypeTag,
+		objectSlotsEnumClass: Class<out ObjectSlotsEnum>?,
+		integerSlotsEnumClass: Class<out IntegerSlotsEnum>?
+) : Descriptor(mutability, typeTag, objectSlotsEnumClass, integerSlotsEnumClass)
 {
 	/**
 	 * A `VariableAccessReactor` records a one-shot
@@ -152,7 +148,7 @@ open class VariableDescriptor protected constructor(
 			/**
 			 * A slot to hold the cached hash value.  Zero if not yet computed.
 			 */
-			@JvmStatic
+			@JvmField
 			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 		}
 	}
@@ -692,8 +688,10 @@ open class VariableDescriptor protected constructor(
 
 		/** The [CheckedMethod] for [A_Variable.clearValue].  */
 		@JvmField
-		val clearVariableMethod = CheckedMethod.instanceMethod(
-			A_Variable::class.java, "clearValue", Void.TYPE)
+		val clearVariableMethod: CheckedMethod = instanceMethod(
+			A_Variable::class.java,
+			A_Variable::clearValue.name,
+			Void.TYPE)
 
 		/**
 		 * The bootstrapped [assignment function][P_SetValue] used to restart
@@ -749,11 +747,11 @@ open class VariableDescriptor protected constructor(
 		 * The [CheckedMethod] for [newVariableWithOuterType].
 		 */
 		@JvmField
-		val newVariableWithOuterTypeMethod = CheckedMethod.staticMethod(
+		val newVariableWithOuterTypeMethod: CheckedMethod = staticMethod(
 			VariableDescriptor::class.java,
-			"newVariableWithOuterType",
+			::newVariableWithOuterType.name,
 			AvailObject::class.java,
-			A_Type::class.java)!!
+			A_Type::class.java)
 
 		/** The mutable [VariableDescriptor].  */
 		private val mutable = VariableDescriptor(

@@ -33,11 +33,11 @@
 package com.avail.interpreter.levelOne
 
 import com.avail.descriptor.A_Module
-import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.NilDescriptor
-import com.avail.descriptor.functions.CompiledCodeDescriptor.newCompiledCode
+import com.avail.descriptor.functions.CompiledCodeDescriptor.Companion.newCompiledCode
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.NybbleTupleDescriptor.generateNybbleTupleFrom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList

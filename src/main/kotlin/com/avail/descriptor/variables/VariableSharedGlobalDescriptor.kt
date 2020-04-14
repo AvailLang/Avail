@@ -35,16 +35,10 @@ import com.avail.AvailRuntimeSupport
 import com.avail.annotations.AvailMethod
 import com.avail.annotations.HideFieldInDebugger
 import com.avail.descriptor.A_Module
-import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.NilDescriptor
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.pojos.RawPojoDescriptor
-import com.avail.descriptor.representation.A_BasicObject
-import com.avail.descriptor.representation.AbstractSlotsEnum
-import com.avail.descriptor.representation.BitField
-import com.avail.descriptor.representation.IntegerSlotsEnum
-import com.avail.descriptor.representation.Mutability
-import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.representation.*
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.TypeTag
@@ -52,6 +46,7 @@ import com.avail.descriptor.types.VariableTypeDescriptor
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.VariableGetException
 import com.avail.exceptions.VariableSetException
+import com.avail.interpreter.effects.LoadingEffect
 import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.serialization.SerializerOperation
 import java.util.*
@@ -76,15 +71,15 @@ import java.util.*
  *   Whether the variable can only be assigned once.  This is only intended to
  *   be used to implement module constants
  */
-class VariableSharedGlobalDescriptor  protected constructor(
-	mutability: Mutability?, val writeOnce: Boolean)
-	: VariableSharedDescriptor(
+class VariableSharedGlobalDescriptor private constructor(
+	mutability: Mutability,
+	private val writeOnce: Boolean
+) : VariableSharedDescriptor(
 	mutability,
 	TypeTag.VARIABLE_TAG,
 	ObjectSlots::class.java,
 	IntegerSlots::class.java)
 {
-
 	/**
 	 * The layout of integer slots for my instances.
 	 */
@@ -103,7 +98,7 @@ class VariableSharedGlobalDescriptor  protected constructor(
 			 * making a variable shared.
 			 */
 			@HideFieldInDebugger
-			@JvmStatic
+			@JvmField
 			val HASH_ALWAYS_SET = BitField(HASH_AND_MORE, 0, 32)
 
 			/**
@@ -112,14 +107,14 @@ class VariableSharedGlobalDescriptor  protected constructor(
 			 * computation that does not disqualify [LoadingEffect]s set being recorded
 			 * in place of top level statements.
 			 */
-			@JvmStatic
+			@JvmField
 			val VALUE_IS_STABLE = BitField(HASH_AND_MORE, 32, 1)
 
 			init
 			{
 				assert(VariableSharedDescriptor.IntegerSlots.HASH_AND_MORE.ordinal
 					       == HASH_AND_MORE.ordinal)
-				assert(VariableSharedDescriptor.IntegerSlots.Companion.HASH_ALWAYS_SET
+				assert(VariableSharedDescriptor.IntegerSlots.HASH_ALWAYS_SET
 					       .isSamePlaceAs(HASH_ALWAYS_SET))
 			}
 		}
@@ -143,15 +138,15 @@ class VariableSharedGlobalDescriptor  protected constructor(
 
 		/**
 		 * A [raw pojo][RawPojoDescriptor] that wraps a [map][Map] set arbitrary
-		 * [Avail values][AvailObject] to [writer
-		 * reactors][VariableAccessReactor] that respond to writes of the
-		 * [variable][VariableDescriptor].
+		 * [Avail values][AvailObject] to
+		 * [writer&#32;reactors][VariableDescriptor.VariableAccessReactor] that
+		 * respond to writes of the [variable][VariableDescriptor].
 		 */
 		WRITE_REACTORS,
 
 		/**
 		 * A [raw pojo][RawPojoDescriptor] holding a weak set (implemented as
-		 * the [key set][Map.keySet] of a [WeakHashMap]) of [L2Chunk]s that
+		 * the [key set][Map.keys] of a [WeakHashMap]) of [L2Chunk]s that
 		 * depend on the membership of this method.  A change to the membership
 		 * will invalidate all such chunks.  This field holds the
 		 * [nil][NilDescriptor.nil] object initially.
@@ -229,7 +224,7 @@ class VariableSharedGlobalDescriptor  protected constructor(
 			bypass_VariableDescriptor_SetValueNoCheck(
 				`object`, newValue.makeShared())
 		}
-		VariableSharedDescriptor.Companion.recordWriteToSharedVariable()
+		recordWriteToSharedVariable()
 	}
 
 	@AvailMethod

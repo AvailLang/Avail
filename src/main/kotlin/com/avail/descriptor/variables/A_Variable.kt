@@ -335,23 +335,23 @@ interface A_Variable : A_ChunkDependable
 		@JvmField
 		val getValueMethod = CheckedMethod.instanceMethod(
 			A_Variable::class.java,
-			"getValue",
-			AvailObject::class.java)!!
+			A_Variable::getValue.name,
+			AvailObject::class.java)
 
 		/** The [CheckedMethod] for [setValue].  */
 		@JvmField
 		val setValueMethod = CheckedMethod.instanceMethod(
 			A_Variable::class.java,
-			"setValue",
+			A_Variable::setValue.name,
 			Void.TYPE,
-			A_BasicObject::class.java)!!
+			A_BasicObject::class.java)
 
 		/** The [CheckedMethod] for [setValueNoCheck]. */
 		@JvmField
 		val setValueNoCheckMethod = CheckedMethod.instanceMethod(
 			A_Variable::class.java,
-			"setValueNoCheck",
+			A_Variable::setValueNoCheck.name,
 			Void.TYPE,
-			A_BasicObject::class.java)!!
+			A_BasicObject::class.java)
 	}
 }

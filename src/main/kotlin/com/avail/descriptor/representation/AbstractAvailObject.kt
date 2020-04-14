@@ -32,7 +32,6 @@
 package com.avail.descriptor.representation
 
 import com.avail.descriptor.AbstractDescriptor
-import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.FillerDescriptor
 import com.avail.descriptor.IndirectionDescriptor
 import com.avail.optimizer.jvm.CheckedMethod
@@ -205,7 +204,7 @@ abstract class AbstractAvailObject protected constructor(
 		@JvmField
 		val descriptorMethod: CheckedMethod = instanceMethod(
 			AbstractAvailObject::class.java,
-			"descriptor",
+			AbstractAvailObject::descriptor.name,
 			AbstractDescriptor::class.java)
 	}
 }

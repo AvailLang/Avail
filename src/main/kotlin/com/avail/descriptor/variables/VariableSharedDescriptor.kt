@@ -78,12 +78,12 @@ import java.util.*
  *   object's object slots layout, or null if there are no integer slots.
  */
 open class VariableSharedDescriptor protected constructor(
-		mutability: Mutability?,
-		typeTag: TypeTag?,
-		objectSlotsEnumClass: Class<out ObjectSlotsEnum>,
-		integerSlotsEnumClass: Class<out IntegerSlotsEnum>)
-	: VariableDescriptor(
-		mutability, typeTag, objectSlotsEnumClass, integerSlotsEnumClass)
+		mutability: Mutability,
+		typeTag: TypeTag,
+		objectSlotsEnumClass: Class<out ObjectSlotsEnum>?,
+		integerSlotsEnumClass: Class<out IntegerSlotsEnum>?
+) : VariableDescriptor(
+	mutability, typeTag, objectSlotsEnumClass, integerSlotsEnumClass)
 {
 	/**
 	 * The layout of integer slots for my instances.
@@ -102,7 +102,7 @@ open class VariableSharedDescriptor protected constructor(
 			 * A slot to hold the hash value.  Must be computed when (or before)
 			 * making a variable shared.
 			 */
-			@JvmStatic
+			@JvmField
 			val HASH_ALWAYS_SET = BitField(HASH_AND_MORE, 0, 32)
 
 			init
@@ -134,7 +134,7 @@ open class VariableSharedDescriptor protected constructor(
 		/**
 		 * A [raw pojo][RawPojoDescriptor] that wraps a [map][Map] from
 		 * arbitrary [Avail values][AvailObject] to
-		 * [writer reactors][VariableAccessReactor] that respond to writes of
+		 * [write reactors][VariableDescriptor.VariableAccessReactor] that respond to writes of
 		 * the [variable][VariableDescriptor].
 		 */
 		WRITE_REACTORS,
@@ -216,6 +216,7 @@ open class VariableSharedDescriptor protected constructor(
 	 * @param newValue
 	 *   The value to write.
 	 */
+	@Suppress("FunctionName")
 	protected fun bypass_VariableDescriptor_SetValue(
 		`object`: AvailObject, newValue: A_BasicObject)
 	{
@@ -242,6 +243,7 @@ open class VariableSharedDescriptor protected constructor(
 	 * @param newValue
 	 *   The value to write.
 	 */
+	@Suppress("FunctionName")
 	protected fun bypass_VariableDescriptor_SetValueNoCheck(
 		`object`: AvailObject, newValue: A_BasicObject)
 	{

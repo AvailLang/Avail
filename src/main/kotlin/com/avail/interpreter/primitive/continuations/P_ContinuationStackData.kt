@@ -32,7 +32,7 @@
 package com.avail.interpreter.primitive.continuations
 
 import com.avail.descriptor.NilDescriptor
-import com.avail.descriptor.functions.ContinuationDescriptor.nilSubstitute
+import com.avail.descriptor.functions.ContinuationDescriptor.Companion.nilSubstitute
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.generateObjectTupleFrom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type

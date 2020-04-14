@@ -32,7 +32,7 @@
 package com.avail.interpreter.primitive.functions
 
 import com.avail.descriptor.functions.FunctionDescriptor
-import com.avail.descriptor.functions.FunctionDescriptor.createStubWithSignature
+import com.avail.descriptor.functions.FunctionDescriptor.Companion.createStubWithSignature
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.*

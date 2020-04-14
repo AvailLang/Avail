@@ -178,16 +178,14 @@ class AvailObject private constructor(
 				indent > descriptor().maximumIndent() -> append("*** DEPTH ***")
 				recursionMap.containsKey(this@AvailObject) ->
 					append("**RECURSION**")
-				else -> try {
-					recursionMap[this@AvailObject] = null
-					descriptor().printObjectOnAvoidingIndent(
-						this@AvailObject,
-						builder,
-						recursionMap,
-						indent)
-				} finally {
-					recursionMap.remove(this@AvailObject)
-				}
+				else ->
+					try {
+						recursionMap[this@AvailObject] = null
+						descriptor().printObjectOnAvoidingIndent(
+							this@AvailObject, builder, recursionMap, indent)
+					} finally {
+						recursionMap.remove(this@AvailObject)
+					}
 			}
 		} catch (e: Exception) {
 			append("EXCEPTION while printing.${StackPrinter.trace(e)}")
@@ -3238,14 +3236,14 @@ class AvailObject private constructor(
 		/** The [CheckedMethod] for [iterator]. */
 		val iteratorMethod = instanceMethod(
 			AvailObject::class.java,
-			"iterator",
+			AvailObject::iterator.name,
 			IteratorNotNull::class.java)
 
 		/** Access the [frameAt] method.  */
 		@JvmField
 		val frameAtMethod: CheckedMethod = instanceMethod(
 			AvailObject::class.java,
-			"frameAt",
+			AvailObject::frameAt.name,
 			AvailObject::class.java,
 			Int::class.javaPrimitiveType)
 
@@ -3253,7 +3251,7 @@ class AvailObject private constructor(
 		@JvmField
 		val frameAtPutMethod: CheckedMethod = instanceMethod(
 			AvailObject::class.java,
-			"frameAtPut",
+			AvailObject::frameAtPut.name,
 			AvailObject::class.java,
 			Int::class.javaPrimitiveType,
 			AvailObject::class.java)
@@ -3262,14 +3260,14 @@ class AvailObject private constructor(
 		@JvmField
 		val registerDumpMethod: CheckedMethod = instanceMethod(
 			AvailObject::class.java,
-			"registerDump",
+			AvailObject::registerDump.name,
 			AvailObject::class.java)
 
 		/** Access the [fieldAt] method.  */
 		@JvmField
 		val fieldAtMethod: CheckedMethod = instanceMethod(
 			AvailObject::class.java,
-			"fieldAt",
+			AvailObject::fieldAt.name,
 			AvailObject::class.java,
 			A_Atom::class.java)
 	}

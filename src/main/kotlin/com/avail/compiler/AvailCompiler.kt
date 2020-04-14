@@ -85,10 +85,10 @@ import com.avail.descriptor.bundles.A_BundleTree.Companion.lazyTypeFilterTreePoj
 import com.avail.descriptor.bundles.MessageBundleDescriptor
 import com.avail.descriptor.bundles.MessageBundleTreeDescriptor
 import com.avail.descriptor.functions.A_Function
-import com.avail.descriptor.functions.CompiledCodeDescriptor.newPrimitiveRawFunction
+import com.avail.descriptor.functions.CompiledCodeDescriptor.Companion.newPrimitiveRawFunction
 import com.avail.descriptor.functions.FunctionDescriptor
-import com.avail.descriptor.functions.FunctionDescriptor.createFunction
-import com.avail.descriptor.functions.FunctionDescriptor.createFunctionForPhrase
+import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
+import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunctionForPhrase
 import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.maps.MapDescriptor.emptyMap
 import com.avail.descriptor.maps.MapDescriptor.mapFromPairs

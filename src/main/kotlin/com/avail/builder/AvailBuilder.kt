@@ -38,7 +38,6 @@ import com.avail.compiler.problems.Problem
 import com.avail.compiler.problems.ProblemHandler
 import com.avail.compiler.problems.ProblemType.*
 import com.avail.descriptor.A_Module
-import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.FiberDescriptor.commandPriority
 import com.avail.descriptor.FiberDescriptor.newFiber
 import com.avail.descriptor.ModuleDescriptor
@@ -46,9 +45,10 @@ import com.avail.descriptor.ModuleDescriptor.newModule
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
-import com.avail.descriptor.functions.FunctionDescriptor.createFunctionForPhrase
+import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunctionForPhrase
 import com.avail.descriptor.maps.MapDescriptor.emptyMap
 import com.avail.descriptor.phrases.A_Phrase
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.tuples.StringDescriptor.formatString
 import com.avail.descriptor.tuples.StringDescriptor.stringFrom
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE

@@ -55,9 +55,9 @@ import com.avail.descriptor.atoms.AtomWithPropertiesDescriptor.Companion.createA
 import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.bundles.MessageBundleDescriptor
-import com.avail.descriptor.functions.CompiledCodeDescriptor.newCompiledCode
-import com.avail.descriptor.functions.ContinuationDescriptor.createContinuationWithFrame
-import com.avail.descriptor.functions.FunctionDescriptor.createFunction
+import com.avail.descriptor.functions.CompiledCodeDescriptor.Companion.newCompiledCode
+import com.avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationWithFrame
+import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import com.avail.descriptor.maps.MapDescriptor.emptyMap
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.numbers.DoubleDescriptor.fromDouble

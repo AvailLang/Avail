@@ -37,9 +37,9 @@ import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.A_RawFunction
-import com.avail.descriptor.functions.CompiledCodeDescriptor.newCompiledCode
-import com.avail.descriptor.functions.FunctionDescriptor.createExceptOuters
-import com.avail.descriptor.functions.FunctionDescriptor.createWithOuters1
+import com.avail.descriptor.functions.CompiledCodeDescriptor.Companion.newCompiledCode
+import com.avail.descriptor.functions.FunctionDescriptor.Companion.createExceptOuters
+import com.avail.descriptor.functions.FunctionDescriptor.Companion.createWithOuters1
 import com.avail.descriptor.objects.ObjectDescriptor
 import com.avail.descriptor.objects.ObjectTypeDescriptor
 import com.avail.descriptor.objects.ObjectTypeDescriptor.mostGeneralObjectMeta

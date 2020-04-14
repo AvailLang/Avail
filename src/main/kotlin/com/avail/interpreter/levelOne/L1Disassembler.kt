@@ -87,12 +87,12 @@ class L1Disassembler private constructor(
 		{
 			override fun doImmediate()
 			{
-				builder.append("immediate=").append(instructionDecoder.operand)
+				builder.append("immediate=").append(instructionDecoder.getOperand())
 			}
 
 			override fun doLiteral()
 			{
-				val index = instructionDecoder.operand
+				val index = instructionDecoder.getOperand()
 				builder.append("literal#").append(index).append("=")
 				code.literalAt(index).printOnAvoidingIndent(
 					builder,
@@ -102,7 +102,7 @@ class L1Disassembler private constructor(
 
 			override fun doLocal()
 			{
-				val index = instructionDecoder.operand
+				val index = instructionDecoder.getOperand()
 				if (index <= code.numArgs())
 				{
 					builder.append("arg#").append(index)
@@ -115,7 +115,7 @@ class L1Disassembler private constructor(
 
 			override fun doOuter()
 			{
-				builder.append("outer#").append(instructionDecoder.operand)
+				builder.append("outer#").append(instructionDecoder.getOperand())
 			}
 
 			override fun doExtension()
@@ -139,7 +139,7 @@ class L1Disassembler private constructor(
 			(indent downTo 1).forEach { _ -> builder.append("\t") }
 			builder.append(instructionDecoder.pc()).append(": ")
 
-			val operation = instructionDecoder.operation
+			val operation = instructionDecoder.getOperation()
 			val operandTypes = operation.operandTypes
 			builder.append(operation.name)
 			if (operandTypes.isNotEmpty())

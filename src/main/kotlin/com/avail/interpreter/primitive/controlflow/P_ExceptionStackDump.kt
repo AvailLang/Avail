@@ -33,12 +33,11 @@
 package com.avail.interpreter.primitive.controlflow
 
 import com.avail.descriptor.functions.A_Continuation
-import com.avail.descriptor.functions.ContinuationDescriptor.dumpStackThen
-import com.avail.descriptor.objects.ObjectTypeDescriptor
+import com.avail.descriptor.functions.ContinuationDescriptor.Companion.dumpStackThen
+
 import com.avail.descriptor.objects.ObjectTypeDescriptor.exceptionType
 import com.avail.descriptor.objects.ObjectTypeDescriptor.stackDumpAtom
 import com.avail.descriptor.sets.SetDescriptor.set
-import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
 import com.avail.descriptor.tuples.StringDescriptor.stringFrom
@@ -54,11 +53,10 @@ import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanSuspend
 import com.avail.interpreter.Primitive.Flag.Unknown
-import java.util.*
 
 /**
- * **Primitive:** Get the [ ][ObjectTypeDescriptor.stackDumpAtom] associated
- * with the specified [exception][ObjectTypeDescriptor.exceptionType].
+ * **Primitive:** Get the [ObjectTypeDescriptor.stackDumpAtom] associated with
+ * the specified [exception][ObjectTypeDescriptor.exceptionType].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -85,13 +83,10 @@ object P_ExceptionStackDump : Primitive(1, CanSuspend, Unknown)
 		return interpreter.suspendAndDo { toSucceed, _ ->
 			dumpStackThen(runtime, textInterface, continuation)
 			{ stack ->
-				val frames = ArrayList<A_String>(stack.size)
-				for (i in stack.indices.reversed())
-				{
-					frames.add(stringFrom(stack[i]))
+				val frames = stack.indices.reversed().map {
+					stringFrom(stack[it])
 				}
-				val stackDump = tupleFromList(frames)
-				toSucceed.value(stackDump)
+				toSucceed.value(tupleFromList(frames))
 			}
 		}
 	}

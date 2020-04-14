@@ -35,7 +35,7 @@ package com.avail.environment.actions
 import com.avail.AvailRuntime
 import com.avail.builder.AvailBuilder
 import com.avail.descriptor.FiberDescriptor
-import com.avail.descriptor.functions.CompiledCodeDescriptor.codeCoverageReportsThen
+import com.avail.descriptor.functions.CompiledCodeDescriptor.Companion.codeCoverageReportsThen
 import com.avail.environment.AvailWorkbench
 import com.avail.environment.AvailWorkbench.StreamStyle.INFO
 import java.awt.event.ActionEvent
@@ -66,10 +66,6 @@ class ShowCCReportAction constructor(
 		runtime.execute(FiberDescriptor.commandPriority)
 		{
 			codeCoverageReportsThen { reports ->
-				// Order the report items using the natural sort defined
-				// in the object.
-				reports.sort()
-
 				// Announce the beginning of the report dump.
 				val builder = StringBuilder()
 					.append("Code Coverage Report - all functions\n\n")
@@ -80,8 +76,9 @@ class ShowCCReportAction constructor(
 					.append("l: Starting line number\n")
 					.append("f: Function name and sub-function ordinals\n\n")
 
-				// Iterate over each report
-				for (r in reports)
+				// Iterate over each report. Order the report items using the
+				// natural sort defined in the object.
+				for (r in reports.sorted())
 				{
 					builder.append(r)
 					builder.append('\n')
