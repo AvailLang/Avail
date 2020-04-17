@@ -34,7 +34,7 @@ package com.avail.interpreter.primitive.objects
 
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.functions.A_RawFunction
-import com.avail.descriptor.maps.MapDescriptor.emptyMap
+import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.objects.ObjectDescriptor
 import com.avail.descriptor.objects.ObjectDescriptor.objectFromTuple
 import com.avail.descriptor.objects.ObjectLayoutVariant.variantForFields

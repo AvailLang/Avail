@@ -39,7 +39,7 @@ import com.avail.descriptor.NilDescriptor
 import com.avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import com.avail.descriptor.maps.A_Map
-import com.avail.descriptor.maps.MapDescriptor.emptyMap
+import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor.emptySet

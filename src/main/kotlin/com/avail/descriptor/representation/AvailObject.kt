@@ -2505,7 +2505,7 @@ class AvailObject private constructor(
 	 * @return
 	 *   The value under that key in the map, or null if not found.
 	 */
-	override fun mapBinAtHash(key: A_BasicObject, keyHash: Int) =
+	override fun mapBinAtHash(key: A_BasicObject, keyHash: Int): AvailObject? =
 		descriptor().o_MapBinAtHash(this, key, keyHash)
 
 	override fun mapBinKeysHash() = descriptor().o_MapBinKeysHash(this)

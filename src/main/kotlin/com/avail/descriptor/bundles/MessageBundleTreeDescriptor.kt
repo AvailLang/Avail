@@ -53,7 +53,7 @@ import com.avail.descriptor.bundles.MessageBundleTreeDescriptor.IntegerSlots.Com
 import com.avail.descriptor.bundles.MessageBundleTreeDescriptor.ObjectSlots.*
 import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.maps.MapDescriptor
-import com.avail.descriptor.maps.MapDescriptor.emptyMap
+import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_GrammaticalRestriction
 import com.avail.descriptor.numbers.A_Number
@@ -92,6 +92,7 @@ import com.avail.utility.Pair
 import com.avail.utility.Strings.newlineTab
 import java.util.*
 import java.util.Collections.sort
+import java.util.function.BiConsumer
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.set
@@ -385,14 +386,14 @@ class MessageBundleTreeDescriptor private constructor(
 		val bundleCount = allPlansInProgress.mapSize()
 		if (bundleCount <= 15) {
 			val strings: MutableMap<String, Int> = HashMap(bundleCount)
-			allPlansInProgress.forEach { _, value: A_Map ->
-				value.forEach { _, plansInProgress: A_Set ->
+			allPlansInProgress.forEach(BiConsumer { _, value: A_Map ->
+				value.forEach(BiConsumer { _, plansInProgress: A_Set ->
 					plansInProgress.forEach { planInProgress ->
 						val string = planInProgress.nameHighlightingPc()
 						strings[string] = strings.getOrDefault(string, 0) + 1
 					}
-				}
-			}
+				})
+			})
 			val sorted: MutableList<String> = ArrayList()
 			for ((key, count) in strings) {
 				sorted.add(
@@ -509,8 +510,10 @@ class MessageBundleTreeDescriptor private constructor(
 			}
 
 			// Update my components.
-			unclassified.forEach { bundle, defToPlansInProgress: A_Map ->
-				defToPlansInProgress.forEach { _, plansInProgress: A_Set ->
+			unclassified.mapIterable().forEach {
+				(bundle, defToPlansInProgress: A_Map) ->
+				defToPlansInProgress.mapIterable().forEach {
+					(_, plansInProgress: A_Set) ->
 					plansInProgress.forEach { planInProgress ->
 						val pc = planInProgress.parsingPc()
 						val plan = planInProgress.parsingPlan()
@@ -597,8 +600,7 @@ class MessageBundleTreeDescriptor private constructor(
 				return
 			}
 			val instruction = instructions.tupleIntAt(pc)
-			val op = decode(instruction)
-			when (op) {
+			when (val op = decode(instruction)) {
 				JUMP_BACKWARD, JUMP_FORWARD, BRANCH_FORWARD -> {
 					// These should have bubbled out of the bundle tree.
 					// Loop to get to the affected successor trees.
@@ -1112,7 +1114,8 @@ class MessageBundleTreeDescriptor private constructor(
 					}
 					val planInProgress = newPlanInProgress(plan, pc + 1)
 					// Add it to every existing branch where it's permitted.
-					prefilterMap.value.forEach { bundle, prefilterSuccessor ->
+					prefilterMap.value.mapIterable().forEach {
+						(bundle, prefilterSuccessor) ->
 						if (!forbiddenBundles.hasElement(bundle)) {
 							prefilterSuccessor.addPlanInProgress(planInProgress)
 						}
@@ -1129,14 +1132,15 @@ class MessageBundleTreeDescriptor private constructor(
 							// successor found under this instruction, since it
 							// *has* been kept up to date as the bundles have
 							// gotten classified.
-							successor.allParsingPlansInProgress().forEach {
-								_, defMap ->
-								defMap.forEach { _, plans ->
-									plans.forEach { inProgress ->
-										newTarget.addPlanInProgress(inProgress)
+							successor.allParsingPlansInProgress().mapIterable()
+								.forEach {
+									(_, defMap) ->
+									defMap.mapIterable().forEach { (_, plans) ->
+										plans.forEach { inProgress ->
+											newTarget.addPlanInProgress(inProgress)
+										}
 									}
 								}
-							}
 							prefilterMap.value =
 								prefilterMap.value.mapAtPuttingCanDestroy(
 									restrictedBundle, newTarget, true)
@@ -1193,7 +1197,7 @@ class MessageBundleTreeDescriptor private constructor(
 		@JvmStatic
 		fun newBundleTree(
 			latestBackwardJump: A_BundleTree
-		) = with(mutable.create()) {
+		): A_BundleTree = with(mutable.create()) {
 			setSlot(HASH_OR_ZERO, 0)
 			setSlot(ALL_PLANS_IN_PROGRESS, emptyMap())
 			setSlot(UNCLASSIFIED, emptyMap())

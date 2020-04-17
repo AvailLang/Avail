@@ -35,7 +35,7 @@ package com.avail.serialization
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.CharacterDescriptor.fromCodePoint
 import com.avail.descriptor.maps.MapDescriptor
-import com.avail.descriptor.maps.MapDescriptor.emptyMap
+import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.numbers.IntegerDescriptor
 import com.avail.descriptor.numbers.IntegerDescriptor.*
 import com.avail.descriptor.tuples.ByteStringDescriptor.generateByteString

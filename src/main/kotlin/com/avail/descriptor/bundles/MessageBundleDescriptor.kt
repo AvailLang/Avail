@@ -41,7 +41,7 @@ import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.bundles.MessageBundleDescriptor.ObjectSlots
 import com.avail.descriptor.bundles.MessageBundleDescriptor.ObjectSlots.*
 import com.avail.descriptor.maps.A_Map
-import com.avail.descriptor.maps.MapDescriptor.emptyMap
+import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_GrammaticalRestriction
 import com.avail.descriptor.methods.A_Method

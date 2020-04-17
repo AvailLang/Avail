@@ -56,7 +56,7 @@ import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunctionForPhrase
 import com.avail.descriptor.maps.A_Map
-import com.avail.descriptor.maps.MapDescriptor.emptyMap
+import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.PhraseDescriptor
 import com.avail.descriptor.representation.A_BasicObject

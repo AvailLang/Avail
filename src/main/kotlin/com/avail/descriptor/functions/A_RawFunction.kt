@@ -50,6 +50,7 @@ import com.avail.interpreter.levelOne.L1Operation
 import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.optimizer.L2Generator
 import com.avail.optimizer.jvm.CheckedMethod
+import com.avail.optimizer.jvm.CheckedMethod.instanceMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.performance.Statistic
 import com.avail.utility.evaluation.Continuation0
@@ -368,9 +369,9 @@ interface A_RawFunction : A_BasicObject {
 	fun totalInvocations(): Long
 
 	companion object {
-		/** The [CheckedMethod] for [.functionType].  */
+		/** The [CheckedMethod] for [functionType].  */
 		@JvmField
-		val functionTypeMethod: CheckedMethod = CheckedMethod.instanceMethod(
+		val functionTypeMethod: CheckedMethod = instanceMethod(
 			A_RawFunction::class.java,
 			A_RawFunction::functionType.name,
 			A_Type::class.java)

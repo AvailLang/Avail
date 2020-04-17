@@ -90,8 +90,8 @@ import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunctionForPhrase
 import com.avail.descriptor.maps.A_Map
-import com.avail.descriptor.maps.MapDescriptor.emptyMap
-import com.avail.descriptor.maps.MapDescriptor.mapFromPairs
+import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
+import com.avail.descriptor.maps.MapDescriptor.Companion.mapFromPairs
 import com.avail.descriptor.methods.*
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.*
@@ -182,6 +182,7 @@ import java.util.Collections.emptyList
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantReadWriteLock
+import java.util.function.BinaryOperator
 import java.util.stream.Collectors.toList
 import kotlin.math.max
 import kotlin.math.min
@@ -4136,12 +4137,12 @@ class AvailCompiler(
 			else
 				compilationContext.module.privateNames()
 		var namesByModule = emptyMap()
-		sourceNames.forEach { _, atoms ->
+		sourceNames.mapIterable().forEach { (_, atoms) ->
 			atoms.forEach { atom ->
 				namesByModule = namesByModule.mapAtReplacingCanDestroy(
 					atom.issuingModule(),
 					emptySet(),
-					{ _, set ->
+					BinaryOperator { _, set ->
 						(set as A_Set).setWithElementCanDestroy(atom, true)
 					},
 					true)
@@ -4149,7 +4150,7 @@ class AvailCompiler(
 		}
 		var completeModuleNames = emptySet()
 		var leftovers = emptySet()
-		namesByModule.forEach { module, names ->
+		namesByModule.mapIterable().forEach { (module, names) ->
 			if (!module.equals(compilationContext.module)
 				&& module.exportedNames().equals(names))
 			{

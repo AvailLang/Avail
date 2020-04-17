@@ -31,7 +31,7 @@
  */
 package com.avail.interpreter.primitive.pojos
 
-import com.avail.descriptor.maps.MapDescriptor.emptyMap
+import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.pojos.PojoFieldDescriptor
 import com.avail.descriptor.pojos.PojoFieldDescriptor.pojoFieldVariableForInnerType
 import com.avail.descriptor.pojos.RawPojoDescriptor.equalityPojo

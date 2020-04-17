@@ -58,7 +58,7 @@ import com.avail.descriptor.bundles.MessageBundleDescriptor
 import com.avail.descriptor.functions.CompiledCodeDescriptor.Companion.newCompiledCode
 import com.avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationWithFrame
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
-import com.avail.descriptor.maps.MapDescriptor.emptyMap
+import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.numbers.DoubleDescriptor.fromDouble
 import com.avail.descriptor.numbers.FloatDescriptor.fromFloat
