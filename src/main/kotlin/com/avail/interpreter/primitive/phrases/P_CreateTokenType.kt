@@ -35,6 +35,7 @@ package com.avail.interpreter.primitive.phrases
 import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.sets.SetDescriptor.set
+import com.avail.descriptor.tokens.TokenDescriptor
 import com.avail.descriptor.tokens.TokenDescriptor.StaticInit.tokenTypeOrdinalKey
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.*
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
@@ -64,7 +65,7 @@ object P_CreateTokenType : Primitive(1, CannotFail, CanFold, CanInline)
 		val type = interpreter.argument(0)
 		return interpreter.primitiveSuccess(
 			tokenType(
-				lookupTokenType(
+				TokenDescriptor.TokenType.lookupTokenType(
 					type.getAtomProperty(tokenTypeOrdinalKey).extractInt())))
 	}
 
@@ -77,7 +78,7 @@ object P_CreateTokenType : Primitive(1, CannotFail, CanFold, CanInline)
 		{
 			return instanceType(
 				tokenType(
-					lookupTokenType(
+					TokenDescriptor.TokenType.lookupTokenType(
 						atomType.instance().getAtomProperty(tokenTypeOrdinalKey)
 							.extractInt())))
 

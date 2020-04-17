@@ -35,7 +35,7 @@ package com.avail.interpreter.primitive.bootstrap.lexing
 import com.avail.descriptor.parsing.LexerDescriptor.lexerBodyFunctionType
 import com.avail.descriptor.sets.SetDescriptor.set
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.KEYWORD
-import com.avail.descriptor.tokens.TokenDescriptor.newToken
+import com.avail.descriptor.tokens.TokenDescriptor.Companion.newToken
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.interpreter.Interpreter

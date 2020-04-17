@@ -33,6 +33,7 @@
 package com.avail.descriptor.numbers;
 
 import com.avail.annotations.AvailMethod;
+import com.avail.descriptor.JavaCompatibility.IntegerEnumSlotDescriptionEnumJava;
 import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.Descriptor;
 import com.avail.descriptor.representation.A_BasicObject;
@@ -81,7 +82,7 @@ extends Descriptor
 	 * An enumeration used to describe the sign of a quantity.
 	 */
 	public enum Sign
-	implements IntegerEnumSlotDescriptionEnum
+	implements IntegerEnumSlotDescriptionEnumJava
 	{
 		/**
 		 * The value is positive.

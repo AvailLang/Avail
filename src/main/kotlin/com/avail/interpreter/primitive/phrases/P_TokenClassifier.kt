@@ -60,7 +60,7 @@ object P_TokenClassifier : Primitive(1, CannotFail, CanFold, CanInline)
 		interpreter.checkArgumentCount(1)
 		val token = interpreter.argument(0)
 		return interpreter.primitiveSuccess(
-			lookupTokenType(token.tokenType().ordinal).atom)
+			TokenType.lookupTokenType(token.tokenType().ordinal).atom)
 	}
 
 	override fun returnTypeGuaranteedByVM(

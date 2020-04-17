@@ -92,7 +92,7 @@ extends PropertiesFileGenerator
 				keys.add(primitive.getClass().getSimpleName());
 				writer.format(
 					"# %s : _=%d%n",
-					primitive.name(),
+					primitive.fieldName(),
 					primitive.getArgCount());
 				// Write the primitive key and any name already associated with
 				// it.

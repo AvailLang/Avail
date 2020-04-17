@@ -111,14 +111,10 @@ open class VariableDescriptor protected constructor(
 		 * Atomically get and clear [reactor][FunctionDescriptor].
 		 *
 		 * @return
-		 *   The reactor function, or [nil] if the reactor
-		 *   function has already been requested (and the reactor is therefore
-		 *   invalid).
+		 *   The reactor function, or [nil] if the reactor function has already
+		 *   been requested (and the reactor is therefore invalid).
 		 */
-		fun getAndClearFunction(): A_Function
-		{
-			return function.getAndSet(nil)
-		}
+		fun getAndClearFunction(): A_Function = function.getAndSet(nil)
 
 		/**
 		 * Answer whether the `VariableAccessReactor` is invalid.
@@ -126,10 +122,7 @@ open class VariableDescriptor protected constructor(
 		 * @return
 		 *   `true` if the reactor is invalid, `false` otherwise.
 		 */
-		fun isInvalid(): Boolean
-		{
-			return function.get().equalsNil()
-		}
+		fun isInvalid(): Boolean = function.get().equalsNil()
 	}
 
 	/**
@@ -138,8 +131,8 @@ open class VariableDescriptor protected constructor(
 	enum class IntegerSlots : IntegerSlotsEnum
 	{
 		/**
-		 * The low 32 bits are used for the [HASH_OR_ZERO], but the upper
-		 * 32 can be used by subclasses.
+		 * The low 32 bits are used for the [HASH_OR_ZERO], but the upper 32 can
+		 * be used by subclasses.
 		 */
 		HASH_AND_MORE;
 
@@ -171,9 +164,9 @@ open class VariableDescriptor protected constructor(
 
 		/**
 		 * A [raw pojo][RawPojoDescriptor] that wraps a [map][Map] from
-		 * arbitrary [Avail values][AvailObject] to [writer
-		 * reactors][VariableAccessReactor] that respond to writes of the
-		 * [variable][VariableDescriptor].
+		 * arbitrary [Avail values][AvailObject] to
+		 * [writer reactors][VariableAccessReactor] that respond to writes of
+		 * the [variable][VariableDescriptor].
 		 */
 		WRITE_REACTORS
 	}
@@ -201,10 +194,8 @@ open class VariableDescriptor protected constructor(
 	}
 
 	@AvailMethod
-	override fun o_Value(`object`: AvailObject): AvailObject
-	{
-		return `object`.slot(ObjectSlots.VALUE)
-	}
+	override fun o_Value(`object`: AvailObject): AvailObject =
+		`object`.slot(ObjectSlots.VALUE)
 
 	@AvailMethod
 	@Throws(VariableGetException::class)
@@ -259,11 +250,8 @@ open class VariableDescriptor protected constructor(
 	}
 
 	@AvailMethod
-	override fun o_SerializerOperation(
-		`object`: AvailObject): SerializerOperation
-	{
-		return SerializerOperation.LOCAL_VARIABLE
-	}
+	override fun o_SerializerOperation(`object`: AvailObject)
+		: SerializerOperation = SerializerOperation.LOCAL_VARIABLE
 
 	@AvailMethod
 	@Throws(VariableSetException::class)
@@ -714,11 +702,9 @@ open class VariableDescriptor protected constructor(
 		 *   A new variable able to hold the specified type of objects.
 		 */
 		@JvmStatic
-		fun newVariableWithContentType(contentType: A_Type): AvailObject
-		{
-			return newVariableWithOuterType(
+		fun newVariableWithContentType(contentType: A_Type): AvailObject =
+			newVariableWithOuterType(
 				VariableTypeDescriptor.variableTypeFor(contentType))
-		}
 
 		/**
 		 * Create a `variable` of the specified
@@ -732,8 +718,7 @@ open class VariableDescriptor protected constructor(
 		 */
 		@JvmStatic
 		@ReferencedInGeneratedCode
-		fun newVariableWithOuterType(
-			variableType: A_Type?): AvailObject
+		fun newVariableWithOuterType(variableType: A_Type?): AvailObject
 		{
 			val result = mutable.create()
 			result.setSlot(ObjectSlots.KIND, variableType!!)

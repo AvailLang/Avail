@@ -34,6 +34,7 @@ package com.avail.descriptor.phrases;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
+import com.avail.descriptor.JavaCompatibility.IntegerEnumSlotDescriptionEnumJava;
 import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.NilDescriptor;
@@ -127,7 +128,7 @@ extends PhraseDescriptor
 	 *
 	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
-	public enum DeclarationKind implements IntegerEnumSlotDescriptionEnum
+	public enum DeclarationKind implements IntegerEnumSlotDescriptionEnumJava
 	{
 		/**
 		 * This is an argument to a block.

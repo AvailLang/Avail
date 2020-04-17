@@ -44,7 +44,7 @@ import com.avail.descriptor.FiberDescriptor
 import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.END_OF_FILE
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.WHITESPACE
-import com.avail.descriptor.tokens.TokenDescriptor.newToken
+import com.avail.descriptor.tokens.TokenDescriptor.Companion.newToken
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
 import com.avail.descriptor.tuples.StringDescriptor.stringFrom

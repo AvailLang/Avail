@@ -1523,7 +1523,7 @@ public final class Interpreter
 				Level.FINER,
 				"{0}attempt {1} (and clear latestResult)",
 				debugModeString,
-				primitive.name());
+				primitive.fieldName());
 		}
 		returnNow = false;
 		setLatestResult(null);
@@ -1581,7 +1581,7 @@ public final class Interpreter
 					Level.FINER,
 					"{0}... completed primitive {1} => {2}{3}",
 					debugModeString,
-					primitive.name(),
+					primitive.fieldName(),
 					success.name(),
 					failPart);
 				if (success != SUCCESS)

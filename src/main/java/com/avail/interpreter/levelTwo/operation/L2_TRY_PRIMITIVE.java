@@ -154,7 +154,7 @@ extends L2Operation
 				Level.FINER,
 				"{0}          inline prim = {1}",
 				interpreter.debugModeString,
-				primitive.name());
+				primitive.fieldName());
 		}
 		final long timeBefore = interpreter.beforeAttemptPrimitive(primitive);
 
@@ -288,7 +288,7 @@ extends L2Operation
 				Level.FINER,
 				"{0}          reifying for {1}",
 				interpreter.debugModeString,
-				primitive.name());
+				primitive.fieldName());
 		}
 		final L1InstructionStepper stepper = interpreter.levelOneStepper;
 		final L2Chunk savedChunk = stripNull(interpreter.chunk);
@@ -325,7 +325,7 @@ extends L2Operation
 						Level.FINER,
 						"{0}          reified, now starting {1}",
 						interpreter.debugModeString,
-						primitive.name());
+						primitive.fieldName());
 				}
 				final long timeBefore =
 					interpreter.beforeAttemptPrimitive(primitive);

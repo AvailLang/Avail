@@ -35,7 +35,7 @@ package com.avail.interpreter.primitive.phrases
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tokens.LiteralTokenDescriptor
-import com.avail.descriptor.tokens.LiteralTokenDescriptor.literalToken
+import com.avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType

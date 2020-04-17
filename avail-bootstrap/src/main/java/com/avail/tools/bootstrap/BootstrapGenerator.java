@@ -623,7 +623,7 @@ public final class BootstrapGenerator
 		builder.append('\t');
 		builder.append(preamble.getString(primitiveKeyword.name()));
 		builder.append(' ');
-		builder.append(primitive.name());
+		builder.append(primitive.fieldName());
 		if (!primitive.hasFlag(Flag.CannotFail))
 		{
 			builder.append(" (");
@@ -925,7 +925,7 @@ public final class BootstrapGenerator
 		statements.append('\t');
 		statements.append(preamble.getString(primitiveKeyword.name()));
 		statements.append(' ');
-		statements.append(primitive.name());
+		statements.append(primitive.fieldName());
 		statements.append(";\n");
 		final String block = block(
 			primitiveMethodParameterDeclarations(primitive, false),
@@ -948,7 +948,7 @@ public final class BootstrapGenerator
 		statements.append('\t');
 		statements.append(preamble.getString(primitiveKeyword.name()));
 		statements.append(' ');
-		statements.append(primitive.name());
+		statements.append(primitive.fieldName());
 		statements.append(";\n");
 		final String block = block(
 			primitiveMethodParameterDeclarations(primitive, false),
@@ -972,7 +972,7 @@ public final class BootstrapGenerator
 		statements.append('\t');
 		statements.append(preamble.getString(primitiveKeyword.name()));
 		statements.append(' ');
-		statements.append(primitive.name());
+		statements.append(primitive.fieldName());
 		statements.append(";\n");
 		final String block = block(
 			primitiveMethodParameterDeclarations(primitive, false),
@@ -1092,7 +1092,7 @@ public final class BootstrapGenerator
 		statements.append('\t');
 		statements.append(preamble.getString(primitiveKeyword.name()));
 		statements.append(' ');
-		statements.append(primitive.name());
+		statements.append(primitive.fieldName());
 		statements.append(" (");
 		statements.append(
 			preamble.getString(primitiveFailureVariableName.name()));
@@ -1132,7 +1132,7 @@ public final class BootstrapGenerator
 		statements.append('\t');
 		statements.append(preamble.getString(primitiveKeyword.name()));
 		statements.append(' ');
-		statements.append(primitive.name());
+		statements.append(primitive.fieldName());
 		statements.append(" (");
 		statements.append(
 			preamble.getString(primitiveFailureVariableName.name()));

@@ -1113,7 +1113,7 @@ public abstract class AbstractDescriptor
 					describingClass.getEnumConstants();
 				if (0 <= value && value < allValues.length)
 				{
-					builder.append(allValues[(int) value].name());
+					builder.append(allValues[(int) value].fieldName());
 				}
 				else
 				{
@@ -1141,7 +1141,7 @@ public abstract class AbstractDescriptor
 					assert !(lookedUp instanceof Enum)
 						|| ((Enum<?>) lookedUp).getDeclaringClass()
 							== describingClass;
-					builder.append(lookedUp.name());
+					builder.append(lookedUp.fieldName());
 				}
 			}
 		}

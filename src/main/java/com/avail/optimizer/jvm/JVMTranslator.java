@@ -734,7 +734,7 @@ public final class JVMTranslator
 					}
 					else if (value instanceof Primitive)
 					{
-						description = ((Primitive) value).name();
+						description = ((Primitive) value).fieldName();
 					}
 					else
 					{

@@ -67,8 +67,8 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 interface A_Variable : A_ChunkDependable
 {
 	/**
-	 * Extract the variable's kind.  This is always a [variable
-	 * type][VariableTypeDescriptor].
+	 * Extract the variable's kind.  This is always a
+	 * [variable type][VariableTypeDescriptor].
 	 *
 	 * @return
 	 *   The variable's kind.

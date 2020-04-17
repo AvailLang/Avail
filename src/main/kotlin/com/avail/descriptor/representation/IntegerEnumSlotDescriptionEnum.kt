@@ -36,20 +36,22 @@ package com.avail.descriptor.representation
  * enumeration used to describe the values that can occur in a particular
  * [integer slot][IntegerSlotsEnum] or [BitField].
  *
- * It includes the [name] and [ordinal] operations to ensure they are statically
- * available in the actual implementations, which are really intended to be
- * [Enum]s, but neither Java nor Kotlin provide a way to sub-categorize enums.
+ * It includes the [fieldName] and [fieldOrdinal] operations to ensure they are
+ * statically available in the actual implementations, which are really intended
+ * to be [Enum]s, but neither Java nor Kotlin provide a way to sub-categorize
+ * enums.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-interface IntegerEnumSlotDescriptionEnum {
+interface IntegerEnumSlotDescriptionEnum
+{
 	/**
 	 * Answer the name of this enumeration value.
 	 *
 	 * @return
 	 *   A string that names this enumeration value.
 	 */
-	fun name(): String
+	fun fieldName(): String
 
 	/**
 	 * Answer an integer that identifies this enumeration value uniquely within
@@ -60,5 +62,5 @@ interface IntegerEnumSlotDescriptionEnum {
 	 * @return
 	 *   The enumeration value's ordinal number.
 	 */
-	fun ordinal(): Int
+	fun fieldOrdinal(): Int
 }

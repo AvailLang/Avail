@@ -56,7 +56,7 @@ import com.avail.descriptor.sets.SetDescriptor.emptySet
 import com.avail.descriptor.sets.SetDescriptor.setFromCollection
 import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tokens.LiteralTokenDescriptor
-import com.avail.descriptor.tokens.LiteralTokenDescriptor.literalToken
+import com.avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
 import com.avail.descriptor.tokens.TokenDescriptor
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple

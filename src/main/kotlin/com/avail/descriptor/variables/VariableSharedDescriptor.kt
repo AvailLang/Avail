@@ -81,9 +81,9 @@ open class VariableSharedDescriptor protected constructor(
 		mutability: Mutability,
 		typeTag: TypeTag,
 		objectSlotsEnumClass: Class<out ObjectSlotsEnum>?,
-		integerSlotsEnumClass: Class<out IntegerSlotsEnum>?
-) : VariableDescriptor(
-	mutability, typeTag, objectSlotsEnumClass, integerSlotsEnumClass)
+		integerSlotsEnumClass: Class<out IntegerSlotsEnum>?)
+	: VariableDescriptor(
+		mutability, typeTag, objectSlotsEnumClass, integerSlotsEnumClass)
 {
 	/**
 	 * The layout of integer slots for my instances.
@@ -108,9 +108,9 @@ open class VariableSharedDescriptor protected constructor(
 			init
 			{
 				assert(VariableDescriptor.IntegerSlots.HASH_AND_MORE.ordinal
-					       == HASH_AND_MORE.ordinal)
-				assert(VariableDescriptor.IntegerSlots.HASH_OR_ZERO.isSamePlaceAs(
-					HASH_ALWAYS_SET))
+			       == HASH_AND_MORE.ordinal)
+				assert(VariableDescriptor.IntegerSlots.HASH_OR_ZERO
+			       .isSamePlaceAs(HASH_ALWAYS_SET))
 			}
 		}
 	}
@@ -134,14 +134,14 @@ open class VariableSharedDescriptor protected constructor(
 		/**
 		 * A [raw pojo][RawPojoDescriptor] that wraps a [map][Map] from
 		 * arbitrary [Avail values][AvailObject] to
-		 * [write reactors][VariableDescriptor.VariableAccessReactor] that respond to writes of
-		 * the [variable][VariableDescriptor].
+		 * [write reactors][VariableDescriptor.VariableAccessReactor] that
+		 * respond to writes of the [variable][VariableDescriptor].
 		 */
 		WRITE_REACTORS,
 
 		/**
-		 * A [raw pojo][RawPojoDescriptor] holding a weak set (implemented as the
-		 * [key set][Map.keys] of a [WeakHashMap]) of [L2Chunk]s that depend
+		 * A [raw pojo][RawPojoDescriptor] holding a weak set (implemented as
+		 * the [key set][Map.keys] of a [WeakHashMap]) of [L2Chunk]s that depend
 		 * on the membership of this method.  A change to the membership will
 		 * invalidate all such chunks.  This field holds the
 		 * [nil][NilDescriptor.nil] object initially.
@@ -153,11 +153,11 @@ open class VariableSharedDescriptor protected constructor(
 			init
 			{
 				assert(VariableDescriptor.ObjectSlots.VALUE.ordinal
-					       == VALUE.ordinal)
+			       == VALUE.ordinal)
 				assert(VariableDescriptor.ObjectSlots.KIND.ordinal
-					       == KIND.ordinal)
+				   == KIND.ordinal)
 				assert(VariableDescriptor.ObjectSlots.WRITE_REACTORS.ordinal
-					       == WRITE_REACTORS.ordinal)
+				   == WRITE_REACTORS.ordinal)
 			}
 		}
 	}
@@ -329,8 +329,7 @@ open class VariableSharedDescriptor protected constructor(
 	@AvailMethod
 	@Throws(VariableGetException::class)
 	override fun o_VariableMapHasKey(
-		`object`: AvailObject,
-		key: A_BasicObject): Boolean
+		`object`: AvailObject, key: A_BasicObject): Boolean
 	{
 		synchronized(`object`) {
 			return super.o_VariableMapHasKey(`object`, key)
@@ -376,9 +375,7 @@ open class VariableSharedDescriptor protected constructor(
 	}
 
 	@AvailMethod
-	override fun o_RemoveDependentChunk(
-		`object`: AvailObject,
-		chunk: L2Chunk)
+	override fun o_RemoveDependentChunk(`object`: AvailObject, chunk: L2Chunk)
 	{
 		assert(L2Chunk.invalidationLock.isHeldByCurrentThread)
 		val pojo: A_BasicObject =
@@ -461,8 +458,8 @@ open class VariableSharedDescriptor protected constructor(
 		@JvmStatic
 		protected fun recordWriteToSharedVariable()
 		{
-			val loader = Interpreter.current().availLoaderOrNull()
-			loader?.statementCanBeSummarized(false)
+			Interpreter.current().availLoaderOrNull()
+				?.statementCanBeSummarized(false)
 		}
 
 		/**
@@ -473,8 +470,7 @@ open class VariableSharedDescriptor protected constructor(
 		 * @param object
 		 *   The shared variable that was read.
 		 */
-		private fun recordReadFromSharedVariable(
-			`object`: AvailObject)
+		private fun recordReadFromSharedVariable(`object`: AvailObject)
 		{
 			val loader = Interpreter.current().availLoaderOrNull()
 			if (loader != null && loader.statementCanBeSummarized()

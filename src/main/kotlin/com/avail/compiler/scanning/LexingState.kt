@@ -49,7 +49,7 @@ import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.END_OF_FILE
-import com.avail.descriptor.tokens.TokenDescriptor.newToken
+import com.avail.descriptor.tokens.TokenDescriptor.Companion.newToken
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.StringDescriptor.formatString
 import com.avail.descriptor.tuples.StringDescriptor.stringFrom

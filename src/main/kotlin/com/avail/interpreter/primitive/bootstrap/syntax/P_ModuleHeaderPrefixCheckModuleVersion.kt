@@ -68,7 +68,7 @@ object P_ModuleHeaderPrefixCheckModuleVersion : Primitive(2, Private, Bootstrap)
 		val latestVersionPhrase = versions.lastExpression()
 		assert(latestVersionPhrase.phraseKindIsUnder(LITERAL_PHRASE))
 		val latestVersionToken = latestVersionPhrase.token()
-		assert(latestVersionToken.isLiteralToken)
+		assert(latestVersionToken.isLiteralToken())
 		val latestVersionString = latestVersionToken.literal().literal()
 		for (i in 1 until versionsCount)
 		{

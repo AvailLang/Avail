@@ -76,6 +76,6 @@ extends L2Operand
 	@Override
 	public void appendTo (final StringBuilder builder)
 	{
-		builder.append("*").append(primitive.name());
+		builder.append("*").append(primitive.fieldName());
 	}
 }

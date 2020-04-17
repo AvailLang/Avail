@@ -46,7 +46,8 @@ import com.avail.descriptor.Descriptor
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-interface AbstractSlotsEnum {
+interface AbstractSlotsEnum
+{
 	/**
 	 * In Java it was possible to define this interface in such a way that the
 	 * `name` method was abstract and implemented by each specific [Enum], but

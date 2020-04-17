@@ -125,7 +125,7 @@ extends L2SemanticValue
 	public String toString ()
 	{
 		final StringBuilder builder = new StringBuilder();
-		builder.append(primitive.name());
+		builder.append(primitive.fieldName());
 		builder.append('(');
 		boolean first = true;
 		for (final L2SemanticValue arg : argumentSemanticValues)

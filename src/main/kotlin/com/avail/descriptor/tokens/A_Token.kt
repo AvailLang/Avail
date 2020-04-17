@@ -29,94 +29,99 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.descriptor.tokens
 
-package com.avail.descriptor.tokens;
-
-import com.avail.compiler.scanning.LexingState;
-import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.descriptor.tokens.TokenDescriptor.TokenType;
-import com.avail.descriptor.tuples.A_String;
-
+import com.avail.compiler.scanning.LexingState
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.tuples.A_String
 
 /**
- * {@code A_Token} is an interface that specifies the token-specific operations
- * that an {@link AvailObject} must implement.  It's a sub-interface of {@link
- * A_BasicObject}, the interface that defines the behavior that all AvailObjects
- * are required to support.
+ * `A_Token` is an interface that specifies the token-specific operations that
+ * an [AvailObject] must implement.  It's a sub-interface of [A_BasicObject],
+ * the interface that defines the behavior that all AvailObjects are required to
+ * support.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public interface A_Token
-extends A_BasicObject
+interface A_Token : A_BasicObject
 {
 	/**
 	 * Disconnect this token from its internal cache of what comes next.
 	 */
-	void clearLexingState ();
+	fun clearLexingState()
 
 	/**
-	 * Answer whether this token is a {@linkplain LiteralTokenDescriptor literal
-	 * token}, such as a string or number.
+	 * Answer whether this token is a [literal token][LiteralTokenDescriptor],
+	 * such as a string or number.
 	 *
-	 * @return Whether the token is a literal.
+	 * @return
+	 *   Whether the token is a literal.
 	 */
-	boolean isLiteralToken ();
+	fun isLiteralToken(): Boolean
 
 	/**
 	 * The line number of this token in the source file.
 	 *
-	 * @return the token's line number.
+	 * @return
+	 *   The token's line number.
 	 */
-	int lineNumber ();
+	fun lineNumber(): Int
 
 	/**
 	 * Extract the literal value from this token.  It must be a literal token.
 	 *
-	 * @return The value of the literal token.
+	 * @return
+	 *   The value of the literal token.
 	 */
-	AvailObject literal ();
+	fun literal(): AvailObject
 
 	/**
 	 * Answer this token's string representation converted to lower case.
 	 *
-	 * @return The token's lowercase representation.
+	 * @return
+	 *   The token's lowercase representation.
 	 */
-	A_String lowerCaseString ();
+	fun lowerCaseString(): A_String
 
 	/**
-	 * Answer the {@link LexingState} that follows this token.
+	 * Answer the [LexingState] that follows this token.
 	 *
-	 * @return The next {@link LexingState}.
+	 * @return
+	 *   The next [LexingState].
 	 */
-	LexingState nextLexingState ();
+	fun nextLexingState(): LexingState
 
 	/**
-	 * Set this token's next {@link LexingState}.
+	 * Set this token's next [LexingState].
 	 *
-	 * @param priorLexingState The lexing state just prior to this token.
+	 * @param priorLexingState
+	 *   The lexing state just prior to this token.
 	 */
-	void setNextLexingStateFromPrior (final LexingState priorLexingState);
+	fun setNextLexingStateFromPrior(priorLexingState: LexingState)
 
 	/**
 	 * Answer this token's initial character position in the source file.
 	 *
-	 * @return The token's source position.
+	 * @return
+	 *   The token's source position.
 	 */
-	int start ();
+	fun start(): Int
 
 	/**
 	 * Answer this token's exact string representation as it appeared in the
 	 * source code.
 	 *
-	 * @return The token's string representation.
+	 * @return
+	 *   The token's string representation.
 	 */
-	A_String string ();
+	fun string(): A_String
 
 	/**
-	 * Answer the {@linkplain TokenType} of this token.
+	 * Answer the [TokenDescriptor.TokenType] of this token.
 	 *
-	 * @return A TokenType.
+	 * @return
+	 *   A TokenType.
 	 */
-	TokenType tokenType ();
+	fun tokenType(): TokenDescriptor.TokenType
 }

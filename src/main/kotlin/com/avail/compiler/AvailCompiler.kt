@@ -120,7 +120,7 @@ import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.sets.SetDescriptor.emptySet
 import com.avail.descriptor.sets.SetDescriptor.generateSetFrom
 import com.avail.descriptor.tokens.A_Token
-import com.avail.descriptor.tokens.LiteralTokenDescriptor.literalToken
+import com.avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
 import com.avail.descriptor.tokens.TokenDescriptor
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.*
 import com.avail.descriptor.tuples.A_String
@@ -3043,7 +3043,7 @@ class AvailCompiler(
 	 * @param methodName
 	 *   The name of the primitive method being defined.
 	 * @param primitiveName
-	 *   The [primitive name][Primitive.name] of the [method][MethodDescriptor]
+	 *   The [primitive name][Primitive.fieldName] of the [method][MethodDescriptor]
 	 *   being defined.
 	 * @param success
 	 *   What to do after the method is bootstrapped successfully.
@@ -3177,10 +3177,10 @@ class AvailCompiler(
 	 * @param lexerAtom
 	 *   The name (an [atom][A_Atom]) of the lexer being defined.
 	 * @param filterPrimitiveName
-	 *   The [primitive name][Primitive.name] of the filter for the lexer being
+	 *   The [primitive name][Primitive.fieldName] of the filter for the lexer being
 	 *   defined.
 	 * @param bodyPrimitiveName
-	 *   The [primitive name][Primitive.name] of the body of the
+	 *   The [primitive name][Primitive.fieldName] of the body of the
 	 *   [lexer][A_Lexer] being defined.
 	 * @param success
 	 *   What to do after the method is bootstrapped successfully.

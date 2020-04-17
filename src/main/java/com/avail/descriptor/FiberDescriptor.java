@@ -38,6 +38,8 @@ import com.avail.AvailThread;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.EnumField;
 import com.avail.annotations.HideFieldInDebugger;
+import com.avail.descriptor.JavaCompatibility.EnumFieldJava;
+import com.avail.descriptor.JavaCompatibility.IntegerEnumSlotDescriptionEnumJava;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.atoms.A_Atom;
@@ -305,7 +307,7 @@ extends Descriptor
 		 * running}, {@linkplain ExecutionState#SUSPENDED suspended} or
 		 * {@linkplain ExecutionState#TERMINATED terminated}.
 		 */
-		@EnumField(describedBy=ExecutionState.class)
+		@EnumFieldJava(describedBy=ExecutionState.class)
 		EXECUTION_STATE;
 
 		/**
@@ -503,7 +505,7 @@ extends Descriptor
 	 * fiber}.
 	 */
 	public enum ExecutionState
-	implements IntegerEnumSlotDescriptionEnum
+	implements IntegerEnumSlotDescriptionEnumJava
 	{
 		/**
 		 * The fiber has not been started.
