@@ -74,7 +74,7 @@ internal abstract class FileManager constructor(
 	/**
 	 * The [EnumSet] of [StandardOpenOption]s used when creating files.
 	 */
-	protected val fileCreateOptions =
+	protected val fileCreateOptions: EnumSet<StandardOpenOption> =
 		EnumSet.of(
 			StandardOpenOption.READ,
 			StandardOpenOption.WRITE,
@@ -234,8 +234,6 @@ internal abstract class FileManager constructor(
 		fileCache[id].value?.execute(fileAction, continuation)
 			?: failureHandler(BAD_FILE_ID, null)
 	}
-
-
 
 	/**
 	 * Save the file to d

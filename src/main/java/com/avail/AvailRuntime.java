@@ -52,7 +52,6 @@ import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom;
 import com.avail.descriptor.bundles.A_Bundle;
 import com.avail.descriptor.functions.A_Function;
 import com.avail.descriptor.functions.A_RawFunction;
-import com.avail.descriptor.functions.CompiledCodeDescriptor;
 import com.avail.descriptor.functions.FunctionDescriptor;
 import com.avail.descriptor.maps.A_Map;
 import com.avail.descriptor.maps.MapDescriptor;
