@@ -34,6 +34,7 @@ package com.avail.descriptor.types;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
+import com.avail.descriptor.JavaCompatibility.IntegerEnumSlotDescriptionEnumJava;
 import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
@@ -105,7 +106,7 @@ extends TypeDescriptor
 	 * My hierarchy of kinds of phrases.
 	 */
 	public enum PhraseKind
-	implements IntegerEnumSlotDescriptionEnum
+	implements IntegerEnumSlotDescriptionEnumJava
 	{
 		/** The root phrase kind. */
 		PARSE_PHRASE("phrase type", null, TypeTag.PHRASE_TAG),

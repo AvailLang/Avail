@@ -38,7 +38,7 @@ import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.WE
 import com.avail.descriptor.CharacterDescriptor
 import com.avail.descriptor.parsing.LexerDescriptor.lexerBodyFunctionType
 import com.avail.descriptor.sets.SetDescriptor.set
-import com.avail.descriptor.tokens.LiteralTokenDescriptor.literalToken
+import com.avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.tuples.StringDescriptor.stringFrom

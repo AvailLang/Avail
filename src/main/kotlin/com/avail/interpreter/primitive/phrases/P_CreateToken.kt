@@ -38,7 +38,7 @@ import com.avail.descriptor.sets.SetDescriptor.set
 import com.avail.descriptor.tokens.TokenDescriptor.StaticInit.tokenTypeOrdinalKey
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.*
-import com.avail.descriptor.tokens.TokenDescriptor.newToken
+import com.avail.descriptor.tokens.TokenDescriptor.Companion.newToken
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
@@ -73,7 +73,7 @@ object P_CreateToken : Primitive(4, CannotFail, CanFold, CanInline)
 				lexeme,
 				start.extractInt(),
 				line.extractInt(),
-				lookupTokenType(
+				TokenType.lookupTokenType(
 					type.getAtomProperty(tokenTypeOrdinalKey).extractInt())))
 	}
 
@@ -90,7 +90,7 @@ object P_CreateToken : Primitive(4, CannotFail, CanFold, CanInline)
 		{
 			val atom = atomType.instance()
 			return tokenType(
-				lookupTokenType(
+				TokenType.lookupTokenType(
 					atom.getAtomProperty(tokenTypeOrdinalKey).extractInt()))
 		}
 		return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)

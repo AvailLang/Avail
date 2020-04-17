@@ -53,9 +53,9 @@ import com.avail.descriptor.phrases.ReferencePhraseDescriptor.referenceNodeFromU
 import com.avail.descriptor.phrases.SendPhraseDescriptor.newSendNode
 import com.avail.descriptor.phrases.SuperCastPhraseDescriptor.newSuperCastNode
 import com.avail.descriptor.phrases.VariableUsePhraseDescriptor.newUse
-import com.avail.descriptor.tokens.LiteralTokenDescriptor.literalToken
+import com.avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.KEYWORD
-import com.avail.descriptor.tokens.TokenDescriptor.newToken
+import com.avail.descriptor.tokens.TokenDescriptor.Companion.newToken
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.*
 import com.avail.descriptor.tuples.StringDescriptor.stringFrom

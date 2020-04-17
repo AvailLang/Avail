@@ -61,6 +61,7 @@ import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunctio
 import com.avail.descriptor.maps.MapDescriptor.emptyMap
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.numbers.DoubleDescriptor.fromDouble
+import com.avail.descriptor.numbers.FloatDescriptor
 import com.avail.descriptor.numbers.FloatDescriptor.fromFloat
 import com.avail.descriptor.numbers.IntegerDescriptor.*
 import com.avail.descriptor.objects.ObjectDescriptor.objectFromMap
@@ -87,10 +88,10 @@ import com.avail.descriptor.pojos.PojoFinalFieldDescriptor
 import com.avail.descriptor.pojos.RawPojoDescriptor.equalityPojo
 import com.avail.descriptor.pojos.RawPojoDescriptor.rawNullPojo
 import com.avail.descriptor.representation.A_BasicObject
-import com.avail.descriptor.tokens.CommentTokenDescriptor.newCommentToken
-import com.avail.descriptor.tokens.LiteralTokenDescriptor.literalToken
-import com.avail.descriptor.tokens.TokenDescriptor.TokenType.lookupTokenType
-import com.avail.descriptor.tokens.TokenDescriptor.newToken
+import com.avail.descriptor.tokens.CommentTokenDescriptor.Companion.newCommentToken
+import com.avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
+import com.avail.descriptor.tokens.TokenDescriptor.TokenType.Companion.lookupTokenType
+import com.avail.descriptor.tokens.TokenDescriptor.Companion.newToken
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.*
@@ -1121,7 +1122,7 @@ enum class SerializerOperation constructor(
 				}
 				else
 				{
-					stringFrom(primitive.name())
+					stringFrom(primitive.fieldName())
 				}
 			return array(
 				fromInt(obj.numSlots()),
@@ -2087,7 +2088,7 @@ enum class SerializerOperation constructor(
 			val primitiveName = if (primitive === null)
 				emptyTuple()
 			else
-				stringFrom(primitive.name())
+				stringFrom(primitive.fieldName())
 			return array(
 				obj.argumentsTuple(),
 				primitiveName,

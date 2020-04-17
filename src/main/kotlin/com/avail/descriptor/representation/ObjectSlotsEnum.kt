@@ -31,7 +31,6 @@
  */
 package com.avail.descriptor.representation
 
-import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.Descriptor
 
 /**

@@ -92,13 +92,13 @@ public @interface EnumField
 		}
 
 		@Override
-		public String name ()
+		public String fieldName ()
 		{
 			return string;
 		}
 
 		@Override
-		public int ordinal ()
+		public int fieldOrdinal ()
 		{
 			// Shouldn't be used.
 			return -1;

@@ -102,20 +102,20 @@ class VariableSharedGlobalDescriptor private constructor(
 			val HASH_ALWAYS_SET = BitField(HASH_AND_MORE, 0, 32)
 
 			/**
-			 * A flag indicating whether this variable was initialized to a value
-			 * that was produced by a pure computation, specifically the kind of
-			 * computation that does not disqualify [LoadingEffect]s set being recorded
-			 * in place of top level statements.
+			 * A flag indicating whether this variable was initialized to a
+			 * value that was produced by a pure computation, specifically the
+			 * kind of computation that does not disqualify [LoadingEffect]s set
+			 * being recorded in place of top level statements.
 			 */
 			@JvmField
 			val VALUE_IS_STABLE = BitField(HASH_AND_MORE, 32, 1)
 
 			init
 			{
-				assert(VariableSharedDescriptor.IntegerSlots.HASH_AND_MORE.ordinal
-					       == HASH_AND_MORE.ordinal)
+				assert(VariableSharedDescriptor.IntegerSlots
+			       .HASH_AND_MORE.ordinal == HASH_AND_MORE.ordinal)
 				assert(VariableSharedDescriptor.IntegerSlots.HASH_ALWAYS_SET
-					       .isSamePlaceAs(HASH_ALWAYS_SET))
+			       .isSamePlaceAs(HASH_ALWAYS_SET))
 			}
 		}
 	}
@@ -174,8 +174,9 @@ class VariableSharedGlobalDescriptor private constructor(
 					== KIND.ordinal)
 				assert(VariableSharedDescriptor.ObjectSlots.WRITE_REACTORS.ordinal
 					== WRITE_REACTORS.ordinal)
-				assert(VariableSharedDescriptor.ObjectSlots.DEPENDENT_CHUNKS_WEAK_SET_POJO.ordinal
-					== DEPENDENT_CHUNKS_WEAK_SET_POJO.ordinal)
+				assert(VariableSharedDescriptor.ObjectSlots
+			       .DEPENDENT_CHUNKS_WEAK_SET_POJO.ordinal
+						== DEPENDENT_CHUNKS_WEAK_SET_POJO.ordinal)
 			}
 		}
 	}
@@ -381,5 +382,4 @@ class VariableSharedGlobalDescriptor private constructor(
 		private val sharedWriteOnce =
 			VariableSharedGlobalDescriptor(Mutability.SHARED, true)
 	}
-
 }

@@ -43,7 +43,7 @@ import com.avail.descriptor.phrases.LiteralPhraseDescriptor.literalNodeFromToken
 import com.avail.descriptor.phrases.LiteralPhraseDescriptor.syntheticLiteralNodeFor
 import com.avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor.newMacroSubstitution
 import com.avail.descriptor.phrases.PhraseDescriptor
-import com.avail.descriptor.tokens.LiteralTokenDescriptor.literalToken
+import com.avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
 import com.avail.descriptor.tuples.StringDescriptor.stringFrom
 
 /**

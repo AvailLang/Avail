@@ -57,7 +57,7 @@ import com.avail.descriptor.phrases.PhraseDescriptor
 import com.avail.descriptor.phrases.ReferencePhraseDescriptor
 import com.avail.descriptor.phrases.ReferencePhraseDescriptor.referenceNodeFromUse
 import com.avail.descriptor.tokens.A_Token
-import com.avail.descriptor.tokens.LiteralTokenDescriptor.literalToken
+import com.avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
 import com.avail.descriptor.tokens.TokenDescriptor
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.*

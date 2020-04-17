@@ -736,11 +736,11 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 
 	/**
 	 * Answer the name of this primitive, which is just the class's simple name,
-	 * as previously captured by the [name] field during init.
+	 * as previously captured by the [fieldName] field during init.
 	 *
 	 * @return The name of this primitive.
 	 */
-	override fun name(): String = name
+	override fun fieldName(): String = name
 
 	/**
 	 * Be compliant with [IntegerEnumSlotDescriptionEnum] – although it
@@ -750,7 +750,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 * @return The ordinal of this primitive, in theory.
 	 */
 	@Deprecated("")
-	override fun ordinal(): Int
+	override fun fieldOrdinal(): Int
 	{
 		throw UnsupportedOperationException(
 			"Primitive ordinal() should not be used.")
@@ -1069,7 +1069,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 								+ " of %s, not %s.",
 							i,
 							arguments[i - 1].token().string(),
-							primitive.name(),
+							primitive.fieldName(),
 							expectedType,
 							declaredType))
 				}

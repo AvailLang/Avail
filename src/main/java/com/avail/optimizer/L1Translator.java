@@ -2256,7 +2256,7 @@ public final class L1Translator
 						Level.FINER,
 						"{0}FOLD {1}:",
 						interpreter.debugModeString,
-						primitive.name());
+						primitive.fieldName());
 				}
 				final Result success;
 				try

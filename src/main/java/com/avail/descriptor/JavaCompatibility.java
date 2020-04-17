@@ -32,11 +32,20 @@
 
 package com.avail.descriptor;
 
+import com.avail.annotations.EnumField;
+import com.avail.annotations.EnumField.Converter;
 import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.representation.AbstractSlotsEnum;
 import com.avail.descriptor.representation.AvailObject;
+import com.avail.descriptor.representation.BitField;
+import com.avail.descriptor.representation.IntegerEnumSlotDescriptionEnum;
 import com.avail.descriptor.representation.IntegerSlotsEnum;
 import com.avail.descriptor.representation.ObjectSlotsEnum;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * {@code A_Character} is an interface that specifies the {@linkplain
@@ -49,7 +58,7 @@ import com.avail.descriptor.representation.ObjectSlotsEnum;
  */
 public class JavaCompatibility
 {
-	/** Temporary suppor for slot enums still coded in Java. */
+	/** Temporary support for slot enums still coded in Java. */
 	public interface AbstractSlotsEnumJava extends AbstractSlotsEnum
 	{
 		String name();
@@ -67,7 +76,6 @@ public class JavaCompatibility
 		{
 			return ordinal();
 		}
-
 	}
 	/** Maintain temporary compatibility with Java descriptor slot classes. */
 	public interface IntegerSlotsEnumJava
@@ -79,5 +87,118 @@ public class JavaCompatibility
 	public interface ObjectSlotsEnumJava
 		extends ObjectSlotsEnum, AbstractSlotsEnumJava
 	{
+	}
+
+	/** Temporary support for IntegerEnumSlotDescriptionEnum still coded in Java. */
+	public interface IntegerEnumSlotDescriptionEnumJava extends AbstractSlotsEnum
+	{
+		String name();
+
+		int ordinal();
+
+		@Override
+		default String fieldName ()
+		{
+			return name();
+		}
+
+		@Override
+		default int fieldOrdinal ()
+		{
+			return ordinal();
+		}
+	}
+
+	/**
+	 * {@code EnumField} annotation is used to indicate which enumeration should be
+	 * used to describe an integer value embedded in an integer slot that has this
+	 * annotation.  This is used for pretty-printing {@linkplain AvailObject}s.
+	 *
+	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
+	 */
+	@Retention(RetentionPolicy.RUNTIME)
+	@Target(ElementType.FIELD)
+	public @interface EnumFieldJava
+	{
+		/**
+		 * A helper class for presenting values for {@link IntegerSlotsEnum} and
+		 * {@link BitField}s in alternative ways, for example as decimal numbers.
+		 *
+		 * <p>To use it this way, add an annotation like this to the slot or bit
+		 * field:</p>
+		 *
+		 * <pre>
+		 * &#64;EnumField(
+		 *     describedBy = Converter.class,
+		 *     lookupMethodName = "decimal")
+		 * </pre>
+		 */
+		final class Converter implements IntegerEnumSlotDescriptionEnumJava
+		{
+			/** The {@link String} to present for this field. */
+			final String string;
+
+			/**
+			 * Create a new instance for presenting the given {@link String}.
+			 * @param string The {@link String} to present.
+			 */
+			private Converter (final String string)
+			{
+				this.string = string;
+			}
+
+			/**
+			 * Present the {@code int} value in decimal.
+			 *
+			 * @param value The int to present.
+			 * @return An instance that presents it in decimal.
+			 */
+			public static Converter decimal (final int value)
+			{
+				return new Converter(Integer.toString(value));
+			}
+
+			@Override
+			public String name ()
+			{
+				return string;
+			}
+
+			@Override
+			public int ordinal ()
+			{
+				// Shouldn't be used.
+				return -1;
+			}
+		}
+
+		/**
+		 * This annotation field indicates the {@link Enum} responsible for
+		 * describing the integer slot to which the annotation is applied.  The
+		 * value of the field (an {@code int}) should equal an {@linkplain
+		 * Enum#ordinal() ordinal} of a member of the specified {@code enum}.  If a
+		 * {@link #lookupMethodName()} is also specified then the int value may be
+		 * something other than the Enum's ordinal.
+		 *
+		 * @return The {@link IntegerEnumSlotDescriptionEnum} class used to present
+		 *         the enum field.
+		 */
+		Class<? extends IntegerEnumSlotDescriptionEnumJava> describedBy ();
+
+		/**
+		 * This optional annotation field indicates the name of a static method
+		 * defined within the {@linkplain #describedBy() describing enumeration}.
+		 * The method should take an {@code int} argument and return an instance of
+		 * the {@code #describedBy()} enumeration or null.  If null, only the
+		 * numeric value is displayed, otherwise the enumeration value's name is
+		 * displayed.  If this annotation field is omitted, the value of the field
+		 * is treated as the {@linkplain Enum#ordinal() ordinal} to look up.
+		 * Similarly, in this case an ordinal that is out of range will only display
+		 * its numeric value.
+		 *
+		 * @return The optional name of a method to invoke to describe the enum
+		 *         field.
+		 */
+		String lookupMethodName () default "";
 	}
 }

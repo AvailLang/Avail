@@ -246,7 +246,7 @@ extends PhraseDescriptor
 			wroteAnything = true;
 			newlineTab(builder, indent);
 			builder.append("Primitive ");
-			builder.append(primitive.name());
+			builder.append(primitive.fieldName());
 			if (!primitive.hasFlag(Flag.CannotFail))
 			{
 				builder.append(" (");
@@ -440,7 +440,7 @@ extends PhraseDescriptor
 		h = h * multiplier + object.statementsTuple().hash();
 		h = h * multiplier + object.resultType().hash();
 		h = h * multiplier + object.neededVariables().hash();
-		h = h * multiplier + (prim == null ? 0 : prim.name().hashCode());
+		h = h * multiplier + (prim == null ? 0 : prim.fieldName().hashCode());
 		h = h * multiplier ^ 0x05E6A04A;
 		return h;
 	}
@@ -531,7 +531,7 @@ extends PhraseDescriptor
 		writer.write("block phrase");
 		final @Nullable Primitive primitive = object.primitive();
 		writer.write("primitive");
-		writer.write(primitive == null ? "" : primitive.name());
+		writer.write(primitive == null ? "" : primitive.fieldName());
 		writer.write("starting line");
 		writer.write(object.slot(STARTING_LINE_NUMBER));
 		writer.write("arguments");
@@ -555,7 +555,7 @@ extends PhraseDescriptor
 		writer.write("block phrase");
 		final @Nullable Primitive primitive = object.primitive();
 		writer.write("primitive");
-		writer.write(primitive == null ? "" : primitive.name());
+		writer.write(primitive == null ? "" : primitive.fieldName());
 		writer.write("starting line");
 		writer.write(object.slot(STARTING_LINE_NUMBER));
 		writer.write("arguments");
