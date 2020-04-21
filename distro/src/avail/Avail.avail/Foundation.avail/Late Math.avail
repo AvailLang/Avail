@@ -82,7 +82,9 @@ Names
 	/* Primality testing. */
 	"_^_mod_",
 	"_is a strong probable prime to base_",
-	"_is prime"
+	"_is prime",
+
+	"⌊√_⌋"
 Body
 
 cannotRaiseZeroToZero ::= "either base or exponent not to be 0";
@@ -857,6 +859,7 @@ Public stable method "_(decimal)" is
 ] : double;
 
 /**
+<<<<<<< HEAD
  * Answer an approximation of π, the ratio of the circumference of a circle to
  * its diameter.
  *
@@ -880,6 +883,20 @@ Macro "π" is [`3.141592653589793` ("π") → literal phrase];
 *
 * @category "Mathematics" "Integers" "Types"
 */
+=======
+ * Compute the fused modular exponentiation of the base to the exponent, modulo
+ * the provided modulus. This method executes much faster than its unfused
+ * variant by leveraging iterated squaring and moduli.
+ *
+ * @method "_^_mod_"
+ * @param "base" "whole number"
+ * @param "exponent" "whole number"
+ * @param "modulus" "natural number"
+ * @returns "whole number"
+ *
+ * @category "Mathematics" "Integers" "Types"
+ */
+>>>>>>> Add integer square root method
 Public stable method "_^_mod_" is
 [
 	base : whole number,
@@ -902,14 +919,14 @@ Public stable method "_^_mod_" is
 ];
 
 /**
-* Restrict modular exponentiation to the combined restrictions upon the unfused
-* exponentiation and modulus methods.
-*
-* @method "_^_mod_"
-* @restricts "whole number's type"
-* @restricts "whole number's type"
-* @restricts "natural number's type"
-*/
+ * Restrict modular exponentiation to the combined restrictions upon the unfused
+ * exponentiation and modulus methods.
+ *
+ * @method "_^_mod_"
+ * @restricts "whole number's type"
+ * @restricts "whole number's type"
+ * @restricts "natural number's type"
+ */
 Semantic restriction "_^_mod_" is
 [
 	base : whole number's type,
@@ -939,7 +956,7 @@ Grammatical restriction "_mod_" is <{"_^_"}, ∅>;
  * @returns "boolean"
  *
  * @category "Mathematics" "Integers" "Types"
-*/
+ */
 Public stable method "_is a strong probable prime to base_" is
 [
 	n : natural number,
@@ -976,16 +993,16 @@ smallPrimes ::= {
 };
 
 /**
-* Determine if a {@type "[0..130]" small integer} is prime. This method performs
-* a lookup against a list of the first 31 primes.
-*
-* @method "_is prime"
-* @param "x" "whole number"
-* @returns "boolean"
-*          {@method "true"} if {@param "x"} is prime, {@method "false"}
-*          otherwise.
-* @category "Mathematics" "Integers" "Numbers"
-*/
+ * Determine if a {@type "[0..130]" small integer} is prime. This method performs
+ * a lookup against a list of the first 31 primes.
+ *
+ * @method "_is prime"
+ * @param "x" "whole number"
+ * @returns "boolean"
+ *          {@method "true"} if {@param "x"} is prime, {@method "false"}
+ *          otherwise.
+ * @category "Mathematics" "Integers" "Numbers"
+ */
 Public method "_is prime" is
 [
 	x : [0..130]
@@ -1018,17 +1035,17 @@ fj32bases ::= <
 >;
 
 /**
-* Determine if an integer in {@type "[0..2^32)"} is prime. This method uses the
-* "FJ32_256" algorithm by Forǐsek and Jančina (2015).
-*
-* @method "_is prime"
-* @param "x" "whole number"
-* @returns "boolean"
-*          {@method "true"} if {@param "x"} is prime, {@method "false"}
-*          otherwise.
-* @category "Mathematics" "Integers" "Numbers"
-* @see "http://ceur-ws.org/Vol-1326/020-Forisek.pdf"
-*/
+ * Determine if an integer in {@type "[0..2^32)"} is prime. This method uses the
+ * "FJ32_256" algorithm by Forǐsek and Jančina (2015).
+ *
+ * @method "_is prime"
+ * @param "x" "whole number"
+ * @returns "boolean"
+ *          {@method "true"} if {@param "x"} is prime, {@method "false"}
+ *          otherwise.
+ * @category "Mathematics" "Integers" "Numbers"
+ * @see "http://ceur-ws.org/Vol-1326/020-Forisek.pdf"
+ */
 Public method "_is prime" is
 [
 	x : [0..2^32)
@@ -1056,17 +1073,17 @@ Public method "_is prime" is
 ];
 
 /**
-* Determine if an integer in {@type "[0..2^64]"} is prime. This method uses a
-* deterministic repeated Miller-Rabin test against Sinclair's (2011) 7 bases.
-*
-* @method "_is prime"
-* @param "x" "whole number"
-* @returns "boolean"
-*          {@method "true"} if {@param "x"} is prime, {@method "false"}
-*          otherwise.
-* @category "Mathematics" "Integers" "Numbers"
-* @see "http://ceur-ws.org/Vol-1326/020-Forisek.pdf"
-*/
+ * Determine if an integer in {@type "[0..2^64]"} is prime. This method uses a
+ * deterministic repeated Miller-Rabin test against Sinclair's (2011) 7 bases.
+ *
+ * @method "_is prime"
+ * @param "x" "whole number"
+ * @returns "boolean"
+ *          {@method "true"} if {@param "x"} is prime, {@method "false"}
+ *          otherwise.
+ * @category "Mathematics" "Integers" "Numbers"
+ * @see "http://ceur-ws.org/Vol-1326/020-Forisek.pdf"
+ */
 Public method "_is prime" is
 [
 	x : [0..2^64]
@@ -1078,4 +1095,35 @@ Public method "_is prime" is
 	 * order to eliminate pseudoprimes with as few tests as possible. */
 	sinclairBases ::= <2, 325, 9375, 28178, 450775, 9780504, 1795265022>;
 	each b of sinclairBases satisfies [k is a strong probable prime to base b]
+];
+
+
+Forward method "⌊√_⌋" is [whole number]→whole number;
+isqrtLUT ::= <0, 1, 1, 1, 2, 2, 2, 2, 2>;
+
+/**
+ * Find the integer square root of a given {@type whole number} i.e. the largest
+ * integer not greater than the real square root.
+ *
+ * Unlike the exponentiation method, which will not consistently return a root
+ * that rounds to the correct integer due to the resolution of {@type double},
+ * this algorithm maintains accuracy for any whole number.
+ *
+ * @method "⌊√_⌋"
+ * @param "x" "whole number"
+ * @returns "whole number"
+ *          The square root if {@param "x"} is a perfect square, the integer
+ *          floor of said root otherwise.
+ * @category "Mathematics" "Integers" "Numbers"
+ */
+Public method "⌊√_⌋" is
+[
+	x : [0..∞)
+|
+	if x < 16 then [isqrtLUT[x + 1] else [3]] else
+	[
+		/* recursive bit-shifting */
+		candidate ::= 2 × ⌊√ (x >> 2)⌋;
+		if (candidate + 1)^2 > x then [candidate] else [candidate + 1]
+	]
 ];
