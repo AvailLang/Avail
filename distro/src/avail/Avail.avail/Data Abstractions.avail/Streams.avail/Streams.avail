@@ -40,6 +40,7 @@ Extends
 		"For each…in|of_§do_",
 		"an empty stream",
 		"concatenate_",
+		"drain_",
 		"drop from_until_",
 		"drop from_while_",
 		"drop«at most»?_from_",
