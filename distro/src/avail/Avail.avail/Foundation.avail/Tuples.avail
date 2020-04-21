@@ -296,14 +296,17 @@ Public method "_'s⁇strengthening function" is
 
 
 /**
- * A method that takes a number type and returns a function taking nonempty
- * tuples of that type and returning the original provided type.
+ * A macro that takes a number type and returns a block taking nonempty
+ * tuples of that type and returning the original provided type. Used to create
+ * quick semantic restrictions on number tuples returning that tuple's element
+ * type, given that it is uniform.
  */
-Private method "a closed operation on nonempty tuples of_" is
+Macro "a closed element operation on nonempty tuples of_" is
 [
-	tupType : number's type
+	tupTypePhrase : expression phrase ⇒ (number's type)
 |
-	evaluate «[
+	tupType ::= evaluate tupTypePhrase;
+	«[
 		<arg «`"unused"` : tupType+'s type»>
 	|
 		<‘tupType’>
@@ -3454,14 +3457,16 @@ Semantic restriction "∑_" is
  * @method "∑_"
  * @restricts "double+'s type"
  */
-Semantic restriction "∑_" is a closed operation on nonempty tuples of double;
+Semantic restriction "∑_" is
+	a closed element operation on nonempty tuples of double;
 /**
  * Non-empty tuple of doubles will return double
  *
  * @method "∑_"
  * @restricts "double+'s type"
  */
-Semantic restriction "∑_" is a closed operation on nonempty tuples of float;
+Semantic restriction "∑_" is
+	a closed element operation on nonempty tuples of float;
 
 /**
  * Take the product of the elements of a tuple of numbers.
@@ -3500,7 +3505,7 @@ Public stable method "∏_" is
  * @restricts "extended integer+'s type"
  */
 Semantic restriction "∏_" is
-	a closed operation on nonempty tuples of extended integer;
+	a closed element operation on nonempty tuples of extended integer;
 
 /**
  * Non-empty tuple of floats will return float
@@ -3508,7 +3513,8 @@ Semantic restriction "∏_" is
  * @method "∑_"
  * @restricts "float+'s type"
  */
-Semantic restriction "∏_" is a closed operation on nonempty tuples of float;
+Semantic restriction "∏_" is
+	a closed element operation on nonempty tuples of float;
 
 /**
  * Non-empty tuple of doubles will return double
@@ -3516,7 +3522,8 @@ Semantic restriction "∏_" is a closed operation on nonempty tuples of float;
  * @method "∑_"
  * @restricts "double+'s type"
  */
-Semantic restriction "∏_" is a closed operation on nonempty tuples of double;
+Semantic restriction "∏_" is
+	a closed element operation on nonempty tuples of double;
 
 /* TODO [RAA]
  *
