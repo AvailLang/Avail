@@ -859,7 +859,6 @@ Public stable method "_(decimal)" is
 ] : double;
 
 /**
-<<<<<<< HEAD
  * Answer an approximation of π, the ratio of the circumference of a circle to
  * its diameter.
  *
@@ -871,19 +870,6 @@ Public stable method "_(decimal)" is
 Macro "π" is [`3.141592653589793` ("π") → literal phrase];
 
 /**
-* Compute the fused modular exponentiation of the base to the exponent, modulo
-* the provided modulus. This method executes much faster than its unfused
-* variant by leveraging iterated squaring and moduli.
-*
-* @method "_^_mod_"
-* @param "base" "whole number"
-* @param "exponent" "whole number"
-* @param "modulus" "natural number"
-* @returns "whole number"
-*
-* @category "Mathematics" "Integers" "Types"
-*/
-=======
  * Compute the fused modular exponentiation of the base to the exponent, modulo
  * the provided modulus. This method executes much faster than its unfused
  * variant by leveraging iterated squaring and moduli.
@@ -896,7 +882,6 @@ Macro "π" is [`3.141592653589793` ("π") → literal phrase];
  *
  * @category "Mathematics" "Integers" "Types"
  */
->>>>>>> Add integer square root method
 Public stable method "_^_mod_" is
 [
 	base : whole number,
