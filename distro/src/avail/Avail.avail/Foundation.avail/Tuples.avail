@@ -3325,18 +3325,36 @@ Semantic restriction "_'s⁇last" is
  */
 Public stable method "∑_" is
 [
-	intTuple : extended integer*
-|
-	0
-] : extended integer;
-
-Public stable method "∑_" is
-[
 	intTuple : extended integer+
 |
 	left fold intTuple through
 		[i : extended integer, ri : extended integer | i + ri]
 ] : extended integer;
+
+/**
+ * Sum the elements of the specified tuple of numbers.
+ *
+ * @method "∑_"
+ * @param "numTuple" "number*"
+ *        A tuple of numbers.
+ * @returns "number"
+ *          A number.
+ * @category "Tuples" "Mathematics"
+ */
+Public stable method "∑_" is
+[
+	numTuple : number+
+|
+	left fold numTuple through
+		[i : number, ri : number | i + ri]
+];
+
+Public stable method "∑_" is
+[
+	numTuple : number*
+|
+	0
+] : number;
 
 /**
  * Compute and answer the best bounds of the specified summation.
@@ -3405,7 +3423,7 @@ Method "∑_" is
  * Strengthen the return type
  *
  * @method "∑_"
- * @restricts "extended integer+'s type"
+ * @restricts "extended integer*'s type"
  */
 Semantic restriction "∑_" is
 [
@@ -3415,27 +3433,99 @@ Semantic restriction "∑_" is
 ];
 
 /**
- * Take the product of the elements of a tuple of integers.
+ * Non-empty tuple of doubles will return double
+ *
+ * @method "∑_"
+ * @restricts "double+'s type"
+ */
+Semantic restriction "∑_" is 
+[
+	dblTupleType : double+'s type
+|
+	double
+];
+
+/**
+ * Non-empty tuple of floats will return float
+ *
+ * @method "∑_"
+ * @restricts "float+'s type"
+ */
+Semantic restriction "∑_" is
+[
+	fltTupleType : float+'s type
+|
+	float
+];
+
+/**
+ * Take the product of the elements of a tuple of numbers.
  *
  * @method "∏_"
- * @param "intTuple" "extended integer+"
- *        A tuple of integers.
- * @returns "extended integer"
- *          An integer.
- * @category "Tuples" "Mathematics" "Integers"
+ * @param "intTuple" "number+"
+ *        A tuple of numbers.
+ * @returns "number"
+ *          A number.
+ * @category "Tuples" "Mathematics"
  */
 Public stable method "∏_" is
 [
-	intTuple : extended integer+
+	numTuple : number+
 |
-	left fold intTuple through
+	left fold numTuple through
 	[
-		i : extended integer,
-		ri : extended integer
+		i : number,
+		ri : number
 	|
 		i × ri
 	]
-] : extended integer;
+] : number;
+
+Public stable method "∏_" is
+[
+	numTuple : number*
+|
+	1
+] : number;
+
+/**
+ * Non-empty tuple of integers will return integer
+ *
+ * @method "∑_"
+ * @restricts "extended integer+'s type"
+ */
+Semantic restriction "∏_" is
+[
+	intTupleType : extended integer+'s type
+|
+	extended integer
+];
+
+/**
+ * Non-empty tuple of floats will return float
+ *
+ * @method "∑_"
+ * @restricts "extended integer+'s type"
+ */
+Semantic restriction "∏_" is
+[
+	fltTupleType : float+'s type
+|
+	float
+];
+
+/**
+ * Non-empty tuple of doubles will return double
+ *
+ * @method "∑_"
+ * @restricts "extended integer+'s type"
+ */
+Semantic restriction "∏_" is
+[
+	dblTupleType : double+'s type
+|
+	double
+];
 
 /* TODO [RAA]
  *
