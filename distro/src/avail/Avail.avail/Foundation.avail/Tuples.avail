@@ -294,6 +294,22 @@ Public method "_'s⁇strengthening function" is
 	] : any's type
 ]:[]→(any's type);
 
+
+/**
+ * A method that takes a number type and returns a function taking nonempty
+ * tuples of that type and returning the original provided type.
+ */
+Private method "a closed operation on nonempty tuples of_" is
+[
+	tupType : number's type
+|
+	evaluate «[
+		<arg «`"unused"` : tupType+'s type»>
+	|
+		<‘tupType’>
+	] : tupType's type»
+];
+
 /**
  * Answer a function that computes a prefix function.
  *
@@ -3438,25 +3454,14 @@ Semantic restriction "∑_" is
  * @method "∑_"
  * @restricts "double+'s type"
  */
-Semantic restriction "∑_" is 
-[
-	dblTupleType : double+'s type
-|
-	double
-];
-
+Semantic restriction "∑_" is a closed operation on nonempty tuples of double;
 /**
- * Non-empty tuple of floats will return float
+ * Non-empty tuple of doubles will return double
  *
  * @method "∑_"
- * @restricts "float+'s type"
+ * @restricts "double+'s type"
  */
-Semantic restriction "∑_" is
-[
-	fltTupleType : float+'s type
-|
-	float
-];
+Semantic restriction "∑_" is a closed operation on nonempty tuples of float;
 
 /**
  * Take the product of the elements of a tuple of numbers.
@@ -3495,37 +3500,23 @@ Public stable method "∏_" is
  * @restricts "extended integer+'s type"
  */
 Semantic restriction "∏_" is
-[
-	intTupleType : extended integer+'s type
-|
-	extended integer
-];
+	a closed operation on nonempty tuples of extended integer;
 
 /**
  * Non-empty tuple of floats will return float
  *
  * @method "∑_"
- * @restricts "extended integer+'s type"
+ * @restricts "float+'s type"
  */
-Semantic restriction "∏_" is
-[
-	fltTupleType : float+'s type
-|
-	float
-];
+Semantic restriction "∏_" is a closed operation on nonempty tuples of float;
 
 /**
  * Non-empty tuple of doubles will return double
  *
  * @method "∑_"
- * @restricts "extended integer+'s type"
+ * @restricts "double+'s type"
  */
-Semantic restriction "∏_" is
-[
-	dblTupleType : double+'s type
-|
-	double
-];
+Semantic restriction "∏_" is a closed operation on nonempty tuples of double;
 
 /* TODO [RAA]
  *
