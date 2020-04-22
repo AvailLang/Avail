@@ -1541,8 +1541,8 @@ Public stable method "least common multiple of_and_" is
 ] : natural number;
 
 /**
-* Respecting the sign of the result when enough type information is available
-* to prove the signs of the arguments.
+* Respect the sign of the result when enough type information is available to
+* prove the signs of the arguments.
 *
 * @method "_bit⊕_"
 * @restricts "integer's type"

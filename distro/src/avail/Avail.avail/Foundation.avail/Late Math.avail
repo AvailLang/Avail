@@ -948,8 +948,8 @@ Public stable method "_is a strong probable prime to base_" is
 	base : natural number
 |
 	$body : boolean;
-	If n = 1 ∨ n = base ∨ (n ≠ 2 ∧ n is even) then [Exit body with false];
-	If base = 1 then [Exit body with true];
+	Exit body with true if base = 1;
+	Exit body with false if n = 1 ∨ n = base ∨ (n ≠ 2 ∧ n is even);
 	d : whole number := n - 1;
 	s : whole number := 0;
 	While d is even do
@@ -1035,23 +1035,20 @@ Public method "_is prime" is
 [
 	x : [0..2^32)
 |
-	/* This algorithm uses the limited range of input to turn the SPRP test into
-	* a deterministic test. In other approaches, this is often accomplished with
-	* multiple rounds of tests -- for [0, 2^32) this could be accomplished with
-	* a mere 3 -- however *this* approach reduces the number of SPRP checks to
-	* only 1 by first hashing the number into 256 buckets which each have a
-	* single base, defined above, proven to be correct for all hashed values. */
+	// This algorithm uses the limited range of input to turn the SPRP test into
+	// a deterministic test. In other approaches, this is often accomplished
+	// with multiple rounds of tests -- for [0, 2^32) this could be accomplished
+	// with a mere 3 -- however *this* approach reduces the number of SPRP
+	// checks to only 1 by first hashing the number into 256 buckets which each 
+	// have a single base, defined above, proven correct for all hashed values.
 	$body : boolean;
 	Assert: x > 130;
 	/* Check small divisors and ensure x is coprime with 210 */
-	If (x is even) ∨ (x mod 3 = 0) ∨ (x mod 5 = 0) ∨ (x mod 7 = 0) then
-	[
-		Exit body with false
-	];
+	Exit body with false if 
+		(x is even) ∨ (x mod 3 = 0) ∨ (x mod 5 = 0) ∨ (x mod 7 = 0);
 	hash : whole number := x;
-	/* 73244475 = 0x45d9f3b */
-	hash := ((hash >> 16) bit⊕ hash) × 73244475;
-	hash := ((hash >> 16) bit⊕ hash) × 73244475;
+	hash := ((hash >> 16) bit⊕ hash) × 0x45d9f3b;
+	hash := ((hash >> 16) bit⊕ hash) × 0x45d9f3b;
 	hash := ((hash >> 16) bit⊕ hash) bit∧ 255;
 	x ?→ [122..2^32) is a strong probable prime
 		to base fj32bases[hash + 1]
@@ -1075,9 +1072,9 @@ Public method "_is prime" is
 |
 	Assert: x ≥ 2^32;
 	k ::= x?→[2^32..2^64];
-	/* This set of 7 probabilistic SPRP tests is guaranteed to provide a correct
-	 * answer within the range [0..2^64]. The bases are arranged in ascending
-	 * order to eliminate pseudoprimes with as few tests as possible. */
+	// This set of 7 probabilistic SPRP tests is guaranteed to provide a correct
+	// answer within the range [0..2^64]. The bases are arranged in ascending
+	// order to eliminate pseudoprimes with as few tests as possible.
 	sinclairBases ::= <2, 325, 9375, 28178, 450775, 9780504, 1795265022>;
 	each b of sinclairBases satisfies [k is a strong probable prime to base b]
 ];

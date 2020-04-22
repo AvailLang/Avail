@@ -1198,7 +1198,7 @@ Extends
 		"drop…from_§where_",
 		"drop…from_§while_",
 		"drop_from_",
-		"explode_at element_«skipping empties»?",
+		"explode_at element_«,⁇skipping empties»?",
 		"select each…,…from_§where_",
 		"first index of_in_",
 		"first index of_where_",

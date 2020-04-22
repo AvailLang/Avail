@@ -66,7 +66,7 @@ Names
 	"drop…from_§where_",
 	"drop…from_§while_",
 	"drop_from_",
-	"explode_at element_«skipping empties»?",
+	"explode_at element_«,⁇skipping empties»?",
 	"first index of_in_",
 	"first index of_where_",
 	"first index of…in_§where_",
@@ -2557,7 +2557,7 @@ Semantic restriction "split_before_" is
 * Break a tuple into a tuple of tuples at elements matching a provided
 * delimiter.
 *
-* @method "explode_at element_«skipping empties»?"
+* @method "explode_at element_«,⁇skipping empties»?"
 * @param "aTuple" "tuple"
 * @param "delimiter" "any"
 * @param "skipEmpties" "boolean"
@@ -2569,7 +2569,7 @@ Semantic restriction "split_before_" is
 *          matching delimiter, with that delimiting element removed.
 * @category "Tuples" "Transformers"
 */
-Public stable method "explode_at element_«skipping empties»?" is
+Public stable method "explode_at element_«,⁇skipping empties»?" is
 [
   aTuple : tuple,
   delimiter : any,
@@ -2601,12 +2601,12 @@ Public stable method "explode_at element_«skipping empties»?" is
 * 1 to the original tuple's max cardinality, or half of that maximum if empties
 * were skipped.
 *
-* @method "explode_at element_«skipping empties»?"
+* @method "explode_at element_«,⁇skipping empties»?"
 * @restricts "tuple meta"
 * @restricts "any's type"
 * @restricts "boolean's type"
 */
-Semantic restriction "explode_at element_«skipping empties»?" is
+Semantic restriction "explode_at element_«,⁇skipping empties»?" is
 [
   tupleType : tuple meta,
   delimiterType : any's type,
@@ -2623,10 +2623,11 @@ Semantic restriction "explode_at element_«skipping empties»?" is
   ];
   if skipType's instance then
   [
-     /* Since we throw away delimiters, the maximum number of *non-empty*
-        sub-tuples is half the original tuple length rounded up. */
-     maxSlices ::= (⌈tupleType⌉ + 1) ÷ 2;
-     <<tupleMemberType…|1..⌈tupleType⌉>…|1..maxSlices>
+    /* Since we throw away delimiters, the maximum number of *non-empty*
+     * sub-tuples is half the original tuple length rounded up.
+	 */
+    maxSlices ::= (⌈tupleType⌉ + 1) ÷ 2;
+    <<tupleMemberType…|1..⌈tupleType⌉>…|1..maxSlices>
   ]
   else
   [
@@ -3333,24 +3334,6 @@ Semantic restriction "_'s⁇last" is
 ];
 
 /**
- * Sum the elements of the specified tuple of integers.
- *
- * @method "∑_"
- * @param "intTuple" "extended integer*"
- *        A tuple of integers.
- * @returns "extended integer"
- *          An integer.
- * @category "Tuples" "Integers" "Mathematics"
- */
-Public stable method "∑_" is
-[
-	intTuple : extended integer+
-|
-	left fold intTuple through
-		[i : extended integer, ri : extended integer | i + ri]
-] : extended integer;
-
-/**
  * Sum the elements of the specified tuple of numbers.
  *
  * @method "∑_"
@@ -3362,18 +3345,11 @@ Public stable method "∑_" is
  */
 Public stable method "∑_" is
 [
-	numTuple : number+
-|
-	left fold numTuple through
-		[i : number, ri : number | i + ri]
-];
-
-Public stable method "∑_" is
-[
 	numTuple : number*
 |
-	0
-] : number;
+	left fold <0> ++ numTuple through
+		[i : number, ri : number | i + ri]
+];
 
 /**
  * Compute and answer the best bounds of the specified summation.
@@ -3452,18 +3428,19 @@ Semantic restriction "∑_" is
 ];
 
 /**
- * Non-empty tuple of doubles will return double
+ * Non-empty tuple of doubles will return double.
  *
  * @method "∑_"
  * @restricts "double+'s type"
  */
 Semantic restriction "∑_" is
 	a closed element operation on nonempty tuples of double;
+
 /**
- * Non-empty tuple of doubles will return double
+ * Non-empty tuple of floats will return float.
  *
  * @method "∑_"
- * @restricts "double+'s type"
+ * @restricts "float+'s type"
  */
 Semantic restriction "∑_" is
 	a closed element operation on nonempty tuples of float;
@@ -3480,46 +3457,34 @@ Semantic restriction "∑_" is
  */
 Public stable method "∏_" is
 [
-	numTuple : number+
-|
-	left fold numTuple through
-	[
-		i : number,
-		ri : number
-	|
-		i × ri
-	]
-] : number;
-
-Public stable method "∏_" is
-[
 	numTuple : number*
 |
-	1
+	left fold <1> ++ numTuple through
+		[i : number, ri : number | i × ri]
 ] : number;
 
 /**
- * Non-empty tuple of integers will return integer
+ * Non-empty tuple of integers will return integer.
  *
- * @method "∑_"
+ * @method "∏_"
  * @restricts "extended integer+'s type"
  */
 Semantic restriction "∏_" is
 	a closed element operation on nonempty tuples of extended integer;
 
 /**
- * Non-empty tuple of floats will return float
+ * Non-empty tuple of floats will return float.
  *
- * @method "∑_"
+ * @method "∏_"
  * @restricts "float+'s type"
  */
 Semantic restriction "∏_" is
 	a closed element operation on nonempty tuples of float;
 
 /**
- * Non-empty tuple of doubles will return double
+ * Non-empty tuple of doubles will return double.
  *
- * @method "∑_"
+ * @method "∏_"
  * @restricts "double+'s type"
  */
 Semantic restriction "∏_" is
