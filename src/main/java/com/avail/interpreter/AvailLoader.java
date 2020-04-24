@@ -39,7 +39,6 @@ import com.avail.compiler.splitter.MessageSplitter;
 import com.avail.descriptor.A_Character;
 import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.A_Module;
-import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.ModuleDescriptor;
 import com.avail.descriptor.atoms.A_Atom;
@@ -85,7 +84,6 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static com.avail.AvailRuntime.currentRuntime;
-import static com.avail.descriptor.representation.AvailObject.error;
 import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
 import static com.avail.descriptor.FiberDescriptor.newFiber;
 import static com.avail.descriptor.FiberDescriptor.newLoaderFiber;
@@ -103,6 +101,7 @@ import static com.avail.descriptor.methods.MacroDefinitionDescriptor.newMacroDef
 import static com.avail.descriptor.methods.MethodDefinitionDescriptor.newMethodDefinition;
 import static com.avail.descriptor.parsing.LexerDescriptor.newLexer;
 import static com.avail.descriptor.parsing.ParsingPlanInProgressDescriptor.newPlanInProgress;
+import static com.avail.descriptor.representation.AvailObject.error;
 import static com.avail.descriptor.sets.SetDescriptor.emptySet;
 import static com.avail.descriptor.sets.SetDescriptor.*;
 import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList;
@@ -1205,7 +1204,7 @@ public final class AvailLoader
 		macroBody.makeShared();
 		// Add the macro definition.
 		final A_Method method = A_Bundle.Companion.bundleMethod(bundle);
-		final AvailObject macroDefinition = newMacroDefinition(
+		final A_Definition macroDefinition = newMacroDefinition(
 			method, module, macroBody, prefixFunctions);
 		module.moduleAddDefinition(macroDefinition);
 		final A_Type macroBodyType = macroBody.kind();

@@ -7,11 +7,11 @@
  * modification, are permitted provided that the following conditions are met:
  *
  *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ *    list of conditions and the following disclaimer.
  *
  *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ *    list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
  *  * Neither the name of the copyright holder nor the names of the contributors
  *    may be used to endorse or promote products derived from this software
@@ -43,6 +43,9 @@ import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.TypeTag
 import com.avail.descriptor.types.VariableTypeDescriptor
+import com.avail.descriptor.variables.VariableSharedGlobalDescriptor.IntegerSlots.Companion.HASH_ALWAYS_SET
+import com.avail.descriptor.variables.VariableSharedGlobalDescriptor.IntegerSlots.Companion.VALUE_IS_STABLE
+import com.avail.descriptor.variables.VariableSharedGlobalDescriptor.ObjectSlots.*
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.VariableGetException
 import com.avail.exceptions.VariableSetException
@@ -63,7 +66,7 @@ import java.util.*
  *   be written to once.
  *
  * @constructor
- * Construct a new `VariableSharedGlobalDescriptor`.
+ *   Construct a new `VariableSharedGlobalDescriptor`.
  *
  * @param mutability
  *   The [mutability][Mutability] of the new descriptor.
@@ -182,48 +185,48 @@ class VariableSharedGlobalDescriptor private constructor(
 	}
 
 	override fun allowsImmutableToMutableReferenceInField(
-		e: AbstractSlotsEnum): Boolean =
-			(super.allowsImmutableToMutableReferenceInField(e)
-		        || e === ObjectSlots.VALUE
-			    || e === ObjectSlots.WRITE_REACTORS
-			    || e === ObjectSlots.DEPENDENT_CHUNKS_WEAK_SET_POJO
-			 || e === IntegerSlots.HASH_AND_MORE) // only for flags.
+		e: AbstractSlotsEnum
+	): Boolean = (super.allowsImmutableToMutableReferenceInField(e)
+		|| e === VALUE
+		|| e === WRITE_REACTORS
+		|| e === DEPENDENT_CHUNKS_WEAK_SET_POJO
+		|| e === IntegerSlots.HASH_AND_MORE) // only for flags.
 
 	@AvailMethod
-	override fun o_GlobalModule(`object`: AvailObject): A_Module =
-		`object`.slot(ObjectSlots.MODULE)
+	override fun o_GlobalModule(self: AvailObject): A_Module =
+		self.slot(MODULE)
 
 	@AvailMethod
-	override fun o_GlobalName(`object`: AvailObject): A_String =
-		`object`.slot(ObjectSlots.GLOBAL_NAME)
+	override fun o_GlobalName(self: AvailObject): A_String =
+		self.slot(GLOBAL_NAME)
 
 	@AvailMethod
 	@Throws(VariableSetException::class)
-	override fun o_SetValue(`object`: AvailObject, newValue: A_BasicObject)
+	override fun o_SetValue(self: AvailObject, newValue: A_BasicObject)
 	{
-		synchronized(`object`) {
-			if (writeOnce && `object`.hasValue())
+		synchronized(self) {
+			if (writeOnce && self.hasValue())
 			{
 				throw VariableSetException(
 					AvailErrorCode.E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE)
 			}
-			bypass_VariableDescriptor_SetValue(`object`, newValue.makeShared())
+			bypass_VariableDescriptor_SetValue(self, newValue.makeShared())
 		}
 		recordWriteToSharedVariable()
 	}
 
 	@AvailMethod
 	override fun o_SetValueNoCheck(
-		`object`: AvailObject, newValue: A_BasicObject)
+		self: AvailObject, newValue: A_BasicObject)
 	{
-		synchronized(`object`) {
-			if (writeOnce && `object`.hasValue())
+		synchronized(self) {
+			if (writeOnce && self.hasValue())
 			{
 				throw VariableSetException(
 					AvailErrorCode.E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE)
 			}
 			bypass_VariableDescriptor_SetValueNoCheck(
-				`object`, newValue.makeShared())
+				self, newValue.makeShared())
 		}
 		recordWriteToSharedVariable()
 	}
@@ -231,20 +234,20 @@ class VariableSharedGlobalDescriptor private constructor(
 	@AvailMethod
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun o_GetAndSetValue(
-		`object`: AvailObject, newValue: A_BasicObject): AvailObject
+		self: AvailObject, newValue: A_BasicObject): AvailObject
 	{
 		if (writeOnce)
 		{
 			throw VariableSetException(
 				AvailErrorCode.E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE)
 		}
-		return super.o_GetAndSetValue(`object`, newValue)
+		return super.o_GetAndSetValue(self, newValue)
 	}
 
 	@AvailMethod
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun o_CompareAndSwapValues(
-		`object`: AvailObject,
+		self: AvailObject,
 		reference: A_BasicObject,
 		newValue: A_BasicObject): Boolean
 	{
@@ -253,26 +256,26 @@ class VariableSharedGlobalDescriptor private constructor(
 			throw VariableSetException(
 				AvailErrorCode.E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE)
 		}
-		return super.o_CompareAndSwapValues(`object`, reference, newValue)
+		return super.o_CompareAndSwapValues(self, reference, newValue)
 	}
 
 	@AvailMethod
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun o_FetchAndAddValue(
-		`object`: AvailObject, addend: A_Number): A_Number
+		self: AvailObject, addend: A_Number): A_Number
 	{
 		if (writeOnce)
 		{
 			throw VariableSetException(
 				AvailErrorCode.E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE)
 		}
-		return super.o_FetchAndAddValue(`object`, addend)
+		return super.o_FetchAndAddValue(self, addend)
 	}
 
 	@AvailMethod
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun o_AtomicAddToMap(
-		`object`: AvailObject,
+		self: AvailObject,
 		key: A_BasicObject,
 		value: A_BasicObject)
 	{
@@ -281,47 +284,44 @@ class VariableSharedGlobalDescriptor private constructor(
 			throw VariableSetException(
 				AvailErrorCode.E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE)
 		}
-		super.o_AtomicAddToMap(`object`, key, value)
+		super.o_AtomicAddToMap(self, key, value)
 	}
 
 	@AvailMethod
-	override fun o_ClearValue(`object`: AvailObject)
+	override fun o_ClearValue(self: AvailObject)
 	{
 		if (writeOnce)
 		{
 			throw VariableSetException(
 				AvailErrorCode.E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE)
 		}
-		super.o_ClearValue(`object`)
+		super.o_ClearValue(self)
 	}
 
 	@AvailMethod
-	override fun o_IsGlobal(`object`: AvailObject): Boolean = true
+	override fun o_IsGlobal(self: AvailObject): Boolean = true
 
 	@AvailMethod
-	override fun o_IsInitializedWriteOnceVariable(`object`: AvailObject)
-		: Boolean = writeOnce
+	override fun o_IsInitializedWriteOnceVariable(self: AvailObject) = writeOnce
 
 	@AvailMethod
 	override fun o_ValueWasStablyComputed(
-		`object`: AvailObject, wasStablyComputed: Boolean)
+		self: AvailObject, wasStablyComputed: Boolean)
 	{
 		// Only meaningful for write-once variables.
 		assert(writeOnce)
-		`object`.setSlot(
-			IntegerSlots.VALUE_IS_STABLE, if (wasStablyComputed) 1 else 0)
+		self.setSlot(VALUE_IS_STABLE, if (wasStablyComputed) 1 else 0)
 	}
 
 	@AvailMethod
 	override fun o_ValueWasStablyComputed(
-		`object`: AvailObject): Boolean =
+		self: AvailObject): Boolean =
 			// Can only be set for write-once variables.
-			`object`.slot(IntegerSlots.VALUE_IS_STABLE) != 0
+			self.slot(VALUE_IS_STABLE) != 0
 
 	@AvailMethod
-	override fun o_SerializerOperation(
-		`object`: AvailObject): SerializerOperation =
-			SerializerOperation.GLOBAL_VARIABLE
+	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
+		SerializerOperation.GLOBAL_VARIABLE
 
 	companion object
 	{
@@ -350,18 +350,16 @@ class VariableSharedGlobalDescriptor private constructor(
 			name: A_String,
 			writeOnce: Boolean): AvailObject
 		{
-			val result = mutableInitial.create()
-			result.setSlot(ObjectSlots.KIND, variableType!!)
-			result.setSlot(
-				IntegerSlots.HASH_ALWAYS_SET, AvailRuntimeSupport.nextHash())
-			result.setSlot(ObjectSlots.VALUE, NilDescriptor.nil)
-			result.setSlot(ObjectSlots.WRITE_REACTORS, NilDescriptor.nil)
-			result.setSlot(
-				ObjectSlots.DEPENDENT_CHUNKS_WEAK_SET_POJO, NilDescriptor.nil)
-			result.setSlot(ObjectSlots.MODULE, module.makeShared())
-			result.setSlot(ObjectSlots.GLOBAL_NAME, name.makeShared())
-			result.setDescriptor(if (writeOnce) sharedWriteOnce else shared)
-			return result
+			return mutableInitial.create().apply {
+				setSlot(KIND, variableType!!)
+				setSlot(HASH_ALWAYS_SET, AvailRuntimeSupport.nextHash())
+				setSlot(VALUE, NilDescriptor.nil)
+				setSlot(WRITE_REACTORS, NilDescriptor.nil)
+				setSlot(DEPENDENT_CHUNKS_WEAK_SET_POJO, NilDescriptor.nil)
+				setSlot(MODULE, module.makeShared())
+				setSlot(GLOBAL_NAME, name.makeShared())
+				setDescriptor(if (writeOnce) sharedWriteOnce else shared)
+			}
 		}
 
 		/**

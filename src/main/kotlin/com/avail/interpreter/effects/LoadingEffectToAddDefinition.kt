@@ -64,88 +64,88 @@ internal class LoadingEffectToAddDefinition constructor(
 		val atom = definition.definitionMethod()
 			.chooseBundle(definition.definitionModule())
 			.message()
-		if (definition.isAbstractDefinition)
-		{
-			// Push the bundle's atom.
-			writer.write(
-				0,
-				L1Operation.L1_doPushLiteral,
-				writer.addLiteral(atom))
-			// Push the function type.
-			writer.write(
-				0,
-				L1Operation.L1_doPushLiteral,
-				writer.addLiteral(definition.bodySignature()))
-			// Call the abstract definition loading method.
-			writer.write(
-				0,
-				L1Operation.L1_doCall,
-				writer.addLiteral(ABSTRACT_DEFINER.bundle),
-				writer.addLiteral(Types.TOP.o()))
-			return
+		with(writer) {
+			when {
+				definition.isAbstractDefinition() -> {
+					// Push the bundle's atom.
+					write(
+						0,
+						L1Operation.L1_doPushLiteral,
+						addLiteral(atom))
+					// Push the function type.
+					write(
+						0,
+						L1Operation.L1_doPushLiteral,
+						addLiteral(definition.bodySignature()))
+					// Call the abstract definition loading method.
+					write(
+						0,
+						L1Operation.L1_doCall,
+						addLiteral(ABSTRACT_DEFINER.bundle),
+						addLiteral(Types.TOP.o()))
+				}
+				definition.isForwardDefinition() -> {
+					// Push the bundle's atom.
+					write(
+						0,
+						L1Operation.L1_doPushLiteral,
+						addLiteral(atom))
+					// Push the function type.
+					write(
+						0,
+						L1Operation.L1_doPushLiteral,
+						addLiteral(definition.bodySignature()))
+					// Call the forward definition loading method.
+					write(
+						0,
+						L1Operation.L1_doCall,
+						addLiteral(FORWARD_DEFINER.bundle),
+						addLiteral(Types.TOP.o()))
+				}
+				definition.isMacroDefinition() -> {
+					// NOTE: The prefix functions are dealt with as separate effects.
+					// Push the bundle's atom.
+					write(
+						0,
+						L1Operation.L1_doPushLiteral,
+						addLiteral(atom))
+					// Push the tuple of macro prefix functions.
+					write(
+						0,
+						L1Operation.L1_doPushLiteral,
+						addLiteral(definition.prefixFunctions()))
+					// Push the macro body function.
+					write(
+						0,
+						L1Operation.L1_doPushLiteral,
+						addLiteral(definition.bodyBlock()))
+					// Call the macro definition method.
+					write(
+						0,
+						L1Operation.L1_doCall,
+						addLiteral(MACRO_DEFINER.bundle),
+						addLiteral(Types.TOP.o()))
+				}
+				else -> {
+					assert(definition.isMethodDefinition())
+					// Push the bundle's atom.
+					write(
+						0,
+						L1Operation.L1_doPushLiteral,
+						addLiteral(atom))
+					// Push the body function.
+					write(
+						0,
+						L1Operation.L1_doPushLiteral,
+						addLiteral(definition.bodyBlock()))
+					// Call the definition loading method.
+					write(
+						0,
+						L1Operation.L1_doCall,
+						addLiteral(METHOD_DEFINER.bundle),
+						addLiteral(Types.TOP.o()))
+				}
+			}
 		}
-		if (definition.isForwardDefinition)
-		{
-			// Push the bundle's atom.
-			writer.write(
-				0,
-				L1Operation.L1_doPushLiteral,
-				writer.addLiteral(atom))
-			// Push the function type.
-			writer.write(
-				0,
-				L1Operation.L1_doPushLiteral,
-				writer.addLiteral(definition.bodySignature()))
-			// Call the forward definition loading method.
-			writer.write(
-				0,
-				L1Operation.L1_doCall,
-				writer.addLiteral(FORWARD_DEFINER.bundle),
-				writer.addLiteral(Types.TOP.o()))
-			return
-		}
-		if (definition.isMacroDefinition)
-		{
-			// NOTE: The prefix functions are dealt with as separate effects.
-			// Push the bundle's atom.
-			writer.write(
-				0,
-				L1Operation.L1_doPushLiteral,
-				writer.addLiteral(atom))
-			// Push the tuple of macro prefix functions.
-			writer.write(
-				0,
-				L1Operation.L1_doPushLiteral,
-				writer.addLiteral(definition.prefixFunctions()))
-			// Push the macro body function.
-			writer.write(
-				0,
-				L1Operation.L1_doPushLiteral,
-				writer.addLiteral(definition.bodyBlock()))
-			// Call the macro definition method.
-			writer.write(
-				0,
-				L1Operation.L1_doCall,
-				writer.addLiteral(MACRO_DEFINER.bundle),
-				writer.addLiteral(Types.TOP.o()))
-			return
-		}
-		assert(definition.isMethodDefinition)
-		// Push the bundle's atom.
-		writer.write(
-			0,
-			L1Operation.L1_doPushLiteral,
-			writer.addLiteral(atom))
-		// Push the body function.
-		writer.write(
-			0,
-			L1Operation.L1_doPushLiteral,
-			writer.addLiteral(definition.bodyBlock()))
-		// Call the definition loading method.
-		writer.write(
-			0,
-			L1Operation.L1_doCall,
-			writer.addLiteral(METHOD_DEFINER.bundle),
-			writer.addLiteral(Types.TOP.o()))
 	}
 }

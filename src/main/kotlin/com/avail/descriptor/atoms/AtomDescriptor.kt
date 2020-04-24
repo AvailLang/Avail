@@ -52,7 +52,7 @@ import com.avail.descriptor.atoms.AtomWithPropertiesSharedDescriptor.Companion.s
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.MessageBundleDescriptor.Companion.newBundle
 import com.avail.descriptor.methods.A_Method
-import com.avail.descriptor.methods.MethodDescriptor.newMethod
+import com.avail.descriptor.methods.MethodDescriptor.Companion.newMethod
 import com.avail.descriptor.objects.ObjectTypeDescriptor
 import com.avail.descriptor.representation.*
 import com.avail.descriptor.sets.SetDescriptor

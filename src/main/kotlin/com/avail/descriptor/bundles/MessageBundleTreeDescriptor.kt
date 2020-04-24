@@ -804,9 +804,9 @@ class MessageBundleTreeDescriptor private constructor(
 				signatureType: A_Type
 			) = compareForParsing(argumentRestrictions, signatureType)
 
-			override val testsArgumentPositions get() = false
+			override fun testsArgumentPositions() = false
 
-			override val subtypesHideSupertypes get() = false
+			override fun subtypesHideSupertypes() = false
 		}
 
 		/**

@@ -2176,7 +2176,7 @@ class AvailCompiler(
 		assert(definitionsTuple.tupleSize() > 0)
 		return { c ->
 			val kindOfDefinition =
-				if (definitionsTuple.tupleAt(1).isMacroDefinition)
+				if (definitionsTuple.tupleAt(1).isMacroDefinition())
 					"macro"
 				else
 					"method"
@@ -2274,7 +2274,7 @@ class AvailCompiler(
 					builder.format(
 						"%n\t\tFrom module %s @ line #%s,",
 						definition.definitionModuleName(),
-						if (definition.isMethodDefinition)
+						if (definition.isMethodDefinition())
 							definition.bodyBlock().code()
 								.startingLineNumber()
 						else

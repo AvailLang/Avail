@@ -142,27 +142,27 @@ class CommentTokenDescriptor private constructor(mutability: Mutability)
 		        || super.allowsImmutableToMutableReferenceInField(e))
 
 	override fun o_SerializerOperation(
-		`object`: AvailObject): SerializerOperation =
+		self: AvailObject): SerializerOperation =
 			SerializerOperation.COMMENT_TOKEN
 
 	@AvailMethod
-	override fun o_TokenType(`object`: AvailObject): TokenType =
+	override fun o_TokenType(self: AvailObject): TokenType =
 		TokenType.COMMENT
 
-	override fun o_WriteTo(`object`: AvailObject, writer: JSONWriter)
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
 	{
 		writer.startObject()
 		writer.write("kind")
 		writer.write("token")
 		writer.write("token type")
-		writer.write(`object`.tokenType().name.toLowerCase().replace(
+		writer.write(self.tokenType().name.toLowerCase().replace(
 			'_', ' '))
 		writer.write("start")
-		writer.write(`object`.slot(IntegerSlots.START))
+		writer.write(self.slot(IntegerSlots.START))
 		writer.write("line number")
-		writer.write(`object`.slot(IntegerSlots.LINE_NUMBER))
+		writer.write(self.slot(IntegerSlots.LINE_NUMBER))
 		writer.write("lexeme")
-		`object`.slot(ObjectSlots.STRING).writeTo(writer)
+		self.slot(ObjectSlots.STRING).writeTo(writer)
 		writer.endObject()
 	}
 

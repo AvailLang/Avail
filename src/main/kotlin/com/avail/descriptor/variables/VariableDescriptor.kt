@@ -178,9 +178,9 @@ open class VariableDescriptor protected constructor(
 				|| e === ObjectSlots.WRITE_REACTORS
 
 	@AvailMethod
-	override fun o_Hash(`object`: AvailObject): Int
+	override fun o_Hash(self: AvailObject): Int
 	{
-		var hash = `object`.slot(IntegerSlots.HASH_OR_ZERO)
+		var hash = self.slot(IntegerSlots.HASH_OR_ZERO)
 		if (hash == 0)
 		{
 			do
@@ -188,18 +188,18 @@ open class VariableDescriptor protected constructor(
 				hash = AvailRuntimeSupport.nextHash()
 			}
 			while (hash == 0)
-			`object`.setSlot(IntegerSlots.HASH_OR_ZERO, hash)
+			self.setSlot(IntegerSlots.HASH_OR_ZERO, hash)
 		}
 		return hash
 	}
 
 	@AvailMethod
-	override fun o_Value(`object`: AvailObject): AvailObject =
-		`object`.slot(ObjectSlots.VALUE)
+	override fun o_Value(self: AvailObject): AvailObject =
+		self.slot(ObjectSlots.VALUE)
 
 	@AvailMethod
 	@Throws(VariableGetException::class)
-	override fun o_GetValue(`object`: AvailObject): AvailObject
+	override fun o_GetValue(self: AvailObject): AvailObject
 	{
 		try
 		{
@@ -207,7 +207,7 @@ open class VariableDescriptor protected constructor(
 			if (interpreter.traceVariableReadsBeforeWrites())
 			{
 				val fiber = interpreter.fiber()
-				fiber.recordVariableAccess(`object`, true)
+				fiber.recordVariableAccess(self, true)
 			}
 		}
 		catch (e: ClassCastException)
@@ -216,7 +216,7 @@ open class VariableDescriptor protected constructor(
 		}
 		// Answer the current value of the variable. Fail if no value is
 		// currently assigned.
-		val value = `object`.slot(ObjectSlots.VALUE)
+		val value = self.slot(ObjectSlots.VALUE)
 		if (value.equalsNil())
 		{
 			throw VariableGetException(
@@ -230,7 +230,7 @@ open class VariableDescriptor protected constructor(
 	}
 
 	@AvailMethod
-	override fun o_HasValue(`object`: AvailObject): Boolean
+	override fun o_HasValue(self: AvailObject): Boolean
 	{
 		try
 		{
@@ -238,52 +238,52 @@ open class VariableDescriptor protected constructor(
 			if (interpreter.traceVariableReadsBeforeWrites())
 			{
 				val fiber = interpreter.fiber()
-				fiber.recordVariableAccess(`object`, true)
+				fiber.recordVariableAccess(self, true)
 			}
 		}
 		catch (e: ClassCastException)
 		{
 			// No implementation required.
 		}
-		val value = `object`.slot(ObjectSlots.VALUE)
+		val value = self.slot(ObjectSlots.VALUE)
 		return !value.equalsNil()
 	}
 
 	@AvailMethod
-	override fun o_SerializerOperation(`object`: AvailObject)
+	override fun o_SerializerOperation(self: AvailObject)
 		: SerializerOperation = SerializerOperation.LOCAL_VARIABLE
 
 	@AvailMethod
 	@Throws(VariableSetException::class)
-	override fun o_SetValue(`object`: AvailObject, newValue: A_BasicObject)
+	override fun o_SetValue(self: AvailObject, newValue: A_BasicObject)
 	{
-		handleVariableWriteTracing(`object`)
-		val outerKind: A_Type = `object`.slot(ObjectSlots.KIND)
+		handleVariableWriteTracing(self)
+		val outerKind: A_Type = self.slot(ObjectSlots.KIND)
 		if (!newValue.isInstanceOf(outerKind.writeType()))
 		{
 			throw VariableSetException(
 				AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 		}
-		`object`.setSlot(ObjectSlots.VALUE, newValue)
+		self.setSlot(ObjectSlots.VALUE, newValue)
 	}
 
 	@AvailMethod
 	@Throws(VariableSetException::class)
 	override fun o_SetValueNoCheck(
-		`object`: AvailObject, newValue: A_BasicObject)
+		self: AvailObject, newValue: A_BasicObject)
 	{
 		assert(!newValue.equalsNil())
-		handleVariableWriteTracing(`object`)
-		`object`.setSlot(ObjectSlots.VALUE, newValue)
+		handleVariableWriteTracing(self)
+		self.setSlot(ObjectSlots.VALUE, newValue)
 	}
 
 	@AvailMethod
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun o_GetAndSetValue(
-		`object`: AvailObject, newValue: A_BasicObject): AvailObject
+		self: AvailObject, newValue: A_BasicObject): AvailObject
 	{
-		handleVariableWriteTracing(`object`)
-		val outerKind = `object`.slot(ObjectSlots.KIND)
+		handleVariableWriteTracing(self)
+		val outerKind = self.slot(ObjectSlots.KIND)
 		if (!newValue.isInstanceOf(outerKind.writeType()))
 		{
 			throw VariableSetException(
@@ -292,13 +292,13 @@ open class VariableDescriptor protected constructor(
 		// The variable is not visible to multiple fibers, and cannot become
 		// visible to any other fiber except by an act of the current fiber,
 		// therefore do not worry about atomicity.
-		val value = `object`.slot(ObjectSlots.VALUE)
+		val value = self.slot(ObjectSlots.VALUE)
 		if (value.equalsNil())
 		{
 			throw VariableGetException(
 				AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE)
 		}
-		`object`.setSlot(ObjectSlots.VALUE, newValue)
+		self.setSlot(ObjectSlots.VALUE, newValue)
 		if (mutability === Mutability.MUTABLE)
 		{
 			value.makeImmutable()
@@ -309,12 +309,12 @@ open class VariableDescriptor protected constructor(
 	@AvailMethod
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun o_CompareAndSwapValues(
-		`object`: AvailObject,
+		self: AvailObject,
 		reference: A_BasicObject,
 		newValue: A_BasicObject): Boolean
 	{
-		handleVariableWriteTracing(`object`)
-		val outerKind = `object`.slot(ObjectSlots.KIND)
+		handleVariableWriteTracing(self)
+		val outerKind = self.slot(ObjectSlots.KIND)
 		if (!newValue.isInstanceOf(outerKind.writeType()))
 		{
 			throw VariableSetException(
@@ -323,7 +323,7 @@ open class VariableDescriptor protected constructor(
 		// The variable is not visible to multiple fibers, and cannot become
 		// visible to any other fiber except by an act of the current fiber,
 		// therefore do not worry about atomicity.
-		val value = `object`.slot(ObjectSlots.VALUE)
+		val value = self.slot(ObjectSlots.VALUE)
 		if (value.equalsNil())
 		{
 			throw VariableGetException(
@@ -332,7 +332,7 @@ open class VariableDescriptor protected constructor(
 		val swap = value.equals(reference)
 		if (swap)
 		{
-			`object`.setSlot(ObjectSlots.VALUE, newValue)
+			self.setSlot(ObjectSlots.VALUE, newValue)
 		}
 		if (mutability === Mutability.MUTABLE)
 		{
@@ -344,16 +344,16 @@ open class VariableDescriptor protected constructor(
 	@AvailMethod
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun o_FetchAndAddValue(
-		`object`: AvailObject, addend: A_Number): A_Number
+		self: AvailObject, addend: A_Number): A_Number
 	{
-		handleVariableWriteTracing(`object`)
-		val outerKind: A_Type = `object`.slot(ObjectSlots.KIND)
+		handleVariableWriteTracing(self)
+		val outerKind: A_Type = self.slot(ObjectSlots.KIND)
 		assert(outerKind.readType().isSubtypeOf(
 			IntegerRangeTypeDescriptor.extendedIntegers()))
 		// The variable is not visible to multiple fibers, and cannot become
 		// visible to any other fiber except by an act of the current fiber,
 		// therefore do not worry about atomicity.
-		val value: A_Number = `object`.slot(ObjectSlots.VALUE)
+		val value: A_Number = self.slot(ObjectSlots.VALUE)
 		if (value.equalsNil())
 		{
 			throw VariableGetException(
@@ -365,7 +365,7 @@ open class VariableDescriptor protected constructor(
 			throw VariableSetException(
 				AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 		}
-		`object`.setSlot(ObjectSlots.VALUE, newValue)
+		self.setSlot(ObjectSlots.VALUE, newValue)
 		if (mutability === Mutability.MUTABLE)
 		{
 			value.makeImmutable()
@@ -376,15 +376,15 @@ open class VariableDescriptor protected constructor(
 	@AvailMethod
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun o_AtomicAddToMap(
-		`object`: AvailObject,
+		self: AvailObject,
 		key: A_BasicObject,
 		value: A_BasicObject)
 	{
-		handleVariableWriteTracing(`object`)
-		val outerKind: A_Type = `object`.slot(ObjectSlots.KIND)
+		handleVariableWriteTracing(self)
+		val outerKind: A_Type = self.slot(ObjectSlots.KIND)
 		val readType = outerKind.readType()
 		assert(readType.isMapType)
-		val oldMap: A_Map = `object`.slot(ObjectSlots.VALUE)
+		val oldMap: A_Map = self.slot(ObjectSlots.VALUE)
 		if (oldMap.equalsNil())
 		{
 			throw VariableGetException(
@@ -416,19 +416,19 @@ open class VariableDescriptor protected constructor(
 		val newMap = oldMap.mapAtPuttingCanDestroy(key, value, true)
 		// We already checked the key, value, and resulting size, so we can skip
 		// a separate type check.
-		`object`.setSlot(ObjectSlots.VALUE, newMap.makeShared())
+		self.setSlot(ObjectSlots.VALUE, newMap.makeShared())
 	}
 
 	@AvailMethod
 	@Throws(VariableGetException::class)
 	override fun o_VariableMapHasKey(
-		`object`: AvailObject, key: A_BasicObject): Boolean
+		self: AvailObject, key: A_BasicObject): Boolean
 	{
-		handleVariableWriteTracing(`object`)
-		val outerKind: A_Type = `object`.slot(ObjectSlots.KIND)
+		handleVariableWriteTracing(self)
+		val outerKind: A_Type = self.slot(ObjectSlots.KIND)
 		val readType = outerKind.readType()
 		assert(readType.isMapType)
-		val oldMap: A_Map = `object`.slot(ObjectSlots.VALUE)
+		val oldMap: A_Map = self.slot(ObjectSlots.VALUE)
 		if (oldMap.equalsNil())
 		{
 			throw VariableGetException(
@@ -438,23 +438,23 @@ open class VariableDescriptor protected constructor(
 	}
 
 	@AvailMethod
-	override fun o_ClearValue(`object`: AvailObject)
+	override fun o_ClearValue(self: AvailObject)
 	{
-		handleVariableWriteTracing(`object`)
-		`object`.setSlot(ObjectSlots.VALUE, nil)
+		handleVariableWriteTracing(self)
+		self.setSlot(ObjectSlots.VALUE, nil)
 	}
 
 	@AvailMethod
-	override fun o_AddDependentChunk(`object`: AvailObject, chunk: L2Chunk)
+	override fun o_AddDependentChunk(self: AvailObject, chunk: L2Chunk)
 	{
 		assert(!isShared)
-		val sharedVariable: A_Variable = `object`.makeShared()
+		val sharedVariable: A_Variable = self.makeShared()
 		sharedVariable.addDependentChunk(chunk)
-		`object`.becomeIndirectionTo(sharedVariable)
+		self.becomeIndirectionTo(sharedVariable)
 	}
 
 	@AvailMethod
-	override fun o_RemoveDependentChunk(`object`: AvailObject, chunk: L2Chunk)
+	override fun o_RemoveDependentChunk(self: AvailObject, chunk: L2Chunk)
 	{
 		assert(!isShared)
 		assert(false) { "Chunk removed but not added!" }
@@ -463,16 +463,16 @@ open class VariableDescriptor protected constructor(
 
 	@AvailMethod
 	override fun o_AddWriteReactor(
-		`object`: AvailObject,
+		self: AvailObject,
 		key: A_Atom,
 		reactor: VariableAccessReactor)
 	{
-		var rawPojo = `object`.slot(ObjectSlots.WRITE_REACTORS)
+		var rawPojo = self.slot(ObjectSlots.WRITE_REACTORS)
 		if (rawPojo.equalsNil())
 		{
 			rawPojo = RawPojoDescriptor.identityPojo(
 				HashMap<A_Atom, VariableAccessReactor>())
-			`object`.setMutableSlot(ObjectSlots.WRITE_REACTORS, rawPojo)
+			self.setMutableSlot(ObjectSlots.WRITE_REACTORS, rawPojo)
 		}
 		val writeReactors =
 			rawPojo.javaObjectNotNull<MutableMap<A_Atom, VariableAccessReactor?>>()
@@ -482,9 +482,9 @@ open class VariableDescriptor protected constructor(
 
 	@AvailMethod
 	@Throws(AvailException::class)
-	override fun o_RemoveWriteReactor(`object`: AvailObject, key: A_Atom)
+	override fun o_RemoveWriteReactor(self: AvailObject, key: A_Atom)
 	{
-		val rawPojo = `object`.slot(ObjectSlots.WRITE_REACTORS)
+		val rawPojo = self.slot(ObjectSlots.WRITE_REACTORS)
 		if (rawPojo.equalsNil())
 		{
 			throw AvailException(AvailErrorCode.E_KEY_NOT_FOUND)
@@ -499,9 +499,9 @@ open class VariableDescriptor protected constructor(
 	}
 
 	@AvailMethod
-	override fun o_ValidWriteReactorFunctions(`object`: AvailObject): A_Set
+	override fun o_ValidWriteReactorFunctions(self: AvailObject): A_Set
 	{
-		val rawPojo = `object`.slot(ObjectSlots.WRITE_REACTORS)
+		val rawPojo = self.slot(ObjectSlots.WRITE_REACTORS)
 		if (!rawPojo.equalsNil())
 		{
 			val writeReactors =
@@ -522,53 +522,53 @@ open class VariableDescriptor protected constructor(
 	}
 
 	@AvailMethod
-	override fun o_Kind(`object`: AvailObject): A_Type =
-		`object`.slot(ObjectSlots.KIND)
+	override fun o_Kind(self: AvailObject): A_Type =
+		self.slot(ObjectSlots.KIND)
 
 	@AvailMethod
 	override fun o_Equals(
-		`object`: AvailObject,
+		self: AvailObject,
 		another: A_BasicObject): Boolean =
-			another.equalsVariable(`object`)
+			another.equalsVariable(self)
 
 	@AvailMethod
 	override fun o_EqualsVariable(
-		`object`: AvailObject,
+		self: AvailObject,
 		aVariable: AvailObject): Boolean =
-			`object`.sameAddressAs(aVariable)
+			self.sameAddressAs(aVariable)
 
 	@AvailMethod
-	override fun o_MakeImmutable(`object`: AvailObject): AvailObject
+	override fun o_MakeImmutable(self: AvailObject): AvailObject
 	{
 		// If I am being frozen (a variable), I don't need to freeze my current
 		// value. I do, on the other hand, have to freeze my kind object.
 		if (isMutable)
 		{
-			`object`.setDescriptor(immutable)
-			`object`.slot(ObjectSlots.KIND).makeImmutable()
+			self.setDescriptor(immutable)
+			self.slot(ObjectSlots.KIND).makeImmutable()
 		}
-		return `object`
+		return self
 	}
 
-	override fun o_MakeShared(`object`: AvailObject): AvailObject
+	override fun o_MakeShared(self: AvailObject): AvailObject
 	{
 		assert(!isShared)
 		return VariableSharedDescriptor.createSharedFrom(
-			`object`.slot(ObjectSlots.KIND),
-			`object`.hash(),
-			`object`.slot(ObjectSlots.VALUE),
-			`object`)
+			self.slot(ObjectSlots.KIND),
+			self.hash(),
+			self.slot(ObjectSlots.VALUE),
+			self)
 	}
 
-	override fun o_IsInitializedWriteOnceVariable(`object`: AvailObject)
+	override fun o_IsInitializedWriteOnceVariable(self: AvailObject)
 		: Boolean = false
 
 	@AvailMethod
-	override fun o_IsGlobal(`object`: AvailObject): Boolean = false
+	override fun o_IsGlobal(self: AvailObject): Boolean = false
 
 	@AvailMethod
 	override fun o_ValueWasStablyComputed(
-		`object`: AvailObject): Boolean
+		self: AvailObject): Boolean
 	{
 		// The override in VariableSharedWriteOnceDescriptor answer a stored
 		// flag set during initialization, but other variables always answer
@@ -576,28 +576,28 @@ open class VariableDescriptor protected constructor(
 		return false
 	}
 
-	override fun o_WriteTo(`object`: AvailObject, writer: JSONWriter)
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
 	{
 		writer.startObject()
 		writer.write("kind")
 		writer.write("variable")
 		writer.write("variable type")
-		`object`.slot(ObjectSlots.KIND).writeTo(writer)
-		if (!`object`.slot(ObjectSlots.VALUE).equalsNil())
+		self.slot(ObjectSlots.KIND).writeTo(writer)
+		if (!self.slot(ObjectSlots.VALUE).equalsNil())
 		{
 			writer.write("value")
-			`object`.slot(ObjectSlots.VALUE).writeSummaryTo(writer)
+			self.slot(ObjectSlots.VALUE).writeSummaryTo(writer)
 		}
 		writer.endObject()
 	}
 
-	override fun o_WriteSummaryTo(`object`: AvailObject, writer: JSONWriter)
+	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter)
 	{
 		writer.startObject()
 		writer.write("kind")
 		writer.write("variable")
 		writer.write("variable type")
-		`object`.slot(ObjectSlots.KIND).writeSummaryTo(writer)
+		self.slot(ObjectSlots.KIND).writeSummaryTo(writer)
 		writer.endObject()
 	}
 
@@ -640,7 +640,7 @@ open class VariableDescriptor protected constructor(
 		 *   reactors.
 		 */
 		@Throws(VariableSetException::class)
-		private fun handleVariableWriteTracing(`object`: AvailObject)
+		private fun handleVariableWriteTracing(self: AvailObject)
 		{
 			try
 			{
@@ -648,11 +648,11 @@ open class VariableDescriptor protected constructor(
 				if (interpreter.traceVariableWrites())
 				{
 					val fiber = interpreter.fiber()
-					fiber.recordVariableAccess(`object`, false)
+					fiber.recordVariableAccess(self, false)
 				}
 				else
 				{
-					val rawPojo = `object`.slot(ObjectSlots.WRITE_REACTORS)
+					val rawPojo = self.slot(ObjectSlots.WRITE_REACTORS)
 					if (!rawPojo.equalsNil())
 					{
 						val writeReactors =

@@ -35,7 +35,6 @@ package com.avail.dispatch
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.types.A_Type
 import com.avail.utility.Casts.cast
-import com.avail.utility.MutableOrNull
 import java.util.*
 
 /**
@@ -161,8 +160,7 @@ protected constructor(
 			visitLeafNode(solution)
 			return
 		}
-		val internalNode: InternalLookupTree<Element, Result> =
-			cast(node)
+		val internalNode: InternalLookupTree<Element, Result> = cast(node)
 		if (expandAll)
 		{
 			internalNode.expandIfNecessary(adaptor, adaptorMemento)
@@ -176,16 +174,18 @@ protected constructor(
 		// Create a memento to share between the below actions operating at the
 		// same position in the tree.  Push them in *reverse* order of their
 		// execution.
-		val memento = MutableOrNull<TraversalMemento>()
-		actionStack.add { visitPostInternalNode(memento.value()) }
-		actionStack.add { visit(internalNode.ifCheckFails!!) }
-		actionStack.add { visitIntraInternalNode(memento.value()) }
-		actionStack.add { visit(internalNode.ifCheckHolds!!) }
-		actionStack.add {
-			memento.value = visitPreInternalNode(
-				internalNode.argumentPositionToTest,
-				internalNode.argumentTypeToTest!!)
-		}
+		var memento: TraversalMemento? = null
+		actionStack.addAll(
+			arrayOf(
+				{ visitPostInternalNode(memento!!) },
+				{ visit(internalNode.ifCheckFails!!) },
+				{ visitIntraInternalNode(memento!!) },
+				{ visit(internalNode.ifCheckHolds!!) },
+				{
+					memento = visitPreInternalNode(
+						internalNode.argumentPositionToTest,
+						internalNode.argumentTypeToTest!!)
+				}))
 	}
 
 	/**

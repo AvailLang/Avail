@@ -1622,7 +1622,7 @@ enum class SerializerOperation constructor(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			assert(obj.isMethodDefinition)
+			assert(obj.isMethodDefinition())
 			return array(
 				obj.definitionMethod(),
 				obj.bodySignature())
@@ -1637,7 +1637,7 @@ enum class SerializerOperation constructor(
 				.filter { it.bodySignature().equals(signature) }
 			assert(definitions.size == 1)
 			val definition = definitions[0]
-			assert(definition.isMethodDefinition)
+			assert(definition.isMethodDefinition())
 			return definition
 		}
 	},
@@ -1655,7 +1655,7 @@ enum class SerializerOperation constructor(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			assert(obj.isMacroDefinition)
+			assert(obj.isMacroDefinition())
 			return array(
 				obj.definitionMethod(),
 				obj.bodySignature())
@@ -1671,7 +1671,7 @@ enum class SerializerOperation constructor(
 				.filter { it.bodySignature().equals(signature) }
 			assert(definitions.size == 1)
 			val definition = definitions[0]
-			assert(definition.isMacroDefinition)
+			assert(definition.isMacroDefinition())
 			return definition
 		}
 	},
@@ -1689,7 +1689,7 @@ enum class SerializerOperation constructor(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			assert(obj.isAbstractDefinition)
+			assert(obj.isAbstractDefinition())
 			return array(
 				obj.definitionMethod(),
 				obj.bodySignature())
@@ -1704,7 +1704,7 @@ enum class SerializerOperation constructor(
 				.filter { it.bodySignature().equals(signature) }
 			assert(definitions.size == 1)
 			val definition = definitions[0]
-			assert(definition.isAbstractDefinition)
+			assert(definition.isAbstractDefinition())
 			return definition
 		}
 	},
@@ -1722,7 +1722,7 @@ enum class SerializerOperation constructor(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			assert(obj.isForwardDefinition)
+			assert(obj.isForwardDefinition())
 			return array(
 				obj.definitionMethod(),
 				obj.bodySignature())
@@ -1737,7 +1737,7 @@ enum class SerializerOperation constructor(
 				.filter { it.bodySignature().equals(signature) }
 			assert(definitions.size == 1)
 			val definition = definitions[0]
-			assert(definition.isForwardDefinition)
+			assert(definition.isForwardDefinition())
 			return definition
 		}
 	},

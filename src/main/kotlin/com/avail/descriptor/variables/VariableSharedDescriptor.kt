@@ -34,6 +34,7 @@ package com.avail.descriptor.variables
 import com.avail.annotations.AvailMethod
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.NilDescriptor
+import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.pojos.RawPojoDescriptor
@@ -47,6 +48,8 @@ import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.TypeTag
 import com.avail.descriptor.types.VariableTypeDescriptor
+import com.avail.descriptor.variables.VariableSharedDescriptor.IntegerSlots.Companion.HASH_ALWAYS_SET
+import com.avail.descriptor.variables.VariableSharedDescriptor.ObjectSlots.*
 import com.avail.exceptions.AvailException
 import com.avail.exceptions.VariableGetException
 import com.avail.exceptions.VariableSetException
@@ -70,7 +73,7 @@ import java.util.*
  *   The [mutability][Mutability] of the new descriptor.
  * @param typeTag
  *   The [TypeTag] to embed in the new descriptor.
- * @param objectSlotsEnumClass
+ * @param selfSlotsEnumClass
  *   The Java [Class] which is a subclass of [ObjectSlotsEnum] and defines this
  *   object's object slots layout, or null if there are no object slots.
  * @param integerSlotsEnumClass
@@ -78,12 +81,12 @@ import java.util.*
  *   object's object slots layout, or null if there are no integer slots.
  */
 open class VariableSharedDescriptor protected constructor(
-		mutability: Mutability,
-		typeTag: TypeTag,
-		objectSlotsEnumClass: Class<out ObjectSlotsEnum>?,
-		integerSlotsEnumClass: Class<out IntegerSlotsEnum>?)
-	: VariableDescriptor(
-		mutability, typeTag, objectSlotsEnumClass, integerSlotsEnumClass)
+	mutability: Mutability,
+	typeTag: TypeTag,
+	objectSlotsEnumClass: Class<out ObjectSlotsEnum>?,
+	integerSlotsEnumClass: Class<out IntegerSlotsEnum>?
+) : VariableDescriptor(
+	mutability, typeTag, objectSlotsEnumClass, integerSlotsEnumClass)
 {
 	/**
 	 * The layout of integer slots for my instances.
@@ -163,45 +166,45 @@ open class VariableSharedDescriptor protected constructor(
 	}
 
 	override fun allowsImmutableToMutableReferenceInField(
-		e: AbstractSlotsEnum): Boolean =
-			(super.allowsImmutableToMutableReferenceInField(e)
-		        || e === ObjectSlots.VALUE
-			    || e === ObjectSlots.WRITE_REACTORS
-			    || e === ObjectSlots.DEPENDENT_CHUNKS_WEAK_SET_POJO
-			    || e === IntegerSlots.HASH_AND_MORE) // only for flags.
+		e: AbstractSlotsEnum
+	) = (super.allowsImmutableToMutableReferenceInField(e)
+		|| e === VALUE
+		|| e === WRITE_REACTORS
+		|| e === DEPENDENT_CHUNKS_WEAK_SET_POJO
+		|| e === IntegerSlots.HASH_AND_MORE) // only for flags.
 
 	@AvailMethod
-	override fun o_Hash(`object`: AvailObject): Int =
-		`object`.slot(IntegerSlots.HASH_ALWAYS_SET)
+	override fun o_Hash(self: AvailObject): Int =
+		self.slot(HASH_ALWAYS_SET)
 
 	@AvailMethod
-	override fun o_Value(`object`: AvailObject): AvailObject
+	override fun o_Value(self: AvailObject): AvailObject
 	{
-		recordReadFromSharedVariable(`object`)
-		synchronized(`object`) { return super.o_Value(`object`) }
+		recordReadFromSharedVariable(self)
+		return synchronized(self) { super.o_Value(self) }
 	}
 
 	@AvailMethod
 	@Throws(VariableGetException::class)
-	override fun o_GetValue(`object`: AvailObject): AvailObject
+	override fun o_GetValue(self: AvailObject): AvailObject
 	{
-		recordReadFromSharedVariable(`object`)
-		synchronized(`object`) { return super.o_GetValue(`object`) }
+		recordReadFromSharedVariable(self)
+		return synchronized(self) { super.o_GetValue(self) }
 	}
 
 	@AvailMethod
-	override fun o_HasValue(`object`: AvailObject): Boolean
+	override fun o_HasValue(self: AvailObject): Boolean
 	{
-		recordReadFromSharedVariable(`object`)
-		synchronized(`object`) { return super.o_HasValue(`object`) }
+		recordReadFromSharedVariable(self)
+		return synchronized(self) { super.o_HasValue(self) }
 	}
 
 	@AvailMethod
 	@Throws(VariableSetException::class)
-	override fun o_SetValue(`object`: AvailObject, newValue: A_BasicObject)
+	override fun o_SetValue(self: AvailObject, newValue: A_BasicObject)
 	{
-		synchronized(`object`) {
-			super.o_SetValue(`object`, newValue.makeShared())
+		synchronized(self) {
+			super.o_SetValue(self, newValue.makeShared())
 		}
 		recordWriteToSharedVariable()
 	}
@@ -211,24 +214,24 @@ open class VariableSharedDescriptor protected constructor(
 	 * the capture of writes to shared variables for detecting top-level
 	 * statements that have side-effect.
 	 *
-	 * @param object
+	 * @param self
 	 *   The variable.
 	 * @param newValue
 	 *   The value to write.
 	 */
 	@Suppress("FunctionName")
 	protected fun bypass_VariableDescriptor_SetValue(
-		`object`: AvailObject, newValue: A_BasicObject)
-	{
-		super.o_SetValue(`object`, newValue)
-	}
+		self: AvailObject,
+		newValue: A_BasicObject
+	) = super.o_SetValue(self, newValue)
 
 	@AvailMethod
 	override fun o_SetValueNoCheck(
-		`object`: AvailObject, newValue: A_BasicObject)
+		self: AvailObject,
+		newValue: A_BasicObject)
 	{
-		synchronized(`object`) {
-			super.o_SetValueNoCheck(`object`, newValue.makeShared())
+		synchronized(self) {
+			super.o_SetValueNoCheck(self, newValue.makeShared())
 		}
 		recordWriteToSharedVariable()
 	}
@@ -238,29 +241,28 @@ open class VariableSharedDescriptor protected constructor(
 	 * checking, and the capture of writes to shared variables for detecting
 	 * top-level statements that have side-effect.
 	 *
-	 * @param object
+	 * @param self
 	 *   The variable.
 	 * @param newValue
 	 *   The value to write.
 	 */
 	@Suppress("FunctionName")
 	protected fun bypass_VariableDescriptor_SetValueNoCheck(
-		`object`: AvailObject, newValue: A_BasicObject)
-	{
-		super.o_SetValueNoCheck(`object`, newValue)
-	}
+		self: AvailObject,
+		newValue: A_BasicObject
+	) = super.o_SetValueNoCheck(self, newValue)
 
 	@AvailMethod
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun o_GetAndSetValue(
-		`object`: AvailObject, newValue: A_BasicObject): AvailObject
+		self: AvailObject, newValue: A_BasicObject): AvailObject
 	{
 		// Because the separate read and write operations are performed within
 		// the critical section, atomicity is ensured.
 		try
 		{
-			synchronized(`object`) {
-				return super.o_GetAndSetValue(`object`, newValue.makeShared())
+			synchronized(self) {
+				return super.o_GetAndSetValue(self, newValue.makeShared())
 			}
 		}
 		finally
@@ -272,7 +274,7 @@ open class VariableSharedDescriptor protected constructor(
 	@AvailMethod
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun o_CompareAndSwapValues(
-		`object`: AvailObject,
+		self: AvailObject,
 		reference: A_BasicObject,
 		newValue: A_BasicObject): Boolean
 	{
@@ -280,9 +282,9 @@ open class VariableSharedDescriptor protected constructor(
 		// performed within the critical section, atomicity is ensured.
 		try
 		{
-			synchronized(`object`) {
+			synchronized(self) {
 				return super.o_CompareAndSwapValues(
-					`object`, reference, newValue.makeShared())
+					self, reference, newValue.makeShared())
 			}
 		}
 		finally
@@ -294,15 +296,15 @@ open class VariableSharedDescriptor protected constructor(
 	@AvailMethod
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun o_FetchAndAddValue(
-		`object`: AvailObject,
+		self: AvailObject,
 		addend: A_Number): A_Number
 	{
 		// Because the separate read and write operations are all performed
 		// within the critical section, atomicity is ensured.
 		try
 		{
-			synchronized(`object`) {
-				return super.o_FetchAndAddValue(`object`, addend.makeShared())
+			synchronized(self) {
+				return super.o_FetchAndAddValue(self, addend.makeShared())
 			}
 		}
 		finally
@@ -314,32 +316,32 @@ open class VariableSharedDescriptor protected constructor(
 	@AvailMethod
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun o_AtomicAddToMap(
-		`object`: AvailObject,
+		self: AvailObject,
 		key: A_BasicObject,
 		value: A_BasicObject)
 	{
 		// Because the separate read and write operations are all performed
 		// within the critical section, atomicity is ensured.
-		synchronized(`object`) {
+		synchronized(self) {
 			super.o_AtomicAddToMap(
-				`object`, key.makeShared(), value.makeShared())
+				self, key.makeShared(), value.makeShared())
 		}
 	}
 
 	@AvailMethod
 	@Throws(VariableGetException::class)
 	override fun o_VariableMapHasKey(
-		`object`: AvailObject, key: A_BasicObject): Boolean
+		self: AvailObject, key: A_BasicObject): Boolean
 	{
-		synchronized(`object`) {
-			return super.o_VariableMapHasKey(`object`, key)
+		synchronized(self) {
+			return super.o_VariableMapHasKey(self, key)
 		}
 	}
 
 	@AvailMethod
-	override fun o_ClearValue(`object`: AvailObject)
+	override fun o_ClearValue(self: AvailObject)
 	{
-		synchronized(`object`) { super.o_ClearValue(`object`) }
+		synchronized(self) { super.o_ClearValue(self) }
 		recordWriteToSharedVariable()
 	}
 
@@ -348,22 +350,22 @@ open class VariableSharedDescriptor protected constructor(
 	 * object not changing.
 	 */
 	@AvailMethod
-	override fun o_AddDependentChunk(`object`: AvailObject, chunk: L2Chunk)
+	override fun o_AddDependentChunk(self: AvailObject, chunk: L2Chunk)
 	{
 		// Record the fact that the given chunk depends on this object not
 		// changing.  Local synchronization is sufficient, since invalidation
 		// can't happen while L2 code is running (and therefore when the
 		// L2Generator could be calling this).
-		synchronized(`object`) {
+		synchronized(self) {
 			val pojo: A_BasicObject =
-				`object`.slot(ObjectSlots.DEPENDENT_CHUNKS_WEAK_SET_POJO)
+				self.slot(DEPENDENT_CHUNKS_WEAK_SET_POJO)
 			val chunkSet: MutableSet<L2Chunk>
 			if (pojo.equalsNil())
 			{
 				chunkSet = Collections.synchronizedSet(
 					Collections.newSetFromMap(WeakHashMap()))
-				`object`.setSlot(
-					ObjectSlots.DEPENDENT_CHUNKS_WEAK_SET_POJO,
+				self.setSlot(
+					DEPENDENT_CHUNKS_WEAK_SET_POJO,
 					RawPojoDescriptor.identityPojo(chunkSet).makeShared())
 			}
 			else
@@ -375,11 +377,11 @@ open class VariableSharedDescriptor protected constructor(
 	}
 
 	@AvailMethod
-	override fun o_RemoveDependentChunk(`object`: AvailObject, chunk: L2Chunk)
+	override fun o_RemoveDependentChunk(self: AvailObject, chunk: L2Chunk)
 	{
 		assert(L2Chunk.invalidationLock.isHeldByCurrentThread)
 		val pojo: A_BasicObject =
-			`object`.slot(ObjectSlots.DEPENDENT_CHUNKS_WEAK_SET_POJO)
+			self.slot(DEPENDENT_CHUNKS_WEAK_SET_POJO)
 		if (!pojo.equalsNil())
 		{
 			val chunkSet =
@@ -390,61 +392,61 @@ open class VariableSharedDescriptor protected constructor(
 
 	@AvailMethod
 	override fun o_AddWriteReactor(
-		`object`: AvailObject,
+		self: AvailObject,
 		key: A_Atom,
 		reactor: VariableAccessReactor)
 	{
-		recordReadFromSharedVariable(`object`)
-		synchronized(`object`) {
-			super.o_AddWriteReactor(`object`, key, reactor)
+		recordReadFromSharedVariable(self)
+		synchronized(self) {
+			super.o_AddWriteReactor(self, key, reactor)
 		}
 	}
 
 	@AvailMethod
 	@Throws(AvailException::class)
-	override fun o_RemoveWriteReactor(`object`: AvailObject, key: A_Atom)
+	override fun o_RemoveWriteReactor(self: AvailObject, key: A_Atom)
 	{
-		recordReadFromSharedVariable(`object`)
-		synchronized(`object`) { super.o_RemoveWriteReactor(`object`, key) }
+		recordReadFromSharedVariable(self)
+		synchronized(self) { super.o_RemoveWriteReactor(self, key) }
 	}
 
 	@AvailMethod
-	override fun o_ValidWriteReactorFunctions(`object`: AvailObject): A_Set
+	override fun o_ValidWriteReactorFunctions(self: AvailObject): A_Set
 	{
-		synchronized(`object`) {
-			return super.o_ValidWriteReactorFunctions(`object`)
+		synchronized(self) {
+			return super.o_ValidWriteReactorFunctions(self)
 		}
 	}
 
 	@AvailMethod
-	override fun o_MakeImmutable(`object`: AvailObject): AvailObject =
+	override fun o_MakeImmutable(self: AvailObject): AvailObject =
 		// Do nothing; just answer the (shared) receiver.
-		`object`
+		self
 
 	@AvailMethod
-	override fun o_MakeShared(`object`: AvailObject): AvailObject =
+	override fun o_MakeShared(self: AvailObject): AvailObject =
 		// Do nothing; just answer the (shared) receiver.
-		`object`
+		self
 
-	override fun o_WriteTo(`object`: AvailObject, writer: JSONWriter)
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
 	{
 		writer.startObject()
 		writer.write("kind")
 		writer.write("variable")
 		writer.write("variable type")
-		`object`.slot(ObjectSlots.KIND).writeTo(writer)
+		self.slot(KIND).writeTo(writer)
 		writer.write("value")
-		`object`.value().writeSummaryTo(writer)
+		self.value().writeSummaryTo(writer)
 		writer.endObject()
 	}
 
-	override fun o_WriteSummaryTo(`object`: AvailObject, writer: JSONWriter)
+	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter)
 	{
 		writer.startObject()
 		writer.write("kind")
 		writer.write("variable")
 		writer.write("variable type")
-		`object`.kind().writeSummaryTo(writer)
+		self.kind().writeSummaryTo(writer)
 		writer.endObject()
 	}
 
@@ -467,15 +469,15 @@ open class VariableSharedDescriptor protected constructor(
 		 * [availLoader][Interpreter.availLoader] that a shared variable has
 		 * just been read.
 		 *
-		 * @param object
+		 * @param self
 		 *   The shared variable that was read.
 		 */
-		private fun recordReadFromSharedVariable(`object`: AvailObject)
+		private fun recordReadFromSharedVariable(self: AvailObject)
 		{
 			val loader = Interpreter.current().availLoaderOrNull()
 			if (loader != null && loader.statementCanBeSummarized()
-			    && !`object`.slot(ObjectSlots.VALUE).equalsNil()
-			    && !`object`.valueWasStablyComputed())
+			    && !self.slot(VALUE).equalsNil()
+			    && !self.valueWasStablyComputed())
 			{
 				loader.statementCanBeSummarized(false)
 			}
@@ -484,24 +486,23 @@ open class VariableSharedDescriptor protected constructor(
 		/**
 		 * Invalidate any dependent [Level Two chunks][L2Chunk].
 		 *
-		 * @param object
+		 * @param self
 		 *   The method that changed.
 		 */
-		private fun invalidateChunks(`object`: AvailObject)
+		private fun invalidateChunks(self: AvailObject)
 		{
 			assert(L2Chunk.invalidationLock.isHeldByCurrentThread)
 			// Invalidate any affected level two chunks.
-			val pojo: A_BasicObject = `object`.slot(
-				ObjectSlots.DEPENDENT_CHUNKS_WEAK_SET_POJO)
+			val pojo: A_BasicObject = self.slot(
+				DEPENDENT_CHUNKS_WEAK_SET_POJO)
 			if (!pojo.equalsNil())
 			{
 				// Copy the set of chunks to avoid modification during iteration.
 				val originalSet =
 					pojo.javaObjectNotNull<Set<L2Chunk>>()
 				val chunksToInvalidate: Set<L2Chunk> = HashSet(originalSet)
-				for (chunk in chunksToInvalidate)
-				{
-					chunk.invalidate(invalidationForSlowVariable)
+				chunksToInvalidate.forEach {
+					it.invalidate(invalidationForSlowVariable)
 				}
 				assert(originalSet.isEmpty())
 			}
@@ -534,8 +535,8 @@ open class VariableSharedDescriptor protected constructor(
 			kind: A_Type,
 			hash: Int,
 			value: A_BasicObject,
-			oldVariable: AvailObject): AvailObject
-		{
+			oldVariable: AvailObject
+		): AvailObject {
 			// Make the parts immutable (not shared), just so they won't be
 			// destroyed when the original variable becomes an indirection.
 			kind.makeImmutable()
@@ -547,20 +548,19 @@ open class VariableSharedDescriptor protected constructor(
 			// invariant, since no other fibers can access the value until the
 			// entire makeShared activity has completed.
 			val newVariable = mutableInitial.create()
-			newVariable.setSlot(ObjectSlots.KIND, kind)
-			newVariable.setSlot(IntegerSlots.HASH_ALWAYS_SET, hash)
-			newVariable.setSlot(ObjectSlots.VALUE, value)
-			newVariable.setSlot(ObjectSlots.WRITE_REACTORS, NilDescriptor.nil)
-			newVariable.setSlot(
-				ObjectSlots.DEPENDENT_CHUNKS_WEAK_SET_POJO, NilDescriptor.nil)
+			newVariable.setSlot(KIND, kind)
+			newVariable.setSlot(HASH_ALWAYS_SET, hash)
+			newVariable.setSlot(VALUE, value)
+			newVariable.setSlot(WRITE_REACTORS, nil)
+			newVariable.setSlot(DEPENDENT_CHUNKS_WEAK_SET_POJO, nil)
 			assert(!oldVariable.descriptor().isShared)
 			oldVariable.becomeIndirectionTo(newVariable)
 
-			// Make the parts shared.  This may recurse, but it will terminate when
-			// it sees this variable again.  Write back the shared versions for
-			// efficiency.
-			newVariable.setSlot(ObjectSlots.KIND, kind.makeShared())
-			newVariable.setSlot(ObjectSlots.VALUE, value.makeShared())
+			// Make the parts shared.  This may recurse, but it will terminate
+			// when it sees this variable again.  Write back the shared versions
+			// for efficiency.
+			newVariable.setSlot(KIND, kind.makeShared())
+			newVariable.setSlot(VALUE, value.makeShared())
 			assert(newVariable.descriptor() === mutableInitial)
 			newVariable.setDescriptor(shared)
 

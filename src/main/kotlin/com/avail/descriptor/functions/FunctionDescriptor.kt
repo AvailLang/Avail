@@ -333,7 +333,7 @@ class FunctionDescriptor private constructor(
 			// Check that there's a definition, even abstract, that will catch all
 			// invocations for the given function type's argument types.
 			val ok = method.definitionsTuple().any { definition: AvailObject ->
-				!definition.isMacroDefinition
+				!definition.isMacroDefinition()
 					&& definition.bodySignature().isSubtypeOf(functionType)
 			}
 			require(ok) {

@@ -60,6 +60,19 @@ abstract class LookupTreeAdaptor<
 	Memento>
 {
 	/**
+	 * A convenience type for when a [LookupTreeAdaptor] doesn't need a
+	 * [Memento].
+	 */
+	enum class UnusedMemento {
+		/**
+		 * The singleton instance.  Note that we can't use the Kotlin `object`
+		 * notation for this, since we need an actual named type for the
+		 * parameterization.
+		 */
+		UNUSED;
+	}
+
+	/**
 	 * Convert from an [Element] to a suitable [A_Type] for
 	 * organizing the tree.
 	 *
@@ -103,13 +116,13 @@ abstract class LookupTreeAdaptor<
 	 * `true` if the tree uses whole type testing, or `false` if the tree tests
 	 * individual elements of a tuple type.
 	 */
-	abstract val testsArgumentPositions: Boolean
+	abstract fun testsArgumentPositions(): Boolean
 
 	/**
 	 * `true` if [Element]s  with more specific signatures exclude those with
 	 * strictly more general signatures, `false` otherwise.
 	 */
-	abstract val subtypesHideSupertypes: Boolean
+	abstract fun subtypesHideSupertypes(): Boolean
 
 	/**
 	 * Extract the signature of the element, then intersect it with the given
@@ -156,7 +169,7 @@ abstract class LookupTreeAdaptor<
 			val signatureType = restrictedSignature(element, bound)
 			var allComply = true
 			var impossible = false
-			if (testsArgumentPositions)
+			if (testsArgumentPositions())
 			{
 				val numArgs = knownArgumentRestrictions.size
 				for (i in 1..numArgs)
@@ -219,7 +232,7 @@ abstract class LookupTreeAdaptor<
 	 */
 	fun extractBoundingType(argumentRestrictions: List<TypeRestriction>): A_Type
 	{
-		return if (testsArgumentPositions)
+		return if (testsArgumentPositions())
 		{
 			tupleTypeForTypes(
 				argumentRestrictions.stream()
@@ -252,7 +265,7 @@ abstract class LookupTreeAdaptor<
 		if (undecided.isEmpty())
 		{
 			// Find the most specific applicable definitions.
-			if (!subtypesHideSupertypes || positive.size <= 1)
+			if (!subtypesHideSupertypes() || positive.size <= 1)
 			{
 				return LeafLookupTree(constructResult(positive, memento))
 			}

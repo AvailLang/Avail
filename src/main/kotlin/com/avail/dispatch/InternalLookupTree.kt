@@ -96,12 +96,10 @@ internal constructor(
 	internal var argumentPositionToTest = -1
 
 	/** The tree to visit if the supplied arguments conform.  */
-	internal var ifCheckHolds: LookupTree<Element, Result>? =
-		null
+	internal var ifCheckHolds: LookupTree<Element, Result>? = null
 
 	/** The tree to visit if the supplied arguments do not conform.  */
-	internal var ifCheckFails: LookupTree<Element, Result>? =
-		null
+	internal var ifCheckFails: LookupTree<Element, Result>? = null
 
 	/** `true` if this node has been expanded, otherwise `false`. */
 	internal val isExpanded: Boolean
@@ -173,7 +171,7 @@ internal constructor(
 		// To reduce duplication of the same tests, any argument that has the
 		// same type in all definitions, but has not been proven yet, should be
 		// selected first.
-		if (adaptor.testsArgumentPositions
+		if (adaptor.testsArgumentPositions()
 			&& positiveElements.isEmpty()
 			&& undecidedElements.size > 1)
 		{
@@ -237,7 +235,7 @@ internal constructor(
 			val boundedCriterionSignature =
 				adaptor.restrictedSignature(criterion, bound)
 			assert(!boundedCriterionSignature.isBottom)
-			if (adaptor.testsArgumentPositions)
+			if (adaptor.testsArgumentPositions())
 			{
 				for (i in 1..numArgs)
 				{
@@ -309,7 +307,7 @@ internal constructor(
 		// that position.
 		var selectedTypeToTest: A_Type? = null
 		var positionToTest: Int
-		if (adaptor.testsArgumentPositions)
+		if (adaptor.testsArgumentPositions())
 		{
 			positionToTest = -999  // Must be replaced in the loop below.;
 			for (i in 1..numArgs)
@@ -355,7 +353,7 @@ internal constructor(
 		argumentPositionToTest = argumentIndex
 		val zeroBasedIndex: Int
 		val oldRestriction: TypeRestriction
-		if (adaptor.testsArgumentPositions)
+		if (adaptor.testsArgumentPositions())
 		{
 			zeroBasedIndex = argumentIndex - 1
 			oldRestriction = knownArgumentRestrictions[zeroBasedIndex]

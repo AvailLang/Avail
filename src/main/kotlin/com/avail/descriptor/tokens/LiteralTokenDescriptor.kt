@@ -154,84 +154,84 @@ class LiteralTokenDescriptor private constructor(mutability: Mutability)
 		        || super.allowsImmutableToMutableReferenceInField(e))
 
 	override fun printObjectOnAvoidingIndent(
-		`object`: AvailObject,
+		self: AvailObject,
 		aStream: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int)
 	{
 		aStream.append(String.format(
 			"%s ",
-			`object`.tokenType().name.toLowerCase().replace('_', ' ')))
-		`object`.slot(ObjectSlots.LITERAL).printOnAvoidingIndent(
+			self.tokenType().name.toLowerCase().replace('_', ' ')))
+		self.slot(ObjectSlots.LITERAL).printOnAvoidingIndent(
 			aStream,
 			recursionMap,
 			indent + 1)
 		aStream.append(String.format(
 			" (%s) @ %d:%d",
-			`object`.slot(ObjectSlots.STRING),
-			`object`.slot(IntegerSlots.START),
-			`object`.slot(IntegerSlots.LINE_NUMBER)))
+			self.slot(ObjectSlots.STRING),
+			self.slot(IntegerSlots.START),
+			self.slot(IntegerSlots.LINE_NUMBER)))
 	}
 
 	@AvailMethod
-	override fun o_TokenType(`object`: AvailObject): TokenType =
+	override fun o_TokenType(self: AvailObject): TokenType =
 		TokenType.LITERAL
 
 	@AvailMethod
-	override fun o_Literal(`object`: AvailObject): AvailObject =
-		`object`.slot(ObjectSlots.LITERAL)
+	override fun o_Literal(self: AvailObject): AvailObject =
+		self.slot(ObjectSlots.LITERAL)
 
 	@AvailMethod
-	override fun o_Kind(`object`: AvailObject): A_Type =
+	override fun o_Kind(self: AvailObject): A_Type =
 		LiteralTokenTypeDescriptor.literalTokenType(
-			InstanceTypeDescriptor.instanceType(`object`))
+			InstanceTypeDescriptor.instanceType(self))
 
 	@AvailMethod
 	override fun o_IsInstanceOfKind(
-		`object`: AvailObject, aTypeObject: A_Type): Boolean =
+		self: AvailObject, aTypeObject: A_Type): Boolean =
 			(aTypeObject.isSupertypeOfPrimitiveTypeEnum(
 					TypeDescriptor.Types.TOKEN)
 		        || aTypeObject.isLiteralTokenType
-		        && `object`.slot(ObjectSlots.LITERAL)
+		        && self.slot(ObjectSlots.LITERAL)
 				    .isInstanceOf(aTypeObject.literalType()))
 
-	override fun o_IsLiteralToken(`object`: AvailObject): Boolean = true
+	override fun o_IsLiteralToken(self: AvailObject): Boolean = true
 
-	override fun o_SerializerOperation(`object`: AvailObject)
+	override fun o_SerializerOperation(self: AvailObject)
 		: SerializerOperation = SerializerOperation.LITERAL_TOKEN
 
-	override fun o_WriteTo(`object`: AvailObject, writer: JSONWriter)
+	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
 	{
 		writer.startObject()
 		writer.write("kind")
 		writer.write("token")
 		writer.write("token type")
-		writer.write(`object`.tokenType().name.toLowerCase().replace(
+		writer.write(self.tokenType().name.toLowerCase().replace(
 			'_', ' '))
 		writer.write("start")
-		writer.write(`object`.slot(IntegerSlots.START))
+		writer.write(self.slot(IntegerSlots.START))
 		writer.write("line number")
-		writer.write(`object`.slot(IntegerSlots.LINE_NUMBER))
+		writer.write(self.slot(IntegerSlots.LINE_NUMBER))
 		writer.write("lexeme")
-		`object`.slot(ObjectSlots.STRING).writeTo(writer)
+		self.slot(ObjectSlots.STRING).writeTo(writer)
 		writer.write("literal")
-		`object`.slot(ObjectSlots.LITERAL).writeTo(writer)
+		self.slot(ObjectSlots.LITERAL).writeTo(writer)
 		writer.endObject()
 	}
 
-	override fun o_WriteSummaryTo(`object`: AvailObject, writer: JSONWriter)
+	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter)
 	{
 		writer.startObject()
 		writer.write("kind")
 		writer.write("token")
 		writer.write("start")
-		writer.write(`object`.slot(IntegerSlots.START))
+		writer.write(self.slot(IntegerSlots.START))
 		writer.write("line number")
-		writer.write(`object`.slot(IntegerSlots.LINE_NUMBER))
+		writer.write(self.slot(IntegerSlots.LINE_NUMBER))
 		writer.write("lexeme")
-		`object`.slot(ObjectSlots.STRING).writeTo(writer)
+		self.slot(ObjectSlots.STRING).writeTo(writer)
 		writer.write("literal")
-		`object`.slot(ObjectSlots.LITERAL).writeSummaryTo(writer)
+		self.slot(ObjectSlots.LITERAL).writeSummaryTo(writer)
 		writer.endObject()
 	}
 

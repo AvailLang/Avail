@@ -95,6 +95,7 @@ import java.util.Collections.synchronizedSet
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.atomic.AtomicLong
+import kotlin.concurrent.withLock
 
 /**
  * A [compiled&#32;code][CompiledCodeDescriptor] object is created whenever a
@@ -1021,8 +1022,7 @@ class CompiledCodeDescriptor private constructor(
 			AvailRuntime.currentRuntime().whenLevelOneSafeDo(
 				FiberDescriptor.commandPriority
 			) {
-				L2Chunk.invalidationLock.lock()
-				try {
+				L2Chunk.invalidationLock.withLock {
 					// Loop over each instance, setting the touched flag to
 					// false and discarding optimizations.
 					for (rawFunction in activeRawFunctions) {
@@ -1036,8 +1036,6 @@ class CompiledCodeDescriptor private constructor(
 					}
 					AvailRuntime.currentRuntime().whenLevelOneUnsafeDo(
 						FiberDescriptor.commandPriority, resume)
-				} finally {
-					L2Chunk.invalidationLock.unlock()
 				}
 			}
 

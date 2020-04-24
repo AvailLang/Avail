@@ -33,7 +33,6 @@ package com.avail.optimizer;
 
 import com.avail.AvailRuntime;
 import com.avail.descriptor.atoms.A_Atom;
-import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.atoms.AtomDescriptor;
 import com.avail.descriptor.bundles.A_Bundle;
 import com.avail.descriptor.bundles.MessageBundleDescriptor;
@@ -47,6 +46,7 @@ import com.avail.descriptor.methods.A_Method;
 import com.avail.descriptor.methods.A_SemanticRestriction;
 import com.avail.descriptor.methods.MethodDescriptor;
 import com.avail.descriptor.representation.A_BasicObject;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.descriptor.types.A_Type;
@@ -56,6 +56,7 @@ import com.avail.descriptor.variables.A_Variable;
 import com.avail.descriptor.variables.VariableDescriptor.VariableAccessReactor;
 import com.avail.dispatch.InternalLookupTree;
 import com.avail.dispatch.LookupTree;
+import com.avail.dispatch.LookupTreeAdaptor.UnusedMemento;
 import com.avail.dispatch.LookupTreeTraverser;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MethodDefinitionException;
@@ -112,6 +113,7 @@ import static com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForTypes;
 import static com.avail.descriptor.types.TypeDescriptor.Types.ANY;
 import static com.avail.descriptor.types.TypeDescriptor.Types.TOP;
 import static com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor;
+import static com.avail.dispatch.LookupTreeAdaptor.UnusedMemento.UNUSED;
 import static com.avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION;
 import static com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
@@ -119,15 +121,14 @@ import static com.avail.interpreter.Primitive.Flag.CannotFail;
 import static com.avail.interpreter.Primitive.Result.FAILURE;
 import static com.avail.interpreter.Primitive.Result.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.*;
-import static com.avail.interpreter.levelTwo.operand.TypeRestriction.*;
 import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.*;
+import static com.avail.interpreter.levelTwo.operand.TypeRestriction.*;
 import static com.avail.optimizer.L2ControlFlowGraph.ZoneType.BEGIN_REIFICATION_FOR_INTERRUPT;
 import static com.avail.optimizer.L2ControlFlowGraph.ZoneType.PROPAGATE_REIFICATION_FOR_INVOKE;
 import static com.avail.optimizer.L2Generator.*;
 import static com.avail.optimizer.L2Generator.OptimizationLevel.UNOPTIMIZED;
 import static com.avail.performance.StatisticReport.L2_OPTIMIZATION_TIME;
 import static com.avail.performance.StatisticReport.L2_TRANSLATION_VALUES;
-import static java.lang.Boolean.TRUE;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
@@ -1075,17 +1076,16 @@ public final class L1Translator
 		}
 
 		final List<A_Definition> applicableExpandedLeaves = new ArrayList<>();
-		final LookupTreeTraverser<A_Definition, A_Tuple, Boolean, Boolean>
+		final LookupTreeTraverser<A_Definition, A_Tuple, UnusedMemento, Boolean>
 			definitionCollector = new LookupTreeTraverser
-					<A_Definition, A_Tuple, Boolean, Boolean>(
-				MethodDescriptor.runtimeDispatcher, TRUE, false)
+					<A_Definition, A_Tuple, UnusedMemento, Boolean>(
+				MethodDescriptor.runtimeDispatcher, UNUSED, false)
 			{
 				@Override
 				public Boolean visitPreInternalNode (
 					final int argumentIndex, final A_Type argumentType)
 				{
-					// Ignored.
-					return TRUE;
+					return true;
 				}
 
 				@Override
@@ -1115,10 +1115,10 @@ public final class L1Translator
 		if (applicableExpandedLeaves.size() <= maxPolymorphismToInlineDispatch)
 		{
 			final LookupTreeTraverser<
-				A_Definition, A_Tuple, Boolean, InternalNodeMemento>
+				A_Definition, A_Tuple, UnusedMemento, InternalNodeMemento>
 				traverser = new LookupTreeTraverser<
-					A_Definition, A_Tuple, Boolean, InternalNodeMemento>(
-				MethodDescriptor.runtimeDispatcher, TRUE, false)
+					A_Definition, A_Tuple, UnusedMemento, InternalNodeMemento>(
+				MethodDescriptor.runtimeDispatcher, UNUSED, false)
 			{
 				@Override
 				public InternalNodeMemento visitPreInternalNode (
