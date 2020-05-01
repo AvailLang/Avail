@@ -32,14 +32,19 @@
 
 package com.avail.test;
 
-import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.numbers.A_Number;
+import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.numbers.FloatDescriptor;
 import com.avail.descriptor.numbers.IntegerDescriptor;
 import com.avail.descriptor.representation.A_BasicObject;
+import com.avail.descriptor.representation.AvailObject;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.math.BigInteger;
@@ -47,10 +52,13 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static com.avail.descriptor.numbers.DoubleDescriptor.doubleTruncatedToExtendedInteger;
+import static com.avail.descriptor.numbers.DoubleDescriptor.fromDouble;
 import static com.avail.descriptor.numbers.FloatDescriptor.fromFloat;
 import static com.avail.descriptor.numbers.IntegerDescriptor.fromBigInteger;
 import static com.avail.descriptor.numbers.IntegerDescriptor.fromInt;
+import static java.lang.Double.isNaN;
 import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -412,6 +420,103 @@ public final class ArithmeticTest
 					checkBitShift(negativeBase, -shiftAmount);
 				}
 			}
+		}
+	}
+
+	/**
+	 * A list of BigIntegers, initially written in hexadecimal, to use for
+	 * testing integer addition and subtraction.
+	 */
+	static final List<BigInteger> additionAndSubtractionCases = Stream.of(
+		"0",
+		"1",
+		"-1",
+		"2",
+		"-2",
+		"FF",
+		"100",
+		"7FFFFFFF",
+		"80000000",
+		"FFFFFFFF",
+		"100000000",
+		"7FFFFFFFFFFFFFFF",
+		"8000000000000000",
+		"FFFFFFFFFFFFFFFF",
+		"10000000000000000",
+		"7FFFFFFFFFFFFFFFFFFFFFFF",
+		"800000000000000000000000",
+		"FFFFFFFFFFFFFFFFFFFFFFFF",
+		"1000000000000000000000000",
+		"7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
+		"80000000000000000000000000000000",
+		"FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
+		"100000000000000000000000000000000",
+		"123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0",
+		"EAA401FE39EEE260E091AA5B5D67BCE2A9B1911E9CE0A825C4A44EAC7D56"
+	).map(x -> new BigInteger(x, 16)).collect(toList());
+
+	/**
+	 * Test helper for producing the Cartesian product of sample
+	 * {@link BigInteger}s to add and subtract pairwise.
+	 */
+	public static class BigIntegerPairs implements ArgumentsProvider
+	{
+		@Override
+		public Stream<? extends Arguments> provideArguments(
+			final ExtensionContext context)
+		{
+			return additionAndSubtractionCases.stream()
+				.flatMap(v1 ->
+					additionAndSubtractionCases.stream()
+						.map(v2 -> Arguments.of(v1, v2)));
+		}
+	}
+
+	/**
+	 * Test some addition and subtraction cases.
+	 *
+	 * @param a The first BigInteger to use.
+	 * @param b The second BigInteger to use.
+	 */
+	@SuppressWarnings("FloatingPointEquality")
+	@DisplayName("Integer addition and subtraction")
+	@ParameterizedTest(name = "{displayName} => case={arguments}")
+	@ArgumentsSource(BigIntegerPairs.class)
+	public void testAdditionAndSubtraction (
+		final BigInteger a,
+		final BigInteger b)
+	{
+		final A_Number integerA = fromBigInteger(a);
+		final A_Number integerB = fromBigInteger(b);
+		assertEquals(a, integerA.asBigInteger());
+		assertEquals(a.toString(), integerA.toString());
+
+		final BigInteger sum1 = a.add(b);
+		final A_Number sum2 = integerA.plusCanDestroy(integerB, false);
+		assertEquals(sum1, sum2.asBigInteger());
+
+		final BigInteger diff1 = a.subtract(b);
+		final A_Number diff2 = integerA.minusCanDestroy(integerB, false);
+		assertEquals(diff1, diff2.asBigInteger());
+
+		// Assume the values don't overflow double's limits.
+		final double doubleA = a.doubleValue();
+		final double doubleB = b.doubleValue();
+		final Order orderByInteger = integerA.numericCompare(integerB);
+		final Order orderByDouble =
+			fromDouble(doubleA).numericCompare(fromDouble(doubleB));
+		// Skip the case where the doubles don't have enough precision to
+		// represent two nearby different integers.
+		if (integerA.equals(integerB) || doubleA != doubleB)
+		{
+			assertEquals(orderByInteger, orderByDouble);
+			// Also check it against Java double comparisons.
+			assertEquals(doubleA < doubleB, orderByDouble.isLess());
+			assertEquals(doubleA == doubleB, orderByDouble.isEqual());
+			assertEquals(doubleA > doubleB, orderByDouble.isMore());
+			assertEquals(
+				isNaN(doubleA) || isNaN(doubleB),
+				orderByDouble.isIncomparable());
 		}
 	}
 

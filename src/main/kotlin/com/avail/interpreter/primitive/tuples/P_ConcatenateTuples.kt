@@ -32,8 +32,8 @@
 package com.avail.interpreter.primitive.tuples
 
 import com.avail.descriptor.functions.A_RawFunction
-import com.avail.descriptor.numbers.IntegerDescriptor.fromInt
-import com.avail.descriptor.numbers.IntegerDescriptor.one
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.tuples.TupleDescriptor

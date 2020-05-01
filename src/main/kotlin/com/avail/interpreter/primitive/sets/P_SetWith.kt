@@ -33,8 +33,8 @@ package com.avail.interpreter.primitive.sets
 
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.functions.A_RawFunction
-import com.avail.descriptor.numbers.IntegerDescriptor.one
-import com.avail.descriptor.numbers.IntegerDescriptor.two
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.one
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.two
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type

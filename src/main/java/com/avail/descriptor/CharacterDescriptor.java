@@ -46,7 +46,10 @@ import com.avail.serialization.SerializerOperation;
 import com.avail.utility.json.JSONWriter;
 
 import javax.annotation.Nullable;
+import java.util.HashMap;
 import java.util.IdentityHashMap;
+import java.util.Map;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static com.avail.descriptor.CharacterDescriptor.IntegerSlots.CODE_POINT;
 import static com.avail.descriptor.numbers.IntegerDescriptor.computeHashOfInt;
@@ -321,14 +324,41 @@ extends Descriptor
 	 */
 	public static A_Character fromCodePoint (final int codePoint)
 	{
-		if (codePoint >= 0 && codePoint <= 255)
+		if ((codePoint & ~255) == 0)
 		{
 			return byteCharacters[codePoint];
 		}
-		final AvailObject result = mutable.create();
-		result.setSlot(CODE_POINT, codePoint);
-		result.makeShared();
-		return result;
+		// First look it up in the cache while holding a read lock.
+		characterCacheLock.readLock().lock();
+		try
+		{
+			final A_Character c = characterCache.get(codePoint);
+			if (c != null)
+			{
+				return c;
+			}
+		}
+		finally
+		{
+			characterCacheLock.readLock().unlock();
+		}
+		// We didn't find it while holding the read lock.  Try it again while
+		// holding the write lock, creating and adding it if not found.
+		characterCacheLock.writeLock().lock();
+		try
+		{
+			return characterCache.computeIfAbsent(
+				codePoint,
+				cp -> {
+					final AvailObject result = mutable.create();
+					result.setSlot(CODE_POINT, cp);
+					return result.makeShared();
+				});
+		}
+		finally
+		{
+			characterCacheLock.writeLock().unlock();
+		}
 	}
 
 	/**
@@ -340,7 +370,7 @@ extends Descriptor
 	 */
 	public static A_Character fromByteCodePoint (final short codePoint)
 	{
-		assert codePoint >= 0 && codePoint <= 255;
+		assert (codePoint & ~255) == 0;
 		return byteCharacters[codePoint];
 	}
 
@@ -368,6 +398,19 @@ extends Descriptor
 			hashesOfByteCharacters[i] = computeHashOfCharacterWithCodePoint(i);
 		}
 	}
+
+	/**
+	 * A cache of non-byte characters that have been encountered so far during
+	 * this session.
+	 */
+	private static final Map<Integer, A_Character> characterCache =
+		new HashMap<>();
+
+	/**
+	 * Protection for accessing the {@link #characterCache}.
+	 */
+	private static final ReentrantReadWriteLock characterCacheLock =
+		new ReentrantReadWriteLock();
 
 	/** The maximum code point value as an {@code int}. */
 	public static final int maxCodePointInt = Character.MAX_CODE_POINT;

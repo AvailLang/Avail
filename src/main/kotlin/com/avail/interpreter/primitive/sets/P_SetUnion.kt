@@ -32,7 +32,7 @@
 package com.avail.interpreter.primitive.sets
 
 import com.avail.descriptor.functions.A_RawFunction
-import com.avail.descriptor.numbers.IntegerDescriptor.one
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
@@ -83,7 +83,7 @@ object P_SetUnion : Primitive(2, CannotFail, CanFold, CanInline)
 		val min1 = sizes1.lowerBound()
 		val min2 = sizes2.lowerBound()
 		// Use the *max* of the lower bounds as the new min bound.
-		val minSize = if (min1.numericCompare(min2).isMore)
+		val minSize = if (min1.numericCompare(min2).isMore())
 			min1
 		else
 			min2

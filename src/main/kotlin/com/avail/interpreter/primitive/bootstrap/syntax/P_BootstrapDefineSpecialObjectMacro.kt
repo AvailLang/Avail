@@ -35,7 +35,7 @@ package com.avail.interpreter.primitive.bootstrap.syntax
 import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.*
-import com.avail.descriptor.numbers.IntegerDescriptor.fromInt
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.phrases.BlockPhraseDescriptor.newBlockNode
 import com.avail.descriptor.phrases.ExpressionAsStatementPhraseDescriptor.newExpressionAsStatement
 import com.avail.descriptor.phrases.ListPhraseDescriptor.emptyListNode

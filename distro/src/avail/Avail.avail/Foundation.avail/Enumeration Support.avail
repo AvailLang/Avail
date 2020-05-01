@@ -109,8 +109,7 @@ Semantic restriction "_'s⁇instances" is
 		 */
 		Assert: |meta| = 1;
 		enum ::= cast meta's instance into [t : any's type | t] else [any];
-		bound ::= cast |enum| + 1 into [t : [1..∞] | t];
-		{enum|[0..bound)}
+		{enum|[0..|enum| + 1)}
 	]
 ];
 

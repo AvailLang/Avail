@@ -33,7 +33,7 @@ package com.avail.interpreter.primitive.floats
 
 import com.avail.descriptor.numbers.FloatDescriptor
 import com.avail.descriptor.numbers.IntegerDescriptor
-import com.avail.descriptor.numbers.IntegerDescriptor.fromInt
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType

@@ -75,7 +75,7 @@ Semantic restriction "_∪_" is
 	typeB : set meta
 |
 	lower ::= ⎣typeA⎦ max ⎣typeB⎦;
-	upper ::= cast ⎡typeA⎤ + ⎡typeB⎤ into [ t : [0..∞] | t ];
+	upper ::= ⎡typeA⎤ + ⎡typeB⎤;
 	{typeA's element type ∪ typeB's element type | [lower..upper + 1)}
 ];
 

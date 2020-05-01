@@ -32,15 +32,7 @@
 
 package com.avail.descriptor;
 
-import com.avail.annotations.EnumField;
-import com.avail.annotations.EnumField.Converter;
-import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.descriptor.representation.AbstractSlotsEnum;
-import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.representation.BitField;
-import com.avail.descriptor.representation.IntegerEnumSlotDescriptionEnum;
-import com.avail.descriptor.representation.IntegerSlotsEnum;
-import com.avail.descriptor.representation.ObjectSlotsEnum;
+import com.avail.descriptor.representation.*;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -61,8 +53,20 @@ public class JavaCompatibility
 	/** Temporary support for slot enums still coded in Java. */
 	public interface AbstractSlotsEnumJava extends AbstractSlotsEnum
 	{
+		/**
+		 * The {@link Enum#name()} method that Java enums automatically
+		 * override.
+		 *
+		 * @return The name of the enumeration value.
+		 */
 		String name();
 
+		/**
+		 * The {@link Enum#ordinal()} method that Java enums automatically
+		 * override.
+		 *
+		 * @return The ordinal of the enumeration value.
+		 */
 		int ordinal();
 
 		@Override
@@ -92,8 +96,20 @@ public class JavaCompatibility
 	/** Temporary support for IntegerEnumSlotDescriptionEnum still coded in Java. */
 	public interface IntegerEnumSlotDescriptionEnumJava extends AbstractSlotsEnum
 	{
+		/**
+		 * The {@link Enum#name()} method that Java enums automatically
+		 * override.
+		 *
+		 * @return The name of the enumeration value.
+		 */
 		String name();
 
+		/**
+		 * The {@link Enum#ordinal()} method that Java enums automatically
+		 * override.
+		 *
+		 * @return The ordinal of the enumeration value.
+		 */
 		int ordinal();
 
 		@Override

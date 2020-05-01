@@ -32,7 +32,7 @@
 package com.avail.interpreter.primitive.doubles
 
 import com.avail.descriptor.numbers.DoubleDescriptor
-import com.avail.descriptor.numbers.DoubleDescriptor.doubleTruncatedToExtendedInteger
+import com.avail.descriptor.numbers.DoubleDescriptor.Companion.doubleTruncatedToExtendedInteger
 import com.avail.descriptor.numbers.IntegerDescriptor
 import com.avail.descriptor.sets.SetDescriptor.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple

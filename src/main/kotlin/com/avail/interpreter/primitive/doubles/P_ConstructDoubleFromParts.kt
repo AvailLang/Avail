@@ -33,7 +33,7 @@
 package com.avail.interpreter.primitive.doubles
 
 import com.avail.descriptor.numbers.A_Number
-import com.avail.descriptor.numbers.DoubleDescriptor.fromDouble
+import com.avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
 import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
@@ -47,8 +47,8 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Construct a nonnegative [double][A_Number] from parts supplied
- * as [literal tokens][A_Token].
+ * **Primitive:** Construct a non-negative [double][A_Number] from parts
+ * supplied as [literal tokens][A_Token].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

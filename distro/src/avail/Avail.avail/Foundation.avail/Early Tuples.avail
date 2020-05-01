@@ -180,8 +180,7 @@ Semantic restriction "concatenate_" is
 	limit ::=
 		if ⎡sizes⎤ is infinite then
 		[
-			⎣sizes⎦ max (cast |tupleType's leading types| + 1
-				into [t : natural number | t])
+			⎣sizes⎦ max (|tupleType's leading types| + 1)
 		]
 		else [⎡sizes⎤];
 	result : tuple meta := <>'s type;
@@ -194,28 +193,42 @@ Semantic restriction "concatenate_" is
 	];
 	If ⎡sizes⎤ is infinite then
 	[
-		slice ::= result[1 .. cast limit into [t : whole number | t]];
+		/* The result's size is unbounded, so smear the last distinct tuple's
+		 * element types, extend the resulting type with that, then truncate it
+		 * to suitable bounds.
+		 */
 		default ::= tupleType's default type;
-		union ::= ∪ default[1 ..
-			cast |default's leading types| + 1 into [t : whole number | t]];
-		result := <slice, union… | [⎣result⎦..∞)>;
+		smear ::= ∪ default[1..∞];
+		result := result ++ <<>, smear…|[0..∞)>;
 	];
-	/* Now figure out how short the tuple can be. */
+	/* Now figure out how long or short the tuple can be. */
 	minCount ::= ⎣sizes⎦;
 	minSize : extended integer := 0;
-	From 1 to limit min minCount do
+	maxSize : extended integer := 0;
+	From 1 to minCount do
 	[
 		index : natural number
 	|
-		minSize := minSize + ⎣tupleType[index]⎦;
+		t ::= tupleType[index];
+		minSize := minSize + ⎣t⎦;
+		maxSize := maxSize + ⎡t⎤;
 		true
 	];
-	If minCount > limit then
+	if ⎡sizes⎤ is infinite then
 	[
-		minSize := minSize + ((minCount - limit) × ⎣tupleType's default type⎦);
+		maxSize := ∞;
+	]
+	else
+	[
+		minCountPlusOne ::= minCount + 1;
+		From minCountPlusOne to ⎡sizes⎤ do [i : natural number |
+			maxSize := maxSize + ⎡tupleType[i]⎤;
+			true
+		];
 	];
-	range ::= cast [minSize..⎡result⎤ + 1) into [t : whole number's type | t];
-	<result's leading types, result's default type…|range>
+	range ::= cast [minSize..maxSize + 1) into [t : whole number's type | t];
+	result := <result's leading types, result's default type…|range>;
+	result
 ];
 
 /**
@@ -553,7 +566,7 @@ Public method "relevant`|_`|" is
 |
 	lower ::= ⎣tupleType⎦ max 0;
 	count ::= |tupleType's leading types| + 1;
-	cast lower min count into [ t : whole number | t ]
+	lower min count
 ] : whole number;
 
 /**
@@ -660,8 +673,7 @@ Public method "tuple type of_[_.._]" is
 	minEnd ::= 0 max ⎣sliceEnd⎦;
 	maxEnd ::= 0 max ⎡sliceEnd⎤;
 	tupleEnd ::= ⎡aTupleType⎤;
-	tupleDefaultTypeIndex ::= cast |aTupleType's leading types| + 1
-		into [ t : natural number | t ];
+	tupleDefaultTypeIndex ::= |aTupleType's leading types| + 1;
 	limit ::= maxEnd min tupleEnd min tupleDefaultTypeIndex;
 	minLoopStart ::= (minStart min limit) max 1;
 	maxLoopStart ::= (maxStart min limit) max 1;
@@ -698,8 +710,7 @@ Public method "tuple type of_[_.._]" is
 	resultMaxEnd ::= maxEnd min tupleEnd;
 	resultStart ::= cast (resultMinEnd - maxStart + 1) max 0
 		into [t : whole number | t];
-	resultEnd ::= cast ((resultMaxEnd - minStart + 1) max 0) + 1
-		into [t : [1..∞] | t];
+	resultEnd ::= ((resultMaxEnd - minStart + 1) max 0) + 1;
 	resultSizes ::= [resultStart..resultEnd);
 	result ::= <types, defaultType…|resultSizes>;
 	result
@@ -749,8 +760,7 @@ Private method "tuple meta of_[_.._]" is
 	minEnd ::= 0 max ⎣sliceEnd⎦;
 	maxEnd ::= 0 max ⎡sliceEnd⎤;
 	tupleEnd ::= ⎡aTupleType⎤;
-	tupleDefaultTypeIndex ::= cast |aTupleType's leading types| + 1
-		into [ t : natural number | t ];
+	tupleDefaultTypeIndex ::= |aTupleType's leading types| + 1;
 	limit ::= maxEnd min tupleEnd min tupleDefaultTypeIndex;
 	minLoopStart ::= (minStart min limit) max 1;
 	maxLoopStart ::= (maxStart min limit) max 1;
@@ -787,8 +797,7 @@ Private method "tuple meta of_[_.._]" is
 	resultMaxEnd ::= maxEnd min tupleEnd;
 	resultStart ::= cast (resultMinEnd - maxStart + 1) max 0
 		into [ t : whole number | t ];
-	resultEnd ::= cast ((resultMaxEnd - minStart + 1) max 0) + 1
-		into [ t : [1..∞] | t ];
+	resultEnd ::= ((resultMaxEnd - minStart + 1) max 0) + 1;
 	resultSizes ::= [resultStart..resultEnd);
 	result ::= <types, defaultType…|resultSizes>;
 	result
@@ -972,8 +981,7 @@ Semantic restriction "_→set" is
 [
 	tupleType : tuple meta
 |
-	typeLimit ::= cast |tupleType's leading types| + 1
-		into [ t : natural number | t ];
+	typeLimit ::= |tupleType's leading types| + 1;
 	union ::= ∪ tupleType[1..typeLimit];
 	if ⎣tupleType⎦ = ⎡tupleType⎤
 		∧ |union| = ⎣tupleType⎦
@@ -1033,8 +1041,7 @@ Semantic restriction "_→map" is
 	 * map must contain at least one element.
 	 */
 	lower ::= ⎣tupleType⎦ min 1;
-	typeLimit ::= cast |tupleType's leading types| + 1
-		into [ t : natural number | t ];
+	typeLimit ::= |tupleType's leading types| + 1;
 	keyType : any meta := ⊥;
 	valueType : any meta := ⊥;
 	From 1 to typeLimit do

@@ -32,7 +32,6 @@
 package com.avail.descriptor.representation
 
 import com.avail.descriptor.AbstractDescriptor
-import com.avail.descriptor.representation.AvailObject
 import com.avail.utility.Casts.cast
 import com.avail.utility.StackPrinter
 
@@ -107,6 +106,12 @@ import com.avail.utility.StackPrinter
  *   not a repeating slot.
  * @param value
  *   The value being presented in that slot.
+ * @param forcedName
+ *   When set to non-`null`, forces this exact name to be presented, regardless
+ *   of the [value].
+ * @param forcedChildren
+ *   When set to non-`null`, forces the given [Array] to be presented as the
+ *   children of this node in the debugger.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -114,8 +119,20 @@ class AvailObjectFieldHelper(
 	private val parentObject: A_BasicObject?,
 	val slot: AbstractSlotsEnum,
 	val subscript: Int,
-	val value: Any?
+	val value: Any?,
+	val forcedName: String?, //= null   TODO - Temporary Java compatibility
+	val forcedChildren: Array<*>? //= null  TODO - Temporary Java compatibility
 ) {
+	/**
+	 * TODO Remove - Temporary compatibility for Java.
+	 */
+	constructor(
+		parentObject: A_BasicObject?,
+		slot: AbstractSlotsEnum,
+		subscript: Int,
+		value: Any?
+	) : this(parentObject, slot, subscript, value, null, null)
+
 	/**
 	 * The name to present for this field.
 	 */
@@ -134,6 +151,11 @@ class AvailObjectFieldHelper(
 	 * @return A suitable [String] to present for this helper.
 	 */
 	private fun privateComputeNameForDebugger() = buildString {
+		if (forcedName !== null)
+		{
+			append(forcedName)
+			return@buildString
+		}
 		when {
 			subscript != -1 -> {
 				append(slot.fieldName(), 0, slot.fieldName().length - 1)
@@ -170,9 +192,10 @@ class AvailObjectFieldHelper(
 	}
 
 	@Suppress("unused")
-	fun describeForDebugger(): Any? = when (value) {
-		is AvailObject -> value.describeForDebugger()
-		is AvailIntegerValueHelper -> arrayOfNulls<Any>(0)
+	fun describeForDebugger(): Any? = when {
+		forcedChildren !== null -> forcedChildren
+		value is AvailObject -> value.describeForDebugger()
+		value is AvailIntegerValueHelper -> emptyArray<Any>()
 		else -> value
 	}
 }

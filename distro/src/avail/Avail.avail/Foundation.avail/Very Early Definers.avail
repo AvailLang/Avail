@@ -166,3 +166,43 @@ Semantic restriction "function accepting_and returning_" is
 	functionType ::= […]→returnType;
 	functionType's type
 ];
+
+
+/**
+ * A very early restriction on {@method "_+_"}.  This is important to facilitate
+ * counting loops and other calculations.  Normally this sort of restriction
+ * would be postponed until later in the bootstrap order, but experience shows
+ * this particular one has high benefit from being done as early as possible.
+ *
+ * Start with a simple restriction of closure of extended integer, then use that
+ * in the subsequent one that computes an accurate bound.
+ *
+ * @category "Primitives" "Numbers" "Mathematics"
+ * @method "_+_"
+ * @restricts "integer"
+ * @restricts "integer"
+ */
+Semantic restriction "_+_" is [
+	a : extended integer's type,
+	b : extended integer's type
+|
+	extended integer
+];
+
+minusOne ::= 0 - 1;
+temp1 ::= ∞'s type;
+infinities ::= -∞'s type ∪ temp1;
+
+Semantic restriction "_+_" is [
+	a : extended integer's type,
+	b : extended integer's type
+|
+	low ::= a's genuine lower bound + b's genuine lower bound;
+	high ::= a's genuine upper bound + b's genuine upper bound;
+	union ::= a ∪ b;
+	includedInfinities ::= union ∩ infinities;
+	finitePart ::= integer range
+		from low + minusOne (inclusive = false)
+		to high + 1 (inclusive = false);
+	finitePart ∪ includedInfinities
+];

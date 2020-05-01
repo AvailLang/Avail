@@ -32,6 +32,7 @@
 package com.avail.descriptor.methods
 
 import com.avail.annotations.AvailMethod
+import com.avail.annotations.HideFieldJustForPrinting
 import com.avail.descriptor.A_Module
 import com.avail.descriptor.ModuleDescriptor
 import com.avail.descriptor.methods.AbstractDefinitionDescriptor.ObjectSlots.*
@@ -66,9 +67,11 @@ class AbstractDefinitionDescriptor private constructor(
 		/**
 		 * Duplicated from parent.  The method in which this definition occurs.
 		 */
+		@HideFieldJustForPrinting
 		DEFINITION_METHOD,
 
 		/** The [module][ModuleDescriptor] in which this definition occurs. */
+		@HideFieldJustForPrinting
 		MODULE,
 
 		/**

@@ -32,9 +32,9 @@
 package com.avail.interpreter.primitive.doubles
 
 import com.avail.descriptor.numbers.DoubleDescriptor
-import com.avail.descriptor.numbers.DoubleDescriptor.fromDoubleRecycling
-import com.avail.descriptor.numbers.IntegerDescriptor.two
-import com.avail.descriptor.numbers.IntegerDescriptor.zero
+import com.avail.descriptor.numbers.DoubleDescriptor.Companion.fromDoubleRecycling
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.two
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType

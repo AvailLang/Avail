@@ -41,7 +41,6 @@ import com.avail.descriptor.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.FiberDescriptor.TraceFlag;
-import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.bundles.A_Bundle;
 import com.avail.descriptor.bundles.A_BundleTree;
@@ -142,6 +141,7 @@ import static java.lang.String.format;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@SuppressWarnings({"RedundantThrows", "ThrowsRuntimeException"})
 public abstract class Descriptor
 extends AbstractDescriptor
 {
@@ -176,7 +176,11 @@ extends AbstractDescriptor
 	 *
 	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
-	enum FakeObjectSlotsForScanning implements ObjectSlotsEnumJava
+	@SuppressWarnings("UnnecessarilyQualifiedInnerClassAccess")
+	enum FakeObjectSlotsForScanning
+		// Qualified to bypass a Kotlin/Java compiler bug suddenly encountered
+		// by MvG on 2020.04.26.
+		implements JavaCompatibility.ObjectSlotsEnumJava
 	{
 		/**
 		 * An indexed object slot that makes it easy to visit all object slots.
@@ -4905,6 +4909,13 @@ extends AbstractDescriptor
 
 	@Override
 	public LexingState o_NextLexingState (
+		final AvailObject object)
+	{
+		throw unsupportedOperationException();
+	}
+
+	@Override
+	public AvailObject o_NextLexingStatePojo (
 		final AvailObject object)
 	{
 		throw unsupportedOperationException();

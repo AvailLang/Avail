@@ -34,7 +34,6 @@ package com.avail.serialization
 
 import com.avail.AvailRuntime
 import com.avail.AvailRuntime.specialObject
-import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.CharacterDescriptor
 import com.avail.descriptor.CharacterDescriptor.fromCodePoint
 import com.avail.descriptor.NilDescriptor
@@ -60,10 +59,15 @@ import com.avail.descriptor.functions.ContinuationDescriptor.Companion.createCon
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.methods.A_Definition
-import com.avail.descriptor.numbers.DoubleDescriptor.fromDouble
+import com.avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
 import com.avail.descriptor.numbers.FloatDescriptor
-import com.avail.descriptor.numbers.FloatDescriptor.fromFloat
-import com.avail.descriptor.numbers.IntegerDescriptor.*
+import com.avail.descriptor.numbers.FloatDescriptor.Companion.fromFloat
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromUnsignedByte
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.one
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.two
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import com.avail.descriptor.objects.ObjectDescriptor.objectFromMap
 import com.avail.descriptor.objects.ObjectTypeDescriptor.objectTypeFromMap
 import com.avail.descriptor.phrases.AssignmentPhraseDescriptor.isInline
@@ -88,10 +92,11 @@ import com.avail.descriptor.pojos.PojoFinalFieldDescriptor
 import com.avail.descriptor.pojos.RawPojoDescriptor.equalityPojo
 import com.avail.descriptor.pojos.RawPojoDescriptor.rawNullPojo
 import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.tokens.CommentTokenDescriptor.Companion.newCommentToken
 import com.avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
-import com.avail.descriptor.tokens.TokenDescriptor.TokenType.Companion.lookupTokenType
 import com.avail.descriptor.tokens.TokenDescriptor.Companion.newToken
+import com.avail.descriptor.tokens.TokenDescriptor.TokenType.Companion.lookupTokenType
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.*

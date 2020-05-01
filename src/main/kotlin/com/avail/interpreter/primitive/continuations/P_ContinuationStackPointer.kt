@@ -31,7 +31,8 @@
  */
 package com.avail.interpreter.primitive.continuations
 
-import com.avail.descriptor.numbers.IntegerDescriptor.fromInt
+import com.avail.descriptor.functions.A_Continuation
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.ContinuationTypeDescriptor.mostGeneralContinuationType
@@ -42,9 +43,9 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
 /**
- * **Primitive:** Answer a [ ]'s stack pointer. This is the index of the
- * top-of-stack within the frame slots of the continuation. For an empty stack
- * its value equals the number of frame slots plus one.
+ * **Primitive:** Answer an [A_Continuation]'s stack pointer. This is the index
+ * of the top-of-stack within the frame slots of the continuation. For an empty
+ * stack its value equals the number of frame slots plus one.
  */
 @Suppress("unused")
 object P_ContinuationStackPointer : Primitive(1, CannotFail, CanFold, CanInline)

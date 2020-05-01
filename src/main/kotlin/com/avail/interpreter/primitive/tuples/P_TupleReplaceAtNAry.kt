@@ -34,8 +34,8 @@ package com.avail.interpreter.primitive.tuples
 
 import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.maps.MapDescriptor
-import com.avail.descriptor.numbers.InfinityDescriptor.positiveInfinity
-import com.avail.descriptor.numbers.IntegerDescriptor.fromInt
+import com.avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.sets.SetDescriptor.set
 import com.avail.descriptor.tuples.A_Tuple

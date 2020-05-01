@@ -31,7 +31,7 @@
  */
 package com.avail.interpreter.primitive.fibers
 
-import com.avail.descriptor.numbers.IntegerDescriptor.fromUnsignedByte
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromUnsignedByte
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FiberTypeDescriptor.mostGeneralFiberType

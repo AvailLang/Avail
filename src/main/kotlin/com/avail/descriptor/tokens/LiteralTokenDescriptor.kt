@@ -34,24 +34,20 @@ package com.avail.descriptor.tokens
 import com.avail.annotations.AvailMethod
 import com.avail.annotations.HideFieldInDebugger
 import com.avail.compiler.scanning.LexingState
-import com.avail.descriptor.NilDescriptor
+import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.pojos.RawPojoDescriptor
-import com.avail.descriptor.representation.A_BasicObject
-import com.avail.descriptor.representation.AbstractSlotsEnum
-import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.representation.BitField
-import com.avail.descriptor.representation.IntegerSlotsEnum
-import com.avail.descriptor.representation.Mutability
-import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.representation.*
+import com.avail.descriptor.tokens.LiteralTokenDescriptor.IntegerSlots.Companion.LINE_NUMBER
+import com.avail.descriptor.tokens.LiteralTokenDescriptor.IntegerSlots.Companion.START
+import com.avail.descriptor.tokens.LiteralTokenDescriptor.ObjectSlots.*
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.StringDescriptor
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.InstanceTypeDescriptor
 import com.avail.descriptor.types.LiteralTokenTypeDescriptor
-import com.avail.descriptor.types.TypeDescriptor
+import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.types.TypeTag
 import com.avail.serialization.SerializerOperation
-import com.avail.utility.Casts
 import com.avail.utility.json.JSONWriter
 import java.util.*
 
@@ -67,14 +63,15 @@ import java.util.*
  * Construct a new `LiteralTokenDescriptor`.
  *
  * @param mutability
- * The [mutability][Mutability] of the new descriptor.
+ *   The [mutability][Mutability] of the new descriptor.
  */
-class LiteralTokenDescriptor private constructor(mutability: Mutability)
-	: TokenDescriptor(
-		mutability,
-		TypeTag.LITERAL_TOKEN_TAG,
-		ObjectSlots::class.java,
-		IntegerSlots::class.java)
+class LiteralTokenDescriptor private constructor(
+	mutability: Mutability
+) : TokenDescriptor(
+	mutability,
+	TypeTag.LITERAL_TOKEN_TAG,
+	ObjectSlots::class.java,
+	IntegerSlots::class.java)
 {
 	/**
 	 * My class's slots of type int.
@@ -93,6 +90,7 @@ class LiteralTokenDescriptor private constructor(mutability: Mutability)
 			 * The line number in the source file. Currently signed 28 bits,
 			 * which should be plenty.
 			 */
+			@JvmField
 			val LINE_NUMBER = BitField(START_AND_LINE, 4, 28)
 
 			/**
@@ -102,13 +100,14 @@ class LiteralTokenDescriptor private constructor(mutability: Mutability)
 			 * deeply flexible syntax.
 			 */
 			@HideFieldInDebugger
+			@JvmField
 			val START = BitField(START_AND_LINE, 32, 32)
 
 			init
 			{
 				assert(TokenDescriptor.IntegerSlots
-			       .TOKEN_TYPE_AND_START_AND_LINE.ordinal
-					       == START_AND_LINE.ordinal)
+					.TOKEN_TYPE_AND_START_AND_LINE.ordinal
+					== START_AND_LINE.ordinal)
 				assert(TokenDescriptor.IntegerSlots.START.isSamePlaceAs(START))
 				assert(TokenDescriptor.IntegerSlots.LINE_NUMBER
 			       .isSamePlaceAs(LINE_NUMBER))
@@ -141,16 +140,18 @@ class LiteralTokenDescriptor private constructor(mutability: Mutability)
 			init
 			{
 				assert(
-					TokenDescriptor.ObjectSlots.STRING.ordinal == STRING.ordinal)
-				assert(TokenDescriptor.ObjectSlots.NEXT_LEXING_STATE_POJO.ordinal
-			       == NEXT_LEXING_STATE_POJO.ordinal)
+					TokenDescriptor.ObjectSlots.STRING.ordinal
+						== STRING.ordinal)
+				assert(
+					TokenDescriptor.ObjectSlots.NEXT_LEXING_STATE_POJO.ordinal
+						== NEXT_LEXING_STATE_POJO.ordinal)
 			}
 		}
 	}
 
 	override fun allowsImmutableToMutableReferenceInField(
 		e: AbstractSlotsEnum): Boolean =
-			(e === ObjectSlots.NEXT_LEXING_STATE_POJO
+			(e === NEXT_LEXING_STATE_POJO
 		        || super.allowsImmutableToMutableReferenceInField(e))
 
 	override fun printObjectOnAvoidingIndent(
@@ -162,15 +163,15 @@ class LiteralTokenDescriptor private constructor(mutability: Mutability)
 		aStream.append(String.format(
 			"%s ",
 			self.tokenType().name.toLowerCase().replace('_', ' ')))
-		self.slot(ObjectSlots.LITERAL).printOnAvoidingIndent(
+		self.slot(LITERAL).printOnAvoidingIndent(
 			aStream,
 			recursionMap,
 			indent + 1)
 		aStream.append(String.format(
 			" (%s) @ %d:%d",
-			self.slot(ObjectSlots.STRING),
-			self.slot(IntegerSlots.START),
-			self.slot(IntegerSlots.LINE_NUMBER)))
+			self.slot(STRING),
+			self.slot(START),
+			self.slot(LINE_NUMBER)))
 	}
 
 	@AvailMethod
@@ -179,7 +180,7 @@ class LiteralTokenDescriptor private constructor(mutability: Mutability)
 
 	@AvailMethod
 	override fun o_Literal(self: AvailObject): AvailObject =
-		self.slot(ObjectSlots.LITERAL)
+		self.slot(LITERAL)
 
 	@AvailMethod
 	override fun o_Kind(self: AvailObject): A_Type =
@@ -190,9 +191,9 @@ class LiteralTokenDescriptor private constructor(mutability: Mutability)
 	override fun o_IsInstanceOfKind(
 		self: AvailObject, aTypeObject: A_Type): Boolean =
 			(aTypeObject.isSupertypeOfPrimitiveTypeEnum(
-					TypeDescriptor.Types.TOKEN)
+					Types.TOKEN)
 		        || aTypeObject.isLiteralTokenType
-		        && self.slot(ObjectSlots.LITERAL)
+		        && self.slot(LITERAL)
 				    .isInstanceOf(aTypeObject.literalType()))
 
 	override fun o_IsLiteralToken(self: AvailObject): Boolean = true
@@ -206,16 +207,15 @@ class LiteralTokenDescriptor private constructor(mutability: Mutability)
 		writer.write("kind")
 		writer.write("token")
 		writer.write("token type")
-		writer.write(self.tokenType().name.toLowerCase().replace(
-			'_', ' '))
+		writer.write(self.tokenType().name.toLowerCase().replace('_', ' '))
 		writer.write("start")
-		writer.write(self.slot(IntegerSlots.START))
+		writer.write(self.slot(START))
 		writer.write("line number")
-		writer.write(self.slot(IntegerSlots.LINE_NUMBER))
+		writer.write(self.slot(LINE_NUMBER))
 		writer.write("lexeme")
-		self.slot(ObjectSlots.STRING).writeTo(writer)
+		self.slot(STRING).writeTo(writer)
 		writer.write("literal")
-		self.slot(ObjectSlots.LITERAL).writeTo(writer)
+		self.slot(LITERAL).writeTo(writer)
 		writer.endObject()
 	}
 
@@ -225,13 +225,13 @@ class LiteralTokenDescriptor private constructor(mutability: Mutability)
 		writer.write("kind")
 		writer.write("token")
 		writer.write("start")
-		writer.write(self.slot(IntegerSlots.START))
+		writer.write(self.slot(START))
 		writer.write("line number")
-		writer.write(self.slot(IntegerSlots.LINE_NUMBER))
+		writer.write(self.slot(LINE_NUMBER))
 		writer.write("lexeme")
-		self.slot(ObjectSlots.STRING).writeTo(writer)
+		self.slot(STRING).writeTo(writer)
 		writer.write("literal")
-		self.slot(ObjectSlots.LITERAL).writeSummaryTo(writer)
+		self.slot(LITERAL).writeSummaryTo(writer)
 		writer.endObject()
 	}
 
@@ -260,38 +260,36 @@ class LiteralTokenDescriptor private constructor(mutability: Mutability)
 		 */
 		@JvmStatic
 		fun literalToken(
-			string: A_String?,
+			string: A_String,
 			start: Int,
 			lineNumber: Int,
-			literal: A_BasicObject): AvailObject
-		{
-			val instance = mutable.create()
-			instance.setSlot(ObjectSlots.STRING, string!!)
-			instance.setSlot(IntegerSlots.START, start)
-			instance.setSlot(IntegerSlots.LINE_NUMBER, lineNumber)
-			instance.setSlot(ObjectSlots.LITERAL, literal)
-			if (literal.isInstanceOfKind(TypeDescriptor.Types.TOKEN.o()))
-			{
+			literal: A_BasicObject
+		): AvailObject = with(mutable.create()) {
+			setSlot(STRING, string)
+			setSlot(START, start)
+			setSlot(LINE_NUMBER, lineNumber)
+			setSlot(LITERAL, literal)
+			if (literal.isInstanceOfKind(Types.TOKEN.o())) {
 				// We're wrapping another token, so share that token's
 				// nextLexingState pojo, if set.
-				val innerToken = Casts.cast(literal.traversed())
-				val pojo: A_BasicObject = innerToken.slot(ObjectSlots.NEXT_LEXING_STATE_POJO)
-				instance.setSlot(ObjectSlots.NEXT_LEXING_STATE_POJO, pojo)
+				val innerToken: A_Token = literal.traversed()
+				val nextStatePojo = innerToken.nextLexingStatePojo()
+				setSlot(NEXT_LEXING_STATE_POJO, nextStatePojo)
 				// Also add this token to the same CompilationContext that the
 				// inner token might also be inside.  Even if it isn't, the new
-				// token will be cleanly disconnected from the CompilationContext
-				// after finishing parsing of the current top-level statement.
-				if (!pojo.equalsNil())
+				// token will be cleanly disconnected from the
+				// CompilationContext after finishing parsing the current
+				// top-level statement.
+				if (!nextStatePojo.equalsNil())
 				{
-					val nextState = pojo.javaObjectNotNull<LexingState>()
+					val nextState: LexingState =
+						nextStatePojo.javaObjectNotNull()
 					nextState.compilationContext.recordToken(innerToken)
 				}
+			} else {
+				setSlot(NEXT_LEXING_STATE_POJO, nil)
 			}
-			else
-			{
-				instance.setSlot(ObjectSlots.NEXT_LEXING_STATE_POJO, NilDescriptor.nil)
-			}
-			return instance.makeShared()
+			makeShared()
 		}
 
 		/** The mutable [LiteralTokenDescriptor].  */

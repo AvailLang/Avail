@@ -90,12 +90,14 @@ abstract class MapBinDescriptor protected constructor(
 			 * The sum of the hashes of the elements recursively within this
 			 * bin.
 			 */
+			@JvmField
 			val KEYS_HASH = BitField(COMBINED_HASHES, 0, 32)
 
 			/**
 			 * The sum of the hashes of the elements recursively within this
 			 * bin, or zero if not computed.
 			 */
+			@JvmField
 			val VALUES_HASH_OR_ZERO = BitField(COMBINED_HASHES, 32, 32)
 		}
 	}

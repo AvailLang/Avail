@@ -32,7 +32,7 @@
 package com.avail.interpreter.primitive.floats
 
 import com.avail.descriptor.numbers.FloatDescriptor
-import com.avail.descriptor.numbers.FloatDescriptor.objectFromFloatRecycling
+import com.avail.descriptor.numbers.FloatDescriptor.Companion.objectFromFloatRecycling
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType

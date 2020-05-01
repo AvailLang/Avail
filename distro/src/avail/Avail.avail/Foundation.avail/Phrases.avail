@@ -313,7 +313,7 @@ Semantic restriction "`«<«_‡,»>`»" is
 	tTuple : <<>, expression phrase⇒any…|whole number>'s type
 |
 	leadingTypesSize ::= |tTuple's leading types|;
-	defaultTypeIndex ::= cast leadingTypesSize + 1 into [x : natural number|x];
+	defaultTypeIndex ::= leadingTypesSize + 1;
 	semanticTypes : tuple of any meta := <>;
 	From 1 to defaultTypeIndex do
 	[
@@ -536,8 +536,7 @@ Semantic restriction "_'s⁇expressions" is
 	listType : list phrase's type
 |
 	semanticType ::= listType's semantic type;
-	upper ::=
-		cast |semanticType's leading types| + 1 into [t : natural number | t];
+	upper ::= |semanticType's leading types| + 1;
 	leadingTypes : tuple := <>;
 	From 1 to upper do
 	[

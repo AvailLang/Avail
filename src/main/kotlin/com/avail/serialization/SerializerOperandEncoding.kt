@@ -32,12 +32,15 @@
 
 package com.avail.serialization
 
-import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.CharacterDescriptor.fromCodePoint
 import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.numbers.IntegerDescriptor
-import com.avail.descriptor.numbers.IntegerDescriptor.*
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.createUninitializedInteger
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.intCount
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.tuples.ByteStringDescriptor.generateByteString
 import com.avail.descriptor.tuples.ByteTupleDescriptor.generateByteTupleFrom
 import com.avail.descriptor.tuples.NybbleTupleDescriptor.generateNybbleTupleFrom
@@ -373,16 +376,16 @@ internal enum class SerializerOperandEncoding
 		{
 			val tupleSize = obj.tupleSize()
 			writeCompressedPositiveInt(tupleSize, serializer)
-			for (i in 1..tupleSize)
-			{
-				writeCompressedPositiveInt(
-					obj.tupleCodePointAt(i), serializer)
+			(1..tupleSize).forEach { i ->
+				writeCompressedPositiveInt(obj.tupleCodePointAt(i), serializer)
 			}
 		}
 
 		override fun read(deserializer: AbstractDeserializer): AvailObject
 		{
 			val tupleSize = readCompressedPositiveInt(deserializer)
+			// Update this when we have efficient 21-bit strings, three
+			// characters per 64-bit long.
 			return generateObjectTupleFrom(tupleSize) {
 				fromCodePoint(readCompressedPositiveInt(deserializer))
 			}

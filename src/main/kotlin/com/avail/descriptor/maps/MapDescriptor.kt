@@ -36,7 +36,7 @@ import com.avail.annotations.ThreadSafe
 import com.avail.descriptor.Descriptor
 import com.avail.descriptor.maps.LinearMapBinDescriptor.Companion.emptyLinearMapBin
 import com.avail.descriptor.maps.MapDescriptor.ObjectSlots.ROOT_BIN
-import com.avail.descriptor.numbers.IntegerDescriptor.fromInt
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.representation.*
 import com.avail.descriptor.representation.Mutability.*
 import com.avail.descriptor.sets.A_Set

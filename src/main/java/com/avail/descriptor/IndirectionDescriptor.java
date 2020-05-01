@@ -5055,6 +5055,13 @@ extends AbstractDescriptor
 	}
 
 	@Override
+	public AvailObject o_NextLexingStatePojo (
+		final AvailObject object)
+	{
+		return o_Traversed(object).nextLexingStatePojo();
+	}
+
+	@Override
 	public void o_SetNextLexingStateFromPrior (
 		final AvailObject object, final LexingState priorLexingState)
 	{

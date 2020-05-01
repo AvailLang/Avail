@@ -53,8 +53,8 @@ enum class L1OperandType
 	 */
 	IMMEDIATE
 	{
-		override fun dispatch(dispatcher: L1OperandTypeDispatcher) =
-			dispatcher.doImmediate()
+		override fun dispatch(dispatcher: L1OperandTypeDispatcher, index: Int) =
+			dispatcher.doImmediate(index)
 	},
 
 	/**
@@ -65,8 +65,8 @@ enum class L1OperandType
 	 */
 	LITERAL
 	{
-		override fun dispatch(dispatcher: L1OperandTypeDispatcher) =
-			dispatcher.doLiteral()
+		override fun dispatch(dispatcher: L1OperandTypeDispatcher, index: Int) =
+			dispatcher.doLiteral(index)
 	},
 
 	/**
@@ -76,8 +76,8 @@ enum class L1OperandType
 	 */
 	LOCAL
 	{
-		override fun dispatch(dispatcher: L1OperandTypeDispatcher) =
-			dispatcher.doLocal()
+		override fun dispatch(dispatcher: L1OperandTypeDispatcher, index: Int) =
+			dispatcher.doLocal(index)
 	},
 
 	/**
@@ -86,19 +86,8 @@ enum class L1OperandType
 	 */
 	OUTER
 	{
-		override fun dispatch(dispatcher: L1OperandTypeDispatcher) =
-			dispatcher.doOuter()
-	},
-
-	/**
-	 * The next nybble from the nybblecode stream is to be treated as an
-	 * extended nybblecode.  For some purposes it can be treated as though the
-	 * value 16 has been added to it, bringing it into the range 16..31.
-	 */
-	EXTENSION
-	{
-		override fun dispatch(dispatcher: L1OperandTypeDispatcher) =
-			dispatcher.doExtension()
+		override fun dispatch(dispatcher: L1OperandTypeDispatcher, index: Int) =
+			dispatcher.doOuter(index)
 	};
 
 	/**
@@ -112,5 +101,7 @@ enum class L1OperandType
 	 *   The [L1OperandTypeDispatcher] on which to invoke a method specific to
 	 *   this operand type.
 	 */
-	internal abstract fun dispatch(dispatcher: L1OperandTypeDispatcher)
+	internal abstract fun dispatch(
+		dispatcher: L1OperandTypeDispatcher,
+		index: Int)
 }

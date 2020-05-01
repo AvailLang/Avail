@@ -31,7 +31,7 @@
  */
 package com.avail.interpreter.primitive.floats
 
-import com.avail.descriptor.numbers.DoubleDescriptor.doubleTruncatedToExtendedInteger
+import com.avail.descriptor.numbers.DoubleDescriptor.Companion.doubleTruncatedToExtendedInteger
 import com.avail.descriptor.numbers.FloatDescriptor
 import com.avail.descriptor.numbers.IntegerDescriptor
 import com.avail.descriptor.sets.SetDescriptor.set

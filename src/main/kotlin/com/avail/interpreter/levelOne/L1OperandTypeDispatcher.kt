@@ -39,36 +39,30 @@ import com.avail.descriptor.functions.FunctionDescriptor
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-internal interface L1OperandTypeDispatcher
+interface L1OperandTypeDispatcher
 {
 	/**
 	 * The operand is an [immediate value][L1OperandType.IMMEDIATE], encoding an
 	 * integer as itself.
 	 */
-	fun doImmediate()
+	fun doImmediate(index: Int)
 
 	/**
 	 * The operand is a [literal value][L1OperandType.LITERAL], encoded by a
 	 * subscript into some list of literals.
 	 */
-	fun doLiteral()
+	fun doLiteral(index: Int)
 
 	/**
 	 * The operand is a [local][L1OperandType.LOCAL], encoded by a subscript
 	 * into the arguments and locals area.
 	 */
-	fun doLocal()
+	fun doLocal(index: Int)
 
 	/**
 	 * The operand is a declaration [captured][L1OperandType.OUTER] set an outer
 	 * scope, encoded as a subscript into some [function][FunctionDescriptor]'s
 	 * list of outer variables.
 	 */
-	fun doOuter()
-
-	/**
-	 * The operand is an extension nybblecode, indicating that the current
-	 * [L1Operation] has an ordinal equal to the next nybble plus 16.
-	 */
-	fun doExtension()
+	fun doOuter(index: Int)
 }

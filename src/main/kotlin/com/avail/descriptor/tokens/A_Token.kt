@@ -32,6 +32,7 @@
 package com.avail.descriptor.tokens
 
 import com.avail.compiler.scanning.LexingState
+import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.tuples.A_String
@@ -85,12 +86,23 @@ interface A_Token : A_BasicObject
 	fun lowerCaseString(): A_String
 
 	/**
-	 * Answer the [LexingState] that follows this token.
+	 * Answer the [LexingState] that follows this token, or `null` if it hasn't
+	 * been set yet.
 	 *
 	 * @return
-	 *   The next [LexingState].
+	 *   The next [LexingState] or `null`.
 	 */
 	fun nextLexingState(): LexingState
+
+	/**
+	 * Answer the pojo [AvailObject] containing the ][LexingState] that follows
+	 * this token, or [nil] if it hasn't been set yet.
+	 *
+	 * @return
+	 *   Either the pojo [AvailObject] containing the next [LexingState] or
+	 *   [nil].
+	 */
+	fun nextLexingStatePojo(): AvailObject
 
 	/**
 	 * Set this token's next [LexingState].

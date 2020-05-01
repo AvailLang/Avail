@@ -2877,12 +2877,9 @@ class AvailCompiler(
 					stateAfterCall.expected(
 						STRONG,
 						listOf(replacement)
-					) { list ->
-						format(
-							"Macro body for %s to have "
-								+ "produced a phrase, not %s",
-							bundle.message(),
-							list[0])
+					) {
+						"Macro body for ${bundle.message()} to have " +
+							"produced a phrase, not ${it[0]}"
 					}
 					return@evaluateMacroFunctionThen
 				}

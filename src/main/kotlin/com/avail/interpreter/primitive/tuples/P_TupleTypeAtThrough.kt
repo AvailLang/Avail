@@ -31,8 +31,8 @@
  */
 package com.avail.interpreter.primitive.tuples
 
-import com.avail.descriptor.numbers.InfinityDescriptor.positiveInfinity
-import com.avail.descriptor.numbers.IntegerDescriptor.zero
+import com.avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.BottomTypeDescriptor
@@ -59,13 +59,15 @@ object P_TupleTypeAtThrough : Primitive(3, CannotFail, CanFold, CanInline)
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
-		val tupleType = interpreter.argument(0)
-		val startIndex = interpreter.argument(1)
-		val endIndex = interpreter.argument(2)
-		val startInt = if (startIndex.isInt) startIndex.extractInt()
-		else Integer.MAX_VALUE
-		val endInt = if (endIndex.isInt) endIndex.extractInt()
-		else Integer.MAX_VALUE
+		val (tupleType, startIndex, endIndex) = interpreter.argsBuffer
+		val startInt = when {
+			startIndex.isInt -> startIndex.extractInt()
+			else -> Integer.MAX_VALUE
+		}
+		val endInt = when {
+			endIndex.isInt -> endIndex.extractInt()
+			else -> Integer.MAX_VALUE
+		}
 		return interpreter.primitiveSuccess(
 			tupleType.unionOfTypesAtThrough(startInt, endInt))
 	}

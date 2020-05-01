@@ -48,8 +48,8 @@ import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunctionForPhrase
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.phrases.A_Phrase
+import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.tuples.StringDescriptor.formatString
 import com.avail.descriptor.tuples.StringDescriptor.stringFrom
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
 import com.avail.interpreter.Interpreter.debugWorkUnits
@@ -786,7 +786,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 */
 	fun attemptCommand(
 		command: String,
-		onAmbiguity: (List<CompiledCommand>, (CompiledCommand)->Unit)->Unit,
+		onAmbiguity: (List<CompiledCommand>, (CompiledCommand?)->Unit)->Unit,
 		onSuccess: (AvailObject, (()->Unit)->Unit)->Unit,
 		onFailure: ()->Unit)
 	{
@@ -824,7 +824,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 */
 	private fun scheduleAttemptCommand(
 		command: String,
-		onAmbiguity: (List<CompiledCommand>, (CompiledCommand)->Unit)->Unit,
+		onAmbiguity: (List<CompiledCommand>, (CompiledCommand?)->Unit)->Unit,
 		onSuccess: (AvailObject, (()->Unit)->Unit)->Unit,
 		onFailure: ()->Unit)
 	{
@@ -1013,7 +1013,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	private fun processParsedCommand(
 		solutions: Map<LoadedModule, List<A_Phrase>>,
 		problems: Map<LoadedModule, List<Problem>>,
-		onAmbiguity: (List<CompiledCommand>, (CompiledCommand)->Unit)->Unit,
+		onAmbiguity: (List<CompiledCommand>, (CompiledCommand?)->Unit)->Unit,
 		onSuccess: (AvailObject, (()->Unit)->Unit)->Unit,
 		postSuccessCleanup: (()->Unit)->Unit,
 		onFailure: ()->Unit)
@@ -1091,7 +1091,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 			val fiber = newFiber(
 				function.kind().returnType(),
 				commandPriority
-			) { formatString("Running command: %s", phrase) }
+			) { stringFrom("Running command: $phrase") }
 			var fiberGlobals = fiber.fiberGlobals()
 			fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 				CLIENT_DATA_GLOBAL_KEY.atom, emptyMap(), true)
@@ -1131,7 +1131,20 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 		}
 
 		// Otherwise, report the possible commands for disambiguation.
-		onAmbiguity(commands, unambiguous)
+		onAmbiguity(commands) { choice ->
+			when (choice) {
+				null -> {
+					SimpleCompletionHandler<Int, A_BasicObject?>(
+						{ _ -> onFailure() },
+						{ onFailure() /* Ignore I/O error */ }
+					).guardedDo(
+						textInterface.errorChannel::write,
+						"Action was cancelled by user",
+						nil)
+				}
+				else -> unambiguous(choice)
+			}
+		}
 	}
 
 	companion object

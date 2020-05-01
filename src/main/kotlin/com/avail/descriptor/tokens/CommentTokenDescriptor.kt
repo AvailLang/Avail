@@ -86,6 +86,7 @@ class CommentTokenDescriptor private constructor(mutability: Mutability)
 			 * The line number in the source file. Currently signed 28 bits,
 			 * which should be plenty.
 			 */
+			@JvmField
 			val LINE_NUMBER = BitField(START_AND_LINE, 4, 28)
 
 			/**
@@ -95,6 +96,7 @@ class CommentTokenDescriptor private constructor(mutability: Mutability)
 			 * deeply flexible syntax.
 			 */
 			@HideFieldInDebugger
+			@JvmField
 			val START = BitField(START_AND_LINE, 32, 32)
 
 			init

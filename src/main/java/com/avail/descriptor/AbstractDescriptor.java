@@ -540,7 +540,7 @@ public abstract class AbstractDescriptor
 	}
 
 	/**
-	 * Describe the object for the Eclipse debugger.
+	 * Describe the object for the IntelliJ debugger.
 	 *
 	 * @param object
 	 *        The {@link AvailObject} to describe.
@@ -6780,11 +6780,17 @@ public abstract class AbstractDescriptor
 	public abstract void o_AddLexer (final AvailObject object, final A_Lexer lexer);
 
 	/**
-	 *
 	 * @param object
 	 * @return
 	 */
 	public abstract LexingState o_NextLexingState (
+		final AvailObject object);
+
+	/**
+	 * @param object
+	 * @return
+	 */
+	public abstract AvailObject o_NextLexingStatePojo (
 		final AvailObject object);
 
 	/**

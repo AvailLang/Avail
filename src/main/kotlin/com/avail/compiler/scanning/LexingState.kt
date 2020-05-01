@@ -42,7 +42,7 @@ import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.CharacterDescriptor
 import com.avail.descriptor.FiberDescriptor.GeneralFlag
 import com.avail.descriptor.FiberDescriptor.newLoaderFiber
-import com.avail.descriptor.numbers.IntegerDescriptor.fromInt
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.parsing.A_Lexer
 import com.avail.descriptor.parsing.LexerDescriptor.lexerBodyFunctionType
 import com.avail.descriptor.representation.A_BasicObject

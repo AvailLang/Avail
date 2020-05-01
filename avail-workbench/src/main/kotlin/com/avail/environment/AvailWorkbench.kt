@@ -69,6 +69,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.prefs.BackingStoreException
 import java.util.prefs.Preferences
 import javax.swing.*
+import javax.swing.JSplitPane.DIVIDER_LOCATION_PROPERTY
 import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
 import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS
 import javax.swing.SwingUtilities.invokeLater
@@ -1751,12 +1752,6 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		internal var leftSectionWidth: Int? = null
 
 		/**
-		 * The preferred location and size of the module editor window, if
-		 * specified.
-		 */
-		var moduleViewerPlacement: Rectangle? = null
-
-		/**
 		 * The proportion, if specified, as a float between `0.0` and `1.0` of
 		 * the height of the top left module region in relative proportional to
 		 * the height of the entire builder frame.
@@ -1791,21 +1786,28 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		/**
 		 * Answer a string representation of this configuration that is suitable
 		 * for being stored and restored via the [LayoutConfiguration]
-		 * constructor that accepts a `String`.
-		 *
-		 *
+		 * constructor that accepts a [String].
 		 *
 		 * The layout should be fairly stable to avoid treating older versions
 		 * as malformed.  To that end, we use a simple list of strings, adding
 		 * entries for new purposes to the end, and never removing or changing
 		 * the meaning of existing entries.
 		 *
+		 * Do not remove or repurpose old entries:
+		 *  * **0-3**: x,y,w,h of workbench window.
+		 *  * **4**: width in pixels of left section of workbench (modules and
+		 *    entry points.
+		 *  * **5**: vertical proportion between modules area and entry points
+		 *    area.
+		 *  * **6-9**: Reserved for compatibility.  These must be blank when
+		 *    writing.  They used to contain the rectangle for a module editor
+		 *    window, but that capability no longer exists.
 		 *
 		 * @return A string.
 		 */
 		fun stringToStore(): String
 		{
-			val strings = arrayOfNulls<String>(10)
+			val strings = Array(10) { "" }
 			val p = placement
 			if (p != null)
 			{
@@ -1814,43 +1816,10 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 				strings[2] = p.width.toString()
 				strings[3] = p.height.toString()
 			}
+			strings[4] = (leftSectionWidth ?: 200).toString()
+			strings[5] = (moduleVerticalProportion ?: 0.5).toString()
 
-			val w = leftSectionWidth
-			if (w != null)
-			{
-				strings[4] = w.toString()
-			}
-			val h = moduleVerticalProportion
-			if (h != null)
-			{
-				strings[5] = h.toString()
-			}
-
-			val mvp = moduleViewerPlacement
-			if (mvp != null)
-			{
-				strings[6] = mvp.x.toString()
-				strings[7] = mvp.y.toString()
-				strings[8] = mvp.width.toString()
-				strings[9] = mvp.height.toString()
-			}
-
-			val builder = StringBuilder()
-			var first = true
-			for (string in strings)
-			{
-				if (!first)
-				{
-					builder.append(',')
-				}
-
-				if (string != null)
-				{
-					builder.append(string)
-				}
-				first = false
-			}
-			return builder.toString()
+			return strings.joinToString(",")
 		}
 
 		/**
@@ -1873,53 +1842,19 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		{
 			if (input.isNotEmpty())
 			{
-				val substrings = input
-					.split(",".toRegex())
-					.dropLastWhile(String::isEmpty)
-				try
-				{
-					val (x, y, w, h) = substrings.map(::parseInt)
-					placement = Rectangle(
-						max(0, x), max(0, y), max(50, w), max(50,h))
-				}
-				catch (e: NumberFormatException)
-				{
-					// ignore
+				val substrings = input.split(',')
+				kotlin.runCatching {
+					val (x, y, w, h) = substrings.slice(0..3).map(::parseInt)
+					placement = Rectangle(x, y, max(50, w), max(50,h))
 				}
 
-				try
-				{
-					leftSectionWidth = max(0, parseInt(substrings[4]))
-				}
-				catch (e: NumberFormatException)
-				{
-					// ignore
-				}
+				leftSectionWidth = runCatching {
+					max(0, parseInt(substrings[4]))
+				}.getOrDefault(200)
 
-				try
-				{
-					moduleVerticalProportion =
-						java.lang.Double.parseDouble(substrings[5])
-				}
-				catch (e: NumberFormatException)
-				{
-					// ignore
-				}
-
-				try
-				{
-					if (substrings.size >= 9)
-					{
-						val (x, y, w, h) =
-							substrings.slice(6..9).map(::parseInt)
-						moduleViewerPlacement = Rectangle(
-							max(0, x), max(0, y), max(50, w), max(50, h))
-					}
-				}
-				catch (e: NumberFormatException)
-				{
-					// ignore
-				}
+				moduleVerticalProportion = runCatching {
+					java.lang.Double.parseDouble(substrings[5])
+				}.getOrDefault(0.5)
 			}
 		}
 	}
@@ -1967,6 +1902,10 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			}
 		}
 	}
+
+	private val mainSplit: JSplitPane
+
+	private val leftPane: JSplitPane
 
 	init
 	{
@@ -2260,13 +2199,16 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		runtime.setTextInterface(textInterface)
 		availBuilder.textInterface = textInterface
 
-		val leftPane = JSplitPane(
+		leftPane = JSplitPane(
 			JSplitPane.VERTICAL_SPLIT,
 			true,
 			createScrollPane(moduleTree),
 			createScrollPane(entryPointsTree))
 		leftPane.setDividerLocation(configuration.moduleVerticalProportion())
 		leftPane.resizeWeight = configuration.moduleVerticalProportion()
+		leftPane.addPropertyChangeListener(DIVIDER_LOCATION_PROPERTY) {
+			saveWindowPosition()
+		}
 		val rightPane = JPanel()
 		val rightPaneLayout = GroupLayout(rightPane)
 		rightPane.layout = rightPaneLayout
@@ -2305,44 +2247,27 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 						  GroupLayout.DEFAULT_SIZE,
 						  GroupLayout.PREFERRED_SIZE)))
 
-		val mainSplit = JSplitPane(
+		mainSplit = JSplitPane(
 			JSplitPane.HORIZONTAL_SPLIT, true, leftPane, rightPane)
 		mainSplit.dividerLocation = configuration.leftSectionWidth()
+		mainSplit.addPropertyChangeListener(DIVIDER_LOCATION_PROPERTY) {
+			saveWindowPosition()
+		}
 		contentPane.add(mainSplit)
 		pack()
-		if (configuration.placement != null)
-		{
-			bounds = configuration.placement!!
-		}
+		configuration.placement?.let { bounds = it }
 
 		// Save placement when closing.
-		addWindowListener(
-			object : WindowAdapter()
+		addComponentListener(object : ComponentAdapter() {
+			override fun componentResized(e: ComponentEvent?)
 			{
-			  override fun windowClosing(e: WindowEvent?)
-			  {
-			      val preferences =
-				      placementPreferencesNodeForScreenNames(allScreenNames())
-			      val prevConfiguration = LayoutConfiguration(
-			          preferences.get(placementLeafKeyString, ""))
-			      val saveConfiguration = LayoutConfiguration()
-			      if (prevConfiguration.moduleViewerPlacement != null)
-			      {
-			          saveConfiguration.moduleViewerPlacement =
-				          prevConfiguration.moduleViewerPlacement
-			      }
+				saveWindowPosition()
+			}
 
-			      saveConfiguration.placement = bounds
-			      saveConfiguration.leftSectionWidth = mainSplit.dividerLocation
-			      saveConfiguration.moduleVerticalProportion =
-				      leftPane.dividerLocation /
-						  max(leftPane.height.toDouble(), 1.0)
-			      preferences.put(
-			          placementLeafKeyString,
-			          saveConfiguration.stringToStore())
-			      super.windowClosing(e)
-			  }
-			})
+			override fun componentMoved(e: ComponentEvent?) {
+				saveWindowPosition()
+			}
+		})
 		if (runningOnMac)
 		{
 			OSXUtility.setQuitHandler {
@@ -2368,6 +2293,19 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		validate()
 		setEnablements()
 	}// Set module components.
+
+	private fun saveWindowPosition() {
+		val preferences =
+			placementPreferencesNodeForScreenNames(allScreenNames())
+		val saveConfiguration = LayoutConfiguration()
+
+		saveConfiguration.placement = bounds
+		saveConfiguration.leftSectionWidth = mainSplit.dividerLocation
+		saveConfiguration.moduleVerticalProportion =
+			leftPane.dividerLocation / max(leftPane.height.toDouble(), 1.0)
+		preferences.put(
+			placementLeafKeyString, saveConfiguration.stringToStore())
+	}
 
 	/**
 	 * Make the workbench instance behave more like a Mac application.

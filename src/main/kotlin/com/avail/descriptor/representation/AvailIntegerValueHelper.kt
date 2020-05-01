@@ -31,8 +31,6 @@
  */
 package com.avail.descriptor.representation
 
-import com.avail.descriptor.representation.AvailObject
-
 /**
  * A helper class used by IntelliJ to show Logical Structures in the debugger.
  * In particular, it shows long-valued slots within [AvailObject]s.

@@ -38,11 +38,11 @@ import com.avail.compiler.splitter.MessageSplitter.Companion.circledNumberCodePo
 import com.avail.compiler.splitter.MessageSplitter.Companion.indexForPermutation
 import com.avail.compiler.splitter.MessageSplitter.Companion.throwSignatureException
 import com.avail.compiler.splitter.WrapState.*
-import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.numbers.InfinityDescriptor.positiveInfinity
-import com.avail.descriptor.numbers.IntegerDescriptor.fromInt
-import com.avail.descriptor.numbers.IntegerDescriptor.zero
+import com.avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import com.avail.descriptor.phrases.A_Phrase
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.tupleFromIntegerList
 import com.avail.descriptor.types.A_Type

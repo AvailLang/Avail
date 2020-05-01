@@ -557,8 +557,7 @@ Private method "minimum semantic restriction" is
 		minInclusive : boolean := ⎣first⎦ is inclusive;
 		max : extended integer := ⎡first⎤;
 		maxInclusive : boolean := ⎡first⎤ is inclusive;
-		limit ::= cast |numbers' leading types| + 1
-			into [ t : natural number | t ];
+		limit ::= |numbers' leading types| + 1;
 		From 2 to limit do
 		[
 			index : natural number
@@ -710,8 +709,7 @@ Private method "maximum semantic restriction" is
 		minInclusive : boolean := ⎣first⎦ is inclusive;
 		max : extended integer := ⎡first⎤;
 		maxInclusive : boolean := ⎡first⎤ is inclusive;
-		limit ::= cast |numbers' leading types| + 1
-			into [t : natural number | t];
+		limit ::= |numbers' leading types| + 1;
 		From 2 to limit do
 		[
 			index : natural number

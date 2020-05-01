@@ -34,8 +34,8 @@ package com.avail.interpreter.primitive.bootstrap.lexing
 
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.IntegerDescriptor
-import com.avail.descriptor.numbers.IntegerDescriptor.cachedSquareOfQuintillion
-import com.avail.descriptor.numbers.IntegerDescriptor.fromLong
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.cachedSquareOfQuintillion
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
 import com.avail.descriptor.parsing.LexerDescriptor.lexerBodyFunctionType
 import com.avail.descriptor.sets.SetDescriptor.set
 import com.avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
@@ -133,8 +133,7 @@ object P_BootstrapLexerWholeNumberBody
 		// recurse on the remaining left digits to get L, then compute
 		// (10^18)^N * L + R.
 		val groupCount = (digitCount + 17) / 18
-		val logGroupCount =
-			31 - Integer.numberOfLeadingZeros(groupCount - 1)
+		val logGroupCount = 31 - Integer.numberOfLeadingZeros(groupCount - 1)
 		val rightGroupCount = 1 shl logGroupCount
 		assert(rightGroupCount < groupCount)
 		assert(rightGroupCount shl 1 >= groupCount)
@@ -142,16 +141,11 @@ object P_BootstrapLexerWholeNumberBody
 
 		val rightCount = 18 shl logGroupCount
 		val leftPart = readInteger(
-			string,
-			startPosition,
-			digitCount - rightCount)
+			string, startPosition, digitCount - rightCount)
 		val rightPart = readInteger(
-			string,
-			startPosition + digitCount - rightCount,
-			rightCount)
+			string, startPosition + digitCount - rightCount, rightCount)
 		val squareOfQuintillion = cachedSquareOfQuintillion(logGroupCount)
-		val shiftedLeft =
-			leftPart.timesCanDestroy(squareOfQuintillion, true)
+		val shiftedLeft = leftPart.timesCanDestroy(squareOfQuintillion, true)
 		return shiftedLeft.plusCanDestroy(rightPart, true)
 	}
 }

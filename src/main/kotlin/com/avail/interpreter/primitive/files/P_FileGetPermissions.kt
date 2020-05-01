@@ -34,7 +34,7 @@ package com.avail.interpreter.primitive.files
 
 import com.avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import com.avail.descriptor.numbers.A_Number
-import com.avail.descriptor.numbers.IntegerDescriptor.fromInt
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor.generateSetFrom
 import com.avail.descriptor.sets.SetDescriptor.set

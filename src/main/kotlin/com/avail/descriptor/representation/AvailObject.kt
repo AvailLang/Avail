@@ -194,6 +194,8 @@ class AvailObject private constructor(
 		}
 	}
 
+	enum class FakeSlots : ObjectSlotsEnum { ERROR_ }
+
 	/**
 	 * Utility method for decomposing this object in the debugger.  See
 	 * [AvailObjectFieldHelper] for instructions to enable this functionality in
@@ -204,7 +206,18 @@ class AvailObject private constructor(
 	 *   logical structure of the receiver to the debugger.
 	 */
 	override fun describeForDebugger(): Array<AvailObjectFieldHelper> =
-		descriptor().o_DescribeForDebugger(this)
+		try {
+			descriptor().o_DescribeForDebugger(this)
+		}
+		catch (e: Throwable)
+		{
+			arrayOf(
+				AvailObjectFieldHelper(
+					this,
+					FakeSlots.ERROR_,
+					-1,
+					e))
+		}
 
 	/**
 	 * Answer a name suitable for labeling a field containing this object.
@@ -212,7 +225,13 @@ class AvailObject private constructor(
 	 * @return An Avail [string][StringDescriptor].
 	 */
 	override fun nameForDebugger(): String =
-		descriptor().o_NameForDebugger(this)
+		try {
+			descriptor().o_NameForDebugger(this)
+		}
+		catch (e: Throwable)
+		{
+			"(Error: ${e.message})"
+		}
 
 	/**
 	 * Answer whether to show value-specific content in the field name in the
@@ -237,7 +256,7 @@ class AvailObject private constructor(
 	 * @return
 	 *   Whether the receiver is strictly greater than the argument.
 	 */
-	override fun greaterThan(another: A_Number) = numericCompare(another).isMore
+	override fun greaterThan(another: A_Number) = numericCompare(another).isMore()
 
 	/**
 	 * Answer whether the receiver is numerically greater than or equivalent to
@@ -249,7 +268,7 @@ class AvailObject private constructor(
 	 *   Whether the receiver is greater than or equivalent to the argument.
 	 */
 	override fun greaterOrEqual(another: A_Number) =
-		numericCompare(another).isMoreOrEqual
+		numericCompare(another).isMoreOrEqual()
 
 	/**
 	 * Answer whether the receiver is numerically less than the argument.
@@ -259,7 +278,7 @@ class AvailObject private constructor(
 	 * @return
 	 *   Whether the receiver is strictly less than the argument.
 	 */
-	override fun lessThan(another: A_Number) = numericCompare(another).isLess
+	override fun lessThan(another: A_Number) = numericCompare(another).isLess()
 
 	/**
 	 * Answer whether the receiver is numerically less than or equivalent to
@@ -271,7 +290,7 @@ class AvailObject private constructor(
 	 *   Whether the receiver is less than or equivalent to the argument.
 	 */
 	override fun lessOrEqual(another: A_Number) =
-		numericCompare(another).isLessOrEqual
+		numericCompare(another).isLessOrEqual()
 
 	/**
 	 * Helper method for transferring this object's longSlots into an
@@ -3083,7 +3102,11 @@ class AvailObject private constructor(
 
 	override fun globalName() = descriptor().o_GlobalName(this)
 
-	override fun nextLexingState() = descriptor().o_NextLexingState(this)
+	override fun nextLexingState(): LexingState =
+		descriptor().o_NextLexingState(this)
+
+	override fun nextLexingStatePojo(): AvailObject =
+		descriptor().o_NextLexingStatePojo(this)
 
 	override fun setNextLexingStateFromPrior(priorLexingState: LexingState) =
 		descriptor().o_SetNextLexingStateFromPrior(this, priorLexingState)

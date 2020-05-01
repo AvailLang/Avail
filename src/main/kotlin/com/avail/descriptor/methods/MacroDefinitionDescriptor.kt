@@ -32,6 +32,7 @@
 package com.avail.descriptor.methods
 
 import com.avail.annotations.AvailMethod
+import com.avail.annotations.HideFieldJustForPrinting
 import com.avail.descriptor.A_Module
 import com.avail.descriptor.ModuleDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom
@@ -94,11 +95,13 @@ class MacroDefinitionDescriptor private constructor(
 		/**
 		 * Duplicated from parent.  The method in which this definition occurs.
 		 */
+		@HideFieldJustForPrinting
 		DEFINITION_METHOD,
 
 		/**
 		 * The [module][ModuleDescriptor] in which this definition occurs.
 		 */
+		@HideFieldJustForPrinting
 		MODULE,
 
 		/**
@@ -115,6 +118,7 @@ class MacroDefinitionDescriptor private constructor(
 		 * information in a fiber-specific variable with the key
 		 * [SpecialAtom.CLIENT_DATA_GLOBAL_KEY].
 		 */
+		@HideFieldJustForPrinting
 		MACRO_PREFIX_FUNCTIONS;
 
 		companion object {

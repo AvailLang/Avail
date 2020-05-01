@@ -31,8 +31,12 @@
  */
 package com.avail.interpreter.primitive.continuations
 
-import com.avail.descriptor.numbers.IntegerDescriptor.fromInt
+import com.avail.descriptor.functions.CompiledCodeDescriptor
+import com.avail.descriptor.functions.ContinuationDescriptor
+import com.avail.descriptor.functions.FunctionDescriptor
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.ContinuationTypeDescriptor.mostGeneralContinuationType
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
@@ -43,9 +47,9 @@ import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive:** Answer the program counter of a
- * [continuation][ContinuationDescriptor]. This is the index of
- * the current instruction in the continuation's [function][FunctionDescriptor]'s [code][CompiledCodeDescriptor]'s
- * [tuple][TupleDescriptor] of nybblecodes.
+ * [continuation][ContinuationDescriptor]. This is the index of the current
+ * instruction in the continuation's [function][FunctionDescriptor]'s
+ * [code][CompiledCodeDescriptor]'s [tuple][TupleDescriptor] of nybblecodes.
  */
 @Suppress("unused")
 object P_ContinuationPC : Primitive(1, CannotFail, CanFold, CanInline)

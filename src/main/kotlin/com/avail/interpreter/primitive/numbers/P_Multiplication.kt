@@ -33,10 +33,12 @@ package com.avail.interpreter.primitive.numbers
 
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.numbers.A_Number
-import com.avail.descriptor.numbers.AbstractNumberDescriptor.binaryNumericOperationTypeBound
-import com.avail.descriptor.numbers.InfinityDescriptor.negativeInfinity
-import com.avail.descriptor.numbers.InfinityDescriptor.positiveInfinity
-import com.avail.descriptor.numbers.IntegerDescriptor.*
+import com.avail.descriptor.numbers.AbstractNumberDescriptor.Companion.binaryNumericOperationTypeBound
+import com.avail.descriptor.numbers.InfinityDescriptor.Companion.negativeInfinity
+import com.avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.negativeOne
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.one
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import com.avail.descriptor.sets.SetDescriptor.emptySet
 import com.avail.descriptor.sets.SetDescriptor.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
@@ -83,7 +85,6 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 		{
 			interpreter.primitiveFailure(e)
 		}
-
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

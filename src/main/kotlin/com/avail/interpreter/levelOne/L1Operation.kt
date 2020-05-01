@@ -34,6 +34,13 @@ package com.avail.interpreter.levelOne
 
 import com.avail.descriptor.*
 import com.avail.descriptor.bundles.MessageBundleDescriptor
+import com.avail.descriptor.functions.CompiledCodeDescriptor
+import com.avail.descriptor.functions.FunctionDescriptor
+import com.avail.descriptor.methods.MethodDefinitionDescriptor
+import com.avail.descriptor.methods.MethodDescriptor
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.interpreter.levelOne.L1OperandType.*
 import com.avail.interpreter.levelOne.L1Operation.L1_doExtension
 import com.avail.io.NybbleOutputStream
@@ -245,7 +252,7 @@ enum class L1Operation constructor(
 	 * Process an extension nybblecode, which involves consuming the next nybble
 	 * and dispatching it as though 16 were added to it.
 	 */
-	L1_doExtension(15, EXTENSION)
+	L1_doExtension(15)
 	{
 		override fun dispatch(operationDispatcher: L1OperationDispatcher) =
 			operationDispatcher.L1_doExtension()
@@ -359,13 +366,13 @@ enum class L1Operation constructor(
 	};
 
 	/** This operation's collection of [operand types][L1OperandType]. */
-	val operandTypes: Array<out L1OperandType>
-
-	init
-	{
+	val operandTypes = operandTypes.also {
 		assert(ordinalCheck == ordinal)
-		this.operandTypes = operandTypes
 	}
+
+	private val shortName = name.replace(Regex("L1_do|L1Ext_do"), "")
+
+	fun shortName() = shortName
 
 	/**
 	 * Dispatch this operation through an [L1OperationDispatcher].
@@ -392,10 +399,6 @@ enum class L1Operation constructor(
 		else
 		{
 			assert(nybble < 32)
-			// Kotlin is 100% wrong about the L1_doExtension being redundant
-			// here. We must explicitly use L1_doExtension's ordinal, not our
-			// own ordinal!
-			@Suppress("RemoveRedundantQualifierName")
 			stream.write(L1_doExtension.ordinal)
 			stream.write(nybble - 16)
 		}

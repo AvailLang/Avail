@@ -6,6 +6,7 @@
       <w>boundedly</w>
       <w>cardinalities</w>
       <w>checkable</w>
+      <w>comparables</w>
       <w>darcula</w>
       <w>devirtualize</w>
       <w>distro</w>
@@ -15,8 +16,10 @@
       <w>fileanalyzer</w>
       <w>genericity</w>
       <w>hasher</w>
+      <w>incomparables</w>
       <w>inet</w>
       <w>intelli</w>
+      <w>irreflexive</w>
       <w>joinee</w>
       <w>lexes</w>
       <w>masse</w>
@@ -29,6 +32,7 @@
       <w>postinvoke</w>
       <w>precompute</w>
       <w>preinvoke</w>
+      <w>printability</w>
       <w>retranslator</w>
       <w>rewriter</w>
       <w>seminumerical</w>

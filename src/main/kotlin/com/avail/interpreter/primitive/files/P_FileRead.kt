@@ -37,8 +37,8 @@ import com.avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.FILE_KEY
 import com.avail.descriptor.functions.FunctionDescriptor
-import com.avail.descriptor.numbers.InfinityDescriptor.positiveInfinity
-import com.avail.descriptor.numbers.IntegerDescriptor.one
+import com.avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import com.avail.descriptor.sets.SetDescriptor.set
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ByteArrayTupleDescriptor

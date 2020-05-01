@@ -468,8 +468,7 @@ Semantic restriction "_[_]" is
 		Reject parse, expected: message
 	];
 	union : type := ⊥;
-	limit ::= cast |aTupleType's leading types| + 1
-		into [ t : natural number | t ];
+	limit ::= |aTupleType's leading types| + 1;
 	startIndex ::= ⎣index⎦ min limit;
 	endIndex ::= ⎡index⎤ min limit;
 	From startIndex to endIndex do
@@ -515,8 +514,7 @@ Semantic restriction "_[_]" is
 		Reject parse, expected: message
 	];
 	union : type := ⊥;
-	limit ::= cast |aTupleType's leading types| + 1
-		into [ t : natural number | t ];
+	limit ::= |aTupleType's leading types| + 1;
 	startIndex ::= ⎣index⎦ min limit;
 	endIndex ::= ⎡index⎤ min limit;
 	From startIndex to endIndex do

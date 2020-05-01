@@ -86,6 +86,7 @@ import static com.avail.optimizer.jvm.JVMTranslator.LiteralAccessor.invalidIndex
 import static com.avail.performance.StatisticReport.FINAL_JVM_TRANSLATION_TIME;
 import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.Strings.traceFor;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Comparator.comparingInt;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
@@ -824,7 +825,7 @@ public final class JVMTranslator
 			@SuppressWarnings("DynamicRegexReplaceableByCompiledPattern")
 			final String trace = traceFor(e).replaceAll(
 				" {6,}", "     ");
-			final ByteBuffer buffer = StandardCharsets.UTF_8.encode(trace);
+			final ByteBuffer buffer = UTF_8.encode(trace);
 			final byte[] bytes = new byte[buffer.limit()];
 			buffer.get(bytes);
 			Files.write(traceFile, bytes);
@@ -1528,26 +1529,22 @@ public final class JVMTranslator
 	 */
 	private @Nullable String dumpL1SourceToFile ()
 	{
-		final @Nullable A_RawFunction function = code;
-		assert function != null;
+		final A_RawFunction rawFunction = stripNull(code);
 		try
 		{
 			final StringBuilder builder = new StringBuilder();
 			builder.append(chunkName);
 			builder.append(":\n\n");
-			L1Disassembler.disassemble(
-				function, builder, new IdentityHashMap<>(), 0);
-			final int lastSlash =
-				classInternalName.lastIndexOf('/');
-			final String pkg =
-				classInternalName.substring(0, lastSlash);
+			final L1Disassembler disassembler = new L1Disassembler(rawFunction);
+			disassembler.print(builder, new IdentityHashMap<>(), 0);
+			final int lastSlash = classInternalName.lastIndexOf('/');
+			final String pkg = classInternalName.substring(0, lastSlash);
 			final Path tempDir = Paths.get("debug", "jvm");
 			final Path dir = tempDir.resolve(Paths.get(pkg));
 			Files.createDirectories(dir);
 			final String base = classInternalName.substring(lastSlash + 1);
 			final Path l1File = dir.resolve(base + ".l1");
-			final ByteBuffer buffer =
-				StandardCharsets.UTF_8.encode(builder.toString());
+			final ByteBuffer buffer = UTF_8.encode(builder.toString());
 			final byte[] bytes = new byte[buffer.limit()];
 			buffer.get(bytes);
 			Files.write(l1File, bytes);
@@ -1597,8 +1594,7 @@ public final class JVMTranslator
 					false,
 					builder);
 			visualizer.visualize();
-			final ByteBuffer buffer = StandardCharsets.UTF_8.encode(
-				builder.toString());
+			final ByteBuffer buffer = UTF_8.encode(builder.toString());
 			final byte[] bytes = new byte[buffer.limit()];
 			buffer.get(bytes);
 			Files.write(l2File, bytes);

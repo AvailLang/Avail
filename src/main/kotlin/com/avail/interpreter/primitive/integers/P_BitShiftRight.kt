@@ -32,7 +32,7 @@
 
 package com.avail.interpreter.primitive.integers
 
-import com.avail.descriptor.numbers.IntegerDescriptor.zero
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import com.avail.descriptor.sets.SetDescriptor.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type

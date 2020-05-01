@@ -32,7 +32,7 @@
 
 package com.avail.interpreter.primitive.tuples
 
-import com.avail.descriptor.numbers.IntegerDescriptor.zero
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import com.avail.descriptor.sets.SetDescriptor.set
 import com.avail.descriptor.tuples.IntegerIntervalTupleDescriptor
 import com.avail.descriptor.tuples.IntegerIntervalTupleDescriptor.createInterval

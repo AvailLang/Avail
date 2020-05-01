@@ -32,7 +32,7 @@
 package com.avail.interpreter.primitive.rawfunctions
 
 import com.avail.descriptor.functions.CompiledCodeDescriptor
-import com.avail.descriptor.numbers.IntegerDescriptor.zero
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.generateObjectTupleFrom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.tuples.TupleDescriptor

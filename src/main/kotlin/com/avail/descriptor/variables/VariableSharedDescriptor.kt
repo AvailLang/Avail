@@ -32,6 +32,7 @@
 package com.avail.descriptor.variables
 
 import com.avail.annotations.AvailMethod
+import com.avail.annotations.HideFieldInDebugger
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.NilDescriptor
 import com.avail.descriptor.NilDescriptor.nil
@@ -73,7 +74,7 @@ import java.util.*
  *   The [mutability][Mutability] of the new descriptor.
  * @param typeTag
  *   The [TypeTag] to embed in the new descriptor.
- * @param selfSlotsEnumClass
+ * @param objectSlotsEnumClass
  *   The Java [Class] which is a subclass of [ObjectSlotsEnum] and defines this
  *   object's object slots layout, or null if there are no object slots.
  * @param integerSlotsEnumClass
@@ -97,6 +98,7 @@ open class VariableSharedDescriptor protected constructor(
 		 * The low 32 bits are used for the hash, but the upper 32 can be used
 		 * by subclasses.
 		 */
+		@HideFieldInDebugger
 		HASH_AND_MORE;
 
 		companion object
@@ -105,6 +107,7 @@ open class VariableSharedDescriptor protected constructor(
 			 * A slot to hold the hash value.  Must be computed when (or before)
 			 * making a variable shared.
 			 */
+			@HideFieldInDebugger
 			@JvmField
 			val HASH_ALWAYS_SET = BitField(HASH_AND_MORE, 0, 32)
 

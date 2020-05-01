@@ -39,12 +39,11 @@ import com.avail.AvailTask;
 import com.avail.AvailThread;
 import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.A_Module;
-import com.avail.descriptor.atoms.A_Atom;
-import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.NilDescriptor;
+import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.bundles.A_Bundle;
 import com.avail.descriptor.bundles.MessageBundleDescriptor;
 import com.avail.descriptor.functions.A_Continuation;
@@ -56,6 +55,7 @@ import com.avail.descriptor.functions.FunctionDescriptor;
 import com.avail.descriptor.numbers.A_Number;
 import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.representation.AvailIntegerValueHelper;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.representation.AvailObjectFieldHelper;
 import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.tuples.A_Tuple;
@@ -1518,12 +1518,33 @@ public final class Interpreter
 	{
 		if (debugPrimitives)
 		{
+			final StringBuilder builder = new StringBuilder();
+			int argCount = 1;
+			for (final AvailObject arg : argsBuffer)
+			{
+				String argString = arg.toString();
+				if (argString.length() > 70)
+				{
+					argString = argString.substring(0, 70) + "...";
+				}
+				//noinspection DynamicRegexReplaceableByCompiledPattern
+				argString = argString.replaceAll("\\n", "\\\\n");
+				builder
+					.append("\n\t\t")
+					.append(debugModeString)
+					.append("\t#")
+					.append(argCount)
+					.append(". ")
+					.append(argString);
+				argCount++;
+			}
 			log(
 				loggerDebugPrimitives,
 				Level.FINER,
-				"{0}attempt {1} (and clear latestResult)",
+				"{0}attempt {1}{2}",
 				debugModeString,
-				primitive.fieldName());
+				primitive.fieldName(),
+				builder.toString());
 		}
 		returnNow = false;
 		setLatestResult(null);
@@ -1564,18 +1585,24 @@ public final class Interpreter
 		{
 			if (loggerDebugPrimitives.isLoggable(Level.FINER))
 			{
-				@Nullable AvailErrorCode errorCode = null;
+				String detailPart = "";
 				if (success == FAILURE)
 				{
 					if (getLatestResult().isInt())
 					{
 						final int errorInt = getLatestResult().extractInt();
-						errorCode = byNumericCode(errorInt);
+						detailPart = " (" + byNumericCode(errorInt) + ")";
 					}
 				}
-				final String failPart = errorCode != null
-					? " (" + errorCode + ")"
-					: "";
+				else if (success == SUCCESS)
+				{
+					String result = getLatestResult().toString();
+					if (result.length() > 70)
+					{
+						result = result.substring(0, 70) + "...";
+					}
+					detailPart = " --> " + result;
+				}
 				log(
 					loggerDebugPrimitives,
 					Level.FINER,
@@ -1583,7 +1610,7 @@ public final class Interpreter
 					debugModeString,
 					primitive.fieldName(),
 					success.name(),
-					failPart);
+					detailPart);
 				if (success != SUCCESS)
 				{
 					log(

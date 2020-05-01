@@ -86,8 +86,8 @@ class SubmitInputAction constructor(workbench: AvailWorkbench)
 				ConsoleOutputChannel(workbench.outputStream()),
 				ConsoleOutputChannel(workbench.errorStream())))
 			workbench.availBuilder.attemptCommand(
-				string,
-				attemptCommand@ { commands, proceed ->
+				command = string,
+				onAmbiguity = attemptCommand@ { commands, proceed ->
 					val array = commands.toTypedArray()
 					Arrays.sort(
 						array
@@ -103,13 +103,14 @@ class SubmitInputAction constructor(workbench: AvailWorkbench)
 						"Disambiguate",
 						JOptionPane.QUESTION_MESSAGE,
 						null,
-						commands.toTypedArray(), null) as CompiledCommand
+						commands.toTypedArray(),
+						null) as CompiledCommand?
 					// There may not be a selection, in which case the
 					// command will not be run – but any necessary cleanup
 					// will be run.
-					proceed.invoke(selection)
+					proceed(selection)
 				},
-				{ result, cleanup ->
+				onSuccess = { result, cleanup ->
 					val afterward = {
 						workbench.isRunning = false
 						invokeLater {
@@ -142,7 +143,7 @@ class SubmitInputAction constructor(workbench: AvailWorkbench)
 						cleanup.invoke(afterward)
 					}
 				},
-				{
+				onFailure = {
 					invokeLater {
 						workbench.isRunning = false
 						workbench.inputStream().clear()

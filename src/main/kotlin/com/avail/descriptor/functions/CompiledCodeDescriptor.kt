@@ -33,10 +33,7 @@ package com.avail.descriptor.functions
 
 import com.avail.AvailRuntime
 import com.avail.AvailRuntimeSupport
-import com.avail.annotations.AvailMethod
-import com.avail.annotations.EnumField
-import com.avail.annotations.HideFieldInDebugger
-import com.avail.annotations.ThreadSafe
+import com.avail.annotations.*
 import com.avail.descriptor.A_Module
 import com.avail.descriptor.AbstractDescriptor
 import com.avail.descriptor.Descriptor
@@ -73,7 +70,7 @@ import com.avail.descriptor.types.TypeDescriptor
 import com.avail.descriptor.types.TypeTag
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.levelOne.L1Disassembler.Companion.disassemble
+import com.avail.interpreter.levelOne.L1Disassembler
 import com.avail.interpreter.levelOne.L1InstructionWriter
 import com.avail.interpreter.levelOne.L1OperandType
 import com.avail.interpreter.levelOne.L1Operation
@@ -309,6 +306,7 @@ class CompiledCodeDescriptor private constructor(
 		 * operands of [level one instructions][L1Operation] encoded in the
 		 * [IntegerSlots.NYBBLECODES_].
 		 */
+		@HideFieldInDebugger
 		LITERAL_AT_
 	}
 
@@ -482,18 +480,11 @@ class CompiledCodeDescriptor private constructor(
 		 * Used for exploring the descriptor, which contains instance-specific
 		 * fields.
 		 */
+		@HideFieldJustForPrinting
 		DESCRIPTOR,
 
-		/** Used for showing the types of captured variables and constants. */
-		OUTER_TYPE_,
-
-		/** Used for showing the types of local variables. */
-		LOCAL_TYPE_,
-
-		/** Used for showing the types of local constants. */
-		CONSTANT_TYPE_,
-
 		/** Used for showing an L1 disassembly of the code. */
+		@HideFieldJustForPrinting
 		L1_DISASSEMBLY,
 
 		/**
@@ -503,7 +494,26 @@ class CompiledCodeDescriptor private constructor(
 		 * entry collapsed avoids having to compute the print representations of
 		 * the literals.
 		 */
-		ALL_LITERALS
+		@HideFieldJustForPrinting
+		ALL_LITERALS,
+
+		/**
+		 * Used for showing literals referenced by index from the nybblecodes.
+		 */
+		@HideFieldJustForPrinting
+		BASE_LITERAL_,
+
+		/** Used for showing the types of captured variables and constants. */
+		@HideFieldJustForPrinting
+		OUTER_TYPE_,
+
+		/** Used for showing the types of local variables. */
+		@HideFieldJustForPrinting
+		LOCAL_TYPE_,
+
+		/** Used for showing the types of local constants. */
+		@HideFieldJustForPrinting
+		CONSTANT_TYPE_;
 	}
 
 	/**
@@ -513,37 +523,54 @@ class CompiledCodeDescriptor private constructor(
 	 */
 	override fun o_DescribeForDebugger(
 		self: AvailObject
-	): Array<AvailObjectFieldHelper> {
-		val fields: MutableList<AvailObjectFieldHelper> =
-			ArrayList(listOf(*super.o_DescribeForDebugger(self)))
-		fields.add(AvailObjectFieldHelper(self, FakeSlots.DESCRIPTOR, -1, this))
-		for (i in 1..self.numOuters()) {
+	): Array<AvailObjectFieldHelper> = with(self) {
+		val fields = mutableListOf(*super.o_DescribeForDebugger(self))
+		fields.add(AvailObjectFieldHelper(
+			self, FakeSlots.DESCRIPTOR, -1, this@CompiledCodeDescriptor))
+		val disassembled = L1Disassembler(self).disassembledAsSlots()
+		if (variableIntegerSlotsCount() > 0) {
 			fields.add(
 				AvailObjectFieldHelper(
-					self, FakeSlots.OUTER_TYPE_, i, self.outerTypeAt(i)))
+					self,
+					FakeSlots.L1_DISASSEMBLY,
+					-1,
+					null,
+					forcedName = "(disassembled L1)",
+					forcedChildren = disassembled.toTypedArray()))
 		}
-		for (i in 1..self.numLocals()) {
-			fields.add(
+		val literalFields = mutableListOf<AvailObjectFieldHelper>()
+		val baseLiterals =
+			numLiterals() - numConstants() - numLocals() - numOuters()
+		(1..baseLiterals).forEach {
+			literalFields.add(
 				AvailObjectFieldHelper(
-					self, FakeSlots.LOCAL_TYPE_, i, self.localTypeAt(i)))
+					self, FakeSlots.BASE_LITERAL_, it, literalAt(it)))
 		}
-		for (i in 1..self.numConstants()) {
-			fields.add(
+		(1..numOuters()).forEach {
+			literalFields.add(
 				AvailObjectFieldHelper(
-					self, FakeSlots.CONSTANT_TYPE_, i, self.constantTypeAt(i)))
+					self, FakeSlots.OUTER_TYPE_, it, outerTypeAt(it)))
 		}
-		val content = buildString {
-			self.printOnAvoidingIndent(this@buildString, IdentityHashMap(), 0)
-		}.split("\n").toTypedArray()
-		fields.add(
-			AvailObjectFieldHelper(self, FakeSlots.L1_DISASSEMBLY, -1, content))
-		val allLiterals = (1..self.numLiterals()).map { self.literalAt(it) }
+		(1..numLocals()).forEach {
+			literalFields.add(
+				AvailObjectFieldHelper(
+					self, FakeSlots.LOCAL_TYPE_, it, localTypeAt(it)))
+		}
+		(1..numConstants()).forEach {
+			literalFields.add(
+				AvailObjectFieldHelper(
+					self, FakeSlots.CONSTANT_TYPE_, it, constantTypeAt(it)))
+		}
+
+		val allLiterals = (1..numLiterals()).map { literalAt(it) }
 		fields.add(
 			AvailObjectFieldHelper(
 				self,
 				FakeSlots.ALL_LITERALS,
 				-1,
-				tupleFromList(allLiterals)))
+				tupleFromList(allLiterals),
+				forcedName = "Literals",
+				forcedChildren = literalFields.toTypedArray()))
 		return fields.toTypedArray()
 	}
 
@@ -935,7 +962,7 @@ class CompiledCodeDescriptor private constructor(
 		if (longCount > 0) {
 			newlineTab(builder, indent)
 			builder.append("Nybblecodes:\n")
-			disassemble(self, builder, recursionMap, indent + 1)
+			L1Disassembler(self).print(builder, recursionMap, indent + 1)
 		}
 	}
 

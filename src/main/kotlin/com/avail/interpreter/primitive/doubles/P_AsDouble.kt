@@ -32,7 +32,7 @@
 package com.avail.interpreter.primitive.doubles
 
 import com.avail.descriptor.numbers.DoubleDescriptor
-import com.avail.descriptor.numbers.DoubleDescriptor.fromDouble
+import com.avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType

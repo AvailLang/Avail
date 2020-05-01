@@ -65,7 +65,7 @@ abstract class LookupTreeAdaptor<
 	 */
 	enum class UnusedMemento {
 		/**
-		 * The singleton instance.  Note that we can't use the Kotlin `object`
+		 * The singleton instance.  Note that we can't use the Kotlin self
 		 * notation for this, since we need an actual named type for the
 		 * parameterization.
 		 */

@@ -32,6 +32,7 @@
 package com.avail.descriptor.methods
 
 import com.avail.annotations.AvailMethod
+import com.avail.annotations.HideFieldJustForPrinting
 import com.avail.descriptor.A_Module
 import com.avail.descriptor.Descriptor
 import com.avail.descriptor.ModuleDescriptor
@@ -89,9 +90,11 @@ protected constructor(
 	 */
 	enum class ObjectSlots : ObjectSlotsEnum {
 		/** The [method][MethodDescriptor] in which this is a definition. */
+		@HideFieldJustForPrinting
 		DEFINITION_METHOD,
 
 		/** The [module][ModuleDescriptor] in which this definition occurs. */
+		@HideFieldJustForPrinting
 		MODULE
 	}
 

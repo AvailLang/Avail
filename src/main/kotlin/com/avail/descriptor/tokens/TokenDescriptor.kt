@@ -44,6 +44,7 @@ import com.avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.createSpecialAtom
 import com.avail.descriptor.numbers.IntegerDescriptor
 import com.avail.descriptor.pojos.RawPojoDescriptor
+import com.avail.descriptor.pojos.RawPojoDescriptor.identityPojo
 import com.avail.descriptor.representation.*
 import com.avail.descriptor.tokens.CommentTokenDescriptor.Companion.newCommentToken
 import com.avail.descriptor.tokens.TokenDescriptor.IntegerSlots.Companion.LINE_NUMBER
@@ -56,11 +57,11 @@ import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.StringDescriptor
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.TokenTypeDescriptor
+import com.avail.descriptor.types.TokenTypeDescriptor.tokenType
 import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.types.TypeTag
 import com.avail.serialization.SerializerOperation
-import com.avail.utility.PrefixSharingList
+import com.avail.utility.PrefixSharingList.append
 import com.avail.utility.json.JSONWriter
 import java.util.*
 
@@ -108,6 +109,7 @@ open class TokenDescriptor protected constructor(
 			 * what basic kind of token this is.  Currently four bits are
 			 * reserved for this purpose.
 			 */
+			@JvmField
 			@EnumField(describedBy = TokenType::class)
 			val TOKEN_TYPE_CODE = BitField(TOKEN_TYPE_AND_START_AND_LINE, 0, 4)
 
@@ -115,6 +117,7 @@ open class TokenDescriptor protected constructor(
 			 * The line number in the source file. Currently signed 28 bits,
 			 * which should be plenty.
 			 */
+			@JvmField
 			@EnumField(
 				describedBy = Converter::class,
 				lookupMethodName = "decimal")
@@ -126,6 +129,7 @@ open class TokenDescriptor protected constructor(
 			 * need to parse 2GB of *Avail* source in one file, due to its
 			 * deeply flexible syntax.
 			 */
+			@JvmField
 			@HideFieldInDebugger
 			val START = BitField(TOKEN_TYPE_AND_START_AND_LINE, 32, 32)
 		}
@@ -271,10 +275,10 @@ open class TokenDescriptor protected constructor(
 	@AvailMethod
 	override fun o_EqualsToken(self: AvailObject, aToken: A_Token): Boolean =
 		(self.string().equals(aToken.string())
-		        && self.start() == aToken.start()
-		        && self.tokenType() == aToken.tokenType()
-		        && self.isLiteralToken() == aToken.isLiteralToken()
-		        && (!self.isLiteralToken()
+			&& self.start() == aToken.start()
+			&& self.tokenType() == aToken.tokenType()
+			&& self.isLiteralToken() == aToken.isLiteralToken()
+			&& (!self.isLiteralToken()
 				|| self.literal().equals(aToken.literal())))
 
 	@AvailMethod
@@ -285,8 +289,7 @@ open class TokenDescriptor protected constructor(
 			xor 0x62CE7BA2)
 
 	@AvailMethod
-	override fun o_Kind(self: AvailObject): A_Type =
-		TokenTypeDescriptor.tokenType(self.tokenType())
+	override fun o_Kind(self: AvailObject): A_Type = tokenType(self.tokenType())
 
 	@AvailMethod
 	override fun o_IsInstanceOfKind(
@@ -307,33 +310,27 @@ open class TokenDescriptor protected constructor(
 	override fun o_NextLexingState(self: AvailObject): LexingState =
 		self.slot(NEXT_LEXING_STATE_POJO).javaObjectNotNull()
 
+	override fun o_NextLexingStatePojo(self: AvailObject): AvailObject =
+		self.slot(NEXT_LEXING_STATE_POJO)
+
 	override fun o_SetNextLexingStateFromPrior(
 		self: AvailObject,
-		priorLexingState: LexingState)
-	{
+		priorLexingState: LexingState
+	) {
 		// First, figure out where the token ends.
 		val string: A_Tuple = self.slot(STRING)
 		val stringSize = string.tupleSize()
 		val positionAfter = self.slot(START) + stringSize
 		var line = self.slot(LINE_NUMBER)
-		for (i in 1 .. stringSize)
-		{
-			if (string.tupleCodePointAt(i) == '\n'.toInt())
-			{
-				line++
-			}
+		line += (1..stringSize).count {
+			string.tupleCodePointAt(it) == '\n'.toInt()
 		}
 		// Now lookup/capture the next state.
-		val allTokens =
-			PrefixSharingList.append(priorLexingState.allTokens, self)
+		val allTokens = append(priorLexingState.allTokens, self)
 		val state = LexingState(
-			priorLexingState.compilationContext,
-			positionAfter,
-			line,
-			allTokens)
-		self.setSlot(
-			NEXT_LEXING_STATE_POJO,
-			RawPojoDescriptor.identityPojo(state).makeShared())
+			priorLexingState.compilationContext, positionAfter, line, allTokens)
+		self.setSlot(NEXT_LEXING_STATE_POJO, identityPojo(state).makeShared())
+		self.makeShared()
 	}
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =

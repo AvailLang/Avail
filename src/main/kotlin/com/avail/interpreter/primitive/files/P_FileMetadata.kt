@@ -33,8 +33,8 @@
 package com.avail.interpreter.primitive.files
 
 import com.avail.descriptor.atoms.A_Atom.Companion.extractBoolean
-import com.avail.descriptor.numbers.IntegerDescriptor.fromInt
-import com.avail.descriptor.numbers.IntegerDescriptor.fromLong
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
 import com.avail.descriptor.pojos.PojoDescriptor.newPojo
 import com.avail.descriptor.pojos.RawPojoDescriptor.equalityPojo
 import com.avail.descriptor.sets.SetDescriptor.set

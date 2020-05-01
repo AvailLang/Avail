@@ -33,6 +33,7 @@ package com.avail.descriptor.variables
 
 import com.avail.AvailRuntimeSupport
 import com.avail.annotations.AvailMethod
+import com.avail.annotations.HideFieldInDebugger
 import com.avail.descriptor.A_Fiber
 import com.avail.descriptor.Descriptor
 import com.avail.descriptor.NilDescriptor.nil
@@ -134,6 +135,7 @@ open class VariableDescriptor protected constructor(
 		 * The low 32 bits are used for the [HASH_OR_ZERO], but the upper 32 can
 		 * be used by subclasses.
 		 */
+		@HideFieldInDebugger
 		HASH_AND_MORE;
 
 		companion object

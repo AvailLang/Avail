@@ -34,7 +34,7 @@ package com.avail.interpreter.primitive.numbers
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order.*
-import com.avail.descriptor.numbers.AbstractNumberDescriptor.possibleOrdersWhenComparingInstancesOf
+import com.avail.descriptor.numbers.AbstractNumberDescriptor.Companion.possibleOrdersWhenComparingInstancesOf
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.EnumerationTypeDescriptor

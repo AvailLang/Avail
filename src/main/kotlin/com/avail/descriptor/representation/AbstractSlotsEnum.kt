@@ -44,6 +44,13 @@ import com.avail.descriptor.Descriptor
  * representation access methods defined in [AvailObjectRepresentation]
  * typically restrict the passed enumerations to be of the appropriate kind.
  *
+ * The Kotlin methods [Enum.name] and [Enum.ordinal] (and Java's corresponding
+ * but incompatible methods) are specified here, and in subclasses for Java
+ * compatibility, to ensure something that purports to be an Enum probably is
+ * so, and to make these methods available to it, even though neither Java nor
+ * Kotlin provides a mechanism to say an interface is only appropriate for
+ * subtypes of [Enum] – because it's a class.
+ *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 interface AbstractSlotsEnum
