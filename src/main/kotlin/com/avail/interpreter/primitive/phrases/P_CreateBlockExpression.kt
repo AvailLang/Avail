@@ -32,7 +32,7 @@
 
 package com.avail.interpreter.primitive.phrases
 
-import com.avail.descriptor.objects.ObjectTypeDescriptor.exceptionType
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.exceptionType
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.BlockPhraseDescriptor
 import com.avail.descriptor.phrases.BlockPhraseDescriptor.newBlockNode

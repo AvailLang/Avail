@@ -38,7 +38,7 @@ import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.WE
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.*
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.maps.A_Map
-import com.avail.descriptor.objects.ObjectTypeDescriptor.exceptionType
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.exceptionType
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.BlockPhraseDescriptor
 import com.avail.descriptor.phrases.BlockPhraseDescriptor.newBlockNode

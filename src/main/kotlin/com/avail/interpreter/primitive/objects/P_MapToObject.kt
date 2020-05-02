@@ -33,8 +33,8 @@ package com.avail.interpreter.primitive.objects
 
 import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.objects.ObjectDescriptor
-import com.avail.descriptor.objects.ObjectDescriptor.objectFromMap
-import com.avail.descriptor.objects.ObjectTypeDescriptor.mostGeneralObjectType
+import com.avail.descriptor.objects.ObjectDescriptor.Companion.objectFromMap
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType

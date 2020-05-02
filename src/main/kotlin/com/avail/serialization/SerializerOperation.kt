@@ -68,8 +68,8 @@ import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.two
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
-import com.avail.descriptor.objects.ObjectDescriptor.objectFromMap
-import com.avail.descriptor.objects.ObjectTypeDescriptor.objectTypeFromMap
+import com.avail.descriptor.objects.ObjectDescriptor.Companion.objectFromMap
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.objectTypeFromMap
 import com.avail.descriptor.phrases.AssignmentPhraseDescriptor.isInline
 import com.avail.descriptor.phrases.AssignmentPhraseDescriptor.newAssignment
 import com.avail.descriptor.phrases.BlockPhraseDescriptor

@@ -34,9 +34,9 @@ package com.avail.interpreter.primitive.controlflow
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.ContinuationDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor
-import com.avail.descriptor.objects.ObjectDescriptor.objectFromMap
-import com.avail.descriptor.objects.ObjectTypeDescriptor.exceptionType
-import com.avail.descriptor.objects.ObjectTypeDescriptor.stackDumpAtom
+import com.avail.descriptor.objects.ObjectDescriptor.Companion.objectFromMap
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.exceptionType
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.stackDumpAtom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.BottomTypeDescriptor.bottom

@@ -62,7 +62,9 @@ import java.math.BigInteger
 import java.util.*
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import javax.annotation.concurrent.GuardedBy
+import kotlin.concurrent.read
 import kotlin.concurrent.withLock
+import kotlin.concurrent.write
 import kotlin.experimental.and
 import kotlin.math.abs
 import kotlin.math.max
@@ -1900,13 +1902,13 @@ class IntegerDescriptor private constructor(
 		 */
 		fun cachedSquareOfQuintillion(n: Int): A_Number {
 			// Use a safe double-check mechanism.  Use a read-lock first.
-			squaresOfQuintillionLock.readLock().withLock {
+			squaresOfQuintillionLock.read {
 				if (n < squaresOfQuintillion.size) {
 					return squaresOfQuintillion[n]
 				}
 			}
 			// Otherwise, hold the write-lock and try again.
-			squaresOfQuintillionLock.writeLock().withLock {
+			squaresOfQuintillionLock.write {
 				// Note that the list may have changed between releasing the
 				// read-lock and acquiring the write-lock.  The for-loop should
 				// accommodate that situation.

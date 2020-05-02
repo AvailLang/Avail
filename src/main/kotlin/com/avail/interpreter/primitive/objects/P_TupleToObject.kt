@@ -36,10 +36,10 @@ import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.objects.ObjectDescriptor
-import com.avail.descriptor.objects.ObjectDescriptor.objectFromTuple
-import com.avail.descriptor.objects.ObjectLayoutVariant.variantForFields
-import com.avail.descriptor.objects.ObjectTypeDescriptor.mostGeneralObjectType
-import com.avail.descriptor.objects.ObjectTypeDescriptor.objectTypeFromMap
+import com.avail.descriptor.objects.ObjectDescriptor.Companion.objectFromTuple
+import com.avail.descriptor.objects.ObjectLayoutVariant.Companion.variantForFields
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.objectTypeFromMap
 import com.avail.descriptor.sets.SetDescriptor.setFromCollection
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.tuples.TupleDescriptor

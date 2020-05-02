@@ -42,8 +42,8 @@ import com.avail.descriptor.functions.FunctionDescriptor.Companion.createExceptO
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createWithOuters1
 import com.avail.descriptor.objects.ObjectDescriptor
 import com.avail.descriptor.objects.ObjectTypeDescriptor
-import com.avail.descriptor.objects.ObjectTypeDescriptor.mostGeneralObjectMeta
-import com.avail.descriptor.objects.ObjectTypeDescriptor.mostGeneralObjectType
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectMeta
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.sets.SetDescriptor.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.emptyTuple

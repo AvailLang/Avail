@@ -451,11 +451,10 @@ class ContinuationDescriptor private constructor(
 	companion object {
 		/** The [CheckedMethod] for [A_Continuation.function]. */
 		@JvmField
-		val continuationFunctionMethod: CheckedMethod =
-			instanceMethod(
-				A_Continuation::class.java,
-				A_Continuation::function.name,
-				A_Function::class.java)
+		val continuationFunctionMethod: CheckedMethod = instanceMethod(
+			A_Continuation::class.java,
+			A_Continuation::function.name,
+			A_Function::class.java)
 
 		/**
 		 * Create a new continuation with the given data.  The continuation

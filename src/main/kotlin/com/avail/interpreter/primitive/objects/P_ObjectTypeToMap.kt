@@ -33,7 +33,7 @@ package com.avail.interpreter.primitive.objects
 
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.maps.MapDescriptor
-import com.avail.descriptor.objects.ObjectTypeDescriptor.mostGeneralObjectMeta
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectMeta
 import com.avail.descriptor.sets.SetDescriptor.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type

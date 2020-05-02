@@ -32,7 +32,7 @@
 package com.avail.interpreter.primitive.controlflow
 
 import com.avail.descriptor.functions.FunctionDescriptor
-import com.avail.descriptor.objects.ObjectTypeDescriptor.exceptionType
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.exceptionType
 import com.avail.descriptor.sets.SetDescriptor.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple

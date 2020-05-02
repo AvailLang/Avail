@@ -32,14 +32,18 @@
 package com.avail.interpreter.primitive.objects
 
 import com.avail.descriptor.atoms.AtomDescriptor
-import com.avail.descriptor.objects.ObjectTypeDescriptor.mostGeneralObjectMeta
-import com.avail.descriptor.objects.ObjectTypeDescriptor.objectTypeFromMap
+import com.avail.descriptor.maps.MapDescriptor
+import com.avail.descriptor.objects.ObjectTypeDescriptor
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectMeta
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.objectTypeFromMap
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.InstanceMetaDescriptor.anyMeta
+import com.avail.descriptor.types.InstanceTypeDescriptor
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.types.MapTypeDescriptor.mapTypeForSizesKeyTypeValueType
+import com.avail.descriptor.types.TypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
 import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
