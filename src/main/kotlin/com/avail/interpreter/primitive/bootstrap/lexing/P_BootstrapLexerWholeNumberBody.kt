@@ -36,7 +36,7 @@ import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.IntegerDescriptor
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.cachedSquareOfQuintillion
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
-import com.avail.descriptor.parsing.LexerDescriptor.lexerBodyFunctionType
+import com.avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
 import com.avail.descriptor.sets.SetDescriptor.set
 import com.avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
 import com.avail.descriptor.tuples.A_String

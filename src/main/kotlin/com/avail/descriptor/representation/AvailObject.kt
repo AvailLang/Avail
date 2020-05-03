@@ -43,6 +43,7 @@ import com.avail.descriptor.functions.*
 import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
 import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.maps.A_MapBin
+import com.avail.descriptor.maps.MapBinDescriptor
 import com.avail.descriptor.methods.*
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.AbstractNumberDescriptor
@@ -114,6 +115,7 @@ import java.util.stream.Stream
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Suppress("HasPlatformType")
 class AvailObject private constructor(
 	descriptor: AbstractDescriptor,
 	objectSlotsSize: Int,
@@ -1035,6 +1037,7 @@ class AvailObject private constructor(
 	 * @return
 	 *   `true` if the two objects are of equal value, `false` otherwise.
 	 */
+	@Suppress("CovariantEquals")
 	override fun equals(another: A_BasicObject): Boolean {
 		if (this === another) return true
 		if (!descriptor().o_Equals(this, another)) return false
@@ -1765,8 +1768,8 @@ class AvailObject private constructor(
 		}
 
 	/**
-	 * Multiply the receiver and the argument [anInfinity] and answer the
-	 * result.
+	 * Multiply the receiver and an infinity with the given [Sign], and answer
+	 * the result.
 	 *
 	 * This method should only be called from [timesCanDestroy]. It exists for
 	 * double-dispatch only.
@@ -3011,8 +3014,6 @@ class AvailObject private constructor(
 
 	override fun lastExpression() = descriptor().o_LastExpression(this)
 
-	override fun parsingPc() = descriptor().o_ParsingPc(this)
-
 	override fun isMacroSubstitutionNode() =
 		descriptor().o_IsMacroSubstitutionNode(this)
 
@@ -3038,9 +3039,6 @@ class AvailObject private constructor(
 	override fun uniqueId() = descriptor().o_UniqueId(this)
 
 	override fun definition() = descriptor().o_Definition(this)
-
-	override fun nameHighlightingPc() =
-		descriptor().o_NameHighlightingPc(this)
 
 	override fun setIntersects(otherSet: A_Set) =
 		descriptor().o_SetIntersects(this, otherSet)
@@ -3071,8 +3069,6 @@ class AvailObject private constructor(
 	override fun fieldTypeAt(field: A_Atom) =
 		descriptor().o_FieldTypeAt(this, field)
 
-	override fun parsingPlan() = descriptor().o_ParsingPlan(this)
-
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun atomicAddToMap(key: A_BasicObject, value: A_BasicObject) =
 		descriptor().o_AtomicAddToMap(this, key, value)
@@ -3080,13 +3076,6 @@ class AvailObject private constructor(
 	@Throws(VariableGetException::class)
 	override fun variableMapHasKey(key: A_BasicObject) =
 		descriptor().o_VariableMapHasKey(this, key)
-
-	override fun lexerMethod() = descriptor().o_LexerMethod(this)
-
-	override fun lexerFilterFunction() =
-		descriptor().o_LexerFilterFunction(this)
-
-	override fun lexerBodyFunction() = descriptor().o_LexerBodyFunction(this)
 
 	override fun setLexer(lexer: A_Lexer) = descriptor().o_SetLexer(this, lexer)
 
@@ -3123,8 +3112,6 @@ class AvailObject private constructor(
 		descriptor().o_SuspendingFunction(this, suspendingFunction)
 
 	override fun suspendingFunction() = descriptor().o_SuspendingFunction(this)
-
-	override fun isBackwardJump() = descriptor().o_IsBackwardJump(this)
 
 	override fun debugLog() = descriptor().o_DebugLog(this)
 

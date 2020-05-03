@@ -60,7 +60,11 @@ import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan
 import com.avail.descriptor.parsing.A_ParsingPlanInProgress
-import com.avail.descriptor.parsing.ParsingPlanInProgressDescriptor.newPlanInProgress
+import com.avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.isBackwardJump
+import com.avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.nameHighlightingPc
+import com.avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.parsingPc
+import com.avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.parsingPlan
+import com.avail.descriptor.parsing.ParsingPlanInProgressDescriptor.Companion.newPlanInProgress
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.pojos.RawPojoDescriptor
 import com.avail.descriptor.pojos.RawPojoDescriptor.identityPojo
@@ -430,7 +434,7 @@ class MessageBundleTreeDescriptor private constructor(
 		self.setSlot(
 			UNCLASSIFIED,
 			layeredMapWithPlan(self.slot(UNCLASSIFIED), planInProgress))
-		if (planInProgress.isBackwardJump) {
+		if (planInProgress.isBackwardJump()) {
 			self.setSlot(HAS_BACKWARD_JUMP_INSTRUCTION, 1)
 		}
 	}

@@ -34,7 +34,7 @@ package com.avail.interpreter.primitive.bootstrap.lexing
 
 import com.avail.compiler.AvailRejectedParseException
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
-import com.avail.descriptor.parsing.LexerDescriptor.lexerBodyFunctionType
+import com.avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
 import com.avail.descriptor.sets.SetDescriptor.emptySet
 import com.avail.descriptor.sets.SetDescriptor.set
 import com.avail.descriptor.tokens.CommentTokenDescriptor.Companion.newCommentToken

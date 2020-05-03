@@ -96,9 +96,12 @@ import com.avail.descriptor.methods.*
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.*
 import com.avail.descriptor.parsing.A_Lexer
-import com.avail.descriptor.parsing.LexerDescriptor.lexerBodyFunctionType
-import com.avail.descriptor.parsing.LexerDescriptor.lexerFilterFunctionType
-import com.avail.descriptor.parsing.ParsingPlanInProgressDescriptor.newPlanInProgress
+import com.avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.nameHighlightingPc
+import com.avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.parsingPc
+import com.avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.parsingPlan
+import com.avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
+import com.avail.descriptor.parsing.LexerDescriptor.Companion.lexerFilterFunctionType
+import com.avail.descriptor.parsing.ParsingPlanInProgressDescriptor.Companion.newPlanInProgress
 import com.avail.descriptor.phrases.*
 import com.avail.descriptor.phrases.AssignmentPhraseDescriptor.newAssignment
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_CONSTANT

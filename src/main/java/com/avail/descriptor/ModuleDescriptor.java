@@ -877,7 +877,7 @@ extends Descriptor
 		// module, since that's being unloaded.
 		for (final A_Lexer lexer : object.slot(LEXERS))
 		{
-			lexer.lexerMethod().setLexer(nil);
+			A_Lexer.Companion.lexerMethod(lexer).setLexer(nil);
 		}
 	}
 

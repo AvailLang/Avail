@@ -44,7 +44,8 @@ import com.avail.descriptor.FiberDescriptor.GeneralFlag
 import com.avail.descriptor.FiberDescriptor.newLoaderFiber
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.parsing.A_Lexer
-import com.avail.descriptor.parsing.LexerDescriptor.lexerBodyFunctionType
+import com.avail.descriptor.parsing.A_Lexer.Companion.lexerBodyFunction
+import com.avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.tokens.A_Token

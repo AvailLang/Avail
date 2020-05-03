@@ -48,7 +48,7 @@ import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan
 import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor
-import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor.newParsingPlan
+import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor.Companion.newParsingPlan
 import com.avail.descriptor.pojos.RawPojoDescriptor.identityPojo
 import com.avail.descriptor.representation.*
 import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf

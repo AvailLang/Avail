@@ -158,10 +158,10 @@ import static com.avail.descriptor.IndirectionDescriptor.ObjectSlots.INDIRECTION
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@SuppressWarnings("ThrowsRuntimeException")
 public final class IndirectionDescriptor
 extends AbstractDescriptor
 {
-
 	/**
 	 * The object slots of my {@link AvailObject} instances.  In particular, an
 	 * {@linkplain IndirectionDescriptor indirection} has just a {@link
@@ -4764,7 +4764,7 @@ extends AbstractDescriptor
 	@Override
 	public int o_ParsingPc (final AvailObject object)
 	{
-		return o_Traversed(object).parsingPc();
+		return A_ParsingPlanInProgress.Companion.parsingPc(o_Traversed(object));
 	}
 
 	@Override
@@ -4844,7 +4844,8 @@ extends AbstractDescriptor
 	@Override
 	public String o_NameHighlightingPc (final AvailObject object)
 	{
-		return o_Traversed(object).nameHighlightingPc();
+		return A_ParsingPlanInProgress.Companion.nameHighlightingPc(
+			o_Traversed(object));
 	}
 
 	@Override
@@ -4858,7 +4859,8 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final A_Definition definition)
 	{
-		A_Bundle.Companion.removePlanForDefinition(o_Traversed(object), definition);
+		A_Bundle.Companion.removePlanForDefinition(
+			o_Traversed(object), definition);
 	}
 
 	@Override
@@ -4969,7 +4971,8 @@ extends AbstractDescriptor
 	@Override
 	public A_DefinitionParsingPlan o_ParsingPlan (final AvailObject object)
 	{
-		return o_Traversed(object).parsingPlan();
+		return A_ParsingPlanInProgress.Companion.parsingPlan(
+			o_Traversed(object));
 	}
 
 	@Override
@@ -5018,19 +5021,19 @@ extends AbstractDescriptor
 	@Override
 	public A_Method o_LexerMethod (final AvailObject object)
 	{
-		return o_Traversed(object).lexerMethod();
+		return A_Lexer.Companion.lexerMethod(o_Traversed(object));
 	}
 
 	@Override
 	public A_Function o_LexerFilterFunction (final AvailObject object)
 	{
-		return o_Traversed(object).lexerFilterFunction();
+		return A_Lexer.Companion.lexerFilterFunction(o_Traversed(object));
 	}
 
 	@Override
 	public A_Function o_LexerBodyFunction (final AvailObject object)
 	{
-		return o_Traversed(object).lexerBodyFunction();
+		return A_Lexer.Companion.lexerBodyFunction(o_Traversed(object));
 	}
 
 	@Override
@@ -5127,7 +5130,7 @@ extends AbstractDescriptor
 	@Override
 	public boolean o_IsBackwardJump (final AvailObject object)
 	{
-		return o_Traversed(object).isBackwardJump();
+		return A_ParsingPlanInProgress.Companion.isBackwardJump(o_Traversed(object));
 	}
 
 	@Override

@@ -32,7 +32,7 @@
 
 package com.avail.interpreter.primitive.bootstrap.lexing
 
-import com.avail.descriptor.parsing.LexerDescriptor.lexerBodyFunctionType
+import com.avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
 import com.avail.descriptor.sets.SetDescriptor.set
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.KEYWORD
 import com.avail.descriptor.tokens.TokenDescriptor.Companion.newToken

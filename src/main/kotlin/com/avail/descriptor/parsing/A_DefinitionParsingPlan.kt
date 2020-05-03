@@ -1,5 +1,5 @@
 /*
- * A_DefinitionParsingPlan.java
+ * A_DefinitionParsingPlan.kt
  * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,56 +29,56 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.descriptor.parsing
 
-package com.avail.descriptor.parsing;
-
-import com.avail.compiler.ParsingOperation;
-import com.avail.descriptor.bundles.A_Bundle;
-import com.avail.descriptor.methods.A_Definition;
-import com.avail.descriptor.numbers.IntegerDescriptor;
-import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.descriptor.tuples.A_Tuple;
-import com.avail.descriptor.tuples.TupleDescriptor;
+import com.avail.compiler.ParsingOperation
+import com.avail.descriptor.bundles.A_Bundle
+import com.avail.descriptor.methods.A_Definition
+import com.avail.descriptor.numbers.IntegerDescriptor
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.TupleDescriptor
 
 /**
- * {@code A_DefinitionParsingPlan} is an interface that specifies the operations
- * that must be implemented by a {@linkplain DefinitionParsingPlanDescriptor
- * definition parsing plan}.  It's a sub-interface of {@link A_BasicObject},
- * the interface that defines the behavior that all AvailObjects are required to
- * support.
+ * `A_DefinitionParsingPlan` is an interface that specifies the operations that
+ * must be implemented by a
+ * [definition&#32;parsing&#32;plan][DefinitionParsingPlanDescriptor].  It's a
+ * sub-interface of [A_BasicObject], the interface that defines the behavior
+ * that all [AvailObject]s are required to support.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public interface A_DefinitionParsingPlan
-extends A_BasicObject
-{
+interface A_DefinitionParsingPlan : A_BasicObject {
 	/**
-	 * Answer the {@linkplain A_Bundle message bundle} that this definition
-	 * parsing plan names.
+	 * Answer the [message bundle][A_Bundle] that this definition parsing plan
+	 * names.
 	 *
-	 * @return The bundle to be parsed.
+	 * @return
+	 *   The bundle to be parsed.
 	 */
-	A_Bundle bundle ();
+	fun bundle(): A_Bundle
 
 	/**
-	 * Answer the {@linkplain A_Definition definition} that this plan has been
-	 * specialized for.
+	 * Answer the [definition][A_Definition] that this plan has been specialized
+	 * for.
 	 *
-	 * @return The definition whose argument types restrict parsing of the
-	 *         bundle.
+	 * @return
+	 *   The definition whose argument types restrict parsing of the bundle.
 	 */
-	A_Definition definition ();
+	fun definition(): A_Definition
 
 	/**
-	 * Answer a {@linkplain TupleDescriptor tuple} of {@linkplain
-	 * IntegerDescriptor integers} encoding the {@linkplain ParsingOperation}s
-	 * and operands required to parse a call to this parsing plan.
+	 * Answer a [tuple][TupleDescriptor] of [integers][IntegerDescriptor]
+	 * encoding the [ParsingOperation]s and operands required to parse a call to
+	 * this parsing plan.
 	 *
-	 * <p>Matching parsing instructions for multiple messages can (usually) be
+	 * Matching parsing instructions for multiple messages can (usually) be
 	 * executed in aggregate, avoiding the separate cost of attempting to parse
-	 * each possible message at each place where a call may occur.</p>
+	 * each possible message at each place where a call may occur.
 	 *
-	 * @return A tuple of integers encoding this plan's parsing instructions.
+	 * @return
+	 *   A tuple of integers encoding this plan's parsing instructions.
 	 */
-	A_Tuple parsingInstructions ();
+	fun parsingInstructions(): A_Tuple
 }

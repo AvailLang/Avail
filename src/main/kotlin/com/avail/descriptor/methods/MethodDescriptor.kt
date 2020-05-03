@@ -60,7 +60,7 @@ import com.avail.descriptor.methods.MethodDescriptor.IntegerSlots.Companion.HASH
 import com.avail.descriptor.methods.MethodDescriptor.IntegerSlots.Companion.NUM_ARGS
 import com.avail.descriptor.methods.MethodDescriptor.ObjectSlots.*
 import com.avail.descriptor.parsing.A_Lexer
-import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor.newParsingPlan
+import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor.Companion.newParsingPlan
 import com.avail.descriptor.representation.*
 import com.avail.descriptor.representation.AvailObject.Companion.newIndexedDescriptor
 import com.avail.descriptor.sets.A_Set
@@ -604,8 +604,7 @@ class MethodDescriptor private constructor(
 				self.setSlot(DEFINITIONS_TUPLE, newTuple.makeShared())
 			}
 			self.slot(OWNING_BUNDLES).forEach {
-				it.addDefinitionParsingPlan(
-					newParsingPlan(it, definition))
+				it.addDefinitionParsingPlan(newParsingPlan(it, definition))
 			}
 			membershipChanged(self)
 		}

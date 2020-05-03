@@ -635,7 +635,7 @@ open class VariableDescriptor protected constructor(
 		 * [AvailErrorCode.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED] as the
 		 * error code.
 		 *
-		 * @param object
+		 * @param self
 		 *   The variable.
 		 * @throws VariableSetException
 		 *   If variable write tracing is disabled, but the variable has write

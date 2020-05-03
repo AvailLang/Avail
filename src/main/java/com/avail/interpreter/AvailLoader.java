@@ -212,8 +212,8 @@ public final class AvailLoader
 		{
 			//noinspection NonPrivateFieldAccessedInSynchronizedContext
 			assert !frozen;
-			lexer.lexerMethod().setLexer(lexer);
-			final A_Module module = lexer.definitionModule();
+			A_Lexer.Companion.lexerMethod(lexer).setLexer(lexer);
+			final A_Module module = A_Lexer.Companion.definitionModule(lexer);
 			if (!module.equalsNil())
 			{
 				module.addLexer(lexer);
@@ -438,7 +438,7 @@ public final class AvailLoader
 						"Check lexer filter %s for U+%04x",
 						A_Atom.Companion.atomName(
 							A_Bundle.Companion.message(
-								lexer.lexerMethod()
+								A_Lexer.Companion.lexerMethod(lexer)
 									.chooseBundle(loader.module()))),
 						codePoint));
 				fiber.textInterface(loader.textInterface);
@@ -507,7 +507,7 @@ public final class AvailLoader
 				Interpreter.runOutermostFunction(
 					loader.runtime(),
 					fibers.get(i),
-					allVisibleLexers.get(i).lexerFilterFunction(),
+					A_Lexer.Companion.lexerFilterFunction(allVisibleLexers.get(i)),
 					argsList);
 			}
 		}
