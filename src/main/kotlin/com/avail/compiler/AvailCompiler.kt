@@ -95,6 +95,7 @@ import com.avail.descriptor.maps.MapDescriptor.Companion.mapFromPairs
 import com.avail.descriptor.methods.*
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.*
+import com.avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.parsingInstructions
 import com.avail.descriptor.parsing.A_Lexer
 import com.avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.nameHighlightingPc
 import com.avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.parsingPc

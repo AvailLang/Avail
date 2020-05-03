@@ -36,6 +36,7 @@ import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.numbers.IntegerDescriptor
 import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.A_BasicObject.Companion.dispatch
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.TupleDescriptor
@@ -50,35 +51,40 @@ import com.avail.descriptor.tuples.TupleDescriptor
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 interface A_DefinitionParsingPlan : A_BasicObject {
-	/**
-	 * Answer the [message bundle][A_Bundle] that this definition parsing plan
-	 * names.
-	 *
-	 * @return
-	 *   The bundle to be parsed.
-	 */
-	fun bundle(): A_Bundle
+	companion object {
+		/**
+		 * Answer the [message bundle][A_Bundle] that this definition parsing
+		 * plan names.
+		 *
+		 * @return
+		 *   The bundle to be parsed.
+		 */
+		fun A_DefinitionParsingPlan.bundle(): A_Bundle =
+			dispatch { o_Bundle(it) }
 
-	/**
-	 * Answer the [definition][A_Definition] that this plan has been specialized
-	 * for.
-	 *
-	 * @return
-	 *   The definition whose argument types restrict parsing of the bundle.
-	 */
-	fun definition(): A_Definition
+		/**
+		 * Answer the [definition][A_Definition] that this plan has been
+		 * specialized for.
+		 *
+		 * @return
+		 *   The definition whose argument types restrict parsing of the bundle.
+		 */
+		fun A_DefinitionParsingPlan.definition(): A_Definition =
+			dispatch { o_Definition(it) }
 
-	/**
-	 * Answer a [tuple][TupleDescriptor] of [integers][IntegerDescriptor]
-	 * encoding the [ParsingOperation]s and operands required to parse a call to
-	 * this parsing plan.
-	 *
-	 * Matching parsing instructions for multiple messages can (usually) be
-	 * executed in aggregate, avoiding the separate cost of attempting to parse
-	 * each possible message at each place where a call may occur.
-	 *
-	 * @return
-	 *   A tuple of integers encoding this plan's parsing instructions.
-	 */
-	fun parsingInstructions(): A_Tuple
+		/**
+		 * Answer a [tuple][TupleDescriptor] of [integers][IntegerDescriptor]
+		 * encoding the [ParsingOperation]s and operands required to parse a
+		 * call to this parsing plan.
+		 *
+		 * Matching parsing instructions for multiple messages can (usually) be
+		 * executed in aggregate, avoiding the separate cost of attempting to
+		 * parse each possible message at each place where a call may occur.
+		 *
+		 * @return
+		 *   A tuple of integers encoding this plan's parsing instructions.
+		 */
+		fun A_DefinitionParsingPlan.parsingInstructions(): A_Tuple =
+			dispatch { o_ParsingInstructions(it) }
+	}
 }

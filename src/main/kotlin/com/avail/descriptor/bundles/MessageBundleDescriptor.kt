@@ -47,6 +47,7 @@ import com.avail.descriptor.methods.A_GrammaticalRestriction
 import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan
+import com.avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.definition
 import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor
 import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor.Companion.newParsingPlan
 import com.avail.descriptor.pojos.RawPojoDescriptor.identityPojo

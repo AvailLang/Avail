@@ -40,6 +40,9 @@ import com.avail.descriptor.bundles.A_Bundle.Companion.messageSplitter
 import com.avail.descriptor.bundles.MessageBundleTreeDescriptor
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.MacroDefinitionDescriptor
+import com.avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.bundle
+import com.avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.definition
+import com.avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.parsingInstructions
 import com.avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.nameHighlightingPc
 import com.avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.parsingPc
 import com.avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.parsingPlan

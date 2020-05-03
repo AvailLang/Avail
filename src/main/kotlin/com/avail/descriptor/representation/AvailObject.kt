@@ -2209,12 +2209,6 @@ class AvailObject private constructor(
 
 	override fun visibleNames() = descriptor().o_VisibleNames(this)
 
-	override fun parsingInstructions() = descriptor().o_ParsingInstructions(this)
-
-	/**
-	 * Extract the expression from the [PhraseKind.ASSIGNMENT_PHRASE] or
-	 * [PhraseKind.EXPRESSION_AS_STATEMENT_PHRASE].
-	 */
 	override fun expression() = descriptor().o_Expression(this)
 
 	override fun variable() = descriptor().o_Variable(this)
@@ -3037,8 +3031,6 @@ class AvailObject private constructor(
 		descriptor().o_ValueWasStablyComputed(this, wasStablyComputed)
 
 	override fun uniqueId() = descriptor().o_UniqueId(this)
-
-	override fun definition() = descriptor().o_Definition(this)
 
 	override fun setIntersects(otherSet: A_Set) =
 		descriptor().o_SetIntersects(this, otherSet)

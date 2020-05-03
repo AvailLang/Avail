@@ -158,7 +158,7 @@ import static com.avail.descriptor.IndirectionDescriptor.ObjectSlots.INDIRECTION
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@SuppressWarnings("ThrowsRuntimeException")
+@SuppressWarnings({"RedundantThrows", "ThrowsRuntimeException"})
 public final class IndirectionDescriptor
 extends AbstractDescriptor
 {
@@ -2795,7 +2795,8 @@ extends AbstractDescriptor
 	@Override
 	public A_Tuple o_ParsingInstructions (final AvailObject object)
 	{
-		return o_Traversed(object).parsingInstructions();
+		return A_DefinitionParsingPlan.Companion.parsingInstructions(
+			o_Traversed(object));
 	}
 
 	@Override
@@ -4838,7 +4839,7 @@ extends AbstractDescriptor
 	@Override
 	public A_Definition o_Definition (final AvailObject object)
 	{
-		return o_Traversed(object).definition();
+		return A_DefinitionParsingPlan.Companion.definition(o_Traversed(object));
 	}
 
 	@Override

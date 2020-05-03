@@ -59,6 +59,9 @@ import com.avail.descriptor.methods.A_GrammaticalRestriction
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan
+import com.avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.bundle
+import com.avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.definition
+import com.avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.parsingInstructions
 import com.avail.descriptor.parsing.A_ParsingPlanInProgress
 import com.avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.isBackwardJump
 import com.avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.nameHighlightingPc
