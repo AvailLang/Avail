@@ -34,7 +34,7 @@ package com.avail.interpreter.primitive.phrases
 
 import com.avail.descriptor.phrases.ListPhraseDescriptor
 import com.avail.descriptor.phrases.PermutedListPhraseDescriptor
-import com.avail.descriptor.phrases.PermutedListPhraseDescriptor.newPermutedListNode
+import com.avail.descriptor.phrases.PermutedListPhraseDescriptor.Companion.newPermutedListNode
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.A_Type

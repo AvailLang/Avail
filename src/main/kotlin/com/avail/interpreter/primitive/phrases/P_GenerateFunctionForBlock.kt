@@ -37,7 +37,7 @@ import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import com.avail.descriptor.phrases.BlockPhraseDescriptor
-import com.avail.descriptor.phrases.BlockPhraseDescriptor.recursivelyValidate
+import com.avail.descriptor.phrases.BlockPhraseDescriptor.Companion.recursivelyValidate
 import com.avail.descriptor.sets.SetDescriptor.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple

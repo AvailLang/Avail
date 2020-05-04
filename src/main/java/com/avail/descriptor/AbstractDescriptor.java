@@ -102,7 +102,6 @@ import com.avail.utility.IteratorNotNull;
 import com.avail.utility.Pair;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1NotNull;
-import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.json.JSONWriter;
 import com.avail.utility.visitor.AvailSubobjectVisitor;
 
@@ -118,7 +117,9 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
 import static com.avail.descriptor.representation.Mutability.MUTABLE;
@@ -4522,21 +4523,21 @@ public abstract class AbstractDescriptor
 	/**
 	 * Map my children through the (destructive) transformation specified by
 	 * aBlock.
-	 *  @param object
+	 * @param object
 	 * @param transformer
 	 */
 	public abstract void o_ChildrenMap (
 		AvailObject object,
-		Transformer1<A_Phrase, A_Phrase> transformer);
+		UnaryOperator<A_Phrase> transformer);
 
 	/**
 	 * Visit my child phrases with aBlock.
-	 *  @param object
+	 * @param object
 	 * @param action
 	 */
 	public abstract void o_ChildrenDo (
 		AvailObject object,
-		Continuation1NotNull<A_Phrase> action);
+		Consumer<A_Phrase> action);
 
 	/**
 	 * @param object

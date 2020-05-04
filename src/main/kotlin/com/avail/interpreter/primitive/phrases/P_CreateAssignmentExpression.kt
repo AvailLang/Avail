@@ -32,7 +32,7 @@
 package com.avail.interpreter.primitive.phrases
 
 import com.avail.descriptor.phrases.AssignmentPhraseDescriptor
-import com.avail.descriptor.phrases.AssignmentPhraseDescriptor.newAssignment
+import com.avail.descriptor.phrases.AssignmentPhraseDescriptor.Companion.newAssignment
 import com.avail.descriptor.sets.SetDescriptor.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple

@@ -41,7 +41,7 @@ import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.exceptionType
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.BlockPhraseDescriptor
-import com.avail.descriptor.phrases.BlockPhraseDescriptor.newBlockNode
+import com.avail.descriptor.phrases.BlockPhraseDescriptor.Companion.newBlockNode
 import com.avail.descriptor.sets.SetDescriptor.*
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromArray

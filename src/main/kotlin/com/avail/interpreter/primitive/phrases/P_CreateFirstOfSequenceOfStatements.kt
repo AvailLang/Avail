@@ -34,7 +34,7 @@ package com.avail.interpreter.primitive.phrases
 
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.FirstOfSequencePhraseDescriptor
-import com.avail.descriptor.phrases.FirstOfSequencePhraseDescriptor.newFirstOfSequenceNode
+import com.avail.descriptor.phrases.FirstOfSequencePhraseDescriptor.Companion.newFirstOfSequenceNode
 import com.avail.descriptor.sets.SetDescriptor.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.tuples.TupleDescriptor

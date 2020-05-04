@@ -33,7 +33,7 @@
 package com.avail.interpreter.primitive.phrases
 
 import com.avail.descriptor.phrases.LiteralPhraseDescriptor
-import com.avail.descriptor.phrases.LiteralPhraseDescriptor.literalNodeFromToken
+import com.avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.literalNodeFromToken
 import com.avail.descriptor.tokens.LiteralTokenDescriptor
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type

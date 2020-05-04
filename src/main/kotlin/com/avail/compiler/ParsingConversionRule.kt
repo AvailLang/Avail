@@ -38,9 +38,9 @@ import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.ListPhraseDescriptor
 import com.avail.descriptor.phrases.LiteralPhraseDescriptor
-import com.avail.descriptor.phrases.LiteralPhraseDescriptor.literalNodeFromToken
-import com.avail.descriptor.phrases.LiteralPhraseDescriptor.syntheticLiteralNodeFor
-import com.avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor.newMacroSubstitution
+import com.avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.literalNodeFromToken
+import com.avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.syntheticLiteralNodeFor
+import com.avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor.Companion.newMacroSubstitution
 import com.avail.descriptor.phrases.PhraseDescriptor
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken

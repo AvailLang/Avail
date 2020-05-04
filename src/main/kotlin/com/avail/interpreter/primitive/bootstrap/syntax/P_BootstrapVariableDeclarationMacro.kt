@@ -37,7 +37,7 @@ import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.ST
 import com.avail.descriptor.FiberDescriptor
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
-import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.newVariable
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newVariable
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type

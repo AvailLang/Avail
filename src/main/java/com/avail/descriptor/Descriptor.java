@@ -99,7 +99,6 @@ import com.avail.utility.IteratorNotNull;
 import com.avail.utility.Pair;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1NotNull;
-import com.avail.utility.evaluation.Transformer1;
 import com.avail.utility.json.JSONWriter;
 import com.avail.utility.visitor.AvailSubobjectVisitor;
 import com.avail.utility.visitor.BeImmutableSubobjectVisitor;
@@ -116,7 +115,9 @@ import java.util.Spliterator;
 import java.util.TimerTask;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
 import static com.avail.descriptor.sets.LinearSetBinDescriptor.createLinearSetBinPair;
@@ -2999,7 +3000,7 @@ extends AbstractDescriptor
 	@Override
 	public void o_ChildrenMap (
 		final AvailObject object,
-		final Transformer1<A_Phrase, A_Phrase> transformer)
+		final UnaryOperator<A_Phrase> transformer)
 	{
 		throw unsupportedOperationException();
 	}
@@ -3010,7 +3011,7 @@ extends AbstractDescriptor
 	@Override
 	public void o_ChildrenDo (
 		final AvailObject object,
-		final Continuation1NotNull<A_Phrase> action)
+		final Consumer<A_Phrase> action)
 	{
 		throw unsupportedOperationException();
 	}

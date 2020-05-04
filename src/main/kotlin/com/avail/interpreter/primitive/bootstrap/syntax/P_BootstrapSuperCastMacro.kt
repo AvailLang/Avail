@@ -35,7 +35,7 @@ package com.avail.interpreter.primitive.bootstrap.syntax
 import com.avail.compiler.AvailRejectedParseException
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
 import com.avail.descriptor.phrases.SuperCastPhraseDescriptor
-import com.avail.descriptor.phrases.SuperCastPhraseDescriptor.newSuperCastNode
+import com.avail.descriptor.phrases.SuperCastPhraseDescriptor.Companion.newSuperCastNode
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
@@ -80,8 +80,7 @@ object P_BootstrapSuperCastMacro
 					+ "expression's type ($expressionType)")
 		}
 		val superCast = newSuperCastNode(expressionNode, type)
-		superCast.makeImmutable()
-		return interpreter.primitiveSuccess(superCast)
+		return interpreter.primitiveSuccess(superCast.makeImmutable())
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

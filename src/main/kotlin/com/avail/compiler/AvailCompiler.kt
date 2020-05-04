@@ -104,19 +104,19 @@ import com.avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionT
 import com.avail.descriptor.parsing.LexerDescriptor.Companion.lexerFilterFunctionType
 import com.avail.descriptor.parsing.ParsingPlanInProgressDescriptor.Companion.newPlanInProgress
 import com.avail.descriptor.phrases.*
-import com.avail.descriptor.phrases.AssignmentPhraseDescriptor.newAssignment
+import com.avail.descriptor.phrases.AssignmentPhraseDescriptor.Companion.newAssignment
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_CONSTANT
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_VARIABLE
-import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.newModuleConstant
-import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.newModuleVariable
-import com.avail.descriptor.phrases.ListPhraseDescriptor.emptyListNode
-import com.avail.descriptor.phrases.ListPhraseDescriptor.newListNode
-import com.avail.descriptor.phrases.LiteralPhraseDescriptor.literalNodeFromToken
-import com.avail.descriptor.phrases.LiteralPhraseDescriptor.syntheticLiteralNodeFor
-import com.avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor.newMacroSubstitution
-import com.avail.descriptor.phrases.MarkerPhraseDescriptor.newMarkerNode
-import com.avail.descriptor.phrases.SendPhraseDescriptor.newSendNode
-import com.avail.descriptor.phrases.VariableUsePhraseDescriptor.newUse
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newModuleConstant
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newModuleVariable
+import com.avail.descriptor.phrases.ListPhraseDescriptor.Companion.emptyListNode
+import com.avail.descriptor.phrases.ListPhraseDescriptor.Companion.newListNode
+import com.avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.literalNodeFromToken
+import com.avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.syntheticLiteralNodeFor
+import com.avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor.Companion.newMacroSubstitution
+import com.avail.descriptor.phrases.MarkerPhraseDescriptor.Companion.newMarkerNode
+import com.avail.descriptor.phrases.SendPhraseDescriptor.Companion.newSendNode
+import com.avail.descriptor.phrases.VariableUsePhraseDescriptor.Companion.newUse
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.sets.A_Set
@@ -171,6 +171,7 @@ import com.avail.utility.PrefixSharingList.append
 import com.avail.utility.PrefixSharingList.last
 import com.avail.utility.StackPrinter.trace
 import com.avail.utility.Strings.increaseIndentation
+import com.avail.utility.evaluation.Continuation1NotNull
 import com.avail.utility.evaluation.Describer
 import com.avail.utility.evaluation.FormattingDescriber
 import java.io.IOException
@@ -187,6 +188,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.function.BinaryOperator
+import java.util.function.Consumer
+import java.util.function.UnaryOperator
 import java.util.stream.Collectors.toList
 import kotlin.math.max
 import kotlin.math.min
@@ -500,8 +503,8 @@ class AvailCompiler(
 		else
 		{
 			findParseTreeDiscriminants(phrase1, phrase2)
-			if (phrase1.value.isMacroSubstitutionNode
-				&& phrase2.value.isMacroSubstitutionNode)
+			if (phrase1.value.isMacroSubstitutionNode()
+				&& phrase2.value.isMacroSubstitutionNode())
 			{
 				where.expected(
 					STRONG,
@@ -738,7 +741,7 @@ class AvailCompiler(
 		declarationRemap: MutableMap<A_Phrase, A_Phrase>,
 		onSuccess: ()->Unit)
 	{
-		assert(!expression.isMacroSubstitutionNode)
+		assert(!expression.isMacroSubstitutionNode())
 		// The mapping through declarationRemap has already taken place.
 		val replacement = treeMapWithParent(
 			expression,
@@ -1336,7 +1339,7 @@ class AvailCompiler(
 			if (prefilter.mapSize() > 0)
 			{
 				val latestArgument = last(argsSoFar)
-				if (latestArgument.isMacroSubstitutionNode
+				if (latestArgument.isMacroSubstitutionNode()
 					|| latestArgument.isInstanceOfKind(
 						SEND_PHRASE.mostGeneralType()))
 				{
@@ -2559,7 +2562,7 @@ class AvailCompiler(
 				finalMacro,
 				expectedYieldType,
 				Con1(continuation.superexpressions) { macroSolution ->
-					assert(macroSolution.phrase.isMacroSubstitutionNode)
+					assert(macroSolution.phrase.isMacroSubstitutionNode())
 					continuation(macroSolution)
 				})
 		}
@@ -3404,11 +3407,13 @@ class AvailCompiler(
 				val afterStatement = solution.endState
 				val unambiguousStatement = solution.phrase
 				val simpleStatements = ArrayList<A_Phrase>()
-				unambiguousStatement.statementsDo { simpleStatement ->
-					assert(simpleStatement.phraseKindIsUnder(
-						STATEMENT_PHRASE))
-					simpleStatements.add(simpleStatement)
-				}
+				unambiguousStatement.statementsDo(
+					Continuation1NotNull {
+						simpleStatement ->
+						assert(
+							simpleStatement.phraseKindIsUnder(STATEMENT_PHRASE))
+						simpleStatements.add(simpleStatement)
+					})
 
 				// For each top-level simple statement, (1) transform it to have
 				// referenced previously transformed top-level declarations
@@ -4452,12 +4457,14 @@ class AvailCompiler(
 				return phraseMap[obj]!!
 			}
 			val objectCopy = obj.copyMutablePhrase()
-			objectCopy.childrenMap { child ->
-				assert(child !== null)
-				assert(child!!.isInstanceOfKind(PARSE_PHRASE.mostGeneralType()))
-				treeMapWithParent(
-					child, transformer, objectCopy, outerPhrases, phraseMap)
-			}
+			objectCopy.childrenMap(
+				UnaryOperator {
+					child ->
+					assert(
+						child.isInstanceOfKind(PARSE_PHRASE.mostGeneralType()))
+					treeMapWithParent(
+						child, transformer, objectCopy, outerPhrases, phraseMap)
+			})
 			val transformed = transformer(
 				objectCopy, parentPhrase, outerPhrases)
 			transformed.makeShared()
@@ -4492,8 +4499,8 @@ class AvailCompiler(
 					// different.
 					return
 				}
-				if (phrase1.value.isMacroSubstitutionNode
-					&& phrase2.value.isMacroSubstitutionNode)
+				if (phrase1.value.isMacroSubstitutionNode()
+					&& phrase2.value.isMacroSubstitutionNode())
 				{
 					if (phrase1.value.macroOriginalSendNode().equals(
 							phrase2.value.macroOriginalSendNode()))
@@ -4507,8 +4514,8 @@ class AvailCompiler(
 					// Otherwise the macros are different and we should stop.
 					return
 				}
-				if (phrase1.value.isMacroSubstitutionNode
-					|| phrase2.value.isMacroSubstitutionNode)
+				if (phrase1.value.isMacroSubstitutionNode()
+					|| phrase2.value.isMacroSubstitutionNode())
 				{
 					// They aren't both macros, but one is, so they're different.
 					return
@@ -4521,9 +4528,9 @@ class AvailCompiler(
 					return
 				}
 				val parts1 = ArrayList<A_Phrase>()
-				phrase1.value.childrenDo { parts1.add(it) }
+				phrase1.value.childrenDo(Consumer { parts1.add(it) })
 				val parts2 = ArrayList<A_Phrase>()
-				phrase2.value.childrenDo { parts2.add(it) }
+				phrase2.value.childrenDo(Consumer { parts2.add(it) })
 				val isBlock = phrase1.value.phraseKindIsUnder(BLOCK_PHRASE)
 				if (parts1.size != parts2.size && !isBlock)
 				{
@@ -4801,7 +4808,7 @@ class AvailCompiler(
 		 */
 		private fun wrapAsLiteral(phrase: A_Phrase): A_Phrase
 		{
-			return if (phrase.isMacroSubstitutionNode)
+			return if (phrase.isMacroSubstitutionNode())
 			{
 				newMacroSubstitution(
 					phrase.macroOriginalSendNode(),
@@ -4877,21 +4884,21 @@ class AvailCompiler(
 		 */
 		private fun usesWhichLocalVariables(phrase: A_Phrase): A_Set
 		{
-			val usedDeclarations = Mutable(emptySet())
-			phrase.childrenDo { childPhrase ->
+			var usedDeclarations = emptySet()
+			phrase.childrenDo(Consumer { childPhrase ->
 				if (childPhrase.isInstanceOfKind(
 						VARIABLE_USE_PHRASE.mostGeneralType()))
 				{
 					val declaration = childPhrase.declaration()
 					if (!declaration.declarationKind().isModuleScoped)
 					{
-						usedDeclarations.value =
-							usedDeclarations.value.setWithElementCanDestroy(
+						usedDeclarations =
+							usedDeclarations.setWithElementCanDestroy(
 								declaration, true)
 					}
 				}
-			}
-			return usedDeclarations.value
+			})
+			return usedDeclarations
 		}
 	}
 }

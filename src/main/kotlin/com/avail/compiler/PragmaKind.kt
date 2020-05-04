@@ -34,9 +34,9 @@ package com.avail.compiler
 
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.DECLARE_STRINGIFIER
-import com.avail.descriptor.phrases.ListPhraseDescriptor.newListNode
-import com.avail.descriptor.phrases.LiteralPhraseDescriptor.syntheticLiteralNodeFor
-import com.avail.descriptor.phrases.SendPhraseDescriptor.newSendNode
+import com.avail.descriptor.phrases.ListPhraseDescriptor.Companion.newListNode
+import com.avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.syntheticLiteralNodeFor
+import com.avail.descriptor.phrases.SendPhraseDescriptor.Companion.newSendNode
 import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.tuples.StringDescriptor.stringFrom

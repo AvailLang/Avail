@@ -43,7 +43,9 @@ import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import com.avail.descriptor.bundles.A_Bundle.Companion.messageSplitter
 import com.avail.descriptor.functions.A_RawFunction
-import com.avail.descriptor.phrases.SendPhraseDescriptor.newSendNode
+import com.avail.descriptor.phrases.ListPhraseDescriptor
+import com.avail.descriptor.phrases.SendPhraseDescriptor
+import com.avail.descriptor.phrases.SendPhraseDescriptor.Companion.newSendNode
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.sets.SetDescriptor.set
 import com.avail.descriptor.tuples.A_String
@@ -58,6 +60,7 @@ import com.avail.descriptor.types.InstanceMetaDescriptor.topMeta
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
+import com.avail.descriptor.types.TypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
 import com.avail.exceptions.AvailErrorCode.*
 import com.avail.exceptions.MalformedMessageException

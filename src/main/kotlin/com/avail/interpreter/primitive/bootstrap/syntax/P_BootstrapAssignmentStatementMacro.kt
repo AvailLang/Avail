@@ -37,11 +37,11 @@ import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.ST
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.*
 import com.avail.descriptor.phrases.A_Phrase
-import com.avail.descriptor.phrases.AssignmentPhraseDescriptor.newAssignment
-import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.newModuleConstant
-import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.newModuleVariable
-import com.avail.descriptor.phrases.ExpressionAsStatementPhraseDescriptor.newExpressionAsStatement
-import com.avail.descriptor.phrases.VariableUsePhraseDescriptor.newUse
+import com.avail.descriptor.phrases.AssignmentPhraseDescriptor.Companion.newAssignment
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newModuleConstant
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newModuleVariable
+import com.avail.descriptor.phrases.ExpressionAsStatementPhraseDescriptor.Companion.newExpressionAsStatement
+import com.avail.descriptor.phrases.VariableUsePhraseDescriptor.Companion.newUse
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.tuples.StringDescriptor.formatString

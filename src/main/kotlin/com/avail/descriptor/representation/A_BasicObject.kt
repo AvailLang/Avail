@@ -38,6 +38,7 @@ import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.functions.*
 import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.numbers.AbstractNumberDescriptor.Sign
+import com.avail.descriptor.numbers.InfinityDescriptor
 import com.avail.descriptor.objects.ObjectDescriptor
 import com.avail.descriptor.objects.ObjectTypeDescriptor
 import com.avail.descriptor.phrases.A_Phrase
@@ -163,21 +164,22 @@ interface A_BasicObject : JSONFriendly {
 	fun variableObjectSlotsCount(): Int
 
 	/**
-	 * Recursively print the [receiver][AvailObject] to the [ ] unless it is already present in the [ recursion list][List]. Printing will begin at the specified indent level,
-	 * measured in horizontal tab characters.
-	 *
+	 * Recursively print the [receiver][AvailObject] to the [builder] unless it
+	 * is already present in the [recursionMap]. Printing will begin at the
+	 * specified [indent] level, measured in horizontal tab characters.
 	 *
 	 * This operation exists primarily to provide useful representations of
 	 * `AvailObject`s for Java-side debugging.
 	 *
 	 * @param builder
-	 * A [StringBuilder].
+	 *   A [StringBuilder].
 	 * @param recursionMap
-	 * An [IdentityHashMap] whose keys are [AvailObject]s
-	 * already visited during the recursive print.  The associated values
-	 * are unused.
+	 *   An [IdentityHashMap] whose keys are [AvailObject]s already visited (but
+	 *   not yet completed) during the recursive print.  The associated values
+	 *   are unused.
 	 * @param indent
-	 * The indent level, in horizontal tabs, at which the [        ] should be printed.
+	 *   The indent level, in horizontal tabs, at which new lines should be
+	 *   written.
 	 */
 	fun printOnAvoidingIndent(
 		builder: StringBuilder,
@@ -368,15 +370,9 @@ interface A_BasicObject : JSONFriendly {
 	 *
 	 * @param aFunctionType The function type used in the comparison.
 	 * @return `true` IFF the receiver is also a function type and:
-	 *
-	 *
-	 *  * The [argument types][AvailObject.argsTupleType]
-	 * correspond,
-	 *  * The [return types][AvailObject.returnType]
-	 * correspond, and
-	 *  * The [raise types][AvailObject.declaredExceptions]
-	 * correspond.
-	 *
+	 *  * The [argument types][AvailObject.argsTupleType] correspond,
+	 *  * The [return types][AvailObject.returnType] correspond, and
+	 *  * The [raise types][AvailObject.declaredExceptions] correspond.
 	 */
 	fun equalsFunctionType(aFunctionType: A_Type): Boolean
 
@@ -522,11 +518,14 @@ interface A_BasicObject : JSONFriendly {
 	fun equalsFloat(aFloat: Float): Boolean
 
 	/**
-	 * Answer whether the [receiver][AvailObject] is an [ ] with the specified [Sign].
+	 * Answer whether the [receiver][AvailObject] is an
+	 * [infinity][InfinityDescriptor] with the specified [Sign].
 	 *
-	 * @param sign The type of infinity for comparison.
-	 * @return `true` if the receiver is an infinity of the specified
-	 * sign, `false` otherwise.
+	 * @param sign
+	 *   The type of infinity for comparison.
+	 * @return
+	 *   `true` if the receiver is an infinity of the specified sign, `false`
+	 *   otherwise.
 	 */
 	fun equalsInfinity(sign: Sign): Boolean
 

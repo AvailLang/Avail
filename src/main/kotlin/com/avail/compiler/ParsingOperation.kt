@@ -48,14 +48,14 @@ import com.avail.descriptor.bundles.A_BundleTree
 import com.avail.descriptor.bundles.A_BundleTree.Companion.allParsingPlansInProgress
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.ListPhraseDescriptor
-import com.avail.descriptor.phrases.ListPhraseDescriptor.emptyListNode
-import com.avail.descriptor.phrases.ListPhraseDescriptor.newListNode
-import com.avail.descriptor.phrases.LiteralPhraseDescriptor.literalNodeFromToken
-import com.avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor.newMacroSubstitution
-import com.avail.descriptor.phrases.PermutedListPhraseDescriptor.newPermutedListNode
+import com.avail.descriptor.phrases.ListPhraseDescriptor.Companion.emptyListNode
+import com.avail.descriptor.phrases.ListPhraseDescriptor.Companion.newListNode
+import com.avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.literalNodeFromToken
+import com.avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor.Companion.newMacroSubstitution
+import com.avail.descriptor.phrases.PermutedListPhraseDescriptor.Companion.newPermutedListNode
 import com.avail.descriptor.phrases.PhraseDescriptor
 import com.avail.descriptor.phrases.ReferencePhraseDescriptor
-import com.avail.descriptor.phrases.ReferencePhraseDescriptor.referenceNodeFromUse
+import com.avail.descriptor.phrases.ReferencePhraseDescriptor.Companion.referenceNodeFromUse
 import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
 import com.avail.descriptor.tokens.TokenDescriptor
@@ -505,7 +505,7 @@ enum class ParsingOperation constructor(
 					val rawVariableReference =
 						referenceNodeFromUse(rawVariableUse)
 					val variableReference =
-						if (variableUse.isMacroSubstitutionNode)
+						if (variableUse.isMacroSubstitutionNode())
 							newMacroSubstitution(
 								variableUse.macroOriginalSendNode(),
 								rawVariableReference)

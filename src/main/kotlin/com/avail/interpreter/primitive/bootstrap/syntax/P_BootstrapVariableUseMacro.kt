@@ -38,10 +38,10 @@ import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_CONSTANT
-import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.newModuleConstant
-import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.newModuleVariable
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newModuleConstant
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newModuleVariable
 import com.avail.descriptor.phrases.VariableUsePhraseDescriptor
-import com.avail.descriptor.phrases.VariableUsePhraseDescriptor.newUse
+import com.avail.descriptor.phrases.VariableUsePhraseDescriptor.Companion.newUse
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple

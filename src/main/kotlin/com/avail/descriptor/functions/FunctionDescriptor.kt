@@ -46,8 +46,8 @@ import com.avail.descriptor.functions.FunctionDescriptor.ObjectSlots.OUTER_VAR_A
 import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.phrases.A_Phrase
-import com.avail.descriptor.phrases.BlockPhraseDescriptor.newBlockNode
-import com.avail.descriptor.phrases.BlockPhraseDescriptor.recursivelyValidate
+import com.avail.descriptor.phrases.BlockPhraseDescriptor.Companion.newBlockNode
+import com.avail.descriptor.phrases.BlockPhraseDescriptor.Companion.recursivelyValidate
 import com.avail.descriptor.phrases.PhraseDescriptor
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
@@ -168,7 +168,7 @@ class FunctionDescriptor private constructor(
 	/**
 	 * Answer the object's type. Simply asks the [ ] for the [ ].
 	 */
-	override fun o_Kind(self: AvailObject) =
+	override fun o_Kind(self: AvailObject): A_Type =
 		self.slot(CODE).functionType()
 
 	override fun o_NameForDebugger(self: AvailObject) =

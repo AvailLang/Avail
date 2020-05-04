@@ -34,9 +34,9 @@ package com.avail.interpreter.primitive.bootstrap.syntax
 
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.MODULE_HEADER
-import com.avail.descriptor.phrases.ExpressionAsStatementPhraseDescriptor.newExpressionAsStatement
-import com.avail.descriptor.phrases.ListPhraseDescriptor.newListNode
-import com.avail.descriptor.phrases.SendPhraseDescriptor.newSendNode
+import com.avail.descriptor.phrases.ExpressionAsStatementPhraseDescriptor.Companion.newExpressionAsStatement
+import com.avail.descriptor.phrases.ListPhraseDescriptor.Companion.newListNode
+import com.avail.descriptor.phrases.SendPhraseDescriptor.Companion.newSendNode
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromArray
 import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
 import com.avail.descriptor.types.A_Type

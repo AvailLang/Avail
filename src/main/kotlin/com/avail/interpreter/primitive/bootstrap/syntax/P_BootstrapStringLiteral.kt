@@ -31,7 +31,7 @@
  */
 package com.avail.interpreter.primitive.bootstrap.syntax
 
-import com.avail.descriptor.phrases.LiteralPhraseDescriptor.literalNodeFromToken
+import com.avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.literalNodeFromToken
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType

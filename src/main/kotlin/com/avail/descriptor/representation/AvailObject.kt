@@ -83,15 +83,12 @@ import com.avail.utility.IteratorNotNull
 import com.avail.utility.StackPrinter
 import com.avail.utility.evaluation.Continuation0
 import com.avail.utility.evaluation.Continuation1NotNull
-import com.avail.utility.evaluation.Transformer1
 import com.avail.utility.json.JSONWriter
 import com.avail.utility.visitor.AvailSubobjectVisitor
 import com.avail.utility.visitor.MarkUnreachableSubobjectVisitor
 import java.nio.ByteBuffer
 import java.util.*
-import java.util.function.BiConsumer
-import java.util.function.BinaryOperator
-import java.util.function.Supplier
+import java.util.function.*
 import java.util.stream.Stream
 
 /**
@@ -2256,10 +2253,10 @@ class AvailObject private constructor(
 	override fun emitValueOn(codeGenerator: AvailCodeGenerator) =
 		descriptor().o_EmitValueOn(this, codeGenerator)
 
-	override fun childrenMap(aBlock: Transformer1<A_Phrase, A_Phrase>) =
-		descriptor().o_ChildrenMap(this, aBlock)
+	override fun childrenMap(transformer: UnaryOperator<A_Phrase>) =
+		descriptor().o_ChildrenMap(this, transformer)
 
-	override fun childrenDo(action: Continuation1NotNull<A_Phrase>) =
+	override fun childrenDo(action: Consumer<A_Phrase>) =
 		descriptor().o_ChildrenDo(this, action)
 
 	override fun validateLocally(parent: A_Phrase?) =

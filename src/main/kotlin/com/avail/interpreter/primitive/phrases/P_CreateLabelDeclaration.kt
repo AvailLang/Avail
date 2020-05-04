@@ -33,7 +33,7 @@
 package com.avail.interpreter.primitive.phrases
 
 import com.avail.descriptor.NilDescriptor.nil
-import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.newLabel
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newLabel
 import com.avail.descriptor.tokens.TokenDescriptor
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
