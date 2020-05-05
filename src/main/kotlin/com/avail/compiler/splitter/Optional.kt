@@ -42,6 +42,7 @@ import com.avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS
 import com.avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.phrases.A_Phrase
+import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.EnumerationTypeDescriptor
 import com.avail.descriptor.types.EnumerationTypeDescriptor.booleanType

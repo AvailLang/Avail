@@ -33,6 +33,7 @@
 package com.avail.interpreter.primitive.phrases
 
 import com.avail.descriptor.phrases.A_Phrase
+import com.avail.descriptor.phrases.A_Phrase.Companion.flattenStatementsInto
 import com.avail.descriptor.phrases.FirstOfSequencePhraseDescriptor
 import com.avail.descriptor.phrases.FirstOfSequencePhraseDescriptor.Companion.newFirstOfSequenceNode
 import com.avail.descriptor.sets.SetDescriptor.set

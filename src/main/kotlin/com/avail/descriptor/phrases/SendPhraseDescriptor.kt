@@ -40,6 +40,15 @@ import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.bundles.A_Bundle.Companion.messageSplitter
 import com.avail.descriptor.bundles.MessageBundleDescriptor
 import com.avail.descriptor.methods.A_Method
+import com.avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
+import com.avail.descriptor.phrases.A_Phrase.Companion.bundle
+import com.avail.descriptor.phrases.A_Phrase.Companion.emitAllValuesOn
+import com.avail.descriptor.phrases.A_Phrase.Companion.expressionType
+import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
+import com.avail.descriptor.phrases.A_Phrase.Companion.superUnionType
+import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
 import com.avail.descriptor.phrases.SendPhraseDescriptor.ObjectSlots.*
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject

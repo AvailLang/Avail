@@ -38,6 +38,44 @@ import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.methods.MacroDefinitionDescriptor
+import com.avail.descriptor.phrases.A_Phrase.Companion.apparentSendName
+import com.avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
+import com.avail.descriptor.phrases.A_Phrase.Companion.argumentsTuple
+import com.avail.descriptor.phrases.A_Phrase.Companion.bundle
+import com.avail.descriptor.phrases.A_Phrase.Companion.copyConcatenating
+import com.avail.descriptor.phrases.A_Phrase.Companion.copyWith
+import com.avail.descriptor.phrases.A_Phrase.Companion.declaration
+import com.avail.descriptor.phrases.A_Phrase.Companion.declaredType
+import com.avail.descriptor.phrases.A_Phrase.Companion.emitAllValuesOn
+import com.avail.descriptor.phrases.A_Phrase.Companion.emitEffectOn
+import com.avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
+import com.avail.descriptor.phrases.A_Phrase.Companion.expression
+import com.avail.descriptor.phrases.A_Phrase.Companion.expressionAt
+import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsSize
+import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
+import com.avail.descriptor.phrases.A_Phrase.Companion.flattenStatementsInto
+import com.avail.descriptor.phrases.A_Phrase.Companion.generateInModule
+import com.avail.descriptor.phrases.A_Phrase.Companion.hasSuperCast
+import com.avail.descriptor.phrases.A_Phrase.Companion.initializationExpression
+import com.avail.descriptor.phrases.A_Phrase.Companion.isLastUse
+import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
+import com.avail.descriptor.phrases.A_Phrase.Companion.lastExpression
+import com.avail.descriptor.phrases.A_Phrase.Companion.list
+import com.avail.descriptor.phrases.A_Phrase.Companion.literalObject
+import com.avail.descriptor.phrases.A_Phrase.Companion.macroOriginalSendNode
+import com.avail.descriptor.phrases.A_Phrase.Companion.markerValue
+import com.avail.descriptor.phrases.A_Phrase.Companion.neededVariables
+import com.avail.descriptor.phrases.A_Phrase.Companion.outputPhrase
+import com.avail.descriptor.phrases.A_Phrase.Companion.permutation
+import com.avail.descriptor.phrases.A_Phrase.Companion.statements
+import com.avail.descriptor.phrases.A_Phrase.Companion.statementsDo
+import com.avail.descriptor.phrases.A_Phrase.Companion.statementsTuple
+import com.avail.descriptor.phrases.A_Phrase.Companion.superUnionType
+import com.avail.descriptor.phrases.A_Phrase.Companion.token
+import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
+import com.avail.descriptor.phrases.A_Phrase.Companion.typeExpression
+import com.avail.descriptor.phrases.A_Phrase.Companion.validateLocally
+import com.avail.descriptor.phrases.A_Phrase.Companion.variable
 import com.avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor.ObjectSlots
 import com.avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor.ObjectSlots.MACRO_ORIGINAL_SEND
 import com.avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor.ObjectSlots.OUTPUT_PARSE_NODE
@@ -254,13 +292,13 @@ class MacroSubstitutionPhraseDescriptor(
 	override fun o_List(self: AvailObject): A_Phrase =
 		self.slot(OUTPUT_PARSE_NODE).list()
 
-	override fun o_LiteralObject(self: AvailObject): AvailObject =
+	override fun o_LiteralObject(self: AvailObject): A_BasicObject =
 		self.slot(OUTPUT_PARSE_NODE).literalObject()
 
 	override fun o_MacroOriginalSendNode(self: AvailObject): A_Phrase =
 		self.slot(MACRO_ORIGINAL_SEND)
 
-	override fun o_MarkerValue(self: AvailObject): AvailObject =
+	override fun o_MarkerValue(self: AvailObject): A_BasicObject =
 		self.slot(OUTPUT_PARSE_NODE).markerValue()
 
 	override fun o_NeededVariables(self: AvailObject): A_Tuple =

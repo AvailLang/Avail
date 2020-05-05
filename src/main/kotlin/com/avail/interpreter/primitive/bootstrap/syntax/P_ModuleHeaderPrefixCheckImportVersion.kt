@@ -35,6 +35,11 @@ package com.avail.interpreter.primitive.bootstrap.syntax
 import com.avail.compiler.AvailRejectedParseException
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
 import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.phrases.A_Phrase.Companion.expressionAt
+import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsSize
+import com.avail.descriptor.phrases.A_Phrase.Companion.lastExpression
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
+import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.EnumerationTypeDescriptor.booleanType
@@ -91,7 +96,8 @@ object P_ModuleHeaderPrefixCheckImportVersion
 					STRONG,
 					"imported module ($importModuleName) version specification "
 						+ "$lastImportVersionString to be unique, not a "
-						+ "duplicate (of line ${oldVersionPhrase.token().lineNumber()})")
+						+ "duplicate (of line "
+						+ "${oldVersionPhrase.token().lineNumber()})")
 			}
 		}
 		return interpreter.primitiveSuccess(nil)

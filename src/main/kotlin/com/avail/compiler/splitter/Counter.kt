@@ -37,6 +37,7 @@ import com.avail.compiler.splitter.MessageSplitter.Companion.throwSignatureExcep
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
 import com.avail.compiler.splitter.WrapState.SHOULD_NOT_PUSH_LIST
 import com.avail.descriptor.phrases.A_Phrase
+import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.InstanceTypeDescriptor.instanceType

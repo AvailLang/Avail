@@ -35,6 +35,11 @@ package com.avail.interpreter.primitive.bootstrap.syntax
 import com.avail.compiler.AvailRejectedParseException
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
 import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.phrases.A_Phrase.Companion.expressionAt
+import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsSize
+import com.avail.descriptor.phrases.A_Phrase.Companion.lastExpression
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
+import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromArray
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType

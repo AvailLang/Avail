@@ -46,6 +46,8 @@ import com.avail.descriptor.functions.FunctionDescriptor.ObjectSlots.OUTER_VAR_A
 import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.phrases.A_Phrase
+import com.avail.descriptor.phrases.A_Phrase.Companion.generateInModule
+import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
 import com.avail.descriptor.phrases.BlockPhraseDescriptor.Companion.newBlockNode
 import com.avail.descriptor.phrases.BlockPhraseDescriptor.Companion.recursivelyValidate
 import com.avail.descriptor.phrases.PhraseDescriptor

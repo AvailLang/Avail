@@ -34,6 +34,7 @@ package com.avail.interpreter.primitive.bootstrap.syntax
 
 import com.avail.compiler.AvailRejectedParseException
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.WEAK
+import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.phrases.ExpressionAsStatementPhraseDescriptor
 import com.avail.descriptor.phrases.ExpressionAsStatementPhraseDescriptor.Companion.newExpressionAsStatement
 import com.avail.descriptor.sets.SetDescriptor.set

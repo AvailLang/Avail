@@ -33,7 +33,14 @@ package com.avail.descriptor.phrases
 
 import com.avail.annotations.AvailMethod
 import com.avail.compiler.AvailCodeGenerator
-import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
+import com.avail.descriptor.phrases.A_Phrase.Companion.declaration
+import com.avail.descriptor.phrases.A_Phrase.Companion.expressionType
+import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
+import com.avail.descriptor.phrases.A_Phrase.Companion.literalObject
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
+import com.avail.descriptor.phrases.A_Phrase.Companion.token
+import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
+import com.avail.descriptor.phrases.A_Phrase.Companion.variable
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.*
 import com.avail.descriptor.phrases.ReferencePhraseDescriptor.ObjectSlots.VARIABLE
 import com.avail.descriptor.representation.A_BasicObject
@@ -43,7 +50,7 @@ import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.InstanceTypeDescriptor.*
+import com.avail.descriptor.types.InstanceTypeDescriptor.instanceType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import com.avail.descriptor.types.TypeTag
 import com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor

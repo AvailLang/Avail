@@ -34,6 +34,13 @@ package com.avail.descriptor.phrases
 import com.avail.annotations.AvailMethod
 import com.avail.compiler.AvailCodeGenerator
 import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.phrases.A_Phrase.Companion.emitEffectOn
+import com.avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
+import com.avail.descriptor.phrases.A_Phrase.Companion.flattenStatementsInto
+import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
+import com.avail.descriptor.phrases.A_Phrase.Companion.statements
+import com.avail.descriptor.phrases.A_Phrase.Companion.statementsDo
 import com.avail.descriptor.phrases.FirstOfSequencePhraseDescriptor.ObjectSlots.STATEMENTS
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.Mutability

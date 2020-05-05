@@ -31,6 +31,8 @@
  */
 package com.avail.interpreter.primitive.phrases
 
+import com.avail.descriptor.phrases.A_Phrase.Companion.declaration
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
 import com.avail.descriptor.phrases.ReferencePhraseDescriptor
 import com.avail.descriptor.phrases.ReferencePhraseDescriptor.Companion.referenceNodeFromUse
 import com.avail.descriptor.phrases.VariableUsePhraseDescriptor

@@ -34,6 +34,7 @@ package com.avail.interpreter.primitive.bootstrap.syntax
 
 import com.avail.compiler.AvailRejectedParseException
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
+import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.phrases.SuperCastPhraseDescriptor
 import com.avail.descriptor.phrases.SuperCastPhraseDescriptor.Companion.newSuperCastNode
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple

@@ -104,6 +104,31 @@ import com.avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionT
 import com.avail.descriptor.parsing.LexerDescriptor.Companion.lexerFilterFunctionType
 import com.avail.descriptor.parsing.ParsingPlanInProgressDescriptor.Companion.newPlanInProgress
 import com.avail.descriptor.phrases.*
+import com.avail.descriptor.phrases.A_Phrase.Companion.apparentSendName
+import com.avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
+import com.avail.descriptor.phrases.A_Phrase.Companion.bundle
+import com.avail.descriptor.phrases.A_Phrase.Companion.childrenDo
+import com.avail.descriptor.phrases.A_Phrase.Companion.childrenMap
+import com.avail.descriptor.phrases.A_Phrase.Companion.copyMutablePhrase
+import com.avail.descriptor.phrases.A_Phrase.Companion.declaration
+import com.avail.descriptor.phrases.A_Phrase.Companion.declaredType
+import com.avail.descriptor.phrases.A_Phrase.Companion.expression
+import com.avail.descriptor.phrases.A_Phrase.Companion.expressionType
+import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsSize
+import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
+import com.avail.descriptor.phrases.A_Phrase.Companion.hasSuperCast
+import com.avail.descriptor.phrases.A_Phrase.Companion.initializationExpression
+import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
+import com.avail.descriptor.phrases.A_Phrase.Companion.macroOriginalSendNode
+import com.avail.descriptor.phrases.A_Phrase.Companion.outputPhrase
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
+import com.avail.descriptor.phrases.A_Phrase.Companion.statementsDo
+import com.avail.descriptor.phrases.A_Phrase.Companion.stripMacro
+import com.avail.descriptor.phrases.A_Phrase.Companion.superUnionType
+import com.avail.descriptor.phrases.A_Phrase.Companion.token
+import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
+import com.avail.descriptor.phrases.A_Phrase.Companion.typeExpression
 import com.avail.descriptor.phrases.AssignmentPhraseDescriptor.Companion.newAssignment
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_CONSTANT
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_VARIABLE
@@ -4458,8 +4483,7 @@ class AvailCompiler(
 			}
 			val objectCopy = obj.copyMutablePhrase()
 			objectCopy.childrenMap(
-				UnaryOperator {
-					child ->
+				UnaryOperator { child ->
 					assert(
 						child.isInstanceOfKind(PARSE_PHRASE.mostGeneralType()))
 					treeMapWithParent(

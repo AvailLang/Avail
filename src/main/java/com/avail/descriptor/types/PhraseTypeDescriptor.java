@@ -908,7 +908,7 @@ extends TypeDescriptor
 	}
 
 	/**
-	 * Does the specified {@linkplain AvailObject#flattenStatementsInto(List)
+	 * Does the specified {@linkplain A_Phrase.Companion#flattenStatementsInto(A_Phrase, List)
 	 * flat} {@linkplain List list} of {@linkplain PhraseDescriptor phrases}
 	 * contain only statements?
 	 *
@@ -933,19 +933,19 @@ extends TypeDescriptor
 		for (int i = 0; i < statementCount; i++)
 		{
 			final A_Phrase statement = flat.get(i);
-			assert !statement.phraseKindIsUnder(SEQUENCE_PHRASE);
+			assert !A_Phrase.Companion.phraseKindIsUnder(statement, SEQUENCE_PHRASE);
 			final boolean valid;
 			if (i + 1 < statementCount)
 			{
 				valid =
-					(statement.phraseKindIsUnder(STATEMENT_PHRASE)
-						|| statement.phraseKindIsUnder(ASSIGNMENT_PHRASE)
-						|| statement.phraseKindIsUnder(SEND_PHRASE))
-					&& statement.expressionType().isTop();
+					(A_Phrase.Companion.phraseKindIsUnder(statement, STATEMENT_PHRASE)
+						|| A_Phrase.Companion.phraseKindIsUnder(statement, ASSIGNMENT_PHRASE)
+						|| A_Phrase.Companion.phraseKindIsUnder(statement, SEND_PHRASE))
+					&& A_Phrase.Companion.expressionType(statement).isTop();
 			}
 			else
 			{
-				valid = statement.expressionType().isSubtypeOf(resultType);
+				valid = A_Phrase.Companion.expressionType(statement).isSubtypeOf(resultType);
 			}
 			if (!valid)
 			{

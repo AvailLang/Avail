@@ -32,6 +32,8 @@
 package com.avail.interpreter.primitive.phrases
 
 import com.avail.descriptor.NilDescriptor
+import com.avail.descriptor.phrases.A_Phrase.Companion.declaration
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
 import com.avail.descriptor.phrases.AssignmentPhraseDescriptor
 import com.avail.descriptor.phrases.AssignmentPhraseDescriptor.Companion.newAssignment
 import com.avail.descriptor.phrases.SequencePhraseDescriptor

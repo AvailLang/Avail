@@ -34,6 +34,9 @@ package com.avail.descriptor.phrases
 import com.avail.annotations.AvailMethod
 import com.avail.compiler.AvailCodeGenerator
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
+import com.avail.descriptor.phrases.A_Phrase.Companion.markerValue
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
 import com.avail.descriptor.phrases.MarkerPhraseDescriptor.ObjectSlots.MARKER_VALUE
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
@@ -43,7 +46,6 @@ import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
-import com.avail.descriptor.types.TypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor.*
 import com.avail.descriptor.types.TypeTag
 import com.avail.serialization.SerializerOperation
@@ -153,7 +155,7 @@ class MarkerPhraseDescriptor private constructor(
 		self.markerValue().hash() xor -0x34353534
 
 	@AvailMethod
-	override fun o_MarkerValue(self: AvailObject): AvailObject =
+	override fun o_MarkerValue(self: AvailObject): A_BasicObject =
 		self.slot(MARKER_VALUE)
 
 	override fun o_PhraseKind(self: AvailObject): PhraseKind =

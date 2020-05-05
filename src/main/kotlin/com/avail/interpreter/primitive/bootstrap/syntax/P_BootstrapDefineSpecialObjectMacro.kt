@@ -36,6 +36,7 @@ import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.*
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.phrases.BlockPhraseDescriptor.Companion.newBlockNode
 import com.avail.descriptor.phrases.ExpressionAsStatementPhraseDescriptor.Companion.newExpressionAsStatement
 import com.avail.descriptor.phrases.ListPhraseDescriptor.Companion.emptyListNode
@@ -86,7 +87,8 @@ object P_BootstrapDefineSpecialObjectMacro
 		val bundle: A_Bundle =
 			try
 			{
-				loader.lookupName(nameLiteral.token().literal()).bundleOrCreate()
+				loader.lookupName(nameLiteral.token().literal())
+					.bundleOrCreate()
 			}
 			catch (e: AmbiguousNameException)
 			{

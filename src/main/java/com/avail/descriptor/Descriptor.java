@@ -2936,7 +2936,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public AvailObject o_LiteralObject (final AvailObject object)
+	public A_BasicObject o_LiteralObject (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}
@@ -2948,7 +2948,7 @@ extends AbstractDescriptor
 	}
 
 	@Override
-	public AvailObject o_MarkerValue (final AvailObject object)
+	public A_BasicObject o_MarkerValue (final AvailObject object)
 	{
 		throw unsupportedOperationException();
 	}

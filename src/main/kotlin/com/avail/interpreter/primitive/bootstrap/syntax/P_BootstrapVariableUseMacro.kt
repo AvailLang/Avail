@@ -37,6 +37,8 @@ import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.*
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY
+import com.avail.descriptor.phrases.A_Phrase.Companion.initializationExpression
+import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_CONSTANT
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newModuleConstant
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newModuleVariable

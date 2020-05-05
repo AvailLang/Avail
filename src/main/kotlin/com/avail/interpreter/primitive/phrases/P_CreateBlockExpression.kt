@@ -34,6 +34,7 @@ package com.avail.interpreter.primitive.phrases
 
 import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.exceptionType
 import com.avail.descriptor.phrases.A_Phrase
+import com.avail.descriptor.phrases.A_Phrase.Companion.flattenStatementsInto
 import com.avail.descriptor.phrases.BlockPhraseDescriptor
 import com.avail.descriptor.phrases.BlockPhraseDescriptor.Companion.newBlockNode
 import com.avail.descriptor.sets.SetDescriptor.set

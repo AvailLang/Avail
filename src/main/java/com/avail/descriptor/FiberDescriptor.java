@@ -36,7 +36,6 @@ import com.avail.AvailRuntime;
 import com.avail.AvailTask;
 import com.avail.AvailThread;
 import com.avail.annotations.AvailMethod;
-import com.avail.annotations.EnumField;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.descriptor.JavaCompatibility.EnumFieldJava;
 import com.avail.descriptor.JavaCompatibility.IntegerEnumSlotDescriptionEnumJava;
@@ -55,7 +54,6 @@ import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.representation.AbstractSlotsEnum;
 import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.representation.BitField;
-import com.avail.descriptor.representation.IntegerEnumSlotDescriptionEnum;
 import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.sets.SetDescriptor;
@@ -89,7 +87,6 @@ import java.util.function.Supplier;
 
 import static com.avail.AvailRuntime.currentRuntime;
 import static com.avail.AvailRuntimeSupport.nextFiberId;
-import static com.avail.descriptor.representation.AvailObject.multiplier;
 import static com.avail.descriptor.FiberDescriptor.ExecutionState.UNSTARTED;
 import static com.avail.descriptor.FiberDescriptor.IntegerSlots.*;
 import static com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.REIFICATION_REQUESTED;
@@ -99,6 +96,7 @@ import static com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_
 import static com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY;
 import static com.avail.descriptor.maps.MapDescriptor.emptyMap;
 import static com.avail.descriptor.pojos.RawPojoDescriptor.identityPojo;
+import static com.avail.descriptor.representation.AvailObject.multiplier;
 import static com.avail.descriptor.sets.SetDescriptor.emptySet;
 import static com.avail.descriptor.sets.SetDescriptor.setFromCollection;
 import static com.avail.descriptor.types.FiberTypeDescriptor.fiberType;
@@ -1427,7 +1425,7 @@ extends Descriptor
 		A_Map fiberGlobals = fiber.fiberGlobals();
 		A_Map clientData = fiberGlobals.mapAt(clientDataGlobalKey);
 		A_Map bindings = clientData.mapAt(compilerScopeMapKey);
-		final A_String declarationName = declaration.token().string();
+		final A_String declarationName = A_Phrase.Companion.token(declaration).string();
 		assert declarationName.isString();
 		if (bindings.hasKey(declarationName))
 		{

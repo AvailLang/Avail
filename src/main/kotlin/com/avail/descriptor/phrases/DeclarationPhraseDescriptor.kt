@@ -34,6 +34,15 @@ package com.avail.descriptor.phrases
 import com.avail.annotations.AvailMethod
 import com.avail.compiler.AvailCodeGenerator
 import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.phrases.A_Phrase.Companion.declaredType
+import com.avail.descriptor.phrases.A_Phrase.Companion.emitEffectOn
+import com.avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
+import com.avail.descriptor.phrases.A_Phrase.Companion.expressionType
+import com.avail.descriptor.phrases.A_Phrase.Companion.initializationExpression
+import com.avail.descriptor.phrases.A_Phrase.Companion.literalObject
+import com.avail.descriptor.phrases.A_Phrase.Companion.token
+import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
+import com.avail.descriptor.phrases.A_Phrase.Companion.typeExpression
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.ObjectSlots.*
 import com.avail.descriptor.representation.*
@@ -559,7 +568,7 @@ class DeclarationPhraseDescriptor(
 		self.slot(INITIALIZATION_EXPRESSION)
 
 	@AvailMethod
-	override fun o_LiteralObject(self: AvailObject): AvailObject =
+	override fun o_LiteralObject(self: AvailObject): A_BasicObject =
 		self.slot(LITERAL_OBJECT)
 
 	@AvailMethod

@@ -36,6 +36,7 @@ import com.avail.compiler.scanning.LexingState
 import com.avail.descriptor.numbers.IntegerDescriptor
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.phrases.A_Phrase
+import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
 import com.avail.descriptor.phrases.ListPhraseDescriptor
 import com.avail.descriptor.phrases.LiteralPhraseDescriptor
 import com.avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.literalNodeFromToken

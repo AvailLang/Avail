@@ -34,6 +34,14 @@ package com.avail.descriptor.phrases
 import com.avail.annotations.AvailMethod
 import com.avail.compiler.AvailCodeGenerator
 import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
+import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
+import com.avail.descriptor.phrases.A_Phrase.Companion.hasSuperCast
+import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
+import com.avail.descriptor.phrases.A_Phrase.Companion.stripMacro
+import com.avail.descriptor.phrases.A_Phrase.Companion.superUnionType
+import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
 import com.avail.descriptor.phrases.ListPhraseDescriptor.ObjectSlots.EXPRESSIONS_TUPLE
 import com.avail.descriptor.phrases.ListPhraseDescriptor.ObjectSlots.TUPLE_TYPE
 import com.avail.descriptor.representation.*
@@ -212,7 +220,7 @@ class ListPhraseDescriptor private constructor(
 		self.expressionsTuple().hash() xor -0x3ebc1689
 
 	override fun o_HasSuperCast(self: AvailObject): Boolean =
-		self.slot(EXPRESSIONS_TUPLE).any(AvailObject::hasSuperCast)
+		self.slot(EXPRESSIONS_TUPLE).any { it.hasSuperCast() }
 
 	@AvailMethod
 	override fun o_IsInstanceOfKind(

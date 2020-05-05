@@ -41,6 +41,20 @@ import com.avail.descriptor.ModuleDescriptor
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
+import com.avail.descriptor.phrases.A_Phrase.Companion.argumentsTuple
+import com.avail.descriptor.phrases.A_Phrase.Companion.childrenDo
+import com.avail.descriptor.phrases.A_Phrase.Companion.declaration
+import com.avail.descriptor.phrases.A_Phrase.Companion.declaredType
+import com.avail.descriptor.phrases.A_Phrase.Companion.flattenStatementsInto
+import com.avail.descriptor.phrases.A_Phrase.Companion.generateInModule
+import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
+import com.avail.descriptor.phrases.A_Phrase.Companion.neededVariables
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
+import com.avail.descriptor.phrases.A_Phrase.Companion.primitive
+import com.avail.descriptor.phrases.A_Phrase.Companion.statementsTuple
+import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
+import com.avail.descriptor.phrases.A_Phrase.Companion.validateLocally
 import com.avail.descriptor.phrases.BlockPhraseDescriptor.IntegerSlots.Companion.PRIMITIVE
 import com.avail.descriptor.phrases.BlockPhraseDescriptor.IntegerSlots.Companion.STARTING_LINE_NUMBER
 import com.avail.descriptor.phrases.BlockPhraseDescriptor.ObjectSlots.*
@@ -351,7 +365,7 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 	@AvailMethod
 	override fun o_ExpressionType(self: AvailObject): A_Type =
 		functionType(
-			tupleFromList(self.argumentsTuple().map(AvailObject::declaredType)),
+			tupleFromList(self.argumentsTuple().map { it.declaredType() }),
 			self.resultType())
 
 	/**
@@ -643,8 +657,8 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 			treeDoWithParent(
 				blockNode,
 				BiConsumer {
-					obj: A_Phrase?, parent: A_Phrase? ->
-					obj!!.validateLocally(parent)
+					obj: A_Phrase, parent: A_Phrase? ->
+					obj.validateLocally(parent)
 				},
 				null)
 			if (blockNode.neededVariables().tupleSize() != 0) {

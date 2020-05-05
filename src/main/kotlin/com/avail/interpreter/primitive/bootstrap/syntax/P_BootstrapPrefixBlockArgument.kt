@@ -37,6 +37,10 @@ import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.ST
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.WEAK
 import com.avail.descriptor.FiberDescriptor
 import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.phrases.A_Phrase.Companion.expressionAt
+import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsSize
+import com.avail.descriptor.phrases.A_Phrase.Companion.lastExpression
+import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newArgument
 import com.avail.descriptor.sets.SetDescriptor.set
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType

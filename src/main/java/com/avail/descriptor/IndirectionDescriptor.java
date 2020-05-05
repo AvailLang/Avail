@@ -2803,25 +2803,25 @@ extends AbstractDescriptor
 	@Override
 	public A_Phrase o_Expression (final AvailObject object)
 	{
-		return o_Traversed(object).expression();
+		return A_Phrase.Companion.expression(o_Traversed(object));
 	}
 
 	@Override
 	public A_Phrase o_Variable (final AvailObject object)
 	{
-		return o_Traversed(object).variable();
+		return A_Phrase.Companion.variable(o_Traversed(object));
 	}
 
 	@Override
 	public A_Tuple o_ArgumentsTuple (final AvailObject object)
 	{
-		return o_Traversed(object).argumentsTuple();
+		return A_Phrase.Companion.argumentsTuple(o_Traversed(object));
 	}
 
 	@Override
 	public A_Tuple o_StatementsTuple (final AvailObject object)
 	{
-		return o_Traversed(object).statementsTuple();
+		return A_Phrase.Companion.statementsTuple(o_Traversed(object));
 	}
 
 	@Override
@@ -2835,13 +2835,13 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final A_Tuple neededVariables)
 	{
-		o_Traversed(object).neededVariables(neededVariables);
+		A_Phrase.Companion.neededVariables(o_Traversed(object), neededVariables);
 	}
 
 	@Override
 	public A_Tuple o_NeededVariables (final AvailObject object)
 	{
-		return o_Traversed(object).neededVariables();
+		return A_Phrase.Companion.neededVariables(o_Traversed(object));
 	}
 
 	@Override
@@ -2860,7 +2860,7 @@ extends AbstractDescriptor
 	@Override
 	public A_Type o_DeclaredType (final AvailObject object)
 	{
-		return o_Traversed(object).declaredType();
+		return A_Phrase.Companion.declaredType(o_Traversed(object));
 	}
 
 	@Override
@@ -2872,56 +2872,56 @@ extends AbstractDescriptor
 	@Override
 	public A_Phrase o_TypeExpression (final AvailObject object)
 	{
-		return o_Traversed(object).typeExpression();
+		return A_Phrase.Companion.typeExpression(o_Traversed(object));
 	}
 
 	@Override
 	public AvailObject o_InitializationExpression (final AvailObject object)
 	{
-		return o_Traversed(object).initializationExpression();
+		return A_Phrase.Companion.initializationExpression(o_Traversed(object));
 	}
 
 	@Override
-	public AvailObject o_LiteralObject (final AvailObject object)
+	public A_BasicObject o_LiteralObject (final AvailObject object)
 	{
-		return o_Traversed(object).literalObject();
+		return A_Phrase.Companion.literalObject(o_Traversed(object));
 	}
 
 	@Override
 	public A_Token o_Token (final AvailObject object)
 	{
-		return o_Traversed(object).token();
+		return A_Phrase.Companion.token(o_Traversed(object));
 	}
 
 	@Override
-	public AvailObject o_MarkerValue (final AvailObject object)
+	public A_BasicObject o_MarkerValue (final AvailObject object)
 	{
-		return o_Traversed(object).markerValue();
+		return A_Phrase.Companion.markerValue(o_Traversed(object));
 	}
 
 	@Override
 	public A_Phrase o_ArgumentsListNode (
 		final AvailObject object)
 	{
-		return o_Traversed(object).argumentsListNode();
+		return A_Phrase.Companion.argumentsListNode(o_Traversed(object));
 	}
 
 	@Override
 	public A_Bundle o_Bundle (final AvailObject object)
 	{
-		return o_Traversed(object).bundle();
+		return A_Phrase.Companion.bundle(o_Traversed(object));
 	}
 
 	@Override
 	public A_Tuple o_ExpressionsTuple (final AvailObject object)
 	{
-		return o_Traversed(object).expressionsTuple();
+		return A_Phrase.Companion.expressionsTuple(o_Traversed(object));
 	}
 
 	@Override
 	public A_Phrase o_Declaration (final AvailObject object)
 	{
-		return o_Traversed(object).declaration();
+		return A_Phrase.Companion.declaration(o_Traversed(object));
 	}
 
 	@Override
@@ -2935,7 +2935,7 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
-		o_Traversed(object).emitEffectOn(codeGenerator);
+		A_Phrase.Companion.emitEffectOn(o_Traversed(object), codeGenerator);
 	}
 
 	@Override
@@ -2943,7 +2943,7 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
-		o_Traversed(object).emitValueOn(codeGenerator);
+		A_Phrase.Companion.emitValueOn(o_Traversed(object), codeGenerator);
 	}
 
 	@Override
@@ -2951,7 +2951,7 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final UnaryOperator<A_Phrase> transformer)
 	{
-		o_Traversed(object).childrenMap(transformer);
+		A_Phrase.Companion.childrenMap(o_Traversed(object), transformer);
 	}
 
 	@Override
@@ -2959,7 +2959,7 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final Consumer<A_Phrase> action)
 	{
-		o_Traversed(object).childrenDo(action);
+		A_Phrase.Companion.childrenDo(o_Traversed(object), action);
 	}
 
 	@Override
@@ -2967,7 +2967,7 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final @Nullable A_Phrase parent)
 	{
-		o_Traversed(object).validateLocally(parent);
+		A_Phrase.Companion.validateLocally(o_Traversed(object), parent);
 	}
 
 	@Override
@@ -2975,7 +2975,7 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final A_Module module)
 	{
-		return o_Traversed(object).generateInModule(module);
+		return A_Phrase.Companion.generateInModule(o_Traversed(object), module);
 	}
 
 	@Override
@@ -2983,7 +2983,7 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final A_Phrase newPhrase)
 	{
-		return o_Traversed(object).copyWith(newPhrase);
+		return A_Phrase.Companion.copyWith(o_Traversed(object), newPhrase);
 	}
 
 	@Override
@@ -2991,7 +2991,7 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final A_Phrase newListPhrase)
 	{
-		return o_Traversed(object).copyConcatenating(newListPhrase);
+		return A_Phrase.Companion.copyConcatenating(o_Traversed(object), newListPhrase);
 	}
 
 	@Override
@@ -2999,14 +2999,14 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final boolean isLastUse)
 	{
-		o_Traversed(object).isLastUse(isLastUse);
+		A_Phrase.Companion.isLastUse(o_Traversed(object), isLastUse);
 	}
 
 	@Override
 	public boolean o_IsLastUse (
 		final AvailObject object)
 	{
-		return o_Traversed(object).isLastUse();
+		return A_Phrase.Companion.isLastUse(o_Traversed(object));
 	}
 
 	@Override
@@ -3020,7 +3020,7 @@ extends AbstractDescriptor
 	public A_Phrase o_CopyMutablePhrase (
 		final AvailObject object)
 	{
-		return o_Traversed(object).copyMutablePhrase();
+		return A_Phrase.Companion.copyMutablePhrase(o_Traversed(object));
 	}
 
 	@Override
@@ -3034,20 +3034,20 @@ extends AbstractDescriptor
 	public A_Phrase o_OutputPhrase (
 		final AvailObject object)
 	{
-		return o_Traversed(object).outputPhrase();
+		return A_Phrase.Companion.outputPhrase(o_Traversed(object));
 	}
 
 	@Override
 	public A_Atom o_ApparentSendName (
 		final AvailObject object)
 	{
-		return o_Traversed(object).apparentSendName();
+		return A_Phrase.Companion.apparentSendName(o_Traversed(object));
 	}
 
 	@Override
 	public A_Tuple o_Statements (final AvailObject object)
 	{
-		return o_Traversed(object).statements();
+		return A_Phrase.Companion.statements(o_Traversed(object));
 	}
 
 	@Override
@@ -3055,7 +3055,7 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final List<A_Phrase> accumulatedStatements)
 	{
-		o_Traversed(object).flattenStatementsInto(accumulatedStatements);
+		A_Phrase.Companion.flattenStatementsInto(o_Traversed(object), accumulatedStatements);
 	}
 
 	@Override
@@ -4049,7 +4049,7 @@ extends AbstractDescriptor
 	public A_Phrase o_StripMacro (
 		final AvailObject object)
 	{
-		return o_Traversed(object).stripMacro();
+		return A_Phrase.Companion.stripMacro(o_Traversed(object));
 	}
 
 	@Override
@@ -4707,13 +4707,13 @@ extends AbstractDescriptor
 	@Override
 	public A_Phrase o_List (final AvailObject object)
 	{
-		return o_Traversed(object).list();
+		return A_Phrase.Companion.list(o_Traversed(object));
 	}
 
 	@Override
 	public A_Tuple o_Permutation (final AvailObject object)
 	{
-		return o_Traversed(object).permutation();
+		return A_Phrase.Companion.permutation(o_Traversed(object));
 	}
 
 	@Override
@@ -4721,19 +4721,19 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final AvailCodeGenerator codeGenerator)
 	{
-		o_Traversed(object).emitAllValuesOn(codeGenerator);
+		A_Phrase.Companion.emitAllValuesOn(o_Traversed(object), codeGenerator);
 	}
 
 	@Override
 	public A_Type o_SuperUnionType (final AvailObject object)
 	{
-		return o_Traversed(object).superUnionType();
+		return A_Phrase.Companion.superUnionType(o_Traversed(object));
 	}
 
 	@Override
 	public boolean o_HasSuperCast (final AvailObject object)
 	{
-		return o_Traversed(object).hasSuperCast();
+		return A_Phrase.Companion.hasSuperCast(o_Traversed(object));
 	}
 
 	@Override
@@ -4754,13 +4754,13 @@ extends AbstractDescriptor
 	@Override
 	public A_Phrase o_ExpressionAt (final AvailObject object, final int index)
 	{
-		return o_Traversed(object).expressionAt(index);
+		return A_Phrase.Companion.expressionAt(o_Traversed(object), index);
 	}
 
 	@Override
 	public int o_ExpressionsSize (final AvailObject object)
 	{
-		return o_Traversed(object).expressionsSize();
+		return A_Phrase.Companion.expressionsSize(o_Traversed(object));
 	}
 
 	@Override
@@ -4772,7 +4772,7 @@ extends AbstractDescriptor
 	@Override
 	public boolean o_IsMacroSubstitutionNode (final AvailObject object)
 	{
-		return o_Traversed(object).isMacroSubstitutionNode();
+		return A_Phrase.Companion.isMacroSubstitutionNode(o_Traversed(object));
 	}
 
 	@Override
@@ -4786,13 +4786,13 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final Continuation1NotNull<A_Phrase> continuation)
 	{
-		o_Traversed(object).statementsDo(continuation);
+		A_Phrase.Companion.statementsDo(o_Traversed(object), continuation);
 	}
 
 	@Override
 	public A_Phrase o_MacroOriginalSendNode (final AvailObject object)
 	{
-		return o_Traversed(object).macroOriginalSendNode();
+		return A_Phrase.Companion.macroOriginalSendNode(o_Traversed(object));
 	}
 
 	@Override
@@ -4806,7 +4806,7 @@ extends AbstractDescriptor
 	@Override
 	public A_Tuple o_Tokens (final AvailObject object)
 	{
-		return o_Traversed(object).tokens();
+		return A_Phrase.Companion.tokens(o_Traversed(object));
 	}
 
 	@Override
@@ -5258,7 +5258,7 @@ extends AbstractDescriptor
 	@Override
 	public A_Phrase o_LastExpression (final AvailObject object)
 	{
-		return o_Traversed(object).lastExpression();
+		return A_Phrase.Companion.lastExpression(o_Traversed(object));
 	}
 
 	@Override

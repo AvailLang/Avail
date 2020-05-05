@@ -4466,7 +4466,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_LiteralObject (AvailObject object);
+	public abstract A_BasicObject o_LiteralObject (AvailObject object);
 
 	/**
 	 * @param object
@@ -4478,7 +4478,7 @@ public abstract class AbstractDescriptor
 	 * @param object
 	 * @return
 	 */
-	public abstract AvailObject o_MarkerValue (AvailObject object);
+	public abstract A_BasicObject o_MarkerValue (AvailObject object);
 
 	/**
 	 * @param object

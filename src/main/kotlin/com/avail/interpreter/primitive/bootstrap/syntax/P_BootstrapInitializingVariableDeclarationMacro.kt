@@ -35,6 +35,7 @@ package com.avail.interpreter.primitive.bootstrap.syntax
 import com.avail.compiler.AvailRejectedParseException
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
 import com.avail.descriptor.FiberDescriptor
+import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newVariable
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.KEYWORD
@@ -109,7 +110,8 @@ object P_BootstrapInitializingVariableDeclarationMacro
 				"local variable $nameString to have a name that doesn't shadow "
 				    + "an existing "
 					+ conflictingDeclaration.declarationKind().nativeKindName()
-					+ " (from line ${conflictingDeclaration.token().lineNumber()})")
+					+ " (from line " +
+					"${conflictingDeclaration.token().lineNumber()})")
 		}
 		return interpreter.primitiveSuccess(variableDeclaration)
 	}

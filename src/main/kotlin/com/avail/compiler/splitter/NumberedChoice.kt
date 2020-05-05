@@ -40,6 +40,7 @@ import com.avail.compiler.splitter.MessageSplitter.Metacharacter
 import com.avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.phrases.A_Phrase
+import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.BottomTypeDescriptor.bottom
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.inclusive

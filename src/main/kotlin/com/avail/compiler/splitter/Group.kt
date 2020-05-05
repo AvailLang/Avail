@@ -42,6 +42,7 @@ import com.avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinit
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import com.avail.descriptor.phrases.A_Phrase
+import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.tupleFromIntegerList

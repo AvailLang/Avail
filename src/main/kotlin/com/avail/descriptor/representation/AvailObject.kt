@@ -2206,90 +2206,17 @@ class AvailObject private constructor(
 
 	override fun visibleNames() = descriptor().o_VisibleNames(this)
 
-	override fun expression() = descriptor().o_Expression(this)
-
-	override fun variable() = descriptor().o_Variable(this)
-
-	override fun argumentsTuple() = descriptor().o_ArgumentsTuple(this)
-
-	override fun statementsTuple() = descriptor().o_StatementsTuple(this)
-
 	override fun resultType() = descriptor().o_ResultType(this)
-
-	override fun neededVariables(neededVariables: A_Tuple) {
-		descriptor().o_NeededVariables(this, neededVariables)
-	}
-
-	override fun neededVariables() = descriptor().o_NeededVariables(this)
 
 	override fun primitive(): Primitive? = descriptor().o_Primitive(this)
 
-	override fun declaredType() = descriptor().o_DeclaredType(this)
-
 	override fun declarationKind() = descriptor().o_DeclarationKind(this)
-
-	override fun initializationExpression() =
-		descriptor().o_InitializationExpression(this)
-
-	override fun literalObject() = descriptor().o_LiteralObject(this)
-
-	override fun token() = descriptor().o_Token(this)
-
-	override fun markerValue() = descriptor().o_MarkerValue(this)
-
-	override fun argumentsListNode() = descriptor().o_ArgumentsListNode(this)
-
-	override fun bundle() = descriptor().o_Bundle(this)
-
-	override fun expressionsTuple() = descriptor().o_ExpressionsTuple(this)
-
-	override fun declaration() = descriptor().o_Declaration(this)
 
 	override fun expressionType() = descriptor().o_ExpressionType(this)
 
-	override fun emitEffectOn(codeGenerator: AvailCodeGenerator) =
-		descriptor().o_EmitEffectOn(this, codeGenerator)
-
-	override fun emitValueOn(codeGenerator: AvailCodeGenerator) =
-		descriptor().o_EmitValueOn(this, codeGenerator)
-
-	override fun childrenMap(transformer: UnaryOperator<A_Phrase>) =
-		descriptor().o_ChildrenMap(this, transformer)
-
-	override fun childrenDo(action: Consumer<A_Phrase>) =
-		descriptor().o_ChildrenDo(this, action)
-
-	override fun validateLocally(parent: A_Phrase?) =
-		descriptor().o_ValidateLocally(this, parent)
-
-	override fun generateInModule(module: A_Module) =
-		descriptor().o_GenerateInModule(this, module)
-
-	override fun copyWith(newPhrase: A_Phrase) =
-		descriptor().o_CopyWith(this, newPhrase)
-
-	override fun copyConcatenating(newListPhrase: A_Phrase) =
-		descriptor().o_CopyConcatenating(this, newListPhrase)
-
-	override fun isLastUse(isLastUse: Boolean) =
-		descriptor().o_IsLastUse(this, isLastUse)
-
-	override fun isLastUse() = descriptor().o_IsLastUse(this)
-
 	override fun isMacroDefinition() = descriptor().o_IsMacroDefinition(this)
 
-	override fun copyMutablePhrase() = descriptor().o_CopyMutablePhrase(this)
-
 	override fun binUnionKind() = descriptor().o_BinUnionKind(this)
-
-	override fun outputPhrase() = descriptor().o_OutputPhrase(this)
-
-	override fun apparentSendName() = descriptor().o_ApparentSendName(this)
-
-	override fun statements() = descriptor().o_Statements(this)
-
-	override fun flattenStatementsInto(accumulatedStatements: List<A_Phrase>) =
-		descriptor().o_FlattenStatementsInto(this, accumulatedStatements)
 
 	override fun lineNumber() = descriptor().o_LineNumber(this)
 
@@ -2680,8 +2607,6 @@ class AvailObject private constructor(
 	override fun equalsPhrase(aPhrase: A_Phrase) =
 		descriptor().o_EqualsPhrase(this, aPhrase)
 
-	override fun stripMacro() = descriptor().o_StripMacro(this)
-
 	/**
 	 * Answer the [method][MethodDescriptor] that this
 	 * [definition][DefinitionDescriptor] is for.
@@ -2981,42 +2906,13 @@ class AvailObject private constructor(
 	override fun tupleOfTypesFromTo(startIndex: Int, endIndex: Int) =
 		descriptor().o_TupleOfTypesFromTo(this, startIndex, endIndex)
 
-	override fun list() = descriptor().o_List(this)
-
-	override fun permutation() = descriptor().o_Permutation(this)
-
-	override fun emitAllValuesOn(codeGenerator: AvailCodeGenerator) =
-		descriptor().o_EmitAllValuesOn(this, codeGenerator)
-
-	override fun superUnionType() = descriptor().o_SuperUnionType(this)
-
-	override fun hasSuperCast() = descriptor().o_HasSuperCast(this)
-
 	override fun macroDefinitionsTuple() =
 		descriptor().o_MacroDefinitionsTuple(this)
 
 	override fun lookupMacroByPhraseTuple(argumentPhraseTuple: A_Tuple) =
 		descriptor().o_LookupMacroByPhraseTuple(this, argumentPhraseTuple)
 
-	override fun expressionAt(index: Int) =
-		descriptor().o_ExpressionAt(this, index)
-
-	override fun expressionsSize() = descriptor().o_ExpressionsSize(this)
-
-	override fun lastExpression() = descriptor().o_LastExpression(this)
-
-	override fun isMacroSubstitutionNode() =
-		descriptor().o_IsMacroSubstitutionNode(this)
-
-	override fun statementsDo(continuation: Continuation1NotNull<A_Phrase>) =
-		descriptor().o_StatementsDo(this, continuation)
-
-	override fun macroOriginalSendNode() =
-		descriptor().o_MacroOriginalSendNode(this)
-
 	override fun equalsInt(theInt: Int) = descriptor().o_EqualsInt(this, theInt)
-
-	override fun tokens() = descriptor().o_Tokens(this)
 
 	override fun chooseBundle(currentModule: A_Module) =
 		descriptor().o_ChooseBundle(this, currentModule)
@@ -3071,8 +2967,6 @@ class AvailObject private constructor(
 	override fun addLexer(lexer: A_Lexer) = descriptor().o_AddLexer(this, lexer)
 
 	override fun originatingPhrase() = descriptor().o_OriginatingPhrase(this)
-
-	override fun typeExpression() = descriptor().o_TypeExpression(this)
 
 	override fun isGlobal() = descriptor().o_IsGlobal(this)
 

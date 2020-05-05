@@ -48,6 +48,7 @@ import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunctionForPhrase
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.phrases.A_Phrase
+import com.avail.descriptor.phrases.A_Phrase.Companion.apparentSendName
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.tuples.StringDescriptor.stringFrom

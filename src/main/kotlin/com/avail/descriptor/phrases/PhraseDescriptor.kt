@@ -36,6 +36,8 @@ import com.avail.compiler.AvailCodeGenerator
 import com.avail.descriptor.Descriptor
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.atoms.A_Atom
+import com.avail.descriptor.phrases.A_Phrase.Companion.childrenDo
+import com.avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
 import com.avail.descriptor.representation.*
 import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
 import com.avail.descriptor.tuples.A_Tuple

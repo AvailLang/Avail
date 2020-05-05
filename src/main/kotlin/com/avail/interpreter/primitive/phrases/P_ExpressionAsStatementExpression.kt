@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.primitive.phrases
 
+import com.avail.descriptor.phrases.A_Phrase.Companion.expression
 import com.avail.descriptor.phrases.ExpressionAsStatementPhraseDescriptor
 import com.avail.descriptor.phrases.PhraseDescriptor
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple

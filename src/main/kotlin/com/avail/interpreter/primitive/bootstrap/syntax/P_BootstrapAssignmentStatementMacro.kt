@@ -37,6 +37,8 @@ import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.ST
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.*
 import com.avail.descriptor.phrases.A_Phrase
+import com.avail.descriptor.phrases.A_Phrase.Companion.declaredType
+import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.phrases.AssignmentPhraseDescriptor.Companion.newAssignment
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newModuleConstant
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newModuleVariable

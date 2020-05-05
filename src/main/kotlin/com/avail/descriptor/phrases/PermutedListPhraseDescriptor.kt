@@ -33,9 +33,20 @@ package com.avail.descriptor.phrases
 
 import com.avail.annotations.AvailMethod
 import com.avail.compiler.AvailCodeGenerator
-import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava
-import com.avail.descriptor.NilDescriptor
 import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.phrases.A_Phrase.Companion.emitAllValuesOn
+import com.avail.descriptor.phrases.A_Phrase.Companion.expressionAt
+import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsSize
+import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
+import com.avail.descriptor.phrases.A_Phrase.Companion.hasSuperCast
+import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
+import com.avail.descriptor.phrases.A_Phrase.Companion.lastExpression
+import com.avail.descriptor.phrases.A_Phrase.Companion.list
+import com.avail.descriptor.phrases.A_Phrase.Companion.permutation
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
+import com.avail.descriptor.phrases.A_Phrase.Companion.stripMacro
+import com.avail.descriptor.phrases.A_Phrase.Companion.superUnionType
+import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
 import com.avail.descriptor.phrases.PermutedListPhraseDescriptor.ObjectSlots.*
 import com.avail.descriptor.representation.*
 import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
@@ -43,7 +54,6 @@ import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
-import com.avail.descriptor.types.TupleTypeDescriptor
 import com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForTypes
 import com.avail.descriptor.types.TypeTag
 import com.avail.interpreter.levelOne.L1Operation

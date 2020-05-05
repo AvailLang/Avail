@@ -38,6 +38,8 @@ import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.phrases.A_Phrase
+import com.avail.descriptor.phrases.A_Phrase.Companion.declaredType
+import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.IntegerEnumSlotDescriptionEnum
 import com.avail.descriptor.types.A_Type

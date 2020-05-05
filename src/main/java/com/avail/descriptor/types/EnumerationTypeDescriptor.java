@@ -766,7 +766,7 @@ extends AbstractEnumerationTypeDescriptor
 		A_Type unionType = bottom();
 		for (final A_Phrase instance : getInstances(object))
 		{
-			unionType = unionType.typeUnion(instance.expressionType());
+			unionType = unionType.typeUnion(A_Phrase.Companion.expressionType(instance));
 		}
 		return unionType;
 	}

@@ -40,6 +40,13 @@ import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.exceptionType
 import com.avail.descriptor.phrases.A_Phrase
+import com.avail.descriptor.phrases.A_Phrase.Companion.declaredType
+import com.avail.descriptor.phrases.A_Phrase.Companion.expressionAt
+import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsSize
+import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
+import com.avail.descriptor.phrases.A_Phrase.Companion.lastExpression
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
+import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.phrases.BlockPhraseDescriptor
 import com.avail.descriptor.phrases.BlockPhraseDescriptor.Companion.newBlockNode
 import com.avail.descriptor.sets.SetDescriptor.*

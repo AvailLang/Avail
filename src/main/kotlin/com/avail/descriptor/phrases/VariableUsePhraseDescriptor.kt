@@ -33,6 +33,13 @@ package com.avail.descriptor.phrases
 
 import com.avail.annotations.AvailMethod
 import com.avail.compiler.AvailCodeGenerator
+import com.avail.descriptor.phrases.A_Phrase.Companion.declaration
+import com.avail.descriptor.phrases.A_Phrase.Companion.declaredType
+import com.avail.descriptor.phrases.A_Phrase.Companion.isLastUse
+import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
+import com.avail.descriptor.phrases.A_Phrase.Companion.token
+import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
 import com.avail.descriptor.phrases.VariableUsePhraseDescriptor.IntegerSlots.Companion.LAST_USE
 import com.avail.descriptor.phrases.VariableUsePhraseDescriptor.IntegerSlots.FLAGS
 import com.avail.descriptor.phrases.VariableUsePhraseDescriptor.ObjectSlots.DECLARATION

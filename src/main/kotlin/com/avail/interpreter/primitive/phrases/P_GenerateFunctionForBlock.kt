@@ -36,6 +36,7 @@ import com.avail.descriptor.ModuleDescriptor.currentModule
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
+import com.avail.descriptor.phrases.A_Phrase.Companion.generateInModule
 import com.avail.descriptor.phrases.BlockPhraseDescriptor
 import com.avail.descriptor.phrases.BlockPhraseDescriptor.Companion.recursivelyValidate
 import com.avail.descriptor.sets.SetDescriptor.set

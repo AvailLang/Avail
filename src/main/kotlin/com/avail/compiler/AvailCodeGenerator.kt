@@ -37,14 +37,30 @@ import com.avail.descriptor.A_Module
 import com.avail.descriptor.NilDescriptor.nil
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.functions.CompiledCodeDescriptor.Companion.newCompiledCode
+import com.avail.descriptor.functions.ContinuationDescriptor
+import com.avail.descriptor.objects.ObjectTypeDescriptor
 import com.avail.descriptor.phrases.A_Phrase
+import com.avail.descriptor.phrases.A_Phrase.Companion.argumentsTuple
+import com.avail.descriptor.phrases.A_Phrase.Companion.declaredExceptions
+import com.avail.descriptor.phrases.A_Phrase.Companion.declaredType
+import com.avail.descriptor.phrases.A_Phrase.Companion.emitEffectOn
+import com.avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
+import com.avail.descriptor.phrases.A_Phrase.Companion.neededVariables
+import com.avail.descriptor.phrases.A_Phrase.Companion.primitive
+import com.avail.descriptor.phrases.A_Phrase.Companion.startingLineNumber
+import com.avail.descriptor.phrases.A_Phrase.Companion.statementsTuple
+import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
 import com.avail.descriptor.phrases.BlockPhraseDescriptor
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_CONSTANT
 import com.avail.descriptor.phrases.PhraseDescriptor
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.sets.A_Set
+import com.avail.descriptor.sets.SetDescriptor
+import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.NybbleTupleDescriptor.generateNybbleTupleFrom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.generateObjectTupleFrom
@@ -55,6 +71,7 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.ASSIGNMENT_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LABEL_PHRASE
 import com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor
+import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag
 import com.avail.interpreter.primitive.privatehelpers.*
@@ -501,9 +518,8 @@ class AvailCodeGenerator private constructor(
 	 * @param compiledCode
 	 *   The code from which to make a function.
 	 * @param neededVariables
-	 *   A [tuple][TupleDescriptor] of
-	 *   [declarations][DeclarationPhraseDescriptor] of variables that the code
-	 *   needs to access.
+	 *   A [tuple][A_Tuple] of [declarations][DeclarationPhraseDescriptor] of
+	 *   variables that the code needs to access.
 	 */
 	fun emitCloseCode(
 		tokens: A_Tuple,
@@ -597,8 +613,8 @@ class AvailCodeGenerator private constructor(
 	}
 
 	/**
-	 * Emit code to create a [tuple][TupleDescriptor] from the top `N` items on
-	 * the stack.
+	 * Emit code to create a [tuple][A_Tuple] from the top `N` items on the
+	 * stack.
 	 *
 	 * @param tokens
 	 *   The [A_Tuple] of [A_Token]s associated with this call.
@@ -830,7 +846,7 @@ class AvailCodeGenerator private constructor(
 	companion object
 	{
 		/**
-		 * Generate a [function][FunctionDescriptor] with the supplied
+		 * Generate a [raw&#32;function][A_RawFunction] with the supplied
 		 * properties.
 		 *
 		 * @param module
