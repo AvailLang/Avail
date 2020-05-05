@@ -54,6 +54,7 @@ import com.avail.descriptor.functions.A_Function;
 import com.avail.descriptor.functions.A_RawFunction;
 import com.avail.descriptor.functions.CompiledCodeDescriptor;
 import com.avail.descriptor.functions.FunctionDescriptor;
+import com.avail.descriptor.representation.IndirectionDescriptor;
 import com.avail.descriptor.maps.A_Map;
 import com.avail.descriptor.maps.A_MapBin;
 import com.avail.descriptor.maps.MapDescriptor.MapIterable;

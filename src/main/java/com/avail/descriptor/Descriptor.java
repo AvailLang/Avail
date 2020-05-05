@@ -47,6 +47,7 @@ import com.avail.descriptor.bundles.A_BundleTree;
 import com.avail.descriptor.functions.A_Continuation;
 import com.avail.descriptor.functions.A_Function;
 import com.avail.descriptor.functions.A_RawFunction;
+import com.avail.descriptor.representation.IndirectionDescriptor;
 import com.avail.descriptor.maps.A_Map;
 import com.avail.descriptor.maps.A_MapBin;
 import com.avail.descriptor.maps.MapDescriptor.MapIterable;

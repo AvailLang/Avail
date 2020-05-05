@@ -34,7 +34,7 @@ package com.avail.descriptor.tuples;
 
 import com.avail.descriptor.A_Character;
 import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.IndirectionDescriptor;
+import com.avail.descriptor.representation.IndirectionDescriptor;
 import com.avail.descriptor.numbers.IntegerDescriptor;
 import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.sets.A_Set;

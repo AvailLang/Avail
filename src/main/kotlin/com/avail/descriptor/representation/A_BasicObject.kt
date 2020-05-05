@@ -33,7 +33,6 @@ package com.avail.descriptor.representation
 
 import com.avail.descriptor.AbstractDescriptor
 import com.avail.descriptor.FillerDescriptor
-import com.avail.descriptor.IndirectionDescriptor
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.functions.*
 import com.avail.descriptor.maps.A_Map
@@ -43,7 +42,6 @@ import com.avail.descriptor.objects.ObjectDescriptor
 import com.avail.descriptor.objects.ObjectTypeDescriptor
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
-import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor.SetIterator
 import com.avail.descriptor.tokens.A_Token
@@ -1165,7 +1163,7 @@ interface A_BasicObject : JSONFriendly {
 
 	companion object {
 		/**
-		 * Dispatcher helper function for zero arguments.
+		 * Dispatcher helper function for routing messages to the descriptor.
 		 *
 		 * @param R
 		 *   The result type of this call.

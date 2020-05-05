@@ -33,7 +33,6 @@ package com.avail.descriptor.representation
 
 import com.avail.descriptor.AbstractDescriptor
 import com.avail.descriptor.FillerDescriptor
-import com.avail.descriptor.IndirectionDescriptor
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.instanceMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -66,7 +65,8 @@ abstract class AbstractAvailObject protected constructor(
 	 * semantics. The descriptor essentially says how this object should behave,
 	 * including how its fields are laid out.
 	 */
-	protected @field:Volatile var currentDescriptor = initialDescriptor
+	@field:Volatile
+	protected var currentDescriptor = initialDescriptor
 
 	/** Retrieve this object's current [descriptor][AbstractDescriptor]. */
 	@ReferencedInGeneratedCode

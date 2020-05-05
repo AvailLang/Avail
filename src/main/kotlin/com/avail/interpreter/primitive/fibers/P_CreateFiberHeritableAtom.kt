@@ -55,7 +55,7 @@ import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.utility.MutableOrNull
-import com.avail.utility.evaluation.Continuation0
+import java.util.function.Supplier
 
 /**
  * **Primitive:** Create a new [atom][AtomDescriptor] with the given name that
@@ -76,7 +76,7 @@ object P_CreateFiberHeritableAtom : Primitive(1, CanInline)
 		val errorCode = MutableOrNull<AvailErrorCode>()
 		if (!module.equalsNil())
 		{
-			module.lock(Continuation0 {
+			module.lock(Supplier {
 				val trueNames = module.trueNamesForStringName(name)
 				when (trueNames.setSize()) {
 					0 -> {

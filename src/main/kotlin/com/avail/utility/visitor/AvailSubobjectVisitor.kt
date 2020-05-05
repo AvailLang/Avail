@@ -49,8 +49,9 @@ interface AvailSubobjectVisitor
 	 *
 	 * @param childObject
 	 *    An object referred to by the `parentObject`.
-	 * @return A replacement object for the childObject.  Subclasses may use
-	 * this to eliminate indirections, or for other purposes.
+	 * @return
+	 *   A replacement object for the childObject.  Subclasses may use this to
+	 *   eliminate indirections, or for other purposes.
 	 */
 	operator fun invoke(
 		childObject: AvailObject): AvailObject

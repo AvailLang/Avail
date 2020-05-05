@@ -34,7 +34,7 @@ package com.avail.descriptor.types;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.IndirectionDescriptor;
+import com.avail.descriptor.representation.IndirectionDescriptor;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.maps.A_Map;

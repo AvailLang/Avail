@@ -37,7 +37,7 @@ import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.Descriptor;
-import com.avail.descriptor.IndirectionDescriptor;
+import com.avail.descriptor.representation.IndirectionDescriptor;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.representation.AbstractSlotsEnum;
