@@ -32,7 +32,7 @@
 
 package com.avail.interpreter.primitive.modules
 
-import com.avail.descriptor.ModuleDescriptor
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.tuples.A_String

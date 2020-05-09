@@ -32,7 +32,7 @@
 
 package com.avail.descriptor.tuples;
 
-import com.avail.descriptor.A_Character;
+import com.avail.descriptor.character.A_Character;
 import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.representation.IndirectionDescriptor;
 import com.avail.descriptor.numbers.IntegerDescriptor;
@@ -588,7 +588,7 @@ extends A_BasicObject, Iterable<AvailObject>
 
 	/**
 	 * The receiver is a {@linkplain ByteStringDescriptor byte string}; extract
-	 * the {@link A_Character#codePoint() code point} of the {@link A_Character
+	 * the {@link A_Character.Companion#codePoint(A_Character) code point} of the {@link A_Character
 	 * character} at the given index as an unsigned byte.
 	 *
 	 * @param index The index of the character to extract.
@@ -599,7 +599,7 @@ extends A_BasicObject, Iterable<AvailObject>
 
 	/**
 	 * The receiver is a {@linkplain TwoByteStringDescriptor two-byte string};
-	 * extract the {@link A_Character#codePoint() code point} of the {@link
+	 * extract the {@link A_Character.Companion#codePoint(A_Character) code point} of the {@link
 	 * A_Character character} at the given index as an unsigned short.
 	 *
 	 * @param index The index of the character to extract.

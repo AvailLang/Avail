@@ -1,5 +1,5 @@
 /*
- * AvailLoader.java
+ * AvailLoader.kt
  * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -34,10 +34,6 @@ package com.avail.interpreter.execution
 import com.avail.AvailRuntime
 import com.avail.compiler.scanning.LexingState
 import com.avail.compiler.splitter.MessageSplitter
-import com.avail.descriptor.*
-import com.avail.descriptor.CharacterDescriptor.fromCodePoint
-import com.avail.descriptor.FiberDescriptor.*
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
@@ -61,6 +57,9 @@ import com.avail.descriptor.bundles.A_BundleTree.Companion.removePlanInProgress
 import com.avail.descriptor.bundles.A_BundleTree.Companion.updateForNewGrammaticalRestriction
 import com.avail.descriptor.bundles.MessageBundleTreeDescriptor
 import com.avail.descriptor.bundles.MessageBundleTreeDescriptor.Companion.newBundleTree
+import com.avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
+import com.avail.descriptor.fiber.A_Fiber
+import com.avail.descriptor.fiber.FiberDescriptor.*
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.CompiledCodeDescriptor.Companion.newPrimitiveRawFunction
 import com.avail.descriptor.functions.FunctionDescriptor
@@ -72,6 +71,8 @@ import com.avail.descriptor.methods.GrammaticalRestrictionDescriptor.Companion.n
 import com.avail.descriptor.methods.MacroDefinitionDescriptor.Companion.newMacroDefinition
 import com.avail.descriptor.methods.MethodDefinitionDescriptor.Companion.newMethodDefinition
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
+import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan
 import com.avail.descriptor.parsing.A_Lexer
 import com.avail.descriptor.parsing.A_Lexer.Companion.definitionModule
@@ -82,10 +83,13 @@ import com.avail.descriptor.parsing.LexerDescriptor.Companion.newLexer
 import com.avail.descriptor.parsing.ParsingPlanInProgressDescriptor.Companion.newPlanInProgress
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObject.Companion.error
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor.*
-import com.avail.descriptor.tuples.*
+import com.avail.descriptor.tuples.A_String
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
+import com.avail.descriptor.tuples.StringDescriptor
 import com.avail.descriptor.tuples.StringDescriptor.formatString
 import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
 import com.avail.descriptor.types.A_Type
@@ -105,7 +109,8 @@ import com.avail.interpreter.execution.AvailLoader.Phase.*
 import com.avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import com.avail.interpreter.primitive.bootstrap.lexing.*
 import com.avail.io.TextInterface
-import com.avail.utility.*
+import com.avail.utility.Pair
+import com.avail.utility.StackPrinter
 import com.avail.utility.evaluation.Combinator
 import com.avail.utility.evaluation.Continuation0
 import com.avail.utility.evaluation.Continuation2NotNull

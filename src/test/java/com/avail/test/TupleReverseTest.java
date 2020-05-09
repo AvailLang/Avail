@@ -38,7 +38,7 @@ import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
 
-import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
+import static com.avail.descriptor.character.CharacterDescriptor.fromCodePoint;
 import static com.avail.descriptor.numbers.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.tuples.ByteArrayTupleDescriptor.tupleForByteArray;
 import static com.avail.descriptor.tuples.ByteBufferTupleDescriptor.tupleForByteBuffer;

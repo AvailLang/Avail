@@ -32,7 +32,7 @@
 
 package com.avail.compiler
 
-import com.avail.descriptor.A_Fiber
+import com.avail.descriptor.fiber.A_Fiber
 import com.avail.exceptions.PrimitiveThrownException
 
 /**

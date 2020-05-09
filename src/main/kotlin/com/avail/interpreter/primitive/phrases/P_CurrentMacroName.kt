@@ -31,7 +31,7 @@
  */
 package com.avail.interpreter.primitive.phrases
 
-import com.avail.descriptor.FiberDescriptor.GeneralFlag.IS_EVALUATING_MACRO
+import com.avail.descriptor.fiber.FiberDescriptor.GeneralFlag.IS_EVALUATING_MACRO
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.MACRO_BUNDLE_KEY

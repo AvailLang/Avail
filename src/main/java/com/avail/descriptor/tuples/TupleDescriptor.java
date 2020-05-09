@@ -35,6 +35,7 @@ package com.avail.descriptor.tuples;
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
 import com.avail.annotations.ThreadSafe;
+import com.avail.descriptor.character.A_Character;
 import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.Descriptor;
 import com.avail.descriptor.representation.IndirectionDescriptor;
@@ -835,7 +836,7 @@ extends Descriptor
 	@Override @AvailMethod
 	public int o_TupleCodePointAt (final AvailObject object, final int index)
 	{
-		return object.tupleAt(index).codePoint();
+		return A_Character.Companion.codePoint(object.tupleAt(index));
 	}
 
 	@Override @AvailMethod
@@ -895,7 +896,7 @@ extends Descriptor
 		if (firstElement.isCharacter())
 		{
 			// See if we can use a string-like representation.
-			int maxCodePoint = firstElement.codePoint();
+			int maxCodePoint = A_Character.Companion.codePoint(firstElement);
 			for (int i = 2; i <= size; i++)
 			{
 				final AvailObject element = object.tupleAt(i);
@@ -903,7 +904,7 @@ extends Descriptor
 				{
 					return SerializerOperation.GENERAL_TUPLE;
 				}
-				maxCodePoint = max(maxCodePoint, element.codePoint());
+				maxCodePoint = max(maxCodePoint, A_Character.Companion.codePoint(element));
 			}
 			return maxCodePoint <= 255
 				? SerializerOperation.BYTE_STRING

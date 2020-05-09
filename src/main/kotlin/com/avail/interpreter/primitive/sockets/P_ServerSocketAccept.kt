@@ -33,9 +33,9 @@
 package com.avail.interpreter.primitive.sockets
 
 import com.avail.AvailRuntime.currentRuntime
-import com.avail.descriptor.FiberDescriptor
-import com.avail.descriptor.FiberDescriptor.newFiber
-import com.avail.descriptor.ModuleDescriptor.currentModule
+import com.avail.descriptor.fiber.FiberDescriptor
+import com.avail.descriptor.fiber.FiberDescriptor.newFiber
+import com.avail.descriptor.module.ModuleDescriptor.currentModule
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import com.avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial

@@ -32,7 +32,7 @@
 
 package com.avail.interpreter.primitive.modules
 
-import com.avail.descriptor.ModuleDescriptor
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType

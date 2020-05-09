@@ -33,7 +33,7 @@ package com.avail.descriptor.phrases
 
 import com.avail.compiler.AvailCodeGenerator
 import com.avail.compiler.AvailCompiler
-import com.avail.descriptor.A_Module
+import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom

@@ -34,7 +34,7 @@ package com.avail.environment.actions
 
 import com.avail.AvailRuntime
 import com.avail.compiler.AvailCompiler
-import com.avail.descriptor.FiberDescriptor
+import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.environment.AvailWorkbench
 import java.awt.event.ActionEvent
 import javax.swing.Action

@@ -34,7 +34,7 @@ package com.avail.descriptor.sets;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
-import com.avail.descriptor.A_Character;
+import com.avail.descriptor.character.A_Character;
 import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.Descriptor;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
@@ -148,7 +148,7 @@ extends Descriptor
 			final SortedSet<Integer> codePointsSet = new TreeSet<>();
 			for (final A_Character character : object)
 			{
-				codePointsSet.add(character.codePoint());
+				codePointsSet.add(A_Character.Companion.codePoint(character));
 			}
 			final Iterator<Integer> iterator = codePointsSet.iterator();
 			int runStart = iterator.next();

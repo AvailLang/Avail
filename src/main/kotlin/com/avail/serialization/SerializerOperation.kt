@@ -34,8 +34,7 @@ package com.avail.serialization
 
 import com.avail.AvailRuntime
 import com.avail.AvailRuntime.specialObject
-import com.avail.descriptor.CharacterDescriptor
-import com.avail.descriptor.CharacterDescriptor.fromCodePoint
+import com.avail.descriptor.character.CharacterDescriptor
 import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom
@@ -54,6 +53,8 @@ import com.avail.descriptor.atoms.AtomWithPropertiesDescriptor.Companion.createA
 import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.bundles.MessageBundleDescriptor
+import com.avail.descriptor.character.A_Character.Companion.codePoint
+import com.avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.functions.CompiledCodeDescriptor.Companion.newCompiledCode
 import com.avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationWithFrame
@@ -73,6 +74,7 @@ import com.avail.descriptor.numbers.IntegerDescriptor.Companion.two
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import com.avail.descriptor.objects.ObjectDescriptor.Companion.objectFromMap
 import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.objectTypeFromMap
+import com.avail.descriptor.phrases.*
 import com.avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
 import com.avail.descriptor.phrases.A_Phrase.Companion.argumentsTuple
 import com.avail.descriptor.phrases.A_Phrase.Companion.bundle
@@ -95,7 +97,6 @@ import com.avail.descriptor.phrases.A_Phrase.Companion.typeExpression
 import com.avail.descriptor.phrases.A_Phrase.Companion.variable
 import com.avail.descriptor.phrases.AssignmentPhraseDescriptor.Companion.isInline
 import com.avail.descriptor.phrases.AssignmentPhraseDescriptor.Companion.newAssignment
-import com.avail.descriptor.phrases.BlockPhraseDescriptor
 import com.avail.descriptor.phrases.BlockPhraseDescriptor.Companion.newBlockNode
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newDeclaration
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
@@ -107,11 +108,8 @@ import com.avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor.Companion.
 import com.avail.descriptor.phrases.PermutedListPhraseDescriptor.Companion.newPermutedListNode
 import com.avail.descriptor.phrases.ReferencePhraseDescriptor.Companion.referenceNodeFromUse
 import com.avail.descriptor.phrases.SendPhraseDescriptor.Companion.newSendNode
-import com.avail.descriptor.phrases.SequencePhraseDescriptor
 import com.avail.descriptor.phrases.SequencePhraseDescriptor.Companion.newSequence
-import com.avail.descriptor.phrases.SuperCastPhraseDescriptor
 import com.avail.descriptor.phrases.SuperCastPhraseDescriptor.Companion.newSuperCastNode
-import com.avail.descriptor.phrases.VariableUsePhraseDescriptor
 import com.avail.descriptor.phrases.VariableUsePhraseDescriptor.Companion.newUse
 import com.avail.descriptor.pojos.PojoFieldDescriptor.pojoFieldVariableForInnerType
 import com.avail.descriptor.pojos.PojoFinalFieldDescriptor

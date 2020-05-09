@@ -34,7 +34,7 @@ package com.avail.builder
 
 import com.avail.annotations.ThreadSafe
 import com.avail.builder.RenamesFileParser.Token
-import com.avail.descriptor.ModuleDescriptor
+import com.avail.descriptor.module.ModuleDescriptor
 import java.io.EOFException
 import java.io.File
 import java.io.IOException

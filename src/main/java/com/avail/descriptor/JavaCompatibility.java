@@ -32,6 +32,7 @@
 
 package com.avail.descriptor;
 
+import com.avail.descriptor.character.CharacterDescriptor;
 import com.avail.descriptor.representation.*;
 
 import java.lang.annotation.ElementType;

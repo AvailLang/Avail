@@ -34,8 +34,8 @@ package com.avail.interpreter.primitive.fibers
 
 import com.avail.AvailRuntime.currentRuntime
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.FiberDescriptor
-import com.avail.descriptor.FiberDescriptor.newFiber
+import com.avail.descriptor.fiber.FiberDescriptor
+import com.avail.descriptor.fiber.FiberDescriptor.newFiber
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero

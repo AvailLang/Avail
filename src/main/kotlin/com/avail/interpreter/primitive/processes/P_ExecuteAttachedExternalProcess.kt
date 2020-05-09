@@ -33,9 +33,9 @@
 package com.avail.interpreter.primitive.processes
 
 import com.avail.AvailRuntime.currentRuntime
-import com.avail.descriptor.A_Fiber
+import com.avail.descriptor.fiber.A_Fiber
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.FiberDescriptor.newFiber
+import com.avail.descriptor.fiber.FiberDescriptor.newFiber
 import com.avail.descriptor.sets.SetDescriptor.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromArray

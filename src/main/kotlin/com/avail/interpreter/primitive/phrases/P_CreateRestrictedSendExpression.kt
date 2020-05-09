@@ -36,8 +36,8 @@ import com.avail.AvailRuntime.currentRuntime
 import com.avail.compiler.AvailAcceptedParseException
 import com.avail.compiler.AvailRejectedParseException
 import com.avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
-import com.avail.descriptor.FiberDescriptor.currentFiber
-import com.avail.descriptor.FiberDescriptor.newFiber
+import com.avail.descriptor.fiber.FiberDescriptor.currentFiber
+import com.avail.descriptor.fiber.FiberDescriptor.newFiber
 import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod

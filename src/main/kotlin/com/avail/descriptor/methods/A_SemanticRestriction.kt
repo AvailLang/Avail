@@ -31,8 +31,8 @@
  */
 package com.avail.descriptor.methods
 
-import com.avail.descriptor.A_Module
-import com.avail.descriptor.ModuleDescriptor
+import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.functions.A_Continuation
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.representation.A_BasicObject

@@ -36,8 +36,8 @@ import com.avail.AvailRuntime
 import com.avail.builder.ModuleName
 import com.avail.builder.ModuleRoot
 import com.avail.builder.ModuleRoots
-import com.avail.descriptor.A_Fiber
-import com.avail.descriptor.A_Module
+import com.avail.descriptor.fiber.A_Fiber
+import com.avail.descriptor.module.A_Module
 import com.avail.persistence.Repository
 import com.avail.server.AvailServer
 import com.avail.server.io.AvailServerChannel

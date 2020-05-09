@@ -31,7 +31,7 @@
  */
 package com.avail.descriptor.atoms
 
-import com.avail.descriptor.A_Module
+import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject

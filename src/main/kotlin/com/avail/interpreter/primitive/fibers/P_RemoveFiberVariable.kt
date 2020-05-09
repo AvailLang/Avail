@@ -32,7 +32,7 @@
 
 package com.avail.interpreter.primitive.fibers
 
-import com.avail.descriptor.FiberDescriptor
+import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import com.avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial

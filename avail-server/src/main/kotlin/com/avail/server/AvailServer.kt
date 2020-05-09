@@ -42,9 +42,9 @@ import com.avail.builder.RenamesFileParserException
 import com.avail.builder.ResolvedModuleName
 import com.avail.builder.UnresolvedDependencyException
 import com.avail.builder.UnresolvedModuleException
-import com.avail.descriptor.A_Fiber
-import com.avail.descriptor.A_Module
-import com.avail.descriptor.FiberDescriptor.ExecutionState
+import com.avail.descriptor.fiber.A_Fiber
+import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState
 import com.avail.interpreter.execution.Interpreter
 import com.avail.persistence.IndexedFileException
 import com.avail.persistence.Repository

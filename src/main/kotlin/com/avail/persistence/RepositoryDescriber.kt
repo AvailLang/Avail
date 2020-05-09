@@ -34,7 +34,7 @@ package com.avail.persistence
 
 import com.avail.AvailRuntime
 import com.avail.builder.AvailBuilder.Companion.validatedBytesFrom
-import com.avail.descriptor.A_Module
+import com.avail.descriptor.module.A_Module
 import com.avail.persistence.Repository.ModuleCompilation
 import com.avail.persistence.Repository.ModuleVersion
 import com.avail.serialization.DeserializerDescriber

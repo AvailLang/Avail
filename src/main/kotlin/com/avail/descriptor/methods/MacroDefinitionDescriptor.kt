@@ -33,8 +33,8 @@ package com.avail.descriptor.methods
 
 import com.avail.annotations.AvailMethod
 import com.avail.annotations.HideFieldJustForPrinting
-import com.avail.descriptor.A_Module
-import com.avail.descriptor.ModuleDescriptor
+import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.FunctionDescriptor

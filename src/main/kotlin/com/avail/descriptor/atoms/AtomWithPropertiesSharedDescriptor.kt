@@ -33,7 +33,7 @@ package com.avail.descriptor.atoms
 
 import com.avail.annotations.AvailMethod
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.ModuleDescriptor
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.atoms.AtomWithPropertiesSharedDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.representation.*

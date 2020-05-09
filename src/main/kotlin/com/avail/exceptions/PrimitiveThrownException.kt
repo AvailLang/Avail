@@ -32,8 +32,8 @@
 
 package com.avail.exceptions
 
-import com.avail.descriptor.A_Fiber
-import com.avail.descriptor.FiberDescriptor
+import com.avail.descriptor.fiber.A_Fiber
+import com.avail.descriptor.fiber.FiberDescriptor
 
 /**
  * A `PrimitiveThrownException` may be thrown from a primitive as a way to

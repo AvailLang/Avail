@@ -36,7 +36,7 @@ import com.avail.annotations.AvailMethod;
 import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.AbstractDescriptor;
 import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.CharacterDescriptor;
+import com.avail.descriptor.character.CharacterDescriptor;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
 import com.avail.descriptor.numbers.A_Number;
 import com.avail.descriptor.numbers.InfinityDescriptor;

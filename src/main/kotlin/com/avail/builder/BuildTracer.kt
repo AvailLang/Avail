@@ -36,8 +36,8 @@ import com.avail.compiler.AvailCompiler
 import com.avail.compiler.problems.Problem
 import com.avail.compiler.problems.ProblemHandler
 import com.avail.compiler.problems.ProblemType.TRACE
-import com.avail.descriptor.FiberDescriptor.tracerPriority
-import com.avail.descriptor.ModuleDescriptor
+import com.avail.descriptor.fiber.FiberDescriptor.tracerPriority
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.io.SimpleCompletionHandler
 import com.avail.persistence.Repository.ModuleVersionKey
 import java.util.*

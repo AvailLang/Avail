@@ -31,8 +31,8 @@
  */
 package com.avail.interpreter.primitive.general
 
-import com.avail.descriptor.CharacterDescriptor.fromCodePoint
-import com.avail.descriptor.FiberDescriptor.ExecutionState
+import com.avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
+import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState
 import com.avail.descriptor.sets.SetDescriptor.set
 import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
 import com.avail.descriptor.types.A_Type

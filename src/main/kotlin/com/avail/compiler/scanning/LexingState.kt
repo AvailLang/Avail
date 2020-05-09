@@ -37,11 +37,11 @@ import com.avail.compiler.AvailRejectedParseException
 import com.avail.compiler.CompilationContext
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
-import com.avail.descriptor.A_Fiber
+import com.avail.descriptor.fiber.A_Fiber
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.CharacterDescriptor
-import com.avail.descriptor.FiberDescriptor.GeneralFlag
-import com.avail.descriptor.FiberDescriptor.newLoaderFiber
+import com.avail.descriptor.character.CharacterDescriptor
+import com.avail.descriptor.fiber.FiberDescriptor.GeneralFlag
+import com.avail.descriptor.fiber.FiberDescriptor.newLoaderFiber
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.parsing.A_Lexer
 import com.avail.descriptor.parsing.A_Lexer.Companion.lexerBodyFunction

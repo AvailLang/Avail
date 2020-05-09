@@ -32,7 +32,7 @@
 
 package com.avail.stacks.scanner
 
-import com.avail.descriptor.CharacterDescriptor
+import com.avail.descriptor.character.CharacterDescriptor
 import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tokens.CommentTokenDescriptor
 import com.avail.stacks.LinkingFileMap

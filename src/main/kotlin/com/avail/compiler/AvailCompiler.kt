@@ -53,10 +53,9 @@ import com.avail.compiler.problems.ProblemType.PARSE
 import com.avail.compiler.scanning.LexingState
 import com.avail.compiler.splitter.MessageSplitter.Companion.constantForIndex
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
-import com.avail.descriptor.*
-import com.avail.descriptor.FiberDescriptor.GeneralFlag
-import com.avail.descriptor.FiberDescriptor.newLoaderFiber
-import com.avail.descriptor.ModuleDescriptor.newModule
+import com.avail.descriptor.fiber.FiberDescriptor.GeneralFlag
+import com.avail.descriptor.fiber.FiberDescriptor.newLoaderFiber
+import com.avail.descriptor.module.ModuleDescriptor.newModule
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
@@ -84,6 +83,7 @@ import com.avail.descriptor.bundles.A_BundleTree.Companion.lazyPrefilterMap
 import com.avail.descriptor.bundles.A_BundleTree.Companion.lazyTypeFilterTreePojo
 import com.avail.descriptor.bundles.MessageBundleDescriptor
 import com.avail.descriptor.bundles.MessageBundleTreeDescriptor
+import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.CompiledCodeDescriptor.Companion.newPrimitiveRawFunction
 import com.avail.descriptor.functions.FunctionDescriptor
@@ -95,6 +95,7 @@ import com.avail.descriptor.maps.MapDescriptor.Companion.mapFromPairs
 import com.avail.descriptor.methods.*
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.*
+import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.parsingInstructions
 import com.avail.descriptor.parsing.A_Lexer
 import com.avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.nameHighlightingPc

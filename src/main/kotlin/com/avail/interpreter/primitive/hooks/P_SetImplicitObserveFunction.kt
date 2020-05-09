@@ -33,7 +33,7 @@
 package com.avail.interpreter.primitive.hooks
 
 import com.avail.AvailRuntime.HookType.IMPLICIT_OBSERVE
-import com.avail.descriptor.FiberDescriptor.TraceFlag
+import com.avail.descriptor.fiber.FiberDescriptor.TraceFlag
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.FunctionDescriptor

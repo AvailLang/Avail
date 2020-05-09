@@ -33,7 +33,7 @@ package com.avail.descriptor.parsing
 
 import com.avail.annotations.AvailMethod
 import com.avail.compiler.scanning.LexingState
-import com.avail.descriptor.A_Module
+import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.Descriptor
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.functions.A_Function

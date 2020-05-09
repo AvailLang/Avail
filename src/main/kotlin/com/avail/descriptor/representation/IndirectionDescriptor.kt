@@ -35,9 +35,9 @@ import com.avail.annotations.AvailMethod
 import com.avail.compiler.AvailCodeGenerator
 import com.avail.compiler.scanning.LexingState
 import com.avail.compiler.splitter.MessageSplitter
-import com.avail.descriptor.A_Module
+import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.AbstractDescriptor
-import com.avail.descriptor.FiberDescriptor.*
+import com.avail.descriptor.fiber.FiberDescriptor.*
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
@@ -74,6 +74,7 @@ import com.avail.descriptor.bundles.A_BundleTree.Companion.lazyPrefilterMap
 import com.avail.descriptor.bundles.A_BundleTree.Companion.lazyTypeFilterTreePojo
 import com.avail.descriptor.bundles.A_BundleTree.Companion.removePlanInProgress
 import com.avail.descriptor.bundles.A_BundleTree.Companion.updateForNewGrammaticalRestriction
+import com.avail.descriptor.character.A_Character.Companion.codePoint
 import com.avail.descriptor.functions.A_Continuation
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.A_RawFunction

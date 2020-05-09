@@ -31,8 +31,8 @@
  */
 package com.avail.interpreter.primitive.characters
 
-import com.avail.descriptor.CharacterDescriptor
-import com.avail.descriptor.CharacterDescriptor.fromCodePoint
+import com.avail.descriptor.character.CharacterDescriptor
+import com.avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
 import com.avail.descriptor.numbers.IntegerDescriptor
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type

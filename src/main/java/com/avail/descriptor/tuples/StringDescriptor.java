@@ -47,7 +47,7 @@ import com.avail.utility.json.JSONWriter;
 
 import javax.annotation.Nullable;
 
-import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
+import static com.avail.descriptor.character.CharacterDescriptor.fromCodePoint;
 import static com.avail.descriptor.tuples.ByteStringDescriptor.mutableObjectFromNativeByteString;
 import static com.avail.descriptor.tuples.ObjectTupleDescriptor.generateObjectTupleFrom;
 import static com.avail.descriptor.tuples.TwoByteStringDescriptor.generateTwoByteString;

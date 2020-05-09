@@ -32,9 +32,8 @@
 package com.avail.descriptor.bundles
 
 import com.avail.compiler.ParsingOperation
-import com.avail.descriptor.A_Module
+import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.representation.NilDescriptor
-import com.avail.descriptor.representation.NilDescriptor.*
 import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.numbers.IntegerDescriptor
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan

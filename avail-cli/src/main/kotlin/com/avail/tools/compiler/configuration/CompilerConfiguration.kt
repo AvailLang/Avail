@@ -33,7 +33,7 @@
 package com.avail.tools.compiler.configuration
 
 import com.avail.builder.*
-import com.avail.descriptor.ModuleDescriptor
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.performance.StatisticReport
 import com.avail.stacks.StacksGenerator
 import com.avail.tools.compiler.Compiler

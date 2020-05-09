@@ -33,9 +33,9 @@
 package com.avail.serialization
 
 import com.avail.AvailRuntime
-import com.avail.descriptor.A_Module
+import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.ModuleDescriptor
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.StringDescriptor

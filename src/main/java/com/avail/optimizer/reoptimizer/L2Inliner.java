@@ -32,7 +32,7 @@
 
 package com.avail.optimizer.reoptimizer;
 
-import com.avail.descriptor.A_ChunkDependable;
+import com.avail.descriptor.methods.A_ChunkDependable;
 import com.avail.descriptor.functions.A_RawFunction;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;

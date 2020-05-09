@@ -36,8 +36,8 @@ import com.avail.AvailRuntime
 import com.avail.AvailRuntimeConfiguration.activeVersionSummary
 import com.avail.builder.*
 import com.avail.builder.ModuleNameResolver.Companion.availExtension
-import com.avail.descriptor.A_Module
-import com.avail.descriptor.ModuleDescriptor
+import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.environment.AvailWorkbench.StreamStyle.*
 import com.avail.environment.actions.*
 import com.avail.environment.nodes.*

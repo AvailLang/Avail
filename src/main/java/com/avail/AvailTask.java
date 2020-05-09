@@ -32,9 +32,9 @@
 
 package com.avail;
 
-import com.avail.descriptor.A_Fiber;
-import com.avail.descriptor.FiberDescriptor;
-import com.avail.descriptor.FiberDescriptor.ExecutionState;
+import com.avail.descriptor.fiber.A_Fiber;
+import com.avail.descriptor.fiber.FiberDescriptor;
+import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.representation.AvailObject;
 import com.avail.exceptions.PrimitiveThrownException;
 import com.avail.interpreter.execution.Interpreter;
@@ -42,9 +42,9 @@ import com.avail.utility.evaluation.Continuation0;
 
 import javax.annotation.Nullable;
 
-import static com.avail.descriptor.FiberDescriptor.ExecutionState.*;
-import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.BOUND;
-import static com.avail.descriptor.FiberDescriptor.SynchronizationFlag.SCHEDULED;
+import static com.avail.descriptor.fiber.FiberDescriptor.ExecutionState.*;
+import static com.avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag.BOUND;
+import static com.avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag.SCHEDULED;
 
 /**
  * An {@code AvailTask} extends {@link Runnable} with a priority. Instances are

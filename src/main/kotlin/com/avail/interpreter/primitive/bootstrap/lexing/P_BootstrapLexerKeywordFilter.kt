@@ -33,6 +33,7 @@
 package com.avail.interpreter.primitive.bootstrap.lexing
 
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
+import com.avail.descriptor.character.A_Character.Companion.codePoint
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.EnumerationTypeDescriptor.booleanType
@@ -59,7 +60,8 @@ object P_BootstrapLexerKeywordFilter
 		val character = interpreter.argument(0)
 
 		val codePoint = character.codePoint()
-		val isIdentifierStart = Character.isUnicodeIdentifierStart(codePoint) || codePoint == '_'.toInt()
+		val isIdentifierStart = Character.isUnicodeIdentifierStart(codePoint)
+			|| codePoint == '_'.toInt()
 		return interpreter.primitiveSuccess(
 			objectFromBoolean(isIdentifierStart))
 	}

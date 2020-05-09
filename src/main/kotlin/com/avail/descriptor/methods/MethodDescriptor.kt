@@ -34,7 +34,7 @@ package com.avail.descriptor.methods
 import com.avail.AvailRuntimeSupport
 import com.avail.annotations.AvailMethod
 import com.avail.annotations.ThreadSafe
-import com.avail.descriptor.A_Module
+import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.Descriptor
 import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil

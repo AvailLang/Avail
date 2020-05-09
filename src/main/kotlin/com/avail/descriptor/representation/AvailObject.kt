@@ -33,17 +33,20 @@ package com.avail.descriptor.representation
 
 import com.avail.compiler.scanning.LexingState
 import com.avail.descriptor.*
-import com.avail.descriptor.FiberDescriptor.*
+import com.avail.descriptor.fiber.FiberDescriptor.*
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_BundleTree
+import com.avail.descriptor.character.A_Character
+import com.avail.descriptor.fiber.A_Fiber
 import com.avail.descriptor.functions.*
 import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
 import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.maps.A_MapBin
 import com.avail.descriptor.maps.MapBinDescriptor
 import com.avail.descriptor.methods.*
+import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.AbstractNumberDescriptor
 import com.avail.descriptor.numbers.AbstractNumberDescriptor.Sign
@@ -604,8 +607,6 @@ class AvailObject private constructor(
 	override fun functionType() = descriptor().o_FunctionType(this)
 
 	override fun code() = descriptor().o_Code(this)
-
-	override fun codePoint() = descriptor().o_CodePoint(this)
 
 	/**
 	 * Compare a subrange of the receiver with a subrange of another

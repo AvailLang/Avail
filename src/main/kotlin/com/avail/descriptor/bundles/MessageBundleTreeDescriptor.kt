@@ -39,7 +39,7 @@ import com.avail.compiler.ParsingOperation.*
 import com.avail.compiler.ParsingOperation.Companion.decode
 import com.avail.compiler.splitter.MessageSplitter
 import com.avail.compiler.splitter.MessageSplitter.Companion.constantForIndex
-import com.avail.descriptor.A_Module
+import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.Descriptor
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.bundles.A_Bundle.Companion.grammaticalRestrictions

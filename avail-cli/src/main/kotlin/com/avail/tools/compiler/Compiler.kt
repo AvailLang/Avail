@@ -38,7 +38,7 @@ import com.avail.builder.ModuleNameResolver
 import com.avail.builder.RenamesFileParserException
 import com.avail.compiler.CompilerProgressReporter
 import com.avail.compiler.GlobalProgressReporter
-import com.avail.descriptor.ModuleDescriptor
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.io.ConsoleInputChannel
 import com.avail.io.ConsoleOutputChannel
 import com.avail.io.TextInterface

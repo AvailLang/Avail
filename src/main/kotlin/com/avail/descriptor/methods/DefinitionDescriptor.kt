@@ -33,9 +33,9 @@ package com.avail.descriptor.methods
 
 import com.avail.annotations.AvailMethod
 import com.avail.annotations.HideFieldJustForPrinting
-import com.avail.descriptor.A_Module
+import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.Descriptor
-import com.avail.descriptor.ModuleDescriptor
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.maps.MapBinDescriptor
 import com.avail.descriptor.methods.DefinitionDescriptor.ObjectSlots.DEFINITION_METHOD
 import com.avail.descriptor.methods.DefinitionDescriptor.ObjectSlots.MODULE

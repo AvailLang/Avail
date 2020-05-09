@@ -31,7 +31,7 @@
  */
 package com.avail.descriptor.functions
 
-import com.avail.descriptor.A_Module
+import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
 import com.avail.descriptor.methods.A_Definition

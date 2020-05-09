@@ -31,8 +31,8 @@
  */
 package com.avail.interpreter.primitive.general
 
-import com.avail.descriptor.FiberDescriptor
-import com.avail.descriptor.FiberDescriptor.ExecutionState
+import com.avail.descriptor.fiber.FiberDescriptor
+import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.ContinuationDescriptor.Companion.dumpStackThen
 import com.avail.descriptor.numbers.A_Number

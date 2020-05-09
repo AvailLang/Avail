@@ -32,7 +32,7 @@
 
 package com.avail.builder
 
-import com.avail.descriptor.ModuleDescriptor
+import com.avail.descriptor.module.ModuleDescriptor
 
 /**
  * A `ModuleName` represents the canonical name of an Avail

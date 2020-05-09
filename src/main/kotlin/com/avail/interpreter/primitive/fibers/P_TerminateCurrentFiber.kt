@@ -33,7 +33,7 @@
 package com.avail.interpreter.primitive.fibers
 
 import com.avail.compiler.FiberTerminationException
-import com.avail.descriptor.FiberDescriptor
+import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.BottomTypeDescriptor.bottom

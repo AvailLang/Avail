@@ -33,9 +33,9 @@ package com.avail.descriptor.functions
 
 import com.avail.annotations.AvailMethod
 import com.avail.annotations.ThreadSafe
-import com.avail.descriptor.A_Module
+import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.Descriptor
-import com.avail.descriptor.ModuleDescriptor
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrNil

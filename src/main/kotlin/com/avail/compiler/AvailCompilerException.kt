@@ -33,7 +33,7 @@
 package com.avail.compiler
 
 import com.avail.builder.ModuleName
-import com.avail.descriptor.ModuleDescriptor
+import com.avail.descriptor.module.ModuleDescriptor
 
 /**
  * An `AvailCompilerException` is thrown by the [Avail compiler][AvailCompiler]

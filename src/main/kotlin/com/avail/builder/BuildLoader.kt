@@ -43,10 +43,10 @@ import com.avail.compiler.ModuleHeader
 import com.avail.compiler.problems.Problem
 import com.avail.compiler.problems.ProblemHandler
 import com.avail.compiler.problems.ProblemType.EXECUTION
-import com.avail.descriptor.FiberDescriptor.loaderPriority
-import com.avail.descriptor.FiberDescriptor.newLoaderFiber
-import com.avail.descriptor.ModuleDescriptor
-import com.avail.descriptor.ModuleDescriptor.newModule
+import com.avail.descriptor.fiber.FiberDescriptor.loaderPriority
+import com.avail.descriptor.fiber.FiberDescriptor.newLoaderFiber
+import com.avail.descriptor.module.ModuleDescriptor
+import com.avail.descriptor.module.ModuleDescriptor.newModule
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.tuples.StringDescriptor.formatString
 import com.avail.descriptor.tuples.StringDescriptor.stringFrom

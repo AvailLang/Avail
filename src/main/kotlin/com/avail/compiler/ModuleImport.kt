@@ -34,7 +34,7 @@ package com.avail.compiler
 
 import com.avail.builder.ModuleName
 import com.avail.compiler.ModuleImport.Companion.fromSerializedTuple
-import com.avail.descriptor.A_Module
+import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean

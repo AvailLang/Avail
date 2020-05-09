@@ -32,6 +32,7 @@
 package com.avail.descriptor.representation
 
 import com.avail.descriptor.*
+import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.functions.A_Continuation
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder

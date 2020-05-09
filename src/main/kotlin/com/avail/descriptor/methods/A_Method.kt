@@ -31,9 +31,8 @@
  */
 package com.avail.descriptor.methods
 
-import com.avail.descriptor.A_ChunkDependable
-import com.avail.descriptor.A_Fiber
-import com.avail.descriptor.A_Module
+import com.avail.descriptor.fiber.A_Fiber
+import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan

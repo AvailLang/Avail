@@ -1,6 +1,6 @@
 /*
- * A_ChunkDependable.java
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * A_ChunkDependable.kt
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,34 +29,37 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.descriptor.methods
 
-package com.avail.descriptor;
-
-import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.interpreter.levelTwo.L2Chunk;
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.interpreter.levelTwo.L2Chunk
 
 /**
- * {@code A_ChunkDependable} is an interface that specifies behavior specific to
- * values on which {@linkplain L2Chunk chunks} can depend.
+ * [A_ChunkDependable] is an interface that specifies behavior specific to
+ * values on which [chunks][L2Chunk] can depend.  When those objects change in
+ * some way, dependent chunks must be invalidated.  The rate of change of such
+ * objects is expected to be very low compared to the number of times the
+ * dependent chunks are invoked.
  *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Todd L Smith <&lt;>todd@availlang.org&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public interface A_ChunkDependable
-extends A_BasicObject
-{
+interface A_ChunkDependable : A_BasicObject {
 	/**
-	 * Add the specified {@linkplain L2Chunk chunk} to the receiver's set of
-	 * dependent chunks.
+	 * Add the specified [chunk][L2Chunk] to the receiver's set of dependent
+	 * chunks.
 	 *
-	 * @param chunk The chunk to add.
+	 * @param chunk
+	 *   The chunk to add.
 	 */
-	void addDependentChunk (L2Chunk chunk);
+	fun addDependentChunk(chunk: L2Chunk)
 
 	/**
-	 * Remove the specified {@linkplain L2Chunk chunk} from the receiver's set
-	 * of dependent chunks.
+	 * Remove the specified [chunk][L2Chunk] from the receiver's set of
+	 * dependent chunks.
 	 *
-	 * @param chunk The chunk to remove.
+	 * @param chunk
+	 *   The chunk to remove.
 	 */
-	void removeDependentChunk (L2Chunk chunk);
+	fun removeDependentChunk(chunk: L2Chunk)
 }

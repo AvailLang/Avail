@@ -44,11 +44,11 @@ import com.avail.compiler.problems.ProblemType
 import com.avail.compiler.problems.ProblemType.EXECUTION
 import com.avail.compiler.problems.ProblemType.INTERNAL
 import com.avail.compiler.scanning.LexingState
-import com.avail.descriptor.A_Fiber
-import com.avail.descriptor.A_Module
-import com.avail.descriptor.FiberDescriptor
-import com.avail.descriptor.FiberDescriptor.newLoaderFiber
-import com.avail.descriptor.ModuleDescriptor
+import com.avail.descriptor.fiber.A_Fiber
+import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.fiber.FiberDescriptor
+import com.avail.descriptor.fiber.FiberDescriptor.newLoaderFiber
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
 import com.avail.descriptor.functions.A_Function

@@ -31,10 +31,10 @@
  */
 package com.avail.descriptor.variables
 
-import com.avail.descriptor.A_ChunkDependable
-import com.avail.descriptor.A_Module
+import com.avail.descriptor.methods.A_ChunkDependable
+import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.FiberDescriptor
+import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.AtomDescriptor

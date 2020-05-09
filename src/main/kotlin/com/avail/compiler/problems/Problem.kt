@@ -33,7 +33,7 @@
 package com.avail.compiler.problems
 
 import com.avail.builder.ModuleName
-import com.avail.descriptor.CharacterDescriptor
+import com.avail.descriptor.character.CharacterDescriptor
 import java.nio.charset.Charset
 import java.text.MessageFormat
 

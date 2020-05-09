@@ -32,11 +32,11 @@
 package com.avail.interpreter.primitive.fibers
 
 import com.avail.AvailRuntime.currentRuntime
-import com.avail.descriptor.FiberDescriptor
-import com.avail.descriptor.FiberDescriptor.ExecutionState
-import com.avail.descriptor.FiberDescriptor.ExecutionState.*
-import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.TERMINATION_REQUESTED
-import com.avail.descriptor.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE
+import com.avail.descriptor.fiber.FiberDescriptor
+import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState
+import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState.*
+import com.avail.descriptor.fiber.FiberDescriptor.InterruptRequestFlag.TERMINATION_REQUESTED
+import com.avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type

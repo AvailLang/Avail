@@ -32,10 +32,10 @@
 package com.avail.descriptor.atoms
 
 import com.avail.annotations.AvailMethod
-import com.avail.descriptor.A_Module
+import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.IndirectionDescriptor
-import com.avail.descriptor.ModuleDescriptor
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.AtomWithPropertiesDescriptor.ObjectSlots.*
 import com.avail.descriptor.pojos.RawPojoDescriptor.identityPojo

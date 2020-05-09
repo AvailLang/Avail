@@ -31,7 +31,8 @@
  */
 package com.avail.interpreter.primitive.characters
 
-import com.avail.descriptor.CharacterDescriptor
+import com.avail.descriptor.character.A_Character.Companion.codePoint
+import com.avail.descriptor.character.CharacterDescriptor
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
@@ -44,7 +45,7 @@ import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive:** Extract an integer representing the Java enumeration value
- * associated with the given [ character][CharacterDescriptor].
+ * associated with the given [character][CharacterDescriptor].
  *
  * @see Character.getType
  */

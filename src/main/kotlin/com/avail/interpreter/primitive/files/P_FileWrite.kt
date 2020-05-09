@@ -32,7 +32,7 @@
 package com.avail.interpreter.primitive.files
 
 import com.avail.AvailRuntime.currentRuntime
-import com.avail.descriptor.FiberDescriptor.newFiber
+import com.avail.descriptor.fiber.FiberDescriptor.newFiber
 import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import com.avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import com.avail.descriptor.atoms.AtomDescriptor

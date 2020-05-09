@@ -33,7 +33,7 @@
 package com.avail.builder
 
 import com.avail.annotations.ThreadSafe
-import com.avail.descriptor.ModuleDescriptor
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.persistence.Repository
 import com.avail.utility.LRUCache
 import java.io.File

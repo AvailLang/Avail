@@ -34,6 +34,7 @@ package com.avail.descriptor.tuples;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
+import com.avail.descriptor.character.A_Character;
 import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
@@ -410,7 +411,7 @@ extends TupleDescriptor
 			else if (element.isCharacter())
 			{
 				// Make it a string.
-				final int codePoint = element.codePoint();
+				final int codePoint = A_Character.Companion.codePoint(element);
 				if (codePoint <= 255)
 				{
 					result = generateByteString(size, ignored -> codePoint);

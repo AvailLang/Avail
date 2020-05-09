@@ -34,7 +34,7 @@ package com.avail.descriptor.tuples;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.annotations.HideFieldInDebugger;
-import com.avail.descriptor.A_Character;
+import com.avail.descriptor.character.A_Character;
 import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.representation.A_BasicObject;
@@ -46,8 +46,8 @@ import java.util.function.IntUnaryOperator;
 
 import static com.avail.descriptor.representation.AvailObject.multiplier;
 import static com.avail.descriptor.representation.AvailObject.newLike;
-import static com.avail.descriptor.CharacterDescriptor.computeHashOfCharacterWithCodePoint;
-import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
+import static com.avail.descriptor.character.CharacterDescriptor.computeHashOfCharacterWithCodePoint;
+import static com.avail.descriptor.character.CharacterDescriptor.fromCodePoint;
 import static com.avail.descriptor.representation.Mutability.*;
 import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple;
 import static com.avail.descriptor.tuples.TreeTupleDescriptor.concatenateAtLeastOneTree;
@@ -130,7 +130,7 @@ extends StringDescriptor
 			final A_Tuple singleton = tuple(newElement);
 			return object.concatenateWith(singleton, canDestroy);
 		}
-		final int intValue = ((A_Character) newElement).codePoint();
+		final int intValue = A_Character.Companion.codePoint((A_Character) newElement);
 		if ((intValue & ~0xFFFF) != 0)
 		{
 			// Transition to a tree tuple.
@@ -314,7 +314,7 @@ extends StringDescriptor
 		assert index >= 1 && index <= object.tupleSize();
 		if (newValueObject.isCharacter())
 		{
-			final int codePoint = ((A_Character)newValueObject).codePoint();
+			final int codePoint = A_Character.Companion.codePoint((A_Character)newValueObject);
 			if ((codePoint & 0xFFFF) == codePoint)
 			{
 				if (canDestroy && isMutable())

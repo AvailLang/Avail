@@ -32,8 +32,8 @@
 
 package com.avail.interpreter.primitive.variables
 
-import com.avail.descriptor.FiberDescriptor
-import com.avail.descriptor.FiberDescriptor.TraceFlag
+import com.avail.descriptor.fiber.FiberDescriptor
+import com.avail.descriptor.fiber.FiberDescriptor.TraceFlag
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.SetDescriptor.set
 import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple

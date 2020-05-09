@@ -35,9 +35,9 @@ import com.avail.AvailRuntime
 import com.avail.annotations.AvailMethod
 import com.avail.annotations.EnumField
 import com.avail.annotations.HideFieldInDebugger
-import com.avail.descriptor.A_Fiber
+import com.avail.descriptor.fiber.A_Fiber
 import com.avail.descriptor.Descriptor
-import com.avail.descriptor.FiberDescriptor
+import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder

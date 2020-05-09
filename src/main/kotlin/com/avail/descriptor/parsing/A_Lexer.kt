@@ -31,7 +31,7 @@
  */
 package com.avail.descriptor.parsing
 
-import com.avail.descriptor.A_Module
+import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.representation.A_BasicObject

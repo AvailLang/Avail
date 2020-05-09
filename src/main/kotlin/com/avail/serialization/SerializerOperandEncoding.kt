@@ -32,7 +32,8 @@
 
 package com.avail.serialization
 
-import com.avail.descriptor.CharacterDescriptor.fromCodePoint
+import com.avail.descriptor.character.A_Character.Companion.codePoint
+import com.avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
 import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.numbers.IntegerDescriptor
@@ -307,8 +308,8 @@ internal enum class SerializerOperandEncoding
 	},
 
 	/**
-	 * This is a [tuple][TupleDescriptor] of characters whose [code
-	 * points][AvailObject.codePoint] are in the range 0..255. Write a
+	 * This is a [tuple][TupleDescriptor] of characters whose
+	 * [code&#32;points][codePoint] are in the range 0..255. Write a
 	 * compressed size and the sequence of raw bytes.
 	 */
 	BYTE_CHARACTER_TUPLE

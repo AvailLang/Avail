@@ -33,8 +33,8 @@
 package com.avail.server.messages
 
 import com.avail.builder.ModuleName
-import com.avail.descriptor.A_Module
-import com.avail.descriptor.ModuleDescriptor
+import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.server.io.AvailServerChannel
 
 /**
