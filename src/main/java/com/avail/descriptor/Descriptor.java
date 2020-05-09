@@ -105,6 +105,8 @@ import com.avail.utility.json.JSONWriter;
 import com.avail.utility.visitor.AvailSubobjectVisitor;
 import com.avail.utility.visitor.BeImmutableSubobjectVisitor;
 import com.avail.utility.visitor.BeSharedSubobjectVisitor;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function0;
 
 import javax.annotation.Nullable;
 import java.math.BigInteger;
@@ -1183,7 +1185,7 @@ extends AbstractDescriptor
 	public void o_RemoveFrom (
 		final AvailObject object,
 		final AvailLoader loader,
-		final Continuation0 afterRemoval)
+		final Function0<Unit> afterRemoval)
 	{
 		throw unsupportedOperationException();
 	}

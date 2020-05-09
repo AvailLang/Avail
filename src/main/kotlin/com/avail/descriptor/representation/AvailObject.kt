@@ -39,7 +39,9 @@ import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_BundleTree
 import com.avail.descriptor.character.A_Character
+import com.avail.descriptor.character.CharacterDescriptor
 import com.avail.descriptor.fiber.A_Fiber
+import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.functions.*
 import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
 import com.avail.descriptor.maps.A_Map
@@ -47,6 +49,7 @@ import com.avail.descriptor.maps.A_MapBin
 import com.avail.descriptor.maps.MapBinDescriptor
 import com.avail.descriptor.methods.*
 import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.AbstractNumberDescriptor
 import com.avail.descriptor.numbers.AbstractNumberDescriptor.Sign
@@ -1923,7 +1926,7 @@ class AvailObject private constructor(
 	override fun removeDependentChunk(chunk: L2Chunk) =
 		descriptor().o_RemoveDependentChunk(this, chunk)
 
-	override fun removeFrom(loader: AvailLoader, afterRemoval: Continuation0) =
+	override fun removeFrom(loader: AvailLoader, afterRemoval: () -> Unit) =
 		descriptor().o_RemoveFrom(this, loader, afterRemoval)
 
 	override fun removeDefinition(definition: A_Definition) =

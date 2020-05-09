@@ -32,7 +32,7 @@
 
 package com.avail.interpreter.primitive.phrases
 
-import com.avail.descriptor.module.ModuleDescriptor.currentModule
+import com.avail.descriptor.module.ModuleDescriptor.Companion.currentModule
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction

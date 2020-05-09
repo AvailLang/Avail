@@ -88,6 +88,7 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.performance.Statistic;
 import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.OnceSupplier;
+import kotlin.jvm.functions.Function0;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.TypeVariable;
@@ -1303,7 +1304,7 @@ public final class AvailRuntime
 	/**
 	 * Remove the specified {@linkplain ModuleDescriptor module} from this
 	 * runtime.  The module's code should already have been removed via {@link
-	 * A_Module#removeFrom(AvailLoader, Continuation0)}.
+	 * A_Module#removeFrom(AvailLoader, Function0)}.
 	 *
 	 * @param module The module to remove.
 	 */

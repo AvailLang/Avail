@@ -46,7 +46,7 @@ import com.avail.compiler.problems.ProblemType.EXECUTION
 import com.avail.descriptor.fiber.FiberDescriptor.loaderPriority
 import com.avail.descriptor.fiber.FiberDescriptor.newLoaderFiber
 import com.avail.descriptor.module.ModuleDescriptor
-import com.avail.descriptor.module.ModuleDescriptor.newModule
+import com.avail.descriptor.module.ModuleDescriptor.Companion.newModule
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.tuples.StringDescriptor.formatString
 import com.avail.descriptor.tuples.StringDescriptor.stringFrom

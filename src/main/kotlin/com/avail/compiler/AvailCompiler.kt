@@ -55,7 +55,7 @@ import com.avail.compiler.splitter.MessageSplitter.Companion.constantForIndex
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
 import com.avail.descriptor.fiber.FiberDescriptor.GeneralFlag
 import com.avail.descriptor.fiber.FiberDescriptor.newLoaderFiber
-import com.avail.descriptor.module.ModuleDescriptor.newModule
+import com.avail.descriptor.module.ModuleDescriptor.Companion.newModule
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
@@ -83,6 +83,7 @@ import com.avail.descriptor.bundles.A_BundleTree.Companion.lazyPrefilterMap
 import com.avail.descriptor.bundles.A_BundleTree.Companion.lazyTypeFilterTreePojo
 import com.avail.descriptor.bundles.MessageBundleDescriptor
 import com.avail.descriptor.bundles.MessageBundleTreeDescriptor
+import com.avail.descriptor.fiber.A_Fiber
 import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.CompiledCodeDescriptor.Companion.newPrimitiveRawFunction
@@ -96,6 +97,7 @@ import com.avail.descriptor.methods.*
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.*
 import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.parsingInstructions
 import com.avail.descriptor.parsing.A_Lexer
 import com.avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.nameHighlightingPc
@@ -145,6 +147,7 @@ import com.avail.descriptor.phrases.SendPhraseDescriptor.Companion.newSendNode
 import com.avail.descriptor.phrases.VariableUsePhraseDescriptor.Companion.newUse
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.sets.SetDescriptor.emptySet
@@ -1606,7 +1609,7 @@ class AvailCompiler(
 					if (!recognized && consumedTokens.isNotEmpty())
 					{
 						val strings = tokens.mapTo(
-							mutableSetOf<A_String>(),
+							mutableSetOf(),
 							when {
 								caseInsensitive -> A_Token::lowerCaseString
 								else -> A_Token::string
