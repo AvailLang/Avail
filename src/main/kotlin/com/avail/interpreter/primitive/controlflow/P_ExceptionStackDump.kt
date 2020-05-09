@@ -50,7 +50,7 @@ import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import com.avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND
 import com.avail.exceptions.MapException
-import com.avail.interpreter.Interpreter
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanSuspend
 import com.avail.interpreter.Primitive.Flag.Unknown
@@ -81,13 +81,12 @@ object P_ExceptionStackDump : Primitive(1, CanSuspend, Unknown)
 			}
 
 		val textInterface = interpreter.fiber().textInterface()
-		return interpreter.suspendAndDo { toSucceed, _ ->
+		return interpreter.suspendThen {
 			dumpStackThen(runtime, textInterface, continuation)
-			{ stack ->
-				val frames = stack.indices.reversed().map {
+			{	stack ->
+				succeed(tupleFromList(stack.indices.reversed().map {
 					stringFrom(stack[it])
-				}
-				toSucceed.value(tupleFromList(frames))
+				}))
 			}
 		}
 	}

@@ -46,7 +46,7 @@ import com.avail.descriptor.types.TupleTypeDescriptor.stringType
 import com.avail.descriptor.types.TypeDescriptor.Types.*
 import com.avail.exceptions.AvailRuntimeException
 import com.avail.exceptions.MalformedMessageException
-import com.avail.interpreter.Interpreter
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 import com.avail.interpreter.levelOne.L1InstructionWriter

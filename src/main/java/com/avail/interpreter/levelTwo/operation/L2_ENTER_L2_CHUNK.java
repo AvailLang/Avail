@@ -31,7 +31,7 @@
  */
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.execution.Interpreter;
 import com.avail.interpreter.JavaLibrary;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
@@ -54,8 +54,8 @@ import java.util.function.Consumer;
 import static com.avail.descriptor.representation.AvailObject.registerDumpMethod;
 import static com.avail.descriptor.functions.ContinuationRegisterDumpDescriptor.extractLongAtMethod;
 import static com.avail.descriptor.functions.ContinuationRegisterDumpDescriptor.extractObjectAtMethod;
-import static com.avail.interpreter.Interpreter.getReifiedContinuationMethod;
-import static com.avail.interpreter.Interpreter.popContinuationMethod;
+import static com.avail.interpreter.execution.Interpreter.getReifiedContinuationMethod;
+import static com.avail.interpreter.execution.Interpreter.popContinuationMethod;
 import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TRANSIENT;
 import static com.avail.interpreter.levelTwo.L2OperandType.COMMENT;
 import static com.avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE;

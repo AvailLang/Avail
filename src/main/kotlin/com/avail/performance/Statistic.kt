@@ -33,7 +33,7 @@
 package com.avail.performance
 
 import com.avail.AvailRuntimeConfiguration.maxInterpreters
-import com.avail.interpreter.Interpreter
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * An immutable collection of related statistics.

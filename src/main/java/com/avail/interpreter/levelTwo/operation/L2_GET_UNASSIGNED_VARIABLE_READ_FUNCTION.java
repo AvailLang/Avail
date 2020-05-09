@@ -36,7 +36,7 @@ import com.avail.AvailRuntime;
 import com.avail.AvailRuntime.HookType;
 import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.functions.A_Function;
-import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.execution.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;

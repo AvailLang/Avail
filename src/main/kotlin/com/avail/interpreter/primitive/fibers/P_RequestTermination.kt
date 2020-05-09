@@ -43,8 +43,8 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FiberTypeDescriptor.mostGeneralFiberType
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Interpreter.resumeFromSuccessfulPrimitive
+import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.execution.Interpreter.Companion.resumeFromSuccessfulPrimitive
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 import com.avail.utility.evaluation.Continuation0

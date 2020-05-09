@@ -47,7 +47,7 @@ import com.avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
 import com.avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND
 import com.avail.exceptions.AvailErrorCode.E_SPECIAL_ATOM
 import com.avail.exceptions.AvailException
-import com.avail.interpreter.Interpreter
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
 

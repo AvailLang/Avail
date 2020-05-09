@@ -173,12 +173,12 @@ import com.avail.exceptions.AvailEmergencyExitException
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_METHOD_DEFINITION
 import com.avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION
-import com.avail.interpreter.AvailLoader
-import com.avail.interpreter.AvailLoader.Phase.COMPILING
-import com.avail.interpreter.AvailLoader.Phase.EXECUTING_FOR_COMPILE
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Interpreter.runOutermostFunction
-import com.avail.interpreter.Interpreter.stringifyThen
+import com.avail.interpreter.execution.AvailLoader
+import com.avail.interpreter.execution.AvailLoader.Phase.COMPILING
+import com.avail.interpreter.execution.AvailLoader.Phase.EXECUTING_FOR_COMPILE
+import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
+import com.avail.interpreter.execution.Interpreter.Companion.stringifyThen
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Companion.primitiveByName
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
@@ -1606,13 +1606,9 @@ class AvailCompiler(
 					{
 						val strings = tokens.mapTo(
 							mutableSetOf<A_String>(),
-							if (caseInsensitive)
-							{
-								A_Token::lowerCaseString
-							}
-							else
-							{
-								A_Token::string
+							when {
+								caseInsensitive -> A_Token::lowerCaseString
+								else -> A_Token::string
 							})
 						expectedKeywordsOf(
 							start, tokenMap, caseInsensitive, strings)
@@ -4348,20 +4344,20 @@ class AvailCompiler(
 			}
 
 			val sourceBuilder = StringBuilder(4096)
-			val filePosition = MutableLong(0L)
+			var filePosition = 0L
 			// Kick off the asynchronous read.
-			SimpleCompletionHandler<Int, Any?>(
-				{ bytesRead, _, handler ->
+			SimpleCompletionHandler<Int>(
+				{
 					try
 					{
 						var moreInput = true
-						if (bytesRead == -1)
+						if (value == -1)
 						{
 							moreInput = false
 						}
 						else
 						{
-							filePosition.value += bytesRead.toLong()
+							filePosition += value.toLong()
 						}
 						input.flip()
 						val result = decoder.decode(
@@ -4390,8 +4386,9 @@ class AvailCompiler(
 						if (moreInput)
 						{
 							output.clear()
-							handler.guardedDo(
-								file::read, input, filePosition.value, null)
+							handler.guardedDo {
+								file.read(input, filePosition, dummy, handler)
+							}
 						}
 						// Otherwise, close the file channel and queue the
 						// original continuation.
@@ -4427,7 +4424,7 @@ class AvailCompiler(
 					}
 				},
 				// failure
-				{ e, _, _ ->
+				{
 					val problem = object : Problem(
 						resolvedName,
 						1,
@@ -4435,8 +4432,8 @@ class AvailCompiler(
 						EXTERNAL,
 						"Unable to read source module \"{0}\": {1}\n{2}",
 						resolvedName,
-						e.localizedMessage,
-						trace(e))
+						throwable.localizedMessage,
+						trace(throwable))
 					{
 						override fun abortCompilation()
 						{
@@ -4445,7 +4442,7 @@ class AvailCompiler(
 					}
 					problemHandler.handle(problem)
 				}
-			).guardedDo(file::read, input, 0L, null)
+			).guardedDo { file.read(input, 0L, dummy, handler) }
 		}
 
 		/**

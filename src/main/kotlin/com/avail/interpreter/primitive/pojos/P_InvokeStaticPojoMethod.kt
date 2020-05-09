@@ -43,7 +43,7 @@ import com.avail.descriptor.types.PojoTypeDescriptor.pojoTypeForClass
 import com.avail.descriptor.types.PojoTypeDescriptor.unmarshal
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.MarshalingException
-import com.avail.interpreter.Interpreter
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.Private
 import com.avail.interpreter.primitive.pojos.PrimitiveHelper.marshalValues

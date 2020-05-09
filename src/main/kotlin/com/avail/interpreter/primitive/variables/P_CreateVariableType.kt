@@ -38,7 +38,7 @@ import com.avail.descriptor.types.InstanceMetaDescriptor.anyMeta
 import com.avail.descriptor.types.VariableTypeDescriptor
 import com.avail.descriptor.types.VariableTypeDescriptor.variableMeta
 import com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor
-import com.avail.interpreter.Interpreter
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 

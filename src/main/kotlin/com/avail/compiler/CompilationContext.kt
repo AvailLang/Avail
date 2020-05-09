@@ -68,8 +68,8 @@ import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
 import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.exceptions.AvailAssertionFailedException
 import com.avail.exceptions.AvailEmergencyExitException
-import com.avail.interpreter.AvailLoader
-import com.avail.interpreter.Interpreter
+import com.avail.interpreter.execution.AvailLoader
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelOne.L1InstructionWriter
 import com.avail.interpreter.levelOne.L1Operation
 import com.avail.io.TextInterface
@@ -563,7 +563,7 @@ class CompilationContext(
 			adjustedSuccess = { successValue ->
 				val after = AvailRuntimeSupport.captureNanos()
 				Interpreter.current().recordTopStatementEvaluation(
-					(after - before).toDouble(), module, lexingState.lineNumber)
+					(after - before).toDouble(), module)
 				loader.stopRecordingEffects()
 				serializeAfterRunning(function)
 				onSuccess(successValue)

@@ -40,7 +40,7 @@ import com.avail.descriptor.sets.SetDescriptor.set
 import com.avail.descriptor.tokens.CommentTokenDescriptor.Companion.newCommentToken
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.interpreter.Interpreter
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 

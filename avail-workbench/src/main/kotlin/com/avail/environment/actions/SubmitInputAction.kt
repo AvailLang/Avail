@@ -34,7 +34,7 @@ package com.avail.environment.actions
 
 import com.avail.builder.AvailBuilder.CompiledCommand
 import com.avail.environment.AvailWorkbench
-import com.avail.interpreter.Interpreter
+import com.avail.interpreter.execution.Interpreter
 import com.avail.io.ConsoleInputChannel
 import com.avail.io.ConsoleOutputChannel
 import com.avail.io.TextInterface

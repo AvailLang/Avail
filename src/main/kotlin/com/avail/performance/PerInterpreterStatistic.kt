@@ -33,7 +33,7 @@
 package com.avail.performance
 
 import com.avail.AvailRuntimeConfiguration
-import com.avail.interpreter.Interpreter
+import com.avail.interpreter.execution.Interpreter
 import java.lang.String.format
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.max

@@ -57,7 +57,7 @@ import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailException
 import com.avail.exceptions.VariableGetException
 import com.avail.exceptions.VariableSetException
-import com.avail.interpreter.Interpreter
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.interpreter.primitive.variables.P_SetValue
 import com.avail.optimizer.jvm.CheckedMethod

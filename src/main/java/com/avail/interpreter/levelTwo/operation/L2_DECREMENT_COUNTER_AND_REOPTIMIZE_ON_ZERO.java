@@ -34,7 +34,7 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.functions.A_Function;
 import com.avail.descriptor.functions.A_RawFunction;
-import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.execution.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
@@ -127,7 +127,7 @@ extends L2Operation
 			}
 			final L2Chunk chunk = stripNull(code.startingChunk());
 			interpreter.chunk = chunk;
-			interpreter.offset = chunk.offsetAfterInitialTryPrimitive();
+			interpreter.setOffset(chunk.offsetAfterInitialTryPrimitive());
 			chunkChanged.value = true;
 		});
 		return chunkChanged.value;

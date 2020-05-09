@@ -42,7 +42,7 @@ import com.avail.descriptor.types.IntegerRangeTypeDescriptor.integers
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.types.LiteralTokenTypeDescriptor.literalTokenType
 import com.avail.descriptor.types.TypeDescriptor.Types.DOUBLE
-import com.avail.interpreter.Interpreter
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 

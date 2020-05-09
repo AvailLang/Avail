@@ -44,7 +44,7 @@ import com.avail.interpreter.levelOne.L1InstructionWriter
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-internal abstract class LoadingEffect
+abstract class LoadingEffect
 {
 	/**
 	 * Write to the [L1InstructionWriter] a statement capable of

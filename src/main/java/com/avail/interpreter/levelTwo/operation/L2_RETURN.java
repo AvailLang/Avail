@@ -32,7 +32,7 @@
 package com.avail.interpreter.levelTwo.operation;
 
 import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.execution.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
@@ -46,7 +46,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import static com.avail.interpreter.Interpreter.*;
+import static com.avail.interpreter.execution.Interpreter.*;
 import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
 import static org.objectweb.asm.Opcodes.*;
 

@@ -34,7 +34,7 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.functions.A_Continuation;
 import com.avail.descriptor.functions.A_Function;
-import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.execution.Interpreter;
 import com.avail.interpreter.levelTwo.L1InstructionStepper;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
@@ -45,7 +45,7 @@ import org.objectweb.asm.MethodVisitor;
 
 import java.util.logging.Level;
 
-import static com.avail.interpreter.Interpreter.debugL1;
+import static com.avail.interpreter.execution.Interpreter.debugL1;
 import static com.avail.optimizer.jvm.CheckedMethod.staticMethod;
 import static com.avail.utility.Nulls.stripNull;
 
@@ -109,7 +109,7 @@ extends L2Operation
 	{
 		if (debugL1)
 		{
-			Interpreter.log(
+			Interpreter.Companion.log(
 				Interpreter.loggerDebugL1,
 				Level.FINER,
 				"{0}Reenter L1 from call",

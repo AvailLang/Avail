@@ -567,31 +567,32 @@ class MethodDescriptor private constructor(
 		self.setSlot(OWNING_BUNDLES, bundles.makeShared())
 	}
 
+	/**
+	 * Method manipulation takes place while all fibers are L1-precise and
+	 * suspended.  Use a global lock at the outermost calls to side-step
+	 * deadlocks.  Because no fiber is running, we don't have to protect
+	 * subsystems like the L2Generator from these changes.
+	 *
+	 * Also create definition parsing plans for each bundle.  HOWEVER, note that
+	 * we don't update the current module's message bundle tree here, and leave
+	 * that to the caller to deal with.  Other modules' parsing should be
+	 * unaffected, although runtime execution may change.
+	 */
 	@AvailMethod
 	@Throws(SignatureException::class)
 	override fun o_MethodAddDefinition(
 		self: AvailObject,
 		definition: A_Definition
-	) {
-		// Method manipulation takes place while all fibers are L1-precise and
-		// suspended.  Use a global lock at the outermost calls to side-step
-		// deadlocks.  Because no fiber is running, we don't have to protect
-		// subsystems like the L2Generator from these changes.
-		//
-		// Also create definition parsing plans for each bundle.  HOWEVER, note
-		// that we don't update the current module's message bundle tree here,
-		// and leave that to the caller to deal with.  Other modules' parsing
-		// should be unaffected, although runtime execution may change.
-		L2Chunk.invalidationLock.withLock {
-			val bodySignature = definition.bodySignature()
-			val paramTypes = bodySignature.argsTupleType()
-			if (definition.isMacroDefinition()) {
+	) = L2Chunk.invalidationLock.withLock {
+		when {
+			definition.isMacroDefinition() -> {
 				// Install the macro.
 				val oldTuple: A_Tuple = self.slot(MACRO_DEFINITIONS_TUPLE)
 				val newTuple = oldTuple.appendCanDestroy(definition, true)
 				self.setSlot(MACRO_DEFINITIONS_TUPLE, newTuple.makeShared())
-			} else {
-				val oldTuple: A_Tuple = self.slot(DEFINITIONS_TUPLE)
+			}
+			else -> {
+				val paramTypes = definition.bodySignature().argsTupleType()
 				val seals: A_Tuple = self.slot(SEALED_ARGUMENTS_TYPES_TUPLE)
 				seals.forEach { seal ->
 					val sealType = tupleTypeForSizesTypesDefaultType(
@@ -600,14 +601,15 @@ class MethodDescriptor private constructor(
 						throw SignatureException(E_METHOD_IS_SEALED)
 					}
 				}
+				val oldTuple: A_Tuple = self.slot(DEFINITIONS_TUPLE)
 				val newTuple = oldTuple.appendCanDestroy(definition, true)
 				self.setSlot(DEFINITIONS_TUPLE, newTuple.makeShared())
 			}
-			self.slot(OWNING_BUNDLES).forEach {
-				it.addDefinitionParsingPlan(newParsingPlan(it, definition))
-			}
-			membershipChanged(self)
 		}
+		self.slot(OWNING_BUNDLES).forEach {
+			it.addDefinitionParsingPlan(newParsingPlan(it, definition))
+		}
+		membershipChanged(self)
 	}
 
 	override fun o_MethodName(self: AvailObject): A_String =

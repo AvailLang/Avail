@@ -48,7 +48,7 @@ import com.avail.descriptor.methods.A_Method;
 import com.avail.descriptor.numbers.A_Number;
 import com.avail.descriptor.tuples.A_String;
 import com.avail.descriptor.tuples.A_Tuple;
-import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.execution.Interpreter;
 import com.avail.test.AvailRuntimeTestHelper.TestErrorChannel;
 import com.avail.utility.Nulls;
 import org.junit.jupiter.api.AfterAll;

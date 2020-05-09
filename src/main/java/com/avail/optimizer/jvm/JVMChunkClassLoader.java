@@ -32,7 +32,7 @@
 
 package com.avail.optimizer.jvm;
 
-import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.execution.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 
 import javax.annotation.Nullable;
@@ -115,7 +115,7 @@ extends ClassLoader
 			|InvocationTargetException
 			|ClassCastException e)
 		{
-			Interpreter.log(
+			Interpreter.Companion.log(
 				Interpreter.loggerDebugJVM,
 				Level.SEVERE,
 				"Failed to load JVMChunk ({0}) from L2Chunk ({1}): {2}",

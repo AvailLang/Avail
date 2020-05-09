@@ -49,12 +49,11 @@ import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunctio
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.A_Phrase.Companion.apparentSendName
-import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.tuples.StringDescriptor.stringFrom
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
-import com.avail.interpreter.Interpreter.debugWorkUnits
-import com.avail.interpreter.Interpreter.runOutermostFunction
+import com.avail.interpreter.execution.Interpreter.Companion.debugWorkUnits
+import com.avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import com.avail.io.SimpleCompletionHandler
 import com.avail.io.TextInterface
 import com.avail.persistence.Repository
@@ -924,15 +923,15 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 					@Suppress("RedundantLambdaArrow")
 					override fun handleInternal(
 						problem: Problem,
-						decider: (Boolean)->Unit)
-					{
-						SimpleCompletionHandler<Int, Void?>(
+						decider: (Boolean)->Unit
+					) {
+						SimpleCompletionHandler<Int>(
 							{ handleGeneric(problem, decider) },
-							{ _ -> handleGeneric(problem, decider) }
-						).guardedDo(
-							textInterface.errorChannel::write,
-							problem.toString(),
-							null)
+							{ handleGeneric(problem, decider) }
+						).guardedDo {
+							textInterface.errorChannel.write(
+								problem.toString(), dummy, handler)
+						}
 					}
 
 					@Suppress("RedundantLambdaArrow")
@@ -941,13 +940,13 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 						decider: (Boolean)->Unit)
 					{
 						// Same as handleInternal (2015.04.24)
-						SimpleCompletionHandler<Int, Void?>(
+						SimpleCompletionHandler<Int>(
 							{ handleGeneric(problem, decider) },
-							{ _ -> handleGeneric(problem, decider) }
-						).guardedDo(
-							textInterface.errorChannel::write,
-							problem.toString(),
-							null)
+							{ handleGeneric(problem, decider) }
+						).guardedDo {
+							textInterface.errorChannel.write(
+								problem.toString(), dummy, handler)
+						}
 					}
 				})
 			compiler.parseCommand(
@@ -1134,14 +1133,12 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 		// Otherwise, report the possible commands for disambiguation.
 		onAmbiguity(commands) { choice ->
 			when (choice) {
-				null -> {
-					SimpleCompletionHandler<Int, A_BasicObject?>(
-						{ _ -> onFailure() },
-						{ onFailure() /* Ignore I/O error */ }
-					).guardedDo(
-						textInterface.errorChannel::write,
-						"Action was cancelled by user",
-						nil)
+				null -> SimpleCompletionHandler<Int>(
+					{ onFailure() },
+					{ onFailure() }  /* Ignore I/O error */
+				).guardedDo {
+					textInterface.errorChannel.write(
+						"Action was cancelled by user", dummy, handler)
 				}
 				else -> unambiguous(choice)
 			}

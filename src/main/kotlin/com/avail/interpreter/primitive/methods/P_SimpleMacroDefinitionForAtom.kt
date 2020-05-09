@@ -54,7 +54,7 @@ import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.*
 import com.avail.exceptions.AvailException
 import com.avail.exceptions.MalformedMessageException
-import com.avail.interpreter.Interpreter
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanSuspend
 import com.avail.interpreter.Primitive.Flag.Unknown
@@ -139,8 +139,7 @@ object P_SimpleMacroDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 				E_MACRO_MUST_RETURN_A_PARSE_NODE)
 		}
 
-		return interpreter.suspendAndDoInLevelOneSafe {
-			toSucceed, toFail ->
+		return interpreter.suspendInLevelOneSafeThen {
 			try
 			{
 				loader.addMacroBody(atom, function, prefixFunctions)
@@ -152,13 +151,13 @@ object P_SimpleMacroDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 				}
 				function.code().setMethodName(
 					stringFrom("Macro body of $atomName"))
-				toSucceed.value(nil)
+				succeed(nil)
 			}
 			catch (e: AvailException)
 			{
 				// MalformedMessageException
 				// SignatureException
-				toFail.value(e.errorCode)
+				fail(e.errorCode)
 			}
 		}
 	}

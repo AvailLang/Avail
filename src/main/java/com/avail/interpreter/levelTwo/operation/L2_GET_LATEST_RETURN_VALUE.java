@@ -32,7 +32,7 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.execution.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.L2Operation;
@@ -45,7 +45,7 @@ import org.objectweb.asm.MethodVisitor;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import static com.avail.interpreter.Interpreter.getLatestResultMethod;
+import static com.avail.interpreter.execution.Interpreter.getLatestResultMethod;
 import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
 
 /**

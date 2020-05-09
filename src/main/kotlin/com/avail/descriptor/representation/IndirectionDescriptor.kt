@@ -158,8 +158,8 @@ import com.avail.descriptor.variables.A_Variable
 import com.avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
 import com.avail.dispatch.LookupTree
 import com.avail.exceptions.*
-import com.avail.interpreter.AvailLoader
-import com.avail.interpreter.AvailLoader.LexicalScanner
+import com.avail.interpreter.execution.AvailLoader
+import com.avail.interpreter.execution.AvailLoader.LexicalScanner
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.interpreter.levelTwo.operand.TypeRestriction

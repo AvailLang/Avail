@@ -366,13 +366,13 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 		}
 		if (availBuilder.shouldStopBuild)
 		{
-			SimpleCompletionHandler<Int, Void?>(
+			SimpleCompletionHandler<Int>(
 				{ },
-				{ _ -> }
-			).guardedDo(
-				availBuilder.textInterface.errorChannel::write,
-				"Load failed.\n",
-				null)
+				{ }
+			).guardedDo {
+				availBuilder.textInterface.errorChannel.write(
+					"Load failed.\n", dummy, handler)
+			}
 		}
 		else
 		{

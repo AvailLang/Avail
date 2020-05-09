@@ -32,13 +32,13 @@
 
 package com.avail.interpreter.levelTwo.operation;
 
-import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.functions.A_Function;
 import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.interpreter.Interpreter;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.Primitive.Result;
+import com.avail.interpreter.execution.Interpreter;
 import com.avail.interpreter.levelTwo.L1InstructionStepper;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.L2Instruction;
@@ -149,7 +149,7 @@ extends L2Operation
 		// It can succeed or fail, but it can't mess with the fiber's stack.
 		if (Interpreter.debugL2)
 		{
-			Interpreter.log(
+			Interpreter.Companion.log(
 				Interpreter.loggerDebugL2,
 				Level.FINER,
 				"{0}          inline prim = {1}",
@@ -177,9 +177,9 @@ extends L2Operation
 				// will set up the frame, including capturing it in a local.
 				assert interpreter.latestResultOrNull() != null;
 				interpreter.function = function;
-				interpreter.offset =
+				interpreter.setOffset(
 					stripNull(interpreter.chunk)
-						.offsetAfterInitialTryPrimitive();
+						.offsetAfterInitialTryPrimitive());
 				assert !interpreter.returnNow;
 				return null;
 			}
@@ -211,7 +211,7 @@ extends L2Operation
 
 				interpreter.function = function;
 				interpreter.chunk = savedChunk;
-				interpreter.offset = savedOffset;
+				interpreter.setOffset(savedOffset);
 				stepper.pointers = savedPointers;
 				if (reifier != null)
 				{
@@ -247,7 +247,7 @@ extends L2Operation
 						interpreter.setReifiedContinuation(newContinuation);
 						interpreter.function = newFunction;
 						interpreter.chunk = newChunk;
-						interpreter.offset = newOffset;
+						interpreter.setOffset(newOffset);
 						interpreter.returnNow = newReturnNow;
 						interpreter.setLatestResult(newReturnValue);
 						interpreter.isReifying = false;
@@ -283,7 +283,7 @@ extends L2Operation
 	{
 		if (Interpreter.debugL2)
 		{
-			Interpreter.log(
+			Interpreter.Companion.log(
 				Interpreter.loggerDebugL2,
 				Level.FINER,
 				"{0}          reifying for {1}",
@@ -314,13 +314,13 @@ extends L2Operation
 				assert interpreter.unreifiedCallDepth() == 0
 					: "Should have reified stack for non-inlineable primitive";
 				interpreter.chunk = savedChunk;
-				interpreter.offset = savedOffset;
+				interpreter.setOffset(savedOffset);
 				stepper.pointers = savedPointers;
 				interpreter.function = function;
 
 				if (Interpreter.debugL2)
 				{
-					Interpreter.log(
+					Interpreter.Companion.log(
 						Interpreter.loggerDebugL2,
 						Level.FINER,
 						"{0}          reified, now starting {1}",
@@ -347,9 +347,9 @@ extends L2Operation
 						// the L2_TRY_OPTIONAL_PRIMITIVE instruction.
 						assert interpreter.latestResultOrNull() != null;
 						interpreter.function = function;
-						interpreter.offset =
+						interpreter.setOffset(
 							stripNull(interpreter.chunk)
-								.offsetAfterInitialTryPrimitive();
+								.offsetAfterInitialTryPrimitive());
 						assert !interpreter.returnNow;
 						break;
 					}

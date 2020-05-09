@@ -40,7 +40,7 @@ import com.avail.descriptor.types.IntegerRangeTypeDescriptor.wholeNumbers
 import com.avail.descriptor.types.SetTypeDescriptor
 import com.avail.descriptor.types.SetTypeDescriptor.setMeta
 import com.avail.descriptor.types.SetTypeDescriptor.setTypeForSizesContentType
-import com.avail.interpreter.Interpreter
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 

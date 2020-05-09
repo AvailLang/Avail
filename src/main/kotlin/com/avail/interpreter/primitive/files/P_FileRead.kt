@@ -56,11 +56,11 @@ import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf
 import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.*
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Interpreter.runOutermostFunction
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import com.avail.io.IOSystem.BufferKey
 import com.avail.io.IOSystem.FileHandle
 import com.avail.io.SimpleCompletionHandler
@@ -261,12 +261,12 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 		size = buffers.size * alignment
 		// Now start the asynchronous read.
 		val buffer = ByteBuffer.allocateDirect(size)
-		SimpleCompletionHandler<Int, Any?>(
+		SimpleCompletionHandler<Int>(
 			// completion
-			{ bytesRead ->
+			{
 				buffer.flip()
 				val bytesTuple: A_Tuple
-				if (bytesRead == -1)
+				if (value == -1)
 				{
 					// We started reading after the last byte of the file. Avail
 					// expects an empty buffer in this case.
@@ -275,12 +275,12 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 				}
 				else
 				{
-					assert(buffer.remaining() == bytesRead)
+					assert(buffer.remaining() == value)
 					bytesTuple = tupleForByteBuffer(buffer).makeShared()
-					assert(bytesTuple.tupleSize() == bytesRead)
+					assert(bytesTuple.tupleSize() == value)
 					// Seed the file cache, except for the final partial buffer.
 					val lastPosition =
-						oneBasedPositionLong + bytesRead - 1
+						oneBasedPositionLong + value - 1
 					val lastFullBufferStart =
 						lastPosition / alignment * alignment - alignment + 1
 					var offsetInBuffer = 1
@@ -320,7 +320,9 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 					fail,
 					listOf(E_IO_ERROR.numericCode()))
 			}
-		).guardedDo(fileChannel::read, buffer, oneBasedPositionLong - 1, null)
+		).guardedDo {
+			fileChannel.read(buffer, oneBasedPositionLong - 1, dummy, handler)
+		}
 		return interpreter.primitiveSuccess(newFiber)
 	}
 

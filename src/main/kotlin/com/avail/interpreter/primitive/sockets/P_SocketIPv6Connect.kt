@@ -57,12 +57,13 @@ import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailErrorCode.*
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Interpreter.runOutermostFunction
+import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
 import com.avail.io.SimpleCompletionHandler
+import com.avail.io.SimpleCompletionHandler.Dummy.Companion.dummy
 import java.net.Inet4Address
 import java.net.Inet6Address
 import java.net.Inet6Address.getByAddress
@@ -151,11 +152,11 @@ object P_SocketIPv6Connect : Primitive(6, CanInline, HasSideEffect)
 		val runtime = currentRuntime()
 		return try
 		{
-			socket.connect<Any>(
+			socket.connect(
 				address,
-				null,
+				dummy,
 				SimpleCompletionHandler(
-					{ _ ->
+					{
 						runOutermostFunction(
 							runtime, newFiber, succeed, emptyList())
 					},

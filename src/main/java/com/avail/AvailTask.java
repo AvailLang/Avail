@@ -33,11 +33,11 @@
 package com.avail;
 
 import com.avail.descriptor.A_Fiber;
-import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.FiberDescriptor;
 import com.avail.descriptor.FiberDescriptor.ExecutionState;
+import com.avail.descriptor.representation.AvailObject;
 import com.avail.exceptions.PrimitiveThrownException;
-import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.execution.Interpreter;
 import com.avail.utility.evaluation.Continuation0;
 
 import javax.annotation.Nullable;
@@ -171,7 +171,7 @@ implements Comparable<AvailTask>, Runnable
 				// This is the first point at which *some other* Thread may have
 				// had a chance to resume the fiber and update its state.
 				final @Nullable Continuation0 postExit =
-					interpreter.postExitContinuation();
+					interpreter.getPostExitContinuationAsContinuation0();
 				if (postExit != null)
 				{
 					interpreter.postExitContinuation(null);

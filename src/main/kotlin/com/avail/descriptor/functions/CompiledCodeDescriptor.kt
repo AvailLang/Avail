@@ -68,7 +68,7 @@ import com.avail.descriptor.types.CompiledCodeTypeDescriptor.mostGeneralCompiled
 import com.avail.descriptor.types.FunctionTypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor
 import com.avail.descriptor.types.TypeTag
-import com.avail.interpreter.Interpreter
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.levelOne.L1Disassembler
 import com.avail.interpreter.levelOne.L1InstructionWriter

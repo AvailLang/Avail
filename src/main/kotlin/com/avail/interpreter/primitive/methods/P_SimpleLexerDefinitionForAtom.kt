@@ -52,8 +52,8 @@ import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import com.avail.exceptions.MalformedMessageException
-import com.avail.interpreter.AvailLoader.Phase.EXECUTING_FOR_COMPILE
-import com.avail.interpreter.Interpreter
+import com.avail.interpreter.execution.AvailLoader.Phase.EXECUTING_FOR_COMPILE
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanSuspend
 import com.avail.interpreter.Primitive.Flag.Unknown
@@ -97,8 +97,7 @@ object P_SimpleLexerDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 		val lexer = newLexer(
 			filterFunction, bodyFunction, method, loader.module())
 
-		return interpreter.suspendAndDoInLevelOneSafe {
-			toSucceed, _ ->
+		return interpreter.suspendInLevelOneSafeThen {
 			filterFunction.code().setMethodName(
 				stringFrom("Filter for lexer ${atom.atomName()}"))
 			bodyFunction.code().setMethodName(
@@ -116,7 +115,7 @@ object P_SimpleLexerDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 					atom,
 					filterFunction,
 					bodyFunction))
-			toSucceed.value(nil)
+			succeed(nil)
 		}
 	}
 

@@ -56,16 +56,14 @@ import com.avail.descriptor.types.TupleTypeDescriptor.oneOrMoreOf
 import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.*
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Interpreter.runOutermostFunction
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import com.avail.io.IOSystem.BufferKey
 import com.avail.io.IOSystem.FileHandle
 import com.avail.io.SimpleCompletionHandler
-import com.avail.utility.Mutable
-import com.avail.utility.MutableLong
 import com.avail.utility.evaluation.Combinator.recurse
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousFileChannel
@@ -230,22 +228,22 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 				}
 			}
 		}
-		val nextPosition = MutableLong(oneBasedPositionLong - 1)
-		val currentBuffer = Mutable(bufferIterator.next())
+		var nextPosition = oneBasedPositionLong - 1
+		var currentBuffer = bufferIterator.next()
 		recurse { continueWriting ->
-			if (!currentBuffer.value.hasRemaining())
+			if (!currentBuffer.hasRemaining())
 			{
 				if (bufferIterator.hasNext())
 				{
-					currentBuffer.value = bufferIterator.next()
-					assert(currentBuffer.value.hasRemaining())
+					currentBuffer = bufferIterator.next()
+					assert(currentBuffer.hasRemaining())
 				}
 			}
-			if (currentBuffer.value.hasRemaining())
+			if (currentBuffer.hasRemaining())
 			{
-				SimpleCompletionHandler<Int, Any?>(
-					{ bytesWritten ->
-						nextPosition.value += bytesWritten
+				SimpleCompletionHandler<Int>(
+					{
+						nextPosition += value
 						continueWriting()
 					},
 					{
@@ -262,17 +260,16 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 							fail,
 							listOf(E_IO_ERROR.numericCode()))
 					}
-				).guardedDo(
-					fileChannel::write,
-					currentBuffer.value,
-					nextPosition.value,
-					null)
+				).guardedDo {
+					fileChannel.write(
+						currentBuffer, nextPosition, dummy, handler)
+				}
 			}
 			else
 			{
 				// Just finished the entire write.  Transfer the data onto
 				// any affected cached pages.
-				assert(nextPosition.value == oneBasedPositionLong + totalBytes - 1)
+				assert(nextPosition == oneBasedPositionLong + totalBytes - 1)
 				var subscriptInTuple = 1
 				var startOfBuffer = (oneBasedPositionLong - 1) / alignment * alignment + 1
 				var offsetInBuffer = (oneBasedPositionLong - startOfBuffer + 1).toInt()

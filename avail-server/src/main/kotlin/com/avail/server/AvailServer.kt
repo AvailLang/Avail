@@ -45,7 +45,7 @@ import com.avail.builder.UnresolvedModuleException
 import com.avail.descriptor.A_Fiber
 import com.avail.descriptor.A_Module
 import com.avail.descriptor.FiberDescriptor.ExecutionState
-import com.avail.interpreter.Interpreter
+import com.avail.interpreter.execution.Interpreter
 import com.avail.persistence.IndexedFileException
 import com.avail.persistence.Repository
 import com.avail.server.AvailServer.ModuleNodeType.DIRECTORY

@@ -51,10 +51,10 @@ import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.tuples.StringDescriptor.formatString
 import com.avail.descriptor.tuples.StringDescriptor.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
-import com.avail.interpreter.AvailLoader
-import com.avail.interpreter.AvailLoader.Phase
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Interpreter.runOutermostFunction
+import com.avail.interpreter.execution.AvailLoader
+import com.avail.interpreter.execution.AvailLoader.Phase
+import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import com.avail.persistence.Repository
 import com.avail.persistence.Repository.*
 import com.avail.serialization.Deserializer
@@ -300,7 +300,7 @@ internal class BuildLoader constructor(
 					1,
 					EXECUTION,
 					"Problem loading module: {0}",
-					e.localizedMessage)
+					e.localizedMessage ?: e.toString())
 				{
 					override fun abortCompilation()
 					{
@@ -398,9 +398,7 @@ internal class BuildLoader constructor(
 						{
 							val after = captureNanos()
 							Interpreter.current().recordTopStatementEvaluation(
-								(after - before).toDouble(),
-								module,
-								function.code().startingLineNumber())
+								(after - before).toDouble(), module)
 							runNext()
 						},
 						fail)

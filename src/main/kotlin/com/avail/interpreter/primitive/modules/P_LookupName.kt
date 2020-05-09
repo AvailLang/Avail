@@ -44,8 +44,8 @@ import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
 import com.avail.exceptions.AmbiguousNameException
 import com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_NAME
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
-import com.avail.interpreter.AvailLoader
-import com.avail.interpreter.Interpreter
+import com.avail.interpreter.execution.AvailLoader
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState

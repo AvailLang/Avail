@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.primitive.general
 
-import com.avail.descriptor.A_Fiber
 import com.avail.descriptor.CharacterDescriptor.fromCodePoint
 import com.avail.descriptor.FiberDescriptor.ExecutionState
 import com.avail.descriptor.sets.SetDescriptor.set
@@ -41,10 +40,10 @@ import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationW
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.CHARACTER
 import com.avail.exceptions.AvailErrorCode.E_IO_ERROR
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanSuspend
 import com.avail.interpreter.Primitive.Flag.Unknown
+import com.avail.interpreter.execution.Interpreter
 import com.avail.io.SimpleCompletionHandler
 import java.nio.CharBuffer
 
@@ -62,15 +61,15 @@ object P_ReadFromStandardInput : Primitive(0, CanSuspend, Unknown)
 	{
 		interpreter.checkArgumentCount(0)
 		val fiber = interpreter.fiber()
-		return interpreter.suspendAndDo { toSucceed, toFail ->
+		return interpreter.suspendThen {
 			val buffer = CharBuffer.allocate(1)
-			SimpleCompletionHandler<Int, A_Fiber?>(
-				{ _ -> toSucceed.value(fromCodePoint(buffer.get(0).toInt())) },
-				{ toFail.value(E_IO_ERROR) }
-			).guardedDo(
-				fiber.textInterface().inputChannel::read,
-				buffer,
-				fiber)
+			SimpleCompletionHandler<Int>(
+				{ succeed(fromCodePoint(buffer.get(0).toInt())) },
+				{ fail(E_IO_ERROR) }
+			).guardedDo {
+				fiber.textInterface().inputChannel.read(
+					buffer, dummy, handler)
+			}
 		}
 	}
 

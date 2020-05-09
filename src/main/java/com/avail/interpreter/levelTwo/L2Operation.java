@@ -35,7 +35,7 @@ package com.avail.interpreter.levelTwo;
 import com.avail.descriptor.functions.A_RawFunction;
 import com.avail.descriptor.types.A_Type;
 import com.avail.descriptor.variables.A_Variable;
-import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.execution.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Flag;
 import com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose;

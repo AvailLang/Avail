@@ -54,7 +54,7 @@ import com.avail.descriptor.variables.VariableSharedDescriptor.ObjectSlots.*
 import com.avail.exceptions.AvailException
 import com.avail.exceptions.VariableGetException
 import com.avail.exceptions.VariableSetException
-import com.avail.interpreter.Interpreter
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport

@@ -40,7 +40,7 @@ import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.BottomTypeDescriptor.bottom
 import com.avail.descriptor.types.PojoTypeDescriptor.pojoTypeForClass
-import com.avail.interpreter.Interpreter
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanSuspend
 import com.avail.interpreter.Primitive.Flag.Private
@@ -68,13 +68,13 @@ object P_InvokeCallback : Primitive(-1, Private, CanSuspend)
 		assert(primitiveFunction.code().primitive() === this)
 		val callbackPojo = primitiveFunction.outerVarAt(1)
 		val argumentsTuple = tupleFromList(interpreter.argsBuffer)
-		return interpreter.suspendAndDoWithFailureObject { toSucceed, toFail ->
+		return interpreter.suspendThen {
 			runtime.callbackSystem().executeCallbackTask(
 				callbackPojo.javaObjectNotNull(),
 				argumentsTuple,
-				CallbackCompletion { toSucceed.value(it.makeShared()) },
+				CallbackCompletion { succeed(it.makeShared()) },
 				CallbackFailure { throwable ->
-					toFail.value(
+					fail(
 						newPojo(
 							identityPojo(throwable),
 							pojoTypeForClass(throwable.javaClass)

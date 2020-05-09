@@ -54,7 +54,8 @@ import com.avail.descriptor.tokens.TokenDescriptor.Companion.newToken
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.StringDescriptor.formatString
 import com.avail.descriptor.tuples.StringDescriptor.stringFrom
-import com.avail.interpreter.Interpreter
+import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.execution.Interpreter.Companion.stringifyThen
 import com.avail.utility.evaluation.Describer
 import com.avail.utility.evaluation.SimpleDescriber
 import com.avail.utility.evaluation.Transformer1
@@ -564,7 +565,7 @@ class LexingState constructor(
 		transformer: Function<List<String>, String>)
 	{
 		expected(level) { continuation ->
-			Interpreter.stringifyThen(
+			stringifyThen(
 				compilationContext.loader!!.runtime(),
 				compilationContext.textInterface,
 				values
@@ -589,7 +590,7 @@ class LexingState constructor(
 
 	companion object
 	{
-		/** An Avail string for use as the lexeme in end-of-file tokens.  */
+		/** An Avail string for use as the lexeme in end-of-file tokens. */
 		private val endOfFileLexeme = stringFrom("end-of-file").makeShared()
 	}
 }

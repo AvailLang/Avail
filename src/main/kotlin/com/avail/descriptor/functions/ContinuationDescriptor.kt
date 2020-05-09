@@ -54,7 +54,8 @@ import com.avail.descriptor.types.BottomTypeDescriptor.bottom
 import com.avail.descriptor.types.ContinuationTypeDescriptor.continuationTypeForFunctionType
 import com.avail.descriptor.types.TypeTag
 import com.avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
-import com.avail.interpreter.Interpreter
+import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.execution.Interpreter.Companion.stringifyThen
 import com.avail.interpreter.levelOne.L1Operation
 import com.avail.interpreter.levelTwo.L1InstructionStepper
 import com.avail.interpreter.levelTwo.L2Chunk
@@ -742,9 +743,7 @@ class ContinuationDescriptor private constructor(
 				}
 			}
 			val strings = arrayOfNulls<String>(lines)
-			Interpreter.stringifyThen(
-				runtime, textInterface, allTypes
-			) { allTypeNames ->
+			stringifyThen(runtime, textInterface, allTypes) { allTypeNames ->
 				var allTypesIndex = 0
 				for (frameIndex in 0 until frames.size)
 				{
@@ -764,7 +763,7 @@ class ContinuationDescriptor private constructor(
 						frame.currentLineNumber())
 				}
 				assert (allTypesIndex == allTypeNames.size)
-				action(cast(listOf(*strings)))
+				action(strings.map { it!! })
 			}
 		}
 	}

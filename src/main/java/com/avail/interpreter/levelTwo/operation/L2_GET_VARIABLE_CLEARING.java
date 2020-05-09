@@ -34,7 +34,7 @@ package com.avail.interpreter.levelTwo.operation;
 import com.avail.descriptor.types.A_Type;
 import com.avail.exceptions.VariableGetException;
 import com.avail.exceptions.VariableSetException;
-import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.execution.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2OperandType;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
@@ -66,7 +66,7 @@ import static org.objectweb.asm.Type.getInternalName;
 /**
  * Extract the value of a variable, while simultaneously clearing it. If the
  * variable is unassigned, then branch to the specified {@linkplain
- * Interpreter#offset(int) offset}.
+ * Interpreter#setOffset(int) offset}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;

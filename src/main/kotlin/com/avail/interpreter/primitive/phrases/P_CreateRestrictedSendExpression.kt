@@ -65,12 +65,11 @@ import com.avail.descriptor.types.TypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
 import com.avail.exceptions.AvailErrorCode.*
 import com.avail.exceptions.MalformedMessageException
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Interpreter.*
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanSuspend
 import com.avail.interpreter.Primitive.Flag.Unknown
-import com.avail.interpreter.Primitive.Result.FIBER_SUSPENDED
+import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import com.avail.utility.Strings.increaseIndentation
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -175,111 +174,106 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 		val runtime = currentRuntime()
 		val primitiveFunction = interpreter.function!!
 		assert(primitiveFunction.code().primitive() === this)
-		interpreter.primitiveSuspend(primitiveFunction)
-		val copiedArgs = interpreter.argsBuffer.toList()
-		val countdown = AtomicInteger(restrictionsSize)
-		val problems = mutableListOf<A_String>()
-		val decrement = decrement@ {
-			when {
-				countdown.decrementAndGet() != 0 ->
-					// We're not last to decrement, so don't do the epilogue.
-					return@decrement
-				// We're last to report.  Either succeed or fail the
-				// primitive within the original fiber.
-				problems.isEmpty() -> resumeFromSuccessfulPrimitive(
-					runtime,
-					originalFiber,
-					this,
-					newSendNode(
-						emptyTuple(), bundle, argsListNode, intersection))
-				else -> {
-					// There were problems.  Fail the primitive with a string
-					// describing them all.
-					@Suppress("UNUSED_VARIABLE")
-					val problemReport: A_String = when (problems.size) {
-						1 -> problems[0]
-						else -> stringFrom(
-							buildString {
-								append(
-									"send phrase creation primitive not to " +
-										"have encountered multiple problems " +
-										"in semantic restrictions:")
-								for (problem in problems) {
-									append("\n\t")
+		return interpreter.suspendThen {
+			val countdown = AtomicInteger(restrictionsSize)
+			val problems = mutableListOf<A_String>()
+			val decrement = decrement@{
+				when {
+					countdown.decrementAndGet() != 0 ->
+						// We're not last to decrement.
+						return@decrement
+					problems.isEmpty() ->
+						// We're last to report.  Either succeed or fail the
+						// primitive within the original fiber.
+						succeed(
+							newSendNode(
+								emptyTuple(),
+								bundle,
+								argsListNode,
+								intersection))
+					else -> {
+						// There were problems.  Fail the primitive with a
+						// string describing them all.
+						@Suppress("UNUSED_VARIABLE")
+						val problemReport: A_String = when (problems.size) {
+							1 -> problems[0]
+							else -> stringFrom(
+								buildString {
 									append(
-										increaseIndentation(
-											problem.asNativeString(), 1))
+										"send phrase creation primitive not " +
+											"to have encountered multiple " +
+											"problems in semantic " +
+											"restrictions:")
+									for (problem in problems) {
+										append("\n\t")
+										append(
+											increaseIndentation(
+												problem.asNativeString(), 1))
+									}
+								})
+						}
+						// TODO: Yeah, we went to the effort of assembling a
+						// pretty report about what went wrong, but the
+						// bootstrap logic can't deal with anything but numeric
+						// codes, so just report a basic failure.
+						fail(E_INCORRECT_ARGUMENT_TYPE)
+					}
+				}
+			}
+			val success: (AvailObject) -> Unit = {
+				when {
+					it.isType -> synchronized(intersectionMonitor) {
+						intersection = intersection.typeIntersection(it)
+					}
+					else -> synchronized(problems) {
+						problems.add(
+							stringFrom(
+								"Semantic restriction failed to produce "
+									+ "a type, and instead produced: $it"))
+					}
+				}
+				decrement.invoke()
+			}
+			// Now launch the fibers.
+			var fiberCount = 1
+			for (restriction in applicableRestrictions) {
+				val finalCount = fiberCount++
+				val forkedFiber = newFiber(topMeta(), originalFiber.priority()) {
+					stringFrom(
+						"Semantic restriction checker (#$finalCount) " +
+							"for primitive ${this.javaClass.simpleName}")
+				}
+				forkedFiber.availLoader(loader)
+				forkedFiber.heritableFiberGlobals(
+					originalFiber.heritableFiberGlobals())
+				forkedFiber.textInterface(originalFiber.textInterface())
+				forkedFiber.setSuccessAndFailureContinuations(
+					success,
+					{ throwable ->
+						when (throwable) {
+							is AvailRejectedParseException -> {
+								// Compute the rejectionString outside the mutex.
+								val string = throwable.rejectionString
+								synchronized(problems) {
+									problems.add(string)
 								}
-							})
-					}
-					// TODO: Yeah, we went to the effort of assembling a pretty
-					// report about what went wrong, but the bootstrap logic can't
-					// deal with anything but numeric codes, so just report a basic
-					// failure.
-					resumeFromFailedPrimitive(
-						runtime,
-						originalFiber,
-						// problemReport,
-						E_INCORRECT_ARGUMENT_TYPE.numericCode(), // Ew, yuck.
-						primitiveFunction,
-						copiedArgs)
-				}
-			}
-		}
-		val success: (AvailObject) -> Unit = {
-			when {
-				it.isType -> synchronized(intersectionMonitor) {
-					intersection = intersection.typeIntersection(it)
-				}
-				else -> synchronized(problems) {
-					problems.add(
-						stringFrom(
-							"Semantic restriction failed to produce "
-								+ "a type, and instead produced: $it"))
-				}
-			}
-			decrement.invoke()
-		}
-		// Now launch the fibers.
-		var fiberCount = 1
-		for (restriction in applicableRestrictions)
-		{
-			val finalCount = fiberCount++
-			val forkedFiber = newFiber(topMeta(), originalFiber.priority()) {
-				stringFrom(
-					"Semantic restriction checker (#$finalCount) " +
-					"for primitive ${this.javaClass.simpleName}")
-			}
-			forkedFiber.availLoader(loader)
-			forkedFiber.heritableFiberGlobals(
-				originalFiber.heritableFiberGlobals())
-			forkedFiber.textInterface(originalFiber.textInterface())
-			forkedFiber.setSuccessAndFailureContinuations(
-				success,
-				{ throwable ->
-					when (throwable) {
-						is AvailRejectedParseException -> {
-							// Compute the rejectionString outside the mutex.
-							val string = throwable.rejectionString
-							synchronized(problems) {
-								problems.add(string)
 							}
+							is AvailAcceptedParseException -> {
+								// Success without type narrowing – do nothing.
+							}
+							else ->
+								synchronized(problems) {
+									problems.add(stringFrom(
+										"evaluation of macro body not to " +
+											"raise an unhandled " +
+											"exception:\n\t$throwable"))
+								}
 						}
-						is AvailAcceptedParseException -> {
-							// Success without type narrowing – do nothing.
-						}
-						else ->
-							synchronized(problems) {
-								problems.add(stringFrom(
-									"evaluation of macro body not to raise an "
-										+ "unhandled exception:\n\t$throwable"))
-						}
-					}
-				})
-			runOutermostFunction(
-				runtime, forkedFiber, restriction.function(), argTypesList)
+					})
+				runOutermostFunction(
+					runtime, forkedFiber, restriction.function(), argTypesList)
+			}
 		}
-		return FIBER_SUSPENDED
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

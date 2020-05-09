@@ -40,7 +40,7 @@ import com.avail.descriptor.types.ContinuationTypeDescriptor.mostGeneralContinua
 import com.avail.descriptor.types.FiberTypeDescriptor.mostGeneralFiberType
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.exceptions.AvailErrorCode.E_FIBER_IS_TERMINATED
-import com.avail.interpreter.Interpreter
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
@@ -66,15 +66,11 @@ object P_GetContinuationOfOtherFiber : Primitive(
 		interpreter.checkArgumentCount(1)
 		val otherFiber = interpreter.argument(0)
 
-		return interpreter.suspendAndDo { toSucceed, toFail ->
+		return interpreter.suspendThen {
 			otherFiber.whenContinuationIsAvailableDo { theContinuation ->
-				if (!theContinuation.equalsNil())
-				{
-					toSucceed.value(theContinuation)
-				}
-				else
-				{
-					toFail.value(E_FIBER_IS_TERMINATED)
+				when {
+					!theContinuation.equalsNil() -> succeed(theContinuation)
+					else -> fail(E_FIBER_IS_TERMINATED)
 				}
 			}
 		}

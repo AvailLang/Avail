@@ -33,7 +33,7 @@
 package com.avail.optimizer;
 
 import com.avail.descriptor.functions.CompiledCodeDescriptor;
-import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.execution.Interpreter;
 import com.avail.interpreter.levelTwo.L2Chunk;
 
 import javax.annotation.Nullable;

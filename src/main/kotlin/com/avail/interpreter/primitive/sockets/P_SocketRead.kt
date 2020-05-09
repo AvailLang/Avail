@@ -62,11 +62,13 @@ import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailErrorCode.*
-import com.avail.interpreter.Interpreter
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import com.avail.io.SimpleCompletionHandler
+import com.avail.io.SimpleCompletionHandler.Dummy.Companion.dummy
 import java.lang.Integer.MAX_VALUE
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousSocketChannel
@@ -128,22 +130,22 @@ object P_SocketRead : Primitive(5, CanInline, HasSideEffect)
 		val runtime = currentRuntime()
 		return try
 		{
-			socket.read<Any>(
+			socket.read(
 				buffer,
-				null,
+				dummy,
 				SimpleCompletionHandler(
-					{ bytesRead ->
+					{
 						buffer.flip()
-						Interpreter.runOutermostFunction(
+						runOutermostFunction(
 							runtime,
 							newFiber,
 							succeed,
 							listOf(
 								tupleForByteBuffer(buffer),
-								objectFromBoolean(bytesRead == -1)))
+								objectFromBoolean(value == -1)))
 					},
 					{
-						Interpreter.runOutermostFunction(
+						runOutermostFunction(
 							runtime,
 							newFiber,
 							fail,

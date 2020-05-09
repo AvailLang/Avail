@@ -35,7 +35,6 @@ package com.avail.builder
 import com.avail.builder.AvailBuilder.ModuleTree
 import com.avail.io.SimpleCompletionHandler
 import com.avail.utility.Graph
-import com.avail.utility.MutableInt
 import com.avail.utility.Strings.tab
 import com.avail.utility.dot.DotWriter
 import java.io.File
@@ -353,16 +352,19 @@ internal class GraphTracer constructor(
 		}
 
 		val buffer = StandardCharsets.UTF_8.encode(out)
-		val position = MutableInt(0)
-		SimpleCompletionHandler<Int, Any?>(
-			{ result, _, handler ->
-				position.value += result
+		var position = 0
+		SimpleCompletionHandler<Int>(
+			{
+				position += value
 				if (buffer.hasRemaining()) {
-					handler.guardedDo(
-						channel::write, buffer, position.value.toLong(), null)
+					handler.guardedDo {
+						channel.write(buffer, position.toLong(), dummy, handler)
+					}
 				}
 			},
-			{ _, _, _ -> }
-		).guardedDo(channel::write, buffer, 0L, null)
+			{ }
+		).guardedDo {
+			channel.write(buffer, 0L, dummy, handler)
+		}
 	}
 }

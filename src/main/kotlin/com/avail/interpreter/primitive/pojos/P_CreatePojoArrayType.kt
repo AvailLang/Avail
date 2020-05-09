@@ -42,7 +42,7 @@ import com.avail.descriptor.types.PojoTypeDescriptor
 import com.avail.descriptor.types.PojoTypeDescriptor.mostGeneralPojoArrayType
 import com.avail.descriptor.types.PojoTypeDescriptor.pojoArrayType
 import com.avail.descriptor.types.TypeDescriptor
-import com.avail.interpreter.Interpreter
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 

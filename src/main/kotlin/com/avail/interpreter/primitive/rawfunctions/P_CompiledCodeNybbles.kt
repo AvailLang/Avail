@@ -39,7 +39,7 @@ import com.avail.descriptor.types.CompiledCodeTypeDescriptor.mostGeneralCompiled
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.nybbles
 import com.avail.descriptor.types.TupleTypeDescriptor.zeroOrMoreOf
-import com.avail.interpreter.Interpreter
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 

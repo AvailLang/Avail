@@ -33,7 +33,7 @@
 package com.avail.environment.actions
 
 import com.avail.environment.AvailWorkbench
-import com.avail.interpreter.Interpreter
+import com.avail.interpreter.execution.Interpreter
 import java.awt.event.ActionEvent
 import javax.swing.Action
 

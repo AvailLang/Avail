@@ -34,7 +34,7 @@ package com.avail;
 import com.avail.descriptor.methods.MacroDefinitionDescriptor;
 import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.tuples.StringDescriptor;
-import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.execution.Interpreter;
 
 import javax.annotation.Nullable;
 import java.io.IOException;

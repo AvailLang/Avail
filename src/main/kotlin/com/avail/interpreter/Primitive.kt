@@ -49,7 +49,6 @@ import com.avail.descriptor.types.IntegerRangeTypeDescriptor.naturalNumbers
 import com.avail.descriptor.types.TypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor
-import com.avail.interpreter.Interpreter.*
 import com.avail.interpreter.Primitive.Companion.holdersByClassName
 import com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail
 import com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
@@ -57,6 +56,11 @@ import com.avail.interpreter.Primitive.Flag
 import com.avail.interpreter.Primitive.Flag.*
 import com.avail.interpreter.Primitive.PrimitiveHolder
 import com.avail.interpreter.Primitive.Result.SUCCESS
+import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.execution.Interpreter.Companion.afterAttemptPrimitiveMethod
+import com.avail.interpreter.execution.Interpreter.Companion.argsBufferField
+import com.avail.interpreter.execution.Interpreter.Companion.beforeAttemptPrimitiveMethod
+import com.avail.interpreter.execution.Interpreter.Companion.getLatestResultMethod
 import com.avail.interpreter.levelOne.L1InstructionWriter
 import com.avail.interpreter.levelOne.L1Operation
 import com.avail.interpreter.levelTwo.L2Chunk

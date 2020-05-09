@@ -52,9 +52,10 @@ import com.avail.exceptions.AmbiguousNameException
 import com.avail.exceptions.AvailErrorCode.*
 import com.avail.exceptions.MalformedMessageException
 import com.avail.exceptions.SignatureException
-import com.avail.interpreter.Interpreter
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.Unknown
+import java.util.function.Function
 
 /**
  * **Primitive:** Message precedence declaration with [tuple][TupleDescriptor]
@@ -86,15 +87,14 @@ object P_GrammaticalRestriction : Primitive(2, Unknown)
 			val atomSet =
 				try
 				{
-					generateSetFrom(
-						strings.setSize(),
-						strings.iterator(),
-						loader::lookupName)
+					generateSetFrom(strings.setSize(), strings.iterator()) {
+						loader.lookupName(it, false)
+					}
 				}
-			catch (e: AmbiguousNameException)
-			{
-				return interpreter.primitiveFailure(e)
-			}
+				catch (e: AmbiguousNameException)
+				{
+					return interpreter.primitiveFailure(e)
+				}
 			excludedAtomSets =
 				excludedAtomSets.tupleAtPuttingCanDestroy(i, atomSet, true)
 		}

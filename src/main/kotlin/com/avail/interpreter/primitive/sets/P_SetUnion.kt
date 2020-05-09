@@ -40,7 +40,7 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.integerRangeType
 import com.avail.descriptor.types.SetTypeDescriptor.mostGeneralSetType
 import com.avail.descriptor.types.SetTypeDescriptor.setTypeForSizesContentType
-import com.avail.interpreter.Interpreter
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 

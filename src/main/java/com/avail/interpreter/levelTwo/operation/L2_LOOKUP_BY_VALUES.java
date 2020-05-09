@@ -40,7 +40,7 @@ import com.avail.descriptor.methods.A_Method;
 import com.avail.descriptor.types.A_Type;
 import com.avail.exceptions.AvailException;
 import com.avail.exceptions.MethodDefinitionException;
-import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.execution.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
@@ -83,7 +83,7 @@ import static org.objectweb.asm.Type.getInternalName;
  * Look up the method to invoke. Use the provided vector of arguments to
  * perform a polymorphic lookup. Write the resulting function into the
  * specified destination register. If the lookup fails, then branch to the
- * specified {@linkplain Interpreter#offset(int) offset}.
+ * specified {@linkplain Interpreter#setOffset(int) offset}.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -261,7 +261,7 @@ extends L2ControlFlowOperation
 	{
 		if (Interpreter.debugL2)
 		{
-			Interpreter.log(
+			Interpreter.Companion.log(
 				Interpreter.loggerDebugL2,
 				Level.FINER,
 				"{0}Lookup {1}",

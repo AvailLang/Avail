@@ -172,7 +172,7 @@ abstract class AbstractTransportChannel<T> constructor(
 					// Begin transmission of the next message.
 					if (nextMessage != null)
 					{
-						adapter.sendUserData(this, nextMessage, sendMore, null)
+						adapter.sendUserData(this, nextMessage, sendMore, { })
 					}
 					else
 					{
@@ -190,7 +190,7 @@ abstract class AbstractTransportChannel<T> constructor(
 					pair?.second()?.invoke()
 				}
 			},
-			null)
+			{  })
 	}
 
 	override fun enqueueMessageThen(

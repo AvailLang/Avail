@@ -43,7 +43,7 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.exceptions.AvailEmergencyExitException
 import com.avail.exceptions.AvailErrorCode
-import com.avail.interpreter.Interpreter
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
@@ -74,7 +74,7 @@ object P_EmergencyExit : Primitive(
 		interpreter.checkArgumentCount(1)
 		val errorMessageProducer = interpreter.argument(0)
 		val fiber = interpreter.fiber()
-		val continuation = interpreter.reifiedContinuation!!
+		val continuation = interpreter.getReifiedContinuation()!!
 		interpreter.primitiveSuspend(interpreter.function!!)
 		dumpStackThen(
 			interpreter.runtime(),

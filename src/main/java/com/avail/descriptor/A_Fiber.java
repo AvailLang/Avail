@@ -49,7 +49,7 @@ import com.avail.descriptor.tuples.A_String;
 import com.avail.descriptor.types.A_Type;
 import com.avail.descriptor.variables.A_Variable;
 import com.avail.descriptor.variables.VariableDescriptor;
-import com.avail.interpreter.AvailLoader;
+import com.avail.interpreter.execution.AvailLoader;
 import com.avail.io.TextInterface;
 import com.avail.utility.evaluation.Continuation1;
 import com.avail.utility.evaluation.Continuation1NotNull;

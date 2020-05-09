@@ -34,7 +34,6 @@ package com.avail.interpreter.primitive.general
 
 import com.avail.descriptor.FiberDescriptor.ExecutionState
 import com.avail.descriptor.NilDescriptor.nil
-import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.sets.SetDescriptor.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.tuples.StringDescriptor
@@ -44,10 +43,10 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.TupleTypeDescriptor.stringType
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_IO_ERROR
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanSuspend
 import com.avail.interpreter.Primitive.Flag.Unknown
+import com.avail.interpreter.execution.Interpreter
 import com.avail.io.SimpleCompletionHandler
 import com.avail.io.TextOutputChannel
 
@@ -72,14 +71,14 @@ object P_PrintToErrorConsole : Primitive(1, CanSuspend, Unknown)
 		loader?.statementCanBeSummarized(false)
 
 		val textInterface = interpreter.fiber().textInterface()
-		return interpreter.suspendAndDo { toSucceed, toFail ->
-			SimpleCompletionHandler<Int, A_BasicObject?>(
-				{ _ -> toSucceed.value(nil) },
-				{ toFail.value(E_IO_ERROR) }
-			).guardedDo(
-				textInterface.errorChannel::write,
-				string.asNativeString(),
-				nil)
+		return interpreter.suspendThen {
+			SimpleCompletionHandler<Int>(
+				{ succeed(nil) },
+				{ fail(E_IO_ERROR) }
+			).guardedDo {
+				textInterface.errorChannel.write(
+					string.asNativeString(), dummy, handler)
+			}
 		}
 	}
 

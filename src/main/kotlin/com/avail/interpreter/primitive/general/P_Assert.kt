@@ -48,17 +48,16 @@ import com.avail.descriptor.types.TupleTypeDescriptor
 import com.avail.descriptor.types.TupleTypeDescriptor.stringType
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailAssertionFailedException
-import com.avail.interpreter.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 import com.avail.interpreter.Primitive.Result.FIBER_SUSPENDED
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_EQUALS_CONSTANT
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
 import com.avail.optimizer.L2Generator.edgeTo
-import java.lang.String.format
 
 /**
  * **Primitive:** Assert the specified
@@ -81,23 +80,21 @@ object P_Assert : Primitive(2, Unknown, CanSuspend, CannotFail)
 		}
 
 		val fiber = interpreter.fiber()
-		val continuation = interpreter.reifiedContinuation!!
+		val continuation = interpreter.getReifiedContinuation()!!
 		interpreter.primitiveSuspend(interpreter.function!!)
-		dumpStackThen(interpreter.runtime(), fiber.textInterface(), continuation)
-			{ stack ->
-				val builder = StringBuilder()
-				builder.append(failureMessage.asNativeString())
-				for (frame in stack)
-				{
-					builder.append(format("%n\t-- %s", frame))
-				}
-				builder.append("\n\n")
-				val killer = AvailAssertionFailedException(
-					builder.toString())
-				killer.fillInStackTrace()
-				fiber.executionState(ExecutionState.ABORTED)
-				fiber.failureContinuation().value(killer)
-			}
+		dumpStackThen(
+			interpreter.runtime(), fiber.textInterface(), continuation
+		) { stack ->
+			val killer = AvailAssertionFailedException(
+				stack.joinToString(
+					prefix = failureMessage.asNativeString(),
+					separator = "",
+					postfix = "\n\n"
+				) { "\n\t-- $it" })
+			killer.fillInStackTrace()
+			fiber.executionState(ExecutionState.ABORTED)
+			fiber.failureContinuation().value(killer)
+		}
 		return FIBER_SUSPENDED
 	}
 

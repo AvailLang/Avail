@@ -34,9 +34,7 @@ package com.avail.descriptor.functions
 import com.avail.descriptor.NilDescriptor
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
-import com.avail.interpreter.Interpreter
-import com.avail.optimizer.jvm.CheckedMethod
-import com.avail.optimizer.jvm.CheckedMethod.instanceMethod
+import com.avail.interpreter.execution.Interpreter
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 
 /**

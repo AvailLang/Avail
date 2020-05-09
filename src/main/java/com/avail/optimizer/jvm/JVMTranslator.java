@@ -37,7 +37,7 @@ import com.avail.descriptor.A_Module;
 import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.functions.A_RawFunction;
 import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.execution.Interpreter;
 import com.avail.interpreter.JavaLibrary;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.L1Disassembler;
@@ -64,7 +64,6 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -79,8 +78,8 @@ import java.util.regex.Pattern;
 import static com.avail.AvailRuntimeSupport.captureNanos;
 import static com.avail.descriptor.NilDescriptor.nil;
 import static com.avail.descriptor.functions.ContinuationDescriptor.createDummyContinuationMethod;
-import static com.avail.interpreter.Interpreter.chunkField;
-import static com.avail.interpreter.Interpreter.interpreterFunctionField;
+import static com.avail.interpreter.execution.Interpreter.chunkField;
+import static com.avail.interpreter.execution.Interpreter.interpreterFunctionField;
 import static com.avail.optimizer.StackReifier.pushContinuationActionMethod;
 import static com.avail.optimizer.jvm.JVMTranslator.LiteralAccessor.invalidIndex;
 import static com.avail.performance.StatisticReport.FINAL_JVM_TRANSLATION_TIME;
@@ -833,7 +832,7 @@ public final class JVMTranslator
 		}
 		catch (final IOException x)
 		{
-			Interpreter.log(
+			Interpreter.Companion.log(
 				Interpreter.loggerDebugJVM,
 				Level.WARNING,
 				"unable to write trace for failed generated class {0}",
@@ -863,7 +862,7 @@ public final class JVMTranslator
 		{
 			if (debugJVM)
 			{
-				Interpreter.log(
+				Interpreter.Companion.log(
 					Interpreter.loggerDebugJVM,
 					Level.SEVERE,
 					"translation failed for {0}",
@@ -1552,7 +1551,7 @@ public final class JVMTranslator
 		}
 		catch (final IOException e)
 		{
-			Interpreter.log(
+			Interpreter.Companion.log(
 				Interpreter.loggerDebugJVM,
 				Level.WARNING,
 				"unable to write L1 for generated class {0}",
@@ -1602,7 +1601,7 @@ public final class JVMTranslator
 		}
 		catch (final IOException|UncheckedIOException e)
 		{
-			Interpreter.log(
+			Interpreter.Companion.log(
 				Interpreter.loggerDebugJVM,
 				Level.WARNING,
 				"unable to write L2 for generated class {0}",
@@ -1844,7 +1843,7 @@ public final class JVMTranslator
 		}
 		catch (final IOException e)
 		{
-			Interpreter.log(
+			Interpreter.Companion.log(
 				Interpreter.loggerDebugJVM,
 				Level.WARNING,
 				"unable to write class bytes for generated class {0}",

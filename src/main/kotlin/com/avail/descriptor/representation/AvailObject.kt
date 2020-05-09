@@ -31,7 +31,6 @@
  */
 package com.avail.descriptor.representation
 
-import com.avail.compiler.AvailCodeGenerator
 import com.avail.compiler.scanning.LexingState
 import com.avail.descriptor.*
 import com.avail.descriptor.FiberDescriptor.*
@@ -70,8 +69,8 @@ import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
 import com.avail.dispatch.LookupTree
 import com.avail.exceptions.*
-import com.avail.interpreter.AvailLoader
 import com.avail.interpreter.Primitive
+import com.avail.interpreter.execution.AvailLoader
 import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.io.TextInterface
@@ -88,7 +87,9 @@ import com.avail.utility.visitor.AvailSubobjectVisitor
 import com.avail.utility.visitor.MarkUnreachableSubobjectVisitor
 import java.nio.ByteBuffer
 import java.util.*
-import java.util.function.*
+import java.util.function.BiConsumer
+import java.util.function.BinaryOperator
+import java.util.function.Supplier
 import java.util.stream.Stream
 
 /**

@@ -71,7 +71,7 @@ import com.avail.utility.StackPrinter
  * 1. Preferences...  Java  Debug  Logical Structures
  *
  *    Add:
- *    * Qualified name: com.avail.interpreter.Interpreter
+ *    * Qualified name: com.avail.interpreter.execution.Interpreter
  *    * Description: Present Interpreter as stack frames
  *    * Structure type: Single value
  *    * Code: `return describeForDebugger();`

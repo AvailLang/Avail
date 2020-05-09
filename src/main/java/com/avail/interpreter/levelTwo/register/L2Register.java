@@ -33,7 +33,7 @@
 package com.avail.interpreter.levelTwo.register;
 
 import com.avail.descriptor.representation.AvailObject;
-import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.execution.Interpreter;
 import com.avail.interpreter.levelTwo.L2Instruction;
 import com.avail.interpreter.levelTwo.L2Operation;
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;

@@ -38,7 +38,7 @@ import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
-import com.avail.interpreter.Interpreter
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
@@ -54,7 +54,7 @@ object P_Yield : Primitive(0, CannotFail, CanSuspend, Unknown)
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(0)
-		return interpreter.suspendAndDo { toSucceed, _ -> toSucceed.value(nil) }
+		return interpreter.suspendThen { succeed(nil) }
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

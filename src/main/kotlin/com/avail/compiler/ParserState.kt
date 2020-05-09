@@ -40,7 +40,7 @@ import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.representation.A_BasicObject
-import com.avail.interpreter.Interpreter
+import com.avail.interpreter.execution.Interpreter
 import com.avail.utility.evaluation.Describer
 import com.avail.utility.evaluation.SimpleDescriber
 import com.avail.utility.evaluation.Transformer1

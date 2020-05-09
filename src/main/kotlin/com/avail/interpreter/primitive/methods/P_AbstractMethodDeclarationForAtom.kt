@@ -44,7 +44,7 @@ import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.*
 import com.avail.exceptions.AvailException
-import com.avail.interpreter.Interpreter
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanSuspend
 import com.avail.interpreter.Primitive.Flag.Unknown
@@ -73,18 +73,17 @@ object P_AbstractMethodDeclarationForAtom : Primitive(2, CanSuspend, Unknown)
 			return interpreter.primitiveFailure(
 				E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
-		return interpreter.suspendAndDoInLevelOneSafe {
-			toSucceed, toFail ->
+		return interpreter.suspendInLevelOneSafeThen {
 			try
 			{
 				loader.addAbstractSignature(atom, blockSignature)
-				toSucceed.value(nil)
+				succeed(nil)
 			}
 			catch (e: AvailException)
 			{
 				// MalformedMessageException
 				// SignatureException
-				toFail.value(e.errorCode)
+				fail(e.errorCode)
 			}
 		}
 	}

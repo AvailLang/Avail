@@ -35,7 +35,7 @@ package com.avail.optimizer;
 import com.avail.AvailThread;
 import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.functions.A_Continuation;
-import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.execution.Interpreter;
 import com.avail.optimizer.jvm.CheckedMethod;
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
 import com.avail.performance.Statistic;
@@ -47,8 +47,8 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 
 import static com.avail.AvailRuntimeSupport.captureNanos;
-import static com.avail.interpreter.Interpreter.debugL2;
-import static com.avail.interpreter.Interpreter.traceL2;
+import static com.avail.interpreter.execution.Interpreter.debugL2;
+import static com.avail.interpreter.execution.Interpreter.traceL2;
 import static com.avail.optimizer.jvm.CheckedMethod.instanceMethod;
 import static com.avail.utility.Nulls.stripNull;
 
@@ -203,7 +203,7 @@ public final class StackReifier
 				// is supposed to.
 				interpreter.function = newDummy.function();
 				interpreter.chunk = newDummy.levelTwoChunk();
-				interpreter.offset = newDummy.levelTwoOffset();
+				interpreter.setOffset(newDummy.levelTwoOffset());
 
 				final @Nullable StackReifier result =
 					interpreter.chunk.runChunk(interpreter, interpreter.offset);

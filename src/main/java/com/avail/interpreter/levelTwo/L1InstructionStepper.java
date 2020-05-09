@@ -51,7 +51,7 @@ import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MethodDefinitionException;
 import com.avail.exceptions.VariableGetException;
 import com.avail.exceptions.VariableSetException;
-import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.execution.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelOne.L1Operation;
 import com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint;
@@ -82,8 +82,8 @@ import static com.avail.descriptor.tuples.TupleDescriptor.emptyTuple;
 import static com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
 import static com.avail.descriptor.variables.VariableDescriptor.newVariableWithContentType;
 import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.Interpreter.assignmentFunction;
-import static com.avail.interpreter.Interpreter.debugL1;
+import static com.avail.interpreter.execution.Interpreter.assignmentFunction;
+import static com.avail.interpreter.execution.Interpreter.debugL1;
 import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.*;
 import static com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk;
 import static com.avail.optimizer.jvm.CheckedMethod.instanceMethod;
@@ -228,7 +228,7 @@ public final class L1InstructionStepper
 		final AvailObject code = (AvailObject) function.code();
 		if (debugL1)
 		{
-			Interpreter.log(
+			Interpreter.Companion.log(
 				Interpreter.loggerDebugL1,
 				Level.FINER,
 				"{0}Started L1 run: {1}",
@@ -246,7 +246,7 @@ public final class L1InstructionStepper
 					Arrays.stream(operation.getOperandTypes())
 						.map(x -> instructionDecoder.getOperand())
 						.collect(Collectors.toList());
-				Interpreter.log(
+				Interpreter.Companion.log(
 					Interpreter.loggerDebugL1,
 					Level.FINER,
 					"{0}L1 step: {1}",
@@ -267,7 +267,7 @@ public final class L1InstructionStepper
 					final int numArgs = A_Bundle.Companion.bundleMethod(bundle).numArgs();
 					if (debugL1)
 					{
-						Interpreter.log(
+						Interpreter.Companion.log(
 							Interpreter.loggerDebugL1,
 							Level.FINER,
 							"{0}         L1 call ({1})",
@@ -317,7 +317,7 @@ public final class L1InstructionStepper
 					final AvailObject result = interpreter.getLatestResult();
 					if (debugL1)
 					{
-						Interpreter.log(
+						Interpreter.Companion.log(
 							Interpreter.loggerDebugL1,
 							Level.FINER,
 							"{0}Call returned: {1}",
@@ -573,8 +573,8 @@ public final class L1InstructionStepper
 							// interpreter.
 							interpreter.function = savedFunction;
 							interpreter.chunk = unoptimizedChunk;
-							interpreter.offset =
-								AFTER_REIFICATION.offsetInDefaultChunk;
+							interpreter.setOffset(
+								AFTER_REIFICATION.offsetInDefaultChunk);
 							pointers = savedPointers;
 							savedFunction.code().setUpInstructionDecoder(
 								instructionDecoder);
@@ -663,7 +663,7 @@ public final class L1InstructionStepper
 					final int numArgs = A_Bundle.Companion.bundleMethod(bundle).numArgs();
 					if (debugL1)
 					{
-						Interpreter.log(
+						Interpreter.Companion.log(
 							Interpreter.loggerDebugL1,
 							Level.FINER,
 							"{0}L1 supercall: {1}",
@@ -719,7 +719,7 @@ public final class L1InstructionStepper
 					final AvailObject result = interpreter.getLatestResult();
 					if (debugL1)
 					{
-						Interpreter.log(
+						Interpreter.Companion.log(
 							Interpreter.loggerDebugL1,
 							Level.FINER,
 							"{0}Call returned: {1}",
@@ -756,7 +756,7 @@ public final class L1InstructionStepper
 		interpreter.returningFunction = function;
 		if (debugL1)
 		{
-			Interpreter.log(
+			Interpreter.Companion.log(
 				Interpreter.loggerDebugL1,
 				Level.FINER,
 				"{0}L1 return",
@@ -802,7 +802,7 @@ public final class L1InstructionStepper
 				1);
 		if (Interpreter.debugL2)
 		{
-			Interpreter.log(
+			Interpreter.Companion.log(
 				Interpreter.loggerDebugL2,
 				Level.FINER,
 				logMessage,
@@ -849,7 +849,7 @@ public final class L1InstructionStepper
 			assert reifier != null;
 			pointers = savedPointers;
 			interpreter.chunk = unoptimizedChunk;
-			interpreter.offset = savedOffset;
+			interpreter.setOffset(savedOffset);
 			interpreter.function = savedFunction;
 			savedFunction.code().setUpInstructionDecoder(instructionDecoder);
 			instructionDecoder.pc(savedPc);
@@ -906,7 +906,7 @@ public final class L1InstructionStepper
 				interpreter.invokeFunction(implicitObserveFunction);
 			pointers = savedPointers;
 			interpreter.chunk = unoptimizedChunk;
-			interpreter.offset = savedOffset;
+			interpreter.setOffset(savedOffset);
 			interpreter.function = savedFunction;
 			savedFunction.code().setUpInstructionDecoder(instructionDecoder);
 			instructionDecoder.pc(savedPc);
@@ -966,7 +966,7 @@ public final class L1InstructionStepper
 			interpreter.invokeFunction(functionToInvoke);
 		pointers = savedPointers;
 		interpreter.chunk = unoptimizedChunk;
-		interpreter.offset = savedOffset;
+		interpreter.setOffset(savedOffset);
 		interpreter.function = savedFunction;
 		savedFunction.code().setUpInstructionDecoder(instructionDecoder);
 		instructionDecoder.pc(savedPc);
@@ -975,7 +975,7 @@ public final class L1InstructionStepper
 		{
 			if (Interpreter.debugL2)
 			{
-				Interpreter.log(
+				Interpreter.Companion.log(
 					Interpreter.loggerDebugL2,
 					Level.FINER,
 					"{0}Reifying call from L1 ({1})",
@@ -1057,7 +1057,7 @@ public final class L1InstructionStepper
 			assert reifier != null;
 			pointers = savedPointers;
 			interpreter.chunk = unoptimizedChunk;
-			interpreter.offset = savedOffset;
+			interpreter.setOffset(savedOffset);
 			interpreter.function = savedFunction;
 			savedFunction.code().setUpInstructionDecoder(instructionDecoder);
 			instructionDecoder.pc(savedPc);
@@ -1108,7 +1108,7 @@ public final class L1InstructionStepper
 					cast(tupleFromList(interpreter.argsBuffer)));
 				interpreter.function = functionToCall;
 				interpreter.chunk = functionToCall.code().startingChunk();
-				interpreter.offset = 0;
+				interpreter.setOffset(0);
 				interpreter.returnNow = false;
 				interpreter.isReifying = false;
 			});

@@ -46,8 +46,8 @@ import com.avail.descriptor.types.TupleTypeDescriptor.stringType
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AmbiguousNameException
 import com.avail.exceptions.AvailErrorCode.*
-import com.avail.interpreter.AvailLoader.Phase.EXECUTING_FOR_COMPILE
-import com.avail.interpreter.Interpreter
+import com.avail.interpreter.execution.AvailLoader.Phase.EXECUTING_FOR_COMPILE
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 import com.avail.interpreter.effects.LoadingEffectToRunPrimitive

@@ -80,8 +80,8 @@ interface TransportAdapter<T> : AutoCloseable
 	fun sendUserData(
 		channel: AbstractTransportChannel<T>,
 		payload: Message,
-		success: (()->Unit)?,
-		failure: ((Throwable)->Unit)?)
+		success: ()->Unit,
+		failure: (Throwable)->Unit)
 
 	/**
 	 * Send a polite close notification across the given

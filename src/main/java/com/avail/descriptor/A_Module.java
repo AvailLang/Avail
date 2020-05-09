@@ -48,8 +48,8 @@ import com.avail.descriptor.tuples.A_String;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.descriptor.tuples.StringDescriptor;
 import com.avail.descriptor.variables.A_Variable;
-import com.avail.interpreter.AvailLoader;
-import com.avail.interpreter.AvailLoader.LexicalScanner;
+import com.avail.interpreter.execution.AvailLoader;
+import com.avail.interpreter.execution.AvailLoader.LexicalScanner;
 import com.avail.interpreter.primitive.modules.P_PublishName;
 import com.avail.utility.evaluation.Continuation0;
 

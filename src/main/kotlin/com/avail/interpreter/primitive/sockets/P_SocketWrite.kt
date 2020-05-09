@@ -58,11 +58,13 @@ import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailErrorCode.*
-import com.avail.interpreter.Interpreter
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import com.avail.io.SimpleCompletionHandler
+import com.avail.io.SimpleCompletionHandler.Dummy.Companion.dummy
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousSocketChannel
 import java.util.Collections.emptyList
@@ -133,23 +135,23 @@ object P_SocketWrite : Primitive(5, CanInline, HasSideEffect)
 		{
 			socket.write(
 				buffer,
-				null,
+				dummy,
 				SimpleCompletionHandler(
-					{ _, _, handler ->
+					{
 						if (buffer.hasRemaining())
 						{
 							// Not done all writing.  Continue.
-							socket.write(buffer, null, handler)
+							socket.write(buffer, dummy, handler)
 						}
 						else
 						{
 							// Done all writing.  Report success.
-							Interpreter.runOutermostFunction(
+							runOutermostFunction(
 								runtime, newFiber, succeed, emptyList())
 						}
 					},
-					{ _, _, _ ->
-						Interpreter.runOutermostFunction(
+					{
+						runOutermostFunction(
 							runtime,
 							newFiber,
 							fail,

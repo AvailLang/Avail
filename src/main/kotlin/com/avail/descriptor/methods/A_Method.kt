@@ -49,7 +49,7 @@ import com.avail.dispatch.LookupTree
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.MethodDefinitionException
 import com.avail.exceptions.SignatureException
-import com.avail.interpreter.AvailLoader
+import com.avail.interpreter.execution.AvailLoader
 import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 

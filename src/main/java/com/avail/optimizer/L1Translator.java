@@ -60,7 +60,7 @@ import com.avail.dispatch.LookupTreeAdaptor.UnusedMemento;
 import com.avail.dispatch.LookupTreeTraverser;
 import com.avail.exceptions.AvailErrorCode;
 import com.avail.exceptions.MethodDefinitionException;
-import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.execution.Interpreter;
 import com.avail.interpreter.Primitive;
 import com.avail.interpreter.Primitive.Result;
 import com.avail.interpreter.levelOne.L1Operation;
@@ -2251,7 +2251,7 @@ public final class L1Translator
 				final String savedDebugModeString = interpreter.debugModeString;
 				if (Interpreter.debugL2)
 				{
-					Interpreter.log(
+					Interpreter.Companion.log(
 						Interpreter.loggerDebugL2,
 						Level.FINER,
 						"{0}FOLD {1}:",

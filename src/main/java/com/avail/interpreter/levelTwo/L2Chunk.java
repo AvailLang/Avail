@@ -47,7 +47,7 @@ import com.avail.descriptor.methods.MethodDescriptor;
 import com.avail.descriptor.pojos.PojoDescriptor;
 import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.tuples.A_String;
-import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.execution.Interpreter;
 import com.avail.interpreter.levelTwo.operation.L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO;
 import com.avail.interpreter.levelTwo.operation.L2_TRY_OPTIONAL_PRIMITIVE;
 import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
@@ -838,7 +838,7 @@ implements ExecutableChunk
 	{
 		if (Interpreter.debugL2)
 		{
-			Interpreter.log(
+			Interpreter.Companion.log(
 				Interpreter.loggerDebugL2,
 				Level.INFO,
 				"Running chunk {0} at offset {1}.",

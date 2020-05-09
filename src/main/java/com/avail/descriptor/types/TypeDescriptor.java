@@ -67,7 +67,7 @@ import com.avail.descriptor.tokens.LiteralTokenDescriptor;
 import com.avail.descriptor.tokens.TokenDescriptor;
 import com.avail.descriptor.tuples.A_Tuple;
 import com.avail.descriptor.variables.VariableDescriptor;
-import com.avail.interpreter.AvailLoader.LexicalScanner;
+import com.avail.interpreter.execution.AvailLoader.LexicalScanner;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 
 import javax.annotation.Nullable;

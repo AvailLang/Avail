@@ -51,7 +51,7 @@ import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.*
 import com.avail.exceptions.AvailException
 import com.avail.exceptions.MalformedMessageException
-import com.avail.interpreter.Interpreter
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanSuspend
 import com.avail.interpreter.Primitive.Flag.Unknown
@@ -133,8 +133,7 @@ object P_SimpleMacroDeclaration : Primitive(3, CanSuspend, Unknown)
 			return interpreter.primitiveFailure(
 				E_MACRO_MUST_RETURN_A_PARSE_NODE)
 		}
-		return interpreter.suspendAndDoInLevelOneSafe {
-			toSucceed, toFail ->
+		return interpreter.suspendInLevelOneSafeThen {
 			try
 			{
 				val atom = loader.lookupName(string)
@@ -148,14 +147,14 @@ object P_SimpleMacroDeclaration : Primitive(3, CanSuspend, Unknown)
 				}
 				function.code().setMethodName(
 					stringFrom("Macro body of $string"))
-				toSucceed.value(nil)
+				succeed(nil)
 			}
 			catch (e: AvailException)
 			{
 				// MalformedMessageException
 				// SignatureException
 				// AmbiguousNameException
-				toFail.value(e.errorCode)
+				fail(e.errorCode)
 			}
 		}
 	}

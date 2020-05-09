@@ -36,7 +36,7 @@ import com.avail.interpreter.levelTwo.operand.L2PcOperand;
 import com.avail.optimizer.jvm.JVMTranslator;
 import org.objectweb.asm.MethodVisitor;
 
-import static com.avail.interpreter.Interpreter.isInterruptRequestedMethod;
+import static com.avail.interpreter.execution.Interpreter.isInterruptRequestedMethod;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
 import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
 import static com.avail.interpreter.levelTwo.L2OperandType.PC;

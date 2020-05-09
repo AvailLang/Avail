@@ -32,7 +32,7 @@
 
 package com.avail;
 
-import com.avail.interpreter.Interpreter;
+import com.avail.interpreter.execution.Interpreter;
 
 import javax.annotation.Nullable;
 import java.util.concurrent.ScheduledThreadPoolExecutor;

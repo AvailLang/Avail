@@ -58,12 +58,13 @@ import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailErrorCode.*
-import com.avail.interpreter.Interpreter
-import com.avail.interpreter.Interpreter.runOutermostFunction
+import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
 import com.avail.io.SimpleCompletionHandler
+import com.avail.io.SimpleCompletionHandler.Dummy.Companion.dummy
 import java.nio.channels.AsynchronousServerSocketChannel
 import java.nio.channels.AsynchronousSocketChannel
 
@@ -125,12 +126,12 @@ object P_ServerSocketAccept : Primitive(5, CanInline, HasSideEffect)
 		return try
 		{
 			val module = currentModule()
-			socket.accept<Void>(
-				null,
+			socket.accept(
+				dummy,
 				SimpleCompletionHandler(
-					{ newSocket ->
+					{
 						val newHandle = createAtom(name, module)
-						val newPojo = identityPojo(newSocket)
+						val newPojo = identityPojo(value)
 						newHandle.setAtomProperty(SOCKET_KEY.atom, newPojo)
 						runOutermostFunction(
 							runtime,

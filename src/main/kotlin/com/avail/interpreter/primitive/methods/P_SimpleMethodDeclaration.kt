@@ -47,7 +47,7 @@ import com.avail.descriptor.types.TupleTypeDescriptor.stringType
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.*
 import com.avail.exceptions.AvailException
-import com.avail.interpreter.Interpreter
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 
@@ -77,8 +77,7 @@ object P_SimpleMethodDeclaration : Primitive(2, Bootstrap, CanSuspend, Unknown)
 			return interpreter.primitiveFailure(
 				E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
-		return interpreter.suspendAndDoInLevelOneSafe {
-			toSucceed, toFail ->
+		return interpreter.suspendInLevelOneSafeThen {
 			try
 			{
 				val atom = loader.lookupName(string)
@@ -86,14 +85,14 @@ object P_SimpleMethodDeclaration : Primitive(2, Bootstrap, CanSuspend, Unknown)
 				// Quote the string to make the method name.
 				function.code().setMethodName(
 					stringFrom(string.toString()))
-				toSucceed.value(nil)
+				succeed(nil)
 			}
 			catch (e: AvailException)
 			{
 				// MalformedMessageException
 				// SignatureException
 				// AmbiguousNameException
-				toFail.value(e.errorCode)
+				fail(e.errorCode)
 			}
 		}
 	}

@@ -81,12 +81,12 @@ internal open class BuilderProblemHandler constructor(
 			problem.moduleName,
 			problem.lineNumber,
 			problem.toString())
-		SimpleCompletionHandler<Int, Void?>(
+		SimpleCompletionHandler<Int>(
 			{ decider(false) },
-			{ _ -> decider(false) }
-		).guardedDo(
-			availBuilder.textInterface.errorChannel::write,
-			formatted,
-			null)
+			{ decider(false) }
+		).guardedDo {
+			availBuilder.textInterface.errorChannel.write(
+				formatted, dummy, handler)
+		}
 	}
 }
