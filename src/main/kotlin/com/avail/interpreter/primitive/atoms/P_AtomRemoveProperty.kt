@@ -31,7 +31,7 @@
  */
 package com.avail.interpreter.primitive.atoms
 
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import com.avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import com.avail.descriptor.atoms.A_Atom.Companion.setAtomProperty

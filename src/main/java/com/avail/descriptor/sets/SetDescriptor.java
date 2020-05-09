@@ -38,7 +38,7 @@ import com.avail.descriptor.A_Character;
 import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.Descriptor;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
-import com.avail.descriptor.NilDescriptor;
+import com.avail.descriptor.representation.NilDescriptor;
 import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.representation.AvailObjectFieldHelper;
 import com.avail.descriptor.representation.Mutability;

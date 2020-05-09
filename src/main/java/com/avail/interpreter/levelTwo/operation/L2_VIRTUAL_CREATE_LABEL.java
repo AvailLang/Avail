@@ -48,7 +48,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.representation.NilDescriptor.nil;
 import static com.avail.descriptor.types.ContinuationTypeDescriptor.mostGeneralContinuationType;
 import static com.avail.descriptor.types.FunctionTypeDescriptor.mostGeneralFunctionType;
 import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.int32;

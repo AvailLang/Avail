@@ -32,7 +32,7 @@
 package com.avail.interpreter.primitive.pojos
 
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.numbers.IntegerDescriptor
 import com.avail.descriptor.sets.SetDescriptor.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple

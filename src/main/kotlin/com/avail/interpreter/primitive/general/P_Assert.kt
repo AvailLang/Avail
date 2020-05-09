@@ -32,7 +32,7 @@
 package com.avail.interpreter.primitive.general
 
 import com.avail.descriptor.FiberDescriptor.ExecutionState
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject

@@ -35,7 +35,7 @@ package com.avail.interpreter.primitive.bootstrap.syntax
 import com.avail.compiler.AvailRejectedParseException
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
 import com.avail.descriptor.FiberDescriptor
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newVariable

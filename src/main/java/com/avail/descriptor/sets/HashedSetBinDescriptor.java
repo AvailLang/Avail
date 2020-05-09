@@ -37,7 +37,7 @@ import com.avail.annotations.HideFieldInDebugger;
 import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
-import com.avail.descriptor.NilDescriptor;
+import com.avail.descriptor.representation.NilDescriptor;
 import com.avail.descriptor.maps.HashedMapBinDescriptor;
 import com.avail.descriptor.maps.MapDescriptor;
 import com.avail.descriptor.representation.A_BasicObject;
@@ -56,7 +56,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.function.IntFunction;
 
-import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.representation.NilDescriptor.nil;
 import static com.avail.descriptor.representation.AvailObjectRepresentation.newLike;
 import static com.avail.descriptor.representation.Mutability.*;
 import static com.avail.descriptor.sets.HashedSetBinDescriptor.IntegerSlots.*;

@@ -76,7 +76,7 @@ import java.util.logging.Level;
 import java.util.regex.Pattern;
 
 import static com.avail.AvailRuntimeSupport.captureNanos;
-import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.representation.NilDescriptor.nil;
 import static com.avail.descriptor.functions.ContinuationDescriptor.createDummyContinuationMethod;
 import static com.avail.interpreter.execution.Interpreter.chunkField;
 import static com.avail.interpreter.execution.Interpreter.interpreterFunctionField;

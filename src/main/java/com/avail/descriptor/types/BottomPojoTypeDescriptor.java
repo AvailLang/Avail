@@ -44,7 +44,7 @@ import com.avail.utility.json.JSONWriter;
 import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 
-import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.representation.NilDescriptor.nil;
 import static com.avail.descriptor.pojos.RawPojoDescriptor.rawNullPojo;
 
 /**

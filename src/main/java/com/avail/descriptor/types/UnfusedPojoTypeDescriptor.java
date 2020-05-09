@@ -58,7 +58,7 @@ import javax.annotation.Nullable;
 import java.lang.reflect.TypeVariable;
 import java.util.IdentityHashMap;
 
-import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.representation.NilDescriptor.nil;
 import static com.avail.descriptor.maps.MapDescriptor.emptyMap;
 import static com.avail.descriptor.tuples.StringDescriptor.stringFrom;
 import static com.avail.descriptor.types.BottomPojoTypeDescriptor.pojoBottom;

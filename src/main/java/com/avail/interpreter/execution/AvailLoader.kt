@@ -37,7 +37,7 @@ import com.avail.compiler.splitter.MessageSplitter
 import com.avail.descriptor.*
 import com.avail.descriptor.CharacterDescriptor.fromCodePoint
 import com.avail.descriptor.FiberDescriptor.*
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate

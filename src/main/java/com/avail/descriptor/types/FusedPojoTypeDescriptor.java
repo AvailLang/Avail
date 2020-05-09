@@ -61,7 +61,7 @@ import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
 
-import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.representation.NilDescriptor.nil;
 import static com.avail.descriptor.maps.MapDescriptor.emptyMap;
 import static com.avail.descriptor.tuples.StringDescriptor.stringFrom;
 import static com.avail.descriptor.tuples.TupleDescriptor.emptyTuple;

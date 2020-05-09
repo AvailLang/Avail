@@ -38,7 +38,7 @@ import com.avail.descriptor.A_Module
 import com.avail.descriptor.AbstractDescriptor
 import com.avail.descriptor.Descriptor
 import com.avail.descriptor.FiberDescriptor
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.functions.CompiledCodeDescriptor.Companion.initialMutableDescriptor
 import com.avail.descriptor.functions.CompiledCodeDescriptor.IntegerSlots.Companion.FRAME_SLOTS
 import com.avail.descriptor.functions.CompiledCodeDescriptor.IntegerSlots.Companion.NUM_ARGS

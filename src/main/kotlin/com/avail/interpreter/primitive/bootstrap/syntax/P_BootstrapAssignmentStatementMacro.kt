@@ -34,7 +34,7 @@ package com.avail.interpreter.primitive.bootstrap.syntax
 
 import com.avail.compiler.AvailRejectedParseException
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.*
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.A_Phrase.Companion.declaredType

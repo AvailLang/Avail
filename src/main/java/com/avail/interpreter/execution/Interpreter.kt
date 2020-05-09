@@ -45,7 +45,7 @@ import com.avail.descriptor.FiberDescriptor.ExecutionState.*
 import com.avail.descriptor.FiberDescriptor.InterruptRequestFlag.REIFICATION_REQUESTED
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag.BOUND
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod

@@ -37,8 +37,8 @@ import com.avail.annotations.EnumField.Converter
 import com.avail.annotations.HideFieldInDebugger
 import com.avail.compiler.scanning.LexingState
 import com.avail.descriptor.Descriptor
-import com.avail.descriptor.NilDescriptor
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.representation.NilDescriptor
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.createSpecialAtom

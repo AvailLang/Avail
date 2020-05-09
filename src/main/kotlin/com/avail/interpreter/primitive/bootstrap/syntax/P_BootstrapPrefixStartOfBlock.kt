@@ -32,7 +32,7 @@
 
 package com.avail.interpreter.primitive.bootstrap.syntax
 
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.*
 import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.tuples.A_Tuple

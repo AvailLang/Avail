@@ -32,7 +32,7 @@
 package com.avail.descriptor.functions
 
 import com.avail.descriptor.Descriptor
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.functions.ContinuationRegisterDumpDescriptor.IntegerSlots.INTEGER_SLOTS_
 import com.avail.descriptor.functions.ContinuationRegisterDumpDescriptor.ObjectSlots.OBJECT_SLOTS_
 import com.avail.descriptor.representation.AvailObject

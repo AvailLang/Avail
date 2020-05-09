@@ -34,7 +34,7 @@ package com.avail.descriptor.types;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.NilDescriptor;
+import com.avail.descriptor.representation.NilDescriptor;
 import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.atoms.AtomDescriptor;
 import com.avail.descriptor.maps.A_Map;
@@ -59,7 +59,7 @@ import java.lang.reflect.*;
 import java.math.BigInteger;
 import java.util.*;
 
-import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.representation.NilDescriptor.nil;
 import static com.avail.descriptor.atoms.AtomDescriptor.createSpecialAtom;
 import static com.avail.descriptor.atoms.AtomDescriptor.objectFromBoolean;
 import static com.avail.descriptor.maps.MapDescriptor.emptyMap;

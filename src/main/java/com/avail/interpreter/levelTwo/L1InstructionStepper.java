@@ -73,7 +73,7 @@ import java.util.stream.Collectors;
 
 import static com.avail.AvailRuntime.HookType.IMPLICIT_OBSERVE;
 import static com.avail.AvailRuntimeSupport.captureNanos;
-import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.representation.NilDescriptor.nil;
 import static com.avail.descriptor.functions.ContinuationDescriptor.createContinuationWithFrame;
 import static com.avail.descriptor.functions.ContinuationDescriptor.createLabelContinuation;
 import static com.avail.descriptor.functions.FunctionDescriptor.createExceptOuters;

@@ -105,7 +105,7 @@ import java.util.function.Supplier;
 import static com.avail.AvailRuntime.HookType.*;
 import static com.avail.AvailRuntimeConfiguration.availableProcessors;
 import static com.avail.AvailRuntimeConfiguration.maxInterpreters;
-import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.representation.NilDescriptor.nil;
 import static com.avail.descriptor.atoms.AtomDescriptor.falseObject;
 import static com.avail.descriptor.atoms.AtomDescriptor.trueObject;
 import static com.avail.descriptor.functions.CompiledCodeDescriptor.newPrimitiveRawFunction;

@@ -33,7 +33,7 @@
 package com.avail.interpreter.levelTwo.operand;
 
 import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.NilDescriptor;
+import com.avail.descriptor.representation.NilDescriptor;
 import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.sets.SetDescriptor;
@@ -55,7 +55,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.representation.NilDescriptor.nil;
 import static com.avail.descriptor.numbers.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.sets.SetDescriptor.*;
 import static com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith;

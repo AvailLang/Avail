@@ -34,8 +34,8 @@ package com.avail.descriptor.phrases
 import com.avail.compiler.AvailCodeGenerator
 import com.avail.compiler.AvailCompiler
 import com.avail.descriptor.A_Module
-import com.avail.descriptor.NilDescriptor
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.representation.NilDescriptor
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.functions.A_RawFunction

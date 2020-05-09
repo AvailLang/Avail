@@ -44,7 +44,7 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.Map.Entry;
 
-import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.representation.NilDescriptor.nil;
 import static com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
 import static com.avail.utility.Nulls.stripNull;
 import static com.avail.utility.PrefixSharingList.append;

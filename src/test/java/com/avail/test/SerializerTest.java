@@ -69,7 +69,7 @@ import java.util.Random;
 
 import static com.avail.descriptor.CharacterDescriptor.fromCodePoint;
 import static com.avail.descriptor.ModuleDescriptor.newModule;
-import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.representation.NilDescriptor.nil;
 import static com.avail.descriptor.atoms.AtomDescriptor.falseObject;
 import static com.avail.descriptor.atoms.AtomDescriptor.trueObject;
 import static com.avail.descriptor.functions.FunctionDescriptor.createFunction;

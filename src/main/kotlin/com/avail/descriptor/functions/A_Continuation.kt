@@ -31,8 +31,8 @@
  */
 package com.avail.descriptor.functions
 
-import com.avail.descriptor.NilDescriptor
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.representation.NilDescriptor
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.methods.A_SemanticRestriction
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject

@@ -35,7 +35,7 @@ import com.avail.descriptor.A_ChunkDependable
 import com.avail.descriptor.A_Module
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.FiberDescriptor
-import com.avail.descriptor.NilDescriptor
+import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor

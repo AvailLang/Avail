@@ -33,7 +33,7 @@
 package com.avail.interpreter.primitive.modules
 
 import com.avail.descriptor.ModuleDescriptor
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.PUBLISH_NEW_NAME
 import com.avail.descriptor.sets.SetDescriptor.set

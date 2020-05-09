@@ -33,7 +33,7 @@ package com.avail.descriptor.phrases
 
 import com.avail.annotations.AvailMethod
 import com.avail.compiler.AvailCodeGenerator
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.phrases.A_Phrase.Companion.declaration
 import com.avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
 import com.avail.descriptor.phrases.A_Phrase.Companion.expression

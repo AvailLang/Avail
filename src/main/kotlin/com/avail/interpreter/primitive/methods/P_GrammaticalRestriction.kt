@@ -32,7 +32,7 @@
 package com.avail.interpreter.primitive.methods
 
 import com.avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.sets.SetDescriptor.generateSetFrom
 import com.avail.descriptor.sets.SetDescriptor.set

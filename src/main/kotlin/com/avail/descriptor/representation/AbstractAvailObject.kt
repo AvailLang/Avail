@@ -32,7 +32,6 @@
 package com.avail.descriptor.representation
 
 import com.avail.descriptor.AbstractDescriptor
-import com.avail.descriptor.FillerDescriptor
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.instanceMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode

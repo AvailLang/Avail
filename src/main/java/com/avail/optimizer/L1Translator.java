@@ -95,7 +95,7 @@ import java.util.logging.Level;
 
 import static com.avail.AvailRuntime.HookType.*;
 import static com.avail.AvailRuntimeSupport.captureNanos;
-import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.representation.NilDescriptor.nil;
 import static com.avail.descriptor.functions.FunctionDescriptor.createFunction;
 import static com.avail.descriptor.sets.SetDescriptor.setFromCollection;
 import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple;

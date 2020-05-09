@@ -35,7 +35,7 @@ package com.avail.descriptor.types;
 import com.avail.annotations.AvailMethod;
 import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
-import com.avail.descriptor.NilDescriptor;
+import com.avail.descriptor.representation.NilDescriptor;
 import com.avail.descriptor.atoms.A_Atom;
 import com.avail.descriptor.atoms.AtomDescriptor;
 import com.avail.descriptor.maps.A_Map;
@@ -60,7 +60,7 @@ import java.util.List;
 import java.util.Set;
 
 import static com.avail.descriptor.representation.AvailObject.multiplier;
-import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.representation.NilDescriptor.nil;
 import static com.avail.descriptor.atoms.AtomDescriptor.falseObject;
 import static com.avail.descriptor.atoms.AtomDescriptor.trueObject;
 import static com.avail.descriptor.numbers.IntegerDescriptor.fromInt;

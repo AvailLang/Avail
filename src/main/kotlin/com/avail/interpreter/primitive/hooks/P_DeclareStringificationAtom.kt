@@ -33,7 +33,7 @@
 package com.avail.interpreter.primitive.hooks
 
 import com.avail.AvailRuntime.HookType.STRINGIFICATION
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction

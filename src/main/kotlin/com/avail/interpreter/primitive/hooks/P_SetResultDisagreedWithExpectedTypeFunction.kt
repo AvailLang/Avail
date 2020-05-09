@@ -33,7 +33,7 @@
 package com.avail.interpreter.primitive.hooks
 
 import com.avail.AvailRuntime.HookType.RESULT_DISAGREED_WITH_EXPECTED_TYPE
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple

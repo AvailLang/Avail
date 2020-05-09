@@ -38,7 +38,7 @@ import com.avail.annotations.ThreadSafe;
 import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
-import com.avail.descriptor.NilDescriptor;
+import com.avail.descriptor.representation.NilDescriptor;
 import com.avail.descriptor.representation.BitField;
 import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.tuples.StringDescriptor;

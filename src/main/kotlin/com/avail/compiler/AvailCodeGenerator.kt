@@ -34,7 +34,7 @@ package com.avail.compiler
 
 import com.avail.compiler.instruction.*
 import com.avail.descriptor.A_Module
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.CompiledCodeDescriptor

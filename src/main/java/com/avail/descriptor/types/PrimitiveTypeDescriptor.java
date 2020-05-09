@@ -37,7 +37,7 @@ import com.avail.annotations.HideFieldInDebugger;
 import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.JavaCompatibility.IntegerSlotsEnumJava;
 import com.avail.descriptor.JavaCompatibility.ObjectSlotsEnumJava;
-import com.avail.descriptor.NilDescriptor;
+import com.avail.descriptor.representation.NilDescriptor;
 import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.representation.BitField;
 import com.avail.descriptor.representation.IntegerSlotsEnum;
@@ -52,7 +52,7 @@ import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
 
 import static com.avail.descriptor.representation.AvailObject.multiplier;
-import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.representation.NilDescriptor.nil;
 import static com.avail.descriptor.tuples.StringDescriptor.stringFrom;
 import static com.avail.descriptor.types.BottomTypeDescriptor.bottom;
 import static com.avail.descriptor.types.InstanceMetaDescriptor.topMeta;

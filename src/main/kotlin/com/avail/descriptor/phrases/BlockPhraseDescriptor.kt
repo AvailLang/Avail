@@ -38,7 +38,7 @@ import com.avail.compiler.AvailCodeGenerator
 import com.avail.compiler.AvailCodeGenerator.Companion.generateFunction
 import com.avail.descriptor.A_Module
 import com.avail.descriptor.ModuleDescriptor
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import com.avail.descriptor.phrases.A_Phrase.Companion.argumentsTuple

@@ -31,7 +31,7 @@
  */
 package com.avail.interpreter.primitive.controlflow
 
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import com.avail.descriptor.functions.A_RawFunction

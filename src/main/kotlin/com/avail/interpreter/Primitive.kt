@@ -33,7 +33,7 @@
 package com.avail.interpreter
 
 import com.avail.AvailRuntime.HookType.IMPLICIT_OBSERVE
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom

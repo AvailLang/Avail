@@ -66,7 +66,7 @@ import java.util.concurrent.SynchronousQueue;
 import static com.avail.CallbackSystem.createCallbackFunction;
 import static com.avail.descriptor.FiberDescriptor.commandPriority;
 import static com.avail.descriptor.FiberDescriptor.createFiber;
-import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.representation.NilDescriptor.nil;
 import static com.avail.descriptor.numbers.IntegerDescriptor.fromInt;
 import static com.avail.descriptor.numbers.IntegerDescriptor.one;
 import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple;

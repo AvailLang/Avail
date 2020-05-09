@@ -55,6 +55,7 @@ import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.representation.AbstractSlotsEnum;
 import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.representation.Mutability;
+import com.avail.descriptor.representation.NilDescriptor;
 import com.avail.descriptor.sets.A_Set;
 import com.avail.descriptor.sets.SetDescriptor;
 import com.avail.descriptor.tuples.A_String;
@@ -80,7 +81,7 @@ import java.util.Set;
 
 import static com.avail.descriptor.FiberDescriptor.currentFiber;
 import static com.avail.descriptor.ModuleDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.representation.NilDescriptor.nil;
 import static com.avail.descriptor.bundles.MessageBundleTreeDescriptor.newBundleTree;
 import static com.avail.descriptor.maps.MapDescriptor.emptyMap;
 import static com.avail.descriptor.parsing.ParsingPlanInProgressDescriptor.newPlanInProgress;

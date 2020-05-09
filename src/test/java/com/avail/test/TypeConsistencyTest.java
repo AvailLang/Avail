@@ -51,7 +51,7 @@ import java.io.PrintStream;
 import java.lang.reflect.Array;
 import java.util.*;
 
-import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.representation.NilDescriptor.nil;
 import static com.avail.descriptor.atoms.AtomDescriptor.createAtom;
 import static com.avail.descriptor.maps.MapDescriptor.emptyMap;
 import static com.avail.descriptor.objects.ObjectTypeDescriptor.mostGeneralObjectType;

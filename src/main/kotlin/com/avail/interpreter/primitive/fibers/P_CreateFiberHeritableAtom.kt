@@ -34,7 +34,7 @@ package com.avail.interpreter.primitive.fibers
 
 import com.avail.descriptor.FiberDescriptor
 import com.avail.descriptor.ModuleDescriptor.currentModule
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
 import com.avail.descriptor.atoms.AtomDescriptor

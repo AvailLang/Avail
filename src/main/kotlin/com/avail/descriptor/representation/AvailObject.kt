@@ -34,7 +34,7 @@ package com.avail.descriptor.representation
 import com.avail.compiler.scanning.LexingState
 import com.avail.descriptor.*
 import com.avail.descriptor.FiberDescriptor.*
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_BundleTree

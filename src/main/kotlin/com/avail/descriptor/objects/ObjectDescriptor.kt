@@ -34,7 +34,7 @@ package com.avail.descriptor.objects
 import com.avail.annotations.AvailMethod
 import com.avail.annotations.ThreadSafe
 import com.avail.descriptor.Descriptor
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty

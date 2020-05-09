@@ -57,7 +57,7 @@ import com.avail.descriptor.*
 import com.avail.descriptor.FiberDescriptor.GeneralFlag
 import com.avail.descriptor.FiberDescriptor.newLoaderFiber
 import com.avail.descriptor.ModuleDescriptor.newModule
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrNil

@@ -36,7 +36,7 @@ import com.avail.annotations.AvailMethod
 import com.avail.annotations.HideFieldInDebugger
 import com.avail.descriptor.A_Fiber
 import com.avail.descriptor.Descriptor
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.CompiledCodeDescriptor

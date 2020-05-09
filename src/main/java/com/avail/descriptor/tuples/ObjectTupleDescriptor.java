@@ -50,7 +50,7 @@ import java.util.NoSuchElementException;
 import java.util.function.IntFunction;
 
 import static com.avail.descriptor.representation.AvailObject.multiplier;
-import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.representation.NilDescriptor.nil;
 import static com.avail.descriptor.representation.AvailObjectRepresentation.newLike;
 import static com.avail.descriptor.tuples.ObjectTupleDescriptor.IntegerSlots.HASH_OR_ZERO;
 import static com.avail.descriptor.tuples.ObjectTupleDescriptor.ObjectSlots.TUPLE_AT_;

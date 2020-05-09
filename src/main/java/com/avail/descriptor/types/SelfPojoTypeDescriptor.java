@@ -55,7 +55,7 @@ import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
 
-import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.representation.NilDescriptor.nil;
 import static com.avail.descriptor.maps.MapDescriptor.emptyMap;
 import static com.avail.descriptor.pojos.RawPojoDescriptor.equalityPojo;
 import static com.avail.descriptor.sets.SetDescriptor.emptySet;

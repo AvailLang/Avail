@@ -53,7 +53,7 @@ import java.util.IdentityHashMap;
 import java.util.List;
 
 import static com.avail.descriptor.representation.AvailObject.multiplier;
-import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.representation.NilDescriptor.nil;
 import static com.avail.descriptor.numbers.IntegerDescriptor.one;
 import static com.avail.descriptor.sets.SetDescriptor.generateSetFrom;
 import static com.avail.descriptor.sets.SetDescriptor.singletonSet;

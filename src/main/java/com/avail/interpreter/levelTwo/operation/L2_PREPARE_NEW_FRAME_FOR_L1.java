@@ -56,7 +56,7 @@ import org.objectweb.asm.MethodVisitor;
 
 import javax.annotation.Nullable;
 
-import static com.avail.descriptor.NilDescriptor.nil;
+import static com.avail.descriptor.representation.NilDescriptor.nil;
 import static com.avail.descriptor.functions.ContinuationDescriptor.createContinuationWithFrame;
 import static com.avail.descriptor.variables.VariableDescriptor.newVariableWithOuterType;
 import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RESUME;

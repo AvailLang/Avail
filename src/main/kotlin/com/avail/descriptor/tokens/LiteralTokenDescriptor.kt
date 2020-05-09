@@ -34,7 +34,7 @@ package com.avail.descriptor.tokens
 import com.avail.annotations.AvailMethod
 import com.avail.annotations.HideFieldInDebugger
 import com.avail.compiler.scanning.LexingState
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.pojos.RawPojoDescriptor
 import com.avail.descriptor.representation.*
 import com.avail.descriptor.tokens.LiteralTokenDescriptor.IntegerSlots.Companion.LINE_NUMBER

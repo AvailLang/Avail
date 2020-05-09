@@ -32,7 +32,7 @@
 
 package com.avail.interpreter.primitive.variables
 
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.sets.SetDescriptor.set

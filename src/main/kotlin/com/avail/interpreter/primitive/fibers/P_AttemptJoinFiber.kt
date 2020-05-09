@@ -35,7 +35,7 @@ package com.avail.interpreter.primitive.fibers
 import com.avail.descriptor.FiberDescriptor
 import com.avail.descriptor.FiberDescriptor.ExecutionState
 import com.avail.descriptor.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.SetDescriptor.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type

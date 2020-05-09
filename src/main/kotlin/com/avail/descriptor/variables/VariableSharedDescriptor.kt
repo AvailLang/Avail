@@ -34,8 +34,8 @@ package com.avail.descriptor.variables
 import com.avail.annotations.AvailMethod
 import com.avail.annotations.HideFieldInDebugger
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.NilDescriptor
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.representation.NilDescriptor
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.pojos.RawPojoDescriptor

@@ -32,7 +32,6 @@
 package com.avail.descriptor.representation
 
 import com.avail.descriptor.AbstractDescriptor
-import com.avail.descriptor.FillerDescriptor
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.functions.*
 import com.avail.descriptor.maps.A_Map

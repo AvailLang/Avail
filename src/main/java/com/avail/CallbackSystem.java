@@ -34,7 +34,7 @@ package com.avail;
 
 import com.avail.descriptor.A_Fiber;
 import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.NilDescriptor;
+import com.avail.descriptor.representation.NilDescriptor;
 import com.avail.descriptor.functions.A_Function;
 import com.avail.descriptor.functions.A_RawFunction;
 import com.avail.descriptor.pojos.PojoDescriptor;

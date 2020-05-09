@@ -31,7 +31,7 @@
  */
 package com.avail.interpreter.primitive.objects
 
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.objects.ObjectTypeDescriptor
 import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType

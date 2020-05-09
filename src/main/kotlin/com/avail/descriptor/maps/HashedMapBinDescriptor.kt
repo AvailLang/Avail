@@ -32,7 +32,7 @@
 package com.avail.descriptor.maps
 
 import com.avail.annotations.AvailMethod
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.maps.HashedMapBinDescriptor.IntegerSlots.*
 import com.avail.descriptor.maps.HashedMapBinDescriptor.IntegerSlots.Companion.KEYS_HASH
 import com.avail.descriptor.maps.HashedMapBinDescriptor.IntegerSlots.Companion.VALUES_HASH_OR_ZERO

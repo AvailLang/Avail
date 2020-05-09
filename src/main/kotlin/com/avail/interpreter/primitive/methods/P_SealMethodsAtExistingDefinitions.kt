@@ -32,7 +32,7 @@
 
 package com.avail.interpreter.primitive.methods
 
-import com.avail.descriptor.NilDescriptor.nil
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrNil
 import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
