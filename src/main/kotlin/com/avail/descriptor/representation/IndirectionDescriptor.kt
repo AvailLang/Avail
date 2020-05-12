@@ -32,6 +32,7 @@
 package com.avail.descriptor.representation
 
 import com.avail.annotations.AvailMethod
+import com.avail.annotations.HideFieldInDebugger
 import com.avail.compiler.AvailCodeGenerator
 import com.avail.compiler.scanning.LexingState
 import com.avail.compiler.splitter.MessageSplitter
@@ -246,6 +247,7 @@ class IndirectionDescriptor private constructor(
 		/**
 		 * All other object slots should be ignored.
 		 */
+		@HideFieldInDebugger
 		IGNORED_OBJECT_SLOT_
 	}
 
@@ -257,6 +259,7 @@ class IndirectionDescriptor private constructor(
 		/**
 		 * Ignore all integer slots.
 		 */
+		@HideFieldInDebugger
 		IGNORED_INTEGER_SLOT_
 	}
 
@@ -501,9 +504,9 @@ class IndirectionDescriptor private constructor(
 		self: AvailObject,
 		elementObject: A_BasicObject,
 		elementObjectHash: Int,
-		myLevel: Byte,
+		myLevel: Int,
 		canDestroy: Boolean
-	): A_BasicObject = self .. {
+	): A_BasicObject = self.. {
 		setBinAddingElementHashLevelCanDestroy(
 			elementObject, elementObjectHash, myLevel, canDestroy)
 	}
@@ -525,7 +528,7 @@ class IndirectionDescriptor private constructor(
 		self: AvailObject,
 		elementObject: A_BasicObject,
 		elementObjectHash: Int,
-		myLevel: Byte,
+		myLevel: Int,
 		canDestroy: Boolean
 	): AvailObject = self .. {
 		binRemoveElementHashLevelCanDestroy(
@@ -1135,9 +1138,9 @@ class IndirectionDescriptor private constructor(
 		self: AvailObject,
 		key: A_BasicObject,
 		notFoundValue: A_BasicObject,
-		transformer: BinaryOperator<A_BasicObject>,
+		transformer: BiFunction<AvailObject, AvailObject, A_BasicObject>,
 		canDestroy: Boolean
-	): A_Map = self .. {
+	): A_Map = self.. {
 		mapAtReplacingCanDestroy(key, notFoundValue, transformer, canDestroy)
 	}
 
@@ -2270,9 +2273,9 @@ class IndirectionDescriptor private constructor(
 		key: A_BasicObject,
 		keyHash: Int,
 		value: A_BasicObject,
-		myLevel: Byte,
+		myLevel: Int,
 		canDestroy: Boolean
-	): A_MapBin = self .. {
+	): A_MapBin = self.. {
 		mapBinAtHashPutLevelCanDestroy(key, keyHash, value, myLevel, canDestroy)
 	}
 
@@ -2289,10 +2292,10 @@ class IndirectionDescriptor private constructor(
 		key: A_BasicObject,
 		keyHash: Int,
 		notFoundValue: A_BasicObject,
-		transformer: BinaryOperator<A_BasicObject>,
-		myLevel: Byte,
+		transformer: BiFunction<AvailObject, AvailObject, A_BasicObject>,
+		myLevel: Int,
 		canDestroy: Boolean
-	): A_MapBin = self .. {
+	): A_MapBin = self.. {
 		mapBinAtHashReplacingLevelCanDestroy(
 			key, keyHash, notFoundValue, transformer, myLevel, canDestroy)
 	}

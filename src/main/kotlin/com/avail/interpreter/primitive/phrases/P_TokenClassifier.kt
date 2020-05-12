@@ -33,7 +33,7 @@ package com.avail.interpreter.primitive.phrases
 
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.functions.A_RawFunction
-import com.avail.descriptor.sets.SetDescriptor.set
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tokens.TokenDescriptor
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.*

@@ -40,7 +40,7 @@ Extends
 	"Backtracking Tests" = ("backtracking test suite"),
 	"Cast Tests" = ("cast test suite"),
 	"Characters Tests" = ("character test suite"),
- 	"Common" = ("Foundation|foundation test suite"),
+	"Common" = ("Foundation|foundation test suite"),
 	"Concurrency Tests" = ("concurrency test suite"),
 	"Control Structure Tests" = ("control structure test suite"),
 	"Decompiler Tests" = ("decompiler test suite"),

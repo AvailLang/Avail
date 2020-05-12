@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.effects
 
+import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_Method
@@ -57,13 +58,12 @@ import com.avail.interpreter.levelOne.L1Operation
  *   The definition being added.
  */
 internal class LoadingEffectToAddDefinition constructor(
-	internal val definition: A_Definition) : LoadingEffect()
-{
+	internal val bundle: A_Bundle,
+	internal val definition: A_Definition
+) : LoadingEffect() {
 	override fun writeEffectTo(writer: L1InstructionWriter)
 	{
-		val atom = definition.definitionMethod()
-			.chooseBundle(definition.definitionModule())
-			.message()
+		val atom = bundle.message()
 		with(writer) {
 			when {
 				definition.isAbstractDefinition() -> {

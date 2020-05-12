@@ -51,9 +51,10 @@ import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.BottomTypeDescriptor.bottom
 import com.avail.descriptor.types.TypeTag
+import com.avail.utility.Casts.cast
 import java.util.*
 import java.util.function.BiConsumer
-import java.util.function.BinaryOperator
+import java.util.function.BiFunction
 
 /**
  * This class implements the internal hashed nodes of a Bagwell Ideal Hash Tree.
@@ -91,7 +92,7 @@ import java.util.function.BinaryOperator
  */
 class HashedMapBinDescriptor private constructor(
 	mutability: Mutability,
-	level: Byte
+	level: Int
 ) : MapBinDescriptor(
 	mutability,
 	TypeTag.MAP_HASHED_BIN_TAG,
@@ -104,7 +105,7 @@ class HashedMapBinDescriptor private constructor(
 	 * six bits to determine a bin number.  This is a function of the level,
 	 * so that each level is hashed with a different part of the hash value.
 	 */
-	private val shift: Byte = (level * 6).toByte().also { assert(it < 32) }
+	private val shift: Int = (level * 6).also { assert(it < 32) }
 
 	/**
 	 * The layout of integer slots for my instances.
@@ -288,7 +289,7 @@ class HashedMapBinDescriptor private constructor(
 		key: A_BasicObject,
 		keyHash: Int,
 		value: A_BasicObject,
-		myLevel: Byte,
+		myLevel: Int,
 		canDestroy: Boolean
 	): A_MapBin {
 		assert(myLevel == level)
@@ -297,7 +298,7 @@ class HashedMapBinDescriptor private constructor(
 		val oldSize = self.mapBinSize()
 		val objectEntryCount = self.variableObjectSlotsCount()
 		// Grab the appropriate 6 bits from the hash.
-		val logicalIndex = keyHash ushr shift.toInt() and 63
+		val logicalIndex = keyHash ushr shift and 63
 		val vector = self.slot(BIT_VECTOR)
 		val masked = vector and (1L shl logicalIndex) - 1
 		val physicalIndex: Int = java.lang.Long.bitCount(masked) + 1
@@ -311,7 +312,7 @@ class HashedMapBinDescriptor private constructor(
 			val oldSubBinSize = oldSubBin.mapBinSize()
 			val oldSubBinKeyHash = oldSubBin.mapBinKeysHash()
 			val newSubBin = oldSubBin.mapBinAtHashPutLevelCanDestroy(
-				key, keyHash, value,(myLevel + 1).toByte(), canDestroy)
+				key, keyHash, value, myLevel + 1, canDestroy)
 			delta = newSubBin.mapBinSize() - oldSubBinSize
 			hashDelta = newSubBin.mapBinKeysHash() - oldSubBinKeyHash
 			objectToModify = if (canDestroy && isMutable) {
@@ -339,7 +340,7 @@ class HashedMapBinDescriptor private constructor(
 			objectToModify.setSlotsFromObjectSlots(
 				SUB_BINS_, 1, self, SUB_BINS_, 1, physicalIndex - 1)
 			val newSingleBin = createSingleLinearMapBin(
-				key, keyHash, value, (myLevel + 1).toByte())
+				key, keyHash, value, myLevel + 1)
 			objectToModify.setSlot(SUB_BINS_, physicalIndex, newSingleBin)
 			objectToModify.setSlotsFromObjectSlots(
 				SUB_BINS_,
@@ -365,7 +366,7 @@ class HashedMapBinDescriptor private constructor(
 		keyHash: Int
 	): AvailObject? {
 		// First, grab the appropriate 6 bits from the hash.
-		val logicalIndex = keyHash ushr shift.toInt() and 63
+		val logicalIndex = keyHash ushr shift and 63
 		val vector = self.slot(BIT_VECTOR)
 		if (vector and (1L shl logicalIndex) == 0L) {
 			// Not found.  Answer null.
@@ -395,7 +396,7 @@ class HashedMapBinDescriptor private constructor(
 			self.makeImmutable()
 		}
 		// Grab the appropriate 6 bits from the hash.
-		val logicalIndex = keyHash ushr shift.toInt() and 63
+		val logicalIndex = keyHash ushr shift and 63
 		val vector = self.slot(BIT_VECTOR)
 		if (vector and (1L shl logicalIndex) == 0L) {
 			// Definitely not present.
@@ -466,8 +467,8 @@ class HashedMapBinDescriptor private constructor(
 		key: A_BasicObject,
 		keyHash: Int,
 		notFoundValue: A_BasicObject,
-		transformer: BinaryOperator<A_BasicObject>,
-		myLevel: Byte,
+		transformer: BiFunction<AvailObject, AvailObject, A_BasicObject>,
+		myLevel: Int,
 		canDestroy: Boolean
 	): A_MapBin {
 		checkHashedMapBin(self)
@@ -475,14 +476,14 @@ class HashedMapBinDescriptor private constructor(
 			self.makeImmutable()
 		}
 		// First, grab the appropriate 6 bits from the hash.
-		val logicalIndex = keyHash ushr shift.toInt() and 63
+		val logicalIndex = keyHash ushr shift and 63
 		val vector = self.slot(BIT_VECTOR)
 		if (vector and (1L shl logicalIndex) == 0L) {
 			// Definitely not present, so add it.
 			return self.mapBinAtHashPutLevelCanDestroy(
 				key,
 				keyHash,
-				transformer.apply(key, notFoundValue),
+				transformer.apply(cast(key), cast(notFoundValue)),
 				level,
 				canDestroy)
 		}
@@ -499,7 +500,7 @@ class HashedMapBinDescriptor private constructor(
 			keyHash,
 			notFoundValue,
 			transformer,
-			(myLevel + 1).toByte(),
+			myLevel + 1,
 			canDestroy)
 		val delta = newSubBin.mapBinSize() - oldSubBinSize
 		val hashDelta = newSubBin.mapBinKeysHash() - oldSubBinKeyHash
@@ -694,7 +695,7 @@ class HashedMapBinDescriptor private constructor(
 		 *   denormalized, with all sub-bins set to empty linear bins.
 		 */
 		fun createLevelBitVector(
-			myLevel: Byte,
+			myLevel: Int,
 			bitVector: Long
 		): AvailObject {
 			val newSize: Int = java.lang.Long.bitCount(bitVector)
@@ -709,7 +710,7 @@ class HashedMapBinDescriptor private constructor(
 				SUB_BINS_,
 				1,
 				newSize,
-				emptyLinearMapBin((myLevel + 1).toByte()))
+				emptyLinearMapBin(myLevel + 1))
 			checkHashedMapBin(result)
 			return result
 		}
@@ -718,7 +719,7 @@ class HashedMapBinDescriptor private constructor(
 		 * The number of distinct levels that my instances can occupy in a map's
 		 * hash tree.
 		 */
-		private const val numberOfLevels: Byte = 6
+		private const val numberOfLevels: Int = 6
 
 		/**
 		 * Answer the appropriate [HashedMapBinDescriptor] to use for the given
@@ -733,7 +734,7 @@ class HashedMapBinDescriptor private constructor(
 		 */
 		private fun descriptorFor(
 			flag: Mutability,
-			level: Byte
+			level: Int
 		): HashedMapBinDescriptor {
 			assert(level in 0 until numberOfLevels)
 			return descriptors[level * 3 + flag.ordinal]
@@ -745,7 +746,7 @@ class HashedMapBinDescriptor private constructor(
 		val descriptors = Array(numberOfLevels * 3) {
 			val level = it / 3
 			val mut = Mutability.values()[it - level * 3]
-			HashedMapBinDescriptor(mut, level.toByte())
+			HashedMapBinDescriptor(mut, level)
 		}
 	}
 

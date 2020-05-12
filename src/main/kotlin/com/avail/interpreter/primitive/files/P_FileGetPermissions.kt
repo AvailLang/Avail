@@ -34,10 +34,12 @@ package com.avail.interpreter.primitive.files
 
 import com.avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import com.avail.descriptor.numbers.A_Number
+import com.avail.descriptor.numbers.IntegerDescriptor
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.sets.A_Set
-import com.avail.descriptor.sets.SetDescriptor.generateSetFrom
-import com.avail.descriptor.sets.SetDescriptor.set
+import com.avail.descriptor.sets.SetDescriptor
+import com.avail.descriptor.sets.SetDescriptor.Companion.generateSetFrom
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
@@ -93,18 +95,16 @@ object P_FileGetPermissions : Primitive(2, CanInline, HasSideEffect)
 
 	/**
 	 * Convert the specified [set][Set] of [permissions][PosixFilePermission]
-	 * into the equivalent [set][SetDescriptor] of [
-	 * ordinals][IntegerDescriptor].
+	 * into the equivalent [set][SetDescriptor] of
+	 * [ordinals][IntegerDescriptor].
 	 *
 	 * @param permissions
 	 *   Some POSIX file permissions.
 	 * @return The equivalent ordinals.
 	 */
 	private fun ordinalsFromPosixPermissions(
-		permissions: Set<PosixFilePermission>): A_Set
-	{
-		return generateSetFrom(permissions, permissionMap::get)
-	}
+		permissions: Set<PosixFilePermission>
+	): A_Set = generateSetFrom(permissions) { permissionMap[it]!! }
 
 	override fun attempt(interpreter: Interpreter): Result
 	{

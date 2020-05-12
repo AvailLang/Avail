@@ -82,12 +82,12 @@ import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.Set;
 
-import static com.avail.descriptor.fiber.FiberDescriptor.currentFiber;
-import static com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.*;
-import static com.avail.descriptor.representation.NilDescriptor.nil;
 import static com.avail.descriptor.bundles.MessageBundleTreeDescriptor.newBundleTree;
+import static com.avail.descriptor.fiber.FiberDescriptor.currentFiber;
 import static com.avail.descriptor.maps.MapDescriptor.emptyMap;
+import static com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.*;
 import static com.avail.descriptor.parsing.ParsingPlanInProgressDescriptor.newPlanInProgress;
+import static com.avail.descriptor.representation.NilDescriptor.nil;
 import static com.avail.descriptor.sets.SetDescriptor.emptySet;
 import static com.avail.descriptor.sets.SetDescriptor.set;
 import static com.avail.descriptor.tuples.TupleDescriptor.emptyTuple;
@@ -516,8 +516,7 @@ extends Descriptor
 			importedNames = importedNames.mapAtReplacingCanDestroy(
 				string,
 				emptySet(),
-				(str, set) -> ((A_Set) set).setWithElementCanDestroy(
-					trueName, true),
+				(str, set) -> set.setWithElementCanDestroy(trueName, true),
 				true);
 			object.setSlot(IMPORTED_NAMES, importedNames.makeShared());
 			A_Map privateNames = object.slot(PRIVATE_NAMES);
@@ -568,8 +567,7 @@ extends Descriptor
 				importedNames = importedNames.mapAtReplacingCanDestroy(
 					string,
 					emptySet(),
-					(str, set) -> ((A_Set) set).setWithElementCanDestroy(
-						trueName, true),
+					(str, set) -> set.setWithElementCanDestroy(trueName, true),
 					true);
 				if (privateNames.hasKey(string)
 					&& privateNames.mapAt(string).hasElement(trueName))
@@ -636,8 +634,7 @@ extends Descriptor
 			privateNames = privateNames.mapAtReplacingCanDestroy(
 				string,
 				emptySet(),
-				(str, set) -> ((A_Set) set).setWithElementCanDestroy(
-					trueName, true),
+				(str, set) -> set.setWithElementCanDestroy(trueName, true),
 				true);
 			object.setSlot(PRIVATE_NAMES, privateNames.makeShared());
 			A_Set visibleNames = object.slot(VISIBLE_NAMES);
@@ -674,8 +671,7 @@ extends Descriptor
 				privateNames = privateNames.mapAtReplacingCanDestroy(
 					string,
 					emptySet(),
-					(str, set) -> ((A_Set) set).setWithElementCanDestroy(
-						trueName, true),
+					(str, set) -> set.setWithElementCanDestroy(trueName, true),
 					true);
 				visibleNames = visibleNames.setWithElementCanDestroy(
 					trueName, true);

@@ -592,7 +592,7 @@ Semantic restriction "take«at most»?_from_" is
  */
 Public macro "_is not exhausted" is
 [
- 	aReader : expression phrase ⇒ reader
+	aReader : expression phrase ⇒ reader
 |
 	restricted send $"¬_"
 		with «<(restricted send $"_is exhausted" with «<aReader>» : boolean)>»
@@ -827,7 +827,7 @@ Semantic restriction "Drop from_until_" is
  */
 Method "Write_to_" is
 [
- 	newElements : tuple,
+	newElements : tuple,
 	aWriter : writer
 |
 	For each element of newElements do

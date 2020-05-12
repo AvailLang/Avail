@@ -39,7 +39,9 @@ import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_BundleTree
 import com.avail.descriptor.character.A_Character
+import com.avail.descriptor.character.CharacterDescriptor
 import com.avail.descriptor.fiber.A_Fiber
+import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.functions.*
 import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
 import com.avail.descriptor.maps.A_Map
@@ -47,6 +49,7 @@ import com.avail.descriptor.maps.A_MapBin
 import com.avail.descriptor.maps.MapBinDescriptor
 import com.avail.descriptor.methods.*
 import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.AbstractNumberDescriptor
 import com.avail.descriptor.numbers.AbstractNumberDescriptor.Sign
@@ -90,9 +93,7 @@ import com.avail.utility.visitor.AvailSubobjectVisitor
 import com.avail.utility.visitor.MarkUnreachableSubobjectVisitor
 import java.nio.ByteBuffer
 import java.util.*
-import java.util.function.BiConsumer
-import java.util.function.BinaryOperator
-import java.util.function.Supplier
+import java.util.function.*
 import java.util.stream.Stream
 
 /**
@@ -529,8 +530,8 @@ class AvailObject private constructor(
 	override fun asTuple() = descriptor().o_AsTuple(this)
 
 	/**
- 	 * Add a [definition][DefinitionDescriptor] to this
- 	 * [module][ModuleDescriptor].
+	 * Add a [definition][DefinitionDescriptor] to this
+	 * [module][ModuleDescriptor].
 	 *
 	 * @param definition
 	 *   The definition to add to the module.
@@ -553,7 +554,7 @@ class AvailObject private constructor(
 	override fun setBinAddingElementHashLevelCanDestroy(
 		elementObject: A_BasicObject,
 		elementObjectHash: Int,
-		myLevel: Byte,
+		myLevel: Int,
 		canDestroy: Boolean
 	): A_BasicObject =
 		descriptor().o_SetBinAddingElementHashLevelCanDestroy(
@@ -579,7 +580,7 @@ class AvailObject private constructor(
 	override fun binRemoveElementHashLevelCanDestroy(
 		elementObject: A_BasicObject,
 		elementObjectHash: Int,
-		myLevel: Byte,
+		myLevel: Int,
 		canDestroy: Boolean
 	) = descriptor().o_BinRemoveElementHashLevelCanDestroy(
 		this, elementObject, elementObjectHash, myLevel, canDestroy)
@@ -1705,7 +1706,7 @@ class AvailObject private constructor(
 	override fun mapAtReplacingCanDestroy(
 		key: A_BasicObject,
 		notFoundValue: A_BasicObject,
-		transformer: BinaryOperator<A_BasicObject>,
+		transformer: BiFunction<AvailObject, AvailObject, A_BasicObject>,
 		canDestroy: Boolean
 	): A_Map = descriptor().o_MapAtReplacingCanDestroy(
 		this, key, notFoundValue, transformer, canDestroy)
@@ -2407,7 +2408,7 @@ class AvailObject private constructor(
 		key: A_BasicObject,
 		keyHash: Int,
 		value: A_BasicObject,
-		myLevel: Byte,
+		myLevel: Int,
 		canDestroy: Boolean
 	) = descriptor().o_MapBinAtHashPutLevelCanDestroy(
 		this, key, keyHash, value, myLevel, canDestroy)
@@ -2423,8 +2424,8 @@ class AvailObject private constructor(
 		key: A_BasicObject,
 		keyHash: Int,
 		notFoundValue: A_BasicObject,
-		transformer: BinaryOperator<A_BasicObject>,
-		myLevel: Byte,
+		transformer: BiFunction<AvailObject, AvailObject, A_BasicObject>,
+		myLevel: Int,
 		canDestroy: Boolean
 	): A_MapBin = descriptor().o_MapBinAtHashReplacingLevelCanDestroy(
 		this, key, keyHash, notFoundValue, transformer, myLevel, canDestroy)
@@ -3129,7 +3130,7 @@ class AvailObject private constructor(
 		}
 
 		/** The [CheckedMethod] for [iterator]. */
-		val iteratorMethod = instanceMethod(
+		val iteratorMethod: CheckedMethod = instanceMethod(
 			AvailObject::class.java,
 			AvailObject::iterator.name,
 			IteratorNotNull::class.java)

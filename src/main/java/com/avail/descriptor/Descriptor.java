@@ -36,19 +36,17 @@ import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCodeGenerator;
 import com.avail.compiler.scanning.LexingState;
 import com.avail.compiler.splitter.MessageSplitter;
+import com.avail.descriptor.atoms.A_Atom;
+import com.avail.descriptor.bundles.A_Bundle;
+import com.avail.descriptor.bundles.A_BundleTree;
 import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState;
 import com.avail.descriptor.fiber.FiberDescriptor.GeneralFlag;
 import com.avail.descriptor.fiber.FiberDescriptor.InterruptRequestFlag;
 import com.avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag;
 import com.avail.descriptor.fiber.FiberDescriptor.TraceFlag;
-import com.avail.descriptor.atoms.A_Atom;
-import com.avail.descriptor.bundles.A_Bundle;
-import com.avail.descriptor.bundles.A_BundleTree;
 import com.avail.descriptor.functions.A_Continuation;
 import com.avail.descriptor.functions.A_Function;
 import com.avail.descriptor.functions.A_RawFunction;
-import com.avail.descriptor.module.A_Module;
-import com.avail.descriptor.representation.IndirectionDescriptor;
 import com.avail.descriptor.maps.A_Map;
 import com.avail.descriptor.maps.A_MapBin;
 import com.avail.descriptor.maps.MapDescriptor.MapIterable;
@@ -56,6 +54,7 @@ import com.avail.descriptor.methods.A_Definition;
 import com.avail.descriptor.methods.A_GrammaticalRestriction;
 import com.avail.descriptor.methods.A_Method;
 import com.avail.descriptor.methods.A_SemanticRestriction;
+import com.avail.descriptor.module.A_Module;
 import com.avail.descriptor.numbers.A_Number;
 import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order;
 import com.avail.descriptor.numbers.AbstractNumberDescriptor.Sign;
@@ -67,6 +66,7 @@ import com.avail.descriptor.phrases.A_Phrase;
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind;
 import com.avail.descriptor.representation.A_BasicObject;
 import com.avail.descriptor.representation.AvailObject;
+import com.avail.descriptor.representation.IndirectionDescriptor;
 import com.avail.descriptor.representation.IntegerSlotsEnum;
 import com.avail.descriptor.representation.Mutability;
 import com.avail.descriptor.representation.ObjectSlotsEnum;
@@ -89,9 +89,9 @@ import com.avail.exceptions.MethodDefinitionException;
 import com.avail.exceptions.SignatureException;
 import com.avail.exceptions.VariableGetException;
 import com.avail.exceptions.VariableSetException;
+import com.avail.interpreter.Primitive;
 import com.avail.interpreter.execution.AvailLoader;
 import com.avail.interpreter.execution.AvailLoader.LexicalScanner;
-import com.avail.interpreter.Primitive;
 import com.avail.interpreter.levelTwo.L2Chunk;
 import com.avail.interpreter.levelTwo.operand.TypeRestriction;
 import com.avail.io.TextInterface;
@@ -116,7 +116,7 @@ import java.util.NoSuchElementException;
 import java.util.Spliterator;
 import java.util.TimerTask;
 import java.util.function.BiConsumer;
-import java.util.function.BinaryOperator;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
@@ -144,7 +144,11 @@ import static java.lang.String.format;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@SuppressWarnings({"RedundantThrows", "ThrowsRuntimeException"})
+@SuppressWarnings({
+	"NullableProblems",
+	"ThrowsRuntimeException",
+	"RedundantThrows"
+})
 public abstract class Descriptor
 extends AbstractDescriptor
 {
@@ -1024,7 +1028,7 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final A_BasicObject key,
 		final A_BasicObject notFoundValue,
-		final BinaryOperator<A_BasicObject> transformer,
+		final BiFunction<AvailObject, AvailObject, A_BasicObject> transformer,
 		final boolean canDestroy)
 	{
 		throw unsupportedOperationException();
@@ -2674,7 +2678,7 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final A_BasicObject elementObject,
 		final int elementObjectHash,
-		final byte myLevel,
+		final int myLevel,
 		final boolean canDestroy)
 	{
 		// Add the given element to this bin, potentially modifying it if
@@ -2730,7 +2734,7 @@ extends AbstractDescriptor
 		final AvailObject object,
 		final A_BasicObject elementObject,
 		final int elementObjectHash,
-		final byte myLevel,
+		final int myLevel,
 		final boolean canDestroy)
 	{
 		if (object.equals(elementObject))
@@ -3458,7 +3462,7 @@ extends AbstractDescriptor
 		final A_BasicObject key,
 		final int keyHash,
 		final A_BasicObject value,
-		final byte myLevel,
+		final int myLevel,
 		final boolean canDestroy)
 	{
 		throw unsupportedOperationException();
@@ -3480,8 +3484,8 @@ extends AbstractDescriptor
 		final A_BasicObject key,
 		final int keyHash,
 		final A_BasicObject notFoundValue,
-		final BinaryOperator<A_BasicObject> transformer,
-		final byte myLevel,
+		final BiFunction<AvailObject, AvailObject, A_BasicObject> transformer,
+		final int myLevel,
 		final boolean canDestroy)
 	{
 		throw unsupportedOperationException();

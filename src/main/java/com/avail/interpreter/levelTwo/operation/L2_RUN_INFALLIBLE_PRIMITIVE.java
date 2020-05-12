@@ -248,7 +248,7 @@ extends L2Operation
 	/**
 	 * Extract the {@link Primitive} from the provided instruction.
 	 *
- 	 * @param instruction
+	 * @param instruction
 	 *        The {@link L2Instruction} from which to extract the {@link
 	 *        Primitive}.
 	 * @return The {@link Primitive} invoked by this instruction.

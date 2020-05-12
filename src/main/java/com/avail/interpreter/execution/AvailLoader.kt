@@ -85,7 +85,9 @@ import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObject.Companion.error
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.A_Set
-import com.avail.descriptor.sets.SetDescriptor.*
+import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
+import com.avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
+import com.avail.descriptor.sets.SetDescriptor.Companion.singletonSet
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
@@ -108,6 +110,7 @@ import com.avail.interpreter.effects.LoadingEffectToRunPrimitive
 import com.avail.interpreter.execution.AvailLoader.Phase.*
 import com.avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import com.avail.interpreter.primitive.bootstrap.lexing.*
+import com.avail.interpreter.primitive.methods.P_Alias
 import com.avail.io.TextInterface
 import com.avail.utility.Pair
 import com.avail.utility.StackPrinter
@@ -206,7 +209,7 @@ class AvailLoader(
 		 * Should only be accessed within [nonLatin1Lock].
 		 */
 		@GuardedBy("nonLatin1Lock")
-		private val nonLatin1Lexers: MutableMap<Int, A_Tuple> = HashMap()
+		private val nonLatin1Lexers = mutableMapOf<Int, A_Tuple>()
 
 		/** A lock to protect [nonLatin1Lexers]. */
 		private val nonLatin1Lock = ReentrantReadWriteLock()
@@ -359,21 +362,21 @@ class AvailLoader(
 		 * the given (int) code point, then pass this set of lexers to the
 		 * supplied [Continuation2NotNull].
 		 *
-		 *
 		 * We pass it forward rather than return it, since sometimes this
 		 * requires lexer filter functions to run, which we must not do
 		 * synchronously.  However, if the lexer filters have already run for
-		 * this code point, we *may* invoke the continuation
-		 * synchronously for performance.
+		 * this code point, we *may* invoke the continuation synchronously for
+		 * performance.
 		 *
 		 * @param lexingState
-		 * The [LexingState] at which scanning encountered this
-		 * codePoint for the first time.
+		 *   The [LexingState] at which scanning encountered this codePoint for
+		 *   the first time.
 		 * @param codePoint
-		 * The full Unicode code point in the range 0..1114111.
+		 *   The full Unicode code point in the range 0..1114111.
 		 * @param continuation
-		 * What to invoke with the [set][A_Set] of [        lexers][A_Lexer] and a (normally empty) map from lexer to throwable,
-		 * indicating lexer filter invocations that raised exceptions.
+		 *   What to invoke with the [set][A_Set] of [lexers][A_Lexer] and a
+		 *   (normally empty) map from lexer to throwable, indicating lexer
+		 *   filter invocations that raised exceptions.
 		 */
 		private fun selectLexersPassingFilterThen(
 			lexingState: LexingState,
@@ -423,21 +426,22 @@ class AvailLoader(
 									setFromCollection(applicableLexers),
 									failureMap)
 							}
-						}
-					) { throwable: Throwable ->
-						val countdownHitZero = joinLock.withLock {
-							failureMap[lexer] = throwable
-							countdown--
-							assert(countdown >= 0)
-							countdown == 0
-						}
-						if (countdownHitZero) {
-							// This was the fiber reporting the last result (a
-							// fiber failure).
-							continuation(
-								setFromCollection(applicableLexers), failureMap)
-						}
-					}
+						},
+						{ throwable: Throwable ->
+							val countdownHitZero = joinLock.withLock {
+								failureMap[lexer] = throwable
+								countdown--
+								assert(countdown >= 0)
+								countdown == 0
+							}
+							if (countdownHitZero) {
+								// This was the fiber reporting the last result
+								// (a fiber failure).
+								continuation(
+									setFromCollection(applicableLexers),
+									failureMap)
+							}
+						})
 				}
 			}
 			// Launch the fibers only after they've all been created.  That's
@@ -470,16 +474,16 @@ class AvailLoader(
 	 *   Whether this phase represents a time when execution is happening.
 	 */
 	enum class Phase(
-		val isExecuting: Boolean
+		val isExecuting: Boolean = false
 	) {
 		/** No statements have been loaded or compiled yet. */
-		INITIALIZING(false),
+		INITIALIZING,
 
 		/** A top-level statement is being compiled. */
-		COMPILING(false),
+		COMPILING,
 
 		/** A top-level statement is being loaded from a repository. */
-		LOADING(false),
+		LOADING,
 
 		/** A top-level parsed statement is being executed. */
 		EXECUTING_FOR_COMPILE(true),
@@ -488,7 +492,7 @@ class AvailLoader(
 		EXECUTING_FOR_LOAD(true),
 
 		/** The fully-loaded module is now being unloaded. */
-		UNLOADING(false),
+		UNLOADING,
 
 		/**
 		 * The [AvailLoader] is parsing an expression within some anonymous
@@ -617,7 +621,7 @@ class AvailLoader(
 				// Here's a good place for a breakpoint, to see why an
 				// expression couldn't be summarized.
 				val e = Throwable().fillInStackTrace()
-				System.err.println(
+				println(
 					"Disabled summary:\n${StackPrinter.trace(e)}")
 			}
 			statementCanBeSummarized = summarizable
@@ -782,7 +786,7 @@ class AvailLoader(
 			val newForward: A_Definition = newForwardDefinition(
 				method, module, bodySignature)
 			method.methodAddDefinition(newForward)
-			recordEffect(LoadingEffectToAddDefinition(newForward))
+			recordEffect(LoadingEffectToAddDefinition(bundle, newForward))
 			val theModule = module
 			val root = rootBundleTree()
 			theModule.lock(Continuation0 {
@@ -828,6 +832,7 @@ class AvailLoader(
 		methodName.makeShared()
 		bodyBlock.makeShared()
 		addDefinition(
+			methodName,
 			newMethodDefinition(bundle.bundleMethod(), module, bodyBlock))
 	}
 
@@ -866,13 +871,16 @@ class AvailLoader(
 		methodName.makeShared()
 		bodySignature.makeShared()
 		addDefinition(
+			methodName,
 			newAbstractDefinition(
 				bundle.bundleMethod(), module, bodySignature))
 	}
 
 	/**
-	 * Add the new [A_Definition] to its [A_Method].  Also update the methods
-	 * [A_Bundle]s and this loader's [rootBundleTree] as needed.
+	 * Add the new [A_Definition] to its [A_Method], via the captured [A_Bundle]
+	 * (otherwise using a random bundle from the method would break replay if a
+	 * [P_Alias] happens after the definition in the same grouped step). Also
+	 * update the loader's [rootBundleTree] as needed.
 	 *
 	 * @param newDefinition
 	 *   The definition to add.
@@ -880,7 +888,10 @@ class AvailLoader(
 	 *   If the signature disagrees with existing definitions and forwards.
 	 */
 	@Throws(SignatureException::class)
-	private fun addDefinition(newDefinition: A_Definition) {
+	private fun addDefinition(
+		methodName: A_Atom,
+		newDefinition: A_Definition
+	) {
 		val method = newDefinition.definitionMethod()
 		val bodySignature = newDefinition.bodySignature()
 		var forward: A_Definition? = null
@@ -943,13 +954,14 @@ class AvailLoader(
 					assert(false) { "Signature was already vetted" }
 					return@Continuation0
 				}
-				recordEffect(LoadingEffectToAddDefinition(newDefinition))
+				recordEffect(
+					LoadingEffectToAddDefinition(
+						methodName.bundleOrCreate(), newDefinition))
 				method.bundles().forEach { bundle ->
 					if (ancestorModules.hasElement(
 							bundle.message().issuingModule())) {
 						val plan: A_DefinitionParsingPlan =
-							bundle.definitionParsingPlans()
-								.mapAt(newDefinition)
+							bundle.definitionParsingPlans().mapAt(newDefinition)
 						val planInProgress = newPlanInProgress(plan, 1)
 						root.addPlanInProgress(planInProgress)
 					}
@@ -1023,7 +1035,7 @@ class AvailLoader(
 		method.methodAddDefinition(macroDefinition)
 		module.moduleAddDefinition(macroDefinition)
 		if (phase == EXECUTING_FOR_COMPILE) {
-			recordEffect(LoadingEffectToAddDefinition(macroDefinition))
+			recordEffect(LoadingEffectToAddDefinition(bundle, macroDefinition))
 			module.lock(Continuation0 {
 				val plan: A_DefinitionParsingPlan =
 					bundle.definitionParsingPlans().mapAt(macroDefinition)
@@ -1045,8 +1057,7 @@ class AvailLoader(
 	@Throws(SignatureException::class)
 	fun addSemanticRestriction(restriction: A_SemanticRestriction) {
 		val method = restriction.definitionMethod()
-		val numArgs = method.numArgs()
-		if (restriction.function().code().numArgs() != numArgs) {
+		if (restriction.function().code().numArgs() != method.numArgs()) {
 			throw SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 		}
 		runtime.addSemanticRestriction(restriction)
@@ -1226,6 +1237,7 @@ class AvailLoader(
 			}
 		}
 	}
+
 	/**
 	 * Look up the given [A_String] in the current [module][ModuleDescriptor]'s
 	 * namespace. Answer the [atom][AtomDescriptor] associated with the string,

@@ -34,6 +34,7 @@ package com.avail.descriptor.variables
 import com.avail.AvailRuntimeSupport
 import com.avail.annotations.AvailMethod
 import com.avail.annotations.HideFieldInDebugger
+import com.avail.annotations.HideFieldJustForPrinting
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.numbers.A_Number
@@ -145,6 +146,7 @@ class VariableSharedGlobalDescriptor private constructor(
 		 * [writer&#32;reactors][VariableDescriptor.VariableAccessReactor] that
 		 * respond to writes of the [variable][VariableDescriptor].
 		 */
+		@HideFieldJustForPrinting
 		WRITE_REACTORS,
 
 		/**
@@ -154,6 +156,7 @@ class VariableSharedGlobalDescriptor private constructor(
 		 * will invalidate all such chunks.  This field holds the
 		 * [nil][NilDescriptor.nil] object initially.
 		 */
+		@HideFieldJustForPrinting
 		DEPENDENT_CHUNKS_WEAK_SET_POJO,
 
 		/**

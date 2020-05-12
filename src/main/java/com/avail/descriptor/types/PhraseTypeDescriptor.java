@@ -708,7 +708,7 @@ extends TypeDescriptor
 		return kind == aPhraseType.phraseKind()
 			&& object.slot(EXPRESSION_TYPE).equals(
 				aPhraseType.expressionType());
- 	}
+	}
 
 	/**
 	 * Subclasses of {@code PhraseTypeDescriptor} must implement {@linkplain

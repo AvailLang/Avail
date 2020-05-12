@@ -34,7 +34,7 @@ package com.avail.interpreter.primitive.pojos
 import com.avail.descriptor.pojos.PojoFieldDescriptor
 import com.avail.descriptor.pojos.PojoFieldDescriptor.pojoFieldVariableForInnerType
 import com.avail.descriptor.pojos.RawPojoDescriptor.equalityPojo
-import com.avail.descriptor.sets.SetDescriptor.set
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type

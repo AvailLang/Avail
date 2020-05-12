@@ -2623,7 +2623,7 @@ class Interpreter(
 			assert(aFiber.executionState().indicatesSuspension())
 			// We cannot simply run the specified function, we must queue a task
 			// to run when Level One safety is no longer required.
- 			runtime.whenLevelOneUnsafeDo(
+			runtime.whenLevelOneUnsafeDo(
 				aFiber.priority(),
 				AvailTask.forFiberResumption(
 					aFiber

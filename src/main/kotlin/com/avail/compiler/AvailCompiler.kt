@@ -147,8 +147,8 @@ import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor
-import com.avail.descriptor.sets.SetDescriptor.emptySet
-import com.avail.descriptor.sets.SetDescriptor.generateSetFrom
+import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
+import com.avail.descriptor.sets.SetDescriptor.Companion.generateSetFrom
 import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
 import com.avail.descriptor.tokens.TokenDescriptor
@@ -213,6 +213,7 @@ import java.util.Collections.emptyList
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantReadWriteLock
+import java.util.function.BiFunction
 import java.util.function.BinaryOperator
 import java.util.function.Consumer
 import java.util.function.UnaryOperator
@@ -4170,8 +4171,8 @@ class AvailCompiler(
 				namesByModule = namesByModule.mapAtReplacingCanDestroy(
 					atom.issuingModule(),
 					emptySet(),
-					BinaryOperator { _, set ->
-						(set as A_Set).setWithElementCanDestroy(atom, true)
+					BiFunction { _, set ->
+						set.setWithElementCanDestroy(atom, true)
 					},
 					true)
 			}
@@ -4220,7 +4221,8 @@ class AvailCompiler(
 				newListNode(
 					tuple(
 						syntheticLiteralNodeFor(
-							leftovers, stringFrom("(other atoms)")),
+							leftovers,
+							stringFrom("(${leftovers.setSize()} atoms)")),
 						syntheticLiteralNodeFor(objectFromBoolean(isPublic)))),
 				TOP.o())
 			val function = createFunctionForPhrase(

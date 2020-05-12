@@ -228,7 +228,7 @@ interface A_BasicObject : JSONFriendly {
 	fun setBinAddingElementHashLevelCanDestroy(
 		elementObject: A_BasicObject,
 		elementObjectHash: Int,
-		myLevel: Byte,
+		myLevel: Int,
 		canDestroy: Boolean): A_BasicObject
 
 	/**
@@ -254,7 +254,7 @@ interface A_BasicObject : JSONFriendly {
 	fun binRemoveElementHashLevelCanDestroy(
 		elementObject: A_BasicObject,
 		elementObjectHash: Int,
-		myLevel: Byte,
+		myLevel: Int,
 		canDestroy: Boolean): AvailObject
 
 	/**

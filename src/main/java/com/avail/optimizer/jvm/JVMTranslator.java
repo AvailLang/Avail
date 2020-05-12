@@ -582,7 +582,7 @@ public final class JVMTranslator
 		 * The next unallocated index into the {@link JVMChunkClassLoader}'s
 		 * {@linkplain JVMChunkClassLoader#parameters parameters} array at which
 		 * a {@linkplain AvailObject literal} will be stored.
- 		 */
+		 */
 		private int nextClassLoaderIndex = 0;
 
 		@Override

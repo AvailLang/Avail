@@ -119,7 +119,7 @@ import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.BiConsumer;
-import java.util.function.BinaryOperator;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
@@ -171,7 +171,11 @@ import static java.util.Collections.sort;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@SuppressWarnings("JavaDoc")
+@SuppressWarnings({
+	"JavaDoc",
+	"NullableProblems",
+	"ThrowsRuntimeException",
+})
 public abstract class AbstractDescriptor
 {
 	/**
@@ -2253,7 +2257,7 @@ public abstract class AbstractDescriptor
 		AvailObject object,
 		A_BasicObject key,
 		A_BasicObject notFoundValue,
-		BinaryOperator<A_BasicObject> transformer,
+		BiFunction<AvailObject, AvailObject, A_BasicObject> transformer,
 		boolean canDestroy);
 
 	/**
@@ -4211,7 +4215,7 @@ public abstract class AbstractDescriptor
 		AvailObject object,
 		A_BasicObject elementObject,
 		int elementObjectHash,
-		byte myLevel,
+		int myLevel,
 		boolean canDestroy);
 
 	/**
@@ -4237,7 +4241,7 @@ public abstract class AbstractDescriptor
 		AvailObject object,
 		A_BasicObject elementObject,
 		int elementObjectHash,
-		byte myLevel,
+		int myLevel,
 		boolean canDestroy);
 
 	/**
@@ -5136,7 +5140,7 @@ public abstract class AbstractDescriptor
 		final A_BasicObject key,
 		final int keyHash,
 		final A_BasicObject value,
-		final byte myLevel,
+		final int myLevel,
 		final boolean canDestroy);
 
 	/**
@@ -5167,8 +5171,8 @@ public abstract class AbstractDescriptor
 		final A_BasicObject key,
 		final int keyHash,
 		final A_BasicObject notFoundValue,
-		final BinaryOperator<A_BasicObject> transformer,
-		final byte myLevel,
+		final BiFunction<AvailObject, AvailObject, A_BasicObject> transformer,
+		final int myLevel,
 		final boolean canDestroy);
 
 	/**

@@ -41,7 +41,7 @@ import com.avail.descriptor.representation.*
 import com.avail.descriptor.representation.Mutability.*
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor
-import com.avail.descriptor.sets.SetDescriptor.generateSetFrom
+import com.avail.descriptor.sets.SetDescriptor.Companion.generateSetFrom
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.*
 import com.avail.descriptor.tuples.StringDescriptor.*
@@ -62,7 +62,8 @@ import com.avail.utility.Strings.newlineTab
 import com.avail.utility.json.JSONWriter
 import java.util.*
 import java.util.function.BiConsumer
-import java.util.function.BinaryOperator
+import java.util.function.BiFunction
+
 /**
  * An Avail [map][MapDescriptor] refers to the root of a Bagwell Ideal Hash
  * Tree.  The implementation is similar to that of [sets][SetDescriptor], but
@@ -400,7 +401,7 @@ class MapDescriptor private constructor(
 			traversedKey,
 			traversedKey.hash(),
 			newValueObject,
-			0.toByte(),
+			0,
 			canDestroy)
 		if (canDestroy && isMutable) {
 			setRootBin(self, newRoot)
@@ -416,7 +417,7 @@ class MapDescriptor private constructor(
 		self: AvailObject,
 		key: A_BasicObject,
 		notFoundValue: A_BasicObject,
-		transformer: BinaryOperator<A_BasicObject>,
+		transformer: BiFunction<AvailObject, AvailObject, A_BasicObject>,
 		canDestroy: Boolean
 	): A_Map {
 		val oldRoot = rootBin(self)

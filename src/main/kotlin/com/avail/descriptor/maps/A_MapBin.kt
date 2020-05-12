@@ -37,7 +37,7 @@ import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.types.A_Type
 import java.util.function.BiConsumer
-import java.util.function.BinaryOperator
+import java.util.function.BiFunction
 
 /**
  * `A_MapBin` is a collection of keys and their associated values, which makes
@@ -102,7 +102,7 @@ interface A_MapBin : A_BasicObject {
 		key: A_BasicObject,
 		keyHash: Int,
 		value: A_BasicObject,
-		myLevel: Byte,
+		myLevel: Int,
 		canDestroy: Boolean
 	): A_MapBin
 
@@ -210,9 +210,8 @@ interface A_MapBin : A_BasicObject {
 	 * @param notFoundValue
 	 *   What to pass the transformer if the key was not found.
 	 * @param transformer
-	 *   A [BinaryOperator] that takes the key and its value, or the
-	 *   notFoundValue, and produces a replacement value to associate with the
-	 *   key.
+	 *   A [BiFunction] that takes the key and its value, or the notFoundValue,
+	 *   and produces a replacement value to associate with the key.
 	 * @param myLevel
 	 *   The level of the map bin.
 	 * @param canDestroy
@@ -224,8 +223,8 @@ interface A_MapBin : A_BasicObject {
 		key: A_BasicObject,
 		keyHash: Int,
 		notFoundValue: A_BasicObject,
-		transformer: BinaryOperator<A_BasicObject>,
-		myLevel: Byte,
+		transformer: BiFunction<AvailObject, AvailObject, A_BasicObject>,
+		myLevel: Int,
 		canDestroy: Boolean
 	): A_MapBin
 }

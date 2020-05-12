@@ -49,9 +49,10 @@ import com.avail.descriptor.representation.Mutability.*
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.BottomTypeDescriptor.bottom
 import com.avail.descriptor.types.TypeTag
+import com.avail.utility.Casts.cast
 import java.util.*
 import java.util.function.BiConsumer
-import java.util.function.BinaryOperator
+import java.util.function.BiFunction
 
 /**
  * A [LinearMapBinDescriptor] is a leaf bin in a [map][MapDescriptor]'s
@@ -70,7 +71,7 @@ import java.util.function.BinaryOperator
  */
 internal class LinearMapBinDescriptor private constructor(
 	mutability: Mutability,
-	level: Byte
+	level: Int
 ) : MapBinDescriptor(
 	mutability,
 	TypeTag.MAP_LINEAR_BIN_TAG,
@@ -191,8 +192,9 @@ internal class LinearMapBinDescriptor private constructor(
 		key: A_BasicObject,
 		keyHash: Int,
 		value: A_BasicObject,
-		myLevel: Byte,
-		canDestroy: Boolean): A_MapBin {
+		myLevel: Int,
+		canDestroy: Boolean
+	): A_MapBin {
 		// Associate the key and value in this bin, potentially modifying it if
 		// canDestroy and it's mutable.  Answer the new bin.  Note that the
 		// client is responsible for marking the key and value as immutable if
@@ -371,8 +373,8 @@ internal class LinearMapBinDescriptor private constructor(
 		key: A_BasicObject,
 		keyHash: Int,
 		notFoundValue: A_BasicObject,
-		transformer: BinaryOperator<A_BasicObject>,
-		myLevel: Byte,
+		transformer: BiFunction<AvailObject, AvailObject, A_BasicObject>,
+		myLevel: Int,
 		canDestroy: Boolean
 	): A_MapBin {
 		// Associate the key and value in this bin, potentially modifying it if
@@ -385,8 +387,8 @@ internal class LinearMapBinDescriptor private constructor(
 			if (self.intSlot(KEY_HASHES_AREA_, i) == keyHash
 				&& self.slot(BIN_SLOT_AT_, (i shl 1) - 1).equals(key)) {
 				// The key is present.
-				val oldValue: A_BasicObject = self.slot(BIN_SLOT_AT_, i shl 1)
-				val newValue = transformer.apply(key, oldValue)
+				val oldValue: AvailObject = self.slot(BIN_SLOT_AT_, i shl 1)
+				val newValue = transformer.apply(cast(key), oldValue)
 				val newBin: AvailObject =
 					if (canDestroy && isMutable) {
 						self
@@ -412,7 +414,7 @@ internal class LinearMapBinDescriptor private constructor(
 		return self.mapBinAtHashPutLevelCanDestroy(
 			key,
 			keyHash,
-			transformer.apply(key, notFoundValue),
+			transformer.apply(cast(key), cast(notFoundValue)),
 			myLevel,
 			canDestroy)
 	}
@@ -612,7 +614,7 @@ internal class LinearMapBinDescriptor private constructor(
 		 *   The new bin with only <key,value> in it.
 		 */
 		private fun createEmptyLinearMapBin(
-			myLevel: Byte
+			myLevel: Int
 		): AvailObject {
 			val bin = newObjectIndexedIntegerIndexedDescriptor(
 				0, 0, descriptorFor(MUTABLE, myLevel))
@@ -642,7 +644,7 @@ internal class LinearMapBinDescriptor private constructor(
 			key: A_BasicObject,
 			keyHash: Int,
 			value: A_BasicObject,
-			myLevel: Byte
+			myLevel: Int
 		): AvailObject {
 			val bin = newObjectIndexedIntegerIndexedDescriptor(
 				2, 1, descriptorFor(MUTABLE, myLevel))
@@ -661,7 +663,7 @@ internal class LinearMapBinDescriptor private constructor(
 		 * The number of distinct levels at which
 		 * [linear&#32;bins][LinearMapBinDescriptor] may occur.
 		 */
-		private const val numberOfLevels: Byte = 8
+		private const val numberOfLevels: Int = 8
 
 		/**
 		 * Answer a suitable descriptor for a linear bin with the specified
@@ -676,7 +678,7 @@ internal class LinearMapBinDescriptor private constructor(
 		 */
 		private fun descriptorFor(
 			flag: Mutability,
-			level: Byte
+			level: Int
 		): LinearMapBinDescriptor {
 			assert(level in 0 until numberOfLevels)
 			return descriptors[level * 3 + flag.ordinal]
@@ -688,14 +690,14 @@ internal class LinearMapBinDescriptor private constructor(
 		val descriptors = Array(numberOfLevels * 3) {
 			val level = it / 3
 			val mut = Mutability.values()[it - level * 3]
-			LinearMapBinDescriptor(mut, level.toByte())
+			LinearMapBinDescriptor(mut, level)
 		}
 
 		/**
 		 * The canonical array of empty linear map bins, one for each level.
 		 */
-		private val emptyBins = Array(numberOfLevels.toInt()) {
-			createEmptyLinearMapBin(it.toByte()).makeShared()
+		private val emptyBins = Array(numberOfLevels) {
+			createEmptyLinearMapBin(it).makeShared()
 		}
 
 		/**
@@ -706,7 +708,7 @@ internal class LinearMapBinDescriptor private constructor(
 		 * @return
 		 *   An empty map bin.
 		 */
-		fun emptyLinearMapBin(level: Byte) = emptyBins[level.toInt()]!!
+		fun emptyLinearMapBin(level: Int) = emptyBins[level]!!
 	}
 
 	override fun mutable() = descriptorFor(MUTABLE, level)

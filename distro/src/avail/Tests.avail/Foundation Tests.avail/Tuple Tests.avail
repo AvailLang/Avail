@@ -156,7 +156,7 @@ Test "macro for each of do" in tuple test suite is
 	b : natural number* := <>;
 	For each element of a do
 	[
-	 	If element is even then [b := eject b ++ <element>;];
+		If element is even then [b := eject b ++ <element>;];
 	];
 	Require: b = <2,4>;
 
@@ -638,9 +638,9 @@ Test "complex quicksort macro" in tuple test suite is
 	ref := quicksort n, m in
 		<14,4,6,1,2,3,20,18,19,17,16,15,12,13,5,7,8,9,10,11> by
 		[
-		 	(n is odd ∧ m is even)
-		 		∨ (n is odd ∧ m is odd ∧ n ≤ m)
-		 		∨ (n is even ∧ m is even ∧ n ≥ m)
+			(n is odd ∧ m is even)
+				∨ (n is odd ∧ m is odd ∧ n ≤ m)
+				∨ (n is even ∧ m is even ∧ n ≥ m)
 		];
 	Require: <1,3,5,7,9,11,13,15,17,19,20,18,16,14,12,10,8,6,4,2> = ref;
 ];
@@ -966,8 +966,8 @@ Test "tuple insertion index" in tuple test suite is
 	lessOrEqual ::= [a : integer, b : integer | a ≤ b];
 	/* Make sure comparison isn't called when examining empty tuple. */
 	Assert: insertion index of 10 in <>
-	 	with [a : integer, b : integer | Shouldn't happen]
-	 	= 1;
+		with [a : integer, b : integer | Shouldn't happen]
+		= 1;
 	For each subtuple in
 		<
 			<10, <>, 1, 1>,

@@ -39,7 +39,7 @@ import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunctio
 import com.avail.descriptor.phrases.A_Phrase.Companion.generateInModule
 import com.avail.descriptor.phrases.BlockPhraseDescriptor
 import com.avail.descriptor.phrases.BlockPhraseDescriptor.Companion.recursivelyValidate
-import com.avail.descriptor.sets.SetDescriptor.set
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
 import com.avail.descriptor.types.A_Type

@@ -40,7 +40,7 @@ import com.avail.descriptor.objects.ObjectDescriptor.Companion.objectFromTuple
 import com.avail.descriptor.objects.ObjectLayoutVariant.Companion.variantForFields
 import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
 import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.objectTypeFromMap
-import com.avail.descriptor.sets.SetDescriptor.setFromCollection
+import com.avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.A_Type

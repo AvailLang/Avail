@@ -32,7 +32,7 @@
 package com.avail.interpreter.primitive.methods
 
 import com.avail.descriptor.functions.A_Function
-import com.avail.descriptor.sets.SetDescriptor.set
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
 import com.avail.descriptor.types.A_Type

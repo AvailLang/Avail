@@ -34,7 +34,7 @@ package com.avail.interpreter.primitive.modules
 
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.atoms.A_Atom
-import com.avail.descriptor.sets.SetDescriptor.set
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith

@@ -759,7 +759,7 @@ class L1Decompiler constructor(
 			// to look for a DUP marker.
 			val constSubscript =
 				(instructionDecoder.getOperand() - code.numArgs()
-				 	- code.numLocals() - 1)
+	- code.numLocals() - 1)
 			val token = newToken(
 				stringFrom(tempGenerator.apply("const")),
 				0,

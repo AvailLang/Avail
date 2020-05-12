@@ -42,7 +42,7 @@ import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsSize
 import com.avail.descriptor.phrases.A_Phrase.Companion.lastExpression
 import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newArgument
-import com.avail.descriptor.sets.SetDescriptor.set
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.types.A_Type

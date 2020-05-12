@@ -31,5 +31,5 @@
  */
 
 @NonnullByDefault
-package com.avail.descriptor.sets;
+package com.avail.descriptor.module;
 import com.avail.annotations.NonnullByDefault;

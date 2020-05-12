@@ -52,8 +52,8 @@ import com.avail.descriptor.bundles.MessageBundleDescriptor.Companion.newBundle
 import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.sets.A_Set
-import com.avail.descriptor.sets.SetDescriptor.emptySet
-import com.avail.descriptor.sets.SetDescriptor.setFromCollection
+import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
+import com.avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tokens.LiteralTokenDescriptor
 import com.avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken

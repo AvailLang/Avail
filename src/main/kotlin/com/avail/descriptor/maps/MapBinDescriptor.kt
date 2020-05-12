@@ -61,7 +61,7 @@ import java.util.function.BiConsumer
  * @param integerSlotsEnumClass
  *   The Java [Class] which is a subclass of [IntegerSlotsEnum] and defines this
  *   object's integer slots layout, or null if there are no integer slots.
- * @param level
+ * @property level
  *   The depth of the bin in the hash tree.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
@@ -71,7 +71,7 @@ abstract class MapBinDescriptor protected constructor(
 	typeTag: TypeTag,
 	objectSlotsEnumClass: Class<out ObjectSlotsEnum>?,
 	integerSlotsEnumClass: Class<out IntegerSlotsEnum>?,
-	val level: Byte
+	internal val level: Int
 ) : Descriptor(
 	mutability, typeTag, objectSlotsEnumClass, integerSlotsEnumClass)
 {

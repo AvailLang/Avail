@@ -51,7 +51,7 @@ import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.namesAndBaseT
 import com.avail.descriptor.representation.*
 import com.avail.descriptor.representation.AvailObject.Companion.multiplier
 import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
-import com.avail.descriptor.sets.SetDescriptor.emptySet
+import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.*
 import com.avail.descriptor.tuples.TupleDescriptor
