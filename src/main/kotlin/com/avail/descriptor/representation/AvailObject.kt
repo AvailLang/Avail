@@ -1924,7 +1924,7 @@ class AvailObject private constructor(
 	override fun removeDependentChunk(chunk: L2Chunk) =
 		descriptor().o_RemoveDependentChunk(this, chunk)
 
-	override fun removeFrom(loader: AvailLoader, afterRemoval: Continuation0) =
+	override fun removeFrom(loader: AvailLoader, afterRemoval: () -> Unit) =
 		descriptor().o_RemoveFrom(this, loader, afterRemoval)
 
 	override fun removeDefinition(definition: A_Definition) =

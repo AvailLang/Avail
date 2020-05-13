@@ -41,7 +41,7 @@ import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.fiber.FiberDescriptor.commandPriority
 import com.avail.descriptor.fiber.FiberDescriptor.newFiber
 import com.avail.descriptor.module.ModuleDescriptor
-import com.avail.descriptor.module.ModuleDescriptor.newModule
+import com.avail.descriptor.module.ModuleDescriptor.Companion.newModule
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY

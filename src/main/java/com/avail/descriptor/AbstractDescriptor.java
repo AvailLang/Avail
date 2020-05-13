@@ -107,6 +107,8 @@ import com.avail.utility.evaluation.Continuation0;
 import com.avail.utility.evaluation.Continuation1NotNull;
 import com.avail.utility.json.JSONWriter;
 import com.avail.utility.visitor.AvailSubobjectVisitor;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function0;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
@@ -2514,7 +2516,7 @@ public abstract class AbstractDescriptor
 	public abstract void o_RemoveFrom (
 		AvailObject object,
 		AvailLoader loader,
-		Continuation0 afterRemoval);
+		Function0<Unit> afterRemoval);
 
 	/**
 	 * @param object

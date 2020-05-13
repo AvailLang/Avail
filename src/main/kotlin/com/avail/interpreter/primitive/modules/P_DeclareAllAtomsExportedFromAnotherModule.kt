@@ -33,7 +33,7 @@
 package com.avail.interpreter.primitive.modules
 
 import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots
-import com.avail.descriptor.module.ModuleDescriptor.currentModule
+import com.avail.descriptor.module.ModuleDescriptor.Companion.currentModule
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import com.avail.descriptor.atoms.AtomDescriptor

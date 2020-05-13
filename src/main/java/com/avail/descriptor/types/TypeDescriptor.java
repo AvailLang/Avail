@@ -34,6 +34,7 @@ package com.avail.descriptor.types;
 
 import com.avail.annotations.AvailMethod;
 import com.avail.compiler.AvailCompiler;
+import com.avail.descriptor.methods.MethodDescriptor;
 import com.avail.descriptor.representation.AvailObject;
 import com.avail.descriptor.character.CharacterDescriptor;
 import com.avail.descriptor.module.ModuleDescriptor;
@@ -48,7 +49,6 @@ import com.avail.descriptor.methods.DefinitionDescriptor;
 import com.avail.descriptor.methods.ForwardDefinitionDescriptor;
 import com.avail.descriptor.methods.MacroDefinitionDescriptor;
 import com.avail.descriptor.methods.MethodDefinitionDescriptor;
-import com.avail.descriptor.methods.MethodDescriptor;
 import com.avail.descriptor.numbers.A_Number;
 import com.avail.descriptor.numbers.DoubleDescriptor;
 import com.avail.descriptor.numbers.FloatDescriptor;

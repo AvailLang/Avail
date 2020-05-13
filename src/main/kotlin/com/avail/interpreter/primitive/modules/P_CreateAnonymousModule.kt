@@ -33,8 +33,8 @@
 package com.avail.interpreter.primitive.modules
 
 import com.avail.descriptor.module.ModuleDescriptor
-import com.avail.descriptor.module.ModuleDescriptor.currentModule
-import com.avail.descriptor.module.ModuleDescriptor.newModule
+import com.avail.descriptor.module.ModuleDescriptor.Companion.currentModule
+import com.avail.descriptor.module.ModuleDescriptor.Companion.newModule
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.tuples.TupleDescriptor
