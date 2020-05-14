@@ -79,12 +79,14 @@ Names
 	"_↑×=_", "_×=_",
 	"_↑÷=_", "_÷=_",
 
-	/* Primality testing. */
+	/* Number theory and primality testing. */
+	"⌊√_⌋",
+	"_is a perfect square",
+	"factor_",
+	"prime factorization of_",
 	"_^_mod_",
 	"_is a strong probable prime to base_",
-	"_is prime",
-
-	"⌊√_⌋"
+	"_is prime"
 Body
 
 cannotRaiseZeroToZero ::= "either base or exponent not to be 0";
@@ -918,11 +920,317 @@ Semantic restriction "_^_mod_" is
 	exponent : whole number's type,
 	modulus : natural number's type
 |
-	(base ^ exponent) mod modulus
+	if base ⊆ [0..1024] ∧ exponent ⊆ [0..2] then [ 
+		// If the exponentiation is relatively cheap, leverage the restrictions
+		// of the unfused methods to determine range.
+		(base ^ exponent) mod modulus
+	]
+	else
+	[
+		// Otherwise assume anything in mod's range is possible.
+		[0..⌈modulus⌉)
+	]
 ];
 
 Grammatical restriction "_^_" is <∅, {"_mod_"}>;
 Grammatical restriction "_mod_" is <{"_^_"}, ∅>;
+
+Forward method "⌊√_⌋" is [whole number]→whole number;
+isqrtLUT ::= <0, 1, 1, 1, 2, 2, 2, 2, 2>;
+
+/**
+ * Find the integer square root of a given {@type whole number} i.e. the largest
+ * integer not greater than the real square root.
+ *
+ * Unlike the exponentiation method, which will not consistently return a root
+ * that rounds to the correct integer due to the resolution of {@type double},
+ * this algorithm maintains accuracy for any whole number.
+ *
+ * @method "⌊√_⌋"
+ * @param "x" "whole number"
+ * @returns "whole number"
+ *          The square root if {@param "x"} is a perfect square, the integer
+ *          floor of said root otherwise.
+ * @category "Mathematics" "Integers" "Numbers"
+ */
+Public method "⌊√_⌋" is
+[
+	x : [0..∞)
+|
+	if x < 16 then [isqrtLUT[x + 1] else [3]] else
+	[
+		/* recursive bit-shifting */
+		candidate ::= 2 × ⌊√ (x >> 2)⌋;
+		if (candidate + 1)^2 > x then [candidate] else [candidate + 1]
+	]
+];
+
+/**
+ * Restrict integer square root to values equal to or towards zero from the
+ * input.
+ *
+ * @method "⌊√_⌋"
+ * @restricts "whole number's type"
+ */
+Semantic restriction "⌊√_⌋" is
+[
+	x : [0..∞)'s type
+|
+	// A simple range would be [0..⌈x⌉], but we shrink it slightly by observing:
+	//   0 is the only value for which ⌊√n⌋ = 0
+	//   1 is the largest value such that ⌊√n⌋ = n
+	// NOTE: This could certainly be improved by math on the input's bit length.
+	[(1 min ⌊x⌋)..(2 max ⌈x⌉))
+];
+
+/**
+ * Identify whether the integer is a perfect square.
+ *
+ * @method "_is a perfect square"
+ * @category "Integers"
+ * @param "n" "integer"
+ * @returns "boolean"
+ */
+Public method "_is a perfect square" is
+[
+	num : integer
+|
+	n ::= |num|;
+	// Only these remainders mod 16 can be perfect squares. (This residue list
+	// could be generated for any base, but 16 provides a good balance of
+	// reduction factor, a short constant list, and using a power of 2 for 
+	// optimization as a bit operation.)
+	if n bit∧ 15 ∈ {0, 1, 4, 9} then
+	[
+		⌊√n⌋^2 = n
+	]
+	else [false]
+];
+
+// The first 31 primes, i.e. all 7-bit primes (actually covering [0..130])
+smallPrimes ::= {
+	2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71,
+	73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127
+};
+
+/**
+ * Attempt to use trial division within the given range to find a pair of
+ * nontrivial factors <p, q> such that p×q = n. If no such pair can be found,
+ * return the sentinel value <0, 0>.
+ *
+ * If bounds are provided, the algorithm will guarantee all values within are
+ * tested before returning a failure, but due to its naive windowing it does NOT
+ * guarantee it won't test some values outside this range as well.
+ *
+ * @method "trial division factorization of_«,⁇from_»?«,⁇to_»?"
+ * @category "Integers"
+ * @param "n" "natural number"
+ * @param "start" "whole number?"
+ * @param "end" "whole number?"
+ * @returns "<whole number…|2>"
+ */
+Private method "trial division factorization of_«,⁇from_»?«,⁇to_»?" is
+[
+	n : natural number,
+	start : whole number?,
+	end : whole number?
+|
+	$body : <whole number…|2>;
+	i : whole number := start[1] else [2];
+
+	// Only one prime factor could be larger than the square root, so it's
+	// sufficient to check that far for an exhaustive search, which is our
+	// default behavior.
+	stop ::= min end ++ <⌊√n⌋>;
+
+	// Might as well check our list of small primes since we have it
+	If i < 120 ∧ i < stop then
+	[
+		For each p in smallPrimes do
+		[
+			Exit body with <n ÷ p, p> if n mod p = 0;
+		];
+		i := 120;
+	]
+	else
+	[
+		// The second phase handles possibilities in a window of size 30, so we
+		// round our index down to the nearest 30 to ensure we are aligned. This
+		// may "overtest" a few values, but the logic is simpler and N<30 extra
+		// checks are neglible to the overall time cost of the operation.
+		i := i - (i mod 30) ?→ whole number;
+	];
+	Until i > stop do
+	[
+		// micro-sieve: primes > 5 can only have these 8 remainders mod 30 
+		For each m of <1, 7, 11, 13, 17, 19, 23, 29> do
+		[
+			Exit body with <n ÷ (i+m), i+m> if n mod (i+m) = 0;
+		];
+		i += 30;
+	];
+	<0, 0>
+];
+
+/**
+ * Use Fermat's factorization method to find nontrivial factors <p, q> of n,
+ * near the square root of n, checking values in the given range. If no such 
+ * pair can be found, return the sentinel value <0, 0>.
+ *
+ * @method "fermat's factorization of_«,⁇from_»?«,⁇to_»?"
+ * @category "Integers"
+ * @param "n" "natural number"
+ * @param "start" "whole number?"
+ * @param "end" "whole number?"
+ * @returns "<whole number…|2>"
+ */
+Private method "fermat's factorization of_«,⁇from_»?«,⁇to_»?" is
+[
+	n : natural number,
+	start : whole number?,
+	end : whole number?
+|
+	$body : <whole number…|2>;
+	a : whole number := start[1] else [⌊√n⌋ + 1];
+	limit ::= min (end ++ <n>);
+	Exit body with <0, 0> if a > limit; // TODO: raise something instead?
+
+	bs : whole number := (a^2 - n) ?→ whole number;
+	Until bs is a perfect square do
+	[
+		// NOTE: We could implement some low-hanging "sieve-like" improvements.
+		// Wikipedia e.g. lists some great modulus logic to be leveraged here.
+		bs += 2×a + 1; // equivalent to plugging (a+1) in above
+		a++;
+		Exit body with <0, 0> if a > limit;
+	];
+
+	b ::= ⌊√bs⌋;
+	<a+b, (a-b) ?→ whole number>
+];
+
+Forward method "_is prime" is [[1..2^64]]→boolean;
+
+/**
+ * Factor the given number into a pair of divisors by using a combination of
+ * trial division and Fermat's factorization methods. If no factor is found,
+ * return <n, 1>.
+ *
+ * @method "fermat's factorization of_«,⁇from_»?«,⁇to_»?"
+ * @category "Integers"
+ * @param "n" "natural number"
+ * @param "start" "whole number?"
+ * @param "end" "whole number?"
+ * @returns "<whole number…|2>"
+ */
+/* NOTE: This method is not yet intended for consumption. The math 'should' be
+ * accurate (though it has not yet been reviewed), but the gain from the added
+ * complexity is unclear, and perhaps doesn't merit inclusion here. */
+/*
+Private method "factor_by hybrid-fermat" is
+[
+	n : natural number
+|
+	$body : <whole number…|2>;
+
+	sqrt ::= ⌊√n⌋;
+	foundFactors : <whole number…|2>;
+
+	// Unscientific guesswork at a "useful" number of fermat iterations;
+	// the "ideal" number depends greatly on the characteristics of our input.
+	fermatSteps ::= 10^6;
+	fermatLimit ::= fermatSteps + sqrt;
+	
+	// The 4th root of n makes for a nice-sounding waypoint in trial division.
+	firstThreshold ::= if n > 2^32 then [⌊√sqrt⌋] else [sqrt];
+
+	// Running fermat's factorizaton up to c effectively checks for all divisors
+	// from c down to c - √(c² - n) so we can stop trial division at that point.
+	secondThreshold ::= (fermatLimit - ⌊√|fermatLimit^2 - n|⌋) ?→ whole number;
+
+	// Phase 0 - Use the primality tests for n < 2^64.
+	// We're limited to this range by recursion as the general "_is prime" uses
+	// factoring as part of the primality test.
+	If n ≤ 2^64 then [Exit body with <n, 1> if n?→[1..2^64] is prime;];
+
+	// Phase I - Small trial division.
+	// NOTE: This is the ONLY phase for n < 2^32.
+	foundFactors :=
+		trial division factorization of n from 1 to firstThreshold;
+	Exit body with foundFactors if foundFactors ≠ <0, 0>;
+
+	// Phase IIa - Check for perfect square.
+	// Usually Fermat would start with the ceiling, ⌈√n⌉, but we only have an
+	// exact method for calculating the floor. Since n being a perfect square is
+	// worth examining early, we manually check it and start Fermat with ⌊√n⌋+1.
+	Exit body with <sqrt, sqrt> if sqrt^2 = n;
+
+	// Phase IIb - Fermat's factorization to find factors near √n.
+	foundFactors := fermat's factorization of n, from sqrt+1 to fermatLimit;
+	Exit body with foundFactors if foundFactors ≠ <0, 0>;
+
+	// Phase III - Finish the rest of the possibilities with trial division.
+	foundFactors :=
+		trial division factorization of n
+			from firstThreshold to secondThreshold;
+	if foundFactors = <0,0> then [<n, 1>] else [foundFactors]
+];
+*/
+
+/**
+ * Fully factor the given number into a tuple of its nontrivial prime divisors.
+ *
+ * @method "factor_"
+ * @category "Integers"
+ * @param "n" "natural number"
+ * @returns "natural number+"
+ */
+Method "factor_" is
+[
+	n : natural number
+|
+	found : natural number+ := <n>;
+	i : natural number := 1;
+	knownFactors : {natural number → <whole number…|2>|0..} := {};
+	While i ≤ |found| do
+	[
+		target ::= found[i];
+		knownFactors :=
+			knownFactors + target → (trial division factorization of target);
+		Cast knownFactors[target] into
+		[
+			pair : <[2..∞)…|2>
+		|
+			// We found non-trivial factors, splice them in place of the target
+			found := found[i..i] → pair;
+		]
+		else
+		[
+			// Only trivial factors found, move to the next possible dividend
+			i++;
+		];
+	];
+	found
+];
+
+/**
+* Answer a map of the given number's prime divisors to their exponents.
+*
+* @macro "prime factorization of_"
+* @param "target" "expression phrase ⇒ natural number"
+* @category "Integers"
+* @returns "send phrase ⇒ {natural number→natural number|1..}"
+*/
+Macro "prime factorization of_" is
+[
+	n : expression phrase ⇒ natural number
+|
+	restricted send $"counts for_" with
+    «<
+	 	restricted send $"factor_" with «<n>» : natural number+
+	>» : {natural number→natural number|1..}
+];
+
 
 /**
  * Determine if an integer is a "strong probable prime" to a given base (said to
@@ -972,14 +1280,9 @@ Public stable method "_is a strong probable prime to base_" is
 	]
 ];
 
-smallPrimes ::= {
-	2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71,
-	73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127
-};
-
 /**
- * Determine if a {@type "[0..130]" small integer} is prime. This method performs
- * a lookup against a list of the first 31 primes.
+ * Determine if a natural number is prime. This default implementation runs a
+ * brief round of probabilistic testing and then falls back to trial division.
  *
  * @method "_is prime"
  * @param "x" "whole number"
@@ -990,7 +1293,29 @@ smallPrimes ::= {
  */
 Public method "_is prime" is
 [
-	x : [0..130]
+	x : natural number
+|
+	if x is a strong probable prime to base 2 then
+	[
+		trial division factorization of x = <0, 0>
+	]
+	else [false]
+];
+
+/**
+ * Determine if a {@type "[1..130]" small integer} is prime. This method 
+ * performs a lookup against a hard-coded list of the first 31 primes.
+ *
+ * @method "_is prime"
+ * @param "x" "whole number"
+ * @returns "boolean"
+ *          {@method "true"} if {@param "x"} is prime, {@method "false"}
+ *          otherwise.
+ * @category "Mathematics" "Integers" "Numbers"
+ */
+Public method "_is prime" is
+[
+	x : [1..130]
 |
 	x∈smallPrimes
 ];
@@ -1033,7 +1358,7 @@ fj32bases ::= <
  */
 Public method "_is prime" is
 [
-	x : [0..2^32)
+	x : [1..2^32)
 |
 	// This algorithm uses the limited range of input to turn the SPRP test into
 	// a deterministic test. In other approaches, this is often accomplished
@@ -1068,7 +1393,7 @@ Public method "_is prime" is
  */
 Public method "_is prime" is
 [
-	x : [0..2^64]
+	x : [1..2^64]
 |
 	Assert: x ≥ 2^32;
 	k ::= x?→[2^32..2^64];
@@ -1077,35 +1402,4 @@ Public method "_is prime" is
 	// order to eliminate pseudoprimes with as few tests as possible.
 	sinclairBases ::= <2, 325, 9375, 28178, 450775, 9780504, 1795265022>;
 	each b of sinclairBases satisfies [k is a strong probable prime to base b]
-];
-
-
-Forward method "⌊√_⌋" is [whole number]→whole number;
-isqrtLUT ::= <0, 1, 1, 1, 2, 2, 2, 2, 2>;
-
-/**
- * Find the integer square root of a given {@type whole number} i.e. the largest
- * integer not greater than the real square root.
- *
- * Unlike the exponentiation method, which will not consistently return a root
- * that rounds to the correct integer due to the resolution of {@type double},
- * this algorithm maintains accuracy for any whole number.
- *
- * @method "⌊√_⌋"
- * @param "x" "whole number"
- * @returns "whole number"
- *          The square root if {@param "x"} is a perfect square, the integer
- *          floor of said root otherwise.
- * @category "Mathematics" "Integers" "Numbers"
- */
-Public method "⌊√_⌋" is
-[
-	x : [0..∞)
-|
-	if x < 16 then [isqrtLUT[x + 1] else [3]] else
-	[
-		/* recursive bit-shifting */
-		candidate ::= 2 × ⌊√ (x >> 2)⌋;
-		if (candidate + 1)^2 > x then [candidate] else [candidate + 1]
-	]
 ];
