@@ -1110,7 +1110,7 @@ Private method "fermat's factorization of_«,⁇from_»?«,⁇to_»?" is
 	<a+b, (a-b) ?→ whole number>
 ];
 
-Forward method "_is prime" is [[1..2^64]]→boolean;
+Forward method "_is prime" is [natural number]→boolean;
 
 /**
  * Factor the given number into a pair of divisors by using a combination of
@@ -1296,11 +1296,8 @@ Public method "_is prime" is
 [
 	x : natural number
 |
-	if x is a strong probable prime to base 2 then
-	[
-		trial division factorization of x = <0, 0>
-	]
-	else [false]
+	x is a strong probable prime to base 2
+		∧ trial division factorization of x = <0, 0>
 ];
 
 /**
@@ -1359,25 +1356,26 @@ fj32bases ::= <
  */
 Public method "_is prime" is
 [
-	x : [1..2^32)
+	x : [131..2^32)
 |
+	$body : boolean;
+
 	// This algorithm uses the limited range of input to turn the SPRP test into
 	// a deterministic test. In other approaches, this is often accomplished
-	// with multiple rounds of tests -- for [0, 2^32) this could be accomplished
+	// with multiple rounds of tests -- for [1, 2^32) this could be accomplished
 	// with a mere 3 -- however *this* approach reduces the number of SPRP
 	// checks to only 1 by first hashing the number into 256 buckets which each 
 	// have a single base, defined above, proven correct for all hashed values.
-	$body : boolean;
-	Assert: x > 130;
+
 	/* Check small divisors and ensure x is coprime with 210 */
 	Exit body with false if 
 		(x is even) ∨ (x mod 3 = 0) ∨ (x mod 5 = 0) ∨ (x mod 7 = 0);
+
 	hash : whole number := x;
 	hash := ((hash >> 16) bit⊕ hash) × 0x45d9f3b;
 	hash := ((hash >> 16) bit⊕ hash) × 0x45d9f3b;
 	hash := ((hash >> 16) bit⊕ hash) bit∧ 255;
-	x ?→ [122..2^32) is a strong probable prime
-		to base fj32bases[hash + 1]
+	x is a strong probable prime to base fj32bases[hash + 1]
 ];
 
 /**
@@ -1394,13 +1392,11 @@ Public method "_is prime" is
  */
 Public method "_is prime" is
 [
-	x : [1..2^64]
+	x : [2^32..2^64]
 |
-	Assert: x ≥ 2^32;
-	k ::= x?→[2^32..2^64];
 	// This set of 7 probabilistic SPRP tests is guaranteed to provide a correct
 	// answer within the range [0..2^64]. The bases are arranged in ascending
 	// order to eliminate pseudoprimes with as few tests as possible.
 	sinclairBases ::= <2, 325, 9375, 28178, 450775, 9780504, 1795265022>;
-	each b of sinclairBases satisfies [k is a strong probable prime to base b]
+	each b of sinclairBases satisfies [x is a strong probable prime to base b]
 ];
