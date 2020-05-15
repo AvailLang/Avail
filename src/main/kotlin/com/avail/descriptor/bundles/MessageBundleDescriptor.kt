@@ -54,7 +54,7 @@ import com.avail.descriptor.pojos.RawPojoDescriptor.identityPojo
 import com.avail.descriptor.representation.*
 import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
 import com.avail.descriptor.sets.A_Set
-import com.avail.descriptor.sets.SetDescriptor.emptySet
+import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.types.TypeDescriptor.Types.MESSAGE_BUNDLE

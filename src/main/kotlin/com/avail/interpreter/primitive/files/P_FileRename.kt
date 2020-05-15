@@ -35,7 +35,7 @@ import com.avail.AvailRuntime.currentRuntime
 import com.avail.descriptor.fiber.FiberDescriptor.newFiber
 import com.avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import com.avail.descriptor.representation.A_BasicObject
-import com.avail.descriptor.sets.SetDescriptor.set
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromArray
 import com.avail.descriptor.tuples.StringDescriptor

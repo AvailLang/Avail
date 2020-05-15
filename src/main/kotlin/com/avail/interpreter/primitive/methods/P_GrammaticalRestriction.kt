@@ -34,8 +34,8 @@ package com.avail.interpreter.primitive.methods
 import com.avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.SetDescriptor
-import com.avail.descriptor.sets.SetDescriptor.generateSetFrom
-import com.avail.descriptor.sets.SetDescriptor.set
+import com.avail.descriptor.sets.SetDescriptor.Companion.generateSetFrom
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.tuples.TupleDescriptor

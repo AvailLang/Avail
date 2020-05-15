@@ -93,9 +93,7 @@ import com.avail.utility.visitor.AvailSubobjectVisitor
 import com.avail.utility.visitor.MarkUnreachableSubobjectVisitor
 import java.nio.ByteBuffer
 import java.util.*
-import java.util.function.BiConsumer
-import java.util.function.BinaryOperator
-import java.util.function.Supplier
+import java.util.function.*
 import java.util.stream.Stream
 
 /**
@@ -532,8 +530,8 @@ class AvailObject private constructor(
 	override fun asTuple() = descriptor().o_AsTuple(this)
 
 	/**
- 	 * Add a [definition][DefinitionDescriptor] to this
- 	 * [module][ModuleDescriptor].
+	 * Add a [definition][DefinitionDescriptor] to this
+	 * [module][ModuleDescriptor].
 	 *
 	 * @param definition
 	 *   The definition to add to the module.
@@ -556,7 +554,7 @@ class AvailObject private constructor(
 	override fun setBinAddingElementHashLevelCanDestroy(
 		elementObject: A_BasicObject,
 		elementObjectHash: Int,
-		myLevel: Byte,
+		myLevel: Int,
 		canDestroy: Boolean
 	): A_BasicObject =
 		descriptor().o_SetBinAddingElementHashLevelCanDestroy(
@@ -582,7 +580,7 @@ class AvailObject private constructor(
 	override fun binRemoveElementHashLevelCanDestroy(
 		elementObject: A_BasicObject,
 		elementObjectHash: Int,
-		myLevel: Byte,
+		myLevel: Int,
 		canDestroy: Boolean
 	) = descriptor().o_BinRemoveElementHashLevelCanDestroy(
 		this, elementObject, elementObjectHash, myLevel, canDestroy)
@@ -1708,7 +1706,7 @@ class AvailObject private constructor(
 	override fun mapAtReplacingCanDestroy(
 		key: A_BasicObject,
 		notFoundValue: A_BasicObject,
-		transformer: BinaryOperator<A_BasicObject>,
+		transformer: BiFunction<AvailObject, AvailObject, A_BasicObject>,
 		canDestroy: Boolean
 	): A_Map = descriptor().o_MapAtReplacingCanDestroy(
 		this, key, notFoundValue, transformer, canDestroy)
@@ -2410,7 +2408,7 @@ class AvailObject private constructor(
 		key: A_BasicObject,
 		keyHash: Int,
 		value: A_BasicObject,
-		myLevel: Byte,
+		myLevel: Int,
 		canDestroy: Boolean
 	) = descriptor().o_MapBinAtHashPutLevelCanDestroy(
 		this, key, keyHash, value, myLevel, canDestroy)
@@ -2426,8 +2424,8 @@ class AvailObject private constructor(
 		key: A_BasicObject,
 		keyHash: Int,
 		notFoundValue: A_BasicObject,
-		transformer: BinaryOperator<A_BasicObject>,
-		myLevel: Byte,
+		transformer: BiFunction<AvailObject, AvailObject, A_BasicObject>,
+		myLevel: Int,
 		canDestroy: Boolean
 	): A_MapBin = descriptor().o_MapBinAtHashReplacingLevelCanDestroy(
 		this, key, keyHash, notFoundValue, transformer, myLevel, canDestroy)
@@ -3132,7 +3130,7 @@ class AvailObject private constructor(
 		}
 
 		/** The [CheckedMethod] for [iterator]. */
-		val iteratorMethod = instanceMethod(
+		val iteratorMethod: CheckedMethod = instanceMethod(
 			AvailObject::class.java,
 			AvailObject::iterator.name,
 			IteratorNotNull::class.java)

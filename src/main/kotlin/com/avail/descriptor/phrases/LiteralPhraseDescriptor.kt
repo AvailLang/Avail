@@ -48,12 +48,14 @@ import com.avail.descriptor.tokens.TokenDescriptor.TokenType
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
 import com.avail.descriptor.tuples.StringDescriptor.stringFrom
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn
 import com.avail.descriptor.types.LiteralTokenTypeDescriptor.mostGeneralLiteralTokenType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import com.avail.descriptor.types.TypeTag
+import com.avail.interpreter.levelOne.L1Decompiler
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.evaluation.Continuation1NotNull
 import com.avail.utility.json.JSONWriter
@@ -137,6 +139,15 @@ class LiteralPhraseDescriptor(
 	) = (!aPhrase.isMacroSubstitutionNode()
 		&& self.phraseKind() == aPhrase.phraseKind()
 		&& self.slot(TOKEN).equals(aPhrase.token()))
+
+	/**
+	 * Simplify decompilation by pretending a literal phrase holding tuple is
+	 * actually a list phrase of literal phrases for each element.
+	 *
+	 * This only comes into play if the [L1Decompiler] was about to fail anyhow.
+	 */
+	override fun o_ExpressionsTuple(self: AvailObject): A_Tuple =
+		tupleFromList(self.map { syntheticLiteralNodeFor(it) })
 
 	@AvailMethod
 	override fun o_ExpressionType(self: AvailObject): A_Type {

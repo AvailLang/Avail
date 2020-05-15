@@ -70,6 +70,7 @@ import com.avail.exceptions.AvailAssertionFailedException
 import com.avail.exceptions.AvailEmergencyExitException
 import com.avail.interpreter.execution.AvailLoader
 import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.levelOne.L1Decompiler
 import com.avail.interpreter.levelOne.L1InstructionWriter
 import com.avail.interpreter.levelOne.L1Operation
 import com.avail.io.TextInterface
@@ -703,8 +704,9 @@ class CompilationContext(
 					println(
 						module.moduleName().asNativeString()
 						+ ':'.toString() + startingLineNumber
-						+ " Summary -- " + function
-						+ "(batch = " + batchCount + ')'.toString())
+						+ " Summary -- \n"
+						+ L1Decompiler.decompile(summaryFunction.code())
+						+ "(batch = $batchCount)")
 				}
 				serializer.serialize(summaryFunction)
 			}
@@ -715,9 +717,9 @@ class CompilationContext(
 			if (AvailLoader.debugUnsummarizedStatements)
 			{
 				println(
-					module.toString()
+					module.moduleName().asNativeString()
 					+ ":" + startingLineNumber
-					+ " Unsummarized -- " + function)
+					+ " Unsummarized -- \n" + function)
 			}
 			serializer.serialize(function)
 		}
@@ -737,9 +739,9 @@ class CompilationContext(
 		if (AvailLoader.debugUnsummarizedStatements)
 		{
 			println(
-				module.toString()
+				module.moduleName().asNativeString()
 				+ ":" + function.code().startingLineNumber()
-				+ " Forced -- " + function)
+				+ " Forced -- \n" + function)
 		}
 		serializer.serialize(function)
 	}

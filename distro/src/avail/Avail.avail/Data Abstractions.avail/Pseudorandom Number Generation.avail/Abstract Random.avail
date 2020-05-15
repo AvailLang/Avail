@@ -148,15 +148,15 @@ Public method "_'s⁇next«value in»⁇_" is
 	generatedNumbers : <whole number…|> := <>;
 	For each i from 1 to m do
 	[
-	 	generatedNumbers := generatedNumbers ++ <rng's current element>;
-	 	Advance rng;
+		generatedNumbers := generatedNumbers ++ <rng's current element>;
+		Advance rng;
 	];
 	/* Obtain the total random number value */
 	randomValue : whole number := generatedNumbers[1];
 	For each i from 2 to |generatedNumbers| do
 	[
-	 	randomValue := eject randomValue +
-	 		(generatedNumbers[i] << (bitCount  × (i - 1)));
+		randomValue := eject randomValue +
+			(generatedNumbers[i] << (bitCount  × (i - 1)));
 	];
 
 	/* Calculate the multiplier that indicates where on the newly adjusted
@@ -180,28 +180,28 @@ Public method "_'s⁇next«value in»⁇_" is
 	baseResult : integer := if wholeNumberDiff > 0
 		∧ resultRangeValue's fraction is nonzero then
 	[
-	 	/*TODO Write function to continuously roll till resolved*/
-	 	resolutionReached : boolean := false;
-	 	weightedProbability : fraction :=  resultRangeValue's fraction;
-	 	outcome : integer := -1;
+		/*TODO Write function to continuously roll till resolved*/
+		resolutionReached : boolean := false;
+		weightedProbability : fraction :=  resultRangeValue's fraction;
+		outcome : integer := -1;
 
-	 	Do
-	 	[
-	 	 	newBoundary ::= rngSize × weightedProbability;
-	 	 	newResult ::= rng's current element;
+		Do
+		[
+			newBoundary ::= rngSize × weightedProbability;
+			newResult ::= rng's current element;
 
-	 	 	If newResult < newBoundary's whole number part then
-	 	 	[
-	 	 	 	outcome := resultRangeValue's whole number part;
-	 	 	 	resolutionReached := true;
-	 	 	] else if newResult > newBoundary's whole number part then
-	 	 	[
-	 	 	 	outcome := incrementedResultRangeValue's whole number part;
-	 	 	 	resolutionReached := true;
-	 	 	] else [weightedProbability := newBoundary's fraction;];
-	 	]
-	 	until resolutionReached;
-	 	outcome
+			If newResult < newBoundary's whole number part then
+			[
+				outcome := resultRangeValue's whole number part;
+				resolutionReached := true;
+			] else if newResult > newBoundary's whole number part then
+			[
+				outcome := incrementedResultRangeValue's whole number part;
+				resolutionReached := true;
+			] else [weightedProbability := newBoundary's fraction;];
+		]
+		until resolutionReached;
+		outcome
 	] else [resultRangeValue's whole number part];
 
 	/* Adjust the base result to match*/

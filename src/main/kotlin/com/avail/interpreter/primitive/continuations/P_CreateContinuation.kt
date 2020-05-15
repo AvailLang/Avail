@@ -34,7 +34,7 @@ package com.avail.interpreter.primitive.continuations
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.functions.ContinuationDescriptor
 import com.avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationWithFrame
-import com.avail.descriptor.sets.SetDescriptor.set
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.tuples.TupleDescriptor.toList
 import com.avail.descriptor.types.A_Type

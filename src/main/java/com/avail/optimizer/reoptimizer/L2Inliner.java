@@ -350,7 +350,7 @@ public final class L2Inliner
 		this.reificationBlock = reificationBlock;
 
 		// TODO MvG – Seed the frameMap.
- 		// this.frameMap.put(topFrame, inlineFrame);
+		// this.frameMap.put(topFrame, inlineFrame);
 	}
 
 	/**

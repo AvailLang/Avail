@@ -41,7 +41,7 @@ import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
 import com.avail.descriptor.parsing.LexerDescriptor.Companion.lexerFilterFunctionType
 import com.avail.descriptor.parsing.LexerDescriptor.Companion.newLexer
-import com.avail.descriptor.sets.SetDescriptor.set
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
 import com.avail.descriptor.tuples.StringDescriptor.stringFrom
 import com.avail.descriptor.types.A_Type

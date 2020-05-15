@@ -306,15 +306,7 @@ enum class PragmaKind constructor(val lexeme: String)
 	companion object
 	{
 		/** Key the instances by lexeme.  */
-		private val kindsByLexeme = HashMap<String, PragmaKind>()
-
-		init
-		{
-			for (kind in values())
-			{
-				kindsByLexeme[kind.lexeme] = kind
-			}
-		}
+		private val kindsByLexeme = values().associateBy { it.lexeme }
 
 		/**
 		 * Answer the PragmaKind having the given lexeme, or `null` if it's not

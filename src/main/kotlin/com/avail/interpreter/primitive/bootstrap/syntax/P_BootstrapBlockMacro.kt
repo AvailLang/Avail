@@ -49,7 +49,10 @@ import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
 import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.phrases.BlockPhraseDescriptor
 import com.avail.descriptor.phrases.BlockPhraseDescriptor.Companion.newBlockNode
-import com.avail.descriptor.sets.SetDescriptor.*
+import com.avail.descriptor.sets.A_Set
+import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
+import com.avail.descriptor.sets.SetDescriptor.Companion.generateSetFrom
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromArray
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
@@ -64,9 +67,9 @@ import com.avail.descriptor.types.TupleTypeDescriptor.*
 import com.avail.descriptor.types.TypeDescriptor.Types.*
 import com.avail.exceptions.AvailErrorCode.E_INCONSISTENT_PREFIX_FUNCTION
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
+import com.avail.interpreter.execution.Interpreter
 
 /**
  * The `P_BootstrapBlockMacro` primitive is used for bootstrapping the
@@ -372,7 +375,7 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 				"primitive function to declare its return type")
 		}
 		val returnType = declaredReturnType ?: deducedReturnType
-		var exceptionsSet = emptySet()
+		var exceptionsSet: A_Set = emptySet()
 		if (optionalExceptionTypes.expressionsSize() == 1)
 		{
 			val expressions =
@@ -470,5 +473,8 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 			BLOCK_PHRASE.mostGeneralType())
 
 	override fun privateFailureVariableType(): A_Type =
-		enumerationWith(set(E_LOADING_IS_OVER, E_INCONSISTENT_PREFIX_FUNCTION))
+		enumerationWith(
+			set(
+				E_LOADING_IS_OVER,
+				E_INCONSISTENT_PREFIX_FUNCTION))
 }

@@ -116,7 +116,7 @@ public final class L2ValueManifest
 	 * Copy an existing manifest.
 	 *
 	 * @param originalManifest
-	 * 	      The original manifest.
+	 *        The original manifest.
 	 */
 	public L2ValueManifest (
 		final L2ValueManifest originalManifest)

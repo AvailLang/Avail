@@ -37,6 +37,7 @@ import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.FunctionDescriptor
+import com.avail.descriptor.methods.MethodDefinitionDescriptor.ObjectSlots.*
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
@@ -97,7 +98,7 @@ class MethodDefinitionDescriptor private constructor(
 
 	@AvailMethod
 	override fun o_BodyBlock(self: AvailObject): A_Function =
-		self.slot(ObjectSlots.BODY_BLOCK)
+		self.slot(BODY_BLOCK)
 
 	@AvailMethod
 	override fun o_Hash(self: AvailObject) =
@@ -119,11 +120,11 @@ class MethodDefinitionDescriptor private constructor(
 		writer.write("kind")
 		writer.write("method definition")
 		writer.write("definition method")
-		self.slot(ObjectSlots.DEFINITION_METHOD).methodName().writeTo(writer)
+		self.slot(DEFINITION_METHOD).methodName().writeTo(writer)
 		writer.write("definition module")
 		self.definitionModuleName().writeTo(writer)
 		writer.write("body block")
-		self.slot(ObjectSlots.BODY_BLOCK).writeTo(writer)
+		self.slot(BODY_BLOCK).writeTo(writer)
 		writer.endObject()
 	}
 
@@ -132,11 +133,11 @@ class MethodDefinitionDescriptor private constructor(
 		writer.write("kind")
 		writer.write("method definition")
 		writer.write("definition method")
-		self.slot(ObjectSlots.DEFINITION_METHOD).methodName().writeTo(writer)
+		self.slot(DEFINITION_METHOD).methodName().writeTo(writer)
 		writer.write("definition module")
 		self.definitionModuleName().writeTo(writer)
 		writer.write("body block")
-		self.slot(ObjectSlots.BODY_BLOCK).writeSummaryTo(writer)
+		self.slot(BODY_BLOCK).writeSummaryTo(writer)
 		writer.endObject()
 	}
 
@@ -168,9 +169,9 @@ class MethodDefinitionDescriptor private constructor(
 			definitionModule: A_Module,
 			bodyBlock: A_Function
 		): A_Definition = mutable.create().apply {
-			setSlot(ObjectSlots.DEFINITION_METHOD, definitionMethod)
-			setSlot(ObjectSlots.MODULE, definitionModule)
-			setSlot(ObjectSlots.BODY_BLOCK, bodyBlock)
+			setSlot(DEFINITION_METHOD, definitionMethod)
+			setSlot(MODULE, definitionModule)
+			setSlot(BODY_BLOCK, bodyBlock)
 			makeShared()
 		}
 

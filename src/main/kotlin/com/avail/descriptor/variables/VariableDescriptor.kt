@@ -34,6 +34,7 @@ package com.avail.descriptor.variables
 import com.avail.AvailRuntimeSupport
 import com.avail.annotations.AvailMethod
 import com.avail.annotations.HideFieldInDebugger
+import com.avail.annotations.HideFieldJustForPrinting
 import com.avail.descriptor.fiber.A_Fiber
 import com.avail.descriptor.Descriptor
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
@@ -170,6 +171,7 @@ open class VariableDescriptor protected constructor(
 		 * [writer reactors][VariableAccessReactor] that respond to writes of
 		 * the [variable][VariableDescriptor].
 		 */
+		@HideFieldJustForPrinting
 		WRITE_REACTORS
 	}
 

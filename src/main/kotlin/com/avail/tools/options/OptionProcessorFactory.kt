@@ -183,7 +183,7 @@ class OptionProcessorFactory<OptionKeyType : Enum<OptionKeyType>>
 	 *   The text to display if the rule fails.
 	 * @param
 	 *   The rule's body, which returns `true` iff the rule is satisfied.
- 	 */
+	 */
 	@Throws(OptionProcessingException::class)
 	fun <C : Configuration> C.rule(
 		ruleText: String,

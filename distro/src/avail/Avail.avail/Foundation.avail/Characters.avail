@@ -1139,7 +1139,7 @@ Public stable method "_is an Arabic numeral" is
  */
 Public stable method "_is a letter" is
 [
- 	c : character
+	c : character
 |
 	c's character category ∈ {"Lu", "Ll", "Lt", "Lm", "Lo"}
 ] : boolean;

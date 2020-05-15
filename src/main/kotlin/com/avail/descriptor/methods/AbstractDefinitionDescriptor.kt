@@ -157,7 +157,7 @@ class AbstractDefinitionDescriptor private constructor(
 		 */
 		@JvmStatic
 		fun newAbstractDefinition(
-			definitionMethod: A_BasicObject,
+			definitionMethod: A_Method,
 			definitionModule: A_Module,
 			bodySignature: A_Type
 		): A_Definition = with(mutable.create()) {

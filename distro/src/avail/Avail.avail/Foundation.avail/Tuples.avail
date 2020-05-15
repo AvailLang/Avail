@@ -284,7 +284,7 @@ Public method "_'s⁇strengthening function" is
 [
 	aTuple : expression phrase ⇒ tuple
 |
- 	[
+	[
 		/* Determine the strongest type of the loop variable for aTuple */
 		aTupleType ::= aTuple's semantic type;
 		tupleOfTypes ::= aTupleType's leading types ++
@@ -364,8 +364,8 @@ Public method "a two-input tuple prefix function" is
  * evaluate the return types of methods given a tuple input to a block.*/
 Private method "«two input»?«indexed»?return type(_,_,_,_)" is
 [
- 	twoInput : boolean,
- 	indexed : boolean,
+	twoInput : boolean,
+	indexed : boolean,
 	aTuple : expression phrase ⇒ tuple,
 	action : block phrase ⇒ []→⊤,
 	baseReturnType : type,
@@ -404,8 +404,8 @@ Private method "«two input»?«indexed»?return type(_,_,_,_)" is
  */
 Public method "tuple body function(_,_)" is
 [
- 	anAtom : atom,
- 	baseReturnType : type
+	anAtom : atom,
+	baseReturnType : type
 |
 	[
 		elementPhrase : literal phrase ⇒ token,
@@ -460,7 +460,7 @@ Private method "«indexed»?two-input tuple body function(_,_)" is
 		/* Build the block function */
 		returnType ::= if indexed then
 			[
-			 	two input indexed return type(
+				two input indexed return type(
 					aTuple, action, baseReturnType, anAtom)
 			] else [
 			    two input return type(
@@ -867,11 +867,11 @@ Macro "reject each…from_§where_" is a tuple iteration prefix function,
 	size ::= |statements|;
 	newStatements ::= if size = 0 then [<>] else
 	[
-	 	end : whole number := cast size-1 into [w : whole number | w];
-	 	i : natural number := cast size into [n : natural number | n];
-	 	c : expression phrase⇒any := cast statements[i] into
-		 	[e : expression phrase⇒any | e];
-	 	statements[..end] ++ <restricted send $"¬_" with «<c>» : boolean>
+		end : whole number := cast size-1 into [w : whole number | w];
+		i : natural number := cast size into [n : natural number | n];
+		c : expression phrase⇒any := cast statements[i] into
+			[e : expression phrase⇒any | e];
+		statements[..end] ++ <restricted send $"¬_" with «<c>» : boolean>
 	];
 	blockReturnType ::= cast newStatements
 		into [t : phrase+ | t[|t|]'s semantic type]
@@ -886,7 +886,7 @@ Macro "reject each…from_§where_" is a tuple iteration prefix function,
 			«[
 				<cast declaration into [d : argument phrase | d]>
 			 |
-			 	newStatements
+				newStatements
 			] : blockReturnType»
 		>» : returnType
 ] : send phrase ⇒ ⊤;
@@ -942,17 +942,17 @@ Macro "reject each…,…from_§where_" is
 	newStatements ::= if size = 0 then [<>]
 	else if size = 1 then
 	[
-	 	i : natural number := cast size into [n : natural number | n];
-	 	c : expression phrase⇒any := cast statements[i] into
-	 		[e : expression phrase⇒any | e];
-	 	<restricted send $"¬_" with «<c>» : boolean>
+		i : natural number := cast size into [n : natural number | n];
+		c : expression phrase⇒any := cast statements[i] into
+			[e : expression phrase⇒any | e];
+		<restricted send $"¬_" with «<c>» : boolean>
 	] else
 	[
-	 	end : natural number := cast size-1 into [n : natural number | n];
-	 	i : natural number := cast size into [n : natural number | n];
-	 	c : expression phrase⇒any := cast statements[i] into
-		 	[e : expression phrase⇒any | e];
-	 	statements[..end] ++ <restricted send $"¬_" with «<c>» : boolean>
+		end : natural number := cast size-1 into [n : natural number | n];
+		i : natural number := cast size into [n : natural number | n];
+		c : expression phrase⇒any := cast statements[i] into
+			[e : expression phrase⇒any | e];
+		statements[..end] ++ <restricted send $"¬_" with «<c>» : boolean>
 	];
 
 	elementDeclaration ::= castToPhrase(elementName);
@@ -4268,7 +4268,7 @@ Private method "self overlap_" is
 		 */
 		If aTuple[current] = aTuple[position] then
 		[
-		 	current++;
+			current++;
 		]
 		else
 		[
@@ -4367,8 +4367,8 @@ Method "first index of_in_" is
 			]
 			else
 			[
-			 	subtupleIndex := overlapTable[subtuple[..subtupleIndex]]
-			 		else [1];
+				subtupleIndex := overlapTable[subtuple[..subtupleIndex]]
+					else [1];
 			];
 			tupleIndex++;
 		];

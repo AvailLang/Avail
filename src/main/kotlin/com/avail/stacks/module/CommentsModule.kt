@@ -37,8 +37,8 @@ import com.avail.builder.ModuleName
 import com.avail.builder.ModuleNameResolver
 import com.avail.builder.UnresolvedDependencyException
 import com.avail.compiler.ModuleHeader
-import com.avail.descriptor.sets.SetDescriptor.emptySet
-import com.avail.descriptor.sets.SetDescriptor.setFromCollection
+import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
+import com.avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import com.avail.descriptor.tokens.CommentTokenDescriptor
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple

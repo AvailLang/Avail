@@ -173,7 +173,7 @@ extends PhraseTypeDescriptor
 	{
 		assert !aPhraseType.phraseKindIsUnder(LIST_PHRASE);
 		return false;
- 	}
+	}
 
 	@Override
 	public boolean o_EqualsListNodeType (

@@ -42,6 +42,7 @@ import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.instanceMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import java.util.function.BiConsumer
+import java.util.function.BiFunction
 import java.util.function.BinaryOperator
 
 /**
@@ -123,7 +124,7 @@ interface A_Map : A_BasicObject {
 	fun mapAtReplacingCanDestroy(
 		key: A_BasicObject,
 		notFoundValue: A_BasicObject = nil,
-		transformer: BinaryOperator<A_BasicObject>,
+		transformer: BiFunction<AvailObject, AvailObject, A_BasicObject>,
 		canDestroy: Boolean
 	): A_Map
 

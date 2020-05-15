@@ -1493,7 +1493,7 @@ Method "_^_(unit map)" is
 	unitMap ::= aUnit's unit map;
 	For each key → exponent of unitMap do
 	[
-	 	exponentType ::= exponent's type × power (Avail);
+		exponentType ::= exponent's type × power (Avail);
 		minExponent := eject minExponent min ⎣exponentType⎦;
 		maxExponent := eject maxExponent max ⎡exponentType⎤;
 	];

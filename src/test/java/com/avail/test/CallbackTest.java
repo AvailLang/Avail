@@ -103,11 +103,11 @@ public final class CallbackTest
 	 * Clear all repositories iff the {@code clearAllRepositories} system
 	 * property is defined.
 	 *
- 	 * @throws FileNotFoundException
- 	 *         If the renames file was specified but not found.
- 	 * @throws RenamesFileParserException
- 	 *         If the renames file exists but could not be interpreted correctly
- 	 *         for any reason.
+	 * @throws FileNotFoundException
+	 *         If the renames file was specified but not found.
+	 * @throws RenamesFileParserException
+	 *         If the renames file exists but could not be interpreted correctly
+	 *         for any reason.
 	 */
 	@BeforeAll
 	void maybeClearAllRepositories ()

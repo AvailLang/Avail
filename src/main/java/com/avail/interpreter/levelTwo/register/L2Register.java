@@ -161,7 +161,7 @@ public abstract class L2Register implements L2Entity
 //		/**
 //		 * The kind of register that holds the value of some variable prior to
 //		 * the variable having escaped, if ever.
-// 		 */
+//		 */
 //		UNESCAPED_VARIABLE_VALUE
 		;
 

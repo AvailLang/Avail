@@ -164,47 +164,47 @@ Test "set cardinality" in set test suite is
 
 Test "map through" in set test suite is
 [
- 	a ::= {1,2,3,4};
- 	b ::= map a through [n : natural number | n × 2];
- 	Require: b = {2,4,6,8};
- 	c ::= map {"one", "two", "three", "four", "five"} through
- 		[s : string | |s|];
- 	Require: c = {3, 5, 4};
+	a ::= {1,2,3,4};
+	b ::= map a through [n : natural number | n × 2];
+	Require: b = {2,4,6,8};
+	c ::= map {"one", "two", "three", "four", "five"} through
+		[s : string | |s|];
+	Require: c = {3, 5, 4};
 ];
 
 Test "map and filter" in set test suite is
 [
- 	a ::= {1,2,3,4};
- 	b ::= map and filter a by
- 	[
- 	 	n : natural number,
- 	 	accept : [natural number]→⊤
- 	 |
- 	 	m ::= n + 2;
- 		If m mod 2 = 0 then
- 		[
- 		 	accept(m);
- 		];
- 	];
- 	Require: b = {4,6};
+	a ::= {1,2,3,4};
+	b ::= map and filter a by
+	[
+		n : natural number,
+		accept : [natural number]→⊤
+	 |
+		m ::= n + 2;
+		If m mod 2 = 0 then
+		[
+			accept(m);
+		];
+	];
+	Require: b = {4,6};
 ];
 
 Test "any satisfies" in set test suite is
 [
- 	a ::= {1,2,3,4};
- 	b ::= any of a satisfies [n : natural number | n mod 2 = 0];
- 	c ::= any of a satisfies [n : natural number | n > 200];
- 	Require: b = true;
- 	Require: c = false;
+	a ::= {1,2,3,4};
+	b ::= any of a satisfies [n : natural number | n mod 2 = 0];
+	c ::= any of a satisfies [n : natural number | n > 200];
+	Require: b = true;
+	Require: c = false;
 ];
 
 Test "any satisfies (macro)" in set test suite is
 [
- 	a ::= {1,2,3,4};
- 	b ::= any n of a satisfies [n mod 2 = 0];
- 	c ::= any n of a satisfies [n > 200];
- 	Require: b = true;
- 	Require: c = false;
+	a ::= {1,2,3,4};
+	b ::= any n of a satisfies [n mod 2 = 0];
+	c ::= any n of a satisfies [n > 200];
+	Require: b = true;
+	Require: c = false;
 ];
 
 Test "for each of do" in set test suite is
@@ -213,9 +213,9 @@ Test "for each of do" in set test suite is
 	b : set := ∅;
 	For each of a do
 	[
-	 	n : natural number
+		n : natural number
 	 |
-	 	b := b + n;
+		b := b + n;
 	];
 	Require: b = a;
 ];
@@ -226,7 +226,7 @@ Test "macro for each of do" in set test suite is
 	b : set := ∅;
 	For each element of a do
 	[
-	 	b := b + element;
+		b := b + element;
 	];
 	Require: b = a;
 ];
@@ -234,75 +234,64 @@ Test "macro for each of do" in set test suite is
 Test "count of where" in set test suite is
 [
 	a ::= {1,2,3,4};
- 	b ::= count of a where [n : natural number | n mod 2 = 0];
- 	c ::= count of a where [n : natural number | n > 2000];
- 	Require: b = 2;
- 	Require: c = 0;
+	b ::= count of a where [n : natural number | n mod 2 = 0];
+	c ::= count of a where [n : natural number | n > 2000];
+	Require: b = 2;
+	Require: c = 0;
 ];
 
 Test "count of where (macros)" in set test suite is
 [
 	a ::= {1,2,3,4};
- 	b ::= count of n in a where [n mod 2 = 0];
- 	c ::= count of n in a where [n > 2000];
- 	Require: b = 2;
- 	Require: c = 0;
+	b ::= count of n in a where [n mod 2 = 0];
+	c ::= count of n in a where [n > 2000];
+	Require: b = 2;
+	Require: c = 0;
 ];
 
 Test "each of satisfies" in set test suite is
 [
 	a ::= {1,2,3,4};
-	counter : whole number := 0;
- 	b ::= each of a satisfies [
-		n : natural number |
-		counter := counter +1;
- 		n ≤ 2
- 	];
- 	c ::= each of a satisfies [n : natural number | n > 0];
- 	Require: b = false;
- 	Require: counter = 3;
- 	Require: c = true;
+	b ::= each of a satisfies [n : natural number | n ≤ 2];
+	c ::= each of a satisfies [n : natural number | n > 0];
+	Require: b = false;
+	Require: c = true;
 ];
 
 Test "each of satisfies (macro)" in set test suite is
 [
 	a ::= {1,2,3,4};
-	counter : whole number := 0;
- 	b ::= each n of a satisfies [
-		counter := counter +1;
- 		n ≤ 2
- 	];
- 	c ::= each n of a satisfies [n > 0];
- 	Require: b = false;
- 	Require: counter = 3;
- 	Require: c = true;
+	b ::= each n of a satisfies [n ≤ 2];
+	c ::= each n of a satisfies [n > 0];
+	Require: b = false;
+	Require: c = true;
 ];
 
 Test "filter by" in set test suite is
 [
 	a ::= {1,2,3,4};
- 	b ::= filter a by [n : natural number | n mod 2 = 0];
- 	c ::= filter a by [n : natural number | n > 2000];
- 	Require: b = {2,4};
- 	Require: c = ∅;
+	b ::= filter a by [n : natural number | n mod 2 = 0];
+	c ::= filter a by [n : natural number | n > 2000];
+	Require: b = {2,4};
+	Require: c = ∅;
 ];
 
 Test "select each (macro)" in set test suite is
 [
 	a ::= {1,2,3,4};
- 	b ::= select each n from a where [n mod 2 = 0];
- 	c ::= select each n from a where [n > 2000];
- 	Require: b = {2,4};
- 	Require: c = ∅;
+	b ::= select each n from a where [n mod 2 = 0];
+	c ::= select each n from a where [n > 2000];
+	Require: b = {2,4};
+	Require: c = ∅;
 ];
 
 Test "reject each (macro)" in set test suite is
 [
 	a ::= {1,2,3,4};
- 	b ::= reject each n from a where [n mod 2 = 0];
- 	c ::= reject each n from a where [n > 2000];
- 	Require: b = {1,3};
- 	Require: c = {1,2,3,4};
+	b ::= reject each n from a where [n mod 2 = 0];
+	c ::= reject each n from a where [n > 2000];
+	Require: b = {1,3};
+	Require: c = {1,2,3,4};
 ];
 
 Test "no order and no duplicates" in set test suite is

@@ -39,14 +39,19 @@ import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import com.avail.descriptor.maps.A_Map
+import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.A_Set
-import com.avail.descriptor.sets.SetDescriptor.emptySet
+import com.avail.descriptor.sets.SetDescriptor
+import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromArray
+import com.avail.descriptor.tuples.StringDescriptor
 import com.avail.descriptor.tuples.StringDescriptor.stringFrom
+import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.serialization.MalformedSerialStreamException
 
 /**
@@ -77,7 +82,7 @@ import com.avail.serialization.MalformedSerialStreamException
  *   `true` if these imported declarations are supposed to be re-exported from
  *   the current module.
  * @param names
- *   The [set][SetDescriptor] of names ([strings][String]) imported from the
+ *   The [set][SetDescriptor] of names ([strings][A_String]) imported from the
  *   module.  They will be cause atoms to be looked up within the predecessor
  *   module, and will be re-exported verbatim if `isExtension` is `true`.
  * @param renames
@@ -125,7 +130,7 @@ class ModuleImport
 	 * explicitly specified in this import declaration.  The keys are the newly
 	 * introduced names and the values are the names provided by the predecessor
 	 * module.  If no names or renames were specified, then this is
-	 * [nil][NilDescriptor.nil] instead.
+	 * [nil] instead.
 	 */
 	val renames: A_Map
 

@@ -56,7 +56,7 @@ Test "macro for each of do" in iterators test suite is
 	b : natural number* := <>;
 	For each element of a do
 	[
-	 	If element is even then [b := b ++ <element>;];
+		If element is even then [b := b ++ <element>;];
 	];
 	Require: b = <2,4>;
 ];
@@ -69,14 +69,14 @@ Test "filter by" in iterators test suite is
 	bt : natural number* := <>;
 	For each element of b do
 	[
-	 	If element is even then [bt := bt ++ <element>;];
+		If element is even then [bt := bt ++ <element>;];
 	];
 
 	c ::= filter a by [n : natural number | n > 2000];
 	ct : natural number* := <>;
 	For each element of c do
 	[
-	 	If element is even then [ct := ct ++ <element>;];
+		If element is even then [ct := ct ++ <element>;];
 	];
 
 	Require: bt = <2,4>;

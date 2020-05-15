@@ -52,7 +52,7 @@ import com.avail.descriptor.representation.*
 import com.avail.descriptor.representation.AvailObject.Companion.multiplier
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor
-import com.avail.descriptor.sets.SetDescriptor.emptySet
+import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.*

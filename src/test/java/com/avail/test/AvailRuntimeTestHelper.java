@@ -177,7 +177,7 @@ public class AvailRuntimeTestHelper
 	 *        on the file system.
 	 * @return The Avail module name resolver.
 	 * @throws FileNotFoundException
-	 * 	       If the renames file was specified but not found.
+	 *         If the renames file was specified but not found.
 	 * @throws RenamesFileParserException
 	 *         If the renames file exists but could not be interpreted correctly
 	 *         for any reason.

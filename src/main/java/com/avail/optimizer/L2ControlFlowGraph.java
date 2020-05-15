@@ -79,7 +79,7 @@ public final class L2ControlFlowGraph
 		 * Whether the control flow graph is in edge-split form, which ensures
 		 * that no edge both leads from a node with multiple successor edges and
 		 * leads to a node with multiple predecessor edges.
- 		 */
+		 */
 		public static final class IS_EDGE_SPLIT extends StateFlag { }
 
 		/**

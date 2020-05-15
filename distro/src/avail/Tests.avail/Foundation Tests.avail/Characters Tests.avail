@@ -45,7 +45,7 @@ New test suite character test suite extends foundation test suite;
 
 Test "lowercase" in character test suite is
 [
- 	Require: lowercase ¢R = ¢r;
+	Require: lowercase ¢R = ¢r;
 	Require: ¢d is lowercase;
 ];
 
