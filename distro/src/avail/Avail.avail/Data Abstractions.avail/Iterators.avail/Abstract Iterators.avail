@@ -67,6 +67,7 @@ Names
 	"reader",
 	"reader of_",
 	"take«at most»?_from_",
+	"drain_",
 	"writer",
 	"writer of_",
 	"Write_to_",
@@ -813,6 +814,26 @@ Semantic restriction "Drop from_until_" is
 |
 	Require: predicate accepts readerType;
 	⊤
+];
+
+/**
+* Answer a tuple comprising all elements of {@param "target"}.
+*
+* @macro "drain_"
+* @param "target" "expression phrase ⇒ reader"
+* @category "Readers"
+* @returns "send phrase ⇒ tuple"
+*/
+Public macro "drain_" is
+[
+  target : expression phrase ⇒ reader
+|
+  restricted send $"take«at most»?_from_" with
+     «<
+        ‘true’,
+        ‘∞’,
+        target
+     >» : tuple
 ];
 
 /**
