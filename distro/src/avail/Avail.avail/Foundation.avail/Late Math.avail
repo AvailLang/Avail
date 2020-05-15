@@ -56,6 +56,7 @@ Uses
 	"Exceptions",
 	"Lexers",
 	"Literals",
+	"Maps",
 	"Objects",
 	"Phrases",
 	"Sets",
@@ -1044,7 +1045,7 @@ Private method "trial division factorization of_«,⁇from_»?«,⁇to_»?" is
 	stop ::= min end ++ <⌊√n⌋>;
 
 	// Might as well check our list of small primes since we have it
-	If i < 120 ∧ i < stop then
+	If i < 120 ∧ i ≤ stop then
 	[
 		For each p in smallPrimes do
 		[
@@ -1226,8 +1227,8 @@ Macro "prime factorization of_" is
 	n : expression phrase ⇒ natural number
 |
 	restricted send $"counts for_" with
-    «<
-	 	restricted send $"factor_" with «<n>» : natural number+
+	«<
+		restricted send $"factor_" with «<n>» : natural number+
 	>» : {natural number→natural number|1..}
 ];
 
