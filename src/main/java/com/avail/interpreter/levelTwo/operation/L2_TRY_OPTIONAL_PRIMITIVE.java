@@ -79,7 +79,7 @@ import static org.objectweb.asm.Opcodes.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@ReadsHiddenVariable({
+@ReadsHiddenVariable(theValue = {
 	CURRENT_CONTINUATION.class,
 	CURRENT_FUNCTION.class,
 //	CURRENT_ARGUMENTS.class,

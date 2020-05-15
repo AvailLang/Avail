@@ -71,7 +71,7 @@ import static org.objectweb.asm.Opcodes.*;
  * an interrupt has been handled.</p>
  */
 @ReadsHiddenVariable(
-	CURRENT_CONTINUATION.class)
+	theValue = CURRENT_CONTINUATION.class)
 @WritesHiddenVariable(
 	CURRENT_CONTINUATION.class)
 public final class L2_ENTER_L2_CHUNK
@@ -107,7 +107,7 @@ extends L2Operation
 	@Override
 	public void appendToWithWarnings (
 		final L2Instruction instruction,
-		final Set<L2OperandType> desiredTypes,
+		final Set<? extends L2OperandType> desiredTypes,
 		final StringBuilder builder,
 		final Consumer<Boolean> warningStyleChange)
 	{

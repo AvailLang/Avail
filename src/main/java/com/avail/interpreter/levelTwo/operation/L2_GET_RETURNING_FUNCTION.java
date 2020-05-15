@@ -41,6 +41,7 @@ import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTIO
 import com.avail.interpreter.levelTwo.ReadsHiddenVariable;
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
 import com.avail.optimizer.jvm.JVMTranslator;
+import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
@@ -59,7 +60,7 @@ import static org.objectweb.asm.Type.getInternalName;
  */
 @ReadsHiddenVariable(
 	// Close enough.
-	CURRENT_FUNCTION.class)
+	theValue = CURRENT_FUNCTION.class)
 public final class L2_GET_RETURNING_FUNCTION
 extends L2Operation
 {
@@ -80,10 +81,10 @@ extends L2Operation
 
 	@Override
 	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
+		final @NotNull L2Instruction instruction,
+		final @NotNull Set<? extends L2OperandType> desiredTypes,
+		final @NotNull StringBuilder builder,
+		final @NotNull Consumer<Boolean> warningStyleChange)
 	{
 		assert this == instruction.operation();
 		final L2WriteBoxedOperand function = instruction.operand(0);

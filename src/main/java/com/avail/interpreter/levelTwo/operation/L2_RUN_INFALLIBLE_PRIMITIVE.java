@@ -91,7 +91,7 @@ extends L2Operation
 	extends L2_RUN_INFALLIBLE_PRIMITIVE { }
 
 	/** The subclass for primitives that have global read dependency. */
-	@ReadsHiddenVariable(GLOBAL_STATE.class)
+	@ReadsHiddenVariable(theValue = GLOBAL_STATE.class)
 	@WritesHiddenVariable({
 		CURRENT_CONTINUATION.class,
 		CURRENT_FUNCTION.class,
@@ -113,7 +113,7 @@ extends L2Operation
 	extends L2_RUN_INFALLIBLE_PRIMITIVE { }
 
 	/** The subclass for primitives that have global read/write dependency. */
-	@ReadsHiddenVariable(GLOBAL_STATE.class)
+	@ReadsHiddenVariable(theValue = GLOBAL_STATE.class)
 	@WritesHiddenVariable({
 		CURRENT_CONTINUATION.class,
 		CURRENT_FUNCTION.class,
@@ -282,7 +282,7 @@ extends L2Operation
 	@Override
 	public void appendToWithWarnings (
 		final L2Instruction instruction,
-		final Set<L2OperandType> desiredTypes,
+		final Set<? extends L2OperandType> desiredTypes,
 		final StringBuilder builder,
 		final Consumer<Boolean> warningStyleChange)
 	{

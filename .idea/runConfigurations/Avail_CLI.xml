@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Avail CLI" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="com.avail.tools.compiler.Compiler" />
-    <module name="org.availlang.avail.avail-cli.main" />
+    <module name="avail.avail-cli.main" />
     <option name="PROGRAM_PARAMETERS" value="--availRoots=avail=$PROJECT_DIR$/repositories/avail.repo,$PROJECT_DIR$/distro/src/avail;experimental=$PROJECT_DIR$/repositories/experimental.repo,$PROJECT_DIR$/experimental/even-newer-avail;examples=$PROJECT_DIR$/repositories/examples.repo,$PROJECT_DIR$/distro/src/examples;website=$PROJECT_DIR$/repositories/website.repo,$PROJECT_DIR$/distro/src/website --verboseMode=2 --compile /avail/Avail" />
     <option name="VM_PARAMETERS" value="-ea -Xmx10g -Djava.util.logging.config.file=$PROJECT_DIR$/distro/etc/logging.properties -DavailDeveloper=true" />
     <method v="2">

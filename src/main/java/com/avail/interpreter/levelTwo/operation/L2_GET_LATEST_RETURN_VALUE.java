@@ -55,7 +55,7 @@ import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@ReadsHiddenVariable(LATEST_RETURN_VALUE.class)
+@ReadsHiddenVariable(theValue = LATEST_RETURN_VALUE.class)
 public final class L2_GET_LATEST_RETURN_VALUE
 extends L2Operation
 {
@@ -77,7 +77,7 @@ extends L2Operation
 	@Override
 	public void appendToWithWarnings (
 		final L2Instruction instruction,
-		final Set<L2OperandType> desiredTypes,
+		final Set<? extends L2OperandType> desiredTypes,
 		final StringBuilder builder,
 		final Consumer<Boolean> warningStyleChange)
 	{

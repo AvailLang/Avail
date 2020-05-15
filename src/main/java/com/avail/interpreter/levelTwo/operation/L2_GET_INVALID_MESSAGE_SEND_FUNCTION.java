@@ -60,7 +60,7 @@ import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Mark van Gulik &lt;todd@availlang.org&gt;
  */
-@ReadsHiddenVariable(GLOBAL_STATE.class)
+@ReadsHiddenVariable(theValue = GLOBAL_STATE.class)
 public final class L2_GET_INVALID_MESSAGE_SEND_FUNCTION
 extends L2Operation
 {
@@ -95,7 +95,7 @@ extends L2Operation
 	@Override
 	public void appendToWithWarnings (
 		final L2Instruction instruction,
-		final Set<L2OperandType> desiredTypes,
+		final Set<? extends L2OperandType> desiredTypes,
 		final StringBuilder builder,
 		final Consumer<Boolean> warningStyleChange)
 	{

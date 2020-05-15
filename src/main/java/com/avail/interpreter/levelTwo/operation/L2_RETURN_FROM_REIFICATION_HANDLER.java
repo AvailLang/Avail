@@ -56,7 +56,7 @@ import static org.objectweb.asm.Opcodes.ARETURN;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@ReadsHiddenVariable({
+@ReadsHiddenVariable(theValue = {
 	CURRENT_CONTINUATION.class,
 	STACK_REIFIER.class,
 })
@@ -87,7 +87,7 @@ extends L2ControlFlowOperation
 	@Override
 	public void appendToWithWarnings (
 		final L2Instruction instruction,
-		final Set<L2OperandType> desiredTypes,
+		final Set<? extends L2OperandType> desiredTypes,
 		final StringBuilder builder,
 		final Consumer<Boolean> warningStyleChange)
 	{

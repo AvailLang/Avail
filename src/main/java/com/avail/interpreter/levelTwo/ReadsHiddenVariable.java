@@ -56,5 +56,5 @@ public @interface ReadsHiddenVariable
 	 * @return The classes of {@link HiddenVariable} read by an
 	 *         {@link L2Instruction} using the annotated {@link L2Operation}.
 	 */
-	Class<? extends HiddenVariable>[] value();
+	Class<? extends HiddenVariable>[] theValue ();
 }
