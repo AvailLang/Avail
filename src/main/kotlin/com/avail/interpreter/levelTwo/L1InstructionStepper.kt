@@ -1,21 +1,21 @@
 /*
- * L1InstructionStepper.java
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * L1InstructionStepper.kt
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice, this
+ *     list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice, this
+ *     list of conditions and the following disclaimer in the documentation
+ *     and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
- *   without specific prior written permission.
+ *  * Neither the name of the copyright holder nor the names of the contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -29,151 +29,119 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo
 
-package com.avail.interpreter.levelTwo;
-
-import com.avail.AvailRuntime;
-import com.avail.AvailRuntime.HookType;
-import com.avail.descriptor.atoms.A_Atom;
-import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.bundles.A_Bundle;
-import com.avail.descriptor.functions.A_Continuation;
-import com.avail.descriptor.functions.A_Function;
-import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder;
-import com.avail.descriptor.methods.A_Definition;
-import com.avail.descriptor.methods.A_Method;
-import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.descriptor.tuples.A_Tuple;
-import com.avail.descriptor.types.A_Type;
-import com.avail.descriptor.types.TypeDescriptor.Types;
-import com.avail.descriptor.variables.A_Variable;
-import com.avail.exceptions.AvailErrorCode;
-import com.avail.exceptions.MethodDefinitionException;
-import com.avail.exceptions.VariableGetException;
-import com.avail.exceptions.VariableSetException;
-import com.avail.interpreter.execution.Interpreter;
-import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelOne.L1Operation;
-import com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint;
-import com.avail.interpreter.levelTwo.operation.L2_INTERPRET_LEVEL_ONE;
-import com.avail.optimizer.StackReifier;
-import com.avail.optimizer.jvm.CheckedMethod;
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-import com.avail.performance.Statistic;
-import com.avail.performance.StatisticReport;
-import com.avail.utility.MutableInt;
-
-import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
-import static com.avail.AvailRuntime.HookType.IMPLICIT_OBSERVE;
-import static com.avail.AvailRuntimeSupport.captureNanos;
-import static com.avail.descriptor.representation.NilDescriptor.nil;
-import static com.avail.descriptor.functions.ContinuationDescriptor.createContinuationWithFrame;
-import static com.avail.descriptor.functions.ContinuationDescriptor.createLabelContinuation;
-import static com.avail.descriptor.functions.FunctionDescriptor.createExceptOuters;
-import static com.avail.descriptor.tuples.ObjectTupleDescriptor.*;
-import static com.avail.descriptor.tuples.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn;
-import static com.avail.descriptor.variables.VariableDescriptor.newVariableWithContentType;
-import static com.avail.exceptions.AvailErrorCode.*;
-import static com.avail.interpreter.execution.Interpreter.assignmentFunction;
-import static com.avail.interpreter.execution.Interpreter.debugL1;
-import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.*;
-import static com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk;
-import static com.avail.optimizer.jvm.CheckedMethod.instanceMethod;
-import static com.avail.utility.Casts.cast;
-import static com.avail.utility.Nulls.stripNull;
-import static java.util.Arrays.asList;
+import com.avail.AvailRuntime
+import com.avail.AvailRuntime.HookType
+import com.avail.AvailRuntimeSupport
+import com.avail.descriptor.atoms.A_Atom.Companion.atomName
+import com.avail.descriptor.bundles.A_Bundle
+import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
+import com.avail.descriptor.bundles.A_Bundle.Companion.message
+import com.avail.descriptor.functions.A_Continuation
+import com.avail.descriptor.functions.A_Function
+import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
+import com.avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationWithFrame
+import com.avail.descriptor.functions.ContinuationDescriptor.Companion.createLabelContinuation
+import com.avail.descriptor.functions.FunctionDescriptor.Companion.createExceptOuters
+import com.avail.descriptor.methods.A_Definition
+import com.avail.descriptor.methods.A_Method
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.NilDescriptor
+import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor
+import com.avail.descriptor.tuples.TupleDescriptor
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor
+import com.avail.descriptor.types.TypeDescriptor
+import com.avail.descriptor.variables.A_Variable
+import com.avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
+import com.avail.exceptions.AvailErrorCode
+import com.avail.exceptions.MethodDefinitionException
+import com.avail.exceptions.VariableGetException
+import com.avail.exceptions.VariableSetException
+import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.execution.Interpreter.Companion.assignmentFunction
+import com.avail.interpreter.execution.Interpreter.Companion.log
+import com.avail.interpreter.levelOne.L1Operation
+import com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
+import com.avail.interpreter.levelTwo.operation.L2_INTERPRET_LEVEL_ONE
+import com.avail.optimizer.StackReifier
+import com.avail.optimizer.jvm.CheckedMethod
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode
+import com.avail.performance.Statistic
+import com.avail.performance.StatisticReport
+import com.avail.utility.Casts
+import com.avail.utility.MutableInt
+import com.avail.utility.Nulls
+import com.avail.utility.evaluation.Continuation0
+import java.util.*
+import java.util.logging.Level
+import java.util.regex.Pattern
+import java.util.stream.Collectors
 
 /**
  * This class is used to simulate the effect of level one nybblecodes during
- * execution of the {@link L2_INTERPRET_LEVEL_ONE} instruction, on behalf
- * of an {@link Interpreter}.
+ * execution of the [L2_INTERPRET_LEVEL_ONE] instruction, on behalf
+ * of an [Interpreter].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @property interpreter
+ *   The [Interpreter] on whose behalf to step level one nybblecodes.
+ * @constructor
+ * Construct a new `L1InstructionStepper`.
+ *
+ * @param interpreter
+ * The [Interpreter] on whose behalf to step through level one nybblecode
+ * instructions.
  */
-public final class L1InstructionStepper
+class L1InstructionStepper constructor(val interpreter: Interpreter)
 {
-	/**
-	 * The {@link Interpreter} on whose behalf to step level one nybblecodes.
-	 */
-	final Interpreter interpreter;
+	/** The current position in the nybblecodes.  */
+	@JvmField
+	val instructionDecoder = L1InstructionDecoder()
 
-	/** The current position in the nybblecodes. */
-	public final L1InstructionDecoder instructionDecoder =
-		new L1InstructionDecoder();
-
-	/** The current stack position as would be seen in a continuation. */
-	public int stackp;
-
-	/** The {@link Statistic} for reifications prior to label creation in L1. */
-	private static final Statistic reificationBeforeLabelCreationStat =
-		new Statistic(
-			"Reification before label creation in L1",
-			StatisticReport.REIFICATIONS);
-
-	/** The {@link Statistic} for reifications prior to label creation in L1. */
-	private static final Statistic reificationForFailedLookupStat =
-		new Statistic(
-			"Reification before failed lookup in L1",
-			StatisticReport.REIFICATIONS);
+	/** The current stack position as would be seen in a continuation.  */
+	@JvmField
+	var stackp = 0
 
 	/**
-	 * Construct a new {@code L1InstructionStepper}.
-	 *
-	 * @param interpreter
-	 *            The {@link Interpreter} on whose behalf to step through
-	 *            level one nybblecode instructions.
+	 * The registers that hold [Avail objects][AvailObject].
 	 */
-	public L1InstructionStepper (final Interpreter interpreter)
-	{
-		this.interpreter = interpreter;
-	}
-
-	/** An empty array used for clearing the pointers quickly. */
-	private static final AvailObject[] emptyPointersArray = new AvailObject[0];
-
-	/**
-	 * The registers that hold {@linkplain AvailObject Avail objects}.
-	 */
-	public AvailObject[] pointers = emptyPointersArray;
+	@JvmField
+	var pointers : Array<AvailObject> = emptyPointersArray
 
 	/**
 	 * Read from the specified object register.
 	 *
-	 * @param index Which object register to read.
-	 * @return The value from that register.
+	 * @param index
+	 *   Which object register to read.
+	 * @return
+	 *   The value from that register.
 	 */
-	public AvailObject pointerAt (final int index)
-	{
-		return pointers[index];
-	}
+	fun pointerAt(index: Int): AvailObject = pointers[index]
 
 	/**
 	 * Write to the specified object register.
 	 *
-	 * @param index Which object register to write.
-	 * @param value The value to write to that register.
+	 * @param index
+	 *   Which object register to write.
+	 * @param value
+	 *   The value to write to that register.
 	 */
-	public void pointerAtPut (
-		final int index,
-		final A_BasicObject value)
+	fun pointerAtPut(index: Int, value: A_BasicObject)
 	{
-		pointers[index] = (AvailObject) value;
+		pointers[index] = value as AvailObject
 	}
 
 	/**
 	 * Wipe out the existing register set for safety.
 	 */
-	public void wipeRegisters ()
+	fun wipeRegisters()
 	{
-		pointers = emptyPointersArray;
+		pointers = emptyPointersArray
 	}
 
 	/**
@@ -181,11 +149,12 @@ public final class L1InstructionStepper
 	 * is just some consecutively-numbered pointer registers and an integer
 	 * register that maintains the position).
 	 *
-	 * @param value The value to push on the virtualized stack.
+	 * @param value
+	 * The value to push on the virtualized stack.
 	 */
-	private void push (final A_BasicObject value)
+	private fun push(value: A_BasicObject)
 	{
-		pointerAtPut(--stackp, value);
+		pointerAtPut(--stackp, value)
 	}
 
 	/**
@@ -193,197 +162,186 @@ public final class L1InstructionStepper
 	 * is just some consecutively-numbered pointer registers and an integer
 	 * register that maintains the position).
 	 *
-	 * @return The value popped off the virtualized stack.
+	 * @return
+	 * The value popped off the virtualized stack.
 	 */
-	private AvailObject pop ()
+	private fun pop(): AvailObject
 	{
-		final AvailObject popped = pointerAt(stackp);
-		pointerAtPut(stackp++, nil);
-		return popped;
+		val popped = pointerAt(stackp)
+		pointerAtPut(stackp++, NilDescriptor.nil)
+		return popped
 	}
 
 	/**
-	 * A pre-compilable regex that matches one or more whitespace characters.
-	 */
-	private static final Pattern whitespaces = Pattern.compile("\\s+");
-
-	/**
 	 * Run the current code until it reaches the end.  Individual instructions,
-	 * such as calls, may be subject to {@link StackReifier reification}, which
-	 * should cause a suitable {@link A_Continuation} to be reified.  In
+	 * such as calls, may be subject to [reification][StackReifier], which
+	 * should cause a suitable [A_Continuation] to be reified.  In
 	 * addition, inter-nybblecode interrupts may also trigger reification, but
 	 * they'll handle their own reification prior to returning here with a
-	 * suitable {@link StackReifier} (to update and return again from here).
+	 * suitable [StackReifier] (to update and return again from here).
 	 *
-	 * @return {@code null} if the current function returns normally, otherwise
-	 *         a {@link StackReifier} with which to reify the stack.
+	 * @return
+	 * `null` if the current function returns normally, otherwise
+	 * a [StackReifier] with which to reify the stack.
 	 */
 	@ReferencedInGeneratedCode
-	public @Nullable StackReifier run ()
+	fun run(): StackReifier?
 	{
 //		final A_Function function = stripNull(interpreter.function);
-		final AvailObject function =
-			(AvailObject) stripNull(interpreter.function);
-//		final A_RawFunction code = function.code();
-		final AvailObject code = (AvailObject) function.code();
-		if (debugL1)
+		val function = Nulls.stripNull(interpreter.function) as AvailObject
+		//		final A_RawFunction code = function.code();
+		val code = function.code() as AvailObject
+		if (Interpreter.debugL1)
 		{
-			Interpreter.Companion.log(
+			log(
 				Interpreter.loggerDebugL1,
 				Level.FINER,
 				"{0}Started L1 run: {1}",
 				interpreter.debugModeString,
-				whitespaces.matcher(function.toString()).replaceAll(" "));
+				whitespaces.matcher(function.toString()).replaceAll(" "))
 		}
-		code.setUpInstructionDecoder(instructionDecoder);
+		code.setUpInstructionDecoder(instructionDecoder)
 		while (!instructionDecoder.atEnd())
 		{
-			final L1Operation operation = instructionDecoder.getOperation();
-			if (debugL1)
+			val operation = instructionDecoder.getOperation()
+			if (Interpreter.debugL1)
 			{
-				final int savePc = instructionDecoder.pc();
-				final List<Integer> operands =
-					Arrays.stream(operation.getOperandTypes())
-						.map(x -> instructionDecoder.getOperand())
-						.collect(Collectors.toList());
-				Interpreter.Companion.log(
+				val savePc = instructionDecoder.pc()
+				val operands = Arrays.stream(operation.operandTypes)
+					.map { instructionDecoder.getOperand() }
+					.collect(Collectors.toList())
+				log(
 					Interpreter.loggerDebugL1,
 					Level.FINER,
 					"{0}L1 step: {1}",
 					interpreter.debugModeString,
-					operands.isEmpty()
-						? operation
-						: operation + " " + operands);
-				instructionDecoder.pc(savePc);
+					if (operands.isEmpty()) operation else "$operation $operands")
+				instructionDecoder.pc(savePc)
 			}
-			switch (operation)
+			when (operation)
 			{
-				case L1_doCall:
+				L1Operation.L1_doCall ->
 				{
-					final A_Bundle bundle =
-						code.literalAt(instructionDecoder.getOperand());
-					final A_Type expectedReturnType =
-						code.literalAt(instructionDecoder.getOperand());
-					final int numArgs = A_Bundle.Companion.bundleMethod(bundle).numArgs();
-					if (debugL1)
+					val bundle: A_Bundle =
+						code.literalAt(instructionDecoder.getOperand())
+					val expectedReturnType: A_Type =
+						code.literalAt(instructionDecoder.getOperand())
+					val numArgs: Int = bundle.bundleMethod().numArgs()
+					if (Interpreter.debugL1)
 					{
-						Interpreter.Companion.log(
+						log(
 							Interpreter.loggerDebugL1,
 							Level.FINER,
 							"{0}         L1 call ({1})",
 							interpreter.debugModeString,
-							A_Atom.Companion.atomName(A_Bundle.Companion.message(bundle)));
+							bundle.message().atomName())
 					}
-					interpreter.argsBuffer.clear();
-					for (int i = stackp + numArgs - 1; i >= stackp; i--)
+					interpreter.argsBuffer.clear()
+					var i = stackp + numArgs - 1
+					while (i >= stackp)
 					{
-						interpreter.argsBuffer.add(pointerAt(i));
-						pointerAtPut(i, nil);
+						interpreter.argsBuffer.add(pointerAt(i))
+						pointerAtPut(i, NilDescriptor.nil)
+						i--
 					}
-					stackp += numArgs;
+					stackp += numArgs
 					// Push the expected type, which should be replaced on the
 					// stack with the actual value when the call completes
 					// (after ensuring it complies).
-					push(expectedReturnType);
-					final A_Method method = A_Bundle.Companion.bundleMethod(bundle);
-					final A_Definition matching;
-					final long beforeLookup = captureNanos();
-					try
+					push(expectedReturnType)
+					val method: A_Method = bundle.bundleMethod()
+					val matching: A_Definition
+					val beforeLookup = AvailRuntimeSupport.captureNanos()
+					matching = try
 					{
-						matching = method.lookupByValuesFromList(
-							interpreter.argsBuffer);
+						method.lookupByValuesFromList(
+							interpreter.argsBuffer)
 					}
-					catch (final MethodDefinitionException e)
+					catch (e: MethodDefinitionException)
 					{
 						return reifyAndReportFailedLookup(
-							method, e.getErrorCode());
+							method, e.errorCode)
 					}
 					finally
 					{
-						final long afterLookup = captureNanos();
+						val afterLookup = AvailRuntimeSupport.captureNanos()
 						interpreter.recordDynamicLookup(
-							bundle, afterLookup - beforeLookup);
+							bundle, afterLookup - beforeLookup.toDouble())
 					}
-
-					final @Nullable StackReifier reifier =
-						callMethodAfterLookup(matching);
+					val reifier = callMethodAfterLookup(matching)
 					if (reifier != null)
 					{
-						return reifier;
+						return reifier
 					}
 
 					// The call returned normally, without reifications, with
 					// the resulting value in the interpreter's latestResult.
-					final AvailObject result = interpreter.getLatestResult();
-					if (debugL1)
+					val result = interpreter.getLatestResult()
+					if (Interpreter.debugL1)
 					{
-						Interpreter.Companion.log(
+						log(
 							Interpreter.loggerDebugL1,
 							Level.FINER,
 							"{0}Call returned: {1}",
 							interpreter.debugModeString,
-							result.typeTag().name());
+							result.typeTag().name)
 					}
-					final @Nullable StackReifier returnCheckReifier =
-						checkReturnType(result, expectedReturnType, function);
+					val returnCheckReifier =
+						checkReturnType(result, expectedReturnType, function)
 					if (returnCheckReifier != null)
 					{
 						// Reification is happening within the handling of
 						// the failed return type check.
-						return returnCheckReifier;
+						return returnCheckReifier
 					}
-					// The return check passed.  Fall through.
-					assert stackp <= code.numSlots();
+					assert(stackp <= code.numSlots())
 					// Replace the stack slot.
-					pointerAtPut(stackp, result);
-					break;
+					pointerAtPut(stackp, result)
 				}
-				case L1_doPushLiteral:
+				L1Operation.L1_doPushLiteral ->
 				{
-					push(code.literalAt(instructionDecoder.getOperand()));
-					break;
+					push(code.literalAt(instructionDecoder.getOperand()))
 				}
-				case L1_doPushLastLocal:
+				L1Operation.L1_doPushLastLocal ->
 				{
-					final int localIndex = instructionDecoder.getOperand();
-					final AvailObject local = pointerAt(localIndex);
-					assert !local.equalsNil();
-					pointerAtPut(localIndex, nil);
-					push(local);
-					break;
+					val localIndex = instructionDecoder.getOperand()
+					val local = pointerAt(localIndex)
+					assert(!local.equalsNil())
+					pointerAtPut(localIndex, NilDescriptor.nil)
+					push(local)
 				}
-				case L1_doPushLocal:
+				L1Operation.L1_doPushLocal ->
 				{
-					final AvailObject local =
-						pointerAt(instructionDecoder.getOperand());
-					assert !local.equalsNil();
-					push(local.makeImmutable());
-					break;
+					val local =
+						pointerAt(instructionDecoder.getOperand())
+					assert(!local.equalsNil())
+					push(local.makeImmutable())
 				}
-				case L1_doPushLastOuter:
+				L1Operation.L1_doPushLastOuter ->
 				{
-					final int outerIndex = instructionDecoder.getOperand();
-					final A_BasicObject outer = function.outerVarAt(outerIndex);
-					assert !outer.equalsNil();
+					val outerIndex = instructionDecoder.getOperand()
+					val outer: A_BasicObject = function.outerVarAt(outerIndex)
+					assert(!outer.equalsNil())
 					if (function.optionallyNilOuterVar(outerIndex))
 					{
-						push(outer);
+						push(outer)
 					}
 					else
 					{
-						push(outer.makeImmutable());
+						push(outer.makeImmutable())
 					}
-					break;
 				}
-				case L1_doClose:
+				L1Operation.L1_doClose ->
 				{
-					final int numCopiedVars = instructionDecoder.getOperand();
-					final AvailObject codeToClose =
-						code.literalAt(instructionDecoder.getOperand());
-					final A_Function newFunction =
-						createExceptOuters(codeToClose, numCopiedVars);
-					for (int i = numCopiedVars; i >= 1; i--)
+					val numCopiedVars = instructionDecoder.getOperand()
+					val codeToClose =
+						code.literalAt(instructionDecoder.getOperand())
+					val newFunction: A_Function =
+						createExceptOuters(codeToClose, numCopiedVars)
+					var i = numCopiedVars
+					while (i >= 1)
 					{
+
 						// We don't assert assertObjectUnreachableIfMutable: on
 						// the popped outer variables because each outer
 						// variable's new reference from the function balances
@@ -392,163 +350,149 @@ public final class L1InstructionStepper
 						// itself should remain mutable at this point, otherwise
 						// the outer variables would have to makeImmutable() to
 						// be referenced by an immutable function.
-						final AvailObject value = pop();
-						assert !value.equalsNil();
-						newFunction.outerVarAtPut(i, value);
+						val value = pop()
+						assert(!value.equalsNil())
+						newFunction.outerVarAtPut(i, value)
+						i--
 					}
-					push(newFunction);
-					break;
+					push(newFunction)
 				}
-				case L1_doSetLocal:
+				L1Operation.L1_doSetLocal ->
 				{
-					final @Nullable StackReifier reifier =
-						setVariable(
-							pointerAt(instructionDecoder.getOperand()), pop());
+					val reifier = setVariable(
+						pointerAt(instructionDecoder.getOperand()), pop())
 					if (reifier != null)
 					{
-						return reifier;
+						return reifier
 					}
-					break;
 				}
-				case L1_doGetLocalClearing:
+				L1Operation.L1_doGetLocalClearing ->
 				{
-					final A_Variable localVariable =
-						pointerAt(instructionDecoder.getOperand());
-					final Object valueOrReifier = getVariable(localVariable);
-					if (valueOrReifier instanceof StackReifier)
+					val localVariable: A_Variable =
+						pointerAt(instructionDecoder.getOperand())
+					val valueOrReifier = getVariable(localVariable)
+					if (valueOrReifier is StackReifier)
 					{
-						return (StackReifier) valueOrReifier;
+						return valueOrReifier
 					}
-					final AvailObject value = (AvailObject) valueOrReifier;
-					if (localVariable.traversed().descriptor().isMutable())
+					val value = valueOrReifier as AvailObject
+					if (localVariable.traversed().descriptor().isMutable)
 					{
-						localVariable.clearValue();
-						push(value);
+						localVariable.clearValue()
+						push(value)
 					}
 					else
 					{
-						push(value.makeImmutable());
+						push(value.makeImmutable())
 					}
-					break;
 				}
-				case L1_doPushOuter:
+				L1Operation.L1_doPushOuter ->
 				{
-					final AvailObject outer =
-						function.outerVarAt(instructionDecoder.getOperand());
-					assert !outer.equalsNil();
-					push(outer.makeImmutable());
-					break;
+					val outer =
+						function.outerVarAt(instructionDecoder.getOperand())
+					assert(!outer.equalsNil())
+					push(outer.makeImmutable())
 				}
-				case L1_doPop:
+				L1Operation.L1_doPop ->
 				{
-					pop();
-					break;
+					pop()
 				}
-				case L1_doGetOuterClearing:
+				L1Operation.L1_doGetOuterClearing ->
 				{
-					final A_Variable outerVariable =
-						function.outerVarAt(instructionDecoder.getOperand());
-					final Object valueOrReifier = getVariable(outerVariable);
-					if (valueOrReifier instanceof StackReifier)
+					val outerVariable: A_Variable =
+						function.outerVarAt(instructionDecoder.getOperand())
+					val valueOrReifier = getVariable(outerVariable)
+					if (valueOrReifier is StackReifier)
 					{
-						return (StackReifier) valueOrReifier;
+						return valueOrReifier
 					}
-					final AvailObject value = (AvailObject) valueOrReifier;
-					if (outerVariable.traversed().descriptor().isMutable())
+					val value = valueOrReifier as AvailObject
+					if (outerVariable.traversed().descriptor().isMutable)
 					{
-						outerVariable.clearValue();
-						push(value);
+						outerVariable.clearValue()
+						push(value)
 					}
 					else
 					{
-						push(value.makeImmutable());
+						push(value.makeImmutable())
 					}
-					break;
 				}
-				case L1_doSetOuter:
+				L1Operation.L1_doSetOuter ->
 				{
-					final @Nullable StackReifier reifier =
-						setVariable(
-							function.outerVarAt(instructionDecoder.getOperand()),
-							pop());
+					val reifier = setVariable(
+						function.outerVarAt(instructionDecoder.getOperand()),
+						pop())
 					if (reifier != null)
 					{
-						return reifier;
+						return reifier
 					}
-					break;
 				}
-				case L1_doGetLocal:
+				L1Operation.L1_doGetLocal ->
 				{
-					final Object valueOrReifier =
-						getVariable(pointerAt(instructionDecoder.getOperand()));
-					if (valueOrReifier instanceof StackReifier)
+					val valueOrReifier =
+						getVariable(pointerAt(instructionDecoder.getOperand()))
+					if (valueOrReifier is StackReifier)
 					{
-						return (StackReifier) valueOrReifier;
+						return valueOrReifier
 					}
-					final AvailObject value = (AvailObject) valueOrReifier;
-					push(value.makeImmutable());
-					break;
+					val value = valueOrReifier as AvailObject
+					push(value.makeImmutable())
 				}
-				case L1_doMakeTuple:
+				L1Operation.L1_doMakeTuple ->
 				{
-					final int size = instructionDecoder.getOperand();
-					switch (size)
+					when (val size = instructionDecoder.getOperand())
 					{
-						case 0:
+						0 ->
 						{
-							push(emptyTuple());
-							break;
+							push(TupleDescriptor.emptyTuple())
 						}
-						case 1:
+						1 ->
 						{
-							push(tuple(pop()));
-							break;
+							push(ObjectTupleDescriptor.tuple(pop()))
 						}
-						default:
+						else ->
 						{
-							// Less common case.
-							push(generateReversedFrom(size, ignored -> pop()));
-							break;
-						}
-					}
-					break;
-				}
-				case L1_doGetOuter:
-				{
-					final Object valueOrReifier =
-						getVariable(function.outerVarAt(
-							instructionDecoder.getOperand()));
-					if (valueOrReifier instanceof StackReifier)
-					{
-						return (StackReifier) valueOrReifier;
-					}
-					final AvailObject value = (AvailObject) valueOrReifier;
-					push(value.makeImmutable());
-					break;
-				}
-				case L1_doExtension:
-				{
-					assert false : "Illegal dispatch nybblecode";
-					break;
-				}
-				case L1Ext_doPushLabel:
-				{
-					final int numArgs = code.numArgs();
-					assert code.primitive() == null;
-					final List<AvailObject> args = new ArrayList<>(numArgs);
-					for (int i = 1; i <= numArgs; i++)
-					{
-						final AvailObject arg = pointerAt(i);
-						assert !arg.equalsNil();
-						args.add(arg);
-					}
-					assert interpreter.chunk == unoptimizedChunk;
 
-					final A_Function savedFunction =
-						stripNull(interpreter.function);
-					final AvailObject[] savedPointers = pointers;
-					final int savedPc = instructionDecoder.pc();
-					final int savedStackp = stackp;
+							// Less common case.
+							push(ObjectTupleDescriptor
+								 .generateReversedFrom(size) { pop() })
+						}
+					}
+				}
+				L1Operation.L1_doGetOuter ->
+				{
+					val valueOrReifier = getVariable(function.outerVarAt(
+						instructionDecoder.getOperand()))
+					if (valueOrReifier is StackReifier)
+					{
+						return valueOrReifier
+					}
+					val value = valueOrReifier as AvailObject
+					push(value.makeImmutable())
+				}
+				L1Operation.L1_doExtension ->
+				{
+					assert(false) { "Illegal dispatch nybblecode" }
+				}
+				L1Operation.L1Ext_doPushLabel ->
+				{
+					val numArgs = code.numArgs()
+					assert(code.primitive() == null)
+					val args: MutableList<AvailObject> = ArrayList(numArgs)
+					var i = 1
+					while (i <= numArgs)
+					{
+						val arg = pointerAt(i)
+						assert(!arg.equalsNil())
+						args.add(arg)
+						i++
+					}
+					assert(interpreter.chunk == L2Chunk.unoptimizedChunk)
+					val savedFunction =
+						Nulls.stripNull(interpreter.function)
+					val savedPointers = pointers
+					val savedPc = instructionDecoder.pc()
+					val savedStackp = stackp
 
 					// The Java stack has been reified into Avail
 					// continuations.  Run this before continuing the L2
@@ -562,369 +506,353 @@ public final class L1InstructionStepper
 					// ...always a fresh copy, always mutable (uniquely
 					// owned).
 					// ...and continue running the chunk.
-					interpreter.isReifying = true;
-					return new StackReifier(
+					interpreter.isReifying = true
+					return StackReifier(
 						true,
 						reificationBeforeLabelCreationStat,
-						() ->
-						{
+						Continuation0 {
+
 							// The Java stack has been reified into Avail
 							// continuations.  Run this before continuing the L2
 							// interpreter.
-							interpreter.function = savedFunction;
-							interpreter.chunk = unoptimizedChunk;
+							interpreter.function = savedFunction
+							interpreter.chunk = L2Chunk.unoptimizedChunk
 							interpreter.setOffset(
-								AFTER_REIFICATION.offsetInDefaultChunk);
-							pointers = savedPointers;
+								ChunkEntryPoint.AFTER_REIFICATION
+									.offsetInDefaultChunk)
+							pointers = savedPointers
 							savedFunction.code().setUpInstructionDecoder(
-								instructionDecoder);
-							instructionDecoder.pc(savedPc);
-							stackp = savedStackp;
+								instructionDecoder)
+							instructionDecoder.pc(savedPc)
+							stackp = savedStackp
 
 							// Note that the locals are not present in the new
 							// continuation, just arguments.  The locals will be
 							// created by offsetToRestartUnoptimizedChunk()
 							// when the continuation is restarted.
-							final A_Continuation newContinuation =
+							val newContinuation =
 								createLabelContinuation(
 									savedFunction,
-									stripNull(
+									Nulls.stripNull(
 										interpreter.getReifiedContinuation()),
-									unoptimizedChunk,
-									TO_RESTART.offsetInDefaultChunk,
-									args);
+									L2Chunk.unoptimizedChunk,
+									ChunkEntryPoint.TO_RESTART.offsetInDefaultChunk,
+									args)
 
 							// Freeze all fields of the new object, including
 							// its caller, function, and args.
-							newContinuation.makeSubobjectsImmutable();
-							// ...always a fresh copy, always mutable (uniquely
-							// owned).
-							assert newContinuation.caller().equalsNil()
-								|| !newContinuation.caller().descriptor()
-									.isMutable()
-								: "Caller should freeze because two "
-									+ "continuations can see it";
-							push(newContinuation);
-							interpreter.returnNow = false;
+							newContinuation.makeSubobjectsImmutable()
+							assert(newContinuation.caller().equalsNil()
+								   || !newContinuation.caller().descriptor()
+								.isMutable) {
+								("Caller should freeze because two "
+								 + "continuations can see it")
+							}
+							push(newContinuation)
+							interpreter.returnNow = false
 							// ...and continue running the chunk.
-							interpreter.isReifying = false;
-						});
-					// break;
+							interpreter.isReifying = false
+						})
 				}
-				case L1Ext_doGetLiteral:
+				L1Operation.L1Ext_doGetLiteral ->
 				{
-					final Object valueOrReifier =
-						getVariable(
-							code.literalAt(instructionDecoder.getOperand()));
-					if (valueOrReifier instanceof StackReifier)
+					val valueOrReifier = getVariable(
+						code.literalAt(instructionDecoder.getOperand()))
+					if (valueOrReifier is StackReifier)
 					{
-						return (StackReifier) valueOrReifier;
+						return valueOrReifier
 					}
-					final AvailObject value = (AvailObject) valueOrReifier;
-					push(value.makeImmutable());
-					break;
+					val value = valueOrReifier as AvailObject
+					push(value.makeImmutable())
 				}
-				case L1Ext_doSetLiteral:
+				L1Operation.L1Ext_doSetLiteral ->
 				{
 					setVariable(
-						code.literalAt(instructionDecoder.getOperand()), pop());
-					break;
+						code.literalAt(instructionDecoder.getOperand()), pop())
 				}
-				case L1Ext_doDuplicate:
+				L1Operation.L1Ext_doDuplicate ->
 				{
-					push(pointerAt(stackp).makeImmutable());
-					break;
+					push(pointerAt(stackp).makeImmutable())
 				}
-				case L1Ext_doPermute:
+				L1Operation.L1Ext_doPermute ->
 				{
-					final A_Tuple permutation =
-						code.literalAt(instructionDecoder.getOperand());
-					final int size = permutation.tupleSize();
-					final AvailObject[] values = new AvailObject[size];
-					for (int i = 1; i <= size; i++)
-					{
-						values[permutation.tupleIntAt(i) - 1] =
-							pointerAt(stackp + size - i);
+					val permutation: A_Tuple =
+						code.literalAt(instructionDecoder.getOperand())
+					val size = permutation.tupleSize()
+					val values = arrayOfNulls<AvailObject>(size)
+					run {
+						var i = 1
+						while (i <= size)
+						{
+							values[permutation.tupleIntAt(i) - 1] =
+								pointerAt(stackp + size - i)
+							i++
+						}
 					}
-					for (int i = 1; i <= size; i++)
+					var i = 1
+					while (i <= size)
 					{
-						pointerAtPut(stackp + size - i, values[i - 1]);
+						pointerAtPut(stackp + size - i, values[i - 1]!!)
+						i++
 					}
-					break;
 				}
-				case L1Ext_doSuperCall:
+				L1Operation.L1Ext_doSuperCall ->
 				{
-					final A_Bundle bundle =
-						code.literalAt(instructionDecoder.getOperand());
-					final A_Type expectedReturnType =
-						code.literalAt(instructionDecoder.getOperand());
-					final A_Type superUnionType =
-						code.literalAt(instructionDecoder.getOperand());
-					final int numArgs = A_Bundle.Companion.bundleMethod(bundle).numArgs();
-					if (debugL1)
+					val bundle: A_Bundle =
+						code.literalAt(instructionDecoder.getOperand())
+					val expectedReturnType: A_Type =
+						code.literalAt(instructionDecoder.getOperand())
+					val superUnionType: A_Type =
+						code.literalAt(instructionDecoder.getOperand())
+					val numArgs: Int = bundle.bundleMethod().numArgs()
+					if (Interpreter.debugL1)
 					{
-						Interpreter.Companion.log(
+						log(
 							Interpreter.loggerDebugL1,
 							Level.FINER,
 							"{0}L1 supercall: {1}",
 							interpreter.debugModeString,
-							A_Atom.Companion.atomName(A_Bundle.Companion.message(bundle)));
+							bundle.message().atomName())
 					}
-					interpreter.argsBuffer.clear();
-					final MutableInt reversedStackp =
-						new MutableInt(stackp + numArgs);
-					final A_Tuple typesTuple =
-						generateObjectTupleFrom(
-							numArgs,
-							index -> {
-								final AvailObject arg =
-									pointerAt(--reversedStackp.value);
-								interpreter.argsBuffer.add(arg);
-								return instanceTypeOrMetaOn(arg).typeUnion(
-									superUnionType.typeAtIndex(index));
-							});
-					stackp += numArgs;
+					interpreter.argsBuffer.clear()
+					val reversedStackp = MutableInt(stackp + numArgs)
+					val typesTuple: A_Tuple =
+						ObjectTupleDescriptor.generateObjectTupleFrom(numArgs)
+						{ index: Int ->
+							val arg = pointerAt(--reversedStackp.value)
+							interpreter.argsBuffer.add(arg)
+							AbstractEnumerationTypeDescriptor
+								.instanceTypeOrMetaOn(arg).typeUnion(
+									superUnionType.typeAtIndex(index))
+						}
+					stackp += numArgs
 					// Push the expected type, which should be replaced on the
 					// stack with the actual value when the call completes
 					// (after ensuring it complies).
-					push(expectedReturnType);
-					final A_Method method = A_Bundle.Companion.bundleMethod(bundle);
-					final A_Definition matching;
-					final long beforeLookup = captureNanos();
-					try
+					push(expectedReturnType)
+					val method: A_Method = bundle.bundleMethod()
+					val matching: A_Definition
+					val beforeLookup = AvailRuntimeSupport.captureNanos()
+					matching = try
 					{
-						matching = method.lookupByTypesFromTuple(typesTuple);
+						method.lookupByTypesFromTuple(typesTuple)
 					}
-					catch (final MethodDefinitionException e)
+					catch (e: MethodDefinitionException)
 					{
 						return reifyAndReportFailedLookup(
-							method, e.getErrorCode());
+							method, e.errorCode)
 					}
 					finally
 					{
-						final long afterLookup = captureNanos();
+						val afterLookup = AvailRuntimeSupport.captureNanos()
 						interpreter.recordDynamicLookup(
-							bundle, afterLookup - beforeLookup);
+							bundle, afterLookup - beforeLookup.toDouble())
 					}
-
-					final @Nullable StackReifier reifier =
-						callMethodAfterLookup(matching);
+					val reifier = callMethodAfterLookup(matching)
 					if (reifier != null)
 					{
-						return reifier;
+						return reifier
 					}
 
 					// The call returned normally, without reifications, with
 					// the resulting value in the interpreter's latestResult.
-					final AvailObject result = interpreter.getLatestResult();
-					if (debugL1)
+					val result = interpreter.getLatestResult()
+					if (Interpreter.debugL1)
 					{
-						Interpreter.Companion.log(
+						log(
 							Interpreter.loggerDebugL1,
 							Level.FINER,
 							"{0}Call returned: {1}",
 							interpreter.debugModeString,
-							result.typeTag().name());
+							result.typeTag().name)
 					}
-					final @Nullable StackReifier returnCheckReifier =
-						checkReturnType(result, expectedReturnType, function);
+					val returnCheckReifier =
+						checkReturnType(result, expectedReturnType, function)
 					if (returnCheckReifier != null)
 					{
 						// Reification is happening within the handling of
 						// the failed return type check.
-						return returnCheckReifier;
+						return returnCheckReifier
 					}
-					// The return check passed.
-					assert stackp <= code.numSlots();
+					assert(stackp <= code.numSlots())
 					// Replace the stack slot.
-					pointerAtPut(stackp, result);
-					break;
+					pointerAtPut(stackp, result)
 				}
-				case L1Ext_doSetLocalSlot:
+				L1Operation.L1Ext_doSetLocalSlot ->
 				{
-					pointerAtPut(instructionDecoder.getOperand(), pop());
-					break;
+					pointerAtPut(instructionDecoder.getOperand(), pop())
 				}
 			}
 		}
 		// It ran off the end of the nybblecodes, which is how a function
 		// returns in Level One.  Capture the result and return to the Java
 		// caller.
-		interpreter.setLatestResult(pop());
-		assert stackp == pointers.length;
-		interpreter.returnNow = true;
-		interpreter.returningFunction = function;
-		if (debugL1)
+		interpreter.setLatestResult(pop())
+		assert(stackp == pointers.size)
+		interpreter.returnNow = true
+		interpreter.returningFunction = function
+		if (Interpreter.debugL1)
 		{
-			Interpreter.Companion.log(
+			log(
 				Interpreter.loggerDebugL1,
 				Level.FINER,
 				"{0}L1 return",
-				interpreter.debugModeString);
+				interpreter.debugModeString)
 		}
-		return null;
+		return null
 	}
 
-	/** The {@link CheckedMethod} for {@link #run()}. */
-	public static final CheckedMethod runMethod = instanceMethod(
-		L1InstructionStepper.class,
-		"run",
-		StackReifier.class);
-
 	/**
-	 * Reify the current frame into the specified {@link StackReifier}.
+	 * Reify the current frame into the specified [StackReifier].
 	 *
 	 * @param reifier
-	 *        A {@code StackReifier}.
+	 *   A `StackReifier`.
 	 * @param entryPoint
-	 *        The {@link ChunkEntryPoint} at which to resume L1 interpretation.
+	 *   The [ChunkEntryPoint] at which to resume L1 interpretation.
 	 * @param logMessage
-	 *        The log message. Expects two template parameters, one for the
-	 *        {@linkplain Interpreter#debugModeString debug string}, one for the
-	 *        method name, respectively.
+	 *   The log message. Expects two template parameters, one for the
+	 *   [debug string][Interpreter.debugModeString], one for the method name,
+	 *   respectively.
 	 */
-	private void reifyCurrentFrame (
-		final StackReifier reifier,
-		final ChunkEntryPoint entryPoint,
-		final String logMessage)
+	private fun reifyCurrentFrame(
+		reifier: StackReifier,
+		entryPoint: ChunkEntryPoint,
+		logMessage: String)
 	{
-		final A_Function function = stripNull(interpreter.function);
-		final A_Continuation continuation =
-			createContinuationWithFrame(
-				function,
-				nil,
-				nil,
-				instructionDecoder.pc(),   // Right after the set-variable.
-				stackp,
-				unoptimizedChunk,
-				entryPoint.offsetInDefaultChunk,
-				asList(pointers),
-				1);
+		val function = Nulls.stripNull(interpreter.function)
+		val continuation: A_Continuation = createContinuationWithFrame(
+			function,
+			NilDescriptor.nil,
+			NilDescriptor.nil,
+			instructionDecoder.pc(),  // Right after the set-variable.
+			stackp,
+			L2Chunk.unoptimizedChunk,
+			entryPoint.offsetInDefaultChunk,
+			listOf(*pointers),
+			1)
 		if (Interpreter.debugL2)
 		{
-			Interpreter.Companion.log(
+			log(
 				Interpreter.loggerDebugL2,
 				Level.FINER,
 				logMessage,
 				interpreter.debugModeString,
-				continuation.function().code().methodName());
+				continuation.function().code().methodName())
 		}
-		reifier.pushAction(theInterpreter ->
+		reifier.pushAction { theInterpreter: Interpreter ->
 			theInterpreter.setReifiedContinuation(
 				continuation.replacingCaller(
-					stripNull(theInterpreter.getReifiedContinuation()))));
+					Nulls.stripNull(theInterpreter.getReifiedContinuation())))
+		}
 	}
 
 	/**
-	 * Get the value from the given variable, reifying and invoking the {@link
-	 * HookType#READ_UNASSIGNED_VARIABLE} hook if the variable has no value.
+	 * Get the value from the given variable, reifying and invoking the
+	 * [HookType.READ_UNASSIGNED_VARIABLE] hook if the variable has no value.
 	 *
 	 * @param variable
-	 *        The variable to read.
-	 * @return A {@link StackReifier} if the variable was unassigned, otherwise
-	 *         the {@link AvailObject} that's the current value of the variable.
+	 *   The variable to read.
+	 * @return
+	 *   A [StackReifier] if the variable was unassigned, otherwise the
+	 *   [AvailObject] that's the current value of the variable.
 	 */
-	private Object getVariable (final A_Variable variable)
+	private fun getVariable(variable: A_Variable): Any
 	{
-		try
+		return try
 		{
-			return variable.getValue();
+			variable.getValue()
 		}
-		catch (final VariableGetException e)
+		catch (e: VariableGetException)
 		{
-			assert e.numericCode().equals(
-				E_CANNOT_READ_UNASSIGNED_VARIABLE.numericCode());
-
-			final A_Function savedFunction = stripNull(interpreter.function);
-			final AvailObject[] savedPointers = pointers;
-			final int savedOffset = interpreter.offset;
-			final int savedPc = instructionDecoder.pc();
-			final int savedStackp = stackp;
-
-			final A_Function implicitObserveFunction =
-				IMPLICIT_OBSERVE.get(interpreter.runtime());
-			interpreter.argsBuffer.clear();
-			final @Nullable StackReifier reifier =
-				interpreter.invokeFunction(implicitObserveFunction);
-			assert reifier != null;
-			pointers = savedPointers;
-			interpreter.chunk = unoptimizedChunk;
-			interpreter.setOffset(savedOffset);
-			interpreter.function = savedFunction;
-			savedFunction.code().setUpInstructionDecoder(instructionDecoder);
-			instructionDecoder.pc(savedPc);
-			stackp = savedStackp;
+			assert(e.numericCode().equals(
+				AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE.numericCode()))
+			val savedFunction = Nulls.stripNull(interpreter.function)
+			val savedPointers = pointers
+			val savedOffset = interpreter.offset
+			val savedPc = instructionDecoder.pc()
+			val savedStackp = stackp
+			val implicitObserveFunction =
+				HookType.IMPLICIT_OBSERVE[interpreter.runtime()]
+			interpreter.argsBuffer.clear()
+			val reifier =
+				interpreter.invokeFunction(implicitObserveFunction)!!
+			pointers = savedPointers
+			interpreter.chunk = L2Chunk.unoptimizedChunk
+			interpreter.setOffset(savedOffset)
+			interpreter.function = savedFunction
+			savedFunction.code().setUpInstructionDecoder(instructionDecoder)
+			instructionDecoder.pc(savedPc)
+			stackp = savedStackp
 			if (reifier.actuallyReify())
 			{
 				reifyCurrentFrame(
-					reifier,
-					UNREACHABLE,
-					"{0}Push reified continuation "
-					+ "for L1 getVar failure: {1}");
+					reifier, ChunkEntryPoint.UNREACHABLE,
+					"{0}Push reified continuation for L1 getVar "
+						+ "failure: {1}")
 			}
-			return reifier;
+			reifier
 		}
 	}
 
 	/**
-	 * Set a variable, triggering reification and invocation of the {@link
-	 * AvailRuntime#implicitObserveFunction()} if necessary.
+	 * Set a variable, triggering reification and invocation of the
+	 * [AvailRuntime.implicitObserveFunction] if necessary.
 	 *
 	 * @param variable
-	 *        The variable to update.
+	 *   The variable to update.
 	 * @param value
-	 *        The type-safe value to write to the variable.
-	 * @return A {@link StackReifier} to reify the stack if an observed variable
-	 *         is assigned while tracing is off, otherwise null.
+	 *   The type-safe value to write to the variable.
+	 * @return
+	 *   A [StackReifier] to reify the stack if an observed variable is assigned
+	 *   while tracing is off, otherwise null.
 	 */
-	private @Nullable StackReifier setVariable (
-		final A_Variable variable,
-		final AvailObject value)
+	private fun setVariable(
+		variable: A_Variable,
+		value: AvailObject): StackReifier?
 	{
 		try
 		{
 			// The value's reference from the stack is now from the variable.
-			variable.setValueNoCheck(value);
+			variable.setValueNoCheck(value)
 		}
-		catch (final VariableSetException e)
+		catch (e: VariableSetException)
 		{
-			assert e.numericCode().equals(
-				E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED.numericCode());
-
-			final A_Function savedFunction = stripNull(interpreter.function);
-			final AvailObject[] savedPointers = pointers;
-			final int savedOffset = interpreter.offset;
-			final int savedPc = instructionDecoder.pc();
-			final int savedStackp = stackp;
-
-			final A_Function implicitObserveFunction =
-				interpreter.runtime().implicitObserveFunction();
-			interpreter.argsBuffer.clear();
-			interpreter.argsBuffer.add((AvailObject) assignmentFunction());
-			interpreter.argsBuffer.add((AvailObject) tuple(variable, value));
-			final @Nullable StackReifier reifier =
-				interpreter.invokeFunction(implicitObserveFunction);
-			pointers = savedPointers;
-			interpreter.chunk = unoptimizedChunk;
-			interpreter.setOffset(savedOffset);
-			interpreter.function = savedFunction;
-			savedFunction.code().setUpInstructionDecoder(instructionDecoder);
-			instructionDecoder.pc(savedPc);
-			stackp = savedStackp;
+			assert(e.numericCode().equals(
+				AvailErrorCode.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED
+					.numericCode()))
+			val savedFunction = Nulls.stripNull(interpreter.function)
+			val savedPointers = pointers
+			val savedOffset = interpreter.offset
+			val savedPc = instructionDecoder.pc()
+			val savedStackp = stackp
+			val implicitObserveFunction =
+				interpreter.runtime().implicitObserveFunction()
+			interpreter.argsBuffer.clear()
+			interpreter.argsBuffer.add((assignmentFunction() as AvailObject))
+			interpreter.argsBuffer.add(
+				(ObjectTupleDescriptor.tuple(variable, value) as AvailObject))
+			val reifier =
+				interpreter.invokeFunction(implicitObserveFunction)
+			pointers = savedPointers
+			interpreter.chunk = L2Chunk.unoptimizedChunk
+			interpreter.setOffset(savedOffset)
+			interpreter.function = savedFunction
+			savedFunction.code().setUpInstructionDecoder(instructionDecoder)
+			instructionDecoder.pc(savedPc)
+			stackp = savedStackp
 			if (reifier != null)
 			{
 				if (reifier.actuallyReify())
 				{
 					reifyCurrentFrame(
-						reifier,
-						TO_RESUME,
-						"{0}Push reified continuation "
-						+ "for L1 setVar failure: {1}");
+						reifier, ChunkEntryPoint.TO_RESUME,
+						"{0}Push reified continuation for L1 setVar "
+							+ "failure: {1}")
 				}
-				return reifier;
+				return reifier
 			}
 		}
-		return null;
+		return null
 	}
 
 	/**
@@ -933,184 +861,201 @@ public final class L1InstructionStepper
 	 * continuation for the current frame on the way out.
 	 *
 	 * @param matching
-	 *        The {@link A_Definition} that was already looked up.
-	 * @return Either {@code null} to indicate successful return from the called
-	 *         function, or a {@link StackReifier} to indicate reification is in
-	 *         progress.
+	 *   The [A_Definition] that was already looked up.
+	 * @return
+	 *   Either `null` to indicate successful return from the called function,
+	 *   or a [StackReifier] to indicate reification is in progress.
 	 */
-	private @Nullable StackReifier callMethodAfterLookup (
-		final A_Definition matching)
+	private fun callMethodAfterLookup(matching: A_Definition): StackReifier?
 	{
 		// At this point, the frame information is still the same, but we've set
 		// up argsBuffer.
 		if (matching.isForwardDefinition())
 		{
 			return reifyAndReportFailedLookup(
-				matching.definitionMethod(), E_FORWARD_METHOD_DEFINITION);
+				matching.definitionMethod(),
+				AvailErrorCode.E_FORWARD_METHOD_DEFINITION)
 		}
 		if (matching.isAbstractDefinition())
 		{
 			return reifyAndReportFailedLookup(
-				matching.definitionMethod(), E_ABSTRACT_METHOD_DEFINITION);
+				matching.definitionMethod(),
+				AvailErrorCode.E_ABSTRACT_METHOD_DEFINITION)
 		}
-
-		final A_Function savedFunction = stripNull(interpreter.function);
-		assert interpreter.chunk == unoptimizedChunk;
-		final int savedOffset = interpreter.offset;
-		final AvailObject[] savedPointers = pointers;
-		final int savedPc = instructionDecoder.pc();
-		final int savedStackp = stackp;
-
-		final A_Function functionToInvoke = matching.bodyBlock();
-		final @Nullable StackReifier reifier =
-			interpreter.invokeFunction(functionToInvoke);
-		pointers = savedPointers;
-		interpreter.chunk = unoptimizedChunk;
-		interpreter.setOffset(savedOffset);
-		interpreter.function = savedFunction;
-		savedFunction.code().setUpInstructionDecoder(instructionDecoder);
-		instructionDecoder.pc(savedPc);
-		stackp = savedStackp;
+		val savedFunction = Nulls.stripNull(interpreter.function)
+		assert(interpreter.chunk == L2Chunk.unoptimizedChunk)
+		val savedOffset = interpreter.offset
+		val savedPointers = pointers
+		val savedPc = instructionDecoder.pc()
+		val savedStackp = stackp
+		val functionToInvoke = matching.bodyBlock()
+		val reifier = interpreter.invokeFunction(functionToInvoke)
+		pointers = savedPointers
+		interpreter.chunk = L2Chunk.unoptimizedChunk
+		interpreter.setOffset(savedOffset)
+		interpreter.function = savedFunction
+		savedFunction.code().setUpInstructionDecoder(instructionDecoder)
+		instructionDecoder.pc(savedPc)
+		stackp = savedStackp
 		if (reifier != null)
 		{
 			if (Interpreter.debugL2)
 			{
-				Interpreter.Companion.log(
+				log(
 					Interpreter.loggerDebugL2,
 					Level.FINER,
 					"{0}Reifying call from L1 ({1})",
 					interpreter.debugModeString,
-					reifier.actuallyReify());
+					reifier.actuallyReify())
 			}
 			if (reifier.actuallyReify())
 			{
 				reifyCurrentFrame(
-					reifier,
-					TO_RETURN_INTO,
-					"{0}Push reified continuation "
-					+ "for L1 call: {1}");
+					reifier, ChunkEntryPoint.TO_RETURN_INTO,
+					"{0}Push reified continuation for L1 call: {1}")
 			}
 		}
-		return reifier;
+		return reifier
 	}
 
 	/**
 	 * Check that the result is an instance of the expected type.  If it is,
 	 * return.  If not, invoke the resultDisagreedWithExpectedTypeFunction.
-	 * Also accumulate statistics related to the return type check.  The {@link
-	 * Interpreter#returningFunction} must have been set by the client.
+	 * Also accumulate statistics related to the return type check.  The
+	 * [Interpreter.returningFunction] must have been set by the client.
 	 *
 	 * @param result
-	 *        The value that was just returned.
+	 *   The value that was just returned.
 	 * @param expectedReturnType
-	 *        The expected type to check the value against.
+	 *   The expected type to check the value against.
 	 * @param returnee
-	 *        The {@link A_Function} that we're returning into.
-	 * @return A {@link StackReifier} if reification is needed, otherwise {@code
-	 *         null}.
+	 *   The [A_Function] that we're returning into.
+	 * @return
+	 *   A [StackReifier] if reification is needed, otherwise `null`.
 	 */
-	private @Nullable StackReifier checkReturnType (
-		final AvailObject result,
-		final A_Type expectedReturnType,
-		final A_Function returnee)
+	private fun checkReturnType(
+		result: AvailObject,
+		expectedReturnType: A_Type,
+		returnee: A_Function): StackReifier?
 	{
-		final long before = captureNanos();
-		final boolean checkOk = result.isInstanceOf(expectedReturnType);
-		final long after = captureNanos();
-		final A_Function returner = stripNull(interpreter.returningFunction);
-		final @Nullable Primitive calledPrimitive = returner.code().primitive();
+		val before = AvailRuntimeSupport.captureNanos()
+		val checkOk = result.isInstanceOf(expectedReturnType)
+		val after = AvailRuntimeSupport.captureNanos()
+		val returner = Nulls.stripNull(interpreter.returningFunction)
+		val calledPrimitive = returner.code().primitive()
 		if (calledPrimitive != null)
 		{
 			calledPrimitive.addNanosecondsCheckingResultType(
-				after - before, interpreter.interpreterIndex);
+				after - before, interpreter.interpreterIndex)
 		}
 		else
 		{
 			returner.code().returnerCheckStat().record(
-				after - before, interpreter.interpreterIndex);
+				after - before, interpreter.interpreterIndex)
 			returnee.code().returneeCheckStat().record(
-				after - before, interpreter.interpreterIndex);
+				after - before, interpreter.interpreterIndex)
 		}
 		if (!checkOk)
 		{
-			final A_Function savedFunction = stripNull(interpreter.function);
-			assert interpreter.chunk == unoptimizedChunk;
-			final int savedOffset = interpreter.offset;
-			final AvailObject[] savedPointers = pointers;
-			final int savedPc = instructionDecoder.pc();
-			final int savedStackp = stackp;
-
-			final AvailObject reportedResult =
-				newVariableWithContentType(Types.ANY.o());
-			reportedResult.setValueNoCheck(result);
-			final List<AvailObject> argsBuffer = interpreter.argsBuffer;
-			argsBuffer.clear();
-			argsBuffer.add((AvailObject) returner);
-			argsBuffer.add((AvailObject) expectedReturnType);
-			argsBuffer.add(reportedResult);
-			final @Nullable StackReifier reifier = interpreter.invokeFunction(
-				interpreter.runtime().resultDisagreedWithExpectedTypeFunction());
-			// The function has to be bottom-valued, so it can't ever actually
-			// return.  However, it's reifiable.  Note that the original callee
-			// is not part of the stack.  No point, since it was returning and
-			// is probably mostly evacuated.
-			assert reifier != null;
-			pointers = savedPointers;
-			interpreter.chunk = unoptimizedChunk;
-			interpreter.setOffset(savedOffset);
-			interpreter.function = savedFunction;
-			savedFunction.code().setUpInstructionDecoder(instructionDecoder);
-			instructionDecoder.pc(savedPc);
-			stackp = savedStackp;
+			val savedFunction = Nulls.stripNull(interpreter.function)
+			assert(interpreter.chunk == L2Chunk.unoptimizedChunk)
+			val savedOffset = interpreter.offset
+			val savedPointers = pointers
+			val savedPc = instructionDecoder.pc()
+			val savedStackp = stackp
+			val reportedResult =
+				newVariableWithContentType(TypeDescriptor.Types.ANY.o())
+			reportedResult.setValueNoCheck(result)
+			val argsBuffer = interpreter.argsBuffer
+			argsBuffer.clear()
+			argsBuffer.add(returner as AvailObject)
+			argsBuffer.add(expectedReturnType as AvailObject)
+			argsBuffer.add(reportedResult)
+			val reifier = interpreter.invokeFunction(
+				interpreter.runtime().resultDisagreedWithExpectedTypeFunction())!!
+			pointers = savedPointers
+			interpreter.chunk = L2Chunk.unoptimizedChunk
+			interpreter.setOffset(savedOffset)
+			interpreter.function = savedFunction
+			savedFunction.code().setUpInstructionDecoder(instructionDecoder)
+			instructionDecoder.pc(savedPc)
+			stackp = savedStackp
 			if (reifier.actuallyReify())
 			{
 				reifyCurrentFrame(
-					reifier,
-					UNREACHABLE,
-					"{0}Push reified continuation "
-						+ "for L1 check return type failure: {1}");
+					reifier, ChunkEntryPoint.UNREACHABLE,
+					"{0}Push reified continuation for L1 check "
+						+ "return type failure: {1}")
 			}
-			return reifier;
+			return reifier
 		}
 		// Check was ok.
-		return null;
+		return null
 	}
 
 	/**
-	 * Return a {@link StackReifier} to reify the Java stack into {@link
-	 * A_Continuation}s, then invoke the {@link
-	 * AvailRuntime#invalidMessageSendFunction()} with appropriate arguments.
-	 * An {@link AvailErrorCode} is also provided to indicate what the lookup
-	 * problem was.
+	 * Return a [StackReifier] to reify the Java stack into [A_Continuation]s,
+	 * then invoke the [AvailRuntime.invalidMessageSendFunction] with
+	 * appropriate arguments. An [AvailErrorCode] is also provided to indicate
+	 * what the lookup problem was.
 	 *
 	 * @param method
-	 *        The method that failed lookup.
+	 *   The method that failed lookup.
 	 * @param errorCode
-	 *        The {@link AvailErrorCode} indicating the lookup problem.
-	 * @return A {@link StackReifier} to cause reification.
+	 *   The [AvailErrorCode] indicating the lookup problem.
+	 * @return
+	 *   A [StackReifier] to cause reification.
 	 */
-	private StackReifier reifyAndReportFailedLookup (
-		final A_Method method,
-		final AvailErrorCode errorCode)
+	private fun reifyAndReportFailedLookup(
+		method: A_Method,
+		errorCode: AvailErrorCode): StackReifier
 	{
-		final A_Function functionToCall =
-			interpreter.runtime().invalidMessageSendFunction();
-		interpreter.isReifying = true;
-		return new StackReifier(
+		val functionToCall =
+			interpreter.runtime().invalidMessageSendFunction()
+		interpreter.isReifying = true
+		return StackReifier(
 			true,
 			reificationForFailedLookupStat,
-			() ->
-			{
-				interpreter.argsBuffer.clear();
-				interpreter.argsBuffer.add(cast(errorCode.numericCode()));
-				interpreter.argsBuffer.add(cast(method));
+			Continuation0 {
+				interpreter.argsBuffer.clear()
+				interpreter.argsBuffer.add(Casts.cast(errorCode.numericCode()))
+				interpreter.argsBuffer.add(Casts.cast(method))
 				interpreter.argsBuffer.add(
-					cast(tupleFromList(interpreter.argsBuffer)));
-				interpreter.function = functionToCall;
-				interpreter.chunk = functionToCall.code().startingChunk();
-				interpreter.setOffset(0);
-				interpreter.returnNow = false;
-				interpreter.isReifying = false;
-			});
+					Casts.cast(ObjectTupleDescriptor.tupleFromList(
+						interpreter.argsBuffer)))
+				interpreter.function = functionToCall
+				interpreter.chunk = functionToCall.code().startingChunk()
+				interpreter.setOffset(0)
+				interpreter.returnNow = false
+				interpreter.isReifying = false
+			})
+	}
+
+	companion object
+	{
+		/** The [Statistic] for reifications prior to label creation in L1.  */
+		private val reificationBeforeLabelCreationStat = Statistic(
+			"Reification before label creation in L1",
+			StatisticReport.REIFICATIONS)
+
+		/** The [Statistic] for reifications prior to label creation in L1.  */
+		private val reificationForFailedLookupStat = Statistic(
+			"Reification before failed lookup in L1",
+			StatisticReport.REIFICATIONS)
+
+		/** An empty array used for clearing the pointers quickly.  */
+		private val emptyPointersArray = arrayOf<AvailObject>()
+
+		/**
+		 * A pre-compilable regex that matches one or more whitespace characters.
+		 */
+		private val whitespaces = Pattern.compile("\\s+")
+
+		/** The [CheckedMethod] for [.run].  */
+		@JvmField
+		val runMethod = CheckedMethod.instanceMethod(
+			L1InstructionStepper::class.java,
+			"run",
+			StackReifier::class.java)
 	}
 }
