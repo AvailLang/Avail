@@ -29,32 +29,32 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo
 
-package com.avail.interpreter.levelTwo;
-
-import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable;
-import com.avail.optimizer.L2Optimizer;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable
+import com.avail.optimizer.L2Optimizer
+import kotlin.reflect.KClass
 
 /**
- * {@code ReadsHiddenVariable} indicates that an {@link L2Instruction} using the
- * annotated {@link L2Operation} will begin by reading from a particular kind of
- * {@link HiddenVariable}(s).  This annotation is used to restrict code motion
- * by the {@link L2Optimizer}.
+ * `ReadsHiddenVariable` indicates that an [L2Instruction] using the annotated
+ * [L2Operation] will begin by reading from a particular kind of
+ * [HiddenVariable](s).  This annotation is used to restrict code motion by the
+ * [L2Optimizer].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @property theValue
+ *   The classes of [HiddenVariable] read by an [L2Instruction] using the
+ *   annotated [L2Operation].
+ *
+ * @constructor
+ * Construct a [ReadsHiddenVariable].
+ *
+ * @param theValue
+ *   The classes of [HiddenVariable] read by an [L2Instruction] using the
+ *   annotated [L2Operation].
  */
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface ReadsHiddenVariable
-{
-	/**
-	 * @return The classes of {@link HiddenVariable} read by an
-	 *         {@link L2Instruction} using the annotated {@link L2Operation}.
-	 */
-	Class<? extends HiddenVariable>[] theValue ();
-}
+@Target(AnnotationTarget.ANNOTATION_CLASS, AnnotationTarget.CLASS)
+@kotlin.annotation.Retention(AnnotationRetention.RUNTIME)
+annotation class ReadsHiddenVariable constructor(
+	val theValue: Array<KClass<out HiddenVariable>>)

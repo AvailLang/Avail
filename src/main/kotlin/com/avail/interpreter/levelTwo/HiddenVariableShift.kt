@@ -29,26 +29,23 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
-package com.avail.interpreter.levelTwo;
-
-import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+package com.avail.interpreter.levelTwo
 
 /**
- * {@code HiddenVariableShift} provides the amount to shift {@code 1} to the
- * left to get the mask for a {@link HiddenVariable} subclass.
+ * `HiddenVariableShift` provides the amount to shift `1` to the left to get the
+ * mask for a [L2Operation.HiddenVariable] subclass.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @property value
+ *   The amount to shift `1` to the left to get the mask.
+ *
+ * @constructor
+ * Construct a [HiddenVariableShift].
+ *
+ * @param value
+ *   The amount to shift `1` to the left to get the mask.
  */
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface HiddenVariableShift
-{
-	/** @return The amount to shift {@code 1} to the left to get the mask. */
-	int value ();
-}
+@Target(AnnotationTarget.ANNOTATION_CLASS, AnnotationTarget.CLASS)
+@kotlin.annotation.Retention(AnnotationRetention.RUNTIME)
+annotation class HiddenVariableShift(val value: Int)

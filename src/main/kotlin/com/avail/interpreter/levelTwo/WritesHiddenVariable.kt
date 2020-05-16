@@ -29,32 +29,31 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo
 
-package com.avail.interpreter.levelTwo;
-
-import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable;
-import com.avail.optimizer.L2Optimizer;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable
+import kotlin.reflect.KClass
 
 /**
- * {@code WritesHiddenVariable} indicates that an {@link L2Instruction} using
- * the annotated {@link L2Operation} will finish by writing to a particular kind
- * of {@link HiddenVariable}(s).  This annotation is used to restrict code
- * motion by the {@link L2Optimizer}.
+ * `WritesHiddenVariable` indicates that an [L2Instruction] using
+ * the annotated [L2Operation] will finish by writing to a particular kind
+ * of [HiddenVariable](s). This annotation is used to restrict code
+ * motion by the [L2Optimizer].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @property value
+ *   The classes of [HiddenVariable] written by an [L2Instruction] using the
+ *   annotated [L2Operation].
+ *
+ * @constructor
+ * Construct a [WritesHiddenVariable].
+ *
+ * @param value
+ *   The classes of [HiddenVariable] written by an [L2Instruction] using the
+ *   annotated [L2Operation].
  */
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface WritesHiddenVariable
-{
-	/**
-	 * @return The classes of {@link HiddenVariable} written by an
-	 *         {@link L2Instruction} using the annotated {@link L2Operation}.
-	 */
-	Class<? extends HiddenVariable>[] value ();
-}
+@Target(AnnotationTarget.ANNOTATION_CLASS, AnnotationTarget.CLASS)
+@kotlin.annotation.Retention(AnnotationRetention.RUNTIME)
+annotation class WritesHiddenVariable constructor(
+	vararg val value: KClass<out HiddenVariable>)
