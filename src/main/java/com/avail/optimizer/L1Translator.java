@@ -716,7 +716,7 @@ public final class L1Translator
 		generator.startBlock(onReturnIntoReified);
 		addInstruction(
 			L2_ENTER_L2_CHUNK.instance,
-			new L2IntImmediateOperand(typeOfEntryPoint.offsetInDefaultChunk),
+			new L2IntImmediateOperand(typeOfEntryPoint.getOffsetInDefaultChunk()),
 			new L2CommentOperand(
 				"If invalid, reenter «default» at "
 					+ typeOfEntryPoint.name() + "."));
@@ -1997,7 +1997,7 @@ public final class L1Translator
 		generator.startBlock(reificationTarget);
 		generator.addInstruction(
 			L2_ENTER_L2_CHUNK.instance,
-			new L2IntImmediateOperand(TRANSIENT.offsetInDefaultChunk),
+			new L2IntImmediateOperand(TRANSIENT.getOffsetInDefaultChunk()),
 			new L2CommentOperand(
 				"Transient - cannot be invalid."));
 		generator.jumpTo(targetBlock);
@@ -2112,7 +2112,7 @@ public final class L1Translator
 		generator.startBlock(onReificationInHandler);
 		generator.addInstruction(
 			L2_ENTER_L2_CHUNK.instance,
-			new L2IntImmediateOperand(TRANSIENT.offsetInDefaultChunk),
+			new L2IntImmediateOperand(TRANSIENT.getOffsetInDefaultChunk()),
 			new L2CommentOperand(
 				"Transient - cannot be invalid."));
 		reify(bottom(), TO_RETURN_INTO);
@@ -2599,7 +2599,7 @@ public final class L1Translator
 		generator.startBlock(onReificationDuringFailure);
 		generator.addInstruction(
 			L2_ENTER_L2_CHUNK.instance,
-			new L2IntImmediateOperand(TRANSIENT.offsetInDefaultChunk),
+			new L2IntImmediateOperand(TRANSIENT.getOffsetInDefaultChunk()),
 			new L2CommentOperand(
 				"Transient - cannot be invalid."));
 		reify(bottom(), TO_RETURN_INTO);
@@ -2651,7 +2651,7 @@ public final class L1Translator
 		generator.startBlock(onReification);
 		generator.addInstruction(
 			L2_ENTER_L2_CHUNK.instance,
-			new L2IntImmediateOperand(TRANSIENT.offsetInDefaultChunk),
+			new L2IntImmediateOperand(TRANSIENT.getOffsetInDefaultChunk()),
 			new L2CommentOperand(
 				"Transient, for interrupt - cannot be invalid."));
 
@@ -2729,7 +2729,7 @@ public final class L1Translator
 		generator.startBlock(onReificationDuringFailure);
 		generator.addInstruction(
 			L2_ENTER_L2_CHUNK.instance,
-			new L2IntImmediateOperand(TRANSIENT.offsetInDefaultChunk),
+			new L2IntImmediateOperand(TRANSIENT.getOffsetInDefaultChunk()),
 			new L2CommentOperand(
 				"Transient - cannot be invalid."));
 		reify(bottom(), TO_RETURN_INTO);
@@ -2812,7 +2812,7 @@ public final class L1Translator
 		generator.startBlock(onReificationDuringFailure);
 		generator.addInstruction(
 			L2_ENTER_L2_CHUNK.instance,
-			new L2IntImmediateOperand(TRANSIENT.offsetInDefaultChunk),
+			new L2IntImmediateOperand(TRANSIENT.getOffsetInDefaultChunk()),
 			new L2CommentOperand(
 				"Transient - cannot be invalid."));
 		reify(TOP.o(), TO_RETURN_INTO);
@@ -2873,7 +2873,7 @@ public final class L1Translator
 		// for such continuations.
 		addInstruction(
 			L2_ENTER_L2_CHUNK.instance,
-			new L2IntImmediateOperand(TO_RESTART.offsetInDefaultChunk),
+			new L2IntImmediateOperand(TO_RESTART.getOffsetInDefaultChunk()),
 			new L2CommentOperand(
 				"If invalid, reenter «default» at the beginning."));
 

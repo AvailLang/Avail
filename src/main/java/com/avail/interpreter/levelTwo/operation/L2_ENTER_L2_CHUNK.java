@@ -131,7 +131,7 @@ extends L2Operation
 
 		// Skip the validity check for transient entry points, which can't
 		// become invalid during their lifetimes.
-		if (offsetInDefaultChunk.value != TRANSIENT.offsetInDefaultChunk)
+		if (offsetInDefaultChunk.value != TRANSIENT.getOffsetInDefaultChunk())
 		{
 			// :: if (!checkValidity()) {
 			translator.loadInterpreter(method);

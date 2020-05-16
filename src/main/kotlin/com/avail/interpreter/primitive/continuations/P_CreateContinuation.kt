@@ -53,7 +53,7 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
 import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RETURN_INTO
-import com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk
+import com.avail.interpreter.levelTwo.L2Chunk.Companion.unoptimizedChunk
 
 /**
  * **Primitive:** Create a [continuation][ContinuationDescriptor]. It will

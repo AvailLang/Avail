@@ -385,7 +385,7 @@ public final class L2Inliner
 		}
 		// Add the inlined chunk's dependencies.
 		for (final A_ChunkDependable dependency
-			: inlinedChunk.contingentValues())
+			: inlinedChunk.getContingentValues())
 		{
 			targetGenerator.addContingentValue(dependency);
 		}

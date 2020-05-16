@@ -193,7 +193,7 @@ extends L2Operation
 					1,  // start of function
 					numSlots + 1,   // empty stack
 					unoptimizedChunk,
-					TO_RESUME.offsetInDefaultChunk,
+					TO_RESUME.getOffsetInDefaultChunk(),
 					asList(stepper.pointers),
 					1);
 			// Push the continuation from above onto the reified stack.

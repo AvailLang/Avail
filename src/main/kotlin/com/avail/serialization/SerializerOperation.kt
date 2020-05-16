@@ -165,7 +165,7 @@ import com.avail.exceptions.MalformedMessageException
 import com.avail.interpreter.Primitive.Companion.primitiveByName
 import com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RESTART
 import com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RETURN_INTO
-import com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk
+import com.avail.interpreter.levelTwo.L2Chunk.Companion.unoptimizedChunk
 import com.avail.interpreter.primitive.pojos.P_CreatePojoConstructorFunction
 import com.avail.interpreter.primitive.pojos.P_CreatePojoInstanceMethodFunction
 import com.avail.performance.Statistic

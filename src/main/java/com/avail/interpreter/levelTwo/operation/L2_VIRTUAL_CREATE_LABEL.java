@@ -225,7 +225,7 @@ extends L2Operation
 			generator.addInstruction(
 				L2_ENTER_L2_CHUNK.instance,
 				new L2IntImmediateOperand(
-					ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
+					ChunkEntryPoint.TRANSIENT.getOffsetInDefaultChunk()),
 				new L2CommentOperand(
 					"Transient, cannot be invalid."));
 			final L2WriteIntOperand tempOffset = generator.intWriteTemp(
@@ -278,7 +278,7 @@ extends L2Operation
 			generator.addInstruction(
 				L2_ENTER_L2_CHUNK.instance,
 				new L2IntImmediateOperand(
-					ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
+					ChunkEntryPoint.TRANSIENT.getOffsetInDefaultChunk()),
 				new L2CommentOperand(
 					"Transient, cannot be invalid."));
 			generator.jumpTo(callerIsReified);
