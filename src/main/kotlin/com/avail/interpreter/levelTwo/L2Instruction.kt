@@ -29,422 +29,368 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo
 
-package com.avail.interpreter.levelTwo;
-
-import com.avail.interpreter.execution.Interpreter;
-import com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose;
-import com.avail.interpreter.levelTwo.operand.L2Operand;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteOperand;
-import com.avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK;
-import com.avail.interpreter.levelTwo.register.L2Register;
-import com.avail.optimizer.L2BasicBlock;
-import com.avail.optimizer.L2ControlFlowGraph;
-import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.L2ValueManifest;
-import com.avail.optimizer.jvm.JVMTranslator;
-import com.avail.optimizer.reoptimizer.L2Inliner;
-import com.avail.optimizer.values.L2SemanticValue;
-import com.avail.utility.Mutable;
-import org.objectweb.asm.MethodVisitor;
-
-import javax.annotation.Nullable;
-import java.util.*;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.UnaryOperator;
-
-import static com.avail.utility.Casts.cast;
-import static com.avail.utility.Nulls.stripNull;
+import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.levelTwo.operand.L2Operand
+import com.avail.interpreter.levelTwo.operand.L2PcOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteOperand
+import com.avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
+import com.avail.interpreter.levelTwo.register.L2Register
+import com.avail.optimizer.L2BasicBlock
+import com.avail.optimizer.L2ControlFlowGraph
+import com.avail.optimizer.L2Generator
+import com.avail.optimizer.L2ValueManifest
+import com.avail.optimizer.jvm.JVMTranslator
+import com.avail.optimizer.reoptimizer.L2Inliner
+import com.avail.optimizer.values.L2SemanticValue
+import com.avail.utility.Casts
+import com.avail.utility.Mutable
+import com.avail.utility.Nulls
+import org.objectweb.asm.MethodVisitor
+import java.util.*
+import java.util.function.BiConsumer
+import java.util.function.Consumer
+import java.util.function.UnaryOperator
 
 /**
- * {@code L2Instruction} is the foundation for all instructions understood by
- * the {@linkplain Interpreter level two Avail interpreter}. These instructions
- * are model objects generated and manipulated by the {@link L2Generator}.
+ * `L2Instruction` is the foundation for all instructions understood by
+ * the [level two Avail interpreter][Interpreter]. These instructions
+ * are model objects generated and manipulated by the [L2Generator].
  *
- * <p>It used to be the case that the instructions were flattened into a stream
- * of integers, operation followed by operands.  That is no longer the case, as
- * of 2013-05-01 [MvG].  Instead, the L2Instructions themselves are kept around
- * for reoptimization and {@linkplain #translateToJVM(JVMTranslator,
- * MethodVisitor) JVM code generation}.</p>
+ *
+ * It used to be the case that the instructions were flattened into a stream of
+ * integers, operation followed by operands.  That is no longer the case, as of
+ * 2013-05-01 `MvG`.  Instead, the L2Instructions themselves are kept around for
+ * reoptimization and [JVM code generation][translateToJVM].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ * Construct a new `L2Instruction`.
+ *
+ * @param operation
+ *        The [L2Operation] that this instruction performs.
+ * @param theOperands
+ *        The array of [L2Operand]s on which this instruction
+ *        operates.  These must agree with the operation's array of
+ *        [L2NamedOperandType]s.
+ * @param basicBlock
+ *        The [L2BasicBlock] which will contain this instruction.
  */
-public final class L2Instruction
+class L2Instruction constructor(
+	basicBlock: L2BasicBlock,
+	operation: L2Operation,
+	vararg theOperands: L2Operand)
 {
 	/**
-	 * The {@link L2Operation} whose execution this instruction represents.
+	 * The [L2Operation] whose execution this instruction represents.
 	 */
-	private final L2Operation operation;
+	private val operation: L2Operation
 
 	/**
-	 * The {@link L2Operand}s to supply to the operation.
+	 * The [L2Operand]s to supply to the operation.
 	 */
-	private final L2Operand[] operands;
+	private val operands: Array<L2Operand>
 
 	/**
 	 * The position of this instruction within its array of instructions.
 	 * Only valid near the end of translation.
 	 */
-	private int offset = -1;
+	private var offset = -1
 
 	/**
-	 * The {@link L2BasicBlock} to which the instruction belongs.
+	 * The [L2BasicBlock] to which the instruction belongs.
 	 */
-	private @Nullable L2BasicBlock basicBlock;
+	private var basicBlock: L2BasicBlock?
 
 	/**
-	 * The source {@link L2Register}s.
+	 * The source [L2Register]s.
 	 */
-	final List<L2Register> sourceRegisters = new ArrayList<>();
+	private val sourceRegisters = mutableListOf<L2Register>()
 
 	/**
-	 * The destination {@link L2Register}s.
+	 * The destination [L2Register]s.
 	 */
-	final List<L2Register> destinationRegisters = new ArrayList<>();
+	private val destinationRegisters = mutableListOf<L2Register>()
 
 	/**
-	 * The {@link L2Operation} whose execution this instruction represents.
+	 * The [L2Operation] whose execution this instruction represents.
 	 *
-	 * @return The instruction's {@link L2Operation}.
+	 * @return
+	 *   The instruction's [L2Operation].
 	 */
-	public L2Operation operation ()
-	{
-		return operation;
-	}
+	fun operation(): L2Operation = operation
 
 	/**
-	 * Answer the {@link L2Operand}s to supply to the operation.
+	 * Answer the [L2Operand]s to supply to the operation.
 	 *
-	 * @return The instruction's array of {@link L2Operand}s.
+	 * @return
+	 *   The instruction's array of [L2Operand]s.
 	 */
-	public L2Operand[] operands ()
-	{
-		//noinspection AssignmentOrReturnOfFieldWithMutableType
-		return operands;
-	}
+	fun operands(): Array<L2Operand> = operands
 
 	/**
-	 * Evaluate the given function with each {@link L2Operand}.
+	 * Evaluate the given function with each [L2Operand].
 	 *
-	 * @param consumer The {@link Consumer} to evaluate.
+	 * @param consumer
+	 *   The [Consumer] to evaluate.
 	 */
-	public void operandsDo (final Consumer<L2Operand> consumer)
+	fun operandsDo(consumer: Consumer<L2Operand?>)
 	{
-		for (int i = 0; i < operands.length; i++)
+		for (i in operands.indices)
 		{
-			consumer.accept(operands[i]);
+			consumer.accept(operands[i])
 		}
 	}
 
 	/**
-	 * Evaluate the given function with each {@link L2Operand} and the
-	 * {@link L2NamedOperandType} that it occupies.
+	 * Evaluate the given function with each [L2Operand] and the
+	 * [L2NamedOperandType] that it occupies.
 	 *
-	 * @param consumer The {@link BiConsumer} to evaluate.
+	 * @param consumer
+	 *   The [BiConsumer] to evaluate.
 	 */
-	public void operandsWithNamedTypesDo (
-		final BiConsumer<L2Operand, L2NamedOperandType> consumer)
+	fun operandsWithNamedTypesDo(
+		consumer: BiConsumer<L2Operand, L2NamedOperandType>)
 	{
-		for (int i = 0; i < operands.length; i++)
+		for (i in operands.indices)
 		{
-			consumer.accept(operands[i], operation.namedOperandTypes[i]);
+			consumer.accept(operands[i], operation.namedOperandTypes[i])
 		}
 	}
 
 	/**
-	 * Evaluate the given function with each {@link L2PcOperand edge} and its
-	 * corresponding {@link Purpose}.  An {@link L2WriteOperand} is only
-	 * considered to take place if its {@link Purpose} is null, or if it is the
-	 * same as the {@link L2PcOperand edge} that is taken by this
-	 * {@code L2Instruction}.
+	 * Evaluate the given function with each [edge][L2PcOperand] and its
+	 * corresponding [L2NamedOperandType.Purpose].  An [L2WriteOperand] is only
+	 * considered to take place if its [L2NamedOperandType.Purpose] is null, or
+	 * if it is the same as the [edge][L2PcOperand] that is taken by this
+	 * `L2Instruction`.
 	 *
-	 * <p>This is only applicable to an instruction which
-	 * {@link #altersControlFlow()}</p>
+	 * This is only applicable to an instruction which [altersControlFlow]
 	 *
-	 * @param consumer The {@link BiConsumer} to evaluate.
+	 * @param consumer
+	 *  The [BiConsumer] to evaluate.
 	 */
-	public void edgesAndPurposesDo (
-		final BiConsumer<L2PcOperand, Purpose> consumer)
+	fun edgesAndPurposesDo(
+		consumer: BiConsumer<L2PcOperand, L2NamedOperandType.Purpose?>)
 	{
-		for (int i = 0; i < operands.length; i++)
+		for (i in operands.indices)
 		{
-			final L2Operand operand = operands[i];
-			if (operand instanceof L2PcOperand)
+			val operand = operands[i]
+			if (operand is L2PcOperand)
 			{
 				consumer.accept(
-					cast(operand), operation.namedOperandTypes[i].purpose());
+					Casts.cast<L2Operand, L2PcOperand>(operand),
+					operation.namedOperandTypes[i].purpose())
 			}
 		}
 	}
 
 	/**
-	 * Evaluate the given function with each {@link L2WriteOperand} having the
-	 * given {@link Purpose}, which correlates with the {@code Purpose} along
-	 * each outbound {@link L2PcOperand edge} to indicate which writes have
-	 * effect along which outbound edges.
+	 * Evaluate the given function with each [L2WriteOperand] having the given
+	 * [L2NamedOperandType.Purpose], which correlates with the `Purpose` along
+	 * each outbound [edge][L2PcOperand] to indicate which writes have effect
+	 * along which outbound edges.
 	 *
-	 * <p>This is only applicable to an instruction which
-	 * {@link #altersControlFlow()}</p>
+	 *
+	 * This is only applicable to an instruction which [altersControlFlow]
 	 *
 	 * @param purpose
-	 *        The {@link Purpose} with which to filter {@link L2WriteOperand}s.
+	 *   The [L2NamedOperandType.Purpose] with which to filter [L2WriteOperand]s.
 	 * @param consumer
-	 *        The {@link Consumer} to evaluate with each {@link
-	 *        L2WriteOperand} having the given {@link Purpose}.
+	 *   The [Consumer] to evaluate with each [L2WriteOperand] having the given 
+	 *   [L2NamedOperandType.Purpose].
 	 */
-	public void writesForPurposeDo (
-		final Purpose purpose,
-		final Consumer<L2WriteOperand<?>> consumer)
+	fun writesForPurposeDo(
+		purpose: L2NamedOperandType.Purpose,
+		consumer: Consumer<L2WriteOperand<*>>)
 	{
-		assert altersControlFlow();
-		for (int i = 0; i < operands.length; i++)
+		assert(altersControlFlow())
+		for (i in operands.indices)
 		{
-			final L2Operand operand = operands[i];
-			if (operand instanceof L2WriteOperand)
+			val operand = operands[i]
+			if (operand is L2WriteOperand<*>)
 			{
-				if (operation.namedOperandTypes[i].purpose() == purpose)
+				if (operation.namedOperandTypes[i].purpose() === purpose)
 				{
-					consumer.accept(cast(operand));
+					consumer.accept(
+						Casts.cast<L2Operand, L2WriteOperand<*>>(operand))
 				}
 			}
 		}
 	}
 
 	/**
-	 * Answer the Nth {@link L2Operand} to supply to the operation.
+	 * Answer the Nth [L2Operand] to supply to the operation.
 	 *
 	 * @param index
-	 *        The zero-based operand index.
+	 *   The zero-based operand index.
 	 * @param <O>
-	 *        The specialization of {@link L2Operand} to return.
-	 * @return The specified operand.
+	 *   The specialization of [L2Operand] to return.
+	 * @return
+	 *   The specified operand.
 	 */
-	public <O extends L2Operand>
-	O operand (final int index)
-	{
-		return cast(operands[index]);
-	}
+	fun <O : L2Operand?> operand(index: Int): O = Casts.cast(operands[index])
 
 	/**
 	 * Answer the position of this instruction within its array of instructions.
 	 *
-	 * @return The position of the instruction in its chunk's instruction array.
+	 * @return
+	 *   The position of the instruction in its chunk's instruction array.
 	 */
-	public int offset ()
-	{
-		return offset;
-	}
+	fun offset(): Int = offset
 
 	/**
-	 * Set the final position of this instruction within its {@link L2Chunk}'s
-	 * array of instructions.
+	 * Set the final position of this instruction within its [L2Chunk]'s array 
+	 * of instructions.
 	 *
 	 * @param offset
-	 *        The final position of the instruction within the array.
+	 *   The final position of the instruction within the array.
 	 */
-	public void setOffset (final int offset)
+	fun setOffset(offset: Int)
 	{
-		this.offset = offset;
+		this.offset = offset
 	}
 
 	/**
-	 * Construct a new {@code L2Instruction}.  The instruction will be added
-	 * somewhere within the given {@link L2Generator}'s current {@link
-	 * L2BasicBlock}.
+	 * Construct a new `L2Instruction`.  The instruction will be added somewhere
+	 * within the given [L2Generator]'s current [L2BasicBlock].
 	 *
 	 * @param generator
-	 *        The {@link L2Generator} in which this instruction is being
-	 *        regenerated.
+	 *   The [L2Generator] in which this instruction is being regenerated.
 	 * @param operation
-	 *        The {@link L2Operation} that this instruction performs.
+	 *   The [L2Operation] that this instruction performs.
 	 * @param theOperands
-	 *        The array of {@link L2Operand}s on which this instruction
-	 *        operates.  These must agree with the operation's array of {@link
-	 *        L2NamedOperandType}s.
+	 *   The array of [L2Operand]s on which this instruction operates.  These
+	 *   must agree with the operation's array of [L2NamedOperandType]s.
 	 */
-	public L2Instruction (
-		final L2Generator generator,
-		final L2Operation operation,
-		final L2Operand... theOperands)
+	constructor(
+			generator: L2Generator,
+			operation: L2Operation,
+			vararg theOperands: L2Operand)
+		: this(generator.currentBlock(), operation, *theOperands)
+
+	/**
+	 * Check that this instruction's [basicBlock] has been set, and that each
+	 * operand's instruction field has also been set.
+	 */
+	fun assertHasBeenEmitted()
 	{
-		this(generator.currentBlock(), operation, theOperands);
+		assert(basicBlock != null)
+		operandsDo(Consumer { obj: L2Operand? -> obj!!.assertHasBeenEmitted() })
 	}
 
 	/**
-	 * Construct a new {@code L2Instruction}.
+	 * Answer the [list][List] of [L2Register]s read by this
+	 * `L2Instruction instruction`.
 	 *
-	 * @param operation
-	 *        The {@link L2Operation} that this instruction performs.
-	 * @param theOperands
-	 *        The array of {@link L2Operand}s on which this instruction
-	 *        operates.  These must agree with the operation's array of {@link
-	 *        L2NamedOperandType}s.
-	 * @param basicBlock
-	 *        The {@link L2BasicBlock} which will contain this instruction.
+	 * @return
+	 *   The source [registers][L2Register].
 	 */
-	public L2Instruction (
-		final L2BasicBlock basicBlock,
-		final L2Operation operation,
-		final L2Operand... theOperands)
+	fun sourceRegisters(): List<L2Register> = sourceRegisters
+
+	/**
+	 * Answer the [list][List] of [L2Register]s modified by this `L2Instruction
+	 * instruction`.
+	 *
+	 * @return
+	 *   The source [L2Register]s.
+	 */
+	fun destinationRegisters(): List<L2Register> = destinationRegisters
+
+	/**
+	 * Answer a [List] of this instruction's [L2ReadOperand]s.
+	 *
+	 * @return
+	 *  The list of read operands.
+	 */
+	fun readOperands(): List<L2ReadOperand<*>>
 	{
-		final L2NamedOperandType[] operandTypes = operation.namedOperandTypes;
-		assert operandTypes.length == theOperands.length;
-		for (int i = 0; i < theOperands.length; i++)
+		val list: List<L2ReadOperand<*>> = ArrayList()
+		for (operand in operands)
 		{
-			assert theOperands[i].operandType()
-				== operandTypes[i].operandType();
+			operand.addReadsTo(list)
 		}
-		this.operation = operation;
-		this.operands = new L2Operand[theOperands.length];
-		this.basicBlock = basicBlock;
-		for (int i = 0; i < operands.length; i++)
+		return list
+	}
+
+	/**
+	 * Answer a [List] of this instruction's [L2WriteOperand]s.
+	 *
+	 * @return
+	 *   The list of write operands.
+	 */
+	fun writeOperands(): List<L2WriteOperand<*>>
+	{
+		val list: List<L2WriteOperand<*>> = ArrayList()
+		for (operand in operands)
 		{
-			final L2Operand operand = theOperands[i].clone();
-			//noinspection ThisEscapedInObjectConstruction
-			operand.adjustCloneForInstruction(this);
-			this.operands[i] = operand;
-			operand.addSourceRegistersTo(sourceRegisters);
-			operand.addDestinationRegistersTo(destinationRegisters);
+			operand.addWritesTo(list)
 		}
+		return list
 	}
 
 	/**
-	 * Check that this instruction's {@link #basicBlock} has been set, and that
-	 * each operand's instruction field has also been set.
-	 */
-	public void assertHasBeenEmitted ()
-	{
-		assert basicBlock != null;
-		operandsDo(L2Operand::assertHasBeenEmitted);
-	}
-
-	/**
-	 * Answer the {@linkplain List list} of {@link L2Register}s read by this
-	 * {@code L2Instruction instruction}.
+	 * Answer all possible [L2PcOperand]s within this instruction.  These edges
+	 * lead to other [L2BasicBlock]s, and carry a [L2ValueManifest].
 	 *
-	 * @return The source {@linkplain L2Register registers}.
-	 */
-	public List<L2Register> sourceRegisters ()
-	{
-		//noinspection AssignmentOrReturnOfFieldWithMutableType
-		return sourceRegisters;
-	}
-
-	/**
-	 * Answer the {@link List list} of {@link L2Register}s modified by this
-	 * {@code L2Instruction instruction}.
+	 * This is empty for instructions that don't alter control flow and just
+	 * fall through to the next instruction of the same basic block.
 	 *
-	 * @return The source {@linkplain L2Register}s.
+	 * @return
+	 *   A [List] of [L2PcOperand]s leading to the successor [L2BasicBlock]s.
 	 */
-	public List<L2Register> destinationRegisters ()
-	{
-		//noinspection AssignmentOrReturnOfFieldWithMutableType
-		return destinationRegisters;
-	}
-
-	/**
-	 * Answer a {@link List} of this instruction's {@link L2ReadOperand}s.
-	 *
-	 * @return The list of read operands.
-	 */
-	public List<L2ReadOperand<?>> readOperands ()
-	{
-		final List<L2ReadOperand<?>> list = new ArrayList<>();
-		for (final L2Operand operand : operands)
-		{
-			operand.addReadsTo(list);
-		}
-		return list;
-	}
-
-	/**
-	 * Answer a {@link List} of this instruction's {@link L2WriteOperand}s.
-	 *
-	 * @return The list of write operands.
-	 */
-	public List<L2WriteOperand<?>> writeOperands ()
-	{
-		final List<L2WriteOperand<?>> list = new ArrayList<>();
-		for (final L2Operand operand : operands)
-		{
-			operand.addWritesTo(list);
-		}
-		return list;
-	}
-
-	/**
-	 * Answer all possible {@link L2PcOperand}s within this instruction.  These
-	 * edges lead to other {@link L2BasicBlock}s, and carry a {@link
-	 * L2ValueManifest}.
-	 *
-	 * <p>This is empty for instructions that don't alter control flow and just
-	 * fall through to the next instruction of the same basic block.</p>
-	 *
-	 * @return A {@link List} of {@link L2PcOperand}s leading to the successor
-	 *         {@link L2BasicBlock}s.
-	 */
-	public List<L2PcOperand> targetEdges ()
-	{
-		return operation().targetEdges(this);
-	}
+	fun targetEdges(): List<L2PcOperand> = operation().targetEdges(this)
 
 	/**
 	 * Answer whether this instruction can alter control flow.  That's true for
 	 * any kind of instruction that has more than one successor (e.g., a branch)
 	 * or no successors at all (e.g., a return).
 	 *
-	 * <p>An instruction for which this is true must occur at the end of each
-	 * {@link L2BasicBlock}, but never before the end.</p>
+	 * An instruction for which this is true must occur at the end of each
+	 * [L2BasicBlock], but never before the end.
 	 *
-	 * @return Whether this instruction can do something other than fall through
-	 *         to the next instruction of its basic block.
+	 * @return
+	 *   Whether this instruction can do something other than fall through to
+	 *   the next instruction of its basic block.
 	 */
-	public boolean altersControlFlow ()
-	{
-		return operation().altersControlFlow();
-	}
+	fun altersControlFlow(): Boolean = operation().altersControlFlow()
 
 	/**
 	 * Answer whether this instruction has any observable effect besides
 	 * writing to its destination registers.
 	 *
-	 * @return Whether this instruction has side effects.
+	 * @return
+	 *   s\Whether this instruction has side effects.
 	 */
-	public boolean hasSideEffect ()
-	{
-		return operation().hasSideEffect(this);
-	}
+	fun hasSideEffect(): Boolean = operation().hasSideEffect(this)
 
 	/**
 	 * Answer whether this instruction is an entry point, which uses the
-	 * operation {@link L2_ENTER_L2_CHUNK}.
+	 * operation [L2_ENTER_L2_CHUNK].
 	 *
-	 * @return Whether the instruction is an entry point.
+	 * @return
+	 *   Whether the instruction is an entry point.
 	 */
-	public boolean isEntryPoint ()
-	{
-		return operation().isEntryPoint(this);
-	}
+	val isEntryPoint: Boolean
+		get() = operation().isEntryPoint(this)
 
 	/**
 	 * The receiver has been declared dead code.  If there's an alternative form
 	 * of this instruction that should replace it, provide it.
 	 *
-	 * <p>Note that the old instruction will be removed and the new one added,
-	 * so now's a good time to switch {@link L2PcOperand}s that may need to be
-	 * moved between the instructions.</p>
+	 * Note that the old instruction will be removed and the new one added,
+	 * so now's a good time to switch [L2PcOperand]s that may need to be
+	 * moved between the instructions.
 	 *
-	 * @return Either null or a replacement {@code L2Instruction} for the given
-	 *         dead one.
+	 * @return
+	 *   Either null or a replacement `L2Instruction` for the given dead one.
 	 */
-	public @Nullable L2Instruction optionalReplacementForDeadInstruction ()
-	{
-		return operation().optionalReplacementForDeadInstruction(this);
-	}
+	fun optionalReplacementForDeadInstruction(): L2Instruction? =
+		operation().optionalReplacementForDeadInstruction(this)
 
 	/**
 	 * Replace all registers in this instruction using the registerRemap.  If a
@@ -452,269 +398,283 @@ public final class L2Instruction
 	 * assume SSA form.
 	 *
 	 * @param registerRemap
-	 *        A mapping from existing {@link L2Register}s to replacement {@link
-	 *        L2Register}s having the same {@link L2Register#registerKind()}.
+	 *   A mapping from existing [L2Register]s to replacement [L2Register]s
+	 *   having the same [L2Register.registerKind].
 	 */
-	public void replaceRegisters (
-		final Map<L2Register, L2Register> registerRemap)
+	fun replaceRegisters(
+		registerRemap: Map<L2Register?, L2Register>)
 	{
-		final List<L2Register> sourcesBefore = new ArrayList<>(sourceRegisters);
-		final List<L2Register> destinationsBefore =
-			new ArrayList<>(destinationRegisters);
-		operandsDo(operand -> operand.replaceRegisters(registerRemap, this));
-		sourceRegisters.replaceAll(r -> registerRemap.getOrDefault(r, r));
-		destinationRegisters.replaceAll(r -> registerRemap.getOrDefault(r, r));
-		assert sourceRegisters.size() == sourcesBefore.size();
-		assert destinationRegisters.size() == destinationsBefore.size();
+		val sourcesBefore: List<L2Register> = ArrayList(sourceRegisters)
+		val destinationsBefore: List<L2Register> = ArrayList(destinationRegisters)
+		operandsDo(Consumer { operand: L2Operand? -> operand!!.replaceRegisters(registerRemap, this) })
+		sourceRegisters.replaceAll { r -> registerRemap[r] ?: r }
+		destinationRegisters.replaceAll { r -> registerRemap[r] ?: r }
+		assert(sourceRegisters.size == sourcesBefore.size)
+		assert(destinationRegisters.size == destinationsBefore.size)
 	}
 
 	/**
-	 * This instruction was just added to its {@link L2BasicBlock}.
+	 * This instruction was just added to its [L2BasicBlock].
 	 *
 	 * @param manifest
-	 *        The {@link L2ValueManifest} that is active where this instruction
-	 *        was just added to its {@link L2BasicBlock}.
+	 *   The [L2ValueManifest] that is active where this instruction was just
+	 *   added to its [L2BasicBlock].
 	 */
-	public void justAdded (final L2ValueManifest manifest)
+	fun justAdded(manifest: L2ValueManifest?)
 	{
-		assert !isEntryPoint()
-			|| basicBlock().instructions().get(0) == this
-			: "Entry point instruction must be at start of a block";
-
-		operandsDo(operand -> operand.setInstruction(this));
-		operation().instructionWasAdded(this, manifest);
+		assert(!isEntryPoint || basicBlock().instructions()[0] == this)
+			{ "Entry point instruction must be at start of a block" }
+		operandsDo(Consumer { operand: L2Operand? ->
+			operand!!.setInstruction(this) })
+		operation().instructionWasAdded(this, manifest!!)
 	}
 
 	/**
-	 * This instruction was just added to its {@link L2BasicBlock} as part of an
+	 * This instruction was just added to its [L2BasicBlock] as part of an
 	 * optimization pass.
 	 */
-	public void justInserted ()
+	fun justInserted()
 	{
-		operandsDo(operand -> operand.setInstruction(this));
-		operation().instructionWasInserted(this);
+		operandsDo(Consumer { operand: L2Operand? ->
+			operand!!.setInstruction(this) })
+		operation().instructionWasInserted(this)
 	}
 
 	/**
-	 * This instruction was just removed from its {@link L2BasicBlock}'s list of
+	 * This instruction was just removed from its [L2BasicBlock]'s list of
 	 * instructions, and needs to finish its removal by breaking back-pointers,
 	 * plus whatever else specific operands need to do when they're no longer
 	 * considered part of the code.
 	 */
-	public void justRemoved ()
+	fun justRemoved()
 	{
-		operandsDo(L2Operand::instructionWasRemoved);
-		operandsDo(operand -> operand.setInstruction(null));
-		basicBlock = null;
+		operandsDo(Consumer { obj: L2Operand? ->
+			obj!!.instructionWasRemoved() })
+		operandsDo(Consumer { operand: L2Operand? ->
+			operand!!.setInstruction(null) })
+		basicBlock = null
 	}
 
 	/**
-	 * Recreate the {@link L2ValueManifest} that was in effect just prior to the
+	 * Recreate the [L2ValueManifest] that was in effect just prior to the
 	 * instruction that is the receiver.
 	 *
-	 * @return An {@link L2ValueManifest}.
+	 * @return
+	 *   An [L2ValueManifest].
 	 */
-	public L2ValueManifest recreateIncomingManifest ()
+	fun recreateIncomingManifest(): L2ValueManifest
 	{
 		// Start with the intersection of the incoming manifests.
-		final Iterator<L2PcOperand> incomingEdges =
-			basicBlock().predecessorEdgesIterator();
-		final L2ValueManifest manifest;
+		val incomingEdges =
+			basicBlock().predecessorEdgesIterator()
+		val manifest: L2ValueManifest
 		if (!incomingEdges.hasNext())
 		{
 			// No incoming edges, so the manifest is empty.
-			manifest = new L2ValueManifest();
+			manifest = L2ValueManifest()
 		}
 		else
 		{
-			manifest = new L2ValueManifest(incomingEdges.next().manifest());
-			incomingEdges.forEachRemaining(edge ->
-				manifest.retainRegisters(edge.manifest().allRegisters()));
+			manifest = L2ValueManifest(incomingEdges.next().manifest())
+			incomingEdges.forEachRemaining { edge: L2PcOperand ->
+				manifest.retainRegisters(edge.manifest().allRegisters()) }
 		}
 		// Now record all writes until we reach the instruction.
-		for (final L2Instruction instruction : basicBlock().instructions())
+		for (instruction in basicBlock().instructions())
 		{
 			if (instruction == this)
 			{
-				return manifest;
+				return manifest
 			}
-			instruction.writeOperands().forEach(manifest::recordDefinition);
+			instruction.writeOperands().forEach(
+				Consumer(manifest::recordDefinition))
 		}
-		throw new RuntimeException("Instruction was not found in its block");
+		throw RuntimeException("Instruction was not found in its block")
 	}
 
 	/**
 	 * Update the given manifest with the effect of this instruction.  If a
-	 * {@link Purpose} is given, alter the manifest to agree with outbound
-	 * edges having that purpose.
+	 * [L2NamedOperandType.Purpose] is given, alter the manifest to agree with
+	 * outbound edges having that purpose.
 	 *
 	 * @param manifest
-	 *        The {@link L2ValueManifest} to update with the effect of this
-	 *        instruction.
+	 *   The [L2ValueManifest] to update with the effect of this instruction.
 	 * @param optionalPurpose
-	 *        If non-{@code null}, produce tha manifest that should be active
-	 *        along outbound edges having the indicated {@link Purpose}.
+	 *   If non-`null`, produce tha manifest that should be active along
+	 *   outbound edges having the indicated [L2NamedOperandType.Purpose].
 	 */
-	public void updateManifest (
-		final L2ValueManifest manifest,
-		final @Nullable Purpose optionalPurpose)
+	fun updateManifest(
+		manifest: L2ValueManifest?,
+		optionalPurpose: L2NamedOperandType.Purpose?)
 	{
-		operation.updateManifest(this, manifest, optionalPurpose);
+		operation.updateManifest(this, manifest!!, optionalPurpose)
 	}
 
 	/**
 	 * Attempt to create a copy of this instruction, but using the
-	 * {@link L2SemanticValue}s present in the given {@link L2ValueManifest}.
-	 * Answer {@code null} if the transformation won't work because of a missing
-	 * read operand.
+	 * [L2SemanticValue]s present in the given [L2ValueManifest]. Answer `null`
+	 * if the transformation won't work because of a missing read operand.
 	 *
 	 * @param newBlock
-	 *        The {@link L2BasicBlock} in which the instruction will eventually
-	 *        be inserted.
+	 *   The [L2BasicBlock] in which the instruction will eventually be inserted.
 	 * @param manifest
-	 *        The {@link L2ValueManifest} that's active where the new
-	 *        instruction would be inserted.
-	 * @return The new instruction or {@code null}.
+	 *   The [L2ValueManifest] that's active where the new instruction would be
+	 *   inserted.
+	 * @return
+	 *   The new instruction or `null`.
 	 */
-	public @Nullable L2Instruction copyInstructionForManifest (
-		final L2BasicBlock newBlock,
-		final L2ValueManifest manifest)
+	fun copyInstructionForManifest(
+		newBlock: L2BasicBlock,
+		manifest: L2ValueManifest): L2Instruction?
 	{
-		final Mutable<Boolean> failed = new Mutable<>(false);
-		final UnaryOperator<L2ReadOperand<?>> transform = read ->
-		{
-			final List<L2Register> registers = manifest.getDefinitions(
-				read.semanticValue(), read.registerKind());
-			if (registers.isEmpty())
-			{
-				failed.value = true;
-				return read;
+		val failed = Mutable(false)
+		val transform =
+			UnaryOperator { read: L2ReadOperand<*> ->
+				val registers =
+					manifest.getDefinitions<L2Register>(
+						read.semanticValue(), read.registerKind())
+				if (registers.isEmpty())
+				{
+					failed.value = true
+					return@UnaryOperator read
+				}
+				read.copyForRegister(registers[0])
 			}
-			return read.copyForRegister(registers.get(0));
-		};
-		final L2Operand[] operandsCopy = operands.clone();
-		for (int i = 0; i < operandsCopy.length; i++)
+		val operandsCopy = operands.clone()
+		for (i in operandsCopy.indices)
 		{
-			operandsCopy[i] = operandsCopy[i].transformEachRead(transform);
+			operandsCopy[i] = operandsCopy[i].transformEachRead(transform)
 		}
-		if (failed.value)
+		return if (failed.value)
 		{
-			return null;
+			null
 		}
-		return new L2Instruction(newBlock, operation, operandsCopy);
+		else L2Instruction(newBlock, operation, *operandsCopy)
 	}
 
 	/**
 	 * Answer whether this instruction should be emitted during final code
-	 * generation (from the non-SSA {@link L2ControlFlowGraph} into a flat
-	 * sequence of {@code L2Instruction}s.  Allow the operation to decide.
+	 * generation (from the non-SSA [L2ControlFlowGraph] into a flat
+	 * sequence of `L2Instruction`s.  Allow the operation to decide.
 	 *
-	 * @return Whether to preserve this instruction during final code
-	 *         generation.
+	 * @return
+	 *   Whether to preserve this instruction during final code generation.
 	 */
-	public boolean shouldEmit ()
-	{
-		return operation().shouldEmit(this);
-	}
+	fun shouldEmit(): Boolean = operation().shouldEmit(this)
 
-	@Override
-	public String toString ()
+	override fun toString(): String
 	{
-		final StringBuilder builder = new StringBuilder();
+		val builder = StringBuilder()
 		appendToWithWarnings(
-			builder, EnumSet.allOf(L2OperandType.class), b -> {});
-		return builder.toString();
+			builder,
+			EnumSet.allOf(L2OperandType::class.java),
+			Consumer {  })
+		return builder.toString()
 	}
 
 	/**
 	 * Output this instruction to the given builder, invoking the given
-	 * {@link Consumer} with a boolean to turn warning style on or off, if
+	 * [Consumer] with a boolean to turn warning style on or off, if
 	 * tracked by the caller.
 	 *
 	 * @param builder
-	 *        Where to write the description of this instruction.
+	 *   Where to write the description of this instruction.
 	 * @param operandTypes
-	 *        Which {@link L2OperandType}s to include.
+	 *   Which [L2OperandType]s to include.
 	 * @param warningStyleChange
-	 *        A {@link Consumer} that takes {@code true} to start the warning
-	 *        style at the current builder position, and {@code false} to end
-	 *        it.  It must be invoked in (true, false) pairs.
+	 *   A [Consumer] that takes `true` to start the warning style at the
+	 *   current builder position, and `false` to end it.  It must be invoked in
+	 *   (true, false) pairs.
 	 */
-	public void appendToWithWarnings (
-		final StringBuilder builder,
-		final Set<L2OperandType> operandTypes,
-		final Consumer<Boolean> warningStyleChange)
+	fun appendToWithWarnings(
+		builder: StringBuilder,
+		operandTypes: Set<L2OperandType>,
+		warningStyleChange: Consumer<Boolean>)
 	{
 		if (basicBlock == null)
 		{
-			warningStyleChange.accept(true);
-			builder.append("DEAD: ");
-			warningStyleChange.accept(false);
+			warningStyleChange.accept(true)
+			builder.append("DEAD: ")
+			warningStyleChange.accept(false)
 		}
 		operation().appendToWithWarnings(
 			this,
 			operandTypes,
 			builder,
-			warningStyleChange);
+			warningStyleChange)
 	}
 
 	/**
-	 * Transform this instruction's operands for the given {@link
-	 * L2Inliner}.
+	 * Transform this instruction's operands for the given [L2Inliner].
 	 *
 	 * @param inliner
-	 *        The {@link L2Inliner} through which to write this
-	 *        instruction's equivalent effect.
-	 * @return The array of transformed {@link L2Operand}s.
+	 *   The [L2Inliner] through which to write this instruction's equivalent
+	 *   effect.
+	 * @return
+	 *   The array of transformed [L2Operand]s.
 	 */
-	public L2Operand[] transformOperands (final L2Inliner inliner)
-	{
-		final L2Operand[] newOperands = new L2Operand[operands().length];
-		for (int i = 0; i < newOperands.length; i++)
+	fun transformOperands(inliner: L2Inliner): Array<L2Operand> =
+		Array<L2Operand>(operands().size)
 		{
-			newOperands[i] = inliner.transformOperand(operand(i));
+			inliner.transformOperand(operand(it))
 		}
-		return newOperands;
-	}
 
 	/**
-	 * Write the equivalent of this instruction through the given {@link
-	 * L2Inliner}.  Certain types of {@link L2Operation}s are transformed
-	 * in ways specific to inlining.
+	 * Write the equivalent of this instruction through the given [L2Inliner].
+	 * Certain types of [L2Operation]s are transformed in ways specific to
+	 * inlining.
 	 *
 	 * @param inliner
-	 *        The {@link L2Inliner} through which to write this
-	 *        instruction's equivalent effect.
+	 *   The [L2Inliner] through which to write this instruction's equivalent
+	 *   effect.
 	 */
-	public void transformAndEmitOn (final L2Inliner inliner)
+	fun transformAndEmitOn(inliner: L2Inliner)
 	{
 		operation().emitTransformedInstruction(
-			this, transformOperands(inliner), inliner);
+			this, transformOperands(inliner), inliner)
 	}
 
 	/**
-	 * Translate the {@code L2Instruction} into corresponding JVM instructions.
+	 * Translate the `L2Instruction` into corresponding JVM instructions.
 	 *
 	 * @param translator
-	 *        The {@link JVMTranslator} responsible for the translation.
+	 *   The [JVMTranslator] responsible for the translation.
 	 * @param method
-	 *        The {@linkplain MethodVisitor method} into which the generated JVM
-	 *        instructions will be written.
+	 *   The [method][MethodVisitor] into which the generated JVM instructions
+	 *   will be written.
 	 */
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method)
+	fun translateToJVM(translator: JVMTranslator, method: MethodVisitor)
 	{
-		operation().translateToJVM(translator, method, this);
+		operation().translateToJVM(translator, method, this)
 	}
 
 	/**
-	 * Answer the {@link L2BasicBlock} to which this instruction belongs.
+	 * Answer the [L2BasicBlock] to which this instruction belongs.
 	 *
-	 * @return This instruction's {@link L2BasicBlock}.
+	 * @return
+	 *   This instruction's [L2BasicBlock].
 	 */
-	public L2BasicBlock basicBlock ()
+	fun basicBlock(): L2BasicBlock = Nulls.stripNull(basicBlock)
+
+	init
 	{
-		return stripNull(basicBlock);
+		assert(operation.namedOperandTypes.size == theOperands.size)
+		for ((i, operandTypes)
+			in operation.namedOperandTypes.withIndex())
+		{
+			assert(theOperands[i].operandType()
+					   === operandTypes.operandType())
+		}
+		this.operation = operation
+		this.basicBlock = basicBlock
+		operands =
+			Array<L2Operand>(theOperands.size)
+			{
+				val operand = theOperands[it].clone()
+				operand.adjustCloneForInstruction(this)
+				operand.addSourceRegistersTo(sourceRegisters)
+				operand.addDestinationRegistersTo(destinationRegisters)
+				operand
+			}
 	}
 }
