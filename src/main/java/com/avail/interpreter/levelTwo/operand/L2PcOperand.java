@@ -448,7 +448,7 @@ extends L2Operand
 				method.visitInsn(DUP);
 				translator.intConstant(method, i);
 				method.visitVarInsn(
-					BOXED.loadInstruction,
+					BOXED.getLoadInstruction(),
 					boxedLocalNumbers.get(i));
 				method.visitInsn(AASTORE);
 			}
@@ -471,7 +471,7 @@ extends L2Operand
 				method.visitInsn(DUP);
 				translator.intConstant(method, i);
 				method.visitVarInsn(
-					RegisterKind.INTEGER.loadInstruction,
+					RegisterKind.INTEGER.getLoadInstruction(),
 					intLocalNumbers.get(i));
 				method.visitInsn(I2L);
 				method.visitInsn(LASTORE);
@@ -481,7 +481,7 @@ extends L2Operand
 				method.visitInsn(DUP);
 				translator.intConstant(method, i);
 				method.visitVarInsn(
-					RegisterKind.FLOAT.loadInstruction,
+					RegisterKind.FLOAT.getLoadInstruction(),
 					floatLocalNumbers.get(i));
 				JavaLibrary.getBitCastDoubleToLongMethod().generateCall(method);
 				method.visitInsn(LASTORE);

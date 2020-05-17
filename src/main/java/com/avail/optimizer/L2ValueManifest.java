@@ -660,7 +660,7 @@ public final class L2ValueManifest
 				final TypeRestriction existingRestriction =
 					restrictionFor(semanticValue);
 				final RestrictionFlagEncoding writerRestrictionFlag =
-					writer.registerKind().restrictionFlag;
+					writer.registerKind().getRestrictionFlag();
 				// The restriction *might* know about this kind, if there were
 				// multiple kinds that led to multiple phi instructions for the
 				// same synonym.
@@ -1040,7 +1040,7 @@ public final class L2ValueManifest
 						relatedSemanticValues,
 						forcePhis,
 						restriction.restrictingKindsTo(
-							BOXED.restrictionFlag.mask),
+							BOXED.getRestrictionFlag().mask),
 						new L2ReadBoxedVectorOperand(sources),
 						L2_PHI_PSEUDO_OPERATION.boxed,
 						generator::boxedWrite);
@@ -1057,7 +1057,7 @@ public final class L2ValueManifest
 						relatedSemanticValues,
 						forcePhis,
 						restriction.restrictingKindsTo(
-							INTEGER.restrictionFlag.mask),
+							INTEGER.getRestrictionFlag().mask),
 						new L2ReadIntVectorOperand(sources),
 						L2_PHI_PSEUDO_OPERATION.unboxedInt,
 						generator::intWrite);
@@ -1074,7 +1074,7 @@ public final class L2ValueManifest
 						relatedSemanticValues,
 						forcePhis,
 						restriction.restrictingKindsTo(
-							FLOAT.restrictionFlag.mask),
+							FLOAT.getRestrictionFlag().mask),
 						new L2ReadFloatVectorOperand(sources),
 						L2_PHI_PSEUDO_OPERATION.unboxedFloat,
 						generator::floatWrite);
@@ -1375,7 +1375,7 @@ public final class L2ValueManifest
 							complementOf(remainingKinds))
 						{
 							restriction = restriction.withoutFlag(
-								unavailableKind.restrictionFlag);
+								unavailableKind.getRestrictionFlag());
 						}
 					}
 					synonymRestrictions.put(synonym, restriction);

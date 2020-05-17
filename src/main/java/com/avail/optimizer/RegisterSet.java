@@ -78,7 +78,7 @@ public final class RegisterSet
 		{
 			assert r1 != null;
 			assert r2 != null;
-			return Long.compare(r1.uniqueValue, r2.uniqueValue);
+			return Long.compare(r1.getUniqueValue(), r2.getUniqueValue());
 		});
 		for (final L2Register reg : sortedRegs)
 		{

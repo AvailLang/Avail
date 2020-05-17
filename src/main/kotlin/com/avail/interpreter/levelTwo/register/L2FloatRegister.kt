@@ -1,21 +1,21 @@
 /*
- * L2FloatRegister.java
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * L2FloatRegister.kt
+ * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice, this
+ *     list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice, this
+ *     list of conditions and the following disclaimer in the documentation
+ *     and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
- *   without specific prior written permission.
+ *  * Neither the name of the copyright holder nor the names of the contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -29,58 +29,41 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.register
 
-package com.avail.interpreter.levelTwo.register;
-
-import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.reoptimizer.L2Inliner;
+import com.avail.optimizer.L2Generator
+import com.avail.optimizer.reoptimizer.L2Inliner
 
 /**
- * {@code L2FloatRegister} models the conceptual usage of a register that can
- * store a machine floating-point number.
+ * `L2FloatRegister` models the conceptual usage of a register that can store a
+ * machine floating-point number.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ * Construct a new `L2FloatRegister`.
+ *
+ * @param debugValue
+ *   A value used to distinguish the new instance visually during debugging of
+ *   L2 translations.
  */
-public final class L2FloatRegister
-extends L2Register
+class L2FloatRegister constructor(debugValue: Int) : L2Register(debugValue)
 {
-	@Override
-	public RegisterKind registerKind ()
+	override fun registerKind(): RegisterKind = RegisterKind.FLOAT
+
+	override fun copyForTranslator(
+		generator: L2Generator): L2FloatRegister
 	{
-		return RegisterKind.FLOAT;
+		return L2FloatRegister(generator.nextUnique())
 	}
 
-	/**
-	 * Construct a new {@code L2FloatRegister}.
-	 *
-	 * @param debugValue
-	 *        A value used to distinguish the new instance visually during
-	 *        debugging of L2 translations.
-	 */
-	public L2FloatRegister (
-		final int debugValue)
+	override fun copyAfterColoring(): L2FloatRegister
 	{
-		super(debugValue);
+		val result = L2FloatRegister(finalIndex())
+		result.setFinalIndex(finalIndex())
+		return result
 	}
 
-	@Override
-	public L2FloatRegister copyForTranslator (
-		final L2Generator generator)
-	{
-		return new L2FloatRegister(generator.nextUnique());
-	}
-
-	@Override
-	public L2FloatRegister copyAfterColoring ()
-	{
-		final L2FloatRegister result = new L2FloatRegister(finalIndex());
-		result.setFinalIndex(finalIndex());
-		return result;
-	}
-
-	@Override
-	public L2FloatRegister copyForInliner (final L2Inliner inliner)
-	{
-		return new L2FloatRegister(inliner.nextUnique());
-	}
+	override fun copyForInliner(inliner: L2Inliner): L2FloatRegister =
+		L2FloatRegister(inliner.nextUnique())
 }

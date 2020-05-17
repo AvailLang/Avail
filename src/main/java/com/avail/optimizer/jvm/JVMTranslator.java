@@ -539,7 +539,7 @@ public final class JVMTranslator
 		final L2Register register)
 	{
 		method.visitVarInsn(
-			register.registerKind().loadInstruction,
+			register.registerKind().getLoadInstruction(),
 			localNumberFromRegister(register));
 	}
 
@@ -559,7 +559,7 @@ public final class JVMTranslator
 		final L2Register register)
 	{
 		method.visitVarInsn(
-			register.registerKind().storeInstruction,
+			register.registerKind().getStoreInstruction(),
 			localNumberFromRegister(register));
 	}
 
@@ -1761,8 +1761,8 @@ public final class JVMTranslator
 				final int finalIndex = innerEntry.getKey();
 				final int localIndex = innerEntry.getValue();
 				method.visitLocalVariable(
-					kind.prefix + finalIndex,
-					kind.jvmTypeString,
+					kind.getPrefix() + finalIndex,
+					kind.getJvmTypeString(),
 					null,
 					entries[0],
 					badOffsetLabel,

@@ -374,7 +374,7 @@ extends L2Operation
 	@Override
 	public String toString ()
 	{
-		return super.toString() + "(" + moveOperation.kind.kindName + ")";
+		return super.toString() + "(" + moveOperation.kind.getKindName() + ")";
 	}
 
 	@Override

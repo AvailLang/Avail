@@ -102,7 +102,7 @@ public final class L2RegisterColorer
 				{
 					builder.append(", ");
 				}
-				builder.append(r.uniqueValue);
+				builder.append(r.getUniqueValue());
 				first = false;
 			}
 			builder.append(")");

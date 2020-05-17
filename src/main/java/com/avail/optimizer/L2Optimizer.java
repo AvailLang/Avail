@@ -1070,7 +1070,7 @@ public final class L2Optimizer
 	 * Create a new register for every &lt;kind, finalIndex&gt; (i.e., color) of
 	 * an existing register, then transform every instruction of this control
 	 * flow graph to use the new registers.  The new registers have a
-	 * {@link L2Register#uniqueValue} that's the same as its {@link
+	 * {@link L2Register#getUniqueValue()} that's the same as its {@link
 	 * L2Register#finalIndex() finalIndex}.
 	 */
 	void replaceRegistersByColor ()
@@ -1633,7 +1633,7 @@ public final class L2Optimizer
 			checkBlocksAndInstructions();
 			checkUniqueOperands();
 			checkEdgesAndPhis();
-			checkRegistersAreInitialized(L2Register::uniqueValue);
+			checkRegistersAreInitialized(L2Register::getUniqueValue);
 			checkEntryPoints();
 			final long after = captureNanos();
 			sanityCheckStat.record(

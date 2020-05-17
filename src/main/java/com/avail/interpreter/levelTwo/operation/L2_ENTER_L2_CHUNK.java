@@ -183,7 +183,7 @@ extends L2Operation
 					translator.intConstant(method, i + 1);  //one-based
 					extractObjectAtMethod.generateCall(method);
 					method.visitVarInsn(
-						RegisterKind.BOXED.storeInstruction,
+						RegisterKind.BOXED.getStoreInstruction(),
 						boxedList.get(i));
 				}
 				int i;
@@ -198,7 +198,7 @@ extends L2Operation
 					extractLongAtMethod.generateCall(method);
 					method.visitInsn(L2I);
 					method.visitVarInsn(
-						RegisterKind.INTEGER.storeInstruction,
+						RegisterKind.INTEGER.getStoreInstruction(),
 						intsList.get(i));
 				}
 				for (int j = 0; j < floatsCount; j++, i++)
@@ -213,7 +213,7 @@ extends L2Operation
 					JavaLibrary.getBitCastLongToDoubleMethod().generateCall(
 						method);
 					method.visitVarInsn(
-						RegisterKind.FLOAT.storeInstruction,
+						RegisterKind.FLOAT.getStoreInstruction(),
 						floatsList.get(j));
 				}
 				assert countdown == 0;
