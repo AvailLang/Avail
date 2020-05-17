@@ -29,66 +29,46 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operand
 
-package com.avail.interpreter.levelTwo.operand;
-
-import com.avail.interpreter.levelTwo.L2OperandDispatcher;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
-
-import java.util.List;
-
-import static com.avail.utility.Casts.cast;
-import static java.util.stream.Collectors.toList;
+import com.avail.interpreter.levelTwo.L2OperandDispatcher
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister
+import com.avail.utility.Casts
+import java.util.stream.Collectors
 
 /**
- * An {@code L2ReadBoxedVectorOperand} is an operand of type {@link
- * L2OperandType#READ_BOXED_VECTOR}. It holds a {@link List} of {@link
- * L2ReadBoxedOperand}s.
+ * An `L2ReadBoxedVectorOperand` is an operand of type
+ * [L2OperandType.READ_BOXED_VECTOR]. It holds a [List] of
+ * [L2ReadBoxedOperand]s.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @constructor
+ * Construct a new `L2ReadBoxedVectorOperand` with the specified [List] of
+ * [L2ReadBoxedOperand]s.
+ *
+ * @param elements
+ *   The list of [L2ReadBoxedOperand]s.
  */
-public class L2ReadBoxedVectorOperand
-extends L2ReadVectorOperand<L2ReadBoxedOperand, L2BoxedRegister>
+class L2ReadBoxedVectorOperand constructor(
+		elements: List<L2ReadBoxedOperand>)
+	: L2ReadVectorOperand<L2ReadBoxedOperand, L2BoxedRegister>(elements)
 {
-	/**
-	 * Construct a new {@code L2ReadBoxedVectorOperand} with the specified
-	 * {@link List} of {@link L2ReadBoxedOperand}s.
-	 *
-	 * @param elements
-	 *        The list of {@link L2ReadBoxedOperand}s.
-	 */
-	public L2ReadBoxedVectorOperand (
-		final List<L2ReadBoxedOperand> elements)
-	{
-		super(elements);
-	}
-
-	@Override
-	public L2ReadBoxedVectorOperand clone ()
-	{
-		return new L2ReadBoxedVectorOperand(
+	override fun clone(): L2ReadBoxedVectorOperand =
+		L2ReadBoxedVectorOperand(
 			elements.stream()
-				.<L2ReadBoxedOperand>map(read -> cast(read.clone()))
-				.collect(toList()));
-	}
+				.map<L2ReadBoxedOperand> { Casts.cast(it.clone()) }
+				.collect(Collectors.toList()))
 
-	@Override
-	public L2ReadBoxedVectorOperand clone (
-		final List<L2ReadBoxedOperand> replacementElements)
-	{
-		return new L2ReadBoxedVectorOperand(replacementElements);
-	}
+	override fun clone(replacementElements: List<L2ReadBoxedOperand>)
+		: L2ReadBoxedVectorOperand =
+			L2ReadBoxedVectorOperand(replacementElements)
 
-	@Override
-	public L2OperandType operandType ()
-	{
-		return L2OperandType.READ_BOXED_VECTOR;
-	}
+	override fun operandType(): L2OperandType = L2OperandType.READ_BOXED_VECTOR
 
-	@Override
-	public void dispatchOperand (final L2OperandDispatcher dispatcher)
+	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
 	{
-		dispatcher.doOperand(this);
+		dispatcher.doOperand(this)
 	}
 }

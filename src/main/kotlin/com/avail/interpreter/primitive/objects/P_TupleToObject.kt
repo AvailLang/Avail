@@ -164,19 +164,25 @@ object P_TupleToObject : Primitive(1, CannotFail, CanFold, CanInline)
 			generator.explodeTupleIfPossible(pairsReg, argumentTypes)
 				?: return false
 		(atoms zip pairSources).forEach { (atom, pairSource) ->
-			val index = fieldMap[atom]!!
-			if (index != 0)
-			{
-				sourcesByFieldIndex[index - 1] =
-					generator.extractTupleElement(pairSource, 2)
+			fieldMap[atom]?.let { index ->
+				if (index != 0)
+				{
+					sourcesByFieldIndex[index - 1] =
+						generator.extractTupleElement(pairSource, 2)
+				}
 			}
 		}
 		val write = generator.boxedWriteTemp(
 			restrictionForType(callSiteHelper.expectedType, BOXED))
+
 		generator.addInstruction(
 			L2_CREATE_OBJECT.instance,
 			L2ConstantOperand(variant.thisPojo),
-			L2ReadBoxedVectorOperand(listOf(*sourcesByFieldIndex)),
+			L2ReadBoxedVectorOperand(
+				Array(sourcesByFieldIndex.size)
+				{
+					sourcesByFieldIndex[it]!!
+				}.toList()),
 			write)
 		callSiteHelper.useAnswer(generator.readBoxed(write))
 		return true

@@ -743,7 +743,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	 * consecutive slots of the receiver.  It's the client's responsibility to
 	 * ensure the values are suitably immutable or shared.
 	 *
-	 * @param <T>
+	 * @param T
 	 *   The type of array to copy from.
 	 * @param targetField
 	 *   The field of the receiver into which to write values.

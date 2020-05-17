@@ -29,66 +29,47 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operand
 
-package com.avail.interpreter.levelTwo.operand;
-
-import com.avail.interpreter.levelTwo.L2OperandDispatcher;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.register.L2IntRegister;
-
-import java.util.List;
-
-import static com.avail.utility.Casts.cast;
-import static java.util.stream.Collectors.toList;
+import com.avail.interpreter.levelTwo.L2OperandDispatcher
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.register.L2IntRegister
+import com.avail.utility.Casts
+import java.util.function.Function
+import java.util.stream.Collectors
 
 /**
- * An {@code L2ReadIntVectorOperand} is an operand of type {@link
- * L2OperandType#READ_INT_VECTOR}. It holds a {@link List} of {@link
- * L2ReadIntOperand}s.
+ * An `L2ReadIntVectorOperand` is an operand of type
+ * [L2OperandType.READ_INT_VECTOR]. It holds a [List] of [L2ReadIntOperand]s.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @constructor
+ * Construct a new `L2ReadIntVectorOperand` with the specified [List] of
+ * [L2ReadIntOperand]s.
+ *
+ * @param elements
+ * The list of [L2ReadIntOperand]s.
  */
-public class L2ReadIntVectorOperand
-extends L2ReadVectorOperand<L2ReadIntOperand, L2IntRegister>
+class L2ReadIntVectorOperand constructor(elements: List<L2ReadIntOperand>)
+	: L2ReadVectorOperand<L2ReadIntOperand, L2IntRegister>(elements)
 {
-	/**
-	 * Construct a new {@code L2ReadIntVectorOperand} with the specified {@link
-	 * List} of {@link L2ReadIntOperand}s.
-	 *
-	 * @param elements
-	 *        The list of {@link L2ReadIntOperand}s.
-	 */
-	public L2ReadIntVectorOperand (
-		final List<L2ReadIntOperand> elements)
+	override fun clone(): L2ReadIntVectorOperand
 	{
-		super(elements);
-	}
-
-	@Override
-	public L2ReadIntVectorOperand clone ()
-	{
-		return new L2ReadIntVectorOperand(
+		return L2ReadIntVectorOperand(
 			elements.stream()
-				.<L2ReadIntOperand>map(read -> cast(read.clone()))
-				.collect(toList()));
+				.map<L2ReadIntOperand> { Casts.cast(it.clone()) }
+				.collect(Collectors.toList()))
 	}
 
-	@Override
-	public L2ReadIntVectorOperand clone (
-		final List<L2ReadIntOperand> replacementElements)
-	{
-		return new L2ReadIntVectorOperand(replacementElements);
-	}
+	override fun clone(
+		replacementElements: List<L2ReadIntOperand>): L2ReadIntVectorOperand =
+			L2ReadIntVectorOperand(replacementElements)
 
-	@Override
-	public L2OperandType operandType ()
-	{
-		return L2OperandType.READ_INT_VECTOR;
-	}
+	override fun operandType(): L2OperandType = L2OperandType.READ_INT_VECTOR
 
-	@Override
-	public void dispatchOperand (final L2OperandDispatcher dispatcher)
+	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
 	{
-		dispatcher.doOperand(this);
+		dispatcher.doOperand(this)
 	}
 }

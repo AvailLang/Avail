@@ -224,7 +224,7 @@ class Interpreter(
 	 *   The fiber to lock.
 	 * @param supplier
 	 *   What to execute while the fiber is locked
-	 * @param <T>
+	 * @param T
 	 *   The type of value that the supplier will return.
 	 * @return
 	 *   The value produced by the supplier.

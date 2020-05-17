@@ -29,117 +29,106 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operation
 
-package com.avail.interpreter.levelTwo.operation;
-
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2NamedOperandType;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.TypeRestriction;
-import com.avail.optimizer.L2BasicBlock;
-import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.RegisterSet;
-
-import java.util.ArrayList;
-import java.util.List;
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2NamedOperandType
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2Operation
+import com.avail.interpreter.levelTwo.operand.L2PcOperand
+import com.avail.interpreter.levelTwo.operand.TypeRestriction
+import com.avail.optimizer.L2BasicBlock
+import com.avail.optimizer.L2Generator
+import com.avail.optimizer.RegisterSet
+import java.util.*
 
 /**
- * An {@link L2Operation} that alters control flow, and therefore does not fall
+ * An [L2Operation] that alters control flow, and therefore does not fall
  * through to the next instruction.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @constructor
+ * Protect the constructor so the subclasses can maintain a fly-weight
+ * pattern (or arguably a singleton).
+ *
+ * @param theNamedOperandTypes
+ *   The vararg array of [L2NamedOperandType]s that defines the layout of
+ *   operands for [L2Instruction]s this use this operation.
  */
-public abstract class L2ControlFlowOperation extends L2Operation
+abstract class L2ControlFlowOperation protected constructor(
+		vararg theNamedOperandTypes: L2NamedOperandType)
+	: L2Operation(*theNamedOperandTypes)
 {
 	/**
-	 * The array of operand indices which have type {@link L2PcOperand}.
+	 * The array of operand indices which have type [L2PcOperand].
 	 */
-	protected final int[] labelOperandIndices;
+	protected val labelOperandIndices: IntArray
 
-	/**
-	 * Protect the constructor so the subclasses can maintain a fly-weight
-	 * pattern (or arguably a singleton).
-	 *
-	 * @param theNamedOperandTypes
-	 *        The vararg array of {@link L2NamedOperandType}s that defines the
-	 *        layout of operands for {@link L2Instruction}s this use this
-	 *        operation.
-	 */
-	protected L2ControlFlowOperation (
-		final L2NamedOperandType... theNamedOperandTypes)
-	{
-		super(theNamedOperandTypes);
-		final List<Integer> labelIndicesList = new ArrayList<>(2);
-		for (int index = 0; index < namedOperandTypes.length; index++)
-		{
-			final L2NamedOperandType namedOperandType =
-				namedOperandTypes[index];
-			if (namedOperandType.operandType() == L2OperandType.PC)
-			{
-				labelIndicesList.add(index);
-			}
-		}
-		labelOperandIndices =
-			labelIndicesList.stream().mapToInt(Integer::intValue).toArray();
-	}
-
-	@Override
-	public final boolean altersControlFlow ()
-	{
-		return true;
-	}
+	override fun altersControlFlow(): Boolean = true
 
 	/**
 	 * Propagate type, value, alias, and source instruction information due to
 	 * the execution of this instruction.  The instruction must not have
 	 * multiple possible successor instructions.
 	 *
-	 * <p>Present here only to avoid subclasses from implementing this form.</p>
+	 * Present here only to avoid subclasses from implementing this form.
 	 *
 	 * @param instruction
-	 *        The L2Instruction containing this L2Operation.
+	 *   The L2Instruction containing this L2Operation.
 	 * @param registerSet
-	 *        A RegisterSet to advance to a state corresponding with after
-	 *        having run the given instruction.
+	 *   A RegisterSet to advance to a state corresponding with after having run
+	 *   the given instruction.
 	 * @param generator
-	 *        The {@link L2Generator} for which to advance the type analysis.
-	 * @see #propagateTypes(L2Instruction, List, L2Generator)
+	 *   The [L2Generator] for which to advance the type analysis.
+	 * @see propagateTypes
 	 */
-	@Override
-	protected final void propagateTypes (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
-		final L2Generator generator)
+	override fun propagateTypes(
+		instruction: L2Instruction,
+		registerSet: RegisterSet,
+		generator: L2Generator)
 	{
-		throw new UnsupportedOperationException(
+		throw UnsupportedOperationException(
 			"Single-target propagateTypes is not applicable to an "
-				+ "L2ControlFlowOperation");
+				+ "L2ControlFlowOperation")
 	}
 
 	/**
-	 * Extract the operands which are {@link L2PcOperand}s.  These are what lead
-	 * to other {@link L2BasicBlock}s.  They also carry an edge-specific array
-	 * of slots, and edge-specific {@link TypeRestriction}s for registers.
+	 * Extract the operands which are [L2PcOperand]s.  These are what lead to
+	 * other [L2BasicBlock]s.  They also carry an edge-specific array of slots,
+	 * and edge-specific [TypeRestriction]s for registers.
 	 *
 	 * @param instruction
-	 *        The {@link L2Instruction} to examine.
-	 * @return The {@link List} of target {@link L2PcOperand}s that are operands
-	 *         of the given instruction.  These may be reachable directly via a
-	 *         control flow change, or reachable only from some other mechanism
-	 *         like continuation reification and later resumption of a
-	 *         continuation.
+	 *   The [L2Instruction] to examine.
+	 * @return
+	 *   The [List] of target [L2PcOperand]s that are operands of the given
+	 *   instruction.  These may be reachable directly via a control flow change,
+	 *   or reachable only from some other mechanism like continuation
+	 *   reification and later resumption of a continuation.
 	 */
-	@Override
-	public final List<L2PcOperand> targetEdges (final L2Instruction instruction)
+	override fun targetEdges(instruction: L2Instruction): List<L2PcOperand>
 	{
-		final List<L2PcOperand> edges =
-			new ArrayList<>(labelOperandIndices.length);
-		for (final int labelOperandIndex : labelOperandIndices)
+		val edges: MutableList<L2PcOperand> =
+			ArrayList(labelOperandIndices.size)
+		for (labelOperandIndex in labelOperandIndices)
 		{
-			edges.add(instruction.operand(labelOperandIndex));
+			edges.add(instruction.operand(labelOperandIndex))
 		}
-		return edges;
+		return edges
+	}
+
+	init
+	{
+		val labelIndicesList: MutableList<Int> = ArrayList(2)
+		for (index in namedOperandTypes.indices)
+		{
+			val namedOperandType = namedOperandTypes[index]
+			if (namedOperandType.operandType() === L2OperandType.PC)
+			{
+				labelIndicesList.add(index)
+			}
+		}
+		labelOperandIndices =
+			IntArray(labelIndicesList.size) { labelIndicesList[it] }
 	}
 }

@@ -81,15 +81,15 @@ import java.util.*
  * notification is thread-safe, and multiple contexts may simultaneously execute
  * on the same FSM.
  *
- * @param <State>
+ * @param State
  *   The kind of states.
- * @param <Event>
+ * @param Event
  *   The kind of events.
- * @param <ActionKey>
+ * @param ActionKey
  *   The kind of action keys.
- * @param <GuardKey>
+ * @param GuardKey
  *   The kind of guard keys.
- * @param <Memento>
+ * @param Memento
  *   The kind of argument that actions will receive.
  * @property initialState
  *   The state in which to start a new [state][ExecutionContext].

@@ -29,209 +29,176 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operand
 
-package com.avail.interpreter.levelTwo.operand;
-
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandDispatcher;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.register.L2Register;
-import com.avail.optimizer.L2ValueManifest;
-import com.avail.utility.Casts;
-
-import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.function.UnaryOperator;
-
-import static java.util.Collections.unmodifiableList;
-import static java.util.stream.Collectors.toList;
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2OperandDispatcher
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.register.L2Register
+import com.avail.optimizer.L2ValueManifest
+import com.avail.utility.Casts
+import java.util.*
+import java.util.function.Consumer
+import java.util.stream.Collectors
 
 /**
- * An {@code L2ReadVectorOperand} is an operand of type {@link
- * L2OperandType#READ_BOXED_VECTOR}. It holds a {@link List} of {@link
- * L2ReadOperand}s.
+ * An `L2ReadVectorOperand` is an operand of type
+ * [L2OperandType.READ_BOXED_VECTOR]. It holds a [List] of [L2ReadOperand]s.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
- * @param <RR>
- *        A subclass of {@link L2ReadOperand}&lt;R>.
- * @param <R>
- *        A subclass of L2Register
+ * @param RR
+ *   A subclass of [L2ReadOperand]&lt;R>.
+ * @param R
+ *   A subclass of L2Register
  */
-public abstract class L2ReadVectorOperand<
-	RR extends L2ReadOperand<R>,
-	R extends L2Register>
-extends L2Operand
+abstract class L2ReadVectorOperand<RR : L2ReadOperand<R>, R
+	: L2Register>(elements: List<RR>) : L2Operand()
 {
 	/**
-	 * The {@link List} of {@link L2ReadBoxedOperand}s.
+	 * The [List] of [L2ReadBoxedOperand]s.
 	 */
-	final List<RR> elements;
+	val elements: List<RR> = Collections.unmodifiableList(elements)
 
-	/**
-	 * Construct a new {@code L2ReadVectorOperand} with the specified {@link
-	 * List} of {@link L2ReadOperand}s.
-	 *
-	 * @param elements
-	 *        The list of {@link L2ReadOperand}s.
-	 */
-	public L2ReadVectorOperand (
-		final List<RR> elements)
-	{
-		this.elements = unmodifiableList(elements);
-	}
-
-	@Override
-	public abstract L2ReadVectorOperand<RR, R> clone ();
+	abstract override fun clone(): L2ReadVectorOperand<RR, R>
 
 	/**
 	 * Create a vector like this one, but using the provided elements.
 	 *
 	 * @param replacementElements
-	 *        The {@link List} of {@link L2ReadOperand}s to use in the clone.
-	 * @return A new {@code L2ReadVectorOperand}, of the same type as the
-	 *         receiver, but having the given elements.
+	 *   The [List] of [L2ReadOperand]s to use in the clone.
+	 * @return
+	 *   A new `L2ReadVectorOperand`, of the same type as the receiver, but
+	 *   having the given elements.
 	 */
-	public abstract L2ReadVectorOperand<RR, R> clone (
-		List<RR> replacementElements);
+	abstract fun clone(
+		replacementElements: List<RR>): L2ReadVectorOperand<RR, R>
 
-	@Override
-	public void assertHasBeenEmitted ()
+	override fun assertHasBeenEmitted()
 	{
-		super.assertHasBeenEmitted();
-		elements.forEach(L2ReadOperand::assertHasBeenEmitted);
+		super.assertHasBeenEmitted()
+		elements.forEach(Consumer { obj: RR -> obj.assertHasBeenEmitted() })
 	}
 
-	@Override
-	public abstract L2OperandType operandType ();
+	abstract override fun operandType(): L2OperandType
 
 	/**
-	 * Answer my {@link List} of {@link L2ReadOperand}s.
+	 * Answer my [List] of [L2ReadOperand]s.
 	 *
-	 * @return The requested operands.
+	 * @return
+	 *   The requested operands.
 	 */
-	public List<RR> elements ()
+	fun elements(): List<RR>
 	{
-		return elements;
+		return elements
 	}
 
 	/**
-	 * Answer a {@link List} of my elements' {@link L2Register}s.
+	 * Answer a [List] of my elements' [L2Register]s.
 	 *
-	 * @return The list of {@link L2Register}s that I read.
+	 * @return
+	 *   The list of [L2Register]s that I read.
 	 */
-	public List<R> registers ()
+	fun registers(): List<R>
 	{
 		return elements.stream()
-			.map(L2ReadOperand::register)
-			.collect(toList());
+			.map { obj: RR -> obj.register() }
+			.collect(Collectors.toList())
 	}
 
-	@Override
-	public abstract void dispatchOperand (final L2OperandDispatcher dispatcher);
-
-	@Override
-	public void instructionWasAdded (
-		final L2ValueManifest manifest)
+	abstract override fun dispatchOperand(dispatcher: L2OperandDispatcher)
+	override fun instructionWasAdded(
+		manifest: L2ValueManifest)
 	{
-		super.instructionWasAdded(manifest);
+		super.instructionWasAdded(manifest)
 		elements.forEach(
-			element -> element.instructionWasAdded(manifest));
+			Consumer { element: RR -> element.instructionWasAdded(manifest) })
 	}
 
-	@Override
-	public L2ReadVectorOperand<RR, R> adjustedForReinsertion (
-		final L2ValueManifest manifest)
+	override fun adjustedForReinsertion(
+		manifest: L2ValueManifest): L2ReadVectorOperand<RR, R>
 	{
-		final List<RR> newElements = new ArrayList<>(elements.size());
-		for (final RR element : elements)
+		val newElements: MutableList<RR> = ArrayList(elements.size)
+		for (element in elements)
 		{
-			final RR newElement = Casts.<L2ReadOperand<?>, RR>cast(
-				element.adjustedForReinsertion(manifest));
-			newElements.add(newElement);
+			val newElement = Casts.cast<L2ReadOperand<*>, RR>(
+				element.adjustedForReinsertion(manifest))
+			newElements.add(newElement)
 		}
-		return clone(newElements);
+		return clone(newElements)
 	}
 
-	@Override
-	public void instructionWasInserted (
-		final L2Instruction newInstruction)
+	override fun instructionWasInserted(
+		newInstruction: L2Instruction)
 	{
-		super.instructionWasInserted(newInstruction);
+		super.instructionWasInserted(newInstruction)
 		elements.forEach(
-			element -> element.instructionWasInserted(newInstruction));
+			Consumer { element: RR -> element.instructionWasInserted(newInstruction) })
 	}
 
-	@Override
-	public void instructionWasRemoved ()
+	override fun instructionWasRemoved()
 	{
-		super.instructionWasRemoved();
-		elements.forEach(L2ReadOperand::instructionWasRemoved);
+		super.instructionWasRemoved()
+		elements.forEach(Consumer { obj: RR -> obj.instructionWasRemoved() })
 	}
 
-	@Override
-	public void replaceRegisters (
-		final Map<L2Register, L2Register> registerRemap,
-		final L2Instruction theInstruction)
+	override fun replaceRegisters(
+		registerRemap: Map<L2Register, L2Register>,
+		theInstruction: L2Instruction)
 	{
 		elements.forEach(
-			read -> read.replaceRegisters(registerRemap, theInstruction));
+			Consumer { read: RR -> read.replaceRegisters(registerRemap, theInstruction) })
 	}
 
-	@Override
-	public void addReadsTo (final List<L2ReadOperand<?>> readOperands)
+	override fun addReadsTo(readOperands: MutableList<L2ReadOperand<*>>)
 	{
-		readOperands.addAll(elements);
+		readOperands.addAll(elements)
 	}
 
-	@Override
-	public final L2ReadVectorOperand<RR, R> transformEachRead (
-		final UnaryOperator<L2ReadOperand<?>> transformer)
+	override fun transformEachRead(
+			transformer: (L2ReadOperand<*>) -> (L2ReadOperand<*>))
+		: L2ReadVectorOperand<RR, R>
 	{
-		return clone(
-			elements.stream()
-				.map(r -> r.transformEachRead(transformer))
-				.map(Casts::<L2Operand, RR>cast)
-				.collect(toList()));
+		val vs: List<RR> = elements.map {
+			val x: RR = Casts.cast(it.transformEachRead(transformer))
+			x
+		}
+		return clone(vs)
 	}
 
-	@Override
-	public void addSourceRegistersTo (final List<L2Register> sourceRegisters)
+	override fun addSourceRegistersTo(sourceRegisters: MutableList<L2Register>)
 	{
-		elements.forEach(read -> read.addSourceRegistersTo(sourceRegisters));
+		elements.forEach(Consumer { read: RR -> read.addSourceRegistersTo(sourceRegisters) })
 	}
 
-	@Override
-	public void setInstruction (
-		@Nullable final L2Instruction theInstruction)
+	override fun setInstruction(
+		theInstruction: L2Instruction?)
 	{
-		super.setInstruction(theInstruction);
+		super.setInstruction(theInstruction)
 		// Also update the instruction fields of its L2ReadOperands.
-		elements.forEach(element -> element.setInstruction(theInstruction));
+		elements.forEach(Consumer { element: RR -> element.setInstruction(theInstruction) })
 	}
 
-	@Override
-	public void appendTo (final StringBuilder builder)
+	override fun appendTo(builder: StringBuilder)
 	{
-		builder.append("@<");
-		boolean first = true;
-		for (final RR read : elements)
+		builder.append("@<")
+		var first = true
+		for (read in elements)
 		{
 			if (!first)
 			{
-				builder.append(", ");
+				builder.append(", ")
 			}
-			builder.append(read.registerString());
-			final TypeRestriction restriction = read.restriction();
+			builder.append(read.registerString())
+			val restriction = read.restriction()
 			if (restriction.constantOrNull == null)
 			{
 				// Don't redundantly print restriction information for
 				// constants.
-				builder.append(restriction.suffixString());
+				builder.append(restriction.suffixString())
 			}
-			first = false;
+			first = false
 		}
-		builder.append(">");
+		builder.append(">")
 	}
+
 }

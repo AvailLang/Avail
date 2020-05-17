@@ -29,105 +29,63 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operation
 
-package com.avail.interpreter.levelTwo.operation;
-
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2NamedOperandType;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.L2ValueManifest;
-import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.MethodVisitor;
-
-import static com.avail.interpreter.levelTwo.operation.L2ConditionalJump.BranchReduction.SometimesTaken;
-import static com.avail.utility.Nulls.stripNull;
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2NamedOperandType
+import com.avail.interpreter.levelTwo.operand.L2PcOperand
+import com.avail.optimizer.L2Generator
+import com.avail.optimizer.L2ValueManifest
+import com.avail.optimizer.RegisterSet
+import com.avail.optimizer.jvm.JVMTranslator
+import com.avail.utility.Nulls
+import org.objectweb.asm.MethodVisitor
 
 /**
- * Jump to {@code "if satisfied"} if some condition is met, otherwise jump to
- * {@code "if unsatisfied"}.
+ * Jump to `"if satisfied"` if some condition is met, otherwise jump to
+ * `"if unsatisfied"`.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ * Protect the constructor so the subclasses can maintain a fly-weight
+ * pattern (or arguably a singleton).
+ *
+ *
+ * By convention, there are always 2 [.targetEdges], the first of which is the
+ * "taken" branch, and the second of which is the "not taken" branch.
+ *
+ * @param theNamedOperandTypes
+ *   The vararg array of [L2NamedOperandType]s that describe the operands of
+ *   such an instruction.
  */
-public abstract class L2ConditionalJump
-extends L2ControlFlowOperation
+abstract class L2ConditionalJump protected constructor(
+		vararg theNamedOperandTypes: L2NamedOperandType)
+	: L2ControlFlowOperation(*theNamedOperandTypes)
 {
-	/**
-	 * Protect the constructor so the subclasses can maintain a fly-weight
-	 * pattern (or arguably a singleton).
-	 *
-	 * <p>By convention, there are always 2 {@link #targetEdges(L2Instruction)},
-	 * the first of which is the "taken" branch, and the second of which is the
-	 * "not taken" branch.</p>
-	 *
-	 * @param theNamedOperandTypes
-	 *        The vararg array of {@link L2NamedOperandType}s that describe the
-	 *        operands of such an instruction.
-	 */
-	protected L2ConditionalJump (
-		final L2NamedOperandType... theNamedOperandTypes)
+	override fun instructionWasAdded(
+		instruction: L2Instruction, manifest: L2ValueManifest)
 	{
-		super(theNamedOperandTypes);
-	}
-
-	@Override
-	public void instructionWasAdded (
-		final L2Instruction instruction, final L2ValueManifest manifest)
-	{
-		super.instructionWasAdded(instruction, manifest);
-		targetEdges(instruction).forEach(L2PcOperand::installCounter);
+		super.instructionWasAdded(instruction, manifest)
+		targetEdges(instruction).forEach {
+			it.installCounter()
+		}
 	}
 
 	/**
-	 * Emit a conditional branch, including an increment for the counters along
-	 * each path.
-	 *
-	 * @param translator
-	 *        The {@link JVMTranslator} controlling code generation.
-	 * @param method
-	 *        The {@link MethodVisitor} on which to write the instructions.
-	 * @param instruction
-	 *        The {@link L2Instruction} causing this code generation.
-	 * @param opcode
-	 *        The Java bytecode to emit for the branch instruction.
-	 * @param conditionHolds
-	 *        Where to jump if the condition holds.
-	 * @param conditionDoesNotHold
-	 *        Where to jump if the condition does not hold.
+	 * An `enum` indicating whether the decision whether to branch or not can be
+	 * reduced to a static decision.
 	 */
-	protected static void emitBranch (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction,
-		final int opcode,
-		final L2PcOperand conditionHolds,
-		final L2PcOperand conditionDoesNotHold)
+	enum class BranchReduction
 	{
-		translator.branch(
-			method,
-			instruction,
-			opcode,
-			conditionHolds,
-			conditionDoesNotHold,
-			stripNull(conditionHolds.counter),
-			stripNull(conditionDoesNotHold.counter));
-	}
-
-	/**
-	 * An {@code enum} indicating whether the decision whether to branch or not
-	 * can be reduced to a static decision.
-	 */
-	public enum BranchReduction
-	{
-		/** The branch will always be taken. */
+		/** The branch will always be taken.  */
 		AlwaysTaken,
 
-		/** The branch will never be taken. */
+		/** The branch will never be taken.  */
 		NeverTaken,
 
-		/** It could not be determined if the branch will be taken or not. */
+		/** It could not be determined if the branch will be taken or not.  */
 		SometimesTaken
 	}
 
@@ -135,27 +93,65 @@ extends L2ControlFlowOperation
 	 * Determine if the branch can be eliminated.
 	 *
 	 * @param instruction
-	 *        The {@link L2Instruction} being examined.
+	 *   The [L2Instruction] being examined.
 	 * @param registerSet
-	 *        The {@link RegisterSet} at the current code position.
+	 *   The [RegisterSet] at the current code position.
 	 * @param generator
-	 *        The {@link L2Generator} in which code (re)generation is taking
-	 *        place.
-	 * @return A {@link BranchReduction} indicating whether the branch direction
-	 *         can be statically decided.
+	 *   The [L2Generator] in which code (re)generation is taking place.
+	 * @return
+	 *   A [BranchReduction] indicating whether the branch direction can be
+	 *   statically decided.
 	 */
-	public BranchReduction branchReduction (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
-		final L2Generator generator)
+	open fun branchReduction(
+		instruction: L2Instruction,
+		registerSet: RegisterSet,
+		generator: L2Generator): BranchReduction
 	{
-		return SometimesTaken;
+		return BranchReduction.SometimesTaken
 	}
 
-	@Override
-	public final boolean hasSideEffect ()
+	override fun hasSideEffect(): Boolean
 	{
 		// It jumps, which counts as a side effect.
-		return true;
+		return true
+	}
+
+	companion object
+	{
+		/**
+		 * Emit a conditional branch, including an increment for the counters
+		 * along each path.
+		 *
+		 * @param translator
+		 *   The [JVMTranslator] controlling code generation.
+		 * @param method
+		 *   The [MethodVisitor] on which to write the instructions.
+		 * @param instruction
+		 *   The [L2Instruction] causing this code generation.
+		 * @param opcode
+		 *   The Java bytecode to emit for the branch instruction.
+		 * @param conditionHolds
+		 *   Where to jump if the condition holds.
+		 * @param conditionDoesNotHold
+		 *   Where to jump if the condition does not hold.
+		 */
+		@JvmStatic
+		protected fun emitBranch(
+			translator: JVMTranslator,
+			method: MethodVisitor,
+			instruction: L2Instruction,
+			opcode: Int,
+			conditionHolds: L2PcOperand,
+			conditionDoesNotHold: L2PcOperand)
+		{
+			translator.branch(
+				method,
+				instruction,
+				opcode,
+				conditionHolds,
+				conditionDoesNotHold,
+				Nulls.stripNull(conditionHolds.counter),
+				Nulls.stripNull(conditionDoesNotHold.counter))
+		}
 	}
 }

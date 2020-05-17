@@ -29,107 +29,95 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operand
 
-package com.avail.interpreter.levelTwo.operand;
-
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandDispatcher;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION;
-import com.avail.interpreter.levelTwo.register.L2Register;
-import com.avail.optimizer.L2BasicBlock;
-import com.avail.optimizer.L2ValueManifest;
-import com.avail.utility.PublicCloneable;
-
-import javax.annotation.Nullable;
-import javax.annotation.OverridingMethodsMustInvokeSuper;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Consumer;
-import java.util.function.UnaryOperator;
-
-import static com.avail.utility.Casts.cast;
-import static com.avail.utility.Nulls.stripNull;
-import static com.avail.utility.Strings.increaseIndentation;
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2OperandDispatcher
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION
+import com.avail.interpreter.levelTwo.register.L2Register
+import com.avail.optimizer.L2BasicBlock
+import com.avail.optimizer.L2ValueManifest
+import com.avail.utility.Casts
+import com.avail.utility.Nulls
+import com.avail.utility.PublicCloneable
+import com.avail.utility.Strings.increaseIndentation
+import java.util.function.Consumer
+import java.util.function.UnaryOperator
+import javax.annotation.OverridingMethodsMustInvokeSuper
 
 /**
- * An {@code L2Operand} knows its {@link L2OperandType} and any specific value
- * that needs to be captured for that type of operand.
+ * An `L2Operand` knows its [L2OperandType] and any specific value that needs to
+ * be captured for that type of operand.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public abstract class L2Operand
-extends PublicCloneable<L2Operand>
+abstract class L2Operand : PublicCloneable<L2Operand>()
 {
 	/**
-	 * A back-pointer to the {@link L2Instruction} that this operand is part of.
-	 * This is only populated for instructions that have already been emitted to
-	 * an {@link L2BasicBlock}.
+	 * A back-pointer to the [L2Instruction] that this operand is part of. This
+	 * is only populated for instructions that have already been emitted to an
+	 * [L2BasicBlock].
 	 */
-	private @Nullable L2Instruction instruction = null;
+	private var instruction: L2Instruction? = null
 
 	/**
-	 * Answer the {@link L2Instruction} containing this operand.
+	 * Answer the [L2Instruction] containing this operand.
 	 *
-	 * @return An {@link L2Instruction}
+	 * @return
+	 *   An [L2Instruction]
 	 */
-	public L2Instruction instruction ()
-	{
-		return stripNull(instruction);
-	}
+	fun instruction(): L2Instruction = Nulls.stripNull(instruction)
 
 	/**
 	 * Answer whether this write operand has been written yet as the destination
 	 * of some instruction.
 	 *
-	 * @return {@code true} if this operand has been written inside an
-	 *         {@link L2Instruction}, otherwise {@code false}.
+	 * @return
+	 *   `true` if this operand has been written inside an [L2Instruction],
+	 *   otherwise `false`.
 	 */
-	public boolean instructionHasBeenEmitted ()
-	{
-		return instruction != null;
-	}
+	fun instructionHasBeenEmitted(): Boolean = instruction != null
 
 	/**
 	 * Assert that this operand knows its instruction, which should always be
 	 * the case if the instruction has already been emitted.
 	 */
 	@OverridingMethodsMustInvokeSuper
-	public void assertHasBeenEmitted ()
+	open fun assertHasBeenEmitted()
 	{
-		assert instruction != null;
+		assert(instruction != null)
 	}
 
 	/**
-	 * Answer this operand's {@link L2OperandType}.
+	 * Answer this operand's [L2OperandType].
 	 *
-	 * @return An {@code L2OperandType}.
+	 * @return
+	 *   An `L2OperandType`.
 	 */
-	public abstract L2OperandType operandType ();
+	abstract fun operandType(): L2OperandType
 
 	/**
-	 * Dispatch this {@code L2Operand} to the provided {@link
-	 * L2OperandDispatcher}.
+	 * Dispatch this `L2Operand` to the provided [L2OperandDispatcher].
 	 *
 	 * @param dispatcher
-	 *        The {@code L2OperandDispatcher} visiting the receiver.
+	 *   The `L2OperandDispatcher` visiting the receiver.
 	 */
-	public abstract void dispatchOperand (
-		final L2OperandDispatcher dispatcher);
+	abstract fun dispatchOperand(dispatcher: L2OperandDispatcher)
 
 	/**
 	 * This is an operand of the given instruction, which was just added to its
 	 * basic block.  Its instruction was just set.
 	 *
 	 * @param manifest
-	 *        The {@link L2ValueManifest} that is active where this {@link
-	 *        L2Instruction} was just added to its {@link L2BasicBlock}.
+	 *   The [L2ValueManifest] that is active where this [L2Instruction] was
+	 *   just added to its [L2BasicBlock].
 	 */
 	@OverridingMethodsMustInvokeSuper
-	public void instructionWasAdded (
-		final L2ValueManifest manifest)
+	open fun instructionWasAdded(
+		manifest: L2ValueManifest)
 	{
-		assert instruction != null;
+		assert(instruction != null)
 	}
 
 	/**
@@ -137,61 +125,31 @@ extends PublicCloneable<L2Operand>
 	 * removed, and has just now been added again to a basic block.  Its
 	 * instruction was just set.
 	 *
-	 * <p>Since this operation can take place after initial code generation, we
+	 *
+	 * Since this operation can take place after initial code generation, we
 	 * have to compensate for reads of semantic values that no longer exist,
 	 * due to elision of moves that would have augmented a synonym.  This logic
-	 * is in {@link L2ReadOperand#adjustedForReinsertion(L2ValueManifest)} and
-	 * {@link L2ReadVectorOperand#adjustedForReinsertion(L2ValueManifest)}.</p>
+	 * is in [L2ReadOperand.adjustedForReinsertion] and
+	 * [L2ReadVectorOperand.adjustedForReinsertion].
 	 *
 	 * @param manifest
-	 *        The {@link L2ValueManifest} that is active where this {@link
-	 *        L2Instruction} was just added to its {@link L2BasicBlock}.
-	 * @return The replacement {@code L2Operand}, possibly the receiver.
+	 *   The [L2ValueManifest] that is active where this [L2Instruction] was
+	 *   just added to its [L2BasicBlock].
+	 * @return
+	 *   The replacement `L2Operand`, possibly the receiver.
 	 */
-	public L2Operand adjustedForReinsertion (final L2ValueManifest manifest)
-	{
-		return this;
-	}
-
-	/**
-	 * This vector operand is the input to an {@link L2_PHI_PSEUDO_OPERATION}
-	 * instruction that has just been added.  Update it specially, to take into
-	 * account the correspondence between vector elements and predecessor edges.
-	 *
-	 * @param readVector
-	 *        The {@link L2ReadVectorOperand} for which we're noting that the
-	 *        containing instruction has just been added.
-	 * @param predecessorEdges
-	 *        The {@link List} of predecessor edges ({@link L2PcOperand}s) that
-	 *        correspond positionally with the elements of the vector.
-	 */
-	public static void instructionWasAddedForPhi (
-		final L2ReadVectorOperand<?, ?> readVector,
-		final List<L2PcOperand> predecessorEdges)
-	{
-		assert readVector.instruction().operation()
-			instanceof L2_PHI_PSEUDO_OPERATION;
-
-		final int fanIn = readVector.elements.size();
-		assert fanIn == predecessorEdges.size();
-		for (int i = 0; i < fanIn; i++)
-		{
-			// The read operand should use the corresponding incoming manifest.
-			readVector.elements.get(i).instructionWasAdded(
-				predecessorEdges.get(i).manifest());
-		}
-	}
+	open fun adjustedForReinsertion(manifest: L2ValueManifest): L2Operand = this
 
 	/**
 	 * This is an operand of the given instruction, which was just inserted into
 	 * its basic block as part of an optimization pass.
 	 *
 	 * @param newInstruction
-	 *        The {@link L2Instruction} that was just inserted.
+	 *   The [L2Instruction] that was just inserted.
 	 */
 	@OverridingMethodsMustInvokeSuper
-	public void instructionWasInserted (
-		final L2Instruction newInstruction)
+	open fun instructionWasInserted(
+		newInstruction: L2Instruction)
 	{
 		// Nothing by default.  The L2Instruction already set my instruction
 		// field in a previous pass.
@@ -202,7 +160,7 @@ extends PublicCloneable<L2Operand>
 	 * its basic block.
 	 */
 	@OverridingMethodsMustInvokeSuper
-	public void instructionWasRemoved ()
+	open fun instructionWasRemoved()
 	{
 		// Nothing by default.  The L2Instruction already set my instruction
 		// field in a previous pass.
@@ -215,54 +173,48 @@ extends PublicCloneable<L2Operand>
 	 * structures, such as the instruction's source/destination collections.
 	 *
 	 * @param registerRemap
-	 *        A mapping to transform registers in-place.
+	 *   A mapping to transform registers in-place.
 	 * @param theInstruction
-	 *        The instruction containing this operand.
+	 *   The instruction containing this operand.
 	 */
-	public void replaceRegisters (
-		final Map<L2Register, L2Register> registerRemap,
-		final L2Instruction theInstruction)
+	open fun replaceRegisters(
+		registerRemap: Map<L2Register, L2Register>,
+		theInstruction: L2Instruction)
 	{
 		// By default do nothing.
 	}
 
 	/**
-	 * Transform each L2ReadOperand through the given {@link UnaryOperator},
-	 * producing either a new {@code L2Operand} of the same type, or the
-	 * receiver.
+	 * Transform each L2ReadOperand through the given [UnaryOperator], producing
+	 * either a new `L2Operand` of the same type, or the receiver.
 	 *
 	 * @param transformer
-	 *        The {@link UnaryOperator} to transform {@link L2ReadOperand}s.
-	 * @return The transformed operand or the receiver.
+	 *   The [UnaryOperator] to transform [L2ReadOperand]s.
+	 * @return
+	 *   The transformed operand or the receiver.
 	 */
-	public L2Operand transformEachRead (
-		final UnaryOperator<L2ReadOperand<?>> transformer)
-	{
-		return this;
-	}
+	open fun transformEachRead(transformer: (L2ReadOperand<*>) -> L2ReadOperand<*>)
+		: L2Operand = this
 
 	/**
-	 * Capture all {@link L2ReadOperand}s within this operand into the provided
-	 * {@link List}.
+	 * Capture all [L2ReadOperand]s within this operand into the provided [List].
 	 *
 	 * @param readOperands
-	 *        The mutable {@link List} of {@link L2ReadOperand}s being
-	 *        populated.
+	 *   The mutable [List] of [L2ReadOperand]s being populated.
 	 */
-	public void addReadsTo (final List<L2ReadOperand<?>> readOperands)
+	open fun addReadsTo(readOperands: MutableList<L2ReadOperand<*>>)
 	{
 		// Do nothing by default.
 	}
 
 	/**
-	 * Capture all {@link L2WriteOperand}s within this operand into the provided
-	 * {@link List}.
+	 * Capture all [L2WriteOperand]s within this operand into the provided
+	 * [List].
 	 *
 	 * @param writeOperands
-	 *        The mutable {@link List} of {@link L2WriteOperand}s being
-	 *        populated.
+	 *   The mutable [List] of [L2WriteOperand]s being populated.
 	 */
-	public void addWritesTo (final List<L2WriteOperand<?>> writeOperands)
+	open fun addWritesTo(writeOperands: MutableList<L2WriteOperand<*>>)
 	{
 		// Do nothing by default.
 	}
@@ -270,10 +222,10 @@ extends PublicCloneable<L2Operand>
 	/**
 	 * Move any registers used as sources within me into the provided list.
 	 *
-	 * @param sourceRegisters The {@link List} to update.
+	 * @param sourceRegisters
+	 *   The [MutableList] to update.
 	 */
-	public void addSourceRegistersTo (
-		final List<L2Register> sourceRegisters)
+	open fun addSourceRegistersTo(sourceRegisters: MutableList<L2Register>)
 	{
 		// Do nothing by default.
 	}
@@ -281,125 +233,161 @@ extends PublicCloneable<L2Operand>
 	/**
 	 * Move any registers used as destinations within me into the provided list.
 	 *
-	 * @param destinationRegisters The {@link List} to update.
+	 * @param destinationRegisters
+	 *   The [MutableList] to update.
 	 */
-	public void addDestinationRegistersTo (
-		final List<L2Register> destinationRegisters)
+	open fun addDestinationRegistersTo(
+		destinationRegisters: MutableList<L2Register>)
 	{
 		// Do nothing by default.
 	}
 
-	@Override
-	public final String toString ()
+	override fun toString(): String
 	{
-		final StringBuilder builder = new StringBuilder();
-		appendWithWarningsTo(builder, 0, flag -> { /* ignored */ });
-		return builder.toString();
+		val builder = StringBuilder()
+		appendWithWarningsTo(builder, 0, Consumer {  })
+		return builder.toString()
 	}
 
 	/**
 	 * Append a textual representation of this operand to the provided
-	 * {@link StringBuilder}.  If a style change is appropriate while building
-	 * the string, invoke the warningStyleChange {@link Consumer} with
-	 * {@code true} to enable the warning style, and {@code false} to turn it
-	 * off again.
+	 * [StringBuilder].  If a style change is appropriate while building the
+	 * string, invoke the warningStyleChange [Consumer] with `true` to enable
+	 * the warning style, and `false` to turn it off again.
 	 *
 	 * @param builder
-	 *        The {@link StringBuilder} on which to describe this operand.
+	 *   The [StringBuilder] on which to describe this operand.
 	 * @param indent
-	 *        How much additional indentation to add to successive lines.
+	 *   How much additional indentation to add to successive lines.
 	 * @param warningStyleChange
-	 *        A {@link Consumer} to invoke to turn the warning style on or off,
-	 *        with a mechanism specified (or ignored) by the caller.
+	 *   A [Consumer] to invoke to turn the warning style on or off, with a
+	 *   mechanism specified (or ignored) by the caller.
 	 */
-	public final void appendWithWarningsTo (
-		final StringBuilder builder,
-		final int indent,
-		final Consumer<Boolean> warningStyleChange)
+	fun appendWithWarningsTo(
+		builder: StringBuilder,
+		indent: Int,
+		warningStyleChange: Consumer<Boolean>)
 	{
 		if (instruction == null)
 		{
-			warningStyleChange.accept(true);
-			builder.append("DEAD-OPERAND: ");
-			warningStyleChange.accept(false);
+			warningStyleChange.accept(true)
+			builder.append("DEAD-OPERAND: ")
+			warningStyleChange.accept(false)
 		}
-		else if (isMisconnected())
+		else if (isMisconnected)
 		{
-			warningStyleChange.accept(true);
-			builder.append("MISCONNECTED: ");
-			warningStyleChange.accept(false);
+			warningStyleChange.accept(true)
+			builder.append("MISCONNECTED: ")
+			warningStyleChange.accept(false)
 		}
 		// Call the inner method that can be overridden.
-		final StringBuilder temp = new StringBuilder();
-		appendTo(temp);
-		builder.append(increaseIndentation(temp.toString(), indent));
-	}
+		val temp = StringBuilder()
+		appendTo(temp)
+		builder.append(increaseIndentation(temp.toString(), indent))
+	}// Operand wasn't found inside the instruction.
 
 	/**
-	 * Answer whether this operand is misconnected to its {@link L2Instruction}.
+	 * Answer whether this operand is misconnected to its [L2Instruction].
 	 *
-	 * @return {@code false} if the operand is connected correctly, otherwise
-	 *         {@code true}.
+	 * @return
+	 *   `false` if the operand is connected correctly, otherwise `true`.
 	 */
-	public boolean isMisconnected ()
-	{
-		if (instruction == null)
+	val isMisconnected: Boolean
+		get()
 		{
-			return true;
-		}
-		final L2Operand[] operands = instruction.operands();
-		for (int i = 0, limit = operands.length; i < limit; i++)
-		{
-			final L2Operand operand = operands[i];
-			if (operand == this)
+			if (instruction == null)
 			{
-				return false;
+				return true
 			}
-			if (operand instanceof L2ReadVectorOperand)
+			val operands = instruction!!.operands()
+			var i = 0
+			val limit = operands.size
+			while (i < limit)
 			{
-				final L2ReadVectorOperand<?, ?> vectorOperand = cast(operand);
-				if (vectorOperand.elements.contains(this))
+				val operand = operands[i]
+				if (operand === this)
 				{
-					return false;
+					return false
 				}
+				if (operand is L2ReadVectorOperand<*, *>)
+				{
+					val vectorOperand =
+						Casts.cast<L2Operand, L2ReadVectorOperand<*, *>>(operand)
+					if (vectorOperand.elements.contains(this))
+					{
+						return false
+					}
+				}
+				i++
 			}
+			// Operand wasn't found inside the instruction.
+			return true
 		}
-		// Operand wasn't found inside the instruction.
-		return true;
-	}
 
 	/**
-	 * Write a description of this operand to the given {@link StringBuilder}.
+	 * Write a description of this operand to the given [StringBuilder].
 	 *
 	 * @param builder
-	 *        The {@link StringBuilder} on which to describe this operand.
+	 *   The [StringBuilder] on which to describe this operand.
 	 */
-	public abstract void appendTo (final StringBuilder builder);
+	abstract fun appendTo(builder: StringBuilder)
 
 	/**
 	 * This is a freshly cloned operand.  Adjust it for use in the given
-	 * {@link L2Instruction}.  Note that the new instruction has not yet been
-	 * installed into an {@link L2BasicBlock}.
+	 * [L2Instruction].  Note that the new instruction has not yet been
+	 * installed into an [L2BasicBlock].
 	 *
 	 * @param theInstruction
-	 *        The theInstruction that this operand is being installed in.
+	 *   The theInstruction that this operand is being installed in.
 	 */
 	@OverridingMethodsMustInvokeSuper
-	public void adjustCloneForInstruction (final L2Instruction theInstruction)
+	open fun adjustCloneForInstruction(theInstruction: L2Instruction)
 	{
 		// The instruction will be set correctly when this instruction is
 		// emitted to an L2BasicBlock.
-		setInstruction(null);
+		setInstruction(null)
 	}
 
 	/**
-	 * Set the {@link #instruction} field.
+	 * Set the [instruction] field.
 	 *
 	 * @param theInstruction
-	 *        The {@link L2Instruction} or {@code null}.
+	 *   The [L2Instruction] or `null`.
 	 */
-	public void setInstruction (final @Nullable L2Instruction theInstruction)
+	open fun setInstruction(theInstruction: L2Instruction?)
 	{
-		this.instruction = theInstruction;
+		instruction = theInstruction
+	}
+
+	companion object
+	{
+		/**
+		 * This vector operand is the input to an [L2_PHI_PSEUDO_OPERATION]
+		 * instruction that has just been added.  Update it specially, to take
+		 * into account the correspondence between vector elements and
+		 * predecessor edges.
+		 *
+		 * @param readVector
+		 *   The [L2ReadVectorOperand] for which we're noting that the
+		 *   containing instruction has just been added.
+		 * @param predecessorEdges
+		 *   The [List] of predecessor edges ([L2PcOperand]s) that correspond
+		 *   positionally with the elements of the vector.
+		 */
+		@JvmStatic
+		fun instructionWasAddedForPhi(
+			readVector: L2ReadVectorOperand<*, *>,
+			predecessorEdges: List<L2PcOperand>)
+		{
+			assert(readVector.instruction().operation() is L2_PHI_PSEUDO_OPERATION<*, *, *>)
+			val fanIn = readVector.elements.size
+			assert(fanIn == predecessorEdges.size)
+			for (i in 0 until fanIn)
+			{
+				// The read operand should use the corresponding incoming manifest.
+				readVector.elements[i].instructionWasAdded(
+					predecessorEdges[i].manifest())
+			}
+		}
 	}
 }

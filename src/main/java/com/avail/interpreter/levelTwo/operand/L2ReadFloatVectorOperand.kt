@@ -29,66 +29,46 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operand
 
-package com.avail.interpreter.levelTwo.operand;
-
-import com.avail.interpreter.levelTwo.L2OperandDispatcher;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.register.L2FloatRegister;
-
-import java.util.List;
-
-import static com.avail.utility.Casts.cast;
-import static java.util.stream.Collectors.toList;
+import com.avail.interpreter.levelTwo.L2OperandDispatcher
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.register.L2FloatRegister
+import com.avail.utility.Casts
+import java.util.stream.Collectors
 
 /**
- * An {@code L2ReadFloatVectorOperand} is an operand of type {@link
- * L2OperandType#READ_FLOAT_VECTOR}. It holds a {@link List} of {@link
- * L2ReadFloatOperand}s.
+ * An `L2ReadFloatVectorOperand` is an operand of type
+ * [L2OperandType.READ_FLOAT_VECTOR]. It holds a [List] of
+ * [L2ReadFloatOperand]s.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @constructor
+ * Construct a new `L2ReadFloatVectorOperand` with the specified [List] of
+ * [L2ReadFloatOperand]s.
+ *
+ * @param elements
+ *   The list of [L2ReadFloatOperand]s.
  */
-public class L2ReadFloatVectorOperand
-extends L2ReadVectorOperand<L2ReadFloatOperand, L2FloatRegister>
+class L2ReadFloatVectorOperand constructor(
+		elements: List<L2ReadFloatOperand>)
+	: L2ReadVectorOperand<L2ReadFloatOperand, L2FloatRegister>(elements)
 {
-	/**
-	 * Construct a new {@code L2ReadFloatVectorOperand} with the specified {@link
-	 * List} of {@link L2ReadFloatOperand}s.
-	 *
-	 * @param elements
-	 *        The list of {@link L2ReadFloatOperand}s.
-	 */
-	public L2ReadFloatVectorOperand (
-		final List<L2ReadFloatOperand> elements)
-	{
-		super(elements);
-	}
-
-	@Override
-	public L2ReadFloatVectorOperand clone ()
-	{
-		return new L2ReadFloatVectorOperand(
+	override fun clone(): L2ReadFloatVectorOperand =
+		L2ReadFloatVectorOperand(
 			elements.stream()
-				.<L2ReadFloatOperand>map(read -> cast(read.clone()))
-				.collect(toList()));
-	}
+				.map<L2ReadFloatOperand> { Casts.cast(it.clone()) }
+				.collect(Collectors.toList()))
 
-	@Override
-	public L2ReadFloatVectorOperand clone (
-		final List<L2ReadFloatOperand> replacementElements)
-	{
-		return new L2ReadFloatVectorOperand(replacementElements);
-	}
+	override fun clone(replacementElements: List<L2ReadFloatOperand>)
+		: L2ReadFloatVectorOperand =
+		L2ReadFloatVectorOperand(replacementElements)
 
-	@Override
-	public L2OperandType operandType ()
-	{
-		return L2OperandType.READ_FLOAT_VECTOR;
-	}
+	override fun operandType(): L2OperandType = L2OperandType.READ_FLOAT_VECTOR
 
-	@Override
-	public void dispatchOperand (final L2OperandDispatcher dispatcher)
+	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
 	{
-		dispatcher.doOperand(this);
+		dispatcher.doOperand(this)
 	}
 }

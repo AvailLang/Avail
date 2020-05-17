@@ -149,7 +149,7 @@ object P_Assert : Primitive(2, Unknown, CanSuspend, CannotFail)
 		val passPath = translator.generator.createBasicBlock("after assertion")
 
 		translator.addInstruction(
-			L2_JUMP_IF_EQUALS_CONSTANT.instance,
+			L2_JUMP_IF_EQUALS_CONSTANT,
 			arguments[0],
 			L2ConstantOperand(trueObject()),
 			edgeTo(passPath),

@@ -29,151 +29,138 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operation
 
-package com.avail.interpreter.levelTwo.operation;
-
-import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.interpreter.levelTwo.operand.TypeRestriction;
-import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.L2ValueManifest;
-import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.MethodVisitor;
-
-import javax.annotation.Nullable;
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.descriptor.representation.A_BasicObject.equalsMethod;
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED;
-import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForConstant;
-import static com.avail.interpreter.levelTwo.operation.L2ConditionalJump.BranchReduction.*;
-import static org.objectweb.asm.Opcodes.IFNE;
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2NamedOperandType
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
+import com.avail.interpreter.levelTwo.operand.L2PcOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operand.TypeRestriction
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding
+import com.avail.optimizer.L2Generator
+import com.avail.optimizer.L2ValueManifest
+import com.avail.optimizer.RegisterSet
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
+import java.util.function.Consumer
 
 /**
- * Jump to {@code "if equal"} if the value equals the constant, otherwise jump
- * to {@code "if unequal"}.
+ * Jump to `"if equal"` if the value equals the constant, otherwise jump
+ * to `"if unequal"`.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ * Construct an `L2_JUMP_IF_EQUALS_CONSTANT`.
  */
-public final class L2_JUMP_IF_EQUALS_CONSTANT
-extends L2ConditionalJump
+object L2_JUMP_IF_EQUALS_CONSTANT :
+	L2ConditionalJump(
+	L2OperandType.READ_BOXED.`is`("value"),
+	L2OperandType.CONSTANT.`is`("constant"),
+	L2OperandType.PC.`is`("if equal", L2NamedOperandType.Purpose.SUCCESS),
+	L2OperandType.PC.`is`("if unequal", L2NamedOperandType.Purpose.FAILURE))
 {
-	/**
-	 * Construct an {@code L2_JUMP_IF_EQUALS_CONSTANT}.
-	 */
-	private L2_JUMP_IF_EQUALS_CONSTANT ()
+	override fun instructionWasAdded(
+		instruction: L2Instruction, manifest: L2ValueManifest)
 	{
-		super(
-			READ_BOXED.is("value"),
-			CONSTANT.is("constant"),
-			PC.is("if equal", SUCCESS),
-			PC.is("if unequal", FAILURE));
-	}
-
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_JUMP_IF_EQUALS_CONSTANT instance =
-		new L2_JUMP_IF_EQUALS_CONSTANT();
-
-	@Override
-	public void instructionWasAdded (
-		final L2Instruction instruction,
-		final L2ValueManifest manifest)
-	{
-		assert this == instruction.operation();
-		final L2ReadBoxedOperand reader = instruction.operand(0);
-		final L2ConstantOperand constant = instruction.operand(1);
-		final L2PcOperand ifEqual = instruction.operand(2);
-		final L2PcOperand ifNotEqual = instruction.operand(3);
-
-		super.instructionWasAdded(instruction, manifest);
+		assert(this == instruction.operation())
+		val reader = instruction.operand<L2ReadBoxedOperand>(0)
+		val constant = instruction.operand<L2ConstantOperand>(1)
+		val ifEqual = instruction.operand<L2PcOperand>(2)
+		val ifNotEqual = instruction.operand<L2PcOperand>(3)
+		super.instructionWasAdded(instruction, manifest)
 
 		// Restrict the value to the constant along the ifEqual branch, and
 		// exclude the constant along the ifNotEqual branch.
-		final TypeRestriction oldRestriction = reader.restriction();
+		val oldRestriction = reader.restriction()
 		ifEqual.manifest().setRestriction(
 			reader.semanticValue(),
-			restrictionForConstant(constant.object, BOXED));
+			TypeRestriction.restrictionForConstant(
+				constant.`object`, RestrictionFlagEncoding.BOXED))
 		ifNotEqual.manifest().setRestriction(
 			reader.semanticValue(),
-			oldRestriction.minusValue(constant.object));
+			oldRestriction.minusValue(constant.`object`))
 	}
 
-	@Override
-	public BranchReduction branchReduction (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
-		final L2Generator generator)
+	override fun branchReduction(
+		instruction: L2Instruction,
+		registerSet: RegisterSet,
+		generator: L2Generator): BranchReduction
 	{
 		// Eliminate tests due to type propagation.
-		final L2ReadBoxedOperand value = instruction.operand(0);
-		final L2ConstantOperand constant = instruction.operand(1);
-
-		final @Nullable A_BasicObject valueOrNull = value.constantOrNull();
+		val value =
+			instruction.operand<L2ReadBoxedOperand>(0)
+		val constant =
+			instruction.operand<L2ConstantOperand>(1)
+		val valueOrNull: A_BasicObject? = value.constantOrNull()
 		if (valueOrNull != null)
 		{
 			// Compare them right now.
-			return valueOrNull.equals(constant.object)
-				? AlwaysTaken
-				: NeverTaken;
+			return if (valueOrNull.equals(constant.`object`))
+			{
+				BranchReduction.AlwaysTaken
+			}
+			else
+			{
+				BranchReduction.NeverTaken
+			}
 		}
-		if (!constant.object.isInstanceOf(value.type()))
+		return if (!constant.`object`.isInstanceOf(value.type()))
 		{
 			// They can't be equal.
-			return NeverTaken;
+			BranchReduction.NeverTaken
+		}
+		else
+		{
+			BranchReduction.SometimesTaken
 		}
 		// Otherwise it's still contingent.
-		return SometimesTaken;
 	}
 
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		assert this == instruction.operation();
-		final L2ReadBoxedOperand value = instruction.operand(0);
-		final L2ConstantOperand constant = instruction.operand(1);
-//		final L2PcOperand ifEqual = instruction.operand(2);
+		assert(this == instruction.operation())
+		val value =
+			instruction.operand<L2ReadBoxedOperand>(0)
+		val constant
+			= instruction.operand<L2ConstantOperand>(1)
+		//		final L2PcOperand ifEqual = instruction.operand(2);
 //		final L2PcOperand ifUnequal = instruction.operand(3);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(value.registerString());
-		builder.append(" = ");
-		builder.append(constant.object);
-		renderOperandsStartingAt(instruction, 2, desiredTypes, builder);
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(value.registerString())
+		builder.append(" = ")
+		builder.append(constant.`object`)
+		renderOperandsStartingAt(instruction, 2, desiredTypes, builder)
 	}
 
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		final L2ReadBoxedOperand value = instruction.operand(0);
-		final L2ConstantOperand constant = instruction.operand(1);
-		final L2PcOperand ifEqual = instruction.operand(2);
-		final L2PcOperand ifUnequal = instruction.operand(3);
+		val value =
+			instruction.operand<L2ReadBoxedOperand>(0)
+		val constant =
+			instruction.operand<L2ConstantOperand>(1)
+		val ifEqual = instruction.operand<L2PcOperand>(2)
+		val ifUnequal = instruction.operand<L2PcOperand>(3)
 
 		// :: if (value.equals(constant)) goto ifEqual;
 		// :: else goto ifUnequal;
-		translator.load(method, value.register());
-		translator.literal(method, constant.object);
-		equalsMethod.generateCall(method);
-		emitBranch(translator, method, instruction, IFNE, ifEqual, ifUnequal);
+		translator.load(method, value.register())
+		translator.literal(method, constant.`object`)
+		A_BasicObject.equalsMethod.generateCall(method)
+		emitBranch(
+			translator, method, instruction, Opcodes.IFNE, ifEqual, ifUnequal)
 	}
 }

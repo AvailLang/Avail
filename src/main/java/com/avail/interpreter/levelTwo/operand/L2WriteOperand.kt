@@ -29,273 +29,232 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operand
 
-package com.avail.interpreter.levelTwo.operand;
-
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE;
-import com.avail.interpreter.levelTwo.register.L2IntRegister;
-import com.avail.interpreter.levelTwo.register.L2Register;
-import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
-import com.avail.optimizer.L2ValueManifest;
-import com.avail.optimizer.values.L2SemanticValue;
-
-import javax.annotation.Nullable;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static com.avail.utility.Casts.cast;
-import static com.avail.utility.Nulls.stripNull;
-import static java.util.Collections.unmodifiableSet;
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE
+import com.avail.interpreter.levelTwo.register.L2IntRegister
+import com.avail.interpreter.levelTwo.register.L2Register
+import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind
+import com.avail.optimizer.L2ValueManifest
+import com.avail.optimizer.values.L2SemanticValue
+import com.avail.utility.Casts
+import com.avail.utility.Nulls
+import java.util.*
 
 /**
- * {@code L2WriteOperand} abstracts the capabilities of actual register write
- * operands.
+ * `L2WriteOperand` abstracts the capabilities of actual register write operands.
  *
- * @param <R>
- *        The subclass of {@link L2Register} that this writes to.
+ * @param R
+ * The subclass of [L2Register] that this writes to.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @property restriction
+ *   The [TypeRestriction] that indicates what values may be written to the
+ *   destination register.
+ * @property register
+ *   The actual [L2Register]. This is only set during late optimization of the
+ *   control flow graph.
+ *
+ * @constructor
+ * Construct a new `L2WriteOperand` for the specified [L2SemanticValue].
+ *
+ * @param semanticValues
+ *   The [Set] of [L2SemanticValue] that this operand is effectively producing.
+ * @param restriction
+ *   The [TypeRestriction] that indicates what values are allowed to be written
+ *   into the register.
+ * @param register
+ *   The [L2Register] to write.
  */
-public abstract class L2WriteOperand<R extends L2Register>
-extends L2Operand
+abstract class L2WriteOperand<R : L2Register> constructor(
+		semanticValues: Set<L2SemanticValue>,
+		private val restriction: TypeRestriction,
+		protected var register: R)
+	: L2Operand()
 {
 	/**
-	 * The {@link L2SemanticValue}s being written when an {@link L2Instruction}
-	 * uses this {@link L2Operand}.
+	 * The [L2SemanticValue]s being written when an [L2Instruction] uses this
+	 * [L2Operand].
 	 */
-	private final Set<L2SemanticValue> semanticValues;
+	private val semanticValues: MutableSet<L2SemanticValue> =
+		HashSet(semanticValues)
 
 	/**
-	 * The {@link TypeRestriction} that indicates what values may be written to
-	 * the destination register.
-	 */
-	private final TypeRestriction restriction;
-
-	/**
-	 * The actual {@link L2Register}.  This is only set during late optimization
-	 * of the control flow graph.
-	 */
-	protected R register;
-
-	/**
-	 * Construct a new {@code L2WriteOperand} for the specified {@link
-	 * L2SemanticValue}.
+	 * Answer this write's immutable set of [L2SemanticValue]s.
 	 *
-	 * @param semanticValues
-	 *        The {@link Set} of {@link L2SemanticValue} that this operand is
-	 *        effectively producing.
-	 * @param restriction
-	 *        The {@link TypeRestriction} that indicates what values are allowed
-	 *        to be written into the register.
-	 * @param register
-	 *        The {@link L2Register} to write.
+	 * @return
+	 *   The semantic value being written.
 	 */
-	public L2WriteOperand (
-		final Set<L2SemanticValue> semanticValues,
-		final TypeRestriction restriction,
-		final R register)
-	{
-		this.semanticValues = new HashSet<>(semanticValues);
-		this.restriction = restriction;
-		this.register = register;
-	}
+	fun semanticValues(): Set<L2SemanticValue> =
+		Collections.unmodifiableSet(semanticValues)
 
 	/**
-	 * Answer this write's immutable set of {@link L2SemanticValue}s.
-	 *
-	 * @return The semantic value being written.
-	 */
-	public final Set<L2SemanticValue> semanticValues ()
-	{
-		return unmodifiableSet(semanticValues);
-	}
-
-	/**
-	 * Answer this write's sole {@link L2SemanticValue}, failing if there isn't
+	 * Answer this write's sole [L2SemanticValue], failing if there isn't
 	 * exactly one.
 	 *
-	 * @return The write operand's {@link L2SemanticValue}.
+	 * @return
+	 *   The write operand's [L2SemanticValue].
 	 */
-	public L2SemanticValue onlySemanticValue ()
+	fun onlySemanticValue(): L2SemanticValue
 	{
-		assert semanticValues.size() == 1;
-		return semanticValues.iterator().next();
+		assert(semanticValues.size == 1)
+		return semanticValues.iterator().next()
 	}
 
 	/**
-	 * Choose an arbitrary one of the {@link L2SemanticValue}s that this operand
+	 * Choose an arbitrary one of the [L2SemanticValue]s that this operand
 	 * writes.
 	 *
-	 * @return The write operand's {@link L2SemanticValue}.
+	 * @return
+	 *   The write operand's [L2SemanticValue].
 	 */
-	public L2SemanticValue pickSemanticValue ()
-	{
-		return semanticValues.iterator().next();
-	}
+	fun pickSemanticValue(): L2SemanticValue =
+		semanticValues.iterator().next()
 
 	/**
-	 * Answer this write's {@link TypeRestriction}.
+	 * Answer this write's [TypeRestriction].
 	 *
-	 * @return The {@link TypeRestriction} that constrains what's being written.
+	 * @return
+	 *   The [TypeRestriction] that constrains what's being written.
 	 */
-	public final TypeRestriction restriction ()
-	{
-		return restriction;
-	}
+	fun restriction(): TypeRestriction = restriction
 
 	/**
-	 * Answer the {@link RegisterKind} of register that is written by this
-	 * {@code L2WriteOperand}.
+	 * Answer the [RegisterKind] of register that is written by this
+	 * `L2WriteOperand`.
 	 *
-	 * @return The {@link RegisterKind}.
+	 * @return
+	 *   The [RegisterKind].
 	 */
-	public abstract RegisterKind registerKind ();
+	abstract fun registerKind(): RegisterKind?
 
 	/**
-	 * Answer the {@link L2Register}'s {@link L2Register#finalIndex()
-	 * finalIndex}.
+	 * Answer the [L2Register]'s [finalIndex][L2Register.finalIndex].
 	 *
-	 * @return The index of the register, computed during register coloring.
+	 * @return
+	 *   The index of the register, computed during register coloring.
 	 */
-	public final int finalIndex ()
-	{
-		return stripNull(register).finalIndex();
-	}
+	fun finalIndex(): Int = Nulls.stripNull(register).finalIndex()
 
 	/**
 	 * Answer the register that is to be written.
 	 *
-	 * @return An {@link L2IntRegister}.
+	 * @return
+	 *   An [L2IntRegister].
 	 */
-	public final R register ()
-	{
-		return stripNull(register);
-	}
+	fun register(): R = Nulls.stripNull(register)
 
 	/**
 	 * Answer a String that describes this operand for debugging.
 	 *
-	 * @return A {@link String}.
+	 * @return
+	 *   A [String].
 	 */
-	public final String registerString ()
-	{
-		return register.toString() + semanticValues;
-	}
+	fun registerString(): String =  register.toString() + semanticValues
 
-	@Override
-	public final void instructionWasAdded (
-		final L2ValueManifest manifest)
+	override fun instructionWasAdded(manifest: L2ValueManifest)
 	{
-		super.instructionWasAdded(manifest);
-		register.addDefinition(this);
-		manifest.recordDefinition(this);
+		super.instructionWasAdded(manifest)
+		register.addDefinition(this)
+		manifest.recordDefinition(this)
 	}
 
 	/**
-	 * This operand is a write of an {@link L2_MAKE_IMMUTABLE} operation.  The
+	 * This operand is a write of an [L2_MAKE_IMMUTABLE] operation.  The
 	 * manifest has already had boxed definitions for the synonym removed from
 	 * it, even if it left the definition list empty.
 	 *
 	 * @param sourceSemanticValue
-	 *        The {@link L2SemanticValue} that already holds the value.
+	 *   The [L2SemanticValue] that already holds the value.
 	 * @param manifest
-	 *        The {@link L2ValueManifest} in which to capture the synonymy of
-	 *        the source and destination.
+	 *   The [L2ValueManifest] in which to capture the synonymy of the source
+	 *   and destination.
 	 */
-	public final void instructionWasAddedForMakeImmutable (
-		final L2SemanticValue sourceSemanticValue,
-		final L2ValueManifest manifest)
+	fun instructionWasAddedForMakeImmutable(
+		sourceSemanticValue: L2SemanticValue,
+		manifest: L2ValueManifest)
 	{
-		super.instructionWasAdded(manifest);
-		register.addDefinition(this);
-		assert manifest.hasSemanticValue(sourceSemanticValue);
-		manifest.recordDefinitionForMakeImmutable(this, sourceSemanticValue);
+		super.instructionWasAdded(manifest)
+		register.addDefinition(this)
+		assert(manifest.hasSemanticValue(sourceSemanticValue))
+		manifest.recordDefinitionForMakeImmutable(this, sourceSemanticValue)
 	}
 
 	/**
 	 * This operand is a write of a move-like operation.  Make the semantic
-	 * value a synonym of the given {@link L2ReadOperand}'s semantic value.
+	 * value a synonym of the given [L2ReadOperand]'s semantic value.
 	 *
 	 * @param sourceSemanticValue
-	 *        The {@link L2SemanticValue} that already holds the value.
+	 *   The [L2SemanticValue] that already holds the value.
 	 * @param manifest
-	 *        The {@link L2ValueManifest} in which to capture the synonymy of
-	 *        the source and destination.
+	 *   The [L2ValueManifest] in which to capture the synonymy of the source
+	 *   and destination.
 	 */
-	public final void instructionWasAddedForMove (
-		final L2SemanticValue sourceSemanticValue,
-		final L2ValueManifest manifest)
+	fun instructionWasAddedForMove(
+		sourceSemanticValue: L2SemanticValue,
+		manifest: L2ValueManifest)
 	{
-		super.instructionWasAdded(manifest);
-		register.addDefinition(this);
-		manifest.recordDefinitionForMove(this, sourceSemanticValue);
+		super.instructionWasAdded(manifest)
+		register.addDefinition(this)
+		manifest.recordDefinitionForMove(this, sourceSemanticValue)
 	}
 
-	@Override
-	public final void instructionWasInserted (
-		final L2Instruction newInstruction)
+	override fun instructionWasInserted(newInstruction: L2Instruction)
 	{
-		super.instructionWasInserted(newInstruction);
-		register.addDefinition(this);
+		super.instructionWasInserted(newInstruction)
+		register.addDefinition(this)
 	}
 
-	@Override
-	public final void instructionWasRemoved ()
+	override fun instructionWasRemoved()
 	{
-		super.instructionWasRemoved();
-		register().removeDefinition(this);
+		super.instructionWasRemoved()
+		register().removeDefinition(this)
 	}
 
 	/**
-	 * Add the given {@link L2SemanticValue} to this write operand's set of
-	 * semantic values.  DO NOT update any other structures to reflect this
-	 * change, as this is the caller's responsibility.
+	 * Add the given [L2SemanticValue] to this write operand's set of semantic
+	 * values.  DO NOT update any other structures to reflect this change, as
+	 * this is the caller's responsibility.
 	 *
 	 * @param newSemanticValue
-	 *        The new {@link L2SemanticValue} to add to the write operand's set
-	 *        of semantic values.
+	 *   The new [L2SemanticValue] to add to the write operand's set of semantic
+	 *   values.
 	 */
-	public void retroactivelyIncludeSemanticValue (
-		final L2SemanticValue newSemanticValue)
+	fun retroactivelyIncludeSemanticValue(newSemanticValue: L2SemanticValue)
 	{
-		semanticValues.add(newSemanticValue);
+		semanticValues.add(newSemanticValue)
 	}
 
-	@Override
-	public final void replaceRegisters (
-		final Map<L2Register, L2Register> registerRemap,
-		final L2Instruction theInstruction)
+	override fun replaceRegisters(
+		registerRemap: Map<L2Register, L2Register>,
+		theInstruction: L2Instruction)
 	{
-		final @Nullable L2Register replacement = registerRemap.get(register);
-		if (replacement == null || replacement == register)
+		val replacement = registerRemap[register]
+		if (replacement == null || replacement === register)
 		{
-			return;
+			return
 		}
-		register().removeDefinition(this);
-		replacement.addDefinition(this);
-		register = cast(replacement);
+		register().removeDefinition(this)
+		replacement.addDefinition(this)
+		register = Casts.cast(replacement)
 	}
 
-	@Override
-	public void addWritesTo (final List<L2WriteOperand<?>> writeOperands)
+	override fun addWritesTo(writeOperands: MutableList<L2WriteOperand<*>>)
 	{
-		writeOperands.add(this);
+		writeOperands.add(this)
 	}
 
-	@Override
-	public final void addDestinationRegistersTo (
-		final List<L2Register> destinationRegisters)
+	override fun addDestinationRegistersTo(
+		destinationRegisters: MutableList<L2Register>)
 	{
-		destinationRegisters.add(register);
+		destinationRegisters.add(register)
 	}
 
-	@Override
-	public void appendTo (final StringBuilder builder)
+	override fun appendTo(builder: StringBuilder)
 	{
-		builder.append("→").append(registerString());
+		builder.append("→").append(registerString())
 	}
 }

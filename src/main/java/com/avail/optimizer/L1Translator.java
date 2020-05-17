@@ -1787,7 +1787,7 @@ public final class L1Translator
 		}
 		// Generate the general case.
 		addInstruction(
-			L2_JUMP_IF_EQUALS_CONSTANT.instance,
+			L2_JUMP_IF_EQUALS_CONSTANT.INSTANCE,
 			registerToTest,
 			new L2ConstantOperand(constantValue),
 			edgeTo(passBlock),

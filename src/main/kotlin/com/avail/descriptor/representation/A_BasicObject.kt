@@ -1106,11 +1106,12 @@ interface A_BasicObject : JSONFriendly {
 	 * produced value.
 	 *
 	 * @param supplier
-	 * The supplier to evaluate.
-	 * @param <T>
-	 * The type of value to produce while holding the lock.
-	 * @return The produced value.
-	</T> */
+	 *   The supplier to evaluate.
+	 * @param T
+	 *   The type of value to produce while holding the lock.
+	 * @return
+	 *   The produced value.
+	 */
 	fun <T : Any> lock(supplier: Supplier<T>): T
 
 	/**

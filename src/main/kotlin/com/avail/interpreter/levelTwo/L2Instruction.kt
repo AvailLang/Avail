@@ -52,7 +52,6 @@ import org.objectweb.asm.MethodVisitor
 import java.util.*
 import java.util.function.BiConsumer
 import java.util.function.Consumer
-import java.util.function.UnaryOperator
 
 /**
  * `L2Instruction` is the foundation for all instructions understood by
@@ -228,7 +227,7 @@ class L2Instruction constructor(
 	 *
 	 * @param index
 	 *   The zero-based operand index.
-	 * @param <O>
+	 * @param O
 	 *   The specialization of [L2Operand] to return.
 	 * @return
 	 *   The specified operand.
@@ -309,7 +308,7 @@ class L2Instruction constructor(
 	 */
 	fun readOperands(): List<L2ReadOperand<*>>
 	{
-		val list: List<L2ReadOperand<*>> = ArrayList()
+		val list = mutableListOf<L2ReadOperand<*>>()
 		for (operand in operands)
 		{
 			operand.addReadsTo(list)
@@ -325,7 +324,7 @@ class L2Instruction constructor(
 	 */
 	fun writeOperands(): List<L2WriteOperand<*>>
 	{
-		val list: List<L2WriteOperand<*>> = ArrayList()
+		val list = mutableListOf<L2WriteOperand<*>>()
 		for (operand in operands)
 		{
 			operand.addWritesTo(list)
@@ -401,12 +400,14 @@ class L2Instruction constructor(
 	 *   A mapping from existing [L2Register]s to replacement [L2Register]s
 	 *   having the same [L2Register.registerKind].
 	 */
-	fun replaceRegisters(
-		registerRemap: Map<L2Register?, L2Register>)
+	fun replaceRegisters(registerRemap: Map<L2Register, L2Register>)
 	{
-		val sourcesBefore: List<L2Register> = ArrayList(sourceRegisters)
-		val destinationsBefore: List<L2Register> = ArrayList(destinationRegisters)
-		operandsDo(Consumer { operand: L2Operand? -> operand!!.replaceRegisters(registerRemap, this) })
+		val sourcesBefore: List<L2Register> = sourceRegisters.toMutableList()
+		val destinationsBefore: List<L2Register> =
+			destinationRegisters.toMutableList()
+		operandsDo(Consumer { operand: L2Operand? ->
+			operand!!.replaceRegisters(registerRemap, this)
+		})
 		sourceRegisters.replaceAll { r -> registerRemap[r] ?: r }
 		destinationRegisters.replaceAll { r -> registerRemap[r] ?: r }
 		assert(sourceRegisters.size == sourcesBefore.size)
@@ -524,32 +525,38 @@ class L2Instruction constructor(
 	 *   The new instruction or `null`.
 	 */
 	fun copyInstructionForManifest(
-		newBlock: L2BasicBlock,
-		manifest: L2ValueManifest): L2Instruction?
+		newBlock: L2BasicBlock, manifest: L2ValueManifest): L2Instruction?
 	{
 		val failed = Mutable(false)
-		val transform =
-			UnaryOperator { read: L2ReadOperand<*> ->
+		val transform: (L2ReadOperand<*>) -> L2ReadOperand<*> =
+			 { read: L2ReadOperand<*> ->
 				val registers =
 					manifest.getDefinitions<L2Register>(
 						read.semanticValue(), read.registerKind())
 				if (registers.isEmpty())
 				{
 					failed.value = true
-					return@UnaryOperator read
+					read
 				}
-				read.copyForRegister(registers[0])
+				else
+				{
+					read.copyForRegister(registers[0])
+				}
 			}
 		val operandsCopy = operands.clone()
 		for (i in operandsCopy.indices)
 		{
 			operandsCopy[i] = operandsCopy[i].transformEachRead(transform)
 		}
+
 		return if (failed.value)
 		{
 			null
 		}
-		else L2Instruction(newBlock, operation, *operandsCopy)
+		else
+		{
+			L2Instruction(newBlock, operation, *operandsCopy)
+		}
 	}
 
 	/**
@@ -668,7 +675,7 @@ class L2Instruction constructor(
 		this.operation = operation
 		this.basicBlock = basicBlock
 		operands =
-			Array<L2Operand>(theOperands.size)
+			Array(theOperands.size)
 			{
 				val operand = theOperands[it].clone()
 				operand.adjustCloneForInstruction(this)
