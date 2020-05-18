@@ -29,66 +29,48 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operand
 
-package com.avail.interpreter.levelTwo.operand;
-
-import com.avail.interpreter.levelTwo.L2OperandDispatcher;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.register.L2FloatRegister;
-import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
-import com.avail.optimizer.values.L2SemanticValue;
-
-import java.util.Set;
-
-import static com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.FLOAT;
+import com.avail.interpreter.levelTwo.L2OperandDispatcher
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.register.L2FloatRegister
+import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind
+import com.avail.optimizer.values.L2SemanticValue
 
 /**
- * An {@code L2WriteFloatOperand} is an operand of type {@link
- * L2OperandType#WRITE_FLOAT}.  It holds the actual {@link L2FloatRegister}
- * that is to be accessed.
+ * An `L2WriteFloatOperand` is an operand of type [L2OperandType.WRITE_FLOAT].
+ * It holds the actual [L2FloatRegister] that is to be accessed.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ * Construct a new `L2WriteFloatOperand` for the specified [L2SemanticValue].
+ *
+ * @param semanticValues
+ *   The [Set] of [L2SemanticValue] that this operand is effectively producing.
+ * @param restriction
+ *   The [TypeRestriction] that indicates what values are allowed to be written
+ *   into the register.
+ * @param register
+ *   The initial [L2FloatRegister] that backs this operand.
  */
-public class L2WriteFloatOperand
-extends L2WriteOperand<L2FloatRegister>
+class L2WriteFloatOperand constructor(
+		semanticValues: Set<L2SemanticValue>,
+		restriction: TypeRestriction,
+		register: L2FloatRegister)
+	: L2WriteOperand<L2FloatRegister>(semanticValues, restriction, register)
 {
-	/**
-	 * Construct a new {@code L2WriteFloatOperand} for the specified {@link
-	 * L2SemanticValue}.
-	 *
-	 * @param semanticValues
-	 *        The {@link Set} of {@link L2SemanticValue} that this operand is
-	 *        effectively producing.
-	 * @param restriction
-	 *        The {@link TypeRestriction} that indicates what values are allowed
-	 *        to be written into the register.
-	 * @param register
-	 *        The initial {@link L2FloatRegister} that backs this operand.
-	 */
-	public L2WriteFloatOperand (
-		final Set<L2SemanticValue> semanticValues,
-		final TypeRestriction restriction,
-		final L2FloatRegister register)
+	override fun operandType(): L2OperandType = L2OperandType.WRITE_FLOAT
+
+	override fun registerKind(): RegisterKind = RegisterKind.FLOAT
+
+	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
 	{
-		super(semanticValues, restriction, register);
-		assert restriction.isUnboxedFloat();
+		dispatcher.doOperand(this)
 	}
 
-	@Override
-	public L2OperandType operandType ()
+	init
 	{
-		return L2OperandType.WRITE_FLOAT;
-	}
-
-	@Override
-	public RegisterKind registerKind ()
-	{
-		return FLOAT;
-	}
-
-	@Override
-	public void dispatchOperand (final L2OperandDispatcher dispatcher)
-	{
-		dispatcher.doOperand(this);
+		assert(restriction.isUnboxedFloat)
 	}
 }

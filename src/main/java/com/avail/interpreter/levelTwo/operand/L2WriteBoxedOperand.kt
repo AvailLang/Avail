@@ -29,66 +29,48 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operand
 
-package com.avail.interpreter.levelTwo.operand;
-
-import com.avail.interpreter.levelTwo.L2OperandDispatcher;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
-import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
-import com.avail.optimizer.values.L2SemanticValue;
-
-import java.util.Set;
-
-import static com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.BOXED;
+import com.avail.interpreter.levelTwo.L2OperandDispatcher
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister
+import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind
+import com.avail.optimizer.values.L2SemanticValue
 
 /**
- * An {@code L2WriteBoxedOperand} is an operand of type {@link
- * L2OperandType#WRITE_BOXED}.  It holds the actual {@link
- * L2BoxedRegister} that is to be accessed.
+ * An `L2WriteBoxedOperand` is an operand of type [L2OperandType.WRITE_BOXED].
+ * It holds the actual [L2BoxedRegister] that is to be accessed.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @constructor
+ * Construct a new `L2WriteBoxedOperand` for the specified [L2SemanticValue].
+ *
+ * @param semanticValues
+ *   The [Set] of [L2SemanticValue] that this operand is effectively producing.
+ * @param restriction
+ *   The [TypeRestriction] that indicates what values are allowed to be written
+ *   into the register.
+ * @param register
+ *   The initial [L2BoxedRegister] that backs this operand.
  */
-public class L2WriteBoxedOperand
-extends L2WriteOperand<L2BoxedRegister>
+class L2WriteBoxedOperand constructor(
+		semanticValues: Set<L2SemanticValue>,
+		restriction: TypeRestriction,
+		register: L2BoxedRegister)
+	: L2WriteOperand<L2BoxedRegister>(semanticValues, restriction, register)
 {
+	override fun operandType(): L2OperandType = L2OperandType.WRITE_BOXED
 
-	/**
-	 * Construct a new {@code L2WriteBoxedOperand} for the specified {@link
-	 * L2SemanticValue}.
-	 *
-	 * @param semanticValues
-	 *        The {@link Set} of {@link L2SemanticValue} that this operand is
-	 *        effectively producing.
-	 * @param restriction
-	 *        The {@link TypeRestriction} that indicates what values are allowed
-	 *        to be written into the register.
-	 * @param register
-	 *        The initial {@link L2BoxedRegister} that backs this operand.
-	 */
-	public L2WriteBoxedOperand (
-		final Set<L2SemanticValue> semanticValues,
-		final TypeRestriction restriction,
-		final L2BoxedRegister register)
+	override fun registerKind(): RegisterKind = RegisterKind.BOXED
+
+	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
 	{
-		super(semanticValues, restriction, register);
-		assert restriction.isBoxed();
+		dispatcher.doOperand(this)
 	}
 
-	@Override
-	public L2OperandType operandType ()
+	init
 	{
-		return L2OperandType.WRITE_BOXED;
-	}
-	@Override
-	public RegisterKind registerKind ()
-	{
-		return BOXED;
-	}
-
-	@Override
-	public void dispatchOperand (final L2OperandDispatcher dispatcher)
-	{
-		dispatcher.doOperand(this);
+		assert(restriction.isBoxed)
 	}
 }

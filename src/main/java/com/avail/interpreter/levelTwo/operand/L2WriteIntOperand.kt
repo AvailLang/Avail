@@ -29,67 +29,50 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operand
 
-package com.avail.interpreter.levelTwo.operand;
-
-import com.avail.interpreter.levelTwo.L2OperandDispatcher;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.register.L2IntRegister;
-import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
-import com.avail.optimizer.values.L2SemanticValue;
-
-import java.util.Set;
-
-import static com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.INTEGER;
+import com.avail.interpreter.levelTwo.L2OperandDispatcher
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.register.L2IntRegister
+import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind
+import com.avail.optimizer.values.L2SemanticValue
 
 /**
- * An {@code L2WriteIntOperand} is an operand of type {@link
- * L2OperandType#WRITE_INT}.  It holds the actual {@link L2IntRegister}
- * that is to be accessed.
+ * An `L2WriteIntOperand` is an operand of type [L2OperandType.WRITE_INT].  It
+ * holds the actual [L2IntRegister] that is to be accessed.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ * Construct a new `L2WriteIntOperand` for the specified [L2SemanticValue].
+ *
+ * @param semanticValues
+ *   The [Set] of [L2SemanticValue] that this operand is effectively producing.
+ * @param restriction
+ *   The [TypeRestriction] that indicates what values are allowed to be written
+ *   into the register.
+ * @param register
+ *   The initial [L2IntRegister] that backs this operand.
  */
-public class L2WriteIntOperand
-extends L2WriteOperand<L2IntRegister>
+class L2WriteIntOperand constructor(
+		semanticValues: Set<L2SemanticValue>,
+		restriction: TypeRestriction,
+		register: L2IntRegister)
+	: L2WriteOperand<L2IntRegister>(semanticValues, restriction, register)
 {
-	/**
-	 * Construct a new {@code L2WriteIntOperand} for the specified {@link
-	 * L2SemanticValue}.
-	 *
-	 * @param semanticValues
-	 *        The {@link Set} of {@link L2SemanticValue} that this operand is
-	 *        effectively producing.
-	 * @param restriction
-	 *        The {@link TypeRestriction} that indicates what values are allowed
-	 *        to be written into the register.
-	 * @param register
-	 *        The initial {@link L2IntRegister} that backs this operand.
-	 */
-	public L2WriteIntOperand (
-		final Set<L2SemanticValue> semanticValues,
-		final TypeRestriction restriction,
-		final L2IntRegister register)
+	override fun operandType(): L2OperandType = L2OperandType.WRITE_INT
+
+	override fun registerKind(): RegisterKind = RegisterKind.INTEGER
+
+
+	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
 	{
-		super(semanticValues, restriction, register);
-		assert restriction.isUnboxedInt();
+		dispatcher.doOperand(this)
 	}
 
-	@Override
-	public L2OperandType operandType ()
+	init
 	{
-		return L2OperandType.WRITE_INT;
-	}
-
-	@Override
-	public RegisterKind registerKind ()
-	{
-		return INTEGER;
-	}
-
-	@Override
-	public void dispatchOperand (final L2OperandDispatcher dispatcher)
-	{
-		dispatcher.doOperand(this);
+		assert(restriction.isUnboxedInt)
 	}
 }
