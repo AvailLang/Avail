@@ -59,7 +59,10 @@ import com.avail.descriptor.bundles.MessageBundleTreeDescriptor
 import com.avail.descriptor.bundles.MessageBundleTreeDescriptor.Companion.newBundleTree
 import com.avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
 import com.avail.descriptor.fiber.A_Fiber
-import com.avail.descriptor.fiber.FiberDescriptor.*
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.loaderPriority
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.setSuccessAndFailure
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.CompiledCodeDescriptor.Companion.newPrimitiveRawFunction
 import com.avail.descriptor.functions.FunctionDescriptor
@@ -1227,7 +1230,7 @@ class AvailLoader(
 						module().moduleName())
 				}
 				fiber.textInterface(textInterface)
-				fiber.setSuccessAndFailureContinuations(
+				fiber.setSuccessAndFailure(
 					{ again.value() },
 					{ again.value() })
 				runOutermostFunction(

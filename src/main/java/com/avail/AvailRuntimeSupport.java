@@ -73,6 +73,20 @@ public final class AvailRuntimeSupport
 	}
 
 	/**
+	 * Answer a new <em>non-zero</em> value suitable for use as the {@linkplain
+	 * AvailObject#hash() hash code} for an immutable {@linkplain AvailObject
+	 * value}.
+	 *
+	 * @return A 32-bit pseudo-random number that isn't zero (0).
+	 */
+	@ThreadSafe
+	public static int nextNonzeroHash ()
+	{
+		final int hash = nextHash();
+		return hash != 0 ? hash : 123456789;
+	}
+
+	/**
 	 * The source of {@linkplain FiberDescriptor fiber} identifiers.
 	 */
 	private static final AtomicInteger fiberIdGenerator =

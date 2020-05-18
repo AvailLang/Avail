@@ -74,7 +74,6 @@ import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
 import com.avail.utility.Casts
 import com.avail.utility.MutableInt
-import com.avail.utility.Nulls
 import com.avail.utility.evaluation.Continuation0
 import java.util.*
 import java.util.logging.Level
@@ -187,10 +186,8 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 	@ReferencedInGeneratedCode
 	fun run(): StackReifier?
 	{
-//		final A_Function function = stripNull(interpreter.function);
-		val function = Nulls.stripNull(interpreter.function) as AvailObject
-		//		final A_RawFunction code = function.code();
-		val code = function.code() as AvailObject
+		val function = interpreter.function!!
+		val code = function.code()
 		if (Interpreter.debugL1)
 		{
 			log(
@@ -461,8 +458,8 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 				}
 				L1Operation.L1_doGetOuter ->
 				{
-					val valueOrReifier = getVariable(function.outerVarAt(
-						instructionDecoder.getOperand()))
+					val valueOrReifier = getVariable(
+						function.outerVarAt(instructionDecoder.getOperand()))
 					if (valueOrReifier is StackReifier)
 					{
 						return valueOrReifier
@@ -488,8 +485,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 						i++
 					}
 					assert(interpreter.chunk == L2Chunk.unoptimizedChunk)
-					val savedFunction =
-						Nulls.stripNull(interpreter.function)
+					val savedFunction = interpreter.function!!
 					val savedPointers = pointers
 					val savedPc = instructionDecoder.pc()
 					val savedStackp = stackp
@@ -533,8 +529,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 							val newContinuation =
 								createLabelContinuation(
 									savedFunction,
-									Nulls.stripNull(
-										interpreter.getReifiedContinuation()),
+									interpreter.getReifiedContinuation()!!,
 									L2Chunk.unoptimizedChunk,
 									ChunkEntryPoint.TO_RESTART.offsetInDefaultChunk,
 									args)
@@ -719,7 +714,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 		entryPoint: ChunkEntryPoint,
 		logMessage: String)
 	{
-		val function = Nulls.stripNull(interpreter.function)
+		val function = interpreter.function!!
 		val continuation: A_Continuation = createContinuationWithFrame(
 			function,
 			NilDescriptor.nil,
@@ -742,7 +737,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 		reifier.pushAction { theInterpreter: Interpreter ->
 			theInterpreter.setReifiedContinuation(
 				continuation.replacingCaller(
-					Nulls.stripNull(theInterpreter.getReifiedContinuation())))
+					theInterpreter.getReifiedContinuation()!!))
 		}
 	}
 
@@ -766,7 +761,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 		{
 			assert(e.numericCode().equals(
 				AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE.numericCode()))
-			val savedFunction = Nulls.stripNull(interpreter.function)
+			val savedFunction = interpreter.function!!
 			val savedPointers = pointers
 			val savedOffset = interpreter.offset
 			val savedPc = instructionDecoder.pc()
@@ -820,7 +815,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 			assert(e.numericCode().equals(
 				AvailErrorCode.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED
 					.numericCode()))
-			val savedFunction = Nulls.stripNull(interpreter.function)
+			val savedFunction = interpreter.function!!
 			val savedPointers = pointers
 			val savedOffset = interpreter.offset
 			val savedPc = instructionDecoder.pc()
@@ -882,7 +877,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 				matching.definitionMethod(),
 				AvailErrorCode.E_ABSTRACT_METHOD_DEFINITION)
 		}
-		val savedFunction = Nulls.stripNull(interpreter.function)
+		val savedFunction = interpreter.function!!
 		assert(interpreter.chunk == L2Chunk.unoptimizedChunk)
 		val savedOffset = interpreter.offset
 		val savedPointers = pointers
@@ -941,7 +936,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 		val before = AvailRuntimeSupport.captureNanos()
 		val checkOk = result.isInstanceOf(expectedReturnType)
 		val after = AvailRuntimeSupport.captureNanos()
-		val returner = Nulls.stripNull(interpreter.returningFunction)
+		val returner = interpreter.returningFunction!!
 		val calledPrimitive = returner.code().primitive()
 		if (calledPrimitive != null)
 		{
@@ -957,7 +952,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 		}
 		if (!checkOk)
 		{
-			val savedFunction = Nulls.stripNull(interpreter.function)
+			val savedFunction = interpreter.function!!
 			assert(interpreter.chunk == L2Chunk.unoptimizedChunk)
 			val savedOffset = interpreter.offset
 			val savedPointers = pointers

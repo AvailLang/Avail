@@ -54,7 +54,7 @@ import com.avail.compiler.scanning.LexingState
 import com.avail.compiler.splitter.MessageSplitter.Companion.constantForIndex
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
 import com.avail.descriptor.fiber.FiberDescriptor.GeneralFlag
-import com.avail.descriptor.fiber.FiberDescriptor.newLoaderFiber
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
 import com.avail.descriptor.module.ModuleDescriptor.Companion.newModule
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom

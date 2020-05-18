@@ -33,7 +33,7 @@
 package com.avail.builder
 
 import com.avail.builder.AvailBuilder.LoadedModule
-import com.avail.descriptor.fiber.FiberDescriptor.loaderPriority
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.loaderPriority
 import com.avail.interpreter.execution.AvailLoader
 import com.avail.utility.Graph
 import java.util.logging.Level

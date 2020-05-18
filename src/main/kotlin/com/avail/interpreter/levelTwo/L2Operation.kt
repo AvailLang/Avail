@@ -153,8 +153,7 @@ abstract class L2Operation
 	 *
 	 * @return The named operand types that this operation expects.
 	 */
-	fun operandTypes(): Array<out L2NamedOperandType> =
-		Nulls.stripNull(namedOperandTypes)
+	fun operandTypes(): Array<out L2NamedOperandType> = namedOperandTypes
 
 	/**
 	 * The name of this level two operation.  This is initialized to be the
@@ -468,8 +467,7 @@ abstract class L2Operation
 		{
 			val edge =
 				Casts.cast<L2Operand, L2PcOperand>(operands[operandIndex])
-			val purpose =
-				Nulls.stripNull(namedOperandTypes[operandIndex].purpose())
+			val purpose = namedOperandTypes[operandIndex].purpose()
 			val manifestCopy = L2ValueManifest(manifest)
 			for (i in operands.indices)
 			{

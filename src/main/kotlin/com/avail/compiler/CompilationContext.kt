@@ -44,19 +44,20 @@ import com.avail.compiler.problems.ProblemType
 import com.avail.compiler.problems.ProblemType.EXECUTION
 import com.avail.compiler.problems.ProblemType.INTERNAL
 import com.avail.compiler.scanning.LexingState
-import com.avail.descriptor.fiber.A_Fiber
-import com.avail.descriptor.module.A_Module
-import com.avail.descriptor.fiber.FiberDescriptor
-import com.avail.descriptor.fiber.FiberDescriptor.newLoaderFiber
-import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
+import com.avail.descriptor.fiber.A_Fiber
+import com.avail.descriptor.fiber.FiberDescriptor
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.setSuccessAndFailure
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunctionForPhrase
 import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
+import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.PhraseDescriptor
 import com.avail.descriptor.representation.A_BasicObject
@@ -387,7 +388,8 @@ class CompilationContext(
 	fun <ArgType> workUnitCompletion(
 		lexingState: LexingState,
 		optionalSafetyCheck: AtomicBoolean?,
-		continuation: (ArgType)->Unit): (ArgType)->Unit
+		continuation: (ArgType)->Unit
+	): (ArgType)->Unit
 	{
 		assert(noMoreWorkUnits !== null)
 		val hasRunSafetyCheck = optionalSafetyCheck ?: AtomicBoolean(false)
@@ -584,7 +586,7 @@ class CompilationContext(
 		}
 		else
 		{
-			fiber.setSuccessAndFailureContinuations(adjustedSuccess, onFailure)
+			fiber.setSuccessAndFailure(adjustedSuccess, onFailure)
 		}
 		Interpreter.runOutermostFunction(runtime, fiber, function, args)
 	}

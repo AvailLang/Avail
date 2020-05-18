@@ -2679,6 +2679,7 @@ class AvailObject private constructor(
 	override fun failureContinuation(): Continuation1NotNull<Throwable> =
 		descriptor().o_FailureContinuation(this)
 
+
 	override fun setSuccessAndFailureContinuations(
 		onSuccess: Continuation1NotNull<AvailObject>,
 		onFailure: Continuation1NotNull<Throwable>
@@ -2716,8 +2717,8 @@ class AvailObject private constructor(
 
 	override fun getAndSetSynchronizationFlag(
 		flag: SynchronizationFlag,
-		newValue: Boolean
-	) = descriptor().o_GetAndSetSynchronizationFlag(this, flag, newValue)
+		value: Boolean
+	) = descriptor().o_GetAndSetSynchronizationFlag(this, flag, value)
 
 	override fun fiberResult() = descriptor().o_FiberResult(this)
 

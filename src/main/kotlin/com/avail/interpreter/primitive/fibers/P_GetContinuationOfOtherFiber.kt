@@ -43,6 +43,7 @@ import com.avail.exceptions.AvailErrorCode.E_FIBER_IS_TERMINATED
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
+import com.avail.utility.evaluation.Continuation1NotNull
 
 /**
  * **Primitive:** Ask another fiber what it's doing.  Fail if the fiber's
@@ -67,12 +68,13 @@ object P_GetContinuationOfOtherFiber : Primitive(
 		val otherFiber = interpreter.argument(0)
 
 		return interpreter.suspendThen {
-			otherFiber.whenContinuationIsAvailableDo { theContinuation ->
-				when {
-					!theContinuation.equalsNil() -> succeed(theContinuation)
-					else -> fail(E_FIBER_IS_TERMINATED)
-				}
-			}
+			otherFiber.whenContinuationIsAvailableDo(
+				Continuation1NotNull { theContinuation ->
+					when {
+						!theContinuation.equalsNil() -> succeed(theContinuation)
+						else -> fail(E_FIBER_IS_TERMINATED)
+					}
+				})
 		}
 	}
 

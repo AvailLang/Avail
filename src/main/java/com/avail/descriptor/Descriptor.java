@@ -4156,7 +4156,7 @@ extends AbstractDescriptor
 	public boolean o_GetAndSetSynchronizationFlag (
 		final AvailObject object,
 		final SynchronizationFlag flag,
-		final boolean newValue)
+		final boolean value)
 	{
 		throw unsupportedOperationException();
 	}
@@ -4421,7 +4421,7 @@ extends AbstractDescriptor
 	@Override
 	public void o_RecordVariableAccess (
 		final AvailObject object,
-		final A_Variable var,
+		final A_Variable variable,
 		final boolean wasRead)
 	{
 		throw unsupportedOperationException();

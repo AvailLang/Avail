@@ -201,7 +201,7 @@ class L2Instruction constructor(
 	 * @param purpose
 	 *   The [L2NamedOperandType.Purpose] with which to filter [L2WriteOperand]s.
 	 * @param consumer
-	 *   The [Consumer] to evaluate with each [L2WriteOperand] having the given 
+	 *   The [Consumer] to evaluate with each [L2WriteOperand] having the given
 	 *   [L2NamedOperandType.Purpose].
 	 */
 	fun writesForPurposeDo(
@@ -244,7 +244,7 @@ class L2Instruction constructor(
 	fun offset(): Int = offset
 
 	/**
-	 * Set the final position of this instruction within its [L2Chunk]'s array 
+	 * Set the final position of this instruction within its [L2Chunk]'s array
 	 * of instructions.
 	 *
 	 * @param offset
@@ -654,7 +654,7 @@ class L2Instruction constructor(
 	 * @return
 	 *   This instruction's [L2BasicBlock].
 	 */
-	fun basicBlock(): L2BasicBlock = Nulls.stripNull(basicBlock)
+	fun basicBlock(): L2BasicBlock = basicBlock!!
 
 	init
 	{

@@ -355,7 +355,7 @@ class VariableSharedGlobalDescriptor private constructor(
 		{
 			return mutableInitial.create().apply {
 				setSlot(KIND, variableType!!)
-				setSlot(HASH_ALWAYS_SET, AvailRuntimeSupport.nextHash())
+				setSlot(HASH_ALWAYS_SET, AvailRuntimeSupport.nextNonzeroHash())
 				setSlot(VALUE, NilDescriptor.nil)
 				setSlot(WRITE_REACTORS, NilDescriptor.nil)
 				setSlot(DEPENDENT_CHUNKS_WEAK_SET_POJO, NilDescriptor.nil)

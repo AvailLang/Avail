@@ -212,10 +212,13 @@ open class AtomDescriptor protected constructor(
 	override fun o_Hash(self: AvailObject): Int {
 		var hash = self.slot(HASH_OR_ZERO)
 		if (hash == 0) {
-			do {
-				hash = AvailRuntimeSupport.nextHash()
-			} while (hash == 0)
-			self.setSlot(HASH_OR_ZERO, hash)
+			synchronized(self) {
+				hash = self.slot(HASH_OR_ZERO)
+				if (hash == 0) {
+					hash = AvailRuntimeSupport.nextNonzeroHash()
+					self.setSlot(HASH_OR_ZERO, hash)
+				}
+			}
 		}
 		return hash
 	}

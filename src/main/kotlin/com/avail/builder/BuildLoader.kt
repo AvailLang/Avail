@@ -43,11 +43,12 @@ import com.avail.compiler.ModuleHeader
 import com.avail.compiler.problems.Problem
 import com.avail.compiler.problems.ProblemHandler
 import com.avail.compiler.problems.ProblemType.EXECUTION
-import com.avail.descriptor.fiber.FiberDescriptor.loaderPriority
-import com.avail.descriptor.fiber.FiberDescriptor.newLoaderFiber
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.loaderPriority
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.setSuccessAndFailure
+import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.module.ModuleDescriptor.Companion.newModule
-import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.tuples.StringDescriptor.formatString
 import com.avail.descriptor.tuples.StringDescriptor.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor.emptyTuple
@@ -394,7 +395,7 @@ internal class BuildLoader constructor(
 					}
 					fiber.textInterface(availBuilder.textInterface)
 					val before = captureNanos()
-					fiber.setSuccessAndFailureContinuations(
+					fiber.setSuccessAndFailure(
 						{
 							val after = captureNanos()
 							Interpreter.current().recordTopStatementEvaluation(
