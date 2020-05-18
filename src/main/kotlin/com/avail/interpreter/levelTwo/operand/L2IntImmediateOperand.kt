@@ -29,53 +29,38 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operand
 
-package com.avail.interpreter.levelTwo.operand;
-
-import com.avail.interpreter.levelTwo.L2OperandDispatcher;
-import com.avail.interpreter.levelTwo.L2OperandType;
+import com.avail.interpreter.levelTwo.L2OperandDispatcher
+import com.avail.interpreter.levelTwo.L2OperandType
 
 /**
- * An {@code L2IntImmediateOperand} is an operand of type {@link
- * L2OperandType#INT_IMMEDIATE}, which holds an {@code int} value representing
+ * An `L2IntImmediateOperand` is an operand of type
+ * [L2OperandType.INT_IMMEDIATE], which holds an `int` value representing
  * itself.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @property value
+ *   The actual `int` value.
+ *
+ * @constructor
+ * Construct a new `L2IntImmediateOperand` with the specified `int` value.
+ *
+ * @param value
+ *   The constant `int` itself.
  */
-public class L2IntImmediateOperand
-extends L2Operand
+class L2IntImmediateOperand constructor(val value: Int) : L2Operand()
 {
-	/**
-	 * The actual {@code int} value.
-	 */
-	public final int value;
+	override fun operandType(): L2OperandType = L2OperandType.INT_IMMEDIATE
 
-	/**
-	 * Construct a new {@code L2IntImmediateOperand} with the specified {@code int}
-	 * value.
-	 *
-	 * @param value The constant {@code int} itself.
-	 */
-	public L2IntImmediateOperand (final int value)
+	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
 	{
-		this.value = value;
+		dispatcher.doOperand(this)
 	}
 
-	@Override
-	public L2OperandType operandType ()
+	override fun appendTo(builder: StringBuilder)
 	{
-		return L2OperandType.INT_IMMEDIATE;
-	}
-
-	@Override
-	public void dispatchOperand (final L2OperandDispatcher dispatcher)
-	{
-		dispatcher.doOperand(this);
-	}
-
-	@Override
-	public void appendTo (final StringBuilder builder)
-	{
-		builder.append("#").append(value);
+		builder.append("#").append(value)
 	}
 }

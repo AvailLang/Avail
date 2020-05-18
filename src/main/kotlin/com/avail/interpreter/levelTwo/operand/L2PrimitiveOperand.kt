@@ -29,53 +29,38 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operand
 
-package com.avail.interpreter.levelTwo.operand;
-
-import com.avail.interpreter.Primitive;
-import com.avail.interpreter.levelTwo.L2OperandDispatcher;
-import com.avail.interpreter.levelTwo.L2OperandType;
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.levelTwo.L2OperandDispatcher
+import com.avail.interpreter.levelTwo.L2OperandType
 
 /**
- * An {@code L2PrimitiveOperand} is an operand of type {@link
- * L2OperandType#PRIMITIVE}.  The specific {@link Primitive} is captured.
+ * An `L2PrimitiveOperand` is an operand of type [L2OperandType.PRIMITIVE].  The
+ * specific [Primitive] is captured.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @property primitive
+ *   The actual [Primitive].
+ *
+ * @constructor
+ * Construct a new `L2PrimitiveOperand` for the specified [primitive][Primitive].
+ *
+ * @param primitive
+ *   The primitive to invoke.
  */
-public class L2PrimitiveOperand
-extends L2Operand
+class L2PrimitiveOperand constructor(val primitive: Primitive) : L2Operand()
 {
-	/**
-	 * The actual {@link Primitive}.
-	 */
-	public final Primitive primitive;
+	override fun operandType(): L2OperandType = L2OperandType.PRIMITIVE
 
-	/**
-	 * Construct a new {@code L2PrimitiveOperand} for the specified {@link
-	 * Primitive primitive}.
-	 *
-	 * @param primitive The primitive to invoke.
-	 */
-	public L2PrimitiveOperand (final Primitive primitive)
+	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
 	{
-		this.primitive = primitive;
+		dispatcher.doOperand(this)
 	}
 
-	@Override
-	public L2OperandType operandType ()
+	override fun appendTo(builder: StringBuilder)
 	{
-		return L2OperandType.PRIMITIVE;
-	}
-
-	@Override
-	public void dispatchOperand (final L2OperandDispatcher dispatcher)
-	{
-		dispatcher.doOperand(this);
-	}
-
-	@Override
-	public void appendTo (final StringBuilder builder)
-	{
-		builder.append("*").append(primitive.fieldName());
+		builder.append("*").append(primitive.fieldName())
 	}
 }

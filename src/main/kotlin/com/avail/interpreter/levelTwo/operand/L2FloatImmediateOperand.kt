@@ -29,54 +29,39 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operand
 
-package com.avail.interpreter.levelTwo.operand;
-
-import com.avail.interpreter.levelTwo.L2OperandDispatcher;
-import com.avail.interpreter.levelTwo.L2OperandType;
+import com.avail.interpreter.levelTwo.L2OperandDispatcher
+import com.avail.interpreter.levelTwo.L2OperandType
 
 /**
- * An {@code L2FloatImmediateOperand} is an operand of type {@link
- * L2OperandType#FLOAT_IMMEDIATE}, which holds a {@code double} value
- * representing itself.
+ * An `L2FloatImmediateOperand` is an operand of type
+ * [L2OperandType.FLOAT_IMMEDIATE], which holds a `double` value representing
+ * itself.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @property value
+ *   The actual `double` value.
+ *
+ * @constructor
+ * Construct a new `L2FloatImmediateOperand` with the specified `double` value.
+ *
+ * @param value
+ *   The constant `double` itself.
  */
-public class L2FloatImmediateOperand
-extends L2Operand
+class L2FloatImmediateOperand constructor(val value: Double) : L2Operand()
 {
-	/**
-	 * The actual {@code double} value.
-	 */
-	public final double value;
+	override fun operandType(): L2OperandType = L2OperandType.FLOAT_IMMEDIATE
 
-	/**
-	 * Construct a new {@code L2FloatImmediateOperand} with the specified {@code
-	 * double} value.
-	 *
-	 * @param value
-	 *        The constant {@code double} itself.
-	 */
-	public L2FloatImmediateOperand (final double value)
+	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
 	{
-		this.value = value;
+		dispatcher.doOperand(this)
 	}
 
-	@Override
-	public L2OperandType operandType ()
+	override fun appendTo(builder: StringBuilder)
 	{
-		return L2OperandType.FLOAT_IMMEDIATE;
+		builder.append("#").append(value)
 	}
 
-	@Override
-	public void dispatchOperand (final L2OperandDispatcher dispatcher)
-	{
-		dispatcher.doOperand(this);
-	}
-
-	@Override
-	public void appendTo (final StringBuilder builder)
-	{
-		builder.append("#").append(value);
-	}
 }

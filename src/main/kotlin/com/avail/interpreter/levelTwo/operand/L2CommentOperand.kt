@@ -29,52 +29,37 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operand
 
-package com.avail.interpreter.levelTwo.operand;
-
-import com.avail.interpreter.levelTwo.L2OperandDispatcher;
-import com.avail.interpreter.levelTwo.L2OperandType;
+import com.avail.interpreter.levelTwo.L2OperandDispatcher
+import com.avail.interpreter.levelTwo.L2OperandType
 
 /**
- * An {@code L2CommentOperand} holds a descriptive string during level two
+ * An `L2CommentOperand` holds a descriptive string during level two
  * translation, but this operand emits no actual data into the wordcode stream.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @property comment
+ *   The actual comment [String].
+ *
+ * @constructor
+ * Construct a new `L2CommentOperand` with the specified comment [String].
+ *
+ * @param comment
+ *   The comment string.
  */
-public class L2CommentOperand
-extends L2Operand
+class L2CommentOperand constructor(val comment: String) : L2Operand()
 {
-	/**
-	 * The actual comment {@link String}.
-	 */
-	public final String comment;
+	override fun operandType(): L2OperandType = L2OperandType.COMMENT
 
-	/**
-	 * Construct a new {@code L2CommentOperand} with the specified comment
-	 * {@link String}.
-	 *
-	 * @param comment The comment string.
-	 */
-	public L2CommentOperand (final String comment)
+	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
 	{
-		this.comment = comment;
+		dispatcher.doOperand(this)
 	}
 
-	@Override
-	public L2OperandType operandType ()
+	override fun appendTo(builder: StringBuilder)
 	{
-		return L2OperandType.COMMENT;
-	}
-
-	@Override
-	public void dispatchOperand (final L2OperandDispatcher dispatcher)
-	{
-		dispatcher.doOperand(this);
-	}
-
-	@Override
-	public void appendTo (final StringBuilder builder)
-	{
-		builder.append("// ").append(comment);
+		builder.append("// ").append(comment)
 	}
 }

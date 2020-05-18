@@ -29,68 +29,55 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operand
 
-package com.avail.interpreter.levelTwo.operand;
-
-import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.interpreter.levelTwo.L2OperandDispatcher;
-import com.avail.interpreter.levelTwo.L2OperandType;
-
-import static com.avail.descriptor.types.CompiledCodeTypeDescriptor.mostGeneralCompiledCodeType;
-import static com.avail.interpreter.levelOne.L1Decompiler.decompile;
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.types.CompiledCodeTypeDescriptor
+import com.avail.interpreter.levelOne.L1Decompiler.Companion.decompile
+import com.avail.interpreter.levelTwo.L2OperandDispatcher
+import com.avail.interpreter.levelTwo.L2OperandType
 
 /**
- * An {@code L2ConstantOperand} is an operand of type {@link
- * L2OperandType#CONSTANT}.  It also holds the actual {@link AvailObject} that
- * is the constant.
+ * An `L2ConstantOperand` is an operand of type [L2OperandType.CONSTANT].  It
+ * also holds the actual [AvailObject] that is the constant.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @constructor
+ * Construct a new `L2ConstantOperand` with the specified
+ * [constant][AvailObject].
+ *
+ * @param object
+ * The constant value.
  */
-public class L2ConstantOperand
-extends L2Operand
+class L2ConstantOperand(`object`: A_BasicObject) : L2Operand()
 {
 	/**
 	 * The actual constant value.
 	 */
-	public final AvailObject object;
+	@JvmField
+	val `object`: AvailObject = `object`.makeShared()
 
-	/**
-	 * Construct a new {@code L2ConstantOperand} with the specified {@link
-	 * AvailObject constant}.
-	 *
-	 * @param object
-	 *        The constant value.
-	 */
-	public L2ConstantOperand (final A_BasicObject object)
+	override fun operandType(): L2OperandType = L2OperandType.CONSTANT
+
+	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
 	{
-		this.object = object.makeShared();
+		dispatcher.doOperand(this)
 	}
 
-	@Override
-	public L2OperandType operandType ()
+	override fun appendTo(builder: StringBuilder)
 	{
-		return L2OperandType.CONSTANT;
-	}
-
-	@Override
-	public void dispatchOperand (final L2OperandDispatcher dispatcher)
-	{
-		dispatcher.doOperand(this);
-	}
-
-	@Override
-	public void appendTo (final StringBuilder builder)
-	{
-		builder.append("$(");
-		if (object.isInstanceOf(mostGeneralCompiledCodeType()))
+		builder.append("$(")
+		if (`object`.isInstanceOf(
+				CompiledCodeTypeDescriptor.mostGeneralCompiledCodeType()))
 		{
-			builder.append(decompile(object));
+			builder.append(decompile(`object`))
 		}
 		else
 		{
-			builder.append(object);
+			builder.append(`object`)
 		}
-		builder.append(")");
+		builder.append(")")
 	}
 }

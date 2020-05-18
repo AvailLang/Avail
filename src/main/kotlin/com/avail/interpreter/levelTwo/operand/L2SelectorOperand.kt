@@ -29,63 +29,49 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operand
 
-package com.avail.interpreter.levelTwo.operand;
-
-import com.avail.descriptor.atoms.A_Atom;
-import com.avail.descriptor.bundles.A_Bundle;
-import com.avail.descriptor.bundles.MessageBundleDescriptor;
-import com.avail.descriptor.methods.MethodDefinitionDescriptor;
-import com.avail.descriptor.methods.MethodDescriptor;
-import com.avail.interpreter.levelTwo.L2OperandDispatcher;
-import com.avail.interpreter.levelTwo.L2OperandType;
+import com.avail.descriptor.atoms.A_Atom
+import com.avail.descriptor.atoms.A_Atom.Companion.atomName
+import com.avail.descriptor.bundles.A_Bundle
+import com.avail.descriptor.bundles.A_Bundle.Companion.message
+import com.avail.descriptor.bundles.MessageBundleDescriptor
+import com.avail.descriptor.methods.MethodDefinitionDescriptor
+import com.avail.descriptor.methods.MethodDescriptor
+import com.avail.interpreter.levelTwo.L2OperandDispatcher
+import com.avail.interpreter.levelTwo.L2OperandType
 
 /**
- * An {@code L2SelectorOperand} is an operand of type {@link
- * L2OperandType#SELECTOR}.  It holds the {@linkplain MessageBundleDescriptor
- * message bundle} that knows the {@linkplain MethodDescriptor method} to
- * invoke.
+ * An `L2SelectorOperand` is an operand of type [L2OperandType.SELECTOR].  It
+ * holds the [message bundle][MessageBundleDescriptor] that knows the
+ * [method][MethodDescriptor] to invoke.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @property bundle
+ *   The actual [method][MethodDescriptor].
+ *
+ * @constructor
+ * Construct a new `L2SelectorOperand` with the specified
+ * [message bundle][MessageBundleDescriptor].
+ *
+ * @param bundle
+ *   The message bundle that holds the [method][MethodDescriptor] in which to
+ *   look up the [method definition][MethodDefinitionDescriptor] to ultimately
+ *   invoke.
  */
-public class L2SelectorOperand
-extends L2Operand
+class L2SelectorOperand constructor(val bundle: A_Bundle) : L2Operand()
 {
-	/**
-	 * The actual {@linkplain MethodDescriptor method}.
-	 */
-	public final A_Bundle bundle;
+	override fun operandType(): L2OperandType = L2OperandType.SELECTOR
 
-	/**
-	 * Construct a new {@code L2SelectorOperand} with the specified {@linkplain
-	 * MessageBundleDescriptor message bundle}.
-	 *
-	 * @param bundle
-	 *        The message bundle that holds the {@linkplain MethodDescriptor
-	 *        method} in which to look up the {@linkplain
-	 *        MethodDefinitionDescriptor method definition} to ultimately
-	 *        invoke.
-	 */
-	public L2SelectorOperand (final A_Bundle bundle)
+	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
 	{
-		this.bundle = bundle;
+		dispatcher.doOperand(this)
 	}
 
-	@Override
-	public L2OperandType operandType ()
+	override fun appendTo(builder: StringBuilder)
 	{
-		return L2OperandType.SELECTOR;
+		builder.append("$").append(bundle.message().atomName())
 	}
 
-	@Override
-	public void dispatchOperand (final L2OperandDispatcher dispatcher)
-	{
-		dispatcher.doOperand(this);
-	}
-
-	@Override
-	public void appendTo (final StringBuilder builder)
-	{
-		builder.append("$").append(A_Atom.Companion.atomName(A_Bundle.Companion.message(bundle)));
-	}
 }

@@ -602,7 +602,7 @@ public final class JVMTranslator
 		public void doOperand (final L2IntImmediateOperand operand)
 		{
 			literals.computeIfAbsent(
-				operand.value,
+				operand.getValue(),
 				object -> new LiteralAccessor(
 					invalidIndex,
 					null,
@@ -614,7 +614,7 @@ public final class JVMTranslator
 		public void doOperand (final L2FloatImmediateOperand operand)
 		{
 			literals.computeIfAbsent(
-				operand.value,
+				operand.getValue(),
 				object -> new LiteralAccessor(
 					invalidIndex,
 					null,
@@ -637,7 +637,7 @@ public final class JVMTranslator
 		@Override
 		public void doOperand (final L2PrimitiveOperand operand)
 		{
-			recordLiteralObject(operand.primitive);
+			recordLiteralObject(operand.getPrimitive());
 		}
 
 		@Override
@@ -685,7 +685,7 @@ public final class JVMTranslator
 		@Override
 		public void doOperand (final L2SelectorOperand operand)
 		{
-			recordLiteralObject(operand.bundle);
+			recordLiteralObject(operand.getBundle());
 		}
 
 		@Override
