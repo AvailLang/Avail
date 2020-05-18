@@ -1,5 +1,5 @@
 /*
- * L2ReadFloatOperand.java
+ * L2ReadFloatOperand.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,110 +29,87 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operand
 
-package com.avail.interpreter.levelTwo.operand;
-
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandDispatcher;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.register.L2FloatRegister;
-import com.avail.interpreter.levelTwo.register.L2Register;
-import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
-import com.avail.optimizer.L2ValueManifest;
-import com.avail.optimizer.values.L2SemanticValue;
-
-import static com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.FLOAT;
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2OperandDispatcher
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.register.L2FloatRegister
+import com.avail.interpreter.levelTwo.register.L2Register
+import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind
+import com.avail.optimizer.L2ValueManifest
+import com.avail.optimizer.values.L2SemanticValue
 
 /**
- * An {@code L2ReadFloatOperand} is an operand of type {@link
- * L2OperandType#READ_FLOAT}. It holds the actual {@link L2FloatRegister} that
- * is to be accessed.
+ * An `L2ReadFloatOperand` is an operand of type [L2OperandType.READ_FLOAT]. It
+ * holds the actual [L2FloatRegister] that is to be accessed.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public class L2ReadFloatOperand
-extends L2ReadOperand<L2FloatRegister>
+class L2ReadFloatOperand : L2ReadOperand<L2FloatRegister>
 {
-	@Override
-	public L2OperandType operandType ()
-	{
-		return L2OperandType.READ_FLOAT;
-	}
+	override fun operandType(): L2OperandType = L2OperandType.READ_FLOAT
 
 	/**
-	 * Construct a new {@code L2ReadFloatOperand} for the specified {@link
-	 * L2SemanticValue} and {@link TypeRestriction}, using information from the
-	 * given {@link L2ValueManifest}.
+	 * Construct a new `L2ReadFloatOperand` for the specified [L2SemanticValue]
+	 * and [TypeRestriction], using information from the given
+	 * [L2ValueManifest].
 	 *
 	 * @param semanticValue
-	 *        The {@link L2SemanticValue} that is being read when an {@link
-	 *        L2Instruction} uses this {@link L2Operand}.
+	 *   The [L2SemanticValue] that is being read when an [L2Instruction] uses
+	 *   this [L2Operand].
 	 * @param restriction
-	 *        The {@link TypeRestriction} to constrain this particular read.
-	 *        This restriction has been guaranteed by the VM at the point where
-	 *        this operand's instruction occurs.
+	 *   The [TypeRestriction] to constrain this particular read. This
+	 *   restriction has been guaranteed by the VM at the point where this
+	 *   operand's instruction occurs.
 	 * @param manifest
-	 *        The {@link L2ValueManifest} from which to extract a suitable
-	 *        definition instruction.
+	 *   The [L2ValueManifest] from which to extract a suitable definition
+	 *   instruction.
 	 */
-	public L2ReadFloatOperand (
-		final L2SemanticValue semanticValue,
-		final TypeRestriction restriction,
-		final L2ValueManifest manifest)
-	{
-		super(
+	constructor(
+			semanticValue: L2SemanticValue,
+			restriction: TypeRestriction,
+			manifest: L2ValueManifest)
+		: super(
 			semanticValue,
 			restriction,
-			manifest.getDefinition(semanticValue, FLOAT));
-		assert restriction.isUnboxedFloat();
+			manifest.getDefinition<L2FloatRegister>(
+				semanticValue, RegisterKind.FLOAT))
+	{
+		assert(restriction.isUnboxedFloat)
 	}
 
 	/**
-	 * Construct a new {@code L2ReadFloatOperand} with an explicit definition
-	 * register {@link L2WriteFloatOperand}.
+	 * Construct a new `L2ReadFloatOperand` with an explicit definition register
+	 * [L2WriteFloatOperand].
 	 *
 	 * @param semanticValue
-	 *        The {@link L2SemanticValue} that is being read when an
-	 *        {@link L2Instruction} uses this {@link L2Operand}.
+	 *   The [L2SemanticValue] that is being read when an [L2Instruction] uses
+	 *   this [L2Operand].
 	 * @param restriction
-	 *        The {@link TypeRestriction} that bounds the value being read.
+	 *   The [TypeRestriction] that bounds the value being read.
 	 * @param register
-	 *        The {@link L2FloatRegister} being read by this operand.
+	 *   The [L2FloatRegister] being read by this operand.
 	 */
-	public L2ReadFloatOperand (
-		final L2SemanticValue semanticValue,
-		final TypeRestriction restriction,
-		final L2FloatRegister register)
+	constructor(
+			semanticValue: L2SemanticValue,
+			restriction: TypeRestriction,
+			register: L2FloatRegister)
+		: super(semanticValue, restriction, register)
+
+	override fun copyForSemanticValue(
+		newSemanticValue: L2SemanticValue): L2ReadFloatOperand =
+			L2ReadFloatOperand(newSemanticValue, restriction(), register())
+
+	override fun copyForRegister(newRegister: L2Register): L2ReadFloatOperand =
+		L2ReadFloatOperand(
+			semanticValue(), restriction(), newRegister as L2FloatRegister)
+
+	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
 	{
-		super(semanticValue, restriction, register);
+		dispatcher.doOperand(this)
 	}
 
-	@Override
-	public L2ReadFloatOperand copyForSemanticValue (
-		final L2SemanticValue newSemanticValue)
-	{
-		return new L2ReadFloatOperand(
-			newSemanticValue, restriction(), register());
-	}
-
-	@Override
-	public L2ReadFloatOperand copyForRegister (
-		final L2Register newRegister)
-	{
-		return new L2ReadFloatOperand(
-			semanticValue(), restriction(), (L2FloatRegister) newRegister);
-	}
-
-	@Override
-	public void dispatchOperand (final L2OperandDispatcher dispatcher)
-	{
-		dispatcher.doOperand(this);
-	}
-
-	@Override
-	public RegisterKind registerKind ()
-	{
-		return FLOAT;
-	}
+	override fun registerKind(): RegisterKind = RegisterKind.FLOAT
 }

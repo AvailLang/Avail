@@ -207,7 +207,7 @@ abstract class L2ReadOperand<R : L2Register> protected constructor(
 	 *   A duplicate of the receiver, but with a different [L2SemanticValue].
 	 */
 	abstract fun copyForSemanticValue(
-		newSemanticValue: L2SemanticValue?): L2ReadOperand<R>
+		newSemanticValue: L2SemanticValue): L2ReadOperand<R>
 
 	/**
 	 * Create an `L2ReadOperand` like this one, but with a different
@@ -218,7 +218,7 @@ abstract class L2ReadOperand<R : L2Register> protected constructor(
 	 * @return
 	 *   A duplicate of the receiver, but with a different [L2Register].
 	 */
-	abstract fun copyForRegister(newRegister: L2Register?): L2ReadOperand<R>
+	abstract fun copyForRegister(newRegister: L2Register): L2ReadOperand<R>
 
 	override fun instructionWasInserted(
 		newInstruction: L2Instruction)
