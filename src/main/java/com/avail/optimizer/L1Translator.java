@@ -2623,7 +2623,7 @@ public final class L1Translator
 			generator.createBasicBlock("merge after possible interrupt");
 
 		addInstruction(
-			L2_JUMP_IF_INTERRUPT.instance,
+			L2_JUMP_IF_INTERRUPT.INSTANCE,
 			edgeTo(serviceInterrupt),
 			edgeTo(merge));
 

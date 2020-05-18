@@ -51,11 +51,7 @@ import java.util.function.Consumer
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-class L2_JUMP_IF_GREATER_THAN_OR_EQUAL_TO_CONSTANT
-/**
- * Construct an `L2_JUMP_IF_GREATER_THAN_OR_EQUAL_TO_CONSTANT`.
- */
-private constructor() : L2ConditionalJump(
+object L2_JUMP_IF_GREATER_THAN_OR_EQUAL_TO_CONSTANT : L2ConditionalJump(
 	L2OperandType.READ_BOXED.`is`("value"),
 	L2OperandType.CONSTANT.`is`("constant"),
 	L2OperandType.PC.`is`("if greater or equal", L2NamedOperandType.Purpose.SUCCESS),
@@ -104,13 +100,5 @@ private constructor() : L2ConditionalJump(
 			Opcodes.IFNE,
 			ifGreaterOrEqual,
 			ifNotGreaterOrEqual)
-	}
-
-	companion object
-	{
-		/**
-		 * Initialize the sole instance.
-		 */
-		val instance = L2_JUMP_IF_GREATER_THAN_OR_EQUAL_TO_CONSTANT()
 	}
 }

@@ -50,11 +50,7 @@ import java.util.function.Consumer
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-class L2_JUMP_IF_GREATER_THAN_OBJECT
-/**
- * Construct an `L2_JUMP_IF_GREATER_THAN_OBJECT`.
- */
-private constructor() : L2ConditionalJump(
+object L2_JUMP_IF_GREATER_THAN_OBJECT : L2ConditionalJump(
 	L2OperandType.READ_BOXED.`is`("first value"),
 	L2OperandType.READ_BOXED.`is`("second value"),
 	L2OperandType.PC.`is`("if greater", L2NamedOperandType.Purpose.SUCCESS),
@@ -98,13 +94,5 @@ private constructor() : L2ConditionalJump(
 		AbstractNumberDescriptor.Order.isMoreMethod.generateCall(method)
 		emitBranch(
 			translator, method, instruction, Opcodes.IFNE, ifGreater, ifNotGreater)
-	}
-
-	companion object
-	{
-		/**
-		 * Initialize the sole instance.
-		 */
-		val instance = L2_JUMP_IF_GREATER_THAN_OBJECT()
 	}
 }

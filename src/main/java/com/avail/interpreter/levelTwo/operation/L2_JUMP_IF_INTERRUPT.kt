@@ -48,11 +48,7 @@ import org.objectweb.asm.Opcodes
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-class L2_JUMP_IF_INTERRUPT
-/**
- * Construct an `L2_JUMP_IF_INTERRUPT`.
- */
-private constructor() : L2ConditionalJump(
+object L2_JUMP_IF_INTERRUPT : L2ConditionalJump(
 	L2OperandType.PC.`is`("if interrupt", L2NamedOperandType.Purpose.OFF_RAMP),
 	L2OperandType.PC.`is`("if not interrupt", L2NamedOperandType.Purpose.SUCCESS))
 {
@@ -75,14 +71,5 @@ private constructor() : L2ConditionalJump(
 			Opcodes.IFNE,
 			ifInterrupt,
 			ifNotInterrupt)
-	}
-
-	companion object
-	{
-		/**
-		 * Initialize the sole instance.
-		 */
-		@kotlin.jvm.JvmField
-		val instance = L2_JUMP_IF_INTERRUPT()
 	}
 }
