@@ -666,7 +666,7 @@ public final class L2Optimizer
 						@Nullable L2ReadBoxedOperand mutableRead = null;
 						@Nullable Pair<Set<L2SemanticValue>, TypeRestriction>
 							pair = null;
-						if (operation == L2_MAKE_IMMUTABLE.instance)
+						if (operation == L2_MAKE_IMMUTABLE.INSTANCE)
 						{
 							mutableRead = L2_MAKE_IMMUTABLE.sourceOfImmutable(
 								instruction);
@@ -685,7 +685,7 @@ public final class L2Optimizer
 							{
 								edge.manifest().forgetRegisters(writtenSet);
 							}
-							if (operation == L2_MAKE_IMMUTABLE.instance)
+							if (operation == L2_MAKE_IMMUTABLE.INSTANCE)
 							{
 								edge.manifest().recordSourceInformation(
 									mutableRead.register(),

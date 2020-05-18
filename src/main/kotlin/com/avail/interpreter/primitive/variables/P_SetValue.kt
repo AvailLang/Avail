@@ -100,9 +100,9 @@ object P_SetValue : Primitive(2, CanInline, HasSideEffect)
 
 		// These two operations have the same operand layouts.
 		val setOperation = if (valueType.isSubtypeOf(varInnerType))
-			L2_SET_VARIABLE_NO_CHECK.instance
+			L2_SET_VARIABLE_NO_CHECK
 		else
-			L2_SET_VARIABLE.instance
+			L2_SET_VARIABLE
 
 		val generator = translator.generator
 		val success = generator.createBasicBlock("set local success")

@@ -706,11 +706,11 @@ public final class L1Translator
 				new L2CommentOperand("Create a reification continuation."));
 		}
 		addInstruction(
-			L2_SET_CONTINUATION.instance,
+			L2_SET_CONTINUATION.INSTANCE,
 			generator.readBoxed(newContinuationWrite));
 
 		// Right after creating the continuation.
-		addInstruction(L2_RETURN_FROM_REIFICATION_HANDLER.instance);
+		addInstruction(L2_RETURN_FROM_REIFICATION_HANDLER.INSTANCE);
 
 		// Here it's returning into the reified continuation.
 		generator.startBlock(onReturnIntoReified);
@@ -1619,7 +1619,7 @@ public final class L1Translator
 			superUnionReg,
 			unionReg);
 		addInstruction(
-			L2_JUMP_IF_SUBTYPE_OF_CONSTANT.instance,
+			L2_JUMP_IF_SUBTYPE_OF_CONSTANT.INSTANCE,
 			readBoxed(unionReg),
 			new L2ConstantOperand(typeToTest),
 			edgeTo(memento.passCheckBasicBlock),
@@ -1698,7 +1698,7 @@ public final class L1Translator
 					// Neither value is a constant, but we can still do the
 					// compare-and-branch without involving Avail booleans.
 					addInstruction(
-						L2_JUMP_IF_OBJECTS_EQUAL.instance,
+						L2_JUMP_IF_OBJECTS_EQUAL.INSTANCE,
 						args.get(0),
 						args.get(1),
 						edgeTo(constantBool ? passBlock : failBlock),
@@ -1706,7 +1706,7 @@ public final class L1Translator
 					return;
 				}
 				else if (boolSource.operation()
-					== L2_JUMP_IF_SUBTYPE_OF_CONSTANT.instance)
+					== L2_JUMP_IF_SUBTYPE_OF_CONSTANT.INSTANCE)
 				{
 					// Instance-of testing is done by extracting the type and
 					// testing if it's a subtype.  See if the operand to the
@@ -1735,7 +1735,7 @@ public final class L1Translator
 					// Perform a branch-if-is-subtype-of instead of checking
 					// whether the Avail boolean is true or false.
 					addInstruction(
-						L2_JUMP_IF_SUBTYPE_OF_CONSTANT.instance,
+						L2_JUMP_IF_SUBTYPE_OF_CONSTANT.INSTANCE,
 						firstTypeOperand,
 						secondConstantOperand,
 						edgeTo(constantBool ? passBlock : failBlock),
@@ -1743,7 +1743,7 @@ public final class L1Translator
 					return;
 				}
 				else if (boolSource.operation()
-					== L2_JUMP_IF_SUBTYPE_OF_OBJECT.instance)
+					== L2_JUMP_IF_SUBTYPE_OF_OBJECT.INSTANCE)
 				{
 					// Instance-of testing is done by extracting the type and
 					// testing if it's a subtype.  See if the operand to the
@@ -1763,7 +1763,7 @@ public final class L1Translator
 						final L2ReadBoxedOperand valueSource =
 							L2_GET_TYPE.sourceValueOf(firstTypeSource);
 						addInstruction(
-							L2_JUMP_IF_KIND_OF_OBJECT.instance,
+							L2_JUMP_IF_KIND_OF_OBJECT.INSTANCE,
 							valueSource,
 							secondTypeOperand,
 							edgeTo(constantBool ? passBlock : failBlock),
@@ -1773,7 +1773,7 @@ public final class L1Translator
 					// Perform a branch-if-is-subtype-of instead of checking
 					// whether the Avail boolean is true or false.
 					addInstruction(
-						L2_JUMP_IF_SUBTYPE_OF_OBJECT.instance,
+						L2_JUMP_IF_SUBTYPE_OF_OBJECT.INSTANCE,
 						firstTypeOperand,
 						secondTypeOperand,
 						edgeTo(constantBool ? passBlock : failBlock),
@@ -2079,7 +2079,7 @@ public final class L1Translator
 		final L2BasicBlock wroteVariable =
 			generator.createBasicBlock("wrote offending value into variable");
 		addInstruction(
-			L2_SET_VARIABLE_NO_CHECK.instance,
+			L2_SET_VARIABLE_NO_CHECK.INSTANCE,
 			readBoxed(variableToHoldValueWrite),
 			uncheckedValueRead,
 			edgeTo(wroteVariable),
@@ -2185,7 +2185,7 @@ public final class L1Translator
 		}
 		// We can't pin it down statically, so do the dynamic check.
 		addInstruction(
-			L2_JUMP_IF_KIND_OF_CONSTANT.instance,
+			L2_JUMP_IF_KIND_OF_CONSTANT.INSTANCE,
 			valueRead,
 			new L2ConstantOperand(expectedType),
 			edgeTo(passedCheck),
@@ -2641,7 +2641,7 @@ public final class L1Translator
 				BEGIN_REIFICATION_FOR_INTERRUPT.createZone(
 					"Start reification and run interrupt"));
 		addInstruction(
-			L2_REIFY.instance,
+			L2_REIFY.INSTANCE,
 			new L2IntImmediateOperand(1),
 			new L2IntImmediateOperand(1),
 			new L2IntImmediateOperand(
@@ -2942,7 +2942,7 @@ public final class L1Translator
 			// is generated.
 			final L2BasicBlock success = generator.createBasicBlock("success");
 			addInstruction(
-				L2_SET_VARIABLE_NO_CHECK.instance,
+				L2_SET_VARIABLE_NO_CHECK.INSTANCE,
 				readSlot(numArgs + 1),
 				getLatestReturnValue(code.localTypeAt(1).writeType()),
 				edgeTo(success),
@@ -2980,7 +2980,7 @@ public final class L1Translator
 		if (generator.currentlyReachable())
 		{
 			final L2ReadBoxedOperand readResult = readSlot(stackp);
-			addInstruction(L2_RETURN.instance, readResult);
+			addInstruction(L2_RETURN.INSTANCE, readResult);
 			assert stackp == numSlots;
 			stackp = Integer.MIN_VALUE;
 		}
@@ -3271,7 +3271,7 @@ public final class L1Translator
 	{
 		final int localIndex = instructionDecoder.getOperand();
 		emitSetVariableOffRamp(
-			L2_SET_VARIABLE_NO_CHECK.instance,
+			L2_SET_VARIABLE_NO_CHECK.INSTANCE,
 			readSlot(localIndex),
 			readSlot(stackp));
 		// Now we have to nil the stack slot which held the value that we
@@ -3334,7 +3334,7 @@ public final class L1Translator
 		final L2ReadBoxedOperand tempVarReg =
 			getOuterRegister(outerIndex, outerType);
 		emitSetVariableOffRamp(
-			L2_SET_VARIABLE_NO_CHECK.instance,
+			L2_SET_VARIABLE_NO_CHECK.INSTANCE,
 			tempVarReg,
 			readSlot(stackp));
 		// Now we have to nil the stack slot which held the value that we
@@ -3499,7 +3499,7 @@ public final class L1Translator
 		final A_Variable literalVariable = code.literalAt(
 			instructionDecoder.getOperand());
 		emitSetVariableOffRamp(
-			L2_SET_VARIABLE_NO_CHECK.instance,
+			L2_SET_VARIABLE_NO_CHECK.INSTANCE,
 			generator.boxedConstant(literalVariable),
 			readSlot(stackp));
 		// Now we have to nil the stack slot which held the value that we

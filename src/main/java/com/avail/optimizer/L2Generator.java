@@ -642,7 +642,7 @@ public final class L2Generator
 			final L2BasicBlock onSuccess =
 				createBasicBlock("successfully unboxed");
 			addInstruction(
-				L2_JUMP_IF_UNBOX_INT.instance,
+				L2_JUMP_IF_UNBOX_INT.INSTANCE,
 				boxedRead,
 				intWrite,
 				edgeTo(onFailure),
@@ -733,7 +733,7 @@ public final class L2Generator
 			final L2BasicBlock onSuccess =
 				createBasicBlock("successfully unboxed");
 			addInstruction(
-				L2_JUMP_IF_UNBOX_FLOAT.instance,
+				L2_JUMP_IF_UNBOX_FLOAT.INSTANCE,
 				boxedRead,
 				floatWrite,
 				edgeTo(onSuccess),
@@ -878,7 +878,7 @@ public final class L2Generator
 		// the instruction is added.
 		assert immutableRestriction.isBoxed();
 		addInstruction(
-			L2_MAKE_IMMUTABLE.instance,
+			L2_MAKE_IMMUTABLE.INSTANCE,
 			read,
 			boxedWrite(temp, immutableRestriction));
 		return currentManifest.readBoxed(temp);

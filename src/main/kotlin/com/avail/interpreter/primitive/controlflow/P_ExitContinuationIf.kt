@@ -128,7 +128,7 @@ object P_ExitContinuationIf : Primitive(
 				dontExit)
 			generator.startBlock(exit)
 			generator.addInstruction(
-				L2_RETURN.instance,
+				L2_RETURN,
 				generator.boxedConstant(nil))
 			generator.startBlock(dontExit)
 			callSiteHelper.useAnswer(translator.generator.boxedConstant(nil))

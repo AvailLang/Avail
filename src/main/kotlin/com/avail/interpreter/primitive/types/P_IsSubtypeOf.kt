@@ -158,7 +158,7 @@ object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 			else
 			{
 				translator.addInstruction(
-					L2_JUMP_IF_KIND_OF_OBJECT.instance,
+					L2_JUMP_IF_KIND_OF_OBJECT,
 					xInstanceRead,
 					yTypeReg,
 					edgeTo(ifSubtype),
@@ -168,7 +168,7 @@ object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 		else if (constantYType !== null)
 		{
 			translator.addInstruction(
-				L2_JUMP_IF_SUBTYPE_OF_CONSTANT.instance,
+				L2_JUMP_IF_SUBTYPE_OF_CONSTANT,
 				xTypeReg,
 				L2ConstantOperand(constantYType),
 				edgeTo(ifSubtype),
@@ -177,7 +177,7 @@ object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 		else
 		{
 			translator.addInstruction(
-				L2_JUMP_IF_SUBTYPE_OF_OBJECT.instance,
+				L2_JUMP_IF_SUBTYPE_OF_OBJECT,
 				xTypeReg,
 				yTypeReg,
 				edgeTo(ifSubtype),

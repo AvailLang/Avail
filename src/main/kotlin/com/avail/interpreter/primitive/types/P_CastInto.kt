@@ -175,7 +175,7 @@ object P_CastInto : Primitive(2, Invokes, CanInline)
 					L2IntImmediateOperand(1),
 					parameterTypeWrite)
 				translator.addInstruction(
-					L2_JUMP_IF_KIND_OF_OBJECT.instance,
+					L2_JUMP_IF_KIND_OF_OBJECT,
 					valueRead,
 					translator.readBoxed(parameterTypeWrite),
 					edgeTo(castBlock),

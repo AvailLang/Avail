@@ -325,7 +325,7 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 				// synonym, so subsequent uses of the result might use either
 				// register, depending whether an unboxed value is desired.
 				translator.addInstruction(
-					L2_MULTIPLY_INT_BY_INT_MOD_32_BITS.instance,
+					L2_MULTIPLY_INT_BY_INT_MOD_32_BITS,
 					intA,
 					intB,
 					tempWriter)
@@ -336,7 +336,7 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 				val success =
 					generator.createBasicBlock("product is in range")
 				translator.addInstruction(
-					L2_MULTIPLY_INT_BY_INT.instance,
+					L2_MULTIPLY_INT_BY_INT,
 					intA,
 					intB,
 					tempWriter,

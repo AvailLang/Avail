@@ -413,7 +413,7 @@ abstract class L2ReadOperand<R : L2Register> protected constructor(
 			}
 			//TODO: Trace back through L2_[BOX|UNBOX]_[INT|FLOAT], etc.
 			if (bypassImmutables
-				&& instruction.operation() === L2_MAKE_IMMUTABLE.instance)
+				&& instruction.operation() === L2_MAKE_IMMUTABLE)
 			{
 				def =
 					L2_MAKE_IMMUTABLE.sourceOfImmutable(instruction).definition()

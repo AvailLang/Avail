@@ -197,7 +197,7 @@ object P_RestartContinuationWithArguments : Primitive(
 
 			// Now keep only the new temps visible in the manifest.
 			generator.addInstruction(
-				L2_STRIP_MANIFEST.instance,
+				L2_STRIP_MANIFEST,
 				L2ReadBoxedVectorOperand(tempReads))
 
 			// Now move them into semantic slots n@1, so the phis at the
@@ -221,7 +221,7 @@ object P_RestartContinuationWithArguments : Primitive(
 
 			// Now keep only the new args visible in the manifest.
 			generator.addInstruction(
-				L2_STRIP_MANIFEST.instance,
+				L2_STRIP_MANIFEST,
 				L2ReadBoxedVectorOperand(newReads))
 
 			val trampolineBlock = generator.createBasicBlock(
@@ -279,7 +279,7 @@ object P_RestartContinuationWithArguments : Primitive(
 		explodedArgumentRegs ?: return false
 
 		translator.addInstruction(
-			L2_RESTART_CONTINUATION_WITH_ARGUMENTS.instance,
+			L2_RESTART_CONTINUATION_WITH_ARGUMENTS,
 			continuationReg,
 			L2ReadBoxedVectorOperand(explodedArgumentRegs))
 		assert(!generator.currentlyReachable())
