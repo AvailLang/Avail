@@ -29,22 +29,18 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.levelTwo.operation;
+package com.avail.interpreter.levelTwo.operation
 
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.descriptor.representation.AvailObject.frameAtMethod;
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import com.avail.descriptor.representation.AvailObject
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2Operation
+import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.MethodVisitor
+import java.util.function.Consumer
 
 /**
  * Extract a single slot from a continuation.
@@ -52,63 +48,45 @@ import static com.avail.interpreter.levelTwo.L2OperandType.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_EXTRACT_CONTINUATION_SLOT
-extends L2Operation
+object L2_EXTRACT_CONTINUATION_SLOT : L2Operation(
+	L2OperandType.READ_BOXED.`is`("continuation"),
+	L2OperandType.INT_IMMEDIATE.`is`("slot index"),
+	L2OperandType.WRITE_BOXED.`is`("extracted slot"))
 {
-	/**
-	 * Construct an {@code L2_EXTRACT_CONTINUATION_SLOT}.
-	 */
-	private L2_EXTRACT_CONTINUATION_SLOT ()
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		super(
-			READ_BOXED.is("continuation"),
-			INT_IMMEDIATE.is("slot index"),
-			WRITE_BOXED.is("extracted slot"));
+		assert(this == instruction.operation())
+		val continuation = instruction.operand<L2ReadBoxedOperand>(0)
+		val slotIndex = instruction.operand<L2IntImmediateOperand>(1)
+		val slotValue = instruction.operand<L2WriteBoxedOperand>(2)
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(slotValue.registerString())
+		builder.append(" ← ")
+		builder.append(continuation.registerString())
+		builder.append('[')
+		builder.append(slotIndex.value)
+		builder.append(']')
 	}
 
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_EXTRACT_CONTINUATION_SLOT instance =
-		new L2_EXTRACT_CONTINUATION_SLOT();
-
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
-	{
-		assert this == instruction.operation();
-		final L2ReadBoxedOperand continuation = instruction.operand(0);
-		final L2IntImmediateOperand slotIndex = instruction.operand(1);
-		final L2WriteBoxedOperand slotValue = instruction.operand(2);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(slotValue.registerString());
-		builder.append(" ← ");
-		builder.append(continuation.registerString());
-		builder.append('[');
-		builder.append(slotIndex.value);
-		builder.append(']');
-	}
-
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
 		// Extract a single slot from the given continuation.
-		final L2ReadBoxedOperand continuation = instruction.operand(0);
-		final L2IntImmediateOperand slotIndex = instruction.operand(1);
-		final L2WriteBoxedOperand slotValue = instruction.operand(2);
+		val continuation = instruction.operand<L2ReadBoxedOperand>(0)
+		val slotIndex = instruction.operand<L2IntImmediateOperand>(1)
+		val slotValue = instruction.operand<L2WriteBoxedOperand>(2)
 
 		// :: «slot[i]» = continuation.frameAt(«slotIndex»);
-		translator.load(method, continuation.register());
-		translator.intConstant(method, slotIndex.value);
-		frameAtMethod.generateCall(method);
-		translator.store(method, slotValue.register());
+		translator.load(method, continuation.register())
+		translator.intConstant(method, slotIndex.value)
+		AvailObject.frameAtMethod.generateCall(method)
+		translator.store(method, slotValue.register())
 	}
 }

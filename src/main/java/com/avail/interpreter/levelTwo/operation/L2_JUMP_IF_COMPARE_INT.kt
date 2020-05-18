@@ -29,133 +29,109 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operation
 
-package com.avail.interpreter.levelTwo.operation;
-
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.PC;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_INT;
-import static org.objectweb.asm.Opcodes.*;
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2NamedOperandType
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.operand.L2PcOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
+import java.util.function.Consumer
 
 /**
  * Jump to the target if int1 is less than int2.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @property opcode
+ *   The opcode that compares and branches to the success case.
+ * @property opcodeName
+ *   The symbolic name of the opcode that compares and branches to the success
+ *   case.
+ * @constructor
+ * Construct an `L2_JUMP_IF_LESS_THAN_CONSTANT`.
+ *
+ * @param opcode
+ *   The opcode number for this compare-and-branch.
+ * @param opcodeName
+ *   The symbolic name of the opcode for this compare-and-branch.
  */
-public final class L2_JUMP_IF_COMPARE_INT
-extends L2ConditionalJump
+class L2_JUMP_IF_COMPARE_INT private constructor(
+		private val opcode: Int,
+		private val opcodeName: String) :
+	L2ConditionalJump(
+		L2OperandType.READ_INT.`is`("int1"),
+		L2OperandType.READ_INT.`is`("int2"),
+		L2OperandType.PC.`is`("if true", L2NamedOperandType.Purpose.SUCCESS),
+		L2OperandType.PC.`is`("if false", L2NamedOperandType.Purpose.FAILURE))
 {
-	/**
-	 * Construct an {@code L2_JUMP_IF_LESS_THAN_CONSTANT}.
-	 * @param opcode
-	 *        The opcode number for this compare-and-branch.
-	 * @param opcodeName
-	 *        The symbolic name of the opcode for this compare-and-branch.
-	 */
-	private L2_JUMP_IF_COMPARE_INT (
-		final int opcode,
-		final String opcodeName)
+
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		super(
-			READ_INT.is("int1"),
-			READ_INT.is("int2"),
-			PC.is("if true", SUCCESS),
-			PC.is("if false", FAILURE));
-		this.opcode = opcode;
-		this.opcodeName = opcodeName;
-	}
-
-	/** An instance for testing whether a < b. */
-	public static final L2_JUMP_IF_COMPARE_INT less =
-		new L2_JUMP_IF_COMPARE_INT(IF_ICMPLT, "<");
-
-	/** An instance for testing whether a > b. */
-	public static final L2_JUMP_IF_COMPARE_INT greater =
-		new L2_JUMP_IF_COMPARE_INT(IF_ICMPGT, ">");
-
-	/** An instance for testing whether a ≤ b. */
-	public static final L2_JUMP_IF_COMPARE_INT lessOrEqual =
-		new L2_JUMP_IF_COMPARE_INT(IF_ICMPLE, "≤");
-
-	/** An instance for testing whether a ≥ b. */
-	public static final L2_JUMP_IF_COMPARE_INT greaterOrEqual =
-		new L2_JUMP_IF_COMPARE_INT(IF_ICMPGE, "≥");
-
-	/** An instance for testing whether a = b. */
-	public static final L2_JUMP_IF_COMPARE_INT equal =
-		new L2_JUMP_IF_COMPARE_INT(IF_ICMPEQ, "=");
-
-	/** An instance for testing whether a ≠ b. */
-	public static final L2_JUMP_IF_COMPARE_INT notEqual =
-		new L2_JUMP_IF_COMPARE_INT(IF_ICMPNE, "≠");
-
-	/**
-	 * The opcode that compares and branches to the success case.
-	 */
-	private final int opcode;
-
-	/**
-	 * The symbolic name of the opcode that compares and branches to the success
-	 * case.
-	 */
-	private final String opcodeName;
-
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
-	{
-		assert this == instruction.operation();
-		final L2ReadIntOperand int1Reg = instruction.operand(0);
-		final L2ReadIntOperand int2Reg = instruction.operand(1);
-//		final L2PcOperand ifTrue = instruction.operand(2);
+		assert(this == instruction.operation())
+		val int1Reg = instruction.operand<L2ReadIntOperand>(0)
+		val int2Reg = instruction.operand<L2ReadIntOperand>(1)
+		//		final L2PcOperand ifTrue = instruction.operand(2);
 //		final L2PcOperand ifFalse = instruction.operand(3);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(int1Reg.registerString());
-		builder.append(" ");
-		builder.append(opcodeName);
-		builder.append(" ");
-		builder.append(int2Reg.registerString());
-		renderOperandsStartingAt(instruction, 2, desiredTypes, builder);
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(int1Reg.registerString())
+		builder.append(" ")
+		builder.append(opcodeName)
+		builder.append(" ")
+		builder.append(int2Reg.registerString())
+		renderOperandsStartingAt(instruction, 2, desiredTypes, builder)
 	}
 
-	@Override
-	public String toString ()
+	override fun toString(): String
 	{
-		return super.toString() + "(" + opcodeName + ")";
+		return super.toString() + "(" + opcodeName + ")"
 	}
 
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		final L2ReadIntOperand int1Reg = instruction.operand(0);
-		final L2ReadIntOperand int2Reg = instruction.operand(1);
-		final L2PcOperand ifTrue = instruction.operand(2);
-		final L2PcOperand ifFalse = instruction.operand(3);
+		val int1Reg = instruction.operand<L2ReadIntOperand>(0)
+		val int2Reg = instruction.operand<L2ReadIntOperand>(1)
+		val ifTrue = instruction.operand<L2PcOperand>(2)
+		val ifFalse = instruction.operand<L2PcOperand>(3)
 
 		// :: if (int1 op int2) goto ifTrue;
 		// :: else goto ifFalse;
-		translator.load(method, int1Reg.register());
-		translator.load(method, int2Reg.register());
-		emitBranch(translator, method, instruction, opcode, ifTrue, ifFalse);
+		translator.load(method, int1Reg.register())
+		translator.load(method, int2Reg.register())
+		emitBranch(translator, method, instruction, opcode, ifTrue, ifFalse)
 	}
+
+	companion object
+	{
+		/** An instance for testing whether a < b.  */
+		val less = L2_JUMP_IF_COMPARE_INT(Opcodes.IF_ICMPLT, "<")
+
+		/** An instance for testing whether a > b.  */
+		val greater = L2_JUMP_IF_COMPARE_INT(Opcodes.IF_ICMPGT, ">")
+
+		/** An instance for testing whether a ≤ b.  */
+		val lessOrEqual = L2_JUMP_IF_COMPARE_INT(Opcodes.IF_ICMPLE, "≤")
+
+		/** An instance for testing whether a ≥ b.  */
+		val greaterOrEqual = L2_JUMP_IF_COMPARE_INT(Opcodes.IF_ICMPGE, "≥")
+
+		/** An instance for testing whether a = b.  */
+		val equal = L2_JUMP_IF_COMPARE_INT(Opcodes.IF_ICMPEQ, "=")
+
+		/** An instance for testing whether a ≠ b.  */
+		val notEqual = L2_JUMP_IF_COMPARE_INT(Opcodes.IF_ICMPNE, "≠")
+	}
+
 }

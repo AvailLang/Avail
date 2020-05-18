@@ -29,28 +29,22 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operation
 
-package com.avail.interpreter.levelTwo.operation;
-
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
-import com.avail.optimizer.L2ValueManifest;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.descriptor.types.IntegerRangeTypeDescriptor.int32;
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Type.INT_TYPE;
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2NamedOperandType
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.operand.L2PcOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand
+import com.avail.optimizer.L2ValueManifest
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.Label
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
+import org.objectweb.asm.Type
+import java.util.function.Consumer
 
 /**
  * Add the value in one int register to another int register, jumping to the
@@ -59,120 +53,98 @@ import static org.objectweb.asm.Type.INT_TYPE;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_ADD_INT_TO_INT
-extends L2ControlFlowOperation
+object L2_ADD_INT_TO_INT : L2ControlFlowOperation(
+	L2OperandType.READ_INT.`is`("augend"),
+	L2OperandType.READ_INT.`is`("addend"),
+	L2OperandType.WRITE_INT.`is`("sum", L2NamedOperandType.Purpose.SUCCESS),
+	L2OperandType.PC.`is`("out of range", L2NamedOperandType.Purpose.FAILURE),
+	L2OperandType.PC.`is`("in range", L2NamedOperandType.Purpose.SUCCESS))
 {
-	/**
-	 * Construct an {@code L2_ADD_INT_TO_INT}.
-	 */
-	private L2_ADD_INT_TO_INT ()
+	override fun instructionWasAdded(
+		instruction: L2Instruction,
+		manifest: L2ValueManifest)
 	{
-		super(
-			READ_INT.is("augend"),
-			READ_INT.is("addend"),
-			WRITE_INT.is("sum", SUCCESS),
-			PC.is("out of range", FAILURE),
-			PC.is("in range", SUCCESS));
-	}
-
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_ADD_INT_TO_INT instance = new L2_ADD_INT_TO_INT();
-
-	@Override
-	public void instructionWasAdded (
-		final L2Instruction instruction,
-		final L2ValueManifest manifest)
-	{
-		assert this == instruction.operation();
-//		final L2ReadIntOperand augendReg = instruction.operand(0);
+		assert(this == instruction.operation())
+		//		final L2ReadIntOperand augendReg = instruction.operand(0);
 //		final L2ReadIntOperand addendReg = instruction.operand(1);
-		final L2WriteIntOperand sumReg = instruction.operand(2);
-//		final L2PcOperand outOfRange = instruction.operand(3);
-		final L2PcOperand inRange = instruction.operand(4);
-
-		super.instructionWasAdded(instruction, manifest);
-		inRange.manifest().intersectType(sumReg.pickSemanticValue(), int32());
+		val sumReg = instruction.operand<L2WriteIntOperand>(2)
+		//		final L2PcOperand outOfRange = instruction.operand(3);
+		val inRange = instruction.operand<L2PcOperand>(4)
+		super.instructionWasAdded(instruction, manifest)
+		inRange.manifest().intersectType(
+			sumReg.pickSemanticValue(), IntegerRangeTypeDescriptor.int32())
 	}
 
-	@Override
-	public boolean hasSideEffect ()
-	{
-		// It jumps if the result doesn't fit in an int.
-		return true;
-	}
+	// It jumps if the result doesn't fit in an int.
+	override fun hasSideEffect(): Boolean = true
 
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		assert this == instruction.operation();
-		final L2ReadIntOperand augend = instruction.operand(0);
-		final L2ReadIntOperand addend = instruction.operand(1);
-		final L2WriteIntOperand sum = instruction.operand(2);
-//		final L2PcOperand outOfRange = instruction.operand(3);
+		assert(this == instruction.operation())
+		val augend = instruction.operand<L2ReadIntOperand>(0)
+		val addend = instruction.operand<L2ReadIntOperand>(1)
+		val sum = instruction.operand<L2WriteIntOperand>(2)
+		//		final L2PcOperand outOfRange = instruction.operand(3);
 //		final L2PcOperand inRange = instruction.operand(4);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(sum.registerString());
-		builder.append(" ← ");
-		builder.append(augend.registerString());
-		builder.append(" + ");
-		builder.append(addend.registerString());
-		renderOperandsStartingAt(instruction, 3, desiredTypes, builder);
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(sum.registerString())
+		builder.append(" ← ")
+		builder.append(augend.registerString())
+		builder.append(" + ")
+		builder.append(addend.registerString())
+		renderOperandsStartingAt(instruction, 3, desiredTypes, builder)
 	}
 
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		final L2ReadIntOperand augendReg = instruction.operand(0);
-		final L2ReadIntOperand addendReg = instruction.operand(1);
-		final L2WriteIntOperand sumReg = instruction.operand(2);
-		final L2PcOperand outOfRange = instruction.operand(3);
-		final L2PcOperand inRange = instruction.operand(4);
+		val augendReg = instruction.operand<L2ReadIntOperand>(0)
+		val addendReg = instruction.operand<L2ReadIntOperand>(1)
+		val sumReg = instruction.operand<L2WriteIntOperand>(2)
+		val outOfRange = instruction.operand<L2PcOperand>(3)
+		val inRange = instruction.operand<L2PcOperand>(4)
 
 		// :: longSum = (long) augend + (long) addend;
-		translator.load(method, augendReg.register());
-		method.visitInsn(I2L);
-		translator.load(method, addendReg.register());
-		method.visitInsn(I2L);
-		method.visitInsn(LADD);
-		method.visitInsn(DUP2);
+		translator.load(method, augendReg.register())
+		method.visitInsn(Opcodes.I2L)
+		translator.load(method, addendReg.register())
+		method.visitInsn(Opcodes.I2L)
+		method.visitInsn(Opcodes.LADD)
+		method.visitInsn(Opcodes.DUP2)
 		// :: intSum = (int) longSum;
-		method.visitInsn(L2I);
-		method.visitInsn(DUP);
-		final int intSumLocal = translator.nextLocal(INT_TYPE);
-		final Label intSumStart = new Label();
-		method.visitLabel(intSumStart);
-		method.visitVarInsn(ISTORE, intSumLocal);
+		method.visitInsn(Opcodes.L2I)
+		method.visitInsn(Opcodes.DUP)
+		val intSumLocal = translator.nextLocal(Type.INT_TYPE)
+		val intSumStart = Label()
+		method.visitLabel(intSumStart)
+		method.visitVarInsn(Opcodes.ISTORE, intSumLocal)
 		// :: if (longSum != intSum) goto outOfRange;
-		method.visitInsn(I2L);
-		method.visitInsn(LCMP);
+		method.visitInsn(Opcodes.I2L)
+		method.visitInsn(Opcodes.LCMP)
 		method.visitJumpInsn(
-			IFNE, translator.labelFor(outOfRange.offset()));
+			Opcodes.IFNE, translator.labelFor(outOfRange.offset()))
 		// :: else {
 		// ::    sum = intSum;
 		// ::    goto inRange;
 		// :: }
-		method.visitVarInsn(ILOAD, intSumLocal);
-		final Label intSumEnd = new Label();
-		method.visitLabel(intSumEnd);
+		method.visitVarInsn(Opcodes.ILOAD, intSumLocal)
+		val intSumEnd = Label()
+		method.visitLabel(intSumEnd)
 		method.visitLocalVariable(
 			"intSum",
-			INT_TYPE.getDescriptor(),
+			Type.INT_TYPE.descriptor,
 			null,
 			intSumStart,
 			intSumEnd,
-			intSumLocal);
-		translator.store(method, sumReg.register());
-		translator.jump(method, instruction, inRange);
+			intSumLocal)
+		translator.store(method, sumReg.register())
+		translator.jump(method, instruction, inRange)
 	}
 }

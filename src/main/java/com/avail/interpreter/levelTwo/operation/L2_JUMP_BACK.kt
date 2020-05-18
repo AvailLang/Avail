@@ -29,112 +29,86 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operation
 
-package com.avail.interpreter.levelTwo.operation;
-
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand;
-import com.avail.interpreter.levelTwo.register.L2Register;
-import com.avail.optimizer.L2ValueManifest;
-import com.avail.optimizer.jvm.JVMTranslator;
-import com.avail.optimizer.values.L2SemanticValue;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.HashSet;
-import java.util.Set;
-
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.PC;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR;
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2NamedOperandType
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2Operation
+import com.avail.interpreter.levelTwo.operand.L2PcOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand
+import com.avail.interpreter.levelTwo.register.L2Register
+import com.avail.optimizer.L2ValueManifest
+import com.avail.optimizer.jvm.JVMTranslator
+import com.avail.optimizer.values.L2SemanticValue
+import org.objectweb.asm.MethodVisitor
+import java.util.*
+import java.util.function.Consumer
 
 /**
- * Unconditionally jump to the level two offset in my {@link L2PcOperand}, while
- * also limiting that edge's {@link L2ValueManifest} to the
- * {@link L2ReadVectorOperand}'s reads.
+ * Unconditionally jump to the level two offset in my [L2PcOperand], while also
+ * limiting that edge's [L2ValueManifest] to the [L2ReadVectorOperand]'s reads.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_JUMP_BACK
-extends L2ControlFlowOperation
+object L2_JUMP_BACK : L2ControlFlowOperation(
+	L2OperandType.PC.`is`("target", L2NamedOperandType.Purpose.SUCCESS),
+	L2OperandType.READ_BOXED_VECTOR.`is`("registers to keep"))
 {
-	/**
-	 * Construct an {@code L2_JUMP_BACK}.
-	 */
-	private L2_JUMP_BACK ()
-	{
-		super(
-			PC.is("target", SUCCESS),
-			READ_BOXED_VECTOR.is("registers to keep"));
-	}
+	// It jumps, which counts as a side effect.
+	override fun hasSideEffect(): Boolean =  true
 
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_JUMP_BACK instance = new L2_JUMP_BACK();
+	override val isUnconditionalJump: Boolean
+		get() = true
 
-	@Override
-	public boolean hasSideEffect ()
+	override fun instructionWasAdded(
+		instruction: L2Instruction,
+		manifest: L2ValueManifest)
 	{
-		// It jumps, which counts as a side effect.
-		return true;
-	}
-
-	@Override
-	public boolean isUnconditionalJump ()
-	{
-		return true;
-	}
-
-	@Override
-	public void instructionWasAdded (
-		final L2Instruction instruction,
-		final L2ValueManifest manifest)
-	{
-		final L2PcOperand target = instruction.operand(0);
-		final L2ReadBoxedVectorOperand preservedReads = instruction.operand(1);
+		val target = instruction.operand<L2PcOperand>(0)
+		val preservedReads =
+			instruction.operand<L2ReadBoxedVectorOperand>(1)
 
 		// Play the reads against the old manifest, which is then filtered.
-		preservedReads.instructionWasAdded(manifest);
-		final Set<L2SemanticValue> semanticValuesToKeep = new HashSet<>();
-		final Set<L2Register> registersToKeep = new HashSet<>();
-		preservedReads.elements().forEach(readOperand ->
-		{
-			semanticValuesToKeep.add(readOperand.semanticValue());
-			registersToKeep.add(readOperand.register());
-		});
-		manifest.retainSemanticValues(semanticValuesToKeep);
-		manifest.retainRegisters(registersToKeep);
+		preservedReads.instructionWasAdded(manifest)
+		val semanticValuesToKeep: MutableSet<L2SemanticValue> = HashSet()
+		val registersToKeep: MutableSet<L2Register> = HashSet()
+		preservedReads.elements().forEach(Consumer { readOperand: L2ReadBoxedOperand ->
+			semanticValuesToKeep.add(readOperand.semanticValue())
+			registersToKeep.add(readOperand.register())
+		})
+		manifest.retainSemanticValues(semanticValuesToKeep)
+		manifest.retainRegisters(registersToKeep)
+		target.instructionWasAdded(manifest)
+	}
 
-		target.instructionWasAdded(manifest);
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
+	{
+		val target = instruction.operand<L2PcOperand>(0)
+
+		// :: goto offset;
+		translator.jump(method, instruction, target)
 	}
 
 	/**
 	 * Extract the target of the given jump-back instruction.
 	 *
 	 * @param instruction
-	 *        The {@link L2Instruction} to examine.  Its {@link L2Operation}
-	 *        must be an {@code L2_JUMP_BACK}.
-	 * @return The {@link L2PcOperand} to which the instruction jumps.
+	 *   The [L2Instruction] to examine.  Its [L2Operation] must be an
+	 *   `L2_JUMP_BACK`.
+	 * @return
+	 *   The [L2PcOperand] to which the instruction jumps.
 	 */
-	public static L2PcOperand jumpTarget (final L2Instruction instruction)
+	@kotlin.jvm.JvmStatic
+	fun jumpTarget(instruction: L2Instruction): L2PcOperand
 	{
-		assert instruction.operation() == instance;
-		return instruction.operand(0);
-	}
-
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
-	{
-		final L2PcOperand target = instruction.operand(0);
-
-		// :: goto offset;
-		translator.jump(method, instruction, target);
+		assert(instruction.operation() === this)
+		return instruction.operand(0)
 	}
 }

@@ -29,17 +29,15 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operation
 
-package com.avail.interpreter.levelTwo.operation;
-
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.MethodVisitor;
-
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.PC;
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2NamedOperandType
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2Operation
+import com.avail.interpreter.levelTwo.operand.L2PcOperand
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.MethodVisitor
 
 /**
  * Unconditionally jump to the level two offset in my only operand.
@@ -47,59 +45,41 @@ import static com.avail.interpreter.levelTwo.L2OperandType.PC;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_JUMP
-extends L2ControlFlowOperation
+object L2_JUMP : L2ControlFlowOperation(
+	L2OperandType.PC.`is`("target", L2NamedOperandType.Purpose.SUCCESS))
 {
-	/**
-	 * Construct an {@code L2_JUMP}.
-	 */
-	private L2_JUMP ()
-	{
-		super(
-			PC.is("target", SUCCESS));
-	}
-
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_JUMP instance = new L2_JUMP();
-
-	@Override
-	public boolean hasSideEffect ()
+	override fun hasSideEffect(): Boolean
 	{
 		// It jumps, which counts as a side effect.
-		return true;
+		return true
 	}
 
-	@Override
-	public boolean isUnconditionalJump ()
+	override val isUnconditionalJump: Boolean
+		get() = true
+
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		return true;
+		val target = instruction.operand<L2PcOperand>(0)
+
+		// :: goto offset;
+		translator.jump(method, instruction, target)
 	}
 
 	/**
 	 * Extract the target of the given jump instruction.
 	 *
 	 * @param instruction
-	 *        The {@link L2Instruction} to examine.  Its {@link L2Operation}
-	 *        must be an {@code L2_JUMP}.
-	 * @return The {@link L2PcOperand} to which the instruction jumps.
+	 * The [L2Instruction] to examine.  Its [L2Operation] must be an `L2_JUMP`.
+	 * @return
+	 * The [L2PcOperand] to which the instruction jumps.
 	 */
-	public static L2PcOperand jumpTarget (final L2Instruction instruction)
+	@kotlin.jvm.JvmStatic
+	fun jumpTarget(instruction: L2Instruction): L2PcOperand
 	{
-		assert instruction.operation() == instance;
-		return instruction.operand(0);
-	}
-
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
-	{
-		final L2PcOperand target = instruction.operand(0);
-
-		// :: goto offset;
-		translator.jump(method, instruction, target);
+		assert(instruction.operation() === this)
+		return instruction.operand(0)
 	}
 }

@@ -29,267 +29,226 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.levelTwo.operation;
+package com.avail.interpreter.levelTwo.operation
 
-import com.avail.descriptor.functions.A_Function;
-import com.avail.descriptor.functions.A_RawFunction;
-import com.avail.descriptor.functions.FunctionDescriptor;
-import com.avail.descriptor.types.A_Type;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
-import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
-import com.avail.interpreter.levelTwo.operand.TypeRestriction;
-import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.L2ValueManifest;
-import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.jvm.JVMTranslator;
-import com.avail.optimizer.values.L2SemanticValue;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.descriptor.functions.FunctionDescriptor.*;
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static com.avail.utility.Strings.increaseIndentation;
-import static org.objectweb.asm.Opcodes.DUP;
+import com.avail.descriptor.functions.A_Function
+import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.FunctionDescriptor
+import com.avail.descriptor.functions.FunctionDescriptor.Companion.createExceptOuters
+import com.avail.descriptor.types.A_Type
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2Operation
+import com.avail.interpreter.levelTwo.operand.*
+import com.avail.optimizer.L2Generator
+import com.avail.optimizer.RegisterSet
+import com.avail.optimizer.jvm.JVMTranslator
+import com.avail.utility.Strings.increaseIndentation
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
+import java.util.function.Consumer
 
 /**
- * Synthesize a new {@link FunctionDescriptor function} from the provided
+ * Synthesize a new [function][FunctionDescriptor] from the provided
  * constant compiled code and the vector of captured ("outer") variables.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_CREATE_FUNCTION
-extends L2Operation
+object L2_CREATE_FUNCTION : L2Operation(
+	L2OperandType.CONSTANT.`is`("compiled code"),
+	L2OperandType.READ_BOXED_VECTOR.`is`("captured variables"),
+	L2OperandType.WRITE_BOXED.`is`("new function"))
 {
-	/**
-	 * Construct an {@code L2_CREATE_FUNCTION}.
-	 */
-	private L2_CREATE_FUNCTION ()
+	override fun propagateTypes(
+		instruction: L2Instruction,
+		registerSet: RegisterSet,
+		generator: L2Generator)
 	{
-		super(
-			CONSTANT.is("compiled code"),
-			READ_BOXED_VECTOR.is("captured variables"),
-			WRITE_BOXED.is("new function"));
-	}
-
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_CREATE_FUNCTION instance =
-		new L2_CREATE_FUNCTION();
-
-	@Override
-	protected void propagateTypes (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
-		final L2Generator generator)
-	{
-		final L2ConstantOperand code = instruction.operand(0);
-		final L2ReadBoxedVectorOperand outers = instruction.operand(1);
-		final L2WriteBoxedOperand function = instruction.operand(2);
-
+		val code = instruction.operand<L2ConstantOperand>(0)
+		val outers = instruction.operand<L2ReadBoxedVectorOperand>(1)
+		val function = instruction.operand<L2WriteBoxedOperand>(2)
 		registerSet.typeAtPut(
-			function.register(), code.object.functionType(), instruction);
+			function.register(), code.`object`.functionType(), instruction)
 		if (registerSet.allRegistersAreConstant(outers.elements()))
 		{
 			// This can be replaced with a statically constructed function
 			// during regeneration, but for now capture the exact function that
 			// will be constructed.
-			final int numOuters = outers.elements().size();
-			assert numOuters == code.object.numOuters();
-			final A_Function newFunction =
-				createExceptOuters(code.object, numOuters);
-			for (int i = 1; i <= numOuters; i++)
+			val numOuters = outers.elements().size
+			assert(numOuters == code.`object`.numOuters())
+			val newFunction: A_Function = createExceptOuters(code.`object`, numOuters)
+			for (i in 1 .. numOuters)
 			{
 				newFunction.outerVarAtPut(
 					i,
 					registerSet.constantAt(
-						outers.elements().get(i - 1).register()));
+						outers.elements()[i - 1].register()))
 			}
 			registerSet.constantAtPut(
-				function.register(), newFunction, instruction);
+				function.register(), newFunction, instruction)
 		}
 		else
 		{
-			registerSet.removeConstantAt(function.register());
+			registerSet.removeConstantAt(function.register())
 		}
 	}
 
-	@Override
-	public L2ReadBoxedOperand extractFunctionOuter (
-		final L2Instruction instruction,
-		final L2ReadBoxedOperand functionRegister,
-		final int outerIndex,
-		final A_Type outerType,
-		final L2Generator generator)
+	override fun extractFunctionOuter(
+		instruction: L2Instruction,
+		functionRegister: L2ReadBoxedOperand,
+		outerIndex: Int,
+		outerType: A_Type,
+		generator: L2Generator): L2ReadBoxedOperand
 	{
-		assert this == instruction.operation();
-		final L2ConstantOperand code = instruction.operand(0);
-		final L2ReadBoxedVectorOperand outers = instruction.operand(1);
-		final L2WriteBoxedOperand function = instruction.operand(2);
-
-		final L2ReadBoxedOperand originalRead =
-			outers.elements().get(outerIndex - 1);
+		assert(this == instruction.operation())
+		val code = instruction.operand<L2ConstantOperand>(0)
+		val outers = instruction.operand<L2ReadBoxedVectorOperand>(1)
+		val function = instruction.operand<L2WriteBoxedOperand>(2)
+		val originalRead = outers.elements()[outerIndex - 1]
 		// Intersect the read's restriction, the given type, and the type that
 		// the code says the outer must have.
-		final TypeRestriction intersection =
-			originalRead.restriction().intersectionWithType(
-				outerType.typeIntersection(
-					code.object.outerTypeAt(outerIndex)));
-		assert !intersection.type.isBottom();
-
-		final L2ValueManifest manifest = generator.currentManifest();
-		final L2SemanticValue semanticValue = originalRead.semanticValue();
+		val intersection = originalRead.restriction().intersectionWithType(
+			outerType.typeIntersection(
+				code.`object`.outerTypeAt(outerIndex)))
+		assert(!intersection.type.isBottom)
+		val manifest = generator.currentManifest()
+		val semanticValue = originalRead.semanticValue()
 		if (manifest.hasSemanticValue(semanticValue))
 		{
 			// This semantic value is still live.  Use it directly.
-			final TypeRestriction restriction =
-				manifest.restrictionFor(semanticValue);
-			if (restriction.isBoxed())
+			val restriction = manifest.restrictionFor(semanticValue)
+			if (restriction.isBoxed)
 			{
 				// It's still live *and* boxed.  Make it immutable if necessary.
 				return generator.makeImmutable(
-					manifest.readBoxed(semanticValue));
+					manifest.readBoxed(semanticValue))
 			}
 		}
 		// The registers that supplied the value are no longer live.  Extract
 		// the value from the actual function.  Note that it's still guaranteed
 		// to have the strengthened type.
-		final L2WriteBoxedOperand tempWrite =
-			generator.boxedWriteTemp(intersection);
+		val tempWrite = generator.boxedWriteTemp(intersection)
 		generator.addInstruction(
-			L2_MOVE_OUTER_VARIABLE.instance,
-			new L2IntImmediateOperand(outerIndex),
+			L2_MOVE_OUTER_VARIABLE,
+			L2IntImmediateOperand(outerIndex),
 			functionRegister,
-			tempWrite);
-		return generator.readBoxed(tempWrite);
+			tempWrite)
+		return generator.readBoxed(tempWrite)
 	}
 
 	/**
-	 * Extract the constant {@link A_RawFunction} from the given {@link
-	 * L2Instruction}, which must have {@code L2_CREATE_FUNCTION} as its
+	 * Extract the constant [A_RawFunction] from the given [ ], which must have `L2_CREATE_FUNCTION` as its
 	 * operation.
 	 *
 	 * @param instruction
-	 *        The instruction to examine.
-	 * @return The constant {@link A_RawFunction} extracted from the
-	 *         instruction.
+	 * The instruction to examine.
+	 * @return The constant [A_RawFunction] extracted from the
+	 * instruction.
 	 */
-	@Override
-	public A_RawFunction getConstantCodeFrom (
-		final L2Instruction instruction)
+	override fun getConstantCodeFrom(
+		instruction: L2Instruction): A_RawFunction?
 	{
-		assert instruction.operation() == instance;
-		final L2ConstantOperand constant = instruction.operand(0);
-		return constant.object;
+		assert(instruction.operation() === this)
+		val constant = instruction.operand<L2ConstantOperand>(0)
+		return constant.`object`
 	}
 
-
-	/**
-	 * Given an {@link L2Instruction} using this operation, extract the constant
-	 * {@link A_RawFunction} that is closed into a function by the instruction.
-	 *
-	 * @param instruction
-	 *        The function-closing instruction to examine.
-	 * @return The constant {@link A_RawFunction} that is closed by the
-	 *         instruction.
-	 */
-	public static A_RawFunction constantRawFunctionOf (
-		final L2Instruction instruction)
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		assert instruction.operation() instanceof L2_CREATE_FUNCTION;
-		final L2ConstantOperand constant = instruction.operand(0);
-		return constant.object;
-	}
-
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
-	{
-		assert this == instruction.operation();
-		final L2ConstantOperand code = instruction.operand(0);
-		final L2ReadBoxedVectorOperand outers = instruction.operand(1);
-		final L2WriteBoxedOperand function = instruction.operand(2);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(function.registerString());
-		builder.append(" ← ");
-		String decompiled = code.toString();
-		for (int i = 0, limit = outers.elements().size(); i < limit; i++)
+		assert(this == instruction.operation())
+		val code = instruction.operand<L2ConstantOperand>(0)
+		val outers = instruction.operand<L2ReadBoxedVectorOperand>(1)
+		val function = instruction.operand<L2WriteBoxedOperand>(2)
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(function.registerString())
+		builder.append(" ← ")
+		var decompiled = code.toString()
+		var i = 0
+		val limit = outers.elements().size
+		while (i < limit)
 		{
 			decompiled = decompiled.replace(
-				"Outer#" + (i + 1), outers.elements().get(i).toString());
+				"Outer#" + (i + 1), outers.elements()[i].toString())
+			i++
 		}
-		builder.append(increaseIndentation(decompiled, 1));
+		builder.append(increaseIndentation(decompiled, 1))
 	}
 
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		final L2ConstantOperand code = instruction.operand(0);
-		final L2ReadBoxedVectorOperand outerRegs = instruction.operand(1);
-		final L2WriteBoxedOperand newFunctionReg = instruction.operand(2);
-
-		final int numOuters = outerRegs.elements().size();
-		assert numOuters == code.object.numOuters();
-
-		translator.literal(method, code.object);
-		switch (numOuters)
+		val code = instruction.operand<L2ConstantOperand>(0)
+		val outerRegs = instruction.operand<L2ReadBoxedVectorOperand>(1)
+		val newFunctionReg = instruction.operand<L2WriteBoxedOperand>(2)
+		val numOuters = outerRegs.elements().size
+		assert(numOuters == code.`object`.numOuters())
+		translator.literal(method, code.`object`)
+		when (numOuters)
 		{
-			case 1:
+			1 ->
 			{
-				translator.load(method, outerRegs.registers().get(0));
-				createWithOuters1Method.generateCall(method);
-				break;
+				translator.load(method, outerRegs.registers()[0])
+				FunctionDescriptor.createWithOuters1Method.generateCall(method)
 			}
-			case 2:
+			2 ->
 			{
-				translator.load(method, outerRegs.registers().get(0));
-				translator.load(method, outerRegs.registers().get(1));
-				createWithOuters2Method.generateCall(method);
-				break;
+				translator.load(method, outerRegs.registers()[0])
+				translator.load(method, outerRegs.registers()[1])
+				FunctionDescriptor.createWithOuters2Method.generateCall(method)
 			}
-			case 3:
+			3 ->
 			{
-				translator.load(method, outerRegs.registers().get(0));
-				translator.load(method, outerRegs.registers().get(1));
-				translator.load(method, outerRegs.registers().get(2));
-				createWithOuters3Method.generateCall(method);
-				break;
+				translator.load(method, outerRegs.registers()[0])
+				translator.load(method, outerRegs.registers()[1])
+				translator.load(method, outerRegs.registers()[2])
+				FunctionDescriptor.createWithOuters3Method.generateCall(method)
 			}
-			default:
+			else ->
 			{
+
 				// :: function = createExceptOuters(code, numOuters);
-				translator.intConstant(method, numOuters);
-				createExceptOutersMethod.generateCall(method);
-				for (int i = 0; i < numOuters; i++)
+				translator.intConstant(method, numOuters)
+				FunctionDescriptor.createExceptOutersMethod.generateCall(method)
+				var i = 0
+				while (i < numOuters)
 				{
+
 					// :: function.outerVarAtPut(«i + 1», «outerRegs[i]»);
-					method.visitInsn(DUP);
-					translator.intConstant(method, i + 1);
+					method.visitInsn(Opcodes.DUP)
+					translator.intConstant(method, i + 1)
 					translator.load(
-						method, outerRegs.elements().get(i).register());
-					outerVarAtPutMethod.generateCall(method);
+						method, outerRegs.elements()[i].register())
+					FunctionDescriptor.outerVarAtPutMethod.generateCall(method)
+					i++
 				}
-				break;
 			}
 		}
 		// :: newFunction = function;
-		translator.store(method, newFunctionReg.register());
+		translator.store(method, newFunctionReg.register())
+	}
+
+	/**
+	 * Given an [L2Instruction] using this operation, extract the constant
+	 * [A_RawFunction] that is closed into a function by the instruction.
+	 *
+	 * @param instruction
+	 *   The function-closing instruction to examine.
+	 * @return
+	 *   The constant [A_RawFunction] that is closed by the instruction.
+	 */
+	@kotlin.jvm.JvmStatic
+	fun constantRawFunctionOf(instruction: L2Instruction): A_RawFunction
+	{
+		assert(instruction.operation() is L2_CREATE_FUNCTION)
+		val constant = instruction.operand<L2ConstantOperand>(0)
+		return constant.`object`
 	}
 }

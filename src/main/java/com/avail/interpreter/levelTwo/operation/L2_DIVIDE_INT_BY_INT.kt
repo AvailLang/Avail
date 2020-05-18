@@ -29,218 +29,190 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operation
 
-package com.avail.interpreter.levelTwo.operation;
-
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding;
-import com.avail.optimizer.L2ValueManifest;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.descriptor.numbers.IntegerDescriptor.zero;
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.*;
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForConstant;
-import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Type.LONG_TYPE;
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2NamedOperandType
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.operand.L2PcOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand
+import com.avail.interpreter.levelTwo.operand.TypeRestriction
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding
+import com.avail.optimizer.L2ValueManifest
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.Label
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
+import org.objectweb.asm.Type
+import java.util.function.Consumer
 
 /**
  * If the divisor is zero, then jump to the zero divisor label.  Otherwise
  * divide the dividend int by the divisor int.  If the quotient and remainder
- * each fit in an {@code int}, then store them and continue, otherwise jump to
+ * each fit in an `int`, then store them and continue, otherwise jump to
  * an out-of-range label.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_DIVIDE_INT_BY_INT
-extends L2ControlFlowOperation
+object L2_DIVIDE_INT_BY_INT : L2ControlFlowOperation(
+	L2OperandType.READ_INT.`is`("dividend"),
+	L2OperandType.READ_INT.`is`("divisor"),
+	L2OperandType.WRITE_INT.`is`("quotient", L2NamedOperandType.Purpose.SUCCESS),
+	L2OperandType.WRITE_INT.`is`("remainder", L2NamedOperandType.Purpose.SUCCESS),
+	L2OperandType.PC.`is`("out of range", L2NamedOperandType.Purpose.FAILURE),
+	L2OperandType.PC.`is`("zero divisor", L2NamedOperandType.Purpose.OFF_RAMP),
+	L2OperandType.PC.`is`("success", L2NamedOperandType.Purpose.SUCCESS))
 {
-	/**
-	 * Construct an {@code L2_DIVIDE_INT_BY_INT}.
-	 */
-	private L2_DIVIDE_INT_BY_INT ()
-	{
-		super(
-			READ_INT.is("dividend"),
-			READ_INT.is("divisor"),
-			WRITE_INT.is("quotient", SUCCESS),
-			WRITE_INT.is("remainder", SUCCESS),
-			PC.is("out of range", FAILURE),
-			PC.is("zero divisor", OFF_RAMP),
-			PC.is("success", SUCCESS));
-	}
+	// It jumps for division by zero or out-of-range.
+	override fun hasSideEffect(): Boolean = true
 
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_DIVIDE_INT_BY_INT instance =
-		new L2_DIVIDE_INT_BY_INT();
-
-	@Override
-	public boolean hasSideEffect ()
+	override fun instructionWasAdded(
+		instruction: L2Instruction, manifest: L2ValueManifest)
 	{
-		// It jumps for division by zero or out-of-range.
-		return true;
-	}
-
-	@Override
-	public void instructionWasAdded (
-		final L2Instruction instruction,
-		final L2ValueManifest manifest)
-	{
-		assert this == instruction.operation();
-//		final L2ReadIntOperand dividend = instruction.operand(0);
-		final L2ReadIntOperand divisor = instruction.operand(1);
-//		final L2WriteIntOperand quotient = instruction.operand(2);
+		assert(this == instruction.operation())
+		//		final L2ReadIntOperand dividend = instruction.operand(0);
+		val divisor =
+			instruction.operand<L2ReadIntOperand>(1)
+		//		final L2WriteIntOperand quotient = instruction.operand(2);
 //		final L2WriteIntOperand remainder = instruction.operand(3);
 //		final L2PcOperand outOfRange = instruction.operand(4);
-		final L2PcOperand zeroDivisor = instruction.operand(5);
-//		final L2PcOperand success = instruction.operand(6);
-
-		super.instructionWasAdded(instruction, manifest);
+		val zeroDivisor =
+			instruction.operand<L2PcOperand>(5)
+		//		final L2PcOperand success = instruction.operand(6);
+		super.instructionWasAdded(instruction, manifest)
 
 		// On the zeroDivisor edge, the divisor is definitely zero.
 		zeroDivisor.manifest().setRestriction(
 			divisor.semanticValue(),
-			restrictionForConstant(
-				zero(), RestrictionFlagEncoding.UNBOXED_INT));
+			TypeRestriction.restrictionForConstant(
+				zero(), RestrictionFlagEncoding.UNBOXED_INT))
 	}
 
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		assert this == instruction.operation();
-		final L2ReadIntOperand dividend = instruction.operand(0);
-		final L2ReadIntOperand divisor = instruction.operand(1);
-		final L2WriteIntOperand quotient = instruction.operand(2);
-		final L2WriteIntOperand remainder = instruction.operand(3);
-//		final L2PcOperand outOfRange = instruction.operand(4);
+		assert(this == instruction.operation())
+		val dividend = instruction.operand<L2ReadIntOperand>(0)
+		val divisor = instruction.operand<L2ReadIntOperand>(1)
+		val quotient = instruction.operand<L2WriteIntOperand>(2)
+		val remainder = instruction.operand<L2WriteIntOperand>(3)
+		//		final L2PcOperand outOfRange = instruction.operand(4);
 //		final L2PcOperand zeroDivisor = instruction.operand(5);
 //		final L2PcOperand success = instruction.operand(6);
-
-		renderPreamble(instruction, builder);
-		builder.append("quo=");
-		builder.append(quotient.registerString());
-		builder.append(", rem=");
-		builder.append(remainder.registerString());
-		builder.append(" ← ");
-		builder.append(dividend.registerString());
-		builder.append(" ÷ ");
-		builder.append(divisor.registerString());
-		renderOperandsStartingAt(instruction, 4, desiredTypes, builder);
+		renderPreamble(instruction, builder)
+		builder.append("quo=")
+		builder.append(quotient.registerString())
+		builder.append(", rem=")
+		builder.append(remainder.registerString())
+		builder.append(" ← ")
+		builder.append(dividend.registerString())
+		builder.append(" ÷ ")
+		builder.append(divisor.registerString())
+		renderOperandsStartingAt(instruction, 4, desiredTypes, builder)
 	}
 
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		final L2ReadIntOperand dividend = instruction.operand(0);
-		final L2ReadIntOperand divisor = instruction.operand(1);
-		final L2WriteIntOperand quotient = instruction.operand(2);
-		final L2WriteIntOperand remainder = instruction.operand(3);
-		final L2PcOperand outOfRange = instruction.operand(4);
-		final L2PcOperand zeroDivisor = instruction.operand(5);
-		final L2PcOperand success = instruction.operand(6);
+		val dividend = instruction.operand<L2ReadIntOperand>(0)
+		val divisor = instruction.operand<L2ReadIntOperand>(1)
+		val quotient = instruction.operand<L2WriteIntOperand>(2)
+		val remainder = instruction.operand<L2WriteIntOperand>(3)
+		val outOfRange = instruction.operand<L2PcOperand>(4)
+		val zeroDivisor = instruction.operand<L2PcOperand>(5)
+		val success = instruction.operand<L2PcOperand>(6)
 
 		// :: if (divisor == 0) goto zeroDivisorIndex;
-		translator.load(method, divisor.register());
-		method.visitJumpInsn(IFEQ, translator.labelFor(zeroDivisor.offset()));
+		translator.load(method, divisor.register())
+		method.visitJumpInsn(Opcodes.IFEQ, translator.labelFor(zeroDivisor.offset()))
 
 		// a/b for b<0:  use -(a/-b)
 		// :: if (divisor < 0) quotient = -(dividend / -divisor);
-		translator.load(method, divisor.register());
-		final Label checkDividend = new Label();
-		method.visitJumpInsn(IFGE, checkDividend);
-		translator.load(method, dividend.register());
-		method.visitInsn(I2L);
-		translator.load(method, divisor.register());
-		method.visitInsn(I2L);
-		method.visitInsn(LNEG);
-		method.visitInsn(LDIV);
-		method.visitInsn(LNEG);
-		final int quotientLong = translator.nextLocal(LONG_TYPE);
-		method.visitVarInsn(LSTORE, quotientLong);
-		final Label quotientComputed = new Label();
-		method.visitJumpInsn(GOTO, quotientComputed);
+		translator.load(method, divisor.register())
+		val checkDividend = Label()
+		method.visitJumpInsn(Opcodes.IFGE, checkDividend)
+		translator.load(method, dividend.register())
+		method.visitInsn(Opcodes.I2L)
+		translator.load(method, divisor.register())
+		method.visitInsn(Opcodes.I2L)
+		method.visitInsn(Opcodes.LNEG)
+		method.visitInsn(Opcodes.LDIV)
+		method.visitInsn(Opcodes.LNEG)
+		val quotientLong = translator.nextLocal(Type.LONG_TYPE)
+		method.visitVarInsn(Opcodes.LSTORE, quotientLong)
+		val quotientComputed = Label()
+		method.visitJumpInsn(Opcodes.GOTO, quotientComputed)
 
 		// a/b for a<0, b>0:  use -1-(-1-a)/b
 		// :: else if (dividend < 0)
 		// ::    quotient = -1L - ((-1L - dividend) / divisor);
-		translator.load(method, dividend.register());
-		final Label bothNonNegative = new Label();
-		method.visitJumpInsn(IFGE, bothNonNegative);
-		translator.longConstant(method, -1);
-		method.visitInsn(DUP);
-		translator.load(method, dividend.register());
-		method.visitInsn(I2L);
-		method.visitInsn(LSUB);
-		translator.load(method, divisor.register());
-		method.visitInsn(I2L);
-		method.visitInsn(LDIV);
-		method.visitInsn(LSUB);
-		method.visitVarInsn(LSTORE, quotientLong);
-		method.visitJumpInsn(GOTO, quotientComputed);
+		translator.load(method, dividend.register())
+		val bothNonNegative = Label()
+		method.visitJumpInsn(Opcodes.IFGE, bothNonNegative)
+		translator.longConstant(method, -1)
+		method.visitInsn(Opcodes.DUP)
+		translator.load(method, dividend.register())
+		method.visitInsn(Opcodes.I2L)
+		method.visitInsn(Opcodes.LSUB)
+		translator.load(method, divisor.register())
+		method.visitInsn(Opcodes.I2L)
+		method.visitInsn(Opcodes.LDIV)
+		method.visitInsn(Opcodes.LSUB)
+		method.visitVarInsn(Opcodes.LSTORE, quotientLong)
+		method.visitJumpInsn(Opcodes.GOTO, quotientComputed)
 
 		// :: else quotient = dividend / divisor;
-		translator.load(method, dividend.register());
-		method.visitInsn(I2L);
-		translator.load(method, divisor.register());
-		method.visitInsn(I2L);
-		method.visitInsn(LDIV);
-		method.visitVarInsn(LSTORE, quotientLong);
+		translator.load(method, dividend.register())
+		method.visitInsn(Opcodes.I2L)
+		translator.load(method, divisor.register())
+		method.visitInsn(Opcodes.I2L)
+		method.visitInsn(Opcodes.LDIV)
+		method.visitVarInsn(Opcodes.LSTORE, quotientLong)
 
 		// Remainder is always non-negative.
 		// :: remainder = dividend - (quotient * divisor);
-		method.visitLabel(quotientComputed);
-		translator.load(method, dividend.register());
-		method.visitInsn(I2L);
-		method.visitVarInsn(LLOAD, quotientLong);
-		translator.load(method, divisor.register());
-		method.visitInsn(I2L);
-		method.visitInsn(LMUL);
-		method.visitInsn(LSUB);
-		final int remainderLong = translator.nextLocal(LONG_TYPE);
-		method.visitVarInsn(LSTORE, remainderLong);
+		method.visitLabel(quotientComputed)
+		translator.load(method, dividend.register())
+		method.visitInsn(Opcodes.I2L)
+		method.visitVarInsn(Opcodes.LLOAD, quotientLong)
+		translator.load(method, divisor.register())
+		method.visitInsn(Opcodes.I2L)
+		method.visitInsn(Opcodes.LMUL)
+		method.visitInsn(Opcodes.LSUB)
+		val remainderLong = translator.nextLocal(Type.LONG_TYPE)
+		method.visitVarInsn(Opcodes.LSTORE, remainderLong)
 
 		// :: if (quotient != (int) quotient) goto outOfRange;
-		method.visitVarInsn(LLOAD, quotientLong);
-		method.visitInsn(DUP);
-		method.visitInsn(L2I);
-		method.visitInsn(I2L);
-		method.visitInsn(LCMP);
-		method.visitJumpInsn(IFNE, translator.labelFor(outOfRange.offset()));
+		method.visitVarInsn(Opcodes.LLOAD, quotientLong)
+		method.visitInsn(Opcodes.DUP)
+		method.visitInsn(Opcodes.L2I)
+		method.visitInsn(Opcodes.I2L)
+		method.visitInsn(Opcodes.LCMP)
+		method.visitJumpInsn(Opcodes.IFNE, translator.labelFor(outOfRange.offset()))
 		// ::  if (remainder != (int) remainder) goto outOfRange;
-		method.visitVarInsn(LLOAD, remainderLong);
-		method.visitInsn(DUP);
-		method.visitInsn(L2I);
-		method.visitInsn(I2L);
-		method.visitInsn(LCMP);
-		method.visitJumpInsn(IFNE, translator.labelFor(outOfRange.offset()));
+		method.visitVarInsn(Opcodes.LLOAD, remainderLong)
+		method.visitInsn(Opcodes.DUP)
+		method.visitInsn(Opcodes.L2I)
+		method.visitInsn(Opcodes.I2L)
+		method.visitInsn(Opcodes.LCMP)
+		method.visitJumpInsn(Opcodes.IFNE, translator.labelFor(outOfRange.offset()))
 		// ::    intQuotient = (int) quotient;
-		method.visitVarInsn(LLOAD, quotientLong);
-		method.visitInsn(L2I);
-		translator.store(method, quotient.register());
+		method.visitVarInsn(Opcodes.LLOAD, quotientLong)
+		method.visitInsn(Opcodes.L2I)
+		translator.store(method, quotient.register())
 		// ::    intRemainder = (int) remainder;
-		method.visitVarInsn(LLOAD, remainderLong);
-		method.visitInsn(L2I);
-		translator.store(method, remainder.register());
+		method.visitVarInsn(Opcodes.LLOAD, remainderLong)
+		method.visitInsn(Opcodes.L2I)
+		translator.store(method, remainder.register())
 		// ::    goto success;
-		method.visitJumpInsn(GOTO, translator.labelFor(success.offset()));
+		method.visitJumpInsn(Opcodes.GOTO, translator.labelFor(success.offset()))
 	}
 }

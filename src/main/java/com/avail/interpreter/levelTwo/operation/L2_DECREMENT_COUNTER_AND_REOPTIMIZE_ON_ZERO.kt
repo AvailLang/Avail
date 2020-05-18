@@ -29,139 +29,116 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.levelTwo.operation;
+package com.avail.interpreter.levelTwo.operation
 
-import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.functions.A_Function;
-import com.avail.descriptor.functions.A_RawFunction;
-import com.avail.interpreter.execution.Interpreter;
-import com.avail.interpreter.levelTwo.L2Chunk;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
-import com.avail.optimizer.jvm.CheckedMethod;
-import com.avail.optimizer.jvm.JVMTranslator;
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-import com.avail.utility.Mutable;
-import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
-
-import static com.avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE;
-import static com.avail.optimizer.L1Translator.translateToLevelTwo;
-import static com.avail.optimizer.L2Generator.OptimizationLevel.optimizationLevel;
-import static com.avail.optimizer.jvm.CheckedMethod.staticMethod;
-import static com.avail.utility.Nulls.stripNull;
-import static org.objectweb.asm.Opcodes.*;
+import com.avail.descriptor.representation.AvailObject
+import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.levelTwo.L2Chunk
+import com.avail.interpreter.levelTwo.L2Chunk.Companion.countdownForNewlyOptimizedCode
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2Operation
+import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
+import com.avail.optimizer.L1Translator
+import com.avail.optimizer.L2Generator.OptimizationLevel
+import com.avail.optimizer.jvm.CheckedMethod
+import com.avail.optimizer.jvm.JVMTranslator
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode
+import com.avail.utility.Mutable
+import com.avail.utility.Nulls
+import com.avail.utility.evaluation.Continuation1NotNull
+import org.objectweb.asm.Label
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
 
 /**
- * Explicitly decrement the current compiled code's countdown via {@link
- * AvailObject#countdownToReoptimize(int)}.  If it reaches zero then
- * re-optimize the code and jump to its {@link
- * L2Chunk#offsetAfterInitialTryPrimitive()}, which expects the arguments to
- * still be set up in the {@link Interpreter}.
+ * Explicitly decrement the current compiled code's countdown via
+ * [AvailObject.countdownToReoptimize].  If it reaches zero then re-optimize the
+ * code and jump to its [L2Chunk.offsetAfterInitialTryPrimitive], which expects
+ * the arguments to still be set up in the [Interpreter].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO
-extends L2Operation
+object L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO : L2Operation(
+	L2OperandType.INT_IMMEDIATE.`is`("new optimization level"),
+	L2OperandType.INT_IMMEDIATE.`is`("is entry point"))
 {
-	/**
-	 * Construct an {@code L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO}.
-	 */
-	private L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO ()
+	override fun hasSideEffect(): Boolean
 	{
-		super(
-			INT_IMMEDIATE.is("new optimization level"),
-			INT_IMMEDIATE.is("is entry point"));
+		return true
 	}
 
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO instance =
-		new L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO();
-
-	@Override
-	public boolean hasSideEffect ()
+	override fun isEntryPoint(instruction: L2Instruction): Boolean
 	{
-		return true;
+		val immediate = instruction.operand<L2IntImmediateOperand>(1)
+		return immediate.value != 0
 	}
 
-	@Override
-	public boolean isEntryPoint (final L2Instruction instruction)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		final L2IntImmediateOperand immediate = instruction.operand(1);
-		return immediate.value != 0;
-	}
+		val optimization = instruction.operand<L2IntImmediateOperand>(0)
+		//		final L2IntImmediateOperand isEntryPoint = instruction.operand(1);
 
+		// :: if (L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO.decrement(
+		// ::    interpreter, targetOptimizationLevel)) return null;
+		translator.loadInterpreter(method)
+		translator.literal(method, optimization.value)
+		decrementMethod.generateCall(method)
+		val didNotOptimize = Label()
+		method.visitJumpInsn(Opcodes.IFEQ, didNotOptimize)
+		method.visitInsn(Opcodes.ACONST_NULL)
+		method.visitInsn(Opcodes.ARETURN)
+		method.visitLabel(didNotOptimize)
+	}
 	/**
 	 * Decrement the counter associated with the code.  If this thread was
 	 * responsible for decrementing it to zero, (re)optimize the code by
 	 * producing a new chunk.  Return whether the chunk was replaced.
 	 *
 	 * @param interpreter
-	 *        The interpreter for the current thread.
+	 * The interpreter for the current thread.
 	 * @param targetOptimizationLevel
-	 *        What level of optimization to apply if reoptimization occurs.
-	 * @return Whether a new chunk was created.
+	 * What level of optimization to apply if reoptimization occurs.
+	 * @return
+	 * Whether a new chunk was created.
 	 */
 	@ReferencedInGeneratedCode
-	public static boolean decrement (
-		final Interpreter interpreter,
-		final int targetOptimizationLevel)
+	fun decrement(
+		interpreter: Interpreter,
+		targetOptimizationLevel: Int): Boolean
 	{
-		final A_Function function = stripNull(interpreter.function);
-		final A_RawFunction code = function.code();
-		final Mutable<Boolean> chunkChanged = new Mutable<>(false);
-		code.decrementCountdownToReoptimize(optimize ->
-		{
+		val function = Nulls.stripNull(interpreter.function)
+		val code = function.code()
+		val chunkChanged = Mutable(false)
+		code.decrementCountdownToReoptimize(Continuation1NotNull { optimize: Boolean ->
 			if (optimize)
 			{
 				code.countdownToReoptimize(
-					L2Chunk.countdownForNewlyOptimizedCode());
-				translateToLevelTwo(
+					countdownForNewlyOptimizedCode())
+				L1Translator.translateToLevelTwo(
 					code,
-					optimizationLevel(targetOptimizationLevel),
-					interpreter);
+					OptimizationLevel.optimizationLevel(targetOptimizationLevel),
+					interpreter)
 			}
-			final L2Chunk chunk = stripNull(code.startingChunk());
-			interpreter.chunk = chunk;
-			interpreter.setOffset(chunk.offsetAfterInitialTryPrimitive());
-			chunkChanged.value = true;
-		});
-		return chunkChanged.value;
+			val chunk = Nulls.stripNull(code.startingChunk())
+			interpreter.chunk = chunk
+			interpreter.setOffset(chunk.offsetAfterInitialTryPrimitive())
+			chunkChanged.value = true
+		})
+		return chunkChanged.value
 	}
 
 	/**
-	 * The {@link CheckedMethod} for {@link #decrement(Interpreter, int)}.
+	 * The [CheckedMethod] for [decrement].
 	 */
-	private static final CheckedMethod decrementMethod =
-		staticMethod(
-			L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO.class,
-			"decrement",
-			boolean.class,
-			Interpreter.class,
-			int.class);
-
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
-	{
-		final L2IntImmediateOperand optimization = instruction.operand(0);
-//		final L2IntImmediateOperand isEntryPoint = instruction.operand(1);
-
-		// :: if (L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO.decrement(
-		// ::    interpreter, targetOptimizationLevel)) return null;
-		translator.loadInterpreter(method);
-		translator.literal(method, optimization.value);
-		decrementMethod.generateCall(method);
-		final Label didNotOptimize = new Label();
-		method.visitJumpInsn(IFEQ, didNotOptimize);
-		method.visitInsn(ACONST_NULL);
-		method.visitInsn(ARETURN);
-		method.visitLabel(didNotOptimize);
-	}
+	private val decrementMethod = CheckedMethod.staticMethod(
+		L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO::class.java,
+		"decrement",
+		Boolean::class.javaPrimitiveType!!,
+		Interpreter::class.java,
+		Int::class.javaPrimitiveType)
 }

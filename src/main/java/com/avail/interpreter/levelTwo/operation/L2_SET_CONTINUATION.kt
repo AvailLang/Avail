@@ -29,85 +29,71 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operation
 
-package com.avail.interpreter.levelTwo.operation;
-
-import com.avail.descriptor.functions.A_Continuation;
-import com.avail.interpreter.execution.Interpreter;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION;
-import com.avail.interpreter.levelTwo.WritesHiddenVariable;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.interpreter.execution.Interpreter.setReifiedContinuationMethod;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
+import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2Operation
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION
+import com.avail.interpreter.levelTwo.WritesHiddenVariable
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.MethodVisitor
+import java.util.function.Consumer
 
 /**
- * Set the {@link Interpreter#setReifiedContinuation(A_Continuation)}.
+ * Set the [Interpreter.setReifiedContinuation].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@WritesHiddenVariable(
-	CURRENT_CONTINUATION.class)
-public final class L2_SET_CONTINUATION
-extends L2Operation
+@WritesHiddenVariable(CURRENT_CONTINUATION::class)
+class L2_SET_CONTINUATION
+/**
+ * Construct an `L2_SET_CONTINUATION`.
+ */
+private constructor() : L2Operation(
+	L2OperandType.READ_BOXED.`is`("replacement continuation"))
 {
-	/**
-	 * Construct an {@code L2_SET_CONTINUATION}.
-	 */
-	private L2_SET_CONTINUATION ()
-	{
-		super(
-			READ_BOXED.is("replacement continuation"));
-	}
-
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_SET_CONTINUATION instance =
-		new L2_SET_CONTINUATION();
-
-	@Override
-	public boolean hasSideEffect ()
+	override fun hasSideEffect(): Boolean
 	{
 		// It updates the current continuation of the interpreter.
-		return true;
+		return true
 	}
 
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		assert this == instruction.operation();
-		final L2ReadBoxedOperand continuation = instruction.operand(0);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(continuation.registerString());
+		assert(this == instruction.operation())
+		val continuation = instruction.operand<L2ReadBoxedOperand>(0)
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(continuation.registerString())
 	}
 
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		final L2ReadBoxedOperand continuation = instruction.operand(0);
+		val continuation = instruction.operand<L2ReadBoxedOperand>(0)
 
 		// :: interpreter.setReifiedContinuation(aContinuation);
-		translator.loadInterpreter(method);
-		translator.load(method, continuation.register());
-		setReifiedContinuationMethod.generateCall(method);
+		translator.loadInterpreter(method)
+		translator.load(method, continuation.register())
+		Interpreter.setReifiedContinuationMethod.generateCall(method)
+	}
+
+	companion object
+	{
+		/**
+		 * Initialize the sole instance.
+		 */
+		@kotlin.jvm.JvmField
+		val instance = L2_SET_CONTINUATION()
 	}
 }

@@ -29,139 +29,125 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.levelTwo.operation;
+package com.avail.interpreter.levelTwo.operation
 
-import com.avail.descriptor.types.A_Type;
-import com.avail.descriptor.types.TupleTypeDescriptor;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
-import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.descriptor.types.InstanceMetaDescriptor.instanceMeta;
-import static com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForTypes;
-import static com.avail.descriptor.types.TupleTypeDescriptor.tupleTypesForTypesArrayMethod;
-import static com.avail.descriptor.types.TypeDescriptor.Types.ANY;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.InstanceMetaDescriptor
+import com.avail.descriptor.types.TupleTypeDescriptor
+import com.avail.descriptor.types.TypeDescriptor
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2Operation
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import com.avail.optimizer.L2Generator
+import com.avail.optimizer.RegisterSet
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.MethodVisitor
+import java.util.*
+import java.util.function.Consumer
 
 /**
- * Create a fixed sized {@link TupleTypeDescriptor tuple type} from the
- * {@linkplain A_Type types} in the specified registers.
+ * Create a fixed sized [tuple type][TupleTypeDescriptor] from the
+ * [types][A_Type] in the specified registers.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_CREATE_TUPLE_TYPE
-extends L2Operation
+object L2_CREATE_TUPLE_TYPE : L2Operation(
+	L2OperandType.READ_BOXED_VECTOR.`is`("element types"),
+	L2OperandType.WRITE_BOXED.`is`("tuple type"))
 {
-	/**
-	 * Construct an {@code L2_CREATE_TUPLE_TYPE}.
-	 */
-	private L2_CREATE_TUPLE_TYPE ()
+	override fun propagateTypes(
+		instruction: L2Instruction,
+		registerSet: RegisterSet,
+		generator: L2Generator)
 	{
-		super(
-			READ_BOXED_VECTOR.is("element types"),
-			WRITE_BOXED.is("tuple type"));
-	}
-
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_CREATE_TUPLE_TYPE instance =
-		new L2_CREATE_TUPLE_TYPE();
-
-	@Override
-	protected void propagateTypes (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
-		final L2Generator generator)
-	{
-		final L2ReadBoxedVectorOperand types = instruction.operand(0);
-		final L2WriteBoxedOperand tupleType = instruction.operand(1);
-
-		final List<L2ReadBoxedOperand> elements = types.elements();
-
-		final int size = elements.size();
+		val types =
+			instruction.operand<L2ReadBoxedVectorOperand>(0)
+		val tupleType =
+			instruction.operand<L2WriteBoxedOperand>(1)
+		val elements = types.elements()
+		val size = elements.size
 		if (registerSet.allRegistersAreConstant(elements))
 		{
 			// The types are all constants, so create the tuple type statically.
-			final List<A_Type> constants = new ArrayList<>(size);
-			for (final L2ReadBoxedOperand element : elements)
+			val constants: MutableList<A_Type> = ArrayList(size)
+			for (element in elements)
 			{
-				constants.add(registerSet.constantAt(element.register()));
+				constants.add(registerSet.constantAt(element.register()))
 			}
-			final A_Type newTupleType = tupleTypeForTypes(constants);
-			newTupleType.makeImmutable();
+			val newTupleType =
+				TupleTypeDescriptor.tupleTypeForTypes(constants)
+			newTupleType.makeImmutable()
 			registerSet.constantAtPut(
-				tupleType.register(), newTupleType, instruction);
+				tupleType.register(), newTupleType, instruction)
 		}
 		else
 		{
-			final List<A_Type> newTypes = new ArrayList<>(size);
-			for (final L2ReadBoxedOperand element : elements)
+			val newTypes: MutableList<A_Type> = ArrayList(size)
+			for (element in elements)
 			{
 				if (registerSet.hasTypeAt(element.register()))
 				{
-					final A_Type meta = registerSet.typeAt(element.register());
+					val meta = registerSet.typeAt(element.register())
 					newTypes.add(
-						meta.isInstanceMeta() ? meta.instance() : ANY.o());
+						if (meta.isInstanceMeta)
+						{
+							meta.instance()
+						}
+						else
+						{
+							TypeDescriptor.Types.ANY.o()
+						})
 				}
 				else
 				{
-					newTypes.add(ANY.o());
+					newTypes.add(TypeDescriptor.Types.ANY.o())
 				}
 			}
-			final A_Type newTupleType = tupleTypeForTypes(newTypes);
-			final A_Type newTupleMeta = instanceMeta(newTupleType);
-			newTupleMeta.makeImmutable();
-			registerSet.removeConstantAt(tupleType.register());
+			val newTupleType =
+				TupleTypeDescriptor.tupleTypeForTypes(newTypes)
+			val newTupleMeta =
+				InstanceMetaDescriptor.instanceMeta(newTupleType)
+			newTupleMeta.makeImmutable()
+			registerSet.removeConstantAt(tupleType.register())
 			registerSet.typeAtPut(
-				tupleType.register(), newTupleMeta, instruction);
+				tupleType.register(), newTupleMeta, instruction)
 		}
 	}
 
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		assert this == instruction.operation();
-		final L2ReadBoxedVectorOperand types = instruction.operand(0);
-		final L2WriteBoxedOperand tupleType = instruction.operand(1);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(tupleType.registerString());
-		builder.append(" ← ");
-		builder.append(types.elements());
+		assert(this == instruction.operation())
+		val types =
+			instruction.operand<L2ReadBoxedVectorOperand>(0)
+		val tupleType =
+			instruction.operand<L2WriteBoxedOperand>(1)
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(tupleType.registerString())
+		builder.append(" ← ")
+		builder.append(types.elements())
 	}
 
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		final L2ReadBoxedVectorOperand types = instruction.operand(0);
-		final L2WriteBoxedOperand tupleType = instruction.operand(1);
+		val types =
+			instruction.operand<L2ReadBoxedVectorOperand>(0)
+		val tupleType =
+			instruction.operand<L2WriteBoxedOperand>(1)
 
 		// :: tupleType = TupleTypeDescriptor.tupleTypeForTypes(types);
-		translator.objectArray(method, types.elements(), A_Type.class);
-		tupleTypesForTypesArrayMethod.generateCall(method);
-		translator.store(method, tupleType.register());
+		translator.objectArray(method, types.elements(), A_Type::class.java)
+		TupleTypeDescriptor.tupleTypesForTypesArrayMethod.generateCall(method)
+		translator.store(method, tupleType.register())
 	}
 }

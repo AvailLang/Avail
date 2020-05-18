@@ -29,144 +29,119 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operation
 
-package com.avail.interpreter.levelTwo.operation;
-
-import com.avail.descriptor.numbers.A_Number;
-import com.avail.exceptions.ArithmeticException;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Type.getInternalName;
+import com.avail.descriptor.numbers.A_Number
+import com.avail.exceptions.ArithmeticException
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2NamedOperandType
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.operand.L2PcOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.Label
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
+import org.objectweb.asm.Type
+import java.util.function.Consumer
 
 /**
  * Divide the dividend value by the divisor value.  If the calculation causes an
- * {@link ArithmeticException}, jump to the specified label, otherwise set the
+ * [ArithmeticException], jump to the specified label, otherwise set the
  * quotient and remainder registers and continue with the next instruction.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_DIVIDE_OBJECT_BY_OBJECT
-extends L2ControlFlowOperation
+object L2_DIVIDE_OBJECT_BY_OBJECT : L2ControlFlowOperation(
+	L2OperandType.READ_BOXED.`is`("dividend"),
+	L2OperandType.READ_BOXED.`is`("divisor"),
+	L2OperandType.WRITE_BOXED.`is`("quotient", L2NamedOperandType.Purpose.SUCCESS),
+	L2OperandType.WRITE_BOXED.`is`("remainder", L2NamedOperandType.Purpose.SUCCESS),
+	L2OperandType.PC.`is`("if undefined", L2NamedOperandType.Purpose.OFF_RAMP),
+	L2OperandType.PC.`is`("success", L2NamedOperandType.Purpose.SUCCESS))
 {
-	/**
-	 * Construct an {@code L2_DIVIDE_OBJECT_BY_OBJECT}.
-	 */
-	private L2_DIVIDE_OBJECT_BY_OBJECT ()
-	{
-		super(
-			READ_BOXED.is("dividend"),
-			READ_BOXED.is("divisor"),
-			WRITE_BOXED.is("quotient", SUCCESS),
-			WRITE_BOXED.is("remainder", SUCCESS),
-			PC.is("if undefined", OFF_RAMP),
-			PC.is("success", SUCCESS));
-	}
-
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_DIVIDE_OBJECT_BY_OBJECT instance =
-		new L2_DIVIDE_OBJECT_BY_OBJECT();
-
-	@Override
-	public boolean hasSideEffect ()
+	override fun hasSideEffect(): Boolean
 	{
 		// It jumps for division by zero.
-		return true;
+		return true
 	}
 
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		assert this == instruction.operation();
-		final L2ReadBoxedOperand dividend = instruction.operand(0);
-		final L2ReadBoxedOperand divisor = instruction.operand(1);
-		final L2WriteBoxedOperand quotient = instruction.operand(2);
-		final L2WriteBoxedOperand remainder = instruction.operand(3);
-//		final L2PcOperand undefined = instruction.operand(4);
+		assert(this == instruction.operation())
+		val dividend = instruction.operand<L2ReadBoxedOperand>(0)
+		val divisor = instruction.operand<L2ReadBoxedOperand>(1)
+		val quotient = instruction.operand<L2WriteBoxedOperand>(2)
+		val remainder = instruction.operand<L2WriteBoxedOperand>(3)
+		//		final L2PcOperand undefined = instruction.operand(4);
 //		final L2PcOperand success = instruction.operand(5);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(quotient.registerString());
-		builder.append(", ");
-		builder.append(remainder.registerString());
-		builder.append(" ← ");
-		builder.append(dividend.registerString());
-		builder.append(" ÷ ");
-		builder.append(divisor.registerString());
-		renderOperandsStartingAt(instruction, 4, desiredTypes, builder);
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(quotient.registerString())
+		builder.append(", ")
+		builder.append(remainder.registerString())
+		builder.append(" ← ")
+		builder.append(dividend.registerString())
+		builder.append(" ÷ ")
+		builder.append(divisor.registerString())
+		renderOperandsStartingAt(instruction, 4, desiredTypes, builder)
 	}
 
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		final L2ReadBoxedOperand dividend = instruction.operand(0);
-		final L2ReadBoxedOperand divisor = instruction.operand(1);
-		final L2WriteBoxedOperand quotient = instruction.operand(2);
-		final L2WriteBoxedOperand remainder = instruction.operand(3);
-		final L2PcOperand undefined = instruction.operand(4);
-		final L2PcOperand success = instruction.operand(5);
+		val dividend = instruction.operand<L2ReadBoxedOperand>(0)
+		val divisor = instruction.operand<L2ReadBoxedOperand>(1)
+		val quotient = instruction.operand<L2WriteBoxedOperand>(2)
+		val remainder = instruction.operand<L2WriteBoxedOperand>(3)
+		val undefined = instruction.operand<L2PcOperand>(4)
+		val success = instruction.operand<L2PcOperand>(5)
 
 		// :: try {
-		final Label tryStart = new Label();
-		final Label catchStart = new Label();
+		val tryStart = Label()
+		val catchStart = Label()
 		method.visitTryCatchBlock(
 			tryStart,
 			catchStart,
 			catchStart,
-			getInternalName(ArithmeticException.class));
-		method.visitLabel(tryStart);
+			Type.getInternalName(ArithmeticException::class.java))
+		method.visitLabel(tryStart)
 		// ::    quotient = dividend.divideCanDestroy(divisor, false);
-		translator.load(method, dividend.register());
-		method.visitInsn(DUP);
-		translator.load(method, divisor.register());
-		method.visitInsn(ICONST_0);
-		A_Number.divideCanDestroyMethod.generateCall(method);
-		method.visitInsn(DUP);
-		translator.store(method, quotient.register());
+		translator.load(method, dividend.register())
+		method.visitInsn(Opcodes.DUP)
+		translator.load(method, divisor.register())
+		method.visitInsn(Opcodes.ICONST_0)
+		A_Number.divideCanDestroyMethod.generateCall(method)
+		method.visitInsn(Opcodes.DUP)
+		translator.store(method, quotient.register())
 		// ::    remainder = dividend.minusCanDestroy(
 		// ::       quotient.timesCanDestroy(divisor, false),
 		// ::       false);
-		translator.load(method, divisor.register());
-		method.visitInsn(ICONST_0);
-		A_Number.timesCanDestroyMethod.generateCall(method);
-		method.visitInsn(ICONST_0);
-		A_Number.minusCanDestroyMethod.generateCall(method);
-		translator.store(method, remainder.register());
+		translator.load(method, divisor.register())
+		method.visitInsn(Opcodes.ICONST_0)
+		A_Number.timesCanDestroyMethod.generateCall(method)
+		method.visitInsn(Opcodes.ICONST_0)
+		A_Number.minusCanDestroyMethod.generateCall(method)
+		translator.store(method, remainder.register())
 		// ::    goto success;
 		// Note that we cannot potentially eliminate this branch with a
 		// fall through, because the next instruction expects a
 		// ArithmeticException to be pushed onto the stack. So always do the
 		// jump.
-		method.visitJumpInsn(GOTO, translator.labelFor(success.offset()));
+		method.visitJumpInsn(Opcodes.GOTO, translator.labelFor(success.offset()))
 		// :: } catch (ArithmeticException e) {
-		method.visitLabel(catchStart);
-		method.visitInsn(POP);
+		method.visitLabel(catchStart)
+		method.visitInsn(Opcodes.POP)
 		// ::    goto undefined;
-		translator.jump(method, instruction, undefined);
+		translator.jump(method, instruction, undefined)
 		// :: }
 	}
 }

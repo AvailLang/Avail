@@ -29,163 +29,130 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.levelTwo.operation;
+package com.avail.interpreter.levelTwo.operation
 
-import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.functions.A_Function;
-import com.avail.descriptor.functions.CompiledCodeDescriptor;
-import com.avail.descriptor.functions.FunctionDescriptor;
-import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.interpreter.execution.Interpreter;
-import com.avail.interpreter.Primitive;
-import com.avail.interpreter.Primitive.Flag;
-import com.avail.interpreter.levelTwo.L2Chunk;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION;
-import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION;
-import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE;
-import com.avail.interpreter.levelTwo.ReadsHiddenVariable;
-import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.StackReifier;
-import com.avail.optimizer.jvm.CheckedMethod;
-import com.avail.optimizer.jvm.JVMTranslator;
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
-
-import javax.annotation.Nullable;
-import java.util.List;
-
-import static com.avail.interpreter.Primitive.Flag.CanInline;
-import static com.avail.interpreter.levelTwo.operation.L2_TRY_PRIMITIVE.attemptInlinePrimitive;
-import static com.avail.interpreter.levelTwo.operation.L2_TRY_PRIMITIVE.attemptNonInlinePrimitive;
-import static com.avail.optimizer.jvm.CheckedMethod.staticMethod;
-import static org.objectweb.asm.Opcodes.*;
+import com.avail.descriptor.functions.A_Function
+import com.avail.descriptor.functions.CompiledCodeDescriptor
+import com.avail.descriptor.functions.FunctionDescriptor
+import com.avail.descriptor.representation.AvailObject
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.levelTwo.L2Chunk
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2Operation
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.*
+import com.avail.interpreter.levelTwo.ReadsHiddenVariable
+import com.avail.optimizer.L2Generator
+import com.avail.optimizer.RegisterSet
+import com.avail.optimizer.StackReifier
+import com.avail.optimizer.jvm.CheckedMethod
+import com.avail.optimizer.jvm.JVMTranslator
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode
+import org.objectweb.asm.Label
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
 
 /**
- * Expect the {@link AvailObject} (pointers) array and int array to still
- * reflect the caller.  Expect {@link Interpreter#argsBuffer} to have been
- * loaded with the arguments to this possible primitive function, and expect the
- * code/function/chunk to have been updated for this primitive function.
- * Try to execute a potential primitive, setting the {@link
- * Interpreter#returnNow} flag and
- * {@link Interpreter#setLatestResult(A_BasicObject) latestResult} if
- * successful.  The caller always has the responsibility of checking the return
- * value, if applicable at that call site.  Used only by the
- * {@link L2Chunk#unoptimizedChunk}.
+ * Expect the [AvailObject] (pointers) array and int array to still reflect the
+ * caller.  Expect [Interpreter.argsBuffer] to have been loaded with the
+ * arguments to this possible primitive function, and expect the
+ * code/function/chunk to have been updated for this primitive function. Try to
+ * execute a potential primitive, setting the [Interpreter.returnNow] flag and
+ * [latestResult][Interpreter.setLatestResult] if successful.  The caller always
+ * has the responsibility of checking the return value, if applicable at that
+ * call site.  Used only by the [L2Chunk.unoptimizedChunk].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@ReadsHiddenVariable(theValue = {
-	CURRENT_CONTINUATION.class,
-	CURRENT_FUNCTION.class,
-//	CURRENT_ARGUMENTS.class,
-	LATEST_RETURN_VALUE.class,
-})
-public final class L2_TRY_OPTIONAL_PRIMITIVE
-extends L2Operation
+@ReadsHiddenVariable(theValue = [
+	CURRENT_CONTINUATION::class,
+	CURRENT_FUNCTION::class,
+	//	CURRENT_ARGUMENTS.class,
+	LATEST_RETURN_VALUE::class])
+object L2_TRY_OPTIONAL_PRIMITIVE : L2Operation()
 {
-	/**
-	 * Construct an {@code L2_TRY_OPTIONAL_PRIMITIVE}.
-	 */
-	private L2_TRY_OPTIONAL_PRIMITIVE ()
-	{
-		// Prevent accidental construction due to code cloning.
-	}
+	override fun isEntryPoint(instruction: L2Instruction): Boolean = true
 
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_TRY_OPTIONAL_PRIMITIVE instance =
-		new L2_TRY_OPTIONAL_PRIMITIVE();
-
-	@Override
-	public boolean isEntryPoint (final L2Instruction instruction)
-	{
-		return true;
-	}
-
-	@Override
-	protected void propagateTypes (
-		final L2Instruction instruction,
-		final List<RegisterSet> registerSets,
-		final L2Generator generator)
+	override fun propagateTypes(
+		instruction: L2Instruction,
+		registerSets: List<RegisterSet>,
+		generator: L2Generator)
 	{
 		// This instruction should only be used in the L1 interpreter loop.
-		throw new UnsupportedOperationException();
+		throw UnsupportedOperationException()
 	}
 
-	@Override
-	public boolean hasSideEffect ()
-	{
-		// It could fail and jump.
-		return true;
-	}
+	// It could fail and jump.
+	override fun hasSideEffect(): Boolean = true
 
-	/**
-	 * Attempt the {@linkplain Primitive primitive}, dynamically checking
-	 * whether it is an {@linkplain Flag#CanInline inlineable} primitive.
-	 *
-	 * @param interpreter
-	 *        The {@link Interpreter}.
-	 * @param function
-	 *        The {@link A_Function}.
-	 * @param primitive
-	 *        The {@link Primitive}.
-	 * @return The {@link StackReifier}, if any.
-	 */
-	@SuppressWarnings("unused")
-	@ReferencedInGeneratedCode
-	public static @Nullable StackReifier attemptThePrimitive (
-		final Interpreter interpreter,
-		final A_Function function,
-		final Primitive primitive)
-	{
-		return primitive.hasFlag(CanInline)
-			? attemptInlinePrimitive(interpreter, function, primitive)
-			: attemptNonInlinePrimitive(interpreter, function, primitive);
-	}
-
-	/**
-	 * The {@link CheckedMethod} for invoking
-	 * {@link #attemptThePrimitive(Interpreter, A_Function, Primitive)}.
-	 */
-	public static final CheckedMethod attemptThePrimitiveMethod = staticMethod(
-		L2_TRY_OPTIONAL_PRIMITIVE.class,
-		"attemptThePrimitive",
-		StackReifier.class,
-		Interpreter.class,
-		A_Function.class,
-		Primitive.class);
-
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
 		// :: if (interpreter.function.code().primitive() == null)
 		// ::    goto noPrimitive;
-		translator.loadInterpreter(method);
-		method.visitInsn(DUP);
-		Interpreter.interpreterFunctionField.generateRead(method);
-		method.visitInsn(DUP);
-		FunctionDescriptor.functionCodeMethod.generateCall(method);
-		CompiledCodeDescriptor.codePrimitiveMethod.generateCall(method);
-		method.visitInsn(DUP);
-		final Label noPrimitive = new Label();
-		method.visitJumpInsn(IFNULL, noPrimitive);
+		translator.loadInterpreter(method)
+		method.visitInsn(Opcodes.DUP)
+		Interpreter.interpreterFunctionField.generateRead(method)
+		method.visitInsn(Opcodes.DUP)
+		FunctionDescriptor.functionCodeMethod.generateCall(method)
+		CompiledCodeDescriptor.codePrimitiveMethod.generateCall(method)
+		method.visitInsn(Opcodes.DUP)
+		val noPrimitive = Label()
+		method.visitJumpInsn(Opcodes.IFNULL, noPrimitive)
 		// :: return L2_TRY_OPTIONAL_PRIMITIVE.attemptThePrimitive(
 		// ::    interpreter, function, primitive);
-		attemptThePrimitiveMethod.generateCall(method);
-		method.visitInsn(ARETURN);
-		method.visitLabel(noPrimitive);
+		attemptThePrimitiveMethod.generateCall(method)
+		method.visitInsn(Opcodes.ARETURN)
+		method.visitLabel(noPrimitive)
 		// Pop the three Category-1 arguments that were waiting for
 		// attemptThePrimitive().
-		method.visitInsn(POP2);
-		method.visitInsn(POP);
+		method.visitInsn(Opcodes.POP2)
+		method.visitInsn(Opcodes.POP)
 	}
+
+	/**
+	 * Attempt the [primitive][Primitive], dynamically checking
+	 * whether it is an [inlineable][Primitive.Flag.CanInline] primitive.
+	 *
+	 * @param interpreter
+	 *   The [Interpreter].
+	 * @param function
+	 *   The [A_Function].
+	 * @param primitive
+	 *   The [Primitive].
+	 * @return
+	 *   The [StackReifier], if any.
+	 */
+	@ReferencedInGeneratedCode
+	fun attemptThePrimitive(
+		interpreter: Interpreter,
+		function: A_Function?,
+		primitive: Primitive): StackReifier?
+	{
+		return if (primitive.hasFlag(Primitive.Flag.CanInline))
+		{
+			L2_TRY_PRIMITIVE.attemptInlinePrimitive(
+				interpreter, function, primitive)
+		}
+		else
+		{
+			L2_TRY_PRIMITIVE.attemptNonInlinePrimitive(
+				interpreter, function, primitive)
+		}
+	}
+
+	/**
+	 * The [CheckedMethod] for invoking [attemptThePrimitive].
+	 */
+	val attemptThePrimitiveMethod =
+		CheckedMethod.staticMethod(
+			L2_TRY_OPTIONAL_PRIMITIVE::class.java,
+			"attemptThePrimitive",
+			StackReifier::class.java,
+			Interpreter::class.java,
+			A_Function::class.java,
+			Primitive::class.java)
 }

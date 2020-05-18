@@ -29,30 +29,24 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operation
 
-package com.avail.interpreter.levelTwo.operation;
-
-import com.avail.descriptor.functions.A_Function;
-import com.avail.descriptor.functions.A_RawFunction;
-import com.avail.descriptor.functions.FunctionDescriptor;
-import com.avail.descriptor.types.A_Type;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
-import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.List;
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.descriptor.types.InstanceMetaDescriptor.anyMeta;
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import com.avail.descriptor.functions.A_Function
+import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.FunctionDescriptor
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.InstanceMetaDescriptor
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2Operation
+import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import com.avail.optimizer.L2Generator
+import com.avail.optimizer.RegisterSet
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.MethodVisitor
+import java.util.function.Consumer
 
 /**
  * Given an input register containing a function (not a function type), extract
@@ -61,35 +55,22 @@ import static com.avail.interpreter.levelTwo.L2OperandType.*;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_FUNCTION_PARAMETER_TYPE
-extends L2Operation
+object L2_FUNCTION_PARAMETER_TYPE : L2Operation(
+	L2OperandType.READ_BOXED.`is`("function"),
+	L2OperandType.INT_IMMEDIATE.`is`("parameter index"),
+	L2OperandType.WRITE_BOXED.`is`("parameter type"))
 {
-	/**
-	 * Construct an {@code L2_FUNCTION_PARAMETER_TYPE}.
-	 */
-	private L2_FUNCTION_PARAMETER_TYPE ()
+	override fun propagateTypes(
+		instruction: L2Instruction,
+		registerSet: RegisterSet,
+		generator: L2Generator)
 	{
-		super(
-			READ_BOXED.is("function"),
-			INT_IMMEDIATE.is("parameter index"),
-			WRITE_BOXED.is("parameter type"));
-	}
-
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_FUNCTION_PARAMETER_TYPE instance =
-		new L2_FUNCTION_PARAMETER_TYPE();
-
-	@Override
-	protected void propagateTypes (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
-		final L2Generator generator)
-	{
-		final L2ReadBoxedOperand functionReg = instruction.operand(0);
-		final L2IntImmediateOperand paramIndex = instruction.operand(1);
-		final L2WriteBoxedOperand outputParamTypeReg = instruction.operand(2);
+		val functionReg =
+			instruction.operand<L2ReadBoxedOperand>(0)
+		val paramIndex =
+			instruction.operand<L2IntImmediateOperand>(1)
+		val outputParamTypeReg =
+			instruction.operand<L2WriteBoxedOperand>(2)
 
 		// Function types are contravariant, so we may have to fall back on
 		// just saying the parameter type must be a type and can't be top –
@@ -97,77 +78,81 @@ extends L2Operation
 		if (registerSet.hasConstantAt(functionReg.register()))
 		{
 			// Exact function is known.
-			final A_Function function = registerSet.constantAt(functionReg.register());
-			final A_Type functionType = function.code().functionType();
+			val function: A_Function = registerSet.constantAt(functionReg.register())
+			val functionType = function.code().functionType()
 			registerSet.constantAtPut(
 				outputParamTypeReg.register(),
 				functionType.argsTupleType().typeAtIndex(paramIndex.value),
-				instruction);
-			return;
+				instruction)
+			return
 		}
-		final List<L2Instruction> sources =
-			registerSet.stateForReading(functionReg.register()).sourceInstructions();
-		if (sources.size() == 1)
+		val sources =
+			registerSet.stateForReading(functionReg.register()).sourceInstructions()
+		if (sources.size == 1)
 		{
-			final L2Instruction source = sources.get(0);
-			if (source.operation() == L2_CREATE_FUNCTION.instance)
+			val source = sources[0]
+			if (source.operation() === L2_CREATE_FUNCTION)
 			{
-				final A_RawFunction code =
-					L2_CREATE_FUNCTION.constantRawFunctionOf(source);
-				final A_Type functionType = code.functionType();
+				val code: A_RawFunction = L2_CREATE_FUNCTION.constantRawFunctionOf(source)
+				val functionType = code.functionType()
 				registerSet.constantAtPut(
 					outputParamTypeReg.register(),
 					functionType.argsTupleType().typeAtIndex(paramIndex.value),
-					instruction);
-				return;
+					instruction)
+				return
 			}
 		}
 		// We don't know the exact type of the block argument, so since it's
 		// contravariant we can only assume it's some non-top type.
 		registerSet.typeAtPut(
-			outputParamTypeReg.register(), anyMeta(), instruction);
+			outputParamTypeReg.register(),
+			InstanceMetaDescriptor.anyMeta(),
+			instruction)
 	}
 
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		assert this == instruction.operation();
-		final L2ReadBoxedOperand function = instruction.operand(0);
-		final L2IntImmediateOperand parameterIndex = instruction.operand(1);
-		final L2WriteBoxedOperand parameterType = instruction.operand(2);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(parameterType.registerString());
-		builder.append(" ← ");
-		builder.append(function.registerString());
-		builder.append('[');
-		builder.append(parameterIndex.value);
-		builder.append(']');
+		assert(this == instruction.operation())
+		val function =
+			instruction.operand<L2ReadBoxedOperand>(0)
+		val parameterIndex =
+			instruction.operand<L2IntImmediateOperand>(1)
+		val parameterType =
+			instruction.operand<L2WriteBoxedOperand>(2)
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(parameterType.registerString())
+		builder.append(" ← ")
+		builder.append(function.registerString())
+		builder.append('[')
+		builder.append(parameterIndex.value)
+		builder.append(']')
 	}
 
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		final L2ReadBoxedOperand function = instruction.operand(0);
-		final L2IntImmediateOperand parameterIndex = instruction.operand(1);
-		final L2WriteBoxedOperand parameterType = instruction.operand(2);
+		val function =
+			instruction.operand<L2ReadBoxedOperand>(0)
+		val parameterIndex =
+			instruction.operand<L2IntImmediateOperand>(1)
+		val parameterType =
+			instruction.operand<L2WriteBoxedOperand>(2)
 
 		// :: paramType = function.code().functionType().argsTupleType()
 		// ::    .typeAtIndex(param)
-		translator.load(method, function.register());
-		FunctionDescriptor.functionCodeMethod.generateCall(method);
-		A_RawFunction.functionTypeMethod.generateCall(method);
-		A_Type.argsTupleTypeMethod.generateCall(method);
-		translator.literal(method, parameterIndex.value);
-		A_Type.typeAtIndexMethod.generateCall(method);
-		translator.store(method, parameterType.register());
+		translator.load(method, function.register())
+		FunctionDescriptor.functionCodeMethod.generateCall(method)
+		A_RawFunction.functionTypeMethod.generateCall(method)
+		A_Type.argsTupleTypeMethod.generateCall(method)
+		translator.literal(method, parameterIndex.value)
+		A_Type.typeAtIndexMethod.generateCall(method)
+		translator.store(method, parameterType.register())
 	}
 }

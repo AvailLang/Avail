@@ -29,23 +29,17 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operation
 
-package com.avail.interpreter.levelTwo.operation;
-
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_INT;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_INT;
-import static org.objectweb.asm.Opcodes.ISUB;
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2Operation
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
+import java.util.function.Consumer
 
 /**
  * Subtract the subtrahend from the minuend, converting the result to a signed
@@ -54,61 +48,55 @@ import static org.objectweb.asm.Opcodes.ISUB;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_SUBTRACT_INT_MINUS_INT_MOD_32_BITS
-extends L2Operation
+class L2_SUBTRACT_INT_MINUS_INT_MOD_32_BITS
+/**
+ * Construct an `L2_SUBTRACT_INT_MINUS_INT_MOD_32_BITS`.
+ */
+private constructor() : L2Operation(
+	L2OperandType.READ_INT.`is`("minuend"),
+	L2OperandType.READ_INT.`is`("subtrahend"),
+	L2OperandType.WRITE_INT.`is`("difference"))
 {
-	/**
-	 * Construct an {@code L2_SUBTRACT_INT_MINUS_INT_MOD_32_BITS}.
-	 */
-	private L2_SUBTRACT_INT_MINUS_INT_MOD_32_BITS ()
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		super(
-			READ_INT.is("minuend"),
-			READ_INT.is("subtrahend"),
-			WRITE_INT.is("difference"));
+		assert(this == instruction.operation())
+		val minuend = instruction.operand<L2ReadIntOperand>(0)
+		val subtrahend = instruction.operand<L2ReadIntOperand>(1)
+		val difference = instruction.operand<L2WriteIntOperand>(2)
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(difference.registerString())
+		builder.append(" ← ")
+		builder.append(minuend.registerString())
+		builder.append(" - ")
+		builder.append(subtrahend.registerString())
 	}
 
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_SUBTRACT_INT_MINUS_INT_MOD_32_BITS instance =
-		new L2_SUBTRACT_INT_MINUS_INT_MOD_32_BITS();
-
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		assert this == instruction.operation();
-		final L2ReadIntOperand minuend = instruction.operand(0);
-		final L2ReadIntOperand subtrahend = instruction.operand(1);
-		final L2WriteIntOperand difference = instruction.operand(2);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(difference.registerString());
-		builder.append(" ← ");
-		builder.append(minuend.registerString());
-		builder.append(" - ");
-		builder.append(subtrahend.registerString());
-	}
-
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
-	{
-		final L2ReadIntOperand minuend = instruction.operand(0);
-		final L2ReadIntOperand subtrahend = instruction.operand(1);
-		final L2WriteIntOperand difference = instruction.operand(2);
+		val minuend = instruction.operand<L2ReadIntOperand>(0)
+		val subtrahend = instruction.operand<L2ReadIntOperand>(1)
+		val difference = instruction.operand<L2WriteIntOperand>(2)
 
 		// :: difference = minuend - subtrahend;
-		translator.load(method, minuend.register());
-		translator.load(method, subtrahend.register());
-		method.visitInsn(ISUB);
-		translator.store(method, difference.register());
+		translator.load(method, minuend.register())
+		translator.load(method, subtrahend.register())
+		method.visitInsn(Opcodes.ISUB)
+		translator.store(method, difference.register())
+	}
+
+	companion object
+	{
+		/**
+		 * Initialize the sole instance.
+		 */
+		val instance = L2_SUBTRACT_INT_MINUS_INT_MOD_32_BITS()
 	}
 }

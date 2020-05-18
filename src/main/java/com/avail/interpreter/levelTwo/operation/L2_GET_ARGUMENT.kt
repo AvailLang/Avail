@@ -29,96 +29,71 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operation
 
-package com.avail.interpreter.levelTwo.operation;
-
-import com.avail.descriptor.representation.AvailObject;
-import com.avail.interpreter.execution.Interpreter;
-import com.avail.interpreter.JavaLibrary;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_ARGUMENTS;
-import com.avail.interpreter.levelTwo.ReadsHiddenVariable;
-import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
-import static org.objectweb.asm.Opcodes.CHECKCAST;
-import static org.objectweb.asm.Type.getInternalName;
+import com.avail.descriptor.representation.AvailObject
+import com.avail.interpreter.JavaLibrary.listGetMethod
+import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2Operation
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_ARGUMENTS
+import com.avail.interpreter.levelTwo.ReadsHiddenVariable
+import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
+import org.objectweb.asm.Type
+import java.util.function.Consumer
 
 /**
- * Ask the {@link Interpreter} for its {@link Interpreter#argsBuffer}'s n-th
+ * Ask the [Interpreter] for its [Interpreter.argsBuffer]'s n-th
  * element.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@ReadsHiddenVariable(theValue = CURRENT_ARGUMENTS.class)
-public final class L2_GET_ARGUMENT
-extends L2Operation
+@ReadsHiddenVariable(theValue = arrayOf(CURRENT_ARGUMENTS::class))
+object L2_GET_ARGUMENT : L2Operation(
+	L2OperandType.INT_IMMEDIATE.`is`("subscript into argsBuffer"),
+	L2OperandType.WRITE_BOXED.`is`("argument"))
 {
-	/**
-	 * Construct an {@code L2_GET_ARGUMENT}.
-	 */
-	private L2_GET_ARGUMENT ()
+	// Keep this instruction pinned in place for safety during inlining.
+	override fun hasSideEffect(): Boolean = true
+
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		super(
-			INT_IMMEDIATE.is("subscript into argsBuffer"),
-			WRITE_BOXED.is("argument"));
+		assert(this == instruction.operation())
+		val subscript =
+			instruction.operand<L2IntImmediateOperand>(0)
+		val argument =
+			instruction.operand<L2WriteBoxedOperand>(1)
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(argument.registerString())
+		builder.append(" ← arg#")
+		builder.append(subscript.value)
 	}
 
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_GET_ARGUMENT instance = new L2_GET_ARGUMENT();
-
-	@Override
-	public boolean hasSideEffect ()
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		// Keep this instruction pinned in place for safety during inlining.
-		return true;
-	}
-
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
-	{
-		assert this == instruction.operation();
-		final L2IntImmediateOperand subscript = instruction.operand(0);
-		final L2WriteBoxedOperand argument = instruction.operand(1);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(argument.registerString());
-		builder.append(" ← arg#");
-		builder.append(subscript.value);
-	}
-
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
-	{
-		final L2IntImmediateOperand subscript = instruction.operand(0);
-		final L2WriteBoxedOperand argument = instruction.operand(1);
+		val subscript = instruction.operand<L2IntImmediateOperand>(0)
+		val argument = instruction.operand<L2WriteBoxedOperand>(1)
 
 		// :: argument = interpreter.argsBuffer.get(«subscript - 1»);
-		translator.loadInterpreter(method);
-		Interpreter.argsBufferField.generateRead(method);
-		translator.literal(method, subscript.value - 1);
-		JavaLibrary.getListGetMethod().generateCall(method);
-		method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
-		translator.store(method, argument.register());
+		translator.loadInterpreter(method)
+		Interpreter.argsBufferField.generateRead(method)
+		translator.literal(method, subscript.value - 1)
+		listGetMethod.generateCall(method)
+		method.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(AvailObject::class.java))
+		translator.store(method, argument.register())
 	}
 }

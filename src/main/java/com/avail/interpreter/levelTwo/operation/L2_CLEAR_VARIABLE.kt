@@ -29,25 +29,20 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.levelTwo.operation;
+package com.avail.interpreter.levelTwo.operation
 
-import com.avail.descriptor.types.A_Type;
-import com.avail.descriptor.variables.VariableDescriptor;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2Operand;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.descriptor.types.VariableTypeDescriptor.mostGeneralVariableType;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
+import com.avail.descriptor.types.VariableTypeDescriptor
+import com.avail.descriptor.variables.VariableDescriptor
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2Operation
+import com.avail.interpreter.levelTwo.operand.L2Operand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.optimizer.L2Generator
+import com.avail.optimizer.RegisterSet
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.MethodVisitor
+import java.util.function.Consumer
 
 /**
  * Clear a variable; i.e., make it have no assigned value.
@@ -55,69 +50,50 @@ import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_CLEAR_VARIABLE
-extends L2Operation
+object L2_CLEAR_VARIABLE : L2Operation(
+	L2OperandType.READ_BOXED.`is`("variable"))
 {
-	/**
-	 * Construct an {@code L2_CLEAR_VARIABLE}.
-	 */
-	private L2_CLEAR_VARIABLE ()
+	override fun propagateTypes(
+		instruction: L2Instruction,
+		registerSet: RegisterSet,
+		generator: L2Generator)
 	{
-		super(
-			READ_BOXED.is("variable"));
+		val variableReg =
+			instruction.operand<L2ReadBoxedOperand>(0)
+		assert(registerSet.hasTypeAt(variableReg.register()))
+		val varType = registerSet.typeAt(variableReg.register())
+		assert(varType.isSubtypeOf(VariableTypeDescriptor.mostGeneralVariableType()))
 	}
 
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_CLEAR_VARIABLE instance = new L2_CLEAR_VARIABLE();
-
-	@Override
-	protected void propagateTypes (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
-		final L2Generator generator)
+	override fun hasSideEffect(): Boolean
 	{
-		final L2ReadBoxedOperand variableReg = instruction.operand(0);
-		// If we haven't already guaranteed that this is a variable then we
-		// are probably not doing things right.
-		assert registerSet.hasTypeAt(variableReg.register());
-		final A_Type varType = registerSet.typeAt(variableReg.register());
-		assert varType.isSubtypeOf(mostGeneralVariableType());
+		return true
 	}
 
-	@Override
-	public boolean hasSideEffect ()
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		return true;
+		assert(this == instruction.operation())
+		val variableReg = instruction.operand<L2Operand>(0)
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(variableReg)
 	}
 
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		assert this == instruction.operation();
-		final L2Operand variableReg = instruction.operand(0);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(variableReg);
-	}
-
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
-	{
-		final L2ReadBoxedOperand variable = instruction.operand(0);
+		val variable =
+			instruction.operand<L2ReadBoxedOperand>(0)
 
 		// TODO: [TLS/MvG] clearValue() can throw VariableSetException. Deal.
 		// :: variable.clearValue();
-		translator.load(method, variable.register());
-		VariableDescriptor.clearVariableMethod.generateCall(method);
+		translator.load(method, variable.register())
+		VariableDescriptor.clearVariableMethod.generateCall(method)
 	}
 }

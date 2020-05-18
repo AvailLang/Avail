@@ -29,128 +29,98 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.levelTwo.operation;
+package com.avail.interpreter.levelTwo.operation
 
-import com.avail.exceptions.VariableGetException;
-import com.avail.interpreter.execution.Interpreter;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.descriptor.representation.A_BasicObject.makeImmutableMethod;
-import static com.avail.descriptor.variables.A_Variable.getValueMethod;
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static org.objectweb.asm.Opcodes.GOTO;
-import static org.objectweb.asm.Opcodes.POP;
-import static org.objectweb.asm.Type.getInternalName;
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.variables.A_Variable
+import com.avail.exceptions.VariableGetException
+import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2NamedOperandType
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.operand.L2PcOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.Label
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
+import org.objectweb.asm.Type
+import java.util.function.Consumer
 
 /**
  * Extract the value of a variable. If the variable is unassigned, then branch
- * to the specified {@linkplain Interpreter#setOffset(int) offset}.
+ * to the specified [offset][Interpreter.setOffset].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_GET_VARIABLE
-extends L2ControlFlowOperation
+object L2_GET_VARIABLE : L2ControlFlowOperation(
+	L2OperandType.READ_BOXED.`is`("variable"),
+	L2OperandType.WRITE_BOXED.`is`("extracted value", L2NamedOperandType.Purpose.SUCCESS),
+	L2OperandType.PC.`is`("read succeeded", L2NamedOperandType.Purpose.SUCCESS),
+	L2OperandType.PC.`is`("read failed", L2NamedOperandType.Purpose.OFF_RAMP))
 {
-	/**
-	 * Construct an {@code L2_GET_VARIABLE}.
-	 */
-	private L2_GET_VARIABLE ()
-	{
-		super(
-			READ_BOXED.is("variable"),
-			WRITE_BOXED.is("extracted value", SUCCESS),
-			PC.is("read succeeded", SUCCESS),
-			PC.is("read failed", OFF_RAMP));
-	}
+	// Subtle. Reading from a variable can fail, so don't remove this.
+	override fun hasSideEffect(): Boolean = true
 
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_GET_VARIABLE instance = new L2_GET_VARIABLE();
+	override val isVariableGet: Boolean
+		get() = true
 
-	@Override
-	public boolean hasSideEffect ()
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		// Subtle. Reading from a variable can fail, so don't remove this.
-		return true;
-	}
-
-	@Override
-	public boolean isVariableGet ()
-	{
-		return true;
-	}
-
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
-	{
-		assert this == instruction.operation();
-		final L2ReadBoxedOperand variable = instruction.operand(0);
-		final L2WriteBoxedOperand value = instruction.operand(1);
-//		final L2PcOperand success = instruction.operand(2);
+		assert(this == instruction.operation())
+		val variable = instruction.operand<L2ReadBoxedOperand>(0)
+		val value = instruction.operand<L2WriteBoxedOperand>(1)
+		//		final L2PcOperand success = instruction.operand(2);
 //		final L2PcOperand failure = instruction.operand(3);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(value.registerString());
-		builder.append(" ← ↓");
-		builder.append(variable.registerString());
-		renderOperandsStartingAt(instruction, 2, desiredTypes, builder);
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(value.registerString())
+		builder.append(" ← ↓")
+		builder.append(variable.registerString())
+		renderOperandsStartingAt(instruction, 2, desiredTypes, builder)
 	}
 
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		final L2ReadBoxedOperand variable = instruction.operand(0);
-		final L2WriteBoxedOperand value = instruction.operand(1);
-		final L2PcOperand success = instruction.operand(2);
-		final L2PcOperand failure = instruction.operand(3);
+		val variable = instruction.operand<L2ReadBoxedOperand>(0)
+		val value = instruction.operand<L2WriteBoxedOperand>(1)
+		val success = instruction.operand<L2PcOperand>(2)
+		val failure = instruction.operand<L2PcOperand>(3)
 
 		// :: try {
-		final Label tryStart = new Label();
-		final Label catchStart = new Label();
+		val tryStart = Label()
+		val catchStart = Label()
 		method.visitTryCatchBlock(
 			tryStart,
 			catchStart,
 			catchStart,
-			getInternalName(VariableGetException.class));
-		method.visitLabel(tryStart);
+			Type.getInternalName(VariableGetException::class.java))
+		method.visitLabel(tryStart)
 		// ::    dest = variable.getValue().makeImmutable();
-		translator.load(method, variable.register());
-		getValueMethod.generateCall(method);
-		makeImmutableMethod.generateCall(method);
-		translator.store(method, value.register());
+		translator.load(method, variable.register())
+		A_Variable.getValueMethod.generateCall(method)
+		A_BasicObject.makeImmutableMethod.generateCall(method)
+		translator.store(method, value.register())
 		// ::    goto success;
 		// Note that we cannot potentially eliminate this branch with a
 		// fall through, because the next instruction expects a
 		// VariableGetException to be pushed onto the stack. So always do the
 		// jump.
-		method.visitJumpInsn(GOTO, translator.labelFor(success.offset()));
+		method.visitJumpInsn(Opcodes.GOTO, translator.labelFor(success.offset()))
 		// :: } catch (VariableGetException e) {
-		method.visitLabel(catchStart);
-		method.visitInsn(POP);
+		method.visitLabel(catchStart)
+		method.visitInsn(Opcodes.POP)
 		// ::    goto failure;
-		translator.jump(method, instruction, failure);
+		translator.jump(method, instruction, failure)
 		// :: }
 	}
 }

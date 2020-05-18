@@ -29,116 +29,96 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.levelTwo.operation;
+package com.avail.interpreter.levelTwo.operation
 
-import com.avail.descriptor.functions.FunctionDescriptor;
-import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.functions.A_Function;
-import com.avail.descriptor.variables.VariableDescriptor;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION;
-import com.avail.interpreter.levelTwo.ReadsHiddenVariable;
-import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
-import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import com.avail.descriptor.functions.A_Function
+import com.avail.descriptor.functions.FunctionDescriptor
+import com.avail.descriptor.variables.VariableDescriptor
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2Operation
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION
+import com.avail.interpreter.levelTwo.ReadsHiddenVariable
+import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import com.avail.optimizer.L2Generator
+import com.avail.optimizer.RegisterSet
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.MethodVisitor
+import java.util.function.Consumer
 
 /**
  * Extract a captured "outer" variable from a function.  If the outer
- * variable is an actual {@linkplain VariableDescriptor variable} then the
+ * variable is an actual [variable][VariableDescriptor] then the
  * variable itself is what gets moved into the destination register.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@ReadsHiddenVariable(theValue = CURRENT_FUNCTION.class)
-public final class L2_MOVE_OUTER_VARIABLE
-extends L2Operation
+@ReadsHiddenVariable(theValue = arrayOf(CURRENT_FUNCTION::class))
+object L2_MOVE_OUTER_VARIABLE : L2Operation(
+	L2OperandType.INT_IMMEDIATE.`is`("outer index"),
+	L2OperandType.READ_BOXED.`is`("function"),
+	L2OperandType.WRITE_BOXED.`is`("destination"))
 {
-	/**
-	 * Construct an {@code L2_MOVE_OUTER_VARIABLE}.
-	 */
-	private L2_MOVE_OUTER_VARIABLE ()
+	override fun propagateTypes(
+		instruction: L2Instruction,
+		registerSet: RegisterSet,
+		generator: L2Generator)
 	{
-		super(
-			INT_IMMEDIATE.is("outer index"),
-			READ_BOXED.is("function"),
-			WRITE_BOXED.is("destination"));
-	}
-
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_MOVE_OUTER_VARIABLE instance =
-		new L2_MOVE_OUTER_VARIABLE();
-
-	@Override
-	protected void propagateTypes (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
-		final L2Generator generator)
-	{
-		final L2IntImmediateOperand outerIndex = instruction.operand(0);
-		final L2ReadBoxedOperand function = instruction.operand(1);
-		final L2WriteBoxedOperand destination = instruction.operand(2);
-
+		val outerIndex =
+			instruction.operand<L2IntImmediateOperand>(0)
+		val function =
+			instruction.operand<L2ReadBoxedOperand>(1)
+		val destination =
+			instruction.operand<L2WriteBoxedOperand>(2)
 		if (registerSet.hasConstantAt(function.register()))
 		{
 			// The exact function is known.
-			final A_Function fn =
-				registerSet.constantAt(function.register());
-			final AvailObject value = fn.outerVarAt(outerIndex.value);
+			val fn: A_Function = registerSet.constantAt(function.register())
+			val value = fn.outerVarAt(outerIndex.value)
 			registerSet.constantAtPut(
-				destination.register(), value, instruction);
+				destination.register(), value, instruction)
 		}
 	}
 
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		assert this == instruction.operation();
-		final L2IntImmediateOperand outerIndex = instruction.operand(0);
-		final L2ReadBoxedOperand function = instruction.operand(1);
-		final L2WriteBoxedOperand destination = instruction.operand(2);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(destination.registerString());
-		builder.append(" ← ");
-		builder.append(function.registerString());
-		builder.append('[');
-		builder.append(outerIndex.value);
-		builder.append(']');
+		assert(this == instruction.operation())
+		val outerIndex =
+			instruction.operand<L2IntImmediateOperand>(0)
+		val function =
+			instruction.operand<L2ReadBoxedOperand>(1)
+		val destination =
+			instruction.operand<L2WriteBoxedOperand>(2)
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(destination.registerString())
+		builder.append(" ← ")
+		builder.append(function.registerString())
+		builder.append('[')
+		builder.append(outerIndex.value)
+		builder.append(']')
 	}
 
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		final L2IntImmediateOperand outerIndex = instruction.operand(0);
-		final L2ReadBoxedOperand function = instruction.operand(1);
-		final L2WriteBoxedOperand destination = instruction.operand(2);
+		val outerIndex = instruction.operand<L2IntImmediateOperand>(0)
+		val function = instruction.operand<L2ReadBoxedOperand>(1)
+		val destination = instruction.operand<L2WriteBoxedOperand>(2)
 
 		// :: destination = function.outerVarAt(outerIndex);
-		translator.load(method, function.register());
-		translator.literal(method, outerIndex.value);
-		FunctionDescriptor.outerVarAtMethod.generateCall(method);
-		translator.store(method, destination.register());
+		translator.load(method, function.register())
+		translator.literal(method, outerIndex.value)
+		FunctionDescriptor.outerVarAtMethod.generateCall(method)
+		translator.store(method, destination.register())
 	}
 }

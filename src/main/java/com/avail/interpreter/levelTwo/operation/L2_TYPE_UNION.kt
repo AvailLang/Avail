@@ -29,25 +29,19 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operation
 
-package com.avail.interpreter.levelTwo.operation;
-
-import com.avail.descriptor.types.A_Type;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
-import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
+import com.avail.descriptor.types.A_Type
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2Operation
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import com.avail.optimizer.L2Generator
+import com.avail.optimizer.RegisterSet
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.MethodVisitor
+import java.util.function.Consumer
 
 /**
  * Given two input types in registers, compute their union and write it to the
@@ -56,79 +50,58 @@ import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_TYPE_UNION
-extends L2Operation
+object L2_TYPE_UNION : L2Operation(
+	L2OperandType.READ_BOXED.`is`("first type"),
+	L2OperandType.READ_BOXED.`is`("second type"),
+	L2OperandType.WRITE_BOXED.`is`("union type"))
 {
-	/**
-	 * Construct an {@code L2_TYPE_UNION}.
-	 */
-	private L2_TYPE_UNION ()
+	override fun propagateTypes(
+		instruction: L2Instruction,
+		registerSet: RegisterSet,
+		generator: L2Generator)
 	{
-		super(
-			READ_BOXED.is("first type"),
-			READ_BOXED.is("second type"),
-			WRITE_BOXED.is("union type"));
-	}
-
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_TYPE_UNION instance = new L2_TYPE_UNION();
-
-	@Override
-	protected void propagateTypes (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
-		final L2Generator generator)
-	{
-		final L2ReadBoxedOperand firstType = instruction.operand(0);
-		final L2ReadBoxedOperand secondType = instruction.operand(1);
-		final L2WriteBoxedOperand outputType = instruction.operand(2);
-
-		final A_Type firstMeta =
-			registerSet.typeAt(firstType.register());
-		final A_Type secondMeta =
-			registerSet.typeAt(secondType.register());
-		final A_Type unionMeta = firstMeta.typeUnion(secondMeta);
+		val firstType = instruction.operand<L2ReadBoxedOperand>(0)
+		val secondType = instruction.operand<L2ReadBoxedOperand>(1)
+		val outputType = instruction.operand<L2WriteBoxedOperand>(2)
+		val firstMeta = registerSet.typeAt(firstType.register())
+		val secondMeta = registerSet.typeAt(secondType.register())
+		val unionMeta = firstMeta.typeUnion(secondMeta)
 		registerSet.typeAtPut(
-			outputType.register(), unionMeta, instruction);
+			outputType.register(), unionMeta, instruction)
 	}
 
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		assert this == instruction.operation();
-		final L2ReadBoxedOperand firstType = instruction.operand(0);
-		final L2ReadBoxedOperand secondType = instruction.operand(1);
-		final L2WriteBoxedOperand outputType = instruction.operand(2);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(outputType.registerString());
-		builder.append(" ← ");
-		builder.append(firstType.registerString());
-		builder.append(" ∪ ");
-		builder.append(secondType.registerString());
+		assert(this == instruction.operation())
+		val firstType = instruction.operand<L2ReadBoxedOperand>(0)
+		val secondType = instruction.operand<L2ReadBoxedOperand>(1)
+		val outputType = instruction.operand<L2WriteBoxedOperand>(2)
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(outputType.registerString())
+		builder.append(" ← ")
+		builder.append(firstType.registerString())
+		builder.append(" ∪ ")
+		builder.append(secondType.registerString())
 	}
 
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		final L2ReadBoxedOperand firstType = instruction.operand(0);
-		final L2ReadBoxedOperand secondType = instruction.operand(1);
-		final L2WriteBoxedOperand outputType = instruction.operand(2);
+		val firstType = instruction.operand<L2ReadBoxedOperand>(0)
+		val secondType = instruction.operand<L2ReadBoxedOperand>(1)
+		val outputType = instruction.operand<L2WriteBoxedOperand>(2)
 
 		// :: unionType = firstInputType.typeUnion(secondInputType);
-		translator.load(method, firstType.register());
-		translator.load(method, secondType.register());
-		A_Type.typeUnionMethod.generateCall(method);
-		translator.store(method, outputType.register());
+		translator.load(method, firstType.register())
+		translator.load(method, secondType.register())
+		A_Type.typeUnionMethod.generateCall(method)
+		translator.store(method, outputType.register())
 	}
 }

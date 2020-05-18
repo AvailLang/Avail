@@ -29,27 +29,21 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operation
 
-package com.avail.interpreter.levelTwo.operation;
-
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Type.INT_TYPE;
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2NamedOperandType
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
+import com.avail.interpreter.levelTwo.operand.L2PcOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.Label
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
+import org.objectweb.asm.Type
+import java.util.function.Consumer
 
 /**
  * Extract an int from the specified constant, and subtract it from an int
@@ -57,103 +51,96 @@ import static org.objectweb.asm.Type.INT_TYPE;
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_SUBTRACT_INT_MINUS_INT_CONSTANT
-extends L2ControlFlowOperation
+class L2_SUBTRACT_INT_MINUS_INT_CONSTANT
+/**
+ * Construct an `L2_SUBTRACT_INT_MINUS_INT_CONSTANT`.
+ */
+private constructor() : L2ControlFlowOperation(
+	L2OperandType.READ_INT.`is`("minuend"),
+	L2OperandType.INT_IMMEDIATE.`is`("subtrahend"),
+	L2OperandType.WRITE_INT.`is`("difference", L2NamedOperandType.Purpose.SUCCESS),
+	L2OperandType.PC.`is`("in range", L2NamedOperandType.Purpose.SUCCESS),
+	L2OperandType.PC.`is`("out of range", L2NamedOperandType.Purpose.FAILURE))
 {
-	/**
-	 * Construct an {@code L2_SUBTRACT_INT_MINUS_INT_CONSTANT}.
-	 */
-	private L2_SUBTRACT_INT_MINUS_INT_CONSTANT ()
+	override fun hasSideEffect(): Boolean
 	{
-		super(
-			READ_INT.is("minuend"),
-			INT_IMMEDIATE.is("subtrahend"),
-			WRITE_INT.is("difference", SUCCESS),
-			PC.is("in range", SUCCESS),
-			PC.is("out of range", FAILURE));
+		return true
 	}
 
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_SUBTRACT_INT_MINUS_INT_CONSTANT instance =
-		new L2_SUBTRACT_INT_MINUS_INT_CONSTANT();
-
-	@Override
-	public boolean hasSideEffect ()
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		return true;
-	}
-
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
-	{
-		assert this == instruction.operation();
-		final L2ReadIntOperand minuend = instruction.operand(0);
-		final L2IntImmediateOperand subtrahend = instruction.operand(1);
-		final L2WriteIntOperand difference = instruction.operand(2);
-//		final L2PcOperand inRange = instruction.operand(3);
+		assert(this == instruction.operation())
+		val minuend = instruction.operand<L2ReadIntOperand>(0)
+		val subtrahend = instruction.operand<L2IntImmediateOperand>(1)
+		val difference = instruction.operand<L2WriteIntOperand>(2)
+		//		final L2PcOperand inRange = instruction.operand(3);
 //		final L2PcOperand outOfRange = instruction.operand(4);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(difference.registerString());
-		builder.append(" ← ");
-		builder.append(minuend.registerString());
-		builder.append(" - ");
-		builder.append(subtrahend.value);
-		renderOperandsStartingAt(instruction, 3, desiredTypes, builder);
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(difference.registerString())
+		builder.append(" ← ")
+		builder.append(minuend.registerString())
+		builder.append(" - ")
+		builder.append(subtrahend.value)
+		renderOperandsStartingAt(instruction, 3, desiredTypes, builder)
 	}
 
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		final L2ReadIntOperand minuend = instruction.operand(0);
-		final L2IntImmediateOperand subtrahend = instruction.operand(1);
-		final L2WriteIntOperand difference = instruction.operand(2);
-		final L2PcOperand inRange = instruction.operand(3);
-		final L2PcOperand outOfRange = instruction.operand(4);
+		val minuend = instruction.operand<L2ReadIntOperand>(0)
+		val subtrahend = instruction.operand<L2IntImmediateOperand>(1)
+		val difference = instruction.operand<L2WriteIntOperand>(2)
+		val inRange = instruction.operand<L2PcOperand>(3)
+		val outOfRange = instruction.operand<L2PcOperand>(4)
 
 		// :: longDifference = (long) minuend - (long) subtrahend;
-		translator.load(method, minuend.register());
-		method.visitInsn(I2L);
-		translator.literal(method, subtrahend.value);
-		method.visitInsn(I2L);
-		method.visitInsn(LSUB);
-		method.visitInsn(DUP2);
+		translator.load(method, minuend.register())
+		method.visitInsn(Opcodes.I2L)
+		translator.literal(method, subtrahend.value)
+		method.visitInsn(Opcodes.I2L)
+		method.visitInsn(Opcodes.LSUB)
+		method.visitInsn(Opcodes.DUP2)
 		// :: intDifference = (int) longDifference;
-		method.visitInsn(L2I);
-		method.visitInsn(DUP);
-		final int intDifferenceLocal = translator.nextLocal(INT_TYPE);
-		final Label intDifferenceStart = new Label();
-		method.visitLabel(intDifferenceStart);
-		method.visitVarInsn(ISTORE, intDifferenceLocal);
+		method.visitInsn(Opcodes.L2I)
+		method.visitInsn(Opcodes.DUP)
+		val intDifferenceLocal = translator.nextLocal(Type.INT_TYPE)
+		val intDifferenceStart = Label()
+		method.visitLabel(intDifferenceStart)
+		method.visitVarInsn(Opcodes.ISTORE, intDifferenceLocal)
 		// :: if (longDifference != intDifference) goto outOfRange;
-		method.visitInsn(I2L);
-		method.visitInsn(LCMP);
-		method.visitJumpInsn(IFNE, translator.labelFor(outOfRange.offset()));
+		method.visitInsn(Opcodes.I2L)
+		method.visitInsn(Opcodes.LCMP)
+		method.visitJumpInsn(Opcodes.IFNE, translator.labelFor(outOfRange.offset()))
 		// :: else {
 		// ::    sum = intDifference;
 		// ::    goto inRange;
 		// :: }
-		method.visitVarInsn(ILOAD, intDifferenceLocal);
-		final Label intDifferenceEnd = new Label();
-		method.visitLabel(intDifferenceEnd);
+		method.visitVarInsn(Opcodes.ILOAD, intDifferenceLocal)
+		val intDifferenceEnd = Label()
+		method.visitLabel(intDifferenceEnd)
 		method.visitLocalVariable(
 			"intDifference",
-			INT_TYPE.getDescriptor(),
+			Type.INT_TYPE.descriptor,
 			null,
 			intDifferenceStart,
 			intDifferenceEnd,
-			intDifferenceLocal);
-		translator.store(method, difference.register());
-		translator.jump(method, instruction, inRange);
+			intDifferenceLocal)
+		translator.store(method, difference.register())
+		translator.jump(method, instruction, inRange)
+	}
+
+	companion object
+	{
+		/**
+		 * Initialize the sole instance.
+		 */
+		val instance = L2_SUBTRACT_INT_MINUS_INT_CONSTANT()
 	}
 }

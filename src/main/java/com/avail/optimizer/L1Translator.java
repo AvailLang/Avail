@@ -447,7 +447,7 @@ public final class L1Translator
 				BOXED);
 		final L2WriteBoxedOperand functionWrite =
 			generator.boxedWrite(semanticFunction, restriction);
-		addInstruction(L2_GET_CURRENT_FUNCTION.instance, functionWrite);
+		addInstruction(L2_GET_CURRENT_FUNCTION.INSTANCE, functionWrite);
 		return readBoxed(functionWrite);
 	}
 
@@ -481,7 +481,7 @@ public final class L1Translator
 		final L2WriteBoxedOperand outerWrite =
 			generator.boxedWrite(semanticOuter, restriction);
 		addInstruction(
-			L2_MOVE_OUTER_VARIABLE.instance,
+			L2_MOVE_OUTER_VARIABLE.INSTANCE,
 			new L2IntImmediateOperand(outerIndex),
 			functionRead,
 			outerWrite);
@@ -504,7 +504,7 @@ public final class L1Translator
 			generator.boxedWriteTemp(restrictionForType(guaranteedType,
 				BOXED));
 		addInstruction(
-			L2_GET_LATEST_RETURN_VALUE.instance,
+			L2_GET_LATEST_RETURN_VALUE.INSTANCE,
 			writer);
 		return readBoxed(writer);
 	}
@@ -523,7 +523,7 @@ public final class L1Translator
 				restrictionForType(mostGeneralFunctionType(),
 					BOXED));
 		addInstruction(
-			L2_GET_RETURNING_FUNCTION.instance,
+			L2_GET_RETURNING_FUNCTION.INSTANCE,
 			writer);
 		return readBoxed(writer);
 	}
@@ -652,7 +652,7 @@ public final class L1Translator
 		final L2BasicBlock fallThrough =
 			generator.createBasicBlock("Off-ramp", zone);
 		addInstruction(
-			L2_SAVE_ALL_AND_PC_TO_INT.instance,
+			L2_SAVE_ALL_AND_PC_TO_INT.INSTANCE,
 			edgeTo(onReturnIntoReified),
 			writeOffset,
 			writeRegisterDump,
@@ -666,13 +666,13 @@ public final class L1Translator
 				topFrame().reifiedCaller(),
 				restrictionForType(mostGeneralContinuationType(), BOXED));
 		addInstruction(
-			L2_GET_CURRENT_CONTINUATION.instance,
+			L2_GET_CURRENT_CONTINUATION.INSTANCE,
 			writeReifiedCaller);
 		if (typeOfEntryPoint == TRANSIENT)
 		{
 			// L1 can never see this continuation, so it can be minimal.
 			addInstruction(
-				L2_CREATE_CONTINUATION.instance,
+				L2_CREATE_CONTINUATION.INSTANCE,
 				getCurrentFunction(),
 				generator.readBoxed(writeReifiedCaller),
 				new L2IntImmediateOperand(Integer.MAX_VALUE),
@@ -692,7 +692,7 @@ public final class L1Translator
 			// it to resume in the L2Chunk#unoptimizedChunk, which can only see
 			// L1 content.
 			addInstruction(
-				L2_CREATE_CONTINUATION.instance,
+				L2_CREATE_CONTINUATION.INSTANCE,
 				getCurrentFunction(),
 				readBoxed(writeReifiedCaller),
 				new L2IntImmediateOperand(instructionDecoder.pc()),
@@ -715,7 +715,7 @@ public final class L1Translator
 		// Here it's returning into the reified continuation.
 		generator.startBlock(onReturnIntoReified);
 		addInstruction(
-			L2_ENTER_L2_CHUNK.instance,
+			L2_ENTER_L2_CHUNK.INSTANCE,
 			new L2IntImmediateOperand(typeOfEntryPoint.getOffsetInDefaultChunk()),
 			new L2CommentOperand(
 				"If invalid, reenter «default» at "
@@ -746,7 +746,7 @@ public final class L1Translator
 						bottom()),
 					BOXED));
 		addInstruction(
-			L2_GET_INVALID_MESSAGE_RESULT_FUNCTION.instance,
+			L2_GET_INVALID_MESSAGE_RESULT_FUNCTION.INSTANCE,
 			invalidResultFunction);
 		return readBoxed(invalidResultFunction);
 	}
@@ -1605,7 +1605,7 @@ public final class L1Translator
 		final A_Type argMeta = instanceMeta(argRestriction.type);
 		final L2WriteBoxedOperand argTypeWrite =
 			generator.boxedWriteTemp(argRestriction.metaRestriction());
-		addInstruction(L2_GET_TYPE.instance, argRead, argTypeWrite);
+		addInstruction(L2_GET_TYPE.INSTANCE, argRead, argTypeWrite);
 		final L2ReadBoxedOperand superUnionReg =
 			generator.boxedConstant(superUnionElementType);
 		final L2WriteBoxedOperand unionReg =
@@ -1614,7 +1614,7 @@ public final class L1Translator
 					argMeta.typeUnion(superUnionReg.type()),
 					BOXED));
 		addInstruction(
-			L2_TYPE_UNION.instance,
+			L2_TYPE_UNION.INSTANCE,
 			readBoxed(argTypeWrite),
 			superUnionReg,
 			unionReg);
@@ -1717,7 +1717,7 @@ public final class L1Translator
 						boolSource.operand(1);
 					final L2Instruction firstTypeSource =
 						firstTypeOperand.definitionSkippingMoves(true);
-					if (firstTypeSource.operation() == L2_GET_TYPE.instance)
+					if (firstTypeSource.operation() == L2_GET_TYPE.INSTANCE)
 					{
 						// There's a get-type followed by an is-subtype
 						// followed by a compare-and-branch of the result
@@ -1754,7 +1754,7 @@ public final class L1Translator
 						boolSource.operand(0);
 					final L2Instruction firstTypeSource =
 						firstTypeOperand.definitionSkippingMoves(true);
-					if (firstTypeSource.operation() == L2_GET_TYPE.instance)
+					if (firstTypeSource.operation() == L2_GET_TYPE.INSTANCE)
 					{
 						// There's a get-type followed by an is-subtype
 						// followed by a compare-and-branch of the result
@@ -1973,7 +1973,7 @@ public final class L1Translator
 		if (constantFunction != null)
 		{
 			addInstruction(
-				L2_INVOKE_CONSTANT_FUNCTION.instance,
+				L2_INVOKE_CONSTANT_FUNCTION.INSTANCE,
 				new L2ConstantOperand(constantFunction),
 				new L2ReadBoxedVectorOperand(arguments),
 				writeResult,
@@ -1985,7 +1985,7 @@ public final class L1Translator
 		else
 		{
 			addInstruction(
-				L2_INVOKE.instance,
+				L2_INVOKE.INSTANCE,
 				functionToCallReg,
 				new L2ReadBoxedVectorOperand(arguments),
 				writeResult,
@@ -1996,7 +1996,7 @@ public final class L1Translator
 		}
 		generator.startBlock(reificationTarget);
 		generator.addInstruction(
-			L2_ENTER_L2_CHUNK.instance,
+			L2_ENTER_L2_CHUNK.INSTANCE,
 			new L2IntImmediateOperand(TRANSIENT.getOffsetInDefaultChunk()),
 			new L2CommentOperand(
 				"Transient - cannot be invalid."));
@@ -2073,7 +2073,7 @@ public final class L1Translator
 			generator.boxedWriteTemp(
 				restrictionForType(variableTypeFor(ANY.o()), BOXED));
 		addInstruction(
-			L2_CREATE_VARIABLE.instance,
+			L2_CREATE_VARIABLE.INSTANCE,
 			new L2ConstantOperand(variableTypeFor(ANY.o())),
 			variableToHoldValueWrite);
 		final L2BasicBlock wroteVariable =
@@ -2097,7 +2097,7 @@ public final class L1Translator
 				PROPAGATE_REIFICATION_FOR_INVOKE.createZone(
 					"Reification while handling failed return check"));
 		addInstruction(
-			L2_INVOKE.instance,
+			L2_INVOKE.INSTANCE,
 			getInvalidResultFunctionRegister(),
 			new L2ReadBoxedVectorOperand(
 				asList(
@@ -2111,7 +2111,7 @@ public final class L1Translator
 		// Reification has been requested while the call is in progress.
 		generator.startBlock(onReificationInHandler);
 		generator.addInstruction(
-			L2_ENTER_L2_CHUNK.instance,
+			L2_ENTER_L2_CHUNK.INSTANCE,
 			new L2IntImmediateOperand(TRANSIENT.getOffsetInDefaultChunk()),
 			new L2CommentOperand(
 				"Transient - cannot be invalid."));
@@ -2427,7 +2427,7 @@ public final class L1Translator
 		{
 			// Not a super-call.
 			addInstruction(
-				L2_LOOKUP_BY_VALUES.instance,
+				L2_LOOKUP_BY_VALUES.INSTANCE,
 				new L2SelectorOperand(bundle),
 				new L2ReadBoxedVectorOperand(argumentReads),
 				functionWrite,
@@ -2464,7 +2464,7 @@ public final class L1Translator
 					{
 						// Only this argument's actual type matters.
 						addInstruction(
-							L2_GET_TYPE.instance, argReg, argTypeWrite);
+							L2_GET_TYPE.INSTANCE, argReg, argTypeWrite);
 					}
 					else
 					{
@@ -2477,9 +2477,9 @@ public final class L1Translator
 								restrictionForType(
 									instanceMeta(typeBound), BOXED));
 						addInstruction(
-							L2_GET_TYPE.instance, argReg, originalArgTypeWrite);
+							L2_GET_TYPE.INSTANCE, argReg, originalArgTypeWrite);
 						addInstruction(
-							L2_TYPE_UNION.instance,
+							L2_TYPE_UNION.INSTANCE,
 							readBoxed(originalArgTypeWrite),
 							generator.boxedConstant(superUnionElementType),
 							argTypeWrite);
@@ -2489,7 +2489,7 @@ public final class L1Translator
 				argTypeRegs.add(argTypeReg);
 			}
 			addInstruction(
-				L2_LOOKUP_BY_TYPES.instance,
+				L2_LOOKUP_BY_TYPES.INSTANCE,
 				new L2SelectorOperand(bundle),
 				new L2ReadBoxedVectorOperand(argTypeRegs),
 				functionWrite,
@@ -2563,7 +2563,7 @@ public final class L1Translator
 			generator.boxedWriteTemp(
 				restrictionForType(INVALID_MESSAGE_SEND.functionType, BOXED));
 		addInstruction(
-			L2_GET_INVALID_MESSAGE_SEND_FUNCTION.instance,
+			L2_GET_INVALID_MESSAGE_SEND_FUNCTION.INSTANCE,
 			invalidSendReg);
 		// Collect the argument types into a tuple type.
 		final List<A_Type> argTypes = argumentRestrictions.stream()
@@ -2573,7 +2573,7 @@ public final class L1Translator
 			generator.boxedWriteTemp(
 				restrictionForType(tupleTypeForTypes(argTypes), BOXED));
 		addInstruction(
-			L2_CREATE_TUPLE.instance,
+			L2_CREATE_TUPLE.INSTANCE,
 			new L2ReadBoxedVectorOperand(argumentReads),
 			argumentsTupleWrite);
 		final L2BasicBlock onReificationDuringFailure =
@@ -2583,7 +2583,7 @@ public final class L1Translator
 				PROPAGATE_REIFICATION_FOR_INVOKE.createZone(
 					"Continue reification during lookup failure handler"));
 		addInstruction(
-			L2_INVOKE.instance,
+			L2_INVOKE.INSTANCE,
 			readBoxed(invalidSendReg),
 			new L2ReadBoxedVectorOperand(
 				asList(
@@ -2598,7 +2598,7 @@ public final class L1Translator
 		// progress.
 		generator.startBlock(onReificationDuringFailure);
 		generator.addInstruction(
-			L2_ENTER_L2_CHUNK.instance,
+			L2_ENTER_L2_CHUNK.INSTANCE,
 			new L2IntImmediateOperand(TRANSIENT.getOffsetInDefaultChunk()),
 			new L2CommentOperand(
 				"Transient - cannot be invalid."));
@@ -2650,7 +2650,7 @@ public final class L1Translator
 
 		generator.startBlock(onReification);
 		generator.addInstruction(
-			L2_ENTER_L2_CHUNK.instance,
+			L2_ENTER_L2_CHUNK.INSTANCE,
 			new L2IntImmediateOperand(TRANSIENT.getOffsetInDefaultChunk()),
 			new L2CommentOperand(
 				"Transient, for interrupt - cannot be invalid."));
@@ -2715,10 +2715,10 @@ public final class L1Translator
 				restrictionForType(
 					READ_UNASSIGNED_VARIABLE.functionType, BOXED));
 		addInstruction(
-			L2_GET_UNASSIGNED_VARIABLE_READ_FUNCTION.instance,
+			L2_GET_UNASSIGNED_VARIABLE_READ_FUNCTION.INSTANCE,
 			unassignedReadFunction);
 		addInstruction(
-			L2_INVOKE.instance,
+			L2_INVOKE.INSTANCE,
 			readBoxed(unassignedReadFunction),
 			new L2ReadBoxedVectorOperand(emptyList()),
 			generator.boxedWriteTemp(anyRestriction), // unreachable
@@ -2728,7 +2728,7 @@ public final class L1Translator
 		// Reification has been requested while the failure call is in progress.
 		generator.startBlock(onReificationDuringFailure);
 		generator.addInstruction(
-			L2_ENTER_L2_CHUNK.instance,
+			L2_ENTER_L2_CHUNK.INSTANCE,
 			new L2IntImmediateOperand(TRANSIENT.getOffsetInDefaultChunk()),
 			new L2CommentOperand(
 				"Transient - cannot be invalid."));
@@ -2784,7 +2784,7 @@ public final class L1Translator
 			generator.boxedWriteTemp(
 				restrictionForType(IMPLICIT_OBSERVE.functionType, BOXED));
 		addInstruction(
-			L2_GET_IMPLICIT_OBSERVE_FUNCTION.instance,
+			L2_GET_IMPLICIT_OBSERVE_FUNCTION.INSTANCE,
 			observeFunction);
 		final L2WriteBoxedOperand variableAndValueTupleReg =
 			generator.boxedWriteTemp(
@@ -2792,13 +2792,13 @@ public final class L1Translator
 					tupleTypeForTypes(variable.type(), newValue.type()),
 					BOXED));
 		addInstruction(
-			L2_CREATE_TUPLE.instance,
+			L2_CREATE_TUPLE.INSTANCE,
 			new L2ReadBoxedVectorOperand(asList(variable, newValue)),
 			variableAndValueTupleReg);
 		// Note: the handler block's value is discarded; also, since it's not a
 		// method definition, it can't have a semantic restriction.
 		addInstruction(
-			L2_INVOKE.instance,
+			L2_INVOKE.INSTANCE,
 			readBoxed(observeFunction),
 			new L2ReadBoxedVectorOperand(
 				asList(
@@ -2811,7 +2811,7 @@ public final class L1Translator
 
 		generator.startBlock(onReificationDuringFailure);
 		generator.addInstruction(
-			L2_ENTER_L2_CHUNK.instance,
+			L2_ENTER_L2_CHUNK.INSTANCE,
 			new L2IntImmediateOperand(TRANSIENT.getOffsetInDefaultChunk()),
 			new L2CommentOperand(
 				"Transient - cannot be invalid."));
@@ -2850,7 +2850,7 @@ public final class L1Translator
 		{
 			// Try the primitive, automatically returning if successful.
 			addInstruction(
-				L2_TRY_PRIMITIVE.instance,
+				L2_TRY_PRIMITIVE.INSTANCE,
 				new L2PrimitiveOperand(primitive));
 			if (primitive.hasFlag(CannotFail))
 			{
@@ -2872,7 +2872,7 @@ public final class L1Translator
 		// at the TO_RESTART entry point.  Note that there can't be a primitive
 		// for such continuations.
 		addInstruction(
-			L2_ENTER_L2_CHUNK.instance,
+			L2_ENTER_L2_CHUNK.INSTANCE,
 			new L2IntImmediateOperand(TO_RESTART.getOffsetInDefaultChunk()),
 			new L2CommentOperand(
 				"If invalid, reenter «default» at the beginning."));
@@ -2884,7 +2884,7 @@ public final class L1Translator
 			code.countdownToReoptimize(
 				L2Chunk.countdownForNewlyOptimizedCode());
 			addInstruction(
-				L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO.instance,
+				L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO.INSTANCE,
 				new L2IntImmediateOperand(
 					OptimizationLevel.FIRST_TRANSLATION.ordinal()),
 				new L2IntImmediateOperand(0));
@@ -2905,7 +2905,7 @@ public final class L1Translator
 					semanticSlot(i),
 					restrictionForType(tupleType.typeAtIndex(i), BOXED));
 				addInstruction(
-					L2_GET_ARGUMENT.instance,
+					L2_GET_ARGUMENT.INSTANCE,
 					new L2IntImmediateOperand(i),
 					argReg);
 			}
@@ -2925,7 +2925,7 @@ public final class L1Translator
 		{
 			final A_Type localType = code.localTypeAt(local);
 			addInstruction(
-				L2_CREATE_VARIABLE.instance,
+				L2_CREATE_VARIABLE.INSTANCE,
 				new L2ConstantOperand(localType),
 				writeSlot(
 					numArgs + local,
@@ -2990,7 +2990,7 @@ public final class L1Translator
 		{
 			// Generate the unreachable block.
 			generator.startBlock(generator.unreachableBlock);
-			addInstruction(L2_UNREACHABLE_CODE.instance);
+			addInstruction(L2_UNREACHABLE_CODE.INSTANCE);
 			// Now make it a loop head, just so code generated later from
 			// placeholders (L2Operation#isPlaceholder()) can still connect to
 			// it, as long as it uses a back-edge.
@@ -3041,7 +3041,7 @@ public final class L1Translator
 //		final L2ControlFlowGraph controlFlowGraph = new L2ControlFlowGraph();
 		generator.startBlock(initialBlock);
 		generator.addInstruction(
-			L2_TRY_OPTIONAL_PRIMITIVE.instance);
+			L2_TRY_OPTIONAL_PRIMITIVE.INSTANCE);
 		generator.jumpTo(reenterFromRestartBlock);
 		// Only if the primitive fails should we even consider optimizing the
 		// fallback code.
@@ -3049,44 +3049,43 @@ public final class L1Translator
 		// 1. Update counter and maybe optimize *before* extracting arguments.
 		generator.startBlock(reenterFromRestartBlock);
 		generator.addInstruction(
-			L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO.instance,
+			L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO.INSTANCE,
 			new L2IntImmediateOperand(
 				OptimizationLevel.FIRST_TRANSLATION.ordinal()),
 			new L2IntImmediateOperand(1));
 		// 2. Build registers, get arguments, create locals, capture primitive
 		// failure value, if any.
-		generator.addInstruction(
-			L2_PREPARE_NEW_FRAME_FOR_L1.instance);
+		generator.addInstruction(L2_PREPARE_NEW_FRAME_FOR_L1.INSTANCE);
 
 		generator.jumpTo(loopBlock);
 
 		// 3. The main L1 interpreter loop.
 		generator.startBlock(loopBlock);
 		generator.addInstruction(
-			L2_INTERPRET_LEVEL_ONE.instance,
+			L2_INTERPRET_LEVEL_ONE.INSTANCE,
 			edgeTo(reenterFromCallBlock),
 			edgeTo(reenterFromInterruptBlock));
 
 		// 4,5. If reified, calls return here.
 		generator.startBlock(reenterFromCallBlock);
 		generator.addInstruction(
-			L2_REENTER_L1_CHUNK_FROM_CALL.instance);
+			L2_REENTER_L1_CHUNK_FROM_CALL.INSTANCE);
 		generator.addInstruction(
-			L2_JUMP.instance,
+			L2_JUMP.INSTANCE,
 			backEdgeTo(loopBlock));
 
 		// 6,7. If reified, interrupts return here.
 		generator.startBlock(reenterFromInterruptBlock);
 		generator.addInstruction(
-			L2_REENTER_L1_CHUNK_FROM_INTERRUPT.instance);
+			L2_REENTER_L1_CHUNK_FROM_INTERRUPT.INSTANCE);
 		generator.addInstruction(
-			L2_JUMP.instance,
+			L2_JUMP.INSTANCE,
 			backEdgeTo(loopBlock));
 
 		// 8. Unreachable.
 		generator.startBlock(unreachableBlock);
 		generator.addInstruction(
-			L2_UNREACHABLE_CODE.instance);
+			L2_UNREACHABLE_CODE.INSTANCE);
 		return generator.controlFlowGraph;
 	}
 
@@ -3250,7 +3249,7 @@ public final class L1Translator
 		// Pop the outers, but reserve room for the pushed function.
 		stackp += count - 1;
 		addInstruction(
-			L2_CREATE_FUNCTION.instance,
+			L2_CREATE_FUNCTION.INSTANCE,
 			new L2ConstantOperand(codeLiteral),
 			new L2ReadBoxedVectorOperand(outers),
 			writeSlot(
@@ -3289,7 +3288,7 @@ public final class L1Translator
 		final int index = instructionDecoder.getOperand();
 		stackp--;
 		final L2ReadBoxedOperand valueReg = emitGetVariableOffRamp(
-			L2_GET_VARIABLE_CLEARING.instance,
+			L2_GET_VARIABLE_CLEARING.INSTANCE,
 			readSlot(index),
 			false);
 		forceSlotRegister(stackp, instructionDecoder.pc(), valueReg);
@@ -3321,7 +3320,7 @@ public final class L1Translator
 		stackp--;
 		final A_Type outerType = code.outerTypeAt(outerIndex);
 		final L2ReadBoxedOperand valueReg = emitGetVariableOffRamp(
-			L2_GET_VARIABLE_CLEARING.instance,
+			L2_GET_VARIABLE_CLEARING.INSTANCE,
 			getOuterRegister(outerIndex, outerType),
 			false);
 		forceSlotRegister(stackp, instructionDecoder.pc(), valueReg);
@@ -3352,7 +3351,7 @@ public final class L1Translator
 		final int index = instructionDecoder.getOperand();
 		stackp--;
 		final L2ReadBoxedOperand valueReg = emitGetVariableOffRamp(
-			L2_GET_VARIABLE.instance,
+			L2_GET_VARIABLE.INSTANCE,
 			readSlot(index),
 			true);
 		forceSlotRegister(stackp, instructionDecoder.pc(), valueReg);
@@ -3395,7 +3394,7 @@ public final class L1Translator
 				.map(L2ReadOperand::type)
 				.collect(toList());
 			addInstruction(
-				L2_CREATE_TUPLE.instance,
+				L2_CREATE_TUPLE.INSTANCE,
 				new L2ReadBoxedVectorOperand(vector),
 				writeSlot(
 					stackp,
@@ -3411,7 +3410,7 @@ public final class L1Translator
 		stackp--;
 		final A_Type outerType = code.outerTypeAt(outerIndex);
 		final L2ReadBoxedOperand valueReg = emitGetVariableOffRamp(
-			L2_GET_VARIABLE.instance,
+			L2_GET_VARIABLE.INSTANCE,
 			getOuterRegister(outerIndex, outerType),
 			false);
 		forceSlotRegister(stackp, instructionDecoder.pc(), valueReg);
@@ -3453,7 +3452,7 @@ public final class L1Translator
 			generator.boxedWrite(label, restriction(continuationType, null));
 
 		addInstruction(
-			L2_VIRTUAL_CREATE_LABEL.instance,
+			L2_VIRTUAL_CREATE_LABEL.INSTANCE,
 			destinationRegister,
 			getCurrentFunction(),
 			new L2ReadBoxedVectorOperand(argumentsForLabel),
@@ -3487,7 +3486,7 @@ public final class L1Translator
 		else
 		{
 			final L2ReadBoxedOperand valueReg = emitGetVariableOffRamp(
-				L2_GET_VARIABLE.instance,
+				L2_GET_VARIABLE.INSTANCE,
 				generator.boxedConstant(literalVariable),
 				false);
 			forceSlotRegister(stackp, instructionDecoder.pc(), valueReg);

@@ -29,87 +29,62 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operation
 
-package com.avail.interpreter.levelTwo.operation;
-
-import com.avail.descriptor.representation.AvailObject;
-import com.avail.interpreter.execution.Interpreter;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION;
-import com.avail.interpreter.levelTwo.ReadsHiddenVariable;
-import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
-import static org.objectweb.asm.Opcodes.CHECKCAST;
-import static org.objectweb.asm.Type.getInternalName;
+import com.avail.descriptor.representation.AvailObject
+import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2Operation
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION
+import com.avail.interpreter.levelTwo.ReadsHiddenVariable
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
+import org.objectweb.asm.Type
+import java.util.function.Consumer
 
 /**
- * Ask the {@link Interpreter} for the current function, writing it into the
+ * Ask the [Interpreter] for the current function, writing it into the
  * provided register.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@ReadsHiddenVariable(theValue = CURRENT_FUNCTION.class)
-public final class L2_GET_CURRENT_FUNCTION
-extends L2Operation
+@ReadsHiddenVariable(theValue = arrayOf(CURRENT_FUNCTION::class))
+object L2_GET_CURRENT_FUNCTION : L2Operation(
+	L2OperandType.WRITE_BOXED.`is`("current function"))
 {
-	/**
-	 * Construct an {@code L2_GET_CURRENT_FUNCTION}.
-	 */
-	private L2_GET_CURRENT_FUNCTION ()
+	override fun hasSideEffect(): Boolean = true
+
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		super(
-			WRITE_BOXED.is("current function"));
+		assert(this == instruction.operation())
+		val function =
+			instruction.operand<L2WriteBoxedOperand>(0)
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(function.registerString())
 	}
 
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_GET_CURRENT_FUNCTION instance =
-		new L2_GET_CURRENT_FUNCTION();
-
-	@Override
-	public boolean hasSideEffect ()
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		// Keep this instruction pinned in place for safety during inlining.
-		return true;
-	}
-
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
-	{
-		assert this == instruction.operation();
-		final L2WriteBoxedOperand function = instruction.operand(0);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(function.registerString());
-	}
-
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
-	{
-		final L2WriteBoxedOperand function = instruction.operand(0);
+		val function =
+			instruction.operand<L2WriteBoxedOperand>(0)
 
 		// :: register = interpreter.function;
-		translator.loadInterpreter(method);
-		Interpreter.interpreterFunctionField.generateRead(method);
-		method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
-		translator.store(method, function.register());
+		translator.loadInterpreter(method)
+		Interpreter.interpreterFunctionField.generateRead(method)
+		method.visitTypeInsn(
+			Opcodes.CHECKCAST, Type.getInternalName(AvailObject::class.java))
+		translator.store(method, function.register())
 	}
 }

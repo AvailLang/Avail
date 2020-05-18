@@ -29,80 +29,61 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.levelTwo.operation;
+package com.avail.interpreter.levelTwo.operation
 
-import com.avail.descriptor.functions.A_Continuation;
-import com.avail.descriptor.functions.A_Function;
-import com.avail.descriptor.functions.ContinuationDescriptor;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
+import com.avail.descriptor.functions.A_Continuation
+import com.avail.descriptor.functions.A_Function
+import com.avail.descriptor.functions.ContinuationDescriptor
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2Operation
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.MethodVisitor
+import java.util.function.Consumer
 
 /**
- * Extract the {@link A_Function} from an {@link A_Continuation}.
+ * Extract the [A_Function] from an [A_Continuation].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class L2_EXTRACT_CONTINUATION_FUNCTION
-extends L2Operation
+object L2_EXTRACT_CONTINUATION_FUNCTION : L2Operation(
+	L2OperandType.READ_BOXED.`is`("continuation"),
+	L2OperandType.WRITE_BOXED.`is`("extracted function"))
 {
-	/**
-	 * Construct an {@code L2_EXTRACT_CONTINUATION_FUNCTION}.
-	 */
-	private L2_EXTRACT_CONTINUATION_FUNCTION ()
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		super(
-			READ_BOXED.is("continuation"),
-			WRITE_BOXED.is("extracted function"));
+		assert(this == instruction.operation())
+		val continuation =
+			instruction.operand<L2ReadBoxedOperand>(0)
+		val function =
+			instruction.operand<L2WriteBoxedOperand>(1)
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(function.registerString())
+		builder.append(" ← ")
+		builder.append(continuation.registerString())
 	}
 
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_EXTRACT_CONTINUATION_FUNCTION instance =
-		new L2_EXTRACT_CONTINUATION_FUNCTION();
-
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
-	{
-		assert this == instruction.operation();
-		final L2ReadBoxedOperand continuation = instruction.operand(0);
-		final L2WriteBoxedOperand function = instruction.operand(1);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(function.registerString());
-		builder.append(" ← ");
-		builder.append(continuation.registerString());
-	}
-
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
 		// Extract the function from the given continuation.
-		final L2ReadBoxedOperand continuation = instruction.operand(0);
-		final L2WriteBoxedOperand function = instruction.operand(1);
+		val continuation =
+			instruction.operand<L2ReadBoxedOperand>(0)
+		val function =
+			instruction.operand<L2WriteBoxedOperand>(1)
 
 		// :: function = continuation.function();
-		translator.load(method, continuation.register());
-		ContinuationDescriptor.continuationFunctionMethod.generateCall(method);
-		translator.store(method, function.register());
+		translator.load(method, continuation.register())
+		ContinuationDescriptor.continuationFunctionMethod.generateCall(method)
+		translator.store(method, function.register())
 	}
 }

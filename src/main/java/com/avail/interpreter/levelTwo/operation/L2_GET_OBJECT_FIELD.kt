@@ -29,23 +29,18 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operation
 
-package com.avail.interpreter.levelTwo.operation;
-
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.descriptor.representation.AvailObject.fieldAtMethod;
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import com.avail.descriptor.representation.AvailObject
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2Operation
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.MethodVisitor
+import java.util.function.Consumer
 
 /**
  * Extract the specified field of the object.
@@ -56,61 +51,43 @@ import static com.avail.interpreter.levelTwo.L2OperandType.*;
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class L2_GET_OBJECT_FIELD
-extends L2Operation
+object L2_GET_OBJECT_FIELD : L2Operation(
+	L2OperandType.READ_BOXED.`is`("object"),
+	L2OperandType.CONSTANT.`is`("field atom"),
+	L2OperandType.WRITE_BOXED.`is`("field value"))
 {
-	/**
-	 * Construct an {@code L2_CREATE_OBJECT}.
-	 */
-	private L2_GET_OBJECT_FIELD ()
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		super(
-			READ_BOXED.is("object"),
-			CONSTANT.is("field atom"),
-			WRITE_BOXED.is("field value"));
+		assert(this == instruction.operation())
+		val objectRead = instruction.operand<L2ReadBoxedOperand>(0)
+		val fieldAtom = instruction.operand<L2ConstantOperand>(1)
+		val fieldValue = instruction.operand<L2WriteBoxedOperand>(2)
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(fieldValue.registerString())
+		builder.append(" ← ")
+		builder.append(objectRead)
+		builder.append("[")
+		builder.append(fieldAtom)
+		builder.append("]")
 	}
 
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_GET_OBJECT_FIELD instance = new L2_GET_OBJECT_FIELD();
-
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		assert this == instruction.operation();
-		final L2ReadBoxedOperand objectRead = instruction.operand(0);
-		final L2ConstantOperand fieldAtom = instruction.operand(1);
-		final L2WriteBoxedOperand fieldValue = instruction.operand(2);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(fieldValue.registerString());
-		builder.append(" ← ");
-		builder.append(objectRead);
-		builder.append("[");
-		builder.append(fieldAtom);
-		builder.append("]");
-	}
-
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
-	{
-		assert this == instruction.operation();
-		final L2ReadBoxedOperand objectRead = instruction.operand(0);
-		final L2ConstantOperand fieldAtom = instruction.operand(1);
-		final L2WriteBoxedOperand fieldValue = instruction.operand(2);
-
-		translator.load(method, objectRead.register());
-		translator.literal(method, fieldAtom.object);
-		fieldAtMethod.generateCall(method);
-		translator.store(method, fieldValue.register());
+		assert(this == instruction.operation())
+		val objectRead = instruction.operand<L2ReadBoxedOperand>(0)
+		val fieldAtom = instruction.operand<L2ConstantOperand>(1)
+		val fieldValue = instruction.operand<L2WriteBoxedOperand>(2)
+		translator.load(method, objectRead.register())
+		translator.literal(method, fieldAtom.`object`)
+		AvailObject.fieldAtMethod.generateCall(method)
+		translator.store(method, fieldValue.register())
 	}
 }

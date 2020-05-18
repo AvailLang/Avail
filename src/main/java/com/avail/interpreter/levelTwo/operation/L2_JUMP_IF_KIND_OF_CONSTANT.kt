@@ -29,33 +29,22 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operation
 
-package com.avail.interpreter.levelTwo.operation;
-
-import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.descriptor.types.A_Type;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.interpreter.levelTwo.operand.TypeRestriction;
-import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.L2ValueManifest;
-import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.MethodVisitor;
-
-import javax.annotation.Nullable;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static com.avail.interpreter.levelTwo.operation.L2ConditionalJump.BranchReduction.*;
-import static org.objectweb.asm.Opcodes.IFNE;
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2NamedOperandType
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
+import com.avail.interpreter.levelTwo.operand.L2PcOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.optimizer.L2Generator
+import com.avail.optimizer.L2ValueManifest
+import com.avail.optimizer.RegisterSet
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
+import java.util.function.Consumer
 
 /**
  * Jump to the target if the object is an instance of the constant type.
@@ -63,144 +52,126 @@ import static org.objectweb.asm.Opcodes.IFNE;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_JUMP_IF_KIND_OF_CONSTANT
-extends L2ConditionalJump
+class L2_JUMP_IF_KIND_OF_CONSTANT
+/**
+ * Construct an `L2_JUMP_IF_KIND_OF_CONSTANT`.
+ */
+private constructor() : L2ConditionalJump(
+	L2OperandType.READ_BOXED.`is`("value"),
+	L2OperandType.CONSTANT.`is`("constant type"),
+	L2OperandType.PC.`is`("is kind", L2NamedOperandType.Purpose.SUCCESS),
+	L2OperandType.PC.`is`("is not kind", L2NamedOperandType.Purpose.FAILURE))
 {
-	/**
-	 * Construct an {@code L2_JUMP_IF_KIND_OF_CONSTANT}.
-	 */
-	private L2_JUMP_IF_KIND_OF_CONSTANT ()
+	override fun instructionWasAdded(
+		instruction: L2Instruction,
+		manifest: L2ValueManifest)
 	{
-		super(
-			READ_BOXED.is("value"),
-			CONSTANT.is("constant type"),
-			PC.is("is kind", SUCCESS),
-			PC.is("is not kind", FAILURE));
-	}
-
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_JUMP_IF_KIND_OF_CONSTANT instance =
-		new L2_JUMP_IF_KIND_OF_CONSTANT();
-
-	@Override
-	public void instructionWasAdded (
-		final L2Instruction instruction,
-		final L2ValueManifest manifest)
-	{
-		assert this == instruction.operation();
-		final L2ReadBoxedOperand value = instruction.operand(0);
-		final L2ConstantOperand constantType = instruction.operand(1);
-		final L2PcOperand ifKind = instruction.operand(2);
-		final L2PcOperand ifNotKind = instruction.operand(3);
-
-		super.instructionWasAdded(instruction, manifest);
+		assert(this == instruction.operation())
+		val value = instruction.operand<L2ReadBoxedOperand>(0)
+		val constantType = instruction.operand<L2ConstantOperand>(1)
+		val ifKind = instruction.operand<L2PcOperand>(2)
+		val ifNotKind = instruction.operand<L2PcOperand>(3)
+		super.instructionWasAdded(instruction, manifest)
 
 		// Restrict to the intersection along the ifKind branch, and exclude the
 		// type along the ifNotKind branch.
-		final TypeRestriction oldRestriction = value.restriction();
+		val oldRestriction = value.restriction()
 		ifKind.manifest().setRestriction(
 			value.semanticValue(),
-			oldRestriction.intersectionWithType(constantType.object));
+			oldRestriction.intersectionWithType(constantType.`object`))
 		ifNotKind.manifest().setRestriction(
 			value.semanticValue(),
-			oldRestriction.minusValue(constantType.object));
+			oldRestriction.minusValue(constantType.`object`))
 	}
 
-	@Override
-	public BranchReduction branchReduction (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
-		final L2Generator generator)
+	override fun branchReduction(
+		instruction: L2Instruction,
+		registerSet: RegisterSet,
+		generator: L2Generator): BranchReduction
 	{
 		// Eliminate tests due to type propagation.
-		final L2ReadBoxedOperand value = instruction.operand(0);
-		final L2ConstantOperand constantType = instruction.operand(1);
-//		final L2PcOperand ifKind = instruction.operand(2);
+		val value = instruction.operand<L2ReadBoxedOperand>(0)
+		val constantType = instruction.operand<L2ConstantOperand>(1)
+		//		final L2PcOperand ifKind = instruction.operand(2);
 //		final L2PcOperand ifNotKind = instruction.operand(3);
-
-		final @Nullable A_BasicObject valueConstant = value.constantOrNull();
+		val valueConstant: A_BasicObject? = value.constantOrNull()
 		if (valueConstant != null)
 		{
-			return valueConstant.isInstanceOf(constantType.object)
-				? AlwaysTaken
-				: NeverTaken;
+			return if (valueConstant.isInstanceOf(constantType.`object`)) BranchReduction.AlwaysTaken else BranchReduction.NeverTaken
 		}
-		final A_Type knownType = value.type();
-		if (knownType.isSubtypeOf(constantType.object))
+		val knownType = value.type()
+		if (knownType.isSubtypeOf(constantType.`object`))
 		{
 			// It's a subtype, so it must always pass the type test.
-			return AlwaysTaken;
+			return BranchReduction.AlwaysTaken
 		}
-		final A_Type intersection =
-			constantType.object.typeIntersection(knownType);
-		if (intersection.isVacuousType())
+		val intersection = constantType.`object`.typeIntersection(knownType)
+		return if (intersection.isVacuousType)
 		{
 			// The types don't intersect, so it can't ever pass the type test.
-			return NeverTaken;
+			BranchReduction.NeverTaken
 		}
-		return SometimesTaken;
+		else BranchReduction.SometimesTaken
 	}
 
-	@Override
-	protected void propagateTypes (
-		final L2Instruction instruction,
-		final List<RegisterSet> registerSets,
-		final L2Generator generator)
+	override fun propagateTypes(
+		instruction: L2Instruction,
+		registerSets: List<RegisterSet>,
+		generator: L2Generator)
 	{
-		final L2ReadBoxedOperand value = instruction.operand(0);
-		final L2ConstantOperand constantType = instruction.operand(1);
-//		final L2PcOperand ifKind = instruction.operand(2);
+		val value = instruction.operand<L2ReadBoxedOperand>(0)
+		val constantType = instruction.operand<L2ConstantOperand>(1)
+		assert(registerSets.size == 2)
+		val isKindSet = registerSets[0]
+		//		final RegisterSet notKindSet = registerSets.get(1);
+		val existingType = isKindSet.typeAt(value.register())
+		val intersection = existingType.typeIntersection(constantType.`object`)
+		isKindSet.strengthenTestedTypeAtPut(value.register(), intersection)
+	}
+
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
+	{
+		assert(this == instruction.operation())
+		val value = instruction.operand<L2ReadBoxedOperand>(0)
+		val constantType = instruction.operand<L2ConstantOperand>(1)
+		//		final L2PcOperand ifKind = instruction.operand(2);
 //		final L2PcOperand ifNotKind = instruction.operand(3);
-
-		assert registerSets.size() == 2;
-		final RegisterSet isKindSet = registerSets.get(0);
-//		final RegisterSet notKindSet = registerSets.get(1);
-
-		final A_Type existingType = isKindSet.typeAt(value.register());
-		final A_Type intersection =
-			existingType.typeIntersection(constantType.object);
-		isKindSet.strengthenTestedTypeAtPut(value.register(), intersection);
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(value.registerString())
+		builder.append(" ∈ ")
+		builder.append(constantType.`object`)
+		renderOperandsStartingAt(instruction, 2, desiredTypes, builder)
 	}
 
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		assert this == instruction.operation();
-		final L2ReadBoxedOperand value = instruction.operand(0);
-		final L2ConstantOperand constantType = instruction.operand(1);
-//		final L2PcOperand ifKind = instruction.operand(2);
-//		final L2PcOperand ifNotKind = instruction.operand(3);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(value.registerString());
-		builder.append(" ∈ ");
-		builder.append(constantType.object);
-		renderOperandsStartingAt(instruction, 2, desiredTypes, builder);
-	}
-
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
-	{
-		final L2ReadBoxedOperand value = instruction.operand(0);
-		final L2ConstantOperand constantType = instruction.operand(1);
-		final L2PcOperand ifKind = instruction.operand(2);
-		final L2PcOperand ifNotKind = instruction.operand(3);
+		val value = instruction.operand<L2ReadBoxedOperand>(0)
+		val constantType = instruction.operand<L2ConstantOperand>(1)
+		val ifKind = instruction.operand<L2PcOperand>(2)
+		val ifNotKind = instruction.operand<L2PcOperand>(3)
 
 		// :: if (value.isInstanceOf(type)) goto isKind;
 		// :: else goto notKind;
-		translator.load(method, value.register());
-		translator.literal(method, constantType.object);
-		A_BasicObject.isInstanceOfMethod.generateCall(method);
-		emitBranch(translator, method, instruction, IFNE, ifKind, ifNotKind);
+		translator.load(method, value.register())
+		translator.literal(method, constantType.`object`)
+		A_BasicObject.isInstanceOfMethod.generateCall(method)
+		emitBranch(translator, method, instruction, Opcodes.IFNE, ifKind, ifNotKind)
+	}
+
+	companion object
+	{
+		/**
+		 * Initialize the sole instance.
+		 */
+		@kotlin.jvm.JvmField
+		val instance = L2_JUMP_IF_KIND_OF_CONSTANT()
 	}
 }

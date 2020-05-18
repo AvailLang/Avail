@@ -29,18 +29,16 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.levelTwo.operation;
+package com.avail.interpreter.levelTwo.operation
 
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.MethodVisitor;
-
-import static com.avail.interpreter.execution.Interpreter.isInterruptRequestedMethod;
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.PC;
-import static org.objectweb.asm.Opcodes.IFNE;
+import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2NamedOperandType
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.operand.L2PcOperand
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
 
 /**
  * Jump to the specified level two program counter if no interrupt has been
@@ -50,44 +48,41 @@ import static org.objectweb.asm.Opcodes.IFNE;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_JUMP_IF_INTERRUPT
-extends L2ConditionalJump
+class L2_JUMP_IF_INTERRUPT
+/**
+ * Construct an `L2_JUMP_IF_INTERRUPT`.
+ */
+private constructor() : L2ConditionalJump(
+	L2OperandType.PC.`is`("if interrupt", L2NamedOperandType.Purpose.OFF_RAMP),
+	L2OperandType.PC.`is`("if not interrupt", L2NamedOperandType.Purpose.SUCCESS))
 {
-	/**
-	 * Construct an {@code L2_JUMP_IF_INTERRUPT}.
-	 */
-	private L2_JUMP_IF_INTERRUPT ()
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		super(
-			PC.is("if interrupt", OFF_RAMP),
-			PC.is("if not interrupt", SUCCESS));
-	}
-
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_JUMP_IF_INTERRUPT instance =
-		new L2_JUMP_IF_INTERRUPT();
-
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
-	{
-		final L2PcOperand ifInterrupt = instruction.operand(0);
-		final L2PcOperand ifNotInterrupt = instruction.operand(1);
+		val ifInterrupt = instruction.operand<L2PcOperand>(0)
+		val ifNotInterrupt = instruction.operand<L2PcOperand>(1)
 
 		// :: if (interpreter.isInterruptRequested()) goto ifInterrupt;
 		// :: else goto ifNotInterrupt;
-		translator.loadInterpreter(method);
-		isInterruptRequestedMethod.generateCall(method);
+		translator.loadInterpreter(method)
+		Interpreter.isInterruptRequestedMethod.generateCall(method)
 		emitBranch(
 			translator,
 			method,
 			instruction,
-			IFNE,
+			Opcodes.IFNE,
 			ifInterrupt,
-			ifNotInterrupt);
+			ifNotInterrupt)
+	}
+
+	companion object
+	{
+		/**
+		 * Initialize the sole instance.
+		 */
+		@kotlin.jvm.JvmField
+		val instance = L2_JUMP_IF_INTERRUPT()
 	}
 }

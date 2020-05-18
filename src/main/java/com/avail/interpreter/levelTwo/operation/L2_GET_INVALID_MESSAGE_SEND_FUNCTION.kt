@@ -29,96 +29,75 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operation
 
-package com.avail.interpreter.levelTwo.operation;
-
-import com.avail.AvailRuntime;
-import com.avail.interpreter.execution.Interpreter;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.GLOBAL_STATE;
-import com.avail.interpreter.levelTwo.ReadsHiddenVariable;
-import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
-import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
-import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.AvailRuntime.HookType.INVALID_MESSAGE_SEND;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
+import com.avail.AvailRuntime
+import com.avail.AvailRuntime.HookType
+import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2Operation
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.GLOBAL_STATE
+import com.avail.interpreter.levelTwo.ReadsHiddenVariable
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister
+import com.avail.optimizer.L2Generator
+import com.avail.optimizer.RegisterSet
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.MethodVisitor
+import java.util.function.Consumer
 
 /**
- * Store the {@linkplain AvailRuntime#invalidMessageSendFunction() invalid
- * message send function} into the supplied {@linkplain L2BoxedRegister
- * object register}.
+ * Store the [invalid message send
+ * function][AvailRuntime.invalidMessageSendFunction] into the supplied [object
+ * register][L2BoxedRegister].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Mark van Gulik &lt;todd@availlang.org&gt;
  */
-@ReadsHiddenVariable(theValue = GLOBAL_STATE.class)
-public final class L2_GET_INVALID_MESSAGE_SEND_FUNCTION
-extends L2Operation
+@ReadsHiddenVariable(theValue = arrayOf(GLOBAL_STATE::class))
+object L2_GET_INVALID_MESSAGE_SEND_FUNCTION : L2Operation(
+	L2OperandType.WRITE_BOXED.`is`("invalid message send function"))
 {
-	/**
-	 * Construct an {@code L2_GET_INVALID_MESSAGE_SEND_FUNCTION}.
-	 */
-	private L2_GET_INVALID_MESSAGE_SEND_FUNCTION ()
+	override fun propagateTypes(
+		instruction: L2Instruction,
+		registerSet: RegisterSet,
+		generator: L2Generator)
 	{
-		super(
-			WRITE_BOXED.is("invalid message send function"));
-	}
-
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_GET_INVALID_MESSAGE_SEND_FUNCTION instance =
-		new L2_GET_INVALID_MESSAGE_SEND_FUNCTION();
-
-	@Override
-	protected void propagateTypes (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
-		final L2Generator generator)
-	{
-		final L2WriteBoxedOperand function = instruction.operand(0);
+		val function =
+			instruction.operand<L2WriteBoxedOperand>(0)
 		registerSet.typeAtPut(
 			function.register(),
-			INVALID_MESSAGE_SEND.functionType,
-			instruction);
+			HookType.INVALID_MESSAGE_SEND.functionType,
+			instruction)
 	}
 
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		assert this == instruction.operation();
-		final L2WriteBoxedOperand function = instruction.operand(0);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(function.registerString());
+		assert(this == instruction.operation())
+		val function =
+			instruction.operand<L2WriteBoxedOperand>(0)
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(function.registerString())
 	}
 
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		final L2WriteBoxedOperand function = instruction.operand(0);
+		val function =
+			instruction.operand<L2WriteBoxedOperand>(0)
 
 		// :: destination = interpreter.runtime().invalidMessageSendFunction();
-		translator.loadInterpreter(method);
-		Interpreter.runtimeMethod.generateCall(method);
-		AvailRuntime.invalidMessageSendFunctionMethod.generateCall(method);
-		translator.store(method, function.register());
+		translator.loadInterpreter(method)
+		Interpreter.runtimeMethod.generateCall(method)
+		AvailRuntime.invalidMessageSendFunctionMethod.generateCall(method)
+		translator.store(method, function.register())
 	}
 }

@@ -83,7 +83,7 @@ object P_Type : Primitive(1, CannotFail, CanFold, CanInline)
 		val writer = translator.generator.boxedWriteTemp(
 			arguments[0].restriction().metaRestriction())
 		translator.addInstruction(
-			L2_GET_TYPE.instance,
+			L2_GET_TYPE,
 			arguments[0],
 			writer)
 		callSiteHelper.useAnswer(translator.readBoxed(writer))

@@ -600,7 +600,7 @@ public final class L2BasicBlock
 			{
 				final L2Instruction previousInstruction =
 					output.get(output.size() - 1);
-				if (previousInstruction.operation() == L2_JUMP.instance)
+				if (previousInstruction.operation() == L2_JUMP.INSTANCE)
 				{
 					if (L2_JUMP.jumpTarget(previousInstruction).targetBlock()
 						== this)

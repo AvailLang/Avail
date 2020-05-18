@@ -29,96 +29,79 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.levelTwo.operation;
+package com.avail.interpreter.levelTwo.operation
 
-import com.avail.descriptor.types.VariableTypeDescriptor;
-import com.avail.descriptor.variables.VariableDescriptor;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
-import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.interpreter.levelTwo.L2OperandType.CONSTANT;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
+import com.avail.descriptor.types.VariableTypeDescriptor
+import com.avail.descriptor.variables.VariableDescriptor
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2Operation
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import com.avail.optimizer.L2Generator
+import com.avail.optimizer.RegisterSet
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.MethodVisitor
+import java.util.function.Consumer
 
 /**
- * Create a new {@linkplain VariableDescriptor variable object} of the
- * specified {@link VariableTypeDescriptor variable type}.
+ * Create a new [variable object][VariableDescriptor] of the
+ * specified [variable type][VariableTypeDescriptor].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_CREATE_VARIABLE
-extends L2Operation
+object L2_CREATE_VARIABLE : L2Operation(
+	L2OperandType.CONSTANT.`is`("outerType"),
+	L2OperandType.WRITE_BOXED.`is`("variable"))
 {
-	/**
-	 * Construct an {@code L2_CREATE_VARIABLE}.
-	 */
-	private L2_CREATE_VARIABLE ()
+	override fun propagateTypes(
+		instruction: L2Instruction,
+		registerSet: RegisterSet,
+		generator: L2Generator)
 	{
-		super(
-			CONSTANT.is("outerType"),
-			WRITE_BOXED.is("variable"));
-	}
-
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_CREATE_VARIABLE instance = new L2_CREATE_VARIABLE();
-
-	@Override
-	protected void propagateTypes (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
-		final L2Generator generator)
-	{
-		final L2ConstantOperand outerType = instruction.operand(0);
-		final L2WriteBoxedOperand variable = instruction.operand(1);
+		val outerType =
+			instruction.operand<L2ConstantOperand>(0)
+		val variable =
+			instruction.operand<L2WriteBoxedOperand>(1)
 
 		// Not a constant, but we know the type...
-		registerSet.removeConstantAt(variable.register());
+		registerSet.removeConstantAt(variable.register())
 		registerSet.typeAtPut(
-			variable.register(), outerType.object, instruction);
+			variable.register(), outerType.`object`, instruction)
 	}
 
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		assert this == instruction.operation();
-		final L2ConstantOperand outerType = instruction.operand(0);
-		final L2WriteBoxedOperand variable = instruction.operand(1);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(variable.registerString());
-		builder.append(" ← new ");
-		builder.append(outerType.object);
+		assert(this == instruction.operation())
+		val outerType =
+			instruction.operand<L2ConstantOperand>(0)
+		val variable =
+			instruction.operand<L2WriteBoxedOperand>(1)
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(variable.registerString())
+		builder.append(" ← new ")
+		builder.append(outerType.`object`)
 	}
 
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		final L2ConstantOperand outerType = instruction.operand(0);
-		final L2WriteBoxedOperand variable = instruction.operand(1);
+		val outerType =
+			instruction.operand<L2ConstantOperand>(0)
+		val variable =
+			instruction.operand<L2WriteBoxedOperand>(1)
 
 		// :: newVar = newVariableWithOuterType(outerType);
-		translator.literal(method, outerType.object);
-		VariableDescriptor.newVariableWithOuterTypeMethod.generateCall(method);
-		translator.store(method, variable.register());
+		translator.literal(method, outerType.`object`)
+		VariableDescriptor.newVariableWithOuterTypeMethod.generateCall(method)
+		translator.store(method, variable.register())
 	}
 }

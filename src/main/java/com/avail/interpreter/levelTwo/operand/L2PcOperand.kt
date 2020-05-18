@@ -295,7 +295,7 @@ class L2PcOperand constructor(
 			0,
 			L2Instruction(
 				newBlock,
-				L2_JUMP.instance,
+				L2_JUMP,
 				L2PcOperand(newBlock, isBackward, manifestCopy)))
 		val newJump = newBlock.instructions()[0]
 		val jumpEdge = L2_JUMP.jumpTarget(newJump)
@@ -361,7 +361,7 @@ class L2PcOperand constructor(
 		// L2_CREATE_CONTINUATION will use both, and the L2_ENTER_L2_CHUNK at
 		// the target will restore the register dump found in the continuation.
 		val targetInstruction = targetBlock.instructions()[0]
-		assert(targetInstruction.operation() === L2_ENTER_L2_CHUNK.instance)
+		assert(targetInstruction.operation() === L2_ENTER_L2_CHUNK)
 		val liveMap =
 			CollectionExtensions.populatedEnumMap<
 				RegisterKind, MutableList<Int>>(

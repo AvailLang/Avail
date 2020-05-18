@@ -29,130 +29,97 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.levelTwo.operation;
+package com.avail.interpreter.levelTwo.operation
 
-import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.functions.A_Continuation;
-import com.avail.descriptor.functions.A_Function;
-import com.avail.interpreter.execution.Interpreter;
-import com.avail.interpreter.levelTwo.L1InstructionStepper;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.optimizer.jvm.CheckedMethod;
-import com.avail.optimizer.jvm.JVMTranslator;
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.logging.Level;
-
-import static com.avail.interpreter.execution.Interpreter.debugL1;
-import static com.avail.optimizer.jvm.CheckedMethod.staticMethod;
-import static com.avail.utility.Nulls.stripNull;
+import com.avail.descriptor.functions.A_Continuation
+import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.execution.Interpreter.Companion.log
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2Operation
+import com.avail.optimizer.jvm.CheckedMethod
+import com.avail.optimizer.jvm.JVMTranslator
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode
+import com.avail.utility.Nulls
+import org.objectweb.asm.MethodVisitor
+import java.util.logging.Level
 
 /**
  * This is the first instruction of the L1 interpreter's on-ramp for resuming
- * after a callee returns.  The reified {@link A_Continuation} that was captured
- * (and is now being resumed) pointed to this {@link L2Instruction}.  That
- * continuation is current in the {@link Interpreter#getReifiedContinuation()}.
+ * after a callee returns.  The reified [A_Continuation] that was captured
+ * (and is now being resumed) pointed to this [L2Instruction].  That
+ * continuation is current in the [Interpreter.getReifiedContinuation].
  * Pop it from that continuation chain, create suitable pointer and integer
- * registers as expected by {@link L2_INTERPRET_LEVEL_ONE}, then explode the
- * continuation's slots into those registers.  The {@link Interpreter#function}
+ * registers as expected by [L2_INTERPRET_LEVEL_ONE], then explode the
+ * continuation's slots into those registers.  The [Interpreter.function]
  * should also have already been set up to agree with the continuation's
  * function.
  *
- * <p>The value being returned is in {@link Interpreter#getLatestResult()}, and
+ * The value being returned is in [Interpreter.getLatestResult], and
  * the top-of-stack of the continuation contains the type to check it against.
  * Whether to skip the return check is up to the generated L2 code after an
- * entry point.  In this case (reentering L1), we always do the check.</p>
+ * entry point.  In this case (reentering L1), we always do the check.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_REENTER_L1_CHUNK_FROM_CALL
-extends L2Operation
+object L2_REENTER_L1_CHUNK_FROM_CALL : L2Operation()
 {
-	/**
-	 * Construct an {@code L2_REENTER_L1_CHUNK_FROM_CALL}.
-	 */
-	private L2_REENTER_L1_CHUNK_FROM_CALL ()
-	{
-		// Prevent accidental construction due to code cloning.
-	}
+	override fun hasSideEffect(): Boolean = true
 
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_REENTER_L1_CHUNK_FROM_CALL instance =
-		new L2_REENTER_L1_CHUNK_FROM_CALL();
+	override fun isEntryPoint(instruction: L2Instruction): Boolean = true
 
-	@Override
-	public boolean hasSideEffect ()
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		return true;
-	}
-
-	@Override
-	public boolean isEntryPoint (final L2Instruction instruction)
-	{
-		return true;
+		// :: L2_REENTER_L1_CHUNK_FROM_CALL.reenter(interpreter);
+		translator.loadInterpreter(method)
+		reenterMethod.generateCall(method)
 	}
 
 	/**
 	 * Reenter L1 from a call.
 	 *
 	 * @param interpreter
-	 *        The {@link Interpreter}.
+	 * The [Interpreter].
 	 */
-	@SuppressWarnings("unused")
 	@ReferencedInGeneratedCode
-	public static void reenter (final Interpreter interpreter)
+	fun reenter(interpreter: Interpreter)
 	{
-		if (debugL1)
+		if (Interpreter.debugL1)
 		{
-			Interpreter.Companion.log(
+			log(
 				Interpreter.loggerDebugL1,
 				Level.FINER,
 				"{0}Reenter L1 from call",
-				interpreter.debugModeString);
+				interpreter.debugModeString)
 		}
-		final A_Continuation continuation =
-			stripNull(interpreter.getReifiedContinuation());
-		interpreter.setReifiedContinuation(continuation.caller());
-		final AvailObject returnValue = interpreter.getLatestResult();
-
-		final A_Function returneeFunction = stripNull(interpreter.function);
-		assert returneeFunction == continuation.function();
-		final int numSlots = continuation.numSlots();
+		val continuation: A_Continuation = Nulls.stripNull(interpreter.getReifiedContinuation())
+		interpreter.setReifiedContinuation(continuation.caller())
+		val returnValue = interpreter.getLatestResult()
+		val returneeFunction = Nulls.stripNull(interpreter.function)
+		assert(returneeFunction === continuation.function())
+		val numSlots = continuation.numSlots()
 		// Should agree with L2_PREPARE_NEW_FRAME_FOR_L1.
-		final L1InstructionStepper stepper = interpreter.levelOneStepper;
-		stepper.pointers = new AvailObject[numSlots + 1];
-		int destination = 1;
-		for (int i = 1; i <= numSlots; i++)
+		val stepper = interpreter.levelOneStepper
+		stepper.pointers = arrayOfNulls(numSlots + 1)
+		var destination = 1
+		for (i in 1 .. numSlots)
 		{
-			stepper.pointerAtPut(destination++, continuation.stackAt(i));
+			stepper.pointerAtPut(destination++, continuation.stackAt(i))
 		}
 		returneeFunction.code().setUpInstructionDecoder(
-			stepper.instructionDecoder);
-		stepper.instructionDecoder.pc(continuation.pc());
-		stepper.stackp = continuation.stackp();
-		stepper.pointerAtPut(stepper.stackp, returnValue);
+			stepper.instructionDecoder)
+		stepper.instructionDecoder.pc(continuation.pc())
+		stepper.stackp = continuation.stackp()
+		stepper.pointerAtPut(stepper.stackp, returnValue)
 	}
 
-	/** The {@link CheckedMethod} for {@link #reenter(Interpreter)}. */
-	private static final CheckedMethod reenterMethod = staticMethod(
-		L2_REENTER_L1_CHUNK_FROM_CALL.class,
+	/** The [CheckedMethod] for [reenter].  */
+	private val reenterMethod = CheckedMethod.staticMethod(
+		L2_REENTER_L1_CHUNK_FROM_CALL::class.java,
 		"reenter",
-		void.class,
-		Interpreter.class);
-
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
-	{
-		// :: L2_REENTER_L1_CHUNK_FROM_CALL.reenter(interpreter);
-		translator.loadInterpreter(method);
-		reenterMethod.generateCall(method);
-	}
+		Void.TYPE,
+		Interpreter::class.java)
 }

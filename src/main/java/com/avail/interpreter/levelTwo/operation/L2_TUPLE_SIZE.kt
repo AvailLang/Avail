@@ -29,78 +29,54 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operation
 
-package com.avail.interpreter.levelTwo.operation;
-
-import com.avail.descriptor.tuples.A_Tuple;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_INT;
+import com.avail.descriptor.tuples.A_Tuple
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2Operation
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.MethodVisitor
+import java.util.function.Consumer
 
 /**
- * Answer the {@linkplain A_Tuple#tupleSize() size} of the specified {@linkplain
- * A_Tuple tuple}.
+ * Answer the [size][A_Tuple.tupleSize] of the specified [tuple][A_Tuple].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_TUPLE_SIZE
-extends L2Operation
+object L2_TUPLE_SIZE : L2Operation(
+	L2OperandType.READ_BOXED.`is`("tuple"),
+	L2OperandType.WRITE_INT.`is`("size of tuple"))
 {
-	/**
-	 * Construct an {@code L2_TUPLE_SIZE}.
-	 */
-	private L2_TUPLE_SIZE ()
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		super(
-			READ_BOXED.is("tuple"),
-			WRITE_INT.is("size of tuple"));
+		assert(this == instruction.operation())
+		val tuple = instruction.operand<L2ReadBoxedOperand>(0)
+		val size = instruction.operand<L2WriteIntOperand>(1)
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(size.registerString())
+		builder.append(" ← ")
+		builder.append(tuple.registerString())
 	}
 
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_TUPLE_SIZE instance = new L2_TUPLE_SIZE();
-
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		assert this == instruction.operation();
-		final L2ReadBoxedOperand tuple = instruction.operand(0);
-		final L2WriteIntOperand size = instruction.operand(1);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(size.registerString());
-		builder.append(" ← ");
-		builder.append(tuple.registerString());
-	}
-
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
-	{
-		final L2ReadBoxedOperand tuple = instruction.operand(0);
-		final L2WriteIntOperand size = instruction.operand(1);
+		val tuple = instruction.operand<L2ReadBoxedOperand>(0)
+		val size = instruction.operand<L2WriteIntOperand>(1)
 
 		// :: size = tuple.tupleSize();
-		translator.load(method, tuple.register());
-		A_Tuple.tupleSizeMethod.generateCall(method);
-		translator.store(method, size.register());
+		translator.load(method, tuple.register())
+		A_Tuple.tupleSizeMethod.generateCall(method)
+		translator.store(method, size.register())
 	}
 }

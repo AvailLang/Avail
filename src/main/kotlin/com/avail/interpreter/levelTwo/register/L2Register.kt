@@ -220,13 +220,12 @@ abstract class L2Register constructor (val uniqueValue: Int) : L2Entity
 		 * @param WR
 		 *   The [L2WriteOperand] subclass.
 		 */
-		fun <R : L2Register?, RR : L2ReadOperand<R>?, WR : L2WriteOperand<R>?> move(): L2_MOVE<R, RR, WR>
-		{
-			return Casts.cast<L2_MOVE<*, *, *>, L2_MOVE<R, RR, WR>>(
-				L2_MOVE.moveByKind<L2Register,
-					L2ReadOperand<L2Register>,
-					L2WriteOperand<L2Register>>(this))
-		}
+		fun <R : L2Register, RR : L2ReadOperand<R>, WR : L2WriteOperand<R>> move()
+			: L2_MOVE<R, RR, WR> =
+				Casts.cast<L2_MOVE<*, *, *>, L2_MOVE<R, RR, WR>>(
+					L2_MOVE.moveByKind<L2Register,
+						L2ReadOperand<L2Register>,
+						L2WriteOperand<L2Register>>(this))
 
 		companion object
 		{

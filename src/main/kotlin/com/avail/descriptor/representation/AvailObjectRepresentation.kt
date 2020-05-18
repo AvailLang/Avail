@@ -723,12 +723,12 @@ abstract class AvailObjectRepresentation protected constructor(
 	fun setSlotsFromList(
 		field: ObjectSlotsEnum,
 		startSubscript: Int,
-		sourceList: List<A_BasicObject>,
+		sourceList: List<A_BasicObject?>,
 		zeroBasedStartSourceSubscript: Int,
-		count: Int
-	) {
+		count: Int)
+	{
 		assert(!currentDescriptor.isShared
-			|| sourceList.all { it.descriptor().isShared })
+			|| sourceList.all { it?.descriptor()?.isShared ?: true })
 		checkSlot(field)
 		checkWriteForField(field)
 		var slotIndex = field.fieldOrdinal() + startSubscript - 1

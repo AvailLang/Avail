@@ -29,23 +29,17 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operation
 
-package com.avail.interpreter.levelTwo.operation;
-
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_INT;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_INT;
-import static org.objectweb.asm.Opcodes.IADD;
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2Operation
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
+import java.util.function.Consumer
 
 /**
  * Add the value in one int register to another int register, truncating the
@@ -54,61 +48,43 @@ import static org.objectweb.asm.Opcodes.IADD;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_ADD_INT_TO_INT_MOD_32_BITS
-extends L2Operation
+object L2_ADD_INT_TO_INT_MOD_32_BITS : L2Operation(
+	L2OperandType.READ_INT.`is`("augend"),
+	L2OperandType.READ_INT.`is`("addend"),
+	L2OperandType.WRITE_INT.`is`("sum"))
 {
-	/**
-	 * Construct an {@code L2_ADD_INT_TO_INT_MOD_32_BITS}.
-	 */
-	private L2_ADD_INT_TO_INT_MOD_32_BITS ()
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		super(
-			READ_INT.is("augend"),
-			READ_INT.is("addend"),
-			WRITE_INT.is("sum"));
+		assert(this == instruction.operation())
+		val augend = instruction.operand<L2ReadIntOperand>(0)
+		val addend = instruction.operand<L2ReadIntOperand>(1)
+		val sum = instruction.operand<L2WriteIntOperand>(2)
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(sum.registerString())
+		builder.append(" ← ")
+		builder.append(augend.registerString())
+		builder.append(" + ")
+		builder.append(addend.registerString())
 	}
 
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_ADD_INT_TO_INT_MOD_32_BITS instance =
-		new L2_ADD_INT_TO_INT_MOD_32_BITS();
-
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		assert this == instruction.operation();
-		final L2ReadIntOperand augend = instruction.operand(0);
-		final L2ReadIntOperand addend = instruction.operand(1);
-		final L2WriteIntOperand sum = instruction.operand(2);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(sum.registerString());
-		builder.append(" ← ");
-		builder.append(augend.registerString());
-		builder.append(" + ");
-		builder.append(addend.registerString());
-	}
-
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
-	{
-		final L2ReadIntOperand augend = instruction.operand(0);
-		final L2ReadIntOperand addend = instruction.operand(1);
-		final L2WriteIntOperand sum = instruction.operand(2);
+		val augend = instruction.operand<L2ReadIntOperand>(0)
+		val addend = instruction.operand<L2ReadIntOperand>(1)
+		val sum = instruction.operand<L2WriteIntOperand>(2)
 
 		// :: sum = augend + addend;
-		translator.load(method, augend.register());
-		translator.load(method, addend.register());
-		method.visitInsn(IADD);
-		translator.store(method, sum.register());
+		translator.load(method, augend.register())
+		translator.load(method, addend.register())
+		method.visitInsn(Opcodes.IADD)
+		translator.store(method, sum.register())
 	}
 }

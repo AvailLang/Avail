@@ -222,7 +222,7 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 				// synonym, so subsequent uses of the result might use either
 				// register, depending whether an unboxed value is desired.
 				translator.addInstruction(
-					L2_ADD_INT_TO_INT_MOD_32_BITS.instance,
+					L2_ADD_INT_TO_INT_MOD_32_BITS,
 					intA,
 					intB,
 					tempWriter)
@@ -233,7 +233,7 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 				val success =
 					generator.createBasicBlock("sum is in range")
 				translator.addInstruction(
-					L2_ADD_INT_TO_INT.instance,
+					L2_ADD_INT_TO_INT,
 					intA,
 					intB,
 					tempWriter,

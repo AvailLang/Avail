@@ -29,77 +29,53 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operation
 
-package com.avail.interpreter.levelTwo.operation;
-
-import com.avail.interpreter.execution.Interpreter;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE;
-import com.avail.interpreter.levelTwo.ReadsHiddenVariable;
-import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.interpreter.execution.Interpreter.getLatestResultMethod;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
+import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2Operation
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE
+import com.avail.interpreter.levelTwo.ReadsHiddenVariable
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.MethodVisitor
+import java.util.function.Consumer
 
 /**
- * Ask the {@link Interpreter} for its {@link Interpreter#getLatestResult()},
- * which is how functions return values.
+ * Ask the [Interpreter] for its [Interpreter.getLatestResult], which is how
+ * functions return values.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@ReadsHiddenVariable(theValue = LATEST_RETURN_VALUE.class)
-public final class L2_GET_LATEST_RETURN_VALUE
-extends L2Operation
+@ReadsHiddenVariable(theValue = arrayOf(LATEST_RETURN_VALUE::class))
+object L2_GET_LATEST_RETURN_VALUE : L2Operation(
+	L2OperandType.WRITE_BOXED.`is`("latest result"))
 {
-	/**
-	 * Construct an {@code L2_GET_LATEST_RETURN_VALUE}.
-	 */
-	private L2_GET_LATEST_RETURN_VALUE ()
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		super(
-			WRITE_BOXED.is("latest result"));
+		assert(this == instruction.operation())
+		val value = instruction.operand<L2WriteBoxedOperand>(0)
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(value.registerString())
 	}
 
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_GET_LATEST_RETURN_VALUE instance =
-		new L2_GET_LATEST_RETURN_VALUE();
-
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		assert this == instruction.operation();
-		final L2WriteBoxedOperand value = instruction.operand(0);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(value.registerString());
-	}
-
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
-	{
-		final L2WriteBoxedOperand value = instruction.operand(0);
+		val value = instruction.operand<L2WriteBoxedOperand>(0)
 
 		// :: target = interpreter.getLatestResult();
-		translator.loadInterpreter(method);
-		getLatestResultMethod.generateCall(method);
-		translator.store(method, value.register());
+		translator.loadInterpreter(method)
+		Interpreter.getLatestResultMethod.generateCall(method)
+		translator.store(method, value.register())
 	}
 }

@@ -29,128 +29,105 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.levelTwo.operation;
+package com.avail.interpreter.levelTwo.operation
 
-import com.avail.interpreter.execution.Interpreter;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_ARGUMENTS;
-import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION;
-import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE;
-import com.avail.interpreter.levelTwo.WritesHiddenVariable;
-import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
-import com.avail.optimizer.StackReifier;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.interpreter.execution.Interpreter.chunkField;
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2NamedOperandType
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.*
+import com.avail.interpreter.levelTwo.WritesHiddenVariable
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
+import com.avail.interpreter.levelTwo.operand.L2PcOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import com.avail.optimizer.StackReifier
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.MethodVisitor
+import java.util.function.Consumer
 
 /**
  * The given (constant) function is invoked.  The function may be a primitive,
  * and the primitive may succeed, fail, or replace the current continuation
  * (after reifying the stack).  It may also trigger reification of this frame by
- * Java-returning a {@link StackReifier} instead of null.
+ * Java-returning a [StackReifier] instead of null.
  *
- * <p>The return value can be picked up from
- * {@link Interpreter#getLatestResult() latestResult} in a subsequent
- * {@link L2_GET_LATEST_RETURN_VALUE} instruction. Note that the value that was
+ * The return value can be picked up from
+ * [latestResult][Interpreter.getLatestResult] in a subsequent
+ * [L2_GET_LATEST_RETURN_VALUE] instruction. Note that the value that was
  * returned has not been dynamically type-checked yet, so if its validity can't
  * be proven statically by the VM, the calling function should check the type
  * against its expectation (prior to the value getting captured in any
- * continuation).</p>
+ * continuation).
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@WritesHiddenVariable({
-	CURRENT_FUNCTION.class,
-	CURRENT_ARGUMENTS.class,
-	LATEST_RETURN_VALUE.class
-})
-public final class L2_INVOKE_CONSTANT_FUNCTION
-extends L2ControlFlowOperation
+@WritesHiddenVariable(value = [
+	CURRENT_FUNCTION::class,
+	CURRENT_ARGUMENTS::class,
+	LATEST_RETURN_VALUE::class])
+object L2_INVOKE_CONSTANT_FUNCTION : L2ControlFlowOperation(
+	L2OperandType.CONSTANT.`is`("constant function"),
+	L2OperandType.READ_BOXED_VECTOR.`is`("arguments"),
+	L2OperandType.WRITE_BOXED.`is`(
+		"result", L2NamedOperandType.Purpose.SUCCESS),
+	L2OperandType.PC.`is`(
+		"on return", L2NamedOperandType.Purpose.SUCCESS),
+	L2OperandType.PC.`is`(
+		"on reification", L2NamedOperandType.Purpose.OFF_RAMP))
 {
-	/**
-	 * Construct an {@code L2_INVOKE_CONSTANT_FUNCTION}.
-	 */
-	private L2_INVOKE_CONSTANT_FUNCTION ()
-	{
-		super(
-			CONSTANT.is("constant function"),
-			READ_BOXED_VECTOR.is("arguments"),
-			WRITE_BOXED.is("result", SUCCESS),
-			PC.is("on return", SUCCESS),
-			PC.is("on reification", OFF_RAMP));
-	}
+	// Never remove invocations -- but inlining might make them go away.
+	override fun hasSideEffect(): Boolean = true
 
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_INVOKE_CONSTANT_FUNCTION instance =
-		new L2_INVOKE_CONSTANT_FUNCTION();
-
-	@Override
-	public boolean hasSideEffect ()
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		// Never remove invocations -- but inlining might make them go away.
-		return true;
-	}
-
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
-	{
-		assert this == instruction.operation();
-		final L2ConstantOperand constantFunction = instruction.operand(0);
-		final L2ReadBoxedVectorOperand arguments = instruction.operand(1);
-		final L2WriteBoxedOperand result = instruction.operand(2);
-//		final L2PcOperand onReturn = instruction.operand(3);
+		assert(this == instruction.operation())
+		val constantFunction =
+			instruction.operand<L2ConstantOperand>(0)
+		val arguments =
+			instruction.operand<L2ReadBoxedVectorOperand>(1)
+		val result =
+			instruction.operand<L2WriteBoxedOperand>(2)
+		//		final L2PcOperand onReturn = instruction.operand(3);
 //		final L2PcOperand onReification = instruction.operand(4);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(result.registerString());
-		builder.append(" ← ");
-		builder.append(constantFunction.object);
-		builder.append("(");
-		builder.append(arguments.elements());
-		builder.append(")");
-		renderOperandsStartingAt(instruction, 2, desiredTypes, builder);
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(result.registerString())
+		builder.append(" ← ")
+		builder.append(constantFunction.`object`)
+		builder.append("(")
+		builder.append(arguments.elements())
+		builder.append(")")
+		renderOperandsStartingAt(instruction, 2, desiredTypes, builder)
 	}
 
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		final L2ConstantOperand constantFunction = instruction.operand(0);
-		final L2ReadBoxedVectorOperand arguments = instruction.operand(1);
-		final L2WriteBoxedOperand result = instruction.operand(2);
-		final L2PcOperand onReturn = instruction.operand(3);
-		final L2PcOperand onReification = instruction.operand(4);
-
-		translator.loadInterpreter(method);
+		val constantFunction =
+			instruction.operand<L2ConstantOperand>(0)
+		val arguments =
+			instruction.operand<L2ReadBoxedVectorOperand>(1)
+		val result =
+			instruction.operand<L2WriteBoxedOperand>(2)
+		val onReturn = instruction.operand<L2PcOperand>(3)
+		val onReification = instruction.operand<L2PcOperand>(4)
+		translator.loadInterpreter(method)
 		// :: [interpreter]
-		translator.loadInterpreter(method);
+		translator.loadInterpreter(method)
 		// :: [interpreter, interpreter]
-		chunkField.generateRead(method);
+		Interpreter.chunkField.generateRead(method)
 		// :: [interpreter, callingChunk]
-		translator.loadInterpreter(method);
+		translator.loadInterpreter(method)
 		// :: [interpreter, callingChunk, interpreter]
-		translator.literal(method, constantFunction.object);
+		translator.literal(method, constantFunction.`object`)
 		// :: [interpreter, callingChunk, interpreter, function]
 		L2_INVOKE.generatePushArgumentsAndInvoke(
 			translator,
@@ -158,6 +135,6 @@ extends L2ControlFlowOperation
 			arguments.elements(),
 			result,
 			onReturn,
-			onReification);
+			onReification)
 	}
 }

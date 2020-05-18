@@ -29,26 +29,19 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operation
 
-package com.avail.interpreter.levelTwo.operation;
-
-import com.avail.descriptor.numbers.A_Number;
-import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.PC;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
-import static org.objectweb.asm.Opcodes.IFNE;
+import com.avail.descriptor.numbers.A_Number
+import com.avail.descriptor.numbers.AbstractNumberDescriptor
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2NamedOperandType
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.operand.L2PcOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
+import java.util.function.Consumer
 
 /**
  * Jump to the target if the first value is numerically greater than the second
@@ -57,66 +50,61 @@ import static org.objectweb.asm.Opcodes.IFNE;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_JUMP_IF_GREATER_THAN_OBJECT
-extends L2ConditionalJump
+class L2_JUMP_IF_GREATER_THAN_OBJECT
+/**
+ * Construct an `L2_JUMP_IF_GREATER_THAN_OBJECT`.
+ */
+private constructor() : L2ConditionalJump(
+	L2OperandType.READ_BOXED.`is`("first value"),
+	L2OperandType.READ_BOXED.`is`("second value"),
+	L2OperandType.PC.`is`("if greater", L2NamedOperandType.Purpose.SUCCESS),
+	L2OperandType.PC.`is`("if less or equal", L2NamedOperandType.Purpose.FAILURE))
 {
-	/**
-	 * Construct an {@code L2_JUMP_IF_GREATER_THAN_OBJECT}.
-	 */
-	private L2_JUMP_IF_GREATER_THAN_OBJECT ()
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		super(
-			READ_BOXED.is("first value"),
-			READ_BOXED.is("second value"),
-			PC.is("if greater", SUCCESS),
-			PC.is("if less or equal", FAILURE));	}
-
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_JUMP_IF_GREATER_THAN_OBJECT instance =
-		new L2_JUMP_IF_GREATER_THAN_OBJECT();
-
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
-	{
-		assert this == instruction.operation();
-		final L2ReadBoxedOperand first = instruction.operand(0);
-		final L2ReadBoxedOperand second = instruction.operand(1);
-//		final L2PcOperand ifGreater = instruction.operand(2);
+		assert(this == instruction.operation())
+		val first = instruction.operand<L2ReadBoxedOperand>(0)
+		val second = instruction.operand<L2ReadBoxedOperand>(1)
+		//		final L2PcOperand ifGreater = instruction.operand(2);
 //		final L2PcOperand ifNotGreater = instruction.operand(3);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(first.registerString());
-		builder.append(" > ");
-		builder.append(second.registerString());
-		renderOperandsStartingAt(instruction, 2, desiredTypes, builder);
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(first.registerString())
+		builder.append(" > ")
+		builder.append(second.registerString())
+		renderOperandsStartingAt(instruction, 2, desiredTypes, builder)
 	}
 
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		final L2ReadBoxedOperand first = instruction.operand(0);
-		final L2ReadBoxedOperand second = instruction.operand(1);
-		final L2PcOperand ifGreater = instruction.operand(2);
-		final L2PcOperand ifNotGreater = instruction.operand(3);
+		val first = instruction.operand<L2ReadBoxedOperand>(0)
+		val second = instruction.operand<L2ReadBoxedOperand>(1)
+		val ifGreater = instruction.operand<L2PcOperand>(2)
+		val ifNotGreater = instruction.operand<L2PcOperand>(3)
 
 		// :: comparison = first.numericCompare(second);
-		translator.load(method, first.register());
-		translator.load(method, second.register());
-		A_Number.numericCompareMethod.generateCall(method);
+		translator.load(method, first.register())
+		translator.load(method, second.register())
+		A_Number.numericCompareMethod.generateCall(method)
 		// :: if (comparison.isMore()) goto ifTrue;
 		// :: else goto ifFalse;
-		Order.isMoreMethod.generateCall(method);
+		AbstractNumberDescriptor.Order.isMoreMethod.generateCall(method)
 		emitBranch(
-			translator, method, instruction, IFNE, ifGreater, ifNotGreater);
+			translator, method, instruction, Opcodes.IFNE, ifGreater, ifNotGreater)
+	}
+
+	companion object
+	{
+		/**
+		 * Initialize the sole instance.
+		 */
+		val instance = L2_JUMP_IF_GREATER_THAN_OBJECT()
 	}
 }

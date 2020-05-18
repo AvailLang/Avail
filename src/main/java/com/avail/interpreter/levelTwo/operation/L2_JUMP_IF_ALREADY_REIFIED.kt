@@ -29,75 +29,58 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.levelTwo.operation;
+package com.avail.interpreter.levelTwo.operation
 
-import com.avail.descriptor.functions.A_Continuation;
-import com.avail.interpreter.execution.Interpreter;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.MethodVisitor;
-
-import static com.avail.interpreter.execution.Interpreter.callerIsReifiedMethod;
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.PC;
-import static org.objectweb.asm.Opcodes.IFNE;
+import com.avail.descriptor.functions.A_Continuation
+import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2NamedOperandType
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.operand.L2PcOperand
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
 
 /**
- * Reification of the stack into a chain of {@link A_Continuation}s is powerful,
+ * Reification of the stack into a chain of [A_Continuation]s is powerful,
  * and provides backtracking, exceptions, readable stack traces, and reliable
  * debugger support.  However, it's also expensive.
  *
- * <p>To avoid the cost of a null reification, this operation checks to see if
- * we're already at the bottom of the Java call stack – we track the depth of
- * unreified calls in {@link Interpreter#unreifiedCallDepth()}.</p>
  *
- * <p>If we're already reified (depth = 0), that means the
- * {@link Interpreter#getReifiedContinuation()} represents our caller's fully
+ * To avoid the cost of a null reification, this operation checks to see if
+ * we're already at the bottom of the Java call stack – we track the depth of
+ * unreified calls in [Interpreter.unreifiedCallDepth].
+ *
+ *
+ * If we're already reified (depth = 0), that means the
+ * [Interpreter.getReifiedContinuation] represents our caller's fully
  * reified state, so take the "already reified" branch.  Otherwise, take the
- * "not yet reified" branch.</p>
+ * "not yet reified" branch.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class L2_JUMP_IF_ALREADY_REIFIED
-extends L2ConditionalJump
+object L2_JUMP_IF_ALREADY_REIFIED : L2ConditionalJump(
+	L2OperandType.PC.`is`("already reified", L2NamedOperandType.Purpose.SUCCESS),
+	L2OperandType.PC.`is`("not yet interrupt", L2NamedOperandType.Purpose.FAILURE))
 {
-	/**
-	 * Construct an {@code L2_JUMP_IF_ALREADY_REIFIED}.
-	 */
-	private L2_JUMP_IF_ALREADY_REIFIED ()
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		super(
-			PC.is("already reified", SUCCESS),
-			PC.is("not yet interrupt", FAILURE));
-	}
-
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_JUMP_IF_ALREADY_REIFIED instance =
-		new L2_JUMP_IF_ALREADY_REIFIED();
-
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
-	{
-		final L2PcOperand alreadyReified = instruction.operand(0);
-		final L2PcOperand notYetReified = instruction.operand(1);
+		val alreadyReified = instruction.operand<L2PcOperand>(0)
+		val notYetReified = instruction.operand<L2PcOperand>(1)
 
 		// :: if (interpreter.isInterruptRequested()) goto ifInterrupt;
 		// :: else goto ifNotInterrupt;
-		translator.loadInterpreter(method);
-		callerIsReifiedMethod.generateCall(method);
+		translator.loadInterpreter(method)
+		Interpreter.callerIsReifiedMethod.generateCall(method)
 		emitBranch(
 			translator,
 			method,
 			instruction,
-			IFNE,
+			Opcodes.IFNE,
 			alreadyReified,
-			notYetReified);
+			notYetReified)
 	}
 }

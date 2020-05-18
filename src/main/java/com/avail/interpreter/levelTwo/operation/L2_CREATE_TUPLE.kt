@@ -29,220 +29,190 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.levelTwo.operation;
+package com.avail.interpreter.levelTwo.operation
 
-import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.descriptor.tuples.A_Tuple;
-import com.avail.descriptor.tuples.ObjectTupleDescriptor;
-import com.avail.descriptor.tuples.TupleDescriptor;
-import com.avail.descriptor.types.A_Type;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
-import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.jvm.CheckedMethod;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.descriptor.numbers.IntegerDescriptor.fromInt;
-import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromArrayMethod;
-import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList;
-import static com.avail.descriptor.tuples.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.types.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.types.InstanceTypeDescriptor.instanceType;
-import static com.avail.descriptor.types.TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType;
-import static com.avail.descriptor.types.TypeDescriptor.Types.ANY;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
-import static com.avail.utility.Casts.cast;
-import static org.objectweb.asm.Opcodes.CHECKCAST;
-import static org.objectweb.asm.Type.getInternalName;
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor
+import com.avail.descriptor.tuples.TupleDescriptor
+import com.avail.descriptor.types.*
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2Operation
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import com.avail.optimizer.L2Generator
+import com.avail.optimizer.RegisterSet
+import com.avail.optimizer.jvm.CheckedMethod
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
+import org.objectweb.asm.Type
+import java.util.*
+import java.util.function.Consumer
 
 /**
- * Create a {@link TupleDescriptor tuple} from the {@linkplain AvailObject
- * objects} in the specified registers.
+ * Create a [tuple][TupleDescriptor] from the [objects][AvailObject] in the
+ * specified registers.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_CREATE_TUPLE
-extends L2Operation
+object L2_CREATE_TUPLE : L2Operation(
+	L2OperandType.READ_BOXED_VECTOR.`is`("elements"),
+	L2OperandType.WRITE_BOXED.`is`("tuple"))
 {
-	/**
-	 * Construct an {@code L2_CREATE_TUPLE}.
-	 */
-	private L2_CREATE_TUPLE ()
+	override fun propagateTypes(
+		instruction: L2Instruction,
+		registerSet: RegisterSet,
+		generator: L2Generator)
 	{
-		super(
-			READ_BOXED_VECTOR.is("elements"),
-			WRITE_BOXED.is("tuple"));
-	}
-
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_CREATE_TUPLE instance = new L2_CREATE_TUPLE();
-
-	@Override
-	protected void propagateTypes (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
-		final L2Generator generator)
-	{
-		final L2ReadBoxedVectorOperand values = instruction.operand(0);
-		final L2WriteBoxedOperand tuple = instruction.operand(1);
-
-		final int size = values.elements().size();
-		final A_Type sizeRange = fromInt(size).kind();
-		final List<A_Type> types = new ArrayList<>(size);
-		for (final L2ReadBoxedOperand element: values.elements())
+		val values =
+			instruction.operand<L2ReadBoxedVectorOperand>(0)
+		val tuple =
+			instruction.operand<L2WriteBoxedOperand>(1)
+		val size = values.elements().size
+		val sizeRange = fromInt(size).kind()
+		val types: MutableList<A_Type> = ArrayList(size)
+		for (element in values.elements())
 		{
 			if (registerSet.hasTypeAt(element.register()))
 			{
-				types.add(registerSet.typeAt(element.register()));
+				types.add(registerSet.typeAt(element.register()))
 			}
 			else
 			{
-				types.add(ANY.o());
+				types.add(TypeDescriptor.Types.ANY.o())
 			}
 		}
-		final A_Type tupleType =
-			tupleTypeForSizesTypesDefaultType(sizeRange,
-				tupleFromList(types), bottom());
-		tupleType.makeImmutable();
-		registerSet.removeConstantAt(tuple.register());
+		val tupleType =
+			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+				sizeRange,
+				ObjectTupleDescriptor.tupleFromList(types),
+				BottomTypeDescriptor.bottom())
+		tupleType.makeImmutable()
+		registerSet.removeConstantAt(tuple.register())
 		registerSet.typeAtPut(
 			tuple.register(),
 			tupleType,
-			instruction);
+			instruction)
 		if (registerSet.allRegistersAreConstant(values.elements()))
 		{
-			final List<AvailObject> constants = new ArrayList<>(size);
-			for (final L2ReadBoxedOperand element : values.elements())
+			val constants: MutableList<AvailObject> = ArrayList(size)
+			for (element in values.elements())
 			{
-				constants.add(registerSet.constantAt(element.register()));
+				constants.add(registerSet.constantAt(element.register()))
 			}
-			final A_Tuple newTuple = tupleFromList(constants);
-			newTuple.makeImmutable();
-			assert newTuple.isInstanceOf(tupleType);
+			val newTuple =
+				ObjectTupleDescriptor.tupleFromList(constants)
+			newTuple.makeImmutable()
+			assert(newTuple.isInstanceOf(tupleType))
 			registerSet.typeAtPut(
 				tuple.register(),
-				instanceType(newTuple),
-				instruction);
+				InstanceTypeDescriptor.instanceType(newTuple),
+				instruction)
 			registerSet.constantAtPut(
-				tuple.register(), newTuple, instruction);
+				tuple.register(), newTuple, instruction)
 		}
 	}
 
-	/**
-	 * Given an {@link L2Instruction} using this operation, extract the list of
-	 * registers that supply the elements of the tuple.
-	 *
-	 * @param instruction
-	 *        The tuple creation instruction to examine.
-	 * @return The instruction's {@link List} of {@link L2ReadBoxedOperand}s
-	 *         that supply the tuple elements.
-	 */
-	public static List<L2ReadBoxedOperand> tupleSourceRegistersOf (
-		final L2Instruction instruction)
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		assert instruction.operation() == instance;
-		final L2ReadBoxedVectorOperand vector = instruction.operand(0);
-		return vector.elements();
-	}
-
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
-	{
-		assert this == instruction.operation();
-		final L2ReadBoxedVectorOperand values = instruction.operand(0);
-		final L2WriteBoxedOperand tuple = instruction.operand(1);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(tuple.registerString());
-		builder.append(" ← ");
-		builder.append(values.elements());
+		assert(this == instruction.operation())
+		val values =
+			instruction.operand<L2ReadBoxedVectorOperand>(0)
+		val tuple =
+			instruction.operand<L2WriteBoxedOperand>(1)
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(tuple.registerString())
+		builder.append(" ← ")
+		builder.append(values.elements())
 	}
 
 	/**
 	 * Generated code uses:
-	 * <ul>
-	 *     <li>{@link ObjectTupleDescriptor#tupleFromArray(
-	 *         A_BasicObject...)}</li>
-	 *     <li>{@link TupleDescriptor#emptyTuple()}</li>
-	 *     <li>{@link ObjectTupleDescriptor#tuple(A_BasicObject)}</li>
-	 *     <li>{@link ObjectTupleDescriptor#tuple(
-	 *         A_BasicObject, A_BasicObject)}</li>
-	 *     <li>{@link ObjectTupleDescriptor#tuple(
-	 *         A_BasicObject, A_BasicObject, A_BasicObject)}</li>
-	 *     <li>{@link ObjectTupleDescriptor#tuple(
-	 *         A_BasicObject, A_BasicObject, A_BasicObject, A_BasicObject)}</li>
-	 *     <li>{@link ObjectTupleDescriptor#tuple(
-	 *         A_BasicObject,
-	 *         A_BasicObject,
-	 *         A_BasicObject,
-	 *         A_BasicObject,
-	 *         A_BasicObject)}</li>
-	 * </ul>
+	 *
+	 *  * [ObjectTupleDescriptor.tupleFromArray]
+	 *  * [TupleDescriptor.emptyTuple]
+	 *  * [ObjectTupleDescriptor.tuple]
+	 *  * [ObjectTupleDescriptor.tuple]
+	 *  * [ObjectTupleDescriptor.tuple]
+	 *  * [ObjectTupleDescriptor.tuple]
+	 *  * [ObjectTupleDescriptor.tuple]
+	 *
 	 */
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		final L2ReadBoxedVectorOperand values = instruction.operand(0);
-		final L2WriteBoxedOperand tuple = instruction.operand(1);
-
-		final List<L2ReadBoxedOperand> elements = values.elements();
-		final int size = elements.size();
+		val values =
+			instruction.operand<L2ReadBoxedVectorOperand>(0)
+		val tuple =
+			instruction.operand<L2WriteBoxedOperand>(1)
+		val elements = values.elements()
+		val size = elements.size
 		if (size <= 5)
 		{
 			// Special cases for small tuples
 			if (size == 0)
 			{
 				// :: destination = theEmptyTupleLiteral;
-				translator.literal(method, emptyTuple());
-				translator.store(method, tuple.register());
-				return;
+				translator.literal(method, TupleDescriptor.emptyTuple())
+				translator.store(method, tuple.register())
+				return
 			}
 			// :: destination = TupleDescriptor.tuple(element1...elementN);
-			for (int i = 0; i < size; i++)
+			for (i in 0 until size)
 			{
-				translator.load(method, elements.get(i).register());
+				translator.load(method, elements[i].register())
 			}
-			final Class<A_BasicObject>[] callSignature = cast(new Class[size]);
-			Arrays.fill(callSignature, A_BasicObject.class);
-			final CheckedMethod tupleMethod = CheckedMethod.staticMethod(
-				ObjectTupleDescriptor.class,
+			val callSignature =
+				Array(size)
+				{
+					A_BasicObject::class.java
+				}
+			val tupleMethod = CheckedMethod.staticMethod(
+				ObjectTupleDescriptor::class.java,
 				"tuple",
-				A_Tuple.class,
-				callSignature);
-			tupleMethod.generateCall(method);
-			method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
-			translator.store(method, tuple.register());
-			return;
+				A_Tuple::class.java,
+				*callSignature)
+			tupleMethod.generateCall(method)
+			method.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(AvailObject::class.java))
+			translator.store(method, tuple.register())
+			return
 		}
 		// :: destination = TupleDescriptor.tupleFromArray(elements);
-		translator.objectArray(method, elements, A_BasicObject.class);
-		tupleFromArrayMethod.generateCall(method);
-		method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
-		translator.store(method, tuple.register());
+		translator.objectArray(method, elements, A_BasicObject::class.java)
+		ObjectTupleDescriptor.tupleFromArrayMethod.generateCall(method)
+		method.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(AvailObject::class.java))
+		translator.store(method, tuple.register())
+	}
+
+	/**
+	 * Given an [L2Instruction] using this operation, extract the list of
+	 * registers that supply the elements of the tuple.
+	 *
+	 * @param instruction
+	 *   The tuple creation instruction to examine.
+	 * @return
+	 *   The instruction's [List] of [L2ReadBoxedOperand]s that supply the tuple elements.
+	 */
+	@kotlin.jvm.JvmStatic
+	fun tupleSourceRegistersOf(
+		instruction: L2Instruction): List<L2ReadBoxedOperand>
+	{
+		assert(instruction.operation() === this)
+		val vector =
+			instruction.operand<L2ReadBoxedVectorOperand>(0)
+		return vector.elements()
 	}
 }

@@ -46,7 +46,6 @@ import com.avail.utility.Casts
 import com.avail.utility.Nulls
 import com.avail.utility.Pair
 import java.util.*
-import java.util.function.UnaryOperator
 
 /**
  * `L2ReadOperand` abstracts the capabilities of actual register read operands.

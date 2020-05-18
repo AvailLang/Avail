@@ -29,33 +29,21 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operation
 
-package com.avail.interpreter.levelTwo.operation;
-
-import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.descriptor.types.A_Type;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.L2ValueManifest;
-import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.MethodVisitor;
-
-import javax.annotation.Nullable;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.descriptor.representation.A_BasicObject.equalsMethod;
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.PC;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
-import static com.avail.interpreter.levelTwo.operation.L2ConditionalJump.BranchReduction.*;
-import static org.objectweb.asm.Opcodes.IFNE;
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2NamedOperandType
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.operand.L2PcOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.optimizer.L2Generator
+import com.avail.optimizer.L2ValueManifest
+import com.avail.optimizer.RegisterSet
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
+import java.util.function.Consumer
 
 /**
  * Branch based on whether the two values are equal to each other.
@@ -63,97 +51,77 @@ import static org.objectweb.asm.Opcodes.IFNE;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_JUMP_IF_OBJECTS_EQUAL
-extends L2ConditionalJump
+class L2_JUMP_IF_OBJECTS_EQUAL
+/**
+ * Construct an `L2_JUMP_IF_OBJECTS_EQUAL`.
+ */
+private constructor() : L2ConditionalJump(
+	L2OperandType.READ_BOXED.`is`("first value"),
+	L2OperandType.READ_BOXED.`is`("second value"),
+	L2OperandType.PC.`is`("is equal", L2NamedOperandType.Purpose.SUCCESS),
+	L2OperandType.PC.`is`("is not equal", L2NamedOperandType.Purpose.FAILURE))
 {
-	/**
-	 * Construct an {@code L2_JUMP_IF_OBJECTS_EQUAL}.
-	 */
-	private L2_JUMP_IF_OBJECTS_EQUAL ()
+	override fun instructionWasAdded(
+		instruction: L2Instruction,
+		manifest: L2ValueManifest)
 	{
-		super(
-			READ_BOXED.is("first value"),
-			READ_BOXED.is("second value"),
-			PC.is("is equal", SUCCESS),
-			PC.is("is not equal", FAILURE));
-	}
-
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_JUMP_IF_OBJECTS_EQUAL instance =
-		new L2_JUMP_IF_OBJECTS_EQUAL();
-
-	@Override
-	public void instructionWasAdded (
-		final L2Instruction instruction,
-		final L2ValueManifest manifest)
-	{
-		assert this == instruction.operation();
-		final L2ReadBoxedOperand first = instruction.operand(0);
-		final L2ReadBoxedOperand second = instruction.operand(1);
-		final L2PcOperand ifEqual = instruction.operand(2);
-		final L2PcOperand ifNotEqual = instruction.operand(3);
-
-		super.instructionWasAdded(instruction, manifest);
+		assert(this == instruction.operation())
+		val first = instruction.operand<L2ReadBoxedOperand>(0)
+		val second = instruction.operand<L2ReadBoxedOperand>(1)
+		val ifEqual = instruction.operand<L2PcOperand>(2)
+		val ifNotEqual = instruction.operand<L2PcOperand>(3)
+		super.instructionWasAdded(instruction, manifest)
 
 		// Merge the source and destination only along the ifEqual branch.
 		ifEqual.manifest().mergeExistingSemanticValues(
-			first.semanticValue(), second.semanticValue());
+			first.semanticValue(), second.semanticValue())
 	}
 
-	@Override
-	public BranchReduction branchReduction (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
-		final L2Generator generator)
+	override fun branchReduction(
+		instruction: L2Instruction,
+		registerSet: RegisterSet,
+		generator: L2Generator): BranchReduction
 	{
-		final L2ReadBoxedOperand firstReg = instruction.operand(0);
-		final L2ReadBoxedOperand secondReg = instruction.operand(1);
-//		final L2PcOperand ifEqual = instruction.operand(2);
+		val firstReg = instruction.operand<L2ReadBoxedOperand>(0)
+		val secondReg = instruction.operand<L2ReadBoxedOperand>(1)
+		//		final L2PcOperand ifEqual = instruction.operand(2);
 //		final L2PcOperand notEqual = instruction.operand(3);
-
-		final @Nullable A_BasicObject constant1 = firstReg.constantOrNull();
-		final @Nullable A_BasicObject constant2 = secondReg.constantOrNull();
+		val constant1: A_BasicObject? = firstReg.constantOrNull()
+		val constant2: A_BasicObject? = secondReg.constantOrNull()
 		if (constant1 != null && constant2 != null)
 		{
 			// Compare them right now.
-			return constant1.equals(constant2) ? AlwaysTaken : NeverTaken;
+			return if (constant1.equals(constant2)) BranchReduction.AlwaysTaken else BranchReduction.NeverTaken
 		}
-		if (firstReg.type().typeIntersection(secondReg.type()).isBottom())
+		return if (firstReg.type().typeIntersection(secondReg.type()).isBottom)
 		{
 			// They can't be equal.
-			return NeverTaken;
+			BranchReduction.NeverTaken
 		}
+		else BranchReduction.SometimesTaken
 		// Otherwise it's still contingent.
-		return SometimesTaken;
 	}
 
-	@Override
-	protected void propagateTypes (
-		final L2Instruction instruction,
-		final List<RegisterSet> registerSets,
-		final L2Generator generator)
+	override fun propagateTypes(
+		instruction: L2Instruction,
+		registerSets: List<RegisterSet>,
+		generator: L2Generator)
 	{
-		final L2ReadBoxedOperand firstReg = instruction.operand(0);
-		final L2ReadBoxedOperand secondReg = instruction.operand(1);
-//		final L2PcOperand ifEqual = instruction.operand(2);
-//		final L2PcOperand notEqual = instruction.operand(3);
-
-		assert registerSets.size() == 2;
-//		final RegisterSet fallThroughSet = registerSets.get(0);
-		final RegisterSet postJumpSet = registerSets.get(1);
+		val firstReg = instruction.operand<L2ReadBoxedOperand>(0)
+		val secondReg = instruction.operand<L2ReadBoxedOperand>(1)
+		assert(registerSets.size == 2)
+		//		final RegisterSet fallThroughSet = registerSets.get(0);
+		val postJumpSet = registerSets[1]
 
 		// In the path where the registers compared equal, we can deduce that
 		// both registers' origin registers must be constrained to the type
 		// intersection of the two registers.
-		final A_Type intersection =
-			postJumpSet.typeAt(firstReg.register()).typeIntersection(
-				postJumpSet.typeAt(secondReg.register()));
+		val intersection = postJumpSet.typeAt(firstReg.register()).typeIntersection(
+			postJumpSet.typeAt(secondReg.register()))
 		postJumpSet.strengthenTestedTypeAtPut(
-			firstReg.register(), intersection);
+			firstReg.register(), intersection)
 		postJumpSet.strengthenTestedTypeAtPut(
-			secondReg.register(), intersection);
+			secondReg.register(), intersection)
 
 		// Furthermore, if one register is a constant, then in the path where
 		// the registers compared equal we can deduce that both registers'
@@ -162,53 +130,59 @@ extends L2ConditionalJump
 		{
 			postJumpSet.strengthenTestedValueAtPut(
 				secondReg.register(),
-				postJumpSet.constantAt(firstReg.register()));
+				postJumpSet.constantAt(firstReg.register()))
 		}
 		else if (postJumpSet.hasConstantAt(secondReg.register()))
 		{
 			postJumpSet.strengthenTestedValueAtPut(
 				firstReg.register(),
-				postJumpSet.constantAt(secondReg.register()));
+				postJumpSet.constantAt(secondReg.register()))
 		}
 	}
 
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		assert this == instruction.operation();
-		final L2ReadBoxedOperand first = instruction.operand(0);
-		final L2ReadBoxedOperand second = instruction.operand(1);
-//		final L2PcOperand ifEqual = instruction.operand(2);
+		assert(this == instruction.operation())
+		val first = instruction.operand<L2ReadBoxedOperand>(0)
+		val second = instruction.operand<L2ReadBoxedOperand>(1)
+		//		final L2PcOperand ifEqual = instruction.operand(2);
 //		final L2PcOperand ifNotEqual = instruction.operand(3);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(first.registerString());
-		builder.append(" = ");
-		builder.append(second.registerString());
-		renderOperandsStartingAt(instruction, 2, desiredTypes, builder);
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(first.registerString())
+		builder.append(" = ")
+		builder.append(second.registerString())
+		renderOperandsStartingAt(instruction, 2, desiredTypes, builder)
 	}
 
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		final L2ReadBoxedOperand first = instruction.operand(0);
-		final L2ReadBoxedOperand second = instruction.operand(1);
-		final L2PcOperand ifEqual = instruction.operand(2);
-		final L2PcOperand ifNotEqual = instruction.operand(3);
+		val first = instruction.operand<L2ReadBoxedOperand>(0)
+		val second = instruction.operand<L2ReadBoxedOperand>(1)
+		val ifEqual = instruction.operand<L2PcOperand>(2)
+		val ifNotEqual = instruction.operand<L2PcOperand>(3)
 
 		// :: if (first.equals(second)) goto ifEqual;
 		// :: else goto notEqual;
-		translator.load(method, first.register());
-		translator.load(method, second.register());
-		equalsMethod.generateCall(method);
-		emitBranch(translator, method, instruction, IFNE, ifEqual, ifNotEqual);
+		translator.load(method, first.register())
+		translator.load(method, second.register())
+		A_BasicObject.equalsMethod.generateCall(method)
+		emitBranch(translator, method, instruction, Opcodes.IFNE, ifEqual, ifNotEqual)
+	}
+
+	companion object
+	{
+		/**
+		 * Initialize the sole instance.
+		 */
+		@kotlin.jvm.JvmField
+		val instance = L2_JUMP_IF_OBJECTS_EQUAL()
 	}
 }

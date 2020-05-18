@@ -29,33 +29,27 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operation
 
-package com.avail.interpreter.levelTwo.operation;
-
-import com.avail.interpreter.execution.Interpreter;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2NamedOperandType;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.STACK_REIFIER;
-import com.avail.interpreter.levelTwo.WritesHiddenVariable;
-import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
-import com.avail.interpreter.levelTwo.operand.L2Operand;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.primitive.controlflow.P_RestartContinuation;
-import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments;
-import com.avail.optimizer.jvm.JVMTranslator;
-import com.avail.performance.Statistic;
-import com.avail.performance.StatisticReport;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
-import static com.avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE;
-import static com.avail.interpreter.levelTwo.L2OperandType.PC;
-import static com.avail.utility.Strings.increaseIndentation;
-import static org.objectweb.asm.Opcodes.ASTORE;
+import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2NamedOperandType
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.STACK_REIFIER
+import com.avail.interpreter.levelTwo.WritesHiddenVariable
+import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
+import com.avail.interpreter.levelTwo.operand.L2Operand
+import com.avail.interpreter.levelTwo.operand.L2PcOperand
+import com.avail.interpreter.levelTwo.operation.L2_REIFY.StatisticCategory
+import com.avail.interpreter.primitive.controlflow.P_RestartContinuation
+import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
+import com.avail.optimizer.jvm.JVMTranslator
+import com.avail.performance.Statistic
+import com.avail.performance.StatisticReport
+import com.avail.utility.Strings.increaseIndentation
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
+import java.util.function.Consumer
 
 /**
  * Create a StackReifier and jump to the "on reification" label.  This will
@@ -63,41 +57,27 @@ import static org.objectweb.asm.Opcodes.ASTORE;
  * If "process interrupt" is true, then process an interrupt as soon as the
  * reification is complete.  Otherwise continue running at "on reification" with
  * the reified state captured in the
- * {@link Interpreter#getReifiedContinuation()}.
+ * [Interpreter.getReifiedContinuation].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@WritesHiddenVariable(
-	// The instruction just sets up a new StackReifier.  It's the subsequent
-	// operations that manipulate the state.
-	STACK_REIFIER.class
-)
-public final class L2_REIFY
-extends L2ControlFlowOperation
+@WritesHiddenVariable(STACK_REIFIER::class)
+class L2_REIFY
+/**
+ * Construct an `L2_REIFY`.
+ */
+private constructor() : L2ControlFlowOperation(
+	L2OperandType.INT_IMMEDIATE.`is`("capture frames"),
+	L2OperandType.INT_IMMEDIATE.`is`("process interrupt"),
+	L2OperandType.INT_IMMEDIATE.`is`("statistic category"),
+	L2OperandType.PC.`is`("on reification", L2NamedOperandType.Purpose.OFF_RAMP))
 {
-	/**
-	 * Construct an {@code L2_REIFY}.
-	 */
-	private L2_REIFY ()
-	{
-		super(
-			INT_IMMEDIATE.is("capture frames"),
-			INT_IMMEDIATE.is("process interrupt"),
-			INT_IMMEDIATE.is("statistic category"),
-			PC.is("on reification", OFF_RAMP));
-	}
-
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_REIFY instance = new L2_REIFY();
-
 	/**
 	 * An enumeration of reasons for reification, for the purpose of
 	 * categorizing statistics gathering.
 	 */
-	public enum StatisticCategory
+	enum class StatisticCategory
 	{
 		/**
 		 * For measuring reifications for interrupts in L2 code.
@@ -111,113 +91,117 @@ extends L2ControlFlowOperation
 		PUSH_LABEL_IN_L2,
 
 		/**
-		 * For measuring stack-clearing reifications prior to {@link
-		 * P_RestartContinuation} and {@link P_RestartContinuationWithArguments}
+		 * For measuring stack-clearing reifications prior to
+		 * [P_RestartContinuation] and [P_RestartContinuationWithArguments]
 		 * invocations in L2 code.
 		 */
 		ABANDON_BEFORE_RESTART_IN_L2;
 
-		/** {@link Statistic} for reifying in L1 interrupt-handler preamble. */
-		public final Statistic statistic =
-			new Statistic(
-				"Explicit L2_REIFY for " + name(),
-				StatisticReport.REIFICATIONS);
+		/** [Statistic] for reifying in L1 interrupt-handler preamble.  */
+		val statistic = Statistic(
+			"Explicit L2_REIFY for $name",
+			StatisticReport.REIFICATIONS)
 
-		/** All the enumeration values. */
-		private static final StatisticCategory[] all = values();
-
-		/**
-		 * Look up the category with the given ordinal.
-		 *
-		 * @param ordinal
-		 *        The ordinal of the category to look up.
-		 * @return The statistic category.
-		 */
-		public static StatisticCategory lookup (final int ordinal)
+		companion object
 		{
-			return all[ordinal];
+			/** All the enumeration values.  */
+			private val all = values()
+
+			/**
+			 * Look up the category with the given ordinal.
+			 *
+			 * @param ordinal
+			 * The ordinal of the category to look up.
+			 * @return The statistic category.
+			 */
+			fun lookup(ordinal: Int): StatisticCategory
+			{
+				return all[ordinal]
+			}
 		}
 	}
 
-	@Override
-	public boolean hasSideEffect ()
+	override fun hasSideEffect(): Boolean
 	{
 		// Technically it doesn't have a side-effect, but this flag keeps the
 		// instruction from being re-ordered to a place where the interpreter's
 		// top reified continuation is no longer the right one.
-		return true;
+		return true
 	}
 
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		assert this == instruction.operation();
-		final L2IntImmediateOperand actuallyReify = instruction.operand(0);
-		final L2IntImmediateOperand processInterrupt = instruction.operand(1);
-		final L2IntImmediateOperand categoryIndex = instruction.operand(2);
-//		final L2PcOperand onReification = instruction.operand(3);
-
-		final StatisticCategory category =
-			StatisticCategory.values()[categoryIndex.value];
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		//noinspection DynamicRegexReplaceableByCompiledPattern
-		builder.append(category.name().replace("_IN_L2", "").toLowerCase());
+		assert(this == instruction.operation())
+		val actuallyReify = instruction.operand<L2IntImmediateOperand>(0)
+		val processInterrupt = instruction.operand<L2IntImmediateOperand>(1)
+		val categoryIndex = instruction.operand<L2IntImmediateOperand>(2)
+		//		final L2PcOperand onReification = instruction.operand(3);
+		val category = StatisticCategory.values()[categoryIndex.value]
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(category.name.replace("_IN_L2", "").toLowerCase())
 		if (actuallyReify.value != 0 || processInterrupt.value != 0)
 		{
-			builder.append(" [");
+			builder.append(" [")
 			if (actuallyReify.value != 0)
 			{
-				builder.append("actually reify");
+				builder.append("actually reify")
 				if (processInterrupt.value != 0)
 				{
-					builder.append(", ");
+					builder.append(", ")
 				}
 			}
 			if (processInterrupt.value != 0)
 			{
-				builder.append("process interrupt");
+				builder.append("process interrupt")
 			}
-			builder.append(']');
+			builder.append(']')
 		}
-		final L2NamedOperandType type = operandTypes()[3];
+		val type = operandTypes()[3]
 		if (desiredTypes.contains(type.operandType()))
 		{
-			final L2Operand operand = instruction.operand(3);
-			builder.append("\n\t");
-			assert operand.operandType() == type.operandType();
-			builder.append(type.name());
-			builder.append(" = ");
-			builder.append(increaseIndentation(operand.toString(), 1));
+			val operand = instruction.operand<L2Operand>(3)
+			builder.append("\n\t")
+			assert(operand.operandType() === type.operandType())
+			builder.append(type.name())
+			builder.append(" = ")
+			builder.append(increaseIndentation(operand.toString(), 1))
 		}
 	}
 
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		final L2IntImmediateOperand actuallyReify = instruction.operand(0);
-		final L2IntImmediateOperand processInterrupt = instruction.operand(1);
-		final L2IntImmediateOperand categoryIndex = instruction.operand(2);
-		final L2PcOperand onReification = instruction.operand(3);
+		val actuallyReify = instruction.operand<L2IntImmediateOperand>(0)
+		val processInterrupt = instruction.operand<L2IntImmediateOperand>(1)
+		val categoryIndex = instruction.operand<L2IntImmediateOperand>(2)
+		val onReification = instruction.operand<L2PcOperand>(3)
 
 		// :: reifier = interpreter.reify(
 		// ::    actuallyReify, processInterrupt, categoryIndex);
-		translator.loadInterpreter(method);
-		translator.literal(method, actuallyReify.value);
-		translator.literal(method, processInterrupt.value);
-		translator.literal(method, categoryIndex.value);
-		Interpreter.reifyMethod.generateCall(method);
-		method.visitVarInsn(ASTORE, translator.reifierLocal());
+		translator.loadInterpreter(method)
+		translator.literal(method, actuallyReify.value)
+		translator.literal(method, processInterrupt.value)
+		translator.literal(method, categoryIndex.value)
+		Interpreter.reifyMethod.generateCall(method)
+		method.visitVarInsn(Opcodes.ASTORE, translator.reifierLocal())
 		// Arrange to arrive at the onReification target, which must be an
 		// L2_ENTER_L2_CHUNK.
-		translator.generateReificationPreamble(method, onReification);
+		translator.generateReificationPreamble(method, onReification)
+	}
+
+	companion object
+	{
+		/**
+		 * Initialize the sole instance.
+		 */
+		@kotlin.jvm.JvmField
+		val instance = L2_REIFY()
 	}
 }

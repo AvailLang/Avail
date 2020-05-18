@@ -29,99 +29,76 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operation
 
-package com.avail.interpreter.levelTwo.operation;
-
-import com.avail.AvailRuntime;
-import com.avail.interpreter.execution.Interpreter;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
-import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
-import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.AvailRuntime.HookType.IMPLICIT_OBSERVE;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
+import com.avail.AvailRuntime
+import com.avail.AvailRuntime.HookType
+import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2Operation
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister
+import com.avail.optimizer.L2Generator
+import com.avail.optimizer.RegisterSet
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.MethodVisitor
+import java.util.function.Consumer
 
 /**
- * Store the {@linkplain AvailRuntime#implicitObserveFunction() implicit
- * observe function} into the supplied {@linkplain L2BoxedRegister object
- * register}.
+ * Store the [implicit observe function][AvailRuntime.implicitObserveFunction]
+ * into the supplied [object register][L2BoxedRegister].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_GET_IMPLICIT_OBSERVE_FUNCTION
-extends L2Operation
+object L2_GET_IMPLICIT_OBSERVE_FUNCTION : L2Operation(
+	L2OperandType.WRITE_BOXED.`is`("implicit observe function"))
 {
-	/**
-	 * Construct an {@code L2_GET_IMPLICIT_OBSERVE_FUNCTION}.
-	 */
-	private L2_GET_IMPLICIT_OBSERVE_FUNCTION ()
-	{
-		super(
-			WRITE_BOXED.is("implicit observe function"));
-	}
-
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_GET_IMPLICIT_OBSERVE_FUNCTION instance =
-		new L2_GET_IMPLICIT_OBSERVE_FUNCTION();
-
-	@Override
-	public boolean hasSideEffect ()
+	override fun hasSideEffect(): Boolean
 	{
 		// Keep this instruction pinned in place for safety during inlining.
-		return true;
+		return true
 	}
 
-	@Override
-	protected void propagateTypes (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
-		final L2Generator generator)
+	override fun propagateTypes(
+		instruction: L2Instruction,
+		registerSet: RegisterSet,
+		generator: L2Generator)
 	{
-		final L2WriteBoxedOperand function = instruction.operand(0);
+		val function =
+			instruction.operand<L2WriteBoxedOperand>(0)
 		registerSet.typeAtPut(
 			function.register(),
-			IMPLICIT_OBSERVE.functionType,
-			instruction);
+			HookType.IMPLICIT_OBSERVE.functionType,
+			instruction)
 	}
 
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		assert this == instruction.operation();
-		final L2WriteBoxedOperand function = instruction.operand(0);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(function.registerString());
+		assert(this == instruction.operation())
+		val function =
+			instruction.operand<L2WriteBoxedOperand>(0)
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(function.registerString())
 	}
 
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		final L2WriteBoxedOperand function = instruction.operand(0);
+		val function =
+			instruction.operand<L2WriteBoxedOperand>(0)
 
 		// :: register = interpreter.runtime().implicitObserveFunction();
-		translator.loadInterpreter(method);
-		Interpreter.runtimeMethod.generateCall(method);
-		AvailRuntime.implicitObserveFunctionMethod.generateCall(method);
-		translator.store(method, function.register());
+		translator.loadInterpreter(method)
+		Interpreter.runtimeMethod.generateCall(method)
+		AvailRuntime.implicitObserveFunctionMethod.generateCall(method)
+		translator.store(method, function.register())
 	}
 }

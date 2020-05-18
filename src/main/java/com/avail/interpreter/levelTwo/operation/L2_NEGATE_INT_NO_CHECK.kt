@@ -29,89 +29,72 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operation
 
-package com.avail.interpreter.levelTwo.operation;
-
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_INT;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_INT;
-import static org.objectweb.asm.Opcodes.INEG;
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2Operation
+import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
+import java.util.function.Consumer
 
 /**
- * Extract an {@code int} from the specified register and negate it. The result
- * must also be an {@code int}; the result is not checked for overflow. If
- * overflow detection is required, then use {@link
- * L2_SUBTRACT_INT_CONSTANT_MINUS_INT} with an {@linkplain L2IntImmediateOperand
- * immediate} {@code 0} instead.
+ * Extract an `int` from the specified register and negate it. The result must also be an `int`; the result is not checked for overflow. If overflow detection is required, then use [L2_SUBTRACT_INT_CONSTANT_MINUS_INT] with an [immediate][L2IntImmediateOperand] `0` instead.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_NEGATE_INT_NO_CHECK
-extends L2Operation
+class L2_NEGATE_INT_NO_CHECK
+/**
+ * Construct an `L2_NEGATE_INT_NO_CHECK`.
+ */
+private constructor() : L2Operation(
+	L2OperandType.READ_INT.`is`("value"),
+	L2OperandType.WRITE_INT.`is`("negation"))
 {
-	/**
-	 * Construct an {@code L2_NEGATE_INT_NO_CHECK}.
-	 */
-	private L2_NEGATE_INT_NO_CHECK ()
+	override fun hasSideEffect(): Boolean
 	{
-		super(
-			READ_INT.is("value"),
-			WRITE_INT.is("negation"));
+		return true
 	}
 
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_NEGATE_INT_NO_CHECK instance =
-		new L2_NEGATE_INT_NO_CHECK();
-
-	@Override
-	public boolean hasSideEffect ()
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		return true;
+		assert(this == instruction.operation())
+		val source = instruction.operand<L2ReadIntOperand>(0)
+		val destination = instruction.operand<L2WriteIntOperand>(1)
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(destination.registerString())
+		builder.append(" ← -")
+		builder.append(source.registerString())
 	}
 
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		assert this == instruction.operation();
-		final L2ReadIntOperand source = instruction.operand(0);
-		final L2WriteIntOperand destination = instruction.operand(1);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(destination.registerString());
-		builder.append(" ← -");
-		builder.append(source.registerString());
-	}
-
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
-	{
-		final L2ReadIntOperand source = instruction.operand(0);
-		final L2WriteIntOperand destination = instruction.operand(1);
+		val source = instruction.operand<L2ReadIntOperand>(0)
+		val destination = instruction.operand<L2WriteIntOperand>(1)
 
 		// :: negationReg = -valueReg;
-		translator.load(method, source.register());
-		method.visitInsn(INEG);
-		translator.store(method, destination.register());
+		translator.load(method, source.register())
+		method.visitInsn(Opcodes.INEG)
+		translator.store(method, destination.register())
+	}
+
+	companion object
+	{
+		/**
+		 * Initialize the sole instance.
+		 */
+		val instance = L2_NEGATE_INT_NO_CHECK()
 	}
 }

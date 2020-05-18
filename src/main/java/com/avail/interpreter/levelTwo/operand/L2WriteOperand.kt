@@ -129,7 +129,7 @@ abstract class L2WriteOperand<R : L2Register> constructor(
 	 * @return
 	 *   The [RegisterKind].
 	 */
-	abstract fun registerKind(): RegisterKind?
+	abstract fun registerKind(): RegisterKind
 
 	/**
 	 * Answer the [L2Register]'s [finalIndex][L2Register.finalIndex].

@@ -143,7 +143,7 @@ object P_ConcatenateTuples : Primitive(1, CannotFail, CanFold, CanInline)
 		assert(arguments.size == 1)
 		val tupleOfTuplesReg = arguments[0]
 		val def = tupleOfTuplesReg.definitionSkippingMoves(false)
-		if (def.operation() != L2_CREATE_TUPLE.instance)
+		if (def.operation() != L2_CREATE_TUPLE)
 		{
 			return false
 		}
@@ -188,7 +188,7 @@ object P_ConcatenateTuples : Primitive(1, CannotFail, CanFold, CanInline)
 					translator.generator.boxedWriteTemp(
 						restriction(guaranteedType, null))
 				translator.addInstruction(
-					L2_CONCATENATE_TUPLES.instance,
+					L2_CONCATENATE_TUPLES,
 					L2ReadBoxedVectorOperand(adjustedSources),
 					writer)
 				callSiteHelper.useAnswer(translator.readBoxed(writer))

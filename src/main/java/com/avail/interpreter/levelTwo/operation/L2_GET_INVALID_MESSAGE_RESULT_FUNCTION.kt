@@ -29,118 +29,93 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operation
 
-package com.avail.interpreter.levelTwo.operation;
-
-import com.avail.AvailRuntime;
-import com.avail.descriptor.representation.AvailObject;
-import com.avail.interpreter.execution.Interpreter;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.GLOBAL_STATE;
-import com.avail.interpreter.levelTwo.ReadsHiddenVariable;
-import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
-import com.avail.interpreter.levelTwo.register.L2BoxedRegister;
-import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple;
-import static com.avail.descriptor.types.BottomTypeDescriptor.bottom;
-import static com.avail.descriptor.types.FunctionTypeDescriptor.functionType;
-import static com.avail.descriptor.types.FunctionTypeDescriptor.mostGeneralFunctionType;
-import static com.avail.descriptor.types.InstanceMetaDescriptor.topMeta;
-import static com.avail.descriptor.types.TypeDescriptor.Types.ANY;
-import static com.avail.descriptor.types.VariableTypeDescriptor.variableTypeFor;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
-import static org.objectweb.asm.Opcodes.CHECKCAST;
-import static org.objectweb.asm.Type.getInternalName;
+import com.avail.AvailRuntime
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.tuples.ObjectTupleDescriptor
+import com.avail.descriptor.types.*
+import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2Operation
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.GLOBAL_STATE
+import com.avail.interpreter.levelTwo.ReadsHiddenVariable
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister
+import com.avail.optimizer.L2Generator
+import com.avail.optimizer.RegisterSet
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
+import org.objectweb.asm.Type
+import java.util.function.Consumer
 
 /**
- * Store the {@linkplain AvailRuntime#resultDisagreedWithExpectedTypeFunction()
- * invalid result function} into the supplied {@linkplain L2BoxedRegister
- * object register}.
+ * Store the [invalid result
+ * function][AvailRuntime.resultDisagreedWithExpectedTypeFunction] into the
+ * supplied [object register][L2BoxedRegister].
  *
- * <p>The function is invoked by the VM whenever an attempt is made to return a
+ *
+ * The function is invoked by the VM whenever an attempt is made to return a
  * value that doesn't satisfy the call site's expected return type.  The
  * function is passed the returning function, the expected return type, and the
- * actual value that it was attempting to return.</p>
+ * actual value that it was attempting to return.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@ReadsHiddenVariable(theValue = GLOBAL_STATE.class)
-public final class L2_GET_INVALID_MESSAGE_RESULT_FUNCTION
-extends L2Operation
+@ReadsHiddenVariable(theValue = arrayOf(GLOBAL_STATE::class))
+object L2_GET_INVALID_MESSAGE_RESULT_FUNCTION : L2Operation(
+	L2OperandType.WRITE_BOXED.`is`("invalid message result function"))
 {
-	/**
-	 * Construct an {@code L2_GET_INVALID_MESSAGE_RESULT_FUNCTION}.
-	 */
-	private L2_GET_INVALID_MESSAGE_RESULT_FUNCTION ()
+	override fun propagateTypes(
+		instruction: L2Instruction,
+		registerSet: RegisterSet,
+		generator: L2Generator)
 	{
-		super(
-			WRITE_BOXED.is("invalid message result function"));
-	}
-
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_GET_INVALID_MESSAGE_RESULT_FUNCTION instance =
-		new L2_GET_INVALID_MESSAGE_RESULT_FUNCTION();
-
-	@Override
-	protected void propagateTypes (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
-		final L2Generator generator)
-	{
-		final L2WriteBoxedOperand function = instruction.operand(0);
+		val function =
+			instruction.operand<L2WriteBoxedOperand>(0)
 		registerSet.typeAtPut(
 			function.register(),
-			functionType(
-				tuple(
-					mostGeneralFunctionType(),
-					topMeta(),
-					variableTypeFor(ANY.o())),
-				bottom()),
-			instruction);
+			FunctionTypeDescriptor.functionType(
+				ObjectTupleDescriptor.tuple(
+					FunctionTypeDescriptor.mostGeneralFunctionType(),
+					InstanceMetaDescriptor.topMeta(),
+					VariableTypeDescriptor.variableTypeFor(
+						TypeDescriptor.Types.ANY.o())),
+				BottomTypeDescriptor.bottom()),
+			instruction)
 	}
 
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		assert this == instruction.operation();
-		final L2WriteBoxedOperand function = instruction.operand(0);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(function.registerString());
+		assert(this == instruction.operation())
+		val function =
+			instruction.operand<L2WriteBoxedOperand>(0)
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(function.registerString())
 	}
 
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		final L2WriteBoxedOperand function = instruction.operand(0);
+		val function =
+			instruction.operand<L2WriteBoxedOperand>(0)
 
 		// :: destination = interpreter.runtime()
 		// ::    .resultDisagreedWithExpectedTypeFunction();
-		translator.loadInterpreter(method);
-		Interpreter.runtimeMethod.generateCall(method);
-		AvailRuntime
-			.resultDisagreedWithExpectedTypeFunctionMethod
-			.generateCall(method);
-		method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
-		translator.store(method, function.register());
+		translator.loadInterpreter(method)
+		Interpreter.runtimeMethod.generateCall(method)
+		AvailRuntime.resultDisagreedWithExpectedTypeFunctionMethod
+			.generateCall(method)
+		method.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(AvailObject::class.java))
+		translator.store(method, function.register())
 	}
 }

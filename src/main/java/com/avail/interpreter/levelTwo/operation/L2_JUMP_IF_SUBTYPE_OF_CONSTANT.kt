@@ -29,32 +29,23 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operation
 
-package com.avail.interpreter.levelTwo.operation;
-
-import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.descriptor.types.A_Type;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.MethodVisitor;
-
-import javax.annotation.Nullable;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.descriptor.types.InstanceMetaDescriptor.instanceMeta;
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static com.avail.interpreter.levelTwo.operation.L2ConditionalJump.BranchReduction.*;
-import static org.objectweb.asm.Opcodes.IFNE;
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.InstanceMetaDescriptor
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2NamedOperandType
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
+import com.avail.interpreter.levelTwo.operand.L2PcOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.optimizer.L2Generator
+import com.avail.optimizer.RegisterSet
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
+import java.util.function.Consumer
 
 /**
  * Conditionally jump, depending on whether the type to check is a subtype of
@@ -63,77 +54,55 @@ import static org.objectweb.asm.Opcodes.IFNE;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_JUMP_IF_SUBTYPE_OF_CONSTANT
-extends L2ConditionalJump
+class L2_JUMP_IF_SUBTYPE_OF_CONSTANT
+/**
+ * Construct an `L2_JUMP_IF_SUBTYPE_OF_CONSTANT`.
+ */
+private constructor() : L2ConditionalJump(
+	L2OperandType.READ_BOXED.`is`("type to check"),
+	L2OperandType.CONSTANT.`is`("constant type"),
+	L2OperandType.PC.`is`("is subtype", L2NamedOperandType.Purpose.SUCCESS),
+	L2OperandType.PC.`is`("not subtype", L2NamedOperandType.Purpose.FAILURE))
 {
-	/**
-	 * Construct an {@code L2_JUMP_IF_SUBTYPE_OF_CONSTANT}.
-	 */
-	private L2_JUMP_IF_SUBTYPE_OF_CONSTANT ()
-	{
-		super(
-			READ_BOXED.is("type to check"),
-			CONSTANT.is("constant type"),
-			PC.is("is subtype", SUCCESS),
-			PC.is("not subtype", FAILURE));
-	}
-
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_JUMP_IF_SUBTYPE_OF_CONSTANT instance =
-		new L2_JUMP_IF_SUBTYPE_OF_CONSTANT();
-
-	@Override
-	public BranchReduction branchReduction (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
-		final L2Generator generator)
+	override fun branchReduction(
+		instruction: L2Instruction,
+		registerSet: RegisterSet,
+		generator: L2Generator): BranchReduction
 	{
 		// Eliminate tests due to type propagation.
-		final L2ReadBoxedOperand typeToCheck = instruction.operand(0);
-		final L2ConstantOperand constantType = instruction.operand(1);
-//		final L2PcOperand isSubtype = instruction.operand(2);
+		val typeToCheck = instruction.operand<L2ReadBoxedOperand>(0)
+		val constantType = instruction.operand<L2ConstantOperand>(1)
+		//		final L2PcOperand isSubtype = instruction.operand(2);
 //		final L2PcOperand notSubtype = instruction.operand(3);
-
-		final @Nullable A_BasicObject exactType = typeToCheck.constantOrNull();
+		val exactType: A_BasicObject? = typeToCheck.constantOrNull()
 		if (exactType != null)
 		{
-			return exactType.isInstanceOf(constantType.object)
-				? AlwaysTaken
-				: NeverTaken;
+			return if (exactType.isInstanceOf(constantType.`object`)) BranchReduction.AlwaysTaken else BranchReduction.NeverTaken
 		}
-		if (typeToCheck.type().instance().isSubtypeOf(constantType.object))
+		if (typeToCheck.type().instance().isSubtypeOf(constantType.`object`))
 		{
 			// It's a subtype, so it must always pass the type test.
-			return AlwaysTaken;
+			return BranchReduction.AlwaysTaken
 		}
-		final A_Type intersection =
-			typeToCheck.type().instance().typeIntersection(constantType.object);
-		if (intersection.isBottom())
+		val intersection = typeToCheck.type().instance().typeIntersection(constantType.`object`)
+		return if (intersection.isBottom)
 		{
 			// The types don't intersect, so it can't ever pass the type test.
-			return NeverTaken;
+			BranchReduction.NeverTaken
 		}
-		return SometimesTaken;
+		else BranchReduction.SometimesTaken
 	}
 
-	@Override
-	protected void propagateTypes (
-		final L2Instruction instruction,
-		final List<RegisterSet> registerSets,
-		final L2Generator generator)
+	override fun propagateTypes(
+		instruction: L2Instruction,
+		registerSets: List<RegisterSet>,
+		generator: L2Generator)
 	{
-		final L2ReadBoxedOperand typeToCheck = instruction.operand(0);
-		final L2ConstantOperand constantType = instruction.operand(1);
-//		final L2PcOperand isSubtype = instruction.operand(2);
-//		final L2PcOperand notSubtype = instruction.operand(3);
-
-		assert registerSets.size() == 2;
-		final RegisterSet isSubtypeSet = registerSets.get(0);
-//		final RegisterSet notSubtypeSet = registerSets.get(1);
-
-		assert isSubtypeSet.hasTypeAt(typeToCheck.register());
+		val typeToCheck = instruction.operand<L2ReadBoxedOperand>(0)
+		val constantType = instruction.operand<L2ConstantOperand>(1)
+		assert(registerSets.size == 2)
+		val isSubtypeSet = registerSets[0]
+		assert(isSubtypeSet.hasTypeAt(typeToCheck.register()))
 		if (isSubtypeSet.hasConstantAt(typeToCheck.register()))
 		{
 			// The *exact* type is already known.  Don't weaken it by recording
@@ -141,55 +110,59 @@ extends L2ConditionalJump
 		}
 		else
 		{
-			final A_Type existingMeta =
-				isSubtypeSet.typeAt(typeToCheck.register());
-			final A_Type existingType = existingMeta.instance();
-			final A_Type intersectionType =
-				existingType.typeIntersection(constantType.object);
-			final A_Type intersectionMeta = instanceMeta(intersectionType);
+			val existingMeta = isSubtypeSet.typeAt(typeToCheck.register())
+			val existingType: A_Type = existingMeta.instance()
+			val intersectionType = existingType.typeIntersection(constantType.`object`)
+			val intersectionMeta = InstanceMetaDescriptor.instanceMeta(intersectionType)
 			isSubtypeSet.strengthenTestedTypeAtPut(
-				typeToCheck.register(), intersectionMeta);
+				typeToCheck.register(), intersectionMeta)
 		}
 	}
 
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		assert this == instruction.operation();
-		final L2ReadBoxedOperand typeToCheck = instruction.operand(0);
-		final L2ConstantOperand constantType = instruction.operand(1);
-//		final L2PcOperand isSubtype = instruction.operand(2);
+		assert(this == instruction.operation())
+		val typeToCheck = instruction.operand<L2ReadBoxedOperand>(0)
+		val constantType = instruction.operand<L2ConstantOperand>(1)
+		//		final L2PcOperand isSubtype = instruction.operand(2);
 //		final L2PcOperand notSubtype = instruction.operand(3);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(typeToCheck.registerString());
-		builder.append(" ⊆ ");
-		builder.append(constantType.object);
-		renderOperandsStartingAt(instruction, 2, desiredTypes, builder);
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(typeToCheck.registerString())
+		builder.append(" ⊆ ")
+		builder.append(constantType.`object`)
+		renderOperandsStartingAt(instruction, 2, desiredTypes, builder)
 	}
 
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		final L2ReadBoxedOperand typeToCheck = instruction.operand(0);
-		final L2ConstantOperand constantType = instruction.operand(1);
-		final L2PcOperand isSubtype = instruction.operand(2);
-		final L2PcOperand notSubtype = instruction.operand(3);
+		val typeToCheck = instruction.operand<L2ReadBoxedOperand>(0)
+		val constantType = instruction.operand<L2ConstantOperand>(1)
+		val isSubtype = instruction.operand<L2PcOperand>(2)
+		val notSubtype = instruction.operand<L2PcOperand>(3)
 
 		// :: if (type.isSubtypeOf(constant)) goto isSubtype;
 		// :: else goto notSubtype;
-		translator.load(method, typeToCheck.register());
-		translator.literal(method, constantType.object);
-		A_Type.isSubtypeOfMethod.generateCall(method);
+		translator.load(method, typeToCheck.register())
+		translator.literal(method, constantType.`object`)
+		A_Type.isSubtypeOfMethod.generateCall(method)
 		emitBranch(
-			translator, method, instruction, IFNE, isSubtype, notSubtype);
+			translator, method, instruction, Opcodes.IFNE, isSubtype, notSubtype)
+	}
+
+	companion object
+	{
+		/**
+		 * Initialize the sole instance.
+		 */
+		@kotlin.jvm.JvmField
+		val instance = L2_JUMP_IF_SUBTYPE_OF_CONSTANT()
 	}
 }

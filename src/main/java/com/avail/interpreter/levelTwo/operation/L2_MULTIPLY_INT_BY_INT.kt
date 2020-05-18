@@ -29,26 +29,20 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operation
 
-package com.avail.interpreter.levelTwo.operation;
-
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Type.INT_TYPE;
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2NamedOperandType
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.operand.L2PcOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.Label
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
+import org.objectweb.asm.Type
+import java.util.function.Consumer
 
 /**
  * Multiply the value in one int register by the value in another int register,
@@ -58,105 +52,98 @@ import static org.objectweb.asm.Type.INT_TYPE;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_MULTIPLY_INT_BY_INT
-extends L2ControlFlowOperation
+class L2_MULTIPLY_INT_BY_INT
+/**
+ * Construct an `L2_MULTIPLY_INT_BY_INT`.
+ */
+private constructor() : L2ControlFlowOperation(
+	L2OperandType.READ_INT.`is`("multiplicand"),
+	L2OperandType.READ_INT.`is`("multiplier"),
+	L2OperandType.WRITE_INT.`is`("product", L2NamedOperandType.Purpose.SUCCESS),
+	L2OperandType.PC.`is`("out of range", L2NamedOperandType.Purpose.FAILURE),
+	L2OperandType.PC.`is`("in range", L2NamedOperandType.Purpose.SUCCESS))
 {
-	/**
-	 * Construct an {@code L2_MULTIPLY_INT_BY_INT}.
-	 */
-	private L2_MULTIPLY_INT_BY_INT ()
-	{
-		super(
-			READ_INT.is("multiplicand"),
-			READ_INT.is("multiplier"),
-			WRITE_INT.is("product", SUCCESS),
-			PC.is("out of range", FAILURE),
-			PC.is("in range", SUCCESS));
-	}
-
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_MULTIPLY_INT_BY_INT instance =
-		new L2_MULTIPLY_INT_BY_INT();
-
-	@Override
-	public boolean hasSideEffect ()
+	override fun hasSideEffect(): Boolean
 	{
 		// It jumps if the result doesn't fit in an int.
-		return true;
+		return true
 	}
 
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		assert this == instruction.operation();
-		final L2ReadIntOperand multiplicandReg = instruction.operand(0);
-		final L2ReadIntOperand multiplierReg = instruction.operand(1);
-		final L2WriteIntOperand productReg = instruction.operand(2);
-//		final L2PcOperand outOfRange = instruction.operand(3);
+		assert(this == instruction.operation())
+		val multiplicandReg = instruction.operand<L2ReadIntOperand>(0)
+		val multiplierReg = instruction.operand<L2ReadIntOperand>(1)
+		val productReg = instruction.operand<L2WriteIntOperand>(2)
+		//		final L2PcOperand outOfRange = instruction.operand(3);
 //		final L2PcOperand inRange = instruction.operand(4);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(productReg.registerString());
-		builder.append(" ← ");
-		builder.append(multiplicandReg.registerString());
-		builder.append(" × ");
-		builder.append(multiplierReg.registerString());
-		renderOperandsStartingAt(instruction, 3, desiredTypes, builder);
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(productReg.registerString())
+		builder.append(" ← ")
+		builder.append(multiplicandReg.registerString())
+		builder.append(" × ")
+		builder.append(multiplierReg.registerString())
+		renderOperandsStartingAt(instruction, 3, desiredTypes, builder)
 	}
 
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		final L2ReadIntOperand multiplicandReg = instruction.operand(0);
-		final L2ReadIntOperand multiplierReg = instruction.operand(1);
-		final L2WriteIntOperand productReg = instruction.operand(2);
-		final L2PcOperand outOfRange = instruction.operand(3);
-		final L2PcOperand inRange = instruction.operand(4);
+		val multiplicandReg = instruction.operand<L2ReadIntOperand>(0)
+		val multiplierReg = instruction.operand<L2ReadIntOperand>(1)
+		val productReg = instruction.operand<L2WriteIntOperand>(2)
+		val outOfRange = instruction.operand<L2PcOperand>(3)
+		val inRange = instruction.operand<L2PcOperand>(4)
 
 		// :: longProduct = (long) multiplicand * (long) multiplier;
-		translator.load(method, multiplicandReg.register());
-		method.visitInsn(I2L);
-		translator.load(method, multiplierReg.register());
-		method.visitInsn(I2L);
-		method.visitInsn(LMUL);
-		method.visitInsn(DUP2);
+		translator.load(method, multiplicandReg.register())
+		method.visitInsn(Opcodes.I2L)
+		translator.load(method, multiplierReg.register())
+		method.visitInsn(Opcodes.I2L)
+		method.visitInsn(Opcodes.LMUL)
+		method.visitInsn(Opcodes.DUP2)
 		// :: intProduct = (int) longProduct;
-		method.visitInsn(L2I);
-		method.visitInsn(DUP);
-		final int intProductLocal = translator.nextLocal(INT_TYPE);
-		final Label intProductStart = new Label();
-		method.visitLabel(intProductStart);
-		method.visitVarInsn(ISTORE, intProductLocal);
+		method.visitInsn(Opcodes.L2I)
+		method.visitInsn(Opcodes.DUP)
+		val intProductLocal = translator.nextLocal(Type.INT_TYPE)
+		val intProductStart = Label()
+		method.visitLabel(intProductStart)
+		method.visitVarInsn(Opcodes.ISTORE, intProductLocal)
 		// :: if (longProduct != intProduct) goto outOfRange;
-		method.visitInsn(I2L);
-		method.visitInsn(LCMP);
+		method.visitInsn(Opcodes.I2L)
+		method.visitInsn(Opcodes.LCMP)
 		method.visitJumpInsn(
-			IFNE, translator.labelFor(outOfRange.offset()));
+			Opcodes.IFNE, translator.labelFor(outOfRange.offset()))
 		// :: else {
 		// ::    product = intProduct;
 		// ::    goto inRange;
 		// :: }
-		method.visitVarInsn(ILOAD, intProductLocal);
-		final Label intProductEnd = new Label();
-		method.visitLabel(intProductEnd);
+		method.visitVarInsn(Opcodes.ILOAD, intProductLocal)
+		val intProductEnd = Label()
+		method.visitLabel(intProductEnd)
 		method.visitLocalVariable(
 			"intProduct",
-			INT_TYPE.getDescriptor(),
+			Type.INT_TYPE.descriptor,
 			null,
 			intProductStart,
 			intProductEnd,
-			intProductLocal);
-		translator.store(method, productReg.register());
-		translator.jump(method, instruction, inRange);
+			intProductLocal)
+		translator.store(method, productReg.register())
+		translator.jump(method, instruction, inRange)
+	}
+
+	companion object
+	{
+		/**
+		 * Initialize the sole instance.
+		 */
+		val instance = L2_MULTIPLY_INT_BY_INT()
 	}
 }

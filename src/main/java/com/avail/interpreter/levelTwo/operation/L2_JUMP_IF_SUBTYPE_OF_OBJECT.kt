@@ -29,29 +29,20 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operation
 
-package com.avail.interpreter.levelTwo.operation;
-
-import com.avail.descriptor.types.A_Type;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.MethodVisitor;
-
-import javax.annotation.Nullable;
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.PC;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
-import static com.avail.interpreter.levelTwo.operation.L2ConditionalJump.BranchReduction.*;
-import static org.objectweb.asm.Opcodes.IFNE;
+import com.avail.descriptor.types.A_Type
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2NamedOperandType
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.operand.L2PcOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.optimizer.L2Generator
+import com.avail.optimizer.RegisterSet
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
+import java.util.function.Consumer
 
 /**
  * Conditionally jump, depending on whether the first type is a subtype of the
@@ -60,104 +51,94 @@ import static org.objectweb.asm.Opcodes.IFNE;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_JUMP_IF_SUBTYPE_OF_OBJECT
-extends L2ConditionalJump
+class L2_JUMP_IF_SUBTYPE_OF_OBJECT
+/**
+ * Construct an `L2_JUMP_IF_SUBTYPE_OF_Object`.
+ */
+private constructor() : L2ConditionalJump(
+	L2OperandType.READ_BOXED.`is`("first type"),
+	L2OperandType.READ_BOXED.`is`("second type"),
+	L2OperandType.PC.`is`("is subtype", L2NamedOperandType.Purpose.SUCCESS),
+	L2OperandType.PC.`is`("not subtype", L2NamedOperandType.Purpose.FAILURE))
 {
-	/**
-	 * Construct an {@code L2_JUMP_IF_SUBTYPE_OF_Object}.
-	 */
-	private L2_JUMP_IF_SUBTYPE_OF_OBJECT ()
-	{
-		super(
-			READ_BOXED.is("first type"),
-			READ_BOXED.is("second type"),
-			PC.is("is subtype", SUCCESS),
-			PC.is("not subtype", FAILURE));
-	}
-
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_JUMP_IF_SUBTYPE_OF_OBJECT instance =
-		new L2_JUMP_IF_SUBTYPE_OF_OBJECT();
-
-	@Override
-	public BranchReduction branchReduction (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
-		final L2Generator generator)
+	override fun branchReduction(
+		instruction: L2Instruction,
+		registerSet: RegisterSet,
+		generator: L2Generator): BranchReduction
 	{
 		// Eliminate tests due to type propagation.
-		final L2ReadBoxedOperand firstReg = instruction.operand(0);
-		final L2ReadBoxedOperand secondReg = instruction.operand(1);
-//		final L2PcOperand isSubtype = instruction.operand(2);
+		val firstReg = instruction.operand<L2ReadBoxedOperand>(0)
+		val secondReg = instruction.operand<L2ReadBoxedOperand>(1)
+		//		final L2PcOperand isSubtype = instruction.operand(2);
 //		final L2PcOperand notSubtype = instruction.operand(3);
-
-		final @Nullable A_Type exactFirstType =
-			firstReg.constantOrNull();
-		final @Nullable A_Type exactSecondType =
-			secondReg.constantOrNull();
+		val exactFirstType: A_Type? = firstReg.constantOrNull()
+		val exactSecondType: A_Type? = secondReg.constantOrNull()
 		if (exactSecondType != null)
 		{
 			if (firstReg.type().isSubtypeOf(secondReg.type()))
 			{
-				return AlwaysTaken;
+				return BranchReduction.AlwaysTaken
 			}
 		}
 		else
 		{
-			for (final A_Type excludedSecondMeta
-				: secondReg.restriction().excludedTypes)
+			for (excludedSecondMeta in secondReg.restriction().excludedTypes)
 			{
 				if (firstReg.type().isSubtypeOf(excludedSecondMeta))
 				{
 					// The first type falls entirely in a type tree excluded
 					// from the second restriction.
-					return NeverTaken;
+					return BranchReduction.NeverTaken
 				}
 			}
 		}
-		return SometimesTaken;
+		return BranchReduction.SometimesTaken
 	}
 
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		assert this == instruction.operation();
-		final L2ReadBoxedOperand firstReg = instruction.operand(0);
-		final L2ReadBoxedOperand secondReg = instruction.operand(1);
-//		final L2PcOperand isSubtype = instruction.operand(2);
+		assert(this == instruction.operation())
+		val firstReg = instruction.operand<L2ReadBoxedOperand>(0)
+		val secondReg = instruction.operand<L2ReadBoxedOperand>(1)
+		//		final L2PcOperand isSubtype = instruction.operand(2);
 //		final L2PcOperand notSubtype = instruction.operand(3);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(firstReg.registerString());
-		builder.append(" ⊆ ");
-		builder.append(secondReg.registerString());
-		renderOperandsStartingAt(instruction, 2, desiredTypes, builder);
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(firstReg.registerString())
+		builder.append(" ⊆ ")
+		builder.append(secondReg.registerString())
+		renderOperandsStartingAt(instruction, 2, desiredTypes, builder)
 	}
 
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		final L2ReadBoxedOperand firstReg = instruction.operand(0);
-		final L2ReadBoxedOperand secondReg = instruction.operand(1);
-		final L2PcOperand isSubtype = instruction.operand(2);
-		final L2PcOperand notSubtype = instruction.operand(3);
+		val firstReg = instruction.operand<L2ReadBoxedOperand>(0)
+		val secondReg = instruction.operand<L2ReadBoxedOperand>(1)
+		val isSubtype = instruction.operand<L2PcOperand>(2)
+		val notSubtype = instruction.operand<L2PcOperand>(3)
 
 		// :: if (first.isSubtypeOf(second)) goto isSubtype;
 		// :: else goto notSubtype;
-		translator.load(method, firstReg.register());
-		translator.load(method, secondReg.register());
-		A_Type.isSubtypeOfMethod.generateCall(method);
+		translator.load(method, firstReg.register())
+		translator.load(method, secondReg.register())
+		A_Type.isSubtypeOfMethod.generateCall(method)
 		emitBranch(
-			translator, method, instruction, IFNE, isSubtype, notSubtype);
+			translator, method, instruction, Opcodes.IFNE, isSubtype, notSubtype)
+	}
+
+	companion object
+	{
+		/**
+		 * Initialize the sole instance.
+		 */
+		@kotlin.jvm.JvmField
+		val instance = L2_JUMP_IF_SUBTYPE_OF_OBJECT()
 	}
 }

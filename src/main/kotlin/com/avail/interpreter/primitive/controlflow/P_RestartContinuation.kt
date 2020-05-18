@@ -183,7 +183,7 @@ object P_RestartContinuation : Primitive(
 
 			// Use an L2_JUMP_BACK to get to the trampoline block.
 			generator.addInstruction(
-				L2_JUMP_BACK.instance,
+				L2_JUMP_BACK,
 				edgeTo(trampolineBlock),
 				L2ReadBoxedVectorOperand(newReads))
 
@@ -191,7 +191,7 @@ object P_RestartContinuation : Primitive(
 			// slots will be added to the phis.
 			generator.startBlock(trampolineBlock)
 			generator.addInstruction(
-				L2_JUMP.instance,
+				L2_JUMP,
 				backEdgeTo(generator.restartLoopHeadBlock!!))
 
 			// Ensure only the n@1 slots and registers are considered live.

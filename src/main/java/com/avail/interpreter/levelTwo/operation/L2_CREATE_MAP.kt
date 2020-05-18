@@ -29,25 +29,18 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operation
 
-package com.avail.interpreter.levelTwo.operation;
-
-import com.avail.descriptor.maps.A_Map;
-import com.avail.descriptor.maps.MapDescriptor;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
+import com.avail.descriptor.maps.A_Map
+import com.avail.descriptor.maps.MapDescriptor
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2Operation
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.MethodVisitor
+import java.util.function.Consumer
 
 /**
  * Create a map from the specified key object registers and the corresponding
@@ -56,80 +49,69 @@ import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_CREATE_MAP
-extends L2Operation
+object L2_CREATE_MAP : L2Operation(
+	L2OperandType.READ_BOXED_VECTOR.`is`("keys"),
+	L2OperandType.READ_BOXED_VECTOR.`is`("values"),
+	L2OperandType.WRITE_BOXED.`is`("new map"))
 {
-	/**
-	 * Construct an {@code L2_CREATE_MAP}.
-	 */
-	private L2_CREATE_MAP ()
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		super(
-			READ_BOXED_VECTOR.is("keys"),
-			READ_BOXED_VECTOR.is("values"),
-			WRITE_BOXED.is("new map"));
-	}
-
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_CREATE_MAP instance = new L2_CREATE_MAP();
-
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
-	{
-		assert this == instruction.operation();
-		final L2ReadBoxedVectorOperand keys = instruction.operand(0);
-		final L2ReadBoxedVectorOperand values = instruction.operand(1);
-		final L2WriteBoxedOperand map = instruction.operand(2);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(map.registerString());
-		builder.append(" ← {");
-		for (int i = 0, limit = keys.elements().size(); i < limit; i++)
+		assert(this == instruction.operation())
+		val keys =
+			instruction.operand<L2ReadBoxedVectorOperand>(0)
+		val values =
+			instruction.operand<L2ReadBoxedVectorOperand>(1)
+		val map =
+			instruction.operand<L2WriteBoxedOperand>(2)
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(map.registerString())
+		builder.append(" ← {")
+		var i = 0
+		val limit = keys.elements().size
+		while (i < limit)
 		{
 			if (i > 0)
 			{
-				builder.append(", ");
+				builder.append(", ")
 			}
-			final L2ReadBoxedOperand key = keys.elements().get(i);
-			final L2ReadBoxedOperand value = values.elements().get(i);
-			builder.append(key.registerString());
-			builder.append("→");
-			builder.append(value.registerString());
+			val key = keys.elements()[i]
+			val value = values.elements()[i]
+			builder.append(key.registerString())
+			builder.append("→")
+			builder.append(value.registerString())
+			i++
 		}
-		builder.append('}');
+		builder.append('}')
 	}
 
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		final L2ReadBoxedVectorOperand keys = instruction.operand(0);
-		final L2ReadBoxedVectorOperand values = instruction.operand(1);
-		final L2WriteBoxedOperand map = instruction.operand(2);
+		val keys = instruction.operand<L2ReadBoxedVectorOperand>(0)
+		val values = instruction.operand<L2ReadBoxedVectorOperand>(1)
+		val map = instruction.operand<L2WriteBoxedOperand>(2)
 
 		// :: map = MapDescriptor.emptyMap();
-		MapDescriptor.emptyMapMethod.generateCall(method);
-		final int limit = keys.elements().size();
-		assert limit == values.elements().size();
-		for (int i = 0; i < limit; i++)
+		MapDescriptor.emptyMapMethod.generateCall(method)
+		val limit = keys.elements().size
+		assert(limit == values.elements().size)
+		for (i in 0 until limit)
 		{
 			// :: map = map.mapAtPuttingCanDestroy(
 			// ::    «keysVector[i]», «valuesVector[i]», true);
-			translator.load(method, keys.elements().get(i).register());
-			translator.load(method, values.elements().get(i).register());
-			translator.intConstant(method, 1);
-			A_Map.mapAtPuttingCanDestroyMethod.generateCall(method);
+			translator.load(method, keys.elements()[i].register())
+			translator.load(method, values.elements()[i].register())
+			translator.intConstant(method, 1)
+			A_Map.mapAtPuttingCanDestroyMethod.generateCall(method)
 		}
 		// :: destinationMap = map;
-		translator.store(method, map.register());
+		translator.store(method, map.register())
 	}
 }

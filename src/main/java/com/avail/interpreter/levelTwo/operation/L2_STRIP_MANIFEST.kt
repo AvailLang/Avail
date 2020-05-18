@@ -29,114 +29,97 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.levelTwo.operation;
+package com.avail.interpreter.levelTwo.operation
 
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose;
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
-import com.avail.interpreter.levelTwo.register.L2Register;
-import com.avail.optimizer.L2ValueManifest;
-import com.avail.optimizer.jvm.JVMTranslator;
-import com.avail.optimizer.values.L2SemanticValue;
-import org.objectweb.asm.MethodVisitor;
-
-import javax.annotation.Nullable;
-import java.util.HashSet;
-import java.util.Set;
-
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR;
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2NamedOperandType
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2Operation
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import com.avail.interpreter.levelTwo.register.L2Register
+import com.avail.optimizer.L2ValueManifest
+import com.avail.optimizer.jvm.JVMTranslator
+import com.avail.optimizer.values.L2SemanticValue
+import org.objectweb.asm.MethodVisitor
+import java.util.*
 
 /**
  * This is a helper operation which produces no JVM code, but is useful to limit
- * which {@link L2Register}s and {@link L2SemanticValue}s are live when reaching
+ * which [L2Register]s and [L2SemanticValue]s are live when reaching
  * a back-edge.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-public final class L2_STRIP_MANIFEST
-extends L2Operation
+class L2_STRIP_MANIFEST
+/**
+ * Construct an `L2_STRIP_MANIFEST`, which will produce no code during
+ * final translation to JVM bytecodes.
+ */
+private constructor() : L2Operation(
+	L2OperandType.READ_BOXED_VECTOR.`is`("live values"))
 {
-	/**
-	 * Construct an {@code L2_STRIP_MANIFEST}, which will produce no code during
-	 * final translation to JVM bytecodes.
-	 */
-	private L2_STRIP_MANIFEST ()
-	{
-		super(
-			READ_BOXED_VECTOR.is("live values"));
-	}
-
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_STRIP_MANIFEST instance =
-		new L2_STRIP_MANIFEST();
-
-	@Override
-	public boolean hasSideEffect ()
+	override fun hasSideEffect(): Boolean
 	{
 		// Prevent this instruction from being removed, because it constrains
 		// the manifest along a back-edge, even after optimization.
-		return true;
+		return true
 	}
 
-	@Override
-	public void instructionWasAdded (
-		final L2Instruction instruction,
-		final L2ValueManifest manifest)
+	override fun instructionWasAdded(
+		instruction: L2Instruction,
+		manifest: L2ValueManifest)
 	{
-		final L2ReadBoxedVectorOperand liveVector = instruction.operand(0);
+		val liveVector = instruction.operand<L2ReadBoxedVectorOperand>(0)
 
 		// Clear the manifest, other than the mentioned semantic values and
 		// registers.
-		final Set<L2SemanticValue> liveSemanticValues = new HashSet<>();
-		final Set<L2Register> liveRegisters = new HashSet<>();
-		for (final L2ReadBoxedOperand read : liveVector.elements())
+		val liveSemanticValues: MutableSet<L2SemanticValue> = HashSet()
+		val liveRegisters: MutableSet<L2Register> = HashSet()
+		for (read in liveVector.elements())
 		{
-			liveSemanticValues.add(read.semanticValue());
-			liveRegisters.add(read.register());
+			liveSemanticValues.add(read.semanticValue())
+			liveRegisters.add(read.register())
 		}
-		manifest.retainSemanticValues(liveSemanticValues);
-		manifest.retainRegisters(liveRegisters);
-
-		liveVector.instructionWasAdded(manifest);
+		manifest.retainSemanticValues(liveSemanticValues)
+		manifest.retainRegisters(liveRegisters)
+		liveVector.instructionWasAdded(manifest)
 	}
 
-	@Override
-	public void updateManifest (
-		final L2Instruction instruction,
-		final L2ValueManifest manifest,
-		final @Nullable Purpose optionalPurpose)
+	override fun updateManifest(
+		instruction: L2Instruction,
+		manifest: L2ValueManifest,
+		optionalPurpose: L2NamedOperandType.Purpose?)
 	{
-		assert this == instruction.operation();
-		// Update the given manifest with the effect of this instruction.  This
-		// is an {@code L2_STRIP_MANIFEST}, so it doesn't alter control flow, so
-		// it must not have a {@link Purpose} specified.
-		assert optionalPurpose == null;
-
-		final L2ReadBoxedVectorOperand liveVector = instruction.operand(0);
+		assert(this == instruction.operation())
+		assert(optionalPurpose == null)
+		val liveVector = instruction.operand<L2ReadBoxedVectorOperand>(0)
 
 		// Clear the manifest, other than the mentioned semantic values and
 		// registers.
-		final Set<L2SemanticValue> liveSemanticValues = new HashSet<>();
-		final Set<L2Register> liveRegisters = new HashSet<>();
-		for (final L2ReadBoxedOperand read : liveVector.elements())
+		val liveSemanticValues: MutableSet<L2SemanticValue> = HashSet()
+		val liveRegisters: MutableSet<L2Register> = HashSet()
+		for (read in liveVector.elements())
 		{
-			liveSemanticValues.add(read.semanticValue());
-			liveRegisters.add(read.register());
+			liveSemanticValues.add(read.semanticValue())
+			liveRegisters.add(read.register())
 		}
-		manifest.retainSemanticValues(liveSemanticValues);
-		manifest.retainRegisters(liveRegisters);
+		manifest.retainSemanticValues(liveSemanticValues)
+		manifest.retainRegisters(liveRegisters)
 	}
 
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
 		// No effect.
+	}
+
+	companion object
+	{
+		/**
+		 * Initialize the sole instance.
+		 */
+		val instance = L2_STRIP_MANIFEST()
 	}
 }

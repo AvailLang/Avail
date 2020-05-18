@@ -167,7 +167,7 @@ object P_CastIntoElse : Primitive(3, Invokes, CanInline, CannotFail)
 			// We know the exact type to compare the value against, but we
 			// couldn't statically eliminate the type test.  Emit a branch.
 			translator.jumpIfKindOfConstant(
-				valueRead, typeTest, castBlock, elseBlock);
+				valueRead, typeTest, castBlock, elseBlock)
 		}
 		else
 		{
@@ -179,7 +179,7 @@ object P_CastIntoElse : Primitive(3, Invokes, CanInline, CannotFail)
 			val parameterTypeWrite = translator.generator.boxedWriteTemp(
 				restrictionForType(anyMeta(), BOXED))
 			translator.addInstruction(
-				L2_FUNCTION_PARAMETER_TYPE.instance,
+				L2_FUNCTION_PARAMETER_TYPE,
 				castFunctionRead,
 				L2IntImmediateOperand(1),
 				parameterTypeWrite)

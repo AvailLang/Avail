@@ -100,7 +100,7 @@ object P_TupleSize : Primitive(1, CannotFail, CanFold, CanInline)
 				val restriction = restrictionForType(returnType, UNBOXED_INT)
 				val writer = translator.generator.intWriteTemp(restriction)
 				translator.addInstruction(
-					L2_TUPLE_SIZE.instance,
+					L2_TUPLE_SIZE,
 					tupleReg,
 					writer)
 				translator.currentManifest().readInt(writer.onlySemanticValue())

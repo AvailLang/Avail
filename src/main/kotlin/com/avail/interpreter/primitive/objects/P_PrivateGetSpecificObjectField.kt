@@ -124,7 +124,7 @@ object P_PrivateGetSpecificObjectField : Primitive(
 				val write = translator.generator.boxedWriteTemp(
 					restrictionForType(fieldType, BOXED))
 				translator.addInstruction(
-					L2_GET_OBJECT_FIELD.instance,
+					L2_GET_OBJECT_FIELD,
 					objectReg,
 					L2ConstantOperand(fieldAtom),
 					write)

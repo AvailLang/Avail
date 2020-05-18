@@ -1196,7 +1196,7 @@ public final class L2ValueManifest
 			if (!generator.currentManifest.hasSemanticValue(otherSemanticValue))
 			{
 				generator.moveRegister(
-					phiOperation.moveOperation,
+					phiOperation.getMoveOperation(),
 					pickSemanticValue,
 					otherSemanticValue);
 			}

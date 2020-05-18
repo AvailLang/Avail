@@ -558,7 +558,7 @@ abstract class L2Operation
 			TypeRestriction.restrictionForType(
 				outerType, RestrictionFlagEncoding.BOXED))
 		generator.addInstruction(
-			L2_MOVE_OUTER_VARIABLE.instance,
+			L2_MOVE_OUTER_VARIABLE,
 			L2IntImmediateOperand(outerIndex),
 			functionRegister,
 			writer)

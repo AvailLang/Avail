@@ -29,26 +29,20 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operation
 
-package com.avail.interpreter.levelTwo.operation;
-
-import com.avail.descriptor.numbers.A_Number;
-import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static org.objectweb.asm.Opcodes.IFNE;
+import com.avail.descriptor.numbers.A_Number
+import com.avail.descriptor.numbers.AbstractNumberDescriptor
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2NamedOperandType
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
+import com.avail.interpreter.levelTwo.operand.L2PcOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
+import java.util.function.Consumer
 
 /**
  * Jump to the target if the object is numerically less than the constant.
@@ -56,66 +50,60 @@ import static org.objectweb.asm.Opcodes.IFNE;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_JUMP_IF_LESS_THAN_CONSTANT
-extends L2ConditionalJump
+class L2_JUMP_IF_LESS_THAN_CONSTANT
+/**
+ * Construct an `L2_JUMP_IF_LESS_THAN_CONSTANT`.
+ */
+private constructor() : L2ConditionalJump(
+	L2OperandType.READ_BOXED.`is`("value"),
+	L2OperandType.CONSTANT.`is`("constant"),
+	L2OperandType.PC.`is`("if less", L2NamedOperandType.Purpose.SUCCESS),
+	L2OperandType.PC.`is`("if greater or equal", L2NamedOperandType.Purpose.FAILURE))
 {
-	/**
-	 * Construct an {@code L2_JUMP_IF_LESS_THAN_CONSTANT}.
-	 */
-	private L2_JUMP_IF_LESS_THAN_CONSTANT ()
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		super(
-			READ_BOXED.is("value"),
-			CONSTANT.is("constant"),
-			PC.is("if less", SUCCESS),
-			PC.is("if greater or equal", FAILURE));
-	}
-
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_JUMP_IF_LESS_THAN_CONSTANT instance =
-		new L2_JUMP_IF_LESS_THAN_CONSTANT();
-
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
-	{
-		assert this == instruction.operation();
-		final L2ReadBoxedOperand value = instruction.operand(0);
-		final L2ConstantOperand constant = instruction.operand(1);
-//		final L2PcOperand ifLess = instruction.operand(2);
+		assert(this == instruction.operation())
+		val value = instruction.operand<L2ReadBoxedOperand>(0)
+		val constant = instruction.operand<L2ConstantOperand>(1)
+		//		final L2PcOperand ifLess = instruction.operand(2);
 //		final L2PcOperand ifNotLess = instruction.operand(3);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(value.registerString());
-		builder.append(" < ");
-		builder.append(constant.object);
-		renderOperandsStartingAt(instruction, 2, desiredTypes, builder);
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(value.registerString())
+		builder.append(" < ")
+		builder.append(constant.`object`)
+		renderOperandsStartingAt(instruction, 2, desiredTypes, builder)
 	}
 
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		final L2ReadBoxedOperand value = instruction.operand(0);
-		final L2ConstantOperand constant = instruction.operand(1);
-		final L2PcOperand ifLess = instruction.operand(2);
-		final L2PcOperand ifNotLess = instruction.operand(3);
+		val value = instruction.operand<L2ReadBoxedOperand>(0)
+		val constant = instruction.operand<L2ConstantOperand>(1)
+		val ifLess = instruction.operand<L2PcOperand>(2)
+		val ifNotLess = instruction.operand<L2PcOperand>(3)
 
 		// :: comparison = first.numericCompare(second);
-		translator.load(method, value.register());
-		translator.literal(method, constant.object);
-		A_Number.numericCompareMethod.generateCall(method);
+		translator.load(method, value.register())
+		translator.literal(method, constant.`object`)
+		A_Number.numericCompareMethod.generateCall(method)
 		// :: if (comparison.isLess()) goto ifTrue;
 		// :: else goto ifFalse;
-		Order.isLessMethod.generateCall(method);
-		emitBranch(translator, method, instruction, IFNE, ifLess, ifNotLess);
+		AbstractNumberDescriptor.Order.isLessMethod.generateCall(method)
+		emitBranch(translator, method, instruction, Opcodes.IFNE, ifLess, ifNotLess)
+	}
+
+	companion object
+	{
+		/**
+		 * Initialize the sole instance.
+		 */
+		val instance = L2_JUMP_IF_LESS_THAN_CONSTANT()
 	}
 }

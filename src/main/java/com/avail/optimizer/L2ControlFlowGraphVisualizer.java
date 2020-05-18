@@ -320,7 +320,7 @@ public class L2ControlFlowGraphVisualizer
 		final int escapeIndex = builder.length();
 		final Set<L2OperandType> desiredTypes =
 			EnumSet.complementOf(EnumSet.of(PC, COMMENT));
-		if (instruction.operation() == L2_JUMP.instance
+		if (instruction.operation() == L2_JUMP.INSTANCE
 			&& instruction.offset() != -1
 			&& L2_JUMP.jumpTarget(instruction).offset()
 				== instruction.offset())
@@ -418,7 +418,7 @@ public class L2ControlFlowGraphVisualizer
 			fontcolor = "#ffffff/e0e0e0";
 		}
 		else if (basicBlock.instructions().stream().anyMatch(
-			i -> i.operation() == L2_UNREACHABLE_CODE.instance))
+			i -> i.operation() == L2_UNREACHABLE_CODE.INSTANCE))
 		{
 			fillcolor = "#400000/600000";
 			fontcolor = "#ffffff/ffffff";
@@ -517,7 +517,7 @@ public class L2ControlFlowGraphVisualizer
 		final boolean isTargetTheUnreachableBlock =
 			targetBlock.instructions().stream()
 				.anyMatch(
-					instr -> instr.operation() == L2_UNREACHABLE_CODE.instance);
+					instr -> instr.operation() == L2_UNREACHABLE_CODE.INSTANCE);
 		final L2NamedOperandType[] types =
 			sourceInstruction.operation().operandTypes();
 		final L2Operand[] operands = sourceInstruction.operands();

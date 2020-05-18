@@ -29,108 +29,95 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.levelTwo.operation;
+package com.avail.interpreter.levelTwo.operation
 
-import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.interpreter.execution.Interpreter;
-import com.avail.interpreter.levelTwo.L2Chunk;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.List;
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.interpreter.execution.Interpreter.*;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
-import static org.objectweb.asm.Opcodes.*;
+import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.levelTwo.L2Chunk
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.optimizer.L2Generator
+import com.avail.optimizer.RegisterSet
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
+import java.util.function.Consumer
 
 /**
- * Return from the current {@link L2Chunk} with the given return value.  The
+ * Return from the current [L2Chunk] with the given return value.  The
  * value to return will be stored in
- * {@link Interpreter#setLatestResult( A_BasicObject)}, so the caller will need
+ * [Interpreter.setLatestResult], so the caller will need
  * to look there.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
-*/
-public final class L2_RETURN
-extends L2ControlFlowOperation
+ */
+class L2_RETURN
+/**
+ * Construct an `L2_RETURN`.
+ */
+private constructor() : L2ControlFlowOperation(
+	L2OperandType.READ_BOXED.`is`("return value"))
 {
-	/**
-	 * Construct an {@code L2_RETURN}.
-	 */
-	private L2_RETURN ()
-	{
-		super(
-			READ_BOXED.is("return value"));
-	}
-
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_RETURN instance = new L2_RETURN();
-
-	@Override
-	protected void propagateTypes (
-		final L2Instruction instruction,
-		final List<RegisterSet> registerSets,
-		final L2Generator generator)
+	override fun propagateTypes(
+		instruction: L2Instruction,
+		registerSets: List<RegisterSet>,
+		generator: L2Generator)
 	{
 		// A return instruction doesn't mention where it might end up.
-		assert registerSets.size() == 0;
+		assert(registerSets.size == 0)
 	}
 
-	@Override
-	public boolean hasSideEffect ()
+	override fun hasSideEffect(): Boolean
 	{
 		// Never remove this.
-		return true;
+		return true
 	}
 
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		assert this == instruction.operation();
-		final L2ReadBoxedOperand value = instruction.operand(0);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(value.registerString());
+		assert(this == instruction.operation())
+		val value = instruction.operand<L2ReadBoxedOperand>(0)
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(value.registerString())
 	}
 
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		final L2ReadBoxedOperand value = instruction.operand(0);
+		val value = instruction.operand<L2ReadBoxedOperand>(0)
 
 		// :: interpreter.setLatestResult(value);
-		translator.loadInterpreter(method);
-		method.visitInsn(DUP);
-		translator.load(method, value.register());
-		setLatestResultMethod.generateCall(method);
+		translator.loadInterpreter(method)
+		method.visitInsn(Opcodes.DUP)
+		translator.load(method, value.register())
+		Interpreter.setLatestResultMethod.generateCall(method)
 		// :: interpreter.returnNow = true;
-		method.visitInsn(DUP);
-		translator.intConstant(method, 1);
-		returnNowField.generateWrite(method);
+		method.visitInsn(Opcodes.DUP)
+		translator.intConstant(method, 1)
+		Interpreter.returnNowField.generateWrite(method)
 		// interpreter.returningFunction = interpreter.function;
-		method.visitInsn(DUP);
-		interpreterFunctionField.generateRead(method);
-		interpreterReturningFunctionField.generateWrite(method);
+		method.visitInsn(Opcodes.DUP)
+		Interpreter.interpreterFunctionField.generateRead(method)
+		Interpreter.interpreterReturningFunctionField.generateWrite(method)
 		// :: return null;
-		method.visitInsn(ACONST_NULL);
-		method.visitInsn(ARETURN);
+		method.visitInsn(Opcodes.ACONST_NULL)
+		method.visitInsn(Opcodes.ARETURN)
+	}
+
+	companion object
+	{
+		/**
+		 * Initialize the sole instance.
+		 */
+		@kotlin.jvm.JvmField
+		val instance = L2_RETURN()
 	}
 }

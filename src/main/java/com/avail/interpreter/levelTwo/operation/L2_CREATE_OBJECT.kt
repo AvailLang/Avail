@@ -29,113 +29,95 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operation
 
-package com.avail.interpreter.levelTwo.operation;
-
-import com.avail.descriptor.atoms.A_Atom;
-import com.avail.descriptor.objects.ObjectLayoutVariant;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2ConstantOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.List;
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.descriptor.objects.ObjectDescriptor.createUninitializedObjectMethod;
-import static com.avail.descriptor.objects.ObjectDescriptor.setFieldMethod;
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
+import com.avail.descriptor.objects.ObjectDescriptor
+import com.avail.descriptor.objects.ObjectLayoutVariant
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2Operation
+import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.MethodVisitor
+import java.util.function.Consumer
 
 /**
- * Create an object using a constant pojo holding an {@link ObjectLayoutVariant}
+ * Create an object using a constant pojo holding an [ObjectLayoutVariant]
  * and a vector of values, in the order the variant lays them out as fields.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_CREATE_OBJECT
-extends L2Operation
+object L2_CREATE_OBJECT : L2Operation(
+	L2OperandType.CONSTANT.`is`("variant pojo"),
+	L2OperandType.READ_BOXED_VECTOR.`is`("field values"),
+	L2OperandType.WRITE_BOXED.`is`("new object"))
 {
-	/**
-	 * Construct an {@code L2_CREATE_OBJECT}.
-	 */
-	private L2_CREATE_OBJECT ()
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		super(
-			CONSTANT.is("variant pojo"),
-			READ_BOXED_VECTOR.is("field values"),
-			WRITE_BOXED.is("new object"));
-	}
-
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_CREATE_OBJECT instance = new L2_CREATE_OBJECT();
-
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
-	{
-		assert this == instruction.operation();
-		final L2ConstantOperand variantOperand = instruction.operand(0);
-		final L2ReadBoxedVectorOperand fieldsVector = instruction.operand(1);
-		final L2WriteBoxedOperand object = instruction.operand(2);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(object.registerString());
-		builder.append(" ← {");
-		final ObjectLayoutVariant variant =
-			variantOperand.object.javaObjectNotNull();
-		final List<A_Atom> realSlots = variant.realSlots;
-		final List<L2ReadBoxedOperand> fieldSources = fieldsVector.elements();
-		assert realSlots.size() == fieldSources.size();
-		for (int i = 0; i < realSlots.size(); i++)
+		assert(this == instruction.operation())
+		val variantOperand =
+			instruction.operand<L2ConstantOperand>(0)
+		val fieldsVector =
+			instruction.operand<L2ReadBoxedVectorOperand>(1)
+		val `object` =
+			instruction.operand<L2WriteBoxedOperand>(2)
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(`object`.registerString())
+		builder.append(" ← {")
+		val variant =
+			variantOperand.`object`.javaObjectNotNull<ObjectLayoutVariant>()
+		val realSlots = variant.realSlots
+		val fieldSources = fieldsVector.elements()
+		assert(realSlots.size == fieldSources.size)
+		for (i in realSlots.indices)
 		{
 			if (i > 0)
 			{
-				builder.append(", ");
+				builder.append(", ")
 			}
-			final A_Atom key = realSlots.get(i);
-			final L2ReadBoxedOperand value = fieldSources.get(i);
-			builder.append(key);
-			builder.append(": ");
-			builder.append(value.registerString());
+			val key = realSlots[i]
+			val value = fieldSources[i]
+			builder.append(key)
+			builder.append(": ")
+			builder.append(value.registerString())
 		}
-		builder.append('}');
+		builder.append('}')
 	}
 
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		assert this == instruction.operation();
-		final L2ConstantOperand variantOperand = instruction.operand(0);
-		final L2ReadBoxedVectorOperand fieldsVector = instruction.operand(1);
-		final L2WriteBoxedOperand object = instruction.operand(2);
-
-		final ObjectLayoutVariant variant =
-			variantOperand.object.javaObjectNotNull();
-		method.visitLdcInsn(variant);
-		createUninitializedObjectMethod.generateCall(method);
-		final List<L2ReadBoxedOperand> fieldSources = fieldsVector.elements();
-		for (int i = 0, limit = fieldSources.size(); i < limit; i++)
+		assert(this == instruction.operation())
+		val variantOperand =
+			instruction.operand<L2ConstantOperand>(0)
+		val fieldsVector =
+			instruction.operand<L2ReadBoxedVectorOperand>(1)
+		val `object` =
+			instruction.operand<L2WriteBoxedOperand>(2)
+		val variant =
+			variantOperand.`object`.javaObjectNotNull<ObjectLayoutVariant>()
+		method.visitLdcInsn(variant)
+		ObjectDescriptor.createUninitializedObjectMethod.generateCall(method)
+		val fieldSources = fieldsVector.elements()
+		var i = 0
+		val limit = fieldSources.size
+		while (i < limit)
 		{
-			method.visitLdcInsn(i + 1);
-			translator.load(method, fieldSources.get(i).register());
-			setFieldMethod.generateCall(method); // Returns object for chaining.
+			method.visitLdcInsn(i + 1)
+			translator.load(method, fieldSources[i].register())
+			ObjectDescriptor.setFieldMethod.generateCall(method) // Returns object for chaining.
+			i++
 		}
-		translator.store(method, object.register());
+		translator.store(method, `object`.register())
 	}
 }

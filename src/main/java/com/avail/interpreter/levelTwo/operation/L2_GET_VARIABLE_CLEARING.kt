@@ -29,186 +29,150 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.levelTwo.operation;
+package com.avail.interpreter.levelTwo.operation
 
-import com.avail.descriptor.types.A_Type;
-import com.avail.exceptions.VariableGetException;
-import com.avail.exceptions.VariableSetException;
-import com.avail.interpreter.execution.Interpreter;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
-import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.List;
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.descriptor.AbstractDescriptor.isMutableMethod;
-import static com.avail.descriptor.representation.A_BasicObject.makeImmutableMethod;
-import static com.avail.descriptor.representation.A_BasicObject.traversedMethod;
-import static com.avail.descriptor.representation.AbstractAvailObject.descriptorMethod;
-import static com.avail.descriptor.types.VariableTypeDescriptor.mostGeneralVariableType;
-import static com.avail.descriptor.variables.A_Variable.getValueMethod;
-import static com.avail.descriptor.variables.VariableDescriptor.clearVariableMethod;
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP;
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Type.getInternalName;
+import com.avail.descriptor.AbstractDescriptor
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AbstractAvailObject
+import com.avail.descriptor.types.VariableTypeDescriptor
+import com.avail.descriptor.variables.A_Variable
+import com.avail.descriptor.variables.VariableDescriptor
+import com.avail.exceptions.VariableGetException
+import com.avail.exceptions.VariableSetException
+import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2NamedOperandType
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.operand.L2PcOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import com.avail.optimizer.L2Generator
+import com.avail.optimizer.RegisterSet
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.Label
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
+import org.objectweb.asm.Type
+import java.util.function.Consumer
 
 /**
  * Extract the value of a variable, while simultaneously clearing it. If the
- * variable is unassigned, then branch to the specified {@linkplain
- * Interpreter#setOffset(int) offset}.
+ * variable is unassigned, then branch to the specified
+ * [offset][Interpreter.setOffset].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_GET_VARIABLE_CLEARING
-extends L2ControlFlowOperation
+object L2_GET_VARIABLE_CLEARING : L2ControlFlowOperation(
+	L2OperandType.READ_BOXED.`is`("variable"),
+	L2OperandType.WRITE_BOXED.`is`("extracted value", L2NamedOperandType.Purpose.SUCCESS),
+	L2OperandType.PC.`is`("read succeeded", L2NamedOperandType.Purpose.SUCCESS),
+	L2OperandType.PC.`is`("read failed", L2NamedOperandType.Purpose.OFF_RAMP))
 {
-	/**
-	 * Construct an {@code L2_GET_VARIABLE_CLEARING}.
-	 */
-	private L2_GET_VARIABLE_CLEARING ()
+	override fun propagateTypes(
+		instruction: L2Instruction,
+		registerSets: List<RegisterSet>,
+		generator: L2Generator)
 	{
-		super(
-			READ_BOXED.is("variable"),
-			WRITE_BOXED.is("extracted value", SUCCESS),
-			PC.is("read succeeded", SUCCESS),
-			PC.is("read failed", OFF_RAMP));
-	}
-
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_GET_VARIABLE_CLEARING instance =
-		new L2_GET_VARIABLE_CLEARING();
-
-	@Override
-	protected void propagateTypes (
-		final L2Instruction instruction,
-		final List<RegisterSet> registerSets,
-		final L2Generator generator)
-	{
-		final L2ReadBoxedOperand variableReg = instruction.operand(0);
-		final L2WriteBoxedOperand destReg = instruction.operand(1);
-//		final int successIndex = instruction.pcOffsetAt(2);
+		val variableReg = instruction.operand<L2ReadBoxedOperand>(0)
+		val destReg = instruction.operand<L2WriteBoxedOperand>(1)
+		//		final int successIndex = instruction.pcOffsetAt(2);
 //		final int failureIndex = instruction.pcOffsetAt(3);
 		//TODO MvG - Rework everything related to type propagation.
 		// Only update the success register set; no registers are affected if
 		// the failure branch is taken.
-		final RegisterSet registerSet = registerSets.get(1);
-		// If we haven't already guaranteed that this is a variable then we
-		// are probably not doing things right.
-		assert registerSet.hasTypeAt(variableReg.register());
-		final A_Type varType = registerSet.typeAt(variableReg.register());
-		assert varType.isSubtypeOf(mostGeneralVariableType());
-		registerSet.removeConstantAt(destReg.register());
+		val registerSet = registerSets[1]
+		assert(registerSet.hasTypeAt(variableReg.register()))
+		val varType = registerSet.typeAt(variableReg.register())
+		assert(varType.isSubtypeOf(VariableTypeDescriptor.mostGeneralVariableType()))
+		registerSet.removeConstantAt(destReg.register())
 		registerSet.typeAtPut(
-			destReg.register(), varType.readType(), instruction);
+			destReg.register(), varType.readType(), instruction)
 	}
 
-	@Override
-	public boolean hasSideEffect ()
-	{
-		// Subtle. Reading from a variable can fail, so don't remove this.
-		// Also it clears the variable.
-		return true;
-	}
+	// Subtle. Reading from a variable can fail, so don't remove this.
+	// Also it clears the variable.
+	override fun hasSideEffect(): Boolean = true
 
-	@Override
-	public boolean isVariableGet ()
-	{
-		return true;
-	}
+	override val isVariableGet: Boolean
+		get() = true
 
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		assert this == instruction.operation();
-		final L2ReadBoxedOperand variable = instruction.operand(0);
-		final L2WriteBoxedOperand value = instruction.operand(1);
-//		final L2PcOperand success = instruction.operand(2);
+		assert(this == instruction.operation())
+		val variable = instruction.operand<L2ReadBoxedOperand>(0)
+		val value = instruction.operand<L2WriteBoxedOperand>(1)
+		//		final L2PcOperand success = instruction.operand(2);
 //		final L2PcOperand failure = instruction.operand(3);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(value.registerString());
-		builder.append(" ← ↓");
-		builder.append(variable.registerString());
-		renderOperandsStartingAt(instruction, 2, desiredTypes, builder);
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(value.registerString())
+		builder.append(" ← ↓")
+		builder.append(variable.registerString())
+		renderOperandsStartingAt(instruction, 2, desiredTypes, builder)
 	}
 
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		final L2ReadBoxedOperand variable = instruction.operand(0);
-		final L2WriteBoxedOperand value = instruction.operand(1);
-		final L2PcOperand success = instruction.operand(2);
-		final L2PcOperand failure = instruction.operand(3);
+		val variable = instruction.operand<L2ReadBoxedOperand>(0)
+		val value = instruction.operand<L2WriteBoxedOperand>(1)
+		val success = instruction.operand<L2PcOperand>(2)
+		val failure = instruction.operand<L2PcOperand>(3)
 
 		// :: try {
-		final Label tryStart = new Label();
-		final Label catchStart = new Label();
+		val tryStart = Label()
+		val catchStart = Label()
 		method.visitTryCatchBlock(
 			tryStart,
 			catchStart,
 			catchStart,
-			getInternalName(VariableGetException.class));
+			Type.getInternalName(VariableGetException::class.java))
 		method.visitTryCatchBlock(
 			tryStart,
 			catchStart,
 			catchStart,
-			getInternalName(VariableSetException.class));
-		method.visitLabel(tryStart);
+			Type.getInternalName(VariableSetException::class.java))
+		method.visitLabel(tryStart)
 		// ::    dest = variable.getValue();
-		translator.load(method, variable.register());
-		getValueMethod.generateCall(method);
-		translator.store(method, value.register());
+		translator.load(method, variable.register())
+		A_Variable.getValueMethod.generateCall(method)
+		translator.store(method, value.register())
 		// ::    if (variable.traversed().descriptor().isMutable()) {
-		translator.load(method, variable.register());
-		traversedMethod.generateCall(method);
-		descriptorMethod.generateCall(method);
-		isMutableMethod.generateCall(method);
-		final Label elseLabel = new Label();
-		method.visitJumpInsn(IFEQ, elseLabel);
+		translator.load(method, variable.register())
+		A_BasicObject.traversedMethod.generateCall(method)
+		AbstractAvailObject.descriptorMethod.generateCall(method)
+		AbstractDescriptor.isMutableMethod.generateCall(method)
+		val elseLabel = Label()
+		method.visitJumpInsn(Opcodes.IFEQ, elseLabel)
 		// ::       variable.clearValue();
-		translator.load(method, variable.register());
-		clearVariableMethod.generateCall(method);
+		translator.load(method, variable.register())
+		VariableDescriptor.clearVariableMethod.generateCall(method)
 		// ::       goto success;
-		method.visitJumpInsn(GOTO, translator.labelFor(success.offset()));
+		method.visitJumpInsn(Opcodes.GOTO, translator.labelFor(success.offset()))
 		// ::    } else {
-		method.visitLabel(elseLabel);
+		method.visitLabel(elseLabel)
 		// ::       dest.makeImmutable();
-		translator.load(method, value.register());
-		makeImmutableMethod.generateCall(method);
-		method.visitInsn(POP);
+		translator.load(method, value.register())
+		A_BasicObject.makeImmutableMethod.generateCall(method)
+		method.visitInsn(Opcodes.POP)
 		// ::       goto success;
 		// Note that we cannot potentially eliminate this branch with a
 		// fall through, because the next instruction expects a
 		// VariableGetException to be pushed onto the stack. So always do the
 		// jump.
-		method.visitJumpInsn(GOTO, translator.labelFor(success.offset()));
+		method.visitJumpInsn(Opcodes.GOTO, translator.labelFor(success.offset()))
 		// :: } catch (VariableGetException|VariableSetException e) {
-		method.visitLabel(catchStart);
-		method.visitInsn(POP);
+		method.visitLabel(catchStart)
+		method.visitInsn(Opcodes.POP)
 		// ::    goto failure;
-		translator.jump(method, instruction, failure);
+		translator.jump(method, instruction, failure)
 		// :: }
 	}
 }

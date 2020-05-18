@@ -29,200 +29,160 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.levelTwo.operation;
+package com.avail.interpreter.levelTwo.operation
 
-import com.avail.interpreter.execution.Interpreter;
-import com.avail.interpreter.JavaLibrary;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION;
-import com.avail.interpreter.levelTwo.ReadsHiddenVariable;
-import com.avail.interpreter.levelTwo.WritesHiddenVariable;
-import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand;
-import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
-
-import javax.annotation.Nullable;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.descriptor.representation.AvailObject.registerDumpMethod;
-import static com.avail.descriptor.functions.ContinuationRegisterDumpDescriptor.extractLongAtMethod;
-import static com.avail.descriptor.functions.ContinuationRegisterDumpDescriptor.extractObjectAtMethod;
-import static com.avail.interpreter.execution.Interpreter.getReifiedContinuationMethod;
-import static com.avail.interpreter.execution.Interpreter.popContinuationMethod;
-import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TRANSIENT;
-import static com.avail.interpreter.levelTwo.L2OperandType.COMMENT;
-import static com.avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE;
-import static org.objectweb.asm.Opcodes.*;
+import com.avail.descriptor.functions.ContinuationRegisterDumpDescriptor
+import com.avail.descriptor.representation.AvailObject
+import com.avail.interpreter.JavaLibrary.bitCastLongToDoubleMethod
+import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.levelTwo.*
+import com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION
+import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
+import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.Label
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
+import java.util.function.Consumer
 
 /**
  * This marks the entry point into optimized (level two) code.  At entry, the
- * arguments are expected to be in the {@link Interpreter#argsBuffer}.  Set up
+ * arguments are expected to be in the [Interpreter.argsBuffer].  Set up
  * fresh registers for this chunk, but do not write to them yet.
  *
- * <p>This instruction also occurs at places that a reified continuation can be
+ *
+ * This instruction also occurs at places that a reified continuation can be
  * re-entered, such as returning into it, restarting it, or continuing it after
- * an interrupt has been handled.</p>
+ * an interrupt has been handled.
  */
-@ReadsHiddenVariable(
-	theValue = CURRENT_CONTINUATION.class)
-@WritesHiddenVariable(
-	CURRENT_CONTINUATION.class)
-public final class L2_ENTER_L2_CHUNK
-extends L2Operation
+@ReadsHiddenVariable(theValue = arrayOf(CURRENT_CONTINUATION::class))
+@WritesHiddenVariable(CURRENT_CONTINUATION::class)
+object L2_ENTER_L2_CHUNK : L2Operation(
+	L2OperandType.INT_IMMEDIATE.`is`("entry point offset in default chunk"),
+	L2OperandType.COMMENT.`is`("chunk entry point name"))
 {
-	/**
-	 * Construct an {@code L2_ENTER_L2_CHUNK}.
-	 */
-	private L2_ENTER_L2_CHUNK ()
-	{
-		super(
-			INT_IMMEDIATE.is("entry point offset in default chunk"),
-			COMMENT.is("chunk entry point name"));
-	}
+	override fun isEntryPoint(instruction: L2Instruction): Boolean = true
 
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_ENTER_L2_CHUNK instance = new L2_ENTER_L2_CHUNK();
+	override fun hasSideEffect(): Boolean = true
 
-	@Override
-	public boolean isEntryPoint (final L2Instruction instruction)
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		return true;
-	}
-
-	@Override
-	public boolean hasSideEffect ()
-	{
-		return true;
-	}
-
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
-	{
-		assert this == instruction.operation();
-//		final L2IntImmediateOperand offsetInDefaultChunk =
+		assert(this == instruction.operation())
+		//		final L2IntImmediateOperand offsetInDefaultChunk =
 //			instruction.operand(0);
 //		final L2CommentOperand comment = instruction.operand(1);
-
-		renderPreamble(instruction, builder);
+		renderPreamble(instruction, builder)
 	}
 
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		final L2IntImmediateOperand offsetInDefaultChunk =
-			instruction.operand(0);
-//		final L2CommentOperand comment = instruction.operand(1);
+		val offsetInDefaultChunk =
+			instruction.operand<L2IntImmediateOperand>(0)
+		//		final L2CommentOperand comment = instruction.operand(1);
 
 		// Skip the validity check for transient entry points, which can't
 		// become invalid during their lifetimes.
-		if (offsetInDefaultChunk.value != TRANSIENT.getOffsetInDefaultChunk())
+		if (offsetInDefaultChunk.value != ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk)
 		{
 			// :: if (!checkValidity()) {
-			translator.loadInterpreter(method);
-			translator.literal(method, offsetInDefaultChunk.value);
-			Interpreter.checkValidityMethod.generateCall(method);
-			final Label isValidLabel = new Label();
-			method.visitJumpInsn(IFNE, isValidLabel);
+			translator.loadInterpreter(method)
+			translator.literal(method, offsetInDefaultChunk.value)
+			Interpreter.checkValidityMethod.generateCall(method)
+			val isValidLabel = Label()
+			method.visitJumpInsn(Opcodes.IFNE, isValidLabel)
 			// ::    return null;
-			method.visitInsn(ACONST_NULL);
-			method.visitInsn(ARETURN);
+			method.visitInsn(Opcodes.ACONST_NULL)
+			method.visitInsn(Opcodes.ARETURN)
 			// :: }
-			method.visitLabel(isValidLabel);
+			method.visitLabel(isValidLabel)
 		}
 
 		// Extract register values that were saved in a register dump by the
 		// corresponding L2_SAVE_ALL_AND_PC_TO_INT instruction, which nicely set
 		// up for us the lists of registers that were saved.  The interpreter
 		// should have extracted the registerDump for us already.
-		final @Nullable EnumMap<RegisterKind, List<Integer>>
-			localNumberLists =
-				translator.liveLocalNumbersByKindPerEntryPoint.get(instruction);
+		val localNumberLists =
+			translator.liveLocalNumbersByKindPerEntryPoint[instruction]
 		if (localNumberLists != null)
 		{
-			final List<Integer> boxedList =
-				localNumberLists.get(RegisterKind.BOXED);
-			final List<Integer> intsList =
-				localNumberLists.get(RegisterKind.INTEGER);
-			final List<Integer> floatsList =
-				localNumberLists.get(RegisterKind.FLOAT);
-			final int boxedCount = boxedList.size();
-			final int intsCount = intsList.size();
-			final int floatsCount = floatsList.size();
-
-			int countdown = boxedCount + intsCount + floatsCount;
+			val boxedList = localNumberLists[RegisterKind.BOXED]!!
+			val intsList = localNumberLists[RegisterKind.INTEGER]!!
+			val floatsList = localNumberLists[RegisterKind.FLOAT]!!
+			val boxedCount = boxedList.size
+			val intsCount = intsList.size
+			val floatsCount = floatsList.size
+			var countdown = boxedCount + intsCount + floatsCount
 			if (countdown > 0)
 			{
 				// Extract the register dump from the current continuation.
-				translator.loadInterpreter(method);
-				getReifiedContinuationMethod.generateCall(method);
-				registerDumpMethod.generateCall(method);
+				translator.loadInterpreter(method)
+				Interpreter.getReifiedContinuationMethod.generateCall(method)
+				AvailObject.registerDumpMethod.generateCall(method)
 				// Stack now has the registerDump.
-				for (int i = 0; i < boxedCount; i++)
+				for (i in 0 until boxedCount)
 				{
 					if (--countdown > 0)
 					{
-						method.visitInsn(DUP);
+						method.visitInsn(Opcodes.DUP)
 						// Stack has two registerDumps if needed.
 					}
-					translator.intConstant(method, i + 1);  //one-based
-					extractObjectAtMethod.generateCall(method);
+					translator.intConstant(method, i + 1) //one-based
+					ContinuationRegisterDumpDescriptor.extractObjectAtMethod
+						.generateCall(method)
 					method.visitVarInsn(
-						RegisterKind.BOXED.getStoreInstruction(),
-						boxedList.get(i));
+						RegisterKind.BOXED.storeInstruction,
+						boxedList[i])
 				}
-				int i;
-				for (i = 0; i < intsCount; i++)
+				var i = 0
+				while (i < intsCount)
 				{
 					if (--countdown > 0)
 					{
-						method.visitInsn(DUP);
+						method.visitInsn(Opcodes.DUP)
 						// Stack has two registerDumps if needed.
 					}
-					translator.intConstant(method, i + 1);  //one-based
-					extractLongAtMethod.generateCall(method);
-					method.visitInsn(L2I);
+					translator.intConstant(method, i + 1) //one-based
+					ContinuationRegisterDumpDescriptor.extractLongAtMethod
+						.generateCall(method)
+					method.visitInsn(Opcodes.L2I)
 					method.visitVarInsn(
-						RegisterKind.INTEGER.getStoreInstruction(),
-						intsList.get(i));
+						RegisterKind.INTEGER.storeInstruction,
+						intsList[i])
+					i++
 				}
-				for (int j = 0; j < floatsCount; j++, i++)
+				var j = 0
+				while (j < floatsCount)
 				{
 					if (--countdown > 0)
 					{
-						method.visitInsn(DUP);
+						method.visitInsn(Opcodes.DUP)
 						// Stack has two registerDumps if needed.
 					}
-					translator.intConstant(method, i + 1);  //one-based
-					extractLongAtMethod.generateCall(method);
-					JavaLibrary.getBitCastLongToDoubleMethod().generateCall(
-						method);
+					translator.intConstant(method, i + 1) //one-based
+					ContinuationRegisterDumpDescriptor.extractLongAtMethod.generateCall(method)
+					bitCastLongToDoubleMethod.generateCall(
+						method)
 					method.visitVarInsn(
-						RegisterKind.FLOAT.getStoreInstruction(),
-						floatsList.get(j));
+						RegisterKind.FLOAT.storeInstruction,
+						floatsList[j])
+					j++
+					i++
 				}
-				assert countdown == 0;
+				assert(countdown == 0)
 				// The last copy of registerDumps was popped.
 			}
 
 			// :: interpreter.popContinuation();
-			translator.loadInterpreter(method);
-			popContinuationMethod.generateCall(method);
+			translator.loadInterpreter(method)
+			Interpreter.popContinuationMethod.generateCall(method)
 		}
 	}
 }

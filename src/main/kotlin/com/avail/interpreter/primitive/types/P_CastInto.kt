@@ -170,7 +170,7 @@ object P_CastInto : Primitive(2, Invokes, CanInline)
 				val parameterTypeWrite = generator.boxedWriteTemp(
 					restrictionForType(anyMeta(), BOXED))
 				translator.addInstruction(
-					L2_FUNCTION_PARAMETER_TYPE.instance,
+					L2_FUNCTION_PARAMETER_TYPE,
 					castFunctionRead,
 					L2IntImmediateOperand(1),
 					parameterTypeWrite)
@@ -185,7 +185,7 @@ object P_CastInto : Primitive(2, Invokes, CanInline)
 				// Couldn't prove or disprove type test, but we know statically
 				// the cast block's exact argument type.
 				translator.jumpIfKindOfConstant(
-					valueRead, typeTest, castBlock, elseBlock);
+					valueRead, typeTest, castBlock, elseBlock)
 			else ->
 				// We proved the test always passes or always fails.
 				translator.generator.jumpTo(

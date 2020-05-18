@@ -29,25 +29,18 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operation
 
-package com.avail.interpreter.levelTwo.operation;
-
-import com.avail.descriptor.sets.A_Set;
-import com.avail.descriptor.sets.SetDescriptor;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
+import com.avail.descriptor.sets.A_Set
+import com.avail.descriptor.sets.SetDescriptor
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2Operation
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.MethodVisitor
+import java.util.function.Consumer
 
 /**
  * Create a set from the values in the specified vector of object registers.
@@ -55,70 +48,60 @@ import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_CREATE_SET
-extends L2Operation
+object L2_CREATE_SET : L2Operation(
+	L2OperandType.READ_BOXED_VECTOR.`is`("values"),
+	L2OperandType.WRITE_BOXED.`is`("new set"))
 {
-	/**
-	 * Construct an {@code L2_CREATE_SET}.
-	 */
-	private L2_CREATE_SET ()
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		super(
-			READ_BOXED_VECTOR.is("values"),
-			WRITE_BOXED.is("new set"));
-	}
-
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_CREATE_SET instance = new L2_CREATE_SET();
-
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
-	{
-		assert this == instruction.operation();
-		final L2ReadBoxedVectorOperand values = instruction.operand(0);
-		final L2WriteBoxedOperand set = instruction.operand(1);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(set.registerString());
-		builder.append(" ← {");
-		for (int i = 0, limit = values.elements().size(); i < limit; i++)
+		assert(this == instruction.operation())
+		val values =
+			instruction.operand<L2ReadBoxedVectorOperand>(0)
+		val set =
+			instruction.operand<L2WriteBoxedOperand>(1)
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(set.registerString())
+		builder.append(" ← {")
+		var i = 0
+		val limit = values.elements().size
+		while (i < limit)
 		{
 			if (i > 0)
 			{
-				builder.append(", ");
+				builder.append(", ")
 			}
-			final L2ReadBoxedOperand element = values.elements().get(i);
-			builder.append(element);
+			val element = values.elements()[i]
+			builder.append(element)
+			i++
 		}
-		builder.append('}');
+		builder.append('}')
 	}
 
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		final L2ReadBoxedVectorOperand values = instruction.operand(0);
-		final L2WriteBoxedOperand set = instruction.operand(1);
+		val values =
+			instruction.operand<L2ReadBoxedVectorOperand>(0)
+		val set =
+			instruction.operand<L2WriteBoxedOperand>(1)
 
 		// :: set = SetDescriptor.emptySet();
-		SetDescriptor.emptySetMethod.generateCall(method);
-		for (final L2ReadBoxedOperand operand : values.elements())
+		SetDescriptor.emptySetMethod.generateCall(method)
+		for (operand in values.elements())
 		{
 			// :: set = set.setWithElementCanDestroy(«register», true);
-			translator.load(method, operand.register());
-			translator.intConstant(method, 1);
-			A_Set.setWithElementCanDestroyMethod.generateCall(method);
+			translator.load(method, operand.register())
+			translator.intConstant(method, 1)
+			A_Set.setWithElementCanDestroyMethod.generateCall(method)
 		}
 		// :: destinationSet = set;
-		translator.store(method, set.register());
+		translator.store(method, set.register())
 	}
 }

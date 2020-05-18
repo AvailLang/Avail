@@ -53,7 +53,7 @@ import org.objectweb.asm.MethodVisitor
  * pattern (or arguably a singleton).
  *
  *
- * By convention, there are always 2 [.targetEdges], the first of which is the
+ * By convention, there are always 2 [targetEdges], the first of which is the
  * "taken" branch, and the second of which is the "not taken" branch.
  *
  * @param theNamedOperandTypes

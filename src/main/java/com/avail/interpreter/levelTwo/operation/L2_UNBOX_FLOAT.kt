@@ -29,94 +29,76 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operation
 
-package com.avail.interpreter.levelTwo.operation;
-
-import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.numbers.A_Number;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteFloatOperand;
-import com.avail.optimizer.L2ValueManifest;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_FLOAT;
+import com.avail.descriptor.numbers.A_Number
+import com.avail.descriptor.representation.AvailObject
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2Operation
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteFloatOperand
+import com.avail.optimizer.L2ValueManifest
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.MethodVisitor
+import java.util.function.Consumer
 
 /**
- * Unbox an {@code float} from an {@link AvailObject}.
+ * Unbox an `float` from an [AvailObject].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_UNBOX_FLOAT
-extends L2Operation
+object L2_UNBOX_FLOAT : L2Operation(
+	L2OperandType.READ_BOXED.`is`("source"),
+	L2OperandType.WRITE_FLOAT.`is`("destination"))
 {
-	/**
-	 * Construct an {@code L2_UNBOX_FLOAT}.
-	 */
-	private L2_UNBOX_FLOAT ()
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		super(
-			READ_BOXED.is("source"),
-			WRITE_FLOAT.is("destination"));
+		assert(this == instruction.operation())
+		val source =
+			instruction.operand<L2ReadBoxedOperand>(0)
+		val destination =
+			instruction.operand<L2WriteFloatOperand>(1)
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(destination.registerString())
+		builder.append(" ← ")
+		builder.append(source.registerString())
 	}
 
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_UNBOX_FLOAT instance = new L2_UNBOX_FLOAT();
-
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
+	override fun instructionWasAdded(
+		instruction: L2Instruction,
+		manifest: L2ValueManifest)
 	{
-		assert this == instruction.operation();
-		final L2ReadBoxedOperand source = instruction.operand(0);
-		final L2WriteFloatOperand destination = instruction.operand(1);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(destination.registerString());
-		builder.append(" ← ");
-		builder.append(source.registerString());
-	}
-
-	@Override
-	public void instructionWasAdded (
-		final L2Instruction instruction,
-		final L2ValueManifest manifest)
-	{
-		assert this == instruction.operation();
-		final L2ReadBoxedOperand source = instruction.operand(0);
-		final L2WriteFloatOperand destination = instruction.operand(1);
+		assert(this == instruction.operation())
+		val source =
+			instruction.operand<L2ReadBoxedOperand>(0)
+		val destination =
+			instruction.operand<L2WriteFloatOperand>(1)
 
 		// Ensure the new write ends up in the same synonym as the source.
-		source.instructionWasAdded(manifest);
+		source.instructionWasAdded(manifest)
 		destination.instructionWasAddedForMove(
-			source.semanticValue(), manifest);
+			source.semanticValue(), manifest)
 	}
 
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		final L2ReadBoxedOperand source = instruction.operand(0);
-		final L2WriteFloatOperand destination = instruction.operand(1);
+		val source =
+			instruction.operand<L2ReadBoxedOperand>(0)
+		val destination =
+			instruction.operand<L2WriteFloatOperand>(1)
 
 		// :: destination = source.extractDouble();
-		translator.load(method, source.register());
-		A_Number.extractDoubleMethod.generateCall(method);
-		translator.store(method, destination.register());
+		translator.load(method, source.register())
+		A_Number.extractDoubleMethod.generateCall(method)
+		translator.store(method, destination.register())
 	}
 }

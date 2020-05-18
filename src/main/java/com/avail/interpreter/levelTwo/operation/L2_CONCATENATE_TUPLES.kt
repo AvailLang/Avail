@@ -29,33 +29,25 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operation
 
-package com.avail.interpreter.levelTwo.operation;
-
-import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.types.A_Type;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand;
-import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.List;
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.descriptor.tuples.A_Tuple.concatenateWithMethod;
-import static com.avail.descriptor.tuples.TupleDescriptor.emptyTuple;
-import static com.avail.descriptor.types.ConcatenatedTupleTypeDescriptor.concatenatingAnd;
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED;
-import static org.objectweb.asm.Opcodes.CHECKCAST;
-import static org.objectweb.asm.Type.getInternalName;
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.TupleDescriptor
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.ConcatenatedTupleTypeDescriptor
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2Operation
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import com.avail.optimizer.L2Generator
+import com.avail.optimizer.RegisterSet
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
+import org.objectweb.asm.Type
+import java.util.function.Consumer
 
 /**
  * Concatenate the tuples in the vector of object registers to produce a single
@@ -64,108 +56,90 @@ import static org.objectweb.asm.Type.getInternalName;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_CONCATENATE_TUPLES
-extends L2Operation
+object L2_CONCATENATE_TUPLES : L2Operation(
+	L2OperandType.READ_BOXED_VECTOR.`is`("tuples to concatenate"),
+	L2OperandType.WRITE_BOXED.`is`("concatenated tuple"))
 {
-	/**
-	 * Construct an {@code L2_CONCATENATE_TUPLES}.
-	 */
-	private L2_CONCATENATE_TUPLES ()
-	{
-		super(
-			READ_BOXED_VECTOR.is("tuples to concatenate"),
-			WRITE_BOXED.is("concatenated tuple"));
-	}
-
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_CONCATENATE_TUPLES instance =
-		new L2_CONCATENATE_TUPLES();
-
-	@Override
-	protected void propagateTypes (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
-		final L2Generator generator)
+	override fun propagateTypes(
+		instruction: L2Instruction,
+		registerSet: RegisterSet,
+		generator: L2Generator)
 	{
 		// Approximate it for now.  If testing the return type dynamically
 		// becomes a bottleneck, we can improve this bound.
-		final L2ReadBoxedVectorOperand tuples = instruction.operand(0);
-		final L2WriteBoxedOperand output = instruction.operand(1);
-
+		val tuples = instruction.operand<L2ReadBoxedVectorOperand>(0)
+		val output = instruction.operand<L2WriteBoxedOperand>(1)
 		if (tuples.elements().isEmpty())
 		{
 			registerSet.constantAtPut(
 				output.register(),
-				emptyTuple(),
-				instruction);
-			return;
+				TupleDescriptor.emptyTuple(),
+				instruction)
+			return
 		}
-		int index = tuples.elements().size() - 1;
-		A_Type resultType = tuples.elements().get(index).type();
+		var index = tuples.elements().size - 1
+		var resultType: A_Type = tuples.elements()[index].type()
 		while (--index >= 0)
 		{
-			resultType = concatenatingAnd(
-				tuples.elements().get(index).type(), resultType);
+			resultType = ConcatenatedTupleTypeDescriptor.concatenatingAnd(
+				tuples.elements()[index].type(), resultType)
 		}
 		registerSet.constantAtPut(
-			output.register(), resultType, instruction);
+			output.register(), resultType, instruction)
 	}
 
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		assert this == instruction.operation();
-		final L2ReadBoxedVectorOperand tuples = instruction.operand(0);
-		final L2WriteBoxedOperand output = instruction.operand(1);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(output.registerString());
-		builder.append(" ← ");
-		for (int i = 0, limit = tuples.elements().size(); i < limit; i++)
+		assert(this == instruction.operation())
+		val tuples = instruction.operand<L2ReadBoxedVectorOperand>(0)
+		val output = instruction.operand<L2WriteBoxedOperand>(1)
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(output.registerString())
+		builder.append(" ← ")
+		var i = 0
+		val limit = tuples.elements().size
+		while (i < limit)
 		{
 			if (i > 0)
 			{
-				builder.append(" ++ ");
+				builder.append(" ++ ")
 			}
-			final L2ReadBoxedOperand element = tuples.elements().get(i);
-			builder.append(element.registerString());
+			val element = tuples.elements()[i]
+			builder.append(element.registerString())
+			i++
 		}
 	}
 
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		final L2ReadBoxedVectorOperand tuples = instruction.operand(0);
-		final L2WriteBoxedOperand output = instruction.operand(1);
-
-		final List<L2ReadBoxedOperand> elements = tuples.elements();
-		final int tupleCount = elements.size();
+		val tuples = instruction.operand<L2ReadBoxedVectorOperand>(0)
+		val output = instruction.operand<L2WriteBoxedOperand>(1)
+		val elements = tuples.elements()
+		val tupleCount = elements.size
 		if (tupleCount == 0)
 		{
-			translator.literal(method, emptyTuple());
+			translator.literal(method, TupleDescriptor.emptyTuple())
 		}
 		else
 		{
-			translator.load(method, elements.get(0).register());
-			for (int i = 1; i < tupleCount; i++)
+			translator.load(method, elements[0].register())
+			for (i in 1 until tupleCount)
 			{
-				translator.load(method, elements.get(i).register());
-				translator.intConstant(method, 1);  // canDestroy = true
-				concatenateWithMethod.generateCall(method);
+				translator.load(method, elements[i].register())
+				translator.intConstant(method, 1) // canDestroy = true
+				A_Tuple.concatenateWithMethod.generateCall(method)
 			}
 			// Strengthen the final result to AvailObject.
-			method.visitTypeInsn(CHECKCAST, getInternalName(AvailObject.class));
+			method.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(AvailObject::class.java))
 		}
-		translator.store(method, output.register());
+		translator.store(method, output.register())
 	}
 }

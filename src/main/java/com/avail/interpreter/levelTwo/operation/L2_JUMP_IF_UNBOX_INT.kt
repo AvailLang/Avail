@@ -29,119 +29,105 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operation
 
-package com.avail.interpreter.levelTwo.operation;
-
-import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.numbers.A_Number;
-import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.operand.L2PcOperand;
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
-import com.avail.optimizer.L2ValueManifest;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE;
-import static com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS;
-import static com.avail.interpreter.levelTwo.L2OperandType.*;
-import static org.objectweb.asm.Opcodes.IFEQ;
+import com.avail.descriptor.numbers.A_Number
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2NamedOperandType
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.operand.L2PcOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand
+import com.avail.optimizer.L2ValueManifest
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
+import java.util.function.Consumer
 
 /**
- * Jump to {@code "if unboxed"} if an {@code int} was unboxed from an {@link
- * AvailObject}, otherwise jump to {@code "if not unboxed"}.
+ * Jump to `"if unboxed"` if an `int` was unboxed from an [AvailObject], otherwise jump to `"if not unboxed"`.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_JUMP_IF_UNBOX_INT
-extends L2ConditionalJump
+class L2_JUMP_IF_UNBOX_INT
+/**
+ * Construct an `L2_JUMP_IF_UNBOX_INT`.
+ */
+private constructor() : L2ConditionalJump(
+	L2OperandType.READ_BOXED.`is`("source"),
+	L2OperandType.WRITE_INT.`is`("destination", L2NamedOperandType.Purpose.SUCCESS),
+	L2OperandType.PC.`is`("if not unboxed", L2NamedOperandType.Purpose.FAILURE),
+	L2OperandType.PC.`is`("if unboxed", L2NamedOperandType.Purpose.SUCCESS))
 {
-	/**
-	 * Construct an {@code L2_JUMP_IF_UNBOX_INT}.
-	 */
-	private L2_JUMP_IF_UNBOX_INT ()
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		super(
-			READ_BOXED.is("source"),
-			WRITE_INT.is("destination", SUCCESS),
-			PC.is("if not unboxed", FAILURE),
-			PC.is("if unboxed", SUCCESS));
-	}
-
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_JUMP_IF_UNBOX_INT instance =
-		new L2_JUMP_IF_UNBOX_INT();
-
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
-	{
-		assert this == instruction.operation();
-		final L2ReadBoxedOperand source = instruction.operand(0);
-		final L2WriteIntOperand destination = instruction.operand(1);
-//		final L2PcOperand ifNotUnboxed = instruction.operand(2);
+		assert(this == instruction.operation())
+		val source = instruction.operand<L2ReadBoxedOperand>(0)
+		val destination = instruction.operand<L2WriteIntOperand>(1)
+		//		final L2PcOperand ifNotUnboxed = instruction.operand(2);
 //		final L2PcOperand ifUnboxed = instruction.operand(3);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(destination.registerString());
-		builder.append(" ←? ");
-		builder.append(source.registerString());
-		renderOperandsStartingAt(instruction, 2, desiredTypes, builder);
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(destination.registerString())
+		builder.append(" ←? ")
+		builder.append(source.registerString())
+		renderOperandsStartingAt(instruction, 2, desiredTypes, builder)
 	}
 
-	@Override
-	public void instructionWasAdded (
-		final L2Instruction instruction,
-		final L2ValueManifest manifest)
+	override fun instructionWasAdded(
+		instruction: L2Instruction,
+		manifest: L2ValueManifest)
 	{
-		assert this == instruction.operation();
-		final L2ReadBoxedOperand source = instruction.operand(0);
-		final L2WriteIntOperand destination = instruction.operand(1);
-		final L2PcOperand ifNotUnboxed = instruction.operand(2);
-		final L2PcOperand ifUnboxed = instruction.operand(3);
-
-		source.instructionWasAdded(manifest);
-		ifNotUnboxed.instructionWasAdded(manifest);
+		assert(this == instruction.operation())
+		val source = instruction.operand<L2ReadBoxedOperand>(0)
+		val destination = instruction.operand<L2WriteIntOperand>(1)
+		val ifNotUnboxed = instruction.operand<L2PcOperand>(2)
+		val ifUnboxed = instruction.operand<L2PcOperand>(3)
+		source.instructionWasAdded(manifest)
+		ifNotUnboxed.instructionWasAdded(manifest)
 		// Ensure the new write ends up in the same synonym as the source, along
 		// the success edge.
 		destination.instructionWasAddedForMove(
-			source.semanticValue(), manifest);
-		ifUnboxed.instructionWasAdded(manifest);
+			source.semanticValue(), manifest)
+		ifUnboxed.instructionWasAdded(manifest)
 	}
 
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		final L2ReadBoxedOperand source = instruction.operand(0);
-		final L2WriteIntOperand destination = instruction.operand(1);
-		final L2PcOperand ifNotUnboxed = instruction.operand(2);
-		final L2PcOperand ifUnboxed = instruction.operand(3);
+		val source = instruction.operand<L2ReadBoxedOperand>(0)
+		val destination = instruction.operand<L2WriteIntOperand>(1)
+		val ifNotUnboxed = instruction.operand<L2PcOperand>(2)
+		val ifUnboxed = instruction.operand<L2PcOperand>(3)
 
 		// :: if (!source.isInt()) goto ifNotUnboxed;
-		translator.load(method, source.register());
-		A_BasicObject.isIntMethod.generateCall(method);
-		method.visitJumpInsn(IFEQ, translator.labelFor(ifNotUnboxed.offset()));
+		translator.load(method, source.register())
+		A_BasicObject.isIntMethod.generateCall(method)
+		method.visitJumpInsn(Opcodes.IFEQ, translator.labelFor(ifNotUnboxed.offset()))
 		// :: else {
 		// ::    destination = source.extractInt();
 		// ::    goto ifUnboxed;
 		// :: }
-		translator.load(method, source.register());
-		A_Number.extractIntMethod.generateCall(method);
-		translator.store(method, destination.register());
-		translator.jump(method, instruction, ifUnboxed);
+		translator.load(method, source.register())
+		A_Number.extractIntMethod.generateCall(method)
+		translator.store(method, destination.register())
+		translator.jump(method, instruction, ifUnboxed)
+	}
+
+	companion object
+	{
+		/**
+		 * Initialize the sole instance.
+		 */
+		@kotlin.jvm.JvmField
+		val instance = L2_JUMP_IF_UNBOX_INT()
 	}
 }

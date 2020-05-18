@@ -29,24 +29,17 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operation
 
-package com.avail.interpreter.levelTwo.operation;
-
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_INT;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_INT;
-import static org.objectweb.asm.Opcodes.IMUL;
-
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2Operation
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
+import java.util.function.Consumer
 
 /**
  * Multiply the value in one int register by the value in another int register,
@@ -55,61 +48,55 @@ import static org.objectweb.asm.Opcodes.IMUL;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_MULTIPLY_INT_BY_INT_MOD_32_BITS
-extends L2Operation
+class L2_MULTIPLY_INT_BY_INT_MOD_32_BITS
+/**
+ * Construct an `L2_MULTIPLY_INT_BY_INT_MOD_32_BITS`.
+ */
+private constructor() : L2Operation(
+	L2OperandType.READ_INT.`is`("multiplicand"),
+	L2OperandType.READ_INT.`is`("multiplier"),
+	L2OperandType.WRITE_INT.`is`("product"))
 {
-	/**
-	 * Construct an {@code L2_MULTIPLY_INT_BY_INT_MOD_32_BITS}.
-	 */
-	private L2_MULTIPLY_INT_BY_INT_MOD_32_BITS ()
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		super(
-			READ_INT.is("multiplicand"),
-			READ_INT.is("multiplier"),
-			WRITE_INT.is("product"));
+		assert(this == instruction.operation())
+		val multiplicand = instruction.operand<L2ReadIntOperand>(0)
+		val multiplier = instruction.operand<L2ReadIntOperand>(1)
+		val product = instruction.operand<L2WriteIntOperand>(2)
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(product.registerString())
+		builder.append(" ← ")
+		builder.append(multiplicand.registerString())
+		builder.append(" × ")
+		builder.append(multiplier.registerString())
 	}
 
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_MULTIPLY_INT_BY_INT_MOD_32_BITS instance =
-		new L2_MULTIPLY_INT_BY_INT_MOD_32_BITS();
-
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		assert this == instruction.operation();
-		final L2ReadIntOperand multiplicand = instruction.operand(0);
-		final L2ReadIntOperand multiplier = instruction.operand(1);
-		final L2WriteIntOperand product = instruction.operand(2);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(product.registerString());
-		builder.append(" ← ");
-		builder.append(multiplicand.registerString());
-		builder.append(" × ");
-		builder.append(multiplier.registerString());
-	}
-
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
-	{
-		final L2ReadIntOperand multiplicand = instruction.operand(0);
-		final L2ReadIntOperand multiplier = instruction.operand(1);
-		final L2WriteIntOperand product = instruction.operand(2);
+		val multiplicand = instruction.operand<L2ReadIntOperand>(0)
+		val multiplier = instruction.operand<L2ReadIntOperand>(1)
+		val product = instruction.operand<L2WriteIntOperand>(2)
 
 		// :: product = multiplicand * multiplier;
-		translator.load(method, multiplicand.register());
-		translator.load(method, multiplier.register());
-		method.visitInsn(IMUL);
-		translator.store(method, product.register());
+		translator.load(method, multiplicand.register())
+		translator.load(method, multiplier.register())
+		method.visitInsn(Opcodes.IMUL)
+		translator.store(method, product.register())
+	}
+
+	companion object
+	{
+		/**
+		 * Initialize the sole instance.
+		 */
+		val instance = L2_MULTIPLY_INT_BY_INT_MOD_32_BITS()
 	}
 }

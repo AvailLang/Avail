@@ -29,25 +29,21 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.levelTwo.operation;
+package com.avail.interpreter.levelTwo.operation
 
-import com.avail.interpreter.levelTwo.L2Chunk;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION;
-import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.STACK_REIFIER;
-import com.avail.interpreter.levelTwo.ReadsHiddenVariable;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static org.objectweb.asm.Opcodes.ACONST_NULL;
-import static org.objectweb.asm.Opcodes.ARETURN;
+import com.avail.interpreter.levelTwo.L2Chunk
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION
+import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.STACK_REIFIER
+import com.avail.interpreter.levelTwo.ReadsHiddenVariable
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
+import java.util.function.Consumer
 
 /**
- * Return from the reification clause of the current {@link L2Chunk}.  This
+ * Return from the reification clause of the current [L2Chunk].  This
  * clause was invoked when a request for reification was detected inside an
  * invocation instruction.  The operand supplies a sequence of continuations
  * (each with nil callers), in the order in which the corresponding non-inlined
@@ -56,52 +52,44 @@ import static org.objectweb.asm.Opcodes.ARETURN;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@ReadsHiddenVariable(theValue = {
-	CURRENT_CONTINUATION.class,
-	STACK_REIFIER.class,
-})
-public final class L2_RETURN_FROM_REIFICATION_HANDLER
-extends L2ControlFlowOperation
+@ReadsHiddenVariable(theValue = [CURRENT_CONTINUATION::class, STACK_REIFIER::class])
+class L2_RETURN_FROM_REIFICATION_HANDLER
+/**
+ * Construct an `L2_RETURN_FROM_REIFICATION_HANDLER`.
+ */
+private constructor() : L2ControlFlowOperation()
 {
-	/**
-	 * Construct an {@code L2_RETURN_FROM_REIFICATION_HANDLER}.
-	 */
-	private L2_RETURN_FROM_REIFICATION_HANDLER ()
-	{
-		super();
-	}
-
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_RETURN_FROM_REIFICATION_HANDLER instance =
-		new L2_RETURN_FROM_REIFICATION_HANDLER();
-
-	@Override
-	public boolean hasSideEffect ()
+	override fun hasSideEffect(): Boolean
 	{
 		// Never remove this.
-		return true;
+		return true
 	}
 
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		assert this == instruction.operation();
-		renderPreamble(instruction, builder);
+		assert(this == instruction.operation())
+		renderPreamble(instruction, builder)
 	}
 
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		method.visitInsn(ACONST_NULL);
-		method.visitInsn(ARETURN);
+		method.visitInsn(Opcodes.ACONST_NULL)
+		method.visitInsn(Opcodes.ARETURN)
+	}
+
+	companion object
+	{
+		/**
+		 * Initialize the sole instance.
+		 */
+		@kotlin.jvm.JvmField
+		val instance = L2_RETURN_FROM_REIFICATION_HANDLER()
 	}
 }

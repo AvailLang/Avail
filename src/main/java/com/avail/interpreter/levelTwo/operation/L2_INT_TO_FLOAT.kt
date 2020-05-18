@@ -29,78 +29,54 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.levelTwo.operation
 
-package com.avail.interpreter.levelTwo.operation;
-
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2OperandType;
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand;
-import com.avail.interpreter.levelTwo.operand.L2WriteFloatOperand;
-import com.avail.optimizer.jvm.JVMTranslator;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.Set;
-import java.util.function.Consumer;
-
-import static com.avail.interpreter.levelTwo.L2OperandType.READ_INT;
-import static com.avail.interpreter.levelTwo.L2OperandType.WRITE_FLOAT;
-import static org.objectweb.asm.Opcodes.I2D;
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2Operation
+import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand
+import com.avail.interpreter.levelTwo.operand.L2WriteFloatOperand
+import com.avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
+import java.util.function.Consumer
 
 /**
- * Convert an {@code int} to a {@code double}.
+ * Convert an `int` to a `double`.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_INT_TO_FLOAT
-extends L2Operation
+object L2_INT_TO_FLOAT : L2Operation(
+	L2OperandType.READ_INT.`is`("source"),
+	L2OperandType.WRITE_FLOAT.`is`("destination"))
 {
-	/**
-	 * Construct an {@code L2_INT_TO_FLOAT}.
-	 */
-	private L2_INT_TO_FLOAT ()
+	override fun appendToWithWarnings(
+		instruction: L2Instruction,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder,
+		warningStyleChange: Consumer<Boolean>)
 	{
-		super(
-			READ_INT.is("source"),
-			WRITE_FLOAT.is("destination"));
+		assert(this == instruction.operation())
+		val source = instruction.operand<L2ReadIntOperand>(0)
+		val destination = instruction.operand<L2WriteFloatOperand>(1)
+		renderPreamble(instruction, builder)
+		builder.append(' ')
+		builder.append(source.registerString())
+		builder.append(" ← ")
+		builder.append(destination.registerString())
 	}
 
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_INT_TO_FLOAT instance = new L2_INT_TO_FLOAT();
-
-	@Override
-	public void appendToWithWarnings (
-		final L2Instruction instruction,
-		final Set<? extends L2OperandType> desiredTypes,
-		final StringBuilder builder,
-		final Consumer<Boolean> warningStyleChange)
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		assert this == instruction.operation();
-		final L2ReadIntOperand source = instruction.operand(0);
-		final L2WriteFloatOperand destination = instruction.operand(1);
-
-		renderPreamble(instruction, builder);
-		builder.append(' ');
-		builder.append(source.registerString());
-		builder.append(" ← ");
-		builder.append(destination.registerString());
-	}
-
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
-	{
-		final L2ReadIntOperand source = instruction.operand(0);
-		final L2WriteFloatOperand destination = instruction.operand(1);
+		val source = instruction.operand<L2ReadIntOperand>(0)
+		val destination = instruction.operand<L2WriteFloatOperand>(1)
 
 		// :: destination = (double) source;
-		translator.load(method, source.register());
-		method.visitInsn(I2D);
-		translator.store(method, destination.register());
+		translator.load(method, source.register())
+		method.visitInsn(Opcodes.I2D)
+		translator.store(method, destination.register())
 	}
 }
-

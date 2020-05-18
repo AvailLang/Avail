@@ -29,20 +29,16 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.levelTwo.operation;
+package com.avail.interpreter.levelTwo.operation
 
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.jvm.CheckedMethod;
-import com.avail.optimizer.jvm.JVMTranslator;
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-import org.objectweb.asm.MethodVisitor;
-
-import java.util.List;
-
-import static com.avail.optimizer.jvm.CheckedMethod.staticMethod;
-import static org.objectweb.asm.Opcodes.ATHROW;
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.optimizer.L2Generator
+import com.avail.optimizer.RegisterSet
+import com.avail.optimizer.jvm.CheckedMethod
+import com.avail.optimizer.jvm.JVMTranslator
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
 
 /**
  * This instruction should never be reached.  Stop the VM if it is.  We need the
@@ -52,78 +48,51 @@ import static org.objectweb.asm.Opcodes.ATHROW;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_UNREACHABLE_CODE
-extends L2ControlFlowOperation
+object  L2_UNREACHABLE_CODE : L2ControlFlowOperation()
 {
-	/**
-	 * Construct an {@code L2_UNREACHABLE_CODE}.
-	 */
-	private L2_UNREACHABLE_CODE ()
+	override fun propagateTypes(
+		instruction: L2Instruction,
+		registerSets: List<RegisterSet>,
+		generator: L2Generator)
 	{
-		// Prevent accidental construction due to code cloning.
+		assert(registerSets.isEmpty())
 	}
 
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_UNREACHABLE_CODE instance =
-		new L2_UNREACHABLE_CODE();
-
-	@Override
-	protected void propagateTypes (
-		final L2Instruction instruction,
-		final List<RegisterSet> registerSets,
-		final L2Generator generator)
-	{
-		assert registerSets.isEmpty();
-	}
-
-	@Override
-	public boolean hasSideEffect ()
-	{
-		// Don't remove it.
-		return true;
-	}
+	// Don't remove it.
+	override fun hasSideEffect(): Boolean = true
 
 	/**
-	 * {@code UnreachableCodeException} is thrown only if unreachable code is
+	 * `UnreachableCodeException` is thrown only if unreachable code is
 	 * actually reached.
 	 */
-	static class UnreachableCodeException
-	extends RuntimeException
+	class UnreachableCodeException : RuntimeException()
+
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		// No implementation required.
+		// :: throw throwUnreachableCodeException();
+		throwUnreachableCodeExceptionMethod.generateCall(method)
+		method.visitInsn(Opcodes.ATHROW)
 	}
 
 	/**
-	 * Throw an {@link UnreachableCodeException}, but pretend to return one to
+	 * Throw an [UnreachableCodeException], but pretend to return one to
 	 * make JVM data flow analysis happy (and keep instruction count low in the
-	 * generated code for {@code L2_UNREACHABLE_CODE}).
+	 * generated code for `L2_UNREACHABLE_CODE`).
 	 *
-	 * @return Never returns, always throws {@code UnreachableCodeException}.
+	 * @return
+	 * Never returns, always throws `UnreachableCodeException`.
 	 */
-	@SuppressWarnings("unused")
 	@ReferencedInGeneratedCode
-	public static UnreachableCodeException
-	throwUnreachableCodeException ()
+	fun throwUnreachableCodeException(): UnreachableCodeException
 	{
-		throw new UnreachableCodeException();
+		throw UnreachableCodeException()
 	}
 
-	public static final CheckedMethod throwUnreachableCodeExceptionMethod =
-		staticMethod(
-			L2_UNREACHABLE_CODE.class,
-			"throwUnreachableCodeException",
-			UnreachableCodeException.class);
-
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
-	{
-		// :: throw throwUnreachableCodeException();
-		throwUnreachableCodeExceptionMethod.generateCall(method);
-		method.visitInsn(ATHROW);
-	}
+	val throwUnreachableCodeExceptionMethod = CheckedMethod.staticMethod(
+		L2_UNREACHABLE_CODE::class.java,
+		"throwUnreachableCodeException",
+		UnreachableCodeException::class.java)
 }

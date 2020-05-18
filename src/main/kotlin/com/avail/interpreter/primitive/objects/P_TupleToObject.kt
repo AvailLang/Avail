@@ -176,7 +176,7 @@ object P_TupleToObject : Primitive(1, CannotFail, CanFold, CanInline)
 			restrictionForType(callSiteHelper.expectedType, BOXED))
 
 		generator.addInstruction(
-			L2_CREATE_OBJECT.instance,
+			L2_CREATE_OBJECT,
 			L2ConstantOperand(variant.thisPojo),
 			L2ReadBoxedVectorOperand(
 				Array(sourcesByFieldIndex.size)

@@ -169,7 +169,7 @@ extends L2ReadOperand<L2BoxedRegister>
 			final A_Type functionType = function.code().functionType();
 			return functionType.argsTupleType().typeAtIndex(1);
 		}
-		if (originOfFunction.operation() == L2_CREATE_FUNCTION.instance)
+		if (originOfFunction.operation() == L2_CREATE_FUNCTION.INSTANCE)
 		{
 			final A_RawFunction code =
 				L2_CREATE_FUNCTION.constantRawFunctionOf(originOfFunction);

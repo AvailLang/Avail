@@ -29,42 +29,34 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.levelTwo.operation;
+package com.avail.interpreter.levelTwo.operation
 
-import com.avail.descriptor.representation.AvailObject;
-import com.avail.descriptor.functions.A_Continuation;
-import com.avail.descriptor.functions.A_Function;
-import com.avail.descriptor.functions.A_RawFunction;
-import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.descriptor.variables.A_Variable;
-import com.avail.interpreter.execution.Interpreter;
-import com.avail.interpreter.Primitive;
-import com.avail.interpreter.Primitive.Flag;
-import com.avail.interpreter.levelTwo.L1InstructionStepper;
-import com.avail.interpreter.levelTwo.L2Instruction;
-import com.avail.interpreter.levelTwo.L2Operation;
-import com.avail.optimizer.L2Generator;
-import com.avail.optimizer.RegisterSet;
-import com.avail.optimizer.StackReifier;
-import com.avail.optimizer.jvm.CheckedMethod;
-import com.avail.optimizer.jvm.JVMTranslator;
-import com.avail.optimizer.jvm.ReferencedInGeneratedCode;
-import com.avail.performance.Statistic;
-import com.avail.performance.StatisticReport;
-import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
-
-import javax.annotation.Nullable;
-
-import static com.avail.descriptor.representation.NilDescriptor.nil;
-import static com.avail.descriptor.functions.ContinuationDescriptor.createContinuationWithFrame;
-import static com.avail.descriptor.variables.VariableDescriptor.newVariableWithOuterType;
-import static com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RESUME;
-import static com.avail.interpreter.levelTwo.L2Chunk.unoptimizedChunk;
-import static com.avail.optimizer.jvm.CheckedMethod.staticMethod;
-import static com.avail.utility.Nulls.stripNull;
-import static java.util.Arrays.asList;
-import static org.objectweb.asm.Opcodes.*;
+import com.avail.descriptor.functions.A_Continuation
+import com.avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationWithFrame
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.NilDescriptor
+import com.avail.descriptor.variables.A_Variable
+import com.avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithOuterType
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.levelTwo.L2Chunk
+import com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
+import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.L2Operation
+import com.avail.optimizer.L2Generator
+import com.avail.optimizer.RegisterSet
+import com.avail.optimizer.StackReifier
+import com.avail.optimizer.jvm.CheckedMethod
+import com.avail.optimizer.jvm.JVMTranslator
+import com.avail.optimizer.jvm.ReferencedInGeneratedCode
+import com.avail.performance.Statistic
+import com.avail.performance.StatisticReport
+import com.avail.utility.Nulls
+import com.avail.utility.evaluation.Continuation0
+import org.objectweb.asm.Label
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
+import java.util.*
 
 /**
  * This operation is only used when entering a function that uses the
@@ -76,85 +68,84 @@ import static org.objectweb.asm.Opcodes.*;
  * failure value into the first local variable if this is a primitive (and
  * therefore failed).
  *
- * <p>Also check for interrupts after all that, reifying and suspending the
- * fiber if needed.</p>
+ *
+ * Also check for interrupts after all that, reifying and suspending the fiber
+ * if needed.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-public final class L2_PREPARE_NEW_FRAME_FOR_L1
-extends L2Operation
+object L2_PREPARE_NEW_FRAME_FOR_L1 : L2Operation()
 {
-	/**
-	 * Construct an {@code L2_PREPARE_NEW_FRAME_FOR_L1}.
-	 */
-	private L2_PREPARE_NEW_FRAME_FOR_L1 ()
-	{
-		// Prevent accidental construction due to code cloning.
-	}
-
-	/**
-	 * Initialize the sole instance.
-	 */
-	public static final L2_PREPARE_NEW_FRAME_FOR_L1 instance =
-		new L2_PREPARE_NEW_FRAME_FOR_L1();
-
-	/** {@link Statistic} for reifying in L1 interrupt-handler preamble. */
-	private static final Statistic reificationForInterruptInL1Stat =
-		new Statistic(
-			"Reification for interrupt in L1 preamble",
-			StatisticReport.REIFICATIONS);
-
-	@Override
-	protected void propagateTypes (
-		final L2Instruction instruction,
-		final RegisterSet registerSet,
-		final L2Generator generator)
+	override fun propagateTypes(
+		instruction: L2Instruction,
+		registerSet: RegisterSet,
+		generator: L2Generator)
 	{
 		// No real optimization should ever be done near this L2 instruction.
 		// Do nothing.
 	}
+	// Keep this instruction from being removed, since it's only used
+	// by the default chunk.
+	override fun hasSideEffect(): Boolean = true
 
-	@Override
-	public boolean hasSideEffect ()
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
 	{
-		// Keep this instruction from being removed, since it's only used
-		// by the default chunk.
-		return true;
+		// :: reifier = L2_PREPARE_NEW_FRAME_FOR_L1.prepare(interpreter);
+		translator.loadInterpreter(method)
+		prepareMethod.generateCall(method)
+		method.visitInsn(Opcodes.DUP)
+		method.visitVarInsn(Opcodes.ASTORE, translator.reifierLocal())
+		// :: if (reifier == null) goto noReification;
+		val noReification = Label()
+		method.visitJumpInsn(Opcodes.IFNULL, noReification)
+		// :: else return reifier;
+		method.visitVarInsn(Opcodes.ALOAD, translator.reifierLocal())
+		method.visitInsn(Opcodes.ARETURN)
+		method.visitLabel(noReification)
 	}
+
+	/** [Statistic] for reifying in L1 interrupt-handler preamble.  */
+	private val reificationForInterruptInL1Stat = Statistic(
+		"Reification for interrupt in L1 preamble",
+		StatisticReport.REIFICATIONS)
 
 	/**
 	 * Prepare a new frame for L1 interpretation.
 	 *
 	 * @param interpreter
-	 *        The {@link Interpreter}.
-	 * @return A {@link StackReifier}, if any.
+	 *   The [Interpreter].
+	 * @return
+	 *   A [StackReifier], if any.
 	 */
 	@ReferencedInGeneratedCode
-	public static @Nullable StackReifier prepare (final Interpreter interpreter)
+	fun prepare(interpreter: Interpreter): StackReifier?
 	{
-		assert !interpreter.exitNow;
-		final A_Function function = stripNull(interpreter.function);
-		final A_RawFunction code = function.code();
-		final int numArgs = code.numArgs();
-		final int numLocals = code.numLocals();
-		final int numSlots = code.numSlots();
+		assert(!interpreter.exitNow)
+		val function = Nulls.stripNull(interpreter.function)
+		val code = function.code()
+		val numArgs = code.numArgs()
+		val numLocals = code.numLocals()
+		val numSlots = code.numSlots()
 		// The L2 instructions that implement L1 don't reserve room for any
 		// fixed registers, but they assume [0] is unused (to simplify
 		// indexing).  I.e., pointers[1] <-> continuation.stackAt(1).
-		final L1InstructionStepper stepper = interpreter.levelOneStepper;
-		stepper.pointers = new AvailObject[numSlots + 1];
-		int dest = 1;
+		val stepper = interpreter.levelOneStepper
+		stepper.pointers = arrayOfNulls(numSlots + 1)
+		var dest = 1
 		// Populate the arguments from argsBuffer.
-		for (final AvailObject arg : interpreter.argsBuffer)
+		for (arg in interpreter.argsBuffer)
 		{
-			stepper.pointerAtPut(dest++, arg);
+			stepper.pointerAtPut(dest++, arg)
 		}
 		// Create actual local variables.
-		for (int i = 1; i <= numLocals; i++)
+		for (i in 1 .. numLocals)
 		{
 			stepper.pointerAtPut(
-				dest++, newVariableWithOuterType(code.localTypeAt(i)));
+				dest++, newVariableWithOuterType(code.localTypeAt(i)))
 		}
 		// Write nil into the remaining stack slots.  These values should not
 		// encounter any kind of ordinary use, but they must still be
@@ -162,84 +153,60 @@ extends L2Operation
 		// use Java nulls here.
 		while (dest <= numSlots)
 		{
-			stepper.pointerAtPut(dest++, nil);
+			stepper.pointerAtPut(dest++, NilDescriptor.nil)
 		}
-		code.setUpInstructionDecoder(stepper.instructionDecoder);
-		stepper.instructionDecoder.pc(1);
-		stepper.stackp = numSlots + 1;
-		final @Nullable Primitive primitive = code.primitive();
+		code.setUpInstructionDecoder(stepper.instructionDecoder)
+		stepper.instructionDecoder.pc(1)
+		stepper.stackp = numSlots + 1
+		val primitive = code.primitive()
 		if (primitive != null)
 		{
 			// A failed primitive.  The failure value was captured in the
 			// latestResult().
-			assert !primitive.hasFlag(Flag.CannotFail);
-			final A_BasicObject primitiveFailureValue =
-				interpreter.getLatestResult();
-			final A_Variable primitiveFailureVariable =
-				stepper.pointerAt(numArgs + 1);
-			primitiveFailureVariable.setValue(primitiveFailureValue);
+			assert(!primitive.hasFlag(Primitive.Flag.CannotFail))
+			val primitiveFailureValue: A_BasicObject = interpreter.getLatestResult()
+			val primitiveFailureVariable: A_Variable = stepper.pointerAt(numArgs + 1)
+			primitiveFailureVariable.setValue(primitiveFailureValue)
 		}
-
-		if (interpreter.isInterruptRequested())
+		if (interpreter.isInterruptRequested)
 		{
 			// Build an interrupted continuation, reify the rest of the stack,
 			// and push the continuation onto the reified stack.  Then process
 			// the interrupt, which may or may not suspend the fiber.
-			final A_Continuation continuation =
-				createContinuationWithFrame(
-					function,
-					nil,
-					nil,
-					1,  // start of function
-					numSlots + 1,   // empty stack
-					unoptimizedChunk,
-					TO_RESUME.getOffsetInDefaultChunk(),
-					asList(stepper.pointers),
-					1);
+			val continuation: A_Continuation = createContinuationWithFrame(
+				function,
+				NilDescriptor.nil,
+				NilDescriptor.nil,
+				1,  // start of function
+				numSlots + 1,  // empty stack
+				L2Chunk.unoptimizedChunk,
+				ChunkEntryPoint.TO_RESUME.offsetInDefaultChunk,
+				Arrays.asList(*stepper.pointers),
+				1)
 			// Push the continuation from above onto the reified stack.
-			interpreter.isReifying = true;
-			return new StackReifier(
+			interpreter.isReifying = true
+			return StackReifier(
 				true,
 				reificationForInterruptInL1Stat,
-				() ->
-				{
+				Continuation0 {
+
 					// Push the continuation from above onto the reified stack.
-					interpreter.returnNow = false;
+					interpreter.returnNow = false
 					interpreter.setReifiedContinuation(
 						continuation.replacingCaller(
-							stripNull(interpreter.getReifiedContinuation())));
+							Nulls.stripNull(interpreter.getReifiedContinuation())))
 					interpreter.processInterrupt(
-						interpreter.getReifiedContinuation());
-					interpreter.isReifying = false;
-				});
+						interpreter.getReifiedContinuation()!!)
+					interpreter.isReifying = false
+				})
 		}
-		return null;
+		return null
 	}
 
-	/** The {@link CheckedMethod} for {@link #prepare(Interpreter)}. */
-	private static final CheckedMethod prepareMethod = staticMethod(
-		L2_PREPARE_NEW_FRAME_FOR_L1.class,
+	/** The [CheckedMethod] for [prepare].  */
+	private val prepareMethod = CheckedMethod.staticMethod(
+		L2_PREPARE_NEW_FRAME_FOR_L1::class.java,
 		"prepare",
-		StackReifier.class,
-		Interpreter.class);
-
-	@Override
-	public void translateToJVM (
-		final JVMTranslator translator,
-		final MethodVisitor method,
-		final L2Instruction instruction)
-	{
-		// :: reifier = L2_PREPARE_NEW_FRAME_FOR_L1.prepare(interpreter);
-		translator.loadInterpreter(method);
-		L2_PREPARE_NEW_FRAME_FOR_L1.prepareMethod.generateCall(method);
-		method.visitInsn(DUP);
-		method.visitVarInsn(ASTORE, translator.reifierLocal());
-		// :: if (reifier == null) goto noReification;
-		final Label noReification = new Label();
-		method.visitJumpInsn(IFNULL, noReification);
-		// :: else return reifier;
-		method.visitVarInsn(ALOAD, translator.reifierLocal());
-		method.visitInsn(ARETURN);
-		method.visitLabel(noReification);
-	}
+		StackReifier::class.java,
+		Interpreter::class.java)
 }
