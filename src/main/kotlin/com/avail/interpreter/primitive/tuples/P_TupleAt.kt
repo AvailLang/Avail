@@ -53,7 +53,7 @@ import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_COMPARE_INT
 import com.avail.interpreter.levelTwo.operation.L2_TUPLE_AT_CONSTANT
 import com.avail.interpreter.levelTwo.operation.L2_TUPLE_AT_NO_FAIL

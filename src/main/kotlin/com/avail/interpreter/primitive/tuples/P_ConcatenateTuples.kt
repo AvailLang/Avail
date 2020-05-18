@@ -50,7 +50,7 @@ import com.avail.interpreter.Primitive.Flag.*
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.restriction
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restriction
 import com.avail.interpreter.levelTwo.operation.L2_CONCATENATE_TUPLES
 import com.avail.interpreter.levelTwo.operation.L2_CREATE_TUPLE
 import com.avail.optimizer.L1Translator

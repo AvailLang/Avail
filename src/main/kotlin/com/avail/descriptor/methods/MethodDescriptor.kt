@@ -91,8 +91,8 @@ import com.avail.interpreter.Primitive
 import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.anyRestriction
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.anyRestriction
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import com.avail.interpreter.primitive.atoms.P_AtomRemoveProperty
 import com.avail.interpreter.primitive.atoms.P_AtomSetProperty
 import com.avail.interpreter.primitive.bootstrap.syntax.P_ModuleHeaderPrefixCheckImportVersion

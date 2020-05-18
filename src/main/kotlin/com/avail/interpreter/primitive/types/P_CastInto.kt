@@ -51,7 +51,7 @@ import com.avail.interpreter.Primitive.Flag.Invokes
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import com.avail.interpreter.levelTwo.operation.L2_FUNCTION_PARAMETER_TYPE
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
 import com.avail.optimizer.L1Translator

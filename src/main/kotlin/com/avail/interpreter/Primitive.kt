@@ -67,7 +67,7 @@ import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.operand.*
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import com.avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import com.avail.interpreter.primitive.hooks.P_SetImplicitObserveFunction
 import com.avail.interpreter.primitive.privatehelpers.P_PushConstant

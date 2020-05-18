@@ -3449,7 +3449,9 @@ public final class L1Translator
 			continuationTypeForFunctionType(code.functionType());
 		final L2SemanticValue label = topFrame().label();
 		final L2WriteBoxedOperand destinationRegister =
-			generator.boxedWrite(label, restriction(continuationType, null));
+			generator.boxedWrite(
+				label,
+				TypeRestriction.Companion.restriction(continuationType, null));
 
 		addInstruction(
 			L2_VIRTUAL_CREATE_LABEL.INSTANCE,
