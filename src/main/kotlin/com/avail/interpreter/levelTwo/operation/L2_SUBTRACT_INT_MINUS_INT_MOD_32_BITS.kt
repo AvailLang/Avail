@@ -49,9 +49,9 @@ import java.util.function.Consumer
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_SUBTRACT_INT_MINUS_INT_MOD_32_BITS : L2Operation(
-	L2OperandType.READ_INT.`is`("minuend"),
-	L2OperandType.READ_INT.`is`("subtrahend"),
-	L2OperandType.WRITE_INT.`is`("difference"))
+	L2OperandType.READ_INT.named("minuend"),
+	L2OperandType.READ_INT.named("subtrahend"),
+	L2OperandType.WRITE_INT.named("difference"))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

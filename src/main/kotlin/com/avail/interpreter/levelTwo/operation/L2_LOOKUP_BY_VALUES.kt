@@ -82,16 +82,16 @@ import java.util.logging.Level
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_LOOKUP_BY_VALUES : L2ControlFlowOperation(
-	L2OperandType.SELECTOR.`is`("message bundle"),
-	L2OperandType.READ_BOXED_VECTOR.`is`("arguments"),
-	L2OperandType.WRITE_BOXED.`is`(
+	L2OperandType.SELECTOR.named("message bundle"),
+	L2OperandType.READ_BOXED_VECTOR.named("arguments"),
+	L2OperandType.WRITE_BOXED.named(
 		"looked up function", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.WRITE_BOXED.`is`(
+	L2OperandType.WRITE_BOXED.named(
 		"error code", L2NamedOperandType.Purpose.FAILURE),
-	L2OperandType.PC.`is`(
+	L2OperandType.PC.named(
 		"lookup succeeded", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.PC.`is`("" +
-						  "lookup failed", L2NamedOperandType.Purpose.FAILURE))
+	L2OperandType.PC.named("" +
+						   "lookup failed", L2NamedOperandType.Purpose.FAILURE))
 {
 	override fun instructionWasAdded(
 		instruction: L2Instruction,

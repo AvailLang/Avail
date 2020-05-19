@@ -53,15 +53,15 @@ import java.util.function.Consumer
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_CREATE_CONTINUATION : L2Operation(
-	L2OperandType.READ_BOXED.`is`("function"),
-	L2OperandType.READ_BOXED.`is`("caller"),
-	L2OperandType.INT_IMMEDIATE.`is`("level one pc"),
-	L2OperandType.INT_IMMEDIATE.`is`("stack pointer"),
-	L2OperandType.READ_BOXED_VECTOR.`is`("slot values"),
-	L2OperandType.WRITE_BOXED.`is`("destination"),
-	L2OperandType.READ_INT.`is`("label address"),
-	L2OperandType.READ_BOXED.`is`("register dump"),
-	L2OperandType.COMMENT.`is`("usage comment"))
+	L2OperandType.READ_BOXED.named("function"),
+	L2OperandType.READ_BOXED.named("caller"),
+	L2OperandType.INT_IMMEDIATE.named("level one pc"),
+	L2OperandType.INT_IMMEDIATE.named("stack pointer"),
+	L2OperandType.READ_BOXED_VECTOR.named("slot values"),
+	L2OperandType.WRITE_BOXED.named("destination"),
+	L2OperandType.READ_INT.named("label address"),
+	L2OperandType.READ_BOXED.named("register dump"),
+	L2OperandType.COMMENT.named("usage comment"))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

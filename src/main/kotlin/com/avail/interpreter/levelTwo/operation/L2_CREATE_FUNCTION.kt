@@ -56,9 +56,9 @@ import java.util.function.Consumer
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_CREATE_FUNCTION : L2Operation(
-	L2OperandType.CONSTANT.`is`("compiled code"),
-	L2OperandType.READ_BOXED_VECTOR.`is`("captured variables"),
-	L2OperandType.WRITE_BOXED.`is`("new function"))
+	L2OperandType.CONSTANT.named("compiled code"),
+	L2OperandType.READ_BOXED_VECTOR.named("captured variables"),
+	L2OperandType.WRITE_BOXED.named("new function"))
 {
 	override fun propagateTypes(
 		instruction: L2Instruction,

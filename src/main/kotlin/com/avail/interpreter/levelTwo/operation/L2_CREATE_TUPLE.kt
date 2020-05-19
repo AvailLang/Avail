@@ -62,8 +62,8 @@ import java.util.function.Consumer
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_CREATE_TUPLE : L2Operation(
-	L2OperandType.READ_BOXED_VECTOR.`is`("elements"),
-	L2OperandType.WRITE_BOXED.`is`("tuple"))
+	L2OperandType.READ_BOXED_VECTOR.named("elements"),
+	L2OperandType.WRITE_BOXED.named("tuple"))
 {
 	override fun propagateTypes(
 		instruction: L2Instruction,

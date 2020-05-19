@@ -64,10 +64,10 @@ import java.util.function.Consumer
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_GET_VARIABLE_CLEARING : L2ControlFlowOperation(
-	L2OperandType.READ_BOXED.`is`("variable"),
-	L2OperandType.WRITE_BOXED.`is`("extracted value", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.PC.`is`("read succeeded", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.PC.`is`("read failed", L2NamedOperandType.Purpose.OFF_RAMP))
+	L2OperandType.READ_BOXED.named("variable"),
+	L2OperandType.WRITE_BOXED.named("extracted value", L2NamedOperandType.Purpose.SUCCESS),
+	L2OperandType.PC.named("read succeeded", L2NamedOperandType.Purpose.SUCCESS),
+	L2OperandType.PC.named("read failed", L2NamedOperandType.Purpose.OFF_RAMP))
 {
 	override fun propagateTypes(
 		instruction: L2Instruction,

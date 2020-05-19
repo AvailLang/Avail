@@ -57,8 +57,8 @@ import java.util.function.Consumer
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_GET_TYPE : L2Operation(
-	L2OperandType.READ_BOXED.`is`("value"),
-	L2OperandType.WRITE_BOXED.`is`("value's type"))
+	L2OperandType.READ_BOXED.named("value"),
+	L2OperandType.WRITE_BOXED.named("value's type"))
 {
 	override fun propagateTypes(
 		instruction: L2Instruction,

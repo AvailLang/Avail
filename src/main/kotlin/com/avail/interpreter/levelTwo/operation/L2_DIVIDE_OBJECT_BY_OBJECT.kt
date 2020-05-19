@@ -55,12 +55,12 @@ import java.util.function.Consumer
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_DIVIDE_OBJECT_BY_OBJECT : L2ControlFlowOperation(
-	L2OperandType.READ_BOXED.`is`("dividend"),
-	L2OperandType.READ_BOXED.`is`("divisor"),
-	L2OperandType.WRITE_BOXED.`is`("quotient", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.WRITE_BOXED.`is`("remainder", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.PC.`is`("if undefined", L2NamedOperandType.Purpose.OFF_RAMP),
-	L2OperandType.PC.`is`("success", L2NamedOperandType.Purpose.SUCCESS))
+	L2OperandType.READ_BOXED.named("dividend"),
+	L2OperandType.READ_BOXED.named("divisor"),
+	L2OperandType.WRITE_BOXED.named("quotient", L2NamedOperandType.Purpose.SUCCESS),
+	L2OperandType.WRITE_BOXED.named("remainder", L2NamedOperandType.Purpose.SUCCESS),
+	L2OperandType.PC.named("if undefined", L2NamedOperandType.Purpose.OFF_RAMP),
+	L2OperandType.PC.named("success", L2NamedOperandType.Purpose.SUCCESS))
 {
 	override fun hasSideEffect(): Boolean
 	{

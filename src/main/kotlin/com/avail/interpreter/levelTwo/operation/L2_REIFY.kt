@@ -40,7 +40,6 @@ import com.avail.interpreter.levelTwo.WritesHiddenVariable
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import com.avail.interpreter.levelTwo.operand.L2Operand
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
-import com.avail.interpreter.levelTwo.operation.L2_REIFY.StatisticCategory
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuation
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
 import com.avail.optimizer.jvm.JVMTranslator
@@ -64,10 +63,10 @@ import java.util.function.Consumer
  */
 @WritesHiddenVariable(STACK_REIFIER::class)
 object L2_REIFY : L2ControlFlowOperation(
-	L2OperandType.INT_IMMEDIATE.`is`("capture frames"),
-	L2OperandType.INT_IMMEDIATE.`is`("process interrupt"),
-	L2OperandType.INT_IMMEDIATE.`is`("statistic category"),
-	L2OperandType.PC.`is`("on reification", L2NamedOperandType.Purpose.OFF_RAMP))
+	L2OperandType.INT_IMMEDIATE.named("capture frames"),
+	L2OperandType.INT_IMMEDIATE.named("process interrupt"),
+	L2OperandType.INT_IMMEDIATE.named("statistic category"),
+	L2OperandType.PC.named("on reification", L2NamedOperandType.Purpose.OFF_RAMP))
 {
 	/**
 	 * An enumeration of reasons for reification, for the purpose of

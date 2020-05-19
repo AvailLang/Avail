@@ -64,10 +64,10 @@ class L2_JUMP_IF_COMPARE_INT private constructor(
 		private val opcode: Int,
 		private val opcodeName: String) :
 	L2ConditionalJump(
-		L2OperandType.READ_INT.`is`("int1"),
-		L2OperandType.READ_INT.`is`("int2"),
-		L2OperandType.PC.`is`("if true", L2NamedOperandType.Purpose.SUCCESS),
-		L2OperandType.PC.`is`("if false", L2NamedOperandType.Purpose.FAILURE))
+		L2OperandType.READ_INT.named("int1"),
+		L2OperandType.READ_INT.named("int2"),
+		L2OperandType.PC.named("if true", L2NamedOperandType.Purpose.SUCCESS),
+		L2OperandType.PC.named("if false", L2NamedOperandType.Purpose.FAILURE))
 {
 
 	override fun appendToWithWarnings(

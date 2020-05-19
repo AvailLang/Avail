@@ -54,7 +54,7 @@ import java.util.function.Consumer
  */
 @ReadsHiddenVariable(theValue = arrayOf(CURRENT_FUNCTION::class))
 object L2_GET_RETURNING_FUNCTION : L2Operation(
-	L2OperandType.WRITE_BOXED.`is`("returning function"))
+	L2OperandType.WRITE_BOXED.named("returning function"))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

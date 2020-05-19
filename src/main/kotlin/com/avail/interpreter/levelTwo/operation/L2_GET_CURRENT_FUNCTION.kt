@@ -54,7 +54,7 @@ import java.util.function.Consumer
  */
 @ReadsHiddenVariable(theValue = arrayOf(CURRENT_FUNCTION::class))
 object L2_GET_CURRENT_FUNCTION : L2Operation(
-	L2OperandType.WRITE_BOXED.`is`("current function"))
+	L2OperandType.WRITE_BOXED.named("current function"))
 {
 	override fun hasSideEffect(): Boolean = true
 

@@ -60,8 +60,8 @@ import org.objectweb.asm.Opcodes
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 object L2_JUMP_IF_ALREADY_REIFIED : L2ConditionalJump(
-	L2OperandType.PC.`is`("already reified", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.PC.`is`("not yet interrupt", L2NamedOperandType.Purpose.FAILURE))
+	L2OperandType.PC.named("already reified", L2NamedOperandType.Purpose.SUCCESS),
+	L2OperandType.PC.named("not yet interrupt", L2NamedOperandType.Purpose.FAILURE))
 {
 	override fun translateToJVM(
 		translator: JVMTranslator,

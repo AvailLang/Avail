@@ -58,9 +58,9 @@ import java.util.function.Consumer
  */
 @ReadsHiddenVariable(theValue = arrayOf(CURRENT_FUNCTION::class))
 object L2_MOVE_OUTER_VARIABLE : L2Operation(
-	L2OperandType.INT_IMMEDIATE.`is`("outer index"),
-	L2OperandType.READ_BOXED.`is`("function"),
-	L2OperandType.WRITE_BOXED.`is`("destination"))
+	L2OperandType.INT_IMMEDIATE.named("outer index"),
+	L2OperandType.READ_BOXED.named("function"),
+	L2OperandType.WRITE_BOXED.named("destination"))
 {
 	override fun propagateTypes(
 		instruction: L2Instruction,

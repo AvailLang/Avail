@@ -52,8 +52,8 @@ import java.util.function.Consumer
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_CREATE_VARIABLE : L2Operation(
-	L2OperandType.CONSTANT.`is`("outerType"),
-	L2OperandType.WRITE_BOXED.`is`("variable"))
+	L2OperandType.CONSTANT.named("outerType"),
+	L2OperandType.WRITE_BOXED.named("variable"))
 {
 	override fun propagateTypes(
 		instruction: L2Instruction,

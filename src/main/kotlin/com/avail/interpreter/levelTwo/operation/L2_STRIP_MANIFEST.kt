@@ -51,7 +51,7 @@ import java.util.*
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 object L2_STRIP_MANIFEST : L2Operation(
-	L2OperandType.READ_BOXED_VECTOR.`is`("live values"))
+	L2OperandType.READ_BOXED_VECTOR.named("live values"))
 {
 	// Prevent this instruction from being removed, because it constrains
 	// the manifest along a back-edge, even after optimization.

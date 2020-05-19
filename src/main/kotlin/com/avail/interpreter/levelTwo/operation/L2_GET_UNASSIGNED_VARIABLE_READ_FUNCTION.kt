@@ -56,7 +56,7 @@ import java.util.function.Consumer
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_GET_UNASSIGNED_VARIABLE_READ_FUNCTION : L2Operation(
-	L2OperandType.WRITE_BOXED.`is`("unassigned variable read function"))
+	L2OperandType.WRITE_BOXED.named("unassigned variable read function"))
 {
 	override fun propagateTypes(
 		instruction: L2Instruction,

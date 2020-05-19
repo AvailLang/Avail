@@ -46,7 +46,7 @@ import org.objectweb.asm.MethodVisitor
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_JUMP : L2ControlFlowOperation(
-	L2OperandType.PC.`is`("target", L2NamedOperandType.Purpose.SUCCESS))
+	L2OperandType.PC.named("target", L2NamedOperandType.Purpose.SUCCESS))
 {
 	override fun hasSideEffect(): Boolean
 	{

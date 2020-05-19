@@ -49,9 +49,9 @@ import java.util.function.Consumer
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_MULTIPLY_INT_BY_INT_MOD_32_BITS : L2Operation(
-	L2OperandType.READ_INT.`is`("multiplicand"),
-	L2OperandType.READ_INT.`is`("multiplier"),
-	L2OperandType.WRITE_INT.`is`("product"))
+	L2OperandType.READ_INT.named("multiplicand"),
+	L2OperandType.READ_INT.named("multiplier"),
+	L2OperandType.WRITE_INT.named("product"))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

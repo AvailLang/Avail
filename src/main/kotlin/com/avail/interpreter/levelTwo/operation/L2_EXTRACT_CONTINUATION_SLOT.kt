@@ -49,9 +49,9 @@ import java.util.function.Consumer
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_EXTRACT_CONTINUATION_SLOT : L2Operation(
-	L2OperandType.READ_BOXED.`is`("continuation"),
-	L2OperandType.INT_IMMEDIATE.`is`("slot index"),
-	L2OperandType.WRITE_BOXED.`is`("extracted slot"))
+	L2OperandType.READ_BOXED.named("continuation"),
+	L2OperandType.INT_IMMEDIATE.named("slot index"),
+	L2OperandType.WRITE_BOXED.named("extracted slot"))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

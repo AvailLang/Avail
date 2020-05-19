@@ -51,10 +51,10 @@ import java.util.function.Consumer
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_JUMP_IF_GREATER_THAN_OBJECT : L2ConditionalJump(
-	L2OperandType.READ_BOXED.`is`("first value"),
-	L2OperandType.READ_BOXED.`is`("second value"),
-	L2OperandType.PC.`is`("if greater", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.PC.`is`("if less or equal", L2NamedOperandType.Purpose.FAILURE))
+	L2OperandType.READ_BOXED.named("first value"),
+	L2OperandType.READ_BOXED.named("second value"),
+	L2OperandType.PC.named("if greater", L2NamedOperandType.Purpose.SUCCESS),
+	L2OperandType.PC.named("if less or equal", L2NamedOperandType.Purpose.FAILURE))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

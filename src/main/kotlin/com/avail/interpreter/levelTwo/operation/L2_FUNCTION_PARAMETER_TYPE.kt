@@ -56,9 +56,9 @@ import java.util.function.Consumer
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_FUNCTION_PARAMETER_TYPE : L2Operation(
-	L2OperandType.READ_BOXED.`is`("function"),
-	L2OperandType.INT_IMMEDIATE.`is`("parameter index"),
-	L2OperandType.WRITE_BOXED.`is`("parameter type"))
+	L2OperandType.READ_BOXED.named("function"),
+	L2OperandType.INT_IMMEDIATE.named("parameter index"),
+	L2OperandType.WRITE_BOXED.named("parameter type"))
 {
 	override fun propagateTypes(
 		instruction: L2Instruction,

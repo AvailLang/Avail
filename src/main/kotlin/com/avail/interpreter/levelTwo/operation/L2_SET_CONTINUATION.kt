@@ -50,7 +50,7 @@ import java.util.function.Consumer
  */
 @WritesHiddenVariable(CURRENT_CONTINUATION::class)
 object L2_SET_CONTINUATION : L2Operation(
-	L2OperandType.READ_BOXED.`is`("replacement continuation"))
+	L2OperandType.READ_BOXED.named("replacement continuation"))
 {
 	// It updates the current continuation of the interpreter.
 	override fun hasSideEffect(): Boolean = true

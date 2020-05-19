@@ -49,8 +49,8 @@ import java.util.function.Consumer
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_BOX_INT : L2Operation(
-	L2OperandType.READ_INT.`is`("source"),
-	L2OperandType.WRITE_BOXED.`is`("destination"))
+	L2OperandType.READ_INT.named("source"),
+	L2OperandType.WRITE_BOXED.named("destination"))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

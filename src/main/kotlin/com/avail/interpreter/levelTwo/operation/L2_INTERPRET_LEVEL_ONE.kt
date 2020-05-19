@@ -66,9 +66,9 @@ import org.objectweb.asm.Opcodes
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_INTERPRET_LEVEL_ONE : L2ControlFlowOperation(
-	L2OperandType.PC.`is`(
+	L2OperandType.PC.named(
 		"call reentry point", L2NamedOperandType.Purpose.ON_RAMP),
-	L2OperandType.PC.`is`(
+	L2OperandType.PC.named(
 		"interrupt reentry point", L2NamedOperandType.Purpose.ON_RAMP))
 {
 	override fun propagateTypes(

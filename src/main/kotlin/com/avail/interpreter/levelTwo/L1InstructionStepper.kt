@@ -110,7 +110,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 	 * The registers that hold [Avail objects][AvailObject].
 	 */
 	@JvmField
-	var pointers : Array<AvailObject?> = emptyPointersArray
+	var pointers : Array<AvailObject> = emptyPointersArray
 
 	/**
 	 * Read from the specified object register.
@@ -120,7 +120,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 	 * @return
 	 *   The value from that register.
 	 */
-	fun pointerAt(index: Int): AvailObject = pointers[index]!!
+	fun pointerAt(index: Int): AvailObject = pointers[index]
 
 	/**
 	 * Write to the specified object register.
@@ -1039,7 +1039,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 			StatisticReport.REIFICATIONS)
 
 		/** An empty array used for clearing the pointers quickly.  */
-		private val emptyPointersArray = arrayOf<AvailObject?>()
+		private val emptyPointersArray = arrayOf<AvailObject>()
 
 		/**
 		 * A pre-compilable regex that matches one or more whitespace characters.

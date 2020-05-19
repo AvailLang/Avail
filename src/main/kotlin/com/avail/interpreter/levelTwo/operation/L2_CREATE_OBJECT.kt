@@ -51,9 +51,9 @@ import java.util.function.Consumer
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_CREATE_OBJECT : L2Operation(
-	L2OperandType.CONSTANT.`is`("variant pojo"),
-	L2OperandType.READ_BOXED_VECTOR.`is`("field values"),
-	L2OperandType.WRITE_BOXED.`is`("new object"))
+	L2OperandType.CONSTANT.named("variant pojo"),
+	L2OperandType.READ_BOXED_VECTOR.named("field values"),
+	L2OperandType.WRITE_BOXED.named("new object"))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

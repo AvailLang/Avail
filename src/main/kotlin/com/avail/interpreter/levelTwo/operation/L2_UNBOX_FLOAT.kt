@@ -49,8 +49,8 @@ import java.util.function.Consumer
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_UNBOX_FLOAT : L2Operation(
-	L2OperandType.READ_BOXED.`is`("source"),
-	L2OperandType.WRITE_FLOAT.`is`("destination"))
+	L2OperandType.READ_BOXED.named("source"),
+	L2OperandType.WRITE_FLOAT.named("destination"))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

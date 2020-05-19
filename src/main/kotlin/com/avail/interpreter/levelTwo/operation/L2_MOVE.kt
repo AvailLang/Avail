@@ -274,8 +274,8 @@ internal constructor(
 		val boxed: L2_MOVE<L2BoxedRegister, L2ReadBoxedOperand, L2WriteBoxedOperand> =
 			object : L2_MOVE<L2BoxedRegister, L2ReadBoxedOperand, L2WriteBoxedOperand>(
 				RegisterKind.BOXED,
-				L2OperandType.READ_BOXED.`is`("source boxed"),
-				L2OperandType.WRITE_BOXED.`is`("destination boxed"))
+				L2OperandType.READ_BOXED.named("source boxed"),
+				L2OperandType.WRITE_BOXED.named("destination boxed"))
 		{
 			override fun createWrite(
 				generator: L2Generator,
@@ -292,8 +292,8 @@ internal constructor(
 		val unboxedInt: L2_MOVE<L2IntRegister, L2ReadIntOperand, L2WriteIntOperand> =
 			object : L2_MOVE<L2IntRegister, L2ReadIntOperand, L2WriteIntOperand>(
 				RegisterKind.INTEGER,
-				L2OperandType.READ_INT.`is`("source int"),
-				L2OperandType.WRITE_INT.`is`("destination int"))
+				L2OperandType.READ_INT.named("source int"),
+				L2OperandType.WRITE_INT.named("destination int"))
 		{
 			override fun createWrite(
 				generator: L2Generator,
@@ -308,8 +308,8 @@ internal constructor(
 		val unboxedFloat: L2_MOVE<L2FloatRegister, L2ReadFloatOperand, L2WriteFloatOperand> =
 			object : L2_MOVE<L2FloatRegister, L2ReadFloatOperand, L2WriteFloatOperand>(
 				RegisterKind.FLOAT,
-				L2OperandType.READ_FLOAT.`is`("source float"),
-				L2OperandType.WRITE_FLOAT.`is`("destination float"))
+				L2OperandType.READ_FLOAT.named("source float"),
+				L2OperandType.WRITE_FLOAT.named("destination float"))
 		{
 			override fun createWrite(
 				generator: L2Generator,

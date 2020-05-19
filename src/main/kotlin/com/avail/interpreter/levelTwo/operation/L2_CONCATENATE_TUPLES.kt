@@ -57,8 +57,8 @@ import java.util.function.Consumer
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_CONCATENATE_TUPLES : L2Operation(
-	L2OperandType.READ_BOXED_VECTOR.`is`("tuples to concatenate"),
-	L2OperandType.WRITE_BOXED.`is`("concatenated tuple"))
+	L2OperandType.READ_BOXED_VECTOR.named("tuples to concatenate"),
+	L2OperandType.WRITE_BOXED.named("concatenated tuple"))
 {
 	override fun propagateTypes(
 		instruction: L2Instruction,

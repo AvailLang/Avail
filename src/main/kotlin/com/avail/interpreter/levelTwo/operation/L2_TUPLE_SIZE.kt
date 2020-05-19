@@ -47,8 +47,8 @@ import java.util.function.Consumer
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_TUPLE_SIZE : L2Operation(
-	L2OperandType.READ_BOXED.`is`("tuple"),
-	L2OperandType.WRITE_INT.`is`("size of tuple"))
+	L2OperandType.READ_BOXED.named("tuple"),
+	L2OperandType.WRITE_INT.named("size of tuple"))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

@@ -49,8 +49,8 @@ import java.util.function.Consumer
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_CREATE_SET : L2Operation(
-	L2OperandType.READ_BOXED_VECTOR.`is`("values"),
-	L2OperandType.WRITE_BOXED.`is`("new set"))
+	L2OperandType.READ_BOXED_VECTOR.named("values"),
+	L2OperandType.WRITE_BOXED.named("new set"))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

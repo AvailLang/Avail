@@ -61,8 +61,8 @@ import org.objectweb.asm.Opcodes
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO : L2Operation(
-	L2OperandType.INT_IMMEDIATE.`is`("new optimization level"),
-	L2OperandType.INT_IMMEDIATE.`is`("is entry point"))
+	L2OperandType.INT_IMMEDIATE.named("new optimization level"),
+	L2OperandType.INT_IMMEDIATE.named("is entry point"))
 {
 	override fun hasSideEffect(): Boolean
 	{

@@ -84,15 +84,15 @@ import java.util.stream.Collectors
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_LOOKUP_BY_TYPES : L2ControlFlowOperation(
-	L2OperandType.SELECTOR.`is`("message bundle"),
-	L2OperandType.READ_BOXED_VECTOR.`is`("argument types"),
-	L2OperandType.WRITE_BOXED.`is`(
+	L2OperandType.SELECTOR.named("message bundle"),
+	L2OperandType.READ_BOXED_VECTOR.named("argument types"),
+	L2OperandType.WRITE_BOXED.named(
 		"looked up function", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.WRITE_BOXED.`is`(
+	L2OperandType.WRITE_BOXED.named(
 		"error code", L2NamedOperandType.Purpose.FAILURE),
-	L2OperandType.PC.`is`(
+	L2OperandType.PC.named(
 		"lookup succeeded", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.PC.`is`(
+	L2OperandType.PC.named(
 		"lookup failed", L2NamedOperandType.Purpose.FAILURE))
 {
 	/** The type of failure codes that a failed lookup can produce.  */

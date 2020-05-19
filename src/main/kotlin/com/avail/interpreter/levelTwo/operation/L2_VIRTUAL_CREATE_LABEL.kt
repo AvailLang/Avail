@@ -94,10 +94,10 @@ import java.util.function.Consumer
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 object L2_VIRTUAL_CREATE_LABEL : L2Operation(
-	L2OperandType.WRITE_BOXED.`is`("output label"),
-	L2OperandType.READ_BOXED.`is`("immutable function"),
-	L2OperandType.READ_BOXED_VECTOR.`is`("arguments"),
-	L2OperandType.INT_IMMEDIATE.`is`("frame size"))
+	L2OperandType.WRITE_BOXED.named("output label"),
+	L2OperandType.READ_BOXED.named("immutable function"),
+	L2OperandType.READ_BOXED_VECTOR.named("arguments"),
+	L2OperandType.INT_IMMEDIATE.named("frame size"))
 {
 	override val isPlaceholder: Boolean
 		get() = true

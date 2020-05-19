@@ -52,11 +52,11 @@ import java.util.function.Consumer
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_SUBTRACT_INT_CONSTANT_MINUS_INT : L2ControlFlowOperation(
-	L2OperandType.INT_IMMEDIATE.`is`("minuend"),
-	L2OperandType.READ_INT.`is`("subtrahend"),
-	L2OperandType.WRITE_INT.`is`("difference", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.PC.`is`("in range", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.PC.`is`("out of range", L2NamedOperandType.Purpose.FAILURE))
+	L2OperandType.INT_IMMEDIATE.named("minuend"),
+	L2OperandType.READ_INT.named("subtrahend"),
+	L2OperandType.WRITE_INT.named("difference", L2NamedOperandType.Purpose.SUCCESS),
+	L2OperandType.PC.named("in range", L2NamedOperandType.Purpose.SUCCESS),
+	L2OperandType.PC.named("out of range", L2NamedOperandType.Purpose.FAILURE))
 {
 	override fun hasSideEffect(): Boolean = true
 

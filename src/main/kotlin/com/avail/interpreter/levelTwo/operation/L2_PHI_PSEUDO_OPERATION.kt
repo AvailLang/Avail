@@ -335,8 +335,8 @@ private constructor(
 		@kotlin.jvm.JvmField
 		val boxed = L2_PHI_PSEUDO_OPERATION<L2BoxedRegister, L2ReadBoxedOperand, L2WriteBoxedOperand>(
 			L2_MOVE.boxed,
-			L2OperandType.READ_BOXED_VECTOR.`is`("potential boxed sources"),
-			L2OperandType.WRITE_BOXED.`is`("boxed destination"))
+			L2OperandType.READ_BOXED_VECTOR.named("potential boxed sources"),
+			L2OperandType.WRITE_BOXED.named("boxed destination"))
 
 		/**
 		 * Initialize the instance used for merging boxed values.
@@ -344,8 +344,8 @@ private constructor(
 		@kotlin.jvm.JvmField
 		val unboxedInt = L2_PHI_PSEUDO_OPERATION<L2IntRegister, L2ReadIntOperand, L2WriteIntOperand>(
 			L2_MOVE.unboxedInt,
-			L2OperandType.READ_INT_VECTOR.`is`("potential int sources"),
-			L2OperandType.WRITE_INT.`is`("int destination"))
+			L2OperandType.READ_INT_VECTOR.named("potential int sources"),
+			L2OperandType.WRITE_INT.named("int destination"))
 
 		/**
 		 * Initialize the instance used for merging boxed values.
@@ -353,8 +353,8 @@ private constructor(
 		@kotlin.jvm.JvmField
 		val unboxedFloat = L2_PHI_PSEUDO_OPERATION<L2FloatRegister, L2ReadFloatOperand, L2WriteFloatOperand>(
 			L2_MOVE.unboxedFloat,
-			L2OperandType.READ_FLOAT_VECTOR.`is`("potential float sources"),
-			L2OperandType.WRITE_FLOAT.`is`("float destination"))
+			L2OperandType.READ_FLOAT_VECTOR.named("potential float sources"),
+			L2OperandType.WRITE_FLOAT.named("float destination"))
 	}
 
 }

@@ -66,7 +66,7 @@ import java.util.function.Consumer
  */
 @ReadsHiddenVariable(theValue = arrayOf(GLOBAL_STATE::class))
 object L2_GET_INVALID_MESSAGE_RESULT_FUNCTION : L2Operation(
-	L2OperandType.WRITE_BOXED.`is`("invalid message result function"))
+	L2OperandType.WRITE_BOXED.named("invalid message result function"))
 {
 	override fun propagateTypes(
 		instruction: L2Instruction,

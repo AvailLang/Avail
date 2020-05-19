@@ -187,8 +187,8 @@ private constructor(
 				operand: L2ConstantOperand ->
 					translator.literal(method, operand.constant)
 			},
-			L2OperandType.CONSTANT.`is`("constant"),
-			L2OperandType.WRITE_BOXED.`is`("destination boxed"))
+			L2OperandType.CONSTANT.named("constant"),
+			L2OperandType.WRITE_BOXED.named("destination boxed"))
 
 		/**
 		 * Initialize the move-constant operation for int values.
@@ -201,8 +201,8 @@ private constructor(
 				operand: L2IntImmediateOperand ->
 				translator.literal(method, operand.value)
 			},
-			L2OperandType.INT_IMMEDIATE.`is`("constant int"),
-			L2OperandType.WRITE_INT.`is`("destination int"))
+			L2OperandType.INT_IMMEDIATE.named("constant int"),
+			L2OperandType.WRITE_INT.named("destination int"))
 
 		/**
 		 * Initialize the move-constant operation for float values.
@@ -215,8 +215,8 @@ private constructor(
 				operand: L2FloatImmediateOperand ->
 				translator.literal(method, operand.value)
 			},
-			L2OperandType.FLOAT_IMMEDIATE.`is`("constant float"),
-			L2OperandType.WRITE_FLOAT.`is`("destination float"))
+			L2OperandType.FLOAT_IMMEDIATE.named("constant float"),
+			L2OperandType.WRITE_FLOAT.named("destination float"))
 
 		/**
 		 * Given an [L2Instruction] using the boxed form of this operation,

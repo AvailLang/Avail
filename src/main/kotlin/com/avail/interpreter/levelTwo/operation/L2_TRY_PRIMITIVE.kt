@@ -73,7 +73,7 @@ import java.util.logging.Level
 	//	CURRENT_ARGUMENTS.class,
 	LATEST_RETURN_VALUE::class])
 object L2_TRY_PRIMITIVE : L2Operation(
-	L2OperandType.PRIMITIVE.`is`("primitive"))
+	L2OperandType.PRIMITIVE.named("primitive"))
 {
 	override fun isEntryPoint(instruction: L2Instruction): Boolean = true
 

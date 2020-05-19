@@ -53,11 +53,11 @@ import java.util.function.Consumer
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_MULTIPLY_INT_BY_INT : L2ControlFlowOperation(
-	L2OperandType.READ_INT.`is`("multiplicand"),
-	L2OperandType.READ_INT.`is`("multiplier"),
-	L2OperandType.WRITE_INT.`is`("product", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.PC.`is`("out of range", L2NamedOperandType.Purpose.FAILURE),
-	L2OperandType.PC.`is`("in range", L2NamedOperandType.Purpose.SUCCESS))
+	L2OperandType.READ_INT.named("multiplicand"),
+	L2OperandType.READ_INT.named("multiplier"),
+	L2OperandType.WRITE_INT.named("product", L2NamedOperandType.Purpose.SUCCESS),
+	L2OperandType.PC.named("out of range", L2NamedOperandType.Purpose.FAILURE),
+	L2OperandType.PC.named("in range", L2NamedOperandType.Purpose.SUCCESS))
 {
 	// It jumps if the result doesn't fit in an int.
 	override fun hasSideEffect(): Boolean = true

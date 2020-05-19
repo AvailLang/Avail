@@ -54,7 +54,7 @@ import java.util.function.Consumer
  */
 @ReadsHiddenVariable(theValue = arrayOf(CURRENT_CONTINUATION::class))
 object L2_GET_CURRENT_CONTINUATION : L2Operation(
-	L2OperandType.WRITE_BOXED.`is`("current continuation"))
+	L2OperandType.WRITE_BOXED.named("current continuation"))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

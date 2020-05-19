@@ -37,6 +37,7 @@ import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import com.avail.interpreter.primitive.controlflow.P_RestartContinuation
 import com.avail.optimizer.L2Generator
 import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.JVMTranslator
@@ -57,7 +58,7 @@ import java.util.function.Consumer
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_RESTART_CONTINUATION : L2ControlFlowOperation(
-	L2OperandType.READ_BOXED.`is`("continuation to restart"))
+	L2OperandType.READ_BOXED.named("continuation to restart"))
 {
 	override fun propagateTypes(
 		instruction: L2Instruction,

@@ -50,9 +50,9 @@ import java.util.function.Consumer
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_CREATE_MAP : L2Operation(
-	L2OperandType.READ_BOXED_VECTOR.`is`("keys"),
-	L2OperandType.READ_BOXED_VECTOR.`is`("values"),
-	L2OperandType.WRITE_BOXED.`is`("new map"))
+	L2OperandType.READ_BOXED_VECTOR.named("keys"),
+	L2OperandType.READ_BOXED_VECTOR.named("values"),
+	L2OperandType.WRITE_BOXED.named("new map"))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

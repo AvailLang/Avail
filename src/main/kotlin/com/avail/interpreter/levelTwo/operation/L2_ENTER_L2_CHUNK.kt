@@ -59,8 +59,8 @@ import java.util.function.Consumer
 @ReadsHiddenVariable(theValue = arrayOf(CURRENT_CONTINUATION::class))
 @WritesHiddenVariable(CURRENT_CONTINUATION::class)
 object L2_ENTER_L2_CHUNK : L2Operation(
-	L2OperandType.INT_IMMEDIATE.`is`("entry point offset in default chunk"),
-	L2OperandType.COMMENT.`is`("chunk entry point name"))
+	L2OperandType.INT_IMMEDIATE.named("entry point offset in default chunk"),
+	L2OperandType.COMMENT.named("chunk entry point name"))
 {
 	override fun isEntryPoint(instruction: L2Instruction): Boolean = true
 

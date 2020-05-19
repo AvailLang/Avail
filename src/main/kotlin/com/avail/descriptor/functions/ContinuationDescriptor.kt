@@ -603,7 +603,7 @@ class ContinuationDescriptor private constructor(
 			stackp: Int,
 			levelTwoChunk: L2Chunk,
 			levelTwoOffset: Int,
-			frameValues: List<A_BasicObject?>,
+			frameValues: List<A_BasicObject>,
 			zeroBasedStartIndex: Int
 		) = createContinuationExceptFrame(
 			function,

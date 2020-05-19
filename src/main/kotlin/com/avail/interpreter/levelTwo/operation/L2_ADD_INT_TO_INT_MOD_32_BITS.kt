@@ -49,9 +49,9 @@ import java.util.function.Consumer
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_ADD_INT_TO_INT_MOD_32_BITS : L2Operation(
-	L2OperandType.READ_INT.`is`("augend"),
-	L2OperandType.READ_INT.`is`("addend"),
-	L2OperandType.WRITE_INT.`is`("sum"))
+	L2OperandType.READ_INT.named("augend"),
+	L2OperandType.READ_INT.named("addend"),
+	L2OperandType.WRITE_INT.named("sum"))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

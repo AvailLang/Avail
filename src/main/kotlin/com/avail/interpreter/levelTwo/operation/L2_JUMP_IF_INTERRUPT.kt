@@ -49,8 +49,8 @@ import org.objectweb.asm.Opcodes
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_JUMP_IF_INTERRUPT : L2ConditionalJump(
-	L2OperandType.PC.`is`("if interrupt", L2NamedOperandType.Purpose.OFF_RAMP),
-	L2OperandType.PC.`is`("if not interrupt", L2NamedOperandType.Purpose.SUCCESS))
+	L2OperandType.PC.named("if interrupt", L2NamedOperandType.Purpose.OFF_RAMP),
+	L2OperandType.PC.named("if not interrupt", L2NamedOperandType.Purpose.SUCCESS))
 {
 	override fun translateToJVM(
 		translator: JVMTranslator,

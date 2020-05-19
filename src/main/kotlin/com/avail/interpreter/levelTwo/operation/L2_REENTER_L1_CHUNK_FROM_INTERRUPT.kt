@@ -32,6 +32,7 @@
 package com.avail.interpreter.levelTwo.operation
 
 import com.avail.descriptor.functions.A_Continuation
+import com.avail.descriptor.representation.NilDescriptor
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.execution.Interpreter.Companion.log
 import com.avail.interpreter.levelTwo.L2Instruction
@@ -99,11 +100,16 @@ object L2_REENTER_L1_CHUNK_FROM_INTERRUPT : L2Operation()
 		val numSlots = continuation.numSlots()
 		// Should agree with L2_PREPARE_NEW_FRAME_FOR_L1.
 		val stepper = interpreter.levelOneStepper
-		stepper.pointers = arrayOfNulls(numSlots + 1)
-		var dest = 1
-		for (i in 1 .. numSlots)
+		stepper.pointers = Array(numSlots + 1)
 		{
-			stepper.pointerAtPut(dest++, continuation.stackAt(i))
+			if (it == 0)
+			{
+				NilDescriptor.nil
+			}
+			else
+			{
+				continuation.stackAt(it)
+			}
 		}
 		function.code().setUpInstructionDecoder(stepper.instructionDecoder)
 		stepper.instructionDecoder.pc(continuation.pc())

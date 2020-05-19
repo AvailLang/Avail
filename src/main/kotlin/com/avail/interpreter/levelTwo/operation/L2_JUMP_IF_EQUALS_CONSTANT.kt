@@ -60,10 +60,10 @@ import java.util.function.Consumer
  */
 object L2_JUMP_IF_EQUALS_CONSTANT :
 	L2ConditionalJump(
-	L2OperandType.READ_BOXED.`is`("value"),
-	L2OperandType.CONSTANT.`is`("constant"),
-	L2OperandType.PC.`is`("if equal", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.PC.`is`("if unequal", L2NamedOperandType.Purpose.FAILURE))
+		L2OperandType.READ_BOXED.named("value"),
+		L2OperandType.CONSTANT.named("constant"),
+		L2OperandType.PC.named("if equal", L2NamedOperandType.Purpose.SUCCESS),
+		L2OperandType.PC.named("if unequal", L2NamedOperandType.Purpose.FAILURE))
 {
 	override fun instructionWasAdded(
 		instruction: L2Instruction, manifest: L2ValueManifest)

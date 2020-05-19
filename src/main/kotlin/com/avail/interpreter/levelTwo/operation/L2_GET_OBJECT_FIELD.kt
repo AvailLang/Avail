@@ -52,9 +52,9 @@ import java.util.function.Consumer
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 object L2_GET_OBJECT_FIELD : L2Operation(
-	L2OperandType.READ_BOXED.`is`("object"),
-	L2OperandType.CONSTANT.`is`("field atom"),
-	L2OperandType.WRITE_BOXED.`is`("field value"))
+	L2OperandType.READ_BOXED.named("object"),
+	L2OperandType.CONSTANT.named("field atom"),
+	L2OperandType.WRITE_BOXED.named("field value"))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

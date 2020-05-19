@@ -52,7 +52,7 @@ import java.util.function.Consumer
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_GET_IMPLICIT_OBSERVE_FUNCTION : L2Operation(
-	L2OperandType.WRITE_BOXED.`is`("implicit observe function"))
+	L2OperandType.WRITE_BOXED.named("implicit observe function"))
 {
 	override fun hasSideEffect(): Boolean
 	{

@@ -51,7 +51,7 @@ import java.util.function.Consumer
  */
 @ReadsHiddenVariable(theValue = arrayOf(LATEST_RETURN_VALUE::class))
 object L2_GET_LATEST_RETURN_VALUE : L2Operation(
-	L2OperandType.WRITE_BOXED.`is`("latest result"))
+	L2OperandType.WRITE_BOXED.named("latest result"))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

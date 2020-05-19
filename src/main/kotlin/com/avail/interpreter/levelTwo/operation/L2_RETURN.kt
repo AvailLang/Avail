@@ -52,7 +52,7 @@ import java.util.function.Consumer
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_RETURN : L2ControlFlowOperation(
-	L2OperandType.READ_BOXED.`is`("return value"))
+	L2OperandType.READ_BOXED.named("return value"))
 {
 	override fun propagateTypes(
 		instruction: L2Instruction,

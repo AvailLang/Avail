@@ -53,9 +53,9 @@ import java.util.function.Consumer
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_TUPLE_AT_CONSTANT : L2Operation(
-	L2OperandType.READ_BOXED.`is`("tuple"),
-	L2OperandType.INT_IMMEDIATE.`is`("immediate subscript"),
-	L2OperandType.WRITE_BOXED.`is`("destination"))
+	L2OperandType.READ_BOXED.named("tuple"),
+	L2OperandType.INT_IMMEDIATE.named("immediate subscript"),
+	L2OperandType.WRITE_BOXED.named("destination"))
 {
 	override fun propagateTypes(
 		instruction: L2Instruction,

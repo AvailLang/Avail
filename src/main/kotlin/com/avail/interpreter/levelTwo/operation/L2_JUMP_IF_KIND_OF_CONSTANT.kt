@@ -53,10 +53,10 @@ import java.util.function.Consumer
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_JUMP_IF_KIND_OF_CONSTANT : L2ConditionalJump(
-	L2OperandType.READ_BOXED.`is`("value"),
-	L2OperandType.CONSTANT.`is`("constant type"),
-	L2OperandType.PC.`is`("is kind", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.PC.`is`("is not kind", L2NamedOperandType.Purpose.FAILURE))
+	L2OperandType.READ_BOXED.named("value"),
+	L2OperandType.CONSTANT.named("constant type"),
+	L2OperandType.PC.named("is kind", L2NamedOperandType.Purpose.SUCCESS),
+	L2OperandType.PC.named("is not kind", L2NamedOperandType.Purpose.FAILURE))
 {
 	override fun instructionWasAdded(
 		instruction: L2Instruction,

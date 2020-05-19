@@ -52,10 +52,10 @@ import java.util.function.Consumer
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_JUMP_IF_SUBTYPE_OF_OBJECT : L2ConditionalJump(
-	L2OperandType.READ_BOXED.`is`("first type"),
-	L2OperandType.READ_BOXED.`is`("second type"),
-	L2OperandType.PC.`is`("is subtype", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.PC.`is`("not subtype", L2NamedOperandType.Purpose.FAILURE))
+	L2OperandType.READ_BOXED.named("first type"),
+	L2OperandType.READ_BOXED.named("second type"),
+	L2OperandType.PC.named("is subtype", L2NamedOperandType.Purpose.SUCCESS),
+	L2OperandType.PC.named("not subtype", L2NamedOperandType.Purpose.FAILURE))
 {
 	override fun branchReduction(
 		instruction: L2Instruction,

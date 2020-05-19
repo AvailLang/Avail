@@ -52,10 +52,10 @@ import java.util.function.Consumer
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_JUMP_IF_OBJECTS_EQUAL : L2ConditionalJump(
-	L2OperandType.READ_BOXED.`is`("first value"),
-	L2OperandType.READ_BOXED.`is`("second value"),
-	L2OperandType.PC.`is`("is equal", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.PC.`is`("is not equal", L2NamedOperandType.Purpose.FAILURE))
+	L2OperandType.READ_BOXED.named("first value"),
+	L2OperandType.READ_BOXED.named("second value"),
+	L2OperandType.PC.named("is equal", L2NamedOperandType.Purpose.SUCCESS),
+	L2OperandType.PC.named("is not equal", L2NamedOperandType.Purpose.FAILURE))
 {
 	override fun instructionWasAdded(
 		instruction: L2Instruction,

@@ -53,10 +53,10 @@ import java.util.function.Consumer
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_JUMP_IF_UNBOX_FLOAT : L2ConditionalJump(
-	L2OperandType.READ_BOXED.`is`("source"),
-	L2OperandType.WRITE_FLOAT.`is`("destination", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.PC.`is`("if not unboxed", L2NamedOperandType.Purpose.FAILURE),
-	L2OperandType.PC.`is`("if unboxed", L2NamedOperandType.Purpose.SUCCESS))
+	L2OperandType.READ_BOXED.named("source"),
+	L2OperandType.WRITE_FLOAT.named("destination", L2NamedOperandType.Purpose.SUCCESS),
+	L2OperandType.PC.named("if not unboxed", L2NamedOperandType.Purpose.FAILURE),
+	L2OperandType.PC.named("if unboxed", L2NamedOperandType.Purpose.SUCCESS))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

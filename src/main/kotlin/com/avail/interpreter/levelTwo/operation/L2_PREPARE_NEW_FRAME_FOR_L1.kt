@@ -135,27 +135,40 @@ object L2_PREPARE_NEW_FRAME_FOR_L1 : L2Operation()
 		// fixed registers, but they assume [0] is unused (to simplify
 		// indexing).  I.e., pointers[1] <-> continuation.stackAt(1).
 		val stepper = interpreter.levelOneStepper
-		stepper.pointers = arrayOfNulls(numSlots + 1)
-		var dest = 1
-		// Populate the arguments from argsBuffer.
-		for (arg in interpreter.argsBuffer)
+		var argsBufferIndex = 0
+		var localVariablesIndex = 1
+		stepper.pointers = Array(numSlots + 1)
 		{
-			stepper.pointerAtPut(dest++, arg)
+			when
+			{
+				it == 0 ->
+				{
+					// The 0th position will never be accessed
+					NilDescriptor.nil
+				}
+				argsBufferIndex < interpreter.argsBuffer.size ->
+				{
+					// Populate the arguments from argsBuffer.
+					interpreter.argsBuffer[argsBufferIndex++]
+				}
+				localVariablesIndex <= numLocals ->
+				{
+					// Create actual local variables.
+					newVariableWithOuterType(
+						code.localTypeAt(localVariablesIndex++))
+				}
+				else ->
+				{
+					// Write nil into the remaining stack slots.
+					// These values should not encounter any kind of ordinary
+					// use, but they must still be transferred into a
+					// continuation during reification.  Therefore, don't
+					// use Java nulls here.
+					NilDescriptor.nil
+				}
+			}
 		}
-		// Create actual local variables.
-		for (i in 1 .. numLocals)
-		{
-			stepper.pointerAtPut(
-				dest++, newVariableWithOuterType(code.localTypeAt(i)))
-		}
-		// Write nil into the remaining stack slots.  These values should not
-		// encounter any kind of ordinary use, but they must still be
-		// transferred into a continuation during reification.  Therefore, don't
-		// use Java nulls here.
-		while (dest <= numSlots)
-		{
-			stepper.pointerAtPut(dest++, NilDescriptor.nil)
-		}
+
 		code.setUpInstructionDecoder(stepper.instructionDecoder)
 		stepper.instructionDecoder.pc(1)
 		stepper.stackp = numSlots + 1

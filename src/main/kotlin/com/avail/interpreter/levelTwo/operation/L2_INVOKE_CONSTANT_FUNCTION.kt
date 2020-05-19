@@ -68,13 +68,13 @@ import java.util.function.Consumer
 	CURRENT_ARGUMENTS::class,
 	LATEST_RETURN_VALUE::class])
 object L2_INVOKE_CONSTANT_FUNCTION : L2ControlFlowOperation(
-	L2OperandType.CONSTANT.`is`("constant function"),
-	L2OperandType.READ_BOXED_VECTOR.`is`("arguments"),
-	L2OperandType.WRITE_BOXED.`is`(
+	L2OperandType.CONSTANT.named("constant function"),
+	L2OperandType.READ_BOXED_VECTOR.named("arguments"),
+	L2OperandType.WRITE_BOXED.named(
 		"result", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.PC.`is`(
+	L2OperandType.PC.named(
 		"on return", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.PC.`is`(
+	L2OperandType.PC.named(
 		"on reification", L2NamedOperandType.Purpose.OFF_RAMP))
 {
 	// Never remove invocations -- but inlining might make them go away.

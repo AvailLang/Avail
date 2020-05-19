@@ -52,10 +52,10 @@ import java.util.function.Consumer
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_JUMP_IF_LESS_THAN_OR_EQUAL_TO_CONSTANT : L2ConditionalJump(
-	L2OperandType.READ_BOXED.`is`("value"),
-	L2OperandType.CONSTANT.`is`("constant"),
-	L2OperandType.PC.`is`("if less or equal", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.PC.`is`("if more", L2NamedOperandType.Purpose.FAILURE))
+	L2OperandType.READ_BOXED.named("value"),
+	L2OperandType.CONSTANT.named("constant"),
+	L2OperandType.PC.named("if less or equal", L2NamedOperandType.Purpose.SUCCESS),
+	L2OperandType.PC.named("if more", L2NamedOperandType.Purpose.FAILURE))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

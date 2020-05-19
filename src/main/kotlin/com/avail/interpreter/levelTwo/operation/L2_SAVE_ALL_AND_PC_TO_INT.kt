@@ -58,10 +58,10 @@ import java.util.function.Consumer
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 object L2_SAVE_ALL_AND_PC_TO_INT : L2Operation(
-	L2OperandType.PC.`is`("reference", L2NamedOperandType.Purpose.REFERENCED_AS_INT),
-	L2OperandType.WRITE_INT.`is`("L2 address", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.WRITE_BOXED.`is`("register dump", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.PC.`is`("fall-through", L2NamedOperandType.Purpose.SUCCESS))
+	L2OperandType.PC.named("reference", L2NamedOperandType.Purpose.REFERENCED_AS_INT),
+	L2OperandType.WRITE_INT.named("L2 address", L2NamedOperandType.Purpose.SUCCESS),
+	L2OperandType.WRITE_BOXED.named("register dump", L2NamedOperandType.Purpose.SUCCESS),
+	L2OperandType.PC.named("fall-through", L2NamedOperandType.Purpose.SUCCESS))
 {
 	override fun targetEdges(instruction: L2Instruction): List<L2PcOperand>
 	{

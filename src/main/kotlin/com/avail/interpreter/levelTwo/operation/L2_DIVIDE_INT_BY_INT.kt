@@ -58,13 +58,13 @@ import java.util.function.Consumer
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_DIVIDE_INT_BY_INT : L2ControlFlowOperation(
-	L2OperandType.READ_INT.`is`("dividend"),
-	L2OperandType.READ_INT.`is`("divisor"),
-	L2OperandType.WRITE_INT.`is`("quotient", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.WRITE_INT.`is`("remainder", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.PC.`is`("out of range", L2NamedOperandType.Purpose.FAILURE),
-	L2OperandType.PC.`is`("zero divisor", L2NamedOperandType.Purpose.OFF_RAMP),
-	L2OperandType.PC.`is`("success", L2NamedOperandType.Purpose.SUCCESS))
+	L2OperandType.READ_INT.named("dividend"),
+	L2OperandType.READ_INT.named("divisor"),
+	L2OperandType.WRITE_INT.named("quotient", L2NamedOperandType.Purpose.SUCCESS),
+	L2OperandType.WRITE_INT.named("remainder", L2NamedOperandType.Purpose.SUCCESS),
+	L2OperandType.PC.named("out of range", L2NamedOperandType.Purpose.FAILURE),
+	L2OperandType.PC.named("zero divisor", L2NamedOperandType.Purpose.OFF_RAMP),
+	L2OperandType.PC.named("success", L2NamedOperandType.Purpose.SUCCESS))
 {
 	// It jumps for division by zero or out-of-range.
 	override fun hasSideEffect(): Boolean = true

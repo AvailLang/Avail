@@ -49,8 +49,8 @@ import java.util.function.Consumer
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 object L2_EXTRACT_CONTINUATION_FUNCTION : L2Operation(
-	L2OperandType.READ_BOXED.`is`("continuation"),
-	L2OperandType.WRITE_BOXED.`is`("extracted function"))
+	L2OperandType.READ_BOXED.named("continuation"),
+	L2OperandType.WRITE_BOXED.named("extracted function"))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

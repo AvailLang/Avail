@@ -180,7 +180,7 @@ enum class L2OperandType
 	 *   The name of this operand.
 	 * @return A named operand type.
 	 */
-	fun `is`(roleName: String?): L2NamedOperandType
+	fun named(roleName: String?): L2NamedOperandType
 	{
 		return L2NamedOperandType(this, roleName!!, null)
 	}
@@ -196,7 +196,7 @@ enum class L2OperandType
 	 *   The [Purpose] that best describes the [L2NamedOperandType].
 	 * @return A named operand type.
 	 */
-	fun `is`(roleName: String?, purpose: L2NamedOperandType.Purpose?): L2NamedOperandType
+	fun named(roleName: String?, purpose: Purpose?): L2NamedOperandType
 	{
 		assert(canHavePurpose)
 		return L2NamedOperandType(this, roleName!!, purpose)

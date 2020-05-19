@@ -55,8 +55,8 @@ import java.util.function.Consumer
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_JUMP_BACK : L2ControlFlowOperation(
-	L2OperandType.PC.`is`("target", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.READ_BOXED_VECTOR.`is`("registers to keep"))
+	L2OperandType.PC.named("target", L2NamedOperandType.Purpose.SUCCESS),
+	L2OperandType.READ_BOXED_VECTOR.named("registers to keep"))
 {
 	// It jumps, which counts as a side effect.
 	override fun hasSideEffect(): Boolean =  true

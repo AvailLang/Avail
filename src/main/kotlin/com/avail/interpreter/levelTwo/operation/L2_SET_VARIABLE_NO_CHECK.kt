@@ -57,10 +57,10 @@ import java.util.function.Consumer
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_SET_VARIABLE_NO_CHECK : L2ControlFlowOperation(
-	L2OperandType.READ_BOXED.`is`("variable"),
-	L2OperandType.READ_BOXED.`is`("value to write"),
-	L2OperandType.PC.`is`("write succeeded", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.PC.`is`("write failed", L2NamedOperandType.Purpose.OFF_RAMP))
+	L2OperandType.READ_BOXED.named("variable"),
+	L2OperandType.READ_BOXED.named("value to write"),
+	L2OperandType.PC.named("write succeeded", L2NamedOperandType.Purpose.SUCCESS),
+	L2OperandType.PC.named("write failed", L2NamedOperandType.Purpose.OFF_RAMP))
 {
 	override fun propagateTypes(
 		instruction: L2Instruction,

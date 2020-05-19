@@ -62,8 +62,8 @@ import java.util.function.Consumer
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_RESTART_CONTINUATION_WITH_ARGUMENTS : L2ControlFlowOperation(
-	L2OperandType.READ_BOXED.`is`("continuation to restart"),
-	L2OperandType.READ_BOXED_VECTOR.`is`("arguments"))
+	L2OperandType.READ_BOXED.named("continuation to restart"),
+	L2OperandType.READ_BOXED_VECTOR.named("arguments"))
 {
 	override fun propagateTypes(
 		instruction: L2Instruction,

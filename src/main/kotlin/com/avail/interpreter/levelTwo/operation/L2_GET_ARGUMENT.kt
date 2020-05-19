@@ -56,8 +56,8 @@ import java.util.function.Consumer
  */
 @ReadsHiddenVariable(theValue = arrayOf(CURRENT_ARGUMENTS::class))
 object L2_GET_ARGUMENT : L2Operation(
-	L2OperandType.INT_IMMEDIATE.`is`("subscript into argsBuffer"),
-	L2OperandType.WRITE_BOXED.`is`("argument"))
+	L2OperandType.INT_IMMEDIATE.named("subscript into argsBuffer"),
+	L2OperandType.WRITE_BOXED.named("argument"))
 {
 	// Keep this instruction pinned in place for safety during inlining.
 	override fun hasSideEffect(): Boolean = true

@@ -54,11 +54,11 @@ import java.util.function.Consumer
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_ADD_INT_TO_INT : L2ControlFlowOperation(
-	L2OperandType.READ_INT.`is`("augend"),
-	L2OperandType.READ_INT.`is`("addend"),
-	L2OperandType.WRITE_INT.`is`("sum", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.PC.`is`("out of range", L2NamedOperandType.Purpose.FAILURE),
-	L2OperandType.PC.`is`("in range", L2NamedOperandType.Purpose.SUCCESS))
+	L2OperandType.READ_INT.named("augend"),
+	L2OperandType.READ_INT.named("addend"),
+	L2OperandType.WRITE_INT.named("sum", L2NamedOperandType.Purpose.SUCCESS),
+	L2OperandType.PC.named("out of range", L2NamedOperandType.Purpose.FAILURE),
+	L2OperandType.PC.named("in range", L2NamedOperandType.Purpose.SUCCESS))
 {
 	override fun instructionWasAdded(
 		instruction: L2Instruction,

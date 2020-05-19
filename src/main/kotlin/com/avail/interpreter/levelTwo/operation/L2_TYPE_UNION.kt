@@ -51,9 +51,9 @@ import java.util.function.Consumer
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_TYPE_UNION : L2Operation(
-	L2OperandType.READ_BOXED.`is`("first type"),
-	L2OperandType.READ_BOXED.`is`("second type"),
-	L2OperandType.WRITE_BOXED.`is`("union type"))
+	L2OperandType.READ_BOXED.named("first type"),
+	L2OperandType.READ_BOXED.named("second type"),
+	L2OperandType.WRITE_BOXED.named("union type"))
 {
 	override fun propagateTypes(
 		instruction: L2Instruction,

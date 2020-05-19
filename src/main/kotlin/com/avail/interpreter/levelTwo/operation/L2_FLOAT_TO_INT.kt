@@ -47,8 +47,8 @@ import java.util.function.Consumer
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_FLOAT_TO_INT : L2Operation(
-	L2OperandType.READ_FLOAT.`is`("source"),
-	L2OperandType.WRITE_INT.`is`("destination"))
+	L2OperandType.READ_FLOAT.named("source"),
+	L2OperandType.WRITE_INT.named("destination"))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

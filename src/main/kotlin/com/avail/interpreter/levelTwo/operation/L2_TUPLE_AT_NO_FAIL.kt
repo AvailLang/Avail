@@ -53,9 +53,9 @@ import java.util.function.Consumer
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 object L2_TUPLE_AT_NO_FAIL : L2Operation(
-	L2OperandType.READ_BOXED.`is`("tuple"),
-	L2OperandType.READ_INT.`is`("int subscript"),
-	L2OperandType.WRITE_BOXED.`is`("destination"))
+	L2OperandType.READ_BOXED.named("tuple"),
+	L2OperandType.READ_INT.named("int subscript"),
+	L2OperandType.WRITE_BOXED.named("destination"))
 {
 	override fun propagateTypes(
 		instruction: L2Instruction,

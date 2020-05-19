@@ -65,10 +65,10 @@ import java.util.function.Consumer
  */
 abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor()
 	: L2Operation(
-		L2OperandType.CONSTANT.`is`("raw function"),  // Used for inlining/reoptimization.
-		L2OperandType.PRIMITIVE.`is`("primitive to run"),
-		L2OperandType.READ_BOXED_VECTOR.`is`("arguments"),
-		L2OperandType.WRITE_BOXED.`is`("primitive result"))
+	L2OperandType.CONSTANT.named("raw function"),  // Used for inlining/reoptimization.
+	L2OperandType.PRIMITIVE.named("primitive to run"),
+	L2OperandType.READ_BOXED_VECTOR.named("arguments"),
+	L2OperandType.WRITE_BOXED.named("primitive result"))
 {
 	/** The subclass for primitives that have no global dependency.  */
 	@WritesHiddenVariable(LATEST_RETURN_VALUE::class)
