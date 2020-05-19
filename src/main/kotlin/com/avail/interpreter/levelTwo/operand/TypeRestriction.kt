@@ -80,7 +80,7 @@ import java.util.stream.Collectors
  * @param excludedValues
  *   A set of values to consider excluded.
  * @param flags
- *   The encoded [flags] `int`.
+ *   The encoded [flags] [Int].
  */
 class TypeRestriction private constructor(
 	type: A_Type,
@@ -950,7 +950,7 @@ class TypeRestriction private constructor(
 		 * @param givenExcludedValues
 		 *   A set of values to consider excluded.
 		 * @param flags
-		 *   The encoded [flags] `int`.
+		 *   The encoded [flags] [Int].
 		 * @return
 		 *   The new or existing canonical TypeRestriction.
 		 */
@@ -1116,7 +1116,7 @@ class TypeRestriction private constructor(
 		 * @param givenExcludedValues
 		 * A set of values to consider excluded.
 		 * @param flags
-		 * The encoded [flags] `int`.
+		 * The encoded [flags] [Int].
 		 * @return
 		 * The new or existing canonical TypeRestriction.
 		 */

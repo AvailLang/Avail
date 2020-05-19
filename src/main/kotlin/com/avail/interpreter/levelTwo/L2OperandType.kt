@@ -59,7 +59,7 @@ enum class L2OperandType
 	CONSTANT,
 
 	/**
-	 * An [L2IntImmediateOperand] holds an `int` value.
+	 * An [L2IntImmediateOperand] holds an [Int] value.
 	 */
 	INT_IMMEDIATE,
 

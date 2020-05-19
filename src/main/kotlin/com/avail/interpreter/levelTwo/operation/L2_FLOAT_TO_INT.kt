@@ -42,7 +42,7 @@ import org.objectweb.asm.Opcodes
 import java.util.function.Consumer
 
 /**
- * Convert a `double` to an `int`.
+ * Convert a `double` to an [Int].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

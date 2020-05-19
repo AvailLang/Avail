@@ -116,7 +116,7 @@ class Serializer
 	 * Output an unsigned byte.  It must be in the range 0 ≤ n ≤ 255.
 	 *
 	 * @param byteValue
-	 *   The unsigned byte to output, as an `int`,
+	 *   The unsigned byte to output, as an [Int],
 	 */
 	internal fun writeByte(byteValue: Int)
 	{
@@ -156,7 +156,7 @@ class Serializer
 	 * Output an int.  Use big endian order.
 	 *
 	 * @param intValue
-	 *   The `int` to output.
+	 *   The [Int] to output.
 	 */
 	internal fun writeInt(intValue: Int)
 	{

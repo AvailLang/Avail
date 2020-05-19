@@ -394,7 +394,7 @@ interface A_Number : A_BasicObject {
 
 	/**
 	 * Extract an unsigned short from the [receiver][AvailObject]. Return it in
-	 * a Java [Int] to avoid sign bit reinterpretation.
+	 * a Kotlin [Int] to avoid sign bit reinterpretation.
 	 *
 	 * @return
 	 *   An [Int] in the range `[0..65535]`.
@@ -402,10 +402,10 @@ interface A_Number : A_BasicObject {
 	fun extractUnsignedShort(): Int
 
 	/**
-	 * Extract a Java `double` from the [receiver][AvailObject].
+	 * Extract a Kotln [Double] from the [receiver][AvailObject].
 	 *
 	 * @return
-	 *   A Java `double`.
+	 *   A Kotlin [Double].
 	 */
 	@ReferencedInGeneratedCode
 	fun extractDouble(): Double
@@ -419,10 +419,10 @@ interface A_Number : A_BasicObject {
 	fun extractFloat(): Float
 
 	/**
-	 * Extract a 32-bit signed Java [Int] from the [receiver][AvailObject].
+	 * Extract a 32-bit signed Kotlin [Int] from the [receiver][AvailObject].
 	 *
 	 * @return
-	 *   A 32-bit signed Java [Int].
+	 *   A 32-bit signed Kotlin [Int].
 	 */
 	@ReferencedInGeneratedCode
 	fun extractInt(): Int
@@ -701,7 +701,7 @@ interface A_Number : A_BasicObject {
 	 * an unboxed `double` value.
 	 *
 	 * @param aDouble
-	 *   The `double` to numerically compare against.
+	 *   The [Double] to numerically compare against.
 	 * @return
 	 *   How the receiver compares to the specified double.
 	 */
@@ -894,7 +894,7 @@ interface A_Number : A_BasicObject {
 
 	/**
 	 * Determine if the receiver is an Avail integer equivalent to the specified
-	 * Java [Int].  Note that a non-integer should simply answer false, not
+	 * Kotlin [Int].  Note that a non-integer should simply answer false, not
 	 * fail.  This operation was placed in A_Number for organizational reasons,
 	 * not type restriction.
 	 *

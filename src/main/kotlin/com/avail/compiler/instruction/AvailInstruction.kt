@@ -120,7 +120,7 @@ abstract class AvailInstruction constructor(var relevantTokens: A_Tuple)
 	companion object
 	{
 		/**
-		 * Write a nybble-coded `int` in a variable-sized format to the
+		 * Write a nybble-coded [Int] in a variable-sized format to the
 		 * [NybbleOutputStream].  Small values take only one nybble, and we can
 		 * represent any int up to [Integer.MAX_VALUE].
 		 *

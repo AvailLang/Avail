@@ -65,7 +65,7 @@ interface L2OperandDispatcher
 	fun doOperand(operand: L2ConstantOperand)
 
 	/**
-	 * Process an operand which is an `int` immediate value.
+	 * Process an operand which is an [Int] immediate value.
 	 *
 	 * @param operand
 	 *   An [L2IntImmediateOperand].
@@ -98,7 +98,7 @@ interface L2OperandDispatcher
 	fun doOperand(operand: L2PrimitiveOperand)
 
 	/**
-	 * Process an operand which is a read of an `int` register.
+	 * Process an operand which is a read of an [Int] register.
 	 *
 	 * @param operand
 	 *   An [L2ReadIntOperand].
@@ -155,7 +155,7 @@ interface L2OperandDispatcher
 	fun doOperand(operand: L2SelectorOperand)
 
 	/**
-	 * Process an operand which is a write of an `int` register.
+	 * Process an operand which is a write of an [Int] register.
 	 *
 	 * @param operand
 	 *   An [L2WriteIntOperand].

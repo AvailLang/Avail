@@ -44,7 +44,7 @@ import org.objectweb.asm.MethodVisitor
 import java.util.function.Consumer
 
 /**
- * Box an `int` into an [AvailObject].
+ * Box an [Int] into an [AvailObject].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

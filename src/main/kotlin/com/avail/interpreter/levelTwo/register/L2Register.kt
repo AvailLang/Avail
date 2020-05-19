@@ -133,7 +133,7 @@ abstract class L2Register constructor (val uniqueValue: Int) : L2Entity
 		},
 
 		/**
-		 * The kind of register that holds an `int`.
+		 * The kind of register that holds an [Int].
 		 */
 		INTEGER(
 			"int",

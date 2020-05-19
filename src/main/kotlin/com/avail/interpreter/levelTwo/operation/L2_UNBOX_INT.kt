@@ -44,7 +44,7 @@ import org.objectweb.asm.MethodVisitor
 import java.util.function.Consumer
 
 /**
- * Unbox an `int` from an [AvailObject].
+ * Unbox an [Int] from an [AvailObject].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

@@ -223,7 +223,7 @@ internal enum class SerializerOperandEncoding
 	/**
 	 * This is an [AvailObject] that's an [integer][IntegerDescriptor] of any
 	 * size.  It writes a compressed int for the number of int slots, then the
-	 * big-endian sequence of (also internally big-endian) uncompressed `int`s.
+	 * big-endian sequence of (also internally big-endian) uncompressed [Int]s.
 	 * Only the first int in that sequence is to be considered to have a sign.
 	 */
 	BIG_INTEGER_DATA

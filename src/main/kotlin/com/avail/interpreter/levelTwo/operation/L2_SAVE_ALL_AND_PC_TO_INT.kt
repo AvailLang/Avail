@@ -45,7 +45,7 @@ import java.util.*
 import java.util.function.Consumer
 
 /**
- * Extract the given "reference" edge's target level two offset as an `int`,
+ * Extract the given "reference" edge's target level two offset as an [Int],
  * then follow the fall-through edge.  The int value will be used in the
  * fall-through code to assemble a continuation, which, when returned into, will
  * start at the reference edge target.  Note that the L2 offset of the reference
@@ -177,7 +177,7 @@ object L2_SAVE_ALL_AND_PC_TO_INT : L2Operation(
 
 	/**
 	 * From the given [L2Instruction], extract the [edge][L2PcOperand] that
-	 * indicates the L2 offset to capture as an `int` in the second argument.
+	 * indicates the L2 offset to capture as an [Int] in the second argument.
 	 * The conversion of the edge to an int occurs very late, in
 	 * [translateToJVM], as does the decision about which registers should be
 	 * captured in the register dump – and restored when the [L2_ENTER_L2_CHUNK]

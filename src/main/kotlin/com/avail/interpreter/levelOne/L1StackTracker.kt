@@ -65,7 +65,7 @@ internal abstract class L1StackTracker : L1OperationDispatcher
 	 * @param operation
 	 *   The [L1Operation].
 	 * @param operands
-	 *   The operation's `int` operands.
+	 *   The operation's [Int] operands.
 	 */
 	fun track(operation: L1Operation, vararg operands: Int)
 	{

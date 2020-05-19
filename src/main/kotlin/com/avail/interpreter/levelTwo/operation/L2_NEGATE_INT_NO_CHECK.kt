@@ -43,8 +43,8 @@ import org.objectweb.asm.Opcodes
 import java.util.function.Consumer
 
 /**
- * Extract an `int` from the specified register and negate it. The result must
- * also be an `int`; the result is not checked for overflow. If overflow
+ * Extract an [Int] from the specified register and negate it. The result must
+ * also be an [Int]; the result is not checked for overflow. If overflow
  * detection is required, then use [L2_SUBTRACT_INT_CONSTANT_MINUS_INT] with an
  * [immediate][L2IntImmediateOperand] `0` instead.
  *

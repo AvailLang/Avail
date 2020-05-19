@@ -164,7 +164,7 @@ abstract class AbstractBuilderFrameTreeNode internal constructor(
 	/**
 	 * The primary order by which to sort this node relative to siblings.
 	 *
-	 * @return An `int`.  Lower values sort before higher ones.
+	 * @return An [Int].  Lower values sort before higher ones.
 	 */
 	open val sortMajor: Int get() = 0
 

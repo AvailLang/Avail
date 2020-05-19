@@ -63,10 +63,10 @@ class JSONNumber : JSONData
 		get() = bigDecimal.toBigIntegerExact()
 
 	/**
-	 * Extract an `Int`.
+	 * Extract an [Int].
 	 *
 	 * @return
-	 *   A `Int`.
+	 *   A [Int].
 	 * @throws ArithmeticException
 	 *   If the fractional part of the value is nonzero.
 	 */
@@ -134,7 +134,7 @@ class JSONNumber : JSONData
 	 * Construct a new [JSONNumber].
 	 *
 	 * @param value
-	 *   The `Int` that encodes the value.
+	 *   The [Int] that encodes the value.
 	 */
 	constructor(value: Int)
 	{

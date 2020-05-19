@@ -36,19 +36,19 @@ import com.avail.interpreter.levelTwo.L2OperandType
 
 /**
  * An `L2IntImmediateOperand` is an operand of type
- * [L2OperandType.INT_IMMEDIATE], which holds an `int` value representing
+ * [L2OperandType.INT_IMMEDIATE], which holds an [Int] value representing
  * itself.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
  * @property value
- *   The actual `int` value.
+ *   The actual [Int] value.
  *
  * @constructor
- * Construct a new `L2IntImmediateOperand` with the specified `int` value.
+ * Construct a new `L2IntImmediateOperand` with the specified [Int] value.
  *
  * @param value
- *   The constant `int` itself.
+ *   The constant [Int] itself.
  */
 class L2IntImmediateOperand constructor(val value: Int) : L2Operand()
 {

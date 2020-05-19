@@ -524,7 +524,7 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * An Avail integer that cannot be represented as an `int`.
+	 * An Avail integer that cannot be represented as an [Int].
 	 */
 	BIG_INTEGER(14, BIG_INTEGER_DATA.named("constituent ints"))
 	{

@@ -345,7 +345,7 @@ class AvailObject private constructor(
 	 * Compute the 32-bit hash of the receiver.
 	 *
 	 * @return
-	 *   An `int` hash value.
+	 *   An [Int] hash value.
 	 */
 	override fun hash() = descriptor().o_Hash(this)
 

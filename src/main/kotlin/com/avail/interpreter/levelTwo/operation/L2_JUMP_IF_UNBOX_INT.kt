@@ -47,7 +47,7 @@ import org.objectweb.asm.Opcodes
 import java.util.function.Consumer
 
 /**
- * Jump to `"if unboxed"` if an `int` was unboxed from an [AvailObject],
+ * Jump to `"if unboxed"` if an [Int] was unboxed from an [AvailObject],
  * otherwise jump to `"if not unboxed"`.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;

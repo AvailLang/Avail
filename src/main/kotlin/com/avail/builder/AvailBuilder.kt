@@ -469,7 +469,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 		/**
 		 * Enumerate the modules in this tree, invoking the `enter` callback
 		 * before visiting children, and invoking the `exit` callback after.
-		 * Both callbacks take an `int` indicating the current depth in the
+		 * Both callbacks take an [Int] indicating the current depth in the
 		 * tree, relative to the initial passed value.
 		 *
 		 * @param enter
@@ -1217,7 +1217,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 		internal const val maximumStaleRepositoryMs = 2000L
 
 		/**
-		 * Given a byte array, compute the [CRC32] checksum and append the `int`
+		 * Given a byte array, compute the [CRC32] checksum and append the [Int]
 		 * value as four bytes (Big Endian), answering the new augmented byte
 		 * array.
 		 *

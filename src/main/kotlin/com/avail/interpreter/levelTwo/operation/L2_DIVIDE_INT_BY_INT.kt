@@ -51,7 +51,7 @@ import java.util.function.Consumer
 /**
  * If the divisor is zero, then jump to the zero divisor label.  Otherwise
  * divide the dividend int by the divisor int.  If the quotient and remainder
- * each fit in an `int`, then store them and continue, otherwise jump to
+ * each fit in an [Int], then store them and continue, otherwise jump to
  * an out-of-range label.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;

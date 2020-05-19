@@ -45,7 +45,7 @@ import com.avail.interpreter.Primitive.Flag.*
 
 /**
  * **Primitive:** Given a [float][FloatDescriptor] in single-precision IEEE-754
- * representation, treat the bit pattern as a 32-bit (signed) `int` and answer
+ * representation, treat the bit pattern as a 32-bit (signed) [Int] and answer
  * the corresponding Avail [integer][IntegerDescriptor].
  *
  * @see P_FloatFromIntBits

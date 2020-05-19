@@ -415,7 +415,7 @@ class L2Inliner internal constructor(
 	 * Generate a number unique within the [targetGenerator].
 	 *
 	 * @return
-	 *   An `int` that the targetGenerator had not previously produced.
+	 *   An [Int] that the targetGenerator had not previously produced.
 	 */
 	fun nextUnique(): Int = targetGenerator.nextUnique()
 

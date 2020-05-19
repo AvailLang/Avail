@@ -217,7 +217,7 @@ interface A_BasicObject : JSONFriendly {
 	/**
 	 * Compute the 32-bit hash of the receiver.
 	 *
-	 * @return An `int` hash value.
+	 * @return An [Int] hash value.
 	 */
 	fun hash(): Int
 	override fun hashCode(): Int
