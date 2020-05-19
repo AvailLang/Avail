@@ -74,10 +74,10 @@ object L2_JUMP_IF_KIND_OF_CONSTANT : L2ConditionalJump(
 		val oldRestriction = value.restriction()
 		ifKind.manifest().setRestriction(
 			value.semanticValue(),
-			oldRestriction.intersectionWithType(constantType.`object`))
+			oldRestriction.intersectionWithType(constantType.constant))
 		ifNotKind.manifest().setRestriction(
 			value.semanticValue(),
-			oldRestriction.minusValue(constantType.`object`))
+			oldRestriction.minusValue(constantType.constant))
 	}
 
 	override fun branchReduction(
@@ -93,7 +93,7 @@ object L2_JUMP_IF_KIND_OF_CONSTANT : L2ConditionalJump(
 		val valueConstant: A_BasicObject? = value.constantOrNull()
 		if (valueConstant != null)
 		{
-			return if (valueConstant.isInstanceOf(constantType.`object`))
+			return if (valueConstant.isInstanceOf(constantType.constant))
 			{
 				BranchReduction.AlwaysTaken
 			}
@@ -103,12 +103,12 @@ object L2_JUMP_IF_KIND_OF_CONSTANT : L2ConditionalJump(
 			}
 		}
 		val knownType = value.type()
-		if (knownType.isSubtypeOf(constantType.`object`))
+		if (knownType.isSubtypeOf(constantType.constant))
 		{
 			// It's a subtype, so it must always pass the type test.
 			return BranchReduction.AlwaysTaken
 		}
-		val intersection = constantType.`object`.typeIntersection(knownType)
+		val intersection = constantType.constant.typeIntersection(knownType)
 		return if (intersection.isVacuousType)
 		{
 			// The types don't intersect, so it can't ever pass the type test.
@@ -131,7 +131,7 @@ object L2_JUMP_IF_KIND_OF_CONSTANT : L2ConditionalJump(
 		val isKindSet = registerSets[0]
 		//		final RegisterSet notKindSet = registerSets.get(1);
 		val existingType = isKindSet.typeAt(value.register())
-		val intersection = existingType.typeIntersection(constantType.`object`)
+		val intersection = existingType.typeIntersection(constantType.constant)
 		isKindSet.strengthenTestedTypeAtPut(value.register(), intersection)
 	}
 
@@ -150,7 +150,7 @@ object L2_JUMP_IF_KIND_OF_CONSTANT : L2ConditionalJump(
 		builder.append(' ')
 		builder.append(value.registerString())
 		builder.append(" ∈ ")
-		builder.append(constantType.`object`)
+		builder.append(constantType.constant)
 		renderOperandsStartingAt(instruction, 2, desiredTypes, builder)
 	}
 
@@ -167,7 +167,7 @@ object L2_JUMP_IF_KIND_OF_CONSTANT : L2ConditionalJump(
 		// :: if (value.isInstanceOf(type)) goto isKind;
 		// :: else goto notKind;
 		translator.load(method, value.register())
-		translator.literal(method, constantType.`object`)
+		translator.literal(method, constantType.constant)
 		A_BasicObject.isInstanceOfMethod.generateCall(method)
 		emitBranch(translator, method, instruction, Opcodes.IFNE, ifKind, ifNotKind)
 	}

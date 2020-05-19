@@ -73,7 +73,7 @@ object L2_JUMP_IF_SUBTYPE_OF_CONSTANT : L2ConditionalJump(
 		val exactType: A_BasicObject? = typeToCheck.constantOrNull()
 		if (exactType != null)
 		{
-			return if (exactType.isInstanceOf(constantType.`object`))
+			return if (exactType.isInstanceOf(constantType.constant))
 			{
 				BranchReduction.AlwaysTaken
 			}
@@ -82,13 +82,13 @@ object L2_JUMP_IF_SUBTYPE_OF_CONSTANT : L2ConditionalJump(
 				BranchReduction.NeverTaken
 			}
 		}
-		if (typeToCheck.type().instance().isSubtypeOf(constantType.`object`))
+		if (typeToCheck.type().instance().isSubtypeOf(constantType.constant))
 		{
 			// It's a subtype, so it must always pass the type test.
 			return BranchReduction.AlwaysTaken
 		}
 		val intersection =
-			typeToCheck.type().instance().typeIntersection(constantType.`object`)
+			typeToCheck.type().instance().typeIntersection(constantType.constant)
 		return if (intersection.isBottom)
 		{
 			// The types don't intersect, so it can't ever pass the type test.
@@ -117,7 +117,7 @@ object L2_JUMP_IF_SUBTYPE_OF_CONSTANT : L2ConditionalJump(
 			val existingMeta = isSubtypeSet.typeAt(typeToCheck.register())
 			val existingType: A_Type = existingMeta.instance()
 			val intersectionType =
-				existingType.typeIntersection(constantType.`object`)
+				existingType.typeIntersection(constantType.constant)
 			val intersectionMeta =
 				InstanceMetaDescriptor.instanceMeta(intersectionType)
 			isSubtypeSet.strengthenTestedTypeAtPut(
@@ -140,7 +140,7 @@ object L2_JUMP_IF_SUBTYPE_OF_CONSTANT : L2ConditionalJump(
 		builder.append(' ')
 		builder.append(typeToCheck.registerString())
 		builder.append(" ⊆ ")
-		builder.append(constantType.`object`)
+		builder.append(constantType.constant)
 		renderOperandsStartingAt(instruction, 2, desiredTypes, builder)
 	}
 
@@ -157,7 +157,7 @@ object L2_JUMP_IF_SUBTYPE_OF_CONSTANT : L2ConditionalJump(
 		// :: if (type.isSubtypeOf(constant)) goto isSubtype;
 		// :: else goto notSubtype;
 		translator.load(method, typeToCheck.register())
-		translator.literal(method, constantType.`object`)
+		translator.literal(method, constantType.constant)
 		A_Type.isSubtypeOfMethod.generateCall(method)
 		emitBranch(
 			translator, method, instruction, Opcodes.IFNE, isSubtype, notSubtype)

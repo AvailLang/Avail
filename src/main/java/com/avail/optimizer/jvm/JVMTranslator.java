@@ -595,7 +595,7 @@ public final class JVMTranslator
 		@Override
 		public void doOperand (final L2ConstantOperand operand)
 		{
-			recordLiteralObject(operand.object);
+			recordLiteralObject(operand.constant);
 		}
 
 		@Override

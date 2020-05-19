@@ -81,10 +81,10 @@ object L2_JUMP_IF_EQUALS_CONSTANT :
 		ifEqual.manifest().setRestriction(
 			reader.semanticValue(),
 			TypeRestriction.restrictionForConstant(
-				constant.`object`, RestrictionFlagEncoding.BOXED))
+				constant.constant, RestrictionFlagEncoding.BOXED))
 		ifNotEqual.manifest().setRestriction(
 			reader.semanticValue(),
-			oldRestriction.minusValue(constant.`object`))
+			oldRestriction.minusValue(constant.constant))
 	}
 
 	override fun branchReduction(
@@ -101,7 +101,7 @@ object L2_JUMP_IF_EQUALS_CONSTANT :
 		if (valueOrNull != null)
 		{
 			// Compare them right now.
-			return if (valueOrNull.equals(constant.`object`))
+			return if (valueOrNull.equals(constant.constant))
 			{
 				BranchReduction.AlwaysTaken
 			}
@@ -110,7 +110,7 @@ object L2_JUMP_IF_EQUALS_CONSTANT :
 				BranchReduction.NeverTaken
 			}
 		}
-		return if (!constant.`object`.isInstanceOf(value.type()))
+		return if (!constant.constant.isInstanceOf(value.type()))
 		{
 			// They can't be equal.
 			BranchReduction.NeverTaken
@@ -139,7 +139,7 @@ object L2_JUMP_IF_EQUALS_CONSTANT :
 		builder.append(' ')
 		builder.append(value.registerString())
 		builder.append(" = ")
-		builder.append(constant.`object`)
+		builder.append(constant.constant)
 		renderOperandsStartingAt(instruction, 2, desiredTypes, builder)
 	}
 
@@ -158,7 +158,7 @@ object L2_JUMP_IF_EQUALS_CONSTANT :
 		// :: if (value.equals(constant)) goto ifEqual;
 		// :: else goto ifUnequal;
 		translator.load(method, value.register())
-		translator.literal(method, constant.`object`)
+		translator.literal(method, constant.constant)
 		A_BasicObject.equalsMethod.generateCall(method)
 		emitBranch(
 			translator, method, instruction, Opcodes.IFNE, ifEqual, ifUnequal)

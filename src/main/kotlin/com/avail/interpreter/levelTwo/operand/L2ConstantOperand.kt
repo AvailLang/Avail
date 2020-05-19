@@ -48,16 +48,16 @@ import com.avail.interpreter.levelTwo.L2OperandType
  * Construct a new `L2ConstantOperand` with the specified
  * [constant][AvailObject].
  *
- * @param object
- * The constant value.
+ * @param constant
+ *   The constant value.
  */
-class L2ConstantOperand(`object`: A_BasicObject) : L2Operand()
+class L2ConstantOperand(constant: A_BasicObject) : L2Operand()
 {
 	/**
 	 * The actual constant value.
 	 */
 	@JvmField
-	val `object`: AvailObject = `object`.makeShared()
+	val constant: AvailObject = constant.makeShared()
 
 	override fun operandType(): L2OperandType = L2OperandType.CONSTANT
 
@@ -69,14 +69,14 @@ class L2ConstantOperand(`object`: A_BasicObject) : L2Operand()
 	override fun appendTo(builder: StringBuilder)
 	{
 		builder.append("$(")
-		if (`object`.isInstanceOf(
+		if (constant.isInstanceOf(
 				CompiledCodeTypeDescriptor.mostGeneralCompiledCodeType()))
 		{
-			builder.append(decompile(`object`))
+			builder.append(decompile(constant))
 		}
 		else
 		{
-			builder.append(`object`)
+			builder.append(constant)
 		}
 		builder.append(")")
 	}

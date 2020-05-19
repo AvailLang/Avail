@@ -88,15 +88,13 @@ object L2_STRIP_MANIFEST : L2Operation(
 
 		// Clear the manifest, other than the mentioned semantic values and
 		// registers.
-		val liveSemanticValues: MutableSet<L2SemanticValue> = HashSet()
-		val liveRegisters: MutableSet<L2Register> = HashSet()
-		for (read in liveVector.elements())
-		{
-			liveSemanticValues.add(read.semanticValue())
-			liveRegisters.add(read.register())
-		}
+		val liveSemanticValues =
+			liveVector.elements().mapTo(mutableSetOf()) { it.semanticValue() }
+		val liveRegisters =
+			liveVector.elements().mapTo(mutableSetOf()) { it.register() }
+
 		manifest.retainSemanticValues(liveSemanticValues)
-		manifest.retainRegisters(liveRegisters)
+		manifest.retainRegisters(liveRegisters.toSet())
 	}
 
 	override fun translateToJVM(

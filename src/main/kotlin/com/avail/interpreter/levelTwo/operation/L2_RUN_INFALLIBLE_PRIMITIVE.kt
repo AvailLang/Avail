@@ -128,7 +128,7 @@ abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor()
 		// We can at least believe what the primitive itself says it returns.
 		val guaranteedType =
 			primitive.primitive.returnTypeGuaranteedByVM(
-				rawFunction.`object`, argTypes)
+				rawFunction.constant, argTypes)
 		registerSet.removeTypeAt(result.register())
 		registerSet.removeConstantAt(result.register())
 		if (!guaranteedType.isBottom)

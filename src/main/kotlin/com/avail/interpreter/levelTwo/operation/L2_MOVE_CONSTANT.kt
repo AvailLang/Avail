@@ -185,7 +185,7 @@ private constructor(
 				translator: JVMTranslator,
 				method: MethodVisitor,
 				operand: L2ConstantOperand ->
-					translator.literal(method, operand.`object`)
+					translator.literal(method, operand.constant)
 			},
 			L2OperandType.CONSTANT.`is`("constant"),
 			L2OperandType.WRITE_BOXED.`is`("destination boxed"))
@@ -233,7 +233,7 @@ private constructor(
 			assert(instruction.operation() === boxed)
 			val constant =
 				instruction.operand<L2ConstantOperand>(0)
-			return constant.`object`
+			return constant.constant
 		}
 	}
 }

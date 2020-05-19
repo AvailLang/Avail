@@ -69,15 +69,15 @@ object L2_CREATE_FUNCTION : L2Operation(
 		val outers = instruction.operand<L2ReadBoxedVectorOperand>(1)
 		val function = instruction.operand<L2WriteBoxedOperand>(2)
 		registerSet.typeAtPut(
-			function.register(), code.`object`.functionType(), instruction)
+			function.register(), code.constant.functionType(), instruction)
 		if (registerSet.allRegistersAreConstant(outers.elements()))
 		{
 			// This can be replaced with a statically constructed function
 			// during regeneration, but for now capture the exact function that
 			// will be constructed.
 			val numOuters = outers.elements().size
-			assert(numOuters == code.`object`.numOuters())
-			val newFunction: A_Function = createExceptOuters(code.`object`, numOuters)
+			assert(numOuters == code.constant.numOuters())
+			val newFunction: A_Function = createExceptOuters(code.constant, numOuters)
 			for (i in 1 .. numOuters)
 			{
 				newFunction.outerVarAtPut(
@@ -113,7 +113,7 @@ object L2_CREATE_FUNCTION : L2Operation(
 		// the code says the outer must have.
 		val intersection = originalRead.restriction().intersectionWithType(
 			outerType.typeIntersection(
-				code.`object`.outerTypeAt(outerIndex)))
+				code.constant.outerTypeAt(outerIndex)))
 		assert(!intersection.type.isBottom)
 		val manifest = generator.currentManifest()
 		val semanticValue = originalRead.semanticValue()
@@ -154,7 +154,7 @@ object L2_CREATE_FUNCTION : L2Operation(
 	{
 		assert(instruction.operation() === this)
 		val constant = instruction.operand<L2ConstantOperand>(0)
-		return constant.`object`
+		return constant.constant
 	}
 
 	override fun appendToWithWarnings(
@@ -192,8 +192,8 @@ object L2_CREATE_FUNCTION : L2Operation(
 		val outerRegs = instruction.operand<L2ReadBoxedVectorOperand>(1)
 		val newFunctionReg = instruction.operand<L2WriteBoxedOperand>(2)
 		val numOuters = outerRegs.elements().size
-		assert(numOuters == code.`object`.numOuters())
-		translator.literal(method, code.`object`)
+		assert(numOuters == code.constant.numOuters())
+		translator.literal(method, code.constant)
 		when (numOuters)
 		{
 			1 ->
@@ -252,6 +252,6 @@ object L2_CREATE_FUNCTION : L2Operation(
 	{
 		assert(instruction.operation() is L2_CREATE_FUNCTION)
 		val constant = instruction.operand<L2ConstantOperand>(0)
-		return constant.`object`
+		return constant.constant
 	}
 }

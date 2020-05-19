@@ -86,7 +86,7 @@ object L2_GET_OBJECT_FIELD : L2Operation(
 		val fieldAtom = instruction.operand<L2ConstantOperand>(1)
 		val fieldValue = instruction.operand<L2WriteBoxedOperand>(2)
 		translator.load(method, objectRead.register())
-		translator.literal(method, fieldAtom.`object`)
+		translator.literal(method, fieldAtom.constant)
 		AvailObject.fieldAtMethod.generateCall(method)
 		translator.store(method, fieldValue.register())
 	}

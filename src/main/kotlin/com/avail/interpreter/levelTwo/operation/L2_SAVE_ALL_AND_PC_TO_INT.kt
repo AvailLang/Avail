@@ -45,16 +45,15 @@ import java.util.*
 import java.util.function.Consumer
 
 /**
- * Extract the given "reference" edge's target level two offset as an `int`, then follow the fall-through edge.  The int value will be used in the
+ * Extract the given "reference" edge's target level two offset as an `int`,
+ * then follow the fall-through edge.  The int value will be used in the
  * fall-through code to assemble a continuation, which, when returned into, will
  * start at the reference edge target.  Note that the L2 offset of the reference
  * edge is not known until just before JVM code generation.
  *
- *
  * This is a special operation, in that during final JVM code generation it
- * saves all objects in a register dump
- * ([ContinuationRegisterDumpDescriptor]), and the
- * [L2_ENTER_L2_CHUNK] at the reference target will restore them.
+ * saves all objects in a register dump ([ContinuationRegisterDumpDescriptor]),
+ * and the [L2_ENTER_L2_CHUNK] at the reference target will restore them.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -100,23 +99,19 @@ object L2_SAVE_ALL_AND_PC_TO_INT : L2Operation(
 	 * register state, it gets restored again and winds up traversing the other
 	 * edge.
 	 *
-	 *
 	 * This is an important distinction, in that this type of instruction
 	 * should act as a barrier against redundancy elimination.  Otherwise an
 	 * object with identity (i.e., a variable) created in the first branch won't
 	 * be the same as the one produced again in the second branch.
 	 *
-	 *
 	 * Also, we must treat as always-live-in to this instruction any values
 	 * that are used in *either* branch, since they'll both be taken.
 	 *
 	 * @return
-	 * Whether multiple branches may be taken following the circumstance of arriving at this instruction.
+	 *   Whether multiple branches may be taken following the circumstance of
+	 *   arriving at this instruction.
 	 */
-	override fun goesMultipleWays(): Boolean
-	{
-		return true
-	}
+	override fun goesMultipleWays(): Boolean = true
 
 	override fun optionalReplacementForDeadInstruction(
 		instruction: L2Instruction): L2Instruction?
@@ -181,19 +176,17 @@ object L2_SAVE_ALL_AND_PC_TO_INT : L2Operation(
 	}
 
 	/**
-	 * From the given [L2Instruction], extract the
-	 * [edge][L2PcOperand] that indicates the L2 offset to capture as an
-	 * `int` in the second argument.  The conversion of the edge to an int
-	 * occurs very late, in
-	 * [translateToJVM], as
-	 * does the decision about which registers should be captured in the
-	 * register dump – and restored when the [L2_ENTER_L2_CHUNK] at
-	 * the referenced edge's target is reached.
+	 * From the given [L2Instruction], extract the [edge][L2PcOperand] that
+	 * indicates the L2 offset to capture as an `int` in the second argument.
+	 * The conversion of the edge to an int occurs very late, in
+	 * [translateToJVM], as does the decision about which registers should be
+	 * captured in the register dump – and restored when the [L2_ENTER_L2_CHUNK]
+	 * at  the referenced edge's target is reached.
 	 *
 	 * @param instruction
-	 * The instruction from which to extract the reference edge.
+	 *   The instruction from which to extract the reference edge.
 	 * @return
-	 * The referenced [edge][L2PcOperand].
+	 *   The referenced [edge][L2PcOperand].
 	 */
 	fun referenceOf(instruction: L2Instruction): L2PcOperand
 	{

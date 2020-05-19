@@ -73,7 +73,7 @@ object L2_CREATE_OBJECT : L2Operation(
 		builder.append(`object`.registerString())
 		builder.append(" ← {")
 		val variant =
-			variantOperand.`object`.javaObjectNotNull<ObjectLayoutVariant>()
+			variantOperand.constant.javaObjectNotNull<ObjectLayoutVariant>()
 		val realSlots = variant.realSlots
 		val fieldSources = fieldsVector.elements()
 		assert(realSlots.size == fieldSources.size)
@@ -105,7 +105,7 @@ object L2_CREATE_OBJECT : L2Operation(
 		val `object` =
 			instruction.operand<L2WriteBoxedOperand>(2)
 		val variant =
-			variantOperand.`object`.javaObjectNotNull<ObjectLayoutVariant>()
+			variantOperand.constant.javaObjectNotNull<ObjectLayoutVariant>()
 		method.visitLdcInsn(variant)
 		ObjectDescriptor.createUninitializedObjectMethod.generateCall(method)
 		val fieldSources = fieldsVector.elements()

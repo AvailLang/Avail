@@ -1727,7 +1727,7 @@ public final class L1Translator
 							L2_GET_TYPE.sourceValueOf(firstTypeSource);
 						jumpIfKindOfConstant(
 							valueSource,
-							secondConstantOperand.object,
+							secondConstantOperand.constant,
 							constantBool ? passBlock : failBlock,
 							constantBool ? failBlock : passBlock);
 						return;

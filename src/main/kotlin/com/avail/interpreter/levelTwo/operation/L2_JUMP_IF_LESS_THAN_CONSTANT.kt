@@ -71,7 +71,7 @@ object L2_JUMP_IF_LESS_THAN_CONSTANT : L2ConditionalJump(
 		builder.append(' ')
 		builder.append(value.registerString())
 		builder.append(" < ")
-		builder.append(constant.`object`)
+		builder.append(constant.constant)
 		renderOperandsStartingAt(instruction, 2, desiredTypes, builder)
 	}
 
@@ -87,7 +87,7 @@ object L2_JUMP_IF_LESS_THAN_CONSTANT : L2ConditionalJump(
 
 		// :: comparison = first.numericCompare(second);
 		translator.load(method, value.register())
-		translator.literal(method, constant.`object`)
+		translator.literal(method, constant.constant)
 		A_Number.numericCompareMethod.generateCall(method)
 		// :: if (comparison.isLess()) goto ifTrue;
 		// :: else goto ifFalse;

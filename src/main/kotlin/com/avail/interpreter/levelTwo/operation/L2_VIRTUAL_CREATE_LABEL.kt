@@ -56,28 +56,27 @@ import java.util.function.Consumer
  * This is a placeholder instruction, which is replaced if still live after data
  * flow optimizations by:
  *
- *  1. ensuring the caller is reified.  If we're not already in a reification
+ * - ensuring the caller is reified.  If we're not already in a reification
  * [L2ControlFlowGraph.Zone], generate the following, with a dynamic
  * [L2_JUMP_IF_ALREADY_REIFIED] check to skip past it:
+ *   1.  [L2_REIFY],
+ *   1.  [L2_ENTER_L2_CHUNK] (start of reification area),
+ *   1.  [L2_SAVE_ALL_AND_PC_TO_INT], falling through to
+ *   1.  [L2_GET_CURRENT_CONTINUATION],
+ *   1.  [L2_GET_CURRENT_FUNCTION],
+ *   1.  [L2_CREATE_CONTINUATION],
+ *   1.  [L2_SET_CONTINUATION],
+ *   1.  [L2_RETURN_FROM_REIFICATION_HANDLER], then outside the reification area,
+ *   1.  [L2_ENTER_L2_CHUNK].
  *
- *  1. [L2_REIFY],
- *  1. [L2_ENTER_L2_CHUNK] (start of reification area),
- *  1. [L2_SAVE_ALL_AND_PC_TO_INT], falling through to
- *  1. [L2_GET_CURRENT_CONTINUATION],
- *  1. [L2_GET_CURRENT_FUNCTION],
- *  1. [L2_CREATE_CONTINUATION],
- *  1. [L2_SET_CONTINUATION],
- *  1. [L2_RETURN_FROM_REIFICATION_HANDLER], then outside the reification area,
- *  1. [L2_ENTER_L2_CHUNK].
- *
- *  1. [L2_SAVE_ALL_AND_PC_TO_INT], falling through to
- *  1. [L2_GET_CURRENT_FUNCTION] (or [L2_MOVE_CONSTANT]), if the current
+ * - [L2_SAVE_ALL_AND_PC_TO_INT], falling through to
+ * - [L2_GET_CURRENT_FUNCTION] (or [L2_MOVE_CONSTANT]), if the current
  *     function isn't already visible,
- *  1. [L2_MAKE_IMMUTABLE] for the current function,
- *  1. [L2_GET_CURRENT_CONTINUATION]
- *  1. [L2_MAKE_IMMUTABLE] for the current caller,
- *  1. [L2_CREATE_CONTINUATION].
- *  1. The target of the [L2_SAVE_ALL_AND_PC_TO_INT] is in another block, which
+ * - [L2_MAKE_IMMUTABLE] for the current function,
+ * - [L2_GET_CURRENT_CONTINUATION]
+ * - [L2_MAKE_IMMUTABLE] for the current caller,
+ * - [L2_CREATE_CONTINUATION].
+ * - The target of the [L2_SAVE_ALL_AND_PC_TO_INT] is in another block, which
  *  contains an unconditional [L2_JUMP_BACK] to the
  * [L2Generator.afterOptionalInitialPrimitiveBlock].
  *
@@ -91,7 +90,6 @@ import java.util.function.Consumer
  * indicate this is a label.  The stack is empty, and only the arguments,
  * function, and caller are recorded – for level one.  For level two, it also
  * captures the register dump and the level two offset of the entry point above.
- *
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */

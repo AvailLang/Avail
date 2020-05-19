@@ -68,7 +68,7 @@ object L2_CREATE_VARIABLE : L2Operation(
 		// Not a constant, but we know the type...
 		registerSet.removeConstantAt(variable.register())
 		registerSet.typeAtPut(
-			variable.register(), outerType.`object`, instruction)
+			variable.register(), outerType.constant, instruction)
 	}
 
 	override fun appendToWithWarnings(
@@ -86,7 +86,7 @@ object L2_CREATE_VARIABLE : L2Operation(
 		builder.append(' ')
 		builder.append(variable.registerString())
 		builder.append(" ← new ")
-		builder.append(outerType.`object`)
+		builder.append(outerType.constant)
 	}
 
 	override fun translateToJVM(
@@ -100,7 +100,7 @@ object L2_CREATE_VARIABLE : L2Operation(
 			instruction.operand<L2WriteBoxedOperand>(1)
 
 		// :: newVar = newVariableWithOuterType(outerType);
-		translator.literal(method, outerType.`object`)
+		translator.literal(method, outerType.constant)
 		VariableDescriptor.newVariableWithOuterTypeMethod.generateCall(method)
 		translator.store(method, variable.register())
 	}

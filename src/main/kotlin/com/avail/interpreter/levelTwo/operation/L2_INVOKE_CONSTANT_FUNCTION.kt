@@ -99,7 +99,7 @@ object L2_INVOKE_CONSTANT_FUNCTION : L2ControlFlowOperation(
 		builder.append(' ')
 		builder.append(result.registerString())
 		builder.append(" ← ")
-		builder.append(constantFunction.`object`)
+		builder.append(constantFunction.constant)
 		builder.append("(")
 		builder.append(arguments.elements())
 		builder.append(")")
@@ -127,7 +127,7 @@ object L2_INVOKE_CONSTANT_FUNCTION : L2ControlFlowOperation(
 		// :: [interpreter, callingChunk]
 		translator.loadInterpreter(method)
 		// :: [interpreter, callingChunk, interpreter]
-		translator.literal(method, constantFunction.`object`)
+		translator.literal(method, constantFunction.constant)
 		// :: [interpreter, callingChunk, interpreter, function]
 		L2_INVOKE.generatePushArgumentsAndInvoke(
 			translator,
