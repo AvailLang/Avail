@@ -41,6 +41,7 @@ import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.functions.CompiledCodeDescriptor.Companion.initialMutableDescriptor
 import com.avail.descriptor.functions.CompiledCodeDescriptor.IntegerSlots.Companion.FRAME_SLOTS
+import com.avail.descriptor.functions.CompiledCodeDescriptor.IntegerSlots.Companion.HASH
 import com.avail.descriptor.functions.CompiledCodeDescriptor.IntegerSlots.Companion.NUM_ARGS
 import com.avail.descriptor.functions.CompiledCodeDescriptor.IntegerSlots.Companion.NUM_CONSTANTS
 import com.avail.descriptor.functions.CompiledCodeDescriptor.IntegerSlots.Companion.NUM_LOCALS
@@ -643,7 +644,7 @@ class CompiledCodeDescriptor private constructor(
 		self.slot(FUNCTION_TYPE)
 
 	@AvailMethod
-	override fun o_Hash(self: AvailObject) = self.slot(IntegerSlots.HASH)
+	override fun o_Hash(self: AvailObject) = self.slot(HASH)
 
 	@AvailMethod
 	override fun o_DecrementCountdownToReoptimize(
@@ -1242,11 +1243,7 @@ class CompiledCodeDescriptor private constructor(
 					tuple.tupleSize())
 				literalIndex += tuple.tupleSize()
 			}
-			var hash: Int
-			do {
-				hash = AvailRuntimeSupport.nextHash()
-			} while (hash == 0)
-			code.setSlot(IntegerSlots.HASH, hash)
+			code.setSlot(HASH, AvailRuntimeSupport.nextNonzeroHash())
 			code.setDescriptor(
 				CompiledCodeDescriptor(
 					Mutability.SHARED,

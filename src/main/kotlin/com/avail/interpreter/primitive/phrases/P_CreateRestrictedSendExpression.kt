@@ -36,12 +36,13 @@ import com.avail.AvailRuntime.currentRuntime
 import com.avail.compiler.AvailAcceptedParseException
 import com.avail.compiler.AvailRejectedParseException
 import com.avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
-import com.avail.descriptor.fiber.FiberDescriptor.currentFiber
-import com.avail.descriptor.fiber.FiberDescriptor.newFiber
 import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import com.avail.descriptor.bundles.A_Bundle.Companion.messageSplitter
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.currentFiber
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.setSuccessAndFailure
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
 import com.avail.descriptor.phrases.ListPhraseDescriptor
@@ -247,7 +248,7 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 				forkedFiber.heritableFiberGlobals(
 					originalFiber.heritableFiberGlobals())
 				forkedFiber.textInterface(originalFiber.textInterface())
-				forkedFiber.setSuccessAndFailureContinuations(
+				forkedFiber.setSuccessAndFailure(
 					success,
 					{ throwable ->
 						when (throwable) {

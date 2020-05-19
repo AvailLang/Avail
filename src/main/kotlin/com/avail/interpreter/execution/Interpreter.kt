@@ -37,22 +37,26 @@ import com.avail.AvailRuntimeConfiguration.maxInterpreters
 import com.avail.AvailRuntimeSupport
 import com.avail.AvailTask
 import com.avail.AvailThread
-import com.avail.descriptor.fiber.A_Fiber
-import com.avail.descriptor.module.A_Module
-import com.avail.descriptor.fiber.FiberDescriptor
-import com.avail.descriptor.fiber.FiberDescriptor.*
-import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState.*
-import com.avail.descriptor.fiber.FiberDescriptor.InterruptRequestFlag.REIFICATION_REQUESTED
-import com.avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag.BOUND
-import com.avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
+import com.avail.descriptor.fiber.A_Fiber
+import com.avail.descriptor.fiber.FiberDescriptor
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.setSuccessAndFailure
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.stringificationPriority
+import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState
+import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState.*
+import com.avail.descriptor.fiber.FiberDescriptor.InterruptRequestFlag.REIFICATION_REQUESTED
+import com.avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag.BOUND
+import com.avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE
+import com.avail.descriptor.fiber.FiberDescriptor.TraceFlag
 import com.avail.descriptor.functions.*
+import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.representation.*
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
@@ -96,7 +100,6 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.performance.PerInterpreterStatistic
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
-import com.avail.utility.Nulls
 import com.avail.utility.Strings.tab
 import com.avail.utility.evaluation.Continuation0
 import com.avail.utility.evaluation.Continuation1
@@ -868,7 +871,7 @@ class Interpreter(
 		aFiber.lock(Continuation0 {
 			assert(aFiber.executionState() === RUNNING)
 			aFiber.executionState(state)
-			aFiber.continuation(Nulls.stripNull(getReifiedContinuation()))
+			aFiber.continuation(getReifiedContinuation()!!)
 			setReifiedContinuation(null)
 			val bound = aFiber.getAndSetSynchronizationFlag(
 				BOUND, false)
@@ -901,7 +904,7 @@ class Interpreter(
 	 *   [Result.FIBER_SUSPENDED], for convenience.
 	 */
 	fun primitiveSuspend(suspendingFunction: A_Function): Result {
-		val prim = Nulls.stripNull(suspendingFunction.code().primitive())
+		val prim = suspendingFunction.code().primitive()!!
 		assert(prim.hasFlag(CanSuspend))
 		fiber().suspendingFunction(suspendingFunction)
 		function = null // Safety
@@ -1337,7 +1340,7 @@ class Interpreter(
 		levelOneStepper.wipeRegisters()
 		postExitContinuation {
 			waiters?.forEach { pojo ->
-				val waiter: Continuation1<A_Continuation> =
+				val waiter: Continuation1NotNull<A_Continuation> =
 					pojo.javaObjectNotNull()
 				waiter.value(continuation)
 			}
@@ -1366,7 +1369,7 @@ class Interpreter(
 		assert(argsBuffer.size == 1)
 		argsBuffer[0] = exceptionValue
 		val primNum = P_CatchException.primitiveNumber
-		var continuation = Nulls.stripNull(getReifiedContinuation())
+		var continuation = getReifiedContinuation()!!
 		var depth = 0
 		while (!continuation.equalsNil()) {
 			val code = continuation.function().code()
@@ -1468,7 +1471,7 @@ class Interpreter(
 	 */
 	fun markNearestGuard(marker: A_Number): Result {
 		val primNum = P_CatchException.primitiveNumber
-		var continuation: A_Continuation = Nulls.stripNull(getReifiedContinuation())
+		var continuation: A_Continuation = getReifiedContinuation()!!
 		var depth = 0
 		while (!continuation.equalsNil()) {
 			val code = continuation.function().code()
@@ -2677,14 +2680,14 @@ class Interpreter(
 			arguments: List<A_BasicObject>
 		) {
 			assert(aFiber.executionState() === UNSTARTED)
-			aFiber.fiberNameSupplier {
+			aFiber.fiberNameSupplier(Supplier {
 				val code = function.code()
 				formatString("Outermost %s @ %s:%d",
 					code.methodName().asNativeString(),
 					if (code.module().equalsNil()) "«vm»"
 					else code.module().moduleName().asNativeString(),
 					code.startingLineNumber())
-			}
+			})
 			executeFiber(
 				runtime,
 				aFiber,
@@ -2886,7 +2889,7 @@ class Interpreter(
 				stringificationPriority
 			) { stringFrom("Stringification") }
 			fiber.textInterface(textInterface)
-			fiber.setSuccessAndFailureContinuations(
+			fiber.setSuccessAndFailure(
 				{ string: AvailObject ->
 					continuation(string.asNativeString())
 				},

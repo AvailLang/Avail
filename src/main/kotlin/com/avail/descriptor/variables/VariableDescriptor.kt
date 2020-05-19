@@ -54,6 +54,7 @@ import com.avail.descriptor.types.IntegerRangeTypeDescriptor
 import com.avail.descriptor.types.TypeTag
 import com.avail.descriptor.types.VariableTypeDescriptor
 import com.avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
+import com.avail.descriptor.variables.VariableDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailException
 import com.avail.exceptions.VariableGetException
@@ -184,15 +185,15 @@ open class VariableDescriptor protected constructor(
 	@AvailMethod
 	override fun o_Hash(self: AvailObject): Int
 	{
-		var hash = self.slot(IntegerSlots.HASH_OR_ZERO)
-		if (hash == 0)
-		{
-			do
-			{
-				hash = AvailRuntimeSupport.nextHash()
+		var hash = self.slot(HASH_OR_ZERO)
+		if (hash == 0) {
+			synchronized(self) {
+				hash = self.slot(HASH_OR_ZERO)
+				if (hash == 0) {
+					hash = AvailRuntimeSupport.nextNonzeroHash()
+					self.setSlot(HASH_OR_ZERO, hash)
+				}
 			}
-			while (hash == 0)
-			self.setSlot(IntegerSlots.HASH_OR_ZERO, hash)
 		}
 		return hash
 	}
@@ -726,7 +727,7 @@ open class VariableDescriptor protected constructor(
 		{
 			val result = mutable.create()
 			result.setSlot(ObjectSlots.KIND, variableType!!)
-			result.setSlot(IntegerSlots.HASH_OR_ZERO, 0)
+			result.setSlot(HASH_OR_ZERO, 0)
 			result.setSlot(ObjectSlots.VALUE, nil)
 			result.setSlot(ObjectSlots.WRITE_REACTORS, nil)
 			return result

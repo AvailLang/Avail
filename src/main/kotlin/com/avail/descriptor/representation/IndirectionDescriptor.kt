@@ -2689,8 +2689,8 @@ class IndirectionDescriptor private constructor(
 	override fun o_GetAndSetSynchronizationFlag(
 		self: AvailObject,
 		flag: SynchronizationFlag,
-		newValue: Boolean
-	): Boolean = self .. { getAndSetSynchronizationFlag(flag, newValue) }
+		value: Boolean
+	): Boolean = self.. { getAndSetSynchronizationFlag(flag, value) }
 
 	override fun o_FiberResult(self: AvailObject): AvailObject =
 		self .. { fiberResult() }
@@ -2862,9 +2862,9 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_RecordVariableAccess(
 		self: AvailObject,
-		`var`: A_Variable,
+		variable: A_Variable,
 		wasRead: Boolean
-	) = self .. { recordVariableAccess(`var`, wasRead) }
+	) = self.. { recordVariableAccess(variable, wasRead) }
 
 	override fun o_VariablesReadBeforeWritten(self: AvailObject): A_Set =
 		self .. { variablesReadBeforeWritten() }
@@ -2886,7 +2886,7 @@ class IndirectionDescriptor private constructor(
 	) = self .. { whenContinuationIsAvailableDo(whenReified) }
 
 	override fun o_GetAndClearReificationWaiters(self: AvailObject): A_Set =
-		self .. { andClearReificationWaiters }
+		self .. { getAndClearReificationWaiters() }
 
 	override fun o_IsBottom(self: AvailObject): Boolean =
 		self .. { isBottom }

@@ -37,19 +37,20 @@ import com.avail.compiler.*
 import com.avail.compiler.problems.Problem
 import com.avail.compiler.problems.ProblemHandler
 import com.avail.compiler.problems.ProblemType.*
-import com.avail.descriptor.module.A_Module
-import com.avail.descriptor.fiber.FiberDescriptor.commandPriority
-import com.avail.descriptor.fiber.FiberDescriptor.newFiber
-import com.avail.descriptor.module.ModuleDescriptor
-import com.avail.descriptor.module.ModuleDescriptor.Companion.newModule
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.commandPriority
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.setSuccessAndFailure
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunctionForPhrase
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
+import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.ModuleDescriptor
+import com.avail.descriptor.module.ModuleDescriptor.Companion.newModule
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.A_Phrase.Companion.apparentSendName
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.tuples.StringDescriptor.stringFrom
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
 import com.avail.interpreter.execution.Interpreter.Companion.debugWorkUnits
@@ -1097,7 +1098,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 				CLIENT_DATA_GLOBAL_KEY.atom, emptyMap(), true)
 			fiber.fiberGlobals(fiberGlobals)
 			fiber.textInterface(textInterface)
-			fiber.setSuccessAndFailureContinuations(
+			fiber.setSuccessAndFailure(
 				{ result -> onSuccess(result, postSuccessCleanup) },
 				{ e ->
 					if (e is FiberTerminationException)

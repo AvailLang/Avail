@@ -657,20 +657,11 @@ class MessageBundleTreeDescriptor private constructor(
 	override fun o_Hash(self: AvailObject): Int {
 		assert(isShared)
 		var hash = self.slot(HASH_OR_ZERO)
-		// The double-check (anti-)pattern is appropriate here, because it's
-		// an integer field that transitions once from zero to a non-zero hash
-		// value.  If our unprotected read sees a zero, we get the monitor and
-		// re-test, setting the hash if necessary.  Otherwise, we've read the
-		// non-zero hash that was set once inside some lock in the past, without
-		// any synchronization cost.  The usual caveats about reordered writes
-		// to non-final fields is irrelevant, since it's just an int field.
 		if (hash == 0) {
 			synchronized(self) {
 				hash = self.slot(HASH_OR_ZERO)
 				if (hash == 0) {
-					do {
-						hash = AvailRuntimeSupport.nextHash()
-					} while (hash == 0)
+					hash = AvailRuntimeSupport.nextNonzeroHash()
 					self.setSlot(HASH_OR_ZERO, hash)
 				}
 			}

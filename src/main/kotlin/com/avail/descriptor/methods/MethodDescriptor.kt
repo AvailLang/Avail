@@ -1093,7 +1093,7 @@ class MethodDescriptor private constructor(
 		 */
 		fun newMethod(numArgs: Int): AvailObject =
 			newIndexedDescriptor(0, initialMutableDescriptor).apply {
-				setSlot(HASH, AvailRuntimeSupport.nextHash())
+				setSlot(HASH, AvailRuntimeSupport.nextNonzeroHash())
 				setSlot(NUM_ARGS, numArgs)
 				setSlot(OWNING_BUNDLES, emptySet())
 				setSlot(DEFINITIONS_TUPLE, emptyTuple())

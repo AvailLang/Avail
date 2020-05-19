@@ -188,7 +188,7 @@ class GrammaticalRestrictionDescriptor private constructor(
 			restrictedBundle: A_Bundle,
 			module: A_Module
 		): A_GrammaticalRestriction = with(mutable.create()) {
-			setSlot(HASH, AvailRuntimeSupport.nextHash())
+			setSlot(HASH, AvailRuntimeSupport.nextNonzeroHash())
 			setSlot(ARGUMENT_RESTRICTION_SETS, argumentRestrictionSets)
 			setSlot(RESTRICTED_BUNDLE, restrictedBundle)
 			setSlot(DEFINITION_MODULE, module)

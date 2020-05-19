@@ -37,20 +37,21 @@ import com.avail.compiler.AvailRejectedParseException
 import com.avail.compiler.CompilationContext
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
-import com.avail.descriptor.fiber.A_Fiber
-import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.character.CharacterDescriptor
+import com.avail.descriptor.fiber.A_Fiber
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
+import com.avail.descriptor.fiber.FiberDescriptor.Companion.setSuccessAndFailure
 import com.avail.descriptor.fiber.FiberDescriptor.GeneralFlag
-import com.avail.descriptor.fiber.FiberDescriptor.newLoaderFiber
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.parsing.A_Lexer
 import com.avail.descriptor.parsing.A_Lexer.Companion.lexerBodyFunction
 import com.avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
 import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.tokens.A_Token
-import com.avail.descriptor.tokens.TokenDescriptor.TokenType.END_OF_FILE
 import com.avail.descriptor.tokens.TokenDescriptor.Companion.newToken
+import com.avail.descriptor.tokens.TokenDescriptor.TokenType.END_OF_FILE
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.StringDescriptor.formatString
 import com.avail.descriptor.tuples.StringDescriptor.stringFrom
@@ -369,7 +370,7 @@ class LexingState constructor(
 		// Wrap onSuccess and onFailure to maintain queued/completed counts.
 		compilationContext.startWorkUnits(1)
 		val oneWay = AtomicBoolean()
-		fiber.setSuccessAndFailureContinuations(
+		fiber.setSuccessAndFailure(
 			compilationContext.workUnitCompletion(this, oneWay, onSuccess),
 			compilationContext.workUnitCompletion(this, oneWay, onFailure))
 	}

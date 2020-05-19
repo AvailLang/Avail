@@ -43,6 +43,7 @@ import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.*
+import java.util.function.Supplier
 
 /**
  * **Primitive:** Set the name of the specified [fiber][FiberDescriptor].
@@ -58,7 +59,7 @@ object P_SetFiberName : Primitive(
 		interpreter.checkArgumentCount(2)
 		val fiber = interpreter.argument(0)
 		val name = interpreter.argument(1)
-		fiber.fiberNameSupplier { name }
+		fiber.fiberNameSupplier(Supplier { name })
 		return interpreter.primitiveSuccess(nil)
 	}
 

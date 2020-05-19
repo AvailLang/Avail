@@ -5927,13 +5927,13 @@ public abstract class AbstractDescriptor
 	/**
 	 * @param object
 	 * @param flag
-	 * @param newValue
+	 * @param value
 	 * @return
 	 */
 	public abstract boolean o_GetAndSetSynchronizationFlag (
 		AvailObject object,
 		SynchronizationFlag flag,
-		boolean newValue);
+		boolean value);
 
 	/**
 	 * @param object
@@ -6266,12 +6266,12 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * @param object
-	 * @param var
+	 * @param variable
 	 * @param wasRead
 	 */
 	public abstract void o_RecordVariableAccess (
 		AvailObject object,
-		A_Variable var,
+		A_Variable variable,
 		boolean wasRead);
 
 	/**
