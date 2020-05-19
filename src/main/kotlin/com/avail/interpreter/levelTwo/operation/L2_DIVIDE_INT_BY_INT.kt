@@ -1,5 +1,5 @@
 /*
- * L2_DIVIDE_INT_BY_INT.java
+ * L2_DIVIDE_INT_BY_INT.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *

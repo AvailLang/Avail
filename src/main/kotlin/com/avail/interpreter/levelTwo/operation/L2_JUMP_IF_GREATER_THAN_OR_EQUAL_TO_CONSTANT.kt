@@ -1,5 +1,5 @@
 /*
- * L2_JUMP_IF_GREATER_THAN_OR_EQUAL_TO_CONSTANT.java
+ * L2_JUMP_IF_GREATER_THAN_OR_EQUAL_TO_CONSTANT.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *

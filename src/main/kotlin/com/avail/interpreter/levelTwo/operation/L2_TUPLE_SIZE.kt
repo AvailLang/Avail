@@ -1,5 +1,5 @@
 /*
- * L2_TUPLE_SIZE.java
+ * L2_TUPLE_SIZE.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *

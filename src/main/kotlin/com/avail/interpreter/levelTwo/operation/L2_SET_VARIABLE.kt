@@ -1,5 +1,5 @@
 /*
- * L2_SET_VARIABLE.java
+ * L2_SET_VARIABLE.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *

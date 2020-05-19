@@ -55,7 +55,6 @@ import com.avail.optimizer.reoptimizer.L2Inliner
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
 import com.avail.utility.Casts
-import com.avail.utility.Nulls
 import com.avail.utility.Strings.increaseIndentation
 import org.objectweb.asm.MethodVisitor
 import java.util.*

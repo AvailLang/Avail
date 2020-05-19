@@ -1,5 +1,5 @@
 /*
- * L2_INVOKE_CONSTANT_FUNCTION.java
+ * L2_INVOKE_CONSTANT_FUNCTION.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *

@@ -1,5 +1,5 @@
 /*
- * L2_RUN_INFALLIBLE_PRIMITIVE.java
+ * L2_RUN_INFALLIBLE_PRIMITIVE.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *

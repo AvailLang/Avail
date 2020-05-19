@@ -1,5 +1,5 @@
 /*
- * L2_GET_RETURNING_FUNCTION.java
+ * L2_GET_RETURNING_FUNCTION.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *

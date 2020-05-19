@@ -1,5 +1,5 @@
 /*
- * L2_ENTER_L2_CHUNK.java
+ * L2_ENTER_L2_CHUNK.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *

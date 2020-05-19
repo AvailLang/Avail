@@ -1,5 +1,5 @@
 /*
- * L2_GET_IMPLICIT_OBSERVE_FUNCTION.java
+ * L2_GET_IMPLICIT_OBSERVE_FUNCTION.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *

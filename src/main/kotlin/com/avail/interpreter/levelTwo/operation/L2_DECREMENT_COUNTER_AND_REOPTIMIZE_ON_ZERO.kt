@@ -1,5 +1,5 @@
 /*
- * L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO.java
+ * L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *

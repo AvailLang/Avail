@@ -1,5 +1,5 @@
 /*
- * L2_MAKE_IMMUTABLE.java
+ * L2_MAKE_IMMUTABLE.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *

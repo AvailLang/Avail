@@ -1,5 +1,5 @@
 /*
- * L2_FUNCTION_PARAMETER_TYPE.java
+ * L2_FUNCTION_PARAMETER_TYPE.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *

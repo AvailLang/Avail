@@ -1,5 +1,5 @@
 /*
- * L2_CREATE_MAP.java
+ * L2_CREATE_MAP.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *

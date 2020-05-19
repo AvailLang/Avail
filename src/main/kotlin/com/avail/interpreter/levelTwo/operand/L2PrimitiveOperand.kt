@@ -1,5 +1,5 @@
 /*
- * L2PrimitiveOperand.java
+ * L2PrimitiveOperand.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *

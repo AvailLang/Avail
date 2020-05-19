@@ -1,5 +1,5 @@
 /*
- * L2_JUMP_IF_KIND_OF_CONSTANT.java
+ * L2_JUMP_IF_KIND_OF_CONSTANT.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *

@@ -1,5 +1,5 @@
 /*
- * L2_SUBTRACT_INT_FROM_INT.java
+ * L2_SUBTRACT_INT_FROM_INT.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *

@@ -1,5 +1,5 @@
 /*
- * L2_STRIP_MANIFEST.java
+ * L2_STRIP_MANIFEST.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *

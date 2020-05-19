@@ -1,5 +1,5 @@
 /*
- * L2_JUMP_IF_OBJECTS_EQUAL.java
+ * L2_JUMP_IF_OBJECTS_EQUAL.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *

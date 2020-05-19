@@ -1,5 +1,5 @@
 /*
- * L2IntImmediateOperand.java
+ * L2IntImmediateOperand.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *

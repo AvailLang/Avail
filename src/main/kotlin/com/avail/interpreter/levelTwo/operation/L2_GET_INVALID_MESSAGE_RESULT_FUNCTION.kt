@@ -1,5 +1,5 @@
 /*
- * L2_GET_INVALID_MESSAGE_RESULT_FUNCTION.java
+ * L2_GET_INVALID_MESSAGE_RESULT_FUNCTION.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *

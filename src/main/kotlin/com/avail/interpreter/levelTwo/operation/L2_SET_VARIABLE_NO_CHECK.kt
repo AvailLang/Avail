@@ -1,5 +1,5 @@
 /*
- * L2_SET_VARIABLE_NO_CHECK.java
+ * L2_SET_VARIABLE_NO_CHECK.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *

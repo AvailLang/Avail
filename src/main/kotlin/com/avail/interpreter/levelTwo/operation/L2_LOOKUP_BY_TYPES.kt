@@ -1,5 +1,5 @@
 /*
- * L2_LOOKUP_BY_TYPES.java
+ * L2_LOOKUP_BY_TYPES.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -181,7 +181,10 @@ object L2_LOOKUP_BY_TYPES : L2ControlFlowOperation(
 			errorCodeReg.register(), failureCodesType, instruction)
 		// If the lookup succeeds, then the situation is more complex.
 		val registerSet = registerSets[1]
+
+		// TODO MvG Should be removed?
 		val numArgs = argTypeRegs.elements().size // TODO MvG Should be removed?
+
 		val argRestrictions = argTypeRegs.elements().stream()
 			.map { argRegister: L2ReadBoxedOperand ->
 				if (registerSet.hasTypeAt(argRegister.register()))

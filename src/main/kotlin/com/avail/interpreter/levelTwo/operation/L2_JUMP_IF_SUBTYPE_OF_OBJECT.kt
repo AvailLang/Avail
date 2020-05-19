@@ -1,5 +1,5 @@
 /*
- * L2_JUMP_IF_SUBTYPE_OF_OBJECT.java
+ * L2_JUMP_IF_SUBTYPE_OF_OBJECT.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *

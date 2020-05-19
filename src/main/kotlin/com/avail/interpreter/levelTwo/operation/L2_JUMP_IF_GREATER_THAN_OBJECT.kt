@@ -1,5 +1,5 @@
 /*
- * L2_JUMP_IF_GREATER_THAN_OBJECT.java
+ * L2_JUMP_IF_GREATER_THAN_OBJECT.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
