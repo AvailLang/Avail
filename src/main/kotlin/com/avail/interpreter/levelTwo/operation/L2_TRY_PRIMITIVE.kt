@@ -48,7 +48,6 @@ import com.avail.optimizer.StackReifier
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-import com.avail.utility.Nulls
 import com.avail.utility.evaluation.Continuation0
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
@@ -136,8 +135,7 @@ object L2_TRY_PRIMITIVE : L2Operation(
 				assert(interpreter.latestResultOrNull() != null)
 				interpreter.function = function
 				interpreter.setOffset(
-					Nulls.stripNull(interpreter.chunk)
-						.offsetAfterInitialTryPrimitive())
+					interpreter.chunk!!.offsetAfterInitialTryPrimitive())
 				assert(!interpreter.returnNow)
 				null
 			}
@@ -154,8 +152,8 @@ object L2_TRY_PRIMITIVE : L2Operation(
 				// as an unreified frame (specifically the inner one we're
 				// about to start).
 				interpreter.adjustUnreifiedCallDepthBy(-1)
-				val reifier = interpreter.invokeFunction(
-					Nulls.stripNull(interpreter.function))
+				val reifier =
+					interpreter.invokeFunction(interpreter.function!!)
 				interpreter.adjustUnreifiedCallDepthBy(1)
 				interpreter.function = function
 				interpreter.chunk = savedChunk
@@ -174,7 +172,7 @@ object L2_TRY_PRIMITIVE : L2Operation(
 			{
 				assert(primitive.hasFlag(Primitive.Flag.CanSwitchContinuations))
 				val newContinuation =
-					Nulls.stripNull(interpreter.getReifiedContinuation())
+					interpreter.getReifiedContinuation()!!
 				val newFunction = interpreter.function
 				val newChunk = interpreter.chunk
 				val newOffset = interpreter.offset
@@ -191,7 +189,7 @@ object L2_TRY_PRIMITIVE : L2Operation(
 				interpreter.isReifying = true
 				StackReifier(
 					false,
-					Nulls.stripNull(primitive.reificationAbandonmentStat),
+					primitive.reificationAbandonmentStat!!,
 					Continuation0 {
 						interpreter.setReifiedContinuation(newContinuation)
 						interpreter.function = newFunction
@@ -272,7 +270,7 @@ object L2_TRY_PRIMITIVE : L2Operation(
 				primitive.fieldName())
 		}
 		val stepper = interpreter.levelOneStepper
-		val savedChunk = Nulls.stripNull(interpreter.chunk)
+		val savedChunk = interpreter.chunk!!
 		val savedOffset = interpreter.offset
 		val savedPointers = stepper.pointers
 
@@ -289,7 +287,7 @@ object L2_TRY_PRIMITIVE : L2Operation(
 		interpreter.isReifying = true
 		return StackReifier(
 			true,
-			Nulls.stripNull(primitive.reificationForNoninlineStat),
+			primitive.reificationForNoninlineStat!!,
 			Continuation0 {
 				assert(interpreter.unreifiedCallDepth() == 0) 
 					{ "Should have reified stack for non-inlineable primitive" }
@@ -324,8 +322,7 @@ object L2_TRY_PRIMITIVE : L2Operation(
 						assert(interpreter.latestResultOrNull() != null)
 						interpreter.function = function
 						interpreter.setOffset(
-							Nulls.stripNull(interpreter.chunk)
-								.offsetAfterInitialTryPrimitive())
+							interpreter.chunk!!.offsetAfterInitialTryPrimitive())
 						assert(!interpreter.returnNow)
 					}
 					Primitive.Result.READY_TO_INVOKE ->

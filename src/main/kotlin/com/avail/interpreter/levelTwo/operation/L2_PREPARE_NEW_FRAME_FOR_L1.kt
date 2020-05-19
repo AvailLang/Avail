@@ -51,7 +51,6 @@ import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
-import com.avail.utility.Nulls
 import com.avail.utility.evaluation.Continuation0
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
@@ -126,7 +125,7 @@ object L2_PREPARE_NEW_FRAME_FOR_L1 : L2Operation()
 	fun prepare(interpreter: Interpreter): StackReifier?
 	{
 		assert(!interpreter.exitNow)
-		val function = Nulls.stripNull(interpreter.function)
+		val function = interpreter.function!!
 		val code = function.code()
 		val numArgs = code.numArgs()
 		val numLocals = code.numLocals()
@@ -208,7 +207,7 @@ object L2_PREPARE_NEW_FRAME_FOR_L1 : L2Operation()
 					interpreter.returnNow = false
 					interpreter.setReifiedContinuation(
 						continuation.replacingCaller(
-							Nulls.stripNull(interpreter.getReifiedContinuation())))
+							interpreter.getReifiedContinuation()!!))
 					interpreter.processInterrupt(
 						interpreter.getReifiedContinuation()!!)
 					interpreter.isReifying = false

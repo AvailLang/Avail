@@ -39,7 +39,6 @@ import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind
 import com.avail.optimizer.L2ValueManifest
 import com.avail.optimizer.values.L2SemanticValue
 import com.avail.utility.Casts
-import com.avail.utility.Nulls
 import java.util.*
 
 /**
@@ -137,7 +136,7 @@ abstract class L2WriteOperand<R : L2Register> constructor(
 	 * @return
 	 *   The index of the register, computed during register coloring.
 	 */
-	fun finalIndex(): Int = Nulls.stripNull(register).finalIndex()
+	fun finalIndex(): Int = register.finalIndex()
 
 	/**
 	 * Answer the register that is to be written.
@@ -145,7 +144,7 @@ abstract class L2WriteOperand<R : L2Register> constructor(
 	 * @return
 	 *   An [L2IntRegister].
 	 */
-	fun register(): R = Nulls.stripNull(register)
+	fun register(): R = register
 
 	/**
 	 * Answer a String that describes this operand for debugging.

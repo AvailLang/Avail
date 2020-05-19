@@ -38,7 +38,6 @@ import com.avail.optimizer.L2Generator
 import com.avail.optimizer.L2ValueManifest
 import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.JVMTranslator
-import com.avail.utility.Nulls
 import org.objectweb.asm.MethodVisitor
 
 /**
@@ -150,8 +149,8 @@ abstract class L2ConditionalJump protected constructor(
 				opcode,
 				conditionHolds,
 				conditionDoesNotHold,
-				Nulls.stripNull(conditionHolds.counter),
-				Nulls.stripNull(conditionDoesNotHold.counter))
+				conditionHolds.counter!!,
+				conditionDoesNotHold.counter!!)
 		}
 	}
 }

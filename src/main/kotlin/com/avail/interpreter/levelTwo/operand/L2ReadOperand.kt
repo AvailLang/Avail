@@ -43,7 +43,6 @@ import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind
 import com.avail.optimizer.L2ValueManifest
 import com.avail.optimizer.values.L2SemanticValue
 import com.avail.utility.Casts
-import com.avail.utility.Nulls
 import com.avail.utility.Pair
 import java.util.*
 
@@ -99,10 +98,7 @@ abstract class L2ReadOperand<R : L2Register> protected constructor(
 	 * @return
 	 *   The register.
 	 */
-	fun register(): R
-	{
-		return Nulls.stripNull(register)
-	}
+	fun register(): R = register
 
 	/**
 	 * Answer a String that describes this operand for debugging.
@@ -371,13 +367,13 @@ abstract class L2ReadOperand<R : L2Register> protected constructor(
 			for (syn in nextManifest.synonymsForRegister(register))
 			{
 				newSemanticValues.addAll(syn.semanticValues())
-				typeRestriction = Nulls.stripNull(typeRestriction).union(
+				typeRestriction = typeRestriction!!.union(
 					nextManifest.restrictionFor(syn.pickSemanticValue()))
 			}
 			// Intersect with the newSemanticValues.
 			semanticValues.retainAll(newSemanticValues)
 		}
-		return Pair(semanticValues, Nulls.stripNull(typeRestriction))
+		return Pair(semanticValues, typeRestriction!!)
 	}
 
 	/**
@@ -419,7 +415,7 @@ abstract class L2ReadOperand<R : L2Register> protected constructor(
 					L2_MAKE_IMMUTABLE.sourceOfImmutable(instruction).definition()
 				continue
 			}
-			return Nulls.stripNull(earliestBoxed)
+			return earliestBoxed!!
 		}
 	}
 

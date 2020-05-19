@@ -40,7 +40,6 @@ import com.avail.interpreter.levelTwo.L2Operation
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
-import com.avail.utility.Nulls
 import org.objectweb.asm.MethodVisitor
 import java.util.logging.Level
 
@@ -85,7 +84,7 @@ object L2_REENTER_L1_CHUNK_FROM_INTERRUPT : L2Operation()
 	fun reenter(interpreter: Interpreter)
 	{
 		val continuation: A_Continuation =
-			Nulls.stripNull(interpreter.getReifiedContinuation())
+			interpreter.getReifiedContinuation()!!
 		interpreter.setReifiedContinuation(continuation.caller())
 		if (Interpreter.debugL1)
 		{
@@ -95,7 +94,7 @@ object L2_REENTER_L1_CHUNK_FROM_INTERRUPT : L2Operation()
 				"{0}Reenter L1 from interrupt",
 				interpreter.debugModeString)
 		}
-		val function = Nulls.stripNull(interpreter.function)
+		val function = interpreter.function!!
 		assert(function === continuation.function())
 		val numSlots = continuation.numSlots()
 		// Should agree with L2_PREPARE_NEW_FRAME_FOR_L1.

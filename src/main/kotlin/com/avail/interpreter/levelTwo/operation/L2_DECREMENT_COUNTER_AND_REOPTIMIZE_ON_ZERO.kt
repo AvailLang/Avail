@@ -45,7 +45,6 @@ import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.utility.Mutable
-import com.avail.utility.Nulls
 import com.avail.utility.evaluation.Continuation1NotNull
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
@@ -112,7 +111,7 @@ object L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO : L2Operation(
 		interpreter: Interpreter,
 		targetOptimizationLevel: Int): Boolean
 	{
-		val function = Nulls.stripNull(interpreter.function)
+		val function = interpreter.function!!
 		val code = function.code()
 		val chunkChanged = Mutable(false)
 		code.decrementCountdownToReoptimize(Continuation1NotNull { optimize: Boolean ->
@@ -125,7 +124,7 @@ object L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO : L2Operation(
 					OptimizationLevel.optimizationLevel(targetOptimizationLevel),
 					interpreter)
 			}
-			val chunk = Nulls.stripNull(code.startingChunk())
+			val chunk = code.startingChunk()
 			interpreter.chunk = chunk
 			interpreter.setOffset(chunk.offsetAfterInitialTryPrimitive())
 			chunkChanged.value = true

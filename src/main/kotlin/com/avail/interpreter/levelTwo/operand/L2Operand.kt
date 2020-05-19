@@ -39,7 +39,6 @@ import com.avail.interpreter.levelTwo.register.L2Register
 import com.avail.optimizer.L2BasicBlock
 import com.avail.optimizer.L2ValueManifest
 import com.avail.utility.Casts
-import com.avail.utility.Nulls
 import com.avail.utility.PublicCloneable
 import com.avail.utility.Strings.increaseIndentation
 import java.util.function.Consumer
@@ -67,7 +66,7 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 	 * @return
 	 *   An [L2Instruction]
 	 */
-	fun instruction(): L2Instruction = Nulls.stripNull(instruction)
+	fun instruction(): L2Instruction = instruction!!
 
 	/**
 	 * Answer whether this write operand has been written yet as the destination
@@ -305,17 +304,18 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 			while (i < limit)
 			{
 				val operand = operands[i]
-				if (operand === this)
+				when(operand)
 				{
-					return false
-				}
-				if (operand is L2ReadVectorOperand<*, *>)
-				{
-					val vectorOperand =
-						Casts.cast<L2Operand, L2ReadVectorOperand<*, *>>(operand)
-					if (vectorOperand.elements.contains(this))
+					this -> return false
+					is L2ReadVectorOperand<*, *> ->
 					{
-						return false
+						val vectorOperand =
+							Casts.cast<L2Operand, L2ReadVectorOperand<*, *>>(
+								operand)
+						if (vectorOperand.elements.contains(this))
+						{
+							return false
+						}
 					}
 				}
 				i++

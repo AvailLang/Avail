@@ -50,7 +50,6 @@ import com.avail.optimizer.jvm.JVMChunk
 import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.optimizer.values.L2SemanticValue
 import com.avail.utility.CollectionExtensions
-import com.avail.utility.Nulls
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
@@ -178,7 +177,7 @@ class L2PcOperand constructor(
 	 * @return
 	 *   This edge's [L2ValueManifest].
 	 */
-	fun manifest(): L2ValueManifest = Nulls.stripNull(manifest)
+	fun manifest(): L2ValueManifest = manifest!!
 
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
 	{

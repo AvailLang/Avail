@@ -47,7 +47,6 @@ import com.avail.optimizer.reoptimizer.L2Inliner
 import com.avail.optimizer.values.L2SemanticValue
 import com.avail.utility.Casts
 import com.avail.utility.Mutable
-import com.avail.utility.Nulls
 import org.objectweb.asm.MethodVisitor
 import java.util.*
 import java.util.function.BiConsumer
