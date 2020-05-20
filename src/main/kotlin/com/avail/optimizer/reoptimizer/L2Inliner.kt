@@ -45,7 +45,6 @@ import com.avail.optimizer.values.Frame
 import com.avail.optimizer.values.L2SemanticValue
 import com.avail.utility.Casts
 import java.util.*
-import java.util.stream.Collectors
 
 /**
  * This is used to transform and embed a called function's chunk's control flow
@@ -181,27 +180,24 @@ class L2Inliner internal constructor(
 		{
 			// Note: this clobbers currentOperand, but we'll set it later.
 			currentOperand = L2ReadBoxedVectorOperand(
-				operand.elements().stream()
-					.map { op: L2ReadBoxedOperand -> transformOperand(op) }
-					.collect(Collectors.toList()))
+				operand.elements()
+					.map { op: L2ReadBoxedOperand -> transformOperand(op) })
 		}
 
 		override fun doOperand(operand: L2ReadIntVectorOperand)
 		{
 			// Note: this clobbers currentOperand, but we'll set it later.
 			currentOperand = L2ReadIntVectorOperand(
-				operand.elements().stream()
-					.map { op: L2ReadIntOperand -> transformOperand(op) }
-					.collect(Collectors.toList()))
+				operand.elements()
+					.map { op: L2ReadIntOperand -> transformOperand(op) })
 		}
 
 		override fun doOperand(operand: L2ReadFloatVectorOperand)
 		{
 			// Note: this clobbers currentOperand, but we'll set it later.
 			currentOperand = L2ReadFloatVectorOperand(
-				operand.elements().stream()
-					.map { op: L2ReadFloatOperand -> transformOperand(op) }
-					.collect(Collectors.toList()))
+				operand.elements()
+					.map { op: L2ReadFloatOperand -> transformOperand(op) })
 		}
 
 		override fun doOperand(operand: L2SelectorOperand) = Unit

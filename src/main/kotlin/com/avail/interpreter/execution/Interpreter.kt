@@ -102,8 +102,6 @@ import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
 import com.avail.utility.Strings.tab
 import com.avail.utility.evaluation.Continuation0
-import com.avail.utility.evaluation.Continuation1
-import com.avail.utility.evaluation.Continuation1NotNull
 import java.text.MessageFormat
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
@@ -1340,9 +1338,9 @@ class Interpreter(
 		levelOneStepper.wipeRegisters()
 		postExitContinuation {
 			waiters?.forEach { pojo ->
-				val waiter: Continuation1NotNull<A_Continuation> =
+				val waiter: (A_Continuation) -> Unit =
 					pojo.javaObjectNotNull()
-				waiter.value(continuation)
+				waiter(continuation)
 			}
 			resumeFromInterrupt(aFiber)
 		}
@@ -2621,8 +2619,8 @@ class Interpreter(
 		private fun executeFiber(
 			runtime: AvailRuntime,
 			aFiber: A_Fiber,
-			continuation: Continuation1NotNull<Interpreter>
-		) {
+			continuation: (Interpreter) -> Unit)
+		{
 			assert(aFiber.executionState().indicatesSuspension())
 			// We cannot simply run the specified function, we must queue a task
 			// to run when Level One safety is no longer required.
@@ -2634,7 +2632,7 @@ class Interpreter(
 					val interpreter = current()
 					assert(aFiber === interpreter.fiberOrNull())
 					assert(aFiber.executionState() === RUNNING)
-					continuation.value(interpreter)
+					continuation(interpreter)
 					if (interpreter.exitNow) {
 						assert(interpreter.getReifiedContinuation()!!
 							.equalsNil())
@@ -2656,11 +2654,10 @@ class Interpreter(
 		 * an entry point.
 		 *
 		 * If the function successfully runs to completion, then the fiber's
-		 * "on success" [continuation][Continuation1] will be invoked with
-		 * the function's result.
+		 * "on success" continuation will be invoked with the function's result.
 		 *
 		 * If the function fails for any reason, then the fiber's "on failure"
-		 * [continuation][Continuation1] will be invoked with the terminal
+		 * continuation will be invoked with the terminal
 		 * [throwable][Throwable].
 		 *
 		 * @param runtime
@@ -2677,8 +2674,8 @@ class Interpreter(
 			runtime: AvailRuntime,
 			aFiber: A_Fiber,
 			function: A_Function,
-			arguments: List<A_BasicObject>
-		) {
+			arguments: List<A_BasicObject>)
+		{
 			assert(aFiber.executionState() === UNSTARTED)
 			aFiber.fiberNameSupplier(Supplier {
 				val code = function.code()
@@ -2688,26 +2685,24 @@ class Interpreter(
 					else code.module().moduleName().asNativeString(),
 					code.startingLineNumber())
 			})
-			executeFiber(
-				runtime,
-				aFiber,
-				Continuation1NotNull { interpreter: Interpreter ->
-					assert(aFiber === interpreter.fiberOrNull())
-					assert(aFiber.executionState() === RUNNING)
-					assert(aFiber.continuation().equalsNil())
-					// Invoke the function. If it's a primitive and it
-					// succeeds, then immediately invoke the fiber's
-					// result continuation with the primitive's result.
-					interpreter.exitNow = false
-					interpreter.returnNow = false
-					interpreter.setReifiedContinuation(nil)
-					interpreter.function = function
-					interpreter.argsBuffer.clear()
-					arguments.mapTo(
-						interpreter.argsBuffer, { it as AvailObject })
-					interpreter.chunk = function.code().startingChunk()
-					interpreter.offset = 0
-				})
+			executeFiber(runtime, aFiber)
+			{ interpreter: Interpreter ->
+				assert(aFiber === interpreter.fiberOrNull())
+				assert(aFiber.executionState() === RUNNING)
+				assert(aFiber.continuation().equalsNil())
+				// Invoke the function. If it's a primitive and it
+				// succeeds, then immediately invoke the fiber's
+				// result continuation with the primitive's result.
+				interpreter.exitNow = false
+				interpreter.returnNow = false
+				interpreter.setReifiedContinuation(nil)
+				interpreter.function = function
+				interpreter.argsBuffer.clear()
+				arguments.mapTo(
+					interpreter.argsBuffer, { it as AvailObject })
+				interpreter.chunk = function.code().startingChunk()
+				interpreter.offset = 0
+			}
 		}
 
 		/**
@@ -2716,37 +2711,35 @@ class Interpreter(
 		 * interrupt. This method is an entry point.
 		 *
 		 * If the function successfully runs to completion, then the fiber's "on
-		 * success" [continuation][Continuation1] will be invoked with the
-		 * function's result.
+		 * success" continuation will be invoked with the function's result.
 		 *
 		 * If the function fails for any reason, then the fiber's "on failure"
-		 * [continuation][Continuation1] will be invoked with the terminal
+		 * continuation will be invoked with the terminal
 		 * [throwable][Throwable].
 		 *
 		 * @param aFiber
 		 *   The fiber to run.
 		 */
-		fun resumeFromInterrupt(aFiber: A_Fiber) {
+		fun resumeFromInterrupt(aFiber: A_Fiber)
+		{
 			assert(aFiber.executionState() === INTERRUPTED)
 			assert(!aFiber.continuation().equalsNil())
-			executeFiber(
-				AvailRuntime.currentRuntime(),
-				aFiber,
-				Continuation1NotNull { interpreter: Interpreter ->
-					assert(aFiber === interpreter.fiberOrNull())
-					assert(aFiber.executionState() === RUNNING)
-					val con = aFiber.continuation()
-					assert(!con.equalsNil())
-					interpreter.exitNow = false
-					interpreter.returnNow = false
-					interpreter.setReifiedContinuation(con)
-					interpreter.function = con.function()
-					interpreter.setLatestResult(null)
-					interpreter.chunk = con.levelTwoChunk()
-					interpreter.offset = con.levelTwoOffset()
-					interpreter.levelOneStepper.wipeRegisters()
-					aFiber.continuation(nil)
-				})
+			executeFiber(AvailRuntime.currentRuntime(), aFiber)
+			{ interpreter: Interpreter ->
+				assert(aFiber === interpreter.fiberOrNull())
+				assert(aFiber.executionState() === RUNNING)
+				val con = aFiber.continuation()
+				assert(!con.equalsNil())
+				interpreter.exitNow = false
+				interpreter.returnNow = false
+				interpreter.setReifiedContinuation(con)
+				interpreter.function = con.function()
+				interpreter.setLatestResult(null)
+				interpreter.chunk = con.levelTwoChunk()
+				interpreter.offset = con.levelTwoOffset()
+				interpreter.levelOneStepper.wipeRegisters()
+				aFiber.continuation(nil)
+			}
 		}
 
 		/**
@@ -2769,40 +2762,41 @@ class Interpreter(
 			runtime: AvailRuntime,
 			aFiber: A_Fiber,
 			resumingPrimitive: Primitive,
-			result: A_BasicObject
-		) {
+			result: A_BasicObject)
+		{
 			assert(!aFiber.continuation().equalsNil())
 			assert(aFiber.executionState() === SUSPENDED)
 			assert(aFiber.suspendingFunction().code().primitive()
 				=== resumingPrimitive)
-			executeFiber(
-				runtime,
-				aFiber,
-				Continuation1NotNull { interpreter: Interpreter ->
-					assert(aFiber === interpreter.fiberOrNull())
-					assert(aFiber.executionState() === RUNNING)
-					val continuation = aFiber.continuation()
-					interpreter.setReifiedContinuation(continuation)
-					interpreter.setLatestResult(result)
-					interpreter.returningFunction = aFiber.suspendingFunction()
-					interpreter.exitNow = false
-					if (continuation.equalsNil()) {
-						// Return from outer function, which was the
-						// (successful) suspendable primitive itself.
-						interpreter.returnNow = true
-						interpreter.function = null
-						interpreter.chunk = null
-						interpreter.offset = Int.MAX_VALUE
-					} else {
-						interpreter.returnNow = false
-						interpreter.function = continuation.function()
-						interpreter.chunk = continuation.levelTwoChunk()
-						interpreter.offset = continuation.levelTwoOffset()
-						// Clear the fiber's continuation slot while it's
-						// active.
-						aFiber.continuation(nil)
-					}
-				})
+			executeFiber(runtime, aFiber)
+			{ interpreter: Interpreter ->
+				assert(aFiber === interpreter.fiberOrNull())
+				assert(aFiber.executionState() === RUNNING)
+				val continuation = aFiber.continuation()
+				interpreter.setReifiedContinuation(continuation)
+				interpreter.setLatestResult(result)
+				interpreter.returningFunction = aFiber.suspendingFunction()
+				interpreter.exitNow = false
+				if (continuation.equalsNil())
+				{
+					// Return from outer function, which was the
+					// (successful) suspendable primitive itself.
+					interpreter.returnNow = true
+					interpreter.function = null
+					interpreter.chunk = null
+					interpreter.offset = Int.MAX_VALUE
+				}
+				else
+				{
+					interpreter.returnNow = false
+					interpreter.function = continuation.function()
+					interpreter.chunk = continuation.levelTwoChunk()
+					interpreter.offset = continuation.levelTwoOffset()
+					// Clear the fiber's continuation slot while it's
+					// active.
+					aFiber.continuation(nil)
+				}
+			}
 		}
 
 		/**
@@ -2827,33 +2821,31 @@ class Interpreter(
 			aFiber: A_Fiber,
 			failureValue: A_BasicObject,
 			failureFunction: A_Function,
-			args: List<AvailObject>
-		) {
+			args: List<AvailObject>)
+		{
 			assert(!aFiber.continuation().equalsNil())
 			assert(aFiber.executionState() === SUSPENDED)
 			assert(aFiber.suspendingFunction().equals(failureFunction))
-			executeFiber(
-				runtime,
-				aFiber,
-				Continuation1NotNull { interpreter: Interpreter ->
-					val code = failureFunction.code()
-					val prim = code.primitive()!!
-					assert(!prim.hasFlag(CannotFail))
-					assert(prim.hasFlag(CanSuspend))
-					assert(args.size == code.numArgs())
-					assert(interpreter.getReifiedContinuation() === null)
-					interpreter.setReifiedContinuation(aFiber.continuation())
-					aFiber.continuation(nil)
-					interpreter.function = failureFunction
-					interpreter.argsBuffer.clear()
-					interpreter.argsBuffer.addAll(args)
-					interpreter.setLatestResult(failureValue)
-					val chunk = code.startingChunk()
-					interpreter.chunk = chunk
-					interpreter.offset = chunk.offsetAfterInitialTryPrimitive()
-					interpreter.exitNow = false
-					interpreter.returnNow = false
-				})
+			executeFiber(runtime, aFiber)
+			 { interpreter: Interpreter ->
+				val code = failureFunction.code()
+				val prim = code.primitive()!!
+				assert(!prim.hasFlag(CannotFail))
+				assert(prim.hasFlag(CanSuspend))
+				assert(args.size == code.numArgs())
+				assert(interpreter.getReifiedContinuation() === null)
+				interpreter.setReifiedContinuation(aFiber.continuation())
+				aFiber.continuation(nil)
+				interpreter.function = failureFunction
+				interpreter.argsBuffer.clear()
+				interpreter.argsBuffer.addAll(args)
+				interpreter.setLatestResult(failureValue)
+				val chunk = code.startingChunk()
+				interpreter.chunk = chunk
+				interpreter.offset = chunk.offsetAfterInitialTryPrimitive()
+				interpreter.exitNow = false
+				interpreter.returnNow = false
+			}
 		}
 
 		/**
@@ -2878,16 +2870,15 @@ class Interpreter(
 			runtime: AvailRuntime,
 			textInterface: TextInterface,
 			value: A_BasicObject,
-			continuation: (String)->Unit
-		) {
+			continuation: (String)->Unit)
+		{
 			val stringifierFunction = HookType.STRINGIFICATION[runtime]
 			// If the stringifier function is not defined, then use the basic
 			// mechanism for stringification.
 			// Create the fiber that will execute the function.
-			val fiber = newFiber(
-				stringType(),
-				stringificationPriority
-			) { stringFrom("Stringification") }
+			val fiber =
+				newFiber(stringType(), stringificationPriority)
+				{ stringFrom("Stringification") }
 			fiber.textInterface(textInterface)
 			fiber.setSuccessAndFailure(
 				{ string: AvailObject ->
@@ -2928,15 +2919,17 @@ class Interpreter(
 			runtime: AvailRuntime,
 			textInterface: TextInterface,
 			values: List<A_BasicObject>,
-			continuation: (List<String>)->Unit
-		) {
+			continuation: (List<String>)->Unit)
+		{
 			val valuesCount = values.size
-			if (valuesCount == 0) {
+			if (valuesCount == 0)
+			{
 				continuation(emptyList())
 				return
 			}
 			// Deduplicate the list of values for performance…
-			val map = values.indices.groupBy(values::get)
+			val map =
+				values.indices.groupBy(values::get)
 			val outstanding = AtomicInteger(map.size)
 			val strings = arrayOfNulls<String>(valuesCount)
 			map.forEach { (key, indicesToWrite) ->
@@ -2958,7 +2951,8 @@ class Interpreter(
 		 * bundle encountered which had that count.
 		 */
 		@GuardedBy("dynamicLookupStatsLock")
-		private val dynamicLookupStatsByCount = mutableMapOf<Int, Statistic>()
+		private val dynamicLookupStatsByCount =
+			mutableMapOf<Int, Statistic>()
 
 		/**
 		 * The lock that protects access to [dynamicLookupStatsByCount].

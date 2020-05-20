@@ -41,7 +41,6 @@ import com.avail.server.messages.Message
 import com.avail.utility.IO
 import com.avail.utility.MutableOrNull
 import com.avail.utility.evaluation.Combinator.recurse
-import com.avail.utility.evaluation.Continuation1
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.net.InetSocketAddress
@@ -489,7 +488,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 			 * @param adapter
 			 *   A [adapter][WebSocketAdapter].
 			 * @param continuation
-			 *   A [continuation][Continuation1] that processes a valid request.
+			 *   A continuation that processes a valid request.
 			 */
 			internal fun receiveThen(
 				channel: WebSocketChannel,
