@@ -29,69 +29,47 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.optimizer.values;
-import com.avail.descriptor.representation.A_BasicObject;
-import kotlin.jvm.functions.Function1;
-import org.jetbrains.annotations.NotNull;
+package com.avail.optimizer.values
+
+import com.avail.descriptor.representation.A_BasicObject
 
 /**
  * A semantic value which is a particular actual constant value.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @constructor
+ * Create a new `L2SemanticConstant` semantic value.
+ *
+ * @param value
+ *   The actual value of the constant.
  */
-@SuppressWarnings("EqualsAndHashcode")
-final class L2SemanticConstant
-extends L2SemanticValue
+internal class L2SemanticConstant constructor(value: A_BasicObject) :
+	L2SemanticValue(value.hashCode())
 {
-	/** The constant Avail value represented by this semantic value. */
-	public final A_BasicObject value;
+	/** The constant Avail value represented by this semantic value.  */
+	val value: A_BasicObject = value.makeImmutable()
 
-	/**
-	 * Create a new {@code L2SemanticConstant} semantic value.
-	 *
-	 * @param value
-	 * The actual value of the constant.
-	 */
-	L2SemanticConstant (final A_BasicObject value)
-	{
-		super(value.hashCode());
-		this.value = value.makeImmutable();
-	}
+	override fun equals(obj: Any?): Boolean =
+		obj is L2SemanticConstant && value.equals(obj.value)
 
-	@Override
-	public boolean equals (final Object obj)
-	{
-		return obj instanceof L2SemanticConstant
-			&& value.equals(((L2SemanticConstant) obj).value);
-	}
+	override fun transform(
+		semanticValueTransformer: Function1<L2SemanticValue, L2SemanticValue>,
+		frameTransformer: Function1<Frame, Frame>): L2SemanticValue = this
 
-	@NotNull
-	@Override
-	public L2SemanticValue transform (
-		@NotNull final Function1<? super L2SemanticValue, ? extends L2SemanticValue> semanticValueTransformer,
-		@NotNull final Function1<? super Frame, Frame> frameTransformer)
-	{
-		return this;
-	}
+	override val isConstant: Boolean
+		get() = true
 
-	@Override
-	public boolean isConstant ()
+	override fun toString(): String
 	{
-		return true;
-	}
-
-	@Override
-	public String toString ()
-	{
-		String valueString = value.toString();
-		if (valueString.length() > 50)
+		var valueString = value.toString()
+		if (valueString.length > 50)
 		{
-			valueString = valueString.substring(0, 50) + '…';
+			valueString = valueString.substring(0, 50) + '…'
 		}
-		//noinspection DynamicRegexReplaceableByCompiledPattern
 		valueString = valueString
 			.replace("\n", "\\n")
-			.replace("\t", "\\t");
-		return "Constant(" + valueString + ')';
+			.replace("\t", "\\t")
+		return "Constant($valueString)"
 	}
 }

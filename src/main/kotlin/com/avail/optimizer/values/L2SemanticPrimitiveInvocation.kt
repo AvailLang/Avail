@@ -29,135 +29,117 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.optimizer.values;
-import com.avail.interpreter.Primitive;
-import kotlin.jvm.functions.Function1;
-import org.jetbrains.annotations.NotNull;
+package com.avail.optimizer.values
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.avail.descriptor.representation.AvailObject.multiplier;
-import static com.avail.interpreter.Primitive.Flag.CanFold;
-import static com.avail.utility.Casts.cast;
-import static java.util.Collections.unmodifiableList;
+import com.avail.descriptor.representation.AvailObject
+import com.avail.interpreter.Primitive
+import com.avail.utility.Casts
 
 /**
- * An {@link L2SemanticValue} which represents the result produced by a {@link Primitive} when supplied a list of argument {@link L2SemanticValue}s.  The primitive must be stable (same result), pure (no side-effects), and successful for the supplied arguments.
+ * An [L2SemanticValue] which represents the result produced by a [Primitive]
+ * when supplied a list of argument [L2SemanticValue]s.  The primitive must be
+ * stable (same result), pure (no side-effects), and successful for the supplied
+ * arguments.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ * Create a new `L2SemanticPrimitiveInvocation` semantic value.
+ *
+ * @property primitive
+ *   The [Primitive] whose invocation is being represented.
+ * @property argumentSemanticValues
+ *   The [List] of [L2SemanticValue]s that represent the arguments to the
+ *   invocation of the primitive.
+ * @param primitive
+ *   The primitive whose invocation is being represented.
+ * @param argumentSemanticValues
+ *   The semantic values supplied as arguments.
  */
-@SuppressWarnings("EqualsAndHashcode")
-public final class L2SemanticPrimitiveInvocation
-extends L2SemanticValue
+class L2SemanticPrimitiveInvocation internal constructor(
+	@JvmField val primitive: Primitive,
+	@JvmField val argumentSemanticValues: List<L2SemanticValue>)
+		: L2SemanticValue(computeHash(primitive, argumentSemanticValues))
 {
-	/**
-	 * The {@link Primitive} whose invocation is being represented.
-	 */
-	public final Primitive primitive;
-
-	/**
-	 * The {@link List} of {@link L2SemanticValue}s that represent the arguments
-	 * to the invocation of the primitive.
-	 */
-	public final List<L2SemanticValue> argumentSemanticValues;
-
-	/**
-	 * Compute the permanent hash for this semantic value.  Note that it uses the {@link Primitive#getPrimitiveNumber()}, which may have different values on different runs of an Avail program.
-	 *
-	 * @param primitive
-	 *        The primitive that was invoked.
-	 * @param argumentSemanticValues
-	 *        The semantic values of arguments that were supplied to the  primitive.
-	 * @return
-	 * A hash of the inputs.
-	 */
-	private static int computeHash (
-		final Primitive primitive,
-		final List<L2SemanticValue> argumentSemanticValues)
+	init
 	{
-		int h = primitive.getPrimitiveNumber() ^ 0x72C5FD8B;
-		for (final L2SemanticValue argument : argumentSemanticValues)
+		assert(primitive.hasFlag(Primitive.Flag.CanFold))
+	}
+
+	override fun equals(obj: Any?): Boolean
+	{
+		if (obj !is L2SemanticPrimitiveInvocation)
 		{
-			h *= multiplier;
-			h ^= argument.hashCode();
+			return false
 		}
-		return h;
+		val invocation =
+			Casts.cast<Any, L2SemanticPrimitiveInvocation>(obj)
+		return (primitive === invocation.primitive
+			&& argumentSemanticValues == invocation.argumentSemanticValues)
 	}
 
-	/**
-	 * Create a new {@code L2SemanticPrimitiveInvocation} semantic value.
-	 *
-	 * @param primitive
-	 *        The primitive whose invocation is being represented.
-	 * @param argumentSemanticValues
-	 *        The semantic values supplied as arguments.
-	 */
-	L2SemanticPrimitiveInvocation (
-		final Primitive primitive,
-		final List<L2SemanticValue> argumentSemanticValues)
-	{
-		super(computeHash(primitive, argumentSemanticValues));
-		assert primitive.hasFlag(CanFold);
-		this.primitive = primitive;
-		this.argumentSemanticValues =
-			unmodifiableList(new ArrayList<>(argumentSemanticValues));
-	}
-
-	@Override
-	public boolean equals (final Object obj)
-	{
-		if (!(obj instanceof L2SemanticPrimitiveInvocation))
-		{
-			return false;
-		}
-		final L2SemanticPrimitiveInvocation invocation = cast(obj);
-		return primitive == invocation.primitive
-			&& argumentSemanticValues.equals(invocation.argumentSemanticValues);
-	}
-
-	@Override
-	public String toString ()
-	{
-		final StringBuilder builder = new StringBuilder();
-		builder.append(primitive.fieldName());
-		builder.append('(');
-		boolean first = true;
-		for (final L2SemanticValue arg : argumentSemanticValues)
+	override fun toString(): String = buildString {
+		append(primitive.fieldName())
+		append('(')
+		var first = true
+		for (arg in argumentSemanticValues)
 		{
 			if (!first)
 			{
-				builder.append(", ");
+				append(", ")
 			}
-			builder.append(arg);
-			first = false;
+			append(arg)
+			first = false
 		}
-		builder.append(')');
-		return builder.toString();
+		append(')')
 	}
 
-	@NotNull
-	@Override
-	public L2SemanticValue transform (
-		@NotNull final Function1<? super L2SemanticValue, ? extends L2SemanticValue> semanticValueTransformer,
-		@NotNull final Function1<? super Frame, Frame> frameTransformer)
+	override fun transform(
+		semanticValueTransformer: Function1<L2SemanticValue, L2SemanticValue>,
+		frameTransformer: Function1<Frame, Frame>): L2SemanticValue
 	{
-		final int numArgs = argumentSemanticValues.size();
-		final List<L2SemanticValue> newArguments = new ArrayList<>(numArgs);
-		for (final L2SemanticValue argument : argumentSemanticValues)
+		val numArgs = argumentSemanticValues.size
+		val newArguments =
+			argumentSemanticValues.map {
+				it.transform(semanticValueTransformer, frameTransformer)
+			}.toMutableList()
+
+		for (i in 0 until numArgs)
 		{
-			newArguments.add(
-				argument.transform(semanticValueTransformer, frameTransformer));
-		}
-		for (int i = 0; i < numArgs; i++)
-		{
-			if (!newArguments.get(i).equals(argumentSemanticValues.get(i)))
+			if (newArguments[i] != argumentSemanticValues[i])
 			{
-				return new L2SemanticPrimitiveInvocation(
-					primitive, newArguments);
+				return L2SemanticPrimitiveInvocation(primitive, newArguments)
 			}
 		}
-		return this;
+		return this
+	}
+
+	companion object
+	{
+		/**
+		 * Compute the permanent hash for this semantic value.  Note that it
+		 * uses the [Primitive.primitiveNumber], which may have different
+		 * values on different runs of an Avail program.
+		 *
+		 * @param primitive
+		 *   The primitive that was invoked.
+		 * @param argumentSemanticValues
+		 *   The semantic values of arguments that were supplied to the  primitive.
+		 * @return
+		 *   A hash of the inputs.
+		 */
+		private fun computeHash(
+			primitive: Primitive,
+			argumentSemanticValues: List<L2SemanticValue>): Int
+		{
+			var h = primitive.primitiveNumber xor 0x72C5FD8B
+			for (argument in argumentSemanticValues)
+			{
+				h *= AvailObject.multiplier
+				h = h xor argument.hashCode()
+			}
+			return h
+		}
 	}
 }

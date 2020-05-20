@@ -29,91 +29,70 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.optimizer.values;
-import com.avail.descriptor.functions.A_Continuation;
-import kotlin.jvm.functions.Function1;
-import org.jetbrains.annotations.NotNull;
+package com.avail.optimizer.values
 
-import static com.avail.descriptor.representation.AvailObject.multiplier;
+import com.avail.descriptor.functions.A_Continuation
+import com.avail.descriptor.representation.AvailObject
 
 /**
- * A semantic value which represents a slot of some {@link Frame}'s effective
- * {@link A_Continuation}.
+ * A semantic value which represents a slot of some [Frame]'s effective
+ * [A_Continuation].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @property slotIndex
+ *   The one-based index of the slot in its [Frame].
+ * @property pcAfter
+ *   The level one [A_Continuation.pc] at the position just after the nybblecode
+ *   instruction that produced this value.  This serves to distinguish semantic
+ *   slots at the same index but at different times, allowing a correct SSA
+ *   graph and the reordering that it supports.
+ *
+ * @constructor
+ * Create a new `L2SemanticSlot` semantic value.
+ *
+ * @param frame
+ *   The frame for which this represents a slot of a virtualized continuation.
+ * @param slotIndex
+ *   The one-based index of the slot in that frame.
+ * @param pcAfter
+ *   The L1 program counter just after the instruction responsible for
+ *   effectively writing this value in the frame's slot.
  */
-@SuppressWarnings("EqualsAndHashcode")
-final class L2SemanticSlot
-extends L2FrameSpecificSemanticValue
+internal class L2SemanticSlot(
+	frame: Frame,
+	val slotIndex: Int,
+	val pcAfter: Int)
+	: L2FrameSpecificSemanticValue(
+		frame, slotIndex * AvailObject.multiplier xor pcAfter)
 {
-	/** The one-based index of the slot in its {@link Frame}. */
-	private final int slotIndex;
-
-	/**
-	 * The level one {@link A_Continuation#pc()} at the position just after the
-	 * nybblecode instruction that produced this value.  This serves to
-	 * distinguish semantic slots at the same index but at different times,
-	 * allowing a correct SSA graph and the reordering that it supports.
-	 */
-	private final int pcAfter;
-
-	/**
-	 * Create a new {@code L2SemanticSlot} semantic value.
-	 *
-	 * @param frame
-	 *        The frame for which this represents a slot of a virtualized continuation.
-	 * @param slotIndex
-	 *        The one-based index of the slot in that frame.
-	 * @param pcAfter
-	 *        The L1 program counter just after the instruction responsible for effectively writing this value in the frame's slot.
-	 */
-	L2SemanticSlot (
-		final Frame frame,
-		final int slotIndex,
-		final int pcAfter)
+	init
 	{
-		super(frame, slotIndex * multiplier ^ pcAfter);
-		assert slotIndex >= 1;
-		this.slotIndex = slotIndex;
-		this.pcAfter = pcAfter;
+		assert(slotIndex >= 1)
 	}
 
-	@Override
-	public boolean equals (final Object obj)
-	{
-		if (!(obj instanceof L2SemanticSlot))
+	override fun equals(obj: Any?): Boolean =
+		if (obj !is L2SemanticSlot)
 		{
-			return false;
+			false
 		}
-		final L2SemanticSlot slot = (L2SemanticSlot) obj;
-		return frame().equals(slot.frame())
-			&& slotIndex == slot.slotIndex
-			&& pcAfter == slot.pcAfter;
-	}
+		else
+		{
+			frame() == obj.frame()
+			&& slotIndex == obj.slotIndex
+			&& pcAfter == obj.pcAfter
+		}
 
-	@NotNull
-	@Override
-	public L2SemanticValue transform (
-		@NotNull final Function1<? super L2SemanticValue, ? extends L2SemanticValue> semanticValueTransformer,
-		@NotNull final Function1<? super Frame, Frame> frameTransformer)
-	{
-		final Frame newFrame = frameTransformer.invoke(frame());
-		return newFrame.equals(frame())
-			? this
-			: new L2SemanticSlot(newFrame, slotIndex, pcAfter);
-	}
+	override fun transform(
+		semanticValueTransformer: Function1<L2SemanticValue, L2SemanticValue>,
+		frameTransformer: Function1<Frame, Frame>): L2SemanticValue =
+			frameTransformer.invoke(frame()).let {
+			if (it == frame()) this else L2SemanticSlot(it, slotIndex, pcAfter)
+		}
 
-	@Override
-	public String toString ()
-	{
-		return "Slot#" + slotIndex + "@" + pcAfter +
-			(getFrame().depth() == 1 ? "" : "[" + getFrame() + "]");
-	}
+	override fun toString(): String =
+		"Slot#$slotIndex@$pcAfter${if (frame.depth() == 1) "" else "[$frame]"}"
 
-	@Override
-	public String toStringForSynonym ()
-	{
-		return slotIndex + "@" + pcAfter +
-			(getFrame().depth() == 1 ? "" : "[" + getFrame() + "]");
-	}
+	override fun toStringForSynonym(): String =
+		"$slotIndex@$pcAfter${if (frame.depth() == 1) "" else "[$frame]"}"
+
 }

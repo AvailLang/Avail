@@ -49,7 +49,7 @@ import com.avail.optimizer.L2Entity
  * Create a new instance, with the given pre-computed hash.
  *
  * @param hash
- *  The pre-computed hash value to use for this semantic value.
+ *   The pre-computed hash value to use for this semantic value.
  */
 abstract class L2SemanticValue protected constructor(val hash: Int) : L2Entity
 {
@@ -120,11 +120,7 @@ abstract class L2SemanticValue protected constructor(val hash: Int) : L2Entity
 		fun primitiveInvocation(
 				primitive: Primitive,
 				argumentSemanticValues: List<L2SemanticValue>)
-			: L2SemanticPrimitiveInvocation
-		{
-			return L2SemanticPrimitiveInvocation(
-				primitive, argumentSemanticValues)
-		}
+			: L2SemanticPrimitiveInvocation =
+				L2SemanticPrimitiveInvocation(primitive, argumentSemanticValues)
 	}
-
 }

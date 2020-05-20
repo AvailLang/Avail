@@ -29,52 +29,32 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.optimizer.values;
-
-import kotlin.jvm.functions.Function1;
-import org.jetbrains.annotations.NotNull;
-
+package com.avail.optimizer.values
 
 /**
  * A semantic value which represents the return value produced by the invocation
- * corresponding to a particular {@link Frame}.
+ * corresponding to a particular [Frame].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @constructor
+ * Create a new `L2SemanticResult` semantic value.
+ *
+ * @param frame
+ *   The frame for which this represents the return result.
  */
-@SuppressWarnings("EqualsAndHashcode")
-final class L2SemanticResult
-extends L2FrameSpecificSemanticValue
+internal class L2SemanticResult constructor(frame: Frame)
+	: L2FrameSpecificSemanticValue(frame, 0x6ABDC9DB)
 {
-	/**
-	 * Create a new {@code L2SemanticResult} semantic value.
-	 *
-	 * @param frame
-	 *        The frame for which this represents the return result.
-	 */
-	L2SemanticResult (final Frame frame)
-	{
-		super(frame, 0x6ABDC9DB);
-	}
+	override fun equals(obj: Any?): Boolean =
+		obj is L2SemanticResult && super.equals(obj)
 
-	@Override
-	public boolean equals (final Object obj)
-	{
-		return obj instanceof L2SemanticResult && super.equals(obj);
-	}
+	override fun transform(
+		semanticValueTransformer: Function1<L2SemanticValue, L2SemanticValue>,
+		frameTransformer: Function1<Frame, Frame>): L2SemanticValue =
+			frameTransformer.invoke(frame()).let {
+				if (it == frame) this else L2SemanticResult(it)
+		}
 
-	@NotNull
-	@Override
-	public L2SemanticValue transform (
-		@NotNull final Function1<? super L2SemanticValue, ? extends L2SemanticValue> semanticValueTransformer,
-		@NotNull final Function1<? super Frame, Frame> frameTransformer)
-	{
-		final Frame newFrame = frameTransformer.invoke(frame());
-		return newFrame.equals(getFrame()) ? this : new L2SemanticResult(newFrame);
-	}
-
-	@Override
-	public String toString ()
-	{
-		return "Result of " + frame();
-	}
+	override fun toString(): String = "Result of ${frame()}"
 }
