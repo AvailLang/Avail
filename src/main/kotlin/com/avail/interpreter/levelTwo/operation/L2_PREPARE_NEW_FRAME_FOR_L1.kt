@@ -187,15 +187,15 @@ object L2_PREPARE_NEW_FRAME_FOR_L1 : L2Operation()
 			// and push the continuation onto the reified stack.  Then process
 			// the interrupt, which may or may not suspend the fiber.
 			val continuation: A_Continuation = createContinuationWithFrame(
-				function,
-				NilDescriptor.nil,
-				NilDescriptor.nil,
-				1,  // start of function
-				numSlots + 1,  // empty stack
-				L2Chunk.unoptimizedChunk,
-				ChunkEntryPoint.TO_RESUME.offsetInDefaultChunk,
-				Arrays.asList(*stepper.pointers),
-				1)
+				function = function,
+				caller = NilDescriptor.nil,
+				registerDump = NilDescriptor.nil,
+				pc = 1,  // start of function
+				stackp = numSlots + 1,  // empty stack
+				levelTwoChunk = L2Chunk.unoptimizedChunk,
+				levelTwoOffset = ChunkEntryPoint.TO_RESUME.offsetInDefaultChunk,
+				frameValues = Arrays.asList(*stepper.pointers),
+				zeroBasedStartIndex = 1)
 			// Push the continuation from above onto the reified stack.
 			interpreter.isReifying = true
 			return StackReifier(

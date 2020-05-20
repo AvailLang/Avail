@@ -43,10 +43,8 @@ import com.avail.interpreter.levelTwo.register.L2IntRegister
 import com.avail.interpreter.levelTwo.register.L2Register
 import com.avail.optimizer.*
 import com.avail.optimizer.jvm.JVMTranslator
-import com.avail.utility.MutableInt
 import org.objectweb.asm.MethodVisitor
 import java.util.*
-import java.util.function.Consumer
 
 /**
  * The `L2_PHI_PSEUDO_OPERATION` occurs at the start of a [L2BasicBlock].  It's
@@ -158,7 +156,7 @@ private constructor(
 	{
 		val oldVector: L2ReadVectorOperand<RR, R> = instruction.operand(0)
 		val destinationReg: L2WriteOperand<R> = instruction.operand(1)
-		val newSources: MutableList<RR> = ArrayList(oldVector.elements())
+		val newSources = oldVector.elements().toMutableList()
 		newSources.removeAt(inputIndex)
 		val onlyOneRegister = HashSet(newSources).size == 1
 		return if (onlyOneRegister)
@@ -191,7 +189,7 @@ private constructor(
 	 */
 	fun updateVectorOperand(
 		instruction: L2Instruction,
-		updater: Consumer<MutableList<RR>>)
+		updater: (MutableList<RR>) -> Unit)
 	{
 		assert(instruction.operation() === this)
 		val block = instruction.basicBlock()
@@ -199,10 +197,9 @@ private constructor(
 		val vectorOperand: L2ReadVectorOperand<RR, R> = instruction.operand(0)
 		val writeOperand: L2WriteOperand<R> = instruction.operand(1)
 		instruction.justRemoved()
-		val originalElements = vectorOperand.elements()
-		val passedCopy: MutableList<RR> = ArrayList(originalElements)
-		updater.accept(passedCopy)
-		val finalCopy: List<RR> = ArrayList(passedCopy)
+		val passedCopy = vectorOperand.elements().toMutableList()
+		updater(passedCopy)
+		val finalCopy: List<RR> = passedCopy.toList()
 		val replacementInstruction = L2Instruction(
 			block, this, vectorOperand.clone(finalCopy), writeOperand)
 		block.instructions()[instructionIndex] = replacementInstruction
@@ -229,10 +226,10 @@ private constructor(
 		val sources: L2ReadVectorOperand<RR, R> = instruction.operand(0)
 		assert(sources.elements().size
 				   == instruction.basicBlock().predecessorEdgesCount())
-		val list: MutableList<L2BasicBlock> = ArrayList()
-		val i = MutableInt(0)
+		val list = mutableListOf<L2BasicBlock>()
+		var i = 0
 		instruction.basicBlock().predecessorEdgesDo { edge: L2PcOperand ->
-			if (sources.elements()[i.value++].register() === usedRegister)
+			if (sources.elements()[i++].register() === usedRegister)
 			{
 				list.add(edge.sourceBlock())
 			}
@@ -293,11 +290,7 @@ private constructor(
 			semanticValue,
 			predecessorManifest.restrictionFor(semanticValue),
 			predecessorManifest.getDefinition(semanticValue, kind))
-		updateVectorOperand(
-			instruction,
-			Consumer { mutableSources: MutableList<RR> ->
-				mutableSources.add(readOperand)
-			})
+		updateVectorOperand(instruction) { it.add(readOperand) }
 	}
 
 	override fun toString(): String =

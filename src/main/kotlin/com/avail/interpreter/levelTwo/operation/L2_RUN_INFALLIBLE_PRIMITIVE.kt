@@ -75,33 +75,31 @@ abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor()
 		: L2_RUN_INFALLIBLE_PRIMITIVE()
 
 	/** The subclass for primitives that have global read dependency.  */
-	@ReadsHiddenVariable(theValue = arrayOf(GLOBAL_STATE::class))
-	@WritesHiddenVariable(value = arrayOf(
-	  	CURRENT_CONTINUATION::class,
+	@ReadsHiddenVariable([GLOBAL_STATE::class])
+	@WritesHiddenVariable(value = [
+		CURRENT_CONTINUATION::class,
 		CURRENT_FUNCTION::class,
-	    //		CURRENT_ARGUMENTS.class,
-		LATEST_RETURN_VALUE::class))
+		LATEST_RETURN_VALUE::class])
 	private class L2_RUN_INFALLIBLE_PRIMITIVE_read_dependency
 		: L2_RUN_INFALLIBLE_PRIMITIVE()
 
 	/** The subclass for primitives that have global write dependency.  */
-	@WritesHiddenVariable(value = arrayOf(
+	@WritesHiddenVariable(value = [
 		CURRENT_CONTINUATION::class,
 		CURRENT_FUNCTION::class,
-		//		CURRENT_ARGUMENTS.class,
 		LATEST_RETURN_VALUE::class,
-		GLOBAL_STATE::class))
+		GLOBAL_STATE::class])
 	private class L2_RUN_INFALLIBLE_PRIMITIVE_write_dependency
 		: L2_RUN_INFALLIBLE_PRIMITIVE()
 
 	/** The subclass for primitives that have global read/write dependency.  */
-	@ReadsHiddenVariable(theValue = arrayOf(GLOBAL_STATE::class))
-	@WritesHiddenVariable(value = arrayOf(
+	@ReadsHiddenVariable([GLOBAL_STATE::class])
+	@WritesHiddenVariable(value = [
 		CURRENT_CONTINUATION::class,
 		CURRENT_FUNCTION::class,
 		//		CURRENT_ARGUMENTS.class,
 		LATEST_RETURN_VALUE::class,
-		GLOBAL_STATE::class))
+		GLOBAL_STATE::class])
 	private class L2_RUN_INFALLIBLE_PRIMITIVE_readwrite_dependency
 		: L2_RUN_INFALLIBLE_PRIMITIVE()
 
@@ -231,8 +229,7 @@ abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor()
 		 *   A suitable `L2_RUN_INFALLIBLE_PRIMITIVE` instance.
 		 */
 		@kotlin.jvm.JvmStatic
-		fun forPrimitive(
-			primitive: Primitive): L2_RUN_INFALLIBLE_PRIMITIVE
+		fun forPrimitive(primitive: Primitive): L2_RUN_INFALLIBLE_PRIMITIVE
 		{
 			// Until we have all primitives annotated with global read/write flags,
 			// pay attention to other flags that we expect to prevent commutation
@@ -246,23 +243,12 @@ abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor()
 				primitive.hasFlag(Primitive.Flag.ReadsFromHiddenGlobalState)
 			val write =
 				primitive.hasFlag(Primitive.Flag.WritesToHiddenGlobalState)
-			return if (read)
+			return when
 			{
-				if (write)
-				{
-					readWriteDependency
-				}
-				else
-				{
-					readDependency
-				}
-			} else if (write)
-			{
-				writeDependency
-			}
-			else
-			{
-				noDependency
+				read && write -> readWriteDependency
+				read -> readDependency
+				write -> writeDependency
+				else -> noDependency
 			}
 		}
 

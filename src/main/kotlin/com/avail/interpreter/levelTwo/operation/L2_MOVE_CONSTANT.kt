@@ -138,24 +138,12 @@ private constructor(
 	override fun toString(): String
 	{
 		val kind =
-			when
+			when (this)
 			{
-				this == boxed ->
-				{
-					"boxed"
-				}
-				this == unboxedInt ->
-				{
-					"int"
-				}
-				this == unboxedFloat ->
-				{
-					"float"
-				}
-				else ->
-				{
-					"unknown"
-				}
+				boxed -> "boxed"
+				unboxedInt -> "int"
+				unboxedFloat -> "float"
+				else -> "unknown"
 			}
 		return super.toString() + "(" + kind + ")"
 	}
