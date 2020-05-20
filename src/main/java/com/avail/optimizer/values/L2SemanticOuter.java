@@ -73,8 +73,8 @@ extends L2FrameSpecificSemanticValue
 		@NotNull final Function1<? super L2SemanticValue, ? extends L2SemanticValue> semanticValueTransformer,
 		@NotNull final Function1<? super Frame, Frame> frameTransformer)
 	{
-		final Frame newFrame = frameTransformer.invoke(frame);
-		return newFrame.equals(frame)
+		final Frame newFrame = frameTransformer.invoke(getFrame());
+		return newFrame.equals(getFrame())
 			? this
 			: new L2SemanticOuter(newFrame, outerIndex);
 	}
@@ -83,6 +83,6 @@ extends L2FrameSpecificSemanticValue
 	public String toString ()
 	{
 		return "Outer#" + outerIndex +
-			(frame.depth() == 1 ? "" : "[" + frame + "]");
+			(getFrame().depth() == 1 ? "" : "[" + getFrame() + "]");
 	}
 }

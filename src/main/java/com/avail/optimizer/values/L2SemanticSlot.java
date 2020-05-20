@@ -107,13 +107,13 @@ extends L2FrameSpecificSemanticValue
 	public String toString ()
 	{
 		return "Slot#" + slotIndex + "@" + pcAfter +
-			(frame.depth() == 1 ? "" : "[" + frame + "]");
+			(getFrame().depth() == 1 ? "" : "[" + getFrame() + "]");
 	}
 
 	@Override
 	public String toStringForSynonym ()
 	{
 		return slotIndex + "@" + pcAfter +
-			(frame.depth() == 1 ? "" : "[" + frame + "]");
+			(getFrame().depth() == 1 ? "" : "[" + getFrame() + "]");
 	}
 }

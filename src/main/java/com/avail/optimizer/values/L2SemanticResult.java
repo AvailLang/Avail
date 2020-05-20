@@ -69,7 +69,7 @@ extends L2FrameSpecificSemanticValue
 		@NotNull final Function1<? super Frame, Frame> frameTransformer)
 	{
 		final Frame newFrame = frameTransformer.invoke(frame());
-		return newFrame.equals(frame) ? this : new L2SemanticResult(newFrame);
+		return newFrame.equals(getFrame()) ? this : new L2SemanticResult(newFrame);
 	}
 
 	@Override

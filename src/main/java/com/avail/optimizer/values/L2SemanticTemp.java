@@ -84,8 +84,8 @@ extends L2FrameSpecificSemanticValue
 		@NotNull final Function1<? super L2SemanticValue, ? extends L2SemanticValue> semanticValueTransformer,
 		@NotNull final Function1<? super Frame, Frame> frameTransformer)
 	{
-		final Frame newFrame = frameTransformer.invoke(frame);
-		return newFrame.equals(frame)
+		final Frame newFrame = frameTransformer.invoke(getFrame());
+		return newFrame.equals(getFrame())
 			? this
 			: new L2SemanticTemp(newFrame, uniqueId);
 	}
@@ -93,13 +93,13 @@ extends L2FrameSpecificSemanticValue
 	@Override
 	public String toString ()
 	{
-		if (frame.depth() == 1)
+		if (getFrame().depth() == 1)
 		{
 			return "Temp#" + uniqueId;
 		}
 		else
 		{
-			return "Temp#" + uniqueId + " in " + frame;
+			return "Temp#" + uniqueId + " in " + getFrame();
 		}
 	}
 }

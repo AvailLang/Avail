@@ -67,14 +67,14 @@ extends L2FrameSpecificSemanticValue
 		@NotNull final Function1<? super L2SemanticValue, ? extends L2SemanticValue> semanticValueTransformer,
 		@NotNull final Function1<? super Frame, Frame> frameTransformer)
 	{
-		final Frame newFrame = frameTransformer.invoke(frame);
-		return newFrame.equals(frame) ? this : new L2SemanticCaller(newFrame);
+		final Frame newFrame = frameTransformer.invoke(getFrame());
+		return newFrame.equals(getFrame()) ? this : new L2SemanticCaller(newFrame);
 	}
 
 	@Override
 	public String toString ()
 	{
 		return "ReifiedCaller" +
-			(frame.depth() == 1 ? "" : "[of " + frame + "]");
+			(getFrame().depth() == 1 ? "" : "[of " + getFrame() + "]");
 	}
 }
