@@ -53,7 +53,7 @@ import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_COMPARE_INT
 import com.avail.interpreter.levelTwo.operation.L2_TUPLE_AT_CONSTANT
 import com.avail.interpreter.levelTwo.operation.L2_TUPLE_AT_NO_FAIL
@@ -151,7 +151,7 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 			val sizeWriter = generator.intWrite(
 				semanticSize, intSizeRestriction)
 			translator.addInstruction(
-				L2_TUPLE_SIZE.instance,
+				L2_TUPLE_SIZE,
 				tupleReg,
 				sizeWriter)
 			val readSubscript = generator.readInt(
@@ -199,7 +199,7 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 				val writeResult =
 					generator.boxedWrite(semanticResult, resultRestriction)
 				generator.addInstruction(
-					L2_TUPLE_AT_NO_FAIL.instance,
+					L2_TUPLE_AT_NO_FAIL,
 					tupleReg,
 					readSubscript,
 					writeResult)
@@ -234,7 +234,7 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 			// The subscript is a constant (and it's within range).
 			val subscriptInt = lower.extractInt()
 			translator.addInstruction(
-				L2_TUPLE_AT_CONSTANT.instance,
+				L2_TUPLE_AT_CONSTANT,
 				tupleReg,
 				L2IntImmediateOperand(subscriptInt),
 				writer)
@@ -249,7 +249,7 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 			subscriptConversionFailure)
 		assert(subscriptConversionFailure.predecessorEdgesCount() == 0)
 		translator.addInstruction(
-			L2_TUPLE_AT_NO_FAIL.instance,
+			L2_TUPLE_AT_NO_FAIL,
 			tupleReg,
 			subscriptIntReg,
 			writer)

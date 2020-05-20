@@ -208,12 +208,12 @@ abstract class AvailObjectRepresentation protected constructor(
 
 	/**
 	 * Extract the value of the [BitField] of the receiver.  Note that it's an
-	 * `int` even though the underlying longSlots array contains `long`s.
+	 * [Int] even though the underlying longSlots array contains `long`s.
 	 *
 	 * @param bitField
 	 *   A `BitField` that defines the object's layout.
 	 * @return
-	 *   An `int` extracted from this object.
+	 *   An [Int] extracted from this object.
 	 */
 	fun slot(bitField: BitField): Int {
 		checkSlot(bitField.integerSlot)
@@ -227,7 +227,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	 * @param bitField
 	 *   A `BitField` that defines the object's layout.
 	 * @param anInteger
-	 *   An `int` to store in the indicated bit field.
+	 *   An [Int] to store in the indicated bit field.
 	 */
 	fun setSlot(bitField: BitField, anInteger: Int) {
 		checkWriteForField(bitField.integerSlot)
@@ -294,7 +294,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	 * @param shortIndex
 	 *   The one-base index in shorts.
 	 * @return
-	 *   The unsigned `short` (as an `int` found at the given short-index.
+	 *   The unsigned `short` (as an [Int] found at the given short-index.
 	 */
 	fun shortSlot(field: IntegerSlotsEnum, shortIndex: Int): Int {
 		checkSlot(field)
@@ -311,7 +311,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	 * @param shortIndex
 	 *   The one-based index in shorts.
 	 * @param aShort
-	 *   The `short` to store at the given short-index, passed as an `int` for
+	 *   The `short` to store at the given short-index, passed as an [Int] for
 	 *   safety.
 	 */
 	fun setShortSlot(
@@ -330,14 +330,14 @@ abstract class AvailObjectRepresentation protected constructor(
 	}
 
 	/**
-	 * Extract a (32-bit signed) `int` at the given int-index of the receiver.
+	 * Extract a (32-bit signed) [Int] at the given int-index of the receiver.
 	 *
 	 * @param field
 	 *   The enumeration value that identifies the base field.
 	 * @param intIndex
 	 *   The one-base index in ints.
 	 * @return
-	 *   The signed `int` found at the given int-index.
+	 *   The signed [Int] found at the given int-index.
 	 */
 	fun intSlot(
 		field: IntegerSlotsEnum,
@@ -349,14 +349,14 @@ abstract class AvailObjectRepresentation protected constructor(
 	}
 
 	/**
-	 * Store the (32-bit signed) `int` at the given int-index of the receiver.
+	 * Store the (32-bit signed) [Int] at the given int-index of the receiver.
 	 *
 	 * @param field
 	 *   The enumeration value that identifies the base field.
 	 * @param intIndex
 	 *   The one-based index in ints.
 	 * @param anInt
-	 *   The `int` to store at the given int-index.
+	 *   The [Int] to store at the given int-index.
 	 */
 	fun setIntSlot(
 		field: IntegerSlotsEnum,
@@ -725,8 +725,8 @@ abstract class AvailObjectRepresentation protected constructor(
 		startSubscript: Int,
 		sourceList: List<A_BasicObject>,
 		zeroBasedStartSourceSubscript: Int,
-		count: Int
-	) {
+		count: Int)
+	{
 		assert(!currentDescriptor.isShared
 			|| sourceList.all { it.descriptor().isShared })
 		checkSlot(field)
@@ -743,7 +743,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	 * consecutive slots of the receiver.  It's the client's responsibility to
 	 * ensure the values are suitably immutable or shared.
 	 *
-	 * @param <T>
+	 * @param T
 	 *   The type of array to copy from.
 	 * @param targetField
 	 *   The field of the receiver into which to write values.
@@ -1548,7 +1548,7 @@ abstract class AvailObjectRepresentation protected constructor(
 		private val emptyObjectSlots = arrayOfNulls<AvailObject>(0)
 
 		/**
-		 * A reusable empty array of `int`s for objects that have no int
+		 * A reusable empty array of [Int]s for objects that have no int
 		 * slots.
 		 */
 		private val emptyIntegerSlots = LongArray(0)

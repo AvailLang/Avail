@@ -144,16 +144,14 @@ class DeclarationPhraseDescriptor(
 	 *   The instance of the enumeration [PhraseKind] that is associated with
 	 *   this kind of declaration.
 	 *
-	 *
-	 *
 	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	enum class DeclarationKind(
-		private val nativeKindName: String,
-		val isVariable: Boolean,
-		val isModuleScoped: Boolean,
-		private val kindEnumeration: PhraseKind
-	) : IntegerEnumSlotDescriptionEnum {
+			private val nativeKindName: String,
+			val isVariable: Boolean,
+			val isModuleScoped: Boolean,
+			private val kindEnumeration: PhraseKind)
+		: IntegerEnumSlotDescriptionEnum {
 		/** An argument to a block. */
 		ARGUMENT("argument", false, false, PhraseKind.ARGUMENT_PHRASE) {
 			override fun emitVariableValueForOn(

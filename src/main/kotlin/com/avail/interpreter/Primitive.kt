@@ -67,7 +67,7 @@ import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.operand.*
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import com.avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import com.avail.interpreter.primitive.hooks.P_SetImplicitObserveFunction
 import com.avail.interpreter.primitive.privatehelpers.P_PushConstant
@@ -529,12 +529,12 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 * return type.  That's equivalent to the condition that the actual block's
 	 * type is a subtype of this function type.
 	 *
-	 *
 	 * Cache the value in this `Primitive` so subsequent requests are
 	 * fast.
 	 *
-	 * @return A function type that restricts the type of a block that uses
-	 *   this primitive.
+	 * @return
+	 *   A function type that restricts the type of a block that uses this
+	 *   primitive.
 	 */
 	fun blockTypeRestriction(): A_Type
 	{
@@ -580,11 +580,10 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 * type is acceptable for the variable.  This type is cached upon first
 	 * request and should be accessed via [failureVariableType].
 	 *
-	 *
 	 * By default, expect the primitive to fail with a natural number.
 	 *
-	 *
-	 * @return A type which is at least as specific as the type of the failure
+	 * @return
+	 *   A type which is at least as specific as the type of the failure
 	 *   variable declared in a block using this primitive.
 	 */
 	protected open fun privateFailureVariableType(): A_Type = naturalNumbers()
@@ -894,7 +893,6 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		 * primitive number.  Note that the primitive numbers may get assigned
 		 * differently on different runs, so the [Serializer] always uses the
 		 * primitive's textual name.
-		 *
 		 *
 		 * If this array is insufficient to hold all the primitives, it can be
 		 * replaced with a larger one as needed.  However, be careful of the

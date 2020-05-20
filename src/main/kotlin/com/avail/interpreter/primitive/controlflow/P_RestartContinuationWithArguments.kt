@@ -32,8 +32,11 @@
 package com.avail.interpreter.primitive.controlflow
 
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.ContinuationDescriptor
+import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
+import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.toList
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.enumerationWith
@@ -76,7 +79,6 @@ object P_RestartContinuationWithArguments : Primitive(
 	CanSwitchContinuations,
 	AlwaysSwitchesContinuation)
 {
-
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
@@ -195,7 +197,7 @@ object P_RestartContinuationWithArguments : Primitive(
 
 			// Now keep only the new temps visible in the manifest.
 			generator.addInstruction(
-				L2_STRIP_MANIFEST.instance,
+				L2_STRIP_MANIFEST,
 				L2ReadBoxedVectorOperand(tempReads))
 
 			// Now move them into semantic slots n@1, so the phis at the
@@ -219,7 +221,7 @@ object P_RestartContinuationWithArguments : Primitive(
 
 			// Now keep only the new args visible in the manifest.
 			generator.addInstruction(
-				L2_STRIP_MANIFEST.instance,
+				L2_STRIP_MANIFEST,
 				L2ReadBoxedVectorOperand(newReads))
 
 			val trampolineBlock = generator.createBasicBlock(
@@ -227,7 +229,7 @@ object P_RestartContinuationWithArguments : Primitive(
 
 			// Use an L2_JUMP_BACK to get to the trampoline block.
 			generator.addInstruction(
-				L2_JUMP_BACK.instance,
+				L2_JUMP_BACK,
 				edgeTo(trampolineBlock),
 				L2ReadBoxedVectorOperand(newReads))
 
@@ -235,7 +237,7 @@ object P_RestartContinuationWithArguments : Primitive(
 			// slots will be added to the phis.
 			generator.startBlock(trampolineBlock)
 			generator.addInstruction(
-				L2_JUMP.instance,
+				L2_JUMP,
 				backEdgeTo(generator.restartLoopHeadBlock!!))
 
 			// Ensure only the n@1 slots and registers are considered live.
@@ -277,7 +279,7 @@ object P_RestartContinuationWithArguments : Primitive(
 		explodedArgumentRegs ?: return false
 
 		translator.addInstruction(
-			L2_RESTART_CONTINUATION_WITH_ARGUMENTS.instance,
+			L2_RESTART_CONTINUATION_WITH_ARGUMENTS,
 			continuationReg,
 			L2ReadBoxedVectorOperand(explodedArgumentRegs))
 		assert(!generator.currentlyReachable())

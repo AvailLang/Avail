@@ -78,7 +78,7 @@ import kotlin.math.min
  *
  * Avail integers should always occupy the fewest number of slots to
  * unambiguously indicate the represented integer.  A zero integer is
- * represented by a single [Int] slot containing a zero `int`.  Any `int` can be
+ * represented by a single [Int] slot containing a zero [Int].  Any [Int] can be
  * converted to an Avail integer by using a single slot, and any [Long] can be
  * represented with at most two slots.
  *
@@ -95,7 +95,7 @@ import kotlin.math.min
  * @param mutability
  *   The [mutability][Mutability] of the new descriptor.
  * @param unusedIntsOfLastLong
- *   The number of unused `int`s in the last `long`.  Must be 0 or 1.
+ *   The number of unused [Int]s in the last `long`.  Must be 0 or 1.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -116,7 +116,7 @@ class IntegerDescriptor private constructor(
 		/**
 		 * Avail integers should always occupy the fewest number of slots to
 		 * unambiguously indicate the represented integer.  A zero integer is
-		 * represented by a single slot containing a zero `int`.  Any `int` can
+		 * represented by a single slot containing a zero [Int].  Any [Int] can
 		 * be converted to an Avail integer by using a single slot, and any
 		 * `long` can be represented with at most two slots.
 		 *
@@ -1602,10 +1602,10 @@ class IntegerDescriptor private constructor(
 		}
 
 		/**
-		 * Convert the specified Java `int` into an Avail integer.
+		 * Convert the specified Kotlin [Int] into an Avail integer.
 		 *
 		 * @param anInteger
-		 *   A Java `int` (Kotlin [Int]).
+		 *   A Java [Int] (Kotlin [Int]).
 		 * @return
 		 *   An [AvailObject].
 		 */
@@ -1745,7 +1745,7 @@ class IntegerDescriptor private constructor(
 
 		/**
 		 * Compute the hash of the given Avail integer object.  Note that if the
-		 * input is within the range of an `int`, it should produce the same
+		 * input is within the range of an [Int], it should produce the same
 		 * value as the equivalent invocation of [.computeHashOfInt].
 		 *
 		 * @param anIntegerObject

@@ -738,7 +738,6 @@ class StacksScanner constructor (commentToken: A_Token, moduleName: String)
 		 * A slash was encountered. Check if it's the start of a nested comment,
 		 * and if so skip it. If not, add the slash as a [token][StacksToken].
 		 *
-		 *
 		 * Nested comments are supported.
 		 */
 		SLASH
@@ -827,10 +826,7 @@ class StacksScanner constructor (commentToken: A_Token, moduleName: String)
 		 * also known as the byte-order-mark and generally only appears at the
 		 * start of a file as a hint about the file's endianness.
 		 *
-		 *
-		 *
 		 * Treat it as whitespace even though Unicode says it isn't.
-		 *
 		 */
 		ZEROWIDTHWHITESPACE
 		{

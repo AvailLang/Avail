@@ -39,12 +39,27 @@ import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.bundles.A_Bundle
+import com.avail.descriptor.functions.A_Function
+import com.avail.descriptor.functions.CompiledCodeDescriptor
+import com.avail.descriptor.functions.ContinuationDescriptor
+import com.avail.descriptor.functions.FunctionDescriptor
+import com.avail.descriptor.maps.MapDescriptor
+import com.avail.descriptor.methods.*
 import com.avail.descriptor.numbers.A_Number
+import com.avail.descriptor.numbers.InfinityDescriptor
+import com.avail.descriptor.numbers.IntegerDescriptor
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.phrases.BlockPhraseDescriptor
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
 import com.avail.descriptor.phrases.PhraseDescriptor
+import com.avail.descriptor.phrases.ReferencePhraseDescriptor
+import com.avail.descriptor.phrases.SequencePhraseDescriptor
+import com.avail.descriptor.tuples.StringDescriptor
+import com.avail.descriptor.types.*
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
+import com.avail.descriptor.variables.A_Variable
+import com.avail.descriptor.variables.VariableDescriptor
+import com.avail.descriptor.variables.VariableSharedGlobalDescriptor
 import com.avail.interpreter.levelOne.L1Operation
 import com.avail.interpreter.primitive.phrases.P_AcceptParsing
 import com.avail.interpreter.primitive.phrases.P_CurrentMacroName
@@ -606,7 +621,7 @@ enum class AvailErrorCode constructor(val code: Int)
 	E_NOT_OPEN_FOR_WRITE(94),
 
 	/**
-	 * A value was passed that exceeded the allowed numeric range, either `Int`,
+	 * A value was passed that exceeded the allowed numeric range, either [Int],
 	 * `Long`, or some other limit imposed by the operating system or virtual
 	 * machine.
 	 */
@@ -794,7 +809,7 @@ enum class AvailErrorCode constructor(val code: Int)
 		 * Look up the `AvailErrorCode` with the given [numeric code][code].
 		 *
 		 * @param numericCode
-		 *   The `Int` to look up as a numeric code.
+		 *   The [Int] to look up as a numeric code.
 		 * @return
 		 *   The error code, or `null` if not defined.
 		 */

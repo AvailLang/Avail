@@ -42,7 +42,7 @@ import com.avail.interpreter.Primitive.Flag.*
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import com.avail.interpreter.levelTwo.operation.L2_GET_OBJECT_FIELD
 import com.avail.optimizer.L1Translator
 
@@ -124,7 +124,7 @@ object P_PrivateGetSpecificObjectField : Primitive(
 				val write = translator.generator.boxedWriteTemp(
 					restrictionForType(fieldType, BOXED))
 				translator.addInstruction(
-					L2_GET_OBJECT_FIELD.instance,
+					L2_GET_OBJECT_FIELD,
 					objectReg,
 					L2ConstantOperand(fieldAtom),
 					write)

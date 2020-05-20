@@ -552,7 +552,7 @@ public final class L2Generator
 		if (restriction.isUnboxedInt())
 		{
 			addInstruction(
-				L2_BOX_INT.instance,
+				L2_BOX_INT.INSTANCE,
 				currentManifest.readInt(semanticValue),
 				writer);
 		}
@@ -560,7 +560,7 @@ public final class L2Generator
 		{
 			assert restriction.isUnboxedFloat();
 			addInstruction(
-				L2_BOX_FLOAT.instance,
+				L2_BOX_FLOAT.INSTANCE,
 				currentManifest.readFloat(semanticValue),
 				writer);
 		}
@@ -632,7 +632,7 @@ public final class L2Generator
 		if (restriction.containedByType(int32()))
 		{
 			addInstruction(
-				L2_UNBOX_INT.instance,
+				L2_UNBOX_INT.INSTANCE,
 				boxedRead,
 				intWrite);
 		}
@@ -642,7 +642,7 @@ public final class L2Generator
 			final L2BasicBlock onSuccess =
 				createBasicBlock("successfully unboxed");
 			addInstruction(
-				L2_JUMP_IF_UNBOX_INT.instance,
+				L2_JUMP_IF_UNBOX_INT.INSTANCE,
 				boxedRead,
 				intWrite,
 				edgeTo(onFailure),
@@ -723,7 +723,7 @@ public final class L2Generator
 		if (restriction.containedByType(DOUBLE.o()))
 		{
 			addInstruction(
-				L2_UNBOX_FLOAT.instance,
+				L2_UNBOX_FLOAT.INSTANCE,
 				boxedRead,
 				floatWrite);
 		}
@@ -733,7 +733,7 @@ public final class L2Generator
 			final L2BasicBlock onSuccess =
 				createBasicBlock("successfully unboxed");
 			addInstruction(
-				L2_JUMP_IF_UNBOX_FLOAT.instance,
+				L2_JUMP_IF_UNBOX_FLOAT.INSTANCE,
 				boxedRead,
 				floatWrite,
 				edgeTo(onSuccess),
@@ -781,7 +781,7 @@ public final class L2Generator
 		assert !currentManifest.hasSemanticValue(targetSemanticValue);
 		final L2BasicBlock block = currentBlock();
 		final List<L2Register> sourceRegisters = currentManifest.getDefinitions(
-			sourceSemanticValue, moveOperation.kind);
+			sourceSemanticValue, moveOperation.getKind());
 		final List<WR> sourceWritesInBlock = new ArrayList<>(2);
 		for (final L2Register register : sourceRegisters)
 		{
@@ -838,11 +838,11 @@ public final class L2Generator
 			currentManifest.restrictionFor(sourceSemanticValue);
 		addInstruction(
 			moveOperation,
-			moveOperation.kind.readOperand(
+			moveOperation.getKind().readOperand(
 				sourceSemanticValue,
 				restriction,
 				currentManifest.getDefinition(
-					sourceSemanticValue, moveOperation.kind)),
+					sourceSemanticValue, moveOperation.getKind())),
 			moveOperation.createWrite(this, targetSemanticValue, restriction));
 	}
 
@@ -878,7 +878,7 @@ public final class L2Generator
 		// the instruction is added.
 		assert immutableRestriction.isBoxed();
 		addInstruction(
-			L2_MAKE_IMMUTABLE.instance,
+			L2_MAKE_IMMUTABLE.INSTANCE,
 			read,
 			boxedWrite(temp, immutableRestriction));
 		return currentManifest.readBoxed(temp);
@@ -911,7 +911,7 @@ public final class L2Generator
 		// that provided the value to the creation.
 		final L2Instruction tupleDefinitionInstruction =
 			tupleReg.definitionSkippingMoves(false);
-		if (tupleDefinitionInstruction.operation() == L2_CREATE_TUPLE.instance)
+		if (tupleDefinitionInstruction.operation() == L2_CREATE_TUPLE.INSTANCE)
 		{
 			// Use the register that was provided to the tuple.
 			return L2_CREATE_TUPLE
@@ -931,7 +931,7 @@ public final class L2Generator
 		final L2WriteBoxedOperand elementWriter = boxedWriteTemp(
 			restrictionForType(tupleType.typeAtIndex(index), BOXED));
 		addInstruction(
-			L2_TUPLE_AT_CONSTANT.instance,
+			L2_TUPLE_AT_CONSTANT.INSTANCE,
 			tupleReg,
 			new L2IntImmediateOperand(index),
 			elementWriter);
@@ -993,7 +993,7 @@ public final class L2Generator
 		// creation.
 		final L2Instruction tupleDefinitionInstruction =
 			tupleReg.definitionSkippingMoves(false);
-		if (tupleDefinitionInstruction.operation() == L2_CREATE_TUPLE.instance)
+		if (tupleDefinitionInstruction.operation() == L2_CREATE_TUPLE.INSTANCE)
 		{
 			// Use the registers that were used to assemble the tuple.
 			return L2_CREATE_TUPLE.tupleSourceRegistersOf(
@@ -1018,7 +1018,7 @@ public final class L2Generator
 			final L2WriteBoxedOperand elementWriter = boxedWriteTemp(
 				restrictionForType(tupleType.typeAtIndex(i), BOXED));
 			addInstruction(
-				L2_TUPLE_AT_CONSTANT.instance,
+				L2_TUPLE_AT_CONSTANT.INSTANCE,
 				tupleReg,
 				new L2IntImmediateOperand(i),
 				elementWriter);
@@ -1122,7 +1122,7 @@ public final class L2Generator
 				final L2BasicBlock predecessorBlock =
 					predecessorEdge.sourceBlock();
 				final L2Instruction jump = predecessorBlock.finalInstruction();
-				if (jump.operation() == L2_JUMP.instance)
+				if (jump.operation() == L2_JUMP.INSTANCE)
 				{
 					// The new block has only one predecessor, which
 					// unconditionally jumps to it.  Remove the jump and
@@ -1358,7 +1358,7 @@ public final class L2Generator
 	 */
 	public void jumpTo (final L2BasicBlock targetBlock)
 	{
-		addInstruction(L2_JUMP.instance, edgeTo(targetBlock));
+		addInstruction(L2_JUMP.INSTANCE, edgeTo(targetBlock));
 	}
 
 	/**
@@ -1393,7 +1393,11 @@ public final class L2Generator
 		for (final L2Instruction instruction : instructions)
 		{
 			instruction.operandsDo(
-				operand -> operand.dispatchOperand(registerCounter));
+				operand ->
+				{
+					operand.dispatchOperand(registerCounter);
+					return null;
+				});
 		}
 
 		final int afterPrimitiveOffset =

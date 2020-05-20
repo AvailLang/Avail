@@ -515,11 +515,11 @@ class JSONWriter : AutoCloseable
 	}
 
 	/**
-	 * Write the specified `Int` to the underlying document [writer][Writer] as
+	 * Write the specified [Int] to the underlying document [writer][Writer] as
 	 * a JSON number.
 	 *
 	 * @param value
-	 *   A `Int` value.
+	 *   A [Int] value.
 	 * @throws JSONIOException
 	 *   If an I/O exception occurs.
 	 * @throws IllegalStateException
@@ -889,10 +889,10 @@ class JSONWriter : AutoCloseable
 	}
 
 	/**
-	 * Write an array of `Int` values.
+	 * Write an array of [Int] values.
 	 *
 	 * @param values
-	 *   An array of `Int` values.
+	 *   An array of [Int] values.
 	 * @throws JSONIOException
 	 *   If an I/O exception occurs.
 	 * @throws IllegalStateException

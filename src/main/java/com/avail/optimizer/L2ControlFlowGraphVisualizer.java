@@ -314,13 +314,14 @@ public class L2ControlFlowGraphVisualizer
 				builder.append(escape(operand.toString()));
 				builder.append("</i></font><br/>");
 			}
+			return null;
 		});
 		// Make a note of the current length of the builder. We will need to
 		// escape everything after this point.
 		final int escapeIndex = builder.length();
 		final Set<L2OperandType> desiredTypes =
 			EnumSet.complementOf(EnumSet.of(PC, COMMENT));
-		if (instruction.operation() == L2_JUMP.instance
+		if (instruction.operation() == L2_JUMP.INSTANCE
 			&& instruction.offset() != -1
 			&& L2_JUMP.jumpTarget(instruction).offset()
 				== instruction.offset())
@@ -337,7 +338,7 @@ public class L2ControlFlowGraphVisualizer
 				.append("\"><i>");
 			final int escapableStart = builder.length();
 			instruction.operation().appendToWithWarnings(
-				instruction, desiredTypes, builder, b -> {});
+				instruction, desiredTypes, builder, b -> null);
 			builder.replace(
 				escapableStart,
 				builder.length(),
@@ -353,6 +354,7 @@ public class L2ControlFlowGraphVisualizer
 			{
 				assert flag == (styleChanges.size() % 2 == 0);
 				styleChanges.add(builder.length());
+				return null;
 			});
 
 		// Escape everything since the saved position.  Add a final sentinel to
@@ -418,7 +420,7 @@ public class L2ControlFlowGraphVisualizer
 			fontcolor = "#ffffff/e0e0e0";
 		}
 		else if (basicBlock.instructions().stream().anyMatch(
-			i -> i.operation() == L2_UNREACHABLE_CODE.instance))
+			i -> i.operation() == L2_UNREACHABLE_CODE.INSTANCE))
 		{
 			fillcolor = "#400000/600000";
 			fontcolor = "#ffffff/ffffff";
@@ -517,7 +519,7 @@ public class L2ControlFlowGraphVisualizer
 		final boolean isTargetTheUnreachableBlock =
 			targetBlock.instructions().stream()
 				.anyMatch(
-					instr -> instr.operation() == L2_UNREACHABLE_CODE.instance);
+					instr -> instr.operation() == L2_UNREACHABLE_CODE.INSTANCE);
 		final L2NamedOperandType[] types =
 			sourceInstruction.operation().operandTypes();
 		final L2Operand[] operands = sourceInstruction.operands();

@@ -151,7 +151,7 @@ object P_RestartContinuation : Primitive(
 
 			// Now keep only the new temps visible in the manifest.
 			generator.addInstruction(
-				L2_STRIP_MANIFEST.instance,
+				L2_STRIP_MANIFEST,
 				L2ReadBoxedVectorOperand(tempReads))
 
 			// Now move them into semantic slots n@1, so the phis at the
@@ -175,7 +175,7 @@ object P_RestartContinuation : Primitive(
 
 			// Now keep only the new args visible in the manifest.
 			generator.addInstruction(
-				L2_STRIP_MANIFEST.instance,
+				L2_STRIP_MANIFEST,
 				L2ReadBoxedVectorOperand(newReads))
 
 			val trampolineBlock = generator.createBasicBlock(
@@ -183,7 +183,7 @@ object P_RestartContinuation : Primitive(
 
 			// Use an L2_JUMP_BACK to get to the trampoline block.
 			generator.addInstruction(
-				L2_JUMP_BACK.instance,
+				L2_JUMP_BACK,
 				edgeTo(trampolineBlock),
 				L2ReadBoxedVectorOperand(newReads))
 
@@ -191,7 +191,7 @@ object P_RestartContinuation : Primitive(
 			// slots will be added to the phis.
 			generator.startBlock(trampolineBlock)
 			generator.addInstruction(
-				L2_JUMP.instance,
+				L2_JUMP,
 				backEdgeTo(generator.restartLoopHeadBlock!!))
 
 			// Ensure only the n@1 slots and registers are considered live.
@@ -212,7 +212,7 @@ object P_RestartContinuation : Primitive(
 		// loop (which saves/restores the current frame and continues at the
 		// next L2 instruction).
 		translator.addInstruction(
-			L2_RESTART_CONTINUATION.instance, continuationReg)
+			L2_RESTART_CONTINUATION, continuationReg)
 		assert(!translator.generator.currentlyReachable())
 		return true
 	}

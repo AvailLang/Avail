@@ -102,7 +102,7 @@ object P_GetGlobalVariableValue : Primitive(
 			return true
 		}
 		val valueReg = translator.emitGetVariableOffRamp(
-			L2_GET_VARIABLE.instance,
+			L2_GET_VARIABLE,
 			translator.generator.boxedConstant(variable),
 			false)
 		callSiteHelper.useAnswer(valueReg)

@@ -272,7 +272,6 @@ interface A_Variable : A_ChunkDependable
 	 * Extract the map from this variable, add the key → value binding to it,
 	 * and write it back into the variable.
 	 *
-	 *
 	 * This is an atomic operation, so the update is serialized with respect
 	 * to other operations on this variable.
 	 *

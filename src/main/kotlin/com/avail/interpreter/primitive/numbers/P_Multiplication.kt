@@ -58,7 +58,7 @@ import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import com.avail.interpreter.levelTwo.operation.L2_MULTIPLY_INT_BY_INT
 import com.avail.interpreter.levelTwo.operation.L2_MULTIPLY_INT_BY_INT_MOD_32_BITS
 import com.avail.optimizer.L1Translator
@@ -325,7 +325,7 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 				// synonym, so subsequent uses of the result might use either
 				// register, depending whether an unboxed value is desired.
 				translator.addInstruction(
-					L2_MULTIPLY_INT_BY_INT_MOD_32_BITS.instance,
+					L2_MULTIPLY_INT_BY_INT_MOD_32_BITS,
 					intA,
 					intB,
 					tempWriter)
@@ -336,7 +336,7 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 				val success =
 					generator.createBasicBlock("product is in range")
 				translator.addInstruction(
-					L2_MULTIPLY_INT_BY_INT.instance,
+					L2_MULTIPLY_INT_BY_INT,
 					intA,
 					intB,
 					tempWriter,

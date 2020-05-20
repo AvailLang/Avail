@@ -195,7 +195,6 @@ class ContinuationDescriptor private constructor(
 		 * [L2Chunk.unoptimizedChunk] and its [L1InstructionStepper] always rely
 		 * solely on the pure L1 state.
 		 *
-		 *
 		 * This slot can be [NilDescriptor.nil] if it's not needed.
 		 */
 		LEVEL_TWO_REGISTER_DUMP,

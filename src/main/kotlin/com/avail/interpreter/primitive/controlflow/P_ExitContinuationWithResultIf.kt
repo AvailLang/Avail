@@ -138,7 +138,7 @@ object P_ExitContinuationWithResultIf : Primitive(
 				dontExit)
 			generator.startBlock(exit)
 			generator.addInstruction(
-				L2_RETURN.instance,
+				L2_RETURN,
 				valueReg)
 			generator.startBlock(dontExit)
 			callSiteHelper.useAnswer(translator.generator.boxedConstant(nil))

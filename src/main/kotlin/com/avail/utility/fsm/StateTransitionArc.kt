@@ -36,15 +36,15 @@ package com.avail.utility.fsm
  * A state transition, effectively the "compiled form" of a single state
  * transition arc.
  *
- * @param <State>
+ * @param State
  *   The type of the new state.
- * @param <Event>
+ * @param Event
  *   The type of the triggering event.
- * @param <GuardKey>
+ * @param GuardKey
  *   The type of guard keys.
- * @param <ActionKey>
+ * @param ActionKey
  *   The type of action keys.
- * @param <Memento>
+ * @param Memento
  *   The type of object passed to guards and actions.
  * @property event
  *   The event upon whose receipt the transition will occur.

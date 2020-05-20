@@ -47,7 +47,7 @@ import com.avail.interpreter.Primitive.Flag.*
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import com.avail.interpreter.levelTwo.operation.L2_FUNCTION_PARAMETER_TYPE
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
 import com.avail.optimizer.L1Translator
@@ -167,7 +167,7 @@ object P_CastIntoElse : Primitive(3, Invokes, CanInline, CannotFail)
 			// We know the exact type to compare the value against, but we
 			// couldn't statically eliminate the type test.  Emit a branch.
 			translator.jumpIfKindOfConstant(
-				valueRead, typeTest, castBlock, elseBlock);
+				valueRead, typeTest, castBlock, elseBlock)
 		}
 		else
 		{
@@ -179,12 +179,12 @@ object P_CastIntoElse : Primitive(3, Invokes, CanInline, CannotFail)
 			val parameterTypeWrite = translator.generator.boxedWriteTemp(
 				restrictionForType(anyMeta(), BOXED))
 			translator.addInstruction(
-				L2_FUNCTION_PARAMETER_TYPE.instance,
+				L2_FUNCTION_PARAMETER_TYPE,
 				castFunctionRead,
 				L2IntImmediateOperand(1),
 				parameterTypeWrite)
 			translator.addInstruction(
-				L2_JUMP_IF_KIND_OF_OBJECT.instance,
+				L2_JUMP_IF_KIND_OF_OBJECT,
 				valueRead,
 				translator.readBoxed(parameterTypeWrite),
 				edgeTo(castBlock),

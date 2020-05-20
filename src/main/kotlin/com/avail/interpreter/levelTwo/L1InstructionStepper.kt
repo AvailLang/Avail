@@ -78,7 +78,6 @@ import com.avail.utility.evaluation.Continuation0
 import java.util.*
 import java.util.logging.Level
 import java.util.regex.Pattern
-import java.util.stream.Collectors
 
 /**
  * This class is used to simulate the effect of level one nybblecodes during
@@ -204,9 +203,13 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 			if (Interpreter.debugL1)
 			{
 				val savePc = instructionDecoder.pc()
-				val operands = Arrays.stream(operation.operandTypes)
-					.map { instructionDecoder.getOperand() }
-					.collect(Collectors.toList())
+				val operands =
+					operation.operandTypes.map {
+						instructionDecoder.getOperand() }.toMutableList()
+
+//				Arrays.stream(operation.operandTypes)
+//					.map { instructionDecoder.getOperand() }
+//					.collect(Collectors.toList())
 				log(
 					Interpreter.loggerDebugL1,
 					Level.FINER,

@@ -51,7 +51,7 @@ import com.avail.interpreter.Primitive.Flag.Invokes
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import com.avail.interpreter.levelTwo.operation.L2_FUNCTION_PARAMETER_TYPE
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
 import com.avail.optimizer.L1Translator
@@ -170,12 +170,12 @@ object P_CastInto : Primitive(2, Invokes, CanInline)
 				val parameterTypeWrite = generator.boxedWriteTemp(
 					restrictionForType(anyMeta(), BOXED))
 				translator.addInstruction(
-					L2_FUNCTION_PARAMETER_TYPE.instance,
+					L2_FUNCTION_PARAMETER_TYPE,
 					castFunctionRead,
 					L2IntImmediateOperand(1),
 					parameterTypeWrite)
 				translator.addInstruction(
-					L2_JUMP_IF_KIND_OF_OBJECT.instance,
+					L2_JUMP_IF_KIND_OF_OBJECT,
 					valueRead,
 					translator.readBoxed(parameterTypeWrite),
 					edgeTo(castBlock),
@@ -185,7 +185,7 @@ object P_CastInto : Primitive(2, Invokes, CanInline)
 				// Couldn't prove or disprove type test, but we know statically
 				// the cast block's exact argument type.
 				translator.jumpIfKindOfConstant(
-					valueRead, typeTest, castBlock, elseBlock);
+					valueRead, typeTest, castBlock, elseBlock)
 			else ->
 				// We proved the test always passes or always fails.
 				translator.generator.jumpTo(

@@ -32,20 +32,27 @@
 
 package com.avail.interpreter.levelOne
 
+import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.functions.CompiledCodeDescriptor.Companion.newCompiledCode
+import com.avail.descriptor.functions.ContinuationDescriptor
+import com.avail.descriptor.functions.FunctionDescriptor
+import com.avail.descriptor.numbers.IntegerDescriptor
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.NybbleTupleDescriptor
 import com.avail.descriptor.tuples.NybbleTupleDescriptor.generateNybbleTupleFrom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tupleFromList
+import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.tupleFromIntegerList
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.BottomTypeDescriptor.bottom
 import com.avail.descriptor.types.FunctionTypeDescriptor.functionType
 import com.avail.descriptor.types.InstanceMetaDescriptor.topMeta
+import com.avail.descriptor.types.TypeDescriptor
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag
 import com.avail.interpreter.levelOne.L1Operation.L1_doExtension
@@ -251,7 +258,7 @@ class L1InstructionWriter constructor(
 	 * and 65536..2^31-1 take nine nybbles.
 	 *
 	 * @param operand
-	 *   An `int`-encoded operand of some [operation][L1Operation].
+	 *   An [Int]-encoded operand of some [operation][L1Operation].
 	 */
 	private fun writeOperand(operand: Int)
 	{
@@ -307,7 +314,7 @@ class L1InstructionWriter constructor(
 	 * @param operation
 	 *   The [L1Operation] to write.
 	 * @param operands
-	 *   The `int` operands for the operation.
+	 *   The [Int] operands for the operation.
 	 */
 	fun write(lineNumber: Int, operation: L1Operation, vararg operands: Int)
 	{

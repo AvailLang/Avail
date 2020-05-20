@@ -255,7 +255,7 @@ public final class L2Optimizer
 					{
 						iterator.set(replacement);
 						instruction.justRemoved();
-						if (replacement.operation() == L2_JUMP.instance)
+						if (replacement.operation() == L2_JUMP.INSTANCE)
 						{
 							replacement.justInserted();
 						}
@@ -434,6 +434,7 @@ public final class L2Optimizer
 								regsForEdge.add(write.register());
 								valuesForEdge.addAll(
 									write.semanticValues());
+								return null;
 							});
 						boolean changed = visibleRegisters.get(edge)
 							.addAll(regsForEdge);
@@ -443,6 +444,7 @@ public final class L2Optimizer
 						{
 							toVisitQueue.add(edge.targetBlock());
 						}
+						return null;
 					});
 				}
 			}
@@ -666,7 +668,7 @@ public final class L2Optimizer
 						@Nullable L2ReadBoxedOperand mutableRead = null;
 						@Nullable Pair<Set<L2SemanticValue>, TypeRestriction>
 							pair = null;
-						if (operation == L2_MAKE_IMMUTABLE.instance)
+						if (operation == L2_MAKE_IMMUTABLE.INSTANCE)
 						{
 							mutableRead = L2_MAKE_IMMUTABLE.sourceOfImmutable(
 								instruction);
@@ -685,7 +687,7 @@ public final class L2Optimizer
 							{
 								edge.manifest().forgetRegisters(writtenSet);
 							}
-							if (operation == L2_MAKE_IMMUTABLE.instance)
+							if (operation == L2_MAKE_IMMUTABLE.INSTANCE)
 							{
 								edge.manifest().recordSourceInformation(
 									mutableRead.register(),
@@ -995,7 +997,7 @@ public final class L2Optimizer
 					final L2Instruction move =
 						new L2Instruction(
 							predecessor,
-							phiOperation.moveOperation,
+							phiOperation.getMoveOperation(),
 							sourceRead,
 							targetWriter.clone());
 					predecessor.insertInstruction(
@@ -1003,12 +1005,12 @@ public final class L2Optimizer
 					if (edge.isBackward())
 					{
 						edge.manifest().replaceDefinitions(
-							phiOperation.moveOperation.destinationOf(move));
+							phiOperation.getMoveOperation().destinationOf(move));
 					}
 					else
 					{
 						edge.manifest().recordDefinition(
-							phiOperation.moveOperation.destinationOf(move));
+							phiOperation.getMoveOperation().destinationOf(move));
 					}
 					if (edge.forcedClampedEntities != null)
 					{
@@ -1161,11 +1163,11 @@ public final class L2Optimizer
 				}
 				final L2Instruction soleInstruction = block.finalInstruction();
 				final L2PcOperand jumpEdge;
-				if (soleInstruction.operation() == L2_JUMP.instance)
+				if (soleInstruction.operation() == L2_JUMP.INSTANCE)
 				{
 					jumpEdge = L2_JUMP.jumpTarget(soleInstruction);
 				}
-				else if (soleInstruction.operation() == L2_JUMP_BACK.instance)
+				else if (soleInstruction.operation() == L2_JUMP_BACK.INSTANCE)
 				{
 					jumpEdge = L2_JUMP_BACK.jumpTarget(soleInstruction);
 				}
@@ -1466,6 +1468,7 @@ public final class L2Optimizer
 									assert ok;
 								});
 						}
+						return null;
 					});
 				}
 			));

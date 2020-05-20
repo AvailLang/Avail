@@ -91,7 +91,7 @@ import com.avail.dispatch.TypeComparison.Companion.compareForParsing
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.restrictionForType
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
 import com.avail.utility.Mutable

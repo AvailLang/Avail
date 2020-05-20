@@ -72,11 +72,11 @@ abstract class AbstractDeserializer constructor(
 	var currentModule: A_Module = nil
 
 	/**
-	 * Consume an unsigned byte from the input.  Return it as an `int` to ensure
+	 * Consume an unsigned byte from the input.  Return it as an [Int] to ensure
 	 * it's unsigned, i.e., 0 ≤ b ≤ 255.
 	 *
 	 * @return
-	 *   An `int` containing the unsigned byte (0..255).
+	 *   An [Int] containing the unsigned byte (0..255).
 	 */
 	fun readByte(): Int =
 		try
@@ -90,10 +90,10 @@ abstract class AbstractDeserializer constructor(
 
 	/**
 	 * Consume an unsigned short from the input in big endian order.  Return it
-	 * as an `int` to ensure it's unsigned, i.e., 0 ≤ b ≤ 65535.
+	 * as an [Int] to ensure it's unsigned, i.e., 0 ≤ b ≤ 65535.
 	 *
 	 * @return
-	 *   An `int` containing the unsigned short (0..65535).
+	 *   An [Int] containing the unsigned short (0..65535).
 	 */
 	fun readShort(): Int =
 		try
@@ -109,7 +109,7 @@ abstract class AbstractDeserializer constructor(
 	 * Consume an int from the input in big endian order.
 	 *
 	 * @return
-	 *   An `int` extracted from the input.
+	 *   An [Int] extracted from the input.
 	 */
 	fun readInt(): Int =
 		try

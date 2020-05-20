@@ -73,7 +73,7 @@ class FloatDescriptor private constructor(
 		RAW_INT_AND_MORE;
 
 		companion object {
-			/** The Java `float` value, packed into an `int` field. */
+			/** The Java `float` value, packed into an [Int] field. */
 			@JvmField
 			val RAW_INT = BitField(RAW_INT_AND_MORE, 0, 32)
 		}
@@ -418,7 +418,8 @@ class FloatDescriptor private constructor(
 			intBitsToFloat(self.slot(RAW_INT))
 
 		/**
-		 * Extract a Java `double` from the argument, an [ ].
+		 * Extract a Java [Double] from the argument, an Avail
+		 * [float][FloatDescriptor].
 		 *
 		 * @param self
 		 *   An Avail single-precision floating point number.

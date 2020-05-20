@@ -96,7 +96,6 @@ interface TextOutputChannel : AsynchronousChannel
 	 * Writes a sequence of characters to this `TextOutputChannel` from the
 	 * given [string][String].
 	 *
-	 *
 	 * This method initiates an series of asynchronous write operations to write
 	 * a sequence of characters to this channel from the given string. The
 	 * supplied [CompletionHandler] is invoked when the entire string has been

@@ -37,15 +37,15 @@ import java.util.*
 /**
  * The complete runtime representation of a state.
  *
- * @param <Event>
+ * @param Event
  *   The event type.
- * @param <GuardKey>
+ * @param GuardKey
  *   The guard key type.
- * @param <ActionKey>
+ * @param ActionKey
  *   The action key type.
- * @param <State>
+ * @param State
  *   The state type.
- * @param <Memento>
+ * @param Memento
  *   The type of memento passed to guards and actions.
  * @property state
  *   The state for which the receiver is a [summary][StateSummary].

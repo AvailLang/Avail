@@ -379,7 +379,7 @@ class DoubleDescriptor private constructor(
 
 	companion object {
 		/**
-		 * Extract the Java `double` from the argument, an Avail
+		 * Extract the Kotlin [Double] from the argument, an Avail
 		 * [double][DoubleDescriptor].
 		 *
 		 * @param self
@@ -471,7 +471,7 @@ class DoubleDescriptor private constructor(
 		}
 
 		/**
-		 * Compute the sum of a Java `double` and an Avail
+		 * Compute the sum of a Kotlin [Double] and an Avail
 		 * [integer][IntegerDescriptor].  Answer the double nearest this ideal
 		 * value.
 		 *
@@ -515,7 +515,7 @@ class DoubleDescriptor private constructor(
 		 * passed `double`.  Do not answer an existing object.
 		 *
 		 * @param aDouble
-		 *   The Java `double` to box.
+		 *   The Kotlin [Double] to box.
 		 * @return
 		 *   The boxed Avail [double][DoubleDescriptor]-precision floating point
 		 *   object.
@@ -540,7 +540,7 @@ class DoubleDescriptor private constructor(
 		 * floating point object from the passed `double`.
 		 *
 		 * @param aDouble
-		 *   The Java `double` to box.
+		 *   The Kotlin [Double] to box.
 		 * @param recyclable1
 		 *   An Avail `double` that may be reused if it's mutable.
 		 * @param canDestroy
@@ -569,7 +569,7 @@ class DoubleDescriptor private constructor(
 		 * the passed `double`.
 		 *
 		 * @param aDouble
-		 *   The Java `double` to box.
+		 *   The Kotlin [Double] to box.
 		 * @param recyclable1
 		 *   An Avail `double` that may be reused if it's mutable.
 		 * @param recyclable2

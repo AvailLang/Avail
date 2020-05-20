@@ -133,7 +133,7 @@ abstract class L2Register constructor (val uniqueValue: Int) : L2Entity
 		},
 
 		/**
-		 * The kind of register that holds an `int`.
+		 * The kind of register that holds an [Int].
 		 */
 		INTEGER(
 			"int",
@@ -197,9 +197,9 @@ abstract class L2Register constructor (val uniqueValue: Int) : L2Entity
 		 *   The earliest known defining [L2Register] of the [L2SemanticValue].
 		 * @return
 		 *   The new [L2ReadOperand].
-		 * @param <R>
+		 * @param R
 		 *   The [L2Register] subclass.
-		 * @param <RR>
+		 * @param RR
 		 *   The [L2ReadOperand] subclass.
 		 */
 		abstract fun <R : L2Register, RR : L2ReadOperand<R>> readOperand(
@@ -213,20 +213,19 @@ abstract class L2Register constructor (val uniqueValue: Int) : L2Entity
 		 *
 		 * @return
 		 *   The new [L2ReadOperand].
-		 * @param <R>
+		 * @param R
 		 *   The [L2Register] subclass.
-		 * @param <RR>
+		 * @param RR
 		 *   The [L2ReadOperand] subclass.
-		 * @param <WR>
+		 * @param WR
 		 *   The [L2WriteOperand] subclass.
 		 */
-		fun <R : L2Register?, RR : L2ReadOperand<R>?, WR : L2WriteOperand<R>?> move(): L2_MOVE<R, RR, WR>
-		{
-			return Casts.cast<L2_MOVE<*, *, *>, L2_MOVE<R, RR, WR>>(
-				L2_MOVE.moveByKind<L2Register,
-					L2ReadOperand<L2Register>,
-					L2WriteOperand<L2Register>>(this))
-		}
+		fun <R : L2Register, RR : L2ReadOperand<R>, WR : L2WriteOperand<R>> move()
+			: L2_MOVE<R, RR, WR> =
+				Casts.cast<L2_MOVE<*, *, *>, L2_MOVE<R, RR, WR>>(
+					L2_MOVE.moveByKind<L2Register,
+						L2ReadOperand<L2Register>,
+						L2WriteOperand<L2Register>>(this))
 
 		companion object
 		{
