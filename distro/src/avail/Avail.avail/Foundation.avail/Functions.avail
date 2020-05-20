@@ -66,7 +66,7 @@ Method "“_”" is
 	else
 	[
 		index : natural number := 1;
-		While index ≤ ⎣params⎦
+		While index ≤ ⌊params⌋
 		do
 		[
 			s := eject s ++ “t[index]”;
@@ -110,8 +110,8 @@ Private method "_partial evaluator with_" is
 |
 	originalFunctionType ::= originalFunctionPhrase's semantic type;
 	paramTypes ::= originalFunctionType's parameters' type;
-	Assert: ⎣paramTypes⎦ = ⎡paramTypes⎤;
-	Assert: ⎣paramTypes⎦ = |providedExpressions|;
+	Assert: ⌊paramTypes⌋ = ⌈paramTypes⌉;
+	Assert: ⌊paramTypes⌋ = |providedExpressions|;
 	functionItselfParam ::= arg «`"theFunction"` : originalFunctionType»;
 	innerParams : argument phrase* := <>;
 	outerParams : argument phrase* := <functionItselfParam>;
@@ -212,27 +212,27 @@ Semantic restriction "_(««_»?«`_»?‡,»)" is
 	originalFunction : function's type,
 	pairs : <any?, boolean…|2>*'s type
 |
-	If ⎣pairs⎦ ≠ ⎡pairs⎤ then
+	If ⌊pairs⌋ ≠ ⌈pairs⌉ then
 	[
 		Reject parse weakly, expected:
 			"Need a definite number of arguments and underscores"
 	];
 	paramTypes ::= originalFunction's parameters' type;
-	If paramTypes = ⊥ ∨ ⎣paramTypes⎦ ≠ ⎡paramTypes⎤ then
+	If paramTypes = ⊥ ∨ ⌊paramTypes⌋ ≠ ⌈paramTypes⌉ then
 	[
 		Reject parse weakly, expected:
 			"function for partial application to have \
 			\|a statically known number of arguments"
 	];
-	If ⎣paramTypes⎦ ≠ ⎣pairs⎦ then
+	If ⌊paramTypes⌋ ≠ ⌊pairs⌋ then
 	[
 		Reject parse weakly, expected:
 			"agreement between number of supplied arguments ("
-				++ “⎣pairs⎦” ++ ") and function parameters ("
-				++ “⎣paramTypes⎦” ++ "), for partial application"
+				++ “⌊pairs⌋” ++ ") and function parameters ("
+				++ “⌊paramTypes⌋” ++ "), for partial application"
 	];
 
-	pairTypes ::= pairs[1..⎣pairs⎦];
+	pairTypes ::= pairs[1..⌊pairs⌋];
 	argumentTypes : <any's type…|> := <>;
 	For each pairType, index of pairTypes do
 	[
@@ -309,8 +309,8 @@ Public macro "_(_,`…)" is [
 |
 	functionType ::= originalFunction's semantic type;
 	argTypes ::= functionType's parameters' type;
-	Assert: ⎣argTypes⎦ = ⎡argTypes⎤;
-	argCount ::= cast ⎣argTypes⎦ into [n : natural number | n];
+	Assert: ⌊argTypes⌋ = ⌈argTypes⌉;
+	argCount ::= cast ⌊argTypes⌋ into [n : natural number | n];
 	originalFunction partial evaluator
 		with <<firstValueExpr>> ++ argCount - 1 occurrences of <>
 ];
@@ -326,12 +326,12 @@ Semantic restriction "_(_,`…)" is
 	firstValue : any's type
 |
 	argumentsType ::= originalFunction's parameters' type;
-	If ⎣argumentsType⎦ ≠ ⎡argumentsType⎤ then
+	If ⌊argumentsType⌋ ≠ ⌈argumentsType⌉ then
 	[
 		Reject parse, expected:
 			"function to take a definite number of arguments"
 	];
-	If ⎣argumentsType⎦ < 2 then
+	If ⌊argumentsType⌋ < 2 then
 	[
 		Reject parse, expected:
 			"function for partial evaluation to take at least two arguments"
@@ -367,8 +367,8 @@ Public macro "_(`…,_)" is [
 |
 	functionType ::= originalFunction's semantic type;
 	argTypes ::= functionType's parameters' type;
-	Assert: ⎣argTypes⎦ = ⎡argTypes⎤;
-	argCount ::= cast ⎣argTypes⎦ into [n : natural number | n];
+	Assert: ⌊argTypes⌋ = ⌈argTypes⌉;
+	argCount ::= cast ⌊argTypes⌋ into [n : natural number | n];
 	originalFunction partial evaluator
 		with (argCount - 1 occurrences of <>) ++ <<lastValueExpr>>
 ];
@@ -384,17 +384,17 @@ Semantic restriction "_(`…,_)" is
 	lastValue : any's type
 |
 	argumentsType ::= originalFunction's parameters' type;
-	If ⎣argumentsType⎦ ≠ ⎡argumentsType⎤ then
+	If ⌊argumentsType⌋ ≠ ⌈argumentsType⌉ then
 	[
 		Reject parse, expected:
 			"function to take a definite number of arguments"
 	];
-	If ⎣argumentsType⎦ < 2 then
+	If ⌊argumentsType⌋ < 2 then
 	[
 		Reject parse, expected:
 			"function for partial evaluation to take at least two arguments"
 	];
-	argumentsCount ::= cast ⎣argumentsType⎦ into [n : [2..∞) | n];
+	argumentsCount ::= cast ⌊argumentsType⌋ into [n : [2..∞) | n];
 	If ¬ lastValue ⊆ argumentsType[argumentsCount] then
 	[
 		Reject parse, expected:

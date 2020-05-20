@@ -62,6 +62,7 @@ Uses
 Names
 	"an empty stream",
 	"decorated stream|streams",
+	"drain_",
 	"drop«at most»?_from_",
 	"empty stream",
 	"empty-stream exception",
@@ -834,7 +835,7 @@ Private method "concatenation semantic restriction" is
 		streams : stream+'s type
 	|
 		elementType : any's type's type := ⊥;
-		For each i from 1 to (⎣streams⎦ min (|streams' leading types| + 1)) do
+		For each i from 1 to (⌊streams⌋ min (|streams' leading types| + 1)) do
 		[
 			elementType := eject elementType ∪ streams[i]'s element type;
 		];
@@ -950,7 +951,7 @@ Private method "zip semantic restriction" is
 		streams : stream+'s type
 	|
 		types : <any's type…|> := <>;
-		For each i from 1 to (⎣streams⎦ min (|streams' leading types| + 1)) do
+		For each i from 1 to (⌊streams⌋ min (|streams' leading types| + 1)) do
 		[
 			types := eject types ++ <streams[i]'s element type's instance>;
 		];
@@ -1024,8 +1025,8 @@ Semantic restriction "take«at most»?_from_" is
 		Reject parse, expected:
 			"'at most' clause to be specified when count may be ∞"
 	];
-	min ::= if laxity's instance then [0] else [⎣count⎦ ?→ whole number];
-	<streamType's element type's instance… | min..⎡count⎤>
+	min ::= if laxity's instance then [0] else [⌊count⌋ ?→ whole number];
+	<streamType's element type's instance… | min..⌈count⌉>
 ];
 
 /**
@@ -1231,6 +1232,26 @@ Semantic restriction "drop from_until_" is
 |
 	Require: predicate accepts streamType;
 	stream of (streamType's element type's instance)
+];
+
+/**
+* Answer a tuple comprising all elements of {@param "target"}.
+*
+* @macro "drain_"
+* @param "target" "expression phrase ⇒ stream"
+* @category "Streams"
+* @returns "send phrase ⇒ tuple"
+*/
+Public macro "drain_" is
+[
+  target : expression phrase ⇒ stream
+|
+  restricted send $"take«at most»?_from_" with
+     «<
+        ‘true’,
+        ‘∞’,
+        target
+     >» : tuple
 ];
 
 /**

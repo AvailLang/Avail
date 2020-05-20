@@ -67,11 +67,11 @@ Semantic restriction "_'s⁇parameters'type" is
 	if paramsType = ⊥ then [⊤]
 	else
 	[
-		if ⎣paramsType⎦ = 0 then [<>'s type's type]
+		if ⌊paramsType⌋ = 0 then [<>'s type's type]
 		else
 		[
 			params : tuple := <>;
-			size ::= 1 max ⎣paramsType⎦;
+			size ::= 1 max ⌊paramsType⌋;
 			From 1 to size do
 			[
 				index : natural number
@@ -190,7 +190,7 @@ Semantic restriction "_(«_‡,»)" is
 			Reject parse, expected: sizesIncompatibleMessage
 		];
 		/* Verify each of the arguments. */
-		From 1 to ⎣argumentsSizes⎦ do
+		From 1 to ⌊argumentsSizes⌋ do
 		[
 			index : natural number
 		|
@@ -235,24 +235,24 @@ Semantic restriction "_[_]" is
 	]
 	else
 	[
-		limit ::= cast ⎡parametersType⎤
+		limit ::= cast ⌈parametersType⌉
 			into [ t : whole number | t ];
-		start ::= ⎣index⎦;
+		start ::= ⌊index⌋;
 		If start > limit then
 		[
 			Reject parse, expected:
 				"a subscript ("
 				++ “start”
 				++ " ≤ theSubscript ≤ "
-				++ “⎡index⎤”
+				++ “⌈index⌉”
 				++ ") that could ever be valid ("
-				++ “⎣parametersType⎦”
+				++ “⌊parametersType⌋”
 				++ " ≤ |theFunctionType| ≤ "
 				++ “limit”
 				++ ")"
 		];
 		result : any's type := ⊥;
-		end ::= ⎡index⎤ min limit;
+		end ::= ⌈index⌉ min limit;
 		From start to end min limit do
 		[
 			subscript : natural number

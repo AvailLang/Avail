@@ -49,8 +49,8 @@ Names
 	"(_.._)",
 	"_is finite",
 	"_is infinite",
-	"⎣_⎦is inclusive",
-	"⎡_⎤is inclusive",
+	"⌊_⌋is inclusive",
+	"⌈_⌉is inclusive",
 	"max_",
 	"min_",
 	"«_‡max»",
@@ -126,14 +126,14 @@ Semantic restriction "_'s⁇genuine upper bound" is
  * argument from being ⊥. It is intended as a practical (but not universal)
  * replacement.
  *
- * @method "⎣_⎦"
+ * @method "⌊_⌋"
  * @param "range" "extended integer meta"
  *        An integral range type. Must not be ⊥.
  * @returns "extended integer"
  *          The lower bound of the argument.
  * @category "Integers" "Types" "Queries"
  */
-Method "⎣_⎦" is
+Method "⌊_⌋" is
 [
 	range : extended integer meta
 |
@@ -147,14 +147,14 @@ Method "⎣_⎦" is
  * argument from being ⊥. It is intended as a practical (but not universal)
  * replacement.
  *
- * @method "⎡_⎤"
+ * @method "⌈_⌉"
  * @param "range" "extended integer meta"
  *        An integral range type. Must not be ⊥.
  * @returns "extended integer"
  *          The upper bound of the argument.
  * @category "Integers" "Types" "Queries"
  */
-Method "⎡_⎤" is
+Method "⌈_⌉" is
 [
 	range : extended integer meta
 |
@@ -171,7 +171,7 @@ Method "⎡_⎤" is
  * "(-∞..0]"} will answer {@method "false"} if asked whether its lower bound is
  * inclusive.
  *
- * @method "⎣_⎦is inclusive"
+ * @method "⌊_⌋is inclusive"
  * @param "range" "extended integer meta"
  *        An integer range.
  * @returns "boolean"
@@ -179,11 +179,11 @@ Method "⎡_⎤" is
  *          {@method "true"} otherwise.
  * @category "Integers" "Types" "Queries"
  */
-Public method "⎣_⎦is inclusive" is
+Public method "⌊_⌋is inclusive" is
 [
 	range : extended integer meta
 |
-	bound ::= ⎣range⎦;
+	bound ::= ⌊range⌋;
 	bound's type ⊆ range
 ] : boolean;
 
@@ -196,7 +196,7 @@ Public method "⎣_⎦is inclusive" is
  * "[0..∞)"} will answer {@method "false"} if asked whether its upper bound is
  * inclusive.
  *
- * @method "⎡_⎤is inclusive"
+ * @method "⌈_⌉is inclusive"
  * @param "range" "extended integer meta"
  *        An integer range.
  * @returns "boolean"
@@ -204,17 +204,17 @@ Public method "⎣_⎦is inclusive" is
  *          {@method "true"} otherwise.
  * @category "Integers" "Types" "Queries"
  */
-Public method "⎡_⎤is inclusive" is
+Public method "⌈_⌉is inclusive" is
 [
 	range : extended integer meta
 |
-	bound ::= ⎡range⎤;
+	bound ::= ⌈range⌉;
 	bound's type ⊆ range
 ] : boolean;
 
 /**
  * Answer the semantic restriction function that should be used for each of
- * {@method "⎣_⎦"} and {@method "⎡_⎤"}.
+ * {@method "⌊_⌋"} and {@method "⌈_⌉"}.
  *
  * @method "integer range bound semantic restriction function"
  * @param "range" "extended integer meta's type"
@@ -236,8 +236,8 @@ Private method
 			[t : extended integer meta | t];
 		/* Specifically do not accommodate ⊥. */
 		integer range
-			from ⎣instance⎦ (inclusive=⎣instance⎦ is inclusive ∨ mode = 1)
-			to ⎡instance⎤ (inclusive=⎡instance⎤ is inclusive ∨ mode = 2)
+			from ⌊instance⌋ (inclusive=⌊instance⌋ is inclusive ∨ mode = 1)
+			to ⌈instance⌉ (inclusive=⌈instance⌉ is inclusive ∨ mode = 2)
 	]
 ];
 
@@ -246,10 +246,10 @@ Private method
  * this is the strongest possible type because the argument's subtypes have
  * lower and upper bounds drawn from the argument's entire range.
  *
- * @method "⎣_⎦"
+ * @method "⌊_⌋"
  * @restricts "extended integer meta's type"
  */
-Semantic restriction "⎣_⎦" is
+Semantic restriction "⌊_⌋" is
 	integer range lower bound semantic restriction function;
 
 /**
@@ -257,10 +257,10 @@ Semantic restriction "⎣_⎦" is
  * this is the strongest possible type because the argument's subtypes have
  * lower and upper bounds drawn from the argument's entire range.
  *
- * @method "⎡_⎤"
+ * @method "⌈_⌉"
  * @restricts "extended integer meta's type"
  */
-Semantic restriction "⎡_⎤" is
+Semantic restriction "⌈_⌉" is
 	integer range upper bound semantic restriction function;
 
 /**
@@ -298,8 +298,8 @@ Semantic restriction "[_.._]" is
 	upperBound : extended integer meta
 |
 	(integer range
-		from ⎣lowerBound⎦ (inclusive=⎣lowerBound⎦ is inclusive)
-		to ⎡upperBound⎤ (inclusive=⎡upperBound⎤ is inclusive)
+		from ⌊lowerBound⌋ (inclusive=⌊lowerBound⌋ is inclusive)
+		to ⌈upperBound⌉ (inclusive=⌈upperBound⌉ is inclusive)
 	)'s type
 ];
 
@@ -338,8 +338,8 @@ Semantic restriction "[_.._)" is
 	upperBound : extended integer meta
 |
 	(integer range
-		from ⎣lowerBound⎦ (inclusive=⎣lowerBound⎦ is inclusive)
-		to ⎡upperBound⎤ (inclusive=false))'s type
+		from ⌊lowerBound⌋ (inclusive=⌊lowerBound⌋ is inclusive)
+		to ⌈upperBound⌉ (inclusive=false))'s type
 ];
 
 /**
@@ -377,8 +377,8 @@ Semantic restriction "(_.._]" is
 	upperBound : extended integer meta
 |
 	(integer range
-		from ⎣lowerBound⎦ (inclusive=false)
-		to ⎡upperBound⎤ (inclusive=⎡upperBound⎤ is inclusive)
+		from ⌊lowerBound⌋ (inclusive=false)
+		to ⌈upperBound⌉ (inclusive=⌈upperBound⌉ is inclusive)
 	)'s type
 ];
 
@@ -417,8 +417,8 @@ Semantic restriction "(_.._)" is
 	upperBound : extended integer meta
 |
 	(integer range
-		from ⎣lowerBound⎦ (inclusive=false)
-		to ⎡upperBound⎤ (inclusive=false))'s type
+		from ⌊lowerBound⌋ (inclusive=false)
+		to ⌈upperBound⌉ (inclusive=false))'s type
 ];
 
 /**
@@ -553,10 +553,10 @@ Private method "minimum semantic restriction" is
 		numbers : <<>, extended integer…|[1..∞)>'s type
 	|
 		first ::= cast numbers[1] into [ t : extended integer meta | t ];
-		min : extended integer := ⎣first⎦;
-		minInclusive : boolean := ⎣first⎦ is inclusive;
-		max : extended integer := ⎡first⎤;
-		maxInclusive : boolean := ⎡first⎤ is inclusive;
+		min : extended integer := ⌊first⌋;
+		minInclusive : boolean := ⌊first⌋ is inclusive;
+		max : extended integer := ⌈first⌉;
+		maxInclusive : boolean := ⌈first⌉ is inclusive;
 		limit ::= cast |numbers' leading types| + 1
 			into [ t : natural number | t ];
 		From 2 to limit do
@@ -565,30 +565,30 @@ Private method "minimum semantic restriction" is
 		|
 			value ::= cast numbers[index]
 				into [ t : extended integer meta | t ];
-			lower ::= ⎣value⎦;
+			lower ::= ⌊value⌋;
 			If lower = min then
 			[
-				minInclusive := minInclusive ∨ ⎣value⎦ is inclusive;
+				minInclusive := minInclusive ∨ ⌊value⌋ is inclusive;
 			]
 			else
 			[
 				If lower < min then
 				[
 					min := lower;
-					minInclusive := ⎣value⎦ is inclusive;
+					minInclusive := ⌊value⌋ is inclusive;
 				];
 			];
-			upper ::= ⎡value⎤;
+			upper ::= ⌈value⌉;
 			If upper = max then
 			[
-				maxInclusive := maxInclusive ∧ ⎡value⎤ is inclusive;
+				maxInclusive := maxInclusive ∧ ⌈value⌉ is inclusive;
 			]
 			else
 			[
 				If upper < max then
 				[
 					max := upper;
-					maxInclusive := ⎡value⎤ is inclusive;
+					maxInclusive := ⌈value⌉ is inclusive;
 				];
 			];
 			true
@@ -706,10 +706,10 @@ Private method "maximum semantic restriction" is
 		numbers : <<>, extended integer…|[1..∞)>'s type
 	|
 		first ::= cast numbers[1] into [t : extended integer meta | t];
-		min : extended integer := ⎣first⎦;
-		minInclusive : boolean := ⎣first⎦ is inclusive;
-		max : extended integer := ⎡first⎤;
-		maxInclusive : boolean := ⎡first⎤ is inclusive;
+		min : extended integer := ⌊first⌋;
+		minInclusive : boolean := ⌊first⌋ is inclusive;
+		max : extended integer := ⌈first⌉;
+		maxInclusive : boolean := ⌈first⌉ is inclusive;
 		limit ::= cast |numbers' leading types| + 1
 			into [t : natural number | t];
 		From 2 to limit do
@@ -718,30 +718,30 @@ Private method "maximum semantic restriction" is
 		|
 			value ::= cast numbers[index]
 				into [t : extended integer meta | t];
-			lower ::= ⎣value⎦;
+			lower ::= ⌊value⌋;
 			If min = lower then
 			[
-				minInclusive := minInclusive ∧ ⎣value⎦ is inclusive;
+				minInclusive := minInclusive ∧ ⌊value⌋ is inclusive;
 			]
 			else
 			[
 				If min < lower then
 				[
 					min := lower;
-					minInclusive := ⎣value⎦ is inclusive;
+					minInclusive := ⌊value⌋ is inclusive;
 				];
 			];
-			upper ::= ⎡value⎤;
+			upper ::= ⌈value⌉;
 			If max = upper then
 			[
-				maxInclusive := maxInclusive ∨ ⎡value⎤ is inclusive;
+				maxInclusive := maxInclusive ∨ ⌈value⌉ is inclusive;
 			]
 			else
 			[
 				If max < upper then
 				[
 					max := upper;
-					maxInclusive := ⎡value⎤ is inclusive;
+					maxInclusive := ⌈value⌉ is inclusive;
 				];
 			];
 			true

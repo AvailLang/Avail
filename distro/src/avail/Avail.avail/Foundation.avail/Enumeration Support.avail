@@ -62,8 +62,8 @@ Semantic restriction "enumeration of_" is
 |
 	if |setType| = ∞ then
 	[
-		if ⎣||setType||⎦ = ⎡||setType||⎤
-			∧ |setType's element type| = ⎣||setType||⎦
+		if ⌊||setType||⌋ = ⌈||setType||⌉
+			∧ |setType's element type| = ⌊||setType||⌋
 			∧ ¬setType's element type ⊆ type
 		then
 		[
@@ -147,7 +147,7 @@ Semantic restriction "{«_‡,»}ᵀ" is
 	else
 	[
 		union : type := ⊥;
-		From 1 to ⎣||instances||⎦ do
+		From 1 to ⌊||instances||⌋ do
 		[
 			index : natural number
 		|

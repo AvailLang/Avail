@@ -130,18 +130,18 @@ Semantic restriction "For each of⁇_do_" is
 	actionType : [⊥]→⊤'s type
 |
 	return ::= actionType's return type;
-	endSet ::= {⎣streamType's maximum⎦, ⎡streamType's maximum⎤};
+	endSet ::= {⌊streamType's maximum⌋, ⌈streamType's maximum⌉};
 	step ::= streamType's step;
 	definitelyRuns ::=
 		if step ⊆ [0..∞) then
 		[
-			⎡streamType's next⎤ ≤ ⎣streamType's maximum⎦
+			⌈streamType's next⌉ ≤ ⌊streamType's maximum⌋
 		]
 		else
 		[
 			if step ⊆ (-∞..-1] then
 			[
-				⎣streamType's next⎦ ≥ ⎡streamType's maximum⎤
+				⌊streamType's next⌋ ≥ ⌈streamType's maximum⌉
 			]
 			else
 			[
@@ -195,7 +195,7 @@ Semantic restriction "a counting stream from_to_" is
 	startType : integer's type,
 	endType : extended integer's type
 |
-	elementType ::= (⎣startType⎦ - 1..⎡endType⎤ + 1);
+	elementType ::= (⌊startType⌋ - 1..⌈endType⌉ + 1);
 	extend counting integer stream with
 		element type : elementType's type,
 		next : elementType,
@@ -318,7 +318,7 @@ Semantic restriction "a counting stream from_to_by_" is
 	endType : extended integer's type,
 	deltaType : integer's type
 |
-	elementType ::= (⎣startType⎦ - 1..⎡endType⎤ + 1);
+	elementType ::= (⌊startType⌋ - 1..⌈endType⌉ + 1);
 	extend counting integer stream with
 		element type : elementType's type,
 		next : startType,

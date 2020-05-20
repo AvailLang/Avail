@@ -112,7 +112,7 @@ Semantic restriction "a stream over_" is
 [
 	tupleType : any*'s type
 |
-	limit ::= ⎡tupleType⎤ min (|tupleType's leading types| + 1);
+	limit ::= ⌈tupleType⌉ min (|tupleType's leading types| + 1);
 	extend tuple stream with
 		element type : ∪ tupleType[1..limit]'s type,
 		collection : tupleType,

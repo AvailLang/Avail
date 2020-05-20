@@ -47,7 +47,7 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 
 /**
  * **Primitive:** Given any integer B, and a shift factor S, compute
- * ⎣B÷2<sup>S</sup>⎦.  This is the right-shift operation, but when S is negative
+ * ⌊B÷2<sup>S</sup>⌋.  This is the right-shift operation, but when S is negative
  * it acts as a left-shift.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;

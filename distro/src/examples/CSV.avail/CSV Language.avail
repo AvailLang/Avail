@@ -236,7 +236,7 @@ Semantic restriction "_padded to_character|characters" is
 	s : string's type,
 	fieldSize : whole number's type
 |
-	<character… | ⎣fieldSize⎦.. >
+	<character… | ⌊fieldSize⌋.. >
 ];
 
 /**

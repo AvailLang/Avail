@@ -209,8 +209,8 @@ Uses
 		"{_→_`|_}",
 		"∪_",
 		"∪_[_.._]",
-		"⎡_⎤",
-		"⎣_⎦"
+		"⌈_⌉",
+		"⌊_⌋"
 	)
 Names
 Body
@@ -522,14 +522,14 @@ Primitive "_→double" is
  * number greater than or equal to the argument, i.e., the ceiling of {@param "x"}.
  *
  * @category "Primitives" "Numbers" "Mathematics"
- * @method "⎡_⎤"
+ * @method "⌈_⌉"
  * @param "x" "double"
  *        A double-precision floating point number.
  * @returns "double"
  *    If the `0` is ±∞ or not-a-number, then {@param "x"}, otherwise the ceiling of
  *    {@param "x"}.
  */
-Primitive "⎡_⎤" is
+Primitive "⌈_⌉" is
 [
 	x : double
 |
@@ -563,14 +563,14 @@ Primitive "_^_" is
  * "x"}.
  *
  * @category "Primitives" "Numbers" "Mathematics"
- * @method "⎣_⎦"
+ * @method "⌊_⌋"
  * @param "x" "double"
  *        A double-precision floating point number.
  * @returns "double"
  *    If the `0` is ±∞ or not-a-number, then {@param "x"}, otherwise the
  *    floor of {@param "x"}.
  */
-Primitive "⎣_⎦" is
+Primitive "⌊_⌋" is
 [
 	x : double
 |
@@ -1009,14 +1009,14 @@ Primitive "_→float" is
  * number greater than or equal to the argument, i.e., the ceiling of {@param "x"}.
  *
  * @category "Primitives" "Numbers" "Mathematics"
- * @method "⎡_⎤"
+ * @method "⌈_⌉"
  * @param "x" "float"
  *        A single-precision floating point number.
  * @returns "float"
  *    If the `0` is ±∞ or not-a-number, then {@param "x"}, otherwise the
  *    ceiling of {@param "x"}.
  */
-Primitive "⎡_⎤" is
+Primitive "⌈_⌉" is
 [
 	x : float
 |
@@ -1049,14 +1049,14 @@ Primitive "_^_" is
  * number less than or equal to the argument, i.e., the floor of {@param "x"}.
  *
  * @category "Primitives" "Numbers" "Mathematics"
- * @method "⎣_⎦"
+ * @method "⌊_⌋"
  * @param "x" "float"
  *        A single-precision floating point number.
  * @returns "float"
  *    If the `0` is ±∞ or not-a-number, then {@param "x"}, otherwise the
  *    floor of {@param "x"}.
  */
-Primitive "⎣_⎦" is
+Primitive "⌊_⌋" is
 [
 	x : float
 |

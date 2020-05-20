@@ -44,22 +44,22 @@ New test suite math test suite extends foundation test suite;
 
 Test "integer range bounds" in math test suite is
 [
-	Require: -∞ = ⎣extended integer⎦;
-	Require: ⎣extended integer⎦ is inclusive;
-	Require: ∞ = ⎡extended integer⎤;
-	Require: ⎡extended integer⎤ is inclusive;
-	Require: -∞ = ⎣integer⎦;
-	Require: ¬⎣integer⎦ is inclusive;
-	Require: ∞ = ⎡integer⎤;
-	Require: ¬⎡integer⎤ is inclusive;
-	Require: 0 = ⎣whole number⎦;
-	Require: ⎣whole number⎦ is inclusive;
-	Require: ∞ = ⎡whole number⎤;
-	Require: ¬⎡whole number⎤ is inclusive;
-	Require: 1 = ⎣natural number⎦;
-	Require: ⎣natural number⎦ is inclusive;
-	Require: ∞ = ⎡natural number⎤;
-	Require: ¬⎡natural number⎤ is inclusive;
+	Require: -∞ = ⌊extended integer⌋;
+	Require: ⌊extended integer⌋ is inclusive;
+	Require: ∞ = ⌈extended integer⌉;
+	Require: ⌈extended integer⌉ is inclusive;
+	Require: -∞ = ⌊integer⌋;
+	Require: ¬⌊integer⌋ is inclusive;
+	Require: ∞ = ⌈integer⌉;
+	Require: ¬⌈integer⌉ is inclusive;
+	Require: 0 = ⌊whole number⌋;
+	Require: ⌊whole number⌋ is inclusive;
+	Require: ∞ = ⌈whole number⌉;
+	Require: ¬⌈whole number⌉ is inclusive;
+	Require: 1 = ⌊natural number⌋;
+	Require: ⌊natural number⌋ is inclusive;
+	Require: ∞ = ⌈natural number⌉;
+	Require: ¬⌈natural number⌉ is inclusive;
 	For each i from 1 to 10 do
 	[
 		For each j from 1 to 10 do
@@ -74,31 +74,31 @@ Test "integer range bounds" in math test suite is
 			]
 			else
 			[
-				Require: i = ⎣t1⎦;
-				Require: ⎣t1⎦ is inclusive;
-				Require: j = ⎡t1⎤;
-				Require: ⎡t1⎤ is inclusive;
+				Require: i = ⌊t1⌋;
+				Require: ⌊t1⌋ is inclusive;
+				Require: j = ⌈t1⌉;
+				Require: ⌈t1⌉ is inclusive;
 				If i = j then [ Require: t2 = t3 = t4 = ⊥; ]
 				else
 				[
 					Require: t2 ≠ ⊥;
 					Require: t3 ≠ ⊥;
-					Require: i = ⎣t2⎦;
-					Require: ⎣t2⎦ is inclusive;
-					Require: j - 1 = ⎡t2⎤;
-					Require: ⎡t2⎤ is inclusive;
-					Require: i + 1 = ⎣t3⎦;
-					Require: ⎣t3⎦ is inclusive;
-					Require: j = ⎡t3⎤;
-					Require: ⎡t3⎤ is inclusive;
+					Require: i = ⌊t2⌋;
+					Require: ⌊t2⌋ is inclusive;
+					Require: j - 1 = ⌈t2⌉;
+					Require: ⌈t2⌉ is inclusive;
+					Require: i + 1 = ⌊t3⌋;
+					Require: ⌊t3⌋ is inclusive;
+					Require: j = ⌈t3⌉;
+					Require: ⌈t3⌉ is inclusive;
 					If j - i = 1 then [ Require: t4 = ⊥; ]
 					else
 					[
 						Require: t4 ≠ ⊥;
-						Require: i + 1 = ⎣t4⎦;
-						Require: ⎣t4⎦ is inclusive;
-						Require: j - 1 = ⎡t4⎤;
-						Require: ⎡t4⎤ is inclusive;
+						Require: i + 1 = ⌊t4⌋;
+						Require: ⌊t4⌋ is inclusive;
+						Require: j - 1 = ⌈t4⌉;
+						Require: ⌈t4⌉ is inclusive;
 					];
 				];
 			];
@@ -582,3 +582,105 @@ Test "double representation reinterpretation" in math test suite is
 	Require: (-1.0) reinterpreted as bits = 0xBFF0000000000000 - 2^64;
 	Require: 0_1.0_0e0_1 reinterpreted as bits = 0x4024000000000000;
 ];
+
+Test "numeric tuple operators" in math test suite is
+[
+	Require: ∑ <> = 0;
+	Require: ∏ <> = 1;
+	Require: ∑ <2> = 2;
+	Require: ∏ <2> = 2;
+
+	Require: ∑ 1 to 10 = 55;
+	Require: ∏ -3 to 3 = 0;
+	Require: ∏ ((-3 to 3) - 0) = -36;
+
+	mixedType ::= <1, 2.0f, 2.5>;
+	Require: ∑ mixedType = 5.5;
+	Require: ∏ mixedType = 5.0;
+];
+
+Test "integer square root" in math test suite is
+[
+	Require: ⌊√0⌋ = 0;
+	Require: ⌊√1⌋ = 1;
+	Require: ⌊√17⌋ = 4;
+	Require: ⌊√2^64⌋ = 2^32;
+	Require: ⌊√1111111⌋ = 1054;
+
+	// The corresponding double operation has an error ≥1 for this test
+	Require: ⌊√10^30⌋ = 10^15; 
+];
+
+Test "factorization" in math test suite is
+[
+	Require: factor 1 = <1>;
+	Require: factor 2^10 = 10 occurrences of 2;
+	Require: factor 433494437 = <433494437>;
+	Require: quicksort factor 865268319203 = <930197, 930199>;
+	Require: quicksort factor 16079919820099 = <1997, 1999, 2003, 2011>;
+	Require: prime factorization of 15! =
+		{2→11, 3→6, 5→3, 7→2, 11→1, 13→1};
+];
+
+Test "modular exponent tests" in math test suite is
+[
+	Require: 110 ^ 45 mod 87 = 74;
+	Require: 1001 ^ 1001 mod 123 = 17;
+	Require: 30301829 ^ 1 mod (2^63) = 30301829;
+	Require: 12807421972 ^ 12345 mod 3201855493 = 0;
+];
+
+Test "primality tests" in math test suite is
+[
+	mersennePrimes ::= <2^13 - 1, 2^31 - 1, 2^61 - 1>;
+	mersenneComposites ::= <2^11 - 1, 2^23 - 1, 2^37 - 1>;
+
+	miscPrimes ::= <
+		257,
+		46649,
+		191161,
+		433494437,
+		1111111111111111111, 
+		9223372036854775837,
+		18446744073709551557, // The last prime of [1..2^64].
+		18609811911861098611  // NOT TESTED BY DEFAULT, see below.
+	>;
+	miscComposites ::= <
+		1,
+		11!,
+		5050505,
+		2^4×3^5×179,
+		2222222222222222222,
+		9223372036854775809,
+		5^30
+	>;
+
+	// These numbers "fail" the 2-SPRP test (return true, but are composite).
+	// Note that not *all* Mersenne composites are strong pseudoprimes base 2, 
+	// but those of a prime exponent are.
+	strongPseudoprimesBaseTwo ::= <
+		3277,
+		49141,
+		314821,
+		18446744073709551617  // 2^64 + 1
+	> ++ mersenneComposites;
+	
+	
+	primes ::= mersennePrimes ++ miscPrimes;
+	composites ::= strongPseudoprimesBaseTwo ++ miscComposites;
+
+	For each p in primes do
+	[
+		Require: p is a strong probable prime to base 2;
+		// NOTE: We do not test the primality of numbers beyond 2^64 in this
+		// test suite as our naive implementation will take minutes to hours.
+		If p ≤ 2^64 then [Require: p is prime;];
+	];
+	For each c in composites do
+	[
+		Require: ¬c is prime;
+		Require: (c is a strong probable prime to base 2)
+			↔ (c ∈ strongPseudoprimesBaseTwo);
+	];
+];
+

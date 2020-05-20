@@ -67,6 +67,7 @@ Names
 	"reader",
 	"reader of_",
 	"take«at most»?_from_",
+	"drain_",
 	"writer",
 	"writer of_",
 	"Write_to_",
@@ -577,8 +578,8 @@ Semantic restriction "take«at most»?_from_" is
 		Reject parse, expected:
 			"'at most' clause to be specified when count may be ∞"
 	];
-	min ::= if isLax then [0] else [⎣count⎦ ?→ whole number];
-	<readerType's element type's instance… | min..⎡count⎤>
+	min ::= if isLax then [0] else [⌊count⌋ ?→ whole number];
+	<readerType's element type's instance… | min..⌈count⌉>
 ];
 
 /**
@@ -813,6 +814,26 @@ Semantic restriction "Drop from_until_" is
 |
 	Require: predicate accepts readerType;
 	⊤
+];
+
+/**
+* Answer a tuple comprising all elements of {@param "target"}.
+*
+* @macro "drain_"
+* @param "target" "expression phrase ⇒ reader"
+* @category "Readers"
+* @returns "send phrase ⇒ tuple"
+*/
+Public macro "drain_" is
+[
+  target : expression phrase ⇒ reader
+|
+  restricted send $"take«at most»?_from_" with
+     «<
+        ‘true’,
+        ‘∞’,
+        target
+     >» : tuple
 ];
 
 /**

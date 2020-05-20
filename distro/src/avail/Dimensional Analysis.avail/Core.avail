@@ -1440,17 +1440,17 @@ Semantic restriction "_mod_" is
 |
 	a ::= q's extent;
 	numericType ::=
-		if ⎣b⎦ = ⎡b⎤
-			∧ ⎣a⎦ is finite
-			∧ ⎡a⎤ is finite
-			∧ ⎣a⎦ ÷ ⎣b⎦ (Avail) = ⎡a⎤ ÷ ⎣b⎦ (Avail)
+		if ⌊b⌋ = ⌈b⌉
+			∧ ⌊a⌋ is finite
+			∧ ⌈a⌉ is finite
+			∧ ⌊a⌋ ÷ ⌊b⌋ (Avail) = ⌈a⌉ ÷ ⌊b⌋ (Avail)
 		then
 		[
-			[⎣a⎦ mod ⎣b⎦ (Avail) .. ⎡a⎤ mod ⎣b⎦ (Avail)]
+			[⌊a⌋ mod ⌊b⌋ (Avail) .. ⌈a⌉ mod ⌊b⌋ (Avail)]
 		]
 		else
 		[
-			[0..⎡b⎤)
+			[0..⌈b⌉)
 		];
 	if |q's metric| = 1 then
 	[
@@ -1494,8 +1494,8 @@ Method "_^_(unit map)" is
 	For each key → exponent of unitMap do
 	[
 	 	exponentType ::= exponent's type × power (Avail);
-		minExponent := eject minExponent min ⎣exponentType⎦;
-		maxExponent := eject maxExponent max ⎡exponentType⎤;
+		minExponent := eject minExponent min ⌊exponentType⌋;
+		maxExponent := eject maxExponent max ⌈exponentType⌉;
 	];
 	valueType ::= (minExponent - 1 (Avail) .. maxExponent + 1 (Avail));
 	{atom→valueType | |unitMap|'s type}
@@ -1637,22 +1637,22 @@ Semantic restriction "`|_`|" is
 /**
  * Compute and answer the floor of the argument.
  *
- * @method "⎣_⎦"
+ * @method "⌊_⌋"
  * @param "quantity" "dimensioned extended integer"
  *        An integral {@type "dimensioned quantity"}.
  * @returns "dimensioned extended integer"
  *          The floor of the argument.
  */
-Stable abstract method "⎣_⎦" is [dimensioned quantity]→dimensioned quantity;
+Stable abstract method "⌊_⌋" is [dimensioned quantity]→dimensioned quantity;
 
-Method "⎣_⎦" is
+Method "⌊_⌋" is
 [
 	quantity : dimensioned extended integer
 |
 	quantity
 ] : dimensioned extended integer;
 
-Semantic restriction "⎣_⎦" is
+Semantic restriction "⌊_⌋" is
 [
 	valueType : dimensioned extended integer's type
 |
@@ -1662,22 +1662,22 @@ Semantic restriction "⎣_⎦" is
 /**
  * Compute and answer the ceiling of the argument.
  *
- * @method "⎣_⎦"
+ * @method "⌊_⌋"
  * @param "quantity" "dimensioned extended integer"
  *        An integral {@type "dimensioned quantity"}.
  * @returns "dimensioned extended integer"
  *          The ceiling of the argument.
  */
-Stable abstract method "⎡_⎤" is [dimensioned quantity]→dimensioned quantity;
+Stable abstract method "⌈_⌉" is [dimensioned quantity]→dimensioned quantity;
 
-Method "⎡_⎤" is
+Method "⌈_⌉" is
 [
 	quantity : dimensioned extended integer
 |
 	quantity
 ] : dimensioned extended integer;
 
-Semantic restriction "⎡_⎤" is
+Semantic restriction "⌈_⌉" is
 [
 	valueType : dimensioned extended integer's type
 |
@@ -1691,7 +1691,7 @@ Semantic restriction "⎡_⎤" is
 	jux      ::= {"__"};
 	power    ::= {"_^_"};
 	abs      ::= {"`|_`|"};
-	bounds   ::= {"⎣_⎦", "⎡_⎤"};
+	bounds   ::= {"⌊_⌋", "⌈_⌉"};
 
 	/* Establish the standard grammatical rules for arithmetic. */
 	Grammatical restriction sum is <∅, sum>;
@@ -1968,7 +1968,7 @@ Private method "inequality chain restriction function" is
 	[
 		args : <<dimensioned quantity, [1..3]…|1..2>…|3..∞>'s type
 	|
-		exactSize ::= ⎣args⎦ - 1 (Avail);
+		exactSize ::= ⌊args⌋ - 1 (Avail);
 		allEquals : boolean := true;
 		ref ::= args[1][1];
 		For each index from 1 to exactSize do

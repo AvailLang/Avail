@@ -562,8 +562,8 @@ Semantic restriction "Guard|guard_«intercept_»«ensure_»" is
 	unwindType : ([]→⊤)?'s type
 |
 	returnType : type := bodyType's return type;
-	handlerCount ::= ⎣handlersType⎦;
-	unwindCount ::= ⎣unwindType⎦;
+	handlerCount ::= ⌊handlersType⌋;
+	unwindCount ::= ⌊unwindType⌋;
 	If handlerCount = 0 ∧ unwindCount = 0 then
 	[
 		Reject parse, expected:
@@ -1706,7 +1706,7 @@ Method "“_”(stack summary)" is
  *        {@code 1}. If the ceiling of the range is out of bounds for the stack,
  *        then substitute the actual size of the stack.
  * @param "start" "natural number"
- *        If specified, then the ordinal to present for the {@code ⎣range⎦}-th
+ *        If specified, then the ordinal to present for the {@code ⌊range⌋}-th
  *        frame of the stack.
  * @returns "string"
  * @category "Exceptions" "Stringification"
@@ -1720,7 +1720,7 @@ Public method "“_”(frames_of stack summary«,⁇renumbered starting at_»)" 
 	dump ::= e's stack summary;
 	text : string := "";
 	ordinal : natural number := start[1] else [1];
-	For each index from ⎣range⎦ to ⎡range⎤ min |dump| do
+	For each index from ⌊range⌋ to ⌈range⌉ min |dump| do
 	[
 		frame ::= dump[index];
 		colon ::= first index of ":" in frame;
@@ -1760,7 +1760,7 @@ Method "“_”(frames_of stack summary«,⁇renumbered starting at_»)" is
  *        base frame is {@code 1}. If the ceiling of the range is out of bounds
  *        for the stack, then substitute the actual size of the stack.
  * @param "start" "natural number"
- *        If specified, then the ordinal to present for the {@code ⎣range⎦}-th
+ *        If specified, then the ordinal to present for the {@code ⌊range⌋}-th
  *        frame of {@param "e"}'s stack.
  * @returns "string"
  * @category "Exceptions" "Stringification"

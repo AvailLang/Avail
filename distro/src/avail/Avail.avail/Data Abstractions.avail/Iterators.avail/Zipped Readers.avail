@@ -168,7 +168,7 @@ Private method "zip semantic restriction" is
 		readers : reader+'s type
 	|
 		types : <any's type…|> := <>;
-		For each i from 1 to (⎣readers⎦ min (|readers' leading types| + 1)) do
+		For each i from 1 to (⌊readers⌋ min (|readers' leading types| + 1)) do
 		[
 			types := eject types ++ <readers[i]'s element type's instance>;
 		];

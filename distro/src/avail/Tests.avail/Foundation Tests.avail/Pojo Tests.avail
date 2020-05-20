@@ -220,8 +220,8 @@ Test "pojo static fields" in pojo test suite is
 	[
 		min ::= static field t.MIN_VALUE;
 		max ::= static field t.MAX_VALUE;
-		Require: ↓min = ⎣t⎦;
-		Require: ↓max = ⎡t⎤;
+		Require: ↓min = ⌊t⌋;
+		Require: ↓max = ⌈t⌉;
 	];
 	For each p of <<float, 4>, <double, 8>> do
 	[

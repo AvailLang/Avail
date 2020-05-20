@@ -134,8 +134,8 @@ Private method "a level__" is
 	keyType ::=  tType's key type's instance;
 	leadingTypes ::= keyType[lvl..|keyType's leading types| max (lvl-1)];
 	defaultType ::= keyType's default type;
-	min ::= (⎣keyType⎦ - lvl) max 0;
-	max ::= (⎡keyType⎤ - lvl + 1) max 0;
+	min ::= (⌊keyType⌋ - lvl) max 0;
+	max ::= (⌈keyType⌉ - lvl + 1) max 0;
 	a trie with
 		key type ::= <leadingTypes, defaultType…| [min..max)>,
 		payload type ::= tType's value type's instance,
@@ -169,7 +169,7 @@ Semantic restriction "_'s⁇next tries" is
 	tType : trie's type
 |
 	keyType ::= tType's key type's instance;
-	{∪ keyType[2..⎡keyType⎤] → tType|}
+	{∪ keyType[2..⌈keyType⌉] → tType|}
 ];
 
 Semantic restriction "_'s⁇payload" is
@@ -373,7 +373,7 @@ Semantic restriction "_[_]'s⁇subtrie else_" is
 |
 	Require: keyType is valid key type of tType;
 	tKeyType ::= tType's key type's instance;
-	firstIndexType ::= (⎣keyType⎦ + 1)'s type;
+	firstIndexType ::= (⌊keyType⌋ + 1)'s type;
 	lastIndexType ::= ||tKeyType||;
 	subKeyType ::= tuple type of tKeyType[firstIndexType..lastIndexType];
 	(extend trie with
@@ -411,7 +411,7 @@ Semantic restriction "_[_]'s⁇subtrie" is
 |
 	Require: keyType is valid key type of tType;
 	tKeyType ::= tType's key type's instance;
-	firstIndexType ::= (⎣keyType⎦ + 1)'s type;
+	firstIndexType ::= (⌊keyType⌋ + 1)'s type;
 	lastIndexType ::= ||tKeyType||;
 	subKeyType ::= tuple type of tKeyType[firstIndexType..lastIndexType];
 	extend trie with
