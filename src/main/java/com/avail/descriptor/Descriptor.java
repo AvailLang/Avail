@@ -129,18 +129,10 @@ import static com.avail.descriptor.sets.LinearSetBinDescriptor.emptyLinearSetBin
 import static java.lang.String.format;
 
 /**
- * This is the primary subclass of {@linkplain AbstractDescriptor}. It has the
- * sibling IndirectionDescriptor.
+ * This is the primary subclass of {@linkplain AbstractDescriptor}. It has the sibling IndirectionDescriptor.
  *
  * <p>
- * When a new method is added in a subclass, it should be added with the
- * {@linkplain Override @Override} annotation. That way the project will
- * indicate errors until an abstract declaration is added to
- * {@linkplain AbstractDescriptor}, a default implementation is added to
- * {@code Descriptor}, and a redirecting implementation is added to
- * {@linkplain IndirectionDescriptor}. Any code attempting to send the
- * corresponding message to an {@linkplain AvailObject} will also indicate a
- * problem until a suitable implementation is added to AvailObject.
+ * When a new method is added in a subclass, it should be added with the {@linkplain Override @Override} annotation. That way the project will indicate errors until an abstract declaration is added to {@linkplain AbstractDescriptor}, a default implementation is added to {@code Descriptor}, and a redirecting implementation is added to {@linkplain IndirectionDescriptor}. Any code attempting to send the corresponding message to an {@linkplain AvailObject} will also indicate a problem until a suitable implementation is added to AvailObject.
  * </p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
@@ -162,13 +154,9 @@ extends AbstractDescriptor
 	 * @param typeTag
 	 *        The {@link TypeTag} to embed in the new descriptor.
 	 * @param objectSlotsEnumClass
-	 *        The Java {@link Class} which is a subclass of {@link
-	 *        ObjectSlotsEnum} and defines this object's object slots
-	 *        layout, or null if there are no object slots.
+	 *        The Java {@link Class} which is a subclass of {@link ObjectSlotsEnum} and defines this object's object slots layout, or null if there are no object slots.
 	 * @param integerSlotsEnumClass
-	 *        The Java {@link Class} which is a subclass of {@link
-	 *        IntegerSlotsEnum} and defines this object's object slots
-	 *        layout, or null if there are no integer slots.
+	 *        The Java {@link Class} which is a subclass of {@link IntegerSlotsEnum} and defines this object's object slots layout, or null if there are no integer slots.
 	 */
 	protected Descriptor (
 		final Mutability mutability,
@@ -2633,8 +2621,8 @@ extends AbstractDescriptor
 	 *
 	 * @param object
 	 *        An {@link AvailObject}.
-	 * @return {@code true} if the argument is an Avail string, {@code false}
-	 * otherwise.
+	 * @return
+	 * {@code true} if the argument is an Avail string, {@code false} otherwise.
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
 	@Override
@@ -2726,10 +2714,9 @@ extends AbstractDescriptor
 	 * @param elementObjectHash
 	 *        The already-computed hash of the element to remove
 	 * @param canDestroy
-	 *        Whether this set bin can be destroyed or reused by this operation
-	 *        if it's also mutable.
-	 * @return A set bin like the given object, but without the given
-	 *         elementObject, if it was present.
+	 *        Whether this set bin can be destroyed or reused by this operation if it's also mutable.
+	 * @return
+	 * A set bin like the given object, but without the given elementObject, if it was present.
 	 */
 	@Override
 	public AvailObject o_BinRemoveElementHashLevelCanDestroy (
@@ -2755,11 +2742,11 @@ extends AbstractDescriptor
 	 * element itself. This works because a bin can't be an element of a set.
 	 *
 	 * @param object
-	 *        The set bin, or single value in this case, to test for being
-	 *        within the given set.
+	 *        The set bin, or single value in this case, to test for being within the given set.
 	 * @param potentialSuperset
 	 *        The set inside which to look for the given object.
-	 * @return Whether the object (acting as a singleton bin) was in the set.
+	 * @return
+	 * Whether the object (acting as a singleton bin) was in the set.
 	 */
 	@Override
 	public boolean o_IsBinSubsetOf (
@@ -2835,13 +2822,12 @@ extends AbstractDescriptor
 	}
 
 	/**
-	 * Answer an {@linkplain Iterator iterator} suitable for traversing the
-	 * elements of the {@linkplain AvailObject object} with a Java
-	 * <em>foreach</em> construct.
+	 * Answer an {@linkplain Iterator iterator} suitable for traversing the elements of the {@linkplain AvailObject object} with a Java  <em>foreach</em> construct.
 	 *
 	 * @param object
 	 *        An {@link AvailObject}.
-	 * @return An {@linkplain Iterator iterator}.
+	 * @return
+	 * An {@linkplain Iterator iterator}.
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
 	@Override
