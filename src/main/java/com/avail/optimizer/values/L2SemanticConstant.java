@@ -31,8 +31,8 @@
  */
 package com.avail.optimizer.values;
 import com.avail.descriptor.representation.A_BasicObject;
-
-import java.util.function.UnaryOperator;
+import kotlin.jvm.functions.Function1;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A semantic value which is a particular actual constant value.
@@ -49,7 +49,8 @@ extends L2SemanticValue
 	/**
 	 * Create a new {@code L2SemanticConstant} semantic value.
 	 *
-	 * @param value The actual value of the constant.
+	 * @param value
+	 * The actual value of the constant.
 	 */
 	L2SemanticConstant (final A_BasicObject value)
 	{
@@ -64,12 +65,12 @@ extends L2SemanticValue
 			&& value.equals(((L2SemanticConstant) obj).value);
 	}
 
+	@NotNull
 	@Override
-	public L2SemanticConstant transform (
-		final UnaryOperator<L2SemanticValue> semanticValueTransformer,
-		final UnaryOperator<Frame> frameTransformer)
+	public L2SemanticValue transform (
+		@NotNull final Function1<? super L2SemanticValue, ? extends L2SemanticValue> semanticValueTransformer,
+		@NotNull final Function1<? super Frame, Frame> frameTransformer)
 	{
-		// Semantic constants need no transformation when inlining.
 		return this;
 	}
 

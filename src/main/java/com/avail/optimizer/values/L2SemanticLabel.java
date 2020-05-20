@@ -31,20 +31,17 @@
  */
 package com.avail.optimizer.values;
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments;
+import kotlin.jvm.functions.Function1;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.function.UnaryOperator;
 
 /**
  * A semantic value which represents a label continuation created for the
  * indicated {@link Frame}.
  *
- * <p>TODO MvG - It's unclear how to deal with replacement arguments provided by
- * {@link P_RestartContinuationWithArguments}.  Perhaps the approach is to
- * create a duplicate Label using a new Frame.  It would have to merge control
- * flow into a loop, so maybe this just falls under the general case of phis
- * within loops.  Or maybe it should use the very same Arguments, since a
- * semantic value doesn't have a notion of value or register <em>directly</em>
- * associated with it, only through a manifest.
+ * TODO MvG - It's unclear how to deal with replacement arguments provided by
+ *
+ * {@link P_RestartContinuationWithArguments}.  Perhaps the approach is to create a duplicate Label using a new Frame.  It would have to merge control flow into a loop, so maybe this just falls under the general case of phis within loops.  Or maybe it should use the very same Arguments, since a semantic value doesn't have a notion of value or register <em>directly</em> associated with it, only through a manifest.
  */
 @SuppressWarnings("EqualsAndHashcode")
 final class L2SemanticLabel extends L2FrameSpecificSemanticValue
@@ -66,12 +63,13 @@ final class L2SemanticLabel extends L2FrameSpecificSemanticValue
 		return obj instanceof L2SemanticLabel && super.equals(obj);
 	}
 
+	@NotNull
 	@Override
-	public L2SemanticLabel transform (
-		final UnaryOperator<L2SemanticValue> semanticValueTransformer,
-		final UnaryOperator<Frame> frameTransformer)
+	public L2SemanticValue transform (
+		@NotNull final Function1<? super L2SemanticValue, ? extends L2SemanticValue> semanticValueTransformer,
+		@NotNull final Function1<? super Frame, Frame> frameTransformer)
 	{
-		final Frame newFrame = frameTransformer.apply(frame);
+		final Frame newFrame = frameTransformer.invoke(frame);
 		return newFrame.equals(frame) ? this : new L2SemanticLabel(newFrame);
 	}
 

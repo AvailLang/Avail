@@ -31,7 +31,9 @@
  */
 package com.avail.optimizer.values;
 
-import java.util.function.UnaryOperator;
+import kotlin.jvm.functions.Function1;
+import org.jetbrains.annotations.NotNull;
+
 
 /**
  * A semantic value which represents the return value produced by the invocation
@@ -60,12 +62,13 @@ extends L2FrameSpecificSemanticValue
 		return obj instanceof L2SemanticResult && super.equals(obj);
 	}
 
+	@NotNull
 	@Override
-	public L2SemanticResult transform (
-		final UnaryOperator<L2SemanticValue> semanticValueTransformer,
-		final UnaryOperator<Frame> frameTransformer)
+	public L2SemanticValue transform (
+		@NotNull final Function1<? super L2SemanticValue, ? extends L2SemanticValue> semanticValueTransformer,
+		@NotNull final Function1<? super Frame, Frame> frameTransformer)
 	{
-		final Frame newFrame = frameTransformer.apply(frame());
+		final Frame newFrame = frameTransformer.invoke(frame());
 		return newFrame.equals(frame) ? this : new L2SemanticResult(newFrame);
 	}
 

@@ -29,112 +29,102 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.optimizer.values;
+package com.avail.optimizer.values
 
-import com.avail.descriptor.representation.A_BasicObject;
-import com.avail.interpreter.Primitive;
-import com.avail.optimizer.L2Entity;
-
-import java.util.List;
-import java.util.function.Function;
-import java.util.function.UnaryOperator;
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.interpreter.Primitive
+import com.avail.optimizer.L2Entity
 
 /**
- * An {@code L2SemanticValue} represents a value stably computed from constants,
+ * An `L2SemanticValue` represents a value stably computed from constants,
  * arguments, and potentially unstable values acquired by specific previous
  * instructions – e.g., fetching the current time at a specific position in a
  * sequence of L2 instructions, or the result of a non-primitive call to another
  * function.
+ *
+ * @property hash
+ *   The permanent hash value of this `L2SemanticValue`.
+ *
+ * @constructor
+ * Create a new instance, with the given pre-computed hash.
+ *
+ * @param hash
+ *  The pre-computed hash value to use for this semantic value.
  */
-@SuppressWarnings("EqualsAndHashcode")
-public abstract class L2SemanticValue implements L2Entity
+abstract class L2SemanticValue protected constructor(val hash: Int) : L2Entity
 {
-	/** The permanent hash value of this {@code L2SemanticValue}. */
-	public final int hash;
-
-	/**
-	 * Create a new instance, with the given pre-computed hash.
-	 *
-	 * @param hash
-	 *        The pre-computed hash value to use for this semantic value.
-	 */
-	protected L2SemanticValue (final int hash)
-	{
-		this.hash = hash;
-	}
-
-	@Override
-	public final int hashCode ()
-	{
-		return hash;
-	}
-
-	/**
-	 * Answer the semantic value representing a particular constant value.
-	 *
-	 * @param value
-	 *        The actual Avail value.
-	 * @return A {@link L2SemanticConstant} representing the constant.
-	 */
-	public static L2SemanticValue constant (final A_BasicObject value)
-	{
-		return new L2SemanticConstant(value.makeImmutable());
-	}
-
-	/**
-	 * Answer a semantic value representing the result of invoking a foldable
-	 * primitive.
-	 *
-	 * @param primitive
-	 *        The {@link Primitive} that was executed.
-	 * @param argumentSemanticValues
-	 *        {@code L2SemanticValue}s that supplied the arguments to the
-	 *        primitive.
-	 * @return The semantic value representing the primitive result.
-	 */
-	public static L2SemanticPrimitiveInvocation primitiveInvocation (
-		final Primitive primitive,
-		final List<L2SemanticValue> argumentSemanticValues)
-	{
-		return new L2SemanticPrimitiveInvocation(
-			primitive, argumentSemanticValues);
-	}
+	override fun hashCode(): Int = hash
 
 	/**
 	 * Answer whether this semantic value corresponds with the notion of a
 	 * semantic constant.
 	 *
-	 * @return Whether this represents a constant.
+	 * @return
+	 *   Whether this represents a constant.
 	 */
-	public boolean isConstant ()
-	{
-		return false;
-	}
+	open val isConstant: Boolean
+		get() = false
 
 	/**
 	 * Transform the receiver.  If it's composed of parts, transform them with
-	 * the supplied {@link Function}s.
+	 * the supplied [Function]s.
 	 *
 	 * @param semanticValueTransformer
-	 *        How to transform {@code L2SemanticValue} parts of the receiver,
-	 *        (not the receiver itself).
+	 *   How to transform `L2SemanticValue` parts of the receiver, (not the
+	 *   receiver itself).
 	 * @param frameTransformer
-	 *        How to transform {@link Frame} parts of the receiver.
-	 * @return The transformed {@code L2SemanticValue}, possibly the receiver if
-	 *         the result of the transformation would have been an equal value.
+	 *   How to transform [Frame] parts of the receiver.
+	 * @return
+	 *   The transformed `L2SemanticValue`, possibly the receiver if the result
+	 *   of the transformation would have been an equal value.
 	 */
-	public abstract L2SemanticValue transform (
-		final UnaryOperator<L2SemanticValue> semanticValueTransformer,
-		final UnaryOperator<Frame> frameTransformer);
+	abstract fun transform(
+		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue,
+		frameTransformer: (Frame) -> Frame): L2SemanticValue
 
 	/**
 	 * Produce a compact textual representation suitable for displaying within
 	 * a synonym in a debugger or visualized control flow graph.
 	 *
-	 * @return A short string representation of this semantic value.
+	 * @return
+	 *   A short string representation of this semantic value.
 	 */
-	public String toStringForSynonym ()
+	open fun toStringForSynonym(): String = toString()
+
+	companion object
 	{
-		return toString();
+		/**
+		 * Answer the semantic value representing a particular constant value.
+		 *
+		 * @param value
+		 *   The actual Avail value.
+		 * @return
+		 *   A [L2SemanticConstant] representing the constant.
+		 */
+		@JvmStatic
+		fun constant(value: A_BasicObject): L2SemanticValue =
+			L2SemanticConstant(value.makeImmutable())
+
+		/**
+		 * Answer a semantic value representing the result of invoking a
+		 * foldable primitive.
+		 *
+		 * @param primitive
+		 *   The [Primitive] that was executed.
+		 * @param argumentSemanticValues
+		 *   `L2SemanticValue`s that supplied the arguments to the primitive.
+		 * @return
+		 *   The semantic value representing the primitive result.
+		 */
+		@JvmStatic
+		fun primitiveInvocation(
+				primitive: Primitive,
+				argumentSemanticValues: List<L2SemanticValue>)
+			: L2SemanticPrimitiveInvocation
+		{
+			return L2SemanticPrimitiveInvocation(
+				primitive, argumentSemanticValues)
+		}
 	}
+
 }

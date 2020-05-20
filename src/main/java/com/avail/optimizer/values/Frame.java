@@ -40,11 +40,7 @@ import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
 /**
- * An abstract representation of an invocation.  Note that this is not itself an
- * {@link L2SemanticValue}, but is used by some specific kinds of semantic
- * values.  The outermost {@code Frame} has an {@link #outerFrame} of {@code
- * null}, and all other frames have a non-null outer frame.  Frames compare by
- * identity.
+ * An abstract representation of an invocation.  Note that this is not itself an {@link L2SemanticValue}, but is used by some specific kinds of semantic values.  The outermost {@code Frame} has an {@link #outerFrame} of {@code null}, and all other frames have a non-null outer frame.  Frames compare by identity.
  */
 public final class Frame
 {
@@ -68,16 +64,12 @@ public final class Frame
 	public final String debugName;
 
 	/**
-	 * Construct a new {@code Frame} representing a call within the given
-	 * frame.
+	 * Construct a new {@code Frame} representing a call within the given frame.
 	 *
 	 * @param outerFrame
-	 *        The frame that was active at the point where an invocation of
-	 *        this frame occurred, or {@code null} if this is the outermost
-	 *        frame.
+	 *        The frame that was active at the point where an invocation of this frame occurred, or {@code null} if this is the outermost frame.
 	 * @param code
-	 *        The actual {@link A_RawFunction} that has the L1 code for this
-	 *        frame.
+	 *        The actual {@link A_RawFunction} that has the L1 code for this frame.
 	 * @param debugName
 	 *        What to name this frame.
 	 */
@@ -97,8 +89,8 @@ public final class Frame
 	 * Note that frames compare by identity, so two frames with the same depth
 	 * are not necessarily equal.
 	 *
-	 * @return The depth of the frame, where {@code 1} is the outermost
-	 *         frame of a chunk.
+	 * @return
+	 * The depth of the frame, where {@code 1} is the outermost frame of a chunk.
 	 */
 	public int depth ()
 	{
@@ -121,7 +113,8 @@ public final class Frame
 	/**
 	 * Answer the {@link L2SemanticValue} representing this frame's function.
 	 *
-	 * @return This frame's {@link L2SemanticFunction}.
+	 * @return
+	 * This frame's {@link L2SemanticFunction}.
 	 */
 	public L2SemanticValue function ()
 	{
@@ -131,7 +124,8 @@ public final class Frame
 	/**
 	 * Answer the {@link L2SemanticValue} representing this frame's label.
 	 *
-	 * @return This frame's {@link L2SemanticLabel}.
+	 * @return
+	 * This frame's {@link L2SemanticLabel}.
 	 */
 	public L2SemanticValue label ()
 	{
@@ -143,8 +137,7 @@ public final class Frame
 	 * function's captured outer values.
 	 *
 	 * @param outerIndex
-	 *        The subscript of the outer value to retrieve from the function
-	 *        running for this frame.
+	 *        The subscript of the outer value to retrieve from the function running for this frame.
 	 * @return The {@link L2SemanticValue} representing the specified outer.
 	 */
 	public L2SemanticValue outer (final int outerIndex)
@@ -157,12 +150,11 @@ public final class Frame
 	 * slots, as of just after the particular nybblecode that wrote it.
 	 *
 	 * @param slotIndex
-	 *        The subscript of the slot to retrieve from the virtual
-	 *        continuation running for this frame.
+	 *        The subscript of the slot to retrieve from the virtual continuation running for this frame.
 	 * @param afterPc
-	 *        The level-one {@link A_Continuation#pc()} just after the
-	 *        nybblecode instruction that produced the value in this slot.
-	 * @return The {@link L2SemanticValue} representing the specified slot.
+	 *        The level-one {@link A_Continuation#pc()} just after the nybblecode instruction that produced the value in this slot.
+	 * @return
+	 * The {@link L2SemanticValue} representing the specified slot.
 	 */
 	public L2SemanticValue slot (final int slotIndex, final int afterPc)
 	{
@@ -184,10 +176,9 @@ public final class Frame
 	 * Answer the semantic value representing a new temporary value.
 	 *
 	 * @param uniqueId
-	 *        The unique identifier used to identify this temporary value within
-	 *        its frame.
-	 * @return An {@link L2SemanticTemp} representing the temporary value,
-	 *         generalized to an {@link L2SemanticValue}..
+	 *        The unique identifier used to identify this temporary value within its frame.
+	 * @return
+	 * An {@link L2SemanticTemp} representing the temporary value, generalized to an {@link L2SemanticValue}..
 	 */
 	public L2SemanticValue temp (
 		final int uniqueId)
@@ -199,8 +190,8 @@ public final class Frame
 	 * Answer an {@link L2SemanticValue} that represents the reified caller
 	 * continuation.
 	 *
-	 * @return The reified caller (an {@link A_Continuation} at runtime) of this
-	 *         frame.
+	 * @return
+	 * The reified caller (an {@link A_Continuation} at runtime) of this  frame.
 	 */
 	public L2SemanticValue reifiedCaller ()
 	{
@@ -211,12 +202,11 @@ public final class Frame
 	 * Transform the receiver via the given {@link Function}.
 	 *
 	 * @param topFrameReplacement
-	 *        The {@code Frame} to substitute for the top frame of the code
-	 *        being inlined.
+	 *        The {@code Frame} to substitute for the top frame of the code being inlined.
 	 * @param frameTransformer
 	 *        How to transform {@code Frame} parts of the receiver.
-	 * @return The transformed {@code Frame}, possibly the receiver if the
-	 *         result of the transformation would have been an equal value.
+	 * @return
+	 * The transformed {@code Frame}, possibly the receiver if the result of the transformation would have been an equal value.
 	 */
 	public Frame transform (
 		final Frame topFrameReplacement,

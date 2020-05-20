@@ -31,8 +31,8 @@
  */
 package com.avail.optimizer.values;
 import com.avail.descriptor.functions.A_Continuation;
-
-import java.util.function.UnaryOperator;
+import kotlin.jvm.functions.Function1;
+import org.jetbrains.annotations.NotNull;
 
 import static com.avail.descriptor.representation.AvailObject.multiplier;
 
@@ -61,13 +61,11 @@ extends L2FrameSpecificSemanticValue
 	 * Create a new {@code L2SemanticSlot} semantic value.
 	 *
 	 * @param frame
-	 *        The frame for which this represents a slot of a virtualized
-	 *        continuation.
+	 *        The frame for which this represents a slot of a virtualized continuation.
 	 * @param slotIndex
 	 *        The one-based index of the slot in that frame.
 	 * @param pcAfter
-	 *        The L1 program counter just after the instruction responsible for
-	 *        effectively writing this value in the frame's slot.
+	 *        The L1 program counter just after the instruction responsible for effectively writing this value in the frame's slot.
 	 */
 	L2SemanticSlot (
 		final Frame frame,
@@ -93,12 +91,13 @@ extends L2FrameSpecificSemanticValue
 			&& pcAfter == slot.pcAfter;
 	}
 
+	@NotNull
 	@Override
-	public L2SemanticSlot transform (
-		final UnaryOperator<L2SemanticValue> semanticValueTransformer,
-		final UnaryOperator<Frame> frameTransformer)
+	public L2SemanticValue transform (
+		@NotNull final Function1<? super L2SemanticValue, ? extends L2SemanticValue> semanticValueTransformer,
+		@NotNull final Function1<? super Frame, Frame> frameTransformer)
 	{
-		final Frame newFrame = frameTransformer.apply(frame());
+		final Frame newFrame = frameTransformer.invoke(frame());
 		return newFrame.equals(frame())
 			? this
 			: new L2SemanticSlot(newFrame, slotIndex, pcAfter);

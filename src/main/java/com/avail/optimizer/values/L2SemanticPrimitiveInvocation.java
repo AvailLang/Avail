@@ -31,10 +31,11 @@
  */
 package com.avail.optimizer.values;
 import com.avail.interpreter.Primitive;
+import kotlin.jvm.functions.Function1;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.UnaryOperator;
 
 import static com.avail.descriptor.representation.AvailObject.multiplier;
 import static com.avail.interpreter.Primitive.Flag.CanFold;
@@ -42,10 +43,7 @@ import static com.avail.utility.Casts.cast;
 import static java.util.Collections.unmodifiableList;
 
 /**
- * An {@link L2SemanticValue} which represents the result produced by a {@link
- * Primitive} when supplied a list of argument {@link L2SemanticValue}s.  The
- * primitive must be stable (same result), pure (no side-effects), and
- * successful for the supplied arguments.
+ * An {@link L2SemanticValue} which represents the result produced by a {@link Primitive} when supplied a list of argument {@link L2SemanticValue}s.  The primitive must be stable (same result), pure (no side-effects), and successful for the supplied arguments.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -66,16 +64,14 @@ extends L2SemanticValue
 	public final List<L2SemanticValue> argumentSemanticValues;
 
 	/**
-	 * Compute the permanent hash for this semantic value.  Note that it uses
-	 * the {@link Primitive#getPrimitiveNumber()}, which may have different
-	 * values on different runs of an Avail program.
+	 * Compute the permanent hash for this semantic value.  Note that it uses the {@link Primitive#getPrimitiveNumber()}, which may have different values on different runs of an Avail program.
 	 *
 	 * @param primitive
 	 *        The primitive that was invoked.
 	 * @param argumentSemanticValues
-	 *        The semantic values of arguments that were supplied to the
-	 *        primitive.
-	 * @return A hash of the inputs.
+	 *        The semantic values of arguments that were supplied to the  primitive.
+	 * @return
+	 * A hash of the inputs.
 	 */
 	private static int computeHash (
 		final Primitive primitive,
@@ -141,10 +137,11 @@ extends L2SemanticValue
 		return builder.toString();
 	}
 
+	@NotNull
 	@Override
-	public L2SemanticPrimitiveInvocation transform (
-		final UnaryOperator<L2SemanticValue> semanticValueTransformer,
-		final UnaryOperator<Frame> frameTransformer)
+	public L2SemanticValue transform (
+		@NotNull final Function1<? super L2SemanticValue, ? extends L2SemanticValue> semanticValueTransformer,
+		@NotNull final Function1<? super Frame, Frame> frameTransformer)
 	{
 		final int numArgs = argumentSemanticValues.size();
 		final List<L2SemanticValue> newArguments = new ArrayList<>(numArgs);

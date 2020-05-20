@@ -31,6 +31,9 @@
  */
 package com.avail.optimizer.values;
 
+import kotlin.jvm.functions.Function1;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.function.UnaryOperator;
 
 import static com.avail.descriptor.representation.AvailObject.multiplier;
@@ -50,8 +53,7 @@ abstract class L2FrameSpecificSemanticValue extends L2SemanticValue
 	 * @param frame
 	 *        The frame for which this is a semantic value.
 	 * @param hash
-	 *        A hash value of this semantic value, which this constructor will
-	 *        combine with the frame's hash.
+	 *        A hash value of this semantic value, which this constructor will combine with the frame's hash.
 	 */
 	L2FrameSpecificSemanticValue (
 		final Frame frame,
@@ -64,7 +66,8 @@ abstract class L2FrameSpecificSemanticValue extends L2SemanticValue
 	/**
 	 * Answer the {@link Frame} in which this invocation takes place.
 	 *
-	 * @return The frame.
+	 * @return
+	 * The frame.
 	 */
 	public final Frame frame ()
 	{
@@ -78,10 +81,11 @@ abstract class L2FrameSpecificSemanticValue extends L2SemanticValue
 			&& frame().equals(((L2FrameSpecificSemanticValue) obj).frame());
 	}
 
+	@NotNull
 	@Override
-	public abstract L2FrameSpecificSemanticValue transform (
-		final UnaryOperator<L2SemanticValue> semanticValueTransformer,
-		final UnaryOperator<Frame> frameTransformer);
+	public abstract L2SemanticValue transform (
+		@NotNull final Function1<? super L2SemanticValue, ? extends L2SemanticValue> semanticValueTransformer,
+		@NotNull final Function1<? super Frame, Frame> frameTransformer) ;
 
 	@Override
 	public abstract String toString ();

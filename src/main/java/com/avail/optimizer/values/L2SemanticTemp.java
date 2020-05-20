@@ -31,7 +31,9 @@
  */
 package com.avail.optimizer.values;
 
-import java.util.function.UnaryOperator;
+import kotlin.jvm.functions.Function1;
+import org.jetbrains.annotations.NotNull;
+
 
 /**
  * A semantic value which holds a temporary value in a {@link Frame}.  The scope
@@ -57,8 +59,7 @@ extends L2FrameSpecificSemanticValue
 	 * @param frame
 	 *        The frame for which this represents a temporary value.
 	 * @param uniqueId
-	 *        An integer which should be unique across all other instances of
-	 *        this class created for this {@link Frame}.
+	 *        An integer which should be unique across all other instances of this class created for this {@link Frame}.
 	 */
 	L2SemanticTemp (final Frame frame, final int uniqueId)
 	{
@@ -77,12 +78,13 @@ extends L2FrameSpecificSemanticValue
 			&& uniqueId == ((L2SemanticTemp) obj).uniqueId;
 	}
 
+	@NotNull
 	@Override
-	public L2SemanticTemp transform (
-		final UnaryOperator<L2SemanticValue> semanticValueTransformer,
-		final UnaryOperator<Frame> frameTransformer)
+	public L2SemanticValue transform (
+		@NotNull final Function1<? super L2SemanticValue, ? extends L2SemanticValue> semanticValueTransformer,
+		@NotNull final Function1<? super Frame, Frame> frameTransformer)
 	{
-		final Frame newFrame = frameTransformer.apply(frame);
+		final Frame newFrame = frameTransformer.invoke(frame);
 		return newFrame.equals(frame)
 			? this
 			: new L2SemanticTemp(newFrame, uniqueId);
