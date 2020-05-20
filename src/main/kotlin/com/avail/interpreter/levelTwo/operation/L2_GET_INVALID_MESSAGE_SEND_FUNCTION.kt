@@ -54,7 +54,7 @@ import org.objectweb.asm.MethodVisitor
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Mark van Gulik &lt;todd@availlang.org&gt;
  */
-@ReadsHiddenVariable(theValue = arrayOf(GLOBAL_STATE::class))
+@ReadsHiddenVariable([GLOBAL_STATE::class])
 object L2_GET_INVALID_MESSAGE_SEND_FUNCTION : L2Operation(
 	L2OperandType.WRITE_BOXED.named("invalid message send function"))
 {

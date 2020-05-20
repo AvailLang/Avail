@@ -32,6 +32,7 @@
 package com.avail.interpreter.levelTwo.operation
 
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.*
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2NamedOperandType
 import com.avail.interpreter.levelTwo.L2OperandType
@@ -71,7 +72,7 @@ object L2_ADD_INT_TO_INT : L2ControlFlowOperation(
 		val inRange = instruction.operand<L2PcOperand>(4)
 		super.instructionWasAdded(instruction, manifest)
 		inRange.manifest().intersectType(
-			sumReg.pickSemanticValue(), IntegerRangeTypeDescriptor.int32())
+			sumReg.pickSemanticValue(), int32())
 	}
 
 	// It jumps if the result doesn't fit in an int.

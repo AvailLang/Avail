@@ -76,19 +76,9 @@ object L2_CREATE_OBJECT : L2Operation(
 		val realSlots = variant.realSlots
 		val fieldSources = fieldsVector.elements()
 		assert(realSlots.size == fieldSources.size)
-		for (i in realSlots.indices)
-		{
-			if (i > 0)
-			{
-				builder.append(", ")
-			}
-			val key = realSlots[i]
-			val value = fieldSources[i]
-			builder.append(key)
-			builder.append(": ")
-			builder.append(value.registerString())
-		}
-		builder.append('}')
+		var i = 0
+		realSlots.joinTo(builder, ",")
+			{ key -> "$key: ${fieldSources[i++].registerString()}" }
 	}
 
 	override fun translateToJVM(
@@ -108,14 +98,12 @@ object L2_CREATE_OBJECT : L2Operation(
 		method.visitLdcInsn(variant)
 		ObjectDescriptor.createUninitializedObjectMethod.generateCall(method)
 		val fieldSources = fieldsVector.elements()
-		var i = 0
 		val limit = fieldSources.size
-		while (i < limit)
+		for (i in 0 until limit)
 		{
 			method.visitLdcInsn(i + 1)
 			translator.load(method, fieldSources[i].register())
 			ObjectDescriptor.setFieldMethod.generateCall(method) // Returns object for chaining.
-			i++
 		}
 		translator.store(method, `object`.register())
 	}

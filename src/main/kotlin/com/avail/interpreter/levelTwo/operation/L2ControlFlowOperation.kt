@@ -35,12 +35,12 @@ import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2NamedOperandType
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.L2Operation
+import com.avail.interpreter.levelTwo.operand.L2Operand
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.optimizer.L2BasicBlock
 import com.avail.optimizer.L2Generator
 import com.avail.optimizer.RegisterSet
-import java.util.*
 
 /**
  * An [L2Operation] that alters control flow, and therefore does not fall
@@ -106,27 +106,14 @@ abstract class L2ControlFlowOperation protected constructor(
 	 *   or reachable only from some other mechanism like continuation
 	 *   reification and later resumption of a continuation.
 	 */
-	override fun targetEdges(instruction: L2Instruction): List<L2PcOperand>
-	{
-		val edges: MutableList<L2PcOperand> =
-			ArrayList(labelOperandIndices.size)
-		for (labelOperandIndex in labelOperandIndices)
-		{
-			edges.add(instruction.operand(labelOperandIndex))
-		}
-		return edges
-	}
+	override fun targetEdges(instruction: L2Instruction): List<L2PcOperand> =
+		// Requires explicit parameter typing
+		labelOperandIndices.map<L2PcOperand> { instruction.operand(it) }
 
 	init
 	{
-		val labelIndicesList: MutableList<Int> = ArrayList(2)
-		for (index in namedOperandTypes.indices)
-		{
-			val namedOperandType = namedOperandTypes[index]
-			if (namedOperandType.operandType() === L2OperandType.PC)
-			{
-				labelIndicesList.add(index)
-			}
+		val labelIndicesList = namedOperandTypes.indices.filter {
+			namedOperandTypes[it].operandType == L2OperandType.PC
 		}
 		labelOperandIndices =
 			IntArray(labelIndicesList.size) { labelIndicesList[it] }

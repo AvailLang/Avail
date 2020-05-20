@@ -86,25 +86,19 @@ object L2_JUMP_IF_OBJECTS_EQUAL : L2ConditionalJump(
 //		final L2PcOperand notEqual = instruction.operand(3);
 		val constant1: A_BasicObject? = firstReg.constantOrNull()
 		val constant2: A_BasicObject? = secondReg.constantOrNull()
-		if (constant1 != null && constant2 != null)
+		return when
 		{
-			// Compare them right now.
-			return if (constant1.equals(constant2))
-			{
-				BranchReduction.AlwaysTaken
-			}
-			else
-			{
-				BranchReduction.NeverTaken
-			}
-		}
-		return if (firstReg.type().typeIntersection(secondReg.type()).isBottom)
-		{
+			constant1 != null
+				&& constant2 != null
+				&& constant1.equals(constant2) ->
+					BranchReduction.AlwaysTaken
+			constant1 != null && constant2 != null -> BranchReduction.NeverTaken
 			// They can't be equal.
-			BranchReduction.NeverTaken
+			firstReg.type().typeIntersection(secondReg.type()).isBottom ->
+				BranchReduction.NeverTaken
+			// Otherwise it's still contingent.
+			else -> BranchReduction.SometimesTaken
 		}
-		else BranchReduction.SometimesTaken
-		// Otherwise it's still contingent.
 	}
 
 	override fun propagateTypes(

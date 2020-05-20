@@ -225,7 +225,7 @@ class L2Instruction constructor(
 	 * @return
 	 *   The specified operand.
 	 */
-	fun <O : L2Operand?> operand(index: Int): O = Casts.cast(operands[index])
+	fun <O : L2Operand> operand(index: Int): O = Casts.cast(operands[index])
 
 	/**
 	 * Answer the position of this instruction within its array of instructions.

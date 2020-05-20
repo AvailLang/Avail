@@ -66,18 +66,20 @@ class L2ConstantOperand(constant: A_BasicObject) : L2Operand()
 		dispatcher.doOperand(this)
 	}
 
-	override fun appendTo(builder: StringBuilder)
-	{
-		builder.append("$(")
-		if (constant.isInstanceOf(
-				CompiledCodeTypeDescriptor.mostGeneralCompiledCodeType()))
+	override fun appendTo(builder: StringBuilder) =
+		with(builder)
 		{
-			builder.append(decompile(constant))
+			append("$(")
+			if (constant.isInstanceOf(
+					CompiledCodeTypeDescriptor.mostGeneralCompiledCodeType()))
+			{
+				append(decompile(constant))
+			}
+			else
+			{
+				append(constant)
+			}
+			append(")")
+			Unit
 		}
-		else
-		{
-			builder.append(constant)
-		}
-		builder.append(")")
-	}
 }

@@ -36,8 +36,10 @@ import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.*
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.*
+import com.avail.descriptor.types.BottomTypeDescriptor.*
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.L2Operation
@@ -89,9 +91,7 @@ object L2_CREATE_TUPLE : L2Operation(
 		}
 		val tupleType =
 			TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-				sizeRange,
-				ObjectTupleDescriptor.tupleFromList(types),
-				BottomTypeDescriptor.bottom())
+				sizeRange, tupleFromList(types), bottom())
 		tupleType.makeImmutable()
 		registerSet.removeConstantAt(tuple.register())
 		registerSet.typeAtPut(
@@ -106,7 +106,7 @@ object L2_CREATE_TUPLE : L2Operation(
 				constants.add(registerSet.constantAt(element.register()))
 			}
 			val newTuple =
-				ObjectTupleDescriptor.tupleFromList(constants)
+				tupleFromList(constants)
 			newTuple.makeImmutable()
 			assert(newTuple.isInstanceOf(tupleType))
 			registerSet.typeAtPut(
@@ -191,8 +191,9 @@ object L2_CREATE_TUPLE : L2Operation(
 		}
 		// :: destination = TupleDescriptor.tupleFromArray(elements);
 		translator.objectArray(method, elements, A_BasicObject::class.java)
-		ObjectTupleDescriptor.tupleFromArrayMethod.generateCall(method)
-		method.visitTypeInsn(Opcodes.CHECKCAST, Type.getInternalName(AvailObject::class.java))
+		tupleFromArrayMethod.generateCall(method)
+		method.visitTypeInsn(
+			Opcodes.CHECKCAST, Type.getInternalName(AvailObject::class.java))
 		translator.store(method, tuple.register())
 	}
 

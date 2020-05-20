@@ -219,17 +219,14 @@ object L2_CREATE_FUNCTION : L2Operation(
 				// :: function = createExceptOuters(code, numOuters);
 				translator.intConstant(method, numOuters)
 				FunctionDescriptor.createExceptOutersMethod.generateCall(method)
-				var i = 0
-				while (i < numOuters)
+				for (i in 0 until numOuters)
 				{
-
 					// :: function.outerVarAtPut(«i + 1», «outerRegs[i]»);
 					method.visitInsn(Opcodes.DUP)
 					translator.intConstant(method, i + 1)
 					translator.load(
 						method, outerRegs.elements()[i].register())
 					FunctionDescriptor.outerVarAtPutMethod.generateCall(method)
-					i++
 				}
 			}
 		}

@@ -93,12 +93,11 @@ abstract class L2ReadVectorOperand<RR : L2ReadOperand<R>, R
 	 * @return
 	 *   The list of [L2Register]s that I read.
 	 */
-	fun registers(): List<R> =
-		elements.map { obj: RR -> obj.register() }
+	fun registers(): List<R> = elements.map { obj: RR -> obj.register() }
 
 	abstract override fun dispatchOperand(dispatcher: L2OperandDispatcher)
-	override fun instructionWasAdded(
-		manifest: L2ValueManifest)
+
+	override fun instructionWasAdded(manifest: L2ValueManifest)
 	{
 		super.instructionWasAdded(manifest)
 		elements.forEach{ it.instructionWasAdded(manifest) }
@@ -164,27 +163,28 @@ abstract class L2ReadVectorOperand<RR : L2ReadOperand<R>, R
 		elements.forEach { it.setInstruction(theInstruction) }
 	}
 
-	override fun appendTo(builder: StringBuilder)
-	{
-		builder.append("@<")
-		var first = true
-		for (read in elements)
+	override fun appendTo(builder: StringBuilder) =
+		with(builder)
 		{
-			if (!first)
+			append("@<")
+			var first = true
+			for (read in elements)
 			{
-				builder.append(", ")
+				if (!first)
+				{
+					append(", ")
+				}
+				append(read.registerString())
+				val restriction = read.restriction()
+				if (restriction.constantOrNull == null)
+				{
+					// Don't redundantly print restriction information for
+					// constants.
+					append(restriction.suffixString())
+				}
+				first = false
 			}
-			builder.append(read.registerString())
-			val restriction = read.restriction()
-			if (restriction.constantOrNull == null)
-			{
-				// Don't redundantly print restriction information for
-				// constants.
-				builder.append(restriction.suffixString())
-			}
-			first = false
+			append(">")
+			Unit
 		}
-		builder.append(">")
-	}
-
 }

@@ -50,7 +50,6 @@ import org.objectweb.asm.Opcodes
  * arguments are expected to be in the [Interpreter.argsBuffer].  Set up
  * fresh registers for this chunk, but do not write to them yet.
  *
- *
  * This instruction also occurs at places that a reified continuation can be
  * re-entered, such as returning into it, restarting it, or continuing it after
  * an interrupt has been handled.

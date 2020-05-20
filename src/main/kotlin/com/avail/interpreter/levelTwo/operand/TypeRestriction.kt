@@ -41,6 +41,8 @@ import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import com.avail.descriptor.sets.SetDescriptor.Companion.toSet
 import com.avail.descriptor.types.*
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.*
+import com.avail.descriptor.types.TypeDescriptor.*
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_EQUALS_CONSTANT
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_CONSTANT
 import com.avail.interpreter.levelTwo.register.L2BoxedRegister
@@ -49,7 +51,6 @@ import com.avail.interpreter.levelTwo.register.L2IntRegister
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind
 import com.avail.optimizer.L2Synonym
 import java.util.*
-import java.util.stream.Collectors
 
 /**
  * This mechanism describes a restriction of a type without saying what it's to
@@ -262,11 +263,11 @@ class TypeRestriction private constructor(
 		}
 		val resultExcludedValues: MutableSet<A_BasicObject> = HashSet()
 		// No object has exact type ⊥ or ⊤.
-		resultExcludedValues.add(TypeDescriptor.Types.TOP.o())
+		resultExcludedValues.add(Types.TOP.o())
 		for (v in excludedValues)
 		{
 			resultExcludedValues.add(
-				AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn(v))
+				instanceTypeOrMetaOn(v))
 		}
 		val resultExcludedTypes: MutableSet<A_Type> = HashSet()
 		resultExcludedTypes.add(BottomTypeDescriptor.bottomMeta())
@@ -323,8 +324,7 @@ class TypeRestriction private constructor(
 		for (value in excludedValues)
 		{
 			if (other.excludedValues.contains(value)
-				|| other.excludedTypes.stream().anyMatch { aType: A_Type? ->
-					value.isInstanceOf(aType!!) })
+				|| other.excludedTypes.any { value.isInstanceOf(it) })
 			{
 				newExcludedValues.add(value)
 			}
@@ -471,7 +471,7 @@ class TypeRestriction private constructor(
 			else
 			{
 				testType.equals(
-					AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn(
+					instanceTypeOrMetaOn(
 						constantOrNull))
 			}
 		}
@@ -530,14 +530,11 @@ class TypeRestriction private constructor(
 		{
 			return false
 		}
-		for (excludedType in excludedTypes)
+		if (excludedTypes.any(intersectedType::isSubtypeOf))
 		{
-			if (intersectedType.isSubtypeOf(excludedType))
-			{
-				// Even though the bare types intersect, the intersection was
-				// explicitly excluded by the restriction.
-				return false
-			}
+			// Even though the bare types intersect, the intersection was
+			// explicitly excluded by the restriction.
+			return false
 		}
 		return !(excludedValues.isNotEmpty()
 				 && intersectedType.isEnumeration
@@ -638,24 +635,16 @@ class TypeRestriction private constructor(
 	 * @return
 	 *   The [A_Set] of possible instances or `null`.
 	 */
-	fun enumerationValuesOrNull(maximumCount: Int): A_Set?
-	{
-		if (maximumCount >= 0 && this === bottomRestriction)
+	fun enumerationValuesOrNull(maximumCount: Int): A_Set? =
+		when
 		{
-			return emptySet()
+			maximumCount >= 0 && this === bottomRestriction -> emptySet()
+			maximumCount >= 1 && constantOrNull != null -> set(constantOrNull)
+			type.isEnumeration && !type.isInstanceMeta
+			   && type.instanceCount().lessOrEqual(fromInt(maximumCount)) ->
+					type.instances()
+			else -> null
 		}
-		if (maximumCount >= 1 && constantOrNull != null)
-		{
-			return set(constantOrNull)
-		}
-		return if (type.isEnumeration
-		   && !type.isInstanceMeta
-		   && type.instanceCount().lessOrEqual(fromInt(maximumCount)))
-		{
-			type.instances()
-		}
-		else null
-	}
 
 	/**
 	 * Answer an [EnumSet] indicating which [RegisterKind]s are present in this
@@ -761,7 +750,7 @@ class TypeRestriction private constructor(
 			return "=" + constant.typeTag().name.replace(
 				"_TAG", "")
 		}
-		return if (!type.equals(TypeDescriptor.Types.TOP.o()))
+		return if (!type.equals(Types.TOP.o()))
 		{
 			":" + (type as AvailObject).typeTag().name
 				.replace("_TAG", "")
@@ -769,57 +758,55 @@ class TypeRestriction private constructor(
 		else ""
 	}
 
-	override fun toString(): String
-	{
-		val builder = StringBuilder()
-		builder.append("restriction(")
-		if (constantOrNull != null)
-		{
-			builder.append("c=")
-			var valueString = constantOrNull.toString()
-			if (valueString.length > 50)
+	override fun toString(): String =
+		buildString {
+			append("restriction(")
+			if (constantOrNull != null)
 			{
-				valueString = valueString.substring(0, 50) + '…'
+				append("c=")
+				var valueString = constantOrNull.toString()
+				if (valueString.length > 50)
+				{
+					valueString = valueString.substring(0, 50) + '…'
+				}
+				valueString = valueString
+					.replace("\n", "\\n")
+					.replace("\t", "\\t")
+				append(valueString)
 			}
-			valueString = valueString
-				.replace("\n", "\\n")
-				.replace("\t", "\\t")
-			builder.append(valueString)
-		}
-		else
-		{
-			builder.append("t=")
-			builder.append(type)
-			if (excludedTypes.isNotEmpty())
+			else
 			{
-				builder.append(", ex.t=")
-				builder.append(excludedTypes)
+				append("t=")
+				append(type)
+				if (excludedTypes.isNotEmpty())
+				{
+					append(", ex.t=")
+					append(excludedTypes)
+				}
+				if (excludedValues.isNotEmpty())
+				{
+					append(", ex.v=")
+					append(excludedValues)
+				}
 			}
-			if (excludedValues.isNotEmpty())
+			if (isImmutable)
 			{
-				builder.append(", ex.v=")
-				builder.append(excludedValues)
+				append(", imm")
 			}
+			if (isBoxed)
+			{
+				append(", box")
+			}
+			if (isUnboxedInt)
+			{
+				append(", int")
+			}
+			if (isUnboxedFloat)
+			{
+				append(", float")
+			}
+			append(")")
 		}
-		if (isImmutable)
-		{
-			builder.append(", imm")
-		}
-		if (isBoxed)
-		{
-			builder.append(", box")
-		}
-		if (isUnboxedInt)
-		{
-			builder.append(", int")
-		}
-		if (isUnboxedFloat)
-		{
-			builder.append(", float")
-		}
-		builder.append(")")
-		return builder.toString()
-	}
 
 	companion object
 	{
@@ -830,9 +817,9 @@ class TypeRestriction private constructor(
 		 * [AvailObject] with a [NilDescriptor] as its descriptor.
 		 */
 		val nilRestriction = TypeRestriction(
-			TypeDescriptor.Types.TOP.o(),
+			Types.TOP.o(),
 			NilDescriptor.nil,
-			setOf(TypeDescriptor.Types.ANY.o()),
+			setOf(Types.ANY.o()),
 			Collections.emptySet(),
 			true,
 			true,
@@ -844,7 +831,7 @@ class TypeRestriction private constructor(
 		 * including [NilDescriptor.nil], and is not known to be immutable.
 		 */
 		val topRestriction = TypeRestriction(
-			TypeDescriptor.Types.TOP.o(),
+			Types.TOP.o(),
 			null,
 			Collections.emptySet(),
 			Collections.emptySet(),
@@ -858,7 +845,7 @@ class TypeRestriction private constructor(
 		 * including [NilDescriptor.nil], but is known to be immutable.
 		 */
 		val topRestrictionImmutable = TypeRestriction(
-			TypeDescriptor.Types.TOP.o(),
+			Types.TOP.o(),
 			null,
 			Collections.emptySet(),
 			Collections.emptySet(),
@@ -873,7 +860,7 @@ class TypeRestriction private constructor(
 		 */
 		@JvmField
 		val anyRestriction = TypeRestriction(
-			TypeDescriptor.Types.ANY.o(),
+			Types.ANY.o(),
 			null,
 			Collections.emptySet(),
 			Collections.emptySet(),
@@ -887,7 +874,7 @@ class TypeRestriction private constructor(
 		 * excluding [NilDescriptor.nil], but it's known to be immutable.
 		 */
 		val anyRestrictionImmutable = TypeRestriction(
-			TypeDescriptor.Types.ANY.o(),
+			Types.ANY.o(),
 			null,
 			Collections.emptySet(),
 			Collections.emptySet(),
@@ -961,85 +948,99 @@ class TypeRestriction private constructor(
 			assert(!givenExcludedTypes.contains(BottomTypeDescriptor.bottom()))
 			givenExcludedTypes.forEach { it.makeImmutable() }
 			givenExcludedValues.forEach { it.makeImmutable() }
-			if (givenConstantOrNull != null)
+			return when
 			{
-				// A constant was specified.  Use it if it satisfies the main type
-				// constraint and isn't specifically excluded, otherwise use the
-				// bottomRestriction, which is the impossible restriction.
-				if (givenConstantOrNull.equalsNil())
+				givenConstantOrNull != null ->
 				{
-					return nilRestriction
-				}
-				assert(givenConstantOrNull.isInstanceOf(givenType))
-				assert(!givenExcludedValues.contains(givenConstantOrNull))
-				assert(givenExcludedTypes.stream().noneMatch { aType: A_Type ->
-					givenConstantOrNull.isInstanceOf(aType)
-				})
-				// No reason to exclude it, so use the constant.  We can safely
-				// omit the excluded types and values as part of canonicalization.
-				return TypeRestriction(
-					AbstractEnumerationTypeDescriptor
-						.instanceTypeOrMetaOn(givenConstantOrNull),
-					givenConstantOrNull,
-					Collections.emptySet(),
-					Collections.emptySet(),
-					flags)
-			}
-
-			// Not a known constant.
-			if (givenExcludedTypes.isEmpty() && givenExcludedValues.isEmpty())
-			{
-				if (givenType.equals(TypeDescriptor.Types.TOP.o()))
-				{
-					return if (flags and RestrictionFlagEncoding.IMMUTABLE.mask != 0)
+					// A constant was specified.  Use it if it satisfies the main type
+					// constraint and isn't specifically excluded, otherwise use the
+					// bottomRestriction, which is the impossible restriction.
+					if (givenConstantOrNull.equalsNil())
 					{
-						topRestrictionImmutable
+						nilRestriction
 					}
 					else
 					{
-						topRestriction
-					}
-				}
-				if (givenType.equals(TypeDescriptor.Types.ANY.o()))
-				{
-					return if (flags and RestrictionFlagEncoding.IMMUTABLE.mask != 0)
-					{
-						anyRestrictionImmutable
-					}
-					else
-					{
-						anyRestriction
-					}
-				}
-				if (givenType.instanceCount().equalsInt(1)
-					&& !givenType.isInstanceMeta)
-				{
-					// This is a non-meta instance type, which should be treated
-					// as a constant restriction.
-					val instance = givenType.instance()
-					return if (instance.isBottom)
-					{
-						// Special case: bottom's type has one instance, bottom.
-						bottomTypeRestriction
-					}
-					else
-					{
+						assert(givenConstantOrNull.isInstanceOf(givenType))
+						assert(!givenExcludedValues.contains(givenConstantOrNull))
+						assert(givenExcludedTypes.stream().noneMatch { aType: A_Type ->
+							givenConstantOrNull.isInstanceOf(aType)
+						})
+						// No reason to exclude it, so use the constant.  We can safely
+						// omit the excluded types and values as part of canonicalization.
 						TypeRestriction(
-							givenType,
-							instance,
+							instanceTypeOrMetaOn(givenConstantOrNull),
+							givenConstantOrNull,
 							Collections.emptySet(),
 							Collections.emptySet(),
 							flags)
 					}
 				}
+				// Not a known constant.
+				givenExcludedTypes.isEmpty() && givenExcludedValues.isEmpty() ->
+				{
+					if (givenType.equals(Types.TOP.o()))
+					{
+						if (flags and RestrictionFlagEncoding.IMMUTABLE.mask != 0)
+						{
+							topRestrictionImmutable
+						}
+						else
+						{
+							topRestriction
+						}
+					}
+					else if (givenType.equals(Types.ANY.o()))
+					{
+						if (flags and RestrictionFlagEncoding.IMMUTABLE.mask != 0)
+						{
+							anyRestrictionImmutable
+						}
+						else
+						{
+							anyRestriction
+						}
+					}
+					else if (givenType.instanceCount().equalsInt(1)
+						&& !givenType.isInstanceMeta)
+					{
+						// This is a non-meta instance type, which should be treated
+						// as a constant restriction.
+						val instance = givenType.instance()
+						if (instance.isBottom)
+						{
+							// Special case: bottom's type has one instance, bottom.
+							bottomTypeRestriction
+						}
+						else
+						{
+							TypeRestriction(
+								givenType,
+								instance,
+								Collections.emptySet(),
+								Collections.emptySet(),
+								flags)
+						}
+					}
+					else
+					{
+						TypeRestriction(
+							givenType,
+							null,
+							givenExcludedTypes,
+							givenExcludedValues,
+							flags)
+					}
+				}
+				else -> TypeRestriction(
+					givenType,
+					null,
+					givenExcludedTypes,
+					givenExcludedValues,
+					flags)
 			}
-			return TypeRestriction(
-				givenType,
-				null,
-				givenExcludedTypes,
-				givenExcludedValues,
-				flags)
 		}
+
 		/**
 		 * Create or reuse an immutable `TypeRestriction`, canonicalizing the
 		 * arguments.
@@ -1130,24 +1131,20 @@ class TypeRestriction private constructor(
 				val instances =
 					toSet(type.instances()).toMutableSet()
 				instances.removeAll(givenExcludedValues)
-				instances.removeIf(
-					{ instance: AvailObject ->
-						givenExcludedTypes.stream()
-							.anyMatch { aType: A_Type ->
-								instance.isInstanceOf(aType)
-							}
-					})
+				instances.removeIf { instance: AvailObject ->
+					givenExcludedTypes.any { aType: A_Type ->
+							instance.isInstanceOf(aType)
+					}
+				}
 				return when (instances.size)
 				{
-					0 ->
-					{
-						bottomRestriction
-					}
+					0 -> bottomRestriction
 					1 ->
 					{
-						val instance: A_BasicObject = instances.iterator().next()
+						val instance: A_BasicObject =
+							instances.iterator().next()
 						fromCanonical(
-							AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn(instance),
+							instanceTypeOrMetaOn(instance),
 							instance,
 							Collections.emptySet(),
 							Collections.emptySet(),
@@ -1155,12 +1152,10 @@ class TypeRestriction private constructor(
 					}
 					else ->
 					{
-
 						// We've already applied the full effect of the excluded
 						// types and values to the given type.
 						TypeRestriction(
-							AbstractEnumerationTypeDescriptor.enumerationWith(
-								setFromCollection(instances)),
+							enumerationWith(setFromCollection(instances)),
 							null,
 							Collections.emptySet(),
 							Collections.emptySet(),
@@ -1197,8 +1192,7 @@ class TypeRestriction private constructor(
 				// mutable.
 				constantOrNull.makeImmutable()
 				return TypeRestriction(
-					AbstractEnumerationTypeDescriptor
-						.instanceTypeOrMetaOn(constantOrNull),
+					instanceTypeOrMetaOn(constantOrNull),
 					constantOrNull,
 					Collections.emptySet(),
 					Collections.emptySet(),
@@ -1206,9 +1200,7 @@ class TypeRestriction private constructor(
 			}
 
 			// Are we excluding the base type?
-			if (givenExcludedTypes.stream().anyMatch { aType: A_Type ->
-					type.isSubtypeOf(aType)
-				})
+			if (givenExcludedTypes.any { type.isSubtypeOf(it) })
 			{
 				return bottomRestriction
 			}
@@ -1217,10 +1209,10 @@ class TypeRestriction private constructor(
 			// types.  Note: this reduction is O(n^2) in the number of excluded
 			// types.  We could use a LookupTree to speed this up.
 			val excludedValues: MutableSet<A_BasicObject> =
-				HashSet(givenExcludedValues)
-			val excludedTypes: MutableSet<A_Type> = givenExcludedTypes.stream()
-				.map { another: A_Type -> type.typeIntersection(another) }
-				.collect(Collectors.toCollection { HashSet<A_Type>() })
+				givenExcludedValues.toMutableSet()
+			val excludedTypes =
+				givenExcludedTypes.map { type.typeIntersection(it) }.toMutableSet()
+
 			excludedTypes.remove(BottomTypeDescriptor.bottom())
 			val iterator = excludedTypes.iterator()
 			iterator.forEachRemaining { t: A_Type ->
@@ -1233,9 +1225,7 @@ class TypeRestriction private constructor(
 						excludedValues.add(v)
 					}
 				}
-				else if (excludedTypes.stream().anyMatch { t2: A_Type ->
-						TypeDescriptor.isProperSubtype(t, t2)
-					})
+				else if (excludedTypes.any { isProperSubtype(t, it) })
 				{
 					iterator.remove()
 				}
@@ -1244,12 +1234,9 @@ class TypeRestriction private constructor(
 			// Eliminate excluded values that are already under an excluded type, or
 			// are not under the given type.
 			excludedValues.removeIf { v: A_BasicObject ->
-				(!v.isInstanceOf(type)
-				 || excludedTypes.stream().anyMatch { aType: A_Type ->
-					v.isInstanceOf(aType)
-				})
+				!v.isInstanceOf(type) || excludedTypes.any { v.isInstanceOf(it) }
 			}
-			return if (type.equals(TypeDescriptor.Types.TOP.o())
+			return if (type.equals(Types.TOP.o())
 					   && excludedTypes.isEmpty()
 					   && excludedValues.isEmpty())
 			{
@@ -1321,12 +1308,11 @@ class TypeRestriction private constructor(
 			return restriction(
 				if (constant.equalsNil())
 				{
-					TypeDescriptor.Types.TOP.o()
+					Types.TOP.o()
 				}
 				else
 				{
-					AbstractEnumerationTypeDescriptor
-						.instanceTypeOrMetaOn(constant)
+					instanceTypeOrMetaOn(constant)
 				},
 				constant,
 				Collections.emptySet(),

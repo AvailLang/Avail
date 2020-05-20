@@ -38,8 +38,8 @@ import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand
-import com.avail.interpreter.levelTwo.operand.TypeRestriction
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.*
 import com.avail.optimizer.L2ValueManifest
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.Label
@@ -86,8 +86,7 @@ object L2_DIVIDE_INT_BY_INT : L2ControlFlowOperation(
 		// On the zeroDivisor edge, the divisor is definitely zero.
 		zeroDivisor.manifest().setRestriction(
 			divisor.semanticValue(),
-			TypeRestriction.restrictionForConstant(
-				zero(), RestrictionFlagEncoding.UNBOXED_INT))
+			restrictionForConstant(zero(), UNBOXED_INT))
 	}
 
 	override fun appendToWithWarnings(

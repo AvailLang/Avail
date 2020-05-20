@@ -33,8 +33,12 @@ package com.avail.interpreter.levelTwo.operation
 
 import com.avail.AvailRuntime
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.tuples.ObjectTupleDescriptor
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.*
 import com.avail.descriptor.types.*
+import com.avail.descriptor.types.FunctionTypeDescriptor.*
+import com.avail.descriptor.types.InstanceMetaDescriptor.*
+import com.avail.descriptor.types.TypeDescriptor.*
+import com.avail.descriptor.types.VariableTypeDescriptor.*
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType
@@ -76,12 +80,11 @@ object L2_GET_INVALID_MESSAGE_RESULT_FUNCTION : L2Operation(
 			instruction.operand<L2WriteBoxedOperand>(0)
 		registerSet.typeAtPut(
 			function.register(),
-			FunctionTypeDescriptor.functionType(
-				ObjectTupleDescriptor.tuple(
-					FunctionTypeDescriptor.mostGeneralFunctionType(),
-					InstanceMetaDescriptor.topMeta(),
-					VariableTypeDescriptor.variableTypeFor(
-						TypeDescriptor.Types.ANY.o())),
+			functionType(
+				tuple(
+					mostGeneralFunctionType(),
+					topMeta(),
+					variableTypeFor(Types.ANY.o())),
 				BottomTypeDescriptor.bottom()),
 			instruction)
 	}

@@ -66,18 +66,7 @@ object L2_CREATE_SET : L2Operation(
 		builder.append(' ')
 		builder.append(set.registerString())
 		builder.append(" ← {")
-		var i = 0
-		val limit = values.elements().size
-		while (i < limit)
-		{
-			if (i > 0)
-			{
-				builder.append(", ")
-			}
-			val element = values.elements()[i]
-			builder.append(element)
-			i++
-		}
+		values.elements().joinTo(builder, ", ")
 		builder.append('}')
 	}
 

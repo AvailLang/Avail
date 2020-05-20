@@ -97,28 +97,18 @@ object L2_JUMP_IF_EQUALS_CONSTANT :
 		val constant =
 			instruction.operand<L2ConstantOperand>(1)
 		val valueOrNull: A_BasicObject? = value.constantOrNull()
-		if (valueOrNull != null)
+		return when
 		{
-			// Compare them right now.
-			return if (valueOrNull.equals(constant.constant))
+			valueOrNull != null && valueOrNull.equals(constant.constant) ->
 			{
 				BranchReduction.AlwaysTaken
 			}
-			else
-			{
-				BranchReduction.NeverTaken
-			}
-		}
-		return if (!constant.constant.isInstanceOf(value.type()))
-		{
+			valueOrNull != null -> BranchReduction.NeverTaken
 			// They can't be equal.
-			BranchReduction.NeverTaken
+			!constant.constant.isInstanceOf(value.type()) ->
+				BranchReduction.NeverTaken
+			else -> BranchReduction.SometimesTaken
 		}
-		else
-		{
-			BranchReduction.SometimesTaken
-		}
-		// Otherwise it's still contingent.
 	}
 
 	override fun appendToWithWarnings(
