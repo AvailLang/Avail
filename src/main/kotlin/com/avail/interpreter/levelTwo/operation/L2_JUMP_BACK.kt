@@ -45,7 +45,6 @@ import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.optimizer.values.L2SemanticValue
 import org.objectweb.asm.MethodVisitor
 import java.util.*
-import java.util.function.Consumer
 
 /**
  * Unconditionally jump to the level two offset in my [L2PcOperand], while also

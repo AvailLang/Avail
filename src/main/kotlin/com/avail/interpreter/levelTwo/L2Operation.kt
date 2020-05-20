@@ -198,10 +198,7 @@ abstract class L2Operation
 		namedOperandTypes = theNamedOperandTypes.clone()
 		assert(this is L2ControlFlowOperation
 			   || this is L2_SAVE_ALL_AND_PC_TO_INT
-			   || Arrays.stream(namedOperandTypes)
-				   .noneMatch { x: L2NamedOperandType ->
-					   x.operandType() == L2OperandType.PC
-				   })
+			   || namedOperandTypes.none { it.operandType() == L2OperandType.PC })
 		jvmTranslationTime = Statistic(
 			name, StatisticReport.L2_TO_JVM_TRANSLATION_TIME)
 	}
@@ -226,10 +223,7 @@ abstract class L2Operation
 		namedOperandTypes = theNamedOperandTypes.clone()
 		assert(this is L2ControlFlowOperation
 			   || this is L2_SAVE_ALL_AND_PC_TO_INT
-			   || Arrays.stream(namedOperandTypes)
-				   .noneMatch { x: L2NamedOperandType ->
-					   x.operandType() == L2OperandType.PC
-				   })
+			   || namedOperandTypes.none { it.operandType() == L2OperandType.PC })
 		jvmTranslationTime = Statistic(
 			name, StatisticReport.L2_TO_JVM_TRANSLATION_TIME)
 	}

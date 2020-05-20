@@ -40,8 +40,6 @@ import com.avail.optimizer.L2BasicBlock
 import com.avail.optimizer.L2ValueManifest
 import com.avail.utility.PublicCloneable
 import com.avail.utility.Strings.increaseIndentation
-import java.util.function.Consumer
-import java.util.function.UnaryOperator
 import javax.annotation.OverridingMethodsMustInvokeSuper
 
 /**
@@ -182,11 +180,11 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 	}
 
 	/**
-	 * Transform each L2ReadOperand through the given [UnaryOperator], producing
-	 * either a new `L2Operand` of the same type, or the receiver.
+	 * Transform each L2ReadOperand through the given lambda, producing either a
+	 * new `L2Operand` of the same type, or the receiver.
 	 *
 	 * @param transformer
-	 *   The [UnaryOperator] to transform [L2ReadOperand]s.
+	 *   The lambda to transform [L2ReadOperand]s.
 	 * @return
 	 *   The transformed operand or the receiver.
 	 */
@@ -249,7 +247,7 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 	/**
 	 * Append a textual representation of this operand to the provided
 	 * [StringBuilder].  If a style change is appropriate while building the
-	 * string, invoke the warningStyleChange [Consumer] with `true` to enable
+	 * string, invoke the warningStyleChange lambda with `true` to enable
 	 * the warning style, and `false` to turn it off again.
 	 *
 	 * @param builder
@@ -257,7 +255,7 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 	 * @param indent
 	 *   How much additional indentation to add to successive lines.
 	 * @param warningStyleChange
-	 *   A [Consumer] to invoke to turn the warning style on or off, with a
+	 *   A lambda to invoke to turn the warning style on or off, with a
 	 *   mechanism specified (or ignored) by the caller.
 	 */
 	fun appendWithWarningsTo(

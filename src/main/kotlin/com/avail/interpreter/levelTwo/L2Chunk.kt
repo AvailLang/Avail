@@ -69,7 +69,6 @@ import java.util.concurrent.locks.ReadWriteLock
 import java.util.concurrent.locks.ReentrantLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.logging.Level
-import java.util.stream.Collectors
 import javax.annotation.concurrent.GuardedBy
 
 /**
@@ -263,9 +262,7 @@ class L2Chunk private constructor(
 						}
 						// Remove empty generations that would otherwise be kept.
 						val toKeep =
-							generations.stream()
-								.filter { g: Generation -> g.chunks.isNotEmpty() }
-								.collect(Collectors.toList())
+							generations.filter { it.chunks.isNotEmpty() }
 						generations.clear()
 						generations.addAll(toKeep)
 						if (chunksToInvalidate.isNotEmpty())
@@ -343,9 +340,7 @@ class L2Chunk private constructor(
 						if (generations.size > maximumTotalChunkCount)
 						{
 							val nonemptyGenerations =
-								generations.stream()
-									.filter { g: Generation -> g.chunks.isNotEmpty() }
-									.collect(Collectors.toList())
+								generations.filter { it.chunks.isNotEmpty() }
 							generations.clear()
 							generations.addAll(nonemptyGenerations)
 						}

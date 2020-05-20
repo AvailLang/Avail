@@ -331,8 +331,7 @@ class TypeRestriction private constructor(
 		}
 		for (value in other.excludedValues)
 		{
-			if (excludedTypes.stream().anyMatch { aType: A_Type? ->
-					value.isInstanceOf(aType!!) })
+			if (excludedTypes.any { value.isInstanceOf(it) })
 			{
 				newExcludedValues.add(value)
 			}
@@ -713,8 +712,7 @@ class TypeRestriction private constructor(
 		// I have to exclude at least every type excluded by the argument.
 		for (otherExcludedType in other.excludedTypes)
 		{
-			if (excludedTypes.stream().noneMatch { aType: A_Type ->
-					otherExcludedType.isSubtypeOf(aType) })
+			if (excludedTypes.none { otherExcludedType.isSubtypeOf(it) })
 			{
 				return false
 			}
@@ -723,8 +721,7 @@ class TypeRestriction private constructor(
 		for (otherExcludedValue in other.excludedValues)
 		{
 			if (!excludedValues.contains(otherExcludedValue)
-				&& excludedTypes.stream().noneMatch { aType: A_Type ->
-					otherExcludedValue.isInstanceOf(aType) })
+				&& excludedTypes.none { otherExcludedValue.isInstanceOf(it) })
 			{
 				return false
 			}
@@ -963,9 +960,8 @@ class TypeRestriction private constructor(
 					{
 						assert(givenConstantOrNull.isInstanceOf(givenType))
 						assert(!givenExcludedValues.contains(givenConstantOrNull))
-						assert(givenExcludedTypes.stream().noneMatch { aType: A_Type ->
-							givenConstantOrNull.isInstanceOf(aType)
-						})
+						assert(givenExcludedTypes
+							   .none { givenConstantOrNull.isInstanceOf(it) })
 						// No reason to exclude it, so use the constant.  We can safely
 						// omit the excluded types and values as part of canonicalization.
 						TypeRestriction(

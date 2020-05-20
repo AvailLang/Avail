@@ -47,6 +47,7 @@ import com.avail.descriptor.tuples.ObjectTupleDescriptor
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor
 import com.avail.descriptor.types.BottomTypeDescriptor
+import com.avail.descriptor.types.BottomTypeDescriptor.*
 import com.avail.descriptor.types.TypeDescriptor
 import com.avail.exceptions.AvailErrorCode.*
 import com.avail.exceptions.AvailException.Companion.numericCodeMethod
@@ -72,7 +73,6 @@ import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 import java.util.*
 import java.util.logging.Level
-import java.util.stream.Collectors
 
 /**
  * Look up the method to invoke. Use the provided vector of argument types to
@@ -142,10 +142,11 @@ object L2_LOOKUP_BY_TYPES : L2ControlFlowOperation(
 		{
 			val numArgs = argumentTypeRegs.size
 			val functions: Set<A_Function> = toSet(functionType.instances())
-			val argumentTupleUnionType = functions.stream()
-				.map { f: A_Function -> f.code().functionType().argsTupleType() }
-				.reduce { obj: A_Type, another: A_Type -> obj.typeUnion(another) }
-				.orElse(BottomTypeDescriptor.bottom()) // impossible
+			val argumentTupleUnionType =
+				functions.fold(bottom()) { union, function ->
+					union.typeUnion(
+						function.code().functionType().argsTupleType())
+				}
 			for (i in 1 .. numArgs)
 			{
 				val argumentUnion = argumentTupleUnionType.typeAtIndex(i)
@@ -185,7 +186,7 @@ object L2_LOOKUP_BY_TYPES : L2ControlFlowOperation(
 		// TODO MvG Should be removed?
 		val numArgs = argTypeRegs.elements().size // TODO MvG Should be removed?
 
-		val argRestrictions = argTypeRegs.elements().stream()
+		val argRestrictions = argTypeRegs.elements()
 			.map { argRegister: L2ReadBoxedOperand ->
 				if (registerSet.hasTypeAt(argRegister.register()))
 				{
@@ -199,8 +200,7 @@ object L2_LOOKUP_BY_TYPES : L2ControlFlowOperation(
 			.map { type: A_Type ->
 				TypeRestriction.restrictionForType(
 					type, RestrictionFlagEncoding.BOXED)
-			}
-			.collect(Collectors.toList())
+			}.toList()
 		// Figure out what could be invoked at runtime given these argument
 		// type constraints.
 		val possibleFunctions: MutableList<A_Function> = ArrayList()

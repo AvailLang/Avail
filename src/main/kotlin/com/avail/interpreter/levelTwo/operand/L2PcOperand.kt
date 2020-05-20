@@ -55,7 +55,6 @@ import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 import java.util.*
 import java.util.concurrent.atomic.LongAdder
-import java.util.function.Consumer
 
 /**
  * An `L2PcOperand` is an operand of type [L2OperandType.PC].
