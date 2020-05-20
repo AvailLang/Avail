@@ -47,20 +47,9 @@ import static org.objectweb.asm.Type.getDescriptor;
 import static org.objectweb.asm.Type.getInternalName;
 
 /**
- * A helper class for referring to a field.  It verifies at construction
- * time that the referenced field is marked with the
- * {@link ReferencedInGeneratedCode} annotation, and that the specified type
- * agrees.  When it generates a read (getfield/getstatic) or write
- * (putfield/putstatic),, it uses the appropriate instruction.  It substitutes a
- * literal if the field is final, and forbids generating a write to it.
+ * A helper class for referring to a field.  It verifies at construction time that the referenced field is marked with the {@link ReferencedInGeneratedCode} annotation, and that the specified type agrees.  When it generates a read (getfield/getstatic) or write (putfield/putstatic),, it uses the appropriate instruction.  It substitutes a literal if the field is final, and forbids generating a write to it.
  *
- * <p>The main power this class brings is the ability to check the type
- * signature prior to code generation, rather than have the JVM verifier be
- * the failure point.  It also fails early if the referenced field isn't
- * marked with {@link ReferencedInGeneratedCode}, helping to keep critical
- * fields from changing or disappearing under maintenance.  It also keeps
- * field names out of the code generator, making it easier to find the real
- * uses of fields in generator code.</p>
+ * <p>The main power this class brings is the ability to check the type signature prior to code generation, rather than have the JVM verifier be the failure point.  It also fails early if the referenced field isn't marked with {@link ReferencedInGeneratedCode}, helping to keep critical fields from changing or disappearing under maintenance.  It also keeps field names out of the code generator, making it easier to find the real uses of fields in generator code.</p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -68,14 +57,16 @@ import static org.objectweb.asm.Type.getInternalName;
 public final class CheckedField
 {
 	/**
-	 * Create a {@code CheckedField} for accessing an instance field that has
-	 * been annotated with {@link ReferencedInGeneratedCode}, failing if there
-	 * is a problem.
+	 * Create a {@code CheckedField} for accessing an instance field that has been annotated with {@link ReferencedInGeneratedCode}, failing if there is a problem.
 	 *
-	 * @param receiverClass The type of the object containing the field.
-	 * @param fieldName The name of the field.
-	 * @param fieldClass The type of the field.
-	 * @return The {@code CheckedField}.
+	 * @param receiverClass
+	 * The type of the object containing the field.
+	 * @param fieldName
+	 * The name of the field.
+	 * @param fieldClass
+	 * The type of the field.
+	 * @return
+	 * The {@code CheckedField}.
 	 */
 	public static CheckedField instanceField (
 		final Class<?> receiverClass,
@@ -91,14 +82,16 @@ public final class CheckedField
 	}
 
 	/**
-	 * Create a {@code CheckedField} for accessing a static field that has been
-	 * annotated with {@link ReferencedInGeneratedCode}, failing if there is a
-	 * problem.
+	 * Create a {@code CheckedField} for accessing a static field that has been annotated with {@link ReferencedInGeneratedCode}, failing if there is a problem.
 	 *
-	 * @param receiverClass The type defining the static field.
-	 * @param fieldName The name of the static field.
-	 * @param fieldClass The type of the field.
-	 * @return The {@code CheckedField}.
+	 * @param receiverClass
+	 * The type defining the static field.
+	 * @param fieldName
+	 * The name of the static field.
+	 * @param fieldClass
+	 * The type of the field.
+	 * @return
+	 * The {@code CheckedField}.
 	 */
 	public static CheckedField staticField (
 		final Class<?> receiverClass,
@@ -114,16 +107,16 @@ public final class CheckedField
 	}
 
 	/**
-	 * Create a {@code CheckedField} for accessing an {@code enum} instance that
-	 * has been annotated with {@link ReferencedInGeneratedCode}, failing if
-	 * there is a problem.
+	 * Create a {@code CheckedField} for accessing an {@code enum} instance that has been annotated with {@link ReferencedInGeneratedCode}, failing if there is a problem.
 	 *
-	 * @param <T> The {@code enum} type.
-	 * @param enumInstance The {@code enum} value.
-	 * @return The {@code CheckedField}.
+	 * @param T
+	 * The {@code enum} type.
+	 * @param enumInstance
+	 * The {@code enum} value.
+	 * @return
+	 * The {@code CheckedField}.
 	 */
-	public static <T extends Enum<T>> CheckedField enumField (
-		final T enumInstance)
+	public static <T extends Enum<T>> CheckedField enumField (final T enumInstance)
 	{
 		final Class<?> enumClass = enumInstance.getDeclaringClass();
 		return new CheckedField(
@@ -135,14 +128,16 @@ public final class CheckedField
 	}
 
 	/**
-	 * Create a {@code CheckedField} for accessing an instance field that has
-	 * not been annotated with {@link ReferencedInGeneratedCode}, failing if
-	 * there is a problem.
+	 * Create a {@code CheckedField} for accessing an instance field that has not been annotated with {@link ReferencedInGeneratedCode}, failing if there is a problem.
 	 *
-	 * @param receiverClass The type of the object containing the field.
-	 * @param fieldName The name of the field.
-	 * @param fieldClass The type of the field.
-	 * @return The {@code CheckedField}.
+	 * @param receiverClass
+	 * The type of the object containing the field.
+	 * @param fieldName
+	 * The name of the field.
+	 * @param fieldClass
+	 * The type of the field.
+	 * @return
+	 * The {@code CheckedField}.
 	 */
 	public static CheckedField javaLibraryInstanceField (
 		final Class<?> receiverClass,
@@ -158,14 +153,16 @@ public final class CheckedField
 	}
 
 	/**
-	 * Create a {@code CheckedField} for accessing a static field that has not
-	 * been annotated with {@link ReferencedInGeneratedCode}, failing if there
-	 * is a problem.
+	 * Create a {@code CheckedField} for accessing a static field that has not been annotated with {@link ReferencedInGeneratedCode}, failing if there is a problem.
 	 *
-	 * @param receiverClass The type defining the static field.
-	 * @param fieldName The name of the static field.
-	 * @param fieldClass The type of the field.
-	 * @return The {@code CheckedField}.
+	 * @param receiverClass
+	 * The type defining the static field.
+	 * @param fieldName
+	 * The name of the static field.
+	 * @param fieldClass
+	 * The type of the field.
+	 * @return
+	 * The {@code CheckedField}.
 	 */
 	public static CheckedField javaLibraryStaticField (
 		final Class<?> receiverClass,
@@ -181,16 +178,18 @@ public final class CheckedField
 	}
 
 	/**
-	 * Create a {@code CheckedMethod}, reflecting as needed to verify and
-	 * precompute as much as possible.
+	 * Create a {@code CheckedMethod}, reflecting as needed to verify and precompute as much as possible.
 	 *
 	 * @param verifyAnnotation
-	 *        Whether to look for the {@link ReferencedInGeneratedCode}
-	 *        annotation.
-	 * @param isStatic Whether the field is expected to be static.
-	 * @param receiverClass The class in which the field should be found.
-	 * @param fieldName The name of the field.
-	 * @param fieldClass The type of the field.
+	 *        Whether to look for the {@link ReferencedInGeneratedCode} annotation.
+	 * @param isStatic
+	 * Whether the field is expected to be static.
+	 * @param receiverClass
+	 * The class in which the field should be found.
+	 * @param fieldName
+	 * The name of the field.
+	 * @param fieldClass
+	 * The type of the field.
 	 */
 	private CheckedField (
 		final boolean verifyAnnotation,
@@ -268,7 +267,8 @@ public final class CheckedField
 	 * Emit a read of this field.  The receiver, if this is not static, must
 	 * already be on the stack.
 	 *
-	 * @param methodVisitor Which {@link MethodVisitor} to emit the read into.
+	 * @param methodVisitor
+	 * Which {@link MethodVisitor} to emit the read into.
 	 */
 	public void generateRead (
 		final MethodVisitor methodVisitor)
@@ -300,11 +300,10 @@ public final class CheckedField
 
 
 	/**
-	 * Emit a write of this field for the given {@link JVMTranslator} and
-	 * {@link MethodVisitor}.  The receiver, if any, and the new field value
-	 * must already be on the stack.  Fail right away if the field is final.
+	 * Emit a write of this field for the given {@link JVMTranslator} and {@link MethodVisitor}.  The receiver, if any, and the new field value must already be on the stack.  Fail right away if the field is final.
 	 *
-	 * @param methodVisitor Which {@link MethodVisitor} to emit the read into.
+	 * @param methodVisitor
+	 * Which {@link MethodVisitor} to emit the read into.
 	 */
 	public void generateWrite (
 		final MethodVisitor methodVisitor)

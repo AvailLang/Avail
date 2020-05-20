@@ -94,11 +94,7 @@ import static org.objectweb.asm.Opcodes.*;
 import static org.objectweb.asm.Type.*;
 
 /**
- * A {@code JVMTranslator} converts a single {@link L2Chunk} into a {@link
- * JVMChunk} in a naive fashion. Instruction selection is optimized, but no
- * other optimizations are attempted; all significant optimizations should occur
- * on the {@code L2Chunk}'s {@link L2ControlFlowGraph control flow graph} and be
- * reflected in the {@code L2Chunk} to be translated.
+ * A {@code JVMTranslator} converts a single {@link L2Chunk} into a {@link JVMChunk} in a naive fashion. Instruction selection is optimized, but no other optimizations are attempted; all significant optimizations should occur on the {@code L2Chunk}'s {@link L2ControlFlowGraph control flow graph} and be reflected in the {@code L2Chunk} to be translated.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -116,8 +112,7 @@ public final class JVMTranslator
 	private final @Nullable String sourceFileName;
 
 	/**
-	 * The {@link L2ControlFlowGraph} containing the instructions that are
-	 * translated to JVM bytecodes.
+	 * The {@link L2ControlFlowGraph} containing the instructions that are translated to JVM bytecodes.
 	 */
 	private final L2ControlFlowGraph controlFlowGraph;
 
@@ -125,15 +120,12 @@ public final class JVMTranslator
 	public final L2Instruction[] instructions;
 
 	/**
-	 * The {@link ClassWriter} responsible for writing the {@link JVMChunk}
-	 * subclass. The {@code ClassWriter} is configured to automatically compute
-	 * stack map frames and method limits (e.g., stack depths).
+	 * The {@link ClassWriter} responsible for writing the {@link JVMChunk} subclass. The {@code ClassWriter} is configured to automatically compute stack map frames and method limits (e.g., stack depths).
 	 */
 	final ClassWriter classWriter;
 
 	/**
-	 * The name of the generated class, formed from a {@link UUID} to ensure
-	 * that no collisions occur.
+	 * The name of the generated class, formed from a {@link UUID} to ensure that no collisions occur.
 	 */
 	public final String className;
 
@@ -153,15 +145,13 @@ public final class JVMTranslator
 		Pattern.compile("\\[(\\d+)]");
 
 	/**
-	 * A regex {@link Pattern} to strip out leading and trailing quotes from
-	 * a potential class name.
+	 * A regex {@link Pattern} to strip out leading and trailing quotes from a potential class name.
 	 */
 	private static final Pattern classNameUnquoter =
 		Pattern.compile("^[\"](.*)[\"]([^\"]*)$");
 
 	/**
-	 * A regex {@link Pattern} to find runs of characters that are forbidden in
-	 * a class name, and will be replaced with a single {@code '%'}.
+	 * A regex {@link Pattern} to find runs of characters that are forbidden in a class name, and will be replaced with a single {@code '%'}.
 	 */
 	private static final Pattern classNameForbiddenCharacters =
 		Pattern.compile("[\\[\\]\\\\/.:;\"'\\p{Cntrl}]+");
@@ -172,8 +162,7 @@ public final class JVMTranslator
 
 	/**
 	 * Whether to emit JVM instructions to invoke
-	 * {@link Interpreter#traceL2(ExecutableChunk, int, String, Object)} before
-	 * each {@link L2Instruction}.
+	 * {@link Interpreter#traceL2(ExecutableChunk, int, String, Object)} before each {@link L2Instruction}.
 	 */
 	public static final boolean callTraceL2AfterEveryInstruction = false;
 
@@ -182,14 +171,11 @@ public final class JVMTranslator
 	 * {@link L2Instruction}s to a {@link JVMChunk}.
 	 *
 	 * @param code
-	 *        The source {@linkplain A_RawFunction L1 code}, or {@code null} for
-	 *        the {@linkplain L2Chunk#unoptimizedChunk unoptimized chunk}.
+	 *        The source {@linkplain A_RawFunction L1 code}, or {@code null} for the {@linkplain L2Chunk#unoptimizedChunk unoptimized chunk}.
 	 * @param sourceFileName
-	 *        The name of the Avail source file that produced the {@link #code}.
-	 *        Use {@code null} if no such file exists.
+	 *        The name of the Avail source file that produced the {@link #code}. Use {@code null} if no such file exists.
 	 * @param controlFlowGraph
-	 *        The {@link L2ControlFlowGraph} which produced the sequence of
-	 *        instructions.
+	 *        The {@link L2ControlFlowGraph} which produced the sequence of instructions.
 	 * @param chunkName
 	 *        The descriptive (non-unique) name of the chunk being translated.
 	 * @param instructions
@@ -237,53 +223,29 @@ public final class JVMTranslator
 	}
 
 	/**
-	 * The {@link L2Instruction#isEntryPoint() entry points} into the
-	 * {@link L2Chunk}, mapped to their {@link Label}s.
+	 * The {@link L2Instruction#isEntryPoint() entry points} into the {@link L2Chunk}, mapped to their {@link Label}s.
 	 */
 	private final Map<Integer, Label> entryPoints = new LinkedHashMap<>();
 
 	/**
-	 * As the code is being generated and we encounter an
-	 * {@link L2_SAVE_ALL_AND_PC_TO_INT}, we examine its corresponding target
-	 * block to figure out which registers actually have to be captured at the
-	 * save, and restored at the {@link L2_ENTER_L2_CHUNK}.  At that point, we
-	 * look up the <em>local numbers</em> from the {@link JVMTranslator} and
-	 * record them by {@link RegisterKind} in this field.
+	 * As the code is being generated and we encounter an {@link L2_SAVE_ALL_AND_PC_TO_INT}, we examine its corresponding target block to figure out which registers actually have to be captured at the save, and restored at the {@link L2_ENTER_L2_CHUNK}.  At that point, we look up the <em>local numbers</em> from the {@link JVMTranslator} and record them by {@link RegisterKind} in this field.
 	 *
-	 * <p>During optimization, an edge from an {@link L2_SAVE_ALL_AND_PC_TO_INT}
-	 * to its target {@link L2_ENTER_L2_CHUNK} is treated as though the jump
-	 * happens immediately, so that liveness information can be kept accurate.
-	 * The final code generation knows better, and simply saves and restores the
-	 * locals that back registers that are considered live across this gap.</p>
+	 * <p>During optimization, an edge from an {@link L2_SAVE_ALL_AND_PC_TO_INT} to its target {@link L2_ENTER_L2_CHUNK} is treated as though the jump happens immediately, so that liveness information can be kept accurate. The final code generation knows better, and simply saves and restores the locals that back registers that are considered live across this gap.</p>
 	 *
-	 * <p>The key of this map is the target {@link L2_ENTER_L2_CHUNK}
-	 * instruction, and the value is a map from {@link RegisterKind} to the
-	 * {@link List} of live <em>local numbers</em>.
+	 * <p>The key of this map is the target {@link L2_ENTER_L2_CHUNK} instruction, and the value is a map from {@link RegisterKind} to the {@link List} of live <em>local numbers</em>.
 	 */
 	public final Map<L2Instruction, EnumMap<RegisterKind, List<Integer>>>
 		liveLocalNumbersByKindPerEntryPoint = new HashMap<>();
 
 	/**
-	 * We're at a point where reification has been requested.  A
-	 * {@link StackReifier} has already been stashed in the {@link Interpreter},
-	 * and already-popped calls may have already queued actions in the reifier,
-	 * to be executed in reverse order.
+	 * We're at a point where reification has been requested.  A {@link StackReifier} has already been stashed in the {@link Interpreter}, and already-popped calls may have already queued actions in the reifier, to be executed in reverse order.
 	 *
-	 * <p>First, we stash the live registers in a bogus continuation that will
-	 * resume at the specified target (onReification's target), which must be an
-	 * {@link L2_ENTER_L2_CHUNK}. Then we create an action to invoke that
-	 * continuation, and push that action onto the current StackReifier's action
-	 * stack. Finally, we exit with the current reifier. When the
-	 * {@link L2_ENTER_L2_CHUNK} is reached later, it will restore the registers
-	 * and continue constructing the real continuation, with the knowledge that
-	 * the {@link Interpreter#getReifiedContinuation()} represents the
-	 * caller.</p>
+	 * <p>First, we stash the live registers in a bogus continuation that will resume at the specified target (onReification's target), which must be an {@link L2_ENTER_L2_CHUNK}. Then we create an action to invoke that continuation, and push that action onto the current StackReifier's action stack. Finally, we exit with the current reifier. When the {@link L2_ENTER_L2_CHUNK} is reached later, it will restore the registers and continue constructing the real continuation, with the knowledge that the {@link Interpreter#getReifiedContinuation()} represents the caller.</p>
 	 *
 	 * @param method
 	 *        The JVM method being written.
 	 * @param onReification
-	 *        Where to jump to after everything below this frame has been fully
-	 *        reified.
+	 *        Where to jump to after everything below this frame has been fully reified.
 	 */
 	public void generateReificationPreamble (
 		final MethodVisitor method,
@@ -313,32 +275,24 @@ public final class JVMTranslator
 	}
 
 	/**
-	 * A {@code LiteralAccessor} aggregates means of accessing a literal {@link
-	 * Object} in various contexts.
+	 * A {@code LiteralAccessor} aggregates means of accessing a literal {@link Object} in various contexts.
 	 *
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
 	static final class LiteralAccessor
 	{
 		/**
-		 * A sentinel value of {@link #classLoaderIndex} that represents no slot
-		 * is needed in the {@link JVMChunkClassLoader}'s {@linkplain
-		 * JVMChunkClassLoader#parameters parameters} array.
+		 * A sentinel value of {@link #classLoaderIndex} that represents no slot is needed in the {@link JVMChunkClassLoader}'s {@linkplain JVMChunkClassLoader#parameters parameters} array.
 		 */
 		static final int invalidIndex = -1;
 
 		/**
-		 * The index into the {@link JVMChunkClassLoader}'s {@linkplain
-		 * JVMChunkClassLoader#parameters parameters} array at which the
-		 * corresponding literal is located, or {@link #invalidIndex} if no slot
-		 * is required.
+		 * The index into the {@link JVMChunkClassLoader}'s {@linkplain JVMChunkClassLoader#parameters parameters} array at which the corresponding literal is located, or {@link #invalidIndex} if no slot is required.
 		 */
 		public final int classLoaderIndex;
 
 		/**
-		 * The name of the {@code private static final} field of the generated
-		 * {@link JVMChunk} subclass in which the corresponding AvailObject is
-		 * located, or {@code null} if no field is required.
+		 * The name of the {@code private static final} field of the generated {@link JVMChunk} subclass in which the corresponding AvailObject is located, or {@code null} if no field is required.
 		 */
 		final @Nullable String fieldName;
 
@@ -349,10 +303,7 @@ public final class JVMTranslator
 		final Consumer<MethodVisitor> getter;
 
 		/**
-		 * The {@link Consumer} that generates storage of the literal when
-		 * {@linkplain Consumer#accept(Object) evaluated}, or {@code null} if
-		 * no such facility is required. The generated code assumes that the
-		 * value to install is on top of the stack.
+		 * The {@link Consumer} that generates storage of the literal when {@linkplain Consumer#accept(Object) evaluated}, or {@code null} if no such facility is required. The generated code assumes that the value to install is on top of the stack.
 		 */
 		final @Nullable Consumer<MethodVisitor> setter;
 
@@ -360,23 +311,13 @@ public final class JVMTranslator
 		 * Construct a new {@code LiteralAccessor}.
 		 *
 		 * @param classLoaderIndex
-		 *        The index into the {@link JVMChunkClassLoader}'s {@linkplain
-		 *        JVMChunkClassLoader#parameters parameters} array at which the
-		 *        corresponding {@linkplain AvailObject literal} is located,
-		 *        or {@link #invalidIndex} if no slot is required.
+		 *        The index into the {@link JVMChunkClassLoader}'s {@linkplain JVMChunkClassLoader#parameters parameters} array at which the corresponding {@linkplain AvailObject literal} is located, or {@link #invalidIndex} if no slot is required.
 		 * @param fieldName
-		 *        The name of the {@code private static final} field of the
-		 *        generated {@link JVMChunk} subclass in which the corresponding
-		 *        {@linkplain AvailObject literal} is located, or {@code null}
-		 *        if no field is required.
+		 *        The name of the {@code private static final} field of the generated {@link JVMChunk} subclass in which the corresponding {@linkplain AvailObject literal} is located, or {@code null} if no field is required.
 		 * @param getter
-		 *        The {@link Consumer} that generates an access of the literal
-		 *        when {@linkplain Consumer#accept(Object) evaluated}.
+		 *        The {@link Consumer} that generates an access of the literal when {@linkplain Consumer#accept(Object) evaluated}.
 		 * @param setter
-		 *        The {@link Consumer} that generates storage of the literal
-		 *        when {@linkplain Consumer#accept(Object) evaluated}, or
-		 *        {@code null} if no such facility is required. The generated
-		 *        code assumes that the value to install is on top of the stack.
+		 *        The {@link Consumer} that generates storage of the literal when {@linkplain Consumer#accept(Object) evaluated}, or {@code null} if no such facility is required. The generated code assumes that the value to install is on top of the stack.
 		 */
 		LiteralAccessor (
 			final int classLoaderIndex,
@@ -392,9 +333,7 @@ public final class JVMTranslator
 	}
 
 	/**
-	 * The {@linkplain Object literals} used by the {@link L2Chunk} that must be
-	 * embedded into the translated {@link JVMChunk}, mapped to their
-	 * {@linkplain LiteralAccessor accessors}.
+	 * The {@linkplain Object literals} used by the {@link L2Chunk} that must be embedded into the translated {@link JVMChunk}, mapped to their {@linkplain LiteralAccessor accessors}.
 	 */
 	final Map<Object, LiteralAccessor> literals = new HashMap<>();
 
@@ -402,8 +341,7 @@ public final class JVMTranslator
 	 * Emit code to push the specified literal on top of the stack.
 	 *
 	 * @param method
-	 *        The {@linkplain MethodVisitor method} into which the generated JVM
-	 *        instructions will be written.
+	 *        The {@linkplain MethodVisitor method} into which the generated JVM instructions will be written.
 	 * @param object
 	 *        The literal.
 	 */
@@ -414,10 +352,7 @@ public final class JVMTranslator
 	}
 
 	/**
-	 * Throw an {@link UnsupportedOperationException}. It is never valid to
-	 * treat an {@link L2Operand} as a JVM literal, so this method is marked as
-	 * {@linkplain Deprecated} to protect against code cloning and refactoring
-	 * errors by a programmer.
+	 * Throw an {@link UnsupportedOperationException}. It is never valid to treat an {@link L2Operand} as a JVM literal, so this method is marked as {@linkplain Deprecated} to protect against code cloning and refactoring errors by a programmer.
 	 *
 	 * @param method
 	 *        Unused.
@@ -436,10 +371,7 @@ public final class JVMTranslator
 	}
 
 	/**
-	 * Throw an {@link UnsupportedOperationException}. It is never valid to
-	 * treat an {@link L2Register} as a Java literal, so this method is marked
-	 * as {@linkplain Deprecated} to protect against code cloning and
-	 * refactoring errors by a programmer.
+	 * Throw an {@link UnsupportedOperationException}. It is never valid to treat an {@link L2Register} as a Java literal, so this method is marked as {@linkplain Deprecated} to protect against code cloning and refactoring errors by a programmer.
 	 *
 	 * @param method
 	 *        Unused.
@@ -469,7 +401,8 @@ public final class JVMTranslator
 	 *
 	 * @param offset
 	 *        The offset.
-	 * @return The requested {@code Label}.
+	 * @return
+	 * The requested {@code Label}.
 	 */
 	public Label labelFor (final int offset)
 	{
@@ -479,8 +412,7 @@ public final class JVMTranslator
 	/**
 	 * The mapping of registers to locals, partitioned by kind.
 	 *
-	 * The {@link L2Register}s used by the {@link L2Chunk}, mapped to their
-	 * JVM local indices.
+	 * The {@link L2Register}s used by the {@link L2Chunk}, mapped to their JVM local indices.
 	 */
 	final EnumMap<RegisterKind, Map<Integer, Integer>> locals =
 		Arrays.stream(RegisterKind.values()).collect(
@@ -502,7 +434,8 @@ public final class JVMTranslator
 	 *
 	 * @param type
 	 *        The {@linkplain Type type} of the local.
-	 * @return A JVM local.
+	 * @return
+	 * A JVM local.
 	 */
 	public int nextLocal (final Type type)
 	{
@@ -516,8 +449,10 @@ public final class JVMTranslator
 	 * Answer the JVM local number for this register.  This is the position
 	 * within the actual JVM stack frame layout.
 	 *
-	 * @param register The {@link L2Register}
-	 * @return Its position in the JVM frame.
+	 * @param register
+	 * The {@link L2Register}
+	 * @return
+	 * Its position in the JVM frame.
 	 */
 	public int localNumberFromRegister (final L2Register register)
 	{
@@ -525,12 +460,10 @@ public final class JVMTranslator
 	}
 
 	/**
-	 * Generate a load of the local associated with the specified {@link
-	 * L2Register}.
+	 * Generate a load of the local associated with the specified {@link L2Register}.
 	 *
 	 * @param method
-	 *        The {@linkplain MethodVisitor method} into which the generated JVM
-	 *        instructions will be written.
+	 *        The {@linkplain MethodVisitor method} into which the generated JVM instructions will be written.
 	 * @param register
 	 *        A bound {@code L2Register}.
 	 */
@@ -544,13 +477,10 @@ public final class JVMTranslator
 	}
 
 	/**
-	 * Generate a store into the local associated with the specified {@link
-	 * L2Register}. The value to be stored should already be on top of
-	 * the stack and correctly typed.
+	 * Generate a store into the local associated with the specified {@link L2Register}. The value to be stored should already be on top of the stack and correctly typed.
 	 *
 	 * @param method
-	 *        The {@linkplain MethodVisitor method} into which the generated JVM
-	 *        instructions will be written.
+	 *        The {@linkplain MethodVisitor method} into which the generated JVM instructions will be written.
 	 * @param register
 	 *        A bound {@code L2Register}.
 	 */
@@ -567,11 +497,7 @@ public final class JVMTranslator
 	static final Pattern tagEndPattern = Pattern.compile("_TAG$");
 
 	/**
-	 * A {@code JVMTranslationPreparer} acts upon its enclosing {@link
-	 * JVMTranslator} and an {@link L2Operand} to map {@link L2Register}s to JVM
-	 * {@linkplain #nextLocal(Type) locals}, map {@linkplain AvailObject
-	 * literals} to {@code private static final} fields, and map {@linkplain
-	 * L2PcOperand program counters} to {@link Label}s.
+	 * A {@code JVMTranslationPreparer} acts upon its enclosing {@link JVMTranslator} and an {@link L2Operand} to map {@link L2Register}s to JVM {@linkplain #nextLocal(Type) locals}, map {@linkplain AvailObject literals} to {@code private static final} fields, and map {@linkplain L2PcOperand program counters} to {@link Label}s.
 	 *
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
@@ -579,9 +505,7 @@ public final class JVMTranslator
 	implements L2OperandDispatcher
 	{
 		/**
-		 * The next unallocated index into the {@link JVMChunkClassLoader}'s
-		 * {@linkplain JVMChunkClassLoader#parameters parameters} array at which
-		 * a {@linkplain AvailObject literal} will be stored.
+		 * The next unallocated index into the {@link JVMChunkClassLoader}'s {@linkplain JVMChunkClassLoader#parameters parameters} array at which a {@linkplain AvailObject literal} will be stored.
 		 */
 		private int nextClassLoaderIndex = 0;
 
@@ -776,8 +700,7 @@ public final class JVMTranslator
 	}
 
 	/**
-	 * Prepare for JVM translation by {@linkplain JVMTranslationPreparer
-	 * visiting} each of the {@link L2Instruction}s to be translated.
+	 * Prepare for JVM translation by {@linkplain JVMTranslationPreparer visiting} each of the {@link L2Instruction}s to be translated.
 	 */
 	void prepare ()
 	{
@@ -800,13 +723,12 @@ public final class JVMTranslator
 	}
 
 	/**
-	 * Dump a trace of the specified {@linkplain Throwable exception} to an
-	 * appropriately named file.
+	 * Dump a trace of the specified {@linkplain Throwable exception} to an appropriately named file.
 	 *
 	 * @param e
 	 *        The exception.
-	 * @return The absolute path of the resultant file, or {@code null} if the
-	 *         file could not be written.
+	 * @return
+	 * The absolute path of the resultant file, or {@code null} if the file could not be written.
 	 */
 	@SuppressWarnings("UnusedReturnValue")
 	private @Nullable String dumpTraceToFile (final Throwable e)
@@ -846,14 +768,10 @@ public final class JVMTranslator
 	}
 
 	/**
-	 * Finish visiting the {@link MethodVisitor} by calling {@link
-	 * MethodVisitor#visitMaxs(int, int) visitMaxs} and then {@link
-	 * MethodVisitor#visitEnd() visitEnd}. If {@link #debugJVM} is {@code true},
-	 * then an attempt will be made to write out a trace file.
+	 * Finish visiting the {@link MethodVisitor} by calling {@link MethodVisitor#visitMaxs(int, int) visitMaxs} and then {@link MethodVisitor#visitEnd() visitEnd}. If {@link #debugJVM} is {@code true}, then an attempt will be made to write out a trace file.
 	 *
 	 * @param method
-	 *        The {@linkplain MethodVisitor method} into which the generated JVM
-	 *        instructions will be written.
+	 *        The {@linkplain MethodVisitor method} into which the generated JVM instructions will be written.
 	 */
 	private void finishMethod (final MethodVisitor method)
 	{
@@ -878,11 +796,7 @@ public final class JVMTranslator
 	}
 
 	/**
-	 * Generate the {@code static} initializer of the target {@link JVMChunk}.
-	 * The static initializer is responsible for moving any of the {@linkplain
-	 * JVMChunkClassLoader#parameters parameters} of the {@link JVMChunk}
-	 * subclass's {@link JVMChunkClassLoader} into appropriate {@code
-	 * private static final} fields.
+	 * Generate the {@code static} initializer of the target {@link JVMChunk}. The static initializer is responsible for moving any of the {@linkplain JVMChunkClassLoader#parameters parameters} of the {@link JVMChunk} subclass's {@link JVMChunkClassLoader} into appropriate {@code private static final} fields.
 	 */
 	void generateStaticInitializer ()
 	{
@@ -935,7 +849,8 @@ public final class JVMTranslator
 	 * Answer the JVM local for the receiver of a generated implementation of
 	 * {@link JVMChunk#runChunk(Interpreter, int)}.
 	 *
-	 * @return The receiver local.
+	 * @return
+	 * The receiver local.
 	 */
 	private static int receiverLocal ()
 	{
@@ -946,8 +861,7 @@ public final class JVMTranslator
 	 * Generate access of the receiver (i.e., {@code this}).
 	 *
 	 * @param method
-	 *        The {@linkplain MethodVisitor method} into which the generated JVM
-	 *        instructions will be written.
+	 *        The {@linkplain MethodVisitor method} into which the generated JVM instructions will be written.
 	 */
 	@SuppressWarnings({"MethodMayBeStatic", "WeakerAccess"})
 	public void loadReceiver (final MethodVisitor method)
@@ -959,7 +873,8 @@ public final class JVMTranslator
 	 * Answer the JVM local for the {@link Interpreter} formal parameter of a
 	 * generated implementation of {@link JVMChunk#runChunk(Interpreter, int)}.
 	 *
-	 * @return The {@code Interpreter} formal parameter local.
+	 * @return
+	 * The {@code Interpreter} formal parameter local.
 	 */
 	@SuppressWarnings("WeakerAccess")
 	public static int interpreterLocal ()
@@ -968,13 +883,10 @@ public final class JVMTranslator
 	}
 
 	/**
-	 * Generate access to the JVM local for the {@link Interpreter} formal
-	 * parameter of a generated implementation of {@link
-	 * JVMChunk#runChunk(Interpreter, int)}.
+	 * Generate access to the JVM local for the {@link Interpreter} formal parameter of a generated implementation of {@link JVMChunk#runChunk(Interpreter, int)}.
 	 *
 	 * @param method
-	 *        The {@linkplain MethodVisitor method} into which the generated JVM
-	 *        instructions will be written.
+	 *        The {@linkplain MethodVisitor method} into which the generated JVM instructions will be written.
 	 */
 	@SuppressWarnings("MethodMayBeStatic")
 	public void loadInterpreter (final MethodVisitor method)
@@ -983,10 +895,10 @@ public final class JVMTranslator
 	}
 
 	/**
-	 * Answer the JVM local for the {@code offset} formal parameter of a
-	 * generated implementation of {@link JVMChunk#runChunk(Interpreter, int)}.
+	 * Answer the JVM local for the {@code offset} formal parameter of a generated implementation of {@link JVMChunk#runChunk(Interpreter, int)}.
 	 *
-	 * @return The {@code offset} formal parameter local.
+	 * @return
+	 * The {@code offset} formal parameter local.
 	 */
 	@SuppressWarnings({"MethodMayBeStatic", "WeakerAccess"})
 	public int offsetLocal ()
@@ -995,10 +907,10 @@ public final class JVMTranslator
 	}
 
 	/**
-	 * Answer the JVM local for the {@link StackReifier} local variable of a
-	 * generated implementation of {@link JVMChunk#runChunk(Interpreter, int)}.
+	 * Answer the JVM local for the {@link StackReifier} local variable of a generated implementation of {@link JVMChunk#runChunk(Interpreter, int)}.
 	 *
-	 * @return The {@code StackReifier} local.
+	 * @return
+	 * The {@code StackReifier} local.
 	 */
 	@SuppressWarnings("MethodMayBeStatic")
 	public int reifierLocal ()
@@ -1011,8 +923,7 @@ public final class JVMTranslator
 	 * {@link MethodVisitor}.
 	 *
 	 * @param method
-	 *        The {@linkplain MethodVisitor method} into which the generated JVM
-	 *        instructions will be written.
+	 *        The {@linkplain MethodVisitor method} into which the generated JVM instructions will be written.
 	 * @param value
 	 *        The {@code int}.
 	 */
@@ -1066,8 +977,7 @@ public final class JVMTranslator
 	 * {@link MethodVisitor}.
 	 *
 	 * @param method
-	 *        The {@linkplain MethodVisitor method} into which the generated JVM
-	 *        instructions will be written.
+	 *        The {@linkplain MethodVisitor method} into which the generated JVM instructions will be written.
 	 * @param value
 	 *        The {@code long}.
 	 */
@@ -1100,8 +1010,7 @@ public final class JVMTranslator
 	 * {@link MethodVisitor}.
 	 *
 	 * @param method
-	 *        The {@linkplain MethodVisitor method} into which the generated JVM
-	 *        instructions will be written.
+	 *        The {@linkplain MethodVisitor method} into which the generated JVM instructions will be written.
 	 * @param value
 	 *        The {@code float}.
 	 */
@@ -1143,8 +1052,7 @@ public final class JVMTranslator
 	 * {@link MethodVisitor}.
 	 *
 	 * @param method
-	 *        The {@linkplain MethodVisitor method} into which the generated JVM
-	 *        instructions will be written.
+	 *        The {@linkplain MethodVisitor method} into which the generated JVM instructions will be written.
 	 * @param value
 	 *        The {@code double}.
 	 */
@@ -1191,12 +1099,10 @@ public final class JVMTranslator
 	}
 
 	/**
-	 * Emit code to store each of the {@link L2BoxedRegister}s into a new
-	 * array. Leave the new array on top of the stack.
+	 * Emit code to store each of the {@link L2BoxedRegister}s into a new array. Leave the new array on top of the stack.
 	 *
 	 * @param method
-	 *        The {@linkplain MethodVisitor method} into which the generated JVM
-	 *        instructions will be written.
+	 *        The {@linkplain MethodVisitor method} into which the generated JVM instructions will be written.
 	 * @param operands
 	 *        The {@link L2ReadBoxedOperand}s that hold the registers.
 	 * @param arrayClass
@@ -1229,13 +1135,12 @@ public final class JVMTranslator
 	}
 
 	/**
-	 * Answer the JVM branch {@linkplain Opcodes opcode} with the reversed
-	 * sense.
+	 * Answer the JVM branch {@linkplain Opcodes opcode} with the reversed sense.
 	 *
 	 * @param opcode
-	 *        The JVM opcode, e.g., {@link Opcodes#IFEQ}, that decides between
-	 *        the two branch targets.
-	 * @return The branch opcode with the reversed sense.
+	 *        The JVM opcode, e.g., {@link Opcodes#IFEQ}, that decides between the two branch targets.
+	 * @return
+	 * The branch opcode with the reversed sense.
 	 */
 	@SuppressWarnings({"MethodMayBeStatic", "WeakerAccess"})
 	public int reverseOpcode (final int opcode)
@@ -1300,12 +1205,10 @@ public final class JVMTranslator
 	}
 
 	/**
-	 * Emit code to unconditionally branch to the specified {@linkplain
-	 * L2PcOperand program counter}.
+	 * Emit code to unconditionally branch to the specified {@linkplain L2PcOperand program counter}.
 	 *
 	 * @param method
-	 *        The {@linkplain MethodVisitor method} into which the generated JVM
-	 *        instructions will be written.
+	 *        The {@linkplain MethodVisitor method} into which the generated JVM instructions will be written.
 	 * @param instruction
 	 *        The {@link L2Instruction} that includes the operand.
 	 * @param operand
@@ -1326,29 +1229,23 @@ public final class JVMTranslator
 	}
 
 	/**
-	 * Emit code to conditionally branch to one of the specified {@linkplain
-	 * L2PcOperand program counters}.
+	 * Emit code to conditionally branch to one of the specified
+	 * {@linkplain L2PcOperand program counters}.
 	 *
 	 * @param method
-	 *        The {@linkplain MethodVisitor method} into which the generated JVM
-	 *        instructions will be written.
+	 *        The {@linkplain MethodVisitor method} into which the generated JVM instructions will be written.
 	 * @param instruction
 	 *        The {@link L2Instruction} that includes the operands.
 	 * @param opcode
-	 *        The JVM opcode, e.g., {@link Opcodes#IFEQ}, that decides between
-	 *        the two branch targets.
+	 *        The JVM opcode, e.g., {@link Opcodes#IFEQ}, that decides between the two branch targets.
 	 * @param success
-	 *        The {@code L2PcOperand} that specifies the branch target in the
-	 *        event that the opcode succeeds, i.e., actually branches.
+	 *        The {@code L2PcOperand} that specifies the branch target in the event that the opcode succeeds, i.e., actually branches.
 	 * @param failure
-	 *        The {@code L2PcOperand} that specifies the branch target in the
-	 *        event that the opcode fails, i.e., does not actually branch and
-	 *        falls through to a branch.
+	 *        The {@code L2PcOperand} that specifies the branch target in the event that the opcode fails, i.e., does not actually branch and falls through to a branch.
 	 * @param successCounter
 	 *        An {@link LongAdder} to increment each time the branch is taken.
 	 * @param failureCounter
-	 *        An {@link LongAdder} to increment each time the branch falls
-	 *        through.
+	 *        An {@link LongAdder} to increment each time the branch falls through.
 	 */
 	public void branch (
 		final MethodVisitor method,
@@ -1404,9 +1301,7 @@ public final class JVMTranslator
 	 * @param method
 	 *        The {@link MethodVisitor} on which to generate the branch.
 	 * @param branchOpcode
-	 *        The opcode to effect the branch.  This will be reversed internally
-	 *        to make it easier to increment the notTakenCounter before falling
-	 *        through.
+	 *        The opcode to effect the branch.  This will be reversed internally to make it easier to increment the notTakenCounter before falling through.
 	 * @param takenCounter
 	 *        The {@link LongAdder} to increment when the branch is taken.
 	 * @param notTakenCounter
@@ -1432,24 +1327,19 @@ public final class JVMTranslator
 	}
 
 	/**
-	 * Emit code to conditionally branch to one of the specified {@linkplain
-	 * L2PcOperand program counters}.
+	 * Emit code to conditionally branch to one of the specified
+	 * {@linkplain L2PcOperand program counters}.
 	 *
 	 * @param method
-	 *        The {@linkplain MethodVisitor method} into which the generated JVM
-	 *        instructions will be written.
+	 *        The {@linkplain MethodVisitor method} into which the generated JVM instructions will be written.
 	 * @param instruction
 	 *        The {@link L2Instruction} that includes the operands.
 	 * @param opcode
-	 *        The JVM opcode, e.g., {@link Opcodes#IFEQ}, that decides between
-	 *        the two branch targets.
+	 *        The JVM opcode, e.g., {@link Opcodes#IFEQ}, that decides between the two branch targets.
 	 * @param success
-	 *        The {@code L2PcOperand} that specifies the branch target in the
-	 *        event that the opcode succeeds, i.e., actually branches.
+	 *        The {@code L2PcOperand} that specifies the branch target in the event that the opcode succeeds, i.e., actually branches.
 	 * @param failure
-	 *        The {@code L2PcOperand} that specifies the branch target in the
-	 *        event that the opcode fails, i.e., does not actually branch and
-	 *        falls through to a branch.
+	 *        The {@code L2PcOperand} that specifies the branch target in the event that the opcode fails, i.e., does not actually branch and falls through to a branch.
 	 */
 	public void branch (
 		final MethodVisitor method,
@@ -1483,8 +1373,7 @@ public final class JVMTranslator
 	}
 
 	/**
-	 * Generate the default constructor [{@code ()V}] of the target {@link
-	 * JVMChunk}.
+	 * Generate the default constructor [{@code ()V}] of the target {@link JVMChunk}.
 	 */
 	void generateConstructorV ()
 	{
@@ -1503,8 +1392,7 @@ public final class JVMTranslator
 	}
 
 	/**
-	 * Generate the {@link JVMChunk#name()} method of the target {@link
-	 * JVMChunk}.
+	 * Generate the {@link JVMChunk#name()} method of the target {@link JVMChunk}.
 	 */
 	void generateName ()
 	{
@@ -1522,13 +1410,10 @@ public final class JVMTranslator
 	}
 
 	/**
-	 * Dump the {@linkplain L1Operation L1 instructions} that comprise the
-	 * {@link A_RawFunction function} to an appropriately named file.
+	 * Dump the {@linkplain L1Operation L1 instructions} that comprise the {@link A_RawFunction function} to an appropriately named file.
 	 *
-	 * @return The absolute path of the resultant file, for inclusion in a
-	 *         {@link JVMChunkL1Source} annotation of the generated {@link
-	 *         JVMChunk} subclass, or {@code null} if the file could not be
-	 *         written.
+	 * @return
+	 * The absolute path of the resultant file, for inclusion in a {@link JVMChunkL1Source} annotation of the generated {@link JVMChunk} subclass, or {@code null} if the file could not be written.
 	 */
 	private @Nullable String dumpL1SourceToFile ()
 	{
@@ -1565,13 +1450,10 @@ public final class JVMTranslator
 	}
 
 	/**
-	 * Dump the {@linkplain L2ControlFlowGraphVisualizer visualized} {@link
-	 * L2ControlFlowGraph} for the {@link L2Chunk} to an appropriately named
-	 * file.
+	 * Dump the {@linkplain L2ControlFlowGraphVisualizer visualized} {@link L2ControlFlowGraph} for the {@link L2Chunk} to an appropriately named file.
 	 *
-	 * @return The absolute path of the resultant file, for inclusion in a
-	 *         {@link JVMChunkL2Source} annotation of the generated {@link
-	 *         JVMChunk} subclass.
+	 * @return
+	 * The absolute path of the resultant file, for inclusion in a {@link JVMChunkL2Source} annotation of the generated {@link JVMChunk} subclass.
 	 */
 	private @Nullable String dumpL2SourceToFile ()
 	{
@@ -1615,15 +1497,12 @@ public final class JVMTranslator
 	}
 
 	/**
-	 * {@code true} to enable JVM debugging, {@code false} otherwise.  When
-	 * enabled, the generated JVM code dumps verbose information just prior to
-	 * each L2 instruction.
+	 * {@code true} to enable JVM debugging, {@code false} otherwise.  When enabled, the generated JVM code dumps verbose information just prior to each L2 instruction.
 	 */
 	public static boolean debugJVM = false;
 
 	/**
-	 * Generate the {@link JVMChunk#runChunk(Interpreter, int)} method of the
-	 * target {@link JVMChunk}.
+	 * Generate the {@link JVMChunk#runChunk(Interpreter, int)} method of the target {@link JVMChunk}.
 	 */
 	void generateRunChunk ()
 	{
@@ -1811,15 +1690,15 @@ public final class JVMTranslator
 	}
 
 	/**
-	 * The generated {@link JVMChunk}, or {@code null} if no chunk could be
-	 * constructed.
+	 * The generated {@link JVMChunk}, or {@code null} if no chunk could be constructed.
 	 */
 	private @Nullable JVMChunk jvmChunk;
 
 	/**
 	 * Answer the generated {@link JVMChunk}.
 	 *
-	 * @return The generated {@code JVMChunk}.
+	 * @return
+	 * The generated {@code JVMChunk}.
 	 */
 	public JVMChunk jvmChunk ()
 	{
@@ -1868,10 +1747,7 @@ public final class JVMTranslator
 	}
 
 	/**
-	 * Actually load the generated class into the running JVM.  Note that a
-	 * special {@link JVMChunkClassLoader} must be used, so that the static
-	 * initialization has access to the necessary constants referenced from the
-	 * bytecodes.
+	 * Actually load the generated class into the running JVM.  Note that a special {@link JVMChunkClassLoader} must be used, so that the static initialization has access to the necessary constants referenced from the bytecodes.
 	 */
 	void loadClass ()
 	{
@@ -1929,7 +1805,8 @@ public final class JVMTranslator
 		/**
 		 * Initialize the enum value.
 		 *
-		 * @param action What to do for this phase.
+		 * @param action
+		 * What to do for this phase.
 		 */
 		GenerationPhase (final Continuation1NotNull<JVMTranslator> action)
 		{
@@ -1941,7 +1818,8 @@ public final class JVMTranslator
 
 		/**
 		 * Execute all JVM generation phases.
-		 * @param jvmTranslator The {@link JVMTranslator} for which to execute.
+		 * @param jvmTranslator
+		 * The {@link JVMTranslator} for which to execute.
 		 */
 		static void executeAll (final JVMTranslator jvmTranslator)
 		{

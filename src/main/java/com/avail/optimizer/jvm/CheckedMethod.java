@@ -69,15 +69,18 @@ import static org.objectweb.asm.Type.getMethodDescriptor;
 public final class CheckedMethod
 {
 	/**
-	 * Create a {@code CheckedMethod} for invoking an instance method that has
-	 * been annotated with {@link ReferencedInGeneratedCode}, failing if there
-	 * is a problem.
+	 * Create a {@code CheckedMethod} for invoking an instance method that has been annotated with {@link ReferencedInGeneratedCode}, failing if there  is a problem.
 	 *
-	 * @param receiverClass The type of the receiver of the method.
-	 * @param methodName The name of the method.
-	 * @param returnClass The required return type.
-	 * @param argumentTypes A vararg array of argument types.
-	 * @return The {@code CheckedMethod}.
+	 * @param receiverClass
+	 * The type of the receiver of the method.
+	 * @param methodName
+	 * The name of the method.
+	 * @param returnClass
+	 * The required return type.
+	 * @param argumentTypes
+	 * A vararg array of argument types.
+	 * @return
+	 * The {@code CheckedMethod}.
 	 */
 	public static CheckedMethod instanceMethod (
 		final Class<?> receiverClass,
@@ -95,15 +98,18 @@ public final class CheckedMethod
 	}
 
 	/**
-	 * Create a {@code CheckedMethod} for invoking a static method that has
-	 * been annotated with {@link ReferencedInGeneratedCode}, failing if there
-	 * is a problem.
+	 * Create a {@code CheckedMethod} for invoking a static method that has been annotated with {@link ReferencedInGeneratedCode}, failing if there is a problem.
 	 *
-	 * @param receiverClass The type of the receiver of the method.
-	 * @param methodName The name of the method.
-	 * @param returnClass The required return type.
-	 * @param argumentTypes A vararg array of argument types.
-	 * @return The {@code CheckedMethod}.
+	 * @param receiverClass
+	 *   The type of the receiver of the method.
+	 * @param methodName
+	 *   The name of the method.
+	 * @param returnClass
+	 * The required return type.
+	 * @param argumentTypes
+	 * A vararg array of argument types.
+	 * @return
+	 * The {@code CheckedMethod}.
 	 */
 	public static CheckedMethod staticMethod (
 		final Class<?> receiverClass,
@@ -121,15 +127,18 @@ public final class CheckedMethod
 	}
 
 	/**
-	 * Create a {@code CheckedMethod} for invoking an instance method that
-	 * cannot have a {@link ReferencedInGeneratedCode} annotation, failing if
-	 * there is a problem.
+	 * Create a {@code CheckedMethod} for invoking an instance method that cannot have a {@link ReferencedInGeneratedCode} annotation, failing if there is a problem.
 	 *
-	 * @param receiverClass The type of the receiver of the method.
-	 * @param methodName The name of the method.
-	 * @param returnClass The required return type.
-	 * @param argumentTypes A vararg array of argument types.
-	 * @return The {@code CheckedMethod}.
+	 * @param receiverClass
+	 * The type of the receiver of the method.
+	 * @param methodName
+	 * The name of the method.
+	 * @param returnClass
+	 * The required return type.
+	 * @param argumentTypes
+	 * A vararg array of argument types.
+	 * @return
+	 * The {@code CheckedMethod}.
 	 */
 	public static CheckedMethod javaLibraryInstanceMethod (
 		final Class<?> receiverClass,
@@ -147,15 +156,18 @@ public final class CheckedMethod
 	}
 
 	/**
-	 * Create a {@code CheckedMethod} for invoking a static method that
-	 * cannot have a {@link ReferencedInGeneratedCode} annotation, failing if
-	 * there is a problem.
+	 * Create a {@code CheckedMethod} for invoking a static method that cannot have a {@link ReferencedInGeneratedCode} annotation, failing if there is a problem.
 	 *
-	 * @param receiverClass The type of the receiver of the method.
-	 * @param methodName The name of the method.
-	 * @param returnClass The required return type.
-	 * @param argumentTypes A vararg array of argument types.
-	 * @return The {@code CheckedMethod}.
+	 * @param receiverClass
+	 * The type of the receiver of the method.
+	 * @param methodName
+	 * The name of the method.
+	 * @param returnClass
+	 * The required return type.
+	 * @param argumentTypes
+	 * A vararg array of argument types.
+	 * @return
+	 * The {@code CheckedMethod}.
 	 */
 	public static CheckedMethod javaLibraryStaticMethod (
 		final Class<?> receiverClass,
@@ -173,17 +185,20 @@ public final class CheckedMethod
 	}
 
 	/**
-	 * Create a {@code CheckedMethod}, reflecting as needed to verify and
-	 * precompute as much as possible.
+	 * Create a {@code CheckedMethod}, reflecting as needed to verify and precompute as much as possible.
 	 *
 	 * @param verifyAnnotation
-	 *        Whether to look for the {@link ReferencedInGeneratedCode}
-	 *        annotation.
-	 * @param isStatic Whether the method is expected to be static.
-	 * @param receiverClass The type of the receiver of the method.
-	 * @param methodName The name of the method.
-	 * @param returnClass The required return type.
-	 * @param argumentTypes A vararg array of argument types.
+	 *        Whether to look for the {@link ReferencedInGeneratedCode} annotation.
+	 * @param isStatic
+	 * Whether the method is expected to be static.
+	 * @param receiverClass
+	 * The type of the receiver of the method.
+	 * @param methodName
+	 * The name of the method.
+	 * @param returnClass
+	 * The required return type.
+	 * @param argumentTypes
+	 * A vararg array of argument types.
 	 */
 	private CheckedMethod (
 		final boolean verifyAnnotation,
@@ -254,10 +269,10 @@ public final class CheckedMethod
 	private final @Nullable String internalNameToCheckCastOrNull;
 
 	/**
-	 * Emit a call to this method on the given {@link MethodVisitor}.  The
-	 * arguments must already be ready on the stack.
+	 * Emit a call to this method on the given {@link MethodVisitor}.  The arguments must already be ready on the stack.
 	 *
-	 * @param methodVisitor Where to write the call.
+	 * @param methodVisitor
+	 * Where to write the call.
 	 */
 	public void generateCall (final MethodVisitor methodVisitor)
 	{

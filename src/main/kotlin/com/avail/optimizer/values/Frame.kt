@@ -39,7 +39,7 @@ import com.avail.interpreter.levelTwo.L2Chunk
 /**
  * An abstract representation of an invocation.  Note that this is not itself an
  * [L2SemanticValue], but is used by some specific kinds of semantic values.
- * The outermost `Frame` has an [.outerFrame] of `null`, and all other frames
+ * The outermost `Frame` has an [outerFrame] of `null`, and all other frames
  * have a non-null outer frame.  Frames compare by identity.
  *
  * @property outerFrame

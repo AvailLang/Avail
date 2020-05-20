@@ -54,18 +54,10 @@ import static com.avail.optimizer.jvm.CheckedField.staticField;
 import static com.avail.optimizer.jvm.CheckedMethod.staticMethod;
 
 /**
- * A {@code JVMChunk} is an {@link ExecutableChunk} for the Java Virtual
- * Machine. It is produced by a {@link JVMTranslator} on behalf of an {@link
- * L2Generator} that has just completed a {@linkplain
- * L1Translator#translateToLevelTwo(A_RawFunction, OptimizationLevel,
- * Interpreter) translation or optimization}.
+ * A {@code JVMChunk} is an {@link ExecutableChunk} for the Java Virtual Machine. It is produced by a {@link JVMTranslator} on behalf of an {@link L2Generator} that has just completed a {@linkplain L1Translator#translateToLevelTwo(A_RawFunction, OptimizationLevel, Interpreter) translation or optimization}.
  *
  * <p>
- * In the initial cheesy version of JVM translation, the generated subclasses
- * of {@code JVMChunk} simply embed the reified {@link L2Instruction}s directly
- * and execute them without the {@linkplain Interpreter interpreter's} loop
- * overhead. This mechanism is a feel-good milestone, and is not intended to
- * survive very long.
+ * In the initial cheesy version of JVM translation, the generated subclasses of {@code JVMChunk} simply embed the reified {@link L2Instruction}s directly and execute them without the {@linkplain Interpreter interpreter's} loop overhead. This mechanism is a feel-good milestone, and is not intended to survive very long.
  * </p>
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -110,21 +102,18 @@ implements ExecutableChunk
 		AvailObject[].class);
 
 	/**
-	 * Throw a {@link RuntimeException} on account of a bad offset into the
-	 * calling generated {@code JVMChunk} subclass's {@link
-	 * #runChunk(Interpreter, int) runChunk}.
+	 * Throw a {@link RuntimeException} on account of a bad offset into the calling generated {@code JVMChunk} subclass's {@link #runChunk(Interpreter, int) runChunk}.
 	 *
 	 * @param offset
 	 *        The illegal offset into the caller.
-	 * @return Pretends to return a {@link RuntimeException}, but actually
-	 *         throws it instead. This is for the convenience of the caller.
+	 * @return
+	 * Pretends to return a {@link RuntimeException}, but actually throws it instead. This is for the convenience of the caller.
 	 */
 	@SuppressWarnings("unused")
 	@ReferencedInGeneratedCode
 	public static RuntimeException badOffset (final int offset)
 	{
-		throw new RuntimeException(
-			String.format("bad offset %d", offset));
+		throw new RuntimeException(String.format("bad offset %d", offset));
 	}
 
 	/** The {@link CheckedMethod} for {@link #badOffset(int)}. */
@@ -137,7 +126,8 @@ implements ExecutableChunk
 	/**
 	 * Answer the L1 source code, if any is available.
 	 *
-	 * @return The L1 source, or {@code null} if no source is available.
+	 * @return
+	 * The L1 source, or {@code null} if no source is available.
 	 */
 	@SuppressWarnings("unused")
 	public @Nullable String l1Source ()
@@ -161,7 +151,8 @@ implements ExecutableChunk
 	/**
 	 * Answer the L2 source code, if any is available.
 	 *
-	 * @return The L2 source, or {@code null} if no source is available.
+	 * @return
+	 * The L2 source, or {@code null} if no source is available.
 	 */
 	@SuppressWarnings("unused")
 	public @Nullable String l2Source ()

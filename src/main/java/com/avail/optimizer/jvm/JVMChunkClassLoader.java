@@ -44,12 +44,7 @@ import static com.avail.optimizer.jvm.CheckedField.instanceField;
 import static com.avail.utility.Strings.traceFor;
 
 /**
- * A {@code JVMChunkClassLoader} is created for each generated {@link JVMChunk},
- * permitted dynamic loading and unloading of each {@code JVMChunk}
- * independently. The class loader holds onto zero or many {@linkplain Object
- * objects} for usage during static initialization of the generated
- * {@code JVMChunk}; these values are accessed from an {@linkplain #parameters
- * array}.
+ * A {@code JVMChunkClassLoader} is created for each generated {@link JVMChunk}, permitted dynamic loading and unloading of each {@code JVMChunk} independently. The class loader holds onto zero or many {@linkplain Object objects} for usage during static initialization of the generated {@code JVMChunk}; these values are accessed from an {@linkplain #parameters array}.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -57,8 +52,7 @@ public class JVMChunkClassLoader
 extends ClassLoader
 {
 	/**
-	 * The parameters made available for the generated {@link JVMChunk} upon
-	 * static initialization.
+	 * The parameters made available for the generated {@link JVMChunk} upon static initialization.
 	 */
 	@ReferencedInGeneratedCode
 	public @Nullable Object[] parameters;
@@ -70,8 +64,7 @@ extends ClassLoader
 		Object[].class);
 
 	/**
-	 * Answer an instance of a {@link JVMChunk} {@linkplain Class
-	 * implementation} that is defined by the given bytes.
+	 * Answer an instance of a {@link JVMChunk} {@linkplain Class implementation} that is defined by the given bytes.
 	 *
 	 * @param chunkName
 	 *        The name of the {@link L2Chunk}.
@@ -80,12 +73,9 @@ extends ClassLoader
 	 * @param classBytes
 	 *        The foundational class bytes.
 	 * @param params
-	 *        The values that should be bundled into this {@linkplain
-	 *        JVMChunkClassLoader class loader} for static initialization of the
-	 *        generated {@code JVMChunk}. These are accessible via the
-	 *        {@link #parameters} field.
-	 * @return The newly constructed {@code JVMChunk} instance, or {@code null}
-	 *         if no such instance could be constructed.
+	 *        The values that should be bundled into this {@linkplain JVMChunkClassLoader class loader} for static initialization of the generated {@code JVMChunk}. These are accessible via the {@link #parameters} field.
+	 * @return
+	 * The newly constructed {@code JVMChunk} instance, or {@code null} if no such instance could be constructed.
 	 */
 	@Nullable JVMChunk newJVMChunkFrom (
 		final String chunkName,
