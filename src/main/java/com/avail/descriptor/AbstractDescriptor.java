@@ -138,37 +138,9 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.sort;
 
 /**
- * {@link AbstractDescriptor} is the base descriptor type.  An {@link
- * AvailObject} contains a descriptor, to which it delegates nearly all of its
- * behavior.  That allows interesting operations like effective type mutation
- * (within a language that does not support it directly, such as Java).  It also
- * allows multiple representations of equivalent objects, such as more than one
- * representation for the tuple {@code <1,2,3>}.  It can be represented as an
- * AvailObject using either an {@link ObjectTupleDescriptor}, a {@link
- * ByteTupleDescriptor}, a {@link NybbleTupleDescriptor}, or a {@link
- * TreeTupleDescriptor}.  It could even be an {@link IndirectionDescriptor} if
- * there is another object that already represents this tuple.
+ * {@link AbstractDescriptor} is the base descriptor type.  An {@link AvailObject} contains a descriptor, to which it delegates nearly all of its behavior.  That allows interesting operations like effective type mutation (within a language that does not support it directly, such as Java).  It also allows multiple representations of equivalent objects, such as more than one representation for the tuple {@code <1,2,3>}.  It can be represented as an AvailObject using either an {@link ObjectTupleDescriptor}, a {@link ByteTupleDescriptor}, a {@link NybbleTupleDescriptor}, or a {@link TreeTupleDescriptor}.  It could even be an {@link IndirectionDescriptor} if there is another object that already represents this tuple.
  *
- * <p>In particular, {@link AbstractDescriptor} is abstract and has two
- * children, the class {@link Descriptor} and the class {@link
- * IndirectionDescriptor}, the latter of which has no classes.  When a new
- * operation is added in an ordinary descriptor class (below {@code Descriptor
- * }), it should be added with an {@code @Override} annotation.  A quick fix on
- * that error allows an implementation to be generated in AbstractDescriptor,
- * which should be converted manually to an abstract method.  That will make
- * both {@code Descriptor} and {@code IndirectionDescriptor} (and all subclasses
- * of {@code Descriptor} except the one in which the new method first appeared)
- * to indicate an error, in that they need to implement this method.  A quick
- * fix can add it to {@code Descriptor}, after which it can be tweaked to
- * indicate a runtime error.  Another quick fix adds it to {@code
- * IndirectionDescriptor}, and copying nearby implementations leads it to
- * invoke the non "o_" method in {@link AvailObject}.  This will show up as an
- * error, and one more quick fix can generate the corresponding method in
- * {@code AvailObject} whose implementation, like methods near it, extracts the
- * {@link AvailObject#descriptor()} and invokes upon it the original message
- * (that started with "o_"), passing {@code this} as the first argument.  Code
- * generation will eventually make this relatively onerous task more tractable
- * and less error prone.</p>
+ * <p>In particular, {@link AbstractDescriptor} is abstract and has two children, the class {@link Descriptor} and the class {@link IndirectionDescriptor}, the latter of which has no classes.  When a new operation is added in an ordinary descriptor class (below {@code Descriptor}), it should be added with an {@code @Override} annotation.  A quick fix on that error allows an implementation to be generated in AbstractDescriptor, which should be converted manually to an abstract method.  That will make both {@code Descriptor} and {@code IndirectionDescriptor} (and all subclasses of {@code Descriptor} except the one in which the new method first appeared) to indicate an error, in that they need to implement this method.  A quick fix can add it to {@code Descriptor}, after which it can be tweaked to indicate a runtime error.  Another quick fix adds it to {@code IndirectionDescriptor}, and copying nearby implementations leads it to invoke the non "o_" method in {@link AvailObject}.  This will show up as an error, and one more quick fix can generate the corresponding method in {@code AvailObject} whose implementation, like methods near it, extracts the {@link AvailObject#descriptor()} and invokes upon it the original message (that started with "o_"), passing {@code this} as the first argument.  Code generation will eventually make this relatively onerous task more tractable and less error prone.</p>
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -192,7 +164,8 @@ public abstract class AbstractDescriptor
 		/**
 		 * Create a new artificial slot with the given name.
 		 *
-		 * @param name The name of the slot.
+		 * @param name
+		 * The name of the slot.
 		 */
 		public DebuggerObjectSlots (final String name)
 		{
@@ -216,11 +189,10 @@ public abstract class AbstractDescriptor
 	public final Mutability mutability;
 
 	/**
-	 * Are {@linkplain AvailObject objects} using this {@linkplain
-	 * AbstractDescriptor descriptor} {@linkplain Mutability#MUTABLE mutable}?
+	 * Are {@linkplain AvailObject objects} using this {@linkplain AbstractDescriptor descriptor} {@linkplain Mutability#MUTABLE mutable}?
 	 *
-	 * @return {@code true} if the described object is mutable, {@code false}
-	 *         otherwise.
+	 * @return
+	 * {@code true} if the described object is mutable, {@code false} otherwise.
 	 */
 	@ReferencedInGeneratedCode
 	public final boolean isMutable ()
@@ -240,7 +212,8 @@ public abstract class AbstractDescriptor
 	 * Answer the {@linkplain Mutability#MUTABLE mutable} version of this
 	 * descriptor.
 	 *
-	 * @return A mutable descriptor equivalent to the receiver.
+	 * @return
+	 * A mutable descriptor equivalent to the receiver.
 	 */
 	public abstract AbstractDescriptor mutable ();
 
@@ -248,24 +221,24 @@ public abstract class AbstractDescriptor
 	 * Answer the {@linkplain Mutability#IMMUTABLE immutable} version of this
 	 * descriptor.
 	 *
-	 * @return An immutable descriptor equivalent to the receiver.
+	 * @return
+	 * An immutable descriptor equivalent to the receiver.
 	 */
 	public abstract AbstractDescriptor immutable ();
 
 	/**
-	 * Answer the {@linkplain Mutability#SHARED shared} version of this
-	 * descriptor.
+	 * Answer the {@linkplain Mutability#SHARED shared} version of this descriptor.
 	 *
-	 * @return A shared descriptor equivalent to the receiver.
+	 * @return
+	 * A shared descriptor equivalent to the receiver.
 	 */
 	public abstract AbstractDescriptor shared ();
 
 	/**
-	 * Are {@linkplain AvailObject objects} using this descriptor {@linkplain
-	 * Mutability#SHARED shared}?
+	 * Are {@linkplain AvailObject objects} using this descriptor {@linkplain Mutability#SHARED shared}?
 	 *
-	 * @return {@code true} if the described object is shared, {@code false}
-	 *         otherwise.
+	 * @return
+	 * {@code true} if the described object is shared, {@code false} otherwise.
 	 */
 	public final boolean isShared ()
 	{
@@ -273,20 +246,15 @@ public abstract class AbstractDescriptor
 	}
 
 	/**
-	 * The minimum number of object slots an {@link AvailObject} can have if it
-	 * uses this {@linkplain AbstractDescriptor descriptor}. Does not include
-	 * indexed slots possibly at the end. Populated automatically by the
-	 * constructor.
+	 * The minimum number of object slots an {@link AvailObject} can have if it uses this {@linkplain AbstractDescriptor descriptor}. Does not include indexed slots possibly at the end. Populated automatically by the constructor.
 	 */
 	private final int numberOfFixedObjectSlots;
 
 	/**
-	 * Answer the minimum number of object slots an {@link AvailObject} can have
-	 * if it uses this descriptor. Does not include indexed slots possibly at
-	 * the end. Populated automatically by the constructor.
+	 * Answer the minimum number of object slots an {@link AvailObject} can have if it uses this descriptor. Does not include indexed slots possibly at the end. Populated automatically by the constructor.
 	 *
-	 * @return The minimum number of object slots featured by an object using
-	 *         this descriptor.
+	 * @return
+	 * The minimum number of object slots featured by an object using this descriptor.
 	 */
 	public final int numberOfFixedObjectSlots ()
 	{
@@ -294,19 +262,15 @@ public abstract class AbstractDescriptor
 	}
 
 	/**
-	 * The minimum number of integer slots an {@link AvailObject} can have if it
-	 * uses this descriptor. Does not include indexed slots possibly at the end.
-	 * Populated automatically by the constructor.
+	 * The minimum number of integer slots an {@link AvailObject} can have if it uses this descriptor. Does not include indexed slots possibly at the end. Populated automatically by the constructor.
 	 */
 	private final int numberOfFixedIntegerSlots;
 
 	/**
-	 * Answer the minimum number of integer slots an {@link AvailObject} can
-	 * have if it uses this descriptor. Does not include indexed slots possibly
-	 * at the end. Populated automatically by the constructor.
+	 * Answer the minimum number of integer slots an {@link AvailObject} can have if it uses this descriptor. Does not include indexed slots possibly at the end. Populated automatically by the constructor.
 	 *
-	 * @return The minimum number of integer slots featured by an object using
-	 *         this descriptor.
+	 * @return
+	 * The minimum number of integer slots featured by an object using this descriptor.
 	 */
 	public final int numberOfFixedIntegerSlots ()
 	{
@@ -314,22 +278,15 @@ public abstract class AbstractDescriptor
 	}
 
 	/**
-	 * Whether an {@linkplain AvailObject object} using this descriptor can have
-	 * more than the minimum number of object slots. Populated automatically by
-	 * the constructor, based on the presence of an underscore at the end of its
-	 * final {@link ObjectSlotsEnum} name.
+	 * Whether an {@linkplain AvailObject object} using this descriptor can have more than the minimum number of object slots. Populated automatically by the constructor, based on the presence of an underscore at the end of its final {@link ObjectSlotsEnum} name.
 	 */
 	private final boolean hasVariableObjectSlots;
 
 	/**
-	 * Can an {@linkplain AvailObject object} using this descriptor have more
-	 * than the {@linkplain #numberOfFixedObjectSlots() minimum number of object
-	 * slots}?
+	 * Can an {@linkplain AvailObject object} using this descriptor have more than the {@linkplain #numberOfFixedObjectSlots() minimum number of object slots}?
 	 *
-	 * @return {@code true} if it is permissible for an {@linkplain AvailObject
-	 *         object} using this descriptor to have more than the {@linkplain
-	 *         #numberOfFixedObjectSlots() minimum number of object slots},
-	 *         {@code false} otherwise.
+	 * @return
+	 * {@code true} if it is permissible for an {@linkplain AvailObject object} using this descriptor to have more than the {@linkplain #numberOfFixedObjectSlots() minimum number of object slots}, {@code false} otherwise.
 	 */
 	public final boolean hasVariableObjectSlots ()
 	{
@@ -337,22 +294,15 @@ public abstract class AbstractDescriptor
 	}
 
 	/**
-	 * Whether an {@linkplain AvailObject object} using this descriptor can have
-	 * more than the minimum number of integer slots. Populated automatically by
-	 * the constructor, based on the presence of an underscore at the end of its
-	 * final {@link IntegerSlotsEnum} name.
+	 * Whether an {@linkplain AvailObject object} using this descriptor can have more than the minimum number of integer slots. Populated automatically by the constructor, based on the presence of an underscore at the end of its final {@link IntegerSlotsEnum} name.
 	 */
 	private final boolean hasVariableIntegerSlots;
 
 	/**
-	 * Can an {@linkplain AvailObject object} using this descriptor have more
-	 * than the {@linkplain #numberOfFixedIntegerSlots() minimum number of
-	 * integer slots}?
+	 * Can an {@linkplain AvailObject object} using this descriptor have more than the {@linkplain #numberOfFixedIntegerSlots() minimum number of integer slots}?
 	 *
-	 * @return {@code true} if it is permissible for an {@linkplain AvailObject
-	 *         object} using this descriptor to have more than the {@linkplain
-	 *         #numberOfFixedIntegerSlots() minimum number of integer slots},
-	 *         {@code false} otherwise.
+	 * @return
+	 * {@code true} if it is permissible for an {@linkplain AvailObject object} using this descriptor to have more than the {@linkplain #numberOfFixedIntegerSlots() minimum number of integer slots}, {@code false} otherwise.
 	 */
 	public final boolean hasVariableIntegerSlots ()
 	{
@@ -367,14 +317,12 @@ public abstract class AbstractDescriptor
 	public final TypeTag typeTag;
 
 	/**
-	 * Used for quickly checking object fields when {@link
-	 * AvailObjectRepresentation#shouldCheckSlots} is enabled.
+	 * Used for quickly checking object fields when {@link AvailObjectRepresentation#shouldCheckSlots} is enabled.
 	 */
 	public final ObjectSlotsEnum [][] debugObjectSlots;
 
 	/**
-	 * Used for quickly checking integer fields when {@link
-	 * AvailObjectRepresentation#shouldCheckSlots} is enabled.
+	 * Used for quickly checking integer fields when {@link AvailObjectRepresentation#shouldCheckSlots} is enabled.
 	 */
 	public final IntegerSlotsEnum [][] debugIntegerSlots;
 
@@ -386,8 +334,7 @@ public abstract class AbstractDescriptor
 	 * @param value
 	 *        The value to shift.
 	 * @param leftShift
-	 *        The amount to shift left. If negative, shift right by the
-	 *        corresponding positive amount.
+	 *        The amount to shift left. If negative, shift right by the corresponding positive amount.
 	 * @return The shifted integer, modulus 2^32 then cast to {@code int}.
 	 */
 	public static int bitShiftInt (final int value, final int leftShift)
@@ -411,10 +358,12 @@ public abstract class AbstractDescriptor
 	 * Note: This is a logical shift *without* Java's implicit modulus on the
 	 * shift amount.
 	 *
-	 * @param value The value to shift.
-	 * @param leftShift The amount to shift left. If negative, shift right by
-	 *                  the corresponding positive amount.
-	 * @return The shifted integer, modulus 2^64 then cast to {@code long}.
+	 * @param value
+	 * The value to shift.
+	 * @param leftShift
+	 * The amount to shift left. If negative, shift right by the corresponding positive amount.
+	 * @return
+	 * The shifted integer, modulus 2^64 then cast to {@code long}.
 	 */
 	public static long bitShiftLong (final long value, final int leftShift)
 	{
@@ -437,10 +386,12 @@ public abstract class AbstractDescriptor
 	 * Note: This is an arithmetic (i.e., signed) shift *without* Java's
 	 * implicit modulus on the shift amount.
 	 *
-	 * @param value The value to shift.
-	 * @param leftShift The amount to shift left. If negative, shift right by
-	 *                  the corresponding positive amount.
-	 * @return The shifted integer, modulus 2^64 then cast to {@code long}.
+	 * @param value
+	 * The value to shift.
+	 * @param leftShift
+	 * The amount to shift left. If negative, shift right by the corresponding positive amount.
+	 * @return
+	 * The shifted integer, modulus 2^64 then cast to {@code long}.
 	 */
 	public static long arithmeticBitShiftLong (
 		final long value,
@@ -478,13 +429,9 @@ public abstract class AbstractDescriptor
 	 * @param typeTag
 	 *        The {@link TypeTag} to embed in the new descriptor.
 	 * @param objectSlotsEnumClass
-	 *        The Java {@link Class} which is a subclass of {@link
-	 *        ObjectSlotsEnum} and defines this object's object slots layout, or
-	 *        null if there are no object slots.
+	 *        The Java {@link Class} which is a subclass of {@link ObjectSlotsEnum} and defines this object's object slots layout, or null if there are no object slots.
 	 * @param integerSlotsEnumClass
-	 *        The Java {@link Class} which is a subclass of {@link
-	 *        IntegerSlotsEnum} and defines this object's object slots layout,
-	 *        or null if there are no integer slots.
+	 *        The Java {@link Class} which is a subclass of {@link IntegerSlotsEnum} and defines this object's object slots layout, or null if there are no integer slots.
 	 */
 	protected AbstractDescriptor (
 		final Mutability mutability,
@@ -521,14 +468,16 @@ public abstract class AbstractDescriptor
 	}
 
 	/**
-	 * Look up the specified {@link Annotation} from the {@link Enum} constant.
-	 * If the enumeration constant does not have an annotation of that type then
-	 * answer null.
+	 * Look up the specified {@link Annotation} from the {@link Enum} constant. If the enumeration constant does not have an annotation of that type then answer null.
 	 *
-	 * @param <A> The {@code Annotation} type.
-	 * @param enumConstant The {@code Enum} value.
-	 * @param annotationClass The {@link Class} of the {@code Annotation} type.
-	 * @return The requested annotation or null.
+	 * @param A
+	 *     The {@code Annotation} type.
+	 * @param enumConstant
+	 * The {@code Enum} value.
+	 * @param annotationClass
+	 * The {@link Class} of the {@code Annotation} type.
+	 * @return
+	 * The requested annotation or null.
 	 */
 	private static @Nullable <A extends Annotation> A getAnnotation (
 		final Enum<? extends Enum<?>> enumConstant,
@@ -554,8 +503,8 @@ public abstract class AbstractDescriptor
 	 *
 	 * @param object
 	 *        The {@link AvailObject} to describe.
-	 * @return An array of {@link AvailObjectFieldHelper}s that describe the
-	 *         logical parts of the given object.
+	 * @return
+	 * An array of {@link AvailObjectFieldHelper}s that describe the logical parts of the given object.
 	 */
 	@SuppressWarnings("unchecked")
 	public AvailObjectFieldHelper[] o_DescribeForDebugger (
@@ -665,9 +614,10 @@ public abstract class AbstractDescriptor
 	 * Answer whether the field at the given offset is allowed to be modified
 	 * even in an immutable object.
 	 *
-	 * @param e The byte offset of the field to check.
-	 * @return Whether the specified field can be written even in an immutable
-	 *         object.
+	 * @param e
+	 * The byte offset of the field to check.
+	 * @return
+	 * Whether the specified field can be written even in an immutable object.
 	 */
 	protected boolean allowsImmutableToMutableReferenceInField (
 		final AbstractSlotsEnum e)
@@ -678,7 +628,8 @@ public abstract class AbstractDescriptor
 	/**
 	 * Answer how many levels of printing to allow before elision.
 	 *
-	 * @return The number of levels.
+	 * @return
+	 * The number of levels.
 	 */
 	public int maximumIndent ()
 	{
@@ -688,7 +639,8 @@ public abstract class AbstractDescriptor
 	/**
 	 * Ensure that the specified field is writable.
 	 *
-	 * @param e An {@code enum} value whose ordinal is the field position.
+	 * @param e
+	 * An {@code enum} value whose ordinal is the field position.
 	 */
 	public final void checkWriteForField (final AbstractSlotsEnum e)
 	{
@@ -696,12 +648,12 @@ public abstract class AbstractDescriptor
 	}
 
 	/**
-	 * Create a new {@linkplain AvailObject object} whose {@linkplain
-	 * AbstractDescriptor descriptor} is the receiver, and which has the
-	 * specified number of indexed (variable) slots.
+	 * Create a new {@linkplain AvailObject object} whose {@linkplain AbstractDescriptor descriptor} is the receiver, and which has the specified number of indexed (variable) slots.
 	 *
-	 * @param indexedSlotCount The number of variable slots to include.
-	 * @return The new uninitialized {@linkplain AvailObject object}.
+	 * @param indexedSlotCount
+	 * The number of variable slots to include.
+	 * @return
+	 * The new uninitialized {@linkplain AvailObject object}.
 	 */
 	public final AvailObject create (final int indexedSlotCount)
 	{
@@ -709,11 +661,10 @@ public abstract class AbstractDescriptor
 	}
 
 	/**
-	 * Create a new {@linkplain AvailObject object} whose {@linkplain
-	 * AbstractDescriptor descriptor} is the receiver, and which has no indexed
-	 * (variable) slots.
+	 * Create a new {@linkplain AvailObject object} whose {@linkplain AbstractDescriptor descriptor} is the receiver, and which has no indexed (variable) slots.
 	 *
-	 * @return The new uninitialized {@linkplain AvailObject object}.
+	 * @return
+	 * The new uninitialized {@linkplain AvailObject object}.
 	 */
 	public final AvailObject create ()
 	{
@@ -721,16 +672,16 @@ public abstract class AbstractDescriptor
 	}
 
 	/**
-	 * Print the {@linkplain AvailObject object} to the {@link StringBuilder}.
-	 * By default show it as the descriptor's name and a line-by-line list of
-	 * fields. If the indent is beyond the {@link #maximumIndent}, indicate it's
-	 * too deep without recursing. If the object is in the specified recursion
-	 * list, indicate a recursive print and return.
+	 * Print the {@linkplain AvailObject object} to the {@link StringBuilder}. By default show it as the descriptor's name and a line-by-line list of fields. If the indent is beyond the {@link #maximumIndent}, indicate it's too deep without recursing. If the object is in the specified recursion list, indicate a recursive print and return.
 	 *
-	 * @param object The object to print (its descriptor is me).
-	 * @param builder Where to print the object.
-	 * @param recursionMap Which ancestor objects are currently being printed.
-	 * @param indent What level to indent subsequent lines.
+	 * @param object
+	 * The object to print (its descriptor is me).
+	 * @param builder
+	 * Where to print the object.
+	 * @param recursionMap
+	 * Which ancestor objects are currently being printed.
+	 * @param indent
+	 * What level to indent subsequent lines.
 	 */
 	@SuppressWarnings("unchecked")
 	@ThreadSafe
@@ -927,10 +878,7 @@ public abstract class AbstractDescriptor
 	}
 
 	/**
-	 * A static cache of mappings from {@link IntegerSlotsEnum integer slots} to
-	 * {@link List}s of {@link BitField}s.  Access to the map must be
-	 * synchronized, which isn't much of a penalty since it only affects the
-	 * default object printing mechanism.
+	 * A static cache of mappings from {@link IntegerSlotsEnum integer slots} to {@link List}s of {@link BitField}s.  Access to the map must be synchronized, which isn't much of a penalty since it only affects the default object printing mechanism.
 	 */
 	private static final Map<IntegerSlotsEnum, List<BitField>> bitFieldsCache =
 		new HashMap<>(500);
@@ -940,17 +888,18 @@ public abstract class AbstractDescriptor
 		new ReentrantReadWriteLock();
 
 	/**
-	 * Describe the integer field onto the provided {@link StringBuilder}. The
-	 * pre-extracted {@code long} value is provided, as well as the containing
-	 * {@link AvailObject} and the {@link IntegerSlotsEnum} instance. Take into
-	 * account annotations on the slot enumeration object which may define the
-	 * way it should be described.
+	 * Describe the integer field onto the provided {@link StringBuilder}. The pre-extracted {@code long} value is provided, as well as the containing {@link AvailObject} and the {@link IntegerSlotsEnum} instance. Take into account annotations on the slot enumeration object which may define the way it should be described.
 	 *
-	 * @param object The object containing the {@code int} value in some slot.
-	 * @param value The {@code long} value of the slot.
-	 * @param slot The {@linkplain IntegerSlotsEnum integer slot} definition.
-	 * @param bitFields The slot's {@link BitField}s, if any.
-	 * @param builder Where to write the description.
+	 * @param object
+	 * The object containing the {@code int} value in some slot.
+	 * @param value
+	 * The {@code long} value of the slot.
+	 * @param slot
+	 * The {@linkplain IntegerSlotsEnum integer slot} definition.
+	 * @param bitFields
+	 * The slot's {@link BitField}s, if any.
+	 * @param builder
+	 * Where to write the description.
 	 */
 	public static void describeIntegerSlot (
 		final AvailObject object,
@@ -1011,12 +960,12 @@ public abstract class AbstractDescriptor
 	}
 
 	/**
-	 * Extract the {@link IntegerSlotsEnum integer slot}'s {@link List} of
-	 * {@link BitField}s, excluding ones marked with the annotation @{@link
-	 * HideFieldInDebugger}.
+	 * Extract the {@link IntegerSlotsEnum integer slot}'s {@link List} of {@link BitField}s, excluding ones marked with the annotation @{@link HideFieldInDebugger}.
 	 *
-	 * @param slot The integer slot.
-	 * @return The slot's bit fields.
+	 * @param slot
+	 * The integer slot.
+	 * @return
+	 * The slot's bit fields.
 	 */
 	public static List<BitField> bitFieldsFor (final IntegerSlotsEnum slot)
 	{
@@ -1097,8 +1046,7 @@ public abstract class AbstractDescriptor
 	 * @param numBits
 	 *        The number of bits to show for this field.
 	 * @param enumAnnotation
-	 *        The optional {@link EnumField} annotation that was found on the
-	 *        field.
+	 *        The optional {@link EnumField} annotation that was found on the field.
 	 * @param builder
 	 *        Where to write the description.
 	 * @throws ReflectiveOperationException
@@ -1161,6 +1109,7 @@ public abstract class AbstractDescriptor
 		}
 	}
 
+	// TODO MvG Comment me
 	protected static void describeLong (
 		final long value,
 		final int numBits,
@@ -1199,12 +1148,7 @@ public abstract class AbstractDescriptor
 	}
 
 	/**
-	 * Answer an {@linkplain AvailUnsupportedOperationException unsupported
-	 * operation exception} suitable to be thrown by the sender.  We don't throw
-	 * it here, since Java sadly has no way of indicating that a method
-	 * <em>always</em> throws an exception (i.e., doesn't return), forcing one
-	 * to have to add stupid dead statements like {@code return null;} after the
-	 * never-returning call.
+	 * Answer an {@linkplain AvailUnsupportedOperationException unsupported operation exception} suitable to be thrown by the sender.  We don't throw it here, since Java sadly has no way of indicating that a method <em>always</em> throws an exception (i.e., doesn't return), forcing one to have to add stupid dead statements like {@code return null;} after the never-returning call.
 	 *
 	 * <p>
 	 * The exception indicates that the receiver does not meaningfully implement
@@ -1212,7 +1156,8 @@ public abstract class AbstractDescriptor
 	 * that the wrong kind of object is being used somewhere.
 	 * </p>
 	 *
-	 * @return an AvailUnsupportedOperationException suitable to be thrown.
+	 * @return
+	 * An AvailUnsupportedOperationException suitable to be thrown.
 	 */
 	public AvailUnsupportedOperationException unsupportedOperationException ()
 	{
@@ -1229,82 +1174,74 @@ public abstract class AbstractDescriptor
 	}
 
 	/**
-	 * Answer whether the {@linkplain AvailObject#argsTupleType() argument
-	 * types} supported by the specified {@linkplain FunctionTypeDescriptor
-	 * function type} are acceptable argument types for invoking a {@linkplain
-	 * FunctionDescriptor function} whose type is the {@code object}.
+	 * Answer whether the {@linkplain AvailObject#argsTupleType() argument types} supported by the specified {@linkplain FunctionTypeDescriptor function type} are acceptable argument types for invoking a {@linkplain FunctionDescriptor function} whose type is the {@code object}.
 	 *
 	 * @see AvailObject#acceptsArgTypesFromFunctionType(A_Type)
-	 * @param object A function type.
-	 * @param functionType A function type.
-	 * @return {@code true} if the arguments of {@code object} are, pairwise,
-	 *         more general than those of {@code functionType}, {@code false}
-	 *         otherwise.
+	 * @param object
+	 * A function type.
+	 * @param functionType
+	 * A function type.
+	 * @return
+	 * {@code true} if the arguments of {@code object} are, pairwise, more general than those of {@code functionType}, {@code false} otherwise.
 	 */
 	public abstract boolean o_AcceptsArgTypesFromFunctionType (
 		AvailObject object,
 		A_Type functionType);
 
 	/**
-	 * Answer whether these are acceptable {@linkplain TypeDescriptor argument
-	 * types} for invoking a {@linkplain FunctionDescriptor function} whose type
-	 * is the {@code object}.
+	 * Answer whether these are acceptable {@linkplain TypeDescriptor argument types} for invoking a {@linkplain FunctionDescriptor function} whose type is the {@code object}.
 	 *
 	 * @see AvailObject#acceptsListOfArgTypes(List)
-	 * @param object The receiver.
-	 * @param argTypes A list containing the argument types to be checked.
-	 * @return {@code true} if the arguments of the receiver are, pairwise, more
-	 *         general than those within the {@code argTypes} list, {@code
-	 *         false} otherwise.
+	 * @param object
+	 * The receiver.
+	 * @param argTypes
+	 * A list containing the argument types to be checked.
+	 * @return
+	 * {@code true} if the arguments of the receiver are, pairwise, more general than those within the {@code argTypes} list, {@code false} otherwise.
 	 */
 	public abstract boolean o_AcceptsListOfArgTypes (
 		AvailObject object,
 		List<? extends A_Type> argTypes);
 
 	/**
-	 * Answer whether these are acceptable arguments for invoking a {@linkplain
-	 * FunctionDescriptor function} whose type is the {@code object}.
+	 * Answer whether these are acceptable arguments for invoking a {@linkplain FunctionDescriptor function} whose type is the {@code object}.
 	 *
 	 * @see AvailObject#acceptsListOfArgValues(List)
-	 * @param object The receiver.
-	 * @param argValues A list containing the argument values to be checked.
-	 * @return {@code true} if the arguments of the receiver are, pairwise, more
-	 *         general than the types of the values within the {@code argValues}
-	 *         list, {@code false} otherwise.
+	 * @param object
+	 * The receiver.
+	 * @param argValues
+	 * A list containing the argument values to be checked.
+	 * @return
+	 * {@code true} if the arguments of the receiver are, pairwise, more general than the types of the values within the {@code argValues} list, {@code false} otherwise.
 	 */
 	public abstract boolean o_AcceptsListOfArgValues (
 		AvailObject object,
 		List<? extends A_BasicObject> argValues);
 
 	/**
-	 * Answer whether these are acceptable {@linkplain TypeDescriptor argument
-	 * types} for invoking a {@linkplain FunctionDescriptor function} that is an
-	 * instance of {@code object}. There may be more entries in the {@linkplain
-	 * TupleDescriptor tuple} than are required by the {@linkplain
-	 * FunctionTypeDescriptor function type}.
+	 * Answer whether these are acceptable {@linkplain TypeDescriptor argument types} for invoking a {@linkplain FunctionDescriptor function} that is an instance of {@code object}. There may be more entries in the {@linkplain TupleDescriptor tuple} than are required by the {@linkplain FunctionTypeDescriptor function type}.
 	 *
 	 * @see AvailObject#acceptsTupleOfArgTypes(A_Tuple)
-	 * @param object The receiver.
-	 * @param argTypes A tuple containing the argument types to be checked.
-	 * @return {@code true} if the arguments of the receiver are, pairwise, more
-	 *         general than the corresponding elements of the {@code argTypes}
-	 *         tuple, {@code false} otherwise.
+	 * @param object
+	 * The receiver.
+	 * @param argTypes
+	 * A tuple containing the argument types to be checked.
+	 * @return
+	 * {@code true} if the arguments of the receiver are, pairwise, more general than the corresponding elements of the {@code argTypes} tuple, {@code false} otherwise.
 	 */
 	public abstract boolean o_AcceptsTupleOfArgTypes (
 		AvailObject object,
 		A_Tuple argTypes);
 
 	/**
-	 * Answer whether these are acceptable arguments for invoking a {@linkplain
-	 * FunctionDescriptor function} that is an instance of {@code object}. There
-	 * may be more entries in the {@linkplain TupleDescriptor tuple} than are
-	 * required by the {@linkplain FunctionTypeDescriptor function type}.
+	 * Answer whether these are acceptable arguments for invoking a {@linkplain FunctionDescriptor function} that is an instance of {@code object}. There may be more entries in the {@linkplain TupleDescriptor tuple} than are required by the {@linkplain FunctionTypeDescriptor function type}.
 	 *
-	 * @param object The receiver.
-	 * @param arguments A tuple containing the argument values to be checked.
-	 * @return {@code true} if the arguments of the receiver are, pairwise, more
-	 *         general than the types of the corresponding elements of the
-	 *         {@code arguments} tuple, {@code false} otherwise.
+	 * @param object
+	 * The receiver.
+	 * @param arguments
+	 * A tuple containing the argument values to be checked.
+	 * @return
+	 * {@code true} if the arguments of the receiver are, pairwise, more general than the types of the corresponding elements of the {@code arguments} tuple, {@code false} otherwise.
 	 * @see AvailObject#acceptsTupleOfArguments(A_Tuple)
 	 */
 	public abstract boolean o_AcceptsTupleOfArguments (
@@ -1312,15 +1249,10 @@ public abstract class AbstractDescriptor
 		A_Tuple arguments);
 
 	/**
-	 * Record the fact that the given {@link L2Chunk} depends on the object not
-	 * changing in some way peculiar to the kind of object.  Most typically,
-	 * this is applied to {@link A_Method}s, triggering invalidation if
-	 * {@link A_Definition}s are added to or removed from the method, but at
-	 * some point we may also support slowly-changing variables.
+	 * Record the fact that the given {@link L2Chunk} depends on the object not changing in some way peculiar to the kind of object.  Most typically, this is applied to {@link A_Method}s, triggering invalidation if {@link A_Definition}s are added to or removed from the method, but at some point we may also support slowly-changing variables.
 	 *
 	 * @param object
-	 *        The object responsible for invalidating dependent chunks when it
-	 *        changes.
+	 *        The object responsible for invalidating dependent chunks when it changes.
 	 * @param chunk
 	 *        A chunk that should be invalidated if the object changes.
 	 */
@@ -1329,14 +1261,15 @@ public abstract class AbstractDescriptor
 		L2Chunk chunk);
 
 	/**
-	 * Add a {@linkplain DefinitionDescriptor definition} to the receiver.
-	 * Causes dependent chunks to be invalidated.
+	 * Add a {@linkplain DefinitionDescriptor definition} to the receiver. Causes dependent chunks to be invalidated.
 	 *
 	 * Macro signatures and non-macro definitions should not be combined in the
 	 * same method.
 	 *
-	 * @param object The receiver.
-	 * @param definition The definition to be added.
+	 * @param object
+	 * The receiver.
+	 * @param definition
+	 * The definition to be added.
 	 * @throws SignatureException
 	 *         If the definition could not be added.
 	 * @see AvailObject#methodAddDefinition(A_Definition)
@@ -1347,12 +1280,10 @@ public abstract class AbstractDescriptor
 		throws SignatureException;
 
 	/**
-	 * Add a {@linkplain GrammaticalRestrictionDescriptor grammatical
-	 * restriction} to the receiver.
+	 * Add a {@linkplain GrammaticalRestrictionDescriptor grammatical restriction} to the receiver.
 	 *
 	 * @param object
-	 *            The receiver, a {@linkplain MessageBundleDescriptor message
-	 *            bundle}.
+	 *            The receiver, a {@linkplain MessageBundleDescriptor message bundle}.
 	 * @param grammaticalRestriction
 	 *            The grammatical restriction to be added.
 	 * @see [A_Bundle.addGrammaticalRestriction]
@@ -1364,18 +1295,16 @@ public abstract class AbstractDescriptor
 	/**
 	 * Add the {@linkplain AvailObject operands} and answer the result.
 	 *
-	 * <p>This method should only be called from {@link
-	 * AvailObject#plusCanDestroy(A_Number, boolean) plusCanDestroy}. It
-	 * exists for double-dispatch only.</p>
+	 * <p>This method should only be called from {@link AvailObject#plusCanDestroy(A_Number, boolean) plusCanDestroy}. It exists for double-dispatch only.</p>
 	 *
 	 * @param object
 	 *        An integral numeric.
 	 * @param sign
 	 *        The {@linkplain Sign sign} of the infinity.
 	 * @param canDestroy
-	 *        {@code true} if the operation may modify either {@linkplain
-	 *        AvailObject operand}, {@code false} otherwise.
-	 * @return The {@linkplain AvailObject result} of adding the operands.
+	 *        {@code true} if the operation may modify either {@linkplain AvailObject operand}, {@code false} otherwise.
+	 * @return
+	 * The {@linkplain AvailObject result} of adding the operands.
 	 * @see IntegerDescriptor
 	 * @see InfinityDescriptor
 	 */
@@ -1387,18 +1316,16 @@ public abstract class AbstractDescriptor
 	/**
 	 * Add the {@linkplain AvailObject operands} and answer the result.
 	 *
-	 * <p>This method should only be called from {@link
-	 * AvailObject#plusCanDestroy(A_Number, boolean) plusCanDestroy}. It
-	 * exists for double-dispatch only.</p>
+	 * <p>This method should only be called from {@link AvailObject#plusCanDestroy(A_Number, boolean) plusCanDestroy}. It exists for double-dispatch only.</p>
 	 *
 	 * @param object
 	 *        An integral numeric.
 	 * @param anInteger
 	 *        An {@linkplain IntegerDescriptor integer}.
 	 * @param canDestroy
-	 *        {@code true} if the operation may modify either {@linkplain
-	 *        AvailObject operand}, {@code false} otherwise.
-	 * @return The {@linkplain AvailObject result} of adding the operands.
+	 *        {@code true} if the operation may modify either {@linkplain AvailObject operand}, {@code false} otherwise.
+	 * @return
+	 * The {@linkplain AvailObject result} of adding the operands.
 	 * @see IntegerDescriptor
 	 * @see InfinityDescriptor
 	 */
@@ -1488,9 +1415,7 @@ public abstract class AbstractDescriptor
 		AvailObject object);
 
 	/**
-	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
-	 * subrange of another object. The size of the subrange of both objects is
-	 * determined by the index range supplied for the receiver.
+	 * Compare a subrange of the {@linkplain AvailObject receiver} with a subrange of another object. The size of the subrange of both objects is determined by the index range supplied for the receiver.
 	 *
 	 * @param object
 	 *        The receiver.
@@ -1502,8 +1427,8 @@ public abstract class AbstractDescriptor
 	 *        The other object used in the comparison.
 	 * @param startIndex2
 	 *        The inclusive lower bound of the other object's subrange.
-	 * @return {@code true} if the contents of the subranges match exactly,
-	 *         {@code false} otherwise.
+	 * @return
+	 * {@code true} if the contents of the subranges match exactly, {@code false} otherwise.
 	 * @see AvailObject#compareFromToWithStartingAt(int, int, A_Tuple, int)
 	 */
 	public abstract boolean o_CompareFromToWithStartingAt (
@@ -1514,10 +1439,7 @@ public abstract class AbstractDescriptor
 		int startIndex2);
 
 	/**
-	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
-	 * subrange of the given {@linkplain TupleDescriptor tuple}. The size of the
-	 * subrange of both objects is determined by the index range supplied for
-	 * the receiver.
+	 * Compare a subrange of the {@linkplain AvailObject receiver} with a subrange of the given {@linkplain TupleDescriptor tuple}. The size of the subrange of both objects is determined by the index range supplied for the receiver.
 	 *
 	 * @param object
 	 *        The receiver.
@@ -1529,8 +1451,8 @@ public abstract class AbstractDescriptor
 	 *        The tuple used in the comparison.
 	 * @param startIndex2
 	 *        The inclusive lower bound of the tuple's subrange.
-	 * @return {@code true} if the contents of the subranges match exactly,
-	 *         {@code false} otherwise.
+	 * @return
+	 * {@code true} if the contents of the subranges match exactly, {@code false} otherwise.
 	 * @see A_Tuple#compareFromToWithAnyTupleStartingAt(int, int, A_Tuple, int)
 	 */
 	public abstract boolean o_CompareFromToWithAnyTupleStartingAt (
@@ -1541,10 +1463,7 @@ public abstract class AbstractDescriptor
 		int startIndex2);
 
 	/**
-	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
-	 * subrange of the given {@linkplain ByteStringDescriptor byte string}. The
-	 * size of the subrange of both objects is determined by the index range
-	 * supplied for the receiver.
+	 * Compare a subrange of the {@linkplain AvailObject receiver} with a subrange of the given {@linkplain ByteStringDescriptor byte string}. The size of the subrange of both objects is determined by the index range supplied for the receiver.
 	 *
 	 * @param object
 	 *        The receiver.
@@ -1556,8 +1475,8 @@ public abstract class AbstractDescriptor
 	 *        The byte string used in the comparison.
 	 * @param startIndex2
 	 *        The inclusive lower bound of the byte string's subrange.
-	 * @return {@code true} if the contents of the subranges match exactly,
-	 *         {@code false} otherwise.
+	 * @return
+	 * {@code true} if the contents of the subranges match exactly, {@code false} otherwise.
 	 * @see AvailObject#compareFromToWithByteStringStartingAt(int, int, A_String, int)
 	 */
 	public abstract boolean o_CompareFromToWithByteStringStartingAt (
@@ -1568,10 +1487,7 @@ public abstract class AbstractDescriptor
 		int startIndex2);
 
 	/**
-	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
-	 * subrange of the given {@linkplain ByteTupleDescriptor byte tuple}. The
-	 * size of the subrange of both objects is determined by the index range
-	 * supplied for the receiver.
+	 * Compare a subrange of the {@linkplain AvailObject receiver} with a subrange of the given {@linkplain ByteTupleDescriptor byte tuple}. The size of the subrange of both objects is determined by the index range supplied for the receiver.
 	 *
 	 * @param object
 	 *        The receiver.
@@ -1583,8 +1499,8 @@ public abstract class AbstractDescriptor
 	 *        The byte tuple used in the comparison.
 	 * @param startIndex2
 	 *        The inclusive lower bound of the byte tuple's subrange.
-	 * @return {@code true} if the contents of the subranges match exactly,
-	 *         {@code false} otherwise.
+	 * @return
+	 * {@code true} if the contents of the subranges match exactly, {@code false} otherwise.
 	 * @see AvailObject#compareFromToWithByteTupleStartingAt(int, int, A_Tuple, int)
 	 */
 	public abstract boolean o_CompareFromToWithByteTupleStartingAt (
@@ -1595,10 +1511,7 @@ public abstract class AbstractDescriptor
 		int startIndex2);
 
 	/**
-	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
-	 * subrange of the given {@linkplain IntegerIntervalTupleDescriptor integer
-	 * interval tuple}. The size of the subrange of both objects is determined
-	 * by the index range supplied for the receiver.
+	 * Compare a subrange of the {@linkplain AvailObject receiver} with a subrange of the given {@linkplain IntegerIntervalTupleDescriptor integer interval tuple}. The size of the subrange of both objects is determined by the index range supplied for the receiver.
 	 *
 	 * @param object
 	 *        The receiver.
@@ -1609,10 +1522,9 @@ public abstract class AbstractDescriptor
 	 * @param anIntegerIntervalTuple
 	 *        The integer interval tuple used in the comparison.
 	 * @param startIndex2
-	 *        The inclusive lower bound of the integer interval tuple's
-	 *        subrange.
-	 * @return {@code true} if the contents of the subranges match exactly,
-	 *         {@code false} otherwise.
+	 *        The inclusive lower bound of the integer interval tuple's subrange.
+	 * @return
+	 * {@code true} if the contents of the subranges match exactly, {@code false} otherwise.
 	 * @see AvailObject#compareFromToWithByteTupleStartingAt(int, int, A_Tuple, int)
 	 */
 	public abstract boolean o_CompareFromToWithIntegerIntervalTupleStartingAt (
@@ -1623,10 +1535,7 @@ public abstract class AbstractDescriptor
 		int startIndex2);
 
 	/**
-	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
-	 * subrange of the given {@linkplain SmallIntegerIntervalTupleDescriptor small integer
-	 * interval tuple}. The size of the subrange of both objects is determined
-	 * by the index range supplied for the receiver.
+	 * Compare a subrange of the {@linkplain AvailObject receiver} with a subrange of the given {@linkplain SmallIntegerIntervalTupleDescriptor small integer interval tuple}. The size of the subrange of both objects is determined by the index range supplied for the receiver.
 	 *
 	 * @param object
 	 *        The receiver.
@@ -1637,10 +1546,9 @@ public abstract class AbstractDescriptor
 	 * @param aSmallIntegerIntervalTuple
 	 *        The small integer interval tuple used in the comparison.
 	 * @param startIndex2
-	 *        The inclusive lower bound of the small integer interval tuple's
-	 *        subrange.
-	 * @return {@code true} if the contents of the subranges match exactly,
-	 *         {@code false} otherwise.
+	 *        The inclusive lower bound of the small integer interval tuple's subrange.
+	 * @return
+	 * {@code true} if the contents of the subranges match exactly, {@code false} otherwise.
 	 * @see AvailObject#compareFromToWithByteTupleStartingAt(int, int, A_Tuple, int)
 	 */
 	public abstract boolean o_CompareFromToWithSmallIntegerIntervalTupleStartingAt (
@@ -1651,10 +1559,7 @@ public abstract class AbstractDescriptor
 		int startIndex2);
 
 	/**
-	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
-	 * subrange of the given {@linkplain RepeatedElementTupleDescriptor repeated
-	 * element tuple}. The size of the subrange of both objects is determined
-	 * by the index range supplied for the receiver.
+	 * Compare a subrange of the {@linkplain AvailObject receiver} with a subrange of the given {@linkplain RepeatedElementTupleDescriptor repeated element tuple}. The size of the subrange of both objects is determined by the index range supplied for the receiver.
 	 *
 	 * @param object
 	 *        The receiver.
@@ -1665,10 +1570,9 @@ public abstract class AbstractDescriptor
 	 * @param aRepeatedElementTuple
 	 *        The repeated element tuple used in the comparison.
 	 * @param startIndex2
-	 *        The inclusive lower bound of the repeated element tuple's
-	 *        subrange.
-	 * @return {@code true} if the contents of the subranges match exactly,
-	 *         {@code false} otherwise.
+	 *        The inclusive lower bound of the repeated element tuple's subrange.
+	 * @return
+	 * {@code true} if the contents of the subranges match exactly, {@code false} otherwise.
 	 * @see AvailObject#compareFromToWithByteTupleStartingAt(int, int, A_Tuple, int)
 	 */
 	public abstract boolean o_CompareFromToWithRepeatedElementTupleStartingAt (
@@ -1679,10 +1583,7 @@ public abstract class AbstractDescriptor
 		int startIndex2);
 
 	/**
-	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
-	 * subrange of the given {@linkplain NybbleTupleDescriptor nybble tuple}.
-	 * The size of the subrange of both objects is determined by the index range
-	 * supplied for the receiver.
+	 * Compare a subrange of the {@linkplain AvailObject receiver} with a subrange of the given {@linkplain NybbleTupleDescriptor nybble tuple}. The size of the subrange of both objects is determined by the index range supplied for the receiver.
 	 *
 	 * @param object
 	 *        The receiver.
@@ -1694,8 +1595,8 @@ public abstract class AbstractDescriptor
 	 *        The nybble tuple used in the comparison.
 	 * @param startIndex2
 	 *        The inclusive lower bound of the nybble tuple's subrange.
-	 * @return {@code true} if the contents of the subranges match exactly,
-	 *         {@code false} otherwise.
+	 * @return
+	 * {@code true} if the contents of the subranges match exactly, {@code false} otherwise.
 	 * @see AvailObject#compareFromToWithNybbleTupleStartingAt(int, int, A_Tuple, int)
 	 */
 	public abstract boolean o_CompareFromToWithNybbleTupleStartingAt (
@@ -1706,10 +1607,7 @@ public abstract class AbstractDescriptor
 		int startIndex2);
 
 	/**
-	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
-	 * subrange of the given {@linkplain ObjectTupleDescriptor object tuple}.
-	 * The size of the subrange of both objects is determined by the index range
-	 * supplied for the receiver.
+	 * Compare a subrange of the {@linkplain AvailObject receiver} with a subrange of the given {@linkplain ObjectTupleDescriptor object tuple}. The size of the subrange of both objects is determined by the index range supplied for the receiver.
 	 *
 	 * @param object
 	 *        The receiver.
@@ -1721,8 +1619,8 @@ public abstract class AbstractDescriptor
 	 *        The object tuple used in the comparison.
 	 * @param startIndex2
 	 *        The inclusive lower bound of the object tuple's subrange.
-	 * @return {@code true} if the contents of the subranges match exactly,
-	 *         {@code false} otherwise.
+	 * @return
+	 * {@code true} if the contents of the subranges match exactly, {@code false} otherwise.
 	 * @see AvailObject#compareFromToWithObjectTupleStartingAt(int, int, A_Tuple, int)
      */
 	public abstract boolean o_CompareFromToWithObjectTupleStartingAt (
@@ -1733,10 +1631,7 @@ public abstract class AbstractDescriptor
 		int startIndex2);
 
 	/**
-	 * Compare a subrange of the {@linkplain AvailObject receiver} with a
-	 * subrange of the given {@linkplain TwoByteStringDescriptor two-byte
-	 * string}. The size of the subrange of both objects is determined by the
-	 * index range supplied for the receiver.
+	 * Compare a subrange of the {@linkplain AvailObject receiver} with a subrange of the given {@linkplain TwoByteStringDescriptor two-byte string}. The size of the subrange of both objects is determined by the index range supplied for the receiver.
 	 *
 	 * @param object
 	 *        The receiver.
@@ -1748,8 +1643,8 @@ public abstract class AbstractDescriptor
 	 *        The two-byte string used in the comparison.
 	 * @param startIndex2
 	 *        The inclusive lower bound of the two-byte string's subrange.
-	 * @return {@code true} if the contents of the subranges match exactly,
-	 *         {@code false} otherwise.
+	 * @return
+	 * {@code true} if the contents of the subranges match exactly, {@code false} otherwise.
 	 * @see AvailObject#compareFromToWithTwoByteStringStartingAt(int, int, A_String, int)
      */
 	public abstract boolean o_CompareFromToWithTwoByteStringStartingAt (
@@ -1771,8 +1666,7 @@ public abstract class AbstractDescriptor
 		int end);
 
 	/**
-	 * Compute this object's {@link TypeTag}, having failed to extract it from
-	 * the descriptor directly in {@link AvailObjectRepresentation#typeTag()}.
+	 * Compute this object's {@link TypeTag}, having failed to extract it from the descriptor directly in {@link AvailObjectRepresentation#typeTag()}.
 	 *
 	 * @param object
 	 * @return
@@ -1822,28 +1716,24 @@ public abstract class AbstractDescriptor
 	/**
 	 * Answer a fiber's internal debug log.
 	 *
-	 * @param object The {@link A_Fiber}.
-	 * @return The fiber's debug log, a {@link StringBuilder}.
+	 * @param object
+	 * The {@link A_Fiber}.
+	 * @return
+	 * The fiber's debug log, a {@link StringBuilder}.
 	 */
 	public abstract StringBuilder o_DebugLog (final AvailObject object);
 
 	/**
 	 * Divide the {@linkplain AvailObject operands} and answer the result.
 	 *
-	 * <p>Implementations may double-dispatch to {@link
-	 * A_Number#divideIntoIntegerCanDestroy(AvailObject, boolean)
-	 * divideIntoIntegerCanDestroy} or {@link
-	 * AvailObject#divideIntoInfinityCanDestroy(Sign, boolean)
-	 * divideIntoInfinityCanDestroy}, where actual implementations of the
-	 * division operation should reside.</p>
+	 * <p>Implementations may double-dispatch to {@link A_Number#divideIntoIntegerCanDestroy(AvailObject, boolean) divideIntoIntegerCanDestroy} or {@link AvailObject#divideIntoInfinityCanDestroy(Sign, boolean) divideIntoInfinityCanDestroy}, where actual implementations of the division operation should reside.</p>
 	 *
 	 * @param object
 	 *        An integral numeric.
 	 * @param aNumber
 	 *        An integral numeric.
 	 * @param canDestroy
-	 *        {@code true} if the operation may modify either {@linkplain
-	 *        AvailObject operand}, {@code false} otherwise.
+	 *        {@code true} if the operation may modify either {@linkplain AvailObject operand}, {@code false} otherwise.
 	 * @return The {@linkplain AvailObject result} of dividing the operands.
 	 * @see IntegerDescriptor
 	 * @see InfinityDescriptor
@@ -1855,20 +1745,16 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * Divide an infinity with the given {@linkplain Sign sign} by the
-	 * {@linkplain AvailObject object} and answer the {@linkplain AvailObject
-	 * result}.
+	 * {@linkplain AvailObject object} and answer the {@linkplain AvailObject result}.
 	 *
-	 * <p>This method should only be called from {@link
-	 * AvailObject#divideCanDestroy(A_Number, boolean) divideCanDestroy}. It
-	 * exists for double-dispatch only.</p>
+	 * <p>This method should only be called from {@link AvailObject#divideCanDestroy(A_Number, boolean) divideCanDestroy}. It exists for double-dispatch only.</p>
 
 	 * @param object
 	 *        The divisor, an integral numeric.
 	 * @param sign
 	 *        The sign of the infinity.
 	 * @param canDestroy
-	 *        {@code true} if the operation may modify either {@linkplain
-	 *        AvailObject operand}, {@code false} otherwise.
+	 *        {@code true} if the operation may modify either {@linkplain AvailObject operand}, {@code false} otherwise.
 	 * @return The {@linkplain AvailObject result} of dividing the operands.
 	 * @see IntegerDescriptor
 	 * @see InfinityDescriptor
@@ -1881,17 +1767,14 @@ public abstract class AbstractDescriptor
 	/**
 	 * Divide the {@linkplain AvailObject operands} and answer the result.
 	 *
-	 * <p>This method should only be called from {@link
-	 * AvailObject#divideCanDestroy(A_Number, boolean) divideCanDestroy}. It
-	 * exists for double-dispatch only.</p>
+	 * <p>This method should only be called from {@link AvailObject#divideCanDestroy(A_Number, boolean) divideCanDestroy}. It exists for double-dispatch only.</p>
 
 	 * @param object
 	 *        The divisor, an integral numeric.
 	 * @param anInteger
 	 *        The dividend, an {@linkplain IntegerDescriptor integer}.
 	 * @param canDestroy
-	 *        {@code true} if the operation may modify either operand, {@code
-	 *        false} otherwise.
+	 *        {@code true} if the operation may modify either operand, {@code false} otherwise.
 	 * @return The result of dividing the operands.
 	 * @see IntegerDescriptor
 	 * @see InfinityDescriptor
@@ -1928,13 +1811,14 @@ public abstract class AbstractDescriptor
 		List<? extends A_Type> argTypes);
 
 	/**
-	 * Answer whether the {@linkplain AvailObject receiver} contains the
-	 * specified element.
+	 * Answer whether the {@linkplain AvailObject receiver} contains the specified element.
 	 *
-	 * @param object The receiver.
-	 * @param elementObject The element.
-	 * @return {@code true} if the receiver contains the element, {@code false}
-	 *         otherwise.
+	 * @param object
+	 * The receiver.
+	 * @param elementObject
+	 * The element.
+	 * @return
+	 * {@code true} if the receiver contains the element, {@code false} otherwise.
 	 * @see AvailObject#hasElement(A_BasicObject)
 	 */
 	public abstract boolean o_HasElement (
@@ -2276,21 +2160,16 @@ public abstract class AbstractDescriptor
 	/**
 	 * Difference the {@linkplain AvailObject operands} and answer the result.
 	 *
-	 * <p>Implementations may double-dispatch to {@link
-	 * A_Number#subtractFromIntegerCanDestroy(AvailObject, boolean)
-	 * subtractFromIntegerCanDestroy} or {@link
-	 * AvailObject#subtractFromInfinityCanDestroy(Sign, boolean)
-	 * subtractFromInfinityCanDestroy}, where actual implementations of the
-	 * subtraction operation should reside.</p>
+	 * <p>Implementations may double-dispatch to {@link A_Number#subtractFromIntegerCanDestroy(AvailObject, boolean) subtractFromIntegerCanDestroy} or {@link AvailObject#subtractFromInfinityCanDestroy(Sign, boolean) subtractFromInfinityCanDestroy}, where actual implementations of the subtraction operation should reside.</p>
 	 *
 	 * @param object
 	 *        An integral numeric.
 	 * @param aNumber
 	 *        An integral numeric.
 	 * @param canDestroy
-	 *        {@code true} if the operation may modify either {@linkplain
-	 *        AvailObject operand}, {@code false} otherwise.
-	 * @return The {@linkplain AvailObject result} of differencing the operands.
+	 *        {@code true} if the operation may modify either {@linkplain AvailObject operand}, {@code false} otherwise.
+	 * @return
+	 * The {@linkplain AvailObject result} of differencing the operands.
 	 * @see IntegerDescriptor
 	 * @see InfinityDescriptor
 	 */
@@ -2302,21 +2181,16 @@ public abstract class AbstractDescriptor
 	/**
 	 * Multiply the {@linkplain AvailObject operands} and answer the result.
 	 *
-	 * <p>This method should only be called from {@link
-	 * AvailObject#timesCanDestroy(A_Number, boolean) timesCanDestroy}. It
-	 * exists for double-dispatch only.</p>
+	 * <p>This method should only be called from {@link AvailObject#timesCanDestroy(A_Number, boolean) timesCanDestroy}. It exists for double-dispatch only.</p>
 	 *
 	 * @param object
 	 *        An integral numeric.
 	 * @param sign
 	 *        The {@link Sign} of the {@linkplain InfinityDescriptor infinity}.
 	 * @param canDestroy
-	 *        {@code true} if the operation may modify either {@linkplain
-	 *        AvailObject operand}, {@code false} otherwise.
-	 * @return The {@linkplain AvailObject result} of multiplying the operands.
-	 *         If the {@linkplain AvailObject operands} were {@linkplain
-	 *         IntegerDescriptor#zero() zero} and {@linkplain InfinityDescriptor
-	 *         infinity}.
+	 *        {@code true} if the operation may modify either {@linkplain AvailObject operand}, {@code false} otherwise.
+	 * @return
+	 * The {@linkplain AvailObject result} of multiplying the operands. If the {@linkplain AvailObject operands} were {@linkplain IntegerDescriptor#zero() zero} and {@linkplain InfinityDescriptor infinity}.
 	 * @see IntegerDescriptor
 	 * @see InfinityDescriptor
 	 */
@@ -2328,18 +2202,16 @@ public abstract class AbstractDescriptor
 	/**
 	 * Multiply the {@linkplain AvailObject operands} and answer the result.
 	 *
-	 * <p>This method should only be called from {@link
-	 * AvailObject#timesCanDestroy(A_Number, boolean) timesCanDestroy}. It
-	 * exists for double-dispatch only.</p>
+	 * <p>This method should only be called from {@link AvailObject#timesCanDestroy(A_Number, boolean) timesCanDestroy}. It exists for double-dispatch only.</p>
 	 *
 	 * @param object
 	 *        An integral numeric.
 	 * @param anInteger
 	 *        An {@linkplain IntegerDescriptor integer}.
 	 * @param canDestroy
-	 *        {@code true} if the operation may modify either {@linkplain
-	 *        AvailObject operand}, {@code false} otherwise.
-	 * @return The {@linkplain AvailObject result} of multiplying the operands.
+	 *        {@code true} if the operation may modify either {@linkplain AvailObject operand}, {@code false} otherwise.
+	 * @return
+	 * The {@linkplain AvailObject result} of multiplying the operands.
 	 * @see IntegerDescriptor
 	 * @see InfinityDescriptor
 	 */
@@ -2397,21 +2269,16 @@ public abstract class AbstractDescriptor
 	/**
 	 * Add the {@linkplain AvailObject operands} and answer the result.
 	 *
-	 * <p>Implementations may double-dispatch to {@link
-	 * A_Number#addToIntegerCanDestroy(AvailObject, boolean)
-	 * addToIntegerCanDestroy} or {@link
-	 * AvailObject#addToInfinityCanDestroy(Sign, boolean)
-	 * addToInfinityCanDestroy}, where actual implementations of the addition
-	 * operation should reside.</p>
+	 * <p>Implementations may double-dispatch to {@link A_Number#addToIntegerCanDestroy(AvailObject, boolean) addToIntegerCanDestroy} or {@link AvailObject#addToInfinityCanDestroy(Sign, boolean) addToInfinityCanDestroy}, where actual implementations of the addition operation should reside.</p>
 	 *
 	 * @param object
 	 *        An integral numeric.
 	 * @param aNumber
 	 *        An integral numeric.
 	 * @param canDestroy
-	 *        {@code true} if the operation may modify either {@linkplain
-	 *        AvailObject operand}, {@code false} otherwise.
-	 * @return The {@linkplain AvailObject result} of adding the operands.
+	 *        {@code true} if the operation may modify either {@linkplain AvailObject operand}, {@code false} otherwise.
+	 * @return
+	 * The {@linkplain AvailObject result} of adding the operands.
 	 */
 	public abstract A_Number o_PlusCanDestroy (
 		AvailObject object,
@@ -2637,21 +2504,16 @@ public abstract class AbstractDescriptor
 	/**
 	 * Difference the {@linkplain AvailObject operands} and answer the result.
 	 *
-	 * <p>Implementations may double-dispatch to {@link
-	 * A_Number#subtractFromIntegerCanDestroy(AvailObject, boolean)
-	 * subtractFromIntegerCanDestroy} or {@link
-	 * AvailObject#subtractFromInfinityCanDestroy(Sign, boolean)
-	 * subtractFromInfinityCanDestroy}, where actual implementations of the
-	 * subtraction operation should reside.</p>
+	 * <p>Implementations may double-dispatch to {@link A_Number#subtractFromIntegerCanDestroy(AvailObject, boolean) subtractFromIntegerCanDestroy} or {@link AvailObject#subtractFromInfinityCanDestroy(Sign, boolean) subtractFromInfinityCanDestroy}, where actual implementations of the subtraction operation should reside.</p>
 	 *
 	 * @param object
 	 *        An integral numeric.
 	 * @param sign
 	 *        The {@link Sign} of the {@linkplain InfinityDescriptor infinity}.
 	 * @param canDestroy
-	 *        {@code true} if the operation may modify either {@linkplain
-	 *        AvailObject operand}, {@code false} otherwise.
-	 * @return The {@linkplain AvailObject result} of differencing the operands.
+	 *        {@code true} if the operation may modify either {@linkplain AvailObject operand}, {@code false} otherwise.
+	 * @return
+	 * The {@linkplain AvailObject result} of differencing the operands.
 	 * @see IntegerDescriptor
 	 * @see InfinityDescriptor
 	 */
@@ -2663,21 +2525,16 @@ public abstract class AbstractDescriptor
 	/**
 	 * Difference the {@linkplain AvailObject operands} and answer the result.
 	 *
-	 * <p>Implementations may double-dispatch to {@link
-	 * A_Number#subtractFromIntegerCanDestroy(AvailObject, boolean)
-	 * subtractFromIntegerCanDestroy} or {@link
-	 * AvailObject#subtractFromInfinityCanDestroy(Sign, boolean)
-	 * subtractFromInfinityCanDestroy}, where actual implementations of the
-	 * subtraction operation should reside.</p>
+	 * <p>Implementations may double-dispatch to {@link A_Number#subtractFromIntegerCanDestroy(AvailObject, boolean) subtractFromIntegerCanDestroy} or {@link AvailObject#subtractFromInfinityCanDestroy(Sign, boolean) subtractFromInfinityCanDestroy}, where actual implementations of the subtraction operation should reside.</p>
 	 *
 	 * @param object
 	 *        An integral numeric.
 	 * @param anInteger
 	 *        An {@linkplain IntegerDescriptor integer}.
 	 * @param canDestroy
-	 *        {@code true} if the operation may modify either {@linkplain
-	 *        AvailObject operand}, {@code false} otherwise.
-	 * @return The {@linkplain AvailObject result} of differencing the operands.
+	 *        {@code true} if the operation may modify either {@linkplain AvailObject operand}, {@code false} otherwise.
+	 * @return
+	 * The {@linkplain AvailObject result} of differencing the operands.
 	 * @see IntegerDescriptor
 	 * @see InfinityDescriptor
 	 */
@@ -2690,13 +2547,7 @@ public abstract class AbstractDescriptor
 	 * Multiply the {@linkplain AvailObject operands} and answer the result.
 	 *
 	 * <p>
-	 * Implementations may double-dispatch to {@link
-	 * A_Number#multiplyByIntegerCanDestroy(AvailObject, boolean)
-	 * multiplyByIntegerCanDestroy} or {@link
-	 * AvailObject#multiplyByInfinityCanDestroy(Sign, boolean)
-	 * multiplyByInfinityCanDestroy}, where actual implementations of the
-	 * multiplication operation should reside.  Other implementations may exist
-	 * for other type families (e.g., floating point).
+	 * Implementations may double-dispatch to {@link A_Number#multiplyByIntegerCanDestroy(AvailObject, boolean) multiplyByIntegerCanDestroy} or {@link AvailObject#multiplyByInfinityCanDestroy(Sign, boolean) multiplyByInfinityCanDestroy}, where actual implementations of the multiplication operation should reside.  Other implementations may exist for other type families (e.g., floating point).
 	 * </p>
 	 *
 	 * @param object
@@ -2704,9 +2555,9 @@ public abstract class AbstractDescriptor
 	 * @param aNumber
 	 *        Another {@linkplain AbstractNumberDescriptor numeric} value.
 	 * @param canDestroy
-	 *        {@code true} if the operation may modify either operand,
-	 *        {@code false} otherwise.
-	 * @return The {@linkplain AvailObject result} of multiplying the operands.
+	 *        {@code true} if the operation may modify either operand, {@code false} otherwise.
+	 * @return
+	 * The {@linkplain AvailObject result} of multiplying the operands.
 	 * @see IntegerDescriptor
 	 * @see InfinityDescriptor
 	 */
@@ -3036,29 +2887,32 @@ public abstract class AbstractDescriptor
 	 * {@linkplain StringDescriptor string}.
 	 *
 	 * @see AvailObject#asNativeString()
-	 * @param object An Avail string.
-	 * @return The corresponding Java string.
+	 * @param object
+	 * An Avail string.
+	 * @return
+	 * The corresponding Java string.
 	 */
 	public abstract String o_AsNativeString (AvailObject object);
 
 	/**
-	 * Construct a Java {@linkplain Set set} from the given {@linkplain
-	 * TupleDescriptor tuple}.
+	 * Construct a Java {@linkplain Set set} from the given {@linkplain TupleDescriptor tuple}.
 	 *
 	 * @see AvailObject#asSet()
-	 * @param object A tuple.
-	 * @return A set containing each element in the tuple.
+	 * @param object
+	 * A tuple.
+	 * @return
+	 * A set containing each element in the tuple.
 	 */
 	public abstract A_Set o_AsSet (AvailObject object);
 
 	/**
-	 * Construct a {@linkplain TupleDescriptor tuple} from the given {@linkplain
-	 * SetDescriptor set}. Element ordering in the tuple will be arbitrary and
-	 * unstable.
+	 * Construct a {@linkplain TupleDescriptor tuple} from the given {@linkplain SetDescriptor set}. Element ordering in the tuple will be arbitrary and unstable.
 	 *
 	 * @see AvailObject#asTuple()
-	 * @param object A set.
-	 * @return A tuple containing each element in the set.
+	 * @param object
+	 * A set.
+	 * @return
+	 * A tuple containing each element in the set.
 	 */
 	public abstract A_Tuple o_AsTuple (AvailObject object);
 
@@ -3245,8 +3099,10 @@ public abstract class AbstractDescriptor
 	 * Extract a 64-bit signed Java {@code long} from the specified Avail
 	 * {@linkplain IntegerDescriptor integer}.
 	 *
-	 * @param object An {@link AvailObject}.
-	 * @return A 64-bit signed Java {@code long}
+	 * @param object
+	 * An {@link AvailObject}.
+	 * @return
+	 * A 64-bit signed Java {@code long}
 	 *
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
@@ -3451,12 +3307,12 @@ public abstract class AbstractDescriptor
 	public abstract A_Map o_NewNames (AvailObject object);
 
 	/**
-	 * Answer how many arguments my instances expect.  This is applicable to
-	 * both {@linkplain MethodDescriptor methods} and {@linkplain
-	 * CompiledCodeDescriptor compiled code}.
+	 * Answer how many arguments my instances expect.  This is applicable to both {@linkplain MethodDescriptor methods} and {@linkplain CompiledCodeDescriptor compiled code}.
 	 *
-	 * @param object The method or compiled code.
-	 * @return The number of arguments expected.
+	 * @param object
+	 * The method or compiled code.
+	 * @return
+	 * The number of arguments expected.
 	 */
 	public abstract int o_NumArgs (AvailObject object);
 
@@ -3662,10 +3518,12 @@ public abstract class AbstractDescriptor
 	 * Answer whether the arguments, both {@linkplain AvailObject objects}, are
 	 * equal in value.
 	 *
-	 * @param object The receiver.
-	 * @param another The second object used in the comparison.
-	 * @return {@code true} if the two objects are of equal value, {@code false}
-	 *         otherwise.
+	 * @param object
+	 * The receiver.
+	 * @param another
+	 * The second object used in the comparison.
+	 * @return
+	 * {@code true} if the two objects are of equal value, {@code false} otherwise.
 	 * @see AvailObject#equals(A_BasicObject)
 	 */
 	public abstract boolean o_Equals (
@@ -3676,10 +3534,12 @@ public abstract class AbstractDescriptor
 	 * Answer whether the arguments, an {@linkplain AvailObject object} and a
 	 * {@linkplain TupleDescriptor tuple}, are equal in value.
 	 *
-	 * @param object The receiver.
-	 * @param aTuple The tuple used in the comparison.
-	 * @return {@code true} if the receiver is a tuple and of value equal to the
-	 *         argument, {@code false} otherwise.
+	 * @param object
+	 * The receiver.
+	 * @param aTuple
+	 * The tuple used in the comparison.
+	 * @return
+	 * {@code true} if the receiver is a tuple and of value equal to the argument, {@code false} otherwise.
 	 * @see AvailObject#equalsAnyTuple(A_Tuple)
 	 */
 	public abstract boolean o_EqualsAnyTuple (
@@ -3691,9 +3551,10 @@ public abstract class AbstractDescriptor
 	 * {@linkplain ByteStringDescriptor byte string}, are equal in value.
 	 *
 	 * @param object The receiver.
-	 * @param aByteString The byte string used in the comparison.
-	 * @return {@code true} if the receiver is a byte string and of value equal
-	 *         to the argument, {@code false} otherwise.
+	 * @param aByteString
+	 * The byte string used in the comparison.
+	 * @return
+	 * {@code true} if the receiver is a byte string and of value equal to the argument, {@code false} otherwise.
 	 * @see AvailObject#equalsByteString(A_String)
 	 */
 	public abstract boolean o_EqualsByteString (
@@ -3704,10 +3565,12 @@ public abstract class AbstractDescriptor
 	 * Answer whether the arguments, an {@linkplain AvailObject object}, and a
 	 * {@linkplain ByteTupleDescriptor byte tuple}, are equal in value.
 	 *
-	 * @param object The receiver.
-	 * @param aByteTuple The byte tuple used in the comparison.
-	 * @return {@code true} if the receiver is a byte tuple and of value equal
-	 *         to the argument, {@code false} otherwise.
+	 * @param object
+	 * The receiver.
+	 * @param aByteTuple
+	 * The byte tuple used in the comparison.
+	 * @return
+	 * {@code true} if the receiver is a byte tuple and of value equal to the argument, {@code false} otherwise.
 	 * @see AvailObject#equalsByteString(A_String)
 	 */
 	public abstract boolean o_EqualsByteTuple (
@@ -3715,13 +3578,14 @@ public abstract class AbstractDescriptor
 		A_Tuple aByteTuple);
 
 	/**
-	 * Answer whether the receiver, an {@linkplain AvailObject object}, is a
-	 * character with a code point equal to the integer argument.
+	 * Answer whether the receiver, an {@linkplain AvailObject object}, is a character with a code point equal to the integer argument.
 	 *
-	 * @param object The receiver.
-	 * @param aCodePoint The code point to be compared to the receiver.
-	 * @return {@code true} if the receiver is a character with a code point
-	 *         equal to the argument, {@code false} otherwise.
+	 * @param object
+	 * The receiver.
+	 * @param aCodePoint
+	 * The code point to be compared to the receiver.
+	 * @return
+	 * {@code true} if the receiver is a character with a code point equal to the argument, {@code false} otherwise.
 	 * @see AvailObject#equalsCharacterWithCodePoint(int)
 	 */
 	public abstract boolean o_EqualsCharacterWithCodePoint (
@@ -3732,22 +3596,25 @@ public abstract class AbstractDescriptor
 	 * Answer whether the arguments, an {@linkplain AvailObject object} and a
 	 * {@linkplain FiberTypeDescriptor fiber type}, are equal in value.
 	 *
-	 * @param object The receiver.
-	 * @param aType A fiber type.
-	 * @return {@code true} if the receiver is a fiber type and of value equal
-	 *         to the argument, {@code false} otherwise.
+	 * @param object
+	 * The receiver.
+	 * @param aType
+	 * A fiber type.
+	 * @return
+	 * {@code true} if the receiver is a fiber type and of value equal to the argument, {@code false} otherwise.
 	 * @see AvailObject#equalsFiberType(A_Type)
 	 */
 	public abstract boolean o_EqualsFiberType (AvailObject object, A_Type aType);
 
 	/**
-	 * Answer whether the arguments, an {@linkplain AvailObject object} and a
-	 * {@linkplain FunctionDescriptor function}, are equal in value.
+	 * Answer whether the arguments, an {@linkplain AvailObject object} and a {@linkplain FunctionDescriptor function}, are equal in value.
 	 *
-	 * @param object The receiver.
-	 * @param aFunction The function used in the comparison.
-	 * @return {@code true} if the receiver is a function and of value equal to
-	 *         the argument, {@code false} otherwise.
+	 * @param object
+	 * The receiver.
+	 * @param aFunction
+	 * The function used in the comparison.
+	 * @return
+	 * {@code true} if the receiver is a function and of value equal to the argument, {@code false} otherwise.
 	 * @see AvailObject#equalsFunction(A_Function)
 	 */
 	public abstract boolean o_EqualsFunction (
@@ -3758,17 +3625,17 @@ public abstract class AbstractDescriptor
 	 * Answer whether the arguments, an {@linkplain AvailObject object} and a
 	 * {@linkplain FunctionTypeDescriptor function type}, are equal.
 	 *
-	 * @param object The receiver.
-	 * @param aFunctionType The function type used in the comparison.
-	 * @return {@code true} IFF the receiver is also a function type and:
+	 * @param object
+	 * The receiver.
+	 * @param aFunctionType
+	 * The function type used in the comparison.
+	 * @return
+	 * {@code true} IFF the receiver is also a function type and:
 	 *
 	 * <ul>
-	 * <li>The {@linkplain AvailObject#argsTupleType() argument types}
-	 * correspond,</li>
-	 * <li>The {@linkplain AvailObject#returnType() return types}
-	 * correspond, and</li>
-	 * <li>The {@linkplain AvailObject#declaredExceptions() raise types}
-	 * correspond.</li>
+	 * <li>The {@linkplain AvailObject#argsTupleType() argument types} correspond,</li>
+	 * <li>The {@linkplain AvailObject#returnType() return types} correspond, and</li>
+	 * <li>The {@linkplain AvailObject#declaredExceptions() raise types} correspond.</li>
 	 * </ul>
 	 * @see AvailObject#equalsFunctionType(A_Type)
 	 */
@@ -3780,10 +3647,12 @@ public abstract class AbstractDescriptor
 	 * Answer whether the arguments, an {@linkplain AvailObject object} and a
 	 * {@linkplain CompiledCodeDescriptor compiled code}, are equal.
 	 *
-	 * @param object The receiver.
-	 * @param aCompiledCode The compiled code used in the comparison.
-	 * @return {@code true} if the receiver is a compiled code and of value
-	 *         equal to the argument, {@code false} otherwise.
+	 * @param object
+	 * The receiver.
+	 * @param aCompiledCode
+	 * The compiled code used in the comparison.
+	 * @return
+	 * {@code true} if the receiver is a compiled code and of value equal to the argument, {@code false} otherwise.
 	 * @see AvailObject#equalsCompiledCode(A_RawFunction)
 	 */
 	public abstract boolean o_EqualsCompiledCode (
@@ -3791,17 +3660,14 @@ public abstract class AbstractDescriptor
 		A_RawFunction aCompiledCode);
 
 	/**
-	 * Answer whether the arguments, an {@linkplain AvailObject object} and a
-	 * {@linkplain VariableDescriptor variable}, are the exact same object,
-	 * comparing by address (Java object identity). There's no need to traverse
-	 * the objects before comparing addresses, because this message was a
-	 * double-dispatch that would have skipped (and stripped) the indirection
-	 * objects in either path.
+	 * Answer whether the arguments, an {@linkplain AvailObject object} and a {@linkplain VariableDescriptor variable}, are the exact same object, comparing by address (Java object identity). There's no need to traverse the objects before comparing addresses, because this message was a double-dispatch that would have skipped (and stripped) the indirection objects in either path.
 	 *
-     * @param object The receiver.
-	 * @param aVariable The variable used in the comparison.
-	 * @return {@code true} if the receiver is a variable with the same identity
-	 *         as the argument, {@code false} otherwise.
+     * @param object
+	 * The receiver.
+	 * @param aVariable
+	 * The variable used in the comparison.
+	 * @return
+	 * {@code true} if the receiver is a variable with the same identity as the argument, {@code false} otherwise.
 	 * @see AvailObject#equalsVariable(AvailObject)
 	 */
 	public abstract boolean o_EqualsVariable (
@@ -3863,13 +3729,14 @@ public abstract class AbstractDescriptor
 		final float aFloat);
 
 	/**
-	 * Answer whether the {@linkplain AvailObject receiver} is an {@linkplain
-	 * InfinityDescriptor infinity} with the specified {@link Sign}.
+	 * Answer whether the {@linkplain AvailObject receiver} is an {@linkplain InfinityDescriptor infinity} with the specified {@link Sign}.
 	 *
-	 * @param object The receiver.
-	 * @param sign The type of infinity for comparison.
-	 * @return {@code true} if the receiver is an infinity of the specified
-	 *         sign, {@code false} otherwise.
+	 * @param object
+	 * The receiver.
+	 * @param sign
+	 * The type of infinity for comparison.
+	 * @return
+	 * {@code true} if the receiver is an infinity of the specified sign, {@code false} otherwise.
 	 * @see A_Number#equalsInfinity(Sign)
 	 */
 	public abstract boolean o_EqualsInfinity (
@@ -4045,9 +3912,12 @@ public abstract class AbstractDescriptor
 	 * better form (more compact, more efficient, older generation) than the
 	 * second one?
 	 *
-	 * @param object The first object.
-	 * @param anotherObject The second object, equal to the first object.
-	 * @return Whether the first object is the better representation to keep.
+	 * @param object
+	 * The first object.
+	 * @param anotherObject
+	 * The second object, equal to the first object.
+	 * @return
+	 * Whether the first object is the better representation to keep.
 	 */
 	public abstract boolean o_IsBetterRepresentationThan (
 		AvailObject object,
@@ -4086,9 +3956,10 @@ public abstract class AbstractDescriptor
 	 * Is the specified {@link AvailObject} an Avail function?
 	 *
 	 * @see AvailObject#isCharacter()
-	 * @param object An {@link AvailObject}.
-	 * @return {@code true} if the argument is a function, {@code false}
-	 *         otherwise.
+	 * @param object
+	 * An {@link AvailObject}.
+	 * @return
+	 * {@code true} if the argument is a function, {@code false} otherwise.
 	 */
 	public abstract boolean o_IsFunction (AvailObject object);
 
@@ -4125,9 +3996,10 @@ public abstract class AbstractDescriptor
 	 * Is the specified {@link AvailObject} an Avail boolean?
 	 *
 	 * @see AvailObject#isBoolean()
-	 * @param object An {@link AvailObject}.
-	 * @return {@code true} if the argument is a boolean, {@code false}
-	 *         otherwise.
+	 * @param object
+	 * An {@link AvailObject}.
+	 * @return
+	 * {@code true} if the argument is a boolean, {@code false} otherwise.
 	 */
 	public abstract boolean o_IsBoolean (AvailObject object);
 
@@ -4135,9 +4007,10 @@ public abstract class AbstractDescriptor
 	 * Is the specified {@link AvailObject} an Avail byte tuple?
 	 *
 	 * @see AvailObject#isByteTuple()
-	 * @param object An {@link AvailObject}.
-	 * @return {@code true} if the argument is a byte tuple, {@code false}
-	 *         otherwise.
+	 * @param object
+	 * An {@link AvailObject}.
+	 * @return
+	 * {@code true} if the argument is a byte tuple, {@code false} otherwise.
 	 */
 	public abstract boolean o_IsByteTuple (AvailObject object);
 
@@ -4145,9 +4018,10 @@ public abstract class AbstractDescriptor
 	 * Is the specified {@link AvailObject} an Avail character?
 	 *
 	 * @see AvailObject#isCharacter()
-	 * @param object An {@link AvailObject}.
-	 * @return {@code true} if the argument is a character, {@code false}
-	 *         otherwise.
+	 * @param object
+	 * An {@link AvailObject}.
+	 * @return
+	 * {@code true} if the argument is a character, {@code false} otherwise.
 	 */
 	public abstract boolean o_IsCharacter (AvailObject object);
 
@@ -4155,9 +4029,10 @@ public abstract class AbstractDescriptor
 	 * Is the specified {@link AvailObject} an Avail string?
 	 *
 	 * @see AvailObject#isString()
-	 * @param object An {@link AvailObject}.
-	 * @return {@code true} if the argument is an Avail string, {@code false}
-	 *         otherwise.
+	 * @param object
+	 * An {@link AvailObject}.
+	 * @return
+	 * {@code true} if the argument is an Avail string, {@code false} otherwise.
 	 */
 	public abstract boolean o_IsString (AvailObject object);
 
@@ -4171,8 +4046,10 @@ public abstract class AbstractDescriptor
 	 * Is the specified {@link AvailObject} an Avail map?
 	 *
 	 * @see AvailObject#isMap()
-	 * @param object An {@link AvailObject}.
-	 * @return {@code true} if the argument is a map, {@code false} otherwise.
+	 * @param object
+	 * An {@link AvailObject}.
+	 * @return
+	 * {@code true} if the argument is a map, {@code false} otherwise.
 	 */
 	public abstract boolean o_IsMap (AvailObject object);
 
@@ -4180,9 +4057,10 @@ public abstract class AbstractDescriptor
 	 * Is the specified {@link AvailObject} an Avail unsigned byte?
 	 *
 	 * @see AvailObject#isUnsignedByte()
-	 * @param object An {@link AvailObject}.
-	 * @return {@code true} if the argument is an unsigned byte, {@code false}
-	 *         otherwise.
+	 * @param object
+	 * An {@link AvailObject}.
+	 * @return
+	 * {@code true} if the argument is an unsigned byte, {@code false} otherwise.
 	 */
 	public abstract boolean o_IsUnsignedByte (AvailObject object);
 
@@ -4190,9 +4068,10 @@ public abstract class AbstractDescriptor
 	 * Is the specified {@link AvailObject} an Avail nybble?
 	 *
 	 * @see AvailObject#isNybble()
-	 * @param object An {@link AvailObject}.
-	 * @return {@code true} if the argument is a nybble, {@code false}
-	 *         otherwise.
+	 * @param object
+	 * An {@link AvailObject}.
+	 * @return
+	 * {@code true} if the argument is a nybble, {@code false} otherwise.
 	 */
 	public abstract boolean o_IsNybble (AvailObject object);
 
@@ -4200,8 +4079,10 @@ public abstract class AbstractDescriptor
 	 * Is the specified {@link AvailObject} an Avail set?
 	 *
 	 * @see AvailObject#isSet()
-	 * @param object An {@link AvailObject}.
-	 * @return {@code true} if the argument is a set, {@code false} otherwise.
+	 * @param object
+	 * An {@link AvailObject}.
+	 * @return
+	 * {@code true} if the argument is a set, {@code false} otherwise.
 	 */
 	public abstract boolean o_IsSet (AvailObject object);
 
@@ -4277,8 +4158,10 @@ public abstract class AbstractDescriptor
 	 * Is the specified {@link AvailObject} an Avail tuple?
 	 *
 	 * @see AvailObject#isTuple()
-	 * @param object An {@link AvailObject}.
-	 * @return {@code true} if the argument is a tuple, {@code false} otherwise.
+	 * @param object
+	 * An {@link AvailObject}.
+	 * @return
+	 * {@code true} if the argument is a tuple, {@code false} otherwise.
 	 */
 	public abstract boolean o_IsTuple (AvailObject object);
 
@@ -4286,8 +4169,10 @@ public abstract class AbstractDescriptor
 	 * Is the specified {@link AvailObject} an Avail atom?
 	 *
 	 * @see AvailObject#isAtom()
-	 * @param object An {@link AvailObject}.
-	 * @return {@code true} if the argument is an atom, {@code false} otherwise.
+	 * @param object
+	 * An {@link AvailObject}.
+	 * @return
+	 * {@code true} if the argument is an atom, {@code false} otherwise.
 	 */
 	public abstract boolean o_IsAtom (AvailObject object);
 
@@ -4295,9 +4180,10 @@ public abstract class AbstractDescriptor
 	 * Is the specified {@link AvailObject} an Avail extended integer?
 	 *
 	 * @see AvailObject#isExtendedInteger()
-	 * @param object An {@link AvailObject}.
-	 * @return {@code true} if the argument is an extended integer, {@code
-	 *         false} otherwise.
+	 * @param object
+	 * An {@link AvailObject}.
+	 * @return
+	 * {@code true} if the argument is an extended integer, {@code false} otherwise.
 	 */
 	public abstract boolean o_IsExtendedInteger (AvailObject object);
 
@@ -4358,12 +4244,12 @@ public abstract class AbstractDescriptor
 		AvailSubobjectVisitor visitor);
 
 	/**
-	 * Answer an {@linkplain Iterator iterator} suitable for traversing the
-	 * elements of the {@linkplain AvailObject object} with a Java
-	 * <em>foreach</em> construct.
+	 * Answer an {@linkplain Iterator iterator} suitable for traversing the elements of the {@linkplain AvailObject object} with a Java <em>foreach</em> construct.
 	 *
-	 * @param object An {@link AvailObject}.
-	 * @return An {@linkplain Iterator iterator}.
+	 * @param object
+	 * An {@link AvailObject}.
+	 * @return
+	 * An {@linkplain Iterator iterator}.
 	 *
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
@@ -4532,6 +4418,7 @@ public abstract class AbstractDescriptor
 	/**
 	 * Map my children through the (destructive) transformation specified by
 	 * aBlock.
+	 *
 	 * @param object
 	 * @param transformer
 	 */
@@ -4541,6 +4428,7 @@ public abstract class AbstractDescriptor
 
 	/**
 	 * Visit my child phrases with aBlock.
+	 *
 	 * @param object
 	 * @param action
 	 */
@@ -4859,11 +4747,10 @@ public abstract class AbstractDescriptor
 		A_SemanticRestriction restriction);
 
 	/**
-	 * Return the {@linkplain MethodDescriptor method}'s
-	 * {@linkplain TupleDescriptor tuple} of {@linkplain FunctionDescriptor
-	 * functions} that statically restrict call sites by argument type.
+	 * Return the {@linkplain MethodDescriptor method}'s {@linkplain TupleDescriptor tuple} of {@linkplain FunctionDescriptor functions} that statically restrict call sites by argument type.
 	 *
-	 * @param object The method.
+	 * @param object
+	 * The method.
 	 * @return
 	 */
 	public abstract A_Set o_SemanticRestrictions (
@@ -5368,9 +5255,12 @@ public abstract class AbstractDescriptor
 	 * Java, but at least making it generic avoids an explicit cast expression
 	 * at each call site.
 	 *
-	 * @param object The Avail pojo object.
-	 * @param <T> The type of Java {@link Object} to return.
-	 * @return The actual Java object, which may be {code null}.
+	 * @param object
+	 * The Avail pojo object.
+	 * @param T
+	 * The type of Java {@link Object} to return.
+	 * @return
+	 * The actual Java object, which may be {code null}.
 	 */
 	public abstract @Nullable <T> T o_JavaObject (final AvailObject object);
 
