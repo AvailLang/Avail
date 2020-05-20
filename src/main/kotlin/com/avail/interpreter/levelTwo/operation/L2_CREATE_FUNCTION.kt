@@ -29,6 +29,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 package com.avail.interpreter.levelTwo.operation
 
 import com.avail.descriptor.functions.A_Function
@@ -76,7 +77,8 @@ object L2_CREATE_FUNCTION : L2Operation(
 			// will be constructed.
 			val numOuters = outers.elements().size
 			assert(numOuters == code.constant.numOuters())
-			val newFunction: A_Function = createExceptOuters(code.constant, numOuters)
+			val newFunction: A_Function =
+				createExceptOuters(code.constant, numOuters)
 			for (i in 1 .. numOuters)
 			{
 				newFunction.outerVarAtPut(
@@ -103,9 +105,7 @@ object L2_CREATE_FUNCTION : L2Operation(
 		assert(this == instruction.operation())
 		val code = instruction.operand<L2ConstantOperand>(0)
 		val outers = instruction.operand<L2ReadBoxedVectorOperand>(1)
-
-		// TODO MvG Should be removed?
-		val function = instruction.operand<L2WriteBoxedOperand>(2)
+		// val function = instruction.operand<L2WriteBoxedOperand>(2)
 
 		val originalRead = outers.elements()[outerIndex - 1]
 		// Intersect the read's restriction, the given type, and the type that
@@ -140,13 +140,13 @@ object L2_CREATE_FUNCTION : L2Operation(
 	}
 
 	/**
-	 * Extract the constant [A_RawFunction] from the given [ ], which must have `L2_CREATE_FUNCTION` as its
-	 * operation.
+	 * Extract the constant [A_RawFunction] from the given [L2Instruction],
+	 * which must have `L2_CREATE_FUNCTION` as its operation.
 	 *
 	 * @param instruction
-	 * The instruction to examine.
-	 * @return The constant [A_RawFunction] extracted from the
-	 * instruction.
+	 *   The instruction to examine.
+	 * @return
+	 *   The constant [A_RawFunction] extracted from the instruction.
 	 */
 	override fun getConstantCodeFrom(
 		instruction: L2Instruction): A_RawFunction?
@@ -215,7 +215,6 @@ object L2_CREATE_FUNCTION : L2Operation(
 			}
 			else ->
 			{
-
 				// :: function = createExceptOuters(code, numOuters);
 				translator.intConstant(method, numOuters)
 				FunctionDescriptor.createExceptOutersMethod.generateCall(method)
@@ -224,8 +223,7 @@ object L2_CREATE_FUNCTION : L2Operation(
 					// :: function.outerVarAtPut(«i + 1», «outerRegs[i]»);
 					method.visitInsn(Opcodes.DUP)
 					translator.intConstant(method, i + 1)
-					translator.load(
-						method, outerRegs.elements()[i].register())
+					translator.load(method, outerRegs.elements()[i].register())
 					FunctionDescriptor.outerVarAtPutMethod.generateCall(method)
 				}
 			}
