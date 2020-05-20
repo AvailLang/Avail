@@ -48,7 +48,6 @@ import com.avail.performance.StatisticReport
 import com.avail.utility.Strings.increaseIndentation
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
-import java.util.function.Consumer
 
 /**
  * Create a StackReifier and jump to the "on reification" label.  This will
@@ -126,7 +125,7 @@ object L2_REIFY : L2ControlFlowOperation(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: Consumer<Boolean>)
+		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation())
 		val actuallyReify = instruction.operand<L2IntImmediateOperand>(0)

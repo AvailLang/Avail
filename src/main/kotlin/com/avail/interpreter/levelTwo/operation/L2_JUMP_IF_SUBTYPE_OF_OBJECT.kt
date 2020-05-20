@@ -42,7 +42,6 @@ import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
-import java.util.function.Consumer
 
 /**
  * Conditionally jump, depending on whether the first type is a subtype of the
@@ -98,7 +97,7 @@ object L2_JUMP_IF_SUBTYPE_OF_OBJECT : L2ConditionalJump(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: Consumer<Boolean>)
+		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation())
 		val firstReg = instruction.operand<L2ReadBoxedOperand>(0)

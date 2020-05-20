@@ -41,7 +41,6 @@ import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
-import java.util.function.Consumer
 
 /**
  * Extract the [A_Function] from an [A_Continuation].
@@ -56,7 +55,7 @@ object L2_EXTRACT_CONTINUATION_FUNCTION : L2Operation(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: Consumer<Boolean>)
+		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation())
 		val continuation =

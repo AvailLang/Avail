@@ -44,7 +44,6 @@ import com.avail.optimizer.L2ValueManifest
 import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.utility.Casts
 import org.objectweb.asm.MethodVisitor
-import java.util.function.Consumer
 
 /**
  * Force the specified object to be immutable.  Maintenance of conservative
@@ -124,7 +123,7 @@ object L2_MAKE_IMMUTABLE : L2Operation(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: Consumer<Boolean>)
+		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation())
 		val read = instruction.operand<L2ReadBoxedOperand>(0)
@@ -164,6 +163,9 @@ object L2_MAKE_IMMUTABLE : L2Operation(
 		instruction: L2Instruction): L2ReadBoxedOperand
 	{
 		assert(instruction.operation() is L2_MAKE_IMMUTABLE)
+		{
+			"$instruction is an  ${instruction.operation()}"
+		}
 		return Casts.cast<Any, L2ReadBoxedOperand>(instruction.operand(0))
 	}
 

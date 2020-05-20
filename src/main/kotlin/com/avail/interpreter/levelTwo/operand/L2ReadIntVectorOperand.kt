@@ -35,8 +35,6 @@ import com.avail.interpreter.levelTwo.L2OperandDispatcher
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.register.L2IntRegister
 import com.avail.utility.Casts
-import java.util.function.Function
-import java.util.stream.Collectors
 
 /**
  * An `L2ReadIntVectorOperand` is an operand of type
@@ -54,13 +52,12 @@ import java.util.stream.Collectors
 class L2ReadIntVectorOperand constructor(elements: List<L2ReadIntOperand>)
 	: L2ReadVectorOperand<L2ReadIntOperand, L2IntRegister>(elements)
 {
-	override fun clone(): L2ReadIntVectorOperand
-	{
-		return L2ReadIntVectorOperand(
-			elements.stream()
-				.map<L2ReadIntOperand> { Casts.cast(it.clone()) }
-				.collect(Collectors.toList()))
-	}
+	override fun clone(): L2ReadIntVectorOperand =
+		L2ReadIntVectorOperand(
+			// Requires explicit parameter typing
+			elements.map<L2ReadIntOperand, L2ReadIntOperand>{
+				Casts.cast(it.clone())
+			})
 
 	override fun clone(
 		replacementElements: List<L2ReadIntOperand>): L2ReadIntVectorOperand =

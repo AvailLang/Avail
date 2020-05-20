@@ -42,7 +42,6 @@ import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
-import java.util.function.Consumer
 
 /**
  * Jump to the target if the object is numerically less than or equal to the
@@ -61,7 +60,7 @@ object L2_JUMP_IF_LESS_THAN_OR_EQUAL_TO_CONSTANT : L2ConditionalJump(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: Consumer<Boolean>)
+		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation())
 		val value = instruction.operand<L2ReadBoxedOperand>(0)

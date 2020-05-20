@@ -39,7 +39,6 @@ import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
-import java.util.function.Consumer
 
 /**
  * Answer the [size][A_Tuple.tupleSize] of the specified [tuple][A_Tuple].
@@ -54,7 +53,7 @@ object L2_TUPLE_SIZE : L2Operation(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: Consumer<Boolean>)
+		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation())
 		val tuple = instruction.operand<L2ReadBoxedOperand>(0)

@@ -45,7 +45,6 @@ import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
-import java.util.function.Consumer
 
 /**
  * Conditionally jump, depending on whether the type to check is a subtype of
@@ -129,7 +128,7 @@ object L2_JUMP_IF_SUBTYPE_OF_CONSTANT : L2ConditionalJump(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: Consumer<Boolean>)
+		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation())
 		val typeToCheck = instruction.operand<L2ReadBoxedOperand>(0)

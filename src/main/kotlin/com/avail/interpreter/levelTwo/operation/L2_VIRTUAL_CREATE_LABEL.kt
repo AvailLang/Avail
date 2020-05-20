@@ -50,7 +50,6 @@ import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.utility.PrefixSharingList
 import org.objectweb.asm.MethodVisitor
 import java.util.*
-import java.util.function.Consumer
 
 /**
  * This is a placeholder instruction, which is replaced if still live after data
@@ -106,7 +105,7 @@ object L2_VIRTUAL_CREATE_LABEL : L2Operation(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: Consumer<Boolean>)
+		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation())
 		val outputLabel =

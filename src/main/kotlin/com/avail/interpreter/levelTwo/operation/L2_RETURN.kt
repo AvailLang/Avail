@@ -41,7 +41,6 @@ import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
-import java.util.function.Consumer
 
 /**
  * Return from the current [L2Chunk] with the given return value.  The
@@ -70,7 +69,7 @@ object L2_RETURN : L2ControlFlowOperation(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: Consumer<Boolean>)
+		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation())
 		val value = instruction.operand<L2ReadBoxedOperand>(0)

@@ -39,7 +39,6 @@ import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
-import java.util.function.Consumer
 
 /**
  * Add the value in one int register to another int register, truncating the
@@ -57,7 +56,7 @@ object L2_ADD_INT_TO_INT_MOD_32_BITS : L2Operation(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: Consumer<Boolean>)
+		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation())
 		val augend = instruction.operand<L2ReadIntOperand>(0)

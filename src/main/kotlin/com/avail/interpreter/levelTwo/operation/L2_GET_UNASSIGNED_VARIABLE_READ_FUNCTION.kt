@@ -47,7 +47,6 @@ import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
-import java.util.function.Consumer
 
 /**
  * Store the current [A_Function] from the [HookType.READ_UNASSIGNED_VARIABLE]
@@ -74,7 +73,7 @@ object L2_GET_UNASSIGNED_VARIABLE_READ_FUNCTION : L2Operation(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: Consumer<Boolean>)
+		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation())
 		val function = instruction.operand<L2WriteBoxedOperand>(0)

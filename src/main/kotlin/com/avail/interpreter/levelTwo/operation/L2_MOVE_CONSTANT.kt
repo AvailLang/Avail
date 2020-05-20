@@ -49,7 +49,6 @@ import com.avail.optimizer.L2ValueManifest
 import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.utility.evaluation.Continuation3NotNull
 import org.objectweb.asm.MethodVisitor
-import java.util.function.Consumer
 
 /**
  * Move a constant [AvailObject] into a register.  Instances of this
@@ -124,7 +123,7 @@ private constructor(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: Consumer<Boolean>)
+		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation())
 		val constant: C = instruction.operand(0)

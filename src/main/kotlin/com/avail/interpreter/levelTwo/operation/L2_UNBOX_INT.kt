@@ -41,7 +41,6 @@ import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import com.avail.optimizer.L2ValueManifest
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
-import java.util.function.Consumer
 
 /**
  * Unbox an [Int] from an [AvailObject].
@@ -56,7 +55,7 @@ object L2_UNBOX_INT : L2Operation(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: Consumer<Boolean>)
+		warningStyleChange: (Boolean) -> Unit)
 	{
 		val source =
 			instruction.operand<L2ReadBoxedOperand>(0)

@@ -42,7 +42,6 @@ import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
-import java.util.function.Consumer
 
 /**
  * Subtract the subtrahend from the minuend, jumping to the specified target if
@@ -68,7 +67,7 @@ object L2_SUBTRACT_INT_MINUS_INT : L2ControlFlowOperation(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: Consumer<Boolean>)
+		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation())
 		val minuend = instruction.operand<L2ReadIntOperand>(0)

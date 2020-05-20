@@ -791,7 +791,11 @@ public final class JVMTranslator
 				labels.put(instruction.offset(), label);
 			}
 			instruction.operandsDo(
-				operand ->  operand.dispatchOperand(preparer));
+				operand ->
+				{
+					operand.dispatchOperand(preparer);
+					return null;
+				});
 		}
 	}
 

@@ -314,6 +314,7 @@ public class L2ControlFlowGraphVisualizer
 				builder.append(escape(operand.toString()));
 				builder.append("</i></font><br/>");
 			}
+			return null;
 		});
 		// Make a note of the current length of the builder. We will need to
 		// escape everything after this point.
@@ -337,7 +338,7 @@ public class L2ControlFlowGraphVisualizer
 				.append("\"><i>");
 			final int escapableStart = builder.length();
 			instruction.operation().appendToWithWarnings(
-				instruction, desiredTypes, builder, b -> {});
+				instruction, desiredTypes, builder, b -> null);
 			builder.replace(
 				escapableStart,
 				builder.length(),
@@ -353,6 +354,7 @@ public class L2ControlFlowGraphVisualizer
 			{
 				assert flag == (styleChanges.size() % 2 == 0);
 				styleChanges.add(builder.length());
+				return null;
 			});
 
 		// Escape everything since the saved position.  Add a final sentinel to

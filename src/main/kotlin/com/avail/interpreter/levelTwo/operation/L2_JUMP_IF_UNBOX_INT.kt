@@ -44,7 +44,6 @@ import com.avail.optimizer.L2ValueManifest
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
-import java.util.function.Consumer
 
 /**
  * Jump to `"if unboxed"` if an [Int] was unboxed from an [AvailObject],
@@ -62,7 +61,7 @@ object L2_JUMP_IF_UNBOX_INT : L2ConditionalJump(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: Consumer<Boolean>)
+		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation())
 		val source = instruction.operand<L2ReadBoxedOperand>(0)

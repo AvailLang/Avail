@@ -35,7 +35,6 @@ import com.avail.interpreter.levelTwo.L2OperandDispatcher
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.register.L2BoxedRegister
 import com.avail.utility.Casts
-import java.util.stream.Collectors
 
 /**
  * An `L2ReadBoxedVectorOperand` is an operand of type
@@ -57,9 +56,10 @@ class L2ReadBoxedVectorOperand constructor(
 {
 	override fun clone(): L2ReadBoxedVectorOperand =
 		L2ReadBoxedVectorOperand(
-			elements.stream()
-				.map<L2ReadBoxedOperand> { Casts.cast(it.clone()) }
-				.collect(Collectors.toList()))
+			// Requires explicit parameter typing
+			elements.map <L2ReadBoxedOperand, L2ReadBoxedOperand>{
+				Casts.cast(it.clone())
+			})
 
 	override fun clone(replacementElements: List<L2ReadBoxedOperand>)
 		: L2ReadBoxedVectorOperand =

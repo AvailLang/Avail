@@ -124,7 +124,6 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 	 * removed, and has just now been added again to a basic block.  Its
 	 * instruction was just set.
 	 *
-	 *
 	 * Since this operation can take place after initial code generation, we
 	 * have to compensate for reads of semantic values that no longer exist,
 	 * due to elision of moves that would have augmented a synonym.  This logic
@@ -244,7 +243,7 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 	override fun toString(): String
 	{
 		val builder = StringBuilder()
-		appendWithWarningsTo(builder, 0, Consumer {  })
+		appendWithWarningsTo(builder, 0) {  }
 		return builder.toString()
 	}
 
@@ -265,19 +264,19 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 	fun appendWithWarningsTo(
 		builder: StringBuilder,
 		indent: Int,
-		warningStyleChange: Consumer<Boolean>)
+		warningStyleChange: (Boolean) -> Unit)
 	{
 		if (instruction == null)
 		{
-			warningStyleChange.accept(true)
+			warningStyleChange(true)
 			builder.append("DEAD-OPERAND: ")
-			warningStyleChange.accept(false)
+			warningStyleChange(false)
 		}
 		else if (isMisconnected)
 		{
-			warningStyleChange.accept(true)
+			warningStyleChange(true)
 			builder.append("MISCONNECTED: ")
-			warningStyleChange.accept(false)
+			warningStyleChange(false)
 		}
 		// Call the inner method that can be overridden.
 		val temp = StringBuilder()

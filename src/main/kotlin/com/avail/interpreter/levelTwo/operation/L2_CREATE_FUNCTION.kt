@@ -46,7 +46,6 @@ import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.utility.Strings.increaseIndentation
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
-import java.util.function.Consumer
 
 /**
  * Synthesize a new [function][FunctionDescriptor] from the provided
@@ -161,7 +160,7 @@ object L2_CREATE_FUNCTION : L2Operation(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: Consumer<Boolean>)
+		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation())
 		val code = instruction.operand<L2ConstantOperand>(0)

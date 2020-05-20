@@ -41,7 +41,6 @@ import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
-import java.util.function.Consumer
 
 /**
  * Jump to the target if the first value is numerically greater than the second
@@ -60,7 +59,7 @@ object L2_JUMP_IF_GREATER_THAN_OBJECT : L2ConditionalJump(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: Consumer<Boolean>)
+		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation())
 		val first = instruction.operand<L2ReadBoxedOperand>(0)

@@ -47,7 +47,6 @@ import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
-import java.util.function.Consumer
 
 /**
  * Extract the [exact type][InstanceTypeDescriptor] of an object in a register,
@@ -99,7 +98,7 @@ object L2_GET_TYPE : L2Operation(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: Consumer<Boolean>)
+		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation())
 		val value = instruction.operand<L2ReadBoxedOperand>(0)

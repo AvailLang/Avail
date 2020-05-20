@@ -40,7 +40,6 @@ import com.avail.interpreter.levelTwo.WritesHiddenVariable
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
-import java.util.function.Consumer
 
 /**
  * Set the [Interpreter.setReifiedContinuation].
@@ -59,7 +58,7 @@ object L2_SET_CONTINUATION : L2Operation(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: Consumer<Boolean>)
+		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation())
 		val continuation = instruction.operand<L2ReadBoxedOperand>(0)

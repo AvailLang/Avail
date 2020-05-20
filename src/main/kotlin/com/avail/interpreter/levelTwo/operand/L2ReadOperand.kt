@@ -283,22 +283,21 @@ abstract class L2ReadOperand<R : L2Register> protected constructor(
 		var other = definition().instruction()
 		while (true)
 		{
-			if (other.operation().isMove)
+			val op = other.operation()
+			other = when
 			{
-				val operation =
-					Casts.cast<L2Operation, L2_MOVE<*, *, *>>(other.operation())
-				other = operation.sourceOf(other).definition().instruction()
-				continue
-			}
-			if (bypassImmutables
-				&& other.operation() is L2_MAKE_IMMUTABLE)
-			{
-				other =
+				op is L2_MOVE<*,*,*> ->
+				{
+					op.sourceOf(other).definition().instruction()
+				}
+				bypassImmutables && op is L2_MAKE_IMMUTABLE ->
+				{
 					L2_MAKE_IMMUTABLE.sourceOfImmutable(other).definition()
 						.instruction()
-				continue
+
+				}
+				else -> return other
 			}
-			return other
 		}
 	}
 

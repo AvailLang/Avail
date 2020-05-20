@@ -43,7 +43,6 @@ import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
-import java.util.function.Consumer
 
 /**
  * Extract an int from the specified constant, and subtract an int register from
@@ -64,7 +63,7 @@ object L2_SUBTRACT_INT_CONSTANT_MINUS_INT : L2ControlFlowOperation(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: Consumer<Boolean>)
+		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation())
 		val minuend = instruction.operand<L2IntImmediateOperand>(0)

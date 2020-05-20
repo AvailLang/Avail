@@ -42,7 +42,6 @@ import com.avail.optimizer.L2Generator
 import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
-import java.util.function.Consumer
 
 /**
  * Create a new [variable object][VariableDescriptor] of the
@@ -75,7 +74,7 @@ object L2_CREATE_VARIABLE : L2Operation(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: Consumer<Boolean>)
+		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation())
 		val outerType =

@@ -81,8 +81,6 @@ internal open class Argument constructor(
 	 * A simple underscore/ellipsis can be arbitrarily restricted, other than
 	 * when it is restricted to the uninstantiable type
 	 * [bottom][BottomTypeDescriptor.bottom].
-	 *
-	 *
 	 */
 	@Throws(SignatureException::class)
 	override fun checkType(argumentType: A_Type, sectionNumber: Int)

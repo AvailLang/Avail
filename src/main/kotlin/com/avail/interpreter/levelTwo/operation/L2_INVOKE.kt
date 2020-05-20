@@ -45,7 +45,6 @@ import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
-import java.util.function.Consumer
 
 /**
  * The given function is invoked.  The function may be a primitive, and the
@@ -84,7 +83,7 @@ object L2_INVOKE : L2ControlFlowOperation(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: Consumer<Boolean>)
+		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation())
 		val function = instruction.operand<L2ReadBoxedOperand>(0)
@@ -173,8 +172,7 @@ object L2_INVOKE : L2ControlFlowOperation(
 		val numArgs = argsRegsList.size
 		if (numArgs < preinvokeMethods.size)
 		{
-			argsRegsList.forEach(
-				Consumer { arg: L2ReadBoxedOperand -> translator.load(method, arg.register()) })
+			argsRegsList.forEach { translator.load(method, it.register()) }
 			// :: [interpreter, callingChunk, interpreter, function, [args...]]
 			preinvokeMethods[numArgs].generateCall(method)
 		}

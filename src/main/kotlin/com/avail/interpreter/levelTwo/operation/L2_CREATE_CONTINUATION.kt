@@ -41,7 +41,6 @@ import com.avail.interpreter.levelTwo.L2Operation
 import com.avail.interpreter.levelTwo.operand.*
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
-import java.util.function.Consumer
 
 /**
  * Create a continuation from scratch, using the specified caller, function,
@@ -67,7 +66,7 @@ object L2_CREATE_CONTINUATION : L2Operation(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: Consumer<Boolean>)
+		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation())
 		val function = instruction.operand<L2ReadBoxedOperand>(0)

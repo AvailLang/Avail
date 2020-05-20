@@ -49,8 +49,6 @@ import com.avail.utility.Casts
 import com.avail.utility.Mutable
 import org.objectweb.asm.MethodVisitor
 import java.util.*
-import java.util.function.BiConsumer
-import java.util.function.Consumer
 
 /**
  * `L2Instruction` is the foundation for all instructions understood by
@@ -134,13 +132,13 @@ class L2Instruction constructor(
 	 * Evaluate the given function with each [L2Operand].
 	 *
 	 * @param consumer
-	 *   The [Consumer] to evaluate.
+	 *   The lambda to evaluate.
 	 */
-	fun operandsDo(consumer: Consumer<L2Operand?>)
+	fun operandsDo(consumer: (L2Operand) -> Unit)
 	{
 		for (i in operands.indices)
 		{
-			consumer.accept(operands[i])
+			consumer(operands[i])
 		}
 	}
 
@@ -149,14 +147,14 @@ class L2Instruction constructor(
 	 * [L2NamedOperandType] that it occupies.
 	 *
 	 * @param consumer
-	 *   The [BiConsumer] to evaluate.
+	 *   The lambda to evaluate.
 	 */
 	fun operandsWithNamedTypesDo(
-		consumer: BiConsumer<L2Operand, L2NamedOperandType>)
+		consumer: (L2Operand, L2NamedOperandType) -> Unit)
 	{
 		for (i in operands.indices)
 		{
-			consumer.accept(operands[i], operation.namedOperandTypes[i])
+			consumer(operands[i], operation.namedOperandTypes[i])
 		}
 	}
 
@@ -170,19 +168,17 @@ class L2Instruction constructor(
 	 * This is only applicable to an instruction which [altersControlFlow]
 	 *
 	 * @param consumer
-	 *  The [BiConsumer] to evaluate.
+	 *  The lambda to evaluate.
 	 */
 	fun edgesAndPurposesDo(
-		consumer: BiConsumer<L2PcOperand, L2NamedOperandType.Purpose?>)
+		consumer: (L2PcOperand, L2NamedOperandType.Purpose?) -> Unit)
 	{
 		for (i in operands.indices)
 		{
 			val operand = operands[i]
 			if (operand is L2PcOperand)
 			{
-				consumer.accept(
-					Casts.cast<L2Operand, L2PcOperand>(operand),
-					operation.namedOperandTypes[i].purpose())
+				consumer(operand, operation.namedOperandTypes[i].purpose())
 			}
 		}
 	}
@@ -193,18 +189,17 @@ class L2Instruction constructor(
 	 * each outbound [edge][L2PcOperand] to indicate which writes have effect
 	 * along which outbound edges.
 	 *
-	 *
 	 * This is only applicable to an instruction which [altersControlFlow]
 	 *
 	 * @param purpose
 	 *   The [L2NamedOperandType.Purpose] with which to filter [L2WriteOperand]s.
 	 * @param consumer
-	 *   The [Consumer] to evaluate with each [L2WriteOperand] having the given
+	 *   The lambda to evaluate with each [L2WriteOperand] having the given
 	 *   [L2NamedOperandType.Purpose].
 	 */
 	fun writesForPurposeDo(
 		purpose: L2NamedOperandType.Purpose,
-		consumer: Consumer<L2WriteOperand<*>>)
+		consumer: (L2WriteOperand<*>) -> Unit)
 	{
 		assert(altersControlFlow())
 		for (i in operands.indices)
@@ -214,8 +209,7 @@ class L2Instruction constructor(
 			{
 				if (operation.namedOperandTypes[i].purpose() === purpose)
 				{
-					consumer.accept(
-						Casts.cast<L2Operand, L2WriteOperand<*>>(operand))
+					consumer(operand)
 				}
 			}
 		}
@@ -278,7 +272,7 @@ class L2Instruction constructor(
 	fun assertHasBeenEmitted()
 	{
 		assert(basicBlock != null)
-		operandsDo(Consumer { obj: L2Operand? -> obj!!.assertHasBeenEmitted() })
+		operandsDo { it.assertHasBeenEmitted() }
 	}
 
 	/**
@@ -404,9 +398,7 @@ class L2Instruction constructor(
 		val sourcesBefore: List<L2Register> = sourceRegisters.toMutableList()
 		val destinationsBefore: List<L2Register> =
 			destinationRegisters.toMutableList()
-		operandsDo(Consumer { operand: L2Operand? ->
-			operand!!.replaceRegisters(registerRemap, this)
-		})
+		operandsDo { it.replaceRegisters(registerRemap, this) }
 		sourceRegisters.replaceAll { r -> registerRemap[r] ?: r }
 		destinationRegisters.replaceAll { r -> registerRemap[r] ?: r }
 		assert(sourceRegisters.size == sourcesBefore.size)
@@ -424,8 +416,7 @@ class L2Instruction constructor(
 	{
 		assert(!isEntryPoint || basicBlock().instructions()[0] == this)
 			{ "Entry point instruction must be at start of a block" }
-		operandsDo(Consumer { operand: L2Operand? ->
-			operand!!.setInstruction(this) })
+		operandsDo { it.setInstruction(this) }
 		operation().instructionWasAdded(this, manifest!!)
 	}
 
@@ -435,8 +426,7 @@ class L2Instruction constructor(
 	 */
 	fun justInserted()
 	{
-		operandsDo(Consumer { operand: L2Operand? ->
-			operand!!.setInstruction(this) })
+		operandsDo { it.setInstruction(this) }
 		operation().instructionWasInserted(this)
 	}
 
@@ -448,10 +438,8 @@ class L2Instruction constructor(
 	 */
 	fun justRemoved()
 	{
-		operandsDo(Consumer { obj: L2Operand? ->
-			obj!!.instructionWasRemoved() })
-		operandsDo(Consumer { operand: L2Operand? ->
-			operand!!.setInstruction(null) })
+		operandsDo { it.instructionWasRemoved() }
+		operandsDo { it.setInstruction(null) }
 		basicBlock = null
 	}
 
@@ -486,8 +474,7 @@ class L2Instruction constructor(
 			{
 				return manifest
 			}
-			instruction.writeOperands().forEach(
-				Consumer(manifest::recordDefinition))
+			instruction.writeOperands().forEach(manifest::recordDefinition)
 		}
 		throw RuntimeException("Instruction was not found in its block")
 	}
@@ -572,36 +559,33 @@ class L2Instruction constructor(
 	{
 		val builder = StringBuilder()
 		appendToWithWarnings(
-			builder,
-			EnumSet.allOf(L2OperandType::class.java),
-			Consumer {  })
+			builder, EnumSet.allOf(L2OperandType::class.java)) {  }
 		return builder.toString()
 	}
 
 	/**
-	 * Output this instruction to the given builder, invoking the given
-	 * [Consumer] with a boolean to turn warning style on or off, if
-	 * tracked by the caller.
+	 * Output this instruction to the given builder, invoking the given lambda
+	 * with a boolean to turn warning style on or off, if tracked by the caller.
 	 *
 	 * @param builder
 	 *   Where to write the description of this instruction.
 	 * @param operandTypes
 	 *   Which [L2OperandType]s to include.
 	 * @param warningStyleChange
-	 *   A [Consumer] that takes `true` to start the warning style at the
+	 *   A lambda that takes `true` to start the warning style at the
 	 *   current builder position, and `false` to end it.  It must be invoked in
 	 *   (true, false) pairs.
 	 */
 	fun appendToWithWarnings(
 		builder: StringBuilder,
 		operandTypes: Set<L2OperandType>,
-		warningStyleChange: Consumer<Boolean>)
+		warningStyleChange: (Boolean) -> Unit)
 	{
 		if (basicBlock == null)
 		{
-			warningStyleChange.accept(true)
+			warningStyleChange(true)
 			builder.append("DEAD: ")
-			warningStyleChange.accept(false)
+			warningStyleChange(false)
 		}
 		operation().appendToWithWarnings(
 			this,

@@ -76,10 +76,10 @@ object L2_JUMP_BACK : L2ControlFlowOperation(
 		preservedReads.instructionWasAdded(manifest)
 		val semanticValuesToKeep: MutableSet<L2SemanticValue> = HashSet()
 		val registersToKeep: MutableSet<L2Register> = HashSet()
-		preservedReads.elements().forEach(Consumer { readOperand: L2ReadBoxedOperand ->
-			semanticValuesToKeep.add(readOperand.semanticValue())
-			registersToKeep.add(readOperand.register())
-		})
+		preservedReads.elements().forEach {
+			semanticValuesToKeep.add(it.semanticValue())
+			registersToKeep.add(it.register())
+		}
 		manifest.retainSemanticValues(semanticValuesToKeep)
 		manifest.retainRegisters(registersToKeep)
 		target.instructionWasAdded(manifest)

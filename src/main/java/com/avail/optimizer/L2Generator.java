@@ -1393,7 +1393,11 @@ public final class L2Generator
 		for (final L2Instruction instruction : instructions)
 		{
 			instruction.operandsDo(
-				operand -> operand.dispatchOperand(registerCounter));
+				operand ->
+				{
+					operand.dispatchOperand(registerCounter);
+					return null;
+				});
 		}
 
 		final int afterPrimitiveOffset =

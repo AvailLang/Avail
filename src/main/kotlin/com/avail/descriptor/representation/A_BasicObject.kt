@@ -112,19 +112,17 @@ interface A_BasicObject : JSONFriendly {
 	fun sameAddressAs(anotherObject: A_BasicObject): Boolean
 
 	/**
-	 * Turn the receiver into an [indirection][IndirectionDescriptor]
-	 * to the specified [object][AvailObject].
+	 * Turn the receiver into an [indirection][IndirectionDescriptor] to the
+	 * specified [object][AvailObject].
 	 *
+	 * **WARNING:** This alters the receiver's slots and descriptor.
 	 *
-	 * **WARNING:** This alters the receiver's slots and
-	 * descriptor.
+	 * **WARNING:** A [shared][Mutability.SHARED] object may not become an
+	 * indirection. The caller must ensure that this method is not sent to a
+	 * shared object.
 	 *
-	 *
-	 * **WARNING:** A [shared][Mutability.SHARED]
-	 * object may not become an indirection. The caller must ensure that this
-	 * method is not sent to a shared object.
-	 *
-	 * @param anotherObject An object.
+	 * @param anotherObject
+	 *   An object.
 	 */
 	fun becomeIndirectionTo(anotherObject: A_BasicObject)
 
@@ -265,18 +263,17 @@ interface A_BasicObject : JSONFriendly {
 	/**
 	 * {@inheritDoc}
 	 *
-	 *
-	 *
-	 * This comparison operation takes an [Object] as its argument to
-	 * avoid accidentally calling this with, say, a [String] literal.
-	 * We mark it as deprecated to ensure we don't accidentally invoke
-	 * this method when we really mean the version that takes an `AvailObject` as an argument.  Eclipse conveniently shows such invocations
-	 * with a <span style="text-decoration: line-through">strike-out</span>.
-	 * That's a convenient warning for the programmer, but we also fail if this
-	 * method actually gets invoked AND the argument is not an `AvailObject`.  That means we don't allow AvailObjects to be added to Java
-	 * [sets][Set] and such, at least when they're intermixed with
-	 * things that are not AvailObjects.
-	 *
+	 * This comparison operation takes an [Object] as its argument to avoid
+	 * accidentally calling this with, say, a [String] literal. We mark it as
+	 * deprecated to ensure we don't accidentally invoke this method when we
+	 * really mean the version that takes an `AvailObject` as an argument.
+	 * Eclipse conveniently shows such invocations with a <span
+	 * style="text-decoration: line-through">strike-out</span>.  That's a
+	 * convenient warning for the programmer, but we also fail if this method
+	 * actually gets invoked AND the argument is not an `AvailObject`.  That
+	 * means we don't allow AvailObjects to be added to Java [sets][Set] and
+	 * such, at least when they're intermixed with things that are not
+	 * AvailObjects.
 	 */
 	@Deprecated("")
 	override fun equals(other: Any?): Boolean

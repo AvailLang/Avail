@@ -42,7 +42,6 @@ import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 import java.util.*
-import java.util.function.Consumer
 
 /**
  * Extract the given "reference" edge's target level two offset as an [Int],
@@ -131,7 +130,7 @@ object L2_SAVE_ALL_AND_PC_TO_INT : L2Operation(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: Consumer<Boolean>)
+		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation())
 		val target = instruction.operand<L2PcOperand>(0)

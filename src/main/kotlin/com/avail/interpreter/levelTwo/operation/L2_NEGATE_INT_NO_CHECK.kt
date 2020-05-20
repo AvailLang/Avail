@@ -40,7 +40,6 @@ import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
-import java.util.function.Consumer
 
 /**
  * Extract an [Int] from the specified register and negate it. The result must
@@ -63,7 +62,7 @@ object L2_NEGATE_INT_NO_CHECK : L2Operation(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: Consumer<Boolean>)
+		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation())
 		val source = instruction.operand<L2ReadIntOperand>(0)

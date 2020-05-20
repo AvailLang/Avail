@@ -52,7 +52,6 @@ import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 import java.util.*
-import java.util.function.Consumer
 
 /**
  * Create a [tuple][TupleDescriptor] from the [objects][AvailObject] in the
@@ -123,7 +122,7 @@ object L2_CREATE_TUPLE : L2Operation(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: Consumer<Boolean>)
+		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation())
 		val values =

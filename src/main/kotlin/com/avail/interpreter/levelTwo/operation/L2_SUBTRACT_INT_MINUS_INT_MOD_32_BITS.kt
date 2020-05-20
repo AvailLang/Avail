@@ -39,7 +39,6 @@ import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
-import java.util.function.Consumer
 
 /**
  * Subtract the subtrahend from the minuend, converting the result to a signed
@@ -57,7 +56,7 @@ object L2_SUBTRACT_INT_MINUS_INT_MOD_32_BITS : L2Operation(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: Consumer<Boolean>)
+		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation())
 		val minuend = instruction.operand<L2ReadIntOperand>(0)

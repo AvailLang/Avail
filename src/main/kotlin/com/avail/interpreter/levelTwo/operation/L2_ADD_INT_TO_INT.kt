@@ -44,7 +44,6 @@ import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
-import java.util.function.Consumer
 
 /**
  * Add the value in one int register to another int register, jumping to the
@@ -82,7 +81,7 @@ object L2_ADD_INT_TO_INT : L2ControlFlowOperation(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: Consumer<Boolean>)
+		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation())
 		val augend = instruction.operand<L2ReadIntOperand>(0)

@@ -39,7 +39,6 @@ import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
-import java.util.function.Consumer
 
 /**
  * Convert a `double` to an [Int].
@@ -54,7 +53,7 @@ object L2_FLOAT_TO_INT : L2Operation(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: Consumer<Boolean>)
+		warningStyleChange: (Boolean) -> Unit)
 	{
 		val source = instruction.operand<L2ReadFloatOperand>(0)
 		val destination = instruction.operand<L2WriteIntOperand>(1)

@@ -47,7 +47,6 @@ import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
-import java.util.function.Consumer
 
 /**
  * Concatenate the tuples in the vector of object registers to produce a single
@@ -92,7 +91,7 @@ object L2_CONCATENATE_TUPLES : L2Operation(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: Consumer<Boolean>)
+		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation())
 		val tuples = instruction.operand<L2ReadBoxedVectorOperand>(0)

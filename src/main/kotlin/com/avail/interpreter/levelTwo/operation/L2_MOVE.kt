@@ -52,7 +52,6 @@ import com.avail.optimizer.values.L2SemanticValue
 import com.avail.utility.Casts
 import org.objectweb.asm.MethodVisitor
 import java.util.*
-import java.util.function.Consumer
 import kotlin.collections.Set
 import kotlin.collections.set
 
@@ -231,7 +230,7 @@ internal constructor(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: Consumer<Boolean>)
+		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this === instruction.operation())
 		val source: L2ReadOperand<R> = instruction.operand(0)

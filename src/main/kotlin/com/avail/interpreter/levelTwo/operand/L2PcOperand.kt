@@ -80,9 +80,10 @@ import java.util.function.Consumer
  * @param isBackward
  *   Whether this edge is a back-link to a loop head.
  */
-class L2PcOperand constructor(
-	private var targetBlock: L2BasicBlock,
-	var isBackward: Boolean) : L2Operand()
+class L2PcOperand constructor (
+		private var targetBlock: L2BasicBlock,
+		var isBackward: Boolean)
+	: L2Operand()
 {
 	/**
 	 * The manifest linking semantic values and registers at this control flow
@@ -100,7 +101,6 @@ class L2PcOperand constructor(
 	 * are consumed along all future paths after the start of this block.  This
 	 * is only populated during optimization, while the control flow graph is
 	 * still in SSA form.
-	 *
 	 *
 	 * This is a superset of [sometimesLiveInRegisters].
 	 */
@@ -127,6 +127,7 @@ class L2PcOperand constructor(
 	 */
 	@JvmField
 	var forcedClampedEntities: MutableSet<L2Entity>? = null
+
 	/**
 	 * A counter of how many times this edge has been traversed.  This will be
 	 * used to determine the amount of effort to apply to subsequent
@@ -336,13 +337,13 @@ class L2PcOperand constructor(
 	/**
 	 * Write JVM bytecodes to the JVMTranslator which will push:
 	 *
-	 *  1. An [AvailObject][] containing the value of each live boxed register, and
-	 *  1. A `long[]` containing encoded data from each live unboxed register.
+	 *  1. An [Array] of [AvailObject] containing the value of each live boxed
+	 *    register, and
+	 *  1. A [LongArray] containing encoded data from each live unboxed register.
 	 *
 	 * Also, associate within the [JVMTranslator] the information needed to
 	 * extract these live registers when the target [L2_ENTER_L2_CHUNK] is
 	 * reached.
-	 *
 	 *
 	 * These arrays are suitable arguments for creating a
 	 * [ContinuationRegisterDumpDescriptor] instance.
@@ -353,7 +354,8 @@ class L2PcOperand constructor(
 	 *   The [MethodVisitor] on which to write code to push the register dump.
 	 */
 	fun createAndPushRegisterDumpArrays(
-		translator: JVMTranslator, method: MethodVisitor)
+		translator: JVMTranslator,
+		method: MethodVisitor)
 	{
 		// Capture both the constant L2 offset of the target, and a register
 		// dump containing the state of all live registers.  A subsequent
@@ -364,15 +366,15 @@ class L2PcOperand constructor(
 		val liveMap =
 			CollectionExtensions.populatedEnumMap<
 				RegisterKind, MutableList<Int>>(
-				RegisterKind::class.java) { ArrayList() }
+				RegisterKind::class.java) { mutableListOf() }
 		val liveRegistersSet: MutableSet<L2Register> = HashSet(alwaysLiveInRegisters)
 		liveRegistersSet.addAll(sometimesLiveInRegisters)
 		val liveRegistersList = liveRegistersSet.toMutableList()
-		liveRegistersList.sortBy { it.finalIndex() }
-		liveRegistersList.forEach(Consumer { reg: L2Register ->
-			liveMap[reg.registerKind()]!!.add(
-				translator.localNumberFromRegister(reg))
-		})
+		liveRegistersList.sortBy(L2Register::finalIndex)
+		liveRegistersList.forEach {
+			liveMap[it.registerKind()]!!
+				.add(translator.localNumberFromRegister(it))
+		}
 		translator.liveLocalNumbersByKindPerEntryPoint[targetInstruction] = liveMap
 
 		// Emit code to save those registers' values.  Start with the objects.
@@ -386,7 +388,9 @@ class L2PcOperand constructor(
 		else
 		{
 			translator.intConstant(method, boxedLocalNumbers.size)
-			method.visitTypeInsn(Opcodes.ANEWARRAY, Type.getInternalName(AvailObject::class.java))
+			method.visitTypeInsn(
+				Opcodes.ANEWARRAY,
+				Type.getInternalName(AvailObject::class.java))
 			for (i in boxedLocalNumbers.indices)
 			{
 				method.visitInsn(Opcodes.DUP)
@@ -442,7 +446,6 @@ class L2PcOperand constructor(
 	 * this edge. Terminate the recursion if an edge already doesn't know any of
 	 * these registers.  Ignore back-edges, as their manifests are explicitly
 	 * created to contain only the function's arguments.
-	 *
 	 *
 	 * Also fix up synonyms that no longer have backing registers, or that
 	 * have lost their last register of a particular [RegisterKind].

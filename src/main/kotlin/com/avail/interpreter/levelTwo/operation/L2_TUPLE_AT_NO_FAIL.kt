@@ -44,7 +44,6 @@ import com.avail.optimizer.L2Generator
 import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
-import java.util.function.Consumer
 
 /**
  * Extract an element at a subscript from a [tuple][TupleDescriptor] that
@@ -79,7 +78,7 @@ object L2_TUPLE_AT_NO_FAIL : L2Operation(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: Consumer<Boolean>)
+		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation())
 		val tuple = instruction.operand<L2ReadBoxedOperand>(0)

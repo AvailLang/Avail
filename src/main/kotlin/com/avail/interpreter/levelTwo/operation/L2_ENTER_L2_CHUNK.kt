@@ -44,7 +44,6 @@ import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
-import java.util.function.Consumer
 
 /**
  * This marks the entry point into optimized (level two) code.  At entry, the
@@ -70,7 +69,7 @@ object L2_ENTER_L2_CHUNK : L2Operation(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: Consumer<Boolean>)
+		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation())
 		//		final L2IntImmediateOperand offsetInDefaultChunk =

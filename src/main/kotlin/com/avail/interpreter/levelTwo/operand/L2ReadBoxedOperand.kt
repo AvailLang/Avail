@@ -99,10 +99,10 @@ class L2ReadBoxedOperand : L2ReadOperand<L2BoxedRegister>
 	 *   The [L2BoxedRegister] being read by this operand.
 	 */
 	constructor(
-			semanticValue: L2SemanticValue,
-			restriction: TypeRestriction,
-			register: L2BoxedRegister)
-		: super(semanticValue, restriction, register)
+		semanticValue: L2SemanticValue,
+		restriction: TypeRestriction,
+		register: L2BoxedRegister
+	) : super(semanticValue, restriction, register)
 
 	override fun copyForSemanticValue(
 		newSemanticValue: L2SemanticValue): L2ReadBoxedOperand =

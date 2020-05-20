@@ -35,7 +35,6 @@ import com.avail.interpreter.levelTwo.L2OperandDispatcher
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.register.L2FloatRegister
 import com.avail.utility.Casts
-import java.util.stream.Collectors
 
 /**
  * An `L2ReadFloatVectorOperand` is an operand of type
@@ -57,9 +56,10 @@ class L2ReadFloatVectorOperand constructor(
 {
 	override fun clone(): L2ReadFloatVectorOperand =
 		L2ReadFloatVectorOperand(
-			elements.stream()
-				.map<L2ReadFloatOperand> { Casts.cast(it.clone()) }
-				.collect(Collectors.toList()))
+			// Requires explicit parameter typing
+			elements.map<L2ReadFloatOperand, L2ReadFloatOperand> {
+				Casts.cast(it.clone())
+			})
 
 	override fun clone(replacementElements: List<L2ReadFloatOperand>)
 		: L2ReadFloatVectorOperand =

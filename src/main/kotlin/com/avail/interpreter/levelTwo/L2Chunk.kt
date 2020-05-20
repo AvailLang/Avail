@@ -68,7 +68,6 @@ import java.util.*
 import java.util.concurrent.locks.ReadWriteLock
 import java.util.concurrent.locks.ReentrantLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
-import java.util.function.Consumer
 import java.util.logging.Level
 import java.util.stream.Collectors
 import javax.annotation.concurrent.GuardedBy
@@ -278,11 +277,9 @@ class L2Chunk private constructor(
 								invalidationLock.lock()
 								try
 								{
-									chunksToInvalidate.forEach(
-										Consumer { c: L2Chunk ->
-											c.invalidate(
-												invalidationsFromEviction)
-										})
+									chunksToInvalidate.forEach {
+										it.invalidate(invalidationsFromEviction)
+									}
 								}
 								finally
 								{
@@ -462,7 +459,6 @@ class L2Chunk private constructor(
 		 * [unoptimized][unoptimizedChunk] frame after reifying its caller
 		 * chain.
 		 *
-		 *
 		 * It's hard-coded, but checked against the default chunk in
 		 * [createDefaultChunk] when that chunk is created.
 		 */
@@ -472,7 +468,6 @@ class L2Chunk private constructor(
 		 * The entry point to which to jump when returning into a continuation
 		 * that's running the [unoptimizedChunk].
 		 *
-		 *
 		 * It's hard-coded, but checked against the default chunk in
 		 * [createDefaultChunk] when that chunk is created.
 		 */
@@ -481,7 +476,6 @@ class L2Chunk private constructor(
 		/**
 		 * The entry point to which to jump when returning from an interrupt
 		 * into a continuation that's running the [unoptimizedChunk].
-		 *
 		 *
 		 * It's hard-coded, but checked against the default chunk in
 		 * [createDefaultChunk] when that chunk is created.
@@ -501,12 +495,10 @@ class L2Chunk private constructor(
 		 * [L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO] so that looped
 		 * functions tend to get optimized.
 		 *
-		 *
 		 * Note that we could just as easily start at 0, the entry point for
 		 * *calling* an unoptimized function, but we can skip the
 		 * primitive safely because primitives and labels are mutually
 		 * exclusive.
-		 *
 		 *
 		 * It's hard-coded, but checked against the default chunk in
 		 * [createDefaultChunk] when that chunk is created.
@@ -570,13 +562,11 @@ class L2Chunk private constructor(
 	 * remove this chunk from the contingent set of each object on which it was
 	 * depending.
 	 *
-	 *
 	 * This can only happen when L2 execution is suspended, due to a method
 	 * changing (TODO`MvG` - we'll have to consider dependent nearly-constant
 	 * variables changing at some point).  The [invalidationLock] must be
 	 * acquired by the caller to ensure safe manipulation of the dependency
 	 * information.
-	 *
 	 *
 	 * Note that all we do here is clear the valid flag and update the
 	 * dependency information.  It's up to any re-entry points within this
@@ -615,7 +605,8 @@ class L2Chunk private constructor(
 	 * value on return.
 	 *
 	 * @return
-	 *   The base name, i.e., `JVMChunk_«uuid»`, to allow location of the generated files.
+	 *   The base name, i.e., `JVMChunk_«uuid»`, to allow location of the
+	 *   generated files.
 	 */
 	fun dumpChunk(): String
 	{
@@ -675,7 +666,8 @@ class L2Chunk private constructor(
 		 * attempting to optimize it again with more effort.
 		 *
 		 * @return
-		 *   The number of invocations before attempting to improve the optimization.
+		 *   The number of invocations before attempting to improve the
+		 *   optimization.
 		 */
 		// TODO: [MvG] Set this to something sensible when optimization levels
 		// are implemented.
@@ -718,7 +710,8 @@ class L2Chunk private constructor(
 		 *   Eventually we'll want to capture a copy of the graph prior to
 		 *   conversion from SSA to support inlining.
 		 * @param contingentValues
-		 *   A [Set] of [methods][MethodDescriptor] on which the level two chunk depends.
+		 *   A [Set] of [methods][MethodDescriptor] on which the level two chunk
+		 *   depends.
 		 * @return
 		 *   The new level two chunk.
 		 */

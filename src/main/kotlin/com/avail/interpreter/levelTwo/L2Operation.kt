@@ -58,7 +58,6 @@ import com.avail.utility.Casts
 import com.avail.utility.Strings.increaseIndentation
 import org.objectweb.asm.MethodVisitor
 import java.util.*
-import java.util.function.Consumer
 
 /**
  * The instruction set for the [level two Avail interpreter][Interpreter].
@@ -429,7 +428,6 @@ abstract class L2Operation
 	 * the instruction.  Its operands have already had their instruction fields
 	 * set to the given instruction.
 	 *
-	 *
 	 * Automatically handle [L2WriteOperand]s that list a
 	 * [L2NamedOperandType.Purpose] in their corresponding [L2NamedOperandType],
 	 * ensuring the write is only considered to happen along the edge
@@ -494,9 +492,7 @@ abstract class L2Operation
 		assert(!isEntryPoint(instruction)
 			   || instruction.basicBlock().instructions()[0] == instruction)
 		{ "Entry point instruction must be at start of a block" }
-		instruction.operandsDo (Consumer {  operand: L2Operand? ->
-			operand?.instructionWasInserted(instruction)
-		})
+		instruction.operandsDo { it.instructionWasInserted(instruction) }
 	}
 
 	/**
@@ -698,7 +694,7 @@ abstract class L2Operation
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: Consumer<Boolean>)
+		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this === instruction.operation())
 		renderPreamble(instruction, builder)

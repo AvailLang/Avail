@@ -41,7 +41,6 @@ import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 import java.util.*
-import java.util.function.Consumer
 
 /**
  * Execute a primitive with the provided arguments, writing the result into
@@ -168,7 +167,7 @@ abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor()
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: Consumer<Boolean>)
+		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this === instruction.operation())
 		//		final L2ConstantOperand rawFunction = instruction.operand(0);

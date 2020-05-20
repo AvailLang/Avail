@@ -39,7 +39,6 @@ import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
-import java.util.function.Consumer
 
 /**
  * Jump to the target if int1 is less than int2.
@@ -74,7 +73,7 @@ class L2_JUMP_IF_COMPARE_INT private constructor(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: Consumer<Boolean>)
+		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation())
 		val int1Reg = instruction.operand<L2ReadIntOperand>(0)

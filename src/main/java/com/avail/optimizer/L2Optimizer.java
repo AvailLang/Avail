@@ -434,6 +434,7 @@ public final class L2Optimizer
 								regsForEdge.add(write.register());
 								valuesForEdge.addAll(
 									write.semanticValues());
+								return null;
 							});
 						boolean changed = visibleRegisters.get(edge)
 							.addAll(regsForEdge);
@@ -443,6 +444,7 @@ public final class L2Optimizer
 						{
 							toVisitQueue.add(edge.targetBlock());
 						}
+						return null;
 					});
 				}
 			}
@@ -1466,6 +1468,7 @@ public final class L2Optimizer
 									assert ok;
 								});
 						}
+						return null;
 					});
 				}
 			));

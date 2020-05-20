@@ -45,7 +45,6 @@ import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
-import java.util.function.Consumer
 
 /**
  * Restart the given [continuation][A_Continuation], which already has the
@@ -86,7 +85,7 @@ object L2_RESTART_CONTINUATION_WITH_ARGUMENTS : L2ControlFlowOperation(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: Consumer<Boolean>)
+		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation())
 		val continuation = instruction.operand<L2ReadBoxedOperand>(0)

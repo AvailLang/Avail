@@ -46,7 +46,6 @@ import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
-import java.util.function.Consumer
 
 /**
  * If the divisor is zero, then jump to the zero divisor label.  Otherwise
@@ -95,7 +94,7 @@ object L2_DIVIDE_INT_BY_INT : L2ControlFlowOperation(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: Consumer<Boolean>)
+		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation())
 		val dividend = instruction.operand<L2ReadIntOperand>(0)

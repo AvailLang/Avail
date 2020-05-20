@@ -38,8 +38,6 @@ import com.avail.interpreter.levelTwo.register.L2Register
 import com.avail.optimizer.L2ValueManifest
 import com.avail.utility.Casts
 import java.util.*
-import java.util.function.Consumer
-import java.util.stream.Collectors
 
 /**
  * An `L2ReadVectorOperand` is an operand of type
@@ -52,7 +50,7 @@ import java.util.stream.Collectors
  *   A subclass of L2Register
  */
 abstract class L2ReadVectorOperand<RR : L2ReadOperand<R>, R
-	: L2Register>(elements: List<RR>) : L2Operand()
+	: L2Register> constructor(elements: List<RR>) : L2Operand()
 {
 	/**
 	 * The [List] of [L2ReadBoxedOperand]s.
@@ -76,7 +74,7 @@ abstract class L2ReadVectorOperand<RR : L2ReadOperand<R>, R
 	override fun assertHasBeenEmitted()
 	{
 		super.assertHasBeenEmitted()
-		elements.forEach(Consumer { obj: RR -> obj.assertHasBeenEmitted() })
+		elements.forEach { it.assertHasBeenEmitted() }
 	}
 
 	abstract override fun operandType(): L2OperandType
@@ -87,10 +85,7 @@ abstract class L2ReadVectorOperand<RR : L2ReadOperand<R>, R
 	 * @return
 	 *   The requested operands.
 	 */
-	fun elements(): List<RR>
-	{
-		return elements
-	}
+	fun elements(): List<RR> = elements
 
 	/**
 	 * Answer a [List] of my elements' [L2Register]s.
@@ -98,26 +93,21 @@ abstract class L2ReadVectorOperand<RR : L2ReadOperand<R>, R
 	 * @return
 	 *   The list of [L2Register]s that I read.
 	 */
-	fun registers(): List<R>
-	{
-		return elements.stream()
-			.map { obj: RR -> obj.register() }
-			.collect(Collectors.toList())
-	}
+	fun registers(): List<R> =
+		elements.map { obj: RR -> obj.register() }
 
 	abstract override fun dispatchOperand(dispatcher: L2OperandDispatcher)
 	override fun instructionWasAdded(
 		manifest: L2ValueManifest)
 	{
 		super.instructionWasAdded(manifest)
-		elements.forEach(
-			Consumer { element: RR -> element.instructionWasAdded(manifest) })
+		elements.forEach{ it.instructionWasAdded(manifest) }
 	}
 
-	override fun adjustedForReinsertion(
-		manifest: L2ValueManifest): L2ReadVectorOperand<RR, R>
+	override fun adjustedForReinsertion(manifest: L2ValueManifest)
+		: L2ReadVectorOperand<RR, R>
 	{
-		val newElements: MutableList<RR> = ArrayList(elements.size)
+		val newElements: MutableList<RR> = mutableListOf()
 		for (element in elements)
 		{
 			val newElement = Casts.cast<L2ReadOperand<*>, RR>(
@@ -127,26 +117,23 @@ abstract class L2ReadVectorOperand<RR : L2ReadOperand<R>, R
 		return clone(newElements)
 	}
 
-	override fun instructionWasInserted(
-		newInstruction: L2Instruction)
+	override fun instructionWasInserted(newInstruction: L2Instruction)
 	{
 		super.instructionWasInserted(newInstruction)
-		elements.forEach(
-			Consumer { element: RR -> element.instructionWasInserted(newInstruction) })
+		elements.forEach { it.instructionWasInserted(newInstruction) }
 	}
 
 	override fun instructionWasRemoved()
 	{
 		super.instructionWasRemoved()
-		elements.forEach(Consumer { obj: RR -> obj.instructionWasRemoved() })
+		elements.forEach { it.instructionWasRemoved() }
 	}
 
 	override fun replaceRegisters(
 		registerRemap: Map<L2Register, L2Register>,
 		theInstruction: L2Instruction)
 	{
-		elements.forEach(
-			Consumer { read: RR -> read.replaceRegisters(registerRemap, theInstruction) })
+		elements.forEach { it.replaceRegisters(registerRemap, theInstruction) }
 	}
 
 	override fun addReadsTo(readOperands: MutableList<L2ReadOperand<*>>)
@@ -167,15 +154,14 @@ abstract class L2ReadVectorOperand<RR : L2ReadOperand<R>, R
 
 	override fun addSourceRegistersTo(sourceRegisters: MutableList<L2Register>)
 	{
-		elements.forEach(Consumer { read: RR -> read.addSourceRegistersTo(sourceRegisters) })
+		elements.forEach { it.addSourceRegistersTo(sourceRegisters) }
 	}
 
-	override fun setInstruction(
-		theInstruction: L2Instruction?)
+	override fun setInstruction(theInstruction: L2Instruction?)
 	{
 		super.setInstruction(theInstruction)
 		// Also update the instruction fields of its L2ReadOperands.
-		elements.forEach(Consumer { element: RR -> element.setInstruction(theInstruction) })
+		elements.forEach { it.setInstruction(theInstruction) }
 	}
 
 	override fun appendTo(builder: StringBuilder)

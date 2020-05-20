@@ -40,7 +40,6 @@ import com.avail.interpreter.levelTwo.ReadsHiddenVariable
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
-import java.util.function.Consumer
 
 /**
  * Return from the reification clause of the current [L2Chunk].  This
@@ -65,7 +64,7 @@ object L2_RETURN_FROM_REIFICATION_HANDLER : L2ControlFlowOperation()
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: Consumer<Boolean>)
+		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation())
 		renderPreamble(instruction, builder)

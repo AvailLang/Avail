@@ -49,7 +49,6 @@ import com.avail.interpreter.levelTwo.register.L2IntRegister
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind
 import com.avail.optimizer.L2Synonym
 import java.util.*
-import java.util.function.Consumer
 import java.util.stream.Collectors
 
 /**
@@ -827,7 +826,6 @@ class TypeRestriction private constructor(
 		/**
 		 * The [TypeRestriction] for a register that holds [NilDescriptor.nil].
 		 *
-		 *
 		 * It's marked as immutable because there is no way to create another
 		 * [AvailObject] with a [NilDescriptor] as its descriptor.
 		 */
@@ -922,7 +920,6 @@ class TypeRestriction private constructor(
 		 * point in the type system, in that multiple otherwise unrelated type
 		 * hierarchies share the (uninstantiable) type bottom as a descendant.
 		 *
-		 *
 		 * Note that this restriction is marked as immutable because there is no
 		 * way to create another [AvailObject] whose descriptor is a
 		 * [BottomTypeDescriptor].
@@ -962,12 +959,8 @@ class TypeRestriction private constructor(
 			flags: Int): TypeRestriction
 		{
 			assert(!givenExcludedTypes.contains(BottomTypeDescriptor.bottom()))
-			givenExcludedTypes.forEach(Consumer { obj: A_Type ->
-				obj.makeImmutable()
-			})
-			givenExcludedValues.forEach(Consumer { obj: A_BasicObject ->
-				obj.makeImmutable()
-			})
+			givenExcludedTypes.forEach { it.makeImmutable() }
+			givenExcludedValues.forEach { it.makeImmutable() }
 			if (givenConstantOrNull != null)
 			{
 				// A constant was specified.  Use it if it satisfies the main type
