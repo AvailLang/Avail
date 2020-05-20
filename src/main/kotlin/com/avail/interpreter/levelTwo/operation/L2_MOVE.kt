@@ -86,7 +86,7 @@ import kotlin.collections.set
  *   L2Operation, allowing it to be specialized by register type.
  */
 abstract class L2_MOVE<R : L2Register, RR : L2ReadOperand<R>, WR : L2WriteOperand<R>>
-internal constructor(
+private constructor(
 		val kind: RegisterKind,
 		vararg theNamedOperandTypes: L2NamedOperandType)
 	: L2Operation("MOVE(" + kind.kindName + ")", *theNamedOperandTypes)

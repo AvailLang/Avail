@@ -70,30 +70,21 @@ object L2_JUMP_IF_SUBTYPE_OF_CONSTANT : L2ConditionalJump(
 		//		final L2PcOperand isSubtype = instruction.operand(2);
 //		final L2PcOperand notSubtype = instruction.operand(3);
 		val exactType: A_BasicObject? = typeToCheck.constantOrNull()
-		if (exactType != null)
+		return when
 		{
-			return if (exactType.isInstanceOf(constantType.constant))
-			{
+			exactType != null && exactType.isInstanceOf(constantType.constant) ->
 				BranchReduction.AlwaysTaken
-			}
-			else
-			{
-				BranchReduction.NeverTaken
-			}
-		}
-		if (typeToCheck.type().instance().isSubtypeOf(constantType.constant))
-		{
+			exactType != null -> BranchReduction.NeverTaken
 			// It's a subtype, so it must always pass the type test.
-			return BranchReduction.AlwaysTaken
-		}
-		val intersection =
-			typeToCheck.type().instance().typeIntersection(constantType.constant)
-		return if (intersection.isBottom)
-		{
+			typeToCheck.type().instance().isSubtypeOf(constantType.constant) ->
+				BranchReduction.AlwaysTaken
+
 			// The types don't intersect, so it can't ever pass the type test.
-			BranchReduction.NeverTaken
+			typeToCheck.type().instance()
+				.typeIntersection(constantType.constant).isBottom ->
+					BranchReduction.NeverTaken
+			else -> BranchReduction.SometimesTaken
 		}
-		else BranchReduction.SometimesTaken
 	}
 
 	override fun propagateTypes(

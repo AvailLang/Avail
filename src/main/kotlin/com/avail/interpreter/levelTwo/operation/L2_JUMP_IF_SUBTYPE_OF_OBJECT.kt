@@ -71,26 +71,18 @@ object L2_JUMP_IF_SUBTYPE_OF_OBJECT : L2ConditionalJump(
 		val exactFirstType: A_Type? = firstReg.constantOrNull()
 
 		val exactSecondType: A_Type? = secondReg.constantOrNull()
-		if (exactSecondType != null)
+		return when
 		{
-			if (firstReg.type().isSubtypeOf(secondReg.type()))
-			{
-				return BranchReduction.AlwaysTaken
-			}
+			exactSecondType != null
+				&& firstReg.type().isSubtypeOf(secondReg.type()) ->
+					BranchReduction.AlwaysTaken
+			// The first type falls entirely in a type tree excluded
+			// from the second restriction.
+			secondReg.restriction().excludedTypes
+				.any {firstReg.type().isSubtypeOf(it) } ->
+					BranchReduction.NeverTaken
+			else -> BranchReduction.SometimesTaken
 		}
-		else
-		{
-			for (excludedSecondMeta in secondReg.restriction().excludedTypes)
-			{
-				if (firstReg.type().isSubtypeOf(excludedSecondMeta))
-				{
-					// The first type falls entirely in a type tree excluded
-					// from the second restriction.
-					return BranchReduction.NeverTaken
-				}
-			}
-		}
-		return BranchReduction.SometimesTaken
 	}
 
 	override fun appendToWithWarnings(

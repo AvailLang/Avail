@@ -38,7 +38,6 @@ import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION
 import com.avail.interpreter.levelTwo.register.L2Register
 import com.avail.optimizer.L2BasicBlock
 import com.avail.optimizer.L2ValueManifest
-import com.avail.utility.Casts
 import com.avail.utility.PublicCloneable
 import com.avail.utility.Strings.increaseIndentation
 import java.util.function.Consumer
@@ -298,26 +297,20 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 				return true
 			}
 			val operands = instruction!!.operands()
-			var i = 0
-			val limit = operands.size
-			while (i < limit)
+
+			for (i in operands.indices)
 			{
-				val operand = operands[i]
-				when(operand)
+				when(val operand = operands[i])
 				{
 					this -> return false
 					is L2ReadVectorOperand<*, *> ->
 					{
-						val vectorOperand =
-							Casts.cast<L2Operand, L2ReadVectorOperand<*, *>>(
-								operand)
-						if (vectorOperand.elements.contains(this))
+						if (operand.elements.contains(this))
 						{
 							return false
 						}
 					}
 				}
-				i++
 			}
 			// Operand wasn't found inside the instruction.
 			return true

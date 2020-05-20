@@ -117,7 +117,7 @@ object L2_JUMP_IF_OBJECTS_EQUAL : L2ConditionalJump(
 		// intersection of the two registers.
 		val intersection =
 			postJumpSet.typeAt(firstReg.register()).typeIntersection(
-			postJumpSet.typeAt(secondReg.register()))
+				postJumpSet.typeAt(secondReg.register()))
 		postJumpSet.strengthenTestedTypeAtPut(
 			firstReg.register(), intersection)
 		postJumpSet.strengthenTestedTypeAtPut(
