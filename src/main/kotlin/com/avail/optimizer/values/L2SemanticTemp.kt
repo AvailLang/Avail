@@ -59,8 +59,8 @@ internal class L2SemanticTemp constructor(frame: Frame, val uniqueId: Int)
 		else super.equals(obj) && uniqueId == obj.uniqueId
 
 	override fun transform(
-		semanticValueTransformer: Function1<L2SemanticValue, L2SemanticValue>,
-		frameTransformer: Function1<Frame, Frame>): L2SemanticValue =
+		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue,
+		frameTransformer: (Frame) -> Frame): L2SemanticValue =
 			frameTransformer.invoke(frame).let {
 				if (it == frame) this else L2SemanticTemp(it, uniqueId)
 			}
