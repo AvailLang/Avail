@@ -38,13 +38,12 @@ import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArgu
  * indicated [Frame].
  *
  * TODO MvG - It's unclear how to deal with replacement arguments provided by
- *
- * [P_RestartContinuationWithArguments].  Perhaps the approach is to create a
- * duplicate Label using a new Frame.  It would have to merge control flow into
- * a loop, so maybe this just falls under the general case of phis within loops.
- * Or maybe it should use the very same Arguments, since a semantic value
- * doesn't have a notion of value or register *directly* associated with it,
- * only through a manifest.
+ *  [P_RestartContinuationWithArguments].  Perhaps the approach is to create a
+ *  duplicate Label using a new Frame.  It would have to merge control flow into
+ *  a loop, so maybe this just falls under the general case of phis within loops.
+ *  Or maybe it should use the very same Arguments, since a semantic value
+ *  doesn't have a notion of value or register *directly* associated with it,
+ *  only through a manifest.
  *
  * @constructor
  * Create a new `L2SemanticLabel` semantic value.
@@ -59,8 +58,8 @@ internal class L2SemanticLabel constructor(frame: Frame)
 		obj is L2SemanticLabel && super.equals(obj)
 
 	override fun transform(
-		semanticValueTransformer: Function1<L2SemanticValue, L2SemanticValue>,
-		frameTransformer: Function1<Frame, Frame>): L2SemanticValue =
+		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue,
+		frameTransformer: (Frame) -> Frame): L2SemanticValue =
 			frameTransformer.invoke(frame).let {
 				return if (it == frame) this else L2SemanticLabel(it)
 			}

@@ -54,8 +54,8 @@ internal class L2SemanticConstant constructor(value: A_BasicObject) :
 		obj is L2SemanticConstant && value.equals(obj.value)
 
 	override fun transform(
-		semanticValueTransformer: Function1<L2SemanticValue, L2SemanticValue>,
-		frameTransformer: Function1<Frame, Frame>): L2SemanticValue = this
+		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue,
+		frameTransformer: (Frame) -> Frame): L2SemanticValue = this
 
 	override val isConstant: Boolean
 		get() = true

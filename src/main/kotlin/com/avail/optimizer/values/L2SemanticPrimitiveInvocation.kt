@@ -33,7 +33,6 @@ package com.avail.optimizer.values
 
 import com.avail.descriptor.representation.AvailObject
 import com.avail.interpreter.Primitive
-import com.avail.utility.Casts
 
 /**
  * An [L2SemanticValue] which represents the result produced by a [Primitive]
@@ -73,10 +72,8 @@ class L2SemanticPrimitiveInvocation internal constructor(
 		{
 			return false
 		}
-		val invocation =
-			Casts.cast<Any, L2SemanticPrimitiveInvocation>(obj)
-		return (primitive === invocation.primitive
-			&& argumentSemanticValues == invocation.argumentSemanticValues)
+		return (primitive === obj.primitive
+			&& argumentSemanticValues == obj.argumentSemanticValues)
 	}
 
 	override fun toString(): String = buildString {
@@ -96,23 +93,20 @@ class L2SemanticPrimitiveInvocation internal constructor(
 	}
 
 	override fun transform(
-		semanticValueTransformer: Function1<L2SemanticValue, L2SemanticValue>,
-		frameTransformer: Function1<Frame, Frame>): L2SemanticValue
+		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue,
+		frameTransformer: (Frame) -> Frame): L2SemanticValue
 	{
 		val numArgs = argumentSemanticValues.size
 		val newArguments =
-			argumentSemanticValues.map {
+			argumentSemanticValues.mapTo(mutableListOf()) {
 				it.transform(semanticValueTransformer, frameTransformer)
-			}.toMutableList()
-
-		for (i in 0 until numArgs)
-		{
-			if (newArguments[i] != argumentSemanticValues[i])
-			{
-				return L2SemanticPrimitiveInvocation(primitive, newArguments)
 			}
+
+		if ((0 until numArgs).all { newArguments[it] == argumentSemanticValues[it] })
+		{
+			return this
 		}
-		return this
+		return L2SemanticPrimitiveInvocation(primitive, newArguments)
 	}
 
 	companion object

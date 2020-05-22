@@ -55,8 +55,8 @@ internal class L2SemanticOuter constructor(frame: Frame, val outerIndex: Int)
 			&& outerIndex == obj.outerIndex
 
 	override fun transform(
-		semanticValueTransformer: Function1<L2SemanticValue, L2SemanticValue>,
-		frameTransformer: Function1<Frame, Frame>): L2SemanticValue =
+		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue,
+		frameTransformer: (Frame) -> Frame): L2SemanticValue =
 			frameTransformer.invoke(frame) .let {
 				if (it == frame) this else L2SemanticOuter(it, outerIndex)
 			}
