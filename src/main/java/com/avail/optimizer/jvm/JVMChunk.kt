@@ -159,6 +159,6 @@ abstract class JVMChunk @ReferencedInGeneratedCode constructor()
 			JVMChunk::class.java,
 			"badOffset",
 			RuntimeException::class.java,
-			Int::class.javaPrimitiveType)
+			Int::class.javaPrimitiveType!!)
 	}
 }

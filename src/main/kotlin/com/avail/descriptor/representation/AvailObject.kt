@@ -81,7 +81,7 @@ import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.io.TextInterface
 import com.avail.optimizer.jvm.CheckedMethod
-import com.avail.optimizer.jvm.CheckedMethod.instanceMethod
+import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.utility.Casts
 import com.avail.utility.IteratorNotNull
@@ -3142,7 +3142,7 @@ class AvailObject private constructor(
 			AvailObject::class.java,
 			AvailObject::frameAt.name,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType)
+			Int::class.javaPrimitiveType!!)
 
 		/** Access the [frameAtPut] method.  */
 		@JvmField
@@ -3150,7 +3150,7 @@ class AvailObject private constructor(
 			AvailObject::class.java,
 			AvailObject::frameAtPut.name,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType,
+			Int::class.javaPrimitiveType!!,
 			AvailObject::class.java)
 
 		/** Access the [registerDump] method.  */

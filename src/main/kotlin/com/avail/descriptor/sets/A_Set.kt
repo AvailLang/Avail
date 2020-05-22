@@ -36,7 +36,7 @@ import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.optimizer.jvm.CheckedMethod
-import com.avail.optimizer.jvm.CheckedMethod.instanceMethod
+import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 
 /**
@@ -231,6 +231,6 @@ interface A_Set : A_BasicObject, Iterable<AvailObject> {
 			A_Set::setWithElementCanDestroy.name,
 			A_Set::class.java,
 			A_BasicObject::class.java,
-			Boolean::class.javaPrimitiveType)
+			Boolean::class.javaPrimitiveType!!)
 	}
 }

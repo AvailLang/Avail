@@ -37,7 +37,7 @@ import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.interpreter.primitive.numbers.P_LessOrEqual
 import com.avail.optimizer.jvm.CheckedMethod
-import com.avail.optimizer.jvm.CheckedMethod.instanceMethod
+import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import java.math.BigInteger
 
@@ -915,7 +915,7 @@ interface A_Number : A_BasicObject {
 			A_Number::divideCanDestroy.name,
 			A_Number::class.java,
 			A_Number::class.java,
-			Boolean::class.javaPrimitiveType)
+			Boolean::class.javaPrimitiveType!!)
 
 		/**
 		 * The [CheckedMethod] for [extractDouble].
@@ -944,7 +944,7 @@ interface A_Number : A_BasicObject {
 			A_Number::minusCanDestroy.name,
 			A_Number::class.java,
 			A_Number::class.java,
-			Boolean::class.javaPrimitiveType)
+			Boolean::class.javaPrimitiveType!!)
 
 		/**
 		 * The [CheckedMethod] for [numericCompare].
@@ -965,6 +965,6 @@ interface A_Number : A_BasicObject {
 			A_Number::timesCanDestroy.name,
 			A_Number::class.java,
 			A_Number::class.java,
-			Boolean::class.javaPrimitiveType)
+			Boolean::class.javaPrimitiveType!!)
 	}
 }

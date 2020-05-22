@@ -51,7 +51,7 @@ import com.avail.exceptions.AvailErrorCode.E_CANNOT_DIVIDE_BY_ZERO
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_MULTIPLY_ZERO_AND_INFINITY
 import com.avail.exceptions.MarshalingException
 import com.avail.optimizer.jvm.CheckedMethod
-import com.avail.optimizer.jvm.CheckedMethod.staticMethod
+import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
@@ -1625,7 +1625,7 @@ class IntegerDescriptor private constructor(
 			IntegerDescriptor::class.java,
 			::fromInt.name,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType)
+			Int::class.javaPrimitiveType!!)
 
 		/**
 		 * Convert the specified byte-valued Java `short` into an Avail

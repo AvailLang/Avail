@@ -29,252 +29,91 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.optimizer.jvm
 
-package com.avail.optimizer.jvm;
-
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
-
-import javax.annotation.Nullable;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-
-import static org.objectweb.asm.Opcodes.*;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
+import org.objectweb.asm.Opcodes.*
+import org.objectweb.asm.Type
+import java.lang.reflect.Method
+import java.lang.reflect.Modifier
 
 /**
  * A helper class for referring to a method.  It verifies at construction
  * time that the referenced method is marked with the
- * {@link ReferencedInGeneratedCode} annotation, and that the specified
+ * [ReferencedInGeneratedCode] annotation, and that the specified
  * argument types are correct.  When it generates a call, it uses the
  * appropriate invoke instruction, and even generates a
- * {@link Opcodes#CHECKCAST} instruction if the result type isn't strong
+ * [Opcodes.CHECKCAST] instruction if the result type isn't strong
  * enough.
  *
- * <p>The main power this class brings is the ability to check the type
+ *
+ * The main power this class brings is the ability to check the type
  * signature prior to code generation, rather than have the JVM verifier be
  * the failure point.  It also fails early if the referenced method isn't
- * marked with {@link ReferencedInGeneratedCode}, helping to keep critical
+ * marked with [ReferencedInGeneratedCode], helping to keep critical
  * methods from changing or disappearing under maintenance.  It also keeps
  * method names out of the code generator, making it easier to find the real
- * uses of methods in generator code.</p>
+ * uses of methods in generator code.
  *
- * <p>Factory methods that indicate the method is part of the Java library are
- * not expected to have the {@link ReferencedInGeneratedCode} annotation.</p>
+ *
+ * Factory methods that indicate the method is part of the Java library are
+ * not expected to have the [ReferencedInGeneratedCode] annotation.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @property isStatic
+ *   Whether the method is static.
+ * @property methodNameString
+ *   The simple name of the method.
+ *
+ * @constructor
+ * Create a `CheckedMethod`, reflecting as needed to verify and precompute as
+ * much as possible.
+ *
+ * @param verifyAnnotation
+ *   Whether to look for the [ReferencedInGeneratedCode] annotation.
+ * @param isStatic
+ *   Whether the method is expected to be static.
+ * @param receiverClass
+ *   The type of the receiver of the method.
+ * @param methodNameString
+ *   The name of the method.
+ * @param returnClass
+ *   The required return type.
+ * @param argumentTypes
+ *   A vararg array of argument types.
  */
-public final class CheckedMethod
+class CheckedMethod private constructor(
+	verifyAnnotation: Boolean,
+	private val isStatic: Boolean,
+	receiverClass: Class<*>,
+	private val methodNameString: String,
+	returnClass: Class<*>,
+	vararg argumentTypes: Class<*>)
 {
-	/**
-	 * Create a {@code CheckedMethod} for invoking an instance method that has been annotated with {@link ReferencedInGeneratedCode}, failing if there  is a problem.
-	 *
-	 * @param receiverClass
-	 * The type of the receiver of the method.
-	 * @param methodName
-	 * The name of the method.
-	 * @param returnClass
-	 * The required return type.
-	 * @param argumentTypes
-	 * A vararg array of argument types.
-	 * @return
-	 * The {@code CheckedMethod}.
-	 */
-	public static CheckedMethod instanceMethod (
-		final Class<?> receiverClass,
-		final String methodName,
-		final Class<?> returnClass,
-		final Class<?>... argumentTypes)
-	{
-		return new CheckedMethod(
-			true,
-			false,
-			receiverClass,
-			methodName,
-			returnClass,
-			argumentTypes);
-	}
+
+	/** Whether the method is defined in an interface.  */
+	private val isInterface: Boolean
+
+	/** The canonical name of the class in which the method is defined.  */
+	private val receiverClassInternalName: String
+
+	/** The canonical name of the method arguments.  */
+	private val methodDescriptorString: String
+
+	/** The canonical name of the cast target, or null if no cast is needed.  */
+	private var internalNameToCheckCastOrNull: String? = null
 
 	/**
-	 * Create a {@code CheckedMethod} for invoking a static method that has been annotated with {@link ReferencedInGeneratedCode}, failing if there is a problem.
-	 *
-	 * @param receiverClass
-	 *   The type of the receiver of the method.
-	 * @param methodName
-	 *   The name of the method.
-	 * @param returnClass
-	 * The required return type.
-	 * @param argumentTypes
-	 * A vararg array of argument types.
-	 * @return
-	 * The {@code CheckedMethod}.
-	 */
-	public static CheckedMethod staticMethod (
-		final Class<?> receiverClass,
-		final String methodName,
-		final Class<?> returnClass,
-		final Class<?>... argumentTypes)
-	{
-		return new CheckedMethod(
-			true,
-			true,
-			receiverClass,
-			methodName,
-			returnClass,
-			argumentTypes);
-	}
-
-	/**
-	 * Create a {@code CheckedMethod} for invoking an instance method that cannot have a {@link ReferencedInGeneratedCode} annotation, failing if there is a problem.
-	 *
-	 * @param receiverClass
-	 * The type of the receiver of the method.
-	 * @param methodName
-	 * The name of the method.
-	 * @param returnClass
-	 * The required return type.
-	 * @param argumentTypes
-	 * A vararg array of argument types.
-	 * @return
-	 * The {@code CheckedMethod}.
-	 */
-	public static CheckedMethod javaLibraryInstanceMethod (
-		final Class<?> receiverClass,
-		final String methodName,
-		final Class<?> returnClass,
-		final Class<?>... argumentTypes)
-	{
-		return new CheckedMethod(
-			false,
-			false,
-			receiverClass,
-			methodName,
-			returnClass,
-			argumentTypes);
-	}
-
-	/**
-	 * Create a {@code CheckedMethod} for invoking a static method that cannot have a {@link ReferencedInGeneratedCode} annotation, failing if there is a problem.
-	 *
-	 * @param receiverClass
-	 * The type of the receiver of the method.
-	 * @param methodName
-	 * The name of the method.
-	 * @param returnClass
-	 * The required return type.
-	 * @param argumentTypes
-	 * A vararg array of argument types.
-	 * @return
-	 * The {@code CheckedMethod}.
-	 */
-	public static CheckedMethod javaLibraryStaticMethod (
-		final Class<?> receiverClass,
-		final String methodName,
-		final Class<?> returnClass,
-		final Class<?>... argumentTypes)
-	{
-		return new CheckedMethod(
-			false,
-			true,
-			receiverClass,
-			methodName,
-			returnClass,
-			argumentTypes);
-	}
-
-	/**
-	 * Create a {@code CheckedMethod}, reflecting as needed to verify and precompute as much as possible.
-	 *
-	 * @param verifyAnnotation
-	 *        Whether to look for the {@link ReferencedInGeneratedCode} annotation.
-	 * @param isStatic
-	 * Whether the method is expected to be static.
-	 * @param receiverClass
-	 * The type of the receiver of the method.
-	 * @param methodName
-	 * The name of the method.
-	 * @param returnClass
-	 * The required return type.
-	 * @param argumentTypes
-	 * A vararg array of argument types.
-	 */
-	private CheckedMethod (
-		final boolean verifyAnnotation,
-		final boolean isStatic,
-		final Class<?> receiverClass,
-		final String methodName,
-		final Class<?> returnClass,
-		final Class<?>... argumentTypes)
-	{
-		this.isStatic = isStatic;
-		this.methodNameString = methodName;
-		final Method method;
-		try
-		{
-			method = receiverClass.getMethod(methodName, argumentTypes);
-		}
-		catch (final NoSuchMethodException | SecurityException e)
-		{
-			throw new RuntimeException(e);
-		}
-		if (verifyAnnotation)
-		{
-			// Check the annotation before anything else, in case we selected
-			// the wrong method.
-			final @Nullable ReferencedInGeneratedCode annotation =
-				method.getAnnotation(ReferencedInGeneratedCode.class);
-			assert annotation != null :
-				"Method "
-					+ methodName
-					+ " should have had ReferencedInGeneratedCode annotation";
-		}
-		final int modifiers = method.getModifiers();
-		assert (modifiers & Modifier.PUBLIC) != 0;
-		assert ((modifiers & Modifier.STATIC) != 0) == isStatic;
-		final Class<?> methodReturnType = method.getReturnType();
-		if (returnClass.isAssignableFrom(methodReturnType))
-		{
-			internalNameToCheckCastOrNull = null;
-		}
-		else
-		{
-			// For sanity, the type to check-cast-strengthen to should be a
-			// subtype of the method's return type.
-			assert methodReturnType.isAssignableFrom(returnClass);
-			internalNameToCheckCastOrNull = getInternalName(returnClass);
-		}
-		receiverClassInternalName = getInternalName(method.getDeclaringClass());
-		isInterface = method.getDeclaringClass().isInterface();
-		methodDescriptorString = getMethodDescriptor(method);
-	}
-
-	/** Whether the method is static. */
-	private final boolean isStatic;
-
-	/** Whether the method is defined in an interface. */
-	private final boolean isInterface;
-
-	/** The simple name of the method. */
-	private final String methodNameString;
-
-	/** The canonical name of the class in which the method is defined. */
-	private final String receiverClassInternalName;
-
-	/** The canonical name of the method arguments. */
-	private final String methodDescriptorString;
-
-	/** The canonical name of the cast target, or null if no cast is needed. */
-	private final @Nullable String internalNameToCheckCastOrNull;
-
-	/**
-	 * Emit a call to this method on the given {@link MethodVisitor}.  The arguments must already be ready on the stack.
+	 * Emit a call to this method on the given [MethodVisitor].  The arguments
+	 * must already be ready on the stack.
 	 *
 	 * @param methodVisitor
-	 * Where to write the call.
+	 *   Where to write the call.
 	 */
-	public void generateCall (final MethodVisitor methodVisitor)
+	fun generateCall(methodVisitor: MethodVisitor)
 	{
 		if (isStatic)
 		{
@@ -283,21 +122,186 @@ public final class CheckedMethod
 				receiverClassInternalName,
 				methodNameString,
 				methodDescriptorString,
-				false);
+				false)
 		}
 		else
 		{
 			methodVisitor.visitMethodInsn(
-				isInterface ? INVOKEINTERFACE : INVOKEVIRTUAL,
+				if (isInterface) INVOKEINTERFACE else INVOKEVIRTUAL,
 				receiverClassInternalName,
 				methodNameString,
 				methodDescriptorString,
-				isInterface);
+				isInterface)
 		}
 		if (internalNameToCheckCastOrNull != null)
 		{
-			methodVisitor.visitTypeInsn(
-				CHECKCAST, internalNameToCheckCastOrNull);
+			methodVisitor.visitTypeInsn(CHECKCAST, internalNameToCheckCastOrNull)
 		}
+	}
+
+	companion object
+	{
+		/**
+		 * Create a `CheckedMethod` for invoking an instance method that has
+		 * been annotated with [ReferencedInGeneratedCode], failing if there  is
+		 * a problem.
+		 *
+		 * @param receiverClass
+		 *   The type of the receiver of the method.
+		 * @param methodName
+		 *   The name of the method.
+		 * @param returnClass
+		 *   The required return type.
+		 * @param argumentTypes
+		 *   A vararg array of argument types.
+		 * @return
+		 *   The `CheckedMethod`.
+		 */
+		@JvmStatic
+		fun instanceMethod(
+			receiverClass: Class<*>,
+			methodName: String,
+			returnClass: Class<*>,
+			vararg argumentTypes: Class<*>): CheckedMethod =
+				CheckedMethod(
+					true,
+					false,
+					receiverClass,
+					methodName,
+					returnClass,
+					*argumentTypes)
+
+		/**
+		 * Create a `CheckedMethod` for invoking a static method that has been
+		 * annotated with [ReferencedInGeneratedCode], failing if there is a
+		 * problem.
+		 *
+		 * @param receiverClass
+		 *   The type of the receiver of the method.
+		 * @param methodName
+		 *   The name of the method.
+		 * @param returnClass
+		 *   The required return type.
+		 * @param argumentTypes
+		 *   A vararg array of argument types.
+		 * @return
+		 *   The `CheckedMethod`.
+		 */
+		@JvmStatic
+		fun staticMethod(
+			receiverClass: Class<*>,
+			methodName: String,
+			returnClass: Class<*>,
+			vararg argumentTypes: Class<*>): CheckedMethod =
+				CheckedMethod(
+					true,
+					true,
+					receiverClass,
+					methodName,
+					returnClass,
+					*argumentTypes)
+
+		/**
+		 * Create a `CheckedMethod` for invoking an instance method that cannot
+		 * have a [ReferencedInGeneratedCode] annotation, failing if there is a
+		 * problem.
+		 *
+		 * @param receiverClass
+		 *   The type of the receiver of the method.
+		 * @param methodName
+		 *   The name of the method.
+		 * @param returnClass
+		 *   The required return type.
+		 * @param argumentTypes
+		 *   A vararg array of argument types.
+		 * @return
+		 *   The `CheckedMethod`.
+		 */
+		fun javaLibraryInstanceMethod(
+			receiverClass: Class<*>,
+			methodName: String,
+			returnClass: Class<*>,
+			vararg argumentTypes: Class<*>): CheckedMethod =
+				CheckedMethod(
+					false,
+					false,
+					receiverClass,
+					methodName,
+					returnClass,
+					*argumentTypes)
+
+		/**
+		 * Create a `CheckedMethod` for invoking a static method that cannot
+		 * have a [ReferencedInGeneratedCode] annotation, failing if there is a
+		 * problem.
+		 *
+		 * @param receiverClass
+		 *   The type of the receiver of the method.
+		 * @param methodName
+		 *   The name of the method.
+		 * @param returnClass
+		 *   The required return type.
+		 * @param argumentTypes
+		 *   A vararg array of argument types.
+		 * @return
+		 *   The `CheckedMethod`.
+		 */
+		fun javaLibraryStaticMethod(
+			receiverClass: Class<*>,
+			methodName: String,
+			returnClass: Class<*>,
+			vararg argumentTypes: Class<*>): CheckedMethod =
+				CheckedMethod(
+					false,
+					true,
+					receiverClass,
+					methodName,
+					returnClass,
+					*argumentTypes)
+	}
+
+	init
+	{
+		val method: Method =
+			try
+			{
+				receiverClass.getMethod(methodNameString, *argumentTypes)
+			}
+			catch (e: NoSuchMethodException)
+			{
+				throw RuntimeException(e)
+			}
+			catch (e: SecurityException)
+			{
+				throw RuntimeException(e)
+			}
+		if (verifyAnnotation)
+		{
+			// Check the annotation before anything else, in case we selected
+			// the wrong method.
+			val annotation = method.getAnnotation(
+				ReferencedInGeneratedCode::class.java)
+					 ?: error("Method $methodNameString should have had " +
+						  "ReferencedInGeneratedCode annotation")
+		}
+		val modifiers = method.modifiers
+		assert(modifiers and Modifier.PUBLIC != 0)
+		assert(modifiers and Modifier.STATIC != 0 == isStatic)
+		val methodReturnType = method.returnType
+		internalNameToCheckCastOrNull =
+			if (returnClass.isAssignableFrom(methodReturnType))
+			{
+				null
+			}
+			else
+			{
+				// For sanity, the type to check-cast-strengthen to should be a
+				// subtype of the method's return type.
+				assert(methodReturnType.isAssignableFrom(returnClass))
+				Type.getInternalName(returnClass)
+			}
+		receiverClassInternalName = Type.getInternalName(method.declaringClass)
+		isInterface = method.declaringClass.isInterface
+		methodDescriptorString = Type.getMethodDescriptor(method)
 	}
 }

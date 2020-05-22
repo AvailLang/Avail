@@ -29,301 +29,315 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.optimizer.jvm
 
-package com.avail.optimizer.jvm;
-
-import org.objectweb.asm.MethodVisitor;
-
-import javax.annotation.Nullable;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-
-import static org.objectweb.asm.Opcodes.ACONST_NULL;
-import static org.objectweb.asm.Opcodes.GETFIELD;
-import static org.objectweb.asm.Opcodes.GETSTATIC;
-import static org.objectweb.asm.Opcodes.PUTFIELD;
-import static org.objectweb.asm.Opcodes.PUTSTATIC;
-import static org.objectweb.asm.Type.getDescriptor;
-import static org.objectweb.asm.Type.getInternalName;
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
+import org.objectweb.asm.Type
+import java.lang.reflect.Field
+import java.lang.reflect.Modifier
 
 /**
- * A helper class for referring to a field.  It verifies at construction time that the referenced field is marked with the {@link ReferencedInGeneratedCode} annotation, and that the specified type agrees.  When it generates a read (getfield/getstatic) or write (putfield/putstatic),, it uses the appropriate instruction.  It substitutes a literal if the field is final, and forbids generating a write to it.
+ * A helper class for referring to a field.  It verifies at construction time
+ * that the referenced field is marked with the [ReferencedInGeneratedCode]
+ * annotation, and that the specified type agrees.  When it generates a read
+ * (getfield/getstatic) or write (putfield/putstatic),, it uses the appropriate
+ * instruction.  It substitutes a literal if the field is final, and forbids
+ * generating a write to it.
  *
- * <p>The main power this class brings is the ability to check the type signature prior to code generation, rather than have the JVM verifier be the failure point.  It also fails early if the referenced field isn't marked with {@link ReferencedInGeneratedCode}, helping to keep critical fields from changing or disappearing under maintenance.  It also keeps field names out of the code generator, making it easier to find the real uses of fields in generator code.</p>
+ * The main power this class brings is the ability to check the type signature
+ * prior to code generation, rather than have the JVM verifier be the failure
+ * point.  It also fails early if the referenced field isn't marked with
+ * [ReferencedInGeneratedCode], helping to keep critical fields from changing or
+ * disappearing under maintenance.  It also keeps field names out of the code
+ * generator, making it easier to find the real uses of fields in generator
+ * code.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @property isStatic
+ *   Whether the method is static.
+ * @property fieldNameString
+ *   The simple name of the method.
+ *
+ * @constructor
+ * Create a `CheckedMethod`, reflecting as needed to verify and precompute as
+ * much as possible.
+ *
+ * @param verifyAnnotation
+ *   Whether to look for the [ReferencedInGeneratedCode] annotation.
+ * @param isStatic
+ *   Whether the field is expected to be static.
+ * @param receiverClass
+ *   The class in which the field should be found.
+ * @param fieldNameString
+ *   The name of the field.
+ * @param fieldClass
+ *   The type of the field.
  */
-public final class CheckedField
+class CheckedField private constructor(
+	verifyAnnotation: Boolean,
+	private val isStatic: Boolean,
+	receiverClass: Class<*>,
+	private val fieldNameString: String,
+	fieldClass: Class<*>)
 {
-	/**
-	 * Create a {@code CheckedField} for accessing an instance field that has been annotated with {@link ReferencedInGeneratedCode}, failing if there is a problem.
-	 *
-	 * @param receiverClass
-	 * The type of the object containing the field.
-	 * @param fieldName
-	 * The name of the field.
-	 * @param fieldClass
-	 * The type of the field.
-	 * @return
-	 * The {@code CheckedField}.
-	 */
-	public static CheckedField instanceField (
-		final Class<?> receiverClass,
-		final String fieldName,
-		final Class<?> fieldClass)
-	{
-		return new CheckedField(
-			true,
-			false,
-			receiverClass,
-			fieldName,
-			fieldClass);
-	}
 
-	/**
-	 * Create a {@code CheckedField} for accessing a static field that has been annotated with {@link ReferencedInGeneratedCode}, failing if there is a problem.
-	 *
-	 * @param receiverClass
-	 * The type defining the static field.
-	 * @param fieldName
-	 * The name of the static field.
-	 * @param fieldClass
-	 * The type of the field.
-	 * @return
-	 * The {@code CheckedField}.
-	 */
-	public static CheckedField staticField (
-		final Class<?> receiverClass,
-		final String fieldName,
-		final Class<?> fieldClass)
-	{
-		return new CheckedField(
-			true,
-			true,
-			receiverClass,
-			fieldName,
-			fieldClass);
-	}
+	/** Whether the method is final.  */
+	private val isFinal: Boolean
 
-	/**
-	 * Create a {@code CheckedField} for accessing an {@code enum} instance that has been annotated with {@link ReferencedInGeneratedCode}, failing if there is a problem.
-	 *
-	 * @param T
-	 * The {@code enum} type.
-	 * @param enumInstance
-	 * The {@code enum} value.
-	 * @return
-	 * The {@code CheckedField}.
-	 */
-	public static <T extends Enum<T>> CheckedField enumField (final T enumInstance)
-	{
-		final Class<?> enumClass = enumInstance.getDeclaringClass();
-		return new CheckedField(
-			false,
-			true,
-			enumClass,
-			enumInstance.name(),
-			enumClass);
-	}
+	/** If the field is static and final, this is the value of the field.  */
+	private var valueIfFinalAndStatic: Any? = null
 
-	/**
-	 * Create a {@code CheckedField} for accessing an instance field that has not been annotated with {@link ReferencedInGeneratedCode}, failing if there is a problem.
-	 *
-	 * @param receiverClass
-	 * The type of the object containing the field.
-	 * @param fieldName
-	 * The name of the field.
-	 * @param fieldClass
-	 * The type of the field.
-	 * @return
-	 * The {@code CheckedField}.
-	 */
-	public static CheckedField javaLibraryInstanceField (
-		final Class<?> receiverClass,
-		final String fieldName,
-		final Class<?> fieldClass)
-	{
-		return new CheckedField(
-			false,
-			false,
-			receiverClass,
-			fieldName,
-			fieldClass);
-	}
+	/** The canonical name of the class in which the method is defined.  */
+	private val receiverClassInternalName: String
 
-	/**
-	 * Create a {@code CheckedField} for accessing a static field that has not been annotated with {@link ReferencedInGeneratedCode}, failing if there is a problem.
-	 *
-	 * @param receiverClass
-	 * The type defining the static field.
-	 * @param fieldName
-	 * The name of the static field.
-	 * @param fieldClass
-	 * The type of the field.
-	 * @return
-	 * The {@code CheckedField}.
-	 */
-	public static CheckedField javaLibraryStaticField (
-		final Class<?> receiverClass,
-		final String fieldName,
-		final Class<?> fieldClass)
-	{
-		return new CheckedField(
-			false,
-			true,
-			receiverClass,
-			fieldName,
-			fieldClass);
-	}
-
-	/**
-	 * Create a {@code CheckedMethod}, reflecting as needed to verify and precompute as much as possible.
-	 *
-	 * @param verifyAnnotation
-	 *        Whether to look for the {@link ReferencedInGeneratedCode} annotation.
-	 * @param isStatic
-	 * Whether the field is expected to be static.
-	 * @param receiverClass
-	 * The class in which the field should be found.
-	 * @param fieldName
-	 * The name of the field.
-	 * @param fieldClass
-	 * The type of the field.
-	 */
-	private CheckedField (
-		final boolean verifyAnnotation,
-		final boolean isStatic,
-		final Class<?> receiverClass,
-		final String fieldName,
-		final Class<?> fieldClass)
-	{
-		this.isStatic = isStatic;
-		this.fieldNameString = fieldName;
-		final Field field;
-		try
-		{
-			field = receiverClass.getField(fieldName);
-		}
-		catch (final NoSuchFieldException | SecurityException e)
-		{
-			throw new RuntimeException(e);
-		}
-		if (verifyAnnotation)
-		{
-			// Check the annotation before anything else, in case we selected
-			// the wrong method.
-			final @Nullable ReferencedInGeneratedCode annotation =
-				field.getAnnotation(ReferencedInGeneratedCode.class);
-			assert annotation != null :
-				"Field "
-					+ fieldName
-					+ " should have had ReferencedInGeneratedCode annotation";
-		}
-		final int modifiers = field.getModifiers();
-		assert (modifiers & Modifier.PUBLIC) != 0;
-		assert ((modifiers & Modifier.STATIC) != 0) == isStatic;
-		isFinal = (modifiers & Modifier.FINAL) != 0;
-		final Class<?> actualFieldType = field.getType();
-		assert fieldClass.equals(actualFieldType);
-		receiverClassInternalName = getInternalName(field.getDeclaringClass());
-		fieldTypeDescriptorString = getDescriptor(field.getType());
-		if (isStatic && isFinal)
-		{
-			try
-			{
-				valueIfFinalAndStatic = field.get(null);
-			}
-			catch (final IllegalAccessException e)
-			{
-				throw new RuntimeException(e);
-			}
-		}
-		else
-		{
-			valueIfFinalAndStatic = null;
-		}
-	}
-
-	/** Whether the method is static. */
-	private final boolean isStatic;
-
-	/** Whether the method is final. */
-	private final boolean isFinal;
-
-	/** If the field is static and final, this is the value of the field. */
-	private final @Nullable Object valueIfFinalAndStatic;
-
-	/** The simple name of the method. */
-	private final String fieldNameString;
-
-	/** The canonical name of the class in which the method is defined. */
-	private final String receiverClassInternalName;
-
-	/** The canonical name of the method arguments. */
-	private final String fieldTypeDescriptorString;
+	/** The canonical name of the method arguments.  */
+	private val fieldTypeDescriptorString: String
 
 	/**
 	 * Emit a read of this field.  The receiver, if this is not static, must
 	 * already be on the stack.
 	 *
 	 * @param methodVisitor
-	 * Which {@link MethodVisitor} to emit the read into.
+	 *   Which [MethodVisitor] to emit the read into.
 	 */
-	public void generateRead (
-		final MethodVisitor methodVisitor)
+	fun generateRead(
+		methodVisitor: MethodVisitor)
 	{
 		if (isStatic)
 		{
 			if (isFinal && valueIfFinalAndStatic == null)
 			{
-				methodVisitor.visitInsn(ACONST_NULL);
+				methodVisitor.visitInsn(Opcodes.ACONST_NULL)
 			}
 			else
 			{
 				methodVisitor.visitFieldInsn(
-					GETSTATIC,
+					Opcodes.GETSTATIC,
 					receiverClassInternalName,
 					fieldNameString,
-					fieldTypeDescriptorString);
+					fieldTypeDescriptorString)
 			}
 		}
 		else
 		{
 			methodVisitor.visitFieldInsn(
-				GETFIELD,
+				Opcodes.GETFIELD,
 				receiverClassInternalName,
 				fieldNameString,
-				fieldTypeDescriptorString);
+				fieldTypeDescriptorString)
 		}
 	}
 
-
 	/**
-	 * Emit a write of this field for the given {@link JVMTranslator} and {@link MethodVisitor}.  The receiver, if any, and the new field value must already be on the stack.  Fail right away if the field is final.
+	 * Emit a write of this field for the given [JVMTranslator] and
+	 * [MethodVisitor].  The receiver, if any, and the new field value must
+	 * already be on the stack.  Fail right away if the field is final.
 	 *
 	 * @param methodVisitor
-	 * Which {@link MethodVisitor} to emit the read into.
+	 *   Which [MethodVisitor] to emit the read into.
 	 */
-	public void generateWrite (
-		final MethodVisitor methodVisitor)
+	fun generateWrite(
+		methodVisitor: MethodVisitor)
 	{
-		assert !isFinal;
+		assert(!isFinal)
 		if (isStatic)
 		{
 			methodVisitor.visitFieldInsn(
-				PUTSTATIC,
+				Opcodes.PUTSTATIC,
 				receiverClassInternalName,
 				fieldNameString,
-				fieldTypeDescriptorString);
+				fieldTypeDescriptorString)
 		}
 		else
 		{
 			methodVisitor.visitFieldInsn(
-				PUTFIELD,
+				Opcodes.PUTFIELD,
 				receiverClassInternalName,
 				fieldNameString,
-				fieldTypeDescriptorString);
+				fieldTypeDescriptorString)
 		}
+	}
+
+	companion object
+	{
+		/**
+		 * Create a `CheckedField` for accessing an instance field that has been
+		 * annotated with [ReferencedInGeneratedCode], failing if there is a
+		 * problem.
+		 *
+		 * @param receiverClass
+		 *   The type of the object containing the field.
+		 * @param fieldName
+		 *   The name of the field.
+		 * @param fieldClass
+		 *   The type of the field.
+		 * @return
+		 *   The `CheckedField`.
+		 */
+		@JvmStatic
+		fun instanceField(
+			receiverClass: Class<*>,
+			fieldName: String,
+			fieldClass: Class<*>): CheckedField =
+				CheckedField(
+					true,
+					false,
+					receiverClass,
+					fieldName,
+					fieldClass)
+
+		/**
+		 * Create a `CheckedField` for accessing a static field that has been
+		 * annotated with [ReferencedInGeneratedCode], failing if there is a
+		 * problem.
+		 *
+		 * @param receiverClass
+		 *   The type defining the static field.
+		 * @param fieldName
+		 *   The name of the static field.
+		 * @param fieldClass
+		 *   The type of the field.
+		 * @return
+		 *   The `CheckedField`.
+		 */
+		fun staticField(
+			receiverClass: Class<*>,
+			fieldName: String,
+			fieldClass: Class<*>): CheckedField =
+				CheckedField(
+					true,
+					true,
+					receiverClass,
+					fieldName,
+					fieldClass)
+
+		/**
+		 * Create a `CheckedField` for accessing an `enum` instance that has
+		 * been annotated with [ReferencedInGeneratedCode], failing if there is
+		 * a problem.
+		 *
+		 * @param T
+		 *   The `enum` type.
+		 * @param enumInstance
+		 *   The `enum` value.
+		 * @return
+		 *   The `CheckedField`.
+		 */
+		fun <T : Enum<T>> enumField(enumInstance: T): CheckedField
+		{
+			val clazz: Class<T> = enumInstance.javaClass
+			val zuper: Class<in T> = clazz.superclass
+			val enumClass: Class<*> =
+				if (zuper == Enum::class.java) clazz else zuper
+			return CheckedField(
+				false,
+				true,
+				enumClass,
+				enumInstance.name,
+				enumClass)
+		}
+
+		/**
+		 * Create a `CheckedField` for accessing an instance field that has not
+		 * been annotated with [ReferencedInGeneratedCode], failing if there is
+		 * a problem.
+		 *
+		 * @param receiverClass
+		 *   The type of the object containing the field.
+		 * @param fieldName
+		 *   The name of the field.
+		 * @param fieldClass
+		 *   The type of the field.
+		 * @return
+		 *   The `CheckedField`.
+		 */
+		fun javaLibraryInstanceField(
+			receiverClass: Class<*>,
+			fieldName: String,
+			fieldClass: Class<*>): CheckedField =
+				CheckedField(
+					false,
+					false,
+					receiverClass,
+					fieldName,
+					fieldClass)
+
+		/**
+		 * Create a `CheckedField` for accessing a static field that has not
+		 * been annotated with [ReferencedInGeneratedCode], failing if there is
+		 * a problem.
+		 *
+		 * @param receiverClass
+		 *   The type defining the static field.
+		 * @param fieldName
+		 *   The name of the static field.
+		 * @param fieldClass
+		 *   The type of the field.
+		 * @return
+		 *   The `CheckedField`.
+		 */
+		fun javaLibraryStaticField(
+			receiverClass: Class<*>,
+			fieldName: String,
+			fieldClass: Class<*>): CheckedField =
+				CheckedField(
+					false,
+					true,
+					receiverClass,
+					fieldName,
+					fieldClass)
+	}
+
+	init
+	{
+		val field: Field =
+			try
+			{
+				receiverClass.getField(fieldNameString)
+			}
+			catch (e: NoSuchFieldException)
+			{
+				throw RuntimeException(e)
+			}
+			catch (e: SecurityException)
+			{
+				throw RuntimeException(e)
+			}
+		if (verifyAnnotation)
+		{
+			// Check the annotation before anything else, in case we selected
+			// the wrong method.
+			val annotation = field.getAnnotation(
+				ReferencedInGeneratedCode::class.java)
+					 ?: error("Field $fieldNameString should have had " +
+						  "ReferencedInGeneratedCode annotation")
+		}
+		val modifiers = field.modifiers
+		assert(modifiers and Modifier.PUBLIC != 0)
+		assert(modifiers and Modifier.STATIC != 0 == isStatic)
+		isFinal = modifiers and Modifier.FINAL != 0
+		val actualFieldType = field.type
+		assert(fieldClass == actualFieldType)
+		receiverClassInternalName = Type.getInternalName(field.declaringClass)
+		fieldTypeDescriptorString = Type.getDescriptor(field.type)
+		valueIfFinalAndStatic =
+			if (isStatic && isFinal)
+			{
+				try
+				{
+					field[null]
+				}
+				catch (e: IllegalAccessException)
+				{
+					throw RuntimeException(e)
+				}
+			}
+			else
+			{
+				null
+			}
 	}
 }

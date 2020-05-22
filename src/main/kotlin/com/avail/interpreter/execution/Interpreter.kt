@@ -91,10 +91,10 @@ import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L2Generator
 import com.avail.optimizer.StackReifier
 import com.avail.optimizer.jvm.CheckedField
-import com.avail.optimizer.jvm.CheckedField.instanceField
+import com.avail.optimizer.jvm.CheckedField.Companion.instanceField
 import com.avail.optimizer.jvm.CheckedMethod
-import com.avail.optimizer.jvm.CheckedMethod.instanceMethod
-import com.avail.optimizer.jvm.CheckedMethod.staticMethod
+import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
+import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.performance.PerInterpreterStatistic
@@ -2313,7 +2313,7 @@ class Interpreter(
 			::traceL2.name,
 			Void.TYPE,
 			ExecutableChunk::class.java,
-			Int::class.javaPrimitiveType,
+			Int::class.javaPrimitiveType!!,
 			String::class.java,
 			Any::class.java)
 
@@ -2410,7 +2410,7 @@ class Interpreter(
 			Interpreter::afterAttemptPrimitive.name,
 			Result::class.java,
 			Primitive::class.java,
-			Long::class.javaPrimitiveType,
+			Long::class.javaPrimitiveType!!,
 			Result::class.java)
 
 		/** Access the [getReifiedContinuation] method.  */
@@ -2491,7 +2491,7 @@ class Interpreter(
 			Interpreter::class.java,
 			Interpreter::checkValidity.name,
 			Boolean::class.javaPrimitiveType!!,
-			Int::class.javaPrimitiveType)
+			Int::class.javaPrimitiveType!!)
 
 		/**
 		 * The [CheckedMethod] for [reifierToRestart].
@@ -2509,9 +2509,9 @@ class Interpreter(
 			Interpreter::class.java,
 			Interpreter::reify.name,
 			StackReifier::class.java,
-			Boolean::class.javaPrimitiveType,
-			Boolean::class.javaPrimitiveType,
-			Int::class.javaPrimitiveType)
+			Boolean::class.javaPrimitiveType!!,
+			Boolean::class.javaPrimitiveType!!,
+			Int::class.javaPrimitiveType!!)
 
 		/**
 		 * The [CheckedMethod] for [reifierToRestartWithArguments].

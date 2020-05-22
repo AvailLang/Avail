@@ -139,5 +139,5 @@ object L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO : L2Operation(
 		::decrement.name,
 		Boolean::class.javaPrimitiveType!!,
 		Interpreter::class.java,
-		Int::class.javaPrimitiveType)
+		Int::class.javaPrimitiveType!!)
 }

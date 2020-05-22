@@ -54,7 +54,7 @@ import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.MapException
 import com.avail.optimizer.jvm.CheckedMethod
-import com.avail.optimizer.jvm.CheckedMethod.*
+import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.Casts.cast

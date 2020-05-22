@@ -51,7 +51,7 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.types.TypeTag
 import com.avail.optimizer.jvm.CheckedMethod
-import com.avail.optimizer.jvm.CheckedMethod.staticMethod
+import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
@@ -533,7 +533,7 @@ class DoubleDescriptor private constructor(
 			DoubleDescriptor::class.java,
 			::fromDouble.name,
 			A_Number::class.java,
-			Double::class.javaPrimitiveType)
+			Double::class.javaPrimitiveType!!)
 
 		/**
 		 * Construct an Avail boxed [double][DoubleDescriptor]-precision

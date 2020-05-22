@@ -70,8 +70,8 @@ import com.avail.interpreter.levelOne.L1Decompiler.Companion.decompile
 import com.avail.interpreter.levelOne.L1InstructionWriter
 import com.avail.interpreter.levelOne.L1Operation
 import com.avail.optimizer.jvm.CheckedMethod
-import com.avail.optimizer.jvm.CheckedMethod.instanceMethod
-import com.avail.optimizer.jvm.CheckedMethod.staticMethod
+import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
+import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
@@ -415,7 +415,7 @@ class FunctionDescriptor private constructor(
 			::createExceptOuters.name,
 			AvailObject::class.java,
 			A_RawFunction::class.java,
-			Int::class.javaPrimitiveType)
+			Int::class.javaPrimitiveType!!)
 
 		/**
 		 * Construct a function with the given code and one outer variable.
@@ -528,7 +528,7 @@ class FunctionDescriptor private constructor(
 			A_Function::class.java,
 			A_Function::outerVarAt.name,
 			AvailObject::class.java,
-			Int::class.javaPrimitiveType)
+			Int::class.javaPrimitiveType!!)
 
 		/** Access the [A_Function.outerVarAtPut] method. */
 		@JvmField
@@ -536,7 +536,7 @@ class FunctionDescriptor private constructor(
 			A_Function::class.java,
 			A_Function::outerVarAtPut.name,
 			Void.TYPE,
-			Int::class.javaPrimitiveType,
+			Int::class.javaPrimitiveType!!,
 			AvailObject::class.java)
 
 		/**
