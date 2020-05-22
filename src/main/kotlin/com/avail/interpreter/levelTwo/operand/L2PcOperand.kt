@@ -49,7 +49,7 @@ import com.avail.optimizer.L2ValueManifest
 import com.avail.optimizer.jvm.JVMChunk
 import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.optimizer.values.L2SemanticValue
-import com.avail.utility.CollectionExtensions
+import com.avail.utility.structures.EnumMap.Companion.enumMap
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
@@ -363,23 +363,22 @@ class L2PcOperand constructor (
 		val targetInstruction = targetBlock.instructions()[0]
 		assert(targetInstruction.operation() === L2_ENTER_L2_CHUNK)
 		val liveMap =
-			CollectionExtensions.populatedEnumMap<
-				RegisterKind, MutableList<Int>>(
-				RegisterKind::class.java) { mutableListOf() }
+			enumMap(RegisterKind.values()) { mutableListOf<Int>() }
 		val liveRegistersSet: MutableSet<L2Register> = HashSet(alwaysLiveInRegisters)
 		liveRegistersSet.addAll(sometimesLiveInRegisters)
 		val liveRegistersList = liveRegistersSet.toMutableList()
 		liveRegistersList.sortBy(L2Register::finalIndex)
 		liveRegistersList.forEach {
-			liveMap[it.registerKind()]!!
+			liveMap[it.registerKind()]
 				.add(translator.localNumberFromRegister(it))
 		}
-		translator.liveLocalNumbersByKindPerEntryPoint[targetInstruction] = liveMap
+		translator.liveLocalNumbersByKindPerEntryPoint[targetInstruction] =
+			liveMap
 
 		// Emit code to save those registers' values.  Start with the objects.
 		// :: array = new «arrayClass»[«limit»];
 		// :: array[0] = ...; array[1] = ...;
-		val boxedLocalNumbers: List<Int> = liveMap[RegisterKind.BOXED]!!
+		val boxedLocalNumbers: List<Int> = liveMap[RegisterKind.BOXED]
 		if (boxedLocalNumbers.isEmpty())
 		{
 			JVMChunk.noObjectsField.generateRead(method)
@@ -401,8 +400,8 @@ class L2PcOperand constructor (
 			}
 		}
 		// Now create the array of longs, including both ints and doubles.
-		val intLocalNumbers = liveMap[RegisterKind.INTEGER]!!
-		val floatLocalNumbers = liveMap[RegisterKind.FLOAT]!!
+		val intLocalNumbers = liveMap[RegisterKind.INTEGER]
+		val floatLocalNumbers = liveMap[RegisterKind.FLOAT]
 		val count = intLocalNumbers.size + floatLocalNumbers.size
 		if (count == 0)
 		{
