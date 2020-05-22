@@ -1603,6 +1603,7 @@ class JVMTranslator constructor(
 	fun loadClass()
 	{
 		val parameters = arrayOfNulls<Any>(literals.size)
+
 		for ((key, value) in literals)
 		{
 			val index = value.classLoaderIndex

@@ -29,99 +29,142 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.optimizer.jvm
 
-package com.avail.optimizer.jvm;
-
-import com.avail.interpreter.execution.Interpreter;
-import com.avail.interpreter.levelTwo.L2Chunk;
-
-import javax.annotation.Nullable;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.util.logging.Level;
-
-import static com.avail.optimizer.jvm.CheckedField.instanceField;
-import static com.avail.utility.Strings.traceFor;
+import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.execution.Interpreter.Companion.log
+import com.avail.interpreter.levelTwo.L2Chunk
+import com.avail.optimizer.jvm.CheckedField.Companion.instanceField
+import com.avail.utility.Strings.traceFor
+import java.lang.reflect.InvocationTargetException
+import java.util.logging.Level
 
 /**
- * A {@code JVMChunkClassLoader} is created for each generated {@link JVMChunk}, permitted dynamic loading and unloading of each {@code JVMChunk} independently. The class loader holds onto zero or many {@linkplain Object objects} for usage during static initialization of the generated {@code JVMChunk}; these values are accessed from an {@linkplain #parameters array}.
+ * A `JVMChunkClassLoader` is created for each generated [JVMChunk], permitted
+ * dynamic loading and unloading of each `JVMChunk` independently. The class
+ * loader holds onto zero or many [objects][Object] for usage during static
+ * initialization of the generated `JVMChunk`; these values are accessed from an
+ * [array][parameters].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ * Construct a new `JVMChunkClassLoader` that delegates to the same
+ * [ClassLoader] that loaded [JVMChunk].
  */
-public class JVMChunkClassLoader
-extends ClassLoader
+class JVMChunkClassLoader : ClassLoader(JVMChunk::class.java.classLoader)
 {
 	/**
-	 * The parameters made available for the generated {@link JVMChunk} upon static initialization.
+	 * The parameters made available for the generated [JVMChunk] upon static
+	 * initialization.
 	 */
 	@ReferencedInGeneratedCode
-	public @Nullable Object[] parameters;
-
-	/** The {@link CheckedField} for {@link #parameters}. */
-	public static final CheckedField parametersField = instanceField(
-		JVMChunkClassLoader.class,
-		"parameters",
-		Object[].class);
+	@JvmField
+	var parameters: Array<Any?>? = null
 
 	/**
-	 * Answer an instance of a {@link JVMChunk} {@linkplain Class implementation} that is defined by the given bytes.
+	 * Answer an instance of a [JVMChunk] [implementation][Class] that is
+	 * defined by the given bytes.
 	 *
 	 * @param chunkName
-	 *        The name of the {@link L2Chunk}.
+	 *   The name of the [L2Chunk].
 	 * @param className
-	 *        The class name.
+	 *   The class name.
 	 * @param classBytes
-	 *        The foundational class bytes.
+	 *   The foundational class bytes.
 	 * @param params
-	 *        The values that should be bundled into this {@linkplain JVMChunkClassLoader class loader} for static initialization of the generated {@code JVMChunk}. These are accessible via the {@link #parameters} field.
+	 *   The values that should be bundled into this [class
+	 *   loader][JVMChunkClassLoader] for static initialization of the generated
+	 *   `JVMChunk`. These are accessible via the [parameters] field.
 	 * @return
-	 * The newly constructed {@code JVMChunk} instance, or {@code null} if no such instance could be constructed.
+	 *   The newly constructed `JVMChunk` instance, or `null` if no such
+	 *   instance could be constructed.
 	 */
-	@Nullable JVMChunk newJVMChunkFrom (
-		final String chunkName,
-		final String className,
-		final byte[] classBytes,
-		final Object[] params)
+	fun newJVMChunkFrom(
+		chunkName: String?,
+		className: String?,
+		classBytes: ByteArray,
+		params: Array<Any?>?): JVMChunk?
 	{
 		// These need to become available now so that they are available during
 		// loading of the generated class.
-		//noinspection AssignmentOrReturnOfFieldWithMutableType
-		parameters = params;
-		final Class<?> cl = defineClass(
-			className, classBytes, 0, classBytes.length);
-		try
+		parameters = params
+		val cl = defineClass(
+			className, classBytes, 0, classBytes.size)
+		return try
 		{
-			final Constructor<?> constructor = cl.getConstructor();
+			val constructor = cl.getConstructor()
 			// Reflectively accessing the constructor forces the class to
 			// actually load. The static initializer should have discarded the
 			// parameters after assignment to static final fields of the
 			// generated JVMChunk.
-			final Object o = constructor.newInstance();
-			return (JVMChunk) o;
+			val o = constructor.newInstance()
+			o as JVMChunk
 		}
-		catch (final NoSuchMethodException
-			|InstantiationException
-			|IllegalAccessException
-			|InvocationTargetException
-			|ClassCastException e)
+		catch (e: NoSuchMethodException)
 		{
-			Interpreter.Companion.log(
+			log(
 				Interpreter.loggerDebugJVM,
 				Level.SEVERE,
 				"Failed to load JVMChunk ({0}) from L2Chunk ({1}): {2}",
 				className,
 				chunkName,
-				traceFor(e));
-			return null;
+				traceFor(e))
+			null
+		}
+		catch (e: InstantiationException)
+		{
+			log(
+				Interpreter.loggerDebugJVM,
+				Level.SEVERE,
+				"Failed to load JVMChunk ({0}) from L2Chunk ({1}): {2}",
+				className,
+				chunkName,
+				traceFor(e))
+			null
+		}
+		catch (e: IllegalAccessException)
+		{
+			log(
+				Interpreter.loggerDebugJVM,
+				Level.SEVERE,
+				"Failed to load JVMChunk ({0}) from L2Chunk ({1}): {2}",
+				className,
+				chunkName,
+				traceFor(e))
+			null
+		}
+		catch (e: InvocationTargetException)
+		{
+			log(
+				Interpreter.loggerDebugJVM,
+				Level.SEVERE,
+				"Failed to load JVMChunk ({0}) from L2Chunk ({1}): {2}",
+				className,
+				chunkName,
+				traceFor(e))
+			null
+		}
+		catch (e: ClassCastException)
+		{
+			log(
+				Interpreter.loggerDebugJVM,
+				Level.SEVERE,
+				"Failed to load JVMChunk ({0}) from L2Chunk ({1}): {2}",
+				className,
+				chunkName,
+				traceFor(e))
+			null
 		}
 	}
 
-	/**
-	 * Construct a new {@code JVMChunkClassLoader} that delegates to the same
-	 * {@link ClassLoader} that loaded {@link JVMChunk}.
-	 */
-	public JVMChunkClassLoader ()
+	companion object
 	{
-		super(JVMChunk.class.getClassLoader());
+		/** The [CheckedField] for [parameters].  */
+		@JvmField
+		val parametersField = instanceField(
+			JVMChunkClassLoader::class.java,
+			"parameters",
+			Array<Any>::class.java)
 	}
 }
