@@ -29,22 +29,22 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
-package com.avail.optimizer.jvm;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+package com.avail.optimizer.jvm
 
 /**
- * {@code ReferencedInGeneratedCode} indicates that the annotated method or field is referenced from generated code, and therefore great care must be taken when refactoring.
+ * `ReferencedInGeneratedCode` indicates that the annotated method or field is
+ * referenced from generated code, and therefore great care must be taken when
+ * refactoring.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@Target({ElementType.CONSTRUCTOR, ElementType.METHOD, ElementType.FIELD})
-@Retention(RetentionPolicy.RUNTIME)
-public @interface ReferencedInGeneratedCode
+@Target(AnnotationTarget.CONSTRUCTOR,
+		AnnotationTarget.FUNCTION,
+		AnnotationTarget.PROPERTY_GETTER,
+		AnnotationTarget.PROPERTY_SETTER,
+		AnnotationTarget.FIELD)
+@kotlin.annotation.Retention(AnnotationRetention.RUNTIME)
+// No implementation required.
+annotation class ReferencedInGeneratedCode
 {
-	// No implementation required.
 }
