@@ -29,32 +29,28 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.optimizer.annotations
 
-package com.avail.optimizer.annotations;
-
-import com.avail.optimizer.L2ControlFlowGraph;
-import com.avail.optimizer.L2ControlFlowGraph.StateFlag;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import com.avail.optimizer.L2ControlFlowGraph
+import com.avail.optimizer.L2ControlFlowGraph.StateFlag
+import kotlin.reflect.KClass
 
 /**
- * {@code Sets} indicates which {@link StateFlag}s to clear automatically in the
- * {@link L2ControlFlowGraph} upon completion of the annotated optimization
+ * `Sets` indicates which [StateFlag]s to clear automatically in the
+ * [L2ControlFlowGraph] upon completion of the annotated optimization
  * phase.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @property value
+ *   The [StateFlag]s to clear in the [L2ControlFlowGraph].
+ *
+ * @constructor
+ * Construct a [Clears]
+ *
+ * @param value
+ *   The [StateFlag]s to clear in the [L2ControlFlowGraph].
  */
-@Target(ElementType.FIELD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Clears
-{
-	/**
-	 * The {@link StateFlag}s to clear in the {@link L2ControlFlowGraph}.
-	 *
-	 * @return An array of {@link StateFlag} subclasses.
-	 */
-	Class<? extends StateFlag>[] value ();
-}
+@Target(AnnotationTarget.FIELD)
+@kotlin.annotation.Retention(AnnotationRetention.RUNTIME)
+annotation class Clears constructor(vararg val value: KClass<out StateFlag>)

@@ -29,31 +29,27 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.optimizer.annotations
 
-package com.avail.optimizer.annotations;
-
-import com.avail.optimizer.L2ControlFlowGraph;
-import com.avail.optimizer.L2ControlFlowGraph.StateFlag;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import com.avail.optimizer.L2ControlFlowGraph
+import com.avail.optimizer.L2ControlFlowGraph.StateFlag
+import kotlin.reflect.KClass
 
 /**
- * {@code Requires} indicates which {@link StateFlag}s must already be set for
- * an {@link L2ControlFlowGraph} upon starting the annotated optimization phase.
+ * `Requires` indicates which [StateFlag]s must already be set for
+ * an [L2ControlFlowGraph] upon starting the annotated optimization phase.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @property value
+ *   The [StateFlag]s required to be already set.
+ *
+ * @constructor
+ * Construct a [Requires]
+ *
+ * @param value
+ *   The [StateFlag]s required to be already set.
  */
-@Target(ElementType.FIELD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Requires
-{
-	/**
-	 * The {@link StateFlag}s required to be already set.
-	 *
-	 * @return An array of {@link StateFlag} subclasses.
-	 */
-	Class<? extends StateFlag>[] value ();
-}
+@Target(AnnotationTarget.FIELD)
+@kotlin.annotation.Retention(AnnotationRetention.RUNTIME)
+annotation class Requires constructor(vararg val value: KClass<out StateFlag>)
