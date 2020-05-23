@@ -1,5 +1,5 @@
 /*
- * CheckedMethod.java
+ * CheckedMethod.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -109,11 +109,11 @@ class CheckedConstructor private constructor(
 		 * a problem.
 		 *
 		 * @param receiverClass
-		 * The type of the receiver of the method.
+		 *   The type of the receiver of the method.
 		 * @param argumentTypes
-		 * A vararg array of argument types.
+		 *   A vararg array of argument types.
 		 * @return
-		 * The `CheckedMethod`.
+		 *   The `CheckedMethod`.
 		 */
 		fun constructorMethod(
 			receiverClass: Class<*>,

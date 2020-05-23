@@ -127,10 +127,7 @@ class EnumMap<K: Enum<K>, V : Any> constructor(
 	 */
 	fun clear()
 	{
-		for (i in sourceValues.indices)
-		{
-			sourceValues[i] = null
-		}
+		sourceValues.fill(null)
 	}
 
 	override fun containsKey(key: K): Boolean = true
@@ -143,7 +140,7 @@ class EnumMap<K: Enum<K>, V : Any> constructor(
 	override fun isEmpty(): Boolean = false
 
 	override val entries: Set<Map.Entry<K, V>>
-		get() = enums.map {
+		get() = enums.filter { sourceValues[it.ordinal] != null }.map {
 			object : Map.Entry<K, V>
 			{
 				override val key: K = it
@@ -192,7 +189,9 @@ class EnumMap<K: Enum<K>, V : Any> constructor(
 		 */
 		fun <K : Enum<K>, V : Any> enumMap (
 			enums: Array<K>,
-			populator: (K) -> V?): EnumMap<K, V> = EnumMap(
+			populator: (K) -> V?
+		): EnumMap<K, V> =
+			EnumMap(
 				enums,
 				(Array<Any?>(enums.size) { populator(enums[it]) }) as Array<V?>)
 

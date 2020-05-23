@@ -1,5 +1,5 @@
 /*
- * JVMChunk.java
+ * JVMChunk.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -150,7 +150,7 @@ abstract class JVMChunk @ReferencedInGeneratedCode constructor()
 		@JvmStatic
 		fun badOffset(offset: Int): RuntimeException
 		{
-			throw RuntimeException(String.format("bad offset %d", offset))
+			throw RuntimeException("bad offset $offset")
 		}
 
 		/** The [CheckedMethod] for [badOffset].  */

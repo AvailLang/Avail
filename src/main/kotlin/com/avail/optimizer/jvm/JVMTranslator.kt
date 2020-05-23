@@ -1,5 +1,5 @@
 /*
- * JVMTranslator.java
+ * JVMTranslator.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -60,7 +60,6 @@ import com.avail.optimizer.L2ControlFlowGraphVisualizer
 import com.avail.optimizer.StackReifier
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport
-import com.avail.utility.Nulls
 import com.avail.utility.Strings.traceFor
 import com.avail.utility.structures.EnumMap.Companion.enumMap
 import com.avail.utility.structures.EnumMap
@@ -80,6 +79,7 @@ import javax.annotation.Nonnull
 import javax.annotation.Nullable
 import kotlin.collections.HashMap
 import kotlin.collections.LinkedHashMap
+import kotlin.math.floor
 
 /**
  * A `JVMTranslator` converts a single [L2Chunk] into a [JVMChunk] in a naive
@@ -107,20 +107,20 @@ import kotlin.collections.LinkedHashMap
  * @param code
  *   The source [L1 code][A_RawFunction], or `null` for the
  *   [unoptimized chunk][L2Chunk.unoptimizedChunk].
+ * @param chunkName
+ *   The descriptive (non-unique) name of the chunk being translated.
  * @param sourceFileName
  *   The name of the Avail source file that produced the [code]. Use `null`
  *   if no such file exists.
  * @param controlFlowGraph
  *   The [L2ControlFlowGraph] which produced the sequence of instructions.
- * @param chunkName
- *   The descriptive (non-unique) name of the chunk being translated.
  * @param instructions
  *   The source [L2Instruction]s.
  */
 @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE", "UNUSED_PARAMETER")
 class JVMTranslator constructor(
 	val code: A_RawFunction?,
-	private val chunkName: String?,
+	private val chunkName: String,
 	private val sourceFileName: String?,
 	private val controlFlowGraph: L2ControlFlowGraph,
 	instructions: Array<L2Instruction>)
@@ -277,6 +277,8 @@ class JVMTranslator constructor(
 		val getter: (MethodVisitor) -> Unit,
 		val setter: ((MethodVisitor) -> Unit)?)
 	{
+		override fun toString(): String =
+			"Field: $fieldName ($classLoaderIndex)"
 
 		companion object
 		{
@@ -478,13 +480,12 @@ class JVMTranslator constructor(
 
 		override fun doOperand(operand: L2FloatImmediateOperand)
 		{
-			literals.computeIfAbsent(
-				operand.value
-			) { `object`: Any ->
+			literals.computeIfAbsent(operand.value) { constant: Any ->
 				LiteralAccessor(
 					LiteralAccessor.invalidIndex,
 					null,
-					{ method: MethodVisitor -> doubleConstant(method, `object` as Double) },
+					{ method: MethodVisitor ->
+						doubleConstant(method, constant as Double) },
 					null)
 			}
 		}
@@ -571,9 +572,7 @@ class JVMTranslator constructor(
 		 */
 		private fun recordLiteralObject(value: Any?)
 		{
-			literals.computeIfAbsent(
-				value!!
-			) { `object`: Any ->
+			literals.computeIfAbsent(value!!) { constant: Any ->
 				// Choose an index and name for the literal.
 				val index = nextClassLoaderIndex++
 				val description: String =
@@ -595,7 +594,7 @@ class JVMTranslator constructor(
 						}
 					}
 				val name = "literal_" + index + "_" + description
-				val type: Class<*> = `object`.javaClass
+				val type: Class<*> = constant.javaClass
 				// Generate a field that will hold the literal at runtime.
 				val field = classWriter.visitField(
 					ACC_PRIVATE
@@ -758,8 +757,7 @@ class JVMTranslator constructor(
 			method.visitInsn(DUP)
 			JVMChunkClassLoader.parametersField.generateRead(method)
 			val limit = accessors.size
-			var i = 0
-			for (accessor in accessors)
+			for ((i, accessor) in accessors.withIndex())
 			{
 				// :: literal_«i» = («typeof(literal_«i»)») parameters[«i»];
 				if (i < limit - 1)
@@ -769,7 +767,6 @@ class JVMTranslator constructor(
 				intConstant(method, accessor.classLoaderIndex)
 				method.visitInsn(AALOAD)
 				accessor.setter!!(method)
-				i++
 			}
 		}
 		// :: «generated JVMChunk».class.getClassLoader().parameters = null;
@@ -783,7 +780,8 @@ class JVMTranslator constructor(
 	 * Generate access of the receiver (i.e., `this`).
 	 *
 	 * @param method
-	 * The [method][MethodVisitor] into which the generated JVM instructions will be written.
+	 *   The [method][MethodVisitor] into which the generated JVM instructions
+	 *   will be written.
 	 */
 	fun loadReceiver(method: MethodVisitor)
 	{
@@ -791,10 +789,12 @@ class JVMTranslator constructor(
 	}
 
 	/**
-	 * Generate access to the JVM local for the [Interpreter] formal parameter of a generated implementation of [JVMChunk.runChunk].
+	 * Generate access to the JVM local for the [Interpreter] formal parameter
+	 * of a generated implementation of [JVMChunk.runChunk].
 	 *
 	 * @param method
-	 * The [method][MethodVisitor] into which the generated JVM instructions will be written.
+	 *   The [method][MethodVisitor] into which the generated JVM instructions
+	 *   will be written.
 	 */
 	fun loadInterpreter(method: MethodVisitor)
 	{
@@ -802,33 +802,30 @@ class JVMTranslator constructor(
 	}
 
 	/**
-	 * Answer the JVM local for the `offset` formal parameter of a generated implementation of [JVMChunk.runChunk].
+	 * Answer the JVM local for the `offset` formal parameter of a generated
+	 * implementation of [JVMChunk.runChunk].
 	 *
 	 * @return
-	 * The `offset` formal parameter local.
+	 *   The `offset` formal parameter local.
 	 */
-	fun offsetLocal(): Int
-	{
-		return 2
-	}
+	fun offsetLocal(): Int = 2
 
 	/**
-	 * Answer the JVM local for the [StackReifier] local variable of a generated implementation of [JVMChunk.runChunk].
+	 * Answer the JVM local for the [StackReifier] local variable of a generated
+	 * implementation of [JVMChunk.runChunk].
 	 *
 	 * @return
-	 * The `StackReifier` local.
+	 *   The `StackReifier` local.
 	 */
-	fun reifierLocal(): Int
-	{
-		return 3
-	}
+	fun reifierLocal(): Int = 3
 
 	/**
 	 * Emit the effect of loading a constant `int` to the specified
 	 * [MethodVisitor].
 	 *
 	 * @param method
-	 * The [method][MethodVisitor] into which the generated JVM instructions will be written.
+	 *   The [method][MethodVisitor] into which the generated JVM instructions
+	 *   will be written.
 	 * @param value
 	 * The `int`.
 	 */
@@ -845,17 +842,13 @@ class JVMTranslator constructor(
 			5 -> method.visitInsn(ICONST_5)
 			else ->
 			{
-				if (value >= Byte.MIN_VALUE && value <= Byte.MAX_VALUE)
+				when (value)
 				{
-					method.visitIntInsn(BIPUSH, value)
-				}
-				else if (value >= Short.MIN_VALUE && value <= Short.MAX_VALUE)
-				{
-					method.visitIntInsn(SIPUSH, value)
-				}
-				else
-				{
-					method.visitLdcInsn(value)
+					in Byte.MIN_VALUE..Byte.MAX_VALUE ->
+						method.visitIntInsn(BIPUSH, value)
+					in Short.MIN_VALUE..Short.MAX_VALUE ->
+						method.visitIntInsn(SIPUSH, value)
+					else -> method.visitLdcInsn(value)
 				}
 			}
 		}
@@ -866,31 +859,26 @@ class JVMTranslator constructor(
 	 * [MethodVisitor].
 	 *
 	 * @param method
-	 * The [method][MethodVisitor] into which the generated JVM instructions will be written.
+	 *   The [method][MethodVisitor] into which the generated JVM instructions
+	 *   will be written.
 	 * @param value
-	 * The `long`.
+	 *   The `long`.
 	 */
 	fun longConstant(method: MethodVisitor, value: Long)
 	{
-		if (value == 0L)
+		when (value)
 		{
-			method.visitInsn(LCONST_0)
-		}
-		else if (value == 1L)
-		{
-			method.visitInsn(LCONST_1)
-		}
-		else if (value >= Int.MIN_VALUE && value <= Int.MAX_VALUE)
-		{
-			intConstant(method, value.toInt())
-			// Emit a conversion, so that we end up with a long on the stack.
-			method.visitInsn(I2L)
-		}
-		else
-		{
+			0L ->method.visitInsn(LCONST_0)
+			1L -> method.visitInsn(LCONST_1)
+			in Int.MIN_VALUE..Int.MAX_VALUE ->
+			{
+				intConstant(method, value.toInt())
+				// Emit a conversion, so that we end up with a long on the stack.
+				method.visitInsn(I2L)
+			}
 			// This should emit an ldc2_w instruction, whose result type
 			// is long; no conversion instruction is required.
-			method.visitLdcInsn(value)
+			else -> method.visitLdcInsn(value)
 		}
 	}
 
@@ -906,28 +894,21 @@ class JVMTranslator constructor(
 	 */
 	fun floatConstant(method: MethodVisitor, value: Float)
 	{
-		if (value == 0.0f)
+		when
 		{
-			method.visitInsn(FCONST_0)
-		}
-		else if (value == 1.0f)
-		{
-			method.visitInsn(FCONST_1)
-		}
-		else if (value == 2.0f)
-		{
-			method.visitInsn(FCONST_2)
-		}
-		else if (value >= -33554431 && value <= 33554431 && value.toDouble() == Math.floor(value.toDouble()))
-		{
-			intConstant(method, value.toInt())
-			method.visitInsn(I2F)
-		}
-		else
-		{
+			value == 0.0f -> method.visitInsn(FCONST_0)
+			value == 1.0f -> method.visitInsn(FCONST_1)
+			value == 2.0f -> method.visitInsn(FCONST_2)
+			value >= -33554431
+				 && value <= 33554431
+				 && value.toDouble() == floor(value.toDouble()) ->
+			{
+				intConstant(method, value.toInt())
+				method.visitInsn(I2F)
+			}
 			// This should emit an ldc instruction, whose result type is float;
 			// no conversion instruction is required.
-			method.visitLdcInsn(value)
+			else -> method.visitLdcInsn(value)
 		}
 	}
 
@@ -936,35 +917,33 @@ class JVMTranslator constructor(
 	 * [MethodVisitor].
 	 *
 	 * @param method
-	 * The [method][MethodVisitor] into which the generated JVM instructions will be written.
+	 *   The [method][MethodVisitor] into which the generated JVM instructions
+	 *   will be written.
 	 * @param value
-	 * The `double`.
+	 *   The `double`.
 	 */
 	fun doubleConstant(method: MethodVisitor, value: Double)
 	{
-		if (value == 0.0)
+		when
 		{
-			method.visitInsn(DCONST_0)
-		}
-		else if (value == 1.0)
-		{
-			method.visitInsn(DCONST_1)
-		}
-		else if (value >= Int.MIN_VALUE && value <= Int.MAX_VALUE && value == Math.floor(value))
-		{
-			intConstant(method, value.toInt())
-			method.visitInsn(I2D)
-		}
-		else if (value >= -18014398509481983L && value <= 18014398509481983L && value == Math.floor(value))
-		{
-			longConstant(method, value.toLong())
-			method.visitInsn(L2D)
-		}
-		else
-		{
+			value == 0.0 -> method.visitInsn(DCONST_0)
+			value == 1.0 -> method.visitInsn(DCONST_1)
+			value >= Int.MIN_VALUE
+				&& value <= Int.MAX_VALUE
+				&& value == floor(value) ->
+			{
+				intConstant(method, value.toInt())
+				method.visitInsn(I2D)
+			}
+			value in -18014398509481983L..18014398509481983L
+				 && value == floor(value) ->
+			{
+				longConstant(method, value.toLong())
+				method.visitInsn(L2D)
+			}
 			// This should emit an ldc2_w instruction, whose result type is
 			// double; no conversion instruction is required.
-			method.visitLdcInsn(value)
+			else -> method.visitLdcInsn(value)
 		}
 	}
 
@@ -1410,14 +1389,9 @@ class JVMTranslator constructor(
 		// Emit the lookupswitch instruction to select among the entry points.
 		val offsets = IntArray(entryPoints.size)
 		val entries = arrayOfNulls<Label>(entryPoints.size)
-		run {
-			var i = 0
-			for ((key, value) in entryPoints)
-			{
-				offsets[i] = key
-				entries[i] = value
-				i++
-			}
+		entryPoints.entries.forEachIndexed { i, (key, value) ->
+			offsets[i] = key
+			entries[i] = value
 		}
 		method.visitCode()
 		val startLabel = Label()
@@ -1570,7 +1544,7 @@ class JVMTranslator constructor(
 			Files.createDirectories(dir)
 			val base = classInternalName.substring(lastSlash + 1)
 			val classFile = dir.resolve("$base.class")
-			Files.write(classFile, Nulls.stripNull(classBytes))
+			Files.write(classFile, classBytes!!)
 		}
 		catch (e: IOException)
 		{
@@ -1602,21 +1576,18 @@ class JVMTranslator constructor(
 	 */
 	fun loadClass()
 	{
-		val parameters = arrayOfNulls<Any>(literals.size)
-
-		for ((key, value) in literals)
+		val validParamSet =
+			literals.entries.filter { it.value.classLoaderIndex > -1 }
+		val parameters = Array<Any>(validParamSet.size) { NilDescriptor.nil }
+		for ((key, value) in validParamSet)
 		{
-			val index = value.classLoaderIndex
-			if (index != LiteralAccessor.invalidIndex)
-			{
-				parameters[index] = key
-			}
+			parameters[value.classLoaderIndex] = key
 		}
 		val loader = JVMChunkClassLoader()
 		jvmChunk = loader.newJVMChunkFrom(
 			chunkName,
 			className,
-			Nulls.stripNull(classBytes),
+			classBytes!!,
 			parameters)
 	}
 

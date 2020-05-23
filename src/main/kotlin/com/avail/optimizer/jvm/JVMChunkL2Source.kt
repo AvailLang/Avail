@@ -1,5 +1,5 @@
 /*
- * JVMChunkL2Source.java
+ * JVMChunkL2Source.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *

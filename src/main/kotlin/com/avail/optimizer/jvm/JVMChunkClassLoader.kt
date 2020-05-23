@@ -1,5 +1,5 @@
 /*
- * JVMChunkClassLoader.java
+ * JVMChunkClassLoader.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -60,7 +60,7 @@ class JVMChunkClassLoader : ClassLoader(JVMChunk::class.java.classLoader)
 	 */
 	@ReferencedInGeneratedCode
 	@JvmField
-	var parameters: Array<Any?>? = null
+	var parameters: Array<Any> = arrayOf()
 
 	/**
 	 * Answer an instance of a [JVMChunk] [implementation][Class] that is
@@ -73,25 +73,25 @@ class JVMChunkClassLoader : ClassLoader(JVMChunk::class.java.classLoader)
 	 * @param classBytes
 	 *   The foundational class bytes.
 	 * @param params
-	 *   The values that should be bundled into this [class
-	 *   loader][JVMChunkClassLoader] for static initialization of the generated
+	 *   The values that should be bundled into this class
+	 *   [loader][JVMChunkClassLoader] for static initialization of the generated
 	 *   `JVMChunk`. These are accessible via the [parameters] field.
 	 * @return
 	 *   The newly constructed `JVMChunk` instance, or `null` if no such
 	 *   instance could be constructed.
 	 */
 	fun newJVMChunkFrom(
-		chunkName: String?,
-		className: String?,
+		chunkName: String,
+		className: String,
 		classBytes: ByteArray,
-		params: Array<Any?>?): JVMChunk?
+		params: Array<Any>): JVMChunk?
 	{
 		// These need to become available now so that they are available during
 		// loading of the generated class.
 		parameters = params
 		val cl = defineClass(
 			className, classBytes, 0, classBytes.size)
-		return try
+		try
 		{
 			val constructor = cl.getConstructor()
 			// Reflectively accessing the constructor forces the class to
@@ -99,7 +99,7 @@ class JVMChunkClassLoader : ClassLoader(JVMChunk::class.java.classLoader)
 			// parameters after assignment to static final fields of the
 			// generated JVMChunk.
 			val o = constructor.newInstance()
-			o as JVMChunk
+			return o as JVMChunk
 		}
 		catch (e: NoSuchMethodException)
 		{
@@ -110,7 +110,6 @@ class JVMChunkClassLoader : ClassLoader(JVMChunk::class.java.classLoader)
 				className,
 				chunkName,
 				traceFor(e))
-			null
 		}
 		catch (e: InstantiationException)
 		{
@@ -121,7 +120,6 @@ class JVMChunkClassLoader : ClassLoader(JVMChunk::class.java.classLoader)
 				className,
 				chunkName,
 				traceFor(e))
-			null
 		}
 		catch (e: IllegalAccessException)
 		{
@@ -132,7 +130,6 @@ class JVMChunkClassLoader : ClassLoader(JVMChunk::class.java.classLoader)
 				className,
 				chunkName,
 				traceFor(e))
-			null
 		}
 		catch (e: InvocationTargetException)
 		{
@@ -143,7 +140,6 @@ class JVMChunkClassLoader : ClassLoader(JVMChunk::class.java.classLoader)
 				className,
 				chunkName,
 				traceFor(e))
-			null
 		}
 		catch (e: ClassCastException)
 		{
@@ -154,8 +150,8 @@ class JVMChunkClassLoader : ClassLoader(JVMChunk::class.java.classLoader)
 				className,
 				chunkName,
 				traceFor(e))
-			null
 		}
+		return null
 	}
 
 	companion object
