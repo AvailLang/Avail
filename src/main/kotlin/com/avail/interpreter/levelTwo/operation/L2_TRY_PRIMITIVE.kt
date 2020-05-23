@@ -89,7 +89,8 @@ object L2_TRY_PRIMITIVE : L2Operation(
 	override fun hasSideEffect(): Boolean = true
 
 	/**
-	 * Attempt the [inlineable][Primitive.Flag.CanInline] [primitive][Primitive].
+	 * Attempt the [inlineable][Primitive.Flag.CanInline]
+	 * [primitive][Primitive].
 	 *
 	 * @param interpreter
 	 *   The [Interpreter].
@@ -124,7 +125,7 @@ object L2_TRY_PRIMITIVE : L2Operation(
 		{
 			Primitive.Result.SUCCESS ->
 			{
-				assert(interpreter.latestResultOrNull() != null)
+				assert(interpreter.latestResultOrNull() !== null)
 				interpreter.function = null
 				interpreter.returnNow = true
 				interpreter.returningFunction = function
@@ -132,7 +133,7 @@ object L2_TRY_PRIMITIVE : L2Operation(
 			}
 			Primitive.Result.FAILURE ->
 			{
-				assert(interpreter.latestResultOrNull() != null)
+				assert(interpreter.latestResultOrNull() !== null)
 				interpreter.function = function
 				interpreter.setOffset(
 					interpreter.chunk!!.offsetAfterInitialTryPrimitive())
@@ -163,7 +164,7 @@ object L2_TRY_PRIMITIVE : L2Operation(
 				{
 					return reifier
 				}
-				assert(interpreter.latestResultOrNull() != null)
+				assert(interpreter.latestResultOrNull() !== null)
 				interpreter.returnNow = true
 				interpreter.returningFunction = function
 				null
@@ -289,7 +290,7 @@ object L2_TRY_PRIMITIVE : L2Operation(
 			true,
 			primitive.reificationForNoninlineStat!!,
 			Continuation0 {
-				assert(interpreter.unreifiedCallDepth() == 0) 
+				assert(interpreter.unreifiedCallDepth() == 0)
 					{ "Should have reified stack for non-inlineable primitive" }
 				interpreter.chunk = savedChunk
 				interpreter.setOffset(savedOffset)
@@ -304,7 +305,7 @@ object L2_TRY_PRIMITIVE : L2Operation(
 						interpreter.debugModeString,
 						primitive.fieldName())
 				}
-				val timeBefore = 
+				val timeBefore =
 					interpreter.beforeAttemptPrimitive(primitive)
 				val result = primitive.attempt(interpreter)
 				interpreter.afterAttemptPrimitive(
@@ -313,21 +314,22 @@ object L2_TRY_PRIMITIVE : L2Operation(
 				{
 					Primitive.Result.SUCCESS ->
 					{
-						assert(interpreter.latestResultOrNull() != null)
+						assert(interpreter.latestResultOrNull() !== null)
 						interpreter.returnNow = true
 						interpreter.returningFunction = function
 					}
 					Primitive.Result.FAILURE ->
 					{
-						assert(interpreter.latestResultOrNull() != null)
+						assert(interpreter.latestResultOrNull() !== null)
 						interpreter.function = function
 						interpreter.setOffset(
-							interpreter.chunk!!.offsetAfterInitialTryPrimitive())
+							interpreter.chunk!!
+								.offsetAfterInitialTryPrimitive())
 						assert(!interpreter.returnNow)
 					}
 					Primitive.Result.READY_TO_INVOKE ->
 					{
-						assert(false) 
+						assert(false)
 							{ "Invoking primitives should be inlineable" }
 					}
 					Primitive.Result.CONTINUATION_CHANGED ->

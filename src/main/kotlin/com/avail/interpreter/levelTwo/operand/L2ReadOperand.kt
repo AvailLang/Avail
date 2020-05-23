@@ -260,7 +260,7 @@ abstract class L2ReadOperand<R : L2Register> protected constructor(
 	override fun appendTo(builder: StringBuilder)
 	{
 		builder.append('@').append(registerString())
-		if (restriction.constantOrNull == null)
+		if (restriction.constantOrNull === null)
 		{
 			// Don't redundantly print restriction information for constants.
 			builder.append(restriction.suffixString())

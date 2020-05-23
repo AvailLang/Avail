@@ -33,9 +33,9 @@ package com.avail.interpreter.primitive.pojos
 
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.pojos.PojoFieldDescriptor
-import com.avail.descriptor.pojos.PojoFieldDescriptor.pojoFieldVariableForInnerType
-import com.avail.descriptor.pojos.RawPojoDescriptor.equalityPojo
-import com.avail.descriptor.pojos.RawPojoDescriptor.rawNullPojo
+import com.avail.descriptor.pojos.PojoFieldDescriptor.Companion.pojoFieldVariableForInnerType
+import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.equalityPojo
+import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.rawNullPojo
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.tuple
@@ -49,10 +49,10 @@ import com.avail.descriptor.types.VariableTypeDescriptor.mostGeneralVariableType
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailErrorCode.E_JAVA_FIELD_NOT_AVAILABLE
 import com.avail.exceptions.AvailErrorCode.E_JAVA_FIELD_REFERENCE_IS_AMBIGUOUS
-import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.primitive.pojos.PrimitiveHelper.lookupField
 import com.avail.utility.MutableOrNull
 import java.lang.reflect.Field

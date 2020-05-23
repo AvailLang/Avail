@@ -50,7 +50,7 @@ import com.avail.descriptor.parsing.A_DefinitionParsingPlan
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.definition
 import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor
 import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor.Companion.newParsingPlan
-import com.avail.descriptor.pojos.RawPojoDescriptor.identityPojo
+import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import com.avail.descriptor.representation.*
 import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
 import com.avail.descriptor.sets.A_Set
